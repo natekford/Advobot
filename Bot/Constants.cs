@@ -6,11 +6,11 @@ namespace Advobot
 	public static class Constants
 	{
 		public const String BOT_PREFIX = ">>";
-		public const String IGNORE_ERROR = "alajksd;f";
+		public const String IGNORE_ERROR = "Cx";
 		public const UInt64 OWNER_ID = 172138437246320640;
 		public const Int32 WAIT_TIME = 3000;
 		public const int MEMBER_LIMIT = 0;
-		public const int MAX_MESSAGES_TO_GATHER = 100;
+		public const int MESSAGES_TO_GATHER = 100;
 		public const int TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG = 1;
 		public const int NICKNAME_LENGTH = 32;
 		public const int TOPIC_LENGTH = 1024;
@@ -31,6 +31,8 @@ namespace Advobot
 		public const String MOD_LOG_CHECKER = "Modlog:";
 		public const String CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/[Text|Voice]]]";
 		public const String CHANNEL_PERMISSIONS_ERROR = "You do not have the ability to edit that channel.";
+		public const String VOICE_TYPE = "voice";
+		public const String TEXT_TYPE = "text";
 	}
 
 	public static class Variables

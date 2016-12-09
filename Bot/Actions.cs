@@ -322,20 +322,117 @@ namespace Advobot
 		}
 
 		//Remove messages
-		//private async Task removeMessages(IMessageChannel channel, int requestCount)
-		//{
-		//	//To remove the command itself
-		//	++requestCount;
+		public static async Task removeMessages(IMessageChannel channel, int requestCount)
+		{
+			//To remove the command itself
+			++requestCount;
 
-		//	while (requestCount > 0)
-		//	{
-		//		int deleteCount = Math.Min(MAX_MESSAGES_TO_GATHER, requestCount);
-		//		IMessage[] messages = channel.GetMessagesAsync(deleteCount);
-		//		if (messages.Length == 0)
-		//			break;
-		//		await channel.DeleteMessages(messages);
-		//		requestCount -= messages.Length;
-		//	}
-		//}
+			while (requestCount > 0)
+			{
+				using (var enumerator = channel.GetMessagesAsync(requestCount).GetEnumerator())
+				{
+					while (await enumerator.MoveNext())
+					{
+						var messages = enumerator.Current;
+						if (messages.Count == 0)
+							continue;
+						await channel.DeleteMessagesAsync(messages);
+						requestCount -= messages.Count;
+					}
+				}
+			}
+		}
+
+		//Remove messages given a user id
+		public static async Task removeMessages(IMessageChannel channel, int requestCount, IUser user)
+		{
+			//Make sure there's a user id
+			if (null == user)
+			{
+				await removeMessages(channel, requestCount);
+				return;
+			}
+
+			Console.WriteLine(String.Format("Deleting {0} messages.", requestCount));
+			List<IMessage> allMessages = new List<IMessage>();
+			using (var enumerator = channel.GetMessagesAsync(MESSAGES_TO_GATHER).GetEnumerator())
+			{
+				while (await enumerator.MoveNext())
+				{
+					var messages = enumerator.Current;
+					if (messages.Count == 0)
+						continue;
+					allMessages.AddRange(messages);
+				}
+			}
+
+			//Get valid amount of messages to delete
+			List<IMessage> userMessages = allMessages.Where(x => user == x.Author).ToList();
+			if (requestCount > userMessages.Count)
+			{
+				requestCount = userMessages.Count;
+			}
+			else if (requestCount < userMessages.Count)
+			{
+				userMessages.RemoveRange(requestCount, userMessages.Count - requestCount);
+			}
+			userMessages.Insert(0, allMessages[0]); //Remove the initial command message
+
+			Console.WriteLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, user.Username));
+			await channel.DeleteMessagesAsync(userMessages.ToArray());
+		}
+
+		//Get a channel ID
+		public static async Task<IMessageChannel> getChannelID(IGuild guild, String channelName)
+		{
+			IMessageChannel channel = null;
+			ulong channelID = 0;
+			if (UInt64.TryParse(channelName.Trim(new char[] { '<', '>', '#' }), out channelID))
+			{
+				channel = (IMessageChannel)await guild.GetChannelAsync(channelID);
+			}
+			return channel;
+		}
+
+		//Get a channel
+		public static async Task<IGuildChannel> getChannel(IGuild guild, String input)
+		{
+			String[] values = input.Trim().Split(new char[] { '/' }, 2);
+
+			//Get input channel type
+			String channelType = values.Length == 2 ? values[1].ToLower() : null;
+			if (null != channelType && !(channelType.Equals(TEXT_TYPE) || channelType.Equals(VOICE_TYPE)))
+			{
+				return null;
+			}
+
+			//If a channel mention
+			IGuildChannel channel = null;
+			String channelIDString = values[0].Trim(new char[] { '<', '#', '>' });
+			ulong channelID = 0;
+			if (UInt64.TryParse(channelIDString, out channelID))
+			{
+				channel = await guild.GetChannelAsync(channelID);
+			}
+			//Name and type
+			else if (channelType != null)
+			{
+				IReadOnlyCollection<IGuildChannel> gottenChannels = await guild.GetChannelsAsync();
+				channel = gottenChannels.FirstOrDefault(x => x.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase) && x.GetType().Name.ToLower().Contains(channelType));
+			}
+
+			return channel;
+		}
+
+		//Get integer
+		public static int getInteger(String inputString)
+		{
+			int number = 0;
+			if (Int32.TryParse(inputString, out number))
+			{
+				return number;
+			}
+			return -1;
+		}
 	}
 }
