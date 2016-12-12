@@ -151,12 +151,75 @@ namespace Advobot
 			IReadOnlyCollection<IGuildChannel> guildChannels = await Context.Guild.GetChannelsAsync();
 			foreach (IGuildChannel channel in guildChannels)
 			{
-				var channelUsers = channel.GetUsersAsync().GetEnumerator();
-				if (channelUsers..Contains(user))
+				if (channel.GetType().Name.ToLower().Contains(VOICE_TYPE))
 				{
-					//this is getting retarded. what the fuck are these changes?
+					if (user.GetPermissions(channel).Connect)
+					{
+						channels.Add(channel.Name + " (Voice)");
+					}
+				}
+				else
+				{
+					using (var channelUsers = channel.GetUsersAsync().GetEnumerator())
+					{
+						while (await channelUsers.MoveNext())
+						{
+							if (channelUsers.Current.Contains(user))
+							{
+								channels.Add(channel.Name);
+								break;
+							}
+						}
+					}
 				}
 			}
+
+			//Get an ordered list of when users joined the server
+			await (Context.Guild as SocketGuild).DownloadUsersAsync();
+			IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync();
+			List<IGuildUser> users = guildUsers.ToList();
+			users.RemoveAll(x => x.JoinedAt == null);
+			users.Sort((x, y) => (x.JoinedAt.Value.Ticks) < (y.JoinedAt.Value.Ticks) ? -1 : 1);
+
+			await sendChannelMessage(Context.Channel, String.Format(
+					"{0}```" +
+					"\nUsername: {1}#{2}" +
+					"\nID: {3}" +
+					"\n" +
+					"\nNickname: {4}" +
+					"\nJoined: {5} (#{6} to join the server)" +
+					//"\nLast activity: {6}" +
+					"\nRoles: {7}" +
+					"\nAble to access: {8}" +
+					"\n" +
+					"\nIn voice channel: {9}" +
+					"{10}" +
+					"{11}" +
+					"{12}" +
+					"{13}" +
+					"\n" +
+					"\nCurrent game: {14}" +
+					"\nAvatar URL: {15}" +
+					"\nOnline status: {16}```",
+					user.Mention,
+					user.Username, user.Discriminator,
+					user.Id,
+					user.Nickname == null ? "N/A" : user.Nickname,
+					user.JoinedAt.Value.UtcDateTime,
+					//user.LastActivityAt == null ? "N/A" : user.LastActivityAt.ToString(),
+					users.IndexOf(user) + 1,
+					roles.Count() == 0 ? "N/A" : String.Join(", ", roles),
+					channels.Count() == 0 ? "N/A" : String.Join(", ", channels),
+					user.VoiceChannel == null ? "N/A" : user.VoiceChannel.ToString(),
+					user.VoiceChannel == null ? "" : "\nServer mute: " + user.IsMuted.ToString(),
+					user.VoiceChannel == null ? "" : "\nServer deafen: " + user.IsDeafened.ToString(),
+					user.VoiceChannel == null ? "" : "\nSelf mute: " + user.IsSelfMuted.ToString(),
+					user.VoiceChannel == null ? "" : "\nSelf deafen: " + user.IsSelfDeafened.ToString(),
+					user.Game == null ? "N/A" : user.Game.Value.Name.ToString(),
+					user.AvatarUrl,
+					user.Status));
 		}
+
+		//await user.ModifyAsync(x => x.Nickname = "test");
 	}
 }
