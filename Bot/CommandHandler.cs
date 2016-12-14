@@ -20,11 +20,11 @@ namespace Advobot
 			_map.Add(commands);
 			map = _map;
 
-			await commands.AddModulesAsync(Assembly.GetEntryAssembly());
+			//!!!Extremely needed for the commands and help command!!!
+			Actions.loadInformation();
+			await client.SetGame("type \"" + Constants.BOT_PREFIX + "help\" for help.");
 
-			Actions.loadPermissionNames();
-			//Has to after loadPermissionNames
-			Actions.loadCommandInformation();
+			await commands.AddModulesAsync(Assembly.GetEntryAssembly());
 
 			client.MessageReceived += HandleCommand;
 		}
@@ -39,7 +39,7 @@ namespace Advobot
 			// Mark where the prefix ends and the command begins
 			int argPos = 0;
 			// Determine if the message has a valid prefix, adjust argPos 
-			if (!(message.HasMentionPrefix(client.CurrentUser, ref argPos) || message.HasStringPrefix(Constants.BOT_PREFIX, ref argPos)))
+			if (!message.HasStringPrefix(Constants.BOT_PREFIX, ref argPos))
 				return;
 
 			// Create a Command Context

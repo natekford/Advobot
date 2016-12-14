@@ -13,8 +13,6 @@ using Discord.WebSocket;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using static Advobot.Constants;
-using static Advobot.Actions;
 
 namespace Advobot
 {
