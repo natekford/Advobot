@@ -232,7 +232,7 @@ namespace Advobot
 		//Format the error message
 		public static String ERROR(String message)
 		{
-			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + " " + message;
+			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
 		}
 
 		//Send a message with a zero length char at the front
@@ -487,17 +487,17 @@ namespace Advobot
 		}
 
 		//Checks what the serverlog is
-		public static async Task<IMessageChannel> logChannelCheck(IGuild guild, String serverOrMod)
+		public static async Task<ITextChannel> logChannelCheck(IGuild guild, String serverOrMod)
 		{
 			String path = getServerFilePath(guild.Id, Constants.SERVERLOG_AND_MODLOG);
-			IMessageChannel logChannel = null;
+			ITextChannel logChannel = null;
 			//Check if the file exists
 			if (!File.Exists(path))
 			{
 				//Default to 'advobot' if it doesn't exist
 				if (getChannel(guild, Constants.BASE_CHANNEL_NAME) != null)
 				{
-					logChannel = getChannel(guild, Constants.BASE_CHANNEL_NAME) as IMessageChannel;
+					logChannel = getChannel(guild, Constants.BASE_CHANNEL_NAME) as ITextChannel;
 					return logChannel;
 				}
 				//If the file and the channel both don't exist then return null
@@ -523,7 +523,7 @@ namespace Advobot
 							}
 							else
 							{
-								logChannel = (await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as IMessageChannel;
+								logChannel = (await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel;
 								return logChannel;
 							}
 						}

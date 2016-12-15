@@ -67,7 +67,7 @@ namespace Advobot
 		public static async Task OnUserJoined(SocketGuildUser user)
 		{
 			++Variables.LoggedJoins;
-			IMessageChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECKER);
+			IMessageChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
 				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
@@ -89,7 +89,7 @@ namespace Advobot
 		public static async Task OnUserLeft(SocketGuildUser user)
 		{
 			++Variables.LoggedLeaves;
-			IMessageChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECKER);
+			IMessageChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
 				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
@@ -107,11 +107,51 @@ namespace Advobot
 			return;
 		}
 		
+		//Tell when a user is banned
+		public static async Task OnUserBanned(SocketUser user, SocketGuild guild)
+		{
+			++Variables.LoggedBans;
+			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			if (logChannel != null)
+			{
+				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
+				await Actions.sendChannelMessage(logChannel, String.Format("{0} **BAN:** `{1}#{2}` **ID** `{3}`",
+					time, user.Username, user.Discriminator, user.Id));
+			}
+			//Add the user to the ban list document
+			Dictionary<ulong, String> banList = Variables.mBanList[guild.Id];
+			banList[user.Id] = user.Username + "#" + user.Discriminator;
+			Actions.saveBans(guild.Id);
+
+			return;
+		}
+		
+		//Tell when a user is unbanned
+		public static async Task OnUserUnbanned(SocketUser user, SocketGuild guild)
+		{
+			++Variables.LoggedUnbans;
+			Dictionary<ulong, String> banList = Variables.mBanList[guild.Id];
+
+			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			if (logChannel != null)
+			{
+				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
+				String[] usernameAndDiscriminator = banList[user.Id].Split('#');
+				await Actions.sendChannelMessage(logChannel, String.Format("{0} **UNBAN:** `{1}#{2}` **ID** `{3}`",
+					time, usernameAndDiscriminator[0], usernameAndDiscriminator[1], user.Id));
+			}
+			//Remove the user from the ban list document
+			banList.Remove(user.Id);
+			Actions.saveBans(guild.Id);
+
+			return;
+		}
+
 		//Tell when a user has their name, nickname, or roles changed
 		public static async Task OnGuildMemberUpdated(SocketGuildUser beforeUser, SocketGuildUser afterUser)
 		{
 			++Variables.LoggedUserChanges;
-			IMessageChannel logChannel = await Actions.logChannelCheck(beforeUser.Guild, Constants.SERVER_LOG_CHECKER);
+			IMessageChannel logChannel = await Actions.logChannelCheck(beforeUser.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
 				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
@@ -168,50 +208,12 @@ namespace Advobot
 				return;
 			}
 		}
-		
-		//Tell when a user is banned
-		public static async Task OnUserBanned(SocketUser user, SocketGuild guild)
-		{
-			++Variables.LoggedBans;
-			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECKER);
-			if (logChannel != null)
-			{
-				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
-				await Actions.sendChannelMessage(logChannel, String.Format("{0} **BAN:** `{1}#{2}` **ID** `{3}`",
-					time, user.Username, user.Discriminator, user.Id));
-			}
-			//Add the user to the ban list document
-			Dictionary<ulong, String> banList = Variables.mBanList[guild.Id];
-			banList[user.Id] = user.Username + "#" + user.Discriminator;
-			Actions.saveBans(guild.Id);
 
-			return;
-		}
-		
-		//Tell when a user is unbanned
-		public static async Task OnUserUnbanned(SocketUser user, SocketGuild guild)
-		{
-			++Variables.LoggedUnbans;
-			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECKER);
-			if (logChannel != null)
-			{
-				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
-				await Actions.sendChannelMessage(logChannel, String.Format("{0} **UNBAN:** `{1}#{2}` **ID** `{3}`",
-					time, user.Username, user.Discriminator, user.Id));
-			}
-			//Remove the user from the ban list document
-			Dictionary<ulong, String> banList = Variables.mBanList[guild.Id];
-			banList.Remove(user.Id);
-			Actions.saveBans(guild.Id);
-
-			return;
-		}
-		
 		//Tell when a message is edited 
 		public static async Task OnMessageUpdated(Optional<SocketMessage> beforeMessage, SocketMessage afterMessage)
 		{
 			++Variables.LoggedEdits;
-			IMessageChannel logChannel = await Actions.logChannelCheck((afterMessage.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECKER);
+			IMessageChannel logChannel = await Actions.logChannelCheck((afterMessage.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
 				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
@@ -254,8 +256,8 @@ namespace Advobot
 			++Variables.LoggedDeletes;
 			IGuild guild = (message.Value.Channel as IGuildChannel).Guild;
 			IUser user = message.Value.Author;
-			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECKER);
-			if (Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECKER) != null)
+			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			if (Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING) != null)
 			{
 				//Got an error once time due to a null user when spam testing, so this check is here
 				if (user.Equals(null))
@@ -339,11 +341,6 @@ namespace Advobot
 
 						//Upload the file
 						IMessage msg = await Actions.sendChannelMessage(logChannel, time + "**DELETED:**");
-						while (msg.CreatedAt.Equals(null))
-						{
-							//Sleep is needed otherwise the message gets sent after the file
-							Thread.Sleep(100);
-						}
 						await logChannel.SendFileAsync(path);
 
 						//Delete the file

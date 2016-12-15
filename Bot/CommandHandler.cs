@@ -5,7 +5,6 @@ using Discord.WebSocket;
 
 namespace Advobot
 {
-	//Basically all taken from 
 	public class CommandHandler
 	{
 		private CommandService commands;
@@ -14,7 +13,7 @@ namespace Advobot
 
 		public async Task Install(IDependencyMap _map)
 		{
-			// Create Command Service, inject it into Dependency Map
+			//Create Command Service, inject it into Dependency Map
 			client = _map.Get<DiscordSocketClient>();
 			commands = new CommandService();
 			_map.Add(commands);
@@ -31,25 +30,29 @@ namespace Advobot
 
 		public async Task HandleCommand(SocketMessage parameterMessage)
 		{
-			// Don't handle the command if it is a system message
+			//Don't handle the command if it is a system message
 			var message = parameterMessage as SocketUserMessage;
 			if (message == null)
 				return;
 
-			// Mark where the prefix ends and the command begins
+			//Mark where the prefix ends and the command begins
 			int argPos = 0;
-			// Determine if the message has a valid prefix, adjust argPos 
+			//Determine if the message has a valid prefix, adjust argPos 
 			if (!message.HasStringPrefix(Constants.BOT_PREFIX, ref argPos))
 				return;
 
-			// Create a Command Context
+			++Variables.AttemptedCommands;
+
+			//Create a Command Context
 			var context = new CommandContext(client, message);
-			// Execute the Command, store the result
+			//Execute the Command, store the result
 			var result = await commands.ExecuteAsync(context, argPos, map);
 
-			// If the command failed, notify the user
+			//If the command failed, notify the user
 			if (!result.IsSuccess)
 			{
+				++Variables.FailedCommands;
+
 				//See if ignored error
 				if (result.ErrorReason.Equals(Constants.IGNORE_ERROR))
 				{

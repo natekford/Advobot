@@ -17,7 +17,7 @@ namespace Advobot
 		public const int OWNER_POSITION = 9001;
 		public const bool DISCONNECT = false;
 		public const String ZERO_LENGTH_CHAR = "\u180E";
-		public const String ERROR_MESSAGE = "**ERROR: **";
+		public const String ERROR_MESSAGE = "**ERROR:** ";
 		public const String ARGUMENTS_ERROR = "Invalid number of arguments.";
 		public const String USER_ERROR = "Invalid user.";
 		public const String ROLE_ERROR = "Invalid role.";
@@ -27,8 +27,8 @@ namespace Advobot
 		public const String PREFERENCES_FILE = "commandPreferences.txt";
 		public const String BAN_REFERENCE_FILE = "banReferences.txt";
 		public const String SERVERLOG_AND_MODLOG = "serverlogAndModlog.txt";
-		public const String SERVER_LOG_CHECKER = "Serverlog:";
-		public const String MOD_LOG_CHECKER = "Modlog:";
+		public const String SERVER_LOG_CHECK_STRING = "Serverlog:";
+		public const String MOD_LOG_CHECK_STRING = "Modlog:";
 		public const String CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/[Text|Voice]]]";
 		public const String CHANNEL_PERMISSIONS_ERROR = "You do not have the ability to edit that channel.";
 		public const String VOICE_TYPE = "voice";
@@ -41,13 +41,13 @@ namespace Advobot
 		public static DateTime StartupTime = DateTime.UtcNow;
 		public static int TotalUsers = 0;
 		public static int TotalServers = 0;
-		public static int SuccessfulCommands = 0;
+		public static int FailedCommands = 0;
 		public static int AttemptedCommands = 0;
 		public static int LoggedJoins = 0;
 		public static int LoggedLeaves = 0;
-		public static int LoggedUserChanges = 0;
 		public static int LoggedBans = 0;
 		public static int LoggedUnbans = 0;
+		public static int LoggedUserChanges = 0;
 		public static int LoggedEdits = 0;
 		public static int LoggedDeletes = 0;
 
