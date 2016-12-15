@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -18,7 +19,7 @@ namespace Advobot
 		{
 			//Define the DiscordSocketClient
 			DiscordSocketClient client;
-			client = new DiscordSocketClient(new DiscordSocketConfig());
+			client = new DiscordSocketClient(new DiscordSocketConfig { DownloadUsersOnGuildAvailable = true, MessageCacheSize = 100 });
 
 			client.Log += Log;
 			client.GuildAvailable += BotLogs.OnGuildAvailable;
@@ -26,15 +27,24 @@ namespace Advobot
 			client.LeftGuild += BotLogs.OnLeftGuild;
 			client.UserJoined += ServerLogs.OnUserJoined;
 			client.UserLeft += ServerLogs.OnUserLeft;
-			client.GuildMemberUpdated += ServerLogs.OnGuildMemberUpdated;
 			client.UserBanned += ServerLogs.OnUserBanned;
 			client.UserUnbanned += ServerLogs.OnUserUnbanned;
+			client.GuildMemberUpdated += ServerLogs.OnGuildMemberUpdated;
 			client.MessageUpdated += ServerLogs.OnMessageUpdated;
 			client.MessageDeleted += ServerLogs.OnMessageDeleted;
 
 			//Login and connect to Discord.
 			await client.LoginAsync(TokenType.Bot, "Key");
-			await client.ConnectAsync();
+			try
+			{
+				await client.ConnectAsync();
+			}
+			catch (Exception)
+			{
+				Console.WriteLine("Client unable to connect. Shutting down in five seconds.");
+				Thread.Sleep(5000);
+				Environment.Exit(126);
+			}
 
 			var map = new DependencyMap();
 			map.Add(client);
