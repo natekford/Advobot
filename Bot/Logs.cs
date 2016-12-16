@@ -36,7 +36,9 @@ namespace Advobot
 			//});
 
 			Variables.TotalUsers += guild.MemberCount;
-			Variables.TotalServers++;
+			Variables.TotalGuilds++;
+
+			Variables.mGuilds.Add(guild);
 
 			return Task.CompletedTask;
 		}
@@ -55,7 +57,7 @@ namespace Advobot
 			Console.WriteLine(String.Format("{0}: Bot has left {1}#{2}.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
 
 			Variables.TotalUsers -= (guild.MemberCount + 1);
-			Variables.TotalServers--;
+			Variables.TotalGuilds--;
 
 			return Task.CompletedTask;
 		}
@@ -254,9 +256,15 @@ namespace Advobot
 		public static async Task OnMessageDeleted(ulong messageID, Optional<SocketMessage> message)
 		{
 			++Variables.LoggedDeletes;
+			if (message.IsSpecified.Equals(false))
+			{
+				return;
+			}
+
 			IGuild guild = (message.Value.Channel as IGuildChannel).Guild;
 			IUser user = message.Value.Author;
 			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+
 			if (Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING) != null)
 			{
 				//Got an error once time due to a null user when spam testing, so this check is here

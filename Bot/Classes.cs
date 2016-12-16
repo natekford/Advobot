@@ -49,6 +49,19 @@ namespace Advobot
 		private uint mOptional;
 	}
 
+	//Use for testing if the person is the bot owner
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+	public class BotOwnerRequirementAttribute : PreconditionAttribute
+	{
+		public override async Task<PreconditionResult> CheckPermissions(CommandContext context, CommandInfo command, IDependencyMap map)
+		{
+			IGuildUser user = await context.Guild.GetUserAsync(context.User.Id);
+			if (user.Id.Equals(Constants.OWNER_ID))
+				return PreconditionResult.FromSuccess();
+			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
+		}
+	}
+
 	//Make the usage attribute
 	public class UsageAttribute : Attribute
 	{

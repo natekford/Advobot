@@ -7,9 +7,9 @@ namespace Advobot
 {
 	public class CommandHandler
 	{
-		private CommandService commands;
-		private DiscordSocketClient client;
-		private IDependencyMap map;
+		public static CommandService commands;
+		public static DiscordSocketClient client;
+		public static IDependencyMap map;
 
 		public async Task Install(IDependencyMap _map)
 		{
@@ -53,7 +53,6 @@ namespace Advobot
 			{
 				++Variables.FailedCommands;
 
-				//See if ignored error
 				if (result.ErrorReason.Equals(Constants.IGNORE_ERROR))
 				{
 					return;

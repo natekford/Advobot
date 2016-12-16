@@ -139,7 +139,8 @@ namespace Advobot
 		[Command("setgame")]
 		[Alias("sg")]
 		[Usage(Constants.BOT_PREFIX + "setgame [New name]")]
-		[Summary("Changes the game the bot is currently listed as playing. By default only the bot owner can change this.")]
+		[Summary("Changes the game the bot is currently listed as playing. By default only the person hosting the bot can do this.")]
+		[BotOwnerRequirement()]
 		public async Task SetGame([Remainder] String input)
 		{
 			//Check the game name length
@@ -150,33 +151,35 @@ namespace Advobot
 				return;
 			}
 
-			await SetGame(input);
-			await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, String.Format("Game set to `{0}`.", input), Constants.WAIT_TIME);
+			await CommandHandler.client.SetGame(input);
+			await Actions.sendChannelMessage(Context.Channel, String.Format("Game set to `{0}`.", input));
 		}
 
 		[Command("disconnect")]
 		[Alias("dc", "runescapeservers")]
 		[Usage(Constants.BOT_PREFIX + "disconnect")]
 		[Summary("Turns the bot off. By default only the person hosting the bot can do this.")]
+		[BotOwnerRequirement()]
 		public async Task Disconnect()
 		{
 			if ((Context.User.Id == Constants.OWNER_ID) || (Constants.DISCONNECT == true))
 			{
 				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
 				List<IMessage> msgs = new List<IMessage>();
-				Variables.mBanList.Keys.ToList().ForEach(async x =>
+				foreach (IGuild guild in Variables.mGuilds)
 				{
-					IMessageChannel channel = Actions.logChannelCheck(, Constants.SERVER_LOG_CHECK_STRING);
+					ITextChannel channel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 					if (null != channel)
 					{
 						msgs.Add(await Actions.sendChannelMessage(channel, String.Format("{0} Bot is disconnecting.", time)));
 					}
-				});
+				}
 				while (msgs.Any(x => x.CreatedAt == null))
 				{
 					Thread.Sleep(100);
 				}
-				await Disconnect();
+				await CommandHandler.client.SetStatus(UserStatus.Invisible);
+				await Context.Client.DisconnectAsync();
 			}
 			else
 			{
@@ -405,7 +408,7 @@ namespace Advobot
 				"```",
 				Variables.StartupTime,
 				span.Days, span.Hours.ToString("00"), span.Minutes.ToString("00"), span.Seconds.ToString("00"),
-				Variables.TotalServers,
+				Variables.TotalGuilds,
 				Variables.TotalUsers,
 				Variables.AttemptedCommands,
 				Variables.AttemptedCommands - Variables.FailedCommands,
