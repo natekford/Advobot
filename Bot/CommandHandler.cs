@@ -53,6 +53,7 @@ namespace Advobot
 			{
 				++Variables.FailedCommands;
 
+				//See if ignored error
 				if (result.ErrorReason.Equals(Constants.IGNORE_ERROR))
 				{
 					return;
