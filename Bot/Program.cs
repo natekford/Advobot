@@ -13,13 +13,10 @@ namespace Advobot
 		public static void Main(string[] args) =>
 			new Program().Start().GetAwaiter().GetResult();
 
-		//public DiscordSocketClient Client { get { return client; } }
-
 		public async Task Start()
 		{
 			//Define the DiscordSocketClient
-			DiscordSocketClient client;
-			client = new DiscordSocketClient(new DiscordSocketConfig { DownloadUsersOnGuildAvailable = true, MessageCacheSize = 100 });
+			DiscordSocketClient client = new DiscordSocketClient(new DiscordSocketConfig { DownloadUsersOnGuildAvailable = true, MessageCacheSize = 10000 });
 
 			client.Log += Log;
 			client.GuildAvailable += BotLogs.OnGuildAvailable;
@@ -34,7 +31,7 @@ namespace Advobot
 			client.MessageDeleted += ServerLogs.OnMessageDeleted;
 
 			//Login and connect to Discord.
-			await client.LoginAsync(TokenType.Bot, "Key");
+			await client.LoginAsync(TokenType.Bot, "Bot Key");
 			try
 			{
 				await client.ConnectAsync();
@@ -49,9 +46,7 @@ namespace Advobot
 			var map = new DependencyMap();
 			map.Add(client);
 
-			CommandHandler handler;
-			handler = new CommandHandler();
-			await handler.Install(map);
+			await new CommandHandler().Install(map);
 
 			//Block this program until it is closed.
 			await Task.Delay(-1);
