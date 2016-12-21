@@ -227,7 +227,6 @@ namespace Advobot
 				try
 				{
 					await CommandHandler.client.LogoutAsync();
-					await CommandHandler.client.LoginAsync(TokenType.Bot, "MjQzNjIxNTY3NDY3MDk0MDE3.CyWSEw.cZPNa9ICFNjgzMXmOnwUzh4Jc6I");
 					//await CommandHandler.client.ConnectAsync();
 					//CommandHandler.client.DisconnectAsync();
 				}
