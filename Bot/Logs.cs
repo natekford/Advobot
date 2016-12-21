@@ -13,6 +13,7 @@ using Discord.WebSocket;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Advobot
 {
@@ -23,7 +24,6 @@ namespace Advobot
 		{
 			Console.WriteLine(String.Format("{0}: {1}#{2} is online now.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
 			Actions.loadPreferences(guild);
-			Actions.loadBans(guild);
 
 			//var t = Task.Run(async delegate
 			//{
@@ -37,8 +37,7 @@ namespace Advobot
 
 			Variables.TotalUsers += guild.MemberCount;
 			Variables.TotalGuilds++;
-
-			Variables.mGuilds.Add(guild);
+			Variables.Guilds.Add(guild);
 
 			return Task.CompletedTask;
 		}
@@ -58,6 +57,7 @@ namespace Advobot
 
 			Variables.TotalUsers -= (guild.MemberCount + 1);
 			Variables.TotalGuilds--;
+			Variables.Guilds.Remove(guild);
 
 			return Task.CompletedTask;
 		}
@@ -120,10 +120,6 @@ namespace Advobot
 				await Actions.sendChannelMessage(logChannel, String.Format("{0} **BAN:** `{1}#{2}` **ID** `{3}`",
 					time, user.Username, user.Discriminator, user.Id));
 			}
-			//Add the user to the ban list document
-			Dictionary<ulong, String> banList = Variables.mBanList[guild.Id];
-			banList[user.Id] = user.Username + "#" + user.Discriminator;
-			Actions.saveBans(guild.Id);
 
 			return;
 		}
@@ -132,19 +128,14 @@ namespace Advobot
 		public static async Task OnUserUnbanned(SocketUser user, SocketGuild guild)
 		{
 			++Variables.LoggedUnbans;
-			Dictionary<ulong, String> banList = Variables.mBanList[guild.Id];
 
 			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
 				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
-				String[] usernameAndDiscriminator = banList[user.Id].Split('#');
-				await Actions.sendChannelMessage(logChannel, String.Format("{0} **UNBAN:** `{1}#{2}` **ID** `{3}`",
-					time, usernameAndDiscriminator[0], usernameAndDiscriminator[1], user.Id));
+				await Actions.sendChannelMessage(logChannel, String.Format("{0} **UNBAN:** `{1}`",
+					time, user.Id));
 			}
-			//Remove the user from the ban list document
-			banList.Remove(user.Id);
-			Actions.saveBans(guild.Id);
 
 			return;
 		}
@@ -216,8 +207,11 @@ namespace Advobot
 		{
 			++Variables.LoggedEdits;
 			IMessageChannel logChannel = await Actions.logChannelCheck((afterMessage.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
-			if (logChannel != null)
+			if (logChannel != null && beforeMessage.IsSpecified)
 			{
+				if (beforeMessage.Value.Content.Equals(afterMessage.Content))
+					return;
+
 				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
 				String beforeMsg = beforeMessage.Value.Content;
 				String afterMsg = afterMessage.Content;
@@ -250,13 +244,17 @@ namespace Advobot
 					return;
 				}
 			}
+			else
+			{
+
+			}
 		}
 		
 		//Tell when a message is deleted
 		public static async Task OnMessageDeleted(ulong messageID, Optional<SocketMessage> message)
 		{
 			++Variables.LoggedDeletes;
-			if (message.IsSpecified.Equals(false))
+			if (!message.IsSpecified)
 			{
 				return;
 			}
@@ -271,9 +269,14 @@ namespace Advobot
 				if (user.Equals(null))
 					return;
 
-				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
-				String outputMessage = String.Format("{0} **DELETED:** `{1}#{2}` **IN** `#{3}`\n```{4}```",
-					time, user.Username, user.Discriminator, message.Value.Channel, message.Value.Content.Replace("`", "'"));
+				String time = DateTime.UtcNow.ToString("HH:mm:ss");
+				String outputMessage = String.Format("`[{0}]` **DELETED:** `{1}#{2}` **IN** `#{3}` **SENT** `[{4}]`\n```\n{5}```",
+					 time,
+					 user.Username,
+					 user.Discriminator,
+					 message.Value.Channel,
+					 message.Value.CreatedAt.ToString("HH:mm:ss"),
+					 message.Value.Content);
 
 				//Get a list of the deleted messages per server
 				List<String> mainMessages;
@@ -285,7 +288,7 @@ namespace Advobot
 				lock (mainMessages)
 				{
 					mainMessages.Add(outputMessage);
-					Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Maintask: " + mainMessages.Count());
+					Console.WriteLine(MethodBase.GetCurrentMethod().Name + " Maintask: " + mainMessages.Count());
 				}
 
 				//Use a token so the messages do not get sent prematurely
@@ -321,16 +324,36 @@ namespace Advobot
 					}
 					if (deletedMessages.Count() == 0)
 						return;
-					Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Deleting: " + deletedMessages.Count());
+					Console.WriteLine(MethodBase.GetCurrentMethod().Name + " Deleting: " + deletedMessages.Count());
 					characterCounter += deletedMessages.Count() * 100;
 
-					if ((deletedMessages.Count() <= 3) && (characterCounter < 2000))
+					if ((deletedMessages.Count() <= 4) && (characterCounter < 2000))
 					{
 						//If there aren't many messages send the small amount in a message instead of a file
 						await Actions.sendChannelMessage(logChannel, String.Join("\n", deletedMessages));
 					}
 					else
 					{
+#if true
+						//Regex for getting the key out
+						Regex hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
+
+						//Deleted messages in the format to upload
+						string haste = String.Join("\n-----\n", deletedMessages).Replace("*", "").Replace("`", "");
+						string hasteUrl;
+
+						//Upload the messages
+						using (var client = new WebClient())
+						{
+							var response = client.UploadString("http://hastebin.com/documents", haste);
+							var match = hasteKeyRegex.Match(response);
+
+							hasteUrl = String.Concat("http://hastebin.com/", match.Groups["key"]);
+						}
+
+						//Send the url back to the logchannel
+						await Actions.sendChannelMessage(logChannel, "`[" + time + "]` **DELETED:** " + hasteUrl);
+#else
 						//Get the file path
 						String deletedMessagesFile = "Deleted_Messages_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt";
 						String path = Actions.getServerFilePath(guild.Id, deletedMessagesFile);
@@ -353,6 +376,7 @@ namespace Advobot
 
 						//Delete the file
 						File.Delete(path);
+#endif
 					}
 				});
 

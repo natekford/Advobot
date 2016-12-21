@@ -29,7 +29,7 @@ namespace Advobot
 		public const Int32 WAIT_TIME = 3000;
 		public const int MEMBER_LIMIT = 0;
 		public const int MESSAGES_TO_GATHER = 100;
-		public const int TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG = 1;
+		public const int TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG = 3;
 		public const int NICKNAME_LENGTH = 32;
 		public const int TOPIC_LENGTH = 1024;
 		public const int OWNER_POSITION = 9001;
@@ -56,7 +56,6 @@ namespace Advobot
 		public static int LoggedDeletes = 0;
 
 		public static Dictionary<ulong, List<PreferenceCategory>> mCommandPreferences = new Dictionary<ulong, List<PreferenceCategory>>();
-		public static Dictionary<ulong, Dictionary<ulong, String>> mBanList = new Dictionary<ulong, Dictionary<ulong, String>>();
 		public static Dictionary<ulong, List<String>> mDeletedMessages = new Dictionary<ulong, List<String>>();
 		public static Dictionary<ulong, System.Threading.CancellationTokenSource> mCancelTokens = new Dictionary<ulong, System.Threading.CancellationTokenSource>();
 		public static Dictionary<String, int> mInviteLinks = new Dictionary<String, int>();
@@ -64,7 +63,7 @@ namespace Advobot
 		public static Dictionary<ulong, Dictionary<String, bool>> mOwnerCommands = new Dictionary<ulong, Dictionary<string, bool>>();
 		public static List<String> mPermissionNames = new List<String>();
 		public static List<String> mCommandNames = new List<String>();
-		public static List<Discord.IGuild> mGuilds = new List<Discord.IGuild>();
+		public static List<Discord.IGuild> Guilds = new List<Discord.IGuild>();
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
 	}
 }

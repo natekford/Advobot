@@ -23,6 +23,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "help <Command>")]
 		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
 			"If left blank will print out a link to the documentation of this bot.")]
+		[UserHasAPermission()]
 		public async Task Help([Optional][Remainder] String input)
 		{
 			//See if it's empty
@@ -55,7 +56,7 @@ namespace Advobot
 			{
 				foreach (HelpEntry commands in Variables.HelpList)
 				{
-					if (commands.Aliases.Contains(input))
+					if (commands.Aliases.Equals(input))
 					{
 						helpEntry = commands;
 					}
@@ -74,6 +75,7 @@ namespace Advobot
 		[Alias("cmds")]
 		[Usage(Constants.BOT_PREFIX + "commands <Category|All>")]
 		[Summary("Prints out the commands in that section of the command list.")]
+		[UserHasAPermission()]
 		public async Task Commands([Optional][Remainder] String input)
 		{
 			//See if it's empty
@@ -137,7 +139,6 @@ namespace Advobot
 		}
 
 		[Command("setgame")]
-		[Alias("sg")]
 		[Usage(Constants.BOT_PREFIX + "setgame [New name]")]
 		[Summary("Changes the game the bot is currently listed as playing. By default only the person hosting the bot can do this.")]
 		[BotOwnerRequirement()]
@@ -156,7 +157,7 @@ namespace Advobot
 		}
 
 		[Command("disconnect")]
-		[Alias("dc", "runescapeservers")]
+		[Alias("runescapeservers")]
 		[Usage(Constants.BOT_PREFIX + "disconnect")]
 		[Summary("Turns the bot off. By default only the person hosting the bot can do this.")]
 		[BotOwnerRequirement()]
@@ -166,12 +167,19 @@ namespace Advobot
 			{
 				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
 				List<IMessage> msgs = new List<IMessage>();
-				foreach (IGuild guild in Variables.mGuilds)
+				//Variables.Guilds.Where(x =>
+				//	(x as SocketGuild).MemberCount > (Variables.TotalUsers / Variables.TotalGuilds) * .75 &&
+				//	Actions.logChannelCheck(x, Constants.SERVER_LOG_CHECK_STRING) != null).ToList().ForEach(async x =>
+				//	msgs.Add(await Actions.sendChannelMessage(await Actions.logChannelCheck(x, Constants.SERVER_LOG_CHECK_STRING), String.Format("{0} Bot is disconnecting.", time))));
+				foreach (IGuild guild in Variables.Guilds)
 				{
-					ITextChannel channel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
-					if (null != channel)
+					if ((guild as SocketGuild).MemberCount > (Variables.TotalUsers / Variables.TotalGuilds) * .75)
 					{
-						msgs.Add(await Actions.sendChannelMessage(channel, String.Format("{0} Bot is disconnecting.", time)));
+						ITextChannel channel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+						if (null != channel)
+						{
+							msgs.Add(await Actions.sendChannelMessage(channel, String.Format("{0} Bot is disconnecting.", time)));
+						}
 					}
 				}
 				while (msgs.Any(x => x.CreatedAt == null))
@@ -180,6 +188,7 @@ namespace Advobot
 				}
 				await CommandHandler.client.SetStatus(UserStatus.Invisible);
 				await Context.Client.DisconnectAsync();
+				Environment.Exit(1);
 			}
 			else
 			{
@@ -188,10 +197,69 @@ namespace Advobot
 			}
 		}
 
-		[Command("serverid")]
-		[Alias("sid")]
-		[Usage(Constants.BOT_PREFIX + "serverid")]
-		[Summary("Shows the ID of the server.")]
+		[Command("restart")]
+		[Usage(Constants.BOT_PREFIX + "restart")]
+		[Summary("Restarts the bot. By default only the person hosting the bot can do this.")]
+		[BotOwnerRequirement()]
+		public async Task Restart()
+		{
+			//Does not work, need to fix it
+			if ((Context.User.Id == Constants.OWNER_ID) || (Constants.DISCONNECT == true))
+			{
+				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
+				List<IMessage> msgs = new List<IMessage>();
+				foreach (IGuild guild in Variables.Guilds)
+				{
+					if ((guild as SocketGuild).MemberCount > (Variables.TotalUsers / Variables.TotalGuilds) * .75)
+					{
+						ITextChannel channel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+						if (null != channel)
+						{
+							msgs.Add(await Actions.sendChannelMessage(channel, String.Format("{0} Bot is restarting...", time)));
+						}
+					}
+				}
+				while (msgs.Any(x => x.CreatedAt == null))
+				{
+					Thread.Sleep(100);
+				}
+
+				try
+				{
+					await CommandHandler.client.LogoutAsync();
+					await CommandHandler.client.LoginAsync(TokenType.Bot, "MjQzNjIxNTY3NDY3MDk0MDE3.CyWSEw.cZPNa9ICFNjgzMXmOnwUzh4Jc6I");
+					//await CommandHandler.client.ConnectAsync();
+					//CommandHandler.client.DisconnectAsync();
+				}
+				catch (Exception)
+				{
+					Console.WriteLine("!!!BOT IS UNABLE TO RESTART!!!");
+				}
+
+				foreach (IGuild guild in Variables.Guilds)
+				{
+					if ((guild as SocketGuild).MemberCount > (Variables.TotalUsers / Variables.TotalGuilds) * .75)
+					{
+						ITextChannel channel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+						if (null != channel)
+						{
+							msgs.Add(await Actions.sendChannelMessage(channel, String.Format("{0} Bot has restarted!", time)));
+						}
+					}
+				}
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
+					"Disconnection is turned off for everyone but the bot owner currently.", Constants.WAIT_TIME);
+			}
+		}
+
+		[Command("guildid")]
+		[Alias("gid", "serverid", "sid")]
+		[Usage(Constants.BOT_PREFIX + "guildid")]
+		[Summary("Shows the ID of the guild.")]
+		[UserHasAPermission()]
 		public async Task ServerID()
 		{
 			await Actions.sendChannelMessage(Context.Channel, String.Format("This server has the ID `{0}`.", Context.Guild.Id) + " ");
@@ -201,6 +269,7 @@ namespace Advobot
 		[Alias("cid")]
 		[Usage(Constants.BOT_PREFIX + "channelid " + Constants.CHANNEL_INSTRUCTIONS)]
 		[Summary("Shows the ID of the given channel.")]
+		[UserHasAPermission()]
 		public async Task ChannelID([Remainder] String input)
 		{
 			IGuildChannel channel = Actions.getChannel(Context.Guild, input).Result;
@@ -217,6 +286,7 @@ namespace Advobot
 		[Alias("rid")]
 		[Usage(Constants.BOT_PREFIX + "roleid [Role]")]
 		[Summary("Shows the ID of the given role.")]
+		[UserHasAPermission()]
 		public async Task RoleID([Remainder] String input)
 		{
 			IRole role = Actions.getRole(Context.Guild, input);
@@ -232,6 +302,7 @@ namespace Advobot
 		[Alias("uid")]
 		[Usage(Constants.BOT_PREFIX + "userid [@User]")]
 		[Summary("Shows the ID of the given user.")]
+		[UserHasAPermission()]
 		public async Task UserID([Remainder] String input)
 		{
 			IGuildUser user = await Actions.getUser(Context.Guild, input);
@@ -243,10 +314,21 @@ namespace Advobot
 			await Actions.sendChannelMessage(Context.Channel, String.Format("The user  has the ID `{1}`.", user.Mention, user.Id));
 		}
 
+		[Command("currentmembercount")]
+		[Alias("cmc")]
+		[Usage(Constants.BOT_PREFIX + "currentmembercount")]
+		[Summary("Shows the current number of members in the guild.")]
+		[UserHasAPermission()]
+		public async Task CurrentMemberCount()
+		{
+			await Actions.sendChannelMessage(Context.Channel, String.Format("The current member count is `{0}`.", (Context.Guild as SocketGuild).MemberCount));
+		}
+
 		[Command("userjoinedat")]
 		[Alias("ujat")]
 		[Usage(Constants.BOT_PREFIX + "userjoinedat [int]")]
-		[Summary("Shows the user which joined the server in that position. Mostly accurate, give or take ten places per thousand users on the server.")]
+		[Summary("Shows the user which joined the guild in that position. Mostly accurate, give or take ten places per thousand users on the guild.")]
+		[UserHasAPermission()]
 		public async Task UserJoinedAt([Remainder] String input)
 		{
 			int position;
@@ -263,24 +345,23 @@ namespace Advobot
 						user.JoinedAt.Value.UtcDateTime.Day,
 						user.JoinedAt.Value.UtcDateTime.Year,
 						user.JoinedAt.Value.UtcDateTime.ToString("HH:mm:ss")));
+					return;
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Invalid position"), Constants.WAIT_TIME);
+					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Invalid position."), Constants.WAIT_TIME);
 					return;
 				}
 			}
-			else
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Something besides a number was input."), Constants.WAIT_TIME);
-				return;
-			}
+			await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Something besides a number was input."), Constants.WAIT_TIME);
+			return;
 		}
 
 		[Command("userinfo")]
 		[Alias("uinf")]
 		[Usage(Constants.BOT_PREFIX + "userinfo [@User]")]
-		[Summary("Displays various information about the user. Join position is mostly accurate, give or take ten places per thousand users on the server.")]
+		[Summary("Displays various information about the user. Join position is mostly accurate, give or take ten places per thousand users on the guild.")]
+		[UserHasAPermission()]
 		public async Task UserInfo([Optional][Remainder] String input)
 		{
 			IGuildUser user = null;
@@ -383,6 +464,7 @@ namespace Advobot
 		[Alias("binf")]
 		[Usage(Constants.BOT_PREFIX + "botinfo")]
 		[Summary("Displays various information about the bot.")]
+		[UserHasAPermission()]
 		public async Task BotInfo()
 		{
 			TimeSpan span = DateTime.UtcNow.Subtract(Variables.StartupTime);
@@ -391,8 +473,8 @@ namespace Advobot
 				"```" +
 				"\nOnline since: {0}" +
 				"\nUptime: {1}:{2}:{3}:{4}" +
-				"\nTotal server count: {5}" +
-				"\nTotal member count: {6}" +
+				"\nGuild count: {5}" +
+				"\nCumulative member count: {6}" +
 				"\n" +
 				"\nAttempted commands: {7}" +
 				"\nSuccessful commands: {8}" +

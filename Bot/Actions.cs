@@ -21,9 +21,9 @@ namespace Advobot
 		//Loading in all necessary information at bot start up
 		public static void loadInformation()
 		{
-			loadPermissionNames();													//Gets the name of the permission bits in Discord
+			loadPermissionNames();							//Gets the name of the permission bits in Discord
 			//Has to go after loadPermissionNames
-			loadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary)
+			loadCommandInformation();						//Gets the information of a command (name, aliases, usage, summary)
 			//Has to go after loadCommandInformation
 			Variables.HelpList.ForEach(x => Variables.mCommandNames.Add(x.Name));   //Gets all the active command names
 		}
@@ -76,7 +76,11 @@ namespace Advobot
 						if (null != attr)
 						{
 							//Console.WriteLine(classType.Name + "." + method.Name + ": " + attr.Text);
-							basePerm = attr.Text;
+							basePerm = String.IsNullOrWhiteSpace(attr.AllText) ? "" : "[" + attr.AllText + "]";
+							if (!basePerm.Equals("[Administrator]"))
+							{
+								basePerm += basePerm.Contains('[') ? " or <" + attr.AnyText + ">" : "[" + attr.AnyText + "]";
+							}
 						}
 					}
 					{
@@ -127,26 +131,18 @@ namespace Advobot
 		//Find a role on the server
 		public static IRole getRole(IGuild guild, String roleName)
 		{
-			List<IRole> roles = guild.Roles.ToList();
-			foreach (IRole role in roles)
-			{
-				if (role.Name.Equals(roleName))
-				{
-					return role;
-				}
-			}
-			return null;
+			return guild.Roles.ToList().FirstOrDefault(x => x.Name.Equals(roleName));
 		}
 
 		//Create a role on the server if it's not found
 		public static async Task<IRole> createRoleIfNotFound(IGuild guild, String roleName)
 		{
-			if (getRole(guild, roleName) == null)
+			IRole role = getRole(guild, roleName);
+			if (role == null)
 			{
-				IRole role = await guild.CreateRoleAsync(roleName);
-				return role;
+				role = await guild.CreateRoleAsync(roleName);
 			}
-			return getRole(guild, roleName);
+			return role;
 		} 
 
 		//Get top position of a user
@@ -238,6 +234,8 @@ namespace Advobot
 		//Send a message with a zero length char at the front
 		public static async Task<IMessage> sendChannelMessage(IMessageChannel channel, String message)
 		{
+			if (channel == null)
+				return null;
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
 
@@ -437,55 +435,6 @@ namespace Advobot
 			return path;
 		}
 
-		//Load bans
-		public static void loadBans(IGuild guild)
-		{
-			Dictionary<ulong, String> banList = null;
-			if (Variables.mBanList.TryGetValue(guild.Id, out banList))
-			{
-				return;
-			}
-
-			banList = new Dictionary<ulong, String>();
-			Variables.mBanList[guild.Id] = banList;
-
-			String path = getServerFilePath(guild.Id, Constants.BAN_REFERENCE_FILE);
-			if (!System.IO.File.Exists(path))
-			{
-				return;
-			}
-
-			using (System.IO.StreamReader file = new System.IO.StreamReader(path))
-			{
-				Console.WriteLine(String.Format("{0}: bans for the server {1} have been loaded.", System.Reflection.MethodBase.GetCurrentMethod().Name, guild.Name));
-				//Read the bans document for information
-				String line;
-				while ((line = file.ReadLine()) != null)
-				{
-					//If the line is empty, do nothing
-					if (String.IsNullOrWhiteSpace(line))
-					{
-						continue;
-					}
-					//Split before and after the colon, before is the userID, after is the username and discriminator
-					String[] values = line.Split(new char[] { ':' }, 2);
-					if (values.Length == 2)
-					{
-						ulong userID = getUlong(values[0]);
-						if (userID == 0)
-						{
-							continue;
-						}
-						banList[userID] = values[1];
-					}
-					else
-					{
-						Console.WriteLine("ERROR: " + line);
-					}
-				}
-			}
-		}
-
 		//Checks what the serverlog is
 		public static async Task<ITextChannel> logChannelCheck(IGuild guild, String serverOrMod)
 		{
@@ -534,37 +483,6 @@ namespace Advobot
 			return null;
 		}
 
-		//Save bans by server
-		public static void saveBans(ulong serverID)
-		{
-			String path = getServerFilePath(serverID, Constants.BAN_REFERENCE_FILE);
-			//Check if the location already exists
-			//if (!System.IO.File.Exists(path))
-			{
-				System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
-				using (System.IO.StreamWriter writer = new System.IO.StreamWriter(path, false))
-				{
-					saveBans(writer, serverID);
-				}
-			}
-		}
-
-		//Save bans
-		public static void saveBans(TextWriter writer, ulong serverID)
-		{
-			//Test if the bans exist
-			Dictionary<ulong, String> banList;
-			if (!Variables.mBanList.TryGetValue(serverID, out banList))
-			{
-				return;
-			}
-
-			foreach (ulong userID in banList.Keys)
-			{
-				writer.WriteLine(userID.ToString() + ":" + banList[userID]);
-			}
-		}
-
 		//Edit message log message
 		public static async Task editMessage(IMessageChannel logChannel, String time, IGuildUser user, IMessageChannel channel, String before, String after)
 		{
@@ -573,6 +491,34 @@ namespace Advobot
 
 			await sendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}#{2}` **IN** `#{3}`\n**FROM:** `{4}`\n**TO:** `{5}`",
 				time, user.Username, user.Discriminator, channel.Name, before, after));
+		}
+
+		//Take multiple roles from a user
+		public static async Task takeRole(IGuildUser user, IRole[] roles)
+		{
+			if (roles.Count() == 0)
+				return;
+			await user.RemoveRolesAsync(roles);
+		}
+
+		//Take a single role from a user
+		public static async Task takeRole(IGuildUser user, IRole role)
+		{
+			if (role == null)
+				return;
+			await user.RemoveRolesAsync(role);
+		}
+
+		//Check if the user is the owner of the server
+		public static bool userHasOwner(IGuild guild, IGuildUser user)
+		{
+			return guild.GetOwnerAsync().Result.Id == user.Id;
+		}
+
+		//Send an exception message to the console
+		public static void ExceptionToConsole(String method, Exception e)
+		{
+			Console.WriteLine(method + " EXCEPTION: " + e.ToString());
 		}
 	}
 }
