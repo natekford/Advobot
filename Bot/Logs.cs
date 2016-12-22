@@ -69,6 +69,7 @@ namespace Advobot
 		public static async Task OnUserJoined(SocketGuildUser user)
 		{
 			++Variables.LoggedJoins;
+
 			IMessageChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
@@ -86,11 +87,12 @@ namespace Advobot
 
 			return;
 		}
-		
+
 		//Tell when a user leaves the server
 		public static async Task OnUserLeft(SocketGuildUser user)
 		{
 			++Variables.LoggedLeaves;
+
 			IMessageChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
@@ -108,11 +110,12 @@ namespace Advobot
 
 			return;
 		}
-		
+
 		//Tell when a user is banned
 		public static async Task OnUserBanned(SocketUser user, SocketGuild guild)
 		{
 			++Variables.LoggedBans;
+
 			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
@@ -123,7 +126,7 @@ namespace Advobot
 
 			return;
 		}
-		
+
 		//Tell when a user is unbanned
 		public static async Task OnUserUnbanned(SocketUser user, SocketGuild guild)
 		{
@@ -144,6 +147,7 @@ namespace Advobot
 		public static async Task OnGuildMemberUpdated(SocketGuildUser beforeUser, SocketGuildUser afterUser)
 		{
 			++Variables.LoggedUserChanges;
+
 			IMessageChannel logChannel = await Actions.logChannelCheck(beforeUser.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
@@ -206,11 +210,20 @@ namespace Advobot
 		public static async Task OnMessageUpdated(Optional<SocketMessage> beforeMessage, SocketMessage afterMessage)
 		{
 			++Variables.LoggedEdits;
+
 			IMessageChannel logChannel = await Actions.logChannelCheck((afterMessage.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null && beforeMessage.IsSpecified)
 			{
 				if (beforeMessage.Value.Content.Equals(afterMessage.Content))
-					return;
+				{
+					if (afterMessage.Embeds.Count() > 0
+						&& afterMessage.Embeds.Count() != afterMessage.Attachments.Count()
+						&& beforeMessage.Value.Embeds.Count != afterMessage.Embeds.Count())
+					{
+						await ImageLog(logChannel, afterMessage);
+						return;
+					}
+				}
 
 				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
 				String beforeMsg = beforeMessage.Value.Content;
@@ -249,45 +262,36 @@ namespace Advobot
 
 			}
 		}
-		
+
 		//Tell when a message is deleted
 		public static async Task OnMessageDeleted(ulong messageID, Optional<SocketMessage> message)
 		{
 			++Variables.LoggedDeletes;
-			if (!message.IsSpecified)
-			{
-				return;
-			}
 
+			//Skip null messages
+			if (!message.IsSpecified)
+				return;
+
+			//Initialize the guild and channel
 			IGuild guild = (message.Value.Channel as IGuildChannel).Guild;
-			IUser user = message.Value.Author;
 			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 
-			if (Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING) != null)
+			if (logChannel != null)
 			{
 				//Got an error once time due to a null user when spam testing, so this check is here
-				if (user.Equals(null))
+				if (message.Value.Author.Equals(null))
 					return;
 
-				String time = DateTime.UtcNow.ToString("HH:mm:ss");
-				String outputMessage = String.Format("`[{0}]` **DELETED:** `{1}#{2}` **IN** `#{3}` **SENT** `[{4}]`\n```\n{5}```",
-					 time,
-					 user.Username,
-					 user.Discriminator,
-					 message.Value.Channel,
-					 message.Value.CreatedAt.ToString("HH:mm:ss"),
-					 message.Value.Content);
-
 				//Get a list of the deleted messages per server
-				List<String> mainMessages;
+				List<SocketMessage> mainMessages;
 				if (!Variables.mDeletedMessages.TryGetValue(guild.Id, out mainMessages))
 				{
-					mainMessages = new List<String>();
+					mainMessages = new List<SocketMessage>();
 					Variables.mDeletedMessages[guild.Id] = mainMessages;
 				}
 				lock (mainMessages)
 				{
-					mainMessages.Add(outputMessage);
+					mainMessages.Add(message.Value);
 					Console.WriteLine(MethodBase.GetCurrentMethod().Name + " Maintask: " + mainMessages.Count());
 				}
 
@@ -313,24 +317,44 @@ namespace Advobot
 						Console.WriteLine("Expected exception occurred during deleting messages.");
 						return;
 					}
-					int characterCounter = 0;
-					List<String> deletedMessages;
-					List<String> taskMessages = Variables.mDeletedMessages[guild.Id];
+
+					int characterCount = 0;
+					List<SocketMessage> deletedMessages;
+					List<SocketMessage> taskMessages = Variables.mDeletedMessages[guild.Id];
 					lock (taskMessages)
 					{
-						deletedMessages = new List<String>(taskMessages);
-						characterCounter += taskMessages[0].Length;
+						//Give the messages to a new list so they can be removed from the old one
+						deletedMessages = new List<SocketMessage>(taskMessages);
+
+						//Get the character count
+						taskMessages.ForEach(x => characterCount += (x.Content.Length));
+						characterCount += taskMessages.Count * 100;
+
+						//Clear the messages
 						taskMessages.Clear();
 					}
+					Console.WriteLine(MethodBase.GetCurrentMethod().Name + " Deleting: " + deletedMessages.Count());
+
+					//Sort by oldest to newest
+					List<SocketMessage> deletedMessagesSorted = deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks).ToList();
+					if (Constants.NEWEST_DELETED_MESSAGES_AT_TOP)
+					{
+						deletedMessagesSorted.Reverse();
+					}
+					//Put the message content into a list of strings for easy usage
+					List<String> deletedMessagesContent = new List<String>();
+					deletedMessagesSorted.ForEach(x =>
+					{
+						deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
+							x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), x.Content.Replace("`", "'")));
+					});
+
 					if (deletedMessages.Count() == 0)
 						return;
-					Console.WriteLine(MethodBase.GetCurrentMethod().Name + " Deleting: " + deletedMessages.Count());
-					characterCounter += deletedMessages.Count() * 100;
-
-					if ((deletedMessages.Count() <= 4) && (characterCounter < 2000))
+					else if ((deletedMessages.Count() <= 5) && (characterCount < 2000))
 					{
 						//If there aren't many messages send the small amount in a message instead of a file
-						await Actions.sendChannelMessage(logChannel, String.Join("\n", deletedMessages));
+						await Actions.sendChannelMessage(logChannel, "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]` **DELETED:**\n" + String.Join("\n", deletedMessagesContent));
 					}
 					else
 					{
@@ -339,20 +363,20 @@ namespace Advobot
 						Regex hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
 
 						//Deleted messages in the format to upload
-						string haste = String.Join("\n-----\n", deletedMessages).Replace("*", "").Replace("`", "");
+						string haste = String.Join("\n-----\n", deletedMessagesContent).Replace("*", "").Replace("`", "").Replace("\n\n", "\n");
 						string hasteUrl;
 
 						//Upload the messages
 						using (var client = new WebClient())
 						{
-							var response = client.UploadString("http://hastebin.com/documents", haste);
+							var response = client.UploadString("https://hastebin.com/documents", haste);
 							var match = hasteKeyRegex.Match(response);
 
-							hasteUrl = String.Concat("http://hastebin.com/", match.Groups["key"]);
+							hasteUrl = String.Concat("https://hastebin.com/raw/", match.Groups["key"]);
 						}
 
 						//Send the url back to the logchannel
-						await Actions.sendChannelMessage(logChannel, "`[" + time + "]` **DELETED:** " + hasteUrl);
+						await Actions.sendChannelMessage(logChannel, "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]` **DELETED:**\n" + hasteUrl);
 #else
 						//Get the file path
 						String deletedMessagesFile = "Deleted_Messages_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt";
@@ -384,9 +408,46 @@ namespace Advobot
 			}
 		}
 
-		public class ModLogs
+		//Get all images uploaded
+		public static async Task OnMessageReceived(SocketMessage message)
 		{
+			if (message.Author.Id == CommandHandler.client.CurrentUser.Id)
+				return;
+			++Variables.LoggedMessages;
 
+			IMessageChannel logChannel = await Actions.logChannelCheck((message.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
+			if (logChannel != null)
+			{
+				if (message.Attachments.Count() > 0 || message.Embeds.Count() > 0)
+				{
+					await ImageLog(logChannel, message);
+				}
+			}
 		}
+
+		public static async Task ImageLog(IMessageChannel channel, SocketMessage message)
+		{
+			if (message.Author.Id == CommandHandler.client.CurrentUser.Id)
+				return;
+
+			String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
+			List<String> URLs = new List<String>();
+			if (message.Attachments.Count() > 0)
+			{
+				message.Attachments.ToList().ForEach(x => URLs.Add(x.Url));
+			}
+			if (message.Embeds.Count() > 0)
+			{
+				message.Embeds.ToList().ForEach(x => URLs.Add(x.Url));
+			}
+			await Actions.sendChannelMessage(channel, String.Format("{0} **ATTACHMENT(S):** `{1}#{2}` **URL(S):** {3}",
+					time, message.Author.Username, message.Author.Discriminator, String.Join(", ", URLs)));
+			return;
+		}
+	}
+
+	public class ModLogs
+	{
+
 	}
 }

@@ -35,6 +35,7 @@ namespace Advobot
 		public const int OWNER_POSITION = 9001;
 
 		public const bool DISCONNECT = false;
+		public const bool NEWEST_DELETED_MESSAGES_AT_TOP = false;
 	}
 
 	public static class Variables
@@ -54,9 +55,10 @@ namespace Advobot
 		public static int LoggedUserChanges = 0;
 		public static int LoggedEdits = 0;
 		public static int LoggedDeletes = 0;
+		public static int LoggedMessages = 0;
 
 		public static Dictionary<ulong, List<PreferenceCategory>> mCommandPreferences = new Dictionary<ulong, List<PreferenceCategory>>();
-		public static Dictionary<ulong, List<String>> mDeletedMessages = new Dictionary<ulong, List<String>>();
+		public static Dictionary<ulong, List<Discord.WebSocket.SocketMessage>> mDeletedMessages = new Dictionary<ulong, List<Discord.WebSocket.SocketMessage>>();
 		public static Dictionary<ulong, System.Threading.CancellationTokenSource> mCancelTokens = new Dictionary<ulong, System.Threading.CancellationTokenSource>();
 		public static Dictionary<String, int> mInviteLinks = new Dictionary<String, int>();
 		public static Dictionary<String, int> mPermissionValues = new Dictionary<String, int>();
