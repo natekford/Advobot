@@ -21,7 +21,7 @@ namespace Advobot
 
 			//!!!Extremely needed for the commands and help command!!!
 			Actions.loadInformation();
-			await client.SetGame("type \"" + Constants.BOT_PREFIX + "help\" for help.");
+			await client.SetGame(Constants.STARTUP_GAME);
 
 			await commands.AddModulesAsync(Assembly.GetEntryAssembly());
 

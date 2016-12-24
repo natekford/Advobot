@@ -56,7 +56,7 @@ namespace Advobot
 			{
 				foreach (HelpEntry commands in Variables.HelpList)
 				{
-					if (commands.Aliases.Equals(input))
+					if (commands.Aliases.Contains(input))
 					{
 						helpEntry = commands;
 					}
@@ -68,7 +68,7 @@ namespace Advobot
 				}
 			}
 			await Actions.sendChannelMessage(Context.Channel, String.Format("```Aliases: {0}\nUsage: {1}\nBase Permission(s): {2}\nDescription: {3}```",
-				helpEntry.Aliases, helpEntry.Usage, helpEntry.basePerm, helpEntry.Text));
+				String.Join(", ", helpEntry.Aliases), helpEntry.Usage, helpEntry.basePerm, helpEntry.Text));
 		}
 
 		[Command("commands")]
@@ -121,7 +121,7 @@ namespace Advobot
 				if (allCommandsBool)
 				{
 					List<String> commands = new List<String>();
-					foreach (String command in Variables.mCommandNames)
+					foreach (String command in Variables.CommandNames)
 					{
 						commands.Add(command);
 					}
@@ -167,10 +167,6 @@ namespace Advobot
 			{
 				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
 				List<IMessage> msgs = new List<IMessage>();
-				//Variables.Guilds.Where(x =>
-				//	(x as SocketGuild).MemberCount > (Variables.TotalUsers / Variables.TotalGuilds) * .75 &&
-				//	Actions.logChannelCheck(x, Constants.SERVER_LOG_CHECK_STRING) != null).ToList().ForEach(async x =>
-				//	msgs.Add(await Actions.sendChannelMessage(await Actions.logChannelCheck(x, Constants.SERVER_LOG_CHECK_STRING), String.Format("{0} Bot is disconnecting.", time))));
 				foreach (IGuild guild in Variables.Guilds)
 				{
 					if ((guild as SocketGuild).MemberCount > (Variables.TotalUsers / Variables.TotalGuilds) * .75)
@@ -178,7 +174,7 @@ namespace Advobot
 						ITextChannel channel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 						if (null != channel)
 						{
-							msgs.Add(await Actions.sendChannelMessage(channel, String.Format("{0} Bot is disconnecting.", time)));
+							msgs.Add(await Actions.sendChannelMessage(channel, String.Format("{0} Bot is disconnecting...", time)));
 						}
 					}
 				}
@@ -186,8 +182,6 @@ namespace Advobot
 				{
 					Thread.Sleep(100);
 				}
-				await CommandHandler.client.SetStatus(UserStatus.Invisible);
-				await Context.Client.DisconnectAsync();
 				Environment.Exit(1);
 			}
 			else
@@ -226,25 +220,14 @@ namespace Advobot
 
 				try
 				{
-					await CommandHandler.client.LogoutAsync();
-					//await CommandHandler.client.ConnectAsync();
-					//CommandHandler.client.DisconnectAsync();
+					//Create a new instance of the bot
+					System.Windows.Forms.Application.Restart();
+					//Close the old one
+					Environment.Exit(1);
 				}
 				catch (Exception)
 				{
 					Console.WriteLine("!!!BOT IS UNABLE TO RESTART!!!");
-				}
-
-				foreach (IGuild guild in Variables.Guilds)
-				{
-					if ((guild as SocketGuild).MemberCount > (Variables.TotalUsers / Variables.TotalGuilds) * .75)
-					{
-						ITextChannel channel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
-						if (null != channel)
-						{
-							msgs.Add(await Actions.sendChannelMessage(channel, String.Format("{0} Bot has restarted!", time)));
-						}
-					}
 				}
 			}
 			else
@@ -428,24 +411,26 @@ namespace Advobot
 					"\nID: {3}" +
 					"\n" +
 					"\nNickname: {4}" +
-					"\nJoined: {5} (#{6} to join the server)" +
-					"\nRoles: {7}" +
-					"\nAble to access: {8}" +
+					"\nJoined: {5} {6}, {7} (#{8} to join the server)" +
+					"\nRoles: {9}" +
+					"\nAble to access: {10}" +
 					"\n" +
-					"\nIn voice channel: {9}" +
-					"{10}" +
-					"{11}" +
+					"\nIn voice channel: {11}" +
 					"{12}" +
 					"{13}" +
+					"{14}" +
+					"{15}" +
 					"\n" +
-					"\nCurrent game: {14}" +
-					"\nAvatar URL: {15}" +
-					"\nOnline status: {16}```",
+					"\nCurrent game: {16}" +
+					"\nAvatar URL: {17}" +
+					"\nOnline status: {18}```",
 					user.Mention,
 					user.Username, user.Discriminator,
 					user.Id,
 					user.Nickname == null ? "N/A" : user.Nickname,
-					user.JoinedAt.Value.UtcDateTime,
+					System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(user.JoinedAt.Value.UtcDateTime.Month),
+					user.JoinedAt.Value.UtcDateTime.Day,
+					user.JoinedAt.Value.UtcDateTime.Year,
 					users.IndexOf(user) + 1,
 					roles.Count() == 0 ? "N/A" : String.Join(", ", roles),
 					channels.Count() == 0 ? "N/A" : String.Join(", ", channels),

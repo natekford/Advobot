@@ -13,6 +13,7 @@ using Discord.WebSocket;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Advobot
 {
@@ -25,7 +26,7 @@ namespace Advobot
 			//Has to go after loadPermissionNames
 			loadCommandInformation();						//Gets the information of a command (name, aliases, usage, summary)
 			//Has to go after loadCommandInformation
-			Variables.HelpList.ForEach(x => Variables.mCommandNames.Add(x.Name));   //Gets all the active command names
+			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));   //Gets all the active command names
 		}
 
 		//Get the information from the commands
@@ -104,7 +105,7 @@ namespace Advobot
 			{
 				if ((flags & (1 << i)) != 0)
 				{
-					result.Add(Variables.mPermissionNames[i]);
+					result.Add(Variables.PermissionNames[i]);
 				}
 			}
 			return result.ToArray();
@@ -124,7 +125,11 @@ namespace Advobot
 				{
 					Console.WriteLine("Bad enum for GuildPermission: " + i);
 				}
-				Variables.mPermissionNames.Add(name);
+				Variables.PermissionNames.Add(name);
+				if (!String.IsNullOrWhiteSpace(name))
+				{
+					Variables.PermissionValues.Add(name, i);
+				}
 			}
 		}
 
@@ -174,38 +179,79 @@ namespace Advobot
 		//Give the user the role
 		public static async Task giveRole(IGuildUser user, IRole role)
 		{
-			if (null == role)
+			if (role == null)
+				return;
+			if (user.RoleIds.Contains(role.Id))
 				return;
 			await user.AddRolesAsync(role);
 		}
 
-		public static async Task<IRole> getRoleEditAbility(IGuild guild, IMessageChannel channel, IUserMessage message, IGuildUser user, IGuildUser bot, String input)
+		//Give the user multiple roles
+		public static async Task giveRole(IGuildUser user, IRole[] roles)
+		{
+			await user.AddRolesAsync(roles);
+		}
+
+		//Take multiple roles from a user
+		public static async Task takeRole(IGuildUser user, IRole[] roles)
+		{
+			if (roles.Count() == 0)
+				return;
+			await user.RemoveRolesAsync(roles);
+		}
+
+		//Take a single role from a user
+		public static async Task takeRole(IGuildUser user, IRole role)
+		{
+			if (role == null)
+				return;
+			await user.RemoveRolesAsync(role);
+		}
+
+		//See if the user/bot can edit the role
+		public static async Task<IRole> getRoleEditAbility(IGuild guild, IMessageChannel channel, IUserMessage message, IGuildUser user, IGuildUser bot, String input, bool ignore_Errors)
 		{
 			//Check if valid role
 			IRole inputRole = getRole(guild, input);
 			if (inputRole == null)
 			{
-				await makeAndDeleteSecondaryMessage(channel, message, ERROR(Constants.ROLE_ERROR), Constants.WAIT_TIME);
+				if (!ignore_Errors)
+				{
+					await makeAndDeleteSecondaryMessage(channel, message, ERROR(Constants.ROLE_ERROR), Constants.WAIT_TIME);
+				}
 				return null;
 			}
 
 			//Determine if the user can edit the role
 			if ((guild.OwnerId == user.Id ? Constants.OWNER_POSITION : getPosition(guild, user)) <= inputRole.Position)
 			{
-				await makeAndDeleteSecondaryMessage(channel, message, 
-					ERROR(String.Format("`{0}` has a higher position than you are allowed to edit or use.", inputRole.Name)), Constants.WAIT_TIME);
+				if (!ignore_Errors)
+				{
+					await makeAndDeleteSecondaryMessage(channel, message, 
+						ERROR(String.Format("`{0}` has a higher position than you are allowed to edit or use.", inputRole.Name)), Constants.WAIT_TIME);
+				}
 				return null;
 			}
 
 			//Determine if the bot can edit the role
 			if (getPosition(guild, bot) <= inputRole.Position)
 			{
-				await makeAndDeleteSecondaryMessage(channel, message, 
-					ERROR(String.Format("`{0}` has a higher position than the bot is allowed to edit or use.", inputRole.Name)), Constants.WAIT_TIME);
+				if (!ignore_Errors)
+				{
+					await makeAndDeleteSecondaryMessage(channel, message,
+						ERROR(String.Format("`{0}` has a higher position than the bot is allowed to edit or use.", inputRole.Name)), Constants.WAIT_TIME);
+				}
 				return null;
 			}
 
 			return inputRole;
+		}
+
+		//Do getRoleEditAbility with only two args instead of six
+		public static async Task<IRole> getRoleEditAbility(CommandContext context, String input, bool ignore_Errors)
+		{
+			return await getRoleEditAbility(context.Guild, context.Channel, context.Message,
+				await context.Guild.GetUserAsync(context.User.Id), await context.Guild.GetUserAsync(context.Client.CurrentUser.Id), input, ignore_Errors);
 		}
 
 		//Remove secondary messages
@@ -265,7 +311,7 @@ namespace Advobot
 		public static async Task removeMessages(IMessageChannel channel, int requestCount, IUser user)
 		{
 			//Make sure there's a user id
-			if (null == user)
+			if (user == null)
 			{
 				await removeMessages(channel, requestCount);
 				return;
@@ -357,7 +403,7 @@ namespace Advobot
 		public static String[] getCommands(IGuild guild, int number)
 		{
 			List<PreferenceCategory> categories;
-			if (!Variables.mCommandPreferences.TryGetValue(guild.Id, out categories))
+			if (!Variables.CommandPreferences.TryGetValue(guild.Id, out categories))
 			{
 				return null;
 			}
@@ -374,13 +420,13 @@ namespace Advobot
 		public static void loadPreferences(IGuild guild)
 		{
 			List<PreferenceCategory> categories;
-			if (Variables.mCommandPreferences.TryGetValue(guild.Id, out categories))
+			if (Variables.CommandPreferences.TryGetValue(guild.Id, out categories))
 			{
 				return;
 			}
 
 			categories = new List<PreferenceCategory>();
-			Variables.mCommandPreferences[guild.Id] = categories;
+			Variables.CommandPreferences[guild.Id] = categories;
 
 			String path = getServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
 			if (!System.IO.File.Exists(path))
@@ -493,22 +539,6 @@ namespace Advobot
 				time, user.Username, user.Discriminator, channel.Name, before, after));
 		}
 
-		//Take multiple roles from a user
-		public static async Task takeRole(IGuildUser user, IRole[] roles)
-		{
-			if (roles.Count() == 0)
-				return;
-			await user.RemoveRolesAsync(roles);
-		}
-
-		//Take a single role from a user
-		public static async Task takeRole(IGuildUser user, IRole role)
-		{
-			if (role == null)
-				return;
-			await user.RemoveRolesAsync(role);
-		}
-
 		//Check if the user is the owner of the server
 		public static bool userHasOwner(IGuild guild, IGuildUser user)
 		{
@@ -516,9 +546,69 @@ namespace Advobot
 		}
 
 		//Send an exception message to the console
-		public static void ExceptionToConsole(String method, Exception e)
+		public static void exceptionToConsole(String method, Exception e)
 		{
 			Console.WriteLine(method + " EXCEPTION: " + e.ToString());
+		}
+
+		//Upload various text to a text uploader with a list of messages
+		public static String uploadToHastebin(IMessageChannel channel, List<String> textList)
+		{
+			//Messages in the format to upload
+			string text = String.Join("\n-----\n", textList).Replace("*", "").Replace("`", "").Replace("\n\n", "\n");
+			return uploadToHastebin(channel, text);
+		}
+
+		//Upload various text to a text uploader with a string
+		public static String uploadToHastebin(IMessageChannel channel, String text)
+		{
+			//Regex for getting the key out
+			Regex hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
+
+			//Upload the messages
+			using (var client = new WebClient())
+			{
+				var response = client.UploadString("https://hastebin.com/documents", text);
+				var match = hasteKeyRegex.Match(response);
+
+				//Send the url back
+				return String.Concat("https://hastebin.com/raw/", match.Groups["key"]);
+			}
+		}
+
+		//Upload a text file with a list of messages
+		public static async Task uploadTextFile(IGuild guild, IMessageChannel channel, List<String> textList, String fileName, String messageHeader)
+		{
+			//Messages in the format to upload
+			string text = String.Join("\n-----\n", textList).Replace("*", "").Replace("`", "").Replace("\n\n", "\n");
+			await uploadTextFile(guild, channel, text, fileName, messageHeader);
+		}
+		
+		//Upload a text file with a string
+		public static async Task uploadTextFile(IGuild guild, IMessageChannel channel, String text, String fileName, String messageHeader)
+		{
+			//Get the file path
+			String deletedMessagesFile = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt";
+			String path = Actions.getServerFilePath(guild.Id, deletedMessagesFile);
+
+			//Create the temporary file
+			if (!File.Exists(Actions.getServerFilePath(guild.Id, deletedMessagesFile)))
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(path));
+			}
+
+			//Write to the temporary file
+			using (StreamWriter writer = new StreamWriter(path, true))
+			{
+				writer.WriteLine(text);
+			}
+
+			//Upload the file
+			await Actions.sendChannelMessage(channel, "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]` **" + messageHeader + ":**");
+			await channel.SendFileAsync(path);
+
+			//Delete the file
+			File.Delete(path);
 		}
 	}
 }

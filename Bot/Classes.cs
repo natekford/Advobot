@@ -132,9 +132,9 @@ namespace Advobot
 		{
 			get { return mName; }
 		}
-		public String Aliases
+		public String[] Aliases
 		{
-			get { return string.Join(", ", mAliases); }
+			get { return mAliases; }
 		}
 		public String Usage
 		{

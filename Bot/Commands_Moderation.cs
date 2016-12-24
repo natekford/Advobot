@@ -13,7 +13,6 @@ using Discord.WebSocket;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-//I know I could be using my other files so I don't need to always type Actions. or Constants. but I want to specify where stuff comes from
 
 namespace Advobot
 {
@@ -32,11 +31,8 @@ namespace Advobot
 				return;
 
 			//See if both the bot and the user can edit/use this role
-			if (await Actions.getRoleEditAbility(Context.Guild, Context.Channel, Context.Message,
-				await Context.Guild.GetUserAsync(Context.User.Id), await Context.Guild.GetUserAsync(Context.Client.CurrentUser.Id), Constants.MUTE_ROLE_NAME) == null)
-			{
+			if (await Actions.getRoleEditAbility(Context, Constants.MUTE_ROLE_NAME, false) == null)
 				return;
-			}
 
 			//Test if valid user mention
 			IGuildUser user = await Actions.getUser(Context.Guild, input);
@@ -174,7 +170,7 @@ namespace Advobot
 				inputUser = await Context.Guild.GetUserAsync(Actions.getUlong(values[0]));
 			}
 
-			if (null == inputUser)
+			if (inputUser == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.USER_ERROR), Constants.WAIT_TIME);
 				return;
@@ -306,12 +302,40 @@ namespace Advobot
 
 		[Command("currentbanlist")]
 		[Alias("cbl")]
-		[Usage(Constants.BOT_PREFIX + "softban [@User]")]
-		[Summary("Bans then unbans a user from the guild.")]
+		[Usage(Constants.BOT_PREFIX + "currentbanlist")]
+		[Summary("Displays all the bans on the guild.")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.BanMembers))]
-		public async Task CurrentBanList([Remainder] String input)
+		public async Task CurrentBanList()
 		{
+			//New list to hold the ban information
+			List<String> banStrings = new List<String>();
 
+			//Get and add the ban information
+			var bans = await Context.Guild.GetBansAsync();
+			bans.ToList().ForEach(x => banStrings.Add("`" + x.User.Username + "#" + x.User.Discriminator + "` **ID:** `" + x.User.Id + "`"));
+
+			//Check the length of the message
+			int lengthCheck = 0;
+			banStrings.ForEach(x => lengthCheck += x.Length);
+			if (lengthCheck > 1900)
+			{
+				if (!Constants.TEXT_FILE)
+				{
+					await Actions.sendChannelMessage(
+						Context.Channel, "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]` **BANS:**\n" + Actions.uploadToHastebin(Context.Channel, banStrings));
+				}
+				else
+				{
+					await Actions.uploadTextFile(Context.Guild, Context.Channel, banStrings, "Current_Ban_List_", "BANS");
+				}
+				return;
+			}
+			else if (lengthCheck == 0)
+			{
+				await Actions.sendChannelMessage(Context.Channel, "This server has no bans.");
+				return;
+			}
+			await Actions.sendChannelMessage(Context.Channel, String.Join("\n", banStrings));
 		}
 
 		[Command("removemessages")]
@@ -337,7 +361,7 @@ namespace Advobot
 			if (argIndex < argCount && values[argIndex].StartsWith("<@"))
 			{
 				inputUser = await Actions.getUser(Context.Guild, values[argIndex]);
-				if (null == inputUser)
+				if (inputUser == null)
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.USER_ERROR), Constants.WAIT_TIME);
 					return;
@@ -350,7 +374,7 @@ namespace Advobot
 			if (argIndex < argCount && values[argIndex].StartsWith("<#"))
 			{
 				inputChannel = await Actions.getChannelID(Context.Guild, values[argIndex]);
-				if (null == inputChannel)
+				if (inputChannel == null)
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.CHANNEL_ERROR), Constants.WAIT_TIME);
 					return;
@@ -386,8 +410,9 @@ namespace Advobot
 			}
 
 			await Actions.removeMessages(inputChannel, requestCount, inputUser);
-			await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, String.Format("Successfully deleted {0} messages{1}{2}.",
+			await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, String.Format("Successfully deleted {0} {1}{2}{3}.",
 				requestCount,
+				requestCount > 1 ? "messages" : "message",
 				inputUser == null ? "" : " from " + inputUser.Mention,
 				inputChannel == null ? "" : " on `" + inputChannel.Name + "`"),
 				2000);
@@ -395,12 +420,75 @@ namespace Advobot
 
 		[Command("giverole")]
 		[Alias("gr")]
-		[Usage(Constants.BOT_PREFIX + "giverole [@User] [Role]")]
+		[Usage(Constants.BOT_PREFIX + "giverole [@User] [Role]/<Role>/...")]
 		[Summary("Gives the user the role (assuming the person using the command and bot both have the ability to give that role).")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageRoles))]
 		public async Task GiveRole([Remainder] String input)
 		{
+			//Test number of arguments
+			String[] values = input.Split(new char[] { ' ' }, 2);
+			if (values.Length != 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.ARGUMENTS_ERROR), Constants.WAIT_TIME);
+				return;
+			}
 
+			//Test if valid user mention
+			IGuildUser inputUser = await Actions.getUser(Context.Guild, values[0]);
+			if (inputUser == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.USER_ERROR), Constants.WAIT_TIME);
+				return;
+			}
+
+			//Determine if the role exists and if it is able to be edited by both the bot and the user
+			List<String> inputRoles = values[1].Split('/').ToList();
+			if (inputRoles.Count == 1)
+			{
+				//Check if it actually exists
+				IRole role = await Actions.getRoleEditAbility(Context, inputRoles[0], false);
+				if (role == null)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.ROLE_ERROR), Constants.WAIT_TIME);
+					return;
+				}
+				//See if the role is unable to be given due to management
+				else if (role.IsManaged)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Role is managed and unable to be given."), Constants.WAIT_TIME);
+					return;
+				}
+				//Give the role and make a message
+				await Actions.giveRole(inputUser, role);
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
+					String.Format("Successfully gave {0} `{1}`.", inputUser.Mention, role), Constants.WAIT_TIME);
+			}
+			else
+			{
+				List<String> failedRoles = new List<String>();
+				List<String> succeededRoles = new List<String>();
+				List<IRole> roles = new List<IRole>();
+				foreach (String roleName in inputRoles)
+				{
+					IRole role = await Actions.getRoleEditAbility(Context, roleName, true);
+					if (role == null || role.IsManaged)
+					{
+						failedRoles.Add(roleName);
+					}
+					else
+					{
+						roles.Add(role);
+						succeededRoles.Add(roleName);
+					}
+				}
+				await Actions.giveRole(inputUser, roles.ToArray());
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
+					String.Format("Successfully gave {0} `{1}` and failed to give `{2}`.",
+					inputUser.Mention,
+					succeededRoles.Count > 0 ? String.Join(", ", succeededRoles) : "NOTHING",
+					failedRoles.Count > 0 ? String.Join(", ", failedRoles) : "NOTHING"),
+					Constants.WAIT_TIME);
+			}
 		}
 
 		[Command("takerole")]
@@ -410,7 +498,70 @@ namespace Advobot
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageRoles))]
 		public async Task TakeRole([Remainder] String input)
 		{
+			//Test number of arguments
+			String[] values = input.Split(new char[] { ' ' }, 2);
+			if (values.Length != 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.ARGUMENTS_ERROR), Constants.WAIT_TIME);
+				return;
+			}
 
+			//Test if valid user mention
+			IGuildUser inputUser = await Actions.getUser(Context.Guild, values[0]);
+			if (inputUser == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.USER_ERROR), Constants.WAIT_TIME);
+				return;
+			}
+
+			//Determine if the role exists and if it is able to be edited by both the bot and the user
+			List<String> inputRoles = values[1].Split('/').ToList();
+			if (inputRoles.Count == 1)
+			{
+				//Check if it actually exists
+				IRole role = await Actions.getRoleEditAbility(Context, inputRoles[0], false);
+				if (role == null)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.ROLE_ERROR), Constants.WAIT_TIME);
+					return;
+				}
+				//See if the role is unable to be taken due to management
+				else if (role.IsManaged)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Role is managed and unable to be taken."), Constants.WAIT_TIME);
+					return;
+				}
+				//Take the role and make a message
+				await Actions.takeRole(inputUser, role);
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
+					String.Format("Successfully took `{0}` from {1}.", role, inputUser.Mention), Constants.WAIT_TIME);
+			}
+			else
+			{
+				List<String> failedRoles = new List<String>();
+				List<String> succeededRoles = new List<String>();
+				List<IRole> roles = new List<IRole>();
+				foreach (String roleName in inputRoles)
+				{
+					IRole role = await Actions.getRoleEditAbility(Context, roleName, true);
+					if (role == null || role.IsManaged)
+					{
+						failedRoles.Add(roleName);
+					}
+					else
+					{
+						roles.Add(role);
+						succeededRoles.Add(roleName);
+					}
+				}
+				await Actions.takeRole(inputUser, roles.ToArray());
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
+					String.Format("Successfully took `{1}` and failed to take `{2}` from {0}.",
+					inputUser.Mention,
+					succeededRoles.Count > 0 ? String.Join(", ", succeededRoles) : "NOTHING",
+					failedRoles.Count > 0 ? String.Join(", ", failedRoles) : "NOTHING"),
+					Constants.WAIT_TIME);
+			}
 		}
 
 		[Command("createrole")]
@@ -420,7 +571,17 @@ namespace Advobot
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageRoles))]
 		public async Task CreateRole([Remainder] String input)
 		{
+			//Check length
+			if (input.Length > Constants.ROLE_NAME_LENGTH)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
+					Actions.ERROR("Roles can only have a name length of up to 32 characters."), Constants.WAIT_TIME);
+				return;
+			}
 
+			//Create role
+			await Context.Guild.CreateRoleAsync(input, new GuildPermissions(0));
+			await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, String.Format("Successfully created the `{0}` role.", input), Constants.WAIT_TIME);
 		}
 
 		[Command("softdeleterole")]
@@ -430,7 +591,27 @@ namespace Advobot
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageRoles))]
 		public async Task SoftDeleteRole([Remainder] String input)
 		{
+			//Determine if the role exists and if it is able to be edited by both the bot and the user
+			IRole inputRole = await Actions.getRoleEditAbility(Context, input, false);
+			if (inputRole == null)
+				return;
 
+			//Check if even removable
+			if (inputRole.IsManaged)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Role is managed and unable to be softdeleted."), Constants.WAIT_TIME);
+				return;
+			}
+
+			//Create a new role with the same attributes (including space) and no perms
+			IRole newRole = await Context.Guild.CreateRoleAsync(inputRole.Name, new GuildPermissions(0), inputRole.Color);
+			//TODO: Get changing position of a role to work
+			await newRole.ModifyAsync(x => x.Position = inputRole.Position);
+
+			//Delete the old role
+			await inputRole.DeleteAsync();
+			await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
+				String.Format("Successfully removed all permissions from `{0}` and removed the role from all users on the server.", inputRole.Name), Constants.WAIT_TIME);
 		}
 
 		[Command("deleterole")]
@@ -440,7 +621,21 @@ namespace Advobot
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageRoles))]
 		public async Task DeleteRole([Remainder] String input)
 		{
+			//Determine if the role exists and if it is able to be edited by both the bot and the user
+			IRole role = await Actions.getRoleEditAbility(Context, input, false);
+			if (role == null)
+				return;
 
+			//Check if even removable
+			if (role.IsManaged)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Role is managed and unable to be deleted."), Constants.WAIT_TIME);
+				return;
+			}
+
+			await role.DeleteAsync();
+			await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
+				String.Format("Successfully deleted the `{0}` role.", input), Constants.WAIT_TIME);
 		}
 
 		[Command("rolepermissions")]
@@ -451,7 +646,174 @@ namespace Advobot
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageRoles))]
 		public async Task RolePermissions([Remainder] String input)
 		{
+			//Set the permission types into a list to later check against
+			List<String> permissionTypeStrings = Variables.PermissionNames;
 
+			String[] actionRolePerms = input.ToLower().Split(new char[] { ' ' }, 2); //Separate the role and whether to add or remove from the permissions
+			String permsString = null; //Set placeholder perms variable
+			String roleString = null; //Set placeholder role variable
+			bool show = false; //Set show bool
+
+			//If the user wants to see the permission types, print them out
+			if (input.Equals("show", StringComparison.OrdinalIgnoreCase))
+			{
+				await Actions.sendChannelMessage(Context.Channel, "**ROLE PERMISSIONS:**```\n" + String.Join("\n", permissionTypeStrings) + "```");
+				return;
+			}
+			//If something is said after show, take that as a role.
+			else if (input.StartsWith("show", StringComparison.OrdinalIgnoreCase))
+			{
+				roleString = input.Substring("show".Length).Trim();
+				show = true;
+			}
+			//If show is not input, take the stuff being said as a role and perms
+			else
+			{
+				if (actionRolePerms.Length == 1)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.ARGUMENTS_ERROR), Constants.WAIT_TIME);
+					return;
+				}
+				int lastSpace = actionRolePerms[1].LastIndexOf(' ');
+				if (lastSpace <= 0)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.ARGUMENTS_ERROR), Constants.WAIT_TIME);
+					return;
+				}
+				//Separate out the permissions
+				permsString = actionRolePerms[1].Substring(lastSpace).Trim();
+				//Separate out the role
+				roleString = actionRolePerms[1].Substring(0, lastSpace).Trim();
+			}
+
+			//Determine if the role exists and if it is able to be edited by both the bot and the user
+			IRole role = await Actions.getRoleEditAbility(Context, roleString, false);
+			if (role == null)
+				return;
+
+			//See if the role can be edited
+			if (role.IsManaged)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Role is managed and unable to have its permissions changed."), Constants.WAIT_TIME);
+				return;
+			}
+
+			//Send a message of the permissions the targetted role has
+			if (show)
+			{
+				GuildPermissions rolePerms = new GuildPermissions(Context.Guild.GetRole(role.Id).Permissions.RawValue);
+				List<String> currentRolePerms = new List<String>();
+				foreach (var permissionValue in Variables.PermissionValues.Values)
+				{
+					int bit = permissionValue;
+					if (((int)rolePerms.RawValue & (1 << bit)) != 0)
+					{
+						currentRolePerms.Add(Variables.PermissionNames[bit]);
+					}
+				}
+				String pluralityPerms = "permissions";
+				if (currentRolePerms.Count == 1)
+				{
+					pluralityPerms = "permission";
+				}
+				await Actions.sendChannelMessage(Context.Channel, String.Format("`{0}` has the following {1}: `{2}`.",
+					role.Name, pluralityPerms, currentRolePerms.Count == 0 ? "NOTHING" : String.Join("`, `", currentRolePerms).ToLower()));
+				return;
+			}
+
+			//See if it's add or remove
+			String addOrRemove = actionRolePerms[0];
+			bool add;
+			if (addOrRemove.Equals("add"))
+			{
+				add = true;
+			}
+			else if (addOrRemove.Equals("remove"))
+			{
+				add = false;
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Add or remove not specified."), Constants.WAIT_TIME);
+				return;
+			}
+
+			//Get the permissions
+			List<String> permissions = permsString.Split('/').ToList();
+			//Check if valid permissions
+			List<String> validPerms = permissions.Intersect(permissionTypeStrings, StringComparer.OrdinalIgnoreCase).ToList();
+			if (validPerms.Count != permissions.Count)
+			{
+				List<String> invalidPermissions = new List<String>();
+				foreach (String permission in permissions)
+				{
+					if (!validPerms.Contains(permission, StringComparer.OrdinalIgnoreCase))
+					{
+						invalidPermissions.Add(permission);
+					}
+				}
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(String.Format("Invalid {0} supplied: `{1}`.",
+					permissions.Count() - permissions.Intersect(permissionTypeStrings).Count() == 1 ? "permission" : "permissions",
+					String.Join("`, `", invalidPermissions))), 7500);
+				return;
+			}
+
+			//Determine the permissions being added
+			uint rolePermissions = 0;
+			foreach (String permission in permissions)
+			{
+				List<String> perms = Variables.PermissionValues.Keys.ToList();
+				try
+				{
+					int bit = Variables.PermissionValues[permission];
+					rolePermissions |= (1U << bit);
+				}
+				catch (Exception)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(String.Format("Couldn't parse permission '{0}'", permission)), Constants.WAIT_TIME);
+					return;
+				}
+			}
+
+			//Determine if the user can give these perms
+			if (!Actions.userHasOwner(Context.Guild, Context.User as IGuildUser))
+			{
+				if (!(Context.User as IGuildUser).GuildPermissions.Administrator)
+				{
+					rolePermissions &= (uint)(Context.User as IGuildUser).GuildPermissions.RawValue;
+				}
+				//If the role has something, but the user is not allowed to edit a permissions
+				if (rolePermissions == 0)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(String.Format("You do not have the ability to modify {0}.",
+						permissions.Count() == 1 ? "that permission" : "those permissions")), Constants.WAIT_TIME);
+					return;
+				}
+			}
+
+			//Get a list of the permissions that were given
+			List<String> givenPermissions = Actions.getPermissionNames(rolePermissions).ToList();
+			//Get a list of the permissions that were not given
+			List<String> skippedPermissions = permissions.Except(givenPermissions, StringComparer.OrdinalIgnoreCase).ToList();
+
+			//New perms
+			uint currentBits = (uint)Context.Guild.GetRole(role.Id).Permissions.RawValue;
+			if (add)
+			{
+				currentBits |= rolePermissions;
+			}
+			else
+			{
+				currentBits &= ~rolePermissions;
+			}
+
+			await Context.Guild.GetRole(role.Id).ModifyAsync(x => x.Permissions = new GuildPermissions(currentBits));
+			await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, String.Format("Successfully {0} `{1}` {2} {3} `{4}`.",
+				(add ? "added" : "removed"),
+				String.Join("`, `", givenPermissions),
+				(skippedPermissions.Count() > 0 ? " and failed to " + (add ? "add `" : "remove `") + String.Join("`, `", skippedPermissions) + "`" : ""),
+				(add ? "to" : "from"), role.Name),
+				7500);
 		}
 
 		[Command("copyrolepermissions")]
@@ -462,7 +824,72 @@ namespace Advobot
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageRoles))]
 		public async Task CopyRolePermissions([Remainder] String input)
 		{
+			//Put the input into a string
+			input = input.ToLower();
+			String[] roles = input.Split(new char[] { '/' }, 2);
 
+			//Test if two roles were input
+			if (roles.Length != 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.ARGUMENTS_ERROR), Constants.WAIT_TIME);
+				return;
+			}
+
+			//Determine if the input role exists
+			IRole inputRole = Actions.getRole(Context.Guild, roles[0]);
+			if (inputRole == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.ROLE_ERROR), Constants.WAIT_TIME);
+				return;
+			}
+
+			//Determine if the role exists and if it is able to be edited by both the bot and the user
+			IRole outputRole = await Actions.getRoleEditAbility(Context, roles[1], false);
+			if (outputRole == null)
+				return;
+
+			if (outputRole.IsManaged)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
+					Actions.ERROR("Role is managed and unable to have its permissions changed."), Constants.WAIT_TIME);
+				return;
+			}
+
+			//Get the permissions
+			uint rolePermissions = (uint)inputRole.Permissions.RawValue;
+			List<String> permissions = Actions.getPermissionNames(rolePermissions).ToList();
+			if (rolePermissions != 0)
+			{
+				//Determine if the user can give these permissions
+				if (!Actions.userHasOwner(Context.Guild, Context.User as IGuildUser))
+				{
+					if (!(Context.User as IGuildUser).GuildPermissions.Administrator)
+					{
+						rolePermissions &= (uint)(Context.User as IGuildUser).GuildPermissions.RawValue;
+					}
+					//If the role has something, but the user is not allowed to edit a permissions
+					if (rolePermissions == 0)
+					{
+						await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(String.Format("You do not have the ability to modify {0}.",
+							permissions.Count() == 1 ? "that permission" : "those permissions")), Constants.WAIT_TIME);
+						return;
+					}
+				}
+			}
+
+			//Get a list of the permissions that were given
+			List<String> givenPermissions = Actions.getPermissionNames(rolePermissions).ToList();
+			//Get a list of the permissions that were not given
+			List<String> skippedPermissions = permissions.Except(givenPermissions).ToList();
+
+			//Actually change the permissions
+			await Context.Guild.GetRole(outputRole.Id).ModifyAsync(x => x.Permissions = new GuildPermissions(rolePermissions));
+			//Send the long ass message detailing what happened with the command
+			await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, String.Format("Successfully copied `{0}` {1} from `{2}` to `{3}`.",
+				(givenPermissions.Count() == 0 ? "NOTHING" : givenPermissions.Count() == permissions.Count() ? "ALL" : String.Join("`, `", givenPermissions)),
+				(skippedPermissions.Count() > 0 ? "and failed to copy `" + String.Join("`, `", skippedPermissions) + "`" : ""),
+				inputRole, outputRole),
+				7500);
 		}
 
 		[Command("clearrolepermissions")]
@@ -472,7 +899,24 @@ namespace Advobot
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageRoles))]
 		public async Task ClearRolePermissions([Remainder] String input)
 		{
+			//Determine if the role exists and if it is able to be edited by both the bot and the user
+			IRole role = await Actions.getRoleEditAbility(Context, input, false);
+			if (role == null)
+			{
+				return;
+			}
 
+			//See if the role can have its perms changed
+			if (role.IsManaged)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
+					Actions.ERROR("Role is managed and unable to have its permissions changed."), Constants.WAIT_TIME);
+				return;
+			}
+
+			//Clear the role's perms
+			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(0));
+			await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, String.Format("Successfully removed all permissions from `{0}`.", input), Constants.WAIT_TIME);
 		}
 
 		[Command("changerolename")]

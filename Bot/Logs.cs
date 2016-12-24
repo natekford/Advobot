@@ -84,8 +84,6 @@ namespace Advobot
 				await Actions.sendChannelMessage(logChannel, String.Format("{0} **JOIN:** `{1}#{2}` **ID** `{3}`",
 					time, user.Username, user.Discriminator, user.Id));
 			}
-
-			return;
 		}
 
 		//Tell when a user leaves the server
@@ -107,8 +105,6 @@ namespace Advobot
 				await Actions.sendChannelMessage(logChannel, String.Format("{0} **LEAVE:** `{1}#{2}` **ID** `{3}`",
 					time, user.Username, user.Discriminator, user.Id));
 			}
-
-			return;
 		}
 
 		//Tell when a user is banned
@@ -123,8 +119,6 @@ namespace Advobot
 				await Actions.sendChannelMessage(logChannel, String.Format("{0} **BAN:** `{1}#{2}` **ID** `{3}`",
 					time, user.Username, user.Discriminator, user.Id));
 			}
-
-			return;
 		}
 
 		//Tell when a user is unbanned
@@ -139,8 +133,6 @@ namespace Advobot
 				await Actions.sendChannelMessage(logChannel, String.Format("{0} **UNBAN:** `{1}`",
 					time, user.Id));
 			}
-
-			return;
 		}
 
 		//Tell when a user has their name, nickname, or roles changed
@@ -155,8 +147,8 @@ namespace Advobot
 				//Name change
 				if (!beforeUser.Username.Equals(afterUser.Username))
 				{
-					await Actions.sendChannelMessage(logChannel, String.Format("{0} **NAME:** `{1}#{2}` **TO** `{3}#{4}`",
-						time, beforeUser.Username, beforeUser.Discriminator, afterUser.Username, afterUser.Discriminator));
+					await Actions.sendChannelMessage(logChannel, String.Format("{0} **NAME:** `{1}#{2}` **FROM:** `{2}` **TO** `{3}`",
+						time, afterUser.Username, afterUser.Discriminator, beforeUser.Username, afterUser.Username));
 				}
 
 				//Nickname change
@@ -174,14 +166,14 @@ namespace Advobot
 						nicknameChange = "NO NICKNAME";
 					}
 					await Actions.sendChannelMessage(logChannel, String.Format("{0} **NICKNAME:** `{1}#{2}` **FROM** `{3}` **TO** `{4}`",
-						time, beforeUser.Username, beforeUser.Discriminator, originalNickname, nicknameChange));
+						time, afterUser.Username, afterUser.Discriminator, originalNickname, nicknameChange));
 				}
 				else if (!(String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)))
 				{
 					if (!beforeUser.Nickname.Equals(afterUser.Nickname))
 					{
 						await Actions.sendChannelMessage(logChannel, String.Format("{0} **NICKNAME:** `{1}#{2}` **FROM** `{3}` **TO** `{4}`",
-							time, beforeUser.Username, beforeUser.Discriminator, beforeUser.Nickname, afterUser.Nickname));
+							time, afterUser.Username, afterUser.Discriminator, beforeUser.Nickname, afterUser.Nickname));
 					}
 				}
 
@@ -189,20 +181,21 @@ namespace Advobot
 				String roles = null;
 				List<ulong> firstNotSecond = beforeUser.RoleIds.ToList().Except(afterUser.RoleIds.ToList()).ToList();
 				List<ulong> secondNotFirst = afterUser.RoleIds.ToList().Except(beforeUser.RoleIds.ToList()).ToList();
+				List<String> rolesChange = new List<String>();
 				if (firstNotSecond.Count() > 0)
 				{
-					roles = String.Join(", ", firstNotSecond);
+					firstNotSecond.ForEach(x => rolesChange.Add(afterUser.Guild.GetRole(x).Name));
+					roles = String.Join(", ", rolesChange);
 					await Actions.sendChannelMessage(logChannel, String.Format("{0} **LOSS:** `{1}#{2}` **LOST** `{3}`",
-						time, beforeUser.Username, beforeUser.Discriminator, roles));
+						time, afterUser.Username, afterUser.Discriminator, roles));
 				}
 				else if (secondNotFirst.Count() > 0)
 				{
-					roles = String.Join(", ", secondNotFirst);
+					secondNotFirst.ForEach(x => rolesChange.Add(afterUser.Guild.GetRole(x).Name));
+					roles = String.Join(", ", rolesChange);
 					await Actions.sendChannelMessage(logChannel, String.Format("{0} **GAIN:** `{1}#{2}` **GAINED** `{3}`",
-						time, beforeUser.Username, beforeUser.Discriminator, roles));
+						time, afterUser.Username, afterUser.Discriminator, roles));
 				}
-
-				return;
 			}
 		}
 
@@ -257,10 +250,6 @@ namespace Advobot
 					return;
 				}
 			}
-			else
-			{
-
-			}
 		}
 
 		//Tell when a message is deleted
@@ -284,10 +273,10 @@ namespace Advobot
 
 				//Get a list of the deleted messages per server
 				List<SocketMessage> mainMessages;
-				if (!Variables.mDeletedMessages.TryGetValue(guild.Id, out mainMessages))
+				if (!Variables.DeletedMessages.TryGetValue(guild.Id, out mainMessages))
 				{
 					mainMessages = new List<SocketMessage>();
-					Variables.mDeletedMessages[guild.Id] = mainMessages;
+					Variables.DeletedMessages[guild.Id] = mainMessages;
 				}
 				lock (mainMessages)
 				{
@@ -297,12 +286,12 @@ namespace Advobot
 
 				//Use a token so the messages do not get sent prematurely
 				CancellationTokenSource cancelToken;
-				if (Variables.mCancelTokens.TryGetValue(guild.Id, out cancelToken))
+				if (Variables.CancelTokens.TryGetValue(guild.Id, out cancelToken))
 				{
 					cancelToken.Cancel();
 				}
 				cancelToken = new CancellationTokenSource();
-				Variables.mCancelTokens[guild.Id] = cancelToken;
+				Variables.CancelTokens[guild.Id] = cancelToken;
 
 				//Make a separate task in order to not mess up the other commands
 				var t = Task.Run(async delegate
@@ -320,7 +309,7 @@ namespace Advobot
 
 					int characterCount = 0;
 					List<SocketMessage> deletedMessages;
-					List<SocketMessage> taskMessages = Variables.mDeletedMessages[guild.Id];
+					List<SocketMessage> taskMessages = Variables.DeletedMessages[guild.Id];
 					lock (taskMessages)
 					{
 						//Give the messages to a new list so they can be removed from the old one
@@ -358,59 +347,25 @@ namespace Advobot
 					}
 					else
 					{
-#if true
-						//Regex for getting the key out
-						Regex hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
-
-						//Deleted messages in the format to upload
-						string haste = String.Join("\n-----\n", deletedMessagesContent).Replace("*", "").Replace("`", "").Replace("\n\n", "\n");
-						string hasteUrl;
-
-						//Upload the messages
-						using (var client = new WebClient())
+						if (!Constants.TEXT_FILE)
 						{
-							var response = client.UploadString("https://hastebin.com/documents", haste);
-							var match = hasteKeyRegex.Match(response);
-
-							hasteUrl = String.Concat("https://hastebin.com/raw/", match.Groups["key"]);
+							await Actions.sendChannelMessage(
+								logChannel, "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]` **DELETED:**\n" + Actions.uploadToHastebin(logChannel, deletedMessagesContent));
 						}
-
-						//Send the url back to the logchannel
-						await Actions.sendChannelMessage(logChannel, "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]` **DELETED:**\n" + hasteUrl);
-#else
-						//Get the file path
-						String deletedMessagesFile = "Deleted_Messages_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt";
-						String path = Actions.getServerFilePath(guild.Id, deletedMessagesFile);
-
-						//Create the temporary file
-						if (!File.Exists(Actions.getServerFilePath(guild.Id, deletedMessagesFile)))
+						else
 						{
-							System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+							await Actions.uploadTextFile(guild, logChannel, deletedMessagesContent, "Deleted_Messages_", "DELETED");
 						}
-
-						//Write to the temporary file
-						using (StreamWriter writer = new StreamWriter(path, true))
-						{
-							writer.WriteLine(String.Join("\n-----\n", deletedMessages).Replace("*", "").Replace("`", ""));
-						}
-
-						//Upload the file
-						IMessage msg = await Actions.sendChannelMessage(logChannel, time + "**DELETED:**");
-						await logChannel.SendFileAsync(path);
-
-						//Delete the file
-						File.Delete(path);
-#endif
 					}
 				});
-
-				return;
 			}
 		}
 
 		//Get all images uploaded
 		public static async Task OnMessageReceived(SocketMessage message)
 		{
+			if (message == null || message.Author == null)
+				return;
 			if (message.Author.Id == CommandHandler.client.CurrentUser.Id)
 				return;
 			++Variables.LoggedMessages;
@@ -425,6 +380,7 @@ namespace Advobot
 			}
 		}
 
+		//Logging images
 		public static async Task ImageLog(IMessageChannel channel, SocketMessage message)
 		{
 			if (message.Author.Id == CommandHandler.client.CurrentUser.Id)
@@ -442,7 +398,6 @@ namespace Advobot
 			}
 			await Actions.sendChannelMessage(channel, String.Format("{0} **ATTACHMENT(S):** `{1}#{2}` **URL(S):** {3}",
 					time, message.Author.Username, message.Author.Discriminator, String.Join(", ", URLs)));
-			return;
 		}
 	}
 
