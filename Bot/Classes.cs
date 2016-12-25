@@ -74,8 +74,8 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
 	public class UserHasAPermissionAttribute : PreconditionAttribute
 	{
-		private const UInt32 PERMISSIONBITS =
-			  (1U<<(int)GuildPermission.Administrator)
+		private const UInt32 PERMISSIONBITS = 0
+			| (1U<<(int)GuildPermission.Administrator)
 			| (1U << (int)GuildPermission.BanMembers)
 			| (1U << (int)GuildPermission.DeafenMembers)
 			| (1U << (int)GuildPermission.KickMembers)

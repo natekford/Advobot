@@ -29,9 +29,8 @@ namespace Advobot
 			//See if it's empty
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				await Actions.sendChannelMessage(Context.Channel, "Type `>commands` for the list of commands." +
-					"\nType `" + Constants.BOT_PREFIX +
-					"help [Command]` for help with a command.\nLink to the documentation of this bot: https://gist.github.com/advorange/3da9140889b20009816e4c9629de51c9");
+				await Actions.sendChannelMessage(Context.Channel, "Type `>commands` for the list of commands.\nType `" + Constants.BOT_PREFIX + "help [Command]`" +
+					" for help with a command.\nLink to the documentation of this bot: https://gist.github.com/advorange/3da9140889b20009816e4c9629de51c9");
 				return;
 			}
 
@@ -41,12 +40,10 @@ namespace Advobot
 			{
 				if (commandParts[1].ToLower().Equals("command"))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
-						"If you do not know what commands this bot has, type `>commands` for a list of commands.", 10000);
+					await Actions.makeAndDeleteSecondaryMessage(Context, "If you do not know what commands this bot has, type `>commands` for a list of commands.", 10000);
 					return;
 				}
-				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
-					"[] means required information. <> means optional information. | means or.", 10000);
+				await Actions.makeAndDeleteSecondaryMessage(Context, "[] means required information. <> means optional information. | means or.", 10000);
 				return;
 			}
 
@@ -63,7 +60,7 @@ namespace Advobot
 				}
 				if (helpEntry == null)
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Nonexistent command."), Constants.WAIT_TIME);
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nonexistent command."), Constants.WAIT_TIME);
 					return;
 				}
 			}
@@ -129,12 +126,12 @@ namespace Advobot
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, "All is currently turned off.", Constants.WAIT_TIME);
+					await Actions.makeAndDeleteSecondaryMessage(Context, "All is currently turned off.", Constants.WAIT_TIME);
 				}
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Category does not exist."), Constants.WAIT_TIME);
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Category does not exist."), Constants.WAIT_TIME);
 			}
 		}
 
@@ -147,8 +144,7 @@ namespace Advobot
 			//Check the game name length
 			if (input.Length > 128)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
-					Actions.ERROR("Game name cannot be longer than 128 characters or else it doesn't show to other people."), 10000);
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Game name cannot be longer than 128 characters or else it doesn't show to other people."), 10000);
 				return;
 			}
 
@@ -186,8 +182,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
-					"Disconnection is turned off for everyone but the bot owner currently.", Constants.WAIT_TIME);
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Disconnection is turned off for everyone but the bot owner currently.", Constants.WAIT_TIME);
 			}
 		}
 
@@ -232,8 +227,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message,
-					"Disconnection is turned off for everyone but the bot owner currently.", Constants.WAIT_TIME);
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Disconnection is turned off for everyone but the bot owner currently.", Constants.WAIT_TIME);
 			}
 		}
 
@@ -257,7 +251,7 @@ namespace Advobot
 			IGuildChannel channel = Actions.getChannel(Context.Guild, input).Result;
 			if (channel == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.CHANNEL_ERROR), Constants.WAIT_TIME);
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR), Constants.WAIT_TIME);
 				return;
 			}
 			await Actions.sendChannelMessage(Context.Channel, String.Format("The {0} channel `{1}` has the ID `{2}`.",
@@ -274,7 +268,7 @@ namespace Advobot
 			IRole role = Actions.getRole(Context.Guild, input);
 			if (role == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.ROLE_ERROR), Constants.WAIT_TIME);
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ROLE_ERROR), Constants.WAIT_TIME);
 				return;
 			}
 			await Actions.sendChannelMessage(Context.Channel, String.Format("The role `{0}` has the ID `{1}`.", role.Name, role.Id));
@@ -290,7 +284,7 @@ namespace Advobot
 			IGuildUser user = await Actions.getUser(Context.Guild, input);
 			if (user == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.USER_ERROR), Constants.WAIT_TIME);
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR), Constants.WAIT_TIME);
 				return;
 			}
 			await Actions.sendChannelMessage(Context.Channel, String.Format("The user  has the ID `{1}`.", user.Mention, user.Id));
@@ -331,11 +325,11 @@ namespace Advobot
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Invalid position."), Constants.WAIT_TIME);
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position."), Constants.WAIT_TIME);
 					return;
 				}
 			}
-			await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR("Something besides a number was input."), Constants.WAIT_TIME);
+			await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Something besides a number was input."), Constants.WAIT_TIME);
 			return;
 		}
 
@@ -361,7 +355,7 @@ namespace Advobot
 			//Check if valid user
 			if (user == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context.Channel, Context.Message, Actions.ERROR(Constants.USER_ERROR), Constants.WAIT_TIME);
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR), Constants.WAIT_TIME);
 				return;
 			}
 

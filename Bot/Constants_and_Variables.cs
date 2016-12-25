@@ -30,10 +30,14 @@ namespace Advobot
 		public const int MEMBER_LIMIT = 0;
 		public const int MESSAGES_TO_GATHER = 100;
 		public const int TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG = 3;
+		public const int OWNER_POSITION = 9001;
+
+		//Max/min lengths for various things
 		public const int NICKNAME_LENGTH = 32;
 		public const int TOPIC_LENGTH = 1024;
 		public const int ROLE_NAME_LENGTH = 32;
-		public const int OWNER_POSITION = 9001;
+		public const int CHANNEL_NAME_MAX_LENGTH = 100;
+		public const int CHANNEL_NAME_MIN_LENGTH = 2;
 
 		public const bool DISCONNECT = false;
 		public const bool NEWEST_DELETED_MESSAGES_AT_TOP = false;
@@ -61,7 +65,11 @@ namespace Advobot
 		public static Dictionary<ulong, System.Threading.CancellationTokenSource> CancelTokens = new Dictionary<ulong, System.Threading.CancellationTokenSource>();
 		public static Dictionary<String, int> InviteLinks = new Dictionary<String, int>();
 		public static Dictionary<String, int> PermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
-		public static List<String> PermissionNames = new List<String>();
+		public static Dictionary<int, String> PermissionNames = new Dictionary<int, String>();
+		public static Dictionary<int, String> ChannelPermissionNames = new Dictionary<int, String>();
+		public static Dictionary<String, int> GeneralChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<String, int> TextChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<String, int> VoiceChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
 		public static List<String> CommandNames = new List<String>();
 		public static List<Discord.IGuild> Guilds = new List<Discord.IGuild>();
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();

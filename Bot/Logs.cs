@@ -219,8 +219,8 @@ namespace Advobot
 				}
 
 				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
-				String beforeMsg = beforeMessage.Value.Content;
-				String afterMsg = afterMessage.Content;
+				String beforeMsg = Actions.replaceMessageCharacters(beforeMessage.Value.Content);
+				String afterMsg = Actions.replaceMessageCharacters(afterMessage.Content);
 
 				//Bot cannot pick up messages from before it was started
 				if (String.IsNullOrWhiteSpace(beforeMsg))
@@ -335,7 +335,7 @@ namespace Advobot
 					deletedMessagesSorted.ForEach(x =>
 					{
 						deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-							x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), x.Content.Replace("`", "'")));
+							x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(x.Content)));
 					});
 
 					if (deletedMessages.Count() == 0)

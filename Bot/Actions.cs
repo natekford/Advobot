@@ -22,7 +22,7 @@ namespace Advobot
 		//Loading in all necessary information at bot start up
 		public static void loadInformation()
 		{
-			loadPermissionNames();							//Gets the name of the permission bits in Discord
+			loadPermissionNames();                          //Gets the names of the permission bits in Discord
 			//Has to go after loadPermissionNames
 			loadCommandInformation();						//Gets the information of a command (name, aliases, usage, summary)
 			//Has to go after loadCommandInformation
@@ -120,18 +120,81 @@ namespace Advobot
 				try
 				{
 					name = Enum.GetName(typeof(GuildPermission), (GuildPermission)i);
+					if (name == null)
+						continue;
 				}
 				catch (Exception)
 				{
 					Console.WriteLine("Bad enum for GuildPermission: " + i);
+					continue;
 				}
-				Variables.PermissionNames.Add(name);
-				if (!String.IsNullOrWhiteSpace(name))
+				Variables.PermissionNames.Add(i, name);
+				Variables.PermissionValues.Add(name, i);
+			}
+			//Load all special cases
+			loadAllChannelPermissionNames();
+		}
+
+		//Find the channel permission names
+		public static void loadAllChannelPermissionNames()
+		{
+			const UInt32 GENERAL_BITS = 0
+				| (1U << (int)GuildPermission.CreateInstantInvite)
+				| (1U << (int)GuildPermission.ManageChannels)
+				| (1U << (int)GuildPermission.ManageRoles)
+				| (1U << (int)GuildPermission.ManageWebhooks);
+
+			const UInt32 TEXT_BITS = 0
+				| (1U << (int)GuildPermission.ReadMessages)
+				| (1U << (int)GuildPermission.SendMessages)
+				| (1U << (int)GuildPermission.SendTTSMessages)
+				| (1U << (int)GuildPermission.ManageMessages)
+				| (1U << (int)GuildPermission.EmbedLinks)
+				| (1U << (int)GuildPermission.AttachFiles)
+				| (1U << (int)GuildPermission.ReadMessageHistory)
+				| (1U << (int)GuildPermission.MentionEveryone)
+				| (1U << (int)GuildPermission.UseExternalEmojis)
+				| (1U << (int)GuildPermission.AddReactions);
+
+			const UInt32 VOICE_BITS = 0
+				| (1U << (int)GuildPermission.Connect)
+				| (1U << (int)GuildPermission.Speak)
+				| (1U << (int)GuildPermission.MuteMembers)
+				| (1U << (int)GuildPermission.DeafenMembers)
+				| (1U << (int)GuildPermission.MoveMembers)
+				| (1U << (int)GuildPermission.UseVAD);
+
+			for (int i = 0; i < 32; i++)
+			{
+				String name = "";
+				try
 				{
-					Variables.PermissionValues.Add(name, i);
+					name = Enum.GetName(typeof(ChannelPermission), (ChannelPermission)i);
+					if (name == null)
+						continue;
+				}
+				catch (Exception)
+				{
+					Console.WriteLine("Bad enum for ChannelPermission: " + i);
+					continue;
+				}
+				Variables.ChannelPermissionNames.Add(i, name);
+				if ((GENERAL_BITS & (1U << i)) != 0)
+				{
+					Variables.GeneralChannelPermissionValues.Add(name, i);
+				}
+				if ((TEXT_BITS & (1U << i)) != 0)
+				{
+					Variables.TextChannelPermissionValues.Add(name, i);
+				}
+				if ((VOICE_BITS & (1U << i)) != 0)
+				{
+					Variables.VoiceChannelPermissionValues.Add(name, i);
 				}
 			}
 		}
+
+		//Find the text channel permissions
 
 		//Find a role on the server
 		public static IRole getRole(IGuild guild, String roleName)
@@ -209,36 +272,36 @@ namespace Advobot
 		}
 
 		//See if the user/bot can edit the role
-		public static async Task<IRole> getRoleEditAbility(IGuild guild, IMessageChannel channel, IUserMessage message, IGuildUser user, IGuildUser bot, String input, bool ignore_Errors)
+		public static async Task<IRole> getRoleEditAbility(CommandContext context, String input, bool ignore_Errors)
 		{
 			//Check if valid role
-			IRole inputRole = getRole(guild, input);
+			IRole inputRole = getRole(context.Guild, input);
 			if (inputRole == null)
 			{
 				if (!ignore_Errors)
 				{
-					await makeAndDeleteSecondaryMessage(channel, message, ERROR(Constants.ROLE_ERROR), Constants.WAIT_TIME);
+					await makeAndDeleteSecondaryMessage(context, ERROR(Constants.ROLE_ERROR), Constants.WAIT_TIME);
 				}
 				return null;
 			}
 
 			//Determine if the user can edit the role
-			if ((guild.OwnerId == user.Id ? Constants.OWNER_POSITION : getPosition(guild, user)) <= inputRole.Position)
+			if ((context.Guild.OwnerId == context.User.Id ? Constants.OWNER_POSITION : getPosition(context.Guild, context.User as IGuildUser)) <= inputRole.Position)
 			{
 				if (!ignore_Errors)
 				{
-					await makeAndDeleteSecondaryMessage(channel, message, 
+					await makeAndDeleteSecondaryMessage(context, 
 						ERROR(String.Format("`{0}` has a higher position than you are allowed to edit or use.", inputRole.Name)), Constants.WAIT_TIME);
 				}
 				return null;
 			}
 
 			//Determine if the bot can edit the role
-			if (getPosition(guild, bot) <= inputRole.Position)
+			if (getPosition(context.Guild, context.Client.CurrentUser as IGuildUser) <= inputRole.Position)
 			{
 				if (!ignore_Errors)
 				{
-					await makeAndDeleteSecondaryMessage(channel, message,
+					await makeAndDeleteSecondaryMessage(context,
 						ERROR(String.Format("`{0}` has a higher position than the bot is allowed to edit or use.", inputRole.Name)), Constants.WAIT_TIME);
 				}
 				return null;
@@ -247,18 +310,54 @@ namespace Advobot
 			return inputRole;
 		}
 
-		//Do getRoleEditAbility with only two args instead of six
-		public static async Task<IRole> getRoleEditAbility(CommandContext context, String input, bool ignore_Errors)
+		//See if the user can edit the channel
+		public static async Task<bool> getChannelEditAbility(IGuildChannel channel, IGuildUser user)
 		{
-			return await getRoleEditAbility(context.Guild, context.Channel, context.Message,
-				await context.Guild.GetUserAsync(context.User.Id), await context.Guild.GetUserAsync(context.Client.CurrentUser.Id), input, ignore_Errors);
+			if (channel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE))
+			{
+				using (var channelUsers = channel.GetUsersAsync().GetEnumerator())
+				{
+					while (await channelUsers.MoveNext())
+					{
+						if (channelUsers.Current.Contains(user))
+						{
+							return true;
+						}
+					}
+				}
+			}
+			else
+			{
+				if (user.GetPermissions(channel).Connect)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		//See if the user can edit this channel
+		public static async Task<IGuildChannel> getChannelEditAbility(CommandContext context, String input)
+		{
+			IGuildChannel channel = await getChannel(context.Guild, input);
+			if (channel == null)
+			{
+				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` does not exist as a channel on this guild.", input)), Constants.WAIT_TIME);
+				return null;
+			}
+			if (!await getChannelEditAbility(channel, context.User as IGuildUser))
+			{
+				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", channel.Name)), Constants.WAIT_TIME);
+				return null;
+			}
+			return channel;
 		}
 
 		//Remove secondary messages
-		public static async Task makeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage curMsg, String secondStr, Int32 time)
+		public static async Task makeAndDeleteSecondaryMessage(CommandContext context, String secondStr, Int32 time)
 		{
-			IUserMessage secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
-			removeCommandMessages(channel, new IUserMessage[] { secondMsg, curMsg }, time);
+			IUserMessage secondMsg = await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
+			removeCommandMessages(context.Channel, new IUserMessage[] { secondMsg, context.Message }, time);
 		}
 
 		//Remove commands
@@ -365,7 +464,7 @@ namespace Advobot
 
 			//Get input channel type
 			String channelType = values.Length == 2 ? values[1].ToLower() : null;
-			if (null != channelType && !(channelType.Equals(Constants.TEXT_TYPE) || channelType.Equals(Constants.VOICE_TYPE)))
+			if (channelType != null && !(channelType.Equals(Constants.TEXT_TYPE) || channelType.Equals(Constants.VOICE_TYPE)))
 			{
 				return null;
 			}
@@ -429,14 +528,14 @@ namespace Advobot
 			Variables.CommandPreferences[guild.Id] = categories;
 
 			String path = getServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
-			if (!System.IO.File.Exists(path))
+			if (!File.Exists(path))
 			{
 				path = "DefaultCommandPreferences.txt";
 			}
 
-			using (System.IO.StreamReader file = new System.IO.StreamReader(path))
+			using (StreamReader file = new StreamReader(path))
 			{
-				Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + ": preferences for the server " + guild.Name + " have been loaded.");
+				Console.WriteLine(MethodBase.GetCurrentMethod().Name + ": preferences for the server " + guild.Name + " have been loaded.");
 				//Read the preferences document for information
 				String line;
 				while ((line = file.ReadLine()) != null)
@@ -475,9 +574,9 @@ namespace Advobot
 			//Gets the appdata folder for usage, allowed to change
 			String folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 			//Combines the path for appdata and the preferences text file, allowed to change, but I'd recommend to keep the serverID part
-			String directory = System.IO.Path.Combine(folder, "Discord_Servers", serverId.ToString());
+			String directory = Path.Combine(folder, "Discord_Servers", serverId.ToString());
 			//This string will be similar to C:\Users\User\AppData\Roaming\ServerID
-			String path = System.IO.Path.Combine(directory, fileName);
+			String path = Path.Combine(directory, fileName);
 			return path;
 		}
 
@@ -532,10 +631,7 @@ namespace Advobot
 		//Edit message log message
 		public static async Task editMessage(IMessageChannel logChannel, String time, IGuildUser user, IMessageChannel channel, String before, String after)
 		{
-			before = before.Replace("`", "'");
-			after = after.Replace("`", "'");
-
-			await sendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}#{2}` **IN** `#{3}`\n**FROM:** `{4}`\n**TO:** `{5}`",
+			await sendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}#{2}` **IN** `#{3}`\n**FROM:** ```\n{4}```\n**TO:** ```\n{5}```",
 				time, user.Username, user.Discriminator, channel.Name, before, after));
 		}
 
@@ -555,7 +651,7 @@ namespace Advobot
 		public static String uploadToHastebin(IMessageChannel channel, List<String> textList)
 		{
 			//Messages in the format to upload
-			string text = String.Join("\n-----\n", textList).Replace("*", "").Replace("`", "").Replace("\n\n", "\n");
+			string text = replaceMessageCharacters(String.Join("\n-----\n", textList));
 			return uploadToHastebin(channel, text);
 		}
 
@@ -580,7 +676,7 @@ namespace Advobot
 		public static async Task uploadTextFile(IGuild guild, IMessageChannel channel, List<String> textList, String fileName, String messageHeader)
 		{
 			//Messages in the format to upload
-			string text = String.Join("\n-----\n", textList).Replace("*", "").Replace("`", "").Replace("\n\n", "\n");
+			string text = replaceMessageCharacters(String.Join("\n-----\n", textList));
 			await uploadTextFile(guild, channel, text, fileName, messageHeader);
 		}
 		
@@ -609,6 +705,122 @@ namespace Advobot
 
 			//Delete the file
 			File.Delete(path);
+		}
+
+		//Get rid of certain elements to make messages look neater
+		public static String replaceMessageCharacters(String input)
+		{
+			//Matching
+			Regex empty = new Regex("[*`]");
+			//Regex spaces = new Regex("[_]");
+			Regex newLines = new Regex("[\n]{2}");
+
+			//Actually removing
+			input = empty.Replace(input, "");
+			while (input.Contains("\n\n"))
+			{
+				input = newLines.Replace(input, "\n");
+			}
+
+			return input;
+		}
+
+		//Get bits
+		public static async Task<uint> getBit(CommandContext context, String permission, uint changeValue)
+		{
+			try
+			{
+				int bit = Variables.PermissionValues[permission];
+				changeValue |= (1U << bit);
+				return changeValue;
+			}
+			catch (Exception)
+			{
+				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("Couldn't parse permission '{0}'", permission)), Constants.WAIT_TIME);
+				return 0;
+			}
+		}
+
+		//Get the permissions something has on a channel
+		public static Dictionary<String, String> getChannelPermissions(Overwrite overwrite)
+		{
+			//Create a dictionary to hold the allow/deny/inherit values
+			Dictionary<String, String> channelPerms = new Dictionary<String, String>();
+
+			//Make a copy of the channel perm list to check off perms as they go by
+			List<String> genericChannelPerms = Variables.ChannelPermissionNames.Values.ToList();
+
+			//Add allow perms to the dictionary and remove them from the checklist
+			overwrite.Permissions.ToAllowList().ForEach(x =>
+			{
+				channelPerms.Add(x.ToString(), "Allow");
+				genericChannelPerms.Remove(x.ToString());
+			});
+
+			//Add deny perms to the dictionary and remove them from the checklist
+			overwrite.Permissions.ToDenyList().ForEach(x =>
+			{
+				channelPerms.Add(x.ToString(), "Deny");
+				genericChannelPerms.Remove(x.ToString());
+			});
+
+			//Add the remaining perms as inherit after removing all null values
+			genericChannelPerms.ForEach(x => channelPerms.Add(x, "Inherit"));
+
+			//Remove these random values that exist for some reason
+			channelPerms.Remove("1");
+			channelPerms.Remove("3");
+
+			return channelPerms;
+		}
+
+		//Remove voice channel perms
+		public static Dictionary<String, String> getTextChannelPermissions(Dictionary<String, String> dictionary)
+		{
+			Variables.VoiceChannelPermissionValues.Keys.ToList().ForEach(x => dictionary.Remove(x));
+			return dictionary;
+		}
+
+		//Remove text channel perms 
+		public static Dictionary<String, String> getVoiceChannelPermissions(Dictionary<String, String> dictionary)
+		{
+			Variables.TextChannelPermissionValues.Keys.ToList().ForEach(x => dictionary.Remove(x));
+			return dictionary;
+		}
+
+		//Return a dictionary with the correct perms
+		public static Dictionary<String, String> getPerms(Overwrite overwrite, IGuildChannel channel)
+		{
+			//Get the general perms from the overwrite given
+			Dictionary<String, String> dictionary = Actions.getChannelPermissions(overwrite);
+
+			//See if the channel is a text channel and remove voice channel perms
+			if (channel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE))
+			{
+				getTextChannelPermissions(dictionary);
+			}
+			//See if the channel is a voice channel and remove text channel perms
+			else if (channel.GetType().Name.ToLower().Contains(Constants.VOICE_TYPE))
+			{
+				getVoiceChannelPermissions(dictionary);
+			}
+
+			return dictionary;
+		}
+
+		//Get the input string and permissions
+		public static bool getStringAndPermissions(String input, out String output, out List<String> permissions)
+		{
+			output = null;
+			permissions = null;
+			String[] values = input.Split(new char[] { ' ' });
+			if (values.Length == 1)
+				return false;
+
+			permissions = values.Last().Split('/').ToList();
+			output = String.Join(" ", values.Take(values.Length - 1));
+
+			return output != null && permissions != null;
 		}
 	}
 }

@@ -55,10 +55,10 @@ namespace Advobot
 
 				//See if ignored error
 				if (result.ErrorReason.Equals(Constants.IGNORE_ERROR))
-				{
 					return;
-				}
-				await Actions.makeAndDeleteSecondaryMessage(message.Channel, message, $"**Error:** {result.ErrorReason}", Constants.WAIT_TIME);
+
+				//Give the error message
+				await Actions.makeAndDeleteSecondaryMessage(context, $"**Error:** {result.ErrorReason}", Constants.WAIT_TIME);
 			}
 		}
 	}
