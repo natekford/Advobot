@@ -60,6 +60,10 @@ namespace Advobot
 				//Give the error message
 				await Actions.makeAndDeleteSecondaryMessage(context, $"**Error:** {result.ErrorReason}", Constants.WAIT_TIME);
 			}
+			else
+			{
+				System.Console.WriteLine(context.User.Id + " used command \'" + context.Message + "\' and succeeded.");
+			}
 		}
 	}
 }

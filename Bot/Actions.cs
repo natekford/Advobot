@@ -22,11 +22,12 @@ namespace Advobot
 		//Loading in all necessary information at bot start up
 		public static void loadInformation()
 		{
-			loadPermissionNames();                          //Gets the names of the permission bits in Discord
+			Variables.Bot_ID = CommandHandler.client.CurrentUser.Id;				//Give the variable Bot_ID the actual ID
+			loadPermissionNames();													//Gets the names of the permission bits in Discord
 			//Has to go after loadPermissionNames
-			loadCommandInformation();						//Gets the information of a command (name, aliases, usage, summary)
+			loadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary)
 			//Has to go after loadCommandInformation
-			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));   //Gets all the active command names
+			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));	//Gets all the active command names
 		}
 
 		//Get the information from the commands
@@ -194,12 +195,31 @@ namespace Advobot
 			}
 		}
 
-		//Find the text channel permissions
+		//Complex find a role on the server
+		public static async Task<IRole> getRole(CommandContext context, String roleName)
+		{
+			if (roleName.StartsWith("<@"))
+			{
+				roleName = roleName.Trim(new char[] { '<', '@', '&', '>' });
+				ulong roleID = 0;
+				if (UInt64.TryParse(roleName, out roleID))
+				{
+					return context.Guild.GetRole(roleID);
+				}
+			}
+			if (context.Guild.Roles.ToList().Where(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase)).Count() > 1)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(context,
+					ERROR("Multiple roles with the same name. Please specify by mentioning the role or changing their names."), Constants.WAIT_TIME);
+				return null;
+			}
+			return context.Guild.Roles.ToList().FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+		}
 
-		//Find a role on the server
+		//Simple find a role on the server
 		public static IRole getRole(IGuild guild, String roleName)
 		{
-			return guild.Roles.ToList().FirstOrDefault(x => x.Name.Equals(roleName));
+			return guild.Roles.ToList().FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
 		}
 
 		//Create a role on the server if it's not found
@@ -275,7 +295,7 @@ namespace Advobot
 		public static async Task<IRole> getRoleEditAbility(CommandContext context, String input, bool ignore_Errors)
 		{
 			//Check if valid role
-			IRole inputRole = getRole(context.Guild, input);
+			IRole inputRole = await getRole(context, input);
 			if (inputRole == null)
 			{
 				if (!ignore_Errors)
@@ -286,7 +306,8 @@ namespace Advobot
 			}
 
 			//Determine if the user can edit the role
-			if ((context.Guild.OwnerId == context.User.Id ? Constants.OWNER_POSITION : getPosition(context.Guild, context.User as IGuildUser)) <= inputRole.Position)
+			if ((context.Guild.OwnerId == context.User.Id ? Constants.OWNER_POSITION
+				: getPosition(context.Guild, await context.Guild.GetUserAsync(context.User.Id))) <= inputRole.Position)
 			{
 				if (!ignore_Errors)
 				{
@@ -297,7 +318,7 @@ namespace Advobot
 			}
 
 			//Determine if the bot can edit the role
-			if (getPosition(context.Guild, context.Client.CurrentUser as IGuildUser) <= inputRole.Position)
+			if (getPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID)) <= inputRole.Position)
 			{
 				if (!ignore_Errors)
 				{
@@ -328,6 +349,10 @@ namespace Advobot
 			}
 			else
 			{
+				if (user == null)
+				{
+					return false;
+				}
 				if (user.GetPermissions(channel).Connect)
 				{
 					return true;
@@ -345,7 +370,7 @@ namespace Advobot
 				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` does not exist as a channel on this guild.", input)), Constants.WAIT_TIME);
 				return null;
 			}
-			if (!await getChannelEditAbility(channel, context.User as IGuildUser))
+			if (!await getChannelEditAbility(channel, await context.Guild.GetUserAsync(context.User.Id)))
 			{
 				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", channel.Name)), Constants.WAIT_TIME);
 				return null;
@@ -460,7 +485,12 @@ namespace Advobot
 		//Get a channel
 		public static async Task<IGuildChannel> getChannel(IGuild guild, String input)
 		{
-			String[] values = input.Trim().Split(new char[] { '/' }, 2);
+			if (input.Contains("<#"))
+			{
+				input = input.Substring(input.IndexOf("<#"));
+			}
+			String[] seperateSpaces = input.Split(new char[] { ' ' }, 2);
+			String[] values = seperateSpaces[0].Split(new char[] { '/' }, 2);
 
 			//Get input channel type
 			String channelType = values.Length == 2 ? values[1].ToLower() : null;
@@ -700,8 +730,7 @@ namespace Advobot
 			}
 
 			//Upload the file
-			await Actions.sendChannelMessage(channel, "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]` **" + messageHeader + ":**");
-			await channel.SendFileAsync(path);
+			await channel.SendFileAsync(path, "**" + messageHeader + ":**");
 
 			//Delete the file
 			File.Delete(path);
@@ -821,6 +850,180 @@ namespace Advobot
 			output = String.Join(" ", values.Take(values.Length - 1));
 
 			return output != null && permissions != null;
+		}
+
+		//Send a message with an embedded object
+		public static async Task<IMessage> sendEmbedMessage(IMessageChannel channel, String message, EmbedBuilder embed)
+		{
+			if (channel == null)
+				return null;
+			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message, embed: embed);
+		}
+
+		//Send an embedded object
+		public static async Task<IMessage> sendEmbedMessage(IMessageChannel channel, EmbedBuilder embed)
+		{
+			if (channel == null)
+				return null;
+			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR, embed: embed);
+		}
+
+		//Make a new embed builder
+		public static EmbedBuilder makeNewEmbed(Color? color = null, String title = null, String description = null, String imageURL = null)
+		{
+			//Timestamp is in UTC for simplicity and organization's sake
+			EmbedBuilder embed = new EmbedBuilder().WithColor(Constants.BASE).WithTimestamp(DateTime.Now.AddHours(DateTimeOffset.UtcNow.Hour - DateTimeOffset.Now.Hour));
+			
+			if (color != null)
+			{
+				embed.Color = color.Value;
+			}
+			if (title != null)
+			{
+				embed.Title = title;
+			}
+			if (description != null)
+			{
+				embed.Description = description;
+			}
+			if (imageURL != null)
+			{
+				embed.ImageUrl = imageURL;
+			}
+
+			return embed;
+		}
+
+		//Make a new author for an embed
+		public static EmbedBuilder addAuthor(EmbedBuilder embed, String name = null, String iconURL = null, String URL = null)
+		{
+			EmbedAuthorBuilder author = new EmbedAuthorBuilder().WithIconUrl("https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png");
+
+			if (name != null)
+			{
+				author.Name = name;
+			}
+			if (iconURL != null)
+			{
+				author.IconUrl = iconURL;
+			}
+			if (URL != null)
+			{
+				author.Url = URL;
+			}
+
+			return embed.WithAuthor(author);
+		}
+
+		//Make a new footer for an embed
+		public static EmbedBuilder addFooter(EmbedBuilder embed, String text = null, String iconURL = null)
+		{
+			EmbedFooterBuilder footer = new EmbedFooterBuilder();
+
+			if (text != null)
+			{
+				footer.Text = text;
+			}
+			if (iconURL != null)
+			{
+				footer.IconUrl = iconURL;
+			}
+
+			return embed.WithFooter(footer);
+		}
+
+		//Add a field to an embed
+		public static EmbedBuilder addField(EmbedBuilder embed, String name, String value, bool isInline = true)
+		{
+			if (name == null || value == null)
+				return embed;
+
+			embed.AddField(x =>
+			{
+				x.Name = name;
+				x.Value = value;
+				x.IsInline = isInline;
+			});
+
+			return embed;
+		}
+
+		//Logging images
+		public static void ImageLog(IMessageChannel channel, SocketMessage message, bool embeds)
+		{
+			if (message.Author.Id == CommandHandler.client.CurrentUser.Id)
+				return;
+
+			//Get the links
+			var t = Task.Run(async delegate
+			{
+				List<String> attachmentURLs = new List<String>();
+				List<String> embedURLs = new List<String>();
+				List<Embed> videoEmbeds = new List<Embed>();
+				if (!embeds && message.Attachments.Count > 0)
+				{
+					//If attachment, the file is hosted on discord which has a concrete URL name for files (cdn.discordapp.com/attachments/.../x.png)
+					message.Attachments.ToList().ForEach(x => attachmentURLs.Add(x.Url));
+				}
+				if (embeds && message.Embeds.Count > 0)
+				{
+					//If embed this is slightly trickier, but only images/videos can embed (AFAIK)
+					message.Embeds.ToList().ForEach(x =>
+					{
+						if (x.Video == null)
+						{
+							//If no video then it has to be just an image
+							embedURLs.Add(x.Thumbnail.ToString());
+						}
+						else
+						{
+							//Add the video URL and the thumbnail URL
+							videoEmbeds.Add(x);
+						}
+					});
+				}
+				IUser user = message.Author;
+				foreach (String URL in attachmentURLs)
+				{
+					if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL).ToLower()))
+					{
+						//Image attachment
+						EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Image", imageURL: URL), "Attached Image");
+						Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+						await Actions.sendEmbedMessage(channel, embed);
+					}
+					else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(URL).ToLower()))
+					{
+						//Gif attachment
+						EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Gif", imageURL: URL), "Attached Gif");
+						Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+						await Actions.sendEmbedMessage(channel, embed);
+					}
+					else
+					{
+						//Random file attachment
+						EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "File"), "Attached File");
+						Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+						await Actions.sendEmbedMessage(channel, embed.WithDescription(URL));
+					}
+				}
+				foreach (String URL in embedURLs)
+				{
+					//Embed image
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Image", imageURL: URL), "Embedded Image");
+					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					await Actions.sendEmbedMessage(channel, embed);
+				}
+				foreach (Embed embedObject in videoEmbeds)
+				{
+					//Check if video or gif
+					String title = Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url).ToLower()) ? "Gif" : "Video";
+
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, title, embedObject.Url, embedObject.Thumbnail.Value.Url), "Embedded " + title);
+					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					await Actions.sendEmbedMessage(channel, embed);
+				}
+			});
 		}
 	}
 }

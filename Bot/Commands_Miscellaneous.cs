@@ -29,8 +29,8 @@ namespace Advobot
 			//See if it's empty
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				await Actions.sendChannelMessage(Context.Channel, "Type `>commands` for the list of commands.\nType `" + Constants.BOT_PREFIX + "help [Command]`" +
-					" for help with a command.\nLink to the documentation of this bot: https://gist.github.com/advorange/3da9140889b20009816e4c9629de51c9");
+				await Actions.sendChannelMessage(Context.Channel, "Type `" + Constants.BOT_PREFIX + "commands` for the list of commands.\n" +
+					"Type `" + Constants.BOT_PREFIX + "help [Command]` for help with a command.\nLink to the current repo of this bot: https://github.com/advorange/Advobot");
 				return;
 			}
 
@@ -64,14 +64,15 @@ namespace Advobot
 					return;
 				}
 			}
-			await Actions.sendChannelMessage(Context.Channel, String.Format("```Aliases: {0}\nUsage: {1}\nBase Permission(s): {2}\nDescription: {3}```",
-				String.Join(", ", helpEntry.Aliases), helpEntry.Usage, helpEntry.basePerm, helpEntry.Text));
+			String description = String.Format("**Aliases:** {0}\n**Usage:** {1}\n**Base Permission(s):** {2}\n\n**Description:** {3}",
+				String.Join(", ", helpEntry.Aliases), helpEntry.Usage, helpEntry.basePerm, helpEntry.Text);
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, helpEntry.Name, description));
 		}
 
 		[Command("commands")]
 		[Alias("cmds")]
 		[Usage(Constants.BOT_PREFIX + "commands <Category|All>")]
-		[Summary("Prints out the commands in that section of the command list.")]
+		[Summary("Prints out the commands in that category of the command list.")]
 		[UserHasAPermission()]
 		public async Task Commands([Optional][Remainder] String input)
 		{
@@ -91,27 +92,27 @@ namespace Advobot
 			if (section.Equals("administration"))
 			{
 				String[] commands = Actions.getCommands(Context.Guild, 0);
-				await Actions.sendChannelMessage(Context.Channel, String.Format("**ADMINISTRATION:** ```\n{0}```", String.Join("\n", commands)));
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "ADMINISTRATION", String.Join("\n", commands)));
 			}
 			else if (section.Equals("moderation"))
 			{
 				String[] commands = Actions.getCommands(Context.Guild, 1);
-				await Actions.sendChannelMessage(Context.Channel, String.Format("**MODERATION:** ```\n{0}```", String.Join("\n", commands)));
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "MODERATION", String.Join("\n", commands)));
 			}
 			else if (section.Equals("votemute"))
 			{
 				String[] commands = Actions.getCommands(Context.Guild, 2);
-				await Actions.sendChannelMessage(Context.Channel, String.Format("**VOTEMUTE:** ```\n{0}```", String.Join("\n", commands)));
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "VOTEMUTE", String.Join("\n", commands)));
 			}
 			else if (section.Equals("slowmode"))
 			{
 				String[] commands = Actions.getCommands(Context.Guild, 3);
-				await Actions.sendChannelMessage(Context.Channel, String.Format("**SLOWMODE:** ```\n{0}```", String.Join("\n", commands)));
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "SLOWMODE", String.Join("\n", commands)));
 			}
 			else if (section.Equals("banphrase"))
 			{
 				String[] commands = Actions.getCommands(Context.Guild, 4);
-				await Actions.sendChannelMessage(Context.Channel, String.Format("**BANPHRASE:** ```\n{0}```", String.Join("\n", commands)));
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "BANPHRASE", String.Join("\n", commands)));
 			}
 			else if (section.Equals("all"))
 			{
@@ -122,7 +123,7 @@ namespace Advobot
 					{
 						commands.Add(command);
 					}
-					await Actions.sendChannelMessage(Context.Channel, String.Format("**ALL:** ```\n{0}```", String.Join("\n", commands)));
+					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "ALL", String.Join("\n", commands)));
 				}
 				else
 				{
@@ -265,7 +266,7 @@ namespace Advobot
 		[UserHasAPermission()]
 		public async Task RoleID([Remainder] String input)
 		{
-			IRole role = Actions.getRole(Context.Guild, input);
+			IRole role = await Actions.getRole(Context, input);
 			if (role == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ROLE_ERROR), Constants.WAIT_TIME);
@@ -312,7 +313,7 @@ namespace Advobot
 			{
 				IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync();
 				List<IGuildUser> users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
-				if (position >= 1 && position < users.Count())
+				if (position >= 1 && position < users.Count)
 				{
 					IGuildUser user = users[position - 1];
 					await Actions.sendChannelMessage(Context.Channel, String.Format("{0} was #{1} to join the server on `{2} {3}, {4}` at `{5}`.",
@@ -399,43 +400,44 @@ namespace Advobot
 			IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync();
 			List<IGuildUser> users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
 
-			await Actions.sendChannelMessage(Context.Channel, String.Format(
-					"{0}```" +
-					"\nUsername: {1}#{2}" +
-					"\nID: {3}" +
-					"\n" +
-					"\nNickname: {4}" +
-					"\nJoined: {5} {6}, {7} (#{8} to join the server)" +
-					"\nRoles: {9}" +
-					"\nAble to access: {10}" +
-					"\n" +
-					"\nIn voice channel: {11}" +
-					"{12}" +
-					"{13}" +
-					"{14}" +
-					"{15}" +
-					"\n" +
-					"\nCurrent game: {16}" +
-					"\nAvatar URL: {17}" +
-					"\nOnline status: {18}```",
-					user.Mention,
-					user.Username, user.Discriminator,
-					user.Id,
-					user.Nickname == null ? "N/A" : user.Nickname,
-					System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(user.JoinedAt.Value.UtcDateTime.Month),
-					user.JoinedAt.Value.UtcDateTime.Day,
-					user.JoinedAt.Value.UtcDateTime.Year,
-					users.IndexOf(user) + 1,
-					roles.Count() == 0 ? "N/A" : String.Join(", ", roles),
-					channels.Count() == 0 ? "N/A" : String.Join(", ", channels),
-					user.VoiceChannel == null ? "N/A" : user.VoiceChannel.ToString(),
-					user.VoiceChannel == null ? "" : "\nServer mute: " + user.IsMuted.ToString(),
-					user.VoiceChannel == null ? "" : "\nServer deafen: " + user.IsDeafened.ToString(),
-					user.VoiceChannel == null ? "" : "\nSelf mute: " + user.IsSelfMuted.ToString(),
-					user.VoiceChannel == null ? "" : "\nSelf deafen: " + user.IsSelfDeafened.ToString(),
-					user.Game == null ? "N/A" : user.Game.Value.Name.ToString(),
-					user.AvatarUrl,
-					user.Status));
+			//Make the description
+			String description = String.Format(
+				"Discriminator: {0}\n" +
+				"ID: {1}\n" +
+				"\n" +
+				"Nickname: {2}\n" +
+				"Joined: {3} {4}, {5} at {6} (#{7} to join the server)\n" +
+				"Roles: {8}\n" +
+				"Able to access: {9}\n" +
+				"\n" +
+				"Voice channel: {10}\n" +
+				"{11}" +
+				"{12}" +
+				"{13}" +
+				"{14}" +
+				"\n" +
+				"Current game: {15}\n" +
+				"Online status: {16}\n" +
+				"Avatar:",	
+				user.Discriminator,
+				user.Id,
+				user.Nickname == null ? "N/A" : user.Nickname,
+				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(user.JoinedAt.Value.UtcDateTime.Month),
+				user.JoinedAt.Value.UtcDateTime.Day,
+				user.JoinedAt.Value.UtcDateTime.Year,
+				user.JoinedAt.Value.UtcDateTime.ToLongTimeString(),
+				users.IndexOf(user) + 1,
+				roles.Count == 0 ? "N/A" : String.Join(", ", roles),
+				channels.Count == 0 ? "N/A" : String.Join(", ", channels),
+				user.VoiceChannel == null ? "N/A" : user.VoiceChannel.ToString(),
+				user.VoiceChannel == null ? "" : "Server mute: " + user.IsMuted.ToString() + "\n",
+				user.VoiceChannel == null ? "" : "Server deafen: " + user.IsDeafened.ToString() + "\n",
+				user.VoiceChannel == null ? "" : "Self mute: " + user.IsSelfMuted.ToString() + "\n",
+				user.VoiceChannel == null ? "" : "Self deafen: " + user.IsSelfDeafened.ToString() + "\n",
+				user.Game == null ? "N/A" : user.Game.Value.Name.ToString(),
+				user.Status);
+
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, user.Username, description, user.AvatarUrl));
 		}
 
 		[Command("botinfo")]
@@ -447,25 +449,24 @@ namespace Advobot
 		{
 			TimeSpan span = DateTime.UtcNow.Subtract(Variables.StartupTime);
 
-			await Actions.sendChannelMessage(Context.Channel, String.Format(
-				"```" +
-				"\nOnline since: {0}" +
-				"\nUptime: {1}:{2}:{3}:{4}" +
-				"\nGuild count: {5}" +
-				"\nCumulative member count: {6}" +
+			//Make the description
+			String description = String.Format(
+				"Online since: {0}\n" +
+				"Uptime: {1}:{2}:{3}:{4}\n" +
+				"Guild count: {5}\n" +
+				"Cumulative member count: {6}\n" +
 				"\n" +
-				"\nAttempted commands: {7}" +
-				"\nSuccessful commands: {8}" +
-				"\nFailed commands: {9}" +
+				"Attempted commands: {7}\n" +
+				"Successful commands: {8}\n" +
+				"Failed commands: {9}\n" +
 				"\n" +
-				"\nLogged joins: {10}" +
-				"\nLogged leaves: {11}" +
-				"\nLogged bans: {12}" +
-				"\nLogged unbans: {13}" +
-				"\nLogged user changes: {14}" +
-				"\nLogged edits: {15}" +
-				"\nLogged deletes: {16}" + 
-				"```",
+				"Logged joins: {10}\n" +
+				"Logged leaves: {11}\n" +
+				"Logged bans: {12}\n" +
+				"Logged unbans: {13}\n" +
+				"Logged user changes: {14}\n" +
+				"Logged edits: {15}\n" +
+				"Logged deletes: {16}\n",
 				Variables.StartupTime,
 				span.Days, span.Hours.ToString("00"), span.Minutes.ToString("00"), span.Seconds.ToString("00"),
 				Variables.TotalGuilds,
@@ -479,9 +480,94 @@ namespace Advobot
 				Variables.LoggedUnbans,
 				Variables.LoggedUserChanges,
 				Variables.LoggedEdits,
-				Variables.LoggedDeletes));
+				Variables.LoggedDeletes);
+
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, Constants.BOT_NAME, description, null));
 		}
 
-		//await user.ModifyAsync(x => x.Nickname = "test");
+		[Command("createinstantinvite")]
+		[Alias("crinv")]
+		[Usage(Constants.BOT_PREFIX + "createinstantinvite " + Constants.CHANNEL_INSTRUCTIONS + " [Forever|1800|3600|21600|43200|86400] [Infinite|1|5|10|25|50|100] [True|False]")]
+		[Summary("The first argument is the channel. The second is how long the invite will last for. " +
+			"The third is how many users can use the invite. The fourth is the temporary membership option.")]
+		[PermissionRequirements(0, (1U << (int)GuildPermission.CreateInstantInvite))]
+		public async Task CreateInstantInvite([Remainder] String input)
+		{
+			String[] inputArray = input.Split(new char[] { ' ' }, 4);
+			if (inputArray.Length != 4)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR), Constants.WAIT_TIME);
+				return;
+			}
+
+			//Check validity of channel
+			IGuildChannel channel = await Actions.getChannelEditAbility(Context, inputArray[0]);
+			if (channel == null)
+				return;
+
+			//Set the time in seconds
+			Int32 time = 0;
+			Int32? nullableTime = null;
+			if (Int32.TryParse(inputArray[1], out time))
+			{
+				Int32[] validTimes = { 1800, 3600, 21600, 43200, 86400 };
+				if (validTimes.Contains(time))
+				{
+					nullableTime = time;
+				}
+			}
+
+			//Set the max amount of users
+			int users = 0;
+			int? nullableUsers = null;
+			if (int.TryParse(inputArray[2], out users))
+			{
+				int[] validUsers = { 1, 5, 10, 25, 50, 100 };
+				if (validUsers.Contains(users))
+				{
+					nullableUsers = users;
+				}
+			}
+
+			//Set tempmembership
+			bool tempMembership = false;
+			if (inputArray[3].ToLower().Equals("true"))
+			{
+				tempMembership = true;
+			}
+
+			//Make into valid invite link
+			IInvite inv = await channel.CreateInviteAsync(nullableTime, nullableUsers, tempMembership);
+
+			await Actions.sendChannelMessage(Context.Channel, String.Format("Here is your invite for `{0}`: {1} \nIt will last for{2}, {3}{4}",
+				channel.GetType().Name.ToLower().Contains(Constants.VOICE_TYPE) ? channel.Name + " (Voice)" : channel.Name + " (Text)", inv.Url,
+				nullableTime == null ? "ever" : " " + time.ToString() + " seconds",
+				nullableUsers == null ? (tempMembership ? "has no limit of users" : " and has no limit of users") :
+										(tempMembership ? "has a limit of " + users.ToString() + " users" : " and has a limit of " + users.ToString() + " users"),
+				tempMembership ? ", and users will only receive temporary membership." : "."));
+		}
+
+		[Command("test")]
+		[BotOwnerRequirement]
+		public async Task Test([Optional][Remainder] String input)
+		{
+			EmbedBuilder embed = Actions.makeNewEmbed(null, "yeyo", "sample text", null);
+			embed.ThumbnailUrl = "http://i.imgur.com/Xbk5Yyd.jpg";
+			embed.ImageUrl = "http://i.imgur.com/Xbk5Yyd.jpg";
+			embed.Url = "http://i.imgur.com/Xbk5Yyd.jpg";
+
+			EmbedAuthorBuilder author = new EmbedAuthorBuilder().WithIconUrl("http://i.imgur.com/Xbk5Yyd.jpg").WithName("ADVSAUCY").WithUrl("http://i.imgur.com/Xbk5Yyd.jpg");
+			embed.Author = author;
+
+			EmbedFooterBuilder footer = new EmbedFooterBuilder();
+			footer.IconUrl = "http://i.imgur.com/Xbk5Yyd.jpg";
+			footer.Text = "footertext ";
+			embed.Footer = footer;
+
+			Actions.addField(embed, "Test", "Test", true);
+			Actions.addField(embed, "Test2", "Test", true);
+
+			await Context.Channel.SendMessageAsync("", embed: embed);
+		}
 	}
 }

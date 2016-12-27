@@ -8,6 +8,8 @@ namespace Advobot
 		public const String BOT_PREFIX = ">>";
 		public const String IGNORE_ERROR = "Cx";
 		public const String ZERO_LENGTH_CHAR = "\u180E";
+		public const String BOT_NAME = "Advobot";
+		public const String TEXT_HOST = "hastebin";
 		public const String STARTUP_GAME = "type \"" + Constants.BOT_PREFIX + "help\" for help.";
 		public const String ERROR_MESSAGE = "**ERROR:** ";
 		public const String ARGUMENTS_ERROR = "Invalid number of arguments.";
@@ -22,6 +24,7 @@ namespace Advobot
 		public const String SERVER_LOG_CHECK_STRING = "Serverlog:";
 		public const String MOD_LOG_CHECK_STRING = "Modlog:";
 		public const String CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/[Text|Voice]]]";
+		public const String OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/[Text|Voice]]>";
 		public const String VOICE_TYPE = "voice";
 		public const String TEXT_TYPE = "text";
 
@@ -32,21 +35,34 @@ namespace Advobot
 		public const int TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG = 3;
 		public const int OWNER_POSITION = 9001;
 
-		//Max/min lengths for various things
 		public const int NICKNAME_LENGTH = 32;
 		public const int TOPIC_LENGTH = 1024;
 		public const int ROLE_NAME_LENGTH = 32;
 		public const int CHANNEL_NAME_MAX_LENGTH = 100;
 		public const int CHANNEL_NAME_MIN_LENGTH = 2;
 
-		public const bool DISCONNECT = false;
-		public const bool NEWEST_DELETED_MESSAGES_AT_TOP = false;
-		public const bool TEXT_FILE = false;
+		public static readonly String[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
+		public static readonly String[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
+
+		public static readonly bool DISCONNECT = false;
+		public static readonly bool NEWEST_DELETED_MESSAGES_AT_TOP = false;
+		public static readonly bool TEXT_FILE = false;
+
+		public static readonly Discord.Color BASE = new Discord.Color(255, 100, 0);
+		public static readonly Discord.Color JOIN = new Discord.Color(0, 153, 0);
+		public static readonly Discord.Color LEAVE = new Discord.Color(153, 0, 0);
+		public static readonly Discord.Color UNBAN = new Discord.Color(0, 102, 0);
+		public static readonly Discord.Color BAN = new Discord.Color(102, 0, 0);
+		public static readonly Discord.Color UEDIT = new Discord.Color(0, 0, 153);
+		public static readonly Discord.Color MEDIT = new Discord.Color(0, 0, 204);
+		public static readonly Discord.Color MDEL = new Discord.Color(204, 0, 0);
+		public static readonly Discord.Color ATTACH = new Discord.Color(0, 204, 204);
 	}
 
 	public static class Variables
 	{
-		public static DateTime StartupTime = DateTime.UtcNow;
+		public static DateTime StartupTime = DateTime.UtcNow.ToUniversalTime();
+		public static UInt64 Bot_ID = 0;
 		public static int TotalUsers = 0;
 		public static int TotalGuilds = 0;
 		public static int FailedCommands = 0;
@@ -70,6 +86,8 @@ namespace Advobot
 		public static Dictionary<String, int> GeneralChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<String, int> TextChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<String, int> VoiceChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<ulong, Discord.IUser> UnbannedUsers = new Dictionary<ulong, Discord.IUser>();
+
 		public static List<String> CommandNames = new List<String>();
 		public static List<Discord.IGuild> Guilds = new List<Discord.IGuild>();
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
