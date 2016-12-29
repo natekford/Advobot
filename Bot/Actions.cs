@@ -44,12 +44,12 @@ namespace Advobot
 					String usage = "N/A";
 					String basePerm = "N/A";
 					String text = "N/A";
-					//Console.WriteLine(classType.Name + "." + method.Name);
+					//Actions.writeLine(classType.Name + "." + method.Name);
 					{
 						CommandAttribute attr = (CommandAttribute)method.GetCustomAttribute(typeof(CommandAttribute));
-						if (null != attr)
+						if (attr != null)
 						{
-							//Console.WriteLine(classType.Name + "." + method.Name + ": " + attr.Text);
+							//Actions.writeLine(classType.Name + "." + method.Name + ": " + attr.Text);
 							name = attr.Text;
 						}
 						else
@@ -59,37 +59,47 @@ namespace Advobot
 					}
 					{
 						AliasAttribute attr = (AliasAttribute)method.GetCustomAttribute(typeof(AliasAttribute));
-						if (null != attr)
+						if (attr != null)
 						{
-							//Console.WriteLine(classType.Name + "." + method.Name + ": " + attr.Text);
+							//Actions.writeLine(classType.Name + "." + method.Name + ": " + attr.Text);
 							aliases = attr.Aliases;
 						}
 					}
 					{
 						UsageAttribute attr = (UsageAttribute)method.GetCustomAttribute(typeof(UsageAttribute));
-						if (null != attr)
+						if (attr != null)
 						{
-							//Console.WriteLine(classType.Name + "." + method.Name + ": " + attr.Text);
+							//Actions.writeLine(classType.Name + "." + method.Name + ": " + attr.Text);
 							usage = attr.Text;
 						}
 					}
 					{
 						PermissionRequirementsAttribute attr = (PermissionRequirementsAttribute)method.GetCustomAttribute(typeof(PermissionRequirementsAttribute));
-						if (null != attr)
+						BotOwnerRequirementAttribute botowner = (BotOwnerRequirementAttribute)method.GetCustomAttribute(typeof(BotOwnerRequirementAttribute));
+						UserHasAPermissionAttribute anyperm = (UserHasAPermissionAttribute)method.GetCustomAttribute(typeof(UserHasAPermissionAttribute));
+						if (attr != null)
 						{
-							//Console.WriteLine(classType.Name + "." + method.Name + ": " + attr.Text);
+							//Actions.writeLine(classType.Name + "." + method.Name + ": " + attr.Text);
 							basePerm = String.IsNullOrWhiteSpace(attr.AllText) ? "" : "[" + attr.AllText + "]";
 							if (!basePerm.Equals("[Administrator]"))
 							{
 								basePerm += basePerm.Contains('[') ? " or <" + attr.AnyText + ">" : "[" + attr.AnyText + "]";
 							}
 						}
+						else if (botowner != null)
+						{
+							basePerm = "[Bot owner]";
+						}
+						else if (anyperm != null)
+						{
+							basePerm = "[Administrator or any perms starting with 'Manage' or ending with 'Members']";
+						}
 					}
 					{
 						SummaryAttribute attr = (SummaryAttribute)method.GetCustomAttribute(typeof(SummaryAttribute));
-						if (null != attr)
+						if (attr != null)
 						{
-							//Console.WriteLine(classType.Name + "." + method.Name + ": " + attr.Text);
+							//Actions.writeLine(classType.Name + "." + method.Name + ": " + attr.Text);
 							text = attr.Text;
 						}
 					}
@@ -126,7 +136,7 @@ namespace Advobot
 				}
 				catch (Exception)
 				{
-					Console.WriteLine("Bad enum for GuildPermission: " + i);
+					Actions.writeLine("Bad enum for GuildPermission: " + i);
 					continue;
 				}
 				Variables.PermissionNames.Add(i, name);
@@ -176,7 +186,7 @@ namespace Advobot
 				}
 				catch (Exception)
 				{
-					Console.WriteLine("Bad enum for ChannelPermission: " + i);
+					Actions.writeLine("Bad enum for ChannelPermission: " + i);
 					continue;
 				}
 				Variables.ChannelPermissionNames.Add(i, name);
@@ -207,13 +217,18 @@ namespace Advobot
 					return context.Guild.GetRole(roleID);
 				}
 			}
-			if (context.Guild.Roles.ToList().Where(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase)).Count() > 1)
+			List<IRole> roles = context.Guild.Roles.ToList().Where(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase)).ToList();
+			if (roles.Count > 1)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(context,
-					ERROR("Multiple roles with the same name. Please specify by mentioning the role or changing their names."), Constants.WAIT_TIME);
+					ERROR("Multiple roles with the same name. Please specify by mentioning the role or changing their names."));
 				return null;
 			}
-			return context.Guild.Roles.ToList().FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+			if (roles.Count == 1)
+			{
+				return roles.First();
+			}
+			return null;
 		}
 
 		//Simple find a role on the server
@@ -292,7 +307,7 @@ namespace Advobot
 		}
 
 		//See if the user/bot can edit the role
-		public static async Task<IRole> getRoleEditAbility(CommandContext context, String input, bool ignore_Errors)
+		public static async Task<IRole> getRoleEditAbility(CommandContext context, String input, bool ignore_Errors = false)
 		{
 			//Check if valid role
 			IRole inputRole = await getRole(context, input);
@@ -300,7 +315,7 @@ namespace Advobot
 			{
 				if (!ignore_Errors)
 				{
-					await makeAndDeleteSecondaryMessage(context, ERROR(Constants.ROLE_ERROR), Constants.WAIT_TIME);
+					await makeAndDeleteSecondaryMessage(context, ERROR(Constants.ROLE_ERROR));
 				}
 				return null;
 			}
@@ -312,7 +327,7 @@ namespace Advobot
 				if (!ignore_Errors)
 				{
 					await makeAndDeleteSecondaryMessage(context, 
-						ERROR(String.Format("`{0}` has a higher position than you are allowed to edit or use.", inputRole.Name)), Constants.WAIT_TIME);
+						ERROR(String.Format("`{0}` has a higher position than you are allowed to edit or use.", inputRole.Name)));
 				}
 				return null;
 			}
@@ -323,7 +338,7 @@ namespace Advobot
 				if (!ignore_Errors)
 				{
 					await makeAndDeleteSecondaryMessage(context,
-						ERROR(String.Format("`{0}` has a higher position than the bot is allowed to edit or use.", inputRole.Name)), Constants.WAIT_TIME);
+						ERROR(String.Format("`{0}` has a higher position than the bot is allowed to edit or use.", inputRole.Name)));
 				}
 				return null;
 			}
@@ -367,19 +382,19 @@ namespace Advobot
 			IGuildChannel channel = await getChannel(context.Guild, input);
 			if (channel == null)
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` does not exist as a channel on this guild.", input)), Constants.WAIT_TIME);
+				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` does not exist as a channel on this guild.", input)));
 				return null;
 			}
 			if (!await getChannelEditAbility(channel, await context.Guild.GetUserAsync(context.User.Id)))
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", channel.Name)), Constants.WAIT_TIME);
+				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", channel.Name)));
 				return null;
 			}
 			return channel;
 		}
 
 		//Remove secondary messages
-		public static async Task makeAndDeleteSecondaryMessage(CommandContext context, String secondStr, Int32 time)
+		public static async Task makeAndDeleteSecondaryMessage(CommandContext context, String secondStr, Int32 time = Constants.WAIT_TIME)
 		{
 			IUserMessage secondMsg = await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
 			removeCommandMessages(context.Channel, new IUserMessage[] { secondMsg, context.Message }, time);
@@ -432,7 +447,7 @@ namespace Advobot
 		}
 
 		//Remove messages given a user id
-		public static async Task removeMessages(IMessageChannel channel, int requestCount, IUser user)
+		public static async Task removeMessages(ITextChannel channel, int requestCount, IUser user)
 		{
 			//Make sure there's a user id
 			if (user == null)
@@ -441,7 +456,7 @@ namespace Advobot
 				return;
 			}
 
-			Console.WriteLine(String.Format("Deleting {0} messages.", requestCount));
+			Actions.writeLine(String.Format("Deleting {0} messages from {1} in channel {2} in guild {3}.", requestCount, user.Id, channel.Name, channel.GuildId));
 			List<IMessage> allMessages = new List<IMessage>();
 			using (var enumerator = channel.GetMessagesAsync(Constants.MESSAGES_TO_GATHER).GetEnumerator())
 			{
@@ -466,7 +481,7 @@ namespace Advobot
 			}
 			userMessages.Insert(0, allMessages[0]); //Remove the initial command message
 
-			Console.WriteLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, user.Username));
+			Actions.writeLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, user.Username));
 			await channel.DeleteMessagesAsync(userMessages.ToArray());
 		}
 
@@ -565,7 +580,7 @@ namespace Advobot
 
 			using (StreamReader file = new StreamReader(path))
 			{
-				Console.WriteLine(MethodBase.GetCurrentMethod().Name + ": preferences for the server " + guild.Name + " have been loaded.");
+				Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": preferences for the server " + guild.Name + " have been loaded.");
 				//Read the preferences document for information
 				String line;
 				while ((line = file.ReadLine()) != null)
@@ -591,7 +606,7 @@ namespace Advobot
 						}
 						else
 						{
-							Console.WriteLine("ERROR: " + line);
+							Actions.writeLine("ERROR: " + line);
 						}
 					}
 				}
@@ -674,19 +689,19 @@ namespace Advobot
 		//Send an exception message to the console
 		public static void exceptionToConsole(String method, Exception e)
 		{
-			Console.WriteLine(method + " EXCEPTION: " + e.ToString());
+			Actions.writeLine(method + " EXCEPTION: " + e.ToString());
 		}
 
 		//Upload various text to a text uploader with a list of messages
-		public static String uploadToHastebin(IMessageChannel channel, List<String> textList)
+		public static String uploadToHastebin(List<String> textList)
 		{
 			//Messages in the format to upload
 			string text = replaceMessageCharacters(String.Join("\n-----\n", textList));
-			return uploadToHastebin(channel, text);
+			return uploadToHastebin(text);
 		}
 
 		//Upload various text to a text uploader with a string
-		public static String uploadToHastebin(IMessageChannel channel, String text)
+		public static String uploadToHastebin(String text)
 		{
 			//Regex for getting the key out
 			Regex hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
@@ -765,7 +780,7 @@ namespace Advobot
 			}
 			catch (Exception)
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("Couldn't parse permission '{0}'", permission)), Constants.WAIT_TIME);
+				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("Couldn't parse permission '{0}'", permission)));
 				return 0;
 			}
 		}
@@ -865,6 +880,7 @@ namespace Advobot
 		{
 			if (channel == null)
 				return null;
+
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR, embed: embed);
 		}
 
@@ -872,7 +888,7 @@ namespace Advobot
 		public static EmbedBuilder makeNewEmbed(Color? color = null, String title = null, String description = null, String imageURL = null)
 		{
 			//Timestamp is in UTC for simplicity and organization's sake
-			EmbedBuilder embed = new EmbedBuilder().WithColor(Constants.BASE).WithTimestamp(DateTime.Now.AddHours(DateTimeOffset.UtcNow.Hour - DateTimeOffset.Now.Hour));
+			EmbedBuilder embed = new EmbedBuilder().WithColor(Constants.BASE).WithCurrentTimestamp();
 			
 			if (color != null)
 			{
@@ -948,82 +964,13 @@ namespace Advobot
 			return embed;
 		}
 
-		//Logging images
-		public static void ImageLog(IMessageChannel channel, SocketMessage message, bool embeds)
+		//Write to the console with a timestamp
+		public static void writeLine(String text)
 		{
-			if (message.Author.Id == CommandHandler.client.CurrentUser.Id)
-				return;
-
-			//Get the links
-			var t = Task.Run(async delegate
+			if (text != null)
 			{
-				List<String> attachmentURLs = new List<String>();
-				List<String> embedURLs = new List<String>();
-				List<Embed> videoEmbeds = new List<Embed>();
-				if (!embeds && message.Attachments.Count > 0)
-				{
-					//If attachment, the file is hosted on discord which has a concrete URL name for files (cdn.discordapp.com/attachments/.../x.png)
-					message.Attachments.ToList().ForEach(x => attachmentURLs.Add(x.Url));
-				}
-				if (embeds && message.Embeds.Count > 0)
-				{
-					//If embed this is slightly trickier, but only images/videos can embed (AFAIK)
-					message.Embeds.ToList().ForEach(x =>
-					{
-						if (x.Video == null)
-						{
-							//If no video then it has to be just an image
-							embedURLs.Add(x.Thumbnail.ToString());
-						}
-						else
-						{
-							//Add the video URL and the thumbnail URL
-							videoEmbeds.Add(x);
-						}
-					});
-				}
-				IUser user = message.Author;
-				foreach (String URL in attachmentURLs)
-				{
-					if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL).ToLower()))
-					{
-						//Image attachment
-						EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Image", imageURL: URL), "Attached Image");
-						Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-						await Actions.sendEmbedMessage(channel, embed);
-					}
-					else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(URL).ToLower()))
-					{
-						//Gif attachment
-						EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Gif", imageURL: URL), "Attached Gif");
-						Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-						await Actions.sendEmbedMessage(channel, embed);
-					}
-					else
-					{
-						//Random file attachment
-						EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "File"), "Attached File");
-						Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-						await Actions.sendEmbedMessage(channel, embed.WithDescription(URL));
-					}
-				}
-				foreach (String URL in embedURLs)
-				{
-					//Embed image
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Image", imageURL: URL), "Embedded Image");
-					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-					await Actions.sendEmbedMessage(channel, embed);
-				}
-				foreach (Embed embedObject in videoEmbeds)
-				{
-					//Check if video or gif
-					String title = Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url).ToLower()) ? "Gif" : "Video";
-
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, title, embedObject.Url, embedObject.Thumbnail.Value.Url), "Embedded " + title);
-					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-					await Actions.sendEmbedMessage(channel, embed);
-				}
-			});
+				Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss") + " " + text);
+			}
 		}
 	}
 }

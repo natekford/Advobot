@@ -16,6 +16,7 @@ using System.Diagnostics;
 
 namespace Advobot
 {
+	[Group]
 	public class Administration_Commands : ModuleBase
 	{
 	}

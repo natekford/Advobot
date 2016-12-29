@@ -26,7 +26,7 @@ namespace Advobot
 			mAnyFlags = optional | (1U << (int)GuildPermission.Administrator);
 		}
 
-		public override async Task<PreconditionResult> CheckPermissions(CommandContext context, CommandInfo command, IDependencyMap map)
+		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
 		{
 			if (context.Guild != null)
 			{
@@ -58,7 +58,7 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class BotOwnerRequirementAttribute : PreconditionAttribute
 	{
-		public override async Task<PreconditionResult> CheckPermissions(CommandContext context, CommandInfo command, IDependencyMap map)
+		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
 		{
 			if (context.Guild != null)
 			{
@@ -89,7 +89,7 @@ namespace Advobot
 			| (1U << (int)GuildPermission.MoveMembers)
 			| (1U << (int)GuildPermission.MuteMembers);
 
-		public override async Task<PreconditionResult> CheckPermissions(CommandContext context, CommandInfo command, IDependencyMap map)
+		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
 		{
 			if (context.Guild != null)
 			{

@@ -17,7 +17,8 @@ using System.Text.RegularExpressions;
 
 namespace Advobot
 {
-	public class BotLogs
+	[Group]
+	public class BotLogs : ModuleBase
 	{
 		//When the bot turns on and a server shows up
 		public static Task OnGuildAvailable(SocketGuild guild)
@@ -61,14 +62,29 @@ namespace Advobot
 
 			return Task.CompletedTask;
 		}
+
+		//Reset the server count and cumulative member count when the bot disconnects or else it doulbe it
+		public static Task OnDisconnected(Exception exception)
+		{
+			Variables.TotalGuilds = 0;
+			Variables.TotalUsers = 0;
+
+			return Task.CompletedTask;
+		}
 	}
 
-	public class ServerLogs
+	[Group]
+	public class ServerLogs : ModuleBase
 	{
 		//Tell when a user joins the server
 		public static async Task OnUserJoined(SocketGuildUser user)
 		{
 			++Variables.LoggedJoins;
+
+			if (user.Guild.MemberCount == 2000)
+			{
+				await Actions.sendChannelMessage(await Actions.getChannel(user.Guild, "announcements/text") as ITextChannel, "We've just hit 2,000 members. Neat.");
+			}
 
 			IMessageChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
@@ -94,15 +110,14 @@ namespace Advobot
 			IMessageChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
-				String time = "`[" + DateTime.UtcNow.ToString("HH:mm:ss") + "]`";
 				if (user.IsBot)
 				{
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, description: "**ID:** " + user.Id.ToString()), "Bot Leave");
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAVE, description: "**ID:** " + user.Id.ToString()), "Bot Leave");
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 				}
 				else
 				{
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, description: "**ID:** " + user.Id.ToString()), "Leave");
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAVE, description: "**ID:** " + user.Id.ToString()), "Leave");
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 				}
 			}
@@ -120,7 +135,7 @@ namespace Advobot
 				String username = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Username : "null";
 				String discriminator = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Discriminator : "0000";
 
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, description: "**ID:** " + user.Id.ToString()), "Unban");
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UNBAN, description: "**ID:** " + user.Id.ToString()), "Unban");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", username, discriminator), user.AvatarUrl));
 			}
 		}
@@ -133,7 +148,7 @@ namespace Advobot
 			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, description: "**ID:** " + user.Id.ToString()), "Ban");
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.BAN, description: "**ID:** " + user.Id.ToString()), "Ban");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 		}
@@ -227,6 +242,8 @@ namespace Advobot
 		//Tell when a message is edited 
 		public static async Task OnMessageUpdated(Optional<SocketMessage> beforeMessage, SocketMessage afterMessage)
 		{
+			if (afterMessage.Author.Id == CommandHandler.client.CurrentUser.Id)
+				return;
 
 			++Variables.LoggedEdits;
 
@@ -236,7 +253,7 @@ namespace Advobot
 				//Check if regular messages are equal
 				if (beforeMessage.Value.Embeds.Count != afterMessage.Embeds.Count)
 				{
-					Actions.ImageLog(logChannel, afterMessage, true);
+					ImageLog(logChannel, afterMessage, true);
 					return;
 				}
 
@@ -368,15 +385,17 @@ namespace Advobot
 						//See if any attachments were put in
 						else if (x.Attachments.Count > 0)
 						{
+							String content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 							deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
 								x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"),
-								Actions.replaceMessageCharacters(x.Content + " + " + x.Attachments.ToList().First().Filename)));
+								Actions.replaceMessageCharacters(content + " + " + x.Attachments.ToList().First().Filename)));
 						}
 						//Else add the message in normally
 						else
 						{
+							String content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 							deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-								x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(x.Content)));
+								x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(content)));
 						}
 					});
 
@@ -393,7 +412,7 @@ namespace Advobot
 						if (!Constants.TEXT_FILE)
 						{
 							//Upload the embed with the hastebin links
-							EmbedBuilder embed = Actions.makeNewEmbed(Constants.MDEL, "Deleted Messages", Actions.uploadToHastebin(logChannel, deletedMessagesContent));
+							EmbedBuilder embed = Actions.makeNewEmbed(Constants.MDEL, "Deleted Messages", Actions.uploadToHastebin(deletedMessagesContent));
 							await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Deleted Messages"));
 						}
 						else
@@ -409,6 +428,9 @@ namespace Advobot
 		//Get all images uploaded
 		public static async Task OnMessageReceived(SocketMessage message)
 		{
+			if (message.Author.IsBot)
+				return;
+
 			++Variables.LoggedMessages;
 
 			IMessageChannel logChannel = await Actions.logChannelCheck((message.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
@@ -416,19 +438,108 @@ namespace Advobot
 			{
 				if (message.Attachments.Count > 0)
 				{
-					Actions.ImageLog(logChannel, message, false);
+					ImageLog(logChannel, message, false);
 				}
 				else if (message.Embeds.Count > 0)
 				{
-					Actions.ImageLog(logChannel, message, true);
+					ImageLog(logChannel, message, true);
 				}
 			}
 		}
 
-		
+		//Logging images
+		public static void ImageLog(IMessageChannel channel, SocketMessage message, bool embeds)
+		{
+			if (message.Author.Id == CommandHandler.client.CurrentUser.Id)
+				return;
+
+			//Get the links
+			var t = Task.Run(async delegate
+			{
+				List<String> attachmentURLs = new List<String>();
+				List<String> embedURLs = new List<String>();
+				List<Embed> videoEmbeds = new List<Embed>();
+				if (!embeds && message.Attachments.Count > 0)
+				{
+					//If attachment, the file is hosted on discord which has a concrete URL name for files (cdn.discordapp.com/attachments/.../x.png)
+					message.Attachments.ToList().ForEach(x => attachmentURLs.Add(x.Url));
+				}
+				if (embeds && message.Embeds.Count > 0)
+				{
+					//If embed this is slightly trickier, but only images/videos can embed (AFAIK)
+					message.Embeds.ToList().ForEach(x =>
+					{
+						if (x.Video == null)
+						{
+							//If no video then it has to be just an image
+							if (!String.IsNullOrEmpty(x.Thumbnail.ToString()))
+							{
+								embedURLs.Add(x.Thumbnail.ToString());
+							}
+							if (!String.IsNullOrEmpty(x.Image.ToString()))
+							{
+								embedURLs.Add(x.Image.ToString());
+							}
+						}
+						else
+						{
+							//Add the video URL and the thumbnail URL
+							videoEmbeds.Add(x);
+						}
+					});
+				}
+				IUser user = message.Author;
+				foreach (String URL in attachmentURLs.Distinct())
+				{
+					if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL).ToLower()))
+					{
+						++Variables.LoggedImages;
+						//Image attachment
+						EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Image", imageURL: URL), "Attached Image");
+						Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+						await Actions.sendEmbedMessage(channel, embed);
+					}
+					else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(URL).ToLower()))
+					{
+						++Variables.LoggedGifs;
+						//Gif attachment
+						EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Gif", imageURL: URL), "Attached Gif");
+						Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+						await Actions.sendEmbedMessage(channel, embed);
+					}
+					else
+					{
+						++Variables.LoggedFiles;
+						//Random file attachment
+						EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "File"), "Attached File");
+						Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+						await Actions.sendEmbedMessage(channel, embed.WithDescription(URL));
+					}
+				}
+				foreach (String URL in embedURLs.Distinct())
+				{
+					++Variables.LoggedImages;
+					//Embed image
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Image", imageURL: URL), "Embedded Image");
+					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					await Actions.sendEmbedMessage(channel, embed);
+				}
+				foreach (Embed embedObject in videoEmbeds.Distinct())
+				{
+					++Variables.LoggedGifs;
+					//Check if video or gif
+					String title = Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url).ToLower()) ? "Gif" : "Video";
+
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, title, embedObject.Url, embedObject.Thumbnail.Value.Url), "Embedded " + title);
+					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					await Actions.sendEmbedMessage(channel, embed);
+				}
+			});
+		}
 	}
 
-	public class ModLogs
+	[Group]
+	public class ModLogs : ModuleBase
 	{
 
 	}

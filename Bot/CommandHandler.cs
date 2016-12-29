@@ -58,11 +58,11 @@ namespace Advobot
 					return;
 
 				//Give the error message
-				await Actions.makeAndDeleteSecondaryMessage(context, $"**Error:** {result.ErrorReason}", Constants.WAIT_TIME);
+				await Actions.makeAndDeleteSecondaryMessage(context, $"**Error:** {result.ErrorReason}");
 			}
 			else
 			{
-				System.Console.WriteLine(context.User.Id + " used command \'" + context.Message + "\' and succeeded.");
+				Actions.writeLine(context.User.Id + " used command \'" + context.Message + "\' and succeeded.");
 			}
 		}
 	}
