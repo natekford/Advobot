@@ -16,7 +16,6 @@ using System.Diagnostics;
 
 namespace Advobot
 {
-	[Group]
 	public class Miscellaneous_Commands : ModuleBase
 	{
 		[Command("help")]
@@ -25,7 +24,7 @@ namespace Advobot
 		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
 			"If left blank will print out a link to the documentation of this bot.")]
 		[UserHasAPermission]
-		public async Task Help([Optional][Remainder] String input)
+		public async Task Help([Optional, Remainder] String input)
 		{
 			//See if it's empty
 			if (String.IsNullOrWhiteSpace(input))
@@ -84,7 +83,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "commands <Category|All>")]
 		[Summary("Prints out the commands in that category of the command list.")]
 		[UserHasAPermission]
-		public async Task Commands([Optional][Remainder] String input)
+		public async Task Commands([Optional, Remainder] String input)
 		{
 			//See if it's empty
 			if (String.IsNullOrWhiteSpace(input))
@@ -146,101 +145,6 @@ namespace Advobot
 			}
 		}
 
-		[Command("setgame")]
-		[Usage(Constants.BOT_PREFIX + "setgame [New name]")]
-		[Summary("Changes the game the bot is currently listed as playing.")]
-		[BotOwnerRequirement]
-		public async Task SetGame([Remainder] String input)
-		{
-			//Check the game name length
-			if (input.Length > 128)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Game name cannot be longer than 128 characters or else it doesn't show to other people."), 10000);
-				return;
-			}
-
-			await CommandHandler.client.SetGame(input);
-			await Actions.sendChannelMessage(Context.Channel, String.Format("Game set to `{0}`.", input));
-		}
-
-		[Command("disconnect")]
-		[Alias("dc", "runescapeservers")]
-		[Usage(Constants.BOT_PREFIX + "disconnect")]
-		[Summary("Turns the bot off.")]
-		[BotOwnerRequirement]
-		public async Task Disconnect()
-		{
-			if ((Context.User.Id == Constants.OWNER_ID) || (Constants.DISCONNECT))
-			{
-				List<IMessage> msgs = new List<IMessage>();
-				foreach (IGuild guild in Variables.Guilds)
-				{
-					if ((guild as SocketGuild).MemberCount > (Variables.TotalUsers / Variables.TotalGuilds) * .75)
-					{
-						ITextChannel channel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
-						if (null != channel)
-						{
-							msgs.Add(await Actions.sendEmbedMessage(channel, embed: Actions.addFooter(Actions.makeNewEmbed(title: "Bot is disconnecting..."), "Disconnect")));
-						}
-					}
-				}
-				while (msgs.Any(x => x.CreatedAt == null))
-				{
-					Thread.Sleep(100);
-				}
-				await CommandHandler.client.SetStatus(UserStatus.Invisible);
-				Environment.Exit(1);
-			}
-			else
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, "Disconnection is turned off for everyone but the bot owner currently.");
-			}
-		}
-
-		[Command("restart")]
-		[Usage(Constants.BOT_PREFIX + "restart")]
-		[Summary("Restarts the bot.")]
-		[BotOwnerRequirement]
-		public async Task Restart()
-		{
-			//Does not work, need to fix it
-			if ((Context.User.Id == Constants.OWNER_ID) || (Constants.DISCONNECT))
-			{
-				List<IMessage> msgs = new List<IMessage>();
-				foreach (IGuild guild in Variables.Guilds)
-				{
-					if ((guild as SocketGuild).MemberCount > (Variables.TotalUsers / Variables.TotalGuilds) * Constants.PERCENT_AVERAGE)
-					{
-						ITextChannel channel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
-						if (null != channel)
-						{
-							msgs.Add(await Actions.sendEmbedMessage(channel, embed: Actions.addFooter(Actions.makeNewEmbed(title: "Bot is restarting..."), "Restart")));
-						}
-					}
-				}
-				while (msgs.Any(x => x.CreatedAt == null))
-				{
-					Thread.Sleep(100);
-				}
-
-				try
-				{
-					//Create a new instance of the bot
-					System.Windows.Forms.Application.Restart();
-					//Close the old one
-					Environment.Exit(1);
-				}
-				catch (Exception)
-				{
-					Console.WriteLine("!!!BOT IS UNABLE TO RESTART!!!");
-				}
-			}
-			else
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, "Disconnection is turned off for everyone but the bot owner currently.");
-			}
-		}
-
 		[Command("guildid")]
 		[Alias("gid", "serverid", "sid")]
 		[Usage(Constants.BOT_PREFIX + "guildid")]
@@ -264,8 +168,7 @@ namespace Advobot
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
 				return;
 			}
-			await Actions.sendChannelMessage(Context.Channel, String.Format("The {0} channel `{1}` has the ID `{2}`.",
-				channel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE) ? "text" : "voice", channel.Name, channel.Id));
+			await Actions.sendChannelMessage(Context.Channel, String.Format("The {0} channel `{1}` has the ID `{2}`.", Actions.getChannelType(channel), channel.Name, channel.Id));
 		}
 
 		[Command("roleid")]
@@ -289,7 +192,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "userid <@User>")]
 		[Summary("Shows the ID of the given user.")]
 		[UserHasAPermission]
-		public async Task UserID([Optional][Remainder] String input)
+		public async Task UserID([Optional, Remainder] String input)
 		{
 			IGuildUser user = input == null ? Context.User as IGuildUser : await Actions.getUser(Context.Guild, input);
 			if (user == null)
@@ -305,7 +208,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "useravatar <@user>")]
 		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily). Currently every avatar is displayed with an extension type of gif.")]
 		[UserHasAPermission]
-		public async Task UserAvatar([Optional][Remainder] String input)
+		public async Task UserAvatar([Optional, Remainder] String input)
 		{
 			IGuildUser user = input == null ? Context.User as IGuildUser : await Actions.getUser(Context.Guild, input);
 			if (user == null)
@@ -366,7 +269,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "userinfo [@User]")]
 		[Summary("Displays various information about the user. Join position is mostly accurate, give or take ten places per thousand users on the guild.")]
 		[UserHasAPermission]
-		public async Task UserInfo([Optional][Remainder] String input)
+		public async Task UserInfo([Optional, Remainder] String input)
 		{
 			IGuildUser user = null;
 
@@ -400,7 +303,7 @@ namespace Advobot
 			IReadOnlyCollection<IGuildChannel> guildChannels = await Context.Guild.GetChannelsAsync();
 			foreach (IGuildChannel channel in guildChannels)
 			{
-				if (channel.GetType().Name.ToLower().Contains(Constants.VOICE_TYPE))
+				if (Actions.getChannelType(channel) == Constants.VOICE_TYPE)
 				{
 					if (user.GetPermissions(channel).Connect)
 					{
@@ -503,7 +406,7 @@ namespace Advobot
 			//Make the embed
 			EmbedBuilder embed = Actions.makeNewEmbed(null, null, description);
 			//Add the author
-			Actions.addAuthor(embed, Constants.BOT_NAME, Context.Client.CurrentUser.AvatarUrl);
+			Actions.addAuthor(embed, Variables.Bot_Name, Context.Client.CurrentUser.AvatarUrl);
 			//Add the footer
 			Actions.addFooter(embed, "Version " + Constants.BOT_VERSION);
 
@@ -518,7 +421,8 @@ namespace Advobot
 				"Logged deletes: {6}\n" +
 				"Logged images: {7}\n" +
 				"Logged gifs: {8}\n" +
-				"Logged files: {9}\n",
+				"Logged files: {9}\n" +
+				"Logged commands: {10}",
 				Variables.LoggedJoins,
 				Variables.LoggedLeaves,
 				Variables.LoggedBans,
@@ -528,7 +432,8 @@ namespace Advobot
 				Variables.LoggedDeletes,
 				Variables.LoggedImages,
 				Variables.LoggedGifs,
-				Variables.LoggedFiles);
+				Variables.LoggedFiles,
+				Variables.LoggedCommands);
 			Actions.addField(embed, "Logged Actions", firstField);
 
 			//Second field
@@ -599,9 +504,8 @@ namespace Advobot
 			//Make into valid invite link
 			IInvite inv = await channel.CreateInviteAsync(nullableTime, nullableUsers, tempMembership);
 
-			await Actions.sendChannelMessage(Context.Channel, String.Format("Here is your invite for `{0}`: {1} \nIt will last for{2}, {3}{4}",
-				channel.GetType().Name.ToLower().Contains(Constants.VOICE_TYPE) ? channel.Name + " (Voice)" : channel.Name + " (Text)", inv.Url,
-				nullableTime == null ? "ever" : " " + time.ToString() + " seconds",
+			await Actions.sendChannelMessage(Context.Channel, String.Format("Here is your invite for `{0} ({1})`: {2} \nIt will last for{3}, {4}{5}",
+				channel.Name, Actions.getChannelType(channel), inv.Url, nullableTime == null ? "ever" : " " + time.ToString() + " seconds",
 				nullableUsers == null ? (tempMembership ? "has no limit of users" : " and has no limit of users") :
 										(tempMembership ? "has a limit of " + users.ToString() + " users" : " and has a limit of " + users.ToString() + " users"),
 				tempMembership ? ", and users will only receive temporary membership." : "."));
@@ -638,9 +542,27 @@ namespace Advobot
 
 		[Command("test")]
 		[BotOwnerRequirement]
-		public async Task Test([Optional][Remainder] String input)
+		public async Task Test([Optional, Remainder] String input)
 		{
-			Context.Guild.Roles.OrderBy(x => x.Position).ToList().ForEach(x => Console.WriteLine(x.Name + " Position: " + x.Position));
+			var channelNames = new List<String>();
+			var channelPositions = new List<int>();
+			Context.Guild.GetTextChannelsAsync().Result.OrderBy(x => x.Position).ToList().ForEach(x =>
+			{
+				channelNames.Add(x.Name);
+				channelPositions.Add(x.Position);
+			});
+
+			EmbedBuilder embed = Actions.makeNewEmbed(title: "Text Channels");
+			Actions.addField(embed, "Channels", String.Join("\n", channelNames));
+			Actions.addField(embed, "Positions", String.Join("\n", channelPositions));
+			await Actions.sendEmbedMessage(Context.Channel, embed);
+
+			Console.WriteLine("Roles:");
+			Context.Guild.Roles.OrderBy(x => x.Position).ToList().ForEach(x => Console.WriteLine(x.Position + ". " + x.Name));
+			Console.WriteLine("Text Channels:");
+			Context.Guild.GetTextChannelsAsync().Result.OrderBy(x => x.Position).ToList().ForEach(x => Console.WriteLine(x.Position + ". " + x.Name));
+			Console.WriteLine("Voice Channels:");
+			Context.Guild.GetVoiceChannelsAsync().Result.OrderBy(x => x.Position).ToList().ForEach(x => Console.WriteLine(x.Position + ". " + x.Name));
 		}
 	}
 }

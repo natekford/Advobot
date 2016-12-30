@@ -17,9 +17,15 @@ using System.Text.RegularExpressions;
 
 namespace Advobot
 {
-	[Group]
 	public class BotLogs : ModuleBase
 	{
+		//The console log
+		public static Task Log(LogMessage msg)
+		{
+			Console.WriteLine(msg.ToString());
+			return Task.CompletedTask;
+		}
+
 		//When the bot turns on and a server shows up
 		public static Task OnGuildAvailable(SocketGuild guild)
 		{
@@ -73,7 +79,6 @@ namespace Advobot
 		}
 	}
 
-	[Group]
 	public class ServerLogs : ModuleBase
 	{
 		//Tell when a user joins the server
@@ -81,12 +86,7 @@ namespace Advobot
 		{
 			++Variables.LoggedJoins;
 
-			if (user.Guild.MemberCount == 2000)
-			{
-				await Actions.sendChannelMessage(await Actions.getChannel(user.Guild, "announcements/text") as ITextChannel, "We've just hit 2,000 members. Neat.");
-			}
-
-			IMessageChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+			ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
 				if (user.IsBot)
@@ -105,9 +105,15 @@ namespace Advobot
 		//Tell when a user leaves the server
 		public static async Task OnUserLeft(SocketGuildUser user)
 		{
+			if (user.Id.Equals(CommandHandler.client.CurrentUser.Id))
+			{
+				Variables.Guilds.Remove(user.Guild);
+				return;
+			}
+
 			++Variables.LoggedLeaves;
 
-			IMessageChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+			ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
 				if (user.IsBot)
@@ -128,7 +134,7 @@ namespace Advobot
 		{
 			++Variables.LoggedUnbans;
 
-			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
 				//Get the username/discriminator via this dictionary since they don't exist otherwise
@@ -143,9 +149,15 @@ namespace Advobot
 		//Tell when a user is banned
 		public static async Task OnUserBanned(SocketUser user, SocketGuild guild)
 		{
+			if (user.Id.Equals(CommandHandler.client.CurrentUser.Id))
+			{
+				Variables.Guilds.Remove(guild);
+				return;
+			}
+
 			++Variables.LoggedBans;
 
-			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
 				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.BAN, description: "**ID:** " + user.Id.ToString()), "Ban");
@@ -158,7 +170,7 @@ namespace Advobot
 		{
 			++Variables.LoggedUserChanges;
 
-			IMessageChannel logChannel = await Actions.logChannelCheck(beforeUser.Guild, Constants.SERVER_LOG_CHECK_STRING);
+			ITextChannel logChannel = await Actions.logChannelCheck(beforeUser.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
 				//Nickname change
@@ -218,20 +230,17 @@ namespace Advobot
 		{
 			++Variables.LoggedUserChanges;
 
-			//Get a list of the servers the bot and the user have in common
-			List<SocketGuild> guilds = CommandHandler.client.Guilds.ToList().Where(x => x.Users.Contains(afterUser)).ToList();
-
 			//Name change
 			//TODO: Make this work
 			if (!beforeUser.Username.Equals(afterUser.Username))
 			{
-				foreach (SocketGuild guild in guilds)
+				foreach (var guild in CommandHandler.client.Guilds.ToList().Where(x => x.Users.Contains(afterUser)).ToList())
 				{
-					IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+					ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 					if (logChannel == null)
 						return;
 
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT), "Name");
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT), "Name Change");
 					Actions.addField(embed, "Before:", beforeUser.Username);
 					Actions.addField(embed, "After:", afterUser.Username, false);
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
@@ -247,7 +256,7 @@ namespace Advobot
 
 			++Variables.LoggedEdits;
 
-			IMessageChannel logChannel = await Actions.logChannelCheck((afterMessage.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
+			ITextChannel logChannel = await Actions.logChannelCheck((afterMessage.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null && beforeMessage.IsSpecified)
 			{
 				//Check if regular messages are equal
@@ -305,7 +314,7 @@ namespace Advobot
 
 			//Initialize the guild and channel
 			IGuild guild = (message.Value.Channel as IGuildChannel).Guild;
-			IMessageChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 
 			if (logChannel != null)
 			{
@@ -374,13 +383,31 @@ namespace Advobot
 					List<String> deletedMessagesContent = new List<String>();
 					deletedMessagesSorted.ForEach(x =>
 					{
-						//See if any hastebin links deleted
-						if (x.Embeds.Count > 0 &&
-							x.Embeds.ToList().Any(y => y.Description != null) &&
-							x.Embeds.ToList().Any(y => y.Description.ToLower().Contains(Constants.TEXT_HOST)))
+						//See if any embeds deleted
+						if (x.Embeds.Count > 0)
 						{
-							String link = x.Embeds.ToList().FirstOrDefault(y => y.Description.ToLower().Contains(Constants.TEXT_HOST)).Description;
-							deletedMessagesContent.Add(link);
+							//Get the embed
+							Embed embed = x.Embeds.ToList().FirstOrDefault(y => y.Description != null);
+
+							String author = embed.Author.ToString();
+							if (author != null)
+							{
+								//I don't know how to regex well
+								Regex regex = new Regex("#([0-9]*) in #");
+								String[] authorAndChannel = regex.Split(author);
+
+								deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
+									authorAndChannel[0],
+									authorAndChannel[1],
+									authorAndChannel[2], 
+									x.CreatedAt.ToString("HH:mm:ss"),
+									Actions.replaceMessageCharacters(embed.Description)));
+							}
+							else
+							{
+								deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
+									x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(embed.Description)));
+							}
 						}
 						//See if any attachments were put in
 						else if (x.Attachments.Count > 0)
@@ -433,7 +460,7 @@ namespace Advobot
 
 			++Variables.LoggedMessages;
 
-			IMessageChannel logChannel = await Actions.logChannelCheck((message.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
+			ITextChannel logChannel = await Actions.logChannelCheck((message.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
 				if (message.Attachments.Count > 0)
@@ -538,9 +565,21 @@ namespace Advobot
 		}
 	}
 
-	[Group]
 	public class ModLogs : ModuleBase
 	{
+		//Log each command
+		public static async Task LogCommand(ICommandContext context)
+		{
+			++Variables.LoggedCommands;
+			Actions.writeLine(context.User.Id + " used command \'" + context.Message + "\' and succeeded.");
 
+			ITextChannel logChannel = await Actions.logChannelCheck(context.Guild, Constants.MOD_LOG_CHECK_STRING);
+			if (logChannel != null)
+			{
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(description: context.Message.Content), "Mod Log");
+				Actions.addAuthor(embed, context.User.Username + "#" + context.User.Discriminator + " in #" + context.Channel.Name, context.User.AvatarUrl);
+				await Actions.sendEmbedMessage(logChannel, embed);
+			}
+		}
 	}
 }

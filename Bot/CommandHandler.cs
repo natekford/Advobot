@@ -54,7 +54,7 @@ namespace Advobot
 				++Variables.FailedCommands;
 
 				//See if ignored error
-				if (result.ErrorReason.Equals(Constants.IGNORE_ERROR))
+				if (result.ErrorReason.Equals(Constants.IGNORE_ERROR) || result.Error.Equals(CommandError.UnknownCommand))
 					return;
 
 				//Give the error message
@@ -62,7 +62,7 @@ namespace Advobot
 			}
 			else
 			{
-				Actions.writeLine(context.User.Id + " used command \'" + context.Message + "\' and succeeded.");
+				await ModLogs.LogCommand(context);
 			}
 		}
 	}

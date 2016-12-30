@@ -6,9 +6,9 @@ namespace Advobot
 	public static class Constants
 	{
 		public const String BOT_VERSION = "0.7.0";
-		public const String API_VERSION = "Discord.Net by RogueException v1.0.0-beta2-00528";
+		public const String API_VERSION = "Discord.Net by RogueException v1.0.0-beta2-00529";
 
-		public const String BOT_PREFIX = ">>";
+		public const String BOT_PREFIX = "++";
 		public const String IGNORE_ERROR = "Cx";
 		public const String ZERO_LENGTH_CHAR = "\u180E";
 		public const String TEXT_HOST = "hastebin";
@@ -22,12 +22,13 @@ namespace Advobot
 		public const String MUTE_ROLE_NAME = "Muted";
 		public const String PREFERENCES_FILE = "commandPreferences.txt";
 		public const String SERVERLOG_AND_MODLOG = "serverlogAndModlog.txt";
-		public const String SERVER_LOG_CHECK_STRING = "Serverlog:";
-		public const String MOD_LOG_CHECK_STRING = "Modlog:";
+		public const String SERVER_LOG_CHECK_STRING = "serverlog";
+		public const String MOD_LOG_CHECK_STRING = "modlog";
 		public const String CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/[Text|Voice]]]";
 		public const String OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/[Text|Voice]]>";
 		public const String VOICE_TYPE = "voice";
 		public const String TEXT_TYPE = "text";
+		public const String BYPASS_STRING = "Badoodle123";
 
 		public const UInt64 OWNER_ID = 172138437246320640;
 		public const double PERCENT_AVERAGE = .75;
@@ -42,9 +43,6 @@ namespace Advobot
 		public const int ROLE_NAME_LENGTH = 32;
 		public const int CHANNEL_NAME_MAX_LENGTH = 100;
 		public const int CHANNEL_NAME_MIN_LENGTH = 2;
-
-		public static readonly String BOT_NAME = CommandHandler.client.CurrentUser.Username;
-		public static readonly String BASE_CHANNEL_NAME = BOT_NAME.ToLower();
 
 		public static readonly String[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
 		public static readonly String[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
@@ -66,8 +64,11 @@ namespace Advobot
 
 	public static class Variables
 	{
-		public static DateTime StartupTime = DateTime.UtcNow.ToUniversalTime();
 		public static UInt64 Bot_ID = 0;
+		public static String Bot_Name = null;
+		public static String Bot_Channel = null;
+
+		public static DateTime StartupTime = DateTime.UtcNow.ToUniversalTime();
 		public static int TotalUsers = 0;
 		public static int TotalGuilds = 0;
 		public static int FailedCommands = 0;
@@ -83,6 +84,7 @@ namespace Advobot
 		public static int LoggedImages = 0;
 		public static int LoggedGifs = 0;
 		public static int LoggedFiles = 0;
+		public static int LoggedCommands = 0;
 
 		public static Dictionary<ulong, List<PreferenceCategory>> CommandPreferences = new Dictionary<ulong, List<PreferenceCategory>>();
 		public static Dictionary<ulong, List<Discord.WebSocket.SocketMessage>> DeletedMessages = new Dictionary<ulong, List<Discord.WebSocket.SocketMessage>>();

@@ -16,7 +16,6 @@ using System.Diagnostics;
 
 namespace Advobot
 {
-	[Group]
 	public class Moderation_Commands : ModuleBase
 	{
 		[Command("fullmute")]
@@ -379,7 +378,7 @@ namespace Advobot
 		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel." +
 			"People without administrator can only delete up to 100 messages at a time.")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageMessages))]
-		public async Task RemoveMessages([Optional][Remainder] String input)
+		public async Task RemoveMessages([Remainder] String input)
 		{
 			String[] values = input.Split(' ');
 			if ((values.Length < 1) || (values.Length > 3))
@@ -447,7 +446,7 @@ namespace Advobot
 				requestCount,
 				requestCount > 1 ? "messages" : "message",
 				inputUser == null ? "" : " from `" + inputUser.Username + "#" + inputUser.Discriminator + "`",
-				inputChannel == null ? "" : " on `" + inputChannel.Name + "`"),
+				inputChannel == null ? "" : " on `#" + inputChannel.Name + "`"),
 				2000);
 		}
 
@@ -716,6 +715,7 @@ namespace Advobot
 		[Command("roleposition")]
 		[Alias("rpos")]
 		[Usage(Constants.BOT_PREFIX + "roleposition [Role] [int]")]
+		[Summary("Moves the role to the given position. @ev" + Constants.ZERO_LENGTH_CHAR + "everyone is the first position and starts at zero.")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageRoles))]
 		public async Task RolePosition([Remainder] String input)
 		{
@@ -725,10 +725,24 @@ namespace Advobot
 				return;
 
 			//Get the position as an int
-			int position = role.Position;
+			int position = 0;
 			if (!int.TryParse(input.Substring(input.LastIndexOf(' ')), out position))
 			{
 				await Actions.sendChannelMessage(Context.Channel, String.Format("The `{0}` role has a position of `{1}`.", role.Name, role.Position));
+				return;
+			}
+
+			//Checking if valid positions
+			int maxPos = 0;
+			Context.Guild.Roles.ToList().ForEach(x => maxPos = Math.Max(maxPos, x.Position));
+			if (position <= 0)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Cannot set a role to a position lower than or equal to one."));
+				return;
+			}
+			else if (position > maxPos)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Cannot set a role to a position higher than the highest role."));
 				return;
 			}
 
@@ -745,13 +759,13 @@ namespace Advobot
 				return;
 			}
 
+			//Put it in the correct position
 			await role.ModifyAsync(x =>
 			{
-				x.Position = 3;
-				x.Name = "why don't you go to position 3";
+				x.Position = position;
 			});
 
-			await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully gave the `{0}` role the position `{1}`.", role.Name, position));
+			await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully gave the `{0}` role the position `{1}`.", role.Name, role.Position));
 		}
 
 		[Command("rolepermissions")]
@@ -1176,7 +1190,7 @@ namespace Advobot
 				return;
 
 			//See if not attempted on a text channel
-			if (!channel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE))
+			if (Actions.getChannelType(channel) != Constants.TEXT_TYPE)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Softdelete only works on text channels inside a guild."));
 				return;
@@ -1229,8 +1243,117 @@ namespace Advobot
 				return;
 
 			await channel.DeleteAsync();
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0} ({1})`.", channel.Name,
-				channel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE) ? "Text" : "Voice"));
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0} ({1})`.", channel.Name, Actions.getChannelType(channel)));
+		}
+
+		[Command("channelposition")]
+		[Alias("chpos")]
+		[Usage(Constants.BOT_PREFIX + "channelposition " + Constants.CHANNEL_INSTRUCTIONS + " [int]")]
+		[Summary("Gives the channel the given position. Position one is the top most position and counting starts at zero. This command is extremely buggy!")]
+		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels))]
+		public async Task ChannelPosition([Remainder] String input)
+		{
+			String[] values = input.Split(new char[] { ' ' }, 2);
+
+			//Get the channel
+			IGuildChannel channel = await Actions.getChannelEditAbility(Context, values[0]);
+			if (channel == null)
+				return;
+
+			//Argument count checking
+			if (values.Count() != 2)
+			{
+				await Actions.sendChannelMessage(Context.Channel, String.Format("The `{0} ({1})` channel has a position of `{2}`.",
+					channel.Name, Actions.getChannelType(channel), channel.Position));
+				return;
+			}
+
+			//Get the position as an int
+			int position = 0;
+			if (!int.TryParse(input.Substring(input.LastIndexOf(' ')), out position))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position."));
+				return;
+			}
+
+			//Check the min against the current position
+			if (position < 0)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Cannot set a channel to a position lower than or equal to zero."));
+				return;
+			}
+
+			//TODO: Make sure this still isn't weird
+			//Put it in the correct position
+			if (Actions.getChannelType(channel) == Constants.TEXT_TYPE)
+			{
+				//Get a dictionary of the channel's IDs and what their 'positions' are
+				var channelIDAndPos = Context.Guild.GetTextChannelsAsync().Result.ToDictionary(kvp => kvp.Id, kvp => kvp.Position);
+				//Add in the new one
+				channelIDAndPos[channel.Id] = position;
+				//Sort the dictionary
+				var sortedDict = channelIDAndPos.OrderBy(val => val.Value).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+				//Put the keys into a list which is now sorted by 'position'
+				var listedIDs = sortedDict.Keys.ToList();
+
+				//List to hold channels with the same position
+				var samePositions = new List<ulong>();
+				//Point at which the same position channels tart
+				int sameStartingPos = -1;
+
+				//Give them a position that makes sense
+				listedIDs.ForEach(async ID => await Context.Guild.GetChannelAsync(ID).Result.ModifyAsync(x =>
+				{
+					if (sortedDict[ID] == position)
+					{
+						//If the same target position then add them to a list
+						samePositions.Add(ID);
+						//Find where this list should be input on the position spots
+						if (sameStartingPos == -1)
+						{
+							sameStartingPos = listedIDs.IndexOf(ID);
+						}
+					}
+					else
+					{
+						//Add the position regularly
+						x.Position = listedIDs.IndexOf(ID);
+					}
+				}));
+
+				//Check if need to remove and insert the wanted channel
+				if (samePositions.Count > 1)
+				{
+					//Remove the original spot of the channel
+					samePositions.Remove(channel.Id);
+					//Add it to the front
+					samePositions.Insert(0, channel.Id);
+				}
+				//Add the positions back in
+				samePositions.ForEach(async ID => await Context.Guild.GetChannelAsync(ID).Result.ModifyAsync(x => x.Position = sameStartingPos + samePositions.IndexOf(ID)));
+
+				//For debug
+				var channelNames = new List<String>();
+				var channelPositions = new List<int>();
+				listedIDs.ForEach(async ID =>
+				{
+					channelNames.Add((await Context.Guild.GetChannelAsync(ID)).Name);
+					channelPositions.Add(listedIDs.IndexOf(ID));
+				});
+
+				EmbedBuilder embed = Actions.makeNewEmbed(null, "Positions");
+				Actions.addField(embed, "Channels", String.Join("\n", channelNames));
+				Actions.addField(embed, "Positions", String.Join("\n", channelPositions));
+				await Actions.sendEmbedMessage(Context.Channel, embed);
+			}
+			else
+			{
+				var channelIDAndPos = Context.Guild.GetVoiceChannelsAsync().Result.ToDictionary(kvp => kvp.Id, kvp => kvp.Position);
+				channelIDAndPos[channel.Id] = position;
+				var sortedDict = channelIDAndPos.OrderBy(val => val.Value).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+				var listedIDs = sortedDict.Keys.ToList();
+				listedIDs.ForEach(async ID => await Context.Guild.GetChannelAsync(ID).Result.ModifyAsync(x => x.Position = listedIDs.IndexOf(ID)));
+			}
 		}
 
 		[Command("channelpermissions")]
@@ -1286,7 +1409,7 @@ namespace Advobot
 						}
 					}
 					await Actions.sendChannelMessage(Context.Channel, String.Format("**OVERWRITES FOR `{0} ({1})`:**```\n{2}```",
-						channel.Name, channel.GetType().Name.ToLower().Contains(Constants.VOICE_TYPE) ? "VOICE" : "TEXT", String.Join("\n", overwrites.ToArray())));
+						channel.Name, Actions.getChannelType(channel), String.Join("\n", overwrites.ToArray())));
 					return;
 				}
 
@@ -1310,19 +1433,19 @@ namespace Advobot
 					{
 						Actions.getPerms(overwrite, channel).ToList().ForEach(kvp => overwriteString += kvp.Key + ": " + kvp.Value + '\n');
 						await Actions.sendChannelMessage(Context.Channel, String.Format("**PERMISSIONS FOR `{0}` ON `{1} ({2})`:**```\n{3}```",
-							role.Name, channel.Name, channel.GetType().Name.ToLower().Contains(Constants.VOICE_TYPE) ? "VOICE" : "TEXT", overwriteString));
+							role.Name, channel.Name, Actions.getChannelType(channel), overwriteString));
 						return;
 					}
 					else if (user != null && overwrite.TargetId.Equals(user.Id))
 					{
 						Actions.getPerms(overwrite, channel).ToList().ForEach(kvp => overwriteString += kvp.Key + ": " + kvp.Value + '\n');
 						await Actions.sendChannelMessage(Context.Channel, String.Format("**PERMISSIONS FOR `{0}#{1}` ON `{2} ({3})`:**```\n{4}```",
-							user.Username, user.Discriminator, channel.Name, channel.GetType().Name.ToLower().Contains(Constants.VOICE_TYPE) ? "VOICE" : "TEXT", overwriteString));
+							user.Username, user.Discriminator, channel.Name, Actions.getChannelType(channel), overwriteString));
 						return;
 					}
 				}
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Unable to show permissions for `{0}` on `{1} ({2})`.",
-					values[1], channel.Name, channel.GetType().Name.ToLower().Contains(Constants.VOICE_TYPE) ? "Voice" : "Text")));
+					values[1], channel.Name, Actions.getChannelType(channel))));
 				return;
 			}
 			else if (actionName.Equals("allow") || actionName.Equals("deny") || actionName.Equals("inherit"))
@@ -1456,12 +1579,7 @@ namespace Advobot
 			}
 
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}` on `{3} ({4})`",
-				actionName,
-				String.Join("`, `", permissions),
-				roleNameOrUsername,
-				channel.Name,
-				channel.GetType().Name.ToLower().Contains(Constants.VOICE_TYPE) ? "Voice" : "Text"),
-				7500);
+				actionName, String.Join("`, `", permissions), roleNameOrUsername, channel.Name, Actions.getChannelType(channel)), 7500);
 		}
 
 		[Command("copychannelpermissions")]
@@ -1534,12 +1652,7 @@ namespace Advobot
 			}
 
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully copied `{0}` from `{1} ({2})` to `{3} ({4})`",
-				target,
-				inputChannel.Name,
-				inputChannel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE) ? "Text" : "Voice",
-				outputChannel.Name,
-				outputChannel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE) ? "Text" : "Voice"),
-				7500);
+				target, inputChannel.Name, Actions.getChannelType(inputChannel), outputChannel.Name, Actions.getChannelType(outputChannel)), 7500);
 		}
 
 		[Command("clearchannelpermissions")]
@@ -1574,8 +1687,7 @@ namespace Advobot
 				}
 			});
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all channel permissions from `{0} ({1})`.",
-				channel.Name, (channel.GetType().Name.ToLower().Contains(Constants.VOICE_TYPE) ? "Voice" : "Text")),
-				7500);
+				channel.Name, Actions.getChannelType(channel)), 7500);
 		}
 
 		[Command("changechannelname")]
@@ -1642,7 +1754,7 @@ namespace Advobot
 				return;
 
 			//See if not a text channel
-			if (!channel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE))
+			if (Actions.getChannelType(channel) != Constants.TEXT_TYPE)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Only text channels can have their topic set."));
 				return;
@@ -1703,7 +1815,7 @@ namespace Advobot
 			IGuildChannel channel = await Actions.getChannelEditAbility(Context, inputArray[1]);
 			if (channel == null)
 				return;
-			if (!channel.GetType().Name.ToLower().Contains(Constants.VOICE_TYPE))
+			if (Actions.getChannelType(channel) != Constants.VOICE_TYPE)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Users can only be moved to a voice channel."));
 				return;
@@ -1840,7 +1952,7 @@ namespace Advobot
 		[Command("allwithrole")]
 		[Alias("awr")]
 		[Usage(Constants.BOT_PREFIX + "allwithrole <File|Upload> [Role]")]
-		[Summary("Prints out a list of all users with the given role. File specifies a text document which can show more symbols. Uploaded specifies to use a text uploader.")]
+		[Summary("Prints out a list of all users with the given role. File specifies a text document which can show more symbols. Upload specifies to use a text uploader.")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageRoles))]
 		public async Task AllWithRole([Remainder] String input)
 		{
@@ -1911,13 +2023,190 @@ namespace Advobot
 
 		[Command("forallwithrole")]
 		[Alias("fawr")]
-		[Usage(Constants.BOT_PREFIX + "forallwithrole [Give|Take|Nickname] [Role]/[Role|Nickname]")]
-		[Summary("Can give a role to users, take a role from users, and nickname users who have a specific role. The bot will hit the rate limit of actions " +
-			"every 10 users and then have to wait for ~9 seconds. The max limit of 100 can be bypassed by saying 'Badoodle' after the last argument.")]
-		[PermissionRequirements((1U << (int)GuildPermission.Administrator), 0)]
+		[Usage(Constants.BOT_PREFIX + "forallwithrole [Give|Take|Nickname] [Role]/[Role|Nickname] <" + Constants.BYPASS_STRING + ">")]
+		[Summary("Only self hosted bots are allowed go past 10 members per use. When used on a self bot, \"" + Constants.BYPASS_STRING + "\" removes the 10 user limit.")]
+		[BotOwnerRequirement]
 		public async Task ForAllWithRole([Remainder] String input)
 		{
+			//Separating input into the action and role/role or nickname + bypass
+			String[] inputArray = input.Split(new char[] { ' ' }, 2);
+			String action = inputArray[0];
+			if (inputArray.Length < 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
 
+			//Separate role/role or nickname + bypass into role and role or nickname + bypass
+			String[] values = inputArray[1].Split('/');
+			if (values.Length != 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+
+			//Check if bypass, up the max limit, and remove the bypass string from the values array
+			int maxLength = 10;
+			if (values[1].EndsWith(Constants.BYPASS_STRING) && Context.User.Id.Equals(Constants.OWNER_ID))
+			{
+				maxLength = int.MaxValue;
+				values[1] = values[1].Substring(0, values[1].Length - Constants.BYPASS_STRING.Length);
+			}
+
+			if (action.Equals("give"))
+			{
+				if (values[0].Equals(values[1]))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Cannot give the same role that is being gathered."));
+					return;
+				}
+
+				//Check if valid roles
+				IRole roleToGather = Actions.getRole(Context.Guild, values[0]);
+				if (roleToGather == null)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid role to gather."));
+					return;
+				}
+
+				//Get the roles and their edit ability
+				IRole roleToGive = await Actions.getRoleEditAbility(Context, values[1]);
+				if (roleToGive == null)
+				{
+					return;
+				}
+
+				//Check if trying to give @everyone
+				if (Context.Guild.EveryoneRole.Id.Equals(roleToGive.Id))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "You can't give the `@everyone` role.");
+					return;
+				}
+
+				//Grab each user and give them the role
+				List<IGuildUser> listUsersWithRole = new List<IGuildUser>();
+				foreach (IGuildUser user in Context.Guild.GetUsersAsync().Result.ToList())
+				{
+					if (user.RoleIds.Contains(roleToGather.Id))
+					{
+						listUsersWithRole.Add(user);
+					}
+				}
+
+				//Checking if too many users listed
+				if (listUsersWithRole.Count() > maxLength)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many users; max is 10."));
+					return;
+				}
+				foreach (IGuildUser user in listUsersWithRole)
+				{
+					await Actions.giveRole(user, roleToGive);
+				}
+
+				await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully gave `{0}` to all users{1} ({2} users).",
+					roleToGive.Name, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
+			}
+			else if (action.Equals("take"))
+			{
+				//Check if valid roles
+				IRole roleToGather = Actions.getRole(Context.Guild, values[0]);
+				if (roleToGather == null)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid role to gather."));
+					return;
+				}
+				IRole roleToTake = await Actions.getRoleEditAbility(Context, values[1]);
+				if (roleToTake == null)
+				{
+					return;
+				}
+
+				//Check if trying to take @everyone
+				if (Context.Guild.EveryoneRole.Id.Equals(roleToTake.Id))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "You can't take the `@everyone` role.");
+					return;
+				}
+
+				//Grab each user and give them the role
+				List<IGuildUser> listUsersWithRole = new List<IGuildUser>();
+				foreach (IGuildUser user in Context.Guild.GetUsersAsync().Result.ToList())
+				{
+					if (user.RoleIds.Contains(roleToGather.Id))
+					{
+						listUsersWithRole.Add(user);
+					}
+				}
+
+				//Checking if too many users listed
+				if (listUsersWithRole.Count() > maxLength)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many users; max is 10."));
+					return;
+				}
+				foreach (IGuildUser user in listUsersWithRole)
+				{
+					await Actions.takeRole(user, roleToTake);
+				}
+
+				await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully took `{0}` from all users{1} ({2} users).",
+					roleToTake.Name, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
+			}
+			else if (action.Equals("nickname"))
+			{
+				//Check if valid role
+				IRole roleToGather = Actions.getRole(Context.Guild, values[0]);
+				if (roleToGather == null)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid role to gather."));
+					return;
+				}
+
+				//Check if valid nickname length
+				String inputNickname = values[1];
+				if (inputNickname.Length > Constants.NICKNAME_LENGTH)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be longer than 32 charaters."));
+					return;
+				}
+
+				//Rename each user who has the role
+				int botPosition = Actions.getPosition(Context.Guild, await Context.Guild.GetUserAsync(Context.Client.CurrentUser.Id));
+				int commandUserPosition = Actions.userHasOwner(Context.Guild, Context.User as IGuildUser)
+					? Constants.OWNER_POSITION : Actions.getPosition(Context.Guild, Context.User as IGuildUser);
+				List<IGuildUser> listUsersWithRole = new List<IGuildUser>();
+				foreach (IGuildUser user in Context.Guild.GetUsersAsync().Result.ToList())
+				{
+					if (user.RoleIds.Contains(roleToGather.Id))
+					{
+						int userPosition = Actions.getPosition(Context.Guild, Context.User as IGuildUser);
+						if (userPosition < commandUserPosition && userPosition < botPosition && Context.Guild.OwnerId != user.Id)
+						{
+							listUsersWithRole.Add(user);
+						}
+					}
+				}
+
+				//Checking if too many users listed
+				if (listUsersWithRole.Count() > maxLength)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many users; max is 250."));
+					return;
+				}
+				foreach (IGuildUser user in listUsersWithRole)
+				{
+					await user.ModifyAsync(x => x.Nickname = inputNickname);
+				}
+
+				await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully gave the nickname `{0}` to all users{1} ({2} users).",
+					inputNickname, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action."));
+				return;
+			}
 		}
 	}
 }

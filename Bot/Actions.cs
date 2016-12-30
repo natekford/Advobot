@@ -22,12 +22,13 @@ namespace Advobot
 		//Loading in all necessary information at bot start up
 		public static void loadInformation()
 		{
-			Variables.Bot_ID = CommandHandler.client.CurrentUser.Id;				//Give the variable Bot_ID the actual ID
+			Variables.Bot_ID = CommandHandler.client.CurrentUser.Id;                //Give the variable Bot_ID the actual ID
+			Variables.Bot_Name = CommandHandler.client.CurrentUser.Username;        //Give the variable Bot_Name the username of the bot
+			Variables.Bot_Channel = Variables.Bot_Name.ToLower();					//Give the variable Bot_Channel a lowered version of the bot's name
+
 			loadPermissionNames();													//Gets the names of the permission bits in Discord
-			//Has to go after loadPermissionNames
-			loadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary)
-			//Has to go after loadCommandInformation
-			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));	//Gets all the active command names
+			loadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
+			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));	//Gets all the active command names. Has to go after LCI
 		}
 
 		//Get the information from the commands
@@ -349,7 +350,7 @@ namespace Advobot
 		//See if the user can edit the channel
 		public static async Task<bool> getChannelEditAbility(IGuildChannel channel, IGuildUser user)
 		{
-			if (channel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE))
+			if (Actions.getChannelType(channel) == Constants.TEXT_TYPE)
 			{
 				using (var channelUsers = channel.GetUsersAsync().GetEnumerator())
 				{
@@ -419,8 +420,9 @@ namespace Advobot
 		//Send a message with a zero length char at the front
 		public static async Task<IMessage> sendChannelMessage(IMessageChannel channel, String message)
 		{
-			if (channel == null)
+			if (channel == null || !Variables.Guilds.Contains((channel as ITextChannel).Guild))
 				return null;
+
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
 
@@ -504,8 +506,11 @@ namespace Advobot
 			{
 				input = input.Substring(input.IndexOf("<#"));
 			}
-			String[] seperateSpaces = input.Split(new char[] { ' ' }, 2);
-			String[] values = seperateSpaces[0].Split(new char[] { '/' }, 2);
+			if (input.Contains(' '))
+			{
+				input = input.Substring(0, input.IndexOf(' '));
+			}
+			String[] values = input.Split(new char[] { '/' }, 2);
 
 			//Get input channel type
 			String channelType = values.Length == 2 ? values[1].ToLower() : null;
@@ -515,21 +520,28 @@ namespace Advobot
 			}
 
 			//If a channel mention
-			IGuildChannel channel = null;
-			String channelIDString = values[0].Trim(new char[] { '<', '#', '>' });
 			ulong channelID = 0;
-			if (UInt64.TryParse(channelIDString, out channelID))
+			if (UInt64.TryParse(values[0].Trim(new char[] { '<', '#', '>' }), out channelID))
 			{
-				channel = await guild.GetChannelAsync(channelID);
-			}
-			//Name and type
-			else if (channelType != null)
-			{
-				IReadOnlyCollection<IGuildChannel> gottenChannels = await guild.GetChannelsAsync();
-				channel = gottenChannels.FirstOrDefault(x => x.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase) && x.GetType().Name.ToLower().Contains(channelType));
+				return await guild.GetChannelAsync(channelID);
 			}
 
-			return channel;
+			//If a name and type
+			else if (channelType != null)
+			{
+				//Get the channels from the guild
+				var gottenChannels = await guild.GetChannelsAsync();
+				//See which match the name and type given
+				var channels = gottenChannels.Where(x => x.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase) && x.GetType().Name.ToLower().Contains(channelType)).ToList();
+
+				if (channels.Count == 0)
+					return null;
+				if (channels.Count == 1)
+					return channels[0];
+
+			}
+
+			return null;
 		}
 
 		//Get integer
@@ -634,25 +646,23 @@ namespace Advobot
 			if (!File.Exists(path))
 			{
 				//Default to 'advobot' if it doesn't exist
-				if (getChannel(guild, Constants.BASE_CHANNEL_NAME) != null)
+				if (getChannel(guild, Variables.Bot_Channel) != null)
 				{
-					logChannel = getChannel(guild, Constants.BASE_CHANNEL_NAME) as ITextChannel;
+					logChannel = getChannel(guild, Variables.Bot_Channel) as ITextChannel;
 					return logChannel;
 				}
 				//If the file and the channel both don't exist then return null
-				else
-					return null;
+				return null;
 			}
 			else
 			{
 				//Read the text document and find the serverlog 
 				using (StreamReader reader = new StreamReader(path))
 				{
-					int counter = 0;
 					string line;
 					while ((line = reader.ReadLine()) != null)
 					{
-						if (line.Contains("serverlog"))
+						if (line.Contains(serverOrMod))
 						{
 							String[] logChannelArray = line.Split(new Char[] { ':' }, 2);
 
@@ -666,7 +676,6 @@ namespace Advobot
 								return logChannel;
 							}
 						}
-						counter++;
 					}
 				}
 			}
@@ -674,7 +683,7 @@ namespace Advobot
 		}
 
 		//Edit message log message
-		public static async Task editMessage(IMessageChannel logChannel, String time, IGuildUser user, IMessageChannel channel, String before, String after)
+		public static async Task editMessage(ITextChannel logChannel, String time, IGuildUser user, IMessageChannel channel, String before, String after)
 		{
 			await sendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}#{2}` **IN** `#{3}`\n**FROM:** ```\n{4}```\n**TO:** ```\n{5}```",
 				time, user.Username, user.Discriminator, channel.Name, before, after));
@@ -839,12 +848,12 @@ namespace Advobot
 			Dictionary<String, String> dictionary = Actions.getChannelPermissions(overwrite);
 
 			//See if the channel is a text channel and remove voice channel perms
-			if (channel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE))
+			if (Actions.getChannelType(channel) == Constants.TEXT_TYPE)
 			{
 				getTextChannelPermissions(dictionary);
 			}
 			//See if the channel is a voice channel and remove text channel perms
-			else if (channel.GetType().Name.ToLower().Contains(Constants.VOICE_TYPE))
+			else if (Actions.getChannelType(channel) == Constants.VOICE_TYPE)
 			{
 				getVoiceChannelPermissions(dictionary);
 			}
@@ -870,15 +879,16 @@ namespace Advobot
 		//Send a message with an embedded object
 		public static async Task<IMessage> sendEmbedMessage(IMessageChannel channel, String message, EmbedBuilder embed)
 		{
-			if (channel == null)
+			if (channel == null || !Variables.Guilds.Contains((channel as ITextChannel).Guild))
 				return null;
+
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message, embed: embed);
 		}
 
 		//Send an embedded object
 		public static async Task<IMessage> sendEmbedMessage(IMessageChannel channel, EmbedBuilder embed)
 		{
-			if (channel == null)
+			if (channel == null || !Variables.Guilds.Contains((channel as ITextChannel).Guild))
 				return null;
 
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR, embed: embed);
@@ -971,6 +981,84 @@ namespace Advobot
 			{
 				Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss") + " " + text);
 			}
+		}
+
+		//Set the server or mod log
+		public static async Task<ITextChannel> setServerOrModLog(CommandContext context, String input, String serverOrMod)
+		{
+			ITextChannel logChannel = null;
+			//See if not null
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				await makeAndDeleteSecondaryMessage(context, ERROR("No channel specified."));
+				return null;
+			}
+			else if (input.ToLower().Equals("off"))
+			{
+				logChannel = null;
+			}
+
+			//Get the channel with its ID
+			var textChannels = context.Guild.GetTextChannelsAsync().Result.ToList().Where(x => input.Contains(x.Id.ToString())).ToList();
+			if (textChannels.Count == 1)
+			{
+				logChannel = textChannels[0];
+			}
+
+
+			//Create the file if it doesn't exist
+			String path = getServerFilePath(context.Guild.Id, Constants.SERVERLOG_AND_MODLOG);
+			if (!File.Exists(path))
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(path));
+				var newFile = File.Create(path);
+				newFile.Close();
+			}
+
+			//Find the lines that aren't the current serverlog line
+			List<String> validLines = new List<String>();
+			using (StreamReader reader = new StreamReader(path))
+			{
+				string line;
+				while ((line = reader.ReadLine()) != null)
+				{
+					if (line.Contains(serverOrMod))
+					{
+						if ((logChannel != null) && (line.Contains(logChannel.Id.ToString())))
+						{
+							await makeAndDeleteSecondaryMessage(context, "Channel is already the current " + serverOrMod + ".");
+							return null;
+						}
+					}
+					else if (!line.Contains(serverOrMod))
+					{
+						validLines.Add(line);
+					}
+				}
+			}
+
+			//Add the lines that do not include serverlog and  the new serverlog line
+			using (StreamWriter writer = new StreamWriter(path))
+			{
+				if (logChannel == null)
+				{
+					writer.WriteLine(serverOrMod + ":" + null + "\n" + String.Join("\n", validLines));
+					await makeAndDeleteSecondaryMessage(context, "Disabled the " + serverOrMod + ".");
+					return null;
+				}
+				else
+				{
+					writer.WriteLine(serverOrMod + ":" + logChannel.Id + "\n" + String.Join("\n", validLines));
+				}
+			}
+
+			return logChannel;
+		}
+
+		//Get if a channel is a text or voice channel
+		public static String getChannelType(IGuildChannel channel)
+		{
+			return channel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE) ? Constants.TEXT_TYPE : Constants.VOICE_TYPE;
 		}
 	}
 }
