@@ -16,19 +16,29 @@ namespace Advobot
 		public async Task Start()
 		{
 			//Define the DiscordSocketClient
-			DiscordSocketClient client = new DiscordSocketClient(new DiscordSocketConfig { DownloadUsersOnGuildAvailable = true, MessageCacheSize = 10000 });
+			DiscordSocketClient client = new DiscordSocketClient(new DiscordSocketConfig
+			{
+				DownloadUsersOnGuildAvailable = true,
+				MessageCacheSize = 10000,
+				LogLevel = LogSeverity.Debug,
+				AudioMode = Discord.Audio.AudioMode.Disabled,
+			});
 
-			client.Log += Log;
+			//Actions
+			client.Log += BotLogs.Log;
 			client.GuildAvailable += BotLogs.OnGuildAvailable;
 			client.JoinedGuild += BotLogs.OnJoinedGuild;
 			client.LeftGuild += BotLogs.OnLeftGuild;
+			client.Disconnected += BotLogs.OnDisconnected;
 			client.UserJoined += ServerLogs.OnUserJoined;
 			client.UserLeft += ServerLogs.OnUserLeft;
 			client.UserBanned += ServerLogs.OnUserBanned;
 			client.UserUnbanned += ServerLogs.OnUserUnbanned;
 			client.GuildMemberUpdated += ServerLogs.OnGuildMemberUpdated;
+			client.UserUpdated += ServerLogs.OnUserUpdated;
 			client.MessageUpdated += ServerLogs.OnMessageUpdated;
 			client.MessageDeleted += ServerLogs.OnMessageDeleted;
+			client.MessageReceived += ServerLogs.OnMessageReceived;
 
 			//Login and connect to Discord.
 			await client.LoginAsync(TokenType.Bot, "Bot Key");
@@ -38,7 +48,7 @@ namespace Advobot
 			}
 			catch (Exception)
 			{
-				Console.WriteLine("Client unable to connect. Shutting down in five seconds.");
+				Actions.writeLine("!!!Client unable to connect. Shutting down in five seconds!!!");
 				Thread.Sleep(5000);
 				Environment.Exit(126);
 			}
@@ -50,12 +60,6 @@ namespace Advobot
 
 			//Block this program until it is closed.
 			await Task.Delay(-1);
-		}
-
-		private Task Log(LogMessage msg)
-		{
-			Console.WriteLine(msg.ToString());
-			return Task.CompletedTask;
 		}
 	}
 }
