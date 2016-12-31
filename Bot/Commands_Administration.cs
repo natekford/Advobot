@@ -13,9 +13,11 @@ using Discord.WebSocket;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Advobot
 {
+	[Name("Administration")]
 	public class Administration_Commands : ModuleBase
 	{
 		[Command("setgame")]

@@ -13,6 +13,7 @@ using Discord.WebSocket;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Advobot
 {

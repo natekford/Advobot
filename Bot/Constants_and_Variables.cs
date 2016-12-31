@@ -64,6 +64,7 @@ namespace Advobot
 
 	public static class Variables
 	{
+		public static Discord.WebSocket.SocketUser Bot = null;
 		public static UInt64 Bot_ID = 0;
 		public static String Bot_Name = null;
 		public static String Bot_Channel = null;

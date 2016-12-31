@@ -22,6 +22,7 @@ namespace Advobot
 		//Loading in all necessary information at bot start up
 		public static void loadInformation()
 		{
+			Variables.Bot = CommandHandler.client.CurrentUser;						//Give the variable Bot the bot as a SocketUser
 			Variables.Bot_ID = CommandHandler.client.CurrentUser.Id;                //Give the variable Bot_ID the actual ID
 			Variables.Bot_Name = CommandHandler.client.CurrentUser.Username;        //Give the variable Bot_Name the username of the bot
 			Variables.Bot_Channel = Variables.Bot_Name.ToLower();					//Give the variable Bot_Channel a lowered version of the bot's name

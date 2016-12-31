@@ -19,8 +19,10 @@ namespace Advobot
 			_map.Add(commands);
 			map = _map;
 
-			//!!!Extremely needed for the commands and help command!!!
+			//!!!Necessary for the commands and help command!!!
 			Actions.loadInformation();
+
+			//Set the game to the base game
 			await client.SetGame(Constants.STARTUP_GAME);
 
 			await commands.AddModulesAsync(Assembly.GetEntryAssembly());
@@ -53,7 +55,7 @@ namespace Advobot
 			{
 				++Variables.FailedCommands;
 
-				//See if ignored error
+				//Ignore unknown command errors because they're annoying
 				if (result.ErrorReason.Equals(Constants.IGNORE_ERROR) || result.Error.Equals(CommandError.UnknownCommand))
 					return;
 

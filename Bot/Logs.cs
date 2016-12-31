@@ -95,7 +95,7 @@ namespace Advobot
 		//Tell when a user leaves the server
 		public static async Task OnUserLeft(SocketGuildUser user)
 		{
-			if (user.Id.Equals(CommandHandler.client.CurrentUser.Id))
+			if (user == Variables.Bot)
 			{
 				Variables.Guilds.Remove(user.Guild);
 				return;
@@ -139,7 +139,7 @@ namespace Advobot
 		//Tell when a user is banned
 		public static async Task OnUserBanned(SocketUser user, SocketGuild guild)
 		{
-			if (user.Id.Equals(CommandHandler.client.CurrentUser.Id))
+			if (user == Variables.Bot)
 			{
 				Variables.Guilds.Remove(guild);
 				return;

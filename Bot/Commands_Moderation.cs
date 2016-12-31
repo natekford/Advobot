@@ -13,9 +13,11 @@ using Discord.WebSocket;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Advobot
 {
+	[Name("Moderation")]
 	public class Moderation_Commands : ModuleBase
 	{
 		[Command("fullmute")]
@@ -419,7 +421,7 @@ namespace Advobot
 			//Check if the channel that's having messages attempted to be removed on is a log channel
 			ITextChannel serverlogChannel = await Actions.logChannelCheck(Context.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			ITextChannel modlogChannel = await Actions.logChannelCheck(Context.Guild, Constants.MOD_LOG_CHECK_STRING);
-			if (inputChannel == serverlogChannel || inputChannel == modlogChannel)
+			if (Context.User.Id != Context.Guild.OwnerId && (inputChannel == serverlogChannel || inputChannel == modlogChannel))
 			{
 				//Send a message in the channel
 				await Actions.sendChannelMessage(serverlogChannel == null ? modlogChannel : serverlogChannel,
@@ -768,7 +770,7 @@ namespace Advobot
 				return;
 			}
 			//See if the bot can access that position
-			if (position > Actions.getPosition(Context.Guild, await Context.Guild.GetUserAsync(Context.Client.CurrentUser.Id)))
+			if (position > Actions.getPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID)))
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Position is higher than the bot can access."));
 				return;
@@ -2073,7 +2075,7 @@ namespace Advobot
 		[Command("forallwithrole")]
 		[Alias("fawr")]
 		[Usage(Constants.BOT_PREFIX + "forallwithrole [Give|Take|Nickname] [Role]/[Role|Nickname] <" + Constants.BYPASS_STRING + ">")]
-		[Summary("Only self hosted bots are allowed go past 10 members per use. When used on a self bot, \"" + Constants.BYPASS_STRING + "\" removes the 10 user limit.")]
+		[Summary("Only self hosted bots are allowed to go past ten members per use. When used on a self bot, \"" + Constants.BYPASS_STRING + "\" removes the 10 user limit.")]
 		[BotOwnerRequirement]
 		public async Task ForAllWithRole([Remainder] String input)
 		{
@@ -2221,7 +2223,7 @@ namespace Advobot
 				}
 
 				//Rename each user who has the role
-				int botPosition = Actions.getPosition(Context.Guild, await Context.Guild.GetUserAsync(Context.Client.CurrentUser.Id));
+				int botPosition = Actions.getPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID));
 				int commandUserPosition = Actions.userHasOwner(Context.Guild, Context.User as IGuildUser)
 					? Constants.OWNER_POSITION : Actions.getPosition(Context.Guild, Context.User as IGuildUser);
 				List<IGuildUser> listUsersWithRole = new List<IGuildUser>();
