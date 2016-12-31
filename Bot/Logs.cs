@@ -32,16 +32,6 @@ namespace Advobot
 			Console.WriteLine(String.Format("{0}: {1}#{2} is online now.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
 			Actions.loadPreferences(guild);
 
-			//var t = Task.Run(async delegate
-			//{
-			//	IEnumerable<Invite> invs = await args.Server.GetInvites();
-			//	List<Invite> invites = args.Server.GetInvites().Result.ToList();
-			//	foreach (Invite inv in invites)
-			//	{
-			//		mInviteLinks[inv.Code] = inv.Uses;
-			//	}
-			//});
-
 			Variables.TotalUsers += guild.MemberCount;
 			Variables.TotalGuilds++;
 			Variables.Guilds.Add(guild);
@@ -69,7 +59,7 @@ namespace Advobot
 			return Task.CompletedTask;
 		}
 
-		//Reset the server count and cumulative member count when the bot disconnects or else it doulbe it
+		//Reset the server count and cumulative member count when the bot disconnects or else it doubles it
 		public static Task OnDisconnected(Exception exception)
 		{
 			Variables.TotalGuilds = 0;

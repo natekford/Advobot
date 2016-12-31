@@ -416,6 +416,21 @@ namespace Advobot
 				++argIndex;
 			}
 
+			//Check if the channel that's having messages attempted to be removed on is a log channel
+			ITextChannel serverlogChannel = await Actions.logChannelCheck(Context.Guild, Constants.SERVER_LOG_CHECK_STRING);
+			ITextChannel modlogChannel = await Actions.logChannelCheck(Context.Guild, Constants.MOD_LOG_CHECK_STRING);
+			if (inputChannel == serverlogChannel || inputChannel == modlogChannel)
+			{
+				//Send a message in the channel
+				await Actions.sendChannelMessage(serverlogChannel == null ? modlogChannel : serverlogChannel,
+					String.Format("Hey, @here, {0} is trying to delete stuff.", Context.User.Mention));
+
+				//DM the owner of the server
+				await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync().Result.SendMessageAsync(
+					String.Format("`{0}#{1}` ID: `{2}` is trying to delete stuff from the server/mod log.", Context.User.Username, Context.User.Discriminator, Context.User.Id));
+				return;
+			}
+
 			//Checking for valid request count
 			int requestCount = (argIndex == argCount - 1) ? Actions.getInteger(values[argIndex]) : -1;
 			if (requestCount < 1)
@@ -442,7 +457,7 @@ namespace Advobot
 			}
 
 			await Actions.removeMessages(inputChannel, requestCount, inputUser);
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted {0} {1}{2}{3}.",
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` {1}{2}{3}.",
 				requestCount,
 				requestCount > 1 ? "messages" : "message",
 				inputUser == null ? "" : " from `" + inputUser.Username + "#" + inputUser.Discriminator + "`",
@@ -715,7 +730,7 @@ namespace Advobot
 		[Command("roleposition")]
 		[Alias("rpos")]
 		[Usage(Constants.BOT_PREFIX + "roleposition [Role] [int]")]
-		[Summary("Moves the role to the given position. @ev" + Constants.ZERO_LENGTH_CHAR + "everyone is the first position and starts at zero.")]
+		[Summary("Moves the role to the given position. @ev" + Constants.ZERO_LENGTH_CHAR + "eryone is the first position and starts at zero.")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageRoles))]
 		public async Task RolePosition([Remainder] String input)
 		{
@@ -766,6 +781,38 @@ namespace Advobot
 			});
 
 			await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully gave the `{0}` role the position `{1}`.", role.Name, role.Position));
+		}
+
+		[Command("listrolepositions")]
+		[Alias("lrp")]
+		[Usage(Constants.BOT_PREFIX + "listrolepositions")]
+		[Summary("Lists the positions of each role on the guild.")]
+		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageRoles))]
+		public async Task ListRolePositions()
+		{
+			//List of the roles
+			var roles = Context.Guild.Roles.OrderBy(x => x.Position).Reverse().ToList();
+
+			//Put them into strings now
+			String description = "";
+			foreach (var role in roles)
+			{
+				if (role == Context.Guild.EveryoneRole)
+				{
+					description += "`" + role.Position.ToString("00") + ".` @ev" + Constants.ZERO_LENGTH_CHAR + "eryone";
+					continue;
+				}
+				description += "`" + role.Position.ToString("00") + ".` " + role.Name + "\n";
+			}
+
+			//Check the length to see if the message can be sent
+			if (description.Length > 750)
+			{
+				description = Actions.uploadToHastebin(Actions.replaceMessageCharacters(description));
+			}
+
+			//Send the embed
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Role Positions", description));
 		}
 
 		[Command("rolepermissions")]
@@ -1283,77 +1330,79 @@ namespace Advobot
 				return;
 			}
 
-			//TODO: Make sure this still isn't weird
 			//Put it in the correct position
+			var channelAndPositions = new List<ChannelAndPosition>();
+			//Grab either the text or voice channels
 			if (Actions.getChannelType(channel) == Constants.TEXT_TYPE)
 			{
-				//Get a dictionary of the channel's IDs and what their 'positions' are
-				var channelIDAndPos = Context.Guild.GetTextChannelsAsync().Result.ToDictionary(kvp => kvp.Id, kvp => kvp.Position);
-				//Add in the new one
-				channelIDAndPos[channel.Id] = position;
-				//Sort the dictionary
-				var sortedDict = channelIDAndPos.OrderBy(val => val.Value).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-				//Put the keys into a list which is now sorted by 'position'
-				var listedIDs = sortedDict.Keys.ToList();
-
-				//List to hold channels with the same position
-				var samePositions = new List<ulong>();
-				//Point at which the same position channels tart
-				int sameStartingPos = -1;
-
-				//Give them a position that makes sense
-				listedIDs.ForEach(async ID => await Context.Guild.GetChannelAsync(ID).Result.ModifyAsync(x =>
-				{
-					if (sortedDict[ID] == position)
-					{
-						//If the same target position then add them to a list
-						samePositions.Add(ID);
-						//Find where this list should be input on the position spots
-						if (sameStartingPos == -1)
-						{
-							sameStartingPos = listedIDs.IndexOf(ID);
-						}
-					}
-					else
-					{
-						//Add the position regularly
-						x.Position = listedIDs.IndexOf(ID);
-					}
-				}));
-
-				//Check if need to remove and insert the wanted channel
-				if (samePositions.Count > 1)
-				{
-					//Remove the original spot of the channel
-					samePositions.Remove(channel.Id);
-					//Add it to the front
-					samePositions.Insert(0, channel.Id);
-				}
-				//Add the positions back in
-				samePositions.ForEach(async ID => await Context.Guild.GetChannelAsync(ID).Result.ModifyAsync(x => x.Position = sameStartingPos + samePositions.IndexOf(ID)));
-
-				//For debug
-				var channelNames = new List<String>();
-				var channelPositions = new List<int>();
-				listedIDs.ForEach(async ID =>
-				{
-					channelNames.Add((await Context.Guild.GetChannelAsync(ID)).Name);
-					channelPositions.Add(listedIDs.IndexOf(ID));
-				});
-
-				EmbedBuilder embed = Actions.makeNewEmbed(null, "Positions");
-				Actions.addField(embed, "Channels", String.Join("\n", channelNames));
-				Actions.addField(embed, "Positions", String.Join("\n", channelPositions));
-				await Actions.sendEmbedMessage(Context.Channel, embed);
+				//Grab all text channels that aren't the targetted one
+				Context.Guild.GetTextChannelsAsync().Result.Where(x => x != channel).ToList().ForEach(x => channelAndPositions.Add(new ChannelAndPosition(x, x.Position)));
 			}
 			else
 			{
-				var channelIDAndPos = Context.Guild.GetVoiceChannelsAsync().Result.ToDictionary(kvp => kvp.Id, kvp => kvp.Position);
-				channelIDAndPos[channel.Id] = position;
-				var sortedDict = channelIDAndPos.OrderBy(val => val.Value).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-				var listedIDs = sortedDict.Keys.ToList();
-				listedIDs.ForEach(async ID => await Context.Guild.GetChannelAsync(ID).Result.ModifyAsync(x => x.Position = listedIDs.IndexOf(ID)));
+				//Grab all the voice channels that aren't the tagetted one
+				Context.Guild.GetVoiceChannelsAsync().Result.Where(x => x != channel).ToList().ForEach(x => channelAndPositions.Add(new ChannelAndPosition(x, x.Position)));
 			}
+			//Set the channel as a ChannelAndPosition
+			var insertedChan = new ChannelAndPosition(channel, position);
+			//Sort the list by position
+			channelAndPositions = channelAndPositions.OrderBy(x => x.Position).ToList();
+			//Add in the targetted channel with the given position
+			channelAndPositions.Insert(Math.Max(Math.Min(channelAndPositions.Count(), position), 0), insertedChan);
+
+			//Change the position of each channel with a small int instead of huge random ones
+			int index = 0;
+			channelAndPositions.ForEach(async cap => await cap.Channel.ModifyAsync(chan => chan.Position = index++));
+
+			//Send a message stating what position the channel was sent to
+			await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully moved `{0} ({1})` to position `{2}`.",
+				channel.Name, Actions.getChannelType(channel), channelAndPositions.IndexOf(insertedChan)));
+		}
+
+		[Command("listchannelpositions")]
+		[Alias("lchp")]
+		[Usage(Constants.BOT_PREFIX + "listchannelpositions [Text|Voice]")]
+		[Summary("Lists the positions of each text or voice channel on the guild.")]
+		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels))]
+		public async Task ListChannelPositions([Remainder] String input)
+		{
+			//Check if valid type
+			if (!input.Equals(Constants.VOICE_TYPE) && !input.Equals(Constants.TEXT_TYPE))
+				return;
+
+			//Initialize the string
+			String title;
+			String description = "";
+			if (input.Equals(Constants.VOICE_TYPE))
+			{
+				title = "Voice Channels Positions";
+
+				//Put the positions into the string
+				var list = Context.Guild.GetVoiceChannelsAsync().Result.OrderBy(x => x.Position).ToList();
+				foreach (var channel in list)
+				{
+					description += "`" + channel.Position.ToString("00") + ".` " + channel.Name + "\n";
+				}
+			}
+			else
+			{
+				title = "Text Channels Positions";
+
+				//Put the positions into the string
+				var list = Context.Guild.GetTextChannelsAsync().Result.OrderBy(x => x.Position).ToList();
+				foreach (var channel in list)
+				{
+					description += "`" + channel.Position.ToString("00") + ".` " + channel.Name + "\n";
+				}
+			}
+
+			//Check the length to see if the message can be sent
+			if (description.Length > 750)
+			{
+				description = Actions.uploadToHastebin(Actions.replaceMessageCharacters(description));
+			}
+
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, title, description));
 		}
 
 		[Command("channelpermissions")]

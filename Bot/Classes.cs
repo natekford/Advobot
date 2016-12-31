@@ -13,6 +13,7 @@ using Discord.WebSocket;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Advobot
 {
@@ -202,5 +203,29 @@ namespace Advobot
 			}
 			return -1;
 		}
+	}
+
+	public struct ChannelAndPosition
+	{
+		public ChannelAndPosition(IGuildChannel channel, int position)
+		{
+			this.Channel = channel;
+			this.Position = position;
+		}
+
+		public IGuildChannel Channel;
+		public int Position;
+	}
+
+	public struct RoleAndPosition
+	{
+		public RoleAndPosition(IRole role, int position)
+		{
+			this.Role = role;
+			this.Position = position;
+		}
+
+		public IRole Role;
+		public int Position;
 	}
 }

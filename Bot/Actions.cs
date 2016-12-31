@@ -439,9 +439,20 @@ namespace Advobot
 					while (await enumerator.MoveNext())
 					{
 						var messages = enumerator.Current;
+
+						//If no more messages, leave
 						if (messages.Count == 0)
-							continue;
-						await channel.DeleteMessagesAsync(messages);
+							return;
+
+						//Try due to 404 errors
+						try
+						{
+							await channel.DeleteMessagesAsync(messages);
+						}
+						catch
+						{
+						}
+
 						requestCount -= messages.Count;
 					}
 				}
@@ -765,7 +776,6 @@ namespace Advobot
 		{
 			//Matching
 			Regex empty = new Regex("[*`]");
-			//Regex spaces = new Regex("[_]");
 			Regex newLines = new Regex("[\n]{2}");
 
 			//Actually removing

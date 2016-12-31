@@ -16,6 +16,7 @@ using System.Diagnostics;
 
 namespace Advobot
 {
+	[Name("Miscellaneous")]
 	public class Miscellaneous_Commands : ModuleBase
 	{
 		[Command("help")]
@@ -544,25 +545,7 @@ namespace Advobot
 		[BotOwnerRequirement]
 		public async Task Test([Optional, Remainder] String input)
 		{
-			var channelNames = new List<String>();
-			var channelPositions = new List<int>();
-			Context.Guild.GetTextChannelsAsync().Result.OrderBy(x => x.Position).ToList().ForEach(x =>
-			{
-				channelNames.Add(x.Name);
-				channelPositions.Add(x.Position);
-			});
-
-			EmbedBuilder embed = Actions.makeNewEmbed(title: "Text Channels");
-			Actions.addField(embed, "Channels", String.Join("\n", channelNames));
-			Actions.addField(embed, "Positions", String.Join("\n", channelPositions));
-			await Actions.sendEmbedMessage(Context.Channel, embed);
-
-			Console.WriteLine("Roles:");
-			Context.Guild.Roles.OrderBy(x => x.Position).ToList().ForEach(x => Console.WriteLine(x.Position + ". " + x.Name));
-			Console.WriteLine("Text Channels:");
-			Context.Guild.GetTextChannelsAsync().Result.OrderBy(x => x.Position).ToList().ForEach(x => Console.WriteLine(x.Position + ". " + x.Name));
-			Console.WriteLine("Voice Channels:");
-			Context.Guild.GetVoiceChannelsAsync().Result.OrderBy(x => x.Position).ToList().ForEach(x => Console.WriteLine(x.Position + ". " + x.Name));
+			//Sample Text
 		}
 	}
 }

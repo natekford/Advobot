@@ -171,5 +171,18 @@ namespace Advobot
 				await Actions.sendChannelMessage(Context.Channel, String.Format("Serverlog has been set on channel {0} with the ID `{1}`.", input, serverlog.Id));
 			}
 		}
+
+		[Command("modlog")]
+		[Usage(Constants.BOT_PREFIX + "modlog [#Channel|Off")]
+		[Summary("Puts the modlog on the specified channel. Modlof is a log of all commands used.")]
+		[PermissionRequirements(1U << (int)GuildPermission.Administrator, 0)]
+		public async Task Modlog([Remainder] String input)
+		{
+			ITextChannel modlog = await Actions.setServerOrModLog(Context, input, Constants.MOD_LOG_CHECK_STRING);
+			if (modlog != null)
+			{
+				await Actions.sendChannelMessage(Context.Channel, String.Format("Modlog has been set on channel {0} with the ID `{1}`.", input, modlog.Id));
+			}
+		}
 	}
 }
