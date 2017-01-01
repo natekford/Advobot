@@ -60,7 +60,6 @@ namespace Advobot
 
 				//Add the guild to the list
 				Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator.Add(context.Guild);
-
 				return;
 			}
 

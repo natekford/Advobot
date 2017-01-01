@@ -95,13 +95,13 @@ namespace Advobot
 		//Tell when a user leaves the server
 		public static async Task OnUserLeft(SocketGuildUser user)
 		{
+			++Variables.LoggedLeaves;
+			//Check if the bot was the one that left
 			if (user == user.Guild.GetUser(Variables.Bot_ID))
 			{
 				Variables.Guilds.Remove(user.Guild);
 				return;
 			}
-
-			++Variables.LoggedLeaves;
 
 			ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
@@ -139,13 +139,13 @@ namespace Advobot
 		//Tell when a user is banned
 		public static async Task OnUserBanned(SocketUser user, SocketGuild guild)
 		{
+			++Variables.LoggedBans;
+			//Check if the bot was the one banned
 			if (user == guild.GetUser(Variables.Bot_ID))
 			{
 				Variables.Guilds.Remove(guild);
 				return;
 			}
-
-			++Variables.LoggedBans;
 
 			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
@@ -241,10 +241,9 @@ namespace Advobot
 		//Tell when a message is edited 
 		public static async Task OnMessageUpdated(Optional<SocketMessage> beforeMessage, SocketMessage afterMessage)
 		{
-			if (afterMessage.Author == Variables.Bot)
-				return;
-
 			++Variables.LoggedEdits;
+			if (afterMessage.Author.IsBot)
+				return;
 
 			ITextChannel logChannel = await Actions.logChannelCheck((afterMessage.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null && beforeMessage.IsSpecified)
@@ -297,7 +296,6 @@ namespace Advobot
 		public static async Task OnMessageDeleted(ulong messageID, Optional<SocketMessage> message)
 		{
 			++Variables.LoggedDeletes;
-
 			//Skip null messages
 			if (!message.IsSpecified)
 				return;
@@ -446,21 +444,34 @@ namespace Advobot
 		//Get all images uploaded
 		public static async Task OnMessageReceived(SocketMessage message)
 		{
+			++Variables.LoggedMessages;
 			if (message.Author.IsBot)
 				return;
 
-			++Variables.LoggedMessages;
-
-			ITextChannel logChannel = await Actions.logChannelCheck((message.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
-			if (logChannel != null)
+			IGuild guild = (message.Channel as IGuildChannel).Guild;
+			if (guild != null)
 			{
-				if (message.Attachments.Count > 0)
+				//For enable preferences
+				if (message.Author.Id == guild.OwnerId && Variables.GuildsEnablingPreferences.Contains(guild))
 				{
-					ImageLog(logChannel, message, false);
+					if (message.Content.ToLower().Equals("yes"))
+					{
+						await Actions.enablePreferences(guild, message as IUserMessage);
+					}
 				}
-				else if (message.Embeds.Count > 0)
+
+				//Otherwise see if it is going to be image logged
+				ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+				if (logChannel != null)
 				{
-					ImageLog(logChannel, message, true);
+					if (message.Attachments.Count > 0)
+					{
+						ImageLog(logChannel, message, false);
+					}
+					else if (message.Embeds.Count > 0)
+					{
+						ImageLog(logChannel, message, true);
+					}
 				}
 			}
 		}
@@ -553,6 +564,16 @@ namespace Advobot
 					await Actions.sendEmbedMessage(channel, embed);
 				}
 			});
+		}
+
+		//Make sure no duplicate bot channels are made
+		public static async Task OnChannelCreated(SocketChannel channel)
+		{
+			ITextChannel tChan = channel as ITextChannel;
+			if (tChan != null && tChan.Name == Variables.Bot_Channel && tChan.Guild.GetTextChannelsAsync().Result.Where(x => x.Name == Variables.Bot_Channel).Count() > 1)
+			{
+				await tChan.DeleteAsync();
+			}
 		}
 	}
 

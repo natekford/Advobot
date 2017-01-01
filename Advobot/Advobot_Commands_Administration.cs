@@ -118,7 +118,7 @@ namespace Advobot
 		}
 
 		[Command("leaveguild")]
-		[Usage(Constants.BOT_PREFIX + "leaveguild")]
+		[Usage(Constants.BOT_PREFIX + "leaveguild <Guild ID>")]
 		[Summary("Makes the bot leave the guild.")]
 		[BotOwnerOrGuildOwnerRequirement]
 		public async Task LeaveServer([Optional, Remainder] String input)
@@ -187,16 +187,6 @@ namespace Advobot
 			}
 		}
 
-		[Command("enablepreferences")]
-		[Alias("eprefs")]
-		[Usage(Constants.BOT_PREFIX + "enablepreferences")]
-		[Summary("Gives the guild preferences which allows using self-assignable roles, toggling commands, and changing the permissions of commands.")]
-		[GuildOwnerRequirement]
-		public async Task EnablePreferences()
-		{
-
-		}
-
 		[Command("botchannel")]
 		[Alias("bchan")]
 		[Usage(Constants.BOT_PREFIX + "botchannel")]
@@ -212,6 +202,42 @@ namespace Advobot
 				//Make it so not everyone can read it
 				await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny));
 			}
+		}
+
+		[Command("enablepreferences")]
+		[Alias("eprefs")]
+		[Usage(Constants.BOT_PREFIX + "enablepreferences")]
+		[Summary("Gives the guild preferences which allows using self-assignable roles, toggling commands, and changing the permissions of commands.")]
+		[GuildOwnerRequirement]
+		public async Task EnablePreferences()
+		{
+			//Member limit
+			if ((Context.Guild as SocketGuild).MemberCount < Constants.MEMBER_LIMIT && Context.User.Id != Constants.OWNER_ID)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Sorry, but this server is too small to warrant preferences. {0} or more members are required.",
+					Constants.MEMBER_LIMIT));
+				return;
+			}
+
+			//Confirmation of agreement
+			await Actions.sendChannelMessage(Context.Channel, "By turning preferences on you will be enabling the ability to toggle commands, change who can use commands, " +
+				"and many more features. This data will be stored in a text file off of the server, and whoever is hosting the bot will most likely have " +
+				"access to it. A new text channel will be automatically created to display preferences and the server/mod log. If you agree to this, say `Yes`");
+
+			//Add them to the list for a few seconds
+			Variables.GuildsEnablingPreferences.Add(Context.Guild);
+			//Remove them
+			Actions.turnOffYes(Context.Guild);
+		}
+
+		[Command("currentpreferences")]
+		[Alias("cprefs")]
+		[Usage(Constants.BOT_PREFIX + "currentpreferences")]
+		[Summary("Gives the file containing the current preferences of the guild.")]
+		[PermissionRequirements]
+		public async Task CurrentPreferences()
+		{
+
 		}
 	}
 }

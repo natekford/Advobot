@@ -166,7 +166,7 @@ namespace Advobot
 		[UserHasAPermission]
 		public async Task ChannelID([Remainder] String input)
 		{
-			IGuildChannel channel = Actions.getChannel(Context.Guild, input).Result;
+			IGuildChannel channel = Actions.getChannel(Context, input).Result;
 			if (channel == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));

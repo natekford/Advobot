@@ -24,8 +24,8 @@ namespace Advobot
 		public const String SERVERLOG_AND_MODLOG = "serverlogAndModlog.txt";
 		public const String SERVER_LOG_CHECK_STRING = "serverlog";
 		public const String MOD_LOG_CHECK_STRING = "modlog";
-		public const String CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/[Text|Voice]]]";
-		public const String OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/[Text|Voice]]>";
+		public const String CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
+		public const String OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/Text|Voice]>";
 		public const String VOICE_TYPE = "voice";
 		public const String TEXT_TYPE = "text";
 		public const String BYPASS_STRING = "Badoodle123";
@@ -99,9 +99,10 @@ namespace Advobot
 		public static Dictionary<String, int> VoiceChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<ulong, Discord.IUser> UnbannedUsers = new Dictionary<ulong, Discord.IUser>();
 
-		public static List<String> CommandNames = new List<String>();
 		public static List<Discord.IGuild> Guilds = new List<Discord.IGuild>();
+		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator = new List<Discord.IGuild>();
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
+		public static List<String> CommandNames = new List<String>();
 	}
 }
