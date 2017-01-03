@@ -48,6 +48,7 @@ namespace Advobot
 
 		public static readonly String[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
 		public static readonly String[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
+		public static readonly String[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west" };
 
 		public static readonly bool DISCONNECT = false;
 		public static readonly bool NEWEST_DELETED_MESSAGES_AT_TOP = false;
@@ -66,7 +67,6 @@ namespace Advobot
 
 	public static class Variables
 	{
-		public static Discord.WebSocket.SocketUser Bot = null;
 		public static UInt64 Bot_ID = 0;
 		public static String Bot_Name = null;
 		public static String Bot_Channel = null;
@@ -92,10 +92,9 @@ namespace Advobot
 		public static Dictionary<ulong, List<PreferenceCategory>> CommandPreferences = new Dictionary<ulong, List<PreferenceCategory>>();
 		public static Dictionary<ulong, List<Discord.WebSocket.SocketMessage>> DeletedMessages = new Dictionary<ulong, List<Discord.WebSocket.SocketMessage>>();
 		public static Dictionary<ulong, System.Threading.CancellationTokenSource> CancelTokens = new Dictionary<ulong, System.Threading.CancellationTokenSource>();
-		public static Dictionary<String, int> InviteLinks = new Dictionary<String, int>();
-		public static Dictionary<String, int> PermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<int, String> PermissionNames = new Dictionary<int, String>();
 		public static Dictionary<int, String> ChannelPermissionNames = new Dictionary<int, String>();
+		public static Dictionary<String, int> PermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<String, int> GeneralChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<String, int> TextChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<String, int> VoiceChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
@@ -107,5 +106,6 @@ namespace Advobot
 		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator = new List<Discord.IGuild>();
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
 		public static List<String> CommandNames = new List<String>();
+		public static List<String> RegionIDs = new List<String>();
 	}
 }

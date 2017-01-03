@@ -484,7 +484,7 @@ namespace Advobot
 		//Logging images
 		public static void ImageLog(IMessageChannel channel, SocketMessage message, bool embeds)
 		{
-			if (message.Author == Variables.Bot)
+			if (message.Author.Id == Variables.Bot_ID)
 				return;
 
 			//Get the links

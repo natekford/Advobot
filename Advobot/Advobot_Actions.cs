@@ -14,17 +14,15 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using static Advobot.Loads;
-using static Advobot.Actions;
 
 namespace Advobot
 {
-	public class Loads
+	public class Actions
 	{
+		#region Loads
 		//Loading in all necessary information at bot start up
 		public static void loadInformation()
 		{
-			Variables.Bot = CommandHandler.client.CurrentUser;                      //Give the variable Bot the bot as a SocketUser
 			Variables.Bot_ID = CommandHandler.client.CurrentUser.Id;                //Give the variable Bot_ID the actual ID
 			Variables.Bot_Name = CommandHandler.client.CurrentUser.Username;        //Give the variable Bot_Name the username of the bot
 			Variables.Bot_Channel = Variables.Bot_Name.ToLower();                   //Give the variable Bot_Channel a lowered version of the bot's name
@@ -34,7 +32,7 @@ namespace Advobot
 			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));    //Gets all the active command names. Has to go after LCI
 		}
 
-		//Get the information from the commands
+		//Load the information from the commands
 		public static void loadCommandInformation()
 		{
 			var classTypes = AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes()).Where(type => type.IsSubclassOf(typeof(ModuleBase)));
@@ -112,21 +110,7 @@ namespace Advobot
 			}
 		}
 
-		//Get the permission names to an array
-		public static String[] getPermissionNames(uint flags)
-		{
-			List<String> result = new List<String>();
-			for (int i = 0; i < 32; ++i)
-			{
-				if ((flags & (1 << i)) != 0)
-				{
-					result.Add(Variables.PermissionNames[i]);
-				}
-			}
-			return result.ToArray();
-		}
-
-		//Find the permission names
+		//Load the permission names
 		public static void loadPermissionNames()
 		{
 			for (int i = 0; i < 32; ++i)
@@ -150,7 +134,7 @@ namespace Advobot
 			loadAllChannelPermissionNames();
 		}
 
-		//Find the channel permission names
+		//Load the channel permission names
 		public static void loadAllChannelPermissionNames()
 		{
 			const UInt32 GENERAL_BITS = 0
@@ -261,12 +245,6 @@ namespace Advobot
 				}
 			}
 		}
-	}
-
-	public class Actions
-	{
-		#region Loads
-
 		#endregion
 
 		#region Gets
@@ -704,6 +682,20 @@ namespace Advobot
 				return false;
 
 			return user.Id == Constants.OWNER_ID;
+		}
+
+		//Get the permission names to an array
+		public static String[] getPermissionNames(uint flags)
+		{
+			List<String> result = new List<String>();
+			for (int i = 0; i < 32; ++i)
+			{
+				if ((flags & (1 << i)) != 0)
+				{
+					result.Add(Variables.PermissionNames[i]);
+				}
+			}
+			return result.ToArray();
 		}
 		#endregion
 

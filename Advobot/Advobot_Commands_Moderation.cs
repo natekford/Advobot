@@ -2024,10 +2024,13 @@ namespace Advobot
 			}
 
 			//Check if valid channel
-			IGuildChannel channel = await Actions.getChannelEditAbility(Context, inputArray[1]);
+			IGuildChannel channel = await Actions.getChannelEditAbility(Context, inputArray[1] + "/voice");
 			if (channel == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
 				return;
-			if (Actions.getChannelType(channel) != Constants.VOICE_TYPE)
+			}
+			else if (Actions.getChannelType(channel) != Constants.VOICE_TYPE)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Users can only be moved to a voice channel."));
 				return;
@@ -2432,20 +2435,17 @@ namespace Advobot
 			//Initialize the string
 			String description = "";
 
-			//Initialize the count
+			//Add them to the string
 			int count = 0;
-
-			//Add them to the strings
 			users.ForEach(x =>
 			{
-				count++;
-				description += String.Format("`{0}.` `{1}#{2}` ID: `{3}`\n", count.ToString("00"), x.Username, x.Discriminator, x.Id);
+				description += String.Format("`{0}.` `{1}#{2}` ID: `{3}`\n", count++.ToString("00"), x.Username, x.Discriminator, x.Id);
 			});
 
 			//Set the title
 			String title = String.Format("Users With Names Containing '{0}'", input);
 
-			//See if the length is over the check amount
+			//See if the string length is over the check amount
 			if (description.Length > Constants.LENGTH_CHECK)
 			{
 				if (!Constants.TEXT_FILE)
@@ -2457,7 +2457,7 @@ namespace Advobot
 				}
 				else
 				{
-					//Upload the file. This is way harder to try and keep than the hastebin links
+					//Upload a file that is deleted after upload
 					await Actions.uploadTextFile(Context.Guild, Context.Channel, Actions.replaceMessageCharacters(description), "List_Users_With_Name_", title);
 					return;
 				}
@@ -2471,7 +2471,7 @@ namespace Advobot
 		[Alias("cgn")]
 		[Usage(Constants.BOT_PREFIX + "changeguildname [New Name]")]
 		[Summary("Change the name of the guild to the given name.")]
-		[PermissionRequirements]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildName([Remainder] String input)
 		{
 			//Guild names have the same length requirements as channel names, so I'm not changing the variable names
@@ -2488,8 +2488,111 @@ namespace Advobot
 				return;
 			}
 
+			//Change the name and say what it was changed to
 			await Context.Guild.ModifyAsync(x => x.Name = input);
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild name to `{0}`.", input));
+		}
+
+		[Command("changeguildregion")]
+		[Alias("cgr")]
+		[Usage(Constants.BOT_PREFIX + "changeguildregion [Regions|Current|Region ID]")]
+		[Summary("Shows or changes the guild's server region. `Regions` lists all valid region IDs.")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
+		public async Task ChangeGuildLocation([Remainder] String input)
+		{
+			//Check if a valid region or asking to see the region types
+			if (input.ToLower().Equals("regions"))
+			{
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Region IDs", String.Join("\n", Constants.VALIDREGIONIDS)));
+			}
+			else if (input.ToLower().Equals("current"))
+			{
+				await Actions.sendChannelMessage(Context.Channel, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
+			}
+			else if (Constants.VALIDREGIONIDS.Contains(input.ToLower()))
+			{
+				//Capture the previous region
+				String bRegion = Context.Guild.VoiceRegionId;
+
+				//Change the region
+				await Context.Guild.ModifyAsync(x => x.RegionId = input);
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", bRegion, input));
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid region ID was input."));
+			}
+		}
+
+		[Command("changeguildafk")]
+		[Alias("cgafk")]
+		[Usage(Constants.BOT_PREFIX + "changeguildafk [Channel|Time] [Voice Channel Name|Time in Seconds]")]
+		[Summary("The first argument tells if the channel or timer is going to be changed. The second is what it will be changed to.")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
+		public async Task ChangeGuildAFK([Remainder] String input)
+		{
+			//Split at space into two args
+			String[] inputArray = input.Split(new char[] { ' ' }, 2);
+
+			//Check if valid number of args
+			if (inputArray.Length != 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+
+			//Check if valid action
+			if (inputArray[0].ToLower().Equals("channel"))
+			{
+				//Check if valid channel
+				IGuildChannel channel = await Actions.getChannelEditAbility(Context, inputArray[1] + "/voice");
+				if (channel == null)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
+					return;
+				}
+				else if (Actions.getChannelType(channel) != Constants.VOICE_TYPE)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Users can only be moved to a voice channel."));
+					return;
+				}
+
+				//Capture the before channel
+				String bChan = Context.Guild.AFKChannelId.HasValue ? Context.Guild.GetChannelAsync(Context.Guild.AFKChannelId.Value).Result.Name : "Nothing";
+
+				//Change the afk channel to the input
+				await Context.Guild.ModifyAsync(x => x.AfkChannelId = channel.Id);
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild's AFK voice channel from `{0}` to `{1}`", bChan, inputArray[1]));
+			}
+			else if (inputArray[0].ToLower().Equals("time"))
+			{
+				//Check if valid time
+				int time = 0;
+				if (!int.TryParse(inputArray[1], out time))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for time."));
+					return;
+				}
+
+				//Check if valid amount
+				int[] validAmount = { 60, 300, 900, 1800, 3600 };
+				if (!validAmount.Contains(time))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time input, must be one of the following: `60`, `300`, `900`, `1800`, `3600`."));
+					return;
+				}
+
+				//Capture the before timer
+				String bTime = Context.Guild.AFKTimeout.ToString();
+
+				//Change the afk timer
+				await Context.Guild.ModifyAsync(x => x.AfkTimeout = time);
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild's AFK timer from `{0}` to `{1}`.", bTime, inputArray[1]));
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid action was input."));
+			}
 		}
 	}
 }
