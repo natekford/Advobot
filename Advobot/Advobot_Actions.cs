@@ -14,22 +14,24 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using static Advobot.Loads;
+using static Advobot.Actions;
 
 namespace Advobot
 {
-	public class Actions
+	public class Loads
 	{
 		//Loading in all necessary information at bot start up
 		public static void loadInformation()
 		{
-			Variables.Bot = CommandHandler.client.CurrentUser;						//Give the variable Bot the bot as a SocketUser
+			Variables.Bot = CommandHandler.client.CurrentUser;                      //Give the variable Bot the bot as a SocketUser
 			Variables.Bot_ID = CommandHandler.client.CurrentUser.Id;                //Give the variable Bot_ID the actual ID
 			Variables.Bot_Name = CommandHandler.client.CurrentUser.Username;        //Give the variable Bot_Name the username of the bot
-			Variables.Bot_Channel = Variables.Bot_Name.ToLower();					//Give the variable Bot_Channel a lowered version of the bot's name
+			Variables.Bot_Channel = Variables.Bot_Name.ToLower();                   //Give the variable Bot_Channel a lowered version of the bot's name
 
-			loadPermissionNames();													//Gets the names of the permission bits in Discord
-			loadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
-			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));	//Gets all the active command names. Has to go after LCI
+			loadPermissionNames();                                                  //Gets the names of the permission bits in Discord
+			loadCommandInformation();                                               //Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
+			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));    //Gets all the active command names. Has to go after LCI
 		}
 
 		//Get the information from the commands
@@ -207,402 +209,6 @@ namespace Advobot
 			}
 		}
 
-		//Complex find a role on the server
-		public static async Task<IRole> getRole(CommandContext context, String roleName)
-		{
-			if (roleName.StartsWith("<@"))
-			{
-				roleName = roleName.Trim(new char[] { '<', '@', '&', '>' });
-				ulong roleID = 0;
-				if (UInt64.TryParse(roleName, out roleID))
-				{
-					return context.Guild.GetRole(roleID);
-				}
-			}
-			List<IRole> roles = context.Guild.Roles.ToList().Where(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase)).ToList();
-			if (roles.Count > 1)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(context,
-					ERROR("Multiple roles with the same name. Please specify by mentioning the role or changing their names."));
-				return null;
-			}
-			if (roles.Count == 1)
-			{
-				return roles.First();
-			}
-			return null;
-		}
-
-		//Simple find a role on the server
-		public static IRole getRole(IGuild guild, String roleName)
-		{
-			return guild.Roles.ToList().FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
-		}
-
-		//Create a role on the server if it's not found
-		public static async Task<IRole> createRoleIfNotFound(IGuild guild, String roleName)
-		{
-			IRole role = getRole(guild, roleName);
-			if (role == null)
-			{
-				role = await guild.CreateRoleAsync(roleName);
-			}
-			return role;
-		} 
-
-		//Get top position of a user
-		public static int getPosition(IGuild guild, IGuildUser user)
-		{
-			int position = 0;
-			user.RoleIds.ToList().ForEach(x => position = Math.Max(position, guild.GetRole(x).Position));
-
-			if (user.Id == guild.OwnerId)
-				return Constants.OWNER_POSITION;
-
-			return position;
-		}
-
-		//Get a user
-		public static async Task<IGuildUser> getUser(IGuild guild, String userName)
-		{
-			IGuildUser user = await guild.GetUserAsync(getUlong(userName.Trim(new char[] { '<', '>', '@', '!' })));
-			return user;
-		}
-
-		//Convert the input to a ulong
-		public static ulong getUlong(String inputString)
-		{
-			ulong number = 0;
-			if (UInt64.TryParse(inputString, out number))
-			{
-				return number;
-			}
-			return 0;
-		}
-
-		//Give the user the role
-		public static async Task giveRole(IGuildUser user, IRole role)
-		{
-			if (role == null)
-				return;
-			if (user.RoleIds.Contains(role.Id))
-				return;
-			await user.AddRolesAsync(role);
-		}
-
-		//Give the user multiple roles
-		public static async Task giveRole(IGuildUser user, IRole[] roles)
-		{
-			await user.AddRolesAsync(roles);
-		}
-
-		//Take multiple roles from a user
-		public static async Task takeRole(IGuildUser user, IRole[] roles)
-		{
-			if (roles.Count() == 0)
-				return;
-			await user.RemoveRolesAsync(roles);
-		}
-
-		//Take a single role from a user
-		public static async Task takeRole(IGuildUser user, IRole role)
-		{
-			if (role == null)
-				return;
-			await user.RemoveRolesAsync(role);
-		}
-
-		//See if the user/bot can edit the role
-		public static async Task<IRole> getRoleEditAbility(CommandContext context, String input = null, bool ignore_Errors = false, IRole role = null)
-		{
-			//Check if valid role
-			IRole inputRole = role == null ? await getRole(context, input) : role;
-			if (inputRole == null)
-			{
-				if (!ignore_Errors)
-				{
-					await makeAndDeleteSecondaryMessage(context, ERROR(Constants.ROLE_ERROR));
-				}
-				return null;
-			}
-
-			//Determine if the user can edit the role
-			if (inputRole.Position > getPosition(context.Guild, context.User as IGuildUser))
-			{
-				if (!ignore_Errors)
-				{
-					await makeAndDeleteSecondaryMessage(context, 
-						ERROR(String.Format("`{0}` has a higher position than you are allowed to edit or use.", inputRole.Name)));
-				}
-				return null;
-			}
-
-			//Determine if the bot can edit the role
-			if (inputRole.Position > getPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID)))
-			{
-				if (!ignore_Errors)
-				{
-					await makeAndDeleteSecondaryMessage(context,
-						ERROR(String.Format("`{0}` has a higher position than the bot is allowed to edit or use.", inputRole.Name)));
-				}
-				return null;
-			}
-
-			return inputRole;
-		}
-
-		//See if the user can edit the channel
-		public static async Task<IGuildChannel> getChannelEditAbility(IGuildChannel channel, IGuildUser user)
-		{
-			if (Actions.getChannelType(channel) == Constants.TEXT_TYPE)
-			{
-				using (var channelUsers = channel.GetUsersAsync().GetEnumerator())
-				{
-					while (await channelUsers.MoveNext())
-					{
-						if (channelUsers.Current.Contains(user))
-						{
-							return channel;
-						}
-					}
-				}
-			}
-			else
-			{
-				if (user == null)
-				{
-					return null;
-				}
-				if (user.GetPermissions(channel).Connect)
-				{
-					return channel;
-				}
-			}
-			return null;
-		}
-
-		//See if the user can edit this channel
-		public static async Task<IGuildChannel> getChannelEditAbility(CommandContext context, String input)
-		{
-			IGuildChannel channel = await getChannel(context, input);
-			if (channel == null)
-			{
-				return null;
-			}
-			if (await getChannelEditAbility(channel, await context.Guild.GetUserAsync(context.User.Id)) == null)
-			{
-				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", channel.Name)));
-				return null;
-			}
-			return channel;
-		}
-
-		//Remove secondary messages
-		public static async Task makeAndDeleteSecondaryMessage(CommandContext context, String secondStr, Int32 time = Constants.WAIT_TIME)
-		{
-			IUserMessage secondMsg = await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
-			removeCommandMessages(context.Channel, new IUserMessage[] { secondMsg, context.Message }, time);
-		}
-
-		//Remove secondary messages without context
-		public static async Task makeAndDeleteSecondaryMessage(ITextChannel channel, IUserMessage message, String secondStr, Int32 time = Constants.WAIT_TIME)
-		{
-			IUserMessage secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
-			removeCommandMessages(channel, new IUserMessage[] { secondMsg, message }, time);
-		}
-
-		//Remove commands
-		public static void removeCommandMessages(IMessageChannel channel, IUserMessage[] messages, Int32 time)
-		{
-			Task t = Task.Run(async () =>
-			{
-				Thread.Sleep(time);
-				await channel.DeleteMessagesAsync(messages);
-			});
-		}
-
-		//Format the error message
-		public static String ERROR(String message)
-		{
-			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
-		}
-
-		//Send a message with a zero length char at the front
-		public static async Task<IMessage> sendChannelMessage(IMessageChannel channel, String message)
-		{
-			if (channel == null || !Variables.Guilds.Contains((channel as ITextChannel).Guild))
-				return null;
-
-			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
-		}
-
-		//Remove messages
-		public static async Task removeMessages(IMessageChannel channel, int requestCount)
-		{
-			//To remove the command itself
-			++requestCount;
-
-			while (requestCount > 0)
-			{
-				using (var enumerator = channel.GetMessagesAsync(requestCount).GetEnumerator())
-				{
-					while (await enumerator.MoveNext())
-					{
-						var messages = enumerator.Current;
-
-						//If no more messages, leave
-						if (messages.Count == 0)
-							return;
-
-						////Try due to 404 errors
-						try
-						{
-							await channel.DeleteMessagesAsync(messages);
-						}
-						catch
-						{
-						}
-
-						requestCount -= messages.Count;
-					}
-				}
-			}
-		}
-
-		//Remove messages given a user id
-		public static async Task removeMessages(ITextChannel channel, int requestCount, IUser user)
-		{
-			//Make sure there's a user id
-			if (user == null)
-			{
-				await removeMessages(channel, requestCount);
-				return;
-			}
-
-			Actions.writeLine(String.Format("Deleting {0} messages from {1} in channel {2} in guild {3}.", requestCount, user.Id, channel.Name, channel.GuildId));
-			List<IMessage> allMessages = new List<IMessage>();
-			using (var enumerator = channel.GetMessagesAsync(Constants.MESSAGES_TO_GATHER).GetEnumerator())
-			{
-				while (await enumerator.MoveNext())
-				{
-					var messages = enumerator.Current;
-					if (messages.Count == 0)
-						continue;
-					allMessages.AddRange(messages);
-				}
-			}
-
-			//Get valid amount of messages to delete
-			List<IMessage> userMessages = allMessages.Where(x => user == x.Author).ToList();
-			if (requestCount > userMessages.Count)
-			{
-				requestCount = userMessages.Count;
-			}
-			else if (requestCount < userMessages.Count)
-			{
-				userMessages.RemoveRange(requestCount, userMessages.Count - requestCount);
-			}
-			userMessages.Insert(0, allMessages[0]); //Remove the initial command message
-
-			Actions.writeLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, user.Username));
-			await channel.DeleteMessagesAsync(userMessages.ToArray());
-		}
-
-		//Get a channel ID
-		public static async Task<IMessageChannel> getChannelID(IGuild guild, String channelName)
-		{
-			IMessageChannel channel = null;
-			ulong channelID = 0;
-			if (UInt64.TryParse(channelName.Trim(new char[] { '<', '>', '#' }), out channelID))
-			{
-				channel = (IMessageChannel)await guild.GetChannelAsync(channelID);
-			}
-			return channel;
-		}
-
-		//Get a channel
-		public static async Task<IGuildChannel> getChannel(CommandContext context, String input)
-		{
-			if (input.Contains("<#"))
-			{
-				input = input.Substring(input.IndexOf("<#"));
-			}
-			if (input.Contains(' '))
-			{
-				input = input.Substring(0, input.IndexOf(' '));
-			}
-			String[] values = input.Split(new char[] { '/' }, 2);
-
-			//Get input channel type
-			String channelType = values.Length == 2 ? values[1].ToLower() : null;
-			if (channelType != null && !(channelType.Equals(Constants.TEXT_TYPE) || channelType.Equals(Constants.VOICE_TYPE)))
-			{
-				return null;
-			}
-
-			//If a channel mention
-			ulong channelID = 0;
-			if (UInt64.TryParse(values[0].Trim(new char[] { '<', '#', '>' }), out channelID))
-			{
-				return await context.Guild.GetChannelAsync(channelID);
-			}
-
-			//If a name and type
-			else if (channelType != null)
-			{
-				//Get the channels from the guild
-				var gottenChannels = await context.Guild.GetChannelsAsync();
-				//See which match the name and type given
-				var channels = gottenChannels.Where(x => x.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase) && x.GetType().Name.ToLower().Contains(channelType)).ToList();
-
-				if (channels.Count == 0)
-					await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` does not exist as a channel on this guild.", input)));
-				if (channels.Count == 1)
-					return channels[0];
-				if (channels.Count > 1)
-					await makeAndDeleteSecondaryMessage(context, ERROR("More than one channel exists with the same name."));
-			}
-
-			return null;
-		}
-
-		//Get the log channel
-		public static async Task<IGuildChannel> getLogChannel(IGuild guild)
-		{
-			//Get the channels from the guild
-			var gottenChannels = await guild.GetTextChannelsAsync();
-			//See which match the name and type given
-			return gottenChannels.FirstOrDefault(x => x.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase));
-		}
-
-		//Get integer
-		public static int getInteger(String inputString)
-		{
-			int number = 0;
-			if (Int32.TryParse(inputString, out number))
-			{
-				return number;
-			}
-			return -1;
-		}
-
-		//Get server commands
-		public static String[] getCommands(IGuild guild, int number)
-		{
-			List<PreferenceCategory> categories;
-			if (!Variables.CommandPreferences.TryGetValue(guild.Id, out categories))
-			{
-				return null;
-			}
-
-			List<string> commands = new List<string>();
-			foreach (PreferenceSetting command in categories[number].mSettings)
-			{
-				commands.Add(command.mName.ToString());
-			}
-			return commands.ToArray();
-		}
-
 		//Load preferences
 		public static void loadPreferences(IGuild guild)
 		{
@@ -655,7 +261,361 @@ namespace Advobot
 				}
 			}
 		}
+	}
 
+	public class Actions
+	{
+		#region Loads
+
+		#endregion
+
+		#region Gets
+		//Complex get a role on the server
+		public static async Task<IRole> getRole(CommandContext context, String roleName)
+		{
+			if (roleName.StartsWith("<@"))
+			{
+				roleName = roleName.Trim(new char[] { '<', '@', '&', '>' });
+				ulong roleID = 0;
+				if (UInt64.TryParse(roleName, out roleID))
+				{
+					return context.Guild.GetRole(roleID);
+				}
+			}
+			List<IRole> roles = context.Guild.Roles.ToList().Where(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase)).ToList();
+			if (roles.Count > 1)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(context,
+					ERROR("Multiple roles with the same name. Please specify by mentioning the role or changing their names."));
+				return null;
+			}
+			if (roles.Count == 1)
+			{
+				return roles.First();
+			}
+			return null;
+		}
+		
+		//Simple get a role on the server
+		public static IRole getRole(IGuild guild, String roleName)
+		{
+			return guild.Roles.ToList().FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+		}
+		
+		//Get top position of a user
+		public static int getPosition(IGuild guild, IGuildUser user)
+		{
+			int position = 0;
+			user.RoleIds.ToList().ForEach(x => position = Math.Max(position, guild.GetRole(x).Position));
+
+			if (user.Id == guild.OwnerId)
+				return Constants.OWNER_POSITION;
+
+			return position;
+		}
+		
+		//Get a user
+		public static async Task<IGuildUser> getUser(IGuild guild, String userName)
+		{
+			IGuildUser user = await guild.GetUserAsync(getUlong(userName.Trim(new char[] { '<', '>', '@', '!' })));
+			return user;
+		}
+		
+		//Get the input to a ulong
+		public static ulong getUlong(String inputString)
+		{
+			ulong number = 0;
+			if (UInt64.TryParse(inputString, out number))
+			{
+				return number;
+			}
+			return 0;
+		}
+		
+		//Get if the user/bot can edit the role
+		public static async Task<IRole> getRoleEditAbility(CommandContext context, String input = null, bool ignore_Errors = false, IRole role = null)
+		{
+			//Check if valid role
+			IRole inputRole = role == null ? await getRole(context, input) : role;
+			if (inputRole == null)
+			{
+				if (!ignore_Errors)
+				{
+					await makeAndDeleteSecondaryMessage(context, ERROR(Constants.ROLE_ERROR));
+				}
+				return null;
+			}
+
+			//Determine if the user can edit the role
+			if (inputRole.Position >= getPosition(context.Guild, context.User as IGuildUser))
+			{
+				if (!ignore_Errors)
+				{
+					await makeAndDeleteSecondaryMessage(context,
+						ERROR(String.Format("`{0}` has a higher position than you are allowed to edit or use.", inputRole.Name)));
+				}
+				return null;
+			}
+
+			//Determine if the bot can edit the role
+			if (inputRole.Position >= getPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID)))
+			{
+				if (!ignore_Errors)
+				{
+					await makeAndDeleteSecondaryMessage(context,
+						ERROR(String.Format("`{0}` has a higher position than the bot is allowed to edit or use.", inputRole.Name)));
+				}
+				return null;
+			}
+
+			return inputRole;
+		}
+		
+		//Get if the user can edit the channel
+		public static async Task<IGuildChannel> getChannelEditAbility(IGuildChannel channel, IGuildUser user)
+		{
+			if (Actions.getChannelType(channel) == Constants.TEXT_TYPE)
+			{
+				using (var channelUsers = channel.GetUsersAsync().GetEnumerator())
+				{
+					while (await channelUsers.MoveNext())
+					{
+						if (channelUsers.Current.Contains(user))
+						{
+							return channel;
+						}
+					}
+				}
+			}
+			else
+			{
+				if (user == null)
+				{
+					return null;
+				}
+				if (user.GetPermissions(channel).Connect)
+				{
+					return channel;
+				}
+			}
+			return null;
+		}
+		
+		//Get if the user can edit this channel
+		public static async Task<IGuildChannel> getChannelEditAbility(CommandContext context, String input)
+		{
+			IGuildChannel channel = await getChannel(context, input);
+			if (channel == null)
+			{
+				return null;
+			}
+			if (await getChannelEditAbility(channel, await context.Guild.GetUserAsync(context.User.Id)) == null)
+			{
+				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", channel.Name)));
+				return null;
+			}
+			return channel;
+		}
+		
+		//Get a channel ID
+		public static async Task<IMessageChannel> getChannelID(IGuild guild, String channelName)
+		{
+			IMessageChannel channel = null;
+			ulong channelID = 0;
+			if (UInt64.TryParse(channelName.Trim(new char[] { '<', '>', '#' }), out channelID))
+			{
+				channel = (IMessageChannel)await guild.GetChannelAsync(channelID);
+			}
+			return channel;
+		}
+		
+		//Get a channel
+		public static async Task<IGuildChannel> getChannel(CommandContext context, String input)
+		{
+			return await getChannel(context.Guild, context.Channel, context.Message, input);
+		}
+		
+		//Get a channel without context
+		public static async Task<IGuildChannel> getChannel(IGuild guild, IMessageChannel channel, IUserMessage message, String input)
+		{
+			if (input.Contains("<#"))
+			{
+				input = input.Substring(input.IndexOf("<#"));
+			}
+			if (input.Contains(' '))
+			{
+				input = input.Substring(0, input.IndexOf(' '));
+			}
+			String[] values = input.Split(new char[] { '/' }, 2);
+
+			//Get input channel type
+			String channelType = values.Length == 2 ? values[1].ToLower() : null;
+			if (channelType != null && !(channelType.Equals(Constants.TEXT_TYPE) || channelType.Equals(Constants.VOICE_TYPE)))
+			{
+				return null;
+			}
+
+			//If a channel mention
+			ulong channelID = 0;
+			if (UInt64.TryParse(values[0].Trim(new char[] { '<', '#', '>' }), out channelID))
+			{
+				return await guild.GetChannelAsync(channelID);
+			}
+
+			//If a name and type
+			else if (channelType != null)
+			{
+				//Get the channels from the guild
+				var gottenChannels = await guild.GetChannelsAsync();
+				//See which match the name and type given
+				var channels = gottenChannels.Where(x => x.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase) && x.GetType().Name.ToLower().Contains(channelType)).ToList();
+
+				if (channels.Count == 0)
+					await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, ERROR(String.Format("`{0}` does not exist as a channel on this guild.", input)));
+				if (channels.Count == 1)
+					return channels[0];
+				if (channels.Count > 1)
+					await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, ERROR("More than one channel exists with the same name."));
+			}
+
+			return null;
+		}
+		
+		//Get the log channel
+		public static async Task<IGuildChannel> getLogChannel(IGuild guild)
+		{
+			//Get the channels from the guild
+			var gottenChannels = await guild.GetTextChannelsAsync();
+			//See which match the name and type given
+			return gottenChannels.FirstOrDefault(x => x.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase));
+		}
+		
+		//Get integer
+		public static int getInteger(String inputString)
+		{
+			int number = 0;
+			if (Int32.TryParse(inputString, out number))
+			{
+				return number;
+			}
+			return -1;
+		}
+		
+		//Get bits
+		public static async Task<uint> getBit(CommandContext context, String permission, uint changeValue)
+		{
+			try
+			{
+				int bit = Variables.PermissionValues[permission];
+				changeValue |= (1U << bit);
+				return changeValue;
+			}
+			catch (Exception)
+			{
+				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("Couldn't parse permission '{0}'", permission)));
+				return 0;
+			}
+		}
+		
+		//Get the permissions something has on a channel
+		public static Dictionary<String, String> getChannelPermissions(Overwrite overwrite)
+		{
+			//Create a dictionary to hold the allow/deny/inherit values
+			Dictionary<String, String> channelPerms = new Dictionary<String, String>();
+
+			//Make a copy of the channel perm list to check off perms as they go by
+			List<String> genericChannelPerms = Variables.ChannelPermissionNames.Values.ToList();
+
+			//Add allow perms to the dictionary and remove them from the checklist
+			overwrite.Permissions.ToAllowList().ForEach(x =>
+			{
+				channelPerms.Add(x.ToString(), "Allow");
+				genericChannelPerms.Remove(x.ToString());
+			});
+
+			//Add deny perms to the dictionary and remove them from the checklist
+			overwrite.Permissions.ToDenyList().ForEach(x =>
+			{
+				channelPerms.Add(x.ToString(), "Deny");
+				genericChannelPerms.Remove(x.ToString());
+			});
+
+			//Add the remaining perms as inherit after removing all null values
+			genericChannelPerms.ForEach(x => channelPerms.Add(x, "Inherit"));
+
+			//Remove these random values that exist for some reason
+			channelPerms.Remove("1");
+			channelPerms.Remove("3");
+
+			return channelPerms;
+		}
+		
+		//Get text channel perms
+		public static Dictionary<String, String> getTextChannelPermissions(Dictionary<String, String> dictionary)
+		{
+			Variables.VoiceChannelPermissionValues.Keys.ToList().ForEach(x => dictionary.Remove(x));
+			return dictionary;
+		}
+		
+		//Get voice channel perms
+		public static Dictionary<String, String> getVoiceChannelPermissions(Dictionary<String, String> dictionary)
+		{
+			Variables.TextChannelPermissionValues.Keys.ToList().ForEach(x => dictionary.Remove(x));
+			return dictionary;
+		}
+		
+		//Get a dictionary with the correct perms
+		public static Dictionary<String, String> getPerms(Overwrite overwrite, IGuildChannel channel)
+		{
+			//Get the general perms from the overwrite given
+			Dictionary<String, String> dictionary = Actions.getChannelPermissions(overwrite);
+
+			//See if the channel is a text channel and remove voice channel perms
+			if (Actions.getChannelType(channel) == Constants.TEXT_TYPE)
+			{
+				getTextChannelPermissions(dictionary);
+			}
+			//See if the channel is a voice channel and remove text channel perms
+			else if (Actions.getChannelType(channel) == Constants.VOICE_TYPE)
+			{
+				getVoiceChannelPermissions(dictionary);
+			}
+
+			return dictionary;
+		}
+		
+		//Get the input string and permissions
+		public static bool getStringAndPermissions(String input, out String output, out List<String> permissions)
+		{
+			output = null;
+			permissions = null;
+			String[] values = input.Split(new char[] { ' ' });
+			if (values.Length == 1)
+				return false;
+
+			permissions = values.Last().Split('/').ToList();
+			output = String.Join(" ", values.Take(values.Length - 1));
+
+			return output != null && permissions != null;
+		}
+		
+		//Get server commands
+		public static String[] getCommands(IGuild guild, int number)
+		{
+			List<PreferenceCategory> categories;
+			if (!Variables.CommandPreferences.TryGetValue(guild.Id, out categories))
+			{
+				return null;
+			}
+
+			List<string> commands = new List<string>();
+			foreach (PreferenceSetting command in categories[number].mSettings)
+			{
+				commands.Add(command.mName.ToString());
+			}
+			return commands.ToArray();
+		}
+		
 		//Get file paths
 		public static String getServerFilePath(ulong serverId, String fileName)
 		{
@@ -667,8 +627,23 @@ namespace Advobot
 			String path = Path.Combine(directory, fileName);
 			return path;
 		}
-
-		//Checks what the serverlog is
+		
+		//Get if a channel is a text or voice channel
+		public static String getChannelType(IGuildChannel channel)
+		{
+			return channel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE) ? Constants.TEXT_TYPE : Constants.VOICE_TYPE;
+		}
+		
+		//Get if a bot channel already exists
+		public static async Task<bool> getDuplicateBotChan(IGuild guild)
+		{
+			//Get a list of text channels
+			var tChans = await guild.GetTextChannelsAsync();
+			//Return a bool stating if there's more than one or not
+			return tChans.Where(x => x.Name == Variables.Bot_Channel).Count() > 1;
+		}
+		
+		//Get what the serverlog is
 		public static async Task<ITextChannel> logChannelCheck(IGuild guild, String serverOrMod)
 		{
 			String path = getServerFilePath(guild.Id, Constants.SERVERLOG_AND_MODLOG);
@@ -712,15 +687,8 @@ namespace Advobot
 			}
 			return null;
 		}
-
-		//Edit message log message
-		public static async Task editMessage(ITextChannel logChannel, String time, IGuildUser user, IMessageChannel channel, String before, String after)
-		{
-			await sendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}#{2}` **IN** `#{3}`\n**FROM:** ```\n{4}```\n**TO:** ```\n{5}```",
-				time, user.Username, user.Discriminator, channel.Name, before, after));
-		}
-
-		//Check if the user is the owner of the server
+		
+		//Get if the user is the owner of the server
 		public static bool userHasOwner(IGuild guild, IUser user)
 		{
 			if (guild == null)
@@ -728,8 +696,8 @@ namespace Advobot
 
 			return guild.GetOwnerAsync().Result.Id == user.Id;
 		}
-
-		//Bheck if the user if the bot owner
+		
+		//Get if the user if the bot owner
 		public static bool userHasBotOwner(IGuild guild, IUser user)
 		{
 			if (guild == null)
@@ -737,13 +705,193 @@ namespace Advobot
 
 			return user.Id == Constants.OWNER_ID;
 		}
+		#endregion
 
-		//Send an exception message to the console
-		public static void exceptionToConsole(String method, Exception e)
+		#region Roles
+		//Create a role on the server if it's not found
+		public static async Task<IRole> createRoleIfNotFound(IGuild guild, String roleName)
 		{
-			Actions.writeLine(method + " EXCEPTION: " + e.ToString());
+			IRole role = getRole(guild, roleName);
+			if (role == null)
+			{
+				role = await guild.CreateRoleAsync(roleName);
+			}
+			return role;
+		} 
+		
+		//Give the user the role
+		public static async Task giveRole(IGuildUser user, IRole role)
+		{
+			if (role == null)
+				return;
+			if (user.RoleIds.Contains(role.Id))
+				return;
+			await user.AddRolesAsync(role);
 		}
+		
+		//Give the user multiple roles
+		public static async Task giveRole(IGuildUser user, IRole[] roles)
+		{
+			await user.AddRolesAsync(roles);
+		}
+		
+		//Take multiple roles from a user
+		public static async Task takeRole(IGuildUser user, IRole[] roles)
+		{
+			if (roles.Count() == 0)
+				return;
+			await user.RemoveRolesAsync(roles);
+		}
+		
+		//Take a single role from a user
+		public static async Task takeRole(IGuildUser user, IRole role)
+		{
+			if (role == null)
+				return;
+			await user.RemoveRolesAsync(role);
+		}
+		#endregion
 
+		#region Message Removal
+		//Remove secondary messages
+		public static async Task makeAndDeleteSecondaryMessage(CommandContext context, String secondStr, Int32 time = Constants.WAIT_TIME)
+		{
+			IUserMessage secondMsg = await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
+			removeCommandMessages(context.Channel, new IUserMessage[] { secondMsg, context.Message }, time);
+		}
+		
+		//Remove secondary messages without context
+		public static async Task makeAndDeleteSecondaryMessage(ITextChannel channel, IUserMessage message, String secondStr, Int32 time = Constants.WAIT_TIME)
+		{
+			IUserMessage secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
+			removeCommandMessages(channel, new IUserMessage[] { secondMsg, message }, time);
+		}
+		
+		//Remove commands
+		public static void removeCommandMessages(IMessageChannel channel, IUserMessage[] messages, Int32 time)
+		{
+			Task t = Task.Run(async () =>
+			{
+				Thread.Sleep(time);
+				await channel.DeleteMessagesAsync(messages);
+			});
+		}
+		
+		//Remove messages
+		public static async Task removeMessages(IMessageChannel channel, int requestCount)
+		{
+			//To remove the command itself
+			++requestCount;
+
+			while (requestCount > 0)
+			{
+				using (var enumerator = channel.GetMessagesAsync(requestCount).GetEnumerator())
+				{
+					while (await enumerator.MoveNext())
+					{
+						var messages = enumerator.Current;
+
+						//If no more messages, leave
+						if (messages.Count == 0)
+							return;
+
+						////Try due to 404 errors
+						try
+						{
+							await channel.DeleteMessagesAsync(messages);
+						}
+						catch
+						{
+						}
+
+						requestCount -= messages.Count;
+					}
+				}
+			}
+		}
+		
+		//Remove messages given a user id
+		public static async Task removeMessages(ITextChannel channel, int requestCount, IUser user)
+		{
+			//Make sure there's a user id
+			if (user == null)
+			{
+				await removeMessages(channel, requestCount);
+				return;
+			}
+
+			Actions.writeLine(String.Format("Deleting {0} messages from {1} in channel {2} in guild {3}.", requestCount, user.Id, channel.Name, channel.GuildId));
+			List<IMessage> allMessages = new List<IMessage>();
+			using (var enumerator = channel.GetMessagesAsync(Constants.MESSAGES_TO_GATHER).GetEnumerator())
+			{
+				while (await enumerator.MoveNext())
+				{
+					var messages = enumerator.Current;
+					if (messages.Count == 0)
+						continue;
+					allMessages.AddRange(messages);
+				}
+			}
+
+			//Get valid amount of messages to delete
+			List<IMessage> userMessages = allMessages.Where(x => user == x.Author).ToList();
+			if (requestCount > userMessages.Count)
+			{
+				requestCount = userMessages.Count;
+			}
+			else if (requestCount < userMessages.Count)
+			{
+				userMessages.RemoveRange(requestCount, userMessages.Count - requestCount);
+			}
+			userMessages.Insert(0, allMessages[0]); //Remove the initial command message
+
+			Actions.writeLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, user.Username));
+			await channel.DeleteMessagesAsync(userMessages.ToArray());
+		}
+		#endregion
+
+		#region Message Formatting
+		//Format the error message
+		public static String ERROR(String message)
+		{
+			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
+		}
+		
+		//Send a message with a zero length char at the front
+		public static async Task<IMessage> sendChannelMessage(IMessageChannel channel, String message)
+		{
+			if (channel == null || !Variables.Guilds.Contains((channel as ITextChannel).Guild))
+				return null;
+
+			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
+		}
+		
+		//Edit message log message
+		public static async Task editMessage(ITextChannel logChannel, String time, IGuildUser user, IMessageChannel channel, String before, String after)
+		{
+			await sendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}#{2}` **IN** `#{3}`\n**FROM:** ```\n{4}```\n**TO:** ```\n{5}```",
+				time, user.Username, user.Discriminator, channel.Name, before, after));
+		}
+		
+		//Get rid of certain elements to make messages look neater
+		public static String replaceMessageCharacters(String input)
+		{
+			//Matching
+			Regex empty = new Regex("[*`]");
+			Regex newLines = new Regex("[\n]{2}");
+
+			//Actually removing
+			input = empty.Replace(input, "");
+			while (input.Contains("\n\n"))
+			{
+				input = newLines.Replace(input, "\n");
+			}
+
+			return input;
+		}
+		#endregion
+
+		#region Uploads
 		//Upload various text to a text uploader with a list of messages
 		public static String uploadToHastebin(List<String> textList)
 		{
@@ -751,7 +899,7 @@ namespace Advobot
 			string text = replaceMessageCharacters(String.Join("\n-----\n", textList));
 			return uploadToHastebin(text);
 		}
-
+		
 		//Upload various text to a text uploader with a string
 		public static String uploadToHastebin(String text)
 		{
@@ -768,7 +916,7 @@ namespace Advobot
 				return String.Concat("https://hastebin.com/raw/", match.Groups["key"]);
 			}
 		}
-
+		
 		//Upload a text file with a list of messages
 		public static async Task uploadTextFile(IGuild guild, IMessageChannel channel, List<String> textList, String fileName, String messageHeader)
 		{
@@ -802,122 +950,9 @@ namespace Advobot
 			//Delete the file
 			File.Delete(path);
 		}
+		#endregion
 
-		//Get rid of certain elements to make messages look neater
-		public static String replaceMessageCharacters(String input)
-		{
-			//Matching
-			Regex empty = new Regex("[*`]");
-			Regex newLines = new Regex("[\n]{2}");
-
-			//Actually removing
-			input = empty.Replace(input, "");
-			while (input.Contains("\n\n"))
-			{
-				input = newLines.Replace(input, "\n");
-			}
-
-			return input;
-		}
-
-		//Get bits
-		public static async Task<uint> getBit(CommandContext context, String permission, uint changeValue)
-		{
-			try
-			{
-				int bit = Variables.PermissionValues[permission];
-				changeValue |= (1U << bit);
-				return changeValue;
-			}
-			catch (Exception)
-			{
-				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("Couldn't parse permission '{0}'", permission)));
-				return 0;
-			}
-		}
-
-		//Get the permissions something has on a channel
-		public static Dictionary<String, String> getChannelPermissions(Overwrite overwrite)
-		{
-			//Create a dictionary to hold the allow/deny/inherit values
-			Dictionary<String, String> channelPerms = new Dictionary<String, String>();
-
-			//Make a copy of the channel perm list to check off perms as they go by
-			List<String> genericChannelPerms = Variables.ChannelPermissionNames.Values.ToList();
-
-			//Add allow perms to the dictionary and remove them from the checklist
-			overwrite.Permissions.ToAllowList().ForEach(x =>
-			{
-				channelPerms.Add(x.ToString(), "Allow");
-				genericChannelPerms.Remove(x.ToString());
-			});
-
-			//Add deny perms to the dictionary and remove them from the checklist
-			overwrite.Permissions.ToDenyList().ForEach(x =>
-			{
-				channelPerms.Add(x.ToString(), "Deny");
-				genericChannelPerms.Remove(x.ToString());
-			});
-
-			//Add the remaining perms as inherit after removing all null values
-			genericChannelPerms.ForEach(x => channelPerms.Add(x, "Inherit"));
-
-			//Remove these random values that exist for some reason
-			channelPerms.Remove("1");
-			channelPerms.Remove("3");
-
-			return channelPerms;
-		}
-
-		//Remove voice channel perms
-		public static Dictionary<String, String> getTextChannelPermissions(Dictionary<String, String> dictionary)
-		{
-			Variables.VoiceChannelPermissionValues.Keys.ToList().ForEach(x => dictionary.Remove(x));
-			return dictionary;
-		}
-
-		//Remove text channel perms 
-		public static Dictionary<String, String> getVoiceChannelPermissions(Dictionary<String, String> dictionary)
-		{
-			Variables.TextChannelPermissionValues.Keys.ToList().ForEach(x => dictionary.Remove(x));
-			return dictionary;
-		}
-
-		//Return a dictionary with the correct perms
-		public static Dictionary<String, String> getPerms(Overwrite overwrite, IGuildChannel channel)
-		{
-			//Get the general perms from the overwrite given
-			Dictionary<String, String> dictionary = Actions.getChannelPermissions(overwrite);
-
-			//See if the channel is a text channel and remove voice channel perms
-			if (Actions.getChannelType(channel) == Constants.TEXT_TYPE)
-			{
-				getTextChannelPermissions(dictionary);
-			}
-			//See if the channel is a voice channel and remove text channel perms
-			else if (Actions.getChannelType(channel) == Constants.VOICE_TYPE)
-			{
-				getVoiceChannelPermissions(dictionary);
-			}
-
-			return dictionary;
-		}
-
-		//Get the input string and permissions
-		public static bool getStringAndPermissions(String input, out String output, out List<String> permissions)
-		{
-			output = null;
-			permissions = null;
-			String[] values = input.Split(new char[] { ' ' });
-			if (values.Length == 1)
-				return false;
-
-			permissions = values.Last().Split('/').ToList();
-			output = String.Join(" ", values.Take(values.Length - 1));
-
-			return output != null && permissions != null;
-		}
-
+		#region Embeds
 		//Send a message with an embedded object
 		public static async Task<IMessage> sendEmbedMessage(IMessageChannel channel, String message, EmbedBuilder embed)
 		{
@@ -926,7 +961,7 @@ namespace Advobot
 
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message, embed: embed);
 		}
-
+		
 		//Send an embedded object
 		public static async Task<IMessage> sendEmbedMessage(IMessageChannel channel, EmbedBuilder embed)
 		{
@@ -935,7 +970,7 @@ namespace Advobot
 
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR, embed: embed);
 		}
-
+		
 		//Make a new embed builder
 		public static EmbedBuilder makeNewEmbed(Color? color = null, String title = null, String description = null, String imageURL = null)
 		{
@@ -961,7 +996,7 @@ namespace Advobot
 
 			return embed;
 		}
-
+		
 		//Make a new author for an embed
 		public static EmbedBuilder addAuthor(EmbedBuilder embed, String name = null, String iconURL = null, String URL = null)
 		{
@@ -982,7 +1017,7 @@ namespace Advobot
 
 			return embed.WithAuthor(author);
 		}
-
+		
 		//Make a new footer for an embed
 		public static EmbedBuilder addFooter(EmbedBuilder embed, String text = null, String iconURL = null)
 		{
@@ -999,7 +1034,7 @@ namespace Advobot
 
 			return embed.WithFooter(footer);
 		}
-
+		
 		//Add a field to an embed
 		public static EmbedBuilder addField(EmbedBuilder embed, String name, String value, bool isInline = true)
 		{
@@ -1015,41 +1050,63 @@ namespace Advobot
 
 			return embed;
 		}
+		#endregion
 
+		#region Console
 		//Write to the console with a timestamp
 		public static void writeLine(String text)
 		{
 			if (text != null)
 			{
-				Console.WriteLine(DateTime.UtcNow.ToString("HH:mm:ss") + " " + text);
+				Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + text);
 			}
 		}
+		
+		//Send an exception message to the console
+		public static void exceptionToConsole(String method, Exception e)
+		{
+			Actions.writeLine(method + " EXCEPTION: " + e.ToString());
+		}
+		#endregion
 
+		#region Server/Mod Log
 		//Set the server or mod log
 		public static async Task<ITextChannel> setServerOrModLog(CommandContext context, String input, String serverOrMod)
+		{
+			return await setServerOrModLog(context.Guild, context.Channel, context.Message, input, serverOrMod);
+		}
+		
+		//Set the server or mod log without context
+		public static async Task<ITextChannel> setServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, String input, String serverOrMod)
 		{
 			ITextChannel logChannel = null;
 			//See if not null
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR("No channel specified."));
+				await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, ERROR("No channel specified."));
 				return null;
 			}
 			else if (input.ToLower().Equals("off"))
 			{
-				logChannel = null;
+				return await setServerOrModLog(guild, channel, message, null as ITextChannel, serverOrMod);
 			}
 
 			//Get the channel with its ID
-			var textChannels = context.Guild.GetTextChannelsAsync().Result.ToList().Where(x => input.Contains(x.Id.ToString())).ToList();
-			if (textChannels.Count == 1)
+			logChannel = await getChannel(guild, channel, message, input) as ITextChannel;
+			if (logChannel == null)
 			{
-				logChannel = textChannels[0];
+				await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, ERROR(String.Format("Unable to set the logchannel on `{0}`.", input)));
+				return null;
 			}
 
-
+			return await setServerOrModLog(guild, channel, message, logChannel, serverOrMod);
+		}
+		
+		//Set the server and mod log with an already gotten channel
+		public static async Task<ITextChannel> setServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, ITextChannel inputChannel, String serverOrMod)
+		{
 			//Create the file if it doesn't exist
-			String path = getServerFilePath(context.Guild.Id, Constants.SERVERLOG_AND_MODLOG);
+			String path = getServerFilePath(guild.Id, Constants.SERVERLOG_AND_MODLOG);
 			if (!File.Exists(path))
 			{
 				Directory.CreateDirectory(Path.GetDirectoryName(path));
@@ -1066,9 +1123,9 @@ namespace Advobot
 				{
 					if (line.Contains(serverOrMod))
 					{
-						if ((logChannel != null) && (line.Contains(logChannel.Id.ToString())))
+						if ((inputChannel != null) && (line.Contains(inputChannel.Id.ToString())))
 						{
-							await makeAndDeleteSecondaryMessage(context, "Channel is already the current " + serverOrMod + ".");
+							await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, "Channel is already the current " + serverOrMod + ".");
 							return null;
 						}
 					}
@@ -1082,27 +1139,23 @@ namespace Advobot
 			//Add the lines that do not include serverlog and  the new serverlog line
 			using (StreamWriter writer = new StreamWriter(path))
 			{
-				if (logChannel == null)
+				if (inputChannel == null)
 				{
 					writer.WriteLine(serverOrMod + ":" + null + "\n" + String.Join("\n", validLines));
-					await makeAndDeleteSecondaryMessage(context, "Disabled the " + serverOrMod + ".");
+					await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, "Disabled the " + serverOrMod + ".");
 					return null;
 				}
 				else
 				{
-					writer.WriteLine(serverOrMod + ":" + logChannel.Id + "\n" + String.Join("\n", validLines));
+					writer.WriteLine(serverOrMod + ":" + inputChannel.Id + "\n" + String.Join("\n", validLines));
 				}
 			}
 
-			return logChannel;
+			return inputChannel;
 		}
+		#endregion
 
-		//Get if a channel is a text or voice channel
-		public static String getChannelType(IGuildChannel channel)
-		{
-			return channel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE) ? Constants.TEXT_TYPE : Constants.VOICE_TYPE;
-		}
-
+		#region Preferences
 		//Save preferences
 		public static void savePreferences(TextWriter writer, ulong serverID)
 		{
@@ -1135,17 +1188,27 @@ namespace Advobot
 				savePreferences(writer, serverID);
 			}
 		}
-
-		//Remove the option to say yes for preferences after five seconds
-		public static void turnOffYes(IGuild guild)
+		
+		//Remove the option to say yes for preferences after ten seconds
+		public static void turnOffEnableYes(IGuild guild)
 		{
 			Task t = Task.Run(() =>
 			{
-				Thread.Sleep(5000);
+				Thread.Sleep(10000);
 				Variables.GuildsEnablingPreferences.Remove(guild);
 			});
 		}
-
+		
+		//Remove the option to say yes for preferences after ten seconds
+		public static void turnOffDeleteYes(IGuild guild)
+		{
+			Task t = Task.Run(() =>
+			{
+				Thread.Sleep(10000);
+				Variables.GuildsDeletingPreferences.Remove(guild);
+			});
+		}
+		
 		//Enable preferences
 		public static async Task enablePreferences(IGuild guild, IUserMessage message)
 		{
@@ -1161,19 +1224,65 @@ namespace Advobot
 				return;
 			}
 			//Create bot channel if not on the server
-			ITextChannel channel = null;
-			if (!guild.GetTextChannelsAsync().Result.ToList().Any(x => x.Name == Variables.Bot_Channel))
+			ITextChannel channel = await logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			if (channel == null)
 			{
 				channel = await guild.CreateTextChannelAsync(Variables.Bot_Channel);
 				await channel.AddPermissionOverwriteAsync(guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny));
+				await Actions.setServerOrModLog(guild, message.Channel, message, channel, Constants.SERVER_LOG_CHECK_STRING);
+				await Actions.setServerOrModLog(guild, message.Channel, message, channel, Constants.MOD_LOG_CHECK_STRING);
 			}
 			else
 			{
 				channel = guild.GetTextChannelsAsync().Result.FirstOrDefault(x => x.Name == Variables.Bot_Channel);
 			}
 
-			//Send the preferences message
-			await Actions.sendChannelMessage(channel, File.ReadAllText(Actions.getServerFilePath(guild.Id, Constants.PREFERENCES_FILE)).Replace("@", ""));
+			//Remove them from the emable list
+			Variables.GuildsEnablingPreferences.Remove(guild);
+
+			//Send a success message
+			await Actions.sendChannelMessage(message.Channel, "Successfully created the preferences for this guild.");
 		}
+		
+		//Read out the preferences
+		public static async Task readPreferences(IMessageChannel channel, String serverpath)
+		{
+			//Make the embed
+			EmbedBuilder embed = Actions.makeNewEmbed(null, "Preferences");
+
+			//Make the information into separate fields
+			String[] text = File.ReadAllText(serverpath).Replace("@", "").Split(new String[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+			//Get the category name and the commands in it
+			foreach (String category in text)
+			{
+				String[] titleAndCommands = category.Split(new char[] { '\r' }, 2);
+				String title = titleAndCommands[0];
+				String commands = titleAndCommands[1].TrimStart('\n');
+
+				//Add the field
+				if (!String.IsNullOrEmpty(title) && !String.IsNullOrEmpty(commands))
+				{
+					Actions.addField(embed, title, commands, false);
+				}
+			}
+
+			//Send the preferences message
+			await Actions.sendEmbedMessage(channel, embed);
+		}
+		
+		//Delete preferences
+		public static async Task deletePreferences(IGuild guild, IUserMessage message)
+		{
+			//Delete the preferences file
+			File.Delete(Actions.getServerFilePath(guild.Id, Constants.PREFERENCES_FILE));
+
+			//Remove them from the emable list
+			Variables.GuildsDeletingPreferences.Remove(guild);
+
+			//Send a success message
+			await Actions.sendChannelMessage(message.Channel, "Successfully deleted the stored preferences for this guild.");
+		}
+		#endregion
 	}
 }

@@ -23,7 +23,7 @@ namespace Advobot
 			Actions.loadInformation();
 
 			//Set the game to the base game
-			await client.SetGame(Constants.STARTUP_GAME);
+			await client.SetGameAsync(Constants.STARTUP_GAME);
 
 			await commands.AddModulesAsync(Assembly.GetEntryAssembly());
 

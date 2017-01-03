@@ -34,7 +34,7 @@ namespace Advobot
 				return;
 			}
 
-			await CommandHandler.client.SetGame(input);
+			await CommandHandler.client.SetGameAsync(input);
 			await Actions.sendChannelMessage(Context.Channel, String.Format("Game set to `{0}`.", input));
 		}
 
@@ -63,7 +63,7 @@ namespace Advobot
 				{
 					Thread.Sleep(100);
 				}
-				await CommandHandler.client.SetStatus(UserStatus.Invisible);
+				await CommandHandler.client.SetStatusAsync(UserStatus.Invisible);
 				Environment.Exit(1);
 			}
 			else
@@ -222,12 +222,32 @@ namespace Advobot
 			//Confirmation of agreement
 			await Actions.sendChannelMessage(Context.Channel, "By turning preferences on you will be enabling the ability to toggle commands, change who can use commands, " +
 				"and many more features. This data will be stored in a text file off of the server, and whoever is hosting the bot will most likely have " +
-				"access to it. A new text channel will be automatically created to display preferences and the server/mod log. If you agree to this, say `Yes`");
+				"access to it. A new text channel will be automatically created to display preferences and the server/mod log. If you agree to this, say `Yes`.");
 
 			//Add them to the list for a few seconds
 			Variables.GuildsEnablingPreferences.Add(Context.Guild);
 			//Remove them
-			Actions.turnOffYes(Context.Guild);
+			Actions.turnOffEnableYes(Context.Guild);
+
+			//The actual enabling happens in OnMessageReceived in Serverlogs
+		}
+
+		[Command("deletepreferences")]
+		[Alias("dprefs")]
+		[Usage(Constants.BOT_PREFIX + "deletepreferences")]
+		[Summary("Deletes the preferences file.")]
+		[GuildOwnerRequirement]
+		public async Task DeletePreferences()
+		{
+			//Confirmation of agreement
+			await Actions.sendChannelMessage(Context.Channel, "If you are sure you want to delete your preferences, say `Yes`.");
+
+			//Add them to the list for a few seconds
+			Variables.GuildsDeletingPreferences.Add(Context.Guild);
+			//Remove them
+			Actions.turnOffDeleteYes(Context.Guild);
+
+			//The actual deleting happens in OnMessageReceived in Serverlogs
 		}
 
 		[Command("currentpreferences")]
@@ -237,7 +257,7 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task CurrentPreferences()
 		{
-
+			await Actions.readPreferences(Context.Channel, Actions.getServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE));
 		}
 	}
 }

@@ -545,10 +545,27 @@ namespace Advobot
 		}
 
 		[Command("test")]
-		[BotOwnerRequirement]
 		public async Task Test([Optional, Remainder] String input)
 		{
-			await Actions.sendChannelMessage(Context.Channel, "Sample Text");
+			String[] inputArray = input.Split(new char[] { ' ' }, 2);
+
+			IGuildChannel channel = await Actions.getChannel(Context, inputArray[0]);
+			if (channel == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, "error 2");
+				return;
+			}
+
+			int position = 0;
+			if (!int.TryParse(inputArray[1], out position))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, "error 1");
+				return;
+			}
+
+			var test = new[] { new BulkGuildChannelProperties(channel.Id, position) };
+
+			await Context.Guild.ModifyChannelsAsync(test);
 		}
 	}
 }

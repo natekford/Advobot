@@ -221,7 +221,7 @@ namespace Advobot
 			++Variables.LoggedUserChanges;
 
 			//Name change
-			//TODO: Make this work
+			//TODO: Make this work somehow
 			if (!beforeUser.Username.Equals(afterUser.Username))
 			{
 				foreach (var guild in CommandHandler.client.Guilds.ToList().Where(x => x.Users.Contains(afterUser)).ToList())
@@ -280,8 +280,8 @@ namespace Advobot
 				//Check lengths
 				if (!(beforeMsg.Length + afterMsg.Length < 1800))
 				{
-					beforeMsg = beforeMsg.Length > 900 ? "SPAM" : beforeMsg;
-					afterMsg = afterMsg.Length > 900 ? "SPAM" : afterMsg;
+					beforeMsg = beforeMsg.Length > 667 ? "SPAM" : beforeMsg;
+					afterMsg = afterMsg.Length > 667 ? "SPAM" : afterMsg;
 				}
 
 				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.MEDIT), "Edit");
@@ -417,7 +417,7 @@ namespace Advobot
 
 					if (deletedMessages.Count == 0)
 						return;
-					else if ((deletedMessages.Count <= 5) && (characterCount < 2000))
+					else if ((deletedMessages.Count <= 5) && (characterCount < Constants.LENGTH_CHECK))
 					{
 						//If there aren't many messages send the small amount in a message instead of a file or link
 						EmbedBuilder embed = Actions.makeNewEmbed(Constants.MDEL, "Deleted Messages", String.Join("\n", deletedMessagesContent));
@@ -451,12 +451,17 @@ namespace Advobot
 			IGuild guild = (message.Channel as IGuildChannel).Guild;
 			if (guild != null)
 			{
-				//For enable preferences
-				if (message.Author.Id == guild.OwnerId && Variables.GuildsEnablingPreferences.Contains(guild))
+				if (message.Author.Id == guild.OwnerId)
 				{
-					if (message.Content.ToLower().Equals("yes"))
+					if (message.Content.ToLower().Equals("yes") && Variables.GuildsEnablingPreferences.Contains(guild))
 					{
+						//Enable preferences
 						await Actions.enablePreferences(guild, message as IUserMessage);
+					}
+					else if (message.Content.ToLower().Equals("yes") && Variables.GuildsDeletingPreferences.Contains(guild))
+					{
+						//Delete preferences
+						await Actions.deletePreferences(guild, message as IUserMessage);
 					}
 				}
 
@@ -570,9 +575,26 @@ namespace Advobot
 		public static async Task OnChannelCreated(SocketChannel channel)
 		{
 			ITextChannel tChan = channel as ITextChannel;
-			if (tChan != null && tChan.Name == Variables.Bot_Channel && tChan.Guild.GetTextChannelsAsync().Result.Where(x => x.Name == Variables.Bot_Channel).Count() > 1)
+			if (tChan != null && tChan.Name == Variables.Bot_Channel && await Actions.getDuplicateBotChan(tChan.Guild))
 			{
 				await tChan.DeleteAsync();
+			}
+		}
+
+		//See if the channel had its name changed to the bot channel name
+		public static async Task OnChannelUpdated(SocketChannel beforeChannel, SocketChannel afterChannel)
+		{
+			//Check if the name is the bot channel name
+			if ((afterChannel as IGuildChannel).Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase))
+			{
+				//Create a variable of beforechannel as an IGuildChannel for later use
+				var bChan = beforeChannel as IGuildChannel;
+
+				//If the name wasn't the bot channel name to start with then set it back to its start name
+				if (!bChan.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase) && await Actions.getDuplicateBotChan(bChan.Guild))
+				{
+					await bChan.Guild.GetChannelAsync(bChan.Id).Result.ModifyAsync(x => x.Name = bChan.Name);
+				}
 			}
 		}
 	}

@@ -6,7 +6,7 @@ namespace Advobot
 	public static class Constants
 	{
 		public const String BOT_VERSION = "0.8.0";
-		public const String API_VERSION = "Discord.Net by RogueException v1.0.0-beta2-00537";
+		public const String API_VERSION = "Discord.Net by RogueException v1.0.0-rc-00544";
 
 		public const String BOT_PREFIX = "++";
 		public const String IGNORE_ERROR = "Cx";
@@ -34,6 +34,8 @@ namespace Advobot
 		public const double PERCENT_AVERAGE = .75;
 		public const int WAIT_TIME = 3000;
 		public const int MEMBER_LIMIT = 0;
+		public const int LENGTH_CHECK = 1900;
+		public const int SHORT_LENGTH_CHECK = 750;
 		public const int OWNER_POSITION = 9001;
 		public const int MESSAGES_TO_GATHER = 100;
 		public const int TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG = 3;
@@ -101,6 +103,7 @@ namespace Advobot
 
 		public static List<Discord.IGuild> Guilds = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();
+		public static List<Discord.IGuild> GuildsDeletingPreferences = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator = new List<Discord.IGuild>();
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
 		public static List<String> CommandNames = new List<String>();
