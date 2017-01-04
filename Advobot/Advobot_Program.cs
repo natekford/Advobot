@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -24,7 +24,7 @@ namespace Advobot
 				AudioMode = Discord.Audio.AudioMode.Disabled,
 			});
 
-			//Actions
+			//Logging
 			client.Log += BotLogs.Log;
 			client.GuildAvailable += BotLogs.OnGuildAvailable;
 			client.JoinedGuild += BotLogs.OnJoinedGuild;
@@ -39,6 +39,8 @@ namespace Advobot
 			client.MessageUpdated += ServerLogs.OnMessageUpdated;
 			client.MessageDeleted += ServerLogs.OnMessageDeleted;
 			client.MessageReceived += ServerLogs.OnMessageReceived;
+			client.ChannelCreated += ServerLogs.OnChannelCreated;
+			client.ChannelUpdated += ServerLogs.OnChannelUpdated;
 
 			//Login and connect to Discord.
 			await client.LoginAsync(TokenType.Bot, "Bot Key");
