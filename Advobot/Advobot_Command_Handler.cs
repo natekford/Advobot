@@ -7,27 +7,27 @@ namespace Advobot
 {
 	public class CommandHandler
 	{
-		public static CommandService commands;
-		public static DiscordSocketClient client;
-		public static IDependencyMap map;
+		public static CommandService Commands;
+		public static DiscordSocketClient Client;
+		public static IDependencyMap Map;
 
-		public async Task Install(IDependencyMap _map)
+		public async Task Install(IDependencyMap mMap)
 		{
 			//Create Command Service, inject it into Dependency Map
-			client = _map.Get<DiscordSocketClient>();
-			commands = new CommandService();
-			_map.Add(commands);
-			map = _map;
+			Client = mMap.Get<DiscordSocketClient>();
+			Commands = new CommandService();
+			mMap.Add(Commands);
+			Map = mMap;
 
-			//!!!Necessary for the commands and help command!!!
+			//Necessary for the 'commands' and 'help' commands
 			Actions.loadInformation();
 
 			//Set the game to the base game
-			await client.SetGameAsync(Constants.STARTUP_GAME);
+			await Client.SetGameAsync(Constants.STARTUP_GAME);
 
-			await commands.AddModulesAsync(Assembly.GetEntryAssembly());
+			await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
 
-			client.MessageReceived += HandleCommand;
+			Client.MessageReceived += HandleCommand;
 		}
 
 		public async Task HandleCommand(SocketMessage parameterMessage)
@@ -46,10 +46,10 @@ namespace Advobot
 			++Variables.AttemptedCommands;
 
 			//Create a Command Context
-			var context = new CommandContext(client, message);
+			var context = new CommandContext(Client, message);
 
 			//Check if the bot still has admin
-			if (!context.Guild.GetCurrentUserAsync().Result.GuildPermissions.Administrator)
+			if (!(await context.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
 			{
 				//If the server has been told already, ignore future commands fully
 				if (Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator.Contains(context.Guild))
@@ -64,7 +64,7 @@ namespace Advobot
 			}
 
 			//Execute the Command, store the result
-			var result = await commands.ExecuteAsync(context, argPos, map);
+			var result = await Commands.ExecuteAsync(context, argPos, Map);
 
 			//If the command failed, notify the user
 			if (!result.IsSuccess)

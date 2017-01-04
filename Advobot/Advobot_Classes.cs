@@ -59,13 +59,10 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class BotOwnerOrGuildOwnerRequirementAttribute : PreconditionAttribute
 	{
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
 		{
-			return Task.Run(() =>
-			{
-				return Actions.userHasOwner(context.Guild, context.User) || Actions.userHasBotOwner(context.Guild, context.User) ?
-					PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
-			});
+			return (await Actions.userHasOwner(context.Guild, context.User)) || Actions.userHasBotOwner(context.Guild, context.User) ?
+				PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
 		}
 	}
 
@@ -86,12 +83,9 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class GuildOwnerRequirementAttribute : PreconditionAttribute
 	{
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
 		{
-			return Task.Run(() =>
-			{
-				return Actions.userHasOwner(context.Guild, context.User) ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
-			});
+			return await Actions.userHasOwner(context.Guild, context.User) ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
 		}
 	}
 

@@ -23,8 +23,8 @@ namespace Advobot
 		//Loading in all necessary information at bot start up
 		public static void loadInformation()
 		{
-			Variables.Bot_ID = CommandHandler.client.CurrentUser.Id;                //Give the variable Bot_ID the actual ID
-			Variables.Bot_Name = CommandHandler.client.CurrentUser.Username;        //Give the variable Bot_Name the username of the bot
+			Variables.Bot_ID = CommandHandler.Client.CurrentUser.Id;                //Give the variable Bot_ID the actual ID
+			Variables.Bot_Name = CommandHandler.Client.CurrentUser.Username;        //Give the variable Bot_Name the username of the bot
 			Variables.Bot_Channel = Variables.Bot_Name.ToLower();                   //Give the variable Bot_Channel a lowered version of the bot's name
 
 			loadPermissionNames();                                                  //Gets the names of the permission bits in Discord
@@ -667,12 +667,12 @@ namespace Advobot
 		}
 		
 		//Get if the user is the owner of the server
-		public static bool userHasOwner(IGuild guild, IUser user)
+		public static async Task<bool> userHasOwner(IGuild guild, IUser user)
 		{
 			if (guild == null)
 				return false;
 
-			return guild.GetOwnerAsync().Result.Id == user.Id;
+			return (await guild.GetOwnerAsync()).Id == user.Id;
 		}
 		
 		//Get if the user if the bot owner
@@ -1133,13 +1133,13 @@ namespace Advobot
 			{
 				if (inputChannel == null)
 				{
-					writer.WriteLine(serverOrMod + ":" + null + "\n" + String.Join("\n", validLines));
+					writer.WriteLine(serverOrMod + ":" + null + "\n" + String.Join("", validLines));
 					await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, "Disabled the " + serverOrMod + ".");
 					return null;
 				}
 				else
 				{
-					writer.WriteLine(serverOrMod + ":" + inputChannel.Id + "\n" + String.Join("\n", validLines));
+					writer.WriteLine(serverOrMod + ":" + inputChannel.Id + "\n" + String.Join("", validLines));
 				}
 			}
 
@@ -1226,7 +1226,7 @@ namespace Advobot
 			}
 			else
 			{
-				channel = guild.GetTextChannelsAsync().Result.FirstOrDefault(x => x.Name == Variables.Bot_Channel);
+				channel = (await guild.GetTextChannelsAsync()).FirstOrDefault(x => x.Name == Variables.Bot_Channel);
 			}
 
 			//Remove them from the emable list

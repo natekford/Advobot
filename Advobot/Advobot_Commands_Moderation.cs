@@ -462,7 +462,7 @@ namespace Advobot
 					String.Format("Hey, @here, {0} is trying to delete stuff.", Context.User.Mention));
 
 				//DM the owner of the server
-				await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync().Result.SendMessageAsync(
+				await (await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync()).SendMessageAsync(
 					String.Format("`{0}#{1}` ID: `{2}` is trying to delete stuff from the server/mod log.", Context.User.Username, Context.User.Discriminator, Context.User.Id));
 				return;
 			}
@@ -1008,7 +1008,7 @@ namespace Advobot
 			}
 
 			//Determine if the user can give these perms
-			if (!Actions.userHasOwner(Context.Guild, Context.User as IGuildUser))
+			if (!await Actions.userHasOwner(Context.Guild, Context.User as IGuildUser))
 			{
 				if (!(Context.User as IGuildUser).GuildPermissions.Administrator)
 				{
@@ -1086,7 +1086,7 @@ namespace Advobot
 			if (rolePermissions != 0)
 			{
 				//Determine if the user can give these permissions
-				if (!Actions.userHasOwner(Context.Guild, Context.User as IGuildUser))
+				if (!await Actions.userHasOwner(Context.Guild, Context.User as IGuildUser))
 				{
 					if (!(Context.User as IGuildUser).GuildPermissions.Administrator)
 					{
@@ -1208,7 +1208,7 @@ namespace Advobot
 		[Alias("crc")]
 		[Usage(Constants.BOT_PREFIX + "changerolecolor Role/[Hexadecimal|Color Name]")]
 		[Summary("Changes the role's color. A color of '0' sets the role back to the default color. " +
-			"Colors must either be in hexadecimal format or be a color listed here: https://msdn.microsoft.com/en-us/library/system.drawing.color(v=vs.110).aspx")]
+			"Colors must either be in hexadecimal format or be a color listed [here](https://msdn.microsoft.com/en-us/library/system.drawing.color).")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task ChangeRoleColor([Remainder] String input)
 		{
@@ -1430,12 +1430,12 @@ namespace Advobot
 			if (Actions.getChannelType(channel) == Constants.TEXT_TYPE)
 			{
 				//Grab all text channels that aren't the targeted one
-				Context.Guild.GetTextChannelsAsync().Result.Where(x => x != channel).ToList().ForEach(x => channelAndPositions.Add(x));
+				(await Context.Guild.GetTextChannelsAsync()).Where(x => x != channel).ToList().ForEach(x => channelAndPositions.Add(x));
 			}
 			else
 			{
 				//Grab all the voice channels that aren't the targeted one
-				Context.Guild.GetVoiceChannelsAsync().Result.Where(x => x != channel).ToList().ForEach(x => channelAndPositions.Add(x));
+				(await Context.Guild.GetVoiceChannelsAsync()).Where(x => x != channel).ToList().ForEach(x => channelAndPositions.Add(x));
 			}
 			//Sort the list by position
 			channelAndPositions = channelAndPositions.OrderBy(x => x.Position).ToList();
@@ -1473,7 +1473,7 @@ namespace Advobot
 				title = "Voice Channels Positions";
 
 				//Put the positions into the string
-				var list = Context.Guild.GetVoiceChannelsAsync().Result.OrderBy(x => x.Position).ToList();
+				var list = (await Context.Guild.GetVoiceChannelsAsync()).OrderBy(x => x.Position).ToList();
 				foreach (var channel in list)
 				{
 					description += "`" + channel.Position.ToString("00") + ".` " + channel.Name + "\n";
@@ -1484,7 +1484,7 @@ namespace Advobot
 				title = "Text Channels Positions";
 
 				//Put the positions into the string
-				var list = Context.Guild.GetTextChannelsAsync().Result.OrderBy(x => x.Position).ToList();
+				var list = (await Context.Guild.GetTextChannelsAsync()).OrderBy(x => x.Position).ToList();
 				foreach (var channel in list)
 				{
 					description += "`" + channel.Position.ToString("00") + ".` " + channel.Name + "\n";
@@ -1551,7 +1551,7 @@ namespace Advobot
 						}
 						else
 						{
-							userOverwrites.Add(Context.Guild.GetUserAsync(overwrite.TargetId).Result.Username);
+							userOverwrites.Add((await Context.Guild.GetUserAsync(overwrite.TargetId)).Username);
 						}
 					}
 					//Embed saying the overwrites
@@ -1895,11 +1895,11 @@ namespace Advobot
 
 				if (channelType == Constants.TEXT_TYPE)
 				{
-					textChannels = Context.Guild.GetTextChannelsAsync().Result.Where(x => x.Position == position).ToList();
+					textChannels = (await Context.Guild.GetTextChannelsAsync()).Where(x => x.Position == position).ToList();
 				}
 				else if (channelType == Constants.VOICE_TYPE)
 				{
-					voiceChannels = Context.Guild.GetVoiceChannelsAsync().Result.Where(x => x.Position == position).ToList();
+					voiceChannels = (await Context.Guild.GetVoiceChannelsAsync()).Where(x => x.Position == position).ToList();
 				}
 				else
 				{
@@ -2201,18 +2201,17 @@ namespace Advobot
 			List<String> usersMentions = new List<String>();
 			List<String> usersText = new List<String>();
 			int characters = 0;
-			int count = 0;
+			int count = 1;
 
 			//Grab each user
 			IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync();
 			guildUsers.Where(x => x.JoinedAt != null).ToList().OrderBy(x => x.JoinedAt.Value.Ticks).ToList().ForEach(x =>
 			{
-				++count;
 				if (x.RoleIds.ToList().Contains(role.Id))
 				{
 					String text = "`" + x.Username + "#" + x.Discriminator + "`";
 					usersMentions.Add(text);
-					usersText.Add(count + ": " + x.Username + "#" + x.Discriminator + " ID: " + x.Id);
+					usersText.Add("`" + count++.ToString("00") + ".` " + x.Username + "#" + x.Discriminator + " ID: " + x.Id);
 					characters += text.Length + 3;
 				}
 			});
@@ -2221,13 +2220,14 @@ namespace Advobot
 			String roleName = role.Name.Substring(0, 3) + Constants.ZERO_LENGTH_CHAR + role.Name.Substring(3);
 			if (characters > 1000 || overwriteBool)
 			{
+				String info = Actions.replaceMessageCharacters(String.Join("\n", usersText));
 				if (!textFileBool)
 				{
-					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, roleName, Actions.uploadToHastebin(String.Join("\n", usersText))));
+					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, roleName, Actions.uploadToHastebin(info)));
 					return;
 				}
 				//Upload the file
-				await Actions.uploadTextFile(Context.Guild, Context.Channel, String.Join("\n", usersText), roleName + "_" + role.Name.ToUpper() + "_", roleName);
+				await Actions.uploadTextFile(Context.Guild, Context.Channel, info, roleName + "_" + role.Name.ToUpper() + "_", roleName);
 			}
 			else
 			{
@@ -2299,7 +2299,7 @@ namespace Advobot
 
 				//Grab each user and give them the role
 				List<IGuildUser> listUsersWithRole = new List<IGuildUser>();
-				foreach (IGuildUser user in Context.Guild.GetUsersAsync().Result.ToList())
+				foreach (IGuildUser user in (await Context.Guild.GetUsersAsync()).ToList())
 				{
 					if (user.RoleIds.Contains(roleToGather.Id))
 					{
@@ -2345,7 +2345,7 @@ namespace Advobot
 
 				//Grab each user and give them the role
 				List<IGuildUser> listUsersWithRole = new List<IGuildUser>();
-				foreach (IGuildUser user in Context.Guild.GetUsersAsync().Result.ToList())
+				foreach (IGuildUser user in (await Context.Guild.GetUsersAsync()).ToList())
 				{
 					if (user.RoleIds.Contains(roleToGather.Id))
 					{
@@ -2389,7 +2389,7 @@ namespace Advobot
 				int botPosition = Actions.getPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID));
 				int commandUserPosition = Actions.getPosition(Context.Guild, Context.User as IGuildUser);
 				List<IGuildUser> listUsersWithRole = new List<IGuildUser>();
-				foreach (IGuildUser user in Context.Guild.GetUsersAsync().Result.ToList())
+				foreach (IGuildUser user in (await Context.Guild.GetUsersAsync()).ToList())
 				{
 					if (user.RoleIds.Contains(roleToGather.Id))
 					{
@@ -2430,13 +2430,13 @@ namespace Advobot
 		public async Task ListUsersWithName([Remainder] String input)
 		{
 			//Find the users
-			var users = Context.Guild.GetUsersAsync().Result.Where(x => x.Username.IndexOf(input, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.JoinedAt).ToList();
+			var users = (await Context.Guild.GetUsersAsync()).Where(x => x.Username.IndexOf(input, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.JoinedAt).ToList();
 
 			//Initialize the string
 			String description = "";
 
 			//Add them to the string
-			int count = 0;
+			int count = 1;
 			users.ForEach(x =>
 			{
 				description += String.Format("`{0}.` `{1}#{2}` ID: `{3}`\n", count++.ToString("00"), x.Username, x.Discriminator, x.Id);
@@ -2553,16 +2553,16 @@ namespace Advobot
 				}
 				else if (Actions.getChannelType(channel) != Constants.VOICE_TYPE)
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Users can only be moved to a voice channel."));
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The guild's afk channel has to be a voice channel."));
 					return;
 				}
 
 				//Capture the before channel
-				String bChan = Context.Guild.AFKChannelId.HasValue ? Context.Guild.GetChannelAsync(Context.Guild.AFKChannelId.Value).Result.Name : "Nothing";
+				String bChan = Context.Guild.AFKChannelId.HasValue ? (await Context.Guild.GetChannelAsync(Context.Guild.AFKChannelId.Value)).Name : "Nothing";
 
 				//Change the afk channel to the input
 				await Context.Guild.ModifyAsync(x => x.AfkChannelId = channel.Id);
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild's AFK voice channel from `{0}` to `{1}`", bChan, inputArray[1]));
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild's AFK channel from `{0}` to `{1}`", bChan, inputArray[1]));
 			}
 			else if (inputArray[0].ToLower().Equals("time"))
 			{
@@ -2578,7 +2578,7 @@ namespace Advobot
 				int[] validAmount = { 60, 300, 900, 1800, 3600 };
 				if (!validAmount.Contains(time))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time input, must be one of the following: `60`, `300`, `900`, `1800`, `3600`."));
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time input, must be one of the following: `" + String.Join("`, `", validAmount) + "`."));
 					return;
 				}
 
@@ -2593,6 +2593,162 @@ namespace Advobot
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid action was input."));
 			}
+		}
+
+		[Command("changeguildmsgnotifications")]
+		[Alias("cgmn")]
+		[Usage(Constants.BOT_PREFIX + "changeguildmsgnotifications [All Messages|Mentions Only]")]
+		[Summary("Changes the message notifications to either all messages or mentions only.")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
+		public async Task ChangeGuildMsgNotifications([Remainder] String input)
+		{
+			if (input.ToLower().Equals("all messages"))
+			{
+				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = DefaultMessageNotifications.AllMessages);
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully changed the default message notification setting to all messages.");
+			}
+			else if (input.ToLower().Equals("mentions only"))
+			{
+				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = DefaultMessageNotifications.MentionsOnly);
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully changed the default message notification setting to mentions only.");
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid message notification setting."));
+			}
+		}
+
+		[Command("changeguildverification")]
+		[Alias("cgv")]
+		[Usage(Constants.BOT_PREFIX + "changeguildverification [0|1|2|3]")]
+		[Summary("Changes the verification level. 0 is the most lenient (no requirements to type), 3 is the harshest (10 minutes in the guild before new members can type).")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
+		public async Task ChangeGuildVerification([Remainder] String input)
+		{
+			//Check if valid int
+			int vLevel = -1;
+			if (!int.TryParse(input, out vLevel))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid verification level."));
+				return;
+			}
+
+			//Check if valid verification level position
+			if (vLevel > 3 || vLevel < 0)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid verification level. Verification levels range from 0 to 3."));
+				return;
+			}
+			else
+			{
+				//Change the verification level
+				await Context.Guild.ModifyAsync(x => x.VerificationLevel = (VerificationLevel)vLevel);
+				
+				//Get the verification level's name as a string
+				String vString = Enum.GetName(typeof(VerificationLevel), vLevel);
+				//Send a success message
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild verification level as `{0}`.", vString));
+			}
+		}
+
+		[Command("changeguildicon")]
+		[Alias("cgi")]
+		[Usage(Constants.BOT_PREFIX + "changeguildicon [Attached Image|Embedded Image]")]
+		[Summary("Changes the guild icon to the given image. Must be less than 2.5MB simply because the bot would use more data and be slower otherwise.")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
+		public async Task ChangeGuildIcon()
+		{
+			//Check if there are even any attachments or embeds
+			if (Context.Message.Attachments.Count + Context.Message.Embeds.Count == 0)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No attached or embedded image."));
+				return;
+			}
+			//Check if there are too many
+			else if (Context.Message.Attachments.Count + Context.Message.Embeds.Count > 1)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many attached or embedded images."));
+				return;
+			}
+
+			//Get the URL of the image
+			String imageURL = null;
+			if (Context.Message.Embeds.Count == 1)
+			{
+				imageURL = Context.Message.Embeds.First().Thumbnail.ToString();
+			}
+			else
+			{
+				imageURL = Context.Message.Attachments.First().Url;
+			}
+
+			//Check if the image has a valid image type in its URL (for simplicity's sake)
+			if (!Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(imageURL).ToLower()))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Either not an image or required further checking than the URL to determine if it was one."));
+				return;
+			}
+
+			//Run separate due to the time it takes
+			var downloadUploadAndDelete = Task.Run(async () =>
+			{
+				//Check the image's file size first
+				WebRequest req = HttpWebRequest.Create(imageURL);
+				req.Method = "HEAD";
+				using (WebResponse resp = req.GetResponse())
+				{
+					int ContentLength = 0;
+					if (int.TryParse(resp.Headers.Get("Content-Length"), out ContentLength))
+					{
+						if (ContentLength > 2625000)
+						{
+							await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Image is bigger than 2.5MB. Please manually upload instead."));
+							return;
+						}
+						else if (ContentLength == 0)
+						{
+							await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to get the image's file size."));
+							return;
+						}
+					}
+					else
+					{
+						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to get the image's file size."));
+						return;
+					}
+				}
+
+				//Set the name of the file to prevent typos between the three places that use it
+				String path = Actions.getServerFilePath(Context.Guild.Id, "guildicon" + Path.GetExtension(imageURL).ToLower());
+
+				//Download the image
+				using (var webclient = new WebClient())
+				{
+					webclient.DownloadFile(imageURL, path);
+				}
+
+				//Create a filestream to check the image's size
+				using (FileStream imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
+				{
+					var img = System.Drawing.Image.FromStream(imgStream);
+					if (img.Width < 128 || img.Height < 128)
+					{
+						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Images must be at least 128x128 pixels."));
+						return;
+					}
+				}
+
+				//Create a second filestream to upload the image
+				using (FileStream imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
+				{
+					//Change the guild's icon to the downloaded image
+					await Context.Guild.ModifyAsync(x => x.Icon = new Image(imgStream));
+				}
+
+				//Delete the file and send a success message
+				File.Delete(path);
+				await Actions.sendChannelMessage(Context.Channel, "Successfully changed the guild icon.");
+			});
 		}
 	}
 }

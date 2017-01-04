@@ -34,7 +34,7 @@ namespace Advobot
 				return;
 			}
 
-			await CommandHandler.client.SetGameAsync(input);
+			await CommandHandler.Client.SetGameAsync(input);
 			await Actions.sendChannelMessage(Context.Channel, String.Format("Game set to `{0}`.", input));
 		}
 
@@ -63,7 +63,7 @@ namespace Advobot
 				{
 					Thread.Sleep(100);
 				}
-				await CommandHandler.client.SetStatusAsync(UserStatus.Invisible);
+				await CommandHandler.Client.SetStatusAsync(UserStatus.Invisible);
 				Environment.Exit(1);
 			}
 			else
@@ -117,6 +117,27 @@ namespace Advobot
 			}
 		}
 
+		[Command("listguilds")]
+		[Usage(Constants.BOT_PREFIX + "listguilds")]
+		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
+		[BotOwnerRequirement]
+		public async Task ListGuilds()
+		{
+			//Initialize a string
+			String info = "";
+
+			//Go through each guild and add them to the list
+			int count = 1;
+			CommandHandler.Client.Guilds.ToList().ForEach(async x =>
+			{
+				IGuildUser owner = await x.GetOwnerAsync();
+				info += String.Format("{0}. {1} ID: {2} Owner: {3}#{4} ID: {5}\n", count++.ToString("00"), x.Name, x.Id, owner.Username, owner.Discriminator, owner.Id);
+			});
+
+			//Make an embed and put the link to the hastebin in it
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Guilds", Actions.uploadToHastebin(info)));
+		}
+
 		[Command("leaveguild")]
 		[Usage(Constants.BOT_PREFIX + "leaveguild <Guild ID>")]
 		[Summary("Makes the bot leave the guild.")]
@@ -130,7 +151,7 @@ namespace Advobot
 				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
 				if (Context.User.Id.Equals(Constants.OWNER_ID))
 				{
-					SocketGuild guild = CommandHandler.client.GetGuild(guildID);
+					SocketGuild guild = CommandHandler.Client.GetGuild(guildID);
 					if (guild == null)
 					{
 						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid server supplied."));
@@ -195,7 +216,7 @@ namespace Advobot
 		public async Task BotChannel()
 		{
 			//If no bot channel, create it
-			if (!Context.Guild.GetTextChannelsAsync().Result.ToList().Any(x => x.Name == Variables.Bot_Name))
+			if (!(await Context.Guild.GetTextChannelsAsync()).ToList().Any(x => x.Name == Variables.Bot_Name))
 			{
 				//Create the channel
 				ITextChannel channel = await Context.Guild.CreateTextChannelAsync(Variables.Bot_Name);

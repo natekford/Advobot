@@ -224,7 +224,7 @@ namespace Advobot
 			//TODO: Make this work somehow
 			if (!beforeUser.Username.Equals(afterUser.Username))
 			{
-				foreach (var guild in CommandHandler.client.Guilds.ToList().Where(x => x.Users.Contains(afterUser)).ToList())
+				foreach (var guild in CommandHandler.Client.Guilds.ToList().Where(x => x.Users.Contains(afterUser)).ToList())
 				{
 					ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 					if (logChannel == null)
@@ -377,25 +377,33 @@ namespace Advobot
 							//Get the embed
 							Embed embed = x.Embeds.ToList().FirstOrDefault(y => y.Description != null);
 
-							if (embed.Author != null)
+							if (embed != null)
 							{
-								String author = embed.Author.ToString();
+								if (embed.Author != null)
+								{
+									String author = embed.Author.ToString();
 
-								//I don't know how to regex well
-								Regex regex = new Regex("#([0-9]*) in #");
-								String[] authorAndChannel = regex.Split(author);
+									//I don't know how to regex well
+									Regex regex = new Regex("#([0-9]*) in #");
+									String[] authorAndChannel = regex.Split(author);
 
-								deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-									authorAndChannel.Length > 0 ? authorAndChannel[0] : "null",
-									authorAndChannel.Length > 1 ? authorAndChannel[1] : "0000",
-									authorAndChannel.Length > 2 ? authorAndChannel[2] : "null", 
-									x.CreatedAt.ToString("HH:mm:ss"),
-									Actions.replaceMessageCharacters(embed.Description)));
+									deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
+										authorAndChannel.Length > 0 ? authorAndChannel[0] : "null",
+										authorAndChannel.Length > 1 ? authorAndChannel[1] : "0000",
+										authorAndChannel.Length > 2 ? authorAndChannel[2] : "null",
+										x.CreatedAt.ToString("HH:mm:ss"),
+										Actions.replaceMessageCharacters(embed.Description)));
+								}
+								else
+								{
+									deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
+										x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(embed.Description)));
+								}
 							}
 							else
 							{
 								deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-									x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(embed.Description)));
+									x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), "An embed which was unable to be gotten."));
 							}
 						}
 						//See if any attachments were put in
@@ -593,7 +601,7 @@ namespace Advobot
 				//If the name wasn't the bot channel name to start with then set it back to its start name
 				if (!bChan.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase) && await Actions.getDuplicateBotChan(bChan.Guild))
 				{
-					await bChan.Guild.GetChannelAsync(bChan.Id).Result.ModifyAsync(x => x.Name = bChan.Name);
+					await (await bChan.Guild.GetChannelAsync(bChan.Id)).ModifyAsync(x => x.Name = bChan.Name);
 				}
 			}
 		}

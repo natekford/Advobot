@@ -39,7 +39,7 @@ namespace Advobot
 				//Add the first field
 				Actions.addField(embed, "Syntax", "[] means required.\n<> means optional.\n| means or.");
 				//Add the second field
-				Actions.addField(embed, "Current Repo", "https://github.com/advorange/Advobot");
+				Actions.addField(embed, "Current Repo", "[Advobot](https://github.com/advorange/Advobot)");
 				//Add the footer
 				Actions.addFooter(embed, "Help");
 				await Actions.sendEmbedMessage(Context.Channel, embed);
@@ -166,7 +166,7 @@ namespace Advobot
 		[UserHasAPermission]
 		public async Task ChannelID([Remainder] String input)
 		{
-			IGuildChannel channel = Actions.getChannel(Context, input).Result;
+			IGuildChannel channel = await Actions.getChannel(Context, input);
 			if (channel == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
@@ -547,22 +547,7 @@ namespace Advobot
 		[Command("test")]
 		public async Task Test([Optional, Remainder] String input)
 		{
-			//Context.Guild.ModifyAsync(x =>
-			//{
-			//	x.AfkChannel;
-			//	x.AfkChannelId;
-			//	x.AfkTimeout;
-			//	x.DefaultMessageNotifications;
-			//	x.Icon;
-			//	x.Name;
-			//	x.Owner;
-			//	x.OwnerId;
-			//	x.Region;
-			//	x.RegionId;
-			//	x.Splash;
-			//	x.Username;
-			//	x.VerificationLevel;
-			//});
+			await Actions.sendChannelMessage(Context.Channel, "Test");
 		}
 	}
 }
