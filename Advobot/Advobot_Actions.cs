@@ -277,7 +277,7 @@ namespace Advobot
 		//Simple get a role on the server
 		public static IRole getRole(IGuild guild, string roleName)
 		{
-			return guild.Roles.ToList().FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+			return guild.Roles.ToList().OrderBy(x => x.Position).Reverse().FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
 		}
 		
 		//Get top position of a user
@@ -696,6 +696,17 @@ namespace Advobot
 				}
 			}
 			return result.ToArray();
+		}
+
+		//Get the variables for slowmode
+		public static string getSlowmodeVar(string[] inputArray, string searchTerm)
+		{
+			if (inputArray.Any(x => x.ToLower().StartsWith(searchTerm)))
+			{
+				string first = inputArray.Where(x => x.ToLower().StartsWith(searchTerm)).FirstOrDefault();
+				return first.Substring(first.IndexOf(':'));
+			}
+			return null;
 		}
 		#endregion
 

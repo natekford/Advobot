@@ -500,6 +500,93 @@ namespace Advobot
 				inputChannel == null ? "" : " on `#" + inputChannel.Name + "`"));
 		}
 
+		[Command("slowmode")]
+		[Alias("sm")]
+		[Usage(Constants.BOT_PREFIX + "slowmode <Roles:.../.../> <Messages:1 to 5> <Time:1 to 10>")]
+		[Summary("The first argument is the roles that get ignored by slowmode, the second is the amount of messages, and the third is the time period. Default is: none, 1, 5.")]
+		[PermissionRequirements]
+		public async Task SlowMode([Optional, Remainder] string input)
+		{
+			//Split everything
+			string[] inputArray = input.Split(' ');
+
+			//Check if too many args
+			if (inputArray.Length > 3)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many arguments. There are no spaces between the colons and the variables."));
+				return;
+			}
+
+			//Initialize the variables
+			string roleString = Actions.getSlowmodeVar(inputArray, "roles");
+			string messageString = Actions.getSlowmodeVar(inputArray, "messages");
+			string timeString = Actions.getSlowmodeVar(inputArray, "time");
+
+			//Get the roles
+			var roles = new List<ulong>();
+			if (roleString != null)
+			{
+				//Split the string into the role names
+				var roleArray = roleString.Split('/').ToList();
+
+				//Get each role name and check if it's a valid role
+				roleArray.ForEach(x =>
+				{
+					IRole role = Actions.getRole(Context.Guild, x);
+					if (role != null)
+					{
+						//Add them to the list of roles
+						roles.Add(role.Id);
+					}
+				});
+			}
+
+			//Get the messages limit
+			int msgsLimit = 1;
+			//Check if is a number
+			if (!int.TryParse(messageString, out msgsLimit))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for messages was not a number."));
+				return;
+			}
+			//Check if is a valid number
+			if (msgsLimit > 5 || msgsLimit < 1)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Message limit must be between 1 and 5 inclusive."));
+				return;
+			}
+
+			//Get the time limit
+			int timeLimit = 5;
+			//Check if is a number
+			if (!int.TryParse(messageString, out timeLimit))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for time was not a number."));
+				return;
+			}
+			//Check if is a valid number
+			if (msgsLimit > 10 || msgsLimit < 1)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Time must be between 1 and 10 inclusive."));
+				return;
+			}
+
+			//Add the users into the list with their given messages and if they're affected
+			var slowmodeUsers = new List<SlowmodeUser>();
+			(await Context.Guild.GetUsersAsync()).ToList().ForEach(x =>
+			{
+				//If they have any role ids that are immune to slowmode then they're immune
+				if (x.RoleIds.ToList().Intersect(roles).Any())
+				{
+					slowmodeUsers.Add(new SlowmodeUser(x, msgsLimit, true));
+				}
+				else
+				{
+					slowmodeUsers.Add(new SlowmodeUser(x, msgsLimit, false));
+				}
+			});
+		}
+
 		[Command("giverole")]
 		[Alias("gr")]
 		[Usage(Constants.BOT_PREFIX + "giverole [@User] [Role]/<Role>/...")]

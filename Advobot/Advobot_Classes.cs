@@ -234,4 +234,18 @@ namespace Advobot
 		public IGuildChannel Channel;
 		public int Position;
 	}
+
+	public class SlowmodeUser
+	{
+		public SlowmodeUser(IGuildUser mUser, int mMsgs, bool mIgnored)
+		{
+			this.User = mUser;
+			this.Msgs = mMsgs;
+			this.Ignored = mIgnored;
+		}
+
+		public IGuildUser User;
+		public int Msgs;
+		public bool Ignored;
+	}
 }

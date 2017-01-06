@@ -242,7 +242,11 @@ namespace Advobot
 		public static async Task OnMessageUpdated(Optional<SocketMessage> beforeMessage, SocketMessage afterMessage)
 		{
 			++Variables.LoggedEdits;
+			//If bot then ignore
 			if (afterMessage.Author.IsBot)
+				return;
+			//If DM then ignore
+			if (afterMessage.Channel as IGuildChannel == null)
 				return;
 
 			ITextChannel logChannel = await Actions.logChannelCheck((afterMessage.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
@@ -296,8 +300,11 @@ namespace Advobot
 		public static async Task OnMessageDeleted(ulong messageID, Optional<SocketMessage> message)
 		{
 			++Variables.LoggedDeletes;
-			//Skip null messages
+			//If null message ignore
 			if (!message.IsSpecified)
+				return;
+			//If DM ignore
+			if (message.Value.Channel as IGuildChannel == null)
 				return;
 
 			//Initialize the guild and channel
@@ -453,7 +460,11 @@ namespace Advobot
 		public static async Task OnMessageReceived(SocketMessage message)
 		{
 			++Variables.LoggedMessages;
+			//If bot then ignore
 			if (message.Author.IsBot)
+				return;
+			//If DM then ignore
+			if (message.Channel as IGuildChannel == null)
 				return;
 
 			IGuild guild = (message.Channel as IGuildChannel).Guild;
