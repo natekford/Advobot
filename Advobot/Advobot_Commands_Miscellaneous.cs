@@ -26,13 +26,13 @@ namespace Advobot
 		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
 			"If left blank will print out a link to the documentation of this bot.")]
 		[UserHasAPermission]
-		public async Task Help([Optional, Remainder] String input)
+		public async Task Help([Optional, Remainder] string input)
 		{
 			//See if it's empty
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				//Description string
-				String text = "Type `" + Constants.BOT_PREFIX + "commands` for the list of commands.\nType `" + Constants.BOT_PREFIX + "help [Command]` for help with a command.";
+				string text = "Type `" + Constants.BOT_PREFIX + "commands` for the list of commands.\nType `" + Constants.BOT_PREFIX + "help [Command]` for help with a command.";
 
 				//Make the embed
 			    EmbedBuilder embed = Actions.makeNewEmbed(null, "Commands", text);
@@ -47,12 +47,12 @@ namespace Advobot
 			}
 
 			//Get the input command, if nothing then link to documentation
-			String[] commandParts = input.Split(new char[] { '[' }, 2);
+			string[] commandParts = input.Split(new char[] { '[' }, 2);
 			if (input.IndexOf('[') == 0)
 			{
 				if (commandParts[1].ToLower().Equals("command"))
 				{
-					String text = "If you do not know what commands this bot has, type `" + Constants.BOT_PREFIX + "commands` for a list of commands.";
+					string text = "If you do not know what commands this bot has, type `" + Constants.BOT_PREFIX + "commands` for a list of commands.";
 					await Actions.makeAndDeleteSecondaryMessage(Context, text, 10000);
 					return;
 				}
@@ -77,7 +77,7 @@ namespace Advobot
 					return;
 				}
 			}
-			String description = String.Format("**Aliases:** {0}\n**Usage:** {1}\n\n**Base Permission(s):**\n{2}\n\n**Description:**\n{3}",
+			string description = String.Format("**Aliases:** {0}\n**Usage:** {1}\n\n**Base Permission(s):**\n{2}\n\n**Description:**\n{3}",
 				String.Join(", ", helpEntry.Aliases), helpEntry.Usage, helpEntry.basePerm, helpEntry.Text);
 			await Actions.sendEmbedMessage(Context.Channel, Actions.addFooter(Actions.makeNewEmbed(null, helpEntry.Name, description), "Help"));
 		}
@@ -87,7 +87,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "commands <Category|All>")]
 		[Summary("Prints out the commands in that category of the command list.")]
 		[UserHasAPermission]
-		public async Task Commands([Optional, Remainder] String input)
+		public async Task Commands([Optional, Remainder] string input)
 		{
 			//See if it's empty
 			if (String.IsNullOrWhiteSpace(input))
@@ -100,31 +100,31 @@ namespace Advobot
 			Actions.loadPreferences(Context.Guild);
 
 			bool allCommandsBool = true;
-			String section = input.ToLower();
+			string section = input.ToLower();
 
 			if (section.Equals("administration"))
 			{
-				String[] commands = Actions.getCommands(Context.Guild, 0);
+				string[] commands = Actions.getCommands(Context.Guild, 0);
 				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "ADMINISTRATION", String.Join("\n", commands)));
 			}
 			else if (section.Equals("moderation"))
 			{
-				String[] commands = Actions.getCommands(Context.Guild, 1);
+				string[] commands = Actions.getCommands(Context.Guild, 1);
 				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "MODERATION", String.Join("\n", commands)));
 			}
 			else if (section.Equals("votemute"))
 			{
-				String[] commands = Actions.getCommands(Context.Guild, 2);
+				string[] commands = Actions.getCommands(Context.Guild, 2);
 				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "VOTEMUTE", String.Join("\n", commands)));
 			}
 			else if (section.Equals("slowmode"))
 			{
-				String[] commands = Actions.getCommands(Context.Guild, 3);
+				string[] commands = Actions.getCommands(Context.Guild, 3);
 				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "SLOWMODE", String.Join("\n", commands)));
 			}
 			else if (section.Equals("banphrase"))
 			{
-				String[] commands = Actions.getCommands(Context.Guild, 4);
+				string[] commands = Actions.getCommands(Context.Guild, 4);
 				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "BANPHRASE", String.Join("\n", commands)));
 			}
 			else if (section.Equals("all"))
@@ -132,7 +132,7 @@ namespace Advobot
 				if (allCommandsBool)
 				{
 					List<String> commands = new List<String>();
-					foreach (String command in Variables.CommandNames)
+					foreach (string command in Variables.CommandNames)
 					{
 						commands.Add(command);
 					}
@@ -164,7 +164,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "channelid " + Constants.CHANNEL_INSTRUCTIONS)]
 		[Summary("Shows the ID of the given channel.")]
 		[UserHasAPermission]
-		public async Task ChannelID([Remainder] String input)
+		public async Task ChannelID([Remainder] string input)
 		{
 			IGuildChannel channel = await Actions.getChannel(Context, input);
 			if (channel == null)
@@ -180,7 +180,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "roleid [Role]")]
 		[Summary("Shows the ID of the given role.")]
 		[UserHasAPermission]
-		public async Task RoleID([Remainder] String input)
+		public async Task RoleID([Remainder] string input)
 		{
 			IRole role = await Actions.getRole(Context, input);
 			if (role == null)
@@ -196,7 +196,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "userid <@User>")]
 		[Summary("Shows the ID of the given user.")]
 		[UserHasAPermission]
-		public async Task UserID([Optional, Remainder] String input)
+		public async Task UserID([Optional, Remainder] string input)
 		{
 			IGuildUser user = input == null ? Context.User as IGuildUser : await Actions.getUser(Context.Guild, input);
 			if (user == null)
@@ -212,7 +212,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "useravatar <@user>")]
 		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily). Currently every avatar is displayed with an extension type of gif.")]
 		[UserHasAPermission]
-		public async Task UserAvatar([Optional, Remainder] String input)
+		public async Task UserAvatar([Optional, Remainder] string input)
 		{
 			IGuildUser user = input == null ? Context.User as IGuildUser : await Actions.getUser(Context.Guild, input);
 			if (user == null)
@@ -235,10 +235,10 @@ namespace Advobot
 
 		[Command("userjoinedat")]
 		[Alias("ujat")]
-		[Usage(Constants.BOT_PREFIX + "userjoinedat [int]")]
+		[Usage(Constants.BOT_PREFIX + "userjoinedat [Position]")]
 		[Summary("Shows the user which joined the guild in that position. Mostly accurate, give or take ten places per thousand users on the guild.")]
 		[UserHasAPermission]
-		public async Task UserJoinedAt([Remainder] String input)
+		public async Task UserJoinedAt([Remainder] string input)
 		{
 			int position;
 			if (Int32.TryParse(input, out position))
@@ -273,7 +273,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "userinfo [@User]")]
 		[Summary("Displays various information about the user. Join position is mostly accurate, give or take ten places per thousand users on the guild.")]
 		[UserHasAPermission]
-		public async Task UserInfo([Optional, Remainder] String input)
+		public async Task UserInfo([Optional, Remainder] string input)
 		{
 			IGuildUser user = null;
 
@@ -304,38 +304,36 @@ namespace Advobot
 
 			//Get a list of channels
 			List<String> channels = new List<String>();
-			IReadOnlyCollection<IGuildChannel> guildChannels = await Context.Guild.GetChannelsAsync();
-			foreach (IGuildChannel channel in guildChannels)
+			//Text channels
+			(await Context.Guild.GetTextChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(async x =>
 			{
-				if (Actions.getChannelType(channel) == Constants.VOICE_TYPE)
+				using (var channelUsers = x.GetUsersAsync().GetEnumerator())
 				{
-					if (user.GetPermissions(channel).Connect)
+					while (await channelUsers.MoveNext())
 					{
-						channels.Add(channel.Name + " (Voice)");
-					}
-				}
-				else
-				{
-					using (var channelUsers = channel.GetUsersAsync().GetEnumerator())
-					{
-						while (await channelUsers.MoveNext())
+						if (channelUsers.Current.Contains(user))
 						{
-							if (channelUsers.Current.Contains(user))
-							{
-								channels.Add(channel.Name);
-								break;
-							}
+							channels.Add(x.Name);
+							break;
 						}
 					}
 				}
-			}
+			});
+			//Voice channels
+			(await Context.Guild.GetVoiceChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(x =>
+			{
+				if (user.GetPermissions(x).Connect)
+				{
+					channels.Add(x.Name + " (Voice)");
+				}
+			});
 
 			//Get an ordered list of when users joined the server
 			IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync();
 			List<IGuildUser> users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
 
 			//Make the description
-			String description = String.Format(
+			string description = String.Format(
 				"ID: {0}\n" +
 				"Created: {1} {2}, {3} at {4}\n" +
 				"Joined: {5} {6}, {7} at {8} (#{9} to join the server)\n" +
@@ -375,7 +373,7 @@ namespace Advobot
 			//Add the voice channel
 			if (user.VoiceChannel != null)
 			{
-				String text = String.Format("Server mute: {0}\nServer deafen: {1}\nSelf mute: {2}\nSelf deafen: {3}",
+				string text = String.Format("Server mute: {0}\nServer deafen: {1}\nSelf mute: {2}\nSelf deafen: {3}",
 					user.IsMuted.ToString(), user.IsDeafened.ToString(), user.IsSelfMuted.ToString(), user.IsSelfDeafened.ToString());
 
 				Actions.addField(embed, "Voice Channel: " + user.VoiceChannel.Name, text);
@@ -395,7 +393,7 @@ namespace Advobot
 			TimeSpan span = DateTime.UtcNow.Subtract(Variables.StartupTime);
 
 			//Make the description
-			String description = String.Format(
+			string description = String.Format(
 				"Online since: {0}\n" +
 				"Uptime: {1}:{2}:{3}:{4}\n" +
 				"Guild count: {5}\n" +
@@ -415,7 +413,7 @@ namespace Advobot
 			Actions.addFooter(embed, "Version " + Constants.BOT_VERSION);
 
 			//First field
-			String firstField = String.Format(
+			string firstField = String.Format(
 				"Logged joins: {0}\n" +
 				"Logged leaves: {1}\n" +
 				"Logged bans: {2}\n" +
@@ -441,7 +439,7 @@ namespace Advobot
 			Actions.addField(embed, "Logged Actions", firstField);
 
 			//Second field
-			String secondField = String.Format(
+			string secondField = String.Format(
 				"Attempted commands: {0}\n" +
 				"Successful commands: {1}\n" +
 				"Failed commands: {2}\n",
@@ -460,9 +458,9 @@ namespace Advobot
 		[Summary("The first argument is the channel. The second is how long the invite will last for. " +
 			"The third is how many users can use the invite. The fourth is the temporary membership option.")]
 		[PermissionRequirements(1U << (int)GuildPermission.CreateInstantInvite)]
-		public async Task CreateInstantInvite([Remainder] String input)
+		public async Task CreateInstantInvite([Remainder] string input)
 		{
-			String[] inputArray = input.Split(new char[] { ' ' }, 4);
+			string[] inputArray = input.Split(new char[] { ' ' }, 4);
 			if (inputArray.Length != 4)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -520,9 +518,9 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "mentionrole [Role]/[Message]")]
 		[Summary("Mention an unmentionable role with the given message.")]
 		[UserHasAPermission]
-		public async Task MentionRole([Remainder] String input)
+		public async Task MentionRole([Remainder] string input)
 		{
-			String[] inputArray = input.Split(new char[] { '/' }, 2);
+			string[] inputArray = input.Split(new char[] { '/' }, 2);
 
 			//Get the role and see if it can be changed
 			IRole role = await Actions.getRoleEditAbility(Context, inputArray[0]);
@@ -545,7 +543,8 @@ namespace Advobot
 		}
 
 		[Command("test")]
-		public async Task Test([Optional, Remainder] String input)
+		[BotOwnerRequirement]
+		public async Task Test([Optional, Remainder] string input)
 		{
 			await Actions.sendChannelMessage(Context.Channel, "Test");
 		}

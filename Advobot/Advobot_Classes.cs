@@ -41,12 +41,12 @@ namespace Advobot
 			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
 		}
 
-		public String AllText
+		public string AllText
 		{
 			get { return String.Join(" and ", Actions.getPermissionNames(mAllFlags)); }
 		}
 
-		public String AnyText
+		public string AnyText
 		{
 			get { return String.Join(" or ", Actions.getPermissionNames(mAnyFlags)); }
 		}
@@ -122,14 +122,14 @@ namespace Advobot
 	//Make the usage attribute
 	public class UsageAttribute : Attribute
 	{
-		public UsageAttribute(String str)
+		public UsageAttribute(string str)
 		{
 			mUsage = str;
 		}
 
-		private String mUsage;
+		private string mUsage;
 
-		public String Text
+		public string Text
 		{
 			get { return mUsage; }
 		}
@@ -138,7 +138,7 @@ namespace Advobot
 	//Make a list of help information
 	public class HelpEntry
 	{
-		public HelpEntry(String name, String[] aliases, String usage, String basePerm, String text)
+		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text)
 		{
 			mName = name;
 			mAliases = aliases;
@@ -147,66 +147,66 @@ namespace Advobot
 			mText = text;
 		}
 
-		public String Name
+		public string Name
 		{
 			get { return mName; }
 		}
-		public String[] Aliases
+		public string[] Aliases
 		{
 			get { return mAliases; }
 		}
-		public String Usage
+		public string Usage
 		{
 			get { return mUsage; }
 		}
-		public String basePerm
+		public string basePerm
 		{
 			get { return mBasePerm; }
 		}
-		public String Text
+		public string Text
 		{
 			get { return mText; }
 		}
 
-		private String mName;
-		private String[] mAliases;
-		private String mUsage;
-		private String mBasePerm;
-		private String mText;
+		private string mName;
+		private string[] mAliases;
+		private string mUsage;
+		private string mBasePerm;
+		private string mText;
 	}
 
 	//Categories for preferences
 	public class PreferenceCategory
 	{
-		public PreferenceCategory(String name)
+		public PreferenceCategory(string name)
 		{
 			mName = name;
 		}
-		public String mName;
+		public string mName;
 		public List<PreferenceSetting> mSettings = new List<PreferenceSetting>();
 	}
 
 	//Storing the settings for preferences
 	public class PreferenceSetting
 	{
-		public PreferenceSetting(String name, String value)
+		public PreferenceSetting(string name, string value)
 		{
 			mName = name;
 			mValue = value;
 		}
-		public String mName;
-		private String mValue;
+		public string mName;
+		private string mValue;
 
 		//Return the value as a boolean
 		public bool asBoolean()
 		{
-			String[] trueMatches = { "true", "on", "yes", "1" };
-			//String[] falseMatches = { "false", "off", "no", "0" };
+			string[] trueMatches = { "true", "on", "yes", "1" };
+			//string[] falseMatches = { "false", "off", "no", "0" };
 			return trueMatches.Any(x => String.Equals(mValue.Trim(), x, StringComparison.OrdinalIgnoreCase));
 		}
 
 		//Return the value as a string
-		public String asString()
+		public string asString()
 		{
 			return mValue;
 		}

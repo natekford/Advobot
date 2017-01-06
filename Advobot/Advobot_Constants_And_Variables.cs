@@ -5,30 +5,30 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const String BOT_VERSION = "0.8.0";
-		public const String API_VERSION = "Discord.Net by RogueException v1.0.0-rc-00544";
+		public const string BOT_VERSION = "0.8.0";
+		public const string API_VERSION = "Discord.Net by RogueException v1.0.0-rc-00544";
 
-		public const String BOT_PREFIX = "++";
-		public const String IGNORE_ERROR = "Cx";
-		public const String ZERO_LENGTH_CHAR = "\u180E";
-		public const String TEXT_HOST = "hastebin";
-		public const String STARTUP_GAME = "type \"" + Constants.BOT_PREFIX + "help\" for help.";
-		public const String ERROR_MESSAGE = "**ERROR:** ";
-		public const String ARGUMENTS_ERROR = "Invalid number of arguments.";
-		public const String USER_ERROR = "Invalid user.";
-		public const String ROLE_ERROR = "Invalid role.";
-		public const String CHANNEL_ERROR = "Invalid channel.";
-		public const String CHANNEL_PERMISSIONS_ERROR = "You do not have the ability to edit that channel.";
-		public const String MUTE_ROLE_NAME = "Muted";
-		public const String PREFERENCES_FILE = "commandPreferences.txt";
-		public const String SERVERLOG_AND_MODLOG = "serverlogAndModlog.txt";
-		public const String SERVER_LOG_CHECK_STRING = "serverlog";
-		public const String MOD_LOG_CHECK_STRING = "modlog";
-		public const String CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
-		public const String OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/Text|Voice]>";
-		public const String VOICE_TYPE = "voice";
-		public const String TEXT_TYPE = "text";
-		public const String BYPASS_STRING = "Badoodle123";
+		public const string BOT_PREFIX = "++";
+		public const string IGNORE_ERROR = "Cx";
+		public const string ZERO_LENGTH_CHAR = "\u180E";
+		public const string TEXT_HOST = "hastebin";
+		public const string STARTUP_GAME = "type \"" + Constants.BOT_PREFIX + "help\" for help.";
+		public const string ERROR_MESSAGE = "**ERROR:** ";
+		public const string ARGUMENTS_ERROR = "Invalid number of arguments.";
+		public const string USER_ERROR = "Invalid user.";
+		public const string ROLE_ERROR = "Invalid role.";
+		public const string CHANNEL_ERROR = "Invalid channel.";
+		public const string CHANNEL_PERMISSIONS_ERROR = "You do not have the ability to edit that channel.";
+		public const string MUTE_ROLE_NAME = "Muted";
+		public const string PREFERENCES_FILE = "commandPreferences.txt";
+		public const string SERVERLOG_AND_MODLOG = "serverlogAndModlog.txt";
+		public const string SERVER_LOG_CHECK_STRING = "serverlog";
+		public const string MOD_LOG_CHECK_STRING = "modlog";
+		public const string CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
+		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/Text|Voice]>";
+		public const string VOICE_TYPE = "voice";
+		public const string TEXT_TYPE = "text";
+		public const string BYPASS_STRING = "Badoodle123";
 
 		public const UInt64 OWNER_ID = 172138437246320640;
 		public const double PERCENT_AVERAGE = .75;
@@ -46,9 +46,9 @@ namespace Advobot
 		public const int CHANNEL_NAME_MAX_LENGTH = 100;
 		public const int CHANNEL_NAME_MIN_LENGTH = 2;
 
-		public static readonly String[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
-		public static readonly String[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
-		public static readonly String[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west" };
+		public static readonly string[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
+		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
+		public static readonly string[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west" };
 
 		public static readonly bool DISCONNECT = false;
 		public static readonly bool NEWEST_DELETED_MESSAGES_AT_TOP = false;
@@ -68,8 +68,8 @@ namespace Advobot
 	public static class Variables
 	{
 		public static UInt64 Bot_ID = 0;
-		public static String Bot_Name = null;
-		public static String Bot_Channel = null;
+		public static string Bot_Name = null;
+		public static string Bot_Channel = null;
 
 		public static DateTime StartupTime = DateTime.UtcNow.ToUniversalTime();
 		public static int TotalUsers = 0;

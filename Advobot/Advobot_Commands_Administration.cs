@@ -25,7 +25,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "setgame [New name]")]
 		[Summary("Changes the game the bot is currently listed as playing.")]
 		[BotOwnerRequirement]
-		public async Task SetGame([Remainder] String input)
+		public async Task SetGame([Remainder] string input)
 		{
 			//Check the game name length
 			if (input.Length > 128)
@@ -124,7 +124,7 @@ namespace Advobot
 		public async Task ListGuilds()
 		{
 			//Initialize a string
-			String info = "";
+			string info = "";
 
 			//Go through each guild and add them to the list
 			int count = 1;
@@ -142,7 +142,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "leaveguild <Guild ID>")]
 		[Summary("Makes the bot leave the guild.")]
 		[BotOwnerOrGuildOwnerRequirement]
-		public async Task LeaveServer([Optional, Remainder] String input)
+		public async Task LeaveServer([Optional, Remainder] string input)
 		{
 			//Get the guild out of an ID
 			ulong guildID = 0;
@@ -185,7 +185,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "serverlog [#Channel|Off]")]
 		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, deleting messages, and bans/unbans.")]
 		[PermissionRequirements]
-		public async Task Serverlog([Remainder] String input)
+		public async Task Serverlog([Remainder] string input)
 		{
 			ITextChannel serverlog = await Actions.setServerOrModLog(Context, input, Constants.SERVER_LOG_CHECK_STRING);
 			if (serverlog != null)
@@ -199,7 +199,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "modlog [#Channel|Off]")]
 		[Summary("Puts the modlog on the specified channel. Modlof is a log of all commands used.")]
 		[PermissionRequirements]
-		public async Task Modlog([Remainder] String input)
+		public async Task Modlog([Remainder] string input)
 		{
 			ITextChannel modlog = await Actions.setServerOrModLog(Context, input, Constants.MOD_LOG_CHECK_STRING);
 			if (modlog != null)

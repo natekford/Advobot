@@ -25,7 +25,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "fullmute [@User]")]
 		[Summary("Removes the user's ability to speak and type via the 'Muted' role.")]
 		[PermissionRequirements((1U << (int)GuildPermission.ManageRoles) | (1U << (int)GuildPermission.ManageMessages))]
-		public async Task FullMute([Remainder] String input)
+		public async Task FullMute([Remainder] string input)
 		{
 			//Check if role already exists, if not, create it
 			IRole muteRole = await Actions.createRoleIfNotFound(Context.Guild, Constants.MUTE_ROLE_NAME);
@@ -54,7 +54,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "fullunmute [@User]")]
 		[Summary("Gives the user back the ability to speak and type via removing the 'Muted' role.")]
 		[PermissionRequirements((1U << (int)GuildPermission.ManageRoles) | (1U << (int)GuildPermission.ManageMessages))]
-		public async Task FullUnmute([Remainder] String input)
+		public async Task FullUnmute([Remainder] string input)
 		{
 			//Test if valid user mention
 			IGuildUser user = await Actions.getUser(Context.Guild, input);
@@ -74,7 +74,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "kick [@User]")]
 		[Summary("Kicks the user from the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.KickMembers)]
-		public async Task Kick([Remainder] String input)
+		public async Task Kick([Remainder] string input)
 		{
 			//Test if valid user mention
 			IGuildUser inputUser = await Actions.getUser(Context.Guild, input);
@@ -112,10 +112,10 @@ namespace Advobot
 		[Summary("Removes users who have no roles and have not been seen in the past given amount of days. These users can rejoin via instant invites.\n" +
 			"Real means an actual prune, otherwise this returns the number of users that would have been pruned.")]
 		[PermissionRequirements]
-		public async Task PruneMembers([Remainder] String input)
+		public async Task PruneMembers([Remainder] string input)
 		{
 			//Split into the ints and 'bool'
-			String[] inputArray = input.Split(new char[] { ' ' }, 2);
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
 			int[] validDays = { 1, 7, 30 };
 
 			//Get the int
@@ -153,7 +153,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "softban [@User]")]
 		[Summary("Bans then unbans a user from the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.BanMembers)]
-		public async Task SoftBan([Remainder] String input)
+		public async Task SoftBan([Remainder] string input)
 		{
 			//Test if valid user mention
 			IGuildUser inputUser = await Actions.getUser(Context.Guild, input);
@@ -190,11 +190,11 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "ban [@User]")]
 		[Summary("Bans the user from the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.BanMembers)]
-		public async Task Ban([Remainder] String input)
+		public async Task Ban([Remainder] string input)
 		{
 
 			//Test number of arguments
-			String[] values = input.Split(' ');
+			string[] values = input.Split(' ');
 			if (values.Length != 2)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -243,12 +243,12 @@ namespace Advobot
 			}
 
 			//Forming the second half of the string that prints out when a user is successfully banned
-			String plurality = "days";
+			string plurality = "days";
 			if (pruneDays == 1)
 			{
 				plurality = "day";
 			}
-			String latterHalfOfString = "";
+			string latterHalfOfString = "";
 			if (pruneDays > 0)
 			{
 				latterHalfOfString = String.Format(", and deleted {0} {1} worth of messages.", pruneDays, plurality);
@@ -269,10 +269,10 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "unban [User|User#Discriminator|User ID]")]
 		[Summary("Unbans the user from the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.BanMembers)]
-		public async Task Unban([Remainder] String input)
+		public async Task Unban([Remainder] string input)
 		{
 			//Cut the user mention into the username and the discriminator
-			String[] values = input.Split('#');
+			string[] values = input.Split('#');
 			if (values.Length != 2)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -284,7 +284,7 @@ namespace Advobot
 
 			//Get their name and discriminator or ulong
 			ulong inputUserID;
-			String secondHalfOfTheSecondaryMessage = "";
+			string secondHalfOfTheSecondaryMessage = "";
 			
 			if (values.Length == 2)
 			{
@@ -294,7 +294,7 @@ namespace Advobot
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid discriminator provided."));
 				}
-				String username = values[0].Replace("@", "");
+				string username = values[0].Replace("@", "");
 
 				//Get a list of users with the name username and discriminator
 				List<IBan> bannedUserWithNameAndDiscriminator = bans.ToList().Where(x => x.User.Username.Equals(username) && x.User.Discriminator.Equals(discriminator)).ToList();
@@ -372,7 +372,7 @@ namespace Advobot
 			var bans = await Context.Guild.GetBansAsync();
 
 			//Initialize the ban string
-			String description = "";
+			string description = "";
 			
 			//Initialize the count
 			int count = 0;
@@ -389,7 +389,7 @@ namespace Advobot
 			{
 				if (!Constants.TEXT_FILE)
 				{
-					String hastebin = Actions.uploadToHastebin(Actions.replaceMessageCharacters(description));
+					string hastebin = Actions.uploadToHastebin(Actions.replaceMessageCharacters(description));
 					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(title: "Current Bans", description: hastebin));
 				}
 				else
@@ -414,9 +414,9 @@ namespace Advobot
 		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel." +
 			"People without administrator can only delete up to 100 messages at a time.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageMessages)]
-		public async Task RemoveMessages([Remainder] String input)
+		public async Task RemoveMessages([Remainder] string input)
 		{
-			String[] values = input.Split(' ');
+			string[] values = input.Split(' ');
 			if (values.Length < 1 || values.Length > 3)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -505,10 +505,10 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "giverole [@User] [Role]/<Role>/...")]
 		[Summary("Gives the user the role (assuming the person using the command and bot both have the ability to give that role).")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
-		public async Task GiveRole([Remainder] String input)
+		public async Task GiveRole([Remainder] string input)
 		{
 			//Test number of arguments
-			String[] values = input.Split(new char[] { ' ' }, 2);
+			string[] values = input.Split(new char[] { ' ' }, 2);
 			if (values.Length != 2)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -556,7 +556,7 @@ namespace Advobot
 				List<String> failedRoles = new List<String>();
 				List<String> succeededRoles = new List<String>();
 				List<IRole> roles = new List<IRole>();
-				foreach (String roleName in inputRoles)
+				foreach (string roleName in inputRoles)
 				{
 					IRole role = await Actions.getRoleEditAbility(Context, roleName, true);
 					if (role == null || role.IsManaged || role == Context.Guild.EveryoneRole)
@@ -571,7 +571,7 @@ namespace Advobot
 				}
 
 				//Format the success message
-				String succeed = "";
+				string succeed = "";
 				if (succeededRoles.Count > 0)
 				{
 					succeed = String.Format("Successfully gave `{0}#{1}` the `{2}` role{3}",
@@ -581,13 +581,13 @@ namespace Advobot
 						succeededRoles.Count > 1 ? "s" : "");
 				}
 				//Check if an and is needed
-				String and = ".";
+				string and = ".";
 				if (succeededRoles.Count > 0 && failedRoles.Count > 0)
 				{
 					and = " and ";
 				}
 				//Format the fail message
-				String failed = "";
+				string failed = "";
 				if (failedRoles.Count > 0)
 				{
 					failed = String.Format("{0}ailed to give{1} the `{2}` role{3}.",
@@ -607,10 +607,10 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "takerole [@User] [Role]")]
 		[Summary("Take the role from the user (assuming the person using the command and bot both have the ability to take that role).")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
-		public async Task TakeRole([Remainder] String input)
+		public async Task TakeRole([Remainder] string input)
 		{
 			//Test number of arguments
-			String[] values = input.Split(new char[] { ' ' }, 2);
+			string[] values = input.Split(new char[] { ' ' }, 2);
 			if (values.Length != 2)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -658,7 +658,7 @@ namespace Advobot
 				List<String> failedRoles = new List<String>();
 				List<String> succeededRoles = new List<String>();
 				List<IRole> roles = new List<IRole>();
-				foreach (String roleName in inputRoles)
+				foreach (string roleName in inputRoles)
 				{
 					IRole role = await Actions.getRoleEditAbility(Context, roleName, true);
 					if (role == null || role.IsManaged || role == Context.Guild.EveryoneRole)
@@ -673,20 +673,20 @@ namespace Advobot
 				}
 
 				//Format the success message
-				String succeed = "";
+				string succeed = "";
 				if (succeededRoles.Count > 0)
 				{
 					succeed = String.Format("Successfully took the `{0}` role{1} from `{2}#{3}`",
 						String.Join(", ", succeededRoles), succeededRoles.Count > 1 ? "s" : "", inputUser.Username, inputUser.Discriminator);
 				}
 				//Check if an and is needed
-				String and = ".";
+				string and = ".";
 				if (succeededRoles.Count > 0 && failedRoles.Count > 0)
 				{
 					and = " and ";
 				}
 				//Format the fail message
-				String failed = "";
+				string failed = "";
 				if (failedRoles.Count > 0)
 				{
 					failed = String.Format("{0}ailed to take the `{1}` role{2}{3}.",
@@ -704,7 +704,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "createrole [Role]")]
 		[Summary("Adds a role to the guild with the chosen name.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
-		public async Task CreateRole([Remainder] String input)
+		public async Task CreateRole([Remainder] string input)
 		{
 			//Check length
 			if (input.Length > Constants.ROLE_NAME_LENGTH)
@@ -723,7 +723,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "softdeleterole [Role]")]
 		[Summary("Removes all permissions from a role (and all channels the role had permissions on) and removes the role from everyone. Leaves the name and color behind.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
-		public async Task SoftDeleteRole([Remainder] String input)
+		public async Task SoftDeleteRole([Remainder] string input)
 		{
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
 			IRole inputRole = await Actions.getRoleEditAbility(Context, input);
@@ -760,7 +760,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "deleterole [Role]")]
 		[Summary("Deletes the role. 'Drole' is a pretty funny alias.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
-		public async Task DeleteRole([Remainder] String input)
+		public async Task DeleteRole([Remainder] string input)
 		{
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
 			IRole role = await Actions.getRoleEditAbility(Context, input);
@@ -787,10 +787,10 @@ namespace Advobot
 
 		[Command("editroleposition")]
 		[Alias("erpos")]
-		[Usage(Constants.BOT_PREFIX + "roleposition [Role] [int]")]
+		[Usage(Constants.BOT_PREFIX + "roleposition [Role] [New Position]")]
 		[Summary("Moves the role to the given position. @ev" + Constants.ZERO_LENGTH_CHAR + "eryone is the first position and starts at zero.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
-		public async Task RolePosition([Remainder] String input)
+		public async Task RolePosition([Remainder] string input)
 		{
 			//Get the role
 			IRole role = await Actions.getRoleEditAbility(Context, input.Substring(0, input.LastIndexOf(' ')));
@@ -860,7 +860,7 @@ namespace Advobot
 			var roles = Context.Guild.Roles.OrderBy(x => x.Position).Reverse().ToList();
 
 			//Put them into strings now
-			String description = "";
+			string description = "";
 			foreach (var role in roles)
 			{
 				if (role == Context.Guild.EveryoneRole)
@@ -888,14 +888,14 @@ namespace Advobot
 			"Type `" + Constants.BOT_PREFIX + "rolepermissions [Show]` to see the available permissions. " +
 			"Type `" + Constants.BOT_PREFIX + "rolepermissions [Show] [Role]` to see the permissions of that role.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
-		public async Task RolePermissions([Remainder] String input)
+		public async Task RolePermissions([Remainder] string input)
 		{
 			//Set the permission types into a list to later check against
 			List<String> permissionTypeStrings = Variables.PermissionNames.Values.ToList();
 
-			String[] actionRolePerms = input.ToLower().Split(new char[] { ' ' }, 2); //Separate the role and whether to add or remove from the permissions
-			String permsString = null; //Set placeholder perms variable
-			String roleString = null; //Set placeholder role variable
+			string[] actionRolePerms = input.ToLower().Split(new char[] { ' ' }, 2); //Separate the role and whether to add or remove from the permissions
+			string permsString = null; //Set placeholder perms variable
+			string roleString = null; //Set placeholder role variable
 			bool show = false; //Set show bool
 
 			//If the user wants to see the permission types, print them out
@@ -948,13 +948,13 @@ namespace Advobot
 						currentRolePerms.Add(Variables.PermissionNames[bit]);
 					}
 				}
-				String permissionsString = String.IsNullOrEmpty(String.Join("\n", currentRolePerms)) ? "No permissions" : String.Join("\n", currentRolePerms);
+				string permissionsString = String.IsNullOrEmpty(String.Join("\n", currentRolePerms)) ? "No permissions" : String.Join("\n", currentRolePerms);
 				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, role.Name, permissionsString));
 				return;
 			}
 
 			//See if it's add or remove
-			String addOrRemove = actionRolePerms[0];
+			string addOrRemove = actionRolePerms[0];
 			bool add;
 			if (addOrRemove.Equals("add"))
 			{
@@ -977,7 +977,7 @@ namespace Advobot
 			if (validPerms.Count != permissions.Count)
 			{
 				List<String> invalidPermissions = new List<String>();
-				foreach (String permission in permissions)
+				foreach (string permission in permissions)
 				{
 					if (!validPerms.Contains(permission, StringComparer.OrdinalIgnoreCase))
 					{
@@ -992,7 +992,7 @@ namespace Advobot
 
 			//Determine the permissions being added
 			uint rolePermissions = 0;
-			foreach (String permission in permissions)
+			foreach (string permission in permissions)
 			{
 				List<String> perms = Variables.PermissionValues.Keys.ToList();
 				try
@@ -1054,11 +1054,11 @@ namespace Advobot
 		[Summary("Copies the permissions from the first role to the second role. Will not copy roles that the user does not have access to." +
 			"Will not overwrite roles that are above the user's top role.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
-		public async Task CopyRolePermissions([Remainder] String input)
+		public async Task CopyRolePermissions([Remainder] string input)
 		{
 			//Put the input into a string
 			input = input.ToLower();
-			String[] roles = input.Split(new char[] { '/' }, 2);
+			string[] roles = input.Split(new char[] { '/' }, 2);
 
 			//Test if two roles were input
 			if (roles.Length != 2)
@@ -1122,7 +1122,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "clearrolepermissions [Role]")]
 		[Summary("Removes all permissions from a role.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
-		public async Task ClearRolePermissions([Remainder] String input)
+		public async Task ClearRolePermissions([Remainder] string input)
 		{
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
 			IRole role = await Actions.getRoleEditAbility(Context, input);
@@ -1139,10 +1139,10 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "changerolename [Role|Position{x}]/[New Name]")]
 		[Summary("Changes the name of the role. This is *extremely* useful for when multiple roles have the same name but you want to edit things.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
-		public async Task ChangeRoleName([Remainder] String input)
+		public async Task ChangeRoleName([Remainder] string input)
 		{
 			//Split at the current role name and the new role name
-			String[] values = input.Split(new char[] { '/' }, 2);
+			string[] values = input.Split(new char[] { '/' }, 2);
 
 			//Check if correct number of arguments
 			if (values.Length != 2)
@@ -1190,7 +1190,7 @@ namespace Advobot
 				return;
 
 			//Get a before name
-			String beforeName = role.Name;
+			string beforeName = role.Name;
 
 			//Check if it's the everyone role
 			if (role == Context.Guild.EveryoneRole)
@@ -1210,9 +1210,9 @@ namespace Advobot
 		[Summary("Changes the role's color. A color of '0' sets the role back to the default color. " +
 			"Colors must either be in hexadecimal format or be a color listed [here](https://msdn.microsoft.com/en-us/library/system.drawing.color).")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
-		public async Task ChangeRoleColor([Remainder] String input)
+		public async Task ChangeRoleColor([Remainder] string input)
 		{
-			String[] values = input.Split(new char[] { '/' }, 2);
+			string[] values = input.Split(new char[] { '/' }, 2);
 
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
 			IRole role = await Actions.getRoleEditAbility(Context, values[0]);
@@ -1223,7 +1223,7 @@ namespace Advobot
 			if (colorID == 0)
 			{
 				//Couldn't get name
-				String hexString = values[1];
+				string hexString = values[1];
 				//Remove 0x if someone put that in there
 				if (hexString.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
 				{
@@ -1248,10 +1248,15 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "createchannel [Name] [Text|Voice]")]
 		[Summary("Adds a channel to the guild of the given type with the given name. The name CANNOT contain any spaces: use underscores or dashes instead.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
-		public async Task CreateChannel([Remainder] String input)
+		public async Task CreateChannel([Remainder] string input)
 		{
-			String[] values = input.Split(' ');
-			String type = values[1];
+			string[] values = input.Split(' ');
+			if (values.Length != 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+			string type = values[1];
 
 			//Test for args
 			if (values.Length != 2)
@@ -1303,7 +1308,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "softdeletechannel [#Channel]")]
 		[Summary("Makes most roles unable to read the channel and moves it to the bottom of the channel list. Only works for text channels.")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
-		public async Task SoftDeleteChannel([Remainder] String input)
+		public async Task SoftDeleteChannel([Remainder] string input)
 		{
 			//See if the input name has spaces
 			if (input.Contains(' '))
@@ -1369,7 +1374,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "deletechannel " + Constants.CHANNEL_INSTRUCTIONS)]
 		[Summary("Deletes the channel.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
-		public async Task DeleteChannel([Remainder] String input)
+		public async Task DeleteChannel([Remainder] string input)
 		{
 			//See if the user can see and thus edit that channel
 			IGuildChannel channel = await Actions.getChannelEditAbility(Context, input);
@@ -1387,14 +1392,14 @@ namespace Advobot
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0} ({1})`.", channel.Name, Actions.getChannelType(channel)));
 		}
 
-		[Command("editchannelposition")]
-		[Alias("echpos")]
-		[Usage(Constants.BOT_PREFIX + "channelposition " + Constants.CHANNEL_INSTRUCTIONS + " [int]")]
+		[Command("channelposition")]
+		[Alias("chpos")]
+		[Usage(Constants.BOT_PREFIX + "channelposition " + Constants.CHANNEL_INSTRUCTIONS + " [New Position]")]
 		[Summary("Gives the channel the given position. Position one is the top most position and counting starts at zero. This command is extremely buggy!")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
-		public async Task ChannelPosition([Remainder] String input)
+		public async Task ChannelPosition([Remainder] string input)
 		{
-			String[] values = input.Split(new char[] { ' ' }, 2);
+			string[] values = input.Split(new char[] { ' ' }, 2);
 
 			//Get the channel
 			IGuildChannel channel = await Actions.getChannelEditAbility(Context, values[0]);
@@ -1459,15 +1464,15 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "listchannelpositions [Text|Voice]")]
 		[Summary("Lists the positions of each text or voice channel on the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
-		public async Task ListChannelPositions([Remainder] String input)
+		public async Task ListChannelPositions([Remainder] string input)
 		{
 			//Check if valid type
 			if (!input.Equals(Constants.VOICE_TYPE) && !input.Equals(Constants.TEXT_TYPE))
 				return;
 
 			//Initialize the string
-			String title;
-			String description = "";
+			string title;
+			string description = "";
 			if (input.Equals(Constants.VOICE_TYPE))
 			{
 				title = "Voice Channels Positions";
@@ -1507,7 +1512,7 @@ namespace Advobot
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel]` to see all permissions on a channel. " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel] [Role|User]` to see permissions a role/user has on a channel.")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
-		public async Task ChannelPermissions([Remainder] String input)
+		public async Task ChannelPermissions([Remainder] string input)
 		{
 			//Set the variables
 			List<String> permissions = null;
@@ -1516,10 +1521,10 @@ namespace Advobot
 			IRole role = null;
 
 			//Split the input
-			String[] values = input.ToLower().Trim().Split(new char[] { ' ' }, 2);
+			string[] values = input.ToLower().Trim().Split(new char[] { ' ' }, 2);
 			if (values.Length == 0)
 				return;
-			String actionName = values[0];
+			string actionName = values[0];
 
 			if (actionName.Equals("show"))
 			{
@@ -1617,7 +1622,7 @@ namespace Advobot
 					return;
 
 				//Check if valid perms and potential role/user
-				String potentialRoleOrUser;
+				string potentialRoleOrUser;
 				if (Actions.getStringAndPermissions(values[1], out potentialRoleOrUser, out permissions))
 				{
 					//See if valid role
@@ -1653,7 +1658,7 @@ namespace Advobot
 			if (validPerms.Count != permissions.Count)
 			{
 				List<String> invalidPerms = new List<String>();
-				foreach (String permission in permissions)
+				foreach (string permission in permissions)
 				{
 					if (!validPerms.Contains(permission, StringComparer.OrdinalIgnoreCase))
 					{
@@ -1694,7 +1699,7 @@ namespace Advobot
 			}
 
 			//Changing the bit values
-			foreach (String permission in permissions)
+			foreach (string permission in permissions)
 			{
 				changeValue = await Actions.getBit(Context, permission, changeValue);
 			}
@@ -1718,7 +1723,7 @@ namespace Advobot
 			}
 
 			//Change the permissions
-			String roleNameOrUsername;
+			string roleNameOrUsername;
 			if (role != null)
 			{
 				await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions((uint)allowBits, (uint)denyBits));
@@ -1739,10 +1744,10 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "copychannelpermissions " + Constants.CHANNEL_INSTRUCTIONS + " " + Constants.CHANNEL_INSTRUCTIONS + " [Role|User|All]")]
 		[Summary("Copy permissions from one channel to another. Works for a role, a user, or everything.")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
-		public async Task CopyChannelPermissions([Remainder] String input)
+		public async Task CopyChannelPermissions([Remainder] string input)
 		{
 			//Get arguments
-			String[] inputArray = input.ToLower().Split(new char[] { ' ' }, 3);
+			string[] inputArray = input.ToLower().Split(new char[] { ' ' }, 3);
 
 			//Separating the channels
 			IGuildChannel inputChannel = await Actions.getChannel(Context, inputArray[0]);
@@ -1761,7 +1766,7 @@ namespace Advobot
 			inputArray[2] = inputArray[2].Trim();
 
 			//Copy the selected target
-			String target;
+			string target;
 			if (inputArray[2].Equals("all"))
 			{
 				target = "ALL";
@@ -1816,7 +1821,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "clearchannelpermissions " + Constants.CHANNEL_INSTRUCTIONS)]
 		[Summary("Removes all permissions set on a channel.")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
-		public async Task ClearChannelPermissions([Remainder] String input)
+		public async Task ClearChannelPermissions([Remainder] string input)
 		{
 			//See if the user can see and thus edit that channel
 			IGuildChannel channel = await Actions.getChannelEditAbility(Context, input);
@@ -1846,14 +1851,14 @@ namespace Advobot
 				channel.Name, Actions.getChannelType(channel)), 7500);
 		}
 
-		[Command("changechannelname")]
-		[Alias("cchn")]
-		[Usage(Constants.BOT_PREFIX + "changechannelname [#Channel|[Channel|Position{x}/Text|Voice]] [New Name]")]
+		[Command("channelname")]
+		[Alias("chn")]
+		[Usage(Constants.BOT_PREFIX + "channelname [#Channel|[Channel|Position{x}/Text|Voice]] [New Name]")]
 		[Summary("Changes the name of the channel. This is *extremely* useful for when multiple channels have the same name but you want to edit things.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
-		public async Task ChangeChannelName([Remainder] String input)
+		public async Task ChangeChannelName([Remainder] string input)
 		{
-			String[] inputArray = input.Split(new char[] { ' ' }, 2);
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -1885,9 +1890,9 @@ namespace Advobot
 			if (inputArray[0].ToLower().Contains("position{") && int.TryParse(inputArray[0].Substring(9, 1), out position))
 			{
 				//Split the input
-				String[] splitInputArray = inputArray[0].Split(new char[] { '/' }, 2);
+				string[] splitInputArray = inputArray[0].Split(new char[] { '/' }, 2);
 				//Give the channeltype
-				String channelType = splitInputArray[1].ToLower();
+				string channelType = splitInputArray[1].ToLower();
 
 				//Initialize the channels list
 				var textChannels = new List<ITextChannel>();
@@ -1933,25 +1938,25 @@ namespace Advobot
 			if (channel == null)
 				return;
 
-			String previousName = channel.Name;
+			string previousName = channel.Name;
 			await channel.ModifyAsync(x => x.Name = inputArray[1]);
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed channel `{0}` to `{1}`.", previousName, inputArray[1]), 5000);
 		}
 
-		[Command("changechanneltopic")]
-		[Alias("ccht")]
-		[Usage(Constants.BOT_PREFIX + "changechanneltopic [#Channel] [New Topic]")]
+		[Command("channeltopic")]
+		[Alias("cht")]
+		[Usage(Constants.BOT_PREFIX + "channeltopic [#Channel] [New Topic]")]
 		[Summary("Changes the subtext of a channel to whatever is input.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
-		public async Task ChangeChannelTopic([Remainder] String input)
+		public async Task ChangeChannelTopic([Remainder] string input)
 		{
-			String[] inputArray = input.Split(new char[] { ' ' }, 2);
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
-			String newTopic = inputArray[1];
+			string newTopic = inputArray[1];
 
 			//See if valid length
 			if (newTopic.Length > Constants.TOPIC_LENGTH)
@@ -1973,7 +1978,7 @@ namespace Advobot
 			}
 
 			//See what current topic is
-			String currentTopic = (channel as ITextChannel).Topic;
+			string currentTopic = (channel as ITextChannel).Topic;
 			if (String.IsNullOrWhiteSpace(currentTopic))
 			{
 				currentTopic = "NOTHING";
@@ -1984,15 +1989,99 @@ namespace Advobot
 				channel.Name, currentTopic, newTopic == "" ? "NOTHING" : newTopic));
 		}
 
+		[Command("channellimit")]
+		[Alias("chl")]
+		[Usage(Constants.BOT_PREFIX + "channellimit [Channel Name] [New Limit]")]
+		[Summary("Changes the limit to how many users can be in a voice channel. The limit ranges from 0 (no limit) to 99.")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		public async Task ChangeChannelLimit([Remainder] string input)
+		{
+			//Separate the input
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
+			string channelName = inputArray[0];
+			string newLimit = inputArray[1];
+
+			//Check if valid channel that the user can edit
+			IGuildChannel channel = await Actions.getChannelEditAbility(Context, channelName + "/voice");
+			if (channel == null)
+				return;
+			else if (Actions.getChannelType(channel) != Constants.VOICE_TYPE)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Only a voice channel can have a limit set on it."));
+				return;
+			}
+
+			//Check if valid number
+			int limit = 0;
+			if (!int.TryParse(newLimit, out limit))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The second argument is not a valid number."));
+				return;
+			}
+
+			//Check if number between 0 and 99
+			if (limit > 99 || limit < 0)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Number must be between 0 and 99 inclusive."));
+				return;
+			}
+
+			//Change it and send a success message
+			await (channel as IVoiceChannel).ModifyAsync(x => x.UserLimit = limit);
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}`.", channel.Name, limit));
+		}
+
+		[Command("channelbitrate")]
+		[Alias("chbr")]
+		[Usage(Constants.BOT_PREFIX + "channelbitrate [Channel Name] [8 to 96]")]
+		[Summary("Changes the bit rate (in kbps) on the selected channel to the given value. The default value is 64.")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		public async Task ChangeChannelBitRate([Remainder] string input)
+		{
+			//Separate the input
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
+			string channelName = inputArray[0];
+			string newBitRate = inputArray[1];
+
+			//Check if valid channel that the user can edit
+			IGuildChannel channel = await Actions.getChannelEditAbility(Context, channelName + "/voice");
+			if (channel == null)
+				return;
+			else if (Actions.getChannelType(channel) != Constants.VOICE_TYPE)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Only a voice channel can have its bit rate changed."));
+				return;
+			}
+
+			//Check if valid number
+			int bitRate = 0;
+			if (!int.TryParse(newBitRate, out bitRate))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The second argument is not a valid number."));
+				return;
+			}
+
+			//Check if number between 8 and 96 
+			if (bitRate > 96 || bitRate < 8)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Number must be between 8 and 96 inclusive."));
+				return;
+			}
+
+			//Change it and send a success message
+			await (channel as IVoiceChannel).ModifyAsync(x => x.Bitrate = bitRate * 1000);
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}kbps`.", channel.Name, bitRate));
+		}
+
 		[Command("moveuser")]
 		[Alias("mu")]
 		[Usage(Constants.BOT_PREFIX + "moveuser [@User] [Channel]")]
 		[Summary("Moves the user to the given voice channel.")]
 		[PermissionRequirements(1U << (int)GuildPermission.MoveMembers)]
-		public async Task MoveUser([Remainder] String input)
+		public async Task MoveUser([Remainder] string input)
 		{
 			//Input and splitting
-			String[] inputArray = input.Split(new char[] { ' ' }, 2);
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
 
 			//Check if valid user
 			IGuildUser user = await Actions.getUser(Context.Guild, inputArray[0]);
@@ -2026,10 +2115,7 @@ namespace Advobot
 			//Check if valid channel
 			IGuildChannel channel = await Actions.getChannelEditAbility(Context, inputArray[1] + "/voice");
 			if (channel == null)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
 				return;
-			}
 			else if (Actions.getChannelType(channel) != Constants.VOICE_TYPE)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Users can only be moved to a voice channel."));
@@ -2052,7 +2138,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "mute [@User]")]
 		[Summary("If the user is not guild muted, this will mute them. If they are guild muted, this will unmute them.")]
 		[PermissionRequirements(1U << (int)GuildPermission.MuteMembers)]
-		public async Task Mute([Remainder] String input)
+		public async Task Mute([Remainder] string input)
 		{
 			//Test if valid user mention
 			IGuildUser user = await Actions.getUser(Context.Guild, input);
@@ -2078,7 +2164,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "deafen [@User]")]
 		[Summary("Bans then unbans a user from the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.DeafenMembers)]
-		public async Task Deafen([Remainder] String input)
+		public async Task Deafen([Remainder] string input)
 		{
 			//Test if valid user mention
 			IGuildUser user = await Actions.getUser(Context.Guild, input);
@@ -2104,11 +2190,11 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "nickname [@User] [New Nickname|Remove]")]
 		[Summary("Gives the user a nickname.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageNicknames)]
-		public async Task Nickname([Remainder] String input)
+		public async Task Nickname([Remainder] string input)
 		{
 			//Input and splitting
-			String[] inputArray = input.Split(new char[] { ' ' }, 2);
-			String nickname;
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
+			string nickname;
 			if (inputArray.Length == 2)
 			{
 				if (inputArray[1].ToLower().Equals("remove"))
@@ -2168,7 +2254,7 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "allwithrole <File|Upload> [Role]")]
 		[Summary("Prints out a list of all users with the given role. File specifies a text document which can show more symbols. Upload specifies to use a text uploader.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
-		public async Task AllWithRole([Remainder] String input)
+		public async Task AllWithRole([Remainder] string input)
 		{
 			//Split into the bools and role
 			List<String> values = input.Split(new char[] { ' ' }, 2).ToList();
@@ -2209,7 +2295,7 @@ namespace Advobot
 			{
 				if (x.RoleIds.ToList().Contains(role.Id))
 				{
-					String text = "`" + x.Username + "#" + x.Discriminator + "`";
+					string text = "`" + x.Username + "#" + x.Discriminator + "`";
 					usersMentions.Add(text);
 					usersText.Add("`" + count++.ToString("00") + ".` " + x.Username + "#" + x.Discriminator + " ID: " + x.Id);
 					characters += text.Length + 3;
@@ -2217,10 +2303,10 @@ namespace Advobot
 			});
 
 			//Checking if the message can fit in a single message
-			String roleName = role.Name.Substring(0, 3) + Constants.ZERO_LENGTH_CHAR + role.Name.Substring(3);
+			string roleName = role.Name.Substring(0, 3) + Constants.ZERO_LENGTH_CHAR + role.Name.Substring(3);
 			if (characters > 1000 || overwriteBool)
 			{
-				String info = Actions.replaceMessageCharacters(String.Join("\n", usersText));
+				string info = Actions.replaceMessageCharacters(String.Join("\n", usersText));
 				if (!textFileBool)
 				{
 					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, roleName, Actions.uploadToHastebin(info)));
@@ -2240,11 +2326,11 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "forallwithrole [Give|Take|Nickname] [Role]/[Role|Nickname] <" + Constants.BYPASS_STRING + ">")]
 		[Summary("Only self hosted bots are allowed to go past ten members per use. When used on a self bot, \"" + Constants.BYPASS_STRING + "\" removes the 10 user limit.")]
 		[PermissionRequirements]
-		public async Task ForAllWithRole([Remainder] String input)
+		public async Task ForAllWithRole([Remainder] string input)
 		{
 			//Separating input into the action and role/role or nickname + bypass
-			String[] inputArray = input.Split(new char[] { ' ' }, 2);
-			String action = inputArray[0];
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
+			string action = inputArray[0];
 			if (inputArray.Length < 2)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -2252,7 +2338,7 @@ namespace Advobot
 			}
 
 			//Separate role/role or nickname + bypass into role and role or nickname + bypass
-			String[] values = inputArray[1].Split('/');
+			string[] values = inputArray[1].Split('/');
 			if (values.Length != 2)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -2378,7 +2464,7 @@ namespace Advobot
 				}
 
 				//Check if valid nickname length
-				String inputNickname = values[1];
+				string inputNickname = values[1];
 				if (inputNickname.Length > Constants.NICKNAME_LENGTH)
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be longer than 32 charaters."));
@@ -2427,13 +2513,13 @@ namespace Advobot
 		[Usage(Constants.BOT_PREFIX + "listuserswithname [Name]")]
 		[Summary("Lists all users where their username contains the given string.")]
 		[UserHasAPermission]
-		public async Task ListUsersWithName([Remainder] String input)
+		public async Task ListUsersWithName([Remainder] string input)
 		{
 			//Find the users
 			var users = (await Context.Guild.GetUsersAsync()).Where(x => x.Username.IndexOf(input, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.JoinedAt).ToList();
 
 			//Initialize the string
-			String description = "";
+			string description = "";
 
 			//Add them to the string
 			int count = 1;
@@ -2443,7 +2529,7 @@ namespace Advobot
 			});
 
 			//Set the title
-			String title = String.Format("Users With Names Containing '{0}'", input);
+			string title = String.Format("Users With Names Containing '{0}'", input);
 
 			//See if the string length is over the check amount
 			if (description.Length > Constants.LENGTH_CHECK)
@@ -2467,12 +2553,12 @@ namespace Advobot
 			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, title, description));
 		}
 
-		[Command("changeguildname")]
-		[Alias("cgn")]
-		[Usage(Constants.BOT_PREFIX + "changeguildname [New Name]")]
+		[Command("guildname")]
+		[Alias("gn")]
+		[Usage(Constants.BOT_PREFIX + "guildname [New Name]")]
 		[Summary("Change the name of the guild to the given name.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
-		public async Task ChangeGuildName([Remainder] String input)
+		public async Task ChangeGuildName([Remainder] string input)
 		{
 			//Guild names have the same length requirements as channel names, so I'm not changing the variable names
 
@@ -2493,12 +2579,12 @@ namespace Advobot
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild name to `{0}`.", input));
 		}
 
-		[Command("changeguildregion")]
-		[Alias("cgr")]
-		[Usage(Constants.BOT_PREFIX + "changeguildregion [Regions|Current|Region ID]")]
+		[Command("guildregion")]
+		[Alias("greg")]
+		[Usage(Constants.BOT_PREFIX + "guildregion [Regions|Current|Region ID]")]
 		[Summary("Shows or changes the guild's server region. `Regions` lists all valid region IDs.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
-		public async Task ChangeGuildLocation([Remainder] String input)
+		public async Task ChangeGuildLocation([Remainder] string input)
 		{
 			//Check if a valid region or asking to see the region types
 			if (input.ToLower().Equals("regions"))
@@ -2512,7 +2598,7 @@ namespace Advobot
 			else if (Constants.VALIDREGIONIDS.Contains(input.ToLower()))
 			{
 				//Capture the previous region
-				String bRegion = Context.Guild.VoiceRegionId;
+				string bRegion = Context.Guild.VoiceRegionId;
 
 				//Change the region
 				await Context.Guild.ModifyAsync(x => x.RegionId = input);
@@ -2524,15 +2610,15 @@ namespace Advobot
 			}
 		}
 
-		[Command("changeguildafk")]
-		[Alias("cgafk")]
-		[Usage(Constants.BOT_PREFIX + "changeguildafk [Channel|Time] [Voice Channel Name|Time in Seconds]")]
+		[Command("guildafk")]
+		[Alias("gafk")]
+		[Usage(Constants.BOT_PREFIX + "guildafk [Channel|Time] [Voice Channel Name|Time in Seconds]")]
 		[Summary("The first argument tells if the channel or timer is going to be changed. The second is what it will be changed to.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
-		public async Task ChangeGuildAFK([Remainder] String input)
+		public async Task ChangeGuildAFK([Remainder] string input)
 		{
 			//Split at space into two args
-			String[] inputArray = input.Split(new char[] { ' ' }, 2);
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
 
 			//Check if valid number of args
 			if (inputArray.Length != 2)
@@ -2547,10 +2633,7 @@ namespace Advobot
 				//Check if valid channel
 				IGuildChannel channel = await Actions.getChannelEditAbility(Context, inputArray[1] + "/voice");
 				if (channel == null)
-				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
 					return;
-				}
 				else if (Actions.getChannelType(channel) != Constants.VOICE_TYPE)
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The guild's afk channel has to be a voice channel."));
@@ -2558,7 +2641,7 @@ namespace Advobot
 				}
 
 				//Capture the before channel
-				String bChan = Context.Guild.AFKChannelId.HasValue ? (await Context.Guild.GetChannelAsync(Context.Guild.AFKChannelId.Value)).Name : "Nothing";
+				string bChan = Context.Guild.AFKChannelId.HasValue ? (await Context.Guild.GetChannelAsync(Context.Guild.AFKChannelId.Value)).Name : "Nothing";
 
 				//Change the afk channel to the input
 				await Context.Guild.ModifyAsync(x => x.AfkChannelId = channel.Id);
@@ -2583,7 +2666,7 @@ namespace Advobot
 				}
 
 				//Capture the before timer
-				String bTime = Context.Guild.AFKTimeout.ToString();
+				string bTime = Context.Guild.AFKTimeout.ToString();
 
 				//Change the afk timer
 				await Context.Guild.ModifyAsync(x => x.AfkTimeout = time);
@@ -2595,12 +2678,12 @@ namespace Advobot
 			}
 		}
 
-		[Command("changeguildmsgnotifications")]
-		[Alias("cgmn")]
-		[Usage(Constants.BOT_PREFIX + "changeguildmsgnotifications [All Messages|Mentions Only]")]
+		[Command("guildmsgnotifications")]
+		[Alias("gmn")]
+		[Usage(Constants.BOT_PREFIX + "guildmsgnotifications [All Messages|Mentions Only]")]
 		[Summary("Changes the message notifications to either all messages or mentions only.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
-		public async Task ChangeGuildMsgNotifications([Remainder] String input)
+		public async Task ChangeGuildMsgNotifications([Remainder] string input)
 		{
 			if (input.ToLower().Equals("all messages"))
 			{
@@ -2618,12 +2701,12 @@ namespace Advobot
 			}
 		}
 
-		[Command("changeguildverification")]
-		[Alias("cgv")]
-		[Usage(Constants.BOT_PREFIX + "changeguildverification [0|1|2|3]")]
+		[Command("guildverification")]
+		[Alias("gv")]
+		[Usage(Constants.BOT_PREFIX + "guildverification [0|1|2|3]")]
 		[Summary("Changes the verification level. 0 is the most lenient (no requirements to type), 3 is the harshest (10 minutes in the guild before new members can type).")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
-		public async Task ChangeGuildVerification([Remainder] String input)
+		public async Task ChangeGuildVerification([Remainder] string input)
 		{
 			//Check if valid int
 			int vLevel = -1;
@@ -2645,19 +2728,27 @@ namespace Advobot
 				await Context.Guild.ModifyAsync(x => x.VerificationLevel = (VerificationLevel)vLevel);
 				
 				//Get the verification level's name as a string
-				String vString = Enum.GetName(typeof(VerificationLevel), vLevel);
+				string vString = Enum.GetName(typeof(VerificationLevel), vLevel);
 				//Send a success message
 				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild verification level as `{0}`.", vString));
 			}
 		}
 
-		[Command("changeguildicon")]
-		[Alias("cgi")]
-		[Usage(Constants.BOT_PREFIX + "changeguildicon [Attached Image|Embedded Image]")]
+		[Command("guildicon")]
+		[Alias("gi")]
+		[Usage(Constants.BOT_PREFIX + "guildicon [Attached Image|Embedded Image|Remove]")]
 		[Summary("Changes the guild icon to the given image. Must be less than 2.5MB simply because the bot would use more data and be slower otherwise.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
-		public async Task ChangeGuildIcon()
+		public async Task ChangeGuildIcon([Optional] string input)
 		{
+			//See if the user wants to remove the icon
+			if (input.ToLower().Equals("remove"))
+			{
+				await Context.Guild.ModifyAsync(x => x.Icon = new Image());
+				await Actions.sendChannelMessage(Context.Channel, "Successfully removed the guild's icon.");
+				return;
+			}
+
 			//Check if there are even any attachments or embeds
 			if (Context.Message.Attachments.Count + Context.Message.Embeds.Count == 0)
 			{
@@ -2672,7 +2763,7 @@ namespace Advobot
 			}
 
 			//Get the URL of the image
-			String imageURL = null;
+			string imageURL = null;
 			if (Context.Message.Embeds.Count == 1)
 			{
 				imageURL = Context.Message.Embeds.First().Thumbnail.ToString();
@@ -2680,13 +2771,6 @@ namespace Advobot
 			else
 			{
 				imageURL = Context.Message.Attachments.First().Url;
-			}
-
-			//Check if the image has a valid image type in its URL (for simplicity's sake)
-			if (!Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(imageURL).ToLower()))
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Either not an image or required further checking than the URL to determine if it was one."));
-				return;
 			}
 
 			//Run separate due to the time it takes
@@ -2702,13 +2786,24 @@ namespace Advobot
 					{
 						if (ContentLength > 2625000)
 						{
+							//Check if bigger than 2.5MB
 							await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Image is bigger than 2.5MB. Please manually upload instead."));
 							return;
 						}
 						else if (ContentLength == 0)
 						{
+							//Check if nothing was gotten
 							await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to get the image's file size."));
 							return;
+						}
+						else
+						{
+							//Check if valid content type
+							if (!Constants.VALIDIMAGEEXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
+							{
+								await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Image must be a png or jpg."));
+								return;
+							}
 						}
 					}
 					else
@@ -2719,7 +2814,7 @@ namespace Advobot
 				}
 
 				//Set the name of the file to prevent typos between the three places that use it
-				String path = Actions.getServerFilePath(Context.Guild.Id, "guildicon" + Path.GetExtension(imageURL).ToLower());
+				string path = Actions.getServerFilePath(Context.Guild.Id, "guildicon" + Path.GetExtension(imageURL).ToLower());
 
 				//Download the image
 				using (var webclient = new WebClient())
@@ -2749,6 +2844,47 @@ namespace Advobot
 				File.Delete(path);
 				await Actions.sendChannelMessage(Context.Channel, "Successfully changed the guild icon.");
 			});
+		}
+
+		[Command("listemojis")]
+		[Alias("lemojis")]
+		[Usage(Constants.BOT_PREFIX + "listemojis [Global|Guild]")]
+		[Summary("Lists the emoji in the guild. As of right now, with the current API wrapper version this bot uses, there's no way to upload or remove emojis yet; sorry.")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageEmojis)]
+		public async Task ListEmojis([Remainder] string input)
+		{
+			//Make the string
+			string description = null;
+
+			//Add the emojis to the string
+			int count = 1;
+			if (input.ToLower().Equals("guild"))
+			{
+				//Get all of the guild emojis
+				Context.Guild.Emojis.Where(x => !x.IsManaged).ToList().ForEach(x =>
+				{
+						description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
+				});
+			}
+			else if (input.ToLower().Equals("global"))
+			{
+				//Get all of the global emojis
+				Context.Guild.Emojis.Where(x => x.IsManaged).ToList().ForEach(x =>
+				{
+					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
+				});
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option."));
+				return;
+			}
+
+			//Check if the description is still null
+			description = description ?? String.Format("This guild has no {0} emojis.", input.ToLower());
+
+			//Send the embed
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Emojis", description));
 		}
 	}
 }

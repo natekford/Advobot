@@ -41,11 +41,11 @@ namespace Advobot
 				List<MethodInfo> methods = classType.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic).ToList();
 				foreach (var method in methods)
 				{
-					String name = "N/A";
-					String[] aliases = { "N/A" };
-					String usage = "N/A";
-					String basePerm = "N/A";
-					String text = "N/A";
+					string name = "N/A";
+					string[] aliases = { "N/A" };
+					string usage = "N/A";
+					string basePerm = "N/A";
+					string text = "N/A";
 					//Actions.writeLine(classType.Name + "." + method.Name);
 					{
 						CommandAttribute attr = (CommandAttribute)method.GetCustomAttribute(typeof(CommandAttribute));
@@ -115,7 +115,7 @@ namespace Advobot
 		{
 			for (int i = 0; i < 32; ++i)
 			{
-				String name = "";
+				string name = "";
 				try
 				{
 					name = Enum.GetName(typeof(GuildPermission), (GuildPermission)i);
@@ -165,7 +165,7 @@ namespace Advobot
 
 			for (int i = 0; i < 32; i++)
 			{
-				String name = "";
+				string name = "";
 				try
 				{
 					name = Enum.GetName(typeof(ChannelPermission), (ChannelPermission)i);
@@ -205,7 +205,7 @@ namespace Advobot
 			categories = new List<PreferenceCategory>();
 			Variables.CommandPreferences[guild.Id] = categories;
 
-			String path = getServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
+			string path = getServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
 			if (!File.Exists(path))
 			{
 				path = "DefaultCommandPreferences.txt";
@@ -215,7 +215,7 @@ namespace Advobot
 			{
 				Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": preferences for the server " + guild.Name + " have been loaded.");
 				//Read the preferences document for information
-				String line;
+				string line;
 				while ((line = file.ReadLine()) != null)
 				{
 					//If the line is empty, do nothing
@@ -232,7 +232,7 @@ namespace Advobot
 					else
 					{
 						//Split before and after the colon, before is the setting name, after is the value
-						String[] values = line.Split(new char[] { ':' }, 2);
+						string[] values = line.Split(new char[] { ':' }, 2);
 						if (values.Length == 2)
 						{
 							categories[categories.Count - 1].mSettings.Add(new PreferenceSetting(values[0], values[1]));
@@ -249,7 +249,7 @@ namespace Advobot
 
 		#region Gets
 		//Complex get a role on the server
-		public static async Task<IRole> getRole(CommandContext context, String roleName)
+		public static async Task<IRole> getRole(CommandContext context, string roleName)
 		{
 			if (roleName.StartsWith("<@"))
 			{
@@ -275,7 +275,7 @@ namespace Advobot
 		}
 		
 		//Simple get a role on the server
-		public static IRole getRole(IGuild guild, String roleName)
+		public static IRole getRole(IGuild guild, string roleName)
 		{
 			return guild.Roles.ToList().FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
 		}
@@ -293,14 +293,14 @@ namespace Advobot
 		}
 		
 		//Get a user
-		public static async Task<IGuildUser> getUser(IGuild guild, String userName)
+		public static async Task<IGuildUser> getUser(IGuild guild, string userName)
 		{
 			IGuildUser user = await guild.GetUserAsync(getUlong(userName.Trim(new char[] { '<', '>', '@', '!' })));
 			return user;
 		}
 		
 		//Get the input to a ulong
-		public static ulong getUlong(String inputString)
+		public static ulong getUlong(string inputString)
 		{
 			ulong number = 0;
 			if (UInt64.TryParse(inputString, out number))
@@ -311,7 +311,7 @@ namespace Advobot
 		}
 		
 		//Get if the user/bot can edit the role
-		public static async Task<IRole> getRoleEditAbility(CommandContext context, String input = null, bool ignore_Errors = false, IRole role = null)
+		public static async Task<IRole> getRoleEditAbility(CommandContext context, string input = null, bool ignore_Errors = false, IRole role = null)
 		{
 			//Check if valid role
 			IRole inputRole = role == null ? await getRole(context, input) : role;
@@ -371,7 +371,7 @@ namespace Advobot
 				{
 					return null;
 				}
-				if (user.GetPermissions(channel).Connect)
+				else if (user.GetPermissions(channel).Connect)
 				{
 					return channel;
 				}
@@ -380,7 +380,7 @@ namespace Advobot
 		}
 		
 		//Get if the user can edit this channel
-		public static async Task<IGuildChannel> getChannelEditAbility(CommandContext context, String input)
+		public static async Task<IGuildChannel> getChannelEditAbility(CommandContext context, string input)
 		{
 			IGuildChannel channel = await getChannel(context, input);
 			if (channel == null)
@@ -396,7 +396,7 @@ namespace Advobot
 		}
 		
 		//Get a channel ID
-		public static async Task<IMessageChannel> getChannelID(IGuild guild, String channelName)
+		public static async Task<IMessageChannel> getChannelID(IGuild guild, string channelName)
 		{
 			IMessageChannel channel = null;
 			ulong channelID = 0;
@@ -408,13 +408,13 @@ namespace Advobot
 		}
 		
 		//Get a channel
-		public static async Task<IGuildChannel> getChannel(CommandContext context, String input)
+		public static async Task<IGuildChannel> getChannel(CommandContext context, string input)
 		{
 			return await getChannel(context.Guild, context.Channel, context.Message, input);
 		}
 		
 		//Get a channel without context
-		public static async Task<IGuildChannel> getChannel(IGuild guild, IMessageChannel channel, IUserMessage message, String input)
+		public static async Task<IGuildChannel> getChannel(IGuild guild, IMessageChannel channel, IUserMessage message, string input)
 		{
 			if (input.Contains("<#"))
 			{
@@ -424,10 +424,10 @@ namespace Advobot
 			{
 				input = input.Substring(0, input.IndexOf(' '));
 			}
-			String[] values = input.Split(new char[] { '/' }, 2);
+			string[] values = input.Split(new char[] { '/' }, 2);
 
 			//Get input channel type
-			String channelType = values.Length == 2 ? values[1].ToLower() : null;
+			string channelType = values.Length == 2 ? values[1].ToLower() : null;
 			if (channelType != null && !(channelType.Equals(Constants.TEXT_TYPE) || channelType.Equals(Constants.VOICE_TYPE)))
 			{
 				return null;
@@ -449,11 +449,11 @@ namespace Advobot
 				var channels = gottenChannels.Where(x => x.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase) && x.GetType().Name.ToLower().Contains(channelType)).ToList();
 
 				if (channels.Count == 0)
-					await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, ERROR(String.Format("`{0}` does not exist as a channel on this guild.", input)));
+					await makeAndDeleteSecondaryMessage(channel, message, ERROR(String.Format("`{0}` does not exist as a channel on this guild.", input.Substring(0, input.IndexOf('/')))));
 				if (channels.Count == 1)
 					return channels[0];
 				if (channels.Count > 1)
-					await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, ERROR("More than one channel exists with the same name."));
+					await makeAndDeleteSecondaryMessage(channel, message, ERROR("More than one channel exists with the same name."));
 			}
 
 			return null;
@@ -469,7 +469,7 @@ namespace Advobot
 		}
 		
 		//Get integer
-		public static int getInteger(String inputString)
+		public static int getInteger(string inputString)
 		{
 			int number = 0;
 			if (Int32.TryParse(inputString, out number))
@@ -480,7 +480,7 @@ namespace Advobot
 		}
 		
 		//Get bits
-		public static async Task<uint> getBit(CommandContext context, String permission, uint changeValue)
+		public static async Task<uint> getBit(CommandContext context, string permission, uint changeValue)
 		{
 			try
 			{
@@ -563,11 +563,11 @@ namespace Advobot
 		}
 		
 		//Get the input string and permissions
-		public static bool getStringAndPermissions(String input, out String output, out List<String> permissions)
+		public static bool getStringAndPermissions(string input, out string output, out List<String> permissions)
 		{
 			output = null;
 			permissions = null;
-			String[] values = input.Split(new char[] { ' ' });
+			string[] values = input.Split(new char[] { ' ' });
 			if (values.Length == 1)
 				return false;
 
@@ -578,7 +578,7 @@ namespace Advobot
 		}
 		
 		//Get server commands
-		public static String[] getCommands(IGuild guild, int number)
+		public static string[] getCommands(IGuild guild, int number)
 		{
 			List<PreferenceCategory> categories;
 			if (!Variables.CommandPreferences.TryGetValue(guild.Id, out categories))
@@ -595,19 +595,19 @@ namespace Advobot
 		}
 		
 		//Get file paths
-		public static String getServerFilePath(ulong serverId, String fileName)
+		public static string getServerFilePath(ulong serverId, string fileName)
 		{
 			//Gets the appdata folder for usage, allowed to change
-			String folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+			string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 			//Combines the path for appdata and the preferences text file, allowed to change, but I'd recommend to keep the serverID part
-			String directory = Path.Combine(folder, "Discord_Servers", serverId.ToString());
+			string directory = Path.Combine(folder, "Discord_Servers", serverId.ToString());
 			//This string will be similar to C:\Users\User\AppData\Roaming\ServerID
-			String path = Path.Combine(directory, fileName);
+			string path = Path.Combine(directory, fileName);
 			return path;
 		}
 		
 		//Get if a channel is a text or voice channel
-		public static String getChannelType(IGuildChannel channel)
+		public static string getChannelType(IGuildChannel channel)
 		{
 			return channel.GetType().Name.ToLower().Contains(Constants.TEXT_TYPE) ? Constants.TEXT_TYPE : Constants.VOICE_TYPE;
 		}
@@ -622,9 +622,9 @@ namespace Advobot
 		}
 		
 		//Get what the serverlog is
-		public static async Task<ITextChannel> logChannelCheck(IGuild guild, String serverOrMod)
+		public static async Task<ITextChannel> logChannelCheck(IGuild guild, string serverOrMod)
 		{
-			String path = getServerFilePath(guild.Id, Constants.SERVERLOG_AND_MODLOG);
+			string path = getServerFilePath(guild.Id, Constants.SERVERLOG_AND_MODLOG);
 			ITextChannel logChannel = null;
 			//Check if the file exists
 			if (!File.Exists(path))
@@ -648,7 +648,7 @@ namespace Advobot
 					{
 						if (line.Contains(serverOrMod))
 						{
-							String[] logChannelArray = line.Split(new Char[] { ':' }, 2);
+							string[] logChannelArray = line.Split(new Char[] { ':' }, 2);
 
 							if (String.IsNullOrWhiteSpace(logChannelArray[1]) || (String.IsNullOrEmpty(logChannelArray[1])))
 							{
@@ -685,7 +685,7 @@ namespace Advobot
 		}
 
 		//Get the permission names to an array
-		public static String[] getPermissionNames(uint flags)
+		public static string[] getPermissionNames(uint flags)
 		{
 			List<String> result = new List<String>();
 			for (int i = 0; i < 32; ++i)
@@ -701,7 +701,7 @@ namespace Advobot
 
 		#region Roles
 		//Create a role on the server if it's not found
-		public static async Task<IRole> createRoleIfNotFound(IGuild guild, String roleName)
+		public static async Task<IRole> createRoleIfNotFound(IGuild guild, string roleName)
 		{
 			IRole role = getRole(guild, roleName);
 			if (role == null)
@@ -746,14 +746,14 @@ namespace Advobot
 
 		#region Message Removal
 		//Remove secondary messages
-		public static async Task makeAndDeleteSecondaryMessage(CommandContext context, String secondStr, Int32 time = Constants.WAIT_TIME)
+		public static async Task makeAndDeleteSecondaryMessage(CommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
 			IUserMessage secondMsg = await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
 			removeCommandMessages(context.Channel, new IUserMessage[] { secondMsg, context.Message }, time);
 		}
 		
 		//Remove secondary messages without context
-		public static async Task makeAndDeleteSecondaryMessage(ITextChannel channel, IUserMessage message, String secondStr, Int32 time = Constants.WAIT_TIME)
+		public static async Task makeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
 			IUserMessage secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
 			removeCommandMessages(channel, new IUserMessage[] { secondMsg, message }, time);
@@ -844,13 +844,13 @@ namespace Advobot
 
 		#region Message Formatting
 		//Format the error message
-		public static String ERROR(String message)
+		public static string ERROR(string message)
 		{
 			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
 		}
 		
 		//Send a message with a zero length char at the front
-		public static async Task<IMessage> sendChannelMessage(IMessageChannel channel, String message)
+		public static async Task<IMessage> sendChannelMessage(IMessageChannel channel, string message)
 		{
 			if (channel == null || !Variables.Guilds.Contains((channel as ITextChannel).Guild))
 				return null;
@@ -859,14 +859,14 @@ namespace Advobot
 		}
 		
 		//Edit message log message
-		public static async Task editMessage(ITextChannel logChannel, String time, IGuildUser user, IMessageChannel channel, String before, String after)
+		public static async Task editMessage(ITextChannel logChannel, string time, IGuildUser user, IMessageChannel channel, string before, string after)
 		{
 			await sendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}#{2}` **IN** `#{3}`\n**FROM:** ```\n{4}```\n**TO:** ```\n{5}```",
 				time, user.Username, user.Discriminator, channel.Name, before, after));
 		}
 		
 		//Get rid of certain elements to make messages look neater
-		public static String replaceMessageCharacters(String input)
+		public static string replaceMessageCharacters(string input)
 		{
 			//Matching
 			Regex empty = new Regex("[*`]");
@@ -885,7 +885,7 @@ namespace Advobot
 
 		#region Uploads
 		//Upload various text to a text uploader with a list of messages
-		public static String uploadToHastebin(List<String> textList)
+		public static string uploadToHastebin(List<String> textList)
 		{
 			//Messages in the format to upload
 			string text = replaceMessageCharacters(String.Join("\n-----\n", textList));
@@ -893,7 +893,7 @@ namespace Advobot
 		}
 		
 		//Upload various text to a text uploader with a string
-		public static String uploadToHastebin(String text)
+		public static string uploadToHastebin(string text)
 		{
 			//Regex for getting the key out
 			Regex hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
@@ -910,7 +910,7 @@ namespace Advobot
 		}
 		
 		//Upload a text file with a list of messages
-		public static async Task uploadTextFile(IGuild guild, IMessageChannel channel, List<String> textList, String fileName, String messageHeader)
+		public static async Task uploadTextFile(IGuild guild, IMessageChannel channel, List<String> textList, string fileName, string messageHeader)
 		{
 			//Messages in the format to upload
 			string text = replaceMessageCharacters(String.Join("\n-----\n", textList));
@@ -918,11 +918,11 @@ namespace Advobot
 		}
 		
 		//Upload a text file with a string
-		public static async Task uploadTextFile(IGuild guild, IMessageChannel channel, String text, String fileName, String messageHeader)
+		public static async Task uploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string messageHeader)
 		{
 			//Get the file path
-			String deletedMessagesFile = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt";
-			String path = Actions.getServerFilePath(guild.Id, deletedMessagesFile);
+			string deletedMessagesFile = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt";
+			string path = Actions.getServerFilePath(guild.Id, deletedMessagesFile);
 
 			//Create the temporary file
 			if (!File.Exists(Actions.getServerFilePath(guild.Id, deletedMessagesFile)))
@@ -946,7 +946,7 @@ namespace Advobot
 
 		#region Embeds
 		//Send a message with an embedded object
-		public static async Task<IMessage> sendEmbedMessage(IMessageChannel channel, String message, EmbedBuilder embed)
+		public static async Task<IMessage> sendEmbedMessage(IMessageChannel channel, string message, EmbedBuilder embed)
 		{
 			if (channel == null || !Variables.Guilds.Contains((channel as ITextChannel).Guild))
 				return null;
@@ -964,7 +964,7 @@ namespace Advobot
 		}
 		
 		//Make a new embed builder
-		public static EmbedBuilder makeNewEmbed(Color? color = null, String title = null, String description = null, String imageURL = null)
+		public static EmbedBuilder makeNewEmbed(Color? color = null, string title = null, string description = null, string imageURL = null)
 		{
 			//Timestamp is in UTC for simplicity and organization's sake
 			EmbedBuilder embed = new EmbedBuilder().WithColor(Constants.BASE).WithCurrentTimestamp();
@@ -990,7 +990,7 @@ namespace Advobot
 		}
 		
 		//Make a new author for an embed
-		public static EmbedBuilder addAuthor(EmbedBuilder embed, String name = null, String iconURL = null, String URL = null)
+		public static EmbedBuilder addAuthor(EmbedBuilder embed, string name = null, string iconURL = null, string URL = null)
 		{
 			EmbedAuthorBuilder author = new EmbedAuthorBuilder().WithIconUrl("https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png");
 
@@ -1011,7 +1011,7 @@ namespace Advobot
 		}
 		
 		//Make a new footer for an embed
-		public static EmbedBuilder addFooter(EmbedBuilder embed, String text = null, String iconURL = null)
+		public static EmbedBuilder addFooter(EmbedBuilder embed, string text = null, string iconURL = null)
 		{
 			EmbedFooterBuilder footer = new EmbedFooterBuilder();
 
@@ -1028,7 +1028,7 @@ namespace Advobot
 		}
 		
 		//Add a field to an embed
-		public static EmbedBuilder addField(EmbedBuilder embed, String name, String value, bool isInline = true)
+		public static EmbedBuilder addField(EmbedBuilder embed, string name, string value, bool isInline = true)
 		{
 			if (name == null || value == null)
 				return embed;
@@ -1046,7 +1046,7 @@ namespace Advobot
 
 		#region Console
 		//Write to the console with a timestamp
-		public static void writeLine(String text)
+		public static void writeLine(string text)
 		{
 			if (text != null)
 			{
@@ -1055,7 +1055,7 @@ namespace Advobot
 		}
 		
 		//Send an exception message to the console
-		public static void exceptionToConsole(String method, Exception e)
+		public static void exceptionToConsole(string method, Exception e)
 		{
 			Actions.writeLine(method + " EXCEPTION: " + e.ToString());
 		}
@@ -1063,19 +1063,19 @@ namespace Advobot
 
 		#region Server/Mod Log
 		//Set the server or mod log
-		public static async Task<ITextChannel> setServerOrModLog(CommandContext context, String input, String serverOrMod)
+		public static async Task<ITextChannel> setServerOrModLog(CommandContext context, string input, string serverOrMod)
 		{
 			return await setServerOrModLog(context.Guild, context.Channel, context.Message, input, serverOrMod);
 		}
 		
 		//Set the server or mod log without context
-		public static async Task<ITextChannel> setServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, String input, String serverOrMod)
+		public static async Task<ITextChannel> setServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, string input, string serverOrMod)
 		{
 			ITextChannel logChannel = null;
 			//See if not null
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, ERROR("No channel specified."));
+				await makeAndDeleteSecondaryMessage(channel, message, ERROR("No channel specified."));
 				return null;
 			}
 			else if (input.ToLower().Equals("off"))
@@ -1087,7 +1087,7 @@ namespace Advobot
 			logChannel = await getChannel(guild, channel, message, input) as ITextChannel;
 			if (logChannel == null)
 			{
-				await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, ERROR(String.Format("Unable to set the logchannel on `{0}`.", input)));
+				await makeAndDeleteSecondaryMessage(channel, message, ERROR(String.Format("Unable to set the logchannel on `{0}`.", input)));
 				return null;
 			}
 
@@ -1095,10 +1095,10 @@ namespace Advobot
 		}
 		
 		//Set the server and mod log with an already gotten channel
-		public static async Task<ITextChannel> setServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, ITextChannel inputChannel, String serverOrMod)
+		public static async Task<ITextChannel> setServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, ITextChannel inputChannel, string serverOrMod)
 		{
 			//Create the file if it doesn't exist
-			String path = getServerFilePath(guild.Id, Constants.SERVERLOG_AND_MODLOG);
+			string path = getServerFilePath(guild.Id, Constants.SERVERLOG_AND_MODLOG);
 			if (!File.Exists(path))
 			{
 				Directory.CreateDirectory(Path.GetDirectoryName(path));
@@ -1117,7 +1117,7 @@ namespace Advobot
 					{
 						if ((inputChannel != null) && (line.Contains(inputChannel.Id.ToString())))
 						{
-							await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, "Channel is already the current " + serverOrMod + ".");
+							await makeAndDeleteSecondaryMessage(channel, message, "Channel is already the current " + serverOrMod + ".");
 							return null;
 						}
 					}
@@ -1134,7 +1134,7 @@ namespace Advobot
 				if (inputChannel == null)
 				{
 					writer.WriteLine(serverOrMod + ":" + null + "\n" + String.Join("", validLines));
-					await makeAndDeleteSecondaryMessage(channel as ITextChannel, message, "Disabled the " + serverOrMod + ".");
+					await makeAndDeleteSecondaryMessage(channel, message, "Disabled the " + serverOrMod + ".");
 					return null;
 				}
 				else
@@ -1173,7 +1173,7 @@ namespace Advobot
 		//Save preferences by server
 		public static void savePreferences(ulong serverID)
 		{
-			String path = getServerFilePath(serverID, Constants.PREFERENCES_FILE);
+			string path = getServerFilePath(serverID, Constants.PREFERENCES_FILE);
 			Directory.CreateDirectory(Path.GetDirectoryName(path));
 			using (StreamWriter writer = new StreamWriter(path, false))
 			{
@@ -1211,7 +1211,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(message.Channel as ITextChannel, message, "Preferences are already turned on.");
+				await Actions.makeAndDeleteSecondaryMessage(message.Channel, message, "Preferences are already turned on.");
 				Variables.GuildsEnablingPreferences.Remove(guild);
 				return;
 			}
@@ -1237,20 +1237,20 @@ namespace Advobot
 		}
 		
 		//Read out the preferences
-		public static async Task readPreferences(IMessageChannel channel, String serverpath)
+		public static async Task readPreferences(IMessageChannel channel, string serverpath)
 		{
 			//Make the embed
 			EmbedBuilder embed = Actions.makeNewEmbed(null, "Preferences");
 
 			//Make the information into separate fields
-			String[] text = File.ReadAllText(serverpath).Replace("@", "").Split(new String[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
+			string[] text = File.ReadAllText(serverpath).Replace("@", "").Split(new string[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
 
 			//Get the category name and the commands in it
-			foreach (String category in text)
+			foreach (string category in text)
 			{
-				String[] titleAndCommands = category.Split(new char[] { '\r' }, 2);
-				String title = titleAndCommands[0];
-				String commands = titleAndCommands[1].TrimStart('\n');
+				string[] titleAndCommands = category.Split(new char[] { '\r' }, 2);
+				string title = titleAndCommands[0];
+				string commands = titleAndCommands[1].TrimStart('\n');
 
 				//Add the field
 				if (!String.IsNullOrEmpty(title) && !String.IsNullOrEmpty(commands))

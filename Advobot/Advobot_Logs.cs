@@ -128,8 +128,8 @@ namespace Advobot
 			if (logChannel != null)
 			{
 				//Get the username/discriminator via this dictionary since they don't exist otherwise
-				String username = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Username : "null";
-				String discriminator = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Discriminator : "0000";
+				string username = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Username : "null";
+				string discriminator = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Discriminator : "0000";
 
 				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UNBAN, description: "**ID:** " + user.Id.ToString()), "Unban");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", username, discriminator), user.AvatarUrl));
@@ -167,12 +167,12 @@ namespace Advobot
 				if ((String.IsNullOrWhiteSpace(beforeUser.Nickname) && !String.IsNullOrWhiteSpace(afterUser.Nickname))
 					 || (!String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)))
 				{
-					String originalNickname = beforeUser.Nickname;
+					string originalNickname = beforeUser.Nickname;
 					if (String.IsNullOrWhiteSpace(beforeUser.Nickname))
 					{
 						originalNickname = "NO NICKNAME";
 					}
-					String nicknameChange = afterUser.Nickname;
+					string nicknameChange = afterUser.Nickname;
 					if (String.IsNullOrWhiteSpace(afterUser.Nickname))
 					{
 						nicknameChange = "NO NICKNAME";
@@ -256,8 +256,8 @@ namespace Advobot
 				}
 
 				//Set the content as strings
-				String beforeMsg = Actions.replaceMessageCharacters(beforeMessage.Value.Content);
-				String afterMsg = Actions.replaceMessageCharacters(afterMessage.Content);
+				string beforeMsg = Actions.replaceMessageCharacters(beforeMessage.Value.Content);
+				string afterMsg = Actions.replaceMessageCharacters(afterMessage.Content);
 
 				//Set the user as a variable to save some space
 				IUser user = afterMessage.Author;
@@ -381,11 +381,11 @@ namespace Advobot
 							{
 								if (embed.Author != null)
 								{
-									String author = embed.Author.ToString();
+									string author = embed.Author.ToString();
 
 									//I don't know how to regex well
 									Regex regex = new Regex("#([0-9]*) in #");
-									String[] authorAndChannel = regex.Split(author);
+									string[] authorAndChannel = regex.Split(author);
 
 									deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
 										authorAndChannel.Length > 0 ? authorAndChannel[0] : "null",
@@ -409,7 +409,7 @@ namespace Advobot
 						//See if any attachments were put in
 						else if (x.Attachments.Count > 0)
 						{
-							String content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
+							string content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 							deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
 								x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"),
 								Actions.replaceMessageCharacters(content + " + " + x.Attachments.ToList().First().Filename)));
@@ -417,7 +417,7 @@ namespace Advobot
 						//Else add the message in normally
 						else
 						{
-							String content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
+							string content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 							deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
 								x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(content)));
 						}
@@ -531,7 +531,7 @@ namespace Advobot
 					});
 				}
 				IUser user = message.Author;
-				foreach (String URL in attachmentURLs.Distinct())
+				foreach (string URL in attachmentURLs.Distinct())
 				{
 					if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL).ToLower()))
 					{
@@ -558,7 +558,7 @@ namespace Advobot
 						await Actions.sendEmbedMessage(channel, embed.WithDescription(URL));
 					}
 				}
-				foreach (String URL in embedURLs.Distinct())
+				foreach (string URL in embedURLs.Distinct())
 				{
 					++Variables.LoggedImages;
 					//Embed image
@@ -570,7 +570,7 @@ namespace Advobot
 				{
 					++Variables.LoggedGifs;
 					//Check if video or gif
-					String title = Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url).ToLower()) ? "Gif" : "Video";
+					string title = Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url).ToLower()) ? "Gif" : "Video";
 
 					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, title, embedObject.Url, embedObject.Thumbnail.Value.Url), "Embedded " + title);
 					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
