@@ -272,7 +272,6 @@ namespace Advobot
 		[Alias("uinf")]
 		[Usage(Constants.BOT_PREFIX + "userinfo [@User]")]
 		[Summary("Displays various information about the user. Join position is mostly accurate, give or take ten places per thousand users on the guild.")]
-		[UserHasAPermission]
 		public async Task UserInfo([Optional, Remainder] string input)
 		{
 			IGuildUser user = null;

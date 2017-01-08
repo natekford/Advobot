@@ -76,6 +76,12 @@ namespace Advobot
 		{
 			++Variables.LoggedJoins;
 
+			//Check if should add them to a slowmode for channel/guild
+			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id) || (await user.Guild.GetTextChannelsAsync()).Intersect(Variables.SlowmodeChannels.Keys).Count() > 0)
+			{
+				await Actions.slowmodeAddUser(user);
+			}
+
 			ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null)
 			{
@@ -470,21 +476,32 @@ namespace Advobot
 			IGuild guild = (message.Channel as IGuildChannel).Guild;
 			if (guild != null)
 			{
+				//Check if the guild has slowmode enabled currently
+				if (Variables.SlowmodeGuilds.Keys.Contains(guild.Id) || Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))
+				{
+					await Actions.slowmode(message);
+				}
+
+				//Check if it's the owner of the guild saying something
 				if (message.Author.Id == guild.OwnerId)
 				{
-					if (message.Content.ToLower().Equals("yes") && Variables.GuildsEnablingPreferences.Contains(guild))
+					//If the message is only 'yes' then check if they're enabling or deleting preferences
+					if (message.Content.ToLower().Equals("yes"))
 					{
-						//Enable preferences
-						await Actions.enablePreferences(guild, message as IUserMessage);
-					}
-					else if (message.Content.ToLower().Equals("yes") && Variables.GuildsDeletingPreferences.Contains(guild))
-					{
-						//Delete preferences
-						await Actions.deletePreferences(guild, message as IUserMessage);
+						if (Variables.GuildsEnablingPreferences.Contains(guild))
+						{
+							//Enable preferences
+							await Actions.enablePreferences(guild, message as IUserMessage);
+						}
+						else if (Variables.GuildsDeletingPreferences.Contains(guild))
+						{
+							//Delete preferences
+							await Actions.deletePreferences(guild, message as IUserMessage);
+						}
 					}
 				}
 
-				//Otherwise see if it is going to be image logged
+				//Check if it is going to be image logged
 				ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 				if (logChannel != null)
 				{

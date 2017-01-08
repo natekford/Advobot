@@ -277,6 +277,7 @@ namespace Advobot
 		//Simple get a role on the server
 		public static IRole getRole(IGuild guild, string roleName)
 		{
+			//Order them by position (puts everyone first) then reverse so it sorts from the top down
 			return guild.Roles.ToList().OrderBy(x => x.Position).Reverse().FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
 		}
 		
@@ -701,10 +702,10 @@ namespace Advobot
 		//Get the variables for slowmode
 		public static string getSlowmodeVar(string[] inputArray, string searchTerm)
 		{
-			if (inputArray.Any(x => x.ToLower().StartsWith(searchTerm)))
+			if (inputArray != null && inputArray.Any(x => x.ToLower().StartsWith(searchTerm)))
 			{
 				string first = inputArray.Where(x => x.ToLower().StartsWith(searchTerm)).FirstOrDefault();
-				return first.Substring(first.IndexOf(':'));
+				return first.Substring(first.IndexOf(':') + 1);
 			}
 			return null;
 		}
@@ -1285,6 +1286,95 @@ namespace Advobot
 
 			//Send a success message
 			await Actions.sendChannelMessage(message.Channel, "Successfully deleted the stored preferences for this guild.");
+		}
+		#endregion
+
+		#region Slowmode
+		//Slowmode
+		public static async Task slowmode(SocketMessage message)
+		{
+			//Make a new SlowmodeUser
+			var smUser = new SlowmodeUser();
+
+			//Get SlowmodeUser from the guild ID
+			if (Variables.SlowmodeGuilds.ContainsKey((message.Channel as IGuildChannel).GuildId))
+			{
+				smUser = Variables.SlowmodeGuilds[(message.Channel as IGuildChannel).GuildId].FirstOrDefault(x => x.User.Id == message.Author.Id);
+			}
+			//If that fails, try to get it from the channel ID
+			else if (Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))
+			{
+				//Find a channel slowmode where the channel ID is the same as the message channel ID then get the user
+				smUser = Variables.SlowmodeChannels[message.Channel as IGuildChannel].FirstOrDefault(x => x.User.Id == message.Author.Id);
+			}
+
+			//Once the user within the SlowmodeUser class isn't null then go through with slowmode
+			if (smUser != null)
+			{
+				//Check if their messages allowed is above 0
+				if (smUser.Current_Messages_Left > 0)
+				{
+					if (smUser.Current_Messages_Left == smUser.Base_Messages)
+					{
+						//Start the interval
+						slowmodeInterval(smUser);
+					}
+
+					//Lower it by one
+					--smUser.Current_Messages_Left;
+				}
+				//Else delete the message
+				else
+				{
+					await message.DeleteAsync();
+				}
+			}
+		}
+
+		//Time interval for slowmode
+		public static void slowmodeInterval(SlowmodeUser smUser)
+		{
+			Task t = Task.Run(() =>
+			{
+				//Sleep for the given amount of seconds
+				Thread.Sleep(smUser.Time * 1000);
+				//Add back their ability to send messages
+				smUser.Current_Messages_Left = smUser.Base_Messages;
+			});
+		}
+
+		//Add a new user who joined into the slowmode users list
+		public static async Task slowmodeAddUser(SocketGuildUser user)
+		{
+			//Check if the guild has slowmode enabled
+			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id))
+			{
+				//Get the variables out of a different user
+				int messages = Variables.SlowmodeGuilds[user.Guild.Id].FirstOrDefault().Base_Messages;
+				int time = Variables.SlowmodeGuilds[user.Guild.Id].FirstOrDefault().Time;
+
+				//Add them to the list for the slowmode in this guild
+				Variables.SlowmodeGuilds[user.Guild.Id].Add(new SlowmodeUser(user, messages, messages, time));
+			}
+
+			//Get a list of the IDs of the guild's channels
+			var guildChannelIDList = new List<ulong>();
+			(await user.Guild.GetTextChannelsAsync()).ToList().ForEach(x => guildChannelIDList.Add(x.Id));
+			//Find if any of them are a slowmode channel
+			var smChannels = Variables.SlowmodeChannels.Where(kvp => guildChannelIDList.Contains(kvp.Key.Id)).ToList();
+			//If greater than zero, add the user to each one
+			if (smChannels.Count > 0)
+			{
+				foreach (var kvp in smChannels)
+				{
+					//Get the variables out of a different user
+					int messages = kvp.Value.FirstOrDefault().Base_Messages;
+					int time = kvp.Value.FirstOrDefault().Time;
+
+					//Add them to the list for the slowmode in this guild
+					kvp.Value.Add(new SlowmodeUser(user, messages, messages, time));
+				}
+			}
 		}
 		#endregion
 	}

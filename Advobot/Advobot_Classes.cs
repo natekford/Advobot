@@ -237,15 +237,29 @@ namespace Advobot
 
 	public class SlowmodeUser
 	{
-		public SlowmodeUser(IGuildUser mUser, int mMsgs, bool mIgnored)
+		public SlowmodeUser(IGuildUser mUser = null, int mCurrentMessagesLeft = 1, int mBaseMessages = 1, int mTime = 5)
 		{
 			this.User = mUser;
-			this.Msgs = mMsgs;
-			this.Ignored = mIgnored;
+			this.Current_Messages_Left = mCurrentMessagesLeft;
+			this.Base_Messages = mBaseMessages;
+			this.Time = mTime;
 		}
 
 		public IGuildUser User;
-		public int Msgs;
-		public bool Ignored;
+		public int Current_Messages_Left;
+		public int Base_Messages;
+		public int Time;
+	}
+
+	public class SlowmodeChannel
+	{
+		public SlowmodeChannel(ulong mChannelID, ulong mGuildID)
+		{
+			this.Channel_ID = mChannelID;
+			this.Guild_ID = mGuildID;
+		}
+
+		public ulong Channel_ID;
+		public ulong Guild_ID;
 	}
 }

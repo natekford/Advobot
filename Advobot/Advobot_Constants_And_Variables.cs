@@ -99,6 +99,8 @@ namespace Advobot
 		public static Dictionary<String, int> TextChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<String, int> VoiceChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<ulong, Discord.IUser> UnbannedUsers = new Dictionary<ulong, Discord.IUser>();
+		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeGuilds = new Dictionary<ulong, List<SlowmodeUser>>();
+		public static Dictionary<Discord.IGuildChannel, List<SlowmodeUser>> SlowmodeChannels = new Dictionary<Discord.IGuildChannel, List<SlowmodeUser>>();
 
 		public static List<Discord.IGuild> Guilds = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();

@@ -502,16 +502,60 @@ namespace Advobot
 
 		[Command("slowmode")]
 		[Alias("sm")]
-		[Usage(Constants.BOT_PREFIX + "slowmode <Roles:.../.../> <Messages:1 to 5> <Time:1 to 10>")]
-		[Summary("The first argument is the roles that get ignored by slowmode, the second is the amount of messages, and the third is the time period. Default is: none, 1, 5.")]
+		[Usage(Constants.BOT_PREFIX + "slowmode <Roles:.../.../> <Messages:1 to 5> <Time:1 to 30> <Guild:Yes> | Off [Guild|Channel|All]")]
+		[Summary("The first argument is the roles that get ignored by slowmode, the second is the amount of messages, and the third is the time period. Default is: none, 1, 5." +
+			"Say `" + Constants.BOT_PREFIX + "slowmode Off` to turn off all slowmodes on the guild. Bots are unaffected by slowmode.")]
 		[PermissionRequirements]
 		public async Task SlowMode([Optional, Remainder] string input)
 		{
 			//Split everything
-			string[] inputArray = input.Split(' ');
+			string[] inputArray = null;
+			if (input != null)
+			{
+				inputArray = input.Split(' ');
+			}
+
+			//Check if the input starts with 'off'
+			if (inputArray != null && inputArray[0].ToLower().Equals("off"))
+			{
+				if (inputArray.Length != 2)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				}
+				else if (inputArray[1].ToLower().Equals("guild"))
+				{
+					//Remove the guild
+					Variables.SlowmodeGuilds.Remove(Context.Guild.Id);
+
+					//Send a success message
+					await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the guild.");
+				}
+				else if (inputArray[1].ToLower().Equals("channel"))
+				{
+					//Remove the channel
+					Variables.SlowmodeChannels.Remove(Context.Channel as IGuildChannel);
+
+					//Send a success message
+					await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the channel.");
+				}
+				else if (inputArray[1].ToLower().Equals("all"))
+				{
+					//Remove the guild and every single channel on the guild
+					Variables.SlowmodeGuilds.Remove(Context.Guild.Id);
+					(await Context.Guild.GetTextChannelsAsync()).ToList().ForEach(channel => Variables.SlowmodeChannels.Remove(channel as IGuildChannel));
+
+					//Send a success message
+					await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully removed all slowmodes on the guild and its channels.");
+				}
+				else
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("With off, the second argument must be either Guild, Channel, or All."));
+				}
+				return;
+			}
 
 			//Check if too many args
-			if (inputArray.Length > 3)
+			if (inputArray != null && inputArray.Length > 4)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many arguments. There are no spaces between the colons and the variables."));
 				return;
@@ -521,9 +565,30 @@ namespace Advobot
 			string roleString = Actions.getSlowmodeVar(inputArray, "roles");
 			string messageString = Actions.getSlowmodeVar(inputArray, "messages");
 			string timeString = Actions.getSlowmodeVar(inputArray, "time");
+			string targetString = Actions.getSlowmodeVar(inputArray, "guild");
+
+			//Check if the target is already in either dictionary
+			if (targetString == null)
+			{
+				//Check the channel dictionary
+				if (Variables.SlowmodeChannels.ContainsKey(Context.Channel as IGuildChannel))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "Channel already is in slowmode.");
+					return;
+				}
+			}
+			else
+			{
+				//Check the guild dicionary
+				if (Variables.SlowmodeGuilds.Keys.Contains(Context.Guild.Id))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "Guild already is in slowmode.");
+					return;
+				}
+			}
 
 			//Get the roles
-			var roles = new List<ulong>();
+			var rolesIDs = new List<ulong>();
 			if (roleString != null)
 			{
 				//Split the string into the role names
@@ -536,17 +601,21 @@ namespace Advobot
 					if (role != null)
 					{
 						//Add them to the list of roles
-						roles.Add(role.Id);
+						rolesIDs.Add(role.Id);
 					}
 				});
 			}
 
+			//Make a list of the role names
+			var roleNames = new List<String>();
+			rolesIDs.Distinct().ToList().ForEach(x => roleNames.Add(Context.Guild.GetRole(x).Name));
+
 			//Get the messages limit
 			int msgsLimit = 1;
 			//Check if is a number
-			if (!int.TryParse(messageString, out msgsLimit))
+			if (messageString != null && !int.TryParse(messageString, out msgsLimit))
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for messages was not a number."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for messages was not a number. Remember: no space after the colon."));
 				return;
 			}
 			//Check if is a valid number
@@ -559,13 +628,13 @@ namespace Advobot
 			//Get the time limit
 			int timeLimit = 5;
 			//Check if is a number
-			if (!int.TryParse(messageString, out timeLimit))
+			if (timeString != null && !int.TryParse(timeString, out timeLimit))
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for time was not a number."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for time was not a number. Remember: no space after the colon."));
 				return;
 			}
 			//Check if is a valid number
-			if (msgsLimit > 10 || msgsLimit < 1)
+			if (timeLimit > 30 || timeLimit < 1)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Time must be between 1 and 10 inclusive."));
 				return;
@@ -575,16 +644,31 @@ namespace Advobot
 			var slowmodeUsers = new List<SlowmodeUser>();
 			(await Context.Guild.GetUsersAsync()).ToList().ForEach(x =>
 			{
-				//If they have any role ids that are immune to slowmode then they're immune
-				if (x.RoleIds.ToList().Intersect(roles).Any())
+				//If they have any role ids that are on the role list then they're immune
+				if (!x.RoleIds.ToList().Intersect(rolesIDs).Any())
 				{
-					slowmodeUsers.Add(new SlowmodeUser(x, msgsLimit, true));
-				}
-				else
-				{
-					slowmodeUsers.Add(new SlowmodeUser(x, msgsLimit, false));
+					slowmodeUsers.Add(new SlowmodeUser(x, msgsLimit, msgsLimit, timeLimit));
 				}
 			});
+
+			//If targetString is null then take that as only the channel and not the guild
+			if (targetString == null)
+			{
+				//Add the channel and list to a dictionary
+				Variables.SlowmodeChannels.Add(Context.Channel as IGuildChannel, slowmodeUsers);
+			}
+			else
+			{
+				//Add the guild and list to a dictionary
+				Variables.SlowmodeGuilds.Add(Context.Guild.Id, slowmodeUsers);
+			}
+
+			//Send a success message
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled slowmode on `{0}` with a message limit of `{1}` and time interval of `{2}`.{3}",
+				targetString == null ? Context.Channel.Name : Context.Guild.Name,
+				msgsLimit,
+				timeLimit,
+				roleNames.Count == 0 ? "" : String.Format("\nImmune roles: `{0}`.", String.Join("`, `", roleNames))));
 		}
 
 		[Command("giverole")]
@@ -872,15 +956,15 @@ namespace Advobot
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted the `{0}` role.", input));
 		}
 
-		[Command("editroleposition")]
-		[Alias("erpos")]
+		[Command("roleposition")]
+		[Alias("rpos")]
 		[Usage(Constants.BOT_PREFIX + "roleposition [Role] [New Position]")]
 		[Summary("Moves the role to the given position. @ev" + Constants.ZERO_LENGTH_CHAR + "eryone is the first position and starts at zero.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task RolePosition([Remainder] string input)
 		{
 			//Get the role
-			IRole role = await Actions.getRoleEditAbility(Context, input.Substring(0, input.LastIndexOf(' ')));
+			IRole role = await Actions.getRoleEditAbility(Context, input.Substring(0, input.LastIndexOf(' ')), true);
 			if (role == null)
 				return;
 
@@ -926,14 +1010,26 @@ namespace Advobot
 				return;
 			}
 
-			//Put it in the correct position
-			await role.ModifyAsync(x =>
-			{
-				//TODO: Hope this gets fixed eventually
-				x.Position = position;
-			});
+			//Make a new list of IRole
+			var roles = new List<IRole>();
+			//Grab all roles that aren't the targeted one
+			Context.Guild.Roles.Where(x => x != role).ToList().ForEach(x => roles.Add(x));
+			//Sort the list by position
+			roles = roles.OrderBy(x => x.Position).ToList();
+			//Add in the targetted role with the given position
+			roles.Insert(Math.Min(roles.Count(), position), role);
 
-			await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully gave the `{0}` role the position `{1}`.", role.Name, role.Position));
+			//Make a new list of BulkRoleProperties
+			var listOfBulk = new List<BulkRoleProperties>();
+			//Add the role's IDs and positions into it
+			roles.ForEach(x => listOfBulk.Add(new BulkRoleProperties(x.Id)));
+			//Readd the positions to it
+			listOfBulk.ForEach(x => x.Position = listOfBulk.IndexOf(x));
+			//Mass modify the roles with the list having the correct positions
+			await Context.Guild.ModifyRolesAsync(listOfBulk);
+
+			//Send a message stating what position the channel was sent to
+			await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully gave the `{0}` role the position `{1}`.", role.Name, roles.IndexOf(role)));
 		}
 
 		[Command("listrolepositions")]
