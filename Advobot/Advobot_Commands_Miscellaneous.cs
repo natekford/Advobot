@@ -131,7 +131,7 @@ namespace Advobot
 			{
 				if (allCommandsBool)
 				{
-					List<String> commands = new List<String>();
+					List<string> commands = new List<string>();
 					foreach (string command in Variables.CommandNames)
 					{
 						commands.Add(command);
@@ -294,7 +294,7 @@ namespace Advobot
 			}
 
 			//Get a list of roles
-			List<String> roles = new List<String>();
+			List<string> roles = new List<string>();
 			foreach (UInt64 roleID in user.RoleIds)
 			{
 				roles.Add(Context.Guild.GetRole(roleID).Name);
@@ -302,7 +302,7 @@ namespace Advobot
 			roles.Remove(Context.Guild.EveryoneRole.Name);
 
 			//Get a list of channels
-			List<String> channels = new List<String>();
+			List<string> channels = new List<string>();
 			//Text channels
 			(await Context.Guild.GetTextChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(async x =>
 			{
@@ -545,7 +545,7 @@ namespace Advobot
 		[BotOwnerRequirement]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			await Actions.sendChannelMessage(Context.Channel, "Test");
+			await Actions.sendChannelMessage(Context.Channel, "test");
 		}
 	}
 }

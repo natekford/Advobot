@@ -205,9 +205,11 @@ namespace Advobot
 			categories = new List<PreferenceCategory>();
 			Variables.CommandPreferences[guild.Id] = categories;
 
+			//Check if this server has any preferences
 			string path = getServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
 			if (!File.Exists(path))
 			{
+				//If not, go to the defaults
 				path = "DefaultCommandPreferences.txt";
 			}
 
@@ -235,7 +237,7 @@ namespace Advobot
 						string[] values = line.Split(new char[] { ':' }, 2);
 						if (values.Length == 2)
 						{
-							categories[categories.Count - 1].mSettings.Add(new PreferenceSetting(values[0], values[1]));
+							categories[categories.Count - 1].Settings.Add(new PreferenceSetting(values[0], values[1]));
 						}
 						else
 						{
@@ -244,6 +246,39 @@ namespace Advobot
 					}
 				}
 			}
+		}
+
+		//Load banned words
+		public static void loadBannedWords(IGuild guild)
+		{
+			//Check if the file even exists
+			string path = getServerFilePath(guild.Id, Constants.BANNED_PHRASES);
+			if (!File.Exists(path))
+			{
+				return;
+			}
+
+			//Get the banned phrases out of the file
+			var bannedPhrases = new List<string>();
+			using (StreamReader file = new StreamReader(path))
+			{
+				string line;
+				while ((line = file.ReadLine()) != null)
+				{
+					//If the line is empty, do nothing
+					if (String.IsNullOrWhiteSpace(line))
+					{
+						continue;
+					}
+					else if (line.StartsWith(Constants.BANNED_PHRASES_CHECK_STRING))
+					{
+						bannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().ToList();
+					}
+				}
+			}
+
+			//Add them to the dictionary with the guild
+			Variables.BannedPhrases.Add(guild.Id, bannedPhrases);
 		}
 		#endregion
 
@@ -503,7 +538,7 @@ namespace Advobot
 			Dictionary<String, String> channelPerms = new Dictionary<String, String>();
 
 			//Make a copy of the channel perm list to check off perms as they go by
-			List<String> genericChannelPerms = Variables.ChannelPermissionNames.Values.ToList();
+			List<string> genericChannelPerms = Variables.ChannelPermissionNames.Values.ToList();
 
 			//Add allow perms to the dictionary and remove them from the checklist
 			overwrite.Permissions.ToAllowList().ForEach(x =>
@@ -564,7 +599,7 @@ namespace Advobot
 		}
 		
 		//Get the input string and permissions
-		public static bool getStringAndPermissions(string input, out string output, out List<String> permissions)
+		public static bool getStringAndPermissions(string input, out string output, out List<string> permissions)
 		{
 			output = null;
 			permissions = null;
@@ -588,7 +623,7 @@ namespace Advobot
 			}
 
 			List<string> commands = new List<string>();
-			foreach (PreferenceSetting command in categories[number].mSettings)
+			foreach (PreferenceSetting command in categories[number].Settings)
 			{
 				commands.Add(command.mName.ToString());
 			}
@@ -601,7 +636,7 @@ namespace Advobot
 			//Gets the appdata folder for usage, allowed to change
 			string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 			//Combines the path for appdata and the preferences text file, allowed to change, but I'd recommend to keep the serverID part
-			string directory = Path.Combine(folder, "Discord_Servers", serverId.ToString());
+			string directory = Path.Combine(folder, Constants.SERVER_FOLDER, serverId.ToString());
 			//This string will be similar to C:\Users\User\AppData\Roaming\ServerID
 			string path = Path.Combine(directory, fileName);
 			return path;
@@ -688,7 +723,7 @@ namespace Advobot
 		//Get the permission names to an array
 		public static string[] getPermissionNames(uint flags)
 		{
-			List<String> result = new List<String>();
+			List<string> result = new List<string>();
 			for (int i = 0; i < 32; ++i)
 			{
 				if ((flags & (1 << i)) != 0)
@@ -700,7 +735,7 @@ namespace Advobot
 		}
 
 		//Get the variables for slowmode
-		public static string getSlowmodeVar(string[] inputArray, string searchTerm)
+		public static string getVariable(string[] inputArray, string searchTerm)
 		{
 			if (inputArray != null && inputArray.Any(x => x.ToLower().StartsWith(searchTerm)))
 			{
@@ -852,6 +887,27 @@ namespace Advobot
 			Actions.writeLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, user.Username));
 			await channel.DeleteMessagesAsync(userMessages.ToArray());
 		}
+
+		//Banned phrases
+		public static async Task bannedPhrases(SocketMessage message)
+		{
+			//Get the guild
+			IGuild guild = (message.Channel as IGuildChannel).Guild;
+
+			//Check if it has any banned words
+			if (Variables.BannedPhrases.ContainsKey(guild.Id) && Variables.BannedPhrases[guild.Id].Count != 0)
+			{
+				//TODO: Make this more efficient probably
+				foreach (string phrase in Variables.BannedPhrases[guild.Id])
+				{
+					if (message.Content.Contains(phrase) && !String.IsNullOrEmpty(phrase))
+					{
+						await message.DeleteAsync();
+						return;
+					}
+				}
+			}
+		}
 		#endregion
 
 		#region Message Formatting
@@ -897,7 +953,7 @@ namespace Advobot
 
 		#region Uploads
 		//Upload various text to a text uploader with a list of messages
-		public static string uploadToHastebin(List<String> textList)
+		public static string uploadToHastebin(List<string> textList)
 		{
 			//Messages in the format to upload
 			string text = replaceMessageCharacters(String.Join("\n-----\n", textList));
@@ -922,7 +978,7 @@ namespace Advobot
 		}
 		
 		//Upload a text file with a list of messages
-		public static async Task uploadTextFile(IGuild guild, IMessageChannel channel, List<String> textList, string fileName, string messageHeader)
+		public static async Task uploadTextFile(IGuild guild, IMessageChannel channel, List<string> textList, string fileName, string messageHeader)
 		{
 			//Messages in the format to upload
 			string text = replaceMessageCharacters(String.Join("\n-----\n", textList));
@@ -1119,7 +1175,7 @@ namespace Advobot
 			}
 
 			//Find the lines that aren't the current serverlog line
-			List<String> validLines = new List<String>();
+			List<string> validLines = new List<string>();
 			using (StreamReader reader = new StreamReader(path))
 			{
 				string line;
@@ -1173,8 +1229,8 @@ namespace Advobot
 			//If they exist, actually overwrite the new preferences file with the base preferences
 			foreach (PreferenceCategory category in categories)
 			{
-				writer.WriteLine("@" + category.mName);
-				foreach (PreferenceSetting setting in category.mSettings)
+				writer.WriteLine("@" + category.Name);
+				foreach (PreferenceSetting setting in category.Settings)
 				{
 					writer.WriteLine(setting.mName + ":" + setting.asString());
 				}

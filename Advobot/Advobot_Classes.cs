@@ -178,12 +178,13 @@ namespace Advobot
 	//Categories for preferences
 	public class PreferenceCategory
 	{
-		public PreferenceCategory(string name)
+		public PreferenceCategory(string mName)
 		{
-			mName = name;
+			Name = mName;
 		}
-		public string mName;
-		public List<PreferenceSetting> mSettings = new List<PreferenceSetting>();
+
+		public string Name;
+		public List<PreferenceSetting> Settings = new List<PreferenceSetting>();
 	}
 
 	//Storing the settings for preferences

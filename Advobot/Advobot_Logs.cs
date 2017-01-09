@@ -29,8 +29,9 @@ namespace Advobot
 		//When the bot turns on and a server shows up
 		public static Task OnGuildAvailable(SocketGuild guild)
 		{
-			Console.WriteLine(String.Format("{0}: {1}#{2} is online now.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
+			Actions.writeLine(String.Format("{0}: {1}#{2} is online now.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
 			Actions.loadPreferences(guild);
+			Actions.loadBannedWords(guild);
 
 			Variables.TotalUsers += guild.MemberCount;
 			Variables.TotalGuilds++;
@@ -42,7 +43,7 @@ namespace Advobot
 		//When the bot joins a server
 		public static Task OnJoinedGuild(SocketGuild guild)
 		{
-			Console.WriteLine(String.Format("{0}: Bot joined {1}#{2}.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
+			Actions.writeLine(String.Format("{0}: Bot joined {1}#{2}.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
 
 			return Task.CompletedTask;
 		}
@@ -50,7 +51,7 @@ namespace Advobot
 		//When the bot leaves a server
 		public static Task OnLeftGuild(SocketGuild guild)
 		{
-			Console.WriteLine(String.Format("{0}: Bot has left {1}#{2}.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
+			Actions.writeLine(String.Format("{0}: Bot has left {1}#{2}.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
 
 			Variables.TotalUsers -= (guild.MemberCount + 1);
 			Variables.TotalGuilds--;
@@ -203,7 +204,7 @@ namespace Advobot
 				//Role change
 				List<ulong> firstNotSecond = beforeUser.RoleIds.ToList().Except(afterUser.RoleIds.ToList()).ToList();
 				List<ulong> secondNotFirst = afterUser.RoleIds.ToList().Except(beforeUser.RoleIds.ToList()).ToList();
-				List<String> rolesChange = new List<String>();
+				List<string> rolesChange = new List<string>();
 				if (firstNotSecond.Count > 0)
 				{
 					firstNotSecond.ForEach(x => rolesChange.Add(afterUser.Guild.GetRole(x).Name));
@@ -255,7 +256,15 @@ namespace Advobot
 			if (afterMessage.Channel as IGuildChannel == null)
 				return;
 
-			ITextChannel logChannel = await Actions.logChannelCheck((afterMessage.Channel as IGuildChannel).Guild, Constants.SERVER_LOG_CHECK_STRING);
+			//Check if the guild exists
+			IGuild guild = (afterMessage.Channel as IGuildChannel).Guild;
+			if (guild == null)
+				return;
+
+			//Check if any banned phrases
+			await Actions.bannedPhrases(afterMessage);
+
+			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel != null && beforeMessage.IsSpecified)
 			{
 				//Check if regular messages are equal
@@ -381,7 +390,7 @@ namespace Advobot
 						deletedMessagesSorted.Reverse();
 					}
 					//Put the message content into a list of strings for easy usage
-					List<String> deletedMessagesContent = new List<String>();
+					List<string> deletedMessagesContent = new List<string>();
 					deletedMessagesSorted.ForEach(x =>
 					{
 						//See if any embeds deleted
@@ -476,8 +485,11 @@ namespace Advobot
 			IGuild guild = (message.Channel as IGuildChannel).Guild;
 			if (guild != null)
 			{
+				//Check if any banned phrases
+				await Actions.bannedPhrases(message);
+
 				//Check if the guild has slowmode enabled currently
-				if (Variables.SlowmodeGuilds.Keys.Contains(guild.Id) || Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))
+				if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))
 				{
 					await Actions.slowmode(message);
 				}
@@ -526,8 +538,8 @@ namespace Advobot
 			//Get the links
 			var t = Task.Run(async delegate
 			{
-				List<String> attachmentURLs = new List<String>();
-				List<String> embedURLs = new List<String>();
+				List<string> attachmentURLs = new List<string>();
+				List<string> embedURLs = new List<string>();
 				List<Embed> videoEmbeds = new List<Embed>();
 				if (!embeds && message.Attachments.Count > 0)
 				{

@@ -562,10 +562,10 @@ namespace Advobot
 			}
 
 			//Initialize the variables
-			string roleString = Actions.getSlowmodeVar(inputArray, "roles");
-			string messageString = Actions.getSlowmodeVar(inputArray, "messages");
-			string timeString = Actions.getSlowmodeVar(inputArray, "time");
-			string targetString = Actions.getSlowmodeVar(inputArray, "guild");
+			string roleString = Actions.getVariable(inputArray, "roles");
+			string messageString = Actions.getVariable(inputArray, "messages");
+			string timeString = Actions.getVariable(inputArray, "time");
+			string targetString = Actions.getVariable(inputArray, "guild");
 
 			//Check if the target is already in either dictionary
 			if (targetString == null)
@@ -580,7 +580,7 @@ namespace Advobot
 			else
 			{
 				//Check the guild dicionary
-				if (Variables.SlowmodeGuilds.Keys.Contains(Context.Guild.Id))
+				if (Variables.SlowmodeGuilds.ContainsKey(Context.Guild.Id))
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, "Guild already is in slowmode.");
 					return;
@@ -607,7 +607,7 @@ namespace Advobot
 			}
 
 			//Make a list of the role names
-			var roleNames = new List<String>();
+			var roleNames = new List<string>();
 			rolesIDs.Distinct().ToList().ForEach(x => roleNames.Add(Context.Guild.GetRole(x).Name));
 
 			//Get the messages limit
@@ -695,7 +695,7 @@ namespace Advobot
 			}
 
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
-			List<String> inputRoles = values[1].Split('/').ToList();
+			List<string> inputRoles = values[1].Split('/').ToList();
 			if (inputRoles.Count == 1)
 			{
 				//Check if it actually exists
@@ -724,8 +724,8 @@ namespace Advobot
 			}
 			else
 			{
-				List<String> failedRoles = new List<String>();
-				List<String> succeededRoles = new List<String>();
+				List<string> failedRoles = new List<string>();
+				List<string> succeededRoles = new List<string>();
 				List<IRole> roles = new List<IRole>();
 				foreach (string roleName in inputRoles)
 				{
@@ -797,7 +797,7 @@ namespace Advobot
 			}
 
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
-			List<String> inputRoles = values[1].Split('/').ToList();
+			List<string> inputRoles = values[1].Split('/').ToList();
 			if (inputRoles.Count == 1)
 			{
 				//Check if it actually exists
@@ -826,8 +826,8 @@ namespace Advobot
 			}
 			else
 			{
-				List<String> failedRoles = new List<String>();
-				List<String> succeededRoles = new List<String>();
+				List<string> failedRoles = new List<string>();
+				List<string> succeededRoles = new List<string>();
 				List<IRole> roles = new List<IRole>();
 				foreach (string roleName in inputRoles)
 				{
@@ -915,10 +915,27 @@ namespace Advobot
 				return;
 			}
 
+			//TODO: Fix this
 			//Create a new role with the same attributes (including space) and no perms
 			IRole newRole = await Context.Guild.CreateRoleAsync(inputRole.Name, new GuildPermissions(0), inputRole.Color);
-			//TODO: Hope this gets fixed eventually
-			await newRole.ModifyAsync(x => x.Position = inputRole.Position);
+
+			//Make a new list of IRole
+			var roles = new List<IRole>();
+			//Grab all roles that aren't the targeted one
+			Context.Guild.Roles.Where(x => x != newRole).ToList().ForEach(x => roles.Add(x));
+			//Sort the list by position
+			roles = roles.OrderBy(x => x.Position).ToList();
+			//Add in the targetted role with the given position
+			roles.Insert(Math.Min(roles.Count(), inputRole.Position), newRole);
+
+			//Make a new list of BulkRoleProperties
+			var listOfBulk = new List<BulkRoleProperties>();
+			//Add the role's IDs and positions into it
+			roles.ForEach(x => listOfBulk.Add(new BulkRoleProperties(x.Id)));
+			//Readd the positions to it
+			listOfBulk.ForEach(x => x.Position = listOfBulk.IndexOf(x));
+			//Mass modify the roles with the list having the correct positions
+			await Context.Guild.ModifyRolesAsync(listOfBulk);
 
 			//Delete the old role
 			await inputRole.DeleteAsync();
@@ -1074,7 +1091,7 @@ namespace Advobot
 		public async Task RolePermissions([Remainder] string input)
 		{
 			//Set the permission types into a list to later check against
-			List<String> permissionTypeStrings = Variables.PermissionNames.Values.ToList();
+			List<string> permissionTypeStrings = Variables.PermissionNames.Values.ToList();
 
 			string[] actionRolePerms = input.ToLower().Split(new char[] { ' ' }, 2); //Separate the role and whether to add or remove from the permissions
 			string permsString = null; //Set placeholder perms variable
@@ -1122,7 +1139,7 @@ namespace Advobot
 			if (show)
 			{
 				GuildPermissions rolePerms = new GuildPermissions(Context.Guild.GetRole(role.Id).Permissions.RawValue);
-				List<String> currentRolePerms = new List<String>();
+				List<string> currentRolePerms = new List<string>();
 				foreach (var permissionValue in Variables.PermissionValues.Values)
 				{
 					int bit = permissionValue;
@@ -1154,12 +1171,12 @@ namespace Advobot
 			}
 
 			//Get the permissions
-			List<String> permissions = permsString.Split('/').ToList();
+			List<string> permissions = permsString.Split('/').ToList();
 			//Check if valid permissions
-			List<String> validPerms = permissions.Intersect(permissionTypeStrings, StringComparer.OrdinalIgnoreCase).ToList();
+			List<string> validPerms = permissions.Intersect(permissionTypeStrings, StringComparer.OrdinalIgnoreCase).ToList();
 			if (validPerms.Count != permissions.Count)
 			{
-				List<String> invalidPermissions = new List<String>();
+				List<string> invalidPermissions = new List<string>();
 				foreach (string permission in permissions)
 				{
 					if (!validPerms.Contains(permission, StringComparer.OrdinalIgnoreCase))
@@ -1177,7 +1194,7 @@ namespace Advobot
 			uint rolePermissions = 0;
 			foreach (string permission in permissions)
 			{
-				List<String> perms = Variables.PermissionValues.Keys.ToList();
+				List<string> perms = Variables.PermissionValues.Keys.ToList();
 				try
 				{
 					int bit = Variables.PermissionValues[permission];
@@ -1207,9 +1224,9 @@ namespace Advobot
 			}
 
 			//Get a list of the permissions that were given
-			List<String> givenPermissions = Actions.getPermissionNames(rolePermissions).ToList();
+			List<string> givenPermissions = Actions.getPermissionNames(rolePermissions).ToList();
 			//Get a list of the permissions that were not given
-			List<String> skippedPermissions = permissions.Except(givenPermissions, StringComparer.OrdinalIgnoreCase).ToList();
+			List<string> skippedPermissions = permissions.Except(givenPermissions, StringComparer.OrdinalIgnoreCase).ToList();
 
 			//New perms
 			uint currentBits = (uint)Context.Guild.GetRole(role.Id).Permissions.RawValue;
@@ -1265,7 +1282,7 @@ namespace Advobot
 
 			//Get the permissions
 			uint rolePermissions = (uint)inputRole.Permissions.RawValue;
-			List<String> permissions = Actions.getPermissionNames(rolePermissions).ToList();
+			List<string> permissions = Actions.getPermissionNames(rolePermissions).ToList();
 			if (rolePermissions != 0)
 			{
 				//Determine if the user can give these permissions
@@ -1286,9 +1303,9 @@ namespace Advobot
 			}
 
 			//Get a list of the permissions that were given
-			List<String> givenPermissions = Actions.getPermissionNames(rolePermissions).ToList();
+			List<string> givenPermissions = Actions.getPermissionNames(rolePermissions).ToList();
 			//Get a list of the permissions that were not given
-			List<String> skippedPermissions = permissions.Except(givenPermissions).ToList();
+			List<string> skippedPermissions = permissions.Except(givenPermissions).ToList();
 
 			//Actually change the permissions
 			await Context.Guild.GetRole(outputRole.Id).ModifyAsync(x => x.Permissions = new GuildPermissions(rolePermissions));
@@ -1698,7 +1715,7 @@ namespace Advobot
 		public async Task ChannelPermissions([Remainder] string input)
 		{
 			//Set the variables
-			List<String> permissions = null;
+			List<string> permissions = null;
 			IGuildChannel channel = null;
 			IGuildUser user = null;
 			IRole role = null;
@@ -1729,8 +1746,8 @@ namespace Advobot
 				//Say the overwrites on a channel
 				if (values.Length == 1)
 				{
-					var roleOverwrites = new List<String>();
-					var userOverwrites = new List<String>();
+					var roleOverwrites = new List<string>();
+					var userOverwrites = new List<string>();
 					foreach (Overwrite overwrite in channel.PermissionOverwrites)
 					{
 						if (overwrite.TargetType == PermissionTarget.Role)
@@ -1835,12 +1852,12 @@ namespace Advobot
 			}
 
 			//Get the generic permissions
-			List<String> genericPerms = Variables.ChannelPermissionNames.Values.ToList();
+			List<string> genericPerms = Variables.ChannelPermissionNames.Values.ToList();
 			//Check if valid permissions
-			List<String> validPerms = permissions.Intersect(genericPerms, StringComparer.OrdinalIgnoreCase).ToList();
+			List<string> validPerms = permissions.Intersect(genericPerms, StringComparer.OrdinalIgnoreCase).ToList();
 			if (validPerms.Count != permissions.Count)
 			{
-				List<String> invalidPerms = new List<String>();
+				List<string> invalidPerms = new List<string>();
 				foreach (string permission in permissions)
 				{
 					if (!validPerms.Contains(permission, StringComparer.OrdinalIgnoreCase))
@@ -2440,7 +2457,7 @@ namespace Advobot
 		public async Task AllWithRole([Remainder] string input)
 		{
 			//Split into the bools and role
-			List<String> values = input.Split(new char[] { ' ' }, 2).ToList();
+			List<string> values = input.Split(new char[] { ' ' }, 2).ToList();
 
 			//Initializing input and variables
 			IRole role = await Actions.getRole(Context, values.Last());
@@ -2467,8 +2484,8 @@ namespace Advobot
 			}
 
 			//Initialize the lists
-			List<String> usersMentions = new List<String>();
-			List<String> usersText = new List<String>();
+			List<string> usersMentions = new List<string>();
+			List<string> usersText = new List<string>();
 			int characters = 0;
 			int count = 1;
 

@@ -20,10 +20,13 @@ namespace Advobot
 		public const string CHANNEL_ERROR = "Invalid channel.";
 		public const string CHANNEL_PERMISSIONS_ERROR = "You do not have the ability to edit that channel.";
 		public const string MUTE_ROLE_NAME = "Muted";
-		public const string PREFERENCES_FILE = "commandPreferences.txt";
-		public const string SERVERLOG_AND_MODLOG = "serverlogAndModlog.txt";
+		public const string SERVER_FOLDER = "Discord_Servers";
+		public const string PREFERENCES_FILE = "CommandPreferences.txt";
+		public const string SERVERLOG_AND_MODLOG = "ServerLogAndModLog.txt";
+		public const string BANNED_PHRASES = "BannedPhrases.txt";
 		public const string SERVER_LOG_CHECK_STRING = "serverlog";
 		public const string MOD_LOG_CHECK_STRING = "modlog";
+		public const string BANNED_PHRASES_CHECK_STRING = "bannedphrases";
 		public const string CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
 		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/Text|Voice]>";
 		public const string VOICE_TYPE = "voice";
@@ -101,13 +104,14 @@ namespace Advobot
 		public static Dictionary<ulong, Discord.IUser> UnbannedUsers = new Dictionary<ulong, Discord.IUser>();
 		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeGuilds = new Dictionary<ulong, List<SlowmodeUser>>();
 		public static Dictionary<Discord.IGuildChannel, List<SlowmodeUser>> SlowmodeChannels = new Dictionary<Discord.IGuildChannel, List<SlowmodeUser>>();
+		public static Dictionary<ulong, List<String>> BannedPhrases = new Dictionary<ulong, List<string>>();
 
 		public static List<Discord.IGuild> Guilds = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsDeletingPreferences = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator = new List<Discord.IGuild>();
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
-		public static List<String> CommandNames = new List<String>();
-		public static List<String> RegionIDs = new List<String>();
+		public static List<string> CommandNames = new List<string>();
+		public static List<string> RegionIDs = new List<string>();
 	}
 }

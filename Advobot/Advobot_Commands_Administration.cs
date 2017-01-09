@@ -280,5 +280,137 @@ namespace Advobot
 		{
 			await Actions.readPreferences(Context.Channel, Actions.getServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE));
 		}
+
+		[Command("banphrases")]
+		[Alias("bps")]
+		[Usage(Constants.BOT_PREFIX + "banphrases [Add|Remove] <Phrase/...>")]
+		[Summary("Adds the words to either the banned word list.")]
+		[PermissionRequirements]
+		public async Task SetBanPhrases([Remainder] string input)
+		{
+			//Split the input
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
+
+			//Check if valid length
+			if (inputArray.Length != 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+
+			//Set the variables
+			string action = inputArray[0].ToLower();
+			var phrases = inputArray[1].ToLower().Split('/').ToList();
+
+			//Check if valid actions
+			if (action != "add" && action != "remove")
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action."));
+				return;
+			}
+
+			//Add the words
+			if (action.Equals("add"))
+			{
+				phrases.ForEach(x =>
+				{
+					if (!Variables.BannedPhrases[Context.Guild.Id].Contains(x, StringComparer.OrdinalIgnoreCase))
+					{
+						Variables.BannedPhrases[Context.Guild.Id].Add(x);
+					}
+				});
+			}
+			else if (action.Equals("remove"))
+			{
+				phrases.ForEach(x => Variables.BannedPhrases[Context.Guild.Id].Remove(x));
+			}
+
+			//Create the banned phrases file if it doesn't already exist
+			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+			if (!File.Exists(path))
+			{
+				File.Create(path).Close();
+			}
+
+			//Find the lines that aren't the current regular banned phrases line
+			var validLines = new List<string>();
+			using (StreamReader reader = new StreamReader(path))
+			{
+				string line;
+				while ((line = reader.ReadLine()) != null)
+				{
+					if (!line.StartsWith(Constants.BANNED_PHRASES_CHECK_STRING))
+					{
+						validLines.Add(line);
+					}
+				}
+			}
+
+			//Rewrite the file
+			using (StreamWriter writer = new StreamWriter(path))
+			{
+				writer.WriteLine(Constants.BANNED_PHRASES_CHECK_STRING + ":" + String.Join("/", Variables.BannedPhrases[Context.Guild.Id].Distinct()) + "\n" + String.Join("", validLines));
+			}
+
+			//Send a success message
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following {1} {2} the banned phrase list: `{3}`", 
+				action.ToLower().Equals("add") ? "added" : "removed",
+				phrases.Count > 1 ? "phrases" : "phrase",
+				action.ToLower().Equals("add") ? "to" : "from",
+				String.Join("`, `", phrases)));
+		}
+
+		[Command("currentbanphrases")]
+		[Alias("cbps")]
+		[Usage(Constants.BOT_PREFIX + "currentbanphrases [File|Actual]")]
+		[Summary("Says all of the current banned words from either the file or the list currently being used in the bot.")]
+		[PermissionRequirements]
+		public async Task CurrentBanPhrases([Remainder] string input)
+		{
+			//Initialize the list
+			var bannedPhrases = new List<string>();
+
+			if (input.ToLower().Equals("file"))
+			{
+				//Check if the file exists
+				string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+				if (!File.Exists(path))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "This guild has no banned phrases file.");
+					return;
+				}
+
+				//Get the words out of the file
+				using (StreamReader file = new StreamReader(path))
+				{
+					string line;
+					while ((line = file.ReadLine()) != null)
+					{
+						//If the line is empty, do nothing
+						if (String.IsNullOrWhiteSpace(line))
+						{
+							continue;
+						}
+						if (line.ToLower().StartsWith(Constants.BANNED_PHRASES_CHECK_STRING))
+						{
+							bannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().ToList();
+						}
+					}
+				}
+			}
+			else if (input.ToLower().Equals("actual"))
+			{
+				//Get the list being used by the bot currently
+				bannedPhrases = Variables.BannedPhrases[Context.Guild.Id];
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option, must be either File or Actual."));
+				return;
+			}
+
+			//Make and send the embed
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Banned Phrases", String.Join("\n", bannedPhrases)));
+		}
 	}
 }
