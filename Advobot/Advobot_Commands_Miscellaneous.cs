@@ -545,7 +545,7 @@ namespace Advobot
 		[BotOwnerRequirement]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			await Actions.sendChannelMessage(Context.Channel, "test");
+			await Context.Channel.SendMessageAsync("test");
 		}
 	}
 }

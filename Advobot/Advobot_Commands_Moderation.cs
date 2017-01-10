@@ -187,22 +187,21 @@ namespace Advobot
 
 		[Command("ban")]
 		[Alias("b")]
-		[Usage(Constants.BOT_PREFIX + "ban [@User]")]
+		[Usage(Constants.BOT_PREFIX + "ban [@User] [Days]")]
 		[Summary("Bans the user from the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.BanMembers)]
 		public async Task Ban([Remainder] string input)
 		{
-
 			//Test number of arguments
 			string[] values = input.Split(' ');
-			if (values.Length != 2)
+			if (values.Length > 2 || values.Length == 0)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 
 			//Test if valid user mention
-			IGuildUser inputUser = null;
+			IUser inputUser = null;
 			if (values[0].StartsWith("<@"))
 			{
 				inputUser = await Actions.getUser(Context.Guild, values[0]);
@@ -220,7 +219,7 @@ namespace Advobot
 
 			//Determine if the user is allowed to ban this person
 			int bannerPosition = Actions.getPosition(Context.Guild, Context.User as IGuildUser);
-			int banneePosition = Actions.getPosition(Context.Guild, inputUser);
+			int banneePosition = Actions.getPosition(Context.Guild, inputUser as IGuildUser);
 			if (bannerPosition <= banneePosition)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is unable to be banned by you."));
@@ -2413,9 +2412,14 @@ namespace Advobot
 			}
 
 			//Check if valid length
-			if (nickname != null && nickname.Length > Constants.NICKNAME_LENGTH)
+			if (nickname != null && nickname.Length > Constants.NICKNAME_MAX_LENGTH)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be longer than 32 characters."));
+				return;
+			}
+			else if (nickname != null && nickname.Length < Constants.NICKNAME_MIN_LENGTH)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be less than 2 characters.."));
 				return;
 			}
 
@@ -2665,9 +2669,14 @@ namespace Advobot
 
 				//Check if valid nickname length
 				string inputNickname = values[1];
-				if (inputNickname.Length > Constants.NICKNAME_LENGTH)
+				if (inputNickname.Length > Constants.NICKNAME_MAX_LENGTH)
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be longer than 32 charaters."));
+					return;
+				}
+				else if (inputNickname.Length < Constants.NICKNAME_MIN_LENGTH)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be less than 2 characters."));
 					return;
 				}
 

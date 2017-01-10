@@ -43,7 +43,8 @@ namespace Advobot
 		public const int MESSAGES_TO_GATHER = 100;
 		public const int TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG = 3;
 
-		public const int NICKNAME_LENGTH = 32;
+		public const int NICKNAME_MIN_LENGTH = 2;
+		public const int NICKNAME_MAX_LENGTH = 32;
 		public const int TOPIC_LENGTH = 1024;
 		public const int ROLE_NAME_LENGTH = 32;
 		public const int CHANNEL_NAME_MAX_LENGTH = 100;

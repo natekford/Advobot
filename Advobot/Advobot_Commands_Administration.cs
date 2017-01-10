@@ -22,7 +22,7 @@ namespace Advobot
 	{
 		[Command("setgame")]
 		[Alias("sg")]
-		[Usage(Constants.BOT_PREFIX + "setgame [New name]")]
+		[Usage(Constants.BOT_PREFIX + "setgame [New Name]")]
 		[Summary("Changes the game the bot is currently listed as playing.")]
 		[BotOwnerRequirement]
 		public async Task SetGame([Remainder] string input)
@@ -36,6 +36,32 @@ namespace Advobot
 
 			await CommandHandler.Client.SetGameAsync(input);
 			await Actions.sendChannelMessage(Context.Channel, String.Format("Game set to `{0}`.", input));
+		}
+
+		[Command("botname")]
+		[Alias("bn")]
+		[Usage(Constants.BOT_PREFIX + "botname [New Name]")]
+		[Summary("Changes the bot's name to the given name.")]
+		[BotOwnerRequirement]
+		public async Task BotName([Remainder] string input)
+		{
+			//Names have the same length requirements as nicknames
+			if (input.Length > Constants.NICKNAME_MAX_LENGTH)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Name cannot be more than 32 characters.."));
+				return;
+			}
+			else if (input.Length < Constants.NICKNAME_MIN_LENGTH)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Name cannot be less than 2 characters.."));
+				return;
+			}
+
+			//Change the bots name to it
+			await Context.Client.CurrentUser.ModifyAsync(x => x.Username = input);
+
+			//Send a success message
+			await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully changed my username.");
 		}
 
 		[Command("disconnect")]
