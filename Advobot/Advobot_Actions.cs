@@ -272,13 +272,62 @@ namespace Advobot
 					}
 					else if (line.StartsWith(Constants.BANNED_PHRASES_CHECK_STRING))
 					{
-						bannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().ToList();
+						int index = line.IndexOf(':');
+						if (index >= 0 && index < line.Length - 1)
+						{
+							string phrases = line.Substring(index + 1);
+							if (!String.IsNullOrWhiteSpace(phrases))
+							{
+								bannedPhrases = phrases.Split('/').Where(x => !String.IsNullOrWhiteSpace(x)).Distinct().ToList();
+							}
+						}
 					}
 				}
 			}
 
 			//Add them to the dictionary with the guild
 			Variables.BannedPhrases.Add(guild.Id, bannedPhrases);
+		}
+
+		//Load banned regex
+		public static void loadBannedRegex(IGuild guild)
+		{
+			//Check if the file even exists
+			string path = getServerFilePath(guild.Id, Constants.BANNED_PHRASES);
+			if (!File.Exists(path))
+			{
+				return;
+			}
+
+			//Get the banned phrases out of the file
+			var bannedRegex = new List<Regex>();
+			using (StreamReader file = new StreamReader(path))
+			{
+				string line;
+				while ((line = file.ReadLine()) != null)
+				{
+					//If the line is empty, do nothing
+					if (String.IsNullOrWhiteSpace(line))
+					{
+						continue;
+					}
+					else if (line.StartsWith(Constants.BANNED_REGEX_CHECK_STRING))
+					{
+						int index = line.IndexOf(':');
+						if (index >= 0 && index < line.Length - 1)
+						{
+							string phrases = line.Substring(index + 1);
+							if (!String.IsNullOrWhiteSpace(phrases))
+							{
+								bannedRegex = phrases.Split('/').Where(x => !String.IsNullOrWhiteSpace(x)).Distinct().Select(x => new Regex(x)).ToList();
+							}
+						}
+					}
+				}
+			}
+
+			//Add them to the dictionary with the guild
+			Variables.BannedRegex.Add(guild.Id, bannedRegex);
 		}
 		#endregion
 
@@ -895,12 +944,32 @@ namespace Advobot
 			IGuild guild = (message.Channel as IGuildChannel).Guild;
 
 			//Check if it has any banned words
-			if (Variables.BannedPhrases.ContainsKey(guild.Id) && Variables.BannedPhrases[guild.Id].Count != 0)
+			if (Variables.BannedPhrases.ContainsKey(guild.Id))
 			{
-				//TODO: Make this more efficient probably
 				foreach (string phrase in Variables.BannedPhrases[guild.Id])
 				{
-					if (message.Content.Contains(phrase) && !String.IsNullOrEmpty(phrase))
+					if (message.Content.IndexOf(phrase, StringComparison.OrdinalIgnoreCase) >= 0)
+					{
+						await message.DeleteAsync();
+						return;
+					}
+				}
+			}
+		}
+
+		//Banned regex
+		public static async Task bannedRegex(SocketMessage message)
+		{
+			//Get the guild 
+			IGuild guild = (message.Channel as IGuildChannel).Guild;
+
+			//Check if it has any banned regex
+			if (Variables.BannedRegex.ContainsKey(guild.Id))
+			{
+				foreach (var regex in Variables.BannedRegex[guild.Id])
+				{
+					//See if any matches
+					if (regex.IsMatch(message.Content))
 					{
 						await message.DeleteAsync();
 						return;
@@ -1116,10 +1185,7 @@ namespace Advobot
 		//Write to the console with a timestamp
 		public static void writeLine(string text)
 		{
-			if (text != null)
-			{
-				Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + text);
-			}
+			Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + text);
 		}
 		
 		//Send an exception message to the console

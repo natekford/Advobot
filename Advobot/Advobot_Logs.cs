@@ -32,6 +32,7 @@ namespace Advobot
 			Actions.writeLine(String.Format("{0}: {1}#{2} is online now.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
 			Actions.loadPreferences(guild);
 			Actions.loadBannedWords(guild);
+			Actions.loadBannedRegex(guild);
 
 			Variables.TotalUsers += guild.MemberCount;
 			Variables.TotalGuilds++;
@@ -487,6 +488,7 @@ namespace Advobot
 			{
 				//Check if any banned phrases
 				await Actions.bannedPhrases(message);
+				await Actions.bannedRegex(message);
 
 				//Check if the guild has slowmode enabled currently
 				if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))

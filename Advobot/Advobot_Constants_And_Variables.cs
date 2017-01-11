@@ -27,6 +27,7 @@ namespace Advobot
 		public const string SERVER_LOG_CHECK_STRING = "serverlog";
 		public const string MOD_LOG_CHECK_STRING = "modlog";
 		public const string BANNED_PHRASES_CHECK_STRING = "bannedphrases";
+		public const string BANNED_REGEX_CHECK_STRING = "bannedregex";
 		public const string CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
 		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/Text|Voice]>";
 		public const string VOICE_TYPE = "voice";
@@ -96,16 +97,17 @@ namespace Advobot
 		public static Dictionary<ulong, List<PreferenceCategory>> CommandPreferences = new Dictionary<ulong, List<PreferenceCategory>>();
 		public static Dictionary<ulong, List<Discord.WebSocket.SocketMessage>> DeletedMessages = new Dictionary<ulong, List<Discord.WebSocket.SocketMessage>>();
 		public static Dictionary<ulong, System.Threading.CancellationTokenSource> CancelTokens = new Dictionary<ulong, System.Threading.CancellationTokenSource>();
-		public static Dictionary<int, String> PermissionNames = new Dictionary<int, String>();
-		public static Dictionary<int, String> ChannelPermissionNames = new Dictionary<int, String>();
-		public static Dictionary<String, int> PermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
-		public static Dictionary<String, int> GeneralChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
-		public static Dictionary<String, int> TextChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
-		public static Dictionary<String, int> VoiceChannelPermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<int, string> PermissionNames = new Dictionary<int, string>();
+		public static Dictionary<int, string> ChannelPermissionNames = new Dictionary<int, string>();
+		public static Dictionary<string, int> PermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<string, int> GeneralChannelPermissionValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<string, int> TextChannelPermissionValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<string, int> VoiceChannelPermissionValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<ulong, Discord.IUser> UnbannedUsers = new Dictionary<ulong, Discord.IUser>();
 		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeGuilds = new Dictionary<ulong, List<SlowmodeUser>>();
 		public static Dictionary<Discord.IGuildChannel, List<SlowmodeUser>> SlowmodeChannels = new Dictionary<Discord.IGuildChannel, List<SlowmodeUser>>();
-		public static Dictionary<ulong, List<String>> BannedPhrases = new Dictionary<ulong, List<string>>();
+		public static Dictionary<ulong, List<string>> BannedPhrases = new Dictionary<ulong, List<string>>();
+		public static Dictionary<ulong, List<System.Text.RegularExpressions.Regex>> BannedRegex = new Dictionary<ulong, List<System.Text.RegularExpressions.Regex>>();
 
 		public static List<Discord.IGuild> Guilds = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();

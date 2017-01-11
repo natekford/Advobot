@@ -201,7 +201,7 @@ namespace Advobot
 			}
 
 			//Test if valid user mention
-			IUser inputUser = null;
+			IGuildUser inputUser = null;
 			if (values[0].StartsWith("<@"))
 			{
 				inputUser = await Actions.getUser(Context.Guild, values[0]);
@@ -219,7 +219,7 @@ namespace Advobot
 
 			//Determine if the user is allowed to ban this person
 			int bannerPosition = Actions.getPosition(Context.Guild, Context.User as IGuildUser);
-			int banneePosition = Actions.getPosition(Context.Guild, inputUser as IGuildUser);
+			int banneePosition = Actions.getPosition(Context.Guild, inputUser);
 			if (bannerPosition <= banneePosition)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is unable to be banned by you."));
@@ -503,7 +503,7 @@ namespace Advobot
 		[Alias("sm")]
 		[Usage(Constants.BOT_PREFIX + "slowmode <Roles:.../.../> <Messages:1 to 5> <Time:1 to 30> <Guild:Yes> | Off [Guild|Channel|All]")]
 		[Summary("The first argument is the roles that get ignored by slowmode, the second is the amount of messages, and the third is the time period. Default is: none, 1, 5." +
-			"Say `" + Constants.BOT_PREFIX + "slowmode Off` to turn off all slowmodes on the guild. Bots are unaffected by slowmode.")]
+			"Bots are unaffected by slowmode. Any users who are immune due to roles stay immune even if they lose said role until a new slowmode is started.")]
 		[PermissionRequirements]
 		public async Task SlowMode([Optional, Remainder] string input)
 		{
@@ -2951,7 +2951,7 @@ namespace Advobot
 		public async Task ChangeGuildIcon([Optional] string input)
 		{
 			//See if the user wants to remove the icon
-			if (input.ToLower().Equals("remove"))
+			if (input != null && input.ToLower().Equals("remove"))
 			{
 				await Context.Guild.ModifyAsync(x => x.Icon = new Image());
 				await Actions.sendChannelMessage(Context.Channel, "Successfully removed the guild's icon.");

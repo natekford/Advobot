@@ -309,46 +309,84 @@ namespace Advobot
 
 		[Command("banphrases")]
 		[Alias("bps")]
-		[Usage(Constants.BOT_PREFIX + "banphrases [Add|Remove] <Phrase/...>")]
-		[Summary("Adds the words to either the banned word list.")]
+		[Usage(Constants.BOT_PREFIX + "banphrases [Add|Remove] [Phrase/...] <Regex>")]
+		[Summary("Adds the words to either the banned phrase list or the banned regex list. Don't use a '/' in a banned phrase itself.")]
 		[PermissionRequirements]
 		public async Task SetBanPhrases([Remainder] string input)
 		{
 			//Split the input
-			string[] inputArray = input.Split(new char[] { ' ' }, 2);
+			string[] inputArray = input.Split(new char[] { ' ' }, 3);
 
 			//Check if valid length
-			if (inputArray.Length != 2)
+			if (inputArray.Length < 2)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 
-			//Set the variables
-			string action = inputArray[0].ToLower();
-			var phrases = inputArray[1].ToLower().Split('/').ToList();
-
 			//Check if valid actions
+			string action = inputArray[0].ToLower();
 			if (action != "add" && action != "remove")
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action."));
 				return;
 			}
 
-			//Add the words
-			if (action.Equals("add"))
+			//Get the phrases
+			var phrases = inputArray[1].ToLower().Split('/').ToList();
+
+			//Make some strings for later use
+			string type;
+			string phraseOrRegexList;
+
+			//Check if should add as regex or not
+			if (inputArray.Length < 3)
 			{
-				phrases.ForEach(x =>
+				//Add the phrases
+				if (action.Equals("add"))
 				{
-					if (!Variables.BannedPhrases[Context.Guild.Id].Contains(x, StringComparer.OrdinalIgnoreCase))
+					phrases.ForEach(x =>
 					{
-						Variables.BannedPhrases[Context.Guild.Id].Add(x);
-					}
-				});
+						var phrasesList = Variables.BannedPhrases[Context.Guild.Id];
+						if (!phrasesList.Contains(x, StringComparer.OrdinalIgnoreCase))
+						{
+							Variables.BannedPhrases[Context.Guild.Id].Add(x);
+						}
+					});
+				}
+				else
+				{
+					phrases.ForEach(x => Variables.BannedPhrases[Context.Guild.Id].Remove(x));
+				}
+
+				//Set the strings
+				type = Constants.BANNED_PHRASES_CHECK_STRING;
+				phraseOrRegexList = String.Join("/", Variables.BannedPhrases[Context.Guild.Id].Distinct());
 			}
-			else if (action.Equals("remove"))
+			else if (inputArray[2].ToLower().Equals("regex"))
 			{
-				phrases.ForEach(x => Variables.BannedPhrases[Context.Guild.Id].Remove(x));
+				var regexList = Variables.BannedRegex[Context.Guild.Id];
+
+				//Add the regex
+				if (action.Equals("add"))
+				{
+					var regexListAsString = regexList.Select(x => x.ToString()).ToList();
+					phrases.RemoveAll(x => regexListAsString.Contains(x));
+					phrases.ForEach(x => regexList.Add(new Regex(x)));
+				}
+				else
+				{
+					regexList.Except(regexList.Where(x => phrases.Contains(x.ToString())));
+				}
+
+				//Set the strings
+				type = Constants.BANNED_REGEX_CHECK_STRING;
+				phraseOrRegexList = String.Join("/", Variables.BannedRegex[Context.Guild.Id].Distinct());
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option for whether or not to use regex."));
+				return;
 			}
 
 			//Create the banned phrases file if it doesn't already exist
@@ -365,7 +403,7 @@ namespace Advobot
 				string line;
 				while ((line = reader.ReadLine()) != null)
 				{
-					if (!line.StartsWith(Constants.BANNED_PHRASES_CHECK_STRING))
+					if (!line.StartsWith(type))
 					{
 						validLines.Add(line);
 					}
@@ -375,17 +413,20 @@ namespace Advobot
 			//Rewrite the file
 			using (StreamWriter writer = new StreamWriter(path))
 			{
-				writer.WriteLine(Constants.BANNED_PHRASES_CHECK_STRING + ":" + String.Join("/", Variables.BannedPhrases[Context.Guild.Id].Distinct()) + "\n" + String.Join("", validLines));
+				writer.WriteLine(type + ":" + phraseOrRegexList + "\n" + String.Join("", validLines));
 			}
 
 			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following {1} {2} the banned phrase list: `{3}`", 
-				action.ToLower().Equals("add") ? "added" : "removed",
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following {1} {2} the banned {3} list: `{4}`",
+				action.Equals("add") ? "added" : "removed",
 				phrases.Count > 1 ? "phrases" : "phrase",
-				action.ToLower().Equals("add") ? "to" : "from",
+				action.Equals("add") ? "to" : "from",
+				type == Constants.BANNED_PHRASES_CHECK_STRING ? "phrase" : "regex",
 				String.Join("`, `", phrases)));
 		}
 
+
+		//TODO:Get it to list the regex bans
 		[Command("currentbanphrases")]
 		[Alias("cbps")]
 		[Usage(Constants.BOT_PREFIX + "currentbanphrases [File|Actual]")]
