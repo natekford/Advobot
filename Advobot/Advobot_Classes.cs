@@ -263,4 +263,18 @@ namespace Advobot
 		public ulong Channel_ID;
 		public ulong Guild_ID;
 	}
+
+	public class BannedPhrasePunishment
+	{
+		public BannedPhrasePunishment(int mNumber, int mPunishment, IRole mRole = null)
+		{
+			this.Number_Of_Removes = mNumber;
+			this.Punishment = mPunishment;
+			this.Role = mRole;
+		}
+
+		public int Number_Of_Removes;
+		public int Punishment;
+		public IRole Role;
+	}
 }

@@ -108,6 +108,7 @@ namespace Advobot
 		public static Dictionary<Discord.IGuildChannel, List<SlowmodeUser>> SlowmodeChannels = new Dictionary<Discord.IGuildChannel, List<SlowmodeUser>>();
 		public static Dictionary<ulong, List<string>> BannedPhrases = new Dictionary<ulong, List<string>>();
 		public static Dictionary<ulong, List<System.Text.RegularExpressions.Regex>> BannedRegex = new Dictionary<ulong, List<System.Text.RegularExpressions.Regex>>();
+		public static Dictionary<ulong, List<BannedPhrasePunishment>> BannedPhrasesPunishments = new Dictionary<ulong, List<BannedPhrasePunishment>>();
 
 		public static List<Discord.IGuild> Guilds = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();
