@@ -742,7 +742,7 @@ namespace Advobot
 
 				//Format the success message
 				string succeed = "";
-				if (succeededRoles.Count > 0)
+				if (succeededRoles.Any())
 				{
 					succeed = String.Format("Successfully gave `{0}#{1}` the `{2}` role{3}",
 						inputUser.Username,
@@ -752,13 +752,13 @@ namespace Advobot
 				}
 				//Check if an and is needed
 				string and = ".";
-				if (succeededRoles.Count > 0 && failedRoles.Count > 0)
+				if (succeededRoles.Any() && failedRoles.Any())
 				{
 					and = " and ";
 				}
 				//Format the fail message
 				string failed = "";
-				if (failedRoles.Count > 0)
+				if (failedRoles.Any())
 				{
 					failed = String.Format("{0}ailed to give{1} the `{2}` role{3}.",
 						String.IsNullOrEmpty(succeed) ? "F" : "f",
@@ -844,20 +844,20 @@ namespace Advobot
 
 				//Format the success message
 				string succeed = "";
-				if (succeededRoles.Count > 0)
+				if (succeededRoles.Any())
 				{
 					succeed = String.Format("Successfully took the `{0}` role{1} from `{2}#{3}`",
 						String.Join(", ", succeededRoles), succeededRoles.Count > 1 ? "s" : "", inputUser.Username, inputUser.Discriminator);
 				}
 				//Check if an and is needed
 				string and = ".";
-				if (succeededRoles.Count > 0 && failedRoles.Count > 0)
+				if (succeededRoles.Any() && failedRoles.Any())
 				{
 					and = " and ";
 				}
 				//Format the fail message
 				string failed = "";
-				if (failedRoles.Count > 0)
+				if (failedRoles.Any())
 				{
 					failed = String.Format("{0}ailed to take the `{1}` role{2}{3}.",
 						String.IsNullOrEmpty(succeed) ? "F" : "f", String.Join(", ", failedRoles), failedRoles.Count > 1 ? "s" : "",
@@ -1242,7 +1242,7 @@ namespace Advobot
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` {2} {3} `{4}`.",
 				(add ? "added" : "removed"),
 				String.Join("`, `", givenPermissions),
-				(skippedPermissions.Count > 0 ? " and failed to " + (add ? "add `" : "remove `") + String.Join("`, `", skippedPermissions) + "`" : ""),
+				(skippedPermissions.Any() ? " and failed to " + (add ? "add `" : "remove `") + String.Join("`, `", skippedPermissions) + "`" : ""),
 				(add ? "to" : "from"), role.Name),
 				7500);
 		}
@@ -1311,7 +1311,7 @@ namespace Advobot
 			//Send the long ass message detailing what happened with the command
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully copied `{0}` {1} from `{2}` to `{3}`.",
 				(givenPermissions.Count == 0 ? "NOTHING" : givenPermissions.Count == permissions.Count ? "ALL" : String.Join("`, `", givenPermissions)),
-				(skippedPermissions.Count > 0 ? "and failed to copy `" + String.Join("`, `", skippedPermissions) + "`" : ""),
+				(skippedPermissions.Any() ? "and failed to copy `" + String.Join("`, `", skippedPermissions) + "`" : ""),
 				inputRole, outputRole),
 				7500);
 		}
@@ -2126,7 +2126,7 @@ namespace Advobot
 				else
 				{
 					//Get the count
-					int count = textChannels.Count > 0 ? textChannels.Count : voiceChannels.Count;
+					int count = textChannels.Any() ? textChannels.Count : voiceChannels.Count;
 					await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("`{0}` {1} channels have the position `{2}`.", count, channelType, position));
 					return;
 				}

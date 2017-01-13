@@ -291,11 +291,21 @@ namespace Advobot
 						int index = line.IndexOf(':');
 						if (index >= 0 && index < line.Length - 1)
 						{
-							string phrases = line.Substring(index + 1);
-							if (!String.IsNullOrWhiteSpace(phrases))
+							string regex = line.Substring(index + 1);
+							if (!String.IsNullOrWhiteSpace(regex))
 							{
-								bannedRegex = phrases.Split('/').Where(x => !String.IsNullOrWhiteSpace(x)).Distinct().Select(x => new Regex(x)).ToList();
+								bannedRegex = regex.Split('/').Where(x => !String.IsNullOrWhiteSpace(x)).Distinct().Select(x => new Regex(x)).ToList();
 							}
+						}
+						continue;
+					}
+					//Punishments
+					if (line.StartsWith(Constants.BANNED_PHRASES_PUNISHMENTS))
+					{
+						int index = line.IndexOf(':');
+						if (index >= 0 && index < line.Length - 1)
+						{
+
 						}
 						continue;
 					}
@@ -312,6 +322,9 @@ namespace Advobot
 		//Complex get a role on the server
 		public static async Task<IRole> getRole(CommandContext context, string roleName)
 		{
+			//Remove spaces
+			roleName = roleName.Trim();
+
 			if (roleName.StartsWith("<@"))
 			{
 				roleName = roleName.Trim(new char[] { '<', '@', '&', '>' });
@@ -321,7 +334,7 @@ namespace Advobot
 					return context.Guild.GetRole(roleID);
 				}
 			}
-			List<IRole> roles = context.Guild.Roles.ToList().Where(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase)).ToList();
+			var roles = context.Guild.Roles.Where(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase)).ToList();
 			if (roles.Count > 1)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(context,
@@ -837,7 +850,7 @@ namespace Advobot
 		{
 			Task t = Task.Run(async () =>
 			{
-				Thread.Sleep(time);
+				await Task.Delay(time);
 				await channel.DeleteMessagesAsync(messages);
 			});
 		}
@@ -860,7 +873,7 @@ namespace Advobot
 						if (messages.Count == 0)
 							return;
 
-						////Try due to 404 errors
+						//Try due to 404 errors
 						try
 						{
 							await channel.DeleteMessagesAsync(messages);
@@ -1454,7 +1467,7 @@ namespace Advobot
 			//Find if any of them are a slowmode channel
 			var smChannels = Variables.SlowmodeChannels.Where(kvp => guildChannelIDList.Contains(kvp.Key.Id)).ToList();
 			//If greater than zero, add the user to each one
-			if (smChannels.Count > 0)
+			if (smChannels.Any())
 			{
 				foreach (var kvp in smChannels)
 				{

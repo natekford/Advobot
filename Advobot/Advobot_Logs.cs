@@ -78,7 +78,7 @@ namespace Advobot
 			++Variables.LoggedJoins;
 
 			//Check if should add them to a slowmode for channel/guild
-			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id) || (await user.Guild.GetTextChannelsAsync()).Intersect(Variables.SlowmodeChannels.Keys).Count() > 0)
+			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id) || (await user.Guild.GetTextChannelsAsync()).Intersect(Variables.SlowmodeChannels.Keys).Any())
 			{
 				await Actions.slowmodeAddUser(user);
 			}
@@ -205,14 +205,14 @@ namespace Advobot
 				List<ulong> firstNotSecond = beforeUser.RoleIds.ToList().Except(afterUser.RoleIds.ToList()).ToList();
 				List<ulong> secondNotFirst = afterUser.RoleIds.ToList().Except(beforeUser.RoleIds.ToList()).ToList();
 				List<string> rolesChange = new List<string>();
-				if (firstNotSecond.Count > 0)
+				if (firstNotSecond.Any())
 				{
 					firstNotSecond.ForEach(x => rolesChange.Add(afterUser.Guild.GetRole(x).Name));
 
 					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Lost:** " + String.Join(", ", rolesChange)), "Role Loss");
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 				}
-				else if (secondNotFirst.Count > 0)
+				else if (secondNotFirst.Any())
 				{
 					secondNotFirst.ForEach(x => rolesChange.Add(afterUser.Guild.GetRole(x).Name));
 
@@ -394,7 +394,7 @@ namespace Advobot
 					deletedMessagesSorted.ForEach(x =>
 					{
 						//See if any embeds deleted
-						if (x.Embeds.Count > 0)
+						if (x.Embeds.Any())
 						{
 							//Get the embed
 							Embed embed = x.Embeds.ToList().FirstOrDefault(y => y.Description != null);
@@ -429,7 +429,7 @@ namespace Advobot
 							}
 						}
 						//See if any attachments were put in
-						else if (x.Attachments.Count > 0)
+						else if (x.Attachments.Any())
 						{
 							string content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 							deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
@@ -517,11 +517,11 @@ namespace Advobot
 				ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 				if (logChannel != null)
 				{
-					if (message.Attachments.Count > 0)
+					if (message.Attachments.Any())
 					{
 						ImageLog(logChannel, message, false);
 					}
-					else if (message.Embeds.Count > 0)
+					else if (message.Embeds.Any())
 					{
 						ImageLog(logChannel, message, true);
 					}
@@ -541,12 +541,12 @@ namespace Advobot
 				List<string> attachmentURLs = new List<string>();
 				List<string> embedURLs = new List<string>();
 				List<Embed> videoEmbeds = new List<Embed>();
-				if (!embeds && message.Attachments.Count > 0)
+				if (!embeds && message.Attachments.Any())
 				{
 					//If attachment, the file is hosted on discord which has a concrete URL name for files (cdn.discordapp.com/attachments/.../x.png)
 					message.Attachments.ToList().ForEach(x => attachmentURLs.Add(x.Url));
 				}
-				if (embeds && message.Embeds.Count > 0)
+				if (embeds && message.Embeds.Any())
 				{
 					//If embed this is slightly trickier, but only images/videos can embed (AFAIK)
 					message.Embeds.ToList().ForEach(x =>

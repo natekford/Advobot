@@ -28,6 +28,7 @@ namespace Advobot
 		public const string MOD_LOG_CHECK_STRING = "modlog";
 		public const string BANNED_PHRASES_CHECK_STRING = "bannedphrases";
 		public const string BANNED_REGEX_CHECK_STRING = "bannedregex";
+		public const string BANNED_PHRASES_PUNISHMENTS = "punishments";
 		public const string CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
 		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/Text|Voice]>";
 		public const string VOICE_TYPE = "voice";

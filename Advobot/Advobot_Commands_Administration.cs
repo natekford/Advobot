@@ -85,10 +85,6 @@ namespace Advobot
 						}
 					}
 				}
-				while (msgs.Any(x => x == null))
-				{
-					Thread.Sleep(100);
-				}
 				await CommandHandler.Client.SetStatusAsync(UserStatus.Invisible);
 				Environment.Exit(1);
 			}
@@ -120,10 +116,6 @@ namespace Advobot
 						}
 					}
 				}
-				while (msgs.Any(x => x == null))
-				{
-					Thread.Sleep(100);
-				}
 
 				try
 				{
@@ -134,7 +126,7 @@ namespace Advobot
 				}
 				catch (Exception)
 				{
-					Console.WriteLine("!!!BOT IS UNABLE TO RESTART!!!");
+					Console.WriteLine("BOT IS UNABLE TO RESTART!");
 				}
 			}
 			else
@@ -307,7 +299,7 @@ namespace Advobot
 			await Actions.readPreferences(Context.Channel, Actions.getServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE));
 		}
 
-		//TODO: Use a different split character
+		//TODO: Use a different split character eventually
 		[Command("setbanphrases")]
 		[Alias("sbps")]
 		[Usage(Constants.BOT_PREFIX + "setbanphrases [Add|Remove] [Phrase/...] <Regex>")]
@@ -501,7 +493,7 @@ namespace Advobot
 
 			//Format success message
 			string successMessage = null;
-			if (success.Count > 0)
+			if (success.Any())
 			{
 				successMessage = String.Format("Successfully {0} the following {1} {2} the banned {3} list: `{4}`",
 					addBool ? "added" : "removed",
@@ -513,7 +505,7 @@ namespace Advobot
 
 			//Format the failure message
 			string failureMessage = null;
-			if (failure.Count > 0)
+			if (failure.Any())
 			{
 				String.Format("{0}ailed to {1} the following {2} {3} the banned {4} list: `{5}`",
 					successMessage != null ? "F" : "f",
@@ -644,7 +636,7 @@ namespace Advobot
 		[Alias("spun")]
 		[Usage(Constants.BOT_PREFIX + "setpunishment [Add] [Number] [Role Name|Kick|Ban] | [Remove] [Number]")]
 		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to this total.")]
-		[PermissionRequirements]
+		[BotOwnerRequirement]
 		public async Task SetPunishments([Remainder] string input)
 		{
 			//Split the input
@@ -709,7 +701,7 @@ namespace Advobot
 			var newPunishment = new BannedPhrasePunishment(number, punishmInt, punishmRole);
 
 			//Get the list of punishments
-			var punishments = 
+			//var punishments = 
 
 			//Add
 			if (addBool)
@@ -722,9 +714,9 @@ namespace Advobot
 
 			}
 
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of: {1}.",
-				addBool ? "added" : "removed",
-				));
+			//await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of: {1}.",
+				//addBool ? "added" : "removed",
+				//));
 		}
 
 		[Command("currentpunishments")]
