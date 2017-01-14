@@ -266,7 +266,7 @@ namespace Advobot
 
 	public class BannedPhrasePunishment
 	{
-		public BannedPhrasePunishment(int mNumber, int mPunishment, IRole mRole = null)
+		public BannedPhrasePunishment(int mNumber, PunishmentTypes mPunishment, IRole mRole = null)
 		{
 			this.Number_Of_Removes = mNumber;
 			this.Punishment = mPunishment;
@@ -274,7 +274,14 @@ namespace Advobot
 		}
 
 		public int Number_Of_Removes;
-		public int Punishment;
+		public PunishmentTypes Punishment;
 		public IRole Role;
+	}
+
+	public enum PunishmentTypes
+	{
+		Kick = 1,
+		Ban = 2,
+		Role = 3
 	}
 }

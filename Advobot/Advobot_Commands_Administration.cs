@@ -675,21 +675,21 @@ namespace Advobot
 			}
 
 			//Get the punishment
-			string punishment = inputArray[2].ToLower();
-			int punishmInt = 0;
-			IRole punishmRole = null;
-			if (punishment.Equals("kick"))
+			string punishmentString = inputArray[2].ToLower();
+			PunishmentType punishmentType = 0;
+			IRole punishmentRole = null;
+			if (punishmentString.Equals("kick"))
 			{
-				punishmInt = 1;
+				punishmentType = PunishmentType.Kick;
 			}
-			else if (punishment.Equals("ban"))
+			else if (punishmentString.Equals("ban"))
 			{
-				punishmInt = 2;
+				punishmentType = PunishmentType.Ban;
 			}
-			else if (Context.Guild.Roles.Any(x => x.Name == punishment))
+			else if (Context.Guild.Roles.Any(x => x.Name == punishmentString))
 			{
-				punishmInt = 3;
-				punishmRole = await Actions.getRoleEditAbility(Context, punishment);
+				punishmentType = PunishmentType.Role;
+				punishmentRole = await Actions.getRoleEditAbility(Context, punishmentString);
 			}
 			else
 			{
@@ -698,25 +698,58 @@ namespace Advobot
 			}
 
 			//Set the punishment
-			var newPunishment = new BannedPhrasePunishment(number, punishmInt, punishmRole);
+			var newPunishment = addBool ? new BannedPhrasePunishment(number, punishmentType, punishmentRole) : null;
 
 			//Get the list of punishments
-			//var punishments = 
+			var punishments = new List<BannedPhrasePunishment>();
+			if (Variables.BannedPhrasesPunishments.ContainsKey(Context.Guild.Id))
+			{
+				punishments = Variables.BannedPhrasesPunishments[Context.Guild.Id];
+			}
 
 			//Add
 			if (addBool)
 			{
-
+				if (punishments.Any(x => x.Number_Of_Removes == newPunishment.Number_Of_Removes))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists for that number of banned phrases said."));
+					return;
+				}
+				else
+				{
+					punishments.Add(newPunishment);
+				}
 			}
 			//Remove
 			else
 			{
-
+				if (punishments.Any(x => x.Number_Of_Removes == number))
+				{
+					punishments.Where(x => x.Number_Of_Removes == number).ToList().ForEach(x => punishments.Remove(x));
+				}
+				else
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No punishments require that number of banned phrases said."));
+					return;
+				}
 			}
 
-			//await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of: {1}.",
-				//addBool ? "added" : "removed",
-				//));
+			//Determine what the success message should say
+			string successMsg = "";
+			if (newPunishment.Punishment == PunishmentType.Kick)
+			{
+				successMsg = newPunishment.Number_Of_Removes + ": " + Enum.GetName(typeof(PunishmentType), punishmentType);
+			}
+			else if (newPunishment.Punishment == PunishmentType.Ban)
+			{
+				successMsg = newPunishment.Number_Of_Removes + ": " + Enum.GetName(typeof(PunishmentType), punishmentType);
+			}
+			else if (newPunishment.Role != null)
+			{
+				successMsg = newPunishment.Number_Of_Removes + ": " + newPunishment.Role.Name;
+			}
+
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of: {1}.", addBool ? "added" : "removed", successMsg));
 		}
 
 		[Command("currentpunishments")]

@@ -261,6 +261,7 @@ namespace Advobot
 			//Get the banned phrases and regex
 			var bannedPhrases = new List<string>();
 			var bannedRegex = new List<Regex>();
+			var bannedPhrasesPunishments = new List<BannedPhrasePunishment>();
 			using (StreamReader file = new StreamReader(path))
 			{
 				string line;
@@ -305,7 +306,29 @@ namespace Advobot
 						int index = line.IndexOf(':');
 						if (index >= 0 && index < line.Length - 1)
 						{
+							string punishments = line.Substring(index + 1);
+							punishments.Split('/').Where(x => !String.IsNullOrWhiteSpace(x)).Distinct().ToList().ForEach(x =>
+							{
+								//Split the information in the file
+								var args = x.Split(' ');
 
+								int number = 0;
+								int punishment = 0;
+								ulong roleID = 0;
+								IRole role = null;
+
+								//All needs to be ifs to check each value
+								if (!int.TryParse(args[0], out number))
+									return;
+								if (!int.TryParse(args[1], out punishment))
+									return;
+								if (args.Length == 3 && !ulong.TryParse(args[2], out roleID))
+									return;
+								else if (roleID != 0)
+									role = guild.GetRole(roleID);
+
+								bannedPhrasesPunishments.Add(new BannedPhrasePunishment(number, (PunishmentTypes)punishment, role));
+							});
 						}
 						continue;
 					}
@@ -315,6 +338,7 @@ namespace Advobot
 			//Add them to the dictionary with the guild
 			Variables.BannedPhrases.Add(guild.Id, bannedPhrases);
 			Variables.BannedRegex.Add(guild.Id, bannedRegex);
+			Variables.BannedPhrasesPunishments.Add(guild.Id, bannedPhrasesPunishments);
 		}
 		#endregion
 
