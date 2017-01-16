@@ -248,8 +248,8 @@ namespace Advobot
 			}
 		}
 
-		//Load banned words
-		public static void loadBannedPhrases(IGuild guild)
+		//Load banned words/regex/punishments
+		public static void loadBannedPhrasesAndPunishments(IGuild guild)
 		{
 			//Check if the file even exists
 			string path = getServerFilePath(guild.Id, Constants.BANNED_PHRASES);
@@ -312,22 +312,35 @@ namespace Advobot
 								//Split the information in the file
 								var args = x.Split(' ');
 
-								int number = 0;
-								int punishment = 0;
-								ulong roleID = 0;
-								IRole role = null;
+								//All need to be ifs to check each value
 
-								//All needs to be ifs to check each value
+								//Number of removes to activate
+								int number = 0;
 								if (!int.TryParse(args[0], out number))
 									return;
+
+								//The type of punishment
+								int punishment = 0;
 								if (!int.TryParse(args[1], out punishment))
 									return;
-								if (args.Length == 3 && !ulong.TryParse(args[2], out roleID))
+
+								//The role ID if a role punishment type
+								ulong roleID = 0;
+								IRole role = null;
+								if (punishment == 3 && !ulong.TryParse(args[2], out roleID))
 									return;
 								else if (roleID != 0)
 									role = guild.GetRole(roleID);
 
-								bannedPhrasesPunishments.Add(new BannedPhrasePunishment(number, (PunishmentTypes)punishment, role));
+								//The time if a time is input
+								int givenTime = 0;
+								int? time = null;
+								if (role != null && !int.TryParse(args[3], out givenTime))
+									return;
+								else if (givenTime != 0)
+									time = givenTime;
+
+								bannedPhrasesPunishments.Add(new BannedPhrasePunishment(number, (PunishmentType)punishment, role, time));
 							});
 						}
 						continue;
@@ -336,9 +349,18 @@ namespace Advobot
 			}
 
 			//Add them to the dictionary with the guild
-			Variables.BannedPhrases.Add(guild.Id, bannedPhrases);
-			Variables.BannedRegex.Add(guild.Id, bannedRegex);
-			Variables.BannedPhrasesPunishments.Add(guild.Id, bannedPhrasesPunishments);
+			if (!Variables.BannedPhrases.ContainsKey(guild.Id) && bannedPhrases.Any())
+			{
+				Variables.BannedPhrases.Add(guild.Id, bannedPhrases);
+			}
+			if (!Variables.BannedRegex.ContainsKey(guild.Id) && bannedRegex.Any())
+			{
+				Variables.BannedRegex.Add(guild.Id, bannedRegex);
+			}
+			if (!Variables.BannedPhrasesPunishments.ContainsKey(guild.Id) && bannedPhrasesPunishments.Any())
+			{
+				Variables.BannedPhrasesPunishments.Add(guild.Id, bannedPhrasesPunishments);
+			}
 		}
 		#endregion
 
@@ -382,11 +404,11 @@ namespace Advobot
 		//Get top position of a user
 		public static int getPosition(IGuild guild, IGuildUser user)
 		{
-			int position = 0;
-			user.RoleIds.ToList().ForEach(x => position = Math.Max(position, guild.GetRole(x).Position));
-
 			if (user.Id == guild.OwnerId)
 				return Constants.OWNER_POSITION;
+
+			int position = 0;
+			user.RoleIds.ToList().ForEach(x => position = Math.Max(position, guild.GetRole(x).Position));
 
 			return position;
 		}
@@ -950,39 +972,6 @@ namespace Advobot
 			Actions.writeLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, user.Username));
 			await channel.DeleteMessagesAsync(userMessages.ToArray());
 		}
-
-		//Banned phrases
-		public static async Task bannedPhrases(SocketMessage message)
-		{
-			//Get the guild
-			IGuild guild = (message.Channel as IGuildChannel).Guild;
-
-			//Check if it has any banned words
-			if (Variables.BannedPhrases.ContainsKey(guild.Id))
-			{
-				foreach (string phrase in Variables.BannedPhrases[guild.Id])
-				{
-					if (message.Content.IndexOf(phrase, StringComparison.OrdinalIgnoreCase) >= 0)
-					{
-						await message.DeleteAsync();
-						return;
-					}
-				}
-			}
-			//Check if it has any banned regex
-			if (Variables.BannedRegex.ContainsKey(guild.Id))
-			{
-				foreach (var regex in Variables.BannedRegex[guild.Id])
-				{
-					//See if any matches
-					if (regex.IsMatch(message.Content))
-					{
-						await message.DeleteAsync();
-						return;
-					}
-				}
-			}
-		}
 		#endregion
 
 		#region Message Formatting
@@ -1202,6 +1191,24 @@ namespace Advobot
 		#endregion
 
 		#region Server/Mod Log
+		//Check if the bot can type in a logchannel
+		public static async Task<bool> permissionCheck(ITextChannel channel)
+		{
+			IGuildUser bot = await channel.Guild.GetUserAsync(Variables.Bot_ID);
+
+			//Check if the bot can send messages
+			if (!bot.GetPermissions(channel).SendMessages)
+				return false;
+
+			//Check if the bot can embed
+			if (!bot.GetPermissions(channel).EmbedLinks)
+			{
+				await Actions.sendChannelMessage(channel, "Bot is unable to use message embeds on this channel.");
+				return false;
+			}
+
+			return true;
+		}
 		//Set the server or mod log
 		public static async Task<ITextChannel> setServerOrModLog(CommandContext context, string input, string serverOrMod)
 		{
@@ -1273,13 +1280,13 @@ namespace Advobot
 			{
 				if (inputChannel == null)
 				{
-					writer.WriteLine(serverOrMod + ":" + null + "\n" + String.Join("", validLines));
+					writer.WriteLine(serverOrMod + ":" + null + "\n" + String.Join("\n", validLines));
 					await makeAndDeleteSecondaryMessage(channel, message, "Disabled the " + serverOrMod + ".");
 					return null;
 				}
 				else
 				{
-					writer.WriteLine(serverOrMod + ":" + inputChannel.Id + "\n" + String.Join("", validLines));
+					writer.WriteLine(serverOrMod + ":" + inputChannel.Id + "\n" + String.Join("\n", validLines));
 				}
 			}
 
@@ -1503,6 +1510,154 @@ namespace Advobot
 					kvp.Value.Add(new SlowmodeUser(user, messages, messages, time));
 				}
 			}
+		}
+		#endregion
+
+		#region Banned Phrases
+		//Banned phrases
+		public static async Task bannedPhrases(SocketMessage message)
+		{
+			//Get the guild
+			IGuild guild = (message.Channel as IGuildChannel).Guild;
+
+			//Check if it has any banned words
+			if (Variables.BannedPhrases.ContainsKey(guild.Id))
+			{
+				foreach (string phrase in Variables.BannedPhrases[guild.Id])
+				{
+					if (message.Content.IndexOf(phrase, StringComparison.OrdinalIgnoreCase) >= 0)
+					{
+						await bannedPhrasesPunishments(message);
+						return;
+					}
+				}
+			}
+			//Check if it has any banned regex
+			if (Variables.BannedRegex.ContainsKey(guild.Id))
+			{
+				foreach (var regex in Variables.BannedRegex[guild.Id])
+				{
+					//See if any matches
+					if (regex.IsMatch(message.Content))
+					{
+						await bannedPhrasesPunishments(message);
+						return;
+					}
+				}
+			}
+		}
+
+		//Banned phrase punishments on a user
+		public static async Task bannedPhrasesPunishments(SocketMessage message)
+		{
+			//Get rid of the message
+			await message.DeleteAsync();
+
+			//Check if the guild has any punishments set up
+			if (!Variables.BannedPhrasesPunishments.ContainsKey((message.Channel as IGuildChannel).GuildId))
+				return;
+
+			//Get the user
+			var user = message.Author as IGuildUser;
+
+			//Check if the user is on the list already for saying a banned phrase
+			BannedPhraseUser bpUser;
+			if (Variables.BannedPhraseUserList.Any(x => x.User == user))
+			{
+				//Grab the user and add 1 onto his messages removed count
+				bpUser = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user);
+				++bpUser.Amount_Of_Removed_Messages;
+			}
+			else
+			{
+				//Add in the user and give 1 onto his messages removed count
+				bpUser = new BannedPhraseUser(user);
+				Variables.BannedPhraseUserList.Add(bpUser);
+			}
+
+			//Get the banned phrases punishments from the guild
+			var punishments = Variables.BannedPhrasesPunishments[(message.Channel as IGuildChannel).GuildId];
+
+			//Check if any punishments have the messages count which the user has
+			if (!punishments.Any(x => x.Number_Of_Removes == bpUser.Amount_Of_Removed_Messages))
+				return;
+
+			//Grab the punishment with the same number
+			BannedPhrasePunishment punishment = punishments.FirstOrDefault(x => x.Number_Of_Removes == bpUser.Amount_Of_Removed_Messages);
+
+			//Kick
+			if (punishment.Punishment == PunishmentType.Kick)
+			{
+				//Check if can kick them
+				if (Actions.getPosition(user.Guild, user) > Actions.getPosition(user.Guild, await user.Guild.GetUserAsync(Variables.Bot_ID)))
+					return;
+
+				//Kick them
+				await user.KickAsync();
+
+				//Send a message to the logchannel
+				ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+				if (logChannel != null)
+				{
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAVE, description: "**ID:** " + user.Id.ToString()), "Banned Phrases Leave");
+					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
+				}
+			}
+			//Ban
+			else if (punishment.Punishment == PunishmentType.Ban)
+			{
+				//Check if can ban them
+				if (Actions.getPosition(user.Guild, user) > Actions.getPosition(user.Guild, await user.Guild.GetUserAsync(Variables.Bot_ID)))
+					return;
+
+				//Ban them
+				await user.Guild.AddBanAsync(message.Author);
+
+				//Send a message to the logchannel
+				ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+				if (logChannel != null)
+				{
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.BAN, description: "**ID:** " + user.Id.ToString()), "Banned Phrases Ban");
+					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
+				}
+			}
+			//Role
+			else
+			{
+				//Give them the role
+				await Actions.giveRole(user, punishment.Role);
+
+				//If a time is specified, run through the time then remove the role
+				if (punishment.Punishment_Time != null)
+				{
+					bannedPhrasesPunishmentTimer(user, punishment.Role, (int)punishment.Punishment_Time);
+				}
+
+				//Send a message to the logchannel
+				ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+				if (logChannel != null)
+				{
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Gained:** " + punishment.Role.Name), "Banned Phrases Role");
+					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
+				}
+			}
+		}
+
+		//Wait them remove the role on a user when they got it from a banned phrase punishment
+		public static void bannedPhrasesPunishmentTimer(IGuildUser user, IRole role, int time)
+		{
+			Task t = Task.Run(async () =>
+			{
+				//Sleep for the given amount of seconds
+				Thread.Sleep(time * 60000);
+
+				//Check if the user still has the role
+				if (!user.RoleIds.Contains(role.Id))
+					return;
+
+				//Remove the role
+				await user.RemoveRolesAsync(role);
+			});
 		}
 		#endregion
 	}

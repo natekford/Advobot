@@ -31,7 +31,7 @@ namespace Advobot
 		{
 			Actions.writeLine(String.Format("{0}: {1}#{2} is online now.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
 			Actions.loadPreferences(guild);
-			Actions.loadBannedPhrases(guild);
+			Actions.loadBannedPhrasesAndPunishments(guild);
 
 			Variables.TotalUsers += guild.MemberCount;
 			Variables.TotalGuilds++;
@@ -75,8 +75,6 @@ namespace Advobot
 		//Tell when a user joins the server
 		public static async Task OnUserJoined(SocketGuildUser user)
 		{
-			++Variables.LoggedJoins;
-
 			//Check if should add them to a slowmode for channel/guild
 			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id) || (await user.Guild.GetTextChannelsAsync()).Intersect(Variables.SlowmodeChannels.Keys).Any())
 			{
@@ -84,25 +82,27 @@ namespace Advobot
 			}
 
 			ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
-			if (logChannel != null)
+			if (logChannel == null)
+				return;
+			if (!await Actions.permissionCheck(logChannel))
+				return;
+			++Variables.LoggedJoins;
+
+			if (user.IsBot)
 			{
-				if (user.IsBot)
-				{
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, description: "**ID:** " + user.Id.ToString()), "Bot Join");
-					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
-				}
-				else
-				{
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, description: "**ID:** " + user.Id.ToString()), "Join");
-					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
-				}
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, description: "**ID:** " + user.Id.ToString()), "Bot Join");
+				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
+			}
+			else
+			{
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, description: "**ID:** " + user.Id.ToString()), "Join");
+				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 		}
 
 		//Tell when a user leaves the server
 		public static async Task OnUserLeft(SocketGuildUser user)
 		{
-			++Variables.LoggedLeaves;
 			//Check if the bot was the one that left
 			if (user == user.Guild.GetUser(Variables.Bot_ID))
 			{
@@ -111,42 +111,45 @@ namespace Advobot
 			}
 
 			ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
-			if (logChannel != null)
+			if (logChannel == null)
+				return;
+			if (!await Actions.permissionCheck(logChannel))
+				return;
+			++Variables.LoggedLeaves;
+
+			if (user.IsBot)
 			{
-				if (user.IsBot)
-				{
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAVE, description: "**ID:** " + user.Id.ToString()), "Bot Leave");
-					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
-				}
-				else
-				{
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAVE, description: "**ID:** " + user.Id.ToString()), "Leave");
-					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
-				}
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAVE, description: "**ID:** " + user.Id.ToString()), "Bot Leave");
+				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
+			}
+			else
+			{
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAVE, description: "**ID:** " + user.Id.ToString()), "Leave");
+				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 		}
 
 		//Tell when a user is unbanned
 		public static async Task OnUserUnbanned(SocketUser user, SocketGuild guild)
 		{
+			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			if (logChannel == null)
+				return;
+			if (!await Actions.permissionCheck(logChannel))
+				return;
 			++Variables.LoggedUnbans;
 
-			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
-			if (logChannel != null)
-			{
-				//Get the username/discriminator via this dictionary since they don't exist otherwise
-				string username = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Username : "null";
-				string discriminator = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Discriminator : "0000";
+			//Get the username/discriminator via this dictionary since they don't exist otherwise
+			string username = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Username : "null";
+			string discriminator = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Discriminator : "0000";
 
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UNBAN, description: "**ID:** " + user.Id.ToString()), "Unban");
-				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", username, discriminator), user.AvatarUrl));
-			}
+			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UNBAN, description: "**ID:** " + user.Id.ToString()), "Unban");
+			await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", username, discriminator), user.AvatarUrl));
 		}
 
 		//Tell when a user is banned
 		public static async Task OnUserBanned(SocketUser user, SocketGuild guild)
 		{
-			++Variables.LoggedBans;
 			//Check if the bot was the one banned
 			if (user == guild.GetUser(Variables.Bot_ID))
 			{
@@ -155,78 +158,79 @@ namespace Advobot
 			}
 
 			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
-			if (logChannel != null)
-			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.BAN, description: "**ID:** " + user.Id.ToString()), "Ban");
-				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
-			}
+			if (logChannel == null)
+				return;
+			if (!await Actions.permissionCheck(logChannel))
+				return;
+			++Variables.LoggedBans;
+
+			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.BAN, description: "**ID:** " + user.Id.ToString()), "Ban");
+			await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 		}
 
 		//Tell when a user has their name, nickname, or roles changed
 		public static async Task OnGuildMemberUpdated(SocketGuildUser beforeUser, SocketGuildUser afterUser)
 		{
+			ITextChannel logChannel = await Actions.logChannelCheck(beforeUser.Guild, Constants.SERVER_LOG_CHECK_STRING);
+			if (logChannel == null)
+				return;
+			if (!await Actions.permissionCheck(logChannel))
+				return;
 			++Variables.LoggedUserChanges;
 
-			ITextChannel logChannel = await Actions.logChannelCheck(beforeUser.Guild, Constants.SERVER_LOG_CHECK_STRING);
-			if (logChannel != null)
+			//Nickname change
+			if ((String.IsNullOrWhiteSpace(beforeUser.Nickname) && !String.IsNullOrWhiteSpace(afterUser.Nickname)) || (!String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)))
 			{
-				//Nickname change
-				if ((String.IsNullOrWhiteSpace(beforeUser.Nickname) && !String.IsNullOrWhiteSpace(afterUser.Nickname))
-					 || (!String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)))
+				string originalNickname = beforeUser.Nickname;
+				if (String.IsNullOrWhiteSpace(beforeUser.Nickname))
 				{
-					string originalNickname = beforeUser.Nickname;
-					if (String.IsNullOrWhiteSpace(beforeUser.Nickname))
-					{
-						originalNickname = "NO NICKNAME";
-					}
-					string nicknameChange = afterUser.Nickname;
-					if (String.IsNullOrWhiteSpace(afterUser.Nickname))
-					{
-						nicknameChange = "NO NICKNAME";
-					}
-					//These ones are across more lines than the previous ones up above because it makes it easier to remember what is doing what
+					originalNickname = "NO NICKNAME";
+				}
+				string nicknameChange = afterUser.Nickname;
+				if (String.IsNullOrWhiteSpace(afterUser.Nickname))
+				{
+					nicknameChange = "NO NICKNAME";
+				}
+				//These ones are across more lines than the previous ones up above because it makes it easier to remember what is doing what
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT), "Nickname");
+				Actions.addField(embed, "Before:", originalNickname);
+				Actions.addField(embed, "After:", nicknameChange, false);
+				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
+			}
+			else if (!(String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)))
+			{
+				if (!beforeUser.Nickname.Equals(afterUser.Nickname))
+				{
 					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT), "Nickname");
-					Actions.addField(embed, "Before:", originalNickname);
-					Actions.addField(embed, "After:", nicknameChange, false);
+					Actions.addField(embed, "Before:", beforeUser.Nickname);
+					Actions.addField(embed, "After:", afterUser.Nickname, false);
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 				}
-				else if (!(String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)))
-				{
-					if (!beforeUser.Nickname.Equals(afterUser.Nickname))
-					{
-						EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT), "Nickname");
-						Actions.addField(embed, "Before:", beforeUser.Nickname);
-						Actions.addField(embed, "After:", afterUser.Nickname, false);
-						await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
-					}
-				}
+			}
 
-				//Role change
-				List<ulong> firstNotSecond = beforeUser.RoleIds.ToList().Except(afterUser.RoleIds.ToList()).ToList();
-				List<ulong> secondNotFirst = afterUser.RoleIds.ToList().Except(beforeUser.RoleIds.ToList()).ToList();
-				List<string> rolesChange = new List<string>();
-				if (firstNotSecond.Any())
-				{
-					firstNotSecond.ForEach(x => rolesChange.Add(afterUser.Guild.GetRole(x).Name));
+			//Role change
+			List<ulong> firstNotSecond = beforeUser.RoleIds.ToList().Except(afterUser.RoleIds.ToList()).ToList();
+			List<ulong> secondNotFirst = afterUser.RoleIds.ToList().Except(beforeUser.RoleIds.ToList()).ToList();
+			List<string> rolesChange = new List<string>();
+			if (firstNotSecond.Any())
+			{
+				firstNotSecond.ForEach(x => rolesChange.Add(afterUser.Guild.GetRole(x).Name));
 
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Lost:** " + String.Join(", ", rolesChange)), "Role Loss");
-					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
-				}
-				else if (secondNotFirst.Any())
-				{
-					secondNotFirst.ForEach(x => rolesChange.Add(afterUser.Guild.GetRole(x).Name));
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Lost:** " + String.Join(", ", rolesChange)), "Role Loss");
+				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
+			}
+			else if (secondNotFirst.Any())
+			{
+				secondNotFirst.ForEach(x => rolesChange.Add(afterUser.Guild.GetRole(x).Name));
 
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Gained:** " + String.Join(", ", rolesChange)), "Role Gain");
-					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
-				}
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Gained:** " + String.Join(", ", rolesChange)), "Role Gain");
+				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 			}
 		}
 
 		//Tell when a user updates their name/game/status
 		public static async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
 		{
-			++Variables.LoggedUserChanges;
-
 			//Name change
 			//TODO: Make this work somehow
 			if (!beforeUser.Username.Equals(afterUser.Username))
@@ -236,6 +240,9 @@ namespace Advobot
 					ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 					if (logChannel == null)
 						return;
+					if (!await Actions.permissionCheck(logChannel))
+						return;
+					++Variables.LoggedUserChanges;
 
 					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT), "Name Change");
 					Actions.addField(embed, "Before:", beforeUser.Username);
@@ -248,283 +255,285 @@ namespace Advobot
 		//Tell when a message is edited 
 		public static async Task OnMessageUpdated(Optional<SocketMessage> beforeMessage, SocketMessage afterMessage)
 		{
-			++Variables.LoggedEdits;
 			//If bot then ignore
 			if (afterMessage.Author.IsBot)
 				return;
 			//If DM then ignore
 			if (afterMessage.Channel as IGuildChannel == null)
 				return;
-
 			//Check if the guild exists
 			IGuild guild = (afterMessage.Channel as IGuildChannel).Guild;
 			if (guild == null)
 				return;
-
 			//Check if any banned phrases
 			await Actions.bannedPhrases(afterMessage);
-
+			//Check if logchannel exists
 			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
-			if (logChannel != null && beforeMessage.IsSpecified)
+			if (logChannel == null || !beforeMessage.IsSpecified)
+				return;
+			++Variables.LoggedEdits;
+
+			//Check if regular messages are equal
+			if (beforeMessage.Value.Embeds.Count != afterMessage.Embeds.Count)
 			{
-				//Check if regular messages are equal
-				if (beforeMessage.Value.Embeds.Count != afterMessage.Embeds.Count)
+				ImageLog(logChannel, afterMessage, true);
+				return;
+			}
+
+			//Set the content as strings
+			string beforeMsg = Actions.replaceMessageCharacters(beforeMessage.Value.Content);
+			string afterMsg = Actions.replaceMessageCharacters(afterMessage.Content);
+
+			//Set the user as a variable to save some space
+			IUser user = afterMessage.Author;
+
+			//Bot cannot pick up messages from before it was started
+			if (String.IsNullOrWhiteSpace(beforeMsg))
+			{
+				beforeMsg = "UNABLE TO BE GATHERED";
+				if (String.IsNullOrWhiteSpace(afterMsg))
 				{
-					ImageLog(logChannel, afterMessage, true);
+					--Variables.LoggedEdits;
 					return;
 				}
-
-				//Set the content as strings
-				string beforeMsg = Actions.replaceMessageCharacters(beforeMessage.Value.Content);
-				string afterMsg = Actions.replaceMessageCharacters(afterMessage.Content);
-
-				//Set the user as a variable to save some space
-				IUser user = afterMessage.Author;
-
-				//Bot cannot pick up messages from before it was started
-				if (String.IsNullOrWhiteSpace(beforeMsg))
-				{
-					beforeMsg = "UNABLE TO BE GATHERED";
-					if (String.IsNullOrWhiteSpace(afterMsg))
-					{
-						--Variables.LoggedEdits;
-						return;
-					}
-				}
-				else if (String.IsNullOrWhiteSpace(afterMsg))
-				{
-					afterMsg = "UNABLE TO BE GATHERED";
-				}
-
-				//Check lengths
-				if (!(beforeMsg.Length + afterMsg.Length < 1800))
-				{
-					beforeMsg = beforeMsg.Length > 667 ? "SPAM" : beforeMsg;
-					afterMsg = afterMsg.Length > 667 ? "SPAM" : afterMsg;
-				}
-
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.MEDIT), "Edit");
-				Actions.addField(embed, "Before:", beforeMsg);
-				Actions.addField(embed, "After:", afterMsg, false);
-				Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, afterMessage.Channel), user.AvatarUrl);
-				await Actions.sendEmbedMessage(logChannel, embed);
 			}
+			else if (String.IsNullOrWhiteSpace(afterMsg))
+			{
+				afterMsg = "UNABLE TO BE GATHERED";
+			}
+
+			//Check lengths
+			if (!(beforeMsg.Length + afterMsg.Length < 1800))
+			{
+				beforeMsg = beforeMsg.Length > 667 ? "SPAM" : beforeMsg;
+				afterMsg = afterMsg.Length > 667 ? "SPAM" : afterMsg;
+			}
+
+			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.MEDIT), "Edit");
+			Actions.addField(embed, "Before:", beforeMsg);
+			Actions.addField(embed, "After:", afterMsg, false);
+			Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, afterMessage.Channel), user.AvatarUrl);
+			await Actions.sendEmbedMessage(logChannel, embed);
 		}
 
 		//Tell when a message is deleted
 		public static async Task OnMessageDeleted(ulong messageID, Optional<SocketMessage> message)
 		{
-			++Variables.LoggedDeletes;
-			//If null message ignore
-			if (!message.IsSpecified)
-				return;
 			//If DM ignore
 			if (message.Value.Channel as IGuildChannel == null)
 				return;
-
-			//Initialize the guild and channel
+			//Check if guild exists
 			IGuild guild = (message.Value.Channel as IGuildChannel).Guild;
+			if (guild == null)
+				return;
+			//Check if valid log channel
 			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			if (logChannel == null)
+				return;
+			//If null message ignore
+			if (!message.IsSpecified)
+				return;
+			//Got an error once time due to a null user when spam testing, so this check is here
+			if (message.Value.Author == null)
+				return;
+			++Variables.LoggedDeletes;
 
-			if (logChannel != null)
+			//Get a list of the deleted messages per server
+			List<SocketMessage> mainMessages;
+			if (!Variables.DeletedMessages.TryGetValue(guild.Id, out mainMessages))
 			{
-				//Got an error once time due to a null user when spam testing, so this check is here
-				if (message.Value.Author.Equals(null))
+				mainMessages = new List<SocketMessage>();
+				Variables.DeletedMessages[guild.Id] = mainMessages;
+			}
+			lock (mainMessages)
+			{
+				mainMessages.Add(message.Value);
+			}
+
+			//Use a token so the messages do not get sent prematurely
+			CancellationTokenSource cancelToken;
+			if (Variables.CancelTokens.TryGetValue(guild.Id, out cancelToken))
+			{
+				cancelToken.Cancel();
+			}
+			cancelToken = new CancellationTokenSource();
+			Variables.CancelTokens[guild.Id] = cancelToken;
+
+			//Make a separate task in order to not mess up the other commands
+			var t = Task.Run(async delegate
+			{
+				try
+				{
+					//IGNORE THIS EXCEPTION OR ELSE THE BOT LOCKS EACH TIME MESSAGES ARE DELETED
+					await Task.Delay(TimeSpan.FromSeconds(Constants.TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG), cancelToken.Token);
+				}
+				catch (TaskCanceledException)
+				{
+					Console.WriteLine("Expected exception occurred during deleting messages.");
 					return;
-
-				//Get a list of the deleted messages per server
-				List<SocketMessage> mainMessages;
-				if (!Variables.DeletedMessages.TryGetValue(guild.Id, out mainMessages))
-				{
-					mainMessages = new List<SocketMessage>();
-					Variables.DeletedMessages[guild.Id] = mainMessages;
-				}
-				lock (mainMessages)
-				{
-					mainMessages.Add(message.Value);
 				}
 
-				//Use a token so the messages do not get sent prematurely
-				CancellationTokenSource cancelToken;
-				if (Variables.CancelTokens.TryGetValue(guild.Id, out cancelToken))
+				int characterCount = 0;
+				List<SocketMessage> deletedMessages;
+				List<SocketMessage> taskMessages = Variables.DeletedMessages[guild.Id];
+				lock (taskMessages)
 				{
-					cancelToken.Cancel();
+					//Give the messages to a new list so they can be removed from the old one
+					deletedMessages = new List<SocketMessage>(taskMessages);
+
+					//Get the character count
+					taskMessages.ForEach(x => characterCount += (x.Content.Length));
+					characterCount += taskMessages.Count * 100;
+
+					//Clear the messages
+					taskMessages.Clear();
 				}
-				cancelToken = new CancellationTokenSource();
-				Variables.CancelTokens[guild.Id] = cancelToken;
 
-				//Make a separate task in order to not mess up the other commands
-				var t = Task.Run(async delegate
+				//Sort by oldest to newest
+				List<SocketMessage> deletedMessagesSorted = deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks).ToList();
+				if (Constants.NEWEST_DELETED_MESSAGES_AT_TOP)
 				{
-					try
+					deletedMessagesSorted.Reverse();
+				}
+				//Put the message content into a list of strings for easy usage
+				List<string> deletedMessagesContent = new List<string>();
+				deletedMessagesSorted.ForEach(x =>
+				{
+					//See if any embeds deleted
+					if (x.Embeds.Any())
 					{
-						//IGNORE THIS EXCEPTION OR ELSE THE BOT LOCKS EACH TIME MESSAGES ARE DELETED
-						await Task.Delay(TimeSpan.FromSeconds(Constants.TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG), cancelToken.Token);
-					}
-					catch (TaskCanceledException)
-					{
-						Console.WriteLine("Expected exception occurred during deleting messages.");
-						return;
-					}
+						//Get the embed
+						Embed embed = x.Embeds.ToList().FirstOrDefault(y => y.Description != null);
 
-					int characterCount = 0;
-					List<SocketMessage> deletedMessages;
-					List<SocketMessage> taskMessages = Variables.DeletedMessages[guild.Id];
-					lock (taskMessages)
-					{
-						//Give the messages to a new list so they can be removed from the old one
-						deletedMessages = new List<SocketMessage>(taskMessages);
-
-						//Get the character count
-						taskMessages.ForEach(x => characterCount += (x.Content.Length));
-						characterCount += taskMessages.Count * 100;
-
-						//Clear the messages
-						taskMessages.Clear();
-					}
-
-					//Sort by oldest to newest
-					List<SocketMessage> deletedMessagesSorted = deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks).ToList();
-					if (Constants.NEWEST_DELETED_MESSAGES_AT_TOP)
-					{
-						deletedMessagesSorted.Reverse();
-					}
-					//Put the message content into a list of strings for easy usage
-					List<string> deletedMessagesContent = new List<string>();
-					deletedMessagesSorted.ForEach(x =>
-					{
-						//See if any embeds deleted
-						if (x.Embeds.Any())
+						if (embed != null)
 						{
-							//Get the embed
-							Embed embed = x.Embeds.ToList().FirstOrDefault(y => y.Description != null);
-
-							if (embed != null)
+							if (embed.Author != null)
 							{
-								if (embed.Author != null)
-								{
-									string author = embed.Author.ToString();
+								string author = embed.Author.ToString();
 
-									//I don't know how to regex well
-									Regex regex = new Regex("#([0-9]*) in #");
-									string[] authorAndChannel = regex.Split(author);
+								//I don't know how to regex well
+								Regex regex = new Regex("#([0-9]*) in #");
+								string[] authorAndChannel = regex.Split(author);
 
-									deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-										authorAndChannel.Length > 0 ? authorAndChannel[0] : "null",
-										authorAndChannel.Length > 1 ? authorAndChannel[1] : "0000",
-										authorAndChannel.Length > 2 ? authorAndChannel[2] : "null",
-										x.CreatedAt.ToString("HH:mm:ss"),
-										Actions.replaceMessageCharacters(embed.Description)));
-								}
-								else
-								{
-									deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-										x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(embed.Description)));
-								}
+								deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
+									authorAndChannel.Length > 0 ? authorAndChannel[0] : "null",
+									authorAndChannel.Length > 1 ? authorAndChannel[1] : "0000",
+									authorAndChannel.Length > 2 ? authorAndChannel[2] : "null",
+									x.CreatedAt.ToString("HH:mm:ss"),
+									Actions.replaceMessageCharacters(embed.Description)));
 							}
 							else
 							{
 								deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-									x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), "An embed which was unable to be gotten."));
+									x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(embed.Description)));
 							}
 						}
-						//See if any attachments were put in
-						else if (x.Attachments.Any())
-						{
-							string content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
-							deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-								x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"),
-								Actions.replaceMessageCharacters(content + " + " + x.Attachments.ToList().First().Filename)));
-						}
-						//Else add the message in normally
 						else
 						{
-							string content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 							deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-								x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(content)));
+								x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), "An embed which was unable to be gotten."));
 						}
-					});
-
-					if (deletedMessages.Count == 0)
-						return;
-					else if ((deletedMessages.Count <= 5) && (characterCount < Constants.LENGTH_CHECK))
+					}
+					//See if any attachments were put in
+					else if (x.Attachments.Any())
 					{
-						//If there aren't many messages send the small amount in a message instead of a file or link
-						EmbedBuilder embed = Actions.makeNewEmbed(Constants.MDEL, "Deleted Messages", String.Join("\n", deletedMessagesContent));
+						string content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
+						deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
+							x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"),
+							Actions.replaceMessageCharacters(content + " + " + x.Attachments.ToList().First().Filename)));
+					}
+					//Else add the message in normally
+					else
+					{
+						string content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
+						deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
+							x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(content)));
+					}
+				});
+
+				if (deletedMessages.Count == 0)
+					return;
+				else if ((deletedMessages.Count <= 5) && (characterCount < Constants.LENGTH_CHECK))
+				{
+					//If there aren't many messages send the small amount in a message instead of a file or link
+					EmbedBuilder embed = Actions.makeNewEmbed(Constants.MDEL, "Deleted Messages", String.Join("\n", deletedMessagesContent));
+					await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Deleted Messages"));
+				}
+				else
+				{
+					if (!Constants.TEXT_FILE)
+					{
+						//Upload the embed with the hastebin links
+						EmbedBuilder embed = Actions.makeNewEmbed(Constants.MDEL, "Deleted Messages", Actions.uploadToHastebin(deletedMessagesContent));
 						await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Deleted Messages"));
 					}
 					else
 					{
-						if (!Constants.TEXT_FILE)
-						{
-							//Upload the embed with the hastebin links
-							EmbedBuilder embed = Actions.makeNewEmbed(Constants.MDEL, "Deleted Messages", Actions.uploadToHastebin(deletedMessagesContent));
-							await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Deleted Messages"));
-						}
-						else
-						{
-							//Upload the file. This is way harder to try and keep than the hastebin links
-							await Actions.uploadTextFile(guild, logChannel, deletedMessagesContent, "Deleted_Messages_", "Deleted Messages");
-						}
+						//Upload the file. This is way harder to try and keep than the hastebin links
+						await Actions.uploadTextFile(guild, logChannel, deletedMessagesContent, "Deleted_Messages_", "Deleted Messages");
 					}
-				});
-			}
+				}
+			});
 		}
 
-		//Get all images uploaded
+		//Get all images uploaded and other things on messages received
 		public static async Task OnMessageReceived(SocketMessage message)
 		{
-			++Variables.LoggedMessages;
 			//If bot then ignore
 			if (message.Author.IsBot)
 				return;
 			//If DM then ignore
 			if (message.Channel as IGuildChannel == null)
 				return;
-
+			//Check if valid guild
 			IGuild guild = (message.Channel as IGuildChannel).Guild;
-			if (guild != null)
+			if (guild == null)
+				return;
+			++Variables.LoggedMessages;
+
+			//Check if the guild has slowmode enabled currently
+			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))
 			{
-				//Check if any banned phrases
+				await Actions.slowmode(message);
+				return;
+			}
+			//Check if any banned phrases
+			else if (Variables.BannedPhrases.ContainsKey(guild.Id) || Variables.BannedRegex.ContainsKey(guild.Id))
+			{
 				await Actions.bannedPhrases(message);
+				return;
+			}
 
-				//Check if the guild has slowmode enabled currently
-				if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))
+			//Check if it's the owner of the guild saying something
+			if (message.Author.Id == guild.OwnerId)
+			{
+				//If the message is only 'yes' then check if they're enabling or deleting preferences
+				if (message.Content.ToLower().Equals("yes"))
 				{
-					await Actions.slowmode(message);
-				}
-
-				//Check if it's the owner of the guild saying something
-				if (message.Author.Id == guild.OwnerId)
-				{
-					//If the message is only 'yes' then check if they're enabling or deleting preferences
-					if (message.Content.ToLower().Equals("yes"))
+					if (Variables.GuildsEnablingPreferences.Contains(guild))
 					{
-						if (Variables.GuildsEnablingPreferences.Contains(guild))
-						{
-							//Enable preferences
-							await Actions.enablePreferences(guild, message as IUserMessage);
-						}
-						else if (Variables.GuildsDeletingPreferences.Contains(guild))
-						{
-							//Delete preferences
-							await Actions.deletePreferences(guild, message as IUserMessage);
-						}
+						//Enable preferences
+						await Actions.enablePreferences(guild, message as IUserMessage);
+					}
+					else if (Variables.GuildsDeletingPreferences.Contains(guild))
+					{
+						//Delete preferences
+						await Actions.deletePreferences(guild, message as IUserMessage);
 					}
 				}
+			}
 
-				//Check if it is going to be image logged
-				ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
-				if (logChannel != null)
+			//Check if it is going to be image logged
+			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			if (logChannel != null)
+			{
+				if (message.Attachments.Any())
 				{
-					if (message.Attachments.Any())
-					{
-						ImageLog(logChannel, message, false);
-					}
-					else if (message.Embeds.Any())
-					{
-						ImageLog(logChannel, message, true);
-					}
+					ImageLog(logChannel, message, false);
+				}
+				else if (message.Embeds.Any())
+				{
+					ImageLog(logChannel, message, true);
 				}
 			}
 		}
@@ -652,16 +661,18 @@ namespace Advobot
 		//Log each command
 		public static async Task LogCommand(ICommandContext context)
 		{
-			++Variables.LoggedCommands;
 			Actions.writeLine(context.User.Id + " used command \'" + context.Message + "\' and succeeded.");
 
 			ITextChannel logChannel = await Actions.logChannelCheck(context.Guild, Constants.MOD_LOG_CHECK_STRING);
-			if (logChannel != null)
-			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(description: context.Message.Content), "Mod Log");
-				Actions.addAuthor(embed, context.User.Username + "#" + context.User.Discriminator + " in #" + context.Channel.Name, context.User.AvatarUrl);
-				await Actions.sendEmbedMessage(logChannel, embed);
-			}
+			if (logChannel == null)
+				return;
+			if (!await Actions.permissionCheck(logChannel))
+				return;
+			++Variables.LoggedCommands;
+
+			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(description: context.Message.Content), "Mod Log");
+			Actions.addAuthor(embed, context.User.Username + "#" + context.User.Discriminator + " in #" + context.Channel.Name, context.User.AvatarUrl);
+			await Actions.sendEmbedMessage(logChannel, embed);
 		}
 	}
 }

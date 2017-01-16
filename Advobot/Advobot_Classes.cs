@@ -195,6 +195,7 @@ namespace Advobot
 			mName = name;
 			mValue = value;
 		}
+
 		public string mName;
 		private string mValue;
 
@@ -226,10 +227,10 @@ namespace Advobot
 
 	public struct ChannelAndPosition
 	{
-		public ChannelAndPosition(IGuildChannel channel, int position)
+		public ChannelAndPosition(IGuildChannel mChannel, int mPosition)
 		{
-			this.Channel = channel;
-			this.Position = position;
+			this.Channel = mChannel;
+			this.Position = mPosition;
 		}
 
 		public IGuildChannel Channel;
@@ -266,22 +267,36 @@ namespace Advobot
 
 	public class BannedPhrasePunishment
 	{
-		public BannedPhrasePunishment(int mNumber, PunishmentTypes mPunishment, IRole mRole = null)
+		public BannedPhrasePunishment(int mNumber, PunishmentType mPunishment, IRole mRole = null, int? mPunishmentTime = null)
 		{
 			this.Number_Of_Removes = mNumber;
 			this.Punishment = mPunishment;
 			this.Role = mRole;
+			this.Punishment_Time = mPunishmentTime;
 		}
 
 		public int Number_Of_Removes;
-		public PunishmentTypes Punishment;
+		public PunishmentType Punishment;
 		public IRole Role;
+		public int? Punishment_Time;
 	}
 
-	public enum PunishmentTypes
+	public enum PunishmentType
 	{
 		Kick = 1,
 		Ban = 2,
 		Role = 3
+	}
+
+	public class BannedPhraseUser
+	{
+		public BannedPhraseUser(IGuildUser mUser, int mAmountOfRemovedMessages = 1)
+		{
+			this.User = mUser;
+			this.Amount_Of_Removed_Messages = mAmountOfRemovedMessages;
+		}
+
+		public IGuildUser User;
+		public int Amount_Of_Removed_Messages;
 	}
 }

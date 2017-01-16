@@ -6,8 +6,7 @@ namespace Advobot
 	public static class Constants
 	{
 		public const string BOT_VERSION = "0.8.0";
-		public const string API_VERSION = "Discord.Net by RogueException v1.0.0-rc-00544";
-
+		public const string API_VERSION = "Discord.Net by RogueException v1.0.0-rc-00546";
 		public const string BOT_PREFIX = "++";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -118,5 +117,6 @@ namespace Advobot
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
 		public static List<string> CommandNames = new List<string>();
 		public static List<string> RegionIDs = new List<string>();
+		public static List<BannedPhraseUser> BannedPhraseUserList = new List<BannedPhraseUser>();
 	}
 }

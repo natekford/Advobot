@@ -663,7 +663,7 @@ namespace Advobot
 			}
 
 			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled slowmode on `{0}` with a message limit of `{1}` and time interval of `{2}`.{3}",
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled slowmode on `{0}` with a message limit of `{1}` and time interval of `{2}` seconds.{3}",
 				targetString == null ? Context.Channel.Name : Context.Guild.Name,
 				msgsLimit,
 				timeLimit,

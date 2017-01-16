@@ -299,10 +299,10 @@ namespace Advobot
 			await Actions.readPreferences(Context.Channel, Actions.getServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE));
 		}
 
-		//TODO: Use a different split character eventually
-		[Command("setbanphrases")]
-		[Alias("sbps")]
-		[Usage(Constants.BOT_PREFIX + "setbanphrases [Add|Remove] [Phrase/...] <Regex>")]
+		//TODO: Use a different split character maybe
+		[Command("modifybanphrases")]
+		[Alias("mbps")]
+		[Usage(Constants.BOT_PREFIX + "modifybanphrases [Add|Remove] [Phrase/...] <Regex>")]
 		[Summary("Adds the words to either the banned phrase list or the banned regex list. Do not use a '/' in a banned phrase itself.")]
 		[PermissionRequirements]
 		public async Task SetBanPhrases([Remainder] string input)
@@ -488,7 +488,7 @@ namespace Advobot
 			//Rewrite the file
 			using (StreamWriter writer = new StreamWriter(path))
 			{
-				writer.WriteLine(type + ":" + forSaving + "\n" + String.Join("", validLines));
+				writer.WriteLine(type + ":" + forSaving + "\n" + String.Join("\n", validLines));
 			}
 
 			//Format success message
@@ -552,6 +552,7 @@ namespace Advobot
 				regexBool = true;
 			}
 
+			bool fileBool;
 			if (inputArray[0].ToLower().Equals("file"))
 			{
 				//Check if the file exists
@@ -579,6 +580,8 @@ namespace Advobot
 						}
 					}
 				}
+
+				fileBool = true;
 			}
 			else if (inputArray[0].ToLower().Equals("actual"))
 			{
@@ -603,6 +606,8 @@ namespace Advobot
 					}
 					bannedPhrases = Variables.BannedRegex[Context.Guild.Id].Select(x => x.ToString()).ToList();
 				}
+
+				fileBool = false;
 			}
 			else
 			{
@@ -626,16 +631,16 @@ namespace Advobot
 			}
 
 			//Make the header
-			string header = "Banned " + (regexBool ? "Regex" : "Phrases");
+			string header = "Banned " + (regexBool ? "Regex " : "Phrases ") + (fileBool ? "(File)" : "(Actual)");
 
 			//Make and send the embed
 			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, header, "`" + String.Join("`\n`", bannedPhrases) + "`"));
 		}
 
-		[Command("setpunishment")]
-		[Alias("spun")]
-		[Usage(Constants.BOT_PREFIX + "setpunishment [Add] [Number] [Role Name|Kick|Ban] | [Remove] [Number]")]
-		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to this total.")]
+		[Command("modifypunishments")]
+		[Alias("mpuns")]
+		[Usage(Constants.BOT_PREFIX + "modifypunishments [Add] [Number] [Role Name|Kick|Ban] <Time> | [Remove] [Number]")]
+		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to this total. Time is in minutes and only applies to roles.")]
 		[BotOwnerRequirement]
 		public async Task SetPunishments([Remainder] string input)
 		{
@@ -675,30 +680,59 @@ namespace Advobot
 			}
 
 			//Get the punishment
-			string punishmentString = inputArray[2].ToLower();
+			string punishmentString;
 			PunishmentType punishmentType = 0;
 			IRole punishmentRole = null;
-			if (punishmentString.Equals("kick"))
+			int time = 0;
+			BannedPhrasePunishment newPunishment = null;
+			if (inputArray.Length > 2 && addBool)
 			{
-				punishmentType = PunishmentType.Kick;
-			}
-			else if (punishmentString.Equals("ban"))
-			{
-				punishmentType = PunishmentType.Ban;
-			}
-			else if (Context.Guild.Roles.Any(x => x.Name == punishmentString))
-			{
-				punishmentType = PunishmentType.Role;
-				punishmentRole = await Actions.getRoleEditAbility(Context, punishmentString);
-			}
-			else
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid punishment, must be either Kick, Ban, or a role."));
-				return;
+				punishmentString = inputArray[2].ToLower();
+
+				//Check if kick
+				if (punishmentString.Equals("kick"))
+				{
+					punishmentType = PunishmentType.Kick;
+				}
+				//Check if ban
+				else if (punishmentString.Equals("ban"))
+				{
+					punishmentType = PunishmentType.Ban;
+				}
+				//Check if already role name
+				else if (Context.Guild.Roles.Any(x => x.Name.Equals(punishmentString, StringComparison.OrdinalIgnoreCase)))
+				{
+					punishmentType = PunishmentType.Role;
+					punishmentRole = await Actions.getRoleEditAbility(Context, punishmentString);
+				}
+				//Check if role name + time or error
+				else
+				{
+					var lS = punishmentString.LastIndexOf(' ');
+					string possibleRole = punishmentString.Substring(0, lS).Trim();
+					string possibleTime = punishmentString.Substring(lS);
+
+					if (Context.Guild.Roles.Any(x => x.Name.Equals(possibleRole, StringComparison.OrdinalIgnoreCase)))
+					{
+						punishmentType = PunishmentType.Role;
+						punishmentRole = await Actions.getRoleEditAbility(Context, possibleRole);
+						
+						if (!int.TryParse(possibleTime, out time))
+						{
+							await Actions.makeAndDeleteSecondaryMessage(Context, "The input for time is not a number.");
+							return;
+						}
+					}
+					else
+					{
+						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid punishment; must be either Kick, Ban, or an existing role."));
+						return;
+					}
+				}
 			}
 
 			//Set the punishment
-			var newPunishment = addBool ? new BannedPhrasePunishment(number, punishmentType, punishmentRole) : null;
+			newPunishment = addBool ? new BannedPhrasePunishment(number, punishmentType, punishmentRole, time) : null;
 
 			//Get the list of punishments
 			var punishments = new List<BannedPhrasePunishment>();
@@ -706,13 +740,36 @@ namespace Advobot
 			{
 				punishments = Variables.BannedPhrasesPunishments[Context.Guild.Id];
 			}
+			else
+			{
+				Variables.BannedPhrasesPunishments.Add(Context.Guild.Id, punishments);
+			}
 
 			//Add
 			if (addBool)
 			{
+				//Check if trying to add to an already established spot
 				if (punishments.Any(x => x.Number_Of_Removes == newPunishment.Number_Of_Removes))
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists for that number of banned phrases said."));
+					return;
+				}
+				//Check if trying to add a kick when one already exists
+				else if (newPunishment.Punishment == PunishmentType.Kick && punishments.Any(x => x.Punishment == PunishmentType.Kick))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which kicks."));
+					return;
+				}
+				//Check if trying to add a ban when one already exists
+				else if (newPunishment.Punishment == PunishmentType.Ban && punishments.Any(x => x.Punishment == PunishmentType.Ban))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which bans."));
+					return;
+				}
+				//Check if trying to add a role to the list which already exists
+				else if (newPunishment.Punishment == PunishmentType.Role && punishments.Any(x => x.Role.Name == newPunishment.Role.Name))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which gives that role."));
 					return;
 				}
 				else
@@ -725,7 +782,16 @@ namespace Advobot
 			{
 				if (punishments.Any(x => x.Number_Of_Removes == number))
 				{
-					punishments.Where(x => x.Number_Of_Removes == number).ToList().ForEach(x => punishments.Remove(x));
+					punishments.Where(x => x.Number_Of_Removes == number).ToList().ForEach(async x =>
+					{
+						//Check if the user can modify this role, if they can't then don't let them modify the 
+						if (x.Role != null && x.Role.Position > Actions.getPosition(Context.Guild, Context.User as IGuildUser))
+						{
+							await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have the ability to remove a punishment with this role."));
+							return;
+						}
+						punishments.Remove(x);
+					});
 				}
 				else
 				{
@@ -734,22 +800,75 @@ namespace Advobot
 				}
 			}
 
+			//Add the list back
+			Variables.BannedPhrasesPunishments[Context.Guild.Id] = punishments;
+
+			//Create the string to resave everything with
+			var forSaving = new List<string>();
+			punishments.ForEach(x =>
+			{
+				forSaving.Add(String.Format("{0} {1} {2} {3}",
+					x.Number_Of_Removes,
+					(int)x.Punishment,
+					x.Role == null ? "" : x.Role.Id.ToString(),
+					x.Punishment_Time == null ? "" : x.Punishment_Time.ToString()).Trim());
+			});
+
+			//Create the banned phrases file if it doesn't already exist
+			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+			if (!File.Exists(path))
+			{
+				File.Create(path).Close();
+			}
+
+			//Find the lines that aren't the punishments
+			var validLines = new List<string>();
+			using (StreamReader reader = new StreamReader(path))
+			{
+				string line;
+				while ((line = reader.ReadLine()) != null)
+				{
+					if (!line.StartsWith(Constants.BANNED_PHRASES_PUNISHMENTS))
+					{
+						validLines.Add(line);
+					}
+				}
+			}
+
+			//Rewrite the file
+			using (StreamWriter writer = new StreamWriter(path))
+			{
+				writer.WriteLine(Constants.BANNED_PHRASES_PUNISHMENTS + ":" + String.Join("/", forSaving) + "\n" + String.Join("\n", validLines));
+			}
+
 			//Determine what the success message should say
 			string successMsg = "";
-			if (newPunishment.Punishment == PunishmentType.Kick)
+			if (newPunishment == null)
 			{
-				successMsg = newPunishment.Number_Of_Removes + ": " + Enum.GetName(typeof(PunishmentType), punishmentType);
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully removed the punishment at position `{0}`.", number);
+				return;
+			}
+			else if (newPunishment.Punishment == PunishmentType.Kick)
+			{
+				successMsg = "`" + Enum.GetName(typeof(PunishmentType), punishmentType) + "` at `" + newPunishment.Number_Of_Removes.ToString("00") + "`";
 			}
 			else if (newPunishment.Punishment == PunishmentType.Ban)
 			{
-				successMsg = newPunishment.Number_Of_Removes + ": " + Enum.GetName(typeof(PunishmentType), punishmentType);
+				successMsg = "`" + Enum.GetName(typeof(PunishmentType), punishmentType) + "` at `" + newPunishment.Number_Of_Removes.ToString("00") + "`";
 			}
 			else if (newPunishment.Role != null)
 			{
-				successMsg = newPunishment.Number_Of_Removes + ": " + newPunishment.Role.Name;
+				successMsg = "`" + newPunishment.Role + "` at `" + newPunishment.Number_Of_Removes.ToString("00") + "`";
 			}
 
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of: {1}.", addBool ? "added" : "removed", successMsg));
+			//Check if there's a time
+			string timeMsg = "";
+			if (newPunishment.Punishment_Time != 0)
+			{
+				timeMsg = ", and will last for `" + newPunishment.Punishment_Time + "` minute(s)";
+			}
+
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", addBool ? "added" : "removed", successMsg, timeMsg));
 		}
 
 		[Command("currentpunishments")]
@@ -759,7 +878,108 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task CurrentPunishments([Remainder] string input)
 		{
+			string description = "";
+			bool fileBool;
+			if (input.ToLower().Equals("file"))
+			{
+				//Check if the file exists
+				string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+				if (!File.Exists(path))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "This guild has no banned phrases file.");
+					return;
+				}
 
+				//Get the words out of the file
+				var bannedPhrases = new List<string>();
+				using (StreamReader file = new StreamReader(path))
+				{
+					string line;
+					while ((line = file.ReadLine()) != null)
+					{
+						//If the line is empty, do nothing
+						if (String.IsNullOrWhiteSpace(line))
+						{
+							continue;
+						}
+						if (line.ToLower().StartsWith(Constants.BANNED_PHRASES_PUNISHMENTS))
+						{
+							bannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().ToList();
+						}
+					}
+				}
+
+				if (!bannedPhrases.Any())
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "There are no punishments on file.");
+					return;
+				}
+				bannedPhrases.ForEach(x =>
+				{
+					//Split the information in the file
+					var args = x.Split(' ');
+
+					//All need to be ifs to check each value
+
+					//Number of removes to activate
+					int number = 0;
+					if (!int.TryParse(args[0], out number))
+						return;
+
+					//The type of punishment
+					int punishment = 0;
+					if (!int.TryParse(args[1], out punishment))
+						return;
+
+					//The role ID if a role punishment type
+					ulong roleID = 0;
+					IRole role = null;
+					if (punishment == 3 && !ulong.TryParse(args[2], out roleID))
+						return;
+					else if (roleID != 0)
+						role = Context.Guild.GetRole(roleID);
+
+					//The time if a time is input
+					int givenTime = 0;
+					int? time = null;
+					if (role != null && !int.TryParse(args[3], out givenTime))
+						return;
+					else if (givenTime != 0)
+						time = givenTime;
+
+					description += String.Format("`{0}.` `{1}`{2}\n",
+						number.ToString("00"),
+						role == null ? Enum.GetName(typeof(PunishmentType), punishment) : role.Name,
+						time == null ? "" : " `" + time + " minutes`");
+				});
+
+				fileBool = true;
+			}
+			else if (input.ToLower().Equals("actual"))
+			{
+				if (!Variables.BannedPhrasesPunishments.ContainsKey(Context.Guild.Id))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "This guild has no active punishments");
+					return;
+				}
+				Variables.BannedPhrasesPunishments[Context.Guild.Id].ForEach(x =>
+				{
+					description += String.Format("`{0}.` `{1}`{2}\n",
+						x.Number_Of_Removes.ToString("00"),
+						x.Role == null ? Enum.GetName(typeof(PunishmentType), x.Punishment) : x.Role.Name,
+						x.Punishment_Time == null ? "" : " `" + x.Punishment_Time + " minutes`");
+				});
+
+				fileBool = false;
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option, must be either File or Actual."));
+				return;
+			}
+
+			//Make and send an embed
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Punishments " + (fileBool ? "(File)" : "(Actual)"), description));
 		}
 	}
 }
