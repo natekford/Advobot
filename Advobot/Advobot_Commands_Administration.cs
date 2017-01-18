@@ -234,12 +234,17 @@ namespace Advobot
 		public async Task BotChannel()
 		{
 			//If no bot channel, create it
-			if (!(await Context.Guild.GetTextChannelsAsync()).ToList().Any(x => x.Name == Variables.Bot_Name))
+			if (!(await Context.Guild.GetTextChannelsAsync()).ToList().Any(x => x.Name.Equals(Variables.Bot_Name, StringComparison.OrdinalIgnoreCase)))
 			{
 				//Create the channel
 				ITextChannel channel = await Context.Guild.CreateTextChannelAsync(Variables.Bot_Name);
 				//Make it so not everyone can read it
 				await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny));
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is already a bot channel on this guild."));
+				return;
 			}
 		}
 
@@ -253,14 +258,14 @@ namespace Advobot
 			//Member limit
 			if ((Context.Guild as SocketGuild).MemberCount < Constants.MEMBER_LIMIT && Context.User.Id != Constants.OWNER_ID)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Sorry, but this server is too small to warrant preferences. {0} or more members are required.",
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Sorry, but this guild is too small to warrant preferences. {0} or more members are required.",
 					Constants.MEMBER_LIMIT));
 				return;
 			}
 
 			//Confirmation of agreement
 			await Actions.sendChannelMessage(Context.Channel, "By turning preferences on you will be enabling the ability to toggle commands, change who can use commands, " +
-				"and many more features. This data will be stored in a text file off of the server, and whoever is hosting the bot will most likely have " +
+				"and many more features. This data will be stored in a text file off of the guild, and whoever is hosting the bot will most likely have " +
 				"access to it. A new text channel will be automatically created to display preferences and the server/mod log. If you agree to this, say `Yes`.");
 
 			//Add them to the list for a few seconds
@@ -302,7 +307,7 @@ namespace Advobot
 		//TODO: Use a different split character maybe
 		[Command("modifybanphrases")]
 		[Alias("mbps")]
-		[Usage(Constants.BOT_PREFIX + "modifybanphrases [Add|Remove] [Phrase/...] <Regex>")]
+		[Usage(Constants.BOT_PREFIX + "modifybanphrases [Add] [Phrase/...] <Regex> | [Remove] [Phrase/...|Position/...] <Regex>")]
 		[Summary("Adds the words to either the banned phrase list or the banned regex list. Do not use a '/' in a banned phrase itself.")]
 		[PermissionRequirements]
 		public async Task SetBanPhrases([Remainder] string input)
@@ -335,7 +340,7 @@ namespace Advobot
 			}
 
 			//Get the phrases
-			var phrases = inputArray[1].ToLower().Split('/').ToList();
+			var phrases = inputArray[1].Split('/').ToList();
 
 			//Check if regex or not
 			bool regexBool = false;
@@ -379,18 +384,50 @@ namespace Advobot
 				//Remove the phrases
 				else
 				{
-					phrases.ForEach(x =>
+					//Check if positions
+					bool numbers = true;
+					var positions = new List<int>();
+					foreach (var potentialNumber in phrases)
 					{
-						if (phrasesList.Contains(x, StringComparer.OrdinalIgnoreCase))
+						int temp;
+						//Check if is a number and is less than the count of the list
+						if (int.TryParse(potentialNumber, out temp) && temp < phrasesList.Count)
 						{
-							phrasesList.Remove(x);
-							success.Add(x);
+							positions.Add(temp);
 						}
 						else
 						{
-							failure.Add(x);
+							numbers = false;
+							break;
 						}
-					});
+					}
+
+					//Only phrases
+					if (!numbers)
+					{
+						phrases.ForEach(x =>
+						{
+							if (phrasesList.Contains(x, StringComparer.OrdinalIgnoreCase))
+							{
+								phrasesList.Remove(x);
+								success.Add(x);
+							}
+							else
+							{
+								failure.Add(x);
+							}
+						});
+					}
+					//Only positions
+					else
+					{
+						//Put them in descending order so as to not delete low values before high ones
+						positions.OrderByDescending(x => x).ToList().ForEach(x =>
+						{
+							success.Add(phrasesList[x].ToString());
+							phrasesList.RemoveAt(x);
+						});
+					}
 				}
 
 				//Put the new list back in
@@ -436,27 +473,59 @@ namespace Advobot
 				}
 				else
 				{
-					//Get the regex that are going to be removed in a list
-					var removedRegex = regexList.Where(x => phrases.Contains(x.ToString())).ToList();
-
-					//Get their strings
-					var removedRegexAsString = removedRegex.Select(x => x.ToString()).ToList();
-
-					//Add them to the failure or success lists
-					phrases.ForEach(x =>
+					//Check if positions
+					bool numbers = true;
+					var positions = new List<int>();
+					foreach (var potentialNumber in phrases)
 					{
-						if (removedRegexAsString.Contains(x, StringComparer.OrdinalIgnoreCase))
+						int temp;
+						//Check if is a number and is less than the count of the list
+						if (int.TryParse(potentialNumber, out temp) && temp < regexList.Count)
 						{
-							success.Add(x);
+							positions.Add(temp);
 						}
 						else
 						{
-							failure.Add(x);
+							numbers = false;
+							break;
 						}
-					});
+					}
 
-					//Actually remove the regex
-					removedRegex.ForEach(x => regexList.Remove(x));
+					//Only phrases
+					if (!numbers)
+					{
+						//Get the regex that are going to be removed in a list
+						var removedRegex = regexList.Where(x => phrases.Contains(x.ToString())).ToList();
+
+						//Get their strings
+						var removedRegexAsString = removedRegex.Select(x => x.ToString()).ToList();
+
+						//Add them to the failure or success lists
+						phrases.ForEach(x =>
+						{
+							if (removedRegexAsString.Contains(x, StringComparer.OrdinalIgnoreCase))
+							{
+								success.Add(x);
+							}
+							else
+							{
+								failure.Add(x);
+							}
+						});
+
+						//Actually remove the regex
+						removedRegex.ForEach(x => regexList.Remove(x));
+					}
+					//Only positions
+					else
+					{
+						//Put them in descending order so as to not delete low values before high ones
+						positions.OrderByDescending(x => x).ToList().ForEach(x =>
+						{
+							success.Add(regexList[x].ToString());
+							regexList.RemoveAt(x);
+						});
+					}
 				}
 
 				Variables.BannedRegex[Context.Guild.Id] = regexList;
@@ -517,10 +586,10 @@ namespace Advobot
 			}
 
 			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}",
-				successMessage == null ? "" : successMessage,
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.",
+				successMessage ?? "",
 				successMessage != null && failureMessage != null ? ", and " : "",
-				failureMessage == null ? "" : failureMessage));
+				failureMessage ?? ""));
 		}
 
 		[Command("currentbanphrases")]
@@ -633,15 +702,20 @@ namespace Advobot
 			//Make the header
 			string header = "Banned " + (regexBool ? "Regex " : "Phrases ") + (fileBool ? "(File)" : "(Actual)");
 
+			//Make the description
+			int counter = 0;
+			string description = "";
+			bannedPhrases.ForEach(x => description += "`" + counter++.ToString("00") + ".` `" + x + "`\n");
+
 			//Make and send the embed
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, header, "`" + String.Join("`\n`", bannedPhrases) + "`"));
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, header, description));
 		}
 
 		[Command("modifypunishments")]
 		[Alias("mpuns")]
 		[Usage(Constants.BOT_PREFIX + "modifypunishments [Add] [Number] [Role Name|Kick|Ban] <Time> | [Remove] [Number]")]
 		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to this total. Time is in minutes and only applies to roles.")]
-		[BotOwnerRequirement]
+		[PermissionRequirements]
 		public async Task SetPunishments([Remainder] string input)
 		{
 			//Split the input
@@ -811,7 +885,7 @@ namespace Advobot
 					x.Number_Of_Removes,
 					(int)x.Punishment,
 					x.Role == null ? "" : x.Role.Id.ToString(),
-					x.Punishment_Time == null ? "" : x.Punishment_Time.ToString()).Trim());
+					x.PunishmentTime == null ? "" : x.PunishmentTime.ToString()).Trim());
 			});
 
 			//Create the banned phrases file if it doesn't already exist
@@ -863,9 +937,9 @@ namespace Advobot
 
 			//Check if there's a time
 			string timeMsg = "";
-			if (newPunishment.Punishment_Time != 0)
+			if (newPunishment.PunishmentTime != 0)
 			{
-				timeMsg = ", and will last for `" + newPunishment.Punishment_Time + "` minute(s)";
+				timeMsg = ", and will last for `" + newPunishment.PunishmentTime + "` minute(s)";
 			}
 
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", addBool ? "added" : "removed", successMsg, timeMsg));
@@ -967,7 +1041,7 @@ namespace Advobot
 					description += String.Format("`{0}.` `{1}`{2}\n",
 						x.Number_Of_Removes.ToString("00"),
 						x.Role == null ? Enum.GetName(typeof(PunishmentType), x.Punishment) : x.Role.Name,
-						x.Punishment_Time == null ? "" : " `" + x.Punishment_Time + " minutes`");
+						x.PunishmentTime == null ? "" : " `" + x.PunishmentTime + " minutes`");
 				});
 
 				fileBool = false;
@@ -980,6 +1054,173 @@ namespace Advobot
 
 			//Make and send an embed
 			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Punishments " + (fileBool ? "(File)" : "(Actual)"), description));
+		}
+
+		[Command("modifyselfroles")]
+		[Alias("msr")]
+		[Usage(Constants.BOT_PREFIX + "modifyselfroles [Help] | [Create|Add|Remove] [Role/...] [Group:Number] | [Delete] [Group:Num]")]
+		[Summary("Adds a role to the self assignable list. Roles can be grouped together which means only one role in the group can be self assigned at a time. There is an extra help command, too.")]
+		[PermissionRequirements]
+		public async Task ModifySelfAssignableRoles([Remainder] string input)
+		{
+			//Check if it's extra help wanted
+			if (input.ToLower().Equals("help"))
+			{
+				//Make the embed
+				var embed = Actions.makeNewEmbed(null, "Self Roles Help", "The generic group number is 0; roles added here don't conflict. Roles cannot be added to more than one group.");
+				Actions.addField(embed, "[Create] [Role/...] [Group:Number]", "The group number shows which group to create these roles as.");
+				Actions.addField(embed, "[Add] [Role/...] <Group:Number>", "Adds the roles to the given group. No group means they get added into the generic group.");
+				Actions.addField(embed, "[Remove] [Role/...] <Group:Number>", "Removes the roles from the given group. No group means they get removed from the generic group.");
+				Actions.addField(embed, "[Delete] [Group:Number]", "Removes the given group entirely.");
+				
+				//Send the embed
+				await Actions.sendEmbedMessage(Context.Channel, embed);
+				return;
+			}
+
+			//Break the input into pieces
+			var inputArray = input.Split(new char[] { ' ' }, 2);
+			string action = inputArray[0].ToLower();
+			string rolesString = inputArray[1];
+
+			//Check which action it is
+			SAGAction actionType;
+			if (action.Equals("create"))
+				actionType = SAGAction.Create;
+			else if (action.Equals("add"))
+				actionType = SAGAction.Add;
+			else if (action.Equals("remove"))
+				actionType = SAGAction.Remove;
+			else if (action.Equals("delete"))
+				actionType = SAGAction.Delete;
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action, must be Create, Add, Remove, or Delete."));
+				return;
+			}
+
+			//Success and failure lists
+			var success = new List<IRole>();
+			var failure = new List<string>();
+
+			//Necessary to know what group to target
+			int groupNumber = 0;
+			if ((int)actionType < (int)SAGAction.Delete)
+			{
+				//Get the position of the last space
+				int lastSpace = rolesString.LastIndexOf(' ');
+
+				//Make the group string everything after the last space
+				string groupString = rolesString.Substring(lastSpace).Trim();
+				//Make the role string everything before the last space
+				rolesString = rolesString.Substring(0, lastSpace).Trim();
+
+				//Check if valid groupstring
+				groupString = Actions.getVariable(groupString, "group");
+				if (String.IsNullOrWhiteSpace(groupString))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for group."));
+					return;
+				}
+				//Check if valid number
+				if (!int.TryParse(groupString, out groupNumber) && actionType == SAGAction.Create)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Create needs a group number specified!"));
+					return;
+				}
+
+				//Check if there are any groups already with that number
+				var guildGroups = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).ToList();
+				//If create, do not allow a new one made with the same number
+				if (actionType == SAGAction.Create && guildGroups.Any(x => x.Group == groupNumber))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A group already exists with that position."));
+					return;
+				}
+				//If add or remove, make sure one exists
+				else if ((int)actionType > (int)SAGAction.Create && !guildGroups.Any(x => x.Group == groupNumber))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A group needs to exist with that position before you can add to it."));
+					return;
+				}
+
+				//Check validity of roles
+				rolesString.Split('/').ToList().ForEach(async x =>
+				{
+					IRole role = await Actions.getRoleEditAbility(Context, x, true);
+					//If a valid role that the user is able to access for creation/addition/removal
+					if (role == null)
+					{
+						failure.Add(x);
+					}
+					//If not then just add it to failures as a string
+					else
+					{
+						success.Add(role);
+					}
+				});
+
+				//Add all the roles to a list of self assignable roles
+				var SARoles = success.Select(x => new SelfAssignableRole(x, groupNumber)).ToList();
+
+				//Create
+				if (actionType == SAGAction.Create)
+				{
+					//Make a new group and add that to the global list
+					Variables.SelfAssignableGroups.Add(new SelfAssignableGroup(SARoles, groupNumber, Context.Guild.Id));
+				}
+				//Add
+				else if (actionType == SAGAction.Add)
+				{
+					//Get the groups of the guild
+					var SAGroups = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).ToList();
+					//Find the one with the correct group number
+					var SAGroup = SAGroups.FirstOrDefault(x => x.Group == groupNumber);
+					//Find the roles alreadylready on the SA list
+					var ulongs = SAGroup.Roles.Select(x => x.Role.Id);
+					//Remove all roles which are already on the SA list
+					SARoles.RemoveAll(x => ulongs.Contains(x.Role.Id));
+					//Add the roles which aren't already in
+					SAGroup.Roles.AddRange(SARoles);
+				}
+				//Remove
+				else if (actionType == SAGAction.Remove)
+				{
+					//Get the groups of the guild
+					var SAGroups = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).ToList();
+					//Convert the list of SARoles to ulongs
+					var ulongs = SARoles.Select(x => x.Role.Id).ToList();
+					//Find the one with the correct group number and remove all roles which have an ID on the ulong list
+					SAGroups.FirstOrDefault(x => x.Group == groupNumber).Roles.RemoveAll(x => ulongs.Contains(x.Role.Id));
+				}
+			}
+			else
+			{
+				//Check if valid groupstring
+				string groupString = Actions.getVariable(rolesString, "group");
+				if (String.IsNullOrWhiteSpace(groupString))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for group."));
+					return;
+				}
+
+				//Check if valid number
+				if (!int.TryParse(groupString, out groupNumber))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Delete needs a group number specified!"));
+					return;
+				}
+			}
+		}
+
+		[Command("currentselfroles")]
+		[Alias("csr")]
+		[Usage(Constants.BOT_PREFIX + "currentselfroles [File|Actual] [Group:Number]")]
+		[Summary("Shows the current self assignable roles on the guild by group.")]
+		[PermissionRequirements]
+		public async Task CurrentSelfRoles([Remainder] string input)
+		{
+
 		}
 	}
 }

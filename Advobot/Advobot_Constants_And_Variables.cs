@@ -118,5 +118,6 @@ namespace Advobot
 		public static List<string> CommandNames = new List<string>();
 		public static List<string> RegionIDs = new List<string>();
 		public static List<BannedPhraseUser> BannedPhraseUserList = new List<BannedPhraseUser>();
+		public static List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
 	}
 }

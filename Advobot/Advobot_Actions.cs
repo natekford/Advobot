@@ -829,6 +829,16 @@ namespace Advobot
 			}
 			return null;
 		}
+
+		//Get the variable out of a string
+		public static string getVariable(string inputString, string searchTerm)
+		{
+			if (inputString != null && inputString.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase))
+			{
+				return inputString.Substring(inputString.IndexOf(':') + 1);
+			}
+			return null;
+		}
 		#endregion
 
 		#region Roles
@@ -1447,16 +1457,16 @@ namespace Advobot
 			if (smUser != null)
 			{
 				//Check if their messages allowed is above 0
-				if (smUser.Current_Messages_Left > 0)
+				if (smUser.CurrentMessagesLeft > 0)
 				{
-					if (smUser.Current_Messages_Left == smUser.Base_Messages)
+					if (smUser.CurrentMessagesLeft == smUser.BaseMessages)
 					{
 						//Start the interval
 						slowmodeInterval(smUser);
 					}
 
 					//Lower it by one
-					--smUser.Current_Messages_Left;
+					--smUser.CurrentMessagesLeft;
 				}
 				//Else delete the message
 				else
@@ -1474,7 +1484,7 @@ namespace Advobot
 				//Sleep for the given amount of seconds
 				Thread.Sleep(smUser.Time * 1000);
 				//Add back their ability to send messages
-				smUser.Current_Messages_Left = smUser.Base_Messages;
+				smUser.CurrentMessagesLeft = smUser.BaseMessages;
 			});
 		}
 
@@ -1485,7 +1495,7 @@ namespace Advobot
 			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id))
 			{
 				//Get the variables out of a different user
-				int messages = Variables.SlowmodeGuilds[user.Guild.Id].FirstOrDefault().Base_Messages;
+				int messages = Variables.SlowmodeGuilds[user.Guild.Id].FirstOrDefault().BaseMessages;
 				int time = Variables.SlowmodeGuilds[user.Guild.Id].FirstOrDefault().Time;
 
 				//Add them to the list for the slowmode in this guild
@@ -1503,7 +1513,7 @@ namespace Advobot
 				foreach (var kvp in smChannels)
 				{
 					//Get the variables out of a different user
-					int messages = kvp.Value.FirstOrDefault().Base_Messages;
+					int messages = kvp.Value.FirstOrDefault().BaseMessages;
 					int time = kvp.Value.FirstOrDefault().Time;
 
 					//Add them to the list for the slowmode in this guild
@@ -1566,7 +1576,7 @@ namespace Advobot
 			{
 				//Grab the user and add 1 onto his messages removed count
 				bpUser = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user);
-				++bpUser.Amount_Of_Removed_Messages;
+				++bpUser.AmountOfRemovedMessages;
 			}
 			else
 			{
@@ -1579,11 +1589,11 @@ namespace Advobot
 			var punishments = Variables.BannedPhrasesPunishments[(message.Channel as IGuildChannel).GuildId];
 
 			//Check if any punishments have the messages count which the user has
-			if (!punishments.Any(x => x.Number_Of_Removes == bpUser.Amount_Of_Removed_Messages))
+			if (!punishments.Any(x => x.Number_Of_Removes == bpUser.AmountOfRemovedMessages))
 				return;
 
 			//Grab the punishment with the same number
-			BannedPhrasePunishment punishment = punishments.FirstOrDefault(x => x.Number_Of_Removes == bpUser.Amount_Of_Removed_Messages);
+			BannedPhrasePunishment punishment = punishments.FirstOrDefault(x => x.Number_Of_Removes == bpUser.AmountOfRemovedMessages);
 
 			//Kick
 			if (punishment.Punishment == PunishmentType.Kick)
@@ -1628,9 +1638,9 @@ namespace Advobot
 				await Actions.giveRole(user, punishment.Role);
 
 				//If a time is specified, run through the time then remove the role
-				if (punishment.Punishment_Time != null)
+				if (punishment.PunishmentTime != null)
 				{
-					bannedPhrasesPunishmentTimer(user, punishment.Role, (int)punishment.Punishment_Time);
+					bannedPhrasesPunishmentTimer(user, punishment.Role, (int)punishment.PunishmentTime);
 				}
 
 				//Send a message to the logchannel

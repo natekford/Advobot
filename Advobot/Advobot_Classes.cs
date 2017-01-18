@@ -227,10 +227,10 @@ namespace Advobot
 
 	public struct ChannelAndPosition
 	{
-		public ChannelAndPosition(IGuildChannel mChannel, int mPosition)
+		public ChannelAndPosition(IGuildChannel channel, int position)
 		{
-			this.Channel = mChannel;
-			this.Position = mPosition;
+			this.Channel = channel;
+			this.Position = position;
 		}
 
 		public IGuildChannel Channel;
@@ -239,46 +239,46 @@ namespace Advobot
 
 	public class SlowmodeUser
 	{
-		public SlowmodeUser(IGuildUser mUser = null, int mCurrentMessagesLeft = 1, int mBaseMessages = 1, int mTime = 5)
+		public SlowmodeUser(IGuildUser user = null, int currentMessagesLeft = 1, int baseMessages = 1, int time = 5)
 		{
-			this.User = mUser;
-			this.Current_Messages_Left = mCurrentMessagesLeft;
-			this.Base_Messages = mBaseMessages;
-			this.Time = mTime;
+			this.User = user;
+			this.CurrentMessagesLeft = currentMessagesLeft;
+			this.BaseMessages = baseMessages;
+			this.Time = time;
 		}
 
 		public IGuildUser User;
-		public int Current_Messages_Left;
-		public int Base_Messages;
+		public int CurrentMessagesLeft;
+		public int BaseMessages;
 		public int Time;
 	}
 
 	public class SlowmodeChannel
 	{
-		public SlowmodeChannel(ulong mChannelID, ulong mGuildID)
+		public SlowmodeChannel(ulong channelID, ulong guildID)
 		{
-			this.Channel_ID = mChannelID;
-			this.Guild_ID = mGuildID;
+			this.ChannelID = channelID;
+			this.GuildID = guildID;
 		}
 
-		public ulong Channel_ID;
-		public ulong Guild_ID;
+		public ulong ChannelID;
+		public ulong GuildID;
 	}
 
 	public class BannedPhrasePunishment
 	{
-		public BannedPhrasePunishment(int mNumber, PunishmentType mPunishment, IRole mRole = null, int? mPunishmentTime = null)
+		public BannedPhrasePunishment(int number, PunishmentType punishment, IRole role = null, int? punishmentTime = null)
 		{
-			this.Number_Of_Removes = mNumber;
-			this.Punishment = mPunishment;
-			this.Role = mRole;
-			this.Punishment_Time = mPunishmentTime;
+			this.Number_Of_Removes = number;
+			this.Punishment = punishment;
+			this.Role = role;
+			this.PunishmentTime = punishmentTime;
 		}
 
 		public int Number_Of_Removes;
 		public PunishmentType Punishment;
 		public IRole Role;
-		public int? Punishment_Time;
+		public int? PunishmentTime;
 	}
 
 	public enum PunishmentType
@@ -290,13 +290,48 @@ namespace Advobot
 
 	public class BannedPhraseUser
 	{
-		public BannedPhraseUser(IGuildUser mUser, int mAmountOfRemovedMessages = 1)
+		public BannedPhraseUser(IGuildUser user, int amountOfRemovedMessages = 1)
 		{
-			this.User = mUser;
-			this.Amount_Of_Removed_Messages = mAmountOfRemovedMessages;
+			this.User = user;
+			this.AmountOfRemovedMessages = amountOfRemovedMessages;
 		}
 
 		public IGuildUser User;
-		public int Amount_Of_Removed_Messages;
+		public int AmountOfRemovedMessages;
+	}
+
+	public class SelfAssignableRole
+	{
+		public SelfAssignableRole(IRole role, int group)
+		{
+			this.Role = role;
+			this.Group = group;
+		}
+
+		public IRole Role;
+		public int Group;
+	}
+
+	public class SelfAssignableGroup
+	{
+		public SelfAssignableGroup(List<SelfAssignableRole> roles, int group, ulong guildID)
+		{
+			this.Roles = roles;
+			this.Group = group;
+			this.GuildID = guildID;
+		}
+
+		public List<SelfAssignableRole> Roles;
+		public int Group;
+		public ulong GuildID;
+	}
+
+	public enum SAGAction
+	{
+		//Self Assignable Group Action
+		Create = 1,
+		Add = 2,
+		Remove = 3, 
+		Delete = 4
 	}
 }

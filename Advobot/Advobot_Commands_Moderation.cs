@@ -1333,9 +1333,9 @@ namespace Advobot
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all permissions from `{0}`.", input));
 		}
 
-		[Command("changerolename")]
-		[Alias("crn")]
-		[Usage(Constants.BOT_PREFIX + "changerolename [Role|Position{x}]/[New Name]")]
+		[Command("rolename")]
+		[Alias("rn")]
+		[Usage(Constants.BOT_PREFIX + "rolename [Role|Position{x}]/[New Name]")]
 		[Summary("Changes the name of the role. This is *extremely* useful for when multiple roles have the same name but you want to edit things.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task ChangeRoleName([Remainder] string input)
@@ -1403,9 +1403,9 @@ namespace Advobot
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the name of the role `{0}` to `{1}`.", beforeName, values[1]));
 		}
 
-		[Command("changerolecolor")]
-		[Alias("crc")]
-		[Usage(Constants.BOT_PREFIX + "changerolecolor Role/[Hexadecimal|Color Name]")]
+		[Command("rolecolor")]
+		[Alias("rc")]
+		[Usage(Constants.BOT_PREFIX + "rolecolor Role/[Hexadecimal|Color Name]")]
 		[Summary("Changes the role's color. A color of '0' sets the role back to the default color. " +
 			"Colors must either be in hexadecimal format or be a color listed [here](https://msdn.microsoft.com/en-us/library/system.drawing.color).")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
