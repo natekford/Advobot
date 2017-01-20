@@ -198,9 +198,7 @@ namespace Advobot
 		{
 			List<PreferenceCategory> categories;
 			if (Variables.CommandPreferences.TryGetValue(guild.Id, out categories))
-			{
 				return;
-			}
 
 			categories = new List<PreferenceCategory>();
 			Variables.CommandPreferences[guild.Id] = categories;
@@ -254,9 +252,7 @@ namespace Advobot
 			//Check if the file even exists
 			string path = getServerFilePath(guild.Id, Constants.BANNED_PHRASES);
 			if (!File.Exists(path))
-			{
 				return;
-			}
 
 			//Get the banned phrases and regex
 			var bannedPhrases = new List<string>();
@@ -264,6 +260,7 @@ namespace Advobot
 			var bannedPhrasesPunishments = new List<BannedPhrasePunishment>();
 			using (StreamReader file = new StreamReader(path))
 			{
+				Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": banned phrases/regex/punishments for the server " + guild.Name + " have been loaded.");
 				string line;
 				while ((line = file.ReadLine()) != null)
 				{
@@ -360,6 +357,62 @@ namespace Advobot
 			if (!Variables.BannedPhrasesPunishments.ContainsKey(guild.Id) && bannedPhrasesPunishments.Any())
 			{
 				Variables.BannedPhrasesPunishments.Add(guild.Id, bannedPhrasesPunishments);
+			}
+		}
+
+		//Load the self assignable roles
+		public static void loadSelfAssignableRoles(IGuild guild)
+		{
+			//Check if the file even exists
+			string path = getServerFilePath(guild.Id, Constants.SA_ROLES);
+			if (!File.Exists(path))
+				return;
+
+			//Read the file
+			using (StreamReader file = new StreamReader(path))
+			{
+				Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": self assignable roles for the server " + guild.Name + " have been loaded.");
+				string line;
+				while ((line = file.ReadLine()) != null)
+				{
+					//If the line is empty, do nothing
+					if (String.IsNullOrWhiteSpace(line))
+					{
+						continue;
+					}
+					else
+					{
+						string[] inputArray = line.Split(' ');
+						ulong ID = 0;
+						int group = 0;
+
+						//Test if valid role
+						if (!ulong.TryParse(inputArray[0], out ID))
+							return;
+						IRole role = guild.GetRole(ID);
+						if (role == null)
+							return;
+
+						//Test if valid group
+						if (!int.TryParse(inputArray[1], out group))
+							return;
+
+						//Remake the SARole
+						var SARole = new SelfAssignableRole(role, group);
+
+						//Check if that group exists already
+						if (!Variables.SelfAssignableGroups.Any(x => x.Group == group))
+						{
+							Variables.SelfAssignableGroups.Add(new SelfAssignableGroup(new List<SelfAssignableRole> { SARole }, group, guild.Id));
+						}
+						//Add it to the list if it already does exist
+						else
+						{
+							Variables.SelfAssignableGroups.FirstOrDefault(x => x.Group == group).Roles.Add(SARole);
+						}
+					}
+					continue;
+				}
 			}
 		}
 		#endregion
@@ -1102,7 +1155,16 @@ namespace Advobot
 			if (channel == null || !Variables.Guilds.Contains((channel as ITextChannel).Guild))
 				return null;
 
-			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR, embed: embed);
+			try
+			{
+				return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR, embed: embed);
+			}
+			//Embeds fail every now and then and I haven't been able to find the problem yet (I know fields are a problem, but not in this case)
+			catch (Exception e)
+			{
+				exceptionToConsole(MethodBase.GetCurrentMethod().Name, e);
+				return null;
+			}
 		}
 		
 		//Make a new embed builder
@@ -1170,7 +1232,7 @@ namespace Advobot
 		}
 		
 		//Add a field to an embed
-		public static EmbedBuilder addField(EmbedBuilder embed, string name, string value, bool isInline = true)
+		public static EmbedBuilder addField(EmbedBuilder embed, string name = "null", string value = "null", bool isInline = true)
 		{
 			if (name == null || value == null)
 				return embed;
@@ -1301,6 +1363,90 @@ namespace Advobot
 			}
 
 			return inputChannel;
+		}
+
+		//Logging images
+		public static async Task imageLog(IMessageChannel channel, SocketMessage message, bool embeds)
+		{
+			//Get the links
+			List<string> attachmentURLs = new List<string>();
+			List<string> embedURLs = new List<string>();
+			List<Embed> videoEmbeds = new List<Embed>();
+			if (!embeds && message.Attachments.Any())
+			{
+				//If attachment, the file is hosted on discord which has a concrete URL name for files (cdn.discordapp.com/attachments/.../x.png)
+				attachmentURLs = message.Attachments.Select(x => x.Url).ToList();
+			}
+			else if (embeds && message.Embeds.Any())
+			{
+				//If embed this is slightly trickier, but only images/videos can embed (AFAIK)
+				message.Embeds.ToList().ForEach(x =>
+				{
+					if (x.Video == null)
+					{
+						//If no video then it has to be just an image
+						if (x.Thumbnail.HasValue && !String.IsNullOrEmpty(x.Thumbnail.Value.Url))
+						{
+							embedURLs.Add(x.Thumbnail.Value.Url);
+						}
+						else if (x.Image.HasValue && !String.IsNullOrEmpty(x.Image.Value.Url))
+						{
+							embedURLs.Add(x.Image.Value.Url);
+						}
+					}
+					else
+					{
+						//Add the video URL and the thumbnail URL
+						videoEmbeds.Add(x);
+					}
+				});
+			}
+			IUser user = message.Author;
+			foreach (string URL in attachmentURLs.Distinct())
+			{
+				if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL).ToLower()))
+				{
+					++Variables.LoggedImages;
+					//Image attachment
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Image", imageURL: URL), "Attached Image");
+					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					await Actions.sendEmbedMessage(channel, embed);
+				}
+				else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(URL).ToLower()))
+				{
+					++Variables.LoggedGifs;
+					//Gif attachment
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Gif", imageURL: URL), "Attached Gif");
+					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					await Actions.sendEmbedMessage(channel, embed);
+				}
+				else
+				{
+					++Variables.LoggedFiles;
+					//Random file attachment
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "File"), "Attached File");
+					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					await Actions.sendEmbedMessage(channel, embed.WithDescription(URL));
+				}
+			}
+			foreach (string URL in embedURLs.Distinct())
+			{
+				++Variables.LoggedImages;
+				//Embed image
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Image", imageURL: URL), "Embedded Image");
+				Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+				await Actions.sendEmbedMessage(channel, embed);
+			}
+			foreach (Embed embedObject in videoEmbeds.Distinct())
+			{
+				++Variables.LoggedGifs;
+				//Check if video or gif
+				string title = Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url).ToLower()) ? "Gif" : "Video";
+
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, title, embedObject.Url, embedObject.Thumbnail.Value.Url), "Embedded " + title);
+				Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+				await Actions.sendEmbedMessage(channel, embed);
+			}
 		}
 		#endregion
 

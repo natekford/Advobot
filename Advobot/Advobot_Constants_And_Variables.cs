@@ -23,6 +23,7 @@ namespace Advobot
 		public const string PREFERENCES_FILE = "CommandPreferences.txt";
 		public const string SERVERLOG_AND_MODLOG = "ServerLogAndModLog.txt";
 		public const string BANNED_PHRASES = "BannedPhrases.txt";
+		public const string SA_ROLES = "SelfAssignableRoles.txt";
 		public const string SERVER_LOG_CHECK_STRING = "serverlog";
 		public const string MOD_LOG_CHECK_STRING = "modlog";
 		public const string BANNED_PHRASES_CHECK_STRING = "bannedphrases";
@@ -38,6 +39,7 @@ namespace Advobot
 		public const double PERCENT_AVERAGE = .75;
 		public const int WAIT_TIME = 3000;
 		public const int MEMBER_LIMIT = 0;
+		public const int MAX_SA_GROUPS = 10;
 		public const int LENGTH_CHECK = 1900;
 		public const int SHORT_LENGTH_CHECK = 750;
 		public const int OWNER_POSITION = 9001;

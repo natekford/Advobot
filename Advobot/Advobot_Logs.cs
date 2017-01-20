@@ -32,6 +32,7 @@ namespace Advobot
 			Actions.writeLine(String.Format("{0}: {1}#{2} is online now.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
 			Actions.loadPreferences(guild);
 			Actions.loadBannedPhrasesAndPunishments(guild);
+			Actions.loadSelfAssignableRoles(guild);
 
 			Variables.TotalUsers += guild.MemberCount;
 			Variables.TotalGuilds++;
@@ -233,7 +234,7 @@ namespace Advobot
 		{
 			//Name change
 			//TODO: Make this work somehow
-			if (!beforeUser.Username.Equals(afterUser.Username))
+			if (!beforeUser.Username.Equals(afterUser.Username, StringComparison.OrdinalIgnoreCase))
 			{
 				foreach (var guild in CommandHandler.Client.Guilds.ToList().Where(x => x.Users.Contains(afterUser)).ToList())
 				{
@@ -276,7 +277,7 @@ namespace Advobot
 			//Check if regular messages are equal
 			if (beforeMessage.Value.Embeds.Count != afterMessage.Embeds.Count)
 			{
-				await ImageLog(logChannel, afterMessage, true);
+				await Actions.imageLog(logChannel, afterMessage, true);
 				return;
 			}
 
@@ -534,95 +535,11 @@ namespace Advobot
 
 			if (message.Attachments.Any())
 			{
-				await ImageLog(logChannel, message, false);
+				await Actions.imageLog(logChannel, message, false);
 			}
 			else if (message.Embeds.Any())
 			{
-				await ImageLog(logChannel, message, true);
-			}
-		}
-
-		//Logging images
-		public static async Task ImageLog(IMessageChannel channel, SocketMessage message, bool embeds)
-		{
-			//Get the links
-			List<string> attachmentURLs = new List<string>();
-			List<string> embedURLs = new List<string>();
-			List<Embed> videoEmbeds = new List<Embed>();
-			if (!embeds && message.Attachments.Any())
-			{
-				//If attachment, the file is hosted on discord which has a concrete URL name for files (cdn.discordapp.com/attachments/.../x.png)
-				attachmentURLs = message.Attachments.Select(x => x.Url).ToList();
-			}
-			else if (embeds && message.Embeds.Any())
-			{
-				//If embed this is slightly trickier, but only images/videos can embed (AFAIK)
-				message.Embeds.ToList().ForEach(x =>
-				{
-					if (x.Video == null)
-					{
-						//If no video then it has to be just an image
-						if (!String.IsNullOrEmpty(x.Thumbnail.Value.Url))
-						{
-							embedURLs.Add(x.Thumbnail.Value.Url);
-						}
-						else if (!String.IsNullOrEmpty(x.Image.Value.Url))
-						{
-							embedURLs.Add(x.Image.Value.Url);
-						}
-					}
-					else
-					{
-						//Add the video URL and the thumbnail URL
-						videoEmbeds.Add(x);
-					}
-				});
-			}
-			IUser user = message.Author;
-			foreach (string URL in attachmentURLs.Distinct())
-			{
-				if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL).ToLower()))
-				{
-					++Variables.LoggedImages;
-					//Image attachment
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Image", imageURL: URL), "Attached Image");
-					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-					await Actions.sendEmbedMessage(channel, embed);
-				}
-				else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(URL).ToLower()))
-				{
-					++Variables.LoggedGifs;
-					//Gif attachment
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Gif", imageURL: URL), "Attached Gif");
-					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-					await Actions.sendEmbedMessage(channel, embed);
-				}
-				else
-				{
-					++Variables.LoggedFiles;
-					//Random file attachment
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "File"), "Attached File");
-					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-					await Actions.sendEmbedMessage(channel, embed.WithDescription(URL));
-				}
-			}
-			foreach (string URL in embedURLs.Distinct())
-			{
-				++Variables.LoggedImages;
-				//Embed image
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Image", imageURL: URL), "Embedded Image");
-				Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-				await Actions.sendEmbedMessage(channel, embed);
-			}
-			foreach (Embed embedObject in videoEmbeds.Distinct())
-			{
-				++Variables.LoggedGifs;
-				//Check if video or gif
-				string title = Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url).ToLower()) ? "Gif" : "Video";
-
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, title, embedObject.Url, embedObject.Thumbnail.Value.Url), "Embedded " + title);
-				Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-				await Actions.sendEmbedMessage(channel, embed);
+				await Actions.imageLog(logChannel, message, true);
 			}
 		}
 
