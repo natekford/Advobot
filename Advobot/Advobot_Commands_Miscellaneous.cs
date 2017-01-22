@@ -22,7 +22,7 @@ namespace Advobot
 	{
 		[Command("help")]
 		[Alias("h")]
-		[Usage(Constants.BOT_PREFIX + "help <Command>")]
+		[Usage("help <Command>")]
 		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
 			"If left blank will print out a link to the documentation of this bot.")]
 		[UserHasAPermission]
@@ -84,7 +84,7 @@ namespace Advobot
 
 		[Command("commands")]
 		[Alias("cmds")]
-		[Usage(Constants.BOT_PREFIX + "commands <Category|All>")]
+		[Usage("commands <Category|All>")]
 		[Summary("Prints out the commands in that category of the command list.")]
 		[UserHasAPermission]
 		public async Task Commands([Optional, Remainder] string input)
@@ -151,7 +151,7 @@ namespace Advobot
 
 		[Command("guildid")]
 		[Alias("gid", "serverid", "sid")]
-		[Usage(Constants.BOT_PREFIX + "guildid")]
+		[Usage("guildid")]
 		[Summary("Shows the ID of the guild.")]
 		[UserHasAPermission]
 		public async Task ServerID()
@@ -161,7 +161,7 @@ namespace Advobot
 
 		[Command("channelid")]
 		[Alias("cid")]
-		[Usage(Constants.BOT_PREFIX + "channelid " + Constants.CHANNEL_INSTRUCTIONS)]
+		[Usage("channelid " + Constants.CHANNEL_INSTRUCTIONS)]
 		[Summary("Shows the ID of the given channel.")]
 		[UserHasAPermission]
 		public async Task ChannelID([Remainder] string input)
@@ -177,7 +177,7 @@ namespace Advobot
 
 		[Command("roleid")]
 		[Alias("rid")]
-		[Usage(Constants.BOT_PREFIX + "roleid [Role]")]
+		[Usage("roleid [Role]")]
 		[Summary("Shows the ID of the given role.")]
 		[UserHasAPermission]
 		public async Task RoleID([Remainder] string input)
@@ -193,7 +193,7 @@ namespace Advobot
 
 		[Command("userid")]
 		[Alias("uid")]
-		[Usage(Constants.BOT_PREFIX + "userid <@User>")]
+		[Usage("userid <@User>")]
 		[Summary("Shows the ID of the given user.")]
 		[UserHasAPermission]
 		public async Task UserID([Optional, Remainder] string input)
@@ -209,7 +209,7 @@ namespace Advobot
 
 		[Command("useravatar")]
 		[Alias("uav")]
-		[Usage(Constants.BOT_PREFIX + "useravatar <@user>")]
+		[Usage("useravatar <@user>")]
 		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily). Currently every avatar is displayed with an extension type of gif.")]
 		[UserHasAPermission]
 		public async Task UserAvatar([Optional, Remainder] string input)
@@ -225,7 +225,7 @@ namespace Advobot
 
 		[Command("currentmembercount")]
 		[Alias("cmc")]
-		[Usage(Constants.BOT_PREFIX + "currentmembercount")]
+		[Usage("currentmembercount")]
 		[Summary("Shows the current number of members in the guild.")]
 		[UserHasAPermission]
 		public async Task CurrentMemberCount()
@@ -235,7 +235,7 @@ namespace Advobot
 
 		[Command("userjoinedat")]
 		[Alias("ujat")]
-		[Usage(Constants.BOT_PREFIX + "userjoinedat [Position]")]
+		[Usage("userjoinedat [Position]")]
 		[Summary("Shows the user which joined the guild in that position. Mostly accurate, give or take ten places per thousand users on the guild.")]
 		[UserHasAPermission]
 		public async Task UserJoinedAt([Remainder] string input)
@@ -270,7 +270,7 @@ namespace Advobot
 
 		[Command("userinfo")]
 		[Alias("uinf")]
-		[Usage(Constants.BOT_PREFIX + "userinfo [@User]")]
+		[Usage("userinfo [@User]")]
 		[Summary("Displays various information about the user. Join position is mostly accurate, give or take ten places per thousand users on the guild.")]
 		public async Task UserInfo([Optional, Remainder] string input)
 		{
@@ -384,7 +384,7 @@ namespace Advobot
 
 		[Command("botinfo")]
 		[Alias("binf")]
-		[Usage(Constants.BOT_PREFIX + "botinfo")]
+		[Usage("botinfo")]
 		[Summary("Displays various information about the bot.")]
 		[UserHasAPermission]
 		public async Task BotInfo()
@@ -453,7 +453,7 @@ namespace Advobot
 
 		[Command("createinstantinvite")]
 		[Alias("crinv")]
-		[Usage(Constants.BOT_PREFIX + "createinstantinvite " + Constants.CHANNEL_INSTRUCTIONS + " [Forever|1800|3600|21600|43200|86400] [Infinite|1|5|10|25|50|100] [True|False]")]
+		[Usage("createinstantinvite " + Constants.CHANNEL_INSTRUCTIONS + " [Forever|1800|3600|21600|43200|86400] [Infinite|1|5|10|25|50|100] [True|False]")]
 		[Summary("The first argument is the channel. The second is how long the invite will last for. " +
 			"The third is how many users can use the invite. The fourth is the temporary membership option.")]
 		[PermissionRequirements(1U << (int)GuildPermission.CreateInstantInvite)]
@@ -514,7 +514,7 @@ namespace Advobot
 
 		[Command("mentionrole")]
 		[Alias("mnr")]
-		[Usage(Constants.BOT_PREFIX + "mentionrole [Role]/[Message]")]
+		[Usage("mentionrole [Role]/[Message]")]
 		[Summary("Mention an unmentionable role with the given message.")]
 		[UserHasAPermission]
 		public async Task MentionRole([Remainder] string input)

@@ -157,7 +157,7 @@ namespace Advobot
 		}
 		public string Usage
 		{
-			get { return mUsage; }
+			get { return Properties.Settings.Default.Prefix + mUsage; }
 		}
 		public string basePerm
 		{

@@ -11,13 +11,13 @@ namespace Advobot
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string TEXT_HOST = "hastebin";
-		public const string STARTUP_GAME = "type \"" + Constants.BOT_PREFIX + "help\" for help.";
 		public const string ERROR_MESSAGE = "**ERROR:** ";
 		public const string ARGUMENTS_ERROR = "Invalid number of arguments.";
 		public const string USER_ERROR = "Invalid user.";
 		public const string ROLE_ERROR = "Invalid role.";
 		public const string CHANNEL_ERROR = "Invalid channel.";
 		public const string CHANNEL_PERMISSIONS_ERROR = "You do not have the ability to edit that channel.";
+		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
 		public const string MUTE_ROLE_NAME = "Muted";
 		public const string SERVER_FOLDER = "Discord_Servers";
 		public const string PREFERENCES_FILE = "CommandPreferences.txt";
@@ -35,7 +35,6 @@ namespace Advobot
 		public const string TEXT_TYPE = "text";
 		public const string BYPASS_STRING = "Badoodle123";
 
-		public const UInt64 OWNER_ID = 172138437246320640;
 		public const double PERCENT_AVERAGE = .75;
 		public const int WAIT_TIME = 3000;
 		public const int MEMBER_LIMIT = 0;
@@ -78,6 +77,8 @@ namespace Advobot
 		public static string Bot_Name = null;
 		public static string Bot_Channel = null;
 
+		public static bool Windows = true;
+
 		public static DateTime StartupTime = DateTime.UtcNow.ToUniversalTime();
 		public static int TotalUsers = 0;
 		public static int TotalGuilds = 0;
@@ -116,9 +117,10 @@ namespace Advobot
 		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsDeletingPreferences = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator = new List<Discord.IGuild>();
-		public static List<HelpEntry> HelpList = new List<HelpEntry>();
 		public static List<string> CommandNames = new List<string>();
 		public static List<string> RegionIDs = new List<string>();
+		public static List<ulong> PotentialBotOwners = new List<ulong>();
+		public static List<HelpEntry> HelpList = new List<HelpEntry>();
 		public static List<BannedPhraseUser> BannedPhraseUserList = new List<BannedPhraseUser>();
 		public static List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
 	}

@@ -30,13 +30,32 @@ namespace Advobot
 		public static Task OnGuildAvailable(SocketGuild guild)
 		{
 			Actions.writeLine(String.Format("{0}: {1}#{2} is online now.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
-			Actions.loadPreferences(guild);
-			Actions.loadBannedPhrasesAndPunishments(guild);
-			Actions.loadSelfAssignableRoles(guild);
 
-			Variables.TotalUsers += guild.MemberCount;
-			Variables.TotalGuilds++;
-			Variables.Guilds.Add(guild);
+			if (!Variables.Guilds.Any(x => x.Id == guild.Id))
+			{
+				Variables.Guilds.Add(guild);
+
+				//Incrementing
+				Variables.TotalUsers += guild.MemberCount;
+				Variables.TotalGuilds++;
+
+				//Loading everything
+				Actions.loadPreferences(guild);
+				Actions.loadBannedPhrasesAndPunishments(guild);
+				Actions.loadSelfAssignableRoles(guild);
+			}
+
+			return Task.CompletedTask;
+		}
+
+		//When a guild becomes unavailable
+		public static Task OnGuildUnavailable(SocketGuild guild)
+		{
+			Actions.writeLine(String.Format("{0}: Guild is down: {1}#{2}.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
+
+			Variables.TotalUsers -= (guild.MemberCount + 1);
+			Variables.TotalGuilds--;
+			Variables.Guilds.Remove(guild);
 
 			return Task.CompletedTask;
 		}
@@ -61,13 +80,24 @@ namespace Advobot
 			return Task.CompletedTask;
 		}
 
-		//Reset the server count and cumulative member count when the bot disconnects or else it doubles it
+		//When the bot DCs
 		public static Task OnDisconnected(Exception exception)
 		{
-			Variables.TotalGuilds = 0;
-			Variables.TotalUsers = 0;
+			Actions.writeLine(String.Format("{0}: Bot has been disconnected.", MethodBase.GetCurrentMethod().Name));
 
 			return Task.CompletedTask;
+		}
+
+		//When the bot comes back online
+		public static Task OnConnected()
+		{
+			Actions.writeLine(String.Format("{0}: Bot has connected.", MethodBase.GetCurrentMethod().Name));
+
+			//Find out if the current OS is not Windows
+			Actions.getOS();
+
+			return Task.CompletedTask;
+
 		}
 	}
 
@@ -88,6 +118,7 @@ namespace Advobot
 			if (!await Actions.permissionCheck(logChannel))
 				return;
 			++Variables.LoggedJoins;
+			++Variables.TotalUsers;
 
 			if (user.IsBot)
 			{
@@ -117,6 +148,7 @@ namespace Advobot
 			if (!await Actions.permissionCheck(logChannel))
 				return;
 			++Variables.LoggedLeaves;
+			--Variables.TotalUsers;
 
 			if (user.IsBot)
 			{
@@ -324,8 +356,8 @@ namespace Advobot
 		//Tell when a message is deleted
 		public static async Task OnMessageDeleted(ulong messageID, Optional<SocketMessage> message)
 		{
-			//If DM ignore
-			if (message.Value.Channel as IGuildChannel == null)
+			//If DM or just unable to be gotten then ignore
+			if (!message.IsSpecified || message.Value.Channel as IGuildChannel == null)
 				return;
 			//Check if guild exists
 			IGuild guild = (message.Value.Channel as IGuildChannel).Guild;
@@ -334,12 +366,6 @@ namespace Advobot
 			//Check if valid log channel
 			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel == null)
-				return;
-			//If null message ignore
-			if (!message.IsSpecified)
-				return;
-			//Got an error once time due to a null user when spam testing, so this check is here
-			if (message.Value.Author == null)
 				return;
 			++Variables.LoggedDeletes;
 
@@ -487,9 +513,27 @@ namespace Advobot
 			//If bot then ignore
 			if (message.Author.IsBot)
 				return;
-			//If DM then ignore
+			//If DM then ignore for the most part
 			if (message.Channel as IGuildChannel == null)
+			{
+				//See if they're on the list to be a potential bot owner
+				if (Variables.PotentialBotOwners.Contains(message.Author.Id))
+				{
+					//If the key they input is the same as the bots key then they become owner
+					if (message.Content.Trim().Equals(Properties.Settings.Default.BotKey))
+					{
+						Properties.Settings.Default.BotOwner = message.Author.Id;
+						Properties.Settings.Default.Save();
+						await Actions.sendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
+					}
+					else
+					{
+						await Actions.sendDMMessage(message.Channel as IDMChannel, "That is the incorrect key.");
+					}
+					Variables.PotentialBotOwners.Remove(message.Author.Id);
+				}
 				return;
+			}
 			//Check if valid guild
 			IGuild guild = (message.Channel as IGuildChannel).Guild;
 			if (guild == null)
@@ -500,13 +544,11 @@ namespace Advobot
 			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))
 			{
 				await Actions.slowmode(message);
-				return;
 			}
 			//Check if any banned phrases
 			else if (Variables.BannedPhrases.ContainsKey(guild.Id) || Variables.BannedRegex.ContainsKey(guild.Id))
 			{
 				await Actions.bannedPhrases(message);
-				return;
 			}
 
 			//Check if it's the owner of the guild saying something

@@ -22,7 +22,7 @@ namespace Advobot
 	{
 		[Command("fullmute")]
 		[Alias("fm")]
-		[Usage(Constants.BOT_PREFIX + "fullmute [@User]")]
+		[Usage("fullmute [@User]")]
 		[Summary("Removes the user's ability to speak and type via the 'Muted' role.")]
 		[PermissionRequirements((1U << (int)GuildPermission.ManageRoles) | (1U << (int)GuildPermission.ManageMessages))]
 		public async Task FullMute([Remainder] string input)
@@ -51,7 +51,7 @@ namespace Advobot
 
 		[Command("fullunmute")]
 		[Alias("fum", "chum")]
-		[Usage(Constants.BOT_PREFIX + "fullunmute [@User]")]
+		[Usage("fullunmute [@User]")]
 		[Summary("Gives the user back the ability to speak and type via removing the 'Muted' role.")]
 		[PermissionRequirements((1U << (int)GuildPermission.ManageRoles) | (1U << (int)GuildPermission.ManageMessages))]
 		public async Task FullUnmute([Remainder] string input)
@@ -71,7 +71,7 @@ namespace Advobot
 
 		[Command("kick")]
 		[Alias("k")]
-		[Usage(Constants.BOT_PREFIX + "kick [@User]")]
+		[Usage("kick [@User]")]
 		[Summary("Kicks the user from the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.KickMembers)]
 		public async Task Kick([Remainder] string input)
@@ -108,7 +108,7 @@ namespace Advobot
 
 		[Command("prunemembers")]
 		[Alias("pmems")]
-		[Usage(Constants.BOT_PREFIX + "prunemembers [1|7|30] <Real>")]
+		[Usage("prunemembers [1|7|30] <Real>")]
 		[Summary("Removes users who have no roles and have not been seen in the past given amount of days. These users can rejoin via instant invites.\n" +
 			"Real means an actual prune, otherwise this returns the number of users that would have been pruned.")]
 		[PermissionRequirements]
@@ -150,7 +150,7 @@ namespace Advobot
 
 		[Command("softban")]
 		[Alias("sb")]
-		[Usage(Constants.BOT_PREFIX + "softban [@User]")]
+		[Usage("softban [@User]")]
 		[Summary("Bans then unbans a user from the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.BanMembers)]
 		public async Task SoftBan([Remainder] string input)
@@ -187,7 +187,7 @@ namespace Advobot
 
 		[Command("ban")]
 		[Alias("b")]
-		[Usage(Constants.BOT_PREFIX + "ban [@User] [Days]")]
+		[Usage("ban [@User] [Days]")]
 		[Summary("Bans the user from the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.BanMembers)]
 		public async Task Ban([Remainder] string input)
@@ -265,7 +265,7 @@ namespace Advobot
 
 		[Command("unban")]
 		[Alias("ub")]
-		[Usage(Constants.BOT_PREFIX + "unban [User|User#Discriminator|User ID]")]
+		[Usage("unban [User|User#Discriminator|User ID]")]
 		[Summary("Unbans the user from the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.BanMembers)]
 		public async Task Unban([Remainder] string input)
@@ -362,7 +362,7 @@ namespace Advobot
 
 		[Command("currentbanlist")]
 		[Alias("cbl")]
-		[Usage(Constants.BOT_PREFIX + "currentbanlist")]
+		[Usage("currentbanlist")]
 		[Summary("Displays all the bans on the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.BanMembers)]
 		public async Task CurrentBanList()
@@ -409,7 +409,7 @@ namespace Advobot
 
 		[Command("removemessages")]
 		[Alias("rm")]
-		[Usage(Constants.BOT_PREFIX + "removemessages <@User> <#Channel> [Number of Messages]")]
+		[Usage("removemessages <@User> <#Channel> [Number of Messages]")]
 		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel." +
 			"People without administrator can only delete up to 100 messages at a time.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageMessages)]
@@ -461,7 +461,7 @@ namespace Advobot
 					String.Format("Hey, @here, {0} is trying to delete stuff.", Context.User.Mention));
 
 				//DM the owner of the server
-				await (await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync()).SendMessageAsync(
+				await Actions.sendDMMessage(await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync(),
 					String.Format("`{0}#{1}` ID: `{2}` is trying to delete stuff from the server/mod log.", Context.User.Username, Context.User.Discriminator, Context.User.Id));
 				return;
 			}
@@ -501,7 +501,7 @@ namespace Advobot
 
 		[Command("slowmode")]
 		[Alias("sm")]
-		[Usage(Constants.BOT_PREFIX + "slowmode <Roles:.../.../> <Messages:1 to 5> <Time:1 to 30> <Guild:Yes> | Off [Guild|Channel|All]")]
+		[Usage("slowmode <Roles:.../.../> <Messages:1 to 5> <Time:1 to 30> <Guild:Yes> | Off [Guild|Channel|All]")]
 		[Summary("The first argument is the roles that get ignored by slowmode, the second is the amount of messages, and the third is the time period. Default is: none, 1, 5." +
 			"Bots are unaffected by slowmode. Any users who are immune due to roles stay immune even if they lose said role until a new slowmode is started.")]
 		[PermissionRequirements]
@@ -672,7 +672,7 @@ namespace Advobot
 
 		[Command("giverole")]
 		[Alias("gr")]
-		[Usage(Constants.BOT_PREFIX + "giverole [@User] [Role]/<Role>/...")]
+		[Usage("giverole [@User] [Role]/<Role>/...")]
 		[Summary("Gives the user the role (assuming the person using the command and bot both have the ability to give that role).")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task GiveRole([Remainder] string input)
@@ -774,7 +774,7 @@ namespace Advobot
 
 		[Command("takerole")]
 		[Alias("tr")]
-		[Usage(Constants.BOT_PREFIX + "takerole [@User] [Role]")]
+		[Usage("takerole [@User] [Role]")]
 		[Summary("Take the role from the user (assuming the person using the command and bot both have the ability to take that role).")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task TakeRole([Remainder] string input)
@@ -871,7 +871,7 @@ namespace Advobot
 
 		[Command("createrole")]
 		[Alias("cr")]
-		[Usage(Constants.BOT_PREFIX + "createrole [Role]")]
+		[Usage("createrole [Role]")]
 		[Summary("Adds a role to the guild with the chosen name.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task CreateRole([Remainder] string input)
@@ -890,7 +890,7 @@ namespace Advobot
 
 		[Command("softdeleterole")]
 		[Alias("sdrole", "sdr")]
-		[Usage(Constants.BOT_PREFIX + "softdeleterole [Role]")]
+		[Usage("softdeleterole [Role]")]
 		[Summary("Removes all permissions from a role (and all channels the role had permissions on) and removes the role from everyone. Leaves the name and color behind.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task SoftDeleteRole([Remainder] string input)
@@ -944,7 +944,7 @@ namespace Advobot
 
 		[Command("deleterole")]
 		[Alias("drole", "dr")]
-		[Usage(Constants.BOT_PREFIX + "deleterole [Role]")]
+		[Usage("deleterole [Role]")]
 		[Summary("Deletes the role. 'Drole' is a pretty funny alias.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task DeleteRole([Remainder] string input)
@@ -974,7 +974,7 @@ namespace Advobot
 
 		[Command("roleposition")]
 		[Alias("rpos")]
-		[Usage(Constants.BOT_PREFIX + "roleposition [Role] [New Position]")]
+		[Usage("roleposition [Role] [New Position]")]
 		[Summary("Moves the role to the given position. @ev" + Constants.ZERO_LENGTH_CHAR + "eryone is the first position and starts at zero.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task RolePosition([Remainder] string input)
@@ -1050,7 +1050,7 @@ namespace Advobot
 
 		[Command("listrolepositions")]
 		[Alias("lrp")]
-		[Usage(Constants.BOT_PREFIX + "listrolepositions")]
+		[Usage("listrolepositions")]
 		[Summary("Lists the positions of each role on the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task ListRolePositions()
@@ -1082,7 +1082,7 @@ namespace Advobot
 
 		[Command("rolepermissions")]
 		[Alias("erp", "rp")]
-		[Usage(Constants.BOT_PREFIX + "rolepermissions [Show|Add|Remove] [Role] [Permission/...]")]
+		[Usage("rolepermissions [Show|Add|Remove] [Role] [Permission/...]")]
 		[Summary("Add/remove the selected permissions to/from the role. Permissions must be separated by a `/`! " +
 			"Type `" + Constants.BOT_PREFIX + "rolepermissions [Show]` to see the available permissions. " +
 			"Type `" + Constants.BOT_PREFIX + "rolepermissions [Show] [Role]` to see the permissions of that role.")]
@@ -1249,7 +1249,7 @@ namespace Advobot
 
 		[Command("copyrolepermissions")]
 		[Alias("crp")]
-		[Usage(Constants.BOT_PREFIX + "copyrolepermissions [Role]/[Role]")]
+		[Usage("copyrolepermissions [Role]/[Role]")]
 		[Summary("Copies the permissions from the first role to the second role. Will not copy roles that the user does not have access to." +
 			"Will not overwrite roles that are above the user's top role.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
@@ -1318,7 +1318,7 @@ namespace Advobot
 
 		[Command("clearrolepermissions")]
 		[Alias("clrrole")]
-		[Usage(Constants.BOT_PREFIX + "clearrolepermissions [Role]")]
+		[Usage("clearrolepermissions [Role]")]
 		[Summary("Removes all permissions from a role.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task ClearRolePermissions([Remainder] string input)
@@ -1335,7 +1335,7 @@ namespace Advobot
 
 		[Command("rolename")]
 		[Alias("rn")]
-		[Usage(Constants.BOT_PREFIX + "rolename [Role|Position{x}]/[New Name]")]
+		[Usage("rolename [Role|Position{x}]/[New Name]")]
 		[Summary("Changes the name of the role. This is *extremely* useful for when multiple roles have the same name but you want to edit things.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task ChangeRoleName([Remainder] string input)
@@ -1405,7 +1405,7 @@ namespace Advobot
 
 		[Command("rolecolor")]
 		[Alias("rc")]
-		[Usage(Constants.BOT_PREFIX + "rolecolor Role/[Hexadecimal|Color Name]")]
+		[Usage("rolecolor Role/[Hexadecimal|Color Name]")]
 		[Summary("Changes the role's color. A color of '0' sets the role back to the default color. " +
 			"Colors must either be in hexadecimal format or be a color listed [here](https://msdn.microsoft.com/en-us/library/system.drawing.color).")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
@@ -1444,7 +1444,7 @@ namespace Advobot
 
 		[Command("createchannel")]
 		[Alias("cch")]
-		[Usage(Constants.BOT_PREFIX + "createchannel [Name] [Text|Voice]")]
+		[Usage("createchannel [Name] [Text|Voice]")]
 		[Summary("Adds a channel to the guild of the given type with the given name. The name CANNOT contain any spaces: use underscores or dashes instead.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
 		public async Task CreateChannel([Remainder] string input)
@@ -1504,7 +1504,7 @@ namespace Advobot
 
 		[Command("softdeletechannel")]
 		[Alias("sdch")]
-		[Usage(Constants.BOT_PREFIX + "softdeletechannel [#Channel]")]
+		[Usage("softdeletechannel [#Channel]")]
 		[Summary("Makes most roles unable to read the channel and moves it to the bottom of the channel list. Only works for text channels.")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
 		public async Task SoftDeleteChannel([Remainder] string input)
@@ -1570,7 +1570,7 @@ namespace Advobot
 
 		[Command("deletechannel")]
 		[Alias("dch")]
-		[Usage(Constants.BOT_PREFIX + "deletechannel " + Constants.CHANNEL_INSTRUCTIONS)]
+		[Usage("deletechannel " + Constants.CHANNEL_INSTRUCTIONS)]
 		[Summary("Deletes the channel.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
 		public async Task DeleteChannel([Remainder] string input)
@@ -1593,7 +1593,7 @@ namespace Advobot
 
 		[Command("channelposition")]
 		[Alias("chpos")]
-		[Usage(Constants.BOT_PREFIX + "channelposition " + Constants.CHANNEL_INSTRUCTIONS + " [New Position]")]
+		[Usage("channelposition " + Constants.CHANNEL_INSTRUCTIONS + " [New Position]")]
 		[Summary("Gives the channel the given position. Position one is the top most position and counting starts at zero. This command is extremely buggy!")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ChannelPosition([Remainder] string input)
@@ -1660,7 +1660,7 @@ namespace Advobot
 
 		[Command("listchannelpositions")]
 		[Alias("lchp")]
-		[Usage(Constants.BOT_PREFIX + "listchannelpositions [Text|Voice]")]
+		[Usage("listchannelpositions [Text|Voice]")]
 		[Summary("Lists the positions of each text or voice channel on the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ListChannelPositions([Remainder] string input)
@@ -1706,7 +1706,7 @@ namespace Advobot
 
 		[Command("channelpermissions")]
 		[Alias("chp")]
-		[Usage(Constants.BOT_PREFIX + "channelpermissions [Show|Allow|Inherit|Deny] " + Constants.OPTIONAL_CHANNEL_INSTRUCTIONS + " <Role|User> <Permission/...>")]
+		[Usage("channelpermissions [Show|Allow|Inherit|Deny] " + Constants.OPTIONAL_CHANNEL_INSTRUCTIONS + " <Role|User> <Permission/...>")]
 		[Summary("Type `" + Constants.BOT_PREFIX + "chp [Show]` to see the available permissions. Permissions must be separated by a `/`! " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel]` to see all permissions on a channel. " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel] [Role|User]` to see permissions a role/user has on a channel.")]
@@ -1940,7 +1940,7 @@ namespace Advobot
 
 		[Command("copychannelpermissions")]
 		[Alias("cchp")]
-		[Usage(Constants.BOT_PREFIX + "copychannelpermissions " + Constants.CHANNEL_INSTRUCTIONS + " " + Constants.CHANNEL_INSTRUCTIONS + " [Role|User|All]")]
+		[Usage("copychannelpermissions " + Constants.CHANNEL_INSTRUCTIONS + " " + Constants.CHANNEL_INSTRUCTIONS + " [Role|User|All]")]
 		[Summary("Copy permissions from one channel to another. Works for a role, a user, or everything.")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
 		public async Task CopyChannelPermissions([Remainder] string input)
@@ -2017,7 +2017,7 @@ namespace Advobot
 
 		[Command("clearchannelpermissions")]
 		[Alias("clchp")]
-		[Usage(Constants.BOT_PREFIX + "clearchannelpermissions " + Constants.CHANNEL_INSTRUCTIONS)]
+		[Usage("clearchannelpermissions " + Constants.CHANNEL_INSTRUCTIONS)]
 		[Summary("Removes all permissions set on a channel.")]
 		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
 		public async Task ClearChannelPermissions([Remainder] string input)
@@ -2052,7 +2052,7 @@ namespace Advobot
 
 		[Command("channelname")]
 		[Alias("chn")]
-		[Usage(Constants.BOT_PREFIX + "channelname [#Channel|[Channel|Position{x}/Text|Voice]] [New Name]")]
+		[Usage("channelname [#Channel|[Channel|Position{x}/Text|Voice]] [New Name]")]
 		[Summary("Changes the name of the channel. This is *extremely* useful for when multiple channels have the same name but you want to edit things.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ChangeChannelName([Remainder] string input)
@@ -2144,7 +2144,7 @@ namespace Advobot
 
 		[Command("channeltopic")]
 		[Alias("cht")]
-		[Usage(Constants.BOT_PREFIX + "channeltopic [#Channel] [New Topic]")]
+		[Usage("channeltopic [#Channel] [New Topic]")]
 		[Summary("Changes the subtext of a channel to whatever is input.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ChangeChannelTopic([Remainder] string input)
@@ -2190,7 +2190,7 @@ namespace Advobot
 
 		[Command("channellimit")]
 		[Alias("chl")]
-		[Usage(Constants.BOT_PREFIX + "channellimit [Channel Name] [New Limit]")]
+		[Usage("channellimit [Channel Name] [New Limit]")]
 		[Summary("Changes the limit to how many users can be in a voice channel. The limit ranges from 0 (no limit) to 99.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ChangeChannelLimit([Remainder] string input)
@@ -2232,7 +2232,7 @@ namespace Advobot
 
 		[Command("channelbitrate")]
 		[Alias("chbr")]
-		[Usage(Constants.BOT_PREFIX + "channelbitrate [Channel Name] [8 to 96]")]
+		[Usage("channelbitrate [Channel Name] [8 to 96]")]
 		[Summary("Changes the bit rate (in kbps) on the selected channel to the given value. The default value is 64.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ChangeChannelBitRate([Remainder] string input)
@@ -2274,7 +2274,7 @@ namespace Advobot
 
 		[Command("moveuser")]
 		[Alias("mu")]
-		[Usage(Constants.BOT_PREFIX + "moveuser [@User] [Channel]")]
+		[Usage("moveuser [@User] [Channel]")]
 		[Summary("Moves the user to the given voice channel.")]
 		[PermissionRequirements(1U << (int)GuildPermission.MoveMembers)]
 		public async Task MoveUser([Remainder] string input)
@@ -2334,7 +2334,7 @@ namespace Advobot
 
 		[Command("mute")]
 		[Alias("m")]
-		[Usage(Constants.BOT_PREFIX + "mute [@User]")]
+		[Usage("mute [@User]")]
 		[Summary("If the user is not guild muted, this will mute them. If they are guild muted, this will unmute them.")]
 		[PermissionRequirements(1U << (int)GuildPermission.MuteMembers)]
 		public async Task Mute([Remainder] string input)
@@ -2360,7 +2360,7 @@ namespace Advobot
 
 		[Command("deafen")]
 		[Alias("dfn", "d")]
-		[Usage(Constants.BOT_PREFIX + "deafen [@User]")]
+		[Usage("deafen [@User]")]
 		[Summary("Bans then unbans a user from the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.DeafenMembers)]
 		public async Task Deafen([Remainder] string input)
@@ -2386,7 +2386,7 @@ namespace Advobot
 
 		[Command("nickname")]
 		[Alias("nn")]
-		[Usage(Constants.BOT_PREFIX + "nickname [@User] [New Nickname|Remove]")]
+		[Usage("nickname [@User] [New Nickname|Remove]")]
 		[Summary("Gives the user a nickname.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageNicknames)]
 		public async Task Nickname([Remainder] string input)
@@ -2455,7 +2455,7 @@ namespace Advobot
 
 		[Command("allwithrole")]
 		[Alias("awr")]
-		[Usage(Constants.BOT_PREFIX + "allwithrole <File|Upload> [Role]")]
+		[Usage("allwithrole <File|Upload> [Role]")]
 		[Summary("Prints out a list of all users with the given role. File specifies a text document which can show more symbols. Upload specifies to use a text uploader.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task AllWithRole([Remainder] string input)
@@ -2527,7 +2527,7 @@ namespace Advobot
 
 		[Command("forallwithrole")]
 		[Alias("fawr")]
-		[Usage(Constants.BOT_PREFIX + "forallwithrole [Give|Take|Nickname] [Role]/[Role|Nickname] <" + Constants.BYPASS_STRING + ">")]
+		[Usage("forallwithrole [Give|Take|Nickname] [Role]/[Role|Nickname] <" + Constants.BYPASS_STRING + ">")]
 		[Summary("Only self hosted bots are allowed to go past ten members per use. When used on a self bot, \"" + Constants.BYPASS_STRING + "\" removes the 10 user limit.")]
 		[PermissionRequirements]
 		public async Task ForAllWithRole([Remainder] string input)
@@ -2551,7 +2551,7 @@ namespace Advobot
 
 			//Check if bypass, up the max limit, and remove the bypass string from the values array
 			int maxLength = 10;
-			if (values[1].EndsWith(Constants.BYPASS_STRING) && Context.User.Id.Equals(Constants.OWNER_ID))
+			if (values[1].EndsWith(Constants.BYPASS_STRING) && Context.User.Id.Equals(Properties.Settings.Default.BotOwner))
 			{
 				maxLength = int.MaxValue;
 				values[1] = values[1].Substring(0, values[1].Length - Constants.BYPASS_STRING.Length);
@@ -2719,7 +2719,7 @@ namespace Advobot
 
 		[Command("listuserswithname")]
 		[Alias("luwn")]
-		[Usage(Constants.BOT_PREFIX + "listuserswithname [Name]")]
+		[Usage("listuserswithname [Name]")]
 		[Summary("Lists all users where their username contains the given string.")]
 		[UserHasAPermission]
 		public async Task ListUsersWithName([Remainder] string input)
@@ -2764,7 +2764,7 @@ namespace Advobot
 
 		[Command("guildname")]
 		[Alias("gn")]
-		[Usage(Constants.BOT_PREFIX + "guildname [New Name]")]
+		[Usage("guildname [New Name]")]
 		[Summary("Change the name of the guild to the given name.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildName([Remainder] string input)
@@ -2790,7 +2790,7 @@ namespace Advobot
 
 		[Command("guildregion")]
 		[Alias("greg")]
-		[Usage(Constants.BOT_PREFIX + "guildregion [Regions|Current|Region ID]")]
+		[Usage("guildregion [Regions|Current|Region ID]")]
 		[Summary("Shows or changes the guild's server region. `Regions` lists all valid region IDs.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildLocation([Remainder] string input)
@@ -2821,7 +2821,7 @@ namespace Advobot
 
 		[Command("guildafk")]
 		[Alias("gafk")]
-		[Usage(Constants.BOT_PREFIX + "guildafk [Channel|Time] [Voice Channel Name|Time in Seconds]")]
+		[Usage("guildafk [Channel|Time] [Voice Channel Name|Time in Seconds]")]
 		[Summary("The first argument tells if the channel or timer is going to be changed. The second is what it will be changed to.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildAFK([Remainder] string input)
@@ -2889,7 +2889,7 @@ namespace Advobot
 
 		[Command("guildmsgnotifications")]
 		[Alias("gmn")]
-		[Usage(Constants.BOT_PREFIX + "guildmsgnotifications [All Messages|Mentions Only]")]
+		[Usage("guildmsgnotifications [All Messages|Mentions Only]")]
 		[Summary("Changes the message notifications to either all messages or mentions only.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildMsgNotifications([Remainder] string input)
@@ -2912,7 +2912,7 @@ namespace Advobot
 
 		[Command("guildverification")]
 		[Alias("gv")]
-		[Usage(Constants.BOT_PREFIX + "guildverification [0|1|2|3]")]
+		[Usage("guildverification [0|1|2|3]")]
 		[Summary("Changes the verification level. 0 is the most lenient (no requirements to type), 3 is the harshest (10 minutes in the guild before new members can type).")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildVerification([Remainder] string input)
@@ -2945,7 +2945,7 @@ namespace Advobot
 
 		[Command("guildicon")]
 		[Alias("gi")]
-		[Usage(Constants.BOT_PREFIX + "guildicon [Attached Image|Embedded Image|Remove]")]
+		[Usage("guildicon [Attached Image|Embedded Image|Remove]")]
 		[Summary("Changes the guild icon to the given image. Must be less than 2.5MB simply because the bot would use more data and be slower otherwise.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildIcon([Optional] string input)
@@ -3057,7 +3057,7 @@ namespace Advobot
 
 		[Command("listemojis")]
 		[Alias("lemojis")]
-		[Usage(Constants.BOT_PREFIX + "listemojis [Global|Guild]")]
+		[Usage("listemojis [Global|Guild]")]
 		[Summary("Lists the emoji in the guild. As of right now, with the current API wrapper version this bot uses, there's no way to upload or remove emojis yet; sorry.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageEmojis)]
 		public async Task ListEmojis([Remainder] string input)

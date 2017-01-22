@@ -23,7 +23,7 @@ namespace Advobot
 			Actions.loadInformation();
 
 			//Set the game to the base game
-			await Client.SetGameAsync(Constants.STARTUP_GAME);
+			await Client.SetGameAsync("type \"" + Properties.Settings.Default.Prefix + "help\" for help.");
 
 			await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
 
@@ -40,7 +40,7 @@ namespace Advobot
 			//Mark where the prefix ends and the command begins
 			int argPos = 0;
 			//Determine if the message has a valid prefix, adjust argPos 
-			if (!message.HasStringPrefix(Constants.BOT_PREFIX, ref argPos))
+			if (!message.HasStringPrefix(Properties.Settings.Default.Prefix, ref argPos))
 				return;
 
 			++Variables.AttemptedCommands;

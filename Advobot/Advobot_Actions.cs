@@ -23,13 +23,13 @@ namespace Advobot
 		//Loading in all necessary information at bot start up
 		public static void loadInformation()
 		{
-			Variables.Bot_ID = CommandHandler.Client.CurrentUser.Id;                //Give the variable Bot_ID the actual ID
-			Variables.Bot_Name = CommandHandler.Client.CurrentUser.Username;        //Give the variable Bot_Name the username of the bot
-			Variables.Bot_Channel = Variables.Bot_Name.ToLower();                   //Give the variable Bot_Channel a lowered version of the bot's name
+			Variables.Bot_ID = CommandHandler.Client.CurrentUser.Id;				//Give the variable Bot_ID the actual ID
+			Variables.Bot_Name = CommandHandler.Client.CurrentUser.Username;		//Give the variable Bot_Name the username of the bot
+			Variables.Bot_Channel = Variables.Bot_Name.ToLower();					//Give the variable Bot_Channel a lowered version of the bot's name
 
-			loadPermissionNames();                                                  //Gets the names of the permission bits in Discord
-			loadCommandInformation();                                               //Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
-			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));    //Gets all the active command names. Has to go after LCI
+			loadPermissionNames();													//Gets the names of the permission bits in Discord
+			loadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
+			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));	//Gets all the active command names. Has to go after LCI
 		}
 
 		//Load the information from the commands
@@ -208,12 +208,40 @@ namespace Advobot
 			if (!File.Exists(path))
 			{
 				//If not, go to the defaults
-				path = "DefaultCommandPreferences.txt";
+				string defaultPreferences = Properties.Resources.DefaultCommandPreferences;
+				//Split by new lines
+				defaultPreferences.Split('\n').ToList().ForEach(x =>
+				{
+					//If the line is empty, do nothing
+					if (String.IsNullOrWhiteSpace(x))
+					{
+					}
+					//If the line starts with an @ then it's a category
+					else if (x.StartsWith("@"))
+					{
+						categories.Add(new PreferenceCategory(x.Substring(1)));
+					}
+					//Anything else and it's a setting
+					else
+					{
+						//Split before and after the colon, before is the setting name, after is the value
+						string[] values = x.Split(new char[] { ':' }, 2);
+						if (values.Length == 2)
+						{
+							categories[categories.Count - 1].Settings.Add(new PreferenceSetting(values[0], values[1]));
+						}
+						else
+						{
+							Actions.writeLine("ERROR: " + x);
+						}
+					}
+				});
+				Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": preferences for the server " + guild.Name + " have been loaded.");
+				return;
 			}
 
 			using (StreamReader file = new StreamReader(path))
 			{
-				Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": preferences for the server " + guild.Name + " have been loaded.");
 				//Read the preferences document for information
 				string line;
 				while ((line = file.ReadLine()) != null)
@@ -243,6 +271,7 @@ namespace Advobot
 						}
 					}
 				}
+				Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": preferences for the server " + guild.Name + " have been loaded.");
 			}
 		}
 
@@ -395,6 +424,10 @@ namespace Advobot
 
 						//Test if valid group
 						if (!int.TryParse(inputArray[1], out group))
+							return;
+
+						//Check if it's already in any list
+						if (Variables.SelfAssignableGroups.Where(x => x.GuildID == guild.Id).Any(x => x.Roles.Any(y => y.Role.Id == ID)))
 							return;
 
 						//Remake the SARole
@@ -771,11 +804,27 @@ namespace Advobot
 		//Get file paths
 		public static string getServerFilePath(ulong serverId, string fileName)
 		{
-			//Gets the appdata folder for usage, allowed to change
-			string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			//Combines the path for appdata and the preferences text file, allowed to change, but I'd recommend to keep the serverID part
-			string directory = Path.Combine(folder, Constants.SERVER_FOLDER, serverId.ToString());
-			//This string will be similar to C:\Users\User\AppData\Roaming\ServerID
+			string folder;
+			if (String.IsNullOrWhiteSpace(Properties.Settings.Default.Path))
+			{
+				if (Variables.Windows)
+				{
+					//Get the appdata folder
+					folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+				}
+				else
+					return null;
+			}
+			else
+			{
+				folder = Properties.Settings.Default.Path;
+				//If not a valid directory then give null
+				if (!Directory.Exists(folder))
+					return null;
+			}
+			//Combine the path for the folders
+			string directory = Path.Combine(folder, Constants.SERVER_FOLDER + "_" + Variables.Bot_Name, serverId.ToString());
+			//This string will be similar to C:\Users\User\AppData\Roaming\ServerID if on Windows. If not then it can be anything
 			string path = Path.Combine(directory, fileName);
 			return path;
 		}
@@ -855,7 +904,7 @@ namespace Advobot
 			if (guild == null)
 				return false;
 
-			return user.Id == Constants.OWNER_ID;
+			return user.Id == Properties.Settings.Default.BotOwner;
 		}
 
 		//Get the permission names to an array
@@ -889,6 +938,34 @@ namespace Advobot
 			if (inputString != null && inputString.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase))
 			{
 				return inputString.Substring(inputString.IndexOf(':') + 1);
+			}
+			return null;
+		}
+
+		//Get the OS
+		public static void getOS()
+		{
+			string windir = Environment.GetEnvironmentVariable("windir");
+			if (!string.IsNullOrEmpty(windir) && windir.Contains(@"\") && Directory.Exists(windir))
+			{
+				Variables.Windows = true;
+			}
+			else
+			{
+				Variables.Windows = false;
+			}
+		}
+
+		//Get the bot owner
+		public static async Task<IGuildUser> getBotOwner(IDiscordClient client)
+		{
+			foreach (var guild in await client.GetGuildsAsync())
+			{
+				var user = (await guild.GetUsersAsync()).FirstOrDefault(x => x.Id == Properties.Settings.Default.BotOwner);
+				if (user != null)
+				{
+					return user;
+				}
 			}
 			return null;
 		}
@@ -1052,6 +1129,14 @@ namespace Advobot
 
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
+
+		public static async Task<IMessage> sendDMMessage(IDMChannel channel, string message)
+		{
+			if (channel == null)
+				return null;
+
+			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
+		}
 		
 		//Edit message log message
 		public static async Task editMessage(ITextChannel logChannel, string time, IGuildUser user, IMessageChannel channel, string before, string after)
@@ -1118,6 +1203,8 @@ namespace Advobot
 			//Get the file path
 			string deletedMessagesFile = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt";
 			string path = Actions.getServerFilePath(guild.Id, deletedMessagesFile);
+			if (path == null)
+				return;
 
 			//Create the temporary file
 			if (!File.Exists(Actions.getServerFilePath(guild.Id, deletedMessagesFile)))
@@ -1508,7 +1595,13 @@ namespace Advobot
 		public static async Task enablePreferences(IGuild guild, IUserMessage message)
 		{
 			//Set up the preferences file(s) location(s) on the computer
-			if (!File.Exists(Actions.getServerFilePath(guild.Id, Constants.PREFERENCES_FILE)))
+			string path = Actions.getServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
+			if (path == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(message.Channel, message, Actions.ERROR(Constants.PATH_ERROR));
+				return;
+			}
+			if (!File.Exists(path))
 			{
 				Actions.savePreferences(guild.Id);
 			}
@@ -1569,8 +1662,16 @@ namespace Advobot
 		//Delete preferences
 		public static async Task deletePreferences(IGuild guild, IUserMessage message)
 		{
+			//Check if valid path
+			string path = Actions.getServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
+			if (path == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(message.Channel, message, Actions.ERROR(Constants.PATH_ERROR));
+				return;
+			}
+
 			//Delete the preferences file
-			File.Delete(Actions.getServerFilePath(guild.Id, Constants.PREFERENCES_FILE));
+			File.Delete(path);
 
 			//Remove them from the emable list
 			Variables.GuildsDeletingPreferences.Remove(guild);

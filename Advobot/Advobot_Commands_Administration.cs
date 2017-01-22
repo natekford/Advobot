@@ -20,9 +20,172 @@ namespace Advobot
 	[Name("Administration")]
 	public class Administration_Commands : ModuleBase
 	{
+		[Command("setbotowner")]
+		[Alias("sbo")]
+		[Usage("setbotowner <Clear>")]
+		[Summary("The bot will DM you asking for its own key. **DO NOT INPUT THE KEY OUTSIDE OF DMS.** If you are experiencing trouble, refresh your bot's key and use that value.")]
+		[GuildOwnerRequirement]
+		public async Task SetBotOwner([Optional, Remainder] string input)
+		{
+			//Check if it's clear
+			if (input != null && input.ToLower().Equals("clear"))
+			{
+				//Only let the current bot owner to clear
+				if (Properties.Settings.Default.BotOwner == Context.User.Id)
+				{
+					Properties.Settings.Default.BotOwner = 0;
+					Properties.Settings.Default.Save();
+					await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully cleared the bot owner.");
+				}
+				else
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "Only the bot owner can clear their position.");
+				}
+				return;
+			}
+
+			//Check if there's already a bot owner
+			if (Properties.Settings.Default.BotOwner != 0)
+			{
+				//Get the bot owner
+				IGuildUser user = await Actions.getBotOwner(Context.Client);
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("There is already a bot owner: `{0}#{1} ({2})`.", user.Username, user.Discriminator, user.Id));
+				return;
+			}
+
+			//Add them to the list of people trying to become bot owner
+			Variables.PotentialBotOwners.Add(Context.User.Id);
+			await Actions.sendDMMessage(await Context.User.CreateDMChannelAsync(), "What is my key?");
+		}
+
+		[Command("currentbotowner")]
+		[Alias("cbo")]
+		[Usage("currentbotowner")]
+		[Summary("Tells the ID of the current bot owner.")]
+		public async Task CurrentBotOwner()
+		{
+			IGuildUser user = await Actions.getBotOwner(Context.Client);
+
+			if (user != null)
+			{
+				await Actions.sendChannelMessage(Context.Channel, String.Format("The current bot owner is: `{0}#{1} ({2})`", user.Username, user.Discriminator, user.Id));
+			}
+			else
+			{
+				await Actions.sendChannelMessage(Context.Channel, "This bot is unowned.");
+			}
+		}
+
+		[Command("setsavepath")]
+		[Alias("ssp")]
+		[Usage("setsavepath [Directory On Your Computer|Clear]")]
+		[Summary("Changes the save path's directory. Windows defaults to User/AppData/Roaming. Other OSes will not work without a save path set.")]
+		[BotOwnerRequirement]
+		public async Task SetSavePath([Remainder] string input)
+		{
+			//See if clear
+			if (input.ToLower().Equals("clear"))
+			{
+				Properties.Settings.Default.Path = null;
+				Properties.Settings.Default.Save();
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully cleared the current save path.", 5000);
+				return;
+			}
+
+			//See if the directory exists
+			if (!Directory.Exists(input))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("That directory doesn't exist."));
+				return;
+			}
+
+			//Set the path
+			Properties.Settings.Default.Path = input;
+			Properties.Settings.Default.Save();
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the save path to: `{0}`.", input), 10000);
+		}
+
+		[Command("currentsavepath")]
+		[Alias("csp")]
+		[Usage("currentsavepath")]
+		[Summary("Shows what the current save path directory is.")]
+		[BotOwnerRequirement]
+		public async Task CurrentSavePath()
+		{
+			//Check if the path is empty
+			if (String.IsNullOrWhiteSpace(Properties.Settings.Default.Path))
+			{
+				//If windows then default to appdata
+				if (Variables.Windows)
+				{
+					await Actions.sendChannelMessage(Context.Channel, String.Format("The current save path is: `{0}`.",
+						Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.SERVER_FOLDER)));
+				}
+				//If not windows then there's no folder
+				else
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "There is no save path set.");
+				}
+			}
+			else
+			{
+				await Actions.sendChannelMessage(Context.Channel, "The current save path is: `" + Properties.Settings.Default.Path + "`.");
+			}
+		}
+
+		[Command("setprefix")]
+		[Alias("sp")]
+		[Usage("setprefix [New Prefix|Clear]")]
+		[Summary("Changes the bot's prefix to the given string.")]
+		[BotOwnerRequirement]
+		public async Task SetPrefix([Remainder] string input)
+		{
+			//Check if to clear
+			if (input.ToLower().Equals("clear"))
+			{
+				Properties.Settings.Default.Prefix = "++";
+
+				//Send a success message
+				await Actions.sendChannelMessage(Context.Channel, "Successfully reset the bot's prefix to: `++`.");
+			}
+			else
+			{
+				Properties.Settings.Default.Prefix = input;
+
+				//Send a success message
+				await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully changed the bot's prefix to `{0}`.", input));
+			}
+			Properties.Settings.Default.Save();
+		}
+
+		[Command("clearallsettings")]
+		[Alias("cas")]
+		[Usage("clearallsettings")]
+		[Summary("Resets the save path, bot owner, and bot key settings.")]
+		[BotOwnerRequirement]
+		public async Task ClearAllSettings()
+		{
+			//Send a success message first instead of after due to the bot losing its ability to do so
+			await Actions.sendChannelMessage(Context.Channel, "Successfully cleared all settings. Restarting now...");
+			//Reset the settings
+			Properties.Settings.Default.Reset();
+			//Restart the bot
+			try
+			{
+				//Create a new instance of the bot
+				System.Windows.Forms.Application.Restart();
+				//Close the old one
+				Environment.Exit(1);
+			}
+			catch (Exception)
+			{
+				Console.WriteLine("Bot is unable to restart.");
+			}
+		}
+
 		[Command("setgame")]
 		[Alias("sg")]
-		[Usage(Constants.BOT_PREFIX + "setgame [New Name]")]
+		[Usage("setgame [New Name]")]
 		[Summary("Changes the game the bot is currently listed as playing.")]
 		[BotOwnerRequirement]
 		public async Task SetGame([Remainder] string input)
@@ -40,7 +203,7 @@ namespace Advobot
 
 		[Command("botname")]
 		[Alias("bn")]
-		[Usage(Constants.BOT_PREFIX + "botname [New Name]")]
+		[Usage("botname [New Name]")]
 		[Summary("Changes the bot's name to the given name.")]
 		[BotOwnerRequirement]
 		public async Task BotName([Remainder] string input)
@@ -66,12 +229,12 @@ namespace Advobot
 
 		[Command("disconnect")]
 		[Alias("dc", "runescapeservers")]
-		[Usage(Constants.BOT_PREFIX + "disconnect")]
+		[Usage("disconnect")]
 		[Summary("Turns the bot off.")]
 		[BotOwnerRequirement]
 		public async Task Disconnect()
 		{
-			if (Context.User.Id == Constants.OWNER_ID || Constants.DISCONNECT)
+			if (Context.User.Id == Properties.Settings.Default.BotOwner || Constants.DISCONNECT)
 			{
 				List<IMessage> msgs = new List<IMessage>();
 				foreach (IGuild guild in Variables.Guilds)
@@ -96,27 +259,13 @@ namespace Advobot
 
 		[Command("restart")]
 		[Alias("res")]
-		[Usage(Constants.BOT_PREFIX + "restart")]
+		[Usage("restart")]
 		[Summary("Restarts the bot.")]
 		[BotOwnerRequirement]
 		public async Task Restart()
 		{
-			//Does not work, need to fix it
-			if (Context.User.Id == Constants.OWNER_ID || Constants.DISCONNECT)
+			if (Context.User.Id == Properties.Settings.Default.BotOwner || Constants.DISCONNECT)
 			{
-				List<IMessage> msgs = new List<IMessage>();
-				foreach (IGuild guild in Variables.Guilds)
-				{
-					if ((guild as SocketGuild).MemberCount > (Variables.TotalUsers / Variables.TotalGuilds) * Constants.PERCENT_AVERAGE)
-					{
-						ITextChannel channel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
-						if (null != channel)
-						{
-							msgs.Add(await Actions.sendEmbedMessage(channel, embed: Actions.addFooter(Actions.makeNewEmbed(title: "Bot is restarting..."), "Restart")));
-						}
-					}
-				}
-
 				try
 				{
 					//Create a new instance of the bot
@@ -126,7 +275,7 @@ namespace Advobot
 				}
 				catch (Exception)
 				{
-					Console.WriteLine("BOT IS UNABLE TO RESTART!");
+					Console.WriteLine("Bot is unable to restart.");
 				}
 			}
 			else
@@ -136,7 +285,7 @@ namespace Advobot
 		}
 
 		[Command("listguilds")]
-		[Usage(Constants.BOT_PREFIX + "listguilds")]
+		[Usage("listguilds")]
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 		[BotOwnerRequirement]
 		public async Task ListGuilds()
@@ -157,7 +306,7 @@ namespace Advobot
 		}
 
 		[Command("leaveguild")]
-		[Usage(Constants.BOT_PREFIX + "leaveguild <Guild ID>")]
+		[Usage("leaveguild <Guild ID>")]
 		[Summary("Makes the bot leave the guild.")]
 		[BotOwnerOrGuildOwnerRequirement]
 		public async Task LeaveServer([Optional, Remainder] string input)
@@ -167,7 +316,7 @@ namespace Advobot
 			if (UInt64.TryParse(input, out guildID))
 			{
 				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
-				if (Context.User.Id.Equals(Constants.OWNER_ID))
+				if (Context.User.Id.Equals(Properties.Settings.Default.BotOwner))
 				{
 					SocketGuild guild = CommandHandler.Client.GetGuild(guildID);
 					if (guild == null)
@@ -200,7 +349,7 @@ namespace Advobot
 
 		[Command("serverlog")]
 		[Alias("slog")]
-		[Usage(Constants.BOT_PREFIX + "serverlog [#Channel|Off]")]
+		[Usage("serverlog [#Channel|Off]")]
 		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, deleting messages, and bans/unbans.")]
 		[PermissionRequirements]
 		public async Task Serverlog([Remainder] string input)
@@ -214,7 +363,7 @@ namespace Advobot
 
 		[Command("modlog")]
 		[Alias("mlog")]
-		[Usage(Constants.BOT_PREFIX + "modlog [#Channel|Off]")]
+		[Usage("modlog [#Channel|Off]")]
 		[Summary("Puts the modlog on the specified channel. Modlof is a log of all commands used.")]
 		[PermissionRequirements]
 		public async Task Modlog([Remainder] string input)
@@ -228,7 +377,7 @@ namespace Advobot
 
 		[Command("botchannel")]
 		[Alias("bchan")]
-		[Usage(Constants.BOT_PREFIX + "botchannel")]
+		[Usage("botchannel")]
 		[Summary("Recreates the bot channel if lost for some reason.")]
 		[PermissionRequirements]
 		public async Task BotChannel()
@@ -250,13 +399,13 @@ namespace Advobot
 
 		[Command("enablepreferences")]
 		[Alias("eprefs")]
-		[Usage(Constants.BOT_PREFIX + "enablepreferences")]
+		[Usage("enablepreferences")]
 		[Summary("Gives the guild preferences which allows using self-assignable roles, toggling commands, and changing the permissions of commands.")]
 		[GuildOwnerRequirement]
 		public async Task EnablePreferences()
 		{
 			//Member limit
-			if ((Context.Guild as SocketGuild).MemberCount < Constants.MEMBER_LIMIT && Context.User.Id != Constants.OWNER_ID)
+			if ((Context.Guild as SocketGuild).MemberCount < Constants.MEMBER_LIMIT && Context.User.Id != Properties.Settings.Default.BotOwner)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Sorry, but this guild is too small to warrant preferences. {0} or more members are required.",
 					Constants.MEMBER_LIMIT));
@@ -278,7 +427,7 @@ namespace Advobot
 
 		[Command("deletepreferences")]
 		[Alias("dprefs")]
-		[Usage(Constants.BOT_PREFIX + "deletepreferences")]
+		[Usage("deletepreferences")]
 		[Summary("Deletes the preferences file.")]
 		[GuildOwnerRequirement]
 		public async Task DeletePreferences()
@@ -296,18 +445,24 @@ namespace Advobot
 
 		[Command("currentpreferences")]
 		[Alias("cprefs")]
-		[Usage(Constants.BOT_PREFIX + "currentpreferences")]
+		[Usage("currentpreferences")]
 		[Summary("Gives the file containing the current preferences of the guild.")]
 		[PermissionRequirements]
 		public async Task CurrentPreferences()
 		{
-			await Actions.readPreferences(Context.Channel, Actions.getServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE));
+			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE);
+			if (path == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+				return;
+			}
+			await Actions.readPreferences(Context.Channel, path);
 		}
 
 		//TODO: Use a different split character maybe
 		[Command("modifybanphrases")]
 		[Alias("mbps")]
-		[Usage(Constants.BOT_PREFIX + "modifybanphrases [Add] [Phrase/...] <Regex> | [Remove] [Phrase/...|Position/...] <Regex>")]
+		[Usage("modifybanphrases [Add] [Phrase/...] <Regex> | [Remove] [Phrase/...|Position/...] <Regex>")]
 		[Summary("Adds the words to either the banned phrase list or the banned regex list. Do not use a '/' in a banned phrase itself.")]
 		[PermissionRequirements]
 		public async Task SetBanPhrases([Remainder] string input)
@@ -535,6 +690,11 @@ namespace Advobot
 
 			//Create the banned phrases file if it doesn't already exist
 			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+			if (path == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+				return;
+			}
 			if (!File.Exists(path))
 			{
 				File.Create(path).Close();
@@ -594,7 +754,7 @@ namespace Advobot
 
 		[Command("currentbanphrases")]
 		[Alias("cbps")]
-		[Usage(Constants.BOT_PREFIX + "currentbanphrases [File|Actual] <Regex>")]
+		[Usage("currentbanphrases [File|Actual] <Regex>")]
 		[Summary("Says all of the current banned words from either the file or the list currently being used in the bot.")]
 		[PermissionRequirements]
 		public async Task CurrentBanPhrases([Remainder] string input)
@@ -626,6 +786,11 @@ namespace Advobot
 			{
 				//Check if the file exists
 				string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+				if (path == null)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+					return;
+				}
 				if (!File.Exists(path))
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, "This guild has no banned phrases file.");
@@ -713,7 +878,7 @@ namespace Advobot
 
 		[Command("modifypunishments")]
 		[Alias("mpuns")]
-		[Usage(Constants.BOT_PREFIX + "modifypunishments [Add] [Number] [Role Name|Kick|Ban] <Time> | [Remove] [Number]")]
+		[Usage("modifypunishments [Add] [Number] [Role Name|Kick|Ban] <Time> | [Remove] [Number]")]
 		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to this total. Time is in minutes and only applies to roles.")]
 		[PermissionRequirements]
 		public async Task SetPunishments([Remainder] string input)
@@ -890,6 +1055,11 @@ namespace Advobot
 
 			//Create the banned phrases file if it doesn't already exist
 			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+			if (path == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+				return;
+			}
 			if (!File.Exists(path))
 			{
 				File.Create(path).Close();
@@ -947,7 +1117,7 @@ namespace Advobot
 
 		[Command("currentpunishments")]
 		[Alias("cpuns")]
-		[Usage(Constants.BOT_PREFIX + "currentpunishments [File|Actual]")]
+		[Usage("currentpunishments [File|Actual]")]
 		[Summary("Shows the current punishments on the guild.")]
 		[PermissionRequirements]
 		public async Task CurrentPunishments([Remainder] string input)
@@ -958,6 +1128,11 @@ namespace Advobot
 			{
 				//Check if the file exists
 				string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+				if (path == null)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+					return;
+				}
 				if (!File.Exists(path))
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, "This guild has no banned phrases file.");
@@ -1058,7 +1233,7 @@ namespace Advobot
 
 		[Command("modifyselfroles")]
 		[Alias("msr")]
-		[Usage(Constants.BOT_PREFIX + "modifyselfroles [Help] | [Create|Add|Remove] [Role/...] [Group:Number] | [Delete] [Group:Num]")]
+		[Usage("modifyselfroles [Help] | [Create|Add|Remove] [Role/...] [Group:Number] | [Delete] [Group:Num]")]
 		[Summary("Adds a role to the self assignable list. Roles can be grouped together which means only one role in the group can be self assigned at a time. There is an extra help command, too.")]
 		[PermissionRequirements]
 		public async Task ModifySelfAssignableRoles([Remainder] string input)
@@ -1269,6 +1444,11 @@ namespace Advobot
 
 			//Get the file that's supposed to hold everything
 			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
+			if (path == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+				return;
+			}
 			File.Create(path).Close();
 
 			//Rewrite it
@@ -1321,7 +1501,7 @@ namespace Advobot
 
 		[Command("assignselfrole")]
 		[Alias("asr")]
-		[Usage(Constants.BOT_PREFIX + "assignselfrole [Role]")]
+		[Usage("assignselfrole [Role]")]
 		[Summary("Gives a role. Remove all other roles in the same group.")]
 		public async Task AssignSelfRole([Remainder] string input)
 		{
@@ -1345,6 +1525,14 @@ namespace Advobot
 			var user = Context.User as IGuildUser;
 			//Get their roles
 			var roles = new List<IRole>();
+
+			//Check if the user wants to remove their role
+			if (user.RoleIds.Contains(role.Id))
+			{
+				await user.RemoveRolesAsync(new[] { role });
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully removed the role `" + role.Name + "`.");
+				return;
+			}
 
 			//Get the group that contains the role
 			var SAGroup = Variables.SelfAssignableGroups.FirstOrDefault(x => x.Roles.Select(y => y.Role).Contains(role));
@@ -1376,7 +1564,7 @@ namespace Advobot
 
 		[Command("currentselfroles")]
 		[Alias("csr")]
-		[Usage(Constants.BOT_PREFIX + "currentselfroles [File|Actual] [Group:Number]")]
+		[Usage("currentselfroles [File|Actual] [Group:Number]")]
 		[Summary("Shows the current self assignable roles on the guild by group.")]
 		public async Task CurrentSelfRoles([Remainder] string input)
 		{
