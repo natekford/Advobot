@@ -5,7 +5,7 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const string BOT_VERSION = "0.8.0";
+		public const string BOT_VERSION = "0.9.0";
 		public const string API_VERSION = "Discord.Net by RogueException v1.0.0-rc-00546";
 		public const string BOT_PREFIX = "++";
 		public const string IGNORE_ERROR = "Cx";
@@ -44,7 +44,6 @@ namespace Advobot
 		public const int OWNER_POSITION = 9001;
 		public const int MESSAGES_TO_GATHER = 100;
 		public const int TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG = 3;
-
 		public const int NICKNAME_MIN_LENGTH = 2;
 		public const int NICKNAME_MAX_LENGTH = 32;
 		public const int TOPIC_LENGTH = 1024;
@@ -78,6 +77,7 @@ namespace Advobot
 		public static string Bot_Channel = null;
 
 		public static bool Windows = true;
+		public static bool Loaded = false;
 
 		public static DateTime StartupTime = DateTime.UtcNow.ToUniversalTime();
 		public static int TotalUsers = 0;
@@ -123,5 +123,7 @@ namespace Advobot
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
 		public static List<BannedPhraseUser> BannedPhraseUserList = new List<BannedPhraseUser>();
 		public static List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
+		public static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
+		public static List<Invite> InviteUses = new List<Invite>();
 	}
 }

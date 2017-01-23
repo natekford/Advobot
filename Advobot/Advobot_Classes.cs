@@ -165,7 +165,7 @@ namespace Advobot
 		}
 		public string Text
 		{
-			get { return mText; }
+			get { return mText.Replace(Constants.BOT_PREFIX, Properties.Settings.Default.Prefix); }
 		}
 
 		private string mName;
@@ -333,5 +333,19 @@ namespace Advobot
 		Add = 2,
 		Remove = 3, 
 		Delete = 4
+	}
+
+	public class Invite
+	{
+		public Invite(ulong guildID, string code, int uses)
+		{
+			this.GuildID = guildID;
+			this.Code = code;
+			this.Uses = uses;
+		}
+
+		public ulong GuildID;
+		public string Code;
+		public int Uses;
 	}
 }

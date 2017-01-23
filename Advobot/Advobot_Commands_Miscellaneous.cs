@@ -452,7 +452,7 @@ namespace Advobot
 		}
 
 		[Command("createinstantinvite")]
-		[Alias("crinv")]
+		[Alias("cii")]
 		[Usage("createinstantinvite " + Constants.CHANNEL_INSTRUCTIONS + " [Forever|1800|3600|21600|43200|86400] [Infinite|1|5|10|25|50|100] [True|False]")]
 		[Summary("The first argument is the channel. The second is how long the invite will last for. " +
 			"The third is how many users can use the invite. The fourth is the temporary membership option.")]
@@ -505,11 +505,54 @@ namespace Advobot
 			//Make into valid invite link
 			IInvite inv = await channel.CreateInviteAsync(nullableTime, nullableUsers, tempMembership);
 
-			await Actions.sendChannelMessage(Context.Channel, String.Format("Here is your invite for `{0} ({1})`: {2} \nIt will last for{3}, {4}{5}",
-				channel.Name, Actions.getChannelType(channel), inv.Url, nullableTime == null ? "ever" : " " + time.ToString() + " seconds",
-				nullableUsers == null ? (tempMembership ? "has no limit of users" : " and has no limit of users") :
+			await Actions.sendChannelMessage(Context.Channel, String.Format("Here is your invite for `{0} ({1})`: {2} \nIt will last for{3}, {4}{5}.",
+				channel.Name,
+				Actions.getChannelType(channel),
+				inv.Url,
+				nullableTime == null ? "ever" : " " + time.ToString() + " seconds",
+				nullableUsers == null ? (tempMembership ? "has no limit of users" : "and has no limit of users") :
 										(tempMembership ? "has a limit of " + users.ToString() + " users" : " and has a limit of " + users.ToString() + " users"),
-				tempMembership ? ", and users will only receive temporary membership." : "."));
+				tempMembership ? ", and users will only receive temporary membership" : ""));
+		}
+
+		[Command("listinstantinvites")]
+		[Alias("lii")]
+		[Usage("listinstantinvites")]
+		[Summary("Gives a list of all the instant invites on the guild.")]
+		[PermissionRequirements(1U << (int)GuildPermission.CreateInstantInvite)]
+		public async Task ListInstantInvites()
+		{
+			//Format the description
+			int count = 1;
+			string description = "";
+			(await Context.Guild.GetInvitesAsync()).OrderBy(x => x.Uses).ToList().ForEach(x =>
+			{
+				string code = x.Code.Length < 7 ? (x.Code + "       ").Substring(0, 7) : x.Code;
+				description += String.Format("`{0}.` `{1}` `{2}` `{3}`\n", count++.ToString("000"), code, x.Uses, x.Inviter.Username);
+			});
+
+			//Send a success message
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Instant Invites", description));
+		}
+
+		[Command("deleteinstantinvite")]
+		[Alias("dii")]
+		[Usage("deleteinstantinvite [Invite Code]")]
+		[Summary("Deletes the invite with the given code.")]
+		[PermissionRequirements(1U << (int)GuildPermission.CreateInstantInvite)]
+		public async Task DeleteInstantInvite([Remainder] string input)
+		{
+			//Get the input
+			var invite = (await Context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code == input);
+			if (invite == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("That invite doesn't exist."));
+				return;
+			}
+
+			//Delete the invite and send a success message
+			await invite.DeleteAsync();
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted the invite `{0}`.", invite.Code));
 		}
 
 		[Command("mentionrole")]
@@ -541,12 +584,52 @@ namespace Advobot
 			await role.ModifyAsync(x => x.Mentionable = false);
 		}
 
+		[Command("listemojis")]
+		[Alias("lemojis")]
+		[Usage("listemojis [Global|Guild]")]
+		[Summary("Lists the emoji in the guild. As of right now, with the current API wrapper version this bot uses, there's no way to upload or remove emojis yet; sorry.")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageEmojis)]
+		public async Task ListEmojis([Remainder] string input)
+		{
+			//Make the string
+			string description = null;
+
+			//Add the emojis to the string
+			int count = 1;
+			if (input.ToLower().Equals("guild"))
+			{
+				//Get all of the guild emojis
+				Context.Guild.Emojis.Where(x => !x.IsManaged).ToList().ForEach(x =>
+				{
+					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
+				});
+			}
+			else if (input.ToLower().Equals("global"))
+			{
+				//Get all of the global emojis
+				Context.Guild.Emojis.Where(x => x.IsManaged).ToList().ForEach(x =>
+				{
+					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
+				});
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option."));
+				return;
+			}
+
+			//Check if the description is still null
+			description = description ?? String.Format("This guild has no {0} emojis.", input.ToLower());
+
+			//Send the embed
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Emojis", description));
+		}
+
 		[Command("test")]
 		[BotOwnerRequirement]
 		public async Task Test([Optional, Remainder] string input)
 		{
 			var msg = await Context.Channel.SendMessageAsync("test");
-			await msg.DeleteAsync();
 		}
 	}
 }

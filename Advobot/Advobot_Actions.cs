@@ -30,6 +30,12 @@ namespace Advobot
 			loadPermissionNames();													//Gets the names of the permission bits in Discord
 			loadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
 			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));	//Gets all the active command names. Has to go after LCI
+
+			getOS();																//Checks if the OS is Windows or not
+			loadGuilds();															//Loads the guilds that attempted to load before the Bot_ID was gotten.
+
+			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
+			writeLine("Everything has successfully been loaded.");					//Give a success message
 		}
 
 		//Load the information from the commands
@@ -190,6 +196,18 @@ namespace Advobot
 				{
 					Variables.VoiceChannelPermissionValues.Add(name, i);
 				}
+			}
+		}
+
+		//Load the guilds gotten before the Bot_ID is set
+		public static void loadGuilds()
+		{
+			foreach (var guild in Variables.GuildsToBeLoaded)
+			{
+				//Loading everything
+				Actions.loadPreferences(guild);
+				Actions.loadBannedPhrasesAndPunishments(guild);
+				Actions.loadSelfAssignableRoles(guild);
 			}
 		}
 
@@ -823,8 +841,8 @@ namespace Advobot
 					return null;
 			}
 			//Combine the path for the folders
-			string directory = Path.Combine(folder, Constants.SERVER_FOLDER + "_" + Variables.Bot_Name, serverId.ToString());
-			//This string will be similar to C:\Users\User\AppData\Roaming\ServerID if on Windows. If not then it can be anything
+			string directory = Path.Combine(folder, Constants.SERVER_FOLDER + "_" + Variables.Bot_ID, serverId.ToString());
+			//This string will be similar to C:\Users\User\AppData\Roaming\Discord_Servers_... if on Windows. If not then it can be anything
 			string path = Path.Combine(directory, fileName);
 			return path;
 		}
@@ -968,6 +986,42 @@ namespace Advobot
 				}
 			}
 			return null;
+		}
+
+		//Get a group number
+		public static async Task<int> getGroup(string input, CommandContext context)
+		{
+			return await testGroup(Actions.getVariable(input, "group"), context);
+		}
+
+		//Get a group number
+		public static async Task<int> getGroup(string[] inputArray, CommandContext context)
+		{
+			return await testGroup(Actions.getVariable(inputArray, "group"), context);
+		}
+
+		//Validate the group
+		public static async Task<int> testGroup(string input, CommandContext context)
+		{
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(context, Actions.ERROR("Invalid input for group."));
+				return -1;
+			}
+			//Check if valid number
+			int groupNumber;
+			if (!int.TryParse(input, out groupNumber))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(context, Actions.ERROR("Invalid group number."));
+				return -1;
+			}
+			if (groupNumber < 0)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(context, Actions.ERROR("Group number must be positive."));
+				return -1;
+			}
+
+			return groupNumber;
 		}
 		#endregion
 
@@ -1224,6 +1278,129 @@ namespace Advobot
 			//Delete the file
 			File.Delete(path);
 		}
+
+		//Upload a guild icon or bot icon
+		public static async Task setPicture(CommandContext context, string input, bool user)
+		{
+			//See if the user wants to remove the icon
+			if (input != null && input.ToLower().Equals("remove"))
+			{
+				await context.Guild.ModifyAsync(x => x.Icon = new Image());
+				await sendChannelMessage(context.Channel, String.Format("Successfully removed the {0}'s icon.", user ? "bot" : "guild"));
+				return;
+			}
+
+			//Check if there are even any attachments or embeds
+			if (context.Message.Attachments.Count + context.Message.Embeds.Count == 0)
+			{
+				await makeAndDeleteSecondaryMessage(context, ERROR("No attached or embedded image."));
+				return;
+			}
+			//Check if there are too many
+			else if (context.Message.Attachments.Count + context.Message.Embeds.Count > 1)
+			{
+				await makeAndDeleteSecondaryMessage(context, ERROR("Too many attached or embedded images."));
+				return;
+			}
+
+			//Get the URL of the image
+			string imageURL = null;
+			if (context.Message.Embeds.Count == 1)
+			{
+				imageURL = context.Message.Embeds.First().Thumbnail.ToString();
+			}
+			else
+			{
+				imageURL = context.Message.Attachments.First().Url;
+			}
+
+			//Run separate due to the time it takes
+			var downloadUploadAndDelete = Task.Run(async () =>
+			{
+				//Check the image's file size first
+				WebRequest req = HttpWebRequest.Create(imageURL);
+				req.Method = "HEAD";
+				using (WebResponse resp = req.GetResponse())
+				{
+					int ContentLength = 0;
+					if (int.TryParse(resp.Headers.Get("Content-Length"), out ContentLength))
+					{
+						//Check if valid content type
+						if (!Constants.VALIDIMAGEEXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
+						{
+							await makeAndDeleteSecondaryMessage(context, ERROR("Image must be a png or jpg."));
+							return;
+						}
+						else
+						{
+							if (ContentLength > 2625000)
+							{
+								//Check if bigger than 2.5MB
+								await makeAndDeleteSecondaryMessage(context, ERROR("Image is bigger than 2.5MB. Please manually upload instead."));
+								return;
+							}
+							else if (ContentLength == 0)
+							{
+								//Check if nothing was gotten
+								await makeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
+								return;
+							}
+						}
+					}
+					else
+					{
+						await makeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
+						return;
+					}
+				}
+
+				//Send a message saying how it's progressing
+				var msg = await sendChannelMessage(context.Channel, "Attempting to download the file...");
+				context.Channel.EnterTypingState();
+
+				//Set the name of the file to prevent typos between the three places that use it
+				string path = getServerFilePath(context.Guild.Id, (user ? "boticon" : "guildicon") + Path.GetExtension(imageURL).ToLower());
+
+				//Download the image
+				using (var webclient = new WebClient())
+				{
+					webclient.DownloadFile(imageURL, path);
+				}
+
+				//Create a filestream to check the image's size if trying to set a guild icon
+				if (!user)
+				{
+					using (FileStream imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
+					{
+						var img = System.Drawing.Image.FromStream(imgStream);
+						if (img.Width < 128 || img.Height < 128)
+						{
+							await makeAndDeleteSecondaryMessage(context, ERROR("Images must be at least 128x128 pixels."));
+							return;
+						}
+					}
+				}
+
+				//Create a second filestream to upload the image
+				using (FileStream imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
+				{
+					//Change the guild's icon to the downloaded image
+					if (!user)
+					{
+						await context.Guild.ModifyAsync(x => x.Icon = new Image(imgStream));
+					}
+					else
+					{
+						await context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(imgStream));
+					}
+				}
+
+				//Delete the file and send a success message
+				File.Delete(path);
+				await msg.DeleteAsync();
+				await sendChannelMessage(context.Channel, String.Format("Successfully changed the {0} icon.", user ? "bot" : "guild"));
+			});
+		}
 		#endregion
 
 		#region Embeds
@@ -1270,7 +1447,20 @@ namespace Advobot
 			}
 			if (description != null)
 			{
-				embed.Description = description;
+				if (description.Length > 1950)
+				{
+					embed.Url = uploadToHastebin(replaceMessageCharacters(description));
+					embed.Description = "Content is past 2,000 characters. Click the link to see it.";
+				}
+				else
+				{
+					embed.Description = description;
+					//Mobile can only show up to 20 or so lines per embed I think (at least on Android) 
+					if (description.Count(x => x == '\n') >= 20)
+					{
+						embed.Url = uploadToHastebin(replaceMessageCharacters(description));
+					}
+				}
 			}
 			if (imageURL != null)
 			{

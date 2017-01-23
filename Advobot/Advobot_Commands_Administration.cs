@@ -65,7 +65,6 @@ namespace Advobot
 		public async Task CurrentBotOwner()
 		{
 			IGuildUser user = await Actions.getBotOwner(Context.Client);
-
 			if (user != null)
 			{
 				await Actions.sendChannelMessage(Context.Channel, String.Format("The current bot owner is: `{0}#{1} ({2})`", user.Username, user.Discriminator, user.Id));
@@ -143,14 +142,14 @@ namespace Advobot
 			//Check if to clear
 			if (input.ToLower().Equals("clear"))
 			{
-				Properties.Settings.Default.Prefix = "++";
+				Properties.Settings.Default.Prefix = Constants.BOT_PREFIX;
 
 				//Send a success message
-				await Actions.sendChannelMessage(Context.Channel, "Successfully reset the bot's prefix to: `++`.");
+				await Actions.sendChannelMessage(Context.Channel, "Successfully reset the bot's prefix to `" + Constants.BOT_PREFIX + "`.");
 			}
 			else
 			{
-				Properties.Settings.Default.Prefix = input;
+				Properties.Settings.Default.Prefix = input.Trim();
 
 				//Send a success message
 				await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully changed the bot's prefix to `{0}`.", input));
@@ -183,9 +182,19 @@ namespace Advobot
 			}
 		}
 
-		[Command("setgame")]
-		[Alias("sg")]
-		[Usage("setgame [New Name]")]
+		[Command("boticon")]
+		[Alias("bi")]
+		[Usage("boticon [Attached Image|Embedded Image|Remove]")]
+		[Summary("Changes the bot's icon.")]
+		[BotOwnerRequirement]
+		public async Task BotIcon([Optional, Remainder] string input)
+		{
+			await Actions.setPicture(Context, input, true);
+		}
+
+		[Command("botgame")]
+		[Alias("bg")]
+		[Usage("botgame [New Name]")]
 		[Summary("Changes the game the bot is currently listed as playing.")]
 		[BotOwnerRequirement]
 		public async Task SetGame([Remainder] string input)
@@ -1313,19 +1322,9 @@ namespace Advobot
 					//Make the role string everything before the last space
 					rolesString = rolesString.Substring(0, lastSpace).Trim();
 
-					//Check if valid groupstring
-					groupString = Actions.getVariable(groupString, "group");
-					if (String.IsNullOrWhiteSpace(groupString))
-					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for group."));
+					groupNumber = await Actions.getGroup(groupString, Context);
+					if (groupNumber == -1)
 						return;
-					}
-					//Check if valid number
-					if (!int.TryParse(groupString, out groupNumber) && actionType == SAGAction.Create)
-					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Create needs a group number specified!"));
-						return;
-					}
 
 					//Check if there are any groups already with that number
 					var guildGroups = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).ToList();
@@ -1409,19 +1408,9 @@ namespace Advobot
 				}
 				case SAGAction.Delete:
 				{
-					//Check if valid groupstring
-					string groupString = Actions.getVariable(rolesString, "group");
-					if (String.IsNullOrWhiteSpace(groupString))
-					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for group."));
+					groupNumber = await Actions.getGroup(inputArray[1], Context);
+					if (groupNumber == -1)
 						return;
-					}
-					//Check if valid number
-					if (!int.TryParse(groupString, out groupNumber))
-					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Delete needs a group number specified!"));
-						return;
-					}
 
 					//Get the groups
 					var guildGroups = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).ToList();
@@ -1502,7 +1491,7 @@ namespace Advobot
 		[Command("assignselfrole")]
 		[Alias("asr")]
 		[Usage("assignselfrole [Role]")]
-		[Summary("Gives a role. Remove all other roles in the same group.")]
+		[Summary("Gives a role. Remove all other roles in the same group unless the group is 0.")]
 		public async Task AssignSelfRole([Remainder] string input)
 		{
 			//Get the role. No edit ability checking in this command due to how that's already been done in the modify command
@@ -1562,13 +1551,215 @@ namespace Advobot
 			await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully gave you `" + role.Name + "`" + removedRoles + ".");
 		}
 
+		[Command("currentgroups")]
+		[Alias("cgr")]
+		[Usage("currentgroups <File|Actual>")]
+		[Summary("Shows the current group numbers that exists on the guild.")]
+		public async Task CurrentGroups([Optional, Remainder] string input)
+		{
+			//Set a bool
+			bool fileBool;
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				fileBool = false;
+			}
+			else if (input.ToLower().Equals("file"))
+			{
+				fileBool = true;
+			}
+			else if (input.ToLower().Equals("actual"))
+			{
+				fileBool = false;
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option, must be either File or Actual or Nothing."));
+				return;
+			}
+
+			var groupNumbers = new List<int>();
+			if (fileBool)
+			{
+				//Check if the file exists
+				string path = Actions.getServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
+				if (path == null)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+					return;
+				}
+				if (!File.Exists(path))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "This guild has no self assignable roles file.");
+					return;
+				}
+
+				//Get all the self roles that have that group
+				using (StreamReader file = new StreamReader(path))
+				{
+					string line;
+					while ((line = file.ReadLine()) != null)
+					{
+						//If the line is empty, do nothing
+						if (String.IsNullOrWhiteSpace(line))
+						{
+							continue;
+						}
+						else
+						{
+							//Split to get the role ID and the group
+							string[] lineArray = line.Split(' ');
+							int throwaway;
+							if (int.TryParse(lineArray[1], out throwaway))
+							{
+								groupNumbers.Add(throwaway);
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				groupNumbers = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).Select(x => x.Group).Distinct().ToList();
+				if (!groupNumbers.Any())
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are currently no self assignable role groups on this guid."));
+					return;
+				}
+			}
+
+			//Send a sucess message
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Self Assignable Role Groups", String.Join(", ", groupNumbers.OrderBy(x => x).Distinct())));
+		}
+
 		[Command("currentselfroles")]
 		[Alias("csr")]
-		[Usage("currentselfroles [File|Actual] [Group:Number]")]
+		[Usage("currentselfroles <File|Actual> [Group:Number]")]
 		[Summary("Shows the current self assignable roles on the guild by group.")]
 		public async Task CurrentSelfRoles([Remainder] string input)
 		{
+			//Split the input
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
 
+			bool fileBool;
+			if (inputArray[0].ToLower().Equals("file"))
+			{
+				fileBool = true;
+			}
+			else if (inputArray[0].ToLower().Equals("actual"))
+			{
+				fileBool = false;
+			}
+			else if (inputArray[0].ToLower().StartsWith("group"))
+			{
+				fileBool = false;
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option, must be either File or Actual or a Group."));
+				return;
+			}
+
+			string description = "";
+			int groupNumber;
+			if (fileBool)
+			{
+				//Get the group number
+				groupNumber = await Actions.getGroup(inputArray, Context);
+				if (groupNumber == -1)
+					return;
+
+				//Check if the file exists
+				string path = Actions.getServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
+				if (path == null)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+					return;
+				}
+				if (!File.Exists(path))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "This guild has no self assignable roles file.");
+					return;
+				}
+
+				//Get all the self roles that have that group
+				var roleIDs = new List<string>();
+				using (StreamReader file = new StreamReader(path))
+				{
+					string line;
+					while ((line = file.ReadLine()) != null)
+					{
+						//If the line is empty, do nothing
+						if (String.IsNullOrWhiteSpace(line))
+						{
+							continue;
+						}
+						else
+						{
+							//Split to get the role ID and the group
+							string[] lineArray = line.Split(' ');
+							if (lineArray[1].Equals(groupNumber.ToString()))
+							{
+								roleIDs.Add(lineArray[0]);
+							}
+						}
+					}
+				}
+
+				//Check if any role IDs were gotten
+				if (!roleIDs.Any())
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no group with that number."));
+					return;
+				}
+
+				//Get the roleIDs as roles
+				var roles = new List<string>();
+				roleIDs.ForEach(x =>
+				{
+					//Check if it's an actual number
+					ulong roleUlong;
+					if (ulong.TryParse(x, out roleUlong))
+					{
+						//Check if valid role
+						IRole role = Context.Guild.GetRole(roleUlong);
+						if (role != null)
+						{
+							roles.Add(role.Name);
+						}
+					}
+				});
+
+				//Check if any valid roles gotten
+				if (!roles.Any())
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("That group has no valid self roles."));
+					return;
+				}
+
+				//Add the roles to the list
+				description = "`" + String.Join("`\n`", roles) + "`";
+			}
+			else
+			{
+				//Get the group number
+				groupNumber = await Actions.getGroup(inputArray, Context);
+				if (groupNumber == -1)
+					return;
+
+				//Get the group which has that number
+				var group = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).FirstOrDefault(x => x.Group == groupNumber);
+				if (group == null)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no group with that number."));
+					return;
+				}
+
+				//Add the group's role's names to a list
+				description = "`" + String.Join("`\n`", group.Roles.Select(x => x.Role.Name).ToList()) + "`";
+			}
+
+			//Send the embed
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, String.Format("Self Roles Group {0} ({1})", groupNumber, fileBool ? "File" : "Actual"), description));
 		}
 	}
 }

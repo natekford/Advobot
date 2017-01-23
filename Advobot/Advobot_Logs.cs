@@ -33,16 +33,29 @@ namespace Advobot
 
 			if (!Variables.Guilds.Any(x => x.Id == guild.Id))
 			{
+				//Put the guild and its invites in a list
 				Variables.Guilds.Add(guild);
+				var t = Task.Run(async delegate
+				{
+					//Get all of the invites and add their guildID, code, and current uses to the usage check list
+					(await guild.GetInvitesAsync()).ToList().ForEach(x => Variables.InviteUses.Add(new Invite(x.GuildId, x.Code, x.Uses)));
+				});
 
 				//Incrementing
 				Variables.TotalUsers += guild.MemberCount;
 				Variables.TotalGuilds++;
 
 				//Loading everything
-				Actions.loadPreferences(guild);
-				Actions.loadBannedPhrasesAndPunishments(guild);
-				Actions.loadSelfAssignableRoles(guild);
+				if (Variables.Bot_ID != 0)
+				{
+					Actions.loadPreferences(guild);
+					Actions.loadBannedPhrasesAndPunishments(guild);
+					Actions.loadSelfAssignableRoles(guild);
+				}
+				else
+				{
+					Variables.GuildsToBeLoaded.Add(guild);
+				}
 			}
 
 			return Task.CompletedTask;
@@ -54,7 +67,11 @@ namespace Advobot
 			Actions.writeLine(String.Format("{0}: Guild is down: {1}#{2}.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
 
 			Variables.TotalUsers -= (guild.MemberCount + 1);
+			if (Variables.TotalUsers < 0)
+				Variables.TotalUsers = 0;
 			Variables.TotalGuilds--;
+			if (Variables.TotalGuilds < 0)
+				Variables.TotalGuilds = 0;
 			Variables.Guilds.Remove(guild);
 
 			return Task.CompletedTask;
@@ -85,6 +102,9 @@ namespace Advobot
 		{
 			Actions.writeLine(String.Format("{0}: Bot has been disconnected.", MethodBase.GetCurrentMethod().Name));
 
+			Variables.TotalUsers = 0;
+			Variables.TotalGuilds = 0;
+
 			return Task.CompletedTask;
 		}
 
@@ -93,11 +113,7 @@ namespace Advobot
 		{
 			Actions.writeLine(String.Format("{0}: Bot has connected.", MethodBase.GetCurrentMethod().Name));
 
-			//Find out if the current OS is not Windows
-			Actions.getOS();
-
 			return Task.CompletedTask;
-
 		}
 	}
 
@@ -106,6 +122,22 @@ namespace Advobot
 		//Tell when a user joins the server
 		public static async Task OnUserJoined(SocketGuildUser user)
 		{
+			//Get the current invites
+			var invites = await user.Guild.GetInvitesAsync();
+			//Find which invite the user joined on
+			Invite inv = null;
+			foreach (var invite in Variables.InviteUses.Where(x => x.GuildID == user.Guild.Id))
+			{
+				//Find the one that had different uses between now and the past
+				if (invites.FirstOrDefault(x => x.Code == invite.Code).Uses != invite.Uses)
+				{
+					inv = invite;
+					//Add a number to that invite's uses
+					++invite.Uses;
+					break;
+				}
+			}
+
 			//Check if should add them to a slowmode for channel/guild
 			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id) || (await user.Guild.GetTextChannelsAsync()).Intersect(Variables.SlowmodeChannels.Keys).Any())
 			{
@@ -120,14 +152,21 @@ namespace Advobot
 			++Variables.LoggedJoins;
 			++Variables.TotalUsers;
 
+			//Invite string
+			string inviteString = "";
+			if (inv != null)
+			{
+				inviteString = String.Format("**Invite:** {0}", inv.Code);
+			}
+
 			if (user.IsBot)
 			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, description: "**ID:** " + user.Id.ToString()), "Bot Join");
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString)), "Bot Join");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 			else
 			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, description: "**ID:** " + user.Id.ToString()), "Join");
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString)), "Join");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 		}
@@ -618,7 +657,9 @@ namespace Advobot
 		//Log each command
 		public static async Task LogCommand(ICommandContext context)
 		{
-			Actions.writeLine(context.User.Id + " used command \'" + context.Message + "\' and succeeded.");
+			string userString = String.Format("{0}#{1} ({2})", context.User.Username, context.User.Discriminator, context.User.Id);
+			string guildString = String.Format("{0} ({1})", context.Guild.Name, context.Guild.Id);
+			Actions.writeLine(String.Format("{0} on {1}: \'{2}\'", userString, guildString, context.Message.Content));
 
 			ITextChannel logChannel = await Actions.logChannelCheck(context.Guild, Constants.MOD_LOG_CHECK_STRING);
 			if (logChannel == null)

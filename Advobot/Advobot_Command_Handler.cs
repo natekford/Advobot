@@ -48,8 +48,14 @@ namespace Advobot
 			//Create a Command Context
 			var context = new CommandContext(Client, message);
 
+			//Check to make sure everything is loaded
+			if (!Variables.Loaded)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(context, Actions.ERROR("Please wait until everything is loaded."));
+				return;
+			}
 			//Check if the bot still has admin
-			if (!(await context.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
+			else if (!(await context.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
 			{
 				//If the server has been told already, ignore future commands fully
 				if (Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator.Contains(context.Guild))
@@ -81,6 +87,11 @@ namespace Advobot
 			else
 			{
 				await ModLogs.LogCommand(context);
+				//If a command succeeds then the guild gave the bot admin back so remove them from this list
+				if (Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator.Contains(context.Guild))
+				{
+					Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator.Remove(context.Guild);
+				}
 			}
 		}
 	}

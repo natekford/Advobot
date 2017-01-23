@@ -43,6 +43,10 @@ namespace Advobot
 			client.MessageReceived += ServerLogs.OnMessageReceived;
 			client.ChannelCreated += ServerLogs.OnChannelCreated;
 			client.ChannelUpdated += ServerLogs.OnChannelUpdated;
+			//TODO: Hope for the option to get updates when an invite gets created
+
+			//Say what the current bot prefix is in the console
+			Console.WriteLine("The current bot prefix is: " + Properties.Settings.Default.Prefix);
 
 			//Check if the bot doesn't already have a key
 			if (String.IsNullOrWhiteSpace(Properties.Settings.Default.BotKey))

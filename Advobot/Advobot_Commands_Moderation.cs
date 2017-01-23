@@ -1442,6 +1442,52 @@ namespace Advobot
 				values[0], values[1]));
 		}
 
+		[Command("hoistrole")]
+		[Alias("hrole")]
+		[Usage("hoistrole [Role]")]
+		[Summary("Displays a role separately from others on the user list. Saying the command again remove it from being hoisted.")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
+		public async Task HoistRole([Remainder] string input)
+		{
+			IRole role = await Actions.getRoleEditAbility(Context, input);
+			if (role == null)
+				return;
+
+			if (role.IsHoisted)
+			{
+				await role.ModifyAsync(x => x.Hoist = false);
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully removed `" + role.Name + "` from being hoisted.");
+			}
+			else
+			{
+				await role.ModifyAsync(x => x.Hoist = true);
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully hoisted `" + role.Name + "`.");
+			}
+		}
+
+		[Command("changementionrole")]
+		[Alias("cmrole")]
+		[Usage("changementionrole [Role]")]
+		[Summary("Allows the role to be mentioned. Saying the command again removes its ability to be mentioned.")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
+		public async Task ChangeMentionRole([Remainder] string input)
+		{
+			IRole role = await Actions.getRoleEditAbility(Context, input);
+			if (role == null)
+				return;
+
+			if (role.IsMentionable)
+			{
+				await role.ModifyAsync(x => x.Mentionable = false);
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully removed `" + role.Name + "` from being mentionable.");
+			}
+			else
+			{
+				await role.ModifyAsync(x => x.Mentionable = true);
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully made `" + role.Name + "` mentionable.");
+			}
+		}
+
 		[Command("createchannel")]
 		[Alias("cch")]
 		[Usage("createchannel [Name] [Text|Voice]")]
@@ -2423,6 +2469,13 @@ namespace Advobot
 				return;
 			}
 
+			//Make sure it's a mention
+			if (!inputArray[0].StartsWith("<@"))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please mention a user."));
+				return;
+			}
+
 			//Check if valid user
 			IGuildUser user = await Actions.getUser(Context.Guild, inputArray[0]);
 			if (user == null)
@@ -2950,150 +3003,7 @@ namespace Advobot
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildIcon([Optional] string input)
 		{
-			//See if the user wants to remove the icon
-			if (input != null && input.ToLower().Equals("remove"))
-			{
-				await Context.Guild.ModifyAsync(x => x.Icon = new Image());
-				await Actions.sendChannelMessage(Context.Channel, "Successfully removed the guild's icon.");
-				return;
-			}
-
-			//Check if there are even any attachments or embeds
-			if (Context.Message.Attachments.Count + Context.Message.Embeds.Count == 0)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No attached or embedded image."));
-				return;
-			}
-			//Check if there are too many
-			else if (Context.Message.Attachments.Count + Context.Message.Embeds.Count > 1)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many attached or embedded images."));
-				return;
-			}
-
-			//Get the URL of the image
-			string imageURL = null;
-			if (Context.Message.Embeds.Count == 1)
-			{
-				imageURL = Context.Message.Embeds.First().Thumbnail.ToString();
-			}
-			else
-			{
-				imageURL = Context.Message.Attachments.First().Url;
-			}
-
-			//Run separate due to the time it takes
-			var downloadUploadAndDelete = Task.Run(async () =>
-			{
-				//Check the image's file size first
-				WebRequest req = HttpWebRequest.Create(imageURL);
-				req.Method = "HEAD";
-				using (WebResponse resp = req.GetResponse())
-				{
-					int ContentLength = 0;
-					if (int.TryParse(resp.Headers.Get("Content-Length"), out ContentLength))
-					{
-						if (ContentLength > 2625000)
-						{
-							//Check if bigger than 2.5MB
-							await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Image is bigger than 2.5MB. Please manually upload instead."));
-							return;
-						}
-						else if (ContentLength == 0)
-						{
-							//Check if nothing was gotten
-							await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to get the image's file size."));
-							return;
-						}
-						else
-						{
-							//Check if valid content type
-							if (!Constants.VALIDIMAGEEXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
-							{
-								await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Image must be a png or jpg."));
-								return;
-							}
-						}
-					}
-					else
-					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to get the image's file size."));
-						return;
-					}
-				}
-
-				//Set the name of the file to prevent typos between the three places that use it
-				string path = Actions.getServerFilePath(Context.Guild.Id, "guildicon" + Path.GetExtension(imageURL).ToLower());
-
-				//Download the image
-				using (var webclient = new WebClient())
-				{
-					webclient.DownloadFile(imageURL, path);
-				}
-
-				//Create a filestream to check the image's size
-				using (FileStream imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
-				{
-					var img = System.Drawing.Image.FromStream(imgStream);
-					if (img.Width < 128 || img.Height < 128)
-					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Images must be at least 128x128 pixels."));
-						return;
-					}
-				}
-
-				//Create a second filestream to upload the image
-				using (FileStream imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
-				{
-					//Change the guild's icon to the downloaded image
-					await Context.Guild.ModifyAsync(x => x.Icon = new Image(imgStream));
-				}
-
-				//Delete the file and send a success message
-				File.Delete(path);
-				await Actions.sendChannelMessage(Context.Channel, "Successfully changed the guild icon.");
-			});
-		}
-
-		[Command("listemojis")]
-		[Alias("lemojis")]
-		[Usage("listemojis [Global|Guild]")]
-		[Summary("Lists the emoji in the guild. As of right now, with the current API wrapper version this bot uses, there's no way to upload or remove emojis yet; sorry.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageEmojis)]
-		public async Task ListEmojis([Remainder] string input)
-		{
-			//Make the string
-			string description = null;
-
-			//Add the emojis to the string
-			int count = 1;
-			if (input.ToLower().Equals("guild"))
-			{
-				//Get all of the guild emojis
-				Context.Guild.Emojis.Where(x => !x.IsManaged).ToList().ForEach(x =>
-				{
-						description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
-				});
-			}
-			else if (input.ToLower().Equals("global"))
-			{
-				//Get all of the global emojis
-				Context.Guild.Emojis.Where(x => x.IsManaged).ToList().ForEach(x =>
-				{
-					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
-				});
-			}
-			else
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option."));
-				return;
-			}
-
-			//Check if the description is still null
-			description = description ?? String.Format("This guild has no {0} emojis.", input.ToLower());
-
-			//Send the embed
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Emojis", description));
+			await Actions.setPicture(Context, input, false);
 		}
 	}
 }
