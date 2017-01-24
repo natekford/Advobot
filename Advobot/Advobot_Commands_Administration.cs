@@ -17,9 +17,11 @@ using System.Text.RegularExpressions;
 
 namespace Advobot
 {
+	//Administration commands are commands that focus more on the bot or bot specific actions than other commands and have an impact on the guild or the bot itself
 	[Name("Administration")]
 	public class Administration_Commands : ModuleBase
 	{
+		#region Settings
 		[Command("setbotowner")]
 		[Alias("sbo")]
 		[Usage("setbotowner <Clear>")]
@@ -157,6 +159,20 @@ namespace Advobot
 			Properties.Settings.Default.Save();
 		}
 
+		[Command("currentsettings")]
+		[Alias("curs")]
+		[Usage("currentsettings")]
+		[Summary("Shows all the settings on the bot aside from the bot's key.")]
+		[BotOwnerRequirement]
+		public async Task CurrentSettings()
+		{
+			string description = "";
+			description += String.Format("**Prefix:** `{0}`\n", Properties.Settings.Default.Prefix);
+			description += String.Format("**Save Path:** `{0}`\n", Properties.Settings.Default.Path);
+			description += String.Format("**Bot Owner ID:** `{0}`\n", Properties.Settings.Default.BotOwner);
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Current Global Bot Settings", description));
+		}
+
 		[Command("clearallsettings")]
 		[Alias("cas")]
 		[Usage("clearallsettings")]
@@ -168,20 +184,32 @@ namespace Advobot
 			await Actions.sendChannelMessage(Context.Channel, "Successfully cleared all settings. Restarting now...");
 			//Reset the settings
 			Properties.Settings.Default.Reset();
+			//Save the settings
+			Properties.Settings.Default.Save();
 			//Restart the bot
-			try
+			//TODO: Learn why this doesn't work in debug but works in release
+			var t = Task.Run(async () =>
 			{
-				//Create a new instance of the bot
-				System.Windows.Forms.Application.Restart();
-				//Close the old one
-				Environment.Exit(1);
-			}
-			catch (Exception)
-			{
-				Console.WriteLine("Bot is unable to restart.");
-			}
+				try
+				{
+					//Logout
+					await CommandHandler.Client.LogoutAsync();
+					//Disconnect
+					await CommandHandler.Client.DisconnectAsync();
+					//Create a new instance of the bot
+					System.Windows.Forms.Application.Restart();
+					//Close the old one
+					Environment.Exit(0);
+				}
+				catch (Exception)
+				{
+					Console.WriteLine("Bot is unable to restart.");
+				}
+			});
 		}
+		#endregion
 
+		#region Bot Changes
 		[Command("boticon")]
 		[Alias("bi")]
 		[Usage("boticon [Attached Image|Embedded Image|Remove]")]
@@ -258,7 +286,7 @@ namespace Advobot
 					}
 				}
 				await CommandHandler.Client.SetStatusAsync(UserStatus.Invisible);
-				Environment.Exit(1);
+				Environment.Exit(0);
 			}
 			else
 			{
@@ -280,7 +308,7 @@ namespace Advobot
 					//Create a new instance of the bot
 					System.Windows.Forms.Application.Restart();
 					//Close the old one
-					Environment.Exit(1);
+					Environment.Exit(0);
 				}
 				catch (Exception)
 				{
@@ -292,7 +320,9 @@ namespace Advobot
 				await Actions.makeAndDeleteSecondaryMessage(Context, "Disconnection is turned off for everyone but the bot owner currently.");
 			}
 		}
+		#endregion
 
+		#region Guilds
 		[Command("listguilds")]
 		[Usage("listguilds")]
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
@@ -405,7 +435,9 @@ namespace Advobot
 				return;
 			}
 		}
+		#endregion
 
+		#region Preferences
 		[Command("enablepreferences")]
 		[Alias("eprefs")]
 		[Usage("enablepreferences")]
@@ -467,7 +499,9 @@ namespace Advobot
 			}
 			await Actions.readPreferences(Context.Channel, path);
 		}
+		#endregion
 
+		#region Ban Phrases
 		//TODO: Use a different split character maybe
 		[Command("modifybanphrases")]
 		[Alias("mbps")]
@@ -1239,7 +1273,9 @@ namespace Advobot
 			//Make and send an embed
 			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Punishments " + (fileBool ? "(File)" : "(Actual)"), description));
 		}
+		#endregion
 
+		#region Self Roles
 		[Command("modifyselfroles")]
 		[Alias("msr")]
 		[Usage("modifyselfroles [Help] | [Create|Add|Remove] [Role/...] [Group:Number] | [Delete] [Group:Num]")]
@@ -1761,5 +1797,6 @@ namespace Advobot
 			//Send the embed
 			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, String.Format("Self Roles Group {0} ({1})", groupNumber, fileBool ? "File" : "Actual"), description));
 		}
+		#endregion
 	}
 }

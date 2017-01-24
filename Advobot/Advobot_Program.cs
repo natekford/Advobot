@@ -41,48 +41,14 @@ namespace Advobot
 			client.MessageUpdated += ServerLogs.OnMessageUpdated;
 			client.MessageDeleted += ServerLogs.OnMessageDeleted;
 			client.MessageReceived += ServerLogs.OnMessageReceived;
+			client.RoleDeleted += ServerLogs.OnRoleDeleted;
 			client.ChannelCreated += ServerLogs.OnChannelCreated;
 			client.ChannelUpdated += ServerLogs.OnChannelUpdated;
 			//TODO: Hope for the option to get updates when an invite gets created
 
-			//Say what the current bot prefix is in the console
-			Console.WriteLine("The current bot prefix is: " + Properties.Settings.Default.Prefix);
+			//Make sure the bot's key and save path are gotten
+			await Actions.start(client);
 
-			//Check if the bot doesn't already have a key
-			if (String.IsNullOrWhiteSpace(Properties.Settings.Default.BotKey))
-			{
-				Console.WriteLine("Hello. I'd like to thank you for using my bot; I hope it works well enough for you.\nPlease enter the bot's key:");
-				Properties.Settings.Default.BotKey = Console.ReadLine().Trim();
-			}
-
-			//Login and connect to Discord.
-			bool success = false;
-			while (!success)
-			{
-				if (Properties.Settings.Default.BotKey.Length != 59)
-				{
-					//If the length isn't the normal length of a key make it retry
-					Actions.writeLine("The given key has an unusual length. Please enter a regular length key:");
-					Properties.Settings.Default.BotKey = Console.ReadLine().Trim();
-				}
-				else
-				{
-					try
-					{
-						//Try to login with the given key
-						await client.LoginAsync(TokenType.Bot, Properties.Settings.Default.BotKey);
-						//If the key works then save it within the settings
-						Properties.Settings.Default.Save();
-						success = true;
-					}
-					catch (Exception)
-					{
-						//If the key doesn't work then retry
-						Actions.writeLine("The given key is invalid. Please enter a valid key:");
-						Properties.Settings.Default.BotKey = Console.ReadLine().Trim();
-					}
-				}
-			}
 			try
 			{
 				await client.ConnectAsync();
@@ -91,7 +57,7 @@ namespace Advobot
 			{
 				Actions.writeLine("Client is unable to connect.");
 				Thread.Sleep(15000);
-				Environment.Exit(126);
+				Environment.Exit(0);
 			}
 
 			var map = new DependencyMap();

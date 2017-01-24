@@ -17,9 +17,11 @@ using System.Text.RegularExpressions;
 
 namespace Advobot
 {
+	//Miscellaneous commands are random commands that don't exactly fit the other groups
 	[Name("Miscellaneous")]
 	public class Miscellaneous_Commands : ModuleBase
 	{
+		#region Help
 		[Command("help")]
 		[Alias("h")]
 		[Usage("help <Command>")]
@@ -148,7 +150,9 @@ namespace Advobot
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Category does not exist."));
 			}
 		}
+		#endregion
 
+		#region IDs
 		[Command("guildid")]
 		[Alias("gid", "serverid", "sid")]
 		[Usage("guildid")]
@@ -206,66 +210,76 @@ namespace Advobot
 			}
 			await Actions.sendChannelMessage(Context.Channel, String.Format("The user `{0}#{1}` has the ID `{2}`.", user.Username, user.Discriminator, user.Id));
 		}
+		#endregion
 
-		[Command("useravatar")]
-		[Alias("uav")]
-		[Usage("useravatar <@user>")]
-		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily). Currently every avatar is displayed with an extension type of gif.")]
+		#region User or other misc info
+		[Command("botinfo")]
+		[Alias("binf")]
+		[Usage("botinfo")]
+		[Summary("Displays various information about the bot.")]
 		[UserHasAPermission]
-		public async Task UserAvatar([Optional, Remainder] string input)
+		public async Task BotInfo()
 		{
-			IGuildUser user = input == null ? Context.User as IGuildUser : await Actions.getUser(Context.Guild, input);
-			if (user == null)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
-				return;
-			}
-			await Context.Channel.SendMessageAsync(user.AvatarUrl.Replace(".jpg", ".gif"));
-		}
+			TimeSpan span = DateTime.UtcNow.Subtract(Variables.StartupTime);
 
-		[Command("currentmembercount")]
-		[Alias("cmc")]
-		[Usage("currentmembercount")]
-		[Summary("Shows the current number of members in the guild.")]
-		[UserHasAPermission]
-		public async Task CurrentMemberCount()
-		{
-			await Actions.sendChannelMessage(Context.Channel, String.Format("The current member count is `{0}`.", (Context.Guild as SocketGuild).MemberCount));
-		}
+			//Make the description
+			string description = String.Format(
+				"Online since: {0}\n" +
+				"Uptime: {1}:{2}:{3}:{4}\n" +
+				"Guild count: {5}\n" +
+				"Cumulative member count: {6}\n",
+				Variables.StartupTime,
+				span.Days, span.Hours.ToString("00"),
+				span.Minutes.ToString("00"),
+				span.Seconds.ToString("00"),
+				Variables.TotalGuilds,
+				Variables.TotalUsers);
 
-		[Command("userjoinedat")]
-		[Alias("ujat")]
-		[Usage("userjoinedat [Position]")]
-		[Summary("Shows the user which joined the guild in that position. Mostly accurate, give or take ten places per thousand users on the guild.")]
-		[UserHasAPermission]
-		public async Task UserJoinedAt([Remainder] string input)
-		{
-			int position;
-			if (Int32.TryParse(input, out position))
-			{
-				IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync();
-				List<IGuildUser> users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
-				if (position >= 1 && position < users.Count)
-				{
-					IGuildUser user = users[position - 1];
-					await Actions.sendChannelMessage(Context.Channel, String.Format("`{0}#{1}` was #{2} to join the server on `{3} {4}, {5}` at `{6}`.",
-						user.Username,
-						user.Discriminator,
-						position,
-						System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(user.JoinedAt.Value.UtcDateTime.Month),
-						user.JoinedAt.Value.UtcDateTime.Day,
-						user.JoinedAt.Value.UtcDateTime.Year,
-						user.JoinedAt.Value.UtcDateTime.ToLongTimeString()));
-				}
-				else
-				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position."));
-				}
-			}
-			else
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Something besides a number was input."));
-			}
+			//Make the embed
+			EmbedBuilder embed = Actions.makeNewEmbed(null, null, description);
+			//Add the author
+			Actions.addAuthor(embed, Variables.Bot_Name, Context.Client.CurrentUser.AvatarUrl);
+			//Add the footer
+			Actions.addFooter(embed, "Version " + Constants.BOT_VERSION);
+
+			//First field
+			string firstField = String.Format(
+				"Logged joins: {0}\n" +
+				"Logged leaves: {1}\n" +
+				"Logged bans: {2}\n" +
+				"Logged unbans: {3}\n" +
+				"Logged user changes: {4}\n" +
+				"Logged edits: {5}\n" +
+				"Logged deletes: {6}\n" +
+				"Logged images: {7}\n" +
+				"Logged gifs: {8}\n" +
+				"Logged files: {9}\n" +
+				"Logged commands: {10}",
+				Variables.LoggedJoins,
+				Variables.LoggedLeaves,
+				Variables.LoggedBans,
+				Variables.LoggedUnbans,
+				Variables.LoggedUserChanges,
+				Variables.LoggedEdits,
+				Variables.LoggedDeletes,
+				Variables.LoggedImages,
+				Variables.LoggedGifs,
+				Variables.LoggedFiles,
+				Variables.LoggedCommands);
+			Actions.addField(embed, "Logged Actions", firstField);
+
+			//Second field
+			string secondField = String.Format(
+				"Attempted commands: {0}\n" +
+				"Successful commands: {1}\n" +
+				"Failed commands: {2}\n",
+				Variables.AttemptedCommands,
+				Variables.AttemptedCommands - Variables.FailedCommands,
+				Variables.FailedCommands);
+			Actions.addField(embed, "Commands", secondField);
+
+			//Send the embed
+			await Actions.sendEmbedMessage(Context.Channel, embed);
 		}
 
 		[Command("userinfo")]
@@ -358,7 +372,7 @@ namespace Advobot
 			Actions.addAuthor(embed, user.Username + "#" + user.Discriminator + " " + (user.Nickname == null ? "" : "(" + user.Nickname + ")"), user.AvatarUrl, user.AvatarUrl);
 			//Add the footer
 			Actions.addFooter(embed, "Userinfo");
-			
+
 			//Add the channels the user can access
 			if (channels.Count != 0)
 			{
@@ -382,75 +396,69 @@ namespace Advobot
 			await Actions.sendEmbedMessage(Context.Channel, embed);
 		}
 
-		[Command("botinfo")]
-		[Alias("binf")]
-		[Usage("botinfo")]
-		[Summary("Displays various information about the bot.")]
+		[Command("useravatar")]
+		[Alias("uav")]
+		[Usage("useravatar <@user>")]
+		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily). Currently every avatar is displayed with an extension type of gif.")]
 		[UserHasAPermission]
-		public async Task BotInfo()
+		public async Task UserAvatar([Optional, Remainder] string input)
 		{
-			TimeSpan span = DateTime.UtcNow.Subtract(Variables.StartupTime);
-
-			//Make the description
-			string description = String.Format(
-				"Online since: {0}\n" +
-				"Uptime: {1}:{2}:{3}:{4}\n" +
-				"Guild count: {5}\n" +
-				"Cumulative member count: {6}\n",
-				Variables.StartupTime,
-				span.Days, span.Hours.ToString("00"),
-				span.Minutes.ToString("00"),
-				span.Seconds.ToString("00"),
-				Variables.TotalGuilds,
-				Variables.TotalUsers);
-
-			//Make the embed
-			EmbedBuilder embed = Actions.makeNewEmbed(null, null, description);
-			//Add the author
-			Actions.addAuthor(embed, Variables.Bot_Name, Context.Client.CurrentUser.AvatarUrl);
-			//Add the footer
-			Actions.addFooter(embed, "Version " + Constants.BOT_VERSION);
-
-			//First field
-			string firstField = String.Format(
-				"Logged joins: {0}\n" +
-				"Logged leaves: {1}\n" +
-				"Logged bans: {2}\n" +
-				"Logged unbans: {3}\n" +
-				"Logged user changes: {4}\n" +
-				"Logged edits: {5}\n" +
-				"Logged deletes: {6}\n" +
-				"Logged images: {7}\n" +
-				"Logged gifs: {8}\n" +
-				"Logged files: {9}\n" +
-				"Logged commands: {10}",
-				Variables.LoggedJoins,
-				Variables.LoggedLeaves,
-				Variables.LoggedBans,
-				Variables.LoggedUnbans,
-				Variables.LoggedUserChanges,
-				Variables.LoggedEdits,
-				Variables.LoggedDeletes,
-				Variables.LoggedImages,
-				Variables.LoggedGifs,
-				Variables.LoggedFiles,
-				Variables.LoggedCommands);
-			Actions.addField(embed, "Logged Actions", firstField);
-
-			//Second field
-			string secondField = String.Format(
-				"Attempted commands: {0}\n" +
-				"Successful commands: {1}\n" +
-				"Failed commands: {2}\n",
-				Variables.AttemptedCommands,
-				Variables.AttemptedCommands - Variables.FailedCommands,
-				Variables.FailedCommands);
-			Actions.addField(embed, "Commands", secondField);
-
-			//Send the embed
-			await Actions.sendEmbedMessage(Context.Channel, embed);
+			IGuildUser user = input == null ? Context.User as IGuildUser : await Actions.getUser(Context.Guild, input);
+			if (user == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				return;
+			}
+			await Context.Channel.SendMessageAsync(user.AvatarUrl.Replace(".jpg", ".gif"));
 		}
 
+		[Command("currentmembercount")]
+		[Alias("cmc")]
+		[Usage("currentmembercount")]
+		[Summary("Shows the current number of members in the guild.")]
+		[UserHasAPermission]
+		public async Task CurrentMemberCount()
+		{
+			await Actions.sendChannelMessage(Context.Channel, String.Format("The current member count is `{0}`.", (Context.Guild as SocketGuild).MemberCount));
+		}
+
+		[Command("userjoinedat")]
+		[Alias("ujat")]
+		[Usage("userjoinedat [Position]")]
+		[Summary("Shows the user which joined the guild in that position. Mostly accurate, give or take ten places per thousand users on the guild.")]
+		[UserHasAPermission]
+		public async Task UserJoinedAt([Remainder] string input)
+		{
+			int position;
+			if (Int32.TryParse(input, out position))
+			{
+				IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync();
+				List<IGuildUser> users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
+				if (position >= 1 && position < users.Count)
+				{
+					IGuildUser user = users[position - 1];
+					await Actions.sendChannelMessage(Context.Channel, String.Format("`{0}#{1}` was #{2} to join the server on `{3} {4}, {5}` at `{6}`.",
+						user.Username,
+						user.Discriminator,
+						position,
+						System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(user.JoinedAt.Value.UtcDateTime.Month),
+						user.JoinedAt.Value.UtcDateTime.Day,
+						user.JoinedAt.Value.UtcDateTime.Year,
+						user.JoinedAt.Value.UtcDateTime.ToLongTimeString()));
+				}
+				else
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position."));
+				}
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Something besides a number was input."));
+			}
+		}
+		#endregion
+
+		#region Instant Invites
 		[Command("createinstantinvite")]
 		[Alias("cii")]
 		[Usage("createinstantinvite " + Constants.CHANNEL_INSTRUCTIONS + " [Forever|1800|3600|21600|43200|86400] [Infinite|1|5|10|25|50|100] [True|False]")]
@@ -519,7 +527,7 @@ namespace Advobot
 		[Alias("lii")]
 		[Usage("listinstantinvites")]
 		[Summary("Gives a list of all the instant invites on the guild.")]
-		[PermissionRequirements(1U << (int)GuildPermission.CreateInstantInvite)]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ListInstantInvites()
 		{
 			//Format the description
@@ -539,7 +547,7 @@ namespace Advobot
 		[Alias("dii")]
 		[Usage("deleteinstantinvite [Invite Code]")]
 		[Summary("Deletes the invite with the given code.")]
-		[PermissionRequirements(1U << (int)GuildPermission.CreateInstantInvite)]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
 		public async Task DeleteInstantInvite([Remainder] string input)
 		{
 			//Get the input
@@ -555,6 +563,119 @@ namespace Advobot
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted the invite `{0}`.", invite.Code));
 		}
 
+		[Command("deletemultipleinvites")]
+		[Alias("dmi")]
+		[Usage("deletemultipleinvites [@User|" + Constants.CHANNEL_INSTRUCTIONS + "|Uses:Number|Expires:Number]")]
+		[Summary("Deletes all invites satisfying the given condition of either user, creation channel, uses, or expiry time.")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		public async Task DeleteMultipleInvites([Remainder] string input)
+		{
+			//Set the action telling what variable
+			DeleteInvAction? action = null;
+
+			//Check if user
+			IGuildUser user = await Actions.getUser(Context.Guild, input);
+			if (user != null)
+			{
+				action = DeleteInvAction.User;
+			}
+
+			//Check if channel
+			IGuildChannel channel = null;
+			if (action == null)
+			{
+				channel = await Actions.getChannelEditAbility(Context, input, true);
+				if (channel != null)
+				{
+					action = DeleteInvAction.Channel;
+				}
+			}
+
+			//Check if uses
+			int uses = 0;
+			if (action == null)
+			{
+				var usesString = Actions.getVariable(input, "uses");
+				if (int.TryParse(usesString, out uses))
+				{
+					action = DeleteInvAction.Uses;
+				}
+			}
+
+			//Check if expiry time
+			int expiry = 0;
+			if (action == null)
+			{
+				var expiryString = Actions.getVariable(input, "expires");
+				if (int.TryParse(expiryString, out expiry))
+				{
+					action = DeleteInvAction.Expiry;
+				}
+			}
+
+			//Have gone through every other check so it's an error at this point
+			if (action == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid target supplied."));
+				return;
+			}
+
+			//Get the guild's invites
+			var guildInvites = await Context.Guild.GetInvitesAsync();
+			//Check if the amount is greater than zero
+			if (!guildInvites.Any())
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no invites."));
+				return;
+			}
+
+			//Make a new list to store the invites that match the conditions in
+			var invites = new List<IInvite>();
+
+			//Follow through with the action
+			switch (action)
+			{
+				case DeleteInvAction.User:
+				{
+					invites.AddRange(guildInvites.Where(x => x.Inviter.Id == user.Id));
+					break;
+				}
+				case DeleteInvAction.Channel:
+				{
+					invites.AddRange(guildInvites.Where(x => x.ChannelId == channel.Id));
+					break;
+				}
+				case DeleteInvAction.Uses:
+				{
+					invites.AddRange(guildInvites.Where(x => x.Uses == uses));
+					break;
+				}
+				case DeleteInvAction.Expiry:
+				{
+					invites.AddRange(guildInvites.Where(x => x.MaxAge == expiry));
+					break;
+				}
+			}
+
+			//Check if any invites were gotten
+			if (!invites.Any())
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No invites satisfied the given condition."));
+				return;
+			}
+
+			//Get the count of how many invites matched the condition
+			var count = invites.Count;
+
+			//Delete the invites
+			invites.ForEach(async x => await x.DeleteAsync());
+
+			//Send a success message
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` instant invites on this server.", count));
+		}
+		#endregion
+
+		#region Very Miscellaneous
 		[Command("mentionrole")]
 		[Alias("mnr")]
 		[Usage("mentionrole [Role]/[Message]")]
@@ -629,7 +750,9 @@ namespace Advobot
 		[BotOwnerRequirement]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			var msg = await Context.Channel.SendMessageAsync("test");
+			await Context.Channel.SendMessageAsync("[test](https://www.google.com)");
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "test", "[test](https://www.google.com)"));
 		}
+		#endregion
 	}
 }

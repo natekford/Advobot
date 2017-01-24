@@ -68,6 +68,7 @@ namespace Advobot
 		public static readonly Discord.Color MEDIT = new Discord.Color(0, 0, 153);
 		public static readonly Discord.Color MDEL = new Discord.Color(204, 0, 0);
 		public static readonly Discord.Color ATTACH = new Discord.Color(0, 204, 204);
+		public static readonly Discord.Color RDEL = new Discord.Color(175, 0, 0);
 	}
 
 	public static class Variables
@@ -125,5 +126,6 @@ namespace Advobot
 		public static List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
 		public static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
 		public static List<Invite> InviteUses = new List<Invite>();
+		public static List<ulong> DeletedRoles = new List<ulong> ();
 	}
 }

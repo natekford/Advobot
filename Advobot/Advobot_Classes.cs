@@ -348,4 +348,12 @@ namespace Advobot
 		public string Code;
 		public int Uses;
 	}
+
+	public enum DeleteInvAction
+	{
+		User = 1,
+		Channel = 2,
+		Uses = 3,
+		Expiry = 4
+	}
 }

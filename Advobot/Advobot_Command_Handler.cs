@@ -11,13 +11,13 @@ namespace Advobot
 		public static DiscordSocketClient Client;
 		public static IDependencyMap Map;
 
-		public async Task Install(IDependencyMap mMap)
+		public async Task Install(IDependencyMap map)
 		{
 			//Create Command Service, inject it into Dependency Map
-			Client = mMap.Get<DiscordSocketClient>();
+			Client = map.Get<DiscordSocketClient>();
 			Commands = new CommandService();
-			mMap.Add(Commands);
-			Map = mMap;
+			map.Add(Commands);
+			Map = map;
 
 			//Necessary for the 'commands' and 'help' commands
 			Actions.loadInformation();

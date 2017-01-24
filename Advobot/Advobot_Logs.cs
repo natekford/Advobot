@@ -33,9 +33,10 @@ namespace Advobot
 
 			if (!Variables.Guilds.Any(x => x.Id == guild.Id))
 			{
-				//Put the guild and its invites in a list
+				//Put the guild into a list
 				Variables.Guilds.Add(guild);
-				var t = Task.Run(async delegate
+				//Put the invites into a list holding mainly for usage checking
+				var t = Task.Run(async () =>
 				{
 					//Get all of the invites and add their guildID, code, and current uses to the usage check list
 					(await guild.GetInvitesAsync()).ToList().ForEach(x => Variables.InviteUses.Add(new Invite(x.GuildId, x.Code, x.Uses)));
@@ -81,6 +82,54 @@ namespace Advobot
 		public static Task OnJoinedGuild(SocketGuild guild)
 		{
 			Actions.writeLine(String.Format("{0}: Bot joined {1}#{2}.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
+
+			//Check how many bots are in the guild
+			int botCount = 0;
+			guild.Users.ToList().ForEach(x =>
+			{
+				if (x.IsBot)
+				{
+					++botCount;
+				}
+			});
+
+			//Get the number of users in the guild
+			var users = guild.MemberCount;
+			//Determine what percentage of bot users to leave at
+			double percentage;
+			if (users <= 10)
+			{
+				//Allows up to 7 bots
+				percentage = .7;
+			}
+			else if (users <= 25)
+			{
+				//Allows up to 12 bots
+				percentage = .5;
+			}
+			else if (users <= 50)
+			{
+				//Allows up to 17 bots
+				percentage = .3;
+			}
+			else if (users <= 100)
+			{
+				//Allows up to 20 bots
+				percentage = .2;
+			}
+			else
+			{
+				percentage = .1;
+			}
+
+			//Leave the guild
+			var t = Task.Run(async () =>
+			{
+				if (botCount / (users * 1.0) > percentage)
+				{
+					await guild.LeaveAsync();
+				}
+			});
 
 			return Task.CompletedTask;
 		}
@@ -129,10 +178,11 @@ namespace Advobot
 			foreach (var invite in Variables.InviteUses.Where(x => x.GuildID == user.Guild.Id))
 			{
 				//Find the one that had different uses between now and the past
-				if (invites.FirstOrDefault(x => x.Code == invite.Code).Uses != invite.Uses)
+				var matchingInvite = invites.FirstOrDefault(x => x.Code == invite.Code);
+				if (matchingInvite != null && matchingInvite.Uses != invite.Uses)
 				{
 					inv = invite;
-					//Add a number to that invite's uses
+					//Increment that invite's uses
 					++invite.Uses;
 					break;
 				}
@@ -246,8 +296,6 @@ namespace Advobot
 			ITextChannel logChannel = await Actions.logChannelCheck(beforeUser.Guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel == null)
 				return;
-			if (!await Actions.permissionCheck(logChannel))
-				return;
 			++Variables.LoggedUserChanges;
 
 			//Nickname change
@@ -281,19 +329,32 @@ namespace Advobot
 			}
 
 			//Role change
-			List<ulong> firstNotSecond = beforeUser.RoleIds.ToList().Except(afterUser.RoleIds.ToList()).ToList();
-			List<ulong> secondNotFirst = afterUser.RoleIds.ToList().Except(beforeUser.RoleIds.ToList()).ToList();
+			List<ulong> firstNotSecond = beforeUser.RoleIds.Except(afterUser.RoleIds).ToList();
+			List<ulong> secondNotFirst = afterUser.RoleIds.Except(beforeUser.RoleIds).ToList();
 			List<string> rolesChange = new List<string>();
 			if (firstNotSecond.Any())
 			{
-				firstNotSecond.ForEach(x => rolesChange.Add(afterUser.Guild.GetRole(x).Name));
+				firstNotSecond.ForEach(x =>
+				{
+					//TODO: Test to make sure this works
+					//Return to ignore deleted roles
+					if (Variables.DeletedRoles.Contains(x))
+						return;
+					rolesChange.Add(afterUser.Guild.GetRole(x).Name);
+				});
 
 				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Lost:** " + String.Join(", ", rolesChange)), "Role Loss");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 			}
 			else if (secondNotFirst.Any())
 			{
-				secondNotFirst.ForEach(x => rolesChange.Add(afterUser.Guild.GetRole(x).Name));
+				secondNotFirst.ForEach(x =>
+				{
+					//Return to ignore deleted roles
+					if (Variables.DeletedRoles.Contains(x))
+						return;
+					rolesChange.Add(afterUser.Guild.GetRole(x).Name);
+				});
 
 				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Gained:** " + String.Join(", ", rolesChange)), "Role Gain");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
@@ -307,12 +368,10 @@ namespace Advobot
 			//TODO: Make this work somehow
 			if (!beforeUser.Username.Equals(afterUser.Username, StringComparison.OrdinalIgnoreCase))
 			{
-				foreach (var guild in CommandHandler.Client.Guilds.ToList().Where(x => x.Users.Contains(afterUser)).ToList())
+				foreach (var guild in CommandHandler.Client.Guilds.Where(x => x.Users.Contains(afterUser)))
 				{
 					ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 					if (logChannel == null)
-						return;
-					if (!await Actions.permissionCheck(logChannel))
 						return;
 					++Variables.LoggedUserChanges;
 
@@ -330,11 +389,8 @@ namespace Advobot
 			//If bot then ignore
 			if (afterMessage.Author.IsBot)
 				return;
-			//If DM then ignore
-			if (afterMessage.Channel as IGuildChannel == null)
-				return;
 			//Check if the guild exists
-			IGuild guild = (afterMessage.Channel as IGuildChannel).Guild;
+			IGuild guild = (afterMessage.Channel as IGuildChannel)?.Guild;
 			if (guild == null)
 				return;
 			//Check if any banned phrases
@@ -396,10 +452,10 @@ namespace Advobot
 		public static async Task OnMessageDeleted(ulong messageID, Optional<SocketMessage> message)
 		{
 			//If DM or just unable to be gotten then ignore
-			if (!message.IsSpecified || message.Value.Channel as IGuildChannel == null)
+			if (!message.IsSpecified)
 				return;
 			//Check if guild exists
-			IGuild guild = (message.Value.Channel as IGuildChannel).Guild;
+			IGuild guild = (message.Value.Channel as IGuildChannel)?.Guild;
 			if (guild == null)
 				return;
 			//Check if valid log channel
@@ -430,7 +486,7 @@ namespace Advobot
 			Variables.CancelTokens[guild.Id] = cancelToken;
 
 			//Make a separate task in order to not mess up the other commands
-			var t = Task.Run(async delegate
+			var t = Task.Run(async () =>
 			{
 				try
 				{
@@ -552,6 +608,7 @@ namespace Advobot
 			//If bot then ignore
 			if (message.Author.IsBot)
 				return;
+
 			//If DM then ignore for the most part
 			if (message.Channel as IGuildChannel == null)
 			{
@@ -563,6 +620,7 @@ namespace Advobot
 					{
 						Properties.Settings.Default.BotOwner = message.Author.Id;
 						Properties.Settings.Default.Save();
+						Variables.PotentialBotOwners.Clear();
 						await Actions.sendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
 					}
 					else
@@ -622,6 +680,21 @@ namespace Advobot
 			{
 				await Actions.imageLog(logChannel, message, true);
 			}
+		}
+
+		//Add all roles that are deleted to a list to check against later
+		public static async Task OnRoleDeleted(SocketRole role)
+		{
+			Variables.DeletedRoles.Add(role.Id);
+
+			ITextChannel logChannel = await Actions.logChannelCheck(role.Guild, Constants.SERVER_LOG_CHECK_STRING);
+			if (logChannel == null)
+				return;
+			if (!await Actions.permissionCheck(logChannel))
+				return;
+
+			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.RDEL, null, String.Format("**ID:** {0}", role.Id)), "Role Delete");
+			await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}", role.Name)));
 		}
 
 		//Make sure no duplicate bot channels are made

@@ -17,9 +17,11 @@ using System.Text.RegularExpressions;
 
 namespace Advobot
 {
+	//Moderation commands are commands that directly affect the guild or its users and are said by users
 	[Name("Moderation")]
 	public class Moderation_Commands : ModuleBase
 	{
+		#region Users
 		[Command("fullmute")]
 		[Alias("fm")]
 		[Usage("fullmute [@User]")]
@@ -104,6 +106,194 @@ namespace Advobot
 			await inputUser.KickAsync();
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully kicked `{0}#{1}` with the ID `{2}`.",
 				inputUser.Username, inputUser.Discriminator, inputUser.Id));
+		}
+
+		[Command("moveuser")]
+		[Alias("mu")]
+		[Usage("moveuser [@User] [Channel]")]
+		[Summary("Moves the user to the given voice channel.")]
+		[PermissionRequirements(1U << (int)GuildPermission.MoveMembers)]
+		public async Task MoveUser([Remainder] string input)
+		{
+			//Input and splitting
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
+
+			//Check if valid user
+			IGuildUser user = await Actions.getUser(Context.Guild, inputArray[0]);
+			if (user == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				return;
+			}
+
+			//Check if user is in a voice channel
+			if (user.VoiceChannel == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is not in a voice channel."));
+				return;
+			}
+
+			//See if the bot can move people from this channel
+			if (await Actions.getChannelEditAbility(user.VoiceChannel, await Context.Guild.GetUserAsync(Variables.Bot_ID)) == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to move this user due to permissions " +
+					"or due to the user being in a voice channel before the bot started up."), 5000);
+				return;
+			}
+			//See if the user can move people from this channel
+			if (await Actions.getChannelEditAbility(user.VoiceChannel, Context.User as IGuildUser) == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to move people from this channel."));
+				return;
+			}
+
+			//Check if valid channel
+			IGuildChannel channel = await Actions.getChannelEditAbility(Context, inputArray[1] + "/voice");
+			if (channel == null)
+				return;
+			else if (Actions.getChannelType(channel) != Constants.VOICE_TYPE)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Users can only be moved to a voice channel."));
+				return;
+			}
+
+			//See if trying to put user in the exact same channel
+			if (user.VoiceChannel == channel)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is already in that channel"));
+				return;
+			}
+
+			await user.ModifyAsync(x => x.Channel = Optional.Create(channel as IVoiceChannel));
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully moved `{0}#{1}` to `{2}`.", user.Username, user.Discriminator, channel.Name), 5000);
+		}
+
+		[Command("mute")]
+		[Alias("m")]
+		[Usage("mute [@User]")]
+		[Summary("If the user is not guild muted, this will mute them. If they are guild muted, this will unmute them.")]
+		[PermissionRequirements(1U << (int)GuildPermission.MuteMembers)]
+		public async Task Mute([Remainder] string input)
+		{
+			//Test if valid user mention
+			IGuildUser user = await Actions.getUser(Context.Guild, input);
+			if (user == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				return;
+			}
+
+			//See if it should mute or unmute
+			if (!user.IsMuted)
+			{
+				await user.ModifyAsync(x => x.Mute = true);
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully guild muted `{0}#{1}`.", user.Username, user.Discriminator));
+				return;
+			}
+			await user.ModifyAsync(x => x.Mute = false);
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the guild mute on `{0}#{1}`.", user.Username, user.Discriminator));
+		}
+
+		[Command("deafen")]
+		[Alias("dfn", "d")]
+		[Usage("deafen [@User]")]
+		[Summary("Bans then unbans a user from the guild.")]
+		[PermissionRequirements(1U << (int)GuildPermission.DeafenMembers)]
+		public async Task Deafen([Remainder] string input)
+		{
+			//Test if valid user mention
+			IGuildUser user = await Actions.getUser(Context.Guild, input);
+			if (user == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				return;
+			}
+
+			//See if it should deafen or undeafen
+			if (!user.IsDeafened)
+			{
+				await user.ModifyAsync(x => x.Deaf = true);
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully server deafened `{0}#{1}`.", user.Username, user.Discriminator));
+				return;
+			}
+			await user.ModifyAsync(x => x.Deaf = false);
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the server deafen on `{0}#{1}`.", user.Username, user.Discriminator));
+		}
+
+		[Command("nickname")]
+		[Alias("nn")]
+		[Usage("nickname [@User] [New Nickname|Remove]")]
+		[Summary("Gives the user a nickname.")]
+		[PermissionRequirements(1U << (int)GuildPermission.ManageNicknames)]
+		public async Task Nickname([Remainder] string input)
+		{
+			//Input and splitting
+			string[] inputArray = input.Split(new char[] { ' ' }, 2);
+			string nickname;
+			if (inputArray.Length == 2)
+			{
+				if (inputArray[1].ToLower().Equals("remove"))
+				{
+					nickname = null;
+				}
+				else
+				{
+					nickname = inputArray[1];
+				}
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+
+			//Check if valid length
+			if (nickname != null && nickname.Length > Constants.NICKNAME_MAX_LENGTH)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be longer than 32 characters."));
+				return;
+			}
+			else if (nickname != null && nickname.Length < Constants.NICKNAME_MIN_LENGTH)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be less than 2 characters.."));
+				return;
+			}
+
+			//Make sure it's a mention
+			if (!inputArray[0].StartsWith("<@"))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please mention a user."));
+				return;
+			}
+
+			//Check if valid user
+			IGuildUser user = await Actions.getUser(Context.Guild, inputArray[0]);
+			if (user == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				return;
+			}
+
+			//Checks for positions
+			int nicknamePosition = Actions.getPosition(Context.Guild, user);
+			if (nicknamePosition > Actions.getPosition(Context.Guild, Context.User as IGuildUser))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("User cannot be nicknamed by you."));
+				return;
+			}
+			if (nicknamePosition > Actions.getPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID)))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("User cannot be nicknamed by the bot."));
+				return;
+			}
+
+			await user.ModifyAsync(x => x.Nickname = nickname);
+			if (nickname != null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave the nickname `{0}` to `{1}#{2}`.", nickname, user.Username, user.Discriminator));
+				return;
+			}
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Sucessfully removed the nickname from `{0}#{1}`.", user.Username, user.Discriminator));
 		}
 
 		[Command("prunemembers")]
@@ -406,7 +596,9 @@ namespace Advobot
 			//Make and send the embed
 			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Current Bans", description));
 		}
+		#endregion
 
+		#region Messages
 		[Command("removemessages")]
 		[Alias("rm")]
 		[Usage("removemessages <@User> <#Channel> [Number of Messages]")]
@@ -669,7 +861,9 @@ namespace Advobot
 				timeLimit,
 				roleNames.Count == 0 ? "" : String.Format("\nImmune roles: `{0}`.", String.Join("`, `", roleNames))));
 		}
+		#endregion
 
+		#region Roles
 		[Command("giverole")]
 		[Alias("gr")]
 		[Usage("giverole [@User] [Role]/<Role>/...")]
@@ -914,7 +1108,6 @@ namespace Advobot
 				return;
 			}
 
-			//TODO: Fix this
 			//Create a new role with the same attributes (including space) and no perms
 			IRole newRole = await Context.Guild.CreateRoleAsync(inputRole.Name, new GuildPermissions(0), inputRole.Color);
 
@@ -1487,7 +1680,9 @@ namespace Advobot
 				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully made `" + role.Name + "` mentionable.");
 			}
 		}
+		#endregion
 
+		#region Channels
 		[Command("createchannel")]
 		[Alias("cch")]
 		[Usage("createchannel [Name] [Text|Voice]")]
@@ -2317,195 +2512,9 @@ namespace Advobot
 			await (channel as IVoiceChannel).ModifyAsync(x => x.Bitrate = bitRate * 1000);
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}kbps`.", channel.Name, bitRate));
 		}
+		#endregion
 
-		[Command("moveuser")]
-		[Alias("mu")]
-		[Usage("moveuser [@User] [Channel]")]
-		[Summary("Moves the user to the given voice channel.")]
-		[PermissionRequirements(1U << (int)GuildPermission.MoveMembers)]
-		public async Task MoveUser([Remainder] string input)
-		{
-			//Input and splitting
-			string[] inputArray = input.Split(new char[] { ' ' }, 2);
-
-			//Check if valid user
-			IGuildUser user = await Actions.getUser(Context.Guild, inputArray[0]);
-			if (user == null)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
-				return;
-			}
-
-			//Check if user is in a voice channel
-			if (user.VoiceChannel == null)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is not in a voice channel."));
-				return;
-			}
-
-			//See if the bot can move people from this channel
-			if (await Actions.getChannelEditAbility(user.VoiceChannel, await Context.Guild.GetUserAsync(Variables.Bot_ID)) == null)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to move this user due to permissions " +
-					"or due to the user being in a voice channel before the bot started up."), 5000);
-				return;
-			}
-			//See if the user can move people from this channel
-			if (await Actions.getChannelEditAbility(user.VoiceChannel, Context.User as IGuildUser) == null)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to move people from this channel."));
-				return;
-			}
-
-			//Check if valid channel
-			IGuildChannel channel = await Actions.getChannelEditAbility(Context, inputArray[1] + "/voice");
-			if (channel == null)
-				return;
-			else if (Actions.getChannelType(channel) != Constants.VOICE_TYPE)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Users can only be moved to a voice channel."));
-				return;
-			}
-
-			//See if trying to put user in the exact same channel
-			if (user.VoiceChannel == channel)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is already in that channel"));
-				return;
-			}
-
-			await user.ModifyAsync(x => x.Channel = Optional.Create(channel as IVoiceChannel));
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully moved `{0}#{1}` to `{2}`.", user.Username, user.Discriminator, channel.Name), 5000);
-		}
-
-		[Command("mute")]
-		[Alias("m")]
-		[Usage("mute [@User]")]
-		[Summary("If the user is not guild muted, this will mute them. If they are guild muted, this will unmute them.")]
-		[PermissionRequirements(1U << (int)GuildPermission.MuteMembers)]
-		public async Task Mute([Remainder] string input)
-		{
-			//Test if valid user mention
-			IGuildUser user = await Actions.getUser(Context.Guild, input);
-			if (user == null)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
-				return;
-			}
-
-			//See if it should mute or unmute
-			if (!user.IsMuted)
-			{
-				await user.ModifyAsync(x => x.Mute = true);
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully guild muted `{0}#{1}`.", user.Username, user.Discriminator));
-				return;
-			}
-			await user.ModifyAsync(x => x.Mute = false);
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the guild mute on `{0}#{1}`.", user.Username, user.Discriminator));
-		}
-
-		[Command("deafen")]
-		[Alias("dfn", "d")]
-		[Usage("deafen [@User]")]
-		[Summary("Bans then unbans a user from the guild.")]
-		[PermissionRequirements(1U << (int)GuildPermission.DeafenMembers)]
-		public async Task Deafen([Remainder] string input)
-		{
-			//Test if valid user mention
-			IGuildUser user = await Actions.getUser(Context.Guild, input);
-			if (user == null)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
-				return;
-			}
-
-			//See if it should deafen or undeafen
-			if (!user.IsDeafened)
-			{
-				await user.ModifyAsync(x => x.Deaf = true);
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully server deafened `{0}#{1}`.", user.Username, user.Discriminator));
-				return;
-			}
-			await user.ModifyAsync(x => x.Deaf = false);
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the server deafen on `{0}#{1}`.", user.Username, user.Discriminator));
-		}
-
-		[Command("nickname")]
-		[Alias("nn")]
-		[Usage("nickname [@User] [New Nickname|Remove]")]
-		[Summary("Gives the user a nickname.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageNicknames)]
-		public async Task Nickname([Remainder] string input)
-		{
-			//Input and splitting
-			string[] inputArray = input.Split(new char[] { ' ' }, 2);
-			string nickname;
-			if (inputArray.Length == 2)
-			{
-				if (inputArray[1].ToLower().Equals("remove"))
-				{
-					nickname = null;
-				}
-				else
-				{
-					nickname = inputArray[1];
-				}
-			}
-			else
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
-
-			//Check if valid length
-			if (nickname != null && nickname.Length > Constants.NICKNAME_MAX_LENGTH)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be longer than 32 characters."));
-				return;
-			}
-			else if (nickname != null && nickname.Length < Constants.NICKNAME_MIN_LENGTH)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be less than 2 characters.."));
-				return;
-			}
-
-			//Make sure it's a mention
-			if (!inputArray[0].StartsWith("<@"))
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please mention a user."));
-				return;
-			}
-
-			//Check if valid user
-			IGuildUser user = await Actions.getUser(Context.Guild, inputArray[0]);
-			if (user == null)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
-				return;
-			}
-
-			//Checks for positions
-			int nicknamePosition = Actions.getPosition(Context.Guild, user);
-			if (nicknamePosition > Actions.getPosition(Context.Guild, Context.User as IGuildUser))
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("User cannot be nicknamed by you."));
-				return;
-			}
-			if (nicknamePosition > Actions.getPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID)))
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("User cannot be nicknamed by the bot."));
-				return;
-			}
-
-			await user.ModifyAsync(x => x.Nickname = nickname);
-			if (nickname != null)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave the nickname `{0}` to `{1}#{2}`.", nickname, user.Username, user.Discriminator));
-				return;
-			}
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Sucessfully removed the nickname from `{0}#{1}`.", user.Username, user.Discriminator));
-		}
-
+		#region Multiple User Targets
 		[Command("allwithrole")]
 		[Alias("awr")]
 		[Usage("allwithrole <File|Upload> [Role]")]
@@ -2814,7 +2823,9 @@ namespace Advobot
 			//Make and send the embed
 			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, title, description));
 		}
+		#endregion
 
+		#region Guilds
 		[Command("guildname")]
 		[Alias("gn")]
 		[Usage("guildname [New Name]")]
@@ -3005,5 +3016,6 @@ namespace Advobot
 		{
 			await Actions.setPicture(Context, input, false);
 		}
+		#endregion
 	}
 }

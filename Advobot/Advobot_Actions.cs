@@ -520,8 +520,7 @@ namespace Advobot
 		//Get a user
 		public static async Task<IGuildUser> getUser(IGuild guild, string userName)
 		{
-			IGuildUser user = await guild.GetUserAsync(getUlong(userName.Trim(new char[] { '<', '>', '@', '!' })));
-			return user;
+			return await guild.GetUserAsync(getUlong(userName.Trim(new char[] { '<', '>', '@', '!' })));
 		}
 		
 		//Get the input to a ulong
@@ -605,7 +604,7 @@ namespace Advobot
 		}
 		
 		//Get if the user can edit this channel
-		public static async Task<IGuildChannel> getChannelEditAbility(CommandContext context, string input)
+		public static async Task<IGuildChannel> getChannelEditAbility(CommandContext context, string input, bool ignoreErrors = false)
 		{
 			IGuildChannel channel = await getChannel(context, input);
 			if (channel == null)
@@ -614,7 +613,10 @@ namespace Advobot
 			}
 			if (await getChannelEditAbility(channel, await context.Guild.GetUserAsync(context.User.Id)) == null)
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", channel.Name)));
+				if (!ignoreErrors)
+				{
+					await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", channel.Name)));
+				}
 				return null;
 			}
 			return channel;
@@ -822,29 +824,14 @@ namespace Advobot
 		//Get file paths
 		public static string getServerFilePath(ulong serverId, string fileName)
 		{
-			string folder;
-			if (String.IsNullOrWhiteSpace(Properties.Settings.Default.Path))
-			{
-				if (Variables.Windows)
-				{
-					//Get the appdata folder
-					folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				}
-				else
-					return null;
-			}
-			else
-			{
-				folder = Properties.Settings.Default.Path;
-				//If not a valid directory then give null
-				if (!Directory.Exists(folder))
-					return null;
-			}
+			string folder = Properties.Settings.Default.Path;
+			//If not a valid directory then give null
+			if (!Directory.Exists(folder))
+				return null;
 			//Combine the path for the folders
 			string directory = Path.Combine(folder, Constants.SERVER_FOLDER + "_" + Variables.Bot_ID, serverId.ToString());
 			//This string will be similar to C:\Users\User\AppData\Roaming\Discord_Servers_... if on Windows. If not then it can be anything
-			string path = Path.Combine(directory, fileName);
-			return path;
+			return Path.Combine(directory, fileName);
 		}
 		
 		//Get if a channel is a text or voice channel
@@ -872,12 +859,15 @@ namespace Advobot
 			{
 				//Default to 'advobot' if it doesn't exist
 				logChannel = getLogChannel(guild) as ITextChannel;
-				if (logChannel != null)
+				if (logChannel != null && !await permissionCheck(logChannel))
 				{
 					return logChannel;
 				}
 				//If the file and the channel both don't exist then return null
-				return null;
+				else
+				{
+					return null;
+				}
 			}
 			else
 			{
@@ -898,6 +888,8 @@ namespace Advobot
 							else
 							{
 								logChannel = (await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel;
+								if (logChannel != null && !await permissionCheck(logChannel))
+									return null;
 								return logChannel;
 							}
 						}
@@ -1285,7 +1277,14 @@ namespace Advobot
 			//See if the user wants to remove the icon
 			if (input != null && input.ToLower().Equals("remove"))
 			{
-				await context.Guild.ModifyAsync(x => x.Icon = new Image());
+				if (!user)
+				{
+					await context.Guild.ModifyAsync(x => x.Icon = new Image());
+				}
+				else
+				{
+					await context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image());
+				}
 				await sendChannelMessage(context.Channel, String.Format("Successfully removed the {0}'s icon.", user ? "bot" : "guild"));
 				return;
 			}
@@ -2105,6 +2104,111 @@ namespace Advobot
 				//Remove the role
 				await user.RemoveRolesAsync(role);
 			});
+		}
+		#endregion
+
+		#region Settings
+		public static async Task start(DiscordSocketClient client)
+		{
+			//Set the path to save stuff to
+			Actions.settingPath();
+			//Set the bot's key
+			await Actions.settingBotKey(client);
+			//Say what the current bot prefix is in the console
+			Console.WriteLine("The current bot prefix is: " + Properties.Settings.Default.Prefix);
+		}
+
+		public static void settingPath()
+		{
+			//Check if a path is already input
+			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Path))
+				return;
+
+			//Send the initial message
+			Console.WriteLine("Please enter a valid directory path in which to save files (if on Windows you can say 'AppData'):");
+
+			//While loop until a valid directory is given
+			bool success = false;
+			while (!success)
+			{
+				string path = Console.ReadLine().Trim();
+
+				if (Variables.Windows && path.ToLower().Equals("appdata"))
+				{
+					path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+				}
+
+				if (!Directory.Exists(path))
+				{
+					Console.WriteLine("Invalid directory. Please enter a valid directory:");
+				}
+				else
+				{
+					Properties.Settings.Default.Path = path;
+					Properties.Settings.Default.Save();
+					success = true;
+				}
+			}
+		}
+
+		public static async Task settingBotKey(DiscordSocketClient client)
+		{
+			//Check if the bot already has a key
+			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.BotKey))
+			{
+				try
+				{
+					await client.LoginAsync(TokenType.Bot, Properties.Settings.Default.BotKey);
+					return;
+				}
+				catch (Exception)
+				{
+					//If the key doesn't work then retry
+					Console.WriteLine("The given key is no longer valid. Please enter a new valid key:");
+					Properties.Settings.Default.BotKey = Console.ReadLine().Trim();
+				}
+			}
+			else
+			{
+				Console.WriteLine("Please enter the bot's key:");
+				Properties.Settings.Default.BotKey = Console.ReadLine().Trim();
+			}
+
+			//Login and connect to Discord.
+			bool success = false;
+			while (!success)
+			{
+				if (Properties.Settings.Default.BotKey.Length > 59)
+				{
+					//If the length isn't the normal length of a key make it retry
+					Console.WriteLine("The given key is too long. Please enter a regular length key:");
+					Properties.Settings.Default.BotKey = Console.ReadLine().Trim();
+				}
+				else if (Properties.Settings.Default.BotKey.Length < 59)
+				{
+					Console.WriteLine("The given key is too short. Please enter a regular length key:");
+					Properties.Settings.Default.BotKey = Console.ReadLine().Trim();
+				}
+				else
+				{
+					try
+					{
+						//Try to login with the given key
+						await client.LoginAsync(TokenType.Bot, Properties.Settings.Default.BotKey);
+
+						//If the key works then save it within the settings
+						Console.WriteLine("Succesfully logged in via the given bot key.");
+						Properties.Settings.Default.Save();
+						success = true;
+					}
+					catch (Exception)
+					{
+						//If the key doesn't work then retry
+						Console.WriteLine("The given key is invalid. Please enter a valid key:");
+						Properties.Settings.Default.BotKey = Console.ReadLine().Trim();
+					}
+				}
+			}
 		}
 		#endregion
 	}
