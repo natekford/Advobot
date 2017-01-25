@@ -184,28 +184,18 @@ namespace Advobot
 			await Actions.sendChannelMessage(Context.Channel, "Successfully cleared all settings. Restarting now...");
 			//Reset the settings
 			Properties.Settings.Default.Reset();
-			//Save the settings
-			Properties.Settings.Default.Save();
 			//Restart the bot
 			//TODO: Learn why this doesn't work in debug but works in release
-			var t = Task.Run(async () =>
+			try
 			{
-				try
-				{
-					//Logout
-					await CommandHandler.Client.LogoutAsync();
-					//Disconnect
-					await CommandHandler.Client.DisconnectAsync();
-					//Create a new instance of the bot
-					System.Windows.Forms.Application.Restart();
-					//Close the old one
-					Environment.Exit(0);
-				}
-				catch (Exception)
-				{
-					Console.WriteLine("Bot is unable to restart.");
-				}
-			});
+				Process.Start(System.Windows.Forms.Application.ExecutablePath);
+				//Close the old one
+				Environment.Exit(0);
+			}
+			catch (Exception)
+			{
+				Console.WriteLine("Bot is unable to restart.");
+			}
 		}
 		#endregion
 
@@ -273,18 +263,6 @@ namespace Advobot
 		{
 			if (Context.User.Id == Properties.Settings.Default.BotOwner || Constants.DISCONNECT)
 			{
-				List<IMessage> msgs = new List<IMessage>();
-				foreach (IGuild guild in Variables.Guilds)
-				{
-					if ((guild as SocketGuild).MemberCount > (Variables.TotalUsers / Variables.TotalGuilds) * .75)
-					{
-						ITextChannel channel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
-						if (null != channel)
-						{
-							msgs.Add(await Actions.sendEmbedMessage(channel, embed: Actions.addFooter(Actions.makeNewEmbed(title: "Bot is disconnecting..."), "Disconnect")));
-						}
-					}
-				}
 				await CommandHandler.Client.SetStatusAsync(UserStatus.Invisible);
 				Environment.Exit(0);
 			}
@@ -554,14 +532,8 @@ namespace Advobot
 			var failure = new List<string>();
 			if (!regexBool)
 			{
-				//Check if there's already a list
-				if (!Variables.BannedPhrases.ContainsKey(Context.Guild.Id))
-				{
-					Variables.BannedPhrases.Add(Context.Guild.Id, new List<string>());
-				}
-
 				//Make a temporary list
-				var phrasesList = Variables.BannedPhrases[Context.Guild.Id];
+				var phrasesList = Variables.Guilds[Context.Guild].BannedPhrases;
 
 				//Add the phrases
 				if (addBool)
@@ -628,9 +600,6 @@ namespace Advobot
 					}
 				}
 
-				//Put the new list back in
-				Variables.BannedPhrases[Context.Guild.Id] = phrasesList;
-
 				//Make the string for saving
 				forSaving = String.Join("/", phrasesList);
 
@@ -639,13 +608,7 @@ namespace Advobot
 			}
 			else
 			{
-				//Same general idea as the one above
-				if (!Variables.BannedRegex.ContainsKey(Context.Guild.Id))
-				{
-					Variables.BannedRegex.Add(Context.Guild.Id, new List<Regex>());
-				}
-
-				var regexList = Variables.BannedRegex[Context.Guild.Id];
+				var regexList = Variables.Guilds[Context.Guild].BannedRegex;
 
 				if (addBool)
 				{
@@ -726,7 +689,6 @@ namespace Advobot
 					}
 				}
 
-				Variables.BannedRegex[Context.Guild.Id] = regexList;
 				forSaving = String.Join("/", regexList);
 				type = Constants.BANNED_REGEX_CHECK_STRING;
 			}
@@ -853,7 +815,7 @@ namespace Advobot
 						}
 						if (line.ToLower().StartsWith(type))
 						{
-							bannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().ToList();
+							bannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
 						}
 					}
 				}
@@ -865,23 +827,21 @@ namespace Advobot
 				//Get the list being used by the bot currently
 				if (!regexBool)
 				{
-					var banned = Variables.BannedPhrases.ContainsKey(Context.Guild.Id) ? Variables.BannedPhrases[Context.Guild.Id] : null;
-					if (banned == null || banned.Count == 0)
+					bannedPhrases = Variables.Guilds[Context.Guild].BannedPhrases;
+					if (bannedPhrases.Count == 0)
 					{
 						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned phrases."));
 						return;
 					}
-					bannedPhrases = Variables.BannedPhrases[Context.Guild.Id];
 				}
 				else
 				{
-					var banned = Variables.BannedRegex.ContainsKey(Context.Guild.Id) ? Variables.BannedRegex[Context.Guild.Id] : null;
-					if (banned == null || banned.Count == 0)
+					bannedPhrases = Variables.Guilds[Context.Guild].BannedRegex.Select(x => x.ToString()).ToList();
+					if (bannedPhrases.Count == 0)
 					{
 						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned regex."));
 						return;
 					}
-					bannedPhrases = Variables.BannedRegex[Context.Guild.Id].Select(x => x.ToString()).ToList();
 				}
 
 				fileBool = false;
@@ -1017,15 +977,7 @@ namespace Advobot
 			newPunishment = addBool ? new BannedPhrasePunishment(number, punishmentType, punishmentRole, time) : null;
 
 			//Get the list of punishments
-			var punishments = new List<BannedPhrasePunishment>();
-			if (Variables.BannedPhrasesPunishments.ContainsKey(Context.Guild.Id))
-			{
-				punishments = Variables.BannedPhrasesPunishments[Context.Guild.Id];
-			}
-			else
-			{
-				Variables.BannedPhrasesPunishments.Add(Context.Guild.Id, punishments);
-			}
+			var punishments = Variables.Guilds[Context.Guild].BannedPhrasesPunishments;
 
 			//Add
 			if (addBool)
@@ -1081,9 +1033,6 @@ namespace Advobot
 					return;
 				}
 			}
-
-			//Add the list back
-			Variables.BannedPhrasesPunishments[Context.Guild.Id] = punishments;
 
 			//Create the string to resave everything with
 			var forSaving = new List<string>();
@@ -1183,7 +1132,7 @@ namespace Advobot
 				}
 
 				//Get the words out of the file
-				var bannedPhrases = new List<string>();
+				var punishments = new List<string>();
 				using (StreamReader file = new StreamReader(path))
 				{
 					string line;
@@ -1196,17 +1145,17 @@ namespace Advobot
 						}
 						if (line.ToLower().StartsWith(Constants.BANNED_PHRASES_PUNISHMENTS))
 						{
-							bannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().ToList();
+							punishments = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
 						}
 					}
 				}
 
-				if (!bannedPhrases.Any())
+				if (!punishments.Any())
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, "There are no punishments on file.");
 					return;
 				}
-				bannedPhrases.ForEach(x =>
+				punishments.ForEach(x =>
 				{
 					//Split the information in the file
 					var args = x.Split(' ');
@@ -1249,12 +1198,13 @@ namespace Advobot
 			}
 			else if (input.ToLower().Equals("actual"))
 			{
-				if (!Variables.BannedPhrasesPunishments.ContainsKey(Context.Guild.Id))
+				var guildPunishments = Variables.Guilds[Context.Guild].BannedPhrasesPunishments;
+				if (!guildPunishments.Any())
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, "This guild has no active punishments");
 					return;
 				}
-				Variables.BannedPhrasesPunishments[Context.Guild.Id].ForEach(x =>
+				guildPunishments.ForEach(x =>
 				{
 					description += String.Format("`{0}.` `{1}`{2}\n",
 						x.Number_Of_Removes.ToString("00"),

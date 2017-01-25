@@ -122,9 +122,9 @@ namespace Advobot
 	//Make the usage attribute
 	public class UsageAttribute : Attribute
 	{
-		public UsageAttribute(string str)
+		public UsageAttribute(string usage)
 		{
-			mUsage = str;
+			mUsage = usage;
 		}
 
 		private string mUsage;
@@ -178,9 +178,9 @@ namespace Advobot
 	//Categories for preferences
 	public class PreferenceCategory
 	{
-		public PreferenceCategory(string mName)
+		public PreferenceCategory(string name)
 		{
-			Name = mName;
+			Name = name;
 		}
 
 		public string Name;
@@ -196,11 +196,17 @@ namespace Advobot
 			mValue = value;
 		}
 
-		public string mName;
+		private string mName;
 		private string mValue;
 
+		//Return the name
+		public string Name
+		{
+			get { return mName; }
+		}
+
 		//Return the value as a boolean
-		public bool asBoolean()
+		public bool valAsBoolean()
 		{
 			string[] trueMatches = { "true", "on", "yes", "1" };
 			//string[] falseMatches = { "false", "off", "no", "0" };
@@ -208,13 +214,13 @@ namespace Advobot
 		}
 
 		//Return the value as a string
-		public string asString()
+		public string valAsString()
 		{
 			return mValue;
 		}
 
 		//Return the value as an int
-		public int asInteger()
+		public int valAsInteger()
 		{
 			int value;
 			if (Int32.TryParse(mValue, out value))
@@ -229,8 +235,8 @@ namespace Advobot
 	{
 		public ChannelAndPosition(IGuildChannel channel, int position)
 		{
-			this.Channel = channel;
-			this.Position = position;
+			Channel = channel;
+			Position = position;
 		}
 
 		public IGuildChannel Channel;
@@ -241,10 +247,10 @@ namespace Advobot
 	{
 		public SlowmodeUser(IGuildUser user = null, int currentMessagesLeft = 1, int baseMessages = 1, int time = 5)
 		{
-			this.User = user;
-			this.CurrentMessagesLeft = currentMessagesLeft;
-			this.BaseMessages = baseMessages;
-			this.Time = time;
+			User = user;
+			CurrentMessagesLeft = currentMessagesLeft;
+			BaseMessages = baseMessages;
+			Time = time;
 		}
 
 		public IGuildUser User;
@@ -257,8 +263,8 @@ namespace Advobot
 	{
 		public SlowmodeChannel(ulong channelID, ulong guildID)
 		{
-			this.ChannelID = channelID;
-			this.GuildID = guildID;
+			ChannelID = channelID;
+			GuildID = guildID;
 		}
 
 		public ulong ChannelID;
@@ -269,10 +275,10 @@ namespace Advobot
 	{
 		public BannedPhrasePunishment(int number, PunishmentType punishment, IRole role = null, int? punishmentTime = null)
 		{
-			this.Number_Of_Removes = number;
-			this.Punishment = punishment;
-			this.Role = role;
-			this.PunishmentTime = punishmentTime;
+			Number_Of_Removes = number;
+			Punishment = punishment;
+			Role = role;
+			PunishmentTime = punishmentTime;
 		}
 
 		public int Number_Of_Removes;
@@ -292,8 +298,8 @@ namespace Advobot
 	{
 		public BannedPhraseUser(IGuildUser user, int amountOfRemovedMessages = 1)
 		{
-			this.User = user;
-			this.AmountOfRemovedMessages = amountOfRemovedMessages;
+			User = user;
+			AmountOfRemovedMessages = amountOfRemovedMessages;
 		}
 
 		public IGuildUser User;
@@ -304,8 +310,8 @@ namespace Advobot
 	{
 		public SelfAssignableRole(IRole role, int group)
 		{
-			this.Role = role;
-			this.Group = group;
+			Role = role;
+			Group = group;
 		}
 
 		public IRole Role;
@@ -316,9 +322,9 @@ namespace Advobot
 	{
 		public SelfAssignableGroup(List<SelfAssignableRole> roles, int group, ulong guildID)
 		{
-			this.Roles = roles;
-			this.Group = group;
-			this.GuildID = guildID;
+			Roles = roles;
+			Group = group;
+			GuildID = guildID;
 		}
 
 		public List<SelfAssignableRole> Roles;
@@ -335,13 +341,13 @@ namespace Advobot
 		Delete = 4
 	}
 
-	public class Invite
+	public class MyInvite
 	{
-		public Invite(ulong guildID, string code, int uses)
+		public MyInvite(ulong guildID, string code, int uses)
 		{
-			this.GuildID = guildID;
-			this.Code = code;
-			this.Uses = uses;
+			GuildID = guildID;
+			Code = code;
+			Uses = uses;
 		}
 
 		public ulong GuildID;
@@ -355,5 +361,13 @@ namespace Advobot
 		Channel = 2,
 		Uses = 3,
 		Expiry = 4
+	}
+
+	public class GuildLoaded
+	{
+		public List<string> BannedPhrases = new List<string>();
+		public List<Regex> BannedRegex = new List<Regex>();
+		public List<BannedPhrasePunishment> BannedPhrasesPunishments =  new List<BannedPhrasePunishment>();
+		public List<MyInvite> Invites;
 	}
 }

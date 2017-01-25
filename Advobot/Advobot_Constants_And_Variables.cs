@@ -110,11 +110,8 @@ namespace Advobot
 		public static Dictionary<ulong, Discord.IUser> UnbannedUsers = new Dictionary<ulong, Discord.IUser>();
 		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeGuilds = new Dictionary<ulong, List<SlowmodeUser>>();
 		public static Dictionary<Discord.IGuildChannel, List<SlowmodeUser>> SlowmodeChannels = new Dictionary<Discord.IGuildChannel, List<SlowmodeUser>>();
-		public static Dictionary<ulong, List<string>> BannedPhrases = new Dictionary<ulong, List<string>>();
-		public static Dictionary<ulong, List<System.Text.RegularExpressions.Regex>> BannedRegex = new Dictionary<ulong, List<System.Text.RegularExpressions.Regex>>();
-		public static Dictionary<ulong, List<BannedPhrasePunishment>> BannedPhrasesPunishments = new Dictionary<ulong, List<BannedPhrasePunishment>>();
+		public static Dictionary<Discord.IGuild, GuildLoaded> Guilds = new Dictionary<Discord.IGuild, GuildLoaded>();
 
-		public static List<Discord.IGuild> Guilds = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsDeletingPreferences = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator = new List<Discord.IGuild>();
@@ -125,7 +122,6 @@ namespace Advobot
 		public static List<BannedPhraseUser> BannedPhraseUserList = new List<BannedPhraseUser>();
 		public static List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
 		public static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
-		public static List<Invite> InviteUses = new List<Invite>();
-		public static List<ulong> DeletedRoles = new List<ulong> ();
+		public static List<ulong> DeletedRoles = new List<ulong>();
 	}
 }

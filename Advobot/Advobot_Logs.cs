@@ -31,15 +31,15 @@ namespace Advobot
 		{
 			Actions.writeLine(String.Format("{0}: {1}#{2} is online now.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
 
-			if (!Variables.Guilds.Any(x => x.Id == guild.Id))
+			if (!Variables.Guilds.ContainsKey(guild))
 			{
 				//Put the guild into a list
-				Variables.Guilds.Add(guild);
+				Variables.Guilds.Add(guild, new GuildLoaded());
 				//Put the invites into a list holding mainly for usage checking
 				var t = Task.Run(async () =>
 				{
 					//Get all of the invites and add their guildID, code, and current uses to the usage check list
-					(await guild.GetInvitesAsync()).ToList().ForEach(x => Variables.InviteUses.Add(new Invite(x.GuildId, x.Code, x.Uses)));
+					Variables.Guilds[guild].Invites = (await guild.GetInvitesAsync()).ToList().Select(x => new MyInvite(x.GuildId, x.Code, x.Uses)).ToList();
 				});
 
 				//Incrementing
@@ -172,19 +172,33 @@ namespace Advobot
 		public static async Task OnUserJoined(SocketGuildUser user)
 		{
 			//Get the current invites
-			var invites = await user.Guild.GetInvitesAsync();
-			//Find which invite the user joined on
-			Invite inv = null;
-			foreach (var invite in Variables.InviteUses.Where(x => x.GuildID == user.Guild.Id))
+			var curInvs = await user.Guild.GetInvitesAsync();
+			//Get the invites that have already been put on the bot
+			var botInvs = Variables.Guilds[user.Guild].Invites;
+			//Set an invite to hold the current invite the user joined on
+			MyInvite curInv = null;
+			if (botInvs != null)
 			{
-				//Find the one that had different uses between now and the past
-				var matchingInvite = invites.FirstOrDefault(x => x.Code == invite.Code);
-				if (matchingInvite != null && matchingInvite.Uses != invite.Uses)
+				//Find the first invite where the bot invite has the same code as the current invite but different use counts
+				curInv = botInvs.FirstOrDefault(bI => curInvs.Any(cI => cI.Code == bI.Code && cI.Uses != bI.Uses));
+
+				//If the invite is null, take that as meaning there are new invites on the server
+				if (curInv == null)
 				{
-					inv = invite;
-					//Increment that invite's uses
-					++invite.Uses;
-					break;
+					//Get the new invites on the server by finding which guild invites aren't on the bot invites list
+					var newInvs = curInvs.Where(x => !botInvs.Select(y => y.Code).Contains(x.Code));
+					//If there's only one, then use that as the current inv. If there's more than one then there's no way to know what invite it was on
+					if (newInvs.Count() == 1)
+					{
+						curInv = new MyInvite(newInvs.First().GuildId, newInvs.First().Code, newInvs.First().Uses);
+					}
+					//Add all of the invites to the bot invites list
+					botInvs.AddRange(newInvs.Select(x => new MyInvite(x.GuildId, x.Code, x.Uses)));
+				}
+				else
+				{
+					//Increment the invite the bot is holding if a curInv was found so as to match with the current invite uses count
+					++curInv.Uses;
 				}
 			}
 
@@ -204,9 +218,9 @@ namespace Advobot
 
 			//Invite string
 			string inviteString = "";
-			if (inv != null)
+			if (curInv != null)
 			{
-				inviteString = String.Format("**Invite:** {0}", inv.Code);
+				inviteString = String.Format("**Invite:** {0}", curInv.Code);
 			}
 
 			if (user.IsBot)
@@ -293,7 +307,10 @@ namespace Advobot
 		//Tell when a user has their name, nickname, or roles changed
 		public static async Task OnGuildMemberUpdated(SocketGuildUser beforeUser, SocketGuildUser afterUser)
 		{
-			ITextChannel logChannel = await Actions.logChannelCheck(beforeUser.Guild, Constants.SERVER_LOG_CHECK_STRING);
+			Console.WriteLine("ONGUILDMEMBERUPDATED: " + DateTime.Now.Millisecond);
+
+			IGuild guild = afterUser.Guild;
+			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel == null)
 				return;
 			++Variables.LoggedUserChanges;
@@ -329,32 +346,45 @@ namespace Advobot
 			}
 
 			//Role change
-			List<ulong> firstNotSecond = beforeUser.RoleIds.Except(afterUser.RoleIds).ToList();
-			List<ulong> secondNotFirst = afterUser.RoleIds.Except(beforeUser.RoleIds).ToList();
+			var firstNotSecond = beforeUser.RoleIds.Except(afterUser.RoleIds).Select(x => guild.GetRole(x)).ToList();
+			var secondNotFirst = afterUser.RoleIds.Except(beforeUser.RoleIds).Select(x => guild.GetRole(x)).ToList();
 			List<string> rolesChange = new List<string>();
 			if (firstNotSecond.Any())
 			{
-				firstNotSecond.ForEach(x =>
+				//In separate task in case of a deleted role
+				var t = Task.Run(async () =>
 				{
-					//TODO: Test to make sure this works
-					//Return to ignore deleted roles
-					if (Variables.DeletedRoles.Contains(x))
-						return;
-					rolesChange.Add(afterUser.Guild.GetRole(x).Name);
-				});
+					int maxUsers = 0;
+					firstNotSecond.ForEach(async x => maxUsers = Math.Max(maxUsers, (await guild.GetUsersAsync()).Where(y => y.RoleIds.Contains(x.Id)).Count()));
 
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Lost:** " + String.Join(", ", rolesChange)), "Role Loss");
-				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
+					await Task.Delay(maxUsers * 2);
+
+					firstNotSecond.ForEach(x =>
+					{
+						//Return to ignore deleted roles
+						if (Variables.DeletedRoles.Contains(x.Id))
+							return;
+						rolesChange.Add(x.Name);
+					});
+
+					//If no roles the return so as to not send a blank message
+					if (!rolesChange.Any())
+						return;
+
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Lost:** " + String.Join(", ", rolesChange)), "Role Loss");
+					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
+				});
 			}
 			else if (secondNotFirst.Any())
 			{
+				//Not necessary to have in a separate task like the method above
 				secondNotFirst.ForEach(x =>
 				{
-					//Return to ignore deleted roles
-					if (Variables.DeletedRoles.Contains(x))
-						return;
-					rolesChange.Add(afterUser.Guild.GetRole(x).Name);
+					rolesChange.Add(x.Name);
 				});
+
+				if (!rolesChange.Any())
+					return;
 
 				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Gained:** " + String.Join(", ", rolesChange)), "Role Gain");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
@@ -643,7 +673,7 @@ namespace Advobot
 				await Actions.slowmode(message);
 			}
 			//Check if any banned phrases
-			else if (Variables.BannedPhrases.ContainsKey(guild.Id) || Variables.BannedRegex.ContainsKey(guild.Id))
+			else if (Variables.Guilds[guild].BannedPhrases.Any() || Variables.Guilds[guild].BannedRegex.Any())
 			{
 				await Actions.bannedPhrases(message);
 			}
@@ -685,6 +715,8 @@ namespace Advobot
 		//Add all roles that are deleted to a list to check against later
 		public static async Task OnRoleDeleted(SocketRole role)
 		{
+			Console.WriteLine("ONROLEDELETED: " + DateTime.Now.Millisecond);
+
 			Variables.DeletedRoles.Add(role.Id);
 
 			ITextChannel logChannel = await Actions.logChannelCheck(role.Guild, Constants.SERVER_LOG_CHECK_STRING);

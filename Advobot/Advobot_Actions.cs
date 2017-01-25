@@ -328,10 +328,9 @@ namespace Advobot
 								bannedPhrases = phrases.Split('/').Where(x => !String.IsNullOrWhiteSpace(x)).Distinct().ToList();
 							}
 						}
-						continue;
 					}
 					//Banned regex
-					if (line.StartsWith(Constants.BANNED_REGEX_CHECK_STRING))
+					else if (line.StartsWith(Constants.BANNED_REGEX_CHECK_STRING))
 					{
 						int index = line.IndexOf(':');
 						if (index >= 0 && index < line.Length - 1)
@@ -342,10 +341,9 @@ namespace Advobot
 								bannedRegex = regex.Split('/').Where(x => !String.IsNullOrWhiteSpace(x)).Distinct().Select(x => new Regex(x)).ToList();
 							}
 						}
-						continue;
 					}
 					//Punishments
-					if (line.StartsWith(Constants.BANNED_PHRASES_PUNISHMENTS))
+					else if (line.StartsWith(Constants.BANNED_PHRASES_PUNISHMENTS))
 					{
 						int index = line.IndexOf(':');
 						if (index >= 0 && index < line.Length - 1)
@@ -387,24 +385,14 @@ namespace Advobot
 								bannedPhrasesPunishments.Add(new BannedPhrasePunishment(number, (PunishmentType)punishment, role, time));
 							});
 						}
-						continue;
 					}
 				}
 			}
 
-			//Add them to the dictionary with the guild
-			if (!Variables.BannedPhrases.ContainsKey(guild.Id) && bannedPhrases.Any())
-			{
-				Variables.BannedPhrases.Add(guild.Id, bannedPhrases);
-			}
-			if (!Variables.BannedRegex.ContainsKey(guild.Id) && bannedRegex.Any())
-			{
-				Variables.BannedRegex.Add(guild.Id, bannedRegex);
-			}
-			if (!Variables.BannedPhrasesPunishments.ContainsKey(guild.Id) && bannedPhrasesPunishments.Any())
-			{
-				Variables.BannedPhrasesPunishments.Add(guild.Id, bannedPhrasesPunishments);
-			}
+			var guildLoaded = Variables.Guilds[guild];
+			guildLoaded.BannedPhrases = bannedPhrases;
+			guildLoaded.BannedRegex = bannedRegex;
+			guildLoaded.BannedPhrasesPunishments = bannedPhrasesPunishments;
 		}
 
 		//Load the self assignable roles
@@ -816,7 +804,7 @@ namespace Advobot
 			List<string> commands = new List<string>();
 			foreach (PreferenceSetting command in categories[number].Settings)
 			{
-				commands.Add(command.mName.ToString());
+				commands.Add(command.Name);
 			}
 			return commands.ToArray();
 		}
@@ -1170,7 +1158,7 @@ namespace Advobot
 		//Send a message with a zero length char at the front
 		public static async Task<IMessage> sendChannelMessage(IMessageChannel channel, string message)
 		{
-			if (channel == null || !Variables.Guilds.Contains((channel as ITextChannel).Guild))
+			if (channel == null || !Variables.Guilds.ContainsKey(((channel as ITextChannel).Guild)))
 				return null;
 
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
@@ -1406,7 +1394,7 @@ namespace Advobot
 		//Send a message with an embedded object
 		public static async Task<IMessage> sendEmbedMessage(IMessageChannel channel, string message, EmbedBuilder embed)
 		{
-			if (channel == null || !Variables.Guilds.Contains((channel as ITextChannel).Guild))
+			if (channel == null || !Variables.Guilds.ContainsKey(((channel as ITextChannel).Guild)))
 				return null;
 
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message, embed: embed);
@@ -1415,7 +1403,7 @@ namespace Advobot
 		//Send an embedded object
 		public static async Task<IMessage> sendEmbedMessage(IMessageChannel channel, EmbedBuilder embed)
 		{
-			if (channel == null || !Variables.Guilds.Contains((channel as ITextChannel).Guild))
+			if (channel == null || !Variables.Guilds.ContainsKey(((channel as ITextChannel).Guild)))
 				return null;
 
 			try
@@ -1743,7 +1731,7 @@ namespace Advobot
 				writer.WriteLine("@" + category.Name);
 				foreach (PreferenceSetting setting in category.Settings)
 				{
-					writer.WriteLine(setting.mName + ":" + setting.asString());
+					writer.WriteLine(setting.Name + ":" + setting.valAsString());
 				}
 				writer.Write("\n");
 			}
@@ -1965,30 +1953,25 @@ namespace Advobot
 		{
 			//Get the guild
 			IGuild guild = (message.Channel as IGuildChannel).Guild;
+			var guildLoaded = Variables.Guilds[guild];
 
 			//Check if it has any banned words
-			if (Variables.BannedPhrases.ContainsKey(guild.Id))
+			foreach (string phrase in guildLoaded.BannedPhrases)
 			{
-				foreach (string phrase in Variables.BannedPhrases[guild.Id])
+				if (message.Content.IndexOf(phrase, StringComparison.OrdinalIgnoreCase) >= 0)
 				{
-					if (message.Content.IndexOf(phrase, StringComparison.OrdinalIgnoreCase) >= 0)
-					{
-						await bannedPhrasesPunishments(message);
-						return;
-					}
+					await bannedPhrasesPunishments(message);
+					return;
 				}
 			}
 			//Check if it has any banned regex
-			if (Variables.BannedRegex.ContainsKey(guild.Id))
+			foreach (var regex in guildLoaded.BannedRegex)
 			{
-				foreach (var regex in Variables.BannedRegex[guild.Id])
+				//See if any matches
+				if (regex.IsMatch(message.Content))
 				{
-					//See if any matches
-					if (regex.IsMatch(message.Content))
-					{
-						await bannedPhrasesPunishments(message);
-						return;
-					}
+					await bannedPhrasesPunishments(message);
+					return;
 				}
 			}
 		}
@@ -2000,7 +1983,7 @@ namespace Advobot
 			await message.DeleteAsync();
 
 			//Check if the guild has any punishments set up
-			if (!Variables.BannedPhrasesPunishments.ContainsKey((message.Channel as IGuildChannel).GuildId))
+			if (!Variables.Guilds.ContainsKey((message.Channel as IGuildChannel).Guild))
 				return;
 
 			//Get the user
@@ -2022,7 +2005,7 @@ namespace Advobot
 			}
 
 			//Get the banned phrases punishments from the guild
-			var punishments = Variables.BannedPhrasesPunishments[(message.Channel as IGuildChannel).GuildId];
+			var punishments = Variables.Guilds[user.Guild].BannedPhrasesPunishments;
 
 			//Check if any punishments have the messages count which the user has
 			if (!punishments.Any(x => x.Number_Of_Removes == bpUser.AmountOfRemovedMessages))
@@ -2128,8 +2111,7 @@ namespace Advobot
 			Console.WriteLine("Please enter a valid directory path in which to save files (if on Windows you can say 'AppData'):");
 
 			//While loop until a valid directory is given
-			bool success = false;
-			while (!success)
+			while (true)
 			{
 				string path = Console.ReadLine().Trim();
 
@@ -2146,7 +2128,7 @@ namespace Advobot
 				{
 					Properties.Settings.Default.Path = path;
 					Properties.Settings.Default.Save();
-					success = true;
+					break;
 				}
 			}
 		}
@@ -2175,8 +2157,7 @@ namespace Advobot
 			}
 
 			//Login and connect to Discord.
-			bool success = false;
-			while (!success)
+			while (true)
 			{
 				if (Properties.Settings.Default.BotKey.Length > 59)
 				{
@@ -2199,7 +2180,7 @@ namespace Advobot
 						//If the key works then save it within the settings
 						Console.WriteLine("Succesfully logged in via the given bot key.");
 						Properties.Settings.Default.Save();
-						success = true;
+						break;
 					}
 					catch (Exception)
 					{
