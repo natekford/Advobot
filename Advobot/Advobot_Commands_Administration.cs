@@ -17,7 +17,7 @@ using System.Text.RegularExpressions;
 
 namespace Advobot
 {
-	//Administration commands are commands that focus more on the bot or bot specific actions than other commands and have an impact on the guild or the bot itself
+	//Administration commands are commands that focus more on the bot or bot specific actions than other commands
 	[Name("Administration")]
 	public class Administration_Commands : ModuleBase
 	{
@@ -30,7 +30,7 @@ namespace Advobot
 		public async Task SetBotOwner([Optional, Remainder] string input)
 		{
 			//Check if it's clear
-			if (input != null && input.ToLower().Equals("clear"))
+			if (input != null && input.Equals("clear", StringComparison.OrdinalIgnoreCase))
 			{
 				//Only let the current bot owner to clear
 				if (Properties.Settings.Default.BotOwner == Context.User.Id)
@@ -69,11 +69,11 @@ namespace Advobot
 			IGuildUser user = await Actions.getBotOwner(Context.Client);
 			if (user != null)
 			{
-				await Actions.sendChannelMessage(Context.Channel, String.Format("The current bot owner is: `{0}#{1} ({2})`", user.Username, user.Discriminator, user.Id));
+				await Actions.sendChannelMessage(Context, String.Format("The current bot owner is: `{0}#{1} ({2})`", user.Username, user.Discriminator, user.Id));
 			}
 			else
 			{
-				await Actions.sendChannelMessage(Context.Channel, "This bot is unowned.");
+				await Actions.sendChannelMessage(Context, "This bot is unowned.");
 			}
 		}
 
@@ -85,7 +85,7 @@ namespace Advobot
 		public async Task SetSavePath([Remainder] string input)
 		{
 			//See if clear
-			if (input.ToLower().Equals("clear"))
+			if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
 			{
 				Properties.Settings.Default.Path = null;
 				Properties.Settings.Default.Save();
@@ -119,7 +119,7 @@ namespace Advobot
 				//If windows then default to appdata
 				if (Variables.Windows)
 				{
-					await Actions.sendChannelMessage(Context.Channel, String.Format("The current save path is: `{0}`.",
+					await Actions.sendChannelMessage(Context, String.Format("The current save path is: `{0}`.",
 						Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.SERVER_FOLDER)));
 				}
 				//If not windows then there's no folder
@@ -130,7 +130,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.sendChannelMessage(Context.Channel, "The current save path is: `" + Properties.Settings.Default.Path + "`.");
+				await Actions.sendChannelMessage(Context, "The current save path is: `" + Properties.Settings.Default.Path + "`.");
 			}
 		}
 
@@ -142,19 +142,19 @@ namespace Advobot
 		public async Task SetPrefix([Remainder] string input)
 		{
 			//Check if to clear
-			if (input.ToLower().Equals("clear"))
+			if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
 			{
 				Properties.Settings.Default.Prefix = Constants.BOT_PREFIX;
 
 				//Send a success message
-				await Actions.sendChannelMessage(Context.Channel, "Successfully reset the bot's prefix to `" + Constants.BOT_PREFIX + "`.");
+				await Actions.sendChannelMessage(Context, "Successfully reset the bot's prefix to `" + Constants.BOT_PREFIX + "`.");
 			}
 			else
 			{
 				Properties.Settings.Default.Prefix = input.Trim();
 
 				//Send a success message
-				await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully changed the bot's prefix to `{0}`.", input));
+				await Actions.sendChannelMessage(Context, String.Format("Successfully changed the bot's prefix to `{0}`.", input));
 			}
 			Properties.Settings.Default.Save();
 		}
@@ -181,11 +181,10 @@ namespace Advobot
 		public async Task ClearAllSettings()
 		{
 			//Send a success message first instead of after due to the bot losing its ability to do so
-			await Actions.sendChannelMessage(Context.Channel, "Successfully cleared all settings. Restarting now...");
+			await Actions.sendChannelMessage(Context, "Successfully cleared all settings. Restarting now...");
 			//Reset the settings
 			Properties.Settings.Default.Reset();
 			//Restart the bot
-			//TODO: Learn why this doesn't work in debug but works in release
 			try
 			{
 				Process.Start(System.Windows.Forms.Application.ExecutablePath);
@@ -196,6 +195,123 @@ namespace Advobot
 			{
 				Console.WriteLine("Bot is unable to restart.");
 			}
+		}
+
+		[Command("switchcommand")]
+		[Alias("scom")]
+		[Usage("switchcommand [Enable|Disable] [Command Name|Category Name]")]
+		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off switchcommand or currentpreferences.")]
+		[GuildOwnerRequirement]
+		public async Task EnableCommand([Remainder] string input)
+		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no command preferences set up."));
+				return;
+			}
+
+			//Split the input
+			var inputArray = input.Split(new char[] { ' ' }, 2);
+			if (inputArray.Length != 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+			//Set the action
+			var action = inputArray[0];
+			//Set input as the second element because I 
+			var inputString = inputArray[1];
+
+			//Set a bool to keep track of the action
+			bool enableBool;
+			if (action.Equals("enable", StringComparison.OrdinalIgnoreCase))
+			{
+				enableBool = true;
+			}
+			else if (action.Equals("disable", StringComparison.OrdinalIgnoreCase))
+			{
+				enableBool = false;
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action."));
+				return;
+			}
+
+			//Get the command
+			var command = Actions.getCommand(Context.Guild.Id, inputString);
+			//Set up a potential list for commands
+			var category = new List<PreferenceSetting>();
+			//Check if it's valid
+			if (command == null)
+			{
+				CommandCategory cmdCat;
+				if (Enum.TryParse(inputString, true, out cmdCat))
+				{
+					category = Actions.getMultipleCommands(Context.Guild.Id, cmdCat);
+				}
+				else
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No command or category has that name."));
+					return;
+				}
+			}
+			//Check if it's already enabled
+			else if (enableBool && command.valAsBoolean)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already enabled."));
+				return;
+			}
+			else if (!enableBool && !command.valAsBoolean)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already disabled."));
+				return;
+			}
+
+			//Add the command to the category list for simpler usage later
+			if (command != null)
+			{
+				category.Add(command);
+			}
+
+			//Find the commands that shouldn't be turned off
+			var categoryToRemove = new List<PreferenceSetting>();
+			foreach (var cmd in category)
+			{
+				if (Constants.COMMANDSUNABLETOBETURNEDOFF.Contains(cmd.Name, StringComparer.OrdinalIgnoreCase))
+				{
+					categoryToRemove.Add(cmd);
+				}
+			}
+			//Remove them
+			category.Except(categoryToRemove);
+
+			//Check if there's still stuff in the list
+			if (category.Count < 1)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please don't try to edit that command."));
+				return;
+			}
+
+			//Actually enabled or disable the commands
+			if (enableBool)
+			{
+				category.ForEach(x => x.enable());
+			}
+			else
+			{
+				category.ForEach(x => x.disable());
+			}
+
+			//Save the preferences
+			Actions.savePreferences(Context.Guild.Id);
+
+			//Send a success message
+			await Actions.sendChannelMessage(Context, String.Format("Successfully {0} the command{1}: `{2}`.", 
+				enableBool ? "enabled" : "disabled",
+				category.Count > 1 ? "s" : "",
+				String.Join("`, `", category.Select(x => x.Name))));
 		}
 		#endregion
 
@@ -225,7 +341,7 @@ namespace Advobot
 			}
 
 			await CommandHandler.Client.SetGameAsync(input);
-			await Actions.sendChannelMessage(Context.Channel, String.Format("Game set to `{0}`.", input));
+			await Actions.sendChannelMessage(Context, String.Format("Game set to `{0}`.", input));
 		}
 
 		[Command("botname")]
@@ -349,13 +465,18 @@ namespace Advobot
 					if (Context.Guild == guild)
 						return;
 
-					await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully left the server `{0}` with an ID `{1}`.", guild.Name, guild.Id));
+					await Actions.sendChannelMessage(Context, String.Format("Successfully left the server `{0}` with an ID `{1}`.", guild.Name, guild.Id));
+				}
+				else
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Only the bot owner can use this command targetting other guilds."));
+					return;
 				}
 			}
 			//No input means to leave the current guild
 			else if (input == null)
 			{
-				await Actions.sendChannelMessage(Context.Channel, "Bye.");
+				await Actions.sendChannelMessage(Context, "Bye.");
 				await Context.Guild.LeaveAsync();
 			}
 			else
@@ -374,7 +495,7 @@ namespace Advobot
 			ITextChannel serverlog = await Actions.setServerOrModLog(Context, input, Constants.SERVER_LOG_CHECK_STRING);
 			if (serverlog != null)
 			{
-				await Actions.sendChannelMessage(Context.Channel, String.Format("Serverlog has been set on channel {0} with the ID `{1}`.", input, serverlog.Id));
+				await Actions.sendChannelMessage(Context, String.Format("Serverlog has been set on channel {0} with the ID `{1}`.", input, serverlog.Id));
 			}
 		}
 
@@ -388,7 +509,7 @@ namespace Advobot
 			ITextChannel modlog = await Actions.setServerOrModLog(Context, input, Constants.MOD_LOG_CHECK_STRING);
 			if (modlog != null)
 			{
-				await Actions.sendChannelMessage(Context.Channel, String.Format("Modlog has been set on channel {0} with the ID `{1}`.", input, modlog.Id));
+				await Actions.sendChannelMessage(Context, String.Format("Modlog has been set on channel {0} with the ID `{1}`.", input, modlog.Id));
 			}
 		}
 
@@ -432,7 +553,7 @@ namespace Advobot
 			}
 
 			//Confirmation of agreement
-			await Actions.sendChannelMessage(Context.Channel, "By turning preferences on you will be enabling the ability to toggle commands, change who can use commands, " +
+			await Actions.sendChannelMessage(Context, "By turning preferences on you will be enabling the ability to toggle commands, change who can use commands, " +
 				"and many more features. This data will be stored in a text file off of the guild, and whoever is hosting the bot will most likely have " +
 				"access to it. A new text channel will be automatically created to display preferences and the server/mod log. If you agree to this, say `Yes`.");
 
@@ -452,7 +573,7 @@ namespace Advobot
 		public async Task DeletePreferences()
 		{
 			//Confirmation of agreement
-			await Actions.sendChannelMessage(Context.Channel, "If you are sure you want to delete your preferences, say `Yes`.");
+			await Actions.sendChannelMessage(Context, "If you are sure you want to delete your preferences, say `Yes`.");
 
 			//Add them to the list for a few seconds
 			Variables.GuildsDeletingPreferences.Add(Context.Guild);
@@ -465,7 +586,7 @@ namespace Advobot
 		[Command("currentpreferences")]
 		[Alias("cprefs")]
 		[Usage("currentpreferences")]
-		[Summary("Gives the file containing the current preferences of the guild.")]
+		[Summary("Sends an embed containing the current preferences of the guild.")]
 		[PermissionRequirements]
 		public async Task CurrentPreferences()
 		{
@@ -488,6 +609,13 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task SetBanPhrases([Remainder] string input)
 		{
+			//Check if they've enabled preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
+				return;
+			}
+
 			//Split the input
 			string[] inputArray = input.Split(new char[] { ' ' }, 3);
 
@@ -520,7 +648,7 @@ namespace Advobot
 
 			//Check if regex or not
 			bool regexBool = false;
-			if (inputArray.Length == 3 && inputArray[2].ToLower().Equals("regex"))
+			if (inputArray.Length == 3 && inputArray[2].Equals("regex", StringComparison.OrdinalIgnoreCase))
 			{
 				regexBool = true;
 			}
@@ -533,7 +661,7 @@ namespace Advobot
 			if (!regexBool)
 			{
 				//Make a temporary list
-				var phrasesList = Variables.Guilds[Context.Guild].BannedPhrases;
+				var phrasesList = Variables.Guilds[Context.Guild.Id].BannedPhrases;
 
 				//Add the phrases
 				if (addBool)
@@ -608,7 +736,7 @@ namespace Advobot
 			}
 			else
 			{
-				var regexList = Variables.Guilds[Context.Guild].BannedRegex;
+				var regexList = Variables.Guilds[Context.Guild.Id].BannedRegex;
 
 				if (addBool)
 				{
@@ -780,14 +908,14 @@ namespace Advobot
 			//Get if regex or normal phrases
 			string type = Constants.BANNED_PHRASES_CHECK_STRING;
 			bool regexBool = false;
-			if (inputArray.Length >= 2 && inputArray[1].ToLower().Equals("regex"))
+			if (inputArray.Length >= 2 && inputArray[1].Equals("regex", StringComparison.OrdinalIgnoreCase))
 			{
 				type = Constants.BANNED_REGEX_CHECK_STRING;
 				regexBool = true;
 			}
 
 			bool fileBool;
-			if (inputArray[0].ToLower().Equals("file"))
+			if (inputArray[0].Equals("file", StringComparison.OrdinalIgnoreCase))
 			{
 				//Check if the file exists
 				string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
@@ -822,12 +950,12 @@ namespace Advobot
 
 				fileBool = true;
 			}
-			else if (inputArray[0].ToLower().Equals("actual"))
+			else if (inputArray[0].Equals("actual", StringComparison.OrdinalIgnoreCase))
 			{
 				//Get the list being used by the bot currently
 				if (!regexBool)
 				{
-					bannedPhrases = Variables.Guilds[Context.Guild].BannedPhrases;
+					bannedPhrases = Variables.Guilds[Context.Guild.Id].BannedPhrases;
 					if (bannedPhrases.Count == 0)
 					{
 						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned phrases."));
@@ -836,7 +964,7 @@ namespace Advobot
 				}
 				else
 				{
-					bannedPhrases = Variables.Guilds[Context.Guild].BannedRegex.Select(x => x.ToString()).ToList();
+					bannedPhrases = Variables.Guilds[Context.Guild.Id].BannedRegex.Select(x => x.ToString()).ToList();
 					if (bannedPhrases.Count == 0)
 					{
 						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned regex."));
@@ -977,7 +1105,7 @@ namespace Advobot
 			newPunishment = addBool ? new BannedPhrasePunishment(number, punishmentType, punishmentRole, time) : null;
 
 			//Get the list of punishments
-			var punishments = Variables.Guilds[Context.Guild].BannedPhrasesPunishments;
+			var punishments = Variables.Guilds[Context.Guild.Id].BannedPhrasesPunishments;
 
 			//Add
 			if (addBool)
@@ -1116,7 +1244,7 @@ namespace Advobot
 		{
 			string description = "";
 			bool fileBool;
-			if (input.ToLower().Equals("file"))
+			if (input.Equals("file", StringComparison.OrdinalIgnoreCase))
 			{
 				//Check if the file exists
 				string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
@@ -1196,9 +1324,9 @@ namespace Advobot
 
 				fileBool = true;
 			}
-			else if (input.ToLower().Equals("actual"))
+			else if (input.Equals("actual", StringComparison.OrdinalIgnoreCase))
 			{
-				var guildPunishments = Variables.Guilds[Context.Guild].BannedPhrasesPunishments;
+				var guildPunishments = Variables.Guilds[Context.Guild.Id].BannedPhrasesPunishments;
 				if (!guildPunishments.Any())
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, "This guild has no active punishments");
@@ -1233,8 +1361,15 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task ModifySelfAssignableRoles([Remainder] string input)
 		{
+			//Check if they've enabled preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
+				return;
+			}
+
 			//Check if it's extra help wanted
-			if (input.ToLower().Equals("help"))
+			if (input.Equals("help", StringComparison.OrdinalIgnoreCase))
 			{
 				//Make the embed
 				var embed = Actions.makeNewEmbed(null, "Self Roles Help", "The general group number is 0; roles added here don't conflict. Roles cannot be added to more than one group.");
@@ -1549,11 +1684,11 @@ namespace Advobot
 			{
 				fileBool = false;
 			}
-			else if (input.ToLower().Equals("file"))
+			else if (input.Equals("file", StringComparison.OrdinalIgnoreCase))
 			{
 				fileBool = true;
 			}
-			else if (input.ToLower().Equals("actual"))
+			else if (input.Equals("actual", StringComparison.OrdinalIgnoreCase))
 			{
 				fileBool = false;
 			}
@@ -1627,15 +1762,15 @@ namespace Advobot
 			string[] inputArray = input.Split(new char[] { ' ' }, 2);
 
 			bool fileBool;
-			if (inputArray[0].ToLower().Equals("file"))
+			if (inputArray[0].Equals("file", StringComparison.OrdinalIgnoreCase))
 			{
 				fileBool = true;
 			}
-			else if (inputArray[0].ToLower().Equals("actual"))
+			else if (inputArray[0].Equals("actual", StringComparison.OrdinalIgnoreCase))
 			{
 				fileBool = false;
 			}
-			else if (inputArray[0].ToLower().StartsWith("group"))
+			else if (inputArray[0].StartsWith("group", StringComparison.OrdinalIgnoreCase))
 			{
 				fileBool = false;
 			}

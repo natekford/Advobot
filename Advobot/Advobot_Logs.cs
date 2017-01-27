@@ -17,6 +17,7 @@ using System.Text.RegularExpressions;
 
 namespace Advobot
 {
+	//Logs are commands which fire on actions. Most of these are solely for logging, but a few are for deleting certain messages.
 	public class BotLogs : ModuleBase
 	{
 		//The console log
@@ -31,15 +32,15 @@ namespace Advobot
 		{
 			Actions.writeLine(String.Format("{0}: {1}#{2} is online now.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
 
-			if (!Variables.Guilds.ContainsKey(guild))
+			if (!Variables.Guilds.ContainsKey(guild.Id))
 			{
 				//Put the guild into a list
-				Variables.Guilds.Add(guild, new GuildLoaded());
+				Variables.Guilds.Add(guild.Id, new MyGuildInfo(guild));
 				//Put the invites into a list holding mainly for usage checking
 				var t = Task.Run(async () =>
 				{
 					//Get all of the invites and add their guildID, code, and current uses to the usage check list
-					Variables.Guilds[guild].Invites = (await guild.GetInvitesAsync()).ToList().Select(x => new MyInvite(x.GuildId, x.Code, x.Uses)).ToList();
+					Variables.Guilds[guild.Id].Invites = (await guild.GetInvitesAsync()).ToList().Select(x => new MyInvite(x.GuildId, x.Code, x.Uses)).ToList();
 				});
 
 				//Incrementing
@@ -73,7 +74,7 @@ namespace Advobot
 			Variables.TotalGuilds--;
 			if (Variables.TotalGuilds < 0)
 				Variables.TotalGuilds = 0;
-			Variables.Guilds.Remove(guild);
+			Variables.Guilds.Remove(guild.Id);
 
 			return Task.CompletedTask;
 		}
@@ -141,7 +142,7 @@ namespace Advobot
 
 			Variables.TotalUsers -= (guild.MemberCount + 1);
 			Variables.TotalGuilds--;
-			Variables.Guilds.Remove(guild);
+			Variables.Guilds.Remove(guild.Id);
 
 			return Task.CompletedTask;
 		}
@@ -174,7 +175,7 @@ namespace Advobot
 			//Get the current invites
 			var curInvs = await user.Guild.GetInvitesAsync();
 			//Get the invites that have already been put on the bot
-			var botInvs = Variables.Guilds[user.Guild].Invites;
+			var botInvs = Variables.Guilds[user.Guild.Id].Invites;
 			//Set an invite to hold the current invite the user joined on
 			MyInvite curInv = null;
 			if (botInvs != null)
@@ -241,7 +242,7 @@ namespace Advobot
 			//Check if the bot was the one that left
 			if (user == user.Guild.GetUser(Variables.Bot_ID))
 			{
-				Variables.Guilds.Remove(user.Guild);
+				Variables.Guilds.Remove(user.Guild.Id);
 				return;
 			}
 
@@ -289,7 +290,7 @@ namespace Advobot
 			//Check if the bot was the one banned
 			if (user == guild.GetUser(Variables.Bot_ID))
 			{
-				Variables.Guilds.Remove(guild);
+				Variables.Guilds.Remove(guild.Id);
 				return;
 			}
 
@@ -307,8 +308,6 @@ namespace Advobot
 		//Tell when a user has their name, nickname, or roles changed
 		public static async Task OnGuildMemberUpdated(SocketGuildUser beforeUser, SocketGuildUser afterUser)
 		{
-			Console.WriteLine("ONGUILDMEMBERUPDATED: " + DateTime.Now.Millisecond);
-
 			IGuild guild = afterUser.Guild;
 			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (logChannel == null)
@@ -354,8 +353,9 @@ namespace Advobot
 				//In separate task in case of a deleted role
 				var t = Task.Run(async () =>
 				{
+					var users = await guild.GetUsersAsync();
 					int maxUsers = 0;
-					firstNotSecond.ForEach(async x => maxUsers = Math.Max(maxUsers, (await guild.GetUsersAsync()).Where(y => y.RoleIds.Contains(x.Id)).Count()));
+					firstNotSecond.ForEach(x => maxUsers = Math.Max(maxUsers, users.Where(y => y.RoleIds.Contains(x.Id)).Count()));
 
 					await Task.Delay(maxUsers * 2);
 
@@ -417,7 +417,7 @@ namespace Advobot
 		public static async Task OnMessageUpdated(Optional<SocketMessage> beforeMessage, SocketMessage afterMessage)
 		{
 			//If bot then ignore
-			if (afterMessage.Author.IsBot)
+			if (afterMessage == null || afterMessage.Author == null || afterMessage.Author.IsBot)
 				return;
 			//Check if the guild exists
 			IGuild guild = (afterMessage.Channel as IGuildChannel)?.Guild;
@@ -558,36 +558,30 @@ namespace Advobot
 					//See if any embeds deleted
 					if (x.Embeds.Any())
 					{
-						//Get the embed
-						Embed embed = x.Embeds.ToList().FirstOrDefault(y => y.Description != null);
+						//Get the first embed with a valid description
+						Embed embed = x.Embeds.FirstOrDefault(desc => desc.Description != null);
+						//If no embed with valid description, try for valid URL
+						embed = embed ?? x.Embeds.FirstOrDefault(url => url.Url != null);
+						//If no valid URL, try for valid image
+						embed = embed ?? x.Embeds.FirstOrDefault(img => img.Image != null);
 
 						if (embed != null)
 						{
-							if (embed.Author != null)
-							{
-								string author = embed.Author.ToString();
-
-								//I don't know how to regex well
-								Regex regex = new Regex("#([0-9]*) in #");
-								string[] authorAndChannel = regex.Split(author);
-
-								deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-									authorAndChannel.Length > 0 ? authorAndChannel[0] : "null",
-									authorAndChannel.Length > 1 ? authorAndChannel[1] : "0000",
-									authorAndChannel.Length > 2 ? authorAndChannel[2] : "null",
-									x.CreatedAt.ToString("HH:mm:ss"),
-									Actions.replaceMessageCharacters(embed.Description)));
-							}
-							else
-							{
-								deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-									x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(embed.Description)));
-							}
+							deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
+								x.Author.Username,
+								x.Author.Discriminator,
+								x.Channel,
+								x.CreatedAt.ToString("HH:mm:ss"),
+								Actions.replaceMessageCharacters(embed.Description)));
 						}
 						else
 						{
 							deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-								x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), "An embed which was unable to be gotten."));
+								x.Author.Username,
+								x.Author.Discriminator,
+								x.Channel,
+								x.CreatedAt.ToString("HH:mm:ss"),
+								"An embed which was unable to be gotten."));
 						}
 					}
 					//See if any attachments were put in
@@ -595,7 +589,10 @@ namespace Advobot
 					{
 						string content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 						deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-							x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"),
+							x.Author.Username,
+							x.Author.Discriminator,
+							x.Channel,
+							x.CreatedAt.ToString("HH:mm:ss"),
 							Actions.replaceMessageCharacters(content + " + " + x.Attachments.ToList().First().Filename)));
 					}
 					//Else add the message in normally
@@ -603,7 +600,11 @@ namespace Advobot
 					{
 						string content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 						deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
-							x.Author.Username, x.Author.Discriminator, x.Channel, x.CreatedAt.ToString("HH:mm:ss"), Actions.replaceMessageCharacters(content)));
+							x.Author.Username,
+							x.Author.Discriminator,
+							x.Channel,
+							x.CreatedAt.ToString("HH:mm:ss"),
+							Actions.replaceMessageCharacters(content)));
 					}
 				});
 
@@ -655,9 +656,9 @@ namespace Advobot
 					}
 					else
 					{
+						Variables.PotentialBotOwners.Remove(message.Author.Id);
 						await Actions.sendDMMessage(message.Channel as IDMChannel, "That is the incorrect key.");
 					}
-					Variables.PotentialBotOwners.Remove(message.Author.Id);
 				}
 				return;
 			}
@@ -673,7 +674,7 @@ namespace Advobot
 				await Actions.slowmode(message);
 			}
 			//Check if any banned phrases
-			else if (Variables.Guilds[guild].BannedPhrases.Any() || Variables.Guilds[guild].BannedRegex.Any())
+			else if (Variables.Guilds[guild.Id].BannedPhrases.Any() || Variables.Guilds[guild.Id].BannedRegex.Any())
 			{
 				await Actions.bannedPhrases(message);
 			}
@@ -682,7 +683,7 @@ namespace Advobot
 			if (message.Author.Id == guild.OwnerId)
 			{
 				//If the message is only 'yes' then check if they're enabling or deleting preferences
-				if (message.Content.ToLower().Equals("yes"))
+				if (message.Content.Equals("yes", StringComparison.OrdinalIgnoreCase))
 				{
 					if (Variables.GuildsEnablingPreferences.Contains(guild))
 					{
@@ -715,8 +716,6 @@ namespace Advobot
 		//Add all roles that are deleted to a list to check against later
 		public static async Task OnRoleDeleted(SocketRole role)
 		{
-			Console.WriteLine("ONROLEDELETED: " + DateTime.Now.Millisecond);
-
 			Variables.DeletedRoles.Add(role.Id);
 
 			ITextChannel logChannel = await Actions.logChannelCheck(role.Guild, Constants.SERVER_LOG_CHECK_STRING);
@@ -726,7 +725,7 @@ namespace Advobot
 				return;
 
 			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.RDEL, null, String.Format("**ID:** {0}", role.Id)), "Role Delete");
-			await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}", role.Name)));
+			await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("Role: {0}", role.Name)));
 		}
 
 		//Make sure no duplicate bot channels are made
@@ -771,7 +770,6 @@ namespace Advobot
 				return;
 			if (!await Actions.permissionCheck(logChannel))
 				return;
-			++Variables.LoggedCommands;
 
 			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(description: context.Message.Content), "Mod Log");
 			Actions.addAuthor(embed, context.User.Username + "#" + context.User.Discriminator + " in #" + context.Channel.Name, context.User.AvatarUrl);

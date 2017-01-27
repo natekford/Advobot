@@ -54,6 +54,7 @@ namespace Advobot
 		public static readonly string[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
 		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
 		public static readonly string[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west" };
+		public static readonly string[] COMMANDSUNABLETOBETURNEDOFF = { "switchcommand", "currentpreferences" };
 
 		public static readonly bool DISCONNECT = false;
 		public static readonly bool NEWEST_DELETED_MESSAGES_AT_TOP = false;
@@ -96,32 +97,30 @@ namespace Advobot
 		public static int LoggedImages = 0;
 		public static int LoggedGifs = 0;
 		public static int LoggedFiles = 0;
-		public static int LoggedCommands = 0;
 
-		public static Dictionary<ulong, List<PreferenceCategory>> CommandPreferences = new Dictionary<ulong, List<PreferenceCategory>>();
-		public static Dictionary<ulong, List<Discord.WebSocket.SocketMessage>> DeletedMessages = new Dictionary<ulong, List<Discord.WebSocket.SocketMessage>>();
-		public static Dictionary<ulong, System.Threading.CancellationTokenSource> CancelTokens = new Dictionary<ulong, System.Threading.CancellationTokenSource>();
-		public static Dictionary<int, string> PermissionNames = new Dictionary<int, string>();
-		public static Dictionary<int, string> ChannelPermissionNames = new Dictionary<int, string>();
 		public static Dictionary<string, int> PermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<string, int> GeneralChannelPermissionValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<string, int> TextChannelPermissionValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<string, int> VoiceChannelPermissionValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+		public static Dictionary<ulong, List<Discord.WebSocket.SocketMessage>> DeletedMessages = new Dictionary<ulong, List<Discord.WebSocket.SocketMessage>>();
+		public static Dictionary<ulong, System.Threading.CancellationTokenSource> CancelTokens = new Dictionary<ulong, System.Threading.CancellationTokenSource>();
 		public static Dictionary<ulong, Discord.IUser> UnbannedUsers = new Dictionary<ulong, Discord.IUser>();
 		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeGuilds = new Dictionary<ulong, List<SlowmodeUser>>();
+		public static Dictionary<int, string> PermissionNames = new Dictionary<int, string>();
+		public static Dictionary<int, string> ChannelPermissionNames = new Dictionary<int, string>();
 		public static Dictionary<Discord.IGuildChannel, List<SlowmodeUser>> SlowmodeChannels = new Dictionary<Discord.IGuildChannel, List<SlowmodeUser>>();
-		public static Dictionary<Discord.IGuild, GuildLoaded> Guilds = new Dictionary<Discord.IGuild, GuildLoaded>();
+		public static Dictionary<ulong, MyGuildInfo> Guilds = new Dictionary<ulong, MyGuildInfo>();
 
-		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();
-		public static List<Discord.IGuild> GuildsDeletingPreferences = new List<Discord.IGuild>();
-		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator = new List<Discord.IGuild>();
 		public static List<string> CommandNames = new List<string>();
 		public static List<string> RegionIDs = new List<string>();
 		public static List<ulong> PotentialBotOwners = new List<ulong>();
+		public static List<ulong> DeletedRoles = new List<ulong>();
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
 		public static List<BannedPhraseUser> BannedPhraseUserList = new List<BannedPhraseUser>();
 		public static List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
 		public static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
-		public static List<ulong> DeletedRoles = new List<ulong>();
+		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();
+		public static List<Discord.IGuild> GuildsDeletingPreferences = new List<Discord.IGuild>();
+		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator = new List<Discord.IGuild>();
 	}
 }

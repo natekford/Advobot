@@ -175,29 +175,21 @@ namespace Advobot
 		private string mText;
 	}
 
-	//Categories for preferences
-	public class PreferenceCategory
-	{
-		public PreferenceCategory(string name)
-		{
-			Name = name;
-		}
-
-		public string Name;
-		public List<PreferenceSetting> Settings = new List<PreferenceSetting>();
-	}
-
 	//Storing the settings for preferences
 	public class PreferenceSetting
 	{
-		public PreferenceSetting(string name, string value)
+		public PreferenceSetting(string name, string value, CommandCategory category = CommandCategory.Miscellaneous, string[] aliases = null)
 		{
 			mName = name;
 			mValue = value;
+			mCategory = category;
+			mAliases = aliases;
 		}
 
 		private string mName;
 		private string mValue;
+		private CommandCategory mCategory;
+		private string[] mAliases;
 
 		//Return the name
 		public string Name
@@ -205,30 +197,78 @@ namespace Advobot
 			get { return mName; }
 		}
 
-		//Return the value as a boolean
-		public bool valAsBoolean()
+		//Return the category
+		public string CategoryName
 		{
-			string[] trueMatches = { "true", "on", "yes", "1" };
-			//string[] falseMatches = { "false", "off", "no", "0" };
-			return trueMatches.Any(x => String.Equals(mValue.Trim(), x, StringComparison.OrdinalIgnoreCase));
+			get { return Enum.GetName(typeof(CommandCategory), (int)mCategory); }
+		}
+
+		//Return the category's value
+		public int CategoryValue
+		{
+			get { return (int)mCategory; }
+		}
+
+		//Return the category's enum
+		public CommandCategory CategoryEnum
+		{
+			get { return mCategory; }
+		}
+
+		//Return the value as a boolean
+		public bool valAsBoolean
+		{
+			get
+			{
+				string[] trueMatches = { "true", "on", "yes", "1" };
+				return trueMatches.Any(x => String.Equals(mValue.Trim(), x, StringComparison.OrdinalIgnoreCase));
+			}
 		}
 
 		//Return the value as a string
-		public string valAsString()
+		public string valAsString
 		{
-			return mValue;
+			get { return mValue.Trim(new char[] { '\n', '\r' }); }
 		}
 
 		//Return the value as an int
-		public int valAsInteger()
+		public int valAsInteger
 		{
-			int value;
-			if (Int32.TryParse(mValue, out value))
+			get
 			{
-				return value;
+				int value;
+				if (Int32.TryParse(mValue, out value))
+				{
+					return value;
+				}
+				return -1;
 			}
-			return -1;
 		}
+
+		//Disable a command
+		public void disable()
+		{
+			mValue = "OFF";
+		}
+
+		//Enable a command
+		public void enable()
+		{
+			mValue = "ON";
+		}
+
+		//Set the aliases
+		public string[] Aliases
+		{
+			get { return mAliases; }
+		}
+	}
+
+	public enum CommandCategory
+	{
+		Administration = 1,
+		Moderation = 2,
+		Miscellaneous = 3
 	}
 
 	public struct ChannelAndPosition
@@ -332,15 +372,16 @@ namespace Advobot
 		public ulong GuildID;
 	}
 
+	//Self Assignable Group Action
 	public enum SAGAction
 	{
-		//Self Assignable Group Action
 		Create = 1,
 		Add = 2,
 		Remove = 3, 
 		Delete = 4
 	}
 
+	//For checking what invite a user joined on
 	public class MyInvite
 	{
 		public MyInvite(ulong guildID, string code, int uses)
@@ -355,6 +396,7 @@ namespace Advobot
 		public int Uses;
 	}
 
+	//For checking what aspect to delete invites based off of
 	public enum DeleteInvAction
 	{
 		User = 1,
@@ -363,11 +405,20 @@ namespace Advobot
 		Expiry = 4
 	}
 
-	public class GuildLoaded
+	//Holds most of the bot side info of a guild
+	public class MyGuildInfo
 	{
+		public MyGuildInfo (IGuild guild)
+		{
+			Guild = guild;
+		}
+
+		public List<PreferenceSetting> CommandSettings = new List<PreferenceSetting>();
+		public List<BannedPhrasePunishment> BannedPhrasesPunishments = new List<BannedPhrasePunishment>();
 		public List<string> BannedPhrases = new List<string>();
 		public List<Regex> BannedRegex = new List<Regex>();
-		public List<BannedPhrasePunishment> BannedPhrasesPunishments =  new List<BannedPhrasePunishment>();
 		public List<MyInvite> Invites;
+		public bool DefaultPrefs;
+		public IGuild Guild;
 	}
 }

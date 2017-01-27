@@ -48,26 +48,9 @@ namespace Advobot
 			//Create a Command Context
 			var context = new CommandContext(Client, message);
 
-			//Check to make sure everything is loaded
-			if (!Variables.Loaded)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(context, Actions.ERROR("Please wait until everything is loaded."));
+			//Check if there is anything preventing the command from going through
+			if (!await Actions.checkIfCommandIsValid(context))
 				return;
-			}
-			//Check if the bot still has admin
-			else if (!(await context.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
-			{
-				//If the server has been told already, ignore future commands fully
-				if (Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator.Contains(context.Guild))
-					return;
-
-				//Tell the guild that the bot needs admin (because I cba to code in checks if the bot has the permissions required for a lot of things)
-				await Actions.sendChannelMessage(context.Channel, "This bot will not function without the `Administrator` permission, sorry.");
-
-				//Add the guild to the list
-				Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator.Add(context.Guild);
-				return;
-			}
 
 			//Execute the Command, store the result
 			var result = await Commands.ExecuteAsync(context, argPos, Map);

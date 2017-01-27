@@ -48,17 +48,6 @@ namespace Advobot
 			//Make sure the bot's key and save path are gotten
 			await Actions.start(client);
 
-			try
-			{
-				await client.ConnectAsync();
-			}
-			catch (Exception)
-			{
-				Actions.writeLine("Client is unable to connect.");
-				Thread.Sleep(15000);
-				Environment.Exit(0);
-			}
-
 			var map = new DependencyMap();
 			map.Add(client);
 

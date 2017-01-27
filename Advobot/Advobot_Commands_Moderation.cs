@@ -232,7 +232,7 @@ namespace Advobot
 			string nickname;
 			if (inputArray.Length == 2)
 			{
-				if (inputArray[1].ToLower().Equals("remove"))
+				if (inputArray[1].Equals("remove", StringComparison.OrdinalIgnoreCase))
 				{
 					nickname = null;
 				}
@@ -328,7 +328,7 @@ namespace Advobot
 					await Context.Guild.PruneUsersAsync(amountOfDays, true), amountOfDays));
 			}
 			//Otherwise test if it's the real deal
-			else if(inputArray[1].ToLower().Equals("real"))
+			else if(inputArray[1].Equals("real", StringComparison.OrdinalIgnoreCase))
 			{
 				await Context.Guild.PruneUsersAsync(amountOfDays);
 			}
@@ -506,7 +506,7 @@ namespace Advobot
 				if (bannedUsersWithSameName.Count > 1)
 				{
 					//Return a message saying if there are multiple users
-					await Actions.sendChannelMessage(Context.Channel, String.Format("The following users have that name: `{0}`.", String.Join("`, `", bannedUsersWithSameName)));
+					await Actions.sendChannelMessage(Context, String.Format("The following users have that name: `{0}`.", String.Join("`, `", bannedUsersWithSameName)));
 					return;
 				}
 				else if (bannedUsersWithSameName.Count == 1)
@@ -589,7 +589,7 @@ namespace Advobot
 			}
 			else if (bans.Count == 0)
 			{
-				await Actions.sendChannelMessage(Context.Channel, "This guild has no bans.");
+				await Actions.sendChannelMessage(Context, "This guild has no bans.");
 				return;
 			}
 
@@ -707,13 +707,13 @@ namespace Advobot
 			}
 
 			//Check if the input starts with 'off'
-			if (inputArray != null && inputArray[0].ToLower().Equals("off"))
+			if (inputArray != null && inputArray[0].Equals("off", StringComparison.OrdinalIgnoreCase))
 			{
 				if (inputArray.Length != 2)
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				}
-				else if (inputArray[1].ToLower().Equals("guild"))
+				else if (inputArray[1].Equals("guild", StringComparison.OrdinalIgnoreCase))
 				{
 					//Remove the guild
 					Variables.SlowmodeGuilds.Remove(Context.Guild.Id);
@@ -721,7 +721,7 @@ namespace Advobot
 					//Send a success message
 					await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the guild.");
 				}
-				else if (inputArray[1].ToLower().Equals("channel"))
+				else if (inputArray[1].Equals("channel", StringComparison.OrdinalIgnoreCase))
 				{
 					//Remove the channel
 					Variables.SlowmodeChannels.Remove(Context.Channel as IGuildChannel);
@@ -729,7 +729,7 @@ namespace Advobot
 					//Send a success message
 					await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the channel.");
 				}
-				else if (inputArray[1].ToLower().Equals("all"))
+				else if (inputArray[1].Equals("all", StringComparison.OrdinalIgnoreCase))
 				{
 					//Remove the guild and every single channel on the guild
 					Variables.SlowmodeGuilds.Remove(Context.Guild.Id);
@@ -1188,7 +1188,7 @@ namespace Advobot
 			int position = 0;
 			if (!int.TryParse(input.Substring(input.LastIndexOf(' ')), out position))
 			{
-				await Actions.sendChannelMessage(Context.Channel, String.Format("The `{0}` role has a position of `{1}`.", role.Name, role.Position));
+				await Actions.sendChannelMessage(Context, String.Format("The `{0}` role has a position of `{1}`.", role.Name, role.Position));
 				return;
 			}
 
@@ -1238,7 +1238,7 @@ namespace Advobot
 			await Context.Guild.ModifyRolesAsync(listOfBulk);
 
 			//Send a message stating what position the channel was sent to
-			await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully gave the `{0}` role the position `{1}`.", role.Name, roles.IndexOf(role)));
+			await Actions.sendChannelMessage(Context, String.Format("Successfully gave the `{0}` role the position `{1}`.", role.Name, roles.IndexOf(role)));
 		}
 
 		[Command("listrolepositions")]
@@ -1805,7 +1805,7 @@ namespace Advobot
 			}
 
 			await channel.ModifyAsync(x => x.Position = highestPosition);
-			await Actions.sendChannelMessage(channel as IMessageChannel,
+			await Actions.sendChannelMessage(channel as ITextChannel,
 				"Successfully softdeleted this channel. Only admins and the owner will be able to read anything on this channel.");
 		}
 
@@ -1849,7 +1849,7 @@ namespace Advobot
 			//Argument count checking
 			if (values.Count() != 2)
 			{
-				await Actions.sendChannelMessage(Context.Channel, String.Format("The `{0} ({1})` channel has a position of `{2}`.",
+				await Actions.sendChannelMessage(Context, String.Format("The `{0} ({1})` channel has a position of `{2}`.",
 					channel.Name, Actions.getChannelType(channel), channel.Position));
 				return;
 			}
@@ -1895,7 +1895,7 @@ namespace Advobot
 			await Context.Guild.ModifyChannelsAsync(listOfBulk as IEnumerable<BulkGuildChannelProperties>);
 
 			//Send a message stating what position the channel was sent to
-			await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully moved `{0} ({1})` to position `{2}`.",
+			await Actions.sendChannelMessage(Context, String.Format("Successfully moved `{0} ({1})` to position `{2}`.",
 				channel.Name, Actions.getChannelType(channel), channelAndPositions.IndexOf(channel)));
 		}
 
@@ -2538,12 +2538,12 @@ namespace Advobot
 			bool textFileBool = false;
 			if (values.Count == 2)
 			{
-				if (values[0].ToLower().Equals("file"))
+				if (values[0].Equals("file", StringComparison.OrdinalIgnoreCase))
 				{
 					textFileBool = true;
 					overwriteBool = true;
 				}
-				else if (values[0].ToLower().Equals("upload"))
+				else if (values[0].Equals("upload", StringComparison.OrdinalIgnoreCase))
 				{
 					overwriteBool = true;
 				}
@@ -2670,7 +2670,7 @@ namespace Advobot
 					await Actions.giveRole(user, roleToGive);
 				}
 
-				await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully gave `{0}` to all users{1} ({2} users).",
+				await Actions.sendChannelMessage(Context, String.Format("Successfully gave `{0}` to all users{1} ({2} users).",
 					roleToGive.Name, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}
 			else if (action.Equals("take"))
@@ -2716,7 +2716,7 @@ namespace Advobot
 					await Actions.takeRole(user, roleToTake);
 				}
 
-				await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully took `{0}` from all users{1} ({2} users).",
+				await Actions.sendChannelMessage(Context, String.Format("Successfully took `{0}` from all users{1} ({2} users).",
 					roleToTake.Name, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}
 			else if (action.Equals("nickname"))
@@ -2769,7 +2769,7 @@ namespace Advobot
 					await user.ModifyAsync(x => x.Nickname = inputNickname);
 				}
 
-				await Actions.sendChannelMessage(Context.Channel, String.Format("Successfully gave the nickname `{0}` to all users{1} ({2} users).",
+				await Actions.sendChannelMessage(Context, String.Format("Successfully gave the nickname `{0}` to all users{1} ({2} users).",
 					inputNickname, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}
 			else
@@ -2860,13 +2860,13 @@ namespace Advobot
 		public async Task ChangeGuildLocation([Remainder] string input)
 		{
 			//Check if a valid region or asking to see the region types
-			if (input.ToLower().Equals("regions"))
+			if (input.Equals("regions", StringComparison.OrdinalIgnoreCase))
 			{
 				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Region IDs", String.Join("\n", Constants.VALIDREGIONIDS)));
 			}
-			else if (input.ToLower().Equals("current"))
+			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
-				await Actions.sendChannelMessage(Context.Channel, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
+				await Actions.sendChannelMessage(Context, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
 			}
 			else if (Constants.VALIDREGIONIDS.Contains(input.ToLower()))
 			{
@@ -2901,7 +2901,7 @@ namespace Advobot
 			}
 
 			//Check if valid action
-			if (inputArray[0].ToLower().Equals("channel"))
+			if (inputArray[0].Equals("channel", StringComparison.OrdinalIgnoreCase))
 			{
 				//Check if valid channel
 				IGuildChannel channel = await Actions.getChannelEditAbility(Context, inputArray[1] + "/voice");
@@ -2920,7 +2920,7 @@ namespace Advobot
 				await Context.Guild.ModifyAsync(x => x.AfkChannelId = channel.Id);
 				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild's AFK channel from `{0}` to `{1}`", bChan, inputArray[1]));
 			}
-			else if (inputArray[0].ToLower().Equals("time"))
+			else if (inputArray[0].Equals("time", StringComparison.OrdinalIgnoreCase))
 			{
 				//Check if valid time
 				int time = 0;
@@ -2958,12 +2958,12 @@ namespace Advobot
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildMsgNotifications([Remainder] string input)
 		{
-			if (input.ToLower().Equals("all messages"))
+			if (input.Equals("all messages", StringComparison.OrdinalIgnoreCase))
 			{
 				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = DefaultMessageNotifications.AllMessages);
 				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully changed the default message notification setting to all messages.");
 			}
-			else if (input.ToLower().Equals("mentions only"))
+			else if (input.Equals("mentions only", StringComparison.OrdinalIgnoreCase))
 			{
 				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = DefaultMessageNotifications.MentionsOnly);
 				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully changed the default message notification setting to mentions only.");

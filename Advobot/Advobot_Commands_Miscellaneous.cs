@@ -52,7 +52,7 @@ namespace Advobot
 			string[] commandParts = input.Split(new char[] { '[' }, 2);
 			if (input.IndexOf('[') == 0)
 			{
-				if (commandParts[1].ToLower().Equals("command"))
+				if (commandParts[1].Equals("command", StringComparison.OrdinalIgnoreCase))
 				{
 					string text = "If you do not know what commands this bot has, type `" + Constants.BOT_PREFIX + "commands` for a list of commands.";
 					await Actions.makeAndDeleteSecondaryMessage(Context, text, 10000);
@@ -160,7 +160,7 @@ namespace Advobot
 		[UserHasAPermission]
 		public async Task ServerID()
 		{
-			await Actions.sendChannelMessage(Context.Channel, String.Format("This guild has the ID `{0}`.", Context.Guild.Id) + " ");
+			await Actions.sendChannelMessage(Context, String.Format("This guild has the ID `{0}`.", Context.Guild.Id) + " ");
 		}
 
 		[Command("channelid")]
@@ -176,7 +176,7 @@ namespace Advobot
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
 				return;
 			}
-			await Actions.sendChannelMessage(Context.Channel, String.Format("The {0} channel `{1}` has the ID `{2}`.", Actions.getChannelType(channel), channel.Name, channel.Id));
+			await Actions.sendChannelMessage(Context, String.Format("The {0} channel `{1}` has the ID `{2}`.", Actions.getChannelType(channel), channel.Name, channel.Id));
 		}
 
 		[Command("roleid")]
@@ -192,7 +192,7 @@ namespace Advobot
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ROLE_ERROR));
 				return;
 			}
-			await Actions.sendChannelMessage(Context.Channel, String.Format("The role `{0}` has the ID `{1}`.", role.Name, role.Id));
+			await Actions.sendChannelMessage(Context, String.Format("The role `{0}` has the ID `{1}`.", role.Name, role.Id));
 		}
 
 		[Command("userid")]
@@ -208,7 +208,7 @@ namespace Advobot
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
-			await Actions.sendChannelMessage(Context.Channel, String.Format("The user `{0}#{1}` has the ID `{2}`.", user.Username, user.Discriminator, user.Id));
+			await Actions.sendChannelMessage(Context, String.Format("The user `{0}#{1}` has the ID `{2}`.", user.Username, user.Discriminator, user.Id));
 		}
 		#endregion
 
@@ -253,8 +253,7 @@ namespace Advobot
 				"Logged deletes: {6}\n" +
 				"Logged images: {7}\n" +
 				"Logged gifs: {8}\n" +
-				"Logged files: {9}\n" +
-				"Logged commands: {10}",
+				"Logged files: {9}\n",
 				Variables.LoggedJoins,
 				Variables.LoggedLeaves,
 				Variables.LoggedBans,
@@ -264,8 +263,7 @@ namespace Advobot
 				Variables.LoggedDeletes,
 				Variables.LoggedImages,
 				Variables.LoggedGifs,
-				Variables.LoggedFiles,
-				Variables.LoggedCommands);
+				Variables.LoggedFiles);
 			Actions.addField(embed, "Logged Actions", firstField);
 
 			//Second field
@@ -277,6 +275,14 @@ namespace Advobot
 				Variables.AttemptedCommands - Variables.FailedCommands,
 				Variables.FailedCommands);
 			Actions.addField(embed, "Commands", secondField);
+
+			//Third field
+			string thirdField = String.Format(
+				"Memory usage: {0:0.00}MB\n" +
+				"Thread count: {1}\n",
+				GC.GetTotalMemory(true) / 1048576.0,
+				Process.GetCurrentProcess().Threads.Count);
+			Actions.addField(embed, "Technical", thirdField);
 
 			//Send the embed
 			await Actions.sendEmbedMessage(Context.Channel, embed);
@@ -419,7 +425,7 @@ namespace Advobot
 		[UserHasAPermission]
 		public async Task CurrentMemberCount()
 		{
-			await Actions.sendChannelMessage(Context.Channel, String.Format("The current member count is `{0}`.", (Context.Guild as SocketGuild).MemberCount));
+			await Actions.sendChannelMessage(Context, String.Format("The current member count is `{0}`.", (Context.Guild as SocketGuild).MemberCount));
 		}
 
 		[Command("userjoinedat")]
@@ -437,7 +443,7 @@ namespace Advobot
 				if (position >= 1 && position < users.Count)
 				{
 					IGuildUser user = users[position - 1];
-					await Actions.sendChannelMessage(Context.Channel, String.Format("`{0}#{1}` was #{2} to join the server on `{3} {4}, {5}` at `{6}`.",
+					await Actions.sendChannelMessage(Context, String.Format("`{0}#{1}` was #{2} to join the server on `{3} {4}, {5}` at `{6}`.",
 						user.Username,
 						user.Discriminator,
 						position,
@@ -462,8 +468,7 @@ namespace Advobot
 		[Command("createinstantinvite")]
 		[Alias("cii")]
 		[Usage("createinstantinvite " + Constants.CHANNEL_INSTRUCTIONS + " [Forever|1800|3600|21600|43200|86400] [Infinite|1|5|10|25|50|100] [True|False]")]
-		[Summary("The first argument is the channel. The second is how long the invite will last for. " +
-			"The third is how many users can use the invite. The fourth is the temporary membership option.")]
+		[Summary("The first argument is the channel. The second is how long the invite will last for. The third is how many users can use the invite. The fourth is the temporary membership option.")]
 		[PermissionRequirements(1U << (int)GuildPermission.CreateInstantInvite)]
 		public async Task CreateInstantInvite([Remainder] string input)
 		{
@@ -505,7 +510,7 @@ namespace Advobot
 
 			//Set tempmembership
 			bool tempMembership = false;
-			if (inputArray[3].ToLower().Equals("true"))
+			if (inputArray[3].Equals("true", StringComparison.OrdinalIgnoreCase))
 			{
 				tempMembership = true;
 			}
@@ -513,7 +518,7 @@ namespace Advobot
 			//Make into valid invite link
 			IInvite inv = await channel.CreateInviteAsync(nullableTime, nullableUsers, tempMembership);
 
-			await Actions.sendChannelMessage(Context.Channel, String.Format("Here is your invite for `{0} ({1})`: {2} \nIt will last for{3}, {4}{5}.",
+			await Actions.sendChannelMessage(Context, String.Format("Here is your invite for `{0} ({1})`: {2} \nIt will last for{3}, {4}{5}.",
 				channel.Name,
 				Actions.getChannelType(channel),
 				inv.Url,
@@ -675,7 +680,7 @@ namespace Advobot
 		}
 		#endregion
 
-		#region Very Miscellaneous
+		#region Miscellaneous
 		[Command("mentionrole")]
 		[Alias("mnr")]
 		[Usage("mentionrole [Role]/[Message]")]
@@ -700,7 +705,7 @@ namespace Advobot
 			//Make the role mentionable
 			await role.ModifyAsync(x => x.Mentionable = true);
 			//Send the message
-			await Actions.sendChannelMessage(Context.Channel, role.Mention + ": " + inputArray[1]);
+			await Actions.sendChannelMessage(Context, role.Mention + ": " + inputArray[1]);
 			//Remove the mentionability
 			await role.ModifyAsync(x => x.Mentionable = false);
 		}
@@ -717,7 +722,7 @@ namespace Advobot
 
 			//Add the emojis to the string
 			int count = 1;
-			if (input.ToLower().Equals("guild"))
+			if (input.Equals("guild", StringComparison.OrdinalIgnoreCase))
 			{
 				//Get all of the guild emojis
 				Context.Guild.Emojis.Where(x => !x.IsManaged).ToList().ForEach(x =>
@@ -725,7 +730,7 @@ namespace Advobot
 					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
 				});
 			}
-			else if (input.ToLower().Equals("global"))
+			else if (input.Equals("global", StringComparison.OrdinalIgnoreCase))
 			{
 				//Get all of the global emojis
 				Context.Guild.Emojis.Where(x => x.IsManaged).ToList().ForEach(x =>
