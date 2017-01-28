@@ -21,7 +21,7 @@ namespace Advobot
 		public const string MUTE_ROLE_NAME = "Muted";
 		public const string SERVER_FOLDER = "Discord_Servers";
 		public const string PREFERENCES_FILE = "CommandPreferences.txt";
-		public const string SERVERLOG_AND_MODLOG = "ServerLogAndModLog.txt";
+		public const string MISCGUILDINFO = "MiscGuildInfo.txt";
 		public const string BANNED_PHRASES = "BannedPhrases.txt";
 		public const string SA_ROLES = "SelfAssignableRoles.txt";
 		public const string SERVER_LOG_CHECK_STRING = "serverlog";
@@ -29,6 +29,7 @@ namespace Advobot
 		public const string BANNED_PHRASES_CHECK_STRING = "bannedphrases";
 		public const string BANNED_REGEX_CHECK_STRING = "bannedregex";
 		public const string BANNED_PHRASES_PUNISHMENTS = "punishments";
+		public const string GUILD_PREFIX = "guildprefix";
 		public const string CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
 		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/Text|Voice]>";
 		public const string VOICE_TYPE = "voice";
@@ -53,23 +54,28 @@ namespace Advobot
 
 		public static readonly string[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
 		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
-		public static readonly string[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west" };
-		public static readonly string[] COMMANDSUNABLETOBETURNEDOFF = { "switchcommand", "currentpreferences" };
+		public static readonly string[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west", "hongkong" };
+		public static readonly string[] COMMANDSUNABLETOBETURNEDOFF = { "switchcommand", "currentpreferences", "help" };
 
 		public static readonly bool DISCONNECT = false;
 		public static readonly bool NEWEST_DELETED_MESSAGES_AT_TOP = false;
 		public static readonly bool TEXT_FILE = false;
 
-		public static readonly Discord.Color BASE = new Discord.Color(255, 100, 0);
-		public static readonly Discord.Color JOIN = new Discord.Color(0, 153, 0);
-		public static readonly Discord.Color LEAVE = new Discord.Color(153, 0, 0);
-		public static readonly Discord.Color UNBAN = new Discord.Color(0, 102, 0);
-		public static readonly Discord.Color BAN = new Discord.Color(102, 0, 0);
-		public static readonly Discord.Color UEDIT = new Discord.Color(255, 215, 0);
-		public static readonly Discord.Color MEDIT = new Discord.Color(0, 0, 153);
-		public static readonly Discord.Color MDEL = new Discord.Color(204, 0, 0);
-		public static readonly Discord.Color ATTACH = new Discord.Color(0, 204, 204);
-		public static readonly Discord.Color RDEL = new Discord.Color(175, 0, 0);
+		public static readonly Discord.Color BASE = new Discord.Color(255, 100, 000);
+		public static readonly Discord.Color JOIN = new Discord.Color(000, 255, 000);
+		public static readonly Discord.Color LEAV = new Discord.Color(255, 000, 000);
+		public static readonly Discord.Color UNBN = new Discord.Color(000, 153, 000);
+		public static readonly Discord.Color BANN = new Discord.Color(153, 000, 000);
+		public static readonly Discord.Color UEDT = new Discord.Color(051, 051, 255);
+		public static readonly Discord.Color ATCH = new Discord.Color(000, 204, 204);
+		public static readonly Discord.Color MEDT = new Discord.Color(000, 000, 255);
+		public static readonly Discord.Color MDEL = new Discord.Color(255, 051, 051);
+		public static readonly Discord.Color RCRE = new Discord.Color(000, 175, 000);
+		public static readonly Discord.Color REDT = new Discord.Color(000, 000, 204);
+		public static readonly Discord.Color RDEL = new Discord.Color(175, 000, 000);
+		public static readonly Discord.Color CCRE = new Discord.Color(000, 204, 000);
+		public static readonly Discord.Color CEDT = new Discord.Color(000, 000, 153);
+		public static readonly Discord.Color CDEL = new Discord.Color(204, 000, 000);
 	}
 
 	public static class Variables

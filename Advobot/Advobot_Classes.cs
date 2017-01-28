@@ -176,9 +176,9 @@ namespace Advobot
 	}
 
 	//Storing the settings for preferences
-	public class PreferenceSetting
+	public class CommandSwitch
 	{
-		public PreferenceSetting(string name, string value, CommandCategory category = CommandCategory.Miscellaneous, string[] aliases = null)
+		public CommandSwitch(string name, string value, CommandCategory category = CommandCategory.Miscellaneous, string[] aliases = null)
 		{
 			mName = name;
 			mValue = value;
@@ -257,7 +257,7 @@ namespace Advobot
 			mValue = "ON";
 		}
 
-		//Set the aliases
+		//Return the aliases
 		public string[] Aliases
 		{
 			get { return mAliases; }
@@ -413,12 +413,13 @@ namespace Advobot
 			Guild = guild;
 		}
 
-		public List<PreferenceSetting> CommandSettings = new List<PreferenceSetting>();
+		public List<CommandSwitch> CommandSettings = new List<CommandSwitch>();
 		public List<BannedPhrasePunishment> BannedPhrasesPunishments = new List<BannedPhrasePunishment>();
 		public List<string> BannedPhrases = new List<string>();
 		public List<Regex> BannedRegex = new List<Regex>();
 		public List<MyInvite> Invites;
 		public bool DefaultPrefs;
 		public IGuild Guild;
+		public string Prefix;
 	}
 }

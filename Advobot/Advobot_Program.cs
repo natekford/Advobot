@@ -24,7 +24,7 @@ namespace Advobot
 				AudioMode = Discord.Audio.AudioMode.Disabled,
 			});
 
-			//Logging
+			//Botlogs
 			client.Log += BotLogs.Log;
 			client.GuildAvailable += BotLogs.OnGuildAvailable;
 			client.GuildUnavailable += BotLogs.OnGuildUnavailable;
@@ -32,18 +32,22 @@ namespace Advobot
 			client.LeftGuild += BotLogs.OnLeftGuild;
 			client.Disconnected += BotLogs.OnDisconnected;
 			client.Connected += BotLogs.OnConnected;
+			//Serverlogs
 			client.UserJoined += ServerLogs.OnUserJoined;
 			client.UserLeft += ServerLogs.OnUserLeft;
-			client.UserBanned += ServerLogs.OnUserBanned;
 			client.UserUnbanned += ServerLogs.OnUserUnbanned;
+			client.UserBanned += ServerLogs.OnUserBanned;
 			client.GuildMemberUpdated += ServerLogs.OnGuildMemberUpdated;
 			client.UserUpdated += ServerLogs.OnUserUpdated;
+			client.MessageReceived += ServerLogs.OnMessageReceived;
 			client.MessageUpdated += ServerLogs.OnMessageUpdated;
 			client.MessageDeleted += ServerLogs.OnMessageDeleted;
-			client.MessageReceived += ServerLogs.OnMessageReceived;
+			client.RoleCreated += ServerLogs.OnRoleCreated;
+			client.RoleUpdated += ServerLogs.OnRoleUpdated;
 			client.RoleDeleted += ServerLogs.OnRoleDeleted;
 			client.ChannelCreated += ServerLogs.OnChannelCreated;
 			client.ChannelUpdated += ServerLogs.OnChannelUpdated;
+			client.ChannelDestroyed += ServerLogs.OnChannelDeleted;
 
 			//Make sure the bot's key and save path are gotten
 			await Actions.start(client);

@@ -95,7 +95,7 @@ namespace Advobot
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				EmbedBuilder embed = Actions.makeNewEmbed(null, "Commands", "Type `" + Constants.BOT_PREFIX + "commands [Category]` for commands from that category.");
-				await Actions.sendEmbedMessage(Context.Channel, Actions.addField(embed, "Categories", "Administration\nModeration\nVotemute\nSlowmode\nBanphrase\nAll"));
+				await Actions.sendEmbedMessage(Context.Channel, Actions.addField(embed, "Categories", "Administration\nModeration\nMiscellaneous\nAll"));
 				return;
 			}
 
@@ -106,28 +106,18 @@ namespace Advobot
 
 			if (section.Equals("administration"))
 			{
-				string[] commands = Actions.getCommands(Context.Guild, 0);
+				string[] commands = Actions.getCommands(Context.Guild, (int)CommandCategory.Administration);
 				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "ADMINISTRATION", String.Join("\n", commands)));
 			}
 			else if (section.Equals("moderation"))
 			{
-				string[] commands = Actions.getCommands(Context.Guild, 1);
+				string[] commands = Actions.getCommands(Context.Guild, (int)CommandCategory.Moderation);
 				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "MODERATION", String.Join("\n", commands)));
 			}
-			else if (section.Equals("votemute"))
+			else if (section.StartsWith("misc"))
 			{
-				string[] commands = Actions.getCommands(Context.Guild, 2);
-				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "VOTEMUTE", String.Join("\n", commands)));
-			}
-			else if (section.Equals("slowmode"))
-			{
-				string[] commands = Actions.getCommands(Context.Guild, 3);
-				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "SLOWMODE", String.Join("\n", commands)));
-			}
-			else if (section.Equals("banphrase"))
-			{
-				string[] commands = Actions.getCommands(Context.Guild, 4);
-				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "BANPHRASE", String.Join("\n", commands)));
+				string[] commands = Actions.getCommands(Context.Guild, (int)CommandCategory.Miscellaneous);
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "MISCELLANEOUS", String.Join("\n", commands)));
 			}
 			else if (section.Equals("all"))
 			{
@@ -755,8 +745,7 @@ namespace Advobot
 		[BotOwnerRequirement]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			await Context.Channel.SendMessageAsync("[test](https://www.google.com)");
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "test", "[test](https://www.google.com)"));
+			await Actions.sendChannelMessage(Context, "test");
 		}
 		#endregion
 	}

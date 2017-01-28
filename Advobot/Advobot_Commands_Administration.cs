@@ -134,13 +134,16 @@ namespace Advobot
 			}
 		}
 
-		[Command("setprefix")]
-		[Alias("sp")]
-		[Usage("setprefix [New Prefix|Clear]")]
+		[Command("setglobalprefix")]
+		[Alias("sglp")]
+		[Usage("setglobalprefix [New Prefix|Clear]")]
 		[Summary("Changes the bot's prefix to the given string.")]
 		[BotOwnerRequirement]
 		public async Task SetPrefix([Remainder] string input)
 		{
+			//Get the old prefix
+			string oldPrefix = Properties.Settings.Default.Prefix;
+
 			//Check if to clear
 			if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
 			{
@@ -156,7 +159,11 @@ namespace Advobot
 				//Send a success message
 				await Actions.sendChannelMessage(Context, String.Format("Successfully changed the bot's prefix to `{0}`.", input));
 			}
+
+			//Save the settings
 			Properties.Settings.Default.Save();
+			//Update the game in case it's still the default
+			await Actions.setGame(oldPrefix);
 		}
 
 		[Command("currentsettings")]
@@ -196,123 +203,6 @@ namespace Advobot
 				Console.WriteLine("Bot is unable to restart.");
 			}
 		}
-
-		[Command("switchcommand")]
-		[Alias("scom")]
-		[Usage("switchcommand [Enable|Disable] [Command Name|Category Name]")]
-		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off switchcommand or currentpreferences.")]
-		[GuildOwnerRequirement]
-		public async Task EnableCommand([Remainder] string input)
-		{
-			//Check if using the default preferences
-			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no command preferences set up."));
-				return;
-			}
-
-			//Split the input
-			var inputArray = input.Split(new char[] { ' ' }, 2);
-			if (inputArray.Length != 2)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
-			//Set the action
-			var action = inputArray[0];
-			//Set input as the second element because I 
-			var inputString = inputArray[1];
-
-			//Set a bool to keep track of the action
-			bool enableBool;
-			if (action.Equals("enable", StringComparison.OrdinalIgnoreCase))
-			{
-				enableBool = true;
-			}
-			else if (action.Equals("disable", StringComparison.OrdinalIgnoreCase))
-			{
-				enableBool = false;
-			}
-			else
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action."));
-				return;
-			}
-
-			//Get the command
-			var command = Actions.getCommand(Context.Guild.Id, inputString);
-			//Set up a potential list for commands
-			var category = new List<PreferenceSetting>();
-			//Check if it's valid
-			if (command == null)
-			{
-				CommandCategory cmdCat;
-				if (Enum.TryParse(inputString, true, out cmdCat))
-				{
-					category = Actions.getMultipleCommands(Context.Guild.Id, cmdCat);
-				}
-				else
-				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No command or category has that name."));
-					return;
-				}
-			}
-			//Check if it's already enabled
-			else if (enableBool && command.valAsBoolean)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already enabled."));
-				return;
-			}
-			else if (!enableBool && !command.valAsBoolean)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already disabled."));
-				return;
-			}
-
-			//Add the command to the category list for simpler usage later
-			if (command != null)
-			{
-				category.Add(command);
-			}
-
-			//Find the commands that shouldn't be turned off
-			var categoryToRemove = new List<PreferenceSetting>();
-			foreach (var cmd in category)
-			{
-				if (Constants.COMMANDSUNABLETOBETURNEDOFF.Contains(cmd.Name, StringComparer.OrdinalIgnoreCase))
-				{
-					categoryToRemove.Add(cmd);
-				}
-			}
-			//Remove them
-			category.Except(categoryToRemove);
-
-			//Check if there's still stuff in the list
-			if (category.Count < 1)
-			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please don't try to edit that command."));
-				return;
-			}
-
-			//Actually enabled or disable the commands
-			if (enableBool)
-			{
-				category.ForEach(x => x.enable());
-			}
-			else
-			{
-				category.ForEach(x => x.disable());
-			}
-
-			//Save the preferences
-			Actions.savePreferences(Context.Guild.Id);
-
-			//Send a success message
-			await Actions.sendChannelMessage(Context, String.Format("Successfully {0} the command{1}: `{2}`.", 
-				enableBool ? "enabled" : "disabled",
-				category.Count > 1 ? "s" : "",
-				String.Join("`, `", category.Select(x => x.Name))));
-		}
 		#endregion
 
 		#region Bot Changes
@@ -342,6 +232,44 @@ namespace Advobot
 
 			await CommandHandler.Client.SetGameAsync(input);
 			await Actions.sendChannelMessage(Context, String.Format("Game set to `{0}`.", input));
+		}
+
+		[Command("botstream")]
+		[Alias("bstr")]
+		[Usage("botstream [Twitch.TV link]")]
+		[Summary("Changes the stream the bot has listed under its name.")]
+		[BotOwnerRequirement]
+		public async Task BotStream([Optional, Remainder] string input)
+		{
+			//If empty string, take that as the notion to turn the stream off
+			if (!String.IsNullOrWhiteSpace(input))
+			{
+				//Check if it's an actual stream
+				if (!input.StartsWith("https://www.twitch.tv/", StringComparison.OrdinalIgnoreCase))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Link must be from Twitch.TV."));
+					return;
+				}
+				else if (input.Substring("https://www.twitch.tv/".Length).Contains('/'))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Link must be to a user's stream."));
+					return;
+				}
+			}
+
+			//Save the stream as a setting
+			Properties.Settings.Default.Stream = input;
+			Properties.Settings.Default.Save();
+
+			//Check if to turn off the streaming
+			var streamType = StreamType.Twitch;
+			if (input == null)
+			{
+				streamType = StreamType.NotStreaming;
+			}
+
+			//Set the stream
+			await CommandHandler.Client.SetGameAsync(Context.Client.CurrentUser.Game.Value.Name, input, streamType);
 		}
 
 		[Command("botname")]
@@ -483,6 +411,189 @@ namespace Advobot
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid server supplied."));
 			}
+		}
+
+		[Command("switchcommand")]
+		[Alias("scom")]
+		[Usage("switchcommand [Enable|Disable] [Command Name|Category Name]")]
+		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `switchcommand`, `currentpreferences`, or `help`.")]
+		[PermissionRequirements]
+		public async Task SwitchCommand([Remainder] string input)
+		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no command preferences set up."));
+				return;
+			}
+
+			//Split the input
+			var inputArray = input.Split(new char[] { ' ' }, 2);
+			if (inputArray.Length != 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+			//Set the action
+			var action = inputArray[0];
+			//Set input as the second element because I 
+			var inputString = inputArray[1];
+
+			//Set a bool to keep track of the action
+			bool enableBool;
+			if (action.Equals("enable", StringComparison.OrdinalIgnoreCase))
+			{
+				enableBool = true;
+			}
+			else if (action.Equals("disable", StringComparison.OrdinalIgnoreCase))
+			{
+				enableBool = false;
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action."));
+				return;
+			}
+
+			//Get the command
+			var command = Actions.getCommand(Context.Guild.Id, inputString);
+			//Set up a potential list for commands
+			var category = new List<CommandSwitch>();
+			//Check if it's valid
+			if (command == null)
+			{
+				CommandCategory cmdCat;
+				if (Enum.TryParse(inputString, true, out cmdCat))
+				{
+					category = Actions.getMultipleCommands(Context.Guild.Id, cmdCat);
+				}
+				else
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No command or category has that name."));
+					return;
+				}
+			}
+			//Check if it's already enabled
+			else if (enableBool && command.valAsBoolean)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already enabled."));
+				return;
+			}
+			else if (!enableBool && !command.valAsBoolean)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already disabled."));
+				return;
+			}
+
+			//Add the command to the category list for simpler usage later
+			if (command != null)
+			{
+				category.Add(command);
+			}
+
+			//Find the commands that shouldn't be turned off
+			var categoryToRemove = new List<CommandSwitch>();
+			foreach (var cmd in category)
+			{
+				if (Constants.COMMANDSUNABLETOBETURNEDOFF.Contains(cmd.Name, StringComparer.OrdinalIgnoreCase))
+				{
+					categoryToRemove.Add(cmd);
+				}
+			}
+			//Remove them
+			category.Except(categoryToRemove);
+
+			//Check if there's still stuff in the list
+			if (category.Count < 1)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please don't try to edit that command."));
+				return;
+			}
+
+			//Actually enabled or disable the commands
+			if (enableBool)
+			{
+				category.ForEach(x => x.enable());
+			}
+			else
+			{
+				category.ForEach(x => x.disable());
+			}
+
+			//Save the preferences
+			Actions.savePreferences(Context.Guild.Id);
+
+			//Send a success message
+			await Actions.sendChannelMessage(Context, String.Format("Successfully {0} the command{1}: `{2}`.",
+				enableBool ? "enabled" : "disabled",
+				category.Count > 1 ? "s" : "",
+				String.Join("`, `", category.Select(x => x.Name))));
+		}
+
+		[Command("setguildprefix")]
+		[Alias("sgp")]
+		[Usage("setguildprefix [New Prefix|Clear]")]
+		[Summary("Makes the guild use the given prefix from now on.")]
+		[PermissionRequirements]
+		public async Task SetGuildPrefix([Remainder] string input)
+		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not preferences set up."));
+				return;
+			}
+
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The prefix has to be *something*."));
+				return;
+			}
+			else if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
+			{
+				Variables.Guilds[Context.Guild.Id].Prefix = null;
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild prefix.");
+				return;
+			}
+			else if (input.Length > 25)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please do not try to make a prefix longer than 25 characters."));
+				return;
+			}
+
+			//Create the file if it doesn't exist
+			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
+			if (!File.Exists(path))
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(path));
+				var newFile = File.Create(path);
+				newFile.Close();
+			}
+
+			//Find the lines that aren't the current prefix line
+			List<string> validLines = new List<string>();
+			using (StreamReader reader = new StreamReader(path))
+			{
+				string line;
+				while ((line = reader.ReadLine()) != null)
+				{
+					if (!line.Contains(Constants.GUILD_PREFIX))
+					{
+						validLines.Add(line);
+					}
+				}
+			}
+
+			//Add all the lines back
+			using (StreamWriter writer = new StreamWriter(path))
+			{
+				writer.WriteLine(Constants.GUILD_PREFIX + ":" + input + "\n" + String.Join("\n", validLines));
+			}
+
+			//Update the guild's prefix
+			Variables.Guilds[Context.Guild.Id].Prefix = input.Trim();
+			//Send a success message
+			await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully set this guild's prefix to: `" + input.Trim() + "`.");
 		}
 
 		[Command("serverlog")]

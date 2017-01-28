@@ -22,8 +22,8 @@ namespace Advobot
 			//Necessary for the 'commands' and 'help' commands
 			Actions.loadInformation();
 
-			//Set the game to the base game
-			await Client.SetGameAsync("type \"" + Properties.Settings.Default.Prefix + "help\" for help.");
+			//Set up the game and/or stream
+			await Actions.setGame();
 
 			await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
 
@@ -39,9 +39,33 @@ namespace Advobot
 
 			//Mark where the prefix ends and the command begins
 			int argPos = 0;
-			//Determine if the message has a valid prefix, adjust argPos 
-			if (!message.HasStringPrefix(Properties.Settings.Default.Prefix, ref argPos))
-				return;
+
+			//Check if should use the global prefix of the guild prefix
+			var channel = message.Channel as Discord.IGuildChannel;
+			if (channel != null)
+			{
+				//Check if the guild is using a guild specific prefix
+				var guildPrefix = Variables.Guilds[channel.GuildId].Prefix;
+				if (!string.IsNullOrWhiteSpace(guildPrefix))
+				{
+					//Determine if the message has a valid prefix, adjust argPos 
+					if (!message.HasStringPrefix(guildPrefix, ref argPos))
+					{
+						//Check if the user says help with the global prefix even though a different prefix is set
+						if (message.Content.StartsWith(Properties.Settings.Default.Prefix + "help"))
+						{
+							await Actions.makeAndDeleteSecondaryMessage(message.Channel, message, "The current prefix for this guild is: `" + guildPrefix + "`.");
+						}
+						return;
+					}
+				}
+				else
+				{
+					//Determine if the message has a valid prefix, adjust argPos 
+					if (!message.HasStringPrefix(Properties.Settings.Default.Prefix, ref argPos))
+						return;
+				}
+			}
 
 			++Variables.AttemptedCommands;
 

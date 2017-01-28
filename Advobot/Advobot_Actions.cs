@@ -201,17 +201,17 @@ namespace Advobot
 		{
 			foreach (var guild in Variables.GuildsToBeLoaded)
 			{
-				//Loading everything
-				Actions.loadPreferences(guild);
-				Actions.loadBannedPhrasesAndPunishments(guild);
-				Actions.loadSelfAssignableRoles(guild);
+				loadPreferences(guild);
+				loadBannedPhrasesAndPunishments(guild);
+				loadSelfAssignableRoles(guild);
+				loadGuildPrefix(guild);
 			}
 		}
 
 		//Load preferences
 		public static void loadPreferences(IGuild guild)
 		{
-			Variables.Guilds[guild.Id].CommandSettings = new List<PreferenceSetting>();
+			Variables.Guilds[guild.Id].CommandSettings = new List<CommandSwitch>();
 
 			//Check if this server has any preferences
 			string path = getServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
@@ -240,8 +240,8 @@ namespace Advobot
 						string[] values = x.Split(new char[] { ':' }, 2);
 						if (values.Length == 2)
 						{
-							var aliases = Variables.HelpList.FirstOrDefault(cmd => cmd.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase)).Aliases;
-							Variables.Guilds[guild.Id].CommandSettings.Add(new PreferenceSetting(values[0].Trim('\n'), values[1].Trim('\n'), commandCategory, aliases));
+							var aliases = Variables.HelpList.FirstOrDefault(cmd => cmd.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase))?.Aliases;
+							Variables.Guilds[guild.Id].CommandSettings.Add(new CommandSwitch(values[0], values[1], commandCategory, aliases));
 						}
 						else
 						{
@@ -278,7 +278,7 @@ namespace Advobot
 							if (values.Length == 2)
 							{
 								var aliases = Variables.HelpList.FirstOrDefault(x => x.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase))?.Aliases;
-								Variables.Guilds[guild.Id].CommandSettings.Add(new PreferenceSetting(values[0].Trim('\n'), values[1].Trim('\n'), commandCategory, aliases));
+								Variables.Guilds[guild.Id].CommandSettings.Add(new CommandSwitch(values[0], values[1], commandCategory, aliases));
 							}
 							else
 							{
@@ -451,6 +451,28 @@ namespace Advobot
 			}
 
 			Variables.Guilds[guild.Id].DefaultPrefs = false;
+		}
+
+		//Load the prefix
+		public static void loadGuildPrefix(IGuild guild)
+		{
+			//Create the file if it doesn't exist
+			string path = getServerFilePath(guild.Id, Constants.MISCGUILDINFO);
+			if (!File.Exists(path))
+				return;
+
+			//Find the prefix line
+			using (StreamReader reader = new StreamReader(path))
+			{
+				string line;
+				while ((line = reader.ReadLine()) != null)
+				{
+					if (line.Contains(Constants.GUILD_PREFIX))
+					{
+						Variables.Guilds[guild.Id].Prefix = line.Substring(line.IndexOf(':') + 1);
+					}
+				}
+			}
 		}
 		#endregion
 
@@ -829,7 +851,7 @@ namespace Advobot
 		//Get what the serverlog is
 		public static async Task<ITextChannel> logChannelCheck(IGuild guild, string serverOrMod)
 		{
-			string path = getServerFilePath(guild.Id, Constants.SERVERLOG_AND_MODLOG);
+			string path = getServerFilePath(guild.Id, Constants.MISCGUILDINFO);
 			ITextChannel logChannel = null;
 			//Check if the file exists
 			if (!File.Exists(path))
@@ -994,7 +1016,7 @@ namespace Advobot
 		}
 
 		//Get a command
-		public static PreferenceSetting getCommand(ulong id, string input)
+		public static CommandSwitch getCommand(ulong id, string input)
 		{
 			return Variables.Guilds[id].CommandSettings.FirstOrDefault(x =>
 			{
@@ -1014,7 +1036,7 @@ namespace Advobot
 		}
 
 		//Get multiple commands
-		public static List<PreferenceSetting> getMultipleCommands(ulong id, CommandCategory category)
+		public static List<CommandSwitch> getMultipleCommands(ulong id, CommandCategory category)
 		{
 			return Variables.Guilds[id].CommandSettings.Where(x => x.CategoryEnum == category).ToList();
 		}
@@ -1487,7 +1509,7 @@ namespace Advobot
 					embed.Build().Fields.ToList().ForEach(x => addField(remadeEmbed, x.Name, x.Value, x.Inline));
 				}
 
-				//Add everything back to the new embed
+				//Add everything else back to the new embed
 				remadeEmbed.Author = embed.Author;
 				remadeEmbed.Color = embed.Color;
 				remadeEmbed.Footer = embed.Footer;
@@ -1495,6 +1517,10 @@ namespace Advobot
 				remadeEmbed.ThumbnailUrl = embed.ThumbnailUrl;
 				remadeEmbed.Timestamp = embed.Timestamp;
 				remadeEmbed.Title = embed.Title;
+			}
+			else
+			{
+				remadeEmbed = embed;
 			}
 
 			try
@@ -1534,7 +1560,7 @@ namespace Advobot
 				{
 					embed.Description = description;
 					//Mobile can only show up to 20 or so lines per embed I think (at least on Android) 
-					if (description.Count(x => x == '\n') >= 20)
+					if (description.Count(x => x == '\n' || x == '\r') >= 20)
 					{
 						embed.Url = uploadToHastebin(replaceMessageCharacters(description));
 					}
@@ -1621,7 +1647,7 @@ namespace Advobot
 		//Check if the bot can type in a logchannel
 		public static async Task<bool> permissionCheck(ITextChannel channel)
 		{
-			IGuildUser bot = await channel.Guild.GetUserAsync(Variables.Bot_ID);
+			var bot = await channel.Guild.GetUserAsync(Variables.Bot_ID);
 
 			//Check if the bot can send messages
 			if (!bot.GetPermissions(channel).SendMessages)
@@ -1672,7 +1698,7 @@ namespace Advobot
 		public static async Task<ITextChannel> setServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, ITextChannel inputChannel, string serverOrMod)
 		{
 			//Create the file if it doesn't exist
-			string path = getServerFilePath(guild.Id, Constants.SERVERLOG_AND_MODLOG);
+			string path = getServerFilePath(guild.Id, Constants.MISCGUILDINFO);
 			if (!File.Exists(path))
 			{
 				Directory.CreateDirectory(Path.GetDirectoryName(path));
@@ -1763,7 +1789,7 @@ namespace Advobot
 				{
 					++Variables.LoggedImages;
 					//Image attachment
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Image", imageURL: URL), "Attached Image");
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATCH, "Image", imageURL: URL), "Attached Image");
 					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
 					await Actions.sendEmbedMessage(channel, embed);
 				}
@@ -1771,7 +1797,7 @@ namespace Advobot
 				{
 					++Variables.LoggedGifs;
 					//Gif attachment
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Gif", imageURL: URL), "Attached Gif");
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATCH, "Gif", imageURL: URL), "Attached Gif");
 					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
 					await Actions.sendEmbedMessage(channel, embed);
 				}
@@ -1779,7 +1805,7 @@ namespace Advobot
 				{
 					++Variables.LoggedFiles;
 					//Random file attachment
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "File"), "Attached File");
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATCH, "File"), "Attached File");
 					Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
 					await Actions.sendEmbedMessage(channel, embed.WithDescription(URL));
 				}
@@ -1788,7 +1814,7 @@ namespace Advobot
 			{
 				++Variables.LoggedImages;
 				//Embed image
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, "Image", imageURL: URL), "Embedded Image");
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATCH, "Image", imageURL: URL), "Embedded Image");
 				Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
 				await Actions.sendEmbedMessage(channel, embed);
 			}
@@ -1798,10 +1824,48 @@ namespace Advobot
 				//Check if video or gif
 				string title = Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url).ToLower()) ? "Gif" : "Video";
 
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATTACH, title, embedObject.Url, embedObject.Thumbnail.Value.Url), "Embedded " + title);
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.ATCH, title, embedObject.Url, embedObject.Thumbnail.Value.Url), "Embedded " + title);
 				Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
 				await Actions.sendEmbedMessage(channel, embed);
 			}
+		}
+
+		//Check if the serverlog exists and if the bot can use it
+		public static async Task<ITextChannel> verifyLogChannel(IGuild guild)
+		{
+			if (guild == null)
+				return null;
+			var logChannel = await logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			if (!await permissionCheck(logChannel))
+				return null;
+			return logChannel;
+		}
+
+		//Check from channel
+		public static async Task<ITextChannel> verifyLogChannel(SocketChannel channel)
+		{
+			var tempChan = channel as IGuildChannel;
+			if (tempChan == null || tempChan.Guild == null)
+				return null;
+			return await verifyLogChannel(tempChan.Guild);
+		}
+
+		//Check from message
+		public static async Task<ITextChannel> verifyLogChannel(SocketMessage message)
+		{
+			var tempMsg = message.Channel as IGuildChannel;
+			if (tempMsg == null || tempMsg.Guild == null)
+				return null;
+			return await verifyLogChannel(tempMsg.Guild);
+		}
+
+		//Check from message
+		public static async Task<ITextChannel> verifyLogChannel(SocketUser user)
+		{
+			var tempUser = user as IGuildUser;
+			if (tempUser == null || tempUser.Guild == null)
+				return null;
+			return await verifyLogChannel(tempUser.Guild);
 		}
 		#endregion
 
@@ -2136,7 +2200,7 @@ namespace Advobot
 				ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 				if (logChannel != null)
 				{
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAVE, description: "**ID:** " + user.Id.ToString()), "Banned Phrases Leave");
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAV, null, "**ID:** " + user.Id.ToString()), "Banned Phrases Leave");
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 				}
 			}
@@ -2154,7 +2218,7 @@ namespace Advobot
 				ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 				if (logChannel != null)
 				{
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.BAN, description: "**ID:** " + user.Id.ToString()), "Banned Phrases Ban");
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.BANN, null, "**ID:** " + user.Id.ToString()), "Banned Phrases Ban");
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 				}
 			}
@@ -2174,7 +2238,7 @@ namespace Advobot
 				ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 				if (logChannel != null)
 				{
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Gained:** " + punishment.Role.Name), "Banned Phrases Role");
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT, null, "**Gained:** " + punishment.Role.Name), "Banned Phrases Role");
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 				}
 			}
@@ -2199,6 +2263,7 @@ namespace Advobot
 		#endregion
 
 		#region Settings
+		//Make sure all the settings are valid at the start
 		public static async Task start(DiscordSocketClient client)
 		{
 			//Set the path to save stuff to
@@ -2218,11 +2283,17 @@ namespace Advobot
 			}
 		}
 
+		//Save the path
 		public static void settingPath()
 		{
 			//Check if a path is already input
 			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Path))
-				return;
+			{
+				if (Directory.Exists(Properties.Settings.Default.Path))
+				{
+					return;
+				}
+			}
 
 			//Send the initial message
 			Console.WriteLine("Please enter a valid directory path in which to save files (if on Windows you can say 'AppData'):");
@@ -2250,6 +2321,7 @@ namespace Advobot
 			}
 		}
 
+		//Save the bot key
 		public static async Task settingBotKey(DiscordSocketClient client)
 		{
 			//Check if the bot already has a key
@@ -2306,6 +2378,34 @@ namespace Advobot
 						Properties.Settings.Default.BotKey = Console.ReadLine().Trim();
 					}
 				}
+			}
+		}
+
+		//Set the game at start and whenever the prefix is changed
+		public static async Task setGame(string prefix = null)
+		{
+			//Get the game
+			string game = CommandHandler.Client.CurrentUser.Game.HasValue ? CommandHandler.Client.CurrentUser.Game.Value.Name : "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
+
+			//Set the game to the default one if there's no valid one
+			if (String.IsNullOrWhiteSpace(game))
+			{
+				game = "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
+			}
+			//Check if they're still using the default game
+			else if (prefix != null && game.Equals("type \"" + prefix + "help\" for help.", StringComparison.OrdinalIgnoreCase))
+			{
+				game = "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
+			}
+
+			//Check if there's a stream to set
+			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Stream))
+			{
+				await CommandHandler.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.Twitch);
+			}
+			else
+			{
+				await CommandHandler.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.NotStreaming);
 			}
 		}
 		#endregion

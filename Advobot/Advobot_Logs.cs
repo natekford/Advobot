@@ -20,14 +20,12 @@ namespace Advobot
 	//Logs are commands which fire on actions. Most of these are solely for logging, but a few are for deleting certain messages.
 	public class BotLogs : ModuleBase
 	{
-		//The console log
 		public static Task Log(LogMessage msg)
 		{
 			Console.WriteLine(msg.ToString());
 			return Task.CompletedTask;
 		}
 
-		//When the bot turns on and a server shows up
 		public static Task OnGuildAvailable(SocketGuild guild)
 		{
 			Actions.writeLine(String.Format("{0}: {1}#{2} is online now.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
@@ -63,7 +61,6 @@ namespace Advobot
 			return Task.CompletedTask;
 		}
 
-		//When a guild becomes unavailable
 		public static Task OnGuildUnavailable(SocketGuild guild)
 		{
 			Actions.writeLine(String.Format("{0}: Guild is down: {1}#{2}.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
@@ -79,7 +76,6 @@ namespace Advobot
 			return Task.CompletedTask;
 		}
 
-		//When the bot joins a server
 		public static Task OnJoinedGuild(SocketGuild guild)
 		{
 			Actions.writeLine(String.Format("{0}: Bot joined {1}#{2}.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
@@ -135,7 +131,6 @@ namespace Advobot
 			return Task.CompletedTask;
 		}
 
-		//When the bot leaves a server
 		public static Task OnLeftGuild(SocketGuild guild)
 		{
 			Actions.writeLine(String.Format("{0}: Bot has left {1}#{2}.", MethodBase.GetCurrentMethod().Name, guild.Name, guild.Id));
@@ -147,7 +142,6 @@ namespace Advobot
 			return Task.CompletedTask;
 		}
 
-		//When the bot DCs
 		public static Task OnDisconnected(Exception exception)
 		{
 			Actions.writeLine(String.Format("{0}: Bot has been disconnected.", MethodBase.GetCurrentMethod().Name));
@@ -158,7 +152,6 @@ namespace Advobot
 			return Task.CompletedTask;
 		}
 
-		//When the bot comes back online
 		public static Task OnConnected()
 		{
 			Actions.writeLine(String.Format("{0}: Bot has connected.", MethodBase.GetCurrentMethod().Name));
@@ -169,9 +162,11 @@ namespace Advobot
 
 	public class ServerLogs : ModuleBase
 	{
-		//Tell when a user joins the server
 		public static async Task OnUserJoined(SocketGuildUser user)
 		{
+			++Variables.LoggedJoins;
+			++Variables.TotalUsers;
+
 			//Get the current invites
 			var curInvs = await user.Guild.GetInvitesAsync();
 			//Get the invites that have already been put on the bot
@@ -209,13 +204,9 @@ namespace Advobot
 				await Actions.slowmodeAddUser(user);
 			}
 
-			ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+			var logChannel = await Actions.verifyLogChannel(user.Guild);
 			if (logChannel == null)
 				return;
-			if (!await Actions.permissionCheck(logChannel))
-				return;
-			++Variables.LoggedJoins;
-			++Variables.TotalUsers;
 
 			//Invite string
 			string inviteString = "";
@@ -226,19 +217,21 @@ namespace Advobot
 
 			if (user.IsBot)
 			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString)), "Bot Join");
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString)), "Bot Joined");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 			else
 			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString)), "Join");
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString)), "User Joined");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 		}
 
-		//Tell when a user leaves the server
 		public static async Task OnUserLeft(SocketGuildUser user)
 		{
+			++Variables.LoggedLeaves;
+			--Variables.TotalUsers;
+
 			//Check if the bot was the one that left
 			if (user == user.Guild.GetUser(Variables.Bot_ID))
 			{
@@ -246,47 +239,42 @@ namespace Advobot
 				return;
 			}
 
-			ITextChannel logChannel = await Actions.logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+			var logChannel = await Actions.verifyLogChannel(user.Guild);
 			if (logChannel == null)
 				return;
-			if (!await Actions.permissionCheck(logChannel))
-				return;
-			++Variables.LoggedLeaves;
-			--Variables.TotalUsers;
 
 			if (user.IsBot)
 			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAVE, description: "**ID:** " + user.Id.ToString()), "Bot Leave");
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAV, null, "**ID:** " + user.Id.ToString()), "Bot Left");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 			else
 			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAVE, description: "**ID:** " + user.Id.ToString()), "Leave");
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAV, null, "**ID:** " + user.Id.ToString()), "User Left");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 		}
 
-		//Tell when a user is unbanned
 		public static async Task OnUserUnbanned(SocketUser user, SocketGuild guild)
 		{
-			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			++Variables.LoggedUnbans;
+
+			var logChannel = await Actions.verifyLogChannel(guild);
 			if (logChannel == null)
 				return;
-			if (!await Actions.permissionCheck(logChannel))
-				return;
-			++Variables.LoggedUnbans;
 
 			//Get the username/discriminator via this dictionary since they don't exist otherwise
 			string username = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Username : "null";
 			string discriminator = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Discriminator : "0000";
 
-			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UNBAN, description: "**ID:** " + user.Id.ToString()), "Unban");
+			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UNBN, null, "**ID:** " + user.Id.ToString()), "User Unbanned");
 			await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", username, discriminator), user.AvatarUrl));
 		}
 
-		//Tell when a user is banned
 		public static async Task OnUserBanned(SocketUser user, SocketGuild guild)
 		{
+			++Variables.LoggedBans;
+
 			//Check if the bot was the one banned
 			if (user == guild.GetUser(Variables.Bot_ID))
 			{
@@ -294,25 +282,22 @@ namespace Advobot
 				return;
 			}
 
-			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			var logChannel = await Actions.verifyLogChannel(guild);
 			if (logChannel == null)
 				return;
-			if (!await Actions.permissionCheck(logChannel))
-				return;
-			++Variables.LoggedBans;
 
-			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.BAN, description: "**ID:** " + user.Id.ToString()), "Ban");
+			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.BANN, null, "**ID:** " + user.Id.ToString()), "User Banned");
 			await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 		}
 
-		//Tell when a user has their name, nickname, or roles changed
 		public static async Task OnGuildMemberUpdated(SocketGuildUser beforeUser, SocketGuildUser afterUser)
 		{
-			IGuild guild = afterUser.Guild;
-			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			++Variables.LoggedUserChanges;
+
+			var logChannel = await Actions.verifyLogChannel(afterUser);
 			if (logChannel == null)
 				return;
-			++Variables.LoggedUserChanges;
+			IGuild guild = afterUser.Guild;
 
 			//Nickname change
 			if ((String.IsNullOrWhiteSpace(beforeUser.Nickname) && !String.IsNullOrWhiteSpace(afterUser.Nickname)) || (!String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)))
@@ -328,18 +313,18 @@ namespace Advobot
 					nicknameChange = "NO NICKNAME";
 				}
 				//These ones are across more lines than the previous ones up above because it makes it easier to remember what is doing what
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT), "Nickname");
-				Actions.addField(embed, "Before:", originalNickname);
-				Actions.addField(embed, "After:", nicknameChange, false);
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT), "Nickname Changed");
+				Actions.addField(embed, "Before:", "`" + originalNickname + "`");
+				Actions.addField(embed, "After:", "`" + nicknameChange + "`", false);
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 			}
 			else if (!(String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)))
 			{
 				if (!beforeUser.Nickname.Equals(afterUser.Nickname))
 				{
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT), "Nickname");
-					Actions.addField(embed, "Before:", beforeUser.Nickname);
-					Actions.addField(embed, "After:", afterUser.Nickname, false);
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT), "Nickname Changed");
+					Actions.addField(embed, "Before:", "`" + beforeUser.Nickname + "`");
+					Actions.addField(embed, "After:", "`" + afterUser.Nickname + "`", false);
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 				}
 			}
@@ -371,7 +356,7 @@ namespace Advobot
 					if (!rolesChange.Any())
 						return;
 
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Lost:** " + String.Join(", ", rolesChange)), "Role Loss");
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT, null, "**Role(s) Lost:** " + String.Join(", ", rolesChange)), "Role Lost");
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 				});
 			}
@@ -386,12 +371,11 @@ namespace Advobot
 				if (!rolesChange.Any())
 					return;
 
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT, description: "**Gained:** " + String.Join(", ", rolesChange)), "Role Gain");
+				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT, null, "**Role(s) Gained:** " + String.Join(", ", rolesChange)), "Role Gained");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 			}
 		}
 
-		//Tell when a user updates their name/game/status
 		public static async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
 		{
 			//Name change
@@ -400,36 +384,112 @@ namespace Advobot
 			{
 				foreach (var guild in CommandHandler.Client.Guilds.Where(x => x.Users.Contains(afterUser)))
 				{
-					ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+					var logChannel = await Actions.verifyLogChannel(guild);
 					if (logChannel == null)
 						return;
 					++Variables.LoggedUserChanges;
 
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDIT), "Name Change");
-					Actions.addField(embed, "Before:", beforeUser.Username);
-					Actions.addField(embed, "After:", afterUser.Username, false);
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT), "Name Changed");
+					Actions.addField(embed, "Before:", "`" + beforeUser.Username + "`");
+					Actions.addField(embed, "After:", "`" + afterUser.Username + "`", false);
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 				}
 			}
 		}
 
-		//Tell when a message is edited 
-		public static async Task OnMessageUpdated(Optional<SocketMessage> beforeMessage, SocketMessage afterMessage)
+		public static async Task OnMessageReceived(SocketMessage message)
 		{
-			//If bot then ignore
-			if (afterMessage == null || afterMessage.Author == null || afterMessage.Author.IsBot)
+			++Variables.LoggedMessages;
+
+			if (message.Author.IsBot)
 				return;
-			//Check if the guild exists
-			IGuild guild = (afterMessage.Channel as IGuildChannel)?.Guild;
+
+			//If DM then ignore for the most part
+			var channel = message.Channel as IGuildChannel;
+			if (channel == null)
+			{
+				//See if they're on the list to be a potential bot owner
+				if (Variables.PotentialBotOwners.Contains(message.Author.Id))
+				{
+					//If the key they input is the same as the bots key then they become owner
+					if (message.Content.Trim().Equals(Properties.Settings.Default.BotKey))
+					{
+						Properties.Settings.Default.BotOwner = message.Author.Id;
+						Properties.Settings.Default.Save();
+						Variables.PotentialBotOwners.Clear();
+						await Actions.sendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
+					}
+					else
+					{
+						Variables.PotentialBotOwners.Remove(message.Author.Id);
+						await Actions.sendDMMessage(message.Channel as IDMChannel, "That is the incorrect key.");
+					}
+				}
+				return;
+			}
+
+			var guild = channel.Guild;
 			if (guild == null)
 				return;
+
+			//Check if it's the owner of the guild saying something
+			if (message.Author.Id == guild.OwnerId)
+			{
+				//If the message is only 'yes' then check if they're enabling or deleting preferences
+				if (message.Content.Equals("yes", StringComparison.OrdinalIgnoreCase))
+				{
+					if (Variables.GuildsEnablingPreferences.Contains(guild))
+					{
+						//Enable preferences
+						await Actions.enablePreferences(guild, message as IUserMessage);
+					}
+					else if (Variables.GuildsDeletingPreferences.Contains(guild))
+					{
+						//Delete preferences
+						await Actions.deletePreferences(guild, message as IUserMessage);
+					}
+				}
+			}
+
+			//Check if the guild has slowmode enabled currently
+			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(channel))
+			{
+				await Actions.slowmode(message);
+			}
 			//Check if any banned phrases
-			await Actions.bannedPhrases(afterMessage);
-			//Check if logchannel exists
-			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
-			if (logChannel == null || !beforeMessage.IsSpecified)
-				return;
+			else if (Variables.Guilds[guild.Id].BannedPhrases.Any() || Variables.Guilds[guild.Id].BannedRegex.Any())
+			{
+				await Actions.bannedPhrases(message);
+			}
+
+			//Check if it is going to be image logged
+			if (message.Attachments.Any())
+			{
+				var logChannel = await Actions.verifyLogChannel(guild);
+				if (logChannel == null)
+					return;
+				await Actions.imageLog(logChannel, message, false);
+			}
+			else if (message.Embeds.Any())
+			{
+				var logChannel = await Actions.verifyLogChannel(guild);
+				if (logChannel == null)
+					return;
+				await Actions.imageLog(logChannel, message, true);
+			}
+		}
+
+		public static async Task OnMessageUpdated(Optional<SocketMessage> beforeMessage, SocketMessage afterMessage)
+		{
 			++Variables.LoggedEdits;
+
+			if (afterMessage.Author.IsBot)
+				return;
+			await Actions.bannedPhrases(afterMessage);
+			var logChannel = await Actions.verifyLogChannel(afterMessage);
+			if (logChannel == null || afterMessage == null || afterMessage.Author == null)
+				return;
+			var guild = (afterMessage.Channel as IGuildChannel).Guild;
 
 			//Check if regular messages are equal
 			if (beforeMessage.Value.Embeds.Count != afterMessage.Embeds.Count)
@@ -471,28 +531,24 @@ namespace Advobot
 				afterMsg = afterMsg.Length > 667 ? "LONG MESSAGE" : afterMsg;
 			}
 
-			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.MEDIT), "Edit");
-			Actions.addField(embed, "Before:", beforeMsg);
-			Actions.addField(embed, "After:", afterMsg, false);
+			//Make the embed
+			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.MEDT), "Message Updated");
+			Actions.addField(embed, "Before:", "`" + beforeMsg + "`");
+			Actions.addField(embed, "After:", "`" + afterMsg + "`", false);
 			Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, afterMessage.Channel), user.AvatarUrl);
 			await Actions.sendEmbedMessage(logChannel, embed);
 		}
 
-		//Tell when a message is deleted
 		public static async Task OnMessageDeleted(ulong messageID, Optional<SocketMessage> message)
 		{
-			//If DM or just unable to be gotten then ignore
+			++Variables.LoggedDeletes;
+
 			if (!message.IsSpecified)
 				return;
-			//Check if guild exists
-			IGuild guild = (message.Value.Channel as IGuildChannel)?.Guild;
-			if (guild == null)
-				return;
-			//Check if valid log channel
-			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			var logChannel = await Actions.verifyLogChannel(message.Value);
 			if (logChannel == null)
 				return;
-			++Variables.LoggedDeletes;
+			var guild = (message.Value.Channel as IGuildChannel).Guild;
 
 			//Get a list of the deleted messages per server
 			List<SocketMessage> mainMessages;
@@ -633,142 +689,116 @@ namespace Advobot
 			});
 		}
 
-		//Get all images uploaded and other things on messages received
-		public static async Task OnMessageReceived(SocketMessage message)
+		public static async Task OnRoleCreated(SocketRole role)
 		{
-			//If bot then ignore
-			if (message.Author.IsBot)
-				return;
-
-			//If DM then ignore for the most part
-			if (message.Channel as IGuildChannel == null)
-			{
-				//See if they're on the list to be a potential bot owner
-				if (Variables.PotentialBotOwners.Contains(message.Author.Id))
-				{
-					//If the key they input is the same as the bots key then they become owner
-					if (message.Content.Trim().Equals(Properties.Settings.Default.BotKey))
-					{
-						Properties.Settings.Default.BotOwner = message.Author.Id;
-						Properties.Settings.Default.Save();
-						Variables.PotentialBotOwners.Clear();
-						await Actions.sendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
-					}
-					else
-					{
-						Variables.PotentialBotOwners.Remove(message.Author.Id);
-						await Actions.sendDMMessage(message.Channel as IDMChannel, "That is the incorrect key.");
-					}
-				}
-				return;
-			}
-			//Check if valid guild
-			IGuild guild = (message.Channel as IGuildChannel).Guild;
-			if (guild == null)
-				return;
-			++Variables.LoggedMessages;
-
-			//Check if the guild has slowmode enabled currently
-			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))
-			{
-				await Actions.slowmode(message);
-			}
-			//Check if any banned phrases
-			else if (Variables.Guilds[guild.Id].BannedPhrases.Any() || Variables.Guilds[guild.Id].BannedRegex.Any())
-			{
-				await Actions.bannedPhrases(message);
-			}
-
-			//Check if it's the owner of the guild saying something
-			if (message.Author.Id == guild.OwnerId)
-			{
-				//If the message is only 'yes' then check if they're enabling or deleting preferences
-				if (message.Content.Equals("yes", StringComparison.OrdinalIgnoreCase))
-				{
-					if (Variables.GuildsEnablingPreferences.Contains(guild))
-					{
-						//Enable preferences
-						await Actions.enablePreferences(guild, message as IUserMessage);
-					}
-					else if (Variables.GuildsDeletingPreferences.Contains(guild))
-					{
-						//Delete preferences
-						await Actions.deletePreferences(guild, message as IUserMessage);
-					}
-				}
-			}
-
-			//Check if it is going to be image logged
-			ITextChannel logChannel = await Actions.logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			var logChannel = await Actions.verifyLogChannel(role.Guild);
 			if (logChannel == null)
 				return;
 
-			if (message.Attachments.Any())
+			EmbedBuilder embed = Actions.makeNewEmbed(Constants.CCRE, "Role Created", String.Format("Name: `{0}`\nID: `{1}`", role.Name, role.Id));
+			await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Role Created"));
+		}
+
+		public static async Task OnRoleUpdated(SocketRole beforeRole, SocketRole afterRole)
+		{
+			var logChannel = await Actions.verifyLogChannel(afterRole.Guild);
+			if (logChannel == null)
+				return;
+
+			if (!beforeRole.Name.Equals(afterRole.Name, StringComparison.OrdinalIgnoreCase))
 			{
-				await Actions.imageLog(logChannel, message, false);
-			}
-			else if (message.Embeds.Any())
-			{
-				await Actions.imageLog(logChannel, message, true);
+				EmbedBuilder embed = Actions.makeNewEmbed(Constants.REDT, "Role Name Changed");
+				Actions.addField(embed, "Before:", "`" + beforeRole.Name + "`");
+				Actions.addField(embed, "After:", "`" + afterRole.Name + "`", false);
+				await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Role Name Changed"));
 			}
 		}
 
-		//Add all roles that are deleted to a list to check against later
 		public static async Task OnRoleDeleted(SocketRole role)
 		{
+			//Add this to prevent massive spam fests when a role is deleted
 			Variables.DeletedRoles.Add(role.Id);
 
-			ITextChannel logChannel = await Actions.logChannelCheck(role.Guild, Constants.SERVER_LOG_CHECK_STRING);
+			var logChannel = await Actions.verifyLogChannel(role.Guild);
 			if (logChannel == null)
 				return;
-			if (!await Actions.permissionCheck(logChannel))
-				return;
 
-			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.RDEL, null, String.Format("**ID:** {0}", role.Id)), "Role Delete");
-			await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("Role: {0}", role.Name)));
+			EmbedBuilder embed = Actions.makeNewEmbed(Constants.CCRE, "Role Deleted", String.Format("Name: `{0}`\nID: `{1}`", role.Name, role.Id));
+			await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Role Deleted"));
 		}
 
-		//Make sure no duplicate bot channels are made
 		public static async Task OnChannelCreated(SocketChannel channel)
 		{
-			ITextChannel tChan = channel as ITextChannel;
-			if (tChan != null && tChan.Name == Variables.Bot_Channel && await Actions.getDuplicateBotChan(tChan.Guild))
+			var logChannel = await Actions.verifyLogChannel(channel);
+			if (logChannel == null)
+				return;
+
+			var chan = channel as IGuildChannel;
+
+			//Check if the channel trying to be made is a bot channel
+			if ((chan as ITextChannel) != null && chan.Name == Variables.Bot_Channel && await Actions.getDuplicateBotChan(chan.Guild))
 			{
-				await tChan.DeleteAsync();
+				await chan.DeleteAsync();
+				return;
 			}
+
+			EmbedBuilder embed = Actions.makeNewEmbed(Constants.CCRE, "Channel Created", String.Format("Name: `{0}`\nID: `{1}`", chan.Name, chan.Id));
+			await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Channel Created"));
 		}
 
-		//See if the channel had its name changed to the bot channel name
 		public static async Task OnChannelUpdated(SocketChannel beforeChannel, SocketChannel afterChannel)
 		{
-			//Check if the name is the bot channel name
-			if ((afterChannel as IGuildChannel).Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase))
-			{
-				//Create a variable of beforechannel as an IGuildChannel for later use
-				var bChan = beforeChannel as IGuildChannel;
+			var logChannel = await Actions.verifyLogChannel(afterChannel);
+			if (logChannel == null)
+				return;
 
+			//Create a variable of beforechannel and afterchannel as an IGuildChannel for later use
+			var bChan = beforeChannel as IGuildChannel;
+			var aChan = afterChannel as IGuildChannel;
+
+			//Check if the name is the bot channel name
+			if ((aChan as ITextChannel) != null && aChan.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase))
+			{
 				//If the name wasn't the bot channel name to start with then set it back to its start name
 				if (!bChan.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase) && await Actions.getDuplicateBotChan(bChan.Guild))
 				{
 					await (await bChan.Guild.GetChannelAsync(bChan.Id)).ModifyAsync(x => x.Name = bChan.Name);
+					return;
 				}
 			}
+
+			if (!aChan.Name.Equals(bChan.Name, StringComparison.OrdinalIgnoreCase))
+			{
+				EmbedBuilder embed = Actions.makeNewEmbed(Constants.CEDT, "Channel Name Changed");
+				Actions.addField(embed, "Before:", "`" + bChan.Name + "`");
+				Actions.addField(embed, "After:", "`" + aChan.Name + "`", false);
+				await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Channel Name Changed"));
+			}
+		}
+
+		public static async Task OnChannelDeleted(SocketChannel channel)
+		{
+			var logChannel = await Actions.verifyLogChannel(channel);
+			if (logChannel == null)
+				return;
+
+			var chan = channel as IGuildChannel;
+
+			EmbedBuilder embed = Actions.makeNewEmbed(Constants.CDEL, "Channel Deleted", String.Format("Name: `{0}`\nID: `{1}`", chan.Name, chan.Id));
+			await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Channel Deleted"));
 		}
 	}
 
 	public class ModLogs : ModuleBase
 	{
-		//Log each command
-		public static async Task LogCommand(ICommandContext context)
+		public static async Task LogCommand(CommandContext context)
 		{
 			string userString = String.Format("{0}#{1} ({2})", context.User.Username, context.User.Discriminator, context.User.Id);
 			string guildString = String.Format("{0} ({1})", context.Guild.Name, context.Guild.Id);
 			Actions.writeLine(String.Format("{0} on {1}: \'{2}\'", userString, guildString, context.Message.Content));
 
-			ITextChannel logChannel = await Actions.logChannelCheck(context.Guild, Constants.MOD_LOG_CHECK_STRING);
+			var logChannel = await Actions.verifyLogChannel(context.Guild);
 			if (logChannel == null)
-				return;
-			if (!await Actions.permissionCheck(logChannel))
 				return;
 
 			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(description: context.Message.Content), "Mod Log");

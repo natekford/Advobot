@@ -579,7 +579,7 @@ namespace Advobot
 				if (!Constants.TEXT_FILE)
 				{
 					string hastebin = Actions.uploadToHastebin(Actions.replaceMessageCharacters(description));
-					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(title: "Current Bans", description: hastebin));
+					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Current Bans", hastebin));
 				}
 				else
 				{
