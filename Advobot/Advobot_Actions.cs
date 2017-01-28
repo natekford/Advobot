@@ -204,7 +204,7 @@ namespace Advobot
 				loadPreferences(guild);
 				loadBannedPhrasesAndPunishments(guild);
 				loadSelfAssignableRoles(guild);
-				loadGuildPrefix(guild);
+				loadGuildMiscInfo(guild);
 			}
 		}
 
@@ -453,8 +453,8 @@ namespace Advobot
 			Variables.Guilds[guild.Id].DefaultPrefs = false;
 		}
 
-		//Load the prefix
-		public static void loadGuildPrefix(IGuild guild)
+		//Load the prefix and logActions
+		public static void loadGuildMiscInfo(IGuild guild)
 		{
 			//Create the file if it doesn't exist
 			string path = getServerFilePath(guild.Id, Constants.MISCGUILDINFO);
@@ -470,6 +470,19 @@ namespace Advobot
 					if (line.Contains(Constants.GUILD_PREFIX))
 					{
 						Variables.Guilds[guild.Id].Prefix = line.Substring(line.IndexOf(':') + 1);
+					}
+					if (line.Contains(Constants.LOG_ACTIONS))
+					{
+						var logActions = new List<LogActions>();
+						line.Substring(line.IndexOf(':') + 1).Split('/').ToList().ForEach(x =>
+						{
+							LogActions temp;
+							if (Enum.TryParse(x, out temp))
+							{
+								logActions.Add(temp);
+							}
+						});
+						Variables.Guilds[guild.Id].LogActions = logActions.OrderBy(x => (int)x).ToList();
 					}
 				}
 			}
@@ -1488,8 +1501,7 @@ namespace Advobot
 			if (embed.Build().Fields.Count() > 0)
 			{
 				//Find out what the fields looks like
-				var fields = "";
-				embed.Build().Fields.ToList().ForEach(x => fields += x.Name + "\n" + x.Value);
+				var fields = String.Join("\n", embed.Build().Fields.Select(x => x.Name + "\n" + x.Value));
 
 				if (fields.Length > 1950)
 				{
@@ -1831,11 +1843,11 @@ namespace Advobot
 		}
 
 		//Check if the serverlog exists and if the bot can use it
-		public static async Task<ITextChannel> verifyLogChannel(IGuild guild)
+		public static async Task<ITextChannel> verifyLogChannel(IGuild guild, string checkString = Constants.SERVER_LOG_CHECK_STRING)
 		{
 			if (guild == null)
 				return null;
-			var logChannel = await logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			var logChannel = await logChannelCheck(guild, checkString);
 			if (!await permissionCheck(logChannel))
 				return null;
 			return logChannel;
@@ -2027,6 +2039,41 @@ namespace Advobot
 				return false;
 			else
 				return true;
+		}
+
+		//Save the log actions
+		public static void saveLogActions(CommandContext context, List<LogActions> logActions)
+		{
+			//Create the file if it doesn't exist
+			string path = Actions.getServerFilePath(context.Guild.Id, Constants.MISCGUILDINFO);
+			if (!File.Exists(path))
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(path));
+				var newFile = File.Create(path);
+				newFile.Close();
+			}
+
+			//Find the lines that aren't the current prefix line
+			List<string> validLines = new List<string>();
+			using (StreamReader reader = new StreamReader(path))
+			{
+				string line;
+				while ((line = reader.ReadLine()) != null)
+				{
+					if (!line.Contains(Constants.LOG_ACTIONS))
+					{
+						validLines.Add(line);
+					}
+				}
+			}
+
+			//Add all the lines back
+			using (StreamWriter writer = new StreamWriter(path))
+			{
+				writer.WriteLine(Constants.LOG_ACTIONS + ":" + String.Join("/", logActions.Select(x => (int)x)) + "\n" + String.Join("\n", validLines));
+			}
+
+			Variables.Guilds[context.Guild.Id].LogActions = logActions.OrderBy(x => (int)x).ToList();
 		}
 		#endregion
 

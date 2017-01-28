@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 namespace Advobot
 {
 	//Miscellaneous commands are random commands that don't exactly fit the other groups
-	[Name("Miscellaneous")]
+	[Group("Miscellaneous")]
 	public class Miscellaneous_Commands : ModuleBase
 	{
 		#region Help
@@ -79,8 +79,19 @@ namespace Advobot
 					return;
 				}
 			}
+
 			string description = String.Format("**Aliases:** {0}\n**Usage:** {1}\n\n**Base Permission(s):**\n{2}\n\n**Description:**\n{3}",
-				String.Join(", ", helpEntry.Aliases), helpEntry.Usage, helpEntry.basePerm, helpEntry.Text);
+				String.Join(", ", helpEntry.Aliases),
+				helpEntry.Usage,
+				helpEntry.basePerm,
+				helpEntry.Text);
+
+			var guildPrefix = Variables.Guilds[Context.Guild.Id].Prefix;
+			if (!String.IsNullOrWhiteSpace(guildPrefix))
+			{
+				description = description.Replace(Properties.Settings.Default.Prefix, guildPrefix);
+			}
+
 			await Actions.sendEmbedMessage(Context.Channel, Actions.addFooter(Actions.makeNewEmbed(null, helpEntry.Name, description), "Help"));
 		}
 

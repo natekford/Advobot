@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 namespace Advobot
 {
 	//Moderation commands are commands that directly affect the guild or its users and are said by users
-	[Name("Moderation")]
+	[Group("Moderation")]
 	public class Moderation_Commands : ModuleBase
 	{
 		#region Users

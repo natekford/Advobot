@@ -71,7 +71,6 @@ namespace Advobot
 			Variables.TotalGuilds--;
 			if (Variables.TotalGuilds < 0)
 				Variables.TotalGuilds = 0;
-			Variables.Guilds.Remove(guild.Id);
 
 			return Task.CompletedTask;
 		}
@@ -137,7 +136,6 @@ namespace Advobot
 
 			Variables.TotalUsers -= (guild.MemberCount + 1);
 			Variables.TotalGuilds--;
-			Variables.Guilds.Remove(guild.Id);
 
 			return Task.CompletedTask;
 		}
@@ -207,6 +205,8 @@ namespace Advobot
 			var logChannel = await Actions.verifyLogChannel(user.Guild);
 			if (logChannel == null)
 				return;
+			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+				return;
 
 			//Invite string
 			string inviteString = "";
@@ -242,6 +242,8 @@ namespace Advobot
 			var logChannel = await Actions.verifyLogChannel(user.Guild);
 			if (logChannel == null)
 				return;
+			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+				return;
 
 			if (user.IsBot)
 			{
@@ -261,6 +263,8 @@ namespace Advobot
 
 			var logChannel = await Actions.verifyLogChannel(guild);
 			if (logChannel == null)
+				return;
+			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
 			//Get the username/discriminator via this dictionary since they don't exist otherwise
@@ -285,9 +289,34 @@ namespace Advobot
 			var logChannel = await Actions.verifyLogChannel(guild);
 			if (logChannel == null)
 				return;
+			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+				return;
 
 			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.BANN, null, "**ID:** " + user.Id.ToString()), "User Banned");
 			await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
+		}
+
+		public static async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
+		{
+			//Name change
+			//TODO: Make this work somehow
+			if (!beforeUser.Username.Equals(afterUser.Username, StringComparison.OrdinalIgnoreCase))
+			{
+				foreach (var guild in CommandHandler.Client.Guilds.Where(x => x.Users.Contains(afterUser)))
+				{
+					var logChannel = await Actions.verifyLogChannel(guild);
+					if (logChannel == null)
+						return;
+					if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+						return;
+					++Variables.LoggedUserChanges;
+
+					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT), "Name Changed");
+					Actions.addField(embed, "Before:", "`" + beforeUser.Username + "`");
+					Actions.addField(embed, "After:", "`" + afterUser.Username + "`", false);
+					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
+				}
+			}
 		}
 
 		public static async Task OnGuildMemberUpdated(SocketGuildUser beforeUser, SocketGuildUser afterUser)
@@ -296,6 +325,8 @@ namespace Advobot
 
 			var logChannel = await Actions.verifyLogChannel(afterUser);
 			if (logChannel == null)
+				return;
+			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 			IGuild guild = afterUser.Guild;
 
@@ -376,27 +407,6 @@ namespace Advobot
 			}
 		}
 
-		public static async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
-		{
-			//Name change
-			//TODO: Make this work somehow
-			if (!beforeUser.Username.Equals(afterUser.Username, StringComparison.OrdinalIgnoreCase))
-			{
-				foreach (var guild in CommandHandler.Client.Guilds.Where(x => x.Users.Contains(afterUser)))
-				{
-					var logChannel = await Actions.verifyLogChannel(guild);
-					if (logChannel == null)
-						return;
-					++Variables.LoggedUserChanges;
-
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT), "Name Changed");
-					Actions.addField(embed, "Before:", "`" + beforeUser.Username + "`");
-					Actions.addField(embed, "After:", "`" + afterUser.Username + "`", false);
-					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
-				}
-			}
-		}
-
 		public static async Task OnMessageReceived(SocketMessage message)
 		{
 			++Variables.LoggedMessages;
@@ -461,21 +471,23 @@ namespace Advobot
 			{
 				await Actions.bannedPhrases(message);
 			}
-
 			//Check if it is going to be image logged
-			if (message.Attachments.Any())
+			else
 			{
 				var logChannel = await Actions.verifyLogChannel(guild);
 				if (logChannel == null)
 					return;
-				await Actions.imageLog(logChannel, message, false);
-			}
-			else if (message.Embeds.Any())
-			{
-				var logChannel = await Actions.verifyLogChannel(guild);
-				if (logChannel == null)
+				if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 					return;
-				await Actions.imageLog(logChannel, message, true);
+
+				if (message.Attachments.Any())
+				{
+					await Actions.imageLog(logChannel, message, false);
+				}
+				else if (message.Embeds.Any())
+				{
+					await Actions.imageLog(logChannel, message, true);
+				}
 			}
 		}
 
@@ -490,6 +502,8 @@ namespace Advobot
 			if (logChannel == null || afterMessage == null || afterMessage.Author == null)
 				return;
 			var guild = (afterMessage.Channel as IGuildChannel).Guild;
+			if (!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+				return;
 
 			//Check if regular messages are equal
 			if (beforeMessage.Value.Embeds.Count != afterMessage.Embeds.Count)
@@ -549,6 +563,8 @@ namespace Advobot
 			if (logChannel == null)
 				return;
 			var guild = (message.Value.Channel as IGuildChannel).Guild;
+			if (!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+				return;
 
 			//Get a list of the deleted messages per server
 			List<SocketMessage> mainMessages;
@@ -694,6 +710,8 @@ namespace Advobot
 			var logChannel = await Actions.verifyLogChannel(role.Guild);
 			if (logChannel == null)
 				return;
+			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+				return;
 
 			EmbedBuilder embed = Actions.makeNewEmbed(Constants.CCRE, "Role Created", String.Format("Name: `{0}`\nID: `{1}`", role.Name, role.Id));
 			await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Role Created"));
@@ -703,6 +721,8 @@ namespace Advobot
 		{
 			var logChannel = await Actions.verifyLogChannel(afterRole.Guild);
 			if (logChannel == null)
+				return;
+			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
 			if (!beforeRole.Name.Equals(afterRole.Name, StringComparison.OrdinalIgnoreCase))
@@ -722,6 +742,8 @@ namespace Advobot
 			var logChannel = await Actions.verifyLogChannel(role.Guild);
 			if (logChannel == null)
 				return;
+			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+				return;
 
 			EmbedBuilder embed = Actions.makeNewEmbed(Constants.CCRE, "Role Deleted", String.Format("Name: `{0}`\nID: `{1}`", role.Name, role.Id));
 			await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Role Deleted"));
@@ -731,6 +753,8 @@ namespace Advobot
 		{
 			var logChannel = await Actions.verifyLogChannel(channel);
 			if (logChannel == null)
+				return;
+			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
 			var chan = channel as IGuildChannel;
@@ -750,6 +774,8 @@ namespace Advobot
 		{
 			var logChannel = await Actions.verifyLogChannel(afterChannel);
 			if (logChannel == null)
+				return;
+			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
 			//Create a variable of beforechannel and afterchannel as an IGuildChannel for later use
@@ -781,6 +807,8 @@ namespace Advobot
 			var logChannel = await Actions.verifyLogChannel(channel);
 			if (logChannel == null)
 				return;
+			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+				return;
 
 			var chan = channel as IGuildChannel;
 
@@ -797,7 +825,7 @@ namespace Advobot
 			string guildString = String.Format("{0} ({1})", context.Guild.Name, context.Guild.Id);
 			Actions.writeLine(String.Format("{0} on {1}: \'{2}\'", userString, guildString, context.Message.Content));
 
-			var logChannel = await Actions.verifyLogChannel(context.Guild);
+			var logChannel = await Actions.verifyLogChannel(context.Guild, Constants.MOD_LOG_CHECK_STRING);
 			if (logChannel == null)
 				return;
 

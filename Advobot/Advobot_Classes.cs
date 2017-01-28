@@ -418,8 +418,29 @@ namespace Advobot
 		public List<string> BannedPhrases = new List<string>();
 		public List<Regex> BannedRegex = new List<Regex>();
 		public List<MyInvite> Invites;
+		public List<LogActions> LogActions = new List<LogActions>();
 		public bool DefaultPrefs;
 		public IGuild Guild;
 		public string Prefix;
+	}
+
+	//Which logs to allow active
+	public enum LogActions
+	{
+		UserJoined = 1,
+		UserLeft = 2,
+		UserUnbanned = 3,
+		UserBanned = 4,
+		UserUpdated = 5,
+		GuildMemberUpdated = 6,
+		MessageReceived = 7,
+		MessageUpdated = 8,
+		MessageDeleted = 9,
+		RoleCreated = 10,
+		RoleUpdated = 11,
+		RoleDeleted = 12,
+		ChannelCreated = 12,
+		ChannelUpdated = 13,
+		ChannelDeleted = 14
 	}
 }

@@ -30,6 +30,7 @@ namespace Advobot
 		public const string BANNED_REGEX_CHECK_STRING = "bannedregex";
 		public const string BANNED_PHRASES_PUNISHMENTS = "punishments";
 		public const string GUILD_PREFIX = "guildprefix";
+		public const string LOG_ACTIONS = "logactions";
 		public const string CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
 		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/Text|Voice]>";
 		public const string VOICE_TYPE = "voice";
@@ -56,6 +57,18 @@ namespace Advobot
 		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
 		public static readonly string[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west", "hongkong" };
 		public static readonly string[] COMMANDSUNABLETOBETURNEDOFF = { "switchcommand", "currentpreferences", "help" };
+
+		public static readonly LogActions[] DEFAULTLOGACTIONS =
+			{
+				LogActions.UserJoined,
+				LogActions.UserLeft,
+				LogActions.UserUnbanned,
+				LogActions.UserBanned,
+				LogActions.GuildMemberUpdated,
+				LogActions.MessageReceived,
+				LogActions.MessageUpdated,
+				LogActions.MessageDeleted
+			};
 
 		public static readonly bool DISCONNECT = false;
 		public static readonly bool NEWEST_DELETED_MESSAGES_AT_TOP = false;

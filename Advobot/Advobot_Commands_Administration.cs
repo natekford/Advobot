@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 namespace Advobot
 {
 	//Administration commands are commands that focus more on the bot or bot specific actions than other commands
-	[Name("Administration")]
+	[Group("Administration")]
 	public class Administration_Commands : ModuleBase
 	{
 		#region Settings
@@ -549,15 +549,14 @@ namespace Advobot
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The prefix has to be *something*."));
 				return;
 			}
-			else if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
-			{
-				Variables.Guilds[Context.Guild.Id].Prefix = null;
-				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild prefix.");
-				return;
-			}
 			else if (input.Length > 25)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please do not try to make a prefix longer than 25 characters."));
+				return;
+			}
+			else if (input.Equals(Properties.Settings.Default.Prefix))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("That prefix is already the global prefix."));
 				return;
 			}
 
@@ -584,16 +583,30 @@ namespace Advobot
 				}
 			}
 
-			//Add all the lines back
-			using (StreamWriter writer = new StreamWriter(path))
+			if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
 			{
-				writer.WriteLine(Constants.GUILD_PREFIX + ":" + input + "\n" + String.Join("\n", validLines));
-			}
+				//Add all the lines back
+				using (StreamWriter writer = new StreamWriter(path))
+				{
+					writer.WriteLine(Constants.GUILD_PREFIX + ":\n" + String.Join("\n", validLines));
+				}
 
-			//Update the guild's prefix
-			Variables.Guilds[Context.Guild.Id].Prefix = input.Trim();
-			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully set this guild's prefix to: `" + input.Trim() + "`.");
+				Variables.Guilds[Context.Guild.Id].Prefix = null;
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild prefix.");
+			}
+			else
+			{
+				//Add all the lines back
+				using (StreamWriter writer = new StreamWriter(path))
+				{
+					writer.WriteLine(Constants.GUILD_PREFIX + ":" + input + "\n" + String.Join("\n", validLines));
+				}
+
+				//Update the guild's prefix
+				Variables.Guilds[Context.Guild.Id].Prefix = input.Trim();
+				//Send a success message
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully set this guild's prefix to: `" + input.Trim() + "`.");
+			}
 		}
 
 		[Command("serverlog")]
@@ -610,10 +623,116 @@ namespace Advobot
 			}
 		}
 
+		[Command("modifylogactions")]
+		[Alias("mla")]
+		[Usage("modifylogactions [Enable|Disable|Show|Current|Default] <All|Log Action/...>")]
+		[Summary("The log will fire when these events happen. Show lists all the possible events. Default overrides the current settings, and current shows them.")]
+		[PermissionRequirements]
+		public async Task SwitchLogActions([Remainder] string input)
+		{
+			//Make a comment explaining something very obvious for the sake of adding in a comment
+			//Create a list of the log actions
+			var logActionsList = Variables.Guilds[Context.Guild.Id].LogActions;
+
+			//Check if the person wants to only see the types
+			if (input.Equals("show", StringComparison.OrdinalIgnoreCase))
+			{
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Log Actions", String.Join("\n", Enum.GetNames(typeof(LogActions)))));
+				return;
+			}
+			//Check if they want the default
+			else if (input.Equals("default", StringComparison.OrdinalIgnoreCase))
+			{
+				logActionsList = Constants.DEFAULTLOGACTIONS.ToList();
+				Actions.saveLogActions(Context, logActionsList);
+
+				//Send a success message
+				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully restored the default log actions.");
+				return;
+			}
+			//Check if they want to see the current activated ones
+			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
+			{
+				if (logActionsList.Count == 0)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active log actions."));
+				}
+				else
+				{
+					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Current Log Actions", String.Join("\n", logActionsList.Select(x => Enum.GetName(typeof(LogActions), x)))));
+				}
+				return;
+			}
+
+			//Split the input
+			var inputArray = input.Split(new char[] { ' ' }, 2);
+			if (inputArray.Length != 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+			var action = inputArray[0];
+			var logActionsString = inputArray[1];
+
+			//Check if enable or disable
+			bool enableBool;
+			if (action.Equals("enable"))
+			{
+				enableBool = true;
+			}
+			else if (action.Equals("disable"))
+			{
+				enableBool = false;
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action."));
+				return;
+			}
+
+			//Get all the targetted log actions
+			var newLogActions = new List<LogActions>();
+			if (logActionsString.Equals("all", StringComparison.OrdinalIgnoreCase))
+			{
+				newLogActions = Enum.GetValues(typeof(LogActions)).Cast<LogActions>().ToList();
+			}
+			else
+			{
+				logActionsString.Split('/').ToList().ForEach(x =>
+				{
+					LogActions temp;
+					if (Enum.TryParse(x, true, out temp))
+					{
+						newLogActions.Add(temp);
+					}
+				});
+			}
+
+			//Enable them
+			if (enableBool)
+			{
+				logActionsList.AddRange(newLogActions);
+			}
+			//Disable them
+			else
+			{
+				logActionsList = logActionsList.Except(newLogActions).ToList();
+			}
+
+			//Save them
+			Actions.saveLogActions(Context, logActionsList);
+
+			//Send a success message
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
+				enableBool ? "enabled" : "disabled",
+				newLogActions.Count > 1 ? "s" : "",
+				String.Join("`, `", newLogActions.Select(x => Enum.GetName(typeof(LogActions), x)))));
+		}
+
 		[Command("modlog")]
 		[Alias("mlog")]
 		[Usage("modlog [#Channel|Off]")]
-		[Summary("Puts the modlog on the specified channel. Modlof is a log of all commands used.")]
+		[Summary("Puts the modlog on the specified channel. Modlog is a log of all commands used.")]
 		[PermissionRequirements]
 		public async Task Modlog([Remainder] string input)
 		{
@@ -627,7 +746,7 @@ namespace Advobot
 		[Command("botchannel")]
 		[Alias("bchan")]
 		[Usage("botchannel")]
-		[Summary("Recreates the bot channel if lost for some reason.")]
+		[Summary("Recreates the bot channel if lost.")]
 		[PermissionRequirements]
 		public async Task BotChannel()
 		{
