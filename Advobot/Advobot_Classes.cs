@@ -413,12 +413,16 @@ namespace Advobot
 			Guild = guild;
 		}
 
-		public List<CommandSwitch> CommandSettings = new List<CommandSwitch>();
 		public List<BannedPhrasePunishment> BannedPhrasesPunishments = new List<BannedPhrasePunishment>();
 		public List<string> BannedPhrases = new List<string>();
 		public List<Regex> BannedRegex = new List<Regex>();
-		public List<MyInvite> Invites;
+
+		public List<CommandSwitch> CommandSettings = new List<CommandSwitch>();
 		public List<LogActions> LogActions = new List<LogActions>();
+		public List<ulong> IgnoredChannels = new List<ulong>();
+
+		public List<MyInvite> Invites;
+
 		public bool DefaultPrefs;
 		public IGuild Guild;
 		public string Prefix;

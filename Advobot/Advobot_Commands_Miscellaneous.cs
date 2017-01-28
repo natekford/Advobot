@@ -18,15 +18,14 @@ using System.Text.RegularExpressions;
 namespace Advobot
 {
 	//Miscellaneous commands are random commands that don't exactly fit the other groups
-	[Group("Miscellaneous")]
+	[Name("Miscellaneous")]
 	public class Miscellaneous_Commands : ModuleBase
 	{
 		#region Help
 		[Command("help")]
-		[Alias("h")]
+		[Alias("h", "info")]
 		[Usage("help <Command>")]
-		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
-			"If left blank will print out a link to the documentation of this bot.")]
+		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. If left blank will print out a link to the documentation of this bot.")]
 		[UserHasAPermission]
 		public async Task Help([Optional, Remainder] string input)
 		{
@@ -34,7 +33,7 @@ namespace Advobot
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				//Description string
-				string text = "Type `" + Constants.BOT_PREFIX + "commands` for the list of commands.\nType `" + Constants.BOT_PREFIX + "help [Command]` for help with a command.";
+				string text = "Type `" + Properties.Settings.Default.Prefix + "commands` for the list of commands.\nType `" + Properties.Settings.Default.Prefix + "help [Command]` for help with a command.";
 
 				//Make the embed
 			    EmbedBuilder embed = Actions.makeNewEmbed(null, "Commands", text);
@@ -403,6 +402,32 @@ namespace Advobot
 			await Actions.sendEmbedMessage(Context.Channel, embed);
 		}
 
+		[Command("emojiinfo")]
+		[Alias("einf")]
+		[Usage("emojiinfo [Emoji]")]
+		[Summary("Shows information about an emoji. Only global emojis will have a 'From...' text.")]
+		public async Task EmojiInfo([Remainder] string input)
+		{
+			Emoji emoji;
+			if (!Emoji.TryParse(input, out emoji))
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid emoji supplied."));
+				return;
+			}
+
+			//Try to find the emoji
+			var guild = (await Context.Client.GetGuildsAsync()).FirstOrDefault(x => x.Emojis.FirstOrDefault(y => y.Id == emoji.Id).IsManaged && x.Emojis.FirstOrDefault(y => y.Id == emoji.Id).RequireColons);
+
+			//Format a description
+			var description = "ID: `" + emoji.Id + "`\n";
+			if (guild != null)
+			{
+				description += "From: `" + guild.Name + "`";
+			}
+
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, emoji.Name, description, emoji.Url));
+		}
+
 		[Command("useravatar")]
 		[Alias("uav")]
 		[Usage("useravatar <@user>")]
@@ -756,7 +781,7 @@ namespace Advobot
 		[BotOwnerRequirement]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			await Actions.sendChannelMessage(Context, "test");
+			await Actions.sendChannelMessage(Context.Channel, "Yeyo");
 		}
 		#endregion
 	}

@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 namespace Advobot
 {
 	//Moderation commands are commands that directly affect the guild or its users and are said by users
-	[Group("Moderation")]
+	[Name("Moderation")]
 	public class Moderation_Commands : ModuleBase
 	{
 		#region Users
@@ -686,7 +686,7 @@ namespace Advobot
 			await Actions.removeMessages(inputChannel, requestCount, inputUser);
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` {1}{2}{3}.",
 				requestCount,
-				requestCount > 1 ? "messages" : "message",
+				requestCount != 1 ? "messages" : "message",
 				inputUser == null ? "" : " from `" + inputUser.Username + "#" + inputUser.Discriminator + "`",
 				inputChannel == null ? "" : " on `#" + inputChannel.Name + "`"));
 		}
@@ -942,7 +942,7 @@ namespace Advobot
 						inputUser.Username,
 						inputUser.Discriminator,
 						String.Join(", ", succeededRoles),
-						succeededRoles.Count > 1 ? "s" : "");
+						succeededRoles.Count != 1 ? "s" : "");
 				}
 				//Check if an and is needed
 				string and = ".";
@@ -958,7 +958,7 @@ namespace Advobot
 						String.IsNullOrEmpty(succeed) ? "F" : "f",
 						String.IsNullOrEmpty(succeed) ? String.Format(" `{0}#{1}`", inputUser.Username, inputUser.Discriminator) : "",
 						String.Join(", ", failedRoles),
-						failedRoles.Count > 1 ? "s" : "");
+						failedRoles.Count != 1 ? "s" : "");
 				}
 
 				await Actions.giveRole(inputUser, roles.ToArray());
@@ -1041,7 +1041,7 @@ namespace Advobot
 				if (succeededRoles.Any())
 				{
 					succeed = String.Format("Successfully took the `{0}` role{1} from `{2}#{3}`",
-						String.Join(", ", succeededRoles), succeededRoles.Count > 1 ? "s" : "", inputUser.Username, inputUser.Discriminator);
+						String.Join(", ", succeededRoles), succeededRoles.Count != 1 ? "s" : "", inputUser.Username, inputUser.Discriminator);
 				}
 				//Check if an and is needed
 				string and = ".";
@@ -1054,7 +1054,7 @@ namespace Advobot
 				if (failedRoles.Any())
 				{
 					failed = String.Format("{0}ailed to take the `{1}` role{2}{3}.",
-						String.IsNullOrEmpty(succeed) ? "F" : "f", String.Join(", ", failedRoles), failedRoles.Count > 1 ? "s" : "",
+						String.IsNullOrEmpty(succeed) ? "F" : "f", String.Join(", ", failedRoles), failedRoles.Count != 1 ? "s" : "",
 						String.IsNullOrEmpty(succeed) ? String.Format(" from `{0}#{1}`", inputUser.Username, inputUser.Discriminator) : "");
 				}
 

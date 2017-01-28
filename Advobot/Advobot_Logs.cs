@@ -479,6 +479,8 @@ namespace Advobot
 					return;
 				if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 					return;
+				if (Variables.Guilds[guild.Id].IgnoredChannels.Contains(channel.Id))
+					return;
 
 				if (message.Attachments.Any())
 				{
@@ -503,6 +505,8 @@ namespace Advobot
 				return;
 			var guild = (afterMessage.Channel as IGuildChannel).Guild;
 			if (!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+				return;
+			if (Variables.Guilds[guild.Id].IgnoredChannels.Contains(afterMessage.Channel.Id))
 				return;
 
 			//Check if regular messages are equal
@@ -564,6 +568,8 @@ namespace Advobot
 				return;
 			var guild = (message.Value.Channel as IGuildChannel).Guild;
 			if (!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+				return;
+			if (Variables.Guilds[guild.Id].IgnoredChannels.Contains(message.Value.Channel.Id))
 				return;
 
 			//Get a list of the deleted messages per server
@@ -827,6 +833,8 @@ namespace Advobot
 
 			var logChannel = await Actions.verifyLogChannel(context.Guild, Constants.MOD_LOG_CHECK_STRING);
 			if (logChannel == null)
+				return;
+			if (Variables.Guilds[context.Guild.Id].IgnoredChannels.Contains(context.Channel.Id))
 				return;
 
 			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(description: context.Message.Content), "Mod Log");

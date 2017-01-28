@@ -18,7 +18,7 @@ using System.Text.RegularExpressions;
 namespace Advobot
 {
 	//Administration commands are commands that focus more on the bot or bot specific actions than other commands
-	[Group("Administration")]
+	[Name("Administration")]
 	public class Administration_Commands : ModuleBase
 	{
 		#region Settings
@@ -230,7 +230,7 @@ namespace Advobot
 				return;
 			}
 
-			await CommandHandler.Client.SetGameAsync(input);
+			await CommandHandler.Client.SetGameAsync(input, Context.Client.CurrentUser.Game.Value.StreamUrl, Context.Client.CurrentUser.Game.Value.StreamType);
 			await Actions.sendChannelMessage(Context, String.Format("Game set to `{0}`.", input));
 		}
 
@@ -526,7 +526,7 @@ namespace Advobot
 			//Send a success message
 			await Actions.sendChannelMessage(Context, String.Format("Successfully {0} the command{1}: `{2}`.",
 				enableBool ? "enabled" : "disabled",
-				category.Count > 1 ? "s" : "",
+				category.Count != 1 ? "s" : "",
 				String.Join("`, `", category.Select(x => x.Name))));
 		}
 
@@ -609,20 +609,6 @@ namespace Advobot
 			}
 		}
 
-		[Command("serverlog")]
-		[Alias("slog")]
-		[Usage("serverlog [#Channel|Off]")]
-		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, deleting messages, and bans/unbans.")]
-		[PermissionRequirements]
-		public async Task Serverlog([Remainder] string input)
-		{
-			ITextChannel serverlog = await Actions.setServerOrModLog(Context, input, Constants.SERVER_LOG_CHECK_STRING);
-			if (serverlog != null)
-			{
-				await Actions.sendChannelMessage(Context, String.Format("Serverlog has been set on channel {0} with the ID `{1}`.", input, serverlog.Id));
-			}
-		}
-
 		[Command("modifylogactions")]
 		[Alias("mla")]
 		[Usage("modifylogactions [Enable|Disable|Show|Current|Default] <All|Log Action/...>")]
@@ -630,6 +616,13 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task SwitchLogActions([Remainder] string input)
 		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not preferences set up."));
+				return;
+			}
+
 			//Make a comment explaining something very obvious for the sake of adding in a comment
 			//Create a list of the log actions
 			var logActionsList = Variables.Guilds[Context.Guild.Id].LogActions;
@@ -712,11 +705,12 @@ namespace Advobot
 			if (enableBool)
 			{
 				logActionsList.AddRange(newLogActions);
+				logActionsList = logActionsList.Distinct().ToList();
 			}
 			//Disable them
 			else
 			{
-				logActionsList = logActionsList.Except(newLogActions).ToList();
+				logActionsList = logActionsList.Except(newLogActions).Distinct().ToList();
 			}
 
 			//Save them
@@ -725,8 +719,29 @@ namespace Advobot
 			//Send a success message
 			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
 				enableBool ? "enabled" : "disabled",
-				newLogActions.Count > 1 ? "s" : "",
+				newLogActions.Count != 1 ? "s" : "",
 				String.Join("`, `", newLogActions.Select(x => Enum.GetName(typeof(LogActions), x)))));
+		}
+
+		[Command("serverlog")]
+		[Alias("slog")]
+		[Usage("serverlog [#Channel|Off]")]
+		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, deleting messages, and bans/unbans.")]
+		[PermissionRequirements]
+		public async Task Serverlog([Remainder] string input)
+		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not preferences set up."));
+				return;
+			}
+
+			ITextChannel serverlog = await Actions.setServerOrModLog(Context, input, Constants.SERVER_LOG_CHECK_STRING);
+			if (serverlog != null)
+			{
+				await Actions.sendChannelMessage(Context, String.Format("Serverlog has been set on channel {0} with the ID `{1}`.", input, serverlog.Id));
+			}
 		}
 
 		[Command("modlog")]
@@ -736,11 +751,132 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task Modlog([Remainder] string input)
 		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not preferences set up."));
+				return;
+			}
+
 			ITextChannel modlog = await Actions.setServerOrModLog(Context, input, Constants.MOD_LOG_CHECK_STRING);
 			if (modlog != null)
 			{
 				await Actions.sendChannelMessage(Context, String.Format("Modlog has been set on channel {0} with the ID `{1}`.", input, modlog.Id));
 			}
+		}
+
+		[Command("ignorechannel")]
+		[Alias("igch")]
+		[Usage("ignorechannel [Add|Remove] [#Channel|Channel Name]")]
+		[Summary("Ignores all logging info that would have been gotten from a channel.")]
+		[PermissionRequirements]
+		public async Task IgnoreChannel([Remainder] string input)
+		{
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not preferences set up."));
+				return;
+			}
+
+			var inputArray = input.Split(new char[] { ' ' }, 2);
+			if (inputArray.Length != 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+
+			bool addBool;
+			if (inputArray[0].Equals("add", StringComparison.OrdinalIgnoreCase))
+			{
+				addBool = true;
+			}
+			else if (inputArray[0].Equals("remove", StringComparison.OrdinalIgnoreCase))
+			{
+				addBool = false;
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action."));
+				return;
+			}
+
+			var channel = await Actions.getChannelEditAbility(Context, inputArray[1], true);
+			if (channel == null)
+			{
+				var channels = (await Context.Guild.GetTextChannelsAsync()).Where(x => x.Name.Equals(inputArray[1], StringComparison.OrdinalIgnoreCase)).ToList();
+				if (channels.Count == 0)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
+					return;
+				}
+				else if (channels.Count == 1)
+				{
+					channel = channels.FirstOrDefault();
+					if (await Actions.getChannelEditAbility(channel, Context.User as IGuildUser) == null)
+					{
+						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to edit this channel."));
+						return;
+					}
+				}
+				else
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("More than one channel has that name."));
+					return;
+				}
+			}
+
+			if (addBool)
+			{
+				if (Variables.Guilds[Context.Guild.Id].IgnoredChannels.Contains(channel.Id))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored."));
+					return;
+				}
+				Variables.Guilds[Context.Guild.Id].IgnoredChannels.Add(channel.Id);
+			}
+			else
+			{
+				if (!Variables.Guilds[Context.Guild.Id].IgnoredChannels.Contains(channel.Id))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored."));
+					return;
+				}
+				Variables.Guilds[Context.Guild.Id].IgnoredChannels.Remove(channel.Id);
+			}
+
+			Variables.Guilds[Context.Guild.Id].IgnoredChannels = Variables.Guilds[Context.Guild.Id].IgnoredChannels.Distinct().ToList();
+
+			//Create the file if it doesn't exist
+			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
+			if (!File.Exists(path))
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(path));
+				var newFile = File.Create(path);
+				newFile.Close();
+			}
+
+			//Find the lines that aren't the current prefix line
+			List<string> validLines = new List<string>();
+			using (StreamReader reader = new StreamReader(path))
+			{
+				string line;
+				while ((line = reader.ReadLine()) != null)
+				{
+					if (!line.Contains(Constants.IGNORED_CHANNELS))
+					{
+						validLines.Add(line);
+					}
+				}
+			}
+
+			//Add all the lines back
+			using (StreamWriter writer = new StreamWriter(path))
+			{
+				writer.WriteLine(Constants.IGNORED_CHANNELS + ":" + String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredChannels) + "\n" + String.Join("\n", validLines));
+			}
+
+			//Send a success message
+			await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Successfully ignored the channel `{0}` with an ID of `{1}`.", channel.Name, channel.Id)));
 		}
 
 		[Command("botchannel")]
@@ -1089,7 +1225,7 @@ namespace Advobot
 			{
 				successMessage = String.Format("Successfully {0} the following {1} {2} the banned {3} list: `{4}`",
 					addBool ? "added" : "removed",
-					success.Count > 1 ? "phrases" : "phrase",
+					success.Count != 1 ? "phrases" : "phrase",
 					addBool ? "to" : "from",
 					regexBool ? "regex" : "phrase",
 					String.Join("`, `", success));
@@ -1102,7 +1238,7 @@ namespace Advobot
 				String.Format("{0}ailed to {1} the following {2} {3} the banned {4} list: `{5}`",
 					successMessage != null ? "F" : "f",
 					addBool ? "add" : "remove",
-					failure.Count > 1 ? "phrases" : "phrase",
+					failure.Count != 1 ? "phrases" : "phrase",
 					addBool ? "to" : "from",
 					regexBool ? "regex" : "phrase",
 					String.Join("`, `", failure));
@@ -1580,6 +1716,46 @@ namespace Advobot
 
 			//Make and send an embed
 			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Punishments " + (fileBool ? "(File)" : "(Actual)"), description));
+		}
+
+		[Command("clearbanphraseuser")]
+		[Alias("cbphu")]
+		[Usage("clearbanphraseuser [@User]")]
+		[Summary("Removes all infraction points a user has on the guild.")]
+		[PermissionRequirements]
+		public async Task ClearBanPhraseUser([Remainder] string input)
+		{
+			var user = await Actions.getUser(Context.Guild, input);
+			if (user == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				return;
+			}
+
+			//Reset the messages
+			Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user).AmountOfRemovedMessages = 0;
+
+			//Send a success message
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the amount of messages removed for `{0}#{1}` to 0.", user.Username, user.Discriminator));
+		}
+
+		[Command("currentbanphraseuser")]
+		[Alias("curbphu")]
+		[Usage("currentbanphraseuser [@User]")]
+		[Summary("Lists all infraction points a user has on the guild.")]
+		public async Task CurrentBanPhraseUser([Optional, Remainder] string input)
+		{
+			var user = input == null ? Context.User : await Actions.getUser(Context.Guild, input);
+			if (user == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				return;
+			}
+
+			int msgCount = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user)?.AmountOfRemovedMessages ?? 0;
+
+			//Send a success message
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}#{1}` has `{2}` infraction point{3}.", user.Username, user.Discriminator, msgCount, msgCount != 1 ? "s" : ""));
 		}
 		#endregion
 

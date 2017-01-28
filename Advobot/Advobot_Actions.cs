@@ -464,6 +464,7 @@ namespace Advobot
 			//Find the prefix line
 			using (StreamReader reader = new StreamReader(path))
 			{
+				Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": misc info for the server " + guild.Name + " have been loaded.");
 				string line;
 				while ((line = reader.ReadLine()) != null)
 				{
@@ -482,10 +483,25 @@ namespace Advobot
 								logActions.Add(temp);
 							}
 						});
-						Variables.Guilds[guild.Id].LogActions = logActions.OrderBy(x => (int)x).ToList();
+						Variables.Guilds[guild.Id].LogActions = logActions.Distinct().OrderBy(x => (int)x).ToList();
+					}
+					if (line.Contains(Constants.IGNORED_CHANNELS))
+					{
+						var IDs = new List<ulong>();
+						line.Substring(line.IndexOf(':') + 1).Split('/').ToList().ForEach(x =>
+						{
+							ulong temp;
+							if (ulong.TryParse(x, out temp))
+							{
+								IDs.Add(temp);
+							}
+						});
+						Variables.Guilds[guild.Id].IgnoredChannels = IDs.Distinct().ToList();
 					}
 				}
 			}
+
+			Variables.Guilds[guild.Id].DefaultPrefs = false;
 		}
 		#endregion
 
@@ -1175,7 +1191,6 @@ namespace Advobot
 						if (messages.Count == 0)
 							return;
 
-						//Try due to 404 errors
 						try
 						{
 							await channel.DeleteMessagesAsync(messages);
