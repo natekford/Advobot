@@ -20,7 +20,7 @@ namespace Advobot
 			Map = map;
 
 			//Necessary for the 'commands' and 'help' commands
-			Actions.loadInformation();
+			await Actions.loadInformation();
 
 			//Set up the game and/or stream
 			await Actions.setGame();
@@ -95,9 +95,9 @@ namespace Advobot
 			{
 				await ModLogs.LogCommand(context);
 				//If a command succeeds then the guild gave the bot admin back so remove them from this list
-				if (Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator.Contains(context.Guild))
+				if (Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Contains(context.Guild))
 				{
-					Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator.Remove(context.Guild);
+					Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Remove(context.Guild);
 				}
 			}
 		}

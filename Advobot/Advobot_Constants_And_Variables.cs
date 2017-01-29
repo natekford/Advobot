@@ -5,8 +5,8 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const string BOT_VERSION = "0.9.0";
-		public const string API_VERSION = "Discord.Net by RogueException v1.0.0-rc-00546";
+		public const string BOT_VERSION = "0.9.5";
+		public const string API_VERSION = "Discord.Net by RogueException v1.0.0-rc-00585";
 		public const string BOT_PREFIX = "++";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -16,6 +16,7 @@ namespace Advobot
 		public const string USER_ERROR = "Invalid user.";
 		public const string ROLE_ERROR = "Invalid role.";
 		public const string CHANNEL_ERROR = "Invalid channel.";
+		public const string ACTION_ERROR = "Invalid action.";
 		public const string CHANNEL_PERMISSIONS_ERROR = "You do not have the ability to edit that channel.";
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
 		public const string MUTE_ROLE_NAME = "Muted";
@@ -24,6 +25,8 @@ namespace Advobot
 		public const string MISCGUILDINFO = "MiscGuildInfo.txt";
 		public const string BANNED_PHRASES = "BannedPhrases.txt";
 		public const string SA_ROLES = "SelfAssignableRoles.txt";
+		public const string PERMISSIONS = "BotPermissions.txt";
+		public const string REMINDS = "Reminds.txt";
 		public const string SERVER_LOG_CHECK_STRING = "serverlog";
 		public const string MOD_LOG_CHECK_STRING = "modlog";
 		public const string BANNED_PHRASES_CHECK_STRING = "bannedphrases";
@@ -42,6 +45,7 @@ namespace Advobot
 		public const int WAIT_TIME = 3000;
 		public const int MEMBER_LIMIT = 0;
 		public const int MAX_SA_GROUPS = 10;
+		public const int MAX_REMINDS = 50;
 		public const int LENGTH_CHECK = 1900;
 		public const int SHORT_LENGTH_CHECK = 750;
 		public const int OWNER_POSITION = 9001;
@@ -118,18 +122,12 @@ namespace Advobot
 		public static int LoggedGifs = 0;
 		public static int LoggedFiles = 0;
 
-		public static Dictionary<string, int> PermissionValues = new Dictionary<String, int>(StringComparer.OrdinalIgnoreCase);
-		public static Dictionary<string, int> GeneralChannelPermissionValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-		public static Dictionary<string, int> TextChannelPermissionValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-		public static Dictionary<string, int> VoiceChannelPermissionValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<ulong, List<Discord.WebSocket.SocketMessage>> DeletedMessages = new Dictionary<ulong, List<Discord.WebSocket.SocketMessage>>();
 		public static Dictionary<ulong, System.Threading.CancellationTokenSource> CancelTokens = new Dictionary<ulong, System.Threading.CancellationTokenSource>();
 		public static Dictionary<ulong, Discord.IUser> UnbannedUsers = new Dictionary<ulong, Discord.IUser>();
+		public static Dictionary<ulong, BotGuildInfo> Guilds = new Dictionary<ulong, BotGuildInfo>();
 		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeGuilds = new Dictionary<ulong, List<SlowmodeUser>>();
-		public static Dictionary<int, string> PermissionNames = new Dictionary<int, string>();
-		public static Dictionary<int, string> ChannelPermissionNames = new Dictionary<int, string>();
 		public static Dictionary<Discord.IGuildChannel, List<SlowmodeUser>> SlowmodeChannels = new Dictionary<Discord.IGuildChannel, List<SlowmodeUser>>();
-		public static Dictionary<ulong, MyGuildInfo> Guilds = new Dictionary<ulong, MyGuildInfo>();
 
 		public static List<string> CommandNames = new List<string>();
 		public static List<string> RegionIDs = new List<string>();
@@ -138,9 +136,12 @@ namespace Advobot
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
 		public static List<BannedPhraseUser> BannedPhraseUserList = new List<BannedPhraseUser>();
 		public static List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
+		public static List<BotGuildPermissionType> GuildPermissions = new List<BotGuildPermissionType>();
+		public static List<BotChannelPermissionType> ChannelPermissions = new List<BotChannelPermissionType>();
+		public static List<BotImplementedPermissions> BotUsers = new List<BotImplementedPermissions>();
 		public static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsDeletingPreferences = new List<Discord.IGuild>();
-		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministrator = new List<Discord.IGuild>();
+		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<Discord.IGuild>();
 	}
 }

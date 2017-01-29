@@ -33,10 +33,10 @@ namespace Advobot
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				//Description string
-				string text = "Type `" + Properties.Settings.Default.Prefix + "commands` for the list of commands.\nType `" + Properties.Settings.Default.Prefix + "help [Command]` for help with a command.";
+				var text = "Type `" + Properties.Settings.Default.Prefix + "commands` for the list of commands.\nType `" + Properties.Settings.Default.Prefix + "help [Command]` for help with a command.";
 
 				//Make the embed
-			    EmbedBuilder embed = Actions.makeNewEmbed(null, "Commands", text);
+			    var embed = Actions.makeNewEmbed("Commands", text);
 				//Add the first field
 				Actions.addField(embed, "Syntax", "[] means required.\n<> means optional.\n| means or.");
 				//Add the second field
@@ -48,12 +48,12 @@ namespace Advobot
 			}
 
 			//Get the input command, if nothing then link to documentation
-			string[] commandParts = input.Split(new char[] { '[' }, 2);
+			var commandParts = input.Split(new char[] { '[' }, 2);
 			if (input.IndexOf('[') == 0)
 			{
 				if (commandParts[1].Equals("command", StringComparison.OrdinalIgnoreCase))
 				{
-					string text = "If you do not know what commands this bot has, type `" + Constants.BOT_PREFIX + "commands` for a list of commands.";
+					var text = "If you do not know what commands this bot has, type `" + Constants.BOT_PREFIX + "commands` for a list of commands.";
 					await Actions.makeAndDeleteSecondaryMessage(Context, text, 10000);
 					return;
 				}
@@ -79,7 +79,7 @@ namespace Advobot
 				}
 			}
 
-			string description = String.Format("**Aliases:** {0}\n**Usage:** {1}\n\n**Base Permission(s):**\n{2}\n\n**Description:**\n{3}",
+			var description = String.Format("**Aliases:** {0}\n**Usage:** {1}\n\n**Base Permission(s):**\n{2}\n\n**Description:**\n{3}",
 				String.Join(", ", helpEntry.Aliases),
 				helpEntry.Usage,
 				helpEntry.basePerm,
@@ -91,7 +91,7 @@ namespace Advobot
 				description = description.Replace(Properties.Settings.Default.Prefix, guildPrefix);
 			}
 
-			await Actions.sendEmbedMessage(Context.Channel, Actions.addFooter(Actions.makeNewEmbed(null, helpEntry.Name, description), "Help"));
+			await Actions.sendEmbedMessage(Context.Channel, Actions.addFooter(Actions.makeNewEmbed(helpEntry.Name, description), "Help"));
 		}
 
 		[Command("commands")]
@@ -104,7 +104,7 @@ namespace Advobot
 			//See if it's empty
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				EmbedBuilder embed = Actions.makeNewEmbed(null, "Commands", "Type `" + Constants.BOT_PREFIX + "commands [Category]` for commands from that category.");
+				var embed = Actions.makeNewEmbed("Commands", "Type `" + Constants.BOT_PREFIX + "commands [Category]` for commands from that category.");
 				await Actions.sendEmbedMessage(Context.Channel, Actions.addField(embed, "Categories", "Administration\nModeration\nMiscellaneous\nAll"));
 				return;
 			}
@@ -112,33 +112,33 @@ namespace Advobot
 			Actions.loadPreferences(Context.Guild);
 
 			bool allCommandsBool = true;
-			string section = input.ToLower();
+			var section = input.ToLower();
 
 			if (section.Equals("administration"))
 			{
-				string[] commands = Actions.getCommands(Context.Guild, (int)CommandCategory.Administration);
-				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "ADMINISTRATION", String.Join("\n", commands)));
+				var commands = Actions.getCommands(Context.Guild, (int)CommandCategory.Administration);
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("ADMINISTRATION", String.Join("\n", commands)));
 			}
 			else if (section.Equals("moderation"))
 			{
-				string[] commands = Actions.getCommands(Context.Guild, (int)CommandCategory.Moderation);
-				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "MODERATION", String.Join("\n", commands)));
+				var commands = Actions.getCommands(Context.Guild, (int)CommandCategory.Moderation);
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("MODERATION", String.Join("\n", commands)));
 			}
 			else if (section.StartsWith("misc"))
 			{
-				string[] commands = Actions.getCommands(Context.Guild, (int)CommandCategory.Miscellaneous);
-				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "MISCELLANEOUS", String.Join("\n", commands)));
+				var commands = Actions.getCommands(Context.Guild, (int)CommandCategory.Miscellaneous);
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("MISCELLANEOUS", String.Join("\n", commands)));
 			}
 			else if (section.Equals("all"))
 			{
 				if (allCommandsBool)
 				{
-					List<string> commands = new List<string>();
+					var commands = new List<string>();
 					foreach (string command in Variables.CommandNames)
 					{
 						commands.Add(command);
 					}
-					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "ALL", String.Join("\n", commands)));
+					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("ALL", String.Join("\n", commands)));
 				}
 				else
 				{
@@ -223,7 +223,7 @@ namespace Advobot
 			TimeSpan span = DateTime.UtcNow.Subtract(Variables.StartupTime);
 
 			//Make the description
-			string description = String.Format(
+			var description = String.Format(
 				"Online since: {0}\n" +
 				"Uptime: {1}:{2}:{3}:{4}\n" +
 				"Guild count: {5}\n" +
@@ -236,14 +236,14 @@ namespace Advobot
 				Variables.TotalUsers);
 
 			//Make the embed
-			EmbedBuilder embed = Actions.makeNewEmbed(null, null, description);
+			var embed = Actions.makeNewEmbed(null, description);
 			//Add the author
 			Actions.addAuthor(embed, Variables.Bot_Name, Context.Client.CurrentUser.AvatarUrl);
 			//Add the footer
 			Actions.addFooter(embed, "Version " + Constants.BOT_VERSION);
 
 			//First field
-			string firstField = String.Format(
+			var firstField = String.Format(
 				"Logged joins: {0}\n" +
 				"Logged leaves: {1}\n" +
 				"Logged bans: {2}\n" +
@@ -267,7 +267,7 @@ namespace Advobot
 			Actions.addField(embed, "Logged Actions", firstField);
 
 			//Second field
-			string secondField = String.Format(
+			var secondField = String.Format(
 				"Attempted commands: {0}\n" +
 				"Successful commands: {1}\n" +
 				"Failed commands: {2}\n",
@@ -277,7 +277,7 @@ namespace Advobot
 			Actions.addField(embed, "Commands", secondField);
 
 			//Third field
-			string thirdField = String.Format(
+			var thirdField = String.Format(
 				"Memory usage: {0:0.00}MB\n" +
 				"Thread count: {1}\n",
 				GC.GetTotalMemory(true) / 1048576.0,
@@ -314,7 +314,7 @@ namespace Advobot
 			}
 
 			//Get a list of roles
-			List<string> roles = new List<string>();
+			var roles = new List<string>();
 			foreach (UInt64 roleID in user.RoleIds)
 			{
 				roles.Add(Context.Guild.GetRole(roleID).Name);
@@ -322,7 +322,7 @@ namespace Advobot
 			roles.Remove(Context.Guild.EveryoneRole.Name);
 
 			//Get a list of channels
-			List<string> channels = new List<string>();
+			var channels = new List<string>();
 			//Text channels
 			(await Context.Guild.GetTextChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(async x =>
 			{
@@ -349,10 +349,10 @@ namespace Advobot
 
 			//Get an ordered list of when users joined the server
 			IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync();
-			List<IGuildUser> users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
+			var users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
 
 			//Make the description
-			string description = String.Format(
+			var description = String.Format(
 				"ID: {0}\n" +
 				"Created: {1} {2}, {3} at {4}\n" +
 				"Joined: {5} {6}, {7} at {8} (#{9} to join the server)\n" +
@@ -373,7 +373,7 @@ namespace Advobot
 				user.Status);
 
 			//Make the embed
-			EmbedBuilder embed = Actions.makeNewEmbed(null, null, description);
+			var embed = Actions.makeNewEmbed(null, description);
 			//Add the author
 			Actions.addAuthor(embed, user.Username + "#" + user.Discriminator + " " + (user.Nickname == null ? "" : "(" + user.Nickname + ")"), user.AvatarUrl, user.AvatarUrl);
 			//Add the footer
@@ -392,7 +392,7 @@ namespace Advobot
 			//Add the voice channel
 			if (user.VoiceChannel != null)
 			{
-				string text = String.Format("Server mute: {0}\nServer deafen: {1}\nSelf mute: {2}\nSelf deafen: {3}",
+				var text = String.Format("Server mute: {0}\nServer deafen: {1}\nSelf mute: {2}\nSelf deafen: {3}",
 					user.IsMuted.ToString(), user.IsDeafened.ToString(), user.IsSelfMuted.ToString(), user.IsSelfDeafened.ToString());
 
 				Actions.addField(embed, "Voice Channel: " + user.VoiceChannel.Name, text);
@@ -405,7 +405,7 @@ namespace Advobot
 		[Command("emojiinfo")]
 		[Alias("einf")]
 		[Usage("emojiinfo [Emoji]")]
-		[Summary("Shows information about an emoji. Only global emojis will have a 'From...' text.")]
+		[Summary("Shows information about an emoji. Only global emojis where the bot is in a server that gives them will have a 'From...' text.")]
 		public async Task EmojiInfo([Remainder] string input)
 		{
 			Emoji emoji;
@@ -425,7 +425,7 @@ namespace Advobot
 				description += "From: `" + guild.Name + "`";
 			}
 
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, emoji.Name, description, emoji.Url));
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(emoji.Name, description, null, emoji.Url));
 		}
 
 		[Command("useravatar")]
@@ -465,7 +465,7 @@ namespace Advobot
 			if (Int32.TryParse(input, out position))
 			{
 				IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync();
-				List<IGuildUser> users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
+				var users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
 				if (position >= 1 && position < users.Count)
 				{
 					IGuildUser user = users[position - 1];
@@ -498,7 +498,7 @@ namespace Advobot
 		[PermissionRequirements(1U << (int)GuildPermission.CreateInstantInvite)]
 		public async Task CreateInstantInvite([Remainder] string input)
 		{
-			string[] inputArray = input.Split(new char[] { ' ' }, 4);
+			var inputArray = input.Split(new char[] { ' ' }, 4);
 			if (inputArray.Length != 4)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -563,15 +563,15 @@ namespace Advobot
 		{
 			//Format the description
 			int count = 1;
-			string description = "";
+			var description = "";
 			(await Context.Guild.GetInvitesAsync()).OrderBy(x => x.Uses).ToList().ForEach(x =>
 			{
-				string code = x.Code.Length < 7 ? (x.Code + "       ").Substring(0, 7) : x.Code;
+				var code = x.Code.Length < 7 ? (x.Code + "       ").Substring(0, 7) : x.Code;
 				description += String.Format("`{0}.` `{1}` `{2}` `{3}`\n", count++.ToString("000"), code, x.Uses, x.Inviter.Username);
 			});
 
 			//Send a success message
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Instant Invites", description));
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Instant Invites", description));
 		}
 
 		[Command("deleteinstantinvite")]
@@ -706,6 +706,133 @@ namespace Advobot
 		}
 		#endregion
 
+		#region Reminds
+		[Command("modifyremind")]
+		[Alias("mrem")]
+		[Usage("modifyremind [Add|Remove] [Name]/<Text>")]
+		[Summary("Adds the given text to a list that can be called through the `remind` command.")]
+		[UserHasAPermission]
+		public async Task ModifyRemind([Remainder] string input)
+		{
+			//Check if they've enabled preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
+				return;
+			}
+
+			//Split the input
+			var inputArray = input.Split(new char[] { ' ' }, 2);
+			if (inputArray.Length != 2)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+
+			//Check what action to do
+			bool addBool;
+			if (inputArray[0].Equals("add", StringComparison.OrdinalIgnoreCase))
+			{
+				addBool = true;
+			}
+			else if (inputArray[0].Equals("remove", StringComparison.OrdinalIgnoreCase))
+			{
+				addBool = false;
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				return;
+			}
+
+			var name = "";
+			var reminds = Variables.Guilds[Context.Guild.Id].Reminds;
+			if (addBool)
+			{
+				//Check if at the max number of reminds
+				if (reminds.Count >= Constants.MAX_REMINDS)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild already has the max number of reminds, which is 50."));
+					return;
+				}
+
+				//Separate out the name and text
+				var nameAndText = inputArray[1].Split(new char[] { '/' }, 2);
+				if (nameAndText.Length != 2)
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+					return;
+				}
+				name = nameAndText[0];
+				var text = nameAndText[1];
+
+				//Check if any reminds have already have the same name
+				if (reminds.Any(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A remind already has that name."));
+					return;
+				}
+
+				//Add them to the list
+				reminds.Add(new Remind(name, text));
+			}
+			else
+			{
+				//Make sure there are some reminds
+				if (!reminds.Any())
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There needs to be at least one remind before you can remove any."));
+					return;
+				}
+				name = inputArray[1];
+
+				//Remove all reminds with the same name
+				reminds.RemoveAll(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+			}
+
+			//Get the path
+			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.REMINDS);
+			//Rewrite everything with the current reminds. Uses a different split character than the others because it's more user set than them.
+			Actions.saveLines(path, null, null, reminds.Select(x => x.Name + "/" + x.Text).ToList(), true);
+
+			//Send a success message
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following remind: `{1}`.", addBool ? "added" : "removed", Actions.replaceMessageCharacters(name)));
+		}
+
+		[Command("remind")]
+		[Alias("rem")]
+		[Usage("remind <Name>")]
+		[Summary("Shows the content for the given remind. If null then shows the list of the current reminds.")]
+		public async Task CurrentRemind([Optional, Remainder] string input)
+		{
+			var reminds = Variables.Guilds[Context.Guild.Id].Reminds;
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				//Check if any exist
+				if (!reminds.Any())
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are no reminds."));
+					return;
+				}
+
+				//Send the names of all fo the reminds
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Reminds", String.Format("`{0}`", String.Join("`, `", reminds.Select(x => x.Name)))));
+				return;
+			}
+
+			//Check if any reminds have the given name
+			var remind = reminds.FirstOrDefault(x => x.Name.Equals(input, StringComparison.OrdinalIgnoreCase));
+			if (remind.Name != null)
+			{
+				await Actions.sendChannelMessage(Context, remind.Text);
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no remind with the given name."));
+			}
+		}
+		#endregion
+
 		#region Miscellaneous
 		[Command("mentionrole")]
 		[Alias("mnr")]
@@ -714,7 +841,7 @@ namespace Advobot
 		[UserHasAPermission]
 		public async Task MentionRole([Remainder] string input)
 		{
-			string[] inputArray = input.Split(new char[] { '/' }, 2);
+			var inputArray = input.Split(new char[] { '/' }, 2);
 
 			//Get the role and see if it can be changed
 			IRole role = await Actions.getRoleEditAbility(Context, inputArray[0]);
@@ -774,7 +901,7 @@ namespace Advobot
 			description = description ?? String.Format("This guild has no {0} emojis.", input.ToLower());
 
 			//Send the embed
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Emojis", description));
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Emojis", description));
 		}
 
 		[Command("test")]

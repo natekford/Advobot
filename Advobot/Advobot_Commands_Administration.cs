@@ -142,7 +142,7 @@ namespace Advobot
 		public async Task SetPrefix([Remainder] string input)
 		{
 			//Get the old prefix
-			string oldPrefix = Properties.Settings.Default.Prefix;
+			var oldPrefix = Properties.Settings.Default.Prefix;
 
 			//Check if to clear
 			if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
@@ -173,11 +173,11 @@ namespace Advobot
 		[BotOwnerRequirement]
 		public async Task CurrentSettings()
 		{
-			string description = "";
+			var description = "";
 			description += String.Format("**Prefix:** `{0}`\n", Properties.Settings.Default.Prefix);
 			description += String.Format("**Save Path:** `{0}`\n", Properties.Settings.Default.Path);
 			description += String.Format("**Bot Owner ID:** `{0}`\n", Properties.Settings.Default.BotOwner);
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Current Global Bot Settings", description));
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Current Global Bot Settings", description));
 		}
 
 		[Command("clearallsettings")]
@@ -352,18 +352,18 @@ namespace Advobot
 		public async Task ListGuilds()
 		{
 			//Initialize a string
-			string info = "";
+			var info = "";
 
 			//Go through each guild and add them to the list
 			int count = 1;
-			CommandHandler.Client.Guilds.ToList().ForEach(async x =>
+			CommandHandler.Client.Guilds.ToList().ForEach(x =>
 			{
-				IGuildUser owner = await x.GetOwnerAsync();
+				var owner = x.Owner;
 				info += String.Format("{0}. {1} ID: {2} Owner: {3}#{4} ID: {5}\n", count++.ToString("00"), x.Name, x.Id, owner.Username, owner.Discriminator, owner.Id);
 			});
 
 			//Make an embed and put the link to the hastebin in it
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Guilds", Actions.uploadToHastebin(info)));
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Guilds", Actions.uploadToHastebin(info)));
 		}
 
 		[Command("leaveguild")]
@@ -451,7 +451,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -534,7 +534,7 @@ namespace Advobot
 		[Alias("sgp")]
 		[Usage("setguildprefix [New Prefix|Clear]")]
 		[Summary("Makes the guild use the given prefix from now on.")]
-		[PermissionRequirements]
+		[GuildOwnerRequirement]
 		public async Task SetGuildPrefix([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -543,6 +543,8 @@ namespace Advobot
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not preferences set up."));
 				return;
 			}
+
+			input = input.Trim();
 
 			if (String.IsNullOrWhiteSpace(input))
 			{
@@ -560,36 +562,19 @@ namespace Advobot
 				return;
 			}
 
-			//Create the file if it doesn't exist
-			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
-			if (!File.Exists(path))
+			//Check if the file exists
+			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
+			if (path == null)
 			{
-				Directory.CreateDirectory(Path.GetDirectoryName(path));
-				var newFile = File.Create(path);
-				newFile.Close();
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+				return;
 			}
-
-			//Find the lines that aren't the current prefix line
-			List<string> validLines = new List<string>();
-			using (StreamReader reader = new StreamReader(path))
-			{
-				string line;
-				while ((line = reader.ReadLine()) != null)
-				{
-					if (!line.Contains(Constants.GUILD_PREFIX))
-					{
-						validLines.Add(line);
-					}
-				}
-			}
+			var validLines = Actions.getValidLines(path, Constants.GUILD_PREFIX);
 
 			if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
 			{
 				//Add all the lines back
-				using (StreamWriter writer = new StreamWriter(path))
-				{
-					writer.WriteLine(Constants.GUILD_PREFIX + ":\n" + String.Join("\n", validLines));
-				}
+				Actions.saveLines(path, Constants.GUILD_PREFIX, "", validLines);
 
 				Variables.Guilds[Context.Guild.Id].Prefix = null;
 				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild prefix.");
@@ -597,13 +582,10 @@ namespace Advobot
 			else
 			{
 				//Add all the lines back
-				using (StreamWriter writer = new StreamWriter(path))
-				{
-					writer.WriteLine(Constants.GUILD_PREFIX + ":" + input + "\n" + String.Join("\n", validLines));
-				}
+				Actions.saveLines(path, Constants.GUILD_PREFIX, input, validLines);
 
 				//Update the guild's prefix
-				Variables.Guilds[Context.Guild.Id].Prefix = input.Trim();
+				Variables.Guilds[Context.Guild.Id].Prefix = input;
 				//Send a success message
 				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully set this guild's prefix to: `" + input.Trim() + "`.");
 			}
@@ -613,7 +595,7 @@ namespace Advobot
 		[Alias("mla")]
 		[Usage("modifylogactions [Enable|Disable|Show|Current|Default] <All|Log Action/...>")]
 		[Summary("The log will fire when these events happen. Show lists all the possible events. Default overrides the current settings, and current shows them.")]
-		[PermissionRequirements]
+		[GuildOwnerRequirement]
 		public async Task SwitchLogActions([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -630,7 +612,7 @@ namespace Advobot
 			//Check if the person wants to only see the types
 			if (input.Equals("show", StringComparison.OrdinalIgnoreCase))
 			{
-				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Log Actions", String.Join("\n", Enum.GetNames(typeof(LogActions)))));
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Log Actions", String.Join("\n", Enum.GetNames(typeof(LogActions)))));
 				return;
 			}
 			//Check if they want the default
@@ -652,7 +634,7 @@ namespace Advobot
 				}
 				else
 				{
-					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Current Log Actions", String.Join("\n", logActionsList.Select(x => Enum.GetName(typeof(LogActions), x)))));
+					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Current Log Actions", String.Join("\n", logActionsList.Select(x => Enum.GetName(typeof(LogActions), x)))));
 				}
 				return;
 			}
@@ -679,7 +661,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -727,7 +709,7 @@ namespace Advobot
 		[Alias("slog")]
 		[Usage("serverlog [#Channel|Off]")]
 		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, deleting messages, and bans/unbans.")]
-		[PermissionRequirements]
+		[GuildOwnerRequirement]
 		public async Task Serverlog([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -748,7 +730,7 @@ namespace Advobot
 		[Alias("mlog")]
 		[Usage("modlog [#Channel|Off]")]
 		[Summary("Puts the modlog on the specified channel. Modlog is a log of all commands used.")]
-		[PermissionRequirements]
+		[GuildOwnerRequirement]
 		public async Task Modlog([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -769,7 +751,7 @@ namespace Advobot
 		[Alias("igch")]
 		[Usage("ignorechannel [Add|Remove] [#Channel|Channel Name]")]
 		[Summary("Ignores all logging info that would have been gotten from a channel.")]
-		[PermissionRequirements]
+		[GuildOwnerRequirement]
 		public async Task IgnoreChannel([Remainder] string input)
 		{
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
@@ -796,7 +778,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -847,36 +829,16 @@ namespace Advobot
 			Variables.Guilds[Context.Guild.Id].IgnoredChannels = Variables.Guilds[Context.Guild.Id].IgnoredChannels.Distinct().ToList();
 
 			//Create the file if it doesn't exist
-			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
-			if (!File.Exists(path))
+			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
+			if (path == null)
 			{
-				Directory.CreateDirectory(Path.GetDirectoryName(path));
-				var newFile = File.Create(path);
-				newFile.Close();
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+				return;
 			}
-
-			//Find the lines that aren't the current prefix line
-			List<string> validLines = new List<string>();
-			using (StreamReader reader = new StreamReader(path))
-			{
-				string line;
-				while ((line = reader.ReadLine()) != null)
-				{
-					if (!line.Contains(Constants.IGNORED_CHANNELS))
-					{
-						validLines.Add(line);
-					}
-				}
-			}
-
-			//Add all the lines back
-			using (StreamWriter writer = new StreamWriter(path))
-			{
-				writer.WriteLine(Constants.IGNORED_CHANNELS + ":" + String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredChannels) + "\n" + String.Join("\n", validLines));
-			}
+			Actions.saveLines(path, Constants.IGNORED_CHANNELS, String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredChannels), Actions.getValidLines(path, Constants.IGNORED_CHANNELS));
 
 			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Successfully ignored the channel `{0}` with an ID of `{1}`.", channel.Name, channel.Id)));
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the channel `{0}` with an ID of `{1}`.", channel.Name, channel.Id));
 		}
 
 		[Command("botchannel")]
@@ -956,7 +918,7 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task CurrentPreferences()
 		{
-			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE);
+			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE);
 			if (path == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
@@ -983,7 +945,7 @@ namespace Advobot
 			}
 
 			//Split the input
-			string[] inputArray = input.Split(new char[] { ' ' }, 3);
+			var inputArray = input.Split(new char[] { ' ' }, 3);
 
 			//Check if valid length
 			if (inputArray.Length < 2 || inputArray.Length > 3)
@@ -993,7 +955,7 @@ namespace Advobot
 			}
 
 			//Check if valid actions
-			string action = inputArray[0].ToLower();
+			var action = inputArray[0].ToLower();
 			bool addBool;
 			if (action.Equals("add"))
 			{
@@ -1005,7 +967,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -1020,8 +982,8 @@ namespace Advobot
 			}
 
 			//Check if should add as regex or not
-			string type;
-			string forSaving;
+			var type = "";
+			var forSaving = "";
 			var success = new List<string>();
 			var failure = new List<string>();
 			if (!regexBool)
@@ -1188,36 +1150,13 @@ namespace Advobot
 			}
 
 			//Create the banned phrases file if it doesn't already exist
-			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
 			if (path == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 				return;
 			}
-			if (!File.Exists(path))
-			{
-				File.Create(path).Close();
-			}
-
-			//Find the lines that aren't the current regular banned phrases line
-			var validLines = new List<string>();
-			using (StreamReader reader = new StreamReader(path))
-			{
-				string line;
-				while ((line = reader.ReadLine()) != null)
-				{
-					if (!line.StartsWith(type))
-					{
-						validLines.Add(line);
-					}
-				}
-			}
-
-			//Rewrite the file
-			using (StreamWriter writer = new StreamWriter(path))
-			{
-				writer.WriteLine(type + ":" + forSaving + "\n" + String.Join("\n", validLines));
-			}
+			Actions.saveLines(path, type, forSaving, Actions.getValidLines(path, type));
 
 			//Format success message
 			string successMessage = null;
@@ -1235,7 +1174,7 @@ namespace Advobot
 			string failureMessage = null;
 			if (failure.Any())
 			{
-				String.Format("{0}ailed to {1} the following {2} {3} the banned {4} list: `{5}`",
+				failureMessage = String.Format("{0}ailed to {1} the following {2} {3} the banned {4} list: `{5}`",
 					successMessage != null ? "F" : "f",
 					addBool ? "add" : "remove",
 					failure.Count != 1 ? "phrases" : "phrase",
@@ -1259,7 +1198,7 @@ namespace Advobot
 		public async Task CurrentBanPhrases([Remainder] string input)
 		{
 			//Make an array of input
-			string[] inputArray = input.Split(new char[] { ' ' }, 2);
+			var inputArray = input.Split(new char[] { ' ' }, 2);
 
 			//Send an arguments error
 			if (inputArray.Length < 1)
@@ -1272,7 +1211,7 @@ namespace Advobot
 			var bannedPhrases = new List<string>();
 
 			//Get if regex or normal phrases
-			string type = Constants.BANNED_PHRASES_CHECK_STRING;
+			var type = Constants.BANNED_PHRASES_CHECK_STRING;
 			bool regexBool = false;
 			if (inputArray.Length >= 2 && inputArray[1].Equals("regex", StringComparison.OrdinalIgnoreCase))
 			{
@@ -1284,7 +1223,7 @@ namespace Advobot
 			if (inputArray[0].Equals("file", StringComparison.OrdinalIgnoreCase))
 			{
 				//Check if the file exists
-				string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+				var path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
 				if (path == null)
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
@@ -1297,22 +1236,8 @@ namespace Advobot
 				}
 
 				//Get the words out of the file
-				using (StreamReader file = new StreamReader(path))
-				{
-					string line;
-					while ((line = file.ReadLine()) != null)
-					{
-						//If the line is empty, do nothing
-						if (String.IsNullOrWhiteSpace(line))
-						{
-							continue;
-						}
-						if (line.ToLower().StartsWith(type))
-						{
-							bannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
-						}
-					}
-				}
+				var line = Actions.getValidLines(path, type).FirstOrDefault();
+				bannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
 
 				fileBool = true;
 			}
@@ -1362,15 +1287,15 @@ namespace Advobot
 			}
 
 			//Make the header
-			string header = "Banned " + (regexBool ? "Regex " : "Phrases ") + (fileBool ? "(File)" : "(Actual)");
+			var header = "Banned " + (regexBool ? "Regex " : "Phrases ") + (fileBool ? "(File)" : "(Actual)");
 
 			//Make the description
 			int counter = 0;
-			string description = "";
+			var description = "";
 			bannedPhrases.ForEach(x => description += "`" + counter++.ToString("00") + ".` `" + x + "`\n");
 
 			//Make and send the embed
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, header, description));
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(header, description));
 		}
 
 		[Command("modifypunishments")]
@@ -1381,7 +1306,7 @@ namespace Advobot
 		public async Task SetPunishments([Remainder] string input)
 		{
 			//Split the input
-			string[] inputArray = input.Split(new char[] { ' ' }, 3);
+			var inputArray = input.Split(new char[] { ' ' }, 3);
 
 			//Check if correct number of args
 			if (inputArray.Length < 2 || inputArray.Length > 3)
@@ -1391,7 +1316,7 @@ namespace Advobot
 			}
 
 			//Get the action
-			string action = inputArray[0].ToLower();
+			var action = inputArray[0].ToLower();
 			bool addBool;
 			if (action.Equals("add"))
 			{
@@ -1403,7 +1328,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action, must be Add or Remove."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -1416,7 +1341,7 @@ namespace Advobot
 			}
 
 			//Get the punishment
-			string punishmentString;
+			var punishmentString = "";
 			PunishmentType punishmentType = 0;
 			IRole punishmentRole = null;
 			int time = 0;
@@ -1445,8 +1370,8 @@ namespace Advobot
 				else
 				{
 					var lS = punishmentString.LastIndexOf(' ');
-					string possibleRole = punishmentString.Substring(0, lS).Trim();
-					string possibleTime = punishmentString.Substring(lS);
+					var possibleRole = punishmentString.Substring(0, lS).Trim();
+					var possibleTime = punishmentString.Substring(lS);
 
 					if (Context.Guild.Roles.Any(x => x.Name.Equals(possibleRole, StringComparison.OrdinalIgnoreCase)))
 					{
@@ -1540,39 +1465,18 @@ namespace Advobot
 			});
 
 			//Create the banned phrases file if it doesn't already exist
-			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
 			if (path == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 				return;
 			}
-			if (!File.Exists(path))
-			{
-				File.Create(path).Close();
-			}
 
 			//Find the lines that aren't the punishments
-			var validLines = new List<string>();
-			using (StreamReader reader = new StreamReader(path))
-			{
-				string line;
-				while ((line = reader.ReadLine()) != null)
-				{
-					if (!line.StartsWith(Constants.BANNED_PHRASES_PUNISHMENTS))
-					{
-						validLines.Add(line);
-					}
-				}
-			}
-
-			//Rewrite the file
-			using (StreamWriter writer = new StreamWriter(path))
-			{
-				writer.WriteLine(Constants.BANNED_PHRASES_PUNISHMENTS + ":" + String.Join("/", forSaving) + "\n" + String.Join("\n", validLines));
-			}
+			Actions.saveLines(path, Constants.BANNED_PHRASES_PUNISHMENTS, String.Join("/", forSaving), Actions.getValidLines(path, Constants.BANNED_PHRASES_PUNISHMENTS));
 
 			//Determine what the success message should say
-			string successMsg = "";
+			var successMsg = "";
 			if (newPunishment == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully removed the punishment at position `{0}`.", number);
@@ -1592,7 +1496,7 @@ namespace Advobot
 			}
 
 			//Check if there's a time
-			string timeMsg = "";
+			var timeMsg = "";
 			if (newPunishment.PunishmentTime != 0)
 			{
 				timeMsg = ", and will last for `" + newPunishment.PunishmentTime + "` minute(s)";
@@ -1608,12 +1512,12 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task CurrentPunishments([Remainder] string input)
 		{
-			string description = "";
+			var description = "";
 			bool fileBool;
 			if (input.Equals("file", StringComparison.OrdinalIgnoreCase))
 			{
 				//Check if the file exists
-				string path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+				var path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
 				if (path == null)
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
@@ -1626,23 +1530,8 @@ namespace Advobot
 				}
 
 				//Get the words out of the file
-				var punishments = new List<string>();
-				using (StreamReader file = new StreamReader(path))
-				{
-					string line;
-					while ((line = file.ReadLine()) != null)
-					{
-						//If the line is empty, do nothing
-						if (String.IsNullOrWhiteSpace(line))
-						{
-							continue;
-						}
-						if (line.ToLower().StartsWith(Constants.BANNED_PHRASES_PUNISHMENTS))
-						{
-							punishments = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
-						}
-					}
-				}
+				var line = Actions.getValidLines(path, Constants.BANNED_PHRASES_PUNISHMENTS).FirstOrDefault();
+				var punishments = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
 
 				if (!punishments.Any())
 				{
@@ -1715,7 +1604,7 @@ namespace Advobot
 			}
 
 			//Make and send an embed
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Punishments " + (fileBool ? "(File)" : "(Actual)"), description));
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Punishments " + (fileBool ? "(File)" : "(Actual)"), description));
 		}
 
 		[Command("clearbanphraseuser")]
@@ -1778,7 +1667,7 @@ namespace Advobot
 			if (input.Equals("help", StringComparison.OrdinalIgnoreCase))
 			{
 				//Make the embed
-				var embed = Actions.makeNewEmbed(null, "Self Roles Help", "The general group number is 0; roles added here don't conflict. Roles cannot be added to more than one group.");
+				var embed = Actions.makeNewEmbed("Self Roles Help", "The general group number is 0; roles added here don't conflict. Roles cannot be added to more than one group.");
 				Actions.addField(embed, "[Create] [Role/...] [Group:Number]", "The group number shows which group to create these roles as.");
 				Actions.addField(embed, "[Add] [Role/...] [Group:Number]", "Adds the roles to the given group.");
 				Actions.addField(embed, "[Remove] [Role/...] [Group:Number]", "Removes the roles from the given group.");
@@ -1791,8 +1680,8 @@ namespace Advobot
 
 			//Break the input into pieces
 			var inputArray = input.Split(new char[] { ' ' }, 2);
-			string action = inputArray[0].ToLower();
-			string rolesString = inputArray[1];
+			var action = inputArray[0].ToLower();
+			var rolesString = inputArray[1];
 
 			//Check which action it is
 			SAGAction actionType;
@@ -1806,7 +1695,7 @@ namespace Advobot
 				actionType = SAGAction.Delete;
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid action, must be Create, Add, Remove, or Delete."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -1845,7 +1734,7 @@ namespace Advobot
 					int lastSpace = rolesString.LastIndexOf(' ');
 
 					//Make the group string everything after the last space
-					string groupString = rolesString.Substring(lastSpace).Trim();
+					var groupString = rolesString.Substring(lastSpace).Trim();
 					//Make the role string everything before the last space
 					rolesString = rolesString.Substring(0, lastSpace).Trim();
 
@@ -1959,7 +1848,7 @@ namespace Advobot
 			}
 
 			//Get the file that's supposed to hold everything
-			string path = Actions.getServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
+			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
 			if (path == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
@@ -1970,14 +1859,14 @@ namespace Advobot
 			//Rewrite it
 			using (StreamWriter writer = new StreamWriter(path))
 			{
-				string savingString = "";
+				var savingString = "";
 				Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).ToList().ForEach(x => x.Roles.ForEach(y => savingString += y.Role.Id + " " + y.Group + "\n"));
 				writer.WriteLine(savingString);
 			}
 
 			//Make the success and failure strings
-			string sString = "";
-			string fString = "";
+			var sString = "";
+			var fString = "";
 			bool sBool = success.Any();
 			bool fBool = failure.Any();
 			if (actionType == SAGAction.Create)
@@ -2001,7 +1890,7 @@ namespace Advobot
 			}
 
 			//Format the response message
-			string responseMessage = "";
+			var responseMessage = "";
 			if (sBool && fBool)
 			{
 				responseMessage = sString + ", and " + fString;
@@ -2068,7 +1957,7 @@ namespace Advobot
 			await user.ChangeRolesAsync(new [] { role }, roles);
 
 			//Format a success message
-			string removedRoles = "";
+			var removedRoles = "";
 			if (roles.Any())
 			{
 				removedRoles = String.Format(", and removed `{0}`", String.Join("`, `", roles));
@@ -2100,7 +1989,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option, must be either File or Actual or Nothing."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -2108,7 +1997,7 @@ namespace Advobot
 			if (fileBool)
 			{
 				//Check if the file exists
-				string path = Actions.getServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
+				var path = Actions.getServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
 				if (path == null)
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
@@ -2121,27 +2010,22 @@ namespace Advobot
 				}
 
 				//Get all the self roles that have that group
-				using (StreamReader file = new StreamReader(path))
+				var validLines = Actions.getValidLines(path, null);
+				validLines.ForEach(x =>
 				{
-					string line;
-					while ((line = file.ReadLine()) != null)
+					//Split to get the role ID and the group
+					var lineArray = x.Split(' ');
+					int throwaway;
+					if (int.TryParse(lineArray[1], out throwaway))
 					{
-						//If the line is empty, do nothing
-						if (String.IsNullOrWhiteSpace(line))
-						{
-							continue;
-						}
-						else
-						{
-							//Split to get the role ID and the group
-							string[] lineArray = line.Split(' ');
-							int throwaway;
-							if (int.TryParse(lineArray[1], out throwaway))
-							{
-								groupNumbers.Add(throwaway);
-							}
-						}
+						groupNumbers.Add(throwaway);
 					}
+				});
+
+				if (!groupNumbers.Any())
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are currently no self assignable role groups on file."));
+					return;
 				}
 			}
 			else
@@ -2149,13 +2033,13 @@ namespace Advobot
 				groupNumbers = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).Select(x => x.Group).Distinct().ToList();
 				if (!groupNumbers.Any())
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are currently no self assignable role groups on this guid."));
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are currently no self assignable role groups on this guild."));
 					return;
 				}
 			}
 
 			//Send a sucess message
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, "Self Assignable Role Groups", String.Join(", ", groupNumbers.OrderBy(x => x).Distinct())));
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Self Assignable Role Groups", String.Join(", ", groupNumbers.OrderBy(x => x).Distinct())));
 		}
 
 		[Command("currentselfroles")]
@@ -2165,7 +2049,7 @@ namespace Advobot
 		public async Task CurrentSelfRoles([Remainder] string input)
 		{
 			//Split the input
-			string[] inputArray = input.Split(new char[] { ' ' }, 2);
+			var inputArray = input.Split(new char[] { ' ' }, 2);
 
 			bool fileBool;
 			if (inputArray[0].Equals("file", StringComparison.OrdinalIgnoreCase))
@@ -2186,7 +2070,7 @@ namespace Advobot
 				return;
 			}
 
-			string description = "";
+			var description = "";
 			int groupNumber;
 			if (fileBool)
 			{
@@ -2196,7 +2080,7 @@ namespace Advobot
 					return;
 
 				//Check if the file exists
-				string path = Actions.getServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
+				var path = Actions.getServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
 				if (path == null)
 				{
 					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
@@ -2209,28 +2093,14 @@ namespace Advobot
 				}
 
 				//Get all the self roles that have that group
-				var roleIDs = new List<string>();
-				using (StreamReader file = new StreamReader(path))
+				var lines = Actions.getValidLines(path, null);
+				var roleIDs = lines.Where(x =>
 				{
-					string line;
-					while ((line = file.ReadLine()) != null)
-					{
-						//If the line is empty, do nothing
-						if (String.IsNullOrWhiteSpace(line))
-						{
-							continue;
-						}
-						else
-						{
-							//Split to get the role ID and the group
-							string[] lineArray = line.Split(' ');
-							if (lineArray[1].Equals(groupNumber.ToString()))
-							{
-								roleIDs.Add(lineArray[0]);
-							}
-						}
-					}
-				}
+					var lineArray = x.Split(' ');
+					if (lineArray.Length > 2 && lineArray[1].Equals(groupNumber.ToString()))
+						return true;
+					return false;
+				}).ToList();
 
 				//Check if any role IDs were gotten
 				if (!roleIDs.Any())
@@ -2286,7 +2156,282 @@ namespace Advobot
 			}
 
 			//Send the embed
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(null, String.Format("Self Roles Group {0} ({1})", groupNumber, fileBool ? "File" : "Actual"), description));
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(String.Format("Self Roles Group {0} ({1})", groupNumber, fileBool ? "File" : "Actual"), description));
+		}
+		#endregion
+
+		#region Bot Users
+		[Command("modifybotuser")]
+		[Alias("mbu")]
+		[Usage("modifybotuser [Add|Remove|Show] <@User> <Permission/...>")]
+		[Summary("Gives a user permissions in the bot but not on Discord itself. Can remove a user by not specifying any perms with remove.")]
+		[PermissionRequirements]
+		public async Task ModifyUserBotPerm([Remainder] string input)
+		{
+			//Check if they've enabled preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
+				return;
+			}
+
+			//Split input
+			var inputArray = input.Split(' ');
+			if (inputArray.Length == 0 || inputArray.Length > 3)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+
+			//Check if valid action
+			var action = inputArray[0];
+			bool? addBool;
+			if (action.Equals("show", StringComparison.OrdinalIgnoreCase))
+			{
+				addBool = null;
+			}
+			else if (action.Equals("add", StringComparison.OrdinalIgnoreCase))
+			{
+				addBool = true;
+			}
+			else if (action.Equals("remove", StringComparison.OrdinalIgnoreCase))
+			{
+				addBool = false;
+			}
+			else
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				return;
+			}
+
+			if (addBool == null)
+			{
+				if (inputArray.Length == 1)
+				{
+					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Guild Permissions", String.Join("\n", Variables.GuildPermissions.Select(x => x.Name))));
+					return;
+				}
+				else if (inputArray.Length == 2)
+				{
+					//Check if valid user
+					var showUser = await Actions.getUser(Context.Guild, inputArray[1]);
+					if (showUser == null)
+					{
+						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+						return;
+					}
+					//Check if that user is on the botuser list
+					else if (!Variables.BotUsers.Any(x => x.User == showUser))
+					{
+						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no extra permissions from the bot."));
+						return;
+					}
+
+					//check if that user has any permissions
+					var showPermissions = Actions.getPermissionNames(Variables.BotUsers.FirstOrDefault(x => x.User == showUser).Permissions);
+					if (!showPermissions.Any())
+					{
+						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no extra permissions from the bot."));
+						return;
+					}
+
+					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Permissions for " + showUser.Username + "#" + showUser.Discriminator, String.Join("\n", showPermissions)));
+					return;
+				}
+				else
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option for show."));
+					return;
+				}
+			}
+
+			//Check if valid user
+			var user = await Actions.getUser(Context.Guild, inputArray[1]);
+			if (user == null)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				return;
+			}
+
+			if (!(bool)addBool && inputArray.Length == 2)
+			{
+				Variables.BotUsers.RemoveAll(x => x.User == user);
+				var removePath = Actions.getServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
+				Actions.saveLines(removePath, null, null, Actions.getValidLines(removePath, user.Id.ToString()));
+
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}#{1}` from the bot user list.", user.Username, user.Discriminator));
+				return;
+			}
+
+			//Get the permissions
+			var permissions = inputArray[2].Split('/').Select(x => Variables.GuildPermissions.FirstOrDefault(y => y.Name.Equals(x, StringComparison.OrdinalIgnoreCase))).Where(x => x.Name != null).ToList();
+			if (!permissions.Any())
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				return;
+			}
+
+			//Remove administrator unless the person running the command is the guild owner
+			if (Context.User.Id != Context.Guild.OwnerId)
+			{
+				permissions.RemoveAll(x => x.Name.Equals(Enum.GetName(typeof(GuildPermission), GuildPermission.Administrator), StringComparison.OrdinalIgnoreCase));
+			}
+
+			//Get the user out of the list with their bot permissions
+			var botUser = Variables.BotUsers.FirstOrDefault(x => x.User == user) ?? new BotImplementedPermissions(user, 0);
+
+			//Modify their permissions value
+			if ((bool)addBool)
+			{
+				//Give them the permissions
+				permissions.ForEach(x =>
+				{
+					botUser.Permissions |= (1U << x.Position);
+				});
+			}
+			else
+			{
+				//Take the permissions from them
+				permissions.ForEach(x =>
+				{
+					if (botUser.Permissions == 0)
+						return;
+					botUser.Permissions &= ~(1U << x.Position);
+				});
+			}
+
+			//Add the user to the list if they aren't already in it
+			if (!Variables.BotUsers.Any(x => x.User == user))
+			{
+				Variables.BotUsers.Add(botUser);
+			}
+
+			//Get the path
+			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
+			//Check what the permissions are
+			if (botUser.Permissions != 0)
+			{
+				//Save everything back
+				Actions.saveLines(path, user.Id.ToString(), botUser.Permissions.ToString(), Actions.getValidLines(path, user.Id.ToString()));
+			}
+			else
+			{
+				//If no permissions, then remove them from the list and file
+				Variables.BotUsers.RemoveAll(x => x.User == user);
+				Actions.saveLines(path, null, null, Actions.getValidLines(path, user.Id.ToString()));
+			}
+
+			//Send a success message
+			await Actions.sendChannelMessage(Context, String.Format("Successfully {1}: `{0}`.", String.Join("`, `", permissions.Select(x => x.Name)),
+				(bool)addBool ? String.Format("gave the user `{0}#{1}` the following permission{2}", user.Username, user.Discriminator, permissions.Count() != 1 ? "s" : "") :
+								String.Format("removed the following permission{0} from the user `{1}#{2}`", permissions.Count() != 1 ? "s" : "", user.Username, user.Discriminator)));
+		}
+
+		[Command("currentbotusers")]
+		[Alias("cbu")]
+		[Usage("currentbotusers [File|Actual|@User]")]
+		[Summary("Shows a list of all the people who are bot users. If a user is specified then their permissions are said.")]
+		[UserHasAPermission]
+		public async Task CurrentBotUsers([Remainder] string input)
+		{
+			bool fileBool;
+			if (input.Equals("file", StringComparison.OrdinalIgnoreCase))
+			{
+				fileBool = true;
+			}
+			else if (input.Equals("actual", StringComparison.OrdinalIgnoreCase))
+			{
+				fileBool = false;
+			}
+			else
+			{
+				//Check if user
+				var user = await Actions.getUser(Context.Guild, input);
+				if (user != null)
+				{
+					//Get the botuser
+					var botUser = Variables.BotUsers.FirstOrDefault(x => x.User == user);
+					if (botUser == null || botUser.Permissions == 0)
+					{
+						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no bot permissions."));
+						return;
+					}
+					var perms = String.Join("`, `", Actions.getPermissionNames(botUser.Permissions));
+					await Actions.sendChannelMessage(Context, String.Format("The user `{0}#{1}` has the following permissions: `{2}`.", user.Username, user.Discriminator, perms));
+					return;
+				}
+				else
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+					return;
+				}
+			}
+
+			var counter = 1;
+			var description = "";
+			if (fileBool)
+			{
+				//Check if the file exists
+				var path = Actions.getServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
+				if (!File.Exists(path))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This server has no bot users."));
+					return;
+				}
+
+				//Go through each line checking for the users
+				using (StreamReader reader = new StreamReader(path))
+				{
+					string line;
+					while ((line = reader.ReadLine()) != null)
+					{
+						if (String.IsNullOrWhiteSpace(line))
+							continue;
+
+						//Split input
+						var inputArray = line.Split(':');
+						if (inputArray.Length != 2)
+							continue;
+
+						//Check if valid ID
+						ulong ID;
+						if (!ulong.TryParse(inputArray[0], out ID))
+							continue;
+
+						//Check if valid perms
+						uint perms;
+						if (!uint.TryParse(inputArray[1], out perms))
+							continue;
+
+						var user = await Context.Guild.GetUserAsync(ID);
+						if (user == null)
+							continue;
+
+						//If valid botuser then add to the line
+						description += String.Format("`{0}.` {1}#{2} ({3})", counter++.ToString("00"), user.Username, user.Discriminator, user.Id);
+					}
+				}
+
+				if (String.IsNullOrWhiteSpace(description))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no bot users on file."));
+					return;
+				}
+			}
+			else
+			{
+
+				description = String.Join("\n", Variables.BotUsers.Where(x => x.User.GuildId == Context.Guild.Id).Select(x =>
+					String.Format("`{0}.` {1}#{2} ({3})", counter++.ToString("00"), x.User.Username, x.User.Discriminator, x.User.Id)));
+
+				if (String.IsNullOrWhiteSpace(description))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no bot users."));
+					return;
+				}
+			}
+
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Current Bot Users", description));
 		}
 		#endregion
 	}

@@ -33,12 +33,12 @@ namespace Advobot
 			if (!Variables.Guilds.ContainsKey(guild.Id))
 			{
 				//Put the guild into a list
-				Variables.Guilds.Add(guild.Id, new MyGuildInfo(guild));
+				Variables.Guilds.Add(guild.Id, new BotGuildInfo(guild));
 				//Put the invites into a list holding mainly for usage checking
 				var t = Task.Run(async () =>
 				{
 					//Get all of the invites and add their guildID, code, and current uses to the usage check list
-					Variables.Guilds[guild.Id].Invites = (await guild.GetInvitesAsync()).ToList().Select(x => new MyInvite(x.GuildId, x.Code, x.Uses)).ToList();
+					Variables.Guilds[guild.Id].Invites = (await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList();
 				});
 
 				//Incrementing
@@ -170,7 +170,7 @@ namespace Advobot
 			//Get the invites that have already been put on the bot
 			var botInvs = Variables.Guilds[user.Guild.Id].Invites;
 			//Set an invite to hold the current invite the user joined on
-			MyInvite curInv = null;
+			BotInvite curInv = null;
 			if (botInvs != null)
 			{
 				//Find the first invite where the bot invite has the same code as the current invite but different use counts
@@ -184,10 +184,10 @@ namespace Advobot
 					//If there's only one, then use that as the current inv. If there's more than one then there's no way to know what invite it was on
 					if (newInvs.Count() == 1)
 					{
-						curInv = new MyInvite(newInvs.First().GuildId, newInvs.First().Code, newInvs.First().Uses);
+						curInv = new BotInvite(newInvs.First().GuildId, newInvs.First().Code, newInvs.First().Uses);
 					}
 					//Add all of the invites to the bot invites list
-					botInvs.AddRange(newInvs.Select(x => new MyInvite(x.GuildId, x.Code, x.Uses)));
+					botInvs.AddRange(newInvs.Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)));
 				}
 				else
 				{
@@ -197,9 +197,9 @@ namespace Advobot
 			}
 
 			//Check if should add them to a slowmode for channel/guild
-			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id) || (await user.Guild.GetTextChannelsAsync()).Intersect(Variables.SlowmodeChannels.Keys).Any())
+			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id) || user.Guild.TextChannels.Intersect(Variables.SlowmodeChannels.Keys).Any())
 			{
-				await Actions.slowmodeAddUser(user);
+				Actions.slowmodeAddUser(user);
 			}
 
 			var logChannel = await Actions.verifyLogChannel(user.Guild);
@@ -209,7 +209,7 @@ namespace Advobot
 				return;
 
 			//Invite string
-			string inviteString = "";
+			var inviteString = "";
 			if (curInv != null)
 			{
 				inviteString = String.Format("**Invite:** {0}", curInv.Code);
@@ -217,12 +217,12 @@ namespace Advobot
 
 			if (user.IsBot)
 			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString)), "Bot Joined");
+				var embed = Actions.addFooter(Actions.makeNewEmbed(null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString), Constants.JOIN), "Bot Joined");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 			else
 			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.JOIN, null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString)), "User Joined");
+				var embed = Actions.addFooter(Actions.makeNewEmbed(null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString), Constants.JOIN), "User Joined");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 		}
@@ -247,12 +247,12 @@ namespace Advobot
 
 			if (user.IsBot)
 			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAV, null, "**ID:** " + user.Id.ToString()), "Bot Left");
+				var embed = Actions.addFooter(Actions.makeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Bot Left");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 			else
 			{
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.LEAV, null, "**ID:** " + user.Id.ToString()), "User Left");
+				var embed = Actions.addFooter(Actions.makeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "User Left");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 			}
 		}
@@ -268,10 +268,10 @@ namespace Advobot
 				return;
 
 			//Get the username/discriminator via this dictionary since they don't exist otherwise
-			string username = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Username : "null";
-			string discriminator = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Discriminator : "0000";
+			var username = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Username : "null";
+			var discriminator = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Discriminator : "0000";
 
-			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UNBN, null, "**ID:** " + user.Id.ToString()), "User Unbanned");
+			var embed = Actions.addFooter(Actions.makeNewEmbed(null, "**ID:** " + user.Id, Constants.UNBN), "User Unbanned");
 			await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", username, discriminator), user.AvatarUrl));
 		}
 
@@ -292,12 +292,15 @@ namespace Advobot
 			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
-			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.BANN, null, "**ID:** " + user.Id.ToString()), "User Banned");
+			var embed = Actions.addFooter(Actions.makeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "User Banned");
 			await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 		}
 
 		public static async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
 		{
+			if (beforeUser == null || afterUser == null)
+				return;
+
 			//Name change
 			//TODO: Make this work somehow
 			if (!beforeUser.Username.Equals(afterUser.Username, StringComparison.OrdinalIgnoreCase))
@@ -311,7 +314,7 @@ namespace Advobot
 						return;
 					++Variables.LoggedUserChanges;
 
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT), "Name Changed");
+					var embed = Actions.addFooter(Actions.makeNewEmbed(null, null, Constants.UEDT), "Name Changed");
 					Actions.addField(embed, "Before:", "`" + beforeUser.Username + "`");
 					Actions.addField(embed, "After:", "`" + afterUser.Username + "`", false);
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
@@ -333,18 +336,18 @@ namespace Advobot
 			//Nickname change
 			if ((String.IsNullOrWhiteSpace(beforeUser.Nickname) && !String.IsNullOrWhiteSpace(afterUser.Nickname)) || (!String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)))
 			{
-				string originalNickname = beforeUser.Nickname;
+				var originalNickname = beforeUser.Nickname;
 				if (String.IsNullOrWhiteSpace(beforeUser.Nickname))
 				{
 					originalNickname = "NO NICKNAME";
 				}
-				string nicknameChange = afterUser.Nickname;
+				var nicknameChange = afterUser.Nickname;
 				if (String.IsNullOrWhiteSpace(afterUser.Nickname))
 				{
 					nicknameChange = "NO NICKNAME";
 				}
 				//These ones are across more lines than the previous ones up above because it makes it easier to remember what is doing what
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT), "Nickname Changed");
+				var embed = Actions.addFooter(Actions.makeNewEmbed(null, null, Constants.UEDT), "Nickname Changed");
 				Actions.addField(embed, "Before:", "`" + originalNickname + "`");
 				Actions.addField(embed, "After:", "`" + nicknameChange + "`", false);
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
@@ -353,7 +356,7 @@ namespace Advobot
 			{
 				if (!beforeUser.Nickname.Equals(afterUser.Nickname))
 				{
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT), "Nickname Changed");
+					var embed = Actions.addFooter(Actions.makeNewEmbed(null, null, Constants.UEDT), "Nickname Changed");
 					Actions.addField(embed, "Before:", "`" + beforeUser.Nickname + "`");
 					Actions.addField(embed, "After:", "`" + afterUser.Nickname + "`", false);
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
@@ -363,7 +366,7 @@ namespace Advobot
 			//Role change
 			var firstNotSecond = beforeUser.RoleIds.Except(afterUser.RoleIds).Select(x => guild.GetRole(x)).ToList();
 			var secondNotFirst = afterUser.RoleIds.Except(beforeUser.RoleIds).Select(x => guild.GetRole(x)).ToList();
-			List<string> rolesChange = new List<string>();
+			var rolesChange = new List<string>();
 			if (firstNotSecond.Any())
 			{
 				//In separate task in case of a deleted role
@@ -387,7 +390,7 @@ namespace Advobot
 					if (!rolesChange.Any())
 						return;
 
-					EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT, null, "**Role(s) Lost:** " + String.Join(", ", rolesChange)), "Role Lost");
+					var embed = Actions.addFooter(Actions.makeNewEmbed(null, "**Role(s) Lost:** " + String.Join(", ", rolesChange), Constants.UEDT), "Role Lost");
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 				});
 			}
@@ -402,7 +405,7 @@ namespace Advobot
 				if (!rolesChange.Any())
 					return;
 
-				EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.UEDT, null, "**Role(s) Gained:** " + String.Join(", ", rolesChange)), "Role Gained");
+				var embed = Actions.addFooter(Actions.makeNewEmbed(null, "**Role(s) Gained:** " + String.Join(", ", rolesChange), Constants.UEDT), "Role Gained");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 			}
 		}
@@ -517,8 +520,8 @@ namespace Advobot
 			}
 
 			//Set the content as strings
-			string beforeMsg = Actions.replaceMessageCharacters(beforeMessage.Value.Content ?? "NOTHING");
-			string afterMsg = Actions.replaceMessageCharacters(afterMessage.Content ?? "NOTHING");
+			var beforeMsg = Actions.replaceMessageCharacters(beforeMessage.Value.Content ?? "NOTHING");
+			var afterMsg = Actions.replaceMessageCharacters(afterMessage.Content ?? "NOTHING");
 
 			//Double checking because sending a field with null is not good
 			beforeMsg = String.IsNullOrWhiteSpace(beforeMsg) ? "NOTHING" : beforeMsg;
@@ -550,7 +553,7 @@ namespace Advobot
 			}
 
 			//Make the embed
-			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(Constants.MEDT), "Message Updated");
+			var embed = Actions.addFooter(Actions.makeNewEmbed(null, null, Constants.MEDT), "Message Updated");
 			Actions.addField(embed, "Before:", "`" + beforeMsg + "`");
 			Actions.addField(embed, "After:", "`" + afterMsg + "`", false);
 			Actions.addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, afterMessage.Channel), user.AvatarUrl);
@@ -573,7 +576,7 @@ namespace Advobot
 				return;
 
 			//Get a list of the deleted messages per server
-			List<SocketMessage> mainMessages;
+			var mainMessages = new List<SocketMessage>();
 			if (!Variables.DeletedMessages.TryGetValue(guild.Id, out mainMessages))
 			{
 				mainMessages = new List<SocketMessage>();
@@ -609,7 +612,7 @@ namespace Advobot
 
 				int characterCount = 0;
 				List<SocketMessage> deletedMessages;
-				List<SocketMessage> taskMessages = Variables.DeletedMessages[guild.Id];
+				var taskMessages = Variables.DeletedMessages[guild.Id];
 				lock (taskMessages)
 				{
 					//Give the messages to a new list so they can be removed from the old one
@@ -624,20 +627,20 @@ namespace Advobot
 				}
 
 				//Sort by oldest to newest
-				List<SocketMessage> deletedMessagesSorted = deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks).ToList();
+				var deletedMessagesSorted = deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks).ToList();
 				if (Constants.NEWEST_DELETED_MESSAGES_AT_TOP)
 				{
 					deletedMessagesSorted.Reverse();
 				}
 				//Put the message content into a list of strings for easy usage
-				List<string> deletedMessagesContent = new List<string>();
+				var deletedMessagesContent = new List<string>();
 				deletedMessagesSorted.ForEach(x =>
 				{
 					//See if any embeds deleted
 					if (x.Embeds.Any())
 					{
 						//Get the first embed with a valid description
-						Embed embed = x.Embeds.FirstOrDefault(desc => desc.Description != null);
+						var embed = x.Embeds.FirstOrDefault(desc => desc.Description != null);
 						//If no embed with valid description, try for valid URL
 						embed = embed ?? x.Embeds.FirstOrDefault(url => url.Url != null);
 						//If no valid URL, try for valid image
@@ -665,7 +668,7 @@ namespace Advobot
 					//See if any attachments were put in
 					else if (x.Attachments.Any())
 					{
-						string content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
+						var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 						deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
 							x.Author.Username,
 							x.Author.Discriminator,
@@ -676,7 +679,7 @@ namespace Advobot
 					//Else add the message in normally
 					else
 					{
-						string content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
+						var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 						deletedMessagesContent.Add(String.Format("`{0}#{1}` **IN** `#{2}` **SENT AT** `[{3}]`\n```\n{4}```",
 							x.Author.Username,
 							x.Author.Discriminator,
@@ -691,7 +694,7 @@ namespace Advobot
 				else if ((deletedMessages.Count <= 5) && (characterCount < Constants.LENGTH_CHECK))
 				{
 					//If there aren't many messages send the small amount in a message instead of a file or link
-					EmbedBuilder embed = Actions.makeNewEmbed(Constants.MDEL, "Deleted Messages", String.Join("\n", deletedMessagesContent));
+					var embed = Actions.makeNewEmbed("Deleted Messages", String.Join("\n", deletedMessagesContent), Constants.MDEL);
 					await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Deleted Messages"));
 				}
 				else
@@ -699,7 +702,7 @@ namespace Advobot
 					if (!Constants.TEXT_FILE)
 					{
 						//Upload the embed with the hastebin links
-						EmbedBuilder embed = Actions.makeNewEmbed(Constants.MDEL, "Deleted Messages", Actions.uploadToHastebin(deletedMessagesContent));
+						var embed = Actions.makeNewEmbed("Deleted Messages", Actions.uploadToHastebin(deletedMessagesContent), Constants.MDEL);
 						await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Deleted Messages"));
 					}
 					else
@@ -719,7 +722,7 @@ namespace Advobot
 			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
-			EmbedBuilder embed = Actions.makeNewEmbed(Constants.CCRE, "Role Created", String.Format("Name: `{0}`\nID: `{1}`", role.Name, role.Id));
+			var embed = Actions.makeNewEmbed("Role Created", String.Format("Name: `{0}`\nID: `{1}`", role.Name, role.Id), Constants.CCRE);
 			await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Role Created"));
 		}
 
@@ -733,7 +736,7 @@ namespace Advobot
 
 			if (!beforeRole.Name.Equals(afterRole.Name, StringComparison.OrdinalIgnoreCase))
 			{
-				EmbedBuilder embed = Actions.makeNewEmbed(Constants.REDT, "Role Name Changed");
+				var embed = Actions.makeNewEmbed("Role Name Changed", null, Constants.REDT);
 				Actions.addField(embed, "Before:", "`" + beforeRole.Name + "`");
 				Actions.addField(embed, "After:", "`" + afterRole.Name + "`", false);
 				await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Role Name Changed"));
@@ -751,7 +754,7 @@ namespace Advobot
 			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
-			EmbedBuilder embed = Actions.makeNewEmbed(Constants.CCRE, "Role Deleted", String.Format("Name: `{0}`\nID: `{1}`", role.Name, role.Id));
+			var embed = Actions.makeNewEmbed("Role Deleted", String.Format("Name: `{0}`\nID: `{1}`", role.Name, role.Id), Constants.CCRE);
 			await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Role Deleted"));
 		}
 
@@ -772,7 +775,7 @@ namespace Advobot
 				return;
 			}
 
-			EmbedBuilder embed = Actions.makeNewEmbed(Constants.CCRE, "Channel Created", String.Format("Name: `{0}`\nID: `{1}`", chan.Name, chan.Id));
+			var embed = Actions.makeNewEmbed("Channel Created", String.Format("Name: `{0}`\nID: `{1}`", chan.Name, chan.Id), Constants.CCRE);
 			await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Channel Created"));
 		}
 
@@ -801,7 +804,7 @@ namespace Advobot
 
 			if (!aChan.Name.Equals(bChan.Name, StringComparison.OrdinalIgnoreCase))
 			{
-				EmbedBuilder embed = Actions.makeNewEmbed(Constants.CEDT, "Channel Name Changed");
+				var embed = Actions.makeNewEmbed("Channel Name Changed", null, Constants.CEDT);
 				Actions.addField(embed, "Before:", "`" + bChan.Name + "`");
 				Actions.addField(embed, "After:", "`" + aChan.Name + "`", false);
 				await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Channel Name Changed"));
@@ -818,7 +821,7 @@ namespace Advobot
 
 			var chan = channel as IGuildChannel;
 
-			EmbedBuilder embed = Actions.makeNewEmbed(Constants.CDEL, "Channel Deleted", String.Format("Name: `{0}`\nID: `{1}`", chan.Name, chan.Id));
+			var embed = Actions.makeNewEmbed("Channel Deleted", String.Format("Name: `{0}`\nID: `{1}`", chan.Name, chan.Id), Constants.CDEL);
 			await Actions.sendEmbedMessage(logChannel, Actions.addFooter(embed, "Channel Deleted"));
 		}
 	}
@@ -827,8 +830,8 @@ namespace Advobot
 	{
 		public static async Task LogCommand(CommandContext context)
 		{
-			string userString = String.Format("{0}#{1} ({2})", context.User.Username, context.User.Discriminator, context.User.Id);
-			string guildString = String.Format("{0} ({1})", context.Guild.Name, context.Guild.Id);
+			var userString = String.Format("{0}#{1} ({2})", context.User.Username, context.User.Discriminator, context.User.Id);
+			var guildString = String.Format("{0} ({1})", context.Guild.Name, context.Guild.Id);
 			Actions.writeLine(String.Format("{0} on {1}: \'{2}\'", userString, guildString, context.Message.Content));
 
 			var logChannel = await Actions.verifyLogChannel(context.Guild, Constants.MOD_LOG_CHECK_STRING);
@@ -837,7 +840,7 @@ namespace Advobot
 			if (Variables.Guilds[context.Guild.Id].IgnoredChannels.Contains(context.Channel.Id))
 				return;
 
-			EmbedBuilder embed = Actions.addFooter(Actions.makeNewEmbed(description: context.Message.Content), "Mod Log");
+			var embed = Actions.addFooter(Actions.makeNewEmbed(description: context.Message.Content), "Mod Log");
 			Actions.addAuthor(embed, context.User.Username + "#" + context.User.Discriminator + " in #" + context.Channel.Name, context.User.AvatarUrl);
 			await Actions.sendEmbedMessage(logChannel, embed);
 		}

@@ -17,6 +17,7 @@ using System.Text.RegularExpressions;
 
 namespace Advobot
 {
+	#region Attributes
 	//If the user has all the perms required for the first arg then success, any of the second arg then success. Nothing means only Administrator works.
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class PermissionRequirementsAttribute : PreconditionAttribute
@@ -31,24 +32,32 @@ namespace Advobot
 		{
 			if (context.Guild != null)
 			{
-				IGuildUser user = await context.Guild.GetUserAsync(context.User.Id);
-				GuildPermissions perms = user.GuildPermissions;
-				if (mAllFlags != 0 && (perms.RawValue & mAllFlags) == mAllFlags)
-					return PreconditionResult.FromSuccess();
-				else if ((perms.RawValue & mAnyFlags) != 0)
-					return PreconditionResult.FromSuccess();
+				var user = await context.Guild.GetUserAsync(context.User.Id);
+				var botBits = Variables.BotUsers.FirstOrDefault(x => x.User == user)?.Permissions;
+				if (botBits != null)
+				{
+					var perms = user.GuildPermissions.RawValue | botBits;
+					if (mAllFlags != 0 && (perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
+						return PreconditionResult.FromSuccess();
+				}
+				else
+				{
+					var perms = user.GuildPermissions.RawValue;
+					if (mAllFlags != 0 && (perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
+						return PreconditionResult.FromSuccess();
+				}
 			}
 			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
 		}
 
 		public string AllText
 		{
-			get { return String.Join(" and ", Actions.getPermissionNames(mAllFlags)); }
+			get { return String.Join(" & ", Actions.getPermissionNames(mAllFlags)); }
 		}
 
 		public string AnyText
 		{
-			get { return String.Join(" or ", Actions.getPermissionNames(mAnyFlags)); }
+			get { return String.Join("|", Actions.getPermissionNames(mAnyFlags)); }
 		}
 
 		private uint mAllFlags;
@@ -112,14 +121,28 @@ namespace Advobot
 		{
 			if (context.Guild != null)
 			{
-				IGuildUser user = await context.Guild.GetUserAsync(context.User.Id);
-				return ((user.GuildPermissions.RawValue & PERMISSIONBITS) != 0) ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
+				var user = await context.Guild.GetUserAsync(context.User.Id);
+				var botBits = Variables.BotUsers.FirstOrDefault(x => x.User == user)?.Permissions;
+				if (botBits != null)
+				{
+					if (((user.GuildPermissions.RawValue | botBits) & PERMISSIONBITS) != 0)
+					{
+						return PreconditionResult.FromSuccess();
+					}
+				}
+				else
+				{
+					if ((user.GuildPermissions.RawValue & PERMISSIONBITS) != 0)
+					{
+						return PreconditionResult.FromSuccess();
+					}
+				}
 			}
 			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
 		}
 	}
+	#endregion
 
-	//Make the usage attribute
 	public class UsageAttribute : Attribute
 	{
 		public UsageAttribute(string usage)
@@ -135,7 +158,6 @@ namespace Advobot
 		}
 	}
 
-	//Make a list of help information
 	public class HelpEntry
 	{
 		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text)
@@ -175,7 +197,6 @@ namespace Advobot
 		private string mText;
 	}
 
-	//Storing the settings for preferences
 	public class CommandSwitch
 	{
 		public CommandSwitch(string name, string value, CommandCategory category = CommandCategory.Miscellaneous, string[] aliases = null)
@@ -372,7 +393,6 @@ namespace Advobot
 		public ulong GuildID;
 	}
 
-	//Self Assignable Group Action
 	public enum SAGAction
 	{
 		Create = 1,
@@ -381,10 +401,9 @@ namespace Advobot
 		Delete = 4
 	}
 
-	//For checking what invite a user joined on
-	public class MyInvite
+	public class BotInvite
 	{
-		public MyInvite(ulong guildID, string code, int uses)
+		public BotInvite(ulong guildID, string code, int uses)
 		{
 			GuildID = guildID;
 			Code = code;
@@ -396,7 +415,6 @@ namespace Advobot
 		public int Uses;
 	}
 
-	//For checking what aspect to delete invites based off of
 	public enum DeleteInvAction
 	{
 		User = 1,
@@ -405,10 +423,9 @@ namespace Advobot
 		Expiry = 4
 	}
 
-	//Holds most of the bot side info of a guild
-	public class MyGuildInfo
+	public class BotGuildInfo
 	{
-		public MyGuildInfo (IGuild guild)
+		public BotGuildInfo (IGuild guild)
 		{
 			Guild = guild;
 		}
@@ -421,14 +438,14 @@ namespace Advobot
 		public List<LogActions> LogActions = new List<LogActions>();
 		public List<ulong> IgnoredChannels = new List<ulong>();
 
-		public List<MyInvite> Invites;
+		public List<Remind> Reminds = new List<Remind>();
+		public List<BotInvite> Invites;
 
 		public bool DefaultPrefs;
 		public IGuild Guild;
 		public string Prefix;
 	}
 
-	//Which logs to allow active
 	public enum LogActions
 	{
 		UserJoined = 1,
@@ -446,5 +463,94 @@ namespace Advobot
 		ChannelCreated = 12,
 		ChannelUpdated = 13,
 		ChannelDeleted = 14
+	}
+
+	public struct BotGuildPermissionType
+	{
+		public BotGuildPermissionType(string name, int position)
+		{
+			mName = name;
+			mPosition = position;
+		}
+
+		private string mName;
+		private int mPosition;
+
+		public string Name
+		{
+			get { return mName; }
+		}
+
+		public int Position
+		{
+			get { return mPosition; }
+		}
+	}
+
+	public struct BotChannelPermissionType
+	{
+		public BotChannelPermissionType(string name, int position, bool gen = false, bool text = false, bool voice = false)
+		{
+			mName = name;
+			mPosition = position;
+			mGeneral = gen;
+			mText = text;
+			mVoice = voice;
+		}
+
+		private string mName;
+		private int mPosition;
+		private bool mGeneral;
+		private bool mText;
+		private bool mVoice;
+
+		public string Name
+		{
+			get { return mName; }
+		}
+
+		public int Position
+		{
+			get { return mPosition; }
+		}
+
+		public bool General
+		{
+			get { return mGeneral; }
+		}
+
+		public bool Text
+		{
+			get { return mText; }
+		}
+
+		public bool Voice
+		{
+			get { return mVoice; }
+		}
+	}
+
+	public class BotImplementedPermissions
+	{
+		public BotImplementedPermissions(IGuildUser user, uint permissions)
+		{
+			User = user;
+			Permissions = permissions;
+		}
+
+		public IGuildUser User;
+		public uint Permissions;
+	}
+
+	public struct Remind
+	{
+		public Remind(string name, string text)
+		{
+			Name = name;
+			Text = text;
+		}
+
+		public string Name;
+		public string Text;
 	}
 }
