@@ -26,7 +26,6 @@ namespace Advobot
 		[Alias("h", "info")]
 		[Usage("help <Command>")]
 		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. If left blank will print out a link to the documentation of this bot.")]
-		[UserHasAPermission]
 		public async Task Help([Optional, Remainder] string input)
 		{
 			//See if it's empty
@@ -98,7 +97,6 @@ namespace Advobot
 		[Alias("cmds")]
 		[Usage("commands <Category|All>")]
 		[Summary("Prints out the commands in that category of the command list.")]
-		[UserHasAPermission]
 		public async Task Commands([Optional, Remainder] string input)
 		{
 			//See if it's empty
@@ -774,7 +772,7 @@ namespace Advobot
 				}
 
 				//Add them to the list
-				reminds.Add(new Remind(name, text));
+				reminds.Add(new Remind(name, text.Trim()));
 			}
 			else
 			{
@@ -828,7 +826,68 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no remind with the given name."));
+				//Find close words
+				var closeWords = new List<CloseWord>();
+				reminds.ForEach(x =>
+				{
+					//Check how close the word is to the input
+					var closeness = Actions.findCloseName(x.Name, input);
+					//Ignore all closewords greater than a difference of five
+					if (closeness > 5)
+						return;
+					//If no words in the list already, add it
+					if (closeWords.Count < 3)
+					{
+						closeWords.Add(new CloseWord(x.Name, closeness));
+					}
+					//If three words in the list, check closeness value now
+					else if (closeness < closeWords[2].Closeness)
+					{
+						if (closeness < closeWords[1].Closeness)
+						{
+							if (closeness < closeWords[0].Closeness)
+							{
+								closeWords.Insert(0, new CloseWord(x.Name, closeness));
+							}
+							else
+							{
+								closeWords.Insert(1, new CloseWord(x.Name, closeness));
+							}
+						}
+						else
+						{
+							closeWords.Insert(2, new CloseWord(x.Name, closeness));
+						}
+
+						//Remove all words that are now after the third item
+						closeWords.RemoveRange(3, closeWords.Count - 3);
+					}
+					closeWords.OrderBy(y => y.Closeness);
+				});
+
+				if (closeWords.Any())
+				{
+					//Format a message to be said
+					int counter = 1;
+					var msg = "Did you mean any of the following:\n" + String.Join("\n", closeWords.Select(x => String.Format("`{0}.` {1}", counter++.ToString("00"), x.Name)));
+
+					//Remove all active closeword lists that the user has made
+					Variables.ActiveCloseWords.RemoveAll(x => x.User == Context.User);
+
+					//Create the list
+					var list = new ActiveCloseWords(Context.User as IGuildUser, closeWords);
+
+					//Add them to the active close word list, thus allowing them to say the number of the remind they want. Remove after 5 seconds
+					Variables.ActiveCloseWords.Add(list);
+					Actions.removeActiveCloseWords(list);
+
+					//Send the message
+					await Actions.makeAndDeleteSecondaryMessage(Context, msg, 10000);
+				}
+				else
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, "Nothing similar to that remind can be found.");
+				}
 			}
 		}
 		#endregion

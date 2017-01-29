@@ -587,7 +587,7 @@ namespace Advobot
 					var name = inputArray[0].Substring(1);
 					var text = inputArray[1].Substring(0, inputArray[1].Length - 1);
 
-					Variables.Guilds[guild.Id].Reminds.Add(new Remind(name, text.Replace("\\n", "\n").Replace("\\'", "\'").Replace("\\\"", "\"").Replace("\\r", "\r").Replace("\\\\", "\\")));
+					Variables.Guilds[guild.Id].Reminds.Add(new Remind(name, text.Replace("\\\\", "\\").Replace("\\n", "\n").Replace("\\'", "\'").Replace("\\\"", "\"")));
 				}
 			}
 
@@ -1217,6 +1217,51 @@ namespace Advobot
 			}
 			return validLines;
 		}
+
+		//Get the words close to a taget word
+		public static int findCloseName(string s, string t)
+		{
+			//Levenshtein Distance
+			int n = s.Length;
+			int m = t.Length;
+			int[,] d = new int[n + 1, m + 1];
+
+			//Step 1
+			if (n == 0)
+			{
+				return m;
+			}
+
+			if (m == 0)
+			{
+				return n;
+			}
+
+			//Step 2
+			for (int i = 0; i <= n; d[i, 0] = i++)
+			{
+			}
+
+			for (int j = 0; j <= m; d[0, j] = j++)
+			{
+			}
+
+			//Step 3
+			for (int i = 1; i <= n; i++)
+			{
+				//Step 4
+				for (int j = 1; j <= m; j++)
+				{
+					//Step 5
+					int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+
+					//Step 6
+					d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+				}
+			}
+			//Step 7
+			return d[n, m];
+		}
 		#endregion
 
 		#region Roles
@@ -1358,6 +1403,16 @@ namespace Advobot
 
 			writeLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, user.Username));
 			await channel.DeleteMessagesAsync(userMessages.ToArray());
+		}
+
+		//Remove active close word list
+		public static void removeActiveCloseWords(ActiveCloseWords list)
+		{
+			var t = Task.Run(() =>
+			{
+				Thread.Sleep(5000);
+				Variables.ActiveCloseWords.Remove(list);
+			});
 		}
 		#endregion
 
@@ -2236,7 +2291,7 @@ namespace Advobot
 		//Save literally
 		public static string toLiteral(string input)
 		{
-			using (var writer = new StringWriter())
+			using (StringWriter writer = new StringWriter())
 			{
 				using (var provider = System.CodeDom.Compiler.CodeDomProvider.CreateProvider("CSharp"))
 				{

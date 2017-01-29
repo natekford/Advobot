@@ -52,7 +52,7 @@ namespace Advobot
 					if (!message.HasStringPrefix(guildPrefix, ref argPos))
 					{
 						//Check if the user says help with the global prefix even though a different prefix is set
-						if (message.Content.StartsWith(Properties.Settings.Default.Prefix + "help"))
+						if (message.Content.StartsWith(Properties.Settings.Default.Prefix + "help", System.StringComparison.OrdinalIgnoreCase))
 						{
 							await Actions.makeAndDeleteSecondaryMessage(message.Channel, message, "The current prefix for this guild is: `" + guildPrefix + "`.");
 						}

@@ -62,6 +62,7 @@ namespace Advobot
 		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
 		public static readonly string[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west", "hongkong" };
 		public static readonly string[] COMMANDSUNABLETOBETURNEDOFF = { "switchcommand", "currentpreferences", "help" };
+		public static readonly string[] CLOSEWORDSPOSITIONS = { "1", "2", "3" };
 
 		public static readonly LogActions[] DEFAULTLOGACTIONS =
 			{
@@ -134,6 +135,7 @@ namespace Advobot
 		public static List<ulong> PotentialBotOwners = new List<ulong>();
 		public static List<ulong> DeletedRoles = new List<ulong>();
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
+		public static List<ActiveCloseWords> ActiveCloseWords = new List<ActiveCloseWords>();
 		public static List<BannedPhraseUser> BannedPhraseUserList = new List<BannedPhraseUser>();
 		public static List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
 		public static List<BotGuildPermissionType> GuildPermissions = new List<BotGuildPermissionType>();

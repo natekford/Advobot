@@ -553,4 +553,28 @@ namespace Advobot
 		public string Name;
 		public string Text;
 	}
+
+	public struct CloseWord
+	{
+		public CloseWord(string name, int closeness)
+		{
+			Name = name;
+			Closeness = closeness;
+		}
+
+		public string Name;
+		public int Closeness;
+	}
+
+	public struct ActiveCloseWords
+	{
+		public ActiveCloseWords(IGuildUser user, List<CloseWord> list)
+		{
+			User = user;
+			List = list;
+		}
+
+		public IGuildUser User;
+		public List<CloseWord> List;
+	}
 }

@@ -464,6 +464,25 @@ namespace Advobot
 				}
 			}
 
+			//Check if any active closewords
+			var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
+			if (closeWordList.User != null && Constants.CLOSEWORDSPOSITIONS.Contains(message.Content))
+			{
+				//Check if valid number
+				var number = 0;
+				if (!int.TryParse(message.Content, out number))
+					return;
+
+				//Get the remind
+				var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => x.Name.Equals(closeWordList.List[number - 1].Name, StringComparison.OrdinalIgnoreCase));
+
+				//Send the remind
+				await Actions.sendChannelMessage(message.Channel, remind.Text);
+
+				//Remove that list
+				Variables.ActiveCloseWords.Remove(closeWordList);
+			}
+
 			//Check if the guild has slowmode enabled currently
 			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(channel))
 			{
