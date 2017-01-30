@@ -183,7 +183,7 @@ namespace Advobot
 		[Command("clearallsettings")]
 		[Alias("cas")]
 		[Usage("clearallsettings")]
-		[Summary("Resets the save path, bot owner, and bot key settings.")]
+		[Summary("Resets the save path, bot owner, bot key, global prefix, and stream settings. Shuts down the bot too.")]
 		[BotOwnerRequirement]
 		public async Task ClearAllSettings()
 		{
@@ -194,13 +194,11 @@ namespace Advobot
 			//Restart the bot
 			try
 			{
-				Process.Start(System.Windows.Forms.Application.ExecutablePath);
-				//Close the old one
 				Environment.Exit(0);
 			}
 			catch (Exception)
 			{
-				Console.WriteLine("Bot is unable to restart.");
+				Console.WriteLine("Bot is unable to shut down.");
 			}
 		}
 		#endregion
@@ -307,7 +305,6 @@ namespace Advobot
 		{
 			if (Context.User.Id == Properties.Settings.Default.BotOwner || Constants.DISCONNECT)
 			{
-				await CommandHandler.Client.SetStatusAsync(UserStatus.Invisible);
 				Environment.Exit(0);
 			}
 			else

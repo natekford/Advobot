@@ -176,10 +176,10 @@ namespace Advobot
 				//Find the first invite where the bot invite has the same code as the current invite but different use counts
 				curInv = botInvs.FirstOrDefault(bI => curInvs.Any(cI => cI.Code == bI.Code && cI.Uses != bI.Uses));
 
-				//If the invite is null, take that as meaning there are new invites on the server
+				//If the invite is null, take that as meaning there are new invites on the guild
 				if (curInv == null)
 				{
-					//Get the new invites on the server by finding which guild invites aren't on the bot invites list
+					//Get the new invites on the guild by finding which guild invites aren't on the bot invites list
 					var newInvs = curInvs.Where(x => !botInvs.Select(y => y.Code).Contains(x.Code));
 					//If there's only one, then use that as the current inv. If there's more than one then there's no way to know what invite it was on
 					if (newInvs.Count() == 1)
@@ -465,22 +465,37 @@ namespace Advobot
 			}
 
 			//Check if any active closewords
-			var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
-			if (closeWordList.User != null && Constants.CLOSEWORDSPOSITIONS.Contains(message.Content))
+			if (Constants.CLOSEWORDSPOSITIONS.Contains(message.Content))
 			{
-				//Check if valid number
-				var number = 0;
-				if (!int.TryParse(message.Content, out number))
-					return;
+				//Get the number
+				var number = Actions.getInteger(message.Content);
+				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
+				if (closeWordList.User != null)
+				{
+					//Get the remind
+					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => x.Name.Equals(closeWordList.List[number - 1].Name, StringComparison.OrdinalIgnoreCase));
 
-				//Get the remind
-				var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => x.Name.Equals(closeWordList.List[number - 1].Name, StringComparison.OrdinalIgnoreCase));
+					//Send the remind
+					await Actions.sendChannelMessage(message.Channel, remind.Text);
 
-				//Send the remind
-				await Actions.sendChannelMessage(message.Channel, remind.Text);
+					//Remove that list
+					Variables.ActiveCloseWords.Remove(closeWordList);
+				}
+				else
+				{
+					var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
+					if (closeHelpList.User != null)
+					{
+						//Get the remind
+						var help = closeHelpList.List[number - 1].Help;
 
-				//Remove that list
-				Variables.ActiveCloseWords.Remove(closeWordList);
+						//Send the remind
+						await Actions.sendEmbedMessage(message.Channel, Actions.addFooter(Actions.makeNewEmbed(help.Name, Actions.getHelpString(help)), "Help"));
+
+						//Remove that list
+						Variables.ActiveCloseHelp.Remove(closeHelpList);
+					}
+				}
 			}
 
 			//Check if the guild has slowmode enabled currently
@@ -594,7 +609,7 @@ namespace Advobot
 			if (Variables.Guilds[guild.Id].IgnoredChannels.Contains(message.Value.Channel.Id))
 				return;
 
-			//Get a list of the deleted messages per server
+			//Get a list of the deleted messages per guild
 			var mainMessages = new List<SocketMessage>();
 			if (!Variables.DeletedMessages.TryGetValue(guild.Id, out mainMessages))
 			{

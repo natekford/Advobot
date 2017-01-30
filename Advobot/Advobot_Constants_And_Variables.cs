@@ -5,8 +5,8 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const string BOT_VERSION = "0.9.5";
-		public const string API_VERSION = "Discord.Net by RogueException v1.0.0-rc-00585";
+		public const string BOT_VERSION = "0.9.9";
+		public const string API_VERSION = "Discord.Net by RogueException v1.0.0-rc-00587";
 		public const string BOT_PREFIX = "++";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -95,6 +95,8 @@ namespace Advobot
 		public static readonly Discord.Color CCRE = new Discord.Color(000, 204, 000);
 		public static readonly Discord.Color CEDT = new Discord.Color(000, 000, 153);
 		public static readonly Discord.Color CDEL = new Discord.Color(204, 000, 000);
+
+		public static readonly System.Text.RegularExpressions.Regex FORMATREGEX = new System.Text.RegularExpressions.Regex("\\\"[ ]+[+|\r|\n]{0,3}[ ]+\\\"");
 	}
 
 	public static class Variables
@@ -135,6 +137,7 @@ namespace Advobot
 		public static List<ulong> PotentialBotOwners = new List<ulong>();
 		public static List<ulong> DeletedRoles = new List<ulong>();
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
+		public static List<ActiveCloseHelp> ActiveCloseHelp = new List<ActiveCloseHelp>();
 		public static List<ActiveCloseWords> ActiveCloseWords = new List<ActiveCloseWords>();
 		public static List<BannedPhraseUser> BannedPhraseUserList = new List<BannedPhraseUser>();
 		public static List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();

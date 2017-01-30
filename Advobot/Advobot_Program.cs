@@ -18,7 +18,7 @@ namespace Advobot
 			//Define the DiscordSocketClient
 			DiscordSocketClient client = new DiscordSocketClient(new DiscordSocketConfig
 			{
-				DownloadUsersOnGuildAvailable = true,
+				AlwaysDownloadUsers = true,
 				MessageCacheSize = 10000,
 				LogLevel = LogSeverity.Warning,
 				AudioMode = Discord.Audio.AudioMode.Disabled,

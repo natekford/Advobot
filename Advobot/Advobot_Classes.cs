@@ -577,4 +577,28 @@ namespace Advobot
 		public IGuildUser User;
 		public List<CloseWord> List;
 	}
+
+	public struct CloseHelp
+	{
+		public CloseHelp(HelpEntry help, int closeness)
+		{
+			Help = help;
+			Closeness = closeness;
+		}
+
+		public HelpEntry Help;
+		public int Closeness;
+	}
+
+	public struct ActiveCloseHelp
+	{
+		public ActiveCloseHelp(IGuildUser user, List<CloseHelp> list)
+		{
+			User = user;
+			List = list;
+		}
+
+		public IGuildUser User;
+		public List<CloseHelp> List;
+	}
 }

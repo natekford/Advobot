@@ -42,7 +42,7 @@ namespace Advobot
 		public static void startUpMessages()
 		{
 			writeLine("The current bot prefix is: " + Properties.Settings.Default.Prefix);
-			writeLine("Bot took " + (DateTime.UtcNow.ToUniversalTime() - Variables.StartupTime).Milliseconds + " milliseconds to load everything.");
+			writeLine("Bot took " + String.Format("{0:n}", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - Variables.StartupTime.Ticks).TotalMilliseconds) + " milliseconds to load everything.");
 		}
 
 		//Load the information from the commands
@@ -306,7 +306,7 @@ namespace Advobot
 				}
 				Variables.Guilds[guild.Id].DefaultPrefs = false;
 			}
-			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": preferences for the server " + guild.Name + " have been loaded.");
+			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": preferences for the guild " + guild.Name + " have been loaded.");
 		}
 
 		//Load banned words/regex/punishments
@@ -396,7 +396,7 @@ namespace Advobot
 			}
 
 			Variables.Guilds[guild.Id].DefaultPrefs = false;
-			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": banned phrases/regex/punishments for the server " + guild.Name + " have been loaded.");
+			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": banned phrases/regex/punishments for the guild " + guild.Name + " have been loaded.");
 		}
 
 		//Load the self assignable roles
@@ -453,7 +453,7 @@ namespace Advobot
 			}
 
 			Variables.Guilds[guild.Id].DefaultPrefs = false;
-			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": self assignable roles for the server " + guild.Name + " have been loaded.");
+			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": self assignable roles for the guild " + guild.Name + " have been loaded.");
 		}
 
 		//Load the prefix and logActions
@@ -507,7 +507,7 @@ namespace Advobot
 			}
 
 			Variables.Guilds[guild.Id].DefaultPrefs = false;
-			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": misc info for the server " + guild.Name + " have been loaded.");
+			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": misc info for the guild " + guild.Name + " have been loaded.");
 		}
 
 		//Load the bot users
@@ -560,7 +560,7 @@ namespace Advobot
 			}
 
 			Variables.Guilds[guild.Id].DefaultPrefs = false;
-			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": bot users for the server " + guild.Name + " have been loaded.");
+			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": bot users for the guild " + guild.Name + " have been loaded.");
 		}
 
 		//Load the reminds the guild has
@@ -592,12 +592,12 @@ namespace Advobot
 			}
 
 			Variables.Guilds[guild.Id].DefaultPrefs = false;
-			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": reminds for the server " + guild.Name + " have been loaded.");
+			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": reminds for the guild " + guild.Name + " have been loaded.");
 		}
 		#endregion
 
 		#region Gets
-		//Complex get a role on the server
+		//Complex get a role on the guild
 		public static async Task<IRole> getRole(CommandContext context, string roleName)
 		{
 			//Remove spaces
@@ -624,7 +624,7 @@ namespace Advobot
 			return null;
 		}
 		
-		//Simple get a role on the server
+		//Simple get a role on the guild
 		public static IRole getRole(IGuild guild, string roleName)
 		{
 			//Order them by position (puts everyone first) then reverse so it sorts from the top down
@@ -928,7 +928,7 @@ namespace Advobot
 			return output != null && permissions != null;
 		}
 		
-		//Get server commands
+		//Get guild commands
 		public static string[] getCommands(IGuild guild, int number)
 		{
 			if (!Variables.Guilds.ContainsKey(guild.Id))
@@ -1262,6 +1262,16 @@ namespace Advobot
 			//Step 7
 			return d[n, m];
 		}
+
+		//Get the help entry string
+		public static string getHelpString(HelpEntry help)
+		{
+			return String.Format("**Aliases:** {0}\n**Usage:** {1}\n\n**Base Permission(s):**\n{2}\n\n**Description:**\n{3}",
+				String.Join(", ", help.Aliases),
+				help.Usage,
+				help.basePerm,
+				help.Text);
+		}
 		#endregion
 
 		#region Roles
@@ -1412,6 +1422,16 @@ namespace Advobot
 			{
 				Thread.Sleep(5000);
 				Variables.ActiveCloseWords.Remove(list);
+			});
+		}
+
+		//Remove active close help list
+		public static void removeActiveCloseHelp(ActiveCloseHelp list)
+		{
+			var t = Task.Run(() =>
+			{
+				Thread.Sleep(5000);
+				Variables.ActiveCloseHelp.Remove(list);
 			});
 		}
 		#endregion
@@ -1719,6 +1739,11 @@ namespace Advobot
 			else
 			{
 				remadeEmbed = embed;
+				if (remadeEmbed.Description.Count(x => x == '\n' || x == '\r') >= 20)
+				{
+					remadeEmbed.Url = uploadToHastebin(replaceMessageCharacters(remadeEmbed.Description));
+					remadeEmbed.Description = "Content is longer than 20 lines. Click the link to see it.";
+				}
 			}
 
 			try
@@ -2218,6 +2243,9 @@ namespace Advobot
 		//Check if a command is enabled
 		public static bool commandEnabled(ICommandContext context)
 		{
+			if (context.Guild == null)
+				return false;
+
 			//Get the command
 			var cmd = getCommand(context.Guild.Id, context.Message.Content.Substring(Properties.Settings.Default.Prefix.Length).Split(' ').FirstOrDefault());
 			//Check if the command is on or off
@@ -2296,7 +2324,7 @@ namespace Advobot
 				using (var provider = System.CodeDom.Compiler.CodeDomProvider.CreateProvider("CSharp"))
 				{
 					provider.GenerateCodeFromExpression(new System.CodeDom.CodePrimitiveExpression(input), writer, null);
-					return writer.ToString();
+					return Constants.FORMATREGEX.Replace(writer.ToString(), "");
 				}
 			}
 		}

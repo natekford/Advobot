@@ -61,7 +61,7 @@ namespace Advobot
 			}
 
 			//Send the message for that command
-			HelpEntry helpEntry = Variables.HelpList.FirstOrDefault(x => x.Name.Equals(input));
+			HelpEntry helpEntry = Variables.HelpList.FirstOrDefault(x => x.Name.Equals(input, StringComparison.OrdinalIgnoreCase));
 			if (helpEntry == null)
 			{
 				foreach (HelpEntry commands in Variables.HelpList)
@@ -73,16 +73,73 @@ namespace Advobot
 				}
 				if (helpEntry == null)
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nonexistent command."));
+					//Find close words
+					var closeHelp = new List<CloseHelp>();
+					Variables.HelpList.ForEach(x =>
+					{
+						//Check how close the word is to the input
+						var closeness = Actions.findCloseName(x.Name, input);
+						//Ignore all closewords greater than a difference of five
+						if (closeness > 5)
+							return;
+						//If no words in the list already, add it
+						if (closeHelp.Count < 3)
+						{
+							closeHelp.Add(new CloseHelp(x, closeness));
+						}
+						//If three words in the list, check closeness value now
+						else if (closeness < closeHelp[2].Closeness)
+						{
+							if (closeness < closeHelp[1].Closeness)
+							{
+								if (closeness < closeHelp[0].Closeness)
+								{
+									closeHelp.Insert(0, new CloseHelp(x, closeness));
+								}
+								else
+								{
+									closeHelp.Insert(1, new CloseHelp(x, closeness));
+								}
+							}
+							else
+							{
+								closeHelp.Insert(2, new CloseHelp(x, closeness));
+							}
+
+							//Remove all words that are now after the third item
+							closeHelp.RemoveRange(3, closeHelp.Count - 3);
+						}
+						closeHelp.OrderBy(y => y.Closeness);
+					});
+
+					if (closeHelp.Any())
+					{
+						//Format a message to be said
+						int counter = 1;
+						var msg = "Did you mean any of the following:\n" + String.Join("\n", closeHelp.Select(x => String.Format("`{0}.` {1}", counter++.ToString("00"), x.Help.Name)));
+
+						//Remove all active closeword lists that the user has made
+						Variables.ActiveCloseHelp.RemoveAll(x => x.User == Context.User);
+
+						//Create the list
+						var list = new ActiveCloseHelp(Context.User as IGuildUser, closeHelp);
+
+						//Add them to the active close word list, thus allowing them to say the number of the remind they want. Remove after 5 seconds
+						Variables.ActiveCloseHelp.Add(list);
+						Actions.removeActiveCloseHelp(list);
+
+						//Send the message
+						await Actions.makeAndDeleteSecondaryMessage(Context, msg, 10000);
+					}
+					else
+					{
+						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nonexistent command."));
+					}
 					return;
 				}
 			}
 
-			var description = String.Format("**Aliases:** {0}\n**Usage:** {1}\n\n**Base Permission(s):**\n{2}\n\n**Description:**\n{3}",
-				String.Join(", ", helpEntry.Aliases),
-				helpEntry.Usage,
-				helpEntry.basePerm,
-				helpEntry.Text);
+			var description = Actions.getHelpString(helpEntry);
 
 			var guildPrefix = Variables.Guilds[Context.Guild.Id].Prefix;
 			if (!String.IsNullOrWhiteSpace(guildPrefix))
@@ -345,7 +402,7 @@ namespace Advobot
 				}
 			});
 
-			//Get an ordered list of when users joined the server
+			//Get an ordered list of when users joined the guild
 			IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync();
 			var users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
 
@@ -353,7 +410,7 @@ namespace Advobot
 			var description = String.Format(
 				"ID: {0}\n" +
 				"Created: {1} {2}, {3} at {4}\n" +
-				"Joined: {5} {6}, {7} at {8} (#{9} to join the server)\n" +
+				"Joined: {5} {6}, {7} at {8} (#{9} to join the guild)\n" +
 				"\n" +
 				"Current game: {10}\n" +
 				"Online status: {11}\n",
@@ -403,7 +460,7 @@ namespace Advobot
 		[Command("emojiinfo")]
 		[Alias("einf")]
 		[Usage("emojiinfo [Emoji]")]
-		[Summary("Shows information about an emoji. Only global emojis where the bot is in a server that gives them will have a 'From...' text.")]
+		[Summary("Shows information about an emoji. Only global emojis where the bot is in a guild that gives them will have a 'From...' text.")]
 		public async Task EmojiInfo([Remainder] string input)
 		{
 			Emoji emoji;
@@ -467,7 +524,7 @@ namespace Advobot
 				if (position >= 1 && position < users.Count)
 				{
 					IGuildUser user = users[position - 1];
-					await Actions.sendChannelMessage(Context, String.Format("`{0}#{1}` was #{2} to join the server on `{3} {4}, {5}` at `{6}`.",
+					await Actions.sendChannelMessage(Context, String.Format("`{0}#{1}` was #{2} to join the guild on `{3} {4}, {5}` at `{6}`.",
 						user.Username,
 						user.Discriminator,
 						position,
@@ -700,7 +757,7 @@ namespace Advobot
 			invites.ForEach(async x => await x.DeleteAsync());
 
 			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` instant invites on this server.", count));
+			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` instant invites on this guild.", count));
 		}
 		#endregion
 
@@ -798,7 +855,7 @@ namespace Advobot
 		}
 
 		[Command("remind")]
-		[Alias("rem")]
+		[Alias("rem", "r")]
 		[Usage("remind <Name>")]
 		[Summary("Shows the content for the given remind. If null then shows the list of the current reminds.")]
 		public async Task CurrentRemind([Optional, Remainder] string input)
@@ -886,7 +943,7 @@ namespace Advobot
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, "Nothing similar to that remind can be found.");
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nothing similar to that remind can be found."));
 				}
 			}
 		}
