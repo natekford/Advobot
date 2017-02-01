@@ -9,7 +9,7 @@ namespace Advobot
 {
 	//Guild Moderation commands are commands that affect the guild itself and nothing else
 	[Name("Guild Moderation")]
-	class Advobot_Commands_Guild_Mod : ModuleBase
+	public class Advobot_Commands_Guild_Mod : ModuleBase
 	{
 		[Command("guildname")]
 		[Alias("gn")]

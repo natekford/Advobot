@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	[Name("Logs")]
-	class Advobot_Commands_Logs : ModuleBase
+	public class Advobot_Commands_Logs : ModuleBase
 	{
 		[Command("logserver")]
 		[Alias("logs")]
@@ -148,7 +148,7 @@ namespace Advobot
 
 		[Command("logactions")]
 		[Alias("loga")]
-		[Usage("modifylogactions [Enable|Disable|Default|Show|Current] <All|Log Action/...>")]
+		[Usage("logactions [Enable|Disable|Default|Show|Current] <All|Log Action/...>")]
 		[Summary("The log will fire when these events happen. `Show` lists all the possible events. `Default` overrides the current settings, and `Current` shows them.")]
 		[GuildOwnerRequirement]
 		public async Task SwitchLogActions([Remainder] string input)

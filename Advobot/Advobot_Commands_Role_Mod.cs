@@ -9,7 +9,7 @@ namespace Advobot
 {
 	//Role Moderation commands are commands that affect the roles in a guild
 	[Name("Role Moderation")]
-	class Advobot_Commands_Role_Mod : ModuleBase
+	public class Advobot_Commands_Role_Mod : ModuleBase
 	{
 		[Command("rolegive")]
 		[Alias("rgi")]

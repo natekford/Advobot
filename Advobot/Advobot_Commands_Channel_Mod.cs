@@ -9,7 +9,7 @@ namespace Advobot
 {
 	//Channel Moderation commands are commands that affect the channels in a guild
 	[Name("Channel Moderation")]
-	class Advobot_Commands_Channel_Mod : ModuleBase
+	public class Advobot_Commands_Channel_Mod : ModuleBase
 	{
 		[Command("channelcreate")]
 		[Alias("chc")]

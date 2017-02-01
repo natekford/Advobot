@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	[Name("Ban Phrases")]
-	class Advobot_Commands_Ban_Phrases : ModuleBase
+	public class Advobot_Commands_Ban_Phrases : ModuleBase
 	{
 		//TODO: Use a different split character maybe
 		[Command("banphrasesmodify")]

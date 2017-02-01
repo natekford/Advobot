@@ -10,7 +10,7 @@ namespace Advobot
 {
 	//User Moderation commands are commands that affect the users of a guild
 	[Name("User Moderation")]
-	class Advobot_Commands_User_Mod : ModuleBase
+	public class Advobot_Commands_User_Mod : ModuleBase
 	{
 		[Command("textmute")]
 		[Alias("tm")]
