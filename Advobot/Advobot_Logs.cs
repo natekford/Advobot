@@ -1,19 +1,12 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.IO;
-using System.Reflection;
-using Discord;
-using Discord.Commands;
-using Discord.Modules;
-using Discord.WebSocket;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
 
 namespace Advobot
 {
@@ -35,7 +28,7 @@ namespace Advobot
 				//Put the guild into a list
 				Variables.Guilds.Add(guild.Id, new BotGuildInfo(guild));
 				//Put the invites into a list holding mainly for usage checking
-				var t = Task.Run(async () =>
+				Task.Run(async () =>
 				{
 					//Get all of the invites and add their guildID, code, and current uses to the usage check list
 					Variables.Guilds[guild.Id].Invites = (await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList();
@@ -48,9 +41,10 @@ namespace Advobot
 				//Loading everything
 				if (Variables.Bot_ID != 0)
 				{
-					Actions.loadPreferences(guild);
-					Actions.loadBannedPhrasesAndPunishments(guild);
-					Actions.loadSelfAssignableRoles(guild);
+					Task.Run(async () =>
+					{
+						await Actions.loadGuild(guild);
+					});
 				}
 				else
 				{
@@ -119,7 +113,7 @@ namespace Advobot
 			}
 
 			//Leave the guild
-			var t = Task.Run(async () =>
+			Task.Run(async () =>
 			{
 				if (botCount / (users * 1.0) > percentage)
 				{
@@ -160,6 +154,7 @@ namespace Advobot
 
 	public class ServerLogs : ModuleBase
 	{
+		//TODO: Remove most of the events that will get replaced by the audit log
 		public static async Task OnUserJoined(SocketGuildUser user)
 		{
 			++Variables.LoggedJoins;
@@ -370,7 +365,7 @@ namespace Advobot
 			if (firstNotSecond.Any())
 			{
 				//In separate task in case of a deleted role
-				var t = Task.Run(async () =>
+				await Task.Run(async () =>
 				{
 					var users = await guild.GetUsersAsync();
 					int maxUsers = 0;
@@ -631,7 +626,7 @@ namespace Advobot
 			Variables.CancelTokens[guild.Id] = cancelToken;
 
 			//Make a separate task in order to not mess up the other commands
-			var t = Task.Run(async () =>
+			await Task.Run(async () =>
 			{
 				try
 				{

@@ -1,19 +1,10 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.IO;
-using System.Reflection;
-using Discord;
-using Discord.Commands;
-using Discord.Modules;
-using Discord.WebSocket;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Advobot
 {
@@ -143,6 +134,7 @@ namespace Advobot
 	}
 	#endregion
 
+	#region Classes
 	public class UsageAttribute : Attribute
 	{
 		public UsageAttribute(string usage)
@@ -285,25 +277,6 @@ namespace Advobot
 		}
 	}
 
-	public enum CommandCategory
-	{
-		Administration = 1,
-		Moderation = 2,
-		Miscellaneous = 3
-	}
-
-	public struct ChannelAndPosition
-	{
-		public ChannelAndPosition(IGuildChannel channel, int position)
-		{
-			Channel = channel;
-			Position = position;
-		}
-
-		public IGuildChannel Channel;
-		public int Position;
-	}
-
 	public class SlowmodeUser
 	{
 		public SlowmodeUser(IGuildUser user = null, int currentMessagesLeft = 1, int baseMessages = 1, int time = 5)
@@ -348,13 +321,6 @@ namespace Advobot
 		public int? PunishmentTime;
 	}
 
-	public enum PunishmentType
-	{
-		Kick = 1,
-		Ban = 2,
-		Role = 3
-	}
-
 	public class BannedPhraseUser
 	{
 		public BannedPhraseUser(IGuildUser user, int amountOfRemovedMessages = 1)
@@ -393,14 +359,6 @@ namespace Advobot
 		public ulong GuildID;
 	}
 
-	public enum SAGAction
-	{
-		Create = 1,
-		Add = 2,
-		Remove = 3, 
-		Delete = 4
-	}
-
 	public class BotInvite
 	{
 		public BotInvite(ulong guildID, string code, int uses)
@@ -415,17 +373,9 @@ namespace Advobot
 		public int Uses;
 	}
 
-	public enum DeleteInvAction
-	{
-		User = 1,
-		Channel = 2,
-		Uses = 3,
-		Expiry = 4
-	}
-
 	public class BotGuildInfo
 	{
-		public BotGuildInfo (IGuild guild)
+		public BotGuildInfo(IGuild guild)
 		{
 			Guild = guild;
 		}
@@ -446,23 +396,30 @@ namespace Advobot
 		public string Prefix;
 	}
 
-	public enum LogActions
+	public class BotImplementedPermissions
 	{
-		UserJoined = 1,
-		UserLeft = 2,
-		UserUnbanned = 3,
-		UserBanned = 4,
-		UserUpdated = 5,
-		GuildMemberUpdated = 6,
-		MessageReceived = 7,
-		MessageUpdated = 8,
-		MessageDeleted = 9,
-		RoleCreated = 10,
-		RoleUpdated = 11,
-		RoleDeleted = 12,
-		ChannelCreated = 12,
-		ChannelUpdated = 13,
-		ChannelDeleted = 14
+		public BotImplementedPermissions(IGuildUser user, uint permissions)
+		{
+			User = user;
+			Permissions = permissions;
+		}
+
+		public IGuildUser User;
+		public uint Permissions;
+	}
+	#endregion
+
+	#region Structs
+	public struct ChannelAndPosition
+	{
+		public ChannelAndPosition(IGuildChannel channel, int position)
+		{
+			Channel = channel;
+			Position = position;
+		}
+
+		public IGuildChannel Channel;
+		public int Position;
 	}
 
 	public struct BotGuildPermissionType
@@ -530,18 +487,6 @@ namespace Advobot
 		}
 	}
 
-	public class BotImplementedPermissions
-	{
-		public BotImplementedPermissions(IGuildUser user, uint permissions)
-		{
-			User = user;
-			Permissions = permissions;
-		}
-
-		public IGuildUser User;
-		public uint Permissions;
-	}
-
 	public struct Remind
 	{
 		public Remind(string name, string text)
@@ -601,4 +546,63 @@ namespace Advobot
 		public IGuildUser User;
 		public List<CloseHelp> List;
 	}
+	#endregion
+
+	#region Enums
+	public enum CommandCategory
+	{
+		Global_Settings = 1,
+		Guild_Settings = 2,
+		Logs = 3,
+		Ban_Phrases = 4,
+		Self_Roles = 5,
+		User_Moderation = 6,
+		Role_Moderation = 7,
+		Channel_Moderation = 8,
+		Guild_Moderation = 9,
+		Miscellaneous = 10
+	}
+
+	public enum PunishmentType
+	{
+		Kick = 1,
+		Ban = 2,
+		Role = 3
+	}
+
+	public enum SAGAction
+	{
+		Create = 1,
+		Add = 2,
+		Remove = 3,
+		Delete = 4
+	}
+
+	public enum DeleteInvAction
+	{
+		User = 1,
+		Channel = 2,
+		Uses = 3,
+		Expiry = 4
+	}
+
+	public enum LogActions
+	{
+		UserJoined = 1,
+		UserLeft = 2,
+		UserUnbanned = 3,
+		UserBanned = 4,
+		UserUpdated = 5,
+		GuildMemberUpdated = 6,
+		MessageReceived = 7,
+		MessageUpdated = 8,
+		MessageDeleted = 9,
+		RoleCreated = 10,
+		RoleUpdated = 11,
+		RoleDeleted = 12,
+		ChannelCreated = 12,
+		ChannelUpdated = 13,
+		ChannelDeleted = 14
+	}
+	#endregion
 }

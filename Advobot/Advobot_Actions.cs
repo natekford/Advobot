@@ -1,19 +1,15 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
+using System.Net;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.IO;
-using System.Reflection;
-using Discord;
-using Discord.Commands;
-using Discord.Modules;
-using Discord.WebSocket;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
 
 namespace Advobot
 {
@@ -21,7 +17,7 @@ namespace Advobot
 	{
 		#region Loads
 		//Loading in all necessary information at bot start up
-		public static async Task loadInformation()
+		public static void loadInformation()
 		{
 			Variables.Bot_ID = CommandHandler.Client.CurrentUser.Id;						//Give the variable Bot_ID the actual ID
 			Variables.Bot_Name = CommandHandler.Client.CurrentUser.Username;				//Give the variable Bot_Name the username of the bot
@@ -31,8 +27,7 @@ namespace Advobot
 			loadCommandInformation();														//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
 			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));			//Gets all the active command names. Has to go after LCI
 
-			getOS();																		//Checks if the OS is Windows or not
-			await loadGuilds();                                                             //Loads the guilds that attempted to load before the Bot_ID was gotten.
+			loadGuilds();																	//Loads the guilds that attempted to load before the Bot_ID was gotten.
 
 			Variables.Loaded = true;														//Set a bool stating that everything is done loading.
 			startUpMessages();																//Say all of the start up messages
@@ -211,18 +206,21 @@ namespace Advobot
 		}
 
 		//Load the guilds gotten before the Bot_ID is set
-		public static async Task loadGuilds()
+		public static void loadGuilds()
 		{
-			foreach (var guild in Variables.GuildsToBeLoaded)
-			{
-				//I know I am using .txt docs instead of .json; fite me.
-				loadPreferences(guild);
-				loadBannedPhrasesAndPunishments(guild);
-				loadSelfAssignableRoles(guild);
-				loadGuildMiscInfo(guild);
-				await loadBotUsers(guild);
-				loadReminds(guild);
-			}
+			Variables.GuildsToBeLoaded.ForEach(async x => await loadGuild(x));
+		}
+
+		//Load a guild's info
+		public static async Task loadGuild(IGuild guild)
+		{
+			//I know I am using .txt docs instead of .json; fite me.
+			loadPreferences(guild);
+			loadBannedPhrasesAndPunishments(guild);
+			loadSelfAssignableRoles(guild);
+			loadGuildMiscInfo(guild);
+			await loadBotUsers(guild);
+			loadReminds(guild);
 		}
 
 		//Load preferences
@@ -285,7 +283,7 @@ namespace Advobot
 						if (line.StartsWith("@"))
 						{
 							if (!Enum.TryParse(line.Substring(1), out commandCategory))
-								return;
+								continue;
 						}
 						//Anything else and it's a setting
 						else
@@ -934,7 +932,9 @@ namespace Advobot
 			if (!Variables.Guilds.ContainsKey(guild.Id))
 				return null;
 
-			return Variables.Guilds[guild.Id].CommandSettings.Where(x => x.CategoryValue == number).Select(x => x.Name).ToArray();
+			var wut2 = Variables.Guilds[guild.Id].DefaultPrefs;
+			var wut = Variables.Guilds[guild.Id].CommandSettings;
+			return wut.Where(x => x.CategoryValue == number).Select(x => x.Name).ToArray();
 		}
 		
 		//Get file paths
@@ -1278,7 +1278,7 @@ namespace Advobot
 		//Create a role on the server if it's not found
 		public static async Task<IRole> createRoleIfNotFound(IGuild guild, string roleName)
 		{
-			IRole role = getRole(guild, roleName);
+			var role = getRole(guild, roleName);
 			if (role == null)
 			{
 				role = await guild.CreateRoleAsync(roleName);
@@ -1418,7 +1418,7 @@ namespace Advobot
 		//Remove active close word list
 		public static void removeActiveCloseWords(ActiveCloseWords list)
 		{
-			var t = Task.Run(() =>
+			Task.Run(() =>
 			{
 				Thread.Sleep(5000);
 				Variables.ActiveCloseWords.Remove(list);
@@ -1428,7 +1428,7 @@ namespace Advobot
 		//Remove active close help list
 		public static void removeActiveCloseHelp(ActiveCloseHelp list)
 		{
-			var t = Task.Run(() =>
+			Task.Run(() =>
 			{
 				Thread.Sleep(5000);
 				Variables.ActiveCloseHelp.Remove(list);
@@ -1714,7 +1714,7 @@ namespace Advobot
 					remadeEmbed.Url = uploadToHastebin(replaceMessageCharacters(fields));
 					remadeEmbed.Description = "Content is past 2,000 characters. Click the link to see it.";
 				}
-				else if ((fields.Count(x => x == '\n' || x == '\r') >= 20) && (embed.Build().Fields.Count() > 1 && embed.Build().Fields.Any(x => !x.Inline)))
+				else if (fields.Count(x => x == '\n' || x == '\r') >= 20 || (embed.Build().Fields.Count() > 1 && embed.Build().Fields.Any(x => !x.Inline)))
 				{
 					//Mobile can only show up to 20 or so lines per embed I think (at least on Android)
 					remadeEmbed.Url = uploadToHastebin(replaceMessageCharacters(fields));
@@ -1870,6 +1870,9 @@ namespace Advobot
 		//Check if the bot can type in a logchannel
 		public static async Task<bool> permissionCheck(ITextChannel channel)
 		{
+			if (channel == null)
+				return false;
+
 			var bot = await channel.Guild.GetUserAsync(Variables.Bot_ID);
 
 			//Check if the bot can send messages
@@ -2094,11 +2097,17 @@ namespace Advobot
 
 		#region Preferences
 		//Save preferences
-		public static void savePreferences(TextWriter writer, ulong guildID)
+		public static void savePreferences(TextWriter writer, ulong guildID, string input = null)
 		{
 			//Check if any preferences exist
 			if (!Variables.Guilds.ContainsKey(guildID))
 				return;
+
+			if (input != null)
+			{
+				writer.WriteLine(input);
+				return;
+			}
 
 			//Variable for each category
 			int categories = 0;
@@ -2118,20 +2127,20 @@ namespace Advobot
 		}
 		
 		//Save preferences by server
-		public static void savePreferences(ulong serverID)
+		public static void savePreferences(ulong serverID, string input = null)
 		{
 			var path = getServerFilePath(serverID, Constants.PREFERENCES_FILE);
 			Directory.CreateDirectory(Path.GetDirectoryName(path));
 			using (StreamWriter writer = new StreamWriter(path, false))
 			{
-				savePreferences(writer, serverID);
+				savePreferences(writer, serverID, input);
 			}
 		}
 		
 		//Remove the option to say yes for preferences after ten seconds
 		public static void turnOffEnableYes(IGuild guild)
 		{
-			var t = Task.Run(() =>
+			Task.Run(() =>
 			{
 				Thread.Sleep(10000);
 				Variables.GuildsEnablingPreferences.Remove(guild);
@@ -2141,7 +2150,7 @@ namespace Advobot
 		//Remove the option to say yes for preferences after ten seconds
 		public static void turnOffDeleteYes(IGuild guild)
 		{
-			var t = Task.Run(() =>
+			Task.Run(() =>
 			{
 				Thread.Sleep(10000);
 				Variables.GuildsDeletingPreferences.Remove(guild);
@@ -2160,7 +2169,7 @@ namespace Advobot
 			}
 			if (!File.Exists(path))
 			{
-				savePreferences(guild.Id);
+				savePreferences(guild.Id, Properties.Resources.DefaultCommandPreferences);
 			}
 			else
 			{
@@ -2196,7 +2205,7 @@ namespace Advobot
 		public static async Task readPreferences(IMessageChannel channel, string serverpath)
 		{
 			//Make the embed
-			var embed = makeNewEmbed(null, "Preferences");
+			var embed = makeNewEmbed("Preferences");
 
 			//Make the information into separate fields
 			var text = File.ReadAllText(serverpath).Replace("@", "").Split(new string[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
@@ -2566,8 +2575,10 @@ namespace Advobot
 		//Make sure all the settings are valid at the start
 		public static async Task start(DiscordSocketClient client)
 		{
+			//Checks if the OS is Windows or not
+			getOS();
 			//Set the path to save stuff to
-			Actions.settingPath();
+			settingPath();
 			//Set the bot's key
 			await settingBotKey(client);
 			//Connect the bot
@@ -2577,9 +2588,7 @@ namespace Advobot
 			}
 			catch (Exception)
 			{
-				Actions.writeLine("Client is unable to connect.");
-				Thread.Sleep(15000);
-				Environment.Exit(0);
+				writeLine("Client is unable to connect.");
 			}
 		}
 
@@ -2587,16 +2596,18 @@ namespace Advobot
 		public static void settingPath()
 		{
 			//Check if a path is already input
-			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Path))
-			{
-				if (Directory.Exists(Properties.Settings.Default.Path))
-				{
-					return;
-				}
-			}
+			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Path) && Directory.Exists(Properties.Settings.Default.Path))
+				return;
 
 			//Send the initial message
-			Console.WriteLine("Please enter a valid directory path in which to save files (if on Windows you can say 'AppData'):");
+			if (Variables.Windows)
+			{
+				Console.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
+			}
+			else
+			{
+				Console.WriteLine("Please enter a valid directory path in which to save files:");
+			}
 
 			//While loop until a valid directory is given
 			while (true)
@@ -2671,10 +2682,12 @@ namespace Advobot
 						Properties.Settings.Default.Save();
 						break;
 					}
-					catch (Exception)
+					catch (Exception e)
 					{
 						//If the key doesn't work then retry
 						Console.WriteLine("The given key is invalid. Please enter a valid key:");
+						Actions.exceptionToConsole("", e);
+						Console.Write(Properties.Settings.Default.BotKey);
 						Properties.Settings.Default.BotKey = Console.ReadLine().Trim();
 					}
 				}

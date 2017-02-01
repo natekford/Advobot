@@ -20,7 +20,7 @@ namespace Advobot
 			Map = map;
 
 			//Necessary for the 'commands' and 'help' commands
-			await Actions.loadInformation();
+			Actions.loadInformation();
 
 			//Set up the game and/or stream
 			await Actions.setGame();
