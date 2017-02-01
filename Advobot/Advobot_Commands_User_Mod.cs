@@ -888,7 +888,7 @@ namespace Advobot
 				values[1] = values[1].Substring(0, values[1].Length - Constants.BYPASS_STRING.Length);
 			}
 
-			if (action.Equals("give"))
+			if (action.Equals("give", StringComparison.OrdinalIgnoreCase))
 			{
 				if (values[0].Equals(values[1]))
 				{
@@ -942,7 +942,7 @@ namespace Advobot
 				await Actions.sendChannelMessage(Context, String.Format("Successfully gave `{0}` to all users{1} ({2} users).",
 					roleToGive.Name, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}
-			else if (action.Equals("take"))
+			else if (action.Equals("take", StringComparison.OrdinalIgnoreCase))
 			{
 				//Check if valid roles
 				var roleToGather = Actions.getRole(Context.Guild, values[0]);
@@ -988,7 +988,7 @@ namespace Advobot
 				await Actions.sendChannelMessage(Context, String.Format("Successfully took `{0}` from all users{1} ({2} users).",
 					roleToTake.Name, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}
-			else if (action.Equals("nickname"))
+			else if (action.Equals("nickname", StringComparison.OrdinalIgnoreCase))
 			{
 				//Check if valid role
 				var roleToGather = Actions.getRole(Context.Guild, values[0]);

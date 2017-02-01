@@ -40,6 +40,7 @@ namespace Advobot
 		public const string VOICE_TYPE = "voice";
 		public const string TEXT_TYPE = "text";
 		public const string BYPASS_STRING = "Badoodle123";
+		public const string DENY_WITHOUT_PREFERENCES = "This guild does not have preferences enabled and thus cannot use this command. Please run the `comprefsmodify` command to enable them.";
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int WAIT_TIME = 3000;

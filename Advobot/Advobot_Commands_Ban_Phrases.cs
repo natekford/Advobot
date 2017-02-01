@@ -21,10 +21,10 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task SetBanPhrases([Remainder] string input)
 		{
-			//Check if they've enabled preferences
+			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
@@ -389,6 +389,13 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task SetPunishments([Remainder] string input)
 		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
 			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 3);
 
@@ -698,6 +705,13 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task ClearBanPhraseUser([Remainder] string input)
 		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
 			var user = await Actions.getUser(Context.Guild, input);
 			if (user == null)
 			{
@@ -718,6 +732,13 @@ namespace Advobot
 		[Summary("Lists all infraction points a user has on the guild.")]
 		public async Task CurrentBanPhraseUser([Optional, Remainder] string input)
 		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
 			var user = input == null ? Context.User : await Actions.getUser(Context.Guild, input);
 			if (user == null)
 			{

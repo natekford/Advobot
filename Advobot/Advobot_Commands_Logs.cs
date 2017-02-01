@@ -20,11 +20,11 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not preferences set up."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
-			ITextChannel serverlog = await Actions.setServerOrModLog(Context, input, Constants.SERVER_LOG_CHECK_STRING);
+			var serverlog = await Actions.setServerOrModLog(Context, input, Constants.SERVER_LOG_CHECK_STRING);
 			if (serverlog != null)
 			{
 				await Actions.sendChannelMessage(Context, String.Format("Serverlog has been set on channel {0} with the ID `{1}`.", input, serverlog.Id));
@@ -41,11 +41,11 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not preferences set up."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
-			ITextChannel modlog = await Actions.setServerOrModLog(Context, input, Constants.MOD_LOG_CHECK_STRING);
+			var modlog = await Actions.setServerOrModLog(Context, input, Constants.MOD_LOG_CHECK_STRING);
 			if (modlog != null)
 			{
 				await Actions.sendChannelMessage(Context, String.Format("Modlog has been set on channel {0} with the ID `{1}`.", input, modlog.Id));
@@ -59,9 +59,10 @@ namespace Advobot
 		[GuildOwnerRequirement]
 		public async Task IgnoreChannel([Remainder] string input)
 		{
+			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not preferences set up."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
@@ -156,7 +157,7 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not preferences set up."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 

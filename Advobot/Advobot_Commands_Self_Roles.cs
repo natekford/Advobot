@@ -19,10 +19,10 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task ModifySelfAssignableRoles([Remainder] string input)
 		{
-			//Check if they've enabled preferences
+			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
@@ -273,8 +273,15 @@ namespace Advobot
 		[Summary("Gives a role or takes a role depending on if the user has the role or not. Remove all other roles in the same group unless the group is 0.")]
 		public async Task AssignSelfRole([Remainder] string input)
 		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
 			//Get the role. No edit ability checking in this command due to how that's already been done in the modify command
-			IRole role = await Actions.getRole(Context, input);
+			var role = await Actions.getRole(Context, input);
 			if (role == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no role with that name on this guild."));

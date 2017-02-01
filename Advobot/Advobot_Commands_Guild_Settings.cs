@@ -72,7 +72,7 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not preferences set up."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
@@ -244,7 +244,7 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no command preferences set up."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
@@ -635,10 +635,10 @@ namespace Advobot
 		[UserHasAPermission]
 		public async Task ModifyRemind([Remainder] string input)
 		{
-			//Check if they've enabled preferences
+			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
