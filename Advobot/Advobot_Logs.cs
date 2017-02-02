@@ -438,9 +438,17 @@ namespace Advobot
 				var logChannel = await Actions.verifyLogChannel(guild);
 				if (logChannel == null || Variables.Guilds[guild.Id].IgnoredChannels.Contains(channel.Id))
 					return;
-				
-				//Actually log the image
-				await Actions.imageLog(logChannel, message, false);
+
+				if (message.Attachments.Any())
+				{
+					//Actually log the image
+					await Actions.imageLog(logChannel, message, false);
+				}
+				else
+				{
+					//Actually log the image
+					await Actions.imageLog(logChannel, message, true);
+				}
 			}
 		}
 
@@ -451,13 +459,12 @@ namespace Advobot
 			if (afterMessage.Author.IsBot)
 				return;
 			await Actions.bannedPhrases(afterMessage);
-			var logChannel = await Actions.verifyLogChannel(afterMessage);
+			var logChannel = await Actions.verifyLogChannel(afterMessage) as ITextChannel;
 			if (logChannel == null || afterMessage == null || afterMessage.Author == null)
 				return;
-			var guild = (afterMessage.Channel as IGuildChannel).Guild;
-			if (!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-				return;
-			if (Variables.Guilds[guild.Id].IgnoredChannels.Contains(afterMessage.Channel.Id))
+			var guild = logChannel.Guild;
+			if (Variables.Guilds[guild.Id].IgnoredChannels.Contains(afterMessage.Channel.Id) ||
+				!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
 			//Check if regular messages are equal
@@ -476,7 +483,7 @@ namespace Advobot
 			afterMsg = String.IsNullOrWhiteSpace(afterMsg) ? "NOTHING" : afterMsg;
 
 			//Set the user as a variable
-			IUser user = afterMessage.Author;
+			var user = afterMessage.Author;
 
 			//Bot cannot pick up messages from before it was started
 			if (String.IsNullOrWhiteSpace(beforeMsg))
@@ -514,13 +521,12 @@ namespace Advobot
 
 			if (!message.IsSpecified)
 				return;
-			var logChannel = await Actions.verifyLogChannel(message.Value);
+			var logChannel = await Actions.verifyLogChannel(message.Value) as ITextChannel;
 			if (logChannel == null)
 				return;
-			var guild = (message.Value.Channel as IGuildChannel).Guild;
-			if (!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-				return;
-			if (Variables.Guilds[guild.Id].IgnoredChannels.Contains(message.Value.Channel.Id))
+			var guild = logChannel.Guild;
+			if (Variables.Guilds[guild.Id].IgnoredChannels.Contains(message.Value.Channel.Id) ||
+				!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
 			//Get a list of the deleted messages per guild
@@ -545,7 +551,7 @@ namespace Advobot
 			Variables.CancelTokens[guild.Id] = cancelToken;
 
 			//Make a separate task in order to not mess up the other commands
-			await Task.Run(async () =>
+			Task t = Task.Run(async () =>
 			{
 				try
 				{

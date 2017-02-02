@@ -246,6 +246,13 @@ namespace Advobot
 				});
 			}
 
+			//Check if there are any valid log actions
+			if (!newLogActions.Any())
+			{
+				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid log actions were able to be gotten."));
+				return;
+			}
+
 			//Enable them
 			if (enableBool)
 			{

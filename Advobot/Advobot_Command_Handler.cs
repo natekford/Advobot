@@ -40,7 +40,7 @@ namespace Advobot
 			//Mark where the prefix ends and the command begins
 			int argPos = 0;
 
-			//Check if should use the global prefix of the guild prefix
+			//Check if should use the global prefix or the guild prefix. No commands can be ran from DMs either
 			var channel = message.Channel as Discord.IGuildChannel;
 			if (channel != null)
 			{
@@ -67,8 +67,6 @@ namespace Advobot
 				}
 			}
 
-			++Variables.AttemptedCommands;
-
 			//Create a Command Context
 			var context = new CommandContext(Client, message);
 
@@ -78,6 +76,7 @@ namespace Advobot
 
 			//Execute the Command, store the result
 			var result = await Commands.ExecuteAsync(context, argPos, Map);
+			++Variables.AttemptedCommands;
 
 			//If the command failed, notify the user
 			if (!result.IsSuccess)

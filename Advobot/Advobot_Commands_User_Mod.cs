@@ -14,8 +14,8 @@ namespace Advobot
 	{
 		[Command("textmute")]
 		[Alias("tm")]
-		[Usage("textmute [@User]")]
-		[Summary("Removes the user's ability to type via the 'Muted' role.")]
+		[Usage("textmute [@User] <Time>")]
+		[Summary("If the user is not text muted, this will mute them. If they are text muted, this will unmute them. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirements((1U << (int)GuildPermission.ManageRoles) | (1U << (int)GuildPermission.ManageMessages))]
 		public async Task FullMute([Remainder] string input)
 		{
@@ -35,48 +35,50 @@ namespace Advobot
 				x.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, 805316689));
 			});
 
+			//Split the input
+			var inputArray = input.Split(new char[] { ' ' }, 2);
 			//Test if valid user mention
-			var user = await Actions.getUser(Context.Guild, input);
+			var user = await Actions.getUser(Context.Guild, inputArray[0]);
 			if (user == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
 
-			//Give the targetted user the role
-			await Actions.giveRole(user, muteRole);
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully muted `{0}#{1}`.", user.Username, user.Discriminator));
-		}
-
-		[Command("textunmute")]
-		[Alias("tum")]
-		[Usage("textunmute [@User]")]
-		[Summary("Gives the user back the ability type via removing the 'Muted' role.")]
-		[PermissionRequirements((1U << (int)GuildPermission.ManageRoles) | (1U << (int)GuildPermission.ManageMessages))]
-		public async Task FullUnmute([Remainder] string input)
-		{
-			//Test if valid user mention
-			var user = await Actions.getUser(Context.Guild, input);
-			if (user == null)
+			if (user.RoleIds.Contains(muteRole.Id))
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
-				return;
+				//Remove the role
+				await Actions.takeRole(user, Actions.getRole(Context.Guild, Constants.MUTE_ROLE_NAME));
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully unmuted `{0}#{1}`.", user.Username, user.Discriminator));
 			}
-
-			//Remove the role
-			await Actions.takeRole(user, Actions.getRole(Context.Guild, Constants.MUTE_ROLE_NAME));
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully unmuted `{0}#{1}`.", user.Username, user.Discriminator));
+			else
+			{
+				//Give the targetted user the role
+				var time = 0;
+				if (inputArray.Length == 2 && !int.TryParse(inputArray[1], out time))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
+				}
+				else if (time != 0)
+				{
+					Actions.removeRoleAfterTime(user, muteRole, time);
+				}
+				await Actions.giveRole(user, muteRole);
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully muted `{0}#{1}` {2}.", user.Username, user.Discriminator, time != 0 ? "for " + time + " seconds" : ""));
+			}
 		}
 
 		[Command("voicemute")]
 		[Alias("vm")]
-		[Usage("voicemute [@User]")]
-		[Summary("If the user is not voice muted, this will mute them. If they are voice muted, this will unmute them.")]
+		[Usage("voicemute [@User] <Time>")]
+		[Summary("If the user is not voice muted, this will mute them. If they are voice muted, this will unmute them. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirements(1U << (int)GuildPermission.MuteMembers)]
 		public async Task Mute([Remainder] string input)
 		{
+			//Split the input
+			var inputArray = input.Split(new char[] { ' ' }, 2);
 			//Test if valid user mention
-			var user = await Actions.getUser(Context.Guild, input);
+			var user = await Actions.getUser(Context.Guild, inputArray[0]);
 			if (user == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
@@ -86,23 +88,37 @@ namespace Advobot
 			//See if it should mute or unmute
 			if (!user.IsMuted)
 			{
+				var time = 0;
+				if (inputArray.Length == 2 && !int.TryParse(inputArray[1], out time))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
+					return;
+				}
+				else if (time != 0)
+				{
+					Actions.unmuteVoiceAfterTime(user, time);
+				}
 				await user.ModifyAsync(x => x.Mute = true);
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully guild muted `{0}#{1}`.", user.Username, user.Discriminator));
-				return;
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully guild muted `{0}#{1}` {2}.", user.Username, user.Discriminator, time != 0 ? "for " + time + " seconds" : ""));
 			}
-			await user.ModifyAsync(x => x.Mute = false);
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the guild mute on `{0}#{1}`.", user.Username, user.Discriminator));
+			else
+			{
+				await user.ModifyAsync(x => x.Mute = false);
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the guild mute on `{0}#{1}`.", user.Username, user.Discriminator));
+			}
 		}
 
 		[Command("deafen")]
 		[Alias("dfn", "d")]
-		[Usage("deafen [@User]")]
-		[Summary("Bans then unbans a user from the guild.")]
+		[Usage("deafen [@User] <Time>")]
+		[Summary("If the user is not voice muted, this will mute them. If they are voice muted, this will unmute them. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirements(1U << (int)GuildPermission.DeafenMembers)]
 		public async Task Deafen([Remainder] string input)
 		{
+			//Split the input
+			var inputArray = input.Split(new char[] { ' ' }, 2);
 			//Test if valid user mention
-			var user = await Actions.getUser(Context.Guild, input);
+			var user = await Actions.getUser(Context.Guild, inputArray[0]);
 			if (user == null)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
@@ -112,12 +128,24 @@ namespace Advobot
 			//See if it should deafen or undeafen
 			if (!user.IsDeafened)
 			{
+				var time = 0;
+				if (inputArray.Length == 2 && !int.TryParse(inputArray[1], out time))
+				{
+					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
+					return;
+				}
+				else if (time != 0)
+				{
+					Actions.undeafenAfterTime(user, time);
+				}
 				await user.ModifyAsync(x => x.Deaf = true);
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully server deafened `{0}#{1}`.", user.Username, user.Discriminator));
-				return;
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully guild deafened `{0}#{1}` {2}.", user.Username, user.Discriminator, time != 0 ? "for " + time + " seconds" : ""));
 			}
-			await user.ModifyAsync(x => x.Deaf = false);
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the server deafen on `{0}#{1}`.", user.Username, user.Discriminator));
+			else
+			{
+				await user.ModifyAsync(x => x.Deaf = false);
+				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the guild deafen on `{0}#{1}`.", user.Username, user.Discriminator));
+			}
 		}
 
 		[Command("moveuser")]

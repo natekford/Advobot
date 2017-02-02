@@ -1272,16 +1272,6 @@ namespace Advobot
 			removeCommandMessages(channel, new IUserMessage[] { secondMsg, message }, time);
 		}
 		
-		//Remove commands
-		public static void removeCommandMessages(IMessageChannel channel, IUserMessage[] messages, Int32 time)
-		{
-			Task t = Task.Run(async () =>
-			{
-				await Task.Delay(time);
-				await channel.DeleteMessagesAsync(messages);
-			});
-		}
-		
 		//Remove messages
 		public static async Task removeMessages(IMessageChannel channel, int requestCount)
 		{
@@ -1351,26 +1341,6 @@ namespace Advobot
 
 			writeLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, user.Username));
 			await channel.DeleteMessagesAsync(userMessages.ToArray());
-		}
-
-		//Remove active close word list
-		public static void removeActiveCloseWords(ActiveCloseWords list)
-		{
-			Task.Run(() =>
-			{
-				Thread.Sleep(5000);
-				Variables.ActiveCloseWords.Remove(list);
-			});
-		}
-
-		//Remove active close help list
-		public static void removeActiveCloseHelp(ActiveCloseHelp list)
-		{
-			Task.Run(() =>
-			{
-				Thread.Sleep(5000);
-				Variables.ActiveCloseHelp.Remove(list);
-			});
 		}
 		#endregion
 
@@ -1652,7 +1622,7 @@ namespace Advobot
 					remadeEmbed.Url = uploadToHastebin(replaceMessageCharacters(fields));
 					remadeEmbed.Description = "Content is past 2,000 characters. Click the link to see it.";
 				}
-				else if (fields.Count(x => x == '\n' || x == '\r') >= 20 || (embed.Build().Fields.Count() > 1 && embed.Build().Fields.Any(x => !x.Inline)))
+				else if (fields.Count(x => x == '\n' || x == '\r') >= 20 && embed.Build().Fields.Any(x => !x.Inline))
 				{
 					//Mobile can only show up to 20 or so lines per embed I think (at least on Android)
 					remadeEmbed.Url = uploadToHastebin(replaceMessageCharacters(fields));
@@ -1920,6 +1890,9 @@ namespace Advobot
 		//Logging images
 		public static async Task imageLog(IMessageChannel channel, SocketMessage message, bool embeds)
 		{
+			if (!Variables.Guilds[(channel as ITextChannel).Guild.Id].LogActions.Any(x => "ImageLog".Equals(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase)))
+				return;
+
 			//Get the links
 			var attachmentURLs = new List<string>();
 			var embedURLs = new List<string>();
@@ -1953,7 +1926,7 @@ namespace Advobot
 					}
 				});
 			}
-			IUser user = message.Author;
+			var user = message.Author;
 			foreach (string URL in attachmentURLs.Distinct())
 			{
 				if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL).ToLower()))
@@ -2082,26 +2055,6 @@ namespace Advobot
 			}
 		}
 		
-		//Remove the option to say yes for preferences after ten seconds
-		public static void turnOffEnableYes(IGuild guild)
-		{
-			Task.Run(() =>
-			{
-				Thread.Sleep(10000);
-				Variables.GuildsEnablingPreferences.Remove(guild);
-			});
-		}
-		
-		//Remove the option to say yes for preferences after ten seconds
-		public static void turnOffDeleteYes(IGuild guild)
-		{
-			Task.Run(() =>
-			{
-				Thread.Sleep(10000);
-				Variables.GuildsDeletingPreferences.Remove(guild);
-			});
-		}
-		
 		//Enable preferences
 		public static async Task enablePreferences(IGuild guild, IUserMessage message)
 		{
@@ -2214,16 +2167,10 @@ namespace Advobot
 		{
 			//Create the file if it doesn't exist
 			var path = getServerFilePath(context.Guild.Id, Constants.MISCGUILDINFO);
-			if (!File.Exists(path))
-			{
-				Directory.CreateDirectory(Path.GetDirectoryName(path));
-				var newFile = File.Create(path);
-				newFile.Close();
-			}
+			createFile(path);
 
-			//Find the lines that aren't the current prefix line
-			var validLines = new List<string>();
-
+			//Find the lines that aren't the current log action line
+			var validLines = getValidLines(path, Constants.LOG_ACTIONS);
 
 			//Add all the lines back
 			using (StreamWriter writer = new StreamWriter(path))
@@ -2324,18 +2271,6 @@ namespace Advobot
 					await message.DeleteAsync();
 				}
 			}
-		}
-
-		//Time interval for slowmode
-		public static void slowmodeInterval(SlowmodeUser smUser)
-		{
-			Task t = Task.Run(() =>
-			{
-				//Sleep for the given amount of seconds
-				Thread.Sleep(smUser.Time * 1000);
-				//Add back their ability to send messages
-				smUser.CurrentMessagesLeft = smUser.BaseMessages;
-			});
 		}
 
 		//Add a new user who joined into the slowmode users list
@@ -2496,23 +2431,6 @@ namespace Advobot
 					await sendEmbedMessage(logChannel, addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 				}
 			}
-		}
-
-		//Wait them remove the role on a user when they got it from a banned phrase punishment
-		public static void bannedPhrasesPunishmentTimer(IGuildUser user, IRole role, int time)
-		{
-			Task t = Task.Run(async () =>
-			{
-				//Sleep for the given amount of seconds
-				Thread.Sleep(time * 60000);
-
-				//Check if the user still has the role
-				if (!user.RoleIds.Contains(role.Id))
-					return;
-
-				//Remove the role
-				await user.RemoveRolesAsync(role);
-			});
 		}
 		#endregion
 
@@ -2739,6 +2657,123 @@ namespace Advobot
 			}
 
 			return closeHelps;
+		}
+		#endregion
+
+		#region Timers
+		//Remove commands
+		public static void removeCommandMessages(IMessageChannel channel, IUserMessage[] messages, Int32 time)
+		{
+			Task t = Task.Run(async () =>
+			{
+				await Task.Delay(time);
+				await channel.DeleteMessagesAsync(messages);
+			});
+		}
+
+		//Remove active close word list
+		public static void removeActiveCloseWords(ActiveCloseWords list)
+		{
+			Task.Run(async () =>
+			{
+				await Task.Delay(5000);
+				Variables.ActiveCloseWords.Remove(list);
+			});
+		}
+
+		//Remove active close help list
+		public static void removeActiveCloseHelp(ActiveCloseHelp list)
+		{
+			Task.Run(async () =>
+			{
+				await Task.Delay(5000);
+				Variables.ActiveCloseHelp.Remove(list);
+			});
+		}
+
+		//Remove the option to say yes for preferences after ten seconds
+		public static void turnOffEnableYes(IGuild guild)
+		{
+			Task.Run(async () =>
+			{
+				await Task.Delay(5000);
+				Variables.GuildsEnablingPreferences.Remove(guild);
+			});
+		}
+
+		//Remove the option to say yes for preferences after ten seconds
+		public static void turnOffDeleteYes(IGuild guild)
+		{
+			Task.Run(async () =>
+			{
+				await Task.Delay(5000);
+				Variables.GuildsDeletingPreferences.Remove(guild);
+			});
+		}
+
+		//Time interval for slowmode
+		public static void slowmodeInterval(SlowmodeUser smUser)
+		{
+			Task.Run(async () =>
+			{
+				//Sleep for the given amount of seconds
+				await Task.Delay(Math.Abs(smUser.Time) * 1000);
+				//Add back their ability to send messages
+				smUser.CurrentMessagesLeft = smUser.BaseMessages;
+			});
+		}
+
+		//Wait them remove the role on a user when they got it from a banned phrase punishment
+		public static void bannedPhrasesPunishmentTimer(IGuildUser user, IRole role, int time)
+		{
+			Task.Run(async () =>
+			{
+				//Sleep for the given amount of seconds
+				await Task.Delay(Math.Abs(time) * 60000);
+
+				//Check if the user still has the role
+				if (!user.RoleIds.Contains(role.Id))
+					return;
+
+				//Remove the role
+				await user.RemoveRolesAsync(role);
+			});
+		}
+
+		//Remove the role on a user after given amount of seconds
+		public static void removeRoleAfterTime(IGuildUser user, IRole role, int time)
+		{
+			Task.Run(async () =>
+			{
+				//Sleep for the given amount of seconds
+				await Task.Delay(Math.Abs(time) * 1000);
+				//Add back their ability to send messages
+				await user.RemoveRolesAsync(role);
+			});
+		}
+
+		//Remove the mute on a user after given amount of seconds
+		public static void unmuteVoiceAfterTime(IGuildUser user, int time)
+		{
+			Task.Run(async () =>
+			{
+				//Sleep for the given amount of seconds
+				await Task.Delay(Math.Abs(time) * 1000);
+				//Add back their ability to send messages
+				await user.ModifyAsync(x => x.Mute = false);
+			});
+		}
+
+		//Remove the deafen on a user after given amount of seconds
+		public static void undeafenAfterTime(IGuildUser user, int time)
+		{
+			Task.Run(async () =>
+			{
+				//Sleep for the given amount of seconds
+				await Task.Delay(Math.Abs(time) * 1000);
+				//Add back their ability to send messages
+				await user.ModifyAsync(x => x.Deaf = false);
+			});
 		}
 		#endregion
 	}

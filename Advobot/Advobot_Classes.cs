@@ -602,7 +602,8 @@ namespace Advobot
 		RoleDeleted = 12,
 		ChannelCreated = 12,
 		ChannelUpdated = 13,
-		ChannelDeleted = 14
+		ChannelDeleted = 14,
+		ImageLog = 15
 	}
 	#endregion
 }

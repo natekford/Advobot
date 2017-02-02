@@ -74,7 +74,8 @@ namespace Advobot
 				LogActions.GuildMemberUpdated,
 				LogActions.MessageReceived,
 				LogActions.MessageUpdated,
-				LogActions.MessageDeleted
+				LogActions.MessageDeleted,
+				LogActions.ImageLog
 			};
 
 		public static readonly bool DISCONNECT = false;
