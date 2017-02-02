@@ -303,10 +303,10 @@ namespace Advobot
 				foreach (var guild in CommandHandler.Client.Guilds.Where(x => x.Users.Contains(afterUser)))
 				{
 					var logChannel = await Actions.verifyLogChannel(guild);
-					if (logChannel == null)
+					if (logChannel == null ||
+						!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 						return;
-					if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-						return;
+
 					++Variables.LoggedUserChanges;
 
 					var embed = Actions.addFooter(Actions.makeNewEmbed(null, null, Constants.UEDT), "Name Changed");
@@ -324,12 +324,13 @@ namespace Advobot
 			var logChannel = await Actions.verifyLogChannel(afterUser);
 			if (logChannel == null)
 				return;
-			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+			var guild = logChannel.Guild;
+			if (guild == null || !Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
-			IGuild guild = afterUser.Guild;
 
 			//Nickname change
-			if ((String.IsNullOrWhiteSpace(beforeUser.Nickname) && !String.IsNullOrWhiteSpace(afterUser.Nickname)) || (!String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)))
+			if ((String.IsNullOrWhiteSpace(beforeUser.Nickname) && !String.IsNullOrWhiteSpace(afterUser.Nickname)) ||
+				(!String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)))
 			{
 				var originalNickname = beforeUser.Nickname;
 				if (String.IsNullOrWhiteSpace(beforeUser.Nickname))
@@ -347,15 +348,12 @@ namespace Advobot
 				Actions.addField(embed, "After:", "`" + nicknameChange + "`", false);
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 			}
-			else if (!(String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)))
+			else if (!(String.IsNullOrWhiteSpace(beforeUser.Nickname) && String.IsNullOrWhiteSpace(afterUser.Nickname)) && !beforeUser.Nickname.Equals(afterUser.Nickname))
 			{
-				if (!beforeUser.Nickname.Equals(afterUser.Nickname))
-				{
-					var embed = Actions.addFooter(Actions.makeNewEmbed(null, null, Constants.UEDT), "Nickname Changed");
-					Actions.addField(embed, "Before:", "`" + beforeUser.Nickname + "`");
-					Actions.addField(embed, "After:", "`" + afterUser.Nickname + "`", false);
-					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
-				}
+				var embed = Actions.addFooter(Actions.makeNewEmbed(null, null, Constants.UEDT), "Nickname Changed");
+				Actions.addField(embed, "Before:", "`" + beforeUser.Nickname + "`");
+				Actions.addField(embed, "After:", "`" + afterUser.Nickname + "`", false);
+				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 			}
 
 			//Role change
@@ -385,7 +383,8 @@ namespace Advobot
 					if (!rolesChange.Any())
 						return;
 
-					var embed = Actions.addFooter(Actions.makeNewEmbed(null, "**Role(s) Lost:** " + String.Join(", ", rolesChange), Constants.UEDT), "Role Lost");
+					var description = String.Format("**Role{0} Lost:** {1}", rolesChange.Count != 1 ? "s" : "", String.Join(", ", rolesChange));
+					var embed = Actions.addFooter(Actions.makeNewEmbed(null, description, Constants.UEDT), "Role Lost");
 					await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 				});
 			}
@@ -400,7 +399,8 @@ namespace Advobot
 				if (!rolesChange.Any())
 					return;
 
-				var embed = Actions.addFooter(Actions.makeNewEmbed(null, "**Role(s) Gained:** " + String.Join(", ", rolesChange), Constants.UEDT), "Role Gained");
+				var description = String.Format("**Role{0} Gained:** {1}", rolesChange.Count != 1 ? "s" : "", String.Join(", ", rolesChange));
+				var embed = Actions.addFooter(Actions.makeNewEmbed(null, description, Constants.UEDT), "Role Gained");
 				await Actions.sendEmbedMessage(logChannel, Actions.addAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl));
 			}
 		}
@@ -412,116 +412,35 @@ namespace Advobot
 			if (message.Author.IsBot)
 				return;
 
-			//If DM then ignore for the most part
+			//Check if the channel is a guild channel or DM channel
 			var channel = message.Channel as IGuildChannel;
-			if (channel == null)
-			{
-				//See if they're on the list to be a potential bot owner
-				if (Variables.PotentialBotOwners.Contains(message.Author.Id))
-				{
-					//If the key they input is the same as the bots key then they become owner
-					if (message.Content.Trim().Equals(Properties.Settings.Default.BotKey))
-					{
-						Properties.Settings.Default.BotOwner = message.Author.Id;
-						Properties.Settings.Default.Save();
-						Variables.PotentialBotOwners.Clear();
-						await Actions.sendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
-					}
-					else
-					{
-						Variables.PotentialBotOwners.Remove(message.Author.Id);
-						await Actions.sendDMMessage(message.Channel as IDMChannel, "That is the incorrect key.");
-					}
-				}
-				return;
-			}
-
+			//Check if someone trying to set themselves as bot owner
+			await MessageReceivedActions.BotOwner(channel, message);
+			//Get the guild
 			var guild = channel.Guild;
 			if (guild == null)
 				return;
-
-			//Check if it's the owner of the guild saying something
-			if (message.Author.Id == guild.OwnerId)
-			{
-				//If the message is only 'yes' then check if they're enabling or deleting preferences
-				if (message.Content.Equals("yes", StringComparison.OrdinalIgnoreCase))
-				{
-					if (Variables.GuildsEnablingPreferences.Contains(guild))
-					{
-						//Enable preferences
-						await Actions.enablePreferences(guild, message as IUserMessage);
-					}
-					else if (Variables.GuildsDeletingPreferences.Contains(guild))
-					{
-						//Delete preferences
-						await Actions.deletePreferences(guild, message as IUserMessage);
-					}
-				}
-			}
-
+			//Check if anything to do with deleting/enabling preferences
+			await MessageReceivedActions.ModifyPreferences(guild, message);
 			//Check if any active closewords
-			if (Constants.CLOSEWORDSPOSITIONS.Contains(message.Content))
+			await MessageReceivedActions.CloseWords(guild, message);
+			//Check if slowmode or not banned phrases
+			await MessageReceivedActions.SlowmodeOrBannedPhrases(guild, channel, message);
+
+			//Check if OnMessageReceived logging is enabled
+			if (!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+				return;
+
+			//If it is, then check if the message should be image logged
+			if (message.Attachments.Any() || message.Embeds.Any())
 			{
-				//Get the number
-				var number = Actions.getInteger(message.Content);
-				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
-				if (closeWordList.User != null)
-				{
-					//Get the remind
-					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => x.Name.Equals(closeWordList.List[number - 1].Name, StringComparison.OrdinalIgnoreCase));
-
-					//Send the remind
-					await Actions.sendChannelMessage(message.Channel, remind.Text);
-
-					//Remove that list
-					Variables.ActiveCloseWords.Remove(closeWordList);
-				}
-				else
-				{
-					var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
-					if (closeHelpList.User != null)
-					{
-						//Get the remind
-						var help = closeHelpList.List[number - 1].Help;
-
-						//Send the remind
-						await Actions.sendEmbedMessage(message.Channel, Actions.addFooter(Actions.makeNewEmbed(help.Name, Actions.getHelpString(help)), "Help"));
-
-						//Remove that list
-						Variables.ActiveCloseHelp.Remove(closeHelpList);
-					}
-				}
-			}
-
-			//Check if the guild has slowmode enabled currently
-			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(channel))
-			{
-				await Actions.slowmode(message);
-			}
-			//Check if any banned phrases
-			else if (Variables.Guilds[guild.Id].BannedPhrases.Any() || Variables.Guilds[guild.Id].BannedRegex.Any())
-			{
-				await Actions.bannedPhrases(message);
-			}
-			//Check if it is going to be image logged
-			else
-			{
+				//Check if the logchannel exists
 				var logChannel = await Actions.verifyLogChannel(guild);
-				if (logChannel == null)
+				if (logChannel == null || Variables.Guilds[guild.Id].IgnoredChannels.Contains(channel.Id))
 					return;
-				if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-					return;
-				if (Variables.Guilds[guild.Id].IgnoredChannels.Contains(channel.Id))
-					return;
-
-				if (message.Attachments.Any())
-				{
-					await Actions.imageLog(logChannel, message, false);
-				}
-				else if (message.Embeds.Any())
-				{
-					await Actions.imageLog(logChannel, message, true);
-				}
+				
+				//Actually log the image
+				await Actions.imageLog(logChannel, message, false);
 			}
 		}
 
@@ -872,6 +791,105 @@ namespace Advobot
 			var embed = Actions.addFooter(Actions.makeNewEmbed(description: context.Message.Content), "Mod Log");
 			Actions.addAuthor(embed, context.User.Username + "#" + context.User.Discriminator + " in #" + context.Channel.Name, context.User.AvatarUrl);
 			await Actions.sendEmbedMessage(logChannel, embed);
+		}
+	}
+
+	public class MessageReceivedActions : ModuleBase
+	{
+		public static async Task BotOwner(IGuildChannel channel, IMessage message)
+		{
+			if (channel == null)
+			{
+				//See if they're on the list to be a potential bot owner
+				if (Variables.PotentialBotOwners.Contains(message.Author.Id))
+				{
+					//If the key they input is the same as the bots key then they become owner
+					if (message.Content.Trim().Equals(Properties.Settings.Default.BotKey))
+					{
+						Properties.Settings.Default.BotOwner = message.Author.Id;
+						Properties.Settings.Default.Save();
+						Variables.PotentialBotOwners.Clear();
+						await Actions.sendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
+					}
+					else
+					{
+						Variables.PotentialBotOwners.Remove(message.Author.Id);
+						await Actions.sendDMMessage(message.Channel as IDMChannel, "That is the incorrect key.");
+					}
+				}
+			}
+		}
+
+		public static async Task ModifyPreferences(IGuild guild, IMessage message)
+		{
+			//Check if it's the owner of the guild saying something
+			if (message.Author.Id == guild.OwnerId)
+			{
+				//If the message is only 'yes' then check if they're enabling or deleting preferences
+				if (message.Content.Equals("yes", StringComparison.OrdinalIgnoreCase))
+				{
+					if (Variables.GuildsEnablingPreferences.Contains(guild))
+					{
+						//Enable preferences
+						await Actions.enablePreferences(guild, message as IUserMessage);
+					}
+					else if (Variables.GuildsDeletingPreferences.Contains(guild))
+					{
+						//Delete preferences
+						await Actions.deletePreferences(guild, message as IUserMessage);
+					}
+				}
+			}
+		}
+
+		public static async Task CloseWords(IGuild guild, IMessage message)
+		{
+			if (Constants.CLOSEWORDSPOSITIONS.Contains(message.Content))
+			{
+				//Get the number
+				var number = Actions.getInteger(message.Content);
+				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
+				if (closeWordList.User != null)
+				{
+					//Get the remind
+					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => x.Name.Equals(closeWordList.List[number - 1].Name, StringComparison.OrdinalIgnoreCase));
+
+					//Send the remind
+					await Actions.sendChannelMessage(message.Channel, remind.Text);
+
+					//Remove that list
+					Variables.ActiveCloseWords.Remove(closeWordList);
+				}
+				else
+				{
+					var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
+					if (closeHelpList.User != null)
+					{
+						//Get the remind
+						var help = closeHelpList.List[number - 1].Help;
+
+						//Send the remind
+						await Actions.sendEmbedMessage(message.Channel, Actions.addFooter(Actions.makeNewEmbed(help.Name, Actions.getHelpString(help)), "Help"));
+
+						//Remove that list
+						Variables.ActiveCloseHelp.Remove(closeHelpList);
+					}
+				}
+			}
+		}
+
+		public static async Task SlowmodeOrBannedPhrases(IGuild guild, IGuildChannel channel, SocketMessage message)
+		{
+			//Check if the guild has slowmode enabled currently
+			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(channel))
+			{
+				await Actions.slowmode(message);
+			}
+			//Check if any banned phrases
+			else if (Variables.Guilds[guild.Id].BannedPhrases.Any() || Variables.Guilds[guild.Id].BannedRegex.Any())
+			{
+				await Actions.bannedPhrases(message);
+			}
 		}
 	}
 }

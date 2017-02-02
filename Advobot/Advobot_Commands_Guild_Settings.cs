@@ -17,7 +17,7 @@ namespace Advobot
 		#region General
 		[Command("guildleave")]
 		[Usage("guildleave <Guild ID>")]
-		[Summary("Makes the bot leave the guild.")]
+		[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
 		[BotOwnerOrGuildOwnerRequirement]
 		public async Task LeaveServer([Optional, Remainder] string input)
 		{
@@ -130,9 +130,12 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task CurrentSettings()
 		{
+			//Get the guild
 			var guild = Variables.Guilds[Context.Guild.Id];
+
+			//Formatting the description
 			var description = "";
-			description += String.Format("**Default Preferences:** `{0}`\n", guild.DefaultPrefs ? "No" : "Yes");
+			description += String.Format("**Default Preferences:** `{0}`\n", guild.DefaultPrefs ? "Yes" : "No");
 			description += String.Format("**Prefix:** `{0}`\n", String.IsNullOrWhiteSpace(guild.Prefix) ? "No" : "Yes");
 			description += String.Format("**Banned Phrases:** `{0}`\n", guild.BannedPhrases.Any() ? "Yes" : "No");
 			description += String.Format("**Banned Regex:** `{0}`\n", guild.BannedRegex.Any() ? "Yes" : "No");
@@ -141,7 +144,54 @@ namespace Advobot
 			description += String.Format("**Log Actions:** `{0}`\n", guild.LogActions.Any() ? "Yes" : "No");
 			description += String.Format("**Reminds:** `{0}`\n", guild.Reminds.Any() ? "Yes" : "No");
 			description += String.Format("**Self Assignable Roles:** `{0}`\n", Variables.SelfAssignableGroups.Any(x => x.GuildID == Context.Guild.Id) ? "Yes" : "No");
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Current Global Bot Settings", description));
+
+			//Get everything to upload to Hastebin
+			var URL = "";
+			if (!guild.DefaultPrefs)
+			{
+				var information = "";
+				//Get the prefix
+				information += String.Format("Prefix: {0}\n", String.IsNullOrWhiteSpace(guild.Prefix) ? Constants.BOT_PREFIX : guild.Prefix);
+				//Get the banned phrases
+				information += String.Format("Banned Phrases: {0}\n", guild.BannedPhrases.Any() ? String.Join("", "\n\t" + guild.BannedPhrases) : "");
+				//Get the banned regex
+				information += String.Format("Banned Regex: {0}\n", String.Join("", guild.BannedRegex.Select(x => "\n\t" + x.ToString())));
+				//Get the banned phrase punishments
+				information += String.Format("Banned Phrases Punishments: {0}\n", String.Join("", guild.BannedPhrasesPunishments.Select(x => String.Format("\n\t{0}: {1}",
+					x.Number_Of_Removes, x.Punishment == PunishmentType.Role ? String.Format("{0} ({1})", x.Role.Name, x.PunishmentTime) : Enum.GetName(typeof(PunishmentType), x.Punishment)))));
+				//Get the ignored channels
+				information += String.Format("Ignored Channels: {0}\n", String.Join("", guild.IgnoredChannels.Select(async x => "\n\t" + (await Context.Guild.GetChannelAsync(x)).Name)));
+				//Get the log actions
+				information += String.Format("Log Actions: {0}\n", String.Join("", guild.LogActions.Select(x => "\n\t" + Enum.GetName(typeof(LogActions), x))));
+
+				//Get the reminds
+				information += "Reminds:\n";
+				guild.Reminds.ForEach(x =>
+				{
+					information += String.Format("\n\t{0}: \"{1}\"", x.Name, x.Text.Length >= 100 ? x.Text.Substring(0, 100) + "..." : x.Text);
+				});
+
+				//Get the self assignable roles
+				information += "Self Assignable Roles:";
+				var currentGroup = -1;
+				Variables.SelfAssignableGroups.Where(x => x.GuildID == guild.Guild.Id).SelectMany(x => x.Roles).OrderBy(x => x.Group).ToList().ForEach(x =>
+				{
+					if (currentGroup != x.Group)
+					{
+						if (currentGroup != -1)
+						{
+							information += "\n";
+						}
+						information += "\n\tGroup " + x.Group + ":";
+						currentGroup = x.Group;
+					}
+					information += "\n\t" + x.Role.Name;
+				});
+
+				//Upload to Hastebin
+				URL = Actions.uploadToHastebin(information);
+			}
+			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Current Global Bot Settings", description).WithUrl(URL));
 		}
 
 		[Command("botchannel")]
@@ -167,10 +217,10 @@ namespace Advobot
 		}
 		#endregion
 
-		#region Preferences
-		[Command("comprefsmodify")]
-		[Alias("cpm")]
-		[Usage("comprefsmodify [Enable|Delete]")]
+		#region Command Configuration
+		[Command("comconfigmodify")]
+		[Alias("ccm")]
+		[Usage("comconfigmodify [Enable|Disable]")]
 		[Summary("Gives the guild preferences which allows using self-assignable roles, toggling commands, and changing the permissions of commands.")]
 		[GuildOwnerRequirement]
 		public async Task EnablePreferences([Remainder] string input)
@@ -218,9 +268,9 @@ namespace Advobot
 			}
 		}
 
-		[Command("comprefscurrent")]
-		[Alias("cpc")]
-		[Usage("comprefscurrent")]
+		[Command("comconfigcurrent")]
+		[Alias("ccc")]
+		[Usage("comconfigcurrent")]
 		[Summary("Sends an embed containing the current preferences of the guild.")]
 		[PermissionRequirements]
 		public async Task CurrentPreferences()
@@ -234,10 +284,10 @@ namespace Advobot
 			await Actions.readPreferences(Context.Channel, path);
 		}
 
-		[Command("comprefstoggle")]
-		[Alias("cpt")]
-		[Usage("comprefstoggle [Enable|Disable] [Command Name|Category Name]")]
-		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `switchcommand`, `currentpreferences`, or `help`.")]
+		[Command("comconfigtoggle")]
+		[Alias("cct")]
+		[Usage("comconfigtoggle [Enable|Disable] [Command Name|Category Name|All]")]
+		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `comconfigtoggle`, `comconfigcurrent`, `comconfigmodify`, or `help`.")]
 		[PermissionRequirements]
 		public async Task SwitchCommand([Remainder] string input)
 		{
@@ -276,12 +326,19 @@ namespace Advobot
 				return;
 			}
 
+			//Check if all
+			bool allBool = false;
+			if (inputString.Equals("all", StringComparison.OrdinalIgnoreCase))
+			{
+				allBool = true;
+			}
+
 			//Get the command
 			var command = Actions.getCommand(Context.Guild.Id, inputString);
 			//Set up a potential list for commands
 			var category = new List<CommandSwitch>();
 			//Check if it's valid
-			if (command == null)
+			if (command == null && !allBool)
 			{
 				CommandCategory cmdCat;
 				if (Enum.TryParse(inputString, true, out cmdCat))
@@ -293,6 +350,10 @@ namespace Advobot
 					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No command or category has that name."));
 					return;
 				}
+			}
+			else if (allBool)
+			{
+				category = Variables.Guilds[Context.Guild.Id].CommandSettings;
 			}
 			//Check if it's already enabled
 			else if (enableBool && command.valAsBoolean)

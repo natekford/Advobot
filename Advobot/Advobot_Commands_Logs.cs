@@ -54,7 +54,7 @@ namespace Advobot
 
 		[Command("logignore")]
 		[Alias("logi")]
-		[Usage("logignore [Add|Remove] [#Channel|Channel Name]")]
+		[Usage("logignore [Add|Remove|Current] [#Channel|Channel Name]")]
 		[Summary("Ignores all logging info that would have been gotten from a channel. Only works on a text channel.")]
 		[GuildOwnerRequirement]
 		public async Task IgnoreChannel([Remainder] string input)
@@ -67,6 +67,13 @@ namespace Advobot
 			}
 
 			var inputArray = input.Split(new char[] { ' ' }, 2);
+			if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
+			{
+				var description = String.Join("\n", Variables.Guilds[Context.Guild.Id].IgnoredChannels.Select(async x => await Context.Guild.GetChannelAsync(x)));
+				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Ignored Channels", description));
+				return;
+			}
+			//Check amount of args
 			if (inputArray.Length != 2)
 			{
 				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));

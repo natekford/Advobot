@@ -67,7 +67,7 @@ namespace Advobot
 				if (helpEntry == null)
 				{
 					//Find close words
-					var closeHelp = new List<CloseHelp>();
+					var closeHelps = new List<CloseHelp>();
 					Variables.HelpList.ForEach(x =>
 					{
 						//Check how close the word is to the input
@@ -76,46 +76,41 @@ namespace Advobot
 						if (closeness > 5)
 							return;
 						//If no words in the list already, add it
-						if (closeHelp.Count < 3)
+						if (closeHelps.Count < 3)
 						{
-							closeHelp.Add(new CloseHelp(x, closeness));
+							closeHelps.Add(new CloseHelp(x, closeness));
 						}
-						//If three words in the list, check closeness value now
-						else if (closeness < closeHelp[2].Closeness)
+						else
 						{
-							if (closeness < closeHelp[1].Closeness)
+							//If three words in the list, check closeness value now
+							foreach (var closeHelp in closeHelps)
 							{
-								if (closeness < closeHelp[0].Closeness)
+								if (closeness < closeHelp.Closeness)
 								{
-									closeHelp.Insert(0, new CloseHelp(x, closeness));
+									closeHelps.Insert(closeHelps.IndexOf(closeHelp), new CloseHelp(x, closeness));
+									break;
 								}
-								else
-								{
-									closeHelp.Insert(1, new CloseHelp(x, closeness));
-								}
-							}
-							else
-							{
-								closeHelp.Insert(2, new CloseHelp(x, closeness));
 							}
 
 							//Remove all words that are now after the third item
-							closeHelp.RemoveRange(3, closeHelp.Count - 3);
+							closeHelps.RemoveRange(3, closeHelps.Count - 3);
 						}
-						closeHelp.OrderBy(y => y.Closeness);
+						closeHelps.OrderBy(y => y.Closeness);
 					});
 
-					if (closeHelp.Any())
+					closeHelps = Actions.getCommandsWithInputInName(closeHelps, input);
+
+					if (closeHelps != null && closeHelps.Any())
 					{
 						//Format a message to be said
 						int counter = 1;
-						var msg = "Did you mean any of the following:\n" + String.Join("\n", closeHelp.Select(x => String.Format("`{0}.` {1}", counter++.ToString("00"), x.Help.Name)));
+						var msg = "Did you mean any of the following:\n" + String.Join("\n", closeHelps.Select(x => String.Format("`{0}.` {1}", counter++.ToString("00"), x.Help.Name)));
 
 						//Remove all active closeword lists that the user has made
 						Variables.ActiveCloseHelp.RemoveAll(x => x.User == Context.User);
 
 						//Create the list
-						var list = new ActiveCloseHelp(Context.User as IGuildUser, closeHelp);
+						var list = new ActiveCloseHelp(Context.User as IGuildUser, closeHelps);
 
 						//Add them to the active close word list, thus allowing them to say the number of the remind they want. Remove after 5 seconds
 						Variables.ActiveCloseHelp.Add(list);

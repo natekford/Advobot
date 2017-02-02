@@ -215,7 +215,7 @@ namespace Advobot
 		public static async Task loadGuild(IGuild guild)
 		{
 			//I know I am using .txt docs instead of .json; fite me.
-			loadPreferences(guild);
+			loadCommandPreferences(guild);
 			loadBannedPhrasesAndPunishments(guild);
 			loadSelfAssignableRoles(guild);
 			loadGuildMiscInfo(guild);
@@ -224,7 +224,7 @@ namespace Advobot
 		}
 
 		//Load preferences
-		public static void loadPreferences(IGuild guild)
+		public static void loadCommandPreferences(IGuild guild)
 		{
 			Variables.Guilds[guild.Id].CommandSettings = new List<CommandSwitch>();
 
@@ -264,6 +264,7 @@ namespace Advobot
 						}
 					}
 				});
+				writeLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Command Preferences");
 				Variables.Guilds[guild.Id].DefaultPrefs = true;
 			}
 			else
@@ -302,9 +303,8 @@ namespace Advobot
 						}
 					}
 				}
-				Variables.Guilds[guild.Id].DefaultPrefs = false;
+				writeLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Command Preferences");
 			}
-			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": preferences for the guild " + guild.Name + " have been loaded.");
 		}
 
 		//Load banned words/regex/punishments
@@ -393,8 +393,7 @@ namespace Advobot
 				}
 			}
 
-			Variables.Guilds[guild.Id].DefaultPrefs = false;
-			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": banned phrases/regex/punishments for the guild " + guild.Name + " have been loaded.");
+			writeLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Banned Phrases/Regex/Punishments");
 		}
 
 		//Load the self assignable roles
@@ -450,8 +449,7 @@ namespace Advobot
 				}
 			}
 
-			Variables.Guilds[guild.Id].DefaultPrefs = false;
-			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": self assignable roles for the guild " + guild.Name + " have been loaded.");
+			writeLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Self Assignable Roles/Groups");
 		}
 
 		//Load the prefix and logActions
@@ -504,8 +502,7 @@ namespace Advobot
 				}
 			}
 
-			Variables.Guilds[guild.Id].DefaultPrefs = false;
-			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": misc info for the guild " + guild.Name + " have been loaded.");
+			writeLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Misc Info");
 		}
 
 		//Load the bot users
@@ -557,8 +554,7 @@ namespace Advobot
 				writer.WriteLine(String.Join("\n", validBotUsers));
 			}
 
-			Variables.Guilds[guild.Id].DefaultPrefs = false;
-			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": bot users for the guild " + guild.Name + " have been loaded.");
+			writeLoadDone(guild, "loadBotUsers", "Bot Users");
 		}
 
 		//Load the reminds the guild has
@@ -589,8 +585,7 @@ namespace Advobot
 				}
 			}
 
-			Variables.Guilds[guild.Id].DefaultPrefs = false;
-			Actions.writeLine(MethodBase.GetCurrentMethod().Name + ": reminds for the guild " + guild.Name + " have been loaded.");
+			writeLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Reminds");
 		}
 		#endregion
 
@@ -966,24 +961,16 @@ namespace Advobot
 		}
 		
 		//Get what the serverlog is
-		public static async Task<ITextChannel> logChannelCheck(IGuild guild, string serverOrMod)
+		public static async Task<ITextChannel> logChannelCheck(IGuild guild, string serverOrMod, bool bypassBool = false)
 		{
 			var path = getServerFilePath(guild.Id, Constants.MISCGUILDINFO);
-			ITextChannel logChannel = null;
 			//Check if the file exists
-			if (!File.Exists(path))
+			if (!File.Exists(path) || bypassBool)
 			{
-				//Default to 'advobot' if it doesn't exist
-				logChannel = getLogChannel(guild) as ITextChannel;
+				//Default to the bot channel if it doesn't exist
+				var logChannel = getLogChannel(guild) as ITextChannel;
 				if (logChannel != null && !await permissionCheck(logChannel))
-				{
 					return logChannel;
-				}
-				//If the file and the channel both don't exist then return null
-				else
-				{
-					return null;
-				}
 			}
 			else
 			{
@@ -997,17 +984,13 @@ namespace Advobot
 						{
 							var logChannelArray = line.Split(new Char[] { ':' }, 2);
 
-							if (String.IsNullOrWhiteSpace(logChannelArray[1]) || (String.IsNullOrEmpty(logChannelArray[1])))
-							{
-								return null;
-							}
-							else
-							{
-								logChannel = (await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel;
-								if (logChannel != null && !await permissionCheck(logChannel))
-									return null;
-								return logChannel;
-							}
+							if (logChannelArray.Length < 2)
+								return await logChannelCheck(guild, serverOrMod, true);
+
+							var logChannel = (await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel;
+							if (logChannel == null || !await permissionCheck(logChannel))
+								return await logChannelCheck(guild, serverOrMod, true);
+							return logChannel;
 						}
 					}
 				}
@@ -1216,51 +1199,6 @@ namespace Advobot
 				}
 			}
 			return validLines;
-		}
-
-		//Get the words close to a taget word
-		public static int findCloseName(string s, string t)
-		{
-			//Levenshtein Distance
-			int n = s.Length;
-			int m = t.Length;
-			int[,] d = new int[n + 1, m + 1];
-
-			//Step 1
-			if (n == 0)
-			{
-				return m;
-			}
-
-			if (m == 0)
-			{
-				return n;
-			}
-
-			//Step 2
-			for (int i = 0; i <= n; d[i, 0] = i++)
-			{
-			}
-
-			for (int j = 0; j <= m; d[0, j] = j++)
-			{
-			}
-
-			//Step 3
-			for (int i = 1; i <= n; i++)
-			{
-				//Step 4
-				for (int j = 1; j <= m; j++)
-				{
-					//Step 5
-					int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-
-					//Step 6
-					d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
-				}
-			}
-			//Step 7
-			return d[n, m];
 		}
 
 		//Get the help entry string
@@ -1864,6 +1802,13 @@ namespace Advobot
 		{
 			writeLine(method + " EXCEPTION: " + e.ToString());
 		}
+
+		//Write when a load is done
+		public static void writeLoadDone(IGuild guild, string method, string name)
+		{
+			Variables.Guilds[guild.Id].DefaultPrefs = false;
+			writeLine(String.Format("{0}: {1} for the guild '{2}' ({3}) have been loaded.", method, name, guild.Name, guild.Id));
+		}
 		#endregion
 
 		#region Server/Mod Log
@@ -2178,7 +2123,7 @@ namespace Advobot
 				return;
 			}
 			//Create bot channel if not on the server
-			ITextChannel channel = await logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			var channel = await logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (channel == null)
 			{
 				channel = await guild.CreateTextChannelAsync(Variables.Bot_Channel);
@@ -2720,6 +2665,80 @@ namespace Advobot
 			{
 				await CommandHandler.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.NotStreaming);
 			}
+		}
+		#endregion
+
+		#region Close Words
+		//Get the words close to a taget word
+		public static int findCloseName(string s, string t)
+		{
+			//Levenshtein Distance
+			int n = s.Length;
+			int m = t.Length;
+			int[,] d = new int[n + 1, m + 1];
+
+			//Step 1
+			if (n == 0)
+			{
+				return m;
+			}
+
+			if (m == 0)
+			{
+				return n;
+			}
+
+			//Step 2
+			for (int i = 0; i <= n; d[i, 0] = i++)
+			{
+			}
+
+			for (int j = 0; j <= m; d[0, j] = j++)
+			{
+			}
+
+			//Step 3
+			for (int i = 1; i <= n; i++)
+			{
+				//Step 4
+				for (int j = 1; j <= m; j++)
+				{
+					//Step 5
+					int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+
+					//Step 6
+					d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+				}
+			}
+			//Step 7
+			return d[n, m];
+		}
+
+		public static List<CloseHelp> getCommandsWithInputInName(List<CloseHelp> list, string input)
+		{
+			//Find commands with the input in their name
+			var commands = Variables.HelpList.Where(x => x.Name.IndexOf(input, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+
+			//Check if any were gotten
+			if (!commands.Any())
+				return null;
+
+			var closeHelps = new List<CloseHelp>();
+			commands.ForEach(x =>
+			{
+				if (closeHelps.Count < 5)
+				{
+					closeHelps.Add(new CloseHelp(x, 0));
+				}
+			});
+
+			//Remove all words that are now after the fifth item
+			if (closeHelps.Count >= 5)
+			{
+				closeHelps.RemoveRange(5, closeHelps.Count - 5);
+			}
+
+			return closeHelps;
 		}
 		#endregion
 	}

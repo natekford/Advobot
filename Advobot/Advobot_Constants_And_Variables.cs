@@ -62,8 +62,8 @@ namespace Advobot
 		public static readonly string[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
 		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
 		public static readonly string[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west", "hongkong" };
-		public static readonly string[] COMMANDSUNABLETOBETURNEDOFF = { "switchcommand", "currentpreferences", "help" };
-		public static readonly string[] CLOSEWORDSPOSITIONS = { "1", "2", "3" };
+		public static readonly string[] COMMANDSUNABLETOBETURNEDOFF = { "comconfigtoggle", "comconfigcurrent", "comconfigmodify", "help" };
+		public static readonly string[] CLOSEWORDSPOSITIONS = { "1", "2", "3", "4", "5" };
 
 		public static readonly LogActions[] DEFAULTLOGACTIONS =
 			{
