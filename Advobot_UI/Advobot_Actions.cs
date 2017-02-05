@@ -16,40 +16,28 @@ namespace Advobot
 	public class Actions
 	{
 		#region Loads
-		//Possibly load the bot, I don't know, maybe if it's feeling up to doing some work today. Maybe it's tired or angry at us and won't decide to help.
-		public static void maybeStartBot()
-		{
-			if (Variables.GotPath && Variables.GotKey)
-			{
-				Task.Run(() =>
-				{
-					new Program().Start(Variables.Client).GetAwaiter().GetResult();
-				});
-			}
-		}
-
 		//Loading in all necessary information at bot start up
 		public static void LoadInformation()
 		{
-			Variables.Bot_ID = CommandHandler.Client.CurrentUser.Id;						//Give the variable Bot_ID the actual ID
-			Variables.Bot_Name = CommandHandler.Client.CurrentUser.Username;				//Give the variable Bot_Name the username of the bot
-			Variables.Bot_Channel = Variables.Bot_Name.ToLower();							//Give the variable Bot_Channel a lowered version of the bot's name
+			Variables.Bot_ID = Variables.Client.CurrentUser.Id;						//Give the variable Bot_ID the actual ID
+			Variables.Bot_Name = Variables.Client.CurrentUser.Username;				//Give the variable Bot_Name the username of the bot
+			Variables.Bot_Channel = Variables.Bot_Name.ToLower();					//Give the variable Bot_Channel a lowered version of the bot's name
 
-			LoadPermissionNames();															//Gets the names of the permission bits in Discord
-			LoadCommandInformation();														//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
-			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));			//Gets all the active command names. Has to go after LCI
+			LoadPermissionNames();													//Gets the names of the permission bits in Discord
+			LoadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
+			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));	//Gets all the active command names. Has to go after LCI
 
-			LoadGuilds();																	//Loads the guilds that attempted to load before the Bot_ID was gotten.
+			LoadGuilds();															//Loads the guilds that attempted to load before the Bot_ID was gotten.
 
-			Variables.Loaded = true;														//Set a bool stating that everything is done loading.
-			StartUpMessages();																//Say all of the start up messages
+			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
+			StartUpMessages();                                                      //Say all of the start up messages
 		}
 
 		//Text said during the startup of the bot
 		public static void StartUpMessages()
 		{
-			writeLine("The current bot prefix is: " + Properties.Settings.Default.Prefix);
-			writeLine("Bot took " + String.Format("{0:n}", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - Variables.StartupTime.Ticks).TotalMilliseconds) + " milliseconds to load everything.");
+			WriteLine("The current bot prefix is: " + Properties.Settings.Default.Prefix);
+			WriteLine("Bot took " + String.Format("{0:n}", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - Variables.StartupTime.Ticks).TotalMilliseconds) + " milliseconds to load everything.");
 		}
 
 		//Load the information from the commands
@@ -150,7 +138,7 @@ namespace Advobot
 				}
 				catch (Exception)
 				{
-					Actions.writeLine("Bad enum for GuildPermission: " + i);
+					WriteLine("Bad enum for GuildPermission: " + i);
 					continue;
 				}
 				Variables.GuildPermissions.Add(new BotGuildPermissionType(name, i));
@@ -199,7 +187,7 @@ namespace Advobot
 				}
 				catch (Exception)
 				{
-					Actions.writeLine("Bad enum for ChannelPermission: " + i);
+					WriteLine("Bad enum for ChannelPermission: " + i);
 					continue;
 				}
 				if ((GENERAL_BITS & (1U << i)) != 0)
@@ -241,7 +229,7 @@ namespace Advobot
 			Variables.Guilds[guild.Id].CommandSettings = new List<CommandSwitch>();
 
 			//Check if this server has any preferences
-			var path = getServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
+			var path = GetServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
 			if (!File.Exists(path))
 			{
 				//If not, go to the defaults
@@ -272,11 +260,11 @@ namespace Advobot
 						}
 						else
 						{
-							Actions.writeLine("ERROR: " + x);
+							WriteLine("ERROR: " + x);
 						}
 					}
 				});
-				writeLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Command Preferences");
+				WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Command Preferences");
 				Variables.Guilds[guild.Id].DefaultPrefs = true;
 			}
 			else
@@ -310,12 +298,12 @@ namespace Advobot
 							}
 							else
 							{
-								Actions.writeLine("ERROR: " + line);
+								WriteLine("ERROR: " + line);
 							}
 						}
 					}
 				}
-				writeLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Command Preferences");
+				WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Command Preferences");
 			}
 		}
 
@@ -323,7 +311,7 @@ namespace Advobot
 		public static void LoadBannedPhrasesAndPunishments(IGuild guild)
 		{
 			//Check if the file exists
-			var path = getServerFilePath(guild.Id, Constants.BANNED_PHRASES);
+			var path = GetServerFilePath(guild.Id, Constants.BANNED_PHRASES);
 			if (!File.Exists(path))
 				return;
 
@@ -405,14 +393,14 @@ namespace Advobot
 				}
 			}
 
-			writeLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Banned Phrases/Regex/Punishments");
+			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Banned Phrases/Regex/Punishments");
 		}
 
 		//Load the self assignable roles
 		public static void LoadSelfAssignableRoles(IGuild guild)
 		{
 			//Check if the file exists
-			var path = getServerFilePath(guild.Id, Constants.SA_ROLES);
+			var path = GetServerFilePath(guild.Id, Constants.SA_ROLES);
 			if (!File.Exists(path))
 				return;
 
@@ -461,14 +449,14 @@ namespace Advobot
 				}
 			}
 
-			writeLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Self Assignable Roles/Groups");
+			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Self Assignable Roles/Groups");
 		}
 
 		//Load the prefix and logActions
 		public static void LoadGuildMiscInfo(IGuild guild)
 		{
 			//Check if the file exists
-			var path = getServerFilePath(guild.Id, Constants.MISCGUILDINFO);
+			var path = GetServerFilePath(guild.Id, Constants.MISCGUILDINFO);
 			if (!File.Exists(path))
 				return;
 
@@ -514,14 +502,14 @@ namespace Advobot
 				}
 			}
 
-			writeLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Misc Info");
+			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Misc Info");
 		}
 
 		//Load the bot users
 		public static async Task LoadBotUsers(IGuild guild)
 		{
 			//Check if the file exists
-			var path = getServerFilePath(guild.Id, Constants.PERMISSIONS);
+			var path = GetServerFilePath(guild.Id, Constants.PERMISSIONS);
 			if (!File.Exists(path))
 				return;
 
@@ -566,14 +554,14 @@ namespace Advobot
 				writer.WriteLine(String.Join("\n", validBotUsers));
 			}
 
-			writeLoadDone(guild, "LoadBotUsers", "Bot Users");
+			WriteLoadDone(guild, "LoadBotUsers", "Bot Users");
 		}
 
 		//Load the reminds the guild has
 		public static void LoadReminds(IGuild guild)
 		{
 			//Check if the file exists
-			var path = getServerFilePath(guild.Id, Constants.REMINDS);
+			var path = GetServerFilePath(guild.Id, Constants.REMINDS);
 			if (!File.Exists(path))
 				return;
 
@@ -597,22 +585,31 @@ namespace Advobot
 				}
 			}
 
-			writeLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Reminds");
+			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Reminds");
 		}
 
 		//Load the most basic information
 		public static void LoadBasicInformation()
 		{
 			//Checks if the OS is Windows or not
-			getOS();
+			GetOS();
 			//Check if console or WPF app
-			getConsoleOrGUI();
+			GetConsoleOrGUI();
+		}
+
+		//Possibly load the bot, I don't know, maybe if it's feeling up to doing some work today. Maybe it's tired or angry at us and won't decide to help.
+		public static void MaybeStartBot()
+		{
+			if (Variables.GotPath && Variables.GotKey && !Variables.Loaded)
+			{
+				new Program().Start(Variables.Client).GetAwaiter().GetResult();
+			}
 		}
 		#endregion
 
 		#region Gets
 		//Complex get a role on the guild
-		public static async Task<IRole> getRole(CommandContext context, string roleName)
+		public static async Task<IRole> GetRole(CommandContext context, string roleName)
 		{
 			//Remove spaces
 			roleName = roleName.Trim();
@@ -629,7 +626,7 @@ namespace Advobot
 			var roles = context.Guild.Roles.Where(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase)).ToList();
 			if (roles.Count > 1)
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR("Multiple roles with the same name. Please specify by mentioning the role or changing their names."));
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Multiple roles with the same name. Please specify by mentioning the role or changing their names."));
 			}
 			else if (roles.Count == 1)
 			{
@@ -639,14 +636,14 @@ namespace Advobot
 		}
 		
 		//Simple get a role on the guild
-		public static IRole getRole(IGuild guild, string roleName)
+		public static IRole GetRole(IGuild guild, string roleName)
 		{
 			//Order them by position (puts everyone first) then reverse so it sorts from the top down
 			return guild.Roles.ToList().OrderBy(x => x.Position).Reverse().FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
 		}
 		
 		//Get top position of a user
-		public static int getPosition(IGuild guild, IGuildUser user)
+		public static int GetPosition(IGuild guild, IGuildUser user)
 		{
 			if (user.Id == guild.OwnerId)
 				return Constants.OWNER_POSITION;
@@ -658,13 +655,13 @@ namespace Advobot
 		}
 		
 		//Get a user
-		public static async Task<IGuildUser> getUser(IGuild guild, string userName)
+		public static async Task<IGuildUser> GetUser(IGuild guild, string userName)
 		{
-			return await guild.GetUserAsync(getUlong(userName.Trim(new char[] { '<', '>', '@', '!' })));
+			return await guild.GetUserAsync(GetUlong(userName.Trim(new char[] { '<', '>', '@', '!' })));
 		}
 		
 		//Get the input to a ulong
-		public static ulong getUlong(string inputString)
+		public static ulong GetUlong(string inputString)
 		{
 			ulong number = 0;
 			if (UInt64.TryParse(inputString, out number))
@@ -675,35 +672,35 @@ namespace Advobot
 		}
 		
 		//Get if the user/bot can edit the role
-		public static async Task<IRole> getRoleEditAbility(CommandContext context, string input = null, bool ignore_Errors = false, IRole role = null)
+		public static async Task<IRole> GetRoleEditAbility(CommandContext context, string input = null, bool ignore_Errors = false, IRole role = null)
 		{
 			//Check if valid role
-			IRole inputRole = role == null ? await getRole(context, input) : role;
+			IRole inputRole = role == null ? await GetRole(context, input) : role;
 			if (inputRole == null)
 			{
 				if (!ignore_Errors)
 				{
-					await makeAndDeleteSecondaryMessage(context, ERROR(Constants.ROLE_ERROR));
+					await MakeAndDeleteSecondaryMessage(context, ERROR(Constants.ROLE_ERROR));
 				}
 				return null;
 			}
 
 			//Determine if the user can edit the role
-			if (inputRole.Position >= getPosition(context.Guild, context.User as IGuildUser))
+			if (inputRole.Position >= GetPosition(context.Guild, context.User as IGuildUser))
 			{
 				if (!ignore_Errors)
 				{
-					await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` has a higher position than you are allowed to edit or use.", inputRole.Name)));
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` has a higher position than you are allowed to edit or use.", inputRole.Name)));
 				}
 				return null;
 			}
 
 			//Determine if the bot can edit the role
-			if (inputRole.Position >= getPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID)))
+			if (inputRole.Position >= GetPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID)))
 			{
 				if (!ignore_Errors)
 				{
-					await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` has a higher position than the bot is allowed to edit or use.", inputRole.Name)));
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` has a higher position than the bot is allowed to edit or use.", inputRole.Name)));
 				}
 				return null;
 			}
@@ -712,9 +709,9 @@ namespace Advobot
 		}
 		
 		//Get if the user can edit the channel
-		public static async Task<IGuildChannel> getChannelEditAbility(IGuildChannel channel, IGuildUser user)
+		public static async Task<IGuildChannel> GetChannelEditAbility(IGuildChannel channel, IGuildUser user)
 		{
-			if (Actions.getChannelType(channel) == Constants.TEXT_TYPE)
+			if (GetChannelType(channel) == Constants.TEXT_TYPE)
 			{
 				using (var channelUsers = channel.GetUsersAsync().GetEnumerator())
 				{
@@ -742,18 +739,18 @@ namespace Advobot
 		}
 		
 		//Get if the user can edit this channel
-		public static async Task<IGuildChannel> getChannelEditAbility(CommandContext context, string input, bool ignoreErrors = false)
+		public static async Task<IGuildChannel> GetChannelEditAbility(CommandContext context, string input, bool ignoreErrors = false)
 		{
-			IGuildChannel channel = await getChannel(context, input);
+			IGuildChannel channel = await GetChannel(context, input);
 			if (channel == null)
 			{
 				return null;
 			}
-			if (await getChannelEditAbility(channel, await context.Guild.GetUserAsync(context.User.Id)) == null)
+			if (await GetChannelEditAbility(channel, await context.Guild.GetUserAsync(context.User.Id)) == null)
 			{
 				if (!ignoreErrors)
 				{
-					await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", channel.Name)));
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", channel.Name)));
 				}
 				return null;
 			}
@@ -761,7 +758,7 @@ namespace Advobot
 		}
 		
 		//Get a channel ID
-		public static async Task<IMessageChannel> getChannelID(IGuild guild, string channelName)
+		public static async Task<IMessageChannel> GetChannelID(IGuild guild, string channelName)
 		{
 			IMessageChannel channel = null;
 			ulong channelID = 0;
@@ -773,13 +770,13 @@ namespace Advobot
 		}
 		
 		//Get a channel
-		public static async Task<IGuildChannel> getChannel(CommandContext context, string input)
+		public static async Task<IGuildChannel> GetChannel(CommandContext context, string input)
 		{
-			return await getChannel(context.Guild, context.Channel, context.Message, input);
+			return await GetChannel(context.Guild, context.Channel, context.Message, input);
 		}
 		
 		//Get a channel without context
-		public static async Task<IGuildChannel> getChannel(IGuild guild, IMessageChannel channel, IUserMessage message, string input)
+		public static async Task<IGuildChannel> GetChannel(IGuild guild, IMessageChannel channel, IUserMessage message, string input)
 		{
 			if (input.Contains("<#"))
 			{
@@ -792,8 +789,8 @@ namespace Advobot
 			var values = input.Split(new char[] { '/' }, 2);
 
 			//Get input channel type
-			var channelType = values.Length == 2 ? values[1].ToLower() : null;
-			if (channelType != null && !(channelType.Equals(Constants.TEXT_TYPE) || channelType.Equals(Constants.VOICE_TYPE)))
+			var channelType = values.Length == 2 ? values[1] : null;
+			if (channelType != null && !(Constants.TEXT_TYPE.Equals(channelType, StringComparison.OrdinalIgnoreCase) || Constants.VOICE_TYPE.Equals(channelType, StringComparison.OrdinalIgnoreCase)))
 			{
 				return null;
 			}
@@ -814,18 +811,18 @@ namespace Advobot
 				var channels = gottenChannels.Where(x => x.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase) && x.GetType().Name.IndexOf(channelType, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
 
 				if (channels.Count == 0)
-					await makeAndDeleteSecondaryMessage(channel, message, ERROR(String.Format("`{0}` does not exist as a channel on this guild.", input.Substring(0, input.IndexOf('/')))));
+					await MakeAndDeleteSecondaryMessage(channel, message, ERROR(String.Format("`{0}` does not exist as a channel on this guild.", input.Substring(0, input.IndexOf('/')))));
 				if (channels.Count == 1)
 					return channels[0];
 				if (channels.Count > 1)
-					await makeAndDeleteSecondaryMessage(channel, message, ERROR("More than one channel exists with the same name."));
+					await MakeAndDeleteSecondaryMessage(channel, message, ERROR("More than one channel exists with the same name."));
 			}
 
 			return null;
 		}
 		
 		//Get the log channel
-		public static async Task<IGuildChannel> getLogChannel(IGuild guild)
+		public static async Task<IGuildChannel> GetLogChannel(IGuild guild)
 		{
 			//Get the channels from the guild
 			var gottenChannels = await guild.GetTextChannelsAsync();
@@ -834,7 +831,7 @@ namespace Advobot
 		}
 		
 		//Get integer
-		public static int getInteger(string inputString)
+		public static int GetInteger(string inputString)
 		{
 			int number = 0;
 			if (Int32.TryParse(inputString, out number))
@@ -845,7 +842,7 @@ namespace Advobot
 		}
 		
 		//Get bits
-		public static async Task<uint> getBit(CommandContext context, string permission, uint changeValue)
+		public static async Task<uint> GetBit(CommandContext context, string permission, uint changeValue)
 		{
 			try
 			{
@@ -855,13 +852,13 @@ namespace Advobot
 			}
 			catch (Exception)
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR(String.Format("Couldn't parse permission '{0}'", permission)));
+				await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Couldn't parse permission '{0}'", permission)));
 				return 0;
 			}
 		}
 		
 		//Get the permissions something has on a channel
-		public static Dictionary<String, String> getChannelPermissions(Overwrite overwrite)
+		public static Dictionary<String, String> GetChannelPermissions(Overwrite overwrite)
 		{
 			//Create a dictionary to hold the allow/deny/inherit values
 			Dictionary<String, String> channelPerms = new Dictionary<String, String>();
@@ -894,41 +891,41 @@ namespace Advobot
 		}
 		
 		//Get text channel perms
-		public static Dictionary<String, String> getTextChannelPermissions(Dictionary<String, String> dictionary)
+		public static Dictionary<String, String> GetTextChannelPermissions(Dictionary<String, String> dictionary)
 		{
 			Variables.ChannelPermissions.Where(x => x.Voice).ToList().ForEach(x => dictionary.Remove(x.Name));
 			return dictionary;
 		}
 		
 		//Get voice channel perms
-		public static Dictionary<String, String> getVoiceChannelPermissions(Dictionary<String, String> dictionary)
+		public static Dictionary<String, String> GetVoiceChannelPermissions(Dictionary<String, String> dictionary)
 		{
 			Variables.ChannelPermissions.Where(x => x.Text).ToList().ForEach(x => dictionary.Remove(x.Name));
 			return dictionary;
 		}
 		
 		//Get a dictionary with the correct perms
-		public static Dictionary<String, String> getPerms(Overwrite overwrite, IGuildChannel channel)
+		public static Dictionary<String, String> GetPerms(Overwrite overwrite, IGuildChannel channel)
 		{
 			//Get the general perms from the overwrite given
-			Dictionary<String, String> dictionary = getChannelPermissions(overwrite);
+			Dictionary<String, String> dictionary = GetChannelPermissions(overwrite);
 
 			//See if the channel is a text channel and remove voice channel perms
-			if (Actions.getChannelType(channel) == Constants.TEXT_TYPE)
+			if (GetChannelType(channel) == Constants.TEXT_TYPE)
 			{
-				getTextChannelPermissions(dictionary);
+				GetTextChannelPermissions(dictionary);
 			}
 			//See if the channel is a voice channel and remove text channel perms
-			else if (Actions.getChannelType(channel) == Constants.VOICE_TYPE)
+			else if (GetChannelType(channel) == Constants.VOICE_TYPE)
 			{
-				getVoiceChannelPermissions(dictionary);
+				GetVoiceChannelPermissions(dictionary);
 			}
 
 			return dictionary;
 		}
 		
 		//Get the input string and permissions
-		public static bool getStringAndPermissions(string input, out string output, out List<string> permissions)
+		public static bool GetStringAndPermissions(string input, out string output, out List<string> permissions)
 		{
 			output = null;
 			permissions = null;
@@ -943,7 +940,7 @@ namespace Advobot
 		}
 		
 		//Get guild commands
-		public static string[] getCommands(IGuild guild, int number)
+		public static string[] GetCommands(IGuild guild, int number)
 		{
 			if (!Variables.Guilds.ContainsKey(guild.Id))
 				return null;
@@ -954,26 +951,34 @@ namespace Advobot
 		}
 		
 		//Get file paths
-		public static string getServerFilePath(ulong serverId, string fileName)
+		public static string GetServerFilePath(ulong serverId, string fileName, bool global = false)
 		{
 			var folder = Properties.Settings.Default.Path;
 			//If not a valid directory then give null
 			if (!Directory.Exists(folder))
 				return null;
 			//Combine the path for the folders
-			var directory = Path.Combine(folder, Constants.SERVER_FOLDER + "_" + Variables.Bot_ID, serverId.ToString());
+			string directory;
+			if (global)
+			{
+				directory = Path.Combine(folder, Constants.SERVER_FOLDER + "_" + Variables.Bot_ID);
+			}
+			else
+			{
+				directory = Path.Combine(folder, Constants.SERVER_FOLDER + "_" + Variables.Bot_ID, serverId.ToString());
+			}
 			//This string will be similar to C:\Users\User\AppData\Roaming\Discord_Servers_... if on using appdata. If not then it can be anything
 			return Path.Combine(directory, fileName);
 		}
 		
 		//Get if a channel is a text or voice channel
-		public static string getChannelType(IGuildChannel channel)
+		public static string GetChannelType(IGuildChannel channel)
 		{
 			return channel.GetType().Name.IndexOf(Constants.TEXT_TYPE, StringComparison.OrdinalIgnoreCase) >= 0 ? Constants.TEXT_TYPE : Constants.VOICE_TYPE;
 		}
 		
 		//Get if a bot channel already exists
-		public static async Task<bool> getDuplicateBotChan(IGuild guild)
+		public static async Task<bool> GetDuplicateBotChan(IGuild guild)
 		{
 			//Get a list of text channels
 			var tChans = await guild.GetTextChannelsAsync();
@@ -982,15 +987,15 @@ namespace Advobot
 		}
 		
 		//Get what the serverlog is
-		public static async Task<ITextChannel> logChannelCheck(IGuild guild, string serverOrMod, bool bypassBool = false)
+		public static async Task<ITextChannel> GetLogChannel(IGuild guild, string serverOrMod, bool bypassBool = false)
 		{
-			var path = getServerFilePath(guild.Id, Constants.MISCGUILDINFO);
+			var path = GetServerFilePath(guild.Id, Constants.MISCGUILDINFO);
 			//Check if the file exists
 			if (!File.Exists(path) || bypassBool)
 			{
 				//Default to the bot channel if it doesn't exist
-				var logChannel = getLogChannel(guild) as ITextChannel;
-				if (logChannel != null && !await permissionCheck(logChannel))
+				var logChannel = GetLogChannel(guild) as ITextChannel;
+				if (logChannel != null && !await PermissionCheck(logChannel))
 					return logChannel;
 			}
 			else
@@ -1006,11 +1011,11 @@ namespace Advobot
 							var logChannelArray = line.Split(new Char[] { ':' }, 2);
 
 							if (logChannelArray.Length < 2)
-								return await logChannelCheck(guild, serverOrMod, true);
+								return await GetLogChannel(guild, serverOrMod, true);
 
 							var logChannel = (await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel;
-							if (logChannel == null || !await permissionCheck(logChannel))
-								return await logChannelCheck(guild, serverOrMod, true);
+							if (logChannel == null || !await PermissionCheck(logChannel))
+								return await GetLogChannel(guild, serverOrMod, true);
 							return logChannel;
 						}
 					}
@@ -1020,7 +1025,7 @@ namespace Advobot
 		}
 		
 		//Get if the user is the owner of the server
-		public static async Task<bool> userHasOwner(IGuild guild, IUser user)
+		public static async Task<bool> GetIfUserIsOwner(IGuild guild, IUser user)
 		{
 			if (guild == null)
 				return false;
@@ -1029,7 +1034,7 @@ namespace Advobot
 		}
 		
 		//Get if the user if the bot owner
-		public static bool userHasBotOwner(IGuild guild, IUser user)
+		public static bool GetIfUserIsBotOwner(IGuild guild, IUser user)
 		{
 			if (guild == null)
 				return false;
@@ -1038,7 +1043,7 @@ namespace Advobot
 		}
 
 		//Get the permission names to an array
-		public static List<string> getPermissionNames(uint flags)
+		public static List<string> GetPermissionNames(uint flags)
 		{
 			var result = new List<string>();
 			for (int i = 0; i < 32; ++i)
@@ -1052,7 +1057,7 @@ namespace Advobot
 		}
 
 		//Get the variables for slowmode
-		public static string getVariable(string[] inputArray, string searchTerm)
+		public static string GetVariable(string[] inputArray, string searchTerm)
 		{
 			if (inputArray != null && inputArray.Any(x => x.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase)))
 			{
@@ -1063,7 +1068,7 @@ namespace Advobot
 		}
 
 		//Get the variable out of a string
-		public static string getVariable(string inputString, string searchTerm)
+		public static string GetVariable(string inputString, string searchTerm)
 		{
 			if (inputString != null && inputString.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase))
 			{
@@ -1073,7 +1078,7 @@ namespace Advobot
 		}
 
 		//Get the OS
-		public static void getOS()
+		public static void GetOS()
 		{
 			var windir = Environment.GetEnvironmentVariable("windir");
 			if (!string.IsNullOrEmpty(windir) && windir.Contains(@"\") && Directory.Exists(windir))
@@ -1087,7 +1092,7 @@ namespace Advobot
 		}
 
 		//Get if it's a console or WPF
-		public static void getConsoleOrGUI()
+		public static void GetConsoleOrGUI()
 		{
 			try
 			{
@@ -1100,7 +1105,7 @@ namespace Advobot
 		}
 
 		//Get the bot owner
-		public static async Task<IGuildUser> getBotOwner(IDiscordClient client)
+		public static async Task<IGuildUser> GetBotOwner(IDiscordClient client)
 		{
 			foreach (var guild in await client.GetGuildsAsync())
 			{
@@ -1114,35 +1119,35 @@ namespace Advobot
 		}
 
 		//Get a group number
-		public static async Task<int> getGroup(string input, CommandContext context)
+		public static async Task<int> GetGroup(string input, CommandContext context)
 		{
-			return await testGroup(getVariable(input, "group"), context);
+			return await GetIfGroupIsValid(GetVariable(input, "group"), context);
 		}
 
 		//Get a group number
-		public static async Task<int> getGroup(string[] inputArray, CommandContext context)
+		public static async Task<int> GetGroup(string[] inputArray, CommandContext context)
 		{
-			return await testGroup(getVariable(inputArray, "group"), context);
+			return await GetIfGroupIsValid(GetVariable(inputArray, "group"), context);
 		}
 
 		//Validate the group
-		public static async Task<int> testGroup(string input, CommandContext context)
+		public static async Task<int> GetIfGroupIsValid(string input, CommandContext context)
 		{
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR("Invalid input for group."));
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Invalid input for group."));
 				return -1;
 			}
 			//Check if valid number
 			int groupNumber;
 			if (!int.TryParse(input, out groupNumber))
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR("Invalid group number."));
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Invalid group number."));
 				return -1;
 			}
 			if (groupNumber < 0)
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR("Group number must be positive."));
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Group number must be positive."));
 				return -1;
 			}
 
@@ -1150,7 +1155,7 @@ namespace Advobot
 		}
 
 		//Get a command
-		public static CommandSwitch getCommand(ulong id, string input)
+		public static CommandSwitch GetCommand(ulong id, string input)
 		{
 			return Variables.Guilds[id].CommandSettings.FirstOrDefault(x =>
 			{
@@ -1170,22 +1175,22 @@ namespace Advobot
 		}
 
 		//Get multiple commands
-		public static List<CommandSwitch> getMultipleCommands(ulong id, CommandCategory category)
+		public static List<CommandSwitch> GetMultipleCommands(ulong id, CommandCategory category)
 		{
 			return Variables.Guilds[id].CommandSettings.Where(x => x.CategoryEnum == category).ToList();
 		}
 
 		//Get if a command is valid
-		public static async Task<bool> checkIfCommandIsValid(CommandContext context)
+		public static async Task<bool> GetIfCommandIsValid(CommandContext context)
 		{
 			//Check to make sure everything is loaded
 			if (!Variables.Loaded)
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR("Please wait until everything is loaded."));
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Please wait until everything is loaded."));
 				return false;
 			}
 			//Check if a command is disabled
-			else if (!commandEnabled(context))
+			else if (!CheckCommandEnabled(context))
 				return false;
 			//Check if the bot still has admin
 			else if (!(await context.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
@@ -1195,7 +1200,7 @@ namespace Advobot
 					return false;
 
 				//Tell the guild that the bot needs admin (because I cba to code in checks if the bot has the permissions required for a lot of things)
-				await sendChannelMessage(context, "This bot will not function without the `Administrator` permission, sorry.");
+				await SendChannelMessage(context, "This bot will not function without the `Administrator` permission, sorry.");
 
 				//Add the guild to the list
 				Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Add(context.Guild);
@@ -1207,10 +1212,10 @@ namespace Advobot
 			}
 		}
 
-		//Get a list of lines in a text doc that aren't the targetted ones
-		public static List<string> getValidLines(string path, string checkString)
+		//Get a list of lines in a text doc that aren't the tarGetted ones
+		public static List<string> GetValidLines(string path, string checkString)
 		{
-			createFile(path);
+			CreateFile(path);
 
 			var validLines = new List<string>();
 			using (StreamReader reader = new StreamReader(path))
@@ -1236,7 +1241,7 @@ namespace Advobot
 		}
 
 		//Get the help entry string
-		public static string getHelpString(HelpEntry help)
+		public static string GetHelpString(HelpEntry help)
 		{
 			return String.Format("**Aliases:** {0}\n**Usage:** {1}\n\n**Base Permission(s):**\n{2}\n\n**Description:**\n{3}",
 				String.Join(", ", help.Aliases),
@@ -1248,9 +1253,9 @@ namespace Advobot
 
 		#region Roles
 		//Create a role on the server if it's not found
-		public static async Task<IRole> createRoleIfNotFound(IGuild guild, string roleName)
+		public static async Task<IRole> CreateRoleIfNotFound(IGuild guild, string roleName)
 		{
-			var role = getRole(guild, roleName);
+			var role = GetRole(guild, roleName);
 			if (role == null)
 			{
 				role = await guild.CreateRoleAsync(roleName);
@@ -1259,7 +1264,7 @@ namespace Advobot
 		} 
 		
 		//Give the user the role
-		public static async Task giveRole(IGuildUser user, IRole role)
+		public static async Task GiveRole(IGuildUser user, IRole role)
 		{
 			if (role == null)
 				return;
@@ -1269,13 +1274,13 @@ namespace Advobot
 		}
 		
 		//Give the user multiple roles
-		public static async Task giveRole(IGuildUser user, IRole[] roles)
+		public static async Task GiveRole(IGuildUser user, IRole[] roles)
 		{
 			await user.AddRolesAsync(roles);
 		}
 		
 		//Take multiple roles from a user
-		public static async Task takeRole(IGuildUser user, IRole[] roles)
+		public static async Task TakeRole(IGuildUser user, IRole[] roles)
 		{
 			if (roles.Count() == 0)
 				return;
@@ -1283,7 +1288,7 @@ namespace Advobot
 		}
 		
 		//Take a single role from a user
-		public static async Task takeRole(IGuildUser user, IRole role)
+		public static async Task TakeRole(IGuildUser user, IRole role)
 		{
 			if (role == null)
 				return;
@@ -1293,21 +1298,21 @@ namespace Advobot
 
 		#region Message Removal
 		//Remove secondary messages
-		public static async Task makeAndDeleteSecondaryMessage(CommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
+		public static async Task MakeAndDeleteSecondaryMessage(CommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
-			IUserMessage secondMsg = await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
-			removeCommandMessages(context.Channel, new IUserMessage[] { secondMsg, context.Message }, time);
+			var secondMsg = await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
+			RemoveCommandMessages(context.Channel, new IUserMessage[] { secondMsg, context.Message }, time);
 		}
 		
 		//Remove secondary messages without context
-		public static async Task makeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, Int32 time = Constants.WAIT_TIME)
+		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
-			IUserMessage secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
-			removeCommandMessages(channel, new IUserMessage[] { secondMsg, message }, time);
+			var secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
+			RemoveCommandMessages(channel, new IUserMessage[] { secondMsg, message }, time);
 		}
 		
 		//Remove messages
-		public static async Task removeMessages(IMessageChannel channel, int requestCount)
+		public static async Task RemoveMessages(IMessageChannel channel, int requestCount)
 		{
 			//To remove the command itself
 			++requestCount;
@@ -1339,16 +1344,16 @@ namespace Advobot
 		}
 		
 		//Remove messages given a user id
-		public static async Task removeMessages(ITextChannel channel, int requestCount, IUser user)
+		public static async Task RemoveMessages(ITextChannel channel, int requestCount, IUser user)
 		{
 			//Make sure there's a user id
 			if (user == null)
 			{
-				await removeMessages(channel, requestCount);
+				await RemoveMessages(channel, requestCount);
 				return;
 			}
 
-			writeLine(String.Format("Deleting {0} messages from {1} in channel {2} in guild {3}.", requestCount, user.Id, channel.Name, channel.GuildId));
+			WriteLine(String.Format("Deleting {0} messages from {1} in channel {2} in guild {3}.", requestCount, user.Id, channel.Name, channel.GuildId));
 			var allMessages = new List<IMessage>();
 			using (var enumerator = channel.GetMessagesAsync(Constants.MESSAGES_TO_GATHER).GetEnumerator())
 			{
@@ -1373,7 +1378,7 @@ namespace Advobot
 			}
 			userMessages.Insert(0, allMessages[0]); //Remove the initial command message
 
-			writeLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, user.Username));
+			WriteLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, user.Username));
 			await channel.DeleteMessagesAsync(userMessages.ToArray());
 		}
 		#endregion
@@ -1386,7 +1391,7 @@ namespace Advobot
 		}
 		
 		//Send a message with a zero length char at the front
-		public static async Task<IMessage> sendChannelMessage(CommandContext context, string message)
+		public static async Task<IMessage> SendChannelMessage(CommandContext context, string message)
 		{
 			if (context.Channel == null || !Variables.Guilds.ContainsKey(context.Guild.Id))
 				return null;
@@ -1395,7 +1400,7 @@ namespace Advobot
 		}
 
 		//Send a message with a zero length char at the front
-		public static async Task<IMessage> sendChannelMessage(IMessageChannel channel, string message)
+		public static async Task<IMessage> SendChannelMessage(IMessageChannel channel, string message)
 		{
 			if (channel == null || !Variables.Guilds.ContainsKey((channel as ITextChannel).GuildId))
 				return null;
@@ -1403,7 +1408,7 @@ namespace Advobot
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
 
-		public static async Task<IMessage> sendDMMessage(IDMChannel channel, string message)
+		public static async Task<IMessage> SendDMMessage(IDMChannel channel, string message)
 		{
 			if (channel == null)
 				return null;
@@ -1412,14 +1417,14 @@ namespace Advobot
 		}
 		
 		//Edit message log message
-		public static async Task editMessage(ITextChannel logChannel, string time, IGuildUser user, IMessageChannel channel, string before, string after)
+		public static async Task FormatEditMessage(ITextChannel logChannel, string time, IGuildUser user, IMessageChannel channel, string before, string after)
 		{
-			await sendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}#{2}` **IN** `#{3}`\n**FROM:** ```\n{4}```\n**TO:** ```\n{5}```",
+			await SendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}#{2}` **IN** `#{3}`\n**FROM:** ```\n{4}```\n**TO:** ```\n{5}```",
 				time, user.Username, user.Discriminator, channel.Name, before, after));
 		}
 		
 		//Get rid of certain elements to make messages look neater
-		public static string replaceMessageCharacters(string input)
+		public static string ReplaceMarkdownChars(string input)
 		{
 			//Matching
 			Regex empty = new Regex("[*`]");
@@ -1436,7 +1441,7 @@ namespace Advobot
 		}
 
 		//Format the guild in a console message
-		public static string formatGuild(IGuild guild)
+		public static string FormatGuild(IGuild guild)
 		{
 			return String.Format("'{0}' ({1})", guild.Name, guild.Id);
 		}
@@ -1444,17 +1449,17 @@ namespace Advobot
 
 		#region Uploads
 		//Upload various text to a text uploader with a list of messages
-		public static string uploadToHastebin(List<string> textList)
+		public static string UploadToHastebin(List<string> textList)
 		{
 			//Messages in the format to upload
-			var text = replaceMessageCharacters(String.Join("\n-----\n", textList));
-			return uploadToHastebin(text);
+			var text = ReplaceMarkdownChars(String.Join("\n-----\n", textList));
+			return UploadToHastebin(text);
 		}
 		
 		//Upload various text to a text uploader with a string
-		public static string uploadToHastebin(string text)
+		public static string UploadToHastebin(string text)
 		{
-			//Regex for getting the key out
+			//Regex for Getting the key out
 			Regex hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
 
 			//Upload the messages
@@ -1469,24 +1474,24 @@ namespace Advobot
 		}
 		
 		//Upload a text file with a list of messages
-		public static async Task uploadTextFile(IGuild guild, IMessageChannel channel, List<string> textList, string fileName, string messageHeader)
+		public static async Task UploadTextFile(IGuild guild, IMessageChannel channel, List<string> textList, string fileName, string messageHeader)
 		{
 			//Messages in the format to upload
-			var text = replaceMessageCharacters(String.Join("\n-----\n", textList));
-			await uploadTextFile(guild, channel, text, fileName, messageHeader);
+			var text = ReplaceMarkdownChars(String.Join("\n-----\n", textList));
+			await UploadTextFile(guild, channel, text, fileName, messageHeader);
 		}
 		
 		//Upload a text file with a string
-		public static async Task uploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string messageHeader)
+		public static async Task UploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string messageHeader)
 		{
 			//Get the file path
 			var deletedMessagesFile = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt";
-			var path = getServerFilePath(guild.Id, deletedMessagesFile);
+			var path = GetServerFilePath(guild.Id, deletedMessagesFile);
 			if (path == null)
 				return;
 
 			//Create the temporary file
-			if (!File.Exists(getServerFilePath(guild.Id, deletedMessagesFile)))
+			if (!File.Exists(GetServerFilePath(guild.Id, deletedMessagesFile)))
 			{
 				Directory.CreateDirectory(Path.GetDirectoryName(path));
 			}
@@ -1505,7 +1510,7 @@ namespace Advobot
 		}
 
 		//Upload a guild icon or bot icon
-		public static async Task setPicture(CommandContext context, string input, bool user)
+		public static async Task SetPicture(CommandContext context, string input, bool user)
 		{
 			//See if the user wants to remove the icon
 			if (input != null && input.Equals("remove", StringComparison.OrdinalIgnoreCase))
@@ -1518,20 +1523,20 @@ namespace Advobot
 				{
 					await context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image());
 				}
-				await sendChannelMessage(context, String.Format("Successfully removed the {0}'s icon.", user ? "bot" : "guild"));
+				await SendChannelMessage(context, String.Format("Successfully removed the {0}'s icon.", user ? "bot" : "guild"));
 				return;
 			}
 
 			//Check if there are even any attachments or embeds
 			if (context.Message.Attachments.Count + context.Message.Embeds.Count == 0)
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR("No attached or embedded image."));
+				await MakeAndDeleteSecondaryMessage(context, ERROR("No attached or embedded image."));
 				return;
 			}
 			//Check if there are too many
 			else if (context.Message.Attachments.Count + context.Message.Embeds.Count > 1)
 			{
-				await makeAndDeleteSecondaryMessage(context, ERROR("Too many attached or embedded images."));
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Too many attached or embedded images."));
 				return;
 			}
 
@@ -1560,7 +1565,7 @@ namespace Advobot
 						//Check if valid content type
 						if (!Constants.VALIDIMAGEEXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
 						{
-							await makeAndDeleteSecondaryMessage(context, ERROR("Image must be a png or jpg."));
+							await MakeAndDeleteSecondaryMessage(context, ERROR("Image must be a png or jpg."));
 							return;
 						}
 						else
@@ -1568,30 +1573,30 @@ namespace Advobot
 							if (ContentLength > 2500000)
 							{
 								//Check if bigger than 2.5MB
-								await makeAndDeleteSecondaryMessage(context, ERROR("Image is bigger than 2.5MB. Please manually upload instead."));
+								await MakeAndDeleteSecondaryMessage(context, ERROR("Image is bigger than 2.5MB. Please manually upload instead."));
 								return;
 							}
 							else if (ContentLength == 0)
 							{
 								//Check if nothing was gotten
-								await makeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
+								await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
 								return;
 							}
 						}
 					}
 					else
 					{
-						await makeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
+						await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
 						return;
 					}
 				}
 
 				//Send a message saying how it's progressing
-				var msg = await sendChannelMessage(context, "Attempting to download the file...");
+				var msg = await SendChannelMessage(context, "Attempting to download the file...");
 				context.Channel.EnterTypingState();
 
 				//Set the name of the file to prevent typos between the three places that use it
-				var path = getServerFilePath(context.Guild.Id, (user ? "boticon" : "guildicon") + Path.GetExtension(imageURL).ToLower());
+				var path = GetServerFilePath(context.Guild.Id, (user ? "boticon" : "guildicon") + Path.GetExtension(imageURL).ToLower());
 
 				//Download the image
 				using (var webclient = new WebClient())
@@ -1607,7 +1612,7 @@ namespace Advobot
 						var img = System.Drawing.Image.FromStream(imgStream);
 						if (img.Width < 128 || img.Height < 128)
 						{
-							await makeAndDeleteSecondaryMessage(context, ERROR("Images must be at least 128x128 pixels."));
+							await MakeAndDeleteSecondaryMessage(context, ERROR("Images must be at least 128x128 pixels."));
 							return;
 						}
 					}
@@ -1630,14 +1635,21 @@ namespace Advobot
 				//Delete the file and send a success message
 				File.Delete(path);
 				await msg.DeleteAsync();
-				await sendChannelMessage(context, String.Format("Successfully changed the {0} icon.", user ? "bot" : "guild"));
+				await SendChannelMessage(context, String.Format("Successfully changed the {0} icon.", user ? "bot" : "guild"));
 			});
+		}
+
+		//Validate URL
+		public static bool ValidateURL(string input)
+		{
+			Uri uriResult;
+			return Uri.TryCreate(input, UriKind.Absolute, out uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 		}
 		#endregion
 
 		#region Embeds
 		//Send a message with an embedded object
-		public static async Task<IMessage> sendEmbedMessage(IMessageChannel channel, string message, EmbedBuilder embed)
+		public static async Task<IMessage> SendEmbedMessage(IMessageChannel channel, string message, EmbedBuilder embed)
 		{
 			if (channel == null || !Variables.Guilds.ContainsKey(((channel as ITextChannel).Guild.Id)))
 				return null;
@@ -1646,12 +1658,12 @@ namespace Advobot
 		}
 		
 		//Send an embedded object
-		public static async Task<IMessage> sendEmbedMessage(IMessageChannel channel, EmbedBuilder embed)
+		public static async Task<IMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed)
 		{
 			if (channel == null || !Variables.Guilds.ContainsKey(((channel as ITextChannel).Guild.Id)))
 				return null;
 
-			var remadeEmbed = makeNewEmbed();
+			var remadeEmbed = MakeNewEmbed();
 			if (embed.Build().Fields.Any())
 			{
 				//Find out what the fields looks like
@@ -1659,20 +1671,20 @@ namespace Advobot
 
 				if (fields.Length > Constants.LENGTH_CHECK)
 				{
-					remadeEmbed.Url = uploadToHastebin(replaceMessageCharacters(fields));
+					remadeEmbed.Url = UploadToHastebin(ReplaceMarkdownChars(fields));
 					remadeEmbed.Description = "Content is past 2,000 characters. Click the link to see it.";
 				}
 				else if (fields.Count(x => x == '\n' || x == '\r') >= 20 && embed.Build().Fields.Any(x => !x.Inline))
 				{
 					//Mobile can only show up to 20 or so lines per embed I think (at least on Android)
-					remadeEmbed.Url = uploadToHastebin(replaceMessageCharacters(fields));
+					remadeEmbed.Url = UploadToHastebin(ReplaceMarkdownChars(fields));
 					remadeEmbed.Description = "Content is longer than 20 lines and has many fields. Click the link to see it.";
 				}
 				else
 				{
 					remadeEmbed.Url = embed.Url;
 					remadeEmbed.Description = embed.Description;
-					embed.Build().Fields.ToList().ForEach(x => addField(remadeEmbed, x.Name, x.Value, x.Inline));
+					embed.Build().Fields.ToList().ForEach(x => AddField(remadeEmbed, x.Name, x.Value, x.Inline));
 				}
 
 				//Add everything else back to the new embed
@@ -1689,7 +1701,7 @@ namespace Advobot
 				remadeEmbed = embed;
 				if (remadeEmbed.Description.Count(x => x == '\n' || x == '\r') >= 20)
 				{
-					remadeEmbed.Url = uploadToHastebin(replaceMessageCharacters(remadeEmbed.Description));
+					remadeEmbed.Url = UploadToHastebin(ReplaceMarkdownChars(remadeEmbed.Description));
 					remadeEmbed.Description = "Content is longer than 20 lines. Click the link to see it.";
 				}
 			}
@@ -1701,13 +1713,13 @@ namespace Advobot
 			//Embeds fail every now and then and I haven't been able to find the problem yet (I know fields are a problem, but not in this case)
 			catch (Exception e)
 			{
-				exceptionToConsole(MethodBase.GetCurrentMethod().Name, e);
+				ExceptionToConsole(MethodBase.GetCurrentMethod().Name, e);
 				return null;
 			}
 		}
 		
 		//Make a new embed builder
-		public static EmbedBuilder makeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null)
+		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null)
 		{
 			//Timestamp is in UTC for simplicity and organization's sake
 			var embed = new EmbedBuilder().WithColor(Constants.BASE).WithCurrentTimestamp();
@@ -1720,7 +1732,7 @@ namespace Advobot
 			{
 				if (description.Length > Constants.LENGTH_CHECK)
 				{
-					embed.Url = uploadToHastebin(replaceMessageCharacters(description));
+					embed.Url = UploadToHastebin(ReplaceMarkdownChars(description));
 					embed.Description = "Content is past 2,000 characters. Click the link to see it.";
 				}
 				else
@@ -1729,7 +1741,7 @@ namespace Advobot
 					//Mobile can only show up to 20 or so lines per embed I think (at least on Android) 
 					if (description.Count(x => x == '\n' || x == '\r') >= 20)
 					{
-						embed.Url = uploadToHastebin(replaceMessageCharacters(description));
+						embed.Url = UploadToHastebin(ReplaceMarkdownChars(description));
 					}
 				}
 			}
@@ -1746,7 +1758,7 @@ namespace Advobot
 		}
 		
 		//Make a new author for an embed
-		public static EmbedBuilder addAuthor(EmbedBuilder embed, string name = null, string iconURL = null, string URL = null)
+		public static EmbedBuilder AddAuthor(EmbedBuilder embed, string name = null, string iconURL = null, string URL = null)
 		{
 			EmbedAuthorBuilder author = new EmbedAuthorBuilder().WithIconUrl("https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png");
 
@@ -1767,7 +1779,7 @@ namespace Advobot
 		}
 		
 		//Make a new footer for an embed
-		public static EmbedBuilder addFooter(EmbedBuilder embed, string text = null, string iconURL = null)
+		public static EmbedBuilder AddFooter(EmbedBuilder embed, string text = null, string iconURL = null)
 		{
 			EmbedFooterBuilder footer = new EmbedFooterBuilder();
 
@@ -1784,7 +1796,7 @@ namespace Advobot
 		}
 		
 		//Add a field to an embed
-		public static EmbedBuilder addField(EmbedBuilder embed, string name = "null", string value = "null", bool isInline = true)
+		public static EmbedBuilder AddField(EmbedBuilder embed, string name = "null", string value = "null", bool isInline = true)
 		{
 			if (name == null || value == null)
 				return embed;
@@ -1802,28 +1814,28 @@ namespace Advobot
 
 		#region Console
 		//Write to the console with a timestamp
-		public static void writeLine(string text)
+		public static void WriteLine(string text)
 		{
-			Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + text);
+			Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + ": " + ReplaceMarkdownChars(text));
 		}
 		
 		//Send an exception message to the console
-		public static void exceptionToConsole(string method, Exception e)
+		public static void ExceptionToConsole(string method, Exception e)
 		{
-			writeLine(method + " EXCEPTION: " + e.ToString());
+			WriteLine(method + " EXCEPTION: " + e.ToString());
 		}
 
 		//Write when a load is done
-		public static void writeLoadDone(IGuild guild, string method, string name)
+		public static void WriteLoadDone(IGuild guild, string method, string name)
 		{
 			Variables.Guilds[guild.Id].DefaultPrefs = false;
-			writeLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, Actions.formatGuild(guild)));
+			WriteLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, FormatGuild(guild)));
 		}
 		#endregion
 
 		#region Server/Mod Log
 		//Check if the bot can type in a logchannel
-		public static async Task<bool> permissionCheck(ITextChannel channel)
+		public static async Task<bool> PermissionCheck(ITextChannel channel)
 		{
 			if (channel == null)
 				return false;
@@ -1837,49 +1849,50 @@ namespace Advobot
 			//Check if the bot can embed
 			if (!bot.GetPermissions(channel).EmbedLinks)
 			{
-				await sendChannelMessage(channel, "Bot is unable to use message embeds on this channel.");
+				await SendChannelMessage(channel, "Bot is unable to use message embeds on this channel.");
 				return false;
 			}
 
 			return true;
 		}
+
 		//Set the server or mod log
-		public static async Task<ITextChannel> setServerOrModLog(CommandContext context, string input, string serverOrMod)
+		public static async Task<ITextChannel> SetServerOrModLog(CommandContext context, string input, string serverOrMod)
 		{
-			return await setServerOrModLog(context.Guild, context.Channel, context.Message, input, serverOrMod);
+			return await SetServerOrModLog(context.Guild, context.Channel, context.Message, input, serverOrMod);
 		}
 		
 		//Set the server or mod log without context
-		public static async Task<ITextChannel> setServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, string input, string serverOrMod)
+		public static async Task<ITextChannel> SetServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, string input, string serverOrMod)
 		{
 			ITextChannel logChannel = null;
 			//See if not null
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				await makeAndDeleteSecondaryMessage(channel, message, ERROR("No channel specified."));
+				await MakeAndDeleteSecondaryMessage(channel, message, ERROR("No channel specified."));
 				return null;
 			}
 			else if (input.Equals("off", StringComparison.OrdinalIgnoreCase))
 			{
-				return await setServerOrModLog(guild, channel, message, null as ITextChannel, serverOrMod);
+				return await SetServerOrModLog(guild, channel, message, null as ITextChannel, serverOrMod);
 			}
 
 			//Get the channel with its ID
-			logChannel = await getChannel(guild, channel, message, input) as ITextChannel;
+			logChannel = await GetChannel(guild, channel, message, input) as ITextChannel;
 			if (logChannel == null)
 			{
-				await makeAndDeleteSecondaryMessage(channel, message, ERROR(String.Format("Unable to set the logchannel on `{0}`.", input)));
+				await MakeAndDeleteSecondaryMessage(channel, message, ERROR(String.Format("Unable to set the logchannel on `{0}`.", input)));
 				return null;
 			}
 
-			return await setServerOrModLog(guild, channel, message, logChannel, serverOrMod);
+			return await SetServerOrModLog(guild, channel, message, logChannel, serverOrMod);
 		}
 		
 		//Set the server and mod log with an already gotten channel
-		public static async Task<ITextChannel> setServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, ITextChannel inputChannel, string serverOrMod)
+		public static async Task<ITextChannel> SetServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, ITextChannel inputChannel, string serverOrMod)
 		{
 			//Create the file if it doesn't exist
-			var path = getServerFilePath(guild.Id, Constants.MISCGUILDINFO);
+			var path = GetServerFilePath(guild.Id, Constants.MISCGUILDINFO);
 			if (!File.Exists(path))
 			{
 				Directory.CreateDirectory(Path.GetDirectoryName(path));
@@ -1898,7 +1911,7 @@ namespace Advobot
 					{
 						if ((inputChannel != null) && (line.Contains(inputChannel.Id.ToString())))
 						{
-							await makeAndDeleteSecondaryMessage(channel, message, "Channel is already the current " + serverOrMod + ".");
+							await MakeAndDeleteSecondaryMessage(channel, message, "Channel is already the current " + serverOrMod + ".");
 							return null;
 						}
 					}
@@ -1915,7 +1928,7 @@ namespace Advobot
 				if (inputChannel == null)
 				{
 					writer.WriteLine(serverOrMod + ":" + null + "\n" + String.Join("\n", validLines));
-					await makeAndDeleteSecondaryMessage(channel, message, "Disabled the " + serverOrMod + ".");
+					await MakeAndDeleteSecondaryMessage(channel, message, "Disabled the " + serverOrMod + ".");
 					return null;
 				}
 				else
@@ -1928,7 +1941,7 @@ namespace Advobot
 		}
 
 		//Logging images
-		public static async Task imageLog(IMessageChannel channel, SocketMessage message, bool embeds)
+		public static async Task ImageLog(IMessageChannel channel, SocketMessage message, bool embeds)
 		{
 			if (!Variables.Guilds[(channel as ITextChannel).Guild.Id].LogActions.Any(x => "ImageLog".Equals(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase)))
 				return;
@@ -1969,93 +1982,93 @@ namespace Advobot
 			var user = message.Author;
 			foreach (string URL in attachmentURLs.Distinct())
 			{
-				if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL).ToLower()))
+				if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL), StringComparer.OrdinalIgnoreCase))
 				{
 					++Variables.LoggedImages;
 					//Image attachment
-					var embed = addFooter(makeNewEmbed(null, "Image", Constants.ATCH, URL), "Attached Image");
-					addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-					await sendEmbedMessage(channel, embed);
+					var embed = AddFooter(MakeNewEmbed(null, "Image", Constants.ATCH, URL), "Attached Image");
+					AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					await SendEmbedMessage(channel, embed);
 				}
-				else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(URL).ToLower()))
+				else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(URL), StringComparer.OrdinalIgnoreCase))
 				{
 					++Variables.LoggedGifs;
 					//Gif attachment
-					var embed = addFooter(makeNewEmbed(null, "Gif", Constants.ATCH, URL), "Attached Gif");
-					addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-					await sendEmbedMessage(channel, embed);
+					var embed = AddFooter(MakeNewEmbed(null, "Gif", Constants.ATCH, URL), "Attached Gif");
+					AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					await SendEmbedMessage(channel, embed);
 				}
 				else
 				{
 					++Variables.LoggedFiles;
 					//Random file attachment
-					var embed = addFooter(makeNewEmbed(null, "File", Constants.ATCH), "Attached File");
-					addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-					await sendEmbedMessage(channel, embed.WithDescription(URL));
+					var embed = AddFooter(MakeNewEmbed(null, "File", Constants.ATCH), "Attached File");
+					AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					await SendEmbedMessage(channel, embed.WithDescription(URL));
 				}
 			}
 			foreach (string URL in embedURLs.Distinct())
 			{
 				++Variables.LoggedImages;
 				//Embed image
-				var embed = addFooter(makeNewEmbed(null, "Image", Constants.ATCH, URL), "Embedded Image");
-				addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-				await sendEmbedMessage(channel, embed);
+				var embed = AddFooter(MakeNewEmbed(null, "Image", Constants.ATCH, URL), "Embedded Image");
+				AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+				await SendEmbedMessage(channel, embed);
 			}
 			foreach (Embed embedObject in videoEmbeds.Distinct())
 			{
 				++Variables.LoggedGifs;
 				//Check if video or gif
-				var title = Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url).ToLower()) ? "Gif" : "Video";
+				var title = Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url), StringComparer.OrdinalIgnoreCase) ? "Gif" : "Video";
 
-				var embed = addFooter(makeNewEmbed(title, embedObject.Url, Constants.ATCH, embedObject.Thumbnail.Value.Url), "Embedded " + title);
-				addAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-				await sendEmbedMessage(channel, embed);
+				var embed = AddFooter(MakeNewEmbed(title, embedObject.Url, Constants.ATCH, embedObject.Thumbnail.Value.Url), "Embedded " + title);
+				AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+				await SendEmbedMessage(channel, embed);
 			}
 		}
 
 		//Check if the serverlog exists and if the bot can use it
-		public static async Task<ITextChannel> verifyLogChannel(IGuild guild, string checkString = Constants.SERVER_LOG_CHECK_STRING)
+		public static async Task<ITextChannel> VerifyLogChannel(IGuild guild, string checkString = Constants.SERVER_LOG_CHECK_STRING)
 		{
 			if (guild == null)
 				return null;
-			var logChannel = await logChannelCheck(guild, checkString);
-			if (!await permissionCheck(logChannel))
+			var logChannel = await GetLogChannel(guild, checkString);
+			if (!await PermissionCheck(logChannel))
 				return null;
 			return logChannel;
 		}
 
 		//Check from channel
-		public static async Task<ITextChannel> verifyLogChannel(SocketChannel channel)
+		public static async Task<ITextChannel> VerifyLogChannel(SocketChannel channel)
 		{
 			var tempChan = channel as IGuildChannel;
 			if (tempChan == null || tempChan.Guild == null)
 				return null;
-			return await verifyLogChannel(tempChan.Guild);
+			return await VerifyLogChannel(tempChan.Guild);
 		}
 
 		//Check from message
-		public static async Task<ITextChannel> verifyLogChannel(SocketMessage message)
+		public static async Task<ITextChannel> VerifyLogChannel(SocketMessage message)
 		{
 			var tempMsg = message.Channel as IGuildChannel;
 			if (tempMsg == null || tempMsg.Guild == null)
 				return null;
-			return await verifyLogChannel(tempMsg.Guild);
+			return await VerifyLogChannel(tempMsg.Guild);
 		}
 
 		//Check from message
-		public static async Task<ITextChannel> verifyLogChannel(SocketUser user)
+		public static async Task<ITextChannel> VerifyLogChannel(SocketUser user)
 		{
 			var tempUser = user as IGuildUser;
 			if (tempUser == null || tempUser.Guild == null)
 				return null;
-			return await verifyLogChannel(tempUser.Guild);
+			return await VerifyLogChannel(tempUser.Guild);
 		}
 		#endregion
 
 		#region Preferences
 		//Save preferences
-		public static void savePreferences(TextWriter writer, ulong guildID, string input = null)
+		public static void SavePreferences(TextWriter writer, ulong guildID, string input = null)
 		{
 			//Check if any preferences exist
 			if (!Variables.Guilds.ContainsKey(guildID))
@@ -2085,44 +2098,44 @@ namespace Advobot
 		}
 		
 		//Save preferences by server
-		public static void savePreferences(ulong serverID, string input = null)
+		public static void SavePreferences(ulong serverID, string input = null)
 		{
-			var path = getServerFilePath(serverID, Constants.PREFERENCES_FILE);
+			var path = GetServerFilePath(serverID, Constants.PREFERENCES_FILE);
 			Directory.CreateDirectory(Path.GetDirectoryName(path));
 			using (StreamWriter writer = new StreamWriter(path, false))
 			{
-				savePreferences(writer, serverID, input);
+				SavePreferences(writer, serverID, input);
 			}
 		}
 		
 		//Enable preferences
-		public static async Task enablePreferences(IGuild guild, IUserMessage message)
+		public static async Task EnablePreferences(IGuild guild, IUserMessage message)
 		{
 			//Set up the preferences file(s) location(s) on the computer
-			var path = getServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
+			var path = GetServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
 			if (path == null)
 			{
-				await makeAndDeleteSecondaryMessage(message.Channel, message, ERROR(Constants.PATH_ERROR));
+				await MakeAndDeleteSecondaryMessage(message.Channel, message, ERROR(Constants.PATH_ERROR));
 				return;
 			}
 			if (!File.Exists(path))
 			{
-				savePreferences(guild.Id, Properties.Resources.DefaultCommandPreferences);
+				SavePreferences(guild.Id, Properties.Resources.DefaultCommandPreferences);
 			}
 			else
 			{
-				await makeAndDeleteSecondaryMessage(message.Channel, message, "Preferences are already turned on.");
+				await MakeAndDeleteSecondaryMessage(message.Channel, message, "Preferences are already turned on.");
 				Variables.GuildsEnablingPreferences.Remove(guild);
 				return;
 			}
 			//Create bot channel if not on the server
-			var channel = await logChannelCheck(guild, Constants.SERVER_LOG_CHECK_STRING);
+			var channel = await GetLogChannel(guild, Constants.SERVER_LOG_CHECK_STRING);
 			if (channel == null)
 			{
 				channel = await guild.CreateTextChannelAsync(Variables.Bot_Channel);
 				await channel.AddPermissionOverwriteAsync(guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny));
-				await setServerOrModLog(guild, message.Channel, message, channel, Constants.SERVER_LOG_CHECK_STRING);
-				await setServerOrModLog(guild, message.Channel, message, channel, Constants.MOD_LOG_CHECK_STRING);
+				await SetServerOrModLog(guild, message.Channel, message, channel, Constants.SERVER_LOG_CHECK_STRING);
+				await SetServerOrModLog(guild, message.Channel, message, channel, Constants.MOD_LOG_CHECK_STRING);
 			}
 			else
 			{
@@ -2136,14 +2149,14 @@ namespace Advobot
 			Variables.Guilds[guild.Id].DefaultPrefs = false;
 
 			//Send a success message
-			await sendChannelMessage(message.Channel, "Successfully created the preferences for this guild.");
+			await SendChannelMessage(message.Channel, "Successfully created the preferences for this guild.");
 		}
 		
 		//Read out the preferences
-		public static async Task readPreferences(IMessageChannel channel, string serverpath)
+		public static async Task ReadPreferences(IMessageChannel channel, string serverpath)
 		{
 			//Make the embed
-			var embed = makeNewEmbed("Preferences");
+			var embed = MakeNewEmbed("Preferences");
 
 			//Make the information into separate fields
 			var text = File.ReadAllText(serverpath).Replace("@", "").Split(new string[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
@@ -2158,22 +2171,22 @@ namespace Advobot
 				//Add the field
 				if (!String.IsNullOrEmpty(title) && !String.IsNullOrEmpty(commands))
 				{
-					Actions.addField(embed, title, commands, false);
+					AddField(embed, title, commands, false);
 				}
 			}
 
 			//Send the preferences message
-			await sendEmbedMessage(channel, embed);
+			await SendEmbedMessage(channel, embed);
 		}
 		
 		//Delete preferences
-		public static async Task deletePreferences(IGuild guild, IUserMessage message)
+		public static async Task DeletePreferences(IGuild guild, IUserMessage message)
 		{
 			//Check if valid path
-			var path = getServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
+			var path = GetServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
 			if (path == null)
 			{
-				await makeAndDeleteSecondaryMessage(message.Channel, message, ERROR(Constants.PATH_ERROR));
+				await MakeAndDeleteSecondaryMessage(message.Channel, message, ERROR(Constants.PATH_ERROR));
 				return;
 			}
 
@@ -2184,17 +2197,17 @@ namespace Advobot
 			Variables.GuildsDeletingPreferences.Remove(guild);
 
 			//Send a success message
-			await sendChannelMessage(message.Channel, "Successfully deleted the stored preferences for this guild.");
+			await SendChannelMessage(message.Channel, "Successfully deleted the stored preferences for this guild.");
 		}
 
 		//Check if a command is enabled
-		public static bool commandEnabled(ICommandContext context)
+		public static bool CheckCommandEnabled(ICommandContext context)
 		{
 			if (context.Guild == null)
 				return false;
 
 			//Get the command
-			var cmd = getCommand(context.Guild.Id, context.Message.Content.Substring(Properties.Settings.Default.Prefix.Length).Split(' ').FirstOrDefault());
+			var cmd = GetCommand(context.Guild.Id, context.Message.Content.Substring(Properties.Settings.Default.Prefix.Length).Split(' ').FirstOrDefault());
 			//Check if the command is on or off
 			if (cmd != null && !cmd.valAsBoolean)
 				return false;
@@ -2203,14 +2216,14 @@ namespace Advobot
 		}
 
 		//Save the log actions
-		public static void saveLogActions(CommandContext context, List<LogActions> logActions)
+		public static void SaveLogActions(CommandContext context, List<LogActions> logActions)
 		{
 			//Create the file if it doesn't exist
-			var path = getServerFilePath(context.Guild.Id, Constants.MISCGUILDINFO);
-			createFile(path);
+			var path = GetServerFilePath(context.Guild.Id, Constants.MISCGUILDINFO);
+			CreateFile(path);
 
 			//Find the lines that aren't the current log action line
-			var validLines = getValidLines(path, Constants.LOG_ACTIONS);
+			var validLines = GetValidLines(path, Constants.LOG_ACTIONS);
 
 			//Add all the lines back
 			using (StreamWriter writer = new StreamWriter(path))
@@ -2222,7 +2235,7 @@ namespace Advobot
 		}
 
 		//Create file
-		public static void createFile(string path)
+		public static void CreateFile(string path)
 		{
 			if (!File.Exists(path))
 			{
@@ -2231,14 +2244,14 @@ namespace Advobot
 		}
 
 		//Add back in the lines
-		public static void saveLines(string path, string target, string input, List<string> validLines, bool literal = false)
+		public static void SaveLines(string path, string tarGet, string input, List<string> validLines, bool literal = false)
 		{
-			if (target != null && input != null)
+			if (tarGet != null && input != null)
 			{
 				//Add all the lines back
 				using (StreamWriter writer = new StreamWriter(path))
 				{
-					writer.WriteLine(target + ":" + input + "\n" + String.Join("\n", validLines));
+					writer.WriteLine(tarGet + ":" + input + "\n" + String.Join("\n", validLines));
 				}
 			}
 			else
@@ -2247,7 +2260,7 @@ namespace Advobot
 				{
 					if (literal)
 					{
-						writer.WriteLine(String.Join("\n", validLines.Select(x => toLiteral(x))));
+						writer.WriteLine(String.Join("\n", validLines.Select(x => ToLiteral(x))));
 					}
 					else
 					{
@@ -2258,7 +2271,7 @@ namespace Advobot
 		}
 
 		//Save literally
-		public static string toLiteral(string input)
+		public static string ToLiteral(string input)
 		{
 			using (StringWriter writer = new StringWriter())
 			{
@@ -2273,7 +2286,7 @@ namespace Advobot
 
 		#region Slowmode
 		//Slowmode
-		public static async Task slowmode(SocketMessage message)
+		public static async Task Slowmode(SocketMessage message)
 		{
 			//Make a new SlowmodeUser
 			var smUser = new SlowmodeUser();
@@ -2299,7 +2312,7 @@ namespace Advobot
 					if (smUser.CurrentMessagesLeft == smUser.BaseMessages)
 					{
 						//Start the interval
-						slowmodeInterval(smUser);
+						SlowmodeInterval(smUser);
 					}
 
 					//Lower it by one
@@ -2314,7 +2327,7 @@ namespace Advobot
 		}
 
 		//Add a new user who joined into the slowmode users list
-		public static void slowmodeAddUser(SocketGuildUser user)
+		public static void AddSlowmodeUser(SocketGuildUser user)
 		{
 			//Check if the guild has slowmode enabled
 			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id))
@@ -2350,7 +2363,7 @@ namespace Advobot
 
 		#region Banned Phrases
 		//Banned phrases
-		public static async Task bannedPhrases(SocketMessage message)
+		public static async Task BannedPhrases(SocketMessage message)
 		{
 			//Get the guild
 			var guild = (message.Channel as IGuildChannel).Guild;
@@ -2361,7 +2374,7 @@ namespace Advobot
 			{
 				if (message.Content.IndexOf(phrase, StringComparison.OrdinalIgnoreCase) >= 0)
 				{
-					await bannedPhrasesPunishments(message);
+					await BannedPhrasesPunishments(message);
 					return;
 				}
 			}
@@ -2371,14 +2384,14 @@ namespace Advobot
 				//See if any matches
 				if (regex.IsMatch(message.Content))
 				{
-					await bannedPhrasesPunishments(message);
+					await BannedPhrasesPunishments(message);
 					return;
 				}
 			}
 		}
 
 		//Banned phrase punishments on a user
-		public static async Task bannedPhrasesPunishments(SocketMessage message)
+		public static async Task BannedPhrasesPunishments(SocketMessage message)
 		{
 			//Get rid of the message
 			await message.DeleteAsync();
@@ -2419,63 +2432,64 @@ namespace Advobot
 			if (punishment.Punishment == PunishmentType.Kick)
 			{
 				//Check if can kick them
-				if (Actions.getPosition(user.Guild, user) > getPosition(user.Guild, await user.Guild.GetUserAsync(Variables.Bot_ID)))
+				if (GetPosition(user.Guild, user) > GetPosition(user.Guild, await user.Guild.GetUserAsync(Variables.Bot_ID)))
 					return;
 
 				//Kick them
 				await user.KickAsync();
 
 				//Send a message to the logchannel
-				ITextChannel logChannel = await logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+				var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 				if (logChannel != null)
 				{
-					var embed = addFooter(Actions.makeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
-					await sendEmbedMessage(logChannel, addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
+					var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
+					await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 				}
 			}
 			//Ban
 			else if (punishment.Punishment == PunishmentType.Ban)
 			{
 				//Check if can ban them
-				if (Actions.getPosition(user.Guild, user) > getPosition(user.Guild, await user.Guild.GetUserAsync(Variables.Bot_ID)))
+				if (GetPosition(user.Guild, user) > GetPosition(user.Guild, await user.Guild.GetUserAsync(Variables.Bot_ID)))
 					return;
 
 				//Ban them
 				await user.Guild.AddBanAsync(message.Author);
 
 				//Send a message to the logchannel
-				ITextChannel logChannel = await logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+				var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 				if (logChannel != null)
 				{
-					var embed = addFooter(Actions.makeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
-					await sendEmbedMessage(logChannel, addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
+					var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
+					await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 				}
 			}
 			//Role
 			else
 			{
 				//Give them the role
-				await giveRole(user, punishment.Role);
+				await GiveRole(user, punishment.Role);
 
 				//If a time is specified, run through the time then remove the role
 				if (punishment.PunishmentTime != null)
 				{
-					bannedPhrasesPunishmentTimer(user, punishment.Role, (int)punishment.PunishmentTime);
+					BannedPhrasesPunishmentTimer(user, punishment.Role, (int)punishment.PunishmentTime);
 				}
 
 				//Send a message to the logchannel
-				ITextChannel logChannel = await logChannelCheck(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+				ITextChannel logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 				if (logChannel != null)
 				{
-					var embed = addFooter(Actions.makeNewEmbed(null, "**Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
-					await sendEmbedMessage(logChannel, addAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
+					var embed = AddFooter(MakeNewEmbed(null, "**Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
+					await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
 				}
 			}
 		}
 		#endregion
 
 		#region Settings
-		public static bool validatePathText(string input, bool startup = false)
+		//Make sure the path is valid
+		public static bool ValidatePath(string input, bool startup = false)
 		{
 			var path = input.Trim();
 
@@ -2492,11 +2506,11 @@ namespace Advobot
 				//Send the initial message
 				if (Variables.Windows)
 				{
-					Actions.writeLine("Please enter a valid directory path in which to save files or say 'AppData':");
+					WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
 				}
 				else
 				{
-					Actions.writeLine("Please enter a valid directory path in which to save files:");
+					WriteLine("Please enter a valid directory path in which to save files:");
 				}
 
 				return false;
@@ -2509,7 +2523,7 @@ namespace Advobot
 
 			if (!Directory.Exists(path))
 			{
-				Actions.writeLine("Invalid directory. Please enter a valid directory:");
+				WriteLine("Invalid directory. Please enter a valid directory:");
 			}
 			else
 			{
@@ -2521,7 +2535,7 @@ namespace Advobot
 		}
 
 		//Save the bot key
-		public static async Task<bool> validateBotKey(DiscordSocketClient client, string input, bool startup = false)
+		public static async Task<bool> ValidateBotKey(DiscordSocketClient client, string input, bool startup = false)
 		{
 			input = input.Trim();
 			
@@ -2538,12 +2552,12 @@ namespace Advobot
 					catch (Exception)
 					{
 						//If the key doesn't work then retry
-						Actions.writeLine("The given key is no longer valid. Please enter a new valid key:");
+						WriteLine("The given key is no longer valid. Please enter a new valid key:");
 					}
 				}
 				else
 				{
-					Actions.writeLine("Please enter the bot's key:");
+					WriteLine("Please enter the bot's key:");
 				}
 				return false;
 			}
@@ -2552,11 +2566,11 @@ namespace Advobot
 			if (input.Length > 59)
 			{
 				//If the length isn't the normal length of a key make it retry
-				Actions.writeLine("The given key is too long. Please enter a regular length key:");
+				WriteLine("The given key is too long. Please enter a regular length key:");
 			}
 			else if (input.Length < 59)
 			{
-				Actions.writeLine("The given key is too short. Please enter a regular length key:");
+				WriteLine("The given key is too short. Please enter a regular length key:");
 			}
 			else
 			{
@@ -2566,7 +2580,7 @@ namespace Advobot
 					await client.LoginAsync(TokenType.Bot, input);
 
 					//If the key works then save it within the settings
-					Actions.writeLine("Succesfully logged in via the given bot key.");
+					WriteLine("Succesfully logged in via the given bot key.");
 					Properties.Settings.Default.BotKey = input;
 					Properties.Settings.Default.Save();
 					return true;
@@ -2574,44 +2588,45 @@ namespace Advobot
 				catch (Exception)
 				{
 					//If the key doesn't work then retry
-					Actions.writeLine("The given key is invalid. Please enter a valid key:");
+					WriteLine("The given key is invalid. Please enter a valid key:");
 				}
 			}
 			return false;
 		}
 
 		//Set the game at start and whenever the prefix is changed
-		public static async Task setGame(string prefix = null)
+		public static async Task SetGame(string prefix = null)
 		{
 			//Get the game
-			var game = CommandHandler.Client.CurrentUser.Game.HasValue ? CommandHandler.Client.CurrentUser.Game.Value.Name : "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
+			var game = Variables.Client.CurrentUser.Game.HasValue ? Variables.Client.CurrentUser.Game.Value.Name : "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
 
-			//Set the game to the default one if there's no valid one
-			if (String.IsNullOrWhiteSpace(game))
+			//Check if there's a game in the settings
+			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Game))
 			{
-				game = "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
+				game = Properties.Settings.Default.Game;
 			}
-			//Check if they're still using the default game
-			else if (prefix != null && game.Equals("type \"" + prefix + "help\" for help.", StringComparison.OrdinalIgnoreCase))
+
+			//Replace all instances of the prefix with the new current global prefix
+			if (prefix != null)
 			{
-				game = "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
+				game.Replace(prefix, Properties.Settings.Default.Prefix);
 			}
 
 			//Check if there's a stream to set
 			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Stream))
 			{
-				await CommandHandler.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.Twitch);
+				await Variables.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.Twitch);
 			}
 			else
 			{
-				await CommandHandler.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.NotStreaming);
+				await Variables.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.NotStreaming);
 			}
 		}
 		#endregion
 
 		#region Close Words
-		//Get the words close to a taget word
-		public static int findCloseName(string s, string t)
+		//Get the words close to a target word
+		public static int FindCloseName(string s, string t)
 		{
 			//Levenshtein Distance
 			int n = s.Length;
@@ -2655,7 +2670,8 @@ namespace Advobot
 			return d[n, m];
 		}
 
-		public static List<CloseHelp> getCommandsWithInputInName(List<CloseHelp> list, string input)
+		//Get the commands that have the given input in their name
+		public static List<CloseHelp> GetCommandsWithInputInName(List<CloseHelp> list, string input)
 		{
 			//Find commands with the input in their name
 			var commands = Variables.HelpList.Where(x => x.Name.IndexOf(input, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
@@ -2685,7 +2701,7 @@ namespace Advobot
 
 		#region Timers
 		//Remove commands
-		public static void removeCommandMessages(IMessageChannel channel, IUserMessage[] messages, Int32 time)
+		public static void RemoveCommandMessages(IMessageChannel channel, IUserMessage[] messages, Int32 time)
 		{
 			Task t = Task.Run(async () =>
 			{
@@ -2695,7 +2711,7 @@ namespace Advobot
 		}
 
 		//Remove active close word list
-		public static void removeActiveCloseWords(ActiveCloseWords list)
+		public static void RemoveActiveCloseWords(ActiveCloseWords list)
 		{
 			Task.Run(async () =>
 			{
@@ -2705,7 +2721,7 @@ namespace Advobot
 		}
 
 		//Remove active close help list
-		public static void removeActiveCloseHelp(ActiveCloseHelp list)
+		public static void RemoveActiveCloseHelp(ActiveCloseHelp list)
 		{
 			Task.Run(async () =>
 			{
@@ -2715,7 +2731,7 @@ namespace Advobot
 		}
 
 		//Remove the option to say yes for preferences after ten seconds
-		public static void turnOffEnableYes(IGuild guild)
+		public static void RemovePrefEnable(IGuild guild)
 		{
 			Task.Run(async () =>
 			{
@@ -2725,7 +2741,7 @@ namespace Advobot
 		}
 
 		//Remove the option to say yes for preferences after ten seconds
-		public static void turnOffDeleteYes(IGuild guild)
+		public static void RemovePrefDelete(IGuild guild)
 		{
 			Task.Run(async () =>
 			{
@@ -2735,7 +2751,7 @@ namespace Advobot
 		}
 
 		//Time interval for slowmode
-		public static void slowmodeInterval(SlowmodeUser smUser)
+		public static void SlowmodeInterval(SlowmodeUser smUser)
 		{
 			Task.Run(async () =>
 			{
@@ -2747,7 +2763,7 @@ namespace Advobot
 		}
 
 		//Wait them remove the role on a user when they got it from a banned phrase punishment
-		public static void bannedPhrasesPunishmentTimer(IGuildUser user, IRole role, int time)
+		public static void BannedPhrasesPunishmentTimer(IGuildUser user, IRole role, int time)
 		{
 			Task.Run(async () =>
 			{
@@ -2764,7 +2780,7 @@ namespace Advobot
 		}
 
 		//Remove the role on a user after given amount of seconds
-		public static void removeRoleAfterTime(IGuildUser user, IRole role, int time)
+		public static void RemoveRoleAfterTime(IGuildUser user, IRole role, int time)
 		{
 			Task.Run(async () =>
 			{
@@ -2776,7 +2792,7 @@ namespace Advobot
 		}
 
 		//Remove the mute on a user after given amount of seconds
-		public static void unmuteVoiceAfterTime(IGuildUser user, int time)
+		public static void UnmuteVoiceAfterTime(IGuildUser user, int time)
 		{
 			Task.Run(async () =>
 			{
@@ -2788,7 +2804,7 @@ namespace Advobot
 		}
 
 		//Remove the deafen on a user after given amount of seconds
-		public static void undeafenAfterTime(IGuildUser user, int time)
+		public static void UndeafenAfterTime(IGuildUser user, int time)
 		{
 			Task.Run(async () =>
 			{

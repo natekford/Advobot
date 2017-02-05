@@ -29,7 +29,7 @@ namespace Advobot
 		public const string REMINDS = "Reminds.txt";
 		public const string SERVER_LOG_CHECK_STRING = "serverlog";
 		public const string MOD_LOG_CHECK_STRING = "modlog";
-		public const string BANNED_PHRASES_CHECK_STRING = "bannedphrases";
+		public const string BANNED_PHRASES_CHECK_STRING = "BannedPhrases";
 		public const string BANNED_REGEX_CHECK_STRING = "bannedregex";
 		public const string BANNED_PHRASES_PUNISHMENTS = "punishments";
 		public const string GUILD_PREFIX = "guildprefix";
@@ -40,7 +40,8 @@ namespace Advobot
 		public const string VOICE_TYPE = "voice";
 		public const string TEXT_TYPE = "text";
 		public const string BYPASS_STRING = "Badoodle123";
-		public const string DENY_WITHOUT_PREFERENCES = "This guild does not have preferences enabled and thus cannot use this command. Please run the `comprefsmodify` command to enable them.";
+		public const string DENY_WITHOUT_PREFERENCES = "This guild does not have preferences enabled and thus cannot use this command. Please run the `comconfigmodify` command to enable them.";
+		public const string STREAM_URL = "https://www.twitch.tv/";
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int WAIT_TIME = 3000;
@@ -58,25 +59,27 @@ namespace Advobot
 		public const int ROLE_NAME_LENGTH = 32;
 		public const int CHANNEL_NAME_MAX_LENGTH = 100;
 		public const int CHANNEL_NAME_MIN_LENGTH = 2;
+		public const int GAME_MAX_LENGTH = 128; //Yes, I know it CAN go past that, but it won't show for others.
 
 		public static readonly string[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
 		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
-		public static readonly string[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west", "hongkong" };
+		public static readonly string[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "hongkong", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west" };
+		public static readonly string[] VIPREGIONIDS = { };
 		public static readonly string[] COMMANDSUNABLETOBETURNEDOFF = { "comconfigtoggle", "comconfigcurrent", "comconfigmodify", "help" };
 		public static readonly string[] CLOSEWORDSPOSITIONS = { "1", "2", "3", "4", "5" };
 
 		public static readonly LogActions[] DEFAULTLOGACTIONS =
-			{
-				LogActions.UserJoined,
-				LogActions.UserLeft,
-				LogActions.UserUnbanned,
-				LogActions.UserBanned,
-				LogActions.GuildMemberUpdated,
-				LogActions.MessageReceived,
-				LogActions.MessageUpdated,
-				LogActions.MessageDeleted,
-				LogActions.ImageLog
-			};
+		{
+			LogActions.UserJoined,
+			LogActions.UserLeft,
+			LogActions.UserUnbanned,
+			LogActions.UserBanned,
+			LogActions.GuildMemberUpdated,
+			LogActions.MessageReceived,
+			LogActions.MessageUpdated,
+			LogActions.MessageDeleted,
+			LogActions.ImageLog
+		};
 
 		public static readonly bool DISCONNECT = false;
 		public static readonly bool NEWEST_DELETED_MESSAGES_AT_TOP = false;
@@ -114,6 +117,7 @@ namespace Advobot
 		public static bool Console = true;
 		public static bool GotPath = false;
 		public static bool GotKey = false;
+		public static bool STOP = false;
 
 		public static DateTime StartupTime = DateTime.UtcNow.ToUniversalTime();
 		public static int TotalUsers = 0;

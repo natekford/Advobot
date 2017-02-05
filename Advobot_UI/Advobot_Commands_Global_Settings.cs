@@ -22,14 +22,14 @@ namespace Advobot
 			//Check if it's current
 			if (input != null && input.Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
-				var user = await Actions.getBotOwner(Context.Client);
+				var user = await Actions.GetBotOwner(Context.Client);
 				if (user != null)
 				{
-					await Actions.sendChannelMessage(Context, String.Format("The current bot owner is: `{0}#{1} ({2})`", user.Username, user.Discriminator, user.Id));
+					await Actions.SendChannelMessage(Context, String.Format("The current bot owner is: `{0}#{1} ({2})`", user.Username, user.Discriminator, user.Id));
 				}
 				else
 				{
-					await Actions.sendChannelMessage(Context, "This bot is unowned.");
+					await Actions.SendChannelMessage(Context, "This bot is unowned.");
 				}
 				return;
 			}
@@ -37,7 +37,7 @@ namespace Advobot
 			//Everything past here requires the user to be the current guild owner
 			if (Context.Guild.OwnerId != Context.User.Id)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -49,11 +49,11 @@ namespace Advobot
 				{
 					Properties.Settings.Default.BotOwner = 0;
 					Properties.Settings.Default.Save();
-					await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully cleared the bot owner.");
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the bot owner.");
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, "Only the bot owner can clear their position.");
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "Only the bot owner can clear their position.");
 				}
 				return;
 			}
@@ -62,14 +62,14 @@ namespace Advobot
 			if (Properties.Settings.Default.BotOwner != 0)
 			{
 				//Get the bot owner
-				var user = await Actions.getBotOwner(Context.Client);
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("There is already a bot owner: `{0}#{1} ({2})`.", user.Username, user.Discriminator, user.Id));
+				var user = await Actions.GetBotOwner(Context.Client);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("There is already a bot owner: `{0}#{1} ({2})`.", user.Username, user.Discriminator, user.Id));
 				return;
 			}
 
 			//Add them to the list of people trying to become bot owner
 			Variables.PotentialBotOwners.Add(Context.User.Id);
-			await Actions.sendDMMessage(await Context.User.CreateDMChannelAsync(), "What is my key?");
+			await Actions.SendDMMessage(await Context.User.CreateDMChannelAsync(), "What is my key?");
 		}
 
 		[Command("globalsavepath")]
@@ -88,18 +88,18 @@ namespace Advobot
 					//If windows then default to appdata
 					if (Variables.Windows)
 					{
-						await Actions.sendChannelMessage(Context, String.Format("The current save path is: `{0}`.",
+						await Actions.SendChannelMessage(Context, String.Format("The current save path is: `{0}`.",
 							Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.SERVER_FOLDER)));
 					}
 					//If not windows then there's no folder
 					else
 					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, "There is no save path set.");
+						await Actions.MakeAndDeleteSecondaryMessage(Context, "There is no save path set.");
 					}
 				}
 				else
 				{
-					await Actions.sendChannelMessage(Context, "The current save path is: `" + Properties.Settings.Default.Path + "`.");
+					await Actions.SendChannelMessage(Context, "The current save path is: `" + Properties.Settings.Default.Path + "`.");
 				}
 				return;
 			}
@@ -109,21 +109,21 @@ namespace Advobot
 			{
 				Properties.Settings.Default.Path = null;
 				Properties.Settings.Default.Save();
-				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully cleared the current save path.", 5000);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the current save path.", 5000);
 				return;
 			}
 
 			//See if the directory exists
 			if (!Directory.Exists(input))
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("That directory doesn't exist."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That directory doesn't exist."));
 				return;
 			}
 
 			//Set the path
 			Properties.Settings.Default.Path = input;
 			Properties.Settings.Default.Save();
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the save path to: `{0}`.", input), 10000);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the save path to: `{0}`.", input), 10000);
 		}
 
 		[Command("globalprefix")]
@@ -142,20 +142,20 @@ namespace Advobot
 				Properties.Settings.Default.Prefix = Constants.BOT_PREFIX;
 
 				//Send a success message
-				await Actions.sendChannelMessage(Context, "Successfully reset the bot's prefix to `" + Constants.BOT_PREFIX + "`.");
+				await Actions.SendChannelMessage(Context, "Successfully reset the bot's prefix to `" + Constants.BOT_PREFIX + "`.");
 			}
 			else
 			{
 				Properties.Settings.Default.Prefix = input.Trim();
 
 				//Send a success message
-				await Actions.sendChannelMessage(Context, String.Format("Successfully changed the bot's prefix to `{0}`.", input));
+				await Actions.SendChannelMessage(Context, String.Format("Successfully changed the bot's prefix to `{0}`.", input));
 			}
 
 			//Save the settings
 			Properties.Settings.Default.Save();
 			//Update the game in case it's still the default
-			await Actions.setGame(oldPrefix);
+			await Actions.SetGame(oldPrefix);
 		}
 
 		[Command("globalsettings")]
@@ -173,13 +173,13 @@ namespace Advobot
 				description += String.Format("**Save Path:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.Path) ? "N/A" : Properties.Settings.Default.Path);
 				description += String.Format("**Bot Owner ID:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.BotOwner.ToString()) ? "N/A" : Properties.Settings.Default.BotOwner.ToString());
 				description += String.Format("**Stream:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.Stream) ? "N/A" : Properties.Settings.Default.Stream);
-				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Current Global Bot Settings", description));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Bot Settings", description));
 			}
 			//Check if clear
 			else if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
 			{
 				//Send a success message first instead of after due to the bot losing its ability to do so
-				await Actions.sendChannelMessage(Context, "Successfully cleared all settings. Restarting now...");
+				await Actions.SendChannelMessage(Context, "Successfully cleared all settings. Restarting now...");
 				//Reset the settings
 				Properties.Settings.Default.Reset();
 				//Restart the bot
@@ -192,13 +192,13 @@ namespace Advobot
 				}
 				catch (Exception)
 				{
-					Actions.writeLine("Bot is unable to shut down.");
+					Actions.WriteLine("Bot is unable to restart.");
 				}
 			}
 			//Else give action error
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 		}
@@ -212,7 +212,7 @@ namespace Advobot
 		[BotOwnerRequirement]
 		public async Task BotIcon([Optional, Remainder] string input)
 		{
-			await Actions.setPicture(Context, input, true);
+			await Actions.SetPicture(Context, input, true);
 		}
 
 		[Command("botgame")]
@@ -223,14 +223,18 @@ namespace Advobot
 		public async Task SetGame([Remainder] string input)
 		{
 			//Check the game name length
-			if (input.Length > 128)
+			if (input.Length > Constants.GAME_MAX_LENGTH)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Game name cannot be longer than 128 characters or else it doesn't show to other people."), 10000);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Game name cannot be longer than 128 characters or else it doesn't show to other people."), 10000);
 				return;
 			}
 
-			await CommandHandler.Client.SetGameAsync(input, Context.Client.CurrentUser.Game.Value.StreamUrl, Context.Client.CurrentUser.Game.Value.StreamType);
-			await Actions.sendChannelMessage(Context, String.Format("Game set to `{0}`.", input));
+			//Save the game as a setting
+			Properties.Settings.Default.Game = input;
+			Properties.Settings.Default.Save();
+
+			await Variables.Client.SetGameAsync(input, Context.Client.CurrentUser.Game.Value.StreamUrl, Context.Client.CurrentUser.Game.Value.StreamType);
+			await Actions.SendChannelMessage(Context, String.Format("Game set to `{0}`.", input));
 		}
 
 		[Command("botstream")]
@@ -246,12 +250,12 @@ namespace Advobot
 				//Check if it's an actual stream
 				if (!input.StartsWith("https://www.twitch.tv/", StringComparison.OrdinalIgnoreCase))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Link must be from Twitch.TV."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Link must be from Twitch.TV."));
 					return;
 				}
 				else if (input.Substring("https://www.twitch.tv/".Length).Contains('/'))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Link must be to a user's stream."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Link must be to a user's stream."));
 					return;
 				}
 			}
@@ -268,7 +272,8 @@ namespace Advobot
 			}
 
 			//Set the stream
-			await CommandHandler.Client.SetGameAsync(Context.Client.CurrentUser.Game.Value.Name, input, streamType);
+			await Variables.Client.SetGameAsync(Context.Client.CurrentUser.Game.Value.Name, input, streamType);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to `" + input + "`"));
 		}
 
 		[Command("botname")]
@@ -281,12 +286,12 @@ namespace Advobot
 			//Names have the same length requirements as nicknames
 			if (input.Length > Constants.NICKNAME_MAX_LENGTH)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Name cannot be more than 32 characters.."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Name cannot be more than 32 characters.."));
 				return;
 			}
 			else if (input.Length < Constants.NICKNAME_MIN_LENGTH)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Name cannot be less than 2 characters.."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Name cannot be less than 2 characters.."));
 				return;
 			}
 
@@ -294,7 +299,7 @@ namespace Advobot
 			await Context.Client.CurrentUser.ModifyAsync(x => x.Username = input);
 
 			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully changed my username.");
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed my username to `{0}`.", input));
 		}
 		#endregion
 
@@ -312,7 +317,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, "Disconnection is turned off for everyone but the bot owner currently.");
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Disconnection is turned off for everyone but the bot owner currently.");
 			}
 		}
 
@@ -334,34 +339,29 @@ namespace Advobot
 				}
 				catch (Exception)
 				{
-					Actions.writeLine("Bot is unable to restart.");
+					Actions.WriteLine("Bot is unable to restart.");
 				}
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, "Disconnection is turned off for everyone but the bot owner currently.");
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Disconnection is turned off for everyone but the bot owner currently.");
 			}
 		}
 
 		[Command("listguilds")]
+		[Alias("lgds")]
 		[Usage("listguilds")]
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 		[BotOwnerRequirement]
 		public async Task ListGuilds()
 		{
-			//Initialize a string
-			var info = "";
-
 			//Go through each guild and add them to the list
 			int count = 1;
-			CommandHandler.Client.Guilds.ToList().ForEach(x =>
-			{
-				var owner = x.Owner;
-				info += String.Format("{0}. {1} ID: {2} Owner: {3}#{4} ID: {5}\n", count++.ToString("00"), x.Name, x.Id, owner.Username, owner.Discriminator, owner.Id);
-			});
+			var guildStrings = Variables.Client.Guilds.ToList().Select(x => String.Format("{0}. {1} Owner: {2}#{3} ({4})",
+				count++.ToString("00"), Actions.FormatGuild(x), x.Owner.Username, x.Owner.Discriminator, x.Owner.Id));
 
 			//Make an embed and put the link to the hastebin in it
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Guilds", Actions.uploadToHastebin(info)));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guilds", Actions.UploadToHastebin(String.Join("\n", guildStrings))));
 		}
 		#endregion
 	}

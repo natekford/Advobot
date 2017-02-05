@@ -43,12 +43,12 @@ namespace Advobot
 
 		public string AllText
 		{
-			get { return String.Join(" & ", Actions.getPermissionNames(mAllFlags)); }
+			get { return String.Join(" & ", Actions.GetPermissionNames(mAllFlags)); }
 		}
 
 		public string AnyText
 		{
-			get { return String.Join("|", Actions.getPermissionNames(mAnyFlags)); }
+			get { return String.Join("|", Actions.GetPermissionNames(mAnyFlags)); }
 		}
 
 		private uint mAllFlags;
@@ -61,7 +61,7 @@ namespace Advobot
 	{
 		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
 		{
-			return (await Actions.userHasOwner(context.Guild, context.User)) || Actions.userHasBotOwner(context.Guild, context.User) ?
+			return (await Actions.GetIfUserIsOwner(context.Guild, context.User)) || Actions.GetIfUserIsBotOwner(context.Guild, context.User) ?
 				PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
 		}
 	}
@@ -74,7 +74,7 @@ namespace Advobot
 		{
 			return Task.Run(() =>
 			{
-				return Actions.userHasBotOwner(context.Guild, context.User) ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
+				return Actions.GetIfUserIsBotOwner(context.Guild, context.User) ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
 			});
 		}
 	}
@@ -85,7 +85,7 @@ namespace Advobot
 	{
 		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
 		{
-			return await Actions.userHasOwner(context.Guild, context.User) ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
+			return await Actions.GetIfUserIsOwner(context.Guild, context.User) ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
 		}
 	}
 

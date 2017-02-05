@@ -24,7 +24,7 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
@@ -34,24 +34,24 @@ namespace Advobot
 			//Check if valid length
 			if (inputArray.Length < 2 || inputArray.Length > 3)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 
 			//Check if valid actions
-			var action = inputArray[0].ToLower();
+			var action = inputArray[0];
 			bool addBool;
-			if (action.Equals("add"))
+			if (action.Equals("add", StringComparison.OrdinalIgnoreCase))
 			{
 				addBool = true;
 			}
-			else if (action.Equals("remove"))
+			else if (action.Equals("remove", StringComparison.OrdinalIgnoreCase))
 			{
 				addBool = false;
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -234,13 +234,13 @@ namespace Advobot
 			}
 
 			//Create the banned phrases file if it doesn't already exist
-			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
 			if (path == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 				return;
 			}
-			Actions.saveLines(path, type, forSaving, Actions.getValidLines(path, type));
+			Actions.SaveLines(path, type, forSaving, Actions.GetValidLines(path, type));
 
 			//Format success message
 			string successMessage = null;
@@ -268,7 +268,7 @@ namespace Advobot
 			}
 
 			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.",
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.",
 				successMessage ?? "",
 				successMessage != null && failureMessage != null ? ", and " : "",
 				failureMessage ?? ""));
@@ -287,12 +287,12 @@ namespace Advobot
 			//Send an arguments error
 			if (inputArray.Length < 1)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 
 			//Initialize the list
-			var bannedPhrases = new List<string>();
+			var BannedPhrases = new List<string>();
 
 			//Get if regex or normal phrases
 			var type = Constants.BANNED_PHRASES_CHECK_STRING;
@@ -307,21 +307,21 @@ namespace Advobot
 			if (inputArray[0].Equals("file", StringComparison.OrdinalIgnoreCase))
 			{
 				//Check if the file exists
-				var path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
 				if (path == null)
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 					return;
 				}
 				if (!File.Exists(path))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, "This guild has no banned phrases file.");
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "This guild has no banned phrases file.");
 					return;
 				}
 
 				//Get the words out of the file
-				var line = Actions.getValidLines(path, type).FirstOrDefault();
-				bannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
+				var line = Actions.GetValidLines(path, type).FirstOrDefault();
+				BannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
 
 				fileBool = true;
 			}
@@ -330,19 +330,19 @@ namespace Advobot
 				//Get the list being used by the bot currently
 				if (!regexBool)
 				{
-					bannedPhrases = Variables.Guilds[Context.Guild.Id].BannedPhrases;
-					if (bannedPhrases.Count == 0)
+					BannedPhrases = Variables.Guilds[Context.Guild.Id].BannedPhrases;
+					if (BannedPhrases.Count == 0)
 					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned phrases."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned phrases."));
 						return;
 					}
 				}
 				else
 				{
-					bannedPhrases = Variables.Guilds[Context.Guild.Id].BannedRegex.Select(x => x.ToString()).ToList();
-					if (bannedPhrases.Count == 0)
+					BannedPhrases = Variables.Guilds[Context.Guild.Id].BannedRegex.Select(x => x.ToString()).ToList();
+					if (BannedPhrases.Count == 0)
 					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned regex."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned regex."));
 						return;
 					}
 				}
@@ -351,21 +351,21 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option, must be either File or Actual."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option, must be either File or Actual."));
 				return;
 			}
 
 			//Since the actuals already have their checks done, this works for the file (since I can't do this as easily in the using)
-			if (bannedPhrases.Count == 0)
+			if (BannedPhrases.Count == 0)
 			{
 				if (type.Equals(Constants.BANNED_PHRASES_CHECK_STRING))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are no banned phrases on file."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are no banned phrases on file."));
 					return;
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no banned regex on file."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no banned regex on file."));
 					return;
 				}
 			}
@@ -376,10 +376,10 @@ namespace Advobot
 			//Make the description
 			int counter = 0;
 			var description = "";
-			bannedPhrases.ForEach(x => description += "`" + counter++.ToString("00") + ".` `" + x + "`\n");
+			BannedPhrases.ForEach(x => description += "`" + counter++.ToString("00") + ".` `" + x + "`\n");
 
 			//Make and send the embed
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed(header, description));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(header, description));
 		}
 
 		[Command("banphrasespunishment")]
@@ -392,7 +392,7 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
@@ -402,24 +402,24 @@ namespace Advobot
 			//Check if correct number of args
 			if (inputArray.Length < 2 || inputArray.Length > 3)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 
 			//Get the action
-			var action = inputArray[0].ToLower();
+			var action = inputArray[0];
 			bool addBool;
-			if (action.Equals("add"))
+			if (action.Equals("add", StringComparison.OrdinalIgnoreCase))
 			{
 				addBool = true;
 			}
-			else if (action.Equals("remove"))
+			else if (action.Equals("remove", StringComparison.OrdinalIgnoreCase))
 			{
 				addBool = false;
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -427,7 +427,7 @@ namespace Advobot
 			int number;
 			if (!int.TryParse(inputArray[1], out number))
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid number."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid number."));
 				return;
 			}
 
@@ -439,15 +439,15 @@ namespace Advobot
 			BannedPhrasePunishment newPunishment = null;
 			if (inputArray.Length > 2 && addBool)
 			{
-				punishmentString = inputArray[2].ToLower();
+				punishmentString = inputArray[2];
 
 				//Check if kick
-				if (punishmentString.Equals("kick"))
+				if (punishmentString.Equals("kick", StringComparison.OrdinalIgnoreCase))
 				{
 					punishmentType = PunishmentType.Kick;
 				}
 				//Check if ban
-				else if (punishmentString.Equals("ban"))
+				else if (punishmentString.Equals("ban", StringComparison.OrdinalIgnoreCase))
 				{
 					punishmentType = PunishmentType.Ban;
 				}
@@ -455,7 +455,7 @@ namespace Advobot
 				else if (Context.Guild.Roles.Any(x => x.Name.Equals(punishmentString, StringComparison.OrdinalIgnoreCase)))
 				{
 					punishmentType = PunishmentType.Role;
-					punishmentRole = await Actions.getRoleEditAbility(Context, punishmentString);
+					punishmentRole = await Actions.GetRoleEditAbility(Context, punishmentString);
 				}
 				//Check if role name + time or error
 				else
@@ -467,17 +467,17 @@ namespace Advobot
 					if (Context.Guild.Roles.Any(x => x.Name.Equals(possibleRole, StringComparison.OrdinalIgnoreCase)))
 					{
 						punishmentType = PunishmentType.Role;
-						punishmentRole = await Actions.getRoleEditAbility(Context, possibleRole);
+						punishmentRole = await Actions.GetRoleEditAbility(Context, possibleRole);
 
 						if (!int.TryParse(possibleTime, out time))
 						{
-							await Actions.makeAndDeleteSecondaryMessage(Context, "The input for time is not a number.");
+							await Actions.MakeAndDeleteSecondaryMessage(Context, "The input for time is not a number.");
 							return;
 						}
 					}
 					else
 					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid punishment; must be either Kick, Ban, or an existing role."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid punishment; must be either Kick, Ban, or an existing role."));
 						return;
 					}
 				}
@@ -495,25 +495,25 @@ namespace Advobot
 				//Check if trying to add to an already established spot
 				if (punishments.Any(x => x.Number_Of_Removes == newPunishment.Number_Of_Removes))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists for that number of banned phrases said."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists for that number of banned phrases said."));
 					return;
 				}
 				//Check if trying to add a kick when one already exists
 				else if (newPunishment.Punishment == PunishmentType.Kick && punishments.Any(x => x.Punishment == PunishmentType.Kick))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which kicks."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which kicks."));
 					return;
 				}
 				//Check if trying to add a ban when one already exists
 				else if (newPunishment.Punishment == PunishmentType.Ban && punishments.Any(x => x.Punishment == PunishmentType.Ban))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which bans."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which bans."));
 					return;
 				}
 				//Check if trying to add a role to the list which already exists
 				else if (newPunishment.Punishment == PunishmentType.Role && punishments.Any(x => x.Role.Name == newPunishment.Role.Name))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which gives that role."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which gives that role."));
 					return;
 				}
 				else
@@ -529,9 +529,9 @@ namespace Advobot
 					punishments.Where(x => x.Number_Of_Removes == number).ToList().ForEach(async x =>
 					{
 						//Check if the user can modify this role, if they can't then don't let them modify the 
-						if (x.Role != null && x.Role.Position > Actions.getPosition(Context.Guild, Context.User as IGuildUser))
+						if (x.Role != null && x.Role.Position > Actions.GetPosition(Context.Guild, Context.User as IGuildUser))
 						{
-							await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have the ability to remove a punishment with this role."));
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have the ability to remove a punishment with this role."));
 							return;
 						}
 						punishments.Remove(x);
@@ -539,7 +539,7 @@ namespace Advobot
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No punishments require that number of banned phrases said."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No punishments require that number of banned phrases said."));
 					return;
 				}
 			}
@@ -556,21 +556,21 @@ namespace Advobot
 			});
 
 			//Create the banned phrases file if it doesn't already exist
-			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
 			if (path == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 				return;
 			}
 
 			//Find the lines that aren't the punishments
-			Actions.saveLines(path, Constants.BANNED_PHRASES_PUNISHMENTS, String.Join("/", forSaving), Actions.getValidLines(path, Constants.BANNED_PHRASES_PUNISHMENTS));
+			Actions.SaveLines(path, Constants.BANNED_PHRASES_PUNISHMENTS, String.Join("/", forSaving), Actions.GetValidLines(path, Constants.BANNED_PHRASES_PUNISHMENTS));
 
 			//Determine what the success message should say
 			var successMsg = "";
 			if (newPunishment == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully removed the punishment at position `{0}`.", number);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the punishment at position `{0}`.", number);
 				return;
 			}
 			else if (newPunishment.Punishment == PunishmentType.Kick)
@@ -593,7 +593,7 @@ namespace Advobot
 				timeMsg = ", and will last for `" + newPunishment.PunishmentTime + "` minute(s)";
 			}
 
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", addBool ? "added" : "removed", successMsg, timeMsg));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", addBool ? "added" : "removed", successMsg, timeMsg));
 		}
 
 		[Command("banphrasespunishmentcurrent")]
@@ -608,25 +608,25 @@ namespace Advobot
 			if (input.Equals("file", StringComparison.OrdinalIgnoreCase))
 			{
 				//Check if the file exists
-				var path = Actions.getServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
 				if (path == null)
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 					return;
 				}
 				if (!File.Exists(path))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, "This guild has no banned phrases file.");
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "This guild has no banned phrases file.");
 					return;
 				}
 
 				//Get the words out of the file
-				var line = Actions.getValidLines(path, Constants.BANNED_PHRASES_PUNISHMENTS).FirstOrDefault();
+				var line = Actions.GetValidLines(path, Constants.BANNED_PHRASES_PUNISHMENTS).FirstOrDefault();
 				var punishments = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
 
 				if (!punishments.Any())
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, "There are no punishments on file.");
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "There are no punishments on file.");
 					return;
 				}
 				punishments.ForEach(x =>
@@ -675,7 +675,7 @@ namespace Advobot
 				var guildPunishments = Variables.Guilds[Context.Guild.Id].BannedPhrasesPunishments;
 				if (!guildPunishments.Any())
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, "This guild has no active punishments");
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "This guild has no active punishments");
 					return;
 				}
 				guildPunishments.ForEach(x =>
@@ -690,12 +690,12 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option, must be either File or Actual."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option, must be either File or Actual."));
 				return;
 			}
 
 			//Make and send an embed
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Punishments " + (fileBool ? "(File)" : "(Actual)"), description));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Punishments " + (fileBool ? "(File)" : "(Actual)"), description));
 		}
 
 		[Command("banphrasesuserclear")]
@@ -708,14 +708,14 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
-			var user = await Actions.getUser(Context.Guild, input);
+			var user = await Actions.GetUser(Context.Guild, input);
 			if (user == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
 
@@ -723,7 +723,7 @@ namespace Advobot
 			Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user).AmountOfRemovedMessages = 0;
 
 			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the amount of messages removed for `{0}#{1}` to 0.", user.Username, user.Discriminator));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the amount of messages removed for `{0}#{1}` to 0.", user.Username, user.Discriminator));
 		}
 
 		[Command("banphrasesusercurrent")]
@@ -735,21 +735,21 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
-			var user = input == null ? Context.User : await Actions.getUser(Context.Guild, input);
+			var user = input == null ? Context.User : await Actions.GetUser(Context.Guild, input);
 			if (user == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
 
 			int msgCount = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user)?.AmountOfRemovedMessages ?? 0;
 
 			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}#{1}` has `{2}` infraction point{3}.", user.Username, user.Discriminator, msgCount, msgCount != 1 ? "s" : ""));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}#{1}` has `{2}` infraction point{3}.", user.Username, user.Discriminator, msgCount, msgCount != 1 ? "s" : ""));
 		}
 	}
 }

@@ -28,10 +28,10 @@ namespace Advobot
 				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
 				if (Context.User.Id.Equals(Properties.Settings.Default.BotOwner))
 				{
-					SocketGuild guild = CommandHandler.Client.GetGuild(guildID);
+					var guild = Variables.Client.GetGuild(guildID);
 					if (guild == null)
 					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid server supplied."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid server supplied."));
 						return;
 					}
 
@@ -42,23 +42,23 @@ namespace Advobot
 					if (Context.Guild == guild)
 						return;
 
-					await Actions.sendChannelMessage(Context, String.Format("Successfully left the server `{0}` with an ID `{1}`.", guild.Name, guild.Id));
+					await Actions.SendChannelMessage(Context, String.Format("Successfully left the server `{0}` with an ID `{1}`.", guild.Name, guild.Id));
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Only the bot owner can use this command targetting other guilds."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Only the bot owner can use this command tarGetting other guilds."));
 					return;
 				}
 			}
 			//No input means to leave the current guild
 			else if (input == null)
 			{
-				await Actions.sendChannelMessage(Context, "Bye.");
+				await Actions.SendChannelMessage(Context, "Bye.");
 				await Context.Guild.LeaveAsync();
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid server supplied."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid server supplied."));
 			}
 		}
 
@@ -72,7 +72,7 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
@@ -80,46 +80,46 @@ namespace Advobot
 
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The prefix has to be *something*."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The prefix has to be *something*."));
 				return;
 			}
 			else if (input.Length > 25)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please do not try to make a prefix longer than 25 characters."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please do not try to make a prefix longer than 25 characters."));
 				return;
 			}
 			else if (input.Equals(Properties.Settings.Default.Prefix))
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("That prefix is already the global prefix."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That prefix is already the global prefix."));
 				return;
 			}
 
 			//Check if the file exists
-			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
+			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
 			if (path == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 				return;
 			}
-			var validLines = Actions.getValidLines(path, Constants.GUILD_PREFIX);
+			var validLines = Actions.GetValidLines(path, Constants.GUILD_PREFIX);
 
 			if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
 			{
 				//Add all the lines back
-				Actions.saveLines(path, Constants.GUILD_PREFIX, "", validLines);
+				Actions.SaveLines(path, Constants.GUILD_PREFIX, "", validLines);
 
 				Variables.Guilds[Context.Guild.Id].Prefix = null;
-				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild prefix.");
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild prefix.");
 			}
 			else
 			{
 				//Add all the lines back
-				Actions.saveLines(path, Constants.GUILD_PREFIX, input, validLines);
+				Actions.SaveLines(path, Constants.GUILD_PREFIX, input, validLines);
 
 				//Update the guild's prefix
 				Variables.Guilds[Context.Guild.Id].Prefix = input;
 				//Send a success message
-				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully set this guild's prefix to: `" + input.Trim() + "`.");
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully set this guild's prefix to: `" + input.Trim() + "`.");
 			}
 		}
 
@@ -189,9 +189,9 @@ namespace Advobot
 				});
 
 				//Upload to Hastebin
-				URL = Actions.uploadToHastebin(information);
+				URL = Actions.UploadToHastebin(information);
 			}
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Current Global Bot Settings", description).WithUrl(URL));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Bot Settings", description).WithUrl(URL));
 		}
 
 		[Command("botchannel")]
@@ -211,7 +211,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is already a bot channel on this guild."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is already a bot channel on this guild."));
 				return;
 			}
 		}
@@ -231,20 +231,20 @@ namespace Advobot
 				//Member limit
 				if ((Context.Guild as SocketGuild).MemberCount < Constants.MEMBER_LIMIT && Context.User.Id != Properties.Settings.Default.BotOwner)
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Sorry, but this guild is too small to warrant preferences. {0} or more members are required.",
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Sorry, but this guild is too small to warrant preferences. {0} or more members are required.",
 						Constants.MEMBER_LIMIT));
 					return;
 				}
 
 				//Confirmation of agreement
-				await Actions.sendChannelMessage(Context, "By turning preferences on you will be enabling the ability to toggle commands, change who can use commands, " +
+				await Actions.SendChannelMessage(Context, "By turning preferences on you will be enabling the ability to toggle commands, change who can use commands, " +
 					"and many more features. This data will be stored in a text file off of the guild, and whoever is hosting the bot will most likely have " +
 					"access to it. A new text channel will be automatically created to display preferences and the server/mod log. If you agree to this, say `Yes`.");
 
 				//Add them to the list for a few seconds
 				Variables.GuildsEnablingPreferences.Add(Context.Guild);
 				//Remove them
-				Actions.turnOffEnableYes(Context.Guild);
+				Actions.RemovePrefEnable(Context.Guild);
 
 				//The actual enabling happens in OnMessageReceived in Serverlogs
 			}
@@ -252,18 +252,18 @@ namespace Advobot
 			else if (input.Equals("disable", StringComparison.OrdinalIgnoreCase))
 			{
 				//Confirmation of agreement
-				await Actions.sendChannelMessage(Context, "If you are sure you want to delete your preferences, say `Yes`.");
+				await Actions.SendChannelMessage(Context, "If you are sure you want to delete your preferences, say `Yes`.");
 
 				//Add them to the list for a few seconds
 				Variables.GuildsDeletingPreferences.Add(Context.Guild);
 				//Remove them
-				Actions.turnOffDeleteYes(Context.Guild);
+				Actions.RemovePrefDelete(Context.Guild);
 
 				//The actual deleting happens in OnMessageReceived in Serverlogs
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 		}
@@ -275,13 +275,13 @@ namespace Advobot
 		[PermissionRequirements]
 		public async Task CurrentPreferences()
 		{
-			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE);
+			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE);
 			if (path == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 				return;
 			}
-			await Actions.readPreferences(Context.Channel, path);
+			await Actions.ReadPreferences(Context.Channel, path);
 		}
 
 		[Command("comconfigtoggle")]
@@ -294,7 +294,7 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
@@ -302,7 +302,7 @@ namespace Advobot
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 			//Set the action
@@ -322,7 +322,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -334,7 +334,7 @@ namespace Advobot
 			}
 
 			//Get the command
-			var command = Actions.getCommand(Context.Guild.Id, inputString);
+			var command = Actions.GetCommand(Context.Guild.Id, inputString);
 			//Set up a potential list for commands
 			var category = new List<CommandSwitch>();
 			//Check if it's valid
@@ -343,11 +343,11 @@ namespace Advobot
 				CommandCategory cmdCat;
 				if (Enum.TryParse(inputString, true, out cmdCat))
 				{
-					category = Actions.getMultipleCommands(Context.Guild.Id, cmdCat);
+					category = Actions.GetMultipleCommands(Context.Guild.Id, cmdCat);
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No command or category has that name."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No command or category has that name."));
 					return;
 				}
 			}
@@ -358,12 +358,12 @@ namespace Advobot
 			//Check if it's already enabled
 			else if (enableBool && command.valAsBoolean)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already enabled."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already enabled."));
 				return;
 			}
 			else if (!enableBool && !command.valAsBoolean)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already disabled."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already disabled."));
 				return;
 			}
 
@@ -388,7 +388,7 @@ namespace Advobot
 			//Check if there's still stuff in the list
 			if (category.Count < 1)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please don't try to edit that command."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please don't try to edit that command."));
 				return;
 			}
 
@@ -403,10 +403,10 @@ namespace Advobot
 			}
 
 			//Save the preferences
-			Actions.savePreferences(Context.Guild.Id);
+			Actions.SavePreferences(Context.Guild.Id);
 
 			//Send a success message
-			await Actions.sendChannelMessage(Context, String.Format("Successfully {0} the command{1}: `{2}`.",
+			await Actions.SendChannelMessage(Context, String.Format("Successfully {0} the command{1}: `{2}`.",
 				enableBool ? "enabled" : "disabled",
 				category.Count != 1 ? "s" : "",
 				String.Join("`, `", category.Select(x => x.Name))));
@@ -424,7 +424,7 @@ namespace Advobot
 			//Check if they've enabled preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
 				return;
 			}
 
@@ -432,7 +432,7 @@ namespace Advobot
 			var inputArray = input.Split(' ');
 			if (inputArray.Length == 0 || inputArray.Length > 3)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 
@@ -453,7 +453,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -461,58 +461,58 @@ namespace Advobot
 			{
 				if (inputArray.Length == 1)
 				{
-					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Guild Permissions", String.Join("\n", Variables.GuildPermissions.Select(x => x.Name))));
+					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Permissions", String.Join("\n", Variables.GuildPermissions.Select(x => x.Name))));
 					return;
 				}
 				else if (inputArray.Length == 2)
 				{
 					//Check if valid user
-					var showUser = await Actions.getUser(Context.Guild, inputArray[1]);
+					var showUser = await Actions.GetUser(Context.Guild, inputArray[1]);
 					if (showUser == null)
 					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 						return;
 					}
 					//Check if that user is on the botuser list
 					else if (!Variables.BotUsers.Any(x => x.User == showUser))
 					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no extra permissions from the bot."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no extra permissions from the bot."));
 						return;
 					}
 
 					//check if that user has any permissions
-					var showPermissions = Actions.getPermissionNames(Variables.BotUsers.FirstOrDefault(x => x.User == showUser).Permissions);
+					var showPermissions = Actions.GetPermissionNames(Variables.BotUsers.FirstOrDefault(x => x.User == showUser).Permissions);
 					if (!showPermissions.Any())
 					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no extra permissions from the bot."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no extra permissions from the bot."));
 						return;
 					}
 
-					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Permissions for " + showUser.Username + "#" + showUser.Discriminator, String.Join("\n", showPermissions)));
+					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Permissions for " + showUser.Username + "#" + showUser.Discriminator, String.Join("\n", showPermissions)));
 					return;
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option for show."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option for show."));
 					return;
 				}
 			}
 
 			//Check if valid user
-			var user = await Actions.getUser(Context.Guild, inputArray[1]);
+			var user = await Actions.GetUser(Context.Guild, inputArray[1]);
 			if (user == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
 
 			if (!(bool)addBool && inputArray.Length == 2)
 			{
 				Variables.BotUsers.RemoveAll(x => x.User == user);
-				var removePath = Actions.getServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
-				Actions.saveLines(removePath, null, null, Actions.getValidLines(removePath, user.Id.ToString()));
+				var removePath = Actions.GetServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
+				Actions.SaveLines(removePath, null, null, Actions.GetValidLines(removePath, user.Id.ToString()));
 
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}#{1}` from the bot user list.", user.Username, user.Discriminator));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}#{1}` from the bot user list.", user.Username, user.Discriminator));
 				return;
 			}
 
@@ -520,7 +520,7 @@ namespace Advobot
 			var permissions = inputArray[2].Split('/').Select(x => Variables.GuildPermissions.FirstOrDefault(y => y.Name.Equals(x, StringComparison.OrdinalIgnoreCase))).Where(x => x.Name != null).ToList();
 			if (!permissions.Any())
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
 
@@ -560,22 +560,22 @@ namespace Advobot
 			}
 
 			//Get the path
-			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
+			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
 			//Check what the permissions are
 			if (botUser.Permissions != 0)
 			{
 				//Save everything back
-				Actions.saveLines(path, user.Id.ToString(), botUser.Permissions.ToString(), Actions.getValidLines(path, user.Id.ToString()));
+				Actions.SaveLines(path, user.Id.ToString(), botUser.Permissions.ToString(), Actions.GetValidLines(path, user.Id.ToString()));
 			}
 			else
 			{
 				//If no permissions, then remove them from the list and file
 				Variables.BotUsers.RemoveAll(x => x.User == user);
-				Actions.saveLines(path, null, null, Actions.getValidLines(path, user.Id.ToString()));
+				Actions.SaveLines(path, null, null, Actions.GetValidLines(path, user.Id.ToString()));
 			}
 
 			//Send a success message
-			await Actions.sendChannelMessage(Context, String.Format("Successfully {1}: `{0}`.", String.Join("`, `", permissions.Select(x => x.Name)),
+			await Actions.SendChannelMessage(Context, String.Format("Successfully {1}: `{0}`.", String.Join("`, `", permissions.Select(x => x.Name)),
 				(bool)addBool ? String.Format("gave the user `{0}#{1}` the following permission{2}", user.Username, user.Discriminator, permissions.Count() != 1 ? "s" : "") :
 								String.Format("removed the following permission{0} from the user `{1}#{2}`", permissions.Count() != 1 ? "s" : "", user.Username, user.Discriminator)));
 		}
@@ -599,23 +599,23 @@ namespace Advobot
 			else
 			{
 				//Check if user
-				var user = await Actions.getUser(Context.Guild, input);
+				var user = await Actions.GetUser(Context.Guild, input);
 				if (user != null)
 				{
 					//Get the botuser
 					var botUser = Variables.BotUsers.FirstOrDefault(x => x.User == user);
 					if (botUser == null || botUser.Permissions == 0)
 					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no bot permissions."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no bot permissions."));
 						return;
 					}
-					var perms = String.Join("`, `", Actions.getPermissionNames(botUser.Permissions));
-					await Actions.sendChannelMessage(Context, String.Format("The user `{0}#{1}` has the following permissions: `{2}`.", user.Username, user.Discriminator, perms));
+					var perms = String.Join("`, `", Actions.GetPermissionNames(botUser.Permissions));
+					await Actions.SendChannelMessage(Context, String.Format("The user `{0}#{1}` has the following permissions: `{2}`.", user.Username, user.Discriminator, perms));
 					return;
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 					return;
 				}
 			}
@@ -625,10 +625,10 @@ namespace Advobot
 			if (fileBool)
 			{
 				//Check if the file exists
-				var path = Actions.getServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
+				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
 				if (!File.Exists(path))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This server has no bot users."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This server has no bot users."));
 					return;
 				}
 
@@ -667,7 +667,7 @@ namespace Advobot
 
 				if (String.IsNullOrWhiteSpace(description))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no bot users on file."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no bot users on file."));
 					return;
 				}
 			}
@@ -679,12 +679,12 @@ namespace Advobot
 
 				if (String.IsNullOrWhiteSpace(description))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no bot users."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no bot users."));
 					return;
 				}
 			}
 
-			await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Current Bot Users", description));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bot Users", description));
 		}
 		#endregion
 
@@ -699,7 +699,7 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
@@ -707,7 +707,7 @@ namespace Advobot
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 
@@ -723,7 +723,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
@@ -734,7 +734,7 @@ namespace Advobot
 				//Check if at the max number of reminds
 				if (reminds.Count >= Constants.MAX_REMINDS)
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild already has the max number of reminds, which is 50."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild already has the max number of reminds, which is 50."));
 					return;
 				}
 
@@ -742,7 +742,7 @@ namespace Advobot
 				var nameAndText = inputArray[1].Split(new char[] { '/' }, 2);
 				if (nameAndText.Length != 2)
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 					return;
 				}
 				name = nameAndText[0];
@@ -751,7 +751,7 @@ namespace Advobot
 				//Check if any reminds have already have the same name
 				if (reminds.Any(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("A remind already has that name."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A remind already has that name."));
 					return;
 				}
 
@@ -763,7 +763,7 @@ namespace Advobot
 				//Make sure there are some reminds
 				if (!reminds.Any())
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There needs to be at least one remind before you can remove any."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There needs to be at least one remind before you can remove any."));
 					return;
 				}
 				name = inputArray[1];
@@ -773,12 +773,12 @@ namespace Advobot
 			}
 
 			//Get the path
-			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.REMINDS);
+			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.REMINDS);
 			//Rewrite everything with the current reminds. Uses a different split character than the others because it's more user set than them.
-			Actions.saveLines(path, null, null, reminds.Select(x => x.Name + "/" + x.Text).ToList(), true);
+			Actions.SaveLines(path, null, null, reminds.Select(x => x.Name + "/" + x.Text).ToList(), true);
 
 			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following remind: `{1}`.", addBool ? "added" : "removed", Actions.replaceMessageCharacters(name)));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following remind: `{1}`.", addBool ? "added" : "removed", Actions.ReplaceMarkdownChars(name)));
 		}
 
 		[Command("remind")]
@@ -793,12 +793,12 @@ namespace Advobot
 				//Check if any exist
 				if (!reminds.Any())
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are no reminds."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are no reminds."));
 					return;
 				}
 
 				//Send the names of all fo the reminds
-				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Reminds", String.Format("`{0}`", String.Join("`, `", reminds.Select(x => x.Name)))));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Reminds", String.Format("`{0}`", String.Join("`, `", reminds.Select(x => x.Name)))));
 				return;
 			}
 
@@ -806,7 +806,7 @@ namespace Advobot
 			var remind = reminds.FirstOrDefault(x => x.Name.Equals(input, StringComparison.OrdinalIgnoreCase));
 			if (remind.Name != null)
 			{
-				await Actions.sendChannelMessage(Context, remind.Text);
+				await Actions.SendChannelMessage(Context, remind.Text);
 			}
 			else
 			{
@@ -815,7 +815,7 @@ namespace Advobot
 				reminds.ForEach(x =>
 				{
 					//Check how close the word is to the input
-					var closeness = Actions.findCloseName(x.Name, input);
+					var closeness = Actions.FindCloseName(x.Name, input);
 					//Ignore all closewords greater than a difference of five
 					if (closeness > 5)
 						return;
@@ -863,14 +863,14 @@ namespace Advobot
 
 					//Add them to the active close word list, thus allowing them to say the number of the remind they want. Remove after 5 seconds
 					Variables.ActiveCloseWords.Add(list);
-					Actions.removeActiveCloseWords(list);
+					Actions.RemoveActiveCloseWords(list);
 
 					//Send the message
-					await Actions.makeAndDeleteSecondaryMessage(Context, msg, 10000);
+					await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 10000);
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nothing similar to that remind can be found."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nothing similar to that remind can be found."));
 				}
 			}
 		}

@@ -23,7 +23,7 @@ namespace Advobot
 			Actions.LoadInformation();
 
 			//Set up the game and/or stream
-			await Actions.setGame();
+			await Actions.SetGame();
 
 			await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
 
@@ -34,7 +34,7 @@ namespace Advobot
 		{
 			//Don't handle the command if it is a system message
 			var message = parameterMessage as SocketUserMessage;
-			if (message == null)
+			if (message == null || Variables.STOP)
 				return;
 
 			//Mark where the prefix ends and the command begins
@@ -54,7 +54,7 @@ namespace Advobot
 						//Check if the user says help with the global prefix even though a different prefix is set
 						if (message.Content.StartsWith(Properties.Settings.Default.Prefix + "help", System.StringComparison.OrdinalIgnoreCase))
 						{
-							await Actions.makeAndDeleteSecondaryMessage(message.Channel, message, "The current prefix for this guild is: `" + guildPrefix + "`.");
+							await Actions.MakeAndDeleteSecondaryMessage(message.Channel, message, "The current prefix for this guild is: `" + guildPrefix + "`.");
 						}
 						return;
 					}
@@ -71,7 +71,7 @@ namespace Advobot
 			var context = new CommandContext(Client, message);
 
 			//Check if there is anything preventing the command from going through
-			if (!await Actions.checkIfCommandIsValid(context))
+			if (!await Actions.GetIfCommandIsValid(context))
 				return;
 
 			//Execute the Command, store the result
@@ -88,7 +88,7 @@ namespace Advobot
 					return;
 
 				//Give the error message
-				await Actions.makeAndDeleteSecondaryMessage(context, $"**Error:** {result.ErrorReason}");
+				await Actions.MakeAndDeleteSecondaryMessage(context, $"**Error:** {result.ErrorReason}");
 			}
 			else
 			{

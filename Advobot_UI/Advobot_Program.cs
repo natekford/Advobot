@@ -7,10 +7,11 @@ namespace Advobot
 {
 	public class Program
 	{
+		//Start the bot or start the UI then the bot
 		[System.STAThread]
-		public static void Main(string[] args)
+		private static void Main(string[] args)
 		{
-			//Get the OS and if console
+			//Check if Windows and if console
 			Actions.LoadBasicInformation();
 			//Create the client
 			Variables.Client = createClient();
@@ -24,22 +25,23 @@ namespace Advobot
 			{
 				//Set the path to save stuff to
 				var startup = true;
-				while (!Actions.validatePathText(startup ? Properties.Settings.Default.Path : System.Console.ReadLine(), startup))
+				while (!Actions.ValidatePath(startup ? Properties.Settings.Default.Path : System.Console.ReadLine(), startup))
 				{
 					startup = false;
 				}
 				//Set the bot's key
 				startup = true;
-				while (!(Actions.validateBotKey(Variables.Client, startup ? Properties.Settings.Default.BotKey : System.Console.ReadLine(), startup)).Result)
+				while (!(Actions.ValidateBotKey(Variables.Client, startup ? Properties.Settings.Default.BotKey : System.Console.ReadLine(), startup)).Result)
 				{
 					startup = false;
 				}
 
-				//Start the bot
+				//Start the bot. This line needs to stay the same. Do not change the method to MaybeStartBot
 				new Program().Start(Variables.Client).GetAwaiter().GetResult();
 			}
 		}
 
+		//Create the client
 		private static DiscordSocketClient createClient()
 		{
 			//Define the DiscordSocketClient
@@ -79,6 +81,7 @@ namespace Advobot
 			return client;
 		}
 
+		//Try to have the bot connect and then add the dependency map
 		public async Task Start(DiscordSocketClient client)
 		{
 			//Connect the bot
@@ -88,7 +91,7 @@ namespace Advobot
 			}
 			catch (System.Exception)
 			{
-				Actions.writeLine("Client is unable to connect.");
+				Actions.WriteLine("Client is unable to connect.");
 				return;
 			}
 

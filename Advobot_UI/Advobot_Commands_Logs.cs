@@ -20,14 +20,14 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
-			var serverlog = await Actions.setServerOrModLog(Context, input, Constants.SERVER_LOG_CHECK_STRING);
+			var serverlog = await Actions.SetServerOrModLog(Context, input, Constants.SERVER_LOG_CHECK_STRING);
 			if (serverlog != null)
 			{
-				await Actions.sendChannelMessage(Context, String.Format("Serverlog has been set on channel {0} with the ID `{1}`.", input, serverlog.Id));
+				await Actions.SendChannelMessage(Context, String.Format("Serverlog has been set on channel {0} with the ID `{1}`.", input, serverlog.Id));
 			}
 		}
 
@@ -41,14 +41,14 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
-			var modlog = await Actions.setServerOrModLog(Context, input, Constants.MOD_LOG_CHECK_STRING);
+			var modlog = await Actions.SetServerOrModLog(Context, input, Constants.MOD_LOG_CHECK_STRING);
 			if (modlog != null)
 			{
-				await Actions.sendChannelMessage(Context, String.Format("Modlog has been set on channel {0} with the ID `{1}`.", input, modlog.Id));
+				await Actions.SendChannelMessage(Context, String.Format("Modlog has been set on channel {0} with the ID `{1}`.", input, modlog.Id));
 			}
 		}
 
@@ -62,7 +62,7 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
@@ -70,13 +70,13 @@ namespace Advobot
 			if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
 				var description = String.Join("\n", Variables.Guilds[Context.Guild.Id].IgnoredChannels.Select(async x => await Context.Guild.GetChannelAsync(x)));
-				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Ignored Channels", description));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Channels", description));
 				return;
 			}
 			//Check amount of args
 			if (inputArray.Length != 2)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 
@@ -91,31 +91,31 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
-			var channel = await Actions.getChannelEditAbility(Context, inputArray[1], true);
+			var channel = await Actions.GetChannelEditAbility(Context, inputArray[1], true);
 			if (channel == null)
 			{
 				var channels = (await Context.Guild.GetTextChannelsAsync()).Where(x => x.Name.Equals(inputArray[1], StringComparison.OrdinalIgnoreCase)).ToList();
 				if (channels.Count == 0)
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
 					return;
 				}
 				else if (channels.Count == 1)
 				{
 					channel = channels.FirstOrDefault();
-					if (await Actions.getChannelEditAbility(channel, Context.User as IGuildUser) == null)
+					if (await Actions.GetChannelEditAbility(channel, Context.User as IGuildUser) == null)
 					{
-						await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to edit this channel."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to edit this channel."));
 						return;
 					}
 				}
 				else
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("More than one channel has that name."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("More than one channel has that name."));
 					return;
 				}
 			}
@@ -124,7 +124,7 @@ namespace Advobot
 			{
 				if (Variables.Guilds[Context.Guild.Id].IgnoredChannels.Contains(channel.Id))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored."));
 					return;
 				}
 				Variables.Guilds[Context.Guild.Id].IgnoredChannels.Add(channel.Id);
@@ -133,7 +133,7 @@ namespace Advobot
 			{
 				if (!Variables.Guilds[Context.Guild.Id].IgnoredChannels.Contains(channel.Id))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored."));
 					return;
 				}
 				Variables.Guilds[Context.Guild.Id].IgnoredChannels.Remove(channel.Id);
@@ -142,16 +142,16 @@ namespace Advobot
 			Variables.Guilds[Context.Guild.Id].IgnoredChannels = Variables.Guilds[Context.Guild.Id].IgnoredChannels.Distinct().ToList();
 
 			//Create the file if it doesn't exist
-			var path = Actions.getServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
+			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
 			if (path == null)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 				return;
 			}
-			Actions.saveLines(path, Constants.IGNORED_CHANNELS, String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredChannels), Actions.getValidLines(path, Constants.IGNORED_CHANNELS));
+			Actions.SaveLines(path, Constants.IGNORED_CHANNELS, String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredChannels), Actions.GetValidLines(path, Constants.IGNORED_CHANNELS));
 
 			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the channel `{0}` with an ID of `{1}`.", channel.Name, channel.Id));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the channel `{0}` with an ID of `{1}`.", channel.Name, channel.Id));
 		}
 
 		[Command("logactions")]
@@ -164,7 +164,7 @@ namespace Advobot
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
@@ -175,17 +175,17 @@ namespace Advobot
 			//Check if the person wants to only see the types
 			if (input.Equals("show", StringComparison.OrdinalIgnoreCase))
 			{
-				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Log Actions", String.Join("\n", Enum.GetNames(typeof(LogActions)))));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Log Actions", String.Join("\n", Enum.GetNames(typeof(LogActions)))));
 				return;
 			}
 			//Check if they want the default
 			else if (input.Equals("default", StringComparison.OrdinalIgnoreCase))
 			{
 				logActionsList = Constants.DEFAULTLOGACTIONS.ToList();
-				Actions.saveLogActions(Context, logActionsList);
+				Actions.SaveLogActions(Context, logActionsList);
 
 				//Send a success message
-				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully restored the default log actions.");
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully restored the default log actions.");
 				return;
 			}
 			//Check if they want to see the current activated ones
@@ -193,11 +193,11 @@ namespace Advobot
 			{
 				if (logActionsList.Count == 0)
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active log actions."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active log actions."));
 				}
 				else
 				{
-					await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Current Log Actions", String.Join("\n", logActionsList.Select(x => Enum.GetName(typeof(LogActions), x)))));
+					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Log Actions", String.Join("\n", logActionsList.Select(x => Enum.GetName(typeof(LogActions), x)))));
 				}
 				return;
 			}
@@ -206,7 +206,7 @@ namespace Advobot
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 			var action = inputArray[0];
@@ -224,11 +224,11 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
-			//Get all the targetted log actions
+			//Get all the tarGetted log actions
 			var newLogActions = new List<LogActions>();
 			if (logActionsString.Equals("all", StringComparison.OrdinalIgnoreCase))
 			{
@@ -249,7 +249,7 @@ namespace Advobot
 			//Check if there are any valid log actions
 			if (!newLogActions.Any())
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid log actions were able to be gotten."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid log actions were able to be gotten."));
 				return;
 			}
 
@@ -266,10 +266,10 @@ namespace Advobot
 			}
 
 			//Save them
-			Actions.saveLogActions(Context, logActionsList);
+			Actions.SaveLogActions(Context, logActionsList);
 
 			//Send a success message
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
 				enableBool ? "enabled" : "disabled",
 				newLogActions.Count != 1 ? "s" : "",
 				String.Join("`, `", newLogActions.Select(x => Enum.GetName(typeof(LogActions), x)))));

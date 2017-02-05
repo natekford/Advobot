@@ -23,18 +23,18 @@ namespace Advobot
 			//Check if valid length
 			if (input.Length > Constants.CHANNEL_NAME_MAX_LENGTH)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Guild names cannot be longer than 100 characters."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Guild names cannot be longer than 100 characters."));
 				return;
 			}
 			else if (input.Length < Constants.CHANNEL_NAME_MIN_LENGTH)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Guild names cannot be shorter than 2 characters."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Guild names cannot be shorter than 2 characters."));
 				return;
 			}
 
 			//Change the name and say what it was changed to
 			await Context.Guild.ModifyAsync(x => x.Name = input);
-			await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild name to `{0}`.", input));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild name to `{0}`.", input));
 		}
 
 		[Command("guildregion")]
@@ -47,24 +47,37 @@ namespace Advobot
 			//Check if a valid region or asking to see the region types
 			if (input.Equals("regions", StringComparison.OrdinalIgnoreCase))
 			{
-				await Actions.sendEmbedMessage(Context.Channel, Actions.makeNewEmbed("Region IDs", String.Join("\n", Constants.VALIDREGIONIDS)));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Region IDs", String.Join("\n", Constants.VALIDREGIONIDS)));
 			}
 			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
-				await Actions.sendChannelMessage(Context, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
+				await Actions.SendChannelMessage(Context, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
 			}
-			else if (Constants.VALIDREGIONIDS.Contains(input.ToLower()))
+			else if (Constants.VALIDREGIONIDS.Contains(input, StringComparer.OrdinalIgnoreCase))
 			{
 				//Capture the previous region
 				var bRegion = Context.Guild.VoiceRegionId;
 
 				//Change the region
 				await Context.Guild.ModifyAsync(x => x.RegionId = input);
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", bRegion, input));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", bRegion, input));
 			}
+			//else if (Constants.VIPREGIONIDS.Contains(input, StringComparer.OrdinalIgnoreCase))
+			//{
+			//	//Figure out how to check if the guild is VIP
+			//	if ()
+			//	{
+			//		//Capture the previous region
+			//		var bRegion = Context.Guild.VoiceRegionId;
+
+			//		//Change the region
+			//		await Context.Guild.ModifyAsync(x => x.RegionId = input);
+			//		await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", bRegion, input));
+			//	}
+			//}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid region ID was input."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid region ID was input."));
 			}
 		}
 
@@ -81,7 +94,7 @@ namespace Advobot
 			//Check if valid number of args
 			if (inputArray.Length != 2)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 
@@ -89,12 +102,12 @@ namespace Advobot
 			if (inputArray[0].Equals("channel", StringComparison.OrdinalIgnoreCase))
 			{
 				//Check if valid channel
-				var channel = await Actions.getChannelEditAbility(Context, inputArray[1] + "/voice");
+				var channel = await Actions.GetChannelEditAbility(Context, inputArray[1] + "/voice");
 				if (channel == null)
 					return;
-				else if (Actions.getChannelType(channel) != Constants.VOICE_TYPE)
+				else if (Actions.GetChannelType(channel) != Constants.VOICE_TYPE)
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("The guild's afk channel has to be a voice channel."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The guild's afk channel has to be a voice channel."));
 					return;
 				}
 
@@ -103,7 +116,7 @@ namespace Advobot
 
 				//Change the afk channel to the input
 				await Context.Guild.ModifyAsync(x => x.AfkChannelId = channel.Id);
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild's AFK channel from `{0}` to `{1}`", bChan, inputArray[1]));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild's AFK channel from `{0}` to `{1}`", bChan, inputArray[1]));
 			}
 			else if (inputArray[0].Equals("time", StringComparison.OrdinalIgnoreCase))
 			{
@@ -111,7 +124,7 @@ namespace Advobot
 				var time = 0;
 				if (!int.TryParse(inputArray[1], out time))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for time."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for time."));
 					return;
 				}
 
@@ -119,7 +132,7 @@ namespace Advobot
 				int[] validAmount = { 60, 300, 900, 1800, 3600 };
 				if (!validAmount.Contains(time))
 				{
-					await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time input, must be one of the following: `" + String.Join("`, `", validAmount) + "`."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time input, must be one of the following: `" + String.Join("`, `", validAmount) + "`."));
 					return;
 				}
 
@@ -128,11 +141,11 @@ namespace Advobot
 
 				//Change the afk timer
 				await Context.Guild.ModifyAsync(x => x.AfkTimeout = time);
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild's AFK timer from `{0}` to `{1}`.", bTime, inputArray[1]));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild's AFK timer from `{0}` to `{1}`.", bTime, inputArray[1]));
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid action was input."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid action was input."));
 			}
 		}
 
@@ -146,16 +159,16 @@ namespace Advobot
 			if (input.Equals("all messages", StringComparison.OrdinalIgnoreCase))
 			{
 				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = DefaultMessageNotifications.AllMessages);
-				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully changed the default message notification setting to all messages.");
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully changed the default message notification setting to all messages.");
 			}
 			else if (input.Equals("mentions only", StringComparison.OrdinalIgnoreCase))
 			{
 				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = DefaultMessageNotifications.MentionsOnly);
-				await Actions.makeAndDeleteSecondaryMessage(Context, "Successfully changed the default message notification setting to mentions only.");
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully changed the default message notification setting to mentions only.");
 			}
 			else
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid message notification setting."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid message notification setting."));
 			}
 		}
 
@@ -170,14 +183,14 @@ namespace Advobot
 			var vLevel = -1;
 			if (!int.TryParse(input, out vLevel))
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid verification level."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid verification level."));
 				return;
 			}
 
 			//Check if valid verification level position
 			if (vLevel > 3 || vLevel < 0)
 			{
-				await Actions.makeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid verification level. Verification levels range from 0 to 3."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid verification level. Verification levels range from 0 to 3."));
 				return;
 			}
 			else
@@ -188,7 +201,7 @@ namespace Advobot
 				//Get the verification level's name as a string
 				var vString = Enum.GetName(typeof(VerificationLevel), vLevel);
 				//Send a success message
-				await Actions.makeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild verification level as `{0}`.", vString));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild verification level as `{0}`.", vString));
 			}
 		}
 
@@ -199,7 +212,7 @@ namespace Advobot
 		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildIcon([Optional] string input)
 		{
-			await Actions.setPicture(Context, input, false);
+			await Actions.SetPicture(Context, input, false);
 		}
 	}
 }
