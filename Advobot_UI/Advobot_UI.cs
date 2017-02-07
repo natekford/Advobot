@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -29,16 +31,84 @@ namespace Advobot
 			Background = new ImageBrush(Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.Graphic_Design.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions())),
 		};
 
+		#region Output
+		//Save ouput
+		private static MenuItem mOutputContextMenuSave = new MenuItem
+		{
+			Header = "Save Output Log",
+		};
+		//Clear output
+		private static MenuItem mOutputContextMenuClear = new MenuItem
+		{
+			Header = "Clear Output Log",
+		};
+		//Create the context menu for the output window
+		private static ContextMenu mOutputContextMenu = new ContextMenu
+		{
+			ItemsSource = new[] { mOutputContextMenuSave, mOutputContextMenuClear },
+		};
 		//Output textbox
 		private static RichTextBox mOutput = new RichTextBox
 		{
+			ContextMenu = mOutputContextMenu,
+			IsReadOnly = true,
+			IsDocumentEnabled = true,
 			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
+			Background = Brushes.White,
+		};
+		//Secondary output textbox
+		private static RichTextBox mSecondaryOutput = new RichTextBox
+		{
 			Background = Brushes.White,
 			IsReadOnly = true,
 			IsDocumentEnabled = true,
-			//FontFamily = new FontFamily("Comic Sans MS"),
+			Visibility = Visibility.Hidden,
 		};
+		//Secondary output button names
+		private const string mFirstButtonString = "Help";
+		private const string mSecondButtonString = "Commands";
+		private const string mThirdButtonString = "Info";
+		private const string mFourthButtonString = "Settings";
+		private static string mLastButtonClicked;
+		//Paragraphs
+		private static Paragraph mFirstParagraph = new Paragraph(new Run("Sample Text"));
+		private static Paragraph mSecondParagraph = new Paragraph(new Run("Placeholder"));
+		private static Paragraph mThirdParagraph = new Paragraph(new Run("Lorem Ipsum"));
+		private static Paragraph mFourthParagraph = new Paragraph(new Run("Test"));
+		//Button layout
+		private static Grid mButtonLayout = new Grid();
+		//First button
+		private static Button mFirstButton = new Button
+		{
+			Content = mFirstButtonString,
+		};
+		//Second button
+		private static Button mSecondButton = new Button
+		{
+			Content = mSecondButtonString,
+		};
+		//Third button
+		private static Button mThirdButton = new Button
+		{
+			Content = mThirdButtonString,
+		};
+		//Fourth button
+		private static Button mFourthButton = new Button
+		{
+			Content = mFourthButtonString,
+		};
+		#endregion
 
+		#region Input
+		//Input layout
+		private static Grid mInputLayout = new Grid();
+		//Input binding
+		private static Binding mInputBinding = new Binding
+		{
+			Path = new PropertyPath("ActualHeight"),
+			RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
+			Converter = new FontResizer(),
+		};
 		//Input textbox
 		private static TextBox mInput = new TextBox
 		{
@@ -52,16 +122,34 @@ namespace Advobot
 			IsEnabled = false,
 			Content = "Enter",
 		};
+		#endregion
 
+		#region System Info
+		//System info layout
+		private static Grid mSysInfoLayout = new Grid();
+		//System info underneath
+		private static TextBox mSysInfoUnder = new TextBox();
 		//Latency
 		private static TextBox mLatency = new TextBox
 		{
 			IsReadOnly = true,
+			BorderBrush = Brushes.Transparent,
+		};
+		//Latency viewbox
+		private static Viewbox mLatencyView = new Viewbox
+		{
+			Child = mLatency,
 		};
 		//Memory
 		private static TextBox mMemory = new TextBox
 		{
 			IsReadOnly = true,
+			BorderBrush = Brushes.Transparent,
+		};
+		//Memory viewbox
+		private static Viewbox mMemoryView = new Viewbox
+		{
+			Child = mMemory,
 		};
 		//Memory tooltip
 		private static ToolTip mMemHoverInfo = new ToolTip
@@ -72,13 +160,39 @@ namespace Advobot
 		private static TextBox mThreads = new TextBox
 		{
 			IsReadOnly = true,
+			BorderBrush = Brushes.Transparent,
 		};
+		//Threads viewbox
+		private static Viewbox mThreadsView = new Viewbox
+		{
+			Child = mThreads,
+		};
+		//Shards
+		private static TextBox mShards = new TextBox
+		{
+			IsReadOnly = true,
+			BorderBrush = Brushes.Transparent,
+		};
+		//Shards viewbox
+		private static Viewbox mShardsView = new Viewbox
+		{
+			Child = mShards,
+		};
+		//Prefix
+		private static TextBox mPrefix = new TextBox
+		{
+			IsReadOnly = true,
+			BorderBrush = Brushes.Transparent,
+		};
+		//Prefix viewbox
+		private static Viewbox mPrefixView = new Viewbox
+		{
+			Child = mPrefix,
+			HorizontalAlignment = HorizontalAlignment.Stretch,
+		};
+		#endregion
 
-		//Secondary grids
-		private static Grid mInputLayout = new Grid();
-		private static Grid mSysInfoLayout = new Grid();
-
-		#region Startup
+		#region Creating the Window
 		//Create the bot window
 		public BotWindow()
 		{
@@ -89,56 +203,42 @@ namespace Advobot
 		private void InitializeComponent()
 		{
 			//Main layout
-			mLayout.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(350) });
-			mLayout.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(25) });
-			mLayout.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(40) });
-			mLayout.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(510) });
-			//Input layout
-			mInputLayout.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(40) });
-			mInputLayout.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(460) });
-			mInputLayout.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(50) });
-			//System info layout
-			mSysInfoLayout.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(170) });
-			mSysInfoLayout.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(170) });
-			mSysInfoLayout.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(170) });
+			AddRows(mLayout, 100);
+			AddCols(mLayout, 4);
 
-			//Output textbox
-			mLayout.Children.Add(mOutput);
-			//If the ouput box is a rich text box, lower its margins
-			if (mOutput is RichTextBox)
-			{
-				mOutput.Document.Blocks.FirstBlock.Margin = new Thickness(0);
-			}
+			//Output
+			AddItemAndSetPositionsAndSpans(mLayout, mOutput, 0, 90, 0, 4);
+			AddItemAndSetPositionsAndSpans(mLayout, mSecondaryOutput, 0, 90, 3, 1);
 
-			//Input layout
-			mLayout.Children.Add(mInputLayout);
-			Grid.SetRow(mInputLayout, 2);
-			//Input textbox
-			mInputLayout.Children.Add(mInput);
-			//Input button
-			mInputLayout.Children.Add(mInputButton);
-			Grid.SetColumn(mInputButton, 1);
+			//System Info
+			AddItemAndSetPositionsAndSpans(mLayout, mSysInfoLayout, 90, 3, 0, 3, 0, 5);
+			AddItemAndSetPositionsAndSpans(mSysInfoLayout, mSysInfoUnder, 0, 1, 0, 5);
+			AddItemAndSetPositionsAndSpans(mSysInfoLayout, mLatencyView, 0, 1, 0, 1);
+			AddItemAndSetPositionsAndSpans(mSysInfoLayout, mMemoryView, 0, 1, 1, 1);
+			AddItemAndSetPositionsAndSpans(mSysInfoLayout, mThreadsView, 0, 1, 2, 1);
+			AddItemAndSetPositionsAndSpans(mSysInfoLayout, mShardsView, 0, 1, 3, 1);
+			AddItemAndSetPositionsAndSpans(mSysInfoLayout, mPrefixView, 0, 1, 4, 1);
 
-			//System info layout
-			mLayout.Children.Add(mSysInfoLayout);
-			Grid.SetRow(mSysInfoLayout, 1);
-			//Latency textbox
-			mSysInfoLayout.Children.Add(mLatency);
-			//Memory textbox
-			mSysInfoLayout.Children.Add(mMemory);
-			Grid.SetColumn(mMemory, 1);
-			//Thread textbox
-			mSysInfoLayout.Children.Add(mThreads);
-			Grid.SetColumn(mThreads, 2);
+			//Input
+			AddItemAndSetPositionsAndSpans(mLayout, mInputLayout, 93, 7, 0, 3, 1, 10);
+			mInput.SetBinding(FontSizeProperty, mInputBinding);
+			AddItemAndSetPositionsAndSpans(mInputLayout, mInput, 0, 1, 0, 9);
+			AddItemAndSetPositionsAndSpans(mInputLayout, mInputButton, 0, 1, 9, 1);
+
+			//Buttons
+			AddItemAndSetPositionsAndSpans(mLayout, mButtonLayout, 90, 10, 3, 1, 1, 4);
+			AddItemAndSetPositionsAndSpans(mButtonLayout, mFirstButton, 0, 1, 0, 1);
+			AddItemAndSetPositionsAndSpans(mButtonLayout, mSecondButton, 0, 1, 1, 1);
+			AddItemAndSetPositionsAndSpans(mButtonLayout, mThirdButton, 0, 1, 2, 1);
+			AddItemAndSetPositionsAndSpans(mButtonLayout, mFourthButton, 0, 1, 3, 1);
 
 			//Set this panel as the content for this window.
 			Content = mLayout;
-
 			//Actually run the application
 			RunApplication();
 		}
 
-		//Do all the actions
+		//Actually make the application work
 		private void RunApplication()
 		{
 			//Make console output show on the output text block and box
@@ -161,53 +261,63 @@ namespace Advobot
 			//Events
 			mInput.KeyUp += AcceptInput;
 			mInputButton.Click += AcceptInput;
+			mOutputContextMenuSave.Click += SaveOutput;
+			mOutputContextMenuClear.Click += ClearOutput;
+			mFirstButton.Click += BringUpMenu;
+			mSecondButton.Click += BringUpMenu;
+			mThirdButton.Click += BringUpMenu;
+			mFourthButton.Click += BringUpMenu;
 			mMemory.MouseEnter += ModifyMemHoverInfo;
 			mMemory.MouseLeave += ModifyMemHoverInfo;
 		}
-		#endregion
 
-		#region Mutators
-		//Add a hypderlink to the output box
-		public static void AddHyperlink(string input)
+		//Add in X amount of rows
+		private static void AddRows(Grid grid, int amount)
 		{
-			//Make sure the input is a valid link
-			if (!Actions.ValidateURL(input))
+			for (int i = 0; i < amount; i++)
 			{
-				Actions.WriteLine(Actions.ERROR("Invalid URL."));
-				return;
+				grid.RowDefinitions.Add(new RowDefinition());
 			}
-			//Check if the paragraph is valid
-			var para = (Paragraph)mOutput.Document.Blocks.LastBlock;
-			if (para == null)
-			{
-				Actions.WriteLine(input);
-				return;
-			}
-			//Create the hyperlink
-			var hyperlink = new Hyperlink(new Run("Listed Guilds"))
-			{
-				NavigateUri = new Uri(input),
-				IsEnabled = true,
-			};
-			//Format the paragraph
-			para.Inlines.Add(new Run(DateTime.Now.ToString("HH:mm:ss") + ": "));
-			//Add in the hyperlink
-			para.Inlines.Add(hyperlink);
-			//Add in a carriage return to have things look nicer
-			para.Inlines.Add(new Run("\r"));
-			//Add the paragraph to the ouput
-			mOutput.Document.Blocks.Add(para);
+		}
 
-			//Make it work when clicked
-			hyperlink.RequestNavigate += (sender, link) =>
+		//Add in X amount of columns
+		private static void AddCols(Grid grid, int amount)
+		{
+			for (int i = 0; i < amount; i++)
 			{
-				Process.Start(link.Uri.ToString());
-				link.Handled = true;
-			};
+				grid.ColumnDefinitions.Add(new ColumnDefinition());
+			}
+		}
+
+		//Set the row and row span
+		private static void SetRowAndSpan(UIElement item, int start = 0, int length = 1)
+		{
+			Grid.SetRow(item, start < 0 ? 0 : start);
+			Grid.SetRowSpan(item, length <= 0 ? 1 : length);
+		}
+
+		//Set the colum and column span
+		private static void SetColAndSpan(UIElement item, int start = 0, int length = 1)
+		{
+			Grid.SetColumn(item, start < 0 ? 0 : start);
+			Grid.SetColumnSpan(item, length <= 0 ? 1 : length);
+		}
+
+		//Add the child to the given grid with specified starting rows/columns and lengths
+		private static void AddItemAndSetPositionsAndSpans(Panel parent, UIElement child, int rowStart = 0, int rowLength = 1, int columnStart = 0, int columnLength = 1, int rows = 0, int columns = 0)
+		{
+			if (child is Grid)
+			{
+				AddRows(child as Grid, rows);
+				AddCols(child as Grid, columns);
+			}
+			parent.Children.Add(child);
+			SetRowAndSpan(child, rowStart, rowLength);
+			SetColAndSpan(child, columnStart, columnLength);
 		}
 		#endregion
 
-		#region Event Actions
+		#region Events
 		//Accept input through the enter key
 		private void AcceptInput(object sender, KeyEventArgs e)
 		{
@@ -235,19 +345,168 @@ namespace Advobot
 			GatherInput();
 		}
 
-		//Modify the memory tooltip
-		private void ModifyMemHoverInfo(object sender, MouseEventArgs e)
+		//Save the output after the button is clicked
+		private void SaveOutput(object sender, RoutedEventArgs e)
 		{
-			if (mMemHoverInfo.IsOpen)
+			//Make sure the path is valid
+			var path = Actions.GetServerFilePath(0, "Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt", true);
+			if (path == null)
 			{
-				mMemHoverInfo.IsOpen = false;
+				Actions.WriteLine("Unable to save the output log.");
+				return;
+			}
+
+			//Create the temporary file
+			if (!File.Exists(path))
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(path));
+			}
+
+			//Save the file
+			using (FileStream stream = new FileStream(path, FileMode.Create))
+			{
+				new TextRange(mOutput.Document.ContentStart, mOutput.Document.ContentEnd).Save(stream, DataFormats.Text, true);
+			}
+
+			//Write to the console telling the user that the console log was successfully saved
+			Actions.WriteLine("Successfully saved the output log.");
+		}
+
+		//Clear the output after the button is clicked
+		private void ClearOutput(object sender, RoutedEventArgs e)
+		{
+			var result = MessageBox.Show("Are you sure you want to clear the output window?", Variables.Bot_Name, MessageBoxButton.OKCancel);
+
+			switch (result)
+			{
+				case MessageBoxResult.OK:
+				{
+					mOutput.Document.Blocks.Clear();
+					break;
+				}
+				case MessageBoxResult.Cancel:
+				{
+					break;
+				}
+			}
+		}
+
+		//Bring up the associated menu
+		private void BringUpMenu(object sender, RoutedEventArgs e)
+		{
+			//Get the button's name
+			var name = ((Button)sender).Content.ToString();
+			//Remove the current blocks in the document
+			mSecondaryOutput.Document.Blocks.Clear();
+			//Disable the rtb if the most recent button clicked is clicked again
+			if (name.Equals(mLastButtonClicked, StringComparison.OrdinalIgnoreCase))
+			{
+				SetColAndSpan(mOutput, 0, 4);
+				mSecondaryOutput.Visibility = Visibility.Hidden;
+				mLastButtonClicked = null;
 			}
 			else
 			{
-				mMemHoverInfo.IsOpen = true;
+				//Resize the regular output window
+				SetColAndSpan(mOutput, 0, 3);
+				//Make the secondary output visible
+				mSecondaryOutput.Visibility = Visibility.Visible;
+				//Keep track of the last button clicked
+				mLastButtonClicked = name;
+
+				//Show the text for help
+				if (name.Equals(mFirstButtonString, StringComparison.OrdinalIgnoreCase))
+				{
+					mSecondaryOutput.Document.Blocks.Add(mFirstParagraph);
+				}
+				//Show the text for commands
+				else if (name.Equals(mSecondButtonString, StringComparison.OrdinalIgnoreCase))
+				{
+					mSecondaryOutput.Document.Blocks.Add(mSecondParagraph);
+				}
+				//Show the text for info
+				else if (name.Equals(mThirdButtonString, StringComparison.OrdinalIgnoreCase))
+				{
+					mSecondaryOutput.Document.Blocks.Add(mThirdParagraph);
+				}
+				//Show the text for settings
+				else if (name.Equals(mFourthButtonString, StringComparison.OrdinalIgnoreCase))
+				{
+					mSecondaryOutput.Document.Blocks.Add(mFourthParagraph);
+				}
 			}
 		}
+
+		//Modify the memory tooltip
+		private void ModifyMemHoverInfo(object sender, MouseEventArgs e)
+		{
+			mMemHoverInfo.IsOpen = !mMemHoverInfo.IsOpen;
+		}
 		#endregion
+
+		//Add a hypderlink to an output box
+		public static void AddHyperlink(RichTextBox output, string link, string name, string beforeText = null, string afterText = null)
+		{
+			//Create the hyperlink
+			var hyperlink = CreateHyperlink(link, name);
+			if (hyperlink == null)
+			{
+				return;
+			}
+			//Check if the paragraph is valid
+			var para = (Paragraph)mOutput.Document.Blocks.LastBlock;
+			if (para == null)
+			{
+				Actions.WriteLine(link);
+				return;
+			}
+			//Format the text before the hyperlink
+			if (String.IsNullOrWhiteSpace(beforeText))
+			{
+				para.Inlines.Add(new Run(DateTime.Now.ToString("HH:mm:ss") + ": "));
+			}
+			else
+			{
+				para.Inlines.Add(new Run(beforeText));
+			}
+			//Add in the hyperlink
+			para.Inlines.Add(hyperlink);
+			//Format the text after the hyperlink
+			if (String.IsNullOrWhiteSpace(beforeText))
+			{
+				para.Inlines.Add(new Run("\r"));
+			}
+			else
+			{
+				para.Inlines.Add(new Run(afterText));
+			}
+			//Add the paragraph to the ouput
+			output.Document.Blocks.Add(para);
+
+			//Make it work when clicked
+			hyperlink.RequestNavigate += (sender, e) =>
+			{
+				Process.Start(e.Uri.ToString());
+				e.Handled = true;
+			};
+		}
+
+		//Validate a hyperlink
+		public static Hyperlink CreateHyperlink(string link, string name)
+		{
+			//Make sure the input is a valid link
+			if (!Actions.ValidateURL(link))
+			{
+				Actions.WriteLine(Actions.ERROR("Invalid URL."));
+				return null;
+			}
+			//Create the hyperlink
+			return new Hyperlink(new Run(name))
+			{
+				NavigateUri = new Uri(link),
+				IsEnabled = true,
+			};
+		}
 
 		//Gather the input and reset the input
 		private void GatherInput()
@@ -293,13 +552,27 @@ namespace Advobot
 			timer.Tick += (sender, e) =>
 			{
 				mLatency.Text = String.Format("Latency: {0}ms", Variables.Client.Latency);
-				mMemory.Text = String.Format("Memory: {0}mb", (Process.GetCurrentProcess().WorkingSet64 / 1000000.0).ToString("0.00"));
+				mMemory.Text = String.Format("Memory: {0}MB", (Process.GetCurrentProcess().WorkingSet64 / 1000000.0).ToString("0.00"));
 				mThreads.Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
+				mShards.Text = String.Format($"Shards: {0}");
+				mPrefix.Text = String.Format("Prefix: {0}", Properties.Settings.Default.Prefix);
 			};
 			//Make the timer update every so often
 			timer.Interval = new TimeSpan(0, 0, 0, 0, 250);
 			//Start the timer
 			timer.Start();
+		}
+
+		//Get the main output box
+		public static RichTextBox MainOutput
+		{
+			get { return mOutput; }
+		}
+
+		//Get the secondary output box
+		public static RichTextBox SecondaryOutput
+		{
+			get { return mSecondaryOutput; }
 		}
 	}
 
@@ -837,7 +1110,7 @@ namespace Advobot
 				count++.ToString("00"), Actions.FormatGuild(x), x.Owner.Username, x.Owner.Discriminator, x.Owner.Id));
 
 			//Send it to have the hyperlink created and go to the output window
-			BotWindow.AddHyperlink(Actions.UploadToHastebin(String.Join("\n", guildStrings)));
+			BotWindow.AddHyperlink(BotWindow.MainOutput, "Listed Guilds", Actions.UploadToHastebin(String.Join("\n", guildStrings)));
 		}
 	}
 
@@ -868,6 +1141,20 @@ namespace Advobot
 		public override Encoding Encoding
 		{
 			get { return Encoding.UTF8; }
+		}
+	}
+
+	//Resize font
+	public class FontResizer : IValueConverter
+	{
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return (int)(System.Convert.ToDouble(value) * .3);
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

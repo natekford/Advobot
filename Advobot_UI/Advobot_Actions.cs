@@ -8,7 +8,6 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Advobot
@@ -1426,6 +1425,9 @@ namespace Advobot
 		//Get rid of certain elements to make messages look neater
 		public static string ReplaceMarkdownChars(string input)
 		{
+			if (String.IsNullOrWhiteSpace(input))
+				return "";
+
 			//Matching
 			Regex empty = new Regex("[*`]");
 			Regex newLines = new Regex("[\n]{2}");
@@ -1660,8 +1662,16 @@ namespace Advobot
 		//Send an embedded object
 		public static async Task<IMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed)
 		{
-			if (channel == null || !Variables.Guilds.ContainsKey(((channel as ITextChannel).Guild.Id)))
+			var guild = (channel as ITextChannel)?.Guild;
+			if (channel == null || guild == null || !Variables.Guilds.ContainsKey(guild.Id))
 				return null;
+
+			//Replace all instances of the base prefix with the guild's prefix
+			var guildPrefix = Variables.Guilds[guild.Id].Prefix;
+			if (!String.IsNullOrWhiteSpace(guildPrefix))
+			{
+				embed.Description.Replace(Properties.Settings.Default.Prefix, guildPrefix);
+			}
 
 			var remadeEmbed = MakeNewEmbed();
 			if (embed.Build().Fields.Any())
@@ -1699,7 +1709,7 @@ namespace Advobot
 			else
 			{
 				remadeEmbed = embed;
-				if (remadeEmbed.Description.Count(x => x == '\n' || x == '\r') >= 20)
+				if (!String.IsNullOrWhiteSpace(remadeEmbed.Description) && remadeEmbed.Description.Count(x => x == '\n' || x == '\r') >= 20)
 				{
 					remadeEmbed.Url = UploadToHastebin(ReplaceMarkdownChars(remadeEmbed.Description));
 					remadeEmbed.Description = "Content is longer than 20 lines. Click the link to see it.";
@@ -1953,7 +1963,7 @@ namespace Advobot
 			if (!embeds && message.Attachments.Any())
 			{
 				//If attachment, the file is hosted on discord which has a concrete URL name for files (cdn.discordapp.com/attachments/.../x.png)
-				attachmentURLs = message.Attachments.Select(x => x.Url).ToList();
+				attachmentURLs = message.Attachments.Select(x => x.Url).Distinct().ToList();
 			}
 			else if (embeds && message.Embeds.Any())
 			{
@@ -1965,11 +1975,11 @@ namespace Advobot
 						//If no video then it has to be just an image
 						if (x.Thumbnail.HasValue && !String.IsNullOrEmpty(x.Thumbnail.Value.Url))
 						{
-							embedURLs.Add(x.Thumbnail.Value.Url);
+							embedURLs.AddRange(message.Embeds.Select(y => y.Thumbnail.Value.Url).Distinct());
 						}
 						else if (x.Image.HasValue && !String.IsNullOrEmpty(x.Image.Value.Url))
 						{
-							embedURLs.Add(x.Image.Value.Url);
+							embedURLs.AddRange(message.Embeds.Select(y => y.Image.Value.Url).Distinct());
 						}
 					}
 					else
@@ -1980,48 +1990,52 @@ namespace Advobot
 				});
 			}
 			var user = message.Author;
-			foreach (string URL in attachmentURLs.Distinct())
+			//Attached files
+			foreach (string URL in attachmentURLs)
 			{
+				//Image attachment
 				if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL), StringComparer.OrdinalIgnoreCase))
 				{
 					++Variables.LoggedImages;
-					//Image attachment
-					var embed = AddFooter(MakeNewEmbed(null, "Image", Constants.ATCH, URL), "Attached Image");
+					var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
+					AddFooter(embed, "Attached Image");
 					AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
 					await SendEmbedMessage(channel, embed);
 				}
+				//Gif attachment
 				else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(URL), StringComparer.OrdinalIgnoreCase))
 				{
 					++Variables.LoggedGifs;
-					//Gif attachment
-					var embed = AddFooter(MakeNewEmbed(null, "Gif", Constants.ATCH, URL), "Attached Gif");
+					var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
+					AddFooter(embed, "Attached Gif");
 					AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
 					await SendEmbedMessage(channel, embed);
 				}
+				//Random file attachment
 				else
 				{
 					++Variables.LoggedFiles;
-					//Random file attachment
-					var embed = AddFooter(MakeNewEmbed(null, "File", Constants.ATCH), "Attached File");
+					var embed = MakeNewEmbed(null, URL, Constants.ATCH, URL);
+					AddFooter(embed, "Attached File");
 					AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
-					await SendEmbedMessage(channel, embed.WithDescription(URL));
+					await SendEmbedMessage(channel, embed);
 				}
 			}
+			//Embedded images
 			foreach (string URL in embedURLs.Distinct())
 			{
 				++Variables.LoggedImages;
-				//Embed image
-				var embed = AddFooter(MakeNewEmbed(null, "Image", Constants.ATCH, URL), "Embedded Image");
+				var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
+				AddFooter(embed, "Embedded Image");
 				AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
 				await SendEmbedMessage(channel, embed);
 			}
+			//Embedded videos/gifs
 			foreach (Embed embedObject in videoEmbeds.Distinct())
 			{
 				++Variables.LoggedGifs;
-				//Check if video or gif
-				var title = Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url), StringComparer.OrdinalIgnoreCase) ? "Gif" : "Video";
-
-				var embed = AddFooter(MakeNewEmbed(title, embedObject.Url, Constants.ATCH, embedObject.Thumbnail.Value.Url), "Embedded " + title);
+				var embed = MakeNewEmbed(null, embedObject.Url, Constants.ATCH, embedObject.Thumbnail.Value.Url);
+				AddFooter(embed, "Embedded " + (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url), StringComparer.OrdinalIgnoreCase) ? "Gif" : "Video"));
 				AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
 				await SendEmbedMessage(channel, embed);
 			}

@@ -237,7 +237,6 @@ namespace Advobot
 		[Alias("infb")]
 		[Usage("infobot")]
 		[Summary("Displays various information about the bot.")]
-		[UserHasAPermission]
 		public async Task BotInfo()
 		{
 			TimeSpan span = DateTime.UtcNow.Subtract(Variables.StartupTime);
@@ -454,7 +453,6 @@ namespace Advobot
 		[Alias("uav")]
 		[Usage("useravatar <@user>")]
 		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily). Currently every avatar is displayed with an extension type of gif.")]
-		[UserHasAPermission]
 		public async Task UserAvatar([Optional, Remainder] string input)
 		{
 			IGuildUser user = input == null ? Context.User as IGuildUser : await Actions.GetUser(Context.Guild, input);
@@ -470,7 +468,6 @@ namespace Advobot
 		[Alias("ujat")]
 		[Usage("userjoinedat [Position]")]
 		[Summary("Shows the user which joined the guild in that position. Mostly accurate, give or take ten places per thousand users on the guild.")]
-		[UserHasAPermission]
 		public async Task UserJoinedAt([Remainder] string input)
 		{
 			int position;
@@ -622,7 +619,6 @@ namespace Advobot
 		[Alias("cmc")]
 		[Usage("currentmembercount")]
 		[Summary("Shows the current number of members in the guild.")]
-		[UserHasAPermission]
 		public async Task CurrentMemberCount()
 		{
 			await Actions.SendChannelMessage(Context, String.Format("The current member count is `{0}`.", (Context.Guild as SocketGuild).MemberCount));

@@ -7,7 +7,7 @@ namespace Advobot
 	{
 		public const string BOT_VERSION = "0.9.10";
 		public const string API_VERSION = "Discord.Net by RogueException v1.0.0-rc-00587";
-		public const string BOT_PREFIX = "++";
+		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string TEXT_HOST = "hastebin";
