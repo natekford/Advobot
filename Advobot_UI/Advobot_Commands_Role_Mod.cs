@@ -259,11 +259,11 @@ namespace Advobot
 
 			//Make a new list of IRole
 			var roles = new List<IRole>();
-			//Grab all roles that aren't the tarGeted one
+			//Grab all roles that aren't the targeted one
 			Context.Guild.Roles.Where(x => x != newRole).ToList().ForEach(x => roles.Add(x));
 			//Sort the list by position
 			roles = roles.OrderBy(x => x.Position).ToList();
-			//Add in the tarGetted role with the given position
+			//Add in the targetted role with the given position
 			roles.Insert(Math.Min(roles.Count(), inputRole.Position), newRole);
 
 			//Make a new list of BulkRoleProperties
@@ -365,26 +365,19 @@ namespace Advobot
 				return;
 			}
 
-			//Make a new list of IRole
-			var roles = new List<IRole>();
-			//Grab all roles that aren't the tarGeted one
-			Context.Guild.Roles.Where(x => x != role).ToList().ForEach(x => roles.Add(x));
-			//Sort the list by position
-			roles = roles.OrderBy(x => x.Position).ToList();
-			//Add in the tarGetted role with the given position
+			//Grab all roles that aren't the targeted one
+			var roles = Context.Guild.Roles.Where(x => x != role).ToList().OrderBy(x => x.Position).ToList();
+			//Add in the targetted role with the given position
 			roles.Insert(Math.Min(roles.Count(), position), role);
-
 			//Make a new list of BulkRoleProperties
-			var listOfBulk = new List<BulkRoleProperties>();
-			//Add the role's IDs and positions into it
-			roles.ForEach(x => listOfBulk.Add(new BulkRoleProperties(x.Id)));
+			var listOfBulk = roles.Select(x => new BulkRoleProperties(x.Id)).ToList();
 			//Readd the positions to it
 			listOfBulk.ForEach(x => x.Position = listOfBulk.IndexOf(x));
 			//Mass modify the roles with the list having the correct positions
 			await Context.Guild.ModifyRolesAsync(listOfBulk);
 
 			//Send a message stating what position the channel was sent to
-			await Actions.SendChannelMessage(Context, String.Format("Successfully gave the `{0}` role the position `{1}`.", role.Name, roles.IndexOf(role)));
+			await Actions.SendChannelMessage(Context, String.Format("Successfully gave the `{0}` role the position `{1}`.", role.Name, role.Position));
 		}
 
 		[Command("rolepositions")]
@@ -422,8 +415,7 @@ namespace Advobot
 		[Command("roleperms")]
 		[Alias("rp")]
 		[Usage("roleperms [Show|Add|Remove] [Role] [Permission/...]")]
-		[Summary("Add/remove the selected permissions to/from the role. Permissions must be separated by a `/`! " +
-			"Type `" + Constants.BOT_PREFIX + "rolepermissions [Show]` to see the available permissions. " +
+		[Summary("Add/remove the selected permissions to/from the role. Permissions must be separated by a `/`! Type `" + Constants.BOT_PREFIX + "rolepermissions [Show]` to see the available permissions. " +
 			"Type `" + Constants.BOT_PREFIX + "rolepermissions [Show] [Role]` to see the permissions of that role.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
 		public async Task RolePermissions([Remainder] string input)
@@ -473,7 +465,7 @@ namespace Advobot
 			if (role == null)
 				return;
 
-			//Send a message of the permissions the tarGetted role has
+			//Send a message of the permissions the targetted role has
 			if (show)
 			{
 				var rolePerms = new GuildPermissions(Context.Guild.GetRole(role.Id).Permissions.RawValue);

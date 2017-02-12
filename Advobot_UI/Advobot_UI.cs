@@ -70,8 +70,15 @@ namespace Advobot
 		private const string mThirdButtonString = "Info";
 		private const string mFourthButtonString = "Settings";
 		private static string mLastButtonClicked;
+		//Inlines
+		private static Run mFirstHelpPart = new Run("Command Syntax:\n\t[] means required\n\t<> means optional\n\t| means or\n\nLatency:\n\tTime it takes for a command to reach the bot.\nMemory:\n\t" +
+			"Amount of RAM the program is using.\nThreads:\n\tWhere all the actions in the bot happen.\nShards:\n\tHold all the guilds a bot has on its client.\n\tThere is a limit of 2500 guilds per shard." +
+			"\n\nCurrent API Wrapper Version: " + Constants.API_VERSION + "\nCurrent Bot Version: " + Constants.BOT_VERSION);
+		private static Run mSecondHelpPart = new Run("\nCurrent GitHub Repository: ");
+		private static Hyperlink mThirdHelpPart = CreateHyperlink("https://github.com/advorange/Advobot", "Advobot");
+		private static Run mFourthHelpPart = new Run("\n\nCharacter Count: 350,000+\nLine Count: 10,000+");
 		//Paragraphs
-		private static Paragraph mFirstParagraph = new Paragraph(new Run("Sample Text"));
+		private static Paragraph mFirstParagraph = new Paragraph();
 		private static Paragraph mSecondParagraph = new Paragraph(new Run("Placeholder"));
 		private static Paragraph mThirdParagraph = new Paragraph(new Run("Lorem Ipsum"));
 		private static Paragraph mFourthParagraph = new Paragraph(new Run("Test"));
@@ -102,19 +109,11 @@ namespace Advobot
 		#region Input
 		//Input layout
 		private static Grid mInputLayout = new Grid();
-		//Input binding
-		private static Binding mInputBinding = new Binding
-		{
-			Path = new PropertyPath("ActualHeight"),
-			RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
-			Converter = new FontResizer(),
-		};
 		//Input textbox
-		private static TextBox mInput = new TextBox
+		private static RichTextBox mInput = new RichTextBox
 		{
-			MaxLength = 250,
-			MaxLines = 5,
-			TextWrapping = TextWrapping.Wrap,
+			Background = Brushes.White,
+			Margin = new Thickness(0),
 		};
 		//Input button
 		private static Button mInputButton = new Button
@@ -192,6 +191,22 @@ namespace Advobot
 		};
 		#endregion
 
+		#region Bindings
+		//Text resize binding
+		private static Binding mInputBinding = new Binding
+		{
+			Path = new PropertyPath("ActualHeight"),
+			RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
+			Converter = new FontResizer(.275),
+		};
+		private static Binding mSecondaryOutputBiding = new Binding
+		{
+			Path = new PropertyPath("ActualHeight"),
+			RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
+			Converter = new FontResizer(.0175),
+		};
+		#endregion
+
 		#region Creating the Window
 		//Create the bot window
 		public BotWindow()
@@ -208,6 +223,7 @@ namespace Advobot
 
 			//Output
 			AddItemAndSetPositionsAndSpans(mLayout, mOutput, 0, 90, 0, 4);
+			mSecondaryOutput.SetBinding(FontSizeProperty, mSecondaryOutputBiding);
 			AddItemAndSetPositionsAndSpans(mLayout, mSecondaryOutput, 0, 90, 3, 1);
 
 			//System Info
@@ -222,6 +238,7 @@ namespace Advobot
 			//Input
 			AddItemAndSetPositionsAndSpans(mLayout, mInputLayout, 93, 7, 0, 3, 1, 10);
 			mInput.SetBinding(FontSizeProperty, mInputBinding);
+			mInput.Document.LineHeight = 1;
 			AddItemAndSetPositionsAndSpans(mInputLayout, mInput, 0, 1, 0, 9);
 			AddItemAndSetPositionsAndSpans(mInputLayout, mInputButton, 0, 1, 9, 1);
 
@@ -231,6 +248,9 @@ namespace Advobot
 			AddItemAndSetPositionsAndSpans(mButtonLayout, mSecondButton, 0, 1, 1, 1);
 			AddItemAndSetPositionsAndSpans(mButtonLayout, mThirdButton, 0, 1, 2, 1);
 			AddItemAndSetPositionsAndSpans(mButtonLayout, mFourthButton, 0, 1, 3, 1);
+
+			//Paragraphs
+			mFirstParagraph.Inlines.AddRange(new Inline[] { mFirstHelpPart, mSecondHelpPart, mThirdHelpPart, mFourthHelpPart });
 
 			//Set this panel as the content for this window.
 			Content = mLayout;
@@ -304,12 +324,12 @@ namespace Advobot
 		}
 
 		//Add the child to the given grid with specified starting rows/columns and lengths
-		private static void AddItemAndSetPositionsAndSpans(Panel parent, UIElement child, int rowStart = 0, int rowLength = 1, int columnStart = 0, int columnLength = 1, int rows = 0, int columns = 0)
+		private static void AddItemAndSetPositionsAndSpans(Panel parent, UIElement child, int rowStart, int rowLength, int columnStart, int columnLength, int setRows = 0, int setColumns = 0)
 		{
 			if (child is Grid)
 			{
-				AddRows(child as Grid, rows);
-				AddCols(child as Grid, columns);
+				AddRows(child as Grid, setRows);
+				AddCols(child as Grid, setColumns);
 			}
 			parent.Children.Add(child);
 			SetRowAndSpan(child, rowStart, rowLength);
@@ -321,7 +341,8 @@ namespace Advobot
 		//Accept input through the enter key
 		private void AcceptInput(object sender, KeyEventArgs e)
 		{
-			if (String.IsNullOrWhiteSpace(mInput.Text))
+			var text = new TextRange(mInput.Document.ContentStart, mInput.Document.ContentEnd).Text;
+			if (String.IsNullOrWhiteSpace(text))
 			{
 				mInputButton.IsEnabled = false;
 				return;
@@ -334,6 +355,10 @@ namespace Advobot
 				}
 				else
 				{
+					if (text.Length > 250)
+					{
+
+					}
 					mInputButton.IsEnabled = true;
 				}
 			}
@@ -482,13 +507,6 @@ namespace Advobot
 			}
 			//Add the paragraph to the ouput
 			output.Document.Blocks.Add(para);
-
-			//Make it work when clicked
-			hyperlink.RequestNavigate += (sender, e) =>
-			{
-				Process.Start(e.Uri.ToString());
-				e.Handled = true;
-			};
 		}
 
 		//Validate a hyperlink
@@ -501,22 +519,29 @@ namespace Advobot
 				return null;
 			}
 			//Create the hyperlink
-			return new Hyperlink(new Run(name))
+			var hyperlink = new Hyperlink(new Run(name))
 			{
 				NavigateUri = new Uri(link),
 				IsEnabled = true,
 			};
+			//Make it work when clicked
+			hyperlink.RequestNavigate += (sender, e) =>
+			{
+				Process.Start(e.Uri.ToString());
+				e.Handled = true;
+			};
+			return hyperlink;
 		}
 
 		//Gather the input and reset the input
 		private void GatherInput()
 		{
 			//Get the current text
-			var text = mInput.Text;
+			var text = new TextRange(mInput.Document.ContentStart, mInput.Document.ContentEnd).Text.Trim(new char[] { '\r', '\n' });
 			//Write it out to the ghetto console
 			Console.WriteLine(text);
 			//Clear the input
-			mInput.Text = "";
+			mInput.Document.Blocks.Clear();
 			//Reset the enter button
 			mInputButton.IsEnabled = false;
 			//Do an action with the text
@@ -1147,9 +1172,15 @@ namespace Advobot
 	//Resize font
 	public class FontResizer : IValueConverter
 	{
+		double convertFactor;
+		public FontResizer(double convertFactor)
+		{
+			this.convertFactor = convertFactor;
+		}
+
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return (int)(System.Convert.ToDouble(value) * .3);
+			return Math.Max((int)(System.Convert.ToDouble(value) * convertFactor), -1);
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

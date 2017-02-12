@@ -189,39 +189,31 @@ namespace Advobot
 				return;
 			}
 
-			//Initialize a new list of IGuildChannel
+			//Placeholder list
 			var channelAndPositions = new List<IGuildChannel>();
 			//Grab either the text or voice channels
 			if (Actions.GetChannelType(channel) == Constants.TEXT_TYPE)
 			{
-				//Grab all text channels that aren't the tarGeted one
-				(await Context.Guild.GetTextChannelsAsync()).Where(x => x != channel).ToList().ForEach(x => channelAndPositions.Add(x));
+				//Grab all text channels that aren't the targeted one and sort the list by position
+				channelAndPositions = (await Context.Guild.GetTextChannelsAsync()).Where(x => x != channel).Select(x => x as IGuildChannel).OrderBy(x => x.Position).ToList();
 			}
 			else
 			{
-				//Grab all the voice channels that aren't the tarGeted one
-				(await Context.Guild.GetVoiceChannelsAsync()).Where(x => x != channel).ToList().ForEach(x => channelAndPositions.Add(x));
+				//Grab all the voice channels that aren't the targeted one and sort the list by position
+				channelAndPositions = (await Context.Guild.GetVoiceChannelsAsync()).Where(x => x != channel).Select(x => x as IGuildChannel).OrderBy(x => x.Position).ToList();
 			}
-			//Sort the list by position
-			channelAndPositions = channelAndPositions.OrderBy(x => x.Position).ToList();
-			//Add in the tarGetted channel with the given position
+			//Add in the targeted channel with the given position
 			channelAndPositions.Insert(Math.Min(channelAndPositions.Count(), position), channel);
-
-			//Initialize a new list of BulkGuildChannelProperties
-			var listOfBulk = new List<BulkGuildChannelProperties>();
-			//Add the channel's IDs and positions into it
-			channelAndPositions.ForEach(cap => listOfBulk.Add(new BulkGuildChannelProperties(cap.Id, channelAndPositions.IndexOf(cap))));
-			//Mass modify the channels with the list having the correct positions as an IEnum
-			await Context.Guild.ModifyChannelsAsync(listOfBulk as IEnumerable<BulkGuildChannelProperties>);
+			//Mass modify the channels with the list having the correct positions
+			await Context.Guild.ModifyChannelsAsync(channelAndPositions.Select(x => new BulkGuildChannelProperties(x.Id, channelAndPositions.IndexOf(x))) as IEnumerable<BulkGuildChannelProperties>);
 
 			//Send a message stating what position the channel was sent to
-			await Actions.SendChannelMessage(Context, String.Format("Successfully moved `{0} ({1})` to position `{2}`.",
-				channel.Name, Actions.GetChannelType(channel), channelAndPositions.IndexOf(channel)));
+			await Actions.SendChannelMessage(Context, String.Format("Successfully moved `{0} ({1})` to position `{2}`.", channel.Name, Actions.GetChannelType(channel), channel.Position));
 		}
 
-		[Command("channelpostitions")]
+		[Command("channelpositions")]
 		[Alias("chposs")]
-		[Usage("channelpostitions [Text|Voice]")]
+		[Usage("channelpositions [Text|Voice]")]
 		[Summary("Lists the positions of each text or voice channel on the guild.")]
 		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ListChannelPositions([Remainder] string input)
@@ -316,7 +308,7 @@ namespace Advobot
 					var userOverwrites = new List<string>();
 					foreach (Overwrite overwrite in channel.PermissionOverwrites)
 					{
-						if (overwrite.TargetType == PermissionTarget.Role)
+						if (overwrite.TargetId == (int)PermissionTarget.Role)
 						{
 							roleOverwrites.Add(Context.Guild.GetRole(overwrite.TargetId).Name);
 						}
@@ -541,13 +533,13 @@ namespace Advobot
 			//Trim the third arg
 			var target = inputArray[2].Trim();
 
-			//Copy the selected tarGet
+			//Copy the selected target
 			if (target.Equals("all", StringComparison.OrdinalIgnoreCase))
 			{
 				target = "ALL";
 				foreach (Overwrite permissionOverwrite in inputChannel.PermissionOverwrites)
 				{
-					if (permissionOverwrite.TargetType == PermissionTarget.Role)
+					if (permissionOverwrite.TargetId == (int)PermissionTarget.Role)
 					{
 						var role = Context.Guild.GetRole(permissionOverwrite.TargetId);
 						await outputChannel.AddPermissionOverwriteAsync(role, new OverwritePermissions(inputChannel.GetPermissionOverwrite(role).Value.AllowValue,
@@ -613,7 +605,7 @@ namespace Advobot
 			//Remove all the permission overwrites
 			channel.PermissionOverwrites.ToList().ForEach(async x =>
 			{
-				if (x.TargetType == PermissionTarget.Role)
+				if (x.TargetId == (int)PermissionTarget.Role)
 				{
 					await channel.RemovePermissionOverwriteAsync(Context.Guild.GetRole(x.TargetId));
 				}

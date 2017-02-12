@@ -196,6 +196,11 @@ namespace Advobot
 			{
 				Actions.AddSlowmodeUser(user);
 			}
+			if (Variables.Guilds[user.Guild.Id].RaidPrevention)
+			{
+				await user.AddRolesAsync(Variables.Guilds[user.Guild.Id].MuteRole);
+				Variables.Guilds[user.Guild.Id].UsersWhoHaveBeenMuted.Add(user);
+			}
 
 			var logChannel = await Actions.VerifyLogChannel(user.Guild);
 			if (logChannel == null)
@@ -446,6 +451,20 @@ namespace Advobot
 			var guild = channel.Guild;
 			if (guild == null)
 				return;
+			//Check if there are any attachments to log
+			var logChannel = await Actions.VerifyLogChannel(guild);
+			if (message.Attachments.Any() && logChannel != null)
+			{
+				//Check if image logging is enabled
+				if (!Variables.Guilds[guild.Id].LogActions.Any(x => Enum.GetName(typeof(LogActions), LogActions.ImageLog).IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+					return;
+
+				await Actions.ImageLog(logChannel, message, false);
+			}
+			//Check if the user should be spam prevented
+			await MessageReceivedActions.SpamPrevention(guild, message);
+			//Check if the users is voting on a spam prevention
+			MessageReceivedActions.VotingOnSpamPrevention(guild, message);
 			//Check if anything to do with deleting/enabling preferences
 			await MessageReceivedActions.ModifyPreferences(guild, message);
 			//Check if any active closewords
@@ -461,7 +480,7 @@ namespace Advobot
 			if (afterMessage.Author.IsBot || Variables.STOP)
 				return;
 			await Actions.BannedPhrases(afterMessage);
-			var logChannel = await Actions.VerifyLogChannel(afterMessage) as ITextChannel;
+			var logChannel = await Actions.VerifyLogChannel(afterMessage);
 			if (logChannel == null || afterMessage == null || afterMessage.Author == null)
 				return;
 			var guild = logChannel.Guild;
@@ -470,27 +489,22 @@ namespace Advobot
 				return;
 
 			//Set the content as strings
-			var beforeMsg = Actions.ReplaceMarkdownChars(beforeMessage.IsSpecified ? beforeMessage.Value.Content : "NOTHING");
-			var afterMsg = Actions.ReplaceMarkdownChars(afterMessage.Content ?? "NOTHING");
+			var beforeMsg = Actions.ReplaceMarkdownChars(beforeMessage.IsSpecified ? beforeMessage.Value.Content : null);
+			var afterMsg = Actions.ReplaceMarkdownChars(afterMessage.Content);
+
+			//Null check
+			if (String.IsNullOrWhiteSpace(beforeMsg))
+			{
+				beforeMsg = "Empty or unable to be gotten.";
+			}
+			if (String.IsNullOrWhiteSpace(afterMsg))
+			{
+				beforeMsg = "Empty or unable to be gotten.";
+			}
 
 			//Return if the messages are the same
 			if (beforeMsg.Equals(afterMsg))
 				return;
-
-			//Bot cannot pick up messages from before it was started
-			if (String.IsNullOrWhiteSpace(beforeMsg))
-			{
-				beforeMsg = "UNABLE TO BE GATHERED";
-				if (String.IsNullOrWhiteSpace(afterMsg))
-				{
-					--Variables.LoggedEdits;
-					return;
-				}
-			}
-			if (String.IsNullOrWhiteSpace(afterMsg))
-			{
-				afterMsg = "UNABLE TO BE GATHERED";
-			}
 
 			//Check lengths
 			if (!(beforeMsg.Length + afterMsg.Length < 1800))
@@ -516,7 +530,7 @@ namespace Advobot
 		{
 			if (!message.IsSpecified || Variables.STOP)
 				return;
-			var logChannel = await Actions.VerifyLogChannel(message.Value) as ITextChannel;
+			var logChannel = await Actions.VerifyLogChannel(message.Value);
 			if (logChannel == null)
 				return;
 			var guild = logChannel.Guild;
@@ -526,22 +540,13 @@ namespace Advobot
 			++Variables.LoggedDeletes;
 
 			//If it is, then check if the message should be image logged
-			if (message.Value.Attachments.Any() || message.Value.Embeds.Any())
+			if (message.Value.Embeds.Any())
 			{
 				//Check if image logging is enabled
-				if (!Variables.Guilds[guild.Id].LogActions.Any(x => Enum.GetName(typeof(LogActions), 15).IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+				if (!Variables.Guilds[guild.Id].LogActions.Any(x => Enum.GetName(typeof(LogActions), LogActions.ImageLog).IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 					return;
 
-				//Check for attachments
-				if (message.Value.Attachments.Any())
-				{
-					await Actions.ImageLog(logChannel, message.Value, false);
-				}
-				//Check for embeds
-				if (message.Value.Embeds.Any())
-				{
-					await Actions.ImageLog(logChannel, message.Value, true);
-				}
+				await Actions.ImageLog(logChannel, message.Value, true);
 			}
 
 			//Check if logging deleted messages is on
@@ -756,10 +761,10 @@ namespace Advobot
 			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
-			var chan = channel as IGuildChannel;
+			var chan = channel as ITextChannel;
 
 			//Check if the channel trying to be made is a bot channel
-			if ((chan as ITextChannel) != null && chan.Name == Variables.Bot_Channel && await Actions.GetDuplicateBotChan(chan.Guild))
+			if (chan != null && chan.Name == Variables.Bot_Channel && await Actions.GetDuplicateBotChan(chan.Guild))
 			{
 				await chan.DeleteAsync();
 				return;
@@ -786,7 +791,7 @@ namespace Advobot
 			var aChan = afterChannel as IGuildChannel;
 
 			//Check if the name is the bot channel name
-			if ((aChan as ITextChannel) != null && aChan.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase))
+			if (aChan != null && aChan.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase))
 			{
 				//If the name wasn't the bot channel name to start with then set it back to its start name
 				if (!bChan.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase) && await Actions.GetDuplicateBotChan(bChan.Guild))
@@ -946,6 +951,81 @@ namespace Advobot
 			else if (Variables.Guilds[guild.Id].BannedPhrases.Any() || Variables.Guilds[guild.Id].BannedRegex.Any())
 			{
 				await Actions.BannedPhrases(message);
+			}
+		}
+
+		public static async Task SpamPrevention(IGuild guild, IMessage message)
+		{
+			//Get the spam prevention the guild has
+			var spamPrevention = Variables.Guilds[guild.Id].SpamPrevention;
+			//Check if the spam prevention exists and if the message has more mentions than are allowed
+			if (spamPrevention != null && message.MentionedUserIds.Distinct().Count() >= spamPrevention.Mentions)
+			{
+				//Set the user as a variable for easy typing
+				var author = message.Author as IGuildUser;
+				//Check if the bot can even kick/ban this user
+				if (Actions.GetPosition(guild, author) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)))
+					return;
+				//Get the user
+				var user = Variables.Guilds[guild.Id].SpamPreventionUsers.FirstOrDefault(x => x.User == author);
+				if (user == null)
+				{
+					user = new SpamPreventionUser(author, 0);
+					Variables.Guilds[guild.Id].SpamPreventionUsers.Add(user);
+				}
+				//Add one to their spam count
+				++user.CurrentSpamAmount;
+				//Check if that's greater than the allowed amount
+				if (user.CurrentSpamAmount >= spamPrevention.AmountOfMessages)
+				{
+					//Send a message telling the users of the guild they can vote to ban this person
+					await Actions.SendChannelMessage(message.Channel, String.Format("The user `{0}#{1}` needs `{2}` votes to be kicked. Vote to kick them by mentioning them.",
+						user.User.Username, user.User.Discriminator, spamPrevention.VotesNeededForKick));
+					//Enable them to be kicked
+					user.PotentialKick = true;
+				}
+			}
+		}
+
+		public static void VotingOnSpamPrevention(IGuild guild, IMessage message)
+		{
+			//Get the users primed to be kicked/banned by the spam prevention and get the spam prevention the guild has
+			var users = Variables.Guilds[guild.Id].SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
+			var spamPrevention = Variables.Guilds[guild.Id].SpamPrevention;
+			if (spamPrevention != null && users.Any())
+			{
+				//Cross reference the almost kicked users and the mentioned users
+				users.ForEach(async x =>
+				{
+					//Check if mentioned users contains any users almost kicked. Check if the person has already voted
+					if (message.MentionedUserIds.Contains(x.User.Id) && !x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id))
+					{
+						//Don't allow users to vote on themselves
+						if (x.User.Id == message.Author.Id)
+							return;
+						//Increment their votes
+						++x.VotesToKick;
+						//Add the user to the already voted list
+						x.UsersWhoHaveAlreadyVoted.Add(message.Author.Id);
+						//Check if the bot can even kick/ban this user
+						if (Actions.GetPosition(guild, x.User) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)))
+							return;
+						//Check if they should be punished
+						if (x.VotesToKick >= spamPrevention.VotesNeededForKick)
+						{
+							//Check if they've already been kicked (which means they should be banned now)
+							if (x.AlreadyKicked)
+							{
+								await guild.AddBanAsync(x.User);
+							}
+							//Otherwise just kick them
+							else
+							{
+								await x.User.KickAsync();
+							}
+						}
+					}
+				});
 			}
 		}
 	}

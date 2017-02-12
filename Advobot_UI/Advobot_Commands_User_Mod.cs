@@ -20,20 +20,16 @@ namespace Advobot
 		public async Task FullMute([Remainder] string input)
 		{
 			//Check if role already exists, if not, create it
-			var muteRole = await Actions.CreateRoleIfNotFound(Context.Guild, Constants.MUTE_ROLE_NAME);
+			var muteRole = await Actions.CreateMuteRoleIfNotFound(Context.Guild, Constants.MUTE_ROLE_NAME);
 			if (muteRole == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to get the mute role."));
 				return;
+			}
 
 			//See if both the bot and the user can edit/use this role
 			if (await Actions.GetRoleEditAbility(Context, role: muteRole) == null)
 				return;
-
-			//Always make sure it's muting correctly
-			await muteRole.ModifyAsync(x => x.Permissions = new GuildPermissions(sendMessages: false));
-			(await Context.Guild.GetTextChannelsAsync()).ToList().ForEach(x =>
-			{
-				x.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, 805316689));
-			});
 
 			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 2);
@@ -53,7 +49,7 @@ namespace Advobot
 			}
 			else
 			{
-				//Give the tarGetted user the role
+				//Give the targetted user the role
 				var time = 0;
 				if (inputArray.Length == 2 && !int.TryParse(inputArray[1], out time))
 				{
@@ -356,7 +352,7 @@ namespace Advobot
 				return;
 			}
 
-			//Softban the tarGetted use
+			//Softban the targetted use
 			await Context.Guild.AddBanAsync(inputUser);
 			await Context.Guild.RemoveBanAsync(inputUser);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully banned and unbanned `{0}#{1}`.", inputUser.Username, inputUser.Discriminator));
@@ -564,7 +560,7 @@ namespace Advobot
 				return;
 			}
 
-			//Kick the tarGetted user
+			//Kick the targetted user
 			await inputUser.KickAsync();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully kicked `{0}#{1}` with the ID `{2}`.",
 				inputUser.Username, inputUser.Discriminator, inputUser.Id));
@@ -774,7 +770,7 @@ namespace Advobot
 			var timeString = Actions.GetVariable(inputArray, "time");
 			var targetString = Actions.GetVariable(inputArray, "guild");
 
-			//Check if the tarGet is already in either dictionary
+			//Check if the target is already in either dictionary
 			if (targetString == null)
 			{
 				//Check the channel dictionary
@@ -858,7 +854,7 @@ namespace Advobot
 				}
 			});
 
-			//If tarGetString is null then take that as only the channel and not the guild
+			//If targetString is null then take that as only the channel and not the guild
 			if (targetString == null)
 			{
 				//Add the channel and list to a dictionary

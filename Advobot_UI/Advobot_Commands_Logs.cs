@@ -55,7 +55,7 @@ namespace Advobot
 		[Command("logignore")]
 		[Alias("logi")]
 		[Usage("logignore [Add|Remove|Current] [#Channel|Channel Name]")]
-		[Summary("Ignores all logging info that would have been gotten from a channel. Only works on a text channel.")]
+		[Summary("Ignores all logging info that would have been gotten from a channel. Only works on text channels.")]
 		[GuildOwnerRequirement]
 		public async Task IgnoreChannel([Remainder] string input)
 		{
@@ -228,7 +228,7 @@ namespace Advobot
 				return;
 			}
 
-			//Get all the tarGetted log actions
+			//Get all the targetted log actions
 			var newLogActions = new List<LogActions>();
 			if (logActionsString.Equals("all", StringComparison.OrdinalIgnoreCase))
 			{

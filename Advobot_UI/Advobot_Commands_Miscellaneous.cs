@@ -455,7 +455,7 @@ namespace Advobot
 		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily). Currently every avatar is displayed with an extension type of gif.")]
 		public async Task UserAvatar([Optional, Remainder] string input)
 		{
-			IGuildUser user = input == null ? Context.User as IGuildUser : await Actions.GetUser(Context.Guild, input);
+			var user = input == null ? Context.User as IGuildUser : await Actions.GetUser(Context.Guild, input);
 			if (user == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
@@ -782,7 +782,7 @@ namespace Advobot
 			//Have gone through every other check so it's an error at this point
 			if (action == null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid tarGet supplied."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid target supplied."));
 				return;
 			}
 

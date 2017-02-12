@@ -46,7 +46,7 @@ namespace Advobot
 				}
 				else
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Only the bot owner can use this command tarGetting other guilds."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Only the bot owner can use this command targetting other guilds."));
 					return;
 				}
 			}
@@ -76,7 +76,7 @@ namespace Advobot
 				return;
 			}
 
-			input = input.Trim();
+			input = input.Trim().Replace("\n", "").Replace("\r", "");
 
 			if (String.IsNullOrWhiteSpace(input))
 			{
@@ -268,25 +268,9 @@ namespace Advobot
 			}
 		}
 
-		[Command("comconfigcurrent")]
-		[Alias("ccc")]
-		[Usage("comconfigcurrent")]
-		[Summary("Sends an embed containing the current preferences of the guild.")]
-		[PermissionRequirements]
-		public async Task CurrentPreferences()
-		{
-			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE);
-			if (path == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
-				return;
-			}
-			await Actions.ReadPreferences(Context.Channel, path);
-		}
-
-		[Command("comconfigtoggle")]
-		[Alias("cct")]
-		[Usage("comconfigtoggle [Enable|Disable] [Command Name|Category Name|All]")]
+		[Command("comconfig")]
+		[Alias("ccon")]
+		[Usage("comconfig [Enable|Disable|Current] [Command Name|Category Name|All]")]
 		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `comconfigtoggle`, `comconfigcurrent`, `comconfigmodify`, or `help`.")]
 		[PermissionRequirements]
 		public async Task SwitchCommand([Remainder] string input)
@@ -302,6 +286,18 @@ namespace Advobot
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
+				//Check if it's only to see the current prefs
+				if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
+				{
+					var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE);
+					if (path == null)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+						return;
+					}
+					await Actions.ReadPreferences(Context.Channel, path);
+					return;
+				}
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
@@ -580,9 +576,9 @@ namespace Advobot
 								String.Format("removed the following permission{0} from the user `{1}#{2}`", permissions.Count() != 1 ? "s" : "", user.Username, user.Discriminator)));
 		}
 
-		[Command("botuserscurrent")]
-		[Alias("buc")]
-		[Usage("botuserscurrent [File|Actual|@User]")]
+		[Command("botusers")]
+		[Alias("busr")]
+		[Usage("botusers [File|Actual|@User]")]
 		[Summary("Shows a list of all the people who are bot users. If a user is specified then their permissions are said.")]
 		[UserHasAPermission]
 		public async Task CurrentBotUsers([Remainder] string input)
@@ -689,9 +685,9 @@ namespace Advobot
 		#endregion
 
 		#region Reminds
-		[Command("remindmodify")]
+		[Command("remindsmodify")]
 		[Alias("remm")]
-		[Usage("modifyremind [Add|Remove] [Name]/<Text>")]
+		[Usage("remindsmodify [Add|Remove] [Name]/<Text>")]
 		[Summary("Adds the given text to a list that can be called through the `remind` command.")]
 		[UserHasAPermission]
 		public async Task ModifyRemind([Remainder] string input)
@@ -781,9 +777,9 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following remind: `{1}`.", addBool ? "added" : "removed", Actions.ReplaceMarkdownChars(name)));
 		}
 
-		[Command("remind")]
+		[Command("reminds")]
 		[Alias("rem", "r")]
-		[Usage("remind <Name>")]
+		[Usage("reminds <Name>")]
 		[Summary("Shows the content for the given remind. If null then shows the list of the current reminds.")]
 		public async Task CurrentRemind([Optional, Remainder] string input)
 		{

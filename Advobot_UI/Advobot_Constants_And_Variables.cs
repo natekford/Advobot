@@ -6,7 +6,7 @@ namespace Advobot
 	public static class Constants
 	{
 		public const string BOT_VERSION = "0.9.10";
-		public const string API_VERSION = "Discord.Net by RogueException v1.0.0-rc-00587";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00594";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -35,6 +35,7 @@ namespace Advobot
 		public const string GUILD_PREFIX = "guildprefix";
 		public const string LOG_ACTIONS = "logactions";
 		public const string IGNORED_CHANNELS = "ignoredchannels";
+		public const string SPAM_PREVENTION = "spamprevention";
 		public const string CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
 		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/Text|Voice]>";
 		public const string VOICE_TYPE = "voice";
@@ -64,7 +65,7 @@ namespace Advobot
 		public static readonly string[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
 		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
 		public static readonly string[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "hongkong", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west" };
-		public static readonly string[] VIPREGIONIDS = { };
+		public static readonly string[] VIPREGIONIDS = { "amsterdam", "us-east", "us-west" };
 		public static readonly string[] COMMANDSUNABLETOBETURNEDOFF = { "comconfigtoggle", "comconfigcurrent", "comconfigmodify", "help" };
 		public static readonly string[] CLOSEWORDSPOSITIONS = { "1", "2", "3", "4", "5" };
 
@@ -119,7 +120,9 @@ namespace Advobot
 		public static bool GotKey = false;
 		public static bool STOP = false;
 
-		public static DateTime StartupTime = DateTime.UtcNow.ToUniversalTime();
+		public static DateTime StartupTime = DateTime.UtcNow;
+		public static System.Threading.Timer Timer;
+
 		public static int TotalUsers = 0;
 		public static int TotalGuilds = 0;
 		public static int FailedCommands = 0;

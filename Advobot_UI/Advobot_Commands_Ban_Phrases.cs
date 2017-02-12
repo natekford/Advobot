@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -274,9 +273,9 @@ namespace Advobot
 				failureMessage ?? ""));
 		}
 
-		[Command("banphrasescurrent")]
+		[Command("banphrases")]
 		[Alias("bpc")]
-		[Usage("banphrasescurrent [File|Actual] <Regex>")]
+		[Usage("banphrases [File|Actual] <Regex>")]
 		[Summary("Says all of the current banned words from either the file or the list currently being used in the bot.")]
 		[PermissionRequirements]
 		public async Task CurrentBanPhrases([Remainder] string input)
@@ -596,9 +595,9 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", addBool ? "added" : "removed", successMsg, timeMsg));
 		}
 
-		[Command("banphrasespunishmentcurrent")]
+		[Command("banphrasespunishment")]
 		[Alias("bppc")]
-		[Usage("banphrasespunishmentcurrent [File|Actual]")]
+		[Usage("banphrasespunishment [File|Actual]")]
 		[Summary("Shows the current punishments on the guild.")]
 		[PermissionRequirements]
 		public async Task CurrentPunishments([Remainder] string input)
@@ -698,9 +697,9 @@ namespace Advobot
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Punishments " + (fileBool ? "(File)" : "(Actual)"), description));
 		}
 
-		[Command("banphrasesuserclear")]
-		[Alias("bpucl")]
-		[Usage("banphrasesuserclear [@User]")]
+		[Command("banphrasesuser")]
+		[Alias("bpu")]
+		[Usage("banphrasesuser [Clear|Current] [@User]")]
 		[Summary("Removes all infraction points a user has on the guild.")]
 		[PermissionRequirements]
 		public async Task ClearBanPhraseUser([Remainder] string input)
@@ -712,44 +711,42 @@ namespace Advobot
 				return;
 			}
 
-			var user = await Actions.GetUser(Context.Guild, input);
+			//Split the input
+			var inputArray = input.Split(new char[] { ' ' }, 2);
+			if (inputArray.Length != 2)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+
+			//Get the user
+			var user = await Actions.GetUser(Context.Guild, inputArray[0]);
 			if (user == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
 
-			//Reset the messages
-			Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user).AmountOfRemovedMessages = 0;
-
-			//Send a success message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the amount of messages removed for `{0}#{1}` to 0.", user.Username, user.Discriminator));
-		}
-
-		[Command("banphrasesusercurrent")]
-		[Alias("bpucur")]
-		[Usage("banphrasesusercurrent [@User]")]
-		[Summary("Lists all infraction points a user has on the guild.")]
-		public async Task CurrentBanPhraseUser([Optional, Remainder] string input)
-		{
-			//Check if using the default preferences
-			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			//Check if valid action
+			if (inputArray[0].Equals("clear", StringComparison.OrdinalIgnoreCase))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
+				//Reset the messages
+				Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user).AmountOfRemovedMessages = 0;
 
-			var user = input == null ? Context.User : await Actions.GetUser(Context.Guild, input);
-			if (user == null)
+				//Send a success message
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the amount of messages removed for `{0}#{1}` to 0.", user.Username, user.Discriminator));
+			}
+			if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
-				return;
+				int msgCount = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user)?.AmountOfRemovedMessages ?? 0;
+
+				//Send a success message
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}#{1}` has `{2}` infraction point{3}.", user.Username, user.Discriminator, msgCount, msgCount != 1 ? "s" : ""));
 			}
-
-			int msgCount = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user)?.AmountOfRemovedMessages ?? 0;
-
-			//Send a success message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}#{1}` has `{2}` infraction point{3}.", user.Username, user.Discriminator, msgCount, msgCount != 1 ? "s" : ""));
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+			}
 		}
 	}
 }

@@ -9,6 +9,7 @@ using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Advobot
 {
@@ -28,7 +29,8 @@ namespace Advobot
 
 			LoadGuilds();															//Loads the guilds that attempted to load before the Bot_ID was gotten.
 
-			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
+			Variables.Loaded = true;                                                //Set a bool stating that everything is done loading.
+			ResetSpamPrevention(null);
 			StartUpMessages();                                                      //Say all of the start up messages
 		}
 
@@ -498,6 +500,26 @@ namespace Advobot
 						});
 						Variables.Guilds[guild.Id].IgnoredChannels = IDs.Distinct().ToList();
 					}
+					else if (line.Contains(Constants.SPAM_PREVENTION))
+					{
+						var variableNumbers = line.Substring(line.IndexOf(':') + 1).Split('/').ToList();
+						if (variableNumbers.Count != 3)
+							return;
+
+						var messagesRequired = 0;
+						if (!int.TryParse(variableNumbers[0], out messagesRequired))
+							return;
+
+						var mentionsRequired = 0;
+						if (!int.TryParse(variableNumbers[1], out mentionsRequired))
+							return;
+
+						var votesRequired = 0;
+						if (!int.TryParse(variableNumbers[2], out votesRequired))
+							return;
+
+						Variables.Guilds[guild.Id].SpamPrevention = new SpamPreventionInformation(messagesRequired, mentionsRequired, votesRequired);
+					}
 				}
 			}
 
@@ -674,7 +696,7 @@ namespace Advobot
 		public static async Task<IRole> GetRoleEditAbility(CommandContext context, string input = null, bool ignore_Errors = false, IRole role = null)
 		{
 			//Check if valid role
-			IRole inputRole = role == null ? await GetRole(context, input) : role;
+			var inputRole = role == null ? await GetRole(context, input) : role;
 			if (inputRole == null)
 			{
 				if (!ignore_Errors)
@@ -821,7 +843,7 @@ namespace Advobot
 		}
 		
 		//Get the log channel
-		public static async Task<IGuildChannel> GetLogChannel(IGuild guild)
+		public static async Task<ITextChannel> GetLogChannel(IGuild guild)
 		{
 			//Get the channels from the guild
 			var gottenChannels = await guild.GetTextChannelsAsync();
@@ -1211,7 +1233,7 @@ namespace Advobot
 			}
 		}
 
-		//Get a list of lines in a text doc that aren't the tarGetted ones
+		//Get a list of lines in a text doc that aren't the targetted ones
 		public static List<string> GetValidLines(string path, string checkString)
 		{
 			CreateFile(path);
@@ -1252,13 +1274,22 @@ namespace Advobot
 
 		#region Roles
 		//Create a role on the server if it's not found
-		public static async Task<IRole> CreateRoleIfNotFound(IGuild guild, string roleName)
+		public static async Task<IRole> CreateMuteRoleIfNotFound(IGuild guild, string roleName)
 		{
+			//Create the role if not found
 			var role = GetRole(guild, roleName);
 			if (role == null)
 			{
 				role = await guild.CreateRoleAsync(roleName);
 			}
+			//Change its guild perms
+			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(0));
+			//Change the perms it has on every single text channel
+			(await guild.GetTextChannelsAsync()).ToList().ForEach(x =>
+			{
+				x.AddPermissionOverwriteAsync(role, new OverwritePermissions(0, 805316689));
+			});
+			//Give the role back
 			return role;
 		} 
 		
@@ -1826,7 +1857,7 @@ namespace Advobot
 		//Write to the console with a timestamp
 		public static void WriteLine(string text)
 		{
-			Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + ": " + ReplaceMarkdownChars(text));
+			Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + ReplaceMarkdownChars(text));
 		}
 		
 		//Send an exception message to the console
@@ -1997,7 +2028,7 @@ namespace Advobot
 				if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL), StringComparer.OrdinalIgnoreCase))
 				{
 					++Variables.LoggedImages;
-					var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
+					var embed = MakeNewEmbed(null, URL, Constants.ATCH, URL);
 					AddFooter(embed, "Attached Image");
 					AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
 					await SendEmbedMessage(channel, embed);
@@ -2006,7 +2037,7 @@ namespace Advobot
 				else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(URL), StringComparer.OrdinalIgnoreCase))
 				{
 					++Variables.LoggedGifs;
-					var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
+					var embed = MakeNewEmbed(null, URL, Constants.ATCH, URL);
 					AddFooter(embed, "Attached Gif");
 					AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
 					await SendEmbedMessage(channel, embed);
@@ -2258,14 +2289,14 @@ namespace Advobot
 		}
 
 		//Add back in the lines
-		public static void SaveLines(string path, string tarGet, string input, List<string> validLines, bool literal = false)
+		public static void SaveLines(string path, string target, string input, List<string> validLines, bool literal = false)
 		{
-			if (tarGet != null && input != null)
+			if (target != null && input != null)
 			{
 				//Add all the lines back
 				using (StreamWriter writer = new StreamWriter(path))
 				{
-					writer.WriteLine(tarGet + ":" + input + "\n" + String.Join("\n", validLines));
+					writer.WriteLine(target + ":" + input + "\n" + String.Join("\n", validLines));
 				}
 			}
 			else
@@ -2381,26 +2412,19 @@ namespace Advobot
 		{
 			//Get the guild
 			var guild = (message.Channel as IGuildChannel).Guild;
+			if (guild == null)
+				return;
 			var guildLoaded = Variables.Guilds[guild.Id];
 
 			//Check if it has any banned words
-			foreach (string phrase in guildLoaded.BannedPhrases)
+			if (guildLoaded.BannedPhrases.Any(x => message.Content.IndexOf(x, StringComparison.OrdinalIgnoreCase) >= 0))
 			{
-				if (message.Content.IndexOf(phrase, StringComparison.OrdinalIgnoreCase) >= 0)
-				{
-					await BannedPhrasesPunishments(message);
-					return;
-				}
+				await BannedPhrasesPunishments(message);
 			}
 			//Check if it has any banned regex
-			foreach (var regex in guildLoaded.BannedRegex)
+			if (guildLoaded.BannedRegex.Any(x => x.IsMatch(message.Content)))
 			{
-				//See if any matches
-				if (regex.IsMatch(message.Content))
-				{
-					await BannedPhrasesPunishments(message);
-					return;
-				}
+				await BannedPhrasesPunishments(message);
 			}
 		}
 
@@ -2827,6 +2851,28 @@ namespace Advobot
 				//Add back their ability to send messages
 				await user.ModifyAsync(x => x.Deaf = false);
 			});
+		}
+		#endregion
+
+		#region Spam Prevention
+		//Reset the mention spam prevention hourly
+		public static void ResetSpamPrevention(object obj)
+		{
+			//Get the period
+			const long PERIOD = 60 * 60 * 1000;
+
+			//Reset the spam prevention user list
+			Variables.Guilds.ToList().ForEach(x => x.Value.SpamPreventionUsers = new List<SpamPreventionUser>());
+
+			//Determine how long to wait until firing
+			var time = PERIOD;
+			if ((DateTime.UtcNow - Variables.StartupTime).TotalHours < 1)
+			{
+				time -= (long)DateTime.UtcNow.TimeOfDay.TotalMilliseconds % PERIOD;
+			}
+
+			//Wait until the next firing
+			Variables.Timer = new Timer(ResetSpamPrevention, null, time, Timeout.Infinite);
 		}
 		#endregion
 	}

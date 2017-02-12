@@ -74,7 +74,7 @@ namespace Advobot
 
 		[Command("globalsavepath")]
 		[Alias("glsp")]
-		[Usage("globalsavepath [Directory On Your Computer|Clear|Current]")]
+		[Usage("globalsavepath [Clear|Current|New Directory]")]
 		[Summary("Changes the save path's directory. Windows defaults to User/AppData/Roaming. Other OSes will not work without a save path set. Clearing the savepath means nothing will be able to save.")]
 		[BotOwnerRequirement]
 		public async Task SetSavePath([Remainder] string input)
@@ -128,7 +128,7 @@ namespace Advobot
 
 		[Command("globalprefix")]
 		[Alias("glp")]
-		[Usage("globalprefix [New Prefix|Clear]")]
+		[Usage("globalprefix [Clear|Current|New Prefix]")]
 		[Summary("Changes the bot's prefix to the given string. Clearing the prefix sets it back to `++`.")]
 		[BotOwnerRequirement]
 		public async Task SetGlobalPrefix([Remainder] string input)
@@ -143,6 +143,11 @@ namespace Advobot
 
 				//Send a success message
 				await Actions.SendChannelMessage(Context, "Successfully reset the bot's prefix to `" + Constants.BOT_PREFIX + "`.");
+			}
+			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
+			{
+				//Send a success message
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Then how did you use this command? :thinking:");
 			}
 			else
 			{

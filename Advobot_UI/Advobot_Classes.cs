@@ -345,18 +345,6 @@ namespace Advobot
 		public int Group;
 	}
 
-	public class SelfAssignableRole2
-	{
-		public SelfAssignableRole2(string role, int group)
-		{
-			Role = role;
-			Group = group;
-		}
-
-		public string Role;
-		public int Group;
-	}
-
 	public class SelfAssignableGroup
 	{
 		public SelfAssignableGroup(List<SelfAssignableRole> roles, int group, ulong guildID)
@@ -392,20 +380,31 @@ namespace Advobot
 			Guild = guild;
 		}
 
-		public List<BannedPhrasePunishment> BannedPhrasesPunishments = new List<BannedPhrasePunishment>();
+		//Banned phrases/regex/punishment
 		public List<string> BannedPhrases = new List<string>();
 		public List<Regex> BannedRegex = new List<Regex>();
+		public List<BannedPhrasePunishment> BannedPhrasesPunishments = new List<BannedPhrasePunishment>();
 
+		//Commands and logging
 		public List<CommandSwitch> CommandSettings = new List<CommandSwitch>();
 		public List<LogActions> LogActions = new List<LogActions>();
 		public List<ulong> IgnoredChannels = new List<ulong>();
 
-		public List<Remind> Reminds = new List<Remind>();
-		public List<BotInvite> Invites;
+		//Spam prevention
+		public List<SpamPreventionUser> SpamPreventionUsers = new List<SpamPreventionUser>();
+		public SpamPreventionInformation SpamPrevention;
 
-		public bool DefaultPrefs;
-		public IGuild Guild;
+		//Raid prevention
+		public bool RaidPrevention = false;
+		public IRole MuteRole;
+		public List<IGuildUser> UsersWhoHaveBeenMuted = new List<IGuildUser>();
+
+		//Misc
+		public List<Remind> Reminds = new List<Remind>();
+		public List<BotInvite> Invites = new List<BotInvite>();
+		public bool DefaultPrefs = true;
 		public string Prefix;
+		public IGuild Guild;
 	}
 
 	public class BotImplementedPermissions
@@ -418,6 +417,38 @@ namespace Advobot
 
 		public IGuildUser User;
 		public uint Permissions;
+	}
+
+	public class SpamPreventionInformation
+	{
+		public SpamPreventionInformation(int amountOfMessages, int mentions, int votesNeededForKick)
+		{
+			AmountOfMessages = amountOfMessages;
+			Mentions = mentions;
+			VotesNeededForKick = votesNeededForKick;
+			Enabled = true;
+		}
+
+		public int AmountOfMessages;
+		public int Mentions;
+		public int VotesNeededForKick;
+		public bool Enabled = false;
+	}
+
+	public class SpamPreventionUser
+	{
+		public SpamPreventionUser(IGuildUser user, int currentSpamAmount)
+		{
+			User = user;
+			CurrentSpamAmount = currentSpamAmount;
+		}
+
+		public IGuildUser User;
+		public int VotesToKick;
+		public int CurrentSpamAmount;
+		public bool AlreadyKicked = false;
+		public bool PotentialKick = false;
+		public List<ulong> UsersWhoHaveAlreadyVoted = new List<ulong>();
 	}
 	#endregion
 
@@ -561,43 +592,6 @@ namespace Advobot
 	#endregion
 
 	#region Enums
-	public enum CommandCategory
-	{
-		Global_Settings = 1,
-		Guild_Settings = 2,
-		Logs = 3,
-		Ban_Phrases = 4,
-		Self_Roles = 5,
-		User_Moderation = 6,
-		Role_Moderation = 7,
-		Channel_Moderation = 8,
-		Guild_Moderation = 9,
-		Miscellaneous = 10
-	}
-
-	public enum PunishmentType
-	{
-		Kick = 1,
-		Ban = 2,
-		Role = 3
-	}
-
-	public enum SAGAction
-	{
-		Create = 1,
-		Add = 2,
-		Remove = 3,
-		Delete = 4
-	}
-
-	public enum DeleteInvAction
-	{
-		User = 1,
-		Channel = 2,
-		Uses = 3,
-		Expiry = 4
-	}
-
 	public enum LogActions
 	{
 		UserJoined = 1,
@@ -615,7 +609,52 @@ namespace Advobot
 		ChannelCreated = 12,
 		ChannelUpdated = 13,
 		ChannelDeleted = 14,
-		ImageLog = 15
+		ImageLog = 15,
+	}
+
+	public enum CommandCategory
+	{
+		Global_Settings = 1,
+		Guild_Settings = 2,
+		Logs = 3,
+		Ban_Phrases = 4,
+		Self_Roles = 5,
+		User_Moderation = 6,
+		Role_Moderation = 7,
+		Channel_Moderation = 8,
+		Guild_Moderation = 9,
+		Miscellaneous = 10,
+	}
+
+	public enum PunishmentType
+	{
+		Kick = 1,
+		Ban = 2,
+		Role = 3,
+	}
+
+	public enum SAGAction
+	{
+		Create = 1,
+		Add = 2,
+		Remove = 3,
+		Delete = 4,
+	}
+
+	public enum DeleteInvAction
+	{
+		User = 1,
+		Channel = 2,
+		Uses = 3,
+		Expiry = 4,
+	}
+
+	public enum SpamPreventionAction
+	{
+		Enable = 1,
+		Disable = 2,
+		Current = 3,
+		Setup = 4,
 	}
 	#endregion
 }

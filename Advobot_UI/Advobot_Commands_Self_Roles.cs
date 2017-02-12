@@ -85,7 +85,7 @@ namespace Advobot
 			var failure = new List<string>();
 			var deleted = new List<string>();
 
-			//Necessary to know what group to tarGet
+			//Necessary to know what group to target
 			int groupNumber = 0;
 			switch (actionType)
 			{
@@ -337,196 +337,170 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully gave you `" + role.Name + "`" + removedRoles + ".");
 		}
 
-		[Command("selfrolesgroups")]
-		[Alias("srg")]
-		[Usage("selfrolesgroups <File|Actual>")]
+		[Command("selfroles")]
+		[Alias("srs")]
+		[Usage("selfroles <File|Actual> <Group:Number>")]
 		[Summary("Shows the current group numbers that exists on the guild.")]
 		public async Task CurrentGroups([Optional, Remainder] string input)
 		{
-			//Set a bool
-			bool fileBool;
-			if (String.IsNullOrWhiteSpace(input))
+			//Split the input
+			var inputArray = input == null ? null : input.Split(new char[] { ' ' }, 2);
+
+			//Get the group
+			var group = Actions.GetVariable(inputArray, "group");
+			int groupNumber = -1;
+			if (group != null)
 			{
-				fileBool = false;
+				//Get the group number
+				groupNumber = await Actions.GetGroup(inputArray, Context);
+				if (groupNumber == -1)
+					return;
 			}
-			else if (input.Equals("file", StringComparison.OrdinalIgnoreCase))
+
+			//Set a bool
+			bool fileBool = false;
+			if (inputArray.Any(x => x.Equals("file", StringComparison.OrdinalIgnoreCase)))
 			{
 				fileBool = true;
 			}
-			else if (input.Equals("actual", StringComparison.OrdinalIgnoreCase))
+			else if (inputArray.Any(x => x.Equals("actual", StringComparison.OrdinalIgnoreCase)))
 			{
 				fileBool = false;
 			}
-			else
+			else if (groupNumber == -1)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
-			var groupNumbers = new List<int>();
-			if (fileBool)
+			if (groupNumber == -1)
 			{
-				//Check if the file exists
-				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
-				if (path == null)
+				var groupNumbers = new List<int>();
+				if (fileBool)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
-					return;
-				}
-				if (!File.Exists(path))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "This guild has no self assignable roles file.");
-					return;
-				}
-
-				//Get all the self roles that have that group
-				var validLines = Actions.GetValidLines(path, null);
-				validLines.ForEach(x =>
-				{
-					//Split to get the role ID and the group
-					var lineArray = x.Split(' ');
-					int throwaway;
-					if (int.TryParse(lineArray[1], out throwaway))
+					//Check if the file exists
+					var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
+					if (path == null)
 					{
-						groupNumbers.Add(throwaway);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+						return;
 					}
-				});
-
-				if (!groupNumbers.Any())
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are currently no self assignable role groups on file."));
-					return;
-				}
-			}
-			else
-			{
-				groupNumbers = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).Select(x => x.Group).Distinct().ToList();
-				if (!groupNumbers.Any())
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are currently no self assignable role groups on this guild."));
-					return;
-				}
-			}
-
-			//Send a sucess message
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Self Assignable Role Groups", String.Join(", ", groupNumbers.OrderBy(x => x).Distinct())));
-		}
-
-		[Command("selfrolescurrent")]
-		[Alias("src")]
-		[Usage("selfrolescurrent <File|Actual> [Group:Number]")]
-		[Summary("Shows the current self assignable roles on the guild by group.")]
-		public async Task CurrentSelfRoles([Remainder] string input)
-		{
-			//Split the input
-			var inputArray = input.Split(new char[] { ' ' }, 2);
-
-			bool fileBool;
-			if (inputArray[0].Equals("file", StringComparison.OrdinalIgnoreCase))
-			{
-				fileBool = true;
-			}
-			else if (inputArray[0].Equals("actual", StringComparison.OrdinalIgnoreCase))
-			{
-				fileBool = false;
-			}
-			else if (inputArray[0].StartsWith("group", StringComparison.OrdinalIgnoreCase))
-			{
-				fileBool = false;
-			}
-			else
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option, must be either File or Actual or a Group."));
-				return;
-			}
-
-			var description = "";
-			int groupNumber;
-			if (fileBool)
-			{
-				//Get the group number
-				groupNumber = await Actions.GetGroup(inputArray, Context);
-				if (groupNumber == -1)
-					return;
-
-				//Check if the file exists
-				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
-				if (path == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
-					return;
-				}
-				if (!File.Exists(path))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "This guild has no self assignable roles file.");
-					return;
-				}
-
-				//Get all the self roles that have that group
-				var lines = Actions.GetValidLines(path, null);
-				var roleIDs = lines.Where(x =>
-				{
-					var lineArray = x.Split(' ');
-					if (lineArray.Length > 2 && lineArray[1].Equals(groupNumber.ToString()))
-						return true;
-					return false;
-				}).ToList();
-
-				//Check if any role IDs were gotten
-				if (!roleIDs.Any())
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no group with that number."));
-					return;
-				}
-
-				//Get the roleIDs as roles
-				var roles = new List<string>();
-				roleIDs.ForEach(x =>
-				{
-					//Check if it's an actual number
-					ulong roleUlong;
-					if (ulong.TryParse(x, out roleUlong))
+					if (!File.Exists(path))
 					{
-						//Check if valid role
-						IRole role = Context.Guild.GetRole(roleUlong);
-						if (role != null)
+						await Actions.MakeAndDeleteSecondaryMessage(Context, "This guild has no self assignable roles file.");
+						return;
+					}
+
+					//Get all the self roles that have that group
+					var validLines = Actions.GetValidLines(path, null);
+					validLines.ForEach(x =>
+					{
+						//Split to get the role ID and the group
+						var lineArray = x.Split(' ');
+						int throwaway;
+						if (int.TryParse(lineArray[1], out throwaway))
 						{
-							roles.Add(role.Name);
+							groupNumbers.Add(throwaway);
 						}
-					}
-				});
+					});
 
-				//Check if any valid roles gotten
-				if (!roles.Any())
+					if (!groupNumbers.Any())
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are currently no self assignable role groups on file."));
+						return;
+					}
+				}
+				else
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That group has no valid self roles."));
-					return;
+					groupNumbers = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).Select(x => x.Group).Distinct().ToList();
+					if (!groupNumbers.Any())
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are currently no self assignable role groups on this guild."));
+						return;
+					}
 				}
 
-				//Add the roles to the list
-				description = "`" + String.Join("`\n`", roles) + "`";
+				//Send a sucess message
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Self Assignable Role Groups", String.Join(", ", groupNumbers.OrderBy(x => x).Distinct())));
 			}
 			else
 			{
-				//Get the group number
-				groupNumber = await Actions.GetGroup(inputArray, Context);
-				if (groupNumber == -1)
-					return;
-
-				//Get the group which has that number
-				var group = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).FirstOrDefault(x => x.Group == groupNumber);
-				if (group == null)
+				var description = "";
+				if (fileBool)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no group with that number."));
-					return;
+					//Check if the file exists
+					var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
+					if (path == null)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+						return;
+					}
+					if (!File.Exists(path))
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, "This guild has no self assignable roles file.");
+						return;
+					}
+
+					//Get all the self roles that have that group
+					var roleIDs = new List<string>();
+					Actions.GetValidLines(path, null).ForEach(x =>
+					{
+						var lineArray = x.Split(' ');
+						if (lineArray.Length > 1 && lineArray[1].Equals(groupNumber.ToString()))
+							roleIDs.Add(lineArray[0]);
+					});
+
+					//Check if any role IDs were gotten
+					if (!roleIDs.Any())
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no group with that number."));
+						return;
+					}
+
+					//Get the roleIDs as roles
+					var roles = new List<string>();
+					roleIDs.ForEach(x =>
+					{
+						//Check if it's an actual number
+						ulong roleUlong;
+						if (ulong.TryParse(x, out roleUlong))
+						{
+							//Check if valid role
+							var role = Context.Guild.GetRole(roleUlong);
+							if (role != null)
+							{
+								roles.Add(role.Name);
+							}
+						}
+					});
+
+					//Check if any valid roles gotten
+					if (!roles.Any())
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That group has no valid self roles."));
+						return;
+					}
+
+					//Add the roles to the list
+					description = "`" + String.Join("`\n`", roles) + "`";
+				}
+				else
+				{
+					//Get the group which has that number
+					var actualGroup = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).FirstOrDefault(x => x.Group == groupNumber);
+					if (group == null)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no group with that number."));
+						return;
+					}
+
+					//Add the group's role's names to a list
+					description = "`" + String.Join("`\n`", actualGroup.Roles.Select(x => x.Role.Name).ToList()) + "`";
 				}
 
-				//Add the group's role's names to a list
-				description = "`" + String.Join("`\n`", group.Roles.Select(x => x.Role.Name).ToList()) + "`";
+				//Send the embed
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(String.Format("Self Roles Group {0} ({1})", groupNumber, fileBool ? "File" : "Actual"), description));
 			}
-
-			//Send the embed
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(String.Format("Self Roles Group {0} ({1})", groupNumber, fileBool ? "File" : "Actual"), description));
 		}
 	}
 }
