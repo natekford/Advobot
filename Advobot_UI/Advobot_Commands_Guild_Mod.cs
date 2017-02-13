@@ -13,9 +13,9 @@ namespace Advobot
 	{
 		[Command("guildname")]
 		[Alias("gn")]
-		[Usage("guildname [New Name]")]
+		[Usage("[New Name]")]
 		[Summary("Change the name of the guild to the given name.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildName([Remainder] string input)
 		{
 			//Guild names have the same length requirements as channel names, so I'm not changing the variable names
@@ -39,9 +39,9 @@ namespace Advobot
 
 		[Command("guildregion")]
 		[Alias("greg")]
-		[Usage("guildregion [Regions|Current|Region ID]")]
+		[Usage("[Regions|Current|Region ID]")]
 		[Summary("Shows or changes the guild's server region. `Regions` lists all valid region IDs.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildLocation([Remainder] string input)
 		{
 			//Check if a valid region or asking to see the region types
@@ -83,9 +83,9 @@ namespace Advobot
 
 		[Command("guildafk")]
 		[Alias("gafk")]
-		[Usage("guildafk [Channel|Time] [Voice Channel Name|Time in Seconds]")]
+		[Usage("[Channel|Time] [Voice Channel Name|Time in Seconds]")]
 		[Summary("The first argument tells if the channel or timer is going to be changed. The second is what it will be changed to.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildAFK([Remainder] string input)
 		{
 			//Split at space into two args
@@ -151,9 +151,9 @@ namespace Advobot
 
 		[Command("guildmsgnotifications")]
 		[Alias("gmn")]
-		[Usage("guildmsgnotifications [All Messages|Mentions Only]")]
+		[Usage("[All Messages|Mentions Only]")]
 		[Summary("Changes the message notifications to either all messages or mentions only.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildMsgNotifications([Remainder] string input)
 		{
 			if (input.Equals("all messages", StringComparison.OrdinalIgnoreCase))
@@ -174,9 +174,9 @@ namespace Advobot
 
 		[Command("guildverification")]
 		[Alias("gv")]
-		[Usage("guildverification [0|1|2|3]")]
+		[Usage("[0|1|2|3]")]
 		[Summary("Changes the verification level. 0 is the most lenient (no requirements to type), 3 is the harshest (10 minutes in the guild before new members can type).")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildVerification([Remainder] string input)
 		{
 			//Check if valid int
@@ -207,9 +207,9 @@ namespace Advobot
 
 		[Command("guildicon")]
 		[Alias("gi")]
-		[Usage("guildicon [Attached Image|Embedded Image|Remove]")]
+		[Usage("[Attached Image|Embedded Image|Remove]")]
 		[Summary("Changes the guild icon to the given image. Must be less than 2.5MB simply because the bot would use more data and be slower otherwise.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildIcon([Optional] string input)
 		{
 			await Actions.SetPicture(Context, input, false);

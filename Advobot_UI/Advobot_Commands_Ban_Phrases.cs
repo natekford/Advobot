@@ -15,9 +15,9 @@ namespace Advobot
 		//TODO: Use a different split character maybe
 		[Command("banphrasesmodify")]
 		[Alias("bpm")]
-		[Usage("banphrasesmodify [Add] [Phrase/...] <Regex> | [Remove] [Phrase/...|Position/...] <Regex>")]
+		[Usage("[Add] [Phrase/...] <Regex> | [Remove] [Phrase/...|Position/...] <Regex>")]
 		[Summary("Adds the words to either the banned phrase list or the banned regex list. Do not use a '/' in a banned phrase itself.")]
-		[PermissionRequirements]
+		[PermissionRequirement]
 		public async Task SetBanPhrases([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -275,9 +275,9 @@ namespace Advobot
 
 		[Command("banphrases")]
 		[Alias("bpc")]
-		[Usage("banphrases [File|Actual] <Regex>")]
+		[Usage("[File|Actual] <Regex>")]
 		[Summary("Says all of the current banned words from either the file or the list currently being used in the bot.")]
-		[PermissionRequirements]
+		[PermissionRequirement]
 		public async Task CurrentBanPhrases([Remainder] string input)
 		{
 			//Make an array of input
@@ -383,9 +383,9 @@ namespace Advobot
 
 		[Command("banphrasespunishment")]
 		[Alias("bpp")]
-		[Usage("banphrasespunishments [Add] [Number] [Role Name|Kick|Ban] <Time> | [Remove] [Number]")]
+		[Usage("[Add] [Number] [Role Name|Kick|Ban] <Time> | [Remove] [Number]")]
 		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to this total. Time is in minutes and only applies to roles.")]
-		[PermissionRequirements]
+		[PermissionRequirement]
 		public async Task SetPunishments([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -597,9 +597,9 @@ namespace Advobot
 
 		[Command("banphrasespunishment")]
 		[Alias("bppc")]
-		[Usage("banphrasespunishment [File|Actual]")]
+		[Usage("[File|Actual]")]
 		[Summary("Shows the current punishments on the guild.")]
-		[PermissionRequirements]
+		[PermissionRequirement]
 		public async Task CurrentPunishments([Remainder] string input)
 		{
 			var description = "";
@@ -699,9 +699,9 @@ namespace Advobot
 
 		[Command("banphrasesuser")]
 		[Alias("bpu")]
-		[Usage("banphrasesuser [Clear|Current] [@User]")]
+		[Usage("[Clear|Current] [@User]")]
 		[Summary("Removes all infraction points a user has on the guild.")]
-		[PermissionRequirements]
+		[PermissionRequirement]
 		public async Task ClearBanPhraseUser([Remainder] string input)
 		{
 			//Check if using the default preferences

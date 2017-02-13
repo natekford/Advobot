@@ -13,9 +13,9 @@ namespace Advobot
 	public class Administration_Commands : ModuleBase
 	{
 		#region Settings
-		[Command("globalbotowner")]
-		[Alias("glbo")]
-		[Usage("globalbotowner <Clear|Current>")]
+		[Command(SharedCommands.cOwner)]
+		[Alias(SharedCommands.aOwner)]
+		[Usage("<Clear|Current>")]
 		[Summary("You must be the current guild owner. The bot will DM you asking for its key. **DO NOT INPUT THE KEY OUTSIDE OF DMS.** If you are experiencing trouble, refresh your bot's key.")]
 		public async Task SetBotOwner([Optional, Remainder] string input)
 		{
@@ -72,9 +72,9 @@ namespace Advobot
 			await Actions.SendDMMessage(await Context.User.CreateDMChannelAsync(), "What is my key?");
 		}
 
-		[Command("globalsavepath")]
-		[Alias("glsp")]
-		[Usage("globalsavepath [Clear|Current|New Directory]")]
+		[Command(SharedCommands.cPath)]
+		[Alias(SharedCommands.aPath)]
+		[Usage("[Clear|Current|New Directory]")]
 		[Summary("Changes the save path's directory. Windows defaults to User/AppData/Roaming. Other OSes will not work without a save path set. Clearing the savepath means nothing will be able to save.")]
 		[BotOwnerRequirement]
 		public async Task SetSavePath([Remainder] string input)
@@ -126,9 +126,9 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the save path to: `{0}`.", input), 10000);
 		}
 
-		[Command("globalprefix")]
-		[Alias("glp")]
-		[Usage("globalprefix [Clear|Current|New Prefix]")]
+		[Command(SharedCommands.cPrefix)]
+		[Alias(SharedCommands.aPrefix)]
+		[Usage("[Clear|Current|New Prefix]")]
 		[Summary("Changes the bot's prefix to the given string. Clearing the prefix sets it back to `++`.")]
 		[BotOwnerRequirement]
 		public async Task SetGlobalPrefix([Remainder] string input)
@@ -163,9 +163,9 @@ namespace Advobot
 			await Actions.SetGame(oldPrefix);
 		}
 
-		[Command("globalsettings")]
-		[Alias("gls")]
-		[Usage("globalsettings [Clear|Current]")]
+		[Command(SharedCommands.cSettings)]
+		[Alias(SharedCommands.aSettings)]
+		[Usage("[Clear|Current]")]
 		[Summary("Shows all the settings on the bot aside from the bot's key. When clearing all settings the bot will have to be manually restarted if it reconnects.")]
 		[BotOwnerRequirement]
 		public async Task CurrentGlobalSettings([Remainder] string input)
@@ -210,9 +210,9 @@ namespace Advobot
 		#endregion
 
 		#region Bot Changes
-		[Command("boticon")]
-		[Alias("bi")]
-		[Usage("boticon [Attached Image|Embedded Image|Remove]")]
+		[Command(SharedCommands.cIcon)]
+		[Alias(SharedCommands.aIcon)]
+		[Usage("[Attached Image|Embedded Image|Remove]")]
 		[Summary("Changes the bot's icon.")]
 		[BotOwnerRequirement]
 		public async Task BotIcon([Optional, Remainder] string input)
@@ -220,9 +220,9 @@ namespace Advobot
 			await Actions.SetPicture(Context, input, true);
 		}
 
-		[Command("botgame")]
-		[Alias("bg")]
-		[Usage("botgame [New Name]")]
+		[Command(SharedCommands.cGame)]
+		[Alias(SharedCommands.aGame)]
+		[Usage("[New Name]")]
 		[Summary("Changes the game the bot is currently listed as playing.")]
 		[BotOwnerRequirement]
 		public async Task SetGame([Remainder] string input)
@@ -242,9 +242,9 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, String.Format("Game set to `{0}`.", input));
 		}
 
-		[Command("botstream")]
-		[Alias("bstr")]
-		[Usage("botstream [Twitch.TV link]")]
+		[Command(SharedCommands.cStream)]
+		[Alias(SharedCommands.aStream)]
+		[Usage("[Twitch.TV link]")]
 		[Summary("Changes the stream the bot has listed under its name.")]
 		[BotOwnerRequirement]
 		public async Task BotStream([Optional, Remainder] string input)
@@ -281,9 +281,9 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to `" + input + "`"));
 		}
 
-		[Command("botname")]
-		[Alias("bn")]
-		[Usage("botname [New Name]")]
+		[Command(SharedCommands.cName)]
+		[Alias(SharedCommands.aName)]
+		[Usage("[New Name]")]
 		[Summary("Changes the bot's name to the given name.")]
 		[BotOwnerRequirement]
 		public async Task BotName([Remainder] string input)
@@ -309,9 +309,9 @@ namespace Advobot
 		#endregion
 
 		#region Misc
-		[Command("disconnect")]
-		[Alias("dc", "runescapeservers")]
-		[Usage("disconnect")]
+		[Command(SharedCommands.cDisc)]
+		[Alias(SharedCommands.aDisc_1, SharedCommands.aDisc_2)]
+		[Usage("")]
 		[Summary("Turns the bot off.")]
 		[BotOwnerRequirement]
 		public async Task Disconnect()
@@ -326,9 +326,9 @@ namespace Advobot
 			}
 		}
 
-		[Command("restart")]
-		[Alias("res")]
-		[Usage("restart")]
+		[Command(SharedCommands.cRestart)]
+		[Alias(SharedCommands.aRestart)]
+		[Usage("")]
 		[Summary("Restarts the bot.")]
 		[BotOwnerRequirement]
 		public async Task Restart()
@@ -353,9 +353,9 @@ namespace Advobot
 			}
 		}
 
-		[Command("listguilds")]
-		[Alias("lgds")]
-		[Usage("listguilds")]
+		[Command(SharedCommands.cGuilds)]
+		[Alias(SharedCommands.aGuilds)]
+		[Usage("")]
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 		[BotOwnerRequirement]
 		public async Task ListGuilds()

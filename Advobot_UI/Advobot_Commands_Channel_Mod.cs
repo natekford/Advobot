@@ -13,9 +13,9 @@ namespace Advobot
 	{
 		[Command("channelcreate")]
 		[Alias("chc")]
-		[Usage("channelcreate [Name] [Text|Voice]")]
+		[Usage("[Name] [Text|Voice]")]
 		[Summary("Adds a channel to the guild of the given type with the given name. The name CANNOT contain any spaces: use underscores or dashes instead.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task CreateChannel([Remainder] string input)
 		{
 			var inputArray = input.Split(' ');
@@ -72,9 +72,9 @@ namespace Advobot
 
 		[Command("channelsoftdelete")]
 		[Alias("chsd")]
-		[Usage("channelsoftdelete [#Channel]")]
+		[Usage("[#Channel]")]
 		[Summary("Makes most roles unable to read the channel and moves it to the bottom of the channel list. Only works for text channels.")]
-		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
+		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
 		public async Task SoftDeleteChannel([Remainder] string input)
 		{
 			//See if the user can see and thus edit that channel
@@ -131,9 +131,9 @@ namespace Advobot
 
 		[Command("channeldelete")]
 		[Alias("chd")]
-		[Usage("channeldelete " + Constants.CHANNEL_INSTRUCTIONS)]
+		[Usage(Constants.CHANNEL_INSTRUCTIONS)]
 		[Summary("Deletes the channel.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task DeleteChannel([Remainder] string input)
 		{
 			//See if the user can see and thus edit that channel
@@ -154,9 +154,9 @@ namespace Advobot
 
 		[Command("channelposition")]
 		[Alias("chpos")]
-		[Usage("channelposition " + Constants.CHANNEL_INSTRUCTIONS + " [New Position]")]
+		[Usage(Constants.CHANNEL_INSTRUCTIONS + " [New Position]")]
 		[Summary("Gives the channel the given position. Position one is the top most position and counting starts at zero. This command is extremely buggy!")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ChannelPosition([Remainder] string input)
 		{
 			var inputArray = input.Split(new char[] { ' ' }, 2);
@@ -213,9 +213,9 @@ namespace Advobot
 
 		[Command("channelpositions")]
 		[Alias("chposs")]
-		[Usage("channelpositions [Text|Voice]")]
+		[Usage("[Text|Voice]")]
 		[Summary("Lists the positions of each text or voice channel on the guild.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ListChannelPositions([Remainder] string input)
 		{
 			//Check if valid type
@@ -262,11 +262,11 @@ namespace Advobot
 
 		[Command("channelperms")]
 		[Alias("chp")]
-		[Usage("channelperms [Show|Allow|Inherit|Deny] " + Constants.OPTIONAL_CHANNEL_INSTRUCTIONS + " <Role|User> <Permission/...>")]
+		[Usage("[Show|Allow|Inherit|Deny] " + Constants.OPTIONAL_CHANNEL_INSTRUCTIONS + " <Role|User> <Permission/...>")]
 		[Summary("Type `" + Constants.BOT_PREFIX + "chp [Show]` to see the available permissions. Permissions must be separated by a `/`! " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel]` to see all permissions on a channel. " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel] [Role|User]` to see permissions a role/user has on a channel.")]
-		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
+		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
 		public async Task ChannelPermissions([Remainder] string input)
 		{
 			//Set the variables
@@ -502,9 +502,9 @@ namespace Advobot
 
 		[Command("channelpermscopy")]
 		[Alias("chpc")]
-		[Usage("channelpermscopy " + Constants.CHANNEL_INSTRUCTIONS + " " + Constants.CHANNEL_INSTRUCTIONS + " [Role|User|All]")]
+		[Usage(Constants.CHANNEL_INSTRUCTIONS + " " + Constants.CHANNEL_INSTRUCTIONS + " [Role|User|All]")]
 		[Summary("Copy permissions from one channel to another. Works for a role, a user, or everything.")]
-		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
+		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
 		public async Task CopyChannelPermissions([Remainder] string input)
 		{
 			//Get arguments
@@ -585,9 +585,9 @@ namespace Advobot
 
 		[Command("channelpermsclear")]
 		[Alias("chpcl")]
-		[Usage("channelpermsclear " + Constants.CHANNEL_INSTRUCTIONS)]
+		[Usage(Constants.CHANNEL_INSTRUCTIONS)]
 		[Summary("Removes all permissions set on a channel.")]
-		[PermissionRequirements(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
+		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
 		public async Task ClearChannelPermissions([Remainder] string input)
 		{
 			//See if the user can see and thus edit that channel
@@ -620,9 +620,9 @@ namespace Advobot
 
 		[Command("channelname")]
 		[Alias("chn")]
-		[Usage("channelname [#Channel|[Channel|Position{x}/Text|Voice]] [New Name]")]
+		[Usage("[#Channel|[Channel|Position{x}/Text|Voice]] [New Name]")]
 		[Summary("Changes the name of the channel. This is *extremely* useful for when multiple channels have the same name but you want to edit things.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ChangeChannelName([Remainder] string input)
 		{
 			var inputArray = input.Split(new char[] { ' ' }, 2);
@@ -722,9 +722,9 @@ namespace Advobot
 
 		[Command("channeltopic")]
 		[Alias("cht")]
-		[Usage("channeltopic [#Channel] [New Topic]")]
+		[Usage("[#Channel] [New Topic]")]
 		[Summary("Changes the subtext of a channel to whatever is input.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ChangeChannelTopic([Remainder] string input)
 		{
 			var inputArray = input.Split(new char[] { ' ' }, 2);
@@ -768,9 +768,9 @@ namespace Advobot
 
 		[Command("channellimit")]
 		[Alias("chl")]
-		[Usage("channellimit [Channel Name] [New Limit]")]
+		[Usage("[Channel Name] [New Limit]")]
 		[Summary("Changes the limit to how many users can be in a voice channel. The limit ranges from 0 (no limit) to 99.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ChangeChannelLimit([Remainder] string input)
 		{
 			//Separate the input
@@ -810,9 +810,9 @@ namespace Advobot
 
 		[Command("channelbitrate")]
 		[Alias("chbr")]
-		[Usage("channelbitrate [Channel Name] [8 to 96]")]
+		[Usage("[Channel Name] [8 to 96]")]
 		[Summary("Changes the bit rate (in kbps) on the selected channel to the given value. The default value is 64.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ChangeChannelBitRate([Remainder] string input)
 		{
 			//Separate the input

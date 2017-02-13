@@ -15,10 +15,10 @@ namespace Advobot
 	{
 		[Command("preventmentionspam")]
 		[Alias("pmsp")]
-		[Usage("preventmentionspam [Enable|Disable|Current] | [Setup] <Messages:Number> <Mentions:Number> <Votes:Number>")]
+		[Usage("[Enable|Disable|Current] | [Setup] <Messages:Number> <Mentions:Number> <Votes:Number>")]
 		[Summary("Spam prevention allows for some protection against mention spammers. Messages are the amount of messages a user has to send with the given amount of mentions before being considered " + 
 			"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The first punishment is a kick, next is a ban. The messages count on a user resets every hour.")]
-		[PermissionRequirements]
+		[PermissionRequirement]
 		public async Task PreventMentionSpam([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -158,9 +158,10 @@ namespace Advobot
 
 		[Command("preventraidspam")]
 		[Alias("prsp")]
-		[Usage("preventraidspam [Enable] <Number> | [Disable]")]
-		[Summary("Any users who joins from now on will get text muted. Once `preventraidspam` is turned off all the users who were muted will be unmuted. Inputting a number mutes the last x people who have joined.")]
-		[PermissionRequirements]
+		[Usage("[Enable] <Number> | [Disable]")]
+		[Summary("Any users who joins from now on will get text muted. Once `preventraidspam` is turned off all the users who were muted will be unmuted. " +
+			"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
+		[PermissionRequirement]
 		public async Task PreventRaidSpam([Remainder] string input)
 		{
 			//Split input
@@ -213,7 +214,7 @@ namespace Advobot
 					//Get the users who have joined most recently
 					var users = (await Context.Guild.GetUsersAsync()).OrderBy(x => x.JoinedAt).Reverse().ToList();
 					//Get a suitable number for the input number
-					inputNum = Math.Min(Math.Abs(inputNum), users.Count);
+					inputNum = Math.Min(Math.Min(Math.Abs(inputNum), users.Count), 25);
 					//Remove all of the users who are not supposed to be muted
 					users.RemoveRange(inputNum - 1, users.Count - inputNum);
 					//Mute all of the users

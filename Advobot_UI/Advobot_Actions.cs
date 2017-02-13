@@ -80,7 +80,7 @@ namespace Advobot
 					//Get the base permissions
 					var basePerm = "N/A";
 					{
-						PermissionRequirementsAttribute attr = (PermissionRequirementsAttribute)method.GetCustomAttribute(typeof(PermissionRequirementsAttribute));
+						PermissionRequirementAttribute attr = (PermissionRequirementAttribute)method.GetCustomAttribute(typeof(PermissionRequirementAttribute));
 						if (attr != null)
 						{
 							basePerm = String.IsNullOrWhiteSpace(attr.AllText) ? "" : "[" + attr.AllText;
@@ -1676,7 +1676,8 @@ namespace Advobot
 		public static bool ValidateURL(string input)
 		{
 			Uri uriResult;
-			return Uri.TryCreate(input, UriKind.Absolute, out uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+			var wut = Uri.TryCreate(input, UriKind.Absolute, out uriResult);
+			return wut && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 		}
 		#endregion
 
@@ -2866,7 +2867,7 @@ namespace Advobot
 
 			//Determine how long to wait until firing
 			var time = PERIOD;
-			if ((DateTime.UtcNow - Variables.StartupTime).TotalHours < 1)
+			if ((DateTime.UtcNow.Subtract(Variables.StartupTime)).TotalHours < 1)
 			{
 				time -= (long)DateTime.UtcNow.TimeOfDay.TotalMilliseconds % PERIOD;
 			}

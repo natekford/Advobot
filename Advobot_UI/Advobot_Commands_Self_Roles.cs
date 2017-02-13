@@ -14,9 +14,9 @@ namespace Advobot
 	{
 		[Command("selfrolesmodify")]
 		[Alias("srm")]
-		[Usage("selfrolesmodify [Help] | [Create|Add|Remove] [Role/...] [Group:Number] | [Delete] [Group:Num]")]
+		[Usage("[Help] | [Create|Add|Remove] [Role/...] [Group:Number] | [Delete] [Group:Num]")]
 		[Summary("Adds a role to the self assignable list. Roles can be grouped toGether which means only one role in the group can be self assigned at a time. There is an extra help command, too.")]
-		[PermissionRequirements]
+		[PermissionRequirement]
 		public async Task ModifySelfAssignableRoles([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -269,7 +269,7 @@ namespace Advobot
 
 		[Command("selfrolesassign")]
 		[Alias("sra")]
-		[Usage("selfrolesassign [Role]")]
+		[Usage("[Role]")]
 		[Summary("Gives a role or takes a role depending on if the user has the role or not. Remove all other roles in the same group unless the group is 0.")]
 		public async Task AssignSelfRole([Remainder] string input)
 		{
@@ -339,7 +339,7 @@ namespace Advobot
 
 		[Command("selfroles")]
 		[Alias("srs")]
-		[Usage("selfroles <File|Actual> <Group:Number>")]
+		[Usage("<File|Actual> <Group:Number>")]
 		[Summary("Shows the current group numbers that exists on the guild.")]
 		public async Task CurrentGroups([Optional, Remainder] string input)
 		{

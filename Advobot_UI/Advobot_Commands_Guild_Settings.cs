@@ -16,7 +16,7 @@ namespace Advobot
 	{
 		#region General
 		[Command("guildleave")]
-		[Usage("guildleave <Guild ID>")]
+		[Usage("<Guild ID>")]
 		[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
 		[BotOwnerOrGuildOwnerRequirement]
 		public async Task LeaveServer([Optional, Remainder] string input)
@@ -64,7 +64,7 @@ namespace Advobot
 
 		[Command("guildprefix")]
 		[Alias("gdp")]
-		[Usage("guildprefix [New Prefix|Clear]")]
+		[Usage("[New Prefix|Clear]")]
 		[Summary("Makes the guild use the given prefix from now on.")]
 		[GuildOwnerRequirement]
 		public async Task SetGuildPrefix([Remainder] string input)
@@ -125,9 +125,9 @@ namespace Advobot
 
 		[Command("guildsettings")]
 		[Alias("gds")]
-		[Usage("guildsettings")]
+		[Usage("")]
 		[Summary("Displays which settings are not default.")]
-		[PermissionRequirements]
+		[PermissionRequirement]
 		public async Task CurrentSettings()
 		{
 			//Get the guild
@@ -196,9 +196,9 @@ namespace Advobot
 
 		[Command("botchannel")]
 		[Alias("bchan")]
-		[Usage("botchannel")]
+		[Usage("")]
 		[Summary("Recreates the bot channel if lost.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels, 0)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels, 0)]
 		public async Task BotChannel()
 		{
 			//If no bot channel, create it
@@ -220,7 +220,7 @@ namespace Advobot
 		#region Command Configuration
 		[Command("comconfigmodify")]
 		[Alias("ccm")]
-		[Usage("comconfigmodify [Enable|Disable]")]
+		[Usage("[Enable|Disable]")]
 		[Summary("Gives the guild preferences which allows using self-assignable roles, toggling commands, and changing the permissions of commands.")]
 		[GuildOwnerRequirement]
 		public async Task EnablePreferences([Remainder] string input)
@@ -270,9 +270,9 @@ namespace Advobot
 
 		[Command("comconfig")]
 		[Alias("ccon")]
-		[Usage("comconfig [Enable|Disable|Current] [Command Name|Category Name|All]")]
+		[Usage("[Enable|Disable|Current] [Command Name|Category Name|All]")]
 		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `comconfigtoggle`, `comconfigcurrent`, `comconfigmodify`, or `help`.")]
-		[PermissionRequirements]
+		[PermissionRequirement]
 		public async Task SwitchCommand([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -412,9 +412,9 @@ namespace Advobot
 		#region Bot Users
 		[Command("botusersmodify")]
 		[Alias("bum")]
-		[Usage("botusersmodify [Add|Remove|Show] <@User> <Permission/...>")]
+		[Usage("[Add|Remove|Show] <@User> <Permission/...>")]
 		[Summary("Gives a user permissions in the bot but not on Discord itself. Can remove a user by not specifying any perms with remove.")]
-		[PermissionRequirements]
+		[PermissionRequirement]
 		public async Task ModifyUserBotPerm([Remainder] string input)
 		{
 			//Check if they've enabled preferences
@@ -578,7 +578,7 @@ namespace Advobot
 
 		[Command("botusers")]
 		[Alias("busr")]
-		[Usage("botusers [File|Actual|@User]")]
+		[Usage("[File|Actual|@User]")]
 		[Summary("Shows a list of all the people who are bot users. If a user is specified then their permissions are said.")]
 		[UserHasAPermission]
 		public async Task CurrentBotUsers([Remainder] string input)
@@ -687,7 +687,7 @@ namespace Advobot
 		#region Reminds
 		[Command("remindsmodify")]
 		[Alias("remm")]
-		[Usage("remindsmodify [Add|Remove] [Name]/<Text>")]
+		[Usage("[Add|Remove] [Name]/<Text>")]
 		[Summary("Adds the given text to a list that can be called through the `remind` command.")]
 		[UserHasAPermission]
 		public async Task ModifyRemind([Remainder] string input)
@@ -779,7 +779,7 @@ namespace Advobot
 
 		[Command("reminds")]
 		[Alias("rem", "r")]
-		[Usage("reminds <Name>")]
+		[Usage("<Name>")]
 		[Summary("Shows the content for the given remind. If null then shows the list of the current reminds.")]
 		public async Task CurrentRemind([Optional, Remainder] string input)
 		{

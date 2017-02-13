@@ -11,9 +11,9 @@ namespace Advobot
 	#region Attributes
 	//If the user has all the perms required for the first arg then success, any of the second arg then success. Nothing means only Administrator works.
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class PermissionRequirementsAttribute : PreconditionAttribute
+	public class PermissionRequirementAttribute : PreconditionAttribute
 	{
-		public PermissionRequirementsAttribute(uint anyOfTheListedPerms = 0, uint allOfTheListedPerms = 0)
+		public PermissionRequirementAttribute(uint anyOfTheListedPerms = 0, uint allOfTheListedPerms = 0)
 		{
 			mAllFlags = allOfTheListedPerms;
 			mAnyFlags = anyOfTheListedPerms | (1U << (int)GuildPermission.Administrator);
@@ -94,7 +94,7 @@ namespace Advobot
 	public class UserHasAPermissionAttribute : PreconditionAttribute
 	{
 		private const UInt32 PERMISSIONBITS = 0
-			| (1U<<(int)GuildPermission.Administrator)
+			| (1U << (int)GuildPermission.Administrator)
 			| (1U << (int)GuildPermission.BanMembers)
 			| (1U << (int)GuildPermission.DeafenMembers)
 			| (1U << (int)GuildPermission.KickMembers)
@@ -171,7 +171,7 @@ namespace Advobot
 		}
 		public string Usage
 		{
-			get { return Properties.Settings.Default.Prefix + mUsage; }
+			get { return Properties.Settings.Default.Prefix + mName + " " + mUsage; }
 		}
 		public string basePerm
 		{
@@ -450,6 +450,37 @@ namespace Advobot
 		public bool PotentialKick = false;
 		public List<ulong> UsersWhoHaveAlreadyVoted = new List<ulong>();
 	}
+
+	public class UICommandNames
+	{
+		static readonly Dictionary<UICommandEnum, string[]> NamesAndAliases = new Dictionary<UICommandEnum, string[]>
+		{
+			{ UICommandEnum.Pause, new string[] { SharedCommands.cPause } },
+			{ UICommandEnum.BotOwner, new string[] { SharedCommands.cOwner, SharedCommands.aOwner } },
+			{ UICommandEnum.SavePath, new string[] { SharedCommands.cPath, SharedCommands.aPath } },
+			{ UICommandEnum.Prefix, new string[] { SharedCommands.cPrefix, SharedCommands.aPrefix } },
+			{ UICommandEnum.Settings, new string[] { SharedCommands.cSettings, SharedCommands.aSettings } },
+			{ UICommandEnum.BotIcon, new string[] { SharedCommands.cIcon, SharedCommands.aIcon } },
+			{ UICommandEnum.BotGame, new string[] { SharedCommands.cGame, SharedCommands.aGame } },
+			{ UICommandEnum.BotStream, new string[] { SharedCommands.cStream, SharedCommands.aStream } },
+			{ UICommandEnum.BotName, new string[] { SharedCommands.cName, SharedCommands.aName } },
+			{ UICommandEnum.Disconnect, new string[] { SharedCommands.cDisc, SharedCommands.aDisc_1, SharedCommands.aDisc_2 } },
+			{ UICommandEnum.Restart, new string[] { SharedCommands.cRestart, SharedCommands.aRestart } },
+			{ UICommandEnum.ListGuilds, new string[] { SharedCommands.cGuilds, SharedCommands.aGuilds } },
+		};
+
+		public static string[] GetNamesAndAliases(UICommandEnum cmd)
+		{
+			if (NamesAndAliases.ContainsKey(cmd))
+			{
+				return NamesAndAliases[cmd];
+			}
+			else
+			{
+				return new string[] { };
+			}
+		}
+	}
 	#endregion
 
 	#region Structs
@@ -656,5 +687,21 @@ namespace Advobot
 		Current = 3,
 		Setup = 4,
 	}
+
+	public enum UICommandEnum
+	{
+		Pause = 0,
+		BotOwner = 1,
+		SavePath = 2,
+		Prefix = 3,
+		Settings = 4,
+		BotIcon = 5,
+		BotGame = 6,
+		BotStream = 7,
+		BotName = 8,
+		Disconnect = 9,
+		Restart = 10,
+		ListGuilds = 11,
+	};
 	#endregion
 }

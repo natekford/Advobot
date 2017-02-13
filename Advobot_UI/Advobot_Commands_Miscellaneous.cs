@@ -17,7 +17,7 @@ namespace Advobot
 		#region Help
 		[Command("help")]
 		[Alias("h", "info")]
-		[Usage("help <Command>")]
+		[Usage("<Command>")]
 		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. If left blank will print out a link to the documentation of this bot.")]
 		public async Task Help([Optional, Remainder] string input)
 		{
@@ -54,14 +54,14 @@ namespace Advobot
 			}
 
 			//Send the message for that command
-			HelpEntry helpEntry = Variables.HelpList.FirstOrDefault(x => x.Name.Equals(input, StringComparison.OrdinalIgnoreCase));
+			var helpEntry = Variables.HelpList.FirstOrDefault(x => x.Name.Equals(input, StringComparison.OrdinalIgnoreCase));
 			if (helpEntry == null)
 			{
-				foreach (HelpEntry commands in Variables.HelpList)
+				foreach (var command in Variables.HelpList)
 				{
-					if (commands.Aliases.Contains(input))
+					if (command.Aliases.Contains(input))
 					{
-						helpEntry = commands;
+						helpEntry = command;
 					}
 				}
 				if (helpEntry == null)
@@ -140,7 +140,7 @@ namespace Advobot
 
 		[Command("commands")]
 		[Alias("cmds")]
-		[Usage("commands <Category|All>")]
+		[Usage("<Category|All>")]
 		[Summary("Prints out the commands in that category of the command list.")]
 		public async Task Commands([Optional, Remainder] string input)
 		{
@@ -175,7 +175,7 @@ namespace Advobot
 		#region IDs
 		[Command("idguild")]
 		[Alias("idg")]
-		[Usage("idguild")]
+		[Usage("")]
 		[Summary("Shows the ID of the guild.")]
 		[UserHasAPermission]
 		public async Task ServerID()
@@ -185,7 +185,7 @@ namespace Advobot
 
 		[Command("idchannel")]
 		[Alias("idc")]
-		[Usage("idchannel " + Constants.CHANNEL_INSTRUCTIONS)]
+		[Usage(Constants.CHANNEL_INSTRUCTIONS)]
 		[Summary("Shows the ID of the given channel.")]
 		[UserHasAPermission]
 		public async Task ChannelID([Remainder] string input)
@@ -201,7 +201,7 @@ namespace Advobot
 
 		[Command("idrole")]
 		[Alias("idr")]
-		[Usage("idrole [Role]")]
+		[Usage("[Role]")]
 		[Summary("Shows the ID of the given role.")]
 		[UserHasAPermission]
 		public async Task RoleID([Remainder] string input)
@@ -217,7 +217,7 @@ namespace Advobot
 
 		[Command("iduser")]
 		[Alias("idu")]
-		[Usage("iduser <@User>")]
+		[Usage("<@User>")]
 		[Summary("Shows the ID of the given user.")]
 		[UserHasAPermission]
 		public async Task UserID([Optional, Remainder] string input)
@@ -235,7 +235,7 @@ namespace Advobot
 		#region User or other misc info
 		[Command("infobot")]
 		[Alias("infb")]
-		[Usage("infobot")]
+		[Usage("")]
 		[Summary("Displays various information about the bot.")]
 		public async Task BotInfo()
 		{
@@ -311,7 +311,7 @@ namespace Advobot
 
 		[Command("infouser")]
 		[Alias("infu")]
-		[Usage("infouser [@User]")]
+		[Usage("<@User>")]
 		[Summary("Displays various information about the user. Join position is mostly accurate, give or take ten places per thousand users on the guild.")]
 		public async Task UserInfo([Optional, Remainder] string input)
 		{
@@ -425,7 +425,7 @@ namespace Advobot
 
 		[Command("infoemoji")]
 		[Alias("infe")]
-		[Usage("infoemoji [Emoji]")]
+		[Usage("[Emoji]")]
 		[Summary("Shows information about an emoji. Only global emojis where the bot is in a guild that gives them will have a 'From...' text.")]
 		public async Task EmojiInfo([Remainder] string input)
 		{
@@ -451,7 +451,7 @@ namespace Advobot
 
 		[Command("useravatar")]
 		[Alias("uav")]
-		[Usage("useravatar <@user>")]
+		[Usage("<@user>")]
 		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily). Currently every avatar is displayed with an extension type of gif.")]
 		public async Task UserAvatar([Optional, Remainder] string input)
 		{
@@ -466,7 +466,7 @@ namespace Advobot
 
 		[Command("userjoinedat")]
 		[Alias("ujat")]
-		[Usage("userjoinedat [Position]")]
+		[Usage("[Position]")]
 		[Summary("Shows the user which joined the guild in that position. Mostly accurate, give or take ten places per thousand users on the guild.")]
 		public async Task UserJoinedAt([Remainder] string input)
 		{
@@ -500,9 +500,9 @@ namespace Advobot
 
 		[Command("userwithrole")]
 		[Alias("uwr")]
-		[Usage("userwithrole <File|Upload> [Role]")]
+		[Usage("<File|Upload> [Role]")]
 		[Summary("Prints out a list of all users with the given role. File specifies a text document which can show more symbols. Upload specifies to use a text uploader.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageRoles)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
 		public async Task AllWithRole([Remainder] string input)
 		{
 			//Split into the bools and role
@@ -572,7 +572,7 @@ namespace Advobot
 
 		[Command("userwithname")]
 		[Alias("uwn")]
-		[Usage("userwithname [Name]")]
+		[Usage("[Name]")]
 		[Summary("Lists all users where their username contains the given string.")]
 		[UserHasAPermission]
 		public async Task ListUsersWithName([Remainder] string input)
@@ -617,7 +617,7 @@ namespace Advobot
 
 		[Command("currentmembercount")]
 		[Alias("cmc")]
-		[Usage("currentmembercount")]
+		[Usage("")]
 		[Summary("Shows the current number of members in the guild.")]
 		public async Task CurrentMemberCount()
 		{
@@ -628,9 +628,9 @@ namespace Advobot
 		#region Instant Invites
 		[Command("invitecreate")]
 		[Alias("invc")]
-		[Usage("invitecreate " + Constants.CHANNEL_INSTRUCTIONS + " [Forever|1800|3600|21600|43200|86400] [Infinite|1|5|10|25|50|100] [True|False]")]
+		[Usage(Constants.CHANNEL_INSTRUCTIONS + " [Forever|1800|3600|21600|43200|86400] [Infinite|1|5|10|25|50|100] [True|False]")]
 		[Summary("The first argument is the channel. The second is how long the invite will last for. The third is how many users can use the invite. The fourth is the temporary membership option.")]
-		[PermissionRequirements(1U << (int)GuildPermission.CreateInstantInvite)]
+		[PermissionRequirement(1U << (int)GuildPermission.CreateInstantInvite)]
 		public async Task CreateInstantInvite([Remainder] string input)
 		{
 			var inputArray = input.Split(new char[] { ' ' }, 4);
@@ -691,9 +691,9 @@ namespace Advobot
 
 		[Command("invitelist")]
 		[Alias("invl")]
-		[Usage("invitelist")]
+		[Usage("")]
 		[Summary("Gives a list of all the instant invites on the guild.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ListInstantInvites()
 		{
 			//Format the description
@@ -711,9 +711,9 @@ namespace Advobot
 
 		[Command("invitedelete")]
 		[Alias("invd")]
-		[Usage("invitedelete [Invite Code]")]
+		[Usage("[Invite Code]")]
 		[Summary("Deletes the invite with the given code.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task DeleteInstantInvite([Remainder] string input)
 		{
 			//Get the input
@@ -731,9 +731,9 @@ namespace Advobot
 
 		[Command("invitedeletemultiple")]
 		[Alias("invdm")]
-		[Usage("invitedeletemultiple [@User|" + Constants.CHANNEL_INSTRUCTIONS + "|Uses:Number|Expires:Number]")]
+		[Usage("[@User|" + Constants.CHANNEL_INSTRUCTIONS + "|Uses:Number|Expires:Number]")]
 		[Summary("Deletes all invites satisfying the given condition of either user, creation channel, uses, or expiry time.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task DeleteMultipleInvites([Remainder] string input)
 		{
 			//Set the action telling what variable
@@ -844,7 +844,7 @@ namespace Advobot
 		#region Miscellaneous
 		[Command("mentionrole")]
 		[Alias("mnr")]
-		[Usage("mentionrole [Role]/[Message]")]
+		[Usage("[Role]/[Message]")]
 		[Summary("Mention an unmentionable role with the given message.")]
 		[UserHasAPermission]
 		public async Task MentionRole([Remainder] string input)
@@ -873,9 +873,9 @@ namespace Advobot
 
 		[Command("listemojis")]
 		[Alias("lemojis")]
-		[Usage("listemojis [Global|Guild]")]
+		[Usage("[Global|Guild]")]
 		[Summary("Lists the emoji in the guild. As of right now, with the current API wrapper version this bot uses, there's no way to upload or remove emojis yet; sorry.")]
-		[PermissionRequirements(1U << (int)GuildPermission.ManageEmojis)]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageEmojis)]
 		public async Task ListEmojis([Remainder] string input)
 		{
 			//Make the string

@@ -630,62 +630,69 @@ namespace Advobot
 		public static bool FindCommand(string cmd, string args)
 		{
 			//Find what command it belongs to
-			if (cmd.Equals("pause", StringComparison.OrdinalIgnoreCase))
+			if (UICommandNames.GetNamesAndAliases(UICommandEnum.Pause).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.PAUSE(args);
 			}
-			else if (cmd.Equals("globalbotowner", StringComparison.OrdinalIgnoreCase) || cmd.Equals("glbo", StringComparison.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.BotOwner).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIGlobalBotOwner(args);
 				});
 			}
-			else if (cmd.Equals("globalsavepath", StringComparison.OrdinalIgnoreCase) || cmd.Equals("glsp", StringComparison.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.SavePath).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIGlobalSavePath(args);
 			}
-			else if (cmd.Equals("globalprefix", StringComparison.OrdinalIgnoreCase) || cmd.Equals("glp", StringComparison.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.Prefix).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIGlobalPrefix(args);
 				});
 			}
-			else if (cmd.Equals("globalsettings", StringComparison.OrdinalIgnoreCase) || cmd.Equals("gls", StringComparison.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.Settings).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIGlobalSettings(args);
 			}
-			else if (cmd.Equals("boticon", StringComparison.OrdinalIgnoreCase) || cmd.Equals("bi", StringComparison.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.BotIcon).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIBotIcon(args);
 				});
 			}
-			else if (cmd.Equals("botgame", StringComparison.OrdinalIgnoreCase) || cmd.Equals("bg", StringComparison.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.BotGame).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIBotGame(args);
 				});
 			}
-			else if (cmd.Equals("botstream", StringComparison.OrdinalIgnoreCase) || cmd.Equals("bst", StringComparison.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.BotStream).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIBotStream(args);
 				});
 			}
-			else if (cmd.Equals("disconnect", StringComparison.OrdinalIgnoreCase) || cmd.Equals("dc", StringComparison.OrdinalIgnoreCase) || cmd.Equals("runescapeservers", StringComparison.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.BotName).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			{
+				Task.Run(async () =>
+				{
+					await UICommands.UIBotName(args);
+				});
+			}
+			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.Disconnect).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIDisconnect(args);
 			}
-			else if (cmd.Equals("restart", StringComparison.OrdinalIgnoreCase) || cmd.Equals("res", StringComparison.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.Restart).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIRestart(args);
 			}
-			else if (cmd.Equals("listguilds", StringComparison.OrdinalIgnoreCase) || cmd.Equals("lgds", StringComparison.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.ListGuilds).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIListGuilds();
 			}
@@ -1088,12 +1095,12 @@ namespace Advobot
 			//Names have the same length requirements as nicknames
 			if (input.Length > Constants.NICKNAME_MAX_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR("Name cannot be more than 32 characters.."));
+				Actions.WriteLine(Actions.ERROR("Name cannot be more than 32 characters."));
 				return;
 			}
 			else if (input.Length < Constants.NICKNAME_MIN_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR("Name cannot be less than 2 characters.."));
+				Actions.WriteLine(Actions.ERROR("Name cannot be less than 2 characters."));
 				return;
 			}
 
@@ -1135,7 +1142,7 @@ namespace Advobot
 				count++.ToString("00"), Actions.FormatGuild(x), x.Owner.Username, x.Owner.Discriminator, x.Owner.Id));
 
 			//Send it to have the hyperlink created and go to the output window
-			BotWindow.AddHyperlink(BotWindow.MainOutput, "Listed Guilds", Actions.UploadToHastebin(String.Join("\n", guildStrings)));
+			BotWindow.AddHyperlink(BotWindow.MainOutput, Actions.UploadToHastebin(String.Join("\n", guildStrings)), "Listed Guilds");
 		}
 	}
 

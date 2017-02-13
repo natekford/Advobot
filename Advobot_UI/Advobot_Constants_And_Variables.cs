@@ -163,4 +163,43 @@ namespace Advobot
 		public static List<Discord.IGuild> GuildsDeletingPreferences = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<Discord.IGuild>();
 	}
+
+	public static class SharedCommands
+	{
+		public const string cPause = "pause";
+
+		public const string cOwner = "globalbotowner";
+		public const string aOwner = "glbo";
+
+		public const string cPath = "globalsavepath";
+		public const string aPath = "glsp";
+
+		public const string cPrefix = "globalprefix";
+		public const string aPrefix = "glp";
+
+		public const string cSettings = "globalsettings";
+		public const string aSettings = "gls";
+
+		public const string cIcon = "boticon";
+		public const string aIcon = "bi";
+
+		public const string cGame = "botgame";
+		public const string aGame = "bg";
+
+		public const string cStream = "botstream";
+		public const string aStream = "bst";
+
+		public const string cName = "botname";
+		public const string aName = "bn";
+
+		public const string cDisc = "disconnect";
+		public const string aDisc_1 = "dc";
+		public const string aDisc_2 = "runescapeservers";
+
+		public const string cRestart = "restart";
+		public const string aRestart = "res";
+
+		public const string cGuilds = "listguilds";
+		public const string aGuilds = "lgds";
+	}
 }

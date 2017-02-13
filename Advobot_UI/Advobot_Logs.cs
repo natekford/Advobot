@@ -250,16 +250,24 @@ namespace Advobot
 			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
+			//Form the length stayed string
+			var lengthStayed = "";
+			if (user.JoinedAt.HasValue)
+			{
+				var time = DateTime.UtcNow.Subtract(user.JoinedAt.Value.UtcDateTime);
+				lengthStayed = String.Format("\nStayed for: {0}:{1}:{2}:{3}", time.Days, time.Hours, time.Minutes, time.Seconds);
+			}
+
 			if (user.IsBot)
 			{
-				var embed = Actions.MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV);
+				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
 				Actions.AddFooter(embed, "Bot Left");
 				Actions.AddAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl);
 				await Actions.SendEmbedMessage(logChannel, embed);
 			}
 			else
 			{
-				var embed = Actions.MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV);
+				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
 				Actions.AddFooter(embed, "User Left");
 				Actions.AddAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl);
 				await Actions.SendEmbedMessage(logChannel, embed);
