@@ -916,6 +916,7 @@ namespace Advobot
 		[BotOwnerRequirement]
 		public async Task Test([Optional, Remainder] string input)
 		{
+			//var feats = Context.Guild.Features;
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
 		#endregion

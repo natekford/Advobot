@@ -13,8 +13,8 @@ namespace Advobot
 	public class Administration_Commands : ModuleBase
 	{
 		#region Settings
-		[Command(SharedCommands.cOwner)]
-		[Alias(SharedCommands.aOwner)]
+		[Command(SharedCommands.COWNER)]
+		[Alias(SharedCommands.AOWNER)]
 		[Usage("<Clear|Current>")]
 		[Summary("You must be the current guild owner. The bot will DM you asking for its key. **DO NOT INPUT THE KEY OUTSIDE OF DMS.** If you are experiencing trouble, refresh your bot's key.")]
 		public async Task SetBotOwner([Optional, Remainder] string input)
@@ -72,8 +72,8 @@ namespace Advobot
 			await Actions.SendDMMessage(await Context.User.CreateDMChannelAsync(), "What is my key?");
 		}
 
-		[Command(SharedCommands.cPath)]
-		[Alias(SharedCommands.aPath)]
+		[Command(SharedCommands.CPATH)]
+		[Alias(SharedCommands.APATH)]
 		[Usage("[Clear|Current|New Directory]")]
 		[Summary("Changes the save path's directory. Windows defaults to User/AppData/Roaming. Other OSes will not work without a save path set. Clearing the savepath means nothing will be able to save.")]
 		[BotOwnerRequirement]
@@ -126,8 +126,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the save path to: `{0}`.", input), 10000);
 		}
 
-		[Command(SharedCommands.cPrefix)]
-		[Alias(SharedCommands.aPrefix)]
+		[Command(SharedCommands.CPREFIX)]
+		[Alias(SharedCommands.APREFIX)]
 		[Usage("[Clear|Current|New Prefix]")]
 		[Summary("Changes the bot's prefix to the given string. Clearing the prefix sets it back to `++`.")]
 		[BotOwnerRequirement]
@@ -163,8 +163,8 @@ namespace Advobot
 			await Actions.SetGame(oldPrefix);
 		}
 
-		[Command(SharedCommands.cSettings)]
-		[Alias(SharedCommands.aSettings)]
+		[Command(SharedCommands.CSETTINGS)]
+		[Alias(SharedCommands.ASETTINGS)]
 		[Usage("[Clear|Current]")]
 		[Summary("Shows all the settings on the bot aside from the bot's key. When clearing all settings the bot will have to be manually restarted if it reconnects.")]
 		[BotOwnerRequirement]
@@ -210,8 +210,8 @@ namespace Advobot
 		#endregion
 
 		#region Bot Changes
-		[Command(SharedCommands.cIcon)]
-		[Alias(SharedCommands.aIcon)]
+		[Command(SharedCommands.CICON)]
+		[Alias(SharedCommands.AICON)]
 		[Usage("[Attached Image|Embedded Image|Remove]")]
 		[Summary("Changes the bot's icon.")]
 		[BotOwnerRequirement]
@@ -220,8 +220,8 @@ namespace Advobot
 			await Actions.SetPicture(Context, input, true);
 		}
 
-		[Command(SharedCommands.cGame)]
-		[Alias(SharedCommands.aGame)]
+		[Command(SharedCommands.CGAME)]
+		[Alias(SharedCommands.AGAME)]
 		[Usage("[New Name]")]
 		[Summary("Changes the game the bot is currently listed as playing.")]
 		[BotOwnerRequirement]
@@ -242,8 +242,8 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, String.Format("Game set to `{0}`.", input));
 		}
 
-		[Command(SharedCommands.cStream)]
-		[Alias(SharedCommands.aStream)]
+		[Command(SharedCommands.CSTREAM)]
+		[Alias(SharedCommands.ASTREAM)]
 		[Usage("[Twitch.TV link]")]
 		[Summary("Changes the stream the bot has listed under its name.")]
 		[BotOwnerRequirement]
@@ -281,8 +281,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to `" + input + "`"));
 		}
 
-		[Command(SharedCommands.cName)]
-		[Alias(SharedCommands.aName)]
+		[Command(SharedCommands.CNAME)]
+		[Alias(SharedCommands.ANAME)]
 		[Usage("[New Name]")]
 		[Summary("Changes the bot's name to the given name.")]
 		[BotOwnerRequirement]
@@ -309,8 +309,8 @@ namespace Advobot
 		#endregion
 
 		#region Misc
-		[Command(SharedCommands.cDisc)]
-		[Alias(SharedCommands.aDisc_1, SharedCommands.aDisc_2)]
+		[Command(SharedCommands.CDISC)]
+		[Alias(SharedCommands.ADISC_1, SharedCommands.ADISC_2)]
 		[Usage("")]
 		[Summary("Turns the bot off.")]
 		[BotOwnerRequirement]
@@ -326,8 +326,8 @@ namespace Advobot
 			}
 		}
 
-		[Command(SharedCommands.cRestart)]
-		[Alias(SharedCommands.aRestart)]
+		[Command(SharedCommands.CRESTART)]
+		[Alias(SharedCommands.ARESTART)]
 		[Usage("")]
 		[Summary("Restarts the bot.")]
 		[BotOwnerRequirement]
@@ -353,8 +353,8 @@ namespace Advobot
 			}
 		}
 
-		[Command(SharedCommands.cGuilds)]
-		[Alias(SharedCommands.aGuilds)]
+		[Command(SharedCommands.CGUILDS)]
+		[Alias(SharedCommands.AGUILDS)]
 		[Usage("")]
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 		[BotOwnerRequirement]

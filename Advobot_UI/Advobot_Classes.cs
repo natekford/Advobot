@@ -455,18 +455,18 @@ namespace Advobot
 	{
 		static readonly Dictionary<UICommandEnum, string[]> NamesAndAliases = new Dictionary<UICommandEnum, string[]>
 		{
-			{ UICommandEnum.Pause, new string[] { SharedCommands.cPause } },
-			{ UICommandEnum.BotOwner, new string[] { SharedCommands.cOwner, SharedCommands.aOwner } },
-			{ UICommandEnum.SavePath, new string[] { SharedCommands.cPath, SharedCommands.aPath } },
-			{ UICommandEnum.Prefix, new string[] { SharedCommands.cPrefix, SharedCommands.aPrefix } },
-			{ UICommandEnum.Settings, new string[] { SharedCommands.cSettings, SharedCommands.aSettings } },
-			{ UICommandEnum.BotIcon, new string[] { SharedCommands.cIcon, SharedCommands.aIcon } },
-			{ UICommandEnum.BotGame, new string[] { SharedCommands.cGame, SharedCommands.aGame } },
-			{ UICommandEnum.BotStream, new string[] { SharedCommands.cStream, SharedCommands.aStream } },
-			{ UICommandEnum.BotName, new string[] { SharedCommands.cName, SharedCommands.aName } },
-			{ UICommandEnum.Disconnect, new string[] { SharedCommands.cDisc, SharedCommands.aDisc_1, SharedCommands.aDisc_2 } },
-			{ UICommandEnum.Restart, new string[] { SharedCommands.cRestart, SharedCommands.aRestart } },
-			{ UICommandEnum.ListGuilds, new string[] { SharedCommands.cGuilds, SharedCommands.aGuilds } },
+			{ UICommandEnum.Pause, new string[] { SharedCommands.CPAUSE } },
+			{ UICommandEnum.BotOwner, new string[] { SharedCommands.COWNER, SharedCommands.AOWNER } },
+			{ UICommandEnum.SavePath, new string[] { SharedCommands.CPATH, SharedCommands.APATH } },
+			{ UICommandEnum.Prefix, new string[] { SharedCommands.CPREFIX, SharedCommands.APREFIX } },
+			{ UICommandEnum.Settings, new string[] { SharedCommands.CSETTINGS, SharedCommands.ASETTINGS } },
+			{ UICommandEnum.BotIcon, new string[] { SharedCommands.CICON, SharedCommands.AICON } },
+			{ UICommandEnum.BotGame, new string[] { SharedCommands.CGAME, SharedCommands.AGAME } },
+			{ UICommandEnum.BotStream, new string[] { SharedCommands.CSTREAM, SharedCommands.ASTREAM } },
+			{ UICommandEnum.BotName, new string[] { SharedCommands.CNAME, SharedCommands.ANAME } },
+			{ UICommandEnum.Disconnect, new string[] { SharedCommands.CDISC, SharedCommands.ADISC_1, SharedCommands.ADISC_2 } },
+			{ UICommandEnum.Restart, new string[] { SharedCommands.CRESTART, SharedCommands.ARESTART } },
+			{ UICommandEnum.ListGuilds, new string[] { SharedCommands.CGUILDS, SharedCommands.AGUILDS } },
 		};
 
 		public static string[] GetNamesAndAliases(UICommandEnum cmd)

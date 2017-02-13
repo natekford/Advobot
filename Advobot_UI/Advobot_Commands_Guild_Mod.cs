@@ -47,7 +47,13 @@ namespace Advobot
 			//Check if a valid region or asking to see the region types
 			if (input.Equals("regions", StringComparison.OrdinalIgnoreCase))
 			{
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Region IDs", String.Join("\n", Constants.VALIDREGIONIDS)));
+				var text = String.Join("\n", Constants.VALIDREGIONIDS);
+				//Check whether to show the VIP regions
+				if (Context.Guild.Features.Contains(Constants.VIP_REGIONS, StringComparer.OrdinalIgnoreCase))
+				{
+					text += "\n" + String.Join("\n", Constants.VIPREGIONIDS);
+				}
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Region IDs", text));
 			}
 			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
@@ -62,19 +68,19 @@ namespace Advobot
 				await Context.Guild.ModifyAsync(x => x.RegionId = input);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", bRegion, input));
 			}
-			//else if (Constants.VIPREGIONIDS.Contains(input, StringComparer.OrdinalIgnoreCase))
-			//{
-			//	//Figure out how to check if the guild is VIP
-			//	if ()
-			//	{
-			//		//Capture the previous region
-			//		var bRegion = Context.Guild.VoiceRegionId;
+			else if (Constants.VIPREGIONIDS.Contains(input, StringComparer.OrdinalIgnoreCase))
+			{
+				//Check if the guild can access vip regions
+				if (Context.Guild.Features.Contains(Constants.VIP_REGIONS, StringComparer.OrdinalIgnoreCase))
+				{
+					//Capture the previous region
+					var bRegion = Context.Guild.VoiceRegionId;
 
-			//		//Change the region
-			//		await Context.Guild.ModifyAsync(x => x.RegionId = input);
-			//		await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", bRegion, input));
-			//	}
-			//}
+					//Change the region
+					await Context.Guild.ModifyAsync(x => x.RegionId = input);
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", bRegion, input));
+				}
+			}
 			else
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid region ID was input."));

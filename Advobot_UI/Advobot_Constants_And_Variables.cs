@@ -43,6 +43,9 @@ namespace Advobot
 		public const string BYPASS_STRING = "Badoodle123";
 		public const string DENY_WITHOUT_PREFERENCES = "This guild does not have preferences enabled and thus cannot use this command. Please run the `comconfigmodify` command to enable them.";
 		public const string STREAM_URL = "https://www.twitch.tv/";
+		public const string VIP_REGIONS = "VIP_REGIONS";
+		public const string VANITY_URL = "VANITY_URL";
+		public const string INVITE_SPLASH = "INVITE_SPLASH";
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int WAIT_TIME = 3000;
@@ -65,7 +68,7 @@ namespace Advobot
 		public static readonly string[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
 		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
 		public static readonly string[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "hongkong", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west" };
-		public static readonly string[] VIPREGIONIDS = { "amsterdam", "us-east", "us-west" };
+		public static readonly string[] VIPREGIONIDS = { "vip-amsterdam", "vip-us-east", "vip-us-west" };
 		public static readonly string[] COMMANDSUNABLETOBETURNEDOFF = { "comconfigtoggle", "comconfigcurrent", "comconfigmodify", "help" };
 		public static readonly string[] CLOSEWORDSPOSITIONS = { "1", "2", "3", "4", "5" };
 
@@ -166,40 +169,40 @@ namespace Advobot
 
 	public static class SharedCommands
 	{
-		public const string cPause = "pause";
+		public const string CPAUSE = "pause";
 
-		public const string cOwner = "globalbotowner";
-		public const string aOwner = "glbo";
+		public const string COWNER = "globalbotowner";
+		public const string AOWNER = "glbo";
 
-		public const string cPath = "globalsavepath";
-		public const string aPath = "glsp";
+		public const string CPATH = "globalsavepath";
+		public const string APATH = "glsp";
 
-		public const string cPrefix = "globalprefix";
-		public const string aPrefix = "glp";
+		public const string CPREFIX = "globalprefix";
+		public const string APREFIX = "glp";
 
-		public const string cSettings = "globalsettings";
-		public const string aSettings = "gls";
+		public const string CSETTINGS = "globalsettings";
+		public const string ASETTINGS = "gls";
 
-		public const string cIcon = "boticon";
-		public const string aIcon = "bi";
+		public const string CICON = "boticon";
+		public const string AICON = "bi";
 
-		public const string cGame = "botgame";
-		public const string aGame = "bg";
+		public const string CGAME = "botgame";
+		public const string AGAME = "bg";
 
-		public const string cStream = "botstream";
-		public const string aStream = "bst";
+		public const string CSTREAM = "botstream";
+		public const string ASTREAM = "bst";
 
-		public const string cName = "botname";
-		public const string aName = "bn";
+		public const string CNAME = "botname";
+		public const string ANAME = "bn";
 
-		public const string cDisc = "disconnect";
-		public const string aDisc_1 = "dc";
-		public const string aDisc_2 = "runescapeservers";
+		public const string CDISC = "disconnect";
+		public const string ADISC_1 = "dc";
+		public const string ADISC_2 = "runescapeservers";
 
-		public const string cRestart = "restart";
-		public const string aRestart = "res";
+		public const string CRESTART = "restart";
+		public const string ARESTART = "res";
 
-		public const string cGuilds = "listguilds";
-		public const string aGuilds = "lgds";
+		public const string CGUILDS = "listguilds";
+		public const string AGUILDS = "lgds";
 	}
 }
