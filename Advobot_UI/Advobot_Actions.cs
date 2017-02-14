@@ -29,9 +29,9 @@ namespace Advobot
 
 			LoadGuilds();															//Loads the guilds that attempted to load before the Bot_ID was gotten.
 
-			Variables.Loaded = true;                                                //Set a bool stating that everything is done loading.
-			ResetSpamPrevention(null);
-			StartUpMessages();                                                      //Say all of the start up messages
+			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
+			ResetSpamPrevention(null);												//Start the hourly timer to restart spam prevention
+			StartUpMessages();														//Say all of the start up messages
 		}
 
 		//Text said during the startup of the bot
@@ -618,7 +618,7 @@ namespace Advobot
 			GetConsoleOrGUI();
 		}
 
-		//Possibly load the bot, I don't know, maybe if it's feeling up to doing some work today. Maybe it's tired or angry at us and won't decide to help.
+		//Possibly load the bot, I don't know.
 		public static void MaybeStartBot()
 		{
 			if (Variables.GotPath && Variables.GotKey && !Variables.Loaded)
@@ -1234,7 +1234,7 @@ namespace Advobot
 		}
 
 		//Get a list of lines in a text doc that aren't the targetted ones
-		public static List<string> GetValidLines(string path, string checkString)
+		public static List<string> GetValidLines(string path, string checkString, bool getCheckString = false)
 		{
 			CreateFile(path);
 
@@ -1255,6 +1255,10 @@ namespace Advobot
 					else if (!(line.IndexOf(checkString, StringComparison.OrdinalIgnoreCase) >= 0))
 					{
 						validLines.Add(line);
+					}
+					else if (getCheckString)
+					{
+						return new List<string>() { line };
 					}
 				}
 			}
@@ -1449,8 +1453,8 @@ namespace Advobot
 		//Edit message log message
 		public static async Task FormatEditMessage(ITextChannel logChannel, string time, IGuildUser user, IMessageChannel channel, string before, string after)
 		{
-			await SendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}#{2}` **IN** `#{3}`\n**FROM:** ```\n{4}```\n**TO:** ```\n{5}```",
-				time, user.Username, user.Discriminator, channel.Name, before, after));
+			await SendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}` **IN** `#{2}`\n**FROM:** ```\n{3}```\n**TO:** ```\n{4}```",
+				time, Actions.FormatUser(user), channel.Name, before, after));
 		}
 		
 		//Get rid of certain elements to make messages look neater
@@ -1473,10 +1477,16 @@ namespace Advobot
 			return input;
 		}
 
-		//Format the guild in a console message
+		//Format the guild string for use in the console
 		public static string FormatGuild(IGuild guild)
 		{
 			return String.Format("'{0}' ({1})", guild.Name, guild.Id);
+		}
+
+		//Format the user string
+		public static string FormatUser(IUser user)
+		{
+			return String.Format("{0}#{1} ({2})", user.Username, user.Discriminator, user.Id);
 		}
 		#endregion
 
@@ -1763,7 +1773,6 @@ namespace Advobot
 		//Make a new embed builder
 		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null)
 		{
-			//Timestamp is in UTC for simplicity and organization's sake
 			var embed = new EmbedBuilder().WithColor(Constants.BASE).WithCurrentTimestamp();
 			
 			if (title != null)
@@ -2031,7 +2040,7 @@ namespace Advobot
 					++Variables.LoggedImages;
 					var embed = MakeNewEmbed(null, URL, Constants.ATCH, URL);
 					AddFooter(embed, "Attached Image");
-					AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl);
 					await SendEmbedMessage(channel, embed);
 				}
 				//Gif attachment
@@ -2040,7 +2049,7 @@ namespace Advobot
 					++Variables.LoggedGifs;
 					var embed = MakeNewEmbed(null, URL, Constants.ATCH, URL);
 					AddFooter(embed, "Attached Gif");
-					AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl);
 					await SendEmbedMessage(channel, embed);
 				}
 				//Random file attachment
@@ -2049,7 +2058,7 @@ namespace Advobot
 					++Variables.LoggedFiles;
 					var embed = MakeNewEmbed(null, URL, Constants.ATCH, URL);
 					AddFooter(embed, "Attached File");
-					AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl);
 					await SendEmbedMessage(channel, embed);
 				}
 			}
@@ -2059,7 +2068,7 @@ namespace Advobot
 				++Variables.LoggedImages;
 				var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
 				AddFooter(embed, "Embedded Image");
-				AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+				AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl);
 				await SendEmbedMessage(channel, embed);
 			}
 			//Embedded videos/gifs
@@ -2068,7 +2077,7 @@ namespace Advobot
 				++Variables.LoggedGifs;
 				var embed = MakeNewEmbed(null, embedObject.Url, Constants.ATCH, embedObject.Thumbnail.Value.Url);
 				AddFooter(embed, "Embedded " + (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url), StringComparer.OrdinalIgnoreCase) ? "Gif" : "Video"));
-				AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, message.Channel), user.AvatarUrl);
+				AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl);
 				await SendEmbedMessage(channel, embed);
 			}
 		}
@@ -2482,7 +2491,7 @@ namespace Advobot
 				if (logChannel != null)
 				{
 					var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
-					await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
+					await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl));
 				}
 			}
 			//Ban
@@ -2500,7 +2509,7 @@ namespace Advobot
 				if (logChannel != null)
 				{
 					var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
-					await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
+					await SendEmbedMessage(logChannel, AddAuthor(embed, Actions.FormatUser(user), user.AvatarUrl));
 				}
 			}
 			//Role
@@ -2520,7 +2529,7 @@ namespace Advobot
 				if (logChannel != null)
 				{
 					var embed = AddFooter(MakeNewEmbed(null, "**Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
-					await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl));
+					await SendEmbedMessage(logChannel, AddAuthor(embed, Actions.FormatUser(user), user.AvatarUrl));
 				}
 			}
 		}
@@ -2574,7 +2583,7 @@ namespace Advobot
 		}
 
 		//Save the bot key
-		public static async Task<bool> ValidateBotKey(DiscordSocketClient client, string input, bool startup = false)
+		public static async Task<bool> ValidateBotKey(DiscordShardedClient client, string input, bool startup = false)
 		{
 			input = input.Trim();
 			

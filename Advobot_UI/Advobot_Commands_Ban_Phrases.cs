@@ -319,7 +319,7 @@ namespace Advobot
 				}
 
 				//Get the words out of the file
-				var line = Actions.GetValidLines(path, type).FirstOrDefault();
+				var line = Actions.GetValidLines(path, type, true).FirstOrDefault();
 				BannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
 
 				fileBool = true;

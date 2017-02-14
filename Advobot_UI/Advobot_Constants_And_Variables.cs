@@ -5,8 +5,8 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const string BOT_VERSION = "0.9.10";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00594";
+		public const string BOT_VERSION = "0.9.12";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00595";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -110,7 +110,7 @@ namespace Advobot
 
 	public static class Variables
 	{
-		public static Discord.WebSocket.DiscordSocketClient Client;
+		public static Discord.WebSocket.DiscordShardedClient Client;
 
 		public static UInt64 Bot_ID = 0;
 		public static string Bot_Name;
@@ -204,5 +204,7 @@ namespace Advobot
 
 		public const string CGUILDS = "listguilds";
 		public const string AGUILDS = "lgds";
+
+		public const string CSHARDS = "modifyshards";
 	}
 }

@@ -467,6 +467,7 @@ namespace Advobot
 			{ UICommandEnum.Disconnect, new string[] { SharedCommands.CDISC, SharedCommands.ADISC_1, SharedCommands.ADISC_2 } },
 			{ UICommandEnum.Restart, new string[] { SharedCommands.CRESTART, SharedCommands.ARESTART } },
 			{ UICommandEnum.ListGuilds, new string[] { SharedCommands.CGUILDS, SharedCommands.AGUILDS } },
+			{ UICommandEnum.Shards, new string[] { SharedCommands.CSHARDS } },
 		};
 
 		public static string[] GetNamesAndAliases(UICommandEnum cmd)
@@ -702,6 +703,7 @@ namespace Advobot
 		Disconnect = 9,
 		Restart = 10,
 		ListGuilds = 11,
+		Shards = 12,
 	};
 	#endregion
 }

@@ -42,15 +42,15 @@ namespace Advobot
 		}
 
 		//Create the client
-		private static DiscordSocketClient createClient()
+		private static DiscordShardedClient createClient()
 		{
 			//Define the DiscordSocketClient
-			DiscordSocketClient client = new DiscordSocketClient(new DiscordSocketConfig
+			DiscordShardedClient client = new DiscordShardedClient(new DiscordSocketConfig
 			{
 				AlwaysDownloadUsers = true,
 				MessageCacheSize = 10000,
 				LogLevel = LogSeverity.Warning,
-				AudioMode = Discord.Audio.AudioMode.Disabled,
+				TotalShards = Properties.Settings.Default.ShardCount,
 			});
 
 			//Botlogs
@@ -59,8 +59,6 @@ namespace Advobot
 			client.GuildUnavailable += BotLogs.OnGuildUnavailable;
 			client.JoinedGuild += BotLogs.OnJoinedGuild;
 			client.LeftGuild += BotLogs.OnLeftGuild;
-			client.Disconnected += BotLogs.OnDisconnected;
-			client.Connected += BotLogs.OnConnected;
 			//Serverlogs
 			client.UserJoined += ServerLogs.OnUserJoined;
 			client.UserLeft += ServerLogs.OnUserLeft;
@@ -82,8 +80,9 @@ namespace Advobot
 		}
 
 		//Try to have the bot connect and then add the dependency map
-		public async Task Start(DiscordSocketClient client)
+		public async Task Start(DiscordShardedClient client)
 		{
+			Actions.WriteLine("Connecting the client...");
 			//Connect the bot
 			try
 			{

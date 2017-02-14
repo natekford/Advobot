@@ -579,11 +579,11 @@ namespace Advobot
 				mLatency.Text = String.Format("Latency: {0}ms", Variables.Client.Latency);
 				mMemory.Text = String.Format("Memory: {0}MB", (Process.GetCurrentProcess().WorkingSet64 / 1000000.0).ToString("0.00"));
 				mThreads.Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
-				mShards.Text = String.Format($"Shards: {0}");
+				mShards.Text = String.Format("Shards: {0}", Variables.Client.Shards.Count);
 				mPrefix.Text = String.Format("Prefix: {0}", Properties.Settings.Default.Prefix);
 			};
 			//Make the timer update every so often
-			timer.Interval = new TimeSpan(0, 0, 0, 0, 250);
+			timer.Interval = new TimeSpan(0, 0, 0, 0, 500);
 			//Start the timer
 			timer.Start();
 		}
@@ -686,15 +686,23 @@ namespace Advobot
 			}
 			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.Disconnect).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
-				UICommands.UIDisconnect(args);
+				UICommands.UIDisconnect();
 			}
 			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.Restart).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
-				UICommands.UIRestart(args);
+				UICommands.UIRestart();
 			}
 			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.ListGuilds).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIListGuilds();
+			}
+			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.Shards).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			{
+				UICommands.UIModifyShards(args);
+			}
+			else if (cmd.Equals("test", StringComparison.OrdinalIgnoreCase))
+			{
+				UICommands.UITest();
 			}
 			else
 			{
@@ -872,7 +880,7 @@ namespace Advobot
 			}
 
 			//Finally check if it's an actual user
-			var globalUser = Variables.Client.GetUser(ID);
+			Discord.IUser globalUser = null;// Variables.Client.GetUser(ID);
 			if (globalUser == null)
 			{
 				Actions.WriteLine("Unable to find any users with that ID.");
@@ -1112,18 +1120,18 @@ namespace Advobot
 		}
 
 		//Disconnect the bot
-		public static void UIDisconnect(string input)
+		public static void UIDisconnect()
 		{
 			Environment.Exit(0);
 		}
 
 		//Restart the bot
-		public static void UIRestart(string input)
+		public static void UIRestart()
 		{
 			try
 			{
 				//Restart the application
-				System.Diagnostics.Process.Start(Application.ResourceAssembly.Location);
+				Process.Start(Application.ResourceAssembly.Location);
 				//Close the previous version
 				Environment.Exit(0);
 			}
@@ -1143,6 +1151,45 @@ namespace Advobot
 
 			//Send it to have the hyperlink created and go to the output window
 			BotWindow.AddHyperlink(BotWindow.MainOutput, Actions.UploadToHastebin(String.Join("\n", guildStrings)), "Listed Guilds");
+		}
+
+		//Change the amount of shards the bot has
+		public static void UIModifyShards(string input)
+		{
+			//Make sure valid input is passed in
+			if (input == null)
+			{
+				Actions.WriteLine("No valid args supplied.");
+				return;
+			}
+
+			//Check if valid number
+			var number = 0;
+			if (!int.TryParse(input, out number))
+			{
+				Actions.WriteLine("Invalid input for number.");
+				return;
+			}
+
+			//Check if the client has too many servers for that to work
+			if (Variables.Client.Guilds.Count >= number * 2500)
+			{
+				Actions.WriteLine("With the current amount of guilds the client has, the minimum shard number is: " + Variables.Client.Guilds.Count / 2500 + 1);
+				return;
+			}
+
+			//Set and save the amount
+			Properties.Settings.Default.ShardCount = number;
+			Properties.Settings.Default.Save();
+
+			//Send a success message
+			Actions.WriteLine(String.Format("Successfully set the shard amount to {0}.", number));
+		}
+
+		//Test command
+		public static void UITest()
+		{
+			//Actions.WriteLine(Variables.Client.Latency.ToString());
 		}
 	}
 

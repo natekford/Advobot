@@ -8,13 +8,13 @@ namespace Advobot
 	public class CommandHandler
 	{
 		public static CommandService Commands;
-		public static DiscordSocketClient Client;
+		public static DiscordShardedClient Client;
 		public static IDependencyMap Map;
 
 		public async Task Install(IDependencyMap map)
 		{
 			//Create Command Service, inject it into Dependency Map
-			Client = map.Get<DiscordSocketClient>();
+			Client = map.Get<DiscordShardedClient>();
 			Commands = new CommandService();
 			map.Add(Commands);
 			Map = map;

@@ -21,7 +21,7 @@ namespace Advobot
 
 		public static Task OnGuildAvailable(SocketGuild guild)
 		{
-			Actions.WriteLine(String.Format("{0}: {1} is online now.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild)));
+			Actions.WriteLine(String.Format("{0}: {1} is online now on shard {2}.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild), Variables.Client.GetShardFor(guild).ShardId));
 
 			if (!Variables.Guilds.ContainsKey(guild.Id))
 			{
@@ -133,23 +133,6 @@ namespace Advobot
 
 			return Task.CompletedTask;
 		}
-
-		public static Task OnDisconnected(Exception exception)
-		{
-			Actions.WriteLine(String.Format("{0}: Bot has been disconnected.", MethodBase.GetCurrentMethod().Name));
-
-			Variables.TotalUsers = 0;
-			Variables.TotalGuilds = 0;
-
-			return Task.CompletedTask;
-		}
-
-		public static Task OnConnected()
-		{
-			Actions.WriteLine(String.Format("{0}: Bot has connected.", MethodBase.GetCurrentMethod().Name));
-
-			return Task.CompletedTask;
-		}
 	}
 
 	public class ServerLogs : ModuleBase
@@ -177,7 +160,11 @@ namespace Advobot
 					//Get the new invites on the guild by finding which guild invites aren't on the bot invites list
 					var newInvs = curInvs.Where(x => !botInvs.Select(y => y.Code).Contains(x.Code));
 					//If there's only one, then use that as the current inv. If there's more than one then there's no way to know what invite it was on
-					if (newInvs.Count() == 1)
+					if (newInvs.Count() == 0 && user.Guild.Features.Contains(Constants.VANITY_URL, StringComparer.OrdinalIgnoreCase))
+					{
+						curInv = new BotInvite(user.Guild.Id, "Vanity URL", 0);
+					}
+					else if (newInvs.Count() == 1)
 					{
 						curInv = new BotInvite(newInvs.First().GuildId, newInvs.First().Code, newInvs.First().Uses);
 					}
@@ -255,7 +242,7 @@ namespace Advobot
 			if (user.JoinedAt.HasValue)
 			{
 				var time = DateTime.UtcNow.Subtract(user.JoinedAt.Value.UtcDateTime);
-				lengthStayed = String.Format("\nStayed for: {0}:{1}:{2}:{3}", time.Days, time.Hours, time.Minutes, time.Seconds);
+				lengthStayed = String.Format("\n**Stayed for:** {0}:{1}:{2}:{3}", time.Days, time.Hours, time.Minutes, time.Seconds);
 			}
 
 			if (user.IsBot)
@@ -846,9 +833,7 @@ namespace Advobot
 			if (Variables.STOP)
 				return;
 
-			var userString = String.Format("{0}#{1} ({2})", context.User.Username, context.User.Discriminator, context.User.Id);
-			var guildString = String.Format("{0} ({1})", context.Guild.Name, context.Guild.Id);
-			Actions.WriteLine(String.Format("{0} on {1}: \'{2}\'", userString, guildString, context.Message.Content));
+			Actions.WriteLine(String.Format("'{0}' on {1}: \'{2}\'", Actions.FormatUser(context.User), Actions.FormatGuild(context.Guild), context.Message.Content));
 
 			var logChannel = await Actions.VerifyLogChannel(context.Guild, Constants.MOD_LOG_CHECK_STRING);
 			if (logChannel == null)
@@ -859,7 +844,7 @@ namespace Advobot
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(description: context.Message.Content);
 			Actions.AddFooter(embed, "Mod Log");
-			Actions.AddAuthor(embed, String.Format("{0}#{1} in #{2}", context.User.Username, context.User.Discriminator, context.Channel.Name), context.User.AvatarUrl);
+			Actions.AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(context.User), context.Channel.Name), context.User.AvatarUrl);
 			await Actions.SendEmbedMessage(logChannel, embed);
 		}
 	}

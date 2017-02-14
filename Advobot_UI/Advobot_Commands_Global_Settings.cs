@@ -353,6 +353,43 @@ namespace Advobot
 			}
 		}
 
+		[Command(SharedCommands.CSHARDS)]
+		[Usage("[Number]")]
+		[Summary("")]
+		[BotOwnerRequirement]
+		public async Task ModifyShards([Remainder] string input)
+		{
+			//Make sure valid input is passed in
+			if (input == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid args supplied."));
+				return;
+			}
+
+			//Check if valid number
+			var number = 0;
+			if (!int.TryParse(input, out number))
+			{
+				Actions.WriteLine("Invalid input for number.");
+				return;
+			}
+
+			//Check if the client has too many servers for that to work
+			var curGuilds = Variables.Client.Guilds.Count;
+			if (curGuilds >= number * 2500)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("With the current amount of guilds the client has, the minimum shard number is: " + curGuilds / 2500 + 1));
+				return;
+			}
+
+			//Set and save the amount
+			Properties.Settings.Default.ShardCount = number;
+			Properties.Settings.Default.Save();
+
+			//Send a success message
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the shard amount to {0}.", number));
+		}
+
 		[Command(SharedCommands.CGUILDS)]
 		[Alias(SharedCommands.AGUILDS)]
 		[Usage("")]
