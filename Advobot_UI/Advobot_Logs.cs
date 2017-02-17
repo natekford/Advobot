@@ -21,7 +21,7 @@ namespace Advobot
 
 		public static Task OnGuildAvailable(SocketGuild guild)
 		{
-			Actions.WriteLine(String.Format("{0}: {1} is online now on shard {2}.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild), Variables.Client.GetShardFor(guild).ShardId));
+			Actions.WriteLine(String.Format("{0}: {1} is now online on shard {2}.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild), Variables.Client.GetShardFor(guild).ShardId));
 
 			if (!Variables.Guilds.ContainsKey(guild.Id))
 			{
@@ -57,7 +57,7 @@ namespace Advobot
 
 		public static Task OnGuildUnavailable(SocketGuild guild)
 		{
-			Actions.WriteLine(String.Format("{0}: Guild is down: {1}.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild)));
+			Actions.WriteLine(String.Format("{0}: Guild is now offline {1}.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild)));
 
 			Variables.TotalUsers -= (guild.MemberCount + 1);
 			if (Variables.TotalUsers < 0)
@@ -71,7 +71,7 @@ namespace Advobot
 
 		public static Task OnJoinedGuild(SocketGuild guild)
 		{
-			Actions.WriteLine(String.Format("{0}: Bot joined {1}.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild)));
+			Actions.WriteLine(String.Format("{0}: Bot has joined {1}.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild)));
 
 			//Check how many bots are in the guild
 			int botCount = 0;
@@ -104,22 +104,40 @@ namespace Advobot
 			}
 			else if (users <= 100)
 			{
-				//Allows up to 20 bots
-				percentage = .2;
+				//Allows up to 25 bots
+				percentage = .25;
 			}
 			else
 			{
-				percentage = .1;
+				percentage = .15;
 			}
 
-			//Leave the guild
-			Task.Run(async () =>
+			//Leave if too many bots
+			if (botCount / (users * 1.0) > percentage)
 			{
-				if (botCount / (users * 1.0) > percentage)
+				Task.Run(async () =>
 				{
 					await guild.LeaveAsync();
-				}
-			});
+				});
+			}
+
+			//Warn if at the maximum
+			var guilds = Variables.Client.GetGuilds().Count;
+			var shards = Variables.Client.GetShards().Count;
+			if (guilds + 100 >= shards * 2500)
+			{
+				Actions.WriteLine(String.Format("The bot currently has {0} out of {1} possible spots for servers filled. Please increase the shard count.", guilds, shards * 2500));
+			}
+			//Leave the guild
+			if (guilds > shards * 2500)
+			{
+				Task.Run(async () =>
+				{
+					await guild.LeaveAsync();
+				});
+				//Send a message to the console
+				Actions.WriteLine(String.Format("Left the guild {0} due to having too many guilds on the client and not enough shards.", Actions.FormatGuild(guild)));
+			}
 
 			return Task.CompletedTask;
 		}
@@ -146,7 +164,7 @@ namespace Advobot
 			//Get the current invites
 			var curInvs = await user.Guild.GetInvitesAsync();
 			//Get the invites that have already been put on the bot
-			var botInvs = Variables.Guilds[user.Guild.Id].Invites;
+			var botInvs = Variables.Guilds.ContainsKey(user.Guild.Id) ? Variables.Guilds[user.Guild.Id].Invites : null;
 			//Set an invite to hold the current invite the user joined on
 			BotInvite curInv = null;
 			if (botInvs != null)
@@ -242,7 +260,7 @@ namespace Advobot
 			if (user.JoinedAt.HasValue)
 			{
 				var time = DateTime.UtcNow.Subtract(user.JoinedAt.Value.UtcDateTime);
-				lengthStayed = String.Format("\n**Stayed for:** {0}:{1}:{2}:{3}", time.Days, time.Hours, time.Minutes, time.Seconds);
+				lengthStayed = String.Format("\n**Stayed for:** {0}:{1:00}:{2:00}:{3:00}", time.Days, time.Hours, time.Minutes, time.Seconds);
 			}
 
 			if (user.IsBot)
@@ -316,7 +334,7 @@ namespace Advobot
 			//TODO: Make this work somehow
 			if (!beforeUser.Username.Equals(afterUser.Username, StringComparison.OrdinalIgnoreCase))
 			{
-				foreach (var guild in Variables.Client.Guilds.Where(x => x.Users.Contains(afterUser)))
+				foreach (var guild in Variables.Client.GetGuilds().Where(x => x.Users.Contains(afterUser)))
 				{
 					var logChannel = await Actions.VerifyLogChannel(guild);
 					if (logChannel == null ||
@@ -446,15 +464,18 @@ namespace Advobot
 			var guild = channel.Guild;
 			if (guild == null)
 				return;
-			//Check if there are any attachments to log
+			//Check if the log channel is valid and if image logging is enabled
 			var logChannel = await Actions.VerifyLogChannel(guild);
-			if (message.Attachments.Any() && logChannel != null)
+			if (logChannel != null && !Variables.Guilds[guild.Id].LogActions.Any(x => Enum.GetName(typeof(LogActions), LogActions.ImageLog).IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 			{
-				//Check if image logging is enabled
-				if (!Variables.Guilds[guild.Id].LogActions.Any(x => Enum.GetName(typeof(LogActions), LogActions.ImageLog).IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-					return;
-
-				await Actions.ImageLog(logChannel, message, false);
+				if (message.Attachments.Any())
+				{
+					await Actions.ImageLog(logChannel, message, false);
+				}
+				if (message.Embeds.Any())
+				{
+					await Actions.ImageLog(logChannel, message, true);
+				}
 			}
 			//Check if the user should be spam prevented
 			await MessageReceivedActions.SpamPrevention(guild, message);
@@ -533,16 +554,6 @@ namespace Advobot
 				return;
 
 			++Variables.LoggedDeletes;
-
-			//If it is, then check if the message should be image logged
-			if (message.Value.Embeds.Any())
-			{
-				//Check if image logging is enabled
-				if (!Variables.Guilds[guild.Id].LogActions.Any(x => Enum.GetName(typeof(LogActions), LogActions.ImageLog).IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-					return;
-
-				await Actions.ImageLog(logChannel, message.Value, true);
-			}
 
 			//Check if logging deleted messages is on
 			if (!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))

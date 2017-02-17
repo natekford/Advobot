@@ -576,10 +576,11 @@ namespace Advobot
 			//Make the timer's action
 			timer.Tick += (sender, e) =>
 			{
-				mLatency.Text = String.Format("Latency: {0}ms", Variables.Client.Latency);
+				var client = Variables.Client;
+				mLatency.Text = String.Format("Latency: {0}ms", client.GetLatency());
 				mMemory.Text = String.Format("Memory: {0}MB", (Process.GetCurrentProcess().WorkingSet64 / 1000000.0).ToString("0.00"));
 				mThreads.Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
-				mShards.Text = String.Format("Shards: {0}", Variables.Client.Shards.Count);
+				mShards.Text = String.Format("Shards: {0}", client.GetShards().Count);
 				mPrefix.Text = String.Format("Prefix: {0}", Properties.Settings.Default.Prefix);
 			};
 			//Make the timer update every so often
@@ -636,10 +637,7 @@ namespace Advobot
 			}
 			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.BotOwner).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
-				Task.Run(async () =>
-				{
-					await UICommands.UIGlobalBotOwner(args);
-				});
+				UICommands.UIGlobalBotOwner(args);
 			}
 			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.SavePath).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
@@ -831,7 +829,7 @@ namespace Advobot
 		}
 
 		//Modify the global bot owner
-		public static async Task UIGlobalBotOwner(string input)
+		public static void UIGlobalBotOwner(string input)
 		{
 			//Make sure valid input is passed in
 			if (input == null)
@@ -843,7 +841,7 @@ namespace Advobot
 			//Check if it's current
 			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
-				var user = await Actions.GetBotOwner(Variables.Client);
+				var user = Actions.GetBotOwner(Variables.Client);
 				if (user != null)
 				{
 					Actions.WriteLine(String.Format("The current bot owner is: `{0}#{1} ({2})`", user.Username, user.Discriminator, user.Id));
@@ -866,7 +864,7 @@ namespace Advobot
 			else if (Properties.Settings.Default.BotOwner != 0)
 			{
 				//Get the bot owner
-				var user = await Actions.GetBotOwner(Variables.Client);
+				var user = Actions.GetBotOwner(Variables.Client);
 				Actions.WriteLine(String.Format("There is already a bot owner: `{0}#{1} ({2})`.", user.Username, user.Discriminator, user.Id));
 				return;
 			}
@@ -906,7 +904,6 @@ namespace Advobot
 			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
 				var description = "";
-				description += String.Format("Prefix: {0}", String.IsNullOrWhiteSpace(Properties.Settings.Default.Prefix) ? "N/A" : Properties.Settings.Default.Prefix);
 				description += String.Format("\n\tSave Path: {0}", String.IsNullOrWhiteSpace(Properties.Settings.Default.Path) ? "N/A" : Properties.Settings.Default.Path);
 				description += String.Format("\n\tBot Owner ID: {0}", String.IsNullOrWhiteSpace(Properties.Settings.Default.BotOwner.ToString()) ? "N/A" : Properties.Settings.Default.BotOwner.ToString());
 				description += String.Format("\n\tStream: {0}", String.IsNullOrWhiteSpace(Properties.Settings.Default.Stream) ? "N/A" : Properties.Settings.Default.Stream);
@@ -918,12 +915,12 @@ namespace Advobot
 				//Send a success message first instead of after due to the bot losing its ability to do so
 				Actions.WriteLine("Successfully cleared all settings. Restarting now...");
 				//Reset the settings
-				Properties.Settings.Default.Reset();
+				Actions.ResetSettings();
 				//Restart the bot
 				try
 				{
 					//Restart the application
-					System.Diagnostics.Process.Start(Application.ResourceAssembly.Location);
+					Process.Start(Application.ResourceAssembly.Location);
 					//Close the previous version
 					Environment.Exit(0);
 				}
@@ -953,7 +950,7 @@ namespace Advobot
 			//See if the user wants to remove the icon
 			if (input.Equals("remove", StringComparison.OrdinalIgnoreCase))
 			{
-				await Variables.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Discord.Image());
+				await Variables.Client.GetCurrentUser().ModifyAsync(x => x.Avatar = new Discord.Image());
 				Actions.WriteLine("Successfully removed the bot's icon.");
 				return;
 			}
@@ -1028,7 +1025,7 @@ namespace Advobot
 				//Create a second filestream to upload the image
 				using (FileStream imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
 				{
-					await Variables.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Discord.Image(imgStream));
+					await Variables.Client.GetCurrentUser().ModifyAsync(x => x.Avatar = new Discord.Image(imgStream));
 				}
 
 				//Delete the file and send a success message
@@ -1051,7 +1048,7 @@ namespace Advobot
 			Properties.Settings.Default.Game = input;
 			Properties.Settings.Default.Save();
 
-			await Variables.Client.SetGameAsync(input, Variables.Client.CurrentUser.Game.Value.StreamUrl, Variables.Client.CurrentUser.Game.Value.StreamType);
+			await Variables.Client.SetGameAsync(input, Variables.Client.GetCurrentUser().Game.Value.StreamUrl, Variables.Client.GetCurrentUser().Game.Value.StreamType);
 			Actions.WriteLine(String.Format("Game set to `{0}`.", input));
 		}
 
@@ -1086,7 +1083,7 @@ namespace Advobot
 			}
 
 			//Set the stream
-			await Variables.Client.SetGameAsync(Variables.Client.CurrentUser.Game.Value.Name, input, streamType);
+			await Variables.Client.SetGameAsync(Variables.Client.GetCurrentUser().Game.Value.Name, input, streamType);
 			Actions.WriteLine(String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to `" + input + "`"));
 		}
 
@@ -1113,7 +1110,7 @@ namespace Advobot
 			}
 
 			//Change the bots name to it
-			await Variables.Client.CurrentUser.ModifyAsync(x => x.Username = input);
+			await Variables.Client.GetCurrentUser().ModifyAsync(x => x.Username = input);
 
 			//Send a success message
 			Actions.WriteLine(String.Format("Successfully changed my username to `{0}`.", input));
@@ -1146,7 +1143,7 @@ namespace Advobot
 		{
 			//Go through each guild and add them to the list
 			int count = 1;
-			var guildStrings = Variables.Client.Guilds.ToList().Select(x => String.Format("{0}. {1} Owner: {2}#{3} ({4})",
+			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("{0}. {1} Owner: {2}#{3} ({4})",
 				count++.ToString("00"), Actions.FormatGuild(x), x.Owner.Username, x.Owner.Discriminator, x.Owner.Id));
 
 			//Send it to have the hyperlink created and go to the output window
@@ -1172,9 +1169,9 @@ namespace Advobot
 			}
 
 			//Check if the client has too many servers for that to work
-			if (Variables.Client.Guilds.Count >= number * 2500)
+			if (Variables.Client.GetGuilds().Count >= number * 2500)
 			{
-				Actions.WriteLine("With the current amount of guilds the client has, the minimum shard number is: " + Variables.Client.Guilds.Count / 2500 + 1);
+				Actions.WriteLine("With the current amount of guilds the client has, the minimum shard number is: " + Variables.Client.GetGuilds().Count / 2500 + 1);
 				return;
 			}
 

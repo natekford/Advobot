@@ -14,7 +14,14 @@ namespace Advobot
 			//Check if Windows and if console
 			Actions.LoadBasicInformation();
 			//Create the client
-			Variables.Client = createClient();
+			if (Properties.Settings.Default.ShardCount > 1)
+			{
+				Variables.Client = new ShardedClient(createShardedClient());
+			}
+			else
+			{
+				Variables.Client = new SocketClient(createSocketClient());
+			}
 
 			if (!Variables.Console)
 			{
@@ -41,46 +48,83 @@ namespace Advobot
 			}
 		}
 
-		//Create the client
-		private static DiscordShardedClient createClient()
+		//Create a sharded client
+		private static DiscordShardedClient createShardedClient()
 		{
 			//Define the DiscordSocketClient
-			DiscordShardedClient client = new DiscordShardedClient(new DiscordSocketConfig
+			var ShardedClient = new DiscordShardedClient(new DiscordSocketConfig
 			{
-				AlwaysDownloadUsers = true,
-				MessageCacheSize = 10000,
-				LogLevel = LogSeverity.Warning,
+				AlwaysDownloadUsers = Constants.ALWAYS_DOWNLOAD_USERS,
+				MessageCacheSize = Constants.CACHED_MESSAGE_COUNT,
+				LogLevel = Constants.LOG_LEVEL,
 				TotalShards = Properties.Settings.Default.ShardCount,
 			});
 
 			//Botlogs
-			client.Log += BotLogs.Log;
-			client.GuildAvailable += BotLogs.OnGuildAvailable;
-			client.GuildUnavailable += BotLogs.OnGuildUnavailable;
-			client.JoinedGuild += BotLogs.OnJoinedGuild;
-			client.LeftGuild += BotLogs.OnLeftGuild;
+			ShardedClient.Log += BotLogs.Log;
+			ShardedClient.GuildAvailable += BotLogs.OnGuildAvailable;
+			ShardedClient.GuildUnavailable += BotLogs.OnGuildUnavailable;
+			ShardedClient.JoinedGuild += BotLogs.OnJoinedGuild;
+			ShardedClient.LeftGuild += BotLogs.OnLeftGuild;
 			//Serverlogs
-			client.UserJoined += ServerLogs.OnUserJoined;
-			client.UserLeft += ServerLogs.OnUserLeft;
-			client.UserUnbanned += ServerLogs.OnUserUnbanned;
-			client.UserBanned += ServerLogs.OnUserBanned;
-			client.GuildMemberUpdated += ServerLogs.OnGuildMemberUpdated;
-			client.UserUpdated += ServerLogs.OnUserUpdated;
-			client.MessageReceived += ServerLogs.OnMessageReceived;
-			client.MessageUpdated += ServerLogs.OnMessageUpdated;
-			client.MessageDeleted += ServerLogs.OnMessageDeleted;
-			client.RoleCreated += ServerLogs.OnRoleCreated;
-			client.RoleUpdated += ServerLogs.OnRoleUpdated;
-			client.RoleDeleted += ServerLogs.OnRoleDeleted;
-			client.ChannelCreated += ServerLogs.OnChannelCreated;
-			client.ChannelUpdated += ServerLogs.OnChannelUpdated;
-			client.ChannelDestroyed += ServerLogs.OnChannelDeleted;
+			ShardedClient.UserJoined += ServerLogs.OnUserJoined;
+			ShardedClient.UserLeft += ServerLogs.OnUserLeft;
+			ShardedClient.UserUnbanned += ServerLogs.OnUserUnbanned;
+			ShardedClient.UserBanned += ServerLogs.OnUserBanned;
+			ShardedClient.GuildMemberUpdated += ServerLogs.OnGuildMemberUpdated;
+			ShardedClient.UserUpdated += ServerLogs.OnUserUpdated;
+			ShardedClient.MessageReceived += ServerLogs.OnMessageReceived;
+			ShardedClient.MessageUpdated += ServerLogs.OnMessageUpdated;
+			ShardedClient.MessageDeleted += ServerLogs.OnMessageDeleted;
+			ShardedClient.RoleCreated += ServerLogs.OnRoleCreated;
+			ShardedClient.RoleUpdated += ServerLogs.OnRoleUpdated;
+			ShardedClient.RoleDeleted += ServerLogs.OnRoleDeleted;
+			ShardedClient.ChannelCreated += ServerLogs.OnChannelCreated;
+			ShardedClient.ChannelUpdated += ServerLogs.OnChannelUpdated;
+			ShardedClient.ChannelDestroyed += ServerLogs.OnChannelDeleted;
 
-			return client;
+			return ShardedClient;
+		}
+
+		//Create a regular client
+		private static DiscordSocketClient createSocketClient()
+		{
+			//Define the DiscordSocketClient
+			var SocketClient = new DiscordSocketClient(new DiscordSocketConfig
+			{
+				AlwaysDownloadUsers = Constants.ALWAYS_DOWNLOAD_USERS,
+				MessageCacheSize = Constants.CACHED_MESSAGE_COUNT,
+				LogLevel = Constants.LOG_LEVEL,
+			});
+
+			//Botlogs
+			SocketClient.Log += BotLogs.Log;
+			SocketClient.GuildAvailable += BotLogs.OnGuildAvailable;
+			SocketClient.GuildUnavailable += BotLogs.OnGuildUnavailable;
+			SocketClient.JoinedGuild += BotLogs.OnJoinedGuild;
+			SocketClient.LeftGuild += BotLogs.OnLeftGuild;
+			//Serverlogs
+			SocketClient.UserJoined += ServerLogs.OnUserJoined;
+			SocketClient.UserLeft += ServerLogs.OnUserLeft;
+			SocketClient.UserUnbanned += ServerLogs.OnUserUnbanned;
+			SocketClient.UserBanned += ServerLogs.OnUserBanned;
+			SocketClient.GuildMemberUpdated += ServerLogs.OnGuildMemberUpdated;
+			SocketClient.UserUpdated += ServerLogs.OnUserUpdated;
+			SocketClient.MessageReceived += ServerLogs.OnMessageReceived;
+			SocketClient.MessageUpdated += ServerLogs.OnMessageUpdated;
+			SocketClient.MessageDeleted += ServerLogs.OnMessageDeleted;
+			SocketClient.RoleCreated += ServerLogs.OnRoleCreated;
+			SocketClient.RoleUpdated += ServerLogs.OnRoleUpdated;
+			SocketClient.RoleDeleted += ServerLogs.OnRoleDeleted;
+			SocketClient.ChannelCreated += ServerLogs.OnChannelCreated;
+			SocketClient.ChannelUpdated += ServerLogs.OnChannelUpdated;
+			SocketClient.ChannelDestroyed += ServerLogs.OnChannelDeleted;
+
+			return SocketClient;
 		}
 
 		//Try to have the bot connect and then add the dependency map
-		public async Task Start(DiscordShardedClient client)
+		public async Task Start(BotClient client)
 		{
 			Actions.WriteLine("Connecting the client...");
 			//Connect the bot

@@ -22,7 +22,7 @@ namespace Advobot
 			//Check if it's current
 			if (input != null && input.Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
-				var user = await Actions.GetBotOwner(Context.Client);
+				var user = Actions.GetBotOwner(Variables.Client);
 				if (user != null)
 				{
 					await Actions.SendChannelMessage(Context, String.Format("The current bot owner is: `{0}#{1} ({2})`", user.Username, user.Discriminator, user.Id));
@@ -62,7 +62,7 @@ namespace Advobot
 			if (Properties.Settings.Default.BotOwner != 0)
 			{
 				//Get the bot owner
-				var user = await Actions.GetBotOwner(Context.Client);
+				var user = Actions.GetBotOwner(Variables.Client);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("There is already a bot owner: `{0}#{1} ({2})`.", user.Username, user.Discriminator, user.Id));
 				return;
 			}
@@ -175,6 +175,7 @@ namespace Advobot
 			{
 				var description = "";
 				description += String.Format("**Prefix:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.Prefix) ? "N/A" : Properties.Settings.Default.Prefix);
+				description += String.Format("**Shards:** `{0}`\n", Properties.Settings.Default.ShardCount);
 				description += String.Format("**Save Path:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.Path) ? "N/A" : Properties.Settings.Default.Path);
 				description += String.Format("**Bot Owner ID:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.BotOwner.ToString()) ? "N/A" : Properties.Settings.Default.BotOwner.ToString());
 				description += String.Format("**Stream:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.Stream) ? "N/A" : Properties.Settings.Default.Stream);
@@ -186,7 +187,7 @@ namespace Advobot
 				//Send a success message first instead of after due to the bot losing its ability to do so
 				await Actions.SendChannelMessage(Context, "Successfully cleared all settings. Restarting now...");
 				//Reset the settings
-				Properties.Settings.Default.Reset();
+				Actions.ResetSettings();
 				//Restart the bot
 				try
 				{
@@ -375,7 +376,7 @@ namespace Advobot
 			}
 
 			//Check if the client has too many servers for that to work
-			var curGuilds = Variables.Client.Guilds.Count;
+			var curGuilds = Variables.Client.GetGuilds().Count;
 			if (curGuilds >= number * 2500)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("With the current amount of guilds the client has, the minimum shard number is: " + curGuilds / 2500 + 1));
@@ -399,7 +400,7 @@ namespace Advobot
 		{
 			//Go through each guild and add them to the list
 			int count = 1;
-			var guildStrings = Variables.Client.Guilds.ToList().Select(x => String.Format("{0}. {1} Owner: {2}#{3} ({4})",
+			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("{0}. {1} Owner: {2}#{3} ({4})",
 				count++.ToString("00"), Actions.FormatGuild(x), x.Owner.Username, x.Owner.Discriminator, x.Owner.Id));
 
 			//Make an embed and put the link to the hastebin in it

@@ -19,8 +19,8 @@ namespace Advobot
 		//Loading in all necessary information at bot start up
 		public static void LoadInformation()
 		{
-			Variables.Bot_ID = Variables.Client.CurrentUser.Id;						//Give the variable Bot_ID the actual ID
-			Variables.Bot_Name = Variables.Client.CurrentUser.Username;				//Give the variable Bot_Name the username of the bot
+			Variables.Bot_ID = Variables.Client.GetCurrentUser().Id;				//Give the variable Bot_ID the actual ID
+			Variables.Bot_Name = Variables.Client.GetCurrentUser().Username;		//Give the variable Bot_Name the username of the bot
 			Variables.Bot_Channel = Variables.Bot_Name.ToLower();					//Give the variable Bot_Channel a lowered version of the bot's name
 
 			LoadPermissionNames();													//Gets the names of the permission bits in Discord
@@ -1126,17 +1126,9 @@ namespace Advobot
 		}
 
 		//Get the bot owner
-		public static async Task<IGuildUser> GetBotOwner(IDiscordClient client)
+		public static IGuildUser GetBotOwner(BotClient client)
 		{
-			foreach (var guild in await client.GetGuildsAsync())
-			{
-				var user = (await guild.GetUsersAsync()).FirstOrDefault(x => x.Id == Properties.Settings.Default.BotOwner);
-				if (user != null)
-				{
-					return user;
-				}
-			}
-			return null;
+			return client.GetGuilds().SelectMany(x => x.Users).FirstOrDefault(x => x.Id == Properties.Settings.Default.BotOwner);
 		}
 
 		//Get a group number
@@ -1762,7 +1754,7 @@ namespace Advobot
 			{
 				return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR, embed: remadeEmbed);
 			}
-			//Embeds fail every now and then and I haven't been able to find the problem yet (I know fields are a problem, but not in this case)
+			//Embeds fail every now and then and I haven't been able to find the exact problem yet (I know fields are a problem, but not in this case)
 			catch (Exception e)
 			{
 				ExceptionToConsole(MethodBase.GetCurrentMethod().Name, e);
@@ -2038,27 +2030,27 @@ namespace Advobot
 				if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL), StringComparer.OrdinalIgnoreCase))
 				{
 					++Variables.LoggedImages;
-					var embed = MakeNewEmbed(null, URL, Constants.ATCH, URL);
+					var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
 					AddFooter(embed, "Attached Image");
-					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl);
+					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl, URL);
 					await SendEmbedMessage(channel, embed);
 				}
 				//Gif attachment
 				else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(URL), StringComparer.OrdinalIgnoreCase))
 				{
 					++Variables.LoggedGifs;
-					var embed = MakeNewEmbed(null, URL, Constants.ATCH, URL);
+					var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
 					AddFooter(embed, "Attached Gif");
-					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl);
+					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl, URL);
 					await SendEmbedMessage(channel, embed);
 				}
 				//Random file attachment
 				else
 				{
 					++Variables.LoggedFiles;
-					var embed = MakeNewEmbed(null, URL, Constants.ATCH, URL);
+					var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
 					AddFooter(embed, "Attached File");
-					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl);
+					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl, URL);
 					await SendEmbedMessage(channel, embed);
 				}
 			}
@@ -2068,16 +2060,16 @@ namespace Advobot
 				++Variables.LoggedImages;
 				var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
 				AddFooter(embed, "Embedded Image");
-				AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl);
+				AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl, URL);
 				await SendEmbedMessage(channel, embed);
 			}
 			//Embedded videos/gifs
 			foreach (Embed embedObject in videoEmbeds.Distinct())
 			{
 				++Variables.LoggedGifs;
-				var embed = MakeNewEmbed(null, embedObject.Url, Constants.ATCH, embedObject.Thumbnail.Value.Url);
+				var embed = MakeNewEmbed(null, null, Constants.ATCH, embedObject.Thumbnail.Value.Url);
 				AddFooter(embed, "Embedded " + (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url), StringComparer.OrdinalIgnoreCase) ? "Gif" : "Video"));
-				AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl);
+				AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl, embedObject.Url);
 				await SendEmbedMessage(channel, embed);
 			}
 		}
@@ -2583,7 +2575,7 @@ namespace Advobot
 		}
 
 		//Save the bot key
-		public static async Task<bool> ValidateBotKey(DiscordShardedClient client, string input, bool startup = false)
+		public static async Task<bool> ValidateBotKey(BotClient client, string input, bool startup = false)
 		{
 			input = input.Trim();
 			
@@ -2646,7 +2638,7 @@ namespace Advobot
 		public static async Task SetGame(string prefix = null)
 		{
 			//Get the game
-			var game = Variables.Client.CurrentUser.Game.HasValue ? Variables.Client.CurrentUser.Game.Value.Name : "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
+			var game = Variables.Client.GetCurrentUser().Game.HasValue ? Variables.Client.GetCurrentUser().Game.Value.Name : "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
 
 			//Check if there's a game in the settings
 			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Game))
@@ -2669,6 +2661,19 @@ namespace Advobot
 			{
 				await Variables.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.NotStreaming);
 			}
+		}
+
+		//Reset the settings
+		public static void ResetSettings()
+		{
+			//Save the amount of shards that currently exist
+			var shards = Properties.Settings.Default.ShardCount;
+			//Reset the settings
+			Properties.Settings.Default.Reset();
+			//Add back in the shards
+			Properties.Settings.Default.ShardCount = shards;
+			//Save the settings
+			Properties.Settings.Default.Save();
 		}
 		#endregion
 

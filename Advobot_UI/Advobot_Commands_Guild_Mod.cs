@@ -12,7 +12,7 @@ namespace Advobot
 	public class Advobot_Commands_Guild_Mod : ModuleBase
 	{
 		[Command("guildname")]
-		[Alias("gn")]
+		[Alias("gdn")]
 		[Usage("[New Name]")]
 		[Summary("Change the name of the guild to the given name.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
@@ -38,7 +38,7 @@ namespace Advobot
 		}
 
 		[Command("guildregion")]
-		[Alias("greg")]
+		[Alias("gdr")]
 		[Usage("[Regions|Current|Region ID]")]
 		[Summary("Shows or changes the guild's server region. `Regions` lists all valid region IDs.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
@@ -88,7 +88,7 @@ namespace Advobot
 		}
 
 		[Command("guildafk")]
-		[Alias("gafk")]
+		[Alias("gdafk")]
 		[Usage("[Channel|Time] [Voice Channel Name|Time in Seconds]")]
 		[Summary("The first argument tells if the channel or timer is going to be changed. The second is what it will be changed to.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
@@ -156,7 +156,7 @@ namespace Advobot
 		}
 
 		[Command("guildmsgnotifications")]
-		[Alias("gmn")]
+		[Alias("gdmn")]
 		[Usage("[All Messages|Mentions Only]")]
 		[Summary("Changes the message notifications to either all messages or mentions only.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
@@ -179,7 +179,7 @@ namespace Advobot
 		}
 
 		[Command("guildverification")]
-		[Alias("gv")]
+		[Alias("gdv")]
 		[Usage("[0|1|2|3]")]
 		[Summary("Changes the verification level. 0 is the most lenient (no requirements to type), 3 is the harshest (10 minutes in the guild before new members can type).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
@@ -212,13 +212,75 @@ namespace Advobot
 		}
 
 		[Command("guildicon")]
-		[Alias("gi")]
+		[Alias("gdi")]
 		[Usage("[Attached Image|Embedded Image|Remove]")]
 		[Summary("Changes the guild icon to the given image. Must be less than 2.5MB simply because the bot would use more data and be slower otherwise.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildIcon([Optional] string input)
 		{
 			await Actions.SetPicture(Context, input, false);
+		}
+
+		//TODO: See if this is possible to do
+		[Command("guildowner")]
+		[Alias("gdo")]
+		[Usage("<@User>")]
+		//[PermissionRequirement]
+		[Summary("Changes the guild's owner to the given user.")]
+		public async Task GuildOwner([Optional, Remainder] string input)
+		{
+			IGuildUser user = null;
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				user = await Context.Guild.GetUserAsync(Context.User.Id);
+			}
+			else
+			{
+				user = await Actions.GetUser(Context.Guild, input);
+			}
+
+			if (user == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				return;
+			}
+
+			//Create the guild owner role
+			var role = await Context.Guild.CreateRoleAsync("Guild Owner");
+			//Give the role to the user
+			await user.AddRolesAsync(role);
+			//Grab all roles
+			var roles = Context.Guild.Roles.Where(x => x != role).ToList().OrderBy(x => x.Position).ToList();
+			//Add in the guild owner role to the top
+			roles.Add(role);
+			//Make a new list of BulkRoleProperties
+			var listOfBulk = roles.Select(x => new BulkRoleProperties(x.Id)).ToList();
+			//Readd the positions to it
+			listOfBulk.ForEach(x => x.Position = listOfBulk.IndexOf(x));
+			//Mass modify the roles with the list having the correct positions
+			await Context.Guild.ModifyRolesAsync(listOfBulk);
+
+			//Have the bot leave and thus give the owner position to the highest ranking person
+			await Context.Guild.LeaveAsync();
+		}
+
+		//TODO: Figure out what requirements to go with
+		[Command("guilddelete")]
+		[Alias("gdd")]
+		[Usage("")]
+		[PermissionRequirement]
+		[Summary("If the bot is the current owner of the guild it will delete it.")]
+		public async Task GuildDelete()
+		{
+			//Check if the bot can delete the guild
+			if (Variables.Bot_ID != Context.Guild.OwnerId)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The bot is not the owner of the guild and thus cannot delete it."));
+				return;
+			}
+
+			//Delete the guild
+			await Context.Guild.DeleteAsync();
 		}
 	}
 }

@@ -300,7 +300,7 @@ namespace Advobot
 				"Latency: {0}ms\n" +
 				"Memory usage: {1:0.00}MB\n" +
 				"Thread count: {2}\n",
-				Variables.Client.Latency,
+				Variables.Client.GetLatency(),
 				Process.GetCurrentProcess().WorkingSet64 / 1000000.0,
 				Process.GetCurrentProcess().Threads.Count);
 			Actions.AddField(embed, "Technical", thirdField);
@@ -498,7 +498,7 @@ namespace Advobot
 			}
 		}
 
-		[Command("userwithrole")]
+		[Command("userswithrole")]
 		[Alias("uwr")]
 		[Usage("<File|Upload> [Role]")]
 		[Summary("Prints out a list of all users with the given role. File specifies a text document which can show more symbols. Upload specifies to use a text uploader.")]
@@ -570,7 +570,7 @@ namespace Advobot
 			}
 		}
 
-		[Command("userwithname")]
+		[Command("userswithname")]
 		[Alias("uwn")]
 		[Usage("[Name]")]
 		[Summary("Lists all users where their username contains the given string.")]
@@ -916,7 +916,10 @@ namespace Advobot
 		[BotOwnerRequirement]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			//var feats = Context.Guild.Features;
+			//var wut = Variables.Client.GetVoiceRegion(Constants.VALIDREGIONIDS[0]);
+			//var guild = await Variables.Client.CreateGuildAsync("test", wut, null);
+			//var invite = await (await guild.GetChannelsAsync()).FirstOrDefault().CreateInviteAsync(null);
+			//await (await Context.User.CreateDMChannelAsync()).SendMessageAsync(invite.Url);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
 		#endregion
