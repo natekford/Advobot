@@ -69,8 +69,8 @@ namespace Advobot
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
-				var description = String.Join("\n", Variables.Guilds[Context.Guild.Id].IgnoredChannels.Select(async x => await Context.Guild.GetChannelAsync(x)));
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Channels", description));
+				var description = String.Join("\n", Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Select(async x => await Context.Guild.GetChannelAsync(x)));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Log Channels", description));
 				return;
 			}
 			//Check amount of args
@@ -122,24 +122,24 @@ namespace Advobot
 
 			if (addBool)
 			{
-				if (Variables.Guilds[Context.Guild.Id].IgnoredChannels.Contains(channel.Id))
+				if (Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Contains(channel.Id))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored by the log."));
 					return;
 				}
-				Variables.Guilds[Context.Guild.Id].IgnoredChannels.Add(channel.Id);
+				Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Add(channel.Id);
 			}
 			else
 			{
-				if (!Variables.Guilds[Context.Guild.Id].IgnoredChannels.Contains(channel.Id))
+				if (!Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Contains(channel.Id))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored by the log."));
 					return;
 				}
-				Variables.Guilds[Context.Guild.Id].IgnoredChannels.Remove(channel.Id);
+				Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Remove(channel.Id);
 			}
 
-			Variables.Guilds[Context.Guild.Id].IgnoredChannels = Variables.Guilds[Context.Guild.Id].IgnoredChannels.Distinct().ToList();
+			Variables.Guilds[Context.Guild.Id].IgnoredLogChannels = Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Distinct().ToList();
 
 			//Create the file if it doesn't exist
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
@@ -148,10 +148,10 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 				return;
 			}
-			Actions.SaveLines(path, Constants.IGNORED_CHANNELS, String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredChannels), Actions.GetValidLines(path, Constants.IGNORED_CHANNELS));
+			Actions.SaveLines(path, Constants.IGNORED_LOG_CHANNELS, String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredLogChannels), Actions.GetValidLines(path, Constants.IGNORED_LOG_CHANNELS));
 
 			//Send a success message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the channel `{0}` with an ID of `{1}`.", channel.Name, channel.Id));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the channel `{0}` with an ID of `{1}` from the log channel.", channel.Name, channel.Id));
 		}
 
 		[Command("logactions")]

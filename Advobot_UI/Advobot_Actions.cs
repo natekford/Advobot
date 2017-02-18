@@ -487,7 +487,7 @@ namespace Advobot
 						});
 						Variables.Guilds[guild.Id].LogActions = logActions.Distinct().OrderBy(x => (int)x).ToList();
 					}
-					else if (line.Contains(Constants.IGNORED_CHANNELS))
+					else if (line.Contains(Constants.IGNORED_LOG_CHANNELS))
 					{
 						var IDs = new List<ulong>();
 						line.Substring(line.IndexOf(':') + 1).Split('/').ToList().ForEach(x =>
@@ -498,7 +498,7 @@ namespace Advobot
 								IDs.Add(temp);
 							}
 						});
-						Variables.Guilds[guild.Id].IgnoredChannels = IDs.Distinct().ToList();
+						Variables.Guilds[guild.Id].IgnoredLogChannels = IDs.Distinct().ToList();
 					}
 					else if (line.Contains(Constants.SPAM_PREVENTION))
 					{

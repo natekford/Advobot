@@ -916,10 +916,6 @@ namespace Advobot
 		[BotOwnerRequirement]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			//var wut = Variables.Client.GetVoiceRegion(Constants.VALIDREGIONIDS[0]);
-			//var guild = await Variables.Client.CreateGuildAsync("test", wut, null);
-			//var invite = await (await guild.GetChannelsAsync()).FirstOrDefault().CreateInviteAsync(null);
-			//await (await Context.User.CreateDMChannelAsync()).SendMessageAsync(invite.Url);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
 		#endregion

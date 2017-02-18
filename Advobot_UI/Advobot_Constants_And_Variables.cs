@@ -39,8 +39,9 @@ namespace Advobot
 		public const string BANNED_PHRASES_PUNISHMENTS = "punishments";
 		public const string GUILD_PREFIX = "guildprefix";
 		public const string LOG_ACTIONS = "logactions";
-		public const string IGNORED_CHANNELS = "ignoredchannels";
+		public const string IGNORED_LOG_CHANNELS = "ignoredlogchannels";
 		public const string SPAM_PREVENTION = "spamprevention";
+		public const string IGNORED_COMMAND_CHANNELS = "ignoredcommandchannels";
 		public const string CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
 		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/Text|Voice]>";
 		public const string VOICE_TYPE = "voice";

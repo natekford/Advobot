@@ -389,8 +389,9 @@ namespace Advobot
 
 		//Commands and logging
 		public List<CommandSwitch> CommandSettings = new List<CommandSwitch>();
+		public List<ulong> IgnoredCommandChannels = new List<ulong>();
 		public List<LogActions> LogActions = new List<LogActions>();
-		public List<ulong> IgnoredChannels = new List<ulong>();
+		public List<ulong> IgnoredLogChannels = new List<ulong>();
 
 		//Spam prevention
 		public List<SpamPreventionUser> SpamPreventionUsers = new List<SpamPreventionUser>();

@@ -52,6 +52,16 @@ namespace Advobot
 				}
 			}
 
+			//Check if the bot's the only one in the guild
+			if (guild.MemberCount == 1)
+			{
+				//Delete it
+				Task.Run(async () =>
+				{
+					await guild.DeleteAsync();
+				});
+			}
+
 			return Task.CompletedTask;
 		}
 
@@ -245,6 +255,12 @@ namespace Advobot
 			{
 				Variables.Guilds.Remove(user.Guild.Id);
 				return;
+			}
+			//Check if the bot's the only user left in the guild
+			else if (user.Guild.MemberCount == 1)
+			{
+				//Delete it
+				await user.Guild.DeleteAsync();
 			}
 
 			if (Variables.STOP)
@@ -466,17 +482,8 @@ namespace Advobot
 				return;
 			//Check if the log channel is valid and if image logging is enabled
 			var logChannel = await Actions.VerifyLogChannel(guild);
-			if (logChannel != null && !Variables.Guilds[guild.Id].LogActions.Any(x => Enum.GetName(typeof(LogActions), LogActions.ImageLog).IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-			{
-				if (message.Attachments.Any())
-				{
-					await Actions.ImageLog(logChannel, message, false);
-				}
-				if (message.Embeds.Any())
-				{
-					await Actions.ImageLog(logChannel, message, true);
-				}
-			}
+			//Check if image logging should happen
+			await MessageReceivedActions.ImageLog(logChannel, message);
 			//Check if the user should be spam prevented
 			await MessageReceivedActions.SpamPrevention(guild, message);
 			//Check if the users is voting on a spam prevention
@@ -500,7 +507,7 @@ namespace Advobot
 			if (logChannel == null || afterMessage == null || afterMessage.Author == null)
 				return;
 			var guild = logChannel.Guild;
-			if (Variables.Guilds[guild.Id].IgnoredChannels.Contains(afterMessage.Channel.Id) ||
+			if (Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(afterMessage.Channel.Id) ||
 				!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
@@ -550,7 +557,7 @@ namespace Advobot
 			if (logChannel == null)
 				return;
 			var guild = logChannel.Guild;
-			if (Variables.Guilds[guild.Id].IgnoredChannels.Contains(message.Value.Channel.Id))
+			if (Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(message.Value.Channel.Id))
 				return;
 
 			++Variables.LoggedDeletes;
@@ -849,7 +856,7 @@ namespace Advobot
 			var logChannel = await Actions.VerifyLogChannel(context.Guild, Constants.MOD_LOG_CHECK_STRING);
 			if (logChannel == null)
 				return;
-			if (Variables.Guilds[context.Guild.Id].IgnoredChannels.Contains(context.Channel.Id))
+			if (Variables.Guilds[context.Guild.Id].IgnoredLogChannels.Contains(context.Channel.Id))
 				return;
 
 			//Make the embed
@@ -862,6 +869,21 @@ namespace Advobot
 
 	public class MessageReceivedActions : ModuleBase
 	{
+		public static async Task ImageLog(ITextChannel channel, SocketMessage message)
+		{
+			if (channel != null && !Variables.Guilds[channel.GuildId].LogActions.Any(x => Enum.GetName(typeof(LogActions), LogActions.ImageLog).IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+			{
+				if (message.Attachments.Any())
+				{
+					await Actions.ImageLog(channel, message, false);
+				}
+				if (message.Embeds.Any())
+				{
+					await Actions.ImageLog(channel, message, true);
+				}
+			}
+		}
+
 		public static async Task BotOwner(IGuildChannel channel, IMessage message)
 		{
 			if (channel == null)

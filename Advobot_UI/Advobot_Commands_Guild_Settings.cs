@@ -19,7 +19,7 @@ namespace Advobot
 		[Usage("<Guild ID>")]
 		[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
 		[BotOwnerOrGuildOwnerRequirement]
-		public async Task LeaveServer([Optional, Remainder] string input)
+		public async Task GuildLeave([Optional, Remainder] string input)
 		{
 			//Get the guild out of an ID
 			ulong guildID = 0;
@@ -67,7 +67,7 @@ namespace Advobot
 		[Usage("[New Prefix|Clear]")]
 		[Summary("Makes the guild use the given prefix from now on.")]
 		[GuildOwnerRequirement]
-		public async Task SetGuildPrefix([Remainder] string input)
+		public async Task GuildPrefix([Remainder] string input)
 		{
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
@@ -128,7 +128,7 @@ namespace Advobot
 		[Usage("")]
 		[Summary("Displays which settings are not default.")]
 		[PermissionRequirement]
-		public async Task CurrentSettings()
+		public async Task GuildSettings()
 		{
 			//Get the guild
 			var guild = Variables.Guilds[Context.Guild.Id];
@@ -140,7 +140,7 @@ namespace Advobot
 			description += String.Format("**Banned Phrases:** `{0}`\n", guild.BannedPhrases.Any() ? "Yes" : "No");
 			description += String.Format("**Banned Regex:** `{0}`\n", guild.BannedRegex.Any() ? "Yes" : "No");
 			description += String.Format("**Banned Phrases Punishments:** `{0}`\n", guild.BannedPhrasesPunishments.Any() ? "Yes" : "No");
-			description += String.Format("**Ignored Channels:** `{0}`\n", guild.IgnoredChannels.Any() ? "Yes" : "No");
+			description += String.Format("**Ignored Channels:** `{0}`\n", guild.IgnoredLogChannels.Any() ? "Yes" : "No");
 			description += String.Format("**Log Actions:** `{0}`\n", guild.LogActions.Any() ? "Yes" : "No");
 			description += String.Format("**Reminds:** `{0}`\n", guild.Reminds.Any() ? "Yes" : "No");
 			description += String.Format("**Self Assignable Roles:** `{0}`\n", Variables.SelfAssignableGroups.Any(x => x.GuildID == Context.Guild.Id) ? "Yes" : "No");
@@ -160,7 +160,7 @@ namespace Advobot
 				information += String.Format("Banned Phrases Punishments: {0}\n", String.Join("", guild.BannedPhrasesPunishments.Select(x => String.Format("\n\t{0}: {1}",
 					x.Number_Of_Removes, x.Punishment == PunishmentType.Role ? String.Format("{0} ({1})", x.Role.Name, x.PunishmentTime) : Enum.GetName(typeof(PunishmentType), x.Punishment)))));
 				//Get the ignored channels
-				information += String.Format("Ignored Channels: {0}\n", String.Join("", guild.IgnoredChannels.Select(async x => "\n\t" + (await Context.Guild.GetChannelAsync(x)).Name)));
+				information += String.Format("Ignored Channels: {0}\n", String.Join("", guild.IgnoredLogChannels.Select(async x => "\n\t" + (await Context.Guild.GetChannelAsync(x)).Name)));
 				//Get the log actions
 				information += String.Format("Log Actions: {0}\n", String.Join("", guild.LogActions.Select(x => "\n\t" + Enum.GetName(typeof(LogActions), x))));
 
@@ -223,7 +223,7 @@ namespace Advobot
 		[Usage("[Enable|Disable]")]
 		[Summary("Gives the guild preferences which allows using self-assignable roles, toggling commands, and changing the permissions of commands.")]
 		[GuildOwnerRequirement]
-		public async Task EnablePreferences([Remainder] string input)
+		public async Task CommandConfigModify([Remainder] string input)
 		{
 			//Check if enable
 			if (input.Equals("enable", StringComparison.OrdinalIgnoreCase))
@@ -271,9 +271,9 @@ namespace Advobot
 		[Command("comconfig")]
 		[Alias("ccon")]
 		[Usage("[Enable|Disable|Current] [Command Name|Category Name|All]")]
-		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `comconfigtoggle`, `comconfigcurrent`, `comconfigmodify`, or `help`.")]
+		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `comconfig`, `comconfigmodify`, or `help`.")]
 		[PermissionRequirement]
-		public async Task SwitchCommand([Remainder] string input)
+		public async Task CommandConfig([Remainder] string input)
 		{
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
@@ -407,6 +407,108 @@ namespace Advobot
 				category.Count != 1 ? "s" : "",
 				String.Join("`, `", category.Select(x => x.Name))));
 		}
+
+		[Command("comignore")]
+		[Alias("cign")]
+		[Usage("[Add|Remove|Current] [#Channel|Channel Name]")]
+		[Summary("The bot will ignore commands said on these channels.")]
+		[PermissionRequirement]
+		public async Task CommandIgnore([Remainder] string input)
+		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
+			var inputArray = input.Split(new char[] { ' ' }, 2);
+			if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
+			{
+				var description = String.Join("\n", Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Select(async x => await Context.Guild.GetChannelAsync(x)));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Command Channels", description));
+				return;
+			}
+			//Check amount of args
+			if (inputArray.Length != 2)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+
+			bool addBool;
+			if (inputArray[0].Equals("add", StringComparison.OrdinalIgnoreCase))
+			{
+				addBool = true;
+			}
+			else if (inputArray[0].Equals("remove", StringComparison.OrdinalIgnoreCase))
+			{
+				addBool = false;
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				return;
+			}
+
+			var channel = await Actions.GetChannelEditAbility(Context, inputArray[1], true);
+			if (channel == null)
+			{
+				var channels = (await Context.Guild.GetTextChannelsAsync()).Where(x => x.Name.Equals(inputArray[1], StringComparison.OrdinalIgnoreCase)).ToList();
+				if (channels.Count == 0)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
+					return;
+				}
+				else if (channels.Count == 1)
+				{
+					channel = channels.FirstOrDefault();
+					if (await Actions.GetChannelEditAbility(channel, Context.User as IGuildUser) == null)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to edit this channel."));
+						return;
+					}
+				}
+				else
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("More than one channel has that name."));
+					return;
+				}
+			}
+
+			if (addBool)
+			{
+				if (Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Contains(channel.Id))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored for commands."));
+					return;
+				}
+				Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Add(channel.Id);
+			}
+			else
+			{
+				if (!Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Contains(channel.Id))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored for commands."));
+					return;
+				}
+				Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Remove(channel.Id);
+			}
+
+			Variables.Guilds[Context.Guild.Id].IgnoredLogChannels = Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Distinct().ToList();
+
+			//Create the file if it doesn't exist
+			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
+			if (path == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
+				return;
+			}
+			Actions.SaveLines(path, Constants.IGNORED_LOG_CHANNELS, String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredLogChannels), Actions.GetValidLines(path, Constants.IGNORED_LOG_CHANNELS));
+
+			//Send a success message
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the channel `{0}` with an ID of `{1}` from commands.", channel.Name, channel.Id));
+		}
 		#endregion
 
 		#region Bot Users
@@ -415,7 +517,7 @@ namespace Advobot
 		[Usage("[Add|Remove|Show] <@User> <Permission/...>")]
 		[Summary("Gives a user permissions in the bot but not on Discord itself. Can remove a user by not specifying any perms with remove.")]
 		[PermissionRequirement]
-		public async Task ModifyUserBotPerm([Remainder] string input)
+		public async Task BotUsersModify([Remainder] string input)
 		{
 			//Check if they've enabled preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
@@ -581,7 +683,7 @@ namespace Advobot
 		[Usage("[File|Actual|@User]")]
 		[Summary("Shows a list of all the people who are bot users. If a user is specified then their permissions are said.")]
 		[UserHasAPermission]
-		public async Task CurrentBotUsers([Remainder] string input)
+		public async Task BotUsers([Remainder] string input)
 		{
 			bool fileBool;
 			if (input.Equals("file", StringComparison.OrdinalIgnoreCase))
@@ -690,7 +792,7 @@ namespace Advobot
 		[Usage("[Add|Remove] [Name]/<Text>")]
 		[Summary("Adds the given text to a list that can be called through the `remind` command.")]
 		[UserHasAPermission]
-		public async Task ModifyRemind([Remainder] string input)
+		public async Task RemindsModify([Remainder] string input)
 		{
 			//Check if using the default preferences
 			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
@@ -781,7 +883,7 @@ namespace Advobot
 		[Alias("rem", "r")]
 		[Usage("<Name>")]
 		[Summary("Shows the content for the given remind. If null then shows the list of the current reminds.")]
-		public async Task CurrentRemind([Optional, Remainder] string input)
+		public async Task Reminds([Optional, Remainder] string input)
 		{
 			var reminds = Variables.Guilds[Context.Guild.Id].Reminds;
 			if (String.IsNullOrWhiteSpace(input))
