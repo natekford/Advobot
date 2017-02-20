@@ -696,6 +696,7 @@ namespace Advobot
 		ChannelUpdated = 13,
 		ChannelDeleted = 14,
 		ImageLog = 15,
+		CommandLog = 16,
 	}
 
 	public enum CommandCategory

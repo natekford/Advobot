@@ -335,41 +335,29 @@ namespace Advobot
 			}
 
 			//Get a list of roles
-			var roles = new List<string>();
-			foreach (UInt64 roleID in user.RoleIds)
-			{
-				roles.Add(Context.Guild.GetRole(roleID).Name);
-			}
-			roles.Remove(Context.Guild.EveryoneRole.Name);
+			var roles = user.RoleIds.Where(x => x != Context.Guild.Id).Select(x => Context.Guild.GetRole(x));
 
 			//Get a list of channels
 			var channels = new List<string>();
 			//Text channels
-			(await Context.Guild.GetTextChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(async x =>
+			(await Context.Guild.GetTextChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(x =>
 			{
-				using (var channelUsers = x.GetUsersAsync().GetEnumerator())
+				if (roles.Any(y => x.GetPermissionOverwrite(y).HasValue && x.GetPermissionOverwrite(y).Value.ReadMessages == PermValue.Allow) || user.GetPermissions(x).ReadMessages)
 				{
-					while (await channelUsers.MoveNext())
-					{
-						if (channelUsers.Current.Contains(user))
-						{
-							channels.Add(x.Name);
-							break;
-						}
-					}
+					channels.Add(x.Name);
 				}
 			});
 			//Voice channels
 			(await Context.Guild.GetVoiceChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(x =>
 			{
-				if (user.GetPermissions(x).Connect)
+				if (roles.Any(y => x.GetPermissionOverwrite(y).HasValue && x.GetPermissionOverwrite(y).Value.Connect == PermValue.Allow) || user.GetPermissions(x).Connect)
 				{
 					channels.Add(x.Name + " (Voice)");
 				}
 			});
 
 			//Get an ordered list of when users joined the guild
-			IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync();
+			var guildUsers = await Context.Guild.GetUsersAsync();
 			var users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
 
 			//Make the description
@@ -401,14 +389,14 @@ namespace Advobot
 			Actions.AddFooter(embed, "Userinfo");
 
 			//Add the channels the user can access
-			if (channels.Count != 0)
+			if (channels.Count() != 0)
 			{
 				Actions.AddField(embed, "Channels", String.Join(", ", channels));
 			}
 			//Add the roles the user has
-			if (roles.Count != 0)
+			if (roles.Count() != 0)
 			{
-				Actions.AddField(embed, "Roles", String.Join(", ", roles));
+				Actions.AddField(embed, "Roles", String.Join(", ", roles.Select(x => x.Name)));
 			}
 			//Add the voice channel
 			if (user.VoiceChannel != null)

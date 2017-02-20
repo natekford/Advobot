@@ -34,7 +34,7 @@ namespace Advobot
 		{
 			//Don't handle the command if it is a system message
 			var message = parameterMessage as SocketUserMessage;
-			if (message == null || Variables.STOP)
+			if (message == null || Variables.Pause)
 				return;
 
 			//Mark where the prefix ends and the command begins

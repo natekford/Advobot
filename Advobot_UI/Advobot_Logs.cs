@@ -168,9 +168,15 @@ namespace Advobot
 		//TODO: Remove most of the events that will get replaced by the audit log
 		public static async Task OnUserJoined(SocketGuildUser user)
 		{
+			//Increment the user total user count
 			++Variables.TotalUsers;
-			if (Variables.STOP)
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(user as IGuildUser, LogActions.UserJoined);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
 				return;
+
 			//Get the current invites
 			var curInvs = await user.Guild.GetInvitesAsync();
 			//Get the invites that have already been put on the bot
@@ -209,19 +215,16 @@ namespace Advobot
 			//Check if should add them to a slowmode for channel/guild
 			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id) || user.Guild.TextChannels.Intersect(Variables.SlowmodeChannels.Keys).Any())
 			{
-				Actions.AddSlowmodeUser(user);
+				//Add them to the slowmode user list
+				await Actions.AddSlowmodeUser(user);
 			}
 			if (Variables.Guilds[user.Guild.Id].RaidPrevention)
 			{
+				//Give them the mute role
 				await user.AddRolesAsync(Variables.Guilds[user.Guild.Id].MuteRole);
+				//Add them to the list of users who have been muted
 				Variables.Guilds[user.Guild.Id].UsersWhoHaveBeenMuted.Add(user);
 			}
-
-			var logChannel = await Actions.VerifyLogChannel(user.Guild);
-			if (logChannel == null)
-				return;
-			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-				return;
 
 			//Invite string
 			var inviteString = "";
@@ -230,6 +233,7 @@ namespace Advobot
 				inviteString = String.Format("**Invite:** {0}", curInv.Code);
 			}
 
+			//Make the embed
 			if (user.IsBot)
 			{
 				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString), Constants.JOIN);
@@ -244,12 +248,22 @@ namespace Advobot
 				Actions.AddAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl);
 				await Actions.SendEmbedMessage(logChannel, embed);
 			}
+
+			//Increment the logged joins
 			++Variables.LoggedJoins;
 		}
 
 		public static async Task OnUserLeft(SocketGuildUser user)
 		{
+			//Decrease the total users count
 			--Variables.TotalUsers;
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(user as IGuildUser, LogActions.UserLeft);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
+				return;
+
 			//Check if the bot was the one that left
 			if (user == user.Guild.GetUser(Variables.Bot_ID))
 			{
@@ -263,14 +277,6 @@ namespace Advobot
 				await user.Guild.DeleteAsync();
 			}
 
-			if (Variables.STOP)
-				return;
-			var logChannel = await Actions.VerifyLogChannel(user.Guild);
-			if (logChannel == null)
-				return;
-			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-				return;
-
 			//Form the length stayed string
 			var lengthStayed = "";
 			if (user.JoinedAt.HasValue)
@@ -279,6 +285,7 @@ namespace Advobot
 				lengthStayed = String.Format("\n**Stayed for:** {0}:{1:00}:{2:00}:{3:00}", time.Days, time.Hours, time.Minutes, time.Seconds);
 			}
 
+			//Make the embed
 			if (user.IsBot)
 			{
 				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
@@ -293,57 +300,60 @@ namespace Advobot
 				Actions.AddAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl);
 				await Actions.SendEmbedMessage(logChannel, embed);
 			}
+
+			//Increment the leaves count
 			++Variables.LoggedLeaves;
 		}
 
 		public static async Task OnUserUnbanned(SocketUser user, SocketGuild guild)
 		{
-			if (Variables.STOP)
-				return;
-			var logChannel = await Actions.VerifyLogChannel(guild);
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(user as IGuildUser, LogActions.UserUnbanned);
+			var logChannel = guildAndLogChannel.Item1;
 			if (logChannel == null)
-				return;
-			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
 				return;
 
 			//Get the username/discriminator via this dictionary since they don't exist otherwise
 			var username = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Username : "null";
 			var discriminator = Variables.UnbannedUsers.ContainsKey(user.Id) ? Variables.UnbannedUsers[user.Id].Discriminator : "0000";
 
+			//Make the embed
 			var embed = Actions.MakeNewEmbed(null, "**ID:** " + user.Id, Constants.UNBN);
 			Actions.AddFooter(embed, "User Unbanned");
 			Actions.AddAuthor(embed, String.Format("{0}#{1}", username, discriminator), user.AvatarUrl);
 			await Actions.SendEmbedMessage(logChannel, embed);
+
+			//Increment the unban count
 			++Variables.LoggedUnbans;
 		}
 
 		public static async Task OnUserBanned(SocketUser user, SocketGuild guild)
 		{
-			if (Variables.STOP)
-				return;
 			//Check if the bot was the one banned
 			if (user == guild.GetUser(Variables.Bot_ID))
 			{
 				Variables.Guilds.Remove(guild.Id);
 				return;
 			}
-
-			var logChannel = await Actions.VerifyLogChannel(guild);
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(user as IGuildUser, LogActions.UserBanned);
+			var logChannel = guildAndLogChannel.Item1;
 			if (logChannel == null)
 				return;
-			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-				return;
 
+			//Make the embed
 			var embed = Actions.MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN);
 			Actions.AddFooter(embed, "User Banned");
 			Actions.AddAuthor(embed, String.Format("{0}#{1}", user.Username, user.Discriminator), user.AvatarUrl);
 			await Actions.SendEmbedMessage(logChannel, embed);
+
+			//Increment the ban count
 			++Variables.LoggedBans;
 		}
 
 		public static async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
 		{
-			if (beforeUser == null || afterUser == null || Variables.STOP)
+			if (beforeUser == null || afterUser == null || Variables.Pause)
 				return;
 
 			//Name change
@@ -370,13 +380,11 @@ namespace Advobot
 
 		public static async Task OnGuildMemberUpdated(SocketGuildUser beforeUser, SocketGuildUser afterUser)
 		{
-			if (Variables.STOP)
-				return;
-			var logChannel = await Actions.VerifyLogChannel(afterUser);
-			if (logChannel == null)
-				return;
-			var guild = logChannel.Guild;
-			if (guild == null || !Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(afterUser, LogActions.GuildMemberUpdated);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
 				return;
 
 			//Nickname change
@@ -421,7 +429,7 @@ namespace Advobot
 				await Task.Run(async () =>
 				{
 					var users = await guild.GetUsersAsync();
-					int maxUsers = 0;
+					var maxUsers = 0;
 					firstNotSecond.ForEach(x => maxUsers = Math.Max(maxUsers, users.Where(y => y.RoleIds.Contains(x.Id)).Count()));
 
 					await Task.Delay(maxUsers * 2);
@@ -434,7 +442,7 @@ namespace Advobot
 						rolesChange.Add(x.Name);
 					});
 
-					//If no roles the return so as to not send a blank message
+					//If no roles then return so as to not send a blank message
 					if (!rolesChange.Any())
 						return;
 
@@ -460,28 +468,22 @@ namespace Advobot
 				Actions.AddAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.AvatarUrl);
 				await Actions.SendEmbedMessage(logChannel, embed);
 			}
+			//Increment the user changes count
 			++Variables.LoggedUserChanges;
 		}
 
 		public static async Task OnMessageReceived(SocketMessage message)
 		{
-			if (message.Author.IsBot || Variables.STOP)
-				return;
-
-			//Check if the channel is a guild channel or DM channel
-			var channel = message.Channel as IGuildChannel;
-			//Check if someone trying to set themselves as bot owner
-			if (channel == null)
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(message, LogActions.MessageReceived);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			//Check if the user is trying to become the bot owner by DMing the bot is key
+			if (guild == null)
 			{
-				await MessageReceivedActions.BotOwner(channel, message);
+				await MessageReceivedActions.BotOwner(message);
 				return;
 			}
-			//Get the guild
-			var guild = channel.Guild;
-			if (guild == null)
-				return;
-			//Check if the log channel is valid and if image logging is enabled
-			var logChannel = await Actions.VerifyLogChannel(guild);
 			//Check if image logging should happen
 			await MessageReceivedActions.ImageLog(logChannel, message);
 			//Check if the user should be spam prevented
@@ -493,78 +495,67 @@ namespace Advobot
 			//Check if any active closewords
 			await MessageReceivedActions.CloseWords(guild, message);
 			//Check if slowmode or not banned phrases
-			await MessageReceivedActions.SlowmodeOrBannedPhrases(guild, channel, message);
-
+			await MessageReceivedActions.SlowmodeOrBannedPhrases(guild, message);
+			//Increment the logged messages count
 			++Variables.LoggedMessages;
 		}
-
+		
+		//TODO: Readd in image logging for embeds that fire off messageupdated but not messagerecieved image logging
 		public static async Task OnMessageUpdated(Optional<SocketMessage> beforeMessage, SocketMessage afterMessage)
 		{
-			if (afterMessage.Author.IsBot || Variables.STOP)
-				return;
+			//Get the before message's value
+			var beforeMessageValue = beforeMessage.IsSpecified ? beforeMessage.Value : null;
+			//Check if the updated message has any banned phrases and should be deleted
 			await Actions.BannedPhrases(afterMessage);
-			var logChannel = await Actions.VerifyLogChannel(afterMessage);
-			if (logChannel == null || afterMessage == null || afterMessage.Author == null)
-				return;
-			var guild = logChannel.Guild;
-			if (Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(afterMessage.Channel.Id) ||
-				!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(afterMessage, LogActions.MessageUpdated);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
 				return;
 
 			//Set the content as strings
-			var beforeMsg = Actions.ReplaceMarkdownChars(beforeMessage.IsSpecified ? beforeMessage.Value.Content : null);
-			var afterMsg = Actions.ReplaceMarkdownChars(afterMessage.Content);
-
+			var beforeMsgContent = Actions.ReplaceMarkdownChars(beforeMessageValue.Content);
+			var afterMsgContent = Actions.ReplaceMarkdownChars(afterMessage.Content);
 			//Null check
-			if (String.IsNullOrWhiteSpace(beforeMsg))
-			{
-				beforeMsg = "Empty or unable to be gotten.";
-			}
-			if (String.IsNullOrWhiteSpace(afterMsg))
-			{
-				beforeMsg = "Empty or unable to be gotten.";
-			}
-
+			beforeMsgContent = String.IsNullOrWhiteSpace(beforeMsgContent) ? "Empty or unable to be gotten." : beforeMsgContent;
+			afterMsgContent = String.IsNullOrWhiteSpace(afterMsgContent) ? "Empty or unable to be gotten." : afterMsgContent;
 			//Return if the messages are the same
-			if (beforeMsg.Equals(afterMsg))
+			if (beforeMsgContent.Equals(afterMsgContent))
 				return;
-
 			//Check lengths
-			if (!(beforeMsg.Length + afterMsg.Length < 1800))
+			if (beforeMsgContent.Length + afterMsgContent.Length > Constants.LENGTH_CHECK)
 			{
-				beforeMsg = beforeMsg.Length > 667 ? "LONG MESSAGE" : beforeMsg;
-				afterMsg = afterMsg.Length > 667 ? "LONG MESSAGE" : afterMsg;
+				beforeMsgContent = beforeMsgContent.Length > 667 ? "LONG MESSAGE" : beforeMsgContent;
+				afterMsgContent = afterMsgContent.Length > 667 ? "LONG MESSAGE" : afterMsgContent;
 			}
 
-			//Set the user as a variable
+			//User placeholder
 			var user = afterMessage.Author;
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(null, null, Constants.MEDT);
 			Actions.AddFooter(embed, "Message Updated");
-			Actions.AddField(embed, "Before:", "`" + beforeMsg + "`");
-			Actions.AddField(embed, "After:", "`" + afterMsg + "`", false);
+			Actions.AddField(embed, "Before:", "`" + beforeMsgContent + "`");
+			Actions.AddField(embed, "After:", "`" + afterMsgContent + "`", false);
 			Actions.AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, afterMessage.Channel), user.AvatarUrl);
 			await Actions.SendEmbedMessage(logChannel, embed);
-
+			//Increment the edit count
 			++Variables.LoggedEdits;
 		}
 
 		public static async Task OnMessageDeleted(ulong messageID, Optional<SocketMessage> message)
 		{
-			if (!message.IsSpecified || Variables.STOP)
-				return;
-			var logChannel = await Actions.VerifyLogChannel(message.Value);
-			if (logChannel == null)
-				return;
-			var guild = logChannel.Guild;
-			if (Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(message.Value.Channel.Id))
+			//Get the message's value
+			var messageValue = message.IsSpecified ? message.Value : null;
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(messageValue, LogActions.MessageDeleted);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
 				return;
 
+			//Increment the deleted messages count
 			++Variables.LoggedDeletes;
-
-			//Check if logging deleted messages is on
-			if (!Variables.Guilds[guild.Id].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-				return;
 
 			//Get a list of the deleted messages per guild
 			var mainMessages = new List<SocketMessage>();
@@ -710,12 +701,11 @@ namespace Advobot
 
 		public static async Task OnRoleCreated(SocketRole role)
 		{
-			if (Variables.STOP)
-				return;
-			var logChannel = await Actions.VerifyLogChannel(role.Guild);
-			if (logChannel == null)
-				return;
-			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(role, LogActions.RoleCreated);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
 				return;
 
 			//Make the embed
@@ -726,36 +716,34 @@ namespace Advobot
 
 		public static async Task OnRoleUpdated(SocketRole beforeRole, SocketRole afterRole)
 		{
-			if (Variables.STOP)
-				return;
-			var logChannel = await Actions.VerifyLogChannel(afterRole.Guild);
-			if (logChannel == null)
-				return;
-			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(afterRole, LogActions.RoleUpdated);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
 				return;
 
-			if (!beforeRole.Name.Equals(afterRole.Name, StringComparison.OrdinalIgnoreCase))
-			{
-				//Make the embed
-				var embed = Actions.MakeNewEmbed("Role Name Changed", null, Constants.REDT);
-				Actions.AddFooter(embed, "Role Name Changed");
-				Actions.AddField(embed, "Before:", "`" + beforeRole.Name + "`");
-				Actions.AddField(embed, "After:", "`" + afterRole.Name + "`", false);
-				await Actions.SendEmbedMessage(logChannel, embed);
-			}
+			//Make sure the role's name is not the same
+			if (beforeRole.Name.Equals(afterRole.Name, StringComparison.OrdinalIgnoreCase))
+				return;
+
+			//Make the embed
+			var embed = Actions.MakeNewEmbed("Role Name Changed", null, Constants.REDT);
+			Actions.AddFooter(embed, "Role Name Changed");
+			Actions.AddField(embed, "Before:", "`" + beforeRole.Name + "`");
+			Actions.AddField(embed, "After:", "`" + afterRole.Name + "`", false);
+			await Actions.SendEmbedMessage(logChannel, embed);
 		}
 
 		public static async Task OnRoleDeleted(SocketRole role)
 		{
 			//Add this to prevent massive spam fests when a role is deleted
 			Variables.DeletedRoles.Add(role.Id);
-
-			if (Variables.STOP)
-				return;
-			var logChannel = await Actions.VerifyLogChannel(role.Guild);
-			if (logChannel == null)
-				return;
-			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(role, LogActions.RoleDeleted);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
 				return;
 
 			//Make the embed
@@ -766,15 +754,14 @@ namespace Advobot
 
 		public static async Task OnChannelCreated(SocketChannel channel)
 		{
-			if (Variables.STOP)
+			//Convert the channel to a textchannel
+			var chan = channel as IGuildChannel;
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(chan, LogActions.ChannelCreated);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
 				return;
-			var logChannel = await Actions.VerifyLogChannel(channel);
-			if (logChannel == null)
-				return;
-			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-				return;
-
-			var chan = channel as ITextChannel;
 
 			//Check if the channel trying to be made is a bot channel
 			if (chan != null && chan.Name == Variables.Bot_Channel && await Actions.GetDuplicateBotChan(chan.Guild))
@@ -791,17 +778,15 @@ namespace Advobot
 
 		public static async Task OnChannelUpdated(SocketChannel beforeChannel, SocketChannel afterChannel)
 		{
-			if (Variables.STOP)
-				return;
-			var logChannel = await Actions.VerifyLogChannel(afterChannel);
-			if (logChannel == null)
-				return;
-			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-				return;
-
 			//Create a variable of beforechannel and afterchannel as an IGuildChannel for later use
 			var bChan = beforeChannel as IGuildChannel;
 			var aChan = afterChannel as IGuildChannel;
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(aChan, LogActions.ChannelUpdated);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
+				return;
 
 			//Check if the name is the bot channel name
 			if (aChan != null && aChan.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase))
@@ -814,29 +799,29 @@ namespace Advobot
 				}
 			}
 
-			if (!aChan.Name.Equals(bChan.Name, StringComparison.OrdinalIgnoreCase))
-			{
-				//Make the embed
-				var embed = Actions.MakeNewEmbed("Channel Name Changed", null, Constants.CEDT);
-				Actions.AddFooter(embed, "Channel Name Changed");
-				Actions.AddField(embed, "Before:", "`" + bChan.Name + "`");
-				Actions.AddField(embed, "After:", "`" + aChan.Name + "`", false);
-				await Actions.SendEmbedMessage(logChannel, embed);
-			}
+			//Check if the before and after name are the same
+			if (aChan.Name.Equals(bChan.Name, StringComparison.OrdinalIgnoreCase))
+				return;
+
+			//Make the embed
+			var embed = Actions.MakeNewEmbed("Channel Name Changed", null, Constants.CEDT);
+			Actions.AddFooter(embed, "Channel Name Changed");
+			Actions.AddField(embed, "Before:", "`" + bChan.Name + "`");
+			Actions.AddField(embed, "After:", "`" + aChan.Name + "`", false);
+			await Actions.SendEmbedMessage(logChannel, embed);
 		}
 
 		public static async Task OnChannelDeleted(SocketChannel channel)
 		{
-			if (Variables.STOP)
-				return;
-			var logChannel = await Actions.VerifyLogChannel(channel);
-			if (logChannel == null)
-				return;
-			if (!Variables.Guilds[logChannel.GuildId].LogActions.Any(x => MethodBase.GetCurrentMethod().Name.IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
-				return;
-
 			//Convert the channel to an IGuildChannel
 			var chan = channel as IGuildChannel;
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(chan, LogActions.ChannelDeleted);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
+				return;
+
 			//Make the embed
 			var embed = Actions.MakeNewEmbed("Channel Deleted", String.Format("Name: `{0}`\nID: `{1}`", chan.Name, chan.Id), Constants.CDEL);
 			Actions.AddFooter(embed, "Channel Deleted");
@@ -848,16 +833,15 @@ namespace Advobot
 	{
 		public static async Task LogCommand(CommandContext context)
 		{
-			if (Variables.STOP)
+			//Get the guild and log channel
+			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(context, LogActions.CommandLog);
+			var logChannel = guildAndLogChannel.Item1;
+			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
 				return;
 
+			//Write into the console what the command was and who said it
 			Actions.WriteLine(String.Format("'{0}' on {1}: \'{2}\'", Actions.FormatUser(context.User), Actions.FormatGuild(context.Guild), context.Message.Content));
-
-			var logChannel = await Actions.VerifyLogChannel(context.Guild, Constants.MOD_LOG_CHECK_STRING);
-			if (logChannel == null)
-				return;
-			if (Variables.Guilds[context.Guild.Id].IgnoredLogChannels.Contains(context.Channel.Id))
-				return;
 
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(description: context.Message.Content);
@@ -871,39 +855,36 @@ namespace Advobot
 	{
 		public static async Task ImageLog(ITextChannel channel, SocketMessage message)
 		{
-			if (channel != null && !Variables.Guilds[channel.GuildId].LogActions.Any(x => Enum.GetName(typeof(LogActions), LogActions.ImageLog).IndexOf(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase) >= 0))
+			if (channel == null || Variables.Guilds[channel.GuildId].IgnoredLogChannels.Contains(channel.Id) || !Variables.Guilds[channel.GuildId].LogActions.Contains(LogActions.ImageLog))
+				return;
+
+			if (message.Attachments.Any())
 			{
-				if (message.Attachments.Any())
-				{
-					await Actions.ImageLog(channel, message, false);
-				}
-				if (message.Embeds.Any())
-				{
-					await Actions.ImageLog(channel, message, true);
-				}
+				await Actions.ImageLog(channel, message, false);
+			}
+			if (message.Embeds.Any())
+			{
+				await Actions.ImageLog(channel, message, true);
 			}
 		}
 
-		public static async Task BotOwner(IGuildChannel channel, IMessage message)
+		public static async Task BotOwner(SocketMessage message)
 		{
-			if (channel == null)
+			//See if they're on the list to be a potential bot owner
+			if (Variables.PotentialBotOwners.Contains(message.Author.Id))
 			{
-				//See if they're on the list to be a potential bot owner
-				if (Variables.PotentialBotOwners.Contains(message.Author.Id))
+				//If the key they input is the same as the bots key then they become owner
+				if (message.Content.Trim().Equals(Properties.Settings.Default.BotKey))
 				{
-					//If the key they input is the same as the bots key then they become owner
-					if (message.Content.Trim().Equals(Properties.Settings.Default.BotKey))
-					{
-						Properties.Settings.Default.BotOwner = message.Author.Id;
-						Properties.Settings.Default.Save();
-						Variables.PotentialBotOwners.Clear();
-						await Actions.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
-					}
-					else
-					{
-						Variables.PotentialBotOwners.Remove(message.Author.Id);
-						await Actions.SendDMMessage(message.Channel as IDMChannel, "That is the incorrect key.");
-					}
+					Properties.Settings.Default.BotOwner = message.Author.Id;
+					Properties.Settings.Default.Save();
+					Variables.PotentialBotOwners.Clear();
+					await Actions.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
+				}
+				else
+				{
+					Variables.PotentialBotOwners.Remove(message.Author.Id);
+					await Actions.SendDMMessage(message.Channel as IDMChannel, "That is the incorrect key.");
 				}
 			}
 		}
@@ -921,7 +902,7 @@ namespace Advobot
 						//Enable preferences
 						await Actions.EnablePreferences(guild, message as IUserMessage);
 					}
-					else if (Variables.GuildsDeletingPreferences.Contains(guild))
+					if (Variables.GuildsDeletingPreferences.Contains(guild))
 					{
 						//Delete preferences
 						await Actions.DeletePreferences(guild, message as IUserMessage);
@@ -966,10 +947,10 @@ namespace Advobot
 			}
 		}
 
-		public static async Task SlowmodeOrBannedPhrases(IGuild guild, IGuildChannel channel, SocketMessage message)
+		public static async Task SlowmodeOrBannedPhrases(IGuild guild, IMessage message)
 		{
 			//Check if the guild has slowmode enabled currently
-			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(channel))
+			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))
 			{
 				await Actions.Slowmode(message);
 			}
@@ -1015,44 +996,39 @@ namespace Advobot
 
 		public static void VotingOnSpamPrevention(IGuild guild, IMessage message)
 		{
-			//Get the users primed to be kicked/banned by the spam prevention and get the spam prevention the guild has
+			//Get the users primed to be kicked/banned by the spam prevention
 			var users = Variables.Guilds[guild.Id].SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
+			//Get the spam prevention the guild has
 			var spamPrevention = Variables.Guilds[guild.Id].SpamPrevention;
-			if (spamPrevention != null && users.Any())
+			//Return if either is null/empty
+			if (spamPrevention == null || !users.Any())
+				return;
+
+			//Cross reference the almost kicked users and the mentioned users
+			users.ForEach(async x =>
 			{
-				//Cross reference the almost kicked users and the mentioned users
-				users.ForEach(async x =>
+				//Check if mentioned users contains any users almost kicked. Check if the person has already voted. Don't allow users to vote on themselves.
+				if (!message.MentionedUserIds.Contains(x.User.Id) || x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id) || x.User.Id == message.Author.Id)
+					return;
+
+				//Increment their votes
+				++x.VotesToKick;
+				//Add the user to the already voted list
+				x.UsersWhoHaveAlreadyVoted.Add(message.Author.Id);
+				//Check if the bot can even kick/ban this user or if they should be punished
+				if (Actions.GetPosition(guild, x.User) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)) || x.VotesToKick < spamPrevention.VotesNeededForKick)
+					return;
+				//Check if they've already been kicked (which means they should be banned now)
+				if (x.AlreadyKicked)
 				{
-					//Check if mentioned users contains any users almost kicked. Check if the person has already voted
-					if (message.MentionedUserIds.Contains(x.User.Id) && !x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id))
-					{
-						//Don't allow users to vote on themselves
-						if (x.User.Id == message.Author.Id)
-							return;
-						//Increment their votes
-						++x.VotesToKick;
-						//Add the user to the already voted list
-						x.UsersWhoHaveAlreadyVoted.Add(message.Author.Id);
-						//Check if the bot can even kick/ban this user
-						if (Actions.GetPosition(guild, x.User) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)))
-							return;
-						//Check if they should be punished
-						if (x.VotesToKick >= spamPrevention.VotesNeededForKick)
-						{
-							//Check if they've already been kicked (which means they should be banned now)
-							if (x.AlreadyKicked)
-							{
-								await guild.AddBanAsync(x.User);
-							}
-							//Otherwise just kick them
-							else
-							{
-								await x.User.KickAsync();
-							}
-						}
-					}
-				});
-			}
+					await guild.AddBanAsync(x.User);
+				}
+				//Otherwise just kick them
+				else
+				{
+					await x.User.KickAsync();
+				}
+			});
 		}
 	}
 }

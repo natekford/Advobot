@@ -726,12 +726,12 @@ namespace Advobot
 			if (input.Equals("on", StringComparison.OrdinalIgnoreCase))
 			{
 				Actions.WriteLine("Successfully paused the bot.");
-				Variables.STOP = true;
+				Variables.Pause = true;
 			}
 			else if (input.Equals("off", StringComparison.OrdinalIgnoreCase))
 			{
 				Actions.WriteLine("Successfully unpaused the bot.");
-				Variables.STOP = false;
+				Variables.Pause = false;
 			}
 			else
 			{

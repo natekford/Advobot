@@ -127,7 +127,7 @@ namespace Advobot
 		public static bool Console = true;
 		public static bool GotPath = false;
 		public static bool GotKey = false;
-		public static bool STOP = false;
+		public static bool Pause = false;
 
 		public static DateTime StartupTime = DateTime.UtcNow;
 		public static System.Threading.Timer Timer;

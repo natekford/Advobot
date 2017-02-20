@@ -1984,9 +1984,10 @@ namespace Advobot
 		}
 
 		//Logging images
-		public static async Task ImageLog(IMessageChannel channel, SocketMessage message, bool embeds)
+		public static async Task ImageLog(ITextChannel channel, SocketMessage message, bool embeds)
 		{
-			if (!Variables.Guilds[(channel as ITextChannel).Guild.Id].LogActions.Any(x => "ImageLog".Equals(Enum.GetName(typeof(LogActions), x), StringComparison.OrdinalIgnoreCase)))
+			//Check if the guild has image logging enabled
+			if (!Variables.Guilds[channel.Guild.Id].LogActions.Contains(LogActions.ImageLog))
 				return;
 
 			//Get the links
@@ -2085,8 +2086,16 @@ namespace Advobot
 			return logChannel;
 		}
 
+		//Check from role
+		public static async Task<ITextChannel> VerifyLogChannel(IRole role)
+		{
+			if (role == null || role.Guild == null)
+				return null;
+			return await VerifyLogChannel(role.Guild);
+		}
+
 		//Check from channel
-		public static async Task<ITextChannel> VerifyLogChannel(SocketChannel channel)
+		public static async Task<ITextChannel> VerifyLogChannel(IChannel channel)
 		{
 			var tempChan = channel as IGuildChannel;
 			if (tempChan == null || tempChan.Guild == null)
@@ -2095,7 +2104,7 @@ namespace Advobot
 		}
 
 		//Check from message
-		public static async Task<ITextChannel> VerifyLogChannel(SocketMessage message)
+		public static async Task<ITextChannel> VerifyLogChannel(IMessage message)
 		{
 			var tempMsg = message.Channel as IGuildChannel;
 			if (tempMsg == null || tempMsg.Guild == null)
@@ -2104,12 +2113,90 @@ namespace Advobot
 		}
 
 		//Check from message
-		public static async Task<ITextChannel> VerifyLogChannel(SocketUser user)
+		public static async Task<ITextChannel> VerifyLogChannel(IUser user)
 		{
 			var tempUser = user as IGuildUser;
 			if (tempUser == null || tempUser.Guild == null)
 				return null;
 			return await VerifyLogChannel(tempUser.Guild);
+		}
+
+		//Verify if the message is allowed to pass through
+		public static bool VerifyMessage(IMessage message)
+		{
+			//Make sure the bot's not paused and the message doesn't come from a bot
+			return !(Variables.Pause || message.Author.IsBot);
+		}
+
+		//Get the guild from a message
+		public static IGuild GetGuildFromMessage(IMessage message)
+		{
+			//Check if the guild can be gotten from the message's channel or author
+			return (message.Channel as IGuildChannel).Guild ?? (message.Author as IGuildUser).Guild;
+		}
+
+		//Verify if the channel is allowed to be logged
+		public static IGuild VerifyLoggingIsEnabledOnThisChannel(IMessage message)
+		{
+			//Get the guild
+			var guild = (message.Channel as IGuildChannel).Guild;
+			//Check if the message was sent on an ignored channel. If not give back the guild, if so send back null.
+			return !Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(message.Channel.Id) ? guild : null;
+		}
+
+		//Verify if the given action is being logged
+		public static IGuild VerifyLoggingAction(IGuild guild, LogActions logAction)
+		{
+			//If the guild is null send back null. If the logaction being tested isn't turned on send back null.
+			return guild == null ? null : (Variables.Guilds[guild.Id].LogActions.Contains(logAction) ? guild : null);
+		}
+
+		//Verify the guild and log channels with a message
+		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IMessage message, LogActions logAction)
+		{
+			var logChannel = VerifyMessage(message) ? await VerifyLogChannel(message) : null;
+			var guild = VerifyLoggingAction(VerifyLoggingIsEnabledOnThisChannel(message), logAction);
+			return VerifyGuildAndLogChannel(logChannel, guild);
+		}
+
+		//Verify the guild and log channels with a user
+		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IGuildUser user, LogActions logAction)
+		{
+			var logChannel = await VerifyLogChannel(user);
+			var guild = VerifyLoggingAction(user.Guild, logAction);
+			return VerifyGuildAndLogChannel(logChannel, guild);
+		}
+
+		//Verify the guild and log channels with a role
+		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IRole role, LogActions logAction)
+		{
+			var logChannel = await VerifyLogChannel(role);
+			var guild = VerifyLoggingAction(role.Guild, logAction);
+			return VerifyGuildAndLogChannel(logChannel, guild);
+		}
+
+		//Verify the guild and log channels with a channel
+		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IGuildChannel channel, LogActions logAction)
+		{
+			var logChannel = await VerifyLogChannel(channel);
+			var guild = VerifyLoggingAction(channel.Guild, logAction);
+			return VerifyGuildAndLogChannel(logChannel, guild);
+		}
+
+		//Verify the guild and log channels for the mod log
+		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(CommandContext context, LogActions logAction)
+		{
+			var logChannel = await VerifyLogChannel(context.Guild, Constants.MOD_LOG_CHECK_STRING);
+			var guild = VerifyLoggingAction(context.Guild, logAction);
+			return VerifyGuildAndLogChannel(logChannel, guild);
+		}
+
+		//Make sure the bot's not paused
+		public static Tuple<ITextChannel, IGuild> VerifyGuildAndLogChannel(ITextChannel logChannel, IGuild guild)
+		{
+			if (Variables.Pause)
+				return new Tuple<ITextChannel, IGuild>(null, null);
+			return new Tuple<ITextChannel, IGuild>(logChannel, guild);
 		}
 		#endregion
 
@@ -2333,7 +2420,7 @@ namespace Advobot
 
 		#region Slowmode
 		//Slowmode
-		public static async Task Slowmode(SocketMessage message)
+		public static async Task Slowmode(IMessage message)
 		{
 			//Make a new SlowmodeUser
 			var smUser = new SlowmodeUser();
@@ -2374,7 +2461,7 @@ namespace Advobot
 		}
 
 		//Add a new user who joined into the slowmode users list
-		public static void AddSlowmodeUser(SocketGuildUser user)
+		public static async Task AddSlowmodeUser(IGuildUser user)
 		{
 			//Check if the guild has slowmode enabled
 			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id))
@@ -2388,8 +2475,7 @@ namespace Advobot
 			}
 
 			//Get a list of the IDs of the guild's channels
-			var guildChannelIDList = new List<ulong>();
-			user.Guild.TextChannels.ToList().ForEach(x => guildChannelIDList.Add(x.Id));
+			var guildChannelIDList = (await user.Guild.GetTextChannelsAsync()).Select(x => x.Id);
 			//Find if any of them are a slowmode channel
 			var smChannels = Variables.SlowmodeChannels.Where(kvp => guildChannelIDList.Contains(kvp.Key.Id)).ToList();
 			//If greater than zero, add the user to each one
@@ -2410,7 +2496,7 @@ namespace Advobot
 
 		#region Banned Phrases
 		//Banned phrases
-		public static async Task BannedPhrases(SocketMessage message)
+		public static async Task BannedPhrases(IMessage message)
 		{
 			//Get the guild
 			var guild = (message.Channel as IGuildChannel).Guild;
@@ -2418,20 +2504,15 @@ namespace Advobot
 				return;
 			var guildLoaded = Variables.Guilds[guild.Id];
 
-			//Check if it has any banned words
-			if (guildLoaded.BannedPhrases.Any(x => message.Content.IndexOf(x, StringComparison.OrdinalIgnoreCase) >= 0))
-			{
-				await BannedPhrasesPunishments(message);
-			}
-			//Check if it has any banned regex
-			if (guildLoaded.BannedRegex.Any(x => x.IsMatch(message.Content)))
+			//Check if it has any banned words or regex
+			if (guildLoaded.BannedPhrases.Any(x => message.Content.IndexOf(x, StringComparison.OrdinalIgnoreCase) >= 0) || guildLoaded.BannedRegex.Any(x => x.IsMatch(message.Content)))
 			{
 				await BannedPhrasesPunishments(message);
 			}
 		}
 
 		//Banned phrase punishments on a user
-		public static async Task BannedPhrasesPunishments(SocketMessage message)
+		public static async Task BannedPhrasesPunishments(IMessage message)
 		{
 			//Get rid of the message
 			await message.DeleteAsync();
