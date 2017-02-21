@@ -27,12 +27,13 @@ namespace Advobot
 
 			await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
 
+			//Use the BotClient classes message received handler to handle commands
 			Client.AddMessageReceivedHandler(this);
 		}
 
 		public async Task HandleCommand(SocketMessage parameterMessage)
 		{
-			//Don't handle the command if it is a system message
+			//Don't handle the command if it is a system message or the bot is paused
 			var message = parameterMessage as SocketUserMessage;
 			if (message == null || Variables.Pause)
 				return;
@@ -40,31 +41,29 @@ namespace Advobot
 			//Mark where the prefix ends and the command begins
 			int argPos = 0;
 
-			//Check if should use the global prefix or the guild prefix. No commands can be ran from DMs either
-			var channel = message.Channel as Discord.IGuildChannel;
-			if (channel != null)
+			//If the channel is not a guild text channel then return (so no DMs)
+			var channel = message.Channel as Discord.ITextChannel;
+			if (channel == null)
+				return;
+
+			//Check if that channel is ignored for commands
+			if (Variables.Guilds[channel.GuildId].IgnoredCommandChannels.Contains(channel.Id))
+				return;
+
+			//Get the guild specific prefix
+			var guildPrefix = Variables.Guilds[channel.GuildId].Prefix;
+			//Check to see if the guild is using a prefix
+			if (!string.IsNullOrWhiteSpace(guildPrefix))
 			{
-				//Check if the guild is using a guild specific prefix
-				var guildPrefix = Variables.Guilds[channel.GuildId].Prefix;
-				if (!string.IsNullOrWhiteSpace(guildPrefix))
-				{
-					//Determine if the message has a valid prefix, adjust argPos 
-					if (!message.HasStringPrefix(guildPrefix, ref argPos))
-					{
-						//Check if the user says help with the global prefix even though a different prefix is set
-						if (message.Content.StartsWith(Properties.Settings.Default.Prefix + "help", System.StringComparison.OrdinalIgnoreCase))
-						{
-							await Actions.MakeAndDeleteSecondaryMessage(message.Channel, message, "The current prefix for this guild is: `" + guildPrefix + "`.");
-						}
-						return;
-					}
-				}
-				else
-				{
-					//Determine if the message has a valid prefix, adjust argPos 
-					if (!message.HasStringPrefix(Properties.Settings.Default.Prefix, ref argPos))
-						return;
-				}
+				//If the message doesn't start with the guild prefix or a mention return
+				if (!message.HasStringPrefix(guildPrefix, ref argPos) && !message.HasMentionPrefix(Variables.Client.GetCurrentUser(), ref argPos))
+					return;
+			}
+			//Getting to here means the guild is not using a prefix
+			else
+			{
+				if (!message.HasStringPrefix(Properties.Settings.Default.Prefix, ref argPos))
+					return;
 			}
 
 			//Create a Command Context
@@ -76,23 +75,27 @@ namespace Advobot
 
 			//Execute the Command, store the result
 			var result = await Commands.ExecuteAsync(context, argPos, Map);
+			//Increment the attempted commands count
 			++Variables.AttemptedCommands;
 
 			//If the command failed, notify the user
 			if (!result.IsSuccess)
 			{
-				++Variables.FailedCommands;
-
-				//Ignore unknown command errors because they're annoying
+				//Ignore unknown command errors because they're annoying and ignore the errors given by lack of permissions, etc. put in by me
 				if (result.ErrorReason.Equals(Constants.IGNORE_ERROR) || result.Error.Equals(CommandError.UnknownCommand))
 					return;
 
 				//Give the error message
-				await Actions.MakeAndDeleteSecondaryMessage(context, $"**Error:** {result.ErrorReason}");
+				await Actions.MakeAndDeleteSecondaryMessage(context, string.Format("**Error:** {0}", result.ErrorReason));
+
+				//Increment the failed commands count
+				++Variables.FailedCommands;
 			}
 			else
 			{
+				//Log the command on that guild
 				await ModLogs.LogCommand(context);
+
 				//If a command succeeds then the guild gave the bot admin back so remove them from this list
 				if (Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Contains(context.Guild))
 				{

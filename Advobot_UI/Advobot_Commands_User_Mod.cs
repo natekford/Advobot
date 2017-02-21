@@ -484,7 +484,7 @@ namespace Advobot
 				if (bannedUsersWithSameName.Count > 1)
 				{
 					//Return a message saying if there are multiple users
-					var msg = String.Join("`, `", bannedUsersWithSameName.Select(x => String.Format("{0}#{1} ({2})", x.User.Username, x.User.Discriminator, x.User.Id)));
+					var msg = String.Join("`, `", bannedUsersWithSameName.Select(x => Actions.FormatUser(x.User)));
 					await Actions.SendChannelMessage(Context, String.Format("The following users have that name: `{0}`.", msg));
 					return;
 				}

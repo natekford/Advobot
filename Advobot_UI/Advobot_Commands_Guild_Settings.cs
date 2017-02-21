@@ -422,11 +422,13 @@ namespace Advobot
 				return;
 			}
 
+			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
-				var description = String.Join("\n", Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Select(async x => await Context.Guild.GetChannelAsync(x)));
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Command Channels", description));
+				var channels = new List<string>();
+				Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.ForEach(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Command Channels", String.Join("\n", channels)));
 				return;
 			}
 			//Check amount of args
@@ -436,6 +438,7 @@ namespace Advobot
 				return;
 			}
 
+			//Determine whether to add or remove
 			bool addBool;
 			if (inputArray[0].Equals("add", StringComparison.OrdinalIgnoreCase))
 			{
@@ -451,6 +454,7 @@ namespace Advobot
 				return;
 			}
 
+			//Get the channel
 			var channel = await Actions.GetChannelEditAbility(Context, inputArray[1], true);
 			if (channel == null)
 			{
@@ -476,26 +480,27 @@ namespace Advobot
 				}
 			}
 
+			//Add or remove
 			if (addBool)
 			{
-				if (Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Contains(channel.Id))
+				if (Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.Contains(channel.Id))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored for commands."));
 					return;
 				}
-				Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Add(channel.Id);
+				Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.Add(channel.Id);
 			}
 			else
 			{
-				if (!Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Contains(channel.Id))
+				if (!Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.Contains(channel.Id))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored for commands."));
 					return;
 				}
-				Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Remove(channel.Id);
+				Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.Remove(channel.Id);
 			}
 
-			Variables.Guilds[Context.Guild.Id].IgnoredLogChannels = Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Distinct().ToList();
+			Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels = Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.Distinct().ToList();
 
 			//Create the file if it doesn't exist
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
@@ -504,7 +509,9 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 				return;
 			}
-			Actions.SaveLines(path, Constants.IGNORED_LOG_CHANNELS, String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredLogChannels), Actions.GetValidLines(path, Constants.IGNORED_LOG_CHANNELS));
+			//Save the lines
+			Actions.SaveLines(path, Constants.IGNORED_COMMAND_CHANNELS, String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels),
+				Actions.GetValidLines(path, Constants.IGNORED_COMMAND_CHANNELS));
 
 			//Send a success message
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the channel `{0}` with an ID of `{1}` from commands.", channel.Name, channel.Id));
@@ -759,7 +766,7 @@ namespace Advobot
 							continue;
 
 						//If valid botuser then add to the line
-						description += String.Format("`{0}.` {1}#{2} ({3})", counter++.ToString("00"), user.Username, user.Discriminator, user.Id);
+						description += String.Format("`{0}.` {0}", counter++.ToString("00"), Actions.FormatUser(user));
 					}
 				}
 
@@ -771,9 +778,8 @@ namespace Advobot
 			}
 			else
 			{
-
 				description = String.Join("\n", Variables.BotUsers.Where(x => x.User.GuildId == Context.Guild.Id).Select(x =>
-					String.Format("`{0}.` {1}#{2} ({3})", counter++.ToString("00"), x.User.Username, x.User.Discriminator, x.User.Id)));
+					String.Format("`{0}.` {0}", counter++.ToString("00"), Actions.FormatUser(x.User))));
 
 				if (String.IsNullOrWhiteSpace(description))
 				{

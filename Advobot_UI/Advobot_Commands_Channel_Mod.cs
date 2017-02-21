@@ -51,14 +51,15 @@ namespace Advobot
 			}
 
 			//Test for text
+			IGuildChannel channel;
 			if (type.Equals(Constants.TEXT_TYPE, StringComparison.OrdinalIgnoreCase))
 			{
-				await Context.Guild.CreateTextChannelAsync(inputArray[0]);
+				channel = await Context.Guild.CreateTextChannelAsync(inputArray[0]);
 			}
 			//Test for voice
 			else if (type.Equals(Constants.VOICE_TYPE, StringComparison.OrdinalIgnoreCase))
 			{
-				await Context.Guild.CreateVoiceChannelAsync(inputArray[0]);
+				channel = await Context.Guild.CreateVoiceChannelAsync(inputArray[0]);
 			}
 			//Give an error if not text/voice
 			else
@@ -67,7 +68,7 @@ namespace Advobot
 				return;
 			}
 
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created `{0} ({1})`.", inputArray[0], char.ToUpper(type[0]) + type.Substring(1)));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created `{0}`.", Actions.FormatChannel(channel)));
 		}
 
 		[Command("channelsoftdelete")]
@@ -116,17 +117,10 @@ namespace Advobot
 
 			//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
 			var highestPosition = 0;
-			foreach (IGuildChannel channelOnGuild in await Context.Guild.GetChannelsAsync())
-			{
-				if (channelOnGuild.Position > highestPosition)
-				{
-					highestPosition = channelOnGuild.Position;
-				}
-			}
+			(await Context.Guild.GetTextChannelsAsync()).ToList().ForEach(x => highestPosition = Math.Max(x.Position, highestPosition));
 
 			await channel.ModifyAsync(x => x.Position = highestPosition);
-			await Actions.SendChannelMessage(channel as ITextChannel,
-				"Successfully softdeleted this channel. Only admins and the owner will be able to read anything on this channel.");
+			await Actions.SendChannelMessage(channel as ITextChannel, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything on this channel.");
 		}
 
 		[Command("channeldelete")]
@@ -149,7 +143,7 @@ namespace Advobot
 			}
 
 			await channel.DeleteAsync();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0} ({1})`.", channel.Name, Actions.GetChannelType(channel)));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}`.", Actions.FormatChannel(channel)));
 		}
 
 		[Command("channelposition")]
@@ -169,8 +163,7 @@ namespace Advobot
 			//Argument count checking
 			if (inputArray.Length != 2)
 			{
-				await Actions.SendChannelMessage(Context, String.Format("The `{0} ({1})` channel has a position of `{2}`.",
-					channel.Name, Actions.GetChannelType(channel), channel.Position));
+				await Actions.SendChannelMessage(Context, String.Format("`{0}` has a position of `{1}`.", Actions.FormatChannel(channel), channel.Position));
 				return;
 			}
 
@@ -208,7 +201,7 @@ namespace Advobot
 			await Context.Guild.ModifyChannelsAsync(channelAndPositions.Select(x => new BulkGuildChannelProperties(x.Id, channelAndPositions.IndexOf(x))) as IEnumerable<BulkGuildChannelProperties>);
 
 			//Send a message stating what position the channel was sent to
-			await Actions.SendChannelMessage(Context, String.Format("Successfully moved `{0} ({1})` to position `{2}`.", channel.Name, Actions.GetChannelType(channel), channel.Position));
+			await Actions.SendChannelMessage(Context, String.Format("Successfully moved `{0}` to position `{1}`.", Actions.FormatChannel(channel), channel.Position));
 		}
 
 		[Command("channelpositions")]
@@ -257,6 +250,7 @@ namespace Advobot
 				description = Actions.UploadToHastebin(Actions.ReplaceMarkdownChars(description));
 			}
 
+			//Send the embed
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, description));
 		}
 
@@ -271,9 +265,9 @@ namespace Advobot
 		{
 			//Set the variables
 			var permissions = new List<string>();
-			IGuildChannel channel = null;
-			IGuildUser user = null;
-			IRole role = null;
+			IGuildChannel channel;
+			IGuildUser user;
+			IRole role;
 
 			//Split the input
 			var inputArray = input.Trim().Split(new char[] { ' ' }, 2);
@@ -282,8 +276,9 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
-			var actionName = inputArray[0];
 
+			//Determine what action it is
+			var actionName = inputArray[0];
 			if (actionName.Equals("show", StringComparison.OrdinalIgnoreCase))
 			{
 				//If only show, take that as a person wanting to see the permission types
@@ -306,17 +301,17 @@ namespace Advobot
 				{
 					var roleOverwrites = new List<string>();
 					var userOverwrites = new List<string>();
-					foreach (Overwrite overwrite in channel.PermissionOverwrites)
+					channel.PermissionOverwrites.ToList().ForEach(async x =>
 					{
-						if (overwrite.TargetId == (int)PermissionTarget.Role)
+						if (x.TargetType == PermissionTarget.Role)
 						{
-							roleOverwrites.Add(Context.Guild.GetRole(overwrite.TargetId).Name);
+							roleOverwrites.Add(Context.Guild.GetRole(x.TargetId).Name);
 						}
 						else
 						{
-							userOverwrites.Add((await Context.Guild.GetUserAsync(overwrite.TargetId)).Username);
+							userOverwrites.Add((await Context.Guild.GetUserAsync(x.TargetId)).Username);
 						}
-					}
+					});
 					//Embed saying the overwrites
 					var embed = Actions.MakeNewEmbed(null, channel.Name);
 					Actions.AddField(embed, "Role", String.Join("\n", roleOverwrites));
@@ -327,14 +322,11 @@ namespace Advobot
 
 				//Check if valid role or user
 				role = await Actions.GetRole(Context, inputArray[1]);
-				if (role == null)
+				user = await Actions.GetUser(Context.Guild, inputArray[1]);
+				if (role == null && user == null)
 				{
-					user = await Actions.GetUser(Context.Guild, inputArray[1]);
-					if (user == null)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid role or user supplied."));
-						return;
-					}
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid role or user supplied."));
+					return;
 				}
 
 				//Say the permissions of the overwrite
@@ -343,24 +335,22 @@ namespace Advobot
 					if (role != null && overwrite.TargetId.Equals(role.Id))
 					{
 						//Embed showing the perm overwrites on a role
-						var embed = Actions.MakeNewEmbed(title: String.Format("{0} on {1} ({2})", role.Name, channel.Name, Actions.GetChannelType(channel)));
+						var embed = Actions.MakeNewEmbed(title: String.Format("{0} on {1}", role.Name, Actions.FormatChannel(channel)));
 						Actions.AddField(embed, "Permission", String.Join("\n", Actions.GetPerms(overwrite, channel).Keys));
 						Actions.AddField(embed, "Value", String.Join("\n", Actions.GetPerms(overwrite, channel).Values));
 						await Actions.SendEmbedMessage(Context.Channel, embed);
-						return;
 					}
 					else if (user != null && overwrite.TargetId.Equals(user.Id))
 					{
 						//Embed showing the perm overwrites on a user
-						var embed = Actions.MakeNewEmbed(title: String.Format("{0}#{1} on {2} ({3})", user.Username, user.Discriminator, channel.Name, Actions.GetChannelType(channel)));
+						var embed = Actions.MakeNewEmbed(title: String.Format("{0}#{1} on {2}", user.Username, user.Discriminator, Actions.FormatChannel(channel)));
 						Actions.AddField(embed, "Permission", String.Join("\n", Actions.GetPerms(overwrite, channel).Keys));
 						Actions.AddField(embed, "Value", String.Join("\n", Actions.GetPerms(overwrite, channel).Values));
 						await Actions.SendEmbedMessage(Context.Channel, embed);
-						return;
 					}
+					return;
 				}
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Unable to show permissions for `{0}` on `{1} ({2})`.",
-					inputArray[1], channel.Name, Actions.GetChannelType(channel))));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Unable to show permissions for `{0}` on `{1}`.", inputArray[1], Actions.FormatChannel(channel))));
 				return;
 			}
 			else if (false
@@ -386,18 +376,14 @@ namespace Advobot
 				var potentialRoleOrUser = "";
 				if (Actions.GetStringAndPermissions(inputArray[1], out potentialRoleOrUser, out permissions))
 				{
-					//See if valid role
+					//See if valid role or user
 					role = Actions.GetRole(Context.Guild, potentialRoleOrUser);
-					if (role == null)
+					user = await Actions.GetUser(Context.Guild, potentialRoleOrUser);
+					if (role == null && user == null)
 					{
-						//See if valid user
-						user = await Actions.GetUser(Context.Guild, potentialRoleOrUser);
-						if (user == null)
-						{
-							//Give error if no user or role that's valid
-							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid role or user supplied."));
-							return;
-						}
+						//Give error if no user or role that's valid
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid role or user supplied."));
+						return;
 					}
 				}
 				else
@@ -419,13 +405,13 @@ namespace Advobot
 			if (validPerms.Count != permissions.Count)
 			{
 				var invalidPerms = new List<string>();
-				foreach (string permission in permissions)
+				permissions.ForEach(x =>
 				{
-					if (!validPerms.Contains(permission, StringComparer.OrdinalIgnoreCase))
+					if (!validPerms.Contains(x, StringComparer.OrdinalIgnoreCase))
 					{
-						invalidPerms.Add(permission);
+						invalidPerms.Add(x);
 					}
-				}
+				});
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Invalid {0} supplied: `{1}`.",
 					invalidPerms.Count == 1 ? "permission" : "permissions",
 					String.Join("`, `", invalidPerms))), 7500);
@@ -440,22 +426,22 @@ namespace Advobot
 
 			//Get the permissions
 			uint changeValue = 0;
-			uint? allowBits = 0;
-			uint? denyBits = 0;
+			uint allowBits = 0;
+			uint denyBits = 0;
 			if (role != null)
 			{
 				if (channel.GetPermissionOverwrite(role).HasValue)
 				{
-					allowBits = (uint?)channel.GetPermissionOverwrite(role).Value.AllowValue;
-					denyBits = (uint?)channel.GetPermissionOverwrite(role).Value.DenyValue;
+					allowBits = (uint)channel.GetPermissionOverwrite(role).Value.AllowValue;
+					denyBits = (uint)channel.GetPermissionOverwrite(role).Value.DenyValue;
 				}
 			}
 			else
 			{
 				if (channel.GetPermissionOverwrite(user).HasValue)
 				{
-					allowBits = (uint?)channel.GetPermissionOverwrite(user).Value.AllowValue;
-					denyBits = (uint?)channel.GetPermissionOverwrite(user).Value.DenyValue;
+					allowBits = (uint)channel.GetPermissionOverwrite(user).Value.AllowValue;
+					denyBits = (uint)channel.GetPermissionOverwrite(user).Value.DenyValue;
 				}
 			}
 
@@ -487,17 +473,17 @@ namespace Advobot
 			var roleNameOrUsername = "";
 			if (role != null)
 			{
-				await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions((uint)allowBits, (uint)denyBits));
+				await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allowBits, denyBits));
 				roleNameOrUsername = role.Name;
 			}
 			else
 			{
-				await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions((uint)allowBits, (uint)denyBits));
+				await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits));
 				roleNameOrUsername = user.Username + "#" + user.Discriminator;
 			}
 
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}` on `{3} ({4})`",
-				actionName, String.Join("`, `", permissions), roleNameOrUsername, channel.Name, Actions.GetChannelType(channel)), 7500);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}` on `{3}`",
+				actionName, String.Join("`, `", permissions), roleNameOrUsername, Actions.FormatChannel(channel)), 7500);
 		}
 
 		[Command("channelpermscopy")]
@@ -579,8 +565,8 @@ namespace Advobot
 				}
 			}
 
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully copied `{0}` from `{1} ({2})` to `{3} ({4})`",
-				target, inputChannel.Name, Actions.GetChannelType(inputChannel), outputChannel.Name, Actions.GetChannelType(outputChannel)), 7500);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully copied `{0}` from `{1}` to `{2}`",
+				target, Actions.FormatChannel(inputChannel), Actions.FormatChannel(outputChannel)), 7500);
 		}
 
 		[Command("channelpermsclear")]
@@ -614,8 +600,7 @@ namespace Advobot
 					await channel.RemovePermissionOverwriteAsync(await Context.Guild.GetUserAsync(x.TargetId));
 				}
 			});
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all channel permissions from `{0} ({1})`.",
-				channel.Name, Actions.GetChannelType(channel)), 7500);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all channel permissions from `{0}`.", Actions.FormatChannel(channel)));
 		}
 
 		[Command("channelname")]
@@ -649,75 +634,76 @@ namespace Advobot
 				return;
 			}
 
-			//Initialize the channel
-			IGuildChannel channel = null;
-
 			//See if it's a position trying to be gotten instead
 			var channelInput = inputArray[0];
-			if (inputArray[0].IndexOf("position{", StringComparison.OrdinalIgnoreCase) >= 0)
+			var channel = await Actions.GetChannelEditAbility(Context, channelInput);
+			if (channel == null)
 			{
-				//Get the position
-				int position;
-				var leftBracePos = channelInput.IndexOf('{');
-				var rightBracePos = channelInput.IndexOf('}');
-				if (!int.TryParse(channelInput.Substring(leftBracePos, rightBracePos), out position))
+				if (channelInput.IndexOf("position{", StringComparison.OrdinalIgnoreCase) >= 0)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position supplied."));
-					return;
-				}
+					//Get the position
+					int position;
+					var leftBracePos = channelInput.IndexOf('{');
+					var rightBracePos = channelInput.IndexOf('}');
+					if (!int.TryParse(channelInput.Substring(leftBracePos, rightBracePos), out position))
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position supplied."));
+						return;
+					}
 
-				//Split the input
-				var splitInputArray = channelInput.Split(new char[] { '/' }, 2);
-				//Give the channeltype
-				var channelType = splitInputArray[1];
+					//Split the input
+					var splitInputArray = channelInput.Split(new char[] { '/' }, 2);
+					//Give the channeltype
+					var channelType = splitInputArray[1];
 
-				//Initialize the channels list
-				var textChannels = new List<ITextChannel>();
-				var voiceChannels = new List<IVoiceChannel>();
+					//Initialize the channels list
+					var textChannels = new List<ITextChannel>();
+					var voiceChannels = new List<IVoiceChannel>();
 
-				if (Constants.TEXT_TYPE.Equals(channelType, StringComparison.OrdinalIgnoreCase))
-				{
-					textChannels = (await Context.Guild.GetTextChannelsAsync()).Where(x => x.Position == position).ToList();
-				}
-				else if (Constants.VOICE_TYPE.Equals(channelType, StringComparison.OrdinalIgnoreCase))
-				{
-					voiceChannels = (await Context.Guild.GetVoiceChannelsAsync()).Where(x => x.Position == position).ToList();
+					if (Constants.TEXT_TYPE.Equals(channelType, StringComparison.OrdinalIgnoreCase))
+					{
+						textChannels = (await Context.Guild.GetTextChannelsAsync()).Where(x => x.Position == position).ToList();
+					}
+					else if (Constants.VOICE_TYPE.Equals(channelType, StringComparison.OrdinalIgnoreCase))
+					{
+						voiceChannels = (await Context.Guild.GetVoiceChannelsAsync()).Where(x => x.Position == position).ToList();
+					}
+					else
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid channel type."));
+						return;
+					}
+
+					//Check the count now
+					if (textChannels.Count == 0 && voiceChannels.Count == 0)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("No {0} channel has a position of `{1}`.", channelType, position)));
+						return;
+					}
+					else if (textChannels.Count == 1 || voiceChannels.Count == 1)
+					{
+						//Get the channel
+						var chan = textChannels.Count == 1 ? textChannels.First() as IGuildChannel : voiceChannels.First() as IGuildChannel;
+						channel = await Actions.GetChannelEditAbility(chan, Context.User as IGuildUser);
+					}
+					else
+					{
+						//Get the count
+						var count = textChannels.Any() ? textChannels.Count : voiceChannels.Count;
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` {1} channels have the position `{2}`.", count, channelType, position));
+						return;
+					}
 				}
 				else
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid channel type."));
-					return;
-				}
-
-				//Check the count now
-				if (textChannels.Count == 0 && voiceChannels.Count == 0)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("No {0} channel has a position of `{1}`.", channelType, position)));
-					return;
-				}
-				else if (textChannels.Count == 1 || voiceChannels.Count == 1)
-				{
-					//Get the channel
-					var chan = textChannels.Count == 1 ? textChannels.First() as IGuildChannel : voiceChannels.First() as IGuildChannel;
-					channel = await Actions.GetChannelEditAbility(chan, Context.User as IGuildUser);
-				}
-				else
-				{
-					//Get the count
-					var count = textChannels.Any() ? textChannels.Count : voiceChannels.Count;
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` {1} channels have the position `{2}`.", count, channelType, position));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
 					return;
 				}
 			}
 
-			//Check if valid channel
-			channel = channel ?? await Actions.GetChannelEditAbility(Context, channelInput);
-			if (channel == null)
-				return;
-
 			var previousName = channel.Name;
 			await channel.ModifyAsync(x => x.Name = inputArray[1]);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed channel `{0}` to `{1}`.", previousName, inputArray[1]), 5000);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed channel `{0}` to `{1}`.", previousName, inputArray[1]));
 		}
 
 		[Command("channeltopic")]
@@ -727,18 +713,11 @@ namespace Advobot
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ChangeChannelTopic([Remainder] string input)
 		{
+			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
-			var newTopic = inputArray[1];
-
-			//See if valid length
-			if (newTopic.Length > Constants.TOPIC_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Topics cannot be longer than 1024 characters in length."));
 				return;
 			}
 
@@ -746,11 +725,18 @@ namespace Advobot
 			var channel = await Actions.GetChannelEditAbility(Context, inputArray[0]);
 			if (channel == null)
 				return;
-
 			//See if not a text channel
-			if (Actions.GetChannelType(channel) != Constants.TEXT_TYPE)
+			else if (Actions.GetChannelType(channel) != Constants.TEXT_TYPE)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Only text channels can have their topic set."));
+				return;
+			}
+
+			//See if valid length
+			var newTopic = inputArray[1];
+			if (newTopic.Length > Constants.TOPIC_LENGTH)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Topics cannot be longer than 1024 characters in length."));
 				return;
 			}
 
@@ -763,7 +749,7 @@ namespace Advobot
 
 			await (channel as ITextChannel).ModifyAsync(x => x.Topic = newTopic);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the topic in `{0}` from `{1}` to `{2}`.",
-				channel.Name, currentTopic, newTopic == "" ? "NOTHING" : newTopic));
+				Actions.FormatChannel(channel), currentTopic, String.IsNullOrWhiteSpace(newTopic) ? "NOTHING" : newTopic));
 		}
 
 		[Command("channellimit")]
@@ -782,6 +768,7 @@ namespace Advobot
 			var channel = await Actions.GetChannelEditAbility(Context, channelName + "/voice");
 			if (channel == null)
 				return;
+			//See if not a voice channel
 			else if (Actions.GetChannelType(channel) != Constants.VOICE_TYPE)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Only a voice channel can have a limit set on it."));
@@ -805,7 +792,7 @@ namespace Advobot
 
 			//Change it and send a success message
 			await (channel as IVoiceChannel).ModifyAsync(x => x.UserLimit = limit);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}`.", channel.Name, limit));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}`.", Actions.FormatChannel(channel), limit));
 		}
 
 		[Command("channelbitrate")]
@@ -824,6 +811,7 @@ namespace Advobot
 			var channel = await Actions.GetChannelEditAbility(Context, channelName + "/voice");
 			if (channel == null)
 				return;
+			//See if not a voice channel
 			else if (Actions.GetChannelType(channel) != Constants.VOICE_TYPE)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Only a voice channel can have its bit rate changed."));
@@ -838,16 +826,26 @@ namespace Advobot
 				return;
 			}
 
-			//Check if number between 8 and 96 
-			if (bitRate > 96 || bitRate < 8)
+			//Check if number between 8 and 96
+			if (bitRate < Constants.MIN_BITRATE)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Number must be between 8 and 96 inclusive."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bitrate must be above or equal to {0}.", Constants.MIN_BITRATE)));
+				return;
+			}
+			else if (!Context.Guild.Features.Contains(Constants.VIP_REGIONS, StringComparer.OrdinalIgnoreCase) && bitRate > Constants.MAX_BITRATE)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bitrate must be below or equal to {0}.", Constants.MAX_BITRATE)));
+				return;
+			}
+			else if (bitRate > Constants.VIP_BITRATE)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bitrate must be below or equal to {0}.", Constants.VIP_BITRATE)));
 				return;
 			}
 
 			//Change it and send a success message
 			await (channel as IVoiceChannel).ModifyAsync(x => x.Bitrate = bitRate * 1000);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}kbps`.", channel.Name, bitRate));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}kbps`.", Actions.FormatChannel(channel), bitRate));
 		}
 	}
 }

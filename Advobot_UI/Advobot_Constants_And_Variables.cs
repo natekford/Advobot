@@ -52,6 +52,7 @@ namespace Advobot
 		public const string VIP_REGIONS = "VIP_REGIONS";
 		public const string VANITY_URL = "VANITY_URL";
 		public const string INVITE_SPLASH = "INVITE_SPLASH";
+		public static readonly string DEFAULT_GAME = "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int WAIT_TIME = 3000;
@@ -70,6 +71,9 @@ namespace Advobot
 		public const int CHANNEL_NAME_MAX_LENGTH = 100;
 		public const int CHANNEL_NAME_MIN_LENGTH = 2;
 		public const int GAME_MAX_LENGTH = 128; //Yes, I know it CAN go past that, but it won't show for others.
+		public const int MIN_BITRATE = 8;
+		public const int MAX_BITRATE = 96;
+		public const int VIP_BITRATE = 128;
 
 		public static readonly string[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
 		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };

@@ -500,7 +500,6 @@ namespace Advobot
 			++Variables.LoggedMessages;
 		}
 		
-		//TODO: Readd in image logging for embeds that fire off messageupdated but not messagerecieved image logging
 		public static async Task OnMessageUpdated(Optional<SocketMessage> beforeMessage, SocketMessage afterMessage)
 		{
 			//Get the before message's value
@@ -511,11 +510,14 @@ namespace Advobot
 			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(afterMessage, LogActions.MessageUpdated);
 			var logChannel = guildAndLogChannel.Item1;
 			var guild = guildAndLogChannel.Item2;
+			//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
+			if (!beforeMessage.IsSpecified || beforeMessageValue.Embeds.Count() < afterMessage.Embeds.Count())
+				await MessageReceivedActions.ImageLog(logChannel, afterMessage);
 			if (logChannel == null || guild == null)
 				return;
 
 			//Set the content as strings
-			var beforeMsgContent = Actions.ReplaceMarkdownChars(beforeMessageValue.Content);
+			var beforeMsgContent = Actions.ReplaceMarkdownChars(beforeMessageValue?.Content ?? "");
 			var afterMsgContent = Actions.ReplaceMarkdownChars(afterMessage.Content);
 			//Null check
 			beforeMsgContent = String.IsNullOrWhiteSpace(beforeMsgContent) ? "Empty or unable to be gotten." : beforeMsgContent;
@@ -530,14 +532,12 @@ namespace Advobot
 				afterMsgContent = afterMsgContent.Length > 667 ? "LONG MESSAGE" : afterMsgContent;
 			}
 
-			//User placeholder
-			var user = afterMessage.Author;
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(null, null, Constants.MEDT);
 			Actions.AddFooter(embed, "Message Updated");
 			Actions.AddField(embed, "Before:", "`" + beforeMsgContent + "`");
 			Actions.AddField(embed, "After:", "`" + afterMsgContent + "`", false);
-			Actions.AddAuthor(embed, String.Format("{0}#{1} in #{2}", user.Username, user.Discriminator, afterMessage.Channel), user.AvatarUrl);
+			Actions.AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(afterMessage.Author), afterMessage.Channel), afterMessage.Author.AvatarUrl);
 			await Actions.SendEmbedMessage(logChannel, embed);
 			//Increment the edit count
 			++Variables.LoggedEdits;
@@ -579,7 +579,7 @@ namespace Advobot
 			Variables.CancelTokens[guild.Id] = cancelToken;
 
 			//Make a separate task in order to not mess up the other commands
-			Task t = Task.Run(async () =>
+			var t = Task.Run(async () =>
 			{
 				try
 				{
@@ -833,15 +833,15 @@ namespace Advobot
 	{
 		public static async Task LogCommand(CommandContext context)
 		{
+			//Write into the console what the command was and who said it
+			Actions.WriteLine(String.Format("'{0}' on {1}: \'{2}\'", Actions.FormatUser(context.User), Actions.FormatGuild(context.Guild), context.Message.Content));
+
 			//Get the guild and log channel
-			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(context, LogActions.CommandLog);
+			var guildAndLogChannel = await Actions.VerifyGuildAndModLogChannel(context, LogActions.CommandLog);
 			var logChannel = guildAndLogChannel.Item1;
 			var guild = guildAndLogChannel.Item2;
 			if (logChannel == null || guild == null)
 				return;
-
-			//Write into the console what the command was and who said it
-			Actions.WriteLine(String.Format("'{0}' on {1}: \'{2}\'", Actions.FormatUser(context.User), Actions.FormatGuild(context.Guild), context.Message.Content));
 
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(description: context.Message.Content);
@@ -998,36 +998,30 @@ namespace Advobot
 		{
 			//Get the users primed to be kicked/banned by the spam prevention
 			var users = Variables.Guilds[guild.Id].SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
+			//Return if it's empty
+			if (!users.Any())
+				return;
 			//Get the spam prevention the guild has
 			var spamPrevention = Variables.Guilds[guild.Id].SpamPrevention;
-			//Return if either is null/empty
-			if (spamPrevention == null || !users.Any())
+			//Return if it's null
+			if (spamPrevention == null)
 				return;
 
 			//Cross reference the almost kicked users and the mentioned users
-			users.ForEach(async x =>
+			users.Where(x => message.MentionedUserIds.Contains(x.User.Id)).ToList().ForEach(async x =>
 			{
 				//Check if mentioned users contains any users almost kicked. Check if the person has already voted. Don't allow users to vote on themselves.
-				if (!message.MentionedUserIds.Contains(x.User.Id) || x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id) || x.User.Id == message.Author.Id)
+				if (x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id) || x.User.Id == message.Author.Id)
 					return;
-
-				//Increment their votes
+				//Increment the votes on that user
 				++x.VotesToKick;
-				//Add the user to the already voted list
+				//Add the author to the already voted list
 				x.UsersWhoHaveAlreadyVoted.Add(message.Author.Id);
 				//Check if the bot can even kick/ban this user or if they should be punished
 				if (Actions.GetPosition(guild, x.User) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)) || x.VotesToKick < spamPrevention.VotesNeededForKick)
 					return;
-				//Check if they've already been kicked (which means they should be banned now)
-				if (x.AlreadyKicked)
-				{
-					await guild.AddBanAsync(x.User);
-				}
-				//Otherwise just kick them
-				else
-				{
-					await x.User.KickAsync();
-				}
+				//Check if they've already been kicked to determine if they should be banned or kicked
+				await (x.AlreadyKicked ? guild.AddBanAsync(x.User, 1) : x.User.KickAsync());
 			});
 		}
 	}

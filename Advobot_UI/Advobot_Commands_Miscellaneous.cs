@@ -621,6 +621,7 @@ namespace Advobot
 		[PermissionRequirement(1U << (int)GuildPermission.CreateInstantInvite)]
 		public async Task CreateInstantInvite([Remainder] string input)
 		{
+			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 4);
 			if (inputArray.Length != 4)
 			{
@@ -629,16 +630,16 @@ namespace Advobot
 			}
 
 			//Check validity of channel
-			IGuildChannel channel = await Actions.GetChannelEditAbility(Context, inputArray[0]);
+			var channel = await Actions.GetChannelEditAbility(Context, inputArray[0]);
 			if (channel == null)
 				return;
 
 			//Set the time in seconds
-			Int32 time = 0;
-			Int32? nullableTime = null;
-			if (Int32.TryParse(inputArray[1], out time))
+			int time = 0;
+			int? nullableTime = null;
+			if (int.TryParse(inputArray[1], out time))
 			{
-				Int32[] validTimes = { 1800, 3600, 21600, 43200, 86400 };
+				int[] validTimes = { 1800, 3600, 21600, 43200, 86400 };
 				if (validTimes.Contains(time))
 				{
 					nullableTime = time;
@@ -665,11 +666,10 @@ namespace Advobot
 			}
 
 			//Make into valid invite link
-			IInvite inv = await channel.CreateInviteAsync(nullableTime, nullableUsers, tempMembership);
+			var inv = await channel.CreateInviteAsync(nullableTime, nullableUsers, tempMembership);
 
-			await Actions.SendChannelMessage(Context, String.Format("Here is your invite for `{0} ({1})`: {2} \nIt will last for{3}, {4}{5}.",
-				channel.Name,
-				Actions.GetChannelType(channel),
+			await Actions.SendChannelMessage(Context, String.Format("Here is your invite for `{0}`: {1} \nIt will last for{2}, {3}{4}.",
+				Actions.FormatChannel(channel),
 				inv.Url,
 				nullableTime == null ? "ever" : " " + time.ToString() + " seconds",
 				nullableUsers == null ? (tempMembership ? "has no limit of users" : "and has no limit of users") :

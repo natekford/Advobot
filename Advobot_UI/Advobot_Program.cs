@@ -13,16 +13,19 @@ namespace Advobot
 		{
 			//Check if Windows and if console
 			Actions.LoadBasicInformation();
-			//Create the client
+
+			//If the shard count is greater than one create a sharded client
 			if (Properties.Settings.Default.ShardCount > 1)
 			{
 				Variables.Client = new ShardedClient(createShardedClient());
 			}
+			//If not create a regular socket client
 			else
 			{
 				Variables.Client = new SocketClient(createSocketClient());
 			}
 
+			//If not a console application then start the UI
 			if (!Variables.Console)
 			{
 				//Start the UI
@@ -30,7 +33,7 @@ namespace Advobot
 			}
 			else
 			{
-				//Set the path to save stuff to
+				//Set the path to save files
 				var startup = true;
 				while (!Actions.ValidatePath(startup ? Properties.Settings.Default.Path : System.Console.ReadLine(), startup))
 				{
@@ -127,6 +130,7 @@ namespace Advobot
 		public async Task Start(BotClient client)
 		{
 			Actions.WriteLine("Connecting the client...");
+
 			//Connect the bot
 			try
 			{

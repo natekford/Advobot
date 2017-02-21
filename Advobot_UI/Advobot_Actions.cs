@@ -467,13 +467,16 @@ namespace Advobot
 				string line;
 				while ((line = reader.ReadLine()) != null)
 				{
+					//Ignore empty lines
 					if (String.IsNullOrWhiteSpace(line))
 						continue;
 
+					//Guild prefix
 					if (line.Contains(Constants.GUILD_PREFIX))
 					{
 						Variables.Guilds[guild.Id].Prefix = line.Substring(line.IndexOf(':') + 1);
 					}
+					//Log actions
 					else if (line.Contains(Constants.LOG_ACTIONS))
 					{
 						var logActions = new List<LogActions>();
@@ -487,6 +490,7 @@ namespace Advobot
 						});
 						Variables.Guilds[guild.Id].LogActions = logActions.Distinct().OrderBy(x => (int)x).ToList();
 					}
+					//Ignored log channels
 					else if (line.Contains(Constants.IGNORED_LOG_CHANNELS))
 					{
 						var IDs = new List<ulong>();
@@ -500,6 +504,21 @@ namespace Advobot
 						});
 						Variables.Guilds[guild.Id].IgnoredLogChannels = IDs.Distinct().ToList();
 					}
+					//Ignored command channels
+					else if (line.Contains(Constants.IGNORED_COMMAND_CHANNELS))
+					{
+						var IDs = new List<ulong>();
+						line.Substring(line.IndexOf(':') + 1).Split('/').ToList().ForEach(x =>
+						{
+							ulong temp;
+							if (ulong.TryParse(x, out temp))
+							{
+								IDs.Add(temp);
+							}
+						});
+						Variables.Guilds[guild.Id].IgnoredCommandChannels = IDs.Distinct().ToList();
+					}
+					//Spam prevention
 					else if (line.Contains(Constants.SPAM_PREVENTION))
 					{
 						var variableNumbers = line.Substring(line.IndexOf(':') + 1).Split('/').ToList();
@@ -762,20 +781,26 @@ namespace Advobot
 		//Get if the user can edit this channel
 		public static async Task<IGuildChannel> GetChannelEditAbility(CommandContext context, string input, bool ignoreErrors = false)
 		{
-			IGuildChannel channel = await GetChannel(context, input);
+			var channel = await GetChannel(context, input);
 			if (channel == null)
 			{
-				return null;
+				if (!ignoreErrors)
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR("No channel was able to be gotten."));
+				}
 			}
-			if (await GetChannelEditAbility(channel, await context.Guild.GetUserAsync(context.User.Id)) == null)
+			else if (await GetChannelEditAbility(channel, await context.Guild.GetUserAsync(context.User.Id)) == null)
 			{
 				if (!ignoreErrors)
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", channel.Name)));
 				}
-				return null;
 			}
-			return channel;
+			else
+			{
+				return channel;
+			}
+			return null;
 		}
 		
 		//Get a channel ID
@@ -882,7 +907,7 @@ namespace Advobot
 		public static Dictionary<String, String> GetChannelPermissions(Overwrite overwrite)
 		{
 			//Create a dictionary to hold the allow/deny/inherit values
-			Dictionary<String, String> channelPerms = new Dictionary<String, String>();
+			var channelPerms = new Dictionary<String, String>();
 
 			//Make a copy of the channel perm list to check off perms as they go by
 			var genericChannelPerms = Variables.ChannelPermissions.Select(x => x.Name).ToList();
@@ -1479,6 +1504,12 @@ namespace Advobot
 		public static string FormatUser(IUser user)
 		{
 			return String.Format("{0}#{1} ({2})", user.Username, user.Discriminator, user.Id);
+		}
+
+		//Format the channel string
+		public static string FormatChannel(IGuildChannel channel)
+		{
+			return String.Format("{0} ({1}) ({2})", channel.Name, Actions.GetChannelType(channel), channel.Id);
 		}
 		#endregion
 
@@ -2184,7 +2215,7 @@ namespace Advobot
 		}
 
 		//Verify the guild and log channels for the mod log
-		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(CommandContext context, LogActions logAction)
+		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndModLogChannel(CommandContext context, LogActions logAction)
 		{
 			var logChannel = await VerifyLogChannel(context.Guild, Constants.MOD_LOG_CHECK_STRING);
 			var guild = VerifyLoggingAction(context.Guild, logAction);
@@ -2645,6 +2676,7 @@ namespace Advobot
 			if (!Directory.Exists(path))
 			{
 				WriteLine("Invalid directory. Please enter a valid directory:");
+				return false;
 			}
 			else
 			{
@@ -2652,7 +2684,6 @@ namespace Advobot
 				Properties.Settings.Default.Save();
 				return true;
 			}
-			return false;
 		}
 
 		//Save the bot key
@@ -2719,7 +2750,7 @@ namespace Advobot
 		public static async Task SetGame(string prefix = null)
 		{
 			//Get the game
-			var game = Variables.Client.GetCurrentUser().Game.HasValue ? Variables.Client.GetCurrentUser().Game.Value.Name : "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
+			var game = Variables.Client.GetCurrentUser().Game.HasValue ? Variables.Client.GetCurrentUser().Game.Value.Name : Constants.DEFAULT_GAME;
 
 			//Check if there's a game in the settings
 			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Game))

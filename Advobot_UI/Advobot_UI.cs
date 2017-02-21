@@ -844,7 +844,7 @@ namespace Advobot
 				var user = Actions.GetBotOwner(Variables.Client);
 				if (user != null)
 				{
-					Actions.WriteLine(String.Format("The current bot owner is: `{0}#{1} ({2})`", user.Username, user.Discriminator, user.Id));
+					Actions.WriteLine(String.Format("The current bot owner is: `{0}`", Actions.FormatUser(user)));
 				}
 				else
 				{
@@ -865,7 +865,7 @@ namespace Advobot
 			{
 				//Get the bot owner
 				var user = Actions.GetBotOwner(Variables.Client);
-				Actions.WriteLine(String.Format("There is already a bot owner: `{0}#{1} ({2})`.", user.Username, user.Discriminator, user.Id));
+				Actions.WriteLine(String.Format("There is already a bot owner: `{0}`.", Actions.FormatUser(user)));
 				return;
 			}
 
@@ -887,7 +887,7 @@ namespace Advobot
 
 			Properties.Settings.Default.BotOwner = globalUser.Id;
 			Properties.Settings.Default.Save();
-			Actions.WriteLine(String.Format("Successfully made `{0}#{1} ({2})` the new bot owner.", globalUser.Username, globalUser.Discriminator, globalUser.Id));
+			Actions.WriteLine(String.Format("Successfully made `{0}` the new bot owner.", Actions.FormatUser(globalUser)));
 		}
 
 		//List the global settings or clear them
@@ -1143,8 +1143,7 @@ namespace Advobot
 		{
 			//Go through each guild and add them to the list
 			int count = 1;
-			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("{0}. {1} Owner: {2}#{3} ({4})",
-				count++.ToString("00"), Actions.FormatGuild(x), x.Owner.Username, x.Owner.Discriminator, x.Owner.Id));
+			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("{0}. {1} Owner: {2}", count++.ToString("00"), Actions.FormatGuild(x), Actions.FormatUser(x.Owner)));
 
 			//Send it to have the hyperlink created and go to the output window
 			BotWindow.AddHyperlink(BotWindow.MainOutput, Actions.UploadToHastebin(String.Join("\n", guildStrings)), "Listed Guilds");

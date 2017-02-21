@@ -69,8 +69,9 @@ namespace Advobot
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
-				var description = String.Join("\n", Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Select(async x => await Context.Guild.GetChannelAsync(x)));
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Log Channels", description));
+				var channels = new List<string>();
+				Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.ForEach(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Log Channels", String.Join("\n", channels)));
 				return;
 			}
 			//Check amount of args
