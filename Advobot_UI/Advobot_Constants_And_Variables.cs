@@ -10,8 +10,8 @@ namespace Advobot
 		public const int CACHED_MESSAGE_COUNT = 10000;
 		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
 
-		public const string BOT_VERSION = "0.9.12";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00595";
+		public const string BOT_VERSION = "0.9.14";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00604";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -32,6 +32,7 @@ namespace Advobot
 		public const string SA_ROLES = "SelfAssignableRoles.txt";
 		public const string PERMISSIONS = "BotPermissions.txt";
 		public const string REMINDS = "Reminds.txt";
+		//public const string 
 		public const string SERVER_LOG_CHECK_STRING = "serverlog";
 		public const string MOD_LOG_CHECK_STRING = "modlog";
 		public const string BANNED_PHRASES_CHECK_STRING = "BannedPhrases";
@@ -61,7 +62,7 @@ namespace Advobot
 		public const int MAX_REMINDS = 50;
 		public const int LENGTH_CHECK = 1900;
 		public const int SHORT_LENGTH_CHECK = 750;
-		public const int OWNER_POSITION = 9001;
+		public const int OWNER_POSITION = int.MaxValue;
 		public const int MESSAGES_TO_GATHER = 100;
 		public const int TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG = 3;
 		public const int NICKNAME_MIN_LENGTH = 2;
@@ -138,8 +139,8 @@ namespace Advobot
 
 		public static int TotalUsers = 0;
 		public static int TotalGuilds = 0;
-		public static int FailedCommands = 0;
 		public static int AttemptedCommands = 0;
+		public static int FailedCommands = 0;
 		public static int LoggedJoins = 0;
 		public static int LoggedLeaves = 0;
 		public static int LoggedBans = 0;
@@ -154,7 +155,6 @@ namespace Advobot
 
 		public static Dictionary<ulong, List<Discord.WebSocket.SocketMessage>> DeletedMessages = new Dictionary<ulong, List<Discord.WebSocket.SocketMessage>>();
 		public static Dictionary<ulong, System.Threading.CancellationTokenSource> CancelTokens = new Dictionary<ulong, System.Threading.CancellationTokenSource>();
-		public static Dictionary<ulong, Discord.IUser> UnbannedUsers = new Dictionary<ulong, Discord.IUser>();
 		public static Dictionary<ulong, BotGuildInfo> Guilds = new Dictionary<ulong, BotGuildInfo>();
 		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeGuilds = new Dictionary<ulong, List<SlowmodeUser>>();
 		public static Dictionary<Discord.IGuildChannel, List<SlowmodeUser>> SlowmodeChannels = new Dictionary<Discord.IGuildChannel, List<SlowmodeUser>>();

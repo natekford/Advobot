@@ -49,7 +49,7 @@ namespace Advobot
 			}
 			else
 			{
-				//Give the targetted user the role
+				//Check if time is given
 				var time = 0;
 				if (inputArray.Length == 2 && !int.TryParse(inputArray[1], out time))
 				{
@@ -59,8 +59,10 @@ namespace Advobot
 				{
 					Actions.RemoveRoleAfterTime(user, muteRole, time);
 				}
+				//Give them the mute role
 				await Actions.GiveRole(user, muteRole);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully muted `{0}#{1}` {2}.", user.Username, user.Discriminator, time != 0 ? "for " + time + " seconds" : ""));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully text muted `{0}`{1}.", 
+					Actions.FormatUser(user), time != 0 ? String.Format(" for {0} seconds", time) : ""));
 			}
 		}
 
@@ -84,6 +86,7 @@ namespace Advobot
 			//See if it should mute or unmute
 			if (!user.IsMuted)
 			{
+				//Check if time is given
 				var time = 0;
 				if (inputArray.Length == 2 && !int.TryParse(inputArray[1], out time))
 				{
@@ -94,13 +97,16 @@ namespace Advobot
 				{
 					Actions.UnmuteVoiceAfterTime(user, time);
 				}
+				//Mute the user
 				await user.ModifyAsync(x => x.Mute = true);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully guild muted `{0}#{1}` {2}.", user.Username, user.Discriminator, time != 0 ? "for " + time + " seconds" : ""));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully muted `{0}`{1}.", 
+					Actions.FormatUser(user), time != 0 ? String.Format(" for {0} seconds", time) : ""));
 			}
 			else
 			{
+				//Unmute the user
 				await user.ModifyAsync(x => x.Mute = false);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the guild mute on `{0}#{1}`.", user.Username, user.Discriminator));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unmuted `{0}`.", Actions.FormatUser(user)));
 			}
 		}
 
@@ -124,6 +130,7 @@ namespace Advobot
 			//See if it should deafen or undeafen
 			if (!user.IsDeafened)
 			{
+				//Check if time was supplied
 				var time = 0;
 				if (inputArray.Length == 2 && !int.TryParse(inputArray[1], out time))
 				{
@@ -134,19 +141,22 @@ namespace Advobot
 				{
 					Actions.UndeafenAfterTime(user, time);
 				}
+				//Deafen them
 				await user.ModifyAsync(x => x.Deaf = true);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully guild deafened `{0}#{1}` {2}.", user.Username, user.Discriminator, time != 0 ? "for " + time + " seconds" : ""));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deafened `{0}`{1}.",
+					Actions.FormatUser(user), time != 0 ? String.Format(" for {0} seconds", time) : ""));
 			}
 			else
 			{
+				//Undeafen them
 				await user.ModifyAsync(x => x.Deaf = false);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the guild deafen on `{0}#{1}`.", user.Username, user.Discriminator));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully undeafened `{0}`.", Actions.FormatUser(user)));
 			}
 		}
 
 		[Command("moveuser")]
 		[Alias("mu")]
-		[Usage("[@User] [Channel]")]
+		[Usage("[@User] [Channel Name]")]
 		[Summary("Moves the user to the given voice channel.")]
 		[PermissionRequirement(1U << (int)GuildPermission.MoveMembers)]
 		public async Task MoveUser([Remainder] string input)
@@ -168,23 +178,22 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is not in a voice channel."));
 				return;
 			}
-
 			//See if the bot can move people from this channel
-			if (await Actions.GetChannelEditAbility(user.VoiceChannel, await Context.Guild.GetUserAsync(Variables.Bot_ID)) == null)
+			else if (await Actions.GetChannelEditAbility(user.VoiceChannel, await Context.Guild.GetUserAsync(Variables.Bot_ID)) == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to move this user due to permissions " +
 					"or due to the user being in a voice channel before the bot started up."), 5000);
 				return;
 			}
 			//See if the user can move people from this channel
-			if (await Actions.GetChannelEditAbility(user.VoiceChannel, Context.User as IGuildUser) == null)
+			else if (await Actions.GetChannelEditAbility(user.VoiceChannel, Context.User as IGuildUser) == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to move people from this channel."));
 				return;
 			}
 
 			//Check if valid channel
-			var channel = await Actions.GetChannelEditAbility(Context, inputArray[1] + "/voice");
+			var channel = await Actions.GetChannelEditAbility(Context, inputArray[1] + "/" + Constants.VOICE_TYPE);
 			if (channel == null)
 				return;
 			else if (Actions.GetChannelType(channel) != Constants.VOICE_TYPE)
@@ -213,6 +222,8 @@ namespace Advobot
 		{
 			//Input and splitting
 			var inputArray = input.Split(new char[] { ' ' }, 2);
+
+			//Get the nickname
 			var nickname = "";
 			if (inputArray.Length == 2)
 			{
@@ -230,7 +241,6 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
-
 			//Check if valid length
 			if (nickname != null && nickname.Length > Constants.NICKNAME_MAX_LENGTH)
 			{
@@ -243,13 +253,6 @@ namespace Advobot
 				return;
 			}
 
-			//Make sure it's a mention
-			if (!inputArray[0].StartsWith("<@"))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please mention a user."));
-				return;
-			}
-
 			//Check if valid user
 			var user = await Actions.GetUser(Context.Guild, inputArray[0]);
 			if (user == null)
@@ -259,25 +262,27 @@ namespace Advobot
 			}
 
 			//Checks for positions
-			var nicknamePosition = Actions.GetPosition(Context.Guild, user);
-			if (nicknamePosition > Actions.GetPosition(Context.Guild, Context.User as IGuildUser))
+			if (!Actions.UserCanBeModifiedByUser(Context, user))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User cannot be nicknamed by you."));
 				return;
 			}
-			if (nicknamePosition > Actions.GetPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID)))
+			else if (!await Actions.UserCanBeModifiedByBot(Context, user))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User cannot be nicknamed by the bot."));
 				return;
 			}
 
+			//Give the user the nickname
 			await user.ModifyAsync(x => x.Nickname = nickname);
 			if (nickname != null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave the nickname `{0}` to `{1}#{2}`.", nickname, user.Username, user.Discriminator));
-				return;
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave the nickname `{0}` to `{1}`.", nickname, Actions.FormatUser(user)));
 			}
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Sucessfully removed the nickname from `{0}#{1}`.", user.Username, user.Discriminator));
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Sucessfully removed the nickname from `{0}`.", Actions.FormatUser(user)));
+			}
 		}
 
 		[Command("prunemembers")]
@@ -307,17 +312,18 @@ namespace Advobot
 			//If only one argument and it's an int then it's a simulation
 			if (inputArray.Length != 2)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members would be pruned with a prune period of `{1}` days.",
-					await Context.Guild.PruneUsersAsync(amountOfDays, true), amountOfDays));
+				var amount = await Context.Guild.PruneUsersAsync(amountOfDays, true);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members would be pruned with a prune period of `{1}` days.", amount, amountOfDays));
 			}
 			//Otherwise test if it's the real deal
 			else if (inputArray[1].Equals("real", StringComparison.OrdinalIgnoreCase))
 			{
-				await Context.Guild.PruneUsersAsync(amountOfDays);
+				var amount = await Context.Guild.PruneUsersAsync(amountOfDays);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members have been pruned with a prune period of `{1}` days.", amount, amountOfDays));
 			}
 			else
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You got a valid number, but you put some gibberish at the end."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You input a valid number, but put some gibberish at the end."));
 			}
 		}
 
@@ -337,16 +343,13 @@ namespace Advobot
 			}
 
 			//Determine if the user is allowed to softban this person
-			var sberPosition = Actions.GetPosition(Context.Guild, Context.User as IGuildUser);
-			var sbeePosition = Actions.GetPosition(Context.Guild, inputUser);
-			if (sberPosition <= sbeePosition)
+			if (!Actions.UserCanBeModifiedByUser(Context, inputUser))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is unable to be soft-banned by you."));
 				return;
 			}
-
 			//Determine if the bot can softban this person
-			if (Actions.GetPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID)) <= sbeePosition)
+			else if (!await Actions.UserCanBeModifiedByBot(Context, inputUser))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Bot is unable to soft-ban user."));
 				return;
@@ -367,33 +370,9 @@ namespace Advobot
 		{
 			//Test number of arguments
 			var inputArray = input.Split(' ');
-			if (inputArray.Length > 2 || inputArray.Length == 0)
+			if (inputArray.Length > 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
-
-			//Test if valid user mention
-			var inputUser = await Actions.GetUser(Context.Guild, inputArray[0]);
-			if (inputUser == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
-				return;
-			}
-
-			//Determine if the user is allowed to ban this person
-			var bannerPosition = Actions.GetPosition(Context.Guild, Context.User as IGuildUser);
-			var banneePosition = inputUser as IGuildUser == null ? 0 : Actions.GetPosition(Context.Guild, inputUser as IGuildUser);
-			if (bannerPosition <= banneePosition)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is unable to be banned by you."));
-				return;
-			}
-
-			//Determine if the bot can ban this person
-			if (Actions.GetPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID)) <= banneePosition)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Bot is unable to ban user."));
 				return;
 			}
 
@@ -407,6 +386,39 @@ namespace Advobot
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Incorrect input for days of messages to be deleted."));
 					return;
 				}
+			}
+
+			//Test if valid user mention
+			var inputUser = await Actions.GetUser(Context.Guild, inputArray[0]);
+			ulong inputUserID;
+			if (inputUser != null)
+			{
+				//Determine if the user is allowed to ban this person
+				if (!Actions.UserCanBeModifiedByUser(Context, inputUser))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is unable to be banned by you."));
+					return;
+				}
+
+				//Determine if the bot can ban this person
+				if (!await Actions.UserCanBeModifiedByBot(Context, inputUser))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Bot is unable to ban user."));
+					return;
+				}
+
+				//Ban the user
+				await Context.Guild.AddBanAsync(inputUser, pruneDays);
+			}
+			else if (ulong.TryParse(input, out inputUserID))
+			{
+				//Ban the user
+				await Context.Guild.AddBanAsync(inputUserID, pruneDays);
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				return;
 			}
 
 			//Forming the second half of the string that prints out when a user is successfully banned
@@ -425,8 +437,7 @@ namespace Advobot
 				latterHalfOfString = ".";
 			}
 
-			//Ban the user
-			await Context.Guild.AddBanAsync(inputUser, pruneDays);
+			//Send a success message
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully banned `{0}#{1}` with the ID `{2}`{3}",
 				inputUser.Username, inputUser.Discriminator, inputUser.Id, latterHalfOfString), 10000);
 		}
@@ -440,11 +451,6 @@ namespace Advobot
 		{
 			//Cut the user mention into the username and the discriminator
 			var inputArray = input.Split('#');
-			if (inputArray.Length != 2)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
 
 			//Get a list of the bans
 			var bans = await Context.Guild.GetBansAsync();
@@ -468,12 +474,6 @@ namespace Advobot
 
 				//Unban the user
 				var bannedUser = bannedUserWithNameAndDiscriminator[0].User;
-				if (!Variables.UnbannedUsers.ContainsKey(bannedUser.Id))
-				{
-					//Add the user to the unban dictionary
-					Variables.UnbannedUsers.Add(bannedUser.Id, bannedUser);
-				}
-
 				await Context.Guild.RemoveBanAsync(bannedUser);
 				secondHalfOfTheSecondaryMessage = String.Format("unbanned the user `{0}#{1}` with the ID `{2}`.", bannedUser.Username, bannedUser.Discriminator, bannedUser.Id);
 			}
@@ -492,12 +492,6 @@ namespace Advobot
 				{
 					//Unban the user
 					var bannedUser = bannedUsersWithSameName[0].User;
-					if (!Variables.UnbannedUsers.ContainsKey(bannedUser.Id))
-					{
-						//Add the user to the unban dictionary
-						Variables.UnbannedUsers.Add(bannedUser.Id, bannedUser);
-					}
-
 					await Context.Guild.RemoveBanAsync(bannedUser);
 					secondHalfOfTheSecondaryMessage = String.Format("unbanned the user `{0}#{1}` with the ID `{2}`.", bannedUser.Username, bannedUser.Discriminator, bannedUser.Id);
 				}
@@ -517,12 +511,6 @@ namespace Advobot
 				}
 
 				var bannedUser = bans.FirstOrDefault(x => x.User.Id.Equals(inputUserID)).User;
-				if (!Variables.UnbannedUsers.ContainsKey(bannedUser.Id))
-				{
-					//Add the user to the unban dictionary
-					Variables.UnbannedUsers.Add(bannedUser.Id, bannedUser);
-				}
-
 				await Context.Guild.RemoveBanAsync(bannedUser);
 				secondHalfOfTheSecondaryMessage = String.Format("unbanned the user with the ID `{0}`.", inputUserID);
 			}
@@ -545,16 +533,13 @@ namespace Advobot
 			}
 
 			//Determine if the user is allowed to kick this person
-			var kickerPosition = Actions.GetPosition(Context.Guild, Context.User as IGuildUser);
-			var kickeePosition = Actions.GetPosition(Context.Guild, inputUser);
-			if (kickerPosition <= kickeePosition)
+			if (!Actions.UserCanBeModifiedByUser(Context, inputUser))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is unable to be kicked by you."));
 				return;
 			}
-
 			//Determine if the bot can kick this person
-			if (Actions.GetPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID)) <= kickeePosition)
+			else if (!await Actions.UserCanBeModifiedByBot(Context, inputUser))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Bot is unable to kick user."));
 				return;
@@ -573,17 +558,10 @@ namespace Advobot
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
 		public async Task CurrentBanList()
 		{
-			//Get and add the ban information
-			var bans = await Context.Guild.GetBansAsync();
-
-			//Initialize the ban string
+			//Format the ban string
 			var description = "";
-
-			//Initialize the count
 			var count = 0;
-
-			//Add everything to the string
-			bans.ToList().ForEach(x =>
+			(await Context.Guild.GetBansAsync()).ToList().ForEach(x =>
 			{
 				count++;
 				description += String.Format("`{0}.` `{1}#{2}` ID: `{3}`\n", count.ToString("00"), x.User.Username, x.User.Discriminator, x.User.Id);
@@ -601,16 +579,16 @@ namespace Advobot
 				{
 					await Actions.UploadTextFile(Context.Guild, Context.Channel, Actions.ReplaceMarkdownChars(description), "Current_Ban_List_", "Current Bans");
 				}
-				return;
 			}
-			else if (bans.Count == 0)
+			else if (String.IsNullOrWhiteSpace(description))
 			{
 				await Actions.SendChannelMessage(Context, "This guild has no bans.");
-				return;
 			}
-
-			//Make and send the embed
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bans", description));
+			else
+			{
+				//Make and send the embed
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bans", description));
+			}
 		}
 
 		[Command("removemessages")]
@@ -620,40 +598,38 @@ namespace Advobot
 		[PermissionRequirement(1U << (int)GuildPermission.ManageMessages)]
 		public async Task RemoveMessages([Remainder] string input)
 		{
+			//Split the input
 			var inputArray = input.Split(' ');
-			if (inputArray.Length < 1 || inputArray.Length > 3)
+			if (inputArray.Length > 3)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 
-			var argIndex = 0;
-			var argCount = inputArray.Length;
-
-			//Testing if starts with user mention
+			//Get the user mention
 			IGuildUser inputUser = null;
-			if (argIndex < argCount && inputArray[argIndex].StartsWith("<@"))
+			var mentionedUsers = Context.Message.MentionedUserIds;
+			if (mentionedUsers.Count == 1)
 			{
-				inputUser = await Actions.GetUser(Context.Guild, inputArray[argIndex]);
-				if (inputUser == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
-					return;
-				}
-				++argIndex;
+				inputUser = await Context.Guild.GetUserAsync(mentionedUsers.FirstOrDefault());
+			}
+			else if (mentionedUsers.Count > 1)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("More than one user was input."));
+				return;
 			}
 
-			//Testing if starts with channel mention
+			//Get the channel mention
 			var inputChannel = Context.Channel as ITextChannel;
-			if (argIndex < argCount && inputArray[argIndex].StartsWith("<#"))
+			var mentionedChannels = Context.Message.MentionedChannelIds;
+			if (mentionedChannels.Count == 1)
 			{
-				inputChannel = (await Actions.GetChannelID(Context.Guild, inputArray[argIndex]) as ITextChannel);
-				if (inputChannel == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
-					return;
-				}
-				++argIndex;
+				inputChannel = await Context.Guild.GetTextChannelAsync(mentionedChannels.FirstOrDefault());
+			}
+			else if (mentionedChannels.Count > 1)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("More than one channel was input."));
+				return;
 			}
 
 			//Check if the channel that's having messages attempted to be removed on is a log channel
@@ -671,36 +647,32 @@ namespace Advobot
 			}
 
 			//Checking for valid request count
-			var requestCount = (argIndex == argCount - 1) ? Actions.GetInteger(inputArray[argIndex]) : -1;
-			if (requestCount < 1)
+			var requestCount = -1;
+			if (inputArray.FirstOrDefault(x => int.TryParse(x, out requestCount)) == null || requestCount < 1)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Incorrect input for number of messages to be removed."));
 				return;
 			}
 
 			//See if the user is trying to delete more than 100 messages at a time
-			if (requestCount > 100 && !(Context.User as IGuildUser).GuildPermissions.Administrator)
+			if (requestCount > Constants.MESSAGES_TO_GATHER && !(Context.User as IGuildUser).GuildPermissions.Administrator)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You need administrator to remove more than 100 messages at a time."));
 				return;
 			}
 
-			//Removing the command message itself
-			if (Context.Channel != inputChannel)
-			{
-				await Actions.RemoveMessages(Context.Channel, 0);
-			}
-			else if ((Context.User == inputUser) && (Context.Channel == inputChannel))
+			//Check if saying it on the same channel
+			if (Context.Channel == inputChannel)
 			{
 				++requestCount;
 			}
 
-			await Actions.RemoveMessages(inputChannel, requestCount, inputUser);
+			await Actions.RemoveMessages(inputChannel, inputUser, requestCount);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` {1}{2}{3}.",
 				requestCount,
 				requestCount != 1 ? "messages" : "message",
-				inputUser == null ? "" : " from `" + inputUser.Username + "#" + inputUser.Discriminator + "`",
-				inputChannel == null ? "" : " on `#" + inputChannel.Name + "`"));
+				inputUser == null ? "" : String.Format(" from `{0}`", Actions.FormatUser(inputUser)),
+				inputChannel == null ? "" : String.Format(" on `{0}`", Actions.FormatChannel(inputChannel))));
 		}
 
 		[Command("slowmode")]
@@ -886,7 +858,6 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
-
 			//Separate role/role or nickname + bypass into role and role or nickname + bypass
 			var values = inputArray[1].Split('/');
 			if (values.Length != 2)
@@ -894,37 +865,55 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+			//Input and output strings
+			var inputString = values[0];
+			var outputString = values[1];
 
 			//Check if bypass, up the max limit, and remove the bypass string from the values array
 			var maxLength = 10;
-			if (values[1].EndsWith(Constants.BYPASS_STRING) && Context.User.Id.Equals(Properties.Settings.Default.BotOwner))
+			if (outputString.EndsWith(Constants.BYPASS_STRING) && Context.User.Id.Equals(Properties.Settings.Default.BotOwner))
 			{
 				maxLength = int.MaxValue;
-				values[1] = values[1].Substring(0, values[1].Length - Constants.BYPASS_STRING.Length);
+				outputString = outputString.Substring(0, outputString.Length - Constants.BYPASS_STRING.Length).Trim();
+			}
+			//Check if valid role
+			var roleToGather = Actions.GetRole(Context.Guild, inputString);
+			if (roleToGather == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid role to gather."));
+				return;
 			}
 
+			//Get all of the valid users
+			var listUsersWithRole = new List<IGuildUser>();
+			(await Context.Guild.GetUsersAsync()).Where(x => x.RoleIds.Contains(roleToGather.Id)).ToList().ForEach(async x =>
+			{
+				if (Actions.UserCanBeModifiedByUser(Context, x) && await Actions.UserCanBeModifiedByBot(Context, x))
+				{
+					listUsersWithRole.Add(x);
+				}
+			});
+			//Checking if too many users listed
+			if (listUsersWithRole.Count() > maxLength)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Too many users; max is {0}.", maxLength)));
+				return;
+			}
+
+			//Give role
 			if (action.Equals("give", StringComparison.OrdinalIgnoreCase))
 			{
-				if (values[0].Equals(values[1]))
+				//Check if trying to give the same role that's being gathered
+				if (inputString.Equals(outputString))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Cannot give the same role that is being gathered."));
 					return;
 				}
 
-				//Check if valid roles
-				var roleToGather = Actions.GetRole(Context.Guild, values[0]);
-				if (roleToGather == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid role to gather."));
-					return;
-				}
-
-				//Get the roles and their edit ability
+				//Get the role and its edit ability
 				var roleToGive = await Actions.GetRoleEditAbility(Context, values[1]);
 				if (roleToGive == null)
-				{
 					return;
-				}
 
 				//Check if trying to give @everyone
 				if (Context.Guild.EveryoneRole.Id.Equals(roleToGive.Id))
@@ -933,44 +922,18 @@ namespace Advobot
 					return;
 				}
 
-				//Grab each user and give them the role
-				var listUsersWithRole = new List<IGuildUser>();
-				foreach (var user in (await Context.Guild.GetUsersAsync()).ToList())
-				{
-					if (user.RoleIds.Contains(roleToGather.Id))
-					{
-						listUsersWithRole.Add(user);
-					}
-				}
-
-				//Checking if too many users listed
-				if (listUsersWithRole.Count() > maxLength)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many users; max is 10."));
-					return;
-				}
-				foreach (var user in listUsersWithRole)
-				{
-					await Actions.GiveRole(user, roleToGive);
-				}
-
+				//Give the role and send a success message
+				listUsersWithRole.ForEach(async x => await Actions.GiveRole(x, roleToGive));
 				await Actions.SendChannelMessage(Context, String.Format("Successfully gave `{0}` to all users{1} ({2} users).",
 					roleToGive.Name, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}
+			//Take role
 			else if (action.Equals("take", StringComparison.OrdinalIgnoreCase))
 			{
-				//Check if valid roles
-				var roleToGather = Actions.GetRole(Context.Guild, values[0]);
-				if (roleToGather == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid role to gather."));
-					return;
-				}
-				var roleToTake = await Actions.GetRoleEditAbility(Context, values[1]);
+				//Get the role and its edit ability
+				var roleToTake = await Actions.GetRoleEditAbility(Context, outputString);
 				if (roleToTake == null)
-				{
 					return;
-				}
 
 				//Check if trying to take @everyone
 				if (Context.Guild.EveryoneRole.Id.Equals(roleToTake.Id))
@@ -979,42 +942,16 @@ namespace Advobot
 					return;
 				}
 
-				//Grab each user and give them the role
-				var listUsersWithRole = new List<IGuildUser>();
-				foreach (var user in (await Context.Guild.GetUsersAsync()).ToList())
-				{
-					if (user.RoleIds.Contains(roleToGather.Id))
-					{
-						listUsersWithRole.Add(user);
-					}
-				}
-
-				//Checking if too many users listed
-				if (listUsersWithRole.Count() > maxLength)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many users; max is 10."));
-					return;
-				}
-				foreach (var user in listUsersWithRole)
-				{
-					await Actions.TakeRole(user, roleToTake);
-				}
-
+				//Take the role and send a success message
+				listUsersWithRole.ForEach(async x => await Actions.TakeRole(x, roleToTake));
 				await Actions.SendChannelMessage(Context, String.Format("Successfully took `{0}` from all users{1} ({2} users).",
 					roleToTake.Name, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}
+			//Nickname
 			else if (action.Equals("nickname", StringComparison.OrdinalIgnoreCase))
 			{
-				//Check if valid role
-				var roleToGather = Actions.GetRole(Context.Guild, values[0]);
-				if (roleToGather == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid role to gather."));
-					return;
-				}
-
 				//Check if valid nickname length
-				var inputNickname = values[1];
+				var inputNickname = outputString;
 				if (inputNickname.Length > Constants.NICKNAME_MAX_LENGTH)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be longer than 32 charaters."));
@@ -1026,33 +963,8 @@ namespace Advobot
 					return;
 				}
 
-				//Rename each user who has the role
-				var botPosition = Actions.GetPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID));
-				var commandUserPosition = Actions.GetPosition(Context.Guild, Context.User as IGuildUser);
-				var listUsersWithRole = new List<IGuildUser>();
-				foreach (var user in (await Context.Guild.GetUsersAsync()).ToList())
-				{
-					if (user.RoleIds.Contains(roleToGather.Id))
-					{
-						var userPosition = Actions.GetPosition(Context.Guild, Context.User as IGuildUser);
-						if (userPosition < commandUserPosition && userPosition < botPosition && Context.Guild.OwnerId != user.Id)
-						{
-							listUsersWithRole.Add(user);
-						}
-					}
-				}
-
-				//Checking if too many users listed
-				if (listUsersWithRole.Count() > maxLength)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many users; max is 250."));
-					return;
-				}
-				foreach (IGuildUser user in listUsersWithRole)
-				{
-					await user.ModifyAsync(x => x.Nickname = inputNickname);
-				}
-
+				//Change their nicknames and send a success message
+				listUsersWithRole.ForEach(async x => await x.ModifyAsync(y => y.Nickname = inputNickname));
 				await Actions.SendChannelMessage(Context, String.Format("Successfully gave the nickname `{0}` to all users{1} ({2} users).",
 					inputNickname, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}

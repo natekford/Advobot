@@ -93,6 +93,12 @@ namespace Advobot
 			}
 			else
 			{
+				//Delete the message
+				var t = Task.Run(async () =>
+				{
+					await Actions.DeleteMessage(message);
+				});
+
 				//Log the command on that guild
 				await ModLogs.LogCommand(context);
 

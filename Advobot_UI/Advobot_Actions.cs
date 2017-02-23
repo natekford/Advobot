@@ -683,14 +683,20 @@ namespace Advobot
 		}
 		
 		//Get top position of a user
-		public static int GetPosition(IGuild guild, IGuildUser user)
+		public static int GetPosition(IGuild guild, IUser user)
 		{
+			//Check if the user is the owner
 			if (user.Id == guild.OwnerId)
 				return Constants.OWNER_POSITION;
 
-			int position = 0;
-			user.RoleIds.ToList().ForEach(x => position = Math.Max(position, guild.GetRole(x).Position));
+			//Make sure they're an IGuildUser
+			var tempUser = user as IGuildUser;
+			if (user == null)
+				return -1;
 
+			//Get the position off of their roles
+			int position = 0;
+			tempUser.RoleIds.ToList().ForEach(x => position = Math.Max(position, guild.GetRole(x).Position));
 			return position;
 		}
 		
@@ -726,7 +732,7 @@ namespace Advobot
 			}
 
 			//Determine if the user can edit the role
-			if (inputRole.Position >= GetPosition(context.Guild, context.User as IGuildUser))
+			if (inputRole.Position >= GetPosition(context.Guild, context.User))
 			{
 				if (!ignore_Errors)
 				{
@@ -824,30 +830,31 @@ namespace Advobot
 		//Get a channel without context
 		public static async Task<IGuildChannel> GetChannel(IGuild guild, IMessageChannel channel, IUserMessage message, string input)
 		{
+			//Channel mention
 			if (input.Contains("<#"))
 			{
 				input = input.Substring(input.IndexOf("<#"));
 			}
-			if (input.Contains(' '))
+			//Ignore everything after a space
+			else if (input.Contains(' '))
 			{
 				input = input.Substring(0, input.IndexOf(' '));
 			}
+
+			//Split at the first forward slash
 			var values = input.Split(new char[] { '/' }, 2);
 
 			//Get input channel type
 			var channelType = values.Length == 2 ? values[1] : null;
 			if (channelType != null && !(Constants.TEXT_TYPE.Equals(channelType, StringComparison.OrdinalIgnoreCase) || Constants.VOICE_TYPE.Equals(channelType, StringComparison.OrdinalIgnoreCase)))
-			{
 				return null;
-			}
 
 			//If a channel mention
 			ulong channelID = 0;
-			if (UInt64.TryParse(values[0].Trim(new char[] { '<', '#', '>' }), out channelID))
+			if (ulong.TryParse(values[0].Trim(new char[] { '<', '#', '>' }), out channelID))
 			{
 				return await guild.GetChannelAsync(channelID);
 			}
-
 			//If a name and type
 			else if (channelType != null)
 			{
@@ -856,14 +863,16 @@ namespace Advobot
 				//See which match the name and type given
 				var channels = gottenChannels.Where(x => x.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase) && x.GetType().Name.IndexOf(channelType, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
 
+				//If zero then no channels have the name so return an error message
 				if (channels.Count == 0)
 					await MakeAndDeleteSecondaryMessage(channel, message, ERROR(String.Format("`{0}` does not exist as a channel on this guild.", input.Substring(0, input.IndexOf('/')))));
+				//If only one then return that channel
 				if (channels.Count == 1)
 					return channels[0];
+				//If more than one return an error message too because how are we supposed to know which one they want?
 				if (channels.Count > 1)
 					await MakeAndDeleteSecondaryMessage(channel, message, ERROR("More than one channel exists with the same name."));
 			}
-
 			return null;
 		}
 		
@@ -1352,50 +1361,41 @@ namespace Advobot
 		public static async Task MakeAndDeleteSecondaryMessage(CommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
 			var secondMsg = await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
-			RemoveCommandMessages(context.Channel, new IUserMessage[] { secondMsg, context.Message }, time);
+			RemoveCommandMessages(context.Channel as ITextChannel, new List<IMessage> { secondMsg, context.Message }, time);
 		}
 		
 		//Remove secondary messages without context
 		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
 			var secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
-			RemoveCommandMessages(channel, new IUserMessage[] { secondMsg, message }, time);
+			RemoveCommandMessages(channel as ITextChannel, new List<IMessage> { secondMsg, message }, time);
 		}
 		
 		//Remove messages
-		public static async Task RemoveMessages(IMessageChannel channel, int requestCount)
+		public static async Task RemoveMessages(ITextChannel channel, int requestCount)
 		{
-			//To remove the command itself
-			++requestCount;
-
 			while (requestCount > 0)
 			{
-				using (var enumerator = channel.GetMessagesAsync(requestCount).GetEnumerator())
+				//Get the current messages and ones that aren't null
+				var messages = (await channel.GetMessagesAsync(requestCount).ToList()).SelectMany(x => x.ToList()).ToList();
+
+				//Delete them in a try catch due to potential errors
+				try
 				{
-					while (await enumerator.MoveNext())
-					{
-						var messages = enumerator.Current;
-
-						//If no more messages, leave
-						if (messages.Count == 0)
-							return;
-
-						try
-						{
-							await channel.DeleteMessagesAsync(messages);
-						}
-						catch
-						{
-						}
-
-						requestCount -= messages.Count;
-					}
+					await DeleteMessages(channel, messages);
 				}
+				catch
+				{
+					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count, FormatGuild(channel.Guild), FormatChannel(channel)));
+				}
+
+				//Lower the request count
+				requestCount -= messages.Count;
 			}
 		}
 		
 		//Remove messages given a user id
-		public static async Task RemoveMessages(ITextChannel channel, int requestCount, IUser user)
+		public static async Task RemoveMessages(ITextChannel channel, IUser user, int requestCount)
 		{
 			//Make sure there's a user id
 			if (user == null)
@@ -1429,8 +1429,22 @@ namespace Advobot
 			}
 			userMessages.Insert(0, allMessages[0]); //Remove the initial command message
 
-			WriteLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, user.Username));
-			await channel.DeleteMessagesAsync(userMessages.ToArray());
+			WriteLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, Actions.FormatUser(user)));
+			await Actions.DeleteMessages(channel, userMessages);
+		}
+
+		//Delete messages that aren't null
+		public static async Task DeleteMessages(ITextChannel channel, List<IMessage> messages)
+		{
+			await channel.DeleteMessagesAsync(messages.Where(x => x != null));
+		}
+
+		//Delete a message that isn't null
+		public static async Task DeleteMessage(IMessage message)
+		{
+			if (message == null)
+				return;
+			await message.DeleteAsync();
 		}
 		#endregion
 
@@ -1507,9 +1521,10 @@ namespace Advobot
 		}
 
 		//Format the channel string
-		public static string FormatChannel(IGuildChannel channel)
+		public static string FormatChannel(IChannel channel)
 		{
-			return String.Format("{0} ({1}) ({2})", channel.Name, Actions.GetChannelType(channel), channel.Id);
+			var tempChan = channel as IGuildChannel;
+			return String.Format("{0} ({1}) ({2})", channel.Name, Actions.GetChannelType(tempChan), channel.Id);
 		}
 		#endregion
 
@@ -1700,7 +1715,7 @@ namespace Advobot
 
 				//Delete the file and send a success message
 				File.Delete(path);
-				await msg.DeleteAsync();
+				await Actions.DeleteMessage(msg);
 				await SendChannelMessage(context, String.Format("Successfully changed the {0} icon.", user ? "bot" : "guild"));
 			});
 		}
@@ -2156,23 +2171,23 @@ namespace Advobot
 		public static bool VerifyMessage(IMessage message)
 		{
 			//Make sure the bot's not paused and the message doesn't come from a bot
-			return !(Variables.Pause || message.Author.IsBot);
+			return !(message == null || Variables.Pause || (message.Author.IsBot && message.Author.Id != Variables.Bot_ID));
 		}
 
 		//Get the guild from a message
 		public static IGuild GetGuildFromMessage(IMessage message)
 		{
 			//Check if the guild can be gotten from the message's channel or author
-			return (message.Channel as IGuildChannel).Guild ?? (message.Author as IGuildUser).Guild;
+			return message == null ? null : (message.Channel as IGuildChannel).Guild ?? (message.Author as IGuildUser).Guild;
 		}
 
 		//Verify if the channel is allowed to be logged
 		public static IGuild VerifyLoggingIsEnabledOnThisChannel(IMessage message)
 		{
 			//Get the guild
-			var guild = (message.Channel as IGuildChannel).Guild;
+			var guild = GetGuildFromMessage(message);
 			//Check if the message was sent on an ignored channel. If not give back the guild, if so send back null.
-			return !Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(message.Channel.Id) ? guild : null;
+			return guild != null && !Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(message.Channel.Id) ? guild : null;
 		}
 
 		//Verify if the given action is being logged
@@ -2191,10 +2206,17 @@ namespace Advobot
 		}
 
 		//Verify the guild and log channels with a user
-		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IGuildUser user, LogActions logAction)
+		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IUser user, LogActions logAction)
 		{
 			var logChannel = await VerifyLogChannel(user);
-			var guild = VerifyLoggingAction(user.Guild, logAction);
+			var guild = VerifyLoggingAction(logChannel?.Guild, logAction);
+			return VerifyGuildAndLogChannel(logChannel, guild);
+		}
+
+		//Verify the guild and log channels with a guild and user from a ban/unban event
+		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IGuild guild, IUser user, LogActions logAction)
+		{
+			var logChannel = await VerifyLogChannel(guild);
 			return VerifyGuildAndLogChannel(logChannel, guild);
 		}
 
@@ -2202,7 +2224,7 @@ namespace Advobot
 		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IRole role, LogActions logAction)
 		{
 			var logChannel = await VerifyLogChannel(role);
-			var guild = VerifyLoggingAction(role.Guild, logAction);
+			var guild = VerifyLoggingAction(logChannel?.Guild, logAction);
 			return VerifyGuildAndLogChannel(logChannel, guild);
 		}
 
@@ -2210,7 +2232,7 @@ namespace Advobot
 		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IGuildChannel channel, LogActions logAction)
 		{
 			var logChannel = await VerifyLogChannel(channel);
-			var guild = VerifyLoggingAction(channel.Guild, logAction);
+			var guild = VerifyLoggingAction(logChannel?.Guild, logAction);
 			return VerifyGuildAndLogChannel(logChannel, guild);
 		}
 
@@ -2218,16 +2240,14 @@ namespace Advobot
 		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndModLogChannel(CommandContext context, LogActions logAction)
 		{
 			var logChannel = await VerifyLogChannel(context.Guild, Constants.MOD_LOG_CHECK_STRING);
-			var guild = VerifyLoggingAction(context.Guild, logAction);
+			var guild = VerifyLoggingAction(logChannel?.Guild, logAction);
 			return VerifyGuildAndLogChannel(logChannel, guild);
 		}
 
 		//Make sure the bot's not paused
 		public static Tuple<ITextChannel, IGuild> VerifyGuildAndLogChannel(ITextChannel logChannel, IGuild guild)
 		{
-			if (Variables.Pause)
-				return new Tuple<ITextChannel, IGuild>(null, null);
-			return new Tuple<ITextChannel, IGuild>(logChannel, guild);
+			return Variables.Pause ? new Tuple<ITextChannel, IGuild>(null, null) : new Tuple<ITextChannel, IGuild>(logChannel, guild);
 		}
 		#endregion
 
@@ -2486,7 +2506,7 @@ namespace Advobot
 				//Else delete the message
 				else
 				{
-					await message.DeleteAsync();
+					await Actions.DeleteMessage(message);
 				}
 			}
 		}
@@ -2546,7 +2566,7 @@ namespace Advobot
 		public static async Task BannedPhrasesPunishments(IMessage message)
 		{
 			//Get rid of the message
-			await message.DeleteAsync();
+			await Actions.DeleteMessage(message);
 
 			//Check if the guild has any punishments set up
 			if (!Variables.Guilds.ContainsKey((message.Channel as IGuildChannel).Guild.Id))
@@ -2866,12 +2886,12 @@ namespace Advobot
 
 		#region Timers
 		//Remove commands
-		public static void RemoveCommandMessages(IMessageChannel channel, IUserMessage[] messages, Int32 time)
+		public static void RemoveCommandMessages(ITextChannel channel, List<IMessage> messages, Int32 time)
 		{
 			Task t = Task.Run(async () =>
 			{
 				await Task.Delay(time);
-				await channel.DeleteMessagesAsync(messages);
+				await Actions.DeleteMessages(channel, messages);
 			});
 		}
 
@@ -3000,6 +3020,22 @@ namespace Advobot
 
 			//Wait until the next firing
 			Variables.Timer = new Timer(ResetSpamPrevention, null, time, Timeout.Infinite);
+		}
+		#endregion
+
+		#region Bans
+		public static bool UserCanBeModifiedByUser(CommandContext context, IGuildUser user)
+		{
+			var bannerPosition = GetPosition(context.Guild, context.User);
+			var banneePosition = user == null ? -1 : GetPosition(context.Guild, user);
+			return bannerPosition > banneePosition;
+		}
+
+		public static async Task<bool> UserCanBeModifiedByBot(CommandContext context, IGuildUser user)
+		{
+			var bannerPosition = GetPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID));
+			var banneePosition = user == null ? -1 : GetPosition(context.Guild, user);
+			return bannerPosition > banneePosition;
 		}
 		#endregion
 	}

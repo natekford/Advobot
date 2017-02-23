@@ -258,18 +258,12 @@ namespace Advobot
 			var newRole = await Context.Guild.CreateRoleAsync(inputRole.Name, new GuildPermissions(0), inputRole.Color);
 
 			//Make a new list of IRole
-			var roles = new List<IRole>();
-			//Grab all roles that aren't the targeted one
-			Context.Guild.Roles.Where(x => x != newRole).ToList().ForEach(x => roles.Add(x));
-			//Sort the list by position
-			roles = roles.OrderBy(x => x.Position).ToList();
+			var roles = Context.Guild.Roles.Where(x => x != newRole).OrderBy(x => x.Position).ToList();
 			//Add in the targetted role with the given position
 			roles.Insert(Math.Min(roles.Count(), inputRole.Position), newRole);
 
 			//Make a new list of BulkRoleProperties
-			var listOfBulk = new List<BulkRoleProperties>();
-			//Add the role's IDs and positions into it
-			roles.ForEach(x => listOfBulk.Add(new BulkRoleProperties(x.Id)));
+			var listOfBulk = roles.Select(x => new BulkRoleProperties(x.Id)).ToList();
 			//Readd the positions to it
 			listOfBulk.ForEach(x => x.Position = listOfBulk.IndexOf(x));
 			//Mass modify the roles with the list having the correct positions
