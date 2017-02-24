@@ -32,16 +32,17 @@ namespace Advobot
 		public const string SA_ROLES = "SelfAssignableRoles.txt";
 		public const string PERMISSIONS = "BotPermissions.txt";
 		public const string REMINDS = "Reminds.txt";
-		//public const string 
+		public const string COMMANDS_DISABLED_BY_CHANNEL = "CmdsDisabledByChannel.txt";
 		public const string SERVER_LOG_CHECK_STRING = "serverlog";
 		public const string MOD_LOG_CHECK_STRING = "modlog";
-		public const string BANNED_PHRASES_CHECK_STRING = "BannedPhrases";
+		public const string BANNED_PHRASES_CHECK_STRING = "bannedphrases";
 		public const string BANNED_REGEX_CHECK_STRING = "bannedregex";
-		public const string BANNED_PHRASES_PUNISHMENTS = "punishments";
+		public const string BANNED_PHRASES_PUNISHMENTS = "bannedpunishments";
 		public const string GUILD_PREFIX = "guildprefix";
 		public const string LOG_ACTIONS = "logactions";
 		public const string IGNORED_LOG_CHANNELS = "ignoredlogchannels";
-		public const string SPAM_PREVENTION = "spamprevention";
+		public const string SPAM_PREVENTION = "mentionspamprevention";
+		public const string LONG_MSG_PREVENTION = "longmsgspamprevention";
 		public const string IGNORED_COMMAND_CHANNELS = "ignoredcommandchannels";
 		public const string CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
 		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/Text|Voice]>";

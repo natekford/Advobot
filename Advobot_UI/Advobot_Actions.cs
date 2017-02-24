@@ -316,6 +316,9 @@ namespace Advobot
 			if (!File.Exists(path))
 				return;
 
+			//Get the guild info
+			var guildInf = Variables.Guilds[guild.Id];
+
 			//Get the banned phrases and regex
 			using (StreamReader file = new StreamReader(path))
 			{
@@ -331,10 +334,10 @@ namespace Advobot
 						int index = line.IndexOf(':');
 						if (index >= 0 && index < line.Length - 1)
 						{
-							var phrases = line.Substring(index + 1);
-							if (!String.IsNullOrWhiteSpace(phrases))
+							var phrase = line.Substring(index + 1);
+							if (!String.IsNullOrWhiteSpace(phrase))
 							{
-								Variables.Guilds[guild.Id].BannedPhrases = phrases.Split('/').Where(x => !String.IsNullOrWhiteSpace(x)).Distinct().ToList();
+								guildInf.BannedPhrases.Add(phrase);
 							}
 						}
 					}
@@ -347,7 +350,7 @@ namespace Advobot
 							var regex = line.Substring(index + 1);
 							if (!String.IsNullOrWhiteSpace(regex))
 							{
-								Variables.Guilds[guild.Id].BannedRegex = regex.Split('/').Where(x => !String.IsNullOrWhiteSpace(x)).Distinct().Select(x => new Regex(x)).ToList();
+								guildInf.BannedRegex.Add(new Regex(regex));
 							}
 						}
 					}
@@ -357,40 +360,42 @@ namespace Advobot
 						int index = line.IndexOf(':');
 						if (index >= 0 && index < line.Length - 1)
 						{
-							line.Substring(index + 1).Split('/').Where(x => !String.IsNullOrWhiteSpace(x)).Distinct().ToList().ForEach(x =>
-							{
-								//Split the information in the file
-								var args = x.Split(' ');
+							//Split the information in the file
+							var args = line.Substring(index + 1).Split(' ');
 
-								//All need to be ifs to check each value
+							//All need to be ifs to check each value
 
-								//Number of removes to activate
-								int number = 0;
-								if (!int.TryParse(args[0], out number))
-									return;
+							//Number of removes to activate
+							int number = 0;
+							if (!int.TryParse(args[0], out number))
+								return;
 
-								//The type of punishment
-								int punishment = 0;
-								if (!int.TryParse(args[1], out punishment))
-									return;
+							//The type of punishment
+							int punishment = 0;
+							if (!int.TryParse(args[1], out punishment))
+								return;
 
-								//The role ID if a role punishment type
-								ulong roleID = 0;
-								IRole role = null;
-								if (punishment == 3 && !ulong.TryParse(args[2], out roleID))
-									return;
-								else if (roleID != 0)
-									role = guild.GetRole(roleID);
+							//The role ID if a role punishment type
+							ulong roleID = 0;
+							IRole role = null;
+							if (punishment == 3 && !ulong.TryParse(args[2], out roleID))
+								return;
+							else if (roleID != 0)
+								role = guild.GetRole(roleID);
 
-								//The time if a time is input
-								int time = 0;
-								if (role != null && !int.TryParse(args[3], out time))
-									return;
+							//The time if a time is input
+							int time = 0;
+							if (role != null && !int.TryParse(args[3], out time))
+								return;
 
-								Variables.Guilds[guild.Id].BannedPhrasesPunishments.Add(new BannedPhrasePunishment(number, (PunishmentType)punishment, role, time));
-							});
+							guildInf.BannedPhrasesPunishments.Add(new BannedPhrasePunishment(number, (PunishmentType)punishment, role, time));
 						}
 					}
+
+					//Remove all duplicates
+					guildInf.BannedPhrases = guildInf.BannedPhrases.Distinct().ToList();
+					guildInf.BannedRegex = guildInf.BannedRegex.Distinct().ToList();
+					guildInf.BannedPhrasesPunishments = guildInf.BannedPhrasesPunishments.Distinct().ToList();
 				}
 			}
 
@@ -537,7 +542,7 @@ namespace Advobot
 						if (!int.TryParse(variableNumbers[2], out votesRequired))
 							return;
 
-						Variables.Guilds[guild.Id].SpamPrevention = new SpamPreventionInformation(messagesRequired, mentionsRequired, votesRequired);
+						Variables.Guilds[guild.Id].MentionSpamPrevention = new MentionSpamPrevention(mentionsRequired, messagesRequired, votesRequired);
 					}
 				}
 			}
@@ -1444,7 +1449,14 @@ namespace Advobot
 		{
 			if (message == null)
 				return;
-			await message.DeleteAsync();
+			try
+			{
+				await message.DeleteAsync();
+			}
+			catch
+			{
+				WriteLine(String.Format("Unable to delete the message {0} on channel {1}.", message.Id, FormatChannel(message.Channel)));
+			}
 		}
 		#endregion
 
@@ -2464,6 +2476,19 @@ namespace Advobot
 				{
 					provider.GenerateCodeFromExpression(new System.CodeDom.CodePrimitiveExpression(input), writer, null);
 					return Constants.FORMATREGEX.Replace(writer.ToString(), "");
+				}
+			}
+		}
+
+		//Save multiple lines back in at a time
+		public static void SaveLines(string path, string target, List<string> inputLines, List<string> validLines)
+		{
+			if (target != null && inputLines.Any())
+			{
+				//Add all the lines back
+				using (StreamWriter writer = new StreamWriter(path))
+				{
+					writer.WriteLine(String.Join("", inputLines.Select(x => String.Format("{0}:{1}\n", target, x))) + "\n" + String.Join("\n", validLines));
 				}
 			}
 		}

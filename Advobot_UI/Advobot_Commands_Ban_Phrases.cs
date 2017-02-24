@@ -66,7 +66,7 @@ namespace Advobot
 
 			//Check if should add as regex or not
 			var type = "";
-			var forSaving = "";
+			var toSave = new List<string>();
 			var success = new List<string>();
 			var failure = new List<string>();
 			if (!regexBool)
@@ -139,10 +139,8 @@ namespace Advobot
 					}
 				}
 
-				//Make the string for saving
-				forSaving = String.Join("/", phrasesList);
-
-				//Set the type
+				//Set the type and keep the items to save
+				toSave = phrasesList;
 				type = Constants.BANNED_PHRASES_CHECK_STRING;
 			}
 			else
@@ -228,7 +226,7 @@ namespace Advobot
 					}
 				}
 
-				forSaving = String.Join("/", regexList);
+				toSave = regexList.Select(x => x.ToString()).ToList();
 				type = Constants.BANNED_REGEX_CHECK_STRING;
 			}
 
@@ -239,7 +237,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 				return;
 			}
-			Actions.SaveLines(path, type, forSaving, Actions.GetValidLines(path, type));
+			Actions.SaveLines(path, type, toSave, Actions.GetValidLines(path, type));
 
 			//Format success message
 			string successMessage = null;
@@ -273,7 +271,7 @@ namespace Advobot
 				failureMessage ?? ""));
 		}
 
-		[Command("banphrases")]
+		[Command("banphrasescurrent")]
 		[Alias("bpc")]
 		[Usage("[File|Actual] <Regex>")]
 		[Summary("Says all of the current banned words from either the file or the list currently being used in the bot.")]
@@ -381,8 +379,8 @@ namespace Advobot
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(header, description));
 		}
 
-		[Command("banphrasespunishment")]
-		[Alias("bpp")]
+		[Command("banphrasespunishmodify")]
+		[Alias("bppm")]
 		[Usage("[Add] [Number] [Role Name|Kick|Ban] <Time> | [Remove] [Number]")]
 		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to this total. Time is in minutes and only applies to roles.")]
 		[PermissionRequirement]
@@ -544,15 +542,14 @@ namespace Advobot
 			}
 
 			//Create the string to resave everything with
-			var forSaving = new List<string>();
-			punishments.ForEach(x =>
+			var toSave = punishments.Select(x =>
 			{
-				forSaving.Add(String.Format("{0} {1} {2} {3}",
+				return String.Format("{0} {1} {2} {3}",
 					x.Number_Of_Removes,
 					(int)x.Punishment,
 					x.Role == null ? "" : x.Role.Id.ToString(),
-					x.PunishmentTime == null ? "" : x.PunishmentTime.ToString()).Trim());
-			});
+					x.PunishmentTime == null ? "" : x.PunishmentTime.ToString()).Trim();
+			}).ToList();
 
 			//Create the banned phrases file if it doesn't already exist
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
@@ -563,7 +560,7 @@ namespace Advobot
 			}
 
 			//Find the lines that aren't the punishments
-			Actions.SaveLines(path, Constants.BANNED_PHRASES_PUNISHMENTS, String.Join("/", forSaving), Actions.GetValidLines(path, Constants.BANNED_PHRASES_PUNISHMENTS));
+			Actions.SaveLines(path, Constants.BANNED_PHRASES_PUNISHMENTS, toSave, Actions.GetValidLines(path, Constants.BANNED_PHRASES_PUNISHMENTS));
 
 			//Determine what the success message should say
 			var successMsg = "";
@@ -595,7 +592,7 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", addBool ? "added" : "removed", successMsg, timeMsg));
 		}
 
-		[Command("banphrasespunishment")]
+		[Command("banphrasespunishcurrent")]
 		[Alias("bppc")]
 		[Usage("[File|Actual]")]
 		[Summary("Shows the current punishments on the guild.")]
@@ -700,7 +697,7 @@ namespace Advobot
 		[Command("banphrasesuser")]
 		[Alias("bpu")]
 		[Usage("[Clear|Current] [@User]")]
-		[Summary("Removes all infraction points a user has on the guild.")]
+		[Summary("Shows or removes all infraction points a user has on the guild.")]
 		[PermissionRequirement]
 		public async Task ClearBanPhraseUser([Remainder] string input)
 		{

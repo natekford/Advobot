@@ -395,7 +395,8 @@ namespace Advobot
 
 		//Spam prevention
 		public List<SpamPreventionUser> SpamPreventionUsers = new List<SpamPreventionUser>();
-		public SpamPreventionInformation SpamPrevention;
+		public MentionSpamPrevention MentionSpamPrevention;
+		public LongMessageSpamPrevention LongMessageSpamPrevention;
 
 		//Raid prevention
 		public bool RaidPrevention = false;
@@ -422,20 +423,36 @@ namespace Advobot
 		public uint Permissions;
 	}
 
-	public class SpamPreventionInformation
+	public struct MentionSpamPrevention
 	{
-		public SpamPreventionInformation(int amountOfMessages, int mentions, int votesNeededForKick)
+		public MentionSpamPrevention(int amountOfMentionsPerMsg, int amountOfMessages, int votesNeededForKick)
 		{
+			AmountOfMentionsPerMsg = amountOfMentionsPerMsg;
 			AmountOfMessages = amountOfMessages;
-			Mentions = mentions;
 			VotesNeededForKick = votesNeededForKick;
 			Enabled = true;
 		}
 
+		public int AmountOfMentionsPerMsg;
 		public int AmountOfMessages;
-		public int Mentions;
 		public int VotesNeededForKick;
-		public bool Enabled = false;
+		public bool Enabled;
+	}
+
+	public struct LongMessageSpamPrevention
+	{
+		public LongMessageSpamPrevention(int lengthOfMsg, int amountOfMessages, int votesNeededForKick)
+		{
+			LengthOfMessage = lengthOfMsg;
+			AmountOfMessages = amountOfMessages;
+			VotesNeededForKick = votesNeededForKick;
+			Enabled = true;
+		}
+
+		public int LengthOfMessage;
+		public int AmountOfMessages;
+		public int VotesNeededForKick;
+		public bool Enabled;
 	}
 
 	public class SpamPreventionUser

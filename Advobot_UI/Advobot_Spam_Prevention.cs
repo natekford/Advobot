@@ -56,7 +56,7 @@ namespace Advobot
 			}
 
 			//Check if a spamprevention exists or not
-			var spamPrevention = Variables.Guilds[Context.Guild.Id].SpamPrevention;
+			var spamPrevention = Variables.Guilds[Context.Guild.Id].MentionSpamPrevention;
 			switch (actionEnum)
 			{
 				case SpamPreventionAction.Enable:
@@ -64,7 +64,7 @@ namespace Advobot
 				case SpamPreventionAction.Current:
 				{
 					//Make sure the server guild has a spam prevention set up
-					if (spamPrevention == null)
+					if (spamPrevention.Equals(default(MentionSpamPrevention)))
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not have any spam prevention to modify or show."));
 						return;
@@ -108,7 +108,7 @@ namespace Advobot
 				{
 					//Send a success message
 					await Actions.SendChannelMessage(Context, String.Format("Messages: `{0}`; Mentions: `{1}`; Votes: `{2}`; Enabled: `{3}`.",
-						spamPrevention.AmountOfMessages, spamPrevention.Mentions, spamPrevention.VotesNeededForKick, spamPrevention.Enabled.ToString()));
+						spamPrevention.AmountOfMessages, spamPrevention.AmountOfMentionsPerMsg, spamPrevention.VotesNeededForKick, spamPrevention.Enabled.ToString()));
 					return;
 				}
 				case SpamPreventionAction.Setup:
@@ -142,7 +142,7 @@ namespace Advobot
 					int vt = votes < 1 ? 1 : votes;
 
 					//Create the spam prevention and add it to the guild
-					Variables.Guilds[Context.Guild.Id].SpamPrevention = new SpamPreventionInformation(ms, mn, vt);
+					Variables.Guilds[Context.Guild.Id].MentionSpamPrevention = new MentionSpamPrevention(mn, ms, vt);
 
 					//Save the spam prevention
 					var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);

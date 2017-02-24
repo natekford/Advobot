@@ -960,9 +960,9 @@ namespace Advobot
 		public static async Task SpamPrevention(IGuild guild, IMessage message)
 		{
 			//Get the spam prevention the guild has
-			var spamPrevention = Variables.Guilds[guild.Id].SpamPrevention;
+			var spamPrevention = Variables.Guilds[guild.Id].MentionSpamPrevention;
 			//Check if the spam prevention exists and if the message has more mentions than are allowed
-			if (spamPrevention != null && message.MentionedUserIds.Distinct().Count() >= spamPrevention.Mentions)
+			if (!spamPrevention.Equals(default(MentionSpamPrevention)) && spamPrevention.Enabled && message.MentionedUserIds.Distinct().Count() >= spamPrevention.AmountOfMentionsPerMsg)
 			{
 				//Set the user as a variable for easy typing
 				var author = message.Author as IGuildUser;
@@ -998,9 +998,9 @@ namespace Advobot
 			if (!users.Any())
 				return;
 			//Get the spam prevention the guild has
-			var spamPrevention = Variables.Guilds[guild.Id].SpamPrevention;
+			var spamPrevention = Variables.Guilds[guild.Id].MentionSpamPrevention;
 			//Return if it's null
-			if (spamPrevention == null)
+			if (spamPrevention.Equals(default(MentionSpamPrevention)) || !spamPrevention.Enabled)
 				return;
 
 			//Cross reference the almost kicked users and the mentioned users
