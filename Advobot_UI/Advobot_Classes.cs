@@ -525,7 +525,7 @@ namespace Advobot
 		public SocketClient(DiscordSocketClient client) { mSocketClient = client; }
 
 		public override void AddMessageReceivedHandler(CommandHandler handler) { mSocketClient.MessageReceived += handler.HandleCommand; }
-		public override void AddConnectedHandler(CommandHandler handler) { mSocketClient.Connected += Actions.BaseLoad; }
+		public override void AddConnectedHandler(CommandHandler handler) { mSocketClient.Connected += Actions.LoadInformation; }
 		public override BaseDiscordClient GetClient() { return mSocketClient; }
 		public override SocketSelfUser GetCurrentUser() { return mSocketClient.CurrentUser; }
 		public override IReadOnlyCollection<SocketGuild> GetGuilds() { return mSocketClient.Guilds; }
@@ -544,7 +544,7 @@ namespace Advobot
 		public ShardedClient(DiscordShardedClient client) { mShardedClient = client; }
 
 		public override void AddMessageReceivedHandler(CommandHandler handler) { mShardedClient.MessageReceived += handler.HandleCommand; }
-		public override void AddConnectedHandler(CommandHandler handler) { mShardedClient.Shards.FirstOrDefault().Connected += Actions.BaseLoad; }
+		public override void AddConnectedHandler(CommandHandler handler) { mShardedClient.Shards.FirstOrDefault().Connected += Actions.LoadInformation; }
 		public override BaseDiscordClient GetClient() { return mShardedClient; }
 		public override SocketSelfUser GetCurrentUser() { return mShardedClient.Shards.FirstOrDefault().CurrentUser; }
 		public override IReadOnlyCollection<SocketGuild> GetGuilds() { return mShardedClient.Guilds; }

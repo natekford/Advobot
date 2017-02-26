@@ -16,16 +16,6 @@ namespace Advobot
 	public class Actions
 	{
 		#region Loads
-		//The base load
-		public static async Task BaseLoad()
-		{
-			//Necessary for the 'commands' and 'help' commands
-			await LoadInformation();
-
-			//Set up the game and/or stream
-			await SetGame();
-		}
-
 		//Loading in all necessary information at bot start up
 		public static async Task LoadInformation()
 		{
@@ -42,6 +32,7 @@ namespace Advobot
 			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
 			ResetSpamPrevention(null);												//Start the hourly timer to restart spam prevention
 			StartUpMessages();														//Say all of the start up messages
+			await SetGame();														//Set up the game and/or stream
 		}
 
 		//Text said during the startup of the bot
