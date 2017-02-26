@@ -16,10 +16,20 @@ namespace Advobot
 	public class Actions
 	{
 		#region Loads
-		//Loading in all necessary information at bot start up
-		public static void LoadInformation()
+		//The base load
+		public static async Task BaseLoad()
 		{
-			Variables.Bot_ID = Variables.Client.GetCurrentUser().Id;				//Give the variable Bot_ID the actual ID
+			//Necessary for the 'commands' and 'help' commands
+			await LoadInformation();
+
+			//Set up the game and/or stream
+			await SetGame();
+		}
+
+		//Loading in all necessary information at bot start up
+		public static async Task LoadInformation()
+		{
+			Variables.Bot_ID = Variables.Client.GetCurrentUser().Id;				//Give the variable Bot_ID the id of the bot
 			Variables.Bot_Name = Variables.Client.GetCurrentUser().Username;		//Give the variable Bot_Name the username of the bot
 			Variables.Bot_Channel = Variables.Bot_Name.ToLower();					//Give the variable Bot_Channel a lowered version of the bot's name
 
@@ -27,7 +37,7 @@ namespace Advobot
 			LoadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
 			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));	//Gets all the active command names. Has to go after LCI
 
-			LoadGuilds();															//Loads the guilds that attempted to load before the Bot_ID was gotten.
+			await LoadGuilds();														//Loads the guilds that attempted to load before the Bot_ID was gotten.
 
 			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
 			ResetSpamPrevention(null);												//Start the hourly timer to restart spam prevention
@@ -207,9 +217,9 @@ namespace Advobot
 		}
 
 		//Load the guilds gotten before the Bot_ID is set
-		public static void LoadGuilds()
+		public static async Task LoadGuilds()
 		{
-			Variables.GuildsToBeLoaded.ForEach(async x => await LoadGuild(x));
+			await Variables.GuildsToBeLoaded.ForEachAsync(async x => await LoadGuild(x));
 		}
 
 		//Load a guild's info
@@ -270,7 +280,7 @@ namespace Advobot
 			}
 			else
 			{
-				using (StreamReader file = new StreamReader(path))
+				using (var file = new StreamReader(path))
 				{
 					//Get the command category
 					CommandCategory commandCategory = CommandCategory.Miscellaneous;
@@ -320,7 +330,7 @@ namespace Advobot
 			var guildInf = Variables.Guilds[guild.Id];
 
 			//Get the banned phrases and regex
-			using (StreamReader file = new StreamReader(path))
+			using (var file = new StreamReader(path))
 			{
 				string line;
 				while ((line = file.ReadLine()) != null)
@@ -411,7 +421,7 @@ namespace Advobot
 				return;
 
 			//Read the file
-			using (StreamReader file = new StreamReader(path))
+			using (var file = new StreamReader(path))
 			{
 				string line;
 				while ((line = file.ReadLine()) != null)
@@ -467,7 +477,7 @@ namespace Advobot
 				return;
 
 			//Find the prefix line
-			using (StreamReader reader = new StreamReader(path))
+			using (var reader = new StreamReader(path))
 			{
 				string line;
 				while ((line = reader.ReadLine()) != null)
@@ -560,13 +570,17 @@ namespace Advobot
 
 			//Go through each line checking for the users
 			var validBotUsers = new List<string>();
-			using (StreamReader reader = new StreamReader(path))
+			var counter = 0;
+			using (var reader = new StreamReader(path))
 			{
 				string line;
 				while ((line = reader.ReadLine()) != null)
 				{
 					if (String.IsNullOrWhiteSpace(line))
 						continue;
+
+					//Increment the counter
+					++counter;
 
 					//Split input
 					var inputArray = line.Split(':');
@@ -583,6 +597,7 @@ namespace Advobot
 					if (!uint.TryParse(inputArray[1], out perms))
 						continue;
 
+					//Get the user
 					var user = await guild.GetUserAsync(ID);
 					if (user == null)
 						continue;
@@ -590,13 +605,19 @@ namespace Advobot
 					//If valid user then add to botusers and keep the line
 					validBotUsers.Add(line);
 					Variables.BotUsers.Add(new BotImplementedPermissions(user, perms));
+
+					//Decrement the counter
+					--counter;
 				}
 			}
 
 			//Remove all bot users who are not in the server anymore
-			using (StreamWriter writer = new StreamWriter(path))
+			if (counter != 0)
 			{
-				writer.WriteLine(String.Join("\n", validBotUsers));
+				using (var writer = new StreamWriter(path))
+				{
+					writer.WriteLine(String.Join("\n", validBotUsers));
+				}
 			}
 
 			WriteLoadDone(guild, "LoadBotUsers", "Bot Users");
@@ -611,7 +632,7 @@ namespace Advobot
 				return;
 
 			//Find the prefix line
-			using (StreamReader reader = new StreamReader(path))
+			using (var reader = new StreamReader(path))
 			{
 				string line;
 				while ((line = reader.ReadLine()) != null)
@@ -804,7 +825,7 @@ namespace Advobot
 			{
 				if (!ignoreErrors)
 				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", channel.Name)));
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", Actions.FormatChannel(channel))));
 				}
 			}
 			else
@@ -1061,7 +1082,7 @@ namespace Advobot
 			else
 			{
 				//Read the text document and find the serverlog 
-				using (StreamReader reader = new StreamReader(path))
+				using (var reader = new StreamReader(path))
 				{
 					string line;
 					while ((line = reader.ReadLine()) != null)
@@ -1270,7 +1291,7 @@ namespace Advobot
 			CreateFile(path);
 
 			var validLines = new List<string>();
-			using (StreamReader reader = new StreamReader(path))
+			using (var reader = new StreamReader(path))
 			{
 				string line;
 				while ((line = reader.ReadLine()) != null)
@@ -1497,7 +1518,7 @@ namespace Advobot
 		public static async Task FormatEditMessage(ITextChannel logChannel, string time, IGuildUser user, IMessageChannel channel, string before, string after)
 		{
 			await SendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}` **IN** `#{2}`\n**FROM:** ```\n{3}```\n**TO:** ```\n{4}```",
-				time, Actions.FormatUser(user), channel.Name, before, after));
+				time, Actions.FormatUser(user), Actions.FormatChannel(channel), before, after));
 		}
 		
 		//Get rid of certain elements to make messages look neater
@@ -1537,6 +1558,18 @@ namespace Advobot
 		{
 			var tempChan = channel as IGuildChannel;
 			return String.Format("{0} ({1}) ({2})", channel.Name, Actions.GetChannelType(tempChan), channel.Id);
+		}
+
+		//Format the role string
+		public static string FormatRole(IRole role)
+		{
+			return String.Format("{0} ({1})", role.Name, role.Id);
+		}
+
+		//Remove all new lines
+		public static string RemoveNewLines(string input)
+		{
+			return input.Replace(Environment.NewLine, "").Replace("\r", "").Replace("\n", "");
 		}
 		#endregion
 
@@ -1590,7 +1623,7 @@ namespace Advobot
 			}
 
 			//Write to the temporary file
-			using (StreamWriter writer = new StreamWriter(path, true))
+			using (var writer = new StreamWriter(path, true))
 			{
 				writer.WriteLine(text);
 			}
@@ -1650,7 +1683,7 @@ namespace Advobot
 				//Check the image's file size first
 				WebRequest req = HttpWebRequest.Create(imageURL);
 				req.Method = "HEAD";
-				using (WebResponse resp = req.GetResponse())
+				using (var resp = req.GetResponse())
 				{
 					int ContentLength = 0;
 					if (int.TryParse(resp.Headers.Get("Content-Length"), out ContentLength))
@@ -1700,7 +1733,7 @@ namespace Advobot
 				//Create a filestream to check the image's size if trying to set a guild icon
 				if (!user)
 				{
-					using (FileStream imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
+					using (var imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
 					{
 						var img = System.Drawing.Image.FromStream(imgStream);
 						if (img.Width < 128 || img.Height < 128)
@@ -1712,7 +1745,7 @@ namespace Advobot
 				}
 
 				//Create a second filestream to upload the image
-				using (FileStream imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
+				using (var imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
 				{
 					//Change the guild's icon to the downloaded image
 					if (!user)
@@ -1938,9 +1971,11 @@ namespace Advobot
 		//Check if the bot can type in a logchannel
 		public static async Task<bool> PermissionCheck(ITextChannel channel)
 		{
+			//Return false if the channel doesn't exist
 			if (channel == null)
 				return false;
 
+			//Get the bot
 			var bot = await channel.Guild.GetUserAsync(Variables.Bot_ID);
 
 			//Check if the bot can send messages
@@ -2003,7 +2038,7 @@ namespace Advobot
 
 			//Find the lines that aren't the current serverlog line
 			var validLines = new List<string>();
-			using (StreamReader reader = new StreamReader(path))
+			using (var reader = new StreamReader(path))
 			{
 				string line;
 				while ((line = reader.ReadLine()) != null)
@@ -2024,7 +2059,7 @@ namespace Advobot
 			}
 
 			//Add the lines that do not include serverlog and  the new serverlog line
-			using (StreamWriter writer = new StreamWriter(path))
+			using (var writer = new StreamWriter(path))
 			{
 				if (inputChannel == null)
 				{
@@ -2047,6 +2082,9 @@ namespace Advobot
 			//Check if the guild has image logging enabled
 			if (!Variables.Guilds[channel.Guild.Id].LogActions.Contains(LogActions.ImageLog))
 				return;
+
+			//Get the user
+			var user = message.Author;
 
 			//Get the links
 			var attachmentURLs = new List<string>();
@@ -2081,64 +2119,71 @@ namespace Advobot
 					}
 				});
 			}
-			var user = message.Author;
 			//Attached files
-			foreach (string URL in attachmentURLs)
+			await attachmentURLs.ForEachAsync(async x =>
 			{
 				//Image attachment
-				if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(URL), StringComparer.OrdinalIgnoreCase))
+				if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(x), StringComparer.OrdinalIgnoreCase))
 				{
-					++Variables.LoggedImages;
-					var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
+					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached Image");
-					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl, URL);
+					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
 					await SendEmbedMessage(channel, embed);
+
+					++Variables.LoggedImages;
 				}
 				//Gif attachment
-				else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(URL), StringComparer.OrdinalIgnoreCase))
+				else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(x), StringComparer.OrdinalIgnoreCase))
 				{
-					++Variables.LoggedGifs;
-					var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
+					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached Gif");
-					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl, URL);
+					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
 					await SendEmbedMessage(channel, embed);
+
+					++Variables.LoggedGifs;
 				}
 				//Random file attachment
 				else
 				{
-					++Variables.LoggedFiles;
-					var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
+					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached File");
-					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl, URL);
+					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
 					await SendEmbedMessage(channel, embed);
+
+					++Variables.LoggedFiles;
 				}
-			}
+			});
 			//Embedded images
-			foreach (string URL in embedURLs.Distinct())
+			await embedURLs.Distinct().ToList().ForEachAsync(async x =>
 			{
-				++Variables.LoggedImages;
-				var embed = MakeNewEmbed(null, null, Constants.ATCH, URL);
+				var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 				AddFooter(embed, "Embedded Image");
-				AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl, URL);
+				AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
 				await SendEmbedMessage(channel, embed);
-			}
+
+				++Variables.LoggedImages;
+			});
 			//Embedded videos/gifs
-			foreach (Embed embedObject in videoEmbeds.Distinct())
+			await videoEmbeds.GroupBy(x => x.Url).Select(x => x.First()).ToList().ForEachAsync(async x =>
 			{
-				++Variables.LoggedGifs;
-				var embed = MakeNewEmbed(null, null, Constants.ATCH, embedObject.Thumbnail.Value.Url);
-				AddFooter(embed, "Embedded " + (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(embedObject.Thumbnail.Value.Url), StringComparer.OrdinalIgnoreCase) ? "Gif" : "Video"));
-				AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl, embedObject.Url);
+				var embed = MakeNewEmbed(null, null, Constants.ATCH, x.Thumbnail.Value.Url);
+				AddFooter(embed, "Embedded " + (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(x.Thumbnail.Value.Url), StringComparer.OrdinalIgnoreCase) ? "Gif" : "Video"));
+				AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.GetAvatarUrl(), x.Url);
 				await SendEmbedMessage(channel, embed);
-			}
+
+				++Variables.LoggedGifs;
+			});
 		}
 
 		//Check if the serverlog exists and if the bot can use it
 		public static async Task<ITextChannel> VerifyLogChannel(IGuild guild, string checkString = Constants.SERVER_LOG_CHECK_STRING)
 		{
+			//If the guild doesn't exist then return
 			if (guild == null)
 				return null;
+			//Get the log channel
 			var logChannel = await GetLogChannel(guild, checkString);
+			//Check to make sure the bot can post to there
 			if (!await PermissionCheck(logChannel))
 				return null;
 			return logChannel;
@@ -2183,7 +2228,7 @@ namespace Advobot
 		public static bool VerifyMessage(IMessage message)
 		{
 			//Make sure the bot's not paused and the message doesn't come from a bot
-			return !(message == null || Variables.Pause || (message.Author.IsBot && message.Author.Id != Variables.Bot_ID));
+			return !(message == null || Variables.Pause || message.Author.IsBot);
 		}
 
 		//Get the guild from a message
@@ -2271,6 +2316,7 @@ namespace Advobot
 			if (!Variables.Guilds.ContainsKey(guildID))
 				return;
 
+			//Write the input
 			if (input != null)
 			{
 				writer.WriteLine(input);
@@ -2279,7 +2325,7 @@ namespace Advobot
 
 			//Variable for each category
 			int categories = 0;
-			foreach (var cmd in Variables.Guilds[guildID].CommandSettings.OrderBy(x => x.CategoryValue))
+			Variables.Guilds[guildID].CommandSettings.OrderBy(x => x.CategoryValue).ToList().ForEach(cmd =>
 			{
 				if (categories != cmd.CategoryValue)
 				{
@@ -2291,7 +2337,7 @@ namespace Advobot
 					categories = cmd.CategoryValue;
 				}
 				writer.WriteLine(cmd.Name + ":" + cmd.valAsString);
-			}
+			});
 		}
 		
 		//Save preferences by server
@@ -2299,7 +2345,7 @@ namespace Advobot
 		{
 			var path = GetServerFilePath(serverID, Constants.PREFERENCES_FILE);
 			Directory.CreateDirectory(Path.GetDirectoryName(path));
-			using (StreamWriter writer = new StreamWriter(path, false))
+			using (var writer = new StreamWriter(path, false))
 			{
 				SavePreferences(writer, serverID, input);
 			}
@@ -2356,10 +2402,10 @@ namespace Advobot
 			var embed = MakeNewEmbed("Preferences");
 
 			//Make the information into separate fields
-			var text = File.ReadAllText(serverpath).Replace("@", "").Split(new string[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
+			var text = File.ReadAllText(serverpath).Replace("@", "").Split(new string[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
 			//Get the category name and the commands in it
-			foreach (string category in text)
+			text.ForEach(category =>
 			{
 				var titleAndCommands = category.Split(new char[] { '\r' }, 2);
 				var title = titleAndCommands[0];
@@ -2370,7 +2416,7 @@ namespace Advobot
 				{
 					AddField(embed, title, commands, false);
 				}
-			}
+			});
 
 			//Send the preferences message
 			await SendEmbedMessage(channel, embed);
@@ -2423,7 +2469,7 @@ namespace Advobot
 			var validLines = GetValidLines(path, Constants.LOG_ACTIONS);
 
 			//Add all the lines back
-			using (StreamWriter writer = new StreamWriter(path))
+			using (var writer = new StreamWriter(path))
 			{
 				writer.WriteLine(Constants.LOG_ACTIONS + ":" + String.Join("/", logActions.Select(x => (int)x)) + "\n" + String.Join("\n", validLines));
 			}
@@ -2446,14 +2492,14 @@ namespace Advobot
 			if (target != null && input != null)
 			{
 				//Add all the lines back
-				using (StreamWriter writer = new StreamWriter(path))
+				using (var writer = new StreamWriter(path))
 				{
 					writer.WriteLine(target + ":" + input + "\n" + String.Join("\n", validLines));
 				}
 			}
 			else
 			{
-				using (StreamWriter writer = new StreamWriter(path))
+				using (var writer = new StreamWriter(path))
 				{
 					if (literal)
 					{
@@ -2470,7 +2516,7 @@ namespace Advobot
 		//Save literally
 		public static string ToLiteral(string input)
 		{
-			using (StringWriter writer = new StringWriter())
+			using (var writer = new StringWriter())
 			{
 				using (var provider = System.CodeDom.Compiler.CodeDomProvider.CreateProvider("CSharp"))
 				{
@@ -2486,9 +2532,10 @@ namespace Advobot
 			if (target != null && inputLines.Any())
 			{
 				//Add all the lines back
-				using (StreamWriter writer = new StreamWriter(path))
+				using (var writer = new StreamWriter(path))
 				{
-					writer.WriteLine(String.Join("", inputLines.Select(x => String.Format("{0}:{1}\n", target, x))) + "\n" + String.Join("\n", validLines));
+					var output = String.Join("", inputLines.Select(x => String.Format("{0}:{1}\n", target, x))) + "\n" + String.Join("\n", validLines);
+					writer.WriteLine(output);
 				}
 			}
 		}
@@ -2498,13 +2545,16 @@ namespace Advobot
 		//Slowmode
 		public static async Task Slowmode(IMessage message)
 		{
+			//Get the guild
+			var guild = GetGuildFromMessage(message);
+
 			//Make a new SlowmodeUser
 			var smUser = new SlowmodeUser();
 
 			//Get SlowmodeUser from the guild ID
-			if (Variables.SlowmodeGuilds.ContainsKey((message.Channel as IGuildChannel).GuildId))
+			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id))
 			{
-				smUser = Variables.SlowmodeGuilds[(message.Channel as IGuildChannel).GuildId].FirstOrDefault(x => x.User.Id == message.Author.Id);
+				smUser = Variables.SlowmodeGuilds[guild.Id].FirstOrDefault(x => x.User.Id == message.Author.Id);
 			}
 			//If that fails, try to get it from the channel ID
 			else if (Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))
@@ -2557,7 +2607,7 @@ namespace Advobot
 			//If greater than zero, add the user to each one
 			if (smChannels.Any())
 			{
-				foreach (var kvp in smChannels)
+				smChannels.ForEach(kvp =>
 				{
 					//Get the variables out of a different user
 					int messages = kvp.Value.FirstOrDefault().BaseMessages;
@@ -2565,7 +2615,7 @@ namespace Advobot
 
 					//Add them to the list for the slowmode in this guild
 					kvp.Value.Add(new SlowmodeUser(user, messages, messages, time));
-				}
+				});
 			}
 		}
 		#endregion
@@ -2575,9 +2625,11 @@ namespace Advobot
 		public static async Task BannedPhrases(IMessage message)
 		{
 			//Get the guild
-			var guild = (message.Channel as IGuildChannel).Guild;
+			var guild = GetGuildFromMessage(message);
 			if (guild == null)
 				return;
+
+			//Get the guild's bot data
 			var guildLoaded = Variables.Guilds[guild.Id];
 
 			//Check if it has any banned words or regex
@@ -2640,7 +2692,7 @@ namespace Advobot
 				if (logChannel != null)
 				{
 					var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
-					await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.AvatarUrl));
+					await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.GetAvatarUrl()));
 				}
 			}
 			//Ban
@@ -2658,7 +2710,7 @@ namespace Advobot
 				if (logChannel != null)
 				{
 					var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
-					await SendEmbedMessage(logChannel, AddAuthor(embed, Actions.FormatUser(user), user.AvatarUrl));
+					await SendEmbedMessage(logChannel, AddAuthor(embed, Actions.FormatUser(user), user.GetAvatarUrl()));
 				}
 			}
 			//Role
@@ -2678,7 +2730,7 @@ namespace Advobot
 				if (logChannel != null)
 				{
 					var embed = AddFooter(MakeNewEmbed(null, "**Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
-					await SendEmbedMessage(logChannel, AddAuthor(embed, Actions.FormatUser(user), user.AvatarUrl));
+					await SendEmbedMessage(logChannel, AddAuthor(embed, Actions.FormatUser(user), user.GetAvatarUrl()));
 				}
 			}
 		}
@@ -3063,5 +3115,16 @@ namespace Advobot
 			return bannerPosition > banneePosition;
 		}
 		#endregion
+	}
+
+	public static class AsyncForEach
+	{
+		public static async Task ForEachAsync<T>(this List<T> list, Func<T, Task> func)
+		{
+			foreach (var value in list)
+			{
+				await func(value);
+			}
+		}
 	}
 }

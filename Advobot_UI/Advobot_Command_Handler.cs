@@ -19,13 +19,10 @@ namespace Advobot
 			map.Add(Commands);
 			Map = map;
 
-			//Necessary for the 'commands' and 'help' commands
-			Actions.LoadInformation();
-
-			//Set up the game and/or stream
-			await Actions.SetGame();
-
 			await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
+
+			//Use the BotClient's connected handler to start up the bot
+			Client.AddConnectedHandler(this);
 
 			//Use the BotClient classes message received handler to handle commands
 			Client.AddMessageReceivedHandler(this);

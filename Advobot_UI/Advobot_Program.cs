@@ -134,7 +134,7 @@ namespace Advobot
 			//Connect the bot
 			try
 			{
-				await client.ConnectAsync();
+				await client.StartAsync();
 			}
 			catch (System.Exception)
 			{

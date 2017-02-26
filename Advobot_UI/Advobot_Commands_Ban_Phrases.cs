@@ -28,10 +28,10 @@ namespace Advobot
 			}
 
 			//Split the input
-			var inputArray = input.Split(new char[] { ' ' }, 3);
+			var inputArray = Actions.RemoveNewLines(input).Split(new char[] { ' ' }, 2);
 
 			//Check if valid length
-			if (inputArray.Length < 2 || inputArray.Length > 3)
+			if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
@@ -56,12 +56,16 @@ namespace Advobot
 
 			//Get the phrases
 			var phrases = inputArray[1].Split('/').ToList();
+			//Get the last item
+			var last = phrases.LastOrDefault();
+			var potentialRegex = last != null && last.Contains(' ') ? last.Substring(last.LastIndexOf(' ')).Trim() : null;
 
 			//Check if regex or not
 			bool regexBool = false;
-			if (inputArray.Length == 3 && inputArray[2].Equals("regex", StringComparison.OrdinalIgnoreCase))
+			if (potentialRegex != null && potentialRegex.Equals("regex", StringComparison.OrdinalIgnoreCase))
 			{
 				regexBool = true;
+				phrases[phrases.Count() - 1] = last.Substring(0, last.LastIndexOf(' '));
 			}
 
 			//Check if should add as regex or not
@@ -96,7 +100,7 @@ namespace Advobot
 					//Check if positions
 					bool numbers = true;
 					var positions = new List<int>();
-					foreach (var potentialNumber in phrases)
+					phrases.ForEach(potentialNumber =>
 					{
 						int temp;
 						//Check if is a number and is less than the count of the list
@@ -107,9 +111,9 @@ namespace Advobot
 						else
 						{
 							numbers = false;
-							break;
+							return;
 						}
-					}
+					});
 
 					//Only phrases
 					if (!numbers)
@@ -174,7 +178,7 @@ namespace Advobot
 					//Check if positions
 					bool numbers = true;
 					var positions = new List<int>();
-					foreach (var potentialNumber in phrases)
+					phrases.ForEach(potentialNumber =>
 					{
 						int temp;
 						//Check if is a number and is less than the count of the list
@@ -185,9 +189,9 @@ namespace Advobot
 						else
 						{
 							numbers = false;
-							break;
+							return;
 						}
-					}
+					});
 
 					//Only phrases
 					if (!numbers)
@@ -256,7 +260,7 @@ namespace Advobot
 			if (failure.Any())
 			{
 				failureMessage = String.Format("{0}ailed to {1} the following {2} {3} the banned {4} list: `{5}`",
-					successMessage != null ? "F" : "f",
+					successMessage == null ? "F" : "f",
 					addBool ? "add" : "remove",
 					failure.Count != 1 ? "phrases" : "phrase",
 					addBool ? "to" : "from",
@@ -394,7 +398,7 @@ namespace Advobot
 			}
 
 			//Split the input
-			var inputArray = input.Split(new char[] { ' ' }, 3);
+			var inputArray = Actions.RemoveNewLines(input).Split(new char[] { ' ' }, 3);
 
 			//Check if correct number of args
 			if (inputArray.Length < 2 || inputArray.Length > 3)
@@ -429,10 +433,10 @@ namespace Advobot
 			}
 
 			//Get the punishment
-			var punishmentString = "";
-			PunishmentType punishmentType = 0;
-			IRole punishmentRole = null;
 			int time = 0;
+			var punishmentString = "";
+			IRole punishmentRole = null;
+			PunishmentType punishmentType = 0;
 			BannedPhrasePunishment newPunishment = null;
 			if (inputArray.Length > 2 && addBool)
 			{
@@ -523,15 +527,15 @@ namespace Advobot
 			{
 				if (punishments.Any(x => x.Number_Of_Removes == number))
 				{
-					punishments.Where(x => x.Number_Of_Removes == number).ToList().ForEach(async x =>
+					await punishments.Where(x => x.Number_Of_Removes == number).ToList().ForEachAsync(async punish =>
 					{
 						//Check if the user can modify this role, if they can't then don't let them modify the 
-						if (x.Role != null && x.Role.Position > Actions.GetPosition(Context.Guild, Context.User as IGuildUser))
+						if (punish.Role != null && punish.Role.Position > Actions.GetPosition(Context.Guild, Context.User as IGuildUser))
 						{
 							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have the ability to remove a punishment with this role."));
 							return;
 						}
-						punishments.Remove(x);
+						punishments.Remove(punish);
 					});
 				}
 				else

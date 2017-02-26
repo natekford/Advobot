@@ -70,7 +70,7 @@ namespace Advobot
 			if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
 			{
 				var channels = new List<string>();
-				Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.ForEach(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
+				await Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.ForEachAsync(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Log Channels", String.Join("\n", channels)));
 				return;
 			}
@@ -152,7 +152,7 @@ namespace Advobot
 			Actions.SaveLines(path, Constants.IGNORED_LOG_CHANNELS, String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredLogChannels), Actions.GetValidLines(path, Constants.IGNORED_LOG_CHANNELS));
 
 			//Send a success message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the channel `{0}` with an ID of `{1}` from the log channel.", channel.Name, channel.Id));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the channel `{0}` from the log channel.", Actions.FormatChannel(channel)));
 		}
 
 		[Command("logactions")]

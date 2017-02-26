@@ -210,7 +210,7 @@ namespace Advobot
 			}
 
 			await user.ModifyAsync(x => x.Channel = Optional.Create(channel as IVoiceChannel));
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully moved `{0}#{1}` to `{2}`.", user.Username, user.Discriminator, channel.Name), 5000);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully moved `{0}#{1}` to `{2}`.", user.Username, user.Discriminator, channel.Name));
 		}
 
 		[Command("nickname")]
@@ -886,7 +886,7 @@ namespace Advobot
 
 			//Get all of the valid users
 			var listUsersWithRole = new List<IGuildUser>();
-			(await Context.Guild.GetUsersAsync()).Where(x => x.RoleIds.Contains(roleToGather.Id)).ToList().ForEach(async x =>
+			await (await Context.Guild.GetUsersAsync()).Where(x => x.RoleIds.Contains(roleToGather.Id)).ToList().ForEachAsync(async x =>
 			{
 				if (Actions.UserCanBeModifiedByUser(Context, x) && await Actions.UserCanBeModifiedByBot(Context, x))
 				{
@@ -899,6 +899,8 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Too many users; max is {0}.", maxLength)));
 				return;
 			}
+
+			//Give that list for the bot to check against so as to not spam nickname/role changes
 
 			//Give role
 			if (action.Equals("give", StringComparison.OrdinalIgnoreCase))
@@ -923,7 +925,7 @@ namespace Advobot
 				}
 
 				//Give the role and send a success message
-				listUsersWithRole.ForEach(async x => await Actions.GiveRole(x, roleToGive));
+				await listUsersWithRole.ForEachAsync(async x => await Actions.GiveRole(x, roleToGive));
 				await Actions.SendChannelMessage(Context, String.Format("Successfully gave `{0}` to all users{1} ({2} users).",
 					roleToGive.Name, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}
@@ -943,7 +945,7 @@ namespace Advobot
 				}
 
 				//Take the role and send a success message
-				listUsersWithRole.ForEach(async x => await Actions.TakeRole(x, roleToTake));
+				await listUsersWithRole.ForEachAsync(async x => await Actions.TakeRole(x, roleToTake));
 				await Actions.SendChannelMessage(Context, String.Format("Successfully took `{0}` from all users{1} ({2} users).",
 					roleToTake.Name, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}
@@ -964,7 +966,7 @@ namespace Advobot
 				}
 
 				//Change their nicknames and send a success message
-				listUsersWithRole.ForEach(async x => await x.ModifyAsync(y => y.Nickname = inputNickname));
+				await listUsersWithRole.ForEachAsync(async x => await x.ModifyAsync(y => y.Nickname = inputNickname));
 				await Actions.SendChannelMessage(Context, String.Format("Successfully gave the nickname `{0}` to all users{1} ({2} users).",
 					inputNickname, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}

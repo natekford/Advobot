@@ -97,7 +97,7 @@ namespace Advobot
 			}
 
 			//Make it so only admins/the owner can read the channel
-			foreach (var overwrite in channel.PermissionOverwrites)
+			await channel.PermissionOverwrites.ToList().ForEachAsync(async overwrite =>
 			{
 				if (overwrite.TargetType == PermissionTarget.Role)
 				{
@@ -113,7 +113,7 @@ namespace Advobot
 					var denyBits = (uint)channel.GetPermissionOverwrite(user).Value.DenyValue | (1U << (int)ChannelPermission.ReadMessages);
 					await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits));
 				}
-			}
+			});
 
 			//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
 			var highestPosition = 0;
@@ -226,22 +226,20 @@ namespace Advobot
 				title = "Voice Channels Positions";
 
 				//Put the positions into the string
-				var list = (await Context.Guild.GetVoiceChannelsAsync()).OrderBy(x => x.Position).ToList();
-				foreach (var channel in list)
+				(await Context.Guild.GetVoiceChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(x =>
 				{
-					description += "`" + channel.Position.ToString("00") + ".` " + channel.Name + "\n";
-				}
+					description += "`" + x.Position.ToString("00") + ".` " + x.Name + "\n";
+				});
 			}
 			else
 			{
 				title = "Text Channels Positions";
 
 				//Put the positions into the string
-				var list = (await Context.Guild.GetTextChannelsAsync()).OrderBy(x => x.Position).ToList();
-				foreach (var channel in list)
+				(await Context.Guild.GetTextChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(x =>
 				{
-					description += "`" + channel.Position.ToString("00") + ".` " + channel.Name + "\n";
-				}
+					description += "`" + x.Position.ToString("00") + ".` " + x.Name + "\n";
+				});
 			}
 
 			//Check the length to see if the message can be sent
@@ -271,7 +269,7 @@ namespace Advobot
 
 			//Split the input
 			var inputArray = input.Trim().Split(new char[] { ' ' }, 2);
-			if (inputArray.Length != 2)
+			if (inputArray.Length > 4)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
@@ -301,7 +299,7 @@ namespace Advobot
 				{
 					var roleOverwrites = new List<string>();
 					var userOverwrites = new List<string>();
-					channel.PermissionOverwrites.ToList().ForEach(async x =>
+					await channel.PermissionOverwrites.ToList().ForEachAsync(async x =>
 					{
 						if (x.TargetType == PermissionTarget.Role)
 						{
@@ -312,10 +310,11 @@ namespace Advobot
 							userOverwrites.Add((await Context.Guild.GetUserAsync(x.TargetId)).Username);
 						}
 					});
-					//Embed saying the overwrites
-					var embed = Actions.MakeNewEmbed(null, channel.Name);
-					Actions.AddField(embed, "Role", String.Join("\n", roleOverwrites));
-					Actions.AddField(embed, "User", String.Join("\n", userOverwrites));
+
+					//Make an embed saying the overwrites
+					var embed = Actions.MakeNewEmbed(null, Actions.FormatChannel(channel));
+					Actions.AddField(embed, "Role", roleOverwrites.Any() ? String.Join("\n", roleOverwrites) : "None");
+					Actions.AddField(embed, "User", userOverwrites.Any() ? String.Join("\n", userOverwrites) : "None");
 					await Actions.SendEmbedMessage(Context.Channel, embed);
 					return;
 				}
@@ -329,8 +328,15 @@ namespace Advobot
 					return;
 				}
 
+				//Check to see if there are any overwrites
+				if (!channel.PermissionOverwrites.Any())
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Unable to show permissions for `{0}` on `{1}`.", inputArray[1], Actions.FormatChannel(channel))));
+					return;
+				}
+
 				//Say the permissions of the overwrite
-				foreach (Overwrite overwrite in channel.PermissionOverwrites)
+				await channel.PermissionOverwrites.ToList().ForEachAsync(async overwrite =>
 				{
 					if (role != null && overwrite.TargetId.Equals(role.Id))
 					{
@@ -348,15 +354,9 @@ namespace Advobot
 						Actions.AddField(embed, "Value", String.Join("\n", Actions.GetPerms(overwrite, channel).Values));
 						await Actions.SendEmbedMessage(Context.Channel, embed);
 					}
-					return;
-				}
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Unable to show permissions for `{0}` on `{1}`.", inputArray[1], Actions.FormatChannel(channel))));
-				return;
+				});
 			}
-			else if (false
-					|| actionName.Equals("allow", StringComparison.OrdinalIgnoreCase)
-					|| actionName.Equals("deny", StringComparison.OrdinalIgnoreCase)
-					|| actionName.Equals("inherit", StringComparison.OrdinalIgnoreCase))
+			else if (new string[] { "allow", "deny", "inherit" }.Contains(actionName, StringComparer.OrdinalIgnoreCase))
 			{
 				inputArray = inputArray[1].Split(new char[] { ' ' }, 2);
 
@@ -446,10 +446,7 @@ namespace Advobot
 			}
 
 			//Changing the bit values
-			foreach (string permission in permissions)
-			{
-				changeValue = await Actions.GetBit(Context, permission, changeValue);
-			}
+			await permissions.ToList().ForEachAsync(async x => changeValue = await Actions.GetBit(Context, x, changeValue));
 			if (actionName.Equals("allow", StringComparison.OrdinalIgnoreCase))
 			{
 				allowBits |= changeValue;
@@ -474,12 +471,12 @@ namespace Advobot
 			if (role != null)
 			{
 				await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allowBits, denyBits));
-				roleNameOrUsername = role.Name;
+				roleNameOrUsername = Actions.FormatRole(role);
 			}
 			else
 			{
 				await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits));
-				roleNameOrUsername = user.Username + "#" + user.Discriminator;
+				roleNameOrUsername = Actions.FormatUser(user);
 			}
 
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}` on `{3}`",
@@ -523,7 +520,7 @@ namespace Advobot
 			if (target.Equals("all", StringComparison.OrdinalIgnoreCase))
 			{
 				target = "ALL";
-				foreach (Overwrite permissionOverwrite in inputChannel.PermissionOverwrites)
+				await inputChannel.PermissionOverwrites.ToList().ForEachAsync(async permissionOverwrite =>
 				{
 					if (permissionOverwrite.TargetId == (int)PermissionTarget.Role)
 					{
@@ -537,7 +534,7 @@ namespace Advobot
 						await outputChannel.AddPermissionOverwriteAsync(user, new OverwritePermissions(inputChannel.GetPermissionOverwrite(user).Value.AllowValue,
 							inputChannel.GetPermissionOverwrite(user).Value.DenyValue));
 					}
-				}
+				});
 			}
 			else
 			{
@@ -589,7 +586,7 @@ namespace Advobot
 			}
 
 			//Remove all the permission overwrites
-			channel.PermissionOverwrites.ToList().ForEach(async x =>
+			await channel.PermissionOverwrites.ToList().ForEachAsync(async x =>
 			{
 				if (x.TargetId == (int)PermissionTarget.Role)
 				{

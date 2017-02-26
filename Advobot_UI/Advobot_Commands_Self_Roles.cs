@@ -127,9 +127,9 @@ namespace Advobot
 					}
 
 					//Check validity of roles
-					rolesString.Split('/').ToList().ForEach(async x =>
+					await rolesString.Split('/').ToList().ForEachAsync(async x =>
 					{
-						IRole role = await Actions.GetRoleEditAbility(Context, x, true);
+						var role = await Actions.GetRoleEditAbility(Context, x, true);
 						//If a valid role that the user is able to access for creation/addition/removal
 						if (role == null)
 						{

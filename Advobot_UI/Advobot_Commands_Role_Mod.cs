@@ -67,7 +67,7 @@ namespace Advobot
 				var failedRoles = new List<string>();
 				var succeededRoles = new List<string>();
 				var roles = new List<IRole>();
-				foreach (string roleName in inputRoles)
+				await inputRoles.ForEachAsync(async roleName =>
 				{
 					var role = await Actions.GetRoleEditAbility(Context, roleName, true);
 					if (role == null || role.IsManaged || role == Context.Guild.EveryoneRole)
@@ -79,7 +79,7 @@ namespace Advobot
 						roles.Add(role);
 						succeededRoles.Add(roleName);
 					}
-				}
+				});
 
 				//Format the success message
 				var succeed = "";
@@ -168,7 +168,7 @@ namespace Advobot
 				var failedRoles = new List<string>();
 				var succeededRoles = new List<string>();
 				var roles = new List<IRole>();
-				foreach (string roleName in inputRoles)
+				await inputRoles.ForEachAsync(async roleName =>
 				{
 					var role = await Actions.GetRoleEditAbility(Context, roleName, true);
 					if (role == null || role.IsManaged || role == Context.Guild.EveryoneRole)
@@ -180,7 +180,7 @@ namespace Advobot
 						roles.Add(role);
 						succeededRoles.Add(roleName);
 					}
-				}
+				});
 
 				//Format the success message
 				var succeed = "";
@@ -386,15 +386,17 @@ namespace Advobot
 
 			//Put them into strings now
 			var description = "";
-			foreach (var role in roles)
+			roles.ForEach(role =>
 			{
 				if (role == Context.Guild.EveryoneRole)
 				{
 					description += "`" + role.Position.ToString("00") + ".` @ev" + Constants.ZERO_LENGTH_CHAR + "eryone";
-					continue;
 				}
-				description += "`" + role.Position.ToString("00") + ".` " + role.Name + "\n";
-			}
+				else
+				{
+					description += "`" + role.Position.ToString("00") + ".` " + role.Name + "\n";
+				}
+			});
 
 			//Check the length to see if the message can be sent
 			if (description.Length > Constants.SHORT_LENGTH_CHECK)
@@ -464,14 +466,14 @@ namespace Advobot
 			{
 				var rolePerms = new GuildPermissions(Context.Guild.GetRole(role.Id).Permissions.RawValue);
 				var currentRolePerms = new List<string>();
-				foreach (var permissionValue in Variables.GuildPermissions.Select(x => x.Position))
+				Variables.GuildPermissions.Select(x => x.Position).ToList().ForEach(permissionValue =>
 				{
 					var bit = permissionValue;
 					if (((int)rolePerms.RawValue & (1 << bit)) != 0)
 					{
 						currentRolePerms.Add(Variables.GuildPermissions.FirstOrDefault(x => x.Position == bit).Name);
 					}
-				}
+				});
 				var permissionsString = String.IsNullOrEmpty(String.Join("\n", currentRolePerms)) ? "No permissions" : String.Join("\n", currentRolePerms);
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(role.Name, permissionsString));
 				return;
@@ -501,13 +503,13 @@ namespace Advobot
 			if (validPerms.Count != permissions.Count)
 			{
 				var invalidPermissions = new List<string>();
-				foreach (string permission in permissions)
+				permissions.ForEach(permission =>
 				{
 					if (!validPerms.Contains(permission, StringComparer.OrdinalIgnoreCase))
 					{
 						invalidPermissions.Add(permission);
 					}
-				}
+				});
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Invalid {0} supplied: `{1}`.",
 					permissions.Count - permissions.Intersect(permissionTypeStrings).Count() == 1 ? "permission" : "permissions",
 					String.Join("`, `", invalidPermissions))), 7500);
@@ -516,7 +518,7 @@ namespace Advobot
 
 			//Determine the permissions being added
 			uint rolePermissions = 0;
-			foreach (string permission in permissions)
+			await permissions.ForEachAsync(async permission =>
 			{
 				var perms = Variables.GuildPermissions.Select(x => x.Name).ToList();
 				try
@@ -529,7 +531,7 @@ namespace Advobot
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Couldn't parse permission '{0}'", permission)));
 					return;
 				}
-			}
+			});
 
 			//Determine if the user can give these perms
 			if (!await Actions.GetIfUserIsOwner(Context.Guild, Context.User as IGuildUser))

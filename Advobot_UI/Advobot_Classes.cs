@@ -506,6 +506,7 @@ namespace Advobot
 	public abstract class BotClient
 	{
 		public abstract void AddMessageReceivedHandler(CommandHandler handler);
+		public abstract void AddConnectedHandler(CommandHandler handler);
 		public abstract BaseDiscordClient GetClient();
 		public abstract SocketSelfUser GetCurrentUser();
 		public abstract IReadOnlyCollection<SocketGuild> GetGuilds();
@@ -513,7 +514,7 @@ namespace Advobot
 		public abstract IReadOnlyCollection<DiscordSocketClient> GetShards();
 		public abstract DiscordSocketClient GetShardFor(IGuild guild);
 		public abstract int GetLatency();
-		public abstract Task ConnectAsync();
+		public abstract Task StartAsync();
 		public abstract Task LoginAsync(TokenType tokenType, string token);
 		public abstract Task SetGameAsync(string game, string stream, StreamType streamType);
 	}
@@ -524,6 +525,7 @@ namespace Advobot
 		public SocketClient(DiscordSocketClient client) { mSocketClient = client; }
 
 		public override void AddMessageReceivedHandler(CommandHandler handler) { mSocketClient.MessageReceived += handler.HandleCommand; }
+		public override void AddConnectedHandler(CommandHandler handler) { mSocketClient.Connected += Actions.BaseLoad; }
 		public override BaseDiscordClient GetClient() { return mSocketClient; }
 		public override SocketSelfUser GetCurrentUser() { return mSocketClient.CurrentUser; }
 		public override IReadOnlyCollection<SocketGuild> GetGuilds() { return mSocketClient.Guilds; }
@@ -531,7 +533,7 @@ namespace Advobot
 		public override IReadOnlyCollection<DiscordSocketClient> GetShards() { return new[] { mSocketClient }; }
 		public override DiscordSocketClient GetShardFor(IGuild guild) { return mSocketClient; }
 		public override int GetLatency() { return mSocketClient.Latency; }
-		public override async Task ConnectAsync() { await mSocketClient.ConnectAsync(); }
+		public override async Task StartAsync() { await mSocketClient.StartAsync(); }
 		public override async Task LoginAsync(TokenType tokenType, string token) { await mSocketClient.LoginAsync(tokenType, token); }
 		public override async Task SetGameAsync(string game, string stream, StreamType streamType) { await mSocketClient.SetGameAsync(game, stream, streamType); }
 	}
@@ -542,14 +544,15 @@ namespace Advobot
 		public ShardedClient(DiscordShardedClient client) { mShardedClient = client; }
 
 		public override void AddMessageReceivedHandler(CommandHandler handler) { mShardedClient.MessageReceived += handler.HandleCommand; }
+		public override void AddConnectedHandler(CommandHandler handler) { mShardedClient.Shards.FirstOrDefault().Connected += Actions.BaseLoad; }
 		public override BaseDiscordClient GetClient() { return mShardedClient; }
-		public override SocketSelfUser GetCurrentUser() { return mShardedClient.CurrentUser; }
+		public override SocketSelfUser GetCurrentUser() { return mShardedClient.Shards.FirstOrDefault().CurrentUser; }
 		public override IReadOnlyCollection<SocketGuild> GetGuilds() { return mShardedClient.Guilds; }
 		public override SocketGuild GetGuild(ulong id) { return mShardedClient.GetGuild(id); }
 		public override IReadOnlyCollection<DiscordSocketClient> GetShards() { return mShardedClient.Shards; }
 		public override DiscordSocketClient GetShardFor(IGuild guild) { return mShardedClient.GetShardFor(guild); }
 		public override int GetLatency() { return mShardedClient.Latency; }
-		public override async Task ConnectAsync() { await mShardedClient.ConnectAsync(); }
+		public override async Task StartAsync() { await mShardedClient.StartAsync(); }
 		public override async Task LoginAsync(TokenType tokenType, string token) { await mShardedClient.LoginAsync(tokenType, token); }
 		public override async Task SetGameAsync(string game, string stream, StreamType streamType) { await mShardedClient.SetGameAsync(game, stream, streamType); }
 	}

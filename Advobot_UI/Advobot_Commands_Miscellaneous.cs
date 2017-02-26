@@ -57,40 +57,42 @@ namespace Advobot
 			var helpEntry = Variables.HelpList.FirstOrDefault(x => x.Name.Equals(input, StringComparison.OrdinalIgnoreCase));
 			if (helpEntry == null)
 			{
-				foreach (var command in Variables.HelpList)
+				//Find the command based on its aliases
+				Variables.HelpList.ForEach(x =>
 				{
-					if (command.Aliases.Contains(input))
+					if (x.Aliases.Contains(input))
 					{
-						helpEntry = command;
+						helpEntry = x;
+						return;
 					}
-				}
+				});
 				if (helpEntry == null)
 				{
 					//Find close words
 					var closeHelps = new List<CloseHelp>();
-					Variables.HelpList.ForEach(x =>
+					Variables.HelpList.ForEach(HelpEntry =>
 					{
 						//Check how close the word is to the input
-						var closeness = Actions.FindCloseName(x.Name, input);
+						var closeness = Actions.FindCloseName(HelpEntry.Name, input);
 						//Ignore all closewords greater than a difference of five
 						if (closeness > 5)
 							return;
 						//If no words in the list already, add it
 						if (closeHelps.Count < 3)
 						{
-							closeHelps.Add(new CloseHelp(x, closeness));
+							closeHelps.Add(new CloseHelp(HelpEntry, closeness));
 						}
 						else
 						{
 							//If three words in the list, check closeness value now
-							foreach (var closeHelp in closeHelps)
+							closeHelps.ForEach(x =>
 							{
-								if (closeness < closeHelp.Closeness)
+								if (closeness < x.Closeness)
 								{
-									closeHelps.Insert(closeHelps.IndexOf(closeHelp), new CloseHelp(x, closeness));
-									break;
+									closeHelps.Insert(closeHelps.IndexOf(x), new CloseHelp(HelpEntry, closeness));
+									return;
 								}
-							}
+							});
 
 							//Remove all words that are now after the third item
 							closeHelps.RemoveRange(3, closeHelps.Count - 3);
@@ -257,7 +259,7 @@ namespace Advobot
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(null, description);
 			//Add the author
-			Actions.AddAuthor(embed, Variables.Bot_Name, Context.Client.CurrentUser.AvatarUrl);
+			Actions.AddAuthor(embed, Variables.Bot_Name, Context.Client.CurrentUser.GetAvatarUrl());
 			//Add the footer
 			Actions.AddFooter(embed, "Version " + Constants.BOT_VERSION);
 
@@ -384,7 +386,7 @@ namespace Advobot
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(null, description);
 			//Add the author
-			Actions.AddAuthor(embed, user.Username + "#" + user.Discriminator + " " + (user.Nickname == null ? "" : "(" + user.Nickname + ")"), user.AvatarUrl, user.AvatarUrl);
+			Actions.AddAuthor(embed, user.Username + "#" + user.Discriminator + " " + (user.Nickname == null ? "" : "(" + user.Nickname + ")"), user.GetAvatarUrl(), user.GetAvatarUrl());
 			//Add the footer
 			Actions.AddFooter(embed, "Userinfo");
 
@@ -449,7 +451,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
-			await Context.Channel.SendMessageAsync(user.AvatarUrl.Replace(".jpg", ".gif"));
+			await Context.Channel.SendMessageAsync(user.GetAvatarUrl().Replace(".jpg", ".gif"));
 		}
 
 		[Command("userjoinedat")]
@@ -822,7 +824,7 @@ namespace Advobot
 			var count = invites.Count;
 
 			//Delete the invites
-			invites.ForEach(async x => await x.DeleteAsync());
+			await invites.ForEachAsync(async x => await x.DeleteAsync());
 
 			//Send a success message
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` instant invites on this guild.", count));

@@ -218,7 +218,7 @@ namespace Advobot
 					//Remove all of the users who are not supposed to be muted
 					users.RemoveRange(inputNum - 1, users.Count - inputNum);
 					//Mute all of the users
-					users.ForEach(async x =>
+					await users.ForEachAsync(async x =>
 					{
 						//Mute them
 						await x.AddRolesAsync(muteRole);
@@ -244,7 +244,7 @@ namespace Advobot
 				var unm = 0;
 
 				//Unmute every user who was muted
-				guildInfo.UsersWhoHaveBeenMuted.ForEach(async x =>
+				await guildInfo.UsersWhoHaveBeenMuted.ForEachAsync(async x =>
 				{
 					//Check to make sure they're still on the guild
 					if (await Context.Guild.GetUserAsync(x.Id) != null)
