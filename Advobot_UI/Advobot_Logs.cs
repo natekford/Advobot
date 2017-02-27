@@ -208,7 +208,7 @@ namespace Advobot
 				else
 				{
 					//Increment the invite the bot is holding if a curInv was found so as to match with the current invite uses count
-					++curInv.Uses;
+					curInv.IncreaseUses();
 				}
 			}
 
@@ -972,7 +972,7 @@ namespace Advobot
 			//Get the spam prevention the guild has
 			var spamPrevention = Variables.Guilds[guild.Id].MentionSpamPrevention;
 			//Check if the spam prevention exists and if the message has more mentions than are allowed
-			if (!spamPrevention.Equals(default(MentionSpamPrevention)) && spamPrevention.Enabled && message.MentionedUserIds.Distinct().Count() >= spamPrevention.AmountOfMentionsPerMsg)
+			if (spamPrevention != null && spamPrevention.Enabled && message.MentionedUserIds.Distinct().Count() >= spamPrevention.AmountOfMentionsPerMsg)
 			{
 				//Set the user as a variable for easy typing
 				var author = message.Author as IGuildUser;
@@ -987,7 +987,7 @@ namespace Advobot
 					Variables.Guilds[guild.Id].SpamPreventionUsers.Add(user);
 				}
 				//Add one to their spam count
-				++user.CurrentSpamAmount;
+				user.IncreaseCurrentSpamAmount();
 				//Check if that's greater than the allowed amount
 				if (user.CurrentSpamAmount >= spamPrevention.AmountOfMessages)
 				{
@@ -995,7 +995,7 @@ namespace Advobot
 					await Actions.SendChannelMessage(message.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
 						Actions.FormatUser(user.User), spamPrevention.VotesNeededForKick));
 					//Enable them to be kicked
-					user.PotentialKick = true;
+					user.EnablePotentialKick();
 				}
 			}
 		}
@@ -1010,7 +1010,7 @@ namespace Advobot
 			//Get the spam prevention the guild has
 			var spamPrevention = Variables.Guilds[guild.Id].MentionSpamPrevention;
 			//Return if it's null
-			if (spamPrevention.Equals(default(MentionSpamPrevention)) || !spamPrevention.Enabled)
+			if (spamPrevention == null || !spamPrevention.Enabled)
 				return;
 
 			//Cross reference the almost kicked users and the mentioned users
@@ -1020,9 +1020,9 @@ namespace Advobot
 				if (x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id) || x.User.Id == message.Author.Id)
 					return;
 				//Increment the votes on that user
-				++x.VotesToKick;
+				x.IncreaseVotesToKick();
 				//Add the author to the already voted list
-				x.UsersWhoHaveAlreadyVoted.Add(message.Author.Id);
+				x.AddUserToVotedList(message.Author.Id);
 				//Check if the bot can even kick/ban this user or if they should be punished
 				if (Actions.GetPosition(guild, x.User) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)) || x.VotesToKick < spamPrevention.VotesNeededForKick)
 					return;

@@ -129,6 +129,7 @@ namespace Advobot
 		//Try to have the bot connect and then add the dependency map
 		public async Task Start(BotClient client)
 		{
+			//Notify the user the bot has started connecting
 			Actions.WriteLine("Connecting the client...");
 
 			//Connect the bot
@@ -136,15 +137,26 @@ namespace Advobot
 			{
 				await client.StartAsync();
 			}
-			catch (System.Exception)
+			catch (System.Exception e)
 			{
-				Actions.WriteLine("Client is unable to connect.");
+				Actions.ExceptionToConsole("Client is unable to connect.", e);
 				return;
 			}
 
+			//Wait for all the guilds to be added
+			try
+			{
+				await client.WaitForGuildsAsync();
+			}
+			catch (System.Exception e)
+			{
+				Actions.ExceptionToConsole("Client is unable to wait for all the guilds.", e);
+				return;
+			}
+
+			//Add in the dependency map
 			var map = new DependencyMap();
 			map.Add(client);
-
 			await new CommandHandler().Install(map);
 
 			//Block this program until it is closed.

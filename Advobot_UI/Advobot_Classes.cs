@@ -146,7 +146,7 @@ namespace Advobot
 
 		private string mUsage;
 
-		public string Text
+		public string Usage
 		{
 			get { return mUsage; }
 		}
@@ -206,32 +206,28 @@ namespace Advobot
 		private CommandCategory mCategory;
 		private string[] mAliases;
 
-		//Return the name
 		public string Name
 		{
 			get { return mName; }
 		}
-
-		//Return the category
 		public string CategoryName
 		{
 			get { return Enum.GetName(typeof(CommandCategory), (int)mCategory); }
 		}
-
-		//Return the category's value
 		public int CategoryValue
 		{
 			get { return (int)mCategory; }
 		}
-
-		//Return the category's enum
 		public CommandCategory CategoryEnum
 		{
 			get { return mCategory; }
 		}
+		public string[] Aliases
+		{
+			get { return mAliases; }
+		}
 
-		//Return the value as a boolean
-		public bool valAsBoolean
+		public bool ValAsBoolean
 		{
 			get
 			{
@@ -239,15 +235,11 @@ namespace Advobot
 				return trueMatches.Any(x => String.Equals(mValue.Trim(), x, StringComparison.OrdinalIgnoreCase));
 			}
 		}
-
-		//Return the value as a string
-		public string valAsString
+		public string ValAsString
 		{
 			get { return mValue.Trim(new char[] { '\n', '\r' }); }
 		}
-
-		//Return the value as an int
-		public int valAsInteger
+		public int ValAsInteger
 		{
 			get
 			{
@@ -260,22 +252,13 @@ namespace Advobot
 			}
 		}
 
-		//Disable a command
-		public void disable()
+		public void Disable()
 		{
 			mValue = "OFF";
 		}
-
-		//Enable a command
-		public void enable()
+		public void Enable()
 		{
 			mValue = "ON";
-		}
-
-		//Return the aliases
-		public string[] Aliases
-		{
-			get { return mAliases; }
 		}
 	}
 
@@ -283,96 +266,202 @@ namespace Advobot
 	{
 		public SlowmodeUser(IGuildUser user = null, int currentMessagesLeft = 1, int baseMessages = 1, int time = 5)
 		{
-			User = user;
-			CurrentMessagesLeft = currentMessagesLeft;
-			BaseMessages = baseMessages;
-			Time = time;
+			mUser = user;
+			mCurrentMessagesLeft = currentMessagesLeft;
+			mBaseMessages = baseMessages;
+			mTime = time;
 		}
 
-		public IGuildUser User;
-		public int CurrentMessagesLeft;
-		public int BaseMessages;
-		public int Time;
-	}
+		private IGuildUser mUser;
+		private int mCurrentMessagesLeft;
+		private int mBaseMessages;
+		private int mTime;
 
-	public class SlowmodeChannel
-	{
-		public SlowmodeChannel(ulong channelID, ulong guildID)
+		public IGuildUser User
 		{
-			ChannelID = channelID;
-			GuildID = guildID;
+			get { return mUser; }
+		}
+		public int CurrentMessagesLeft
+		{
+			get { return mCurrentMessagesLeft; }
+		}
+		public int BaseMessages
+		{
+			get { return mBaseMessages; }
+		}
+		public int Time
+		{
+			get { return mTime; }
 		}
 
-		public ulong ChannelID;
-		public ulong GuildID;
+		public void LowerMessagesLeft()
+		{
+			--mCurrentMessagesLeft;
+		}
+		public void ResetMessagesLeft()
+		{
+			mCurrentMessagesLeft = mBaseMessages;
+		}
 	}
 
 	public class BannedPhrasePunishment
 	{
 		public BannedPhrasePunishment(int number, PunishmentType punishment, IRole role = null, int? punishmentTime = null)
 		{
-			Number_Of_Removes = number;
-			Punishment = punishment;
-			Role = role;
-			PunishmentTime = punishmentTime;
+			mNumberOfRemoves = number;
+			mPunishment = punishment;
+			mRole = role;
+			mPunishmentTime = punishmentTime;
 		}
 
-		public int Number_Of_Removes;
-		public PunishmentType Punishment;
-		public IRole Role;
-		public int? PunishmentTime;
+		private int mNumberOfRemoves;
+		private PunishmentType mPunishment;
+		private IRole mRole;
+		private int? mPunishmentTime;
+
+		public int NumberOfRemoves
+		{
+			get { return mNumberOfRemoves; }
+		}
+		public PunishmentType Punishment
+		{
+			get { return mPunishment; }
+		}
+		public IRole Role
+		{
+			get { return mRole; }
+		}
+		public int? PunishmentTime
+		{
+			get { return mPunishmentTime; }
+		}
 	}
 
 	public class BannedPhraseUser
 	{
 		public BannedPhraseUser(IGuildUser user, int amountOfRemovedMessages = 1)
 		{
-			User = user;
-			AmountOfRemovedMessages = amountOfRemovedMessages;
+			mUser = user;
+			mAmountOfRemovedMessages = amountOfRemovedMessages;
 		}
 
-		public IGuildUser User;
-		public int AmountOfRemovedMessages;
+		private IGuildUser mUser;
+		private int mAmountOfRemovedMessages;
+
+		public IGuildUser User
+		{
+			get { return mUser; }
+		}
+		public int AmountOfRemovedMessages
+		{
+			get { return mAmountOfRemovedMessages; }
+		}
+
+		public void IncreaseAmountOfRemovedMessages()
+		{
+			++mAmountOfRemovedMessages;
+		}
+		public void ResetAmountOfRemovesMessages()
+		{
+			mAmountOfRemovedMessages = 0;
+		}
 	}
 
 	public class SelfAssignableRole
 	{
 		public SelfAssignableRole(IRole role, int group)
 		{
-			Role = role;
-			Group = group;
+			mRole = role;
+			mGroup = group;
 		}
 
-		public IRole Role;
-		public int Group;
+		private IRole mRole;
+		private int mGroup;
+
+		public IRole Role
+		{
+			get { return mRole; }
+		}
+		public int Group
+		{
+			get { return mGroup; }
+		}
 	}
 
 	public class SelfAssignableGroup
 	{
 		public SelfAssignableGroup(List<SelfAssignableRole> roles, int group, ulong guildID)
 		{
-			Roles = roles;
-			Group = group;
-			GuildID = guildID;
+			mRoles = roles;
+			mGroup = group;
+			mGuildID = guildID;
 		}
 
-		public List<SelfAssignableRole> Roles;
-		public int Group;
-		public ulong GuildID;
+		private List<SelfAssignableRole> mRoles;
+		private int mGroup;
+		private ulong mGuildID;
+
+		public IReadOnlyCollection<SelfAssignableRole> Roles
+		{
+			get { return mRoles.AsReadOnly(); }
+		}
+		public int Group
+		{
+			get { return mGroup; }
+		}
+		public ulong GuildID
+		{
+			get { return mGuildID; }
+		}
+
+		public void AddRole(SelfAssignableRole role)
+		{
+			mRoles.Add(role);
+		}
+		public void AddRoles(List<SelfAssignableRole> roles)
+		{
+			mRoles.AddRange(roles);
+		}
+		public void RemoveRoles(List<ulong> roleIDs)
+		{
+			mRoles.RemoveAll(x => roleIDs.Contains(x.Role.Id));
+		}
+		public string FormatSaveString()
+		{
+			return String.Join("\n", mRoles.Select(y => String.Format("{0} {1}", y.Role.Id, y.Group)).ToList());
+		}
 	}
 
 	public class BotInvite
 	{
 		public BotInvite(ulong guildID, string code, int uses)
 		{
-			GuildID = guildID;
-			Code = code;
-			Uses = uses;
+			mGuildID = guildID;
+			mCode = code;
+			mUses = uses;
 		}
 
-		public ulong GuildID;
-		public string Code;
-		public int Uses;
+		private ulong mGuildID;
+		private string mCode;
+		private int mUses;
+
+		public ulong GuildID
+		{
+			get { return mGuildID; }
+		}
+		public string Code
+		{
+			get { return mCode; }
+		}
+		public int Uses
+		{
+			get { return mUses; }
+		}
+
+		public void IncreaseUses()
+		{
+			++mUses;
+		}
 	}
 
 	public class BotGuildInfo
@@ -415,91 +504,87 @@ namespace Advobot
 	{
 		public BotImplementedPermissions(IGuildUser user, uint permissions)
 		{
-			User = user;
-			Permissions = permissions;
+			mUser = user;
+			mPermissions = permissions;
 		}
 
-		public IGuildUser User;
-		public uint Permissions;
-	}
+		private IGuildUser mUser;
+		private uint mPermissions;
 
-	public struct MentionSpamPrevention
-	{
-		public MentionSpamPrevention(int amountOfMentionsPerMsg, int amountOfMessages, int votesNeededForKick)
+		public IGuildUser User
 		{
-			AmountOfMentionsPerMsg = amountOfMentionsPerMsg;
-			AmountOfMessages = amountOfMessages;
-			VotesNeededForKick = votesNeededForKick;
-			Enabled = true;
+			get { return mUser; }
 		}
-
-		public int AmountOfMentionsPerMsg;
-		public int AmountOfMessages;
-		public int VotesNeededForKick;
-		public bool Enabled;
-	}
-
-	public struct LongMessageSpamPrevention
-	{
-		public LongMessageSpamPrevention(int lengthOfMsg, int amountOfMessages, int votesNeededForKick)
+		public uint Permissions
 		{
-			LengthOfMessage = lengthOfMsg;
-			AmountOfMessages = amountOfMessages;
-			VotesNeededForKick = votesNeededForKick;
-			Enabled = true;
+			get { return mPermissions; }
 		}
 
-		public int LengthOfMessage;
-		public int AmountOfMessages;
-		public int VotesNeededForKick;
-		public bool Enabled;
+		public void AddPermission(int add)
+		{
+			mPermissions |= (1U << add);
+		}
+		public void RemovePermission(int remove)
+		{
+			mPermissions &= ~(1U << remove);
+		}
 	}
 
 	public class SpamPreventionUser
 	{
 		public SpamPreventionUser(IGuildUser user, int currentSpamAmount)
 		{
-			User = user;
-			CurrentSpamAmount = currentSpamAmount;
+			mUser = user;
+			mCurrentSpamAmount = currentSpamAmount;
 		}
 
-		public IGuildUser User;
-		public int VotesToKick;
-		public int CurrentSpamAmount;
-		public bool AlreadyKicked = false;
-		public bool PotentialKick = false;
-		public List<ulong> UsersWhoHaveAlreadyVoted = new List<ulong>();
-	}
+		private IGuildUser mUser;
+		private int mVotesToKick;
+		private int mCurrentSpamAmount;
+		private bool mAlreadyKicked = false;
+		private bool mPotentialKick = false;
+		private List<ulong> mUsersWhoHaveAlreadyVoted = new List<ulong>();
 
-	public class UICommandNames
-	{
-		static readonly Dictionary<UICommandEnum, string[]> NamesAndAliases = new Dictionary<UICommandEnum, string[]>
+		public IGuildUser User
 		{
-			{ UICommandEnum.Pause, new string[] { SharedCommands.CPAUSE } },
-			{ UICommandEnum.BotOwner, new string[] { SharedCommands.COWNER, SharedCommands.AOWNER } },
-			{ UICommandEnum.SavePath, new string[] { SharedCommands.CPATH, SharedCommands.APATH } },
-			{ UICommandEnum.Prefix, new string[] { SharedCommands.CPREFIX, SharedCommands.APREFIX } },
-			{ UICommandEnum.Settings, new string[] { SharedCommands.CSETTINGS, SharedCommands.ASETTINGS } },
-			{ UICommandEnum.BotIcon, new string[] { SharedCommands.CICON, SharedCommands.AICON } },
-			{ UICommandEnum.BotGame, new string[] { SharedCommands.CGAME, SharedCommands.AGAME } },
-			{ UICommandEnum.BotStream, new string[] { SharedCommands.CSTREAM, SharedCommands.ASTREAM } },
-			{ UICommandEnum.BotName, new string[] { SharedCommands.CNAME, SharedCommands.ANAME } },
-			{ UICommandEnum.Disconnect, new string[] { SharedCommands.CDISC, SharedCommands.ADISC_1, SharedCommands.ADISC_2 } },
-			{ UICommandEnum.Restart, new string[] { SharedCommands.CRESTART, SharedCommands.ARESTART } },
-			{ UICommandEnum.ListGuilds, new string[] { SharedCommands.CGUILDS, SharedCommands.AGUILDS } },
-			{ UICommandEnum.Shards, new string[] { SharedCommands.CSHARDS } },
-		};
+			get { return mUser; }
+		}
+		public int VotesToKick
+		{
+			get { return mVotesToKick; }
+		}
+		public int CurrentSpamAmount
+		{
+			get { return mCurrentSpamAmount; }
+		}
+		public bool AlreadyKicked
+		{
+			get { return mAlreadyKicked; }
+		}
+		public bool PotentialKick
+		{
+			get { return mPotentialKick; }
+		}
+		public IReadOnlyCollection<ulong> UsersWhoHaveAlreadyVoted
+		{
+			get { return mUsersWhoHaveAlreadyVoted.AsReadOnly(); }
+		}
 
-		public static string[] GetNamesAndAliases(UICommandEnum cmd)
+		public void IncreaseVotesToKick()
 		{
-			if (NamesAndAliases.ContainsKey(cmd))
-			{
-				return NamesAndAliases[cmd];
-			}
-			else
-			{
-				return new string[] { };
-			}
+			++mVotesToKick;
+		}
+		public void IncreaseCurrentSpamAmount()
+		{
+			++mCurrentSpamAmount;
+		}
+		public void EnablePotentialKick()
+		{
+			mPotentialKick = true;
+		}
+		public void AddUserToVotedList(ulong ID)
+		{
+			mUsersWhoHaveAlreadyVoted.Add(ID);
 		}
 	}
 
@@ -516,12 +601,14 @@ namespace Advobot
 		public abstract int GetLatency();
 		public abstract Task StartAsync();
 		public abstract Task LoginAsync(TokenType tokenType, string token);
+		public abstract Task LogoutAsync();
+		public abstract Task WaitForGuildsAsync();
 		public abstract Task SetGameAsync(string game, string stream, StreamType streamType);
 	}
 
 	public class SocketClient : BotClient
 	{
-		DiscordSocketClient mSocketClient;
+		private DiscordSocketClient mSocketClient;
 		public SocketClient(DiscordSocketClient client) { mSocketClient = client; }
 
 		public override void AddMessageReceivedHandler(CommandHandler handler) { mSocketClient.MessageReceived += handler.HandleCommand; }
@@ -535,12 +622,14 @@ namespace Advobot
 		public override int GetLatency() { return mSocketClient.Latency; }
 		public override async Task StartAsync() { await mSocketClient.StartAsync(); }
 		public override async Task LoginAsync(TokenType tokenType, string token) { await mSocketClient.LoginAsync(tokenType, token); }
+		public override async Task LogoutAsync() { await mSocketClient.LogoutAsync(); }
+		public override async Task WaitForGuildsAsync() { await mSocketClient.WaitForGuildsAsync(); }
 		public override async Task SetGameAsync(string game, string stream, StreamType streamType) { await mSocketClient.SetGameAsync(game, stream, streamType); }
 	}
 
 	public class ShardedClient : BotClient
 	{
-		DiscordShardedClient mShardedClient;
+		private DiscordShardedClient mShardedClient;
 		public ShardedClient(DiscordShardedClient client) { mShardedClient = client; }
 
 		public override void AddMessageReceivedHandler(CommandHandler handler) { mShardedClient.MessageReceived += handler.HandleCommand; }
@@ -554,7 +643,72 @@ namespace Advobot
 		public override int GetLatency() { return mShardedClient.Latency; }
 		public override async Task StartAsync() { await mShardedClient.StartAsync(); }
 		public override async Task LoginAsync(TokenType tokenType, string token) { await mShardedClient.LoginAsync(tokenType, token); }
+		public override async Task LogoutAsync() { await mShardedClient.LogoutAsync(); }
+		public override async Task WaitForGuildsAsync() { await mShardedClient.Shards.ToList().ForEachAsync(async x => await x.WaitForGuildsAsync()); }
 		public override async Task SetGameAsync(string game, string stream, StreamType streamType) { await mShardedClient.SetGameAsync(game, stream, streamType); }
+	}
+
+	public class BaseSpamPrevention
+	{
+		public BaseSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfSpam)
+		{
+			mAmountOfMessages = amountOfMessages;
+			mVotesNeededForKick = votesNeededForKick;
+			mAmountOfSpam = amountOfSpam;
+			mEnabled = true;
+		}
+
+		private int mAmountOfMessages;
+		private int mVotesNeededForKick;
+		private int mAmountOfSpam;
+		private bool mEnabled;
+
+		public int AmountOfMentionsPerMsg
+		{
+			get { return mAmountOfSpam; }
+		}
+		public int AmountOfMessages
+		{
+			get { return mAmountOfMessages; }
+		}
+		public int VotesNeededForKick
+		{
+			get { return mVotesNeededForKick; }
+		}
+		public bool Enabled
+		{
+			get { return mEnabled; }
+		}
+
+		public void SwitchEnabled(bool newVal)
+		{
+			mEnabled = newVal;
+		}
+	}
+
+	public class MessageSpamPrevention : BaseSpamPrevention
+	{
+		public MessageSpamPrevention(int amountOfMessages, int votesNeededForKick, int placeholder) : base(amountOfMessages, votesNeededForKick, placeholder) { }
+	}
+
+	public class MentionSpamPrevention : BaseSpamPrevention
+	{
+		public MentionSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfMentions) : base(amountOfMessages, votesNeededForKick, amountOfMentions) {}
+	}
+
+	public class LongMessageSpamPrevention : BaseSpamPrevention
+	{
+		public LongMessageSpamPrevention(int amountOfMessages, int votesNeededForKick, int lengthOfMessage) : base(amountOfMessages, votesNeededForKick, lengthOfMessage) {}
+	}
+
+	public class LinkSpamPrevention : BaseSpamPrevention
+	{
+		public LinkSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfLinks) : base(amountOfMessages, votesNeededForKick, amountOfLinks) {}
+	}
+
+	public class ImageSpamPrevention : BaseSpamPrevention
+	{
+		public ImageSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfImages) : base(amountOfMessages, votesNeededForKick, amountOfImages) { }
 	}
 	#endregion
 
@@ -563,12 +717,42 @@ namespace Advobot
 	{
 		public ChannelAndPosition(IGuildChannel channel, int position)
 		{
-			Channel = channel;
-			Position = position;
+			mChannel = channel;
+			mPosition = position;
 		}
 
-		public IGuildChannel Channel;
-		public int Position;
+		private IGuildChannel mChannel;
+		private int mPosition;
+
+		public IGuildChannel Channel
+		{
+			get { return mChannel; }
+		}
+		public int Position
+		{
+			get { return Position; }
+		}
+	}
+
+	public struct SlowmodeChannel
+	{
+		public SlowmodeChannel(ulong channelID, ulong guildID)
+		{
+			mChannelID = channelID;
+			mGuildID = guildID;
+		}
+
+		private ulong mChannelID;
+		private ulong mGuildID;
+
+		public ulong ChannelID
+		{
+			get { return mChannelID; }
+		}
+		public ulong GuildID
+		{
+			get { return mGuildID; }
+		}
 	}
 
 	public struct BotGuildPermissionType
@@ -640,60 +824,137 @@ namespace Advobot
 	{
 		public Remind(string name, string text)
 		{
-			Name = name;
-			Text = text;
+			mName = name;
+			mText = text;
 		}
 
-		public string Name;
-		public string Text;
+		private string mName;
+		private string mText;
+
+		public string Name
+		{
+			get { return mName; }
+		}
+		public string Text
+		{
+			get { return mText; }
+		}
 	}
 
 	public struct CloseWord
 	{
 		public CloseWord(string name, int closeness)
 		{
-			Name = name;
-			Closeness = closeness;
+			mName = name;
+			mCloseness = closeness;
 		}
 
-		public string Name;
-		public int Closeness;
+		private string mName;
+		private int mCloseness;
+
+		public string Name
+		{
+			get { return mName; }
+		}
+		public int Closeness
+		{
+			get { return mCloseness; }
+		}
 	}
 
 	public struct ActiveCloseWords
 	{
 		public ActiveCloseWords(IGuildUser user, List<CloseWord> list)
 		{
-			User = user;
-			List = list;
+			mUser = user;
+			mList = list;
 		}
 
-		public IGuildUser User;
-		public List<CloseWord> List;
+		private IGuildUser mUser;
+		private List<CloseWord> mList;
+
+		public IGuildUser User
+		{
+			get { return mUser; }
+		}
+		public List<CloseWord> List
+		{
+			get { return mList; }
+		}
 	}
 
 	public struct CloseHelp
 	{
 		public CloseHelp(HelpEntry help, int closeness)
 		{
-			Help = help;
-			Closeness = closeness;
+			mHelp = help;
+			mCloseness = closeness;
 		}
 
-		public HelpEntry Help;
-		public int Closeness;
+		private HelpEntry mHelp;
+		private int mCloseness;
+
+		public HelpEntry Help
+		{
+			get { return mHelp; }
+		}
+		public int Closeness
+		{
+			get { return mCloseness; }
+		}
 	}
 
 	public struct ActiveCloseHelp
 	{
 		public ActiveCloseHelp(IGuildUser user, List<CloseHelp> list)
 		{
-			User = user;
-			List = list;
+			mUser = user;
+			mList = list;
 		}
 
-		public IGuildUser User;
-		public List<CloseHelp> List;
+		private IGuildUser mUser;
+		private List<CloseHelp> mList;
+
+		public IGuildUser User
+		{
+			get { return mUser; }
+		}
+		public List<CloseHelp> List
+		{
+			get { return mList; }
+		}
+	}
+
+	public struct UICommandNames
+	{
+		private static readonly Dictionary<UICommandEnum, string[]> NamesAndAliases = new Dictionary<UICommandEnum, string[]>
+		{
+			{ UICommandEnum.Pause, new string[] { SharedCommands.CPAUSE } },
+			{ UICommandEnum.BotOwner, new string[] { SharedCommands.COWNER, SharedCommands.AOWNER } },
+			{ UICommandEnum.SavePath, new string[] { SharedCommands.CPATH, SharedCommands.APATH } },
+			{ UICommandEnum.Prefix, new string[] { SharedCommands.CPREFIX, SharedCommands.APREFIX } },
+			{ UICommandEnum.Settings, new string[] { SharedCommands.CSETTINGS, SharedCommands.ASETTINGS } },
+			{ UICommandEnum.BotIcon, new string[] { SharedCommands.CICON, SharedCommands.AICON } },
+			{ UICommandEnum.BotGame, new string[] { SharedCommands.CGAME, SharedCommands.AGAME } },
+			{ UICommandEnum.BotStream, new string[] { SharedCommands.CSTREAM, SharedCommands.ASTREAM } },
+			{ UICommandEnum.BotName, new string[] { SharedCommands.CNAME, SharedCommands.ANAME } },
+			{ UICommandEnum.Disconnect, new string[] { SharedCommands.CDISC, SharedCommands.ADISC_1, SharedCommands.ADISC_2 } },
+			{ UICommandEnum.Restart, new string[] { SharedCommands.CRESTART, SharedCommands.ARESTART } },
+			{ UICommandEnum.ListGuilds, new string[] { SharedCommands.CGUILDS, SharedCommands.AGUILDS } },
+			{ UICommandEnum.Shards, new string[] { SharedCommands.CSHARDS } },
+		};
+
+		public static string[] GetNamesAndAliases(UICommandEnum cmd)
+		{
+			if (NamesAndAliases.ContainsKey(cmd))
+			{
+				return NamesAndAliases[cmd];
+			}
+			else
+			{
+				return new string[] { };
+			}
+		}
 	}
 	#endregion
 

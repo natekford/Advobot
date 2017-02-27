@@ -64,7 +64,7 @@ namespace Advobot
 				case SpamPreventionAction.Current:
 				{
 					//Make sure the server guild has a spam prevention set up
-					if (spamPrevention.Equals(default(MentionSpamPrevention)))
+					if (spamPrevention == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not have any spam prevention to modify or show."));
 						return;
@@ -85,7 +85,7 @@ namespace Advobot
 					}
 
 					//Enable it
-					spamPrevention.Enabled = true;
+					spamPrevention.SwitchEnabled(true);
 					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Spam prevention has successfully been enabled."));
 					return;
@@ -99,7 +99,7 @@ namespace Advobot
 					}
 
 					//Disable it
-					spamPrevention.Enabled = false;
+					spamPrevention.SwitchEnabled(false);
 					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Spam prevention has successfully been disabled."));
 					return;
@@ -125,28 +125,28 @@ namespace Advobot
 					{
 						int.TryParse(messagesString, out messages);
 					}
-					var mentions = 3;
-					if (mentionsString != null)
-					{
-						int.TryParse(mentionsString, out mentions);
-					}
 					var votes = 10;
 					if (votesString != null)
 					{
 						int.TryParse(votesString, out votes);
 					}
+					var mentions = 3;
+					if (mentionsString != null)
+					{
+						int.TryParse(mentionsString, out mentions);
+					}
 
 					//Give every number a valid input
 					int ms = messages < 1 ? 1 : messages;
-					int mn = mentions < 1 ? 1 : mentions;
 					int vt = votes < 1 ? 1 : votes;
+					int mn = mentions < 1 ? 1 : mentions;
 
 					//Create the spam prevention and add it to the guild
-					Variables.Guilds[Context.Guild.Id].MentionSpamPrevention = new MentionSpamPrevention(mn, ms, vt);
+					Variables.Guilds[Context.Guild.Id].MentionSpamPrevention = new MentionSpamPrevention(ms, vt, mn);
 
 					//Save the spam prevention
 					var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
-					Actions.SaveLines(path, Constants.SPAM_PREVENTION, String.Format("{0}/{1}/{2}", ms, mn, vt), Actions.GetValidLines(path, Constants.SPAM_PREVENTION));
+					Actions.SaveLines(path, Constants.SPAM_PREVENTION, String.Format("{0}/{1}/{2}", ms, vt, mn), Actions.GetValidLines(path, Constants.SPAM_PREVENTION));
 
 					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context,
@@ -164,6 +164,13 @@ namespace Advobot
 		[PermissionRequirement]
 		public async Task PreventRaidSpam([Remainder] string input)
 		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
 			//Split input
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			var action = inputArray[0];

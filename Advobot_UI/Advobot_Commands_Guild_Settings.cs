@@ -158,7 +158,7 @@ namespace Advobot
 				information += String.Format("Banned Regex: {0}\n", String.Join("", guild.BannedRegex.Select(x => "\n\t" + x.ToString())));
 				//Get the banned phrase punishments
 				information += String.Format("Banned Phrases Punishments: {0}\n", String.Join("", guild.BannedPhrasesPunishments.Select(x => String.Format("\n\t{0}: {1}",
-					x.Number_Of_Removes, x.Punishment == PunishmentType.Role ? String.Format("{0} ({1})", x.Role.Name, x.PunishmentTime) : Enum.GetName(typeof(PunishmentType), x.Punishment)))));
+					x.NumberOfRemoves, x.Punishment == PunishmentType.Role ? String.Format("{0} ({1})", x.Role.Name, x.PunishmentTime) : Enum.GetName(typeof(PunishmentType), x.Punishment)))));
 				//Get the ignored channels
 				information += String.Format("Ignored Channels: {0}\n", String.Join("", guild.IgnoredLogChannels.Select(async x => "\n\t" + (await Context.Guild.GetChannelAsync(x)).Name)));
 				//Get the log actions
@@ -352,12 +352,12 @@ namespace Advobot
 				category = Variables.Guilds[Context.Guild.Id].CommandSettings;
 			}
 			//Check if it's already enabled
-			else if (enableBool && command.valAsBoolean)
+			else if (enableBool && command.ValAsBoolean)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already enabled."));
 				return;
 			}
-			else if (!enableBool && !command.valAsBoolean)
+			else if (!enableBool && !command.ValAsBoolean)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already disabled."));
 				return;
@@ -391,11 +391,11 @@ namespace Advobot
 			//Actually enabled or disable the commands
 			if (enableBool)
 			{
-				category.ForEach(x => x.enable());
+				category.ForEach(x => x.Enable());
 			}
 			else
 			{
-				category.ForEach(x => x.disable());
+				category.ForEach(x => x.Disable());
 			}
 
 			//Save the preferences
@@ -644,7 +644,7 @@ namespace Advobot
 				//Give them the permissions
 				permissions.ForEach(x =>
 				{
-					botUser.Permissions |= (1U << x.Position);
+					botUser.AddPermission(x.Position);
 				});
 			}
 			else
@@ -654,7 +654,7 @@ namespace Advobot
 				{
 					if (botUser.Permissions == 0)
 						return;
-					botUser.Permissions &= ~(1U << x.Position);
+					botUser.RemovePermission(x.Position);
 				});
 			}
 

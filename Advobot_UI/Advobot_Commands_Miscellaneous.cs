@@ -85,14 +85,14 @@ namespace Advobot
 						else
 						{
 							//If three words in the list, check closeness value now
-							closeHelps.ForEach(x =>
+							foreach (var help in closeHelps)
 							{
-								if (closeness < x.Closeness)
+								if (closeness < help.Closeness)
 								{
-									closeHelps.Insert(closeHelps.IndexOf(x), new CloseHelp(HelpEntry, closeness));
-									return;
+									closeHelps.Insert(closeHelps.IndexOf(help), new CloseHelp(HelpEntry, closeness));
+									break;
 								}
-							});
+							}
 
 							//Remove all words that are now after the third item
 							closeHelps.RemoveRange(3, closeHelps.Count - 3);

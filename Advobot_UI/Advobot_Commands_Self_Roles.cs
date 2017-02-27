@@ -96,6 +96,13 @@ namespace Advobot
 					//Get the position of the last space
 					int lastSpace = rolesString.LastIndexOf(' ');
 
+					//Make sure valid last space
+					if (lastSpace < 1)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid group supplied."));
+						return;
+					}
+
 					//Make the group string everything after the last space
 					var groupString = rolesString.Substring(lastSpace).Trim();
 					//Make the role string everything before the last space
@@ -172,16 +179,14 @@ namespace Advobot
 						else
 						{
 							//Add the roles to the group
-							SAGroups.FirstOrDefault(x => x.Group == groupNumber).Roles.AddRange(SARoles);
+							SAGroups.FirstOrDefault(x => x.Group == groupNumber).AddRoles(SARoles);
 						}
 					}
 					//Remove
 					else
 					{
-						//Convert the list of SARoles to ulongs
-						var ulongs = SARoles.Select(x => x.Role.Id).ToList();
 						//Find the one with the correct group number and remove all roles which have an ID on the ulong list
-						Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).FirstOrDefault(x => x.Group == groupNumber).Roles.RemoveAll(x => ulongs.Contains(x.Role.Id));
+						Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).FirstOrDefault(x => x.Group == groupNumber).RemoveRoles(SARoles.Select(x => x.Role.Id).ToList());
 					}
 					break;
 				}
@@ -222,9 +227,7 @@ namespace Advobot
 			//Rewrite it
 			using (StreamWriter writer = new StreamWriter(path))
 			{
-				var savingString = "";
-				Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).ToList().ForEach(x => x.Roles.ForEach(y => savingString += y.Role.Id + " " + y.Group + "\n"));
-				writer.WriteLine(savingString);
+				writer.WriteLine(String.Join("\n", Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).ToList().Select(x => x.FormatSaveString()).ToList()));
 			}
 
 			//Make the success and failure strings

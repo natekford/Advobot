@@ -494,7 +494,7 @@ namespace Advobot
 			if (addBool)
 			{
 				//Check if trying to add to an already established spot
-				if (punishments.Any(x => x.Number_Of_Removes == newPunishment.Number_Of_Removes))
+				if (punishments.Any(x => x.NumberOfRemoves == newPunishment.NumberOfRemoves))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists for that number of banned phrases said."));
 					return;
@@ -525,9 +525,9 @@ namespace Advobot
 			//Remove
 			else
 			{
-				if (punishments.Any(x => x.Number_Of_Removes == number))
+				if (punishments.Any(x => x.NumberOfRemoves == number))
 				{
-					await punishments.Where(x => x.Number_Of_Removes == number).ToList().ForEachAsync(async punish =>
+					await punishments.Where(x => x.NumberOfRemoves == number).ToList().ForEachAsync(async punish =>
 					{
 						//Check if the user can modify this role, if they can't then don't let them modify the 
 						if (punish.Role != null && punish.Role.Position > Actions.GetPosition(Context.Guild, Context.User as IGuildUser))
@@ -549,7 +549,7 @@ namespace Advobot
 			var toSave = punishments.Select(x =>
 			{
 				return String.Format("{0} {1} {2} {3}",
-					x.Number_Of_Removes,
+					x.NumberOfRemoves,
 					(int)x.Punishment,
 					x.Role == null ? "" : x.Role.Id.ToString(),
 					x.PunishmentTime == null ? "" : x.PunishmentTime.ToString()).Trim();
@@ -575,15 +575,15 @@ namespace Advobot
 			}
 			else if (newPunishment.Punishment == PunishmentType.Kick)
 			{
-				successMsg = "`" + Enum.GetName(typeof(PunishmentType), punishmentType) + "` at `" + newPunishment.Number_Of_Removes.ToString("00") + "`";
+				successMsg = "`" + Enum.GetName(typeof(PunishmentType), punishmentType) + "` at `" + newPunishment.NumberOfRemoves.ToString("00") + "`";
 			}
 			else if (newPunishment.Punishment == PunishmentType.Ban)
 			{
-				successMsg = "`" + Enum.GetName(typeof(PunishmentType), punishmentType) + "` at `" + newPunishment.Number_Of_Removes.ToString("00") + "`";
+				successMsg = "`" + Enum.GetName(typeof(PunishmentType), punishmentType) + "` at `" + newPunishment.NumberOfRemoves.ToString("00") + "`";
 			}
 			else if (newPunishment.Role != null)
 			{
-				successMsg = "`" + newPunishment.Role + "` at `" + newPunishment.Number_Of_Removes.ToString("00") + "`";
+				successMsg = "`" + newPunishment.Role + "` at `" + newPunishment.NumberOfRemoves.ToString("00") + "`";
 			}
 
 			//Check if there's a time
@@ -681,7 +681,7 @@ namespace Advobot
 				guildPunishments.ForEach(x =>
 				{
 					description += String.Format("`{0}.` `{1}`{2}\n",
-						x.Number_Of_Removes.ToString("00"),
+						x.NumberOfRemoves.ToString("00"),
 						x.Role == null ? Enum.GetName(typeof(PunishmentType), x.Punishment) : x.Role.Name,
 						x.PunishmentTime == null ? "" : " `" + x.PunishmentTime + " minutes`");
 				});
@@ -732,7 +732,7 @@ namespace Advobot
 			if (inputArray[0].Equals("clear", StringComparison.OrdinalIgnoreCase))
 			{
 				//Reset the messages
-				Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user).AmountOfRemovedMessages = 0;
+				Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user).ResetAmountOfRemovesMessages();
 
 				//Send a success message
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the amount of messages removed for `{0}#{1}` to 0.", user.Username, user.Discriminator));

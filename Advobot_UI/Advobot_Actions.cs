@@ -75,7 +75,7 @@ namespace Advobot
 						UsageAttribute attr = (UsageAttribute)method.GetCustomAttribute(typeof(UsageAttribute));
 						if (attr != null)
 						{
-							usage = attr.Text;
+							usage = attr.Usage;
 						}
 					}
 					//Get the base permissions
@@ -451,7 +451,7 @@ namespace Advobot
 					//Add it to the list if it already does exist
 					else
 					{
-						Variables.SelfAssignableGroups.FirstOrDefault(x => x.Group == group).Roles.Add(SARole);
+						Variables.SelfAssignableGroups.FirstOrDefault(x => x.Group == group).AddRole(SARole);
 					}
 				}
 			}
@@ -529,21 +529,21 @@ namespace Advobot
 					{
 						var variableNumbers = line.Substring(line.IndexOf(':') + 1).Split('/').ToList();
 						if (variableNumbers.Count != 3)
-							return;
+							continue;
 
 						var messagesRequired = 0;
 						if (!int.TryParse(variableNumbers[0], out messagesRequired))
-							return;
+							continue;
 
 						var mentionsRequired = 0;
 						if (!int.TryParse(variableNumbers[1], out mentionsRequired))
-							return;
+							continue;
 
 						var votesRequired = 0;
 						if (!int.TryParse(variableNumbers[2], out votesRequired))
-							return;
+							continue;
 
-						Variables.Guilds[guild.Id].MentionSpamPrevention = new MentionSpamPrevention(mentionsRequired, messagesRequired, votesRequired);
+						Variables.Guilds[guild.Id].MentionSpamPrevention = new MentionSpamPrevention(messagesRequired, votesRequired, mentionsRequired);
 					}
 				}
 			}
@@ -2327,7 +2327,7 @@ namespace Advobot
 					writer.WriteLine("@" + cmd.CategoryName);
 					categories = cmd.CategoryValue;
 				}
-				writer.WriteLine(cmd.Name + ":" + cmd.valAsString);
+				writer.WriteLine(cmd.Name + ":" + cmd.ValAsString);
 			});
 		}
 		
@@ -2443,7 +2443,7 @@ namespace Advobot
 			//Get the command
 			var cmd = GetCommand(context.Guild.Id, context.Message.Content.Substring(Properties.Settings.Default.Prefix.Length).Split(' ').FirstOrDefault());
 			//Check if the command is on or off
-			if (cmd != null && !cmd.valAsBoolean)
+			if (cmd != null && !cmd.ValAsBoolean)
 				return false;
 			else
 				return true;
@@ -2567,7 +2567,7 @@ namespace Advobot
 					}
 
 					//Lower it by one
-					--smUser.CurrentMessagesLeft;
+					smUser.LowerMessagesLeft();
 				}
 				//Else delete the message
 				else
@@ -2649,7 +2649,7 @@ namespace Advobot
 			{
 				//Grab the user and add 1 onto his messages removed count
 				bpUser = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user);
-				++bpUser.AmountOfRemovedMessages;
+				bpUser.IncreaseAmountOfRemovedMessages();
 			}
 			else
 			{
@@ -2662,11 +2662,11 @@ namespace Advobot
 			var punishments = Variables.Guilds[user.Guild.Id].BannedPhrasesPunishments;
 
 			//Check if any punishments have the messages count which the user has
-			if (!punishments.Any(x => x.Number_Of_Removes == bpUser.AmountOfRemovedMessages))
+			if (!punishments.Any(x => x.NumberOfRemoves == bpUser.AmountOfRemovedMessages))
 				return;
 
 			//Grab the punishment with the same number
-			BannedPhrasePunishment punishment = punishments.FirstOrDefault(x => x.Number_Of_Removes == bpUser.AmountOfRemovedMessages);
+			BannedPhrasePunishment punishment = punishments.FirstOrDefault(x => x.NumberOfRemoves == bpUser.AmountOfRemovedMessages);
 
 			//Kick
 			if (punishment.Punishment == PunishmentType.Kick)
@@ -3011,7 +3011,7 @@ namespace Advobot
 				//Sleep for the given amount of seconds
 				await Task.Delay(Math.Abs(smUser.Time) * 1000);
 				//Add back their ability to send messages
-				smUser.CurrentMessagesLeft = smUser.BaseMessages;
+				smUser.ResetMessagesLeft();
 			});
 		}
 
