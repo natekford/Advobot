@@ -832,6 +832,87 @@ namespace Advobot
 		#endregion
 
 		#region Miscellaneous
+		[Command("makeanembed")]
+		[Alias("mae")]
+		[Usage("\"Title:input\" \"Desc:input\" Img:url Url:url Thumb:url Color:int/int/int \"Auth:input\" AuthIcon:url AuthUrl:url \"Foot:input\" FootIcon:url " +
+				"\"Field:input\" \"FieldText:input\" FieldInline:input ")]
+		[Summary("Every single piece is optional. The stuff in quotes *must* be in quotes. URLs need the https:// in front. Fields need *both* Field and FText to work.")]
+		[UserHasAPermission]
+		public async Task MakeAnEmbed([Remainder] string input)
+		{
+			//Split the input
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ').ToList();
+
+			//Get the inputs
+			var title = Actions.GetVariableAndRemove(inputArray, "title");
+			var description = Actions.GetVariableAndRemove(inputArray, "desc");
+			var imageURL = Actions.GetVariableAndRemove(inputArray, "Img");
+			var URL = Actions.GetVariableAndRemove(inputArray, "url");
+			var thumbnail = Actions.GetVariableAndRemove(inputArray, "thumb");
+			var authorName = Actions.GetVariableAndRemove(inputArray, "auth");
+			var authorIcon = Actions.GetVariableAndRemove(inputArray, "authicon");
+			var authorURL = Actions.GetVariableAndRemove(inputArray, "authurl");
+			var footerText = Actions.GetVariableAndRemove(inputArray, "foot");
+			var footerIcon = Actions.GetVariableAndRemove(inputArray, "footicon");
+
+			//Validate URLs
+			if (!Actions.ValidateURL(imageURL))
+				imageURL = null;
+			if (!Actions.ValidateURL(URL))
+				URL = null;
+			if (!Actions.ValidateURL(thumbnail))
+				thumbnail = null;
+			if (!Actions.ValidateURL(authorIcon))
+				authorIcon = null;
+			if (!Actions.ValidateURL(authorURL))
+				authorURL = null;
+			if (!Actions.ValidateURL(footerIcon))
+				footerIcon = null;
+
+			//Get the color
+			var color = Constants.BASE;
+			var colorRGB = Actions.GetVariableAndRemove(inputArray, "color")?.Split('/');
+			if (colorRGB != null && colorRGB.Length == 3)
+			{
+				int r;
+				int g;
+				int b;
+				const int maxVal = 255;
+				if (int.TryParse(colorRGB[0], out r) && int.TryParse(colorRGB[1], out g) && int.TryParse(colorRGB[2], out b))
+				{
+					color = new Color((byte)Math.Min(r, maxVal), (byte)Math.Min(g, maxVal), (byte)Math.Min(b, maxVal));
+				}
+			}
+
+			//Make the embed
+			var embed = Actions.MakeNewEmbed(title, description, color, imageURL, URL, thumbnail);
+			//Add in the author
+			Actions.AddAuthor(embed, authorName, authorIcon, authorURL);
+			//Add in the footer
+			Actions.AddFooter(embed, footerText, footerIcon);
+
+			//Add in the fields and text
+			for (int i = 0; i < 10; i++)
+			{
+				//Get the input for fields
+				var field = Actions.GetVariableAndRemove(inputArray, "field");
+				var fieldText = Actions.GetVariableAndRemove(inputArray, "fieldtext");
+				//If either is null break out of this loop because they shouldn't be null
+				if (field == null || fieldText == null)
+					break;
+
+				//Get the bool for the field
+				var inlineBool = true;
+				bool.TryParse(Actions.GetVariableAndRemove(inputArray, "fieldinline"), out inlineBool);
+
+				//Add in the field
+				Actions.AddField(embed, field, fieldText, inlineBool);
+			}
+
+			//Send the embed
+			await Actions.SendEmbedMessage(Context.Channel, embed);
+		}
+
 		[Command("mentionrole")]
 		[Alias("mnr")]
 		[Usage("[Role]/[Message]")]

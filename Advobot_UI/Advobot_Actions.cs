@@ -1128,25 +1128,41 @@ namespace Advobot
 			return result;
 		}
 
-		//Get the variables for slowmode
-		public static string GetVariable(string[] inputArray, string searchTerm)
+		//Get the split input of an input char except when in quotes
+		public static string[] SplitByCharExceptInQuotes(string inputString, char inputChar)
 		{
-			if (inputArray != null && inputArray.Any(x => x.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase)))
+			return inputString.Split('"').Select((element, index) => index % 2 == 0 ? element.Split(new[] { inputChar }, StringSplitOptions.RemoveEmptyEntries)
+										   : new string[] { element }).SelectMany(element => element).ToArray();
+		}
+
+		//Get the variables out of a list
+		public static string GetVariableAndRemove(List<string> inputList, string searchTerm)
+		{
+			//Get the item
+			var first = inputList?.Where(x => x.Substring(0, Math.Max(x.IndexOf(':'), 1)).Equals(searchTerm, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+			if (first != null)
 			{
-				var first = inputArray.Where(x => x.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+				//Remove it from the list
+				inputList.Remove(first);
+				//Return everything after the first colon (the keyword)
 				return first.Substring(first.IndexOf(':') + 1);
 			}
 			return null;
 		}
 
+		//Get the variables out of an array
+		public static string GetVariable(string[] inputArray, string searchTerm)
+		{
+			//Get the item
+			var first = inputArray?.Where(x => x.Substring(0, Math.Max(x.IndexOf(':'), 1)).Equals(searchTerm, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+			return first != null ? first.Substring(first.IndexOf(':') + 1) : null;
+		}
+
 		//Get the variable out of a string
 		public static string GetVariable(string inputString, string searchTerm)
 		{
-			if (inputString != null && inputString.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase))
-			{
-				return inputString.Substring(inputString.IndexOf(':') + 1);
-			}
-			return null;
+			return (inputString != null && inputString.Substring(0, Math.Max(inputString.IndexOf(':'), 1)).Equals(searchTerm, StringComparison.OrdinalIgnoreCase)
+					? inputString.Substring(inputString.IndexOf(':') + 1) : null);
 		}
 
 		//Get the OS
@@ -1759,9 +1775,11 @@ namespace Advobot
 		//Validate URL
 		public static bool ValidateURL(string input)
 		{
+			if (input == null)
+				return false;
+
 			Uri uriResult;
-			var wut = Uri.TryCreate(input, UriKind.Absolute, out uriResult);
-			return wut && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+			return Uri.TryCreate(input, UriKind.Absolute, out uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 		}
 		#endregion
 
@@ -1845,38 +1863,50 @@ namespace Advobot
 		}
 		
 		//Make a new embed builder
-		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null)
+		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null, string URL = null, string thumbnailURL = null)
 		{
 			var embed = new EmbedBuilder().WithColor(Constants.BASE).WithCurrentTimestamp();
 			
 			if (title != null)
 			{
-				embed.Title = title;
+				embed.WithTitle(title);
 			}
 			if (description != null)
 			{
 				if (description.Length > Constants.LENGTH_CHECK)
 				{
-					embed.Url = UploadToHastebin(ReplaceMarkdownChars(description));
-					embed.Description = "Content is past 2,000 characters. Click the link to see it.";
+					embed.WithUrl(UploadToHastebin(ReplaceMarkdownChars(description)));
+					embed.WithDescription("Content is past 2,000 characters. Click the link to see it.");
 				}
 				else
 				{
-					embed.Description = description;
 					//Mobile can only show up to 20 or so lines per embed I think (at least on Android) 
 					if (description.Count(x => x == '\n' || x == '\r') >= 20)
 					{
-						embed.Url = UploadToHastebin(ReplaceMarkdownChars(description));
+						embed.WithUrl(UploadToHastebin(ReplaceMarkdownChars(description)));
+						embed.WithDescription("Content is past 20 new lines. Click the link to see it.");
+					}
+					else
+					{
+						embed.WithDescription(description);
 					}
 				}
 			}
 			if (color != null)
 			{
-				embed.Color = color.Value;
+				embed.WithColor(color.Value);
 			}
 			if (imageURL != null)
 			{
-				embed.ImageUrl = imageURL;
+				embed.WithImageUrl(imageURL);
+			}
+			if (URL != null)
+			{
+				embed.WithUrl(URL);
+			}
+			if (thumbnailURL != null)
+			{
+				embed.WithThumbnailUrl(thumbnailURL);
 			}
 
 			return embed;
@@ -1885,19 +1915,19 @@ namespace Advobot
 		//Make a new author for an embed
 		public static EmbedBuilder AddAuthor(EmbedBuilder embed, string name = null, string iconURL = null, string URL = null)
 		{
-			EmbedAuthorBuilder author = new EmbedAuthorBuilder().WithIconUrl("https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png");
+			var author = new EmbedAuthorBuilder().WithIconUrl("https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png");
 
 			if (name != null)
 			{
-				author.Name = name;
+				author.WithName(name);
 			}
 			if (iconURL != null)
 			{
-				author.IconUrl = iconURL;
+				author.WithIconUrl(iconURL);
 			}
 			if (URL != null)
 			{
-				author.Url = URL;
+				author.WithUrl(URL);
 			}
 
 			return embed.WithAuthor(author);
@@ -1906,15 +1936,15 @@ namespace Advobot
 		//Make a new footer for an embed
 		public static EmbedBuilder AddFooter(EmbedBuilder embed, string text = null, string iconURL = null)
 		{
-			EmbedFooterBuilder footer = new EmbedFooterBuilder();
+			var footer = new EmbedFooterBuilder();
 
 			if (text != null)
 			{
-				footer.Text = text;
+				footer.WithText(text);
 			}
 			if (iconURL != null)
 			{
-				footer.IconUrl = iconURL;
+				footer.WithIconUrl(iconURL);
 			}
 
 			return embed.WithFooter(footer);
@@ -2096,11 +2126,11 @@ namespace Advobot
 						//If no video then it has to be just an image
 						if (x.Thumbnail.HasValue && !String.IsNullOrEmpty(x.Thumbnail.Value.Url))
 						{
-							embedURLs.AddRange(message.Embeds.Select(y => y.Thumbnail.Value.Url).Distinct());
+							embedURLs.Add(x.Thumbnail.Value.Url);
 						}
-						else if (x.Image.HasValue && !String.IsNullOrEmpty(x.Image.Value.Url))
+						if (x.Image.HasValue && !String.IsNullOrEmpty(x.Image.Value.Url))
 						{
-							embedURLs.AddRange(message.Embeds.Select(y => y.Image.Value.Url).Distinct());
+							embedURLs.Add(x.Image.Value.Url);
 						}
 					}
 					else
