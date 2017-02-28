@@ -28,25 +28,14 @@ namespace Advobot
 		//Layout
 		private static Grid mLayout = new Grid()
 		{
-			Background = new ImageBrush(Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.Graphic_Design.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions())),
+			//Background = new ImageBrush(Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.Graphic_Design.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions())),
 		};
 
 		#region Output
-		//Save ouput
-		private static MenuItem mOutputContextMenuSave = new MenuItem
-		{
-			Header = "Save Output Log",
-		};
-		//Clear output
-		private static MenuItem mOutputContextMenuClear = new MenuItem
-		{
-			Header = "Clear Output Log",
-		};
-		//Create the context menu for the output window
-		private static ContextMenu mOutputContextMenu = new ContextMenu
-		{
-			ItemsSource = new[] { mOutputContextMenuSave, mOutputContextMenuClear },
-		};
+		//Context menu
+		private static MenuItem mOutputContextMenuSave = new MenuItem { Header = "Save Output Log", };
+		private static MenuItem mOutputContextMenuClear = new MenuItem { Header = "Clear Output Log", };
+		private static ContextMenu mOutputContextMenu = new ContextMenu { ItemsSource = new[] { mOutputContextMenuSave, mOutputContextMenuClear }, };
 		//Output textbox
 		private static RichTextBox mOutput = new RichTextBox
 		{
@@ -64,131 +53,68 @@ namespace Advobot
 			IsDocumentEnabled = true,
 			Visibility = Visibility.Hidden,
 		};
-		//Secondary output button names
+		//Strings
 		private const string mFirstButtonString = "Help";
 		private const string mSecondButtonString = "Commands";
 		private const string mThirdButtonString = "Info";
 		private const string mFourthButtonString = "Settings";
 		private static string mLastButtonClicked;
+		private const string mHelpSynt = "Command Syntax:\n\t[] means required\n\t<> means optional\n\t| means or";
+		private const string mHelpInf1 = "\n\nLatency:\n\tTime it takes for a command to reach the bot.\nMemory:\n\tAmount of RAM the program is using.\n\t(This is wrong most of the time.)";
+		private const string mHelpInf2 = "\nThreads:\n\tWhere all the actions in the bot happen.\nShards:\n\tHold all the guilds a bot has on its client.\n\tThere is a limit of 2500 guilds per shard.";
+		private const string mHelpVers = "\n\nAPI Wrapper Version: " + Constants.API_VERSION + "\nBot Version: " + Constants.BOT_VERSION + "\nCurrent GitHub Repository: ";
+		private const string mHelpChar = "\n\nCharacter Count: 470,000+\nLine Count: 13,500+";
+		private const string mHelpHelp = "\n\nNeed additional help? Join my Discord server: ";
+		private static readonly string mCmdsCmds = UICommandNames.FormatStringForUse();
 		//Inlines
-		private static Run mFirstHelpPart = new Run("Command Syntax:\n\t[] means required\n\t<> means optional\n\t| means or\n\nLatency:\n\tTime it takes for a command to reach the bot.\nMemory:\n\t" +
-			"Amount of RAM the program is using.\nThreads:\n\tWhere all the actions in the bot happen.\nShards:\n\tHold all the guilds a bot has on its client.\n\tThere is a limit of 2500 guilds per shard." +
-			"\n\nCurrent API Wrapper Version: " + Constants.API_VERSION + "\nCurrent Bot Version: " + Constants.BOT_VERSION);
-		private static Run mSecondHelpPart = new Run("\nCurrent GitHub Repository: ");
-		private static Hyperlink mThirdHelpPart = CreateHyperlink("https://github.com/advorange/Advobot", "Advobot");
-		private static Run mFourthHelpPart = new Run("\n\nCharacter Count: 350,000+\nLine Count: 10,000+");
+		private static Inline mHelpFirstRun = new Run(mHelpSynt + mHelpInf1 + mHelpInf2 + mHelpVers);
+		private static Inline mHelpFirstHyperlink = CreateHyperlink("https://github.com/advorange/Advobot", "Advobot");
+		private static Inline mHelpSecondRun = new Run(mHelpChar + mHelpHelp);
+		private static Inline mHelpSecondHyperlink = CreateHyperlink("https://www.discord.gg/ad", "Here");
+		private static Inline mCmdsFirstRun = new Run(mCmdsCmds);
+		private static Inline mInfoFirstRun = new Run("Lorem Ipsum");
+		private static Inline mSetsFirstRun = new Run("Sample Text");
 		//Paragraphs
-		private static Paragraph mFirstParagraph = new Paragraph();
-		private static Paragraph mSecondParagraph = new Paragraph(new Run("Placeholder"));
-		private static Paragraph mThirdParagraph = new Paragraph(new Run("Lorem Ipsum"));
-		private static Paragraph mFourthParagraph = new Paragraph(new Run("Test"));
+		private static Paragraph mFirstParagraph = new Paragraph(mHelpFirstRun);
+		private static Paragraph mSecondParagraph = new Paragraph(mCmdsFirstRun);
+		private static Paragraph mThirdParagraph = new Paragraph(mInfoFirstRun);
+		private static Paragraph mFourthParagraph = new Paragraph(mSetsFirstRun);
 		//Button layout
 		private static Grid mButtonLayout = new Grid();
-		//First button
-		private static Button mFirstButton = new Button
-		{
-			Content = mFirstButtonString,
-		};
-		//Second button
-		private static Button mSecondButton = new Button
-		{
-			Content = mSecondButtonString,
-		};
-		//Third button
-		private static Button mThirdButton = new Button
-		{
-			Content = mThirdButtonString,
-		};
-		//Fourth button
-		private static Button mFourthButton = new Button
-		{
-			Content = mFourthButtonString,
-		};
+		//Buttons
+		private static Button mFirstButton = new Button { Content = mFirstButtonString, };
+		private static Button mSecondButton = new Button { Content = mSecondButtonString, };
+		private static Button mThirdButton = new Button { Content = mThirdButtonString, };
+		private static Button mFourthButton = new Button { Content = mFourthButtonString, };
 		#endregion
 
 		#region Input
-		//Input layout
+		//Layout
 		private static Grid mInputLayout = new Grid();
-		//Input textbox
-		private static RichTextBox mInput = new RichTextBox
-		{
-			Background = Brushes.White,
-			Margin = new Thickness(0),
-		};
-		//Input button
-		private static Button mInputButton = new Button
-		{
-			IsEnabled = false,
-			Content = "Enter",
-		};
+		//Textboxes
+		private static RichTextBox mInput = new RichTextBox { Background = Brushes.White, Margin = new Thickness(0), };
+		//Buttons
+		private static Button mInputButton = new Button { IsEnabled = false, Content = "Enter", };
 		#endregion
 
 		#region System Info
-		//System info layout
+		//Layout
 		private static Grid mSysInfoLayout = new Grid();
-		//System info underneath
 		private static TextBox mSysInfoUnder = new TextBox();
-		//Latency
-		private static TextBox mLatency = new TextBox
-		{
-			IsReadOnly = true,
-			BorderBrush = Brushes.Transparent,
-		};
-		//Latency viewbox
-		private static Viewbox mLatencyView = new Viewbox
-		{
-			Child = mLatency,
-		};
-		//Memory
-		private static TextBox mMemory = new TextBox
-		{
-			IsReadOnly = true,
-			BorderBrush = Brushes.Transparent,
-		};
-		//Memory viewbox
-		private static Viewbox mMemoryView = new Viewbox
-		{
-			Child = mMemory,
-		};
-		//Memory tooltip
-		private static ToolTip mMemHoverInfo = new ToolTip
-		{
-			Content = "This is not guaranteed to be 100% correct.",
-		};
-		//Threads
-		private static TextBox mThreads = new TextBox
-		{
-			IsReadOnly = true,
-			BorderBrush = Brushes.Transparent,
-		};
-		//Threads viewbox
-		private static Viewbox mThreadsView = new Viewbox
-		{
-			Child = mThreads,
-		};
-		//Shards
-		private static TextBox mShards = new TextBox
-		{
-			IsReadOnly = true,
-			BorderBrush = Brushes.Transparent,
-		};
-		//Shards viewbox
-		private static Viewbox mShardsView = new Viewbox
-		{
-			Child = mShards,
-		};
-		//Prefix
-		private static TextBox mPrefix = new TextBox
-		{
-			IsReadOnly = true,
-			BorderBrush = Brushes.Transparent,
-		};
-		//Prefix viewbox
-		private static Viewbox mPrefixView = new Viewbox
-		{
-			Child = mPrefix,
-			HorizontalAlignment = HorizontalAlignment.Stretch,
-		};
+		//Textboxes
+		private static TextBox mLatency = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
+		private static TextBox mMemory = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
+		private static TextBox mThreads = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
+		private static TextBox mShards = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
+		private static TextBox mPrefix = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
+		//Viewboxes
+		private static Viewbox mLatencyView = new Viewbox { Child = mLatency, };
+		private static Viewbox mMemoryView = new Viewbox { Child = mMemory, };
+		private static Viewbox mThreadsView = new Viewbox { Child = mThreads, };
+		private static Viewbox mShardsView = new Viewbox { Child = mShards, };
+		private static Viewbox mPrefixView = new Viewbox { Child = mPrefix, HorizontalAlignment = HorizontalAlignment.Stretch, };
+		//Tooltips
+		private static ToolTip mMemHoverInfo = new ToolTip { Content = "This is not guaranteed to be 100% correct.", };
 		#endregion
 
 		#region Bindings
@@ -203,7 +129,7 @@ namespace Advobot
 		{
 			Path = new PropertyPath("ActualHeight"),
 			RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
-			Converter = new FontResizer(.0175),
+			Converter = new FontResizer(.0157),
 		};
 		#endregion
 
@@ -211,6 +137,7 @@ namespace Advobot
 		//Create the bot window
 		public BotWindow()
 		{
+			FontFamily = new FontFamily("Courier New");
 			InitializeComponent();
 		}
 
@@ -250,7 +177,10 @@ namespace Advobot
 			AddItemAndSetPositionsAndSpans(mButtonLayout, mFourthButton, 0, 1, 3, 1);
 
 			//Paragraphs
-			mFirstParagraph.Inlines.AddRange(new Inline[] { mFirstHelpPart, mSecondHelpPart, mThirdHelpPart, mFourthHelpPart });
+			mFirstParagraph.Inlines.AddRange(new Inline[] { mHelpFirstHyperlink, mHelpSecondRun, mHelpSecondHyperlink });
+			//mSecondParagraph.Inlines.Add();
+			//mThirdParagraph.Inlines.Add();
+			//mFourthParagraph.Inlines.Add();
 
 			//Set this panel as the content for this window.
 			Content = mLayout;
@@ -631,70 +561,70 @@ namespace Advobot
 		public static bool FindCommand(string cmd, string args)
 		{
 			//Find what command it belongs to
-			if (UICommandNames.GetNamesAndAliases(UICommandEnum.Pause).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			if (UICommandNames.GetNameAndAliases(UICommandEnum.Pause).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.PAUSE(args);
 			}
-			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.BotOwner).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.BotOwner).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIGlobalBotOwner(args);
 			}
-			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.SavePath).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.SavePath).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIGlobalSavePath(args);
 			}
-			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.Prefix).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.Prefix).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIGlobalPrefix(args);
 				});
 			}
-			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.Settings).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.Settings).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIGlobalSettings(args);
 			}
-			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.BotIcon).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.BotIcon).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIBotIcon(args);
 				});
 			}
-			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.BotGame).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.BotGame).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIBotGame(args);
 				});
 			}
-			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.BotStream).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.BotStream).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIBotStream(args);
 				});
 			}
-			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.BotName).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.BotName).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIBotName(args);
 				});
 			}
-			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.Disconnect).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.Disconnect).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIDisconnect();
 			}
-			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.Restart).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.Restart).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIRestart();
 			}
-			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.ListGuilds).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.ListGuilds).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIListGuilds();
 			}
-			else if (UICommandNames.GetNamesAndAliases(UICommandEnum.Shards).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.Shards).Contains(cmd, StringComparer.OrdinalIgnoreCase))
 			{
 				UICommands.UIModifyShards(args);
 			}

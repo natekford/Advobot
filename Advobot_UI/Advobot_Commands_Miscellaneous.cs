@@ -149,9 +149,9 @@ namespace Advobot
 			//See if it's empty
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				var embed = Actions.MakeNewEmbed("Commands", "Type `" + Constants.BOT_PREFIX + "commands [Category]` for commands from that category.");
-				var catString = String.Join("\n", Enum.GetNames(typeof(CommandCategory)));
-				await Actions.SendEmbedMessage(Context.Channel, Actions.AddField(embed, "Categories", catString));
+				var embed = Actions.MakeNewEmbed("Categories",
+					String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}", Constants.BOT_PREFIX, String.Join("\n", Enum.GetNames(typeof(CommandCategory)))));
+				await Actions.SendEmbedMessage(Context.Channel, embed);
 				return;
 			}
 			//Check if all
@@ -192,7 +192,7 @@ namespace Advobot
 		[UserHasAPermission]
 		public async Task ChannelID([Remainder] string input)
 		{
-			IGuildChannel channel = await Actions.GetChannel(Context, input);
+			var channel = await Actions.GetChannel(Context, input);
 			if (channel == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
@@ -208,7 +208,7 @@ namespace Advobot
 		[UserHasAPermission]
 		public async Task RoleID([Remainder] string input)
 		{
-			IRole role = await Actions.GetRole(Context, input);
+			var role = await Actions.GetRole(Context, input);
 			if (role == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ROLE_ERROR));
@@ -224,7 +224,7 @@ namespace Advobot
 		[UserHasAPermission]
 		public async Task UserID([Optional, Remainder] string input)
 		{
-			IGuildUser user = input == null ? Context.User as IGuildUser : await Actions.GetUser(Context.Guild, input);
+			var user = await Actions.GetUser(Context.Guild, input) ?? await Context.Guild.GetUserAsync(Context.User.Id);
 			if (user == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
@@ -317,19 +317,8 @@ namespace Advobot
 		[Summary("Displays various information about the user. Join position is mostly accurate, give or take ten places per thousand users on the guild.")]
 		public async Task UserInfo([Optional, Remainder] string input)
 		{
-			IGuildUser user = null;
-
-			//See if it's empty
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				user = await Context.Guild.GetUserAsync(Context.User.Id);
-			}
-			else
-			{
-				user = await Actions.GetUser(Context.Guild, input);
-			}
-
-			//Check if valid user
+			//Get the user
+			var user = await Actions.GetUser(Context.Guild, input) ?? await Context.Guild.GetUserAsync(Context.User.Id);
 			if (user == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
@@ -616,6 +605,65 @@ namespace Advobot
 		#endregion
 
 		#region Instant Invites
+		[Command("invitelist")]
+		[Alias("invl")]
+		[Usage("")]
+		[Summary("Gives a list of all the instant invites on the guild.")]
+		[UserHasAPermission]
+		public async Task ListInstantInvites()
+		{
+			//Format the description
+			int count = 1;
+			var description = "";
+			(await Context.Guild.GetInvitesAsync()).OrderBy(x => x.Uses).Reverse().ToList().ForEach(x =>
+			{
+				var code = x.Code.Length < 7 ? (x.Code + "       ").Substring(0, 7) : x.Code;
+				description += String.Format("`{0}.` `{1}` `{2}` `{3}`\n", count++.ToString("000"), code, x.Uses, x.Inviter.Username);
+			});
+
+			//Send a success message
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Instant Invites", description));
+		}
+
+		[Command("invitetop")]
+		[Alias("invt")]
+		[Usage("")]
+		[Summary("Lists the top five invites on the guild.")]
+		[UserHasAPermission]
+		public async Task InviteTop()
+		{
+			//Get the list of invites and order them biggest to smallest
+			var orderedList = (await Context.Guild.GetInvitesAsync()).OrderBy(x => x.Uses).Reverse().ToList();
+			//Remove all but the first 5
+			orderedList.RemoveRange(5, orderedList.Count - 5);
+			//Format the embed
+			var count = 1;
+			var embed = Actions.MakeNewEmbed("Top Five Invites", String.Join("\n", orderedList.Select(x => String.Format("`{0}.` `{1}` `{2}`", count++, x.Id, x.Uses))));
+			//Send the embed
+			await Actions.SendEmbedMessage(Context.Channel, embed);
+		}
+
+		[Command("inviteinfo")]
+		[Alias("invi")]
+		[Usage("[Invite Code]")]
+		[Summary("Lists the user who created the invite, the channel it was created on, the uses, and the creation date/time.")]
+		[UserHasAPermission]
+		public async Task InviteInfo([Remainder] string input)
+		{
+			//Get the invite
+			var inv = (await Context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code == input);
+			//Get all of the variables
+			var user = Actions.FormatUser(inv.Inviter);
+			var channel = Actions.FormatChannel(await Context.Guild.GetChannelAsync(inv.ChannelId));
+			var uses = inv.Uses;
+			var time = inv.CreatedAt.UtcDateTime.ToShortTimeString();
+			var date = inv.CreatedAt.UtcDateTime.ToShortDateString();
+			//Make the embed
+			var embed = Actions.MakeNewEmbed(inv.Code, String.Format("**Inviter:** `{0}`\n**Channel:** `{1}`\n**Uses:** `{2}`\n**Created At:** `{3}` on `{4}`", user, channel, uses, time, date));
+			//Send the embed
+			await Actions.SendEmbedMessage(Context.Channel, embed);
+		}
+
 		[Command("invitecreate")]
 		[Alias("invc")]
 		[Usage(Constants.CHANNEL_INSTRUCTIONS + " [Forever|1800|3600|21600|43200|86400] [Infinite|1|5|10|25|50|100] [True|False]")]
@@ -677,26 +725,6 @@ namespace Advobot
 				nullableUsers == null ? (tempMembership ? "has no limit of users" : "and has no limit of users") :
 										(tempMembership ? "has a limit of " + users.ToString() + " users" : " and has a limit of " + users.ToString() + " users"),
 				tempMembership ? ", and users will only receive temporary membership" : ""));
-		}
-
-		[Command("invitelist")]
-		[Alias("invl")]
-		[Usage("")]
-		[Summary("Gives a list of all the instant invites on the guild.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
-		public async Task ListInstantInvites()
-		{
-			//Format the description
-			int count = 1;
-			var description = "";
-			(await Context.Guild.GetInvitesAsync()).OrderBy(x => x.Uses).ToList().ForEach(x =>
-			{
-				var code = x.Code.Length < 7 ? (x.Code + "       ").Substring(0, 7) : x.Code;
-				description += String.Format("`{0}.` `{1}` `{2}` `{3}`\n", count++.ToString("000"), code, x.Uses, x.Inviter.Username);
-			});
-
-			//Send a success message
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Instant Invites", description));
 		}
 
 		[Command("invitedelete")]
@@ -835,9 +863,8 @@ namespace Advobot
 		[Command("makeanembed")]
 		[Alias("mae")]
 		[Usage("\"Title:input\" \"Desc:input\" Img:url Url:url Thumb:url Color:int/int/int \"Auth:input\" AuthIcon:url AuthUrl:url \"Foot:input\" FootIcon:url " +
-				"\"Field:input\" \"FieldText:input\" FieldInline:input ")]
+				"\"Field[1-10]:input\" \"FieldText[1-10]:input\" FieldInline[1-10]:true|false ")]
 		[Summary("Every single piece is optional. The stuff in quotes *must* be in quotes. URLs need the https:// in front. Fields need *both* Field and FText to work.")]
-		[UserHasAPermission]
 		public async Task MakeAnEmbed([Remainder] string input)
 		{
 			//Split the input
@@ -895,15 +922,15 @@ namespace Advobot
 			for (int i = 0; i < 10; i++)
 			{
 				//Get the input for fields
-				var field = Actions.GetVariableAndRemove(inputArray, "field");
-				var fieldText = Actions.GetVariableAndRemove(inputArray, "fieldtext");
+				var field = Actions.GetVariableAndRemove(inputArray, "field" + i);
+				var fieldText = Actions.GetVariableAndRemove(inputArray, "fieldtext" + i);
 				//If either is null break out of this loop because they shouldn't be null
 				if (field == null || fieldText == null)
 					break;
 
 				//Get the bool for the field
 				var inlineBool = true;
-				bool.TryParse(Actions.GetVariableAndRemove(inputArray, "fieldinline"), out inlineBool);
+				bool.TryParse(Actions.GetVariableAndRemove(inputArray, "fieldinline" + i), out inlineBool);
 
 				//Add in the field
 				Actions.AddField(embed, field, fieldText, inlineBool);
@@ -923,7 +950,7 @@ namespace Advobot
 			var inputArray = input.Split(new char[] { '/' }, 2);
 
 			//Get the role and see if it can be changed
-			IRole role = await Actions.GetRoleEditAbility(Context, inputArray[0]);
+			var role = await Actions.GetRoleEditAbility(Context, inputArray[0]);
 			if (role == null)
 				return;
 
@@ -987,7 +1014,6 @@ namespace Advobot
 		[BotOwnerRequirement]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			//await Context.Guild.AddBanAsync(202549108227964928);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
 		#endregion

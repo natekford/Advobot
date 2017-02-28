@@ -944,16 +944,27 @@ namespace Advobot
 			{ UICommandEnum.Shards, new string[] { SharedCommands.CSHARDS } },
 		};
 
-		public static string[] GetNamesAndAliases(UICommandEnum cmd)
+		public static string[] GetNameAndAliases(UICommandEnum cmd)
 		{
-			if (NamesAndAliases.ContainsKey(cmd))
+			return NamesAndAliases.ContainsKey(cmd) ? NamesAndAliases[cmd] : new string[] { };
+		}
+		public static string GetName(UICommandEnum cmd)
+		{
+			return NamesAndAliases.ContainsKey(cmd) ? NamesAndAliases[cmd][0] : null;
+		}
+		public static string[] GetAliases(UICommandEnum cmd)
+		{
+			return NamesAndAliases.ContainsKey(cmd) ? NamesAndAliases[cmd].Skip(1).ToArray() : new string[] { };
+		}
+
+		public static string FormatStringForUse()
+		{
+			var strList = new List<string>();
+			foreach (UICommandEnum UICmd in Enum.GetValues(typeof(UICommandEnum)))
 			{
-				return NamesAndAliases[cmd];
+				strList.Add(String.Format("{0,-20} {1,-20}", GetName(UICmd), String.Join(", ", GetAliases(UICmd))));
 			}
-			else
-			{
-				return new string[] { };
-			}
+			return String.Join("\n", strList);
 		}
 	}
 	#endregion

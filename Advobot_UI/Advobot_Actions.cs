@@ -720,7 +720,7 @@ namespace Advobot
 		//Get a user
 		public static async Task<IGuildUser> GetUser(IGuild guild, string userName)
 		{
-			return await guild.GetUserAsync(GetUlong(userName.Trim(new char[] { '<', '>', '@', '!' })));
+			return userName == null ? null : await guild.GetUserAsync(GetUlong(userName.Trim(new char[] { '<', '>', '@', '!' })));
 		}
 		
 		//Get the input to a ulong
@@ -1959,7 +1959,15 @@ namespace Advobot
 			embed.AddField(x =>
 			{
 				x.Name = name;
-				x.Value = value;
+				//Fields can only show up to five lines on mobile
+				if (value.Count(y => y == '\n' || y == '\r') > 5)
+				{
+					x.Value = String.Format("Field has more than 5 new lines; please click [here]({0}) to see the content.", UploadToHastebin(ReplaceMarkdownChars(value)));
+				}
+				else
+				{
+					x.Value = value;
+				}
 				x.IsInline = isInline;
 			});
 
