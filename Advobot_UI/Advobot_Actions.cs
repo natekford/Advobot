@@ -1333,6 +1333,28 @@ namespace Advobot
 				help.basePerm,
 				help.Text);
 		}
+
+		//Get the amount of line breaks a string has
+		public static int GetLineBreaks(string input)
+		{
+			return input.Count(y => y == '\n' || y == '\r');
+		}
+
+		//Get if a user can be modified by another user
+		public static bool UserCanBeModifiedByUser(CommandContext context, IGuildUser user)
+		{
+			var bannerPosition = GetPosition(context.Guild, context.User);
+			var banneePosition = user == null ? -1 : GetPosition(context.Guild, user);
+			return bannerPosition > banneePosition;
+		}
+
+		//Get if the bot can modify a user
+		public static async Task<bool> UserCanBeModifiedByBot(CommandContext context, IGuildUser user)
+		{
+			var bannerPosition = GetPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID));
+			var banneePosition = user == null ? -1 : GetPosition(context.Guild, user);
+			return bannerPosition > banneePosition;
+		}
 		#endregion
 
 		#region Roles
@@ -1865,31 +1887,33 @@ namespace Advobot
 		//Make a new embed builder
 		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null, string URL = null, string thumbnailURL = null)
 		{
+			//Make the embed builder
 			var embed = new EmbedBuilder().WithColor(Constants.BASE).WithCurrentTimestamp();
-			
+
+			//Validate the URLs
+			imageURL = ValidateURL(imageURL) ? imageURL : null;
+			URL = ValidateURL(URL) ? imageURL : null;
+			thumbnailURL = ValidateURL(thumbnailURL) ? imageURL : null;
+
+			//Add in the properties
 			if (title != null)
 			{
-				embed.WithTitle(title);
+				embed.WithTitle(title.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, title.Length)));
 			}
 			if (description != null)
 			{
-				if (description.Length > Constants.LENGTH_CHECK)
+				if (description.Length > Constants.LONG_EMBED_LENGTH)
 				{
-					embed.WithUrl(UploadToHastebin(ReplaceMarkdownChars(description)));
-					embed.WithDescription("Content is past 2,000 characters. Click the link to see it.");
+					embed.WithDescription(String.Format("Content is past {0} characters. Click [here]({1}) to see it.", Constants.LONG_EMBED_LENGTH, UploadToHastebin(ReplaceMarkdownChars(description))));
+				}
+				//Mobile can only show up to 20 or so lines per embed I think (at least on Android) 
+				else if (GetLineBreaks(description) > Constants.LINES_DESCRIPTION)
+				{
+					embed.WithDescription(String.Format("Content is past {0} new lines. Click [here]({1}) to see it.", Constants.LINES_DESCRIPTION, UploadToHastebin(ReplaceMarkdownChars(description))));
 				}
 				else
 				{
-					//Mobile can only show up to 20 or so lines per embed I think (at least on Android) 
-					if (description.Count(x => x == '\n' || x == '\r') >= 20)
-					{
-						embed.WithUrl(UploadToHastebin(ReplaceMarkdownChars(description)));
-						embed.WithDescription("Content is past 20 new lines. Click the link to see it.");
-					}
-					else
-					{
-						embed.WithDescription(description);
-					}
+					embed.WithDescription(description);
 				}
 			}
 			if (color != null)
@@ -1915,11 +1939,17 @@ namespace Advobot
 		//Make a new author for an embed
 		public static EmbedBuilder AddAuthor(EmbedBuilder embed, string name = null, string iconURL = null, string URL = null)
 		{
+			//Create the author builder
 			var author = new EmbedAuthorBuilder().WithIconUrl("https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png");
 
+			//Verify the URLs
+			iconURL = ValidateURL(iconURL) ? iconURL : null;
+			URL = ValidateURL(URL) ? URL : null;
+
+			//Add in the properties
 			if (name != null)
 			{
-				author.WithName(name);
+				author.WithName(name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length)));
 			}
 			if (iconURL != null)
 			{
@@ -1936,11 +1966,16 @@ namespace Advobot
 		//Make a new footer for an embed
 		public static EmbedBuilder AddFooter(EmbedBuilder embed, string text = null, string iconURL = null)
 		{
+			//Make the footer builder
 			var footer = new EmbedFooterBuilder();
 
+			//Verify the URL
+			iconURL = ValidateURL(iconURL) ? iconURL : null;
+
+			//Add in the properties
 			if (text != null)
 			{
-				footer.WithText(text);
+				footer.WithText(text.Substring(0, Math.Min(Constants.LONG_EMBED_LENGTH, text.Length)));
 			}
 			if (iconURL != null)
 			{
@@ -1953,16 +1988,21 @@ namespace Advobot
 		//Add a field to an embed
 		public static EmbedBuilder AddField(EmbedBuilder embed, string name = "null", string value = "null", bool isInline = true)
 		{
-			if (name == null || value == null)
+			if (name == null || value == null || embed.Build().Fields.Count() >= Constants.MAX_FIELDS)
 				return embed;
 
 			embed.AddField(x =>
 			{
-				x.Name = name;
-				//Fields can only show up to five lines on mobile
-				if (value.Count(y => y == '\n' || y == '\r') > 5)
+				x.Name = name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length));
+				//Embeds can only show up to 1024 chars per field
+				if (value.Length > Constants.SHORT_EMBED_LENGTH)
 				{
-					x.Value = String.Format("Field has more than 5 new lines; please click [here]({0}) to see the content.", UploadToHastebin(ReplaceMarkdownChars(value)));
+					x.Value = String.Format("Field has more than {0} characters; please click [here]({1}) to see the content.", Constants.SHORT_EMBED_LENGTH, UploadToHastebin(ReplaceMarkdownChars(value)));
+				}
+				//Fields can only show up to five lines on mobile
+				else if (GetLineBreaks(value) > Constants.LINES_FIELD)
+				{
+					x.Value = String.Format("Field has more than {0} new lines; please click [here]({1}) to see the content.", Constants.LINES_FIELD, UploadToHastebin(ReplaceMarkdownChars(value)));
 				}
 				else
 				{
@@ -3126,22 +3166,6 @@ namespace Advobot
 
 			//Wait until the next firing
 			Variables.Timer = new Timer(ResetSpamPrevention, null, time, Timeout.Infinite);
-		}
-		#endregion
-
-		#region Bans
-		public static bool UserCanBeModifiedByUser(CommandContext context, IGuildUser user)
-		{
-			var bannerPosition = GetPosition(context.Guild, context.User);
-			var banneePosition = user == null ? -1 : GetPosition(context.Guild, user);
-			return bannerPosition > banneePosition;
-		}
-
-		public static async Task<bool> UserCanBeModifiedByBot(CommandContext context, IGuildUser user)
-		{
-			var bannerPosition = GetPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID));
-			var banneePosition = user == null ? -1 : GetPosition(context.Guild, user);
-			return bannerPosition > banneePosition;
 		}
 		#endregion
 	}

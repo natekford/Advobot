@@ -10,8 +10,8 @@ namespace Advobot
 		public const int CACHED_MESSAGE_COUNT = 10000;
 		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
 
-		public const string BOT_VERSION = "0.9.14";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00608";
+		public const string BOT_VERSION = "0.9.15";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00610";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -76,6 +76,12 @@ namespace Advobot
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;
 		public const int VIP_BITRATE = 128;
+		public const int LONG_EMBED_LENGTH = 2048;
+		public const int SHORT_EMBED_LENGTH = 1024;
+		public const int MAX_TITLE_LENGTH = 256;
+		public const int MAX_FIELDS = 25;
+		public const int LINES_DESCRIPTION = 20;
+		public const int LINES_FIELD = 5;
 
 		public static readonly string[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
 		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };

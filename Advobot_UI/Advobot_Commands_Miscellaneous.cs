@@ -314,7 +314,7 @@ namespace Advobot
 		[Command("infouser")]
 		[Alias("infu")]
 		[Usage("<@User>")]
-		[Summary("Displays various information about the user. Join position is mostly accurate, give or take ten places per thousand users on the guild.")]
+		[Summary("Displays various information about the user. Join position is mostly accurate on a small guild, while horribly inaccurate on a large guild.")]
 		public async Task UserInfo([Optional, Remainder] string input)
 		{
 			//Get the user
@@ -430,23 +430,58 @@ namespace Advobot
 
 		[Command("useravatar")]
 		[Alias("uav")]
-		[Usage("<@user>")]
+		[Usage("[Gif|Png|Jpg|Webp] <@user>")]
 		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily). Currently every avatar is displayed with an extension type of gif.")]
 		public async Task UserAvatar([Optional, Remainder] string input)
 		{
-			var user = input == null ? Context.User as IGuildUser : await Actions.GetUser(Context.Guild, input);
-			if (user == null)
+			//Split the input
+			var inputArray = input.Split(new char[] { ' ' }, 2);
+
+			//Get the type of image
+			AvatarFormat format;
+			if (!Enum.TryParse(inputArray[0], true, out format))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid avatar format supplied."));
 				return;
 			}
-			await Context.Channel.SendMessageAsync(user.GetAvatarUrl().Replace(".jpg", ".gif"));
+
+			//Get the user
+			var user = Context.User as IGuildUser;
+			if (inputArray.Length == 2)
+			{
+				user = await Actions.GetUser(Context.Guild, inputArray[1]);
+				if (user == null)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+					return;
+				}
+			}
+
+			//Send a message with the URL
+			await Context.Channel.SendMessageAsync(user.GetAvatarUrl(format));
+		}
+
+		[Command("userjoins")]
+		[Alias("ujs")]
+		[Usage("")]
+		[Summary("Lists most of the users who have joined the guild. Will not list users who are offline on a large guild, sadly.")]
+		public async Task UserJoins()
+		{
+			//Grab the users and format the message
+			var counter = 1;
+			var userMsg = String.Join("\n", (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt).Select(x =>
+			{
+				var time = x.JoinedAt.Value.UtcDateTime;
+				return String.Format("`{0}.` `{1}` joined at `{2}` on `{3}`.", counter++.ToString("0000"), Actions.FormatUser(x), time.ToShortTimeString(), time.ToShortDateString());
+			}));
+			//Send the embed
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Users", userMsg));
 		}
 
 		[Command("userjoinedat")]
 		[Alias("ujat")]
 		[Usage("[Position]")]
-		[Summary("Shows the user which joined the guild in that position. Mostly accurate, give or take ten places per thousand users on the guild.")]
+		[Summary("Shows the user which joined the guild in that position. Mostly accurate on a small guild, while horribly inaccurate on a large guild.")]
 		public async Task UserJoinedAt([Remainder] string input)
 		{
 			int position;
@@ -863,8 +898,8 @@ namespace Advobot
 		[Command("makeanembed")]
 		[Alias("mae")]
 		[Usage("\"Title:input\" \"Desc:input\" Img:url Url:url Thumb:url Color:int/int/int \"Auth:input\" AuthIcon:url AuthUrl:url \"Foot:input\" FootIcon:url " +
-				"\"Field[1-10]:input\" \"FieldText[1-10]:input\" FieldInline[1-10]:true|false ")]
-		[Summary("Every single piece is optional. The stuff in quotes *must* be in quotes. URLs need the https:// in front. Fields need *both* Field and FText to work.")]
+				"\"Field[1-25]:input\" \"FieldText[1-25]:input\" FieldInline[1-10]:true|false ")]
+		[Summary("Every single piece is optional. The stuff in quotes *must* be in quotes. URLs need the https:// in front. Fields need *both* Field and FieldText to work.")]
 		public async Task MakeAnEmbed([Remainder] string input)
 		{
 			//Split the input
@@ -881,20 +916,6 @@ namespace Advobot
 			var authorURL = Actions.GetVariableAndRemove(inputArray, "authurl");
 			var footerText = Actions.GetVariableAndRemove(inputArray, "foot");
 			var footerIcon = Actions.GetVariableAndRemove(inputArray, "footicon");
-
-			//Validate URLs
-			if (!Actions.ValidateURL(imageURL))
-				imageURL = null;
-			if (!Actions.ValidateURL(URL))
-				URL = null;
-			if (!Actions.ValidateURL(thumbnail))
-				thumbnail = null;
-			if (!Actions.ValidateURL(authorIcon))
-				authorIcon = null;
-			if (!Actions.ValidateURL(authorURL))
-				authorURL = null;
-			if (!Actions.ValidateURL(footerIcon))
-				footerIcon = null;
 
 			//Get the color
 			var color = Constants.BASE;
@@ -919,7 +940,7 @@ namespace Advobot
 			Actions.AddFooter(embed, footerText, footerIcon);
 
 			//Add in the fields and text
-			for (int i = 0; i < 10; i++)
+			for (int i = 1; i < 25; i++)
 			{
 				//Get the input for fields
 				var field = Actions.GetVariableAndRemove(inputArray, "field" + i);

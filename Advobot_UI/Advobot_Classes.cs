@@ -959,12 +959,11 @@ namespace Advobot
 
 		public static string FormatStringForUse()
 		{
-			var strList = new List<string>();
-			foreach (UICommandEnum UICmd in Enum.GetValues(typeof(UICommandEnum)))
+			return String.Join("\n", Enum.GetValues(typeof(UICommandEnum)).Cast<UICommandEnum>().ToList().Select(x =>
 			{
-				strList.Add(String.Format("{0,-20} {1,-20}", GetName(UICmd), String.Join(", ", GetAliases(UICmd))));
-			}
-			return String.Join("\n", strList);
+				var aliases = String.Join(", ", GetAliases(x));
+				return String.Format("{0,-20}{1}", GetName(x), String.IsNullOrWhiteSpace(aliases) ? "This command has no aliases." : aliases);
+			}));
 		}
 	}
 	#endregion

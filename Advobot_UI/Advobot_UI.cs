@@ -36,7 +36,7 @@ namespace Advobot
 		private static MenuItem mOutputContextMenuSave = new MenuItem { Header = "Save Output Log", };
 		private static MenuItem mOutputContextMenuClear = new MenuItem { Header = "Clear Output Log", };
 		private static ContextMenu mOutputContextMenu = new ContextMenu { ItemsSource = new[] { mOutputContextMenuSave, mOutputContextMenuClear }, };
-		//Output textbox
+		//Textboxes
 		private static RichTextBox mOutput = new RichTextBox
 		{
 			ContextMenu = mOutputContextMenu,
@@ -45,7 +45,6 @@ namespace Advobot
 			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
 			Background = Brushes.White,
 		};
-		//Secondary output textbox
 		private static RichTextBox mSecondaryOutput = new RichTextBox
 		{
 			Background = Brushes.White,
@@ -62,10 +61,10 @@ namespace Advobot
 		private const string mHelpSynt = "Command Syntax:\n\t[] means required\n\t<> means optional\n\t| means or";
 		private const string mHelpInf1 = "\n\nLatency:\n\tTime it takes for a command to reach the bot.\nMemory:\n\tAmount of RAM the program is using.\n\t(This is wrong most of the time.)";
 		private const string mHelpInf2 = "\nThreads:\n\tWhere all the actions in the bot happen.\nShards:\n\tHold all the guilds a bot has on its client.\n\tThere is a limit of 2500 guilds per shard.";
-		private const string mHelpVers = "\n\nAPI Wrapper Version: " + Constants.API_VERSION + "\nBot Version: " + Constants.BOT_VERSION + "\nCurrent GitHub Repository: ";
+		private const string mHelpVers = "\n\nAPI Wrapper Version: " + Constants.API_VERSION + "\nBot Version: " + Constants.BOT_VERSION + "\nGitHub Repository: ";
 		private const string mHelpChar = "\n\nCharacter Count: 470,000+\nLine Count: 13,500+";
-		private const string mHelpHelp = "\n\nNeed additional help? Join my Discord server: ";
-		private static readonly string mCmdsCmds = UICommandNames.FormatStringForUse();
+		private const string mHelpHelp = "\n\nNeed additional help? Join the Discord server: ";
+		private static readonly string mCmdsCmds = "Commands:".PadRight(20) + "Aliases:\n" + UICommandNames.FormatStringForUse();
 		//Inlines
 		private static Inline mHelpFirstRun = new Run(mHelpSynt + mHelpInf1 + mHelpInf2 + mHelpVers);
 		private static Inline mHelpFirstHyperlink = CreateHyperlink("https://github.com/advorange/Advobot", "Advobot");
