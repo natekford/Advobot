@@ -160,7 +160,7 @@ namespace Advobot
 		public static int LoggedGifs = 0;
 		public static int LoggedFiles = 0;
 
-		public static Dictionary<ulong, List<Discord.WebSocket.SocketMessage>> DeletedMessages = new Dictionary<ulong, List<Discord.WebSocket.SocketMessage>>();
+		public static Dictionary<ulong, List<Discord.IMessage>> DeletedMessages = new Dictionary<ulong, List<Discord.IMessage>>();
 		public static Dictionary<ulong, System.Threading.CancellationTokenSource> CancelTokens = new Dictionary<ulong, System.Threading.CancellationTokenSource>();
 		public static Dictionary<ulong, BotGuildInfo> Guilds = new Dictionary<ulong, BotGuildInfo>();
 		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeGuilds = new Dictionary<ulong, List<SlowmodeUser>>();

@@ -471,6 +471,8 @@ namespace Advobot
 			Guild = guild;
 		}
 
+		//I CBA changing everything in here to be private yet. Don't fuck with it too much outside of this class, thanks.
+
 		//Banned phrases/regex/punishment
 		public List<string> BannedPhrases = new List<string>();
 		public List<Regex> BannedRegex = new List<Regex>();
@@ -479,13 +481,16 @@ namespace Advobot
 		//Commands and logging
 		public List<CommandSwitch> CommandSettings = new List<CommandSwitch>();
 		public List<ulong> IgnoredCommandChannels = new List<ulong>();
-		public List<LogActions> LogActions = new List<LogActions>();
 		public List<ulong> IgnoredLogChannels = new List<ulong>();
+		public List<LogActions> LogActions = new List<LogActions>();
 
 		//Spam prevention
 		public List<SpamPreventionUser> SpamPreventionUsers = new List<SpamPreventionUser>();
-		public MentionSpamPrevention MentionSpamPrevention;
+		public MessageSpamPrevention MessageSpamPrevention;
 		public LongMessageSpamPrevention LongMessageSpamPrevention;
+		public LinkSpamPrevention LinkSpamPrevention;
+		public ImageSpamPrevention ImageSpamPrevention;
+		public MentionSpamPrevention MentionSpamPrevention;
 
 		//Raid prevention
 		public bool RaidPrevention = false;

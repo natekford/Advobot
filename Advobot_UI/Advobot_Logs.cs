@@ -502,10 +502,10 @@ namespace Advobot
 			++Variables.LoggedMessages;
 		}
 		
-		public static async Task OnMessageUpdated(Optional<SocketMessage> beforeMessage, SocketMessage afterMessage)
+		public static async Task OnMessageUpdated(Cacheable<IMessage, ulong> beforeMessage, SocketMessage afterMessage, ISocketMessageChannel channel)
 		{
 			//Get the before message's value
-			var beforeMessageValue = beforeMessage.IsSpecified ? beforeMessage.Value : null;
+			var beforeMessageValue = beforeMessage.HasValue ? beforeMessage.Value : null;
 			//Check if the updated message has any banned phrases and should be deleted
 			await Actions.BannedPhrases(afterMessage);
 			//Get the guild and log channel
@@ -513,7 +513,7 @@ namespace Advobot
 			var logChannel = guildAndLogChannel.Item1;
 			var guild = guildAndLogChannel.Item2;
 			//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
-			if (!beforeMessage.IsSpecified || beforeMessageValue.Embeds.Count() < afterMessage.Embeds.Count())
+			if (!beforeMessage.HasValue || beforeMessageValue.Embeds.Count() < afterMessage.Embeds.Count())
 				await MessageReceivedActions.ImageLog(logChannel, afterMessage);
 			if (logChannel == null || guild == null)
 				return;
@@ -545,10 +545,10 @@ namespace Advobot
 			++Variables.LoggedEdits;
 		}
 
-		public static async Task OnMessageDeleted(ulong messageID, Optional<SocketMessage> message)
+		public static async Task OnMessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
 		{
 			//Get the message's value
-			var messageValue = message.IsSpecified ? message.Value : null;
+			var messageValue = message.HasValue ? message.Value : null;
 			//Get the guild and log channel
 			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(messageValue, LogActions.MessageDeleted);
 			var logChannel = guildAndLogChannel.Item1;
@@ -560,10 +560,10 @@ namespace Advobot
 			++Variables.LoggedDeletes;
 
 			//Get a list of the deleted messages per guild
-			var mainMessages = new List<SocketMessage>();
+			var mainMessages = new List<IMessage>();
 			if (!Variables.DeletedMessages.TryGetValue(guild.Id, out mainMessages))
 			{
-				mainMessages = new List<SocketMessage>();
+				mainMessages = new List<IMessage>();
 				Variables.DeletedMessages[guild.Id] = mainMessages;
 			}
 			lock (mainMessages)
@@ -594,12 +594,12 @@ namespace Advobot
 				}
 
 				int characterCount = 0;
-				List<SocketMessage> deletedMessages;
+				List<IMessage> deletedMessages;
 				var taskMessages = Variables.DeletedMessages[guild.Id];
 				lock (taskMessages)
 				{
 					//Give the messages to a new list so they can be removed from the old one
-					deletedMessages = new List<SocketMessage>(taskMessages);
+					deletedMessages = new List<IMessage>(taskMessages);
 
 					//Get the character count
 					taskMessages.ForEach(x => characterCount += (x.Content.Length));

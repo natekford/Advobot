@@ -28,16 +28,19 @@ namespace Advobot
 			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));	//Gets all the active command names. Has to go after LCI
 
 			await LoadGuilds();														//Loads the guilds that attempted to load before the Bot_ID was gotten.
+			await SetGame();														//Set up the game and/or stream
 
-			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
 			ResetSpamPrevention(null);												//Start the hourly timer to restart spam prevention
 			StartUpMessages();														//Say all of the start up messages
-			await SetGame();														//Set up the game and/or stream
+			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
 		}
 
 		//Text said during the startup of the bot
 		public static void StartUpMessages()
 		{
+			if (Variables.Loaded)
+				return;
+
 			WriteLine("The current bot prefix is: " + Properties.Settings.Default.Prefix);
 			WriteLine("Bot took " + String.Format("{0:n}", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - Variables.StartupTime.Ticks).TotalMilliseconds) + " milliseconds to load everything.");
 		}
@@ -560,8 +563,8 @@ namespace Advobot
 				return;
 
 			//Go through each line checking for the users
-			var validBotUsers = new List<string>();
 			var counter = 0;
+			var validBotUsers = new List<string>();
 			using (var reader = new StreamReader(path))
 			{
 				string line;

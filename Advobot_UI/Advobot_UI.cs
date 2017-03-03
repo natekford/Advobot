@@ -52,6 +52,11 @@ namespace Advobot
 			IsDocumentEnabled = true,
 			Visibility = Visibility.Hidden,
 		};
+		//Tree view
+		private static TreeViewItem testitem2 = new TreeViewItem() { Header = "fish" };
+		private static TreeViewItem testitem3 = new TreeViewItem() { Header = "cat" };
+		private static TreeViewItem testitem = new TreeViewItem() { ItemsSource = new TreeViewItem[] { testitem2, testitem3 }, Header = "Guilds" };
+		private static TreeView TreeView = new TreeView() { ItemsSource = new TreeViewItem[] { testitem }, BorderThickness = new Thickness(0) };
 		//Strings
 		private const string mFirstButtonString = "Help";
 		private const string mSecondButtonString = "Commands";
@@ -72,12 +77,12 @@ namespace Advobot
 		private static Inline mHelpSecondHyperlink = CreateHyperlink("https://www.discord.gg/ad", "Here");
 		private static Inline mCmdsFirstRun = new Run(mCmdsCmds);
 		private static Inline mInfoFirstRun = new Run("Lorem Ipsum");
-		private static Inline mSetsFirstRun = new Run("Sample Text");
+		//private static Inline mSetsFirstRun = new Run("Sample Text");
 		//Paragraphs
 		private static Paragraph mFirstParagraph = new Paragraph(mHelpFirstRun);
 		private static Paragraph mSecondParagraph = new Paragraph(mCmdsFirstRun);
 		private static Paragraph mThirdParagraph = new Paragraph(mInfoFirstRun);
-		private static Paragraph mFourthParagraph = new Paragraph(mSetsFirstRun);
+		private static Paragraph mFourthParagraph = new Paragraph();
 		//Button layout
 		private static Grid mButtonLayout = new Grid();
 		//Buttons
@@ -179,7 +184,7 @@ namespace Advobot
 			mFirstParagraph.Inlines.AddRange(new Inline[] { mHelpFirstHyperlink, mHelpSecondRun, mHelpSecondHyperlink });
 			//mSecondParagraph.Inlines.Add();
 			//mThirdParagraph.Inlines.Add();
-			//mFourthParagraph.Inlines.Add();
+			mFourthParagraph.Inlines.Add(TreeView);
 
 			//Set this panel as the content for this window.
 			Content = mLayout;
@@ -529,6 +534,8 @@ namespace Advobot
 		{
 			get { return mSecondaryOutput; }
 		}
+
+		//Get all of the files of each guild to add to the tree viewer
 	}
 
 	//New class to handle commands
