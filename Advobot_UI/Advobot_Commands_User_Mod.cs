@@ -244,12 +244,12 @@ namespace Advobot
 			//Check if valid length
 			if (nickname != null && nickname.Length > Constants.NICKNAME_MAX_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be longer than 32 characters."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than {0} characters.", Constants.NICKNAME_MAX_LENGTH)));
 				return;
 			}
 			else if (nickname != null && nickname.Length < Constants.NICKNAME_MIN_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be less than 2 characters.."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than {)] characters.", Constants.NICKNAME_MIN_LENGTH)));
 				return;
 			}
 
@@ -330,7 +330,7 @@ namespace Advobot
 		[Command("softban")]
 		[Alias("sb")]
 		[Usage("[@User]")]
-		[Summary("Bans then unbans a user from the guild.")]
+		[Summary("Bans then unbans a user from the guild. Removes all recent messages from them.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
 		public async Task SoftBan([Remainder] string input)
 		{
@@ -355,8 +355,8 @@ namespace Advobot
 				return;
 			}
 
-			//Softban the targetted use
-			await Context.Guild.AddBanAsync(inputUser);
+			//Softban the targetted user
+			await Context.Guild.AddBanAsync(inputUser, 3);
 			await Context.Guild.RemoveBanAsync(inputUser);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully banned and unbanned `{0}#{1}`.", inputUser.Username, inputUser.Discriminator));
 		}
@@ -558,13 +558,17 @@ namespace Advobot
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
 		public async Task CurrentBanList()
 		{
+			//Get the bans
+			var bans = (await Context.Guild.GetBansAsync()).ToList();
+
 			//Format the ban string
 			var description = "";
-			var count = 0;
-			(await Context.Guild.GetBansAsync()).ToList().ForEach(x =>
+			var count = 1;
+			var lengthForCount = bans.Count.ToString().Length;
+			bans.ForEach(x =>
 			{
-				count++;
-				description += String.Format("`{0}.` `{1}#{2}` ID: `{3}`\n", count.ToString("00"), x.User.Username, x.User.Discriminator, x.User.Id);
+				var username = String.Format("`{0}#{1}`", x.User.Username, x.User.Discriminator);
+				description += String.Format("`{0}.` `({1})` {2}\n", count++.ToString().PadLeft(lengthForCount, '0'), x.User.Id, username);
 			});
 
 			//Check the length of the message
@@ -956,12 +960,12 @@ namespace Advobot
 				var inputNickname = outputString;
 				if (inputNickname.Length > Constants.NICKNAME_MAX_LENGTH)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be longer than 32 charaters."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than {0} charaters.", Constants.NICKNAME_MAX_LENGTH)));
 					return;
 				}
 				else if (inputNickname.Length < Constants.NICKNAME_MIN_LENGTH)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nicknames cannot be less than 2 characters."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than {0} characters.", Constants.NICKNAME_MIN_LENGTH)));
 					return;
 				}
 

@@ -61,27 +61,29 @@ namespace Advobot
 		public const int MEMBER_LIMIT = 0;
 		public const int MAX_SA_GROUPS = 10;
 		public const int MAX_REMINDS = 50;
-		public const int LENGTH_CHECK = 1900;
-		public const int SHORT_LENGTH_CHECK = 750;
 		public const int OWNER_POSITION = int.MaxValue;
 		public const int MESSAGES_TO_GATHER = 100;
 		public const int TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG = 3;
-		public const int NICKNAME_MIN_LENGTH = 2;
-		public const int NICKNAME_MAX_LENGTH = 32;
-		public const int TOPIC_LENGTH = 1024;
-		public const int ROLE_NAME_LENGTH = 32;
-		public const int CHANNEL_NAME_MAX_LENGTH = 100;
-		public const int CHANNEL_NAME_MIN_LENGTH = 2;
-		public const int GAME_MAX_LENGTH = 128; //Yes, I know it CAN go past that, but it won't show for others.
+		public const int PAD_RIGHT = 20;
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;
 		public const int VIP_BITRATE = 128;
-		public const int LONG_EMBED_LENGTH = 2048;
-		public const int SHORT_EMBED_LENGTH = 1024;
-		public const int MAX_TITLE_LENGTH = 256;
-		public const int MAX_FIELDS = 25;
-		public const int LINES_DESCRIPTION = 20;
-		public const int LINES_FIELD = 5;
+		public const int LENGTH_CHECK = 1900;
+		public const int SHORT_LENGTH_CHECK = 750;
+		public const int NICKNAME_MAX_LENGTH = 32;
+		public const int NICKNAME_MIN_LENGTH = 2;
+		public const int CHANNEL_NAME_MAX_LENGTH = 100;
+		public const int CHANNEL_NAME_MIN_LENGTH = 2;
+		public const int ROLE_NAME_MAX_LENGTH = 32;
+		public const int ROLE_NAME_MIN_LENGTH = 1;
+		public const int TOPIC_MAX_LENGTH = 1024;
+		public const int GAME_MAX_LENGTH = 128; //Yes, I know it CAN go past that, but it won't show for others.
+		public const int EMBED_MAX_LENGTH_LONG = 2048;
+		public const int EMBED_MAX_LENGTH_SHORT = 1024;
+		public const int TITLE_MAX_LENGTH = 256;
+		public const int FIELDS_MAX = 25;
+		public const int DESCRIPTION_MAX_LINES = 20;
+		public const int FIELD_MAX_LINES = 5;
 
 		public static readonly string[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
 		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
@@ -187,6 +189,7 @@ namespace Advobot
 	public static class SharedCommands
 	{
 		public const string CPAUSE = "pause";
+		public const string APAUSE = "p";
 
 		public const string COWNER = "globalbotowner";
 		public const string AOWNER = "glbo";
@@ -223,5 +226,6 @@ namespace Advobot
 		public const string AGUILDS = "lgds";
 
 		public const string CSHARDS = "modifyshards";
+		public const string ASHARDS = "msh";
 	}
 }

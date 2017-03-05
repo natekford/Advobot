@@ -368,7 +368,7 @@ namespace Advobot
 					Actions.AddFooter(embed, "Name Changed");
 					Actions.AddField(embed, "Before:", "`" + beforeUser.Username + "`");
 					Actions.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
-					Actions.AddAuthor(embed, String.Format("{0}#{1}", afterUser.Username, afterUser.Discriminator), afterUser.GetAvatarUrl());
+					Actions.AddAuthor(embed, Actions.FormatUser(afterUser), afterUser.GetAvatarUrl());
 					await Actions.SendEmbedMessage(logChannel, embed);
 
 					//Increment the logged user changed counter
@@ -495,6 +495,9 @@ namespace Advobot
 			//Get the log channel
 			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(message, LogActions.MessageReceived);
 			var logChannel = guildAndLogChannel.Item1;
+			var newGuild = guildAndLogChannel.Item2;
+			if (logChannel == null || newGuild == null)
+				return;
 			//Check if image logging should happen
 			await MessageReceivedActions.ImageLog(logChannel, message);
 
@@ -512,11 +515,11 @@ namespace Advobot
 			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(afterMessage, LogActions.MessageUpdated);
 			var logChannel = guildAndLogChannel.Item1;
 			var guild = guildAndLogChannel.Item2;
+			if (logChannel == null || guild == null)
+				return;
 			//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
 			if (!beforeMessage.HasValue || beforeMessageValue.Embeds.Count() < afterMessage.Embeds.Count())
 				await MessageReceivedActions.ImageLog(logChannel, afterMessage);
-			if (logChannel == null || guild == null)
-				return;
 
 			//Set the content as strings
 			var beforeMsgContent = Actions.ReplaceMarkdownChars(beforeMessageValue?.Content ?? "");
@@ -541,6 +544,7 @@ namespace Advobot
 			Actions.AddField(embed, "After:", "`" + afterMsgContent + "`", false);
 			Actions.AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(afterMessage.Author), afterMessage.Channel), afterMessage.Author.GetAvatarUrl());
 			await Actions.SendEmbedMessage(logChannel, embed);
+
 			//Increment the edit count
 			++Variables.LoggedEdits;
 		}

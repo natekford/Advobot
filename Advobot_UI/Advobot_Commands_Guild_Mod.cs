@@ -23,12 +23,12 @@ namespace Advobot
 			//Check if valid length
 			if (input.Length > Constants.CHANNEL_NAME_MAX_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Guild names cannot be longer than 100 characters."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than {0} characters.", Constants.CHANNEL_NAME_MAX_LENGTH)));
 				return;
 			}
 			else if (input.Length < Constants.CHANNEL_NAME_MIN_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Guild names cannot be shorter than 2 characters."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than {0} characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
 				return;
 			}
 

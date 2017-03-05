@@ -31,6 +31,15 @@ namespace Advobot
 			//Background = new ImageBrush(Imaging.CreateBitmapSourceFromHBitmap(Properties.Resources.Graphic_Design.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions())),
 		};
 
+		#region Input
+		//Layout
+		private static Grid mInputLayout = new Grid();
+		//Textboxes (Max height has to be set here as a large number to a) not get in the way and b) not crash when resized small) I don't really like using a RTB for the input.
+		private static TextBox mInput = new TextBox { MaxLength = 250, MaxLines = 5, MaxHeight = 1000, TextWrapping = TextWrapping.Wrap };
+		//Buttons
+		private static Button mInputButton = new Button { IsEnabled = false, Content = "Enter", };
+		#endregion
+
 		#region Output
 		//Context menu
 		private static MenuItem mOutputContextMenuSave = new MenuItem { Header = "Save Output Log", };
@@ -47,21 +56,16 @@ namespace Advobot
 		};
 		private static RichTextBox mSecondaryOutput = new RichTextBox
 		{
-			Background = Brushes.White,
 			IsReadOnly = true,
 			IsDocumentEnabled = true,
 			Visibility = Visibility.Hidden,
+			Background = Brushes.White,
 		};
-		//Tree view
-		private static TreeViewItem testitem2 = new TreeViewItem() { Header = "fish" };
-		private static TreeViewItem testitem3 = new TreeViewItem() { Header = "cat" };
-		private static TreeViewItem testitem = new TreeViewItem() { ItemsSource = new TreeViewItem[] { testitem2, testitem3 }, Header = "Guilds" };
-		private static TreeView TreeView = new TreeView() { ItemsSource = new TreeViewItem[] { testitem }, BorderThickness = new Thickness(0) };
 		//Strings
 		private const string mFirstButtonString = "Help";
 		private const string mSecondButtonString = "Commands";
 		private const string mThirdButtonString = "Info";
-		private const string mFourthButtonString = "Settings";
+		private const string mFourthButtonString = "Files";
 		private static string mLastButtonClicked;
 		private const string mHelpSynt = "Command Syntax:\n\t[] means required\n\t<> means optional\n\t| means or";
 		private const string mHelpInf1 = "\n\nLatency:\n\tTime it takes for a command to reach the bot.\nMemory:\n\tAmount of RAM the program is using.\n\t(This is wrong most of the time.)";
@@ -69,36 +73,27 @@ namespace Advobot
 		private const string mHelpVers = "\n\nAPI Wrapper Version: " + Constants.API_VERSION + "\nBot Version: " + Constants.BOT_VERSION + "\nGitHub Repository: ";
 		private const string mHelpChar = "\n\nCharacter Count: 470,000+\nLine Count: 13,500+";
 		private const string mHelpHelp = "\n\nNeed additional help? Join the Discord server: ";
-		private static readonly string mCmdsCmds = "Commands:".PadRight(20) + "Aliases:\n" + UICommandNames.FormatStringForUse();
+		private static readonly string mCmdsCmds = "Commands:".PadRight(Constants.PAD_RIGHT) + "Aliases:\n" + UICommandNames.FormatStringForUse();
 		//Inlines
 		private static Inline mHelpFirstRun = new Run(mHelpSynt + mHelpInf1 + mHelpInf2 + mHelpVers);
 		private static Inline mHelpFirstHyperlink = CreateHyperlink("https://github.com/advorange/Advobot", "Advobot");
 		private static Inline mHelpSecondRun = new Run(mHelpChar + mHelpHelp);
 		private static Inline mHelpSecondHyperlink = CreateHyperlink("https://www.discord.gg/ad", "Here");
 		private static Inline mCmdsFirstRun = new Run(mCmdsCmds);
-		private static Inline mInfoFirstRun = new Run("Lorem Ipsum");
-		//private static Inline mSetsFirstRun = new Run("Sample Text");
+		private static Inline mInfoFirstRun = new Run(Actions.FormatLoggedThings());
+		//Tree view
+		private static TreeView mFileTreeView = new TreeView();
 		//Paragraphs
 		private static Paragraph mFirstParagraph = new Paragraph(mHelpFirstRun);
 		private static Paragraph mSecondParagraph = new Paragraph(mCmdsFirstRun);
 		private static Paragraph mThirdParagraph = new Paragraph(mInfoFirstRun);
 		private static Paragraph mFourthParagraph = new Paragraph();
-		//Button layout
-		private static Grid mButtonLayout = new Grid();
 		//Buttons
+		private static Grid mButtonLayout = new Grid();
 		private static Button mFirstButton = new Button { Content = mFirstButtonString, };
 		private static Button mSecondButton = new Button { Content = mSecondButtonString, };
 		private static Button mThirdButton = new Button { Content = mThirdButtonString, };
 		private static Button mFourthButton = new Button { Content = mFourthButtonString, };
-		#endregion
-
-		#region Input
-		//Layout
-		private static Grid mInputLayout = new Grid();
-		//Textboxes
-		private static RichTextBox mInput = new RichTextBox { Background = Brushes.White, Margin = new Thickness(0), };
-		//Buttons
-		private static Button mInputButton = new Button { IsEnabled = false, Content = "Enter", };
 		#endregion
 
 		#region System Info
@@ -123,18 +118,9 @@ namespace Advobot
 
 		#region Bindings
 		//Text resize binding
-		private static Binding mInputBinding = new Binding
-		{
-			Path = new PropertyPath("ActualHeight"),
-			RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
-			Converter = new FontResizer(.275),
-		};
-		private static Binding mSecondaryOutputBiding = new Binding
-		{
-			Path = new PropertyPath("ActualHeight"),
-			RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
-			Converter = new FontResizer(.0157),
-		};
+		private static Binding mFirstBinding = CreateBinding(.275);
+		private static Binding mSecondBinding = CreateBinding(.0157);
+		private static Binding mThirdBinding = CreateBinding(.0195);
 		#endregion
 
 		#region Creating the Window
@@ -153,12 +139,11 @@ namespace Advobot
 			AddCols(mLayout, 4);
 
 			//Output
-			AddItemAndSetPositionsAndSpans(mLayout, mOutput, 0, 90, 0, 4);
-			mSecondaryOutput.SetBinding(FontSizeProperty, mSecondaryOutputBiding);
+			AddItemAndSetPositionsAndSpans(mLayout, mOutput, 0, 87, 0, 4);
 			AddItemAndSetPositionsAndSpans(mLayout, mSecondaryOutput, 0, 90, 3, 1);
 
 			//System Info
-			AddItemAndSetPositionsAndSpans(mLayout, mSysInfoLayout, 90, 3, 0, 3, 0, 5);
+			AddItemAndSetPositionsAndSpans(mLayout, mSysInfoLayout, 87, 3, 0, 3, 0, 5);
 			AddItemAndSetPositionsAndSpans(mSysInfoLayout, mSysInfoUnder, 0, 1, 0, 5);
 			AddItemAndSetPositionsAndSpans(mSysInfoLayout, mLatencyView, 0, 1, 0, 1);
 			AddItemAndSetPositionsAndSpans(mSysInfoLayout, mMemoryView, 0, 1, 1, 1);
@@ -167,14 +152,13 @@ namespace Advobot
 			AddItemAndSetPositionsAndSpans(mSysInfoLayout, mPrefixView, 0, 1, 4, 1);
 
 			//Input
-			AddItemAndSetPositionsAndSpans(mLayout, mInputLayout, 93, 7, 0, 3, 1, 10);
-			mInput.SetBinding(FontSizeProperty, mInputBinding);
-			mInput.Document.LineHeight = 1;
+			AddItemAndSetPositionsAndSpans(mLayout, mInputLayout, 90, 10, 0, 3, 1, 10);
+			mInput.SetBinding(FontSizeProperty, mFirstBinding);
 			AddItemAndSetPositionsAndSpans(mInputLayout, mInput, 0, 1, 0, 9);
 			AddItemAndSetPositionsAndSpans(mInputLayout, mInputButton, 0, 1, 9, 1);
 
 			//Buttons
-			AddItemAndSetPositionsAndSpans(mLayout, mButtonLayout, 90, 10, 3, 1, 1, 4);
+			AddItemAndSetPositionsAndSpans(mLayout, mButtonLayout, 87, 13, 3, 1, 1, 4);
 			AddItemAndSetPositionsAndSpans(mButtonLayout, mFirstButton, 0, 1, 0, 1);
 			AddItemAndSetPositionsAndSpans(mButtonLayout, mSecondButton, 0, 1, 1, 1);
 			AddItemAndSetPositionsAndSpans(mButtonLayout, mThirdButton, 0, 1, 2, 1);
@@ -182,9 +166,7 @@ namespace Advobot
 
 			//Paragraphs
 			mFirstParagraph.Inlines.AddRange(new Inline[] { mHelpFirstHyperlink, mHelpSecondRun, mHelpSecondHyperlink });
-			//mSecondParagraph.Inlines.Add();
-			//mThirdParagraph.Inlines.Add();
-			mFourthParagraph.Inlines.Add(TreeView);
+			mFourthParagraph.Inlines.Add(mFileTreeView);
 
 			//Set this panel as the content for this window.
 			Content = mLayout;
@@ -269,13 +251,24 @@ namespace Advobot
 			SetRowAndSpan(child, rowStart, rowLength);
 			SetColAndSpan(child, columnStart, columnLength);
 		}
+
+		//Create a new binding
+		private static Binding CreateBinding(double val)
+		{
+			return new Binding
+			{
+				Path = new PropertyPath("ActualHeight"),
+				RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
+				Converter = new FontResizer(val),
+			};
+		}
 		#endregion
 
 		#region Events
 		//Accept input through the enter key
 		private void AcceptInput(object sender, KeyEventArgs e)
 		{
-			var text = new TextRange(mInput.Document.ContentStart, mInput.Document.ContentEnd).Text;
+			var text = mInput.Text;
 			if (String.IsNullOrWhiteSpace(text))
 			{
 				mInputButton.IsEnabled = false;
@@ -308,7 +301,7 @@ namespace Advobot
 		private void SaveOutput(object sender, RoutedEventArgs e)
 		{
 			//Make sure the path is valid
-			var path = Actions.GetServerFilePath(0, "Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt", true);
+			var path = Actions.GetDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt");
 			if (path == null)
 			{
 				Actions.WriteLine("Unable to save the output log.");
@@ -376,21 +369,27 @@ namespace Advobot
 				//Show the text for help
 				if (name.Equals(mFirstButtonString, StringComparison.OrdinalIgnoreCase))
 				{
+					mSecondaryOutput.SetBinding(FontSizeProperty, mSecondBinding);
 					mSecondaryOutput.Document.Blocks.Add(mFirstParagraph);
 				}
 				//Show the text for commands
 				else if (name.Equals(mSecondButtonString, StringComparison.OrdinalIgnoreCase))
 				{
+					mSecondaryOutput.SetBinding(FontSizeProperty, mThirdBinding);
 					mSecondaryOutput.Document.Blocks.Add(mSecondParagraph);
 				}
 				//Show the text for info
 				else if (name.Equals(mThirdButtonString, StringComparison.OrdinalIgnoreCase))
 				{
+					mSecondaryOutput.SetBinding(FontSizeProperty, mThirdBinding);
 					mSecondaryOutput.Document.Blocks.Add(mThirdParagraph);
 				}
 				//Show the text for settings
 				else if (name.Equals(mFourthButtonString, StringComparison.OrdinalIgnoreCase))
 				{
+					mFourthParagraph.Inlines.Clear();
+					mFourthParagraph.Inlines.Add(MakeGuildTreeView());
+					mSecondaryOutput.SetBinding(FontSizeProperty, mThirdBinding);
 					mSecondaryOutput.Document.Blocks.Add(mFourthParagraph);
 				}
 			}
@@ -402,6 +401,53 @@ namespace Advobot
 			mMemHoverInfo.IsOpen = !mMemHoverInfo.IsOpen;
 		}
 		#endregion
+
+		//Update the latency/memory/threads every second
+		private void UpdateSystemInformation()
+		{
+			//Create the timer
+			var timer = new DispatcherTimer();
+			//Make the timer's action
+			timer.Tick += (sender, e) =>
+			{
+				var client = Variables.Client;
+				mLatency.Text = String.Format("Latency: {0}ms", client.GetLatency());
+				mMemory.Text = String.Format("Memory: {0}MB", (Process.GetCurrentProcess().WorkingSet64 / 1000000.0).ToString("0.00"));
+				mThreads.Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
+				mShards.Text = String.Format("Shards: {0}", client.GetShards().Count);
+				mPrefix.Text = String.Format("Prefix: {0}", Properties.Settings.Default.Prefix);
+				mThirdParagraph.Inlines.Clear();
+				mThirdParagraph.Inlines.Add(new Run(Actions.FormatLoggedThings()));
+			};
+			//Make the timer update every so often
+			timer.Interval = new TimeSpan(0, 0, 0, 0, 500);
+			//Start the timer
+			timer.Start();
+		}
+
+		//Make the tree view for the guilds on the bot
+		private static TreeView MakeGuildTreeView()
+		{
+			//Format the treeviewer
+			var items = Directory.GetDirectories(Actions.GetDirectory()).Select(guildDir =>
+			{
+				//Separate the ID from the rest of the directory
+				var strID = guildDir.Substring(guildDir.LastIndexOf('\\') + 1);
+				//Make sure the ID is valid
+				ulong ID;
+				if (!ulong.TryParse(strID, out ID))
+					return null;
+
+				//Format the name
+				var name = String.Format("({0}) {1}", strID, Variables.Client.GetGuild(ID).Name);
+				//Add in all of the files the guild has
+				var itemSource = Directory.GetFiles(guildDir).ToList().Select(file => new TreeViewItem() { Header = file.Substring(file.LastIndexOf('\\') + 1).Split('.')[0] });
+				//Create a new treeview item with all of these items
+				return new TreeViewItem() { Header = name, ItemsSource = itemSource };
+			});
+			//Return the treeviewer
+			return new TreeView { ItemsSource = items, BorderThickness = new Thickness(0) };
+		}
 
 		//Add a hypderlink to an output box
 		public static void AddHyperlink(RichTextBox output, string link, string name, string beforeText = null, string afterText = null)
@@ -471,11 +517,11 @@ namespace Advobot
 		private void GatherInput()
 		{
 			//Get the current text
-			var text = new TextRange(mInput.Document.ContentStart, mInput.Document.ContentEnd).Text.Trim(new char[] { '\r', '\n' });
+			var text = mInput.Text.Trim(new char[] { '\r', '\n' });
 			//Write it out to the ghetto console
 			Console.WriteLine(text);
 			//Clear the input
-			mInput.Document.Blocks.Clear();
+			mInput.Text = "";
 			//Reset the enter button
 			mInputButton.IsEnabled = false;
 			//Do an action with the text
@@ -502,29 +548,8 @@ namespace Advobot
 			}
 		}
 
-		//Update the latency/memory/threads every second
-		private void UpdateSystemInformation()
-		{
-			//Create the timer
-			var timer = new DispatcherTimer();
-			//Make the timer's action
-			timer.Tick += (sender, e) =>
-			{
-				var client = Variables.Client;
-				mLatency.Text = String.Format("Latency: {0}ms", client.GetLatency());
-				mMemory.Text = String.Format("Memory: {0}MB", (Process.GetCurrentProcess().WorkingSet64 / 1000000.0).ToString("0.00"));
-				mThreads.Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
-				mShards.Text = String.Format("Shards: {0}", client.GetShards().Count);
-				mPrefix.Text = String.Format("Prefix: {0}", Properties.Settings.Default.Prefix);
-			};
-			//Make the timer update every so often
-			timer.Interval = new TimeSpan(0, 0, 0, 0, 500);
-			//Start the timer
-			timer.Start();
-		}
-
 		//Get the main output box
-		public static RichTextBox MainOutput
+		public static RichTextBox Output
 		{
 			get { return mOutput; }
 		}
@@ -534,8 +559,6 @@ namespace Advobot
 		{
 			get { return mSecondaryOutput; }
 		}
-
-		//Get all of the files of each guild to add to the tree viewer
 	}
 
 	//New class to handle commands
@@ -814,7 +837,7 @@ namespace Advobot
 			}
 
 			//Finally check if it's an actual user
-			Discord.IUser globalUser = null;// Variables.Client.GetUser(ID);
+			Discord.IUser globalUser = Variables.Client.GetUser(ID);
 			if (globalUser == null)
 			{
 				Actions.WriteLine("Unable to find any users with that ID.");
@@ -950,7 +973,7 @@ namespace Advobot
 				Actions.WriteLine("Attempting to download the file...");
 
 				//Set the name of the file to prevent typos between the three places that use it
-				var path = Actions.GetServerFilePath(0, "boticon" + Path.GetExtension(input).ToLower(), true);
+				var path = Actions.GetDirectory("boticon" + Path.GetExtension(input).ToLower());
 
 				//Download the image
 				using (var webclient = new WebClient())
@@ -976,7 +999,7 @@ namespace Advobot
 			//Check the game name length
 			if (input.Length > Constants.GAME_MAX_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR("Game name cannot be longer than 128 characters or else it doesn't show to other people."));
+				Actions.WriteLine(Actions.ERROR(String.Format("Game name cannot be longer than {0} characters or else it doesn't show to other people.", Constants.GAME_MAX_LENGTH)));
 				return;
 			}
 
@@ -1036,12 +1059,12 @@ namespace Advobot
 			//Names have the same length requirements as nicknames
 			if (input.Length > Constants.NICKNAME_MAX_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR("Name cannot be more than 32 characters."));
+				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be more than {0} characters.", Constants.NICKNAME_MAX_LENGTH)));
 				return;
 			}
 			else if (input.Length < Constants.NICKNAME_MIN_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR("Name cannot be less than 2 characters."));
+				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be less than {0} characters.", Constants.NICKNAME_MIN_LENGTH)));
 				return;
 			}
 
@@ -1082,7 +1105,7 @@ namespace Advobot
 			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("{0}. {1} Owner: {2}", count++.ToString("00"), Actions.FormatGuild(x), Actions.FormatUser(x.Owner)));
 
 			//Send it to have the hyperlink created and go to the output window
-			BotWindow.AddHyperlink(BotWindow.MainOutput, Actions.UploadToHastebin(String.Join("\n", guildStrings)), "Listed Guilds");
+			BotWindow.AddHyperlink(BotWindow.Output, Actions.UploadToHastebin(String.Join("\n", guildStrings)), "Listed Guilds");
 		}
 
 		//Change the amount of shards the bot has

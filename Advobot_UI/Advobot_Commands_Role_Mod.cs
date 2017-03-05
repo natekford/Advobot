@@ -217,9 +217,14 @@ namespace Advobot
 		public async Task CreateRole([Remainder] string input)
 		{
 			//Check length
-			if (input.Length > Constants.ROLE_NAME_LENGTH)
+			if (input.Length > Constants.ROLE_NAME_MAX_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Roles can only have a name length of up to 32 characters."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles can only have a name length of up to {0} characters.", Constants.ROLE_NAME_MAX_LENGTH)));
+				return;
+			}
+			else if (input.Length < Constants.ROLE_NAME_MIN_LENGTH)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles need to have a name equal to or greater than {0} characters.", Constants.ROLE_NAME_MIN_LENGTH)));
 				return;
 			}
 
@@ -419,10 +424,11 @@ namespace Advobot
 			//Set the permission types into a list to later check against
 			var permissionTypeStrings = Variables.GuildPermissions.Select(x => x.Name).ToList();
 
-			var inputArray = input.Split(new char[] { ' ' }, 2); //Separate the role and whether to add or remove from the permissions
-			var permsString = ""; //Set placeholder perms variable
-			var roleString = ""; //Set placeholder role variable
-			var show = false; //Set show bool
+			//Separate the role and whether to add or remove from the permissions
+			var inputArray = input.Split(new char[] { ' ' }, 2);
+			var permsString = "";
+			var roleString = "";
+			var show = false;
 
 			//If the user wants to see the permission types, print them out
 			if (input.Equals("show", StringComparison.OrdinalIgnoreCase))
@@ -676,10 +682,16 @@ namespace Advobot
 				return;
 			}
 
-			//See if the new name is a valid length
-			if (inputArray[1].Length > Constants.ROLE_NAME_LENGTH)
+			//Check length
+			var newName = inputArray[1];
+			if (newName.Length > Constants.ROLE_NAME_MAX_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Roles can only have a name length of up to 32 characters."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles can only have a name length of up to {0} characters.", Constants.ROLE_NAME_MAX_LENGTH)));
+				return;
+			}
+			else if (newName.Length < Constants.ROLE_NAME_MIN_LENGTH)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles need to have a name equal to or greater than {0} characters.", Constants.ROLE_NAME_MIN_LENGTH)));
 				return;
 			}
 
@@ -735,8 +747,8 @@ namespace Advobot
 			}
 
 			//Change the name
-			await Context.Guild.GetRole(role.Id).ModifyAsync(x => x.Name = inputArray[1]);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the name of the role `{0}` to `{1}`.", beforeName, inputArray[1]));
+			await Context.Guild.GetRole(role.Id).ModifyAsync(x => x.Name = newName);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the name of the role `{0}` to `{1}`.", beforeName, role.Name));
 		}
 
 		[Command("rolecolor")]

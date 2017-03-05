@@ -149,10 +149,12 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 				return;
 			}
+			//Save the lines
 			Actions.SaveLines(path, Constants.IGNORED_LOG_CHANNELS, String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredLogChannels), Actions.GetValidLines(path, Constants.IGNORED_LOG_CHANNELS));
 
 			//Send a success message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the channel `{0}` from the log channel.", Actions.FormatChannel(channel)));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the channel `{1}` {2} the log channel ignore list.",
+				addBool ? "added" : "removed", Actions.FormatChannel(channel), addBool ? "to" : "from"));
 		}
 
 		[Command("logactions")]

@@ -234,14 +234,14 @@ namespace Advobot
 		}
 		#endregion
 
-		#region User or other misc info
+		#region Info
 		[Command("infobot")]
 		[Alias("infb")]
 		[Usage("")]
 		[Summary("Displays various information about the bot.")]
 		public async Task BotInfo()
 		{
-			TimeSpan span = DateTime.UtcNow.Subtract(Variables.StartupTime);
+			var span = DateTime.UtcNow.Subtract(Variables.StartupTime);
 
 			//Make the description
 			var description = String.Format(
@@ -264,27 +264,7 @@ namespace Advobot
 			Actions.AddFooter(embed, "Version " + Constants.BOT_VERSION);
 
 			//First field
-			var firstField = String.Format(
-				"Logged joins: {0}\n" +
-				"Logged leaves: {1}\n" +
-				"Logged bans: {2}\n" +
-				"Logged unbans: {3}\n" +
-				"Logged user changes: {4}\n" +
-				"Logged edits: {5}\n" +
-				"Logged deletes: {6}\n" +
-				"Logged images: {7}\n" +
-				"Logged gifs: {8}\n" +
-				"Logged files: {9}\n",
-				Variables.LoggedJoins,
-				Variables.LoggedLeaves,
-				Variables.LoggedBans,
-				Variables.LoggedUnbans,
-				Variables.LoggedUserChanges,
-				Variables.LoggedEdits,
-				Variables.LoggedDeletes,
-				Variables.LoggedImages,
-				Variables.LoggedGifs,
-				Variables.LoggedFiles);
+			var firstField = Actions.FormatLoggedThings();
 			Actions.AddField(embed, "Logged Actions", firstField);
 
 			//Second field
@@ -426,6 +406,33 @@ namespace Advobot
 			}
 
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(emoji.Name, description, null, emoji.Url));
+		}
+
+		[Command("infoinvite")]
+		[Alias("infi")]
+		[Usage("[Invite Code]")]
+		[Summary("Lists the user who created the invite, the channel it was created on, the uses, and the creation date/time.")]
+		[UserHasAPermission]
+		public async Task InviteInfo([Remainder] string input)
+		{
+			//Get the invite
+			var inv = (await Context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code == input);
+			//Check if null
+			if (inv == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That invite cannot be gotten."));
+				return;
+			}
+			//Get all of the variables
+			var user = Actions.FormatUser(inv.Inviter);
+			var channel = Actions.FormatChannel(await Context.Guild.GetChannelAsync(inv.ChannelId));
+			var uses = inv.Uses;
+			var time = inv.CreatedAt.UtcDateTime.ToShortTimeString();
+			var date = inv.CreatedAt.UtcDateTime.ToShortDateString();
+			//Make the embed
+			var embed = Actions.MakeNewEmbed(inv.Code, String.Format("**Inviter:** `{0}`\n**Channel:** `{1}`\n**Uses:** `{2}`\n**Created At:** `{3}` on `{4}`", user, channel, uses, time, date));
+			//Send the embed
+			await Actions.SendEmbedMessage(Context.Channel, embed);
 		}
 
 		[Command("useravatar")]
@@ -647,56 +654,32 @@ namespace Advobot
 		[UserHasAPermission]
 		public async Task ListInstantInvites()
 		{
-			//Format the description
-			int count = 1;
-			var description = "";
-			(await Context.Guild.GetInvitesAsync()).OrderBy(x => x.Uses).Reverse().ToList().ForEach(x =>
+			//Get the invites
+			var invites = (await Context.Guild.GetInvitesAsync()).OrderBy(x => x.Uses).Reverse().ToList();
+
+			//Make sure there are some invites
+			if (!invites.Any())
 			{
-				var code = x.Code.Length < 7 ? (x.Code + "       ").Substring(0, 7) : x.Code;
-				description += String.Format("`{0}.` `{1}` `{2}` `{3}`\n", count++.ToString("000"), code, x.Uses, x.Inviter.Username);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no invites."));
+				return;
+			}
+
+			//Format the description
+			var description = "";
+			var count = 1;
+			var lengthForCount = invites.Count.ToString().Length;
+			var lengthForCode = invites.Max(x => x.Code.Length);
+			var lengthForUses = invites.Max(x => x.Uses).ToString().Length;
+			invites.ForEach(x =>
+			{
+				var cnt = count++.ToString().PadLeft(lengthForCount, '0');
+				var code = x.Code.PadRight(lengthForCode);
+				var uses = x.Uses.ToString().PadRight(lengthForUses);
+				description += String.Format("`{0}.` `{1}` `{2}` `{3}`\n", cnt, code, uses, x.Inviter.Username);
 			});
 
 			//Send a success message
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Instant Invites", description));
-		}
-
-		[Command("invitetop")]
-		[Alias("invt")]
-		[Usage("")]
-		[Summary("Lists the top five invites on the guild.")]
-		[UserHasAPermission]
-		public async Task InviteTop()
-		{
-			//Get the list of invites and order them biggest to smallest
-			var orderedList = (await Context.Guild.GetInvitesAsync()).OrderBy(x => x.Uses).Reverse().ToList();
-			//Remove all but the first 5
-			orderedList.RemoveRange(5, orderedList.Count - 5);
-			//Format the embed
-			var count = 1;
-			var embed = Actions.MakeNewEmbed("Top Five Invites", String.Join("\n", orderedList.Select(x => String.Format("`{0}.` `{1}` `{2}`", count++, x.Id, x.Uses))));
-			//Send the embed
-			await Actions.SendEmbedMessage(Context.Channel, embed);
-		}
-
-		[Command("inviteinfo")]
-		[Alias("invi")]
-		[Usage("[Invite Code]")]
-		[Summary("Lists the user who created the invite, the channel it was created on, the uses, and the creation date/time.")]
-		[UserHasAPermission]
-		public async Task InviteInfo([Remainder] string input)
-		{
-			//Get the invite
-			var inv = (await Context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code == input);
-			//Get all of the variables
-			var user = Actions.FormatUser(inv.Inviter);
-			var channel = Actions.FormatChannel(await Context.Guild.GetChannelAsync(inv.ChannelId));
-			var uses = inv.Uses;
-			var time = inv.CreatedAt.UtcDateTime.ToShortTimeString();
-			var date = inv.CreatedAt.UtcDateTime.ToShortDateString();
-			//Make the embed
-			var embed = Actions.MakeNewEmbed(inv.Code, String.Format("**Inviter:** `{0}`\n**Channel:** `{1}`\n**Uses:** `{2}`\n**Created At:** `{3}` on `{4}`", user, channel, uses, time, date));
-			//Send the embed
-			await Actions.SendEmbedMessage(Context.Channel, embed);
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Instant Invite List", description));
 		}
 
 		[Command("invitecreate")]

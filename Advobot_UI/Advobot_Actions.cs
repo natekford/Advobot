@@ -381,11 +381,11 @@ namespace Advobot
 
 							//The role ID if a role punishment type
 							ulong roleID = 0;
-							IRole role = null;
 							if (punishment == 3 && !ulong.TryParse(args[2], out roleID))
 								return;
-							else if (roleID != 0)
-								role = guild.GetRole(roleID);
+
+							//Get the role
+							var role = roleID != 0 ? guild.GetRole(roleID) : null;
 
 							//The time if a time is input
 							int time = 0;
@@ -819,7 +819,7 @@ namespace Advobot
 			{
 				if (!ignoreErrors)
 				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", Actions.FormatChannel(channel))));
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", FormatChannel(channel))));
 				}
 			}
 			else
@@ -830,15 +830,12 @@ namespace Advobot
 		}
 		
 		//Get a channel ID
-		public static async Task<IMessageChannel> GetChannelID(IGuild guild, string channelName)
+		public static async Task<IGuildChannel> GetChannelID(IGuild guild, string channelName)
 		{
-			IMessageChannel channel = null;
 			ulong channelID = 0;
-			if (UInt64.TryParse(channelName.Trim(new char[] { '<', '>', '#' }), out channelID))
-			{
-				channel = (IMessageChannel)await guild.GetChannelAsync(channelID);
-			}
-			return channel;
+			if (!UInt64.TryParse(channelName.Trim(new char[] { '<', '>', '#' }), out channelID))
+				return null;
+			return await guild.GetChannelAsync(channelID);
 		}
 		
 		//Get a channel
@@ -1026,24 +1023,30 @@ namespace Advobot
 		}
 		
 		//Get file paths
-		public static string GetServerFilePath(ulong serverId, string fileName, bool global = false)
+		public static string GetServerFilePath(ulong guildId, string fileName)
 		{
+			//Make sure the bot's directory exists
+			var directory = GetDirectory();
+			if (!Directory.Exists(directory))
+				return null;
+
+			//This string will be similar to C:\Users\User\AppData\Roaming\Discord_Servers_... if on using appdata. If not then it can be anything
+			return Path.Combine(directory, guildId.ToString(), fileName);
+		}
+
+		//Get the bot's directory
+		public static string GetDirectory(string fileName = null)
+		{
+			//Make sure a save path exists
 			var folder = Properties.Settings.Default.Path;
-			//If not a valid directory then give null
 			if (!Directory.Exists(folder))
 				return null;
-			//Combine the path for the folders
-			string directory;
-			if (global)
-			{
-				directory = Path.Combine(folder, Constants.SERVER_FOLDER + "_" + Variables.Bot_ID);
-			}
-			else
-			{
-				directory = Path.Combine(folder, Constants.SERVER_FOLDER + "_" + Variables.Bot_ID, serverId.ToString());
-			}
-			//This string will be similar to C:\Users\User\AppData\Roaming\Discord_Servers_... if on using appdata. If not then it can be anything
-			return Path.Combine(directory, fileName);
+
+			//Get the bot's folder
+			var botFolder = String.Format("{0}_{1}", Constants.SERVER_FOLDER, Variables.Bot_ID);
+
+			//Send back the directory
+			return String.IsNullOrWhiteSpace(fileName) ? Path.Combine(folder, botFolder) : Path.Combine(folder, botFolder, fileName);
 		}
 		
 		//Get if a channel is a text or voice channel
@@ -1485,10 +1488,10 @@ namespace Advobot
 			{
 				userMessages.RemoveRange(requestCount, userMessages.Count - requestCount);
 			}
-			userMessages.Insert(0, allMessages[0]); //Remove the initial command message
+			//Remove the initial command message
+			userMessages.Insert(0, allMessages[0]);
 
-			WriteLine(String.Format("Found {0} messages; deleting {1} from user {2}", allMessages.Count, userMessages.Count - 1, Actions.FormatUser(user)));
-			await Actions.DeleteMessages(channel, userMessages);
+			await DeleteMessages(channel, userMessages);
 		}
 
 		//Delete messages that aren't null
@@ -1549,8 +1552,7 @@ namespace Advobot
 		//Edit message log message
 		public static async Task FormatEditMessage(ITextChannel logChannel, string time, IGuildUser user, IMessageChannel channel, string before, string after)
 		{
-			await SendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}` **IN** `#{2}`\n**FROM:** ```\n{3}```\n**TO:** ```\n{4}```",
-				time, Actions.FormatUser(user), Actions.FormatChannel(channel), before, after));
+			await SendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}` **IN** `#{2}`\n**FROM:** ```\n{3}```\n**TO:** ```\n{4}```", time, FormatUser(user), FormatChannel(channel), before, after));
 		}
 		
 		//Get rid of certain elements to make messages look neater
@@ -1589,7 +1591,7 @@ namespace Advobot
 		public static string FormatChannel(IChannel channel)
 		{
 			var tempChan = channel as IGuildChannel;
-			return String.Format("{0} ({1}) ({2})", channel.Name, Actions.GetChannelType(tempChan), channel.Id);
+			return String.Format("{0} ({1}) ({2})", channel.Name, GetChannelType(tempChan), channel.Id);
 		}
 
 		//Format the role string
@@ -1602,6 +1604,24 @@ namespace Advobot
 		public static string RemoveNewLines(string input)
 		{
 			return input.Replace(Environment.NewLine, "").Replace("\r", "").Replace("\n", "");
+		}
+
+		//Format all things that have been logged
+		public static string FormatLoggedThings()
+		{
+			const int spacing = Constants.PAD_RIGHT;
+			return String.Format("{0}\n{1}\n{2}\n{3}\n{4}\n{5}\n{6}\n{7}\n{8}\n{9}\n{10}",
+				String.Format("{0}{1}", "Logged Actions:".PadRight(spacing), "Count:"),
+				String.Format("{0}{1}", "Joins:".PadRight(spacing), Variables.LoggedJoins),
+				String.Format("{0}{1}", "Leaves:".PadRight(spacing), Variables.LoggedLeaves),
+				String.Format("{0}{1}", "Bans:".PadRight(spacing), Variables.LoggedBans),
+				String.Format("{0}{1}", "Unbans:".PadRight(spacing), Variables.LoggedUnbans),
+				String.Format("{0}{1}", "User changes:".PadRight(spacing), Variables.LoggedUserChanges),
+				String.Format("{0}{1}", "Edits:".PadRight(spacing), Variables.LoggedEdits),
+				String.Format("{0}{1}", "Deletes:".PadRight(spacing), Variables.LoggedDeletes),
+				String.Format("{0}{1}", "Images:".PadRight(spacing), Variables.LoggedImages),
+				String.Format("{0}{1}", "Gifs:".PadRight(spacing), Variables.LoggedGifs),
+				String.Format("{0}{1}", "Files:".PadRight(spacing), Variables.LoggedFiles));
 		}
 		#endregion
 
@@ -1699,15 +1719,7 @@ namespace Advobot
 			}
 
 			//Get the URL of the image
-			string imageURL = null;
-			if (context.Message.Embeds.Count == 1)
-			{
-				imageURL = context.Message.Embeds.First().Thumbnail.ToString();
-			}
-			else
-			{
-				imageURL = context.Message.Attachments.First().Url;
-			}
+			var imageURL = context.Message.Embeds.Count == 1 ? context.Message.Embeds.First().Thumbnail.ToString() : context.Message.Attachments.First().Url;
 
 			//Run separate due to the time it takes
 			var downloadUploadAndDelete = Task.Run(async () =>
@@ -1792,7 +1804,7 @@ namespace Advobot
 
 				//Delete the file and send a success message
 				File.Delete(path);
-				await Actions.DeleteMessage(msg);
+				await DeleteMessage(msg);
 				await SendChannelMessage(context, String.Format("Successfully changed the {0} icon.", user ? "bot" : "guild"));
 			});
 		}
@@ -1901,18 +1913,18 @@ namespace Advobot
 			//Add in the properties
 			if (title != null)
 			{
-				embed.WithTitle(title.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, title.Length)));
+				embed.WithTitle(title.Substring(0, Math.Min(Constants.TITLE_MAX_LENGTH, title.Length)));
 			}
 			if (description != null)
 			{
-				if (description.Length > Constants.LONG_EMBED_LENGTH)
+				if (description.Length > Constants.EMBED_MAX_LENGTH_LONG)
 				{
-					embed.WithDescription(String.Format("Content is past {0} characters. Click [here]({1}) to see it.", Constants.LONG_EMBED_LENGTH, UploadToHastebin(ReplaceMarkdownChars(description))));
+					embed.WithDescription(String.Format("Content is past {0} characters. Click [here]({1}) to see it.", Constants.EMBED_MAX_LENGTH_LONG, UploadToHastebin(ReplaceMarkdownChars(description))));
 				}
 				//Mobile can only show up to 20 or so lines per embed I think (at least on Android) 
-				else if (GetLineBreaks(description) > Constants.LINES_DESCRIPTION)
+				else if (GetLineBreaks(description) > Constants.DESCRIPTION_MAX_LINES)
 				{
-					embed.WithDescription(String.Format("Content is past {0} new lines. Click [here]({1}) to see it.", Constants.LINES_DESCRIPTION, UploadToHastebin(ReplaceMarkdownChars(description))));
+					embed.WithDescription(String.Format("Content is past {0} new lines. Click [here]({1}) to see it.", Constants.DESCRIPTION_MAX_LINES, UploadToHastebin(ReplaceMarkdownChars(description))));
 				}
 				else
 				{
@@ -1952,7 +1964,7 @@ namespace Advobot
 			//Add in the properties
 			if (name != null)
 			{
-				author.WithName(name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length)));
+				author.WithName(name.Substring(0, Math.Min(Constants.TITLE_MAX_LENGTH, name.Length)));
 			}
 			if (iconURL != null)
 			{
@@ -1978,7 +1990,7 @@ namespace Advobot
 			//Add in the properties
 			if (text != null)
 			{
-				footer.WithText(text.Substring(0, Math.Min(Constants.LONG_EMBED_LENGTH, text.Length)));
+				footer.WithText(text.Substring(0, Math.Min(Constants.EMBED_MAX_LENGTH_LONG, text.Length)));
 			}
 			if (iconURL != null)
 			{
@@ -1991,21 +2003,21 @@ namespace Advobot
 		//Add a field to an embed
 		public static EmbedBuilder AddField(EmbedBuilder embed, string name = "null", string value = "null", bool isInline = true)
 		{
-			if (name == null || value == null || embed.Build().Fields.Count() >= Constants.MAX_FIELDS)
+			if (name == null || value == null || embed.Build().Fields.Count() >= Constants.FIELDS_MAX)
 				return embed;
 
 			embed.AddField(x =>
 			{
-				x.Name = name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length));
+				x.Name = name.Substring(0, Math.Min(Constants.TITLE_MAX_LENGTH, name.Length));
 				//Embeds can only show up to 1024 chars per field
-				if (value.Length > Constants.SHORT_EMBED_LENGTH)
+				if (value.Length > Constants.EMBED_MAX_LENGTH_SHORT)
 				{
-					x.Value = String.Format("Field has more than {0} characters; please click [here]({1}) to see the content.", Constants.SHORT_EMBED_LENGTH, UploadToHastebin(ReplaceMarkdownChars(value)));
+					x.Value = String.Format("Field has more than {0} characters; please click [here]({1}) to see the content.", Constants.EMBED_MAX_LENGTH_SHORT, UploadToHastebin(ReplaceMarkdownChars(value)));
 				}
 				//Fields can only show up to five lines on mobile
-				else if (GetLineBreaks(value) > Constants.LINES_FIELD)
+				else if (GetLineBreaks(value) > Constants.FIELD_MAX_LINES)
 				{
-					x.Value = String.Format("Field has more than {0} new lines; please click [here]({1}) to see the content.", Constants.LINES_FIELD, UploadToHastebin(ReplaceMarkdownChars(value)));
+					x.Value = String.Format("Field has more than {0} new lines; please click [here]({1}) to see the content.", Constants.FIELD_MAX_LINES, UploadToHastebin(ReplaceMarkdownChars(value)));
 				}
 				else
 				{
@@ -2073,7 +2085,6 @@ namespace Advobot
 		//Set the server or mod log without context
 		public static async Task<ITextChannel> SetServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, string input, string serverOrMod)
 		{
-			ITextChannel logChannel = null;
 			//See if not null
 			if (String.IsNullOrWhiteSpace(input))
 			{
@@ -2086,7 +2097,7 @@ namespace Advobot
 			}
 
 			//Get the channel with its ID
-			logChannel = await GetChannel(guild, channel, message, input) as ITextChannel;
+			var logChannel = await GetChannel(guild, channel, message, input) as ITextChannel;
 			if (logChannel == null)
 			{
 				await MakeAndDeleteSecondaryMessage(channel, message, ERROR(String.Format("Unable to set the logchannel on `{0}`.", input)));
@@ -2199,7 +2210,7 @@ namespace Advobot
 				{
 					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached Image");
-					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
+					AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
 					await SendEmbedMessage(channel, embed);
 
 					++Variables.LoggedImages;
@@ -2209,7 +2220,7 @@ namespace Advobot
 				{
 					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached Gif");
-					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
+					AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
 					await SendEmbedMessage(channel, embed);
 
 					++Variables.LoggedGifs;
@@ -2219,7 +2230,7 @@ namespace Advobot
 				{
 					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached File");
-					AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
+					AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
 					await SendEmbedMessage(channel, embed);
 
 					++Variables.LoggedFiles;
@@ -2230,7 +2241,7 @@ namespace Advobot
 			{
 				var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 				AddFooter(embed, "Embedded Image");
-				AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
+				AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
 				await SendEmbedMessage(channel, embed);
 
 				++Variables.LoggedImages;
@@ -2240,7 +2251,7 @@ namespace Advobot
 			{
 				var embed = MakeNewEmbed(null, null, Constants.ATCH, x.Thumbnail.Value.Url);
 				AddFooter(embed, "Embedded " + (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(x.Thumbnail.Value.Url), StringComparer.OrdinalIgnoreCase) ? "Gif" : "Video"));
-				AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.GetAvatarUrl(), x.Url);
+				AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl(), x.Url);
 				await SendEmbedMessage(channel, embed);
 
 				++Variables.LoggedGifs;
@@ -2653,7 +2664,7 @@ namespace Advobot
 				//Else delete the message
 				else
 				{
-					await Actions.DeleteMessage(message);
+					await DeleteMessage(message);
 				}
 			}
 		}
@@ -2715,7 +2726,7 @@ namespace Advobot
 		public static async Task BannedPhrasesPunishments(IMessage message)
 		{
 			//Get rid of the message
-			await Actions.DeleteMessage(message);
+			await DeleteMessage(message);
 
 			//Check if the guild has any punishments set up
 			if (!Variables.Guilds.ContainsKey((message.Channel as IGuildChannel).Guild.Id))
@@ -2764,7 +2775,7 @@ namespace Advobot
 				if (logChannel != null)
 				{
 					var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
-					await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user), message.Channel), user.GetAvatarUrl()));
+					await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl()));
 				}
 			}
 			//Ban
@@ -2782,7 +2793,7 @@ namespace Advobot
 				if (logChannel != null)
 				{
 					var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
-					await SendEmbedMessage(logChannel, AddAuthor(embed, Actions.FormatUser(user), user.GetAvatarUrl()));
+					await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
 				}
 			}
 			//Role
@@ -2798,11 +2809,11 @@ namespace Advobot
 				}
 
 				//Send a message to the logchannel
-				ITextChannel logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+				var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 				if (logChannel != null)
 				{
 					var embed = AddFooter(MakeNewEmbed(null, "**Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
-					await SendEmbedMessage(logChannel, AddAuthor(embed, Actions.FormatUser(user), user.GetAvatarUrl()));
+					await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
 				}
 			}
 		}
@@ -3040,7 +3051,7 @@ namespace Advobot
 			Task t = Task.Run(async () =>
 			{
 				await Task.Delay(time);
-				await Actions.DeleteMessages(channel, messages);
+				await DeleteMessages(channel, messages);
 			});
 		}
 

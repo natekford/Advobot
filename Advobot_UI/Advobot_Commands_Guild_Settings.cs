@@ -514,7 +514,8 @@ namespace Advobot
 				Actions.GetValidLines(path, Constants.IGNORED_COMMAND_CHANNELS));
 
 			//Send a success message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the channel `{0}` from commands.", Actions.FormatChannel(channel)));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the channel `{1}` {2} the command ignore list.",
+				addBool ? "added" : "removed", Actions.FormatChannel(channel), addBool ? "to" : "from"));
 		}
 		#endregion
 

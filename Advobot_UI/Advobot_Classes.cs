@@ -599,6 +599,7 @@ namespace Advobot
 		public abstract void AddConnectedHandler(CommandHandler handler);
 		public abstract BaseDiscordClient GetClient();
 		public abstract SocketSelfUser GetCurrentUser();
+		public abstract IUser GetUser(ulong id);
 		public abstract IReadOnlyCollection<SocketGuild> GetGuilds();
 		public abstract SocketGuild GetGuild(ulong id);
 		public abstract IReadOnlyCollection<DiscordSocketClient> GetShards();
@@ -620,6 +621,7 @@ namespace Advobot
 		public override void AddConnectedHandler(CommandHandler handler) { mSocketClient.Connected += Actions.LoadInformation; }
 		public override BaseDiscordClient GetClient() { return mSocketClient; }
 		public override SocketSelfUser GetCurrentUser() { return mSocketClient.CurrentUser; }
+		public override IUser GetUser(ulong id) { return mSocketClient.GetUser(id); }
 		public override IReadOnlyCollection<SocketGuild> GetGuilds() { return mSocketClient.Guilds; }
 		public override SocketGuild GetGuild(ulong id) { return mSocketClient.GetGuild(id); }
 		public override IReadOnlyCollection<DiscordSocketClient> GetShards() { return new[] { mSocketClient }; }
@@ -641,6 +643,7 @@ namespace Advobot
 		public override void AddConnectedHandler(CommandHandler handler) { mShardedClient.Shards.FirstOrDefault().Connected += Actions.LoadInformation; }
 		public override BaseDiscordClient GetClient() { return mShardedClient; }
 		public override SocketSelfUser GetCurrentUser() { return mShardedClient.Shards.FirstOrDefault().CurrentUser; }
+		public override IUser GetUser(ulong id) { return mShardedClient.GetUser(id); }
 		public override IReadOnlyCollection<SocketGuild> GetGuilds() { return mShardedClient.Guilds; }
 		public override SocketGuild GetGuild(ulong id) { return mShardedClient.GetGuild(id); }
 		public override IReadOnlyCollection<DiscordSocketClient> GetShards() { return mShardedClient.Shards; }
@@ -934,7 +937,7 @@ namespace Advobot
 	{
 		private static readonly Dictionary<UICommandEnum, string[]> NamesAndAliases = new Dictionary<UICommandEnum, string[]>
 		{
-			{ UICommandEnum.Pause, new string[] { SharedCommands.CPAUSE } },
+			{ UICommandEnum.Pause, new string[] { SharedCommands.CPAUSE, SharedCommands.APAUSE } },
 			{ UICommandEnum.BotOwner, new string[] { SharedCommands.COWNER, SharedCommands.AOWNER } },
 			{ UICommandEnum.SavePath, new string[] { SharedCommands.CPATH, SharedCommands.APATH } },
 			{ UICommandEnum.Prefix, new string[] { SharedCommands.CPREFIX, SharedCommands.APREFIX } },
@@ -946,7 +949,7 @@ namespace Advobot
 			{ UICommandEnum.Disconnect, new string[] { SharedCommands.CDISC, SharedCommands.ADISC_1, SharedCommands.ADISC_2 } },
 			{ UICommandEnum.Restart, new string[] { SharedCommands.CRESTART, SharedCommands.ARESTART } },
 			{ UICommandEnum.ListGuilds, new string[] { SharedCommands.CGUILDS, SharedCommands.AGUILDS } },
-			{ UICommandEnum.Shards, new string[] { SharedCommands.CSHARDS } },
+			{ UICommandEnum.Shards, new string[] { SharedCommands.CSHARDS, SharedCommands.ASHARDS } },
 		};
 
 		public static string[] GetNameAndAliases(UICommandEnum cmd)

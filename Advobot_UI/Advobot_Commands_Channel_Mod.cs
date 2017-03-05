@@ -18,13 +18,13 @@ namespace Advobot
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task CreateChannel([Remainder] string input)
 		{
+			//Split the input
 			var inputArray = input.Split(' ');
 			if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
-			var type = inputArray[1];
 
 			//Test for args
 			if (inputArray.Length != 2)
@@ -34,17 +34,23 @@ namespace Advobot
 			}
 
 			//Test for name validity
-			if (inputArray[0].Contains(' '))
+			var name = inputArray[0];
+			if (name.Contains(' '))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No spaces allowed in a channel name."));
 				return;
 			}
-			else if (inputArray[0].Length > Constants.CHANNEL_NAME_MAX_LENGTH || inputArray[0].Length < Constants.CHANNEL_NAME_MIN_LENGTH)
+			else if (name.Length > Constants.CHANNEL_NAME_MAX_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Name must be between 2 and 100 characters long."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than {0} characters.", Constants.CHANNEL_NAME_MAX_LENGTH)));
 				return;
 			}
-			else if (inputArray[0].Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase) && await Actions.GetDuplicateBotChan(Context.Guild))
+			else if (name.Length < Constants.CHANNEL_NAME_MIN_LENGTH)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than {0} characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
+				return;
+			}
+			else if (name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase) && await Actions.GetDuplicateBotChan(Context.Guild))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Please don't try to make a second bot channel. All that does is confuse the bot.");
 				return;
@@ -52,6 +58,7 @@ namespace Advobot
 
 			//Test for text
 			IGuildChannel channel;
+			var type = inputArray[1];
 			if (type.Equals(Constants.TEXT_TYPE, StringComparison.OrdinalIgnoreCase))
 			{
 				channel = await Context.Guild.CreateTextChannelAsync(inputArray[0]);
@@ -615,17 +622,23 @@ namespace Advobot
 			}
 
 			//Checking if valid name
-			if (inputArray[1].Contains(' '))
+			var name = inputArray[1];
+			if (name.Contains(' '))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No spaces allowed in a channel name."));
 				return;
 			}
-			else if (inputArray[1].Length > Constants.CHANNEL_NAME_MAX_LENGTH || inputArray[1].Length < Constants.CHANNEL_NAME_MIN_LENGTH)
+			else if (name.Length > Constants.CHANNEL_NAME_MAX_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Name must be between 2 and 100 characters long."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than {0} characters.", Constants.CHANNEL_NAME_MAX_LENGTH)));
 				return;
 			}
-			else if (inputArray[1].Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase) && await Actions.GetDuplicateBotChan(Context.Guild))
+			else if (name.Length < Constants.CHANNEL_NAME_MIN_LENGTH)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than {0} characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
+				return;
+			}
+			else if (name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase) && await Actions.GetDuplicateBotChan(Context.Guild))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Please don't try to rename a channel to the bot channel if one alreay exists. All that does is confuse the bot.");
 				return;
@@ -731,7 +744,7 @@ namespace Advobot
 
 			//See if valid length
 			var newTopic = inputArray[1];
-			if (newTopic.Length > Constants.TOPIC_LENGTH)
+			if (newTopic.Length > Constants.TOPIC_MAX_LENGTH)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Topics cannot be longer than 1024 characters in length."));
 				return;
