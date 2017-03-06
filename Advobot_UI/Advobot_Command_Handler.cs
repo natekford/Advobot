@@ -24,7 +24,7 @@ namespace Advobot
 			//Use the BotClient's connected handler to start up the bot
 			Client.AddConnectedHandler(this);
 
-			//Use the BotClient classes message received handler to handle commands
+			//Use the BotClient's message received handler to handle commands
 			Client.AddMessageReceivedHandler(this);
 		}
 
@@ -52,16 +52,18 @@ namespace Advobot
 			//Check to see if the guild is using a prefix
 			if (!string.IsNullOrWhiteSpace(guildPrefix))
 			{
-				//If the message doesn't start with the guild prefix or a mention return
-				if (!message.HasStringPrefix(guildPrefix, ref argPos) && !message.HasMentionPrefix(Variables.Client.GetCurrentUser(), ref argPos))
+				if (!message.HasStringPrefix(guildPrefix, ref argPos))
+				{
+					if (message.HasMentionPrefix(Variables.Client.GetCurrentUser(), ref argPos))
+					{
+						await Actions.SendChannelMessage(message.Channel, string.Format("The guild's current prefix is: `{0}`.", guildPrefix));
+					}
 					return;
+				}
 			}
 			//Getting to here means the guild is not using a prefix
-			else
-			{
-				if (!message.HasStringPrefix(Properties.Settings.Default.Prefix, ref argPos))
-					return;
-			}
+			else if (!message.HasStringPrefix(Properties.Settings.Default.Prefix, ref argPos))
+				return;
 
 			//Create a Command Context
 			var context = new CommandContext(Client.GetClient(), message);

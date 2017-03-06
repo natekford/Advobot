@@ -16,12 +16,12 @@ namespace Advobot
 			//If the shard count is greater than one create a sharded client
 			if (Properties.Settings.Default.ShardCount > 1)
 			{
-				Variables.Client = new ShardedClient(createShardedClient());
+				Variables.Client = new ShardedClient(CreateShardedClient());
 			}
 			//If not create a regular socket client
 			else
 			{
-				Variables.Client = new SocketClient(createSocketClient());
+				Variables.Client = new SocketClient(CreateSocketClient());
 			}
 
 			//If not a console application then start the UI
@@ -51,7 +51,7 @@ namespace Advobot
 		}
 
 		//Create a sharded client
-		private static DiscordShardedClient createShardedClient()
+		private static DiscordShardedClient CreateShardedClient()
 		{
 			//Define the DiscordSocketClient
 			var ShardedClient = new DiscordShardedClient(new DiscordSocketConfig
@@ -89,7 +89,7 @@ namespace Advobot
 		}
 
 		//Create a regular client
-		private static DiscordSocketClient createSocketClient()
+		private static DiscordSocketClient CreateSocketClient()
 		{
 			//Define the DiscordSocketClient
 			var SocketClient = new DiscordSocketClient(new DiscordSocketConfig

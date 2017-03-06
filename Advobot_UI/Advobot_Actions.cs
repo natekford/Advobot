@@ -240,7 +240,7 @@ namespace Advobot
 				//If not, go to the defaults
 				var defaultPreferences = Properties.Resources.DefaultCommandPreferences;
 				//Get the command category
-				CommandCategory commandCategory = CommandCategory.Miscellaneous;
+				var commandCategory = CommandCategory.Miscellaneous;
 				//Split by new lines
 				defaultPreferences.Split('\n').ToList().ForEach(x =>
 				{
@@ -277,7 +277,7 @@ namespace Advobot
 				using (var file = new StreamReader(path))
 				{
 					//Get the command category
-					CommandCategory commandCategory = CommandCategory.Miscellaneous;
+					var commandCategory = CommandCategory.Miscellaneous;
 					//Read the preferences document for information
 					string line;
 					while ((line = file.ReadLine()) != null)
@@ -372,17 +372,17 @@ namespace Advobot
 							//Number of removes to activate
 							int number = 0;
 							if (!int.TryParse(args[0], out number))
-								return;
+								continue;
 
 							//The type of punishment
 							int punishment = 0;
 							if (!int.TryParse(args[1], out punishment))
-								return;
+								continue;
 
 							//The role ID if a role punishment type
 							ulong roleID = 0;
 							if (punishment == 3 && !ulong.TryParse(args[2], out roleID))
-								return;
+								continue;
 
 							//Get the role
 							var role = roleID != 0 ? guild.GetRole(roleID) : null;
@@ -390,7 +390,7 @@ namespace Advobot
 							//The time if a time is input
 							int time = 0;
 							if (role != null && !int.TryParse(args[3], out time))
-								return;
+								continue;
 
 							guildInf.BannedPhrasesPunishments.Add(new BannedPhrasePunishment(number, (PunishmentType)punishment, role, time));
 						}
@@ -426,22 +426,24 @@ namespace Advobot
 
 					var inputArray = line.Split(' ');
 
-					//Test if valid role
+					//Test if ID
 					ulong ID = 0;
 					if (!ulong.TryParse(inputArray[0], out ID))
-						return;
-					IRole role = guild.GetRole(ID);
+						continue;
+
+					//Test if valid role
+					var role = guild.GetRole(ID);
 					if (role == null)
-						return;
+						continue;
 
 					//Test if valid group
 					int group = 0;
 					if (!int.TryParse(inputArray[1], out group))
-						return;
+						continue;
 
 					//Check if it's already in any list
 					if (Variables.SelfAssignableGroups.Where(x => x.GuildID == guild.Id).Any(x => x.Roles.Any(y => y.Role.Id == ID)))
-						return;
+						continue;
 
 					//Remake the SARole
 					var SARole = new SelfAssignableRole(role, group);
@@ -636,7 +638,7 @@ namespace Advobot
 
 					var inputArray = line.Split(new char[] { '/' }, 2);
 					if (inputArray.Length != 2)
-						return;
+						continue;
 
 					var name = inputArray[0].Substring(1);
 					var text = inputArray[1].Substring(0, inputArray[1].Length - 1);
@@ -1175,14 +1177,7 @@ namespace Advobot
 		public static void GetOS()
 		{
 			var windir = Environment.GetEnvironmentVariable("windir");
-			if (!string.IsNullOrEmpty(windir) && windir.Contains(@"\") && Directory.Exists(windir))
-			{
-				Variables.Windows = true;
-			}
-			else
-			{
-				Variables.Windows = false;
-			}
+			Variables.Windows = !string.IsNullOrEmpty(windir) && windir.Contains(@"\") && Directory.Exists(windir);
 		}
 
 		//Get if it's a console or WPF

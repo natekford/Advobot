@@ -387,8 +387,7 @@ namespace Advobot
 				//Show the text for settings
 				else if (name.Equals(mFourthButtonString, StringComparison.OrdinalIgnoreCase))
 				{
-					mFourthParagraph.Inlines.Clear();
-					mFourthParagraph.Inlines.Add(MakeGuildTreeView());
+					MakeGuildTreeView(mFourthParagraph);
 					mSecondaryOutput.SetBinding(FontSizeProperty, mThirdBinding);
 					mSecondaryOutput.Document.Blocks.Add(mFourthParagraph);
 				}
@@ -426,27 +425,44 @@ namespace Advobot
 		}
 
 		//Make the tree view for the guilds on the bot
-		private static TreeView MakeGuildTreeView()
+		private static void MakeGuildTreeView(Paragraph input)
 		{
+			var treeView = new TreeView() { BorderThickness = new Thickness(0) };
 			//Format the treeviewer
-			var items = Directory.GetDirectories(Actions.GetDirectory()).Select(guildDir =>
+			Directory.GetDirectories(Actions.GetDirectory()).ToList().ForEach(guildDir =>
 			{
 				//Separate the ID from the rest of the directory
 				var strID = guildDir.Substring(guildDir.LastIndexOf('\\') + 1);
 				//Make sure the ID is valid
 				ulong ID;
 				if (!ulong.TryParse(strID, out ID))
-					return null;
+					return;
 
 				//Format the name
 				var name = String.Format("({0}) {1}", strID, Variables.Client.GetGuild(ID).Name);
+				var item = new TreeViewItem() { Header = name };
+
 				//Add in all of the files the guild has
-				var itemSource = Directory.GetFiles(guildDir).ToList().Select(file => new TreeViewItem() { Header = file.Substring(file.LastIndexOf('\\') + 1).Split('.')[0] });
+				Directory.GetFiles(guildDir).ToList().ForEach(file =>
+				{
+					//Create the item
+					var subitem = new TreeViewItem() { Header = file.Substring(file.LastIndexOf('\\') + 1).Split('.')[0] };
+					subitem.MouseDoubleClick += Item_MouseDoubleClick;
+					item.Items.Add(subitem);
+				});
 				//Create a new treeview item with all of these items
-				return new TreeViewItem() { Header = name, ItemsSource = itemSource };
+				treeView.Items.Add(item);
 			});
-			//Return the treeviewer
-			return new TreeView { ItemsSource = items, BorderThickness = new Thickness(0) };
+			//Remove all current information in the paragraph
+			input.Inlines.Clear();
+			input.Inlines.Add(treeView);
+		}
+
+		private static void Item_MouseDoubleClick(object sender, RoutedEventArgs e)
+		{
+			var treeitem = sender as TreeViewItem;
+			var parent = ItemsControl.ItemsControlFromItemContainer(treeitem) as TreeViewItem;
+			Actions.WriteLine(treeitem.Header.ToString() + " " + parent.Header.ToString());
 		}
 
 		//Add a hypderlink to an output box
