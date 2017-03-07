@@ -47,11 +47,11 @@ namespace Advobot
 			//Check if a valid region or asking to see the region types
 			if (input.Equals("regions", StringComparison.OrdinalIgnoreCase))
 			{
-				var text = String.Join("\n", Constants.VALIDREGIONIDS);
+				var text = String.Join("\n", Constants.VALID_REGION_IDS);
 				//Check whether to show the VIP regions
 				if (Context.Guild.Features.Contains(Constants.VIP_REGIONS, StringComparer.OrdinalIgnoreCase))
 				{
-					text += "\n" + String.Join("\n", Constants.VIPREGIONIDS);
+					text += "\n" + String.Join("\n", Constants.VIP_REGIONIDS);
 				}
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Region IDs", text));
 			}
@@ -59,7 +59,7 @@ namespace Advobot
 			{
 				await Actions.SendChannelMessage(Context, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
 			}
-			else if (Constants.VALIDREGIONIDS.Contains(input, StringComparer.OrdinalIgnoreCase))
+			else if (Constants.VALID_REGION_IDS.Contains(input, StringComparer.OrdinalIgnoreCase))
 			{
 				//Capture the previous region
 				var bRegion = Context.Guild.VoiceRegionId;
@@ -68,7 +68,7 @@ namespace Advobot
 				await Context.Guild.ModifyAsync(x => x.RegionId = input);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", bRegion, input));
 			}
-			else if (Constants.VIPREGIONIDS.Contains(input, StringComparer.OrdinalIgnoreCase))
+			else if (Constants.VIP_REGIONIDS.Contains(input, StringComparer.OrdinalIgnoreCase))
 			{
 				//Check if the guild can access vip regions
 				if (Context.Guild.Features.Contains(Constants.VIP_REGIONS, StringComparer.OrdinalIgnoreCase))

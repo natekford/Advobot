@@ -174,64 +174,26 @@ namespace Advobot
 			var guildAndLogChannel = await Actions.VerifyGuildAndLogChannel(user, LogActions.UserJoined);
 			var logChannel = guildAndLogChannel.Item1;
 			var guild = guildAndLogChannel.Item2;
-			if (logChannel == null || guild == null)
+			if (logChannel == null || guild == null || !Variables.Guilds.ContainsKey(guild.Id))
 				return;
 
-			//Get the current invites
-			var curInvs = await user.Guild.GetInvitesAsync();
-			//Get the invites that have already been put on the bot
-			var botInvs = Variables.Guilds.ContainsKey(user.Guild.Id) ? Variables.Guilds[user.Guild.Id].Invites : null;
-			//Set an invite to hold the current invite the user joined on
-			BotInvite curInv = null;
-			if (botInvs != null)
-			{
-				//Find the first invite where the bot invite has the same code as the current invite but different use counts
-				curInv = botInvs.FirstOrDefault(bI => curInvs.Any(cI => cI.Code == bI.Code && cI.Uses != bI.Uses));
-
-				//If the invite is null, take that as meaning there are new invites on the guild
-				if (curInv == null)
-				{
-					//Get the new invites on the guild by finding which guild invites aren't on the bot invites list
-					var newInvs = curInvs.Where(x => !botInvs.Select(y => y.Code).Contains(x.Code));
-					//If there's only one, then use that as the current inv. If there's more than one then there's no way to know what invite it was on
-					if (newInvs.Count() == 0 && user.Guild.Features.Contains(Constants.VANITY_URL, StringComparer.OrdinalIgnoreCase))
-					{
-						curInv = new BotInvite(user.Guild.Id, "Vanity URL", 0);
-					}
-					else if (newInvs.Count() == 1)
-					{
-						curInv = new BotInvite(newInvs.First().GuildId, newInvs.First().Code, newInvs.First().Uses);
-					}
-					//Add all of the invites to the bot invites list
-					botInvs.AddRange(newInvs.Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)));
-				}
-				else
-				{
-					//Increment the invite the bot is holding if a curInv was found so as to match with the current invite uses count
-					curInv.IncreaseUses();
-				}
-			}
-
 			//Check if should add them to a slowmode for channel/guild
-			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id) || user.Guild.TextChannels.Intersect(Variables.SlowmodeChannels.Keys).Any())
+			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || (await guild.GetTextChannelsAsync()).Intersect(Variables.SlowmodeChannels.Keys).Any())
 			{
 				//Add them to the slowmode user list
 				await Actions.AddSlowmodeUser(user);
 			}
-			if (Variables.Guilds[user.Guild.Id].RaidPrevention)
+			if (Variables.Guilds[guild.Id].RaidPrevention)
 			{
 				//Give them the mute role
-				await user.AddRolesAsync(Variables.Guilds[user.Guild.Id].MuteRole);
+				await user.AddRolesAsync(Variables.Guilds[guild.Id].MuteRole);
 				//Add them to the list of users who have been muted
-				Variables.Guilds[user.Guild.Id].UsersWhoHaveBeenMuted.Add(user);
+				Variables.Guilds[guild.Id].UsersWhoHaveBeenMuted.Add(user);
 			}
 
 			//Invite string
-			var inviteString = "";
-			if (curInv != null)
-			{
-				inviteString = String.Format("**Invite:** {0}", curInv.Code);
-			}
+			var curInv = await Actions.GetInviteUserJoinedOn(guild);
+			var inviteString = curInv != null ? String.Format("**Invite:** {0}", curInv.Code) : "";
 
 			//Make the embed
 			if (user.IsBot)
@@ -919,7 +881,7 @@ namespace Advobot
 
 		public static async Task CloseWords(IGuild guild, IMessage message)
 		{
-			if (Constants.CLOSEWORDSPOSITIONS.Contains(message.Content))
+			if (Constants.CLOSE_WORDS_POSITIONS.Contains(message.Content))
 			{
 				//Get the number
 				var number = Actions.GetInteger(message.Content);

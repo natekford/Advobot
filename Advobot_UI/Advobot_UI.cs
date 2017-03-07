@@ -301,7 +301,7 @@ namespace Advobot
 		private void SaveOutput(object sender, RoutedEventArgs e)
 		{
 			//Make sure the path is valid
-			var path = Actions.GetDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt");
+			var path = Actions.GetDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.FILE_EXTENSION);
 			if (path == null)
 			{
 				Actions.WriteLine("Unable to save the output log.");
@@ -399,6 +399,36 @@ namespace Advobot
 		{
 			mMemHoverInfo.IsOpen = !mMemHoverInfo.IsOpen;
 		}
+
+		private static void TreeViewDoubleClick(object sender, RoutedEventArgs e)
+		{
+			//Get the double clicked item
+			var treeItem = sender as TreeViewItem;
+			if (treeItem == null)
+				return;
+			//Get its parent
+			var parent = ItemsControl.ItemsControlFromItemContainer(treeItem) as TreeViewItem;
+			if (parent == null)
+				return;
+			//Format the file string
+			var file = treeItem.Header.ToString() + Constants.FILE_EXTENSION;
+			//Format the guild ID string
+			var guildID = parent.Header.ToString().Split(' ')[0].Trim(new char[] { '(', ')' });
+			//Format the path
+			var fileLocation = Path.Combine(Actions.GetDirectory(), guildID, file);
+			//Print out all the info in that file
+			var data = "";
+			using (var reader = new StreamReader(fileLocation))
+			{
+				string line;
+				while ((line = reader.ReadLine()) != null)
+				{
+					data += line;
+				}
+			}
+			var text = new TextBox() { Text = data, };
+			var wut = new Window() { Content = text };
+		}
 		#endregion
 
 		//Update the latency/memory/threads every second
@@ -427,8 +457,10 @@ namespace Advobot
 		//Make the tree view for the guilds on the bot
 		private static void MakeGuildTreeView(Paragraph input)
 		{
+			//Create the treeview
 			var treeView = new TreeView() { BorderThickness = new Thickness(0) };
-			//Format the treeviewer
+
+			//Format the treeviewitems
 			Directory.GetDirectories(Actions.GetDirectory()).ToList().ForEach(guildDir =>
 			{
 				//Separate the ID from the rest of the directory
@@ -438,31 +470,32 @@ namespace Advobot
 				if (!ulong.TryParse(strID, out ID))
 					return;
 
-				//Format the name
-				var name = String.Format("({0}) {1}", strID, Variables.Client.GetGuild(ID).Name);
-				var item = new TreeViewItem() { Header = name };
+				//Create the guild's treeviewitem
+				var guildItem = new TreeViewItem() { Header = String.Format("({0}) {1}", strID, Variables.Client.GetGuild(ID).Name) };
 
 				//Add in all of the files the guild has
 				Directory.GetFiles(guildDir).ToList().ForEach(file =>
 				{
+					//Get the file with its extension
+					var fileAndExtension = file.Substring(file.LastIndexOf('\\') + 1);
+					//Check if the gotten file is a valid file
+					if (!Constants.VALID_GUILD_FILES.Contains(fileAndExtension, StringComparer.OrdinalIgnoreCase))
+						return;
 					//Create the item
-					var subitem = new TreeViewItem() { Header = file.Substring(file.LastIndexOf('\\') + 1).Split('.')[0] };
-					subitem.MouseDoubleClick += Item_MouseDoubleClick;
-					item.Items.Add(subitem);
+					var fileItem = new TreeViewItem() { Header = fileAndExtension.Split('.')[0] };
+					//Add in the double click event
+					fileItem.MouseDoubleClick += TreeViewDoubleClick;
+					//Add it to the guild item
+					guildItem.Items.Add(fileItem);
 				});
 				//Create a new treeview item with all of these items
-				treeView.Items.Add(item);
+				treeView.Items.Add(guildItem);
 			});
+
 			//Remove all current information in the paragraph
 			input.Inlines.Clear();
+			//Add back in the new treeview
 			input.Inlines.Add(treeView);
-		}
-
-		private static void Item_MouseDoubleClick(object sender, RoutedEventArgs e)
-		{
-			var treeitem = sender as TreeViewItem;
-			var parent = ItemsControl.ItemsControlFromItemContainer(treeitem) as TreeViewItem;
-			Actions.WriteLine(treeitem.Header.ToString() + " " + parent.Header.ToString());
 		}
 
 		//Add a hypderlink to an output box
@@ -574,6 +607,20 @@ namespace Advobot
 		public static RichTextBox SecondaryOutput
 		{
 			get { return mSecondaryOutput; }
+		}
+	}
+
+	public class EditWindow : Window
+	{
+		public EditWindow(string data)
+		{
+			FontFamily = new FontFamily("Courier New");
+			InitializeComponent(data);
+		}
+
+		private void InitializeComponent(string data)
+		{
+
 		}
 	}
 
@@ -951,7 +998,7 @@ namespace Advobot
 						if (int.TryParse(resp.Headers.Get("Content-Length"), out ContentLength))
 						{
 							//Check if valid content type
-							if (!Constants.VALIDIMAGEEXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
+							if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
 							{
 								Actions.WriteLine(Actions.ERROR("Image must be a png or jpg."));
 								return;

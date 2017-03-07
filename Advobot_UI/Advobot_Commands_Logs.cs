@@ -184,7 +184,7 @@ namespace Advobot
 			//Check if they want the default
 			else if (input.Equals("default", StringComparison.OrdinalIgnoreCase))
 			{
-				logActionsList = Constants.DEFAULTLOGACTIONS.ToList();
+				logActionsList = Constants.DEFAULT_LOG_ACTIONS.ToList();
 				Actions.SaveLogActions(Context, logActionsList);
 
 				//Send a success message

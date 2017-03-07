@@ -26,13 +26,14 @@ namespace Advobot
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
 		public const string MUTE_ROLE_NAME = "Muted";
 		public const string SERVER_FOLDER = "Discord_Servers";
-		public const string PREFERENCES_FILE = "CommandPreferences.txt";
-		public const string MISCGUILDINFO = "MiscGuildInfo.txt";
-		public const string BANNED_PHRASES = "BannedPhrases.txt";
-		public const string SA_ROLES = "SelfAssignableRoles.txt";
-		public const string PERMISSIONS = "BotPermissions.txt";
-		public const string REMINDS = "Reminds.txt";
-		public const string COMMANDS_DISABLED_BY_CHANNEL = "CmdsDisabledByChannel.txt";
+		public const string FILE_EXTENSION = ".txt";
+		public const string PREFERENCES_FILE = "CommandPreferences" + FILE_EXTENSION;
+		public const string MISCGUILDINFO = "MiscGuildInfo" + FILE_EXTENSION;
+		public const string BANNED_PHRASES = "BannedPhrases" + FILE_EXTENSION;
+		public const string SA_ROLES = "SelfAssignableRoles" + FILE_EXTENSION;
+		public const string PERMISSIONS = "BotPermissions" + FILE_EXTENSION;
+		public const string REMINDS = "Reminds" + FILE_EXTENSION;
+		public const string COMMANDS_DISABLED_BY_CHANNEL = "CmdsDisabledByChannel" + FILE_EXTENSION;
 		public const string SERVER_LOG_CHECK_STRING = "serverlog";
 		public const string MOD_LOG_CHECK_STRING = "modlog";
 		public const string BANNED_PHRASES_CHECK_STRING = "bannedphrases";
@@ -85,14 +86,15 @@ namespace Advobot
 		public const int DESCRIPTION_MAX_LINES = 20;
 		public const int FIELD_MAX_LINES = 5;
 
-		public static readonly string[] VALIDIMAGEEXTENSIONS = { ".jpeg", ".jpg", ".png" };
-		public static readonly string[] VALIDGIFEXTENTIONS = { ".gif", ".gifv" };
-		public static readonly string[] VALIDREGIONIDS = { "brazil", "eu-central", "eu-west", "hongkong", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west" };
-		public static readonly string[] VIPREGIONIDS = { "vip-amsterdam", "vip-us-east", "vip-us-west" };
-		public static readonly string[] COMMANDSUNABLETOBETURNEDOFF = { "comconfigtoggle", "comconfigcurrent", "comconfigmodify", "help" };
-		public static readonly string[] CLOSEWORDSPOSITIONS = { "1", "2", "3", "4", "5" };
+		public static readonly string[] VALID_IMAGE_EXTENSIONS = { ".jpeg", ".jpg", ".png" };
+		public static readonly string[] VALID_GIF_EXTENTIONS = { ".gif", ".gifv" };
+		public static readonly string[] VALID_REGION_IDS = { "brazil", "eu-central", "eu-west", "hongkong", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west" };
+		public static readonly string[] VIP_REGIONIDS = { "vip-amsterdam", "vip-us-east", "vip-us-west" };
+		public static readonly string[] COMMANDS_UNABLE_TO_BE_TURNED_OFF = { "comconfigtoggle", "comconfigcurrent", "comconfigmodify", "help" };
+		public static readonly string[] CLOSE_WORDS_POSITIONS = { "1", "2", "3", "4", "5" };
+		public static readonly string[] VALID_GUILD_FILES = { PREFERENCES_FILE, MISCGUILDINFO, BANNED_PHRASES, SA_ROLES, PERMISSIONS, REMINDS, COMMANDS_DISABLED_BY_CHANNEL };
 
-		public static readonly LogActions[] DEFAULTLOGACTIONS =
+		public static readonly LogActions[] DEFAULT_LOG_ACTIONS =
 		{
 			LogActions.UserJoined,
 			LogActions.UserLeft,

@@ -1037,7 +1037,7 @@ namespace Advobot
 		}
 
 		//Get the bot's directory
-		public static string GetDirectory(string fileName = null)
+		public static string GetDirectory(string nonGuildFileName = null)
 		{
 			//Make sure a save path exists
 			var folder = Properties.Settings.Default.Path;
@@ -1048,7 +1048,7 @@ namespace Advobot
 			var botFolder = String.Format("{0}_{1}", Constants.SERVER_FOLDER, Variables.Bot_ID);
 
 			//Send back the directory
-			return String.IsNullOrWhiteSpace(fileName) ? Path.Combine(folder, botFolder) : Path.Combine(folder, botFolder, fileName);
+			return String.IsNullOrWhiteSpace(nonGuildFileName) ? Path.Combine(folder, botFolder) : Path.Combine(folder, botFolder, nonGuildFileName);
 		}
 		
 		//Get if a channel is a text or voice channel
@@ -1356,6 +1356,60 @@ namespace Advobot
 			var banneePosition = user == null ? -1 : GetPosition(context.Guild, user);
 			return bannerPosition > banneePosition;
 		}
+
+		//Get the invites on a guild
+		public static async Task<IReadOnlyCollection<IInviteMetadata>> GetInvites(IGuild guild)
+		{
+			//Make sure the guild exists
+			if (guild == null)
+				return null;
+			//Get the invites
+			var invs = await guild.GetInvitesAsync();
+			//If no invites return null
+			return invs.Any() ? invs : null;
+		}
+
+		//Get the invite a user joined on
+		public static async Task<BotInvite> GetInviteUserJoinedOn(IGuild guild)
+		{
+			//Get the current invites
+			var curInvs = await GetInvites(guild);
+			if (curInvs == null)
+				return null;
+			//Get the bot's stored invites
+			var botInvs = Variables.Guilds[guild.Id].Invites;
+			if (!botInvs.Any())
+				return null;
+
+			//Set an invite to hold the current invite the user joined on
+			BotInvite joinInv = null;
+			//Find the first invite where the bot invite has the same code as the current invite but different use counts
+			joinInv = botInvs.FirstOrDefault(bI => curInvs.Any(cI => cI.Code == bI.Code && cI.Uses != bI.Uses));
+			//If the invite is null, take that as meaning there are new invites on the guild
+			if (joinInv == null)
+			{
+				//Get the new invites on the guild by finding which guild invites aren't on the bot invites list
+				var botInvCodes = botInvs.Select(y => y.Code);
+				var newInvs = curInvs.Where(x => !botInvCodes.Contains(x.Code));
+				//If there's only one, then use that as the current inv. If there's more than one then there's no way to know what invite it was on
+				if (newInvs.Count() == 0 && guild.Features.Contains(Constants.VANITY_URL, StringComparer.OrdinalIgnoreCase))
+				{
+					joinInv = new BotInvite(guild.Id, "Vanity URL", 0);
+				}
+				else if (newInvs.Count() == 1)
+				{
+					joinInv = new BotInvite(newInvs.First().GuildId, newInvs.First().Code, newInvs.First().Uses);
+				}
+				//Add all of the invites to the bot invites list
+				botInvs.AddRange(newInvs.Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)));
+			}
+			else
+			{
+				//Increment the invite the bot is holding if a curInv was found so as to match with the current invite uses count
+				joinInv.IncreaseUses();
+			}
+			return joinInv;
+		}
 		#endregion
 
 		#region Roles
@@ -1658,7 +1712,7 @@ namespace Advobot
 		public static async Task UploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string messageHeader)
 		{
 			//Get the file path
-			var deletedMessagesFile = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + ".txt";
+			var deletedMessagesFile = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.FILE_EXTENSION;
 			var path = GetServerFilePath(guild.Id, deletedMessagesFile);
 			if (path == null)
 				return;
@@ -1720,7 +1774,7 @@ namespace Advobot
 			var downloadUploadAndDelete = Task.Run(async () =>
 			{
 				//Check the image's file size first
-				WebRequest req = HttpWebRequest.Create(imageURL);
+				var req = HttpWebRequest.Create(imageURL);
 				req.Method = "HEAD";
 				using (var resp = req.GetResponse())
 				{
@@ -1728,7 +1782,7 @@ namespace Advobot
 					if (int.TryParse(resp.Headers.Get("Content-Length"), out ContentLength))
 					{
 						//Check if valid content type
-						if (!Constants.VALIDIMAGEEXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
+						if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
 						{
 							await MakeAndDeleteSecondaryMessage(context, ERROR("Image must be a png or jpg."));
 							return;
@@ -2201,7 +2255,7 @@ namespace Advobot
 			await attachmentURLs.ForEachAsync(async x =>
 			{
 				//Image attachment
-				if (Constants.VALIDIMAGEEXTENSIONS.Contains(Path.GetExtension(x), StringComparer.OrdinalIgnoreCase))
+				if (Constants.VALID_IMAGE_EXTENSIONS.Contains(Path.GetExtension(x), StringComparer.OrdinalIgnoreCase))
 				{
 					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached Image");
@@ -2211,7 +2265,7 @@ namespace Advobot
 					++Variables.LoggedImages;
 				}
 				//Gif attachment
-				else if (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(x), StringComparer.OrdinalIgnoreCase))
+				else if (Constants.VALID_GIF_EXTENTIONS.Contains(Path.GetExtension(x), StringComparer.OrdinalIgnoreCase))
 				{
 					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached Gif");
@@ -2245,7 +2299,7 @@ namespace Advobot
 			await videoEmbeds.GroupBy(x => x.Url).Select(x => x.First()).ToList().ForEachAsync(async x =>
 			{
 				var embed = MakeNewEmbed(null, null, Constants.ATCH, x.Thumbnail.Value.Url);
-				AddFooter(embed, "Embedded " + (Constants.VALIDGIFEXTENTIONS.Contains(Path.GetExtension(x.Thumbnail.Value.Url), StringComparer.OrdinalIgnoreCase) ? "Gif" : "Video"));
+				AddFooter(embed, "Embedded " + (Constants.VALID_GIF_EXTENTIONS.Contains(Path.GetExtension(x.Thumbnail.Value.Url), StringComparer.OrdinalIgnoreCase) ? "Gif" : "Video"));
 				AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl(), x.Url);
 				await SendEmbedMessage(channel, embed);
 

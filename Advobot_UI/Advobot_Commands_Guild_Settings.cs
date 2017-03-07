@@ -373,7 +373,7 @@ namespace Advobot
 			var categoryToRemove = new List<CommandSwitch>();
 			category.ForEach(cmd =>
 			{
-				if (Constants.COMMANDSUNABLETOBETURNEDOFF.Contains(cmd.Name, StringComparer.OrdinalIgnoreCase))
+				if (Constants.COMMANDS_UNABLE_TO_BE_TURNED_OFF.Contains(cmd.Name, StringComparer.OrdinalIgnoreCase))
 				{
 					categoryToRemove.Add(cmd);
 				}
