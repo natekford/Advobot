@@ -34,10 +34,21 @@ namespace Advobot
 		#region Input
 		//Layout
 		private static Grid mInputLayout = new Grid();
-		//Textboxes (Max height has to be set here as a large number to a) not get in the way and b) not crash when resized small) I don't really like using a RTB for the input.
-		private static TextBox mInput = new TextBox { MaxLength = 250, MaxLines = 5, MaxHeight = 1000, TextWrapping = TextWrapping.Wrap };
-		//Buttons
+		//Textobx (Max height has to be set here as a large number to a) not get in the way and b) not crash when resized small) I don't really like using a RTB for the input.
+		private static TextBox mInputBox = new TextBox { MaxLength = 250, MaxLines = 5, MaxHeight = 1000, TextWrapping = TextWrapping.Wrap };
+		//Button
 		private static Button mInputButton = new Button { IsEnabled = false, Content = "Enter", };
+		#endregion
+
+		#region Edit
+		//Layout
+		private static Grid mEditLayout = new Grid { Visibility = Visibility.Collapsed };
+		private static Grid mEditButtonLayout = new Grid();
+		//Textbox
+		private static TextBox mEditBox = new TextBox { MaxHeight = 10000, TextWrapping = TextWrapping.Wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+		//Buttons
+		private static Button mEditSaveButton = new Button { Content = "Save" };
+		private static Button mEditCloseButton = new Button { Content = "Close" };
 		#endregion
 
 		#region Output
@@ -46,7 +57,7 @@ namespace Advobot
 		private static MenuItem mOutputContextMenuClear = new MenuItem { Header = "Clear Output Log", };
 		private static ContextMenu mOutputContextMenu = new ContextMenu { ItemsSource = new[] { mOutputContextMenuSave, mOutputContextMenuClear }, };
 		//Textboxes
-		private static RichTextBox mOutput = new RichTextBox
+		private static RichTextBox mOutputBox = new RichTextBox
 		{
 			ContextMenu = mOutputContextMenu,
 			IsReadOnly = true,
@@ -54,11 +65,11 @@ namespace Advobot
 			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
 			Background = Brushes.White,
 		};
-		private static RichTextBox mSecondaryOutput = new RichTextBox
+		private static RichTextBox mSecondaryOutputBox = new RichTextBox
 		{
 			IsReadOnly = true,
 			IsDocumentEnabled = true,
-			Visibility = Visibility.Hidden,
+			Visibility = Visibility.Collapsed,
 			Background = Brushes.White,
 		};
 		//Strings
@@ -139,8 +150,8 @@ namespace Advobot
 			AddCols(mLayout, 4);
 
 			//Output
-			AddItemAndSetPositionsAndSpans(mLayout, mOutput, 0, 87, 0, 4);
-			AddItemAndSetPositionsAndSpans(mLayout, mSecondaryOutput, 0, 90, 3, 1);
+			AddItemAndSetPositionsAndSpans(mLayout, mOutputBox, 0, 87, 0, 4);
+			AddItemAndSetPositionsAndSpans(mLayout, mSecondaryOutputBox, 0, 90, 3, 1);
 
 			//System Info
 			AddItemAndSetPositionsAndSpans(mLayout, mSysInfoLayout, 87, 3, 0, 3, 0, 5);
@@ -153,8 +164,8 @@ namespace Advobot
 
 			//Input
 			AddItemAndSetPositionsAndSpans(mLayout, mInputLayout, 90, 10, 0, 3, 1, 10);
-			mInput.SetBinding(FontSizeProperty, mFirstBinding);
-			AddItemAndSetPositionsAndSpans(mInputLayout, mInput, 0, 1, 0, 9);
+			mInputBox.SetBinding(FontSizeProperty, mFirstBinding);
+			AddItemAndSetPositionsAndSpans(mInputLayout, mInputBox, 0, 1, 0, 9);
 			AddItemAndSetPositionsAndSpans(mInputLayout, mInputButton, 0, 1, 9, 1);
 
 			//Buttons
@@ -164,9 +175,30 @@ namespace Advobot
 			AddItemAndSetPositionsAndSpans(mButtonLayout, mThirdButton, 0, 1, 2, 1);
 			AddItemAndSetPositionsAndSpans(mButtonLayout, mFourthButton, 0, 1, 3, 1);
 
+			//Edit
+			AddItemAndSetPositionsAndSpans(mLayout, mEditLayout, 0, 100, 0, 4, 100, 4);
+			AddItemAndSetPositionsAndSpans(mEditLayout, mEditBox, 0, 100, 0, 3);
+			AddItemAndSetPositionsAndSpans(mEditLayout, mEditButtonLayout, 87, 13, 3, 1, 1, 2);
+			AddItemAndSetPositionsAndSpans(mEditButtonLayout, mEditSaveButton, 0, 1, 0, 1);
+			AddItemAndSetPositionsAndSpans(mEditButtonLayout, mEditCloseButton, 0, 1, 1, 1);
+
 			//Paragraphs
 			mFirstParagraph.Inlines.AddRange(new Inline[] { mHelpFirstHyperlink, mHelpSecondRun, mHelpSecondHyperlink });
 			mFourthParagraph.Inlines.Add(mFileTreeView);
+
+			//Events
+			mInputBox.KeyUp += AcceptInput;
+			mMemory.MouseEnter += ModifyMemHoverInfo;
+			mMemory.MouseLeave += ModifyMemHoverInfo;
+			mInputButton.Click += AcceptInput;
+			mOutputContextMenuSave.Click += SaveOutput;
+			mOutputContextMenuClear.Click += ClearOutput;
+			mFirstButton.Click += BringUpMenu;
+			mSecondButton.Click += BringUpMenu;
+			mThirdButton.Click += BringUpMenu;
+			mFourthButton.Click += BringUpMenu;
+			mEditCloseButton.Click += CloseEditScreen;
+			mEditSaveButton.Click += SaveEditScreen;
 
 			//Set this panel as the content for this window.
 			Content = mLayout;
@@ -178,7 +210,7 @@ namespace Advobot
 		private void RunApplication()
 		{
 			//Make console output show on the output text block and box
-			Console.SetOut(new TextBoxStreamWriter(mOutput));
+			Console.SetOut(new TextBoxStreamWriter(mOutputBox));
 
 			//Validate path/botkey after the UI has launched to have them logged
 			Task.Run(async () =>
@@ -193,18 +225,6 @@ namespace Advobot
 
 			//Make sure the system information stays updated
 			UpdateSystemInformation();
-
-			//Events
-			mInput.KeyUp += AcceptInput;
-			mInputButton.Click += AcceptInput;
-			mOutputContextMenuSave.Click += SaveOutput;
-			mOutputContextMenuClear.Click += ClearOutput;
-			mFirstButton.Click += BringUpMenu;
-			mSecondButton.Click += BringUpMenu;
-			mThirdButton.Click += BringUpMenu;
-			mFourthButton.Click += BringUpMenu;
-			mMemory.MouseEnter += ModifyMemHoverInfo;
-			mMemory.MouseLeave += ModifyMemHoverInfo;
 		}
 
 		//Add in X amount of rows
@@ -229,14 +249,14 @@ namespace Advobot
 		private static void SetRowAndSpan(UIElement item, int start = 0, int length = 1)
 		{
 			Grid.SetRow(item, start < 0 ? 0 : start);
-			Grid.SetRowSpan(item, length <= 0 ? 1 : length);
+			Grid.SetRowSpan(item, length < 1 ? 1 : length);
 		}
 
 		//Set the colum and column span
 		private static void SetColAndSpan(UIElement item, int start = 0, int length = 1)
 		{
 			Grid.SetColumn(item, start < 0 ? 0 : start);
-			Grid.SetColumnSpan(item, length <= 0 ? 1 : length);
+			Grid.SetColumnSpan(item, length < 1 ? 1 : length);
 		}
 
 		//Add the child to the given grid with specified starting rows/columns and lengths
@@ -268,7 +288,7 @@ namespace Advobot
 		//Accept input through the enter key
 		private void AcceptInput(object sender, KeyEventArgs e)
 		{
-			var text = mInput.Text;
+			var text = mInputBox.Text;
 			if (String.IsNullOrWhiteSpace(text))
 			{
 				mInputButton.IsEnabled = false;
@@ -282,10 +302,6 @@ namespace Advobot
 				}
 				else
 				{
-					if (text.Length > 250)
-					{
-
-					}
 					mInputButton.IsEnabled = true;
 				}
 			}
@@ -317,7 +333,7 @@ namespace Advobot
 			//Save the file
 			using (FileStream stream = new FileStream(path, FileMode.Create))
 			{
-				new TextRange(mOutput.Document.ContentStart, mOutput.Document.ContentEnd).Save(stream, DataFormats.Text, true);
+				new TextRange(mOutputBox.Document.ContentStart, mOutputBox.Document.ContentEnd).Save(stream, DataFormats.Text, true);
 			}
 
 			//Write to the console telling the user that the console log was successfully saved
@@ -333,7 +349,7 @@ namespace Advobot
 			{
 				case MessageBoxResult.OK:
 				{
-					mOutput.Document.Blocks.Clear();
+					mOutputBox.Document.Blocks.Clear();
 					break;
 				}
 				case MessageBoxResult.Cancel:
@@ -347,49 +363,49 @@ namespace Advobot
 		private void BringUpMenu(object sender, RoutedEventArgs e)
 		{
 			//Get the button's name
-			var name = ((Button)sender).Content.ToString();
+			var name = (sender as Button).Content.ToString();
 			//Remove the current blocks in the document
-			mSecondaryOutput.Document.Blocks.Clear();
+			mSecondaryOutputBox.Document.Blocks.Clear();
 			//Disable the rtb if the most recent button clicked is clicked again
 			if (name.Equals(mLastButtonClicked, StringComparison.OrdinalIgnoreCase))
 			{
-				SetColAndSpan(mOutput, 0, 4);
-				mSecondaryOutput.Visibility = Visibility.Hidden;
+				SetColAndSpan(mOutputBox, 0, 4);
+				mSecondaryOutputBox.Visibility = Visibility.Collapsed;
 				mLastButtonClicked = null;
 			}
 			else
 			{
 				//Resize the regular output window
-				SetColAndSpan(mOutput, 0, 3);
+				SetColAndSpan(mOutputBox, 0, 3);
 				//Make the secondary output visible
-				mSecondaryOutput.Visibility = Visibility.Visible;
+				mSecondaryOutputBox.Visibility = Visibility.Visible;
 				//Keep track of the last button clicked
 				mLastButtonClicked = name;
 
 				//Show the text for help
 				if (name.Equals(mFirstButtonString, StringComparison.OrdinalIgnoreCase))
 				{
-					mSecondaryOutput.SetBinding(FontSizeProperty, mSecondBinding);
-					mSecondaryOutput.Document.Blocks.Add(mFirstParagraph);
+					mSecondaryOutputBox.SetBinding(FontSizeProperty, mSecondBinding);
+					mSecondaryOutputBox.Document.Blocks.Add(mFirstParagraph);
 				}
 				//Show the text for commands
 				else if (name.Equals(mSecondButtonString, StringComparison.OrdinalIgnoreCase))
 				{
-					mSecondaryOutput.SetBinding(FontSizeProperty, mThirdBinding);
-					mSecondaryOutput.Document.Blocks.Add(mSecondParagraph);
+					mSecondaryOutputBox.SetBinding(FontSizeProperty, mThirdBinding);
+					mSecondaryOutputBox.Document.Blocks.Add(mSecondParagraph);
 				}
 				//Show the text for info
 				else if (name.Equals(mThirdButtonString, StringComparison.OrdinalIgnoreCase))
 				{
-					mSecondaryOutput.SetBinding(FontSizeProperty, mThirdBinding);
-					mSecondaryOutput.Document.Blocks.Add(mThirdParagraph);
+					mSecondaryOutputBox.SetBinding(FontSizeProperty, mThirdBinding);
+					mSecondaryOutputBox.Document.Blocks.Add(mThirdParagraph);
 				}
 				//Show the text for settings
 				else if (name.Equals(mFourthButtonString, StringComparison.OrdinalIgnoreCase))
 				{
 					MakeGuildTreeView(mFourthParagraph);
-					mSecondaryOutput.SetBinding(FontSizeProperty, mThirdBinding);
-					mSecondaryOutput.Document.Blocks.Add(mFourthParagraph);
+					mSecondaryOutputBox.SetBinding(FontSizeProperty, mThirdBinding);
+					mSecondaryOutputBox.Document.Blocks.Add(mFourthParagraph);
 				}
 			}
 		}
@@ -400,22 +416,17 @@ namespace Advobot
 			mMemHoverInfo.IsOpen = !mMemHoverInfo.IsOpen;
 		}
 
+		//Bring up the edit window
 		private static void TreeViewDoubleClick(object sender, RoutedEventArgs e)
 		{
 			//Get the double clicked item
 			var treeItem = sender as TreeViewItem;
 			if (treeItem == null)
 				return;
-			//Get its parent
-			var parent = ItemsControl.ItemsControlFromItemContainer(treeItem) as TreeViewItem;
-			if (parent == null)
+			//Get the path from the tag
+			var fileLocation = treeItem.Tag.ToString();
+			if (fileLocation == null)
 				return;
-			//Format the file string
-			var file = treeItem.Header.ToString() + Constants.FILE_EXTENSION;
-			//Format the guild ID string
-			var guildID = parent.Header.ToString().Split(' ')[0].Trim(new char[] { '(', ')' });
-			//Format the path
-			var fileLocation = Path.Combine(Actions.GetDirectory(), guildID, file);
 			//Print out all the info in that file
 			var data = "";
 			using (var reader = new StreamReader(fileLocation))
@@ -423,11 +434,56 @@ namespace Advobot
 				string line;
 				while ((line = reader.ReadLine()) != null)
 				{
-					data += line;
+					data += line + Environment.NewLine;
 				}
 			}
-			var text = new TextBox() { Text = data, };
-			var wut = new Window() { Content = text };
+			//Change the text in the bot and make it visible
+			mEditBox.Text = data;
+			mEditBox.Tag = fileLocation;
+			mEditLayout.Visibility = Visibility.Visible;
+		}
+
+		//Close the edit screen
+		private static void CloseEditScreen(object sender, RoutedEventArgs e)
+		{
+			var result = MessageBox.Show("Are you sure you want to close the edit window?", Variables.Bot_Name, MessageBoxButton.OKCancel);
+
+			switch (result)
+			{
+				case MessageBoxResult.OK:
+				{
+					mEditLayout.Visibility = Visibility.Collapsed;
+					break;
+				}
+				case MessageBoxResult.Cancel:
+				{
+					break;
+				}
+			}
+		}
+
+		//Save the rewritten input in the save screen
+		private static void SaveEditScreen(object sender, RoutedEventArgs e)
+		{
+			var result = MessageBox.Show("Are you certain this document has not been formatted differently than when first gotten?", Variables.Bot_Name, MessageBoxButton.OKCancel);
+
+			switch (result)
+			{
+				case MessageBoxResult.OK:
+				{
+					//Rewrite the input back in
+					var fileLocation = mEditBox.Tag.ToString();
+					using (var writer = new StreamWriter(fileLocation))
+					{
+						writer.WriteLine(mEditBox.Text);
+					}
+					break;
+				}
+				case MessageBoxResult.Cancel:
+				{
+					break;
+				}
+			}
 		}
 		#endregion
 
@@ -482,7 +538,7 @@ namespace Advobot
 					if (!Constants.VALID_GUILD_FILES.Contains(fileAndExtension, StringComparer.OrdinalIgnoreCase))
 						return;
 					//Create the item
-					var fileItem = new TreeViewItem() { Header = fileAndExtension.Split('.')[0] };
+					var fileItem = new TreeViewItem() { Header = fileAndExtension.Split('.')[0], Tag = file };
 					//Add in the double click event
 					fileItem.MouseDoubleClick += TreeViewDoubleClick;
 					//Add it to the guild item
@@ -508,7 +564,7 @@ namespace Advobot
 				return;
 			}
 			//Check if the paragraph is valid
-			var para = (Paragraph)mOutput.Document.Blocks.LastBlock;
+			var para = (Paragraph)mOutputBox.Document.Blocks.LastBlock;
 			if (para == null)
 			{
 				Actions.WriteLine(link);
@@ -566,11 +622,11 @@ namespace Advobot
 		private void GatherInput()
 		{
 			//Get the current text
-			var text = mInput.Text.Trim(new char[] { '\r', '\n' });
+			var text = mInputBox.Text.Trim(new char[] { '\r', '\n' });
 			//Write it out to the ghetto console
 			Console.WriteLine(text);
 			//Clear the input
-			mInput.Text = "";
+			mInputBox.Text = "";
 			//Reset the enter button
 			mInputButton.IsEnabled = false;
 			//Do an action with the text
@@ -600,27 +656,13 @@ namespace Advobot
 		//Get the main output box
 		public static RichTextBox Output
 		{
-			get { return mOutput; }
+			get { return mOutputBox; }
 		}
 
 		//Get the secondary output box
 		public static RichTextBox SecondaryOutput
 		{
-			get { return mSecondaryOutput; }
-		}
-	}
-
-	public class EditWindow : Window
-	{
-		public EditWindow(string data)
-		{
-			FontFamily = new FontFamily("Courier New");
-			InitializeComponent(data);
-		}
-
-		private void InitializeComponent(string data)
-		{
-
+			get { return mSecondaryOutputBox; }
 		}
 	}
 

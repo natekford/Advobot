@@ -193,19 +193,23 @@ namespace Advobot
 
 			//Invite string
 			var curInv = await Actions.GetInviteUserJoinedOn(guild);
-			var inviteString = curInv != null ? String.Format("**Invite:** {0}", curInv.Code) : "";
+			var inviteString = curInv != null ? String.Format("\n**Invite:** {0}", curInv.Code) : "";
+
+			//Check if the user is a new account
+			var userAccAge = (int)(DateTime.UtcNow - user.CreatedAt.ToUniversalTime()).TotalHours;
+			var ageWarningString = userAccAge <= 24 ? String.Format("\n**New Account:** {0} hours old", userAccAge) : "";
 
 			//Make the embed
 			if (user.IsBot)
 			{
-				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString), Constants.JOIN);
+				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteString, ageWarningString), Constants.JOIN);
 				Actions.AddFooter(embed, "Bot Joined");
 				Actions.AddAuthor(embed, Actions.FormatUser(user), user.GetAvatarUrl());
 				await Actions.SendEmbedMessage(logChannel, embed);
 			}
 			else
 			{
-				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}\n{1}", user.Id, inviteString), Constants.JOIN);
+				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteString, ageWarningString), Constants.JOIN);
 				Actions.AddFooter(embed, "User Joined");
 				Actions.AddAuthor(embed, Actions.FormatUser(user), user.GetAvatarUrl());
 				await Actions.SendEmbedMessage(logChannel, embed);
@@ -817,7 +821,7 @@ namespace Advobot
 
 	public class MessageReceivedActions : ModuleBase
 	{
-		public static async Task ImageLog(ITextChannel channel, SocketMessage message)
+		public static async Task ImageLog(ITextChannel channel, IMessage message)
 		{
 			if (false
 				|| channel == null
@@ -836,7 +840,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task BotOwner(SocketMessage message)
+		public static async Task BotOwner(IMessage message)
 		{
 			//See if they're on the list to be a potential bot owner
 			if (Variables.PotentialBotOwners.Contains(message.Author.Id))

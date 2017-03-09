@@ -2209,7 +2209,7 @@ namespace Advobot
 		}
 
 		//Logging images
-		public static async Task ImageLog(ITextChannel channel, SocketMessage message, bool embeds)
+		public static async Task ImageLog(ITextChannel channel, IMessage message, bool embeds)
 		{
 			//Check if the guild has image logging enabled
 			if (!Variables.Guilds[channel.Guild.Id].LogActions.Contains(LogActions.ImageLog))
@@ -2221,7 +2221,7 @@ namespace Advobot
 			//Get the links
 			var attachmentURLs = new List<string>();
 			var embedURLs = new List<string>();
-			var videoEmbeds = new List<Embed>();
+			var videoEmbeds = new List<IEmbed>();
 			if (!embeds && message.Attachments.Any())
 			{
 				//If attachment, the file is hosted on discord which has a concrete URL name for files (cdn.discordapp.com/attachments/.../x.png)

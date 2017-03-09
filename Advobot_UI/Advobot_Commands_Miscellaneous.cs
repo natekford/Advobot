@@ -521,74 +521,33 @@ namespace Advobot
 
 		[Command("userswithrole")]
 		[Alias("uwr")]
-		[Usage("<File|Upload> [Role]")]
+		[Usage("[Role]")]
 		[Summary("Prints out a list of all users with the given role. File specifies a text document which can show more symbols. Upload specifies to use a text uploader.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
-		public async Task AllWithRole([Remainder] string input)
+		public async Task UsersWithRole([Remainder] string input)
 		{
-			//Split into the bools and role
-			var values = input.Split(new char[] { ' ' }, 2).ToList();
-
 			//Initializing input and variables
-			var role = await Actions.GetRole(Context, values.Last());
+			var role = await Actions.GetRole(Context, input);
 			if (role == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ROLE_ERROR));
 				return;
 			}
 
-			//If two args, check what action to take
-			var overwriteBool = false;
-			var textFileBool = false;
-			if (values.Count == 2)
-			{
-				if (values[0].Equals("file", StringComparison.OrdinalIgnoreCase))
-				{
-					textFileBool = true;
-					overwriteBool = true;
-				}
-				else if (values[0].Equals("upload", StringComparison.OrdinalIgnoreCase))
-				{
-					overwriteBool = true;
-				}
-			}
-
-			//Initialize the lists
-			var usersMentions = new List<string>();
-			var usersText = new List<string>();
-			var characters = 0;
-			var count = 1;
-
 			//Grab each user
-			IReadOnlyCollection<IGuildUser> guildUsers = await Context.Guild.GetUsersAsync();
-			guildUsers.Where(x => x.JoinedAt != null).ToList().OrderBy(x => x.JoinedAt.Value.Ticks).ToList().ForEach(x =>
+			var users = "";
+			var count = 1;
+			(await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt.HasValue).ToList().OrderBy(x => x.JoinedAt).ToList().ForEach(x =>
 			{
 				if (x.RoleIds.ToList().Contains(role.Id))
 				{
-					var text = "`" + x.Username + "#" + x.Discriminator + "`";
-					usersMentions.Add(text);
-					usersText.Add("`" + count++.ToString("00") + ".` " + x.Username + "#" + x.Discriminator + " ID: " + x.Id);
-					characters += text.Length + 3;
+					users += String.Format("`{0}.` `{1}`\n", count++.ToString("00"), Actions.FormatUser(x));
 				}
 			});
 
 			//Checking if the message can fit in a single message
 			var roleName = role.Name.Substring(0, 3) + Constants.ZERO_LENGTH_CHAR + role.Name.Substring(3);
-			if (characters > 1000 || overwriteBool)
-			{
-				var info = Actions.ReplaceMarkdownChars(String.Join("\n", usersText));
-				if (!textFileBool)
-				{
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(roleName, Actions.UploadToHastebin(info)));
-					return;
-				}
-				//Upload the file
-				await Actions.UploadTextFile(Context.Guild, Context.Channel, info, roleName + "_" + role.Name.ToUpper() + "_", roleName);
-			}
-			else
-			{
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(roleName, String.Join(", ", usersMentions)));
-			}
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(roleName, users));
 		}
 
 		[Command("userswithname")]
@@ -596,7 +555,7 @@ namespace Advobot
 		[Usage("[Name]")]
 		[Summary("Lists all users where their username contains the given string.")]
 		[UserHasAPermission]
-		public async Task ListUsersWithName([Remainder] string input)
+		public async Task UsersWithName([Remainder] string input)
 		{
 			//Find the users
 			var users = (await Context.Guild.GetUsersAsync()).Where(x => x.Username.IndexOf(input, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.JoinedAt).ToList();
@@ -608,29 +567,11 @@ namespace Advobot
 			var count = 1;
 			users.ForEach(x =>
 			{
-				description += String.Format("`{0}.` `{1}#{2}` ID: `{3}`\n", count++.ToString("00"), x.Username, x.Discriminator, x.Id);
+				description += String.Format("`{0}.` `{1}`\n", count++.ToString("00"), Actions.FormatUser(x));
 			});
 
 			//Set the title
 			var title = String.Format("Users With Names Containing '{0}'", input);
-
-			//See if the string length is over the check amount
-			if (description.Length > Constants.LENGTH_CHECK)
-			{
-				if (!Constants.TEXT_FILE)
-				{
-					//Upload the embed with the hastebin links
-					var uploadEmbed = Actions.MakeNewEmbed(title, Actions.UploadToHastebin(Actions.ReplaceMarkdownChars(description)));
-					await Actions.SendEmbedMessage(Context.Channel, uploadEmbed);
-					return;
-				}
-				else
-				{
-					//Upload a file that is deleted after upload
-					await Actions.UploadTextFile(Context.Guild, Context.Channel, Actions.ReplaceMarkdownChars(description), "List_Users_With_Name_", title);
-					return;
-				}
-			}
 
 			//Make and send the embed
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, description));
