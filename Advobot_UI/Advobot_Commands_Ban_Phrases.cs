@@ -40,11 +40,11 @@ namespace Advobot
 			//Check if valid actions
 			var action = inputArray[0];
 			bool addBool;
-			if (action.Equals("add", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(action, "add"))
 			{
 				addBool = true;
 			}
-			else if (action.Equals("remove", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(action, "remove"))
 			{
 				addBool = false;
 			}
@@ -62,7 +62,7 @@ namespace Advobot
 
 			//Check if regex or not
 			bool regexBool = false;
-			if (potentialRegex != null && potentialRegex.Equals("regex", StringComparison.OrdinalIgnoreCase))
+			if (potentialRegex != null && Actions.CaseInsEquals(potentialRegex, "regex"))
 			{
 				regexBool = true;
 				phrases[phrases.Count() - 1] = last.Substring(0, last.LastIndexOf(' '));
@@ -83,7 +83,7 @@ namespace Advobot
 				{
 					phrases.ForEach(x =>
 					{
-						if (!phrasesList.Contains(x, StringComparer.OrdinalIgnoreCase))
+						if (!Actions.CaseInsContains(phrasesList, x))
 						{
 							phrasesList.Add(x);
 							success.Add(x);
@@ -120,7 +120,7 @@ namespace Advobot
 					{
 						phrases.ForEach(x =>
 						{
-							if (phrasesList.Contains(x, StringComparer.OrdinalIgnoreCase))
+							if (Actions.CaseInsContains(phrasesList, x))
 							{
 								phrasesList.Remove(x);
 								success.Add(x);
@@ -205,7 +205,7 @@ namespace Advobot
 						//Add them to the failure or success lists
 						phrases.ForEach(x =>
 						{
-							if (removedRegexAsString.Contains(x, StringComparer.OrdinalIgnoreCase))
+							if (Actions.CaseInsContains(removedRegexAsString, x))
 							{
 								success.Add(x);
 							}
@@ -298,14 +298,14 @@ namespace Advobot
 			//Get if regex or normal phrases
 			var type = Constants.BANNED_PHRASES_CHECK_STRING;
 			bool regexBool = false;
-			if (inputArray.Length >= 2 && inputArray[1].Equals("regex", StringComparison.OrdinalIgnoreCase))
+			if (inputArray.Length >= 2 && Actions.CaseInsEquals(inputArray[1], "regex"))
 			{
 				type = Constants.BANNED_REGEX_CHECK_STRING;
 				regexBool = true;
 			}
 
 			bool fileBool;
-			if (inputArray[0].Equals("file", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(inputArray[0], "file"))
 			{
 				//Check if the file exists
 				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
@@ -326,7 +326,7 @@ namespace Advobot
 
 				fileBool = true;
 			}
-			else if (inputArray[0].Equals("actual", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(inputArray[0], "actual"))
 			{
 				//Get the list being used by the bot currently
 				if (!regexBool)
@@ -410,11 +410,11 @@ namespace Advobot
 			//Get the action
 			var action = inputArray[0];
 			bool addBool;
-			if (action.Equals("add", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(action, "add"))
 			{
 				addBool = true;
 			}
-			else if (action.Equals("remove", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(action, "remove"))
 			{
 				addBool = false;
 			}
@@ -443,17 +443,17 @@ namespace Advobot
 				punishmentString = inputArray[2];
 
 				//Check if kick
-				if (punishmentString.Equals("kick", StringComparison.OrdinalIgnoreCase))
+				if (Actions.CaseInsEquals(punishmentString, "kick"))
 				{
 					punishmentType = PunishmentType.Kick;
 				}
 				//Check if ban
-				else if (punishmentString.Equals("ban", StringComparison.OrdinalIgnoreCase))
+				else if (Actions.CaseInsEquals(punishmentString, "ban"))
 				{
 					punishmentType = PunishmentType.Ban;
 				}
 				//Check if already role name
-				else if (Context.Guild.Roles.Any(x => x.Name.Equals(punishmentString, StringComparison.OrdinalIgnoreCase)))
+				else if (Context.Guild.Roles.Any(x => Actions.CaseInsEquals(x.Name, punishmentString)))
 				{
 					punishmentType = PunishmentType.Role;
 					punishmentRole = await Actions.GetRoleEditAbility(Context, punishmentString);
@@ -465,7 +465,7 @@ namespace Advobot
 					var possibleRole = punishmentString.Substring(0, lS).Trim();
 					var possibleTime = punishmentString.Substring(lS);
 
-					if (Context.Guild.Roles.Any(x => x.Name.Equals(possibleRole, StringComparison.OrdinalIgnoreCase)))
+					if (Context.Guild.Roles.Any(x => Actions.CaseInsEquals(x.Name, possibleRole)))
 					{
 						punishmentType = PunishmentType.Role;
 						punishmentRole = await Actions.GetRoleEditAbility(Context, possibleRole);
@@ -605,7 +605,7 @@ namespace Advobot
 		{
 			var description = "";
 			bool fileBool;
-			if (input.Equals("file", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "file"))
 			{
 				//Check if the file exists
 				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
@@ -670,7 +670,7 @@ namespace Advobot
 
 				fileBool = true;
 			}
-			else if (input.Equals("actual", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "actual"))
 			{
 				var guildPunishments = Variables.Guilds[Context.Guild.Id].BannedPhrasesPunishments;
 				if (!guildPunishments.Any())
@@ -729,7 +729,7 @@ namespace Advobot
 			}
 
 			//Check if valid action
-			if (inputArray[0].Equals("clear", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(inputArray[0], "clear"))
 			{
 				//Reset the messages
 				Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user).ResetAmountOfRemovesMessages();
@@ -737,7 +737,7 @@ namespace Advobot
 				//Send a success message
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the amount of messages removed for `{0}#{1}` to 0.", user.Username, user.Discriminator));
 			}
-			if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(inputArray[0], "current"))
 			{
 				int msgCount = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user)?.AmountOfRemovedMessages ?? 0;
 

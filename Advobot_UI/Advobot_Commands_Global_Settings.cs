@@ -20,7 +20,7 @@ namespace Advobot
 		public async Task SetBotOwner([Optional, Remainder] string input)
 		{
 			//Check if it's current
-			if (input != null && input.Equals("current", StringComparison.OrdinalIgnoreCase))
+			if (input != null && Actions.CaseInsEquals(input, "current"))
 			{
 				var user = Actions.GetBotOwner(Variables.Client);
 				if (user != null)
@@ -37,12 +37,12 @@ namespace Advobot
 			//Everything past here requires the user to be the current guild owner
 			if (Context.Guild.OwnerId != Context.User.Id)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You must be the guild owner to set yourself as the bot owner."));
 				return;
 			}
 
 			//Check if it's clear
-			if (input != null && input.Equals("clear", StringComparison.OrdinalIgnoreCase))
+			if (input != null && Actions.CaseInsEquals(input, "clear"))
 			{
 				//Only let the current bot owner to clear
 				if (Properties.Settings.Default.BotOwner == Context.User.Id)
@@ -80,7 +80,7 @@ namespace Advobot
 		public async Task SetSavePath([Remainder] string input)
 		{
 			//Check if it's current
-			if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "current"))
 			{
 				//Check if the path is empty
 				if (String.IsNullOrWhiteSpace(Properties.Settings.Default.Path))
@@ -105,7 +105,7 @@ namespace Advobot
 			}
 
 			//See if clear
-			if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "clear"))
 			{
 				Properties.Settings.Default.Path = null;
 				Properties.Settings.Default.Save();
@@ -137,14 +137,14 @@ namespace Advobot
 			var oldPrefix = Properties.Settings.Default.Prefix;
 
 			//Check if to clear
-			if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "clear"))
 			{
 				Properties.Settings.Default.Prefix = Constants.BOT_PREFIX;
 
 				//Send a success message
 				await Actions.SendChannelMessage(Context, "Successfully reset the bot's prefix to `" + Constants.BOT_PREFIX + "`.");
 			}
-			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "current"))
 			{
 				//Send a success message
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Then how did you use this command? :thinking:");
@@ -171,7 +171,7 @@ namespace Advobot
 		public async Task CurrentGlobalSettings([Remainder] string input)
 		{
 			//Check if current
-			if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "current"))
 			{
 				var description = "";
 				description += String.Format("**Prefix:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.Prefix) ? "N/A" : Properties.Settings.Default.Prefix);
@@ -182,7 +182,7 @@ namespace Advobot
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Bot Settings", description));
 			}
 			//Check if clear
-			else if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "clear"))
 			{
 				//Send a success message first instead of after due to the bot losing its ability to do so
 				await Actions.SendChannelMessage(Context, "Successfully cleared all settings. Restarting now...");
@@ -254,7 +254,7 @@ namespace Advobot
 			if (!String.IsNullOrWhiteSpace(input))
 			{
 				//Check if it's an actual stream
-				if (!input.StartsWith("https://www.twitch.tv/", StringComparison.OrdinalIgnoreCase))
+				if (!Actions.CaseInsStartsWith(input, "https://www.twitch.tv/"))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Link must be from Twitch.TV."));
 					return;

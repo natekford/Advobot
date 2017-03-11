@@ -103,7 +103,7 @@ namespace Advobot
 			}
 			var validLines = Actions.GetValidLines(path, Constants.GUILD_PREFIX);
 
-			if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "clear"))
 			{
 				//Add all the lines back
 				Actions.SaveLines(path, Constants.GUILD_PREFIX, "", validLines);
@@ -202,7 +202,7 @@ namespace Advobot
 		public async Task BotChannel()
 		{
 			//If no bot channel, create it
-			if (!(await Context.Guild.GetTextChannelsAsync()).ToList().Any(x => x.Name.Equals(Variables.Bot_Name, StringComparison.OrdinalIgnoreCase)))
+			if (!(await Context.Guild.GetTextChannelsAsync()).ToList().Any(x => Actions.CaseInsEquals(x.Name, Variables.Bot_Name)))
 			{
 				//Create the channel
 				var channel = await Context.Guild.CreateTextChannelAsync(Variables.Bot_Name);
@@ -226,7 +226,7 @@ namespace Advobot
 		public async Task CommandConfigModify([Remainder] string input)
 		{
 			//Check if enable
-			if (input.Equals("enable", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "enable"))
 			{
 				//Member limit
 				if ((Context.Guild as SocketGuild).MemberCount < Constants.MEMBER_LIMIT && Context.User.Id != Properties.Settings.Default.BotOwner)
@@ -249,7 +249,7 @@ namespace Advobot
 				//The actual enabling happens in OnMessageReceived in Serverlogs
 			}
 			//Check if disable
-			else if (input.Equals("disable", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "disable"))
 			{
 				//Confirmation of agreement
 				await Actions.SendChannelMessage(Context, "If you are sure you want to delete your preferences, say `Yes`.");
@@ -287,7 +287,7 @@ namespace Advobot
 			if (inputArray.Length != 2)
 			{
 				//Check if it's only to see the current prefs
-				if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
+				if (Actions.CaseInsEquals(inputArray[0], "current"))
 				{
 					var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE);
 					if (path == null)
@@ -308,11 +308,11 @@ namespace Advobot
 
 			//Set a bool to keep track of the action
 			bool enableBool;
-			if (action.Equals("enable", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(action, "enable"))
 			{
 				enableBool = true;
 			}
-			else if (action.Equals("disable", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(action, "disable"))
 			{
 				enableBool = false;
 			}
@@ -324,7 +324,7 @@ namespace Advobot
 
 			//Check if all
 			bool allBool = false;
-			if (inputString.Equals("all", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(inputString, "all"))
 			{
 				allBool = true;
 			}
@@ -373,7 +373,7 @@ namespace Advobot
 			var categoryToRemove = new List<CommandSwitch>();
 			category.ForEach(cmd =>
 			{
-				if (Constants.COMMANDS_UNABLE_TO_BE_TURNED_OFF.Contains(cmd.Name, StringComparer.OrdinalIgnoreCase))
+				if (Actions.CaseInsContains(Constants.COMMANDS_UNABLE_TO_BE_TURNED_OFF, cmd.Name))
 				{
 					categoryToRemove.Add(cmd);
 				}
@@ -424,7 +424,7 @@ namespace Advobot
 
 			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 2);
-			if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(inputArray[0], "current"))
 			{
 				var channels = new List<string>();
 				await Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.ForEachAsync(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
@@ -440,11 +440,11 @@ namespace Advobot
 
 			//Determine whether to add or remove
 			bool addBool;
-			if (inputArray[0].Equals("add", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(inputArray[0], "add"))
 			{
 				addBool = true;
 			}
-			else if (inputArray[0].Equals("remove", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(inputArray[0], "remove"))
 			{
 				addBool = false;
 			}
@@ -458,7 +458,7 @@ namespace Advobot
 			var channel = await Actions.GetChannelEditAbility(Context, inputArray[1], true);
 			if (channel == null)
 			{
-				var channels = (await Context.Guild.GetTextChannelsAsync()).Where(x => x.Name.Equals(inputArray[1], StringComparison.OrdinalIgnoreCase)).ToList();
+				var channels = (await Context.Guild.GetTextChannelsAsync()).Where(x => Actions.CaseInsEquals(x.Name, inputArray[1])).ToList();
 				if (channels.Count == 0)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
@@ -545,15 +545,15 @@ namespace Advobot
 			//Check if valid action
 			var action = inputArray[0];
 			bool? addBool;
-			if (action.Equals("show", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(action, "show"))
 			{
 				addBool = null;
 			}
-			else if (action.Equals("add", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(action, "add"))
 			{
 				addBool = true;
 			}
-			else if (action.Equals("remove", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(action, "remove"))
 			{
 				addBool = false;
 			}
@@ -623,7 +623,7 @@ namespace Advobot
 			}
 
 			//Get the permissions
-			var permissions = inputArray[2].Split('/').Select(x => Variables.GuildPermissions.FirstOrDefault(y => y.Name.Equals(x, StringComparison.OrdinalIgnoreCase))).Where(x => x.Name != null).ToList();
+			var permissions = inputArray[2].Split('/').Select(x => Variables.GuildPermissions.FirstOrDefault(y => Actions.CaseInsEquals(y.Name, x))).Where(x => x.Name != null).ToList();
 			if (!permissions.Any())
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
@@ -633,7 +633,7 @@ namespace Advobot
 			//Remove administrator unless the person running the command is the guild owner
 			if (Context.User.Id != Context.Guild.OwnerId)
 			{
-				permissions.RemoveAll(x => x.Name.Equals(Enum.GetName(typeof(GuildPermission), GuildPermission.Administrator), StringComparison.OrdinalIgnoreCase));
+				permissions.RemoveAll(x => Actions.CaseInsEquals(x.Name, Enum.GetName(typeof(GuildPermission), GuildPermission.Administrator)));
 			}
 
 			//Get the user out of the list with their bot permissions
@@ -694,11 +694,11 @@ namespace Advobot
 		public async Task BotUsers([Remainder] string input)
 		{
 			bool fileBool;
-			if (input.Equals("file", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "file"))
 			{
 				fileBool = true;
 			}
-			else if (input.Equals("actual", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "actual"))
 			{
 				fileBool = false;
 			}
@@ -818,11 +818,11 @@ namespace Advobot
 
 			//Check what action to do
 			bool addBool;
-			if (inputArray[0].Equals("add", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(inputArray[0], "add"))
 			{
 				addBool = true;
 			}
-			else if (inputArray[0].Equals("remove", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(inputArray[0], "remove"))
 			{
 				addBool = false;
 			}
@@ -854,7 +854,7 @@ namespace Advobot
 				var text = nameAndText[1];
 
 				//Check if any reminds have already have the same name
-				if (reminds.Any(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+				if (reminds.Any(x => Actions.CaseInsEquals(x.Name, name)))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A remind already has that name."));
 					return;
@@ -874,7 +874,7 @@ namespace Advobot
 				name = inputArray[1];
 
 				//Remove all reminds with the same name
-				reminds.RemoveAll(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+				reminds.RemoveAll(x => Actions.CaseInsEquals(x.Name, name));
 			}
 
 			//Get the path
@@ -908,7 +908,7 @@ namespace Advobot
 			}
 
 			//Check if any reminds have the given name
-			var remind = reminds.FirstOrDefault(x => x.Name.Equals(input, StringComparison.OrdinalIgnoreCase));
+			var remind = reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, input));
 			if (remind.Name != null)
 			{
 				await Actions.SendChannelMessage(Context, remind.Text);

@@ -27,7 +27,7 @@ namespace Advobot
 			}
 
 			//Check if it's extra help wanted
-			if (input.Equals("help", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "help"))
 			{
 				//Make the embed
 				var embed = Actions.MakeNewEmbed("Self Roles Help", "The general group number is 0; roles added here don't conflict. Roles cannot be added to more than one group.");
@@ -48,14 +48,22 @@ namespace Advobot
 
 			//Check which action it is
 			SAGAction actionType;
-			if (action.Equals("create", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(action, "create"))
+			{
 				actionType = SAGAction.Create;
-			else if (action.Equals("add", StringComparison.OrdinalIgnoreCase))
+			}
+			else if (Actions.CaseInsEquals(action, "add"))
+			{
 				actionType = SAGAction.Add;
-			else if (action.Equals("remove", StringComparison.OrdinalIgnoreCase))
+			}
+			else if (Actions.CaseInsEquals(action, "remove"))
+			{
 				actionType = SAGAction.Remove;
-			else if (action.Equals("delete", StringComparison.OrdinalIgnoreCase))
+			}
+			else if (Actions.CaseInsEquals(action, "delete"))
+			{
 				actionType = SAGAction.Delete;
+			}
 			else
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
@@ -362,11 +370,12 @@ namespace Advobot
 
 			//Set a bool
 			bool fileBool = false;
-			if (inputArray.Any(x => x.Equals("file", StringComparison.OrdinalIgnoreCase)))
+			//I don't know why I set up this one using a LINQ Any() instead of the previous inputArray[0] but I'm leaving it
+			if (inputArray.Any(x => Actions.CaseInsEquals(x, "file")))
 			{
 				fileBool = true;
 			}
-			else if (inputArray.Any(x => x.Equals("actual", StringComparison.OrdinalIgnoreCase)))
+			else if (inputArray.Any(x => Actions.CaseInsEquals(x, "actual")))
 			{
 				fileBool = false;
 			}

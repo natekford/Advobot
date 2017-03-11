@@ -59,12 +59,6 @@ namespace Advobot
 		#endregion
 
 		#region Menu
-		private static RichTextBox mMenuBox = new RichTextBox { IsReadOnly = true, IsDocumentEnabled = true, Visibility = Visibility.Collapsed, Background = Brushes.White, };
-		private const string mFirstButtonString = "Help";
-		private const string mSecondButtonString = "Commands";
-		private const string mThirdButtonString = "Info";
-		private const string mFourthButtonString = "Files";
-		private static string mLastButtonClicked;
 		private const string mHelpSynt = "Command Syntax:\n\t[] means required\n\t<> means optional\n\t| means or";
 		private const string mHelpInf1 = "\n\nLatency:\n\tTime it takes for a command to reach the bot.\nMemory:\n\tAmount of RAM the program is using.\n\t(This is wrong most of the time.)";
 		private const string mHelpInf2 = "\nThreads:\n\tWhere all the actions in the bot happen.\nShards:\n\tHold all the guilds a bot has on its client.\n\tThere is a limit of 2500 guilds per shard.";
@@ -82,6 +76,12 @@ namespace Advobot
 		private static Paragraph mSecondParagraph = new Paragraph(mCmdsFirstRun);
 		private static Paragraph mThirdParagraph = new Paragraph(mInfoFirstRun);
 		private static Paragraph mFourthParagraph = new Paragraph();
+		private static RichTextBox mMenuBox = new RichTextBox { IsReadOnly = true, IsDocumentEnabled = true, Visibility = Visibility.Collapsed, Background = Brushes.White, };
+		private const string mFirstButtonString = "Help";
+		private const string mSecondButtonString = "Commands";
+		private const string mThirdButtonString = "Info";
+		private const string mFourthButtonString = "Files";
+		private static string mLastButtonClicked;
 		private static Grid mButtonLayout = new Grid();
 		private static Button mFirstButton = new Button { Content = mFirstButtonString, };
 		private static Button mSecondButton = new Button { Content = mSecondButtonString, };
@@ -307,7 +307,7 @@ namespace Advobot
 			//Remove the current blocks in the document
 			mMenuBox.Document.Blocks.Clear();
 			//Disable the rtb if the most recent button clicked is clicked again
-			if (name.Equals(mLastButtonClicked, StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(name, mLastButtonClicked))
 			{
 				UILayoutModification.SetColAndSpan(mOutputBox, 0, 4);
 				mMenuBox.Visibility = Visibility.Collapsed;
@@ -323,25 +323,25 @@ namespace Advobot
 				mLastButtonClicked = name;
 
 				//Show the text for help
-				if (name.Equals(mFirstButtonString, StringComparison.OrdinalIgnoreCase))
+				if (Actions.CaseInsEquals(name, mFirstButtonString))
 				{
 					mMenuBox.SetBinding(FontSizeProperty, mFirstMenuBinding);
 					mMenuBox.Document.Blocks.Add(mFirstParagraph);
 				}
 				//Show the text for commands
-				else if (name.Equals(mSecondButtonString, StringComparison.OrdinalIgnoreCase))
+				else if (Actions.CaseInsEquals(name, mSecondButtonString))
 				{
 					mMenuBox.SetBinding(FontSizeProperty, mSecondMenuBinding);
 					mMenuBox.Document.Blocks.Add(mSecondParagraph);
 				}
 				//Show the text for info
-				else if (name.Equals(mThirdButtonString, StringComparison.OrdinalIgnoreCase))
+				else if (Actions.CaseInsEquals(name, mThirdButtonString))
 				{
 					mMenuBox.SetBinding(FontSizeProperty, mSecondMenuBinding);
 					mMenuBox.Document.Blocks.Add(mThirdParagraph);
 				}
 				//Show the text for settings
-				else if (name.Equals(mFourthButtonString, StringComparison.OrdinalIgnoreCase))
+				else if (Actions.CaseInsEquals(name, mFourthButtonString))
 				{
 					mFourthParagraph = UIMakeElement.MakeGuildTreeView(mFourthParagraph);
 					mMenuBox.SetBinding(FontSizeProperty, mSecondMenuBinding);
@@ -611,7 +611,7 @@ namespace Advobot
 					//Get the file with its extension
 					var fileAndExtension = file.Substring(file.LastIndexOf('\\') + 1);
 					//Check if the gotten file is a valid file
-					if (!Constants.VALID_GUILD_FILES.Contains(fileAndExtension, StringComparer.OrdinalIgnoreCase))
+					if (!Actions.CaseInsContains(Constants.VALID_GUILD_FILES, fileAndExtension))
 						return;
 					//Create the item
 					var fileItem = new TreeViewItem() { Header = fileAndExtension.Split('.')[0], Tag = file };
@@ -673,7 +673,7 @@ namespace Advobot
 		public static void HandleCommand(string input)
 		{
 			//Check if it's a global bot command done through the console
-			if (input.StartsWith(Properties.Settings.Default.Prefix, StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsStartsWith(input, Properties.Settings.Default.Prefix))
 			{
 				//Remove the prefix
 				input = input.Substring(Properties.Settings.Default.Prefix.Length);
@@ -695,74 +695,74 @@ namespace Advobot
 		public static bool FindCommand(string cmd, string args)
 		{
 			//Find what command it belongs to
-			if (UICommandNames.GetNameAndAliases(UICommandEnum.Pause).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.Pause), cmd))
 			{
 				UICommands.PAUSE(args);
 			}
-			else if (UICommandNames.GetNameAndAliases(UICommandEnum.BotOwner).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.BotOwner), cmd))
 			{
 				UICommands.UIGlobalBotOwner(args);
 			}
-			else if (UICommandNames.GetNameAndAliases(UICommandEnum.SavePath).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.SavePath), cmd))
 			{
 				UICommands.UIGlobalSavePath(args);
 			}
-			else if (UICommandNames.GetNameAndAliases(UICommandEnum.Prefix).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.Prefix), cmd))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIGlobalPrefix(args);
 				});
 			}
-			else if (UICommandNames.GetNameAndAliases(UICommandEnum.Settings).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.Settings), cmd))
 			{
 				UICommands.UIGlobalSettings(args);
 			}
-			else if (UICommandNames.GetNameAndAliases(UICommandEnum.BotIcon).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.BotIcon), cmd))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIBotIcon(args);
 				});
 			}
-			else if (UICommandNames.GetNameAndAliases(UICommandEnum.BotGame).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.BotGame), cmd))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIBotGame(args);
 				});
 			}
-			else if (UICommandNames.GetNameAndAliases(UICommandEnum.BotStream).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.BotStream), cmd))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIBotStream(args);
 				});
 			}
-			else if (UICommandNames.GetNameAndAliases(UICommandEnum.BotName).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.BotName), cmd))
 			{
 				Task.Run(async () =>
 				{
 					await UICommands.UIBotName(args);
 				});
 			}
-			else if (UICommandNames.GetNameAndAliases(UICommandEnum.Disconnect).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.Disconnect), cmd))
 			{
 				UICommands.UIDisconnect();
 			}
-			else if (UICommandNames.GetNameAndAliases(UICommandEnum.Restart).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.Restart), cmd))
 			{
 				UICommands.UIRestart();
 			}
-			else if (UICommandNames.GetNameAndAliases(UICommandEnum.ListGuilds).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.ListGuilds), cmd))
 			{
 				UICommands.UIListGuilds();
 			}
-			else if (UICommandNames.GetNameAndAliases(UICommandEnum.Shards).Contains(cmd, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.Shards), cmd))
 			{
 				UICommands.UIModifyShards(args);
 			}
-			else if (cmd.Equals("test", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(cmd, "test"))
 			{
 				UICommands.UITest();
 			}
@@ -787,12 +787,12 @@ namespace Advobot
 				return;
 			}
 
-			if (input.Equals("on", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "on"))
 			{
 				Actions.WriteLine("Successfully paused the bot.");
 				Variables.Pause = true;
 			}
-			else if (input.Equals("off", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "off"))
 			{
 				Actions.WriteLine("Successfully unpaused the bot.");
 				Variables.Pause = false;
@@ -817,7 +817,7 @@ namespace Advobot
 			var oldPrefix = Properties.Settings.Default.Prefix;
 
 			//Check if to clear
-			if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "clear"))
 			{
 				Properties.Settings.Default.Prefix = Constants.BOT_PREFIX;
 
@@ -849,7 +849,7 @@ namespace Advobot
 			}
 
 			//Check if it's current
-			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "current"))
 			{
 				//Check if the path is empty
 				if (String.IsNullOrWhiteSpace(Properties.Settings.Default.Path))
@@ -872,7 +872,7 @@ namespace Advobot
 				return;
 			}
 			//See if clear
-			else if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "clear"))
 			{
 				Properties.Settings.Default.Path = null;
 				Properties.Settings.Default.Save();
@@ -903,7 +903,7 @@ namespace Advobot
 			}
 
 			//Check if it's current
-			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "current"))
 			{
 				var user = Actions.GetBotOwner(Variables.Client);
 				if (user != null)
@@ -917,7 +917,7 @@ namespace Advobot
 				return;
 			}
 			//Check if it's clear
-			else if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "clear"))
 			{
 				Properties.Settings.Default.BotOwner = 0;
 				Properties.Settings.Default.Save();
@@ -965,7 +965,7 @@ namespace Advobot
 			}
 
 			//Check if current
-			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "current"))
 			{
 				var description = "";
 				description += String.Format("\n\tSave Path: {0}", String.IsNullOrWhiteSpace(Properties.Settings.Default.Path) ? "N/A" : Properties.Settings.Default.Path);
@@ -974,7 +974,7 @@ namespace Advobot
 				Actions.WriteLine(Actions.ReplaceMarkdownChars(description));
 			}
 			//Check if clear
-			else if (input.Equals("clear", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "clear"))
 			{
 				//Send a success message first instead of after due to the bot losing its ability to do so
 				Actions.WriteLine("Successfully cleared all settings. Restarting now...");
@@ -1012,7 +1012,7 @@ namespace Advobot
 			}
 
 			//See if the user wants to remove the icon
-			if (input.Equals("remove", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "remove"))
 			{
 				await Variables.Client.GetCurrentUser().ModifyAsync(x => x.Avatar = new Discord.Image());
 				Actions.WriteLine("Successfully removed the bot's icon.");
@@ -1123,7 +1123,7 @@ namespace Advobot
 			if (!String.IsNullOrWhiteSpace(input))
 			{
 				//Check if it's an actual stream
-				if (!input.StartsWith(Constants.STREAM_URL, StringComparison.OrdinalIgnoreCase))
+				if (!Actions.CaseInsStartsWith(input, Constants.STREAM_URL))
 				{
 					Actions.WriteLine(Actions.ERROR("Link must be from Twitch.TV."));
 					return;

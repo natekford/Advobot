@@ -33,19 +33,19 @@ namespace Advobot
 
 			//Determine what the action is
 			SpamPreventionAction actionEnum;
-			if (action.Equals("enable", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(action, "enable"))
 			{
 				actionEnum = SpamPreventionAction.Enable;
 			}
-			else if (action.Equals("disable", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(action, "disable"))
 			{
 				actionEnum = SpamPreventionAction.Disable;
 			}
-			else if (action.Equals("current", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(action, "current"))
 			{
 				actionEnum = SpamPreventionAction.Current;
 			}
-			else if (action.Equals("setup", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(action, "setup"))
 			{
 				actionEnum = SpamPreventionAction.Setup;
 			}
@@ -177,11 +177,11 @@ namespace Advobot
 
 			//Set a bool for whichever input was gotten
 			bool enableBool;
-			if (action.Equals("enable", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(action, "enable"))
 			{
 				enableBool = true;
 			}
-			else if (action.Equals("disable", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(action, "disable"))
 			{
 				enableBool = false;
 			}

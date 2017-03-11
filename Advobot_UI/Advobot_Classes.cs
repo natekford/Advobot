@@ -232,7 +232,7 @@ namespace Advobot
 			get
 			{
 				string[] trueMatches = { "true", "on", "yes", "1" };
-				return trueMatches.Any(x => String.Equals(mValue.Trim(), x, StringComparison.OrdinalIgnoreCase));
+				return trueMatches.Any(x => Actions.CaseInsEquals(mValue.Trim(), x));
 			}
 		}
 		public string ValAsString

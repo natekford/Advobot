@@ -66,8 +66,10 @@ namespace Advobot
 				return;
 			}
 
+			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 2);
-			if (inputArray[0].Equals("current", StringComparison.OrdinalIgnoreCase))
+			var action = inputArray[0];
+			if (Actions.CaseInsEquals(action, "current"))
 			{
 				var channels = new List<string>();
 				await Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.ForEachAsync(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
@@ -82,11 +84,11 @@ namespace Advobot
 			}
 
 			bool addBool;
-			if (inputArray[0].Equals("add", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(action, "add"))
 			{
 				addBool = true;
 			}
-			else if (inputArray[0].Equals("remove", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(action, "remove"))
 			{
 				addBool = false;
 			}
@@ -99,7 +101,7 @@ namespace Advobot
 			var channel = await Actions.GetChannelEditAbility(Context, inputArray[1], true);
 			if (channel == null)
 			{
-				var channels = (await Context.Guild.GetTextChannelsAsync()).Where(x => x.Name.Equals(inputArray[1], StringComparison.OrdinalIgnoreCase)).ToList();
+				var channels = (await Context.Guild.GetTextChannelsAsync()).Where(x => Actions.CaseInsEquals(x.Name, inputArray[1])).ToList();
 				if (channels.Count == 0)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
@@ -176,13 +178,13 @@ namespace Advobot
 			var logActionsList = Variables.Guilds[Context.Guild.Id].LogActions;
 
 			//Check if the person wants to only see the types
-			if (input.Equals("show", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "show"))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Log Actions", String.Join("\n", Enum.GetNames(typeof(LogActions)))));
 				return;
 			}
 			//Check if they want the default
-			else if (input.Equals("default", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "default"))
 			{
 				logActionsList = Constants.DEFAULT_LOG_ACTIONS.ToList();
 				Actions.SaveLogActions(Context, logActionsList);
@@ -192,7 +194,7 @@ namespace Advobot
 				return;
 			}
 			//Check if they want to see the current activated ones
-			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "current"))
 			{
 				if (logActionsList.Count == 0)
 				{
@@ -233,7 +235,7 @@ namespace Advobot
 
 			//Get all the targetted log actions
 			var newLogActions = new List<LogActions>();
-			if (logActionsString.Equals("all", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(logActionsString, "all"))
 			{
 				newLogActions = Enum.GetValues(typeof(LogActions)).Cast<LogActions>().ToList();
 			}

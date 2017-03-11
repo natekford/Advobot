@@ -45,21 +45,21 @@ namespace Advobot
 		public async Task ChangeGuildLocation([Remainder] string input)
 		{
 			//Check if a valid region or asking to see the region types
-			if (input.Equals("regions", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "regions"))
 			{
 				var text = String.Join("\n", Constants.VALID_REGION_IDS);
 				//Check whether to show the VIP regions
-				if (Context.Guild.Features.Contains(Constants.VIP_REGIONS, StringComparer.OrdinalIgnoreCase))
+				if (Actions.CaseInsContains(Context.Guild.Features.ToList(), Constants.VIP_REGIONS))
 				{
 					text += "\n" + String.Join("\n", Constants.VIP_REGIONIDS);
 				}
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Region IDs", text));
 			}
-			else if (input.Equals("current", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "current"))
 			{
 				await Actions.SendChannelMessage(Context, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
 			}
-			else if (Constants.VALID_REGION_IDS.Contains(input, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(Constants.VALID_REGION_IDS, input))
 			{
 				//Capture the previous region
 				var bRegion = Context.Guild.VoiceRegionId;
@@ -68,10 +68,10 @@ namespace Advobot
 				await Context.Guild.ModifyAsync(x => x.RegionId = input);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", bRegion, input));
 			}
-			else if (Constants.VIP_REGIONIDS.Contains(input, StringComparer.OrdinalIgnoreCase))
+			else if (Actions.CaseInsContains(Constants.VIP_REGIONIDS, input))
 			{
 				//Check if the guild can access vip regions
-				if (Context.Guild.Features.Contains(Constants.VIP_REGIONS, StringComparer.OrdinalIgnoreCase))
+				if (Actions.CaseInsContains(Context.Guild.Features.ToList(), Constants.VIP_REGIONS))
 				{
 					//Capture the previous region
 					var bRegion = Context.Guild.VoiceRegionId;
@@ -105,7 +105,7 @@ namespace Advobot
 			}
 
 			//Check if valid action
-			if (inputArray[0].Equals("channel", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(inputArray[0], "channel"))
 			{
 				//Check if valid channel
 				var channel = await Actions.GetChannelEditAbility(Context, inputArray[1] + "/voice");
@@ -124,7 +124,7 @@ namespace Advobot
 				await Context.Guild.ModifyAsync(x => x.AfkChannelId = channel.Id);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild's AFK channel from `{0}` to `{1}`", bChan, inputArray[1]));
 			}
-			else if (inputArray[0].Equals("time", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(inputArray[0], "time"))
 			{
 				//Check if valid time
 				var time = 0;
@@ -157,17 +157,17 @@ namespace Advobot
 
 		[Command("guildmsgnotifications")]
 		[Alias("gdmn")]
-		[Usage("[All Messages|Mentions Only]")]
+		[Usage("[All|Mentions]")]
 		[Summary("Changes the message notifications to either all messages or mentions only.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		public async Task ChangeGuildMsgNotifications([Remainder] string input)
 		{
-			if (input.Equals("all messages", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "all"))
 			{
 				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = DefaultMessageNotifications.AllMessages);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully changed the default message notification setting to all messages.");
 			}
-			else if (input.Equals("mentions only", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "mentions"))
 			{
 				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = DefaultMessageNotifications.MentionsOnly);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully changed the default message notification setting to mentions only.");

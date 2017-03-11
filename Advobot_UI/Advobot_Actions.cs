@@ -260,7 +260,7 @@ namespace Advobot
 						var values = x.Split(new char[] { ':' }, 2);
 						if (values.Length == 2)
 						{
-							var aliases = Variables.HelpList.FirstOrDefault(cmd => cmd.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase))?.Aliases;
+							var aliases = Variables.HelpList.FirstOrDefault(cmd => CaseInsEquals(cmd.Name, values[0]))?.Aliases;
 							Variables.Guilds[guild.Id].CommandSettings.Add(new CommandSwitch(values[0], values[1], commandCategory, aliases));
 						}
 						else
@@ -298,7 +298,7 @@ namespace Advobot
 							var values = line.Split(new char[] { ':' }, 2);
 							if (values.Length == 2)
 							{
-								var aliases = Variables.HelpList.FirstOrDefault(x => x.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase))?.Aliases;
+								var aliases = Variables.HelpList.FirstOrDefault(x => CaseInsEquals(x.Name, values[0]))?.Aliases;
 								Variables.Guilds[guild.Id].CommandSettings.Add(new CommandSwitch(values[0], values[1], commandCategory, aliases));
 							}
 							else
@@ -685,7 +685,7 @@ namespace Advobot
 					return context.Guild.GetRole(roleID);
 				}
 			}
-			var roles = context.Guild.Roles.Where(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase)).ToList();
+			var roles = context.Guild.Roles.Where(x => CaseInsEquals(x.Name, roleName)).ToList();
 			if (roles.Count > 1)
 			{
 				await MakeAndDeleteSecondaryMessage(context, ERROR("Multiple roles with the same name. Please specify by mentioning the role or changing their names."));
@@ -701,7 +701,7 @@ namespace Advobot
 		public static IRole GetRole(IGuild guild, string roleName)
 		{
 			//Order them by position (puts everyone first) then reverse so it sorts from the top down
-			return guild.Roles.ToList().OrderBy(x => x.Position).Reverse().FirstOrDefault(x => x.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+			return guild.Roles.ToList().OrderBy(x => x.Position).Reverse().FirstOrDefault(x => CaseInsEquals(x.Name, roleName));
 		}
 		
 		//Get top position of a user
@@ -865,7 +865,7 @@ namespace Advobot
 
 			//Get input channel type
 			var channelType = values.Length == 2 ? values[1] : null;
-			if (channelType != null && !(Constants.TEXT_TYPE.Equals(channelType, StringComparison.OrdinalIgnoreCase) || Constants.VOICE_TYPE.Equals(channelType, StringComparison.OrdinalIgnoreCase)))
+			if (channelType != null && !(CaseInsEquals(channelType, Constants.TEXT_TYPE) || CaseInsEquals(channelType, Constants.VOICE_TYPE)))
 				return null;
 
 			//If a channel mention
@@ -880,7 +880,7 @@ namespace Advobot
 				//Get the channels from the guild
 				var gottenChannels = await guild.GetChannelsAsync();
 				//See which match the name and type given
-				var channels = gottenChannels.Where(x => x.Name.Equals(values[0], StringComparison.OrdinalIgnoreCase) && x.GetType().Name.IndexOf(channelType, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+				var channels = gottenChannels.Where(x => CaseInsEquals(x.Name, values[0]) && CaseInsIndexOf(x.GetType().Name, channelType)).ToList();
 
 				//If zero then no channels have the name so return an error message
 				if (channels.Count == 0)
@@ -901,7 +901,7 @@ namespace Advobot
 			//Get the channels from the guild
 			var gottenChannels = await guild.GetTextChannelsAsync();
 			//See which match the name and type given
-			return gottenChannels.FirstOrDefault(x => x.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase));
+			return gottenChannels.FirstOrDefault(x => CaseInsEquals(x.Name, Variables.Bot_Channel));
 		}
 		
 		//Get integer
@@ -920,7 +920,7 @@ namespace Advobot
 		{
 			try
 			{
-				int bit = Variables.GuildPermissions.FirstOrDefault(x => x.Name.Equals(permission, StringComparison.OrdinalIgnoreCase)).Position;
+				int bit = Variables.GuildPermissions.FirstOrDefault(x => CaseInsEquals(x.Name, permission)).Position;
 				changeValue |= (1U << bit);
 				return changeValue;
 			}
@@ -1054,7 +1054,7 @@ namespace Advobot
 		//Get if a channel is a text or voice channel
 		public static string GetChannelType(IGuildChannel channel)
 		{
-			return channel.GetType().Name.IndexOf(Constants.TEXT_TYPE, StringComparison.OrdinalIgnoreCase) >= 0 ? Constants.TEXT_TYPE : Constants.VOICE_TYPE;
+			return CaseInsIndexOf(channel.GetType().Name, Constants.TEXT_TYPE) ? Constants.TEXT_TYPE : Constants.VOICE_TYPE;
 		}
 		
 		//Get if a bot channel already exists
@@ -1147,7 +1147,7 @@ namespace Advobot
 		public static string GetVariableAndRemove(List<string> inputList, string searchTerm)
 		{
 			//Get the item
-			var first = inputList?.Where(x => x.Substring(0, Math.Max(x.IndexOf(':'), 1)).Equals(searchTerm, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+			var first = inputList?.Where(x => CaseInsEquals(x.Substring(0, Math.Max(x.IndexOf(':'), 1)), searchTerm)).FirstOrDefault();
 			if (first != null)
 			{
 				//Remove it from the list
@@ -1162,15 +1162,15 @@ namespace Advobot
 		public static string GetVariable(string[] inputArray, string searchTerm)
 		{
 			//Get the item
-			var first = inputArray?.Where(x => x.Substring(0, Math.Max(x.IndexOf(':'), 1)).Equals(searchTerm, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+			var first = inputArray?.Where(x => CaseInsEquals(x.Substring(0, Math.Max(x.IndexOf(':'), 1)), searchTerm)).FirstOrDefault();
 			return first != null ? first.Substring(first.IndexOf(':') + 1) : null;
 		}
 
 		//Get the variable out of a string
 		public static string GetVariable(string inputString, string searchTerm)
 		{
-			return (inputString != null && inputString.Substring(0, Math.Max(inputString.IndexOf(':'), 1)).Equals(searchTerm, StringComparison.OrdinalIgnoreCase)
-					? inputString.Substring(inputString.IndexOf(':') + 1) : null);
+			var input = inputString.Substring(0, Math.Max(inputString.IndexOf(':'), 1));
+			return (inputString != null && CaseInsEquals(input, searchTerm) ? inputString.Substring(inputString.IndexOf(':') + 1) : null);
 		}
 
 		//Get the OS
@@ -1240,11 +1240,11 @@ namespace Advobot
 		{
 			return Variables.Guilds[id].CommandSettings.FirstOrDefault(x =>
 			{
-				if (x.Name.Equals(input, StringComparison.OrdinalIgnoreCase))
+				if (CaseInsEquals(x.Name, input))
 				{
 					return true;
 				}
-				else if (x.Aliases != null && x.Aliases.Contains(input, StringComparer.OrdinalIgnoreCase))
+				else if (x.Aliases != null && CaseInsContains(x.Aliases, input))
 				{
 					return true;
 				}
@@ -1312,7 +1312,7 @@ namespace Advobot
 					{
 						validLines.Add(line);
 					}
-					else if (!(line.IndexOf(checkString, StringComparison.OrdinalIgnoreCase) >= 0))
+					else if (!CaseInsIndexOf(line, checkString))
 					{
 						validLines.Add(line);
 					}
@@ -1392,7 +1392,7 @@ namespace Advobot
 				var botInvCodes = botInvs.Select(y => y.Code);
 				var newInvs = curInvs.Where(x => !botInvCodes.Contains(x.Code));
 				//If there's only one, then use that as the current inv. If there's more than one then there's no way to know what invite it was on
-				if (newInvs.Count() == 0 && guild.Features.Contains(Constants.VANITY_URL, StringComparer.OrdinalIgnoreCase))
+				if (newInvs.Count() == 0 && CaseInsContains(guild.Features.ToList(), Constants.VANITY_URL))
 				{
 					joinInv = new BotInvite(guild.Id, "Vanity URL", 0);
 				}
@@ -1740,7 +1740,7 @@ namespace Advobot
 		public static async Task SetPicture(CommandContext context, string input, bool user)
 		{
 			//See if the user wants to remove the icon
-			if (input != null && input.Equals("remove", StringComparison.OrdinalIgnoreCase))
+			if (input != null && CaseInsEquals(input, "remove"))
 			{
 				if (!user)
 				{
@@ -1956,8 +1956,8 @@ namespace Advobot
 
 			//Validate the URLs
 			imageURL = ValidateURL(imageURL) ? imageURL : null;
-			URL = ValidateURL(URL) ? imageURL : null;
-			thumbnailURL = ValidateURL(thumbnailURL) ? imageURL : null;
+			URL = ValidateURL(URL) ? URL : null;
+			thumbnailURL = ValidateURL(thumbnailURL) ? thumbnailURL : null;
 
 			//Add in the properties
 			if (title != null)
@@ -2140,7 +2140,7 @@ namespace Advobot
 				await MakeAndDeleteSecondaryMessage(channel, message, ERROR("No channel specified."));
 				return null;
 			}
-			else if (input.Equals("off", StringComparison.OrdinalIgnoreCase))
+			else if (CaseInsEquals(input, "off"))
 			{
 				return await SetServerOrModLog(guild, channel, message, null as ITextChannel, serverOrMod);
 			}
@@ -2255,7 +2255,7 @@ namespace Advobot
 			await attachmentURLs.ForEachAsync(async x =>
 			{
 				//Image attachment
-				if (Constants.VALID_IMAGE_EXTENSIONS.Contains(Path.GetExtension(x), StringComparer.OrdinalIgnoreCase))
+				if (CaseInsContains(Constants.VALID_IMAGE_EXTENSIONS, Path.GetExtension(x)))
 				{
 					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached Image");
@@ -2265,7 +2265,7 @@ namespace Advobot
 					++Variables.LoggedImages;
 				}
 				//Gif attachment
-				else if (Constants.VALID_GIF_EXTENTIONS.Contains(Path.GetExtension(x), StringComparer.OrdinalIgnoreCase))
+				else if (CaseInsContains(Constants.VALID_GIF_EXTENTIONS, Path.GetExtension(x)))
 				{
 					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached Gif");
@@ -2299,7 +2299,7 @@ namespace Advobot
 			await videoEmbeds.GroupBy(x => x.Url).Select(x => x.First()).ToList().ForEachAsync(async x =>
 			{
 				var embed = MakeNewEmbed(null, null, Constants.ATCH, x.Thumbnail.Value.Url);
-				AddFooter(embed, "Embedded " + (Constants.VALID_GIF_EXTENTIONS.Contains(Path.GetExtension(x.Thumbnail.Value.Url), StringComparer.OrdinalIgnoreCase) ? "Gif" : "Video"));
+				AddFooter(embed, "Embedded " + (CaseInsContains(Constants.VALID_GIF_EXTENTIONS, Path.GetExtension(x.Thumbnail.Value.Url)) ? "Gif" : "Video"));
 				AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl(), x.Url);
 				await SendEmbedMessage(channel, embed);
 
@@ -2765,7 +2765,7 @@ namespace Advobot
 			var guildLoaded = Variables.Guilds[guild.Id];
 
 			//Check if it has any banned words or regex
-			if (guildLoaded.BannedPhrases.Any(x => message.Content.IndexOf(x, StringComparison.OrdinalIgnoreCase) >= 0) || guildLoaded.BannedRegex.Any(x => x.IsMatch(message.Content)))
+			if (guildLoaded.BannedPhrases.Any(x => CaseInsIndexOf(message.Content, x)) || guildLoaded.BannedRegex.Any(x => x.IsMatch(message.Content)))
 			{
 				await BannedPhrasesPunishments(message);
 			}
@@ -2897,7 +2897,7 @@ namespace Advobot
 				return false;
 			}
 
-			if (Variables.Windows && path.Equals("appdata", StringComparison.OrdinalIgnoreCase))
+			if (Variables.Windows && CaseInsEquals(path, "appdata"))
 			{
 				path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 			}
@@ -3068,7 +3068,7 @@ namespace Advobot
 		public static List<CloseHelp> GetCommandsWithInputInName(List<CloseHelp> list, string input)
 		{
 			//Find commands with the input in their name
-			var commands = Variables.HelpList.Where(x => x.Name.IndexOf(input, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+			var commands = Variables.HelpList.Where(x => CaseInsIndexOf(x.Name, input)).ToList();
 
 			//Check if any were gotten
 			if (!commands.Any())
@@ -3229,6 +3229,33 @@ namespace Advobot
 
 			//Wait until the next firing
 			Variables.Timer = new Timer(ResetSpamPrevention, null, time, Timeout.Infinite);
+		}
+		#endregion
+
+		#region Case Insensitive Searches
+		public static bool CaseInsEquals(string str1, string str2)
+		{
+			return str1.Equals(str2, StringComparison.OrdinalIgnoreCase);
+		}
+
+		public static bool CaseInsIndexOf(string source, string search)
+		{
+			return source.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
+		}
+
+		public static bool CaseInsStartsWith(string source, string search)
+		{
+			return source.StartsWith(search, StringComparison.OrdinalIgnoreCase);
+		}
+
+		public static bool CaseInsContains(List<string> list, string str)
+		{
+			return list.Contains(str, StringComparer.OrdinalIgnoreCase);
+		}
+
+		public static bool CaseInsContains(string[] array, string str)
+		{
+			return array.Contains(str, StringComparer.OrdinalIgnoreCase);
 		}
 		#endregion
 	}

@@ -227,7 +227,7 @@ namespace Advobot
 			var nickname = "";
 			if (inputArray.Length == 2)
 			{
-				if (inputArray[1].Equals("remove", StringComparison.OrdinalIgnoreCase))
+				if (Actions.CaseInsEquals(inputArray[1], "remove"))
 				{
 					nickname = null;
 				}
@@ -316,7 +316,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members would be pruned with a prune period of `{1}` days.", amount, amountOfDays));
 			}
 			//Otherwise test if it's the real deal
-			else if (inputArray[1].Equals("real", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(inputArray[1], "real"))
 			{
 				var amount = await Context.Guild.PruneUsersAsync(amountOfDays);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members have been pruned with a prune period of `{1}` days.", amount, amountOfDays));
@@ -695,13 +695,13 @@ namespace Advobot
 			}
 
 			//Check if the input starts with 'off'
-			if (inputArray != null && inputArray[0].Equals("off", StringComparison.OrdinalIgnoreCase))
+			if (inputArray != null && Actions.CaseInsEquals(inputArray[0], "off"))
 			{
 				if (inputArray.Length != 2)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				}
-				else if (inputArray[1].Equals("guild", StringComparison.OrdinalIgnoreCase))
+				else if (Actions.CaseInsEquals(inputArray[1], "guild"))
 				{
 					//Remove the guild
 					Variables.SlowmodeGuilds.Remove(Context.Guild.Id);
@@ -709,7 +709,7 @@ namespace Advobot
 					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the guild.");
 				}
-				else if (inputArray[1].Equals("channel", StringComparison.OrdinalIgnoreCase))
+				else if (Actions.CaseInsEquals(inputArray[1], "channel"))
 				{
 					//Remove the channel
 					Variables.SlowmodeChannels.Remove(Context.Channel as IGuildChannel);
@@ -717,7 +717,7 @@ namespace Advobot
 					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the channel.");
 				}
-				else if (inputArray[1].Equals("all", StringComparison.OrdinalIgnoreCase))
+				else if (Actions.CaseInsEquals(inputArray[1], "all"))
 				{
 					//Remove the guild and every single channel on the guild
 					Variables.SlowmodeGuilds.Remove(Context.Guild.Id);
@@ -904,10 +904,11 @@ namespace Advobot
 				return;
 			}
 
-			//Give that list for the bot to check against so as to not spam nickname/role changes
+			//Give the list for the bot to check against so as to not spam nickname/role changes
+			//TODO: Implement this unless I forget again. At least this time I put a TODO, so that's gotta count for something, right?
 
 			//Give role
-			if (action.Equals("give", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(action, "give"))
 			{
 				//Check if trying to give the same role that's being gathered
 				if (inputString.Equals(outputString))
@@ -934,7 +935,7 @@ namespace Advobot
 					roleToGive.Name, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}
 			//Take role
-			else if (action.Equals("take", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(action, "take"))
 			{
 				//Get the role and its edit ability
 				var roleToTake = await Actions.GetRoleEditAbility(Context, outputString);
@@ -954,7 +955,7 @@ namespace Advobot
 					roleToTake.Name, Context.Guild.EveryoneRole.Id.Equals(roleToGather.Id) ? "" : " with `" + roleToGather.Name + "`", listUsersWithRole.Count()));
 			}
 			//Nickname
-			else if (action.Equals("nickname", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(action, "nickname"))
 			{
 				//Check if valid nickname length
 				var inputNickname = outputString;

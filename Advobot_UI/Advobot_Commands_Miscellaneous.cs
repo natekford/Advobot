@@ -43,7 +43,7 @@ namespace Advobot
 			var commandParts = input.Split(new char[] { '[' }, 2);
 			if (input.IndexOf('[') == 0)
 			{
-				if (commandParts[1].Equals("command", StringComparison.OrdinalIgnoreCase))
+				if (Actions.CaseInsEquals(commandParts[1], "command"))
 				{
 					var text = "If you do not know what commands this bot has, type `" + Constants.BOT_PREFIX + "commands` for a list of commands.";
 					await Actions.MakeAndDeleteSecondaryMessage(Context, text, 10000);
@@ -54,7 +54,7 @@ namespace Advobot
 			}
 
 			//Send the message for that command
-			var helpEntry = Variables.HelpList.FirstOrDefault(x => x.Name.Equals(input, StringComparison.OrdinalIgnoreCase));
+			var helpEntry = Variables.HelpList.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, input));
 			if (helpEntry == null)
 			{
 				//Find the command based on its aliases
@@ -155,7 +155,7 @@ namespace Advobot
 				return;
 			}
 			//Check if all
-			else if (input.Equals("all", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "all"))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("ALL", String.Join("\n", Variables.CommandNames)));
 				return;
@@ -388,6 +388,7 @@ namespace Advobot
 		[Summary("Shows information about an emoji. Only global emojis where the bot is in a guild that gives them will have a 'From...' text.")]
 		public async Task EmojiInfo([Remainder] string input)
 		{
+			//Parse out the emoji
 			Emoji emoji;
 			if (!Emoji.TryParse(input, out emoji))
 			{
@@ -395,17 +396,21 @@ namespace Advobot
 				return;
 			}
 
-			//Try to find the emoji
-			var guild = (await Context.Client.GetGuildsAsync()).FirstOrDefault(x => x.Emojis.FirstOrDefault(y => y.Id == emoji.Id).IsManaged && x.Emojis.FirstOrDefault(y => y.Id == emoji.Id).RequireColons);
+			//Try to find the emoji if global
+			var guilds = (await Context.Client.GetGuildsAsync()).Where(x =>
+			{
+				var placeholder = x.Emojis.FirstOrDefault(y => y.Id == emoji.Id);
+				return placeholder.IsManaged && placeholder.RequireColons;
+			});
 
 			//Format a description
-			var description = "ID: `" + emoji.Id + "`\n";
-			if (guild != null)
+			var description = String.Format("**ID:** `{0}`\n", emoji.Id);
+			if (guilds.Any())
 			{
-				description += "From: `" + guild.Name + "`";
+				description += String.Format("**From:** `{0}`", String.Join("`, `", guilds.Select(x => x.Name)));
 			}
 
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(emoji.Name, description, null, emoji.Url));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(emoji.Name, description, thumbnailURL: emoji.Url));
 		}
 
 		[Command("infoinvite")]
@@ -558,7 +563,7 @@ namespace Advobot
 		public async Task UsersWithName([Remainder] string input)
 		{
 			//Find the users
-			var users = (await Context.Guild.GetUsersAsync()).Where(x => x.Username.IndexOf(input, StringComparison.OrdinalIgnoreCase) >= 0).OrderBy(x => x.JoinedAt).ToList();
+			var users = (await Context.Guild.GetUsersAsync()).Where(x => Actions.CaseInsIndexOf(x.Username, input)).OrderBy(x => x.JoinedAt).ToList();
 
 			//Initialize the string
 			var description = "";
@@ -669,7 +674,7 @@ namespace Advobot
 
 			//Set tempmembership
 			bool tempMembership = false;
-			if (inputArray[3].Equals("true", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(inputArray[3], "true"))
 			{
 				tempMembership = true;
 			}
@@ -926,7 +931,7 @@ namespace Advobot
 
 			//Add the emojis to the string
 			int count = 1;
-			if (input.Equals("guild", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "guild"))
 			{
 				//Get all of the guild emojis
 				Context.Guild.Emojis.Where(x => !x.IsManaged).ToList().ForEach(x =>
@@ -934,7 +939,7 @@ namespace Advobot
 					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
 				});
 			}
-			else if (input.Equals("global", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(input, "global"))
 			{
 				//Get all of the global emojis
 				Context.Guild.Emojis.Where(x => x.IsManaged).ToList().ForEach(x =>

@@ -431,13 +431,13 @@ namespace Advobot
 			var show = false;
 
 			//If the user wants to see the permission types, print them out
-			if (input.Equals("show", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(input, "show"))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Role Permissions", String.Join("\n", permissionTypeStrings)));
 				return;
 			}
 			//If something is said after show, take that as a role.
-			else if (input.StartsWith("show", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsStartsWith(input, "show"))
 			{
 				roleString = input.Substring("show".Length).Trim();
 				show = true;
@@ -488,11 +488,11 @@ namespace Advobot
 			//See if it's add or remove
 			var addOrRemove = inputArray[0];
 			bool add;
-			if (addOrRemove.Equals("add", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(addOrRemove, "add"))
 			{
 				add = true;
 			}
-			else if (addOrRemove.Equals("remove", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(addOrRemove, "remove"))
 			{
 				add = false;
 			}
@@ -511,7 +511,7 @@ namespace Advobot
 				var invalidPermissions = new List<string>();
 				permissions.ForEach(permission =>
 				{
-					if (!validPerms.Contains(permission, StringComparer.OrdinalIgnoreCase))
+					if (!Actions.CaseInsContains(validPerms, permission))
 					{
 						invalidPermissions.Add(permission);
 					}
@@ -529,7 +529,7 @@ namespace Advobot
 				var perms = Variables.GuildPermissions.Select(x => x.Name).ToList();
 				try
 				{
-					var bit = Variables.GuildPermissions.FirstOrDefault(x => x.Name.Equals(permission, StringComparison.OrdinalIgnoreCase)).Position;
+					var bit = Variables.GuildPermissions.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, permission)).Position;
 					rolePermissions |= (1U << bit);
 				}
 				catch (Exception)
@@ -700,7 +700,7 @@ namespace Advobot
 
 			//See if it's a position trying to be gotten instead
 			var roleInput = inputArray[0];
-			if (roleInput.IndexOf("position{", StringComparison.OrdinalIgnoreCase) >= 0)
+			if (Actions.CaseInsIndexOf(roleInput, "position{"))
 			{
 				//Get the position
 				int position;
@@ -772,7 +772,7 @@ namespace Advobot
 				//Couldn't get name
 				var hexString = inputArray[1];
 				//Remove 0x if someone put that in there
-				if (hexString.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+				if (Actions.CaseInsStartsWith(hexString, "0x"))
 				{
 					hexString = hexString.Substring(2);
 				}

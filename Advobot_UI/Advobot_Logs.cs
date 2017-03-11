@@ -319,7 +319,7 @@ namespace Advobot
 				return;
 
 			//Name change
-			if (!beforeUser.Username.Equals(afterUser.Username, StringComparison.OrdinalIgnoreCase))
+			if (!Actions.CaseInsEquals(beforeUser.Username, afterUser.Username))
 			{
 				await Variables.Client.GetGuilds().Where(x => x.Users.Contains(afterUser)).ToList().ForEachAsync(async guild =>
 				{
@@ -692,7 +692,7 @@ namespace Advobot
 				return;
 
 			//Make sure the role's name is not the same
-			if (beforeRole.Name.Equals(afterRole.Name, StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(beforeRole.Name, afterRole.Name))
 				return;
 
 			//Make the embed
@@ -757,10 +757,10 @@ namespace Advobot
 				return;
 
 			//Check if the name is the bot channel name
-			if (aChan != null && aChan.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase))
+			if (aChan != null && Actions.CaseInsEquals(aChan.Name, Variables.Bot_Channel) && !Actions.CaseInsEquals(aChan.Name, bChan.Name))
 			{
 				//If the name wasn't the bot channel name to start with then set it back to its start name
-				if (!bChan.Name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase) && await Actions.GetDuplicateBotChan(bChan.Guild))
+				if (await Actions.GetDuplicateBotChan(bChan.Guild))
 				{
 					await (await bChan.Guild.GetChannelAsync(bChan.Id)).ModifyAsync(x => x.Name = bChan.Name);
 					return;
@@ -768,7 +768,7 @@ namespace Advobot
 			}
 
 			//Check if the before and after name are the same
-			if (aChan.Name.Equals(bChan.Name, StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(aChan.Name, bChan.Name))
 				return;
 
 			//Make the embed
@@ -867,7 +867,7 @@ namespace Advobot
 			if (message.Author.Id == guild.OwnerId)
 			{
 				//If the message is only 'yes' then check if they're enabling or deleting preferences
-				if (message.Content.Equals("yes", StringComparison.OrdinalIgnoreCase))
+				if (Actions.CaseInsEquals(message.Content, "yes"))
 				{
 					if (Variables.GuildsEnablingPreferences.Contains(guild))
 					{
@@ -890,10 +890,11 @@ namespace Advobot
 				//Get the number
 				var number = Actions.GetInteger(message.Content);
 				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
+				var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
 				if (closeWordList.User != null)
 				{
 					//Get the remind
-					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => x.Name.Equals(closeWordList.List[number - 1].Name, StringComparison.OrdinalIgnoreCase));
+					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number - 1].Name));
 
 					//Send the remind
 					await Actions.SendChannelMessage(message.Channel, remind.Text);
@@ -901,21 +902,24 @@ namespace Advobot
 					//Remove that list
 					Variables.ActiveCloseWords.Remove(closeWordList);
 				}
+				else if (closeHelpList.User != null)
+				{
+					//Get the remind
+					var help = closeHelpList.List[number - 1].Help;
+
+					//Send the remind
+					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help)), "Help"));
+
+					//Remove that list
+					Variables.ActiveCloseHelp.Remove(closeHelpList);
+				}
 				else
 				{
-					var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
-					if (closeHelpList.User != null)
-					{
-						//Get the remind
-						var help = closeHelpList.List[number - 1].Help;
-
-						//Send the remind
-						await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help)), "Help"));
-
-						//Remove that list
-						Variables.ActiveCloseHelp.Remove(closeHelpList);
-					}
+					return;
 				}
+
+				//Delete the message
+				await message.DeleteAsync();
 			}
 		}
 

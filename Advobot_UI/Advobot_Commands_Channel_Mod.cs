@@ -50,7 +50,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than {0} characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
 				return;
 			}
-			else if (name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase) && await Actions.GetDuplicateBotChan(Context.Guild))
+			else if (Actions.CaseInsEquals(name, Variables.Bot_Channel) && await Actions.GetDuplicateBotChan(Context.Guild))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Please don't try to make a second bot channel. All that does is confuse the bot.");
 				return;
@@ -59,12 +59,12 @@ namespace Advobot
 			//Test for text
 			IGuildChannel channel;
 			var type = inputArray[1];
-			if (type.Equals(Constants.TEXT_TYPE, StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(type, Constants.TEXT_TYPE))
 			{
 				channel = await Context.Guild.CreateTextChannelAsync(inputArray[0]);
 			}
 			//Test for voice
-			else if (type.Equals(Constants.VOICE_TYPE, StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(type, Constants.VOICE_TYPE))
 			{
 				channel = await Context.Guild.CreateVoiceChannelAsync(inputArray[0]);
 			}
@@ -219,7 +219,7 @@ namespace Advobot
 		public async Task ListChannelPositions([Remainder] string input)
 		{
 			//Check if valid type
-			if (!input.Equals(Constants.VOICE_TYPE, StringComparison.OrdinalIgnoreCase) && !input.Equals(Constants.TEXT_TYPE, StringComparison.OrdinalIgnoreCase))
+			if (!(Actions.CaseInsEquals(input, Constants.VOICE_TYPE) || Actions.CaseInsEquals(input, Constants.TEXT_TYPE)))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid type."));
 				return;
@@ -284,7 +284,7 @@ namespace Advobot
 
 			//Determine what action it is
 			var actionName = inputArray[0];
-			if (actionName.Equals("show", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(actionName, "show"))
 			{
 				//If only show, take that as a person wanting to see the permission types
 				if (inputArray.Length == 1)
@@ -454,13 +454,13 @@ namespace Advobot
 
 			//Changing the bit values
 			await permissions.ToList().ForEachAsync(async x => changeValue = await Actions.GetBit(Context, x, changeValue));
-			if (actionName.Equals("allow", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(actionName, "allow"))
 			{
 				allowBits |= changeValue;
 				denyBits &= ~changeValue;
 				actionName = "allowed";
 			}
-			else if (actionName.Equals("inherit", StringComparison.OrdinalIgnoreCase))
+			else if (Actions.CaseInsEquals(actionName, "inherit"))
 			{
 				allowBits &= ~changeValue;
 				denyBits &= ~changeValue;
@@ -524,12 +524,12 @@ namespace Advobot
 			var target = inputArray[2].Trim();
 
 			//Copy the selected target
-			if (target.Equals("all", StringComparison.OrdinalIgnoreCase))
+			if (Actions.CaseInsEquals(target, "all"))
 			{
 				target = "ALL";
 				await inputChannel.PermissionOverwrites.ToList().ForEachAsync(async permissionOverwrite =>
 				{
-					if (permissionOverwrite.TargetId == (int)PermissionTarget.Role)
+					if (permissionOverwrite.TargetType == PermissionTarget.Role)
 					{
 						var role = Context.Guild.GetRole(permissionOverwrite.TargetId);
 						await outputChannel.AddPermissionOverwriteAsync(role, new OverwritePermissions(inputChannel.GetPermissionOverwrite(role).Value.AllowValue,
@@ -595,7 +595,7 @@ namespace Advobot
 			//Remove all the permission overwrites
 			await channel.PermissionOverwrites.ToList().ForEachAsync(async x =>
 			{
-				if (x.TargetId == (int)PermissionTarget.Role)
+				if (x.TargetType == PermissionTarget.Role)
 				{
 					await channel.RemovePermissionOverwriteAsync(Context.Guild.GetRole(x.TargetId));
 				}
@@ -638,7 +638,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than {0} characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
 				return;
 			}
-			else if (name.Equals(Variables.Bot_Channel, StringComparison.OrdinalIgnoreCase) && await Actions.GetDuplicateBotChan(Context.Guild))
+			else if (Actions.CaseInsEquals(name, Variables.Bot_Channel) && await Actions.GetDuplicateBotChan(Context.Guild))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Please don't try to rename a channel to the bot channel if one alreay exists. All that does is confuse the bot.");
 				return;
@@ -649,7 +649,7 @@ namespace Advobot
 			var channel = await Actions.GetChannelEditAbility(Context, channelInput);
 			if (channel == null)
 			{
-				if (channelInput.IndexOf("position{", StringComparison.OrdinalIgnoreCase) >= 0)
+				if (Actions.CaseInsIndexOf(channelInput, "position{"))
 				{
 					//Get the position
 					int position;
@@ -670,11 +670,11 @@ namespace Advobot
 					var textChannels = new List<ITextChannel>();
 					var voiceChannels = new List<IVoiceChannel>();
 
-					if (Constants.TEXT_TYPE.Equals(channelType, StringComparison.OrdinalIgnoreCase))
+					if (Actions.CaseInsEquals(channelType, Constants.TEXT_TYPE))
 					{
 						textChannels = (await Context.Guild.GetTextChannelsAsync()).Where(x => x.Position == position).ToList();
 					}
-					else if (Constants.VOICE_TYPE.Equals(channelType, StringComparison.OrdinalIgnoreCase))
+					else if (Actions.CaseInsEquals(channelType, Constants.VOICE_TYPE))
 					{
 						voiceChannels = (await Context.Guild.GetVoiceChannelsAsync()).Where(x => x.Position == position).ToList();
 					}
