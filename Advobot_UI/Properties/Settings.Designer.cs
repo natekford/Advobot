@@ -61,7 +61,7 @@ namespace Advobot.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("++")]
+        [global::System.Configuration.DefaultSettingValueAttribute("+=")]
         public string Prefix {
             get {
                 return ((string)(this["Prefix"]));
@@ -80,6 +80,30 @@ namespace Advobot.Properties {
             }
             set {
                 this["Stream"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Game {
+            get {
+                return ((string)(this["Game"]));
+            }
+            set {
+                this["Game"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public int ShardCount {
+            get {
+                return ((int)(this["ShardCount"]));
+            }
+            set {
+                this["ShardCount"] = value;
             }
         }
     }

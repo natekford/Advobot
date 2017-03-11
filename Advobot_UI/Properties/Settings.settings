@@ -12,10 +12,16 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="Prefix" Type="System.String" Scope="User">
-      <Value Profile="(Default)">++</Value>
+      <Value Profile="(Default)">+=</Value>
     </Setting>
     <Setting Name="Stream" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="Game" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="ShardCount" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1</Value>
     </Setting>
   </Settings>
 </SettingsFile>
