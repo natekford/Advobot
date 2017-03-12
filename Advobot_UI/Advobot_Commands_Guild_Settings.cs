@@ -189,9 +189,9 @@ namespace Advobot
 				});
 
 				//Upload to Hastebin
-				URL = Actions.UploadToHastebin(information);
+				Actions.TryToUploadToHastebin(information, out URL);
 			}
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Bot Settings", description).WithUrl(URL));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Bot Settings", description, URL: URL));
 		}
 
 		[Command("botchannel")]

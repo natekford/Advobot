@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Collections.ObjectModel;
 
 namespace Advobot
 {
@@ -223,7 +224,7 @@ namespace Advobot
 			LoadCommandPreferences(guild);
 			LoadBannedPhrasesAndPunishments(guild);
 			LoadSelfAssignableRoles(guild);
-			LoadGuildMiscInfo(guild);
+			await LoadGuildMiscInfo(guild);
 			await LoadBotUsers(guild);
 			LoadReminds(guild);
 		}
@@ -465,12 +466,14 @@ namespace Advobot
 		}
 
 		//Load the prefix and logActions
-		public static void LoadGuildMiscInfo(IGuild guild)
+		public static async Task LoadGuildMiscInfo(IGuild guild)
 		{
 			//Check if the file exists
 			var path = GetServerFilePath(guild.Id, Constants.MISCGUILDINFO);
 			if (!File.Exists(path))
 				return;
+
+			var GuildInfo = Variables.Guilds[guild.Id];
 
 			//Find the prefix line
 			using (var reader = new StreamReader(path))
@@ -485,7 +488,18 @@ namespace Advobot
 					//Guild prefix
 					if (line.Contains(Constants.GUILD_PREFIX))
 					{
-						Variables.Guilds[guild.Id].Prefix = line.Substring(line.IndexOf(':') + 1);
+						GuildInfo.Prefix = line.Substring(line.IndexOf(':') + 1);
+					}
+					//Log channel
+					else if (line.Contains(Constants.SERVER_LOG_CHECK_STRING))
+					{
+						var logChannelArray = line.Split(new Char[] { ':' }, 2);
+						GuildInfo.ServerLog = (await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel;
+					}
+					else if (line.Contains(Constants.MOD_LOG_CHECK_STRING))
+					{
+						var logChannelArray = line.Split(new Char[] { ':' }, 2);
+						GuildInfo.ModLog = (await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel;
 					}
 					//Log actions
 					else if (line.Contains(Constants.LOG_ACTIONS))
@@ -499,7 +513,7 @@ namespace Advobot
 								logActions.Add(temp);
 							}
 						});
-						Variables.Guilds[guild.Id].LogActions = logActions.Distinct().OrderBy(x => (int)x).ToList();
+						GuildInfo.LogActions = logActions.Distinct().OrderBy(x => (int)x).ToList();
 					}
 					//Ignored log channels
 					else if (line.Contains(Constants.IGNORED_LOG_CHANNELS))
@@ -513,7 +527,7 @@ namespace Advobot
 								IDs.Add(temp);
 							}
 						});
-						Variables.Guilds[guild.Id].IgnoredLogChannels = IDs.Distinct().ToList();
+						GuildInfo.IgnoredLogChannels = IDs.Distinct().ToList();
 					}
 					//Ignored command channels
 					else if (line.Contains(Constants.IGNORED_COMMAND_CHANNELS))
@@ -527,7 +541,7 @@ namespace Advobot
 								IDs.Add(temp);
 							}
 						});
-						Variables.Guilds[guild.Id].IgnoredCommandChannels = IDs.Distinct().ToList();
+						GuildInfo.IgnoredCommandChannels = IDs.Distinct().ToList();
 					}
 					//Spam prevention
 					else if (line.Contains(Constants.SPAM_PREVENTION))
@@ -548,7 +562,7 @@ namespace Advobot
 						if (!int.TryParse(variableNumbers[2], out votesRequired))
 							continue;
 
-						Variables.Guilds[guild.Id].MentionSpamPrevention = new MentionSpamPrevention(messagesRequired, votesRequired, mentionsRequired);
+						GuildInfo.MentionSpamPrevention = new MentionSpamPrevention(messagesRequired, votesRequired, mentionsRequired);
 					}
 				}
 			}
@@ -700,6 +714,8 @@ namespace Advobot
 		//Simple get a role on the guild
 		public static IRole GetRole(IGuild guild, string roleName)
 		{
+			//Trim it
+			roleName = roleName.Trim();
 			//Order them by position (puts everyone first) then reverse so it sorts from the top down
 			return guild.Roles.ToList().OrderBy(x => x.Position).Reverse().FirstOrDefault(x => CaseInsEquals(x.Name, roleName));
 		}
@@ -1067,41 +1083,32 @@ namespace Advobot
 		}
 		
 		//Get what the serverlog is
-		public static async Task<ITextChannel> GetLogChannel(IGuild guild, string serverOrMod, bool bypassBool = false)
+		public static async Task<ITextChannel> GetLogChannel(IGuild guild, string serverOrMod)
 		{
-			var path = GetServerFilePath(guild.Id, Constants.MISCGUILDINFO);
-			//Check if the file exists
-			if (!File.Exists(path) || bypassBool)
+			//Get the guild info
+			BotGuildInfo guildInfo;
+			if (!Variables.Guilds.TryGetValue(guild.Id, out guildInfo))
 			{
-				//Default to the bot channel if it doesn't exist
-				var logChannel = GetLogChannel(guild) as ITextChannel;
-				if (logChannel != null && !await PermissionCheck(logChannel))
-					return logChannel;
+				return null;
 			}
-			else
+
+			ITextChannel channel = null;
+			if (serverOrMod == Constants.SERVER_LOG_CHECK_STRING)
 			{
-				//Read the text document and find the serverlog 
-				using (var reader = new StreamReader(path))
-				{
-					string line;
-					while ((line = reader.ReadLine()) != null)
-					{
-						if (line.Contains(serverOrMod))
-						{
-							var logChannelArray = line.Split(new Char[] { ':' }, 2);
-
-							if (logChannelArray.Length < 2)
-								return await GetLogChannel(guild, serverOrMod, true);
-
-							var logChannel = (await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel;
-							if (logChannel == null || !await PermissionCheck(logChannel))
-								return await GetLogChannel(guild, serverOrMod, true);
-							return logChannel;
-						}
-					}
-				}
+				channel = guildInfo.ServerLog;
 			}
-			return null;
+			else if (serverOrMod == Constants.MOD_LOG_CHECK_STRING)
+			{
+				channel = guildInfo.ModLog;
+			}
+			
+			//Make sure the channel still exists
+			if (channel != null)
+			{
+				channel = await guild.GetChannelAsync(channel.Id) as ITextChannel;
+			}
+
+			return channel;
 		}
 		
 		//Get if the user is the owner of the server
@@ -1675,17 +1682,19 @@ namespace Advobot
 		#endregion
 
 		#region Uploads
-		//Upload various text to a text uploader with a list of messages
-		public static string UploadToHastebin(List<string> textList)
-		{
-			//Messages in the format to upload
-			var text = ReplaceMarkdownChars(String.Join("\n-----\n", textList));
-			return UploadToHastebin(text);
-		}
-		
 		//Upload various text to a text uploader with a string
-		public static string UploadToHastebin(string text)
+		public static bool TryToUploadToHastebin(string text, out string output)
 		{
+			//Check its length
+			if (text.Length > Constants.MAX_LENGTH_FOR_HASTEBIN)
+			{
+				output = Constants.HASTEBIN_ERROR;
+				return false;
+			}
+
+			//Double check that mark down characters have been removed
+			text = ReplaceMarkdownChars(text);
+
 			//Regex for Getting the key out
 			Regex hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
 
@@ -1693,11 +1702,13 @@ namespace Advobot
 			using (var client = new WebClient())
 			{
 				var response = client.UploadString("https://hastebin.com/documents", text);
+				//TODO: give response checking in case failure
 				var match = hasteKeyRegex.Match(response);
 
 				//Send the url back
-				return String.Concat("https://hastebin.com/raw/", match.Groups["key"]);
+				output = String.Concat("https://hastebin.com/raw/", match.Groups["key"]);
 			}
+			return true;
 		}
 		
 		//Upload a text file with a list of messages
@@ -1709,29 +1720,31 @@ namespace Advobot
 		}
 		
 		//Upload a text file with a string
-		public static async Task UploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string messageHeader)
+		public static async Task UploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string fileMessage = null)
 		{
 			//Get the file path
-			var deletedMessagesFile = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.FILE_EXTENSION;
-			var path = GetServerFilePath(guild.Id, deletedMessagesFile);
+			var file = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.FILE_EXTENSION;
+			var path = GetServerFilePath(guild.Id, file);
 			if (path == null)
 				return;
 
+			//Double check that all markdown characters are removed
+			text = ReplaceMarkdownChars(text);
+			//Make sure a file message exists
+			fileMessage = String.IsNullOrWhiteSpace(fileMessage) ? "" : String.Format("**{0}:**", fileMessage);
+
 			//Create the temporary file
-			if (!File.Exists(GetServerFilePath(guild.Id, deletedMessagesFile)))
+			if (!File.Exists(GetServerFilePath(guild.Id, file)))
 			{
 				Directory.CreateDirectory(Path.GetDirectoryName(path));
 			}
-
 			//Write to the temporary file
 			using (var writer = new StreamWriter(path, true))
 			{
 				writer.WriteLine(text);
 			}
-
 			//Upload the file
-			await channel.SendFileAsync(path, "**" + messageHeader + ":**");
-
+			await channel.SendFileAsync(path, fileMessage);
 			//Delete the file
 			File.Delete(path);
 		}
@@ -1870,15 +1883,6 @@ namespace Advobot
 		#endregion
 
 		#region Embeds
-		//Send a message with an embedded object
-		public static async Task<IMessage> SendEmbedMessage(IMessageChannel channel, string message, EmbedBuilder embed)
-		{
-			if (channel == null || !Variables.Guilds.ContainsKey(((channel as ITextChannel).Guild.Id)))
-				return null;
-
-			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message, embed: embed);
-		}
-		
 		//Send an embedded object
 		public static async Task<IMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed)
 		{
@@ -1893,52 +1897,10 @@ namespace Advobot
 				embed.Description.Replace(Properties.Settings.Default.Prefix, guildPrefix);
 			}
 
-			var remadeEmbed = MakeNewEmbed();
-			if (embed.Build().Fields.Any())
-			{
-				//Find out what the fields looks like
-				var fields = String.Join("\n", embed.Build().Fields.Select(x => x.Name + "\n" + x.Value));
-
-				if (fields.Length > Constants.LENGTH_CHECK)
-				{
-					remadeEmbed.Url = UploadToHastebin(ReplaceMarkdownChars(fields));
-					remadeEmbed.Description = "Content is past 2,000 characters. Click the link to see it.";
-				}
-				else if (fields.Count(x => x == '\n' || x == '\r') >= 20 && embed.Build().Fields.Any(x => !x.Inline))
-				{
-					//Mobile can only show up to 20 or so lines per embed I think (at least on Android)
-					remadeEmbed.Url = UploadToHastebin(ReplaceMarkdownChars(fields));
-					remadeEmbed.Description = "Content is longer than 20 lines and has many fields. Click the link to see it.";
-				}
-				else
-				{
-					remadeEmbed.Url = embed.Url;
-					remadeEmbed.Description = embed.Description;
-					embed.Build().Fields.ToList().ForEach(x => AddField(remadeEmbed, x.Name, x.Value, x.Inline));
-				}
-
-				//Add everything else back to the new embed
-				remadeEmbed.Author = embed.Author;
-				remadeEmbed.Color = embed.Color;
-				remadeEmbed.Footer = embed.Footer;
-				remadeEmbed.ImageUrl = embed.ImageUrl;
-				remadeEmbed.ThumbnailUrl = embed.ThumbnailUrl;
-				remadeEmbed.Timestamp = embed.Timestamp;
-				remadeEmbed.Title = embed.Title;
-			}
-			else
-			{
-				remadeEmbed = embed;
-				if (!String.IsNullOrWhiteSpace(remadeEmbed.Description) && remadeEmbed.Description.Count(x => x == '\n' || x == '\r') >= 20)
-				{
-					remadeEmbed.Url = UploadToHastebin(ReplaceMarkdownChars(remadeEmbed.Description));
-					remadeEmbed.Description = "Content is longer than 20 lines. Click the link to see it.";
-				}
-			}
-
 			try
 			{
-				return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR, embed: remadeEmbed);
+				//Generate the message
+				return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR, embed: embed);
 			}
 			//Embeds fail every now and then and I haven't been able to find the exact problem yet (I know fields are a problem, but not in this case)
 			catch (Exception e)
@@ -1966,19 +1928,24 @@ namespace Advobot
 			}
 			if (description != null)
 			{
+				var output = description;
+				//Descriptions can only be 2048 characters max
 				if (description.Length > Constants.EMBED_MAX_LENGTH_LONG)
 				{
-					embed.WithDescription(String.Format("Content is past {0} characters. Click [here]({1}) to see it.", Constants.EMBED_MAX_LENGTH_LONG, UploadToHastebin(ReplaceMarkdownChars(description))));
+					if (TryToUploadToHastebin(description, out output))
+					{
+						output = String.Format("Content is past {0} characters. Click [here]({1}) to see it.", Constants.EMBED_MAX_LENGTH_LONG, output);
+					}
 				}
-				//Mobile can only show up to 20 or so lines per embed I think (at least on Android) 
+				//Mobile can only show up to 20 or so lines on the description part of an embed
 				else if (GetLineBreaks(description) > Constants.DESCRIPTION_MAX_LINES)
 				{
-					embed.WithDescription(String.Format("Content is past {0} new lines. Click [here]({1}) to see it.", Constants.DESCRIPTION_MAX_LINES, UploadToHastebin(ReplaceMarkdownChars(description))));
+					if (TryToUploadToHastebin(description, out output))
+					{
+						output = String.Format("Content is past {0} new lines. Click [here]({1}) to see it.", Constants.DESCRIPTION_MAX_LINES, output);
+					}
 				}
-				else
-				{
-					embed.WithDescription(description);
-				}
+				embed.WithDescription(output);
 			}
 			if (color != null)
 			{
@@ -2050,32 +2017,56 @@ namespace Advobot
 		}
 		
 		//Add a field to an embed
-		public static EmbedBuilder AddField(EmbedBuilder embed, string name = "null", string value = "null", bool isInline = true)
+		public static EmbedBuilder AddField(EmbedBuilder embed, string name, string value, bool isInline = true)
 		{
-			if (name == null || value == null || embed.Build().Fields.Count() >= Constants.FIELDS_MAX)
+			if ((String.IsNullOrWhiteSpace(name) && String.IsNullOrWhiteSpace(value)) || embed.Build().Fields.Count() >= Constants.FIELDS_MAX)
 				return embed;
+
+			//Get the name and value
+			name = String.IsNullOrWhiteSpace(name) ? "Placeholder" : name.Substring(0, Math.Min(Constants.TITLE_MAX_LENGTH, name.Length));
+			value = String.IsNullOrWhiteSpace(name) ? "Placeholder" : value.Substring(0, Math.Min(value.Length, Constants.MAX_LENGTH_FOR_HASTEBIN));
 
 			embed.AddField(x =>
 			{
-				x.Name = name.Substring(0, Math.Min(Constants.TITLE_MAX_LENGTH, name.Length));
+				var outputValue = value;
 				//Embeds can only show up to 1024 chars per field
 				if (value.Length > Constants.EMBED_MAX_LENGTH_SHORT)
 				{
-					x.Value = String.Format("Field has more than {0} characters; please click [here]({1}) to see the content.", Constants.EMBED_MAX_LENGTH_SHORT, UploadToHastebin(ReplaceMarkdownChars(value)));
+					if (TryToUploadToHastebin(value, out outputValue))
+					{
+						outputValue = String.Format("Field has more than {0} characters; please click [here]({1}) to see the content.", Constants.EMBED_MAX_LENGTH_SHORT, outputValue);
+					}
 				}
 				//Fields can only show up to five lines on mobile
 				else if (GetLineBreaks(value) > Constants.FIELD_MAX_LINES)
 				{
-					x.Value = String.Format("Field has more than {0} new lines; please click [here]({1}) to see the content.", Constants.FIELD_MAX_LINES, UploadToHastebin(ReplaceMarkdownChars(value)));
+					if (TryToUploadToHastebin(value, out outputValue))
+					{
+						outputValue = String.Format("Field has more than {0} new lines; please click [here]({1}) to see the content.", Constants.FIELD_MAX_LINES, outputValue);
+					}
 				}
-				else
-				{
-					x.Value = value;
-				}
+
+				//Actually add in the values
+				x.Name = name;
+				x.Value = outputValue;
 				x.IsInline = isInline;
 			});
 
 			return embed;
+		}
+
+		//Send an embed that potentially has a really big description
+		public static async Task SendPotentiallyBigEmbed(IGuild guild, IMessageChannel channel, EmbedBuilder embed, string input, string fileName)
+		{
+			//Send the embed
+			await SendEmbedMessage(channel, embed);
+
+			//If the description is the too long message then upload the string
+			if (embed.Description == Constants.HASTEBIN_ERROR)
+			{
+				//Send the file
+				await UploadTextFile(guild, channel, input, fileName);
+			}
 		}
 		#endregion
 
@@ -2168,6 +2159,16 @@ namespace Advobot
 				newFile.Close();
 			}
 
+			//Set it on the bot's info
+			if (serverOrMod == Constants.SERVER_LOG_CHECK_STRING)
+			{
+				Variables.Guilds[guild.Id].ServerLog = inputChannel;
+			}
+			else if (serverOrMod == Constants.MOD_LOG_CHECK_STRING)
+			{
+				Variables.Guilds[guild.Id].ModLog = inputChannel;
+			}
+
 			//Find the lines that aren't the current serverlog line
 			var validLines = new List<string>();
 			using (var reader = new StreamReader(path))
@@ -2179,7 +2180,7 @@ namespace Advobot
 					{
 						if ((inputChannel != null) && (line.Contains(inputChannel.Id.ToString())))
 						{
-							await MakeAndDeleteSecondaryMessage(channel, message, "Channel is already the current " + serverOrMod + ".");
+							await MakeAndDeleteSecondaryMessage(channel, message, String.Format("Channel is already the current {0}.", serverOrMod));
 							return null;
 						}
 					}
@@ -2196,7 +2197,7 @@ namespace Advobot
 				if (inputChannel == null)
 				{
 					writer.WriteLine(serverOrMod + ":" + null + "\n" + String.Join("\n", validLines));
-					await MakeAndDeleteSecondaryMessage(channel, message, "Disabled the " + serverOrMod + ".");
+					await MakeAndDeleteSecondaryMessage(channel, message, String.Format("Disabled the {0}.", serverOrMod));
 					return null;
 				}
 				else
@@ -2308,72 +2309,41 @@ namespace Advobot
 		}
 
 		//Check if the serverlog exists and if the bot can use it
-		public static async Task<ITextChannel> VerifyLogChannel(IGuild guild, string checkString = Constants.SERVER_LOG_CHECK_STRING)
+		public static async Task<ITextChannel> VerifyLogChannel(IGuild guild, ITextChannel channel)
 		{
-			//If the guild doesn't exist then return
-			if (guild == null)
-				return null;
-			//Get the log channel
-			var logChannel = await GetLogChannel(guild, checkString);
 			//Check to make sure the bot can post to there
-			if (!await PermissionCheck(logChannel))
-				return null;
-			return logChannel;
+			return await PermissionCheck(channel) ? channel : null;
 		}
 
-		//Check from role
-		public static async Task<ITextChannel> VerifyLogChannel(IRole role)
+		public static IMessage VerifyMessage(IMessage message)
 		{
-			if (role == null || role.Guild == null)
-				return null;
-			return await VerifyLogChannel(role.Guild);
+			//Make sure the message doesn't come from a bot
+			return !(message.Author.IsBot && message.Author.Id != Variables.Bot_ID) ? message : null;
 		}
 
-		//Check from channel
-		public static async Task<ITextChannel> VerifyLogChannel(IChannel channel)
-		{
-			var tempChan = channel as IGuildChannel;
-			if (tempChan == null || tempChan.Guild == null)
-				return null;
-			return await VerifyLogChannel(tempChan.Guild);
-		}
-
-		//Check from message
-		public static async Task<ITextChannel> VerifyLogChannel(IMessage message)
-		{
-			var tempMsg = message.Channel as IGuildChannel;
-			if (tempMsg == null || tempMsg.Guild == null)
-				return null;
-			return await VerifyLogChannel(tempMsg.Guild);
-		}
-
-		//Check from message
-		public static async Task<ITextChannel> VerifyLogChannel(IUser user)
-		{
-			var tempUser = user as IGuildUser;
-			if (tempUser == null || tempUser.Guild == null)
-				return null;
-			return await VerifyLogChannel(tempUser.Guild);
-		}
-
-		//Verify if the message is allowed to pass through
-		public static bool VerifyMessage(IMessage message)
-		{
-			//Make sure the bot's not paused and the message doesn't come from a bot
-			return !(message == null || Variables.Pause || message.Author.IsBot);
-		}
-
-		//Get the guild from a message
 		public static IGuild GetGuildFromMessage(IMessage message)
 		{
 			//Check if the guild can be gotten from the message's channel or author
-			return message == null ? null : (message.Channel as IGuildChannel).Guild ?? (message.Author as IGuildUser).Guild;
+			return message != null ? (message.Channel as IGuildChannel)?.Guild ?? (message.Author as IGuildUser)?.Guild : null;
 		}
 
-		//Verify if the channel is allowed to be logged
+		public static IGuild GetGuildFromUser(IUser user)
+		{
+			return (user as IGuildUser)?.Guild;
+		}
+
+		public static IGuild GetGuildFromChannel(IChannel channel)
+		{
+			return (channel as IGuildChannel)?.Guild;
+		}
+
+		public static IGuild GetGuildFromRole(IRole role)
+		{
+			return role?.Guild;
+		}
+
 		public static IGuild VerifyLoggingIsEnabledOnThisChannel(IMessage message)
 		{
-			//Get the guild
 			var guild = GetGuildFromMessage(message);
 			//Check if the message was sent on an ignored channel. If not give back the guild, if so send back null.
 			return guild != null && !Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(message.Channel.Id) ? guild : null;
@@ -2383,60 +2353,44 @@ namespace Advobot
 		public static IGuild VerifyLoggingAction(IGuild guild, LogActions logAction)
 		{
 			//If the guild is null send back null. If the logaction being tested isn't turned on send back null.
-			return guild == null ? null : (Variables.Guilds[guild.Id].LogActions.Contains(logAction) ? guild : null);
+			return guild != null && Variables.Guilds[guild.Id].LogActions.Contains(logAction) ? guild : null;
 		}
 
 		//Verify the guild and log channels with a message
-		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IMessage message, LogActions logAction)
+		public static IGuild VerifyGuild(IMessage message, LogActions logAction)
 		{
-			var logChannel = VerifyMessage(message) ? await VerifyLogChannel(message) : null;
-			var guild = VerifyLoggingAction(VerifyLoggingIsEnabledOnThisChannel(message), logAction);
-			return VerifyGuildAndLogChannel(logChannel, guild);
+			//Make sure the message wasn't sent by another bot, that channel isn't ignored, the logged action is turned on, and that the bot isn't paused
+			return VerifyUnpaused(VerifyLoggingAction(VerifyLoggingIsEnabledOnThisChannel(VerifyMessage(message)), logAction));
 		}
 
 		//Verify the guild and log channels with a user
-		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IUser user, LogActions logAction)
+		public static IGuild VerifyGuild(IUser user, LogActions logAction)
 		{
-			var logChannel = await VerifyLogChannel(user);
-			var guild = VerifyLoggingAction(logChannel?.Guild, logAction);
-			return VerifyGuildAndLogChannel(logChannel, guild);
+			return VerifyUnpaused(VerifyLoggingAction(GetGuildFromUser(user), logAction));
 		}
 
-		//Verify the guild and log channels with a guild and user from a ban/unban event
-		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IGuild guild, IUser user, LogActions logAction)
+		//Verify the guild and log channels with a guild
+		public static IGuild VerifyGuild(IGuild guild, LogActions logAction)
 		{
-			var logChannel = await VerifyLogChannel(guild);
-			return VerifyGuildAndLogChannel(logChannel, guild);
-		}
-
-		//Verify the guild and log channels with a role
-		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IRole role, LogActions logAction)
-		{
-			var logChannel = await VerifyLogChannel(role);
-			var guild = VerifyLoggingAction(logChannel?.Guild, logAction);
-			return VerifyGuildAndLogChannel(logChannel, guild);
+			return VerifyUnpaused(VerifyLoggingAction(guild, logAction));
 		}
 
 		//Verify the guild and log channels with a channel
-		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndLogChannel(IGuildChannel channel, LogActions logAction)
+		public static IGuild VerifyGuild(IGuildChannel channel, LogActions logAction)
 		{
-			var logChannel = await VerifyLogChannel(channel);
-			var guild = VerifyLoggingAction(logChannel?.Guild, logAction);
-			return VerifyGuildAndLogChannel(logChannel, guild);
+			return VerifyUnpaused(VerifyLoggingAction(GetGuildFromChannel(channel), logAction));
 		}
 
-		//Verify the guild and log channels for the mod log
-		public static async Task<Tuple<ITextChannel, IGuild>> VerifyGuildAndModLogChannel(CommandContext context, LogActions logAction)
+		//Verify the guild and log channels with a role
+		public static IGuild VerifyGuild(IRole role, LogActions logAction)
 		{
-			var logChannel = await VerifyLogChannel(context.Guild, Constants.MOD_LOG_CHECK_STRING);
-			var guild = VerifyLoggingAction(logChannel?.Guild, logAction);
-			return VerifyGuildAndLogChannel(logChannel, guild);
+			return VerifyUnpaused(VerifyLoggingAction(GetGuildFromRole(role), logAction));
 		}
 
 		//Make sure the bot's not paused
-		public static Tuple<ITextChannel, IGuild> VerifyGuildAndLogChannel(ITextChannel logChannel, IGuild guild)
+		public static IGuild VerifyUnpaused(IGuild guild)
 		{
-			return Variables.Pause ? new Tuple<ITextChannel, IGuild>(null, null) : new Tuple<ITextChannel, IGuild>(logChannel, guild);
+			return Variables.Pause ? null : guild;
 		}
 		#endregion
 
@@ -3254,6 +3208,11 @@ namespace Advobot
 		}
 
 		public static bool CaseInsContains(string[] array, string str)
+		{
+			return array.Contains(str, StringComparer.OrdinalIgnoreCase);
+		}
+
+		public static bool CaseInsContains(ReadOnlyCollection<string> array, string str)
 		{
 			return array.Contains(str, StringComparer.OrdinalIgnoreCase);
 		}

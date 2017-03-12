@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Advobot
 {
@@ -244,11 +245,7 @@ namespace Advobot
 			get
 			{
 				int value;
-				if (Int32.TryParse(mValue, out value))
-				{
-					return value;
-				}
-				return -1;
+				return Int32.TryParse(mValue, out value) ? value : -1;
 			}
 		}
 
@@ -471,7 +468,7 @@ namespace Advobot
 			Guild = guild;
 		}
 
-		//I CBA changing everything in here to be private yet. Don't fuck with it too much outside of this class, thanks.
+		//I CBA changing everything in here to be private yet.
 
 		//Banned phrases/regex/punishment
 		public List<string> BannedPhrases = new List<string>();
@@ -503,6 +500,39 @@ namespace Advobot
 		public bool DefaultPrefs = true;
 		public string Prefix;
 		public IGuild Guild;
+		public ITextChannel ServerLog = null;
+		public ITextChannel ModLog = null;
+
+		//Roll loss
+		private RoleLoss mRoleLoss;
+		public bool TryGetRoleLoss(out RoleLoss OutRoleLoss)
+		{
+			OutRoleLoss = mRoleLoss;
+			return OutRoleLoss != null;
+		}
+		public void SetRoleLoss(RoleLoss InRoleLoss)
+		{
+			mRoleLoss = InRoleLoss;
+		}
+		public RoleLoss GetRoleLoss()
+		{
+			return mRoleLoss;
+		}
+		//Message Deletion
+		private MessageDeletion mMessageDeletion;
+		public bool TryGetMessageDeletion(out MessageDeletion OutMessageDeletion)
+		{
+			OutMessageDeletion = mMessageDeletion;
+			return OutMessageDeletion != null;
+		}
+		public void SetMessageDeletion(MessageDeletion InMessageDeletion)
+		{
+			mMessageDeletion = InMessageDeletion;
+		}
+		public MessageDeletion GetMessageDeletion()
+		{
+			return mMessageDeletion;
+		}
 	}
 
 	public class BotImplementedPermissions
@@ -717,6 +747,81 @@ namespace Advobot
 	public class ImageSpamPrevention : BaseSpamPrevention
 	{
 		public ImageSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfImages) : base(amountOfMessages, votesNeededForKick, amountOfImages) { }
+	}
+
+	public abstract class DeletionSpamProtection
+	{
+		private CancellationTokenSource mCancelToken;
+
+		public bool TryGetToken(out CancellationTokenSource CancelToken)
+		{
+			CancelToken = mCancelToken;
+			return CancelToken != null;
+		}
+		public void SetToken(CancellationTokenSource InputToken)
+		{
+			mCancelToken = InputToken;
+		}
+
+		public abstract bool TryGetList(out List<ISnowflakeEntity> OutList);
+		public abstract List<ISnowflakeEntity> GetList();
+		public abstract void SetList(List<ISnowflakeEntity> InList);
+		public abstract void AddToList(ISnowflakeEntity Item);
+		public abstract void ClearList();
+	}
+
+	public class RoleLoss : DeletionSpamProtection
+	{
+		private List<IGuildUser> mUsers = new List<IGuildUser>();
+
+		public override bool TryGetList(out List<ISnowflakeEntity> OutList)
+		{
+			OutList = mUsers.Select(x => x as ISnowflakeEntity).ToList();
+			return OutList != null && OutList.Any();
+		}
+		public override List<ISnowflakeEntity> GetList()
+		{
+			return mUsers.Select(x => x as ISnowflakeEntity).ToList();
+		}
+		public override void SetList(List<ISnowflakeEntity> InList)
+		{
+			mUsers = InList.Select(x => x as IGuildUser).ToList();
+		}
+		public override void AddToList(ISnowflakeEntity Item)
+		{
+			mUsers.Add(Item as IGuildUser);
+		}
+		public override void ClearList()
+		{
+			mUsers.Clear();
+		}
+	}
+
+	public class MessageDeletion : DeletionSpamProtection
+	{
+		private List<IMessage> mMessages = new List<IMessage>();
+
+		public override bool TryGetList(out List<ISnowflakeEntity> OutList)
+		{
+			OutList = mMessages.Select(x => x as ISnowflakeEntity).ToList();
+			return OutList != null && OutList.Any();
+		}
+		public override List<ISnowflakeEntity> GetList()
+		{
+			return mMessages.Select(x => x as ISnowflakeEntity).ToList();
+		}
+		public override void SetList(List<ISnowflakeEntity> InList)
+		{
+			mMessages = InList.Select(x => x as IMessage).ToList();
+		}
+		public override void AddToList(ISnowflakeEntity Item)
+		{
+			mMessages.Add(Item as IMessage);
+		}
+		public override void ClearList()
+		{
+			mMessages.Clear();
+		}
 	}
 	#endregion
 

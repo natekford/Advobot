@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Advobot
 {
@@ -10,8 +11,8 @@ namespace Advobot
 		public const int CACHED_MESSAGE_COUNT = 10000;
 		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
 
-		public const string BOT_VERSION = "0.9.15";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00610";
+		public const string BOT_VERSION = "0.9.18";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00617";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -56,6 +57,7 @@ namespace Advobot
 		public const string VANITY_URL = "VANITY_URL";
 		public const string INVITE_SPLASH = "INVITE_SPLASH";
 		public static readonly string DEFAULT_GAME = "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
+		public const string HASTEBIN_ERROR = "Hastebin encountered some sort of error. If the error is related to the length of some content, a file will be uploaded which contains the content.";
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int WAIT_TIME = 3000;
@@ -64,7 +66,7 @@ namespace Advobot
 		public const int MAX_REMINDS = 50;
 		public const int OWNER_POSITION = int.MaxValue;
 		public const int MESSAGES_TO_GATHER = 100;
-		public const int TIME_FOR_WAIT_BETWEEN_DELETING_MESSAGES_UNTIL_THEY_PRINT_TO_THE_SERVER_LOG = 3;
+		public const int TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG = 3;
 		public const int PAD_RIGHT = 20;
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;
@@ -85,16 +87,38 @@ namespace Advobot
 		public const int FIELDS_MAX = 25;
 		public const int DESCRIPTION_MAX_LINES = 20;
 		public const int FIELD_MAX_LINES = 5;
+		public const int MAX_LENGTH_FOR_HASTEBIN = 200000;
 
-		public static readonly string[] VALID_IMAGE_EXTENSIONS = { ".jpeg", ".jpg", ".png" };
-		public static readonly string[] VALID_GIF_EXTENTIONS = { ".gif", ".gifv" };
-		public static readonly string[] VALID_REGION_IDS = { "brazil", "eu-central", "eu-west", "hongkong", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west" };
-		public static readonly string[] VIP_REGIONIDS = { "vip-amsterdam", "vip-us-east", "vip-us-west" };
-		public static readonly string[] COMMANDS_UNABLE_TO_BE_TURNED_OFF = { "comconfigtoggle", "comconfigcurrent", "comconfigmodify", "help" };
-		public static readonly string[] CLOSE_WORDS_POSITIONS = { "1", "2", "3", "4", "5" };
-		public static readonly string[] VALID_GUILD_FILES = { PREFERENCES_FILE, MISCGUILDINFO, BANNED_PHRASES, SA_ROLES, PERMISSIONS, REMINDS, COMMANDS_DISABLED_BY_CHANNEL };
+		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>()
+		{
+			".jpeg", ".jpg", ".png"
+		});
+		public static ReadOnlyCollection<string> VALID_GIF_EXTENTIONS = new ReadOnlyCollection<string>(new List<string>()
+		{
+			".gif", ".gifv"
+		});
+		public static ReadOnlyCollection<string> VALID_REGION_IDS = new ReadOnlyCollection<string>(new List<string>()
+		{
+			"brazil", "eu-central", "eu-west", "hongkong", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west"
+		});
+		public static ReadOnlyCollection<string> VIP_REGIONIDS = new ReadOnlyCollection<string>(new List<string>()
+		{
+			"vip-amsterdam", "vip-us-east", "vip-us-west"
+		});
+		public static ReadOnlyCollection<string> COMMANDS_UNABLE_TO_BE_TURNED_OFF = new ReadOnlyCollection<string>(new List<string>()
+		{
+			"comconfigtoggle", "comconfigcurrent", "comconfigmodify", "help"
+		});
+		public static ReadOnlyCollection<string> CLOSE_WORDS_POSITIONS = new ReadOnlyCollection<string>(new List<string>()
+		{
+			"1", "2", "3", "4", "5"
+		});
+		public static ReadOnlyCollection<string> VALID_GUILD_FILES = new ReadOnlyCollection<string>(new List<string>()
+		{
+			PREFERENCES_FILE, MISCGUILDINFO, BANNED_PHRASES, SA_ROLES, PERMISSIONS, REMINDS, COMMANDS_DISABLED_BY_CHANNEL
+		});
 
-		public static readonly LogActions[] DEFAULT_LOG_ACTIONS =
+		public static ReadOnlyCollection<LogActions> DEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogActions>(new List<LogActions>()
 		{
 			LogActions.UserJoined,
 			LogActions.UserLeft,
@@ -105,11 +129,10 @@ namespace Advobot
 			LogActions.MessageUpdated,
 			LogActions.MessageDeleted,
 			LogActions.ImageLog
-		};
+		});
 
 		public static readonly bool DISCONNECT = false;
 		public static readonly bool NEWEST_DELETED_MESSAGES_AT_TOP = false;
-		public static readonly bool TEXT_FILE = false;
 
 		public static readonly Discord.Color BASE = new Discord.Color(255, 100, 000);
 		public static readonly Discord.Color JOIN = new Discord.Color(000, 255, 000);
@@ -164,8 +187,6 @@ namespace Advobot
 		public static int LoggedGifs = 0;
 		public static int LoggedFiles = 0;
 
-		public static Dictionary<ulong, List<Discord.IMessage>> DeletedMessages = new Dictionary<ulong, List<Discord.IMessage>>();
-		public static Dictionary<ulong, System.Threading.CancellationTokenSource> CancelTokens = new Dictionary<ulong, System.Threading.CancellationTokenSource>();
 		public static Dictionary<ulong, BotGuildInfo> Guilds = new Dictionary<ulong, BotGuildInfo>();
 		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeGuilds = new Dictionary<ulong, List<SlowmodeUser>>();
 		public static Dictionary<Discord.IGuildChannel, List<SlowmodeUser>> SlowmodeChannels = new Dictionary<Discord.IGuildChannel, List<SlowmodeUser>>();

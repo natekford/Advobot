@@ -400,11 +400,11 @@ namespace Advobot
 		{
 			//Go through each guild and add them to the list
 			int count = 1;
-			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("{0}. {1} Owner: {2}",
+			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("`{0}.` `{1}` Owner: `{2}`",
 				count++.ToString("00"), Actions.FormatGuild(x), Actions.FormatUser(x.Owner)));
 
 			//Make an embed and put the link to the hastebin in it
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guilds", Actions.UploadToHastebin(String.Join("\n", guildStrings))));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guilds", String.Join("\n", guildStrings)));
 		}
 		#endregion
 	}

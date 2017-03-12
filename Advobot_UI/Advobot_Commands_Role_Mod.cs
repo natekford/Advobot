@@ -403,12 +403,6 @@ namespace Advobot
 				}
 			});
 
-			//Check the length to see if the message can be sent
-			if (description.Length > Constants.SHORT_LENGTH_CHECK)
-			{
-				description = Actions.UploadToHastebin(Actions.ReplaceMarkdownChars(description));
-			}
-
 			//Send the embed
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Role Positions", description));
 		}

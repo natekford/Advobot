@@ -1209,8 +1209,12 @@ namespace Advobot
 			int count = 1;
 			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("{0}. {1} Owner: {2}", count++.ToString("00"), Actions.FormatGuild(x), Actions.FormatUser(x.Owner)));
 
+			//Get the URL
+			var url = "";
+			Actions.TryToUploadToHastebin(String.Join("\n", guildStrings), out url);
+
 			//Send it to have the hyperlink created and go to the output window
-			UILayoutModification.AddHyperlink(BotWindow.Output, Actions.UploadToHastebin(String.Join("\n", guildStrings)), "Listed Guilds");
+			UILayoutModification.AddHyperlink(BotWindow.Output, url, "Listed Guilds");
 		}
 
 		//Change the amount of shards the bot has

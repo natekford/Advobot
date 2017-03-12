@@ -567,24 +567,11 @@ namespace Advobot
 			var lengthForCount = bans.Count.ToString().Length;
 			bans.ForEach(x =>
 			{
-				var username = String.Format("`{0}#{1}`", x.User.Username, x.User.Discriminator);
-				description += String.Format("`{0}.` `({1})` {2}\n", count++.ToString().PadLeft(lengthForCount, '0'), x.User.Id, username);
+				description += String.Format("`{0}.` `{1}`\n", count++.ToString().PadLeft(lengthForCount, '0'), Actions.FormatUser(x.User));
 			});
 
 			//Check the length of the message
-			if (description.Length > Constants.SHORT_LENGTH_CHECK)
-			{
-				if (!Constants.TEXT_FILE)
-				{
-					var hastebin = Actions.UploadToHastebin(Actions.ReplaceMarkdownChars(description));
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bans", hastebin));
-				}
-				else
-				{
-					await Actions.UploadTextFile(Context.Guild, Context.Channel, Actions.ReplaceMarkdownChars(description), "Current_Ban_List_", "Current Bans");
-				}
-			}
-			else if (String.IsNullOrWhiteSpace(description))
+			if (String.IsNullOrWhiteSpace(description))
 			{
 				await Actions.SendChannelMessage(Context, "This guild has no bans.");
 			}
@@ -907,6 +894,12 @@ namespace Advobot
 			//Give the list for the bot to check against so as to not spam nickname/role changes
 			//TODO: Implement this unless I forget again. At least this time I put a TODO, so that's gotta count for something, right?
 
+			//Send a message detailing how many users are being changed and how long it will likely take
+			var amount = listUsersWithRole.Count;
+			var plurality = amount != 1 ? "s" : "";
+			var time = amount / 10 * 12;
+			await Actions.SendChannelMessage(Context, String.Format("Grabbed {0} user{1}. ETA on completion: {2} seconds.", amount, plurality, time));
+
 			//Give role
 			if (Actions.CaseInsEquals(action, "give"))
 			{
@@ -918,7 +911,7 @@ namespace Advobot
 				}
 
 				//Get the role and its edit ability
-				var roleToGive = await Actions.GetRoleEditAbility(Context, values[1]);
+				var roleToGive = await Actions.GetRoleEditAbility(Context, outputString);
 				if (roleToGive == null)
 					return;
 

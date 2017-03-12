@@ -486,8 +486,8 @@ namespace Advobot
 				var time = x.JoinedAt.Value.UtcDateTime;
 				return String.Format("`{0}.` `{1}` joined at `{2}` on `{3}`.", counter++.ToString("0000"), Actions.FormatUser(x), time.ToShortTimeString(), time.ToShortDateString());
 			}));
-			//Send the embed
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Users", userMsg));
+
+			await Actions.SendPotentiallyBigEmbed(Context.Guild, Context.Channel, Actions.MakeNewEmbed("Users", userMsg), userMsg, "User_Joins_");
 		}
 
 		[Command("userjoinedat")]
@@ -851,13 +851,11 @@ namespace Advobot
 			var colorRGB = Actions.GetVariableAndRemove(inputArray, "color")?.Split('/');
 			if (colorRGB != null && colorRGB.Length == 3)
 			{
-				int r;
-				int g;
-				int b;
-				const int maxVal = 255;
-				if (int.TryParse(colorRGB[0], out r) && int.TryParse(colorRGB[1], out g) && int.TryParse(colorRGB[2], out b))
+				byte r, g, b;
+				const byte MAX_VAL = 255;
+				if (byte.TryParse(colorRGB[0], out r) && byte.TryParse(colorRGB[1], out g) && byte.TryParse(colorRGB[2], out b))
 				{
-					color = new Color((byte)Math.Min(r, maxVal), (byte)Math.Min(g, maxVal), (byte)Math.Min(b, maxVal));
+					color = new Color(Math.Min(r, MAX_VAL), Math.Min(g, MAX_VAL), Math.Min(b, MAX_VAL));
 				}
 			}
 
