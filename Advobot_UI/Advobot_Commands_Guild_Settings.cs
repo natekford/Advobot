@@ -108,7 +108,7 @@ namespace Advobot
 				//Add all the lines back
 				Actions.SaveLines(path, Constants.GUILD_PREFIX, "", validLines);
 
-				Variables.Guilds[Context.Guild.Id].Prefix = null;
+				Variables.Guilds[Context.Guild.Id].SetPrefix(null);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild prefix.");
 			}
 			else
@@ -117,7 +117,7 @@ namespace Advobot
 				Actions.SaveLines(path, Constants.GUILD_PREFIX, input, validLines);
 
 				//Update the guild's prefix
-				Variables.Guilds[Context.Guild.Id].Prefix = input;
+				Variables.Guilds[Context.Guild.Id].SetPrefix(input);
 				//Send a success message
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully set this guild's prefix to: `" + input.Trim() + "`.");
 			}

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Collections.ObjectModel;
 
 namespace Advobot
 {
@@ -398,7 +399,7 @@ namespace Advobot
 		private int mGroup;
 		private ulong mGuildID;
 
-		public IReadOnlyCollection<SelfAssignableRole> Roles
+		public ReadOnlyCollection<SelfAssignableRole> Roles
 		{
 			get { return mRoles.AsReadOnly(); }
 		}
@@ -465,10 +466,10 @@ namespace Advobot
 	{
 		public BotGuildInfo(IGuild guild)
 		{
-			Guild = guild;
+			mGuild = guild;
 		}
 
-		//I CBA changing everything in here to be private yet.
+		//I CBA changing everything in here to be private yet. I hate handling lists as private ones.
 
 		//Banned phrases/regex/punishment
 		public List<string> BannedPhrases = new List<string>();
@@ -490,48 +491,94 @@ namespace Advobot
 		public MentionSpamPrevention MentionSpamPrevention;
 
 		//Raid prevention
-		public bool RaidPrevention = false;
-		public IRole MuteRole;
-		public List<IGuildUser> UsersWhoHaveBeenMuted = new List<IGuildUser>();
+		private IRole mMuteRole;
+		public IRole MuteRole
+		{
+			get { return mMuteRole; }
+		}
+		public void SetMuteRole(IRole role)
+		{
+			mMuteRole = role;
+		}
+		private bool mRaidPrevention = false;
+		public bool RaidPrevention
+		{
+			get { return mRaidPrevention; }
+		}
+		public void SwitchRaidPrevention()
+		{
+			mRaidPrevention = !mRaidPrevention;
+		}
+		private List<IGuildUser> mUsersWhoHaveBeenMuted = new List<IGuildUser>();
+		public ReadOnlyCollection<IGuildUser> UsersWhoHaveBeenMuted
+		{
+			get { return mUsersWhoHaveBeenMuted.AsReadOnly(); }
+		}
+		public void AddUserToMutedList(IGuildUser user)
+		{
+			mUsersWhoHaveBeenMuted.Add(user);
+		}
+		public void ClearUserMutedList()
+		{
+			mUsersWhoHaveBeenMuted.Clear();
+		}
 
 		//Misc
 		public List<Remind> Reminds = new List<Remind>();
 		public List<BotInvite> Invites = new List<BotInvite>();
-		public bool DefaultPrefs = true;
-		public string Prefix;
-		public IGuild Guild;
-		public ITextChannel ServerLog = null;
-		public ITextChannel ModLog = null;
+		private bool mDefaultPrefs = true;
+		public bool DefaultPrefs
+		{
+			get { return mDefaultPrefs; }
+		}
+		public void TurnDefaultPrefsOff()
+		{
+			mDefaultPrefs = false;
+		}
+		private string mPrefix;
+		public string Prefix
+		{
+			get { return mPrefix; }
+		}
+		public void SetPrefix(string prefix)
+		{
+			mPrefix = prefix;
+		}
+		private IGuild mGuild;
+		public IGuild Guild
+		{
+			get { return mGuild; }
+		}
+		private ITextChannel mServerLog = null;
+		public ITextChannel ServerLog
+		{
+			get { return mServerLog; }
+		}
+		public void SetServerLog(ITextChannel channel)
+		{
+			mServerLog = channel;
+		}
+		private ITextChannel mModLog = null;
+		public ITextChannel ModLog
+		{
+			get { return mModLog; }
+		}
+		public void SetModLog(ITextChannel channel)
+		{
+			mModLog = channel;
+		}
 
-		//Roll loss
-		private RoleLoss mRoleLoss;
-		public bool TryGetRoleLoss(out RoleLoss OutRoleLoss)
+		//Role loss
+		private RoleLoss mRoleLoss = new RoleLoss();
+		public RoleLoss RoleLoss
 		{
-			OutRoleLoss = mRoleLoss;
-			return OutRoleLoss != null;
-		}
-		public void SetRoleLoss(RoleLoss InRoleLoss)
-		{
-			mRoleLoss = InRoleLoss;
-		}
-		public RoleLoss GetRoleLoss()
-		{
-			return mRoleLoss;
+			get { return mRoleLoss; }
 		}
 		//Message Deletion
-		private MessageDeletion mMessageDeletion;
-		public bool TryGetMessageDeletion(out MessageDeletion OutMessageDeletion)
+		private MessageDeletion mMessageDeletion = new MessageDeletion();
+		public MessageDeletion MessageDeletion
 		{
-			OutMessageDeletion = mMessageDeletion;
-			return OutMessageDeletion != null;
-		}
-		public void SetMessageDeletion(MessageDeletion InMessageDeletion)
-		{
-			mMessageDeletion = InMessageDeletion;
-		}
-		public MessageDeletion GetMessageDeletion()
-		{
-			return mMessageDeletion;
+			get { return mMessageDeletion; }
 		}
 	}
 
@@ -600,7 +647,7 @@ namespace Advobot
 		{
 			get { return mPotentialKick; }
 		}
-		public IReadOnlyCollection<ulong> UsersWhoHaveAlreadyVoted
+		public ReadOnlyCollection<ulong> UsersWhoHaveAlreadyVoted
 		{
 			get { return mUsersWhoHaveAlreadyVoted.AsReadOnly(); }
 		}
@@ -753,17 +800,12 @@ namespace Advobot
 	{
 		private CancellationTokenSource mCancelToken;
 
-		public bool TryGetToken(out CancellationTokenSource CancelToken)
+		public CancellationTokenSource CancelToken
 		{
-			CancelToken = mCancelToken;
-			return CancelToken != null;
-		}
-		public void SetToken(CancellationTokenSource InputToken)
-		{
-			mCancelToken = InputToken;
+			get { return mCancelToken; }
+			set { mCancelToken = value; }
 		}
 
-		public abstract bool TryGetList(out List<ISnowflakeEntity> OutList);
 		public abstract List<ISnowflakeEntity> GetList();
 		public abstract void SetList(List<ISnowflakeEntity> InList);
 		public abstract void AddToList(ISnowflakeEntity Item);
@@ -774,11 +816,6 @@ namespace Advobot
 	{
 		private List<IGuildUser> mUsers = new List<IGuildUser>();
 
-		public override bool TryGetList(out List<ISnowflakeEntity> OutList)
-		{
-			OutList = mUsers.Select(x => x as ISnowflakeEntity).ToList();
-			return OutList != null && OutList.Any();
-		}
 		public override List<ISnowflakeEntity> GetList()
 		{
 			return mUsers.Select(x => x as ISnowflakeEntity).ToList();
@@ -801,11 +838,6 @@ namespace Advobot
 	{
 		private List<IMessage> mMessages = new List<IMessage>();
 
-		public override bool TryGetList(out List<ISnowflakeEntity> OutList)
-		{
-			OutList = mMessages.Select(x => x as ISnowflakeEntity).ToList();
-			return OutList != null && OutList.Any();
-		}
 		public override List<ISnowflakeEntity> GetList()
 		{
 			return mMessages.Select(x => x as ISnowflakeEntity).ToList();

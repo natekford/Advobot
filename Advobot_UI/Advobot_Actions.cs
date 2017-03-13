@@ -271,7 +271,6 @@ namespace Advobot
 					}
 				});
 				WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Command Preferences");
-				Variables.Guilds[guild.Id].DefaultPrefs = true;
 			}
 			else
 			{
@@ -488,18 +487,18 @@ namespace Advobot
 					//Guild prefix
 					if (line.Contains(Constants.GUILD_PREFIX))
 					{
-						GuildInfo.Prefix = line.Substring(line.IndexOf(':') + 1);
+						GuildInfo.SetPrefix(line.Substring(line.IndexOf(':') + 1));
 					}
 					//Log channel
 					else if (line.Contains(Constants.SERVER_LOG_CHECK_STRING))
 					{
 						var logChannelArray = line.Split(new Char[] { ':' }, 2);
-						GuildInfo.ServerLog = (await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel;
+						GuildInfo.SetServerLog((await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel);
 					}
 					else if (line.Contains(Constants.MOD_LOG_CHECK_STRING))
 					{
 						var logChannelArray = line.Split(new Char[] { ':' }, 2);
-						GuildInfo.ModLog = (await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel;
+						GuildInfo.SetModLog((await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel);
 					}
 					//Log actions
 					else if (line.Contains(Constants.LOG_ACTIONS))
@@ -1679,6 +1678,97 @@ namespace Advobot
 				String.Format("{0}{1}", "Gifs:".PadRight(spacing), Variables.LoggedGifs),
 				String.Format("{0}{1}", "Files:".PadRight(spacing), Variables.LoggedFiles));
 		}
+
+		//Format the content of messages that were deleted
+		public static List<string> FormatDeletedMessages(List<IMessage> list)
+		{
+			var deletedMessagesContent = new List<string>();
+			list.ForEach(x =>
+			{
+				//See if any embeds deleted
+				if (x.Embeds.Any())
+				{
+					//Get the first embed with a valid description, then URL, then image
+					var embed = x.Embeds.FirstOrDefault(desc => desc.Description != null) ?? x.Embeds.FirstOrDefault(url => url.Url != null) ?? x.Embeds.FirstOrDefault(img => img.Image != null);
+
+					if (embed != null)
+					{
+						var msgContent = String.IsNullOrWhiteSpace(x.Content) ? "" : "Message Content: " + x.Content;
+						var description = String.IsNullOrWhiteSpace(embed.Description) ? "" : "Embed Description: " + embed.Description;
+						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
+							Actions.FormatUser(x.Author),
+							Actions.FormatChannel(x.Channel),
+							x.CreatedAt.ToString("HH:mm:ss"),
+							Actions.ReplaceMarkdownChars((String.IsNullOrEmpty(msgContent) ? msgContent : msgContent + "\n") + description)));
+					}
+					else
+					{
+						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
+							Actions.FormatUser(x.Author),
+							Actions.FormatChannel(x.Channel),
+							x.CreatedAt.ToString("HH:mm:ss"),
+							"An embed which was unable to be gotten."));
+					}
+				}
+				//See if any attachments were put in
+				else if (x.Attachments.Any())
+				{
+					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
+					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
+						Actions.FormatUser(x.Author),
+						Actions.FormatChannel(x.Channel),
+						x.CreatedAt.ToString("HH:mm:ss"),
+						Actions.ReplaceMarkdownChars(content + " + " + x.Attachments.ToList().First().Filename)));
+				}
+				//Else add the message in normally
+				else
+				{
+					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
+					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
+						Actions.FormatUser(x.Author),
+						Actions.FormatChannel(x.Channel),
+						x.CreatedAt.ToString("HH:mm:ss"),
+						Actions.ReplaceMarkdownChars(content)));
+				}
+			});
+			return deletedMessagesContent;
+		}
+
+		//Send the messages for deleting messages
+		public static async Task SendDeleteMessage(IGuild guild, ITextChannel channel, List<string> inputList)
+		{
+			//Get the character count
+			int characterCount = 0;
+			inputList.ForEach(x => characterCount += (x.Length + 100));
+
+			if (inputList.Count == 0)
+			{
+				return;
+			}
+			else if (inputList.Count <= 5 && characterCount < Constants.LENGTH_CHECK)
+			{
+				//If there aren't many messages send the small amount in a message instead of a file or link
+				var embed = MakeNewEmbed("Deleted Messages", String.Join("\n", inputList), Constants.MDEL);
+				AddFooter(embed, "Deleted Messages");
+				await SendEmbedMessage(channel, embed);
+			}
+			else
+			{
+				var url = "";
+				var content = ReplaceMarkdownChars(String.Join("\n-----\n", inputList));
+				if (TryToUploadToHastebin(content, out url))
+				{
+					//Upload the embed with the Hastebin link
+					var embed = MakeNewEmbed("Deleted Messages", String.Format("Click [here]({0}) to see the messages.", url), Constants.MDEL);
+					AddFooter(embed, "Deleted Messages");
+					await SendEmbedMessage(channel, embed);
+				}
+				else
+				{
+					await UploadTextFile(guild, channel, content, "Deleted_Messages_", "Deleted Messages");
+				}
+			}
+		}
 		#endregion
 
 		#region Uploads
@@ -2080,13 +2170,16 @@ namespace Advobot
 		//Send an exception message to the console
 		public static void ExceptionToConsole(string method, Exception e)
 		{
+			if (e == null)
+				return;
+
 			WriteLine(method + " EXCEPTION: " + e.ToString());
 		}
 
 		//Write when a load is done
 		public static void WriteLoadDone(IGuild guild, string method, string name)
 		{
-			Variables.Guilds[guild.Id].DefaultPrefs = false;
+			Variables.Guilds[guild.Id].TurnDefaultPrefsOff();
 			WriteLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, FormatGuild(guild)));
 		}
 		#endregion
@@ -2162,11 +2255,11 @@ namespace Advobot
 			//Set it on the bot's info
 			if (serverOrMod == Constants.SERVER_LOG_CHECK_STRING)
 			{
-				Variables.Guilds[guild.Id].ServerLog = inputChannel;
+				Variables.Guilds[guild.Id].SetServerLog(inputChannel);
 			}
 			else if (serverOrMod == Constants.MOD_LOG_CHECK_STRING)
 			{
-				Variables.Guilds[guild.Id].ModLog = inputChannel;
+				Variables.Guilds[guild.Id].SetModLog(inputChannel);
 			}
 
 			//Find the lines that aren't the current serverlog line
@@ -2475,7 +2568,7 @@ namespace Advobot
 			Variables.GuildsEnablingPreferences.Remove(guild);
 
 			//Set the default prefs bool to false
-			Variables.Guilds[guild.Id].DefaultPrefs = false;
+			Variables.Guilds[guild.Id].TurnDefaultPrefsOff();
 
 			//Send a success message
 			await SendChannelMessage(message.Channel, "Successfully created the preferences for this guild.");

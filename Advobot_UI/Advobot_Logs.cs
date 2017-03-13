@@ -189,7 +189,7 @@ namespace Advobot
 				//Give them the mute role
 				await user.AddRolesAsync(Variables.Guilds[guild.Id].MuteRole);
 				//Add them to the list of users who have been muted
-				Variables.Guilds[guild.Id].UsersWhoHaveBeenMuted.Add(user);
+				Variables.Guilds[guild.Id].AddUserToMutedList(user);
 			}
 
 			//Invite string
@@ -387,35 +387,19 @@ namespace Advobot
 					return;
 
 				//Get or create the roleloss
-				RoleLoss roleLoss;
-				if (!botInfo.TryGetRoleLoss(out roleLoss))
+				lock (botInfo.RoleLoss)
 				{
-					roleLoss = new RoleLoss();
-					botInfo.SetRoleLoss(roleLoss);
-				}
-
-				//Get the list of users it contains
-				{
-					List<ISnowflakeEntity> roleLossUsers;
-					if (!roleLoss.TryGetList(out roleLossUsers))
-					{
-						roleLossUsers = new List<ISnowflakeEntity>();
-						roleLoss.SetList(roleLossUsers);
-					}
-					lock (roleLossUsers)
-					{
-						roleLoss.AddToList(afterUser);
-					}
+					botInfo.RoleLoss.AddToList(afterUser);
 				}
 
 				//Use a token so the messages do not get sent prematurely
-				CancellationTokenSource cancelToken;
-				if (roleLoss.TryGetToken(out cancelToken))
+				var cancelToken = botInfo.RoleLoss.CancelToken;
+				if (cancelToken != null)
 				{
 					cancelToken.Cancel();
 				}
 				cancelToken = new CancellationTokenSource();
-				roleLoss.SetToken(cancelToken);
+				botInfo.RoleLoss.CancelToken = cancelToken;
 
 
 				var t = Task.Run(async () =>
@@ -431,11 +415,10 @@ namespace Advobot
 
 					//Make a copy of the list so they can be removed from the old one
 					List<IGuildUser> users;
-					var roleLossUsers = roleLoss.GetList();
-					lock (roleLossUsers)
+					lock (botInfo.RoleLoss)
 					{
-						users = new List<IGuildUser>(roleLossUsers.Select(x => x as IGuildUser));
-						roleLoss.ClearList();
+						users = new List<IGuildUser>(botInfo.RoleLoss.GetList().Select(x => x as IGuildUser));
+						botInfo.RoleLoss.ClearList();
 					}
 
 					firstNotSecond.ForEach(x =>
@@ -568,36 +551,20 @@ namespace Advobot
 			if (!Variables.Guilds.TryGetValue(guild.Id, out botInfo))
 				return;
 
-			//Get or create the messagedeletion
-			MessageDeletion messageDeletion;
-			if (!botInfo.TryGetMessageDeletion(out messageDeletion))
-			{
-				messageDeletion = new MessageDeletion();
-				botInfo.SetMessageDeletion(messageDeletion);
-			}
-
 			//Get the list of deleted messages it contains
+			lock (botInfo.MessageDeletion)
 			{
-				List<ISnowflakeEntity> guildDeletedMessages;
-				if (!messageDeletion.TryGetList(out guildDeletedMessages))
-				{
-					guildDeletedMessages = new List<ISnowflakeEntity>();
-					messageDeletion.SetList(guildDeletedMessages);
-				}
-				lock (guildDeletedMessages)
-				{
-					messageDeletion.AddToList(message.Value);
-				}
+				botInfo.MessageDeletion.AddToList(message.Value);
 			}
 
 			//Use a token so the messages do not get sent prematurely
-			CancellationTokenSource cancelToken;
-			if (messageDeletion.TryGetToken(out cancelToken))
+			var cancelToken = botInfo.MessageDeletion.CancelToken;
+			if (cancelToken != null)
 			{
 				cancelToken.Cancel();
 			}
 			cancelToken = new CancellationTokenSource();
-			messageDeletion.SetToken(cancelToken);
+			botInfo.MessageDeletion.CancelToken = cancelToken;
 
 			//Increment the deleted messages count
 			++Variables.LoggedDeletes;
@@ -616,102 +583,19 @@ namespace Advobot
 
 				//Give the messages to a new list so they can be removed from the old one
 				List<IMessage> deletedMessages;
-				var guildDeletedMessages = messageDeletion.GetList();
-				lock (guildDeletedMessages)
+				lock (botInfo.MessageDeletion)
 				{
-					deletedMessages = new List<IMessage>(guildDeletedMessages.Select(x => x as IMessage));
-					messageDeletion.ClearList();
+					deletedMessages = new List<IMessage>(botInfo.MessageDeletion.GetList().Select(x => x as IMessage));
+					botInfo.MessageDeletion.ClearList();
 				}
 
-				//Get the character count
-				int characterCount = 0;
-				deletedMessages.ForEach(x => characterCount += (x.Content.Length + 100));
-
-				//Sort by oldest to newest
-				var deletedMessagesSorted = deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks).ToList();
-				if (Constants.NEWEST_DELETED_MESSAGES_AT_TOP)
-				{
-					deletedMessagesSorted.Reverse();
-				}
 				//Put the message content into a list of strings for easy usage
-				var deletedMessagesContent = new List<string>();
-				deletedMessagesSorted.ForEach(x =>
-				{
-					//See if any embeds deleted
-					if (x.Embeds.Any())
-					{
-						//Get the first embed with a valid description, then URL, then image
-						var embed = x.Embeds.FirstOrDefault(desc => desc.Description != null) ?? x.Embeds.FirstOrDefault(url => url.Url != null) ?? x.Embeds.FirstOrDefault(img => img.Image != null);
-
-						if (embed != null)
-						{
-							var msgContent = String.IsNullOrWhiteSpace(x.Content) ? "" : "Message Content: " + x.Content;
-							var description = String.IsNullOrWhiteSpace(embed.Description) ? "" : "Embed Description: " + embed.Description;
-							deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-								Actions.FormatUser(x.Author),
-								Actions.FormatChannel(x.Channel),
-								x.CreatedAt.ToString("HH:mm:ss"),
-								Actions.ReplaceMarkdownChars((String.IsNullOrEmpty(msgContent) ? msgContent : msgContent + "\n") + description)));
-						}
-						else
-						{
-							deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-								Actions.FormatUser(x.Author),
-								Actions.FormatChannel(x.Channel),
-								x.CreatedAt.ToString("HH:mm:ss"),
-								"An embed which was unable to be gotten."));
-						}
-					}
-					//See if any attachments were put in
-					else if (x.Attachments.Any())
-					{
-						var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
-						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-							Actions.FormatUser(x.Author),
-							Actions.FormatChannel(x.Channel),
-							x.CreatedAt.ToString("HH:mm:ss"),
-							Actions.ReplaceMarkdownChars(content + " + " + x.Attachments.ToList().First().Filename)));
-					}
-					//Else add the message in normally
-					else
-					{
-						var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
-						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-							Actions.FormatUser(x.Author),
-							Actions.FormatChannel(x.Channel),
-							x.CreatedAt.ToString("HH:mm:ss"),
-							Actions.ReplaceMarkdownChars(content)));
-					}
-				});
-
-				if (deletedMessages.Count == 0)
-				{
-					return;
-				}
-				else if (deletedMessages.Count <= 5 && characterCount < Constants.LENGTH_CHECK)
-				{
-					//If there aren't many messages send the small amount in a message instead of a file or link
-					var embed = Actions.MakeNewEmbed("Deleted Messages", String.Join("\n", deletedMessagesContent), Constants.MDEL);
-					Actions.AddFooter(embed, "Deleted Messages");
-					await Actions.SendEmbedMessage(serverLog, embed);
-				}
-				else
-				{
-					var url = "";
-					var content = Actions.ReplaceMarkdownChars(String.Join("\n-----\n", deletedMessagesContent));
-					if (Actions.TryToUploadToHastebin(content, out url))
-					{
-						//Upload the embed with the Hastebin link
-						var embed = Actions.MakeNewEmbed("Deleted Messages", String.Format("Click [here]({0}) to see the messages.", url), Constants.MDEL);
-						Actions.AddFooter(embed, "Deleted Messages");
-						await Actions.SendEmbedMessage(serverLog, embed);
-					}
-					else
-					{
-						await Actions.UploadTextFile(guild, serverLog, content, "Deleted_Messages_", "Deleted Messages");
-					}
-				}
+				var deletedMessagesContent = Actions.FormatDeletedMessages(deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks).ToList());
+				await Actions.SendDeleteMessage(guild, serverLog, deletedMessagesContent);
 			});
+
+			//To get it to not want an await
+			await Task.Yield();
 		}
 
 		public static async Task OnRoleCreated(SocketRole role)

@@ -132,7 +132,6 @@ namespace Advobot
 		});
 
 		public static readonly bool DISCONNECT = false;
-		public static readonly bool NEWEST_DELETED_MESSAGES_AT_TOP = false;
 
 		public static readonly Discord.Color BASE = new Discord.Color(255, 100, 000);
 		public static readonly Discord.Color JOIN = new Discord.Color(000, 255, 000);

@@ -210,8 +210,8 @@ namespace Advobot
 			if (enableBool)
 			{
 				//Enable raid mode in the bot
-				guildInfo.RaidPrevention = true;
-				guildInfo.MuteRole = muteRole;
+				guildInfo.SwitchRaidPrevention();
+				guildInfo.SetMuteRole(muteRole);
 
 				//Check if there's a valid number
 				var inputNum = 0;
@@ -230,7 +230,7 @@ namespace Advobot
 						//Mute them
 						await x.AddRolesAsync(muteRole);
 						//Add them to the list of users who have been muted
-						guildInfo.UsersWhoHaveBeenMuted.Add(x);
+						guildInfo.AddUserToMutedList(x);
 						//Increment the mute count
 						++actualMutes;
 					});
@@ -243,15 +243,15 @@ namespace Advobot
 			else
 			{
 				//Disable raid mode in the bot
-				guildInfo.RaidPrevention = false;
-				guildInfo.MuteRole = null;
+				guildInfo.SwitchRaidPrevention();
+				guildInfo.SetMuteRole(null);
 
 				//Total users muted
 				var ttl = guildInfo.UsersWhoHaveBeenMuted.Count();
 				var unm = 0;
 
 				//Unmute every user who was muted
-				await guildInfo.UsersWhoHaveBeenMuted.ForEachAsync(async x =>
+				await guildInfo.UsersWhoHaveBeenMuted.ToList().ForEachAsync(async x =>
 				{
 					//Check to make sure they're still on the guild
 					if (await Context.Guild.GetUserAsync(x.Id) != null)
@@ -262,6 +262,7 @@ namespace Advobot
 						++unm;
 					}
 				});
+				guildInfo.ClearUserMutedList();
 
 				//Calculate how many left
 				var lft = ttl - unm;
