@@ -598,8 +598,7 @@ namespace Advobot
 				//Separate the ID from the rest of the directory
 				var strID = guildDir.Substring(guildDir.LastIndexOf('\\') + 1);
 				//Make sure the ID is valid
-				ulong ID;
-				if (!ulong.TryParse(strID, out ID))
+				if (!ulong.TryParse(strID, out ulong ID))
 					return;
 
 				//Create the guild's treeviewitem
@@ -1036,8 +1035,7 @@ namespace Advobot
 				{
 					using (WebResponse resp = req.GetResponse())
 					{
-						int ContentLength = 0;
-						if (int.TryParse(resp.Headers.Get("Content-Length"), out ContentLength))
+						if (int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
 						{
 							//Check if valid content type
 							if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
@@ -1210,8 +1208,7 @@ namespace Advobot
 			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("{0}. {1} Owner: {2}", count++.ToString("00"), Actions.FormatGuild(x), Actions.FormatUser(x.Owner)));
 
 			//Get the URL
-			var url = "";
-			Actions.TryToUploadToHastebin(String.Join("\n", guildStrings), out url);
+			Actions.TryToUploadToHastebin(String.Join("\n", guildStrings), out string url);
 
 			//Send it to have the hyperlink created and go to the output window
 			UILayoutModification.AddHyperlink(BotWindow.Output, url, "Listed Guilds");
@@ -1228,8 +1225,7 @@ namespace Advobot
 			}
 
 			//Check if valid number
-			var number = 0;
-			if (!int.TryParse(input, out number))
+			if (!int.TryParse(input, out int number))
 			{
 				Actions.WriteLine("Invalid input for number.");
 				return;

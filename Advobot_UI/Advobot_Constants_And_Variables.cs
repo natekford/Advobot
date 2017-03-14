@@ -188,7 +188,7 @@ namespace Advobot
 
 		public static Dictionary<ulong, BotGuildInfo> Guilds = new Dictionary<ulong, BotGuildInfo>();
 		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeGuilds = new Dictionary<ulong, List<SlowmodeUser>>();
-		public static Dictionary<Discord.IGuildChannel, List<SlowmodeUser>> SlowmodeChannels = new Dictionary<Discord.IGuildChannel, List<SlowmodeUser>>();
+		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeChannels = new Dictionary<ulong, List<SlowmodeUser>>();
 
 		public static List<string> CommandNames = new List<string>();
 		public static List<string> RegionIDs = new List<string>();

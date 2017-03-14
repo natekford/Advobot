@@ -22,8 +22,7 @@ namespace Advobot
 		public async Task GuildLeave([Optional, Remainder] string input)
 		{
 			//Get the guild out of an ID
-			ulong guildID = 0;
-			if (UInt64.TryParse(input, out guildID))
+			if (UInt64.TryParse(input, out ulong guildID))
 			{
 				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
 				if (Context.User.Id.Equals(Properties.Settings.Default.BotOwner))
@@ -336,8 +335,7 @@ namespace Advobot
 			//Check if it's valid
 			if (command == null && !allBool)
 			{
-				CommandCategory cmdCat;
-				if (Enum.TryParse(inputString, true, out cmdCat))
+				if (Enum.TryParse(inputString, true, out CommandCategory cmdCat))
 				{
 					category = Actions.GetMultipleCommands(Context.Guild.Id, cmdCat);
 				}
@@ -410,8 +408,8 @@ namespace Advobot
 
 		[Command("comignore")]
 		[Alias("cign")]
-		[Usage("[Add|Remove|Current] [#Channel|Channel Name]")]
-		[Summary("The bot will ignore commands said on these channels.")]
+		[Usage("[Add|Remove|Current] [#Channel|Channel Name] <Full Command Name>")]
+		[Summary("The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.")]
 		[PermissionRequirement]
 		public async Task CommandIgnore([Remainder] string input)
 		{
@@ -423,8 +421,9 @@ namespace Advobot
 			}
 
 			//Split the input
-			var inputArray = input.Split(new char[] { ' ' }, 2);
-			if (Actions.CaseInsEquals(inputArray[0], "current"))
+			var inputArray = input.Split(new char[] { ' ' }, 3);
+			var action = inputArray[0];
+			if (Actions.CaseInsEquals(action, "current"))
 			{
 				var channels = new List<string>();
 				await Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.ForEachAsync(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
@@ -432,7 +431,7 @@ namespace Advobot
 				return;
 			}
 			//Check amount of args
-			if (inputArray.Length != 2)
+			if (inputArray.Length < 2 || inputArray.Length > 3)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
@@ -440,11 +439,11 @@ namespace Advobot
 
 			//Determine whether to add or remove
 			bool addBool;
-			if (Actions.CaseInsEquals(inputArray[0], "add"))
+			if (Actions.CaseInsEquals(action, "add"))
 			{
 				addBool = true;
 			}
-			else if (Actions.CaseInsEquals(inputArray[0], "remove"))
+			else if (Actions.CaseInsEquals(action, "remove"))
 			{
 				addBool = false;
 			}
@@ -455,10 +454,11 @@ namespace Advobot
 			}
 
 			//Get the channel
-			var channel = await Actions.GetChannelEditAbility(Context, inputArray[1], true);
+			var channelInput = inputArray[1];
+			var channel = await Actions.GetChannelEditAbility(Context, channelInput, true);
 			if (channel == null)
 			{
-				var channels = (await Context.Guild.GetTextChannelsAsync()).Where(x => Actions.CaseInsEquals(x.Name, inputArray[1])).ToList();
+				var channels = (await Context.Guild.GetTextChannelsAsync()).Where(x => Actions.CaseInsEquals(x.Name, channelInput)).ToList();
 				if (channels.Count == 0)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
@@ -478,6 +478,13 @@ namespace Advobot
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("More than one channel has that name."));
 					return;
 				}
+			}
+
+			//Get the command
+			if (inputArray.Length == 3)
+			{
+				var cmdInput = inputArray[2];
+				//TODO: Finish implementation
 			}
 
 			//Add or remove
@@ -753,13 +760,11 @@ namespace Advobot
 							continue;
 
 						//Check if valid ID
-						ulong ID;
-						if (!ulong.TryParse(inputArray[0], out ID))
+						if (!ulong.TryParse(inputArray[0], out ulong ID))
 							continue;
 
 						//Check if valid perms
-						uint perms;
-						if (!uint.TryParse(inputArray[1], out perms))
+						if (!uint.TryParse(inputArray[1], out uint perms))
 							continue;
 
 						var user = await Context.Guild.GetUserAsync(ID);

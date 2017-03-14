@@ -175,8 +175,7 @@ namespace Advobot
 			}
 
 			//Get the position as an int
-			var position = 0;
-			if (!int.TryParse(input.Substring(input.LastIndexOf(' ')), out position))
+			if (!int.TryParse(input.Substring(input.LastIndexOf(' ')), out int position))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position."));
 				return;
@@ -374,8 +373,7 @@ namespace Advobot
 					return;
 
 				//Check if valid perms and potential role/user
-				var potentialRoleOrUser = "";
-				if (Actions.GetStringAndPermissions(inputArray[1], out potentialRoleOrUser, out permissions))
+				if (Actions.GetStringAndPermissions(inputArray[1], out string potentialRoleOrUser, out permissions))
 				{
 					//See if valid role or user
 					role = Actions.GetRole(Context.Guild, potentialRoleOrUser);
@@ -646,10 +644,9 @@ namespace Advobot
 				if (Actions.CaseInsIndexOf(channelInput, "position{"))
 				{
 					//Get the position
-					int position;
 					var leftBracePos = channelInput.IndexOf('{');
 					var rightBracePos = channelInput.IndexOf('}');
-					if (!int.TryParse(channelInput.Substring(leftBracePos, rightBracePos), out position))
+					if (!int.TryParse(channelInput.Substring(leftBracePos, rightBracePos), out int position))
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position supplied."));
 						return;
@@ -780,8 +777,7 @@ namespace Advobot
 			}
 
 			//Check if valid number
-			var limit = 0;
-			if (!int.TryParse(newLimit, out limit))
+			if (!int.TryParse(newLimit, out int limit))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The second argument is not a valid number."));
 				return;
@@ -823,8 +819,7 @@ namespace Advobot
 			}
 
 			//Check if valid number
-			var bitRate = 0;
-			if (!int.TryParse(newBitRate, out bitRate))
+			if (!int.TryParse(newBitRate, out int bitRate))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The second argument is not a valid number."));
 				return;

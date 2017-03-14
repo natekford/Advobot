@@ -200,7 +200,7 @@ namespace Advobot
 				}
 				case SAGAction.Delete:
 				{
-					groupNumber = await Actions.GetGroup(inputArray[1], Context);
+                    groupNumber = await Actions.GetGroup(inputArray[1], Context);
 					if (groupNumber == -1)
 						return;
 
@@ -209,7 +209,7 @@ namespace Advobot
 					//Check if any groups have that position
 					if (!guildGroups.Any(x => x.Group == groupNumber))
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A group needs to exist with that position before it can be deleted."));
+					    await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A group needs to exist with that position before it can be deleted."));
 						return;
 					}
 
@@ -351,11 +351,11 @@ namespace Advobot
 		[Command("selfroles")]
 		[Alias("srs")]
 		[Usage("<File|Actual> <Group:Number>")]
-		[Summary("Shows the current group numbers that exists on the guild.")]
+		[Summary("Shows the current group numbers that exists on the guild and the roles inside of them")]
 		public async Task CurrentGroups([Optional, Remainder] string input)
 		{
 			//Split the input
-			var inputArray = input == null ? null : input.Split(new char[] { ' ' }, 2);
+			var inputArray = input?.Split(new char[] { ' ' }, 2);
 
 			//Get the group
 			var group = Actions.GetVariable(inputArray, "group");
@@ -371,18 +371,13 @@ namespace Advobot
 			//Set a bool
 			bool fileBool = false;
 			//I don't know why I set up this one using a LINQ Any() instead of the previous inputArray[0] but I'm leaving it
-			if (inputArray.Any(x => Actions.CaseInsEquals(x, "file")))
+			if (inputArray != null && inputArray.Any(x => Actions.CaseInsEquals(x, "file")))
 			{
 				fileBool = true;
 			}
-			else if (inputArray.Any(x => Actions.CaseInsEquals(x, "actual")))
+			else if (inputArray != null && inputArray.Any(x => Actions.CaseInsEquals(x, "actual")))
 			{
 				fileBool = false;
-			}
-			else if (groupNumber == -1)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
-				return;
 			}
 
 			if (groupNumber == -1)
@@ -409,10 +404,9 @@ namespace Advobot
 					{
 						//Split to get the role ID and the group
 						var lineArray = x.Split(' ');
-						int throwaway;
-						if (int.TryParse(lineArray[1], out throwaway))
+						if (int.TryParse(lineArray[1], out int temp))
 						{
-							groupNumbers.Add(throwaway);
+							groupNumbers.Add(temp);
 						}
 					});
 
@@ -474,11 +468,10 @@ namespace Advobot
 					roleIDs.ForEach(x =>
 					{
 						//Check if it's an actual number
-						ulong roleUlong;
-						if (ulong.TryParse(x, out roleUlong))
+						if (ulong.TryParse(x, out ulong roleID))
 						{
 							//Check if valid role
-							var role = Context.Guild.GetRole(roleUlong);
+							var role = Context.Guild.GetRole(roleID);
 							if (role != null)
 							{
 								roles.Add(role.Name);

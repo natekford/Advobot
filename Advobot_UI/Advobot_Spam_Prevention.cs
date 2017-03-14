@@ -56,7 +56,7 @@ namespace Advobot
 			}
 
 			//Check if a spamprevention exists or not
-			var spamPrevention = Variables.Guilds[Context.Guild.Id].MentionSpamPrevention;
+			var spamPrevention = Variables.Guilds[Context.Guild.Id].GlobalSpamPrevention.MentionSpamPrevention;
 			switch (actionEnum)
 			{
 				case SpamPreventionAction.Enable:
@@ -142,7 +142,7 @@ namespace Advobot
 					int mn = mentions < 1 ? 1 : mentions;
 
 					//Create the spam prevention and add it to the guild
-					Variables.Guilds[Context.Guild.Id].MentionSpamPrevention = new MentionSpamPrevention(ms, vt, mn);
+					Variables.Guilds[Context.Guild.Id].GlobalSpamPrevention.SetMentionSpamPrevention(new MentionSpamPrevention(ms, vt, mn));
 
 					//Save the spam prevention
 					var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
@@ -204,19 +204,24 @@ namespace Advobot
 				return;
 
 			//Get the guild
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			var antiRaid = Variables.Guilds[Context.Guild.Id].AntiRaid;
 
 			//Enable
 			if (enableBool)
 			{
+				//Make sure it's not already enabled
+				if (antiRaid != null)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already enabled on the server."));
+					return;
+				}
+
 				//Enable raid mode in the bot
-				guildInfo.SwitchRaidPrevention();
-				guildInfo.SetMuteRole(muteRole);
+				antiRaid = new AntiRaid(muteRole);
 
 				//Check if there's a valid number
-				var inputNum = 0;
 				var actualMutes = 0;
-				if (inputArray.Length == 2 && int.TryParse(inputArray[1], out inputNum) && inputNum != 0)
+				if (inputArray.Length == 2 && int.TryParse(inputArray[1], out int inputNum) && inputNum != 0)
 				{
 					//Get the users who have joined most recently
 					var users = (await Context.Guild.GetUsersAsync()).OrderBy(x => x.JoinedAt).Reverse().ToList();
@@ -230,7 +235,7 @@ namespace Advobot
 						//Mute them
 						await x.AddRolesAsync(muteRole);
 						//Add them to the list of users who have been muted
-						guildInfo.AddUserToMutedList(x);
+						antiRaid.AddUserToMutedList(x);
 						//Increment the mute count
 						++actualMutes;
 					});
@@ -242,16 +247,22 @@ namespace Advobot
 			//Disable
 			else
 			{
+				//Make sure it's enabled
+				if (antiRaid == null)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already disabled on the server."));
+					return;
+				}
+
 				//Disable raid mode in the bot
-				guildInfo.SwitchRaidPrevention();
-				guildInfo.SetMuteRole(null);
+				antiRaid.SetMuteRole(null);
 
 				//Total users muted
-				var ttl = guildInfo.UsersWhoHaveBeenMuted.Count();
+				var ttl = antiRaid.UsersWhoHaveBeenMuted.Count();
 				var unm = 0;
 
 				//Unmute every user who was muted
-				await guildInfo.UsersWhoHaveBeenMuted.ToList().ForEachAsync(async x =>
+				await antiRaid.UsersWhoHaveBeenMuted.ToList().ForEachAsync(async x =>
 				{
 					//Check to make sure they're still on the guild
 					if (await Context.Guild.GetUserAsync(x.Id) != null)
@@ -262,7 +273,10 @@ namespace Advobot
 						++unm;
 					}
 				});
-				guildInfo.ClearUserMutedList();
+
+
+				//Get rid of the anti raid
+				antiRaid = null;
 
 				//Calculate how many left
 				var lft = ttl - unm;
@@ -271,5 +285,7 @@ namespace Advobot
 				await Actions.SendChannelMessage(Context, String.Format("Successfully turned off raid prevention. `{0}` people have been unmuted. `{1}` raiders left during raid prevention.", unm, lft));
 			}
 		}
+
+		//TODO: Add in the other spam preventions
 	}
 }

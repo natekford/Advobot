@@ -102,9 +102,8 @@ namespace Advobot
 					var positions = new List<int>();
 					phrases.ForEach(potentialNumber =>
 					{
-						int temp;
 						//Check if is a number and is less than the count of the list
-						if (int.TryParse(potentialNumber, out temp) && temp < phrasesList.Count)
+						if (int.TryParse(potentialNumber, out int temp) && temp < phrasesList.Count)
 						{
 							positions.Add(temp);
 						}
@@ -180,9 +179,8 @@ namespace Advobot
 					var positions = new List<int>();
 					phrases.ForEach(potentialNumber =>
 					{
-						int temp;
 						//Check if is a number and is less than the count of the list
-						if (int.TryParse(potentialNumber, out temp) && temp < regexList.Count)
+						if (int.TryParse(potentialNumber, out int temp) && temp < regexList.Count)
 						{
 							positions.Add(temp);
 						}
@@ -425,8 +423,7 @@ namespace Advobot
 			}
 
 			//Get the number
-			int number;
-			if (!int.TryParse(inputArray[1], out number))
+			if (!int.TryParse(inputArray[1], out int number))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid number."));
 				return;
@@ -637,13 +634,11 @@ namespace Advobot
 					//All need to be ifs to check each value
 
 					//Number of removes to activate
-					int number = 0;
-					if (!int.TryParse(args[0], out number))
+					if (!int.TryParse(args[0], out int number))
 						return;
 
 					//The type of punishment
-					int punishment = 0;
-					if (!int.TryParse(args[1], out punishment))
+					if (!int.TryParse(args[1], out int punishment))
 						return;
 
 					//The role ID if a role punishment type

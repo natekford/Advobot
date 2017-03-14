@@ -179,17 +179,18 @@ namespace Advobot
 				return;
 
 			//Check if should add them to a slowmode for channel/guild
-			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || (await guild.GetTextChannelsAsync()).Intersect(Variables.SlowmodeChannels.Keys).Any())
+			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || (await guild.GetTextChannelsAsync()).Select(x => x.Id).Intersect(Variables.SlowmodeChannels.Keys).Any())
 			{
 				//Add them to the slowmode user list
 				await Actions.AddSlowmodeUser(user);
 			}
-			if (Variables.Guilds[guild.Id].RaidPrevention)
+			var antiRaid = Variables.Guilds[guild.Id].AntiRaid;
+			if (antiRaid != null)
 			{
 				//Give them the mute role
-				await user.AddRolesAsync(Variables.Guilds[guild.Id].MuteRole);
+				await user.AddRolesAsync(antiRaid.MuteRole);
 				//Add them to the list of users who have been muted
-				Variables.Guilds[guild.Id].AddUserToMutedList(user);
+				antiRaid.AddUserToMutedList(user);
 			}
 
 			//Invite string
@@ -382,8 +383,7 @@ namespace Advobot
 			if (firstNotSecond.Any())
 			{
 				//Get the info stored for that guild on the bot
-				BotGuildInfo botInfo;
-				if (!Variables.Guilds.TryGetValue(guild.Id, out botInfo))
+				if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo botInfo))
 					return;
 
 				//Get or create the roleloss
@@ -547,8 +547,7 @@ namespace Advobot
 				return;
 
 			//Get the info stored for that guild on the bot
-			BotGuildInfo botInfo;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out botInfo))
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo botInfo))
 				return;
 
 			//Get the list of deleted messages it contains
@@ -743,7 +742,7 @@ namespace Advobot
 			Actions.WriteLine(String.Format("'{0}' on {1}: \'{2}\'", Actions.FormatUser(context.User), Actions.FormatGuild(context.Guild), context.Message.Content));
 
 			//Get the guild and log channel
-			var guild = Actions.VerifyGuild(context.Guild, LogActions.CommandLog);
+			var guild = Actions.VerifyGuild(context.Message, LogActions.CommandLog);
 			if (guild == null)
 				return;
 			var modLog = Variables.Guilds.ContainsKey(guild.Id) ? Variables.Guilds[guild.Id].ModLog : null;
@@ -827,13 +826,13 @@ namespace Advobot
 			if (Constants.CLOSE_WORDS_POSITIONS.Contains(message.Content))
 			{
 				//Get the number
-				var number = Actions.GetInteger(message.Content);
+				var number = Actions.GetInteger(message.Content) - 1;
 				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
 				var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
 				if (closeWordList.User != null)
 				{
 					//Get the remind
-					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number - 1].Name));
+					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
 
 					//Send the remind
 					await Actions.SendChannelMessage(message.Channel, remind.Text);
@@ -843,8 +842,8 @@ namespace Advobot
 				}
 				else if (closeHelpList.User != null)
 				{
-					//Get the remind
-					var help = closeHelpList.List[number - 1].Help;
+					//Get the help
+					var help = closeHelpList.List[number].Help;
 
 					//Send the remind
 					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help)), "Help"));
@@ -858,7 +857,7 @@ namespace Advobot
 				}
 
 				//Delete the message
-				await message.DeleteAsync();
+				await Actions.DeleteMessage(message);
 			}
 		}
 
@@ -869,7 +868,7 @@ namespace Advobot
 				return;
 
 			//Check if the guild has slowmode enabled currently
-			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))
+			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(message.Channel.Id))
 			{
 				await Actions.Slowmode(message);
 			}
@@ -880,50 +879,38 @@ namespace Advobot
 			}
 		}
 
-		public static async Task SpamPrevention(IGuild guild, IMessage message)
+		public static async Task SpamPrevention(IGuild guild, IMessage msg)
 		{
-			//Get the spam prevention the guild has
-			var spamPrevention = Variables.Guilds[guild.Id].MentionSpamPrevention;
-			//Check if the spam prevention exists and if the message has more mentions than are allowed
-			if (spamPrevention != null && spamPrevention.Enabled && message.MentionedUserIds.Distinct().Count() >= spamPrevention.AmountOfMentionsPerMsg)
-			{
-				//Set the user as a variable for easy typing
-				var author = message.Author as IGuildUser;
-				//Check if the bot can even kick/ban this user
-				if (Actions.GetPosition(guild, author) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)))
-					return;
-				//Get the user
-				var user = Variables.Guilds[guild.Id].SpamPreventionUsers.FirstOrDefault(x => x.User == author);
-				if (user == null)
-				{
-					user = new SpamPreventionUser(author, 0);
-					Variables.Guilds[guild.Id].SpamPreventionUsers.Add(user);
-				}
-				//Add one to their spam count
-				user.IncreaseCurrentSpamAmount();
-				//Check if that's greater than the allowed amount
-				if (user.CurrentSpamAmount >= spamPrevention.AmountOfMessages)
-				{
-					//Send a message telling the users of the guild they can vote to ban this person
-					await Actions.SendChannelMessage(message.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
-						Actions.FormatUser(user.User), spamPrevention.VotesNeededForKick));
-					//Enable them to be kicked
-					user.EnablePotentialKick();
-				}
-			}
+			var global = Variables.Guilds[guild.Id].GlobalSpamPrevention;
+
+			//TODO: Add in the checks to determine which spam preventions should go through (like with mentionspam)
+			var message = global.MessageSpamPrevention;
+			if (Actions.SpamCheck(message, msg) && await Actions.HandleSpamPrevention(global, message, guild, msg))
+				return;
+
+			var longmessage = global.LongMessageSpamPrevention;
+			if (Actions.SpamCheck(longmessage, msg) && await Actions.HandleSpamPrevention(global, longmessage, guild, msg))
+				return;
+
+			var link = global.LinkSpamPrevention;
+			if (Actions.SpamCheck(link, msg) && await Actions.HandleSpamPrevention(global, link, guild, msg))
+				return;
+
+			var image = global.ImageSpamPrevention;
+			if (Actions.SpamCheck(image, msg) && await Actions.HandleSpamPrevention(global, image, guild, msg))
+				return;
+
+			var mention = global.MentionSpamPrevention;
+			if (Actions.SpamCheck(mention, msg) && await Actions.HandleSpamPrevention(global, mention, guild, msg))
+				return;
 		}
 
 		public static async Task VotingOnSpamPrevention(IGuild guild, IMessage message)
 		{
 			//Get the users primed to be kicked/banned by the spam prevention
-			var users = Variables.Guilds[guild.Id].SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
+			var users = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
 			//Return if it's empty
 			if (!users.Any())
-				return;
-			//Get the spam prevention the guild has
-			var spamPrevention = Variables.Guilds[guild.Id].MentionSpamPrevention;
-			//Return if it's null
-			if (spamPrevention == null || !spamPrevention.Enabled)
 				return;
 
 			//Cross reference the almost kicked users and the mentioned users
@@ -937,7 +924,7 @@ namespace Advobot
 				//Add the author to the already voted list
 				x.AddUserToVotedList(message.Author.Id);
 				//Check if the bot can even kick/ban this user or if they should be punished
-				if (Actions.GetPosition(guild, x.User) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)) || x.VotesToKick < spamPrevention.VotesNeededForKick)
+				if (Actions.GetPosition(guild, x.User) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)) || x.VotesToKick < x.VotesRequired)
 					return;
 				//Check if they've already been kicked to determine if they should be banned or kicked
 				await (x.AlreadyKicked ? guild.AddBanAsync(x.User, 1) : x.User.KickAsync());

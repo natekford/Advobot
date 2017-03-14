@@ -330,8 +330,7 @@ namespace Advobot
 			}
 
 			//Get the position as an int
-			var position = 0;
-			if (!int.TryParse(input.Substring(input.LastIndexOf(' ')), out position))
+			if (!int.TryParse(input.Substring(input.LastIndexOf(' ')), out int position))
 			{
 				await Actions.SendChannelMessage(Context, String.Format("The `{0}` role has a position of `{1}`.", role.Name, role.Position));
 				return;
@@ -697,10 +696,9 @@ namespace Advobot
 			if (Actions.CaseInsIndexOf(roleInput, "position{"))
 			{
 				//Get the position
-				int position;
 				var leftBracePos = roleInput.IndexOf('{');
 				var rightBracePos = roleInput.IndexOf('}');
-				if (!int.TryParse(roleInput.Substring(leftBracePos, rightBracePos), out position))
+				if (!int.TryParse(roleInput.Substring(leftBracePos, rightBracePos), out int position))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position supplied."));
 					return;

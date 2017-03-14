@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
-using System.Reflection;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Advobot
 {

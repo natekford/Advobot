@@ -1,16 +1,15 @@
 ﻿using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Threading;
-using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace Advobot
 {
@@ -370,13 +369,11 @@ namespace Advobot
 							//All need to be ifs to check each value
 
 							//Number of removes to activate
-							int number = 0;
-							if (!int.TryParse(args[0], out number))
+							if (!int.TryParse(args[0], out int number))
 								continue;
 
 							//The type of punishment
-							int punishment = 0;
-							if (!int.TryParse(args[1], out punishment))
+							if (!int.TryParse(args[1], out int punishment))
 								continue;
 
 							//The role ID if a role punishment type
@@ -427,8 +424,7 @@ namespace Advobot
 					var inputArray = line.Split(' ');
 
 					//Test if ID
-					ulong ID = 0;
-					if (!ulong.TryParse(inputArray[0], out ID))
+					if (!ulong.TryParse(inputArray[0], out ulong ID))
 						continue;
 
 					//Test if valid role
@@ -437,8 +433,7 @@ namespace Advobot
 						continue;
 
 					//Test if valid group
-					int group = 0;
-					if (!int.TryParse(inputArray[1], out group))
+					if (!int.TryParse(inputArray[1], out int group))
 						continue;
 
 					//Check if it's already in any list
@@ -506,8 +501,7 @@ namespace Advobot
 						var logActions = new List<LogActions>();
 						line.Substring(line.IndexOf(':') + 1).Split('/').ToList().ForEach(x =>
 						{
-							LogActions temp;
-							if (Enum.TryParse(x, out temp))
+							if (Enum.TryParse(x, out LogActions temp))
 							{
 								logActions.Add(temp);
 							}
@@ -520,8 +514,7 @@ namespace Advobot
 						var IDs = new List<ulong>();
 						line.Substring(line.IndexOf(':') + 1).Split('/').ToList().ForEach(x =>
 						{
-							ulong temp;
-							if (ulong.TryParse(x, out temp))
+							if (ulong.TryParse(x, out ulong temp))
 							{
 								IDs.Add(temp);
 							}
@@ -534,8 +527,7 @@ namespace Advobot
 						var IDs = new List<ulong>();
 						line.Substring(line.IndexOf(':') + 1).Split('/').ToList().ForEach(x =>
 						{
-							ulong temp;
-							if (ulong.TryParse(x, out temp))
+							if (ulong.TryParse(x, out ulong temp))
 							{
 								IDs.Add(temp);
 							}
@@ -549,19 +541,14 @@ namespace Advobot
 						if (variableNumbers.Count != 3)
 							continue;
 
-						var messagesRequired = 0;
-						if (!int.TryParse(variableNumbers[0], out messagesRequired))
+						if (!int.TryParse(variableNumbers[0], out int messagesRequired))
+							continue;
+						if (!int.TryParse(variableNumbers[1], out int mentionsRequired))
+							continue;
+						if (!int.TryParse(variableNumbers[2], out int votesRequired))
 							continue;
 
-						var mentionsRequired = 0;
-						if (!int.TryParse(variableNumbers[1], out mentionsRequired))
-							continue;
-
-						var votesRequired = 0;
-						if (!int.TryParse(variableNumbers[2], out votesRequired))
-							continue;
-
-						GuildInfo.MentionSpamPrevention = new MentionSpamPrevention(messagesRequired, votesRequired, mentionsRequired);
+						GuildInfo.GlobalSpamPrevention.SetMentionSpamPrevention(new MentionSpamPrevention(messagesRequired, votesRequired, mentionsRequired));
 					}
 				}
 			}
@@ -597,13 +584,11 @@ namespace Advobot
 						continue;
 
 					//Check if valid ID
-					ulong ID;
-					if (!ulong.TryParse(inputArray[0], out ID))
+					if (!ulong.TryParse(inputArray[0], out ulong ID))
 						continue;
 
 					//Check if valid perms
-					uint perms;
-					if (!uint.TryParse(inputArray[1], out perms))
+					if (!uint.TryParse(inputArray[1], out uint perms))
 						continue;
 
 					//Get the user
@@ -692,8 +677,7 @@ namespace Advobot
 			if (roleName.StartsWith("<@"))
 			{
 				roleName = roleName.Trim(new char[] { '<', '@', '&', '>' });
-				ulong roleID = 0;
-				if (UInt64.TryParse(roleName, out roleID))
+				if (UInt64.TryParse(roleName, out ulong roleID))
 				{
 					return context.Guild.GetRole(roleID);
 				}
@@ -746,19 +730,14 @@ namespace Advobot
 		//Get the input to a ulong
 		public static ulong GetUlong(string inputString)
 		{
-			ulong number = 0;
-			if (UInt64.TryParse(inputString, out number))
-			{
-				return number;
-			}
-			return 0;
+			return UInt64.TryParse(inputString, out ulong number) ? number : 0;
 		}
 		
 		//Get if the user/bot can edit the role
 		public static async Task<IRole> GetRoleEditAbility(CommandContext context, string input = null, bool ignore_Errors = false, IRole role = null)
 		{
 			//Check if valid role
-			var inputRole = role == null ? await GetRole(context, input) : role;
+			var inputRole = role ?? await GetRole(context, input);
 			if (inputRole == null)
 			{
 				if (!ignore_Errors)
@@ -849,10 +828,7 @@ namespace Advobot
 		//Get a channel ID
 		public static async Task<IGuildChannel> GetChannelID(IGuild guild, string channelName)
 		{
-			ulong channelID = 0;
-			if (!UInt64.TryParse(channelName.Trim(new char[] { '<', '>', '#' }), out channelID))
-				return null;
-			return await guild.GetChannelAsync(channelID);
+			return UInt64.TryParse(channelName.Trim(new char[] { '<', '>', '#' }), out ulong channelID) ? await guild.GetChannelAsync(channelID) : null;
 		}
 		
 		//Get a channel
@@ -884,8 +860,7 @@ namespace Advobot
 				return null;
 
 			//If a channel mention
-			ulong channelID = 0;
-			if (ulong.TryParse(values[0].Trim(new char[] { '<', '#', '>' }), out channelID))
+			if (ulong.TryParse(values[0].Trim(new char[] { '<', '#', '>' }), out ulong channelID))
 			{
 				return await guild.GetChannelAsync(channelID);
 			}
@@ -922,12 +897,7 @@ namespace Advobot
 		//Get integer
 		public static int GetInteger(string inputString)
 		{
-			int number = 0;
-			if (Int32.TryParse(inputString, out number))
-			{
-				return number;
-			}
-			return -1;
+			return Int32.TryParse(inputString, out int number) ? number : -1;
 		}
 		
 		//Get bits
@@ -1085,11 +1055,8 @@ namespace Advobot
 		public static async Task<ITextChannel> GetLogChannel(IGuild guild, string serverOrMod)
 		{
 			//Get the guild info
-			BotGuildInfo guildInfo;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out guildInfo))
-			{
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 				return null;
-			}
 
 			ITextChannel channel = null;
 			if (serverOrMod == Constants.SERVER_LOG_CHECK_STRING)
@@ -1169,7 +1136,7 @@ namespace Advobot
 		{
 			//Get the item
 			var first = inputArray?.Where(x => CaseInsEquals(x.Substring(0, Math.Max(x.IndexOf(':'), 1)), searchTerm)).FirstOrDefault();
-			return first != null ? first.Substring(first.IndexOf(':') + 1) : null;
+			return first?.Substring(first.IndexOf(':') + 1);
 		}
 
 		//Get the variable out of a string
@@ -1226,8 +1193,7 @@ namespace Advobot
 				return -1;
 			}
 			//Check if valid number
-			int groupNumber;
-			if (!int.TryParse(input, out groupNumber))
+			if (!int.TryParse(input, out int groupNumber))
 			{
 				await MakeAndDeleteSecondaryMessage(context, ERROR("Invalid group number."));
 				return -1;
@@ -1337,7 +1303,7 @@ namespace Advobot
 			return String.Format("**Aliases:** {0}\n**Usage:** {1}\n\n**Base Permission(s):**\n{2}\n\n**Description:**\n{3}",
 				String.Join(", ", help.Aliases),
 				help.Usage,
-				help.basePerm,
+				help.BasePerm,
 				help.Text);
 		}
 
@@ -1493,7 +1459,9 @@ namespace Advobot
 			while (requestCount > 0)
 			{
 				//Get the current messages and ones that aren't null
-				var messages = (await channel.GetMessagesAsync(requestCount).ToList()).SelectMany(x => x.ToList()).ToList();
+				var messages = (await channel.GetMessagesAsync(requestCount).ToList()).SelectMany(x => x).ToList();
+				if (messages.Count == 0)
+					break;
 
 				//Delete them in a try catch due to potential errors
 				try
@@ -1520,39 +1488,32 @@ namespace Advobot
 				return;
 			}
 
-			WriteLine(String.Format("Deleting {0} messages from {1} in channel {2} in guild {3}.", requestCount, user.Id, channel.Name, channel.GuildId));
-			var allMessages = new List<IMessage>();
-			using (var enumerator = channel.GetMessagesAsync(Constants.MESSAGES_TO_GATHER).GetEnumerator())
+			while (requestCount > 0)
 			{
-				while (await enumerator.MoveNext())
+				//Get the current messages and ones that aren't null
+				var messages = (await channel.GetMessagesAsync(requestCount).ToList()).SelectMany(x => x).Where(x => x.Author == user).ToList();
+				if (messages.Count == 0)
+					break;
+
+				//Delete them in a try catch due to potential errors
+				try
 				{
-					var messages = enumerator.Current;
-					if (messages.Count == 0)
-						continue;
-					allMessages.AddRange(messages);
+					await DeleteMessages(channel, messages);
 				}
-			}
+				catch
+				{
+					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count, FormatGuild(channel.Guild), FormatChannel(channel)));
+				}
 
-			//Get valid amount of messages to delete
-			var userMessages = allMessages.Where(x => user == x.Author).ToList();
-			if (requestCount > userMessages.Count)
-			{
-				requestCount = userMessages.Count;
+				//Lower the request count
+				requestCount -= messages.Count;
 			}
-			else if (requestCount < userMessages.Count)
-			{
-				userMessages.RemoveRange(requestCount, userMessages.Count - requestCount);
-			}
-			//Remove the initial command message
-			userMessages.Insert(0, allMessages[0]);
-
-			await DeleteMessages(channel, userMessages);
 		}
 
 		//Delete messages that aren't null
 		public static async Task DeleteMessages(ITextChannel channel, List<IMessage> messages)
 		{
-			await channel.DeleteMessagesAsync(messages.Where(x => x != null));
+			await channel.DeleteMessagesAsync(messages.Where(x => x != null).Distinct());
 		}
 
 		//Delete a message that isn't null
@@ -1754,9 +1715,8 @@ namespace Advobot
 			}
 			else
 			{
-				var url = "";
 				var content = ReplaceMarkdownChars(String.Join("\n-----\n", inputList));
-				if (TryToUploadToHastebin(content, out url))
+				if (TryToUploadToHastebin(content, out string url))
 				{
 					//Upload the embed with the Hastebin link
 					var embed = MakeNewEmbed("Deleted Messages", String.Format("Click [here]({0}) to see the messages.", url), Constants.MDEL);
@@ -1782,21 +1742,25 @@ namespace Advobot
 				return false;
 			}
 
-			//Double check that mark down characters have been removed
-			text = ReplaceMarkdownChars(text);
-
 			//Regex for Getting the key out
-			Regex hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
+			var hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
 
 			//Upload the messages
 			using (var client = new WebClient())
 			{
-				var response = client.UploadString("https://hastebin.com/documents", text);
-				//TODO: give response checking in case failure
-				var match = hasteKeyRegex.Match(response);
+				try
+				{
+					//Double check that mark down characters have been removed
+					var response = client.UploadString("https://hastebin.com/documents", ReplaceMarkdownChars(text));
 
-				//Send the url back
-				output = String.Concat("https://hastebin.com/raw/", match.Groups["key"]);
+					//Send the url back
+					output = String.Concat("https://hastebin.com/raw/", hasteKeyRegex.Match(response).Groups["key"]);
+				}
+				catch (Exception e)
+				{
+					output = e.Message;
+					return false;
+				}
 			}
 			return true;
 		}
@@ -1881,8 +1845,7 @@ namespace Advobot
 				req.Method = "HEAD";
 				using (var resp = req.GetResponse())
 				{
-					int ContentLength = 0;
-					if (int.TryParse(resp.Headers.Get("Content-Length"), out ContentLength))
+					if (int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
 					{
 						//Check if valid content type
 						if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
@@ -1967,8 +1930,7 @@ namespace Advobot
 			if (input == null)
 				return false;
 
-			Uri uriResult;
-			return Uri.TryCreate(input, UriKind.Absolute, out uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+			return Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 		}
 		#endregion
 
@@ -2411,7 +2373,7 @@ namespace Advobot
 		public static IMessage VerifyMessage(IMessage message)
 		{
 			//Make sure the message doesn't come from a bot
-			return !(message.Author.IsBot && message.Author.Id != Variables.Bot_ID) ? message : null;
+			return !(message == null || message.Author.IsBot && message.Author.Id != Variables.Bot_ID) ? message : null;
 		}
 
 		public static IGuild GetGuildFromMessage(IMessage message)
@@ -2736,10 +2698,10 @@ namespace Advobot
 				smUser = Variables.SlowmodeGuilds[guild.Id].FirstOrDefault(x => x.User.Id == message.Author.Id);
 			}
 			//If that fails, try to get it from the channel ID
-			else if (Variables.SlowmodeChannels.ContainsKey(message.Channel as IGuildChannel))
+			else if (Variables.SlowmodeChannels.ContainsKey(message.Channel.Id))
 			{
 				//Find a channel slowmode where the channel ID is the same as the message channel ID then get the user
-				smUser = Variables.SlowmodeChannels[message.Channel as IGuildChannel].FirstOrDefault(x => x.User.Id == message.Author.Id);
+				smUser = Variables.SlowmodeChannels[message.Channel.Id].FirstOrDefault(x => x.User.Id == message.Author.Id);
 			}
 
 			//Once the user within the SlowmodeUser class isn't null then go through with slowmode
@@ -2782,7 +2744,7 @@ namespace Advobot
 			//Get a list of the IDs of the guild's channels
 			var guildChannelIDList = (await user.Guild.GetTextChannelsAsync()).Select(x => x.Id);
 			//Find if any of them are a slowmode channel
-			var smChannels = Variables.SlowmodeChannels.Where(kvp => guildChannelIDList.Contains(kvp.Key.Id)).ToList();
+			var smChannels = Variables.SlowmodeChannels.Where(kvp => guildChannelIDList.Contains(kvp.Key)).ToList();
 			//If greater than zero, add the user to each one
 			if (smChannels.Any())
 			{
@@ -3112,6 +3074,7 @@ namespace Advobot
 		}
 
 		//Get the commands that have the given input in their name
+		//TODO: Rework close words to be similar to close help
 		public static List<CloseHelp> GetCommandsWithInputInName(List<CloseHelp> list, string input)
 		{
 			//Find commands with the input in their name
@@ -3265,7 +3228,7 @@ namespace Advobot
 			const long PERIOD = 60 * 60 * 1000;
 
 			//Reset the spam prevention user list
-			Variables.Guilds.ToList().ForEach(x => x.Value.SpamPreventionUsers = new List<SpamPreventionUser>());
+			Variables.Guilds.ToList().ForEach(x => x.Value.GlobalSpamPrevention.ClearSpamPreventionUsers());
 
 			//Determine how long to wait until firing
 			var time = PERIOD;
@@ -3276,6 +3239,57 @@ namespace Advobot
 
 			//Wait until the next firing
 			Variables.Timer = new Timer(ResetSpamPrevention, null, time, Timeout.Infinite);
+		}
+
+		//Going through with the spam prevention
+		public static async Task<bool> HandleSpamPrevention(GlobalSpamPrevention global, BaseSpamPrevention spamPrev, IGuild guild, IMessage message)
+		{
+			if (spamPrev == null || !spamPrev.Enabled)
+				return false;
+
+			//Check if the bot can even kick/ban this user
+			var author = message.Author as IGuildUser;
+			if (GetPosition(guild, author) >= GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)))
+				return true;
+
+			var votes = spamPrev.VotesNeededForKick;
+			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == author) ?? new SpamPreventionUser(global, author, 0, votes);
+
+			spUser.IncreaseCurrentSpamAmount();
+			if (spUser.CurrentSpamAmount < spamPrev.AmountOfMessages)
+				return true;
+
+			//Send a message telling the users of the guild they can vote to ban this person
+			await SendChannelMessage(message.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.", FormatUser(author), votes));
+			//Make sure they have the lowest vote count required to kick
+			spUser.ChangeVotesRequired(votes);
+			spUser.EnablePotentialKick();
+			return true;
+		}
+
+		public static bool SpamCheck(MessageSpamPrevention spamPrev, IMessage message)
+		{
+			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
+		}
+
+		public static bool SpamCheck(LongMessageSpamPrevention spamPrev, IMessage message)
+		{
+			return message.Content.Length > spamPrev.AmountOfSpam;
+		}
+
+		public static bool SpamCheck(LinkSpamPrevention spamPrev, IMessage message)
+		{
+			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
+		}
+
+		public static bool SpamCheck(ImageSpamPrevention spamPrev, IMessage message)
+		{
+			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
+		}
+
+		public static bool SpamCheck(MentionSpamPrevention spamPrev, IMessage message)
+		{
+			return message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
 		}
 		#endregion
 

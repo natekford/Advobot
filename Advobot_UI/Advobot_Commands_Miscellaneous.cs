@@ -25,15 +25,11 @@ namespace Advobot
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				//Description string
-				var text = "Type `" + Properties.Settings.Default.Prefix + "commands` for the list of commands.\nType `" + Properties.Settings.Default.Prefix + "help [Command]` for help with a command.";
-
+				var text = String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", Properties.Settings.Default.Prefix);
 				//Make the embed
 			    var embed = Actions.MakeNewEmbed("Commands", text);
-				//Add the first field
 				Actions.AddField(embed, "Syntax", "[] means required.\n<> means optional.\n| means or.");
-				//Add the second field
-				Actions.AddField(embed, "Current Repo", "[Advobot](https://github.com/advorange/Advobot)");
-				//Add the footer
+				Actions.AddField(embed, "Links", "[GitHub Repository](https://github.com/advorange/Advobot)\n[Discord Server](https://discord.gg/ad)");
 				Actions.AddFooter(embed, "Help");
 				await Actions.SendEmbedMessage(Context.Channel, embed);
 				return;
@@ -162,8 +158,7 @@ namespace Advobot
 			}
 
 			//Check what category
-			CommandCategory category;
-			if (!Enum.TryParse(input, true, out category))
+			if (!Enum.TryParse(input, true, out CommandCategory category))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Category does not exist."));
 				return;
@@ -389,8 +384,7 @@ namespace Advobot
 		public async Task EmojiInfo([Remainder] string input)
 		{
 			//Parse out the emoji
-			Emoji emoji;
-			if (!Emoji.TryParse(input, out emoji))
+			if (!Emoji.TryParse(input, out Emoji emoji))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid emoji supplied."));
 				return;
@@ -450,8 +444,7 @@ namespace Advobot
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 
 			//Get the type of image
-			AvatarFormat format;
-			if (!Enum.TryParse(inputArray[0], true, out format))
+			if (!Enum.TryParse(inputArray[0], true, out AvatarFormat format))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid avatar format supplied."));
 				return;
@@ -496,8 +489,7 @@ namespace Advobot
 		[Summary("Shows the user which joined the guild in that position. Mostly accurate on a small guild, while horribly inaccurate on a large guild.")]
 		public async Task UserJoinedAt([Remainder] string input)
 		{
-			int position;
-			if (Int32.TryParse(input, out position))
+			if (Int32.TryParse(input, out int position))
 			{
 				var guildUsers = await Context.Guild.GetUsersAsync();
 				var users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
@@ -649,9 +641,8 @@ namespace Advobot
 				return;
 
 			//Set the time in seconds
-			int time = 0;
 			int? nullableTime = null;
-			if (int.TryParse(inputArray[1], out time))
+			if (int.TryParse(inputArray[1], out int time))
 			{
 				int[] validTimes = { 1800, 3600, 21600, 43200, 86400 };
 				if (validTimes.Contains(time))
@@ -661,9 +652,8 @@ namespace Advobot
 			}
 
 			//Set the max amount of users
-			int users = 0;
 			int? nullableUsers = null;
-			if (int.TryParse(inputArray[2], out users))
+			if (int.TryParse(inputArray[2], out int users))
 			{
 				int[] validUsers = { 1, 5, 10, 25, 50, 100 };
 				if (validUsers.Contains(users))
@@ -851,9 +841,8 @@ namespace Advobot
 			var colorRGB = Actions.GetVariableAndRemove(inputArray, "color")?.Split('/');
 			if (colorRGB != null && colorRGB.Length == 3)
 			{
-				byte r, g, b;
 				const byte MAX_VAL = 255;
-				if (byte.TryParse(colorRGB[0], out r) && byte.TryParse(colorRGB[1], out g) && byte.TryParse(colorRGB[2], out b))
+				if (byte.TryParse(colorRGB[0], out byte r) && byte.TryParse(colorRGB[1], out byte g) && byte.TryParse(colorRGB[2], out byte b))
 				{
 					color = new Color(Math.Min(r, MAX_VAL), Math.Min(g, MAX_VAL), Math.Min(b, MAX_VAL));
 				}
@@ -877,8 +866,7 @@ namespace Advobot
 					break;
 
 				//Get the bool for the field
-				var inlineBool = true;
-				bool.TryParse(Actions.GetVariableAndRemove(inputArray, "fieldinline" + i), out inlineBool);
+				bool.TryParse(Actions.GetVariableAndRemove(inputArray, "fieldinline" + i), out bool inlineBool);
 
 				//Add in the field
 				Actions.AddField(embed, field, fieldText, inlineBool);

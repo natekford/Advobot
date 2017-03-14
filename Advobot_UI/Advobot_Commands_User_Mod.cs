@@ -50,19 +50,24 @@ namespace Advobot
 			else
 			{
 				//Check if time is given
-				var time = 0;
-				if (inputArray.Length == 2 && !int.TryParse(inputArray[1], out time))
+				var timeString = "";
+				if (inputArray.Length == 2)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
+					if (int.TryParse(inputArray[1], out int time))
+					{
+						Actions.RemoveRoleAfterTime(user, muteRole, time);
+						timeString = String.Format(" for {0} seconds", time);
+					}
+					else
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
+						return;
+					}
 				}
-				else if (time != 0)
-				{
-					Actions.RemoveRoleAfterTime(user, muteRole, time);
-				}
+
 				//Give them the mute role
 				await Actions.GiveRole(user, muteRole);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully text muted `{0}`{1}.", 
-					Actions.FormatUser(user), time != 0 ? String.Format(" for {0} seconds", time) : ""));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully text muted `{0}`{1}.", Actions.FormatUser(user), timeString));
 			}
 		}
 
@@ -87,20 +92,23 @@ namespace Advobot
 			if (!user.IsMuted)
 			{
 				//Check if time is given
-				var time = 0;
-				if (inputArray.Length == 2 && !int.TryParse(inputArray[1], out time))
+				var timeString = "";
+				if (inputArray.Length == 2)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
-					return;
+					if (int.TryParse(inputArray[1], out int time))
+					{
+						Actions.UnmuteVoiceAfterTime(user, time);
+					}
+					else
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
+						return;
+					}
 				}
-				else if (time != 0)
-				{
-					Actions.UnmuteVoiceAfterTime(user, time);
-				}
+				
 				//Mute the user
 				await user.ModifyAsync(x => x.Mute = true);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully muted `{0}`{1}.", 
-					Actions.FormatUser(user), time != 0 ? String.Format(" for {0} seconds", time) : ""));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully muted `{0}`{1}.", Actions.FormatUser(user), timeString));
 			}
 			else
 			{
@@ -131,20 +139,24 @@ namespace Advobot
 			if (!user.IsDeafened)
 			{
 				//Check if time was supplied
-				var time = 0;
-				if (inputArray.Length == 2 && !int.TryParse(inputArray[1], out time))
+				var timeString = "";
+				if (inputArray.Length == 2)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
-					return;
+					if (int.TryParse(inputArray[0], out int time))
+					{
+						Actions.UndeafenAfterTime(user, time);
+						timeString = String.Format(" for {0} seconds", time);
+					}
+					else
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
+						return;
+					}
 				}
-				else if (time != 0)
-				{
-					Actions.UndeafenAfterTime(user, time);
-				}
+
 				//Deafen them
 				await user.ModifyAsync(x => x.Deaf = true);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deafened `{0}`{1}.",
-					Actions.FormatUser(user), time != 0 ? String.Format(" for {0} seconds", time) : ""));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deafened `{0}`{1}.", Actions.FormatUser(user), timeString));
 			}
 			else
 			{
@@ -297,8 +309,7 @@ namespace Advobot
 			int[] validDays = { 1, 7, 30 };
 
 			//Get the int
-			var amountOfDays = 0;
-			if (!int.TryParse(inputArray[0], out amountOfDays))
+			if (!int.TryParse(inputArray[0], out int amountOfDays))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Not a number."));
 				return;
@@ -390,7 +401,6 @@ namespace Advobot
 
 			//Test if valid user mention
 			var inputUser = await Actions.GetUser(Context.Guild, inputArray[0]);
-			ulong inputUserID;
 			if (inputUser != null)
 			{
 				//Determine if the user is allowed to ban this person
@@ -410,7 +420,7 @@ namespace Advobot
 				//Ban the user
 				await Context.Guild.AddBanAsync(inputUser, pruneDays);
 			}
-			else if (ulong.TryParse(input, out inputUserID))
+			else if (ulong.TryParse(input, out ulong inputUserID))
 			{
 				//Ban the user
 				await Context.Guild.AddBanAsync(inputUserID, pruneDays);
@@ -456,14 +466,12 @@ namespace Advobot
 			var bans = await Context.Guild.GetBansAsync();
 
 			//Get their name and discriminator or ulong
-			ulong inputUserID;
 			var secondHalfOfTheSecondaryMessage = "";
 
 			if (inputArray.Length == 2)
 			{
 				//Unban given a username and discriminator
-				ushort discriminator;
-				if (!ushort.TryParse(inputArray[1], out discriminator))
+				if (!ushort.TryParse(inputArray[1], out ushort discriminator))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid discriminator provided."));
 				}
@@ -477,7 +485,7 @@ namespace Advobot
 				await Context.Guild.RemoveBanAsync(bannedUser);
 				secondHalfOfTheSecondaryMessage = String.Format("unbanned the user `{0}#{1}` with the ID `{2}`.", bannedUser.Username, bannedUser.Discriminator, bannedUser.Id);
 			}
-			else if (!ulong.TryParse(input, out inputUserID))
+			else if (!ulong.TryParse(input, out ulong inputUserID))
 			{
 				//Unban given just a username
 				var bannedUsersWithSameName = bans.ToList().Where(x => x.User.Username.Equals(input)).ToList();
@@ -629,7 +637,7 @@ namespace Advobot
 			if (Context.User.Id != Context.Guild.OwnerId && (inputChannel == serverlogChannel || inputChannel == modlogChannel))
 			{
 				//Send a message in the channel
-				await Actions.SendChannelMessage(serverlogChannel == null ? modlogChannel : serverlogChannel, String.Format("Hey, @here, {0} is trying to delete stuff.", Context.User.Mention));
+				await Actions.SendChannelMessage(serverlogChannel ?? modlogChannel, String.Format("Hey, @here, {0} is trying to delete stuff.", Context.User.Mention));
 
 				//DM the owner of the server
 				await Actions.SendDMMessage(await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync(),
@@ -699,7 +707,7 @@ namespace Advobot
 				else if (Actions.CaseInsEquals(inputArray[1], "channel"))
 				{
 					//Remove the channel
-					Variables.SlowmodeChannels.Remove(Context.Channel as IGuildChannel);
+					Variables.SlowmodeChannels.Remove(Context.Channel.Id);
 
 					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the channel.");
@@ -708,7 +716,7 @@ namespace Advobot
 				{
 					//Remove the guild and every single channel on the guild
 					Variables.SlowmodeGuilds.Remove(Context.Guild.Id);
-					(await Context.Guild.GetTextChannelsAsync()).ToList().ForEach(channel => Variables.SlowmodeChannels.Remove(channel as IGuildChannel));
+					(await Context.Guild.GetTextChannelsAsync()).ToList().ForEach(channel => Variables.SlowmodeChannels.Remove(channel.Id));
 
 					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed all slowmodes on the guild and its channels.");
@@ -737,7 +745,7 @@ namespace Advobot
 			if (targetString == null)
 			{
 				//Check the channel dictionary
-				if (Variables.SlowmodeChannels.ContainsKey(Context.Channel as IGuildChannel))
+				if (Variables.SlowmodeChannels.ContainsKey(Context.Channel.Id))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Channel already is in slowmode.");
 					return;
@@ -777,51 +785,55 @@ namespace Advobot
 			rolesIDs.Distinct().ToList().ForEach(x => roleNames.Add(Context.Guild.GetRole(x).Name));
 
 			//Get the messages limit
-			var msgsLimit = 1;
-			//Check if is a number
-			if (messageString != null && !int.TryParse(messageString, out msgsLimit))
+			if (int.TryParse(messageString, out int msgsLimit))
+			{
+				//Check if is a valid number
+				if (msgsLimit > 5 || msgsLimit < 1)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Message limit must be between 1 and 5 inclusive."));
+					return;
+				}
+			}
+			else if (messageString != null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for messages was not a number. Remember: no space after the colon."));
 				return;
 			}
-			//Check if is a valid number
-			if (msgsLimit > 5 || msgsLimit < 1)
+			else
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Message limit must be between 1 and 5 inclusive."));
-				return;
+				msgsLimit = 1;
 			}
 
+
 			//Get the time limit
-			var timeLimit = 5;
-			//Check if is a number
-			if (timeString != null && !int.TryParse(timeString, out timeLimit))
+			if (int.TryParse(timeString, out int timeLimit))
+			{
+				//Check if is a valid number
+				if (timeLimit > 30 || timeLimit < 1)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Time must be between 1 and 10 inclusive."));
+					return;
+				}
+			}
+			else if (timeString != null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for time was not a number. Remember: no space after the colon."));
 				return;
 			}
-			//Check if is a valid number
-			if (timeLimit > 30 || timeLimit < 1)
+			else
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Time must be between 1 and 10 inclusive."));
-				return;
+				timeLimit = 5;
 			}
 
 			//Add the users into the list with their given messages and if they're affected
-			var slowmodeUsers = new List<SlowmodeUser>();
-			(await Context.Guild.GetUsersAsync()).ToList().ForEach(x =>
-			{
-				//If they have any role ids that are on the role list then they're immune
-				if (!x.RoleIds.ToList().Intersect(rolesIDs).Any())
-				{
-					slowmodeUsers.Add(new SlowmodeUser(x, msgsLimit, msgsLimit, timeLimit));
-				}
-			});
+			var slowmodeUsers = (await Context.Guild.GetUsersAsync()).Where(x => !x.RoleIds.Intersect(rolesIDs).Any()).Select(x =>
+								{ return new SlowmodeUser(x, msgsLimit, msgsLimit, timeLimit); }).ToList();
 
 			//If targetString is null then take that as only the channel and not the guild
 			if (targetString == null)
 			{
 				//Add the channel and list to a dictionary
-				Variables.SlowmodeChannels.Add(Context.Channel as IGuildChannel, slowmodeUsers);
+				Variables.SlowmodeChannels.Add(Context.Channel.Id, slowmodeUsers);
 			}
 			else
 			{

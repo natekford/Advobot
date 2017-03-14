@@ -368,8 +368,7 @@ namespace Advobot
 			}
 
 			//Check if valid number
-			var number = 0;
-			if (!int.TryParse(input, out number))
+			if (!int.TryParse(input, out int number))
 			{
 				Actions.WriteLine("Invalid input for number.");
 				return;

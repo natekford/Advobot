@@ -4,11 +4,11 @@ using Discord.Rest;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Threading;
-using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace Advobot
 {
@@ -177,7 +177,7 @@ namespace Advobot
 		{
 			get { return Properties.Settings.Default.Prefix + mName + " " + mUsage; }
 		}
-		public string basePerm
+		public string BasePerm
 		{
 			get { return mBasePerm; }
 		}
@@ -245,8 +245,7 @@ namespace Advobot
 		{
 			get
 			{
-				int value;
-				return Int32.TryParse(mValue, out value) ? value : -1;
+				return Int32.TryParse(mValue, out int value) ? value : -1;
 			}
 		}
 
@@ -476,52 +475,20 @@ namespace Advobot
 		public List<Regex> BannedRegex = new List<Regex>();
 		public List<BannedPhrasePunishment> BannedPhrasesPunishments = new List<BannedPhrasePunishment>();
 
-		//Commands and logging
+		//Commands
 		public List<CommandSwitch> CommandSettings = new List<CommandSwitch>();
+		public List<CommandDisabledOnChannel> CommandsDisabledOnChannel = new List<CommandDisabledOnChannel>();
 		public List<ulong> IgnoredCommandChannels = new List<ulong>();
+
+		//Loggings
 		public List<ulong> IgnoredLogChannels = new List<ulong>();
 		public List<LogActions> LogActions = new List<LogActions>();
 
 		//Spam prevention
-		public List<SpamPreventionUser> SpamPreventionUsers = new List<SpamPreventionUser>();
-		public MessageSpamPrevention MessageSpamPrevention;
-		public LongMessageSpamPrevention LongMessageSpamPrevention;
-		public LinkSpamPrevention LinkSpamPrevention;
-		public ImageSpamPrevention ImageSpamPrevention;
-		public MentionSpamPrevention MentionSpamPrevention;
+		public GlobalSpamPrevention GlobalSpamPrevention = new GlobalSpamPrevention();
 
 		//Raid prevention
-		private IRole mMuteRole;
-		public IRole MuteRole
-		{
-			get { return mMuteRole; }
-		}
-		public void SetMuteRole(IRole role)
-		{
-			mMuteRole = role;
-		}
-		private bool mRaidPrevention = false;
-		public bool RaidPrevention
-		{
-			get { return mRaidPrevention; }
-		}
-		public void SwitchRaidPrevention()
-		{
-			mRaidPrevention = !mRaidPrevention;
-		}
-		private List<IGuildUser> mUsersWhoHaveBeenMuted = new List<IGuildUser>();
-		public ReadOnlyCollection<IGuildUser> UsersWhoHaveBeenMuted
-		{
-			get { return mUsersWhoHaveBeenMuted.AsReadOnly(); }
-		}
-		public void AddUserToMutedList(IGuildUser user)
-		{
-			mUsersWhoHaveBeenMuted.Add(user);
-		}
-		public void ClearUserMutedList()
-		{
-			mUsersWhoHaveBeenMuted.Clear();
-		}
+		public AntiRaid AntiRaid;
 
 		//Misc
 		public List<Remind> Reminds = new List<Remind>();
@@ -614,15 +581,18 @@ namespace Advobot
 
 	public class SpamPreventionUser
 	{
-		public SpamPreventionUser(IGuildUser user, int currentSpamAmount)
+		public SpamPreventionUser(GlobalSpamPrevention global, IGuildUser user, int currentSpamAmount, int votesRequired)
 		{
 			mUser = user;
 			mCurrentSpamAmount = currentSpamAmount;
+			mVotesRequired = votesRequired;
+			global.AddSpamPreventionUser(this);
 		}
 
 		private IGuildUser mUser;
 		private int mVotesToKick;
 		private int mCurrentSpamAmount;
+		private int mVotesRequired;
 		private bool mAlreadyKicked = false;
 		private bool mPotentialKick = false;
 		private List<ulong> mUsersWhoHaveAlreadyVoted = new List<ulong>();
@@ -638,6 +608,10 @@ namespace Advobot
 		public int CurrentSpamAmount
 		{
 			get { return mCurrentSpamAmount; }
+		}
+		public int VotesRequired
+		{
+			get { return mVotesRequired; }
 		}
 		public bool AlreadyKicked
 		{
@@ -659,6 +633,10 @@ namespace Advobot
 		public void IncreaseCurrentSpamAmount()
 		{
 			++mCurrentSpamAmount;
+		}
+		public void ChangeVotesRequired(int input)
+		{
+			mVotesRequired = Math.Min(input, mVotesRequired);
 		}
 		public void EnablePotentialKick()
 		{
@@ -683,6 +661,7 @@ namespace Advobot
 		public abstract DiscordSocketClient GetShardFor(IGuild guild);
 		public abstract int GetLatency();
 		public abstract Task StartAsync();
+		public abstract Task StopAsync();
 		public abstract Task LoginAsync(TokenType tokenType, string token);
 		public abstract Task LogoutAsync();
 		public abstract Task WaitForGuildsAsync();
@@ -705,6 +684,7 @@ namespace Advobot
 		public override DiscordSocketClient GetShardFor(IGuild guild) { return mSocketClient; }
 		public override int GetLatency() { return mSocketClient.Latency; }
 		public override async Task StartAsync() { await mSocketClient.StartAsync(); }
+		public override async Task StopAsync() { await mSocketClient.StopAsync(); }
 		public override async Task LoginAsync(TokenType tokenType, string token) { await mSocketClient.LoginAsync(tokenType, token); }
 		public override async Task LogoutAsync() { await mSocketClient.LogoutAsync(); }
 		public override async Task WaitForGuildsAsync() { await mSocketClient.WaitForGuildsAsync(); }
@@ -727,6 +707,7 @@ namespace Advobot
 		public override DiscordSocketClient GetShardFor(IGuild guild) { return mShardedClient.GetShardFor(guild); }
 		public override int GetLatency() { return mShardedClient.Latency; }
 		public override async Task StartAsync() { await mShardedClient.StartAsync(); }
+		public override async Task StopAsync() { await mShardedClient.StopAsync(); }
 		public override async Task LoginAsync(TokenType tokenType, string token) { await mShardedClient.LoginAsync(tokenType, token); }
 		public override async Task LogoutAsync() { await mShardedClient.LogoutAsync(); }
 		public override async Task WaitForGuildsAsync() { await mShardedClient.Shards.ToList().ForEachAsync(async x => await x.WaitForGuildsAsync()); }
@@ -748,7 +729,7 @@ namespace Advobot
 		private int mAmountOfSpam;
 		private bool mEnabled;
 
-		public int AmountOfMentionsPerMsg
+		public int AmountOfSpam
 		{
 			get { return mAmountOfSpam; }
 		}
@@ -794,6 +775,73 @@ namespace Advobot
 	public class ImageSpamPrevention : BaseSpamPrevention
 	{
 		public ImageSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfImages) : base(amountOfMessages, votesNeededForKick, amountOfImages) { }
+	}
+
+	public class GlobalSpamPrevention
+	{
+		private List<SpamPreventionUser> mSpamPreventionUsers = new List<SpamPreventionUser>();
+		public ReadOnlyCollection<SpamPreventionUser> SpamPreventionUsers
+		{
+			get { return mSpamPreventionUsers.AsReadOnly(); }
+		}
+		public void AddSpamPreventionUser(SpamPreventionUser user)
+		{
+			mSpamPreventionUsers.Add(user);
+		}
+		public void ClearSpamPreventionUsers()
+		{
+			mSpamPreventionUsers = new List<SpamPreventionUser>();
+		}
+
+		private MessageSpamPrevention mMessageSpamPrevention;
+		public MessageSpamPrevention MessageSpamPrevention
+		{
+			get { return mMessageSpamPrevention; }
+		}
+		public void SetMessageSpamPrevention(MessageSpamPrevention spamPrevention)
+		{
+			mMessageSpamPrevention = spamPrevention;
+		}
+
+		private LongMessageSpamPrevention mLongMessageSpamPrevention;
+		public LongMessageSpamPrevention LongMessageSpamPrevention
+		{
+			get { return mLongMessageSpamPrevention; }
+		}
+		public void SetLongMessageSpamPrevention(LongMessageSpamPrevention spamPrevention)
+		{
+			mLongMessageSpamPrevention = spamPrevention;
+		}
+
+		private LinkSpamPrevention mLinkSpamPrevention;
+		public LinkSpamPrevention LinkSpamPrevention
+		{
+			get { return mLinkSpamPrevention; }
+		}
+		public void SetLinkSpamPrevention(LinkSpamPrevention spamPrevention)
+		{
+			mLinkSpamPrevention = spamPrevention;
+		}
+
+		private ImageSpamPrevention mImageSpamPrevention;
+		public ImageSpamPrevention ImageSpamPrevention
+		{
+			get { return mImageSpamPrevention; }
+		}
+		public void SetImageSpamPrevention(ImageSpamPrevention spamPrevention)
+		{
+			mImageSpamPrevention = spamPrevention;
+		}
+
+		private MentionSpamPrevention mMentionSpamPrevention;
+		public MentionSpamPrevention MentionSpamPrevention
+		{
+			get { return mMentionSpamPrevention; }
+		}
+		public void SetMentionSpamPrevention(MentionSpamPrevention spamPrevention)
+		{
+			mMentionSpamPrevention = spamPrevention;
+		}
 	}
 
 	public abstract class DeletionSpamProtection
@@ -853,6 +901,35 @@ namespace Advobot
 		public override void ClearList()
 		{
 			mMessages.Clear();
+		}
+	}
+
+	public class AntiRaid
+	{
+		public AntiRaid(IRole muteRole)
+		{
+			mMuteRole = muteRole;
+		}
+
+		private IRole mMuteRole;
+		private List<IGuildUser> mUsersWhoHaveBeenMuted = new List<IGuildUser>();
+
+		public IRole MuteRole
+		{
+			get { return mMuteRole; }
+		}
+		public void SetMuteRole(IRole role)
+		{
+			mMuteRole = role;
+		}
+
+		public ReadOnlyCollection<IGuildUser> UsersWhoHaveBeenMuted
+		{
+			get { return mUsersWhoHaveBeenMuted.AsReadOnly(); }
+		}
+		public void AddUserToMutedList(IGuildUser user)
+		{
+			mUsersWhoHaveBeenMuted.Add(user);
 		}
 	}
 	#endregion
@@ -1022,9 +1099,9 @@ namespace Advobot
 		{
 			get { return mUser; }
 		}
-		public List<CloseWord> List
+		public ReadOnlyCollection<CloseWord> List
 		{
-			get { return mList; }
+			get { return mList.AsReadOnly(); }
 		}
 	}
 
@@ -1064,15 +1141,15 @@ namespace Advobot
 		{
 			get { return mUser; }
 		}
-		public List<CloseHelp> List
+		public ReadOnlyCollection<CloseHelp> List
 		{
-			get { return mList; }
+			get { return mList.AsReadOnly(); }
 		}
 	}
 
 	public struct UICommandNames
 	{
-		private static readonly Dictionary<UICommandEnum, string[]> NamesAndAliases = new Dictionary<UICommandEnum, string[]>
+		private static ReadOnlyDictionary<UICommandEnum, string[]> NamesAndAliases = new ReadOnlyDictionary<UICommandEnum, string[]>(new Dictionary<UICommandEnum, string[]>()
 		{
 			{ UICommandEnum.Pause, new string[] { SharedCommands.CPAUSE, SharedCommands.APAUSE } },
 			{ UICommandEnum.BotOwner, new string[] { SharedCommands.COWNER, SharedCommands.AOWNER } },
@@ -1087,7 +1164,7 @@ namespace Advobot
 			{ UICommandEnum.Restart, new string[] { SharedCommands.CRESTART, SharedCommands.ARESTART } },
 			{ UICommandEnum.ListGuilds, new string[] { SharedCommands.CGUILDS, SharedCommands.AGUILDS } },
 			{ UICommandEnum.Shards, new string[] { SharedCommands.CSHARDS, SharedCommands.ASHARDS } },
-		};
+		});
 
 		public static string[] GetNameAndAliases(UICommandEnum cmd)
 		{
@@ -1109,6 +1186,27 @@ namespace Advobot
 				var aliases = String.Join(", ", GetAliases(x));
 				return String.Format("{0,-20}{1}", GetName(x), String.IsNullOrWhiteSpace(aliases) ? "This command has no aliases." : aliases);
 			}));
+		}
+	}
+
+	public struct CommandDisabledOnChannel
+	{
+		public CommandDisabledOnChannel(ulong channelID, string commandName)
+		{
+			mChannelID = channelID;
+			mCommandName = commandName;
+		}
+
+		private static ulong mChannelID;
+		private static string mCommandName;
+
+		public static ulong ChannelID
+		{
+			get { return mChannelID; }
+		}
+		public static string CommandName
+		{
+			get { return mCommandName; }
 		}
 	}
 	#endregion

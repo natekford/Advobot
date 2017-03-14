@@ -243,8 +243,7 @@ namespace Advobot
 			{
 				logActionsString.Split('/').ToList().ForEach(x =>
 				{
-					LogActions temp;
-					if (Enum.TryParse(x, true, out temp))
+					if (Enum.TryParse(x, true, out LogActions temp))
 					{
 						newLogActions.Add(temp);
 					}
