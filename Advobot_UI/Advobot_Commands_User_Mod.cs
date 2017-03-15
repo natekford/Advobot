@@ -55,7 +55,7 @@ namespace Advobot
 				{
 					if (int.TryParse(inputArray[1], out int time))
 					{
-						Actions.RemoveRoleAfterTime(user, muteRole, time);
+						Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user, muteRole, DateTime.UtcNow.AddMinutes(time)));
 						timeString = String.Format(" for {0} seconds", time);
 					}
 					else
@@ -97,7 +97,8 @@ namespace Advobot
 				{
 					if (int.TryParse(inputArray[1], out int time))
 					{
-						Actions.UnmuteVoiceAfterTime(user, time);
+						Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user, PunishmentType.Mute, DateTime.UtcNow.AddMinutes(time)));
+						timeString = String.Format(" for {0} minutes", time);
 					}
 					else
 					{
@@ -142,10 +143,10 @@ namespace Advobot
 				var timeString = "";
 				if (inputArray.Length == 2)
 				{
-					if (int.TryParse(inputArray[0], out int time))
+					if (int.TryParse(inputArray[1], out int time))
 					{
-						Actions.UndeafenAfterTime(user, time);
-						timeString = String.Format(" for {0} seconds", time);
+						Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user, PunishmentType.Deafen, DateTime.UtcNow.AddMinutes(time)));
+						timeString = String.Format(" for {0} minutes", time);
 					}
 					else
 					{
@@ -374,27 +375,23 @@ namespace Advobot
 
 		[Command("ban")]
 		[Alias("b")]
-		[Usage("[@User] <Days>")]
-		[Summary("Bans the user from the guild.")]
+		[Usage("[@User] <Days:int> <Time:int>")]
+		[Summary("Bans the user from the guild. Days specifies how many days worth of messages to delete. Time specifies how long and is in minutes.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
 		public async Task Ban([Remainder] string input)
 		{
-			//Test number of arguments
 			var inputArray = input.Split(' ');
-			if (inputArray.Length > 2)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
+			var daysStr = Actions.GetVariable(inputArray, "days");
+			var timeStr = Actions.GetVariable(inputArray, "time");
 
 			//Check if any prune days
 			var pruneDays = 0;
-			if (inputArray.Length == 2)
+			if (daysStr != null)
 			{
 				//Checking for valid days requested
-				if (inputArray.Length == 2 && !Int32.TryParse(inputArray[1], out pruneDays))
+				if (!Int32.TryParse(daysStr, out pruneDays))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Incorrect input for days of messages to be deleted."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for days was not a number."));
 					return;
 				}
 			}
@@ -420,11 +417,6 @@ namespace Advobot
 				//Ban the user
 				await Context.Guild.AddBanAsync(inputUser, pruneDays);
 			}
-			else if (ulong.TryParse(input, out ulong inputUserID))
-			{
-				//Ban the user
-				await Context.Guild.AddBanAsync(inputUserID, pruneDays);
-			}
 			else
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
@@ -432,24 +424,26 @@ namespace Advobot
 			}
 
 			//Forming the second half of the string that prints out when a user is successfully banned
-			var plurality = "days";
-			if (pruneDays == 1)
+			var plurality = pruneDays == 1 ? "day" : "days";
+			var latterHalfOfString = pruneDays > 0 ? String.Format(", and deleted `{0}` {1} worth of messages.", pruneDays, plurality ): ".";
+
+			if (timeStr != null)
 			{
-				plurality = "day";
-			}
-			var latterHalfOfString = "";
-			if (pruneDays > 0)
-			{
-				latterHalfOfString = String.Format(", and deleted {0} {1} worth of messages.", pruneDays, plurality);
-			}
-			else if (pruneDays == 0)
-			{
-				latterHalfOfString = ".";
+				//Checking for valid time requested
+				if (!Int32.TryParse(timeStr, out int timeForBan))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for time was not a number."));
+					return;
+				}
+				else
+				{
+					Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, inputUser, PunishmentType.Ban, DateTime.UtcNow.AddMinutes(timeForBan)));
+					timeStr = String.Format("They will be unbanned in `{0}` minutes.", timeForBan);
+				}
 			}
 
 			//Send a success message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully banned `{0}#{1}` with the ID `{2}`{3}",
-				inputUser.Username, inputUser.Discriminator, inputUser.Id, latterHalfOfString), 10000);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully banned `{0}`{1}", Actions.FormatUser(inputUser), latterHalfOfString), 10000);
 		}
 
 		[Command("unban")]

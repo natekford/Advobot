@@ -1209,6 +1209,54 @@ namespace Advobot
 			get { return mCommandName; }
 		}
 	}
+
+	public struct RemovablePunishment
+	{
+		public RemovablePunishment(IGuild guild, IUser user, PunishmentType type, DateTime time)
+		{
+			mGuild = guild;
+			mUser = user;
+			mType = type;
+			mTime = time;
+			mRole = null;
+		}
+
+		public RemovablePunishment(IGuild guild, IUser user, IRole role, DateTime time)
+		{
+			mGuild = guild;
+			mUser = user;
+			mType = PunishmentType.Role;
+			mTime = time;
+			mRole = role;
+		}
+
+		private IGuild mGuild;
+		private IUser mUser;
+		private PunishmentType mType;
+		private IRole mRole;
+		private DateTime mTime;
+
+		public IGuild Guild
+		{
+			get { return mGuild; }
+		}
+		public IUser User
+		{
+			get { return mUser; }
+		}
+		public PunishmentType Type
+		{
+			get { return mType; }
+		}
+		public IRole Role
+		{
+			get { return mRole; }
+		}
+		public DateTime Time
+		{
+			get { return mTime; }
+		}
+	}
 	#endregion
 
 	#region Enums
@@ -1252,6 +1300,8 @@ namespace Advobot
 		Kick = 1,
 		Ban = 2,
 		Role = 3,
+		Deafen = 4,
+		Mute = 5,
 	}
 
 	public enum SAGAction

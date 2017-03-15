@@ -155,7 +155,6 @@ namespace Advobot
 	public static class Variables
 	{
 		public static BotClient Client;
-
 		public static UInt64 Bot_ID = 0;
 		public static string Bot_Name;
 		public static string Bot_Channel;
@@ -168,7 +167,8 @@ namespace Advobot
 		public static bool Pause = false;
 
 		public static DateTime StartupTime = DateTime.UtcNow;
-		public static System.Threading.Timer Timer;
+		public static System.Threading.Timer SpamTimer;
+		public static System.Threading.Timer RemovePunishmentTimer;
 
 		public static int TotalUsers = 0;
 		public static int TotalGuilds = 0;
@@ -198,6 +198,7 @@ namespace Advobot
 		public static List<ActiveCloseHelp> ActiveCloseHelp = new List<ActiveCloseHelp>();
 		public static List<ActiveCloseWords> ActiveCloseWords = new List<ActiveCloseWords>();
 		public static List<BannedPhraseUser> BannedPhraseUserList = new List<BannedPhraseUser>();
+		public static List<RemovablePunishment> PunishedUsers = new List<RemovablePunishment>();
 		public static List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
 		public static List<BotGuildPermissionType> GuildPermissions = new List<BotGuildPermissionType>();
 		public static List<BotChannelPermissionType> ChannelPermissions = new List<BotChannelPermissionType>();

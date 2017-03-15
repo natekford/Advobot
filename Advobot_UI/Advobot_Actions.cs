@@ -31,6 +31,7 @@ namespace Advobot
 			await SetGame();														//Set up the game and/or stream
 
 			ResetSpamPrevention(null);												//Start the hourly timer to restart spam prevention
+			RemovePunishments(null);												//Start the minutely timer to remove punishments on a user
 			StartUpMessages();														//Say all of the start up messages
 			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
 		}
@@ -1600,7 +1601,7 @@ namespace Advobot
 		//Format the user string
 		public static string FormatUser(IUser user)
 		{
-			return String.Format("{0}#{1} ({2})", user.Username, user.Discriminator, user.Id);
+			return String.Format("{0}#{1} ({2})", String.IsNullOrWhiteSpace(user.Username) ? "Irretrievable" : user.Username, user.Discriminator, user.Id);
 		}
 
 		//Format the channel string
@@ -2787,18 +2788,17 @@ namespace Advobot
 			await DeleteMessage(message);
 
 			//Check if the guild has any punishments set up
-			if (!Variables.Guilds.ContainsKey((message.Channel as IGuildChannel).Guild.Id))
+			var guild = (message.Channel as IGuildChannel)?.Guild;
+			if (guild == null || !Variables.Guilds.ContainsKey(guild.Id))
 				return;
 
 			//Get the user
 			var user = message.Author as IGuildUser;
 
 			//Check if the user is on the list already for saying a banned phrase
-			BannedPhraseUser bpUser;
-			if (Variables.BannedPhraseUserList.Any(x => x.User == user))
+			var bpUser = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user);
+			if (bpUser != null)
 			{
-				//Grab the user and add 1 onto his messages removed count
-				bpUser = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user);
 				bpUser.IncreaseAmountOfRemovedMessages();
 			}
 			else
@@ -2809,14 +2809,9 @@ namespace Advobot
 			}
 
 			//Get the banned phrases punishments from the guild
-			var punishments = Variables.Guilds[user.Guild.Id].BannedPhrasesPunishments;
-
-			//Check if any punishments have the messages count which the user has
-			if (!punishments.Any(x => x.NumberOfRemoves == bpUser.AmountOfRemovedMessages))
+			var punishment = Variables.Guilds[user.Guild.Id].BannedPhrasesPunishments.FirstOrDefault(x => x.NumberOfRemoves == bpUser.AmountOfRemovedMessages);
+			if (punishment == null)
 				return;
-
-			//Grab the punishment with the same number
-			BannedPhrasePunishment punishment = punishments.FirstOrDefault(x => x.NumberOfRemoves == bpUser.AmountOfRemovedMessages);
 
 			//Kick
 			if (punishment.Punishment == PunishmentType.Kick)
@@ -2855,7 +2850,7 @@ namespace Advobot
 				}
 			}
 			//Role
-			else
+			else if (punishment.Punishment == PunishmentType.Role)
 			{
 				//Give them the role
 				await GiveRole(user, punishment.Role);
@@ -2863,7 +2858,7 @@ namespace Advobot
 				//If a time is specified, run through the time then remove the role
 				if (punishment.PunishmentTime != null)
 				{
-					BannedPhrasesPunishmentTimer(user, punishment.Role, (int)punishment.PunishmentTime);
+					Variables.PunishedUsers.Add(new RemovablePunishment(guild, user, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
 				}
 
 				//Send a message to the logchannel
@@ -3107,7 +3102,7 @@ namespace Advobot
 		//Remove commands
 		public static void RemoveCommandMessages(ITextChannel channel, List<IMessage> messages, Int32 time)
 		{
-			Task t = Task.Run(async () =>
+			Task.Run(async () =>
 			{
 				await Task.Delay(time);
 				await DeleteMessages(channel, messages);
@@ -3166,61 +3161,6 @@ namespace Advobot
 			});
 		}
 
-		//Wait them remove the role on a user when they got it from a banned phrase punishment
-		public static void BannedPhrasesPunishmentTimer(IGuildUser user, IRole role, int time)
-		{
-			Task.Run(async () =>
-			{
-				//Sleep for the given amount of seconds
-				await Task.Delay(Math.Abs(time) * 60000);
-
-				//Check if the user still has the role
-				if (!user.RoleIds.Contains(role.Id))
-					return;
-
-				//Remove the role
-				await user.RemoveRolesAsync(role);
-			});
-		}
-
-		//Remove the role on a user after given amount of seconds
-		public static void RemoveRoleAfterTime(IGuildUser user, IRole role, int time)
-		{
-			Task.Run(async () =>
-			{
-				//Sleep for the given amount of seconds
-				await Task.Delay(Math.Abs(time) * 1000);
-				//Add back their ability to send messages
-				await user.RemoveRolesAsync(role);
-			});
-		}
-
-		//Remove the mute on a user after given amount of seconds
-		public static void UnmuteVoiceAfterTime(IGuildUser user, int time)
-		{
-			Task.Run(async () =>
-			{
-				//Sleep for the given amount of seconds
-				await Task.Delay(Math.Abs(time) * 1000);
-				//Add back their ability to send messages
-				await user.ModifyAsync(x => x.Mute = false);
-			});
-		}
-
-		//Remove the deafen on a user after given amount of seconds
-		public static void UndeafenAfterTime(IGuildUser user, int time)
-		{
-			Task.Run(async () =>
-			{
-				//Sleep for the given amount of seconds
-				await Task.Delay(Math.Abs(time) * 1000);
-				//Add back their ability to send messages
-				await user.ModifyAsync(x => x.Deaf = false);
-			});
-		}
-		#endregion
-
-		#region Spam Prevention
 		//Reset the mention spam prevention hourly
 		public static void ResetSpamPrevention(object obj)
 		{
@@ -3238,9 +3178,64 @@ namespace Advobot
 			}
 
 			//Wait until the next firing
-			Variables.Timer = new Timer(ResetSpamPrevention, null, time, Timeout.Infinite);
+			Variables.SpamTimer = new Timer(ResetSpamPrevention, null, time, Timeout.Infinite);
 		}
 
+		//Reset the mention spam prevention hourly
+		public static void RemovePunishments(object obj)
+		{
+			//Get the period
+			const long PERIOD = 60 * 1000;
+
+			//Go through and remove the punishment on each user
+			var eligibleToLosePunishment = Variables.PunishedUsers.Where(x => x.Time <= DateTime.UtcNow).ToList();
+			eligibleToLosePunishment.ForEach(async punishment =>
+			{
+				Variables.PunishedUsers.Remove(punishment);
+
+				//Things that can be done with an IUser
+				var user = punishment.User;
+				if (punishment.Type == PunishmentType.Ban)
+				{
+					await punishment.Guild.RemoveBanAsync(user.Id);
+					return;
+				}
+
+				//Things that need an IGuildUser
+				var guildUser = await punishment.Guild.GetUserAsync(user.Id);
+				switch (punishment.Type)
+				{
+					case PunishmentType.Role:
+					{
+						await guildUser.RemoveRolesAsync(punishment.Role);
+						return;
+					}
+					case PunishmentType.Deafen:
+					{
+						await guildUser.ModifyAsync(x => x.Deaf = false);
+						return;
+					}
+					case PunishmentType.Mute:
+					{
+						await guildUser.ModifyAsync(x => x.Mute = false);
+						return;
+					}
+				}
+			});
+
+			//Determine how long to wait until firing
+			var time = PERIOD;
+			if ((DateTime.UtcNow.Subtract(Variables.StartupTime)).TotalMinutes < 1)
+			{
+				time -= (long)DateTime.UtcNow.TimeOfDay.TotalMilliseconds % PERIOD;
+			}
+
+			//Wait until the next firing
+			Variables.RemovePunishmentTimer = new Timer(RemovePunishments, null, time, Timeout.Infinite);
+		}
+		#endregion
+
+		#region Spam Prevention
 		//Going through with the spam prevention
 		public static async Task<bool> HandleSpamPrevention(GlobalSpamPrevention global, BaseSpamPrevention spamPrev, IGuild guild, IMessage message)
 		{
@@ -3269,26 +3264,41 @@ namespace Advobot
 
 		public static bool SpamCheck(MessageSpamPrevention spamPrev, IMessage message)
 		{
+			if (spamPrev == null)
+				return false;
+
 			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
 		}
 
 		public static bool SpamCheck(LongMessageSpamPrevention spamPrev, IMessage message)
 		{
+			if (spamPrev == null)
+				return false;
+
 			return message.Content.Length > spamPrev.AmountOfSpam;
 		}
 
 		public static bool SpamCheck(LinkSpamPrevention spamPrev, IMessage message)
 		{
+			if (spamPrev == null)
+				return false;
+
 			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
 		}
 
 		public static bool SpamCheck(ImageSpamPrevention spamPrev, IMessage message)
 		{
+			if (spamPrev == null)
+				return false;
+
 			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
 		}
 
 		public static bool SpamCheck(MentionSpamPrevention spamPrev, IMessage message)
 		{
+			if (spamPrev == null)
+				return false;
+
 			return message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
 		}
 		#endregion

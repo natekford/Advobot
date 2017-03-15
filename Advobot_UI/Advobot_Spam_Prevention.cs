@@ -108,7 +108,7 @@ namespace Advobot
 				{
 					//Send a success message
 					await Actions.SendChannelMessage(Context, String.Format("Messages: `{0}`; Mentions: `{1}`; Votes: `{2}`; Enabled: `{3}`.",
-						spamPrevention.AmountOfMessages, spamPrevention.AmountOfMentionsPerMsg, spamPrevention.VotesNeededForKick, spamPrevention.Enabled.ToString()));
+						spamPrevention.AmountOfMessages, spamPrevention.AmountOfSpam, spamPrevention.VotesNeededForKick, spamPrevention.Enabled.ToString()));
 					return;
 				}
 				case SpamPreventionAction.Setup:
