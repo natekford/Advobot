@@ -31,7 +31,7 @@ namespace Advobot
 				Task.Run(async () =>
 				{
 					//Get all of the invites and add their guildID, code, and current uses to the usage check list
-					Variables.Guilds[guild.Id].Invites = (await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList();
+					Variables.Guilds[guild.Id].Invites.NewList((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
 				});
 
 				//Incrementing
@@ -666,13 +666,6 @@ namespace Advobot
 			if (serverLog == null)
 				return;
 
-			//Check if the channel trying to be made is a bot channel
-			if (chan != null && chan.Name == Variables.Bot_Channel && await Actions.GetDuplicateBotChan(chan.Guild))
-			{
-				await chan.DeleteAsync();
-				return;
-			}
-
 			//Make the embed
 			var embed = Actions.MakeNewEmbed("Channel Created", String.Format("Name: `{0}`\nID: `{1}`", chan.Name, chan.Id), Constants.CCRE);
 			Actions.AddFooter(embed, "Channel Created");
@@ -695,12 +688,7 @@ namespace Advobot
 			//Check if the name is the bot channel name
 			if (aChan != null && Actions.CaseInsEquals(aChan.Name, Variables.Bot_Channel) && !Actions.CaseInsEquals(aChan.Name, bChan.Name))
 			{
-				//If the name wasn't the bot channel name to start with then set it back to its start name
-				if (await Actions.GetDuplicateBotChan(bChan.Guild))
-				{
-					await (await bChan.Guild.GetChannelAsync(bChan.Id)).ModifyAsync(x => x.Name = bChan.Name);
-					return;
-				}
+				//TODO: Something
 			}
 
 			//Check if the before and after name are the same
@@ -764,8 +752,8 @@ namespace Advobot
 			if (false
 				|| channel == null
 				|| message.Author.IsBot
-				|| Variables.Guilds[channel.GuildId].IgnoredLogChannels.Contains(channel.Id)
-				|| !Variables.Guilds[channel.GuildId].LogActions.Contains(LogActions.ImageLog))
+				|| Variables.Guilds[channel.GuildId].IgnoredLogChannels.GetList().Contains(channel.Id)
+				|| !Variables.Guilds[channel.GuildId].LogActions.GetList().Contains(LogActions.ImageLog))
 				return;
 
 			if (message.Attachments.Any())
@@ -832,7 +820,7 @@ namespace Advobot
 				if (closeWordList.User != null)
 				{
 					//Get the remind
-					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
+					var remind = Variables.Guilds[guild.Id].Reminds.GetList().FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
 
 					//Send the remind
 					await Actions.SendChannelMessage(message.Channel, remind.Text);
@@ -864,7 +852,7 @@ namespace Advobot
 		public static async Task SlowmodeOrBannedPhrases(IGuild guild, IMessage message)
 		{
 			//Make sure the message is a valid message to do this to
-			if (Actions.VerifyMessage(message) == null)
+			if (message == null || message.Author.IsBot)
 				return;
 
 			//Check if the guild has slowmode enabled currently
@@ -873,7 +861,7 @@ namespace Advobot
 				await Actions.Slowmode(message);
 			}
 			//Check if any banned phrases
-			else if (Variables.Guilds[guild.Id].BannedPhrases.Any() || Variables.Guilds[guild.Id].BannedRegex.Any())
+			else if (Variables.Guilds[guild.Id].BannedPhrases.GetList().Any() || Variables.Guilds[guild.Id].BannedRegex.GetList().Any())
 			{
 				await Actions.BannedPhrases(message);
 			}
@@ -908,7 +896,7 @@ namespace Advobot
 		public static async Task VotingOnSpamPrevention(IGuild guild, IMessage message)
 		{
 			//Get the users primed to be kicked/banned by the spam prevention
-			var users = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
+			var users = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.GetList().Where(x => x.PotentialKick).ToList();
 			//Return if it's empty
 			if (!users.Any())
 				return;
@@ -928,6 +916,8 @@ namespace Advobot
 					return;
 				//Check if they've already been kicked to determine if they should be banned or kicked
 				await (x.AlreadyKicked ? guild.AddBanAsync(x.User, 1) : x.User.KickAsync());
+				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
+				x.ResetSpamUser();
 			});
 		}
 	}

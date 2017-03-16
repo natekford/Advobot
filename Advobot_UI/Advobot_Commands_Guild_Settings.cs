@@ -136,12 +136,12 @@ namespace Advobot
 			var description = "";
 			description += String.Format("**Default Preferences:** `{0}`\n", guild.DefaultPrefs ? "Yes" : "No");
 			description += String.Format("**Prefix:** `{0}`\n", String.IsNullOrWhiteSpace(guild.Prefix) ? "No" : "Yes");
-			description += String.Format("**Banned Phrases:** `{0}`\n", guild.BannedPhrases.Any() ? "Yes" : "No");
-			description += String.Format("**Banned Regex:** `{0}`\n", guild.BannedRegex.Any() ? "Yes" : "No");
-			description += String.Format("**Banned Phrases Punishments:** `{0}`\n", guild.BannedPhrasesPunishments.Any() ? "Yes" : "No");
-			description += String.Format("**Ignored Channels:** `{0}`\n", guild.IgnoredLogChannels.Any() ? "Yes" : "No");
-			description += String.Format("**Log Actions:** `{0}`\n", guild.LogActions.Any() ? "Yes" : "No");
-			description += String.Format("**Reminds:** `{0}`\n", guild.Reminds.Any() ? "Yes" : "No");
+			description += String.Format("**Banned Phrases:** `{0}`\n", guild.BannedPhrases.GetList().Any() ? "Yes" : "No");
+			description += String.Format("**Banned Regex:** `{0}`\n", guild.BannedRegex.GetList().Any() ? "Yes" : "No");
+			description += String.Format("**Banned Phrases Punishments:** `{0}`\n", guild.BannedPhrasesPunishments.GetList().Any() ? "Yes" : "No");
+			description += String.Format("**Ignored Channels:** `{0}`\n", guild.IgnoredLogChannels.GetList().Any() ? "Yes" : "No");
+			description += String.Format("**Log Actions:** `{0}`\n", guild.LogActions.GetList().Any() ? "Yes" : "No");
+			description += String.Format("**Reminds:** `{0}`\n", guild.Reminds.GetList().Any() ? "Yes" : "No");
 			description += String.Format("**Self Assignable Roles:** `{0}`\n", Variables.SelfAssignableGroups.Any(x => x.GuildID == Context.Guild.Id) ? "Yes" : "No");
 
 			//Get everything to upload to Hastebin
@@ -152,20 +152,20 @@ namespace Advobot
 				//Get the prefix
 				information += String.Format("Prefix: {0}\n", String.IsNullOrWhiteSpace(guild.Prefix) ? Constants.BOT_PREFIX : guild.Prefix);
 				//Get the banned phrases
-				information += String.Format("Banned Phrases: {0}\n", guild.BannedPhrases.Any() ? String.Join("", "\n\t" + guild.BannedPhrases) : "");
+				information += String.Format("Banned Phrases: {0}\n", guild.BannedPhrases.GetList().Any() ? String.Join("", "\n\t" + guild.BannedPhrases.GetList()) : "");
 				//Get the banned regex
-				information += String.Format("Banned Regex: {0}\n", String.Join("", guild.BannedRegex.Select(x => "\n\t" + x.ToString())));
+				information += String.Format("Banned Regex: {0}\n", String.Join("", guild.BannedRegex.GetList().Select(x => "\n\t" + x.ToString())));
 				//Get the banned phrase punishments
-				information += String.Format("Banned Phrases Punishments: {0}\n", String.Join("", guild.BannedPhrasesPunishments.Select(x => String.Format("\n\t{0}: {1}",
+				information += String.Format("Banned Phrases Punishments: {0}\n", String.Join("", guild.BannedPhrasesPunishments.GetList().Select(x => String.Format("\n\t{0}: {1}",
 					x.NumberOfRemoves, x.Punishment == PunishmentType.Role ? String.Format("{0} ({1})", x.Role.Name, x.PunishmentTime) : Enum.GetName(typeof(PunishmentType), x.Punishment)))));
 				//Get the ignored channels
-				information += String.Format("Ignored Channels: {0}\n", String.Join("", guild.IgnoredLogChannels.Select(async x => "\n\t" + (await Context.Guild.GetChannelAsync(x)).Name)));
+				information += String.Format("Ignored Channels: {0}\n", String.Join("", guild.IgnoredLogChannels.GetList().Select(async x => "\n\t" + (await Context.Guild.GetChannelAsync(x)).Name)));
 				//Get the log actions
-				information += String.Format("Log Actions: {0}\n", String.Join("", guild.LogActions.Select(x => "\n\t" + Enum.GetName(typeof(LogActions), x))));
+				information += String.Format("Log Actions: {0}\n", String.Join("", guild.LogActions.GetList().Select(x => "\n\t" + Enum.GetName(typeof(LogActions), x))));
 
 				//Get the reminds
 				information += "Reminds:\n";
-				guild.Reminds.ForEach(x =>
+				guild.Reminds.GetList().ToList().ForEach(x =>
 				{
 					information += String.Format("\n\t{0}: \"{1}\"", x.Name, x.Text.Length >= 100 ? x.Text.Substring(0, 100) + "..." : x.Text);
 				});
@@ -347,7 +347,7 @@ namespace Advobot
 			}
 			else if (allBool)
 			{
-				category = Variables.Guilds[Context.Guild.Id].CommandSettings;
+				category = Variables.Guilds[Context.Guild.Id].CommandSettings.GetList().ToList();
 			}
 			//Check if it's already enabled
 			else if (enableBool && command.ValAsBoolean)
@@ -426,7 +426,7 @@ namespace Advobot
 			if (Actions.CaseInsEquals(action, "current"))
 			{
 				var channels = new List<string>();
-				await Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.ForEachAsync(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
+				await Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.GetList().ToList().ForEachAsync(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Command Channels", String.Join("\n", channels)));
 				return;
 			}
@@ -467,7 +467,7 @@ namespace Advobot
 				else if (channels.Count == 1)
 				{
 					channel = channels.FirstOrDefault();
-					if (await Actions.GetChannelEditAbility(channel, Context.User as IGuildUser) == null)
+					if (Actions.GetChannelEditAbility(channel, Context.User) == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to edit this channel."));
 						return;
@@ -484,13 +484,28 @@ namespace Advobot
 			if (inputArray.Length == 3)
 			{
 				var cmdInput = inputArray[2];
-				//TODO: Finish implementation
+				var cmd = Variables.CommandNames.FirstOrDefault(x => Actions.CaseInsEquals(x, cmdInput));
+				if (cmd == null)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The given input `{0}` is not a valid command."));
+					return;
+				}
+
+				//TODO: Add in removing and not just adding
+				//Create it
+				var disabledCmd = new CommandDisabledOnChannel(channel.Id, cmd);
+				Variables.Guilds[Context.Guild.Id].CommandsDisabledOnChannel.Add(disabledCmd);
+
+				//Save it
+				var disabledAsStr = Variables.Guilds[Context.Guild.Id].CommandsDisabledOnChannel.GetList().Select(x => String.Format("{0} {1}", x.ChannelID, x.CommandName)).ToList();
+				var disabledByChannelPath = Actions.GetServerFilePath(Context.Guild.Id, Constants.COMMANDS_DISABLED_BY_CHANNEL);
+				Actions.SaveLines(disabledByChannelPath, disabledAsStr);
 			}
 
 			//Add or remove
 			if (addBool)
 			{
-				if (Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.Contains(channel.Id))
+				if (Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.GetList().Contains(channel.Id))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored for commands."));
 					return;
@@ -499,7 +514,7 @@ namespace Advobot
 			}
 			else
 			{
-				if (!Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.Contains(channel.Id))
+				if (!Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.GetList().Contains(channel.Id))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored for commands."));
 					return;
@@ -507,7 +522,7 @@ namespace Advobot
 				Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.Remove(channel.Id);
 			}
 
-			Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels = Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.Distinct().ToList();
+			Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels.MakeDistinct();
 
 			//Create the file if it doesn't exist
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
@@ -623,7 +638,7 @@ namespace Advobot
 			{
 				Variables.BotUsers.RemoveAll(x => x.User == user);
 				var removePath = Actions.GetServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
-				Actions.SaveLines(removePath, null, null, Actions.GetValidLines(removePath, user.Id.ToString()));
+				Actions.SaveLines(removePath, Actions.GetValidLines(removePath, user.Id.ToString()));
 
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}#{1}` from the bot user list.", user.Username, user.Discriminator));
 				return;
@@ -684,7 +699,7 @@ namespace Advobot
 			{
 				//If no permissions, then remove them from the list and file
 				Variables.BotUsers.RemoveAll(x => x.User == user);
-				Actions.SaveLines(path, null, null, Actions.GetValidLines(path, user.Id.ToString()));
+				Actions.SaveLines(path, Actions.GetValidLines(path, user.Id.ToString()));
 			}
 
 			//Send a success message
@@ -842,7 +857,7 @@ namespace Advobot
 			if (addBool)
 			{
 				//Check if at the max number of reminds
-				if (reminds.Count >= Constants.MAX_REMINDS)
+				if (reminds.GetList().Count >= Constants.MAX_REMINDS)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild already has the max number of reminds, which is 50."));
 					return;
@@ -859,7 +874,7 @@ namespace Advobot
 				var text = nameAndText[1];
 
 				//Check if any reminds have already have the same name
-				if (reminds.Any(x => Actions.CaseInsEquals(x.Name, name)))
+				if (reminds.GetList().Any(x => Actions.CaseInsEquals(x.Name, name)))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A remind already has that name."));
 					return;
@@ -871,7 +886,7 @@ namespace Advobot
 			else
 			{
 				//Make sure there are some reminds
-				if (!reminds.Any())
+				if (!reminds.GetList().Any())
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There needs to be at least one remind before you can remove any."));
 					return;
@@ -885,7 +900,7 @@ namespace Advobot
 			//Get the path
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.REMINDS);
 			//Rewrite everything with the current reminds. Uses a different split character than the others because it's more user set than them.
-			Actions.SaveLines(path, null, null, reminds.Select(x => x.Name + "/" + x.Text).ToList(), true);
+			Actions.SaveLines(path, null, null, reminds.GetList().Select(x => x.Name + ":" + x.Text).ToList(), true);
 
 			//Send a success message
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following remind: `{1}`.", addBool ? "added" : "removed", Actions.ReplaceMarkdownChars(name)));
@@ -897,18 +912,19 @@ namespace Advobot
 		[Summary("Shows the content for the given remind. If null then shows the list of the current reminds.")]
 		public async Task Reminds([Optional, Remainder] string input)
 		{
-			var reminds = Variables.Guilds[Context.Guild.Id].Reminds;
+			var reminds = Variables.Guilds[Context.Guild.Id].Reminds.GetList().ToList();
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				//Check if any exist
 				if (!reminds.Any())
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are no reminds."));
-					return;
 				}
-
-				//Send the names of all fo the reminds
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Reminds", String.Format("`{0}`", String.Join("`, `", reminds.Select(x => x.Name)))));
+				else
+				{
+					//Send the names of all of the reminds
+					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Reminds", String.Format("`{0}`", String.Join("`, `", reminds.Select(x => x.Name)))));
+				}
 				return;
 			}
 
@@ -921,43 +937,7 @@ namespace Advobot
 			else
 			{
 				//Find close words
-				var closeWords = new List<CloseWord>();
-				reminds.ForEach(x =>
-				{
-					//Check how close the word is to the input
-					var closeness = Actions.FindCloseName(x.Name, input);
-					//Ignore all closewords greater than a difference of five
-					if (closeness > 5)
-						return;
-					//If no words in the list already, add it
-					if (closeWords.Count < 3)
-					{
-						closeWords.Add(new CloseWord(x.Name, closeness));
-					}
-					//If three words in the list, check closeness value now
-					else if (closeness < closeWords[2].Closeness)
-					{
-						if (closeness < closeWords[1].Closeness)
-						{
-							if (closeness < closeWords[0].Closeness)
-							{
-								closeWords.Insert(0, new CloseWord(x.Name, closeness));
-							}
-							else
-							{
-								closeWords.Insert(1, new CloseWord(x.Name, closeness));
-							}
-						}
-						else
-						{
-							closeWords.Insert(2, new CloseWord(x.Name, closeness));
-						}
-
-						//Remove all words that are now after the third item
-						closeWords.RemoveRange(3, closeWords.Count - 3);
-					}
-					closeWords.OrderBy(y => y.Closeness);
-				});
+				var closeWords = Actions.GetRemindsWithInputInName(Actions.GetRemindsWithSimilarNames(reminds, input), reminds, input).Distinct().ToList();
 
 				if (closeWords.Any())
 				{
@@ -976,7 +956,7 @@ namespace Advobot
 					Actions.RemoveActiveCloseWords(list);
 
 					//Send the message
-					await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 10000);
+					await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 5000);
 				}
 				else
 				{

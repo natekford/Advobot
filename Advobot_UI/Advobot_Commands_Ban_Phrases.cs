@@ -83,7 +83,7 @@ namespace Advobot
 				{
 					phrases.ForEach(x =>
 					{
-						if (!Actions.CaseInsContains(phrasesList, x))
+						if (!Actions.CaseInsContains(phrasesList.GetList(), x))
 						{
 							phrasesList.Add(x);
 							success.Add(x);
@@ -103,7 +103,7 @@ namespace Advobot
 					phrases.ForEach(potentialNumber =>
 					{
 						//Check if is a number and is less than the count of the list
-						if (int.TryParse(potentialNumber, out int temp) && temp < phrasesList.Count)
+						if (int.TryParse(potentialNumber, out int temp) && temp < phrasesList.GetList().Count)
 						{
 							positions.Add(temp);
 						}
@@ -119,7 +119,7 @@ namespace Advobot
 					{
 						phrases.ForEach(x =>
 						{
-							if (Actions.CaseInsContains(phrasesList, x))
+							if (Actions.CaseInsContains(phrasesList.GetList(), x))
 							{
 								phrasesList.Remove(x);
 								success.Add(x);
@@ -136,24 +136,24 @@ namespace Advobot
 						//Put them in descending order so as to not delete low values before high ones
 						positions.OrderByDescending(x => x).ToList().ForEach(x =>
 						{
-							success.Add(phrasesList[x].ToString());
+							success.Add(phrasesList.GetList()[x].ToString());
 							phrasesList.RemoveAt(x);
 						});
 					}
 				}
 
 				//Set the type and keep the items to save
-				toSave = phrasesList;
+				toSave = phrasesList.GetList().Select(x => x as string).ToList();
 				type = Constants.BANNED_PHRASES_CHECK_STRING;
 			}
 			else
 			{
-				var regexList = Variables.Guilds[Context.Guild.Id].BannedRegex;
+				var limitedList = Variables.Guilds[Context.Guild.Id].BannedRegex;
 
 				if (addBool)
 				{
 					//Create a list of all the regex strings so we know what to ignore
-					var regexListAsString = regexList.Select(x => x.ToString()).ToList();
+					var regexListAsString = limitedList.GetList().Select(x => x.ToString()).ToList();
 
 					//Check if any of the strings and if so remove them and add them to the failures
 					phrases.ForEach(x =>
@@ -170,7 +170,7 @@ namespace Advobot
 					});
 
 					//Add them to the list of regex
-					phrases.ForEach(x => regexList.Add(new Regex(x)));
+					phrases.ForEach(x => limitedList.Add(new Regex(x)));
 				}
 				else
 				{
@@ -180,7 +180,7 @@ namespace Advobot
 					phrases.ForEach(potentialNumber =>
 					{
 						//Check if is a number and is less than the count of the list
-						if (int.TryParse(potentialNumber, out int temp) && temp < regexList.Count)
+						if (int.TryParse(potentialNumber, out int temp) && temp < limitedList.GetList().Count)
 						{
 							positions.Add(temp);
 						}
@@ -195,7 +195,7 @@ namespace Advobot
 					if (!numbers)
 					{
 						//Get the regex that are going to be removed in a list
-						var removedRegex = regexList.Where(x => phrases.Contains(x.ToString())).ToList();
+						var removedRegex = limitedList.GetList().Where(x => phrases.Contains(x.ToString())).ToList();
 
 						//Get their strings
 						var removedRegexAsString = removedRegex.Select(x => x.ToString()).ToList();
@@ -214,7 +214,7 @@ namespace Advobot
 						});
 
 						//Actually remove the regex
-						removedRegex.ForEach(x => regexList.Remove(x));
+						removedRegex.ForEach(x => limitedList.Remove(x));
 					}
 					//Only positions
 					else
@@ -222,13 +222,13 @@ namespace Advobot
 						//Put them in descending order so as to not delete low values before high ones
 						positions.OrderByDescending(x => x).ToList().ForEach(x =>
 						{
-							success.Add(regexList[x].ToString());
-							regexList.RemoveAt(x);
+							success.Add(limitedList.GetList()[x].ToString());
+							limitedList.RemoveAt(x);
 						});
 					}
 				}
 
-				toSave = regexList.Select(x => x.ToString()).ToList();
+				toSave = limitedList.GetList().Select(x => x.ToString()).ToList();
 				type = Constants.BANNED_REGEX_CHECK_STRING;
 			}
 
@@ -329,7 +329,7 @@ namespace Advobot
 				//Get the list being used by the bot currently
 				if (!regexBool)
 				{
-					BannedPhrases = Variables.Guilds[Context.Guild.Id].BannedPhrases;
+					BannedPhrases = Variables.Guilds[Context.Guild.Id].BannedPhrases.GetList().Select(x => x as string).ToList();
 					if (BannedPhrases.Count == 0)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned phrases."));
@@ -338,7 +338,7 @@ namespace Advobot
 				}
 				else
 				{
-					BannedPhrases = Variables.Guilds[Context.Guild.Id].BannedRegex.Select(x => x.ToString()).ToList();
+					BannedPhrases = Variables.Guilds[Context.Guild.Id].BannedRegex.GetList().Select(x => x.ToString()).ToList();
 					if (BannedPhrases.Count == 0)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned regex."));
@@ -491,25 +491,25 @@ namespace Advobot
 			if (addBool)
 			{
 				//Check if trying to add to an already established spot
-				if (punishments.Any(x => x.NumberOfRemoves == newPunishment.NumberOfRemoves))
+				if (punishments.GetList().Any(x => x.NumberOfRemoves == newPunishment.NumberOfRemoves))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists for that number of banned phrases said."));
 					return;
 				}
 				//Check if trying to add a kick when one already exists
-				else if (newPunishment.Punishment == PunishmentType.Kick && punishments.Any(x => x.Punishment == PunishmentType.Kick))
+				else if (newPunishment.Punishment == PunishmentType.Kick && punishments.GetList().Any(x => x.Punishment == PunishmentType.Kick))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which kicks."));
 					return;
 				}
 				//Check if trying to add a ban when one already exists
-				else if (newPunishment.Punishment == PunishmentType.Ban && punishments.Any(x => x.Punishment == PunishmentType.Ban))
+				else if (newPunishment.Punishment == PunishmentType.Ban && punishments.GetList().Any(x => x.Punishment == PunishmentType.Ban))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which bans."));
 					return;
 				}
 				//Check if trying to add a role to the list which already exists
-				else if (newPunishment.Punishment == PunishmentType.Role && punishments.Any(x => x.Role.Name == newPunishment.Role.Name))
+				else if (newPunishment.Punishment == PunishmentType.Role && punishments.GetList().Any(x => x.Role.Name == newPunishment.Role.Name))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which gives that role."));
 					return;
@@ -522,9 +522,10 @@ namespace Advobot
 			//Remove
 			else
 			{
-				if (punishments.Any(x => x.NumberOfRemoves == number))
+				var thingsWithNumOfRems = punishments.GetList().Where(x => x.NumberOfRemoves == number).ToList();
+				if (thingsWithNumOfRems.Any())
 				{
-					await punishments.Where(x => x.NumberOfRemoves == number).ToList().ForEachAsync(async punish =>
+					await thingsWithNumOfRems.ForEachAsync(async punish =>
 					{
 						//Check if the user can modify this role, if they can't then don't let them modify the 
 						if (punish.Role != null && punish.Role.Position > Actions.GetPosition(Context.Guild, Context.User as IGuildUser))
@@ -543,7 +544,7 @@ namespace Advobot
 			}
 
 			//Create the string to resave everything with
-			var toSave = punishments.Select(x =>
+			var toSave = punishments.GetList().Select(x =>
 			{
 				return String.Format("{0} {1} {2} {3}",
 					x.NumberOfRemoves,
@@ -668,12 +669,12 @@ namespace Advobot
 			else if (Actions.CaseInsEquals(input, "actual"))
 			{
 				var guildPunishments = Variables.Guilds[Context.Guild.Id].BannedPhrasesPunishments;
-				if (!guildPunishments.Any())
+				if (!guildPunishments.GetList().Any())
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "This guild has no active punishments");
 					return;
 				}
-				guildPunishments.ForEach(x =>
+				guildPunishments.GetList().ToList().ForEach(x =>
 				{
 					description += String.Format("`{0}.` `{1}`{2}\n",
 						x.NumberOfRemoves.ToString("00"),

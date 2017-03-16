@@ -65,38 +65,7 @@ namespace Advobot
 				if (helpEntry == null)
 				{
 					//Find close words
-					var closeHelps = new List<CloseHelp>();
-					Variables.HelpList.ForEach(HelpEntry =>
-					{
-						//Check how close the word is to the input
-						var closeness = Actions.FindCloseName(HelpEntry.Name, input);
-						//Ignore all closewords greater than a difference of five
-						if (closeness > 5)
-							return;
-						//If no words in the list already, add it
-						if (closeHelps.Count < 3)
-						{
-							closeHelps.Add(new CloseHelp(HelpEntry, closeness));
-						}
-						else
-						{
-							//If three words in the list, check closeness value now
-							foreach (var help in closeHelps)
-							{
-								if (closeness < help.Closeness)
-								{
-									closeHelps.Insert(closeHelps.IndexOf(help), new CloseHelp(HelpEntry, closeness));
-									break;
-								}
-							}
-
-							//Remove all words that are now after the third item
-							closeHelps.RemoveRange(3, closeHelps.Count - 3);
-						}
-						closeHelps.OrderBy(y => y.Closeness);
-					});
-
-					closeHelps = Actions.GetCommandsWithInputInName(closeHelps, input);
+					var closeHelps = Actions.GetCommandsWithInputInName(Actions.GetCommandsWithSimilarName(input), input).Distinct().ToList();
 
 					if (closeHelps != null && closeHelps.Any())
 					{
@@ -115,7 +84,7 @@ namespace Advobot
 						Actions.RemoveActiveCloseHelp(list);
 
 						//Send the message
-						await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 10000);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 5000);
 					}
 					else
 					{
@@ -126,7 +95,6 @@ namespace Advobot
 			}
 
 			var description = Actions.GetHelpString(helpEntry);
-
 			var guildPrefix = Variables.Guilds[Context.Guild.Id].Prefix;
 			if (!String.IsNullOrWhiteSpace(guildPrefix))
 			{

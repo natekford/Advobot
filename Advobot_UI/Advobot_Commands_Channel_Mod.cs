@@ -26,18 +26,11 @@ namespace Advobot
 				return;
 			}
 
-			//Test for args
-			if (inputArray.Length != 2)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
-
 			//Test for name validity
 			var name = inputArray[0];
 			if (name.Contains(' '))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No spaces allowed in a channel name."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No spaces are allowed in a channel name."));
 				return;
 			}
 			else if (name.Length > Constants.CHANNEL_NAME_MAX_LENGTH)
@@ -50,31 +43,17 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than {0} characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
 				return;
 			}
-			else if (Actions.CaseInsEquals(name, Variables.Bot_Channel) && await Actions.GetDuplicateBotChan(Context.Guild))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Please don't try to make a second bot channel. All that does is confuse the bot.");
-				return;
-			}
 
-			//Test for text
-			IGuildChannel channel;
+			//Make sure valid type
 			var type = inputArray[1];
-			if (Actions.CaseInsEquals(type, Constants.TEXT_TYPE))
-			{
-				channel = await Context.Guild.CreateTextChannelAsync(inputArray[0]);
-			}
-			//Test for voice
-			else if (Actions.CaseInsEquals(type, Constants.VOICE_TYPE))
-			{
-				channel = await Context.Guild.CreateVoiceChannelAsync(inputArray[0]);
-			}
-			//Give an error if not text/voice
-			else
+			if (Actions.CaseInsEquals(type, Constants.TEXT_TYPE) && Actions.CaseInsEquals(type, Constants.VOICE_TYPE))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid channel type."));
 				return;
 			}
 
+			//Get the channel
+			var channel = Actions.CaseInsEquals(type, Constants.TEXT_TYPE) ? await Context.Guild.CreateTextChannelAsync(name) as IGuildChannel : await Context.Guild.CreateVoiceChannelAsync(name);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created `{0}`.", Actions.FormatChannel(channel)));
 		}
 
@@ -630,11 +609,6 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than {0} characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
 				return;
 			}
-			else if (Actions.CaseInsEquals(name, Variables.Bot_Channel) && await Actions.GetDuplicateBotChan(Context.Guild))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Please don't try to rename a channel to the bot channel if one alreay exists. All that does is confuse the bot.");
-				return;
-			}
 
 			//See if it's a position trying to be gotten instead
 			var channelInput = inputArray[0];
@@ -685,7 +659,7 @@ namespace Advobot
 					{
 						//Get the channel
 						var chan = textChannels.Count == 1 ? textChannels.First() as IGuildChannel : voiceChannels.First() as IGuildChannel;
-						channel = await Actions.GetChannelEditAbility(chan, Context.User as IGuildUser);
+						channel = Actions.GetChannelEditAbility(chan, Context.User);
 					}
 					else
 					{
@@ -723,7 +697,7 @@ namespace Advobot
 			}
 
 			//Test if valid channel
-			var channel = await Actions.GetChannelEditAbility(Context, inputArray[0]);
+			var channel = await Actions.GetChannelEditAbility(Context, inputArray[0]) as ITextChannel;
 			if (channel == null)
 				return;
 			//See if not a text channel
@@ -742,13 +716,13 @@ namespace Advobot
 			}
 
 			//See what current topic is
-			var currentTopic = (channel as ITextChannel).Topic;
+			var currentTopic = channel.Topic;
 			if (String.IsNullOrWhiteSpace(currentTopic))
 			{
 				currentTopic = "NOTHING";
 			}
 
-			await (channel as ITextChannel).ModifyAsync(x => x.Topic = newTopic);
+			await channel.ModifyAsync(x => x.Topic = newTopic);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the topic in `{0}` from `{1}` to `{2}`.",
 				Actions.FormatChannel(channel), currentTopic, String.IsNullOrWhiteSpace(newTopic) ? "NOTHING" : newTopic));
 		}
@@ -766,7 +740,7 @@ namespace Advobot
 			var newLimit = inputArray[1];
 
 			//Check if valid channel that the user can edit
-			var channel = await Actions.GetChannelEditAbility(Context, channelName + "/voice");
+			var channel = Actions.GetChannelEditAbility(await Actions.GetVoiceChannel(Context, channelName), Context.User);
 			if (channel == null)
 				return;
 			//See if not a voice channel
@@ -791,14 +765,14 @@ namespace Advobot
 			}
 
 			//Change it and send a success message
-			await (channel as IVoiceChannel).ModifyAsync(x => x.UserLimit = limit);
+			await channel.ModifyAsync(x => x.UserLimit = limit);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}`.", Actions.FormatChannel(channel), limit));
 		}
 
 		[Command("channelbitrate")]
 		[Alias("chbr")]
 		[Usage("[Channel Name] [8 to 96]")]
-		[Summary("Changes the bit rate (in kbps) on the selected channel to the given value. The default value is 64.")]
+		[Summary("Changes the bit rate (in kbps) on the selected channel to the given value. The default value is 64. The bitrate can go up to 128 on a partnered guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		public async Task ChangeChannelBitRate([Remainder] string input)
 		{
@@ -808,7 +782,7 @@ namespace Advobot
 			var newBitRate = inputArray[1];
 
 			//Check if valid channel that the user can edit
-			var channel = await Actions.GetChannelEditAbility(Context, channelName + "/voice");
+			var channel = Actions.GetChannelEditAbility(await Actions.GetVoiceChannel(Context, channelName), Context.User);
 			if (channel == null)
 				return;
 			//See if not a voice channel
@@ -843,7 +817,7 @@ namespace Advobot
 			}
 
 			//Change it and send a success message
-			await (channel as IVoiceChannel).ModifyAsync(x => x.Bitrate = bitRate * 1000);
+			await channel.ModifyAsync(x => x.Bitrate = bitRate);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}kbps`.", Actions.FormatChannel(channel), bitRate));
 		}
 	}

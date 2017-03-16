@@ -44,7 +44,7 @@ namespace Advobot
 				return;
 
 			//Check if that channel is ignored for commands
-			if (Variables.Guilds[channel.GuildId].IgnoredCommandChannels.Contains(channel.Id))
+			if (Variables.Guilds[channel.GuildId].IgnoredCommandChannels.GetList().Contains(channel.Id))
 				return;
 
 			//Get the guild specific prefix

@@ -10,6 +10,7 @@ namespace Advobot
 		[System.STAThread]
 		private static void Main(string[] args)
 		{
+			//TODO: Add in a check for internet being on 
 			//Check if Windows and if console
 			Actions.LoadBasicInformation();
 
@@ -40,7 +41,7 @@ namespace Advobot
 				}
 				//Set the bot's key
 				startup = true;
-				while (!(Actions.ValidateBotKey(Variables.Client, startup ? Properties.Settings.Default.BotKey : System.Console.ReadLine(), startup)).Result)
+				while (!Actions.ValidateBotKey(Variables.Client, startup ? Properties.Settings.Default.BotKey : System.Console.ReadLine(), startup).Result)
 				{
 					startup = false;
 				}
@@ -139,17 +140,6 @@ namespace Advobot
 			catch (System.Exception e)
 			{
 				Actions.ExceptionToConsole("Client is unable to connect.", e);
-				return;
-			}
-
-			//Wait for all the guilds to be added
-			try
-			{
-				await client.WaitForGuildsAsync();
-			}
-			catch (System.Exception e)
-			{
-				Actions.ExceptionToConsole("Client is unable to wait for all the guilds.", e);
 				return;
 			}
 

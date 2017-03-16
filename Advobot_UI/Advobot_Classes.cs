@@ -468,32 +468,40 @@ namespace Advobot
 			mGuild = guild;
 		}
 
-		//I CBA changing everything in here to be private yet. I hate handling lists as private ones.
+		//I CBA changing everything in here to be private yet. I hate handling lists as private ones. Made this class to keep them private-ish instead
+		public LimitedList<string> BannedPhrases = new LimitedList<string>();
+		public LimitedList<Regex> BannedRegex = new LimitedList<Regex>();
+		public LimitedList<BannedPhrasePunishment> BannedPhrasesPunishments = new LimitedList<BannedPhrasePunishment>();
+		public LimitedList<CommandSwitch> CommandSettings = new LimitedList<CommandSwitch>();
+		public LimitedList<CommandDisabledOnChannel> CommandsDisabledOnChannel = new LimitedList<CommandDisabledOnChannel>();
+		public LimitedList<ulong> IgnoredCommandChannels = new LimitedList<ulong>();
+		public LimitedList<ulong> IgnoredLogChannels = new LimitedList<ulong>();
+		public LimitedList<LogActions> LogActions = new LimitedList<LogActions>();
+		public LimitedList<Remind> Reminds = new LimitedList<Remind>();
+		public LimitedList<BotInvite> Invites = new LimitedList<BotInvite>();
 
-		//Banned phrases/regex/punishment
-		public List<string> BannedPhrases = new List<string>();
-		public List<Regex> BannedRegex = new List<Regex>();
-		public List<BannedPhrasePunishment> BannedPhrasesPunishments = new List<BannedPhrasePunishment>();
-
-		//Commands
-		public List<CommandSwitch> CommandSettings = new List<CommandSwitch>();
-		public List<CommandDisabledOnChannel> CommandsDisabledOnChannel = new List<CommandDisabledOnChannel>();
-		public List<ulong> IgnoredCommandChannels = new List<ulong>();
-
-		//Loggings
-		public List<ulong> IgnoredLogChannels = new List<ulong>();
-		public List<LogActions> LogActions = new List<LogActions>();
-
-		//Spam prevention
-		public GlobalSpamPrevention GlobalSpamPrevention = new GlobalSpamPrevention();
-
-		//Raid prevention
-		public AntiRaid AntiRaid;
-
-		//Misc
-		public List<Remind> Reminds = new List<Remind>();
-		public List<BotInvite> Invites = new List<BotInvite>();
+		private GlobalSpamPrevention mGlobalSpamPrevention = new GlobalSpamPrevention();
+		private AntiRaid mAntiRaid;
+		private RoleLoss mRoleLoss = new RoleLoss();
+		private MessageDeletion mMessageDeletion = new MessageDeletion();
 		private bool mDefaultPrefs = true;
+		private string mPrefix;
+		private IGuild mGuild;
+		private ITextChannel mServerLog;
+		private ITextChannel mModLog;
+
+		public GlobalSpamPrevention GlobalSpamPrevention
+		{
+			get { return mGlobalSpamPrevention; }
+		}
+		public AntiRaid AntiRaid
+		{
+			get { return mAntiRaid; }
+		}
+		public void SetAntiRaid(AntiRaid antiRaid)
+		{
+			mAntiRaid = antiRaid;
+		}
 		public bool DefaultPrefs
 		{
 			get { return mDefaultPrefs; }
@@ -502,7 +510,6 @@ namespace Advobot
 		{
 			mDefaultPrefs = false;
 		}
-		private string mPrefix;
 		public string Prefix
 		{
 			get { return mPrefix; }
@@ -511,12 +518,10 @@ namespace Advobot
 		{
 			mPrefix = prefix;
 		}
-		private IGuild mGuild;
 		public IGuild Guild
 		{
 			get { return mGuild; }
 		}
-		private ITextChannel mServerLog = null;
 		public ITextChannel ServerLog
 		{
 			get { return mServerLog; }
@@ -525,7 +530,6 @@ namespace Advobot
 		{
 			mServerLog = channel;
 		}
-		private ITextChannel mModLog = null;
 		public ITextChannel ModLog
 		{
 			get { return mModLog; }
@@ -534,15 +538,10 @@ namespace Advobot
 		{
 			mModLog = channel;
 		}
-
-		//Role loss
-		private RoleLoss mRoleLoss = new RoleLoss();
 		public RoleLoss RoleLoss
 		{
 			get { return mRoleLoss; }
 		}
-		//Message Deletion
-		private MessageDeletion mMessageDeletion = new MessageDeletion();
 		public MessageDeletion MessageDeletion
 		{
 			get { return mMessageDeletion; }
@@ -586,7 +585,7 @@ namespace Advobot
 			mUser = user;
 			mCurrentSpamAmount = currentSpamAmount;
 			mVotesRequired = votesRequired;
-			global.AddSpamPreventionUser(this);
+			global.SpamPreventionUsers.Add(this);
 		}
 
 		private IGuildUser mUser;
@@ -646,6 +645,11 @@ namespace Advobot
 		{
 			mUsersWhoHaveAlreadyVoted.Add(ID);
 		}
+		public void ResetSpamUser()
+		{
+			mCurrentSpamAmount = 0;
+			mUsersWhoHaveAlreadyVoted = new List<ulong>();
+		}
 	}
 
 	public abstract class BotClient
@@ -664,7 +668,6 @@ namespace Advobot
 		public abstract Task StopAsync();
 		public abstract Task LoginAsync(TokenType tokenType, string token);
 		public abstract Task LogoutAsync();
-		public abstract Task WaitForGuildsAsync();
 		public abstract Task SetGameAsync(string game, string stream, StreamType streamType);
 	}
 
@@ -687,7 +690,6 @@ namespace Advobot
 		public override async Task StopAsync() { await mSocketClient.StopAsync(); }
 		public override async Task LoginAsync(TokenType tokenType, string token) { await mSocketClient.LoginAsync(tokenType, token); }
 		public override async Task LogoutAsync() { await mSocketClient.LogoutAsync(); }
-		public override async Task WaitForGuildsAsync() { await mSocketClient.WaitForGuildsAsync(); }
 		public override async Task SetGameAsync(string game, string stream, StreamType streamType) { await mSocketClient.SetGameAsync(game, stream, streamType); }
 	}
 
@@ -710,8 +712,58 @@ namespace Advobot
 		public override async Task StopAsync() { await mShardedClient.StopAsync(); }
 		public override async Task LoginAsync(TokenType tokenType, string token) { await mShardedClient.LoginAsync(tokenType, token); }
 		public override async Task LogoutAsync() { await mShardedClient.LogoutAsync(); }
-		public override async Task WaitForGuildsAsync() { await mShardedClient.Shards.ToList().ForEachAsync(async x => await x.WaitForGuildsAsync()); }
 		public override async Task SetGameAsync(string game, string stream, StreamType streamType) { await mShardedClient.SetGameAsync(game, stream, streamType); }
+	}
+
+	public class GlobalSpamPrevention
+	{
+		public LimitedList<SpamPreventionUser> SpamPreventionUsers = new LimitedList<SpamPreventionUser>();
+		private MessageSpamPrevention mMessageSpamPrevention;
+		private LongMessageSpamPrevention mLongMessageSpamPrevention;
+		private LinkSpamPrevention mLinkSpamPrevention;
+		private ImageSpamPrevention mImageSpamPrevention;
+		private MentionSpamPrevention mMentionSpamPrevention;
+
+		public MessageSpamPrevention MessageSpamPrevention
+		{
+			get { return mMessageSpamPrevention; }
+		}
+		public void SetMessageSpamPrevention(MessageSpamPrevention spamPrevention)
+		{
+			mMessageSpamPrevention = spamPrevention;
+		}
+		public LongMessageSpamPrevention LongMessageSpamPrevention
+		{
+			get { return mLongMessageSpamPrevention; }
+		}
+		public void SetLongMessageSpamPrevention(LongMessageSpamPrevention spamPrevention)
+		{
+			mLongMessageSpamPrevention = spamPrevention;
+		}
+		public LinkSpamPrevention LinkSpamPrevention
+		{
+			get { return mLinkSpamPrevention; }
+		}
+		public void SetLinkSpamPrevention(LinkSpamPrevention spamPrevention)
+		{
+			mLinkSpamPrevention = spamPrevention;
+		}
+		public ImageSpamPrevention ImageSpamPrevention
+		{
+			get { return mImageSpamPrevention; }
+		}
+		public void SetImageSpamPrevention(ImageSpamPrevention spamPrevention)
+		{
+			mImageSpamPrevention = spamPrevention;
+		}
+		public MentionSpamPrevention MentionSpamPrevention
+		{
+			get { return mMentionSpamPrevention; }
+		}
+		public void SetMentionSpamPrevention(MentionSpamPrevention spamPrevention)
+		{
+			mMentionSpamPrevention = spamPrevention;
+		}
 	}
 
 	public class BaseSpamPrevention
@@ -757,11 +809,6 @@ namespace Advobot
 		public MessageSpamPrevention(int amountOfMessages, int votesNeededForKick, int placeholder) : base(amountOfMessages, votesNeededForKick, placeholder) { }
 	}
 
-	public class MentionSpamPrevention : BaseSpamPrevention
-	{
-		public MentionSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfMentions) : base(amountOfMessages, votesNeededForKick, amountOfMentions) {}
-	}
-
 	public class LongMessageSpamPrevention : BaseSpamPrevention
 	{
 		public LongMessageSpamPrevention(int amountOfMessages, int votesNeededForKick, int lengthOfMessage) : base(amountOfMessages, votesNeededForKick, lengthOfMessage) {}
@@ -777,71 +824,9 @@ namespace Advobot
 		public ImageSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfImages) : base(amountOfMessages, votesNeededForKick, amountOfImages) { }
 	}
 
-	public class GlobalSpamPrevention
+	public class MentionSpamPrevention : BaseSpamPrevention
 	{
-		private List<SpamPreventionUser> mSpamPreventionUsers = new List<SpamPreventionUser>();
-		public ReadOnlyCollection<SpamPreventionUser> SpamPreventionUsers
-		{
-			get { return mSpamPreventionUsers.AsReadOnly(); }
-		}
-		public void AddSpamPreventionUser(SpamPreventionUser user)
-		{
-			mSpamPreventionUsers.Add(user);
-		}
-		public void ClearSpamPreventionUsers()
-		{
-			mSpamPreventionUsers = new List<SpamPreventionUser>();
-		}
-
-		private MessageSpamPrevention mMessageSpamPrevention;
-		public MessageSpamPrevention MessageSpamPrevention
-		{
-			get { return mMessageSpamPrevention; }
-		}
-		public void SetMessageSpamPrevention(MessageSpamPrevention spamPrevention)
-		{
-			mMessageSpamPrevention = spamPrevention;
-		}
-
-		private LongMessageSpamPrevention mLongMessageSpamPrevention;
-		public LongMessageSpamPrevention LongMessageSpamPrevention
-		{
-			get { return mLongMessageSpamPrevention; }
-		}
-		public void SetLongMessageSpamPrevention(LongMessageSpamPrevention spamPrevention)
-		{
-			mLongMessageSpamPrevention = spamPrevention;
-		}
-
-		private LinkSpamPrevention mLinkSpamPrevention;
-		public LinkSpamPrevention LinkSpamPrevention
-		{
-			get { return mLinkSpamPrevention; }
-		}
-		public void SetLinkSpamPrevention(LinkSpamPrevention spamPrevention)
-		{
-			mLinkSpamPrevention = spamPrevention;
-		}
-
-		private ImageSpamPrevention mImageSpamPrevention;
-		public ImageSpamPrevention ImageSpamPrevention
-		{
-			get { return mImageSpamPrevention; }
-		}
-		public void SetImageSpamPrevention(ImageSpamPrevention spamPrevention)
-		{
-			mImageSpamPrevention = spamPrevention;
-		}
-
-		private MentionSpamPrevention mMentionSpamPrevention;
-		public MentionSpamPrevention MentionSpamPrevention
-		{
-			get { return mMentionSpamPrevention; }
-		}
-		public void SetMentionSpamPrevention(MentionSpamPrevention spamPrevention)
-		{
-			mMentionSpamPrevention = spamPrevention;
-		}
+		public MentionSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfMentions) : base(amountOfMessages, votesNeededForKick, amountOfMentions) { }
 	}
 
 	public abstract class DeletionSpamProtection
@@ -918,11 +903,10 @@ namespace Advobot
 		{
 			get { return mMuteRole; }
 		}
-		public void SetMuteRole(IRole role)
+		public void DisableAntiRaid()
 		{
-			mMuteRole = role;
+			mMuteRole = null;
 		}
-
 		public ReadOnlyCollection<IGuildUser> UsersWhoHaveBeenMuted
 		{
 			get { return mUsersWhoHaveBeenMuted.AsReadOnly(); }
@@ -930,6 +914,58 @@ namespace Advobot
 		public void AddUserToMutedList(IGuildUser user)
 		{
 			mUsersWhoHaveBeenMuted.Add(user);
+		}
+	}
+
+	public class LimitedList<T>
+	{
+		//This isn't really needed, but with this it's easier to know when a list is actually being modified or not. Also gives more restrictions in case something dumb happens.
+		public LimitedList()
+		{
+			mRealList = new List<T>();
+		}
+		public LimitedList(List<T> list)
+		{
+			mRealList = list;
+		}
+
+		private List<T> mRealList;
+
+		public ReadOnlyCollection<T> GetList()
+		{
+			return mRealList.AsReadOnly();
+		}
+		public void NewList(List<T> list)
+		{
+			mRealList = list;
+		}
+		public void Add(T item)
+		{
+			mRealList.Add(item);
+		}
+		public void AddRange(List<T> range)
+		{
+			mRealList.AddRange(range);
+		}
+		public void Remove(T item)
+		{
+			mRealList.Remove(item);
+		}
+		public void RemoveAt(int position)
+		{
+			mRealList.RemoveAt(position);
+		}
+		public void RemoveAll(Predicate<T> match)
+		{
+			mRealList.RemoveAll(match);
+		}
+		public void MakeDistinct()
+		{
+			mRealList = mRealList.Distinct().ToList();
+		}
+		public override string ToString()
+		{
+			return mRealList.Any() ? String.Join(", ", mRealList.Select(x => x.ToString())) : this.ToString();
 		}
 	}
 	#endregion
@@ -1197,14 +1233,14 @@ namespace Advobot
 			mCommandName = commandName;
 		}
 
-		private static ulong mChannelID;
-		private static string mCommandName;
+		private ulong mChannelID;
+		private string mCommandName;
 
-		public static ulong ChannelID
+		public ulong ChannelID
 		{
 			get { return mChannelID; }
 		}
-		public static string CommandName
+		public string CommandName
 		{
 			get { return mCommandName; }
 		}
@@ -1344,5 +1380,14 @@ namespace Advobot
 		ListGuilds = 11,
 		Shards = 12,
 	};
+
+	public enum SpamTypes
+	{
+		Message = 1,
+		Long_Message = 2,
+		Links = 3,
+		Images = 4,
+		Mention = 5, 
+	}
 	#endregion
 }

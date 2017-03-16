@@ -192,21 +192,20 @@ namespace Advobot
 				return;
 			}
 			//See if the bot can move people from this channel
-			else if (await Actions.GetChannelEditAbility(user.VoiceChannel, await Context.Guild.GetUserAsync(Variables.Bot_ID)) == null)
+			else if (Actions.GetChannelMovability(user.VoiceChannel, await Context.Guild.GetUserAsync(Variables.Bot_ID)) == null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to move this user due to permissions " +
-					"or due to the user being in a voice channel before the bot started up."), 5000);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to move this user due to permissions or due to the user being in a voice channel before the bot started up."));
 				return;
 			}
 			//See if the user can move people from this channel
-			else if (await Actions.GetChannelEditAbility(user.VoiceChannel, Context.User as IGuildUser) == null)
+			else if (Actions.GetChannelMovability(user.VoiceChannel, Context.User) == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to move people from this channel."));
 				return;
 			}
 
 			//Check if valid channel
-			var channel = await Actions.GetChannelEditAbility(Context, inputArray[1] + "/" + Constants.VOICE_TYPE);
+			var channel = Actions.GetChannelMovability(await Actions.GetVoiceChannel(Context, inputArray[1]), Context.User);
 			if (channel == null)
 				return;
 			else if (Actions.GetChannelType(channel) != Constants.VOICE_TYPE)
@@ -222,7 +221,7 @@ namespace Advobot
 				return;
 			}
 
-			await user.ModifyAsync(x => x.Channel = Optional.Create(channel as IVoiceChannel));
+			await user.ModifyAsync(x => x.Channel = Optional.Create(channel));
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully moved `{0}#{1}` to `{2}`.", user.Username, user.Discriminator, channel.Name));
 		}
 
@@ -406,9 +405,8 @@ namespace Advobot
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is unable to be banned by you."));
 					return;
 				}
-
 				//Determine if the bot can ban this person
-				if (!await Actions.UserCanBeModifiedByBot(Context, inputUser))
+				else if (!await Actions.UserCanBeModifiedByBot(Context, inputUser))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Bot is unable to ban user."));
 					return;
@@ -634,8 +632,7 @@ namespace Advobot
 				await Actions.SendChannelMessage(serverlogChannel ?? modlogChannel, String.Format("Hey, @here, {0} is trying to delete stuff.", Context.User.Mention));
 
 				//DM the owner of the server
-				await Actions.SendDMMessage(await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync(),
-					String.Format("`{0}#{1}` ID: `{2}` is trying to delete stuff from the server/mod log.", Context.User.Username, Context.User.Discriminator, Context.User.Id));
+				await Actions.SendDMMessage(await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync(), String.Format("`{0}` is trying to delete stuff from the server/mod log.", Actions.FormatUser(Context.User)));
 				return;
 			}
 
