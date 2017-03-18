@@ -10,7 +10,7 @@ namespace Advobot
 {
 	//Global Settings commands are commands that work on the bot globally
 	[Name("Global_Settings")]
-	public class Administration_Commands : ModuleBase
+	public class Advobot_Commands_Administration : ModuleBase
 	{
 		//TODO: add in the default enabled attribute to each method
 		#region Settings
@@ -18,6 +18,8 @@ namespace Advobot
 		[Alias(SharedCommands.AOWNER)]
 		[Usage("<Clear|Current>")]
 		[Summary("You must be the current guild owner. The bot will DM you asking for its key. **DO NOT INPUT THE KEY OUTSIDE OF DMS.** If you are experiencing trouble, refresh your bot's key.")]
+		[GuildOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task SetBotOwner([Optional, Remainder] string input)
 		{
 			//Check if it's current
@@ -78,6 +80,7 @@ namespace Advobot
 		[Usage("[Clear|Current|New Directory]")]
 		[Summary("Changes the save path's directory. Windows defaults to User/AppData/Roaming. Other OSes will not work without a save path set. Clearing the savepath means nothing will be able to save.")]
 		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task SetSavePath([Remainder] string input)
 		{
 			//Check if it's current
@@ -132,6 +135,7 @@ namespace Advobot
 		[Usage("[Clear|Current|New Prefix]")]
 		[Summary("Changes the bot's prefix to the given string. Clearing the prefix sets it back to `++`.")]
 		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task SetGlobalPrefix([Remainder] string input)
 		{
 			//Get the old prefix
@@ -169,6 +173,7 @@ namespace Advobot
 		[Usage("[Clear|Current]")]
 		[Summary("Shows all the settings on the bot aside from the bot's key. When clearing all settings the bot will have to be manually restarted if it reconnects.")]
 		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task CurrentGlobalSettings([Remainder] string input)
 		{
 			//Check if current
@@ -217,6 +222,7 @@ namespace Advobot
 		[Usage("[Attached Image|Embedded Image|Remove]")]
 		[Summary("Changes the bot's icon.")]
 		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task BotIcon([Optional, Remainder] string input)
 		{
 			await Actions.SetPicture(Context, input, true);
@@ -227,6 +233,7 @@ namespace Advobot
 		[Usage("[New Name]")]
 		[Summary("Changes the game the bot is currently listed as playing.")]
 		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task SetGame([Remainder] string input)
 		{
 			//Check the game name length
@@ -249,6 +256,7 @@ namespace Advobot
 		[Usage("[Twitch.TV link]")]
 		[Summary("Changes the stream the bot has listed under its name.")]
 		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task BotStream([Optional, Remainder] string input)
 		{
 			//If empty string, take that as the notion to turn the stream off
@@ -288,6 +296,7 @@ namespace Advobot
 		[Usage("[New Name]")]
 		[Summary("Changes the bot's name to the given name.")]
 		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task BotName([Remainder] string input)
 		{
 			//Names have the same length requirements as nicknames
@@ -316,6 +325,7 @@ namespace Advobot
 		[Usage("")]
 		[Summary("Turns the bot off.")]
 		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task Disconnect()
 		{
 			if (Context.User.Id == Properties.Settings.Default.BotOwner || Constants.DISCONNECT)
@@ -333,6 +343,7 @@ namespace Advobot
 		[Usage("")]
 		[Summary("Restarts the bot.")]
 		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task Restart()
 		{
 			if (Context.User.Id == Properties.Settings.Default.BotOwner || Constants.DISCONNECT)
@@ -359,6 +370,7 @@ namespace Advobot
 		[Usage("[Number]")]
 		[Summary("")]
 		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task ModifyShards([Remainder] string input)
 		{
 			//Make sure valid input is passed in
@@ -396,6 +408,7 @@ namespace Advobot
 		[Usage("")]
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task ListGuilds()
 		{
 			//Go through each guild and add them to the list

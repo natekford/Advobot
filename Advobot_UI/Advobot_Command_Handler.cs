@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
-	public class CommandHandler
+	public class Command_Handler
 	{
 		public static CommandService Commands;
 		public static BotClient Client;
@@ -98,7 +98,7 @@ namespace Advobot
 				});
 
 				//Log the command on that guild
-				await ModLogs.LogCommand(context);
+				await Mod_Logs.LogCommand(context);
 
 				//If a command succeeds then the guild gave the bot admin back so remove them from this list
 				Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Remove(context.Guild);

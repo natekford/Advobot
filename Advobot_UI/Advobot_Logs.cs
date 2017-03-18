@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	//Logs are commands which fire on actions. Most of these are solely for logging, but a few are for deleting certain messages.
-	public class BotLogs : ModuleBase
+	public class Bot_Logs : ModuleBase
 	{
 		public static Task Log(LogMessage msg)
 		{
@@ -163,7 +163,7 @@ namespace Advobot
 		}
 	}
 
-	public class ServerLogs : ModuleBase
+	public class Server_Logs : ModuleBase
 	{
 		//TODO: Remove most of the events that will get replaced by the audit log
 		public static async Task OnUserJoined(SocketGuildUser user)
@@ -466,24 +466,24 @@ namespace Advobot
 			//Check if the user is trying to become the bot owner by DMing the bot is key
 			if (guild == null)
 			{
-				await MessageReceivedActions.BotOwner(message);
+				await Message_Received_Actions.BotOwner(message);
 				return;
 			}
 			//Check if the user should be spam prevented
-			await MessageReceivedActions.SpamPrevention(guild, message);
+			await Message_Received_Actions.SpamPrevention(guild, message);
 			//Check if the users is voting on a spam prevention
-			await MessageReceivedActions.VotingOnSpamPrevention(guild, message);
+			await Message_Received_Actions.VotingOnSpamPrevention(guild, message);
 			//Check if anything to do with deleting/enabling preferences
-			await MessageReceivedActions.ModifyPreferences(guild, message);
+			await Message_Received_Actions.ModifyPreferences(guild, message);
 			//Check if any active closewords
-			await MessageReceivedActions.CloseWords(guild, message);
+			await Message_Received_Actions.CloseWords(guild, message);
 			//Check if slowmode or not banned phrases
-			await MessageReceivedActions.SlowmodeOrBannedPhrases(guild, message);
+			await Message_Received_Actions.SlowmodeOrBannedPhrases(guild, message);
 
 			//Get the guild and log channel
 			var serverLog = Variables.Guilds.ContainsKey(guild.Id) ? Variables.Guilds[guild.Id].ServerLog : null;
 			//Check if image logging should happen
-			await MessageReceivedActions.ImageLog(serverLog, message);
+			await Message_Received_Actions.ImageLog(serverLog, message);
 
 			//Increment the logged messages count
 			++Variables.LoggedMessages;
@@ -504,7 +504,7 @@ namespace Advobot
 				return;
 			//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
 			if (!beforeMessage.HasValue || beforeMessageValue.Embeds.Count() < afterMessage.Embeds.Count())
-				await MessageReceivedActions.ImageLog(serverLog, afterMessage);
+				await Message_Received_Actions.ImageLog(serverLog, afterMessage);
 
 			//Set the content as strings
 			var beforeMsgContent = Actions.ReplaceMarkdownChars(beforeMessageValue?.Content ?? "");
@@ -714,7 +714,7 @@ namespace Advobot
 		}
 	}
 
-	public class ModLogs : ModuleBase
+	public class Mod_Logs : ModuleBase
 	{
 		public static async Task LogCommand(CommandContext context)
 		{
@@ -737,7 +737,7 @@ namespace Advobot
 		}
 	}
 
-	public class MessageReceivedActions : ModuleBase
+	public class Message_Received_Actions : ModuleBase
 	{
 		public static async Task ImageLog(ITextChannel channel, IMessage message)
 		{

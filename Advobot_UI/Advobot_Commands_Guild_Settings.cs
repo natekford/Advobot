@@ -19,6 +19,7 @@ namespace Advobot
 		[Usage("<Guild ID>")]
 		[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
 		[BotOwnerOrGuildOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task GuildLeave([Optional, Remainder] string input)
 		{
 			//Get the guild out of an ID
@@ -66,6 +67,7 @@ namespace Advobot
 		[Usage("[New Prefix|Clear]")]
 		[Summary("Makes the guild use the given prefix from now on.")]
 		[GuildOwnerRequirement]
+		[DefaultEnabled(false)]
 		public async Task GuildPrefix([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -127,6 +129,7 @@ namespace Advobot
 		[Usage("")]
 		[Summary("Displays which settings are not default.")]
 		[PermissionRequirement]
+		[DefaultEnabled(true)]
 		public async Task GuildSettings()
 		{
 			//Get the guild
@@ -200,6 +203,7 @@ namespace Advobot
 		[Usage("[Enable|Disable]")]
 		[Summary("Gives the guild preferences which allows using self-assignable roles, toggling commands, and changing the permissions of commands.")]
 		[GuildOwnerRequirement]
+		[DefaultEnabled(true)]
 		public async Task CommandConfigModify([Remainder] string input)
 		{
 			//Check if enable
@@ -250,6 +254,7 @@ namespace Advobot
 		[Usage("[Enable|Disable|Current] [Command Name|Category Name|All]")]
 		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `comconfig`, `comconfigmodify`, or `help`.")]
 		[PermissionRequirement]
+		[DefaultEnabled(true)]
 		public async Task CommandConfig([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -389,6 +394,7 @@ namespace Advobot
 		[Usage("[Add|Remove] [#Channel|Channel Name] <Full Command Name> | [Current] <All|Full Command Name>")]
 		[Summary("The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.")]
 		[PermissionRequirement]
+		[DefaultEnabled(false)]
 		public async Task CommandIgnore([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -510,7 +516,7 @@ namespace Advobot
 				{
 					if (ignoredCmdsOnChans.Any(x => x.CommandName == cmd && x.ChannelID == channel.Id))
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored for commands."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already ignored on this channel."));
 						return;
 					}
 					ignoredCmdsOnChans.Add(new CommandDisabledOnChannel(channel.Id, cmd));
@@ -519,7 +525,7 @@ namespace Advobot
 				{
 					if (!ignoredCmdsOnChans.Any(x => x.CommandName == cmd && x.ChannelID == channel.Id))
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored for commands."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already not ignored on this channel."));
 						return;
 					}
 					ignoredCmdsOnChans.RemoveAll(x => x.CommandName == cmd && x.ChannelID == channel.Id);
@@ -536,7 +542,7 @@ namespace Advobot
 				Actions.SaveLines(path, ignoredCmdsOnChans.Select(x => String.Format("{0} {1}", x.ChannelID, x.CommandName)).ToList());
 
 				//Send a success message
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the command `{1}` in `{2}`.", add ? "enabled" : "disabled", cmd, Actions.FormatChannel(channel)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the command `{1}` in `{2}`.", add ? "disabled" : "enabled", cmd, Actions.FormatChannel(channel)));
 			}
 			else
 			{
@@ -585,6 +591,7 @@ namespace Advobot
 		[Usage("[Add|Remove|Show] <@User> <Permission/...>")]
 		[Summary("Gives a user permissions in the bot but not on Discord itself. Can remove a user by not specifying any perms with remove.")]
 		[PermissionRequirement]
+		[DefaultEnabled(false)]
 		public async Task BotUsersModify([Remainder] string input)
 		{
 			//Check if they've enabled preferences
@@ -751,6 +758,7 @@ namespace Advobot
 		[Usage("[File|Actual|@User]")]
 		[Summary("Shows a list of all the people who are bot users. If a user is specified then their permissions are said.")]
 		[UserHasAPermission]
+		[DefaultEnabled(false)]
 		public async Task BotUsers([Remainder] string input)
 		{
 			bool fileBool;
@@ -857,6 +865,7 @@ namespace Advobot
 		[Usage("[Add|Remove] [Name]/<Text>")]
 		[Summary("Adds the given text to a list that can be called through the `remind` command.")]
 		[UserHasAPermission]
+		[DefaultEnabled(false)]
 		public async Task RemindsModify([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -952,6 +961,7 @@ namespace Advobot
 		[Alias("rem", "r")]
 		[Usage("<Name>")]
 		[Summary("Shows the content for the given remind. If null then shows the list of the current reminds.")]
+		[DefaultEnabled(true)]
 		public async Task Reminds([Optional, Remainder] string input)
 		{
 			var reminds = Variables.Guilds[Context.Guild.Id].Reminds.ToList();

@@ -16,6 +16,7 @@ namespace Advobot
 		[Usage("[@User] [Role]/<Role>/...")]
 		[Summary("Gives the user the role (assuming the person using the command and bot both have the ability to give that role).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task GiveRole([Remainder] string input)
 		{
 			//Test number of arguments
@@ -118,6 +119,7 @@ namespace Advobot
 		[Usage("[@User] [Role]")]
 		[Summary("Take the role from the user (assuming the person using the command and bot both have the ability to take that role).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task TakeRole([Remainder] string input)
 		{
 			//Test number of arguments
@@ -214,6 +216,7 @@ namespace Advobot
 		[Usage("[Role]")]
 		[Summary("Adds a role to the guild with the chosen name.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task CreateRole([Remainder] string input)
 		{
 			//Check length
@@ -238,6 +241,7 @@ namespace Advobot
 		[Usage("[Role]")]
 		[Summary("Removes all permissions from a role (and all channels the role had permissions on) and removes the role from everyone. Leaves the name and color behind.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task SoftDeleteRole([Remainder] string input)
 		{
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
@@ -285,6 +289,7 @@ namespace Advobot
 		[Usage("[Role]")]
 		[Summary("Deletes the role..")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task DeleteRole([Remainder] string input)
 		{
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
@@ -315,6 +320,7 @@ namespace Advobot
 		[Usage("[Role] [New Position]")]
 		[Summary("Moves the role to the given position. @ev" + Constants.ZERO_LENGTH_CHAR + "eryone is the first position and starts at zero.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task RolePosition([Remainder] string input)
 		{
 			//Get the role
@@ -383,6 +389,7 @@ namespace Advobot
 		[Usage("")]
 		[Summary("Lists the positions of each role on the guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task ListRolePositions()
 		{
 			//List of the roles
@@ -412,6 +419,7 @@ namespace Advobot
 		[Summary("Add/remove the selected permissions to/from the role. Permissions must be separated by a `/`! Type `" + Constants.BOT_PREFIX + "rolepermissions [Show]` to see the available permissions. " +
 			"Type `" + Constants.BOT_PREFIX + "rolepermissions [Show] [Role]` to see the permissions of that role.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task RolePermissions([Remainder] string input)
 		{
 			//Set the permission types into a list to later check against
@@ -579,6 +587,7 @@ namespace Advobot
 		[Summary("Copies the permissions from the first role to the second role. Will not copy roles that the user does not have access to." +
 			"Will not overwrite roles that are above the user's top role.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task CopyRolePermissions([Remainder] string input)
 		{
 			//Put the input into a string
@@ -646,6 +655,7 @@ namespace Advobot
 		[Usage("[Role]")]
 		[Summary("Removes all permissions from a role.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task ClearRolePermissions([Remainder] string input)
 		{
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
@@ -663,6 +673,7 @@ namespace Advobot
 		[Usage("[Role|Position{x}]/[New Name]")]
 		[Summary("Changes the name of the role. This is *extremely* useful for when multiple roles have the same name but you want to edit things.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task ChangeRoleName([Remainder] string input)
 		{
 			//Split at the current role name and the new role name
@@ -749,6 +760,7 @@ namespace Advobot
 		[Summary("Changes the role's color. A color of '0' sets the role back to the default color. " +
 			"Colors must either be in hexadecimal format or be a color listed [here](https://msdn.microsoft.com/en-us/library/system.drawing.color).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task ChangeRoleColor([Remainder] string input)
 		{
 			var inputArray = input.Split(new char[] { '/' }, 2);
@@ -786,6 +798,7 @@ namespace Advobot
 		[Usage("[Role]")]
 		[Summary("Displays a role separately from others on the user list. Saying the command again remove it from being hoisted.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task HoistRole([Remainder] string input)
 		{
 			var role = await Actions.GetRoleEditAbility(Context, input);
@@ -809,6 +822,7 @@ namespace Advobot
 		[Usage("[Role]")]
 		[Summary("Allows the role to be mentioned. Saying the command again removes its ability to be mentioned.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
 		public async Task ChangeMentionRole([Remainder] string input)
 		{
 			var role = await Actions.GetRoleEditAbility(Context, input);

@@ -51,7 +51,9 @@ namespace Advobot
 		{
 			foreach (var classType in AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes()).Where(type => type.IsSubclassOf(typeof(ModuleBase))))
 			{
-				var className = ((NameAttribute)classType.GetCustomAttribute(typeof(NameAttribute)))?.Text;
+				if (!Enum.TryParse(((NameAttribute)classType.GetCustomAttribute(typeof(NameAttribute)))?.Text, true, out CommandCategory category))
+					continue;
+
 				foreach (var method in classType.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic))
 				{
 					//Get the name
@@ -135,7 +137,7 @@ namespace Advobot
 						}
 					}
 					//Add it to the helplist
-					Variables.HelpList.Add(new HelpEntry(name, aliases, usage, basePerm, text, className, defaultEnabled));
+					Variables.HelpList.Add(new HelpEntry(name, aliases, usage, basePerm, text, category, defaultEnabled));
 				}
 			}
 		}
@@ -245,14 +247,9 @@ namespace Advobot
 		{
 			//Check if this server has any preferences
 			var path = GetServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
-			var defaultCategory = CommandCategory.Miscellaneous;
 			if (!File.Exists(path))
 			{
-				Variables.HelpList.ForEach(x =>
-				{
-					var category = Enum.TryParse(x.ClassName, out CommandCategory temp) ? temp : defaultCategory;
-					Variables.Guilds[guild.Id].CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled, category, x?.Aliases));
-				});
+				Variables.HelpList.ForEach(x => Variables.Guilds[guild.Id].CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled, x?.Category, x?.Aliases)));
 			}
 			else
 			{
@@ -270,8 +267,7 @@ namespace Advobot
 						if (values.Length == 2)
 						{
 							var helpEntry = Variables.HelpList.FirstOrDefault(cmd => CaseInsEquals(cmd.Name, values[0]));
-							var category = Enum.TryParse(helpEntry?.ClassName, out CommandCategory temp) ? temp : defaultCategory;
-							Variables.Guilds[guild.Id].CommandSettings.Add(new CommandSwitch(values[0], values[1], category, helpEntry?.Aliases));
+							Variables.Guilds[guild.Id].CommandSettings.Add(new CommandSwitch(values[0], values[1], helpEntry?.Category, helpEntry?.Aliases));
 						}
 						else
 						{
@@ -478,7 +474,7 @@ namespace Advobot
 								logActions.Add(temp);
 							}
 						});
-						GuildInfo.LogActions.AddRange(logActions.Distinct().OrderBy(x => (int)x).ToList());
+						GuildInfo.LogActions.AddRange(logActions.Distinct().OrderBy(x => x).ToList());
 					}
 					//Ignored log channels
 					else if (line.Contains(Constants.IGNORED_LOG_CHANNELS))
@@ -993,7 +989,7 @@ namespace Advobot
 		//Get guild commands
 		public static string[] GetCommands(IGuild guild, int number)
 		{
-			if (!Variables.Guilds.ContainsKey(guild.Id) || Variables.Guilds[guild.Id].DefaultPrefs)
+			if (!Variables.Guilds.ContainsKey(guild.Id))
 				return null;
 
 			return Variables.Guilds[guild.Id].CommandSettings.Where(x => x.CategoryValue == number).Select(x => x.Name).ToArray();
@@ -1247,7 +1243,7 @@ namespace Advobot
 			}
 			else
 			{
-				return await CommandHandler.Commands.ExecuteAsync(context, argPos, map);
+				return await Command_Handler.Commands.ExecuteAsync(context, argPos, map);
 			}
 		}
 
@@ -2469,7 +2465,10 @@ namespace Advobot
 			}
 
 			//Variable for each category
-			Variables.Guilds[guildID].CommandSettings.OrderBy(x => x.CategoryValue).ToList().ForEach(cmd => writer.WriteLine(cmd.Name + ":" + cmd.ValAsString));
+			foreach (var cmd in Variables.Guilds[guildID].CommandSettings.OrderBy(x => x.CategoryValue))
+			{
+				writer.WriteLine(cmd.Name + ":" + cmd.ValAsString);
+			}
 		}
 		
 		//Save preferences by server
@@ -2589,10 +2588,11 @@ namespace Advobot
 				return false;
 			}
 			//Get the commands that are disabled on specific channels
-			if (Variables.Guilds[context.Guild.Id].CommandsDisabledOnChannel.Any(x => CaseInsEquals(cmd.Name, x.CommandName) && context.Channel.Id == x.ChannelID))
-			{
-				return false;
-			}
+			//TODO: Fix this
+			//if (Variables.Guilds[context.Guild.Id].CommandsDisabledOnChannel.Any(x => CaseInsEquals(cmd.Name, x.CommandName) && context.Channel.Id == x.ChannelID))
+			//{
+				//return false;
+			//}
 			else
 			{
 				return true;
@@ -2612,11 +2612,11 @@ namespace Advobot
 			//Add all the lines back
 			using (var writer = new StreamWriter(path))
 			{
-				var output = String.Join("\n", new string[] { String.Format("{0}:{1}", Constants.LOG_ACTIONS, String.Join("/", logActions.Select(x => (int)x))), String.Join("\n", validLines) } );
+				var output = String.Join("\n", new string[] { String.Format("{0}:{1}", Constants.LOG_ACTIONS, String.Join("/", logActions.Select(x => x))), String.Join("\n", validLines) } );
 				writer.WriteLine(output);
 			}
 
-			Variables.Guilds[context.Guild.Id].LogActions = logActions.OrderBy(x => (int)x).ToList();
+			Variables.Guilds[context.Guild.Id].LogActions = logActions.OrderBy(x => x).ToList();
 		}
 
 		//Create file

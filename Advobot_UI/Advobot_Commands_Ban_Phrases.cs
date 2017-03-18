@@ -17,6 +17,7 @@ namespace Advobot
 		[Usage("[Add] [Phrase/...] <Regex> | [Remove] [Phrase/...|Position/...] <Regex>")]
 		[Summary("Adds the words to either the banned phrase list or the banned regex list. Do not use a '/' in a banned phrase itself.")]
 		[PermissionRequirement]
+		[DefaultEnabled(false)]
 		public async Task SetBanPhrases([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -129,6 +130,7 @@ namespace Advobot
 		[Usage("[File|Actual] <Regex>")]
 		[Summary("Says all of the current banned words from either the file or the list currently being used in the bot.")]
 		[PermissionRequirement]
+		[DefaultEnabled(false)]
 		public async Task CurrentBanPhrases([Remainder] string input)
 		{
 			//Make an array of input
@@ -237,6 +239,7 @@ namespace Advobot
 		[Usage("[Add] [Number] [Role Name|Kick|Ban] <Time> | [Remove] [Number]")]
 		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to this total. Time is in minutes and only applies to roles.")]
 		[PermissionRequirement]
+		[DefaultEnabled(false)]
 		public async Task SetPunishments([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -450,6 +453,7 @@ namespace Advobot
 		[Usage("[File|Actual]")]
 		[Summary("Shows the current punishments on the guild.")]
 		[PermissionRequirement]
+		[DefaultEnabled(false)]
 		public async Task CurrentPunishments([Remainder] string input)
 		{
 			var description = "";
@@ -550,6 +554,7 @@ namespace Advobot
 		[Usage("[Clear|Current] [@User]")]
 		[Summary("Shows or removes all infraction points a user has on the guild.")]
 		[PermissionRequirement]
+		[DefaultEnabled(false)]
 		public async Task ClearBanPhraseUser([Remainder] string input)
 		{
 			//Check if using the default preferences

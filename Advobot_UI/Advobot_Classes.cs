@@ -172,14 +172,14 @@ namespace Advobot
 
 	public class HelpEntry
 	{
-		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text, string className, bool defaultEnabled)
+		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text, CommandCategory category, bool defaultEnabled)
 		{
 			mName = name;
 			mAliases = aliases;
 			mUsage = usage;
 			mBasePerm = basePerm;
 			mText = text;
-			mClassName = className;
+			mCategory = category;
 			mDefaultEnabled = defaultEnabled;
 		}
 
@@ -203,9 +203,9 @@ namespace Advobot
 		{
 			get { return mText.Replace(Constants.BOT_PREFIX, Properties.Settings.Default.Prefix); }
 		}
-		public string ClassName
+		public CommandCategory Category
 		{
-			get { return mClassName; }
+			get { return mCategory; }
 		}
 		public bool DefaultEnabled
 		{
@@ -217,29 +217,30 @@ namespace Advobot
 		private string mUsage;
 		private string mBasePerm;
 		private string mText;
-		private string mClassName;
+		private CommandCategory mCategory;
 		private bool mDefaultEnabled;
 	}
 
 	public class CommandSwitch
 	{
-		public CommandSwitch(string name, string value, CommandCategory category, string[] aliases)
+		public CommandSwitch(string name, string value, CommandCategory? category, string[] aliases)
+		{
+			mName = name;
+			mValue = trueMatches.Any(x => Actions.CaseInsEquals(value.Trim(), x));
+			mCategory = category ?? CommandCategory.Miscellaneous;
+			mAliases = aliases;
+		}
+		public CommandSwitch(string name, bool value, CommandCategory? category, string[] aliases)
 		{
 			mName = name;
 			mValue = value;
-			mCategory = category;
-			mAliases = aliases;
-		}
-		public CommandSwitch(string name, bool value, CommandCategory category, string[] aliases)
-		{
-			mName = name;
-			mValue = value ? "ON" : "OFF";
-			mCategory = category;
+			mCategory = category ?? CommandCategory.Miscellaneous;
 			mAliases = aliases;
 		}
 
+		private readonly string[] trueMatches = { "true", "on", "yes", "1" };
 		private string mName;
-		private string mValue;
+		private bool mValue;
 		private CommandCategory mCategory;
 		private string[] mAliases;
 
@@ -266,31 +267,24 @@ namespace Advobot
 
 		public bool ValAsBoolean
 		{
-			get
-			{
-				string[] trueMatches = { "true", "on", "yes", "1" };
-				return trueMatches.Any(x => Actions.CaseInsEquals(mValue.Trim(), x));
-			}
+			get { return mValue; }
 		}
 		public string ValAsString
 		{
-			get { return mValue.Trim(new char[] { '\n', '\r' }); }
+			get { return mValue ? "ON" : "OFF"; }
 		}
 		public int ValAsInteger
 		{
-			get
-			{
-				return Int32.TryParse(mValue, out int value) ? value : -1;
-			}
+			get { return mValue ? 1 : -1; }
 		}
 
 		public void Disable()
 		{
-			mValue = "OFF";
+			mValue = false;
 		}
 		public void Enable()
 		{
-			mValue = "ON";
+			mValue = true;
 		}
 	}
 
@@ -689,8 +683,8 @@ namespace Advobot
 
 	public abstract class BotClient
 	{
-		public abstract void AddMessageReceivedHandler(CommandHandler handler);
-		public abstract void AddConnectedHandler(CommandHandler handler);
+		public abstract void AddMessageReceivedHandler(Command_Handler handler);
+		public abstract void AddConnectedHandler(Command_Handler handler);
 		public abstract BaseDiscordClient GetClient();
 		public abstract SocketSelfUser GetCurrentUser();
 		public abstract IUser GetUser(ulong id);
@@ -711,8 +705,8 @@ namespace Advobot
 		private DiscordSocketClient mSocketClient;
 		public SocketClient(DiscordSocketClient client) { mSocketClient = client; }
 
-		public override void AddMessageReceivedHandler(CommandHandler handler) { mSocketClient.MessageReceived += handler.HandleCommand; }
-		public override void AddConnectedHandler(CommandHandler handler) { mSocketClient.Connected += Actions.LoadInformation; }
+		public override void AddMessageReceivedHandler(Command_Handler handler) { mSocketClient.MessageReceived += handler.HandleCommand; }
+		public override void AddConnectedHandler(Command_Handler handler) { mSocketClient.Connected += Actions.LoadInformation; }
 		public override BaseDiscordClient GetClient() { return mSocketClient; }
 		public override SocketSelfUser GetCurrentUser() { return mSocketClient.CurrentUser; }
 		public override IUser GetUser(ulong id) { return mSocketClient.GetUser(id); }
@@ -733,8 +727,8 @@ namespace Advobot
 		private DiscordShardedClient mShardedClient;
 		public ShardedClient(DiscordShardedClient client) { mShardedClient = client; }
 
-		public override void AddMessageReceivedHandler(CommandHandler handler) { mShardedClient.MessageReceived += handler.HandleCommand; }
-		public override void AddConnectedHandler(CommandHandler handler) { mShardedClient.Shards.FirstOrDefault().Connected += Actions.LoadInformation; }
+		public override void AddMessageReceivedHandler(Command_Handler handler) { mShardedClient.MessageReceived += handler.HandleCommand; }
+		public override void AddConnectedHandler(Command_Handler handler) { mShardedClient.Shards.FirstOrDefault().Connected += Actions.LoadInformation; }
 		public override BaseDiscordClient GetClient() { return mShardedClient; }
 		public override SocketSelfUser GetCurrentUser() { return mShardedClient.Shards.FirstOrDefault().CurrentUser; }
 		public override IUser GetUser(ulong id) { return mShardedClient.GetUser(id); }

@@ -17,6 +17,7 @@ namespace Advobot
 		[Usage("[@User] <Time>")]
 		[Summary("If the user is not text muted, this will mute them. If they are text muted, this will unmute them. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirement((1U << (int)GuildPermission.ManageRoles) | (1U << (int)GuildPermission.ManageMessages))]
+		[DefaultEnabled(true)]
 		public async Task FullMute([Remainder] string input)
 		{
 			//Check if role already exists, if not, create it
@@ -76,6 +77,7 @@ namespace Advobot
 		[Usage("[@User] <Time>")]
 		[Summary("If the user is not voice muted, this will mute them. If they are voice muted, this will unmute them. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirement(1U << (int)GuildPermission.MuteMembers)]
+		[DefaultEnabled(true)]
 		public async Task Mute([Remainder] string input)
 		{
 			//Split the input
@@ -124,6 +126,7 @@ namespace Advobot
 		[Usage("[@User] <Time>")]
 		[Summary("If the user is not voice muted, this will mute them. If they are voice muted, this will unmute them. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirement(1U << (int)GuildPermission.DeafenMembers)]
+		[DefaultEnabled(true)]
 		public async Task Deafen([Remainder] string input)
 		{
 			//Split the input
@@ -172,6 +175,7 @@ namespace Advobot
 		[Usage("[@User] [Channel Name]")]
 		[Summary("Moves the user to the given voice channel.")]
 		[PermissionRequirement(1U << (int)GuildPermission.MoveMembers)]
+		[DefaultEnabled(true)]
 		public async Task MoveUser([Remainder] string input)
 		{
 			//Input and splitting
@@ -230,6 +234,7 @@ namespace Advobot
 		[Usage("[@User] [New Nickname|Remove]")]
 		[Summary("Gives the user a nickname.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageNicknames)]
+		[DefaultEnabled(true)]
 		public async Task Nickname([Remainder] string input)
 		{
 			//Input and splitting
@@ -302,6 +307,7 @@ namespace Advobot
 		[Usage("[1|7|30] <Real>")]
 		[Summary("Removes users who have no roles and have not been seen in the past given amount of days. Real means an actual prune, otherwise this returns the number of users that would have been pruned.")]
 		[PermissionRequirement]
+		[DefaultEnabled(true)]
 		public async Task PruneMembers([Remainder] string input)
 		{
 			//Split into the ints and 'bool'
@@ -343,6 +349,7 @@ namespace Advobot
 		[Usage("[@User]")]
 		[Summary("Bans then unbans a user from the guild. Removes all recent messages from them.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
+		[DefaultEnabled(true)]
 		public async Task SoftBan([Remainder] string input)
 		{
 			//Test if valid user mention
@@ -377,6 +384,7 @@ namespace Advobot
 		[Usage("[@User] <Days:int> <Time:int>")]
 		[Summary("Bans the user from the guild. Days specifies how many days worth of messages to delete. Time specifies how long and is in minutes.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
+		[DefaultEnabled(true)]
 		public async Task Ban([Remainder] string input)
 		{
 			var inputArray = input.Split(' ');
@@ -449,6 +457,7 @@ namespace Advobot
 		[Usage("[User|User#Discriminator|User ID]")]
 		[Summary("Unbans the user from the guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
+		[DefaultEnabled(true)]
 		public async Task Unban([Remainder] string input)
 		{
 			//Cut the user mention into the username and the discriminator
@@ -522,6 +531,7 @@ namespace Advobot
 		[Usage("[@User]")]
 		[Summary("Kicks the user from the guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.KickMembers)]
+		[DefaultEnabled(true)]
 		public async Task Kick([Remainder] string input)
 		{
 			//Test if valid user mention
@@ -556,6 +566,7 @@ namespace Advobot
 		[Usage("")]
 		[Summary("Displays all the bans on the guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
+		[DefaultEnabled(true)]
 		public async Task CurrentBanList()
 		{
 			//Get the bans
@@ -587,6 +598,7 @@ namespace Advobot
 		[Usage("<@User> <#Channel> [Number of Messages]")]
 		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel. Administrators can delete more than 100 messages at a time.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageMessages)]
+		[DefaultEnabled(true)]
 		public async Task RemoveMessages([Remainder] string input)
 		{
 			//Split the input
@@ -671,6 +683,7 @@ namespace Advobot
 		[Summary("The first argument is the roles that get ignored by slowmode, the second is the amount of messages, and the third is the time period. Default is: none, 1, 5." +
 			"Bots are unaffected by slowmode. Any users who are immune due to roles stay immune even if they lose said role until a new slowmode is started.")]
 		[PermissionRequirement]
+		[DefaultEnabled(true)]
 		public async Task SlowMode([Optional, Remainder] string input)
 		{
 			//Split everything
@@ -842,6 +855,7 @@ namespace Advobot
 		[Usage("[Give|Take|Nickname] [Role]/[Role|Nickname] <" + Constants.BYPASS_STRING + ">")]
 		[Summary("Only self hosted bots are allowed to go past ten members per use. When used on a self bot, \"" + Constants.BYPASS_STRING + "\" removes the 10 user limit.")]
 		[PermissionRequirement]
+		[DefaultEnabled(true)]
 		public async Task ForAllWithRole([Remainder] string input)
 		{
 			//Separating input into the action and role/role or nickname + bypass

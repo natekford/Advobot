@@ -14,6 +14,7 @@ namespace Advobot
 		[Usage("[#Channel|Off]")]
 		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, deleting messages, and bans/unbans.")]
 		[GuildOwnerRequirement]
+		[DefaultEnabled(false)]
 		public async Task Serverlog([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -35,6 +36,7 @@ namespace Advobot
 		[Usage("[#Channel|Off]")]
 		[Summary("Puts the modlog on the specified channel. Modlog is a log of all commands used.")]
 		[GuildOwnerRequirement]
+		[DefaultEnabled(false)]
 		public async Task Modlog([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -56,6 +58,7 @@ namespace Advobot
 		[Usage("[Add|Remove|Current] [#Channel|Channel Name]")]
 		[Summary("Ignores all logging info that would have been gotten from a channel. Only works on text channels.")]
 		[GuildOwnerRequirement]
+		[DefaultEnabled(false)]
 		public async Task IgnoreChannel([Remainder] string input)
 		{
 			//Check if using the default preferences
@@ -165,6 +168,7 @@ namespace Advobot
 		[Usage("[Enable|Disable|Default|Show|Current] <All|Log Action/...>")]
 		[Summary("The log will fire when these events happen. `Show` lists all the possible events. `Default` overrides the current settings, and `Current` shows them.")]
 		[GuildOwnerRequirement]
+		[DefaultEnabled(false)]
 		public async Task SwitchLogActions([Remainder] string input)
 		{
 			//Check if using the default preferences
