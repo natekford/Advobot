@@ -43,12 +43,18 @@ namespace Advobot
 			if (channel == null)
 				return;
 
+			//Get the guild's info or make a new one
+			if (!Variables.Guilds.TryGetValue(channel.GuildId, out BotGuildInfo guildInfo))
+			{
+				await Actions.LoadGuild(channel.Guild);
+				guildInfo = Variables.Guilds[channel.GuildId];
+			}
 			//Check if that channel is ignored for commands
-			if (Variables.Guilds[channel.GuildId].IgnoredCommandChannels.GetList().Contains(channel.Id))
+			if (guildInfo.IgnoredCommandChannels.Contains(channel.Id))
 				return;
 
 			//Get the guild specific prefix
-			var guildPrefix = Variables.Guilds[channel.GuildId].Prefix;
+			var guildPrefix = guildInfo.Prefix;
 			//Check to see if the guild is using a prefix
 			if (!string.IsNullOrWhiteSpace(guildPrefix))
 			{
@@ -65,17 +71,11 @@ namespace Advobot
 			else if (!message.HasStringPrefix(Properties.Settings.Default.Prefix, ref argPos))
 				return;
 
-			//Create a Command Context
-			var context = new CommandContext(Client.GetClient(), message);
-
 			//Check if there is anything preventing the command from going through
-			if (!await Actions.GetIfCommandIsValid(context))
+			var context = new CommandContext(Client.GetClient(), message);
+			var result = await Actions.GetIfCommandIsValidAndExecute(context, argPos, Map);
+			if (result == null)
 				return;
-
-			//Execute the Command, store the result
-			var result = await Commands.ExecuteAsync(context, argPos, Map);
-			//Increment the attempted commands count
-			++Variables.AttemptedCommands;
 
 			//If the command failed, notify the user
 			if (!result.IsSuccess)
@@ -87,7 +87,6 @@ namespace Advobot
 				//Give the error message
 				await Actions.MakeAndDeleteSecondaryMessage(context, string.Format("**Error:** {0}", result.ErrorReason));
 
-				//Increment the failed commands count
 				++Variables.FailedCommands;
 			}
 			else
@@ -102,10 +101,9 @@ namespace Advobot
 				await ModLogs.LogCommand(context);
 
 				//If a command succeeds then the guild gave the bot admin back so remove them from this list
-				if (Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Contains(context.Guild))
-				{
-					Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Remove(context.Guild);
-				}
+				Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Remove(context.Guild);
+
+				++Variables.SucceededCommands;
 			}
 		}
 	}

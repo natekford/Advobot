@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	//Role Moderation commands are commands that affect the roles in a guild
-	[Name("Role Moderation")]
+	[Name("Role_Moderation")]
 	public class Advobot_Commands_Role_Mod : ModuleBase
 	{
 		[Command("rolegive")]

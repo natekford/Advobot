@@ -31,7 +31,7 @@ namespace Advobot
 				Task.Run(async () =>
 				{
 					//Get all of the invites and add their guildID, code, and current uses to the usage check list
-					Variables.Guilds[guild.Id].Invites.NewList((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
+					Variables.Guilds[guild.Id].Invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
 				});
 
 				//Incrementing
@@ -624,15 +624,14 @@ namespace Advobot
 				return;
 
 			//Make sure the role's name is not the same
-			if (Actions.CaseInsEquals(beforeRole.Name, afterRole.Name))
-				return;
-
-			//Make the embed
-			var embed = Actions.MakeNewEmbed("Role Name Changed", null, Constants.REDT);
-			Actions.AddFooter(embed, "Role Name Changed");
-			Actions.AddField(embed, "Before:", "`" + beforeRole.Name + "`");
-			Actions.AddField(embed, "After:", "`" + afterRole.Name + "`", false);
-			await Actions.SendEmbedMessage(serverLog, embed);
+			if (!Actions.CaseInsEquals(beforeRole.Name, afterRole.Name))
+			{
+				var embed = Actions.MakeNewEmbed("Role Name Changed", null, Constants.REDT);
+				Actions.AddFooter(embed, "Role Name Changed");
+				Actions.AddField(embed, "Before:", "`" + beforeRole.Name + "`");
+				Actions.AddField(embed, "After:", "`" + afterRole.Name + "`", false);
+				await Actions.SendEmbedMessage(serverLog, embed);
+			}
 		}
 
 		public static async Task OnRoleDeleted(SocketRole role)
@@ -686,21 +685,14 @@ namespace Advobot
 				return;
 
 			//Check if the name is the bot channel name
-			if (aChan != null && Actions.CaseInsEquals(aChan.Name, Variables.Bot_Channel) && !Actions.CaseInsEquals(aChan.Name, bChan.Name))
+			if (!Actions.CaseInsEquals(aChan.Name, bChan.Name))
 			{
-				//TODO: Something
-			}
-
-			//Check if the before and after name are the same
-			if (Actions.CaseInsEquals(aChan.Name, bChan.Name))
-				return;
-
-			//Make the embed
-			var embed = Actions.MakeNewEmbed("Channel Name Changed", null, Constants.CEDT);
-			Actions.AddFooter(embed, "Channel Name Changed");
-			Actions.AddField(embed, "Before:", "`" + bChan.Name + "`");
-			Actions.AddField(embed, "After:", "`" + aChan.Name + "`", false);
-			await Actions.SendEmbedMessage(serverLog, embed);
+				var embed = Actions.MakeNewEmbed("Channel Name Changed", null, Constants.CEDT);
+				Actions.AddFooter(embed, "Channel Name Changed");
+				Actions.AddField(embed, "Before:", "`" + bChan.Name + "`");
+				Actions.AddField(embed, "After:", "`" + aChan.Name + "`", false);
+				await Actions.SendEmbedMessage(serverLog, embed);
+			}			
 		}
 
 		public static async Task OnChannelDeleted(SocketChannel channel)
@@ -752,8 +744,8 @@ namespace Advobot
 			if (false
 				|| channel == null
 				|| message.Author.IsBot
-				|| Variables.Guilds[channel.GuildId].IgnoredLogChannels.GetList().Contains(channel.Id)
-				|| !Variables.Guilds[channel.GuildId].LogActions.GetList().Contains(LogActions.ImageLog))
+				|| Variables.Guilds[channel.GuildId].IgnoredLogChannels.Contains(channel.Id)
+				|| !Variables.Guilds[channel.GuildId].LogActions.Contains(LogActions.ImageLog))
 				return;
 
 			if (message.Attachments.Any())
@@ -820,7 +812,7 @@ namespace Advobot
 				if (closeWordList.User != null)
 				{
 					//Get the remind
-					var remind = Variables.Guilds[guild.Id].Reminds.GetList().FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
+					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
 
 					//Send the remind
 					await Actions.SendChannelMessage(message.Channel, remind.Text);
@@ -861,7 +853,7 @@ namespace Advobot
 				await Actions.Slowmode(message);
 			}
 			//Check if any banned phrases
-			else if (Variables.Guilds[guild.Id].BannedPhrases.GetList().Any() || Variables.Guilds[guild.Id].BannedRegex.GetList().Any())
+			else if (Variables.Guilds[guild.Id].BannedStrings.Any() || Variables.Guilds[guild.Id].BannedRegex.Any())
 			{
 				await Actions.BannedPhrases(message);
 			}
@@ -896,7 +888,7 @@ namespace Advobot
 		public static async Task VotingOnSpamPrevention(IGuild guild, IMessage message)
 		{
 			//Get the users primed to be kicked/banned by the spam prevention
-			var users = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.GetList().Where(x => x.PotentialKick).ToList();
+			var users = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
 			//Return if it's empty
 			if (!users.Any())
 				return;

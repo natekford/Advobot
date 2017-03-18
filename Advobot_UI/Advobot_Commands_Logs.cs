@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,10 +68,12 @@ namespace Advobot
 			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			var action = inputArray[0];
+
+			var ignoredLogChannels = Variables.Guilds[Context.Guild.Id].IgnoredLogChannels;
 			if (Actions.CaseInsEquals(action, "current"))
 			{
 				var channels = new List<string>();
-				await Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.GetList().ToList().ForEachAsync(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
+				await ignoredLogChannels.ForEachAsync(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Log Channels", String.Join("\n", channels)));
 				return;
 			}
@@ -125,24 +126,24 @@ namespace Advobot
 
 			if (addBool)
 			{
-				if (Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.GetList().Contains(channel.Id))
+				if (ignoredLogChannels.Contains(channel.Id))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored by the log."));
 					return;
 				}
-				Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Add(channel.Id);
+				ignoredLogChannels.Add(channel.Id);
 			}
 			else
 			{
-				if (!Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.GetList().Contains(channel.Id))
+				if (!ignoredLogChannels.Contains(channel.Id))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored by the log."));
 					return;
 				}
-				Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.Remove(channel.Id);
+				ignoredLogChannels.Remove(channel.Id);
 			}
 
-			Variables.Guilds[Context.Guild.Id].IgnoredLogChannels.MakeDistinct();
+			ignoredLogChannels = ignoredLogChannels.Distinct().ToList();
 
 			//Create the file if it doesn't exist
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
@@ -184,8 +185,8 @@ namespace Advobot
 			//Check if they want the default
 			else if (Actions.CaseInsEquals(input, "default"))
 			{
-				logActions.NewList(Constants.DEFAULT_LOG_ACTIONS.ToList());
-				Actions.SaveLogActions(Context, logActions.GetList().ToList());
+				logActions = Constants.DEFAULT_LOG_ACTIONS.ToList();
+				Actions.SaveLogActions(Context, logActions);
 
 				//Send a success message
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully restored the default log actions.");
@@ -194,13 +195,13 @@ namespace Advobot
 			//Check if they want to see the current activated ones
 			else if (Actions.CaseInsEquals(input, "current"))
 			{
-				if (logActions.GetList().Count == 0)
+				if (logActions.Count == 0)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active log actions."));
 				}
 				else
 				{
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Log Actions", String.Join("\n", logActions.GetList().Select(x => Enum.GetName(typeof(LogActions), x)))));
+					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Log Actions", String.Join("\n", logActions.Select(x => Enum.GetName(typeof(LogActions), x)))));
 				}
 				return;
 			}
@@ -254,21 +255,18 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid log actions were able to be gotten."));
 				return;
 			}
-
-			//Enable them
-			if (enableBool)
+			else if (enableBool)
 			{
 				logActions.AddRange(newLogActions);
-				logActions.MakeDistinct();
+				logActions = logActions.Distinct().ToList();
 			}
-			//Disable them
 			else
 			{
-				logActions.NewList(logActions.GetList().Except(newLogActions).Distinct().ToList());
+				logActions = logActions.Except(newLogActions).Distinct().ToList();
 			}
 
 			//Save them
-			Actions.SaveLogActions(Context, logActions.GetList().ToList());
+			Actions.SaveLogActions(Context, logActions.ToList());
 
 			//Send a success message
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",

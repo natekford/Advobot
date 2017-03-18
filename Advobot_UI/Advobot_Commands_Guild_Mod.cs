@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	//Guild Moderation commands are commands that affect the guild itself and nothing else
-	[Name("Guild Moderation")]
+	[Name("Guild_Moderation")]
 	public class Advobot_Commands_Guild_Mod : ModuleBase
 	{
 		[Command("guildname")]
@@ -127,8 +127,7 @@ namespace Advobot
 			else if (Actions.CaseInsEquals(inputArray[0], "time"))
 			{
 				//Check if valid time
-				var time = 0;
-				if (!int.TryParse(inputArray[1], out time))
+				if (!int.TryParse(inputArray[1], out int time))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for time."));
 					return;
@@ -229,16 +228,7 @@ namespace Advobot
 		[Summary("Changes the guild's owner to the given user.")]
 		public async Task GuildOwner([Optional, Remainder] string input)
 		{
-			IGuildUser user = null;
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				user = await Context.Guild.GetUserAsync(Context.User.Id);
-			}
-			else
-			{
-				user = await Actions.GetUser(Context.Guild, input);
-			}
-
+			var user = await (String.IsNullOrWhiteSpace(input) ? Context.Guild.GetUserAsync(Context.User.Id) : Actions.GetUser(Context.Guild, input));
 			if (user == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));

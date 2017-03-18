@@ -65,7 +65,7 @@ namespace Advobot
 				if (helpEntry == null)
 				{
 					//Find close words
-					var closeHelps = Actions.GetCommandsWithInputInName(Actions.GetCommandsWithSimilarName(input), input).Distinct().ToList();
+					var closeHelps = Actions.GetCommandsWithInputInName(Actions.GetCommandsWithSimilarName(input), input)?.Distinct().ToList();
 
 					if (closeHelps != null && closeHelps.Any())
 					{
@@ -235,8 +235,8 @@ namespace Advobot
 				"Attempted commands: {0}\n" +
 				"Successful commands: {1}\n" +
 				"Failed commands: {2}\n",
-				Variables.AttemptedCommands,
-				Variables.AttemptedCommands - Variables.FailedCommands,
+				Variables.SucceededCommands + Variables.FailedCommands,
+				Variables.SucceededCommands,
 				Variables.FailedCommands);
 			Actions.AddField(embed, "Commands", secondField);
 

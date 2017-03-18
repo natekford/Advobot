@@ -51,12 +51,13 @@ namespace Advobot
 		{
 			foreach (var classType in AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes()).Where(type => type.IsSubclassOf(typeof(ModuleBase))))
 			{
+				var className = ((NameAttribute)classType.GetCustomAttribute(typeof(NameAttribute)))?.Text;
 				foreach (var method in classType.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic))
 				{
 					//Get the name
 					var name = "N/A";
 					{
-						CommandAttribute attr = (CommandAttribute)method.GetCustomAttribute(typeof(CommandAttribute));
+						var attr = (CommandAttribute)method.GetCustomAttribute(typeof(CommandAttribute));
 						if (attr != null)
 						{
 							name = attr.Text;
@@ -67,7 +68,7 @@ namespace Advobot
 					//Get the aliases
 					string[] aliases = { "N/A" };
 					{
-						AliasAttribute attr = (AliasAttribute)method.GetCustomAttribute(typeof(AliasAttribute));
+						var attr = (AliasAttribute)method.GetCustomAttribute(typeof(AliasAttribute));
 						if (attr != null)
 						{
 							aliases = attr.Aliases;
@@ -76,7 +77,7 @@ namespace Advobot
 					//Get the usage
 					var usage = "N/A";
 					{
-						UsageAttribute attr = (UsageAttribute)method.GetCustomAttribute(typeof(UsageAttribute));
+						var attr = (UsageAttribute)method.GetCustomAttribute(typeof(UsageAttribute));
 						if (attr != null)
 						{
 							usage = attr.Usage;
@@ -85,7 +86,7 @@ namespace Advobot
 					//Get the base permissions
 					var basePerm = "N/A";
 					{
-						PermissionRequirementAttribute attr = (PermissionRequirementAttribute)method.GetCustomAttribute(typeof(PermissionRequirementAttribute));
+						var attr = (PermissionRequirementAttribute)method.GetCustomAttribute(typeof(PermissionRequirementAttribute));
 						if (attr != null)
 						{
 							basePerm = String.IsNullOrWhiteSpace(attr.AllText) ? "" : "[" + attr.AllText;
@@ -118,14 +119,23 @@ namespace Advobot
 					//Get the description
 					var text = "N/A";
 					{
-						SummaryAttribute attr = (SummaryAttribute)method.GetCustomAttribute(typeof(SummaryAttribute));
+						var attr = (SummaryAttribute)method.GetCustomAttribute(typeof(SummaryAttribute));
 						if (attr != null)
 						{
 							text = attr.Text;
 						}
 					}
+					//Get the default enabled
+					var defaultEnabled = false;
+					{
+						var attr = (DefaultEnabledAttribute)method.GetCustomAttribute(typeof(DefaultEnabledAttribute));
+						if (attr != null)
+						{
+							defaultEnabled = attr.Enabled;
+						}
+					}
 					//Add it to the helplist
-					Variables.HelpList.Add(new HelpEntry(name, aliases, usage, basePerm, text));
+					Variables.HelpList.Add(new HelpEntry(name, aliases, usage, basePerm, text, className, defaultEnabled));
 				}
 			}
 		}
@@ -227,6 +237,7 @@ namespace Advobot
 			await LoadGuildMiscInfo(guild);
 			await LoadBotUsers(guild);
 			LoadReminds(guild);
+			LoadCommandsDisabledByChannel(guild);
 		}
 
 		//Load preferences
@@ -234,80 +245,42 @@ namespace Advobot
 		{
 			//Check if this server has any preferences
 			var path = GetServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
+			var defaultCategory = CommandCategory.Miscellaneous;
 			if (!File.Exists(path))
 			{
-				//If not, go to the defaults
-				var defaultPreferences = Properties.Resources.DefaultCommandPreferences;
-				//Get the command category
-				var commandCategory = CommandCategory.Miscellaneous;
-				//Split by new lines
-				defaultPreferences.Split('\n').ToList().ForEach(x =>
+				Variables.HelpList.ForEach(x =>
 				{
-					//If the line is empty, do nothing
-					if (String.IsNullOrWhiteSpace(x))
-						return;
-					//If the line starts with an @ then it's a category
-					else if (x.StartsWith("@"))
-					{
-						if (!Enum.TryParse(x.Substring(1), out commandCategory))
-							return;
-					}
-					//Anything else and it's a setting
-					else
-					{
-						//Split before and after the colon, before is the setting name, after is the value
-						var values = x.Split(new char[] { ':' }, 2);
-						if (values.Length == 2)
-						{
-							var aliases = Variables.HelpList.FirstOrDefault(cmd => CaseInsEquals(cmd.Name, values[0]))?.Aliases;
-							Variables.Guilds[guild.Id].CommandSettings.Add(new CommandSwitch(values[0], values[1], commandCategory, aliases));
-						}
-						else
-						{
-							WriteLine("ERROR: " + x);
-						}
-					}
+					var category = Enum.TryParse(x.ClassName, out CommandCategory temp) ? temp : defaultCategory;
+					Variables.Guilds[guild.Id].CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled, category, x?.Aliases));
 				});
-				WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Command Preferences");
 			}
 			else
 			{
 				using (var file = new StreamReader(path))
 				{
-					//Get the command category
-					var commandCategory = CommandCategory.Miscellaneous;
-					//Read the preferences document for information
 					string line;
 					while ((line = file.ReadLine()) != null)
 					{
 						//If the line is empty, do nothing
 						if (String.IsNullOrWhiteSpace(line))
 							continue;
-						//If the line starts with an @ then it's a category
-						if (line.StartsWith("@"))
+
+						//Split before and after the colon, before is the setting name, after is the value
+						var values = line.Split(new char[] { ':' }, 2);
+						if (values.Length == 2)
 						{
-							if (!Enum.TryParse(line.Substring(1), out commandCategory))
-								continue;
+							var helpEntry = Variables.HelpList.FirstOrDefault(cmd => CaseInsEquals(cmd.Name, values[0]));
+							var category = Enum.TryParse(helpEntry?.ClassName, out CommandCategory temp) ? temp : defaultCategory;
+							Variables.Guilds[guild.Id].CommandSettings.Add(new CommandSwitch(values[0], values[1], category, helpEntry?.Aliases));
 						}
-						//Anything else and it's a setting
 						else
 						{
-							//Split before and after the colon, before is the setting name, after is the value
-							var values = line.Split(new char[] { ':' }, 2);
-							if (values.Length == 2)
-							{
-								var aliases = Variables.HelpList.FirstOrDefault(x => CaseInsEquals(x.Name, values[0]))?.Aliases;
-								Variables.Guilds[guild.Id].CommandSettings.Add(new CommandSwitch(values[0], values[1], commandCategory, aliases));
-							}
-							else
-							{
-								WriteLine("ERROR: " + line);
-							}
+							WriteLine("ERROR: " + line);
 						}
 					}
 				}
-				WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Command Preferences");
 			}
+			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Command Preferences");
 		}
 
 		//Load banned words/regex/punishments
@@ -339,7 +312,7 @@ namespace Advobot
 							var phrase = line.Substring(index + 1);
 							if (!String.IsNullOrWhiteSpace(phrase))
 							{
-								guildInfo.BannedPhrases.Add(phrase);
+								guildInfo.BannedStrings.Add(phrase);
 							}
 						}
 					}
@@ -393,9 +366,9 @@ namespace Advobot
 					}
 
 					//Remove all duplicates
-					guildInfo.BannedPhrases.MakeDistinct();
-					guildInfo.BannedRegex.MakeDistinct();
-					guildInfo.BannedPhrasesPunishments.MakeDistinct();
+					guildInfo.BannedStrings = guildInfo.BannedStrings.Distinct().ToList();
+					guildInfo.BannedRegex = guildInfo.BannedRegex.Distinct().ToList();
+					guildInfo.BannedPhrasesPunishments = guildInfo.BannedPhrasesPunishments.Distinct().ToList();
 				}
 			}
 
@@ -505,7 +478,7 @@ namespace Advobot
 								logActions.Add(temp);
 							}
 						});
-						GuildInfo.LogActions.NewList(logActions.Distinct().OrderBy(x => (int)x).ToList());
+						GuildInfo.LogActions.AddRange(logActions.Distinct().OrderBy(x => (int)x).ToList());
 					}
 					//Ignored log channels
 					else if (line.Contains(Constants.IGNORED_LOG_CHANNELS))
@@ -518,7 +491,7 @@ namespace Advobot
 								IDs.Add(temp);
 							}
 						});
-						GuildInfo.IgnoredLogChannels.NewList(IDs.Distinct().ToList());
+						GuildInfo.IgnoredLogChannels.AddRange(IDs.Distinct().ToList());
 					}
 					//Ignored command channels
 					else if (line.Contains(Constants.IGNORED_COMMAND_CHANNELS))
@@ -531,7 +504,7 @@ namespace Advobot
 								IDs.Add(temp);
 							}
 						});
-						GuildInfo.IgnoredCommandChannels.NewList(IDs.Distinct().ToList());
+						GuildInfo.IgnoredCommandChannels.AddRange(IDs.Distinct().ToList());
 					}
 					//Spam prevention
 					else if (line.Contains(Constants.SPAM_PREVENTION))
@@ -645,6 +618,37 @@ namespace Advobot
 			}
 
 			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Reminds");
+		}
+
+		//Load all of the commands that are disabled by channel on the guild
+		public static void LoadCommandsDisabledByChannel(IGuild guild)
+		{
+			//Check if the file exists
+			var path = GetServerFilePath(guild.Id, Constants.COMMANDS_DISABLED_BY_CHANNEL);
+			if (!File.Exists(path))
+				return;
+
+			//Find the prefix line
+			using (var reader = new StreamReader(path))
+			{
+				string line;
+				while ((line = reader.ReadLine()) != null)
+				{
+					if (String.IsNullOrWhiteSpace(line))
+						continue;
+
+					var inputArray = line.Split(new char[] { ' ' });
+					if (inputArray.Length != 2)
+						continue;
+
+					if (!ulong.TryParse(inputArray[0], out ulong channelID))
+						continue;
+					var cmd = inputArray[1];
+
+					Variables.Guilds[guild.Id].CommandsDisabledOnChannel.Add(new CommandDisabledOnChannel(channelID, cmd));
+				}
+			}
+			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Commands Disabled By Channel");
 		}
 
 		//Load the most basic information
@@ -992,7 +996,7 @@ namespace Advobot
 			if (!Variables.Guilds.ContainsKey(guild.Id) || Variables.Guilds[guild.Id].DefaultPrefs)
 				return null;
 
-			return Variables.Guilds[guild.Id].CommandSettings.GetList().Where(x => x.CategoryValue == number).Select(x => x.Name).ToArray();
+			return Variables.Guilds[guild.Id].CommandSettings.Where(x => x.CategoryValue == number).Select(x => x.Name).ToArray();
 		}
 		
 		//Get file paths
@@ -1190,7 +1194,7 @@ namespace Advobot
 		//Get a command
 		public static CommandSwitch GetCommand(ulong id, string input)
 		{
-			return Variables.Guilds[id].CommandSettings.GetList().FirstOrDefault(x =>
+			return Variables.Guilds[id].CommandSettings.FirstOrDefault(x =>
 			{
 				if (CaseInsEquals(x.Name, input))
 				{
@@ -1210,38 +1214,40 @@ namespace Advobot
 		//Get multiple commands
 		public static List<CommandSwitch> GetMultipleCommands(ulong id, CommandCategory category)
 		{
-			return Variables.Guilds[id].CommandSettings.GetList().Where(x => x.CategoryEnum == category).ToList();
+			return Variables.Guilds[id].CommandSettings.Where(x => x.CategoryEnum == category).ToList();
 		}
 
 		//Get if a command is valid
-		public static async Task<bool> GetIfCommandIsValid(CommandContext context)
+		public static async Task<IResult> GetIfCommandIsValidAndExecute(CommandContext context, int argPos, IDependencyMap map)
 		{
 			//Check to make sure everything is loaded
 			if (!Variables.Loaded)
 			{
 				await MakeAndDeleteSecondaryMessage(context, ERROR("Please wait until everything is loaded."));
-				return false;
+				return null;
 			}
 			//Check if a command is disabled
-			else if (!CheckCommandEnabled(context))
-				return false;
+			else if (!CheckCommandEnabled(context, argPos))
+			{
+				return null;
+			}
 			//Check if the bot still has admin
 			else if (!(await context.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
 			{
 				//If the server has been told already, ignore future commands fully
 				if (Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Contains(context.Guild))
-					return false;
+					return null;
 
 				//Tell the guild that the bot needs admin (because I cba to code in checks if the bot has the permissions required for a lot of things)
 				await SendChannelMessage(context, "This bot will not function without the `Administrator` permission, sorry.");
 
 				//Add the guild to the list
 				Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Add(context.Guild);
-				return false;
+				return null;
 			}
 			else
 			{
-				return true;
+				return await CommandHandler.Commands.ExecuteAsync(context, argPos, map);
 			}
 		}
 
@@ -1330,18 +1336,18 @@ namespace Advobot
 				return null;
 			//Get the bot's stored invites
 			var botInvs = Variables.Guilds[guild.Id].Invites;
-			if (!botInvs.GetList().Any())
+			if (!botInvs.Any())
 				return null;
 
 			//Set an invite to hold the current invite the user joined on
 			BotInvite joinInv = null;
 			//Find the first invite where the bot invite has the same code as the current invite but different use counts
-			joinInv = botInvs.GetList().FirstOrDefault(bI => curInvs.Any(cI => cI.Code == bI.Code && cI.Uses != bI.Uses));
+			joinInv = botInvs.FirstOrDefault(bI => curInvs.Any(cI => cI.Code == bI.Code && cI.Uses != bI.Uses));
 			//If the invite is null, take that as meaning there are new invites on the guild
 			if (joinInv == null)
 			{
 				//Get the new invites on the guild by finding which guild invites aren't on the bot invites list
-				var botInvCodes = botInvs.GetList().Select(y => y.Code);
+				var botInvCodes = botInvs.Select(y => y.Code);
 				var newInvs = curInvs.Where(x => !botInvCodes.Contains(x.Code));
 				//If there's only one, then use that as the current inv. If there's more than one then there's no way to know what invite it was on
 				if (newInvs.Count() == 0 && CaseInsContains(guild.Features.ToList(), Constants.VANITY_URL))
@@ -1658,16 +1664,16 @@ namespace Advobot
 						var msgContent = String.IsNullOrWhiteSpace(x.Content) ? "" : "Message Content: " + x.Content;
 						var description = String.IsNullOrWhiteSpace(embed.Description) ? "" : "Embed Description: " + embed.Description;
 						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-							Actions.FormatUser(x.Author),
-							Actions.FormatChannel(x.Channel),
+							FormatUser(x.Author),
+							FormatChannel(x.Channel),
 							x.CreatedAt.ToString("HH:mm:ss"),
-							Actions.ReplaceMarkdownChars((String.IsNullOrEmpty(msgContent) ? msgContent : msgContent + "\n") + description)));
+							ReplaceMarkdownChars((String.IsNullOrEmpty(msgContent) ? msgContent : msgContent + "\n") + description)));
 					}
 					else
 					{
 						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-							Actions.FormatUser(x.Author),
-							Actions.FormatChannel(x.Channel),
+							FormatUser(x.Author),
+							FormatChannel(x.Channel),
 							x.CreatedAt.ToString("HH:mm:ss"),
 							"An embed which was unable to be gotten."));
 					}
@@ -1677,20 +1683,20 @@ namespace Advobot
 				{
 					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-						Actions.FormatUser(x.Author),
-						Actions.FormatChannel(x.Channel),
+						FormatUser(x.Author),
+						FormatChannel(x.Channel),
 						x.CreatedAt.ToString("HH:mm:ss"),
-						Actions.ReplaceMarkdownChars(content + " + " + x.Attachments.ToList().First().Filename)));
+						ReplaceMarkdownChars(content + " + " + x.Attachments.ToList().First().Filename)));
 				}
 				//Else add the message in normally
 				else
 				{
 					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-						Actions.FormatUser(x.Author),
-						Actions.FormatChannel(x.Channel),
+						FormatUser(x.Author),
+						FormatChannel(x.Channel),
 						x.CreatedAt.ToString("HH:mm:ss"),
-						Actions.ReplaceMarkdownChars(content)));
+						ReplaceMarkdownChars(content)));
 				}
 			});
 			return deletedMessagesContent;
@@ -2266,7 +2272,7 @@ namespace Advobot
 		public static async Task ImageLog(ITextChannel channel, IMessage message, bool embeds)
 		{
 			//Check if the guild has image logging enabled
-			if (!Variables.Guilds[channel.Guild.Id].LogActions.GetList().Contains(LogActions.ImageLog))
+			if (!Variables.Guilds[channel.Guild.Id].LogActions.Contains(LogActions.ImageLog))
 				return;
 
 			//Get the user
@@ -2399,14 +2405,14 @@ namespace Advobot
 		{
 			var guild = GetGuildFromMessage(message);
 			//Check if the message was sent on an ignored channel. If not give back the guild, if so send back null.
-			return guild != null && !Variables.Guilds[guild.Id].IgnoredLogChannels.GetList().Contains(message.Channel.Id) ? guild : null;
+			return guild != null && !Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(message.Channel.Id) ? guild : null;
 		}
 
 		//Verify if the given action is being logged
 		public static IGuild VerifyLoggingAction(IGuild guild, LogActions logAction)
 		{
 			//If the guild is null send back null. If the logaction being tested isn't turned on send back null.
-			return guild != null && Variables.Guilds[guild.Id].LogActions.GetList().Contains(logAction) ? guild : null;
+			return guild != null && Variables.Guilds[guild.Id].LogActions.Contains(logAction) ? guild : null;
 		}
 
 		//Verify the guild and log channels with a message
@@ -2463,20 +2469,7 @@ namespace Advobot
 			}
 
 			//Variable for each category
-			int categories = 0;
-			Variables.Guilds[guildID].CommandSettings.GetList().OrderBy(x => x.CategoryValue).ToList().ForEach(cmd =>
-			{
-				if (categories != cmd.CategoryValue)
-				{
-					if (categories != 0)
-					{
-						writer.WriteLine();
-					}
-					writer.WriteLine("@" + cmd.CategoryName);
-					categories = cmd.CategoryValue;
-				}
-				writer.WriteLine(cmd.Name + ":" + cmd.ValAsString);
-			});
+			Variables.Guilds[guildID].CommandSettings.OrderBy(x => x.CategoryValue).ToList().ForEach(cmd => writer.WriteLine(cmd.Name + ":" + cmd.ValAsString));
 		}
 		
 		//Save preferences by server
@@ -2502,7 +2495,7 @@ namespace Advobot
 			}
 			if (!File.Exists(path))
 			{
-				SavePreferences(guild.Id, Properties.Resources.DefaultCommandPreferences);
+				SavePreferences(guild.Id);
 			}
 			else
 			{
@@ -2583,18 +2576,27 @@ namespace Advobot
 		}
 
 		//Check if a command is enabled
-		public static bool CheckCommandEnabled(ICommandContext context)
+		public static bool CheckCommandEnabled(ICommandContext context, int argPos)
 		{
 			if (context.Guild == null)
 				return false;
 
 			//Get the command
-			var cmd = GetCommand(context.Guild.Id, context.Message.Content.Substring(Properties.Settings.Default.Prefix.Length).Split(' ').FirstOrDefault());
+			var cmd = GetCommand(context.Guild.Id, context.Message.Content.Substring(argPos).Split(' ').FirstOrDefault());
 			//Check if the command is on or off
 			if (cmd != null && !cmd.ValAsBoolean)
+			{
 				return false;
+			}
+			//Get the commands that are disabled on specific channels
+			if (Variables.Guilds[context.Guild.Id].CommandsDisabledOnChannel.Any(x => CaseInsEquals(cmd.Name, x.CommandName) && context.Channel.Id == x.ChannelID))
+			{
+				return false;
+			}
 			else
+			{
 				return true;
+			}
 		}
 
 		//Save the log actions
@@ -2610,10 +2612,11 @@ namespace Advobot
 			//Add all the lines back
 			using (var writer = new StreamWriter(path))
 			{
-				writer.WriteLine(Constants.LOG_ACTIONS + ":" + String.Join("/", logActions.Select(x => (int)x)) + "\n" + String.Join("\n", validLines));
+				var output = String.Join("\n", new string[] { String.Format("{0}:{1}", Constants.LOG_ACTIONS, String.Join("/", logActions.Select(x => (int)x))), String.Join("\n", validLines) } );
+				writer.WriteLine(output);
 			}
 
-			Variables.Guilds[context.Guild.Id].LogActions.NewList(logActions.OrderBy(x => (int)x).ToList());
+			Variables.Guilds[context.Guild.Id].LogActions = logActions.OrderBy(x => (int)x).ToList();
 		}
 
 		//Create file
@@ -2673,12 +2676,12 @@ namespace Advobot
 		//Save multiple lines back in at a time
 		public static void SaveLines(string path, string target, List<string> inputLines, List<string> validLines)
 		{
-			if (target != null && inputLines.Any())
+			if (target != null)
 			{
 				//Add all the lines back
 				using (var writer = new StreamWriter(path))
 				{
-					var output = String.Join("", inputLines.Select(x => String.Format("{0}:{1}\n", target, x))) + "\n" + String.Join("\n", validLines);
+					var output = String.Join("\n", new string[] { String.Join("\n", inputLines.Select(x => String.Format("{0}:{1}", target, x))), String.Join("\n", validLines) });
 					writer.WriteLine(output);
 				}
 			}
@@ -2777,7 +2780,7 @@ namespace Advobot
 			var guildLoaded = Variables.Guilds[guild.Id];
 
 			//Check if it has any banned words or regex
-			if (guildLoaded.BannedPhrases.GetList().Any(x => CaseInsIndexOf(message.Content, x)) || guildLoaded.BannedRegex.GetList().Any(x => x.IsMatch(message.Content)))
+			if (guildLoaded.BannedStrings.Any(x => CaseInsIndexOf(message.Content, x)) || guildLoaded.BannedRegex.Any(x => x.IsMatch(message.Content)))
 			{
 				await BannedPhrasesPunishments(message);
 			}
@@ -2811,7 +2814,7 @@ namespace Advobot
 			}
 
 			//Get the banned phrases punishments from the guild
-			var punishment = Variables.Guilds[user.Guild.Id].BannedPhrasesPunishments.GetList().FirstOrDefault(x => x.NumberOfRemoves == bpUser.AmountOfRemovedMessages);
+			var punishment = Variables.Guilds[user.Guild.Id].BannedPhrasesPunishments.FirstOrDefault(x => x.NumberOfRemoves == bpUser.AmountOfRemovedMessages);
 			if (punishment == null)
 				return;
 
@@ -2871,6 +2874,70 @@ namespace Advobot
 					await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
 				}
 			}
+		}
+
+		public static List<string> HandleBannedRegexModification(List<Regex> bannedRegex, List<string> inputPhrases, bool add)
+		{
+			if (add)
+			{
+				inputPhrases.ForEach(x => bannedRegex.Add(new Regex(x)));
+			}
+			else
+			{
+				var positions = new List<int>();
+				inputPhrases.ForEach(potentialNumber =>
+				{
+					//Check if is a number and is less than the count of the list
+					if (int.TryParse(potentialNumber, out int temp) && temp < bannedRegex.Count)
+					{
+						positions.Add(temp);
+					}
+				});
+
+				if (!positions.Any())
+				{
+					inputPhrases.ForEach(x => bannedRegex.Remove(bannedRegex.FirstOrDefault(y => y.ToString() == x)));
+				}
+				else
+				{
+					//Put them in descending order so as to not delete low values before high ones
+					positions.OrderByDescending(x => x).ToList().ForEach(x => bannedRegex.RemoveAt(x));
+				}
+			}
+
+			return bannedRegex.Select(x => x.ToString()).ToList();
+		}
+
+		public static List<string> HandleBannedStringModification(List<string> bannedStrings, List<string> inputPhrases, bool add)
+		{
+			if (add)
+			{
+				inputPhrases.ForEach(x => bannedStrings.Add(x));
+			}
+			else
+			{
+				var positions = new List<int>();
+				inputPhrases.ForEach(potentialNumber =>
+				{
+					//Check if is a number and is less than the count of the list
+					if (int.TryParse(potentialNumber, out int temp) && temp < bannedStrings.Count)
+					{
+						positions.Add(temp);
+					}
+				});
+
+				if (!positions.Any())
+				{
+					inputPhrases.ForEach(x => bannedStrings.Remove(bannedStrings.FirstOrDefault(y => y.ToString() == x)));
+				}
+				else
+				{
+					//Put them in descending order so as to not delete low values before high ones
+					positions.OrderByDescending(x => x).ToList().ForEach(x => bannedStrings.RemoveAt(x));
+				}
+			}
+
+			return bannedStrings.ToList();
 		}
 		#endregion
 
@@ -3271,7 +3338,7 @@ namespace Advobot
 			const long PERIOD = 60 * 60 * 1000;
 
 			//Reset the spam prevention user list
-			Variables.Guilds.ToList().ForEach(x => x.Value.GlobalSpamPrevention.SpamPreventionUsers.NewList(new List<SpamPreventionUser>()));
+			Variables.Guilds.ToList().ForEach(x => x.Value.GlobalSpamPrevention.SpamPreventionUsers.Clear());
 
 			//Determine how long to wait until firing
 			var time = PERIOD;
@@ -3351,7 +3418,7 @@ namespace Advobot
 				return true;
 
 			var votes = spamPrev.VotesNeededForKick;
-			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.GetList().FirstOrDefault(x => x.User == author) ?? new SpamPreventionUser(global, author, 0, votes);
+			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == author) ?? new SpamPreventionUser(global, author, 0, votes);
 
 			spUser.IncreaseCurrentSpamAmount();
 			if (spUser.CurrentSpamAmount < spamPrev.AmountOfMessages)

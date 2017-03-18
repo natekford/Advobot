@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	//User Moderation commands are commands that affect the users of a guild
-	[Name("User Moderation")]
+	[Name("User_Moderation")]
 	public class Advobot_Commands_User_Mod : ModuleBase
 	{
 		[Command("textmute")]

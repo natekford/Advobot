@@ -136,6 +136,22 @@ namespace Advobot
 			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
 		}
 	}
+
+	[AttributeUsage(AttributeTargets.Method)]
+	public class DefaultEnabledAttribute : Attribute
+	{
+		public DefaultEnabledAttribute(bool enabled)
+		{
+			mEnabled = enabled;
+		}
+
+		private bool mEnabled;
+
+		public bool Enabled
+		{
+			get { return mEnabled; }
+		}
+	}
 	#endregion
 
 	#region Classes
@@ -156,13 +172,15 @@ namespace Advobot
 
 	public class HelpEntry
 	{
-		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text)
+		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text, string className, bool defaultEnabled)
 		{
 			mName = name;
 			mAliases = aliases;
 			mUsage = usage;
 			mBasePerm = basePerm;
 			mText = text;
+			mClassName = className;
+			mDefaultEnabled = defaultEnabled;
 		}
 
 		public string Name
@@ -185,20 +203,37 @@ namespace Advobot
 		{
 			get { return mText.Replace(Constants.BOT_PREFIX, Properties.Settings.Default.Prefix); }
 		}
+		public string ClassName
+		{
+			get { return mClassName; }
+		}
+		public bool DefaultEnabled
+		{
+			get { return mDefaultEnabled; }
+		}
 
 		private string mName;
 		private string[] mAliases;
 		private string mUsage;
 		private string mBasePerm;
 		private string mText;
+		private string mClassName;
+		private bool mDefaultEnabled;
 	}
 
 	public class CommandSwitch
 	{
-		public CommandSwitch(string name, string value, CommandCategory category = CommandCategory.Miscellaneous, string[] aliases = null)
+		public CommandSwitch(string name, string value, CommandCategory category, string[] aliases)
 		{
 			mName = name;
 			mValue = value;
+			mCategory = category;
+			mAliases = aliases;
+		}
+		public CommandSwitch(string name, bool value, CommandCategory category, string[] aliases)
+		{
+			mName = name;
+			mValue = value ? "ON" : "OFF";
 			mCategory = category;
 			mAliases = aliases;
 		}
@@ -469,16 +504,16 @@ namespace Advobot
 		}
 
 		//I CBA changing everything in here to be private yet. I hate handling lists as private ones. Made this class to keep them private-ish instead
-		public LimitedList<string> BannedPhrases = new LimitedList<string>();
-		public LimitedList<Regex> BannedRegex = new LimitedList<Regex>();
-		public LimitedList<BannedPhrasePunishment> BannedPhrasesPunishments = new LimitedList<BannedPhrasePunishment>();
-		public LimitedList<CommandSwitch> CommandSettings = new LimitedList<CommandSwitch>();
-		public LimitedList<CommandDisabledOnChannel> CommandsDisabledOnChannel = new LimitedList<CommandDisabledOnChannel>();
-		public LimitedList<ulong> IgnoredCommandChannels = new LimitedList<ulong>();
-		public LimitedList<ulong> IgnoredLogChannels = new LimitedList<ulong>();
-		public LimitedList<LogActions> LogActions = new LimitedList<LogActions>();
-		public LimitedList<Remind> Reminds = new LimitedList<Remind>();
-		public LimitedList<BotInvite> Invites = new LimitedList<BotInvite>();
+		public List<string> BannedStrings = new List<string>();
+		public List<Regex> BannedRegex = new List<Regex>();
+		public List<BannedPhrasePunishment> BannedPhrasesPunishments = new List<BannedPhrasePunishment>();
+		public List<CommandSwitch> CommandSettings = new List<CommandSwitch>();
+		public List<CommandDisabledOnChannel> CommandsDisabledOnChannel = new List<CommandDisabledOnChannel>();
+		public List<ulong> IgnoredCommandChannels = new List<ulong>();
+		public List<ulong> IgnoredLogChannels = new List<ulong>();
+		public List<LogActions> LogActions = new List<LogActions>();
+		public List<Remind> Reminds = new List<Remind>();
+		public List<BotInvite> Invites = new List<BotInvite>();
 
 		private GlobalSpamPrevention mGlobalSpamPrevention = new GlobalSpamPrevention();
 		private AntiRaid mAntiRaid;
@@ -717,7 +752,7 @@ namespace Advobot
 
 	public class GlobalSpamPrevention
 	{
-		public LimitedList<SpamPreventionUser> SpamPreventionUsers = new LimitedList<SpamPreventionUser>();
+		public List<SpamPreventionUser> SpamPreventionUsers = new List<SpamPreventionUser>();
 		private MessageSpamPrevention mMessageSpamPrevention;
 		private LongMessageSpamPrevention mLongMessageSpamPrevention;
 		private LinkSpamPrevention mLinkSpamPrevention;
@@ -914,58 +949,6 @@ namespace Advobot
 		public void AddUserToMutedList(IGuildUser user)
 		{
 			mUsersWhoHaveBeenMuted.Add(user);
-		}
-	}
-
-	public class LimitedList<T>
-	{
-		//This isn't really needed, but with this it's easier to know when a list is actually being modified or not. Also gives more restrictions in case something dumb happens.
-		public LimitedList()
-		{
-			mRealList = new List<T>();
-		}
-		public LimitedList(List<T> list)
-		{
-			mRealList = list;
-		}
-
-		private List<T> mRealList;
-
-		public ReadOnlyCollection<T> GetList()
-		{
-			return mRealList.AsReadOnly();
-		}
-		public void NewList(List<T> list)
-		{
-			mRealList = list;
-		}
-		public void Add(T item)
-		{
-			mRealList.Add(item);
-		}
-		public void AddRange(List<T> range)
-		{
-			mRealList.AddRange(range);
-		}
-		public void Remove(T item)
-		{
-			mRealList.Remove(item);
-		}
-		public void RemoveAt(int position)
-		{
-			mRealList.RemoveAt(position);
-		}
-		public void RemoveAll(Predicate<T> match)
-		{
-			mRealList.RemoveAll(match);
-		}
-		public void MakeDistinct()
-		{
-			mRealList = mRealList.Distinct().ToList();
-		}
-		public override string ToString()
-		{
-			return mRealList.Any() ? String.Join(", ", mRealList.Select(x => x.ToString())) : this.ToString();
 		}
 	}
 	#endregion
@@ -1329,6 +1312,7 @@ namespace Advobot
 		Channel_Moderation = 8,
 		Guild_Moderation = 9,
 		Miscellaneous = 10,
+		Spam_Prevention = 11,
 	}
 
 	public enum PunishmentType

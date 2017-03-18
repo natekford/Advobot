@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
-	[Name("Spam Prevention")]
+	[Name("Spam_Prevention")]
 	public class Advobot_Spam_Prevention : ModuleBase
 	{
 		[Command("preventmentionspam")]

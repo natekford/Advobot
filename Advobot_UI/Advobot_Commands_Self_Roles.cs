@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
-	[Name("Self Roles")]
+	[Name("Self_Roles")]
 	public class Advobot_Commands_Self_Roles : ModuleBase
 	{
 		[Command("selfrolesmodify")]

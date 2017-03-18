@@ -172,7 +172,7 @@ namespace Advobot
 
 		public static int TotalUsers = 0;
 		public static int TotalGuilds = 0;
-		public static int AttemptedCommands = 0;
+		public static int SucceededCommands = 0;
 		public static int FailedCommands = 0;
 		public static int LoggedJoins = 0;
 		public static int LoggedLeaves = 0;

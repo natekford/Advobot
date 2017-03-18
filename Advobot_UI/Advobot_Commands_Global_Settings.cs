@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	//Global Settings commands are commands that work on the bot globally
-	[Name("Global Settings")]
+	[Name("Global_Settings")]
 	public class Administration_Commands : ModuleBase
 	{
+		//TODO: add in the default enabled attribute to each method
 		#region Settings
 		[Command(SharedCommands.COWNER)]
 		[Alias(SharedCommands.AOWNER)]

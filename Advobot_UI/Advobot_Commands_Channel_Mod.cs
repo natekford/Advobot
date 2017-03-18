@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	//Channel Moderation commands are commands that affect the channels in a guild
-	[Name("Channel Moderation")]
+	[Name("Channel_Moderation")]
 	public class Advobot_Commands_Channel_Mod : ModuleBase
 	{
 		[Command("channelcreate")]

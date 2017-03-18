@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using System;
 using System.Threading.Tasks;
 
 namespace Advobot
@@ -7,10 +8,9 @@ namespace Advobot
 	public class Program
 	{
 		//Start the bot or start the UI then the bot
-		[System.STAThread]
+		[STAThread]
 		private static void Main(string[] args)
 		{
-			//TODO: Add in a check for internet being on 
 			//Check if Windows and if console
 			Actions.LoadBasicInformation();
 
@@ -137,7 +137,7 @@ namespace Advobot
 			{
 				await client.StartAsync();
 			}
-			catch (System.Exception e)
+			catch (Exception e)
 			{
 				Actions.ExceptionToConsole("Client is unable to connect.", e);
 				return;
