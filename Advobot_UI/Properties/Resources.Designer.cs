@@ -61,49 +61,6 @@ namespace Advobot.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to @Global_Settings
-        ///globalbotowner:ON
-        ///globalsavepath:ON
-        ///globalprefix:ON
-        ///globalsettings:ON
-        ///boticon:ON
-        ///botgame:ON
-        ///botstream:ON
-        ///botname:ON
-        ///disconnect:ON
-        ///restart:ON
-        ///listguilds:ON
-        ///
-        ///@Guild_Settings
-        ///guildleave:ON
-        ///guildprefix:OFF
-        ///guildsettings:ON
-        ///comconfigmodify:ON
-        ///comconfigcurrent:ON
-        ///comconfigtoggle:ON
-        ///botusersmodify:OFF
-        ///botuserscurrent:OFF
-        ///remindmodify:OFF
-        ///remind:OFF
-        ///
-        ///@Logs
-        ///botchannel:ON
-        ///logserver:OFF
-        ///logmod:OFF
-        ///logignore:OFF
-        ///logactions:OFF
-        ///
-        ///@Ban_Phrases
-        ///banphrasesmodify:OFF
-        ///banphra [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string DefaultCommandPreferences {
-            get {
-                return ResourceManager.GetString("DefaultCommandPreferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap Graphic_Design {
