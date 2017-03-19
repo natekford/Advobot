@@ -609,21 +609,23 @@ namespace Advobot
 
 	public class SpamPreventionUser
 	{
-		public SpamPreventionUser(GlobalSpamPrevention global, IGuildUser user, int currentSpamAmount, int votesRequired)
+		public SpamPreventionUser(GlobalSpamPrevention global, IGuildUser user)
 		{
 			mUser = user;
-			mCurrentSpamAmount = currentSpamAmount;
-			mVotesRequired = votesRequired;
 			global.SpamPreventionUsers.Add(this);
 		}
 
 		private IGuildUser mUser;
 		private int mVotesToKick;
-		private int mCurrentSpamAmount;
-		private int mVotesRequired;
-		private bool mAlreadyKicked = false;
+		private int mVotesRequired = int.MaxValue;
 		private bool mPotentialKick = false;
+		private bool mAlreadyKicked = false;
 		private List<ulong> mUsersWhoHaveAlreadyVoted = new List<ulong>();
+		private int mMessageSpamAmount;
+		private int mLongMessageSpamAmount;
+		private int mLinkSpamAmount;
+		private int mImageSpamAmount;
+		private int mMentionSpamAmount;
 
 		public IGuildUser User
 		{
@@ -633,34 +635,46 @@ namespace Advobot
 		{
 			get { return mVotesToKick; }
 		}
-		public int CurrentSpamAmount
-		{
-			get { return mCurrentSpamAmount; }
-		}
 		public int VotesRequired
 		{
 			get { return mVotesRequired; }
-		}
-		public bool AlreadyKicked
-		{
-			get { return mAlreadyKicked; }
 		}
 		public bool PotentialKick
 		{
 			get { return mPotentialKick; }
 		}
+		public bool AlreadyKicked
+		{
+			get { return mAlreadyKicked; }
+		}
 		public ReadOnlyCollection<ulong> UsersWhoHaveAlreadyVoted
 		{
 			get { return mUsersWhoHaveAlreadyVoted.AsReadOnly(); }
+		}
+		public int MessageSpamAmount
+		{
+			get { return mMessageSpamAmount; }
+		}
+		public int LongMessageSpamAmount
+		{
+			get { return mLongMessageSpamAmount; }
+		}
+		public int LinkSpamAmount
+		{
+			get { return mLinkSpamAmount; }
+		}
+		public int ImageSpamAmount
+		{
+			get { return mImageSpamAmount; }
+		}
+		public int MentionSpamAmount
+		{
+			get { return mMentionSpamAmount; }
 		}
 
 		public void IncreaseVotesToKick()
 		{
 			++mVotesToKick;
-		}
-		public void IncreaseCurrentSpamAmount()
-		{
-			++mCurrentSpamAmount;
 		}
 		public void ChangeVotesRequired(int input)
 		{
@@ -676,8 +690,32 @@ namespace Advobot
 		}
 		public void ResetSpamUser()
 		{
-			mCurrentSpamAmount = 0;
+			mMessageSpamAmount = 0;
+			mLongMessageSpamAmount = 0;
+			mLinkSpamAmount = 0;
+			mImageSpamAmount = 0;
+			mMentionSpamAmount = 0;
 			mUsersWhoHaveAlreadyVoted = new List<ulong>();
+		}
+		public void IncreaseMessageSpamAmount()
+		{
+			++mMessageSpamAmount;
+		}
+		public void IncreaseLongMessageSpamAmount()
+		{
+			++mLongMessageSpamAmount;
+		}
+		public void IncreaseLinkSpamAmount()
+		{
+			++mLinkSpamAmount;
+		}
+		public void IncreaseImageSpamAmount()
+		{
+			++mImageSpamAmount;
+		}
+		public void IncreaseMentionSpamAmount()
+		{
+			++mMentionSpamAmount;
 		}
 	}
 
@@ -753,41 +791,49 @@ namespace Advobot
 		private ImageSpamPrevention mImageSpamPrevention;
 		private MentionSpamPrevention mMentionSpamPrevention;
 
-		public MessageSpamPrevention MessageSpamPrevention
+		public BaseSpamPrevention GetSpamPrevention(SpamType type)
 		{
-			get { return mMessageSpamPrevention; }
+			switch (type)
+			{
+				case SpamType.Message:
+				{
+					return mMessageSpamPrevention;
+				}
+				case SpamType.Long_Message:
+				{
+					return mLongMessageSpamPrevention;
+				}
+				case SpamType.Link:
+				{
+					return mLinkSpamPrevention;
+				}
+				case SpamType.Image:
+				{
+					return mImageSpamPrevention;
+				}
+				case SpamType.Mention:
+				{
+					return mMentionSpamPrevention;
+				}
+			}
+			return null;
 		}
+
 		public void SetMessageSpamPrevention(MessageSpamPrevention spamPrevention)
 		{
 			mMessageSpamPrevention = spamPrevention;
-		}
-		public LongMessageSpamPrevention LongMessageSpamPrevention
-		{
-			get { return mLongMessageSpamPrevention; }
 		}
 		public void SetLongMessageSpamPrevention(LongMessageSpamPrevention spamPrevention)
 		{
 			mLongMessageSpamPrevention = spamPrevention;
 		}
-		public LinkSpamPrevention LinkSpamPrevention
-		{
-			get { return mLinkSpamPrevention; }
-		}
 		public void SetLinkSpamPrevention(LinkSpamPrevention spamPrevention)
 		{
 			mLinkSpamPrevention = spamPrevention;
 		}
-		public ImageSpamPrevention ImageSpamPrevention
-		{
-			get { return mImageSpamPrevention; }
-		}
 		public void SetImageSpamPrevention(ImageSpamPrevention spamPrevention)
 		{
 			mImageSpamPrevention = spamPrevention;
-		}
-		public MentionSpamPrevention MentionSpamPrevention
-		{
-			get { return mMentionSpamPrevention; }
 		}
 		public void SetMentionSpamPrevention(MentionSpamPrevention spamPrevention)
 		{
@@ -797,17 +843,19 @@ namespace Advobot
 
 	public class BaseSpamPrevention
 	{
-		public BaseSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfSpam)
+		public BaseSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfSpam, SpamType spamType)
 		{
 			mAmountOfMessages = amountOfMessages;
 			mVotesNeededForKick = votesNeededForKick;
 			mAmountOfSpam = amountOfSpam;
+			mSpamType = spamType;
 			mEnabled = true;
 		}
 
 		private int mAmountOfMessages;
 		private int mVotesNeededForKick;
 		private int mAmountOfSpam;
+		private SpamType mSpamType;
 		private bool mEnabled;
 
 		public int AmountOfSpam
@@ -822,6 +870,10 @@ namespace Advobot
 		{
 			get { return mVotesNeededForKick; }
 		}
+		public SpamType SpamType
+		{
+			get { return mSpamType; }
+		}
 		public bool Enabled
 		{
 			get { return mEnabled; }
@@ -835,27 +887,27 @@ namespace Advobot
 
 	public class MessageSpamPrevention : BaseSpamPrevention
 	{
-		public MessageSpamPrevention(int amountOfMessages, int votesNeededForKick, int placeholder) : base(amountOfMessages, votesNeededForKick, placeholder) { }
+		public MessageSpamPrevention(int amountOfMessages, int votesNeededForKick, int placeholder) : base(amountOfMessages, votesNeededForKick, placeholder, SpamType.Message) { }
 	}
 
 	public class LongMessageSpamPrevention : BaseSpamPrevention
 	{
-		public LongMessageSpamPrevention(int amountOfMessages, int votesNeededForKick, int lengthOfMessage) : base(amountOfMessages, votesNeededForKick, lengthOfMessage) {}
+		public LongMessageSpamPrevention(int amountOfMessages, int votesNeededForKick, int lengthOfMessage) : base(amountOfMessages, votesNeededForKick, lengthOfMessage, SpamType.Long_Message) {}
 	}
 
 	public class LinkSpamPrevention : BaseSpamPrevention
 	{
-		public LinkSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfLinks) : base(amountOfMessages, votesNeededForKick, amountOfLinks) {}
+		public LinkSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfLinks) : base(amountOfMessages, votesNeededForKick, amountOfLinks, SpamType.Link) {}
 	}
 
 	public class ImageSpamPrevention : BaseSpamPrevention
 	{
-		public ImageSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfImages) : base(amountOfMessages, votesNeededForKick, amountOfImages) { }
+		public ImageSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfImages) : base(amountOfMessages, votesNeededForKick, amountOfImages, SpamType.Image) { }
 	}
 
 	public class MentionSpamPrevention : BaseSpamPrevention
 	{
-		public MentionSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfMentions) : base(amountOfMessages, votesNeededForKick, amountOfMentions) { }
+		public MentionSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfMentions) : base(amountOfMessages, votesNeededForKick, amountOfMentions, SpamType.Mention) { }
 	}
 
 	public abstract class DeletionSpamProtection
@@ -1359,12 +1411,12 @@ namespace Advobot
 		Shards = 12,
 	};
 
-	public enum SpamTypes
+	public enum SpamType
 	{
 		Message = 1,
 		Long_Message = 2,
-		Links = 3,
-		Images = 4,
+		Link = 3,
+		Image = 4,
 		Mention = 5, 
 	}
 	#endregion

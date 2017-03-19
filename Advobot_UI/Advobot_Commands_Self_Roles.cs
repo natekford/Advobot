@@ -48,24 +48,7 @@ namespace Advobot
 			var rolesString = inputArray[1];
 
 			//Check which action it is
-			SAGAction actionType;
-			if (Actions.CaseInsEquals(action, "create"))
-			{
-				actionType = SAGAction.Create;
-			}
-			else if (Actions.CaseInsEquals(action, "add"))
-			{
-				actionType = SAGAction.Add;
-			}
-			else if (Actions.CaseInsEquals(action, "remove"))
-			{
-				actionType = SAGAction.Remove;
-			}
-			else if (Actions.CaseInsEquals(action, "delete"))
-			{
-				actionType = SAGAction.Delete;
-			}
-			else
+			if (!Enum.TryParse(action, out SAGAction actionType))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
@@ -226,18 +209,7 @@ namespace Advobot
 
 			//Get the file that's supposed to hold everything
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
-			if (path == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
-				return;
-			}
-			File.Create(path).Close();
-
-			//Rewrite it
-			using (StreamWriter writer = new StreamWriter(path))
-			{
-				writer.WriteLine(String.Join("\n", Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).ToList().Select(x => x.FormatSaveString()).ToList()));
-			}
+			Actions.SaveLines(path, Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).ToList().Select(x => x.FormatSaveString()).ToList());
 
 			//Make the success and failure strings
 			var sString = "";

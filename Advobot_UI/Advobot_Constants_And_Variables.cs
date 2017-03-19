@@ -43,7 +43,7 @@ namespace Advobot
 		public const string GUILD_PREFIX = "guildprefix";
 		public const string LOG_ACTIONS = "logactions";
 		public const string IGNORED_LOG_CHANNELS = "ignoredlogchannels";
-		public const string SPAM_PREVENTION = "mentionspamprevention";
+		public const string MENTION_SPAM_PREVENTION = "mentionspamprevention";
 		public const string LONG_MSG_PREVENTION = "longmsgspamprevention";
 		public const string IGNORED_COMMAND_CHANNELS = "ignoredcommandchannels";
 		public const string CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
@@ -57,7 +57,7 @@ namespace Advobot
 		public const string VANITY_URL = "VANITY_URL";
 		public const string INVITE_SPLASH = "INVITE_SPLASH";
 		public static readonly string DEFAULT_GAME = "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
-		public const string HASTEBIN_ERROR = "Hastebin encountered some sort of error. If the error is related to the length of some content, a file will be uploaded which contains the content.";
+		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds later as a text file.";
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int WAIT_TIME = 3000;

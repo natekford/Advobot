@@ -861,28 +861,45 @@ namespace Advobot
 
 		public static async Task SpamPrevention(IGuild guild, IMessage msg)
 		{
+			var author = msg.Author as IGuildUser;
+			if (Actions.GetPosition(guild, author) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)))
+				return;
+
 			var global = Variables.Guilds[guild.Id].GlobalSpamPrevention;
+			var isSpam = false;
 
-			//TODO: Add in the checks to determine which spam preventions should go through (like with mentionspam)
-			var message = global.MessageSpamPrevention;
-			if (Actions.SpamCheck(message, msg) && await Actions.HandleSpamPrevention(global, message, guild, msg))
+			var message = global.GetSpamPrevention(SpamType.Message) as MessageSpamPrevention;
+			if (Actions.SpamCheck(message, msg))
+			{
+				isSpam = isSpam || await Actions.HandleSpamPrevention(global, message, guild, author, msg);
+			}
+			var longmessage = global.GetSpamPrevention(SpamType.Long_Message) as LongMessageSpamPrevention;
+			if (Actions.SpamCheck(longmessage, msg))
+			{
+				isSpam = isSpam || await Actions.HandleSpamPrevention(global, longmessage, guild, author, msg);
+			}
+			var link = global.GetSpamPrevention(SpamType.Link) as LinkSpamPrevention;
+			if (Actions.SpamCheck(link, msg))
+			{
+				isSpam = isSpam || await Actions.HandleSpamPrevention(global, link, guild, author, msg);
+			}
+			var image = global.GetSpamPrevention(SpamType.Image) as ImageSpamPrevention;
+			if (Actions.SpamCheck(image, msg))
+			{
+				isSpam = isSpam || await Actions.HandleSpamPrevention(global, image, guild, author, msg);
+			}
+			var mention = global.GetSpamPrevention(SpamType.Mention) as MentionSpamPrevention;
+			if (Actions.SpamCheck(mention, msg))
+			{
+				isSpam = isSpam || await Actions.HandleSpamPrevention(global, mention, guild, author, msg);
+			}
+
+			if (!isSpam)
 				return;
 
-			var longmessage = global.LongMessageSpamPrevention;
-			if (Actions.SpamCheck(longmessage, msg) && await Actions.HandleSpamPrevention(global, longmessage, guild, msg))
-				return;
+			await Actions.DeleteMessage(msg);
 
-			var link = global.LinkSpamPrevention;
-			if (Actions.SpamCheck(link, msg) && await Actions.HandleSpamPrevention(global, link, guild, msg))
-				return;
-
-			var image = global.ImageSpamPrevention;
-			if (Actions.SpamCheck(image, msg) && await Actions.HandleSpamPrevention(global, image, guild, msg))
-				return;
-
-			var mention = global.MentionSpamPrevention;
-			if (Actions.SpamCheck(mention, msg) && await Actions.HandleSpamPrevention(global, mention, guild, msg))
-				return;
+			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == author);
 		}
 
 		public static async Task VotingOnSpamPrevention(IGuild guild, IMessage message)

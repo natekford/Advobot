@@ -13,9 +13,9 @@ namespace Advobot
 	[Name("Spam_Prevention")]
 	public class Advobot_Spam_Prevention : ModuleBase
 	{
-		[Command("preventmentionspam")]
-		[Alias("pmsp")]
-		[Usage("[Messages|Long Messages|Links|Images|Mentions] [Enable|Disable|Current] | [Setup] <Messages:Number> <Mentions:Number> <Votes:Number>")]
+		[Command("preventspam")]
+		[Alias("prs")]
+		[Usage("[Message|LongMessage|Link|Image|Mention] [[Enable|Disable|Current] | [Setup] <Messages:Number> <Spam:Number> <Votes:Number>]")]
 		[Summary("Spam prevention allows for some protection against mention spammers. Messages are the amount of messages a user has to send with the given amount of mentions before being considered " + 
 			"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The first punishment is a kick, next is a ban. The messages count on a user resets every hour.")]
 		[PermissionRequirement]
@@ -29,35 +29,31 @@ namespace Advobot
 				return;
 			}
 
-			//Get the action
-			var action = input.Substring(0, input.IndexOf(' ') >= 0 ? input.IndexOf(' ') : input.Length);
+			//TODO: Make sure this method works and the prevent spam in itself as a whole works
 
-			//Determine what the action is
-			SpamPreventionAction actionEnum;
-			if (Actions.CaseInsEquals(action, "enable"))
+			//Split the input
+			var inputArray = input.Split(' ');
+			if (inputArray.Length > 5 || inputArray.Length < 2)
 			{
-				actionEnum = SpamPreventionAction.Enable;
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
 			}
-			else if (Actions.CaseInsEquals(action, "disable"))
+
+			var type = inputArray[0];
+			if (!Enum.TryParse(type, true, out SpamType typeEnum))
 			{
-				actionEnum = SpamPreventionAction.Disable;
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid type supplied."));
+				return;
 			}
-			else if (Actions.CaseInsEquals(action, "current"))
-			{
-				actionEnum = SpamPreventionAction.Current;
-			}
-			else if (Actions.CaseInsEquals(action, "setup"))
-			{
-				actionEnum = SpamPreventionAction.Setup;
-			}
-			else
+			var action = inputArray[1];
+			if (!Enum.TryParse(action, true, out SpamPreventionAction actionEnum))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
 			//Check if a spamprevention exists or not
-			var spamPrevention = Variables.Guilds[Context.Guild.Id].GlobalSpamPrevention.MentionSpamPrevention;
+			var spamPrevention = Variables.Guilds[Context.Guild.Id].GlobalSpamPrevention.GetSpamPrevention(typeEnum);
 			switch (actionEnum)
 			{
 				case SpamPreventionAction.Enable:
@@ -87,7 +83,6 @@ namespace Advobot
 
 					//Enable it
 					spamPrevention.SwitchEnabled(true);
-					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Spam prevention has successfully been enabled."));
 					return;
 				}
@@ -101,13 +96,11 @@ namespace Advobot
 
 					//Disable it
 					spamPrevention.SwitchEnabled(false);
-					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Spam prevention has successfully been disabled."));
 					return;
 				}
 				case SpamPreventionAction.Current:
 				{
-					//Send a success message
 					await Actions.SendChannelMessage(Context, String.Format("Messages: `{0}`; Mentions: `{1}`; Votes: `{2}`; Enabled: `{3}`.",
 						spamPrevention.AmountOfMessages, spamPrevention.AmountOfSpam, spamPrevention.VotesNeededForKick, spamPrevention.Enabled.ToString()));
 					return;
@@ -115,9 +108,8 @@ namespace Advobot
 				case SpamPreventionAction.Setup:
 				{
 					//Get the strings
-					var inputArray = input.Split(new char[] { ' ' }, 4);
 					var messagesString = Actions.GetVariable(inputArray, "messages");
-					var mentionsString = Actions.GetVariable(inputArray, "mentions");
+					var mentionsString = Actions.GetVariable(inputArray, "spam");
 					var votesString = Actions.GetVariable(inputArray, "votes");
 
 					//Get the ints
@@ -147,7 +139,7 @@ namespace Advobot
 
 					//Save the spam prevention
 					var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
-					Actions.SaveLines(path, Constants.SPAM_PREVENTION, String.Format("{0}/{1}/{2}", ms, vt, mn), Actions.GetValidLines(path, Constants.SPAM_PREVENTION));
+					Actions.SaveLines(path, Constants.MENTION_SPAM_PREVENTION, String.Format("{0}/{1}/{2}", ms, vt, mn), Actions.GetValidLines(path, Constants.MENTION_SPAM_PREVENTION));
 
 					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context,
@@ -157,8 +149,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("preventraidspam")]
-		[Alias("prsp")]
+		[Command("preventraid")]
+		[Alias("prr")]
 		[Usage("[Enable] <Number> | [Disable]")]
 		[Summary("Any users who joins from now on will get text muted. Once `preventraidspam` is turned off all the users who were muted will be unmuted. " +
 			"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
@@ -205,14 +197,13 @@ namespace Advobot
 			if (await Actions.GetRoleEditAbility(Context, role: muteRole) == null)
 				return;
 
-			//TODO: make sure this works the way I think it does
-			var getOnlyAntiRaid = Variables.Guilds[Context.Guild.Id].AntiRaid;
+			var antiRaid = Variables.Guilds[Context.Guild.Id].AntiRaid;
 
 			//Enable
 			if (enableBool)
 			{
 				//Make sure it's not already enabled
-				if (getOnlyAntiRaid != null)
+				if (antiRaid != null)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already enabled on the server."));
 					return;
@@ -250,7 +241,7 @@ namespace Advobot
 			else
 			{
 				//Make sure it's enabled
-				if (getOnlyAntiRaid == null)
+				if (antiRaid == null)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already disabled on the server."));
 					return;
@@ -260,14 +251,14 @@ namespace Advobot
 				Variables.Guilds[Context.Guild.Id].SetAntiRaid(null);
 
 				//Total users muted
-				var ttl = getOnlyAntiRaid.UsersWhoHaveBeenMuted.Count();
+				var ttl = antiRaid.UsersWhoHaveBeenMuted.Count();
 				var unm = 0;
 
 				//Unmute every user who was muted
-				await getOnlyAntiRaid.UsersWhoHaveBeenMuted.ToList().ForEachAsync(async x =>
+				await antiRaid.UsersWhoHaveBeenMuted.ToList().ForEachAsync(async x =>
 				{
 					//Check to make sure they're still on the guild
-					if (await Context.Guild.GetUserAsync(x.Id) != null)
+					if ((await Context.Guild.GetUserAsync(x.Id)).RoleIds.Contains(muteRole.Id))
 					{
 						//Remove the mute role
 						await x.RemoveRolesAsync(muteRole);
@@ -278,8 +269,11 @@ namespace Advobot
 
 				//Calculate how many left
 				var lft = ttl - unm;
+
 				//Send a success message
-				await Actions.SendChannelMessage(Context, String.Format("Successfully turned off raid prevention. `{0}` people have been unmuted. `{1}` raiders left during raid prevention.", unm, lft));
+				var first = unm == 1 ? "person has" : "people have";
+				var second = lft == 1 ? "raider" : "raiders";
+				await Actions.SendChannelMessage(Context, String.Format("Successfully turned off raid prevention. `{0}` {1} been unmuted. `{2}` {3} left during raid prevention.", unm, lft, first, second));
 			}
 		}
 

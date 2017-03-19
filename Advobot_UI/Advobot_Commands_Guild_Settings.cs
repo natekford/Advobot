@@ -95,13 +95,7 @@ namespace Advobot
 				return;
 			}
 
-			//Check if the file exists
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
-			if (path == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
-				return;
-			}
 			var validLines = Actions.GetValidLines(path, Constants.GUILD_PREFIX);
 
 			if (Actions.CaseInsEquals(input, "clear"))
@@ -531,14 +525,7 @@ namespace Advobot
 					ignoredCmdsOnChans.RemoveAll(x => x.CommandName == cmd && x.ChannelID == channel.Id);
 				}
 
-				//Create the file if it doesn't exist
 				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.COMMANDS_DISABLED_BY_CHANNEL);
-				if (path == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
-					return;
-				}
-				//Save the lines
 				Actions.SaveLines(path, ignoredCmdsOnChans.Select(x => String.Format("{0} {1}", x.ChannelID, x.CommandName)).ToList());
 
 				//Send a success message
@@ -568,14 +555,7 @@ namespace Advobot
 
 				ignoredCmdChannels = ignoredCmdChannels.Distinct().ToList();
 
-				//Create the file if it doesn't exist
 				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
-				if (path == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
-					return;
-				}
-				//Save the lines
 				Actions.SaveLines(path, Constants.IGNORED_COMMAND_CHANNELS, String.Join("/", ignoredCmdChannels), Actions.GetValidLines(path, Constants.IGNORED_COMMAND_CHANNELS));
 
 				//Send a success message

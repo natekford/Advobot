@@ -503,7 +503,7 @@ namespace Advobot
 						GuildInfo.IgnoredCommandChannels.AddRange(IDs.Distinct().ToList());
 					}
 					//Spam prevention
-					else if (line.Contains(Constants.SPAM_PREVENTION))
+					else if (line.Contains(Constants.MENTION_SPAM_PREVENTION))
 					{
 						var variableNumbers = line.Substring(line.IndexOf(':') + 1).Split('/').ToList();
 						if (variableNumbers.Count != 3)
@@ -1424,17 +1424,31 @@ namespace Advobot
 		//Remove secondary messages
 		public static async Task MakeAndDeleteSecondaryMessage(CommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
-			var secondMsg = await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
-			RemoveCommandMessages(context.Channel, new List<IMessage> { secondMsg, context.Message }, time);
+			await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, secondStr, time);
 		}
 		
 		//Remove secondary messages without context
 		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
 			var secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
-			RemoveCommandMessages(channel as ITextChannel, new List<IMessage> { secondMsg, message }, time);
+			var messages = new List<IMessage> { secondMsg, message };
+
+			if (message == null)
+			{
+				RemoveCommandMessage(secondMsg, time);
+			}
+			else
+			{
+				RemoveCommandMessages(channel as ITextChannel, messages, time);
+			}
 		}
-		
+
+		//Remove secondary messages by themself
+		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, string secondStr, Int32 time = Constants.WAIT_TIME)
+		{
+			await MakeAndDeleteSecondaryMessage(channel, null, secondStr, time);
+		}
+
 		//Remove messages
 		public static async Task RemoveMessages(IMessageChannel channel, int requestCount)
 		{
@@ -2588,11 +2602,10 @@ namespace Advobot
 				return false;
 			}
 			//Get the commands that are disabled on specific channels
-			//TODO: Fix this
-			//if (Variables.Guilds[context.Guild.Id].CommandsDisabledOnChannel.Any(x => CaseInsEquals(cmd.Name, x.CommandName) && context.Channel.Id == x.ChannelID))
-			//{
-				//return false;
-			//}
+			if (Variables.Guilds[context.Guild.Id].CommandsDisabledOnChannel.Any(x => CaseInsEquals(cmd.Name, x.CommandName) && context.Channel.Id == x.ChannelID))
+			{
+				return false;
+			}
 			else
 			{
 				return true;
@@ -2631,6 +2644,7 @@ namespace Advobot
 		//Add back in the lines
 		public static void SaveLines(string path, string target, string input, List<string> validLines, bool literal = false)
 		{
+			CreateFile(path);
 			if (target != null && input != null)
 			{
 				//Add all the lines back
@@ -2654,6 +2668,7 @@ namespace Advobot
 
 		public static void SaveLines(string path, List<string> validLines)
 		{
+			CreateFile(path);
 			using (var writer = new StreamWriter(path))
 			{
 				writer.WriteLine(String.Join("\n", validLines));
@@ -2676,14 +2691,10 @@ namespace Advobot
 		//Save multiple lines back in at a time
 		public static void SaveLines(string path, string target, List<string> inputLines, List<string> validLines)
 		{
+			CreateFile(path);
 			if (target != null)
 			{
-				//Add all the lines back
-				using (var writer = new StreamWriter(path))
-				{
-					var output = String.Join("\n", new string[] { String.Join("\n", inputLines.Select(x => String.Format("{0}:{1}", target, x))), String.Join("\n", validLines) });
-					writer.WriteLine(output);
-				}
+				SaveLines(path, new List<string> { String.Join("\n", inputLines.Select(x => String.Format("{0}:{1}", target, x))), String.Join("\n", validLines) });
 			}
 		}
 		#endregion
@@ -3275,7 +3286,42 @@ namespace Advobot
 			Task.Run(async () =>
 			{
 				await Task.Delay(time);
-				await DeleteMessages(channel, messages);
+				var curMsgs = new List<IMessage>();
+				await messages.ForEachAsync(async x =>
+				{
+					//TODO: Figure out how to do this without a try catch
+					try
+					{
+						curMsgs.Add(await channel.GetMessageAsync(x.Id));
+					}
+					catch (Exception e)
+					{
+						ExceptionToConsole("rcm", e);
+					}
+				});
+
+				if (curMsgs.Count == 0)
+				{
+					return;
+				}
+				if (curMsgs.Count == 1)
+				{
+					await DeleteMessage(curMsgs.FirstOrDefault());
+				}
+				else
+				{
+					await DeleteMessages(channel, curMsgs);
+				}
+			});
+		}
+
+		//Remove a singular message after time
+		public static void RemoveCommandMessage(IMessage message, Int32 time)
+		{
+			Task.Run(async () =>
+			{
+				await Task.Delay(time);
+				await message.DeleteAsync();
 			});
 		}
 
@@ -3407,29 +3453,72 @@ namespace Advobot
 
 		#region Spam Prevention
 		//Going through with the spam prevention
-		public static async Task<bool> HandleSpamPrevention(GlobalSpamPrevention global, BaseSpamPrevention spamPrev, IGuild guild, IMessage message)
+		public static async Task<bool> HandleSpamPrevention(GlobalSpamPrevention global, BaseSpamPrevention spamPrev, IGuild guild, IGuildUser user, IMessage msg)
 		{
 			if (spamPrev == null || !spamPrev.Enabled)
 				return false;
 
-			//Check if the bot can even kick/ban this user
-			var author = message.Author as IGuildUser;
-			if (GetPosition(guild, author) >= GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)))
-				return true;
-
-			var votes = spamPrev.VotesNeededForKick;
-			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == author) ?? new SpamPreventionUser(global, author, 0, votes);
-
-			spUser.IncreaseCurrentSpamAmount();
-			if (spUser.CurrentSpamAmount < spamPrev.AmountOfMessages)
-				return true;
-
-			//Send a message telling the users of the guild they can vote to ban this person
-			await SendChannelMessage(message.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.", FormatUser(author), votes));
-			//Make sure they have the lowest vote count required to kick
-			spUser.ChangeVotesRequired(votes);
-			spUser.EnablePotentialKick();
+			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == user) ?? new SpamPreventionUser(global, user);
+			switch (spamPrev.SpamType)
+			{
+				case SpamType.Message:
+				{
+					spUser.IncreaseMessageSpamAmount();
+					if (spUser.MessageSpamAmount > spamPrev.AmountOfMessages)
+					{
+						await VotesHigherThanRequiredAmount(spamPrev, spUser, msg);
+					}
+					break;
+				}
+				case SpamType.Long_Message:
+				{
+					spUser.IncreaseLongMessageSpamAmount();
+					if (spUser.LongMessageSpamAmount > spamPrev.AmountOfMessages)
+					{
+						await VotesHigherThanRequiredAmount(spamPrev, spUser, msg);
+					}
+					break;
+				}
+				case SpamType.Link:
+				{
+					spUser.IncreaseLinkSpamAmount();
+					if (spUser.LinkSpamAmount > spamPrev.AmountOfMessages)
+					{
+						await VotesHigherThanRequiredAmount(spamPrev, spUser, msg);
+					}
+					break;
+				}
+				case SpamType.Image:
+				{
+					spUser.IncreaseImageSpamAmount();
+					if (spUser.ImageSpamAmount > spamPrev.AmountOfMessages)
+					{
+						await VotesHigherThanRequiredAmount(spamPrev, spUser, msg);
+					}
+					break;
+				}
+				case SpamType.Mention:
+				{
+					spUser.IncreaseMentionSpamAmount();
+					if (spUser.MentionSpamAmount > spamPrev.AmountOfMessages)
+					{
+						await VotesHigherThanRequiredAmount(spamPrev, spUser, msg);
+					}
+					break;
+				}
+			}
 			return true;
+		}
+
+		public static async Task VotesHigherThanRequiredAmount(BaseSpamPrevention spamPrev, SpamPreventionUser spUser, IMessage msg)
+		{
+			//Make sure they have the lowest vote count required to kick
+			spUser.ChangeVotesRequired(spamPrev.VotesNeededForKick);
+			//Turn on their ability to be kicked so they can be kicked
+			spUser.EnablePotentialKick();
+			//Send this message updating the amount of votes the user needs
+			await MakeAndDeleteSecondaryMessage(msg.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
+				FormatUser(msg.Author), spUser.VotesRequired - spUser.VotesToKick));
 		}
 
 		public static bool SpamCheck(MessageSpamPrevention spamPrev, IMessage message)
@@ -3476,6 +3565,13 @@ namespace Advobot
 		#region Case Insensitive Searches
 		public static bool CaseInsEquals(string str1, string str2)
 		{
+			if (String.IsNullOrWhiteSpace(str1))
+			{
+				return String.IsNullOrWhiteSpace(str2) ? true : false;
+			}
+			else if (str1 == null || str2 == null)
+				return false;
+
 			return str1.Equals(str2, StringComparison.OrdinalIgnoreCase);
 		}
 
