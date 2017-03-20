@@ -1097,7 +1097,7 @@ namespace Advobot
 			//Check the game name length
 			if (input.Length > Constants.GAME_MAX_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR(String.Format("Game name cannot be longer than {0} characters or else it doesn't show to other people.", Constants.GAME_MAX_LENGTH)));
+				Actions.WriteLine(Actions.ERROR(String.Format("Game name cannot be longer than `{0}` characters or else it doesn't show to other people.", Constants.GAME_MAX_LENGTH)));
 				return;
 			}
 
@@ -1157,12 +1157,12 @@ namespace Advobot
 			//Names have the same length requirements as nicknames
 			if (input.Length > Constants.NICKNAME_MAX_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be more than {0} characters.", Constants.NICKNAME_MAX_LENGTH)));
+				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.NICKNAME_MAX_LENGTH)));
 				return;
 			}
 			else if (input.Length < Constants.NICKNAME_MIN_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be less than {0} characters.", Constants.NICKNAME_MIN_LENGTH)));
+				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.NICKNAME_MIN_LENGTH)));
 				return;
 			}
 

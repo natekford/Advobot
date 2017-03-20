@@ -16,7 +16,6 @@ namespace Advobot
 			//Create Command Service, inject it into Dependency Map
 			Client = map.Get<BotClient>();
 			Commands = new CommandService();
-			map.Add(Commands);
 			Map = map;
 
 			await Commands.AddModulesAsync(Assembly.GetEntryAssembly());

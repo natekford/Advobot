@@ -226,7 +226,7 @@ namespace Advobot
 					await users.ForEachAsync(async x =>
 					{
 						//Mute them
-						await x.AddRolesAsync(muteRole);
+						await x.AddRoleAsync(muteRole);
 						//Add them to the list of users who have been muted
 						Variables.Guilds[Context.Guild.Id].AntiRaid.AddUserToMutedList(x);
 						//Increment the mute count
@@ -261,7 +261,7 @@ namespace Advobot
 					if ((await Context.Guild.GetUserAsync(x.Id)).RoleIds.Contains(muteRole.Id))
 					{
 						//Remove the mute role
-						await x.RemoveRolesAsync(muteRole);
+						await x.RemoveRoleAsync(muteRole);
 						//Increment the unmuted int
 						++unm;
 					}

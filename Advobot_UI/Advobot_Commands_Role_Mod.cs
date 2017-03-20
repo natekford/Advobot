@@ -222,12 +222,12 @@ namespace Advobot
 			//Check length
 			if (input.Length > Constants.ROLE_NAME_MAX_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles can only have a name length of up to {0} characters.", Constants.ROLE_NAME_MAX_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles can only have a name length of up to `{0}` characters.", Constants.ROLE_NAME_MAX_LENGTH)));
 				return;
 			}
 			else if (input.Length < Constants.ROLE_NAME_MIN_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles need to have a name equal to or greater than {0} characters.", Constants.ROLE_NAME_MIN_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles need to have a name equal to or greater than `{0}` characters.", Constants.ROLE_NAME_MIN_LENGTH)));
 				return;
 			}
 
@@ -690,12 +690,12 @@ namespace Advobot
 			var newName = inputArray[1];
 			if (newName.Length > Constants.ROLE_NAME_MAX_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles can only have a name length of up to {0} characters.", Constants.ROLE_NAME_MAX_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles can only have a name length of up to `{0}` characters.", Constants.ROLE_NAME_MAX_LENGTH)));
 				return;
 			}
 			else if (newName.Length < Constants.ROLE_NAME_MIN_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles need to have a name equal to or greater than {0} characters.", Constants.ROLE_NAME_MIN_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles need to have a name equal to or greater than `{0}` characters.", Constants.ROLE_NAME_MIN_LENGTH)));
 				return;
 			}
 

@@ -188,7 +188,7 @@ namespace Advobot
 			if (antiRaid != null)
 			{
 				//Give them the mute role
-				await user.AddRolesAsync(antiRaid.MuteRole);
+				await user.AddRoleAsync(antiRaid.MuteRole);
 				//Add them to the list of users who have been muted
 				antiRaid.AddUserToMutedList(user);
 			}
@@ -360,12 +360,19 @@ namespace Advobot
 			if (serverLog == null)
 				return;
 
+			//Get the info stored for that guild on the bot
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo botInfo))
+				return;
+
 			//Nickname change
 			if (beforeUser.Nickname != afterUser.Nickname)
 			{
 				//Format the nicknames
 				var originalNickname = String.IsNullOrWhiteSpace(beforeUser.Nickname) ? "NO NICKNAME" : beforeUser.Nickname;
 				var newNickname = String.IsNullOrWhiteSpace(afterUser.Nickname) ? "NO NICKNAME" : afterUser.Nickname;
+
+				if (botInfo.FAWRNicknames.Contains(newNickname))
+					return;
 
 				//These ones are across more lines than the previous ones up above because it makes it easier to remember what is doing what
 				var embed = Actions.MakeNewEmbed(null, null, Constants.UEDT);
@@ -382,10 +389,6 @@ namespace Advobot
 			var rolesChange = new List<string>();
 			if (firstNotSecond.Any())
 			{
-				//Get the info stored for that guild on the bot
-				if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo botInfo))
-					return;
-
 				//Get or create the roleloss
 				lock (botInfo.RoleLoss)
 				{
@@ -444,7 +447,10 @@ namespace Advobot
 				//Not necessary to have in a separate task like the method above
 				secondNotFirst.ForEach(x =>
 				{
-					rolesChange.Add(x.Name);
+					if (!botInfo.FAWRRoles.Contains(x))
+					{
+						rolesChange.Add(x.Name);
+					}
 				});
 
 				if (!rolesChange.Any())

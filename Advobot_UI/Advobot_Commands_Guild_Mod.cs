@@ -24,12 +24,12 @@ namespace Advobot
 			//Check if valid length
 			if (input.Length > Constants.CHANNEL_NAME_MAX_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than {0} characters.", Constants.CHANNEL_NAME_MAX_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.CHANNEL_NAME_MAX_LENGTH)));
 				return;
 			}
 			else if (input.Length < Constants.CHANNEL_NAME_MIN_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than {0} characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
 				return;
 			}
 
@@ -231,7 +231,7 @@ namespace Advobot
 		[Alias("gdo")]
 		[Usage("<@User>")]
 		[Summary("Changes the guild's owner to the given user.")]
-		//[PermissionRequirement]
+		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
 		public async Task GuildOwner([Optional, Remainder] string input)
 		{
@@ -245,7 +245,7 @@ namespace Advobot
 			//Create the guild owner role
 			var role = await Context.Guild.CreateRoleAsync("Guild Owner");
 			//Give the role to the user
-			await user.AddRolesAsync(role);
+			await user.AddRoleAsync(role);
 			//Grab all roles
 			var roles = Context.Guild.Roles.Where(x => x != role).ToList().OrderBy(x => x.Position).ToList();
 			//Add in the guild owner role to the top

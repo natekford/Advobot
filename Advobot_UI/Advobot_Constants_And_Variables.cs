@@ -12,7 +12,7 @@ namespace Advobot
 		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
 
 		public const string BOT_VERSION = "0.9.18";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00621";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00642";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -46,8 +46,8 @@ namespace Advobot
 		public const string MENTION_SPAM_PREVENTION = "mentionspamprevention";
 		public const string LONG_MSG_PREVENTION = "longmsgspamprevention";
 		public const string IGNORED_COMMAND_CHANNELS = "ignoredcommandchannels";
-		public const string CHANNEL_INSTRUCTIONS = "[#Channel|[Channel/Text|Voice]]";
-		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|[Channel/Text|Voice]>";
+		public const string CHANNEL_INSTRUCTIONS = "[#Channel|\"Channel Name\"]";
+		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|\"Channel Name\">";
 		public const string VOICE_TYPE = "voice";
 		public const string TEXT_TYPE = "text";
 		public const string BYPASS_STRING = "Badoodle123";

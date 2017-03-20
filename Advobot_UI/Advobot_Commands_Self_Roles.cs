@@ -214,39 +214,37 @@ namespace Advobot
 			//Make the success and failure strings
 			var sString = "";
 			var fString = "";
-			bool sBool = success.Any();
-			bool fBool = failure.Any();
-			if (actionType == SAGAction.Create)
+			var sBool = success.Any();
+			var fBool = failure.Any();
+			switch (actionType)
 			{
-				sString = sBool ? String.Format("Successfully created the group `{0}` with the following roles: `{1}`", groupNumber.ToString("00"), String.Join("`, `", success)) : "";
-				fString = fBool ? String.Format("{0}ailed to add the following roles to `{1}`: `{2}`", sBool ? "f" : "F", groupNumber.ToString("00"), String.Join("`, `", failure)) : "";
-			}
-			else if (actionType == SAGAction.Add)
-			{
-				sString = sBool ? String.Format("Successfully added the following roles to `{0}`: `{1}`", groupNumber.ToString("00"), String.Join("`, `", success)) : "";
-				fString = fBool ? String.Format("{0}ailed to add the following roles to `{1}`: `{2}`", sBool ? "f" : "F", groupNumber.ToString("00"), String.Join("`, `", failure)) : "";
-			}
-			else if (actionType == SAGAction.Remove)
-			{
-				sString = sBool ? String.Format("Successfully removed the following roles from `{0}`: `{1}`", groupNumber.ToString("00"), String.Join("`, `", success)) : "";
-				fString = fBool ? String.Format("{0}ailed to remove the following roles from `{1}`: `{2}`", sBool ? "f" : "F", groupNumber.ToString("00"), String.Join("`, `", failure)) : "";
-			}
-			else
-			{
-				sString = String.Format("Successfully deleted the group `{0}` which held the following roles: `{1}`", groupNumber.ToString("00"), String.Join("`, `", deleted));
+				case SAGAction.Create:
+				{
+					sString = sBool ? String.Format("Successfully created the group `{0}` with the following roles: `{1}`", groupNumber.ToString("00"), String.Join("`, `", success)) : "";
+					fString = fBool ? String.Format("{0}ailed to add the following roles to `{1}`: `{2}`", sBool ? "f" : "F", groupNumber.ToString("00"), String.Join("`, `", failure)) : "";
+					break;
+				}
+				case SAGAction.Add:
+				{
+					sString = sBool ? String.Format("Successfully added the following roles to `{0}`: `{1}`", groupNumber.ToString("00"), String.Join("`, `", success)) : "";
+					fString = fBool ? String.Format("{0}ailed to add the following roles to `{1}`: `{2}`", sBool ? "f" : "F", groupNumber.ToString("00"), String.Join("`, `", failure)) : "";
+					break;
+				}
+				case SAGAction.Remove:
+				{
+					sString = sBool ? String.Format("Successfully removed the following roles from `{0}`: `{1}`", groupNumber.ToString("00"), String.Join("`, `", success)) : "";
+					fString = fBool ? String.Format("{0}ailed to remove the following roles from `{1}`: `{2}`", sBool ? "f" : "F", groupNumber.ToString("00"), String.Join("`, `", failure)) : "";
+					break;
+				}
+				case SAGAction.Delete:
+				{
+					sString = String.Format("Successfully deleted the group `{0}` which held the following roles: `{1}`", groupNumber.ToString("00"), String.Join("`, `", deleted));
+					break;
+				}
 			}
 
 			//Format the response message
-			var responseMessage = "";
-			if (sBool && fBool)
-			{
-				responseMessage = sString + ", and " + fString;
-			}
-			else
-			{
-				responseMessage = sString + fString;
-			}
-
+			var responseMessage = (sBool && fBool) ? (sString + ", and " + fString) : (sString + fString);
 			//Send a success message
 			await Actions.MakeAndDeleteSecondaryMessage(Context, responseMessage + ".", 10000);
 		}
@@ -266,8 +264,8 @@ namespace Advobot
 			}
 
 			//Get the role. No edit ability checking in this command due to how that's already been done in the modify command
-			var role = await Actions.GetRole(Context, input);
-			if (role == null)
+			var wantedRole = await Actions.GetRole(Context, input);
+			if (wantedRole == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no role with that name on this guild."));
 				return;
@@ -275,7 +273,7 @@ namespace Advobot
 
 			//Check if any groups has it
 			var SAGroups = Variables.SelfAssignableGroups.Where(x => x.GuildID == Context.Guild.Id).ToList();
-			if (!SAGroups.Any(x => x.Roles.Select(y => y.Role).Contains(role)))
+			if (!SAGroups.Any(x => x.Roles.Select(y => y.Role).Contains(wantedRole)))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no self assignable role by that name."));
 				return;
@@ -283,43 +281,35 @@ namespace Advobot
 
 			//Get the user as an IGuildUser
 			var user = Context.User as IGuildUser;
-			//Get their roles
-			var roles = new List<IRole>();
-
 			//Check if the user wants to remove their role
-			if (user.RoleIds.Contains(role.Id))
+			if (user.RoleIds.Contains(wantedRole.Id))
 			{
-				await user.RemoveRolesAsync(new[] { role });
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the role `" + role.Name + "`.");
+				await user.RemoveRoleAsync(wantedRole);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the role `" + wantedRole.Name + "`.");
 				return;
 			}
 
 			//Get the group that contains the role
-			var SAGroup = Variables.SelfAssignableGroups.FirstOrDefault(x => x.Roles.Select(y => y.Role).Contains(role));
+			var SAGroup = Variables.SelfAssignableGroups.FirstOrDefault(x => x.Roles.Select(y => y.Role).Contains(wantedRole));
 			//If a group that has stuff conflict, remove all but the wanted role
+			var otherRoles = new List<IRole>();
 			if (SAGroup.Group != 0)
 			{
 				//Find the intersection of the group's roles and the user's roles
-				roles = SAGroup.Roles.Select(x => x.Role.Id).Intersect(user.RoleIds).Select(x => Context.Guild.GetRole(x)).ToList();
+				otherRoles = SAGroup.Roles.Select(x => x.Role.Id).Intersect(user.RoleIds).Select(x => Context.Guild.GetRole(x)).ToList();
 				//Check if the user already has the role they're wanting
-				if (roles.Contains(role))
+				if (otherRoles.Contains(wantedRole))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "You already have that role.");
 					return;
 				}
 			}
-			//Give the wanted role to the user
-			await user.ChangeRolesAsync(new[] { role }, roles);
 
-			//Format a success message
-			var removedRoles = "";
-			if (roles.Any())
-			{
-				removedRoles = String.Format(", and removed `{0}`", String.Join("`, `", roles));
-			}
+			await user.RemoveRolesAsync(otherRoles);
+			await user.AddRoleAsync(wantedRole);
 
-			//Send the message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully gave you `" + role.Name + "`" + removedRoles + ".");
+			var removedRoles = otherRoles.Any() ? String.Format(", and removed `{0}`", String.Join("`, `", otherRoles)) : "";
+			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully gave you `" + wantedRole.Name + "`" + removedRoles + ".");
 		}
 
 		[Command("selfroles")]

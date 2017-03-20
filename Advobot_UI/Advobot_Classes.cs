@@ -508,6 +508,8 @@ namespace Advobot
 		public List<LogActions> LogActions = new List<LogActions>();
 		public List<Remind> Reminds = new List<Remind>();
 		public List<BotInvite> Invites = new List<BotInvite>();
+		public List<IRole> FAWRRoles = new List<IRole>();
+		public List<string> FAWRNicknames = new List<string>();
 
 		private GlobalSpamPrevention mGlobalSpamPrevention = new GlobalSpamPrevention();
 		private AntiRaid mAntiRaid;
@@ -697,25 +699,42 @@ namespace Advobot
 			mMentionSpamAmount = 0;
 			mUsersWhoHaveAlreadyVoted = new List<ulong>();
 		}
-		public void IncreaseMessageSpamAmount()
+		public async Task CheckIfShouldKick(BaseSpamPrevention spamPrev, IMessage msg)
 		{
-			++mMessageSpamAmount;
-		}
-		public void IncreaseLongMessageSpamAmount()
-		{
-			++mLongMessageSpamAmount;
-		}
-		public void IncreaseLinkSpamAmount()
-		{
-			++mLinkSpamAmount;
-		}
-		public void IncreaseImageSpamAmount()
-		{
-			++mImageSpamAmount;
-		}
-		public void IncreaseMentionSpamAmount()
-		{
-			++mMentionSpamAmount;
+			var spamAmount = 0;
+			switch (spamPrev.SpamType)
+			{
+				case SpamType.Message:
+				{
+					spamAmount = ++mMessageSpamAmount;
+					break;
+				}
+				case SpamType.Long_Message:
+				{
+					spamAmount = ++mLongMessageSpamAmount;
+					break;
+				}
+				case SpamType.Link:
+				{
+					spamAmount = ++mLinkSpamAmount;
+					break;
+				}
+				case SpamType.Image:
+				{
+					spamAmount = ++mImageSpamAmount;
+					break;
+				}
+				case SpamType.Mention:
+				{
+					spamAmount = ++mMentionSpamAmount;
+					break;
+				}
+			}
+
+			if (spamAmount > spamPrev.AmountOfMessages)
+			{
+				await Actions.VotesHigherThanRequiredAmount(spamPrev, this, msg);
+			}
 		}
 	}
 
@@ -984,13 +1003,14 @@ namespace Advobot
 		{
 			get { return mMuteRole; }
 		}
-		public void DisableAntiRaid()
-		{
-			mMuteRole = null;
-		}
 		public ReadOnlyCollection<IGuildUser> UsersWhoHaveBeenMuted
 		{
 			get { return mUsersWhoHaveBeenMuted.AsReadOnly(); }
+		}
+
+		public void DisableAntiRaid()
+		{
+			mMuteRole = null;
 		}
 		public void AddUserToMutedList(IGuildUser user)
 		{
@@ -1418,6 +1438,21 @@ namespace Advobot
 		Link = 3,
 		Image = 4,
 		Mention = 5, 
+	}
+
+	public enum FAWRType
+	{
+		Give = 1,
+		Take = 2,
+		Nickname = 3,
+	}
+
+	public enum CHPType
+	{
+		Show = 1,
+		Allow = 2,
+		Inherit = 3,
+		Deny = 4,
 	}
 	#endregion
 }

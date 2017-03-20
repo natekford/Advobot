@@ -324,7 +324,7 @@ namespace Advobot
 				user.Status);
 
 			//Make the embed
-			var embed = Actions.MakeNewEmbed(null, description);
+			var embed = Actions.MakeNewEmbed(null, description, roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color);
 			//Add the author
 			Actions.AddAuthor(embed, user.Username + "#" + user.Discriminator + " " + (user.Nickname == null ? "" : "(" + user.Nickname + ")"), user.GetAvatarUrl(), user.GetAvatarUrl());
 			//Add the footer
@@ -414,31 +414,38 @@ namespace Advobot
 
 		[Command("useravatar")]
 		[Alias("uav")]
-		[Usage("[Gif|Png|Jpg|Webp] <@user>")]
+		[Usage("<Type:[Gif|Png|Jpg|Webp]> <@user>")]
 		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily). Currently every avatar is displayed with an extension type of gif.")]
 		[DefaultEnabled(true)]
 		public async Task UserAvatar([Optional, Remainder] string input)
 		{
 			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 2);
+			var formatStr = Actions.GetVariable(inputArray, "type");
 
 			//Get the type of image
-			if (!Enum.TryParse(inputArray[0], true, out AvatarFormat format))
+			var format = ImageFormat.Auto;
+			if (formatStr != null && !Enum.TryParse(formatStr, true, out format))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid avatar format supplied."));
 				return;
 			}
 
 			//Get the user
-			var user = Context.User as IGuildUser;
-			if (inputArray.Length == 2)
+			IGuildUser user;
+			var mentions = Context.Message.MentionedUserIds;
+			if (mentions.Count == 0)
 			{
-				user = await Actions.GetUser(Context.Guild, inputArray[1]);
-				if (user == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
-					return;
-				}
+				user = Context.User as IGuildUser;
+			}
+			else if (mentions.Count == 1)
+			{
+				user = await Context.Guild.GetUserAsync(mentions.FirstOrDefault());
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many user mentions input."));
+				return;
 			}
 
 			//Send a message with the URL

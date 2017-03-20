@@ -239,7 +239,7 @@ namespace Advobot
 			//Check the game name length
 			if (input.Length > Constants.GAME_MAX_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Game name cannot be longer than {0} characters or else it doesn't show to other people.", Constants.GAME_MAX_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Game name cannot be longer than `{0}` characters or else it doesn't show to other people.", Constants.GAME_MAX_LENGTH)));
 				return;
 			}
 
