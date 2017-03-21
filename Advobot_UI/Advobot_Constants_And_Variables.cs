@@ -99,7 +99,7 @@ namespace Advobot
 		});
 		public static ReadOnlyCollection<string> VALID_REGION_IDS = new ReadOnlyCollection<string>(new List<string>()
 		{
-			"brazil", "eu-central", "eu-west", "hongkong", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west"
+			"brazil", "eu-central", "eu-west", "hongkong", "russia", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west"
 		});
 		public static ReadOnlyCollection<string> VIP_REGIONIDS = new ReadOnlyCollection<string>(new List<string>()
 		{
@@ -157,7 +157,6 @@ namespace Advobot
 		public static BotClient Client;
 		public static UInt64 Bot_ID = 0;
 		public static string Bot_Name;
-		public static string Bot_Channel;
 
 		public static bool Windows = true;
 		public static bool Loaded = false;

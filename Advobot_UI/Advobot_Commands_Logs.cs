@@ -55,7 +55,7 @@ namespace Advobot
 
 		[Command("logignore")]
 		[Alias("logi")]
-		[Usage("[Add|Remove|Current] [#Channel|Channel Name]")]
+		[Usage("[Add|Remove|Current] [#Channel]")]
 		[Summary("Ignores all logging info that would have been gotten from a channel. Only works on text channels.")]
 		[GuildOwnerRequirement]
 		[DefaultEnabled(false)]

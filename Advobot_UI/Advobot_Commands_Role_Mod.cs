@@ -263,25 +263,15 @@ namespace Advobot
 				return;
 			}
 
-			//Create a new role with the same attributes (including space) and no perms
-			var newRole = await Context.Guild.CreateRoleAsync(inputRole.Name, new GuildPermissions(0), inputRole.Color);
+			//Get the properties of the role before it's deleted
+			var name = inputRole.Name;
+			var color = inputRole.Color;
+			var position = inputRole.Position;
 
-			//Make a new list of IRole
-			var roles = Context.Guild.Roles.Where(x => x != newRole).OrderBy(x => x.Position).ToList();
-			//Add in the targetted role with the given position
-			roles.Insert(Math.Min(roles.Count(), inputRole.Position), newRole);
-
-			//Make a new list of BulkRoleProperties
-			var listOfBulk = roles.Select(x => new BulkRoleProperties(x.Id)).ToList();
-			//Readd the positions to it
-			listOfBulk.ForEach(x => x.Position = listOfBulk.IndexOf(x));
-			//Mass modify the roles with the list having the correct positions
-			await Context.Guild.ModifyRolesAsync(listOfBulk);
-
-			//Delete the old role
+			//Change the new role's position
 			await inputRole.DeleteAsync();
-			await Actions.MakeAndDeleteSecondaryMessage(Context,
-				String.Format("Successfully removed all permissions from `{0}` and removed the role from all users on the guild.", inputRole.Name));
+			await Actions.ModifyRolePosition(await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), color), position);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all permissions from `{0}` and removed the role from all users on the guild.", inputRole.Name));
 		}
 
 		[Command("roledelete")]
@@ -369,19 +359,9 @@ namespace Advobot
 				return;
 			}
 
-			//Grab all roles that aren't the targeted one
-			var roles = Context.Guild.Roles.Where(x => x != role).ToList().OrderBy(x => x.Position).ToList();
-			//Add in the targetted role with the given position
-			roles.Insert(Math.Min(roles.Count(), position), role);
-			//Make a new list of BulkRoleProperties
-			var listOfBulk = roles.Select(x => new BulkRoleProperties(x.Id)).ToList();
-			//Readd the positions to it
-			listOfBulk.ForEach(x => x.Position = listOfBulk.IndexOf(x));
-			//Mass modify the roles with the list having the correct positions
-			await Context.Guild.ModifyRolesAsync(listOfBulk);
-
-			//Send a message stating what position the channel was sent to
-			await Actions.SendChannelMessage(Context, String.Format("Successfully gave the `{0}` role the position `{1}`.", role.Name, role.Position));
+			//Change its position
+			await Actions.ModifyRolePosition(role, position);
+			await Actions.SendChannelMessage(Context, String.Format("Successfully gave the `{0}` role the position `{1}`.", role.Name, position));
 		}
 
 		[Command("rolepositions")]

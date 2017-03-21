@@ -788,7 +788,7 @@ namespace Advobot
 		public static async Task ModifyPreferences(IGuild guild, IMessage message)
 		{
 			//Check if it's the owner of the guild saying something
-			if (message.Author.Id == guild.OwnerId)
+			if (message.Author.Id == guild.OwnerId || Actions.GetIfUserIsOwnerButBotIsOwner(guild, message.Author))
 			{
 				//If the message is only 'yes' then check if they're enabling or deleting preferences
 				if (Actions.CaseInsEquals(message.Content, "yes"))

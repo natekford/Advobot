@@ -816,14 +816,14 @@ namespace Advobot
 				Properties.Settings.Default.Prefix = Constants.BOT_PREFIX;
 
 				//Send a success message
-				Actions.WriteLine("Successfully reset the bot's prefix to `" + Constants.BOT_PREFIX + "`.");
+				Actions.WriteLine(String.Format("Successfully reset the bot's prefix to '{0}'.", Constants.BOT_PREFIX));
 			}
 			else
 			{
 				Properties.Settings.Default.Prefix = input.Trim();
 
 				//Send a success message
-				Actions.WriteLine(String.Format("Successfully changed the bot's prefix to `{0}`.", input));
+				Actions.WriteLine(String.Format("Successfully changed the bot's prefix to '{0}'.", input));
 			}
 
 			//Save the settings
@@ -851,7 +851,7 @@ namespace Advobot
 					//If windows then default to appdata
 					if (Variables.Windows)
 					{
-						Actions.WriteLine(String.Format("The current save path is: `{0}`.", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.SERVER_FOLDER)));
+						Actions.WriteLine(String.Format("The current save path is: '{0}'.", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.SERVER_FOLDER)));
 					}
 					//If not windows then there's no folder
 					else
@@ -861,7 +861,7 @@ namespace Advobot
 				}
 				else
 				{
-					Actions.WriteLine("The current save path is: `" + Properties.Settings.Default.Path + "`.");
+					Actions.WriteLine(String.Format("The current save path is: '{0}'.", Properties.Settings.Default.Path));
 				}
 				return;
 			}
@@ -883,7 +883,7 @@ namespace Advobot
 			//Set the path
 			Properties.Settings.Default.Path = input;
 			Properties.Settings.Default.Save();
-			Actions.WriteLine(String.Format("Successfully changed the save path to: `{0}`.", input));
+			Actions.WriteLine(String.Format("Successfully changed the save path to: '{0}'.", input));
 		}
 
 		//Modify the global bot owner
@@ -902,7 +902,7 @@ namespace Advobot
 				var user = Actions.GetBotOwner(Variables.Client);
 				if (user != null)
 				{
-					Actions.WriteLine(String.Format("The current bot owner is: `{0}`", Actions.FormatUser(user)));
+					Actions.WriteLine(String.Format("The current bot owner is: '{0}'", Actions.FormatUser(user)));
 				}
 				else
 				{
@@ -922,8 +922,7 @@ namespace Advobot
 			else if (Properties.Settings.Default.BotOwner != 0)
 			{
 				//Get the bot owner
-				var user = Actions.GetBotOwner(Variables.Client);
-				Actions.WriteLine(String.Format("There is already a bot owner: `{0}`.", Actions.FormatUser(user)));
+				Actions.WriteLine(String.Format("There is already a bot owner: '{0}'.", Actions.FormatUser(Actions.GetBotOwner(Variables.Client))));
 				return;
 			}
 
@@ -945,7 +944,7 @@ namespace Advobot
 
 			Properties.Settings.Default.BotOwner = globalUser.Id;
 			Properties.Settings.Default.Save();
-			Actions.WriteLine(String.Format("Successfully made `{0}` the new bot owner.", Actions.FormatUser(globalUser)));
+			Actions.WriteLine(String.Format("Successfully made '{0}' the new bot owner.", Actions.FormatUser(globalUser)));
 		}
 
 		//List the global settings or clear them
@@ -1097,7 +1096,7 @@ namespace Advobot
 			//Check the game name length
 			if (input.Length > Constants.GAME_MAX_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR(String.Format("Game name cannot be longer than `{0}` characters or else it doesn't show to other people.", Constants.GAME_MAX_LENGTH)));
+				Actions.WriteLine(Actions.ERROR(String.Format("Game name cannot be longer than '{0}' characters or else it doesn't show to other people.", Constants.GAME_MAX_LENGTH)));
 				return;
 			}
 
@@ -1106,7 +1105,7 @@ namespace Advobot
 			Properties.Settings.Default.Save();
 
 			await Variables.Client.SetGameAsync(input, Variables.Client.GetCurrentUser().Game.Value.StreamUrl, Variables.Client.GetCurrentUser().Game.Value.StreamType);
-			Actions.WriteLine(String.Format("Game set to `{0}`.", input));
+			Actions.WriteLine(String.Format("Game set to '{0}'.", input));
 		}
 
 		//Change the bot's stream
@@ -1133,15 +1132,11 @@ namespace Advobot
 			Properties.Settings.Default.Save();
 
 			//Check if to turn off the streaming
-			var streamType = Discord.StreamType.Twitch;
-			if (input == null)
-			{
-				streamType = Discord.StreamType.NotStreaming;
-			}
+			var streamType = input == null ? Discord.StreamType.NotStreaming : Discord.StreamType.Twitch;
 
 			//Set the stream
 			await Variables.Client.SetGameAsync(Variables.Client.GetCurrentUser().Game.Value.Name, input, streamType);
-			Actions.WriteLine(String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to `" + input + "`"));
+			Actions.WriteLine(String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to '" + input + "'"));
 		}
 
 		//Change the bot's name
@@ -1157,12 +1152,12 @@ namespace Advobot
 			//Names have the same length requirements as nicknames
 			if (input.Length > Constants.NICKNAME_MAX_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.NICKNAME_MAX_LENGTH)));
+				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be more than '{0}' characters.", Constants.NICKNAME_MAX_LENGTH)));
 				return;
 			}
 			else if (input.Length < Constants.NICKNAME_MIN_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.NICKNAME_MIN_LENGTH)));
+				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be less than '{0}' characters.", Constants.NICKNAME_MIN_LENGTH)));
 				return;
 			}
 
@@ -1170,7 +1165,7 @@ namespace Advobot
 			await Variables.Client.GetCurrentUser().ModifyAsync(x => x.Username = input);
 
 			//Send a success message
-			Actions.WriteLine(String.Format("Successfully changed my username to `{0}`.", input));
+			Actions.WriteLine(String.Format("Successfully changed my username to '{0}'.", input));
 		}
 
 		//Disconnect the bot

@@ -92,6 +92,7 @@ namespace Advobot
 					var role = Context.Guild.GetRole(overwrite.TargetId);
 					var allowBits = (uint)channel.GetPermissionOverwrite(role).Value.AllowValue & ~(1U << (int)ChannelPermission.ReadMessages);
 					var denyBits = (uint)channel.GetPermissionOverwrite(role).Value.DenyValue | (1U << (int)ChannelPermission.ReadMessages);
+					await channel.RemovePermissionOverwriteAsync(role);
 					await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allowBits, denyBits));
 				}
 				else
@@ -99,15 +100,19 @@ namespace Advobot
 					var user = await Context.Guild.GetUserAsync(overwrite.TargetId);
 					var allowBits = (uint)channel.GetPermissionOverwrite(user).Value.AllowValue & ~(1U << (int)ChannelPermission.ReadMessages);
 					var denyBits = (uint)channel.GetPermissionOverwrite(user).Value.DenyValue | (1U << (int)ChannelPermission.ReadMessages);
+					await channel.RemovePermissionOverwriteAsync(user);
 					await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits));
 				}
 			});
 
-			//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
-			var highestPosition = 0;
-			(await Context.Guild.GetTextChannelsAsync()).ToList().ForEach(x => highestPosition = Math.Max(x.Position, highestPosition));
+			//Double check the everyone role has the correct perms
+			if (!channel.PermissionOverwrites.Any(x => x.TargetId == Context.Guild.EveryoneRole.Id))
+			{
+				await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny));
+			}
 
-			await channel.ModifyAsync(x => x.Position = highestPosition);
+			//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
+			await Actions.ModifyChannelPosition(channel, (await Context.Guild.GetTextChannelsAsync()).Max(x => x.Position));
 			await Actions.SendChannelMessage(channel as ITextChannel, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything on this channel.");
 		}
 
@@ -171,25 +176,8 @@ namespace Advobot
 				return;
 			}
 
-			//Placeholder list
-			var channelAndPositions = new List<IGuildChannel>();
-			//Grab either the text or voice channels
-			if (Actions.GetChannelType(channel) == Constants.TEXT_TYPE)
-			{
-				//Grab all text channels that aren't the targeted one and sort the list by position
-				channelAndPositions = (await Context.Guild.GetTextChannelsAsync()).Where(x => x != channel).Select(x => x as IGuildChannel).OrderBy(x => x.Position).ToList();
-			}
-			else
-			{
-				//Grab all the voice channels that aren't the targeted one and sort the list by position
-				channelAndPositions = (await Context.Guild.GetVoiceChannelsAsync()).Where(x => x != channel).Select(x => x as IGuildChannel).OrderBy(x => x.Position).ToList();
-			}
-			//Add in the targeted channel with the given position
-			channelAndPositions.Insert(Math.Min(channelAndPositions.Count(), position), channel);
-			//Mass modify the channels with the list having the correct positions
-			await Context.Guild.ModifyChannelsAsync(channelAndPositions.Select(x => new BulkGuildChannelProperties(x.Id, channelAndPositions.IndexOf(x))) as IEnumerable<BulkGuildChannelProperties>);
-
-			//Send a message stating what position the channel was sent to
+			//Modify the channel's position
+			await Actions.ModifyChannelPosition(channel, position);
 			await Actions.SendChannelMessage(Context, String.Format("Successfully moved `{0}` to position `{1}`.", Actions.FormatChannel(channel), channel.Position));
 		}
 
@@ -697,8 +685,6 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
 				return;
 			}
-
-			
 
 			var previousName = channel.Name;
 			await channel.ModifyAsync(x => x.Name = inputArray[1]);

@@ -205,7 +205,7 @@ namespace Advobot
 				return;
 			}
 			//See if the bot can move people from this channel
-			else if (Actions.GetChannelMovability(user.VoiceChannel, await Context.Guild.GetUserAsync(Variables.Bot_ID)) == null)
+			else if (Actions.GetChannelMovability(user.VoiceChannel, await Actions.GetUser(Context.Guild, Variables.Bot_ID)) == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to move this user due to permissions or due to the user being in a voice channel before the bot started up."));
 				return;
@@ -288,13 +288,15 @@ namespace Advobot
 				return;
 			}
 
+			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID);
+
 			//Checks for positions
 			if (!Actions.UserCanBeModifiedByUser(Context, user))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User cannot be nicknamed by you."));
 				return;
 			}
-			else if (!await Actions.UserCanBeModifiedByBot(Context, user))
+			else if (!Actions.UserCanBeModifiedByBot(Context.Guild, user, bot))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User cannot be nicknamed by the bot."));
 				return;
@@ -366,7 +368,7 @@ namespace Advobot
 
 			//Actually rename them all
 			var count = 0;
-			var bot = await Context.Guild.GetUserAsync(Variables.Bot_ID);
+			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID);
 			await users.ForEachAsync(async x =>
 			{
 				++count;
@@ -375,7 +377,7 @@ namespace Advobot
 					await msg.ModifyAsync(y => y.Content = String.Format("Attempting to rename `{0}` people.", userCount - count));
 				}
 
-				if (!Actions.GetIfBotCanModifyUser(Context.Guild, x, bot))
+				if (!Actions.UserCanBeModifiedByBot(Context.Guild, x, bot))
 					return;
 
 				if (x.Nickname != null)
@@ -421,7 +423,7 @@ namespace Advobot
 
 			//Actually rename them all
 			var count = 0;
-			var bot = await Context.Guild.GetUserAsync(Variables.Bot_ID);
+			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID);
 			await users.ForEachAsync(async x =>
 			{
 				++count;
@@ -430,7 +432,7 @@ namespace Advobot
 					await msg.ModifyAsync(y => y.Content = String.Format("Attempting to remove the nickname from `{0}` people.", userCount - count));
 				}
 
-				if (!Actions.GetIfBotCanModifyUser(Context.Guild, x, bot))
+				if (!Actions.UserCanBeModifiedByBot(Context.Guild, x, bot))
 					return;
 
 				if (x.Nickname != null)
@@ -507,6 +509,8 @@ namespace Advobot
 				return;
 			}
 
+			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID);
+
 			//Determine if the user is allowed to softban this person
 			if (!Actions.UserCanBeModifiedByUser(Context, inputUser))
 			{
@@ -514,7 +518,7 @@ namespace Advobot
 				return;
 			}
 			//Determine if the bot can softban this person
-			else if (!await Actions.UserCanBeModifiedByBot(Context, inputUser))
+			else if (!Actions.UserCanBeModifiedByBot(Context.Guild, inputUser, bot))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Bot is unable to soft-ban user."));
 				return;
@@ -554,6 +558,8 @@ namespace Advobot
 			var inputUser = await Actions.GetUser(Context.Guild, inputArray[0]);
 			if (inputUser != null)
 			{
+				var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID);
+
 				//Determine if the user is allowed to ban this person
 				if (!Actions.UserCanBeModifiedByUser(Context, inputUser))
 				{
@@ -561,7 +567,7 @@ namespace Advobot
 					return;
 				}
 				//Determine if the bot can ban this person
-				else if (!await Actions.UserCanBeModifiedByBot(Context, inputUser))
+				else if (!Actions.UserCanBeModifiedByBot(Context.Guild, inputUser, bot))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Bot is unable to ban user."));
 					return;
@@ -689,6 +695,9 @@ namespace Advobot
 				return;
 			}
 
+			//Get the bot
+			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID);
+
 			//Determine if the user is allowed to kick this person
 			if (!Actions.UserCanBeModifiedByUser(Context, inputUser))
 			{
@@ -696,7 +705,7 @@ namespace Advobot
 				return;
 			}
 			//Determine if the bot can kick this person
-			else if (!await Actions.UserCanBeModifiedByBot(Context, inputUser))
+			else if (!Actions.UserCanBeModifiedByBot(Context.Guild, inputUser, bot))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Bot is unable to kick user."));
 				return;
@@ -761,7 +770,7 @@ namespace Advobot
 			var mentionedUsers = Context.Message.MentionedUserIds;
 			if (mentionedUsers.Count == 1)
 			{
-				inputUser = await Context.Guild.GetUserAsync(mentionedUsers.FirstOrDefault());
+				inputUser = await Actions.GetUser(Context.Guild, mentionedUsers.FirstOrDefault());
 			}
 			else if (mentionedUsers.Count > 1)
 			{
@@ -1068,10 +1077,10 @@ namespace Advobot
 			}
 
 			//Get all of the valid users
-			var bot = await Context.Guild.GetUserAsync(Variables.Bot_ID) as IGuildUser;
+			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID) as IGuildUser;
 			var listUsersWithRole = (await Context.Guild.GetUsersAsync()).Where(x =>
 			{
-				return x.RoleIds.Contains(roleToGather.Id) && Actions.UserCanBeModifiedByUser(Context, x) && Actions.GetIfBotCanModifyUser(Context.Guild, x, bot);
+				return x.RoleIds.Contains(roleToGather.Id) && Actions.UserCanBeModifiedByUser(Context, x) && Actions.UserCanBeModifiedByBot(Context.Guild, x, bot);
 			}).ToList();
 
 			var userCount = listUsersWithRole.Count;

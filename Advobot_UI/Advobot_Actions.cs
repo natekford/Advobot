@@ -21,7 +21,6 @@ namespace Advobot
 		{
 			Variables.Bot_ID = Variables.Client.GetCurrentUser().Id;				//Give the variable Bot_ID the id of the bot
 			Variables.Bot_Name = Variables.Client.GetCurrentUser().Username;		//Give the variable Bot_Name the username of the bot
-			Variables.Bot_Channel = Variables.Bot_Name.ToLower();					//Give the variable Bot_Channel a lowered version of the bot's name
 
 			LoadPermissionNames();													//Gets the names of the permission bits in Discord
 			LoadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
@@ -718,10 +717,16 @@ namespace Advobot
 			return tempUser.RoleIds.ToList().Max(x => guild.GetRole(x).Position);
 		}
 		
-		//Get a user
+		//Get a user via a string
 		public static async Task<IGuildUser> GetUser(IGuild guild, string userName)
 		{
 			return userName == null ? null : await guild.GetUserAsync(GetUlong(userName.Trim(new char[] { '<', '>', '@', '!' })));
+		}
+
+		//Get a user via a ulong
+		public static async Task<IGuildUser> GetUser(IGuild guild, ulong ID)
+		{
+			return await guild.GetUserAsync(ID);
 		}
 		
 		//Get the input to a ulong
@@ -1029,12 +1034,19 @@ namespace Advobot
 		//Get if the user is the owner of the server
 		public static async Task<bool> GetIfUserIsOwner(IGuild guild, IUser user)
 		{
-			if (guild == null)
+			if (guild == null || user == null)
 				return false;
 
-			return (await guild.GetOwnerAsync()).Id == user.Id;
+			//This is a .GetOwnerAsync instead of .OwnerID simply so it can have an await in the methot to make it async
+			return (await guild.GetOwnerAsync()).Id == user.Id || GetIfUserIsOwnerButBotIsOwner(guild, user);
 		}
-		
+
+		//Get if the user is the second most powerful after the bot
+		public static bool GetIfUserIsOwnerButBotIsOwner(IGuild guild, IUser user)
+		{
+			return guild.OwnerId == Variables.Bot_ID && GetPosition(guild, user) == guild.Roles.Max(x => x.Position) - 1;
+		}
+
 		//Get if the user if the bot owner
 		public static bool GetIfUserIsBotOwner(IGuild guild, IUser user)
 		{
@@ -1272,12 +1284,12 @@ namespace Advobot
 			return bannerPosition > banneePosition;
 		}
 
-		//Get if the bot can modify a user
-		public static async Task<bool> UserCanBeModifiedByBot(CommandContext context, IGuildUser user)
+		//Get if the bot can nickname the given user
+		public static bool UserCanBeModifiedByBot(IGuild guild, IGuildUser targetUser, IGuildUser bot)
 		{
-			var cmdUserPos = GetPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID));
-			var inpUserPos = user == null ? -1 : GetPosition(context.Guild, user);
-			return cmdUserPos > inpUserPos;
+			var botPosition = GetPosition(guild, bot);
+			var userPosition = GetPosition(guild, targetUser);
+			return botPosition > userPosition  || targetUser.Id == bot.Id;
 		}
 
 		//Get the invites on a guild
@@ -1332,12 +1344,6 @@ namespace Advobot
 				joinInv.IncreaseUses();
 			}
 			return joinInv;
-		}
-
-		//Get if the bot can nickname the given user
-		public static bool GetIfBotCanModifyUser(IGuild guild, IGuildUser targetUser, IGuildUser bot)
-		{
-			return (GetPosition(guild, targetUser) <= GetPosition(guild, bot) || targetUser.Id == bot.Id);
 		}
 		#endregion
 
@@ -1431,12 +1437,15 @@ namespace Advobot
 			if (guildChannel == null)
 				return;
 
+			ulong randomMsgID = 0;
 			while (requestCount > 0)
 			{
 				//Get the current messages and ones that aren't null
 				var messages = (await channel.GetMessagesAsync(requestCount).ToList()).SelectMany(x => x).ToList();
-				if (messages.Count == 0)
+				if (messages.Count == 0 || messages.Any(x => x.Id == randomMsgID))
 					break;
+
+				randomMsgID = messages[new Random().Next(0, messages.Count - 1)].Id;
 
 				//Delete them in a try catch due to potential errors
 				try
@@ -1446,6 +1455,7 @@ namespace Advobot
 				catch
 				{
 					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count, FormatGuild(guildChannel.Guild), FormatChannel(channel)));
+					break;
 				}
 
 				//Lower the request count
@@ -2491,19 +2501,6 @@ namespace Advobot
 				Variables.GuildsEnablingPreferences.Remove(guild);
 				return;
 			}
-			//Create bot channel if not on the server
-			var channel = await GetLogChannel(guild, Constants.SERVER_LOG_CHECK_STRING);
-			if (channel == null)
-			{
-				channel = await guild.CreateTextChannelAsync(Variables.Bot_Channel);
-				await channel.AddPermissionOverwriteAsync(guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny));
-				await SetServerOrModLog(guild, message.Channel, message, channel, Constants.SERVER_LOG_CHECK_STRING);
-				await SetServerOrModLog(guild, message.Channel, message, channel, Constants.MOD_LOG_CHECK_STRING);
-			}
-			else
-			{
-				channel = (await guild.GetTextChannelsAsync()).FirstOrDefault(x => x.Name == Variables.Bot_Channel);
-			}
 
 			//Remove them from the emable list
 			Variables.GuildsEnablingPreferences.Remove(guild);
@@ -3267,7 +3264,9 @@ namespace Advobot
 					//TODO: Figure out how to do this without a try catch
 					try
 					{
-						curMsgs.Add(await channel.GetMessageAsync(x.Id));
+						var ID = x.Id;
+						var msg = await channel.GetMessageAsync(ID);
+						curMsgs.Add(msg);
 					}
 					catch (Exception e)
 					{
@@ -3500,39 +3499,85 @@ namespace Advobot
 				return String.IsNullOrWhiteSpace(str2) ? true : false;
 			}
 			else if (str1 == null || str2 == null)
+			{
 				return false;
-
-			return str1.Equals(str2, StringComparison.OrdinalIgnoreCase);
+			}
+			else
+			{
+				return str1.Equals(str2, StringComparison.OrdinalIgnoreCase);
+			}
 		}
 
 		public static bool CaseInsIndexOf(string source, string search)
 		{
-			return source.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
+			if (source == null || search == null)
+			{
+				return false;
+			}
+			else
+			{
+				return source.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
+			}
 		}
 
 		public static bool CaseInsStartsWith(string source, string search)
 		{
-			return source.StartsWith(search, StringComparison.OrdinalIgnoreCase);
+			if (source == null || search == null)
+			{
+				return false;
+			}
+			else
+			{
+				return source.StartsWith(search, StringComparison.OrdinalIgnoreCase);
+			}
 		}
 
 		public static bool CaseInsEndsWith(string source, string search)
 		{
-			return source.EndsWith(search, StringComparison.OrdinalIgnoreCase);
+			if (source == null || search == null)
+			{
+				return false;
+			}
+			else
+			{
+				return source.EndsWith(search, StringComparison.OrdinalIgnoreCase);
+			}
 		}
 
 		public static bool CaseInsContains(List<string> list, string str)
 		{
-			return list.Contains(str, StringComparer.OrdinalIgnoreCase);
+			if (!list.Any())
+			{
+				return false;
+			}
+			else
+			{
+				return list.Contains(str, StringComparer.OrdinalIgnoreCase);
+			}
 		}
 
 		public static bool CaseInsContains(string[] array, string str)
 		{
-			return array.Contains(str, StringComparer.OrdinalIgnoreCase);
+			if (!array.Any())
+			{
+				return false;
+			}
+			else
+			{
+				return array.Contains(str, StringComparer.OrdinalIgnoreCase);
+			}
 		}
 
 		public static bool CaseInsContains(ReadOnlyCollection<string> readonlycollection, string str)
 		{
-			return readonlycollection.Contains(str, StringComparer.OrdinalIgnoreCase);
+			if (!readonlycollection.Any())
+			{
+				return false;
+			}
+			else
+			{
+				return readonlycollection.Contains(str, StringComparer.OrdinalIgnoreCase);
+			}
 		}
 
 		public static string CaseInsReplace(string str, string oldValue, string newValue)
@@ -3553,6 +3598,36 @@ namespace Advobot
 			sb.Append(str.Substring(previousIndex));
 
 			return sb.ToString();
+		}
+		#endregion
+
+		#region Position Modification
+		public static async Task ModifyChannelPosition(IGuildChannel channel, int position)
+		{
+			if (channel == null)
+				return;
+
+			//Get all the channels that aren't the input channel
+			var channels = GetChannelType(channel).Equals(Constants.TEXT_TYPE)
+				? (await channel.Guild.GetTextChannelsAsync()).Where(x => x != channel).OrderBy(x => x.Position).Cast<IGuildChannel>().ToList()
+				: (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x != channel).OrderBy(x => x.Position).Cast<IGuildChannel>().ToList();
+			//Add the input channel into the given spot
+			channels.Insert(Math.Max(Math.Min(channels.Count(), position), 0), channel);
+			//Convert into reorder properties and use to reorder
+			await channel.Guild.ReorderChannelsAsync(channels.Select(x => new ReorderChannelProperties(x.Id, channels.IndexOf(x))));
+		}
+
+		public static async Task ModifyRolePosition(IRole role, int position)
+		{
+			if (role == null)
+				return;
+
+			//Get all the roles that aren't the input role
+			var roles = role.Guild.Roles.Where(x => x != role).OrderBy(x => x.Position).ToList();
+			//Add in the input role into the given spot
+			roles.Insert(Math.Max(Math.Min(roles.Count(), position), 0), role);
+			//Convert into reorder properties and use to reorder
+			await role.Guild.ReorderRolesAsync(roles.Select(x => new ReorderRoleProperties(x.Id, roles.IndexOf(x))));
 		}
 		#endregion
 	}

@@ -755,6 +755,8 @@ namespace Advobot
 		public abstract Task LoginAsync(TokenType tokenType, string token);
 		public abstract Task LogoutAsync();
 		public abstract Task SetGameAsync(string game, string stream, StreamType streamType);
+		public abstract Task<RestGuild> CreateGuildAsync(string name, IVoiceRegion region);
+		public abstract Task<IVoiceRegion> GetOptimalVoiceRegionAsync();
 	}
 
 	public class SocketClient : BotClient
@@ -777,6 +779,8 @@ namespace Advobot
 		public override async Task LoginAsync(TokenType tokenType, string token) { await mSocketClient.LoginAsync(tokenType, token); }
 		public override async Task LogoutAsync() { await mSocketClient.LogoutAsync(); }
 		public override async Task SetGameAsync(string game, string stream, StreamType streamType) { await mSocketClient.SetGameAsync(game, stream, streamType); }
+		public override async Task<RestGuild> CreateGuildAsync(string name, IVoiceRegion region) { return await mSocketClient.CreateGuildAsync(name, region); }
+		public override async Task<IVoiceRegion> GetOptimalVoiceRegionAsync() { return await mSocketClient.GetOptimalVoiceRegionAsync(); }
 	}
 
 	public class ShardedClient : BotClient
@@ -799,6 +803,8 @@ namespace Advobot
 		public override async Task LoginAsync(TokenType tokenType, string token) { await mShardedClient.LoginAsync(tokenType, token); }
 		public override async Task LogoutAsync() { await mShardedClient.LogoutAsync(); }
 		public override async Task SetGameAsync(string game, string stream, StreamType streamType) { await mShardedClient.SetGameAsync(game, stream, streamType); }
+		public override async Task<RestGuild> CreateGuildAsync(string name, IVoiceRegion region) { return await mShardedClient.CreateGuildAsync(name, region); }
+		public override async Task<IVoiceRegion> GetOptimalVoiceRegionAsync() { return await mShardedClient.GetOptimalVoiceRegionAsync(); }
 	}
 
 	public class GlobalSpamPrevention

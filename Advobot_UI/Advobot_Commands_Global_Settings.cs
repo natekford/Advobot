@@ -12,7 +12,6 @@ namespace Advobot
 	[Name("Global_Settings")]
 	public class Advobot_Commands_Administration : ModuleBase
 	{
-		//TODO: add in the default enabled attribute to each method
 		#region Settings
 		[Command(SharedCommands.COWNER)]
 		[Alias(SharedCommands.AOWNER)]
