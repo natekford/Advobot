@@ -365,31 +365,56 @@ namespace Advobot
 
 	public class BannedPhraseUser
 	{
-		public BannedPhraseUser(IGuildUser user, int amountOfRemovedMessages = 1)
+		public BannedPhraseUser(IGuildUser user)
 		{
 			mUser = user;
-			mAmountOfRemovedMessages = amountOfRemovedMessages;
+			Variables.BannedPhraseUserList.Add(this);
 		}
 
 		private IGuildUser mUser;
-		private int mAmountOfRemovedMessages;
+		private int mMessagesForRole;
+		private int mMessagesForKick;
+		private int mMessagesForBan;
 
 		public IGuildUser User
 		{
 			get { return mUser; }
 		}
-		public int AmountOfRemovedMessages
+		public int MessagesForRole
 		{
-			get { return mAmountOfRemovedMessages; }
+			get { return mMessagesForRole; }
 		}
-
-		public void IncreaseAmountOfRemovedMessages()
+		public void IncreaseRoleCount()
 		{
-			++mAmountOfRemovedMessages;
+			++mMessagesForRole;
 		}
-		public void ResetAmountOfRemovesMessages()
+		public void ResetRoleCount()
 		{
-			mAmountOfRemovedMessages = 0;
+			mMessagesForRole = 0;
+		}
+		public int MessagesForKick
+		{
+			get { return mMessagesForKick; }
+		}
+		public void IncreaseKickCount()
+		{
+			++mMessagesForKick;
+		}
+		public void ResetKickCount()
+		{
+			mMessagesForKick = 0;
+		}
+		public int MessagesForBan
+		{
+			get { return mMessagesForBan; }
+		}
+		public void IncreaseBanCount()
+		{
+			++mMessagesForBan;
+		}
+		public void ResetBanCount()
+		{
+			mMessagesForBan = 0;
 		}
 	}
 
@@ -498,8 +523,8 @@ namespace Advobot
 		}
 
 		//I CBA changing everything in here to be private yet. I hate handling lists as private ones. Made this class to keep them private-ish instead
-		public List<string> BannedStrings = new List<string>();
-		public List<Regex> BannedRegex = new List<Regex>();
+		public List<BannedPhrase<string>> BannedStrings = new List<BannedPhrase<string>>();
+		public List<BannedPhrase<Regex>> BannedRegex = new List<BannedPhrase<Regex>>();
 		public List<BannedPhrasePunishment> BannedPhrasesPunishments = new List<BannedPhrasePunishment>();
 		public List<CommandSwitch> CommandSettings = new List<CommandSwitch>();
 		public List<CommandDisabledOnChannel> CommandsDisabledOnChannel = new List<CommandDisabledOnChannel>();
@@ -1023,30 +1048,35 @@ namespace Advobot
 			mUsersWhoHaveBeenMuted.Add(user);
 		}
 	}
+
+	public class BannedPhrase<T>
+	{
+		public BannedPhrase(T phrase, PunishmentType punishment)
+		{
+			mPhrase = phrase;
+			mPunishment = (punishment == PunishmentType.Deafen || punishment == PunishmentType.Mute) ? PunishmentType.Nothing : punishment;
+		}
+
+		private T mPhrase;
+		private PunishmentType mPunishment;
+
+		public T Phrase
+		{
+			get { return mPhrase; }
+		}
+		public PunishmentType Punishment
+		{
+			get { return mPunishment; }
+		}
+
+		public void ChangePunishment(PunishmentType type)
+		{
+			mPunishment = (type == PunishmentType.Deafen || type == PunishmentType.Mute) ? PunishmentType.Nothing : type;
+		}
+	}
 	#endregion
 
 	#region Structs
-	public struct ChannelAndPosition
-	{
-		public ChannelAndPosition(IGuildChannel channel, int position)
-		{
-			mChannel = channel;
-			mPosition = position;
-		}
-
-		private IGuildChannel mChannel;
-		private int mPosition;
-
-		public IGuildChannel Channel
-		{
-			get { return mChannel; }
-		}
-		public int Position
-		{
-			get { return Position; }
-		}
-	}
-
 	public struct SlowmodeChannel
 	{
 		public SlowmodeChannel(ulong channelID, ulong guildID)
@@ -1389,6 +1419,7 @@ namespace Advobot
 
 	public enum PunishmentType
 	{
+		Nothing = 0,
 		Kick = 1,
 		Ban = 2,
 		Role = 3,

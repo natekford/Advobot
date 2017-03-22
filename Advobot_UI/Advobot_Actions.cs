@@ -134,6 +134,10 @@ namespace Advobot
 						{
 							defaultEnabled = attr.Enabled;
 						}
+						else
+						{
+							WriteLine("Command does not have a default enabled value set: " + name);
+						}
 					}
 					//Add it to the helplist
 					Variables.HelpList.Add(new HelpEntry(name, aliases, usage, basePerm, text, category, defaultEnabled));
@@ -302,29 +306,45 @@ namespace Advobot
 					if (String.IsNullOrWhiteSpace(line))
 						continue;
 					//Banned phrases
-					if (line.StartsWith(Constants.BANNED_PHRASES_CHECK_STRING))
+					if (line.StartsWith(Constants.BANNED_STRING_CHECK_STRING))
 					{
-						int index = line.IndexOf(':');
-						if (index >= 0 && index < line.Length - 1)
+						int colonIndex = line.IndexOf(':') + 1;
+						if (colonIndex < 0)
+							continue;
+
+						int underscoreIndex = line.IndexOf('_') + 1;
+						if (underscoreIndex < 0)
+							continue;
+
+						if (!int.TryParse(line.Split('_')[1].Substring(0, 1), out int number))
+							continue;
+
+						var type = (PunishmentType)number;
+						var phrase = line.Substring(colonIndex);
+						if (!String.IsNullOrWhiteSpace(phrase))
 						{
-							var phrase = line.Substring(index + 1);
-							if (!String.IsNullOrWhiteSpace(phrase))
-							{
-								guildInfo.BannedStrings.Add(phrase);
-							}
+							guildInfo.BannedStrings.Add(new BannedPhrase<string>(phrase, type));
 						}
 					}
 					//Banned regex
 					else if (line.StartsWith(Constants.BANNED_REGEX_CHECK_STRING))
 					{
-						int index = line.IndexOf(':');
-						if (index >= 0 && index < line.Length - 1)
+						int colonIndex = line.IndexOf(':') + 1;
+						if (colonIndex < 0)
+							continue;
+
+						int underscoreIndex = line.IndexOf('_') + 1;
+						if (underscoreIndex < 0)
+							continue;
+
+						if (!int.TryParse(line.Split('_')[1].Substring(0, 1), out int number))
+							continue;
+
+						var type = (PunishmentType)number;
+						var regex = line.Substring(colonIndex);
+						if (!String.IsNullOrWhiteSpace(regex))
 						{
-							var regex = line.Substring(index + 1);
-							if (!String.IsNullOrWhiteSpace(regex))
-							{
-								guildInfo.BannedRegex.Add(new Regex(regex));
-							}
+							guildInfo.BannedRegex.Add(new BannedPhrase<Regex>(new Regex(regex), type));
 						}
 					}
 					//Punishments
@@ -1251,9 +1271,9 @@ namespace Advobot
 					{
 						validLines.Add(line);
 					}
-					else if (getCheckString)
+					else if (getCheckString && CaseInsIndexOf(line, checkString))
 					{
-						return new List<string>() { line };
+						validLines.Add(line);
 					}
 				}
 			}
@@ -1437,15 +1457,13 @@ namespace Advobot
 			if (guildChannel == null)
 				return;
 
-			ulong randomMsgID = 0;
 			while (requestCount > 0)
 			{
 				//Get the current messages and ones that aren't null
-				var messages = (await channel.GetMessagesAsync(requestCount).ToList()).SelectMany(x => x).ToList();
-				if (messages.Count == 0 || messages.Any(x => x.Id == randomMsgID))
+				var newNum = Math.Min(requestCount, 100);
+				var messages = (await channel.GetMessagesAsync(newNum).ToList()).SelectMany(x => x).ToList();
+				if (messages.Count == 0)
 					break;
-
-				randomMsgID = messages[new Random().Next(0, messages.Count - 1)].Id;
 
 				//Delete them in a try catch due to potential errors
 				try
@@ -1457,6 +1475,10 @@ namespace Advobot
 					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count, FormatGuild(guildChannel.Guild), FormatChannel(channel)));
 					break;
 				}
+
+				//Leave if the message count gathered implies that the channel is out of messages
+				if (messages.Count < newNum)
+					break;
 
 				//Lower the request count
 				requestCount -= messages.Count;
@@ -1480,7 +1502,8 @@ namespace Advobot
 			while (requestCount > 0)
 			{
 				//Get the current messages and ones that aren't null
-				var messages = (await channel.GetMessagesAsync(requestCount).ToList()).SelectMany(x => x).Where(x => x.Author == user).ToList();
+				var newNum = Math.Min(requestCount, 100);
+				var messages = (await channel.GetMessagesAsync(newNum).ToList()).SelectMany(x => x).Where(x => x.Author == user).ToList();
 				if (messages.Count == 0)
 					break;
 
@@ -1492,7 +1515,12 @@ namespace Advobot
 				catch
 				{
 					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count, FormatGuild(guildChannel.Guild), FormatChannel(channel)));
+					break;
 				}
+
+				//Leave if the message count gathered implies that the channel is out of messages
+				if (messages.Count < newNum)
+					break;
 
 				//Lower the request count
 				requestCount -= messages.Count;
@@ -2515,28 +2543,8 @@ namespace Advobot
 		//Read out the preferences
 		public static async Task ReadPreferences(IMessageChannel channel, string serverpath)
 		{
-			//Make the embed
-			var embed = MakeNewEmbed("Preferences");
-
-			//Make the information into separate fields
-			var text = File.ReadAllText(serverpath).Replace("@", "").Split(new string[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
-
-			//Get the category name and the commands in it
-			text.ForEach(category =>
-			{
-				var titleAndCommands = category.Split(new char[] { '\r' }, 2);
-				var title = titleAndCommands[0];
-				var commands = titleAndCommands[1].TrimStart('\n');
-
-				//Add the field
-				if (!String.IsNullOrEmpty(title) && !String.IsNullOrEmpty(commands))
-				{
-					AddField(embed, title, commands, false);
-				}
-			});
-
 			//Send the preferences message
-			await SendEmbedMessage(channel, embed);
+			await SendEmbedMessage(channel, MakeNewEmbed("Preferences", File.ReadAllText(serverpath)));
 		}
 		
 		//Delete preferences
@@ -2668,6 +2676,10 @@ namespace Advobot
 			{
 				SaveLines(path, new List<string> { String.Join("\n", inputLines.Select(x => String.Format("{0}:{1}", target, x))), String.Join("\n", validLines) });
 			}
+			else
+			{
+				SaveLines(path, new List<string> { String.Join("\n", inputLines), String.Join("\n", validLines) });
+			}
 		}
 		#endregion
 
@@ -2763,107 +2775,142 @@ namespace Advobot
 			var guildLoaded = Variables.Guilds[guild.Id];
 
 			//Check if it has any banned words or regex
-			if (guildLoaded.BannedStrings.Any(x => CaseInsIndexOf(message.Content, x)) || guildLoaded.BannedRegex.Any(x => x.IsMatch(message.Content)))
+			var phrase = guildLoaded.BannedStrings.FirstOrDefault(x => CaseInsIndexOf(message.Content, x.Phrase));
+			if (phrase != null)
 			{
-				await BannedPhrasesPunishments(message);
+				await BannedStringPunishments(message, phrase);
+			}
+			var regex = guildLoaded.BannedRegex.FirstOrDefault(x => x.Phrase.IsMatch(message.Content));
+			if (regex != null)
+			{
+				await BannedRegexPunishments(message, regex);
 			}
 		}
 
 		//Banned phrase punishments on a user
-		public static async Task BannedPhrasesPunishments(IMessage message)
+		public static async Task BannedStringPunishments(IMessage message, BannedPhrase<string> phrase)
 		{
-			//Get rid of the message
 			await DeleteMessage(message);
-
-			//Check if the guild has any punishments set up
 			var guild = (message.Channel as IGuildChannel)?.Guild;
-			if (guild == null || !Variables.Guilds.ContainsKey(guild.Id))
+			if (guild == null)
 				return;
-
-			//Get the user
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+				return;
 			var user = message.Author as IGuildUser;
+			var bpUser = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user);
 
-			//Check if the user is on the list already for saying a banned phrase
-			var bpUser = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user);
-			if (bpUser != null)
+			var amountOfMsgs = 0;
+			switch (phrase.Punishment)
 			{
-				bpUser.IncreaseAmountOfRemovedMessages();
-			}
-			else
-			{
-				//Add in the user and give 1 onto his messages removed count
-				bpUser = new BannedPhraseUser(user);
-				Variables.BannedPhraseUserList.Add(bpUser);
+				case PunishmentType.Role:
+				{
+					bpUser.IncreaseRoleCount();
+					amountOfMsgs = bpUser.MessagesForRole;
+					break;
+				}
+				case PunishmentType.Kick:
+				{
+					bpUser.IncreaseKickCount();
+					amountOfMsgs = bpUser.MessagesForKick;
+					break;
+				}
+				case PunishmentType.Ban:
+				{
+					bpUser.IncreaseBanCount();
+					amountOfMsgs = bpUser.MessagesForBan;
+					break;
+				}
 			}
 
 			//Get the banned phrases punishments from the guild
-			var punishment = Variables.Guilds[user.Guild.Id].BannedPhrasesPunishments.FirstOrDefault(x => x.NumberOfRemoves == bpUser.AmountOfRemovedMessages);
-			if (punishment == null)
+			if (!TryGetPunishment(guildInfo, phrase.Punishment, amountOfMsgs, out BannedPhrasePunishment punishment))
 				return;
 
-			//Kick
-			if (punishment.Punishment == PunishmentType.Kick)
+			switch (punishment.Punishment)
 			{
-				//Check if can kick them
-				if (GetPosition(user.Guild, user) > GetPosition(user.Guild, await user.Guild.GetUserAsync(Variables.Bot_ID)))
-					return;
-
-				//Kick them
-				await user.KickAsync();
-
-				//Send a message to the logchannel
-				var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
-				if (logChannel != null)
+				case PunishmentType.Kick:
 				{
-					var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
-					await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl()));
+					//Check if can kick them
+					if (GetPosition(user.Guild, user) > GetPosition(user.Guild, await user.Guild.GetUserAsync(Variables.Bot_ID)))
+						return;
+
+					//Kick them
+					await user.KickAsync();
+
+					//Send a message to the logchannel
+					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+					if (logChannel != null)
+					{
+						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
+						await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl()));
+					}
+					break;
 				}
-			}
-			//Ban
-			else if (punishment.Punishment == PunishmentType.Ban)
-			{
-				//Check if can ban them
-				if (GetPosition(user.Guild, user) > GetPosition(user.Guild, await user.Guild.GetUserAsync(Variables.Bot_ID)))
-					return;
-
-				//Ban them
-				await user.Guild.AddBanAsync(message.Author);
-
-				//Send a message to the logchannel
-				var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
-				if (logChannel != null)
+				case PunishmentType.Ban:
 				{
-					var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
-					await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
+					//Check if can ban them
+					if (GetPosition(user.Guild, user) > GetPosition(user.Guild, await user.Guild.GetUserAsync(Variables.Bot_ID)))
+						return;
+
+					//Ban them
+					await user.Guild.AddBanAsync(message.Author);
+
+					//Send a message to the logchannel
+					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+					if (logChannel != null)
+					{
+						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
+						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
+					}
+					break;
 				}
-			}
-			//Role
-			else if (punishment.Punishment == PunishmentType.Role)
-			{
-				//Give them the role
-				await GiveRole(user, punishment.Role);
-
-				//If a time is specified, run through the time then remove the role
-				if (punishment.PunishmentTime != null)
+				case PunishmentType.Role:
 				{
-					Variables.PunishedUsers.Add(new RemovablePunishment(guild, user, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
-				}
+					//Give them the role
+					await GiveRole(user, punishment.Role);
 
-				//Send a message to the logchannel
-				var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
-				if (logChannel != null)
-				{
-					var embed = AddFooter(MakeNewEmbed(null, "**Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
-					await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
+					//If a time is specified, run through the time then remove the role
+					if (punishment.PunishmentTime != null)
+					{
+						Variables.PunishedUsers.Add(new RemovablePunishment(guild, user, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
+					}
+
+					//Send a message to the logchannel
+					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+					if (logChannel != null)
+					{
+						var embed = AddFooter(MakeNewEmbed(null, "**Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
+						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
+					}
+					break;
 				}
 			}
 		}
 
-		public static List<string> HandleBannedRegexModification(List<Regex> bannedRegex, List<string> inputPhrases, bool add)
+		public static bool TryGetPunishment(BotGuildInfo guildInfo, PunishmentType type, int msgs, out BannedPhrasePunishment punishment)
+		{
+			punishment = guildInfo.BannedPhrasesPunishments.Where(x => x.Punishment == type).FirstOrDefault(x => x.NumberOfRemoves == msgs);
+			return punishment != null;			
+		}
+
+		//Banned regex punishments on a user
+		public static async Task BannedRegexPunishments(IMessage message, BannedPhrase<Regex> regex)
+		{
+			await DeleteMessage(message);
+			var guild = (message.Channel as IGuildChannel)?.Guild;
+			if (guild == null)
+				return;
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+				return;
+			var user = message.Author as IGuildUser;
+			var bpUser = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user);
+		}
+
+		public static List<string> HandleBannedRegexModification(List<BannedPhrase<Regex>> bannedRegex, List<string> inputPhrases, bool add)
 		{
 			if (add)
 			{
-				inputPhrases.ForEach(x => bannedRegex.Add(new Regex(x)));
+				inputPhrases.ForEach(x => bannedRegex.Add(new BannedPhrase<Regex>(new Regex(x), PunishmentType.Nothing)));
 			}
 			else
 			{
@@ -2879,7 +2926,7 @@ namespace Advobot
 
 				if (!positions.Any())
 				{
-					inputPhrases.ForEach(x => bannedRegex.Remove(bannedRegex.FirstOrDefault(y => y.ToString() == x)));
+					inputPhrases.ForEach(x => bannedRegex.Remove(bannedRegex.FirstOrDefault(y => y.Phrase.ToString() == x)));
 				}
 				else
 				{
@@ -2888,14 +2935,14 @@ namespace Advobot
 				}
 			}
 
-			return bannedRegex.Select(x => x.ToString()).ToList();
+			return FormatSavingForBannedRegex(bannedRegex);
 		}
 
-		public static List<string> HandleBannedStringModification(List<string> bannedStrings, List<string> inputPhrases, bool add)
+		public static List<string> HandleBannedStringModification(List<BannedPhrase<string>> bannedStrings, List<string> inputPhrases, bool add)
 		{
 			if (add)
 			{
-				inputPhrases.ForEach(x => bannedStrings.Add(x));
+				inputPhrases.ForEach(x => bannedStrings.Add(new BannedPhrase<string>(x, PunishmentType.Nothing)));
 			}
 			else
 			{
@@ -2911,7 +2958,7 @@ namespace Advobot
 
 				if (!positions.Any())
 				{
-					inputPhrases.ForEach(x => bannedStrings.Remove(bannedStrings.FirstOrDefault(y => y.ToString() == x)));
+					inputPhrases.ForEach(x => bannedStrings.Remove(bannedStrings.FirstOrDefault(y => y.Phrase.ToString() == x)));
 				}
 				else
 				{
@@ -2920,7 +2967,29 @@ namespace Advobot
 				}
 			}
 
-			return bannedStrings.ToList();
+			return FormatSavingForBannedString(bannedStrings);
+		}
+
+		public static List<string> FormatSavingForBannedRegex(List<BannedPhrase<Regex>> list)
+		{
+			return list.Select(x => String.Format("{0}_{1}:{2}", Constants.BANNED_REGEX_CHECK_STRING, (int)x.Punishment, x.Phrase.ToString())).ToList();
+		}
+
+		public static List<string> FormatSavingForBannedString(List<BannedPhrase<string>> list)
+		{
+			return list.Select(x => String.Format("{0}_{1}:{2}", Constants.BANNED_STRING_CHECK_STRING, (int)x.Punishment, x.Phrase)).ToList();
+		}
+
+		public static bool TryGetBannedRegex(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<Regex> bannedRegex)
+		{
+			bannedRegex = guildInfo.BannedRegex.FirstOrDefault(x => CaseInsEquals(x.Phrase.ToString(), searchPhrase));
+			return bannedRegex != null;
+		}
+
+		public static bool TryGetBannedString(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<string> bannedString)
+		{
+			bannedString = guildInfo.BannedStrings.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
+			return bannedString != null;
 		}
 		#endregion
 

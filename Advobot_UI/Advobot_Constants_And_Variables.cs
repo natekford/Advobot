@@ -37,7 +37,7 @@ namespace Advobot
 		public const string COMMANDS_DISABLED_BY_CHANNEL = "CmdsDisabledByChannel" + FILE_EXTENSION;
 		public const string SERVER_LOG_CHECK_STRING = "serverlog";
 		public const string MOD_LOG_CHECK_STRING = "modlog";
-		public const string BANNED_PHRASES_CHECK_STRING = "bannedphrases";
+		public const string BANNED_STRING_CHECK_STRING = "bannedphrases";
 		public const string BANNED_REGEX_CHECK_STRING = "bannedregex";
 		public const string BANNED_PHRASES_PUNISHMENTS = "bannedpunishments";
 		public const string GUILD_PREFIX = "guildprefix";
@@ -57,7 +57,7 @@ namespace Advobot
 		public const string VANITY_URL = "VANITY_URL";
 		public const string INVITE_SPLASH = "INVITE_SPLASH";
 		public static readonly string DEFAULT_GAME = "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
-		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds later as a text file.";
+		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds as a text file.";
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int WAIT_TIME = 3000;
@@ -107,7 +107,7 @@ namespace Advobot
 		});
 		public static ReadOnlyCollection<string> COMMANDS_UNABLE_TO_BE_TURNED_OFF = new ReadOnlyCollection<string>(new List<string>()
 		{
-			"comconfigtoggle", "comconfigcurrent", "comconfigmodify", "help"
+			"comconfig", "help"
 		});
 		public static ReadOnlyCollection<string> CLOSE_WORDS_POSITIONS = new ReadOnlyCollection<string>(new List<string>()
 		{

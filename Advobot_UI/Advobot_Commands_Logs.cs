@@ -148,14 +148,7 @@ namespace Advobot
 
 			ignoredLogChannels = ignoredLogChannels.Distinct().ToList();
 
-			//Create the file if it doesn't exist
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
-			if (path == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
-				return;
-			}
-			//Save the lines
 			Actions.SaveLines(path, Constants.IGNORED_LOG_CHANNELS, String.Join("/", Variables.Guilds[Context.Guild.Id].IgnoredLogChannels), Actions.GetValidLines(path, Constants.IGNORED_LOG_CHANNELS));
 
 			//Send a success message

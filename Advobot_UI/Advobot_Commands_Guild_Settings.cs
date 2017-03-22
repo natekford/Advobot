@@ -277,12 +277,10 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
-			//Set the action
+
 			var action = inputArray[0];
-			//Set input as the second element because I 
 			var inputString = inputArray[1];
 
-			//Set a bool to keep track of the action
 			bool enableBool;
 			if (Actions.CaseInsEquals(action, "enable"))
 			{
@@ -305,11 +303,8 @@ namespace Advobot
 				allBool = true;
 			}
 
-			//Get the command
 			var command = Actions.GetCommand(Context.Guild.Id, inputString);
-			//Set up a potential list for commands
 			var category = new List<CommandSwitch>();
-			//Check if it's valid
 			if (command == null && !allBool)
 			{
 				if (Enum.TryParse(inputString, true, out CommandCategory cmdCat))
@@ -354,7 +349,7 @@ namespace Advobot
 				}
 			});
 			//Remove them
-			category.Except(categoryToRemove);
+			category = category.Except(categoryToRemove).ToList();
 
 			//Check if there's still stuff in the list
 			if (category.Count < 1)

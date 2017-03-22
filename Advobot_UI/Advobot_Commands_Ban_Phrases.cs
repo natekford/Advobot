@@ -5,20 +5,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace Advobot
 {
 	[Name("Ban_Phrases")]
 	public class Advobot_Commands_Ban_Phrases : ModuleBase
 	{
-		//TODO: Use a different split character maybe
 		[Command("banphrasesmodify")]
 		[Alias("bpm")]
-		[Usage("[Add] [Phrase/...] <Regex> | [Remove] [Phrase/...|Position/...] <Regex>")]
-		[Summary("Adds the words to either the banned phrase list or the banned regex list. Do not use a '/' in a banned phrase itself.")]
+		[Usage("[Add] [\"Phrase\"/...] <Regex> | [Remove] [\"Phrase\"/...|Position/...] <Regex>")]
+		[Summary("Adds the words to either the banned phrase list or the banned regex list. Do not use a '/' in a banned phrase itself. Due to laziness, only actual shows the punish type.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
-		public async Task SetBanPhrases([Remainder] string input)
+		public async Task BanPhrasesModify([Remainder] string input)
 		{
 			//Check if using the default preferences
 			var guildInfo = Variables.Guilds[Context.Guild.Id];
@@ -55,48 +55,24 @@ namespace Advobot
 			}
 
 			//Get the phrases
-			var inputPhrases = unsplitPhrases.Split('/').ToList();
+			var inputPhrases = Actions.SplitByCharExceptInQuotes(unsplitPhrases, '/').ToList();
 			var last = inputPhrases.LastOrDefault();
 
 			//Check if regex or not
-			bool regex;
+			var regex = false;
 			if (last.Contains(' ') && Actions.CaseInsEquals(last.Substring(last.LastIndexOf(' ')).Trim(), "regex"))
 			{
 				regex = true;
 				inputPhrases[inputPhrases.Count() - 1] = last.Substring(0, last.LastIndexOf(' '));
 			}
-			else
-			{
-				regex = false;
-			}
 
 			var toSave = regex ? Actions.HandleBannedRegexModification(guildInfo.BannedRegex, inputPhrases, add) : Actions.HandleBannedStringModification(guildInfo.BannedStrings, inputPhrases, add);
+			var success = add ? inputPhrases.Intersect(toSave).ToList() : inputPhrases.Except(toSave).ToList();
+			var failure = add ? inputPhrases.Except(toSave).ToList() : inputPhrases.Intersect(toSave).ToList();
 
-			List<string> success;
-			List<string> failure;
-			if (add)
-			{
-				success = inputPhrases.Intersect(toSave).ToList();
-				failure = inputPhrases.Except(toSave).ToList();
-			}
-			else
-			{
-				failure = inputPhrases.Intersect(toSave).ToList();
-				success = inputPhrases.Except(toSave).ToList();
-			}
-
-			//Create the banned phrases file if it doesn't already exist
+			var strToCheckFor = regex ? Constants.BANNED_REGEX_CHECK_STRING : Constants.BANNED_STRING_CHECK_STRING;
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
-			if (path == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
-				return;
-			}
-			else
-			{
-				var type = regex ? Constants.BANNED_REGEX_CHECK_STRING : Constants.BANNED_PHRASES_CHECK_STRING;
-				Actions.SaveLines(path, type, toSave, Actions.GetValidLines(path, type));
-			}
+			Actions.SaveLines(path, null, toSave, Actions.GetValidLines(path, strToCheckFor));
 
 			var successMessage = "";
 			if (success.Any())
@@ -125,14 +101,121 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, (eitherEmpty ? "" : ", and "), failureMessage));
 		}
 
+		[Command("banphraseschangetype")]
+		[Alias("bpct")]
+		[Usage("[Position:int|\"Phrase\"] [Nothing|Role|Kick|Ban] <Regex>")]
+		[Summary("Changes the punishment type of the input phrase or regex to the given type.")]
+		[PermissionRequirement]
+		[DefaultEnabled(false)]
+		public async Task BanPhrasesChangeType([Remainder] string input)
+		{
+			//Check if using the default preferences
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
+			//First split the input
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
+			if (inputArray.Length < 2)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+
+			//Get all the strings
+			var posOrPhrase = Actions.GetVariable(inputArray[0], "position") ?? inputArray[0];
+			var typeStr = inputArray[1];
+			var regexStr = inputArray.Length > 2 ? inputArray[2] : null;
+
+			//Get the type
+			if (!Enum.TryParse(typeStr, true, out PunishmentType type))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				return;
+			}
+
+			//Get if regex or not
+			var regex = !String.IsNullOrWhiteSpace(regexStr) && Actions.CaseInsEquals(regexStr, "regex");
+
+			//Check if position or phrase
+			var phraseStr = "";
+			var toSave = new List<string>();
+			if (int.TryParse(posOrPhrase, out int position))
+			{
+				if (regex)
+				{
+					var bannedRegex = guildInfo.BannedRegex;
+					if (bannedRegex.Count <= position)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The list of banned regex does not go to that position"));
+						return;
+					}
+					var bannedPhrase = bannedRegex[position];
+					bannedPhrase.ChangePunishment(type);
+					phraseStr = bannedPhrase.Phrase.ToString();
+					toSave = Actions.FormatSavingForBannedRegex(bannedRegex);
+				}
+				else
+				{
+					var bannedStrings = guildInfo.BannedStrings;
+					if (bannedStrings.Count <= position)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The list of banned strings does not go to that position"));
+						return;
+					}
+					var bannedPhrase = bannedStrings[position];
+					bannedPhrase.ChangePunishment(type);
+					phraseStr = bannedPhrase.Phrase;
+					toSave = Actions.FormatSavingForBannedString(bannedStrings);
+				}
+			}
+			else if (!regex && Actions.TryGetBannedString(guildInfo, posOrPhrase, out BannedPhrase<string> bannedString))
+			{
+				bannedString.ChangePunishment(type);
+				phraseStr = bannedString.Phrase;
+				toSave = Actions.FormatSavingForBannedString(guildInfo.BannedStrings);
+			}
+			else if (regex && Actions.TryGetBannedRegex(guildInfo, posOrPhrase, out BannedPhrase<Regex> bannedRegex))
+			{
+				bannedRegex.ChangePunishment(type);
+				phraseStr = bannedRegex.Phrase.ToString();
+				toSave = Actions.FormatSavingForBannedRegex(guildInfo.BannedRegex);
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid position or phrase was input."));
+				return;
+			}
+
+			//Resave everything
+			var strToCheckFor = regex ? Constants.BANNED_REGEX_CHECK_STRING : Constants.BANNED_STRING_CHECK_STRING;
+			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+			Actions.SaveLines(path, null, toSave, Actions.GetValidLines(path, strToCheckFor));
+
+			//Send a success message
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the punishment type on the banned {0} `{1}` to `{2}`.",
+				(regex ? "regex" : "string"), phraseStr, Enum.GetName(typeof(PunishmentType), type)));
+		}
+
 		[Command("banphrasescurrent")]
 		[Alias("bpc")]
 		[Usage("[File|Actual] <Regex>")]
 		[Summary("Says all of the current banned words from either the file or the list currently being used in the bot.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
-		public async Task CurrentBanPhrases([Remainder] string input)
+		public async Task BanPhrasesCurrent([Remainder] string input)
 		{
+			//Check if using the default preferences
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
 			//Make an array of input
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 
@@ -147,8 +230,8 @@ namespace Advobot
 			var BannedPhrases = new List<string>();
 
 			//Get if regex or normal phrases
-			var type = Constants.BANNED_PHRASES_CHECK_STRING;
-			bool regexBool = false;
+			var type = Constants.BANNED_STRING_CHECK_STRING;
+			var regexBool = false;
 			if (inputArray.Length >= 2 && Actions.CaseInsEquals(inputArray[1], "regex"))
 			{
 				type = Constants.BANNED_REGEX_CHECK_STRING;
@@ -172,8 +255,8 @@ namespace Advobot
 				}
 
 				//Get the words out of the file
-				var line = Actions.GetValidLines(path, type, true).FirstOrDefault();
-				BannedPhrases = line.Substring(line.IndexOf(':') + 1).Split('/').Distinct().Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
+				var lines = Actions.GetValidLines(path, type, true).Select(x => String.Format("`{0}`", x.Substring(x.IndexOf(':') + 1)));
+				BannedPhrases = lines.Distinct().Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
 
 				fileBool = true;
 			}
@@ -182,7 +265,10 @@ namespace Advobot
 				//Get the list being used by the bot currently
 				if (!regexBool)
 				{
-					BannedPhrases = Variables.Guilds[Context.Guild.Id].BannedStrings.Select(x => x as string).ToList();
+					BannedPhrases = Variables.Guilds[Context.Guild.Id].BannedStrings.Select(x =>
+					{
+						return String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), x.Punishment).Substring(0, 1), x.Phrase);
+					}).ToList();
 					if (BannedPhrases.Count == 0)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned phrases."));
@@ -191,7 +277,10 @@ namespace Advobot
 				}
 				else
 				{
-					BannedPhrases = Variables.Guilds[Context.Guild.Id].BannedRegex.Select(x => x.ToString()).ToList();
+					BannedPhrases = Variables.Guilds[Context.Guild.Id].BannedRegex.Select(x =>
+					{
+						return String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), x.Punishment).Substring(0, 1), x.Phrase.ToString());
+					}).ToList();
 					if (BannedPhrases.Count == 0)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned regex."));
@@ -210,7 +299,7 @@ namespace Advobot
 			//Since the actuals already have their checks done, this works for the file (since I can't do this as easily in the using)
 			if (BannedPhrases.Count == 0)
 			{
-				if (type.Equals(Constants.BANNED_PHRASES_CHECK_STRING))
+				if (type.Equals(Constants.BANNED_STRING_CHECK_STRING))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are no banned phrases on file."));
 					return;
@@ -222,28 +311,24 @@ namespace Advobot
 				}
 			}
 
-			//Make the header
-			var header = "Banned " + (regexBool ? "Regex " : "Phrases ") + (fileBool ? "(File)" : "(Actual)");
-
-			//Make the description
-			int counter = 0;
-			var description = "";
-			BannedPhrases.ForEach(x => description += "`" + counter++.ToString("00") + ".` `" + x + "`\n");
-
 			//Make and send the embed
+			var header = "Banned " + (regexBool ? "Regex " : "Phrases ") + (fileBool ? "(File)" : "(Actual)");
+			int counter = 0;
+			var description = String.Join("\n", BannedPhrases.Select(x => String.Format("`{0}.` {1}", counter++.ToString("00"), x)));
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(header, description));
 		}
 
 		[Command("banphrasespunishmodify")]
 		[Alias("bppm")]
 		[Usage("[Add] [Number] [Role Name|Kick|Ban] <Time> | [Remove] [Number]")]
-		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to this total. Time is in minutes and only applies to roles.")]
+		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to the total of its type. Time is in minutes and only applies to roles.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
-		public async Task SetPunishments([Remainder] string input)
+		public async Task BanPhrasesPunishModify([Remainder] string input)
 		{
 			//Check if using the default preferences
-			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
@@ -251,8 +336,6 @@ namespace Advobot
 
 			//Split the input
 			var inputArray = Actions.RemoveNewLines(input).Split(new char[] { ' ' }, 3);
-
-			//Check if correct number of args
 			if (inputArray.Length < 2 || inputArray.Length > 3)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -284,10 +367,10 @@ namespace Advobot
 			}
 
 			//Get the punishment
-			int time = 0;
+			var time = 0;
 			var punishmentString = "";
 			IRole punishmentRole = null;
-			PunishmentType punishmentType = 0;
+			var punishmentType = PunishmentType.Nothing;
 			BannedPhrasePunishment newPunishment = null;
 			if (inputArray.Length > 2 && addBool)
 			{
@@ -321,7 +404,7 @@ namespace Advobot
 						punishmentType = PunishmentType.Role;
 						punishmentRole = await Actions.GetRoleEditAbility(Context, possibleRole);
 
-						if (!int.TryParse(possibleTime, out time))
+						if (!String.IsNullOrWhiteSpace(possibleTime) && !int.TryParse(possibleTime, out time))
 						{
 							await Actions.MakeAndDeleteSecondaryMessage(Context, "The input for time is not a number.");
 							return;
@@ -337,9 +420,8 @@ namespace Advobot
 
 			//Set the punishment
 			newPunishment = addBool ? new BannedPhrasePunishment(number, punishmentType, punishmentRole, time) : null;
-
 			//Get the list of punishments
-			var punishments = Variables.Guilds[Context.Guild.Id].BannedPhrasesPunishments;
+			var punishments = guildInfo.BannedPhrasesPunishments;
 
 			//Add
 			if (addBool)
@@ -350,45 +432,56 @@ namespace Advobot
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists for that number of banned phrases said."));
 					return;
 				}
-				//Check if trying to add a kick when one already exists
-				else if (newPunishment.Punishment == PunishmentType.Kick && punishments.Any(x => x.Punishment == PunishmentType.Kick))
+
+				var type = newPunishment.Punishment;
+				switch (type)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which kicks."));
-					return;
+					case PunishmentType.Role:
+					{
+						if (punishments.Any(x => x.Punishment == type))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which kicks."));
+							return;
+						}
+						break;
+					}
+					case PunishmentType.Kick:
+					{
+						if (punishments.Any(x => x.Punishment == type))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which bans."));
+							return;
+						}
+						break;
+					}
+					case PunishmentType.Ban:
+					{
+						if (punishments.Any(x => x.Punishment == type))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which gives that role."));
+							return;
+						}
+						break;
+					}
 				}
-				//Check if trying to add a ban when one already exists
-				else if (newPunishment.Punishment == PunishmentType.Ban && punishments.Any(x => x.Punishment == PunishmentType.Ban))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which bans."));
-					return;
-				}
-				//Check if trying to add a role to the list which already exists
-				else if (newPunishment.Punishment == PunishmentType.Role && punishments.Any(x => x.Role.Name == newPunishment.Role.Name))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which gives that role."));
-					return;
-				}
-				else
-				{
-					punishments.Add(newPunishment);
-				}
+
+				punishments.Add(newPunishment);
 			}
 			//Remove
 			else
 			{
-				var thingsWithNumOfRems = punishments.Where(x => x.NumberOfRemoves == number).ToList();
-				if (thingsWithNumOfRems.Any())
+				var gatheredPunishments = punishments.Where(x => x.NumberOfRemoves == number).ToList();
+				if (gatheredPunishments.Any())
 				{
-					await thingsWithNumOfRems.ForEachAsync(async punish =>
+					foreach (var gatheredPunishment in gatheredPunishments)
 					{
-						//Check if the user can modify this role, if they can't then don't let them modify the 
-						if (punish.Role != null && punish.Role.Position > Actions.GetPosition(Context.Guild, Context.User as IGuildUser))
+						if (gatheredPunishment.Role != null && gatheredPunishment.Role.Position > Actions.GetPosition(Context.Guild, Context.User as IGuildUser))
 						{
 							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have the ability to remove a punishment with this role."));
 							return;
 						}
-						punishments.Remove(punish);
-					});
+						punishments.Remove(gatheredPunishment);
+					}
 				}
 				else
 				{
@@ -409,13 +502,6 @@ namespace Advobot
 
 			//Create the banned phrases file if it doesn't already exist
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
-			if (path == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
-				return;
-			}
-
-			//Find the lines that aren't the punishments
 			Actions.SaveLines(path, Constants.BANNED_PHRASES_PUNISHMENTS, toSave, Actions.GetValidLines(path, Constants.BANNED_PHRASES_PUNISHMENTS));
 
 			//Determine what the success message should say
@@ -454,8 +540,16 @@ namespace Advobot
 		[Summary("Shows the current punishments on the guild.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
-		public async Task CurrentPunishments([Remainder] string input)
+		public async Task BanPhrasesPunishCurrent([Remainder] string input)
 		{
+			//Check if using the default preferences
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
 			var description = "";
 			bool fileBool;
 			if (Actions.CaseInsEquals(input, "file"))
@@ -555,10 +649,11 @@ namespace Advobot
 		[Summary("Shows or removes all infraction points a user has on the guild.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
-		public async Task ClearBanPhraseUser([Remainder] string input)
+		public async Task BanPhrasesUser([Remainder] string input)
 		{
 			//Check if using the default preferences
-			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
@@ -580,21 +675,29 @@ namespace Advobot
 				return;
 			}
 
+			//Get them as a banned phrase user
+			var bpUser = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user);
+
 			//Check if valid action
 			if (Actions.CaseInsEquals(inputArray[0], "clear"))
 			{
 				//Reset the messages
-				Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user).ResetAmountOfRemovesMessages();
+				bpUser.ResetRoleCount();
+				bpUser.ResetKickCount();
+				bpUser.ResetBanCount();
 
 				//Send a success message
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the amount of messages removed for `{0}#{1}` to 0.", user.Username, user.Discriminator));
 			}
 			if (Actions.CaseInsEquals(inputArray[0], "current"))
 			{
-				int msgCount = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user)?.AmountOfRemovedMessages ?? 0;
+				var roleCount = bpUser?.MessagesForRole ?? 0;
+				var kickCount = bpUser?.MessagesForKick ?? 0;
+				var banCount = bpUser?.MessagesForBan ?? 0;
 
 				//Send a success message
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}#{1}` has `{2}` infraction point{3}.", user.Username, user.Discriminator, msgCount, msgCount != 1 ? "s" : ""));
+				await Actions.MakeAndDeleteSecondaryMessage(Context,
+					String.Format("The user `{0}#{1}` has `{2}R/{3}K/{4}B` infractions.", user.Username, user.Discriminator, roleCount, kickCount, banCount));
 			}
 			else
 			{

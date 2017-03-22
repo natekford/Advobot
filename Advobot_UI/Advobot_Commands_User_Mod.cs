@@ -316,7 +316,7 @@ namespace Advobot
 
 		[Command("replacewordsinnames")]
 		[Alias("rwin")]
-		[Usage("\"[String to Find]\" \"[String to Replace]\" <" + Constants.BYPASS_STRING + ">")]
+		[Usage("[\"String to Find\"] [\"String to Replace\"] <" + Constants.BYPASS_STRING + ">")]
 		[Summary("Gives any users who have a username/nickname with the given string a new nickname that replaces it. Max is 100 users per use unless the bypass string is said.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageNicknames)]
 		[DefaultEnabled(true)]

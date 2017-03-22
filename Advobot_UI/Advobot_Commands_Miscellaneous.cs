@@ -814,8 +814,8 @@ namespace Advobot
 		#region Miscellaneous
 		[Command("makeanembed")]
 		[Alias("mae")]
-		[Usage("\"Title:input\" \"Desc:input\" Img:url Url:url Thumb:url Color:int/int/int \"Auth:input\" AuthIcon:url AuthUrl:url \"Foot:input\" FootIcon:url " +
-				"\"Field[1-25]:input\" \"FieldText[1-25]:input\" FieldInline[1-25]:true|false ")]
+		[Usage("<\"Title:input\"> <\"Desc:input\"> <Img:url> <Url:url> <Thumb:url> <Color:int/int/int> <\"Author:input\"> <AuthorIcon:url> <AuthorUrl:url> <\"Foot:input\"> <FootIcon:url> " +
+				"<\"Field[1-25]:input\"> <\"FieldText[1-25]:input\"> <FieldInline[1-25]:true|false>")]
 		[Summary("Every single piece is optional. The stuff in quotes *must* be in quotes. URLs need the https:// in front. Fields need *both* Field and FieldText to work.")]
 		[DefaultEnabled(true)]
 		public async Task MakeAnEmbed([Remainder] string input)
@@ -829,9 +829,9 @@ namespace Advobot
 			var imageURL = Actions.GetVariableAndRemove(inputArray, "Img");
 			var URL = Actions.GetVariableAndRemove(inputArray, "url");
 			var thumbnail = Actions.GetVariableAndRemove(inputArray, "thumb");
-			var authorName = Actions.GetVariableAndRemove(inputArray, "auth");
-			var authorIcon = Actions.GetVariableAndRemove(inputArray, "authicon");
-			var authorURL = Actions.GetVariableAndRemove(inputArray, "authurl");
+			var authorName = Actions.GetVariableAndRemove(inputArray, "author");
+			var authorIcon = Actions.GetVariableAndRemove(inputArray, "authoricon");
+			var authorURL = Actions.GetVariableAndRemove(inputArray, "authorurl");
 			var footerText = Actions.GetVariableAndRemove(inputArray, "foot");
 			var footerIcon = Actions.GetVariableAndRemove(inputArray, "footicon");
 

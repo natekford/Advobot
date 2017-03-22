@@ -217,7 +217,7 @@ namespace Advobot
 				mShards.Text = String.Format("Shards: {0}", client.GetShards().Count);
 				mPrefix.Text = String.Format("Prefix: {0}", Properties.Settings.Default.Prefix);
 				mThirdParagraph.Inlines.Clear();
-				mThirdParagraph.Inlines.Add(new Run(Actions.FormatLoggedThings() + "\n\nCharacter Count: ~470,000\nLine Count: ~13,500"));
+				mThirdParagraph.Inlines.Add(new Run(Actions.FormatLoggedThings() + "\n\nCharacter Count: ~525,000\nLine Count: ~15,000"));
 			};
 			//Make the timer update every so often
 			timer.Interval = new TimeSpan(0, 0, 0, 0, 500);
@@ -597,7 +597,16 @@ namespace Advobot
 					return;
 
 				//Create the guild's treeviewitem
-				var guildItem = new TreeViewItem() { Header = String.Format("({0}) {1}", strID, Variables.Client.GetGuild(ID).Name) };
+				TreeViewItem guildItem;
+				try
+				{
+					guildItem = new TreeViewItem() { Header = String.Format("({0}) {1}", strID, Variables.Client.GetGuild(ID).Name) };
+				}
+				catch
+				{
+					//This means that the guild is currently not using the bot. Don't delete the directory in case they ever do come back to using the bot.
+					return;
+				}
 
 				//Add in all of the files the guild has
 				Directory.GetFiles(guildDir).ToList().ForEach(file =>
