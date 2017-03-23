@@ -62,17 +62,19 @@ namespace Advobot
 		public async Task IgnoreChannel([Remainder] string input)
 		{
 			//Check if using the default preferences
-			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
+			var ignoredLogChannels = Variables.Guilds[Context.Guild.Id].IgnoredLogChannels;
 
 			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			var action = inputArray[0];
+			var channelInput = inputArray.Length > 1 ? inputArray[1] : null;
 
-			var ignoredLogChannels = Variables.Guilds[Context.Guild.Id].IgnoredLogChannels;
 			if (Actions.CaseInsEquals(action, "current"))
 			{
 				var channels = new List<string>();
@@ -80,8 +82,7 @@ namespace Advobot
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Log Channels", String.Join("\n", channels)));
 				return;
 			}
-			//Check amount of args
-			if (inputArray.Length != 2)
+			else if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
@@ -102,29 +103,13 @@ namespace Advobot
 				return;
 			}
 
-			var channel = await Actions.GetChannelEditAbility(Context, inputArray[1], true);
+			//Get the channel
+			var returnedChannel = await Actions.GetChannelPermability(Context, channelInput);
+			var channel = returnedChannel.Channel;
 			if (channel == null)
 			{
-				var channels = (await Context.Guild.GetTextChannelsAsync()).Where(x => Actions.CaseInsEquals(x.Name, inputArray[1])).ToList();
-				if (channels.Count == 0)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
-					return;
-				}
-				else if (channels.Count == 1)
-				{
-					channel = channels.FirstOrDefault();
-					if (Actions.GetChannelEditAbility(channel, Context.User) == null)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to edit this channel."));
-						return;
-					}
-				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("More than one channel has that name."));
-					return;
-				}
+				await Actions.HandleChannelPermsLacked(Context, returnedChannel);
+				return;
 			}
 
 			if (addBool)
@@ -145,7 +130,6 @@ namespace Advobot
 				}
 				ignoredLogChannels.Remove(channel.Id);
 			}
-
 			ignoredLogChannels = ignoredLogChannels.Distinct().ToList();
 
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);

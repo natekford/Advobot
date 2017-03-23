@@ -190,53 +190,107 @@ namespace Advobot
 			var userStr = inputArray[0];
 			var chanStr = inputArray[1];
 
-			//Check if valid user
+			//Check if valid user and that they're in a voice channel
 			var user = await Actions.GetUser(Context.Guild, userStr);
 			if (user == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
-
-			//Check if user is in a voice channel
-			if (user.VoiceChannel == null)
+			else if (user.VoiceChannel == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is not in a voice channel."));
 				return;
 			}
-			//See if the bot can move people from this channel
-			else if (Actions.GetChannelMovability(user.VoiceChannel, await Actions.GetUser(Context.Guild, Variables.Bot_ID)) == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to move this user due to permissions or due to the user being in a voice channel before the bot started up."));
-				return;
-			}
-			//See if the user can move people from this channel
-			else if (Actions.GetChannelMovability(user.VoiceChannel, Context.User) == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to move people from this channel."));
-				return;
-			}
 
 			//Check if valid channel that the user can edit
-			var channel = await Actions.GetChannelEditAbility(Context, chanStr);
-			if (channel == null)
-				return;
-			var vc = channel as IVoiceChannel;
-			if (vc == null)
+			var channel = await Actions.GetChannel(Context, chanStr) as IVoiceChannel;
+			if (Actions.GetUserMovability(channel, Context.User) == null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command will not work on a text channel."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to move the user to this channel."));
+				return;
+			}
+			else if (Actions.GetUserMovability(channel, await Actions.GetBot(Context.Guild)) == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("I am unable to move the user to this channel."));
 				return;
 			}
 
 			//See if trying to put user in the exact same channel
-			if (user.VoiceChannel == channel)
+			var userChan = user.VoiceChannel;
+			if (userChan == channel)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is already in that channel"));
 				return;
 			}
+			else if (Actions.GetUserMovability(userChan, Context.User) == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to move the user from their channel."));
+				return;
+			}
+			else if (Actions.GetUserMovability(userChan, await Actions.GetBot(Context.Guild)) == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("I am unable to move the user from their channel."));
+				return;
+			}
 
-			await user.ModifyAsync(x => x.Channel = Optional.Create(vc));
+			await user.ModifyAsync(x => x.Channel = Optional.Create(channel));
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully moved `{0}#{1}` to `{2}`.", user.Username, user.Discriminator, channel.Name));
+		}
+
+		[Command("moveusers")]
+		[Alias("mus")]
+		[Usage("[\"Channel\"] [\"Channel\"]")]
+		[Summary("Moves all users from one channel to another.")]
+		[PermissionRequirement(1U << (int)GuildPermission.MoveMembers)]
+		[DefaultEnabled(true)]
+		public async Task MoveUsers([Remainder] string input)
+		{
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
+			if (inputArray.Length != 2)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+			var inputStr = inputArray[0];
+			var outputStr = inputArray[1];
+
+			//Check if valid channel that the user can edit
+			var inputChannel = await Actions.GetChannel(Context, inputStr) as IVoiceChannel;
+			if (Actions.GetUserMovability(inputChannel, Context.User) == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to move the users from this channel."));
+				return;
+			}
+			else if (Actions.GetUserMovability(inputChannel, await Actions.GetBot(Context.Guild)) == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("I am unable to move the users from this channel."));
+				return;
+			}
+
+			//Check if valid channel that the user can edit
+			var outputChannel = await Actions.GetChannel(Context, inputStr) as IVoiceChannel;
+			if (Actions.GetUserMovability(outputChannel, Context.User) == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to move the users to this channel."));
+				return;
+			}
+			else if (Actions.GetUserMovability(outputChannel, await Actions.GetBot(Context.Guild)) == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("I am unable to move the users to this channel."));
+				return;
+			}
+
+			//Move the users
+			var users = (await inputChannel.GetUsersAsync().ToList()).SelectMany(x => x).ToList();
+			await users.ForEachAsync(async x =>
+			{
+				await x.ModifyAsync(y => y.Channel = Optional.Create(outputChannel));
+			});
+
+			//Send a success message
+			var text = String.Format("Successfully moved `{0}` from `{1}` to `{2}`.", users.Count, Actions.FormatChannel(inputChannel), Actions.FormatChannel(outputChannel));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, text);
 		}
 
 		[Command("nickname")]

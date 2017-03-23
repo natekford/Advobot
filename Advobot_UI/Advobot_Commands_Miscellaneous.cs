@@ -420,7 +420,7 @@ namespace Advobot
 		public async Task UserAvatar([Optional, Remainder] string input)
 		{
 			//Split the input
-			var inputArray = input.Split(new char[] { ' ' }, 2);
+			var inputArray = input?.Split(new char[] { ' ' }, 2);
 			var formatStr = Actions.GetVariable(inputArray, "type");
 
 			//Get the type of image
@@ -576,6 +576,49 @@ namespace Advobot
 		{
 			await Actions.SendChannelMessage(Context, String.Format("The current member count is `{0}`.", (Context.Guild as SocketGuild).MemberCount));
 		}
+
+
+		[Command("listemojis")]
+		[Alias("lemojis")]
+		[Usage("[Global|Guild]")]
+		[Summary("Lists the emoji in the guild. As of right now, with the current API wrapper version this bot uses, there's no way to upload or remove emojis yet; sorry.")]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageEmojis)]
+		[DefaultEnabled(true)]
+		public async Task ListEmojis([Remainder] string input)
+		{
+			//Make the string
+			string description = null;
+
+			//Add the emojis to the string
+			int count = 1;
+			if (Actions.CaseInsEquals(input, "guild"))
+			{
+				//Get all of the guild emojis
+				Context.Guild.Emojis.Where(x => !x.IsManaged).ToList().ForEach(x =>
+				{
+					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
+				});
+			}
+			else if (Actions.CaseInsEquals(input, "global"))
+			{
+				//Get all of the global emojis
+				Context.Guild.Emojis.Where(x => x.IsManaged).ToList().ForEach(x =>
+				{
+					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
+				});
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option."));
+				return;
+			}
+
+			//Check if the description is still null
+			description = description ?? String.Format("This guild has no {0} emojis.", input.ToLower());
+
+			//Send the embed
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Emojis", description));
+		}
 		#endregion
 
 		#region Instant Invites
@@ -624,45 +667,57 @@ namespace Advobot
 		public async Task CreateInstantInvite([Remainder] string input)
 		{
 			//Split the input
-			var inputArray = input.Split(new char[] { ' ' }, 4);
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
 			if (inputArray.Length != 4)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+			var channelInput = inputArray[0];
+			var timeStr = inputArray[1];
+			var usesStr = inputArray[2];
+			var tempStr = inputArray[3];
 
 			//Check validity of channel
-			var channel = await Actions.GetChannelEditAbility(Context, inputArray[0]);
-			if (channel == null)
+			var returnedChannel = await Actions.GetChannelPermability(Context, channelInput);
+			var channel = returnedChannel.Channel;
+			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			{
+				await Actions.HandleChannelPermsLacked(Context, returnedChannel);
 				return;
+			}
 
 			//Set the time in seconds
 			int? nullableTime = null;
-			if (int.TryParse(inputArray[1], out int time))
+			int[] validTimes = { 1800, 3600, 21600, 43200, 86400 };
+			if (int.TryParse(timeStr, out int time) && validTimes.Contains(time))
 			{
-				int[] validTimes = { 1800, 3600, 21600, 43200, 86400 };
-				if (validTimes.Contains(time))
-				{
-					nullableTime = time;
-				}
+				nullableTime = time;
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
+				return;
 			}
 
 			//Set the max amount of users
 			int? nullableUsers = null;
-			if (int.TryParse(inputArray[2], out int users))
+			int[] validUsers = { 1, 5, 10, 25, 50, 100 };
+			if (int.TryParse(usesStr, out int users) && validUsers.Contains(users))
 			{
-				int[] validUsers = { 1, 5, 10, 25, 50, 100 };
-				if (validUsers.Contains(users))
-				{
-					nullableUsers = users;
-				}
+				nullableUsers = users;
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid uses supplied."));
+				return;
 			}
 
 			//Set tempmembership
-			bool tempMembership = false;
-			if (Actions.CaseInsEquals(inputArray[3], "true"))
+			if (!bool.TryParse(tempStr, out bool tempMembership))
 			{
-				tempMembership = true;
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid uses supplied."));
+				return;
 			}
 
 			//Make into valid invite link
@@ -700,55 +755,87 @@ namespace Advobot
 
 		[Command("invitedeletemultiple")]
 		[Alias("invdm")]
-		[Usage("[@User|" + Constants.CHANNEL_INSTRUCTIONS + "|Uses:Number|Expires:Number]")]
+		[Usage("[User:@User|Channel:" + Constants.CHANNEL_INSTRUCTIONS + "|Uses:Number|Expires:[True|False]]")]
 		[Summary("Deletes all invites satisfying the given condition of either user, creation channel, uses, or expiry time.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		[DefaultEnabled(true)]
 		public async Task DeleteMultipleInvites([Remainder] string input)
 		{
-			//Set the action telling what variable
-			DeleteInvAction? action = null;
-
-			//Check if user
-			var user = await Actions.GetUser(Context.Guild, input);
-			if (user != null)
+			//Get the guild's invites
+			var guildInvites = await Context.Guild.GetInvitesAsync();
+			if (!guildInvites.Any())
 			{
-				action = DeleteInvAction.User;
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no invites."));
+				return;
 			}
 
+			//Get the given variable out
+			var userStr = Actions.GetVariable(input, "user");
+			var chanStr = Actions.GetVariable(input, "channel");
+			var usesStr = Actions.GetVariable(input, "uses");
+			var exprStr = Actions.GetVariable(input, "expired");
+
+			//Set the action telling what variable
+			DeleteInvAction? action = null;
+			//Check if user
+			IGuildUser user = null;
+			if (!String.IsNullOrWhiteSpace(userStr))
+			{
+				user = await Actions.GetUser(Context.Guild, userStr);
+				if (user == null)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+					return;
+				}
+				else
+				{
+					action = DeleteInvAction.User;
+				}
+			}
 			//Check if channel
 			IGuildChannel channel = null;
-			if (action == null)
+			if (!String.IsNullOrWhiteSpace(chanStr))
 			{
-				channel = await Actions.GetChannelEditAbility(Context, input, true);
-				if (channel != null)
+				var returnedChannel = await Actions.GetChannelPermability(Context, chanStr);
+				channel = returnedChannel.Channel;
+				if (returnedChannel.Reason != FailureReason.Not_Failure)
+				{
+					await Actions.HandleChannelPermsLacked(Context, returnedChannel);
+					return;
+				}
+				else
 				{
 					action = DeleteInvAction.Channel;
 				}
 			}
-
 			//Check if uses
 			int uses = 0;
-			if (action == null)
+			if (!String.IsNullOrWhiteSpace(usesStr))
 			{
-				var usesString = Actions.GetVariable(input, "uses");
-				if (int.TryParse(usesString, out uses))
+				if (!int.TryParse(usesStr, out uses))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid number for uses."));
+					return;
+				}
+				else
 				{
 					action = DeleteInvAction.Uses;
 				}
 			}
-
 			//Check if expiry time
-			int expiry = 0;
-			if (action == null)
+			bool expires = false;
+			if (!String.IsNullOrWhiteSpace(exprStr))
 			{
-				var expiryString = Actions.GetVariable(input, "expires");
-				if (int.TryParse(expiryString, out expiry))
+				if (!bool.TryParse(exprStr, out expires))
 				{
-					action = DeleteInvAction.Expiry;
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid boolean for expiry."));
+					return;
+				}
+				else
+				{
+					action = DeleteInvAction.Uses;
 				}
 			}
-
 			//Have gone through every other check so it's an error at this point
 			if (action == null)
 			{
@@ -756,19 +843,8 @@ namespace Advobot
 				return;
 			}
 
-			//Get the guild's invites
-			var guildInvites = await Context.Guild.GetInvitesAsync();
-			//Check if the amount is greater than zero
-			if (!guildInvites.Any())
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no invites."));
-				return;
-			}
-
 			//Make a new list to store the invites that match the conditions in
 			var invites = new List<IInvite>();
-
-			//Follow through with the action
 			switch (action)
 			{
 				case DeleteInvAction.User:
@@ -788,7 +864,14 @@ namespace Advobot
 				}
 				case DeleteInvAction.Expiry:
 				{
-					invites.AddRange(guildInvites.Where(x => x.MaxAge == expiry));
+					if (expires)
+					{
+						invites.AddRange(guildInvites.Where(x => x.MaxAge != null));
+					}
+					else
+					{
+						invites.AddRange(guildInvites.Where(x => x.MaxAge == null));
+					}
 					break;
 				}
 			}
@@ -800,14 +883,8 @@ namespace Advobot
 				return;
 			}
 
-			//Get the count of how many invites matched the condition
-			var count = invites.Count;
-
-			//Delete the invites
 			await invites.ForEachAsync(async x => await x.DeleteAsync());
-
-			//Send a success message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` instant invites on this guild.", count));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` instant invites on this guild.", invites.Count));
 		}
 		#endregion
 
@@ -884,9 +961,22 @@ namespace Advobot
 		public async Task MentionRole([Remainder] string input)
 		{
 			var inputArray = input.Split(new char[] { '/' }, 2);
+			if (inputArray.Length != 2)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+			var roleStr = inputArray[0];
+			var textStr = inputArray[1];
+
+			if (textStr.Length > Constants.LENGTH_CHECK)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Please keep the message to send under `{0}` characters.", Constants.LENGTH_CHECK)));
+				return;
+			}
 
 			//Get the role and see if it can be changed
-			var role = await Actions.GetRoleEditAbility(Context, inputArray[0]);
+			var role = await Actions.GetRoleEditAbility(Context, roleStr);
 			if (role == null)
 				return;
 
@@ -900,51 +990,9 @@ namespace Advobot
 			//Make the role mentionable
 			await role.ModifyAsync(x => x.Mentionable = true);
 			//Send the message
-			await Actions.SendChannelMessage(Context, role.Mention + ": " + inputArray[1]);
+			await Actions.SendChannelMessage(Context, String.Format("{0}, {1}:{2}", Actions.FormatUser(Context.User), role.Mention, textStr));
 			//Remove the mentionability
 			await role.ModifyAsync(x => x.Mentionable = false);
-		}
-
-		[Command("listemojis")]
-		[Alias("lemojis")]
-		[Usage("[Global|Guild]")]
-		[Summary("Lists the emoji in the guild. As of right now, with the current API wrapper version this bot uses, there's no way to upload or remove emojis yet; sorry.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageEmojis)]
-		[DefaultEnabled(true)]
-		public async Task ListEmojis([Remainder] string input)
-		{
-			//Make the string
-			string description = null;
-
-			//Add the emojis to the string
-			int count = 1;
-			if (Actions.CaseInsEquals(input, "guild"))
-			{
-				//Get all of the guild emojis
-				Context.Guild.Emojis.Where(x => !x.IsManaged).ToList().ForEach(x =>
-				{
-					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
-				});
-			}
-			else if (Actions.CaseInsEquals(input, "global"))
-			{
-				//Get all of the global emojis
-				Context.Guild.Emojis.Where(x => x.IsManaged).ToList().ForEach(x =>
-				{
-					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
-				});
-			}
-			else
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option."));
-				return;
-			}
-
-			//Check if the description is still null
-			description = description ?? String.Format("This guild has no {0} emojis.", input.ToLower());
-
-			//Send the embed
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Emojis", description));
 		}
 
 		[Command("test")]

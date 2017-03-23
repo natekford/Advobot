@@ -14,7 +14,6 @@ namespace Advobot
 	[Name("Guild_Settings")]
 	public class Advobot_Commands_Guild_Settings : ModuleBase
 	{
-		#region General
 		[Command("guildleave")]
 		[Usage("<Guild ID>")]
 		[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
@@ -189,9 +188,7 @@ namespace Advobot
 			}
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Bot Settings", description, URL: URL));
 		}
-		#endregion
 
-		#region Command Configuration
 		[Command("comconfigmodify")]
 		[Alias("ccm")]
 		[Usage("[Enable|Disable]")]
@@ -380,7 +377,7 @@ namespace Advobot
 
 		[Command("comignore")]
 		[Alias("cign")]
-		[Usage("[Add|Remove] [#Channel|Channel Name] <Full Command Name> | [Current] <All|Full Command Name>")]
+		[Usage("[Add|Remove] [#Channel] <Full Command Name> | [Current] <All|Full Command Name>")]
 		[Summary("The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -447,6 +444,21 @@ namespace Advobot
 				return;
 			}
 
+			//Get the channel
+			var mentions = Context.Message.MentionedChannelIds;
+			if (mentions.Count != 1)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
+				return;
+			}
+			var returnedChannel = await Actions.GetChannelPermability(Context, mentions.FirstOrDefault().ToString());
+			var channel = returnedChannel.Channel;
+			if (channel == null)
+			{
+				await Actions.HandleChannelPermsLacked(Context, returnedChannel);
+				return;
+			}
+
 			//Determine whether to add or remove
 			bool add;
 			if (Actions.CaseInsEquals(action, "add"))
@@ -461,33 +473,6 @@ namespace Advobot
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
-			}
-
-			//Get the channel
-			var channelInput = inputArray[1];
-			var channel = await Actions.GetChannelEditAbility(Context, channelInput, true);
-			if (channel == null)
-			{
-				var channels = (await Context.Guild.GetTextChannelsAsync()).Where(x => Actions.CaseInsEquals(x.Name, channelInput)).ToList();
-				if (channels.Count == 0)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
-					return;
-				}
-				else if (channels.Count == 1)
-				{
-					channel = channels.FirstOrDefault();
-					if (Actions.GetChannelEditAbility(channel, Context.User) == null)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are unable to edit this channel."));
-						return;
-					}
-				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("More than one channel has that name."));
-					return;
-				}
 			}
 
 			//Get the command
@@ -520,6 +505,7 @@ namespace Advobot
 					ignoredCmdsOnChans.RemoveAll(x => x.CommandName == cmd && x.ChannelID == channel.Id);
 				}
 
+				//Save everything
 				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.COMMANDS_DISABLED_BY_CHANNEL);
 				Actions.SaveLines(path, ignoredCmdsOnChans.Select(x => String.Format("{0} {1}", x.ChannelID, x.CommandName)).ToList());
 
@@ -558,9 +544,7 @@ namespace Advobot
 					add ? "added" : "removed", Actions.FormatChannel(channel), add ? "to" : "from"));
 			}
 		}
-		#endregion
 
-		#region Bot Users
 		[Command("botusersmodify")]
 		[Alias("bum")]
 		[Usage("[Add|Remove|Show] <@User> <Permission/...>")]
@@ -730,22 +714,13 @@ namespace Advobot
 
 		[Command("botusers")]
 		[Alias("busr")]
-		[Usage("[File|Actual|@User]")]
+		[Usage("<@User>")]
 		[Summary("Shows a list of all the people who are bot users. If a user is specified then their permissions are said.")]
 		[UserHasAPermission]
 		[DefaultEnabled(false)]
-		public async Task BotUsers([Remainder] string input)
+		public async Task BotUsers([Optional, Remainder] string input)
 		{
-			bool fileBool;
-			if (Actions.CaseInsEquals(input, "file"))
-			{
-				fileBool = true;
-			}
-			else if (Actions.CaseInsEquals(input, "actual"))
-			{
-				fileBool = false;
-			}
-			else
+			if (!String.IsNullOrWhiteSpace(input))
 			{
 				//Check if user
 				var user = await Actions.GetUser(Context.Guild, input);
@@ -769,72 +744,22 @@ namespace Advobot
 				}
 			}
 
+			//Format the description
 			var counter = 1;
-			var description = "";
-			if (fileBool)
+			var description = String.Join("\n", Variables.BotUsers.Where(x => x.User.GuildId == Context.Guild.Id).Select(x =>
+				String.Format("`{0}.` `{1}`", counter++.ToString("00"), Actions.FormatUser(x.User))));
+
+			//Null check
+			if (String.IsNullOrWhiteSpace(description))
 			{
-				//Check if the file exists
-				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
-				if (!File.Exists(path))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This server has no bot users."));
-					return;
-				}
-
-				//Go through each line checking for the users
-				using (StreamReader reader = new StreamReader(path))
-				{
-					string line;
-					while ((line = reader.ReadLine()) != null)
-					{
-						if (String.IsNullOrWhiteSpace(line))
-							continue;
-
-						//Split input
-						var inputArray = line.Split(':');
-						if (inputArray.Length != 2)
-							continue;
-
-						//Check if valid ID
-						if (!ulong.TryParse(inputArray[0], out ulong ID))
-							continue;
-
-						//Check if valid perms
-						if (!uint.TryParse(inputArray[1], out uint perms))
-							continue;
-
-						var user = await Context.Guild.GetUserAsync(ID);
-						if (user == null)
-							continue;
-
-						//If valid botuser then add to the line
-						description += String.Format("`{0}.` {0}", counter++.ToString("00"), Actions.FormatUser(user));
-					}
-				}
-
-				if (String.IsNullOrWhiteSpace(description))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no bot users on file."));
-					return;
-				}
-			}
-			else
-			{
-				description = String.Join("\n", Variables.BotUsers.Where(x => x.User.GuildId == Context.Guild.Id).Select(x =>
-					String.Format("`{0}.` {0}", counter++.ToString("00"), Actions.FormatUser(x.User))));
-
-				if (String.IsNullOrWhiteSpace(description))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no bot users."));
-					return;
-				}
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no bot users."));
+				return;
 			}
 
+			//Send the message
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bot Users", description));
 		}
-		#endregion
 
-		#region Reminds
 		[Command("remindsmodify")]
 		[Alias("remm")]
 		[Usage("[Add|Remove] [Name]/<Text>")]
@@ -991,6 +916,27 @@ namespace Advobot
 				}
 			}
 		}
-		#endregion
+
+		[Command("welcomemessage")]
+		[Alias("wm")]
+		[Usage("<ID of a message which has an embed> <\"Content:string\">")]
+		[Summary("Displays a welcome message with the given content. Either one or both of the given arguments must be used.")]
+		[PermissionRequirement]
+		[DefaultEnabled(false)]
+		public async Task WelcomeMessage([Remainder] string input)
+		{
+
+		}
+
+		[Command("getfile")]
+		[Alias("gf")]
+		[Usage("<File name>")]
+		[Summary("Gets the specified text file from the guild.")]
+		[PermissionRequirement]
+		[DefaultEnabled(false)]
+		public async Task GetFile([Optional, Remainder] string input)
+		{
+
+		}
 	}
 }

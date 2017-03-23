@@ -243,6 +243,7 @@ namespace Advobot
 			await LoadBotUsers(guild);
 			LoadReminds(guild);
 			LoadCommandsDisabledByChannel(guild);
+			Variables.Guilds[guild.Id].TurnLoadedOn();
 		}
 
 		//Load preferences
@@ -724,14 +725,14 @@ namespace Advobot
 		//Get top position of a user
 		public static int GetPosition(IGuild guild, IUser user)
 		{
-			//Check if the user is the owner
-			if (user.Id == guild.OwnerId)
-				return Constants.OWNER_POSITION;
-
 			//Make sure they're an IGuildUser
 			var tempUser = user as IGuildUser;
 			if (user == null)
 				return -1;
+
+			//Check if the user is the owner
+			if (user.Id == guild.OwnerId)
+				return Constants.OWNER_POSITION;
 
 			//Get the position off of their roles
 			return tempUser.RoleIds.ToList().Max(x => guild.GetRole(x).Position);
@@ -753,6 +754,12 @@ namespace Advobot
 		public static ulong GetUlong(string inputString)
 		{
 			return UInt64.TryParse(inputString, out ulong number) ? number : 0;
+		}
+
+		//Get the bot as an IGuildUser
+		public static async Task<IGuildUser> GetBot(IGuild guild)
+		{
+			return await guild.GetUserAsync(Variables.Bot_ID);
 		}
 		
 		//Get if the user/bot can edit the role
@@ -793,70 +800,157 @@ namespace Advobot
 		}
 
 		//Get if the user can move people from the channel
-		public static IVoiceChannel GetChannelMovability(IVoiceChannel channel, IUser user)
+		public static IVoiceChannel GetUserMovability(IVoiceChannel channel, IUser user)
 		{
 			var guildUser = user as IGuildUser;
 			if (guildUser == null)
 				return null;
+			else if (guildUser.GuildPermissions.Administrator)
+				return channel;
 
 			var perms = guildUser.GetPermissions(channel);
-			return (perms.ManagePermissions || perms.MoveMembers) ? channel : null;
+			if ((perms.Connect && perms.MoveMembers) || (perms.ManagePermissions && perms.ManageChannel))
+				return channel;
+			return null;
 		}
 		
-		//Get if the user can edit the channel
-		public static ITextChannel GetChannelEditAbility(ITextChannel channel, IUser user)
+		//Get if the user can edit the channel's permissions
+		public static dynamic GetChannelPermability(IGuildChannel channel, IUser user)
+		{
+			var guildUser = user as IGuildUser;
+			if (guildUser == null)
+				return null;
+			else if (guildUser.GuildPermissions.Administrator)
+				return channel;
+
+			var perms = guildUser.GetPermissions(channel);
+			if (channel is ITextChannel && perms.ReadMessages && perms.ManagePermissions && perms.ManageChannel)
+				return channel as ITextChannel;
+			else if (channel is IVoiceChannel && perms.ManagePermissions && perms.ManageChannel)
+				return channel as IVoiceChannel;
+			return null;
+		}
+
+		//Get if the user can do the manage actions on a channel
+		public static dynamic GetChannelManagability(IGuildChannel channel, IUser user)
+		{
+			var guildUser = user as IGuildUser;
+			if (guildUser == null)
+				return null;
+			else if (guildUser.GuildPermissions.Administrator)
+				return channel;
+
+			var perms = guildUser.GetPermissions(channel);
+			if (channel is ITextChannel && perms.ReadMessages && perms.ManageChannel)
+				return channel as ITextChannel;
+			else if (channel is IVoiceChannel && perms.ManageChannel)
+				return channel as IVoiceChannel;
+			return null;
+		}
+
+		//You need the ManageChannels or Administrator perm to move channel's positions
+		public static dynamic GetChannelMovability(IGuildChannel channel, IUser user)
 		{
 			var guildUser = user as IGuildUser;
 			if (guildUser == null)
 				return null;
 
-			var perms = guildUser.GetPermissions(channel);
-			return (perms.ManagePermissions || perms.ManageChannel) ? channel : null;
+			var perms = guildUser.GuildPermissions;
+			if (perms.Administrator)
+				return channel;
+			else if (channel is ITextChannel && guildUser.GetPermissions(channel).ReadMessages && perms.ManageChannels)
+				return channel as ITextChannel;
+			else if (channel is IVoiceChannel && perms.ManageChannels)
+				return channel as IVoiceChannel;
+			return null;
 		}
 
-		public static IVoiceChannel GetChannelEditAbility(IVoiceChannel channel, IUser user)
+		//Return a tuple of the channel and its reason for failure
+		public static async Task<ReturnedChannel> GetChannelPermability(CommandContext context, string input, IGuildChannel channel = null)
 		{
-			var guildUser = user as IGuildUser;
-			if (guildUser == null)
-				return null;
-
-			var perms = guildUser.GetPermissions(channel);
-			return (perms.ManagePermissions || perms.ManageChannel) ? channel : null;
-		}
-
-		public static IGuildChannel GetChannelEditAbility(IGuildChannel channel, IUser user)
-		{
-			var guildUser = user as IGuildUser;
-			if (guildUser == null)
-				return null;
-
-			var perms = guildUser.GetPermissions(channel);
-			return (perms.ManagePermissions || perms.ManageChannel) ? channel : null;
-		}
-
-		//Get if the user can edit this channel
-		public static async Task<IGuildChannel> GetChannelEditAbility(CommandContext context, string input, bool ignoreErrors = false)
-		{
-			var channel = await GetChannel(context, input);
+			channel = channel ?? await GetChannel(context, input);
 			if (channel == null)
 			{
-				if (!ignoreErrors)
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR("No channel was able to be gotten."));
-				}
-				return null;
+				return new ReturnedChannel(null, FailureReason.Not_Found);
 			}
-			else if (GetChannelEditAbility(channel, context.User) == null)
+			else if (GetChannelPermability(channel, context.User) == null)
 			{
-				if (!ignoreErrors)
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You do not have the ability to edit `{0}`.", FormatChannel(channel))));
-				}
-				return null;
+				return new ReturnedChannel(channel, FailureReason.User_Inability);
+			}
+			else if (GetChannelPermability(channel, await GetUser(context.Guild, Variables.Bot_ID)) == null)
+			{
+				return new ReturnedChannel(channel, FailureReason.Bot_Inability);
 			}
 			else
 			{
-				return channel;
+				return new ReturnedChannel(channel, FailureReason.Not_Failure);
+			}
+		}
+
+		//Same as above but for channel managability
+		public static async Task<ReturnedChannel> GetChannelManagability(CommandContext context, string input, IGuildChannel channel = null)
+		{
+			channel = channel ?? await GetChannel(context, input);
+			if (channel == null)
+			{
+				return new ReturnedChannel(null, FailureReason.Not_Found);
+			}
+			else if (GetChannelManagability(channel, context.User) == null)
+			{
+				return new ReturnedChannel(channel, FailureReason.User_Inability);
+			}
+			else if (GetChannelManagability(channel, await GetUser(context.Guild, Variables.Bot_ID)) == null)
+			{
+				return new ReturnedChannel(channel, FailureReason.Bot_Inability);
+			}
+			else
+			{
+				return new ReturnedChannel(channel, FailureReason.Not_Failure);
+			}
+		}
+
+		//Same as above but for channel movability
+		public static async Task<ReturnedChannel> GetChannelMovability(CommandContext context, string input, IGuildChannel channel = null)
+		{
+			channel = channel ?? await GetChannel(context, input);
+			if (channel == null)
+			{
+				return new ReturnedChannel(null, FailureReason.Not_Found);
+			}
+			else if (GetChannelMovability(channel, context.User) == null)
+			{
+				return new ReturnedChannel(channel, FailureReason.User_Inability);
+			}
+			else if (GetChannelMovability(channel, await GetUser(context.Guild, Variables.Bot_ID)) == null)
+			{
+				return new ReturnedChannel(channel, FailureReason.Bot_Inability);
+			}
+			else
+			{
+				return new ReturnedChannel(channel, FailureReason.Not_Failure);
+			}
+		}
+
+		//Handle the errors gotten
+		public static async Task HandleChannelPermsLacked(CommandContext context, ReturnedChannel channel)
+		{
+			switch (channel.Reason)
+			{
+				case FailureReason.Not_Found:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to find the channel."));
+					break;
+				}
+				case FailureReason.User_Inability:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You are unable to make the given changes to the channel: `{0}`.", FormatChannel(channel.Channel))));
+					break;
+				}
+				case FailureReason.Bot_Inability:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("I am unable to make the given changes to the channel: `{0}`.", FormatChannel(channel.Channel))));
+					break;
+				}
 			}
 		}
 		
@@ -874,14 +968,15 @@ namespace Advobot
 			{
 				return await guild.GetChannelAsync(message.MentionedChannelIds.FirstOrDefault());
 			}
+			else if (ulong.TryParse(input, out ulong ID))
+			{
+				return await guild.GetChannelAsync(ID);
+			}
 			//If name contains a space then it's a voice channel
 			else
 			{
 				//See which match the name and type given
-				var channels = (await guild.GetVoiceChannelsAsync()).Where(x =>
-				{
-					return CaseInsEquals(x.Name, input);
-				}).ToList();
+				var channels = (await guild.GetVoiceChannelsAsync()).Where(x => CaseInsEquals(x.Name, input)).ToList();
 
 				//If zero then no channels have the name so return an error message
 				if (channels.Count < 1)
@@ -891,7 +986,7 @@ namespace Advobot
 				//If only one then return that channel
 				if (channels.Count == 1)
 				{
-					return channels[0];
+					return channels.FirstOrDefault();
 				}
 				//If more than one return an error message too because how are we supposed to know which one they want?
 				else if (channels.Count > 1)
@@ -1153,20 +1248,8 @@ namespace Advobot
 			return client.GetGuilds().SelectMany(x => x.Users).FirstOrDefault(x => x.Id == Properties.Settings.Default.BotOwner);
 		}
 
-		//Get a group number
-		public static async Task<int> GetGroup(string input, CommandContext context)
-		{
-			return await GetIfGroupIsValid(GetVariable(input, "group"), context);
-		}
-
-		//Get a group number
-		public static async Task<int> GetGroup(string[] inputArray, CommandContext context)
-		{
-			return await GetIfGroupIsValid(GetVariable(inputArray, "group"), context);
-		}
-
 		//Validate the group
-		public static async Task<int> GetIfGroupIsValid(string input, CommandContext context)
+		public static async Task<int> GetIfGroupIsValid(CommandContext context, string input)
 		{
 			if (String.IsNullOrWhiteSpace(input))
 			{
@@ -1637,6 +1720,8 @@ namespace Advobot
 		public static string FormatChannel(IChannel channel)
 		{
 			var tempChan = channel as IGuildChannel;
+			if (tempChan == null)
+				return "Unable to get channel data.";
 			return String.Format("{0} ({1}) ({2})", channel.Name, GetChannelType(tempChan), channel.Id);
 		}
 
@@ -2904,13 +2989,106 @@ namespace Advobot
 				return;
 			var user = message.Author as IGuildUser;
 			var bpUser = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user);
+
+			var amountOfMsgs = 0;
+			switch (regex.Punishment)
+			{
+				case PunishmentType.Role:
+				{
+					bpUser.IncreaseRoleCount();
+					amountOfMsgs = bpUser.MessagesForRole;
+					break;
+				}
+				case PunishmentType.Kick:
+				{
+					bpUser.IncreaseKickCount();
+					amountOfMsgs = bpUser.MessagesForKick;
+					break;
+				}
+				case PunishmentType.Ban:
+				{
+					bpUser.IncreaseBanCount();
+					amountOfMsgs = bpUser.MessagesForBan;
+					break;
+				}
+			}
+
+			//Get the banned phrases punishments from the guild
+			if (!TryGetPunishment(guildInfo, regex.Punishment, amountOfMsgs, out BannedPhrasePunishment punishment))
+				return;
+
+			switch (punishment.Punishment)
+			{
+				case PunishmentType.Kick:
+				{
+					//Check if can kick them
+					if (GetPosition(user.Guild, user) > GetPosition(user.Guild, await user.Guild.GetUserAsync(Variables.Bot_ID)))
+						return;
+
+					//Kick them
+					await user.KickAsync();
+
+					//Send a message to the logchannel
+					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+					if (logChannel != null)
+					{
+						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
+						await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl()));
+					}
+					break;
+				}
+				case PunishmentType.Ban:
+				{
+					//Check if can ban them
+					if (GetPosition(user.Guild, user) > GetPosition(user.Guild, await user.Guild.GetUserAsync(Variables.Bot_ID)))
+						return;
+
+					//Ban them
+					await user.Guild.AddBanAsync(message.Author);
+
+					//Send a message to the logchannel
+					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+					if (logChannel != null)
+					{
+						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
+						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
+					}
+					break;
+				}
+				case PunishmentType.Role:
+				{
+					//Give them the role
+					await GiveRole(user, punishment.Role);
+
+					//If a time is specified, run through the time then remove the role
+					if (punishment.PunishmentTime != null)
+					{
+						Variables.PunishedUsers.Add(new RemovablePunishment(guild, user, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
+					}
+
+					//Send a message to the logchannel
+					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+					if (logChannel != null)
+					{
+						var embed = AddFooter(MakeNewEmbed(null, "**Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
+						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
+					}
+					break;
+				}
+			}
 		}
 
-		public static List<string> HandleBannedRegexModification(List<BannedPhrase<Regex>> bannedRegex, List<string> inputPhrases, bool add)
+		public static List<string> HandleBannedRegexModification(List<BannedPhrase<Regex>> bannedRegex, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
 		{
+			var tempSuccess = new List<string>();
+			var tempFailure = new List<string>();
 			if (add)
 			{
-				inputPhrases.ForEach(x => bannedRegex.Add(new BannedPhrase<Regex>(new Regex(x), PunishmentType.Nothing)));
+				inputPhrases.ForEach(x =>
+				{
+					bannedRegex.Add(new BannedPhrase<Regex>(new Regex(x), PunishmentType.Nothing));
+					tempSuccess.Add(x);
+				});
 			}
 			else
 			{
@@ -2926,23 +3104,56 @@ namespace Advobot
 
 				if (!positions.Any())
 				{
-					inputPhrases.ForEach(x => bannedRegex.Remove(bannedRegex.FirstOrDefault(y => y.Phrase.ToString() == x)));
+					inputPhrases.ForEach(x =>
+					{
+						var tempRegex = bannedRegex.FirstOrDefault(y => y.Phrase.ToString() == x);
+						if (tempRegex == null)
+						{
+							tempFailure.Add(x);
+						}
+						else
+						{
+							tempSuccess.Add(x);
+							bannedRegex.Remove(tempRegex);
+						}
+					});
 				}
 				else
 				{
 					//Put them in descending order so as to not delete low values before high ones
-					positions.OrderByDescending(x => x).ToList().ForEach(x => bannedRegex.RemoveAt(x));
+					positions.OrderByDescending(x => x).ToList().ForEach(x =>
+					{
+						if (bannedRegex.Count - 1 <= x)
+						{
+							var tempRegex = bannedRegex[x];
+							if (tempRegex != null)
+							{
+								bannedRegex.Remove(tempRegex);
+								tempSuccess.Add(tempRegex.Phrase.ToString());
+								return;
+							}
+						}
+						tempFailure.Add("Regex at position " + x);
+					});
 				}
 			}
 
+			success = tempSuccess;
+			failure = tempFailure;
 			return FormatSavingForBannedRegex(bannedRegex);
 		}
 
-		public static List<string> HandleBannedStringModification(List<BannedPhrase<string>> bannedStrings, List<string> inputPhrases, bool add)
+		public static List<string> HandleBannedStringModification(List<BannedPhrase<string>> bannedStrings, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
 		{
+			var tempSuccess = new List<string>();
+			var tempFailure = new List<string>();
 			if (add)
 			{
-				inputPhrases.ForEach(x => bannedStrings.Add(new BannedPhrase<string>(x, PunishmentType.Nothing)));
+				inputPhrases.ForEach(x =>
+				{
+					bannedStrings.Add(new BannedPhrase<string>(x, PunishmentType.Nothing));
+					tempSuccess.Add(x);
+				});
 			}
 			else
 			{
@@ -2958,15 +3169,42 @@ namespace Advobot
 
 				if (!positions.Any())
 				{
-					inputPhrases.ForEach(x => bannedStrings.Remove(bannedStrings.FirstOrDefault(y => y.Phrase.ToString() == x)));
+					inputPhrases.ForEach(x =>
+					{
+						var tempString = bannedStrings.FirstOrDefault(y => y.Phrase.ToString() == x);
+						if (tempString == null)
+						{
+							tempFailure.Add(x);
+						}
+						else
+						{
+							tempSuccess.Add(x);
+							bannedStrings.Remove(tempString);
+						}
+					});
 				}
 				else
 				{
 					//Put them in descending order so as to not delete low values before high ones
-					positions.OrderByDescending(x => x).ToList().ForEach(x => bannedStrings.RemoveAt(x));
+					positions.OrderByDescending(x => x).ToList().ForEach(x =>
+					{
+						if (bannedStrings.Count - 1 <= x)
+						{
+							var tempString = bannedStrings[x];
+							if (tempString != null)
+							{
+								bannedStrings.Remove(tempString);
+								tempSuccess.Add(tempString.Phrase);
+								return;
+							}
+						}
+						tempFailure.Add("String at position " + x);
+					});
 				}
 			}
 
+			success = tempSuccess;
+			failure = tempFailure;
 			return FormatSavingForBannedString(bannedStrings);
 		}
 
@@ -3327,15 +3565,14 @@ namespace Advobot
 			Task.Run(async () =>
 			{
 				await Task.Delay(time);
+
 				var curMsgs = new List<IMessage>();
 				await messages.ForEachAsync(async x =>
 				{
 					//TODO: Figure out how to do this without a try catch
 					try
 					{
-						var ID = x.Id;
-						var msg = await channel.GetMessageAsync(ID);
-						curMsgs.Add(msg);
+						curMsgs.Add(await channel.GetMessageAsync(x.Id));
 					}
 					catch (Exception e)
 					{

@@ -541,6 +541,7 @@ namespace Advobot
 		private RoleLoss mRoleLoss = new RoleLoss();
 		private MessageDeletion mMessageDeletion = new MessageDeletion();
 		private bool mDefaultPrefs = true;
+		private bool mLoaded = false;
 		private string mPrefix;
 		private IGuild mGuild;
 		private ITextChannel mServerLog;
@@ -565,6 +566,14 @@ namespace Advobot
 		public void TurnDefaultPrefsOff()
 		{
 			mDefaultPrefs = false;
+		}
+		public bool Loaded
+		{
+			get { return mLoaded; }
+		}
+		public void TurnLoadedOn()
+		{
+			mLoaded = true;
 		}
 		public string Prefix
 		{
@@ -1378,6 +1387,27 @@ namespace Advobot
 			get { return mTime; }
 		}
 	}
+
+	public struct ReturnedChannel
+	{
+		public ReturnedChannel(IGuildChannel channel, FailureReason reason)
+		{
+			mChannel = channel;
+			mReason = reason;
+		}
+
+		private IGuildChannel mChannel;
+		private FailureReason mReason;
+
+		public IGuildChannel Channel
+		{
+			get { return mChannel; }
+		}
+		public FailureReason Reason
+		{
+			get { return mReason; }
+		}
+	}
 	#endregion
 
 	#region Enums
@@ -1490,6 +1520,14 @@ namespace Advobot
 		Allow = 2,
 		Inherit = 3,
 		Deny = 4,
+	}
+
+	public enum FailureReason
+	{
+		Not_Failure = 0,
+		Not_Found = 1,
+		User_Inability = 2,
+		Bot_Inability = 3,
 	}
 	#endregion
 }

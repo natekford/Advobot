@@ -49,7 +49,7 @@ namespace Advobot
 				guildInfo = Variables.Guilds[channel.GuildId];
 			}
 			//Check if that channel is ignored for commands
-			if (guildInfo.IgnoredCommandChannels.Contains(channel.Id))
+			else if (guildInfo.IgnoredCommandChannels.Contains(channel.Id))
 				return;
 
 			//Get the guild specific prefix
@@ -69,6 +69,13 @@ namespace Advobot
 			//Getting to here means the guild is not using a prefix
 			else if (!message.HasStringPrefix(Properties.Settings.Default.Prefix, ref argPos))
 				return;
+
+			//Make sure the guild is fully loaded
+			if (!guildInfo.Loaded)
+			{
+				await Actions.SendChannelMessage(channel, "The guild is not fully loaded, please wait.");
+				return;
+			}
 
 			//Check if there is anything preventing the command from going through
 			var context = new CommandContext(Client.GetClient(), message);

@@ -94,29 +94,33 @@ namespace Advobot
 
 		[Command("guildafk")]
 		[Alias("gdafk")]
-		[Usage("[Channel|Time] [Voice Channel Name|Time in Seconds]")]
+		[Usage("[Channel|Time] [\"Channel Name\"|Time in Seconds]")]
 		[Summary("The first argument tells if the channel or timer is going to be changed. The second is what it will be changed to.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
 		public async Task ChangeGuildAFK([Remainder] string input)
 		{
 			//Split at space into two args
-			var inputArray = input.Split(new char[] { ' ' }, 2);
-
-			//Check if valid number of args
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
 			if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+			var action = inputArray[0];
+			var info = inputArray[1];
 
 			//Check if valid action
-			if (Actions.CaseInsEquals(inputArray[0], "channel"))
+			if (Actions.CaseInsEquals(action, "channel"))
 			{
 				//Check if valid channel
-				var channel = await Actions.GetChannelEditAbility(Context, inputArray[1] + "/voice");
-				if (channel == null)
+				var returnedChannel = await Actions.GetChannelPermability(Context, info);
+				var channel = returnedChannel.Channel;
+				if (returnedChannel.Reason != FailureReason.Not_Failure)
+				{
+					await Actions.HandleChannelPermsLacked(Context, returnedChannel);
 					return;
+				}
 				else if (Actions.GetChannelType(channel) != Constants.VOICE_TYPE)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The guild's afk channel has to be a voice channel."));
@@ -124,16 +128,17 @@ namespace Advobot
 				}
 
 				//Capture the before channel
-				var bChan = Context.Guild.AFKChannelId.HasValue ? (await Context.Guild.GetChannelAsync(Context.Guild.AFKChannelId.Value)).Name : "Nothing";
+				var bChan = Context.Guild.AFKChannelId.HasValue ? (await Context.Guild.GetChannelAsync(Context.Guild.AFKChannelId.Value)) : null;
 
 				//Change the afk channel to the input
 				await Context.Guild.ModifyAsync(x => x.AfkChannelId = channel.Id);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild's AFK channel from `{0}` to `{1}`", bChan, inputArray[1]));
+				await Actions.MakeAndDeleteSecondaryMessage(Context,
+					String.Format("Successfully changed the guild's AFK channel from `{0}` to `{1}`", Actions.FormatChannel(bChan), Actions.FormatChannel(channel)));
 			}
-			else if (Actions.CaseInsEquals(inputArray[0], "time"))
+			else if (Actions.CaseInsEquals(action, "time"))
 			{
 				//Check if valid time
-				if (!int.TryParse(inputArray[1], out int time))
+				if (!int.TryParse(info, out int time))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for time."));
 					return;
