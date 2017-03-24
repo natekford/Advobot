@@ -1103,9 +1103,9 @@ namespace Advobot
 		public static async Task UIBotGame(string input)
 		{
 			//Check the game name length
-			if (input.Length > Constants.GAME_MAX_LENGTH)
+			if (input.Length > Constants.MAX_GAME_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR(String.Format("Game name cannot be longer than '{0}' characters or else it doesn't show to other people.", Constants.GAME_MAX_LENGTH)));
+				Actions.WriteLine(Actions.ERROR(String.Format("Game name cannot be longer than '{0}' characters or else it doesn't show to other people.", Constants.MAX_GAME_LENGTH)));
 				return;
 			}
 
@@ -1159,14 +1159,14 @@ namespace Advobot
 			}
 
 			//Names have the same length requirements as nicknames
-			if (input.Length > Constants.NICKNAME_MAX_LENGTH)
+			if (input.Length > Constants.MAX_NICKNAME_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be more than '{0}' characters.", Constants.NICKNAME_MAX_LENGTH)));
+				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be more than '{0}' characters.", Constants.MAX_NICKNAME_LENGTH)));
 				return;
 			}
-			else if (input.Length < Constants.NICKNAME_MIN_LENGTH)
+			else if (input.Length < Constants.MAX_NICKNAME_LENGTH)
 			{
-				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be less than '{0}' characters.", Constants.NICKNAME_MIN_LENGTH)));
+				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be less than '{0}' characters.", Constants.MAX_NICKNAME_LENGTH)));
 				return;
 			}
 

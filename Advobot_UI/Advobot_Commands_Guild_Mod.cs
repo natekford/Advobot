@@ -25,14 +25,14 @@ namespace Advobot
 			//Guild names have the same length requirements as channel names, so I'm not changing the variable names
 
 			//Check if valid length
-			if (input.Length > Constants.CHANNEL_NAME_MAX_LENGTH)
+			if (input.Length > Constants.MAX_CHANNEL_NAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.CHANNEL_NAME_MAX_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.MAX_CHANNEL_NAME_LENGTH)));
 				return;
 			}
-			else if (input.Length < Constants.CHANNEL_NAME_MIN_LENGTH)
+			else if (input.Length < Constants.MIN_CHANNEL_NAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.MIN_CHANNEL_NAME_LENGTH)));
 				return;
 			}
 

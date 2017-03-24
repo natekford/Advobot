@@ -522,7 +522,7 @@ namespace Advobot
 			if (beforeMsgContent.Equals(afterMsgContent))
 				return;
 			//Check lengths
-			if (beforeMsgContent.Length + afterMsgContent.Length > Constants.LENGTH_CHECK)
+			if (beforeMsgContent.Length + afterMsgContent.Length > Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
 				beforeMsgContent = beforeMsgContent.Length > 667 ? "LONG MESSAGE" : beforeMsgContent;
 				afterMsgContent = afterMsgContent.Length > 667 ? "LONG MESSAGE" : afterMsgContent;

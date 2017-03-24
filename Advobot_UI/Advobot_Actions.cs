@@ -342,10 +342,10 @@ namespace Advobot
 							continue;
 
 						var type = (PunishmentType)number;
-						var regex = line.Substring(colonIndex);
-						if (!String.IsNullOrWhiteSpace(regex))
+						var regexStr = line.Substring(colonIndex);
+						if (!String.IsNullOrWhiteSpace(regexStr) && TryCreateRegex(regexStr, out Regex regex, out string error))
 						{
-							guildInfo.BannedRegex.Add(new BannedPhrase<Regex>(new Regex(regex), type));
+							guildInfo.BannedRegex.Add(new BannedPhrase<Regex>(regex, type));
 						}
 					}
 					//Punishments
@@ -1691,8 +1691,8 @@ namespace Advobot
 				return "";
 
 			//Matching
-			Regex empty = new Regex("[*`]");
-			Regex newLines = new Regex("[\n]{2}");
+			var empty = new Regex("[*`]", RegexOptions.Compiled);
+			var newLines = new Regex("[\n]{2}", RegexOptions.Compiled);
 
 			//Actually removing
 			input = empty.Replace(input, "");
@@ -1821,7 +1821,7 @@ namespace Advobot
 			{
 				return;
 			}
-			else if (inputList.Count <= 5 && characterCount < Constants.LENGTH_CHECK)
+			else if (inputList.Count <= 5 && characterCount < Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
 				//If there aren't many messages send the small amount in a message instead of a file or link
 				var embed = MakeNewEmbed("Deleted Messages", String.Join("\n", inputList), Constants.MDEL);
@@ -2088,25 +2088,25 @@ namespace Advobot
 			//Add in the properties
 			if (title != null)
 			{
-				embed.WithTitle(title.Substring(0, Math.Min(Constants.TITLE_MAX_LENGTH, title.Length)));
+				embed.WithTitle(title.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, title.Length)));
 			}
 			if (description != null)
 			{
 				var output = description;
 				//Descriptions can only be 2048 characters max
-				if (description.Length > Constants.EMBED_MAX_LENGTH_LONG)
+				if (description.Length > Constants.MAX_EMBED_LENGTH_LONG)
 				{
 					if (TryToUploadToHastebin(description, out output))
 					{
-						output = String.Format("Content is past {0} characters. Click [here]({1}) to see it.", Constants.EMBED_MAX_LENGTH_LONG, output);
+						output = String.Format("Content is past {0} characters. Click [here]({1}) to see it.", Constants.MAX_EMBED_LENGTH_LONG, output);
 					}
 				}
 				//Mobile can only show up to 20 or so lines on the description part of an embed
-				else if (GetLineBreaks(description) > Constants.DESCRIPTION_MAX_LINES)
+				else if (GetLineBreaks(description) > Constants.MAX_DESCRIPTION_LINES)
 				{
 					if (TryToUploadToHastebin(description, out output))
 					{
-						output = String.Format("Content is past {0} new lines. Click [here]({1}) to see it.", Constants.DESCRIPTION_MAX_LINES, output);
+						output = String.Format("Content is past {0} new lines. Click [here]({1}) to see it.", Constants.MAX_DESCRIPTION_LINES, output);
 					}
 				}
 				embed.WithDescription(output);
@@ -2144,7 +2144,7 @@ namespace Advobot
 			//Add in the properties
 			if (name != null)
 			{
-				author.WithName(name.Substring(0, Math.Min(Constants.TITLE_MAX_LENGTH, name.Length)));
+				author.WithName(name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length)));
 			}
 			if (iconURL != null)
 			{
@@ -2170,7 +2170,7 @@ namespace Advobot
 			//Add in the properties
 			if (text != null)
 			{
-				footer.WithText(text.Substring(0, Math.Min(Constants.EMBED_MAX_LENGTH_LONG, text.Length)));
+				footer.WithText(text.Substring(0, Math.Min(Constants.MAX_EMBED_LENGTH_LONG, text.Length)));
 			}
 			if (iconURL != null)
 			{
@@ -2183,30 +2183,30 @@ namespace Advobot
 		//Add a field to an embed
 		public static EmbedBuilder AddField(EmbedBuilder embed, string name, string value, bool isInline = true)
 		{
-			if ((String.IsNullOrWhiteSpace(name) && String.IsNullOrWhiteSpace(value)) || embed.Build().Fields.Count() >= Constants.FIELDS_MAX)
+			if ((String.IsNullOrWhiteSpace(name) && String.IsNullOrWhiteSpace(value)) || embed.Build().Fields.Count() >= Constants.MAX_FIELDS)
 				return embed;
 
 			//Get the name and value
-			name = String.IsNullOrWhiteSpace(name) ? "Placeholder" : name.Substring(0, Math.Min(Constants.TITLE_MAX_LENGTH, name.Length));
+			name = String.IsNullOrWhiteSpace(name) ? "Placeholder" : name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length));
 			value = String.IsNullOrWhiteSpace(name) ? "Placeholder" : value.Substring(0, Math.Min(value.Length, Constants.MAX_LENGTH_FOR_HASTEBIN));
 
 			embed.AddField(x =>
 			{
 				var outputValue = value;
 				//Embeds can only show up to 1024 chars per field
-				if (value.Length > Constants.EMBED_MAX_LENGTH_SHORT)
+				if (value.Length > Constants.MAX_EMBED_LENGTH_SHORT)
 				{
 					if (TryToUploadToHastebin(value, out outputValue))
 					{
-						outputValue = String.Format("Field has more than {0} characters; please click [here]({1}) to see the content.", Constants.EMBED_MAX_LENGTH_SHORT, outputValue);
+						outputValue = String.Format("Field has more than {0} characters; please click [here]({1}) to see the content.", Constants.MAX_EMBED_LENGTH_SHORT, outputValue);
 					}
 				}
 				//Fields can only show up to five lines on mobile
-				else if (GetLineBreaks(value) > Constants.FIELD_MAX_LINES)
+				else if (GetLineBreaks(value) > Constants.MAX_FIELD_LINES)
 				{
 					if (TryToUploadToHastebin(value, out outputValue))
 					{
-						outputValue = String.Format("Field has more than {0} new lines; please click [here]({1}) to see the content.", Constants.FIELD_MAX_LINES, outputValue);
+						outputValue = String.Format("Field has more than {0} new lines; please click [here]({1}) to see the content.", Constants.MAX_FIELD_LINES, outputValue);
 					}
 				}
 
@@ -2921,6 +2921,7 @@ namespace Advobot
 
 					//Kick them
 					await user.KickAsync();
+					bpUser.ResetKickCount();
 
 					//Send a message to the logchannel
 					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
@@ -2938,7 +2939,8 @@ namespace Advobot
 						return;
 
 					//Ban them
-					await user.Guild.AddBanAsync(message.Author);
+					await user.Guild.AddBanAsync(user);
+					bpUser.ResetBanCount();
 
 					//Send a message to the logchannel
 					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
@@ -2953,6 +2955,7 @@ namespace Advobot
 				{
 					//Give them the role
 					await GiveRole(user, punishment.Role);
+					bpUser.ResetRoleCount();
 
 					//If a time is specified, run through the time then remove the role
 					if (punishment.PunishmentTime != null)
@@ -2964,7 +2967,7 @@ namespace Advobot
 					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
 					if (logChannel != null)
 					{
-						var embed = AddFooter(MakeNewEmbed(null, "**Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
+						var embed = AddFooter(MakeNewEmbed(null, "**Role Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
 						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
 					}
 					break;
@@ -3080,15 +3083,22 @@ namespace Advobot
 
 		public static List<string> HandleBannedRegexModification(List<BannedPhrase<Regex>> bannedRegex, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
 		{
-			var tempSuccess = new List<string>();
-			var tempFailure = new List<string>();
+			success = new List<string>();
+			failure = new List<string>();
 			if (add)
 			{
-				inputPhrases.ForEach(x =>
+				foreach (var str in inputPhrases)
 				{
-					bannedRegex.Add(new BannedPhrase<Regex>(new Regex(x), PunishmentType.Nothing));
-					tempSuccess.Add(x);
-				});
+					if (TryCreateRegex(str, out Regex regex, out string error))
+					{
+						bannedRegex.Add(new BannedPhrase<Regex>(regex, PunishmentType.Nothing));
+						success.Add(str);
+					}
+					else
+					{
+						failure.Add(error);
+					}
+				}
 			}
 			else
 			{
@@ -3104,56 +3114,57 @@ namespace Advobot
 
 				if (!positions.Any())
 				{
-					inputPhrases.ForEach(x =>
+					foreach (var str in inputPhrases)
 					{
-						var tempRegex = bannedRegex.FirstOrDefault(y => y.Phrase.ToString() == x);
+						var tempRegex = bannedRegex.FirstOrDefault(y => y.Phrase.ToString() == str);
 						if (tempRegex == null)
 						{
-							tempFailure.Add(x);
+							failure.Add(str);
 						}
 						else
 						{
-							tempSuccess.Add(x);
+							success.Add(str);
 							bannedRegex.Remove(tempRegex);
 						}
-					});
+					}
 				}
 				else
 				{
 					//Put them in descending order so as to not delete low values before high ones
-					positions.OrderByDescending(x => x).ToList().ForEach(x =>
+					foreach (var position in positions.OrderByDescending(x => x))
 					{
-						if (bannedRegex.Count - 1 <= x)
+						if (bannedRegex.Count - 1 <= position)
 						{
-							var tempRegex = bannedRegex[x];
+							var tempRegex = bannedRegex[position];
 							if (tempRegex != null)
 							{
 								bannedRegex.Remove(tempRegex);
-								tempSuccess.Add(tempRegex.Phrase.ToString());
-								return;
+								success.Add(tempRegex.Phrase.ToString());
+								continue;
 							}
 						}
-						tempFailure.Add("Regex at position " + x);
-					});
+						else
+						{
+							failure.Add("Regex at position " + position);
+						}
+					}
 				}
 			}
 
-			success = tempSuccess;
-			failure = tempFailure;
 			return FormatSavingForBannedRegex(bannedRegex);
 		}
 
 		public static List<string> HandleBannedStringModification(List<BannedPhrase<string>> bannedStrings, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
 		{
-			var tempSuccess = new List<string>();
-			var tempFailure = new List<string>();
+			success = new List<string>();
+			failure = new List<string>();
 			if (add)
 			{
-				inputPhrases.ForEach(x =>
+				foreach (var str in inputPhrases)
 				{
-					bannedStrings.Add(new BannedPhrase<string>(x, PunishmentType.Nothing));
-					tempSuccess.Add(x);
-				});
+					bannedStrings.Add(new BannedPhrase<string>(str, PunishmentType.Nothing));
+					success.Add(str);
+				}
 			}
 			else
 			{
@@ -3169,42 +3180,40 @@ namespace Advobot
 
 				if (!positions.Any())
 				{
-					inputPhrases.ForEach(x =>
+					foreach (var str in inputPhrases)
 					{
-						var tempString = bannedStrings.FirstOrDefault(y => y.Phrase.ToString() == x);
+						var tempString = bannedStrings.FirstOrDefault(y => y.Phrase.ToString() == str);
 						if (tempString == null)
 						{
-							tempFailure.Add(x);
+							failure.Add(str);
 						}
 						else
 						{
-							tempSuccess.Add(x);
+							success.Add(str);
 							bannedStrings.Remove(tempString);
 						}
-					});
+					}
 				}
 				else
 				{
 					//Put them in descending order so as to not delete low values before high ones
-					positions.OrderByDescending(x => x).ToList().ForEach(x =>
+					foreach (var position in positions.OrderByDescending(x => x))
 					{
-						if (bannedStrings.Count - 1 <= x)
+						if (bannedStrings.Count - 1 <= position)
 						{
-							var tempString = bannedStrings[x];
+							var tempString = bannedStrings[position];
 							if (tempString != null)
 							{
 								bannedStrings.Remove(tempString);
-								tempSuccess.Add(tempString.Phrase);
-								return;
+								success.Add(tempString.Phrase);
+								continue;
 							}
 						}
-						tempFailure.Add("String at position " + x);
-					});
+						failure.Add("String at position " + position);
+					}
 				}
 			}
 
-			success = tempSuccess;
-			failure = tempFailure;
 			return FormatSavingForBannedString(bannedStrings);
 		}
 
@@ -3228,6 +3237,22 @@ namespace Advobot
 		{
 			bannedString = guildInfo.BannedStrings.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
 			return bannedString != null;
+		}
+
+		public static bool TryCreateRegex(string input, out Regex regexOutput, out string stringOutput)
+		{
+			regexOutput = null;
+			stringOutput = null;
+			try
+			{
+				regexOutput = new Regex(input);
+				return true;
+			}
+			catch (Exception e)
+			{
+				stringOutput = e.Message;
+				return false;
+			}
 		}
 		#endregion
 

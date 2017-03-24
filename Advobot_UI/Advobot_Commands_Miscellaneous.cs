@@ -969,9 +969,9 @@ namespace Advobot
 			var roleStr = inputArray[0];
 			var textStr = inputArray[1];
 
-			if (textStr.Length > Constants.LENGTH_CHECK)
+			if (textStr.Length > Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Please keep the message to send under `{0}` characters.", Constants.LENGTH_CHECK)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Please keep the message to send under `{0}` characters.", Constants.MAX_MESSAGE_LENGTH_LONG)));
 				return;
 			}
 

@@ -220,14 +220,14 @@ namespace Advobot
 		public async Task CreateRole([Remainder] string input)
 		{
 			//Check length
-			if (input.Length > Constants.ROLE_NAME_MAX_LENGTH)
+			if (input.Length > Constants.MAX_ROLE_NAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles can only have a name length of up to `{0}` characters.", Constants.ROLE_NAME_MAX_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles can only have a name length of up to `{0}` characters.", Constants.MAX_ROLE_NAME_LENGTH)));
 				return;
 			}
-			else if (input.Length < Constants.ROLE_NAME_MIN_LENGTH)
+			else if (input.Length < Constants.MIN_ROLE_NAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles need to have a name equal to or greater than `{0}` characters.", Constants.ROLE_NAME_MIN_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles need to have a name equal to or greater than `{0}` characters.", Constants.MIN_ROLE_NAME_LENGTH)));
 				return;
 			}
 
@@ -668,14 +668,14 @@ namespace Advobot
 
 			//Check length
 			var newName = inputArray[1];
-			if (newName.Length > Constants.ROLE_NAME_MAX_LENGTH)
+			if (newName.Length > Constants.MAX_ROLE_NAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles can only have a name length of up to `{0}` characters.", Constants.ROLE_NAME_MAX_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles can only have a name length of up to `{0}` characters.", Constants.MAX_ROLE_NAME_LENGTH)));
 				return;
 			}
-			else if (newName.Length < Constants.ROLE_NAME_MIN_LENGTH)
+			else if (newName.Length < Constants.MIN_ROLE_NAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles need to have a name equal to or greater than `{0}` characters.", Constants.ROLE_NAME_MIN_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Roles need to have a name equal to or greater than `{0}` characters.", Constants.MIN_ROLE_NAME_LENGTH)));
 				return;
 			}
 

@@ -535,6 +535,7 @@ namespace Advobot
 		public List<BotInvite> Invites = new List<BotInvite>();
 		public List<IRole> FAWRRoles = new List<IRole>();
 		public List<string> FAWRNicknames = new List<string>();
+		public List<Regex> EvaluatedRegex = new List<Regex>();
 
 		private GlobalSpamPrevention mGlobalSpamPrevention = new GlobalSpamPrevention();
 		private AntiRaid mAntiRaid;

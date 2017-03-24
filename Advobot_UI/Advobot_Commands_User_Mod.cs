@@ -323,14 +323,14 @@ namespace Advobot
 				return;
 			}
 			//Check if valid length
-			if (nickname != null && nickname.Length > Constants.NICKNAME_MAX_LENGTH)
+			if (nickname != null && nickname.Length > Constants.MAX_NICKNAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than `{0}` characters.", Constants.NICKNAME_MAX_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than `{0}` characters.", Constants.MAX_NICKNAME_LENGTH)));
 				return;
 			}
-			else if (nickname != null && nickname.Length < Constants.NICKNAME_MIN_LENGTH)
+			else if (nickname != null && nickname.Length < Constants.MAX_NICKNAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.NICKNAME_MIN_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MAX_NICKNAME_LENGTH)));
 				return;
 			}
 
@@ -391,12 +391,12 @@ namespace Advobot
 			}
 
 			//Test lengths
-			if (find.Length > Constants.NICKNAME_MAX_LENGTH)
+			if (find.Length > Constants.MAX_NICKNAME_LENGTH)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to replace can only be up to `{0}` characters long.")));
 				return;
 			}
-			if (with.Length > Constants.NICKNAME_MAX_LENGTH)
+			if (with.Length > Constants.MAX_NICKNAME_LENGTH)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to replace with can only be up to `{0}` characters long.")));
 				return;
@@ -1118,14 +1118,14 @@ namespace Advobot
 			}
 			else if (actionEnum == FAWRType.Nickname)
 			{
-				if (outputString.Length > Constants.NICKNAME_MAX_LENGTH)
+				if (outputString.Length > Constants.MAX_NICKNAME_LENGTH)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than `{0}` charaters.", Constants.NICKNAME_MAX_LENGTH)));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than `{0}` charaters.", Constants.MAX_NICKNAME_LENGTH)));
 					return;
 				}
-				else if (outputString.Length < Constants.NICKNAME_MIN_LENGTH)
+				else if (outputString.Length < Constants.MAX_NICKNAME_LENGTH)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.NICKNAME_MIN_LENGTH)));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MAX_NICKNAME_LENGTH)));
 					return;
 				}
 			}

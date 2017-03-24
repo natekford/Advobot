@@ -12,20 +12,182 @@ namespace Advobot
 	[Name("Ban_Phrases")]
 	public class Advobot_Commands_Ban_Phrases : ModuleBase
 	{
-		[Command("banregexevaluate")]
-		[Alias("bpm")]
-		[Usage("")]
-		[Summary("Evaluates a regex.")]
+		[Command("banregexeval")]
+		[Alias("bre")]
+		[Usage("[\"Regex\"] [\"Test Message\"]")]
+		[Summary("Evaluates a regex. Once a regex receives a good score then it can be used within the bot as a banned phrase.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task BanRegexEvaluate([Remainder] string input)
 		{
+			//Check if using the default preferences
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
 
+			//Get the arguments
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
+			if (inputArray.Length != 2)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+			var regexStr = inputArray[0];
+			var message = inputArray[1];
+
+			//Check the length of the regex
+			if (regexStr.Length > Constants.MAX_LENGTH_FOR_REGEX)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Please keep the regex to under {0} characters.", Constants.MAX_LENGTH_FOR_REGEX));
+				return;
+			}
+
+			//Make sure the regex is valid
+			var title = String.Format("`{0}`", regexStr);
+			if (!Actions.TryCreateRegex(regexStr, out Regex regex, out string error))
+			{
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, String.Format("**Error:** `{0}`", error)));
+				return;
+			}
+
+			//Test to see what it affects
+			var matchesMessage = regex.IsMatch(message);
+			var matchesEmpty = regex.IsMatch("");
+			var matchesSpace = regex.IsMatch(" ");
+			var matchesNewLine = regex.IsMatch(Environment.NewLine);
+			var matchesRandom = regex.IsMatch("Ӽ1(") && regex.IsMatch("Ϯ3|") && regex.IsMatch("⁊a~") && regex.IsMatch("[&r");
+			var matchesEverything = matchesMessage && matchesEmpty && matchesSpace && matchesNewLine && matchesRandom;
+			var okToUse = matchesMessage && !(matchesEmpty || matchesSpace || matchesNewLine || matchesEverything);
+
+			//If the regex is ok then add it to the evaluated list
+			if (okToUse)
+			{
+				if (guildInfo.EvaluatedRegex.Count >= 5)
+				{
+					guildInfo.EvaluatedRegex.RemoveAt(0);
+				}
+				guildInfo.EvaluatedRegex.Add(regex);
+			}
+
+			//Format the description
+			var messageStr = String.Format("The given regex matches the given string: `{0}`.", matchesMessage);
+			var emptyStr = String.Format("The given regex matches empty strings: `{0}`.", matchesEmpty);
+			var spaceStr = String.Format("The given regex matches spaces: `{0}`.", matchesSpace);
+			var newLineStr = String.Format("The given regex matches new lines: `{0}`.", matchesNewLine);
+			var randomStr = String.Format("The given regex matches random strings: `{0}`.", matchesRandom);
+			var everythingStr = String.Format("The given regex matches everything: `{0}`.", matchesEverything);
+			var okStr = String.Format("The given regex is `{0}`.", okToUse ? "GOOD" : "BAD");
+			var description = String.Join("\n", new string[] { messageStr, emptyStr, spaceStr, newLineStr, randomStr, everythingStr, okStr });
+
+			//Send the embed
+			var embed = Actions.MakeNewEmbed(title, description);
+			await Actions.SendEmbedMessage(Context.Channel, embed);
 		}
 
-		[Command("banphrasesmodify")]
-		[Alias("bpm")]
-		[Usage("[Add] [\"Phrase\"/...] <Regex> | [Remove] [\"Phrase\"/...|Position/...] <Regex>")]
+		[Command("banregexmodify")]
+		[Alias("brm")]
+		[Usage("<Add|Remove> <Number>")]
+		[Summary("Adds the picked regex to the ban list. If no number is input it lists the possible regex.")]
+		[PermissionRequirement]
+		[DefaultEnabled(false)]
+		public async Task BanRegexModify([Optional, Remainder] string input)
+		{
+			//Check if using the default preferences
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
+			//Check if the users wants to see all the valid regex
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				var count = 0;
+				var description = String.Join("\n", guildInfo.EvaluatedRegex.Select(x => String.Format("`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
+				description = String.IsNullOrWhiteSpace(description) ? "Nothing" : description;
+				var embed = Actions.MakeNewEmbed("Evaluated Regex", description);
+				await Actions.SendEmbedMessage(Context.Channel, embed);
+				return;
+			}
+
+			//Split the input
+			var inputArray = Actions.RemoveNewLines(input).Split(new char[] { ' ' }, 2);
+			if (inputArray.Length != 2)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+			var action = inputArray[0];
+			var numberStr = inputArray[1];
+
+			//Get the lists
+			var eval = guildInfo.EvaluatedRegex;
+			var curr = guildInfo.BannedRegex;
+
+			//Check if valid actions
+			bool add;
+			if (Actions.CaseInsEquals(action, "add"))
+			{
+				if (guildInfo.BannedStrings.Count >= Constants.MAX_BANNED_REGEX)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned regex at a time.", Constants.MAX_BANNED_REGEX));
+					return;
+				}
+				add = true;
+			}
+			else if (Actions.CaseInsEquals(action, "remove"))
+			{
+				add = false;
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				return;
+			}
+
+			//Check if number
+			if (!int.TryParse(numberStr, out int position))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for number."));
+				return;
+			}
+			else if (position < 0 || (position > eval.Count - 1 && add) || (position > curr.Count - 1 && !add))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid number."));
+				return;
+			}
+
+			Regex regex;
+			if (add)
+			{
+				//Get the given regex and add it to the guild's banned regex
+				regex = guildInfo.EvaluatedRegex[position];
+				guildInfo.BannedRegex.Add(new BannedPhrase<Regex>(regex, PunishmentType.Nothing));
+			}
+			else
+			{
+				//get the give regex and remove the item at the given position
+				regex = guildInfo.BannedRegex[position].Phrase;
+				guildInfo.BannedRegex.RemoveAt(position);
+			}
+
+			//Resave everything
+			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
+			var strings = Actions.FormatSavingForBannedRegex(guildInfo.BannedRegex);
+			var validLines = Actions.GetValidLines(path, Constants.BANNED_REGEX_CHECK_STRING);
+			Actions.SaveLines(path, null, strings, validLines);
+
+			//Send a success message
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the regex `{1}`.", (add ? "enabled" : "disabled"), regex.ToString()));
+		}
+
+		[Command("banstringsmodify")]
+		[Alias("bsm")]
+		[Usage("[Add] [\"Phrase\"/...] | [Remove] [\"Phrase\"/...|Position/...]")]
 		[Summary("Adds the words to either the banned phrase list or the banned regex list. ")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -53,6 +215,11 @@ namespace Advobot
 			bool add;
 			if (Actions.CaseInsEquals(action, "add"))
 			{
+				if (guildInfo.BannedStrings.Count >= Constants.MAX_BANNED_STRINGS)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned strings at a time.", Constants.MAX_BANNED_STRINGS));
+					return;
+				}
 				add = true;
 			}
 			else if (Actions.CaseInsEquals(action, "remove"))
@@ -66,45 +233,30 @@ namespace Advobot
 			}
 
 			//Get the phrases
-			var inputPhrases = Actions.SplitByCharExceptInQuotes(unsplitPhrases, '/').ToList();
-			var last = inputPhrases.LastOrDefault();
-
-			//Check if regex or not
-			var regex = false;
-			if (last.Contains(' ') && Actions.CaseInsEquals(last.Substring(last.LastIndexOf(' ')).Trim(), "regex"))
-			{
-				regex = true;
-				inputPhrases[inputPhrases.Count() - 1] = last.Substring(0, last.LastIndexOf(' '));
-			}
-
-			inputPhrases = inputPhrases.Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
-
-			var toSave = regex ? Actions.HandleBannedRegexModification(guildInfo.BannedRegex, inputPhrases, add, out List<string> success, out List<string> failure)
-							   : Actions.HandleBannedStringModification(guildInfo.BannedStrings, inputPhrases, add, out success, out failure);
-
-			var strToCheckFor = regex ? Constants.BANNED_REGEX_CHECK_STRING : Constants.BANNED_STRING_CHECK_STRING;
+			var inputPhrases = Actions.SplitByCharExceptInQuotes(unsplitPhrases, '/').Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
+			//Add them to the list, get the strings to save out, and get the successes/failures
+			var toSave = Actions.HandleBannedStringModification(guildInfo.BannedStrings, inputPhrases, add, out List<string> success, out List<string> failure);
+			//Save everything
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
-			Actions.SaveLines(path, null, toSave, Actions.GetValidLines(path, strToCheckFor));
+			Actions.SaveLines(path, null, toSave, Actions.GetValidLines(path, Constants.BANNED_STRING_CHECK_STRING));
 
 			var successMessage = "";
 			if (success.Any())
 			{
-				successMessage = String.Format("Successfully {0} the following {1} {2} the banned {3} list: `{4}`",
+				successMessage = String.Format("Successfully {0} the following {1} {2} the banned string list: `{3}`",
 					add ? "added" : "removed",
 					success.Count != 1 ? "phrases" : "phrase",
 					add ? "to" : "from",
-					regex ? "regex" : "phrase",
 					String.Join("`, `", success));
 			}
 			var failureMessage = "";
 			if (failure.Any())
 			{
-				failureMessage = String.Format("{0}ailed to {1} the following {2} {3} the banned {4} list: `{5}`",
+				failureMessage = String.Format("{0}ailed to {1} the following {2} {3} the banned string list: `{4}`",
 					String.IsNullOrWhiteSpace(successMessage) ? "F" : "f",
 					add ? "add" : "remove",
 					failure.Count != 1 ? "phrases" : "phrase",
 					add ? "to" : "from",
-					regex ? "regex" : "phrase",
 					String.Join("`, `", failure));
 			}
 
@@ -116,7 +268,7 @@ namespace Advobot
 		[Command("banphraseschangetype")]
 		[Alias("bpct")]
 		[Usage("[Position:int|\"Phrase\"] [Nothing|Role|Kick|Ban] <Regex>")]
-		[Summary("Changes the punishment type of the input phrase or regex to the given type.")]
+		[Summary("Changes the punishment type of the input string or regex to the given type.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesChangeType([Remainder] string input)
@@ -215,7 +367,7 @@ namespace Advobot
 		[Command("banphrasescurrent")]
 		[Alias("bpc")]
 		[Usage("<Regex>")]
-		[Summary("Says all of the current banned words from either the file or the list currently being used in the bot. Due to laziness, only actual shows the punish type.")]
+		[Summary("Says all of the current banned words from either the file or the list currently being used in the bot.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesCurrent([Optional, Remainder] string input)
@@ -229,17 +381,14 @@ namespace Advobot
 			}
 
 			//Get if regex or normal phrases
-			var regexBool = Actions.CaseInsEquals(input, "regex");
+			var regexBool = !String.IsNullOrWhiteSpace(input) && Actions.CaseInsEquals(input, "regex");
 
 			//Get the list being used by the bot currently
-			var BannedPhrases = new List<string>();
+			var bannedPhrases = new List<string>();
 			if (!regexBool)
 			{
-				BannedPhrases = Variables.Guilds[Context.Guild.Id].BannedStrings.Select(x =>
-				{
-					return String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), x.Punishment).Substring(0, 1), x.Phrase);
-				}).ToList();
-				if (BannedPhrases.Count == 0)
+				bannedPhrases = guildInfo.BannedStrings.Select(x => String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), x.Punishment).Substring(0, 1), x.Phrase)).ToList();
+				if (bannedPhrases.Count == 0)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned phrases."));
 					return;
@@ -247,11 +396,8 @@ namespace Advobot
 			}
 			else
 			{
-				BannedPhrases = Variables.Guilds[Context.Guild.Id].BannedRegex.Select(x =>
-				{
-					return String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), x.Punishment).Substring(0, 1), x.Phrase.ToString());
-				}).ToList();
-				if (BannedPhrases.Count == 0)
+				bannedPhrases = guildInfo.BannedRegex.Select(x => String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), x.Punishment).Substring(0, 1), x.Phrase.ToString())).ToList();
+				if (bannedPhrases.Count == 0)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned regex."));
 					return;
@@ -259,9 +405,9 @@ namespace Advobot
 			}
 
 			//Make and send the embed
-			var header = "Banned " + (regexBool ? "Regex " : "Phrases ");
+			var header = String.Format("Banned {0}", regexBool ? "Regex " : "Phrases ");
 			int counter = 0;
-			var description = String.Join("\n", BannedPhrases.Select(x => String.Format("`{0}.` {1}", counter++.ToString("00"), x)));
+			var description = String.Join("\n", bannedPhrases.Select(x => String.Format("`{0}.` {1}", counter++.ToString("00"), x)));
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(header, description));
 		}
 

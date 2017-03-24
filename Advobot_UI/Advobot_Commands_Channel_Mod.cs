@@ -42,14 +42,14 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No spaces are allowed in a text channel name."));
 				return;
 			}
-			else if (name.Length > Constants.CHANNEL_NAME_MAX_LENGTH)
+			else if (name.Length > Constants.MAX_CHANNEL_NAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.CHANNEL_NAME_MAX_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.MAX_CHANNEL_NAME_LENGTH)));
 				return;
 			}
-			else if (name.Length < Constants.CHANNEL_NAME_MIN_LENGTH)
+			else if (name.Length < Constants.MIN_CHANNEL_NAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.MIN_CHANNEL_NAME_LENGTH)));
 				return;
 			}
 
@@ -702,14 +702,14 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No spaces are allowed in a text channel name."));
 				return;
 			}
-			else if (name.Length > Constants.CHANNEL_NAME_MAX_LENGTH)
+			else if (name.Length > Constants.MAX_CHANNEL_NAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.CHANNEL_NAME_MAX_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.MAX_CHANNEL_NAME_LENGTH)));
 				return;
 			}
-			else if (name.Length < Constants.CHANNEL_NAME_MIN_LENGTH)
+			else if (name.Length < Constants.MIN_CHANNEL_NAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.CHANNEL_NAME_MIN_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.MIN_CHANNEL_NAME_LENGTH)));
 				return;
 			}
 
@@ -737,9 +737,9 @@ namespace Advobot
 			var newTopic = inputArray[1];
 
 			//See if valid length
-			if (newTopic.Length > Constants.TOPIC_MAX_LENGTH)
+			if (newTopic.Length > Constants.MAX_TITLE_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Topics cannot be longer than `{0}` characters in length.", Constants.TOPIC_MAX_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Topics cannot be longer than `{0}` characters in length.", Constants.MAX_TITLE_LENGTH)));
 				return;
 			}
 

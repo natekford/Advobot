@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 
 namespace Advobot
 {
@@ -60,34 +61,38 @@ namespace Advobot
 		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds as a text file.";
 
 		public const double PERCENT_AVERAGE = .75;
+		public const int TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG = 3;
 		public const int WAIT_TIME = 3000;
 		public const int MEMBER_LIMIT = 0;
 		public const int MAX_SA_GROUPS = 10;
 		public const int MAX_REMINDS = 50;
+		public const int MAX_BANNED_STRINGS = 50;
+		public const int MAX_BANNED_REGEX = 25;
 		public const int OWNER_POSITION = int.MaxValue;
 		public const int MESSAGES_TO_GATHER = 100;
-		public const int TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG = 3;
 		public const int PAD_RIGHT = 20;
+
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;
 		public const int VIP_BITRATE = 128;
-		public const int LENGTH_CHECK = 1900;
-		public const int SHORT_LENGTH_CHECK = 750;
-		public const int NICKNAME_MAX_LENGTH = 32;
-		public const int NICKNAME_MIN_LENGTH = 2;
-		public const int CHANNEL_NAME_MAX_LENGTH = 100;
-		public const int CHANNEL_NAME_MIN_LENGTH = 2;
-		public const int ROLE_NAME_MAX_LENGTH = 32;
-		public const int ROLE_NAME_MIN_LENGTH = 1;
-		public const int TOPIC_MAX_LENGTH = 1024;
-		public const int GAME_MAX_LENGTH = 128; //Yes, I know it CAN go past that, but it won't show for others.
-		public const int EMBED_MAX_LENGTH_LONG = 2048;
-		public const int EMBED_MAX_LENGTH_SHORT = 1024;
-		public const int TITLE_MAX_LENGTH = 256;
-		public const int FIELDS_MAX = 25;
-		public const int DESCRIPTION_MAX_LINES = 20;
-		public const int FIELD_MAX_LINES = 5;
+		public const int MAX_MESSAGE_LENGTH_LONG = 1900;
+		public const int MAX_MESSAGE_LENGTH_SHORT = 750;
+		public const int MAX_NICKNAME_LENGTH = 32;
+		public const int MIN_NICKNAME_LENGTH = 2;
+		public const int MAX_CHANNEL_NAME_LENGTH = 100;
+		public const int MIN_CHANNEL_NAME_LENGTH = 2;
+		public const int MAX_ROLE_NAME_LENGTH = 32;
+		public const int MIN_ROLE_NAME_LENGTH = 1;
+		public const int MAX_TOPIC_LENGTH = 1024;
+		public const int MAX_GAME_LENGTH = 128; //Yes, I know it CAN go past that, but it won't show for others.
+		public const int MAX_EMBED_LENGTH_LONG = 2048;
+		public const int MAX_EMBED_LENGTH_SHORT = 1024;
+		public const int MAX_TITLE_LENGTH = 256;
+		public const int MAX_FIELDS = 25;
+		public const int MAX_DESCRIPTION_LINES = 20;
+		public const int MAX_FIELD_LINES = 5;
 		public const int MAX_LENGTH_FOR_HASTEBIN = 200000;
+		public const int MAX_LENGTH_FOR_REGEX = 100;
 
 		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>()
 		{
@@ -149,7 +154,7 @@ namespace Advobot
 		public static readonly Discord.Color CEDT = new Discord.Color(000, 000, 153);
 		public static readonly Discord.Color CDEL = new Discord.Color(204, 000, 000);
 
-		public static readonly System.Text.RegularExpressions.Regex FORMATREGEX = new System.Text.RegularExpressions.Regex("\\\"[ ]+[+|\r|\n]{0,3}[ ]+\\\"");
+		public static readonly Regex FORMATREGEX = new Regex("\\\"[ ]+[+|\r|\n]{0,3}[ ]+\\\"", RegexOptions.Compiled);
 	}
 
 	public static class Variables

@@ -236,9 +236,10 @@ namespace Advobot
 		public async Task SetGame([Remainder] string input)
 		{
 			//Check the game name length
-			if (input.Length > Constants.GAME_MAX_LENGTH)
+			if (input.Length > Constants.MAX_GAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Game name cannot be longer than `{0}` characters or else it doesn't show to other people.", Constants.GAME_MAX_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context,
+					Actions.ERROR(String.Format("Game name cannot be longer than `{0}` characters or else it doesn't show to other people.", Constants.MAX_GAME_LENGTH)));
 				return;
 			}
 
@@ -299,14 +300,14 @@ namespace Advobot
 		public async Task BotName([Remainder] string input)
 		{
 			//Names have the same length requirements as nicknames
-			if (input.Length > Constants.NICKNAME_MAX_LENGTH)
+			if (input.Length > Constants.MAX_NICKNAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Name cannot be more than 32 characters.."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.MAX_NICKNAME_LENGTH)));
 				return;
 			}
-			else if (input.Length < Constants.NICKNAME_MIN_LENGTH)
+			else if (input.Length < Constants.MIN_NICKNAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Name cannot be less than 2 characters.."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.MIN_NICKNAME_LENGTH)));
 				return;
 			}
 
