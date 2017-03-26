@@ -494,7 +494,8 @@ namespace Advobot
 			}
 
 			//Separating the channels
-			var returnedChannel = await Actions.GetChannelPermability(Context, inputArray[0]);
+			var firstChanStr = inputArray[0];
+			var returnedChannel = await Actions.GetChannelPermability(Context, firstChanStr);
 			var inputChannel = returnedChannel.Channel;
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
@@ -503,7 +504,8 @@ namespace Advobot
 			}
 
 			//See if the user can see and thus edit that channel
-			var returnedChannelTwo = await Actions.GetChannelPermability(Context, inputArray[1]);
+			var secondChanStr = inputArray[1];
+			var returnedChannelTwo = await Actions.GetChannelPermability(Context, secondChanStr);
 			var outputChannel = returnedChannelTwo.Channel;
 			if (returnedChannelTwo.Reason != FailureReason.Not_Failure)
 			{
@@ -530,19 +532,27 @@ namespace Advobot
 					if (permissionOverwrite.TargetType == PermissionTarget.Role)
 					{
 						var role = Context.Guild.GetRole(permissionOverwrite.TargetId);
-						await outputChannel.AddPermissionOverwriteAsync(role, new OverwritePermissions(inputChannel.GetPermissionOverwrite(role).Value.AllowValue,
-							inputChannel.GetPermissionOverwrite(role).Value.DenyValue));
+						await outputChannel.AddPermissionOverwriteAsync(role, new OverwritePermissions(permissionOverwrite.Permissions.AllowValue, permissionOverwrite.Permissions.DenyValue));
 					}
 					else
 					{
 						var user = await Context.Guild.GetUserAsync(permissionOverwrite.TargetId);
-						await outputChannel.AddPermissionOverwriteAsync(user, new OverwritePermissions(inputChannel.GetPermissionOverwrite(user).Value.AllowValue,
-							inputChannel.GetPermissionOverwrite(user).Value.DenyValue));
+						await outputChannel.AddPermissionOverwriteAsync(user, new OverwritePermissions(permissionOverwrite.Permissions.AllowValue, permissionOverwrite.Permissions.DenyValue));
 					}
 				});
 			}
 			else
 			{
+				if (Context.Message.MentionedUserIds.Count == 1)
+				{
+					var user = await Actions.GetUser(Context.Guild, Context.Message.MentionedUserIds.FirstOrDefault());
+					if (user != null)
+					{
+						target = user.Username;
+						await outputChannel.AddPermissionOverwriteAsync(user, new OverwritePermissions(inputChannel.GetPermissionOverwrite(user).Value.AllowValue,
+							inputChannel.GetPermissionOverwrite(user).Value.DenyValue));
+					}
+				}
 				var role = await Actions.GetRole(Context, target);
 				if (role != null)
 				{
@@ -552,18 +562,8 @@ namespace Advobot
 				}
 				else
 				{
-					var user = await Actions.GetUser(Context.Guild, target);
-					if (user != null)
-					{
-						target = user.Username;
-						await outputChannel.AddPermissionOverwriteAsync(user, new OverwritePermissions(inputChannel.GetPermissionOverwrite(user).Value.AllowValue,
-							inputChannel.GetPermissionOverwrite(user).Value.DenyValue));
-					}
-					else
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid role/user or all input."));
-						return;
-					}
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid role/user or all input."));
+					return;
 				}
 			}
 

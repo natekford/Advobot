@@ -79,7 +79,7 @@ namespace Advobot
 			{
 				var channels = new List<string>();
 				await ignoredLogChannels.ForEachAsync(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Log Channels", String.Join("\n", channels)));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Log Channels", String.Join("\n", channels.Select(x => "`" + x + "`"))));
 				return;
 			}
 			else if (inputArray.Length != 2)

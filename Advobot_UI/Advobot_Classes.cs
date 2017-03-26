@@ -541,6 +541,7 @@ namespace Advobot
 		private AntiRaid mAntiRaid;
 		private RoleLoss mRoleLoss = new RoleLoss();
 		private MessageDeletion mMessageDeletion = new MessageDeletion();
+		private WelcomeMessage mWelcomeMessage;
 		private bool mDefaultPrefs = true;
 		private bool mLoaded = false;
 		private string mPrefix;
@@ -611,6 +612,14 @@ namespace Advobot
 		public MessageDeletion MessageDeletion
 		{
 			get { return mMessageDeletion; }
+		}
+		public WelcomeMessage WelcomeMessage
+		{
+			get { return mWelcomeMessage; }
+		}
+		public void SetWelcomeMessage(WelcomeMessage wm)
+		{
+			mWelcomeMessage = wm;
 		}
 	}
 
@@ -1409,6 +1418,38 @@ namespace Advobot
 			get { return mReason; }
 		}
 	}
+
+	public struct WelcomeMessage
+	{
+		public WelcomeMessage(EmbedBuilder embed, string content, ITextChannel channel)
+		{
+			mContent = content;
+			mEmbed = embed;
+			mChannel = channel;
+		}
+
+		private string mContent;
+		private EmbedBuilder mEmbed;
+		private ITextChannel mChannel;
+
+		public string Content
+		{
+			get { return mContent; }
+		}
+		public EmbedBuilder Embed
+		{
+			get { return mEmbed; }
+		}
+		public ITextChannel Channel
+		{
+			get { return mChannel; }
+		}
+
+		public void ChangeChannel(ITextChannel channel)
+		{
+			mChannel = channel;
+		}
+	}
 	#endregion
 
 	#region Enums
@@ -1529,6 +1570,17 @@ namespace Advobot
 		Not_Found = 1,
 		User_Inability = 2,
 		Bot_Inability = 3,
+	}
+
+	public enum Files
+	{
+		CommandPreferences = 1,
+		MiscGuildInfo = 2,
+		BannedPhrases = 3,
+		SelfAssignableRoles = 4,
+		BotPermissions = 5,
+		Reminds = 6,
+		CmdsDisabledByChannel = 7,
 	}
 	#endregion
 }

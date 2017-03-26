@@ -964,11 +964,12 @@ namespace Advobot
 		public static async Task<IGuildChannel> GetChannel(IGuild guild, IMessageChannel channel, IUserMessage message, string input)
 		{
 			//Go off of mentions for text channel
-			if (message.MentionedChannelIds.Any())
+			if (String.IsNullOrWhiteSpace(input) && message.MentionedChannelIds.Any())
 			{
 				return await guild.GetChannelAsync(message.MentionedChannelIds.FirstOrDefault());
 			}
-			else if (ulong.TryParse(input, out ulong ID))
+			//If input is given
+			else if (ulong.TryParse(input.Trim('<', '#', '>'), out ulong ID))
 			{
 				return await guild.GetChannelAsync(ID);
 			}
@@ -1188,8 +1189,17 @@ namespace Advobot
 		//Get the split input of an input char except when in quotes
 		public static string[] SplitByCharExceptInQuotes(string inputString, char inputChar)
 		{
-			return inputString.Split('"').Select((element, index) => index % 2 == 0 ? element.Split(new[] { inputChar }, StringSplitOptions.RemoveEmptyEntries)
-										   : new string[] { element }).SelectMany(element => element).ToArray();
+			return inputString.Split('"').Select((element, index) =>
+			{
+				if (index % 2 == 0)
+				{
+					return element.Split(new[] { inputChar }, StringSplitOptions.RemoveEmptyEntries);
+				}
+				else
+				{
+					return new string[] { element };
+				}
+			}).SelectMany(element => element).ToArray();
 		}
 
 		//Get the variables out of a list
@@ -1692,13 +1702,12 @@ namespace Advobot
 
 			//Matching
 			var empty = new Regex("[*`]", RegexOptions.Compiled);
-			var newLines = new Regex("[\n]{2}", RegexOptions.Compiled);
 
 			//Actually removing
 			input = empty.Replace(input, "");
 			while (input.Contains("\n\n"))
 			{
-				input = newLines.Replace(input, "\n");
+				input = input.Replace("\n\n", "\n");
 			}
 
 			return input;
@@ -1840,7 +1849,7 @@ namespace Advobot
 				}
 				else
 				{
-					await UploadTextFile(guild, channel, content, "Deleted_Messages_", "Deleted Messages");
+					await WriteAndUploadTextFile(guild, channel, content, "Deleted_Messages_", "Deleted Messages");
 				}
 			}
 		}
@@ -1881,15 +1890,15 @@ namespace Advobot
 		}
 		
 		//Upload a text file with a list of messages
-		public static async Task UploadTextFile(IGuild guild, IMessageChannel channel, List<string> textList, string fileName, string messageHeader)
+		public static async Task WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, List<string> textList, string fileName, string messageHeader)
 		{
 			//Messages in the format to upload
 			var text = ReplaceMarkdownChars(String.Join("\n-----\n", textList));
-			await UploadTextFile(guild, channel, text, fileName, messageHeader);
+			await WriteAndUploadTextFile(guild, channel, text, fileName, messageHeader);
 		}
 		
 		//Upload a text file with a string
-		public static async Task UploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string fileMessage = null)
+		public static async Task WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string fileMessage = null)
 		{
 			//Get the file path
 			var file = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.FILE_EXTENSION;
@@ -1916,6 +1925,12 @@ namespace Advobot
 			await channel.SendFileAsync(path, fileMessage);
 			//Delete the file
 			File.Delete(path);
+		}
+
+		//Upload an already created text file
+		public static async Task UploadFile(IMessageChannel channel, string path, string text = null)
+		{
+			await channel.SendFileAsync(path, text);
 		}
 
 		//Upload a guild icon or bot icon
@@ -2045,7 +2060,7 @@ namespace Advobot
 
 		#region Embeds
 		//Send an embedded object
-		public static async Task<IMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed)
+		public static async Task<IMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed, string content = null)
 		{
 			var guildChannel = channel as ITextChannel;
 			if (guildChannel == null)
@@ -2053,6 +2068,8 @@ namespace Advobot
 			var guild = guildChannel.Guild;
 			if (guild == null || !Variables.Guilds.ContainsKey(guild.Id))
 				return null;
+
+			content = content ?? "";
 
 			//Replace all instances of the base prefix with the guild's prefix
 			var guildPrefix = Variables.Guilds[guild.Id].Prefix;
@@ -2064,7 +2081,7 @@ namespace Advobot
 			try
 			{
 				//Generate the message
-				return await guildChannel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR, embed: embed);
+				return await guildChannel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content, embed: embed);
 			}
 			//Embeds fail every now and then and I haven't been able to find the exact problem yet (I know fields are a problem, but not in this case)
 			catch (Exception e)
@@ -2229,7 +2246,7 @@ namespace Advobot
 			if (embed.Description == Constants.HASTEBIN_ERROR)
 			{
 				//Send the file
-				await UploadTextFile(guild, channel, input, fileName);
+				await WriteAndUploadTextFile(guild, channel, input, fileName);
 			}
 		}
 		#endregion
@@ -3851,6 +3868,20 @@ namespace Advobot
 			}
 		}
 
+		public static bool CaseInsIndexOf(string source, string search, out int position)
+		{
+			position = -1;
+			if (source != null && search != null)
+			{
+				position = source.IndexOf(search, StringComparison.OrdinalIgnoreCase);
+				if (position != -1)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
 		public static bool CaseInsStartsWith(string source, string search)
 		{
 			if (source == null || search == null)
@@ -3961,6 +3992,21 @@ namespace Advobot
 			await role.Guild.ReorderRolesAsync(roles.Select(x => new ReorderRoleProperties(x.Id, roles.IndexOf(x))));
 		}
 		#endregion
+
+		public static async Task SendWelcomeMessage(IUser user, WelcomeMessage wm)
+		{
+			var userMention = user != null ? user.Mention : "Invalid User";
+			var content = wm.Content.Replace("@User", userMention);
+
+			if (wm.Embed != null)
+			{
+				await SendEmbedMessage(wm.Channel, wm.Embed, content);
+			}
+			else
+			{
+				await SendChannelMessage(wm.Channel, content);
+			}
+		}
 	}
 
 	public static class AsyncForEach

@@ -596,17 +596,19 @@ namespace Advobot
 				if (!ulong.TryParse(strID, out ulong ID))
 					return;
 
-				//Create the guild's treeviewitem
-				TreeViewItem guildItem;
+				string header;
 				try
 				{
-					guildItem = new TreeViewItem() { Header = String.Format("({0}) {1}", strID, Variables.Client.GetGuild(ID).Name) };
+					header = String.Format("({0}) {1}", strID, Variables.Client.GetGuild(ID).Name);
 				}
 				catch
 				{
 					//This means that the guild is currently not using the bot. Don't delete the directory in case they ever do come back to using the bot.
 					return;
 				}
+
+				//Create the guild's treeviewitem
+				var guildItem = new TreeViewItem { Header = header }; 
 
 				//Add in all of the files the guild has
 				Directory.GetFiles(guildDir).ToList().ForEach(file =>

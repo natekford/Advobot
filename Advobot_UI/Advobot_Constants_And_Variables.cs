@@ -29,13 +29,6 @@ namespace Advobot
 		public const string MUTE_ROLE_NAME = "Muted";
 		public const string SERVER_FOLDER = "Discord_Servers";
 		public const string FILE_EXTENSION = ".txt";
-		public const string PREFERENCES_FILE = "CommandPreferences" + FILE_EXTENSION;
-		public const string MISCGUILDINFO = "MiscGuildInfo" + FILE_EXTENSION;
-		public const string BANNED_PHRASES = "BannedPhrases" + FILE_EXTENSION;
-		public const string SA_ROLES = "SelfAssignableRoles" + FILE_EXTENSION;
-		public const string PERMISSIONS = "BotPermissions" + FILE_EXTENSION;
-		public const string REMINDS = "Reminds" + FILE_EXTENSION;
-		public const string COMMANDS_DISABLED_BY_CHANNEL = "CmdsDisabledByChannel" + FILE_EXTENSION;
 		public const string SERVER_LOG_CHECK_STRING = "serverlog";
 		public const string MOD_LOG_CHECK_STRING = "modlog";
 		public const string BANNED_STRING_CHECK_STRING = "bannedphrases";
@@ -59,6 +52,14 @@ namespace Advobot
 		public const string INVITE_SPLASH = "INVITE_SPLASH";
 		public static readonly string DEFAULT_GAME = "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
 		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds as a text file.";
+
+		public static readonly string PREFERENCES_FILE = Enum.GetName(typeof(Files), Files.CommandPreferences) + FILE_EXTENSION;
+		public static readonly string MISCGUILDINFO = Enum.GetName(typeof(Files), Files.MiscGuildInfo) + FILE_EXTENSION;
+		public static readonly string BANNED_PHRASES = Enum.GetName(typeof(Files), Files.BannedPhrases) + FILE_EXTENSION;
+		public static readonly string SA_ROLES = Enum.GetName(typeof(Files), Files.SelfAssignableRoles) + FILE_EXTENSION;
+		public static readonly string PERMISSIONS = Enum.GetName(typeof(Files), Files.BotPermissions) + FILE_EXTENSION;
+		public static readonly string REMINDS = Enum.GetName(typeof(Files), Files.Reminds) + FILE_EXTENSION;
+		public static readonly string COMMANDS_DISABLED_BY_CHANNEL = Enum.GetName(typeof(Files), Files.CmdsDisabledByChannel) + FILE_EXTENSION;
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG = 3;

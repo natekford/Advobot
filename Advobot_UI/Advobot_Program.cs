@@ -11,6 +11,10 @@ namespace Advobot
 		[STAThread]
 		private static void Main(string[] args)
 		{
+			//Make sure only one instance is running at the same time
+			if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Length > 1)
+				return;
+
 			//Check if Windows and if console
 			Actions.LoadBasicInformation();
 

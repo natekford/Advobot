@@ -762,7 +762,7 @@ namespace Advobot
 
 		[Command("remindsmodify")]
 		[Alias("remm")]
-		[Usage("[Add|Remove] [Name]/<Text>")]
+		[Usage("[Add|Remove] [\"Name\"]/<\"Text\">")]
 		[Summary("Adds the given text to a list that can be called through the `remind` command.")]
 		[UserHasAPermission]
 		[DefaultEnabled(false)]
@@ -783,14 +783,16 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+			var action = inputArray[0];
+			var nameAndText = inputArray[1];
 
 			//Check what action to do
 			bool addBool;
-			if (Actions.CaseInsEquals(inputArray[0], "add"))
+			if (Actions.CaseInsEquals(action, "add"))
 			{
 				addBool = true;
 			}
-			else if (Actions.CaseInsEquals(inputArray[0], "remove"))
+			else if (Actions.CaseInsEquals(action, "remove"))
 			{
 				addBool = false;
 			}
@@ -801,7 +803,7 @@ namespace Advobot
 			}
 
 			var name = "";
-			var reminds = new List<Remind>(guildInfo.Reminds);
+			var reminds = guildInfo.Reminds;
 			if (addBool)
 			{
 				//Check if at the max number of reminds
@@ -812,14 +814,14 @@ namespace Advobot
 				}
 
 				//Separate out the name and text
-				var nameAndText = inputArray[1].Split(new char[] { '/' }, 2);
-				if (nameAndText.Length != 2)
+				var nameAndTextArray = Actions.SplitByCharExceptInQuotes(nameAndText, '/');
+				if (nameAndTextArray.Length != 2)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 					return;
 				}
-				name = nameAndText[0];
-				var text = nameAndText[1];
+				name = nameAndTextArray[0];
+				var text = nameAndTextArray[1];
 
 				//Check if any reminds have already have the same name
 				if (reminds.Any(x => Actions.CaseInsEquals(x.Name, name)))
@@ -848,9 +850,8 @@ namespace Advobot
 				});
 			}
 
-			//Get the path
+			//save everything
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.REMINDS);
-			//Rewrite everything with the current reminds. Uses a different split character than the others because it's more user set than them.
 			Actions.SaveLines(path, null, null, reminds.Select(x => x.Name + ":" + x.Text).ToList(), true);
 
 			//Send a success message
@@ -861,10 +862,18 @@ namespace Advobot
 		[Alias("rem", "r")]
 		[Usage("<Name>")]
 		[Summary("Shows the content for the given remind. If null then shows the list of the current reminds.")]
-		[DefaultEnabled(true)]
+		[DefaultEnabled(false)]
 		public async Task Reminds([Optional, Remainder] string input)
 		{
-			var reminds = Variables.Guilds[Context.Guild.Id].Reminds.ToList();
+			//Check if using the default preferences
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
+			var reminds = guildInfo.Reminds;
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				//Check if any exist
@@ -919,13 +928,77 @@ namespace Advobot
 
 		[Command("welcomemessage")]
 		[Alias("wm")]
-		[Usage("<ID of a message which has an embed> <\"Content:string\">")]
-		[Summary("Displays a welcome message with the given content. Either one or both of the given arguments must be used.")]
+		[Usage("[#Channel] <ID:ID of a message which has an embed> <\"Content:string\">")]
+		[Summary("Displays a welcome message with the given content. `@User` will be replaced with a mention of the joining user." +
+			"The message ID has to be from a message on the channel, and only the title, desc, color, and thumbnail will be stored. Use the `makeanembed` command to make the embed.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task WelcomeMessage([Remainder] string input)
 		{
+			//Check if using the default preferences
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
 
+			//Get the variables out
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
+			var channelStr = inputArray[0];
+			var IDStr = Actions.GetVariable(inputArray, "ID");
+			var content = Actions.GetVariable(inputArray, "content");
+
+			//Check if both are null
+			var IDB = String.IsNullOrWhiteSpace(IDStr);
+			var contentB = String.IsNullOrWhiteSpace(content);
+			if (IDB && contentB)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Either a message ID, or content, or both needs to be input."));
+				return;
+			}
+
+			//Make sure the channel mention is valid
+			var channel = await Actions.GetChannel(Context, channelStr);
+			if (channel == null)
+				return;
+			var tChannel = channel as ITextChannel;
+			if (tChannel == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The welcome channel can only be set to a text channel."));
+				return;
+			}
+
+			//Get the embed
+			EmbedBuilder embed = null;
+			if (!IDB)
+			{
+				if (!ulong.TryParse(IDStr, out ulong ID))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The given input for ID is not a number."));
+					return;
+				}
+
+				var msg = await Context.Channel.GetMessageAsync(ID);
+				if (msg == null)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to find a message with the given ID."));
+					return;
+				}
+
+				var emb = msg.Embeds.FirstOrDefault();
+				if (emb == null)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The gotten message contains no embeds."));
+					return;
+				}
+
+				embed = Actions.MakeNewEmbed(emb.Title, emb.Description, emb.Color, thumbnailURL: emb.Thumbnail.HasValue ? emb.Thumbnail.Value.Url : null);
+			}
+
+			var welcomeMessage = new WelcomeMessage(embed, content, tChannel);
+			guildInfo.SetWelcomeMessage(welcomeMessage);
+			await Actions.SendWelcomeMessage(null, welcomeMessage);
 		}
 
 		[Command("getfile")]
@@ -936,7 +1009,36 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task GetFile([Optional, Remainder] string input)
 		{
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				var embed = Actions.MakeNewEmbed("Files", String.Join("\n", Constants.VALID_GUILD_FILES.Select(x => String.Format("`{0}`", x))));
+				await Actions.SendEmbedMessage(Context.Channel, embed);
+				return;
+			}
 
+			//Remove the extension
+			if (Actions.CaseInsIndexOf(input, ".txt", out int position))
+			{
+				input = input.Substring(0, position);
+			}
+
+			//Make sure the path is a valid file
+			if (!Enum.TryParse(input, true, out Files fileName))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("`{0}` is not a valid file name.", input)));
+				return;
+			}
+
+			//Make sure the file exists
+			var path = Actions.GetServerFilePath(Context.Guild.Id, Enum.GetName(typeof(Files), fileName) + Constants.FILE_EXTENSION);
+			if (!File.Exists(path))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The file `{0}` does not exist at this time.", input)));
+				return;
+			}
+
+			//Upload it
+			await Actions.UploadFile(Context.Channel, path);
 		}
 	}
 }

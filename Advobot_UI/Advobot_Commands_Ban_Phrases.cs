@@ -106,8 +106,7 @@ namespace Advobot
 			//Check if the users wants to see all the valid regex
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				var count = 0;
-				var description = String.Join("\n", guildInfo.EvaluatedRegex.Select(x => String.Format("`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
+				var description = String.Join("\n", guildInfo.EvaluatedRegex.Select((x, count) => String.Format("`{0}.` `{1}`", count.ToString("00"), x.ToString())).ToList());
 				description = String.IsNullOrWhiteSpace(description) ? "Nothing" : description;
 				var embed = Actions.MakeNewEmbed("Evaluated Regex", description);
 				await Actions.SendEmbedMessage(Context.Channel, embed);
@@ -406,8 +405,7 @@ namespace Advobot
 
 			//Make and send the embed
 			var header = String.Format("Banned {0}", regexBool ? "Regex " : "Phrases ");
-			int counter = 0;
-			var description = String.Join("\n", bannedPhrases.Select(x => String.Format("`{0}.` {1}", counter++.ToString("00"), x)));
+			var description = String.Join("\n", bannedPhrases.Select((x, count) => String.Format("`{0}.` {1}", count.ToString("00"), x)));
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(header, description));
 		}
 
@@ -429,14 +427,15 @@ namespace Advobot
 
 			//Split the input
 			var inputArray = Actions.RemoveNewLines(input).Split(new char[] { ' ' }, 3);
-			if (inputArray.Length < 2 || inputArray.Length > 3)
+			if (inputArray.Length < 2 || inputArray.Length > 4)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+			var action = inputArray[0];
+			var numberStr = inputArray[1];
 
 			//Get the action
-			var action = inputArray[0];
 			bool addBool;
 			if (Actions.CaseInsEquals(action, "add"))
 			{
@@ -453,39 +452,45 @@ namespace Advobot
 			}
 
 			//Get the number
-			if (!int.TryParse(inputArray[1], out int number))
+			if (!int.TryParse(numberStr, out int number))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid number."));
 				return;
 			}
 
-			//Get the punishment
-			var time = 0;
-			var punishmentString = "";
-			IRole punishmentRole = null;
-			var punishmentType = PunishmentType.Nothing;
-			BannedPhrasePunishment newPunishment = null;
-			if (inputArray.Length > 2 && addBool)
-			{
-				punishmentString = inputArray[2];
+			//Get the list of punishments
+			var punishments = guildInfo.BannedPhrasesPunishments;
 
-				//Check if kick
+			//Get the punishment
+			BannedPhrasePunishment newPunishment = null;
+			if (addBool)
+			{
+				//Check if trying to add to an already established spot
+				if (punishments.Any(x => x.NumberOfRemoves == number))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists for that number of banned phrases said."));
+					return;
+				}
+
+				var punishmentString = inputArray[2];
+
+				//Get the type
+				IRole punishmentRole = null;
+				var time = 0;
+				var punishmentType = PunishmentType.Nothing;
 				if (Actions.CaseInsEquals(punishmentString, "kick"))
 				{
 					punishmentType = PunishmentType.Kick;
 				}
-				//Check if ban
 				else if (Actions.CaseInsEquals(punishmentString, "ban"))
 				{
 					punishmentType = PunishmentType.Ban;
 				}
-				//Check if already role name
 				else if (Context.Guild.Roles.Any(x => Actions.CaseInsEquals(x.Name, punishmentString)))
 				{
 					punishmentType = PunishmentType.Role;
 					punishmentRole = await Actions.GetRoleEditAbility(Context, punishmentString);
 				}
-				//Check if role name + time or error
 				else
 				{
 					var lS = punishmentString.LastIndexOf(' ');
@@ -509,58 +514,42 @@ namespace Advobot
 						return;
 					}
 				}
-			}
 
-			//Set the punishment
-			newPunishment = addBool ? new BannedPhrasePunishment(number, punishmentType, punishmentRole, time) : null;
-			//Get the list of punishments
-			var punishments = guildInfo.BannedPhrasesPunishments;
-
-			//Add
-			if (addBool)
-			{
-				//Check if trying to add to an already established spot
-				if (punishments.Any(x => x.NumberOfRemoves == newPunishment.NumberOfRemoves))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists for that number of banned phrases said."));
-					return;
-				}
-
-				var type = newPunishment.Punishment;
-				switch (type)
+				//Set the punishment and check against certain things to make sure it's valid
+				newPunishment = new BannedPhrasePunishment(number, punishmentType, punishmentRole, time);
+				switch (punishmentType)
 				{
 					case PunishmentType.Role:
 					{
-						if (punishments.Any(x => x.Punishment == type))
-						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which kicks."));
-							return;
-						}
-						break;
-					}
-					case PunishmentType.Kick:
-					{
-						if (punishments.Any(x => x.Punishment == type))
-						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which bans."));
-							return;
-						}
-						break;
-					}
-					case PunishmentType.Ban:
-					{
-						if (punishments.Any(x => x.Punishment == type))
+						if (punishments.Any(x => x.Role == punishmentRole))
 						{
 							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which gives that role."));
 							return;
 						}
 						break;
 					}
+					case PunishmentType.Kick:
+					{
+						if (punishments.Any(x => x.Punishment == punishmentType))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which kicks."));
+							return;
+						}
+						break;
+					}
+					case PunishmentType.Ban:
+					{
+						if (punishments.Any(x => x.Punishment == punishmentType))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which bans."));
+							return;
+						}
+						break;
+					}
 				}
-
+				//Add it to the guild's list
 				punishments.Add(newPunishment);
 			}
-			//Remove
 			else
 			{
 				var gatheredPunishments = punishments.Where(x => x.NumberOfRemoves == number).ToList();
@@ -606,24 +595,19 @@ namespace Advobot
 			}
 			else if (newPunishment.Punishment == PunishmentType.Kick)
 			{
-				successMsg = "`" + Enum.GetName(typeof(PunishmentType), punishmentType) + "` at `" + newPunishment.NumberOfRemoves.ToString("00") + "`";
+				successMsg = String.Format("`{0}` at `{1}`", Enum.GetName(typeof(PunishmentType), newPunishment.Punishment), newPunishment.NumberOfRemoves.ToString("00"));
 			}
 			else if (newPunishment.Punishment == PunishmentType.Ban)
 			{
-				successMsg = "`" + Enum.GetName(typeof(PunishmentType), punishmentType) + "` at `" + newPunishment.NumberOfRemoves.ToString("00") + "`";
+				successMsg = String.Format("`{0}` at `{1}`", Enum.GetName(typeof(PunishmentType), newPunishment.Punishment), newPunishment.NumberOfRemoves.ToString("00"));
 			}
 			else if (newPunishment.Role != null)
 			{
-				successMsg = "`" + newPunishment.Role + "` at `" + newPunishment.NumberOfRemoves.ToString("00") + "`";
+				successMsg = String.Format("`{0}` at `{1}`", newPunishment.Role, newPunishment.NumberOfRemoves.ToString("00"));
 			}
 
 			//Check if there's a time
-			var timeMsg = "";
-			if (newPunishment.PunishmentTime != 0)
-			{
-				timeMsg = ", and will last for `" + newPunishment.PunishmentTime + "` minute(s)";
-			}
-
+			var timeMsg = newPunishment.PunishmentTime != 0 ? String.Format(", and will last for `{0}` minute(s)", newPunishment.PunishmentTime) : "";
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", addBool ? "added" : "removed", successMsg, timeMsg));
 		}
 
