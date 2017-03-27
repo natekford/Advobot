@@ -811,7 +811,7 @@ namespace Advobot
 			if (Constants.CLOSE_WORDS_POSITIONS.Contains(message.Content))
 			{
 				//Get the number
-				var number = Actions.GetInteger(message.Content) - 1;
+				var number = Actions.GetInteger(message.Content);
 				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
 				var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
 				if (closeWordList.User != null)

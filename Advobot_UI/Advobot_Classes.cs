@@ -28,7 +28,7 @@ namespace Advobot
 			if (context.Guild != null)
 			{
 				var user = await context.Guild.GetUserAsync(context.User.Id);
-				var botBits = Variables.BotUsers.FirstOrDefault(x => x.User == user)?.Permissions;
+				var botBits = Variables.Guilds[context.Guild.Id].BotUsers.FirstOrDefault(x => x.User == user)?.Permissions;
 				if (botBits != null)
 				{
 					var perms = user.GuildPermissions.RawValue | botBits;
@@ -117,7 +117,7 @@ namespace Advobot
 			if (context.Guild != null)
 			{
 				var user = await context.Guild.GetUserAsync(context.User.Id);
-				var botBits = Variables.BotUsers.FirstOrDefault(x => x.User == user)?.Permissions;
+				var botBits = Variables.Guilds[context.Guild.Id].BotUsers.FirstOrDefault(x => x.User == user)?.Permissions;
 				if (botBits != null)
 				{
 					if (((user.GuildPermissions.RawValue | botBits) & PERMISSIONBITS) != 0)
@@ -528,14 +528,15 @@ namespace Advobot
 		public List<BannedPhrasePunishment> BannedPhrasesPunishments = new List<BannedPhrasePunishment>();
 		public List<CommandSwitch> CommandSettings = new List<CommandSwitch>();
 		public List<CommandDisabledOnChannel> CommandsDisabledOnChannel = new List<CommandDisabledOnChannel>();
-		public List<ulong> IgnoredCommandChannels = new List<ulong>();
-		public List<ulong> IgnoredLogChannels = new List<ulong>();
-		public List<LogActions> LogActions = new List<LogActions>();
+		public List<BotImplementedPermissions> BotUsers = new List<BotImplementedPermissions>();
 		public List<Remind> Reminds = new List<Remind>();
 		public List<BotInvite> Invites = new List<BotInvite>();
-		public List<IRole> FAWRRoles = new List<IRole>();
-		public List<string> FAWRNicknames = new List<string>();
 		public List<Regex> EvaluatedRegex = new List<Regex>();
+		public List<ulong> IgnoredCommandChannels = new List<ulong>();
+		public List<ulong> IgnoredLogChannels = new List<ulong>();
+		public List<string> FAWRNicknames = new List<string>();
+		public List<IRole> FAWRRoles = new List<IRole>();
+		public List<LogActions> LogActions = new List<LogActions>();
 
 		private GlobalSpamPrevention mGlobalSpamPrevention = new GlobalSpamPrevention();
 		private AntiRaid mAntiRaid;
@@ -629,6 +630,7 @@ namespace Advobot
 		{
 			mUser = user;
 			mPermissions = permissions;
+			Variables.Guilds[user.GuildId].BotUsers.Add(this);
 		}
 
 		private IGuildUser mUser;
@@ -1450,6 +1452,18 @@ namespace Advobot
 			mChannel = channel;
 		}
 	}
+	
+	public class Test
+	{
+		public Test(ulong guildID, ulong channelID)
+		{
+			_GuildID = guildID;
+			_ChannelID = channelID;
+		}
+
+		public ulong _GuildID { get; private set; }
+		public ulong _ChannelID { get; private set; }
+	}
 	#endregion
 
 	#region Enums
@@ -1581,6 +1595,13 @@ namespace Advobot
 		BotPermissions = 5,
 		Reminds = 6,
 		CmdsDisabledByChannel = 7,
+	}
+
+	public enum BUMType
+	{
+		Add = 1,
+		Remove = 2,
+		Show = 3,
 	}
 	#endregion
 }

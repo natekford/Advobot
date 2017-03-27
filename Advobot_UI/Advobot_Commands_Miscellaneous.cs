@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Advobot
 {
@@ -71,8 +72,7 @@ namespace Advobot
 					if (closeHelps != null && closeHelps.Any())
 					{
 						//Format a message to be said
-						int counter = 1;
-						var msg = "Did you mean any of the following:\n" + String.Join("\n", closeHelps.Select(x => String.Format("`{0}.` {1}", counter++.ToString("00"), x.Help.Name)));
+						var msg = "Did you mean any of the following:\n" + String.Join("\n", closeHelps.Select((x, count) => String.Format("`{0}.` {1}", count.ToString("00"), x.Help.Name)));
 
 						//Remove all active closeword lists that the user has made
 						Variables.ActiveCloseHelp.RemoveAll(x => x.User == Context.User);
@@ -218,19 +218,19 @@ namespace Advobot
 				"Online since: {0}\n" +
 				"Uptime: {1}:{2}:{3}:{4}\n" +
 				"Guild count: {5}\n" +
-				"Cumulative member count: {6}\n",
+				"Cumulative member count: {6}\n" +
+				"Current shard: {7}\n",
 				Variables.StartupTime,
 				span.Days, span.Hours.ToString("00"),
 				span.Minutes.ToString("00"),
 				span.Seconds.ToString("00"),
 				Variables.TotalGuilds,
-				Variables.TotalUsers);
+				Variables.TotalUsers,
+				Variables.Client.GetShardFor(Context.Guild));
 
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(null, description);
-			//Add the author
 			Actions.AddAuthor(embed, Variables.Bot_Name, Context.Client.CurrentUser.GetAvatarUrl());
-			//Add the footer
 			Actions.AddFooter(embed, "Version " + Constants.BOT_VERSION);
 
 			//First field
@@ -461,11 +461,10 @@ namespace Advobot
 		public async Task UserJoins()
 		{
 			//Grab the users and format the message
-			var counter = 1;
-			var userMsg = String.Join("\n", (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt).Select(x =>
+			var userMsg = String.Join("\n", (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt).Select((x, count) =>
 			{
 				var time = x.JoinedAt.Value.UtcDateTime;
-				return String.Format("`{0}.` `{1}` joined at `{2}` on `{3}`.", counter++.ToString("0000"), Actions.FormatUser(x), time.ToShortTimeString(), time.ToShortDateString());
+				return String.Format("`{0}.` `{1}` joined at `{2}` on `{3}`.", count.ToString("0000"), Actions.FormatUser(x), time.ToShortTimeString(), time.ToShortDateString());
 			}));
 
 			await Actions.SendPotentiallyBigEmbed(Context.Guild, Context.Channel, Actions.MakeNewEmbed("Users", userMsg), userMsg, "User_Joins_");
@@ -1000,6 +999,10 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{
+			var test = new Test(Context.Guild.Id, Context.Channel.Id);
+			var output = JsonConvert.SerializeObject(test);
+			Actions.WriteLine(output);
+			var deserializedProduct = JsonConvert.DeserializeObject<Test>(output);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
 		#endregion

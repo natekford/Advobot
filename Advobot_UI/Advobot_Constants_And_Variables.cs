@@ -207,7 +207,6 @@ namespace Advobot
 		public static List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
 		public static List<BotGuildPermissionType> GuildPermissions = new List<BotGuildPermissionType>();
 		public static List<BotChannelPermissionType> ChannelPermissions = new List<BotChannelPermissionType>();
-		public static List<BotImplementedPermissions> BotUsers = new List<BotImplementedPermissions>();
 		public static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsDeletingPreferences = new List<Discord.IGuild>();

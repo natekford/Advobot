@@ -589,7 +589,7 @@ namespace Advobot
 
 					//If valid user then add to botusers and keep the line
 					validBotUsers.Add(line);
-					Variables.BotUsers.Add(new BotImplementedPermissions(user, perms));
+					Variables.Guilds[guild.Id].BotUsers.Add(new BotImplementedPermissions(user, perms));
 
 					//Decrement the counter
 					--counter;
@@ -3509,7 +3509,7 @@ namespace Advobot
 		{
 			//Check if any were gotten
 			if (!reminds.Any())
-				return null;
+				return new List<CloseWord>();
 
 			reminds.ForEach(x =>
 			{

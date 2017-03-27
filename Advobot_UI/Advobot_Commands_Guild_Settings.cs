@@ -554,7 +554,8 @@ namespace Advobot
 		public async Task BotUsersModify([Remainder] string input)
 		{
 			//Check if they've enabled preferences
-			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
 				return;
@@ -567,106 +568,96 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+			var action = inputArray[0];
+			var userStr = inputArray.Length > 1 ? inputArray[1] : null;
+			var permStr = inputArray.Length > 2 ? inputArray[2] : null;
 
 			//Check if valid action
-			var action = inputArray[0];
-			bool? addBool;
-			if (Actions.CaseInsEquals(action, "show"))
-			{
-				addBool = null;
-			}
-			else if (Actions.CaseInsEquals(action, "add"))
-			{
-				addBool = true;
-			}
-			else if (Actions.CaseInsEquals(action, "remove"))
-			{
-				addBool = false;
-			}
-			else
+			if (!Enum.TryParse(action, true, out BUMType type))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
-			if (addBool == null)
+			//Showing the user just the possible perms
+			if (type == BUMType.Show && inputArray.Length == 1)
 			{
-				if (inputArray.Length == 1)
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Permissions", String.Join("\n", Variables.GuildPermissions.Select(x => x.Name))));
+				return;
+			}
+
+			//Get the user
+			var user = await Actions.GetUser(Context.Guild, userStr);
+			if (user == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				return;
+			}
+			else if (!Actions.UserCanBeModifiedByUser(Context, user))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user has a higher position than you are able to edit."));
+				return;
+			}
+
+			//Get the botuser
+			var botUser = guildInfo.BotUsers.FirstOrDefault(x => x.User == user);
+			if (type == BUMType.Show)
+			{
+				if (inputArray.Length == 2)
 				{
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Permissions", String.Join("\n", Variables.GuildPermissions.Select(x => x.Name))));
-					return;
-				}
-				else if (inputArray.Length == 2)
-				{
-					//Check if valid user
-					var showUser = await Actions.GetUser(Context.Guild, inputArray[1]);
-					if (showUser == null)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
-						return;
-					}
-					//Check if that user is on the botuser list
-					else if (!Variables.BotUsers.Any(x => x.User == showUser))
+					if (botUser == null || botUser.Permissions == 0)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no extra permissions from the bot."));
 						return;
 					}
 
 					//check if that user has any permissions
-					var showPermissions = Actions.GetPermissionNames(Variables.BotUsers.FirstOrDefault(x => x.User == showUser).Permissions);
-					if (!showPermissions.Any())
+					var showPerms = Actions.GetPermissionNames(botUser.Permissions);
+					if (!showPerms.Any())
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no extra permissions from the bot."));
-						return;
 					}
-
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Permissions for " + showUser.Username + "#" + showUser.Discriminator, String.Join("\n", showPermissions)));
-					return;
+					else
+					{
+						await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Permissions for " + Actions.FormatUser(user), String.Join("\n", showPerms)));
+					}
 				}
 				else
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option for show."));
-					return;
 				}
-			}
-
-			//Check if valid user
-			var user = await Actions.GetUser(Context.Guild, inputArray[1]);
-			if (user == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
-
-			if (!(bool)addBool && inputArray.Length == 2)
+			else if (type == BUMType.Remove && inputArray.Length == 2)
 			{
-				Variables.BotUsers.RemoveAll(x => x.User == user);
+				if (botUser == null)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user is not on the bot user list."));
+					return;
+				}
+
 				var removePath = Actions.GetServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
 				Actions.SaveLines(removePath, Actions.GetValidLines(removePath, user.Id.ToString()));
 
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}#{1}` from the bot user list.", user.Username, user.Discriminator));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the bot user list.", Actions.FormatUser(user)));
 				return;
 			}
 
 			//Get the permissions
-			var permissions = inputArray[2].Split('/').Select(x => Variables.GuildPermissions.FirstOrDefault(y => Actions.CaseInsEquals(y.Name, x))).Where(x => x.Name != null).ToList();
+			var permissions = permStr.Split('/').Select(x => Variables.GuildPermissions.FirstOrDefault(y => Actions.CaseInsEquals(y.Name, x))).Where(x => x.Name != null).ToList();
 			if (!permissions.Any())
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for permissions."));
 				return;
 			}
-
-			//Remove administrator unless the person running the command is the guild owner
-			if (Context.User.Id != Context.Guild.OwnerId)
+			else if (Context.User.Id != Context.Guild.OwnerId)
 			{
 				permissions.RemoveAll(x => Actions.CaseInsEquals(x.Name, Enum.GetName(typeof(GuildPermission), GuildPermission.Administrator)));
 			}
 
-			//Get the user out of the list with their bot permissions
-			var botUser = Variables.BotUsers.FirstOrDefault(x => x.User == user) ?? new BotImplementedPermissions(user, 0);
-
-			//Modify their permissions value
-			if ((bool)addBool)
+			//Modify the user's perms
+			botUser = botUser ?? new BotImplementedPermissions(user, 0);
+			if (type == BUMType.Add)
 			{
 				//Give them the permissions
 				permissions.ForEach(x =>
@@ -685,31 +676,22 @@ namespace Advobot
 				});
 			}
 
-			//Add the user to the list if they aren't already in it
-			if (!Variables.BotUsers.Any(x => x.User == user))
-			{
-				Variables.BotUsers.Add(botUser);
-			}
-
-			//Get the path
+			//Save everything
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
-			//Check what the permissions are
 			if (botUser.Permissions != 0)
 			{
-				//Save everything back
 				Actions.SaveLines(path, user.Id.ToString(), botUser.Permissions.ToString(), Actions.GetValidLines(path, user.Id.ToString()));
 			}
 			else
 			{
-				//If no permissions, then remove them from the list and file
-				Variables.BotUsers.RemoveAll(x => x.User == user);
+				guildInfo.BotUsers.RemoveAll(x => x.User == user);
 				Actions.SaveLines(path, Actions.GetValidLines(path, user.Id.ToString()));
 			}
 
 			//Send a success message
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {1}: `{0}`.", String.Join("`, `", permissions.Select(x => x.Name)),
-				(bool)addBool ? String.Format("gave the user `{0}#{1}` the following permission{2}", user.Username, user.Discriminator, permissions.Count() != 1 ? "s" : "") :
-								String.Format("removed the following permission{0} from the user `{1}#{2}`", permissions.Count() != 1 ? "s" : "", user.Username, user.Discriminator)));
+				type == BUMType.Add ? String.Format("gave the user `{0}` the following permission{1}", Actions.FormatUser(user), permissions.Count() != 1 ? "s" : "") :
+									String.Format("removed the following permission{0} from the user `{1}`", permissions.Count() != 1 ? "s" : "", Actions.FormatUser(user))));
 		}
 
 		[Command("botusers")]
@@ -720,6 +702,14 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BotUsers([Optional, Remainder] string input)
 		{
+			//Check if they've enabled preferences
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
+				return;
+			}
+
 			if (!String.IsNullOrWhiteSpace(input))
 			{
 				//Check if user
@@ -727,7 +717,7 @@ namespace Advobot
 				if (user != null)
 				{
 					//Get the botuser
-					var botUser = Variables.BotUsers.FirstOrDefault(x => x.User == user);
+					var botUser = guildInfo.BotUsers.FirstOrDefault(x => x.User == user);
 					if (botUser == null || botUser.Permissions == 0)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no bot permissions."));
@@ -744,19 +734,15 @@ namespace Advobot
 				}
 			}
 
-			//Format the description
-			var counter = 1;
-			var description = String.Join("\n", Variables.BotUsers.Where(x => x.User.GuildId == Context.Guild.Id).Select(x =>
-				String.Format("`{0}.` `{1}`", counter++.ToString("00"), Actions.FormatUser(x.User))));
-
-			//Null check
-			if (String.IsNullOrWhiteSpace(description))
+			if (!guildInfo.BotUsers.Any())
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no bot users."));
 				return;
 			}
 
-			//Send the message
+			//Format the description
+			var users = guildInfo.BotUsers.Where(x => x.User.GuildId == Context.Guild.Id).Select((x, count) => String.Format("`{0}.` `{1}`", count.ToString("00"), Actions.FormatUser(x.User)));
+			var description = String.Join("\n", users);
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bot Users", description));
 		}
 
@@ -898,13 +884,12 @@ namespace Advobot
 			else
 			{
 				//Find close words
-				var closeWords = Actions.GetRemindsWithInputInName(Actions.GetRemindsWithSimilarNames(reminds, input), reminds, input).Distinct().ToList();
+				var closeWords = Actions.GetRemindsWithSimilarNames(reminds, input).Distinct().ToList();
 
 				if (closeWords.Any())
 				{
 					//Format a message to be said
-					int counter = 1;
-					var msg = "Did you mean any of the following:\n" + String.Join("\n", closeWords.Select(x => String.Format("`{0}.` {1}", counter++.ToString("00"), x.Name)));
+					var msg = "Did you mean any of the following:\n" + String.Join("\n", closeWords.Select((x, count) => String.Format("`{0}.` {1}", count.ToString("00"), x.Name)));
 
 					//Remove all active closeword lists that the user has made
 					Variables.ActiveCloseWords.RemoveAll(x => x.User == Context.User);
