@@ -70,7 +70,8 @@ namespace Advobot
 		public async Task GuildPrefix([Remainder] string input)
 		{
 			//Check if using the default preferences
-			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
@@ -99,20 +100,14 @@ namespace Advobot
 
 			if (Actions.CaseInsEquals(input, "clear"))
 			{
-				//Add all the lines back
 				Actions.SaveLines(path, Constants.GUILD_PREFIX, "", validLines);
-
-				Variables.Guilds[Context.Guild.Id].SetPrefix(null);
+				guildInfo.SetPrefix(null);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild prefix.");
 			}
 			else
 			{
-				//Add all the lines back
 				Actions.SaveLines(path, Constants.GUILD_PREFIX, input, validLines);
-
-				//Update the guild's prefix
-				Variables.Guilds[Context.Guild.Id].SetPrefix(input);
-				//Send a success message
+				guildInfo.SetPrefix(input);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully set this guild's prefix to: `" + input.Trim() + "`.");
 			}
 		}
@@ -198,6 +193,7 @@ namespace Advobot
 		public async Task CommandConfigModify([Remainder] string input)
 		{
 			//Check if enable
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			if (Actions.CaseInsEquals(input, "enable"))
 			{
 				//Member limit
@@ -214,9 +210,8 @@ namespace Advobot
 					"access to it. A new text channel will be automatically created to display preferences and the server/mod log. If you agree to this, say `Yes`.");
 
 				//Add them to the list for a few seconds
-				Variables.GuildsEnablingPreferences.Add(Context.Guild);
-				//Remove them
-				Actions.RemovePrefEnable(Context.Guild);
+				guildInfo.SwitchEnablingPrefs();
+				Actions.RemovePrefEnable(guildInfo);
 
 				//The actual enabling happens in OnMessageReceived in Serverlogs
 			}
@@ -227,9 +222,8 @@ namespace Advobot
 				await Actions.SendChannelMessage(Context, "If you are sure you want to delete your preferences, say `Yes`.");
 
 				//Add them to the list for a few seconds
-				Variables.GuildsDeletingPreferences.Add(Context.Guild);
-				//Remove them
-				Actions.RemovePrefDelete(Context.Guild);
+				guildInfo.SwitchDeletingPrefs();
+				Actions.RemovePrefDelete(guildInfo);
 
 				//The actual deleting happens in OnMessageReceived in Serverlogs
 			}
@@ -741,7 +735,9 @@ namespace Advobot
 			}
 
 			//Format the description
-			var users = guildInfo.BotUsers.Where(x => x.User.GuildId == Context.Guild.Id).Select((x, count) => String.Format("`{0}.` `{1}`", count.ToString("00"), Actions.FormatUser(x.User)));
+			var count = 1;
+			var lengthForPad = guildInfo.BotUsers.Count.ToString().Length;
+			var users = guildInfo.BotUsers.Select(x => String.Format("`{0}.` `{1}`", count++.ToString().PadLeft(lengthForPad, '0'), Actions.FormatUser(x.User)));
 			var description = String.Join("\n", users);
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bot Users", description));
 		}
@@ -830,10 +826,7 @@ namespace Advobot
 				name = inputArray[1];
 
 				//Remove all reminds with the same name
-				reminds.ForEach(x =>
-				{
-					guildInfo.Reminds.RemoveAll(y => Actions.CaseInsEquals(y.Name, x.Name));
-				});
+				reminds.RemoveAll(x => Actions.CaseInsEquals(x.Name, name));
 			}
 
 			//save everything
@@ -889,15 +882,12 @@ namespace Advobot
 				if (closeWords.Any())
 				{
 					//Format a message to be said
-					var msg = "Did you mean any of the following:\n" + String.Join("\n", closeWords.Select((x, count) => String.Format("`{0}.` {1}", count.ToString("00"), x.Name)));
+					var count = 1;
+					var msg = "Did you mean any of the following:\n" + String.Join("\n", closeWords.Select(x => String.Format("`{0}.` {1}", count++.ToString("00"), x.Name)));
 
-					//Remove all active closeword lists that the user has made
+					//Give the user a new list
 					Variables.ActiveCloseWords.RemoveAll(x => x.User == Context.User);
-
-					//Create the list
 					var list = new ActiveCloseWords(Context.User as IGuildUser, closeWords);
-
-					//Add them to the active close word list, thus allowing them to say the number of the remind they want. Remove after 5 seconds
 					Variables.ActiveCloseWords.Add(list);
 					Actions.RemoveActiveCloseWords(list);
 

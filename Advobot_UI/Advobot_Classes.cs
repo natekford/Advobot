@@ -519,7 +519,14 @@ namespace Advobot
 	{
 		public BotGuildInfo(IGuild guild)
 		{
-			mGuild = guild;
+			Guild = guild;
+			GlobalSpamPrevention = new GlobalSpamPrevention();
+			RoleLoss = new RoleLoss();
+			MessageDeletion = new MessageDeletion();
+			DefaultPrefs = true;
+			Loaded = false;
+			EnablingPrefs = false;
+			DeletingPrefs = false;
 		}
 
 		//I CBA changing everything in here to be private yet. I hate handling lists as private ones. Made this class to keep them private-ish instead
@@ -538,89 +545,55 @@ namespace Advobot
 		public List<IRole> FAWRRoles = new List<IRole>();
 		public List<LogActions> LogActions = new List<LogActions>();
 
-		private GlobalSpamPrevention mGlobalSpamPrevention = new GlobalSpamPrevention();
-		private AntiRaid mAntiRaid;
-		private RoleLoss mRoleLoss = new RoleLoss();
-		private MessageDeletion mMessageDeletion = new MessageDeletion();
-		private WelcomeMessage mWelcomeMessage;
-		private bool mDefaultPrefs = true;
-		private bool mLoaded = false;
-		private string mPrefix;
-		private IGuild mGuild;
-		private ITextChannel mServerLog;
-		private ITextChannel mModLog;
+		public GlobalSpamPrevention GlobalSpamPrevention { get; private set; }
+		public AntiRaid AntiRaid { get; private set; }
+		public RoleLoss RoleLoss { get; private set; }
+		public MessageDeletion MessageDeletion { get; private set; }
+		public WelcomeMessage WelcomeMessage { get; private set; }
+		public bool DefaultPrefs { get; private set; }
+		public bool Loaded { get; private set; }
+		public bool EnablingPrefs { get; private set; }
+		public bool DeletingPrefs { get; private set; }
+		public string Prefix { get; private set; }
+		public IGuild Guild { get; private set; }
+		public ITextChannel ServerLog { get; private set; }
+		public ITextChannel ModLog { get; private set; }
 
-		public GlobalSpamPrevention GlobalSpamPrevention
-		{
-			get { return mGlobalSpamPrevention; }
-		}
-		public AntiRaid AntiRaid
-		{
-			get { return mAntiRaid; }
-		}
 		public void SetAntiRaid(AntiRaid antiRaid)
 		{
-			mAntiRaid = antiRaid;
-		}
-		public bool DefaultPrefs
-		{
-			get { return mDefaultPrefs; }
+			AntiRaid = antiRaid;
 		}
 		public void TurnDefaultPrefsOff()
 		{
-			mDefaultPrefs = false;
-		}
-		public bool Loaded
-		{
-			get { return mLoaded; }
+			DefaultPrefs = false;
 		}
 		public void TurnLoadedOn()
 		{
-			mLoaded = true;
+			Loaded = true;
 		}
-		public string Prefix
+		public void SwitchEnablingPrefs()
 		{
-			get { return mPrefix; }
+			EnablingPrefs = !EnablingPrefs;
+		}
+		public void SwitchDeletingPrefs()
+		{
+			DeletingPrefs = !DeletingPrefs;
 		}
 		public void SetPrefix(string prefix)
 		{
-			mPrefix = prefix;
-		}
-		public IGuild Guild
-		{
-			get { return mGuild; }
-		}
-		public ITextChannel ServerLog
-		{
-			get { return mServerLog; }
+			Prefix = prefix;
 		}
 		public void SetServerLog(ITextChannel channel)
 		{
-			mServerLog = channel;
-		}
-		public ITextChannel ModLog
-		{
-			get { return mModLog; }
+			ServerLog = channel;
 		}
 		public void SetModLog(ITextChannel channel)
 		{
-			mModLog = channel;
-		}
-		public RoleLoss RoleLoss
-		{
-			get { return mRoleLoss; }
-		}
-		public MessageDeletion MessageDeletion
-		{
-			get { return mMessageDeletion; }
-		}
-		public WelcomeMessage WelcomeMessage
-		{
-			get { return mWelcomeMessage; }
+			ModLog = channel;
 		}
 		public void SetWelcomeMessage(WelcomeMessage wm)
 		{
-			mWelcomeMessage = wm;
+			WelcomeMessage = wm;
 		}
 	}
 
@@ -1095,6 +1068,38 @@ namespace Advobot
 			mPunishment = (type == PunishmentType.Deafen || type == PunishmentType.Mute) ? PunishmentType.Nothing : type;
 		}
 	}
+
+	public class WelcomeMessage
+	{
+		public WelcomeMessage(EmbedBuilder embed, string content, ITextChannel channel)
+		{
+			mContent = content;
+			mEmbed = embed;
+			mChannel = channel;
+		}
+
+		private string mContent;
+		private EmbedBuilder mEmbed;
+		private ITextChannel mChannel;
+
+		public string Content
+		{
+			get { return mContent; }
+		}
+		public EmbedBuilder Embed
+		{
+			get { return mEmbed; }
+		}
+		public ITextChannel Channel
+		{
+			get { return mChannel; }
+		}
+
+		public void ChangeChannel(ITextChannel channel)
+		{
+			mChannel = channel;
+		}
+	}
 	#endregion
 
 	#region Structs
@@ -1419,50 +1424,6 @@ namespace Advobot
 		{
 			get { return mReason; }
 		}
-	}
-
-	public struct WelcomeMessage
-	{
-		public WelcomeMessage(EmbedBuilder embed, string content, ITextChannel channel)
-		{
-			mContent = content;
-			mEmbed = embed;
-			mChannel = channel;
-		}
-
-		private string mContent;
-		private EmbedBuilder mEmbed;
-		private ITextChannel mChannel;
-
-		public string Content
-		{
-			get { return mContent; }
-		}
-		public EmbedBuilder Embed
-		{
-			get { return mEmbed; }
-		}
-		public ITextChannel Channel
-		{
-			get { return mChannel; }
-		}
-
-		public void ChangeChannel(ITextChannel channel)
-		{
-			mChannel = channel;
-		}
-	}
-	
-	public class Test
-	{
-		public Test(ulong guildID, ulong channelID)
-		{
-			_GuildID = guildID;
-			_ChannelID = channelID;
-		}
-
-		public ulong _GuildID { get; private set; }
-		public ulong _ChannelID { get; private set; }
 	}
 	#endregion
 

@@ -72,15 +72,12 @@ namespace Advobot
 					if (closeHelps != null && closeHelps.Any())
 					{
 						//Format a message to be said
-						var msg = "Did you mean any of the following:\n" + String.Join("\n", closeHelps.Select((x, count) => String.Format("`{0}.` {1}", count.ToString("00"), x.Help.Name)));
+						var count = 1;
+						var msg = "Did you mean any of the following:\n" + String.Join("\n", closeHelps.Select(x => String.Format("`{0}.` {1}", count++.ToString("00"), x.Help.Name)));
 
-						//Remove all active closeword lists that the user has made
+						//Give the user a new list
 						Variables.ActiveCloseHelp.RemoveAll(x => x.User == Context.User);
-
-						//Create the list
 						var list = new ActiveCloseHelp(Context.User as IGuildUser, closeHelps);
-
-						//Add them to the active close word list, thus allowing them to say the number of the remind they want. Remove after 5 seconds
 						Variables.ActiveCloseHelp.Add(list);
 						Actions.RemoveActiveCloseHelp(list);
 
@@ -324,10 +321,8 @@ namespace Advobot
 				user.Status);
 
 			//Make the embed
-			var embed = Actions.MakeNewEmbed(null, description, roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color);
-			//Add the author
-			Actions.AddAuthor(embed, user.Username + "#" + user.Discriminator + " " + (user.Nickname == null ? "" : "(" + user.Nickname + ")"), user.GetAvatarUrl(), user.GetAvatarUrl());
-			//Add the footer
+			var embed = Actions.MakeNewEmbed(null, description, roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color, thumbnailURL: user.GetAvatarUrl());
+			Actions.AddAuthor(embed, String.Format("{0}#{1} {2}", user.Username, user.Discriminator, (user.Nickname == null ? "" : "(" + user.Nickname + ")")), user.GetAvatarUrl(), user.GetAvatarUrl());
 			Actions.AddFooter(embed, "Userinfo");
 
 			//Add the channels the user can access
@@ -460,11 +455,13 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task UserJoins()
 		{
-			//Grab the users and format the message
-			var userMsg = String.Join("\n", (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt).Select((x, count) =>
+			var users = (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt);
+			var count = 1;
+			var padLength = users.Count().ToString().Length;
+			var userMsg = String.Join("\n", users.Select(x =>
 			{
 				var time = x.JoinedAt.Value.UtcDateTime;
-				return String.Format("`{0}.` `{1}` joined at `{2}` on `{3}`.", count.ToString("0000"), Actions.FormatUser(x), time.ToShortTimeString(), time.ToShortDateString());
+				return String.Format("`{0}.` `{1}` joined at `{2}` on `{3}`.", count++.ToString().PadLeft(padLength, '0'), Actions.FormatUser(x), time.ToShortTimeString(), time.ToShortDateString());
 			}));
 
 			await Actions.SendPotentiallyBigEmbed(Context.Guild, Context.Channel, Actions.MakeNewEmbed("Users", userMsg), userMsg, "User_Joins_");
@@ -999,10 +996,6 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			var test = new Test(Context.Guild.Id, Context.Channel.Id);
-			var output = JsonConvert.SerializeObject(test);
-			Actions.WriteLine(output);
-			var deserializedProduct = JsonConvert.DeserializeObject<Test>(output);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
 		#endregion

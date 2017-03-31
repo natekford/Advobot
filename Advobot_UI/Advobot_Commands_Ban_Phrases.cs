@@ -106,7 +106,8 @@ namespace Advobot
 			//Check if the users wants to see all the valid regex
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				var description = String.Join("\n", guildInfo.EvaluatedRegex.Select((x, count) => String.Format("`{0}.` `{1}`", count.ToString("00"), x.ToString())).ToList());
+				var count = 1;
+				var description = String.Join("\n", guildInfo.EvaluatedRegex.Select(x => String.Format("`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
 				description = String.IsNullOrWhiteSpace(description) ? "Nothing" : description;
 				var embed = Actions.MakeNewEmbed("Evaluated Regex", description);
 				await Actions.SendEmbedMessage(Context.Channel, embed);
@@ -405,7 +406,8 @@ namespace Advobot
 
 			//Make and send the embed
 			var header = String.Format("Banned {0}", regexBool ? "Regex " : "Phrases ");
-			var description = String.Join("\n", bannedPhrases.Select((x, count) => String.Format("`{0}.` {1}", count.ToString("00"), x)));
+			var count = 1;
+			var description = String.Join("\n", bannedPhrases.Select(x => String.Format("`{0}.` {1}", count++.ToString("00"), x)));
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(header, description));
 		}
 

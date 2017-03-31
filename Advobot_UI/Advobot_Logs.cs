@@ -475,15 +475,16 @@ namespace Advobot
 				return;
 			}
 
-			await Message_Received_Actions.SpamPrevention(guild, message);
-			await Message_Received_Actions.VotingOnSpamPrevention(guild, message);
 			await Message_Received_Actions.ModifyPreferences(guild, message);
 			await Message_Received_Actions.CloseWords(guild, message);
-			await Message_Received_Actions.SlowmodeOrBannedPhrases(guild, message);
 
 			//Log images
 			if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 			{
+				await Message_Received_Actions.SpamPrevention(guildInfo, guild, message);
+				await Message_Received_Actions.VotingOnSpamPrevention(guildInfo, guild, message);
+				await Message_Received_Actions.SlowmodeOrBannedPhrases(guildInfo, guild, message);
+
 				var serverLog = guildInfo.ServerLog;
 				await Message_Received_Actions.ImageLog(guildInfo, serverLog, message);
 
@@ -792,15 +793,17 @@ namespace Advobot
 				//If the message is only 'yes' then check if they're enabling or deleting preferences
 				if (Actions.CaseInsEquals(message.Content, "yes"))
 				{
-					if (Variables.GuildsEnablingPreferences.Contains(guild))
+					if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+						return;
+					else if (guildInfo.EnablingPrefs)
 					{
 						//Enable preferences
-						await Actions.EnablePreferences(guild, message as IUserMessage);
+						await Actions.EnablePreferences(guildInfo, guild, message as IUserMessage);
 					}
-					if (Variables.GuildsDeletingPreferences.Contains(guild))
+					else if (guildInfo.DeletingPrefs)
 					{
 						//Delete preferences
-						await Actions.DeletePreferences(guild, message as IUserMessage);
+						await Actions.DeletePreferences(guildInfo, guild, message as IUserMessage);
 					}
 				}
 			}
@@ -808,45 +811,33 @@ namespace Advobot
 
 		public static async Task CloseWords(IGuild guild, IMessage message)
 		{
-			if (Constants.CLOSE_WORDS_POSITIONS.Contains(message.Content))
+			//Get the number
+			if (!int.TryParse(message.Content, out int number))
+				return;
+
+			if (number > 0 && number < 6)
 			{
-				//Get the number
-				var number = Actions.GetInteger(message.Content);
+				--number;
 				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
-				var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
-				if (closeWordList.User != null)
+				if (closeWordList.User != null && closeWordList.List.Count > number)
 				{
-					//Get the remind
 					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
-
-					//Send the remind
-					await Actions.SendChannelMessage(message.Channel, remind.Text);
-
-					//Remove that list
 					Variables.ActiveCloseWords.Remove(closeWordList);
+					await Actions.SendChannelMessage(message.Channel, remind.Text);
+					await Actions.DeleteMessage(message);
 				}
-				else if (closeHelpList.User != null)
+				var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
+				if (closeHelpList.User != null && closeHelpList.List.Count > number)
 				{
-					//Get the help
 					var help = closeHelpList.List[number].Help;
-
-					//Send the remind
-					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help)), "Help"));
-
-					//Remove that list
 					Variables.ActiveCloseHelp.Remove(closeHelpList);
+					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help)), "Help"));
+					await Actions.DeleteMessage(message);
 				}
-				else
-				{
-					return;
-				}
-
-				//Delete the message
-				await Actions.DeleteMessage(message);
 			}
 		}
 
-		public static async Task SlowmodeOrBannedPhrases(IGuild guild, IMessage message)
+		public static async Task SlowmodeOrBannedPhrases(BotGuildInfo guildInfo, IGuild guild, IMessage message)
 		{
 			//Make sure the message is a valid message to do this to
 			if (message == null || message.Author.IsBot)
@@ -858,19 +849,19 @@ namespace Advobot
 				await Actions.Slowmode(message);
 			}
 			//Check if any banned phrases
-			else if (Variables.Guilds[guild.Id].BannedStrings.Any() || Variables.Guilds[guild.Id].BannedRegex.Any())
+			else if (guildInfo.BannedStrings.Any() || guildInfo.BannedRegex.Any())
 			{
 				await Actions.BannedPhrases(message);
 			}
 		}
 
-		public static async Task SpamPrevention(IGuild guild, IMessage msg)
+		public static async Task SpamPrevention(BotGuildInfo guildInfo, IGuild guild, IMessage msg)
 		{
 			var author = msg.Author as IGuildUser;
 			if (Actions.GetPosition(guild, author) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)))
 				return;
 
-			var global = Variables.Guilds[guild.Id].GlobalSpamPrevention;
+			var global = guildInfo.GlobalSpamPrevention;
 			var isSpam = false;
 
 			var message = global.GetSpamPrevention(SpamType.Message) as MessageSpamPrevention;
@@ -907,11 +898,10 @@ namespace Advobot
 			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == author);
 		}
 
-		public static async Task VotingOnSpamPrevention(IGuild guild, IMessage message)
+		public static async Task VotingOnSpamPrevention(BotGuildInfo guildInfo, IGuild guild, IMessage message)
 		{
 			//Get the users primed to be kicked/banned by the spam prevention
-			var users = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
-			//Return if it's empty
+			var users = guildInfo.GlobalSpamPrevention.SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
 			if (!users.Any())
 				return;
 

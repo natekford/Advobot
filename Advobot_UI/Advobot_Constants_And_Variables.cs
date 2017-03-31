@@ -12,8 +12,8 @@ namespace Advobot
 		public const int CACHED_MESSAGE_COUNT = 10000;
 		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
 
-		public const string BOT_VERSION = "0.9.18";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00642";
+		public const string BOT_VERSION = "0.9.20";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00653";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -115,10 +115,6 @@ namespace Advobot
 		{
 			"comconfig", "help"
 		});
-		public static ReadOnlyCollection<string> CLOSE_WORDS_POSITIONS = new ReadOnlyCollection<string>(new List<string>()
-		{
-			"1", "2", "3", "4", "5"
-		});
 		public static ReadOnlyCollection<string> VALID_GUILD_FILES = new ReadOnlyCollection<string>(new List<string>()
 		{
 			PREFERENCES_FILE, MISCGUILDINFO, BANNED_PHRASES, SA_ROLES, PERMISSIONS, REMINDS, COMMANDS_DISABLED_BY_CHANNEL
@@ -208,8 +204,6 @@ namespace Advobot
 		public static List<BotGuildPermissionType> GuildPermissions = new List<BotGuildPermissionType>();
 		public static List<BotChannelPermissionType> ChannelPermissions = new List<BotChannelPermissionType>();
 		public static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
-		public static List<Discord.IGuild> GuildsEnablingPreferences = new List<Discord.IGuild>();
-		public static List<Discord.IGuild> GuildsDeletingPreferences = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<Discord.IGuild>();
 	}
 

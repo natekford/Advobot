@@ -359,16 +359,5 @@ namespace Advobot
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(String.Format("Self Roles Group {0}", groupNumber), description));
 			}
 		}
-
-		[Command("autorole")]
-		[Alias("aur")]
-		[Usage("[Role]")]
-		[Summary("Sets the role which users get upon joining the server.")]
-		[PermissionRequirement]
-		[DefaultEnabled(false)]
-		public async Task AutoRole([Remainder] string input)
-		{
-
-		}
 	}
 }

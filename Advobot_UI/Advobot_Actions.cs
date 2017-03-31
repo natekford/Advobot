@@ -734,8 +734,13 @@ namespace Advobot
 			if (user.Id == guild.OwnerId)
 				return Constants.OWNER_POSITION;
 
+			//Check if any roles
+			var roleIDs = tempUser.RoleIds;
+			if (!roleIDs.Any())
+				return -1;
+
 			//Get the position off of their roles
-			return tempUser.RoleIds.ToList().Max(x => guild.GetRole(x).Position);
+			return roleIDs.Max(x => guild.GetRole(x).Position);
 		}
 		
 		//Get a user via a string
@@ -2612,7 +2617,7 @@ namespace Advobot
 		}
 		
 		//Enable preferences
-		public static async Task EnablePreferences(IGuild guild, IUserMessage message)
+		public static async Task EnablePreferences(BotGuildInfo guildInfo, IGuild guild, IUserMessage message)
 		{
 			//Set up the preferences file(s) location(s) on the computer
 			var path = GetServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
@@ -2628,17 +2633,12 @@ namespace Advobot
 			else
 			{
 				await MakeAndDeleteSecondaryMessage(message.Channel, message, "Preferences are already turned on.");
-				Variables.GuildsEnablingPreferences.Remove(guild);
+				guildInfo.SwitchEnablingPrefs();
 				return;
 			}
 
-			//Remove them from the emable list
-			Variables.GuildsEnablingPreferences.Remove(guild);
-
-			//Set the default prefs bool to false
-			Variables.Guilds[guild.Id].TurnDefaultPrefsOff();
-
-			//Send a success message
+			guildInfo.SwitchEnablingPrefs();
+			guildInfo.TurnDefaultPrefsOff();
 			await SendChannelMessage(message.Channel, "Successfully created the preferences for this guild.");
 		}
 		
@@ -2650,7 +2650,7 @@ namespace Advobot
 		}
 		
 		//Delete preferences
-		public static async Task DeletePreferences(IGuild guild, IUserMessage message)
+		public static async Task DeletePreferences(BotGuildInfo guildInfo, IGuild guild, IUserMessage message)
 		{
 			//Check if valid path
 			var path = GetServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
@@ -2660,13 +2660,8 @@ namespace Advobot
 				return;
 			}
 
-			//Delete the preferences file
 			File.Delete(path);
-
-			//Remove them from the emable list
-			Variables.GuildsDeletingPreferences.Remove(guild);
-
-			//Send a success message
+			guildInfo.SwitchDeletingPrefs();
 			await SendChannelMessage(message.Channel, "Successfully deleted the stored preferences for this guild.");
 		}
 
@@ -3668,22 +3663,22 @@ namespace Advobot
 		}
 
 		//Remove the option to say yes for preferences after ten seconds
-		public static void RemovePrefEnable(IGuild guild)
+		public static void RemovePrefEnable(BotGuildInfo guildInfo)
 		{
 			Task.Run(async () =>
 			{
 				await Task.Delay(5000);
-				Variables.GuildsEnablingPreferences.Remove(guild);
+				guildInfo.SwitchEnablingPrefs();
 			});
 		}
 
 		//Remove the option to say yes for preferences after ten seconds
-		public static void RemovePrefDelete(IGuild guild)
+		public static void RemovePrefDelete(BotGuildInfo guildInfo)
 		{
 			Task.Run(async () =>
 			{
 				await Task.Delay(5000);
-				Variables.GuildsDeletingPreferences.Remove(guild);
+				guildInfo.SwitchDeletingPrefs();
 			});
 		}
 
@@ -3995,6 +3990,9 @@ namespace Advobot
 
 		public static async Task SendWelcomeMessage(IUser user, WelcomeMessage wm)
 		{
+			if (wm == null)
+				return;
+
 			var userMention = user != null ? user.Mention : "Invalid User";
 			var content = wm.Content.Replace("@User", userMention);
 
