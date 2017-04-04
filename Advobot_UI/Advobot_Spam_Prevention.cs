@@ -52,7 +52,7 @@ namespace Advobot
 				return;
 			}
 
-			//Check if a spamprevention exists or not
+			//Check if a spam prevention exists or not
 			var spamPrevention = Variables.Guilds[Context.Guild.Id].GlobalSpamPrevention.GetSpamPrevention(typeEnum);
 			switch (actionEnum)
 			{

@@ -52,9 +52,8 @@ namespace Advobot
 			else if (guildInfo.IgnoredCommandChannels.Contains(channel.Id))
 				return;
 
-			//Get the guild specific prefix
-			var guildPrefix = guildInfo.Prefix;
 			//Check to see if the guild is using a prefix
+			var guildPrefix = guildInfo.Prefix;
 			if (!string.IsNullOrWhiteSpace(guildPrefix))
 			{
 				if (!message.HasStringPrefix(guildPrefix, ref argPos))

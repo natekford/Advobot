@@ -13,7 +13,7 @@ namespace Advobot
 		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
 
 		public const string BOT_VERSION = "0.9.20";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00653";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00667";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -52,6 +52,7 @@ namespace Advobot
 		public const string INVITE_SPLASH = "INVITE_SPLASH";
 		public static readonly string DEFAULT_GAME = "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
 		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds as a text file.";
+		public const string NO_NN = "NO NICKNAME";
 
 		public static readonly string PREFERENCES_FILE = Enum.GetName(typeof(Files), Files.CommandPreferences) + FILE_EXTENSION;
 		public static readonly string MISCGUILDINFO = Enum.GetName(typeof(Files), Files.MiscGuildInfo) + FILE_EXTENSION;
@@ -188,21 +189,18 @@ namespace Advobot
 		public static int LoggedFiles = 0;
 
 		public static Dictionary<ulong, BotGuildInfo> Guilds = new Dictionary<ulong, BotGuildInfo>();
-		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeGuilds = new Dictionary<ulong, List<SlowmodeUser>>();
-		public static Dictionary<ulong, List<SlowmodeUser>> SlowmodeChannels = new Dictionary<ulong, List<SlowmodeUser>>();
 
-		public static List<string> CommandNames = new List<string>();
-		public static List<string> RegionIDs = new List<string>();
 		public static List<ulong> PotentialBotOwners = new List<ulong>();
 		public static List<ulong> DeletedRoles = new List<ulong>();
+		public static List<string> CommandNames = new List<string>();
+		public static List<string> RegionIDs = new List<string>();
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
-		public static List<ActiveCloseHelp> ActiveCloseHelp = new List<ActiveCloseHelp>();
-		public static List<ActiveCloseWords> ActiveCloseWords = new List<ActiveCloseWords>();
-		public static List<BannedPhraseUser> BannedPhraseUserList = new List<BannedPhraseUser>();
-		public static List<RemovablePunishment> PunishedUsers = new List<RemovablePunishment>();
-		public static List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
 		public static List<BotGuildPermissionType> GuildPermissions = new List<BotGuildPermissionType>();
 		public static List<BotChannelPermissionType> ChannelPermissions = new List<BotChannelPermissionType>();
+		public static List<ActiveCloseHelp> ActiveCloseHelp = new List<ActiveCloseHelp>();
+		public static List<ActiveCloseWords> ActiveCloseWords = new List<ActiveCloseWords>();
+		public static List<RemovablePunishment> PunishedUsers = new List<RemovablePunishment>();
+		public static List<RemovableMessage> TimedMessages = new List<RemovableMessage>();
 		public static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<Discord.IGuild>();
 	}

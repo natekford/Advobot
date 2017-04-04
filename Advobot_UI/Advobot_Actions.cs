@@ -1,5 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -254,7 +256,7 @@ namespace Advobot
 			var cmdSettings = Variables.Guilds[guild.Id].CommandSettings;
 			if (!File.Exists(path))
 			{
-				Variables.HelpList.ForEach(x => cmdSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled, x?.Category, x?.Aliases)));
+				Variables.HelpList.ForEach(x => cmdSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 			}
 			else
 			{
@@ -272,7 +274,10 @@ namespace Advobot
 						if (values.Length == 2)
 						{
 							var helpEntry = Variables.HelpList.FirstOrDefault(cmd => CaseInsEquals(cmd.Name, values[0]));
-							cmdSettings.Add(new CommandSwitch(values[0], values[1], helpEntry?.Category, helpEntry?.Aliases));
+							if (bool.TryParse(values[1], out bool value))
+							{
+								cmdSettings.Add(new CommandSwitch(values[0], value));
+							}
 						}
 						else
 						{
@@ -281,7 +286,7 @@ namespace Advobot
 					}
 				}
 				var cmdsGathered = cmdSettings.Select(x => x.Name).ToList();
-				Variables.HelpList.Where(x => !CaseInsContains(cmdsGathered, x.Name)).ToList().ForEach(x => cmdSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled, x?.Category, x?.Aliases)));
+				Variables.HelpList.Where(x => !CaseInsContains(cmdsGathered, x.Name)).ToList().ForEach(x => cmdSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 			}
 			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Command Preferences");
 		}
@@ -294,101 +299,10 @@ namespace Advobot
 			if (!File.Exists(path))
 				return;
 
-			//Get the guild info
-			var guildInfo = Variables.Guilds[guild.Id];
-
-			//Get the banned phrases and regex
-			using (var file = new StreamReader(path))
+			using (var reader = new StreamReader(path))
 			{
-				string line;
-				while ((line = file.ReadLine()) != null)
-				{
-					//If the line is empty, do nothing
-					if (String.IsNullOrWhiteSpace(line))
-						continue;
-					//Banned phrases
-					if (line.StartsWith(Constants.BANNED_STRING_CHECK_STRING))
-					{
-						int colonIndex = line.IndexOf(':') + 1;
-						if (colonIndex < 0)
-							continue;
-
-						int underscoreIndex = line.IndexOf('_') + 1;
-						if (underscoreIndex < 0)
-							continue;
-
-						if (!int.TryParse(line.Split('_')[1].Substring(0, 1), out int number))
-							continue;
-
-						var type = (PunishmentType)number;
-						var phrase = line.Substring(colonIndex);
-						if (!String.IsNullOrWhiteSpace(phrase))
-						{
-							guildInfo.BannedStrings.Add(new BannedPhrase<string>(phrase, type));
-						}
-					}
-					//Banned regex
-					else if (line.StartsWith(Constants.BANNED_REGEX_CHECK_STRING))
-					{
-						int colonIndex = line.IndexOf(':') + 1;
-						if (colonIndex < 0)
-							continue;
-
-						int underscoreIndex = line.IndexOf('_') + 1;
-						if (underscoreIndex < 0)
-							continue;
-
-						if (!int.TryParse(line.Split('_')[1].Substring(0, 1), out int number))
-							continue;
-
-						var type = (PunishmentType)number;
-						var regexStr = line.Substring(colonIndex);
-						if (!String.IsNullOrWhiteSpace(regexStr) && TryCreateRegex(regexStr, out Regex regex, out string error))
-						{
-							guildInfo.BannedRegex.Add(new BannedPhrase<Regex>(regex, type));
-						}
-					}
-					//Punishments
-					else if (line.StartsWith(Constants.BANNED_PHRASES_PUNISHMENTS))
-					{
-						int index = line.IndexOf(':');
-						if (index >= 0 && index < line.Length - 1)
-						{
-							//Split the information in the file
-							var args = line.Substring(index + 1).Split(' ');
-
-							//All need to be ifs to check each value
-
-							//Number of removes to activate
-							if (!int.TryParse(args[0], out int number))
-								continue;
-
-							//The type of punishment
-							if (!int.TryParse(args[1], out int punishment))
-								continue;
-
-							//The role ID if a role punishment type
-							ulong roleID = 0;
-							if (punishment == 3 && !ulong.TryParse(args[2], out roleID))
-								continue;
-
-							//Get the role
-							var role = roleID != 0 ? guild.GetRole(roleID) : null;
-
-							//The time if a time is input
-							int time = 0;
-							if (role != null && !int.TryParse(args[3], out time))
-								continue;
-
-							guildInfo.BannedPhrasesPunishments.Add(new BannedPhrasePunishment(number, (PunishmentType)punishment, role, time));
-						}
-					}
-
-					//Remove all duplicates
-					guildInfo.BannedStrings = guildInfo.BannedStrings.Distinct().ToList();
-					guildInfo.BannedRegex = guildInfo.BannedRegex.Distinct().ToList();
-					guildInfo.BannedPhrasesPunishments = guildInfo.BannedPhrasesPunishments.Distinct().ToList();
-				}
+				var text = reader.ReadToEnd();
+				Variables.Guilds[guild.Id].SetBannedPhrases(JsonConvert.DeserializeObject<BannedPhrases>(text));
 			}
 
 			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Banned Phrases/Regex/Punishments");
@@ -401,6 +315,9 @@ namespace Advobot
 			var path = GetServerFilePath(guild.Id, Constants.SA_ROLES);
 			if (!File.Exists(path))
 				return;
+
+			//Get the guildinfo
+			var guildInfo = Variables.Guilds[guild.Id];
 
 			//Read the file
 			using (var file = new StreamReader(path))
@@ -428,21 +345,21 @@ namespace Advobot
 						continue;
 
 					//Check if it's already in any list
-					if (Variables.SelfAssignableGroups.Where(x => x.GuildID == guild.Id).Any(x => x.Roles.Any(y => y.Role.Id == ID)))
+					if (guildInfo.SelfAssignableGroups.Any(x => x.Roles.Any(y => y.Role.Id == ID)))
 						continue;
 
 					//Remake the SARole
-					var SARole = new SelfAssignableRole(role, group);
+					var SARole = new SelfAssignableRole(guild.Id, role.Id, group);
 
 					//Check if that group exists already
-					if (!Variables.SelfAssignableGroups.Any(x => x.Group == group))
+					if (!guildInfo.SelfAssignableGroups.Any(x => x.Group == group))
 					{
-						Variables.SelfAssignableGroups.Add(new SelfAssignableGroup(new List<SelfAssignableRole> { SARole }, group, guild.Id));
+						guildInfo.SelfAssignableGroups.Add(new SelfAssignableGroup(new List<SelfAssignableRole> { SARole }, group));
 					}
 					//Add it to the list if it already does exist
 					else
 					{
-						Variables.SelfAssignableGroups.FirstOrDefault(x => x.Group == group).AddRole(SARole);
+						guildInfo.SelfAssignableGroups.FirstOrDefault(x => x.Group == group).AddRole(SARole);
 					}
 				}
 			}
@@ -589,7 +506,7 @@ namespace Advobot
 
 					//If valid user then add to botusers and keep the line
 					validBotUsers.Add(line);
-					Variables.Guilds[guild.Id].BotUsers.Add(new BotImplementedPermissions(user, perms));
+					Variables.Guilds[guild.Id].BotUsers.Add(new BotImplementedPermissions(guild.Id, user.Id, perms));
 
 					//Decrement the counter
 					--counter;
@@ -764,7 +681,7 @@ namespace Advobot
 		//Get the bot as an IGuildUser
 		public static async Task<IGuildUser> GetBot(IGuild guild)
 		{
-			return await guild.GetUserAsync(Variables.Bot_ID);
+			return await guild.GetCurrentUserAsync();
 		}
 		
 		//Get if the user/bot can edit the role
@@ -1169,11 +1086,8 @@ namespace Advobot
 		}
 
 		//Get if the user if the bot owner
-		public static bool GetIfUserIsBotOwner(IGuild guild, IUser user)
+		public static bool GetIfUserIsBotOwner(IUser user)
 		{
-			if (guild == null)
-				return false;
-
 			return user.Id == Properties.Settings.Default.BotOwner;
 		}
 
@@ -1559,7 +1473,7 @@ namespace Advobot
 			{
 				//Get the current messages and ones that aren't null
 				var newNum = Math.Min(requestCount, 100);
-				var messages = (await channel.GetMessagesAsync(newNum).ToList()).SelectMany(x => x).ToList();
+				var messages = (await channel.GetMessagesAsync(newNum).ToList()).SelectMany(x => x).Where(x => x != null).ToList();
 				if (messages.Count == 0)
 					break;
 
@@ -1601,7 +1515,7 @@ namespace Advobot
 			{
 				//Get the current messages and ones that aren't null
 				var newNum = Math.Min(requestCount, 100);
-				var messages = (await channel.GetMessagesAsync(newNum).ToList()).SelectMany(x => x).Where(x => x.Author == user).ToList();
+				var messages = (await channel.GetMessagesAsync(newNum).ToList()).SelectMany(x => x).Where(x => x.Author == user && x != null).ToList();
 				if (messages.Count == 0)
 					break;
 
@@ -2706,7 +2620,7 @@ namespace Advobot
 				writer.WriteLine(output);
 			}
 
-			Variables.Guilds[context.Guild.Id].LogActions = logActions.OrderBy(x => x).ToList();
+			Variables.Guilds[context.Guild.Id].SetLogActions(logActions.OrderBy(x => x).ToList());
 		}
 
 		//Create file
@@ -2718,7 +2632,6 @@ namespace Advobot
 			}
 		}
 
-		//Add back in the lines
 		public static void SaveLines(string path, string target, string input, List<string> validLines, bool literal = false)
 		{
 			CreateFile(path);
@@ -2748,7 +2661,16 @@ namespace Advobot
 			CreateFile(path);
 			using (var writer = new StreamWriter(path))
 			{
-				writer.WriteLine(String.Join("\n", validLines));
+				writer.Write(String.Join("\n", validLines));
+			}
+		}
+
+		public static void OverWriteFile(string path, string toSave)
+		{
+			CreateFile(path);
+			using (var writer = new StreamWriter(path))
+			{
+				writer.Write(toSave);
 			}
 		}
 
@@ -2765,7 +2687,6 @@ namespace Advobot
 			}
 		}
 
-		//Save multiple lines back in at a time
 		public static void SaveLines(string path, string target, List<string> inputLines, List<string> validLines)
 		{
 			CreateFile(path);
@@ -2784,22 +2705,25 @@ namespace Advobot
 		//Slowmode
 		public static async Task Slowmode(IMessage message)
 		{
-			//Get the guild
+			//Get the guild and its info
 			var guild = GetGuildFromMessage(message);
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+				return;
 
 			//Make a new SlowmodeUser
 			var smUser = new SlowmodeUser();
 
 			//Get SlowmodeUser from the guild ID
-			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id))
+			if (guildInfo.SlowmodeGuild.GuildSlowmodeEnabled)
 			{
-				smUser = Variables.SlowmodeGuilds[guild.Id].FirstOrDefault(x => x.User.Id == message.Author.Id);
+				smUser = guildInfo.SlowmodeGuild.Users.FirstOrDefault(x => x.User.Id == message.Author.Id);
 			}
 			//If that fails, try to get it from the channel ID
-			else if (Variables.SlowmodeChannels.ContainsKey(message.Channel.Id))
+			var channelSM = guildInfo.SlowmodeChannels.FirstOrDefault(x => x.ChannelID == message.Channel.Id);
+			if (channelSM != null)
 			{
 				//Find a channel slowmode where the channel ID is the same as the message channel ID then get the user
-				smUser = Variables.SlowmodeChannels[message.Channel.Id].FirstOrDefault(x => x.User.Id == message.Author.Id);
+				smUser = channelSM.Users.FirstOrDefault(x => x.User.Id == message.Author.Id);
 			}
 
 			//Once the user within the SlowmodeUser class isn't null then go through with slowmode
@@ -2826,34 +2750,34 @@ namespace Advobot
 		}
 
 		//Add a new user who joined into the slowmode users list
-		public static async Task AddSlowmodeUser(IGuildUser user)
+		public static async Task AddSlowmodeUser(BotGuildInfo guildInfo, IGuildUser user)
 		{
 			//Check if the guild has slowmode enabled
-			if (Variables.SlowmodeGuilds.ContainsKey(user.Guild.Id))
+			if (guildInfo.SlowmodeGuild.GuildSlowmodeEnabled)
 			{
 				//Get the variables out of a different user
-				int messages = Variables.SlowmodeGuilds[user.Guild.Id].FirstOrDefault().BaseMessages;
-				int time = Variables.SlowmodeGuilds[user.Guild.Id].FirstOrDefault().Time;
+				int messages = guildInfo.SlowmodeGuild.Users.FirstOrDefault().BaseMessages;
+				int time = guildInfo.SlowmodeGuild.Users.FirstOrDefault().Time;
 
 				//Add them to the list for the slowmode in this guild
-				Variables.SlowmodeGuilds[user.Guild.Id].Add(new SlowmodeUser(user, messages, messages, time));
+				guildInfo.SlowmodeGuild.Users.Add(new SlowmodeUser(user, messages, messages, time));
 			}
 
 			//Get a list of the IDs of the guild's channels
 			var guildChannelIDList = (await user.Guild.GetTextChannelsAsync()).Select(x => x.Id);
 			//Find if any of them are a slowmode channel
-			var smChannels = Variables.SlowmodeChannels.Where(kvp => guildChannelIDList.Contains(kvp.Key)).ToList();
+			var smChannels = guildInfo.SlowmodeChannels.Where(x => guildChannelIDList.Contains(x.ChannelID)).ToList();
 			//If greater than zero, add the user to each one
 			if (smChannels.Any())
 			{
-				smChannels.ForEach(kvp =>
+				smChannels.ForEach(x =>
 				{
 					//Get the variables out of a different user
-					int messages = kvp.Value.FirstOrDefault().BaseMessages;
-					int time = kvp.Value.FirstOrDefault().Time;
+					int messages = x.Users.FirstOrDefault().BaseMessages;
+					int time = x.Users.FirstOrDefault().Time;
 
 					//Add them to the list for the slowmode in this guild
-					kvp.Value.Add(new SlowmodeUser(user, messages, messages, time));
+					x.Users.Add(new SlowmodeUser(user, messages, messages, time));
 				});
 			}
 		}
@@ -2869,15 +2793,15 @@ namespace Advobot
 				return;
 
 			//Get the guild's bot data
-			var guildLoaded = Variables.Guilds[guild.Id];
+			var bannedPhrases = Variables.Guilds[guild.Id].BannedPhrases;
 
 			//Check if it has any banned words or regex
-			var phrase = guildLoaded.BannedStrings.FirstOrDefault(x => CaseInsIndexOf(message.Content, x.Phrase));
+			var phrase = bannedPhrases.Strings.FirstOrDefault(x => CaseInsIndexOf(message.Content, x.Phrase));
 			if (phrase != null)
 			{
 				await BannedStringPunishments(message, phrase);
 			}
-			var regex = guildLoaded.BannedRegex.FirstOrDefault(x => x.Phrase.IsMatch(message.Content));
+			var regex = bannedPhrases.Regex.FirstOrDefault(x => x.Phrase.IsMatch(message.Content));
 			if (regex != null)
 			{
 				await BannedRegexPunishments(message, regex);
@@ -2894,7 +2818,7 @@ namespace Advobot
 			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 				return;
 			var user = message.Author as IGuildUser;
-			var bpUser = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user);
+			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user);
 
 			var amountOfMsgs = 0;
 			switch (phrase.Punishment)
@@ -2989,7 +2913,7 @@ namespace Advobot
 
 		public static bool TryGetPunishment(BotGuildInfo guildInfo, PunishmentType type, int msgs, out BannedPhrasePunishment punishment)
 		{
-			punishment = guildInfo.BannedPhrasesPunishments.Where(x => x.Punishment == type).FirstOrDefault(x => x.NumberOfRemoves == msgs);
+			punishment = guildInfo.BannedPhrases.Punishments.Where(x => x.Punishment == type).FirstOrDefault(x => x.NumberOfRemoves == msgs);
 			return punishment != null;			
 		}
 
@@ -3003,7 +2927,7 @@ namespace Advobot
 			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 				return;
 			var user = message.Author as IGuildUser;
-			var bpUser = Variables.BannedPhraseUserList.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user);
+			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user);
 
 			var amountOfMsgs = 0;
 			switch (regex.Punishment)
@@ -3241,13 +3165,13 @@ namespace Advobot
 
 		public static bool TryGetBannedRegex(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<Regex> bannedRegex)
 		{
-			bannedRegex = guildInfo.BannedRegex.FirstOrDefault(x => CaseInsEquals(x.Phrase.ToString(), searchPhrase));
+			bannedRegex = guildInfo.BannedPhrases.Regex.FirstOrDefault(x => CaseInsEquals(x.Phrase.ToString(), searchPhrase));
 			return bannedRegex != null;
 		}
 
 		public static bool TryGetBannedString(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<string> bannedString)
 		{
-			bannedString = guildInfo.BannedStrings.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
+			bannedString = guildInfo.BannedPhrases.Strings.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
 			return bannedString != null;
 		}
 
@@ -3602,33 +3526,7 @@ namespace Advobot
 			Task.Run(async () =>
 			{
 				await Task.Delay(time);
-
-				var curMsgs = new List<IMessage>();
-				await messages.ForEachAsync(async x =>
-				{
-					//TODO: Figure out how to do this without a try catch
-					try
-					{
-						curMsgs.Add(await channel.GetMessageAsync(x.Id));
-					}
-					catch (Exception e)
-					{
-						ExceptionToConsole("rcm", e);
-					}
-				});
-
-				if (curMsgs.Count == 0)
-				{
-					return;
-				}
-				if (curMsgs.Count == 1)
-				{
-					await DeleteMessage(curMsgs.FirstOrDefault());
-				}
-				else
-				{
-					await DeleteMessages(channel, curMsgs);
-				}
+				await DeleteMessages(channel, messages);
 			});
 		}
 
@@ -3988,6 +3886,31 @@ namespace Advobot
 		}
 		#endregion
 
+		#region Saving
+		public static void SaveBannedStringRegexPunishments(BotGuildInfo guildInfo, CommandContext context)
+		{
+			var all = Serialize(guildInfo.BannedPhrases);
+			OverWriteFile(GetServerFilePath(context.Guild.Id, "BannedPhrases.json"), all);
+			//var parsed = JArray.Parse(all);
+			//foreach (var s in parsed)
+			//{
+			//	var text = s.ToString();
+			//	List<BannedPhrase<string>> des1 = JsonConvert.DeserializeObject<List<BannedPhrase<string>>>(text);
+			//	List<BannedPhrase<Regex>> des2 = JsonConvert.DeserializeObject<List<BannedPhrase<Regex>>>(text);
+			//	List<BannedPhrasePunishment> des3 = JsonConvert.DeserializeObject<List<BannedPhrasePunishment>>(text);
+			//}
+			WriteLine("fish");
+		}
+
+		public static void SaveEverything(BotGuildInfo guildInfo)
+		{
+			var ser = Serialize(guildInfo);
+			OverWriteFile(GetServerFilePath(guildInfo.GuildID, "test.json"), ser);
+			var test = JsonConvert.DeserializeObject<BotGuildInfo>(ser);
+			test.PostDeserialize();
+		}
+		#endregion
+
 		public static async Task SendWelcomeMessage(IUser user, WelcomeMessage wm)
 		{
 			if (wm == null)
@@ -4004,6 +3927,79 @@ namespace Advobot
 			{
 				await SendChannelMessage(wm.Channel, content);
 			}
+		}
+
+#region JSON
+		public static string Serialize(dynamic obj)
+		{
+			return JsonConvert.SerializeObject(obj, Formatting.Indented);
+		}
+
+		public static void SaveJSON(string path, string serialized)
+		{
+			using (var writer = new StreamWriter(path))
+			{
+				writer.WriteLine(serialized);
+			}
+		}
+
+		public static List<BannedPhrase<string>> DeserializeBannedPhraseString(string serialized)
+		{
+#if false
+			try
+			{
+				var parse = JObject.Parse(serialized);
+				var phrase = (string)parse.GetValue("Phrase");
+				var punishment = (PunishmentType)(int)parse.GetValue("Punishment");
+				return new BannedPhrase<string>(phrase, punishment);
+			}
+			catch
+			{
+				return null;
+			}
+#else
+			return JsonConvert.DeserializeObject<List<BannedPhrase<string>>>(serialized);
+#endif
+		}
+
+		public static BannedPhrase<Regex> DeserializeBannedPhraseRegex(string serialized)
+		{
+			try
+			{
+				var parse = JObject.Parse(serialized);
+				var phrase = new Regex((string)parse.GetValue("Phrase"));
+				var punishment = (PunishmentType)(int)parse.GetValue("Punishment");
+				return new BannedPhrase<Regex>(phrase, punishment);
+			}
+			catch
+			{
+				return null;
+			}
+		}
+#endregion
+
+		public static FAWRType ClarifyFAWRType(FAWRType type)
+		{
+			switch (type)
+			{
+				case FAWRType.GR:
+				{
+					return FAWRType.Give_Role;
+				}
+				case FAWRType.TR:
+				{
+					return FAWRType.Take_Role;
+				}
+				case FAWRType.GNN:
+				{
+					return FAWRType.Give_Nickname;
+				}
+				case FAWRType.TNN:
+				{
+					return FAWRType.Take_Nickname;
+				}
+			}
+			return type;
 		}
 	}
 

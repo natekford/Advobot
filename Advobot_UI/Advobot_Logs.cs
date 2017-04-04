@@ -26,7 +26,7 @@ namespace Advobot
 			if (!Variables.Guilds.ContainsKey(guild.Id))
 			{
 				//Put the guild into a list
-				Variables.Guilds.Add(guild.Id, new BotGuildInfo(guild));
+				Variables.Guilds.Add(guild.Id, new BotGuildInfo(guild.Id));
 				//Put the invites into a list holding mainly for usage checking
 				Task.Run(async () =>
 				{
@@ -55,11 +55,7 @@ namespace Advobot
 			//Check if the bot's the only one in the guild
 			if (guild.MemberCount == 1)
 			{
-				//Delete it
-				Task.Run(async () =>
-				{
-					await guild.DeleteAsync();
-				});
+
 			}
 
 			return Task.CompletedTask;
@@ -180,9 +176,9 @@ namespace Advobot
 				return;
 
 			//Slowmode
-			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || (await guild.GetTextChannelsAsync()).Select(x => x.Id).Intersect(Variables.SlowmodeChannels.Keys).Any())
+			if (guildInfo.SlowmodeGuild.GuildSlowmodeEnabled || (await guild.GetTextChannelsAsync()).Select(x => x.Id).Intersect(guildInfo.SlowmodeChannels.Select(x => x.ChannelID)).Any())
 			{
-				await Actions.AddSlowmodeUser(user);
+				await Actions.AddSlowmodeUser(guildInfo, user);
 			}
 
 			//Antiraid
@@ -368,8 +364,8 @@ namespace Advobot
 			if (beforeUser.Nickname != afterUser.Nickname)
 			{
 				//Format the nicknames
-				var originalNickname = String.IsNullOrWhiteSpace(beforeUser.Nickname) ? "NO NICKNAME" : beforeUser.Nickname;
-				var newNickname = String.IsNullOrWhiteSpace(afterUser.Nickname) ? "NO NICKNAME" : afterUser.Nickname;
+				var originalNickname = String.IsNullOrWhiteSpace(beforeUser.Nickname) ? Constants.NO_NN : beforeUser.Nickname;
+				var newNickname = String.IsNullOrWhiteSpace(afterUser.Nickname) ? Constants.NO_NN : afterUser.Nickname;
 
 				if (guildInfo.FAWRNicknames.Contains(newNickname))
 					return;
@@ -402,7 +398,7 @@ namespace Advobot
 					cancelToken.Cancel();
 				}
 				cancelToken = new CancellationTokenSource();
-				guildInfo.RoleLoss.CancelToken = cancelToken;
+				guildInfo.RoleLoss.SetCancelToken(cancelToken);
 
 
 				var t = Task.Run(async () =>
@@ -474,6 +470,8 @@ namespace Advobot
 				await Message_Received_Actions.BotOwner(message);
 				return;
 			}
+			else if (message.Author.IsWebhook)
+				return;
 
 			await Message_Received_Actions.ModifyPreferences(guild, message);
 			await Message_Received_Actions.CloseWords(guild, message);
@@ -566,7 +564,7 @@ namespace Advobot
 				cancelToken.Cancel();
 			}
 			cancelToken = new CancellationTokenSource();
-			botInfo.MessageDeletion.CancelToken = cancelToken;
+			botInfo.MessageDeletion.SetCancelToken(cancelToken);
 
 			//Increment the deleted messages count
 			++Variables.LoggedDeletes;
@@ -745,22 +743,39 @@ namespace Advobot
 
 	public class Message_Received_Actions : ModuleBase
 	{
-		public static async Task ImageLog(BotGuildInfo guildInfo, ITextChannel channel, IMessage message)
+		//public static async Task xd(IGuild guild, IUser user)
+		//{
+		//	const string XD = "xd";
+
+		//	//Make sure the user is valid
+		//	var guildUser = user as IGuildUser;
+		//	if (guildUser == null)
+		//		return;
+
+		//	//Make sure the user's nickname isn't already xd and make sure the bot has the position to modify this user's nickname
+		//	if (!Actions.CaseInsEquals(guildUser.Nickname, XD) && Actions.GetPosition(guild, user) < Actions.GetPosition(guild, await Actions.GetBot(guild)))
+		//	{
+		//		await guildUser.ModifyAsync(x => x.Nickname = XD);
+		//	}
+		//}
+
+		public static async Task ImageLog(BotGuildInfo guildInfo, ITextChannel logChannel, IMessage message)
 		{
 			if (false
-				|| channel == null
+				|| logChannel == null
 				|| message.Author.IsBot
-				|| guildInfo.IgnoredLogChannels.Contains(channel.Id)
+				|| message.Author.IsWebhook
+				|| guildInfo.IgnoredLogChannels.Contains(message.Channel.Id)
 				|| !guildInfo.LogActions.Contains(LogActions.ImageLog))
 				return;
 
 			if (message.Attachments.Any())
 			{
-				await Actions.ImageLog(channel, message, false);
+				await Actions.ImageLog(logChannel, message, false);
 			}
 			if (message.Embeds.Any())
 			{
-				await Actions.ImageLog(channel, message, true);
+				await Actions.ImageLog(logChannel, message, true);
 			}
 		}
 
@@ -840,16 +855,16 @@ namespace Advobot
 		public static async Task SlowmodeOrBannedPhrases(BotGuildInfo guildInfo, IGuild guild, IMessage message)
 		{
 			//Make sure the message is a valid message to do this to
-			if (message == null || message.Author.IsBot)
+			if (message == null || message.Author.IsBot || message.Author.IsWebhook)
 				return;
 
 			//Check if the guild has slowmode enabled currently
-			if (Variables.SlowmodeGuilds.ContainsKey(guild.Id) || Variables.SlowmodeChannels.ContainsKey(message.Channel.Id))
+			if (guildInfo.SlowmodeGuild.GuildSlowmodeEnabled || guildInfo.SlowmodeChannels.Any(x => x.ChannelID == message.Channel.Id))
 			{
 				await Actions.Slowmode(message);
 			}
 			//Check if any banned phrases
-			else if (guildInfo.BannedStrings.Any() || guildInfo.BannedRegex.Any())
+			else if (guildInfo.BannedPhrases.Strings.Any() || guildInfo.BannedPhrases.Regex.Any())
 			{
 				await Actions.BannedPhrases(message);
 			}
@@ -864,27 +879,27 @@ namespace Advobot
 			var global = guildInfo.GlobalSpamPrevention;
 			var isSpam = false;
 
-			var message = global.GetSpamPrevention(SpamType.Message) as MessageSpamPrevention;
+			var message = global.MessageSpamPrevention;
 			if (Actions.SpamCheck(message, msg))
 			{
 				isSpam = isSpam || await Actions.HandleSpamPrevention(global, message, guild, author, msg);
 			}
-			var longmessage = global.GetSpamPrevention(SpamType.Long_Message) as LongMessageSpamPrevention;
+			var longmessage = global.LongMessageSpamPrevention;
 			if (Actions.SpamCheck(longmessage, msg))
 			{
 				isSpam = isSpam || await Actions.HandleSpamPrevention(global, longmessage, guild, author, msg);
 			}
-			var link = global.GetSpamPrevention(SpamType.Link) as LinkSpamPrevention;
+			var link = global.LinkSpamPrevention;
 			if (Actions.SpamCheck(link, msg))
 			{
 				isSpam = isSpam || await Actions.HandleSpamPrevention(global, link, guild, author, msg);
 			}
-			var image = global.GetSpamPrevention(SpamType.Image) as ImageSpamPrevention;
+			var image = global.ImageSpamPrevention;
 			if (Actions.SpamCheck(image, msg))
 			{
 				isSpam = isSpam || await Actions.HandleSpamPrevention(global, image, guild, author, msg);
 			}
-			var mention = global.GetSpamPrevention(SpamType.Mention) as MentionSpamPrevention;
+			var mention = global.MentionSpamPrevention;
 			if (Actions.SpamCheck(mention, msg))
 			{
 				isSpam = isSpam || await Actions.HandleSpamPrevention(global, mention, guild, author, msg);

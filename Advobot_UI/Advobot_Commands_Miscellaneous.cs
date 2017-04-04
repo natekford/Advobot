@@ -7,7 +7,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using System.Text.RegularExpressions;
+
 
 namespace Advobot
 {
@@ -223,7 +224,7 @@ namespace Advobot
 				span.Seconds.ToString("00"),
 				Variables.TotalGuilds,
 				Variables.TotalUsers,
-				Variables.Client.GetShardFor(Context.Guild));
+				Variables.Client.GetShardFor(Context.Guild).ShardId);
 
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(null, description);
@@ -278,7 +279,6 @@ namespace Advobot
 
 			//Get a list of channels
 			var channels = new List<string>();
-			//Text channels
 			(await Context.Guild.GetTextChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(x =>
 			{
 				if (roles.Any(y => x.GetPermissionOverwrite(y).HasValue && x.GetPermissionOverwrite(y).Value.ReadMessages == PermValue.Allow) || user.GetPermissions(x).ReadMessages)
@@ -286,7 +286,6 @@ namespace Advobot
 					channels.Add(x.Name);
 				}
 			});
-			//Voice channels
 			(await Context.Guild.GetVoiceChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(x =>
 			{
 				if (roles.Any(y => x.GetPermissionOverwrite(y).HasValue && x.GetPermissionOverwrite(y).Value.Connect == PermValue.Allow) || user.GetPermissions(x).Connect)
@@ -996,8 +995,36 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{
+#if false
+			var path = Actions.GetServerFilePath(Context.Guild.Id, "test.json");
+			if (!String.IsNullOrWhiteSpace(input))
+			{
+				var bannedPhrase = new BannedPhrase<string>(input, PunishmentType.Nothing);
+				var list = new List<BannedPhrase<string>>() { bannedPhrase };
+				var ser = Actions.Serialize(bannedPhrase);
+				var lser = Actions.Serialize(list);
+				using (var writer = new System.IO.StreamWriter(path))
+				{
+					writer.Write(lser);
+				}
+			}
+			else
+			{
+				string text;
+				using (var reader = new System.IO.StreamReader(path))
+				{
+					text = reader.ReadToEnd();
+				}
+				var bannedPhrase = Actions.DeserializeBannedPhraseString(text);
+			}
+#else
+			//Actions.SaveBannedStringRegexPunishments(Variables.Guilds[Context.Guild.Id], Context);
+			Actions.SaveEverything(Variables.Guilds[Context.Guild.Id]);
+#endif
+
+
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
-		#endregion
+#endregion
 	}
 }

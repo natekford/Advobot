@@ -121,50 +121,51 @@ namespace Advobot
 		public async Task GuildSettings()
 		{
 			//Get the guild
-			var guild = Variables.Guilds[Context.Guild.Id];
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+
+			//Getting bools
+			var defaultPrefs = guildInfo.DefaultPrefs;
+			var prefix = String.IsNullOrWhiteSpace(guildInfo.Prefix);
+			var bannedStrings = guildInfo.BannedPhrases.Strings.Any();
+			var bannedRegex = guildInfo.BannedPhrases.Regex.Any();
+			var punishments = guildInfo.BannedPhrases.Punishments.Any();
+			var ignoredLogChannels = guildInfo.IgnoredLogChannels.Any();
+			var logActions = guildInfo.LogActions.Any();
+			var reminds = guildInfo.Reminds.Any();
+			var selfAssignableRoles = guildInfo.SelfAssignableGroups.Any();
 
 			//Formatting the description
 			var description = "";
-			description += String.Format("**Default Preferences:** `{0}`\n", guild.DefaultPrefs ? "Yes" : "No");
-			description += String.Format("**Prefix:** `{0}`\n", String.IsNullOrWhiteSpace(guild.Prefix) ? "No" : "Yes");
-			description += String.Format("**Banned Phrases:** `{0}`\n", guild.BannedStrings.Any() ? "Yes" : "No");
-			description += String.Format("**Banned Regex:** `{0}`\n", guild.BannedRegex.Any() ? "Yes" : "No");
-			description += String.Format("**Banned Phrases Punishments:** `{0}`\n", guild.BannedPhrasesPunishments.Any() ? "Yes" : "No");
-			description += String.Format("**Ignored Channels:** `{0}`\n", guild.IgnoredLogChannels.Any() ? "Yes" : "No");
-			description += String.Format("**Log Actions:** `{0}`\n", guild.LogActions.Any() ? "Yes" : "No");
-			description += String.Format("**Reminds:** `{0}`\n", guild.Reminds.Any() ? "Yes" : "No");
-			description += String.Format("**Self Assignable Roles:** `{0}`\n", Variables.SelfAssignableGroups.Any(x => x.GuildID == Context.Guild.Id) ? "Yes" : "No");
+			description += String.Format("**Default Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Prefix:** `{0}`\n", prefix ? "No" : "Yes");
+			description += String.Format("**Banned Phrases:** `{0}`\n", bannedStrings ? "Yes" : "No");
+			description += String.Format("**Banned Regex:** `{0}`\n", bannedRegex ? "Yes" : "No");
+			description += String.Format("**Banned Phrases Punishments:** `{0}`\n", punishments ? "Yes" : "No");
+			description += String.Format("**Ignored Channels:** `{0}`\n", ignoredLogChannels ? "Yes" : "No");
+			description += String.Format("**Log Actions:** `{0}`\n", logActions ? "Yes" : "No");
+			description += String.Format("**Reminds:** `{0}`\n", reminds ? "Yes" : "No");
+			description += String.Format("**Self Assignable Roles:** `{0}`\n", selfAssignableRoles ? "Yes" : "No");
 
 			//Get everything to upload to Hastebin
 			var URL = "";
-			if (!guild.DefaultPrefs)
+			if (!defaultPrefs)
 			{
 				var information = "";
-				//Get the prefix
-				information += String.Format("Prefix: {0}\n", String.IsNullOrWhiteSpace(guild.Prefix) ? Constants.BOT_PREFIX : guild.Prefix);
-				//Get the banned phrases
-				information += String.Format("Banned Phrases: {0}\n", guild.BannedStrings.Any() ? String.Join("", "\n\t" + guild.BannedStrings) : "");
-				//Get the banned regex
-				information += String.Format("Banned Regex: {0}\n", String.Join("", guild.BannedRegex.Select(x => "\n\t" + x.ToString())));
-				//Get the banned phrase punishments
-				information += String.Format("Banned Phrases Punishments: {0}\n", String.Join("", guild.BannedPhrasesPunishments.Select(x => String.Format("\n\t{0}: {1}",
+				information += String.Format("Prefix: {0}\n", prefix ? Constants.BOT_PREFIX : guildInfo.Prefix);
+				information += String.Format("Banned Phrases: {0}\n", String.Join("", "\n\t" + guildInfo.BannedPhrases.Strings));
+				information += String.Format("Banned Regex: {0}\n", String.Join("", guildInfo.BannedPhrases.Strings.Select(x => "\n\t" + x.ToString())));
+				information += String.Format("Banned Phrases Punishments: {0}\n", String.Join("", guildInfo.BannedPhrases.Punishments.Select(x => String.Format("\n\t{0}: {1}",
 					x.NumberOfRemoves, x.Punishment == PunishmentType.Role ? String.Format("{0} ({1})", x.Role.Name, x.PunishmentTime) : Enum.GetName(typeof(PunishmentType), x.Punishment)))));
-				//Get the ignored channels
-				information += String.Format("Ignored Channels: {0}\n", String.Join("", guild.IgnoredLogChannels.Select(async x => "\n\t" + (await Context.Guild.GetChannelAsync(x)).Name)));
-				//Get the log actions
-				information += String.Format("Log Actions: {0}\n", String.Join("", guild.LogActions.Select(x => "\n\t" + Enum.GetName(typeof(LogActions), x))));
-
-				//Get the reminds
+				information += String.Format("Ignored Channels: {0}\n", String.Join("", guildInfo.IgnoredLogChannels.Select(async x => "\n\t" + (await Context.Guild.GetChannelAsync(x)).Name)));
+				information += String.Format("Log Actions: {0}\n", String.Join("", guildInfo.LogActions.Select(x => "\n\t" + Enum.GetName(typeof(LogActions), x))));
 				information += "Reminds:\n";
-				guild.Reminds.ToList().ForEach(x =>
+				guildInfo.Reminds.ToList().ForEach(x =>
 				{
 					information += String.Format("\n\t{0}: \"{1}\"", x.Name, x.Text.Length >= 100 ? x.Text.Substring(0, 100) + "..." : x.Text);
 				});
-
-				//Get the self assignable roles
 				information += "Self Assignable Roles:";
 				var currentGroup = -1;
-				Variables.SelfAssignableGroups.Where(x => x.GuildID == guild.Guild.Id).SelectMany(x => x.Roles).OrderBy(x => x.Group).ToList().ForEach(x =>
+				guildInfo.SelfAssignableGroups.SelectMany(x => x.Roles).OrderBy(x => x.Group).ToList().ForEach(x =>
 				{
 					if (currentGroup != x.Group)
 					{
@@ -178,7 +179,6 @@ namespace Advobot
 					information += "\n\t" + x.Role.Name;
 				});
 
-				//Upload to Hastebin
 				Actions.TryToUploadToHastebin(information, out URL);
 			}
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Bot Settings", description, URL: URL));
@@ -650,7 +650,7 @@ namespace Advobot
 			}
 
 			//Modify the user's perms
-			botUser = botUser ?? new BotImplementedPermissions(user, 0);
+			botUser = botUser ?? new BotImplementedPermissions(Context.Guild.Id, user.Id, 0);
 			if (type == BUMType.Add)
 			{
 				//Give them the permissions
@@ -945,7 +945,7 @@ namespace Advobot
 			}
 
 			//Get the embed
-			EmbedBuilder embed = null;
+			WelcomeMessage welcomeMessage;
 			if (!IDB)
 			{
 				if (!ulong.TryParse(IDStr, out ulong ID))
@@ -968,10 +968,13 @@ namespace Advobot
 					return;
 				}
 
-				embed = Actions.MakeNewEmbed(emb.Title, emb.Description, emb.Color, thumbnailURL: emb.Thumbnail.HasValue ? emb.Thumbnail.Value.Url : null);
+				welcomeMessage = new WelcomeMessage(content, emb.Title, emb.Description, emb.Thumbnail.HasValue ? emb.Thumbnail.Value.Url : null, Context.Guild.Id, tChannel.Id);
+			}
+			else
+			{
+				welcomeMessage = new WelcomeMessage(content, null, null, null, Context.Guild.Id, tChannel.Id);
 			}
 
-			var welcomeMessage = new WelcomeMessage(embed, content, tChannel);
 			guildInfo.SetWelcomeMessage(welcomeMessage);
 			await Actions.SendWelcomeMessage(null, welcomeMessage);
 		}

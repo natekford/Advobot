@@ -301,10 +301,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Nickname([Remainder] string input)
 		{
-			//Input and splitting
+			//Arguments
 			var inputArray = input.Split(new char[] { ' ' }, 2);
-
-			//Get the nickname
 			var nickname = "";
 			if (inputArray.Length == 2)
 			{
@@ -322,29 +320,26 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+
 			//Check if valid length
 			if (nickname != null && nickname.Length > Constants.MAX_NICKNAME_LENGTH)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than `{0}` characters.", Constants.MAX_NICKNAME_LENGTH)));
 				return;
 			}
-			else if (nickname != null && nickname.Length < Constants.MAX_NICKNAME_LENGTH)
+			else if (nickname != null && nickname.Length < Constants.MIN_NICKNAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MAX_NICKNAME_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MIN_NICKNAME_LENGTH)));
 				return;
 			}
 
-			//Check if valid user
 			var user = await Actions.GetUser(Context.Guild, inputArray[0]);
 			if (user == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
-
 			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID);
-
-			//Checks for positions
 			if (!Actions.UserCanBeModifiedByUser(Context, user))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User cannot be nicknamed by you."));
@@ -903,6 +898,9 @@ namespace Advobot
 				inputArray = input.Split(' ');
 			}
 
+			//Get the guild info
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+
 			//Check if the input starts with 'off'
 			if (inputArray != null && Actions.CaseInsEquals(inputArray[0], "off"))
 			{
@@ -913,7 +911,7 @@ namespace Advobot
 				else if (Actions.CaseInsEquals(inputArray[1], "guild"))
 				{
 					//Remove the guild
-					Variables.SlowmodeGuilds.Remove(Context.Guild.Id);
+					guildInfo.SlowmodeGuild.SwitchOff();
 
 					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the guild.");
@@ -921,7 +919,7 @@ namespace Advobot
 				else if (Actions.CaseInsEquals(inputArray[1], "channel"))
 				{
 					//Remove the channel
-					Variables.SlowmodeChannels.Remove(Context.Channel.Id);
+					guildInfo.SlowmodeChannels.RemoveAll(x => x.ChannelID == Context.Channel.Id);
 
 					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the channel.");
@@ -929,8 +927,8 @@ namespace Advobot
 				else if (Actions.CaseInsEquals(inputArray[1], "all"))
 				{
 					//Remove the guild and every single channel on the guild
-					Variables.SlowmodeGuilds.Remove(Context.Guild.Id);
-					(await Context.Guild.GetTextChannelsAsync()).ToList().ForEach(channel => Variables.SlowmodeChannels.Remove(channel.Id));
+					guildInfo.SlowmodeGuild.SwitchOff();
+					guildInfo.ClearSMChannels();
 
 					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed all slowmodes on the guild and its channels.");
@@ -959,7 +957,7 @@ namespace Advobot
 			if (targetString == null)
 			{
 				//Check the channel dictionary
-				if (Variables.SlowmodeChannels.ContainsKey(Context.Channel.Id))
+				if (guildInfo.SlowmodeChannels.Any(x => x.ChannelID == Context.Channel.Id))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Channel already is in slowmode.");
 					return;
@@ -968,7 +966,7 @@ namespace Advobot
 			else
 			{
 				//Check the guild dicionary
-				if (Variables.SlowmodeGuilds.ContainsKey(Context.Guild.Id))
+				if (guildInfo.SlowmodeGuild.GuildSlowmodeEnabled)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Guild already is in slowmode.");
 					return;
@@ -1047,12 +1045,13 @@ namespace Advobot
 			if (targetString == null)
 			{
 				//Add the channel and list to a dictionary
-				Variables.SlowmodeChannels.Add(Context.Channel.Id, slowmodeUsers);
+				guildInfo.SlowmodeChannels.Add(new SlowmodeChannel(Context.Channel.Id, slowmodeUsers));
 			}
 			else
 			{
 				//Add the guild and list to a dictionary
-				Variables.SlowmodeGuilds.Add(Context.Guild.Id, slowmodeUsers);
+				guildInfo.SlowmodeGuild.SwitchOn();
+				guildInfo.SlowmodeGuild.SetUserList(slowmodeUsers);
 			}
 
 			//Send a success message
@@ -1062,84 +1061,70 @@ namespace Advobot
 
 		[Command("forallwithrole")]
 		[Alias("fawr")]
-		[Usage("[Give|Take|Nickname] [Role]/[Role|Nickname] <" + Constants.BYPASS_STRING + ">")]
-		[Summary("Only self hosted bots are allowed to go past 100 users per use. When used on a self bot, \"" + Constants.BYPASS_STRING + "\" removes the 100 users limit.")]
+		[Usage("[Give_Role|GR|Take_Role|TR|Give_Nickname|GNN|Take_Nickname|TNN] [\"Role\"] <\"Role\"|\"Nickname\"> <" + Constants.BYPASS_STRING + ">")]
+		[Summary("Only self hosted bots are allowed to go past 100 users per use. When used on a self bot, `" + Constants.BYPASS_STRING + "` removes the 100 users limit." +
+			"All actions but `Take_Nickame` require the output role/nickname.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
 		public async Task ForAllWithRole([Remainder] string input)
 		{
-			//Separating input into the action and role/role or nickname + bypass
-			var inputArray = input.Split(new char[] { ' ' }, 2);
-			if (inputArray.Length < 2)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
-
-			//Get the action
+			//Argument checking
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
 			var action = inputArray[0];
 			if (!Enum.TryParse(action, true, out FAWRType actionEnum))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
-
-			//Separate role/role or nickname + bypass into role and role or nickname + bypass
-			var values = inputArray[1].Split('/');
-			if (values.Length != 2)
+			actionEnum = Actions.ClarifyFAWRType(actionEnum);
+			if (actionEnum != FAWRType.Take_Nickname && inputArray.Length < 3)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+			else if (actionEnum == FAWRType.Take_Nickname && inputArray.Length < 2)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+			var inputStr = inputArray[1];
+			var outputStr = inputArray[2];
+			var bypassStr = inputArray.Length > 3 ? inputArray[3] : null;
 
-			//Get the input role
-			var inputString = values[0];
-			var roleToGather = Actions.GetRole(Context.Guild, inputString);
+			//Verifying the attempted command is valid
+			var roleToGather = Actions.GetRole(Context.Guild, inputStr);
 			if (roleToGather == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid role to gather."));
 				return;
 			}
-
-			//Check if bypass, up the max limit, and remove the bypass string from the values array
-			var outputString = values[1];
-			var maxLength = 100;
-			if (outputString.EndsWith(Constants.BYPASS_STRING))
-			{
-				maxLength = int.MaxValue;
-				outputString = outputString.Substring(0, outputString.Length - Constants.BYPASS_STRING.Length).Trim();
-			}
-
-			//Check if the role trying to be given if the role gathered
-			if (actionEnum == FAWRType.Give && Actions.CaseInsEquals(inputString, outputString))
+			if (actionEnum == FAWRType.Give_Role && Actions.CaseInsEquals(inputStr, outputStr))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Cannot give the same role that is being gathered."));
 				return;
 			}
-			else if (actionEnum == FAWRType.Nickname)
+			else if (actionEnum == FAWRType.Give_Nickname)
 			{
-				if (outputString.Length > Constants.MAX_NICKNAME_LENGTH)
+				if (outputStr.Length > Constants.MAX_NICKNAME_LENGTH)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than `{0}` charaters.", Constants.MAX_NICKNAME_LENGTH)));
 					return;
 				}
-				else if (outputString.Length < Constants.MAX_NICKNAME_LENGTH)
+				else if (outputStr.Length < Constants.MIN_NICKNAME_LENGTH)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MAX_NICKNAME_LENGTH)));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MIN_NICKNAME_LENGTH)));
 					return;
 				}
 			}
 
-			//Get all of the valid users
+			//Get the amount of users allowed
+			var maxLength = Actions.CaseInsEquals(bypassStr, Constants.BYPASS_STRING) && false /*TODO: Implement a bool here*/ ? int.MaxValue : 100;
 			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID) as IGuildUser;
 			var listUsersWithRole = (await Context.Guild.GetUsersAsync()).Where(x =>
 			{
 				return x.RoleIds.Contains(roleToGather.Id) && Actions.UserCanBeModifiedByUser(Context, x) && Actions.UserCanBeModifiedByBot(Context.Guild, x, bot);
-			}).ToList();
-
+			}).ToList().GetRange(0, maxLength);
 			var userCount = listUsersWithRole.Count;
-			listUsersWithRole.RemoveRange(Math.Min(maxLength, userCount), Math.Max(userCount - maxLength, 0));
-			userCount = listUsersWithRole.Count;
 			if (userCount == 0)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to find any users with the input role that could be modified."));
@@ -1152,90 +1137,117 @@ namespace Advobot
 			var msg = await Actions.SendChannelMessage(Context, String.Format("Grabbed `{0}` user{1}. ETA on completion: `{2}` seconds.", userCount, plurality, time)) as IUserMessage;
 			var typing = Context.Channel.EnterTypingState();
 
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var count = 0;
-			switch (actionEnum)
+			var t = Task.Run(async () =>
 			{
-				case FAWRType.Give:
+				switch (actionEnum)
 				{
-					var outputRole = await Actions.GetRoleEditAbility(Context, outputString);
-					if (outputRole == null)
-						return;
-					else if (Context.Guild.EveryoneRole.Id.Equals(outputRole.Id))
+					case FAWRType.Give_Role:
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, "You can't give the `@everyone` role.");
-						return;
-					}
-					Variables.Guilds[Context.Guild.Id].FAWRRoles.Add(outputRole);
-
-					foreach (var user in listUsersWithRole)
-					{
-						++count;
-						if (count % 10 == 0)
+						var outputRole = await Actions.GetRoleEditAbility(Context, outputStr);
+						if (outputRole == null)
+							return;
+						else if (Context.Guild.EveryoneRole.Id.Equals(outputRole.Id))
 						{
-							await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
-							if (Context.Guild.GetRole(outputRole.Id) == null)
+							await Actions.MakeAndDeleteSecondaryMessage(Context, "You can't give the `@everyone` role.");
+							return;
+						}
+
+						guildInfo.FAWRRoles.Add(outputRole);
+						foreach (var user in listUsersWithRole)
+						{
+							++count;
+							if (count % 10 == 0)
 							{
-								await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The output role has been deleted."));
-								return;
+								await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
+								if (Context.Guild.GetRole(outputRole.Id) == null)
+								{
+									await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The output role has been deleted."));
+									return;
+								}
 							}
+
+							await Actions.GiveRole(user, outputRole);
+						}
+						guildInfo.FAWRRoles.Remove(outputRole);
+
+						await Actions.SendChannelMessage(Context, String.Format("Successfully gave the role `{0}` to `{1}` users.", outputRole.Name, count));
+						break;
+					}
+					case FAWRType.Take_Role:
+					{
+						var outputRole = await Actions.GetRoleEditAbility(Context, outputStr);
+						if (outputRole == null)
+							return;
+						else if (Context.Guild.EveryoneRole.Id.Equals(outputRole.Id))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, "You can't take the `@everyone` role.");
+							return;
 						}
 
-						await Actions.GiveRole(user, outputRole);
-					}
-					await Actions.SendChannelMessage(Context, String.Format("Successfully gave the role `{0}` to `{1}` users.", outputRole.Name, count));
-					break;
-				}
-				case FAWRType.Take:
-				{
-					var outputRole = await Actions.GetRoleEditAbility(Context, outputString);
-					if (outputRole == null)
-						return;
-					else if (Context.Guild.EveryoneRole.Id.Equals(outputRole.Id))
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, "You can't take the `@everyone` role.");
-						return;
-					}
-					Variables.Guilds[Context.Guild.Id].FAWRRoles.Add(outputRole);
-
-					foreach (var user in listUsersWithRole)
-					{
-						++count;
-						if (count % 10 == 0)
+						guildInfo.FAWRRoles.Add(outputRole);
+						foreach (var user in listUsersWithRole)
 						{
-							await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
-							if (Context.Guild.GetRole(outputRole.Id) == null)
+							++count;
+							if (count % 10 == 0)
 							{
-								await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The output role has been deleted."));
-								return;
+								await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
+								if (Context.Guild.GetRole(outputRole.Id) == null)
+								{
+									await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The output role has been deleted."));
+									return;
+								}
 							}
+
+							await Actions.TakeRole(user, outputRole);
 						}
+						guildInfo.FAWRRoles.Remove(outputRole);
 
-						await Actions.TakeRole(user, outputRole);
+						await Actions.SendChannelMessage(Context, String.Format("Successfully took the role `{0}` from `{1}` users.", outputRole.Name, count));
+						break;
 					}
-					await Actions.SendChannelMessage(Context, String.Format("Successfully took the role `{0}` from `{1}` users.", outputRole.Name, count));
-					break;
-				}
-				case FAWRType.Nickname:
-				{
-					Variables.Guilds[Context.Guild.Id].FAWRNicknames.Add(outputString);
-
-					foreach (var user in listUsersWithRole)
+					case FAWRType.Give_Nickname:
 					{
-						++count;
-						if (count % 10 == 0)
+						guildInfo.FAWRNicknames.Add(outputStr);
+						foreach (var user in listUsersWithRole)
 						{
-							await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
+							++count;
+							if (count % 10 == 0)
+							{
+								await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
+							}
+
+							await user.ModifyAsync(x => x.Nickname = outputStr);
 						}
+						guildInfo.FAWRNicknames.Remove(outputStr);
 
-						await user.ModifyAsync(x => x.Nickname = outputString);
+						await Actions.SendChannelMessage(Context, String.Format("Successfully gave the nickname `{0}` to `{1}` users.", outputStr, count));
+						break;
 					}
-					await Actions.SendChannelMessage(Context, String.Format("Successfully gave the nickname `{0}` to `{1}` users.", outputString, count));
-					break;
-				}
-			}
+					case FAWRType.Take_Nickname:
+					{
+						guildInfo.FAWRNicknames.Add(Constants.NO_NN);
+						foreach (var user in listUsersWithRole)
+						{
+							++count;
+							if (count % 10 == 0)
+							{
+								await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
+							}
 
-			typing.Dispose();
-			await msg.DeleteAsync();
+							await user.ModifyAsync(x => x.Nickname = null);
+						}
+						guildInfo.FAWRNicknames.Remove(Constants.NO_NN);
+
+						await Actions.SendChannelMessage(Context, String.Format("Successfully removed the nicknames of `{1}` users.", count));
+						break;
+					}
+				}
+
+				typing.Dispose();
+				await msg.DeleteAsync();
+			});
 		}
 	}
 }

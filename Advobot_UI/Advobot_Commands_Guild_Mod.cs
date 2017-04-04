@@ -274,7 +274,7 @@ namespace Advobot
 			//Create the guild
 			var guild = await Variables.Client.CreateGuildAsync(input, region);
 			//Add the guild to the list of guilds
-			Variables.Guilds.Add(guild.Id, new BotGuildInfo(guild));
+			Variables.Guilds.Add(guild.Id, new BotGuildInfo(guild.Id));
 			//Create an invite
 			var invite = await (await guild.GetTextChannelsAsync()).FirstOrDefault().CreateInviteAsync(null);
 			//Send that invite to the user who used this command

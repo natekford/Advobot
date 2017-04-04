@@ -1259,6 +1259,7 @@ namespace Advobot
 	{
 		private TextBoxBase mOutput;
 		private bool mIgnoreNewLines;
+		private string mCurrentLineText;
 
 		public UITextBoxStreamWriter(TextBoxBase output)
 		{
@@ -1268,14 +1269,26 @@ namespace Advobot
 
 		public override void Write(char value)
 		{
+			if (value.Equals('\n'))
+			{
+				Write(mCurrentLineText);
+				mCurrentLineText = null;
+			}
+			else
+			{
+				mCurrentLineText += value;
+			}
+		}
+
+		public override void Write(string value)
+		{
 			if (mIgnoreNewLines && value.Equals('\n'))
 				return;
 
-			base.Write(value);
-			mOutput.Dispatcher.Invoke(() =>
+			mOutput.Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() =>
 			{
-				mOutput.AppendText(value.ToString());
-			});
+				mOutput.AppendText(value);
+			}));
 		}
 
 		public override Encoding Encoding
