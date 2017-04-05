@@ -45,7 +45,7 @@ namespace Advobot
 			//Get the guild's info or make a new one
 			if (!Variables.Guilds.TryGetValue(channel.GuildId, out BotGuildInfo guildInfo))
 			{
-				await Actions.LoadGuild(channel.Guild);
+				Actions.LoadGuild(channel.Guild);
 				guildInfo = Variables.Guilds[channel.GuildId];
 			}
 			//Check if that channel is ignored for commands

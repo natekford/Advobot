@@ -615,9 +615,6 @@ namespace Advobot
 				{
 					//Get the file with its extension
 					var fileAndExtension = file.Substring(file.LastIndexOf('\\') + 1);
-					//Check if the gotten file is a valid file
-					if (!Actions.CaseInsContains(Constants.VALID_GUILD_FILES, fileAndExtension))
-						return;
 					//Create the item
 					var fileItem = new TreeViewItem() { Header = fileAndExtension.Split('.')[0], Tag = file };
 					//Add in the double click event

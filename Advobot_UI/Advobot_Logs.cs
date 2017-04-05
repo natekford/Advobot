@@ -41,10 +41,7 @@ namespace Advobot
 				//Loading everything
 				if (Variables.Bot_ID != 0)
 				{
-					Task.Run(async () =>
-					{
-						await Actions.LoadGuild(guild);
-					});
+					Actions.LoadGuild(guild);
 				}
 				else
 				{
@@ -176,7 +173,7 @@ namespace Advobot
 				return;
 
 			//Slowmode
-			if (guildInfo.SlowmodeGuild.GuildSlowmodeEnabled || (await guild.GetTextChannelsAsync()).Select(x => x.Id).Intersect(guildInfo.SlowmodeChannels.Select(x => x.ChannelID)).Any())
+			if (guildInfo.SlowmodeGuild != null || (await guild.GetTextChannelsAsync()).Select(x => x.Id).Intersect(guildInfo.SlowmodeChannels.Select(x => x.ChannelID)).Any())
 			{
 				await Actions.AddSlowmodeUser(guildInfo, user);
 			}
@@ -473,12 +470,10 @@ namespace Advobot
 			else if (message.Author.IsWebhook)
 				return;
 
-			await Message_Received_Actions.ModifyPreferences(guild, message);
-			await Message_Received_Actions.CloseWords(guild, message);
-
-			//Log images
 			if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 			{
+				await Message_Received_Actions.ModifyPreferences(guildInfo, guild, message);
+				await Message_Received_Actions.CloseWords(guildInfo, guild, message);
 				await Message_Received_Actions.SpamPrevention(guildInfo, guild, message);
 				await Message_Received_Actions.VotingOnSpamPrevention(guildInfo, guild, message);
 				await Message_Received_Actions.SlowmodeOrBannedPhrases(guildInfo, guild, message);
@@ -800,7 +795,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task ModifyPreferences(IGuild guild, IMessage message)
+		public static async Task ModifyPreferences(BotGuildInfo guildInfo, IGuild guild, IMessage message)
 		{
 			//Check if it's the owner of the guild saying something
 			if (message.Author.Id == guild.OwnerId || Actions.GetIfUserIsOwnerButBotIsOwner(guild, message.Author))
@@ -808,9 +803,7 @@ namespace Advobot
 				//If the message is only 'yes' then check if they're enabling or deleting preferences
 				if (Actions.CaseInsEquals(message.Content, "yes"))
 				{
-					if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-						return;
-					else if (guildInfo.EnablingPrefs)
+					if (guildInfo.EnablingPrefs)
 					{
 						//Enable preferences
 						await Actions.EnablePreferences(guildInfo, guild, message as IUserMessage);
@@ -824,7 +817,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task CloseWords(IGuild guild, IMessage message)
+		public static async Task CloseWords(BotGuildInfo guildInfo, IGuild guild, IMessage message)
 		{
 			//Get the number
 			if (!int.TryParse(message.Content, out int number))
@@ -833,19 +826,19 @@ namespace Advobot
 			if (number > 0 && number < 6)
 			{
 				--number;
-				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
+				var closeWordList = guildInfo.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
 				if (closeWordList.User != null && closeWordList.List.Count > number)
 				{
 					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
-					Variables.ActiveCloseWords.Remove(closeWordList);
+					guildInfo.ActiveCloseWords.Remove(closeWordList);
 					await Actions.SendChannelMessage(message.Channel, remind.Text);
 					await Actions.DeleteMessage(message);
 				}
-				var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
+				var closeHelpList = guildInfo.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
 				if (closeHelpList.User != null && closeHelpList.List.Count > number)
 				{
 					var help = closeHelpList.List[number].Help;
-					Variables.ActiveCloseHelp.Remove(closeHelpList);
+					guildInfo.ActiveCloseHelp.Remove(closeHelpList);
 					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help)), "Help"));
 					await Actions.DeleteMessage(message);
 				}
@@ -859,7 +852,7 @@ namespace Advobot
 				return;
 
 			//Check if the guild has slowmode enabled currently
-			if (guildInfo.SlowmodeGuild.GuildSlowmodeEnabled || guildInfo.SlowmodeChannels.Any(x => x.ChannelID == message.Channel.Id))
+			if (guildInfo.SlowmodeGuild != null || guildInfo.SlowmodeChannels.Any(x => x.ChannelID == message.Channel.Id))
 			{
 				await Actions.Slowmode(message);
 			}

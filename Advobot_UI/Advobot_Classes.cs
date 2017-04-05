@@ -176,6 +176,8 @@ namespace Advobot
 			IgnoredCommandChannels = new List<ulong>();
 			IgnoredLogChannels = new List<ulong>();
 			LogActions = new List<LogActions>();
+			ActiveCloseHelp = new List<ActiveCloseHelp>();
+			ActiveCloseWords = new List<ActiveCloseWords>();
 			SlowmodeChannels = new List<SlowmodeChannel>();
 			Invites = new List<BotInvite>();
 			EvaluatedRegex = new List<Regex>();
@@ -211,6 +213,10 @@ namespace Advobot
 		public List<ulong> IgnoredLogChannels { get; private set; }
 		[JsonProperty]
 		public List<LogActions> LogActions { get; private set; }
+		[JsonIgnore]
+		public List<ActiveCloseHelp> ActiveCloseHelp { get; private set; }
+		[JsonIgnore]
+		public List<ActiveCloseWords> ActiveCloseWords { get; private set; }
 		[JsonIgnore]
 		public List<SlowmodeChannel> SlowmodeChannels { get; private set; }
 		[JsonIgnore]
@@ -265,6 +271,10 @@ namespace Advobot
 		{
 			DefaultPrefs = false;
 		}
+		public void TurnDefaultPrefsOn()
+		{
+			DefaultPrefs = true;
+		}
 		public void TurnLoadedOn()
 		{
 			Loaded = true;
@@ -284,6 +294,10 @@ namespace Advobot
 		public void SetAntiRaid(AntiRaid antiRaid)
 		{
 			AntiRaid = antiRaid;
+		}
+		public void SetSlowmodeGuild(SlowmodeGuild slowmodeGuild)
+		{
+			SlowmodeGuild = slowmodeGuild;
 		}
 		public void SetWelcomeMessage(WelcomeMessage welcomeMessage)
 		{
@@ -313,7 +327,7 @@ namespace Advobot
 		}
 		public void PostDeserialize()
 		{
-			Loaded = true;
+			DefaultPrefs = false;
 
 			Guild = Variables.Client.GetGuild(GuildID);
 			if (Guild == null)
@@ -1052,32 +1066,12 @@ namespace Advobot
 
 	public class SlowmodeGuild
 	{
-		public SlowmodeGuild()
-		{
-			GuildSlowmodeEnabled = true;
-			Users = new List<SlowmodeUser>();
-		}
 		public SlowmodeGuild(List<SlowmodeUser> users)
 		{
-			GuildSlowmodeEnabled = true;
 			Users = users;
 		}
 
-		public bool GuildSlowmodeEnabled { get; private set; }
 		public List<SlowmodeUser> Users { get; private set; }
-
-		public void SwitchOn()
-		{
-			GuildSlowmodeEnabled = true;
-		}
-		public void SwitchOff()
-		{
-			GuildSlowmodeEnabled = false;
-		}
-		public void SetUserList(List<SlowmodeUser> users)
-		{
-			Users = users;
-		}
 	}
 
 	public class SlowmodeChannel
@@ -1217,6 +1211,11 @@ namespace Advobot
 		{
 			mUser = user;
 			mList = list;
+
+			var guildInfo = Variables.Guilds[user.Guild.Id];
+			guildInfo.ActiveCloseWords.RemoveAll(x => x.User.Id == user.Id);
+			guildInfo.ActiveCloseWords.Add(this);
+			Actions.RemoveActiveCloseWords(guildInfo, this);
 		}
 
 		private IGuildUser mUser;
@@ -1259,6 +1258,11 @@ namespace Advobot
 		{
 			mUser = user;
 			mList = list;
+
+			var guildInfo = Variables.Guilds[user.Guild.Id];
+			guildInfo.ActiveCloseHelp.RemoveAll(x => x.User.Id == user.Id);
+			guildInfo.ActiveCloseHelp.Add(this);
+			Actions.RemoveActiveCloseHelp(guildInfo, this);
 		}
 
 		private IGuildUser mUser;
@@ -1542,17 +1546,6 @@ namespace Advobot
 		Not_Found = 1,
 		User_Inability = 2,
 		Bot_Inability = 3,
-	}
-
-	public enum Files
-	{
-		CommandPreferences = 1,
-		MiscGuildInfo = 2,
-		BannedPhrases = 3,
-		SelfAssignableRoles = 4,
-		BotPermissions = 5,
-		Reminds = 6,
-		CmdsDisabledByChannel = 7,
 	}
 
 	public enum BUMType

@@ -23,7 +23,8 @@ namespace Advobot
 		public async Task PreventMentionSpam([Remainder] string input)
 		{
 			//Check if using the default preferences
-			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
@@ -53,7 +54,7 @@ namespace Advobot
 			}
 
 			//Check if a spam prevention exists or not
-			var spamPrevention = Variables.Guilds[Context.Guild.Id].GlobalSpamPrevention.GetSpamPrevention(typeEnum);
+			var spamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(typeEnum);
 			switch (actionEnum)
 			{
 				case SpamPreventionAction.Enable:
@@ -137,11 +138,8 @@ namespace Advobot
 					//Create the spam prevention and add it to the guild
 					Variables.Guilds[Context.Guild.Id].GlobalSpamPrevention.SetMentionSpamPrevention(new MentionSpamPrevention(ms, vt, mn));
 
-					//Save the spam prevention
-					var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
-					Actions.SaveLines(path, Constants.MENTION_SPAM_PREVENTION, String.Format("{0}/{1}/{2}", ms, vt, mn), Actions.GetValidLines(path, Constants.MENTION_SPAM_PREVENTION));
-
-					//Send a success message
+					//Save everything and send a success message
+					Actions.SaveGuildInfo(guildInfo);
 					await Actions.MakeAndDeleteSecondaryMessage(Context,
 						String.Format("Successfully created and enabled a spam prevention with the requirement of `{0}` messages with `{1}` or more mentions and requires `{2}` votes.", ms, mn, vt));
 					return;

@@ -77,12 +77,7 @@ namespace Advobot
 						var msg = "Did you mean any of the following:\n" + String.Join("\n", closeHelps.Select(x => String.Format("`{0}.` {1}", count++.ToString("00"), x.Help.Name)));
 
 						//Give the user a new list
-						Variables.ActiveCloseHelp.RemoveAll(x => x.User == Context.User);
-						var list = new ActiveCloseHelp(Context.User as IGuildUser, closeHelps);
-						Variables.ActiveCloseHelp.Add(list);
-						Actions.RemoveActiveCloseHelp(list);
-
-						//Send the message
+						new ActiveCloseHelp(Context.User as IGuildUser, closeHelps);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 5000);
 					}
 					else
@@ -995,34 +990,6 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{
-#if false
-			var path = Actions.GetServerFilePath(Context.Guild.Id, "test.json");
-			if (!String.IsNullOrWhiteSpace(input))
-			{
-				var bannedPhrase = new BannedPhrase<string>(input, PunishmentType.Nothing);
-				var list = new List<BannedPhrase<string>>() { bannedPhrase };
-				var ser = Actions.Serialize(bannedPhrase);
-				var lser = Actions.Serialize(list);
-				using (var writer = new System.IO.StreamWriter(path))
-				{
-					writer.Write(lser);
-				}
-			}
-			else
-			{
-				string text;
-				using (var reader = new System.IO.StreamReader(path))
-				{
-					text = reader.ReadToEnd();
-				}
-				var bannedPhrase = Actions.DeserializeBannedPhraseString(text);
-			}
-#else
-			//Actions.SaveBannedStringRegexPunishments(Variables.Guilds[Context.Guild.Id], Context);
-			Actions.SaveEverything(Variables.Guilds[Context.Guild.Id]);
-#endif
-
-
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
 #endregion

@@ -94,22 +94,18 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That prefix is already the global prefix."));
 				return;
 			}
-
-			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
-			var validLines = Actions.GetValidLines(path, Constants.GUILD_PREFIX);
-
-			if (Actions.CaseInsEquals(input, "clear"))
+			else if (Actions.CaseInsEquals(input, "clear"))
 			{
-				Actions.SaveLines(path, Constants.GUILD_PREFIX, "", validLines);
 				guildInfo.SetPrefix(null);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild prefix.");
 			}
 			else
 			{
-				Actions.SaveLines(path, Constants.GUILD_PREFIX, input, validLines);
 				guildInfo.SetPrefix(input);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully set this guild's prefix to: `" + input.Trim() + "`.");
 			}
+
+			Actions.SaveGuildInfo(guildInfo);
 		}
 
 		[Command("guildsettings")]
@@ -243,7 +239,8 @@ namespace Advobot
 		public async Task CommandConfig([Remainder] string input)
 		{
 			//Check if using the default preferences
-			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
@@ -256,13 +253,14 @@ namespace Advobot
 				//Check if it's only to see the current prefs
 				if (Actions.CaseInsEquals(inputArray[0], "current"))
 				{
-					var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.PREFERENCES_FILE);
+					var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.GUILD_INFO_LOCATION);
 					if (path == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
 						return;
 					}
-					await Actions.ReadPreferences(Context.Channel, path);
+					var description = String.Join("\n", guildInfo.CommandSettings.Select(x => String.Format("{0}:{1}", x.Name, x.ValAsString)));
+					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Preferences", description));
 					return;
 				}
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -360,9 +358,7 @@ namespace Advobot
 			}
 
 			//Save the preferences
-			Actions.SavePreferences(Context.Guild.Id);
-
-			//Send a success message
+			Actions.SaveGuildInfo(guildInfo);
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {0} the command{1}: `{2}`.",
 				enableBool ? "enabled" : "disabled",
 				category.Count != 1 ? "s" : "",
@@ -378,15 +374,16 @@ namespace Advobot
 		public async Task CommandIgnore([Remainder] string input)
 		{
 			//Check if using the default preferences
-			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
 			//Get the lists the bot will use for this command
-			var ignoredCmdChannels = Variables.Guilds[Context.Guild.Id].IgnoredCommandChannels;
-			var ignoredCmdsOnChans = Variables.Guilds[Context.Guild.Id].CommandsDisabledOnChannel;
+			var ignoredCmdChannels = guildInfo.IgnoredCommandChannels;
+			var ignoredCmdsOnChans = guildInfo.CommandsDisabledOnChannel;
 
 			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 3);
@@ -499,11 +496,8 @@ namespace Advobot
 					ignoredCmdsOnChans.RemoveAll(x => x.CommandName == cmd && x.ChannelID == channel.Id);
 				}
 
-				//Save everything
-				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.COMMANDS_DISABLED_BY_CHANNEL);
-				Actions.SaveLines(path, ignoredCmdsOnChans.Select(x => String.Format("{0} {1}", x.ChannelID, x.CommandName)).ToList());
-
-				//Send a success message
+				//Save everything and send a success message
+				Actions.SaveGuildInfo(guildInfo);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the command `{1}` in `{2}`.", add ? "disabled" : "enabled", cmd, Actions.FormatChannel(channel)));
 			}
 			else
@@ -530,10 +524,8 @@ namespace Advobot
 
 				ignoredCmdChannels = ignoredCmdChannels.Distinct().ToList();
 
-				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.MISCGUILDINFO);
-				Actions.SaveLines(path, Constants.IGNORED_COMMAND_CHANNELS, String.Join("/", ignoredCmdChannels), Actions.GetValidLines(path, Constants.IGNORED_COMMAND_CHANNELS));
-
-				//Send a success message
+				//Save everything and send a success message
+				Actions.SaveGuildInfo(guildInfo);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the channel `{1}` {2} the command ignore list.",
 					add ? "added" : "removed", Actions.FormatChannel(channel), add ? "to" : "from"));
 			}
@@ -630,9 +622,8 @@ namespace Advobot
 					return;
 				}
 
-				var removePath = Actions.GetServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
-				Actions.SaveLines(removePath, Actions.GetValidLines(removePath, user.Id.ToString()));
-
+				guildInfo.BotUsers.Remove(botUser);
+				Actions.SaveGuildInfo(guildInfo);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the bot user list.", Actions.FormatUser(user)));
 				return;
 			}
@@ -670,19 +661,13 @@ namespace Advobot
 				});
 			}
 
-			//Save everything
-			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.PERMISSIONS);
-			if (botUser.Permissions != 0)
-			{
-				Actions.SaveLines(path, user.Id.ToString(), botUser.Permissions.ToString(), Actions.GetValidLines(path, user.Id.ToString()));
-			}
-			else
+			if (botUser.Permissions == 0)
 			{
 				guildInfo.BotUsers.RemoveAll(x => x.User == user);
-				Actions.SaveLines(path, Actions.GetValidLines(path, user.Id.ToString()));
 			}
 
-			//Send a success message
+			//Save everything and send a success message
+			Actions.SaveGuildInfo(guildInfo);
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {1}: `{0}`.", String.Join("`, `", permissions.Select(x => x.Name)),
 				type == BUMType.Add ? String.Format("gave the user `{0}` the following permission{1}", Actions.FormatUser(user), permissions.Count() != 1 ? "s" : "") :
 									String.Format("removed the following permission{0} from the user `{1}`", permissions.Count() != 1 ? "s" : "", Actions.FormatUser(user))));
@@ -829,11 +814,8 @@ namespace Advobot
 				reminds.RemoveAll(x => Actions.CaseInsEquals(x.Name, name));
 			}
 
-			//save everything
-			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.REMINDS);
-			Actions.SaveLines(path, null, null, reminds.Select(x => x.Name + ":" + x.Text).ToList(), true);
-
-			//Send a success message
+			//Save everything and send a success message
+			Actions.SaveGuildInfo(guildInfo);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following remind: `{1}`.", addBool ? "added" : "removed", Actions.ReplaceMarkdownChars(name)));
 		}
 
@@ -886,12 +868,7 @@ namespace Advobot
 					var msg = "Did you mean any of the following:\n" + String.Join("\n", closeWords.Select(x => String.Format("`{0}.` {1}", count++.ToString("00"), x.Name)));
 
 					//Give the user a new list
-					Variables.ActiveCloseWords.RemoveAll(x => x.User == Context.User);
-					var list = new ActiveCloseWords(Context.User as IGuildUser, closeWords);
-					Variables.ActiveCloseWords.Add(list);
-					Actions.RemoveActiveCloseWords(list);
-
-					//Send the message
+					new ActiveCloseWords(Context.User as IGuildUser, closeWords);
 					await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 5000);
 				}
 				else
@@ -981,34 +958,14 @@ namespace Advobot
 
 		[Command("getfile")]
 		[Alias("gf")]
-		[Usage("<File name>")]
-		[Summary("Gets the specified text file from the guild.")]
+		[Usage("")]
+		[Summary("Sends the file containing all the guild's saved bot information.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task GetFile([Optional, Remainder] string input)
 		{
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				var embed = Actions.MakeNewEmbed("Files", String.Join("\n", Constants.VALID_GUILD_FILES.Select(x => String.Format("`{0}`", x))));
-				await Actions.SendEmbedMessage(Context.Channel, embed);
-				return;
-			}
-
-			//Remove the extension
-			if (Actions.CaseInsIndexOf(input, ".txt", out int position))
-			{
-				input = input.Substring(0, position);
-			}
-
-			//Make sure the path is a valid file
-			if (!Enum.TryParse(input, true, out Files fileName))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("`{0}` is not a valid file name.", input)));
-				return;
-			}
-
 			//Make sure the file exists
-			var path = Actions.GetServerFilePath(Context.Guild.Id, Enum.GetName(typeof(Files), fileName) + Constants.FILE_EXTENSION);
+			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.GUILD_INFO_LOCATION);
 			if (!File.Exists(path))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The file `{0}` does not exist at this time.", input)));

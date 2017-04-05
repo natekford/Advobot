@@ -17,8 +17,7 @@ namespace Advobot
 {
 	public class Actions
 	{
-		#region Loads
-		//Loading in all necessary information at bot start up
+		#region Saving and Loading
 		public static async Task LoadInformation()
 		{
 			Variables.Bot_ID = Variables.Client.GetCurrentUser().Id;				//Give the variable Bot_ID the id of the bot
@@ -28,7 +27,7 @@ namespace Advobot
 			LoadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
 			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));	//Gets all the active command names. Has to go after LCI
 
-			await LoadGuilds();														//Loads the guilds that attempted to load before the Bot_ID was gotten.
+			LoadGuilds();															//Loads the guilds that attempted to load before the Bot_ID was gotten.
 			await SetGame();														//Set up the game and/or stream
 
 			ResetSpamPrevention(null);												//Start the hourly timer to restart spam prevention
@@ -37,7 +36,14 @@ namespace Advobot
 			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
 		}
 
-		//Text said during the startup of the bot
+		public static void MaybeStartBot()
+		{
+			if (Variables.GotPath && Variables.GotKey && !Variables.Loaded)
+			{
+				new Program().Start(Variables.Client).GetAwaiter().GetResult();
+			}
+		}
+
 		public static void StartUpMessages()
 		{
 			if (Variables.Loaded)
@@ -47,7 +53,14 @@ namespace Advobot
 			WriteLine("Bot took " + String.Format("{0:n}", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - Variables.StartupTime.Ticks).TotalMilliseconds) + " milliseconds to load everything.");
 		}
 
-		//Load the information from the commands
+		public static void LoadBasicInformation()
+		{
+			//Checks if the OS is Windows or not
+			GetOS();
+			//Check if console or WPF app
+			GetConsoleOrGUI();
+		}
+
 		public static void LoadCommandInformation()
 		{
 			foreach (var classType in AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes()).Where(type => type.IsSubclassOf(typeof(ModuleBase))))
@@ -147,7 +160,6 @@ namespace Advobot
 			}
 		}
 
-		//Load the permission names
 		public static void LoadPermissionNames()
 		{
 			for (int i = 0; i < 32; ++i)
@@ -167,11 +179,10 @@ namespace Advobot
 				Variables.GuildPermissions.Add(new BotGuildPermissionType(name, i));
 			}
 			//Load all special cases
-			LoadAllChannelPermissionNames();
+			LoadChannelPermissionNames();
 		}
 
-		//Load the channel permission names
-		public static void LoadAllChannelPermissionNames()
+		public static void LoadChannelPermissionNames()
 		{
 			const UInt32 GENERAL_BITS = 0
 				| (1U << (int)GuildPermission.CreateInstantInvite)
@@ -228,386 +239,87 @@ namespace Advobot
 			}
 		}
 
-		//Load the guilds gotten before the Bot_ID is set
-		public static async Task LoadGuilds()
+		public static void LoadGuilds()
 		{
-			await Variables.GuildsToBeLoaded.ForEachAsync(async x => await LoadGuild(x));
+			Variables.GuildsToBeLoaded.ForEach(x => LoadGuild(x));
 		}
 
-		//Load a guild's info
-		public static async Task LoadGuild(IGuild guild)
+		public static void LoadGuild(IGuild guild)
 		{
-			//I know I am using .txt docs instead of .json; fite me.
-			LoadCommandPreferences(guild);
-			LoadBannedPhrasesAndPunishments(guild);
-			LoadSelfAssignableRoles(guild);
-			await LoadGuildMiscInfo(guild);
-			await LoadBotUsers(guild);
-			LoadReminds(guild);
-			LoadCommandsDisabledByChannel(guild);
+			if (LoadGuildInfo(guild))
+			{
+				Variables.Guilds[guild.Id].PostDeserialize();
+			}
 			Variables.Guilds[guild.Id].TurnLoadedOn();
 		}
 
-		//Load preferences
-		public static void LoadCommandPreferences(IGuild guild)
+		public static bool LoadGuildInfo(IGuild guild)
 		{
-			//Check if this server has any preferences
-			var path = GetServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
-			var cmdSettings = Variables.Guilds[guild.Id].CommandSettings;
+			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
 			if (!File.Exists(path))
 			{
-				Variables.HelpList.ForEach(x => cmdSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
+				WriteLine(String.Format("The guild information file for {0} does not exist.", FormatGuild(guild)));
+				return false;
 			}
-			else
-			{
-				using (var file = new StreamReader(path))
-				{
-					string line;
-					while ((line = file.ReadLine()) != null)
-					{
-						//If the line is empty, do nothing
-						if (String.IsNullOrWhiteSpace(line))
-							continue;
 
-						//Split before and after the colon, before is the setting name, after is the value
-						var values = line.Split(new char[] { ':' }, 2);
-						if (values.Length == 2)
-						{
-							var helpEntry = Variables.HelpList.FirstOrDefault(cmd => CaseInsEquals(cmd.Name, values[0]));
-							if (bool.TryParse(values[1], out bool value))
-							{
-								cmdSettings.Add(new CommandSwitch(values[0], value));
-							}
-						}
-						else
-						{
-							WriteLine("ERROR: " + line);
-						}
-					}
+			try
+			{
+				using (var reader = new StreamReader(path))
+				{
+					Variables.Guilds[guild.Id] = JsonConvert.DeserializeObject<BotGuildInfo>(reader.ReadToEnd());
 				}
-				var cmdsGathered = cmdSettings.Select(x => x.Name).ToList();
-				Variables.HelpList.Where(x => !CaseInsContains(cmdsGathered, x.Name)).ToList().ForEach(x => cmdSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 			}
-			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Command Preferences");
+			catch (Exception e)
+			{
+				ExceptionToConsole(String.Format("LoadGuildInfo for {0}", FormatGuild(guild)), e);
+				return false;
+			}
+
+			WriteLine(String.Format("The guild information for {0} has successfully been loaded.", FormatGuild(guild)));
+			return true;
 		}
 
-		//Load banned words/regex/punishments
-		public static void LoadBannedPhrasesAndPunishments(IGuild guild)
+		public static void SaveGuildInfo(BotGuildInfo guildInfo)
 		{
-			//Check if the file exists
-			var path = GetServerFilePath(guild.Id, Constants.BANNED_PHRASES);
+			OverWriteFile(GetServerFilePath(guildInfo.GuildID, Constants.GUILD_INFO_LOCATION), Serialize(guildInfo));
+		}
+
+		public static string Serialize(dynamic obj)
+		{
+			return JsonConvert.SerializeObject(obj, Formatting.Indented);
+		}
+
+		public static void CreateFile(string path)
+		{
 			if (!File.Exists(path))
-				return;
-
-			using (var reader = new StreamReader(path))
 			{
-				var text = reader.ReadToEnd();
-				Variables.Guilds[guild.Id].SetBannedPhrases(JsonConvert.DeserializeObject<BannedPhrases>(text));
+				File.Create(path).Close();
 			}
-
-			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Banned Phrases/Regex/Punishments");
 		}
 
-		//Load the self assignable roles
-		public static void LoadSelfAssignableRoles(IGuild guild)
+		public static void OverWriteFile(string path, string toSave)
 		{
-			//Check if the file exists
-			var path = GetServerFilePath(guild.Id, Constants.SA_ROLES);
-			if (!File.Exists(path))
-				return;
-
-			//Get the guildinfo
-			var guildInfo = Variables.Guilds[guild.Id];
-
-			//Read the file
-			using (var file = new StreamReader(path))
+			CreateFile(path);
+			using (var writer = new StreamWriter(path))
 			{
-				string line;
-				while ((line = file.ReadLine()) != null)
+				writer.Write(toSave);
+			}
+		}
+
+		public static string ToLiteral(string input)
+		{
+			using (var writer = new StringWriter())
+			{
+				using (var provider = System.CodeDom.Compiler.CodeDomProvider.CreateProvider("CSharp"))
 				{
-					//If the line is empty, do nothing
-					if (String.IsNullOrWhiteSpace(line))
-						continue;
-
-					var inputArray = line.Split(' ');
-
-					//Test if ID
-					if (!ulong.TryParse(inputArray[0], out ulong ID))
-						continue;
-
-					//Test if valid role
-					var role = guild.GetRole(ID);
-					if (role == null)
-						continue;
-
-					//Test if valid group
-					if (!int.TryParse(inputArray[1], out int group))
-						continue;
-
-					//Check if it's already in any list
-					if (guildInfo.SelfAssignableGroups.Any(x => x.Roles.Any(y => y.Role.Id == ID)))
-						continue;
-
-					//Remake the SARole
-					var SARole = new SelfAssignableRole(guild.Id, role.Id, group);
-
-					//Check if that group exists already
-					if (!guildInfo.SelfAssignableGroups.Any(x => x.Group == group))
-					{
-						guildInfo.SelfAssignableGroups.Add(new SelfAssignableGroup(new List<SelfAssignableRole> { SARole }, group));
-					}
-					//Add it to the list if it already does exist
-					else
-					{
-						guildInfo.SelfAssignableGroups.FirstOrDefault(x => x.Group == group).AddRole(SARole);
-					}
+					provider.GenerateCodeFromExpression(new System.CodeDom.CodePrimitiveExpression(input), writer, null);
+					return Constants.FORMATREGEX.Replace(writer.ToString(), "");
 				}
-			}
-
-			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Self Assignable Roles/Groups");
-		}
-
-		//Load the prefix and logActions
-		public static async Task LoadGuildMiscInfo(IGuild guild)
-		{
-			//Check if the file exists
-			var path = GetServerFilePath(guild.Id, Constants.MISCGUILDINFO);
-			if (!File.Exists(path))
-				return;
-
-			var GuildInfo = Variables.Guilds[guild.Id];
-
-			//Find the prefix line
-			using (var reader = new StreamReader(path))
-			{
-				string line;
-				while ((line = reader.ReadLine()) != null)
-				{
-					//Ignore empty lines
-					if (String.IsNullOrWhiteSpace(line))
-						continue;
-
-					//Guild prefix
-					if (line.Contains(Constants.GUILD_PREFIX))
-					{
-						GuildInfo.SetPrefix(line.Substring(line.IndexOf(':') + 1));
-					}
-					//Log channel
-					else if (line.Contains(Constants.SERVER_LOG_CHECK_STRING))
-					{
-						var logChannelArray = line.Split(new Char[] { ':' }, 2);
-						GuildInfo.SetServerLog((await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel);
-					}
-					else if (line.Contains(Constants.MOD_LOG_CHECK_STRING))
-					{
-						var logChannelArray = line.Split(new Char[] { ':' }, 2);
-						GuildInfo.SetModLog((await guild.GetChannelAsync(Convert.ToUInt64(logChannelArray[1]))) as ITextChannel);
-					}
-					//Log actions
-					else if (line.Contains(Constants.LOG_ACTIONS))
-					{
-						var logActions = new List<LogActions>();
-						line.Substring(line.IndexOf(':') + 1).Split('/').ToList().ForEach(x =>
-						{
-							if (Enum.TryParse(x, out LogActions temp))
-							{
-								logActions.Add(temp);
-							}
-						});
-						GuildInfo.LogActions.AddRange(logActions.Distinct().OrderBy(x => x).ToList());
-					}
-					//Ignored log channels
-					else if (line.Contains(Constants.IGNORED_LOG_CHANNELS))
-					{
-						var IDs = new List<ulong>();
-						line.Substring(line.IndexOf(':') + 1).Split('/').ToList().ForEach(x =>
-						{
-							if (ulong.TryParse(x, out ulong temp))
-							{
-								IDs.Add(temp);
-							}
-						});
-						GuildInfo.IgnoredLogChannels.AddRange(IDs.Distinct().ToList());
-					}
-					//Ignored command channels
-					else if (line.Contains(Constants.IGNORED_COMMAND_CHANNELS))
-					{
-						var IDs = new List<ulong>();
-						line.Substring(line.IndexOf(':') + 1).Split('/').ToList().ForEach(x =>
-						{
-							if (ulong.TryParse(x, out ulong temp))
-							{
-								IDs.Add(temp);
-							}
-						});
-						GuildInfo.IgnoredCommandChannels.AddRange(IDs.Distinct().ToList());
-					}
-					//Spam prevention
-					else if (line.Contains(Constants.MENTION_SPAM_PREVENTION))
-					{
-						var variableNumbers = line.Substring(line.IndexOf(':') + 1).Split('/').ToList();
-						if (variableNumbers.Count != 3)
-							continue;
-
-						if (!int.TryParse(variableNumbers[0], out int messagesRequired))
-							continue;
-						if (!int.TryParse(variableNumbers[1], out int mentionsRequired))
-							continue;
-						if (!int.TryParse(variableNumbers[2], out int votesRequired))
-							continue;
-
-						GuildInfo.GlobalSpamPrevention.SetMentionSpamPrevention(new MentionSpamPrevention(messagesRequired, votesRequired, mentionsRequired));
-					}
-				}
-			}
-
-			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Misc Info");
-		}
-
-		//Load the bot users
-		public static async Task LoadBotUsers(IGuild guild)
-		{
-			//Check if the file exists
-			var path = GetServerFilePath(guild.Id, Constants.PERMISSIONS);
-			if (!File.Exists(path))
-				return;
-
-			//Go through each line checking for the users
-			var counter = 0;
-			var validBotUsers = new List<string>();
-			using (var reader = new StreamReader(path))
-			{
-				string line;
-				while ((line = reader.ReadLine()) != null)
-				{
-					if (String.IsNullOrWhiteSpace(line))
-						continue;
-
-					//Increment the counter
-					++counter;
-
-					//Split input
-					var inputArray = line.Split(':');
-					if (inputArray.Length != 2)
-						continue;
-
-					//Check if valid ID
-					if (!ulong.TryParse(inputArray[0], out ulong ID))
-						continue;
-
-					//Check if valid perms
-					if (!uint.TryParse(inputArray[1], out uint perms))
-						continue;
-
-					//Get the user
-					var user = await guild.GetUserAsync(ID);
-					if (user == null)
-						continue;
-
-					//If valid user then add to botusers and keep the line
-					validBotUsers.Add(line);
-					Variables.Guilds[guild.Id].BotUsers.Add(new BotImplementedPermissions(guild.Id, user.Id, perms));
-
-					//Decrement the counter
-					--counter;
-				}
-			}
-
-			//Remove all bot users who are not in the server anymore
-			if (counter != 0)
-			{
-				using (var writer = new StreamWriter(path))
-				{
-					writer.WriteLine(String.Join("\n", validBotUsers));
-				}
-			}
-
-			WriteLoadDone(guild, "LoadBotUsers", "Bot Users");
-		}
-
-		//Load the reminds the guild has
-		public static void LoadReminds(IGuild guild)
-		{
-			//Check if the file exists
-			var path = GetServerFilePath(guild.Id, Constants.REMINDS);
-			if (!File.Exists(path))
-				return;
-
-			//Find the prefix line
-			using (var reader = new StreamReader(path))
-			{
-				string line;
-				while ((line = reader.ReadLine()) != null)
-				{
-					if (String.IsNullOrWhiteSpace(line))
-						continue;
-
-					var inputArray = line.Split(new char[] { ':' }, 2);
-					if (inputArray.Length != 2)
-						continue;
-
-					var name = inputArray[0].Substring(1);
-					var text = inputArray[1].Substring(0, inputArray[1].Length - 1);
-
-					Variables.Guilds[guild.Id].Reminds.Add(new Remind(name, text.Replace("\\\\", "\\").Replace("\\n", "\n").Replace("\\'", "\'").Replace("\\\"", "\"")));
-				}
-			}
-
-			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Reminds");
-		}
-
-		//Load all of the commands that are disabled by channel on the guild
-		public static void LoadCommandsDisabledByChannel(IGuild guild)
-		{
-			//Check if the file exists
-			var path = GetServerFilePath(guild.Id, Constants.COMMANDS_DISABLED_BY_CHANNEL);
-			if (!File.Exists(path))
-				return;
-
-			//Find the prefix line
-			using (var reader = new StreamReader(path))
-			{
-				string line;
-				while ((line = reader.ReadLine()) != null)
-				{
-					if (String.IsNullOrWhiteSpace(line))
-						continue;
-
-					var inputArray = line.Split(new char[] { ' ' });
-					if (inputArray.Length != 2)
-						continue;
-
-					if (!ulong.TryParse(inputArray[0], out ulong channelID))
-						continue;
-					var cmd = inputArray[1];
-
-					Variables.Guilds[guild.Id].CommandsDisabledOnChannel.Add(new CommandDisabledOnChannel(channelID, cmd));
-				}
-			}
-			WriteLoadDone(guild, MethodBase.GetCurrentMethod().Name, "Commands Disabled By Channel");
-		}
-
-		//Load the most basic information
-		public static void LoadBasicInformation()
-		{
-			//Checks if the OS is Windows or not
-			GetOS();
-			//Check if console or WPF app
-			GetConsoleOrGUI();
-		}
-
-		//Possibly load the bot, I don't know.
-		public static void MaybeStartBot()
-		{
-			if (Variables.GotPath && Variables.GotKey && !Variables.Loaded)
-			{
-				new Program().Start(Variables.Client).GetAwaiter().GetResult();
 			}
 		}
 		#endregion
 
 		#region Gets
-		//Complex get a role on the guild
 		public static async Task<IRole> GetRole(CommandContext context, string roleName)
 		{
 			//Remove spaces
@@ -630,7 +342,6 @@ namespace Advobot
 			return null;
 		}
 		
-		//Simple get a role on the guild
 		public static IRole GetRole(IGuild guild, string roleName)
 		{
 			//Trim it
@@ -639,7 +350,6 @@ namespace Advobot
 			return guild.Roles.ToList().OrderBy(x => x.Position).Reverse().FirstOrDefault(x => CaseInsEquals(x.Name, roleName));
 		}
 		
-		//Get top position of a user
 		public static int GetPosition(IGuild guild, IUser user)
 		{
 			//Make sure they're an IGuildUser
@@ -660,31 +370,26 @@ namespace Advobot
 			return roleIDs.Max(x => guild.GetRole(x).Position);
 		}
 		
-		//Get a user via a string
 		public static async Task<IGuildUser> GetUser(IGuild guild, string userName)
 		{
 			return userName == null ? null : await guild.GetUserAsync(GetUlong(userName.Trim(new char[] { '<', '>', '@', '!' })));
 		}
 
-		//Get a user via a ulong
 		public static async Task<IGuildUser> GetUser(IGuild guild, ulong ID)
 		{
 			return await guild.GetUserAsync(ID);
 		}
 		
-		//Get the input to a ulong
 		public static ulong GetUlong(string inputString)
 		{
 			return UInt64.TryParse(inputString, out ulong number) ? number : 0;
 		}
 
-		//Get the bot as an IGuildUser
 		public static async Task<IGuildUser> GetBot(IGuild guild)
 		{
 			return await guild.GetCurrentUserAsync();
 		}
 		
-		//Get if the user/bot can edit the role
 		public static async Task<IRole> GetRoleEditAbility(CommandContext context, string input = null, bool ignore_Errors = false, IRole role = null)
 		{
 			//Check if valid role
@@ -721,7 +426,6 @@ namespace Advobot
 			return inputRole;
 		}
 
-		//Get if the user can move people from the channel
 		public static IVoiceChannel GetUserMovability(IVoiceChannel channel, IUser user)
 		{
 			var guildUser = user as IGuildUser;
@@ -736,7 +440,6 @@ namespace Advobot
 			return null;
 		}
 		
-		//Get if the user can edit the channel's permissions
 		public static dynamic GetChannelPermability(IGuildChannel channel, IUser user)
 		{
 			var guildUser = user as IGuildUser;
@@ -753,7 +456,6 @@ namespace Advobot
 			return null;
 		}
 
-		//Get if the user can do the manage actions on a channel
 		public static dynamic GetChannelManagability(IGuildChannel channel, IUser user)
 		{
 			var guildUser = user as IGuildUser;
@@ -770,7 +472,6 @@ namespace Advobot
 			return null;
 		}
 
-		//You need the ManageChannels or Administrator perm to move channel's positions
 		public static dynamic GetChannelMovability(IGuildChannel channel, IUser user)
 		{
 			var guildUser = user as IGuildUser;
@@ -787,7 +488,6 @@ namespace Advobot
 			return null;
 		}
 
-		//Return a tuple of the channel and its reason for failure
 		public static async Task<ReturnedChannel> GetChannelPermability(CommandContext context, string input, IGuildChannel channel = null)
 		{
 			channel = channel ?? await GetChannel(context, input);
@@ -809,7 +509,6 @@ namespace Advobot
 			}
 		}
 
-		//Same as above but for channel managability
 		public static async Task<ReturnedChannel> GetChannelManagability(CommandContext context, string input, IGuildChannel channel = null)
 		{
 			channel = channel ?? await GetChannel(context, input);
@@ -831,7 +530,6 @@ namespace Advobot
 			}
 		}
 
-		//Same as above but for channel movability
 		public static async Task<ReturnedChannel> GetChannelMovability(CommandContext context, string input, IGuildChannel channel = null)
 		{
 			channel = channel ?? await GetChannel(context, input);
@@ -853,7 +551,6 @@ namespace Advobot
 			}
 		}
 
-		//Handle the errors gotten
 		public static async Task HandleChannelPermsLacked(CommandContext context, ReturnedChannel channel)
 		{
 			switch (channel.Reason)
@@ -876,13 +573,11 @@ namespace Advobot
 			}
 		}
 		
-		//Get a channel
 		public static async Task<IGuildChannel> GetChannel(CommandContext context, string input)
 		{
 			return await GetChannel(context.Guild, context.Channel, context.Message, input);
 		}
 		
-		//Get a channel without context
 		public static async Task<IGuildChannel> GetChannel(IGuild guild, IMessageChannel channel, IUserMessage message, string input)
 		{
 			//Go off of mentions for text channel
@@ -921,13 +616,11 @@ namespace Advobot
 			return null;
 		}
 		
-		//Get integer
 		public static int GetInteger(string inputString)
 		{
 			return Int32.TryParse(inputString, out int number) ? number : -1;
 		}
 		
-		//Get bits
 		public static async Task<uint> GetBit(CommandContext context, string permission, uint changeValue)
 		{
 			try
@@ -943,7 +636,6 @@ namespace Advobot
 			}
 		}
 		
-		//Get the permissions something has on a channel
 		public static Dictionary<String, String> GetChannelPermissions(Overwrite overwrite)
 		{
 			//Create a dictionary to hold the allow/deny/inherit values
@@ -976,21 +668,18 @@ namespace Advobot
 			return channelPerms;
 		}
 		
-		//Get text channel perms
 		public static Dictionary<String, String> GetTextChannelPermissions(Dictionary<String, String> dictionary)
 		{
 			Variables.ChannelPermissions.Where(x => x.Voice).ToList().ForEach(x => dictionary.Remove(x.Name));
 			return dictionary;
 		}
 		
-		//Get voice channel perms
 		public static Dictionary<String, String> GetVoiceChannelPermissions(Dictionary<String, String> dictionary)
 		{
 			Variables.ChannelPermissions.Where(x => x.Text).ToList().ForEach(x => dictionary.Remove(x.Name));
 			return dictionary;
 		}
 		
-		//Get a dictionary with the correct perms
 		public static Dictionary<String, String> GetPerms(Overwrite overwrite, IGuildChannel channel)
 		{
 			//Get the general perms from the overwrite given
@@ -1010,7 +699,6 @@ namespace Advobot
 			return dictionary;
 		}
 		
-		//Get guild commands
 		public static string[] GetCommands(IGuild guild, int number)
 		{
 			if (!Variables.Guilds.ContainsKey(guild.Id))
@@ -1019,7 +707,6 @@ namespace Advobot
 			return Variables.Guilds[guild.Id].CommandSettings.Where(x => x.CategoryValue == number).Select(x => x.Name).ToArray();
 		}
 		
-		//Get file paths
 		public static string GetServerFilePath(ulong guildId, string fileName)
 		{
 			//Make sure the bot's directory exists
@@ -1031,7 +718,6 @@ namespace Advobot
 			return Path.Combine(directory, guildId.ToString(), fileName);
 		}
 
-		//Get the bot's directory
 		public static string GetDirectory(string nonGuildFileName = null)
 		{
 			//Make sure a save path exists
@@ -1046,30 +732,27 @@ namespace Advobot
 			return String.IsNullOrWhiteSpace(nonGuildFileName) ? Path.Combine(folder, botFolder) : Path.Combine(folder, botFolder, nonGuildFileName);
 		}
 		
-		//Get if a channel is a text or voice channel
 		public static string GetChannelType(IGuildChannel channel)
 		{
 			return CaseInsIndexOf(channel.GetType().Name, Constants.TEXT_TYPE) ? Constants.TEXT_TYPE : Constants.VOICE_TYPE;
 		}
-		
-		//Get what the serverlog is
-		public static async Task<ITextChannel> GetLogChannel(IGuild guild, string serverOrMod)
+
+		public static ITextChannel GetServerLogChannel(IGuild guild)
 		{
-			//Get the guild info
 			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 				return null;
 
-			//Make sure the channel still exists
-			var channel = serverOrMod == Constants.SERVER_LOG_CHECK_STRING ? guildInfo.ServerLog : guildInfo.ModLog;
-			if (channel != null)
-			{
-				channel = await guild.GetTextChannelAsync(channel.Id);
-			}
+			return guildInfo.ServerLog;
+		}
 
-			return channel;
+		public static ITextChannel GetModLogChannel(IGuild guild)
+		{
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+				return null;
+
+			return guildInfo.ModLog;
 		}
 		
-		//Get if the user is the owner of the server
 		public static async Task<bool> GetIfUserIsOwner(IGuild guild, IUser user)
 		{
 			if (guild == null || user == null)
@@ -1079,19 +762,16 @@ namespace Advobot
 			return (await guild.GetOwnerAsync()).Id == user.Id || GetIfUserIsOwnerButBotIsOwner(guild, user);
 		}
 
-		//Get if the user is the second most powerful after the bot
 		public static bool GetIfUserIsOwnerButBotIsOwner(IGuild guild, IUser user)
 		{
 			return guild.OwnerId == Variables.Bot_ID && GetPosition(guild, user) == guild.Roles.Max(x => x.Position) - 1;
 		}
 
-		//Get if the user if the bot owner
 		public static bool GetIfUserIsBotOwner(IUser user)
 		{
 			return user.Id == Properties.Settings.Default.BotOwner;
 		}
 
-		//Get the permission names to an array
 		public static List<string> GetPermissionNames(uint flags)
 		{
 			var result = new List<string>();
@@ -1105,7 +785,6 @@ namespace Advobot
 			return result;
 		}
 
-		//Get the split input of an input char except when in quotes
 		public static string[] SplitByCharExceptInQuotes(string inputString, char inputChar)
 		{
 			return inputString.Split('"').Select((element, index) =>
@@ -1121,7 +800,6 @@ namespace Advobot
 			}).SelectMany(element => element).ToArray();
 		}
 
-		//Get the variables out of a list
 		public static string GetVariableAndRemove(List<string> inputList, string searchTerm)
 		{
 			//Get the item
@@ -1136,7 +814,6 @@ namespace Advobot
 			return null;
 		}
 
-		//Get the variables out of an array
 		public static string GetVariable(string[] inputArray, string searchTerm)
 		{
 			//Get the item
@@ -1144,21 +821,18 @@ namespace Advobot
 			return first?.Substring(first.IndexOf(':') + 1);
 		}
 
-		//Get the variable out of a string
 		public static string GetVariable(string inputString, string searchTerm)
 		{
 			var input = inputString?.Substring(0, Math.Max(inputString.IndexOf(':'), 1));
 			return (inputString != null && CaseInsEquals(input, searchTerm) ? inputString.Substring(inputString.IndexOf(':') + 1) : null);
 		}
 
-		//Get the OS
 		public static void GetOS()
 		{
 			var windir = Environment.GetEnvironmentVariable("windir");
 			Variables.Windows = !String.IsNullOrEmpty(windir) && windir.Contains(@"\") && Directory.Exists(windir);
 		}
 
-		//Get if it's a console or WPF
 		public static void GetConsoleOrGUI()
 		{
 			try
@@ -1171,13 +845,11 @@ namespace Advobot
 			}
 		}
 
-		//Get the bot owner
 		public static IGuildUser GetBotOwner(BotClient client)
 		{
 			return client.GetGuilds().SelectMany(x => x.Users).FirstOrDefault(x => x.Id == Properties.Settings.Default.BotOwner);
 		}
 
-		//Validate the group
 		public static async Task<int> GetIfGroupIsValid(CommandContext context, string input)
 		{
 			if (String.IsNullOrWhiteSpace(input))
@@ -1200,7 +872,6 @@ namespace Advobot
 			return groupNumber;
 		}
 
-		//Get a command
 		public static CommandSwitch GetCommand(ulong id, string input)
 		{
 			return Variables.Guilds[id].CommandSettings.FirstOrDefault(x =>
@@ -1220,13 +891,11 @@ namespace Advobot
 			});
 		}
 
-		//Get multiple commands
 		public static List<CommandSwitch> GetMultipleCommands(ulong id, CommandCategory category)
 		{
 			return Variables.Guilds[id].CommandSettings.Where(x => x.CategoryEnum == category).ToList();
 		}
 
-		//Get if a command is valid
 		public static async Task<IResult> GetIfCommandIsValidAndExecute(CommandContext context, int argPos, IDependencyMap map)
 		{
 			//Check to make sure everything is loaded
@@ -1260,7 +929,6 @@ namespace Advobot
 			}
 		}
 
-		//Get a list of lines in a text doc that aren't the targetted ones
 		public static List<string> GetValidLines(string path, string checkString, bool getCheckString = false)
 		{
 			CreateFile(path);
@@ -1292,7 +960,6 @@ namespace Advobot
 			return validLines;
 		}
 
-		//Get the help entry string
 		public static string GetHelpString(HelpEntry help)
 		{
 			return String.Format("**Aliases:** {0}\n**Usage:** {1}\n\n**Base Permission(s):**\n{2}\n\n**Description:**\n{3}",
@@ -1302,13 +969,11 @@ namespace Advobot
 				help.Text);
 		}
 
-		//Get the amount of line breaks a string has
 		public static int GetLineBreaks(string input)
 		{
 			return input.Count(y => y == '\n' || y == '\r');
 		}
 
-		//Get if a user can be modified by another user
 		public static bool UserCanBeModifiedByUser(CommandContext context, IGuildUser user)
 		{
 			var bannerPosition = GetPosition(context.Guild, context.User);
@@ -1316,7 +981,6 @@ namespace Advobot
 			return bannerPosition > banneePosition;
 		}
 
-		//Get if the bot can nickname the given user
 		public static bool UserCanBeModifiedByBot(IGuild guild, IGuildUser targetUser, IGuildUser bot)
 		{
 			var botPosition = GetPosition(guild, bot);
@@ -1324,7 +988,6 @@ namespace Advobot
 			return botPosition > userPosition  || targetUser.Id == bot.Id;
 		}
 
-		//Get the invites on a guild
 		public static async Task<IReadOnlyCollection<IInviteMetadata>> GetInvites(IGuild guild)
 		{
 			//Make sure the guild exists
@@ -1336,7 +999,6 @@ namespace Advobot
 			return invs.Any() ? invs : null;
 		}
 
-		//Get the invite a user joined on
 		public static async Task<BotInvite> GetInviteUserJoinedOn(IGuild guild)
 		{
 			//Get the current invites
@@ -1380,7 +1042,6 @@ namespace Advobot
 		#endregion
 
 		#region Roles
-		//Create a role on the server if it's not found
 		public static async Task<IRole> CreateMuteRoleIfNotFound(IGuild guild, string roleName)
 		{
 			//Create the role if not found
@@ -1400,7 +1061,6 @@ namespace Advobot
 			return role;
 		} 
 		
-		//Give the user the role
 		public static async Task GiveRole(IGuildUser user, IRole role)
 		{
 			if (role == null)
@@ -1410,13 +1070,11 @@ namespace Advobot
 			await user.AddRoleAsync(role);
 		}
 		
-		//Give the user multiple roles
 		public static async Task GiveRole(IGuildUser user, IRole[] roles)
 		{
 			await user.AddRolesAsync(roles);
 		}
 		
-		//Take multiple roles from a user
 		public static async Task TakeRole(IGuildUser user, IRole[] roles)
 		{
 			if (roles.Count() == 0)
@@ -1424,7 +1082,6 @@ namespace Advobot
 			await user.RemoveRolesAsync(roles);
 		}
 		
-		//Take a single role from a user
 		public static async Task TakeRole(IGuildUser user, IRole role)
 		{
 			if (role == null)
@@ -1434,13 +1091,11 @@ namespace Advobot
 		#endregion
 
 		#region Message Removal
-		//Remove secondary messages
 		public static async Task MakeAndDeleteSecondaryMessage(CommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
 			await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, secondStr, time);
 		}
 		
-		//Remove secondary messages without context
 		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
 			var secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
@@ -1456,13 +1111,11 @@ namespace Advobot
 			}
 		}
 
-		//Remove secondary messages by themself
 		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
 			await MakeAndDeleteSecondaryMessage(channel, null, secondStr, time);
 		}
 
-		//Remove messages
 		public static async Task RemoveMessages(IMessageChannel channel, int requestCount)
 		{
 			var guildChannel = channel as ITextChannel;
@@ -1497,7 +1150,6 @@ namespace Advobot
 			}
 		}
 		
-		//Remove messages given a user id
 		public static async Task RemoveMessages(IMessageChannel channel, IUser user, int requestCount)
 		{
 			var guildChannel = channel as ITextChannel;
@@ -1539,7 +1191,6 @@ namespace Advobot
 			}
 		}
 
-		//Delete messages that aren't null
 		public static async Task DeleteMessages(IMessageChannel channel, List<IMessage> messages)
 		{
 			var guildChannel = channel as ITextChannel;
@@ -1557,7 +1208,6 @@ namespace Advobot
 			}
 		}
 
-		//Delete a message that isn't null
 		public static async Task DeleteMessage(IMessage message)
 		{
 			if (message == null)
@@ -1575,13 +1225,11 @@ namespace Advobot
 		#endregion
 
 		#region Message Formatting
-		//Format the error message
 		public static string ERROR(string message)
 		{
 			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
 		}
 		
-		//Send a message with a zero length char at the front
 		public static async Task<IMessage> SendChannelMessage(CommandContext context, string message)
 		{
 			if (context.Channel == null || !Variables.Guilds.ContainsKey(context.Guild.Id))
@@ -1590,7 +1238,6 @@ namespace Advobot
 			return await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
 
-		//Send a message with a zero length char at the front
 		public static async Task<IMessage> SendChannelMessage(IMessageChannel channel, string message)
 		{
 			if (channel == null || !Variables.Guilds.ContainsKey((channel as ITextChannel).GuildId))
@@ -1607,13 +1254,11 @@ namespace Advobot
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
 		
-		//Edit message log message
 		public static async Task FormatEditMessage(ITextChannel logChannel, string time, IGuildUser user, IMessageChannel channel, string before, string after)
 		{
 			await SendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}` **IN** `#{2}`\n**FROM:** ```\n{3}```\n**TO:** ```\n{4}```", time, FormatUser(user), FormatChannel(channel), before, after));
 		}
 		
-		//Get rid of certain elements to make messages look neater
 		public static string ReplaceMarkdownChars(string input)
 		{
 			if (String.IsNullOrWhiteSpace(input))
@@ -1632,19 +1277,16 @@ namespace Advobot
 			return input;
 		}
 
-		//Format the guild string for use in the console
 		public static string FormatGuild(IGuild guild)
 		{
 			return String.Format("'{0}' ({1})", guild.Name, guild.Id);
 		}
 
-		//Format the user string
 		public static string FormatUser(IUser user)
 		{
 			return String.Format("{0}#{1} ({2})", String.IsNullOrWhiteSpace(user.Username) ? "Irretrievable" : user.Username, user.Discriminator, user.Id);
 		}
 
-		//Format the channel string
 		public static string FormatChannel(IChannel channel)
 		{
 			var tempChan = channel as IGuildChannel;
@@ -1653,19 +1295,16 @@ namespace Advobot
 			return String.Format("{0} ({1}) ({2})", channel.Name, GetChannelType(tempChan), channel.Id);
 		}
 
-		//Format the role string
 		public static string FormatRole(IRole role)
 		{
 			return String.Format("{0} ({1})", role.Name, role.Id);
 		}
 
-		//Remove all new lines
 		public static string RemoveNewLines(string input)
 		{
 			return input.Replace(Environment.NewLine, "").Replace("\r", "").Replace("\n", "");
 		}
 
-		//Format all things that have been logged
 		public static string FormatLoggedThings()
 		{
 			const int spacing = Constants.PAD_RIGHT;
@@ -1683,7 +1322,6 @@ namespace Advobot
 				String.Format("{0}{1}", "Files:".PadRight(spacing), Variables.LoggedFiles));
 		}
 
-		//Format the content of messages that were deleted
 		public static List<string> FormatDeletedMessages(List<IMessage> list)
 		{
 			var deletedMessagesContent = new List<string>();
@@ -1738,7 +1376,6 @@ namespace Advobot
 			return deletedMessagesContent;
 		}
 
-		//Send the messages for deleting messages
 		public static async Task SendDeleteMessage(IGuild guild, ITextChannel channel, List<string> inputList)
 		{
 			//Get the character count
@@ -1775,7 +1412,6 @@ namespace Advobot
 		#endregion
 
 		#region Uploads
-		//Upload various text to a text uploader with a string
 		public static bool TryToUploadToHastebin(string text, out string output)
 		{
 			//Check its length
@@ -1808,7 +1444,6 @@ namespace Advobot
 			return true;
 		}
 		
-		//Upload a text file with a list of messages
 		public static async Task WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, List<string> textList, string fileName, string messageHeader)
 		{
 			//Messages in the format to upload
@@ -1816,7 +1451,6 @@ namespace Advobot
 			await WriteAndUploadTextFile(guild, channel, text, fileName, messageHeader);
 		}
 		
-		//Upload a text file with a string
 		public static async Task WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string fileMessage = null)
 		{
 			//Get the file path
@@ -1846,13 +1480,11 @@ namespace Advobot
 			File.Delete(path);
 		}
 
-		//Upload an already created text file
 		public static async Task UploadFile(IMessageChannel channel, string path, string text = null)
 		{
 			await channel.SendFileAsync(path, text);
 		}
 
-		//Upload a guild icon or bot icon
 		public static async Task SetPicture(CommandContext context, string input, bool user)
 		{
 			//See if the user wants to remove the icon
@@ -1967,7 +1599,6 @@ namespace Advobot
 			});
 		}
 
-		//Validate URL
 		public static bool ValidateURL(string input)
 		{
 			if (input == null)
@@ -1978,7 +1609,6 @@ namespace Advobot
 		#endregion
 
 		#region Embeds
-		//Send an embedded object
 		public static async Task<IMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed, string content = null)
 		{
 			var guildChannel = channel as ITextChannel;
@@ -2010,7 +1640,6 @@ namespace Advobot
 			}
 		}
 		
-		//Make a new embed builder
 		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null, string URL = null, string thumbnailURL = null)
 		{
 			//Make the embed builder
@@ -2067,7 +1696,6 @@ namespace Advobot
 			return embed;
 		}
 		
-		//Make a new author for an embed
 		public static EmbedBuilder AddAuthor(EmbedBuilder embed, string name = null, string iconURL = null, string URL = null)
 		{
 			//Create the author builder
@@ -2094,7 +1722,6 @@ namespace Advobot
 			return embed.WithAuthor(author);
 		}
 		
-		//Make a new footer for an embed
 		public static EmbedBuilder AddFooter(EmbedBuilder embed, string text = null, string iconURL = null)
 		{
 			//Make the footer builder
@@ -2116,7 +1743,6 @@ namespace Advobot
 			return embed.WithFooter(footer);
 		}
 		
-		//Add a field to an embed
 		public static EmbedBuilder AddField(EmbedBuilder embed, string name, string value, bool isInline = true)
 		{
 			if ((String.IsNullOrWhiteSpace(name) && String.IsNullOrWhiteSpace(value)) || embed.Build().Fields.Count() >= Constants.MAX_FIELDS)
@@ -2155,7 +1781,6 @@ namespace Advobot
 			return embed;
 		}
 
-		//Send an embed that potentially has a really big description
 		public static async Task SendPotentiallyBigEmbed(IGuild guild, IMessageChannel channel, EmbedBuilder embed, string input, string fileName)
 		{
 			//Send the embed
@@ -2171,13 +1796,11 @@ namespace Advobot
 		#endregion
 
 		#region Console
-		//Write to the console with a timestamp
 		public static void WriteLine(string text)
 		{
 			Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + ReplaceMarkdownChars(text));
 		}
 		
-		//Send an exception message to the console
 		public static void ExceptionToConsole(string method, Exception e)
 		{
 			if (e == null)
@@ -2186,7 +1809,6 @@ namespace Advobot
 			WriteLine(method + " EXCEPTION: " + e.ToString());
 		}
 
-		//Write when a load is done
 		public static void WriteLoadDone(IGuild guild, string method, string name)
 		{
 			Variables.Guilds[guild.Id].TurnDefaultPrefsOff();
@@ -2195,7 +1817,6 @@ namespace Advobot
 		#endregion
 
 		#region Server/Mod Log
-		//Check if the bot can type in a logchannel
 		public static async Task<bool> PermissionCheck(ITextChannel channel)
 		{
 			//Return false if the channel doesn't exist
@@ -2219,100 +1840,6 @@ namespace Advobot
 			return true;
 		}
 
-		//Set the server or mod log
-		public static async Task<ITextChannel> SetServerOrModLog(CommandContext context, string input, string serverOrMod)
-		{
-			return await SetServerOrModLog(context.Guild, context.Channel, context.Message, input, serverOrMod);
-		}
-		
-		//Set the server or mod log without context
-		public static async Task<ITextChannel> SetServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, string input, string serverOrMod)
-		{
-			//See if not null
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				await MakeAndDeleteSecondaryMessage(channel, message, ERROR("No channel specified."));
-				return null;
-			}
-			else if (CaseInsEquals(input, "off"))
-			{
-				return await SetServerOrModLog(guild, channel, message, null as ITextChannel, serverOrMod);
-			}
-
-			//Get the channel with its ID
-			var logChannel = await GetChannel(guild, channel, message, input) as ITextChannel;
-			if (logChannel == null)
-			{
-				await MakeAndDeleteSecondaryMessage(channel, message, ERROR(String.Format("Unable to set the logchannel on `{0}`.", input)));
-				return null;
-			}
-
-			return await SetServerOrModLog(guild, channel, message, logChannel, serverOrMod);
-		}
-		
-		//Set the server and mod log with an already gotten channel
-		public static async Task<ITextChannel> SetServerOrModLog(IGuild guild, IMessageChannel channel, IUserMessage message, ITextChannel inputChannel, string serverOrMod)
-		{
-			//Create the file if it doesn't exist
-			var path = GetServerFilePath(guild.Id, Constants.MISCGUILDINFO);
-			if (!File.Exists(path))
-			{
-				Directory.CreateDirectory(Path.GetDirectoryName(path));
-				var newFile = File.Create(path);
-				newFile.Close();
-			}
-
-			//Set it on the bot's info
-			if (serverOrMod == Constants.SERVER_LOG_CHECK_STRING)
-			{
-				Variables.Guilds[guild.Id].SetServerLog(inputChannel);
-			}
-			else if (serverOrMod == Constants.MOD_LOG_CHECK_STRING)
-			{
-				Variables.Guilds[guild.Id].SetModLog(inputChannel);
-			}
-
-			//Find the lines that aren't the current serverlog line
-			var validLines = new List<string>();
-			using (var reader = new StreamReader(path))
-			{
-				string line;
-				while ((line = reader.ReadLine()) != null)
-				{
-					if (line.Contains(serverOrMod))
-					{
-						if ((inputChannel != null) && (line.Contains(inputChannel.Id.ToString())))
-						{
-							await MakeAndDeleteSecondaryMessage(channel, message, String.Format("Channel is already the current {0}.", serverOrMod));
-							return null;
-						}
-					}
-					else if (!line.Contains(serverOrMod))
-					{
-						validLines.Add(line);
-					}
-				}
-			}
-
-			//Add the lines that do not include serverlog and  the new serverlog line
-			using (var writer = new StreamWriter(path))
-			{
-				if (inputChannel == null)
-				{
-					writer.WriteLine(serverOrMod + ":" + null + "\n" + String.Join("\n", validLines));
-					await MakeAndDeleteSecondaryMessage(channel, message, String.Format("Disabled the {0}.", serverOrMod));
-					return null;
-				}
-				else
-				{
-					writer.WriteLine(serverOrMod + ":" + inputChannel.Id + "\n" + String.Join("\n", validLines));
-				}
-			}
-
-			return inputChannel;
-		}
-
-		//Logging images
 		public static async Task ImageLog(ITextChannel channel, IMessage message, bool embeds)
 		{
 			//Check if the guild has image logging enabled
@@ -2411,7 +1938,6 @@ namespace Advobot
 			});
 		}
 
-		//Check if the serverlog exists and if the bot can use it
 		public static async Task<ITextChannel> VerifyLogChannel(IGuild guild, ITextChannel channel)
 		{
 			//Check to make sure the bot can post to there
@@ -2452,89 +1978,48 @@ namespace Advobot
 			return guild != null && !Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(message.Channel.Id) ? guild : null;
 		}
 
-		//Verify if the given action is being logged
 		public static IGuild VerifyLoggingAction(IGuild guild, LogActions logAction)
 		{
 			//If the guild is null send back null. If the logaction being tested isn't turned on send back null.
 			return guild != null && Variables.Guilds[guild.Id].LogActions.Contains(logAction) ? guild : null;
 		}
 
-		//Verify the guild and log channels with a message
 		public static IGuild VerifyGuild(IMessage message, LogActions logAction)
 		{
 			//Make sure the message wasn't sent by another bot, that channel isn't ignored, the logged action is turned on, and that the bot isn't paused
 			return VerifyUnpaused(VerifyLoggingAction(VerifyLoggingIsEnabledOnThisChannel(VerifyMessage(message)), logAction));
 		}
 
-		//Verify the guild and log channels with a user
 		public static IGuild VerifyGuild(IUser user, LogActions logAction)
 		{
 			return VerifyUnpaused(VerifyLoggingAction(GetGuildFromUser(user), logAction));
 		}
 
-		//Verify the guild and log channels with a guild
 		public static IGuild VerifyGuild(IGuild guild, LogActions logAction)
 		{
 			return VerifyUnpaused(VerifyLoggingAction(guild, logAction));
 		}
 
-		//Verify the guild and log channels with a channel
 		public static IGuild VerifyGuild(IGuildChannel channel, LogActions logAction)
 		{
 			return VerifyUnpaused(VerifyLoggingAction(GetGuildFromChannel(channel), logAction));
 		}
 
-		//Verify the guild and log channels with a role
 		public static IGuild VerifyGuild(IRole role, LogActions logAction)
 		{
 			return VerifyUnpaused(VerifyLoggingAction(GetGuildFromRole(role), logAction));
 		}
 
-		//Make sure the bot's not paused
 		public static IGuild VerifyUnpaused(IGuild guild)
 		{
 			return Variables.Pause ? null : guild;
 		}
 		#endregion
 
-		#region Preferences
-		//Save preferences
-		public static void SavePreferences(TextWriter writer, ulong guildID, string input = null)
-		{
-			//Check if any preferences exist
-			if (!Variables.Guilds.ContainsKey(guildID))
-				return;
-
-			//Write the input
-			if (input != null)
-			{
-				writer.WriteLine(input);
-				return;
-			}
-
-			//Variable for each category
-			foreach (var cmd in Variables.Guilds[guildID].CommandSettings.OrderBy(x => x.CategoryValue))
-			{
-				writer.WriteLine(cmd.Name + ":" + cmd.ValAsString);
-			}
-		}
-		
-		//Save preferences by server
-		public static void SavePreferences(ulong serverID, string input = null)
-		{
-			var path = GetServerFilePath(serverID, Constants.PREFERENCES_FILE);
-			Directory.CreateDirectory(Path.GetDirectoryName(path));
-			using (var writer = new StreamWriter(path, false))
-			{
-				SavePreferences(writer, serverID, input);
-			}
-		}
-		
-		//Enable preferences
+		#region Preferences	
 		public static async Task EnablePreferences(BotGuildInfo guildInfo, IGuild guild, IUserMessage message)
 		{
-			//Set up the preferences file(s) location(s) on the computer
-			var path = GetServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
+			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
 			if (path == null)
 			{
 				await MakeAndDeleteSecondaryMessage(message.Channel, message, ERROR(Constants.PATH_ERROR));
@@ -2542,7 +2027,7 @@ namespace Advobot
 			}
 			if (!File.Exists(path))
 			{
-				SavePreferences(guild.Id);
+				SaveGuildInfo(guildInfo);
 			}
 			else
 			{
@@ -2556,30 +2041,30 @@ namespace Advobot
 			await SendChannelMessage(message.Channel, "Successfully created the preferences for this guild.");
 		}
 		
-		//Read out the preferences
-		public static async Task ReadPreferences(IMessageChannel channel, string serverpath)
-		{
-			//Send the preferences message
-			await SendEmbedMessage(channel, MakeNewEmbed("Preferences", File.ReadAllText(serverpath)));
-		}
-		
-		//Delete preferences
 		public static async Task DeletePreferences(BotGuildInfo guildInfo, IGuild guild, IUserMessage message)
 		{
-			//Check if valid path
-			var path = GetServerFilePath(guild.Id, Constants.PREFERENCES_FILE);
+			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
 			if (path == null)
 			{
 				await MakeAndDeleteSecondaryMessage(message.Channel, message, ERROR(Constants.PATH_ERROR));
 				return;
 			}
+			if (File.Exists(path))
+			{
+				File.Delete(path);
+			}
+			else
+			{
+				await MakeAndDeleteSecondaryMessage(message.Channel, message, "The preferences file has already been deleted.");
+				guildInfo.SwitchEnablingPrefs();
+				return;
+			}
 
-			File.Delete(path);
 			guildInfo.SwitchDeletingPrefs();
+			guildInfo.TurnDefaultPrefsOn();
 			await SendChannelMessage(message.Channel, "Successfully deleted the stored preferences for this guild.");
 		}
 
-		//Check if a command is enabled
 		public static bool CheckCommandEnabled(ICommandContext context, int argPos)
 		{
 			if (context.Guild == null)
@@ -2602,107 +2087,9 @@ namespace Advobot
 				return true;
 			}
 		}
-
-		//Save the log actions
-		public static void SaveLogActions(CommandContext context, List<LogActions> logActions)
-		{
-			//Create the file if it doesn't exist
-			var path = GetServerFilePath(context.Guild.Id, Constants.MISCGUILDINFO);
-			CreateFile(path);
-
-			//Find the lines that aren't the current log action line
-			var validLines = GetValidLines(path, Constants.LOG_ACTIONS);
-
-			//Add all the lines back
-			using (var writer = new StreamWriter(path))
-			{
-				var output = String.Join("\n", new string[] { String.Format("{0}:{1}", Constants.LOG_ACTIONS, String.Join("/", logActions.Select(x => x))), String.Join("\n", validLines) } );
-				writer.WriteLine(output);
-			}
-
-			Variables.Guilds[context.Guild.Id].SetLogActions(logActions.OrderBy(x => x).ToList());
-		}
-
-		//Create file
-		public static void CreateFile(string path)
-		{
-			if (!File.Exists(path))
-			{
-				File.Create(path).Close();
-			}
-		}
-
-		public static void SaveLines(string path, string target, string input, List<string> validLines, bool literal = false)
-		{
-			CreateFile(path);
-			if (target != null && input != null)
-			{
-				//Add all the lines back
-				using (var writer = new StreamWriter(path))
-				{
-					writer.WriteLine(target + ":" + input + "\n" + String.Join("\n", validLines));
-				}
-			}
-			else
-			{
-				if (literal)
-				{
-					SaveLines(path, validLines.Select(x => ToLiteral(x)).ToList());
-				}
-				else
-				{
-					SaveLines(path, validLines);
-				}
-			}
-		}
-
-		public static void SaveLines(string path, List<string> validLines)
-		{
-			CreateFile(path);
-			using (var writer = new StreamWriter(path))
-			{
-				writer.Write(String.Join("\n", validLines));
-			}
-		}
-
-		public static void OverWriteFile(string path, string toSave)
-		{
-			CreateFile(path);
-			using (var writer = new StreamWriter(path))
-			{
-				writer.Write(toSave);
-			}
-		}
-
-		//Save literally
-		public static string ToLiteral(string input)
-		{
-			using (var writer = new StringWriter())
-			{
-				using (var provider = System.CodeDom.Compiler.CodeDomProvider.CreateProvider("CSharp"))
-				{
-					provider.GenerateCodeFromExpression(new System.CodeDom.CodePrimitiveExpression(input), writer, null);
-					return Constants.FORMATREGEX.Replace(writer.ToString(), "");
-				}
-			}
-		}
-
-		public static void SaveLines(string path, string target, List<string> inputLines, List<string> validLines)
-		{
-			CreateFile(path);
-			if (target != null)
-			{
-				SaveLines(path, new List<string> { String.Join("\n", inputLines.Select(x => String.Format("{0}:{1}", target, x))), String.Join("\n", validLines) });
-			}
-			else
-			{
-				SaveLines(path, new List<string> { String.Join("\n", inputLines), String.Join("\n", validLines) });
-			}
-		}
 		#endregion
 
 		#region Slowmode
-		//Slowmode
 		public static async Task Slowmode(IMessage message)
 		{
 			//Get the guild and its info
@@ -2714,7 +2101,7 @@ namespace Advobot
 			var smUser = new SlowmodeUser();
 
 			//Get SlowmodeUser from the guild ID
-			if (guildInfo.SlowmodeGuild.GuildSlowmodeEnabled)
+			if (guildInfo.SlowmodeGuild != null)
 			{
 				smUser = guildInfo.SlowmodeGuild.Users.FirstOrDefault(x => x.User.Id == message.Author.Id);
 			}
@@ -2749,11 +2136,10 @@ namespace Advobot
 			}
 		}
 
-		//Add a new user who joined into the slowmode users list
 		public static async Task AddSlowmodeUser(BotGuildInfo guildInfo, IGuildUser user)
 		{
 			//Check if the guild has slowmode enabled
-			if (guildInfo.SlowmodeGuild.GuildSlowmodeEnabled)
+			if (guildInfo.SlowmodeGuild != null)
 			{
 				//Get the variables out of a different user
 				int messages = guildInfo.SlowmodeGuild.Users.FirstOrDefault().BaseMessages;
@@ -2784,7 +2170,6 @@ namespace Advobot
 		#endregion
 
 		#region Banned Phrases
-		//Banned phrases
 		public static async Task BannedPhrases(IMessage message)
 		{
 			//Get the guild
@@ -2808,7 +2193,6 @@ namespace Advobot
 			}
 		}
 
-		//Banned phrase punishments on a user
 		public static async Task BannedStringPunishments(IMessage message, BannedPhrase<string> phrase)
 		{
 			await DeleteMessage(message);
@@ -2860,7 +2244,7 @@ namespace Advobot
 					bpUser.ResetKickCount();
 
 					//Send a message to the logchannel
-					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+					var logChannel = GetServerLogChannel(guild);
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
@@ -2879,7 +2263,7 @@ namespace Advobot
 					bpUser.ResetBanCount();
 
 					//Send a message to the logchannel
-					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+					var logChannel = GetServerLogChannel(guild);
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
@@ -2900,7 +2284,7 @@ namespace Advobot
 					}
 
 					//Send a message to the logchannel
-					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+					var logChannel = GetServerLogChannel(guild);
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**Role Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
@@ -2917,7 +2301,6 @@ namespace Advobot
 			return punishment != null;			
 		}
 
-		//Banned regex punishments on a user
 		public static async Task BannedRegexPunishments(IMessage message, BannedPhrase<Regex> regex)
 		{
 			await DeleteMessage(message);
@@ -2968,7 +2351,7 @@ namespace Advobot
 					await user.KickAsync();
 
 					//Send a message to the logchannel
-					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+					var logChannel = GetServerLogChannel(guild);
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
@@ -2986,7 +2369,7 @@ namespace Advobot
 					await user.Guild.AddBanAsync(message.Author);
 
 					//Send a message to the logchannel
-					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+					var logChannel = GetServerLogChannel(guild);
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
@@ -3006,7 +2389,7 @@ namespace Advobot
 					}
 
 					//Send a message to the logchannel
-					var logChannel = await GetLogChannel(user.Guild, Constants.SERVER_LOG_CHECK_STRING);
+					var logChannel = GetServerLogChannel(guild);
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
@@ -3017,7 +2400,7 @@ namespace Advobot
 			}
 		}
 
-		public static List<string> HandleBannedRegexModification(List<BannedPhrase<Regex>> bannedRegex, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
+		public static void HandleBannedRegexModification(List<BannedPhrase<Regex>> bannedRegex, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
 		{
 			success = new List<string>();
 			failure = new List<string>();
@@ -3087,10 +2470,10 @@ namespace Advobot
 				}
 			}
 
-			return FormatSavingForBannedRegex(bannedRegex);
+			return;
 		}
 
-		public static List<string> HandleBannedStringModification(List<BannedPhrase<string>> bannedStrings, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
+		public static void HandleBannedStringModification(List<BannedPhrase<string>> bannedStrings, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
 		{
 			success = new List<string>();
 			failure = new List<string>();
@@ -3150,17 +2533,7 @@ namespace Advobot
 				}
 			}
 
-			return FormatSavingForBannedString(bannedStrings);
-		}
-
-		public static List<string> FormatSavingForBannedRegex(List<BannedPhrase<Regex>> list)
-		{
-			return list.Select(x => String.Format("{0}_{1}:{2}", Constants.BANNED_REGEX_CHECK_STRING, (int)x.Punishment, x.Phrase.ToString())).ToList();
-		}
-
-		public static List<string> FormatSavingForBannedString(List<BannedPhrase<string>> list)
-		{
-			return list.Select(x => String.Format("{0}_{1}:{2}", Constants.BANNED_STRING_CHECK_STRING, (int)x.Punishment, x.Phrase)).ToList();
+			return;
 		}
 
 		public static bool TryGetBannedRegex(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<Regex> bannedRegex)
@@ -3193,7 +2566,6 @@ namespace Advobot
 		#endregion
 
 		#region Settings
-		//Make sure the path is valid
 		public static bool ValidatePath(string input, bool startup = false)
 		{
 			var path = input.Trim();
@@ -3239,7 +2611,6 @@ namespace Advobot
 			}
 		}
 
-		//Save the bot key
 		public static async Task<bool> ValidateBotKey(BotClient client, string input, bool startup = false)
 		{
 			input = input.Trim();
@@ -3299,7 +2670,6 @@ namespace Advobot
 			return false;
 		}
 
-		//Set the game at start and whenever the prefix is changed
 		public static async Task SetGame(string prefix = null)
 		{
 			//Get the game
@@ -3328,7 +2698,6 @@ namespace Advobot
 			}
 		}
 
-		//Reset the settings
 		public static void ResetSettings()
 		{
 			//Save the amount of shards that currently exist
@@ -3343,7 +2712,6 @@ namespace Advobot
 		#endregion
 
 		#region Close Words
-		//Get the words close to a target word
 		public static int FindCloseName(string s, string t)
 		{
 			//Levenshtein Distance
@@ -3520,7 +2888,6 @@ namespace Advobot
 		#endregion
 
 		#region Timers
-		//Remove commands
 		public static void RemoveCommandMessages(IMessageChannel channel, List<IMessage> messages, Int32 time)
 		{
 			Task.Run(async () =>
@@ -3530,7 +2897,6 @@ namespace Advobot
 			});
 		}
 
-		//Remove a singular message after time
 		public static void RemoveCommandMessage(IMessage message, Int32 time)
 		{
 			Task.Run(async () =>
@@ -3540,27 +2906,24 @@ namespace Advobot
 			});
 		}
 
-		//Remove active close word list
-		public static void RemoveActiveCloseWords(ActiveCloseWords list)
+		public static void RemoveActiveCloseWords(BotGuildInfo guildInfo, ActiveCloseWords list)
 		{
 			Task.Run(async () =>
 			{
 				await Task.Delay(5000);
-				Variables.ActiveCloseWords.Remove(list);
+				guildInfo.ActiveCloseWords.Remove(list);
 			});
 		}
 
-		//Remove active close help list
-		public static void RemoveActiveCloseHelp(ActiveCloseHelp list)
+		public static void RemoveActiveCloseHelp(BotGuildInfo guildInfo, ActiveCloseHelp list)
 		{
 			Task.Run(async () =>
 			{
 				await Task.Delay(5000);
-				Variables.ActiveCloseHelp.Remove(list);
+				guildInfo.ActiveCloseHelp.Remove(list);
 			});
 		}
 
-		//Remove the option to say yes for preferences after ten seconds
 		public static void RemovePrefEnable(BotGuildInfo guildInfo)
 		{
 			Task.Run(async () =>
@@ -3570,7 +2933,6 @@ namespace Advobot
 			});
 		}
 
-		//Remove the option to say yes for preferences after ten seconds
 		public static void RemovePrefDelete(BotGuildInfo guildInfo)
 		{
 			Task.Run(async () =>
@@ -3580,7 +2942,6 @@ namespace Advobot
 			});
 		}
 
-		//Time interval for slowmode
 		public static void SlowmodeInterval(SlowmodeUser smUser)
 		{
 			Task.Run(async () =>
@@ -3592,7 +2953,6 @@ namespace Advobot
 			});
 		}
 
-		//Reset the mention spam prevention hourly
 		public static void ResetSpamPrevention(object obj)
 		{
 			//Get the period
@@ -3612,7 +2972,6 @@ namespace Advobot
 			Variables.SpamTimer = new Timer(ResetSpamPrevention, null, time, Timeout.Infinite);
 		}
 
-		//Reset the mention spam prevention hourly
 		public static void RemovePunishments(object obj)
 		{
 			//Get the period
@@ -3667,7 +3026,6 @@ namespace Advobot
 		#endregion
 
 		#region Spam Prevention
-		//Going through with the spam prevention
 		public static async Task<bool> HandleSpamPrevention(GlobalSpamPrevention global, BaseSpamPrevention spamPrev, IGuild guild, IGuildUser user, IMessage msg)
 		{
 			if (spamPrev == null || !spamPrev.Enabled)
@@ -3886,31 +3244,6 @@ namespace Advobot
 		}
 		#endregion
 
-		#region Saving
-		public static void SaveBannedStringRegexPunishments(BotGuildInfo guildInfo, CommandContext context)
-		{
-			var all = Serialize(guildInfo.BannedPhrases);
-			OverWriteFile(GetServerFilePath(context.Guild.Id, "BannedPhrases.json"), all);
-			//var parsed = JArray.Parse(all);
-			//foreach (var s in parsed)
-			//{
-			//	var text = s.ToString();
-			//	List<BannedPhrase<string>> des1 = JsonConvert.DeserializeObject<List<BannedPhrase<string>>>(text);
-			//	List<BannedPhrase<Regex>> des2 = JsonConvert.DeserializeObject<List<BannedPhrase<Regex>>>(text);
-			//	List<BannedPhrasePunishment> des3 = JsonConvert.DeserializeObject<List<BannedPhrasePunishment>>(text);
-			//}
-			WriteLine("fish");
-		}
-
-		public static void SaveEverything(BotGuildInfo guildInfo)
-		{
-			var ser = Serialize(guildInfo);
-			OverWriteFile(GetServerFilePath(guildInfo.GuildID, "test.json"), ser);
-			var test = JsonConvert.DeserializeObject<BotGuildInfo>(ser);
-			test.PostDeserialize();
-		}
-		#endregion
-
 		public static async Task SendWelcomeMessage(IUser user, WelcomeMessage wm)
 		{
 			if (wm == null)
@@ -3928,55 +3261,6 @@ namespace Advobot
 				await SendChannelMessage(wm.Channel, content);
 			}
 		}
-
-#region JSON
-		public static string Serialize(dynamic obj)
-		{
-			return JsonConvert.SerializeObject(obj, Formatting.Indented);
-		}
-
-		public static void SaveJSON(string path, string serialized)
-		{
-			using (var writer = new StreamWriter(path))
-			{
-				writer.WriteLine(serialized);
-			}
-		}
-
-		public static List<BannedPhrase<string>> DeserializeBannedPhraseString(string serialized)
-		{
-#if false
-			try
-			{
-				var parse = JObject.Parse(serialized);
-				var phrase = (string)parse.GetValue("Phrase");
-				var punishment = (PunishmentType)(int)parse.GetValue("Punishment");
-				return new BannedPhrase<string>(phrase, punishment);
-			}
-			catch
-			{
-				return null;
-			}
-#else
-			return JsonConvert.DeserializeObject<List<BannedPhrase<string>>>(serialized);
-#endif
-		}
-
-		public static BannedPhrase<Regex> DeserializeBannedPhraseRegex(string serialized)
-		{
-			try
-			{
-				var parse = JObject.Parse(serialized);
-				var phrase = new Regex((string)parse.GetValue("Phrase"));
-				var punishment = (PunishmentType)(int)parse.GetValue("Punishment");
-				return new BannedPhrase<Regex>(phrase, punishment);
-			}
-			catch
-			{
-				return null;
-			}
-		}
-#endregion
 
 		public static FAWRType ClarifyFAWRType(FAWRType type)
 		{

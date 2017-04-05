@@ -230,11 +230,9 @@ namespace Advobot
 				return;
 			}
 
-			//Save everything
 			var inputPhrases = Actions.SplitByCharExceptInQuotes(unsplitPhrases, '/').Where(x => !String.IsNullOrWhiteSpace(x)).ToList();
-			var toSave = Actions.HandleBannedStringModification(guildInfo.BannedPhrases.Strings, inputPhrases, add, out List<string> success, out List<string> failure);
-			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
-			Actions.SaveLines(path, null, toSave, Actions.GetValidLines(path, Constants.BANNED_STRING_CHECK_STRING));
+			Actions.HandleBannedStringModification(guildInfo.BannedPhrases.Strings, inputPhrases, add, out List<string> success, out List<string> failure);
+			Actions.SaveGuildInfo(guildInfo);
 
 			var successMessage = "";
 			if (success.Any())
@@ -302,7 +300,6 @@ namespace Advobot
 
 			//Check if position or phrase
 			var phraseStr = "";
-			var toSave = new List<string>();
 			if (int.TryParse(posOrPhrase, out int position))
 			{
 				if (regex)
@@ -316,7 +313,6 @@ namespace Advobot
 					var bannedPhrase = bannedRegex[position];
 					bannedPhrase.ChangePunishment(type);
 					phraseStr = bannedPhrase.Phrase.ToString();
-					toSave = Actions.FormatSavingForBannedRegex(bannedRegex);
 				}
 				else
 				{
@@ -329,20 +325,17 @@ namespace Advobot
 					var bannedPhrase = bannedStrings[position];
 					bannedPhrase.ChangePunishment(type);
 					phraseStr = bannedPhrase.Phrase;
-					toSave = Actions.FormatSavingForBannedString(bannedStrings);
 				}
 			}
 			else if (!regex && Actions.TryGetBannedString(guildInfo, posOrPhrase, out BannedPhrase<string> bannedString))
 			{
 				bannedString.ChangePunishment(type);
 				phraseStr = bannedString.Phrase;
-				toSave = Actions.FormatSavingForBannedString(guildInfo.BannedPhrases.Strings);
 			}
 			else if (regex && Actions.TryGetBannedRegex(guildInfo, posOrPhrase, out BannedPhrase<Regex> bannedRegex))
 			{
 				bannedRegex.ChangePunishment(type);
 				phraseStr = bannedRegex.Phrase.ToString();
-				toSave = Actions.FormatSavingForBannedRegex(guildInfo.BannedPhrases.Regex);
 			}
 			else
 			{
@@ -350,12 +343,8 @@ namespace Advobot
 				return;
 			}
 
-			//Resave everything
-			var strToCheckFor = regex ? Constants.BANNED_REGEX_CHECK_STRING : Constants.BANNED_STRING_CHECK_STRING;
-			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
-			Actions.SaveLines(path, null, toSave, Actions.GetValidLines(path, strToCheckFor));
-
-			//Send a success message
+			//Resave everything and send a success message
+			Actions.SaveGuildInfo(guildInfo);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the punishment type on the banned {0} `{1}` to `{2}`.",
 				(regex ? "regex" : "string"), phraseStr, Enum.GetName(typeof(PunishmentType), type)));
 		}
@@ -580,11 +569,10 @@ namespace Advobot
 					x.PunishmentTime == null ? "" : x.PunishmentTime.ToString()).Trim();
 			}).ToList();
 
-			//Create the banned phrases file if it doesn't already exist
-			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.BANNED_PHRASES);
-			Actions.SaveLines(path, Constants.BANNED_PHRASES_PUNISHMENTS, toSave, Actions.GetValidLines(path, Constants.BANNED_PHRASES_PUNISHMENTS));
+			//Save everything
+			Actions.SaveGuildInfo(guildInfo);
 
-			//Determine what the success message should say
+			//Format the success message
 			var successMsg = "";
 			if (newPunishment == null)
 			{
@@ -603,8 +591,6 @@ namespace Advobot
 			{
 				successMsg = String.Format("`{0}` at `{1}`", newPunishment.Role, newPunishment.NumberOfRemoves.ToString("00"));
 			}
-
-			//Check if there's a time
 			var timeMsg = newPunishment.PunishmentTime != 0 ? String.Format(", and will last for `{0}` minute(s)", newPunishment.PunishmentTime) : "";
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", addBool ? "added" : "removed", successMsg, timeMsg));
 		}

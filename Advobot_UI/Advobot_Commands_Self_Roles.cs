@@ -208,10 +208,6 @@ namespace Advobot
 				}
 			}
 
-			//Get the file that's supposed to hold everything
-			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.SA_ROLES);
-			Actions.SaveLines(path, guildInfo.SelfAssignableGroups.ToList().Select(x => x.FormatSaveString()).ToList());
-
 			//Make the success and failure strings
 			var sString = "";
 			var fString = "";
@@ -243,10 +239,10 @@ namespace Advobot
 					break;
 				}
 			}
-
-			//Format the response message
 			var responseMessage = (sBool && fBool) ? (sString + ", and " + fString) : (sString + fString);
-			//Send a success message
+
+			//Save everything and send a success message
+			Actions.SaveGuildInfo(guildInfo);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, responseMessage + ".", 10000);
 		}
 
