@@ -1167,21 +1167,14 @@ namespace Advobot
 	{
 		public Remind(string name, string text)
 		{
-			mName = name;
-			mText = text;
+			Name = name;
+			Text = text;
 		}
 
-		private string mName;
-		private string mText;
-
-		public string Name
-		{
-			get { return mName; }
-		}
-		public string Text
-		{
-			get { return mText; }
-		}
+		[JsonProperty]
+		public string Name { get; private set; }
+		[JsonProperty]
+		public string Text { get; private set; }
 	}
 
 	public struct CloseWord

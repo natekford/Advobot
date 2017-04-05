@@ -305,18 +305,6 @@ namespace Advobot
 				writer.Write(toSave);
 			}
 		}
-
-		public static string ToLiteral(string input)
-		{
-			using (var writer = new StringWriter())
-			{
-				using (var provider = System.CodeDom.Compiler.CodeDomProvider.CreateProvider("CSharp"))
-				{
-					provider.GenerateCodeFromExpression(new System.CodeDom.CodePrimitiveExpression(input), writer, null);
-					return Constants.FORMATREGEX.Replace(writer.ToString(), "");
-				}
-			}
-		}
 		#endregion
 
 		#region Gets
