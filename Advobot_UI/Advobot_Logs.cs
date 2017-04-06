@@ -25,27 +25,21 @@ namespace Advobot
 
 			if (!Variables.Guilds.ContainsKey(guild.Id))
 			{
-				//Put the guild into a list
-				Variables.Guilds.Add(guild.Id, new BotGuildInfo(guild.Id));
-				//Put the invites into a list holding mainly for usage checking
-				Task.Run(async () =>
-				{
-					//Get all of the invites and add their guildID, code, and current uses to the usage check list
-					Variables.Guilds[guild.Id].Invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
-				});
-
 				//Incrementing
 				Variables.TotalUsers += guild.MemberCount;
 				Variables.TotalGuilds++;
 
-				//Loading everything
-				if (Variables.Bot_ID != 0)
+				//Making sure the guild is not already in the botguildinfo list
+				if (!Variables.Guilds.ContainsKey(guild.Id))
 				{
-					Actions.LoadGuild(guild);
-				}
-				else
-				{
-					Variables.GuildsToBeLoaded.Add(guild);
+					if (Variables.Bot_ID != 0)
+					{
+						Actions.LoadGuild(guild);
+					}
+					else
+					{
+						Variables.GuildsToBeLoaded.Add(guild);
+					}
 				}
 			}
 

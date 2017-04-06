@@ -246,37 +246,49 @@ namespace Advobot
 
 		public static void LoadGuild(IGuild guild)
 		{
-			if (LoadGuildInfo(guild))
+			var guildInfo = LoadGuildInfo(guild);
+			if (guildInfo != null)
 			{
-				Variables.Guilds[guild.Id].PostDeserialize();
+				guildInfo.PostDeserialize();
 			}
-			Variables.Guilds[guild.Id].TurnLoadedOn();
+			else
+			{
+				guildInfo = new BotGuildInfo(guild.Id);
+			}
+			guildInfo.TurnLoadedOn();
+			Task.Run(async () =>
+			{
+				//Get all of the invites and add their guildID, code, and current uses to the usage check list
+				guildInfo.Invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
+			});
+			Variables.Guilds.Add(guild.Id, guildInfo);
 		}
 
-		public static bool LoadGuildInfo(IGuild guild)
+		public static BotGuildInfo LoadGuildInfo(IGuild guild)
 		{
+			BotGuildInfo guildInfo = null;
+
 			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
 			if (!File.Exists(path))
 			{
 				WriteLine(String.Format("The guild information file for {0} does not exist.", FormatGuild(guild)));
-				return false;
+				return guildInfo;
 			}
 
 			try
 			{
 				using (var reader = new StreamReader(path))
 				{
-					Variables.Guilds[guild.Id] = JsonConvert.DeserializeObject<BotGuildInfo>(reader.ReadToEnd());
+					guildInfo = JsonConvert.DeserializeObject<BotGuildInfo>(reader.ReadToEnd());
 				}
+				WriteLine(String.Format("The guild information for {0} has successfully been loaded.", FormatGuild(guild)));
 			}
 			catch (Exception e)
 			{
 				ExceptionToConsole(String.Format("LoadGuildInfo for {0}", FormatGuild(guild)), e);
-				return false;
 			}
 
-			WriteLine(String.Format("The guild information for {0} has successfully been loaded.", FormatGuild(guild)));
-			return true;
+			return guildInfo;
 		}
 
 		public static void SaveGuildInfo(BotGuildInfo guildInfo)

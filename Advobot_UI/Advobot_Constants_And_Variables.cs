@@ -80,23 +80,27 @@ namespace Advobot
 
 		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>()
 		{
-			".jpeg", ".jpg", ".png"
+			".jpeg", ".jpg", ".png",
 		});
 		public static ReadOnlyCollection<string> VALID_GIF_EXTENTIONS = new ReadOnlyCollection<string>(new List<string>()
 		{
-			".gif", ".gifv"
+			".gif", ".gifv",
 		});
 		public static ReadOnlyCollection<string> VALID_REGION_IDS = new ReadOnlyCollection<string>(new List<string>()
 		{
-			"brazil", "eu-central", "eu-west", "hongkong", "russia", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west"
+			"brazil", "eu-central", "eu-west", "hongkong", "russia", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west",
 		});
 		public static ReadOnlyCollection<string> VIP_REGIONIDS = new ReadOnlyCollection<string>(new List<string>()
 		{
-			"vip-amsterdam", "vip-us-east", "vip-us-west"
+			"vip-amsterdam", "vip-us-east", "vip-us-west",
 		});
 		public static ReadOnlyCollection<string> COMMANDS_UNABLE_TO_BE_TURNED_OFF = new ReadOnlyCollection<string>(new List<string>()
 		{
-			"comconfig", "help"
+			"comconfig", "help",
+		});
+		public static ReadOnlyCollection<string> VALID_GUILD_FILES = new ReadOnlyCollection<string>(new List<string>()
+		{
+			GUILD_INFO_LOCATION,
 		});
 
 		public static ReadOnlyCollection<LogActions> DEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogActions>(new List<LogActions>()

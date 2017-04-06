@@ -15,6 +15,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Collections.Generic;
 
 namespace Advobot
 {
@@ -34,7 +35,14 @@ namespace Advobot
 		private static Grid mEditLayout = new Grid { Visibility = Visibility.Collapsed, };
 		private static Grid mEditButtonLayout = new Grid();
 		private static TextEditor mEditBox = new TextEditor { WordWrap = true, VerticalScrollBarVisibility = ScrollBarVisibility.Visible, ShowLineNumbers = true, };
-		private static TextBox mEditSaveBox = new TextBox { Text = "Successfully saved the file.", Visibility = Visibility.Collapsed, TextAlignment = TextAlignment.Center };
+		private static TextBox mEditSaveBox = new TextBox
+		{
+			Text = "Successfully saved the file.",
+			Visibility = Visibility.Collapsed,
+			TextAlignment = TextAlignment.Center,
+			VerticalContentAlignment = VerticalAlignment.Center,
+			IsReadOnly = true,
+		};
 		private static Button mEditSaveButton = new Button { Content = "Save", };
 		private static Button mEditCloseButton = new Button { Content = "Close", };
 		#endregion
@@ -85,16 +93,13 @@ namespace Advobot
 		#endregion
 
 		#region System Info
-		//Layout
 		private static Grid mSysInfoLayout = new Grid();
 		private static TextBox mSysInfoUnder = new TextBox();
-		//Textboxes
 		private static TextBox mLatency = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
 		private static TextBox mMemory = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
 		private static TextBox mThreads = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
 		private static TextBox mShards = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
 		private static TextBox mPrefix = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
-		//Viewboxes
 		private static Viewbox mLatencyView = new Viewbox { Child = mLatency, };
 		private static Viewbox mMemoryView = new Viewbox { Child = mMemory, };
 		private static Viewbox mThreadsView = new Viewbox { Child = mThreads, };
@@ -110,13 +115,11 @@ namespace Advobot
 		private static Binding mSecondMenuBinding = UILayoutModification.CreateBinding(.0195);
 		#endregion
 
-		//Create the bot window
 		public BotWindow()
 		{
 			FontFamily = new FontFamily("Courier New");
 			InitializeComponent();
 		}
-		//Create all the components
 		private void InitializeComponent()
 		{
 			//Main layout
@@ -153,8 +156,8 @@ namespace Advobot
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mEditLayout, 0, 100, 0, 4, 100, 4);
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditLayout, mEditBox, 0, 100, 0, 3);
 			UILayoutModification.AddBinding(mEditBox, FontSizeProperty, mSecondMenuBinding);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditLayout, mEditSaveBox, 85, 2, 3, 1);
-			UILayoutModification.AddBinding(mEditSaveBox, FontSizeProperty, mFirstMenuBinding);
+			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditLayout, mEditSaveBox, 84, 3, 3, 1);
+			UILayoutModification.AddBinding(mEditSaveBox, FontSizeProperty, mSecondMenuBinding);
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditLayout, mEditButtonLayout, 87, 13, 3, 1, 1, 2);
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditButtonLayout, mEditSaveButton, 0, 1, 0, 1);
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditButtonLayout, mEditCloseButton, 0, 1, 1, 1);
@@ -182,7 +185,6 @@ namespace Advobot
 			//Actually run the application
 			RunApplication();
 		}
-		//Actually make the application work
 		private void RunApplication()
 		{
 			//Make console output show on the output text block and box
@@ -202,7 +204,6 @@ namespace Advobot
 			//Make sure the system information stays updated
 			UpdateSystemInformation();
 		}
-		//Update the latency/memory/threads every second
 		private void UpdateSystemInformation()
 		{
 			//Create the timer
@@ -225,7 +226,6 @@ namespace Advobot
 			timer.Start();
 		}
 
-		//Accept input through the enter key
 		public void AcceptInput(object sender, KeyEventArgs e)
 		{
 			var text = mInputBox.Text;
@@ -246,12 +246,10 @@ namespace Advobot
 				}
 			}
 		}
-		//Accept input through the enter button
 		public void AcceptInput(object sender, RoutedEventArgs e)
 		{
 			UICommandHandler.GatherInput();
 		}
-		//Save the output after the button is clicked
 		public void SaveOutput(object sender, RoutedEventArgs e)
 		{
 			//Make sure the path is valid
@@ -277,7 +275,6 @@ namespace Advobot
 			//Write to the console telling the user that the console log was successfully saved
 			Actions.WriteLine("Successfully saved the output log.");
 		}
-		//Clear the output after the button is clicked
 		public void ClearOutput(object sender, RoutedEventArgs e)
 		{
 			var result = MessageBox.Show("Are you sure you want to clear the output window?", Variables.Bot_Name, MessageBoxButton.OKCancel);
@@ -291,7 +288,6 @@ namespace Advobot
 				}
 			}
 		}
-		//Bring up the associated menu
 		public void BringUpMenu(object sender, RoutedEventArgs e)
 		{
 			//Make sure everything is loaded first
@@ -344,12 +340,10 @@ namespace Advobot
 				}
 			}
 		}
-		//Modify the memory tooltip
 		public void ModifyMemHoverInfo(object sender, MouseEventArgs e)
 		{
 			UILayoutModification.ToggleToolTip(mMemHoverInfo);
 		}
-		//Bring up the edit window
 		public static void TreeViewDoubleClick(object sender, RoutedEventArgs e)
 		{
 			//Get the double clicked item
@@ -375,7 +369,6 @@ namespace Advobot
 			mEditBox.Tag = fileLocation;
 			mEditLayout.Visibility = Visibility.Visible;
 		}
-		//Close the edit screen
 		public static void CloseEditScreen(object sender, RoutedEventArgs e)
 		{
 			var result = MessageBox.Show("Are you sure you want to close the edit window?", Variables.Bot_Name, MessageBoxButton.OKCancel);
@@ -389,39 +382,37 @@ namespace Advobot
 				}
 			}
 		}
-		//Save the rewritten input in the save screen
 		public static void SaveEditScreen(object sender, RoutedEventArgs e)
 		{
-			var result = MessageBox.Show("Are you certain this document has not been formatted in a way that breaks it?", Variables.Bot_Name, MessageBoxButton.OKCancel);
-
-			switch (result)
+			var fileLocation = mEditBox.Tag.ToString();
+			if (String.IsNullOrWhiteSpace(fileLocation) || !File.Exists(fileLocation))
 			{
-				case MessageBoxResult.OK:
+				MessageBox.Show("Unable to gather the path for this file.", Variables.Bot_Name);
+			}
+			else
+			{
+				var fileAndExtension = fileLocation.Substring(fileLocation.LastIndexOf('\\') + 1);
+				if (fileAndExtension.Equals(Constants.GUILD_INFO_LOCATION))
 				{
-					//Rewrite the input back in
-					var fileLocation = mEditBox.Tag.ToString();
-					//Make sure the file location exists
-					if (String.IsNullOrWhiteSpace(fileLocation) || !File.Exists(fileLocation))
+					//Make sure the guild info stays valid
+					try
 					{
-						MessageBox.Show("Unable to gather the path for this file. This file has NOT been saved.", Variables.Bot_Name);
+						var throwaway = Newtonsoft.Json.JsonConvert.DeserializeObject<BotGuildInfo>(mEditBox.Text);
 					}
-					else
+					catch (Exception exc)
 					{
-						//Save the file
-						using (var writer = new StreamWriter(fileLocation))
-						{
-							writer.WriteLine(mEditBox.Text);
-						}
-						//Give a notification saying it was saved
-						mSaveToolTip.Dispatcher.InvokeAsync(async () =>
-						{
-							UILayoutModification.ToggleUIElement(mEditSaveBox);
-							await Task.Delay(2500);
-							UILayoutModification.ToggleUIElement(mEditSaveBox);
-						});
+						Actions.ExceptionToConsole("SaveGuildInfo", exc);
+						MessageBox.Show("Failed to save the file.", Variables.Bot_Name);
+						return;
 					}
-					break;
 				}
+
+				//Save the file and give a notification
+				using (var writer = new StreamWriter(fileLocation))
+				{
+					writer.WriteLine(mEditBox.Text);
+				}
+				UILayoutModification.ToggleAndUntoggleUIEle(mEditSaveBox);
 			}
 		}
 
@@ -434,7 +425,6 @@ namespace Advobot
 	//Modify the UI
 	public class UILayoutModification
 	{
-		//Add in X amount of rows
 		public static void AddRows(Grid grid, int amount)
 		{
 			for (int i = 0; i < amount; i++)
@@ -443,7 +433,6 @@ namespace Advobot
 			}
 		}
 
-		//Add in X amount of columns
 		public static void AddCols(Grid grid, int amount)
 		{
 			for (int i = 0; i < amount; i++)
@@ -452,21 +441,18 @@ namespace Advobot
 			}
 		}
 
-		//Set the row and row span
 		public static void SetRowAndSpan(UIElement item, int start = 0, int length = 1)
 		{
 			Grid.SetRow(item, start < 0 ? 0 : start);
 			Grid.SetRowSpan(item, length < 1 ? 1 : length);
 		}
 
-		//Set the colum and column span
 		public static void SetColAndSpan(UIElement item, int start = 0, int length = 1)
 		{
 			Grid.SetColumn(item, start < 0 ? 0 : start);
 			Grid.SetColumnSpan(item, length < 1 ? 1 : length);
 		}
 
-		//Add the child to the given grid with specified starting rows/columns and lengths
 		public static void AddItemAndSetPositionsAndSpans(Panel parent, UIElement child, int rowStart, int rowLength, int columnStart, int columnLength, int setRows = 0, int setColumns = 0)
 		{
 			if (child is Grid)
@@ -479,7 +465,6 @@ namespace Advobot
 			SetColAndSpan(child, columnStart, columnLength);
 		}
 
-		//Create a new binding
 		public static Binding CreateBinding(double val)
 		{
 			return new Binding
@@ -490,25 +475,31 @@ namespace Advobot
 			};
 		}
 
-		//Add a binding to an element
 		public static void AddBinding(Control element, DependencyProperty dproperty, Binding binding)
 		{
 			element.SetBinding(dproperty, binding);
 		}
 
-		//Flip a tool tip
 		public static void ToggleToolTip(ToolTip ttip)
 		{
 			ttip.IsOpen = !ttip.IsOpen;
 		}
 
-		//Flip the visibility of a UI object
 		public static void ToggleUIElement(UIElement ele)
 		{
 			ele.Visibility = ele.Visibility == Visibility.Collapsed ? Visibility.Visible : Visibility.Collapsed;
 		}
 
-		//Add a hypderlink to an output box
+		public static void ToggleAndUntoggleUIEle(UIElement ele)
+		{
+			ele.Dispatcher.InvokeAsync(async () =>
+			{
+				ToggleUIElement(ele);
+				await Task.Delay(2500);
+				ToggleUIElement(ele);
+			});
+		}
+
 		public static void AddHyperlink(RichTextBox output, string link, string name, string beforeText = null, string afterText = null)
 		{
 			//Create the hyperlink
@@ -552,7 +543,6 @@ namespace Advobot
 	//Make certain elements
 	public class UIMakeElement
 	{
-		//Make a hyperlink
 		public static Hyperlink MakeHyperlink(string link, string name)
 		{
 			//Make sure the input is a valid link
@@ -576,7 +566,6 @@ namespace Advobot
 			return hyperlink;
 		}
 
-		//Make the tree view for the guilds on the bot
 		public static Paragraph MakeGuildTreeView(Paragraph input)
 		{
 			//Get the directory
@@ -607,30 +596,35 @@ namespace Advobot
 					return;
 				}
 
-				//Create the guild's treeviewitem
-				var guildItem = new TreeViewItem { Header = header }; 
-
-				//Add in all of the files the guild has
+				//Get all of the files
+				var listOfFiles = new List<TreeViewItem>();
 				Directory.GetFiles(guildDir).ToList().ForEach(file =>
 				{
-					//Get the file with its extension
 					var fileAndExtension = file.Substring(file.LastIndexOf('\\') + 1);
-					//Create the item
-					var fileItem = new TreeViewItem() { Header = fileAndExtension.Split('.')[0], Tag = file };
-					//Add in the double click event
+					if (!Constants.VALID_GUILD_FILES.Contains(fileAndExtension))
+						return;
+
+					var fileItem = new TreeViewItem() { Header = fileAndExtension, Tag = file };
 					fileItem.MouseDoubleClick += BotWindow.TreeViewDoubleClick;
-					//Add it to the guild item
-					guildItem.Items.Add(fileItem);
+					listOfFiles.Add(fileItem);
 				});
-				//Create a new treeview item with all of these items
+
+				//If no items then don't bother adding in the guild to the treeview
+				if (!listOfFiles.Any())
+					return;
+
+				//Create the guild item
+				var guildItem = new TreeViewItem { Header = header };
+				listOfFiles.ForEach(x =>
+				{
+					guildItem.Items.Add(x);
+				});
+				
 				treeView.Items.Add(guildItem);
 			});
 
-			//Remove all current information in the paragraph
 			input.Inlines.Clear();
-			//Add back in the new treeview
 			input.Inlines.Add(treeView);
-
 			return input;
 		}
 	}
@@ -638,7 +632,6 @@ namespace Advobot
 	//New class to handle commands
 	public class UICommandHandler
 	{
-		//Gather the input and reset the input
 		public static void GatherInput()
 		{
 			//Get the current text
@@ -671,7 +664,6 @@ namespace Advobot
 			}
 		}
 
-		//Pull out the cmd name and the args
 		public static void HandleCommand(string input)
 		{
 			//Check if it's a global bot command done through the console
@@ -693,7 +685,6 @@ namespace Advobot
 			}
 		}
 
-		//Search for the correct if statement containing the command's name
 		public static bool FindCommand(string cmd, string args)
 		{
 			//Find what command it belongs to
@@ -779,7 +770,6 @@ namespace Advobot
 	//Commands the bot can do through the 'console'
 	public class UICommands
 	{
-		//Pause the bot
 		public static void PAUSE(string input)
 		{
 			//Make sure valid input is passed in
@@ -805,7 +795,6 @@ namespace Advobot
 			}
 		}
 
-		//Modify the global prefix
 		public static async Task UIGlobalPrefix(string input)
 		{
 			//Make sure valid input is passed in
@@ -840,7 +829,6 @@ namespace Advobot
 			await Actions.SetGame(oldPrefix);
 		}
 
-		//Modify the global save path
 		public static void UIGlobalSavePath(string input)
 		{
 			//Make sure valid input is passed in
@@ -894,7 +882,6 @@ namespace Advobot
 			Actions.WriteLine(String.Format("Successfully changed the save path to: '{0}'.", input));
 		}
 
-		//Modify the global bot owner
 		public static void UIGlobalBotOwner(string input)
 		{
 			//Make sure valid input is passed in
@@ -955,7 +942,6 @@ namespace Advobot
 			Actions.WriteLine(String.Format("Successfully made '{0}' the new bot owner.", Actions.FormatUser(globalUser)));
 		}
 
-		//List the global settings or clear them
 		public static void UIGlobalSettings(string input)
 		{
 			//Make sure valid input is passed in
@@ -1002,7 +988,6 @@ namespace Advobot
 			}
 		}
 
-		//Change the bot's icon
 		public static async Task UIBotIcon(string input)
 		{
 			//Make sure valid input is passed in
@@ -1098,7 +1083,6 @@ namespace Advobot
 			});
 		}
 
-		//Change the bot's game
 		public static async Task UIBotGame(string input)
 		{
 			//Check the game name length
@@ -1116,7 +1100,6 @@ namespace Advobot
 			Actions.WriteLine(String.Format("Game set to '{0}'.", input));
 		}
 
-		//Change the bot's stream
 		public static async Task UIBotStream(string input)
 		{
 			//If empty string, take that as the notion to turn the stream off
@@ -1147,7 +1130,6 @@ namespace Advobot
 			Actions.WriteLine(String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to '" + input + "'"));
 		}
 
-		//Change the bot's name
 		public static async Task UIBotName(string input)
 		{
 			//Make sure valid input is passed in
@@ -1176,13 +1158,11 @@ namespace Advobot
 			Actions.WriteLine(String.Format("Successfully changed my username to '{0}'.", input));
 		}
 
-		//Disconnect the bot
 		public static void UIDisconnect()
 		{
 			Environment.Exit(0);
 		}
 
-		//Restart the bot
 		public static void UIRestart()
 		{
 			try
@@ -1198,7 +1178,6 @@ namespace Advobot
 			}
 		}
 
-		//List all the guilds the bot's in
 		public static void UIListGuilds()
 		{
 			//Go through each guild and add them to the list
@@ -1212,7 +1191,6 @@ namespace Advobot
 			UILayoutModification.AddHyperlink(BotWindow.Output, url, "Listed Guilds");
 		}
 
-		//Change the amount of shards the bot has
 		public static void UIModifyShards(string input)
 		{
 			//Make sure valid input is passed in
@@ -1244,7 +1222,6 @@ namespace Advobot
 			Actions.WriteLine(String.Format("Successfully set the shard amount to {0}.", number));
 		}
 
-		//Test command
 		public static void UITest()
 		{
 			//Actions.WriteLine(Variables.Client.Latency.ToString());
