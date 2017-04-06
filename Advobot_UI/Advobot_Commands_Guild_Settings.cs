@@ -867,8 +867,11 @@ namespace Advobot
 					var count = 1;
 					var msg = "Did you mean any of the following:\n" + String.Join("\n", closeWords.Select(x => String.Format("`{0}.` {1}", count++.ToString("00"), x.Name)));
 
-					//Give the user a new list
-					new ActiveCloseWords(Context.User as IGuildUser, closeWords);
+					//Create the list, add it to the guild, remove it after five seconds, and delete the message that goes along with it after 5 seconds
+					var acWords = new ActiveCloseWords(Context.User as IGuildUser, closeWords);
+					guildInfo.ActiveCloseWords.RemoveAll(x => x.User.Id == Context.User.Id);
+					guildInfo.ActiveCloseWords.Add(acWords);
+					Actions.RemoveActiveCloseWords(guildInfo, acWords);
 					await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 5000);
 				}
 				else
@@ -880,9 +883,8 @@ namespace Advobot
 
 		[Command("welcomemessage")]
 		[Alias("wm")]
-		[Usage("[#Channel] <ID:ID of a message which has an embed> <\"Content:string\">")]
-		[Summary("Displays a welcome message with the given content. `@User` will be replaced with a mention of the joining user." +
-			"The message ID has to be from a message on the channel, and only the title, desc, color, and thumbnail will be stored. Use the `makeanembed` command to make the embed.")]
+		[Usage("[#Channel] <\"Content:string\"> <\"Title:string\"> <\"Desc:string\"> <\"Thumb:string\">")]
+		[Summary("Displays a welcome message with the given content whenever a user joins. `@User` will be replaced with a mention of the joining user.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task WelcomeMessage([Remainder] string input)
@@ -895,65 +897,32 @@ namespace Advobot
 				return;
 			}
 
-			//Get the variables out
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
-			var channelStr = inputArray[0];
-			var IDStr = Actions.GetVariable(inputArray, "ID");
-			var content = Actions.GetVariable(inputArray, "content");
-
-			//Check if both are null
-			var IDB = String.IsNullOrWhiteSpace(IDStr);
-			var contentB = String.IsNullOrWhiteSpace(content);
-			if (IDB && contentB)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Either a message ID, or content, or both needs to be input."));
-				return;
-			}
-
-			//Make sure the channel mention is valid
-			var channel = await Actions.GetChannel(Context, channelStr);
-			if (channel == null)
-				return;
-			var tChannel = channel as ITextChannel;
-			if (tChannel == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The welcome channel can only be set to a text channel."));
-				return;
-			}
-
-			//Get the embed
-			WelcomeMessage welcomeMessage;
-			if (!IDB)
-			{
-				if (!ulong.TryParse(IDStr, out ulong ID))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The given input for ID is not a number."));
-					return;
-				}
-
-				var msg = await Context.Channel.GetMessageAsync(ID);
-				if (msg == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to find a message with the given ID."));
-					return;
-				}
-
-				var emb = msg.Embeds.FirstOrDefault();
-				if (emb == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The gotten message contains no embeds."));
-					return;
-				}
-
-				welcomeMessage = new WelcomeMessage(content, emb.Title, emb.Description, emb.Thumbnail.HasValue ? emb.Thumbnail.Value.Url : null, Context.Guild.Id, tChannel.Id);
-			}
-			else
-			{
-				welcomeMessage = new WelcomeMessage(content, null, null, null, Context.Guild.Id, tChannel.Id);
-			}
-
+			var welcomeMessage = await Actions.GetGuildNotification(Context, input) as WelcomeMessage;
 			guildInfo.SetWelcomeMessage(welcomeMessage);
-			await Actions.SendWelcomeMessage(null, welcomeMessage);
+			Actions.SaveGuildInfo(guildInfo);
+			await Actions.SendGuildNotification(null, welcomeMessage);
+		}
+
+		[Command("goodbyemessage")]
+		[Alias("gm")]
+		[Usage("[#Channel] <\"Content:string\"> <\"Title:string\"> <\"Desc:string\"> <\"Thumb:string\">")]
+		[Summary("Displays a goodbye message with the given content whenever a user leaves. `@User` will be replaced with a mention of the joining user.")]
+		[PermissionRequirement]
+		[DefaultEnabled(false)]
+		public async Task GoodbyeMessage([Remainder] string input)
+		{
+			//Check if using the default preferences
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
+			var goodbyeMessage = await Actions.GetGuildNotification(Context, input) as GoodbyeMessage;
+			guildInfo.SetGoodbyeMessage(goodbyeMessage);
+			Actions.SaveGuildInfo(guildInfo);
+			await Actions.SendGuildNotification(null, goodbyeMessage);
 		}
 
 		[Command("getfile")]

@@ -76,8 +76,13 @@ namespace Advobot
 						var count = 1;
 						var msg = "Did you mean any of the following:\n" + String.Join("\n", closeHelps.Select(x => String.Format("`{0}.` {1}", count++.ToString("00"), x.Help.Name)));
 
-						//Give the user a new list
-						new ActiveCloseHelp(Context.User as IGuildUser, closeHelps);
+						var guildInfo = Variables.Guilds[Context.Guild.Id];
+
+						//Create a new list, remove all others the user has, add the new one to the guild's list, remove it and the message that goes along with it after five seconds
+						var acHelp = new ActiveCloseHelp(Context.User as IGuildUser, closeHelps);
+						guildInfo.ActiveCloseHelp.RemoveAll(x => x.User.Id == Context.User.Id);
+						guildInfo.ActiveCloseHelp.Add(acHelp);
+						Actions.RemoveActiveCloseHelp(guildInfo, acHelp);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 5000);
 					}
 					else
@@ -197,12 +202,73 @@ namespace Advobot
 		#endregion
 
 		#region Info
+		[Command("infoguild")]
+		[Alias("infg")]
+		[Usage("")]
+		[Summary("Displays various information about the guild.")]
+		[DefaultEnabled(true)]
+		public async Task InfoGuild()
+		{
+			var sGuild = Context.Guild as SocketGuild;
+			var title = Actions.FormatGuild(sGuild);
+			var age = String.Format("Created on `{0}` (`{1}` days ago)", sGuild.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sGuild.CreatedAt.UtcDateTime).Days);
+			var owner = String.Format("Owner: `{0}`", Actions.FormatUser(sGuild.Owner));
+			var region = String.Format("Region: `{0}`\n", sGuild.VoiceRegionId);
+			var userCount = String.Format("Has `{0}` users", sGuild.MemberCount);
+			var roleCount = String.Format("Has `{0}` roles", sGuild.Roles.Count);
+			var channels = String.Format("Has `{0}` channels (`{1}` text, `{2}` voice)", sGuild.Channels.Count, sGuild.TextChannels.Count, sGuild.VoiceChannels.Count);
+			var all = String.Join("\n", new List<string>() { age, owner, region, userCount, roleCount, channels });
+
+			var embed = Actions.MakeNewEmbed(title, all, thumbnailURL: sGuild.IconUrl);
+			Actions.AddFooter(embed, "Guild Info");
+			await Actions.SendEmbedMessage(Context.Channel, embed);
+		}
+
+		[Command("infochannel")]
+		[Alias("infc")]
+		[Usage(Constants.CHANNEL_INSTRUCTIONS)]
+		[Summary("Displays various information about the given channel.")]
+		[DefaultEnabled(true)]
+		public async Task InfoChannel([Remainder] string input)
+		{
+			var sChannel = await Actions.GetChannel(Context, input) as SocketGuildChannel;
+			if (sChannel == null)
+				return;
+
+			var title = Actions.FormatChannel(sChannel);
+			var age = String.Format("Created on `{0}` (`{1}` days ago)", sChannel.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sChannel.CreatedAt.UtcDateTime).Days);
+			string users;
+			if (sChannel is SocketTextChannel)
+			{
+				users = String.Format("Has `{0}` users able to see it", sChannel.Users.Count);
+			}
+			else
+			{
+				users = String.Format("Has `{0}` users currently in it", sChannel.Users.Count);
+			}
+			var all = String.Join("\n", new List<string>() { age, users });
+
+			var embed = Actions.MakeNewEmbed(title, all);
+			Actions.AddFooter(embed, "Channel Info");
+			await Actions.SendEmbedMessage(Context.Channel, embed);
+		}
+
+		[Command("inforole")]
+		[Alias("infr")]
+		[Usage("[Role]")]
+		[Summary("Displays various information about the given role.")]
+		[DefaultEnabled(true)]
+		public async Task InfoRole([Remainder] string input)
+		{
+
+		}
+
 		[Command("infobot")]
 		[Alias("infb")]
 		[Usage("")]
 		[Summary("Displays various information about the bot.")]
 		[DefaultEnabled(true)]
-		public async Task BotInfo()
+		public async Task InfoBot()
 		{
 			var span = DateTime.UtcNow.Subtract(Variables.StartupTime);
 
@@ -259,7 +325,7 @@ namespace Advobot
 		[Usage("<@User>")]
 		[Summary("Displays various information about the user. Not 100% accurate.")]
 		[DefaultEnabled(true)]
-		public async Task UserInfo([Optional, Remainder] string input)
+		public async Task InfoUser([Optional, Remainder] string input)
 		{
 			//Get the user
 			var user = await Actions.GetUser(Context.Guild, input) ?? await Context.Guild.GetUserAsync(Context.User.Id);
@@ -295,12 +361,12 @@ namespace Advobot
 
 			//Make the description
 			var description = String.Format(
-				"ID: {0}\n" +
-				"Created: {1} {2}, {3} at {4}\n" +
-				"Joined: {5} {6}, {7} at {8} (#{9} to join the guild)\n" +
+				"**ID:** `{0}`\n" +
+				"**Created:** `{1} {2}, {3} at {4}`\n" +
+				"**Joined:** `{5} {6}, {7} at {8}` (`{9}` to join the guild)\n" +
 				"\n" +
-				"Current game: {10}\n" +
-				"Online status: {11}\n",
+				"**Current game:** `{10}`\n" +
+				"**Online status:** `{11}`\n",
 				user.Id,
 				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(user.CreatedAt.Month),
 				user.CreatedAt.UtcDateTime.Day,
@@ -332,7 +398,7 @@ namespace Advobot
 			//Add the voice channel
 			if (user.VoiceChannel != null)
 			{
-				var text = String.Format("Server mute: {0}\nServer deafen: {1}\nSelf mute: {2}\nSelf deafen: {3}",
+				var text = String.Format("Server mute: `{0}`\nServer deafen: `{1}`\nSelf mute: `{2}`\nSelf deafen: `{3}`",
 					user.IsMuted.ToString(), user.IsDeafened.ToString(), user.IsSelfMuted.ToString(), user.IsSelfDeafened.ToString());
 
 				Actions.AddField(embed, "Voice Channel: " + user.VoiceChannel.Name, text);
@@ -345,9 +411,9 @@ namespace Advobot
 		[Command("infoemoji")]
 		[Alias("infe")]
 		[Usage("[Emoji]")]
-		[Summary("Shows information about an emoji. Only global emojis where the bot is in a guild that gives them will have a 'From...' text.")]
+		[Summary("Discplays various information about an emoji. Only global emojis where the bot is in a guild that gives them will have a 'From...' text.")]
 		[DefaultEnabled(true)]
-		public async Task EmojiInfo([Remainder] string input)
+		public async Task InfoEmoji([Remainder] string input)
 		{
 			//Parse out the emoji
 			if (!Emoji.TryParse(input, out Emoji emoji))
@@ -379,7 +445,7 @@ namespace Advobot
 		[Summary("Lists the user who created the invite, the channel it was created on, the uses, and the creation date/time.")]
 		[UserHasAPermission]
 		[DefaultEnabled(true)]
-		public async Task InviteInfo([Remainder] string input)
+		public async Task InfoInvite([Remainder] string input)
 		{
 			//Get the invite
 			var inv = (await Context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code == input);
@@ -496,6 +562,17 @@ namespace Advobot
 			}
 		}
 
+		[Command("currentmembercount")]
+		[Alias("cmc")]
+		[Usage("")]
+		[Summary("Shows the current number of members in the guild.")]
+		[UserHasAPermission]
+		[DefaultEnabled(true)]
+		public async Task CurrentMemberCount()
+		{
+			await Actions.SendChannelMessage(Context, String.Format("The current member count is `{0}`.", (Context.Guild as SocketGuild).MemberCount));
+		}
+
 		[Command("userswithrole")]
 		[Alias("uwr")]
 		[Usage("[Role]")]
@@ -555,18 +632,6 @@ namespace Advobot
 			//Make and send the embed
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, description));
 		}
-
-		[Command("currentmembercount")]
-		[Alias("cmc")]
-		[Usage("")]
-		[Summary("Shows the current number of members in the guild.")]
-		[UserHasAPermission]
-		[DefaultEnabled(true)]
-		public async Task CurrentMemberCount()
-		{
-			await Actions.SendChannelMessage(Context, String.Format("The current member count is `{0}`.", (Context.Guild as SocketGuild).MemberCount));
-		}
-
 
 		[Command("listemojis")]
 		[Alias("lemojis")]

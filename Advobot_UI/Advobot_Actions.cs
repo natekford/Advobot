@@ -3244,21 +3244,21 @@ namespace Advobot
 		}
 		#endregion
 
-		public static async Task SendWelcomeMessage(IUser user, WelcomeMessage wm)
+		public static async Task SendGuildNotification(IUser user, GuildNotification notification)
 		{
-			if (wm == null)
+			if (notification == null)
 				return;
 
 			var userMention = user != null ? user.Mention : "Invalid User";
-			var content = wm.Content.Replace("@User", userMention);
+			var content = notification.Content.Replace("@User", userMention);
 
-			if (wm.Embed != null)
+			if (notification.Embed != null)
 			{
-				await SendEmbedMessage(wm.Channel, wm.Embed, content);
+				await SendEmbedMessage(notification.Channel, notification.Embed, content);
 			}
 			else
 			{
-				await SendChannelMessage(wm.Channel, content);
+				await SendChannelMessage(notification.Channel, content);
 			}
 		}
 
@@ -3284,6 +3284,42 @@ namespace Advobot
 				}
 			}
 			return type;
+		}
+
+		public static async Task<GuildNotification> GetGuildNotification(CommandContext context, string input)
+		{
+			//Get the variables out
+			var inputArray = SplitByCharExceptInQuotes(input, ' ');
+			var channelStr = inputArray[0];
+			var content = GetVariable(inputArray, "content");
+			var title = GetVariable(inputArray, "title");
+			var desc = GetVariable(inputArray, "desc");
+			var thumb = GetVariable(inputArray, "thumb");
+			thumb = ValidateURL(thumb) ? thumb : null;
+
+			//Check if everything is null
+			var contentB = String.IsNullOrWhiteSpace(content);
+			var titleB = String.IsNullOrWhiteSpace(title);
+			var descB = String.IsNullOrWhiteSpace(desc);
+			var thumbB = String.IsNullOrWhiteSpace(thumb);
+			if (contentB && titleB && descB && thumbB)
+			{
+				await MakeAndDeleteSecondaryMessage(context, ERROR("One of the variables has to be given."));
+				return null;
+			}
+
+			//Make sure the channel mention is valid
+			var channel = await GetChannel(context, channelStr);
+			if (channel == null)
+				return null;
+			var tChannel = channel as ITextChannel;
+			if (tChannel == null)
+			{
+				await MakeAndDeleteSecondaryMessage(context, ERROR("The welcome channel can only be set to a text channel."));
+				return null;
+			}
+
+			return new GuildNotification(content, title, desc, thumb, context.Guild.Id, channel.Id);
 		}
 	}
 

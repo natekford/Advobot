@@ -237,6 +237,8 @@ namespace Advobot
 		[JsonProperty]
 		public WelcomeMessage WelcomeMessage { get; private set; }
 		[JsonProperty]
+		public GoodbyeMessage GoodbyeMessage { get; private set; }
+		[JsonProperty]
 		public string Prefix { get; private set; }
 		[JsonProperty]
 		public ulong GuildID { get; private set; }
@@ -302,6 +304,10 @@ namespace Advobot
 		public void SetWelcomeMessage(WelcomeMessage welcomeMessage)
 		{
 			WelcomeMessage = welcomeMessage;
+		}
+		public void SetGoodbyeMessage(GoodbyeMessage goodbyeMessage)
+		{
+			GoodbyeMessage = goodbyeMessage;
 		}
 		public void SetPrefix(string prefix)
 		{
@@ -559,9 +565,9 @@ namespace Advobot
 		}
 	}
 
-	public class WelcomeMessage
+	public class GuildNotification
 	{
-		public WelcomeMessage(string content, string title, string description, string thumbURL, ulong guildID, ulong channelID)
+		public GuildNotification(string content, string title, string description, string thumbURL, ulong guildID, ulong channelID)
 		{
 			Content = content;
 			Title = title;
@@ -597,6 +603,16 @@ namespace Advobot
 		{
 			Channel = channel;
 		}
+	}
+
+	public class WelcomeMessage : GuildNotification
+	{
+		public WelcomeMessage(string content, string title, string description, string thumbURL, ulong guildID, ulong channelID) : base(content, title, description, thumbURL, guildID, channelID) { }
+	}
+
+	public class GoodbyeMessage : GuildNotification
+	{
+		public GoodbyeMessage(string content, string title, string description, string thumbURL, ulong guildID, ulong channelID) : base(content, title, description, thumbURL, guildID, channelID) { }
 	}
 
 	public class GlobalSpamPrevention
@@ -1204,11 +1220,6 @@ namespace Advobot
 		{
 			mUser = user;
 			mList = list;
-
-			var guildInfo = Variables.Guilds[user.Guild.Id];
-			guildInfo.ActiveCloseWords.RemoveAll(x => x.User.Id == user.Id);
-			guildInfo.ActiveCloseWords.Add(this);
-			Actions.RemoveActiveCloseWords(guildInfo, this);
 		}
 
 		private IGuildUser mUser;
@@ -1251,11 +1262,6 @@ namespace Advobot
 		{
 			mUser = user;
 			mList = list;
-
-			var guildInfo = Variables.Guilds[user.Guild.Id];
-			guildInfo.ActiveCloseHelp.RemoveAll(x => x.User.Id == user.Id);
-			guildInfo.ActiveCloseHelp.Add(this);
-			Actions.RemoveActiveCloseHelp(guildInfo, this);
 		}
 
 		private IGuildUser mUser;

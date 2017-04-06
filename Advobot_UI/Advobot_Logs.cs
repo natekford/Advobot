@@ -25,7 +25,6 @@ namespace Advobot
 
 			if (!Variables.Guilds.ContainsKey(guild.Id))
 			{
-				//Incrementing
 				Variables.TotalUsers += guild.MemberCount;
 				Variables.TotalGuilds++;
 
@@ -41,12 +40,6 @@ namespace Advobot
 						Variables.GuildsToBeLoaded.Add(guild);
 					}
 				}
-			}
-
-			//Check if the bot's the only one in the guild
-			if (guild.MemberCount == 1)
-			{
-
 			}
 
 			return Task.CompletedTask;
@@ -171,7 +164,6 @@ namespace Advobot
 			{
 				await Actions.AddSlowmodeUser(guildInfo, user);
 			}
-
 			//Antiraid
 			var antiRaid = guildInfo.AntiRaid;
 			if (antiRaid != null)
@@ -181,14 +173,11 @@ namespace Advobot
 				//Add them to the list of users who have been muted
 				antiRaid.AddUserToMutedList(user);
 			}
-
 			//Welcome message
-			await Actions.SendWelcomeMessage(user, guildInfo.WelcomeMessage);
-
+			await Actions.SendGuildNotification(user, guildInfo.WelcomeMessage);
 			//Invite string
 			var curInv = await Actions.GetInviteUserJoinedOn(guild);
 			var inviteString = curInv != null ? String.Format("\n**Invite:** {0}", curInv.Code) : "";
-
 			//Check if the user is a new account
 			var userAccAge = (int)(DateTime.UtcNow - user.CreatedAt.ToUniversalTime()).TotalHours;
 			var ageWarningString = userAccAge <= 24 ? String.Format("\n**New Account:** {0} hours old", userAccAge) : "";
@@ -230,15 +219,9 @@ namespace Advobot
 				Variables.Guilds.Remove(user.Guild.Id);
 				return;
 			}
-			//Check if the bot's the only user left in the guild
-			else if (user.Guild.MemberCount == 1)
-			{
-				//Delete it
-				//TODO: IDK about this part
-				//await user.Guild.DeleteAsync();
-			}
-
-			//Form the length stayed string
+			//Goodbye message
+			await Actions.SendGuildNotification(user, guildInfo.GoodbyeMessage);
+			//Format the length stayed string
 			var lengthStayed = "";
 			if (user.JoinedAt.HasValue)
 			{
@@ -334,9 +317,8 @@ namespace Advobot
 					Actions.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
 					Actions.AddAuthor(embed, Actions.FormatUser(afterUser), afterUser.GetAvatarUrl());
 					await Actions.SendEmbedMessage(serverLog, embed);
-
-					++Variables.LoggedUserChanges;
 				});
+				++Variables.LoggedUserChanges;
 			}
 		}
 
