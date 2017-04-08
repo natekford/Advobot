@@ -80,10 +80,9 @@ namespace Advobot
 
 						//Create a new list, remove all others the user has, add the new one to the guild's list, remove it and the message that goes along with it after five seconds
 						var acHelp = new ActiveCloseHelp(Context.User as IGuildUser, closeHelps);
-						guildInfo.ActiveCloseHelp.RemoveAll(x => x.User.Id == Context.User.Id);
-						guildInfo.ActiveCloseHelp.Add(acHelp);
-						Actions.RemoveActiveCloseHelp(guildInfo, acHelp);
-						await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 5000);
+						Variables.ActiveCloseHelp.RemoveAll(x => x.User == Context.User);
+						Variables.ActiveCloseHelp.Add(acHelp);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.ACTIVE_CLOSE);
 					}
 					else
 					{
@@ -211,12 +210,12 @@ namespace Advobot
 		{
 			var sGuild = Context.Guild as SocketGuild;
 			var title = Actions.FormatGuild(sGuild);
-			var age = String.Format("Created on `{0}` (`{1}` days ago)", sGuild.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sGuild.CreatedAt.UtcDateTime).Days);
-			var owner = String.Format("Owner: `{0}`", Actions.FormatUser(sGuild.Owner));
-			var region = String.Format("Region: `{0}`\n", sGuild.VoiceRegionId);
-			var userCount = String.Format("Has `{0}` users", sGuild.MemberCount);
-			var roleCount = String.Format("Has `{0}` roles", sGuild.Roles.Count);
-			var channels = String.Format("Has `{0}` channels (`{1}` text, `{2}` voice)", sGuild.Channels.Count, sGuild.TextChannels.Count, sGuild.VoiceChannels.Count);
+			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", sGuild.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sGuild.CreatedAt.UtcDateTime).Days);
+			var owner = String.Format("**Owner:** `{0}`", Actions.FormatUser(sGuild.Owner));
+			var region = String.Format("**Region:** `{0}`\n", sGuild.VoiceRegionId);
+			var userCount = String.Format("**User Count:** `{0}`", sGuild.MemberCount);
+			var roleCount = String.Format("**Role Count:** `{0}`", sGuild.Roles.Count);
+			var channels = String.Format("**Channel Count:** `{0}` (`{1}` text, `{2}` voice)", sGuild.Channels.Count, sGuild.TextChannels.Count, sGuild.VoiceChannels.Count);
 			var all = String.Join("\n", new List<string>() { age, owner, region, userCount, roleCount, channels });
 
 			var embed = Actions.MakeNewEmbed(title, all, thumbnailURL: sGuild.IconUrl);
@@ -236,16 +235,8 @@ namespace Advobot
 				return;
 
 			var title = Actions.FormatChannel(sChannel);
-			var age = String.Format("Created on `{0}` (`{1}` days ago)", sChannel.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sChannel.CreatedAt.UtcDateTime).Days);
-			string users;
-			if (sChannel is SocketTextChannel)
-			{
-				users = String.Format("Has `{0}` users able to see it", sChannel.Users.Count);
-			}
-			else
-			{
-				users = String.Format("Has `{0}` users currently in it", sChannel.Users.Count);
-			}
+			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", sChannel.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sChannel.CreatedAt.UtcDateTime).Days);
+			var users = String.Format("**User Count:** `{0}`", sChannel.Users.Count);
 			var all = String.Join("\n", new List<string>() { age, users });
 
 			var embed = Actions.MakeNewEmbed(title, all);
@@ -260,7 +251,19 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task InfoRole([Remainder] string input)
 		{
+			var sRole = await Actions.GetRole(Context, input) as SocketRole;
+			if (sRole == null)
+				return;
 
+			var title = Actions.FormatRole(sRole);
+			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", sRole.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sRole.CreatedAt.UtcDateTime).Days);
+			var position = String.Format("**Position:** `{0}`", sRole.Position);
+			var users = String.Format("**User Count:** `{0}`", (await Context.Guild.GetUsersAsync()).Where(x => x.RoleIds.Contains(sRole.Id)).Count());
+			var all = String.Join("\n", new List<string>() { age, position, users });
+
+			var embed = Actions.MakeNewEmbed(title, all);
+			Actions.AddFooter(embed, "Role Info");
+			await Actions.SendEmbedMessage(Context.Channel, embed);
 		}
 
 		[Command("infobot")]
@@ -1050,6 +1053,26 @@ namespace Advobot
 			await role.ModifyAsync(x => x.Mentionable = false);
 		}
 
+		[Command("messagebotowner")]
+		[Alias("mbo")]
+		[Usage("[Message]")]
+		[Summary("Sends a message to the bot owner with the given text. Messages will be cut down to 250 characters.")]
+		[UserHasAPermission]
+		[DefaultEnabled(true)]
+		public async Task MessageBotOwner([Remainder] string input)
+		{
+			var cutMsg = input.Substring(0, Math.Min(input.Length, 250));
+			var fromMsg = String.Format("From `{0}` in `{1}`:", Actions.FormatUser(Context.User), Actions.FormatGuild(Context.Guild));
+			var newMsg = String.Format("{0}\n```{1}```", fromMsg, cutMsg);
+			var owner = Variables.Client.GetUser(Properties.Settings.Default.BotOwner);
+			if (owner == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The owner is unable to be gotten."));
+				return;
+			}
+			await (await owner.CreateDMChannelAsync()).SendMessageAsync(newMsg);
+		}
+
 		[Command("test")]
 		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
@@ -1057,6 +1080,6 @@ namespace Advobot
 		{
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
-#endregion
+		#endregion
 	}
 }

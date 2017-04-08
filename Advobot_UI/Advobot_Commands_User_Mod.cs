@@ -303,34 +303,26 @@ namespace Advobot
 		{
 			//Arguments
 			var inputArray = input.Split(new char[] { ' ' }, 2);
-			var nickname = "";
-			if (inputArray.Length == 2)
-			{
-				if (Actions.CaseInsEquals(inputArray[1], "remove"))
-				{
-					nickname = null;
-				}
-				else
-				{
-					nickname = inputArray[1];
-				}
-			}
-			else
+			if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 
 			//Check if valid length
-			if (nickname != null && nickname.Length > Constants.MAX_NICKNAME_LENGTH)
+			var nickname = Actions.CaseInsEquals(inputArray[1], "remove") ? null : inputArray[1];
+			if (nickname != null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than `{0}` characters.", Constants.MAX_NICKNAME_LENGTH)));
-				return;
-			}
-			else if (nickname != null && nickname.Length < Constants.MIN_NICKNAME_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MIN_NICKNAME_LENGTH)));
-				return;
+				if (nickname.Length > Constants.MAX_NICKNAME_LENGTH)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than `{0}` characters.", Constants.MAX_NICKNAME_LENGTH)));
+					return;
+				}
+				else if (nickname.Length < Constants.MIN_NICKNAME_LENGTH)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MIN_NICKNAME_LENGTH)));
+					return;
+				}
 			}
 
 			var user = await Actions.GetUser(Context.Guild, inputArray[0]);
@@ -352,7 +344,7 @@ namespace Advobot
 			}
 
 			//Give the user the nickname
-			await user.ModifyAsync(x => x.Nickname = nickname);
+			await Actions.ChangeNickname(user, nickname);
 			if (nickname != null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave the nickname `{0}` to `{1}`.", nickname, Actions.FormatUser(user)));
@@ -431,11 +423,11 @@ namespace Advobot
 
 				if (x.Nickname != null)
 				{
-					await x.ModifyAsync(y => y.Nickname = Actions.CaseInsReplace(x.Nickname, find, with));
+					await Actions.ChangeNickname(x, Actions.CaseInsReplace(x.Nickname, find, with));
 				}
 				else
 				{
-					await x.ModifyAsync(y => y.Nickname = Actions.CaseInsReplace(x.Username, find, with));
+					await Actions.ChangeNickname(x, Actions.CaseInsReplace(x.Username, find, with));
 				}
 			});
 
@@ -484,14 +476,7 @@ namespace Advobot
 				if (!Actions.UserCanBeModifiedByBot(Context.Guild, x, bot))
 					return;
 
-				if (x.Nickname != null)
-				{
-					await x.ModifyAsync(y => y.Nickname = null);
-				}
-				else
-				{
-					await x.ModifyAsync(y => y.Nickname = null);
-				}
+				await Actions.ChangeNickname(x, null);
 			});
 
 			//Get rid of stuff and send a success message
@@ -576,7 +561,7 @@ namespace Advobot
 			//Softban the targetted user
 			await Context.Guild.AddBanAsync(inputUser, 3);
 			await Context.Guild.RemoveBanAsync(inputUser);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully banned and unbanned `{0}#{1}`.", inputUser.Username, inputUser.Discriminator));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully softbanned `{0}`.", Actions.FormatUser(inputUser)));
 		}
 
 		[Command("ban")]
@@ -686,7 +671,7 @@ namespace Advobot
 				//Unban the user
 				var bannedUser = bannedUserWithNameAndDiscriminator[0].User;
 				await Context.Guild.RemoveBanAsync(bannedUser);
-				secondHalfOfTheSecondaryMessage = String.Format("unbanned the user `{0}#{1}` with the ID `{2}`.", bannedUser.Username, bannedUser.Discriminator, bannedUser.Id);
+				secondHalfOfTheSecondaryMessage = String.Format("unbanned the user `{0}`.", Actions.FormatUser(bannedUser));
 			}
 			else if (!ulong.TryParse(input, out ulong inputUserID))
 			{
@@ -704,7 +689,7 @@ namespace Advobot
 					//Unban the user
 					var bannedUser = bannedUsersWithSameName[0].User;
 					await Context.Guild.RemoveBanAsync(bannedUser);
-					secondHalfOfTheSecondaryMessage = String.Format("unbanned the user `{0}#{1}` with the ID `{2}`.", bannedUser.Username, bannedUser.Discriminator, bannedUser.Id);
+					secondHalfOfTheSecondaryMessage = String.Format("unbanned the user `{0}`.", Actions.FormatUser(bannedUser));
 				}
 				else
 				{
@@ -762,8 +747,7 @@ namespace Advobot
 
 			//Kick the targetted user
 			await inputUser.KickAsync();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully kicked `{0}#{1}` with the ID `{2}`.",
-				inputUser.Username, inputUser.Discriminator, inputUser.Id));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully kicked `{0}`.", Actions.FormatUser(inputUser)));
 		}
 
 		[Command("currentbanlist")]
@@ -849,7 +833,8 @@ namespace Advobot
 				await Actions.SendChannelMessage(serverlogChannel ?? modlogChannel, String.Format("Hey, @here, {0} is trying to delete stuff.", Context.User.Mention));
 
 				//DM the owner of the server
-				await Actions.SendDMMessage(await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync(), String.Format("`{0}` is trying to delete stuff from the server/mod log.", Actions.FormatUser(Context.User)));
+				await Actions.SendDMMessage(await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync(),
+					String.Format("`{0}` is trying to delete stuff from the server/mod log.", Actions.FormatUser(Context.User)));
 				return;
 			}
 
@@ -1214,7 +1199,7 @@ namespace Advobot
 								await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
 							}
 
-							await user.ModifyAsync(x => x.Nickname = outputStr);
+							await Actions.ChangeNickname(user, outputStr);
 						}
 						guildInfo.FAWRNicknames.Remove(outputStr);
 
@@ -1232,7 +1217,7 @@ namespace Advobot
 								await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
 							}
 
-							await user.ModifyAsync(x => x.Nickname = null);
+							await Actions.ChangeNickname(user, null);
 						}
 						guildInfo.FAWRNicknames.Remove(Constants.NO_NN);
 

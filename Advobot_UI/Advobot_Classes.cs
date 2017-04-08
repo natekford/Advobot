@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	#region Attributes
-	//If the user has all the perms required for the first arg then success, any of the second arg then success. Nothing means only Administrator works.
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class PermissionRequirementAttribute : PreconditionAttribute
 	{
@@ -26,10 +25,10 @@ namespace Advobot
 
 		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
 		{
-			if (context.Guild != null)
+			if (context.Guild != null && Variables.Guilds.TryGetValue(context.Guild.Id, out BotGuildInfo guildInfo))
 			{
 				var user = await context.Guild.GetUserAsync(context.User.Id);
-				var botBits = Variables.Guilds[context.Guild.Id].BotUsers.FirstOrDefault(x => x.User == user)?.Permissions;
+				var botBits = guildInfo.BotUsers.FirstOrDefault(x => x.User.Id == user.Id)?.Permissions;
 				if (botBits != null)
 				{
 					var perms = user.GuildPermissions.RawValue | botBits;
@@ -50,7 +49,6 @@ namespace Advobot
 		{
 			get { return String.Join(" & ", Actions.GetPermissionNames(mAllFlags)); }
 		}
-
 		public string AnyText
 		{
 			get { return String.Join("|", Actions.GetPermissionNames(mAnyFlags)); }
@@ -60,31 +58,29 @@ namespace Advobot
 		private uint mAnyFlags;
 	}
 
-	//Testing if the user is the bot owner or the guild owner
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class BotOwnerOrGuildOwnerRequirementAttribute : PreconditionAttribute
 	{
 		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
 		{
-			return (await Actions.GetIfUserIsOwner(context.Guild, context.User)) || Actions.GetIfUserIsBotOwner(context.User) ?
-				PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
+			if (await Actions.GetIfUserIsOwner(context.Guild, context.User) || Actions.GetIfUserIsBotOwner(context.User))
+				return PreconditionResult.FromSuccess();
+			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
 		}
 	}
 
-	//Use for testing if the person is the bot owner
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class BotOwnerRequirementAttribute : PreconditionAttribute
 	{
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
 		{
-			return Task.Run(() =>
+			return await Task.Run(() =>
 			{
 				return Actions.GetIfUserIsBotOwner(context.User) ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
 			});
 		}
 	}
 
-	//Testing if the user if the guild owner
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class GuildOwnerRequirementAttribute : PreconditionAttribute
 	{
@@ -94,7 +90,6 @@ namespace Advobot
 		}
 	}
 
-	//Check if the user has any permission that would allow them to use the bot regularly
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
 	public class UserHasAPermissionAttribute : PreconditionAttribute
 	{
@@ -115,10 +110,10 @@ namespace Advobot
 
 		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
 		{
-			if (context.Guild != null)
+			if (context.Guild != null && Variables.Guilds.TryGetValue(context.Guild.Id, out BotGuildInfo guildInfo))
 			{
 				var user = await context.Guild.GetUserAsync(context.User.Id);
-				var botBits = Variables.Guilds[context.Guild.Id].BotUsers.FirstOrDefault(x => x.User == user)?.Permissions;
+				var botBits = guildInfo.BotUsers.FirstOrDefault(x => x.User.Id == user.Id)?.Permissions;
 				if (botBits != null)
 				{
 					if (((user.GuildPermissions.RawValue | botBits) & PERMISSIONBITS) != 0)
@@ -176,8 +171,6 @@ namespace Advobot
 			IgnoredCommandChannels = new List<ulong>();
 			IgnoredLogChannels = new List<ulong>();
 			LogActions = new List<LogActions>();
-			ActiveCloseHelp = new List<ActiveCloseHelp>();
-			ActiveCloseWords = new List<ActiveCloseWords>();
 			SlowmodeChannels = new List<SlowmodeChannel>();
 			Invites = new List<BotInvite>();
 			EvaluatedRegex = new List<Regex>();
@@ -214,10 +207,6 @@ namespace Advobot
 		[JsonProperty]
 		public List<LogActions> LogActions { get; private set; }
 		[JsonIgnore]
-		public List<ActiveCloseHelp> ActiveCloseHelp { get; private set; }
-		[JsonIgnore]
-		public List<ActiveCloseWords> ActiveCloseWords { get; private set; }
-		[JsonIgnore]
 		public List<SlowmodeChannel> SlowmodeChannels { get; private set; }
 		[JsonIgnore]
 		public List<BotInvite> Invites { get; private set; }
@@ -235,9 +224,9 @@ namespace Advobot
 		[JsonProperty]
 		public GlobalSpamPrevention GlobalSpamPrevention { get; private set; }
 		[JsonProperty]
-		public WelcomeMessage WelcomeMessage { get; private set; }
+		public GuildNotification WelcomeMessage { get; private set; }
 		[JsonProperty]
-		public GoodbyeMessage GoodbyeMessage { get; private set; }
+		public GuildNotification GoodbyeMessage { get; private set; }
 		[JsonProperty]
 		public string Prefix { get; private set; }
 		[JsonProperty]
@@ -301,11 +290,11 @@ namespace Advobot
 		{
 			SlowmodeGuild = slowmodeGuild;
 		}
-		public void SetWelcomeMessage(WelcomeMessage welcomeMessage)
+		public void SetWelcomeMessage(GuildNotification welcomeMessage)
 		{
 			WelcomeMessage = welcomeMessage;
 		}
-		public void SetGoodbyeMessage(GoodbyeMessage goodbyeMessage)
+		public void SetGoodbyeMessage(GuildNotification goodbyeMessage)
 		{
 			GoodbyeMessage = goodbyeMessage;
 		}
@@ -605,16 +594,6 @@ namespace Advobot
 		}
 	}
 
-	public class WelcomeMessage : GuildNotification
-	{
-		public WelcomeMessage(string content, string title, string description, string thumbURL, ulong guildID, ulong channelID) : base(content, title, description, thumbURL, guildID, channelID) { }
-	}
-
-	public class GoodbyeMessage : GuildNotification
-	{
-		public GoodbyeMessage(string content, string title, string description, string thumbURL, ulong guildID, ulong channelID) : base(content, title, description, thumbURL, guildID, channelID) { }
-	}
-
 	public class GlobalSpamPrevention
 	{
 		public GlobalSpamPrevention()
@@ -662,25 +641,36 @@ namespace Advobot
 			}
 			return null;
 		}
-		public void SetMessageSpamPrevention(MessageSpamPrevention spamPrevention)
+		public void SetSpamPrevention(SpamType type, int amt, int votes, int spm)
 		{
-			MessageSpamPrevention = spamPrevention;
-		}
-		public void SetLongMessageSpamPrevention(LongMessageSpamPrevention spamPrevention)
-		{
-			LongMessageSpamPrevention = spamPrevention;
-		}
-		public void SetLinkSpamPrevention(LinkSpamPrevention spamPrevention)
-		{
-			LinkSpamPrevention = spamPrevention;
-		}
-		public void SetImageSpamPrevention(ImageSpamPrevention spamPrevention)
-		{
-			ImageSpamPrevention = spamPrevention;
-		}
-		public void SetMentionSpamPrevention(MentionSpamPrevention spamPrevention)
-		{
-			MentionSpamPrevention = spamPrevention;
+			switch (type)
+			{
+				case SpamType.Message:
+				{
+					MessageSpamPrevention = new MessageSpamPrevention(amt, votes, spm);
+					return;
+				}
+				case SpamType.Long_Message:
+				{
+					LongMessageSpamPrevention = new LongMessageSpamPrevention(amt, votes, spm);
+					return;
+				}
+				case SpamType.Link:
+				{
+					LinkSpamPrevention = new LinkSpamPrevention(amt, votes, spm);
+					return;
+				}
+				case SpamType.Image:
+				{
+					ImageSpamPrevention = new ImageSpamPrevention(amt, votes, spm);
+					return;
+				}
+				case SpamType.Mention:
+				{
+					MentionSpamPrevention = new MentionSpamPrevention(amt, votes, spm);
+					return;
+				}
+			}
 		}
 	}
 
@@ -826,18 +816,19 @@ namespace Advobot
 
 	public class SlowmodeUser
 	{
-		public SlowmodeUser(IGuildUser user = null, int currentMessagesLeft = 1, int baseMessages = 1, int time = 5)
+		public SlowmodeUser(IGuildUser user = null, int currentMessagesLeft = 1, int baseMessages = 1, int interval = 5)
 		{
 			User = user;
 			CurrentMessagesLeft = currentMessagesLeft;
 			BaseMessages = baseMessages;
-			Time = time;
+			Interval = interval;
 		}
 
 		public IGuildUser User { get; private set; }
 		public int CurrentMessagesLeft { get; private set; }
 		public int BaseMessages { get; private set; }
-		public int Time { get; private set; }
+		public int Interval { get; private set; }
+		public DateTime Time { get; private set; }
 
 		public void LowerMessagesLeft()
 		{
@@ -846,6 +837,10 @@ namespace Advobot
 		public void ResetMessagesLeft()
 		{
 			CurrentMessagesLeft = BaseMessages;
+		}
+		public void SetNewTime(DateTime time)
+		{
+			Time = time;
 		}
 	}
 
@@ -978,7 +973,7 @@ namespace Advobot
 
 	public class MessageSpamPrevention : BaseSpamPrevention
 	{
-		public MessageSpamPrevention(int amountOfMessages, int votesNeededForKick, int placeholder) : base(amountOfMessages, votesNeededForKick, placeholder, SpamType.Message) { }
+		public MessageSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfMsgs) : base(amountOfMessages, votesNeededForKick, amountOfMsgs, SpamType.Message) { }
 	}
 
 	public class LongMessageSpamPrevention : BaseSpamPrevention
@@ -1118,65 +1113,30 @@ namespace Advobot
 	{
 		public BotGuildPermissionType(string name, int position)
 		{
-			mName = name;
-			mPosition = position;
+			Name = name;
+			Position = position;
 		}
 
-		private string mName;
-		private int mPosition;
-
-		public string Name
-		{
-			get { return mName; }
-		}
-
-		public int Position
-		{
-			get { return mPosition; }
-		}
+		public string Name { get; private set; }
+		public int Position { get; private set; }
 	}
 
 	public struct BotChannelPermissionType
 	{
 		public BotChannelPermissionType(string name, int position, bool gen = false, bool text = false, bool voice = false)
 		{
-			mName = name;
-			mPosition = position;
-			mGeneral = gen;
-			mText = text;
-			mVoice = voice;
+			Name = name;
+			Position = position;
+			General = gen;
+			Text = text;
+			Voice = voice;
 		}
 
-		private string mName;
-		private int mPosition;
-		private bool mGeneral;
-		private bool mText;
-		private bool mVoice;
-
-		public string Name
-		{
-			get { return mName; }
-		}
-
-		public int Position
-		{
-			get { return mPosition; }
-		}
-
-		public bool General
-		{
-			get { return mGeneral; }
-		}
-
-		public bool Text
-		{
-			get { return mText; }
-		}
-
-		public bool Voice
-		{
-			get { return mVoice; }
-		}
+		public string Name { get; private set; }
+		public int Position { get; private set; }
+		public bool General { get; private set; }
+		public bool Text { get; private set; }
+		public bool Voice { get; private set; }
 	}
 
 	public struct Remind
@@ -1197,84 +1157,52 @@ namespace Advobot
 	{
 		public CloseWord(string name, int closeness)
 		{
-			mName = name;
-			mCloseness = closeness;
+			Name = name;
+			Closeness = closeness;
 		}
 
-		private string mName;
-		private int mCloseness;
-
-		public string Name
-		{
-			get { return mName; }
-		}
-		public int Closeness
-		{
-			get { return mCloseness; }
-		}
+		public string Name { get; private set; }
+		public int Closeness { get; private set; }
 	}
 
 	public struct ActiveCloseWords
 	{
 		public ActiveCloseWords(IGuildUser user, List<CloseWord> list)
 		{
-			mUser = user;
-			mList = list;
+			User = user;
+			List = list;
+			DeleteTime = DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE);
 		}
 
-		private IGuildUser mUser;
-		private List<CloseWord> mList;
-
-		public IGuildUser User
-		{
-			get { return mUser; }
-		}
-		public ReadOnlyCollection<CloseWord> List
-		{
-			get { return mList.AsReadOnly(); }
-		}
+		public IGuildUser User { get; private set; }
+		public List<CloseWord> List { get; private set; }
+		public DateTime DeleteTime { get; private set; }
 	}
 
 	public struct CloseHelp
 	{
 		public CloseHelp(HelpEntry help, int closeness)
 		{
-			mHelp = help;
-			mCloseness = closeness;
+			Help = help;
+			Closeness = closeness;
 		}
 
-		private HelpEntry mHelp;
-		private int mCloseness;
-
-		public HelpEntry Help
-		{
-			get { return mHelp; }
-		}
-		public int Closeness
-		{
-			get { return mCloseness; }
-		}
+		public HelpEntry Help { get; private set; }
+		public int Closeness { get; private set; }
 	}
 
 	public struct ActiveCloseHelp
 	{
 		public ActiveCloseHelp(IGuildUser user, List<CloseHelp> list)
 		{
-			mUser = user;
-			mList = list;
+			User = user;
+			List = list;
+			DeleteTime = DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE);
 		}
 
-		private IGuildUser mUser;
-		private List<CloseHelp> mList;
-
-		public IGuildUser User
-		{
-			get { return mUser; }
-		}
-		public ReadOnlyCollection<CloseHelp> List
-		{
-			get { return mList.AsReadOnly(); }
-		}
+		public IGuildUser User { get; private set; }
+		public List<CloseHelp> List { get; private set; }
+		public DateTime DeleteTime { get; private set; }
 	}
 
 	public struct UICommandNames
@@ -1323,69 +1251,40 @@ namespace Advobot
 	{
 		public CommandDisabledOnChannel(ulong channelID, string commandName)
 		{
-			mChannelID = channelID;
-			mCommandName = commandName;
+			ChannelID = channelID;
+			CommandName = commandName;
 		}
 
-		private ulong mChannelID;
-		private string mCommandName;
-
-		public ulong ChannelID
-		{
-			get { return mChannelID; }
-		}
-		public string CommandName
-		{
-			get { return mCommandName; }
-		}
+		[JsonProperty]
+		public ulong ChannelID { get; private set; }
+		[JsonProperty]
+		public string CommandName { get; private set; }
 	}
 
 	public struct RemovablePunishment
 	{
 		public RemovablePunishment(IGuild guild, IUser user, PunishmentType type, DateTime time)
 		{
-			mGuild = guild;
-			mUser = user;
-			mType = type;
-			mTime = time;
-			mRole = null;
+			Guild = guild;
+			User = user;
+			Type = type;
+			Time = time;
+			Role = null;
 		}
-
 		public RemovablePunishment(IGuild guild, IUser user, IRole role, DateTime time)
 		{
-			mGuild = guild;
-			mUser = user;
-			mType = PunishmentType.Role;
-			mTime = time;
-			mRole = role;
+			Guild = guild;
+			User = user;
+			Type = PunishmentType.Role;
+			Time = time;
+			Role = role;
 		}
 
-		private IGuild mGuild;
-		private IUser mUser;
-		private PunishmentType mType;
-		private IRole mRole;
-		private DateTime mTime;
-
-		public IGuild Guild
-		{
-			get { return mGuild; }
-		}
-		public IUser User
-		{
-			get { return mUser; }
-		}
-		public PunishmentType Type
-		{
-			get { return mType; }
-		}
-		public IRole Role
-		{
-			get { return mRole; }
-		}
-		public DateTime Time
-		{
-			get { return mTime; }
-		}
+		public IGuild Guild { get; private set; }
+		public IUser User { get; private set; }
+		public PunishmentType Type { get; private set; }
+		public IRole Role { get; private set; }
+		public DateTime Time { get; private set; }
 	}
 
 	public struct RemovableMessage
@@ -1393,10 +1292,18 @@ namespace Advobot
 		public RemovableMessage(IMessage message, DateTime time)
 		{
 			Message = message;
+			Messages = null;
+			Time = time;
+		}
+		public RemovableMessage(List<IMessage> messages, DateTime time)
+		{
+			Message = null;
+			Messages = messages;
 			Time = time;
 		}
 
 		public IMessage Message { get; private set; }
+		public List<IMessage> Messages { get; private set; }
 		public DateTime Time { get; private set; }
 	}
 
@@ -1404,21 +1311,26 @@ namespace Advobot
 	{
 		public ReturnedChannel(IGuildChannel channel, FailureReason reason)
 		{
-			mChannel = channel;
-			mReason = reason;
+			Channel = channel;
+			Reason = reason;
 		}
 
-		private IGuildChannel mChannel;
-		private FailureReason mReason;
+		public IGuildChannel Channel { get; private set; }
+		public FailureReason Reason { get; private set; }
+	}
 
-		public IGuildChannel Channel
+	public struct GuildToggleAfterTime
+	{
+		public GuildToggleAfterTime(ulong guildID, GuildToggle toggle, DateTime time)
 		{
-			get { return mChannel; }
+			GuildID = guildID;
+			Toggle = toggle;
+			Time = time;
 		}
-		public FailureReason Reason
-		{
-			get { return mReason; }
-		}
+
+		public ulong GuildID { get; private set; }
+		public GuildToggle Toggle { get; private set; }
+		public DateTime Time { get; private set; }
 	}
 	#endregion
 
@@ -1552,6 +1464,12 @@ namespace Advobot
 		Add = 1,
 		Remove = 2,
 		Show = 3,
+	}
+
+	public enum GuildToggle
+	{
+		EnablePrefs = 1,
+		DeletePrefs = 2,
 	}
 	#endregion
 }

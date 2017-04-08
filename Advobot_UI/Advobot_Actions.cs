@@ -28,10 +28,11 @@ namespace Advobot
 			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));	//Gets all the active command names. Has to go after LCI
 
 			LoadGuilds();															//Loads the guilds that attempted to load before the Bot_ID was gotten.
-			await SetGame();														//Set up the game and/or stream
+			await SetGame();                                                        //Set up the game and/or stream
 
-			ResetSpamPrevention(null);												//Start the hourly timer to restart spam prevention
-			RemovePunishments(null);												//Start the minutely timer to remove punishments on a user
+			HourTimer(null);														//Start the hourly timer
+			MinuteTimer(null);														//Start the minutely timer
+			OneFourthSecondTimer(null);												//Start the one fourth second timer
 			StartUpMessages();														//Say all of the start up messages
 			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
 		}
@@ -271,7 +272,7 @@ namespace Advobot
 			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
 			if (!File.Exists(path))
 			{
-				WriteLine(String.Format("The guild information file for {0} does not exist.", FormatGuild(guild)));
+				WriteLine(String.Format("The guild information for {0} does not exist.", FormatGuild(guild)));
 				return guildInfo;
 			}
 
@@ -288,6 +289,8 @@ namespace Advobot
 				ExceptionToConsole(String.Format("LoadGuildInfo for {0}", FormatGuild(guild)), e);
 			}
 
+			var cmds = guildInfo.CommandSettings.Select(x => x.Name).ToList();
+			Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList().ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 			return guildInfo;
 		}
 
@@ -322,7 +325,6 @@ namespace Advobot
 		#region Gets
 		public static async Task<IRole> GetRole(CommandContext context, string roleName)
 		{
-			//Remove spaces
 			roleName = roleName.Trim().Trim(new char[] { '<', '@', '&', '>' });
 
 			if (UInt64.TryParse(roleName, out ulong roleID))
@@ -331,7 +333,11 @@ namespace Advobot
 			}
 
 			var roles = context.Guild.Roles.Where(x => CaseInsEquals(x.Name, roleName)).ToList();
-			if (roles.Count == 1)
+			if (roles.Count == 0)
+			{
+				await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("No role has the name of `{0}`.", roleName)));
+			}
+			else if (roles.Count == 1)
 			{
 				return roles.First();
 			}
@@ -395,35 +401,27 @@ namespace Advobot
 			//Check if valid role
 			var inputRole = role ?? await GetRole(context, input);
 			if (inputRole == null)
-			{
-				if (!ignore_Errors)
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(Constants.ROLE_ERROR));
-				}
 				return null;
-			}
 
-			//Determine if the user can edit the role
 			if (inputRole.Position >= GetPosition(context.Guild, context.User))
 			{
 				if (!ignore_Errors)
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` has a higher position than you are allowed to edit or use.", inputRole.Name)));
 				}
-				return null;
 			}
-
-			//Determine if the bot can edit the role
-			if (inputRole.Position >= GetPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID)))
+			else if (inputRole.Position >= GetPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID)))
 			{
 				if (!ignore_Errors)
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` has a higher position than the bot is allowed to edit or use.", inputRole.Name)));
 				}
-				return null;
 			}
-
-			return inputRole;
+			else
+			{
+				return inputRole;
+			}
+			return null;
 		}
 
 		public static IVoiceChannel GetUserMovability(IVoiceChannel channel, IUser user)
@@ -1039,6 +1037,42 @@ namespace Advobot
 			}
 			return joinInv;
 		}
+
+		public static async Task<GuildNotification> GetGuildNotification(CommandContext context, string input)
+		{
+			//Get the variables out
+			var inputArray = SplitByCharExceptInQuotes(input, ' ');
+			var channelStr = inputArray[0];
+			var content = GetVariable(inputArray, "content");
+			var title = GetVariable(inputArray, "title");
+			var desc = GetVariable(inputArray, "desc");
+			var thumb = GetVariable(inputArray, "thumb");
+			thumb = ValidateURL(thumb) ? thumb : null;
+
+			//Check if everything is null
+			var contentB = String.IsNullOrWhiteSpace(content);
+			var titleB = String.IsNullOrWhiteSpace(title);
+			var descB = String.IsNullOrWhiteSpace(desc);
+			var thumbB = String.IsNullOrWhiteSpace(thumb);
+			if (contentB && titleB && descB && thumbB)
+			{
+				await MakeAndDeleteSecondaryMessage(context, ERROR("One of the variables has to be given."));
+				return null;
+			}
+
+			//Make sure the channel mention is valid
+			var channel = await GetChannel(context, channelStr);
+			if (channel == null)
+				return null;
+			var tChannel = channel as ITextChannel;
+			if (tChannel == null)
+			{
+				await MakeAndDeleteSecondaryMessage(context, ERROR("The welcome channel can only be set to a text channel."));
+				return null;
+			}
+
+			return new GuildNotification(content, title, desc, thumb, context.Guild.Id, channel.Id);
+		}
 		#endregion
 
 		#region Roles
@@ -1090,7 +1124,26 @@ namespace Advobot
 		}
 		#endregion
 
-		#region Message Removal
+		#region Messages
+		public static void WriteLine(string text)
+		{
+			Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + ReplaceMarkdownChars(text));
+		}
+
+		public static void ExceptionToConsole(string method, Exception e)
+		{
+			if (e == null)
+				return;
+
+			WriteLine(method + " EXCEPTION: " + e.ToString());
+		}
+
+		public static void WriteLoadDone(IGuild guild, string method, string name)
+		{
+			Variables.Guilds[guild.Id].TurnDefaultPrefsOff();
+			WriteLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, FormatGuild(guild)));
+		}
+
 		public static async Task MakeAndDeleteSecondaryMessage(CommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
 			await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, secondStr, time);
@@ -1107,7 +1160,7 @@ namespace Advobot
 			}
 			else
 			{
-				RemoveCommandMessages(channel as ITextChannel, messages, time);
+				RemoveCommandMessages(messages, time);
 			}
 		}
 
@@ -1222,9 +1275,7 @@ namespace Advobot
 				WriteLine(String.Format("Unable to delete the message {0} on channel {1}.", message.Id, FormatChannel(message.Channel)));
 			}
 		}
-		#endregion
 
-		#region Message Formatting
 		public static string ERROR(string message)
 		{
 			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
@@ -1284,7 +1335,7 @@ namespace Advobot
 
 		public static string FormatUser(IUser user)
 		{
-			return String.Format("{0}#{1} ({2})", String.IsNullOrWhiteSpace(user.Username) ? "Irretrievable" : user.Username, user.Discriminator, user.Id);
+			return String.Format("'{0}#{1}' ({2})", String.IsNullOrWhiteSpace(user.Username) ? "Irretrievable" : user.Username, user.Discriminator, user.Id);
 		}
 
 		public static string FormatChannel(IChannel channel)
@@ -1292,12 +1343,12 @@ namespace Advobot
 			var tempChan = channel as IGuildChannel;
 			if (tempChan == null)
 				return "Unable to get channel data.";
-			return String.Format("{0} ({1}) ({2})", channel.Name, GetChannelType(tempChan), channel.Id);
+			return String.Format("'{0}' ({1}) ({2})", channel.Name, GetChannelType(tempChan), channel.Id);
 		}
 
 		public static string FormatRole(IRole role)
 		{
-			return String.Format("{0} ({1})", role.Name, role.Id);
+			return String.Format("'{0}' ({1})", role.Name, role.Id);
 		}
 
 		public static string RemoveNewLines(string input)
@@ -1409,206 +1460,7 @@ namespace Advobot
 				}
 			}
 		}
-		#endregion
 
-		#region Uploads
-		public static bool TryToUploadToHastebin(string text, out string output)
-		{
-			//Check its length
-			if (text.Length > Constants.MAX_LENGTH_FOR_HASTEBIN)
-			{
-				output = Constants.HASTEBIN_ERROR;
-				return false;
-			}
-
-			//Regex for Getting the key out
-			var hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
-
-			//Upload the messages
-			using (var client = new WebClient())
-			{
-				try
-				{
-					//Double check that mark down characters have been removed
-					var response = client.UploadString("https://hastebin.com/documents", ReplaceMarkdownChars(text));
-
-					//Send the url back
-					output = String.Concat("https://hastebin.com/raw/", hasteKeyRegex.Match(response).Groups["key"]);
-				}
-				catch (Exception e)
-				{
-					output = e.Message;
-					return false;
-				}
-			}
-			return true;
-		}
-		
-		public static async Task WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, List<string> textList, string fileName, string messageHeader)
-		{
-			//Messages in the format to upload
-			var text = ReplaceMarkdownChars(String.Join("\n-----\n", textList));
-			await WriteAndUploadTextFile(guild, channel, text, fileName, messageHeader);
-		}
-		
-		public static async Task WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string fileMessage = null)
-		{
-			//Get the file path
-			var file = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.FILE_EXTENSION;
-			var path = GetServerFilePath(guild.Id, file);
-			if (path == null)
-				return;
-
-			//Double check that all markdown characters are removed
-			text = ReplaceMarkdownChars(text);
-			//Make sure a file message exists
-			fileMessage = String.IsNullOrWhiteSpace(fileMessage) ? "" : String.Format("**{0}:**", fileMessage);
-
-			//Create the temporary file
-			if (!File.Exists(GetServerFilePath(guild.Id, file)))
-			{
-				Directory.CreateDirectory(Path.GetDirectoryName(path));
-			}
-			//Write to the temporary file
-			using (var writer = new StreamWriter(path, true))
-			{
-				writer.WriteLine(text);
-			}
-			//Upload the file
-			await channel.SendFileAsync(path, fileMessage);
-			//Delete the file
-			File.Delete(path);
-		}
-
-		public static async Task UploadFile(IMessageChannel channel, string path, string text = null)
-		{
-			await channel.SendFileAsync(path, text);
-		}
-
-		public static async Task SetPicture(CommandContext context, string input, bool user)
-		{
-			//See if the user wants to remove the icon
-			if (input != null && CaseInsEquals(input, "remove"))
-			{
-				if (!user)
-				{
-					await context.Guild.ModifyAsync(x => x.Icon = new Image());
-				}
-				else
-				{
-					await context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image());
-				}
-				await SendChannelMessage(context, String.Format("Successfully removed the {0}'s icon.", user ? "bot" : "guild"));
-				return;
-			}
-
-			//Check if there are even any attachments or embeds
-			if (context.Message.Attachments.Count + context.Message.Embeds.Count == 0)
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("No attached or embedded image."));
-				return;
-			}
-			//Check if there are too many
-			else if (context.Message.Attachments.Count + context.Message.Embeds.Count > 1)
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("Too many attached or embedded images."));
-				return;
-			}
-
-			//Get the URL of the image
-			var imageURL = context.Message.Embeds.Count == 1 ? context.Message.Embeds.First().Thumbnail.ToString() : context.Message.Attachments.First().Url;
-
-			//Run separate due to the time it takes
-			var downloadUploadAndDelete = Task.Run(async () =>
-			{
-				//Check the image's file size first
-				var req = HttpWebRequest.Create(imageURL);
-				req.Method = "HEAD";
-				using (var resp = req.GetResponse())
-				{
-					if (int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
-					{
-						//Check if valid content type
-						if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
-						{
-							await MakeAndDeleteSecondaryMessage(context, ERROR("Image must be a png or jpg."));
-							return;
-						}
-						else
-						{
-							if (ContentLength > 2500000)
-							{
-								//Check if bigger than 2.5MB
-								await MakeAndDeleteSecondaryMessage(context, ERROR("Image is bigger than 2.5MB. Please manually upload instead."));
-								return;
-							}
-							else if (ContentLength == 0)
-							{
-								//Check if nothing was gotten
-								await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
-								return;
-							}
-						}
-					}
-					else
-					{
-						await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
-						return;
-					}
-				}
-
-				//Send a message saying how it's progressing
-				var msg = await SendChannelMessage(context, "Attempting to download the file...");
-				var typing = context.Channel.EnterTypingState();
-
-				//Set the name of the file to prevent typos between the three places that use it
-				var path = GetServerFilePath(context.Guild.Id, (user ? "boticon" : "guildicon") + Path.GetExtension(imageURL).ToLower());
-
-				//Download the image
-				using (var webclient = new WebClient())
-				{
-					webclient.DownloadFile(imageURL, path);
-				}
-
-				//Create a filestream to check the image's size if trying to set a guild icon
-				if (!user)
-				{
-					using (var imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
-					{
-						var img = System.Drawing.Image.FromStream(imgStream);
-						if (img.Width < 128 || img.Height < 128)
-						{
-							await MakeAndDeleteSecondaryMessage(context, ERROR("Images must be at least 128x128 pixels."));
-							return;
-						}
-					}
-				}
-
-				//Create a second filestream to upload the image
-				using (var imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
-				{
-					//Change the guild's icon to the downloaded image
-					await (user ? context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(imgStream)) : context.Guild.ModifyAsync(x => x.Icon = new Image(imgStream)));
-				}
-
-				//Delete the file and send a success message
-				File.Delete(path);
-				typing.Dispose();
-				await DeleteMessage(msg);
-				await SendChannelMessage(context, String.Format("Successfully changed the {0} icon.", user ? "bot" : "guild"));
-			});
-		}
-
-		public static bool ValidateURL(string input)
-		{
-			if (input == null)
-				return false;
-
-			return Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-		}
-		#endregion
-
-		#region Embeds
 		public static async Task<IMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed, string content = null)
 		{
 			var guildChannel = channel as ITextChannel;
@@ -1793,26 +1645,220 @@ namespace Advobot
 				await WriteAndUploadTextFile(guild, channel, input, fileName);
 			}
 		}
-		#endregion
 
-		#region Console
-		public static void WriteLine(string text)
+		public static async Task SendGuildNotification(IUser user, GuildNotification notification)
 		{
-			Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + ReplaceMarkdownChars(text));
-		}
-		
-		public static void ExceptionToConsole(string method, Exception e)
-		{
-			if (e == null)
+			if (notification == null)
 				return;
 
-			WriteLine(method + " EXCEPTION: " + e.ToString());
+			var userMention = user != null ? user.Mention : "Invalid User";
+			var content = notification.Content.Replace("@User", userMention);
+
+			if (notification.Embed != null)
+			{
+				await SendEmbedMessage(notification.Channel, notification.Embed, content);
+			}
+			else
+			{
+				await SendChannelMessage(notification.Channel, content);
+			}
+		}
+		#endregion
+
+		#region Uploads
+		public static bool TryToUploadToHastebin(string text, out string output)
+		{
+			//Check its length
+			if (text.Length > Constants.MAX_LENGTH_FOR_HASTEBIN)
+			{
+				output = Constants.HASTEBIN_ERROR;
+				return false;
+			}
+
+			//Regex for Getting the key out
+			var hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
+
+			//Upload the messages
+			using (var client = new WebClient())
+			{
+				try
+				{
+					//Double check that mark down characters have been removed
+					var response = client.UploadString("https://hastebin.com/documents", ReplaceMarkdownChars(text));
+
+					//Send the url back
+					output = String.Concat("https://hastebin.com/raw/", hasteKeyRegex.Match(response).Groups["key"]);
+				}
+				catch (Exception e)
+				{
+					output = e.Message;
+					return false;
+				}
+			}
+			return true;
 		}
 
-		public static void WriteLoadDone(IGuild guild, string method, string name)
+		public static async Task WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, List<string> textList, string fileName, string messageHeader)
 		{
-			Variables.Guilds[guild.Id].TurnDefaultPrefsOff();
-			WriteLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, FormatGuild(guild)));
+			//Messages in the format to upload
+			var text = ReplaceMarkdownChars(String.Join("\n-----\n", textList));
+			await WriteAndUploadTextFile(guild, channel, text, fileName, messageHeader);
+		}
+
+		public static async Task WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string fileMessage = null)
+		{
+			//Get the file path
+			var file = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.FILE_EXTENSION;
+			var path = GetServerFilePath(guild.Id, file);
+			if (path == null)
+				return;
+
+			//Double check that all markdown characters are removed
+			text = ReplaceMarkdownChars(text);
+			//Make sure a file message exists
+			fileMessage = String.IsNullOrWhiteSpace(fileMessage) ? "" : String.Format("**{0}:**", fileMessage);
+
+			//Create the temporary file
+			if (!File.Exists(GetServerFilePath(guild.Id, file)))
+			{
+				Directory.CreateDirectory(Path.GetDirectoryName(path));
+			}
+			//Write to the temporary file
+			using (var writer = new StreamWriter(path, true))
+			{
+				writer.WriteLine(text);
+			}
+			//Upload the file
+			await channel.SendFileAsync(path, fileMessage);
+			//Delete the file
+			File.Delete(path);
+		}
+
+		public static async Task UploadFile(IMessageChannel channel, string path, string text = null)
+		{
+			await channel.SendFileAsync(path, text);
+		}
+
+		public static async Task SetPicture(CommandContext context, string input, bool user)
+		{
+			//See if the user wants to remove the icon
+			if (input != null && CaseInsEquals(input, "remove"))
+			{
+				if (!user)
+				{
+					await context.Guild.ModifyAsync(x => x.Icon = new Image());
+				}
+				else
+				{
+					await context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image());
+				}
+				await SendChannelMessage(context, String.Format("Successfully removed the {0}'s icon.", user ? "bot" : "guild"));
+				return;
+			}
+
+			//Check if there are even any attachments or embeds
+			if (context.Message.Attachments.Count + context.Message.Embeds.Count == 0)
+			{
+				await MakeAndDeleteSecondaryMessage(context, ERROR("No attached or embedded image."));
+				return;
+			}
+			//Check if there are too many
+			else if (context.Message.Attachments.Count + context.Message.Embeds.Count > 1)
+			{
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Too many attached or embedded images."));
+				return;
+			}
+
+			//Get the URL of the image
+			var imageURL = context.Message.Embeds.Count == 1 ? context.Message.Embeds.First().Thumbnail.ToString() : context.Message.Attachments.First().Url;
+
+			//Run separate due to the time it takes
+			var downloadUploadAndDelete = Task.Run(async () =>
+			{
+				//Check the image's file size first
+				var req = HttpWebRequest.Create(imageURL);
+				req.Method = "HEAD";
+				using (var resp = req.GetResponse())
+				{
+					if (int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
+					{
+						//Check if valid content type
+						if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
+						{
+							await MakeAndDeleteSecondaryMessage(context, ERROR("Image must be a png or jpg."));
+							return;
+						}
+						else
+						{
+							if (ContentLength > 2500000)
+							{
+								//Check if bigger than 2.5MB
+								await MakeAndDeleteSecondaryMessage(context, ERROR("Image is bigger than 2.5MB. Please manually upload instead."));
+								return;
+							}
+							else if (ContentLength == 0)
+							{
+								//Check if nothing was gotten
+								await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
+								return;
+							}
+						}
+					}
+					else
+					{
+						await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
+						return;
+					}
+				}
+
+				//Send a message saying how it's progressing
+				var msg = await SendChannelMessage(context, "Attempting to download the file...");
+				var typing = context.Channel.EnterTypingState();
+
+				//Set the name of the file to prevent typos between the three places that use it
+				var path = GetServerFilePath(context.Guild.Id, (user ? "boticon" : "guildicon") + Path.GetExtension(imageURL).ToLower());
+
+				//Download the image
+				using (var webclient = new WebClient())
+				{
+					webclient.DownloadFile(imageURL, path);
+				}
+
+				//Create a filestream to check the image's size if trying to set a guild icon
+				if (!user)
+				{
+					using (var imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
+					{
+						var img = System.Drawing.Image.FromStream(imgStream);
+						if (img.Width < 128 || img.Height < 128)
+						{
+							await MakeAndDeleteSecondaryMessage(context, ERROR("Images must be at least 128x128 pixels."));
+							return;
+						}
+					}
+				}
+
+				//Create a second filestream to upload the image
+				using (var imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
+				{
+					//Change the guild's icon to the downloaded image
+					await (user ? context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(imgStream)) : context.Guild.ModifyAsync(x => x.Icon = new Image(imgStream)));
+				}
+
+				//Delete the file and send a success message
+				File.Delete(path);
+				typing.Dispose();
+				await DeleteMessage(msg);
+				await SendChannelMessage(context, String.Format("Successfully changed the {0} icon.", user ? "bot" : "guild"));
+			});
+		}
+
+		public static bool ValidateURL(string input)
+		{
+			if (input == null)
+				return false;
+
+			return Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 		}
 		#endregion
 
@@ -2016,7 +2062,7 @@ namespace Advobot
 		}
 		#endregion
 
-		#region Preferences	
+		#region Preferences/Settings
 		public static async Task EnablePreferences(BotGuildInfo guildInfo, IGuild guild, IUserMessage message)
 		{
 			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
@@ -2087,9 +2133,153 @@ namespace Advobot
 				return true;
 			}
 		}
+
+		public static bool ValidatePath(string input, bool startup = false)
+		{
+			var path = input.Trim();
+
+			if (startup)
+			{
+				//Check if a path is already input
+				if (!String.IsNullOrWhiteSpace(path) && Directory.Exists(path))
+				{
+					Properties.Settings.Default.Path = path;
+					Properties.Settings.Default.Save();
+					return true;
+				}
+
+				//Send the initial message
+				if (Variables.Windows)
+				{
+					WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
+				}
+				else
+				{
+					WriteLine("Please enter a valid directory path in which to save files:");
+				}
+
+				return false;
+			}
+
+			if (Variables.Windows && CaseInsEquals(path, "appdata"))
+			{
+				path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+			}
+
+			if (!Directory.Exists(path))
+			{
+				WriteLine("Invalid directory. Please enter a valid directory:");
+				return false;
+			}
+			else
+			{
+				Properties.Settings.Default.Path = path;
+				Properties.Settings.Default.Save();
+				return true;
+			}
+		}
+
+		public static async Task<bool> ValidateBotKey(BotClient client, string input, bool startup = false)
+		{
+			input = input.Trim();
+
+			if (startup)
+			{
+				//Check if the bot already has a key
+				if (!String.IsNullOrWhiteSpace(input))
+				{
+					try
+					{
+						await client.LoginAsync(TokenType.Bot, input);
+						return true;
+					}
+					catch (Exception)
+					{
+						//If the key doesn't work then retry
+						WriteLine("The given key is no longer valid. Please enter a new valid key:");
+					}
+				}
+				else
+				{
+					WriteLine("Please enter the bot's key:");
+				}
+				return false;
+			}
+
+			//Login and connect to Discord.
+			if (input.Length > 59)
+			{
+				//If the length isn't the normal length of a key make it retry
+				WriteLine("The given key is too long. Please enter a regular length key:");
+			}
+			else if (input.Length < 59)
+			{
+				WriteLine("The given key is too short. Please enter a regular length key:");
+			}
+			else
+			{
+				try
+				{
+					//Try to login with the given key
+					await client.LoginAsync(TokenType.Bot, input);
+
+					//If the key works then save it within the settings
+					WriteLine("Succesfully logged in via the given bot key.");
+					Properties.Settings.Default.BotKey = input;
+					Properties.Settings.Default.Save();
+					return true;
+				}
+				catch (Exception)
+				{
+					//If the key doesn't work then retry
+					WriteLine("The given key is invalid. Please enter a valid key:");
+				}
+			}
+			return false;
+		}
+
+		public static async Task SetGame(string prefix = null)
+		{
+			//Get the game
+			var game = Variables.Client.GetCurrentUser().Game.HasValue ? Variables.Client.GetCurrentUser().Game.Value.Name : Constants.DEFAULT_GAME;
+
+			//Check if there's a game in the settings
+			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Game))
+			{
+				game = Properties.Settings.Default.Game;
+			}
+
+			//Replace all instances of the prefix with the new current global prefix
+			if (prefix != null)
+			{
+				game.Replace(prefix, Properties.Settings.Default.Prefix);
+			}
+
+			//Check if there's a stream to set
+			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Stream))
+			{
+				await Variables.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.Twitch);
+			}
+			else
+			{
+				await Variables.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.NotStreaming);
+			}
+		}
+
+		public static void ResetSettings()
+		{
+			//Save the amount of shards that currently exist
+			var shards = Properties.Settings.Default.ShardCount;
+			//Reset the settings
+			Properties.Settings.Default.Reset();
+			//Add back in the shards
+			Properties.Settings.Default.ShardCount = shards;
+			//Save the settings
+			Properties.Settings.Default.Save();
+		}
 		#endregion
 
-		#region Slowmode
+		#region Slowmode/Banned Phrases/Spam Prevention
 		public static async Task Slowmode(IMessage message)
 		{
 			//Get the guild and its info
@@ -2121,8 +2311,8 @@ namespace Advobot
 				{
 					if (smUser.CurrentMessagesLeft == smUser.BaseMessages)
 					{
-						//Start the interval
-						SlowmodeInterval(smUser);
+						smUser.SetNewTime(DateTime.UtcNow.AddSeconds(smUser.Interval));
+						Variables.SlowmodeUsers.Add(smUser);
 					}
 
 					//Lower it by one
@@ -2142,11 +2332,11 @@ namespace Advobot
 			if (guildInfo.SlowmodeGuild != null)
 			{
 				//Get the variables out of a different user
-				int messages = guildInfo.SlowmodeGuild.Users.FirstOrDefault().BaseMessages;
-				int time = guildInfo.SlowmodeGuild.Users.FirstOrDefault().Time;
+				var messages = guildInfo.SlowmodeGuild.Users.FirstOrDefault().BaseMessages;
+				var interval = guildInfo.SlowmodeGuild.Users.FirstOrDefault().Interval;
 
 				//Add them to the list for the slowmode in this guild
-				guildInfo.SlowmodeGuild.Users.Add(new SlowmodeUser(user, messages, messages, time));
+				guildInfo.SlowmodeGuild.Users.Add(new SlowmodeUser(user, messages, messages, interval));
 			}
 
 			//Get a list of the IDs of the guild's channels
@@ -2159,17 +2349,15 @@ namespace Advobot
 				smChannels.ForEach(x =>
 				{
 					//Get the variables out of a different user
-					int messages = x.Users.FirstOrDefault().BaseMessages;
-					int time = x.Users.FirstOrDefault().Time;
+					var messages = x.Users.FirstOrDefault().BaseMessages;
+					var interval = x.Users.FirstOrDefault().Interval;
 
 					//Add them to the list for the slowmode in this guild
-					x.Users.Add(new SlowmodeUser(user, messages, messages, time));
+					x.Users.Add(new SlowmodeUser(user, messages, messages, interval));
 				});
 			}
 		}
-		#endregion
 
-		#region Banned Phrases
 		public static async Task BannedPhrases(IMessage message)
 		{
 			//Get the guild
@@ -2298,7 +2486,7 @@ namespace Advobot
 		public static bool TryGetPunishment(BotGuildInfo guildInfo, PunishmentType type, int msgs, out BannedPhrasePunishment punishment)
 		{
 			punishment = guildInfo.BannedPhrases.Punishments.Where(x => x.Punishment == type).FirstOrDefault(x => x.NumberOfRemoves == msgs);
-			return punishment != null;			
+			return punishment != null;
 		}
 
 		public static async Task BannedRegexPunishments(IMessage message, BannedPhrase<Regex> regex)
@@ -2563,151 +2751,68 @@ namespace Advobot
 				return false;
 			}
 		}
-		#endregion
 
-		#region Settings
-		public static bool ValidatePath(string input, bool startup = false)
+		public static async Task<bool> HandleSpamPrevention(GlobalSpamPrevention global, BaseSpamPrevention spamPrev, IGuild guild, IGuildUser user, IMessage msg)
 		{
-			var path = input.Trim();
-
-			if (startup)
-			{
-				//Check if a path is already input
-				if (!String.IsNullOrWhiteSpace(path) && Directory.Exists(path))
-				{
-					Properties.Settings.Default.Path = path;
-					Properties.Settings.Default.Save();
-					return true;
-				}
-
-				//Send the initial message
-				if (Variables.Windows)
-				{
-					WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
-				}
-				else
-				{
-					WriteLine("Please enter a valid directory path in which to save files:");
-				}
-
+			if (spamPrev == null || !spamPrev.Enabled)
 				return false;
-			}
 
-			if (Variables.Windows && CaseInsEquals(path, "appdata"))
-			{
-				path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			}
-
-			if (!Directory.Exists(path))
-			{
-				WriteLine("Invalid directory. Please enter a valid directory:");
-				return false;
-			}
-			else
-			{
-				Properties.Settings.Default.Path = path;
-				Properties.Settings.Default.Save();
-				return true;
-			}
+			//Get the user from the list or, if not found, create a new one
+			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == user) ?? new SpamPreventionUser(global, user);
+			//Add one to the count of the spam type they triggered and check if the user should be kicked/banned
+			await spUser.CheckIfShouldKick(spamPrev, msg);
+			return true;
 		}
 
-		public static async Task<bool> ValidateBotKey(BotClient client, string input, bool startup = false)
+		public static async Task VotesHigherThanRequiredAmount(BaseSpamPrevention spamPrev, SpamPreventionUser spUser, IMessage msg)
 		{
-			input = input.Trim();
-			
-			if (startup)
-			{
-				//Check if the bot already has a key
-				if (!String.IsNullOrWhiteSpace(input))
-				{
-					try
-					{
-						await client.LoginAsync(TokenType.Bot, input);
-						return true;
-					}
-					catch (Exception)
-					{
-						//If the key doesn't work then retry
-						WriteLine("The given key is no longer valid. Please enter a new valid key:");
-					}
-				}
-				else
-				{
-					WriteLine("Please enter the bot's key:");
-				}
+			//Make sure they have the lowest vote count required to kick
+			spUser.ChangeVotesRequired(spamPrev.VotesNeededForKick);
+			//Turn on their ability to be kicked so they can be kicked
+			spUser.EnablePotentialKick();
+			//Send this message updating the amount of votes the user needs
+			await MakeAndDeleteSecondaryMessage(msg.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
+				FormatUser(msg.Author), spUser.VotesRequired - spUser.VotesToKick));
+		}
+
+		public static bool SpamCheck(MessageSpamPrevention spamPrev, IMessage message)
+		{
+			if (spamPrev == null)
 				return false;
-			}
 
-			//Login and connect to Discord.
-			if (input.Length > 59)
-			{
-				//If the length isn't the normal length of a key make it retry
-				WriteLine("The given key is too long. Please enter a regular length key:");
-			}
-			else if (input.Length < 59)
-			{
-				WriteLine("The given key is too short. Please enter a regular length key:");
-			}
-			else
-			{
-				try
-				{
-					//Try to login with the given key
-					await client.LoginAsync(TokenType.Bot, input);
-
-					//If the key works then save it within the settings
-					WriteLine("Succesfully logged in via the given bot key.");
-					Properties.Settings.Default.BotKey = input;
-					Properties.Settings.Default.Save();
-					return true;
-				}
-				catch (Exception)
-				{
-					//If the key doesn't work then retry
-					WriteLine("The given key is invalid. Please enter a valid key:");
-				}
-			}
-			return false;
+			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
 		}
 
-		public static async Task SetGame(string prefix = null)
+		public static bool SpamCheck(LongMessageSpamPrevention spamPrev, IMessage message)
 		{
-			//Get the game
-			var game = Variables.Client.GetCurrentUser().Game.HasValue ? Variables.Client.GetCurrentUser().Game.Value.Name : Constants.DEFAULT_GAME;
+			if (spamPrev == null)
+				return false;
 
-			//Check if there's a game in the settings
-			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Game))
-			{
-				game = Properties.Settings.Default.Game;
-			}
-
-			//Replace all instances of the prefix with the new current global prefix
-			if (prefix != null)
-			{
-				game.Replace(prefix, Properties.Settings.Default.Prefix);
-			}
-
-			//Check if there's a stream to set
-			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Stream))
-			{
-				await Variables.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.Twitch);
-			}
-			else
-			{
-				await Variables.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.NotStreaming);
-			}
+			return message.Content.Length > spamPrev.AmountOfSpam;
 		}
 
-		public static void ResetSettings()
+		public static bool SpamCheck(LinkSpamPrevention spamPrev, IMessage message)
 		{
-			//Save the amount of shards that currently exist
-			var shards = Properties.Settings.Default.ShardCount;
-			//Reset the settings
-			Properties.Settings.Default.Reset();
-			//Add back in the shards
-			Properties.Settings.Default.ShardCount = shards;
-			//Save the settings
-			Properties.Settings.Default.Save();
+			if (spamPrev == null)
+				return false;
+
+			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
+		}
+
+		public static bool SpamCheck(ImageSpamPrevention spamPrev, IMessage message)
+		{
+			if (spamPrev == null)
+				return false;
+
+			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
+		}
+
+		public static bool SpamCheck(MentionSpamPrevention spamPrev, IMessage message)
+		{
+			if (spamPrev == null)
+				return false;
+
+			return message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
 		}
 		#endregion
 
@@ -2888,205 +2993,56 @@ namespace Advobot
 		#endregion
 
 		#region Timers
-		public static void RemoveCommandMessages(IMessageChannel channel, List<IMessage> messages, Int32 time)
+		public static void RemoveCommandMessages(List<IMessage> messages, Int32 time)
 		{
-			Task.Run(async () =>
-			{
-				await Task.Delay(time);
-				await DeleteMessages(channel, messages);
-			});
+			Variables.TimedMessages.Add(new RemovableMessage(messages, DateTime.UtcNow.AddMilliseconds(time)));
 		}
 
 		public static void RemoveCommandMessage(IMessage message, Int32 time)
 		{
-			Task.Run(async () =>
-			{
-				await Task.Delay(time);
-				await message.DeleteAsync();
-			});
+			Variables.TimedMessages.Add(new RemovableMessage(message, DateTime.UtcNow.AddMilliseconds(time)));
 		}
 
-		public static void RemoveActiveCloseWords(BotGuildInfo guildInfo, ActiveCloseWords list)
+		public static void HourTimer(object obj)
 		{
-			Task.Run(async () =>
-			{
-				await Task.Delay(5000);
-				guildInfo.ActiveCloseWords.Remove(list);
-			});
-		}
+			ClearPunishedUsersList();
 
-		public static void RemoveActiveCloseHelp(BotGuildInfo guildInfo, ActiveCloseHelp list)
-		{
-			Task.Run(async () =>
-			{
-				await Task.Delay(5000);
-				guildInfo.ActiveCloseHelp.Remove(list);
-			});
-		}
-
-		public static void RemovePrefEnable(BotGuildInfo guildInfo)
-		{
-			Task.Run(async () =>
-			{
-				await Task.Delay(5000);
-				guildInfo.SwitchEnablingPrefs();
-			});
-		}
-
-		public static void RemovePrefDelete(BotGuildInfo guildInfo)
-		{
-			Task.Run(async () =>
-			{
-				await Task.Delay(5000);
-				guildInfo.SwitchDeletingPrefs();
-			});
-		}
-
-		public static void SlowmodeInterval(SlowmodeUser smUser)
-		{
-			Task.Run(async () =>
-			{
-				//Sleep for the given amount of seconds
-				await Task.Delay(Math.Abs(smUser.Time) * 1000);
-				//Add back their ability to send messages
-				smUser.ResetMessagesLeft();
-			});
-		}
-
-		public static void ResetSpamPrevention(object obj)
-		{
-			//Get the period
 			const long PERIOD = 60 * 60 * 1000;
-
-			//Reset the spam prevention user list
-			Variables.Guilds.ToList().ForEach(x => x.Value.GlobalSpamPrevention.SpamPreventionUsers.Clear());
-
-			//Determine how long to wait until firing
 			var time = PERIOD;
 			if ((DateTime.UtcNow.Subtract(Variables.StartupTime)).TotalHours < 1)
 			{
 				time -= (long)DateTime.UtcNow.TimeOfDay.TotalMilliseconds % PERIOD;
 			}
-
-			//Wait until the next firing
-			Variables.SpamTimer = new Timer(ResetSpamPrevention, null, time, Timeout.Infinite);
+			Variables.SpamTimer = new Timer(HourTimer, null, time, Timeout.Infinite);
 		}
 
-		public static void RemovePunishments(object obj)
+		public static void MinuteTimer(object obj)
 		{
-			//Get the period
+			RemovePunishments();
+
 			const long PERIOD = 60 * 1000;
-
-			//Go through and remove the punishment on each user
-			var eligibleToLosePunishment = Variables.PunishedUsers.Where(x => x.Time <= DateTime.UtcNow).ToList();
-			eligibleToLosePunishment.ForEach(async punishment =>
-			{
-				Variables.PunishedUsers.Remove(punishment);
-
-				//Things that can be done with an IUser
-				var user = punishment.User;
-				if (punishment.Type == PunishmentType.Ban)
-				{
-					await punishment.Guild.RemoveBanAsync(user.Id);
-					return;
-				}
-
-				//Things that need an IGuildUser
-				var guildUser = await punishment.Guild.GetUserAsync(user.Id);
-				switch (punishment.Type)
-				{
-					case PunishmentType.Role:
-					{
-						await guildUser.RemoveRoleAsync(punishment.Role);
-						return;
-					}
-					case PunishmentType.Deafen:
-					{
-						await guildUser.ModifyAsync(x => x.Deaf = false);
-						return;
-					}
-					case PunishmentType.Mute:
-					{
-						await guildUser.ModifyAsync(x => x.Mute = false);
-						return;
-					}
-				}
-			});
-
-			//Determine how long to wait until firing
 			var time = PERIOD;
 			if ((DateTime.UtcNow.Subtract(Variables.StartupTime)).TotalMinutes < 1)
 			{
 				time -= (long)DateTime.UtcNow.TimeOfDay.TotalMilliseconds % PERIOD;
 			}
-
-			//Wait until the next firing
-			Variables.RemovePunishmentTimer = new Timer(RemovePunishments, null, time, Timeout.Infinite);
-		}
-		#endregion
-
-		#region Spam Prevention
-		public static async Task<bool> HandleSpamPrevention(GlobalSpamPrevention global, BaseSpamPrevention spamPrev, IGuild guild, IGuildUser user, IMessage msg)
-		{
-			if (spamPrev == null || !spamPrev.Enabled)
-				return false;
-
-			//Get the user from the list or, if not found, create a new one
-			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == user) ?? new SpamPreventionUser(global, user);
-			//Add one to the count of the spam type they triggered and check if the user should be kicked/banned
-			await spUser.CheckIfShouldKick(spamPrev, msg);
-			return true;
+			Variables.RemovePunishmentTimer = new Timer(MinuteTimer, null, time, Timeout.Infinite);
 		}
 
-		public static async Task VotesHigherThanRequiredAmount(BaseSpamPrevention spamPrev, SpamPreventionUser spUser, IMessage msg)
+		public static void OneFourthSecondTimer(object obj)
 		{
-			//Make sure they have the lowest vote count required to kick
-			spUser.ChangeVotesRequired(spamPrev.VotesNeededForKick);
-			//Turn on their ability to be kicked so they can be kicked
-			spUser.EnablePotentialKick();
-			//Send this message updating the amount of votes the user needs
-			await MakeAndDeleteSecondaryMessage(msg.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
-				FormatUser(msg.Author), spUser.VotesRequired - spUser.VotesToKick));
-		}
+			DeleteTargettedMessages();
+			RemoveActiveCloseHelpAndWords();
+			ActivateGuildToggles();
+			ResetSMUserMessages();
 
-		public static bool SpamCheck(MessageSpamPrevention spamPrev, IMessage message)
-		{
-			if (spamPrev == null)
-				return false;
-
-			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
-		}
-
-		public static bool SpamCheck(LongMessageSpamPrevention spamPrev, IMessage message)
-		{
-			if (spamPrev == null)
-				return false;
-
-			return message.Content.Length > spamPrev.AmountOfSpam;
-		}
-
-		public static bool SpamCheck(LinkSpamPrevention spamPrev, IMessage message)
-		{
-			if (spamPrev == null)
-				return false;
-
-			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
-		}
-
-		public static bool SpamCheck(ImageSpamPrevention spamPrev, IMessage message)
-		{
-			if (spamPrev == null)
-				return false;
-
-			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
-		}
-
-		public static bool SpamCheck(MentionSpamPrevention spamPrev, IMessage message)
-		{
-			if (spamPrev == null)
-				return false;
-
-			return message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
+			const long PERIOD = 250;
+			var time = PERIOD;
+			if ((DateTime.UtcNow.Subtract(Variables.StartupTime)).TotalSeconds < 1)
+			{
+				time -= (long)DateTime.UtcNow.TimeOfDay.TotalMilliseconds % PERIOD;
+			}
+			Variables.RemovePunishmentTimer = new Timer(OneFourthSecondTimer, null, time, Timeout.Infinite);
 		}
 		#endregion
 
@@ -3214,7 +3170,7 @@ namespace Advobot
 		}
 		#endregion
 
-		#region Position Modification
+		#region Miscellaneous
 		public static async Task ModifyChannelPosition(IGuildChannel channel, int position)
 		{
 			if (channel == null)
@@ -3242,25 +3198,6 @@ namespace Advobot
 			//Convert into reorder properties and use to reorder
 			await role.Guild.ReorderRolesAsync(roles.Select(x => new ReorderRoleProperties(x.Id, roles.IndexOf(x))));
 		}
-		#endregion
-
-		public static async Task SendGuildNotification(IUser user, GuildNotification notification)
-		{
-			if (notification == null)
-				return;
-
-			var userMention = user != null ? user.Mention : "Invalid User";
-			var content = notification.Content.Replace("@User", userMention);
-
-			if (notification.Embed != null)
-			{
-				await SendEmbedMessage(notification.Channel, notification.Embed, content);
-			}
-			else
-			{
-				await SendChannelMessage(notification.Channel, content);
-			}
-		}
 
 		public static FAWRType ClarifyFAWRType(FAWRType type)
 		{
@@ -3286,41 +3223,121 @@ namespace Advobot
 			return type;
 		}
 
-		public static async Task<GuildNotification> GetGuildNotification(CommandContext context, string input)
+		public static async Task ChangeNickname(IGuildUser user, string newNN)
 		{
-			//Get the variables out
-			var inputArray = SplitByCharExceptInQuotes(input, ' ');
-			var channelStr = inputArray[0];
-			var content = GetVariable(inputArray, "content");
-			var title = GetVariable(inputArray, "title");
-			var desc = GetVariable(inputArray, "desc");
-			var thumb = GetVariable(inputArray, "thumb");
-			thumb = ValidateURL(thumb) ? thumb : null;
-
-			//Check if everything is null
-			var contentB = String.IsNullOrWhiteSpace(content);
-			var titleB = String.IsNullOrWhiteSpace(title);
-			var descB = String.IsNullOrWhiteSpace(desc);
-			var thumbB = String.IsNullOrWhiteSpace(thumb);
-			if (contentB && titleB && descB && thumbB)
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("One of the variables has to be given."));
-				return null;
-			}
-
-			//Make sure the channel mention is valid
-			var channel = await GetChannel(context, channelStr);
-			if (channel == null)
-				return null;
-			var tChannel = channel as ITextChannel;
-			if (tChannel == null)
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("The welcome channel can only be set to a text channel."));
-				return null;
-			}
-
-			return new GuildNotification(content, title, desc, thumb, context.Guild.Id, channel.Id);
+			await user.ModifyAsync(x => x.Nickname = newNN ?? user.Username);
 		}
+
+		public static void ClearPunishedUsersList()
+		{
+			Variables.Guilds.ToList().ForEach(x => x.Value.GlobalSpamPrevention.SpamPreventionUsers.Clear());
+		}
+
+		public static void RemovePunishments()
+		{
+			var eligibleToLosePunishment = Variables.PunishedUsers.Where(x => x.Time <= DateTime.UtcNow).ToList();
+			//The reason this is not a foreachasync is 1) it doesn't work well with a timer and 2) the results of this are unimportant
+			eligibleToLosePunishment.ForEach(async punishment =>
+			{
+				Variables.PunishedUsers.Remove(punishment);
+
+				//Things that can be done with an IUser
+				var user = punishment.User;
+				if (punishment.Type == PunishmentType.Ban)
+				{
+					await punishment.Guild.RemoveBanAsync(user.Id);
+					return;
+				}
+
+				//Things that need an IGuildUser
+				var guildUser = await punishment.Guild.GetUserAsync(user.Id);
+				switch (punishment.Type)
+				{
+					case PunishmentType.Role:
+					{
+						await guildUser.RemoveRoleAsync(punishment.Role);
+						return;
+					}
+					case PunishmentType.Deafen:
+					{
+						await guildUser.ModifyAsync(x => x.Deaf = false);
+						return;
+					}
+					case PunishmentType.Mute:
+					{
+						await guildUser.ModifyAsync(x => x.Mute = false);
+						return;
+					}
+				}
+			});
+		}
+
+		public static void DeleteTargettedMessages()
+		{
+			var eligibleToBeDeleted = Variables.TimedMessages.Where(x => x.Time <= DateTime.UtcNow).ToList();
+			//The reason this is not a foreachasync is 1) it doesn't work well with a timer and 2) the results of this are unimportant
+			eligibleToBeDeleted.ForEach(async timed =>
+			{
+				Variables.TimedMessages.Remove(timed);
+
+				//Delete a single message
+				if (timed.Message != null)
+				{
+					await DeleteMessage(timed.Message);
+				}
+				//Multiple
+				else
+				{
+					await DeleteMessages(timed.Messages.FirstOrDefault().Channel, timed.Messages);
+				}
+			});
+		}
+
+		public static void RemoveActiveCloseHelpAndWords()
+		{
+			var inactiveHelp = Variables.ActiveCloseHelp.Where(x => x.DeleteTime <= DateTime.UtcNow).ToList();
+			inactiveHelp.ForEach(x =>
+			{
+				Variables.ActiveCloseHelp.Remove(x);
+			});
+			var inactiveWords = Variables.ActiveCloseWords.Where(x => x.DeleteTime <= DateTime.UtcNow).ToList();
+			inactiveWords.ForEach(x =>
+			{
+				Variables.ActiveCloseWords.Remove(x);
+			});
+		}
+
+		public static void ActivateGuildToggles()
+		{
+			var eligibleToBeToggled = Variables.GuildToggles.Where(x => x.Time <= DateTime.UtcNow).ToList();
+			eligibleToBeToggled.ForEach(x =>
+			{
+				switch (x.Toggle)
+				{
+					case GuildToggle.EnablePrefs:
+					{
+						Variables.Guilds[x.GuildID].SwitchEnablingPrefs();
+						break;
+					}
+					case GuildToggle.DeletePrefs:
+					{
+						Variables.Guilds[x.GuildID].SwitchDeletingPrefs();
+						break;
+					}
+				}
+			});
+		}
+
+		public static void ResetSMUserMessages()
+		{
+			var eligibleForReset = Variables.SlowmodeUsers.Where(x => x.Time <= DateTime.UtcNow).ToList();
+			eligibleForReset.ForEach(x =>
+			{
+				Variables.SlowmodeUsers.Remove(x);
+				x.ResetMessagesLeft();
+			});
+		}
+		#endregion
 	}
 
 	public static class AsyncForEach

@@ -207,7 +207,7 @@ namespace Advobot
 
 				//Add them to the list for a few seconds
 				guildInfo.SwitchEnablingPrefs();
-				Actions.RemovePrefEnable(guildInfo);
+				Variables.GuildToggles.Add(new GuildToggleAfterTime(Context.Guild.Id, GuildToggle.EnablePrefs, DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE)));
 
 				//The actual enabling happens in OnMessageReceived in Serverlogs
 			}
@@ -219,7 +219,7 @@ namespace Advobot
 
 				//Add them to the list for a few seconds
 				guildInfo.SwitchDeletingPrefs();
-				Actions.RemovePrefDelete(guildInfo);
+				Variables.GuildToggles.Add(new GuildToggleAfterTime(Context.Guild.Id, GuildToggle.DeletePrefs, DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE)));
 
 				//The actual deleting happens in OnMessageReceived in Serverlogs
 			}
@@ -869,9 +869,8 @@ namespace Advobot
 
 					//Create the list, add it to the guild, remove it after five seconds, and delete the message that goes along with it after 5 seconds
 					var acWords = new ActiveCloseWords(Context.User as IGuildUser, closeWords);
-					guildInfo.ActiveCloseWords.RemoveAll(x => x.User.Id == Context.User.Id);
-					guildInfo.ActiveCloseWords.Add(acWords);
-					Actions.RemoveActiveCloseWords(guildInfo, acWords);
+					Variables.ActiveCloseWords.RemoveAll(x => x.User == Context.User);
+					Variables.ActiveCloseWords.Add(acWords);
 					await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 5000);
 				}
 				else
@@ -897,7 +896,7 @@ namespace Advobot
 				return;
 			}
 
-			var welcomeMessage = await Actions.GetGuildNotification(Context, input) as WelcomeMessage;
+			var welcomeMessage = await Actions.GetGuildNotification(Context, input);
 			guildInfo.SetWelcomeMessage(welcomeMessage);
 			Actions.SaveGuildInfo(guildInfo);
 			await Actions.SendGuildNotification(null, welcomeMessage);
@@ -919,7 +918,7 @@ namespace Advobot
 				return;
 			}
 
-			var goodbyeMessage = await Actions.GetGuildNotification(Context, input) as GoodbyeMessage;
+			var goodbyeMessage = await Actions.GetGuildNotification(Context, input);
 			guildInfo.SetGoodbyeMessage(goodbyeMessage);
 			Actions.SaveGuildInfo(guildInfo);
 			await Actions.SendGuildNotification(null, goodbyeMessage);

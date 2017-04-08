@@ -317,8 +317,9 @@ namespace Advobot
 					Actions.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
 					Actions.AddAuthor(embed, Actions.FormatUser(afterUser), afterUser.GetAvatarUrl());
 					await Actions.SendEmbedMessage(serverLog, embed);
+
+					++Variables.LoggedUserChanges;
 				});
-				++Variables.LoggedUserChanges;
 			}
 		}
 
@@ -350,6 +351,8 @@ namespace Advobot
 				Actions.AddField(embed, "After:", "`" + newNickname + "`", false);
 				Actions.AddAuthor(embed, Actions.FormatUser(afterUser), afterUser.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
+
+				++Variables.LoggedUserChanges;
 			}
 
 			//Role change
@@ -409,6 +412,8 @@ namespace Advobot
 					Actions.AddFooter(embed, "Role Lost");
 					Actions.AddAuthor(embed, Actions.FormatUser(afterUser), afterUser.GetAvatarUrl());
 					await Actions.SendEmbedMessage(serverLog, embed);
+
+					++Variables.LoggedUserChanges;
 				});
 			}
 			else if (secondNotFirst.Any())
@@ -429,9 +434,9 @@ namespace Advobot
 				Actions.AddFooter(embed, "Role Gained");
 				Actions.AddAuthor(embed, Actions.FormatUser(afterUser), afterUser.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
-			}
 
-			++Variables.LoggedUserChanges;
+				++Variables.LoggedUserChanges;
+			}
 		}
 
 		public static async Task OnMessageReceived(SocketMessage message)
@@ -802,19 +807,19 @@ namespace Advobot
 			if (number > 0 && number < 6)
 			{
 				--number;
-				var closeWordList = guildInfo.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
+				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
 				if (closeWordList.User != null && closeWordList.List.Count > number)
 				{
 					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
-					guildInfo.ActiveCloseWords.Remove(closeWordList);
+					Variables.ActiveCloseWords.Remove(closeWordList);
 					await Actions.SendChannelMessage(message.Channel, remind.Text);
 					await Actions.DeleteMessage(message);
 				}
-				var closeHelpList = guildInfo.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
+				var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
 				if (closeHelpList.User != null && closeHelpList.List.Count > number)
 				{
 					var help = closeHelpList.List[number].Help;
-					guildInfo.ActiveCloseHelp.Remove(closeHelpList);
+					Variables.ActiveCloseHelp.Remove(closeHelpList);
 					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help)), "Help"));
 					await Actions.DeleteMessage(message);
 				}

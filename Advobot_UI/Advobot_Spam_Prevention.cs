@@ -17,7 +17,7 @@ namespace Advobot
 		[Alias("prs")]
 		[Usage("[Message|LongMessage|Link|Image|Mention] [[Enable|Disable|Current] | [Setup] <Messages:Number> <Spam:Number> <Votes:Number>]")]
 		[Summary("Spam prevention allows for some protection against mention spammers. Messages are the amount of messages a user has to send with the given amount of mentions before being considered " + 
-			"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The first punishment is a kick, next is a ban. The messages count on a user resets every hour.")]
+			"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The first punishment is a kick, next is a ban. The spam users are reset every hour.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task PreventMentionSpam([Remainder] string input)
@@ -29,8 +29,6 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
-
-			//TODO: Make sure this method works and the prevent spam in itself as a whole works
 
 			//Split the input
 			var inputArray = input.Split(' ');
@@ -78,26 +76,26 @@ namespace Advobot
 				{
 					if (spamPrevention.Enabled)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Spam prevention is already enabled."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention is already enabled."));
 						return;
 					}
 
 					//Enable it
 					spamPrevention.SwitchEnabled(true);
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Spam prevention has successfully been enabled."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention has successfully been enabled."));
 					return;
 				}
 				case SpamPreventionAction.Disable:
 				{
 					if (!spamPrevention.Enabled)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Spam prevention is already disabled."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention is already disabled."));
 						return;
 					}
 
 					//Disable it
 					spamPrevention.SwitchEnabled(false);
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Spam prevention has successfully been disabled."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention has successfully been disabled."));
 					return;
 				}
 				case SpamPreventionAction.Current:
@@ -110,7 +108,7 @@ namespace Advobot
 				{
 					//Get the strings
 					var messagesString = Actions.GetVariable(inputArray, "messages");
-					var mentionsString = Actions.GetVariable(inputArray, "spam");
+					var spamString = Actions.GetVariable(inputArray, "spam");
 					var votesString = Actions.GetVariable(inputArray, "votes");
 
 					//Get the ints
@@ -124,24 +122,24 @@ namespace Advobot
 					{
 						int.TryParse(votesString, out votes);
 					}
-					var mentions = 3;
-					if (mentionsString != null)
+					var spam = 3;
+					if (spamString != null)
 					{
-						int.TryParse(mentionsString, out mentions);
+						int.TryParse(spamString, out spam);
 					}
 
 					//Give every number a valid input
-					int ms = messages < 1 ? 1 : messages;
-					int vt = votes < 1 ? 1 : votes;
-					int mn = mentions < 1 ? 1 : mentions;
+					var ms = messages < 1 ? 1 : messages;
+					var vt = votes < 1 ? 1 : votes;
+					var sp = spam < 1 ? 1 : spam;
 
 					//Create the spam prevention and add it to the guild
-					Variables.Guilds[Context.Guild.Id].GlobalSpamPrevention.SetMentionSpamPrevention(new MentionSpamPrevention(ms, vt, mn));
+					guildInfo.GlobalSpamPrevention.SetSpamPrevention(typeEnum, ms, vt, sp);
 
 					//Save everything and send a success message
 					Actions.SaveGuildInfo(guildInfo);
 					await Actions.MakeAndDeleteSecondaryMessage(Context,
-						String.Format("Successfully created and enabled a spam prevention with the requirement of `{0}` messages with `{1}` or more mentions and requires `{2}` votes.", ms, mn, vt));
+						String.Format("Successfully created and enabled a spam prevention with the requirement of `{0}` messages with a spam amount of `{1}` and requires `{2}` votes.", ms, sp, vt));
 					return;
 				}
 			}

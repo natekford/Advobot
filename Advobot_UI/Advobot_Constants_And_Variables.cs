@@ -13,7 +13,7 @@ namespace Advobot
 		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
 
 		public const string BOT_VERSION = "0.9.20";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00667";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00691";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -55,6 +55,7 @@ namespace Advobot
 		public const int OWNER_POSITION = int.MaxValue;
 		public const int MESSAGES_TO_GATHER = 100;
 		public const int PAD_RIGHT = 20;
+		public const int ACTIVE_CLOSE = 5000;
 
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;
@@ -172,15 +173,22 @@ namespace Advobot
 
 		public static Dictionary<ulong, BotGuildInfo> Guilds = new Dictionary<ulong, BotGuildInfo>();
 
-		public static List<ulong> PotentialBotOwners = new List<ulong>();
-		public static List<ulong> DeletedRoles = new List<ulong>();
+		//Lists that can only be modified through code for the most part
 		public static List<string> CommandNames = new List<string>();
 		public static List<string> RegionIDs = new List<string>();
 		public static List<HelpEntry> HelpList = new List<HelpEntry>();
 		public static List<BotGuildPermissionType> GuildPermissions = new List<BotGuildPermissionType>();
 		public static List<BotChannelPermissionType> ChannelPermissions = new List<BotChannelPermissionType>();
+
+		//Lists that change as the bot is used
+		public static List<ulong> PotentialBotOwners = new List<ulong>();
+		public static List<ulong> DeletedRoles = new List<ulong>();
 		public static List<RemovablePunishment> PunishedUsers = new List<RemovablePunishment>();
 		public static List<RemovableMessage> TimedMessages = new List<RemovableMessage>();
+		public static List<ActiveCloseHelp> ActiveCloseHelp = new List<ActiveCloseHelp>();
+		public static List<ActiveCloseWords> ActiveCloseWords = new List<ActiveCloseWords>();
+		public static List<GuildToggleAfterTime> GuildToggles = new List<GuildToggleAfterTime>();
+		public static List<SlowmodeUser> SlowmodeUsers = new List<SlowmodeUser>();
 		public static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
 		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<Discord.IGuild>();
 	}
