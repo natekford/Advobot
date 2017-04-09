@@ -80,8 +80,11 @@ namespace Advobot
 
 						//Create a new list, remove all others the user has, add the new one to the guild's list, remove it and the message that goes along with it after five seconds
 						var acHelp = new ActiveCloseHelp(Context.User as IGuildUser, closeHelps);
-						Variables.ActiveCloseHelp.RemoveAll(x => x.User == Context.User);
-						Variables.ActiveCloseHelp.Add(acHelp);
+						lock (Variables.ActiveCloseHelp)
+						{
+							Variables.ActiveCloseHelp.RemoveAll(x => x.User == Context.User);
+							Variables.ActiveCloseHelp.Add(acHelp);
+						}
 						await Actions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.ACTIVE_CLOSE);
 					}
 					else

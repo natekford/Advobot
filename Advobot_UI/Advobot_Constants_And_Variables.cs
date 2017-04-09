@@ -174,23 +174,23 @@ namespace Advobot
 		public static Dictionary<ulong, BotGuildInfo> Guilds = new Dictionary<ulong, BotGuildInfo>();
 
 		//Lists that can only be modified through code for the most part
-		public static List<string> CommandNames = new List<string>();
-		public static List<string> RegionIDs = new List<string>();
-		public static List<HelpEntry> HelpList = new List<HelpEntry>();
-		public static List<BotGuildPermissionType> GuildPermissions = new List<BotGuildPermissionType>();
-		public static List<BotChannelPermissionType> ChannelPermissions = new List<BotChannelPermissionType>();
+		public readonly static List<string> CommandNames = new List<string>();
+		public readonly static List<string> RegionIDs = new List<string>();
+		public readonly static List<HelpEntry> HelpList = new List<HelpEntry>();
+		public readonly static List<BotGuildPermissionType> GuildPermissions = new List<BotGuildPermissionType>();
+		public readonly static List<BotChannelPermissionType> ChannelPermissions = new List<BotChannelPermissionType>();
 
 		//Lists that change as the bot is used
-		public static List<ulong> PotentialBotOwners = new List<ulong>();
-		public static List<ulong> DeletedRoles = new List<ulong>();
-		public static List<RemovablePunishment> PunishedUsers = new List<RemovablePunishment>();
-		public static List<RemovableMessage> TimedMessages = new List<RemovableMessage>();
-		public static List<ActiveCloseHelp> ActiveCloseHelp = new List<ActiveCloseHelp>();
-		public static List<ActiveCloseWords> ActiveCloseWords = new List<ActiveCloseWords>();
-		public static List<GuildToggleAfterTime> GuildToggles = new List<GuildToggleAfterTime>();
-		public static List<SlowmodeUser> SlowmodeUsers = new List<SlowmodeUser>();
-		public static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
-		public static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<Discord.IGuild>();
+		public readonly static List<ulong> PotentialBotOwners = new List<ulong>();
+		public readonly static List<ulong> DeletedRoles = new List<ulong>();
+		public readonly static List<RemovablePunishment> PunishedUsers = new List<RemovablePunishment>();
+		public readonly static List<RemovableMessage> TimedMessages = new List<RemovableMessage>();
+		public readonly static List<ActiveCloseHelp> ActiveCloseHelp = new List<ActiveCloseHelp>();
+		public readonly static List<ActiveCloseWords> ActiveCloseWords = new List<ActiveCloseWords>();
+		public readonly static List<GuildToggleAfterTime> GuildToggles = new List<GuildToggleAfterTime>();
+		public readonly static List<SlowmodeUser> SlowmodeUsers = new List<SlowmodeUser>();
+		public readonly static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
+		public readonly static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<Discord.IGuild>();
 	}
 
 	public static class SharedCommands

@@ -145,7 +145,6 @@ namespace Advobot
 
 	public class Server_Logs : ModuleBase
 	{
-		//TODO: Remove most of the events that will get replaced by the audit log
 		public static async Task OnUserJoined(SocketGuildUser user)
 		{
 			++Variables.TotalUsers;
@@ -448,7 +447,7 @@ namespace Advobot
 				await Message_Received_Actions.BotOwner(message);
 				return;
 			}
-			else if (message.Author.IsWebhook)
+			else if (Actions.VerifyMessage(message) == null)
 				return;
 
 			if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
@@ -458,11 +457,7 @@ namespace Advobot
 				await Message_Received_Actions.SpamPrevention(guildInfo, guild, message);
 				await Message_Received_Actions.VotingOnSpamPrevention(guildInfo, guild, message);
 				await Message_Received_Actions.SlowmodeOrBannedPhrases(guildInfo, guild, message);
-
-				var serverLog = guildInfo.ServerLog;
-				await Message_Received_Actions.ImageLog(guildInfo, serverLog, message);
-
-				++Variables.LoggedMessages;
+				await Message_Received_Actions.ImageLog(guildInfo, guildInfo.ServerLog, message);
 			}
 		}
 		
@@ -696,16 +691,18 @@ namespace Advobot
 
 	public class Mod_Logs : ModuleBase
 	{
-		public static async Task LogCommand(CommandContext context)
+		public static async Task LogCommand(BotGuildInfo guildInfo, CommandContext context)
 		{
 			//Write into the console what the command was and who said it
-			Actions.WriteLine(String.Format("'{0}' on {1}: \'{2}\'", Actions.FormatUser(context.User), Actions.FormatGuild(context.Guild), context.Message.Content));
+			Actions.WriteLine(String.Format("{0} on {1}: \"{2}\"", Actions.FormatUser(context.User), Actions.FormatGuild(context.Guild), context.Message.Content));
+			Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Remove(context.Guild);
+			await Actions.DeleteMessage(context.Message);
 
 			//Get the guild and log channel
 			var guild = Actions.VerifyGuild(context.Message, LogActions.CommandLog);
 			if (guild == null)
 				return;
-			var modLog = Variables.Guilds.ContainsKey(guild.Id) ? Variables.Guilds[guild.Id].ModLog : null;
+			var modLog = guildInfo.ModLog;
 			if (modLog == null)
 				return;
 
@@ -811,7 +808,10 @@ namespace Advobot
 				if (closeWordList.User != null && closeWordList.List.Count > number)
 				{
 					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
-					Variables.ActiveCloseWords.Remove(closeWordList);
+					lock (Variables.ActiveCloseWords)
+					{
+						Variables.ActiveCloseWords.Remove(closeWordList);
+					}
 					await Actions.SendChannelMessage(message.Channel, remind.Text);
 					await Actions.DeleteMessage(message);
 				}
@@ -819,7 +819,10 @@ namespace Advobot
 				if (closeHelpList.User != null && closeHelpList.List.Count > number)
 				{
 					var help = closeHelpList.List[number].Help;
-					Variables.ActiveCloseHelp.Remove(closeHelpList);
+					lock (Variables.ActiveCloseHelp)
+					{
+						Variables.ActiveCloseHelp.Remove(closeHelpList);
+					}
 					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help)), "Help"));
 					await Actions.DeleteMessage(message);
 				}

@@ -289,6 +289,7 @@ namespace Advobot
 				ExceptionToConsole(String.Format("LoadGuildInfo for {0}", FormatGuild(guild)), e);
 			}
 
+			guildInfo.CommandSettings.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			var cmds = guildInfo.CommandSettings.Select(x => x.Name).ToList();
 			Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList().ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 			return guildInfo;
@@ -1246,6 +1247,8 @@ namespace Advobot
 
 		public static async Task DeleteMessages(IMessageChannel channel, List<IMessage> messages)
 		{
+			if (messages == null || !messages.Any())
+				return;
 			var guildChannel = channel as ITextChannel;
 			if (guildChannel == null)
 				return;
@@ -1343,12 +1346,12 @@ namespace Advobot
 			var tempChan = channel as IGuildChannel;
 			if (tempChan == null)
 				return "Unable to get channel data.";
-			return String.Format("'{0}' ({1}) ({2})", channel.Name, GetChannelType(tempChan), channel.Id);
+			return String.Format("{0} ({1}) ({2})", channel.Name, GetChannelType(tempChan), channel.Id);
 		}
 
 		public static string FormatRole(IRole role)
 		{
-			return String.Format("'{0}' ({1})", role.Name, role.Id);
+			return String.Format("{0} ({1})", role.Name, role.Id);
 		}
 
 		public static string RemoveNewLines(string input)
@@ -1993,7 +1996,7 @@ namespace Advobot
 		public static IMessage VerifyMessage(IMessage message)
 		{
 			//Make sure the message doesn't come from a bot
-			return !(message == null || message.Author.IsBot && message.Author.Id != Variables.Bot_ID) ? message : null;
+			return !(message == null || message.Author.IsWebhook || message.Author.IsBot && message.Author.Id != Variables.Bot_ID) ? message : null;
 		}
 
 		public static IGuild GetGuildFromMessage(IMessage message)
@@ -2073,6 +2076,8 @@ namespace Advobot
 			}
 			if (!File.Exists(path))
 			{
+				var cmds = guildInfo.CommandSettings.Select(x => x.Name).ToList();
+				Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList().ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 				SaveGuildInfo(guildInfo);
 			}
 			else
@@ -2312,7 +2317,10 @@ namespace Advobot
 					if (smUser.CurrentMessagesLeft == smUser.BaseMessages)
 					{
 						smUser.SetNewTime(DateTime.UtcNow.AddSeconds(smUser.Interval));
-						Variables.SlowmodeUsers.Add(smUser);
+						lock (Variables.SlowmodeUsers)
+						{
+							Variables.SlowmodeUsers.Add(smUser);
+						}
 					}
 
 					//Lower it by one
@@ -2995,12 +3003,18 @@ namespace Advobot
 		#region Timers
 		public static void RemoveCommandMessages(List<IMessage> messages, Int32 time)
 		{
-			Variables.TimedMessages.Add(new RemovableMessage(messages, DateTime.UtcNow.AddMilliseconds(time)));
+			lock (Variables.TimedMessages)
+			{
+				Variables.TimedMessages.Add(new RemovableMessage(messages, DateTime.UtcNow.AddMilliseconds(time)));
+			}
 		}
 
 		public static void RemoveCommandMessage(IMessage message, Int32 time)
 		{
-			Variables.TimedMessages.Add(new RemovableMessage(message, DateTime.UtcNow.AddMilliseconds(time)));
+			lock (Variables.TimedMessages)
+			{
+				Variables.TimedMessages.Add(new RemovableMessage(message, DateTime.UtcNow.AddMilliseconds(time)));
+			}
 		}
 
 		public static void HourTimer(object obj)
@@ -3043,6 +3057,108 @@ namespace Advobot
 				time -= (long)DateTime.UtcNow.TimeOfDay.TotalMilliseconds % PERIOD;
 			}
 			Variables.RemovePunishmentTimer = new Timer(OneFourthSecondTimer, null, time, Timeout.Infinite);
+		}
+
+		public static List<T> GetOutTimedObject<T>(List<T> inputList) where T : ITimeInterface
+		{
+			List<T> eligibleToBeGotten;
+			lock (inputList)
+			{
+				eligibleToBeGotten = inputList.Where(x => x.GetTime() <= DateTime.UtcNow).ToList();
+				inputList.RemoveAll(x => eligibleToBeGotten.Contains(x));
+			}
+			return eligibleToBeGotten;
+		}
+
+		public static void ClearPunishedUsersList()
+		{
+			Variables.Guilds.ToList().ForEach(x => x.Value.GlobalSpamPrevention.SpamPreventionUsers.Clear());
+		}
+
+		public static void RemovePunishments()
+		{
+			var eligibleToLosePunishment = GetOutTimedObject(Variables.PunishedUsers);
+			//The reason this is not a foreachasync is 1) it doesn't work well with a timer and 2) the results of this are unimportant
+			eligibleToLosePunishment.ForEach(async punishment =>
+			{
+				Variables.PunishedUsers.Remove(punishment);
+
+				//Things that can be done with an IUser
+				var user = punishment.User;
+				if (punishment.Type == PunishmentType.Ban)
+				{
+					await punishment.Guild.RemoveBanAsync(user.Id);
+					return;
+				}
+
+				//Things that need an IGuildUser
+				var guildUser = await punishment.Guild.GetUserAsync(user.Id);
+				switch (punishment.Type)
+				{
+					case PunishmentType.Role:
+					{
+						await guildUser.RemoveRoleAsync(punishment.Role);
+						return;
+					}
+					case PunishmentType.Deafen:
+					{
+						await guildUser.ModifyAsync(x => x.Deaf = false);
+						return;
+					}
+					case PunishmentType.Mute:
+					{
+						await guildUser.ModifyAsync(x => x.Mute = false);
+						return;
+					}
+				}
+			});
+		}
+
+		public static void DeleteTargettedMessages()
+		{
+			var eligibleToBeDeleted = GetOutTimedObject(Variables.TimedMessages);
+			//The reason this is not a foreachasync is 1) it doesn't work well with a timer and 2) the results of this are unimportant
+			eligibleToBeDeleted.ForEach(async timed =>
+			{
+				await DeleteMessage(timed.Message);
+				await DeleteMessages(timed.Messages.FirstOrDefault().Channel, timed.Messages);
+			});
+		}
+
+		public static void RemoveActiveCloseHelpAndWords()
+		{
+			var inactiveHelp = GetOutTimedObject(Variables.ActiveCloseHelp);
+			var inactiveWords = GetOutTimedObject(Variables.ActiveCloseWords);
+		}
+
+		public static void ActivateGuildToggles()
+		{
+			var eligibleToBeToggled = GetOutTimedObject(Variables.GuildToggles);
+			eligibleToBeToggled.ForEach(x =>
+			{
+				switch (x.Toggle)
+				{
+					case GuildToggle.EnablePrefs:
+					{
+						Variables.Guilds[x.GuildID].SwitchEnablingPrefs();
+						break;
+					}
+					case GuildToggle.DeletePrefs:
+					{
+						Variables.Guilds[x.GuildID].SwitchDeletingPrefs();
+						break;
+					}
+				}
+			});
+		}
+
+		public static void ResetSMUserMessages()
+		{
+			var eligibleForReset = GetOutTimedObject(Variables.SlowmodeUsers);
+			eligibleForReset.ForEach(x =>
+			{
+				x.ResetMessagesLeft();
+			});
 		}
 		#endregion
 
@@ -3226,116 +3342,6 @@ namespace Advobot
 		public static async Task ChangeNickname(IGuildUser user, string newNN)
 		{
 			await user.ModifyAsync(x => x.Nickname = newNN ?? user.Username);
-		}
-
-		public static void ClearPunishedUsersList()
-		{
-			Variables.Guilds.ToList().ForEach(x => x.Value.GlobalSpamPrevention.SpamPreventionUsers.Clear());
-		}
-
-		public static void RemovePunishments()
-		{
-			var eligibleToLosePunishment = Variables.PunishedUsers.Where(x => x.Time <= DateTime.UtcNow).ToList();
-			//The reason this is not a foreachasync is 1) it doesn't work well with a timer and 2) the results of this are unimportant
-			eligibleToLosePunishment.ForEach(async punishment =>
-			{
-				Variables.PunishedUsers.Remove(punishment);
-
-				//Things that can be done with an IUser
-				var user = punishment.User;
-				if (punishment.Type == PunishmentType.Ban)
-				{
-					await punishment.Guild.RemoveBanAsync(user.Id);
-					return;
-				}
-
-				//Things that need an IGuildUser
-				var guildUser = await punishment.Guild.GetUserAsync(user.Id);
-				switch (punishment.Type)
-				{
-					case PunishmentType.Role:
-					{
-						await guildUser.RemoveRoleAsync(punishment.Role);
-						return;
-					}
-					case PunishmentType.Deafen:
-					{
-						await guildUser.ModifyAsync(x => x.Deaf = false);
-						return;
-					}
-					case PunishmentType.Mute:
-					{
-						await guildUser.ModifyAsync(x => x.Mute = false);
-						return;
-					}
-				}
-			});
-		}
-
-		public static void DeleteTargettedMessages()
-		{
-			var eligibleToBeDeleted = Variables.TimedMessages.Where(x => x.Time <= DateTime.UtcNow).ToList();
-			//The reason this is not a foreachasync is 1) it doesn't work well with a timer and 2) the results of this are unimportant
-			eligibleToBeDeleted.ForEach(async timed =>
-			{
-				Variables.TimedMessages.Remove(timed);
-
-				//Delete a single message
-				if (timed.Message != null)
-				{
-					await DeleteMessage(timed.Message);
-				}
-				//Multiple
-				else
-				{
-					await DeleteMessages(timed.Messages.FirstOrDefault().Channel, timed.Messages);
-				}
-			});
-		}
-
-		public static void RemoveActiveCloseHelpAndWords()
-		{
-			var inactiveHelp = Variables.ActiveCloseHelp.Where(x => x.DeleteTime <= DateTime.UtcNow).ToList();
-			inactiveHelp.ForEach(x =>
-			{
-				Variables.ActiveCloseHelp.Remove(x);
-			});
-			var inactiveWords = Variables.ActiveCloseWords.Where(x => x.DeleteTime <= DateTime.UtcNow).ToList();
-			inactiveWords.ForEach(x =>
-			{
-				Variables.ActiveCloseWords.Remove(x);
-			});
-		}
-
-		public static void ActivateGuildToggles()
-		{
-			var eligibleToBeToggled = Variables.GuildToggles.Where(x => x.Time <= DateTime.UtcNow).ToList();
-			eligibleToBeToggled.ForEach(x =>
-			{
-				switch (x.Toggle)
-				{
-					case GuildToggle.EnablePrefs:
-					{
-						Variables.Guilds[x.GuildID].SwitchEnablingPrefs();
-						break;
-					}
-					case GuildToggle.DeletePrefs:
-					{
-						Variables.Guilds[x.GuildID].SwitchDeletingPrefs();
-						break;
-					}
-				}
-			});
-		}
-
-		public static void ResetSMUserMessages()
-		{
-			var eligibleForReset = Variables.SlowmodeUsers.Where(x => x.Time <= DateTime.UtcNow).ToList();
-			eligibleForReset.ForEach(x =>
-			{
-				Variables.SlowmodeUsers.Remove(x);
-				x.ResetMessagesLeft();
-			});
 		}
 		#endregion
 	}

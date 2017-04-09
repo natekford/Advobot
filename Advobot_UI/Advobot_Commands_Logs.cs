@@ -56,7 +56,7 @@ namespace Advobot
 
 			if (channel != null)
 			{
-				await Actions.SendChannelMessage(Context, String.Format("The server log has been set on channel {0} with the ID `{1}`.", input, channel.Id));
+				await Actions.SendChannelMessage(Context, String.Format("The server log has been set on `{0}`.", Actions.FormatChannel(channel)));
 			}
 			else
 			{
@@ -110,7 +110,7 @@ namespace Advobot
 
 			if (channel != null)
 			{
-				await Actions.SendChannelMessage(Context, String.Format("The mod log has been set on channel {0} with the ID `{1}`.", input, channel.Id));
+				await Actions.SendChannelMessage(Context, String.Format("The mod log has been set on `{0}`.", Actions.FormatChannel(channel)));
 			}
 			else
 			{
@@ -229,7 +229,7 @@ namespace Advobot
 			//Check if they want the default
 			else if (Actions.CaseInsEquals(input, "default"))
 			{
-				logActions = Constants.DEFAULT_LOG_ACTIONS.ToList();
+				guildInfo.SetLogActions(Constants.DEFAULT_LOG_ACTIONS.ToList());
 
 				//Save everything and send a success message
 				Actions.SaveGuildInfo(guildInfo);
@@ -302,12 +302,12 @@ namespace Advobot
 			else if (enableBool)
 			{
 				logActions.AddRange(newLogActions);
-				logActions = logActions.Distinct().ToList();
 			}
 			else
 			{
-				logActions = logActions.Except(newLogActions).Distinct().ToList();
+				logActions = logActions.Except(newLogActions).ToList();
 			}
+			guildInfo.SetLogActions(logActions.Distinct().ToList());
 
 			//Save everything and send a success message
 			Actions.SaveGuildInfo(guildInfo);

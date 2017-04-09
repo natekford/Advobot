@@ -338,6 +338,8 @@ namespace Advobot
 		public CommandSwitch(string name, bool value)
 		{
 			mHelpEntry = Variables.HelpList.FirstOrDefault(x => x.Name.Equals(name));
+			if (mHelpEntry == null)
+				return;
 			Name = name;
 			Value = value;
 			Category = mHelpEntry.Category;
@@ -814,7 +816,7 @@ namespace Advobot
 		public override async Task<IVoiceRegion> GetOptimalVoiceRegionAsync() { return await mShardedClient.GetOptimalVoiceRegionAsync(); }
 	}
 
-	public class SlowmodeUser
+	public class SlowmodeUser : ITimeInterface
 	{
 		public SlowmodeUser(IGuildUser user = null, int currentMessagesLeft = 1, int baseMessages = 1, int interval = 5)
 		{
@@ -841,6 +843,10 @@ namespace Advobot
 		public void SetNewTime(DateTime time)
 		{
 			Time = time;
+		}
+		public DateTime GetTime()
+		{
+			return Time;
 		}
 	}
 
@@ -1165,18 +1171,23 @@ namespace Advobot
 		public int Closeness { get; private set; }
 	}
 
-	public struct ActiveCloseWords
+	public struct ActiveCloseWords : ITimeInterface
 	{
 		public ActiveCloseWords(IGuildUser user, List<CloseWord> list)
 		{
 			User = user;
 			List = list;
-			DeleteTime = DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE);
+			Time = DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE);
 		}
 
 		public IGuildUser User { get; private set; }
 		public List<CloseWord> List { get; private set; }
-		public DateTime DeleteTime { get; private set; }
+		public DateTime Time { get; private set; }
+
+		public DateTime GetTime()
+		{
+			return Time;
+		}
 	}
 
 	public struct CloseHelp
@@ -1191,18 +1202,23 @@ namespace Advobot
 		public int Closeness { get; private set; }
 	}
 
-	public struct ActiveCloseHelp
+	public struct ActiveCloseHelp : ITimeInterface
 	{
 		public ActiveCloseHelp(IGuildUser user, List<CloseHelp> list)
 		{
 			User = user;
 			List = list;
-			DeleteTime = DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE);
+			Time = DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE);
 		}
 
 		public IGuildUser User { get; private set; }
 		public List<CloseHelp> List { get; private set; }
-		public DateTime DeleteTime { get; private set; }
+		public DateTime Time { get; private set; }
+
+		public DateTime GetTime()
+		{
+			return Time;
+		}
 	}
 
 	public struct UICommandNames
@@ -1261,7 +1277,7 @@ namespace Advobot
 		public string CommandName { get; private set; }
 	}
 
-	public struct RemovablePunishment
+	public struct RemovablePunishment : ITimeInterface
 	{
 		public RemovablePunishment(IGuild guild, IUser user, PunishmentType type, DateTime time)
 		{
@@ -1285,9 +1301,14 @@ namespace Advobot
 		public PunishmentType Type { get; private set; }
 		public IRole Role { get; private set; }
 		public DateTime Time { get; private set; }
+
+		public DateTime GetTime()
+		{
+			return Time;
+		}
 	}
 
-	public struct RemovableMessage
+	public struct RemovableMessage : ITimeInterface
 	{
 		public RemovableMessage(IMessage message, DateTime time)
 		{
@@ -1305,6 +1326,11 @@ namespace Advobot
 		public IMessage Message { get; private set; }
 		public List<IMessage> Messages { get; private set; }
 		public DateTime Time { get; private set; }
+
+		public DateTime GetTime()
+		{
+			return Time;
+		}
 	}
 
 	public struct ReturnedChannel
@@ -1319,7 +1345,7 @@ namespace Advobot
 		public FailureReason Reason { get; private set; }
 	}
 
-	public struct GuildToggleAfterTime
+	public struct GuildToggleAfterTime : ITimeInterface
 	{
 		public GuildToggleAfterTime(ulong guildID, GuildToggle toggle, DateTime time)
 		{
@@ -1331,6 +1357,18 @@ namespace Advobot
 		public ulong GuildID { get; private set; }
 		public GuildToggle Toggle { get; private set; }
 		public DateTime Time { get; private set; }
+
+		public DateTime GetTime()
+		{
+			return Time;
+		}
+	}
+	#endregion
+
+	#region Interfaces
+	public interface ITimeInterface
+	{
+		DateTime GetTime();
 	}
 	#endregion
 
@@ -1470,6 +1508,31 @@ namespace Advobot
 	{
 		EnablePrefs = 1,
 		DeletePrefs = 2,
+	}
+
+	public enum GuildSettings
+	{
+		CommandPreferences = 1,
+		CommandsDisabledOnChannel = 2,
+		BotUsers = 3,
+		SelfAssignableGroups = 4,
+		Reminds = 5,
+		IgnoredCommandChannels = 5,
+		IgnoredLogChannels = 6,
+		LogActions = 7,
+		BannedPhraseStrings = 8,
+		BannedPhraseRegex = 9,
+		BannedPhrasePunishments = 10,
+		MessageSpamPrevention = 11,
+		LongMessageSpamPrevention = 12,
+		LinkSpamPrevention = 13,
+		ImageSpamPrevention = 14,
+		MentionSpamPrevention = 15,
+		WelcomeMessage = 16,
+		GoodbyeMessage = 17,
+		Prefix = 18,
+		Serverlog = 19,
+		Modlog = 20,
 	}
 	#endregion
 }

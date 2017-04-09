@@ -108,10 +108,11 @@ namespace Advobot
 			Actions.SaveGuildInfo(guildInfo);
 		}
 
+		/* TODO: Rewrite this when not tired
 		[Command("guildsettings")]
 		[Alias("gds")]
 		[Usage("")]
-		[Summary("Displays which settings are not default.")]
+		[Summary("Displays guild settings.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
 		public async Task GuildSettings()
@@ -120,27 +121,39 @@ namespace Advobot
 			var guildInfo = Variables.Guilds[Context.Guild.Id];
 
 			//Getting bools
-			var defaultPrefs = guildInfo.DefaultPrefs;
-			var prefix = String.IsNullOrWhiteSpace(guildInfo.Prefix);
-			var bannedStrings = guildInfo.BannedPhrases.Strings.Any();
-			var bannedRegex = guildInfo.BannedPhrases.Regex.Any();
-			var punishments = guildInfo.BannedPhrases.Punishments.Any();
-			var ignoredLogChannels = guildInfo.IgnoredLogChannels.Any();
-			var logActions = guildInfo.LogActions.Any();
-			var reminds = guildInfo.Reminds.Any();
-			var selfAssignableRoles = guildInfo.SelfAssignableGroups.Any();
+			var cPrefsB = !guildInfo.DefaultPrefs;
+			var prefixB = !String.IsNullOrWhiteSpace(guildInfo.Prefix);
+			var bannedStringsB = guildInfo.BannedPhrases.Strings.Any();
+			var bannedRegexB = guildInfo.BannedPhrases.Regex.Any();
+			var bannedPunishmentsB = guildInfo.BannedPhrases.Punishments.Any();
+			var ignoredLogChannelsB = guildInfo.IgnoredLogChannels.Any();
+			var logActionsB = guildInfo.LogActions.Any();
+			var remindsB = guildInfo.Reminds.Any();
+			var selfAssignableGroupsB = guildInfo.SelfAssignableGroups.Any();
 
 			//Formatting the description
 			var description = "";
-			description += String.Format("**Default Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Prefix:** `{0}`\n", prefix ? "No" : "Yes");
-			description += String.Format("**Banned Phrases:** `{0}`\n", bannedStrings ? "Yes" : "No");
-			description += String.Format("**Banned Regex:** `{0}`\n", bannedRegex ? "Yes" : "No");
-			description += String.Format("**Banned Phrases Punishments:** `{0}`\n", punishments ? "Yes" : "No");
-			description += String.Format("**Ignored Channels:** `{0}`\n", ignoredLogChannels ? "Yes" : "No");
-			description += String.Format("**Log Actions:** `{0}`\n", logActions ? "Yes" : "No");
-			description += String.Format("**Reminds:** `{0}`\n", reminds ? "Yes" : "No");
-			description += String.Format("**Self Assignable Roles:** `{0}`\n", selfAssignableRoles ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
+			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
 
 			//Get everything to upload to Hastebin
 			var URL = "";
@@ -179,6 +192,7 @@ namespace Advobot
 			}
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Bot Settings", description, URL: URL));
 		}
+		*/
 
 		[Command("comconfigmodify")]
 		[Alias("ccm")]
@@ -246,7 +260,6 @@ namespace Advobot
 				return;
 			}
 
-			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
@@ -266,7 +279,6 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
-
 			var action = inputArray[0];
 			var inputString = inputArray[1];
 
@@ -286,19 +298,23 @@ namespace Advobot
 			}
 
 			//Check if all
-			bool allBool = false;
+			var allBool = false;
 			if (Actions.CaseInsEquals(inputString, "all"))
 			{
 				allBool = true;
 			}
 
 			var command = Actions.GetCommand(Context.Guild.Id, inputString);
-			var category = new List<CommandSwitch>();
-			if (command == null && !allBool)
+			var commands = new List<CommandSwitch>();
+			if (allBool)
+			{
+				commands = guildInfo.CommandSettings.ToList();
+			}
+			else if (command == null)
 			{
 				if (Enum.TryParse(inputString, true, out CommandCategory cmdCat))
 				{
-					category = Actions.GetMultipleCommands(Context.Guild.Id, cmdCat);
+					commands = Actions.GetMultipleCommands(Context.Guild.Id, cmdCat);
 				}
 				else
 				{
@@ -306,11 +322,6 @@ namespace Advobot
 					return;
 				}
 			}
-			else if (allBool)
-			{
-				category = Variables.Guilds[Context.Guild.Id].CommandSettings.ToList();
-			}
-			//Check if it's already enabled
 			else if (enableBool && command.ValAsBoolean)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already enabled."));
@@ -325,44 +336,37 @@ namespace Advobot
 			//Add the command to the category list for simpler usage later
 			if (command != null)
 			{
-				category.Add(command);
+				commands.Add(command);
 			}
-
 			//Find the commands that shouldn't be turned off
 			var categoryToRemove = new List<CommandSwitch>();
-			category.ForEach(cmd =>
+			commands.ForEach(cmd =>
 			{
 				if (Actions.CaseInsContains(Constants.COMMANDS_UNABLE_TO_BE_TURNED_OFF, cmd.Name))
 				{
 					categoryToRemove.Add(cmd);
 				}
 			});
-			//Remove them
-			category = category.Except(categoryToRemove).ToList();
+			commands = commands.Except(categoryToRemove).ToList();
 
-			//Check if there's still stuff in the list
-			if (category.Count < 1)
+			if (commands.Count < 1)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please don't try to edit that command."));
 				return;
 			}
-
-			//Actually enabled or disable the commands
-			if (enableBool)
+			else if (enableBool)
 			{
-				category.ForEach(x => x.Enable());
+				commands.ForEach(x => x.Enable());
 			}
 			else
 			{
-				category.ForEach(x => x.Disable());
+				commands.ForEach(x => x.Disable());
 			}
 
 			//Save the preferences
 			Actions.SaveGuildInfo(guildInfo);
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {0} the command{1}: `{2}`.",
-				enableBool ? "enabled" : "disabled",
-				category.Count != 1 ? "s" : "",
-				String.Join("`, `", category.Select(x => x.Name))));
+				enableBool ? "enabled" : "disabled", commands.Count != 1 ? "s" : "", String.Join("`, `", commands.Select(x => x.Name))));
 		}
 
 		[Command("comignore")]
@@ -869,8 +873,11 @@ namespace Advobot
 
 					//Create the list, add it to the guild, remove it after five seconds, and delete the message that goes along with it after 5 seconds
 					var acWords = new ActiveCloseWords(Context.User as IGuildUser, closeWords);
-					Variables.ActiveCloseWords.RemoveAll(x => x.User == Context.User);
-					Variables.ActiveCloseWords.Add(acWords);
+					lock (Variables.ActiveCloseWords)
+					{
+						Variables.ActiveCloseWords.RemoveAll(x => x.User == Context.User);
+						Variables.ActiveCloseWords.Add(acWords);
+					}
 					await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 5000);
 				}
 				else

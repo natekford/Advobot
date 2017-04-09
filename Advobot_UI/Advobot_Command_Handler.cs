@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using System.Reflection;
 using System.Threading.Tasks;
+using System;
 
 namespace Advobot
 {
@@ -33,46 +34,35 @@ namespace Advobot
 			var message = parameterMessage as SocketUserMessage;
 			if (message == null || Variables.Pause)
 				return;
-
-			//Mark where the prefix ends and the command begins
-			int argPos = 0;
-
 			//If the channel is not a guild text channel then return (so no DMs)
 			var channel = message.Channel as Discord.ITextChannel;
 			if (channel == null)
 				return;
 
-			//Get the guild's info or make a new one
 			if (!Variables.Guilds.TryGetValue(channel.GuildId, out BotGuildInfo guildInfo))
 			{
 				Actions.LoadGuild(channel.Guild);
 				guildInfo = Variables.Guilds[channel.GuildId];
 			}
-			//Check if that channel is ignored for commands
+			else if (!guildInfo.Loaded)
+			{
+				await Actions.SendChannelMessage(channel, "The guild is not fully loaded, please wait.");
+				return;
+			}
 			else if (guildInfo.IgnoredCommandChannels.Contains(channel.Id))
 				return;
 
-			//Check to see if the guild is using a prefix
+			//Prefix stuff
+			var argPos = 0;
 			var guildPrefix = guildInfo.Prefix;
-			if (!string.IsNullOrWhiteSpace(guildPrefix))
+			if (String.IsNullOrWhiteSpace(guildPrefix))
 			{
-				if (!message.HasStringPrefix(guildPrefix, ref argPos))
-				{
-					if (message.HasMentionPrefix(Variables.Client.GetCurrentUser(), ref argPos))
-					{
-						await Actions.SendChannelMessage(message.Channel, string.Format("The guild's current prefix is: `{0}`.", guildPrefix));
-					}
+				if (!message.HasStringPrefix(Properties.Settings.Default.Prefix, ref argPos))
 					return;
-				}
 			}
-			//Getting to here means the guild is not using a prefix
-			else if (!message.HasStringPrefix(Properties.Settings.Default.Prefix, ref argPos))
-				return;
-
-			//Make sure the guild is fully loaded
-			if (!guildInfo.Loaded)
+			else if (!message.HasStringPrefix(guildPrefix, ref argPos) && message.HasMentionPrefix(Variables.Client.GetCurrentUser(), ref argPos))
 			{
-				await Actions.SendChannelMessage(channel, "The guild is not fully loaded, please wait.");
+				await Actions.SendChannelMessage(message.Channel, String.Format("The guild's current prefix is: `{0}`.", guildPrefix));
 				return;
 			}
 
@@ -82,32 +72,15 @@ namespace Advobot
 			if (result == null)
 				return;
 
-			//If the command failed, notify the user
-			if (!result.IsSuccess)
+			//Ignore unknown command errors because they're annoying and ignore the errors given by lack of permissions, etc. put in by me
+			if (!result.IsSuccess && !(result.ErrorReason.Equals(Constants.IGNORE_ERROR) || result.Error.Equals(CommandError.UnknownCommand)))
 			{
-				//Ignore unknown command errors because they're annoying and ignore the errors given by lack of permissions, etc. put in by me
-				if (result.ErrorReason.Equals(Constants.IGNORE_ERROR) || result.Error.Equals(CommandError.UnknownCommand))
-					return;
-
-				//Give the error message
-				await Actions.MakeAndDeleteSecondaryMessage(context, string.Format("**Error:** {0}", result.ErrorReason));
-
+				await Actions.MakeAndDeleteSecondaryMessage(context, String.Format("**Error:** {0}", result.ErrorReason));
 				++Variables.FailedCommands;
 			}
-			else
+			else if (result.IsSuccess)
 			{
-				//Delete the message
-				var t = Task.Run(async () =>
-				{
-					await Actions.DeleteMessage(message);
-				});
-
-				//Log the command on that guild
-				await Mod_Logs.LogCommand(context);
-
-				//If a command succeeds then the guild gave the bot admin back so remove them from this list
-				Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Remove(context.Guild);
-
+				await Mod_Logs.LogCommand(guildInfo, context);
 				++Variables.SucceededCommands;
 			}
 		}
