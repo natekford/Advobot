@@ -600,7 +600,7 @@ namespace Advobot
 				var listOfFiles = new List<TreeViewItem>();
 				Directory.GetFiles(guildDir).ToList().ForEach(file =>
 				{
-					var fileAndExtension = file.Substring(file.LastIndexOf('\\') + 1);
+					var fileAndExtension = Path.GetFileName(file);
 					if (!Constants.VALID_GUILD_FILES.Contains(fileAndExtension))
 						return;
 

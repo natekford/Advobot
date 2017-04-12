@@ -108,91 +108,194 @@ namespace Advobot
 			Actions.SaveGuildInfo(guildInfo);
 		}
 
-		/* TODO: Rewrite this when not tired
 		[Command("guildsettings")]
 		[Alias("gds")]
 		[Usage("")]
 		[Summary("Displays guild settings.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
-		public async Task GuildSettings()
+		public async Task GuildSettings([Optional, Remainder] string input)
 		{
 			//Get the guild
 			var guildInfo = Variables.Guilds[Context.Guild.Id];
 
-			//Getting bools
-			var cPrefsB = !guildInfo.DefaultPrefs;
-			var prefixB = !String.IsNullOrWhiteSpace(guildInfo.Prefix);
-			var bannedStringsB = guildInfo.BannedPhrases.Strings.Any();
-			var bannedRegexB = guildInfo.BannedPhrases.Regex.Any();
-			var bannedPunishmentsB = guildInfo.BannedPhrases.Punishments.Any();
-			var ignoredLogChannelsB = guildInfo.IgnoredLogChannels.Any();
-			var logActionsB = guildInfo.LogActions.Any();
-			var remindsB = guildInfo.Reminds.Any();
-			var selfAssignableGroupsB = guildInfo.SelfAssignableGroups.Any();
-
-			//Formatting the description
-			var description = "";
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-			description += String.Format("**Command Preferences:** `{0}`\n", defaultPrefs ? "Yes" : "No");
-
-			//Get everything to upload to Hastebin
-			var URL = "";
-			if (!defaultPrefs)
+			if (String.IsNullOrEmpty(input))
 			{
-				var information = "";
-				information += String.Format("Prefix: {0}\n", prefix ? Constants.BOT_PREFIX : guildInfo.Prefix);
-				information += String.Format("Banned Phrases: {0}\n", String.Join("", "\n\t" + guildInfo.BannedPhrases.Strings));
-				information += String.Format("Banned Regex: {0}\n", String.Join("", guildInfo.BannedPhrases.Strings.Select(x => "\n\t" + x.ToString())));
-				information += String.Format("Banned Phrases Punishments: {0}\n", String.Join("", guildInfo.BannedPhrases.Punishments.Select(x => String.Format("\n\t{0}: {1}",
-					x.NumberOfRemoves, x.Punishment == PunishmentType.Role ? String.Format("{0} ({1})", x.Role.Name, x.PunishmentTime) : Enum.GetName(typeof(PunishmentType), x.Punishment)))));
-				information += String.Format("Ignored Channels: {0}\n", String.Join("", guildInfo.IgnoredLogChannels.Select(async x => "\n\t" + (await Context.Guild.GetChannelAsync(x)).Name)));
-				information += String.Format("Log Actions: {0}\n", String.Join("", guildInfo.LogActions.Select(x => "\n\t" + Enum.GetName(typeof(LogActions), x))));
-				information += "Reminds:\n";
-				guildInfo.Reminds.ToList().ForEach(x =>
-				{
-					information += String.Format("\n\t{0}: \"{1}\"", x.Name, x.Text.Length >= 100 ? x.Text.Substring(0, 100) + "..." : x.Text);
-				});
-				information += "Self Assignable Roles:";
-				var currentGroup = -1;
-				guildInfo.SelfAssignableGroups.SelectMany(x => x.Roles).OrderBy(x => x.Group).ToList().ForEach(x =>
-				{
-					if (currentGroup != x.Group)
-					{
-						if (currentGroup != -1)
-						{
-							information += "\n";
-						}
-						information += "\n\tGroup " + x.Group + ":";
-						currentGroup = x.Group;
-					}
-					information += "\n\t" + x.Role.Name;
-				});
+				//Getting bools
+				var commandPreferences = !guildInfo.DefaultPrefs;
+				var commandsDisabledOnChannel = guildInfo.CommandsDisabledOnChannel.Any();
+				var botUsers = guildInfo.BotUsers.Any();
+				var selfAssignableGroups = guildInfo.SelfAssignableGroups.Any();
+				var reminds = guildInfo.Reminds.Any();
+				var ignoredCommandChannels = guildInfo.IgnoredCommandChannels.Any();
+				var ignoredLogChannels = guildInfo.IgnoredLogChannels.Any();
+				var imageOnlyChannels = guildInfo.ImageOnlyChannels.Any();
+				var logActions = guildInfo.LogActions.Any();
+				var bannedPhraseStrings = guildInfo.BannedPhrases.Strings.Any();
+				var bannedPhraseRegex = guildInfo.BannedPhrases.Regex.Any();
+				var bannedPhrasePunishments = guildInfo.BannedPhrases.Punishments.Any();
+				var messageSpamPrevention = guildInfo.GlobalSpamPrevention.MessageSpamPrevention != null;
+				var longMessageSpamPrevention = guildInfo.GlobalSpamPrevention.LongMessageSpamPrevention != null;
+				var linkSpamPrevention = guildInfo.GlobalSpamPrevention.LinkSpamPrevention != null;
+				var imageSpamPrevention = guildInfo.GlobalSpamPrevention.ImageSpamPrevention != null;
+				var mentionSpamPrevention = guildInfo.GlobalSpamPrevention.MentionSpamPrevention != null;
+				var welcomeMessage = guildInfo.WelcomeMessage != null;
+				var goodbyeMessage = guildInfo.GoodbyeMessage != null;
+				var prefix = !String.IsNullOrWhiteSpace(guildInfo.Prefix);
+				var serverlog = guildInfo.ServerLog != null;
+				var modlog = guildInfo.ModLog != null;
 
-				Actions.TryToUploadToHastebin(information, out URL);
+				//Formatting the description
+				var description = "";
+				description += String.Format("**Command Preferences:** `{0}`\n", commandPreferences ? "Yes" : "No");
+				description += String.Format("**Commands Disabled On Channel:** `{0}`\n", commandsDisabledOnChannel ? "Yes" : "No");
+				description += String.Format("**Bot Users:** `{0}`\n", botUsers ? "Yes" : "No");
+				description += String.Format("**Self Assignable Roles:** `{0}`\n", selfAssignableGroups ? "Yes" : "No");
+				description += String.Format("**Reminds:** `{0}`\n", reminds ? "Yes" : "No");
+				description += String.Format("**Ignored Command Channels:** `{0}`\n", ignoredCommandChannels ? "Yes" : "No");
+				description += String.Format("**Ignored Log Channels:** `{0}`\n", ignoredLogChannels ? "Yes" : "No");
+				description += String.Format("**Image Only Channels:** `{0}`\n", imageOnlyChannels ? "Yes" : "No");
+				description += String.Format("**Log Actions:** `{0}`\n", logActions ? "Yes" : "No");
+				description += String.Format("**Banned Phrase Strings:** `{0}`\n", bannedPhraseStrings ? "Yes" : "No");
+				description += String.Format("**Banned Phrase Regex:** `{0}`\n", bannedPhraseRegex ? "Yes" : "No");
+				description += String.Format("**Banned Phrase Punishments:** `{0}`\n", bannedPhrasePunishments ? "Yes" : "No");
+				description += String.Format("**Message Spam Prevention:** `{0}`\n", messageSpamPrevention ? "Yes" : "No");
+				description += String.Format("**Long Message Spam Prevention:** `{0}`\n", longMessageSpamPrevention ? "Yes" : "No");
+				description += String.Format("**Link Spam Prevention:** `{0}`\n", linkSpamPrevention ? "Yes" : "No");
+				description += String.Format("**Image Spam Prevention:** `{0}`\n", imageSpamPrevention ? "Yes" : "No");
+				description += String.Format("**Mention Spam Prevention:** `{0}`\n", mentionSpamPrevention ? "Yes" : "No");
+				description += String.Format("**Welcome Message:** `{0}`\n", welcomeMessage ? "Yes" : "No");
+				description += String.Format("**Goodbye Message:** `{0}`\n", goodbyeMessage ? "Yes" : "No");
+				description += String.Format("**Prefix:** `{0}`\n", prefix ? "Yes" : "No");
+				description += String.Format("**Server Log:** `{0}`\n", serverlog ? "Yes" : "No");
+				description += String.Format("**Mod Log:** `{0}`\n", modlog ? "Yes" : "No");
+
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bot Settings", description));
 			}
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Bot Settings", description, URL: URL));
+			else if (Enum.TryParse(input, true, out SettingsOnGuild setting))
+			{
+				var str = "";
+				switch (setting)
+				{
+					case SettingsOnGuild.CommandPreferences:
+					{
+						str = String.Join("\n", guildInfo.CommandSettings.Select(x => String.Format("`{0}`: `{1}`", x.Name, x.ValAsString)));
+						break;
+					}
+					case SettingsOnGuild.CommandsDisabledOnChannel:
+					{
+						str = String.Join("\n", guildInfo.CommandsDisabledOnChannel.Select(x => String.Format("`{0}`: `{1}`", x.ChannelID, x.CommandName)));
+						break;
+					}
+					case SettingsOnGuild.BotUsers:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					//TODO: Add in the correct stuff for these
+					case SettingsOnGuild.SelfAssignableGroups:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.Reminds:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.IgnoredCommandChannels:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.IgnoredLogChannels:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.ImageOnlyChannels:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.LogActions:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.BannedPhraseStrings:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.BannedPhraseRegex:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.BannedPhrasePunishments:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.MessageSpamPrevention:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.LongMessageSpamPrevention:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.LinkSpamPrevention:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.ImageSpamPrevention:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.MentionSpamPrevention:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.WelcomeMessage:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.GoodbyeMessage:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.Prefix:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.Serverlog:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+					case SettingsOnGuild.Modlog:
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}`: `{1}`", x.UserID, x.Permissions)));
+						break;
+					}
+				}
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bot Setting", String.IsNullOrWhiteSpace(str) ? "Nothing" : str));
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid setting."));
+			}
 		}
-		*/
 
 		[Command("comconfigmodify")]
 		[Alias("ccm")]

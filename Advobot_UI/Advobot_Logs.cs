@@ -174,12 +174,11 @@ namespace Advobot
 			}
 			//Welcome message
 			await Actions.SendGuildNotification(user, guildInfo.WelcomeMessage);
-			//Invite string
+
 			var curInv = await Actions.GetInviteUserJoinedOn(guild);
 			var inviteString = curInv != null ? String.Format("\n**Invite:** {0}", curInv.Code) : "";
-			//Check if the user is a new account
-			var userAccAge = (int)(DateTime.UtcNow - user.CreatedAt.ToUniversalTime()).TotalHours;
-			var ageWarningString = userAccAge <= 24 ? String.Format("\n**New Account:** {0} hours old", userAccAge) : "";
+			var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
+			var ageWarningString = userAccAge.TotalHours <= 24 ? String.Format("\n**New Account:** {0} hours, {1} minutes old.", userAccAge.TotalHours, userAccAge.TotalMinutes) : "";
 
 			if (user.IsBot)
 			{
@@ -447,11 +446,14 @@ namespace Advobot
 				await Message_Received_Actions.BotOwner(message);
 				return;
 			}
-			else if (Actions.VerifyMessage(message) == null)
+			else if (!Actions.VerifyMessage(message))
 				return;
 
 			if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 			{
+				if (guildInfo.IgnoredLogChannels.Contains(message.Channel.Id) || guildInfo.IgnoredCommandChannels.Contains(message.Channel.Id))
+					return;
+
 				await Message_Received_Actions.ModifyPreferences(guildInfo, guild, message);
 				await Message_Received_Actions.CloseWords(guildInfo, guild, message);
 				await Message_Received_Actions.SpamPrevention(guildInfo, guild, message);
@@ -734,12 +736,7 @@ namespace Advobot
 
 		public static async Task ImageLog(BotGuildInfo guildInfo, ITextChannel logChannel, IMessage message)
 		{
-			if (false
-				|| logChannel == null
-				|| message.Author.IsBot
-				|| message.Author.IsWebhook
-				|| guildInfo.IgnoredLogChannels.Contains(message.Channel.Id)
-				|| !guildInfo.LogActions.Contains(LogActions.ImageLog))
+			if (logChannel == null || !guildInfo.LogActions.Contains(LogActions.ImageLog) || message.Author.Id == Variables.Bot_ID)
 				return;
 
 			if (message.Attachments.Any())

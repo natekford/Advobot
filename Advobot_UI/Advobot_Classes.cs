@@ -170,6 +170,7 @@ namespace Advobot
 			Reminds = new List<Remind>();
 			IgnoredCommandChannels = new List<ulong>();
 			IgnoredLogChannels = new List<ulong>();
+			ImageOnlyChannels = new List<ulong>();
 			LogActions = new List<LogActions>();
 			SlowmodeChannels = new List<SlowmodeChannel>();
 			Invites = new List<BotInvite>();
@@ -204,6 +205,8 @@ namespace Advobot
 		public List<ulong> IgnoredCommandChannels { get; private set; }
 		[JsonProperty]
 		public List<ulong> IgnoredLogChannels { get; private set; }
+		[JsonProperty]
+		public List<ulong> ImageOnlyChannels { get; private set; }
 		[JsonProperty]
 		public List<LogActions> LogActions { get; private set; }
 		[JsonIgnore]
@@ -1510,15 +1513,16 @@ namespace Advobot
 		DeletePrefs = 2,
 	}
 
-	public enum GuildSettings
+	public enum SettingsOnGuild
 	{
 		CommandPreferences = 1,
 		CommandsDisabledOnChannel = 2,
 		BotUsers = 3,
 		SelfAssignableGroups = 4,
 		Reminds = 5,
-		IgnoredCommandChannels = 5,
+		IgnoredCommandChannels = 22,
 		IgnoredLogChannels = 6,
+		ImageOnlyChannels = 21,
 		LogActions = 7,
 		BannedPhraseStrings = 8,
 		BannedPhraseRegex = 9,

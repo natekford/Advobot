@@ -55,81 +55,6 @@ namespace Advobot
 			}
 		}
 
-		//Create a sharded client
-		private static DiscordShardedClient CreateShardedClient()
-		{
-			//Define the DiscordSocketClient
-			var ShardedClient = new DiscordShardedClient(new DiscordSocketConfig
-			{
-				AlwaysDownloadUsers = Constants.ALWAYS_DOWNLOAD_USERS,
-				MessageCacheSize = Constants.CACHED_MESSAGE_COUNT,
-				LogLevel = Constants.LOG_LEVEL,
-				TotalShards = Properties.Settings.Default.ShardCount,
-			});
-
-			//Botlogs
-			ShardedClient.Log += Bot_Logs.Log;
-			ShardedClient.GuildAvailable += Bot_Logs.OnGuildAvailable;
-			ShardedClient.GuildUnavailable += Bot_Logs.OnGuildUnavailable;
-			ShardedClient.JoinedGuild += Bot_Logs.OnJoinedGuild;
-			ShardedClient.LeftGuild += Bot_Logs.OnLeftGuild;
-			//Serverlogs
-			ShardedClient.UserJoined += Server_Logs.OnUserJoined;
-			ShardedClient.UserLeft += Server_Logs.OnUserLeft;
-			ShardedClient.UserUnbanned += Server_Logs.OnUserUnbanned;
-			ShardedClient.UserBanned += Server_Logs.OnUserBanned;
-			ShardedClient.GuildMemberUpdated += Server_Logs.OnGuildMemberUpdated;
-			ShardedClient.UserUpdated += Server_Logs.OnUserUpdated;
-			ShardedClient.MessageReceived += Server_Logs.OnMessageReceived;
-			ShardedClient.MessageUpdated += Server_Logs.OnMessageUpdated;
-			ShardedClient.MessageDeleted += Server_Logs.OnMessageDeleted;
-			ShardedClient.RoleCreated += Server_Logs.OnRoleCreated;
-			ShardedClient.RoleUpdated += Server_Logs.OnRoleUpdated;
-			ShardedClient.RoleDeleted += Server_Logs.OnRoleDeleted;
-			ShardedClient.ChannelCreated += Server_Logs.OnChannelCreated;
-			ShardedClient.ChannelUpdated += Server_Logs.OnChannelUpdated;
-			ShardedClient.ChannelDestroyed += Server_Logs.OnChannelDeleted;
-
-			return ShardedClient;
-		}
-
-		//Create a regular client
-		private static DiscordSocketClient CreateSocketClient()
-		{
-			//Define the DiscordSocketClient
-			var SocketClient = new DiscordSocketClient(new DiscordSocketConfig
-			{
-				AlwaysDownloadUsers = Constants.ALWAYS_DOWNLOAD_USERS,
-				MessageCacheSize = Constants.CACHED_MESSAGE_COUNT,
-				LogLevel = Constants.LOG_LEVEL,
-			});
-
-			//Botlogs
-			SocketClient.Log += Bot_Logs.Log;
-			SocketClient.GuildAvailable += Bot_Logs.OnGuildAvailable;
-			SocketClient.GuildUnavailable += Bot_Logs.OnGuildUnavailable;
-			SocketClient.JoinedGuild += Bot_Logs.OnJoinedGuild;
-			SocketClient.LeftGuild += Bot_Logs.OnLeftGuild;
-			//Serverlogs
-			SocketClient.UserJoined += Server_Logs.OnUserJoined;
-			SocketClient.UserLeft += Server_Logs.OnUserLeft;
-			SocketClient.UserUnbanned += Server_Logs.OnUserUnbanned;
-			SocketClient.UserBanned += Server_Logs.OnUserBanned;
-			SocketClient.GuildMemberUpdated += Server_Logs.OnGuildMemberUpdated;
-			SocketClient.UserUpdated += Server_Logs.OnUserUpdated;
-			SocketClient.MessageReceived += Server_Logs.OnMessageReceived;
-			SocketClient.MessageUpdated += Server_Logs.OnMessageUpdated;
-			SocketClient.MessageDeleted += Server_Logs.OnMessageDeleted;
-			SocketClient.RoleCreated += Server_Logs.OnRoleCreated;
-			SocketClient.RoleUpdated += Server_Logs.OnRoleUpdated;
-			SocketClient.RoleDeleted += Server_Logs.OnRoleDeleted;
-			SocketClient.ChannelCreated += Server_Logs.OnChannelCreated;
-			SocketClient.ChannelUpdated += Server_Logs.OnChannelUpdated;
-			SocketClient.ChannelDestroyed += Server_Logs.OnChannelDeleted;
-
-			return SocketClient;
-		}
-
 		//Try to have the bot connect and then add the dependency map
 		public async Task Start(BotClient client)
 		{
@@ -154,6 +79,73 @@ namespace Advobot
 
 			//Block this program until it is closed.
 			await Task.Delay(-1);
+		}
+
+		private static DiscordShardedClient CreateShardedClient()
+		{
+			var ShardedClient = new DiscordShardedClient(new DiscordSocketConfig
+			{
+				AlwaysDownloadUsers = Constants.ALWAYS_DOWNLOAD_USERS,
+				MessageCacheSize = Constants.CACHED_MESSAGE_COUNT,
+				LogLevel = Constants.LOG_LEVEL,
+				TotalShards = Properties.Settings.Default.ShardCount,
+			});
+
+			ShardedClient.Log += Bot_Logs.Log;
+			ShardedClient.GuildAvailable += Bot_Logs.OnGuildAvailable;
+			ShardedClient.GuildUnavailable += Bot_Logs.OnGuildUnavailable;
+			ShardedClient.JoinedGuild += Bot_Logs.OnJoinedGuild;
+			ShardedClient.LeftGuild += Bot_Logs.OnLeftGuild;
+			ShardedClient.UserJoined += Server_Logs.OnUserJoined;
+			ShardedClient.UserLeft += Server_Logs.OnUserLeft;
+			ShardedClient.UserUnbanned += Server_Logs.OnUserUnbanned;
+			ShardedClient.UserBanned += Server_Logs.OnUserBanned;
+			ShardedClient.GuildMemberUpdated += Server_Logs.OnGuildMemberUpdated;
+			ShardedClient.UserUpdated += Server_Logs.OnUserUpdated;
+			ShardedClient.MessageReceived += Server_Logs.OnMessageReceived;
+			ShardedClient.MessageUpdated += Server_Logs.OnMessageUpdated;
+			ShardedClient.MessageDeleted += Server_Logs.OnMessageDeleted;
+			ShardedClient.RoleCreated += Server_Logs.OnRoleCreated;
+			ShardedClient.RoleUpdated += Server_Logs.OnRoleUpdated;
+			ShardedClient.RoleDeleted += Server_Logs.OnRoleDeleted;
+			ShardedClient.ChannelCreated += Server_Logs.OnChannelCreated;
+			ShardedClient.ChannelUpdated += Server_Logs.OnChannelUpdated;
+			ShardedClient.ChannelDestroyed += Server_Logs.OnChannelDeleted;
+
+			return ShardedClient;
+		}
+
+		private static DiscordSocketClient CreateSocketClient()
+		{
+			var SocketClient = new DiscordSocketClient(new DiscordSocketConfig
+			{
+				AlwaysDownloadUsers = Constants.ALWAYS_DOWNLOAD_USERS,
+				MessageCacheSize = Constants.CACHED_MESSAGE_COUNT,
+				LogLevel = Constants.LOG_LEVEL,
+			});
+
+			SocketClient.Log += Bot_Logs.Log;
+			SocketClient.GuildAvailable += Bot_Logs.OnGuildAvailable;
+			SocketClient.GuildUnavailable += Bot_Logs.OnGuildUnavailable;
+			SocketClient.JoinedGuild += Bot_Logs.OnJoinedGuild;
+			SocketClient.LeftGuild += Bot_Logs.OnLeftGuild;
+			SocketClient.UserJoined += Server_Logs.OnUserJoined;
+			SocketClient.UserLeft += Server_Logs.OnUserLeft;
+			SocketClient.UserUnbanned += Server_Logs.OnUserUnbanned;
+			SocketClient.UserBanned += Server_Logs.OnUserBanned;
+			SocketClient.GuildMemberUpdated += Server_Logs.OnGuildMemberUpdated;
+			SocketClient.UserUpdated += Server_Logs.OnUserUpdated;
+			SocketClient.MessageReceived += Server_Logs.OnMessageReceived;
+			SocketClient.MessageUpdated += Server_Logs.OnMessageUpdated;
+			SocketClient.MessageDeleted += Server_Logs.OnMessageDeleted;
+			SocketClient.RoleCreated += Server_Logs.OnRoleCreated;
+			SocketClient.RoleUpdated += Server_Logs.OnRoleUpdated;
+			SocketClient.RoleDeleted += Server_Logs.OnRoleDeleted;
+			SocketClient.ChannelCreated += Server_Logs.OnChannelCreated;
+			SocketClient.ChannelUpdated += Server_Logs.OnChannelUpdated;
+			SocketClient.ChannelDestroyed += Server_Logs.OnChannelDeleted;
+
+			return SocketClient;
 		}
 	}
 }

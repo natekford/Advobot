@@ -1338,7 +1338,7 @@ namespace Advobot
 
 		public static string FormatUser(IUser user)
 		{
-			return String.Format("'{0}#{1}' ({2})", String.IsNullOrWhiteSpace(user.Username) ? "Irretrievable" : user.Username, user.Discriminator, user.Id);
+			return String.Format("{0}#{1} ({2})", String.IsNullOrWhiteSpace(user.Username) ? "Irretrievable" : user.Username, user.Discriminator, user.Id);
 		}
 
 		public static string FormatChannel(IChannel channel)
@@ -1993,10 +1993,11 @@ namespace Advobot
 			return await PermissionCheck(channel) ? channel : null;
 		}
 
-		public static IMessage VerifyMessage(IMessage message)
+		public static bool VerifyMessage(IMessage message)
 		{
-			//Make sure the message doesn't come from a bot
-			return !(message == null || message.Author.IsWebhook || message.Author.IsBot && message.Author.Id != Variables.Bot_ID) ? message : null;
+			if (message == null || message.Author.IsWebhook || (message.Author.IsBot && message.Author.Id != Variables.Bot_ID))
+				return false;
+			return true;
 		}
 
 		public static IGuild GetGuildFromMessage(IMessage message)
@@ -2024,19 +2025,20 @@ namespace Advobot
 		{
 			var guild = GetGuildFromMessage(message);
 			//Check if the message was sent on an ignored channel. If not give back the guild, if so send back null.
-			return guild != null && !Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(message.Channel.Id) ? guild : null;
+			return guild != null && Variables.Guilds.ContainsKey(guild.Id) && !Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(message.Channel.Id) ? guild : null;
 		}
 
 		public static IGuild VerifyLoggingAction(IGuild guild, LogActions logAction)
 		{
 			//If the guild is null send back null. If the logaction being tested isn't turned on send back null.
-			return guild != null && Variables.Guilds[guild.Id].LogActions.Contains(logAction) ? guild : null;
+			return guild != null && Variables.Guilds.ContainsKey(guild.Id) && Variables.Guilds[guild.Id].LogActions.Contains(logAction) ? guild : null;
 		}
 
 		public static IGuild VerifyGuild(IMessage message, LogActions logAction)
 		{
-			//Make sure the message wasn't sent by another bot, that channel isn't ignored, the logged action is turned on, and that the bot isn't paused
-			return VerifyUnpaused(VerifyLoggingAction(VerifyLoggingIsEnabledOnThisChannel(VerifyMessage(message)), logAction));
+			if (!VerifyMessage(message))
+				return null;
+			return VerifyUnpaused(VerifyLoggingAction(VerifyLoggingIsEnabledOnThisChannel(message), logAction));
 		}
 
 		public static IGuild VerifyGuild(IUser user, LogActions logAction)
@@ -3077,12 +3079,9 @@ namespace Advobot
 
 		public static void RemovePunishments()
 		{
-			var eligibleToLosePunishment = GetOutTimedObject(Variables.PunishedUsers);
 			//The reason this is not a foreachasync is 1) it doesn't work well with a timer and 2) the results of this are unimportant
-			eligibleToLosePunishment.ForEach(async punishment =>
+			GetOutTimedObject(Variables.PunishedUsers).ForEach(async punishment =>
 			{
-				Variables.PunishedUsers.Remove(punishment);
-
 				//Things that can be done with an IUser
 				var user = punishment.User;
 				if (punishment.Type == PunishmentType.Ban)
@@ -3116,9 +3115,8 @@ namespace Advobot
 
 		public static void DeleteTargettedMessages()
 		{
-			var eligibleToBeDeleted = GetOutTimedObject(Variables.TimedMessages);
 			//The reason this is not a foreachasync is 1) it doesn't work well with a timer and 2) the results of this are unimportant
-			eligibleToBeDeleted.ForEach(async timed =>
+			GetOutTimedObject(Variables.TimedMessages).ForEach(async timed =>
 			{
 				await DeleteMessage(timed.Message);
 				await DeleteMessages(timed.Messages.FirstOrDefault().Channel, timed.Messages);
@@ -3127,14 +3125,13 @@ namespace Advobot
 
 		public static void RemoveActiveCloseHelpAndWords()
 		{
-			var inactiveHelp = GetOutTimedObject(Variables.ActiveCloseHelp);
-			var inactiveWords = GetOutTimedObject(Variables.ActiveCloseWords);
+			GetOutTimedObject(Variables.ActiveCloseHelp);
+			GetOutTimedObject(Variables.ActiveCloseWords);
 		}
 
 		public static void ActivateGuildToggles()
 		{
-			var eligibleToBeToggled = GetOutTimedObject(Variables.GuildToggles);
-			eligibleToBeToggled.ForEach(x =>
+			GetOutTimedObject(Variables.GuildToggles).ForEach(x =>
 			{
 				switch (x.Toggle)
 				{
@@ -3154,8 +3151,7 @@ namespace Advobot
 
 		public static void ResetSMUserMessages()
 		{
-			var eligibleForReset = GetOutTimedObject(Variables.SlowmodeUsers);
-			eligibleForReset.ForEach(x =>
+			GetOutTimedObject(Variables.SlowmodeUsers).ForEach(x =>
 			{
 				x.ResetMessagesLeft();
 			});
