@@ -143,32 +143,22 @@ namespace Advobot
 					});
 
 					//Add all the roles to a list of self assignable roles
-					var SARoles = success.Select(x => new SelfAssignableRole(Context.Guild.Id, x.Id, groupNumber)).ToList();
+					var SARoles = success.Select(x => new SelfAssignableRole(Context.Guild.Id, x.Id)).ToList();
 
 					if (actionType != SAGAction.Remove)
 					{
-						//Find the groups in the guild
 						var SAGroups = guildInfo.SelfAssignableGroups;
-						//Make a new list of role IDs to check from
-						var ulongs = new List<ulong>();
-						//Add every single role ID to this list
-						SAGroups.ForEach(x => ulongs.AddRange(x.Roles.Select(y => y.Role.Id)));
-						//The roles on this list
+						var ulongs = SAGroups.SelectMany(x => x.Roles).Select(x => x.RoleID);
 						var removed = SARoles.Where(x => ulongs.Contains(x.Role.Id));
-						//Add the roles to the failure list
 						failure.AddRange(removed.Select(x => x.Role.ToString()));
-						//Remove them from the success list
 						success.RemoveAll(x => ulongs.Contains(x.Id));
-						//Remove all roles which are already on the SA list
-						SARoles.RemoveAll(x => ulongs.Contains(x.Role.Id));
+						SARoles.RemoveAll(x => ulongs.Contains(x.RoleID));
 
-						//Create
 						if (actionType == SAGAction.Create)
 						{
 							//Make a new group and add that to the global list
 							guildInfo.SelfAssignableGroups.Add(new SelfAssignableGroup(SARoles, groupNumber));
 						}
-						//Add
 						else
 						{
 							//Add the roles to the group

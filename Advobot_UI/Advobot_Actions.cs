@@ -324,7 +324,7 @@ namespace Advobot
 		#endregion
 
 		#region Gets
-		public static async Task<IRole> GetRole(CommandContext context, string roleName)
+		public static async Task<IRole> GetRole(ICommandContext context, string roleName)
 		{
 			roleName = roleName.Trim().Trim(new char[] { '<', '@', '&', '>' });
 
@@ -397,7 +397,7 @@ namespace Advobot
 			return await guild.GetCurrentUserAsync();
 		}
 		
-		public static async Task<IRole> GetRoleEditAbility(CommandContext context, string input = null, bool ignore_Errors = false, IRole role = null)
+		public static async Task<IRole> GetRoleEditAbility(ICommandContext context, string input = null, bool ignore_Errors = false, IRole role = null)
 		{
 			//Check if valid role
 			var inputRole = role ?? await GetRole(context, input);
@@ -487,7 +487,7 @@ namespace Advobot
 			return null;
 		}
 
-		public static async Task<ReturnedChannel> GetChannelPermability(CommandContext context, string input, IGuildChannel channel = null)
+		public static async Task<ReturnedChannel> GetChannelPermability(ICommandContext context, string input, IGuildChannel channel = null)
 		{
 			channel = channel ?? await GetChannel(context, input);
 			if (channel == null)
@@ -508,7 +508,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task<ReturnedChannel> GetChannelManagability(CommandContext context, string input, IGuildChannel channel = null)
+		public static async Task<ReturnedChannel> GetChannelManagability(ICommandContext context, string input, IGuildChannel channel = null)
 		{
 			channel = channel ?? await GetChannel(context, input);
 			if (channel == null)
@@ -529,7 +529,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task<ReturnedChannel> GetChannelMovability(CommandContext context, string input, IGuildChannel channel = null)
+		public static async Task<ReturnedChannel> GetChannelMovability(ICommandContext context, string input, IGuildChannel channel = null)
 		{
 			channel = channel ?? await GetChannel(context, input);
 			if (channel == null)
@@ -550,7 +550,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task HandleChannelPermsLacked(CommandContext context, ReturnedChannel channel)
+		public static async Task HandleChannelPermsLacked(ICommandContext context, ReturnedChannel channel)
 		{
 			switch (channel.Reason)
 			{
@@ -572,7 +572,7 @@ namespace Advobot
 			}
 		}
 		
-		public static async Task<IGuildChannel> GetChannel(CommandContext context, string input)
+		public static async Task<IGuildChannel> GetChannel(ICommandContext context, string input)
 		{
 			return await GetChannel(context.Guild, context.Channel, context.Message, input);
 		}
@@ -620,7 +620,7 @@ namespace Advobot
 			return Int32.TryParse(inputString, out int number) ? number : -1;
 		}
 		
-		public static async Task<uint> GetBit(CommandContext context, string permission, uint changeValue)
+		public static async Task<uint> GetBit(ICommandContext context, string permission, uint changeValue)
 		{
 			try
 			{
@@ -778,7 +778,11 @@ namespace Advobot
 			{
 				if ((flags & (1 << i)) != 0)
 				{
-					result.Add(Variables.GuildPermissions.FirstOrDefault(x => x.Position == i).Name);
+					var name = Variables.GuildPermissions.FirstOrDefault(x => x.Position == i).Name;
+					if (!String.IsNullOrWhiteSpace(name))
+					{
+						result.Add(name);
+					}
 				}
 			}
 			return result;
@@ -849,7 +853,7 @@ namespace Advobot
 			return client.GetGuilds().SelectMany(x => x.Users).FirstOrDefault(x => x.Id == Properties.Settings.Default.BotOwner);
 		}
 
-		public static async Task<int> GetIfGroupIsValid(CommandContext context, string input)
+		public static async Task<int> GetIfGroupIsValid(ICommandContext context, string input)
 		{
 			if (String.IsNullOrWhiteSpace(input))
 			{
@@ -973,7 +977,7 @@ namespace Advobot
 			return input.Count(y => y == '\n' || y == '\r');
 		}
 
-		public static bool UserCanBeModifiedByUser(CommandContext context, IGuildUser user)
+		public static bool UserCanBeModifiedByUser(ICommandContext context, IGuildUser user)
 		{
 			var bannerPosition = GetPosition(context.Guild, context.User);
 			var banneePosition = user == null ? -1 : GetPosition(context.Guild, user);
@@ -1039,7 +1043,7 @@ namespace Advobot
 			return joinInv;
 		}
 
-		public static async Task<GuildNotification> GetGuildNotification(CommandContext context, string input)
+		public static async Task<GuildNotification> GetGuildNotification(ICommandContext context, string input)
 		{
 			//Get the variables out
 			var inputArray = SplitByCharExceptInQuotes(input, ' ');
@@ -1145,7 +1149,7 @@ namespace Advobot
 			WriteLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, FormatGuild(guild)));
 		}
 
-		public static async Task MakeAndDeleteSecondaryMessage(CommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
+		public static async Task MakeAndDeleteSecondaryMessage(ICommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
 		{
 			await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, secondStr, time);
 		}
@@ -1284,7 +1288,7 @@ namespace Advobot
 			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
 		}
 		
-		public static async Task<IMessage> SendChannelMessage(CommandContext context, string message)
+		public static async Task<IMessage> SendChannelMessage(ICommandContext context, string message)
 		{
 			if (context.Channel == null || !Variables.Guilds.ContainsKey(context.Guild.Id))
 				return null;
@@ -1711,7 +1715,7 @@ namespace Advobot
 		public static async Task WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string fileMessage = null)
 		{
 			//Get the file path
-			var file = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.FILE_EXTENSION;
+			var file = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION;
 			var path = GetServerFilePath(guild.Id, file);
 			if (path == null)
 				return;
@@ -1742,7 +1746,7 @@ namespace Advobot
 			await channel.SendFileAsync(path, text);
 		}
 
-		public static async Task SetPicture(CommandContext context, string input, bool user)
+		public static async Task SetPicture(ICommandContext context, string input, bool user)
 		{
 			//See if the user wants to remove the icon
 			if (input != null && CaseInsEquals(input, "remove"))
@@ -2370,6 +2374,10 @@ namespace Advobot
 
 		public static async Task BannedPhrases(IMessage message)
 		{
+			//TODO: Better bool here
+			if ((message.Author as IGuildUser).GuildPermissions.Administrator)
+				return;
+
 			//Get the guild
 			var guild = GetGuildFromMessage(message);
 			if (guild == null)
@@ -2400,7 +2408,7 @@ namespace Advobot
 			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 				return;
 			var user = message.Author as IGuildUser;
-			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user);
+			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user, guildInfo);
 
 			var amountOfMsgs = 0;
 			switch (phrase.Punishment)
@@ -2508,7 +2516,7 @@ namespace Advobot
 			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 				return;
 			var user = message.Author as IGuildUser;
-			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user);
+			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user, guildInfo);
 
 			var amountOfMsgs = 0;
 			switch (regex.Punishment)

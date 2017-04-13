@@ -680,6 +680,29 @@ namespace Advobot
 			//Send the embed
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Emojis", description));
 		}
+
+		[Command("getpermnamesfromvalue")]
+		[Alias("getperms")]
+		[Usage("[Number]")]
+		[Summary("Lists all the perms that come from the given value.")]
+		[UserHasAPermission]
+		[DefaultEnabled(true)]
+		public async Task GetPermsFromValue([Remainder] string input)
+		{
+			if (!uint.TryParse(input, out uint num))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Input is not a number."));
+				return;
+			}
+
+			var perms = Actions.GetPermissionNames(num);
+			if (!perms.Any())
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The given number holds no permissions."));
+				return;
+			}
+			await Actions.SendChannelMessage(Context.Channel, String.Format("The number `{0}` has the following permissions: `{1}`.", num, String.Join("`, `", perms)));
+		}
 		#endregion
 
 		#region Instant Invites

@@ -253,17 +253,11 @@ namespace Advobot
 		public void SaveOutput(object sender, RoutedEventArgs e)
 		{
 			//Make sure the path is valid
-			var path = Actions.GetDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.FILE_EXTENSION);
+			var path = Actions.GetDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
 			if (path == null)
 			{
 				Actions.WriteLine("Unable to save the output log.");
 				return;
-			}
-
-			//Create the temporary file
-			if (!File.Exists(path))
-			{
-				Directory.CreateDirectory(Path.GetDirectoryName(path));
 			}
 
 			//Save the file

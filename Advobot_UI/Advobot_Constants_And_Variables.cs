@@ -13,7 +13,7 @@ namespace Advobot
 		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
 
 		public const string BOT_VERSION = "0.9.20";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00691";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00699";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -28,8 +28,9 @@ namespace Advobot
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
 		public const string MUTE_ROLE_NAME = "Muted";
 		public const string SERVER_FOLDER = "Discord_Servers";
-		public const string FILE_EXTENSION = ".json";
-		public const string GUILD_INFO_LOCATION = "GuildInfo" + FILE_EXTENSION;
+		public const string SAVING_FILE_EXTENSION = ".json";
+		public const string GENERAL_FILE_EXTENSION = ".txt";
+		public const string GUILD_INFO_LOCATION = "GuildInfo" + SAVING_FILE_EXTENSION;
 		public const string CHANNEL_INSTRUCTIONS = "[#Channel|\"Channel Name\"]";
 		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|\"Channel Name\">";
 		public const string VOICE_TYPE = "voice";

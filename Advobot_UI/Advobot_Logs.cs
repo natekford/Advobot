@@ -178,7 +178,7 @@ namespace Advobot
 			var curInv = await Actions.GetInviteUserJoinedOn(guild);
 			var inviteString = curInv != null ? String.Format("\n**Invite:** {0}", curInv.Code) : "";
 			var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
-			var ageWarningString = userAccAge.TotalHours <= 24 ? String.Format("\n**New Account:** {0} hours, {1} minutes old.", userAccAge.TotalHours, userAccAge.TotalMinutes) : "";
+			var ageWarningString = userAccAge.TotalHours <= 24 ? String.Format("\n**New Account:** {0} hours, {1} minutes old.", (int)userAccAge.TotalHours, (int)userAccAge.Minutes) : "";
 
 			if (user.IsBot)
 			{
@@ -451,15 +451,19 @@ namespace Advobot
 
 			if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 			{
-				if (guildInfo.IgnoredLogChannels.Contains(message.Channel.Id) || guildInfo.IgnoredCommandChannels.Contains(message.Channel.Id))
-					return;
+				if (!guildInfo.IgnoredCommandChannels.Contains(message.Channel.Id))
+				{
+					await Message_Received_Actions.ModifyPreferences(guildInfo, guild, message);
+					await Message_Received_Actions.CloseWords(guildInfo, guild, message);
 
-				await Message_Received_Actions.ModifyPreferences(guildInfo, guild, message);
-				await Message_Received_Actions.CloseWords(guildInfo, guild, message);
-				await Message_Received_Actions.SpamPrevention(guildInfo, guild, message);
-				await Message_Received_Actions.VotingOnSpamPrevention(guildInfo, guild, message);
-				await Message_Received_Actions.SlowmodeOrBannedPhrases(guildInfo, guild, message);
-				await Message_Received_Actions.ImageLog(guildInfo, guildInfo.ServerLog, message);
+				}
+				if (!guildInfo.IgnoredLogChannels.Contains(message.Channel.Id))
+				{
+					await Message_Received_Actions.VotingOnSpamPrevention(guildInfo, guild, message);
+					await Message_Received_Actions.SpamPrevention(guildInfo, guild, message);
+					await Message_Received_Actions.SlowmodeOrBannedPhrases(guildInfo, guild, message);
+					await Message_Received_Actions.ImageLog(guildInfo, guildInfo.ServerLog, message);
+				}
 			}
 		}
 		

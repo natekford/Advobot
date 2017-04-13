@@ -474,11 +474,10 @@ namespace Advobot
 
 	public class SelfAssignableRole
 	{
-		public SelfAssignableRole(ulong guildID, ulong roleID, int group)
+		public SelfAssignableRole(ulong guildID, ulong roleID)
 		{
 			GuildID = guildID;
 			RoleID = roleID;
-			Group = group;
 			Role = Variables.Client.GetGuild(guildID).GetRole(roleID);
 		}
 
@@ -490,6 +489,11 @@ namespace Advobot
 		public int Group { get; private set; }
 		[JsonIgnore]
 		public IRole Role { get; private set; }
+
+		public void SetGroup(int group)
+		{
+			Group = group;
+		}
 	}
 
 	public class SelfAssignableGroup
@@ -498,6 +502,7 @@ namespace Advobot
 		{
 			mRoles = roles;
 			Group = group;
+			roles.ForEach(x => x.SetGroup(Group));
 		}
 
 		[JsonProperty(PropertyName = "Roles")]
@@ -513,31 +518,32 @@ namespace Advobot
 
 		public void AddRole(SelfAssignableRole role)
 		{
+			role.SetGroup(Group);
 			mRoles.Add(role);
 		}
 		public void AddRoles(List<SelfAssignableRole> roles)
 		{
+			roles.ForEach(x => x.SetGroup(Group));
 			mRoles.AddRange(roles);
 		}
 		public void RemoveRoles(List<ulong> roleIDs)
 		{
 			mRoles.RemoveAll(x => roleIDs.Contains(x.Role.Id));
 		}
-		public string FormatSaveString()
-		{
-			return String.Join("\n", mRoles.Select(y => String.Format("{0} {1}", y.Role.Id, y.Group)).ToList());
-		}
 	}
 
 	public class BotImplementedPermissions
 	{
-		public BotImplementedPermissions(ulong guildID, ulong userID, uint permissions)
+		public BotImplementedPermissions(ulong guildID, ulong userID, uint permissions, BotGuildInfo guildInfo = null)
 		{
 			GuildID = guildID;
 			UserID = userID;
 			Permissions = permissions;
 			User = Variables.Client.GetGuild(guildID).GetUser(userID);
-			Variables.Guilds[guildID].BotUsers.Add(this);
+			if (guildInfo != null)
+			{
+				guildInfo.BotUsers.Add(this);
+			}
 		}
 
 		[JsonProperty]
@@ -855,10 +861,13 @@ namespace Advobot
 
 	public class BannedPhraseUser
 	{
-		public BannedPhraseUser(IGuildUser user)
+		public BannedPhraseUser(IGuildUser user, BotGuildInfo guildInfo = null)
 		{
 			User = user;
-			Variables.Guilds[user.Guild.Id].BannedPhraseUsers.Add(this);
+			if (guildInfo != null)
+			{
+				guildInfo.BannedPhraseUsers.Add(this);
+			}
 		}
 
 		public IGuildUser User { get; private set; }
