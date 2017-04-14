@@ -110,20 +110,49 @@ namespace Advobot
 
 		[Command("guildsettings")]
 		[Alias("gds")]
-		[Usage("<Current|Setting Name>")]
-		[Summary("Displays guild settings. Inputting nothing gives a list of the names. Inputting current gives a list of all settings currently not at the default.")]
+		[Usage("<All|Setting Name> <@User> <\"Extra:Additional Info\"")]
+		[Summary("Displays guild settings. Inputting nothing gives a list of the names. Inputting current gives a list of all settings currently on the guild.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
 		public async Task GuildSettings([Optional, Remainder] string input)
 		{
 			//Get the guild
 			var guildInfo = Variables.Guilds[Context.Guild.Id];
-
-			if (String.IsNullOrWhiteSpace(input))
+			if (guildInfo.DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+			else if (String.IsNullOrWhiteSpace(input))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingsOnGuild))))));
+				return;
 			}
-			else if (Actions.CaseInsEquals(input, "current"))
+
+			//Get the user if one is input
+			IGuildUser user = null;
+			var mentions = Context.Message.MentionedUserIds;
+			if (mentions.Count == 1)
+			{
+				user = await Actions.GetUser(Context.Guild, mentions.FirstOrDefault());
+				if (user == null)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+					return;
+				}
+			}
+			else if (mentions.Count > 1)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many user mentions."));
+				return;
+			}
+
+			//Split the input
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
+			var target = inputArray[0];
+			var extraInfo = Actions.GetVariable(inputArray, "extra");
+
+			if (Actions.CaseInsEquals(target, "all"))
 			{
 				//Getting bools
 				var commandPreferences = !guildInfo.DefaultPrefs;
@@ -176,7 +205,7 @@ namespace Advobot
 
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Guild Settings", description));
 			}
-			else if (Enum.TryParse(input, true, out SettingsOnGuild setting))
+			else if (Enum.TryParse(target, true, out SettingsOnGuild setting))
 			{
 				var str = "";
 				switch (setting)
@@ -188,13 +217,46 @@ namespace Advobot
 					}
 					case SettingsOnGuild.CommandsDisabledOnChannel:
 					{
-						str = String.Join("\n", guildInfo.CommandsDisabledOnChannel.Select(x => String.Format("`{0}` `{1}`", x.ChannelID, x.CommandName)));
-						break;
+						if (!String.IsNullOrWhiteSpace(extraInfo))
+						{
+							var cmd = Variables.CommandNames.FirstOrDefault(x => Actions.CaseInsEquals(x, extraInfo));
+							if (cmd == null)
+							{
+								await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The given input `{0}` is not a valid command.", inputArray[1]));
+								return;
+							}
+							else
+							{
+								var cmds = guildInfo.CommandsDisabledOnChannel.Where(x => Actions.CaseInsEquals(x.CommandName, cmd)).Select(x => String.Format("`{0}` `{1}`", x.ChannelID, x.CommandName));
+								await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(String.Format("Channels `{0}` is unable to be used on", cmd), String.Join("\n", cmds)));
+								return;
+							}
+						}
+						else
+						{
+							str = String.Join("\n", guildInfo.CommandsDisabledOnChannel.Select(x => String.Format("`{0}` `{1}`", x.ChannelID, x.CommandName)));
+							break;
+						}
 					}
 					case SettingsOnGuild.BotUsers:
 					{
-						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}` `{1}`", x.UserID, x.Permissions)));
-						break;
+						if (user != null)
+						{
+							var botUser = guildInfo.BotUsers.FirstOrDefault(x => x.User.Id == user.Id);
+							var perms = Actions.GetPermissionNames(botUser.Permissions);
+							if (botUser == null || !perms.Any())
+							{
+								await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no bot permissions."));
+								return;
+							}
+							await Actions.SendChannelMessage(Context, String.Format("The user `{0}` has the following permission(s): `{1}`.", Actions.FormatUser(user), String.Join("`, `", perms)));
+							return;
+						}
+						else
+						{
+							str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}` `{1}`", x.UserID, x.Permissions)));
+							break;
+						}
 					}
 					case SettingsOnGuild.SelfAssignableGroups:
 					{
@@ -372,7 +434,7 @@ namespace Advobot
 
 		[Command("comconfig")]
 		[Alias("ccon")]
-		[Usage("[Enable|Disable|Current] [Command Name|Category Name|All]")]
+		[Usage("[Enable|Disable] [Command Name|Category Name|All]")]
 		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `comconfig`, `comconfigmodify`, or `help`.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
@@ -389,19 +451,6 @@ namespace Advobot
 			var inputArray = input.Split(new char[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
-				//Check if it's only to see the current prefs
-				if (Actions.CaseInsEquals(inputArray[0], "current"))
-				{
-					var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.GUILD_INFO_LOCATION);
-					if (path == null)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.PATH_ERROR));
-						return;
-					}
-					var description = String.Join("\n", guildInfo.CommandSettings.Select(x => String.Format("{0}:{1}", x.Name, x.ValAsString)));
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Preferences", description));
-					return;
-				}
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
@@ -497,7 +546,7 @@ namespace Advobot
 
 		[Command("comignore")]
 		[Alias("cign")]
-		[Usage("[Add|Remove] [#Channel] <Full Command Name> | [Current] <All|Full Command Name>")]
+		[Usage("[Add|Remove] [#Channel] <Command Name|Category Name>")]
 		[Summary("The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -511,59 +560,15 @@ namespace Advobot
 				return;
 			}
 
-			//Get the lists the bot will use for this command
-			var ignoredCmdChannels = guildInfo.IgnoredCommandChannels;
-			var ignoredCmdsOnChans = guildInfo.CommandsDisabledOnChannel;
-
 			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 3);
-			var action = inputArray[0];
-
-			if (Actions.CaseInsEquals(action, "current"))
-			{
-				if (inputArray.Length == 1)
-				{
-					//All channels that no commands can be used on
-					var channels = new List<string>();
-					await ignoredCmdChannels.ForEachAsync(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Command Channels", String.Join("\n", channels)));
-					return;
-				}
-				else if (inputArray.Length == 2)
-				{
-					//All commands that are disabled on a specific channel
-					if (Actions.CaseInsEquals(inputArray[1], "all"))
-					{
-						var cmds = ignoredCmdsOnChans.Select(x => String.Format("`{0}`: `{1}`", x.ChannelID, x.CommandName));
-						await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Commands Disabled on Channels", String.Join("\n", cmds)));
-						return;
-					}
-
-					//All of one type of command that is disabled on a specific channel
-					var cmd = Variables.CommandNames.FirstOrDefault(x => Actions.CaseInsEquals(x, inputArray[1]));
-					if (cmd == null)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The given input `{0}` is not a valid command.", inputArray[1]));
-						return;
-					}
-					else
-					{
-						var cmds = ignoredCmdsOnChans.Where(x => Actions.CaseInsEquals(x.CommandName, cmd)).Select(x => String.Format("`{0}`: `{1}`", x.ChannelID, x.CommandName));
-						await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(String.Format("Channels `{0}` is unable to be used on", cmd), String.Join("\n", cmds)));
-						return;
-					}
-				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-					return;
-				}
-			}
-			else if (inputArray.Length < 2 || inputArray.Length > 3)
+			if (inputArray.Length < 2 || inputArray.Length > 3)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+			var action = inputArray[0];
+			var cmdInput = inputArray.Length > 2 ? inputArray[2] : null;
 
 			//Get the channel
 			var mentions = Context.Message.MentionedChannelIds;
@@ -596,39 +601,67 @@ namespace Advobot
 				return;
 			}
 
-			//Get the command
-			if (inputArray.Length == 3)
+			//Get the lists the bot will use for this command
+			var ignoredCmdChannels = guildInfo.IgnoredCommandChannels;
+			var ignoredCmdsOnChans = guildInfo.CommandsDisabledOnChannel;
+			if (cmdInput != null)
 			{
-				var cmdInput = inputArray[2];
 				var cmd = Variables.CommandNames.FirstOrDefault(x => Actions.CaseInsEquals(x, cmdInput));
-				if (cmd == null)
+				var catCmds = Enum.TryParse(cmdInput, true, out CommandCategory cat) ? Variables.HelpList.Where(x => x.Category == cat).ToList() : null;
+				if (cmd == null && catCmds == null)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The given input `{0}` is not a valid command.", cmdInput));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The given input `{0}` is not a valid command or category.", cmdInput));
 					return;
 				}
 
-				if (add)
+				if (cmd != null)
 				{
-					if (ignoredCmdsOnChans.Any(x => x.CommandName == cmd && x.ChannelID == channel.Id))
+					if (add)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already ignored on this channel."));
-						return;
+						if (ignoredCmdsOnChans.Any(x => x.CommandName == cmd && x.ChannelID == channel.Id))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already ignored on this channel."));
+							return;
+						}
+						ignoredCmdsOnChans.Add(new CommandDisabledOnChannel(channel.Id, cmd));
 					}
-					ignoredCmdsOnChans.Add(new CommandDisabledOnChannel(channel.Id, cmd));
+					else
+					{
+						if (!ignoredCmdsOnChans.Any(x => x.CommandName == cmd && x.ChannelID == channel.Id))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already not ignored on this channel."));
+							return;
+						}
+						ignoredCmdsOnChans.RemoveAll(x => x.CommandName == cmd && x.ChannelID == channel.Id);
+					}
+					await Actions.MakeAndDeleteSecondaryMessage(Context,
+						String.Format("Successfully {0} the command `{1}` in `{2}`.", add ? "disabled" : "enabled", cmd, Actions.FormatChannel(channel)));
 				}
-				else
+				else if (catCmds != null)
 				{
-					if (!ignoredCmdsOnChans.Any(x => x.CommandName == cmd && x.ChannelID == channel.Id))
+					if (add)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already not ignored on this channel."));
-						return;
+						catCmds.ForEach(x =>
+						{
+							if (!ignoredCmdsOnChans.Any(y => y.CommandName == x.Name && y.ChannelID == channel.Id))
+							{
+								ignoredCmdsOnChans.Add(new CommandDisabledOnChannel(channel.Id, x.Name));
+							}
+						});
 					}
-					ignoredCmdsOnChans.RemoveAll(x => x.CommandName == cmd && x.ChannelID == channel.Id);
+					else
+					{
+						catCmds.ForEach(x =>
+						{
+							ignoredCmdsOnChans.RemoveAll(y => y.CommandName == cmd && y.ChannelID == channel.Id);
+						});
+					}
+					await Actions.MakeAndDeleteSecondaryMessage(Context,
+						String.Format("Successfully {0} the category `{1}` in `{2}`.", add ? "disabled" : "enabled", Enum.GetName(typeof(CommandCategory), cat), Actions.FormatChannel(channel)));
 				}
 
 				//Save everything and send a success message
 				Actions.SaveGuildInfo(guildInfo);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the command `{1}` in `{2}`.", add ? "disabled" : "enabled", cmd, Actions.FormatChannel(channel)));
 			}
 			else
 			{
@@ -663,8 +696,8 @@ namespace Advobot
 
 		[Command("botusersmodify")]
 		[Alias("bum")]
-		[Usage("[Add|Remove|Show] <@User> <Permission/...>")]
-		[Summary("Gives a user permissions in the bot but not on Discord itself. Can remove a user by not specifying any perms with remove.")]
+		[Usage("<Add|Remove> <@User> <Permission/...>")]
+		[Summary("Gives a user permissions in the bot but not on Discord itself. Can remove a user by not specifying any perms with remove. Giving no input lists all the possible perms.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task BotUsersModify([Remainder] string input)
@@ -674,6 +707,13 @@ namespace Advobot
 			if (guildInfo.DefaultPrefs)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
+				return;
+			}
+
+			//Show the perms
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Permissions", String.Join("\n", Variables.GuildPermissions.Select(x => x.Name))));
 				return;
 			}
 
@@ -689,16 +729,9 @@ namespace Advobot
 			var permStr = inputArray.Length > 2 ? inputArray[2] : null;
 
 			//Check if valid action
-			if (!Enum.TryParse(action, true, out BUMType type))
+			if (!Enum.TryParse(action, true, out ModifyTypes type))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
-				return;
-			}
-
-			//Showing the user just the possible perms
-			if (type == BUMType.Show && inputArray.Length == 1)
-			{
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Permissions", String.Join("\n", Variables.GuildPermissions.Select(x => x.Name))));
 				return;
 			}
 
@@ -717,7 +750,7 @@ namespace Advobot
 
 			//Get the botuser
 			var botUser = guildInfo.BotUsers.FirstOrDefault(x => x.User == user);
-			if (type == BUMType.Show)
+			if (type == ModifyTypes.Show)
 			{
 				if (inputArray.Length == 2)
 				{
@@ -744,7 +777,7 @@ namespace Advobot
 				}
 				return;
 			}
-			else if (type == BUMType.Remove && inputArray.Length == 2)
+			else if (type == ModifyTypes.Remove && inputArray.Length == 2)
 			{
 				if (botUser == null)
 				{
@@ -772,7 +805,7 @@ namespace Advobot
 
 			//Modify the user's perms
 			botUser = botUser ?? new BotImplementedPermissions(Context.Guild.Id, user.Id, 0, guildInfo);
-			if (type == BUMType.Add)
+			if (type == ModifyTypes.Add)
 			{
 				//Give them the permissions
 				permissions.ForEach(x =>
@@ -799,62 +832,8 @@ namespace Advobot
 			//Save everything and send a success message
 			Actions.SaveGuildInfo(guildInfo);
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {1}: `{0}`.", String.Join("`, `", permissions.Select(x => x.Name)),
-				type == BUMType.Add ? String.Format("gave the user `{0}` the following permission{1}", Actions.FormatUser(user), permissions.Count() != 1 ? "s" : "") :
+				type == ModifyTypes.Add ? String.Format("gave the user `{0}` the following permission{1}", Actions.FormatUser(user), permissions.Count() != 1 ? "s" : "") :
 									String.Format("removed the following permission{0} from the user `{1}`", permissions.Count() != 1 ? "s" : "", Actions.FormatUser(user))));
-		}
-
-		[Command("botusers")]
-		[Alias("busr")]
-		[Usage("<@User>")]
-		[Summary("Shows a list of all the people who are bot users. If a user is specified then their permissions are said.")]
-		[UserHasAPermission]
-		[DefaultEnabled(false)]
-		public async Task BotUsers([Optional, Remainder] string input)
-		{
-			//Check if they've enabled preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
-				return;
-			}
-
-			if (!String.IsNullOrWhiteSpace(input))
-			{
-				//Check if user
-				var user = await Actions.GetUser(Context.Guild, input);
-				if (user != null)
-				{
-					//Get the botuser
-					var botUser = guildInfo.BotUsers.FirstOrDefault(x => x.User == user);
-					if (botUser == null || botUser.Permissions == 0)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no bot permissions."));
-						return;
-					}
-					var perms = String.Join("`, `", Actions.GetPermissionNames(botUser.Permissions));
-					await Actions.SendChannelMessage(Context, String.Format("The user `{0}#{1}` has the following permissions: `{2}`.", user.Username, user.Discriminator, perms));
-					return;
-				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
-					return;
-				}
-			}
-
-			if (!guildInfo.BotUsers.Any())
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no bot users."));
-				return;
-			}
-
-			//Format the description
-			var count = 1;
-			var lengthForPad = guildInfo.BotUsers.Count.ToString().Length;
-			var users = guildInfo.BotUsers.Select(x => String.Format("`{0}.` `{1}`", count++.ToString().PadLeft(lengthForPad, '0'), Actions.FormatUser(x.User)));
-			var description = String.Join("\n", users);
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bot Users", description));
 		}
 
 		[Command("remindsmodify")]

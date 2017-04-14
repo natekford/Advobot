@@ -1509,7 +1509,7 @@ namespace Advobot
 		Bot_Inability = 3,
 	}
 
-	public enum BUMType
+	public enum ModifyTypes
 	{
 		Add = 1,
 		Remove = 2,
