@@ -207,6 +207,7 @@ namespace Advobot
 			}
 			else if (Enum.TryParse(target, true, out SettingsOnGuild setting))
 			{
+				var title = Enum.GetName(typeof(SettingsOnGuild), setting);
 				var str = "";
 				switch (setting)
 				{
@@ -222,21 +223,20 @@ namespace Advobot
 							var cmd = Variables.CommandNames.FirstOrDefault(x => Actions.CaseInsEquals(x, extraInfo));
 							if (cmd == null)
 							{
-								await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The given input `{0}` is not a valid command.", inputArray[1]));
-								return;
+								str = String.Format("The given input `{0}` is not a valid command.", inputArray[1]);
 							}
 							else
 							{
-								var cmds = guildInfo.CommandsDisabledOnChannel.Where(x => Actions.CaseInsEquals(x.CommandName, cmd)).Select(x => String.Format("`{0}` `{1}`", x.ChannelID, x.CommandName));
-								await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(String.Format("Channels `{0}` is unable to be used on", cmd), String.Join("\n", cmds)));
-								return;
+								var cmds = guildInfo.CommandsDisabledOnChannel.Where(x => Actions.CaseInsEquals(x.CommandName, cmd));
+								str = String.Join("\n", cmds.Select(x => String.Format("`{0}` `{1}`", x.ChannelID, x.CommandName)));
+								title = String.Format("Channels `{0}` is unable to be used on", cmd);
 							}
 						}
 						else
 						{
 							str = String.Join("\n", guildInfo.CommandsDisabledOnChannel.Select(x => String.Format("`{0}` `{1}`", x.ChannelID, x.CommandName)));
-							break;
 						}
+						break;
 					}
 					case SettingsOnGuild.BotUsers:
 					{
@@ -246,21 +246,41 @@ namespace Advobot
 							var perms = Actions.GetPermissionNames(botUser.Permissions);
 							if (botUser == null || !perms.Any())
 							{
-								await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user has no bot permissions."));
-								return;
+								str = Actions.ERROR("That user has no bot permissions.");
 							}
-							await Actions.SendChannelMessage(Context, String.Format("The user `{0}` has the following permission(s): `{1}`.", Actions.FormatUser(user), String.Join("`, `", perms)));
-							return;
+							else
+							{
+								str = String.Format("The user `{0}` has the following permission(s): `{1}`.", Actions.FormatUser(user), String.Join("`, `", perms));
+							}
 						}
 						else
 						{
 							str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}` `{1}`", x.UserID, x.Permissions)));
-							break;
 						}
+						break;
 					}
 					case SettingsOnGuild.SelfAssignableGroups:
 					{
-						str = String.Join("\n", guildInfo.SelfAssignableGroups.SelectMany(x => x.Roles).OrderBy(x => x.Group).Select(x => String.Format("`{0}`: `{1}`", x.Group, x.RoleID)));
+						if (!String.IsNullOrWhiteSpace(extraInfo))
+						{
+							var num = await Actions.GetIfGroupIsValid(Context, extraInfo);
+							if (num == -1)
+								return;
+
+							var group = guildInfo.SelfAssignableGroups.FirstOrDefault(x => x.Group == num);
+							if (group == null)
+							{
+								str = "There is no group with that number.";
+							}
+							else
+							{
+								str = String.Format("`{0}`", String.Join("`\n`", group.Roles.Select(x => x.Role.Name))); ;
+							}
+						}
+						else
+						{
+							str = String.Join("\n", guildInfo.SelfAssignableGroups.SelectMany(x => x.Roles).OrderBy(x => x.Group).Select(x => String.Format("`{0}`: `{1}`", x.Group, x.RoleID)));
+						}
 						break;
 					}
 					case SettingsOnGuild.Reminds:
@@ -374,7 +394,7 @@ namespace Advobot
 						break;
 					}
 				}
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(Enum.GetName(typeof(SettingsOnGuild), setting), String.IsNullOrWhiteSpace(str) ? "Nothing" : str));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, String.IsNullOrWhiteSpace(str) ? "Nothing" : str));
 			}
 			else
 			{
@@ -546,7 +566,7 @@ namespace Advobot
 
 		[Command("comignore")]
 		[Alias("cign")]
-		[Usage("[Add|Remove] [#Channel] <Command Name|Category Name>")]
+		[Usage("[Enable|Disable] [#Channel] <Command Name|Category Name>")]
 		[Summary("The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -587,11 +607,11 @@ namespace Advobot
 
 			//Determine whether to add or remove
 			bool add;
-			if (Actions.CaseInsEquals(action, "add"))
+			if (Actions.CaseInsEquals(action, "enable"))
 			{
 				add = true;
 			}
-			else if (Actions.CaseInsEquals(action, "remove"))
+			else if (Actions.CaseInsEquals(action, "disable"))
 			{
 				add = false;
 			}
@@ -1042,17 +1062,14 @@ namespace Advobot
 		[Summary("Sends the file containing all the guild's saved bot information.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
-		public async Task GetFile([Optional, Remainder] string input)
+		public async Task GetFile()
 		{
-			//Make sure the file exists
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.GUILD_INFO_LOCATION);
 			if (!File.Exists(path))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The file `{0}` does not exist at this time.", input)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The guild information file does not exist at this time."));
 				return;
 			}
-
-			//Upload it
 			await Actions.UploadFile(Context.Channel, path);
 		}
 	}

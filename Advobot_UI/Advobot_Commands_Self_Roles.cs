@@ -319,7 +319,6 @@ namespace Advobot
 			var groupNumber = -1;
 			if (!String.IsNullOrWhiteSpace(input))
 			{
-				//Get the group number
 				groupNumber = await Actions.GetIfGroupIsValid(Context, input);
 				if (groupNumber == -1)
 					return;
@@ -327,31 +326,23 @@ namespace Advobot
 
 			if (groupNumber == -1)
 			{
-				//Get the groups
 				var groupNumbers = guildInfo.SelfAssignableGroups.Select(x => x.Group).Distinct().ToList();
 				if (!groupNumbers.Any())
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are currently no self assignable role groups on this guild."));
 					return;
 				}
-
-				//Send a sucess message
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Self Assignable Role Groups", String.Join(", ", groupNumbers.OrderBy(x => x).Distinct())));
 			}
 			else
 			{
-				//Get the group which has that number
 				var actualGroup = guildInfo.SelfAssignableGroups.FirstOrDefault(x => x.Group == groupNumber);
 				if (actualGroup == null)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no group with that number."));
 					return;
 				}
-
-				//Add the group's role's names to a list
-				var description = "`" + String.Join("`\n`", actualGroup.Roles.Select(x => x.Role.Name).ToList()) + "`";
-
-				//Send the embed
+				var description = String.Format("`{0}`", String.Join("`\n`", actualGroup.Roles.Select(x => x.Role.Name)));
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(String.Format("Self Roles Group {0}", groupNumber), description));
 			}
 		}

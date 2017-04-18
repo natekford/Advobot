@@ -809,10 +809,7 @@ namespace Advobot
 				if (closeWordList.User != null && closeWordList.List.Count > number)
 				{
 					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
-					lock (Variables.ActiveCloseWords)
-					{
-						Variables.ActiveCloseWords.Remove(closeWordList);
-					}
+					Variables.ActiveCloseWords.ThreadSafeRemove(closeWordList);
 					await Actions.SendChannelMessage(message.Channel, remind.Text);
 					await Actions.DeleteMessage(message);
 				}
@@ -820,10 +817,7 @@ namespace Advobot
 				if (closeHelpList.User != null && closeHelpList.List.Count > number)
 				{
 					var help = closeHelpList.List[number].Help;
-					lock (Variables.ActiveCloseHelp)
-					{
-						Variables.ActiveCloseHelp.Remove(closeHelpList);
-					}
+					Variables.ActiveCloseHelp.ThreadSafeRemove(closeHelpList);
 					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help)), "Help"));
 					await Actions.DeleteMessage(message);
 				}

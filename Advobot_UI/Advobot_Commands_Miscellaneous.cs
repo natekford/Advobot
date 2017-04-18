@@ -7,8 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using System.Text.RegularExpressions;
-
 
 namespace Advobot
 {
@@ -80,11 +78,8 @@ namespace Advobot
 
 						//Create a new list, remove all others the user has, add the new one to the guild's list, remove it and the message that goes along with it after five seconds
 						var acHelp = new ActiveCloseHelp(Context.User as IGuildUser, closeHelps);
-						lock (Variables.ActiveCloseHelp)
-						{
-							Variables.ActiveCloseHelp.RemoveAll(x => x.User == Context.User);
-							Variables.ActiveCloseHelp.Add(acHelp);
-						}
+						Variables.ActiveCloseHelp.ThreadSafeRemoveAll(x => x.User == Context.User);
+						Variables.ActiveCloseHelp.ThreadSafeAdd(acHelp);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.ACTIVE_CLOSE);
 					}
 					else
@@ -318,7 +313,7 @@ namespace Advobot
 				"Memory usage: {1:0.00}MB\n" +
 				"Thread count: {2}\n",
 				Variables.Client.GetLatency(),
-				Process.GetCurrentProcess().WorkingSet64 / 1000000.0,
+				Actions.GetMemory(),
 				Process.GetCurrentProcess().Threads.Count);
 			Actions.AddField(embed, "Technical", thirdField);
 

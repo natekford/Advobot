@@ -349,53 +349,6 @@ namespace Advobot
 				(regex ? "regex" : "string"), phraseStr, Enum.GetName(typeof(PunishmentType), type)));
 		}
 
-		[Command("banphrasescurrent")]
-		[Alias("bpc")]
-		[Usage("<Regex>")]
-		[Summary("Says all of the current banned words from either the file or the list currently being used in the bot.")]
-		[PermissionRequirement]
-		[DefaultEnabled(false)]
-		public async Task BanPhrasesCurrent([Optional, Remainder] string input)
-		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
-			//Get if regex or normal phrases
-			var regexBool = !String.IsNullOrWhiteSpace(input) && Actions.CaseInsEquals(input, "regex");
-
-			//Get the list being used by the bot currently
-			var bannedPhrases = new List<string>();
-			if (!regexBool)
-			{
-				bannedPhrases = guildInfo.BannedPhrases.Strings.Select(x => String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), x.Punishment).Substring(0, 1), x.Phrase)).ToList();
-				if (bannedPhrases.Count == 0)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned phrases."));
-					return;
-				}
-			}
-			else
-			{
-				bannedPhrases = guildInfo.BannedPhrases.Regex.Select(x => String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), x.Punishment).Substring(0, 1), x.Phrase.ToString())).ToList();
-				if (bannedPhrases.Count == 0)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active banned regex."));
-					return;
-				}
-			}
-
-			//Make and send the embed
-			var header = String.Format("Banned {0}", regexBool ? "Regex " : "Phrases ");
-			var count = 1;
-			var description = String.Join("\n", bannedPhrases.Select(x => String.Format("`{0}.` {1}", count++.ToString("00"), x)));
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(header, description));
-		}
-
 		[Command("banphrasespunishmodify")]
 		[Alias("bppm")]
 		[Usage("[Add] [Number] [Role Name|Kick|Ban] <Time> | [Remove] [Number]")]
@@ -595,44 +548,9 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", addBool ? "added" : "removed", successMsg, timeMsg));
 		}
 
-		[Command("banphrasespunishcurrent")]
-		[Alias("bppc")]
-		[Usage("")]
-		[Summary("Shows the current punishments on the guild.")]
-		[PermissionRequirement]
-		[DefaultEnabled(false)]
-		public async Task BanPhrasesPunishCurrent()
-		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
-			var guildPunishments = Variables.Guilds[Context.Guild.Id].BannedPhrases.Punishments;
-			if (!guildPunishments.Any())
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "This guild has no active punishments");
-				return;
-			}
-
-			var description = String.Join("\n", guildPunishments.ToList().Select(x =>
-			{
-				return String.Format("`{0}.` `{1}`{2}",
-					x.NumberOfRemoves.ToString("00"),
-					x.Role == null ? Enum.GetName(typeof(PunishmentType), x.Punishment) : x.Role.Name,
-					x.PunishmentTime == null ? "" : " `" + x.PunishmentTime + " minutes`");
-			}));
-
-			//Make and send an embed
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Banned Phrases Punishments", description));
-		}
-
 		[Command("banphrasesuser")]
 		[Alias("bpu")]
-		[Usage("[Clear|Current] [@User]")]
+		[Usage("[Current|Clear] [@User]")]
 		[Summary("Shows or removes all infraction points a user has on the guild.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -661,28 +579,26 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
-
-			//Get them as a banned phrase user
-			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User == user);
+			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User.Id == user.Id);
+			if (bpUser == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user is not on the banned phrase punishment list."));
+				return;
+			}
 
 			//Check if valid action
 			if (Actions.CaseInsEquals(inputArray[0], "clear"))
 			{
-				//Reset the messages
 				bpUser.ResetRoleCount();
 				bpUser.ResetKickCount();
 				bpUser.ResetBanCount();
-
-				//Send a success message
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the amount of messages removed for `{0}#{1}` to 0.", user.Username, user.Discriminator));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the infractions for `{0}` to 0.", Actions.FormatUser(user)));
 			}
 			if (Actions.CaseInsEquals(inputArray[0], "current"))
 			{
 				var roleCount = bpUser?.MessagesForRole ?? 0;
 				var kickCount = bpUser?.MessagesForKick ?? 0;
 				var banCount = bpUser?.MessagesForBan ?? 0;
-
-				//Send a success message
 				await Actions.MakeAndDeleteSecondaryMessage(Context,
 					String.Format("The user `{0}#{1}` has `{2}R/{3}K/{4}B` infractions.", user.Username, user.Discriminator, roleCount, kickCount, banCount));
 			}

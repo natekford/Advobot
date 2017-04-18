@@ -33,6 +33,7 @@ namespace Advobot
 			HourTimer(null);														//Start the hourly timer
 			MinuteTimer(null);														//Start the minutely timer
 			OneFourthSecondTimer(null);												//Start the one fourth second timer
+
 			StartUpMessages();														//Say all of the start up messages
 			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
 		}
@@ -66,8 +67,14 @@ namespace Advobot
 		{
 			foreach (var classType in AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes()).Where(type => type.IsSubclassOf(typeof(ModuleBase))))
 			{
-				if (!Enum.TryParse(((NameAttribute)classType.GetCustomAttribute(typeof(NameAttribute)))?.Text, true, out CommandCategory category))
+				var className = ((NameAttribute)classType.GetCustomAttribute(typeof(NameAttribute)))?.Text;
+				if (className == null)
 					continue;
+				if (!Enum.TryParse(className, true, out CommandCategory category))
+				{
+					WriteLine(className + " is not currently in the CommandCategory enum.");
+					continue;
+				}
 
 				foreach (var method in classType.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic))
 				{
@@ -109,7 +116,7 @@ namespace Advobot
 							basePerm = String.IsNullOrWhiteSpace(attr.AllText) ? "" : "[" + attr.AllText;
 							if (!basePerm.Equals("[Administrator"))
 							{
-								basePerm += basePerm.Contains('[') ? "|" + attr.AnyText + "]" : "[" + attr.AnyText + "]";
+								basePerm += basePerm.Contains('[') ? String.Format("|{0}]", attr.AnyText) : String.Format("[{0}]", attr.AnyText);
 							}
 							else
 							{
@@ -154,6 +161,14 @@ namespace Advobot
 						{
 							WriteLine("Command does not have a default enabled value set: " + name);
 						}
+					}
+					var simCmds = Variables.HelpList.Where(x =>
+					{
+						return CaseInsEquals(x.Name, name) || (x.Aliases[0] != "N/A" && x.Aliases.Intersect(aliases, StringComparer.OrdinalIgnoreCase).Any());
+					});
+					if (simCmds.Any())
+					{
+						WriteLine(String.Format("The following commands have conflicts: {0}\n{1}", String.Join("\n", simCmds.Select(x => x.Name)), name));
 					}
 					//Add it to the helplist
 					Variables.HelpList.Add(new HelpEntry(name, aliases, usage, basePerm, text, category, defaultEnabled));
@@ -291,7 +306,8 @@ namespace Advobot
 
 			guildInfo.CommandSettings.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			var cmds = guildInfo.CommandSettings.Select(x => x.Name).ToList();
-			Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList().ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
+			var unaddedCmds = Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList();
+			unaddedCmds.ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 			return guildInfo;
 		}
 
@@ -805,12 +821,10 @@ namespace Advobot
 
 		public static string GetVariableAndRemove(List<string> inputList, string searchTerm)
 		{
-			//Get the item
 			var first = inputList?.Where(x => CaseInsEquals(x.Substring(0, Math.Max(x.IndexOf(':'), 1)), searchTerm)).FirstOrDefault();
 			if (first != null)
 			{
-				//Remove it from the list
-				inputList.Remove(first);
+				inputList.ThreadSafeRemove(first);
 				//Return everything after the first colon (the keyword)
 				return first.Substring(first.IndexOf(':') + 1);
 			}
@@ -857,10 +871,9 @@ namespace Advobot
 		{
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("Invalid input for group."));
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Invalid input for group number."));
 				return -1;
 			}
-			//Check if valid number
 			if (!int.TryParse(input, out int groupNumber))
 			{
 				await MakeAndDeleteSecondaryMessage(context, ERROR("Invalid group number."));
@@ -1077,6 +1090,29 @@ namespace Advobot
 			}
 
 			return new GuildNotification(content, title, desc, thumb, context.Guild.Id, channel.Id);
+		}
+
+		public static int GetMemory()
+		{
+			using (var PC = new System.Diagnostics.PerformanceCounter("Process", "Working Set - Private", System.Diagnostics.Process.GetCurrentProcess().ProcessName))
+			{
+				return Convert.ToInt32(PC.NextValue()) / 1024;
+			}
+		}
+
+		public static List<ListedInvite> GetMatchingInvites(List<ListedInvite> curMatches, List<ListedInvite> matches, bool inBool, out bool outBool)
+		{
+			outBool = inBool;
+			if (!outBool)
+			{
+				curMatches = curMatches.Intersect(matches).ToList();
+			}
+			else
+			{
+				curMatches.AddRange(matches);
+				outBool = false;
+			}
+			return curMatches;
 		}
 		#endregion
 
@@ -1474,13 +1510,15 @@ namespace Advobot
 			if (guildChannel == null)
 				return null;
 			var guild = guildChannel.Guild;
-			if (guild == null || !Variables.Guilds.ContainsKey(guild.Id))
+			if (guild == null)
+				return null;
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 				return null;
 
 			content = content ?? "";
 
 			//Replace all instances of the base prefix with the guild's prefix
-			var guildPrefix = Variables.Guilds[guild.Id].Prefix;
+			var guildPrefix = guildInfo.Prefix;
 			if (!String.IsNullOrWhiteSpace(guildPrefix))
 			{
 				embed.Description.Replace(Properties.Settings.Default.Prefix, guildPrefix);
@@ -1489,12 +1527,12 @@ namespace Advobot
 			try
 			{
 				//Generate the message
-				return await guildChannel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content, embed: embed);
+				return await guildChannel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content, embed: embed.WithCurrentTimestamp());
 			}
 			//Embeds fail every now and then and I haven't been able to find the exact problem yet (I know fields are a problem, but not in this case)
 			catch (Exception e)
 			{
-				ExceptionToConsole(MethodBase.GetCurrentMethod().Name, e);
+				ExceptionToConsole("SendEmbedMessage", e);
 				return null;
 			}
 		}
@@ -1502,7 +1540,7 @@ namespace Advobot
 		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null, string URL = null, string thumbnailURL = null)
 		{
 			//Make the embed builder
-			var embed = new EmbedBuilder().WithColor(Constants.BASE).WithCurrentTimestamp();
+			var embed = new EmbedBuilder().WithColor(Constants.BASE);
 
 			//Validate the URLs
 			imageURL = ValidateURL(imageURL) ? imageURL : null;
@@ -1722,22 +1760,13 @@ namespace Advobot
 
 			//Double check that all markdown characters are removed
 			text = ReplaceMarkdownChars(text);
-			//Make sure a file message exists
 			fileMessage = String.IsNullOrWhiteSpace(fileMessage) ? "" : String.Format("**{0}:**", fileMessage);
 
-			//Create the temporary file
-			if (!File.Exists(GetServerFilePath(guild.Id, file)))
-			{
-				Directory.CreateDirectory(Path.GetDirectoryName(path));
-			}
-			//Write to the temporary file
-			using (var writer = new StreamWriter(path, true))
+			using (var writer = new StreamWriter(path))
 			{
 				writer.WriteLine(text);
 			}
-			//Upload the file
 			await channel.SendFileAsync(path, fileMessage);
-			//Delete the file
 			File.Delete(path);
 		}
 
@@ -3350,13 +3379,37 @@ namespace Advobot
 		#endregion
 	}
 
-	public static class AsyncForEach
+	public static class ListModifications
 	{
 		public static async Task ForEachAsync<T>(this List<T> list, Func<T, Task> func)
 		{
 			foreach (var value in list)
 			{
 				await func(value);
+			}
+		}
+
+		public static void ThreadSafeAdd<T>(this List<T> list, T obj)
+		{
+			lock (list)
+			{
+				list.Add(obj);
+			}
+		}
+
+		public static void ThreadSafeRemove<T>(this List<T> list, T obj)
+		{
+			lock (list)
+			{
+				list.Remove(obj);
+			}
+		}
+
+		public static void ThreadSafeRemoveAll<T>(this List<T> list, Predicate<T> match)
+		{
+			lock (list)
+			{
+				list.RemoveAll(match);
 			}
 		}
 	}

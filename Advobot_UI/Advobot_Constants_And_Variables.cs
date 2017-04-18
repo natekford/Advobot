@@ -184,6 +184,7 @@ namespace Advobot
 		//Lists that change as the bot is used
 		public readonly static List<ulong> PotentialBotOwners = new List<ulong>();
 		public readonly static List<ulong> DeletedRoles = new List<ulong>();
+		public readonly static List<ListedInvite> InviteList = new List<ListedInvite>();
 		public readonly static List<RemovablePunishment> PunishedUsers = new List<RemovablePunishment>();
 		public readonly static List<RemovableMessage> TimedMessages = new List<RemovableMessage>();
 		public readonly static List<ActiveCloseHelp> ActiveCloseHelp = new List<ActiveCloseHelp>();

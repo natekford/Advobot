@@ -213,7 +213,7 @@ namespace Advobot
 			{
 				var client = Variables.Client;
 				mLatency.Text = String.Format("Latency: {0}ms", client.GetLatency());
-				mMemory.Text = String.Format("Memory: {0}MB", (Process.GetCurrentProcess().WorkingSet64 / 1000000.0).ToString("0.00"));
+				mMemory.Text = String.Format("Memory: {0}MB", (Actions.GetMemory() / 1024.0).ToString("0.00"));
 				mThreads.Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
 				mShards.Text = String.Format("Shards: {0}", client.GetShards().Count);
 				mPrefix.Text = String.Format("Prefix: {0}", Properties.Settings.Default.Prefix);

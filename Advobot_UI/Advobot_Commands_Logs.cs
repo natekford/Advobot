@@ -1,9 +1,10 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Discord;
 
 namespace Advobot
 {
@@ -120,7 +121,7 @@ namespace Advobot
 
 		[Command("logignore")]
 		[Alias("logi")]
-		[Usage("[Add|Remove|Current] [#Channel]")]
+		[Usage("[Add|Remove] [#Channel]")]
 		[Summary("Ignores all logging info that would have been gotten from a channel. Only works on text channels.")]
 		[GuildOwnerRequirement]
 		[DefaultEnabled(false)]
@@ -133,25 +134,16 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
-			var ignoredLogChannels = Variables.Guilds[Context.Guild.Id].IgnoredLogChannels;
 
 			//Split the input
 			var inputArray = input.Split(new char[] { ' ' }, 2);
-			var action = inputArray[0];
-			var channelInput = inputArray.Length > 1 ? inputArray[1] : null;
-
-			if (Actions.CaseInsEquals(action, "current"))
-			{
-				var channels = new List<string>();
-				await ignoredLogChannels.ForEachAsync(async x => channels.Add(Actions.FormatChannel(await Context.Guild.GetChannelAsync(x))));
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Ignored Log Channels", String.Join("\n", channels.Select(x => "`" + x + "`"))));
-				return;
-			}
-			else if (inputArray.Length != 2)
+			if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+			var action = inputArray[0];
+			var channelInput = inputArray[1];
 
 			bool addBool;
 			if (Actions.CaseInsEquals(action, "add"))
@@ -177,11 +169,12 @@ namespace Advobot
 				return;
 			}
 
+			var ignoredLogChannels = guildInfo.IgnoredLogChannels;
 			if (addBool)
 			{
 				if (ignoredLogChannels.Contains(channel.Id))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored by the log."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored by the server log."));
 					return;
 				}
 				ignoredLogChannels.Add(channel.Id);
@@ -190,7 +183,7 @@ namespace Advobot
 			{
 				if (!ignoredLogChannels.Contains(channel.Id))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored by the log."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored by the server log."));
 					return;
 				}
 				ignoredLogChannels.Remove(channel.Id);
@@ -205,11 +198,11 @@ namespace Advobot
 
 		[Command("logactions")]
 		[Alias("loga")]
-		[Usage("[Enable|Disable|Default|Show|Current] <All|Log Action/...>")]
-		[Summary("The log will fire when these events happen. `Show` lists all the possible events. `Default` overrides the current settings, and `Current` shows them.")]
+		[Usage("<Enable|Disable|Default> <All|Log Action/...>")]
+		[Summary("The server log will send messages when these events happen. `Default` overrides the current settings. Inputting nothing gives a list of the log actions.")]
 		[GuildOwnerRequirement]
 		[DefaultEnabled(false)]
-		public async Task SwitchLogActions([Remainder] string input)
+		public async Task SwitchLogActions([Optional, Remainder] string input)
 		{
 			//Check if using the default preferences
 			var guildInfo = Variables.Guilds[Context.Guild.Id];
@@ -221,12 +214,11 @@ namespace Advobot
 			var logActions = guildInfo.LogActions;
 
 			//Check if the person wants to only see the types
-			if (Actions.CaseInsEquals(input, "show"))
+			if (String.IsNullOrWhiteSpace(input))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Log Actions", String.Join("\n", Enum.GetNames(typeof(LogActions)))));
 				return;
 			}
-			//Check if they want the default
 			else if (Actions.CaseInsEquals(input, "default"))
 			{
 				guildInfo.SetLogActions(Constants.DEFAULT_LOG_ACTIONS.ToList());
@@ -234,19 +226,6 @@ namespace Advobot
 				//Save everything and send a success message
 				Actions.SaveGuildInfo(guildInfo);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully restored the default log actions.");
-				return;
-			}
-			//Check if they want to see the current activated ones
-			else if (Actions.CaseInsEquals(input, "current"))
-			{
-				if (logActions.Count == 0)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no active log actions."));
-				}
-				else
-				{
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Log Actions", String.Join("\n", logActions.Select(x => Enum.GetName(typeof(LogActions), x)))));
-				}
 				return;
 			}
 

@@ -231,6 +231,8 @@ namespace Advobot
 		[JsonProperty]
 		public GuildNotification GoodbyeMessage { get; private set; }
 		[JsonProperty]
+		public ListedInvite ListedInvite { get; private set; }
+		[JsonProperty]
 		public string Prefix { get; private set; }
 		[JsonProperty]
 		public ulong GuildID { get; private set; }
@@ -319,6 +321,10 @@ namespace Advobot
 		{
 			LogActions = logActions;
 		}
+		public void SetListedInvite(ListedInvite listedInvite)
+		{
+			ListedInvite = listedInvite;
+		}
 		public void ClearSMChannels()
 		{
 			SlowmodeChannels = new List<SlowmodeChannel>();
@@ -333,6 +339,11 @@ namespace Advobot
 
 			ModLog = Guild.GetChannel(ModLogID) as ITextChannel;
 			ServerLog = Guild.GetChannel(ServerLogID) as ITextChannel;
+
+			if (ListedInvite != null)
+			{
+				Variables.InviteList.ThreadSafeAdd(ListedInvite);
+			}
 		}
 	}
 
@@ -712,6 +723,52 @@ namespace Advobot
 			Enabled = newVal;
 		}
 	}
+
+	public class ListedInvite
+	{
+		public ListedInvite(ulong guildID, string code, string[] keywords)
+		{
+			GuildID = guildID;
+			Guild = Variables.Client.GetGuild(GuildID);
+			HasGlobalEmotes = Guild.Emojis.Any(x => x.IsManaged);
+			LastBumped = DateTime.UtcNow;
+			Code = code;
+			URL = String.Concat("https://www.discord.gg/", Code);
+			mKeywords = keywords;
+		}
+
+		[JsonProperty]
+		public ulong GuildID { get; private set; }
+		[JsonProperty]
+		public string Code { get; private set; }
+		[JsonProperty(PropertyName = "Keywords")]
+		private string[] mKeywords;
+		[JsonIgnore]
+		public bool HasGlobalEmotes { get; private set; }
+		[JsonIgnore]
+		public DateTime LastBumped { get; private set; }
+		[JsonIgnore]
+		public string URL { get; private set; }
+		[JsonIgnore]
+		public SocketGuild Guild { get; private set; }
+
+		[JsonIgnore]
+		public string[] Keywords
+		{
+			get { return mKeywords.Clone() as string[]; }
+		}
+
+		public void UpdateKeywords(string[] keywords)
+		{
+			mKeywords = keywords;
+		}
+		public void Bump()
+		{
+			LastBumped = DateTime.UtcNow;
+			Variables.InviteList.ThreadSafeRemove(this);
+			Variables.InviteList.ThreadSafeAdd(this);
+		}
+	}
 	#endregion
 
 	#region Non-saved Classes
@@ -775,6 +832,7 @@ namespace Advobot
 		public abstract Task SetGameAsync(string game, string stream, StreamType streamType);
 		public abstract Task<RestGuild> CreateGuildAsync(string name, IVoiceRegion region);
 		public abstract Task<IVoiceRegion> GetOptimalVoiceRegionAsync();
+		public abstract Task<RestInvite> GetInviteAsync(string code);
 	}
 
 	public class SocketClient : BotClient
@@ -799,6 +857,7 @@ namespace Advobot
 		public override async Task SetGameAsync(string game, string stream, StreamType streamType) { await mSocketClient.SetGameAsync(game, stream, streamType); }
 		public override async Task<RestGuild> CreateGuildAsync(string name, IVoiceRegion region) { return await mSocketClient.CreateGuildAsync(name, region); }
 		public override async Task<IVoiceRegion> GetOptimalVoiceRegionAsync() { return await mSocketClient.GetOptimalVoiceRegionAsync(); }
+		public override async Task<RestInvite> GetInviteAsync(string code) { return await mSocketClient.GetInviteAsync(code); }
 	}
 
 	public class ShardedClient : BotClient
@@ -823,6 +882,7 @@ namespace Advobot
 		public override async Task SetGameAsync(string game, string stream, StreamType streamType) { await mShardedClient.SetGameAsync(game, stream, streamType); }
 		public override async Task<RestGuild> CreateGuildAsync(string name, IVoiceRegion region) { return await mShardedClient.CreateGuildAsync(name, region); }
 		public override async Task<IVoiceRegion> GetOptimalVoiceRegionAsync() { return await mShardedClient.GetOptimalVoiceRegionAsync(); }
+		public override async Task<RestInvite> GetInviteAsync(string code) { return await mShardedClient.GetInviteAsync(code); }
 	}
 
 	public class SlowmodeUser : ITimeInterface
@@ -1419,6 +1479,8 @@ namespace Advobot
 		Guild_Moderation = 9,
 		Miscellaneous = 10,
 		Spam_Prevention = 11,
+		Channel_Settings = 12,
+		Guild_List = 13,
 	}
 
 	public enum PunishmentType
@@ -1451,8 +1513,7 @@ namespace Advobot
 	{
 		Enable = 1,
 		Disable = 2,
-		Current = 3,
-		Setup = 4,
+		Setup = 3,
 	}
 
 	public enum UICommandEnum

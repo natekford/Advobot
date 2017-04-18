@@ -15,7 +15,7 @@ namespace Advobot
 	{
 		[Command("preventspam")]
 		[Alias("prs")]
-		[Usage("[Message|LongMessage|Link|Image|Mention] [[Enable|Disable|Current] | [Setup] <Messages:Number> <Spam:Number> <Votes:Number>]")]
+		[Usage("[Message|LongMessage|Link|Image|Mention] [[Enable|Disable] | [Setup] <Messages:Number> <Spam:Number> <Votes:Number>]")]
 		[Summary("Spam prevention allows for some protection against mention spammers. Messages are the amount of messages a user has to send with the given amount of mentions before being considered " + 
 			"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The first punishment is a kick, next is a ban. The spam users are reset every hour.")]
 		[PermissionRequirement]
@@ -57,12 +57,11 @@ namespace Advobot
 			{
 				case SpamPreventionAction.Enable:
 				case SpamPreventionAction.Disable:
-				case SpamPreventionAction.Current:
 				{
 					//Make sure the server guild has a spam prevention set up
 					if (spamPrevention == null)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not have any spam prevention to modify or show."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not have any spam prevention to modify."));
 						return;
 					}
 					break;
@@ -96,12 +95,6 @@ namespace Advobot
 					//Disable it
 					spamPrevention.SwitchEnabled(false);
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention has successfully been disabled."));
-					return;
-				}
-				case SpamPreventionAction.Current:
-				{
-					await Actions.SendChannelMessage(Context, String.Format("Messages: `{0}`; Mentions: `{1}`; Votes: `{2}`; Enabled: `{3}`.",
-						spamPrevention.AmountOfMessages, spamPrevention.AmountOfSpam, spamPrevention.VotesNeededForKick, spamPrevention.Enabled.ToString()));
 					return;
 				}
 				case SpamPreventionAction.Setup:
