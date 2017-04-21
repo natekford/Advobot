@@ -470,7 +470,7 @@ namespace Advobot
 			else
 			{
 				await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits));
-				roleNameOrUsername = Actions.FormatUser(user);
+				roleNameOrUsername = Actions.FormatUser(user, user?.Id);
 			}
 
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}` on `{3}`",

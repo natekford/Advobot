@@ -265,11 +265,19 @@ namespace Advobot
 			var guildInfo = LoadGuildInfo(guild);
 			if (guildInfo != null)
 			{
+				if (guildInfo.CommandSettings != null && guildInfo.CommandSettings.Any())
+				{
+					guildInfo.CommandSettings.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+					var cmds = guildInfo.CommandSettings.Select(x => x.Name).ToList();
+					var unaddedCmds = Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList();
+					unaddedCmds.ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
+				}
 				guildInfo.PostDeserialize();
 			}
 			else
 			{
 				guildInfo = new BotGuildInfo(guild.Id);
+				Variables.HelpList.ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 			}
 			guildInfo.TurnLoadedOn();
 			Task.Run(async () =>
@@ -304,10 +312,6 @@ namespace Advobot
 				ExceptionToConsole(String.Format("LoadGuildInfo for {0}", FormatGuild(guild)), e);
 			}
 
-			guildInfo.CommandSettings.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			var cmds = guildInfo.CommandSettings.Select(x => x.Name).ToList();
-			var unaddedCmds = Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList();
-			unaddedCmds.ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 			return guildInfo;
 		}
 
@@ -1092,11 +1096,21 @@ namespace Advobot
 			return new GuildNotification(content, title, desc, thumb, context.Guild.Id, channel.Id);
 		}
 
-		public static int GetMemory()
+		public static double GetMemory()
 		{
-			using (var PC = new System.Diagnostics.PerformanceCounter("Process", "Working Set - Private", System.Diagnostics.Process.GetCurrentProcess().ProcessName))
+			if (Variables.Windows)
 			{
-				return Convert.ToInt32(PC.NextValue()) / 1024;
+				using (var PC = new System.Diagnostics.PerformanceCounter("Process", "Working Set - Private", System.Diagnostics.Process.GetCurrentProcess().ProcessName))
+				{
+					return Convert.ToInt32(PC.NextValue()) / (1024.0 * 1024.0);
+				}
+			}
+			else
+			{
+				using (var process = System.Diagnostics.Process.GetCurrentProcess())
+				{
+					return Convert.ToInt32(process.WorkingSet64) / (1024.0 * 1024.0);
+				}
 			}
 		}
 
@@ -1350,7 +1364,8 @@ namespace Advobot
 		
 		public static async Task FormatEditMessage(ITextChannel logChannel, string time, IGuildUser user, IMessageChannel channel, string before, string after)
 		{
-			await SendChannelMessage(logChannel, String.Format("{0} **EDIT:** `{1}` **IN** `#{2}`\n**FROM:** ```\n{3}```\n**TO:** ```\n{4}```", time, FormatUser(user), FormatChannel(channel), before, after));
+			await SendChannelMessage(logChannel,
+				String.Format("{0} **EDIT:** `{1}` **IN** `#{2}`\n**FROM:** ```\n{3}```\n**TO:** ```\n{4}```", time, FormatUser(user, user?.Id), FormatChannel(channel), before, after));
 		}
 		
 		public static string ReplaceMarkdownChars(string input)
@@ -1376,9 +1391,17 @@ namespace Advobot
 			return String.Format("'{0}' ({1})", guild.Name, guild.Id);
 		}
 
-		public static string FormatUser(IUser user)
+		public static string FormatUser(IUser user, ulong? ID)
 		{
-			return String.Format("{0}#{1} ({2})", String.IsNullOrWhiteSpace(user.Username) ? "Irretrievable" : user.Username, user.Discriminator, user.Id);
+			user = user ?? Variables.Client.GetUser((ulong)ID);
+			if (user != null)
+			{
+				return String.Format("{0}#{1} ({2})", user.Username, user.Discriminator, user.Id);
+			}
+			else
+			{
+				return String.Format("Irretrievable User ({0})", ID);
+			}
 		}
 
 		public static string FormatChannel(IChannel channel)
@@ -1432,7 +1455,7 @@ namespace Advobot
 						var msgContent = String.IsNullOrWhiteSpace(x.Content) ? "" : "Message Content: " + x.Content;
 						var description = String.IsNullOrWhiteSpace(embed.Description) ? "" : "Embed Description: " + embed.Description;
 						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-							FormatUser(x.Author),
+							FormatUser(x.Author, x.Author.Id),
 							FormatChannel(x.Channel),
 							x.CreatedAt.ToString("HH:mm:ss"),
 							ReplaceMarkdownChars((String.IsNullOrEmpty(msgContent) ? msgContent : msgContent + "\n") + description)));
@@ -1440,7 +1463,7 @@ namespace Advobot
 					else
 					{
 						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-							FormatUser(x.Author),
+							FormatUser(x.Author, x.Author.Id),
 							FormatChannel(x.Channel),
 							x.CreatedAt.ToString("HH:mm:ss"),
 							"An embed which was unable to be gotten."));
@@ -1451,7 +1474,7 @@ namespace Advobot
 				{
 					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-						FormatUser(x.Author),
+						FormatUser(x.Author, x.Author.Id),
 						FormatChannel(x.Channel),
 						x.CreatedAt.ToString("HH:mm:ss"),
 						ReplaceMarkdownChars(content + " + " + x.Attachments.ToList().First().Filename)));
@@ -1461,7 +1484,7 @@ namespace Advobot
 				{
 					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-						FormatUser(x.Author),
+						FormatUser(x.Author, x.Author.Id),
 						FormatChannel(x.Channel),
 						x.CreatedAt.ToString("HH:mm:ss"),
 						ReplaceMarkdownChars(content)));
@@ -1972,7 +1995,7 @@ namespace Advobot
 				{
 					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached Image");
-					AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
+					AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl(), x);
 					await SendEmbedMessage(channel, embed);
 
 					++Variables.LoggedImages;
@@ -1982,7 +2005,7 @@ namespace Advobot
 				{
 					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached Gif");
-					AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
+					AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl(), x);
 					await SendEmbedMessage(channel, embed);
 
 					++Variables.LoggedGifs;
@@ -1992,7 +2015,7 @@ namespace Advobot
 				{
 					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 					AddFooter(embed, "Attached File");
-					AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
+					AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl(), x);
 					await SendEmbedMessage(channel, embed);
 
 					++Variables.LoggedFiles;
@@ -2003,7 +2026,7 @@ namespace Advobot
 			{
 				var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
 				AddFooter(embed, "Embedded Image");
-				AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl(), x);
+				AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl(), x);
 				await SendEmbedMessage(channel, embed);
 
 				++Variables.LoggedImages;
@@ -2013,7 +2036,7 @@ namespace Advobot
 			{
 				var embed = MakeNewEmbed(null, null, Constants.ATCH, x.Thumbnail.Value.Url);
 				AddFooter(embed, "Embedded " + (CaseInsContains(Constants.VALID_GIF_EXTENTIONS, Path.GetExtension(x.Thumbnail.Value.Url)) ? "Gif" : "Video"));
-				AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl(), x.Url);
+				AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl(), x.Url);
 				await SendEmbedMessage(channel, embed);
 
 				++Variables.LoggedGifs;
@@ -2103,6 +2126,9 @@ namespace Advobot
 		#region Preferences/Settings
 		public static async Task EnablePreferences(BotGuildInfo guildInfo, IGuild guild, IUserMessage message)
 		{
+			if (!guildInfo.EnablingPrefs)
+				return;
+
 			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
 			if (path == null)
 			{
@@ -2129,6 +2155,9 @@ namespace Advobot
 		
 		public static async Task DeletePreferences(BotGuildInfo guildInfo, IGuild guild, IUserMessage message)
 		{
+			if (!guildInfo.DeletingPrefs)
+				return;
+
 			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
 			if (path == null)
 			{
@@ -2413,7 +2442,9 @@ namespace Advobot
 				return;
 
 			//Get the guild's bot data
-			var bannedPhrases = Variables.Guilds[guild.Id].BannedPhrases;
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+				return;
+			var bannedPhrases = guildInfo.BannedPhrases;
 
 			//Check if it has any banned words or regex
 			var phrase = bannedPhrases.Strings.FirstOrDefault(x => CaseInsIndexOf(message.Content, x.Phrase));
@@ -2421,7 +2452,7 @@ namespace Advobot
 			{
 				await BannedStringPunishments(message, phrase);
 			}
-			var regex = bannedPhrases.Regex.FirstOrDefault(x => x.Phrase.IsMatch(message.Content));
+			var regex = bannedPhrases.Regex.FirstOrDefault(x => Regex.IsMatch(message.Content, x.Phrase, RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT)));
 			if (regex != null)
 			{
 				await BannedRegexPunishments(message, regex);
@@ -2483,7 +2514,7 @@ namespace Advobot
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl()));
+						await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl()));
 					}
 					break;
 				}
@@ -2502,7 +2533,7 @@ namespace Advobot
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
+						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user, user.Id), user.GetAvatarUrl()));
 					}
 					break;
 				}
@@ -2515,7 +2546,7 @@ namespace Advobot
 					//If a time is specified, run through the time then remove the role
 					if (punishment.PunishmentTime != null)
 					{
-						Variables.PunishedUsers.Add(new RemovablePunishment(guild, user, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
+						Variables.PunishedUsers.Add(new RemovablePunishment(guild, user.Id, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
 					}
 
 					//Send a message to the logchannel
@@ -2523,7 +2554,7 @@ namespace Advobot
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**Role Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
+						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user, user.Id), user.GetAvatarUrl()));
 					}
 					break;
 				}
@@ -2536,7 +2567,7 @@ namespace Advobot
 			return punishment != null;
 		}
 
-		public static async Task BannedRegexPunishments(IMessage message, BannedPhrase<Regex> regex)
+		public static async Task BannedRegexPunishments(IMessage message, BannedPhrase<string> regex)
 		{
 			await DeleteMessage(message);
 			var guild = (message.Channel as IGuildChannel)?.Guild;
@@ -2590,7 +2621,7 @@ namespace Advobot
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user), message.Channel), user.GetAvatarUrl()));
+						await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl()));
 					}
 					break;
 				}
@@ -2608,7 +2639,7 @@ namespace Advobot
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
+						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user, user.Id), user.GetAvatarUrl()));
 					}
 					break;
 				}
@@ -2620,7 +2651,7 @@ namespace Advobot
 					//If a time is specified, run through the time then remove the role
 					if (punishment.PunishmentTime != null)
 					{
-						Variables.PunishedUsers.Add(new RemovablePunishment(guild, user, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
+						Variables.PunishedUsers.Add(new RemovablePunishment(guild, user.Id, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
 					}
 
 					//Send a message to the logchannel
@@ -2628,7 +2659,7 @@ namespace Advobot
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user), user.GetAvatarUrl()));
+						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user, user.Id), user.GetAvatarUrl()));
 					}
 					break;
 				}
@@ -2771,9 +2802,9 @@ namespace Advobot
 			return;
 		}
 
-		public static bool TryGetBannedRegex(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<Regex> bannedRegex)
+		public static bool TryGetBannedRegex(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<string> bannedRegex)
 		{
-			bannedRegex = guildInfo.BannedPhrases.Regex.FirstOrDefault(x => CaseInsEquals(x.Phrase.ToString(), searchPhrase));
+			bannedRegex = guildInfo.BannedPhrases.Regex.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
 			return bannedRegex != null;
 		}
 
@@ -2805,7 +2836,12 @@ namespace Advobot
 				return false;
 
 			//Get the user from the list or, if not found, create a new one
-			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == user) ?? new SpamPreventionUser(global, user);
+			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == user);
+			if (spUser == null)
+			{
+				spUser = new SpamPreventionUser(user);
+				global.SpamPreventionUsers.ThreadSafeAdd(spUser);
+			}
 			//Add one to the count of the spam type they triggered and check if the user should be kicked/banned
 			await spUser.CheckIfShouldKick(spamPrev, msg);
 			return true;
@@ -2819,47 +2855,83 @@ namespace Advobot
 			spUser.EnablePotentialKick();
 			//Send this message updating the amount of votes the user needs
 			await MakeAndDeleteSecondaryMessage(msg.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
-				FormatUser(msg.Author), spUser.VotesRequired - spUser.VotesToKick));
+				FormatUser(msg.Author, msg.Author.Id), spUser.VotesRequired - spUser.VotesToKick));
 		}
 
-		public static bool SpamCheck(MessageSpamPrevention spamPrev, IMessage message)
+		public static async Task<bool> SpamCheck(GlobalSpamPrevention global, IGuild guild, IGuildUser author, IMessage msg)
 		{
-			if (spamPrev == null)
+			if (global == null)
 				return false;
 
-			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
-		}
+			var isSpam = false;
+			await global.SpamPreventions.Values.ToList().ForEachAsync(async x =>
+			{
+				switch (x.SpamType)
+				{
+					case SpamType.Message:
+					{
+						var curSpamTest = false;
+						isSpam = isSpam || curSpamTest;
+						if (curSpamTest)
+						{
+							await HandleSpamPrevention(global, x, guild, author, msg);
+						}
+						break;
+					}
+					case SpamType.Long_Message:
+					{
+						var curSpamTest = msg.Content.Length > x.AmountOfSpam;
+						isSpam = isSpam || curSpamTest;
+						if (curSpamTest)
+						{
+							await HandleSpamPrevention(global, x, guild, author, msg);
+						}
+						break;
+					}
+					case SpamType.Link:
+					{
+						var curSpamTest = false;
+						isSpam = isSpam || curSpamTest;
+						if (curSpamTest)
+						{
+							await HandleSpamPrevention(global, x, guild, author, msg);
+						}
+						break;
+					}
+					case SpamType.Image:
+					{
+						var curSpamTest = false;
+						isSpam = isSpam || curSpamTest;
+						if (curSpamTest)
+						{
+							await HandleSpamPrevention(global, x, guild, author, msg);
+						}
+						break;
+					}
+					case SpamType.Mention:
+					{
+						var curSpamTest = msg.MentionedUserIds.Distinct().Count() > x.AmountOfSpam;
+						isSpam = isSpam || curSpamTest;
+						if (curSpamTest)
+						{
+							await HandleSpamPrevention(global, x, guild, author, msg);
+						}
+						break;
+					}
+					case SpamType.Reaction:
+					{
+						var curSpamTest = false;
+						isSpam = isSpam || curSpamTest;
+						if (curSpamTest)
+						{
+							await HandleSpamPrevention(global, x, guild, author, msg);
+						}
+						break;
+					}
+				}
+			});
 
-		public static bool SpamCheck(LongMessageSpamPrevention spamPrev, IMessage message)
-		{
-			if (spamPrev == null)
-				return false;
-
-			return message.Content.Length > spamPrev.AmountOfSpam;
-		}
-
-		public static bool SpamCheck(LinkSpamPrevention spamPrev, IMessage message)
-		{
-			if (spamPrev == null)
-				return false;
-
-			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
-		}
-
-		public static bool SpamCheck(ImageSpamPrevention spamPrev, IMessage message)
-		{
-			if (spamPrev == null)
-				return false;
-
-			return false; //TODO: message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
-		}
-
-		public static bool SpamCheck(MentionSpamPrevention spamPrev, IMessage message)
-		{
-			if (spamPrev == null)
-				return false;
-
-			return message.MentionedUserIds.Distinct().Count() > spamPrev.AmountOfSpam;
+			return isSpam;
 		}
 		#endregion
 
@@ -3120,15 +3192,17 @@ namespace Advobot
 			GetOutTimedObject(Variables.PunishedUsers).ForEach(async punishment =>
 			{
 				//Things that can be done with an IUser
-				var user = punishment.User;
+				var userID = punishment.UserID;
 				if (punishment.Type == PunishmentType.Ban)
 				{
-					await punishment.Guild.RemoveBanAsync(user.Id);
+					await punishment.Guild.RemoveBanAsync(userID);
 					return;
 				}
 
 				//Things that need an IGuildUser
-				var guildUser = await punishment.Guild.GetUserAsync(user.Id);
+				var guildUser = await punishment.Guild.GetUserAsync(userID);
+				if (guildUser == null)
+					return;
 				switch (punishment.Type)
 				{
 					case PunishmentType.Role:

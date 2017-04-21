@@ -207,9 +207,10 @@ namespace Advobot
 		public async Task InfoGuild()
 		{
 			var sGuild = Context.Guild as SocketGuild;
+			var sOwner = sGuild.Owner;
 			var title = Actions.FormatGuild(sGuild);
 			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", sGuild.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sGuild.CreatedAt.UtcDateTime).Days);
-			var owner = String.Format("**Owner:** `{0}`", Actions.FormatUser(sGuild.Owner));
+			var owner = String.Format("**Owner:** `{0}`", Actions.FormatUser(sOwner, sOwner?.Id));
 			var region = String.Format("**Region:** `{0}`\n", sGuild.VoiceRegionId);
 			var userCount = String.Format("**User Count:** `{0}`", sGuild.MemberCount);
 			var roleCount = String.Format("**Role Count:** `{0}`", sGuild.Roles.Count);
@@ -448,23 +449,22 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task InfoInvite([Remainder] string input)
 		{
-			//Get the invite
 			var inv = (await Context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code == input);
-			//Check if null
 			if (inv == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That invite cannot be gotten."));
 				return;
 			}
-			//Get all of the variables
-			var user = Actions.FormatUser(inv.Inviter);
-			var channel = Actions.FormatChannel(await Context.Guild.GetChannelAsync(inv.ChannelId));
-			var uses = inv.Uses;
-			var time = inv.CreatedAt.UtcDateTime.ToShortTimeString();
-			var date = inv.CreatedAt.UtcDateTime.ToShortDateString();
-			//Make the embed
-			var embed = Actions.MakeNewEmbed(inv.Code, String.Format("**Inviter:** `{0}`\n**Channel:** `{1}`\n**Uses:** `{2}`\n**Created At:** `{3}` on `{4}`", user, channel, uses, time, date));
-			//Send the embed
+
+			var user = inv.Inviter;
+			var userStr = Actions.FormatUser(user, user?.Id);
+			var channelStr = Actions.FormatChannel(await Context.Guild.GetChannelAsync(inv.ChannelId));
+			var usesStr = inv.Uses;
+			var timeStr = inv.CreatedAt.UtcDateTime.ToShortTimeString();
+			var dateStr = inv.CreatedAt.UtcDateTime.ToShortDateString();
+
+			var embed = Actions.MakeNewEmbed(inv.Code, String.Format("**Inviter:** `{0}`\n**Channel:** `{1}`\n**Uses:** `{2}`\n**Created At:** `{3}` on `{4}`",
+				userStr, channelStr, usesStr, timeStr, dateStr));
 			await Actions.SendEmbedMessage(Context.Channel, embed);
 		}
 
@@ -522,7 +522,8 @@ namespace Advobot
 			var userMsg = String.Join("\n", users.Select(x =>
 			{
 				var time = x.JoinedAt.Value.UtcDateTime;
-				return String.Format("`{0}.` `{1}` joined at `{2}` on `{3}`.", count++.ToString().PadLeft(padLength, '0'), Actions.FormatUser(x), time.ToShortTimeString(), time.ToShortDateString());
+				return String.Format("`{0}.` `{1}` joined at `{2}` on `{3}`.",
+					count++.ToString().PadLeft(padLength, '0'), Actions.FormatUser(x, x?.Id), time.ToShortTimeString(), time.ToShortDateString());
 			}));
 
 			await Actions.SendPotentiallyBigEmbed(Context.Guild, Context.Channel, Actions.MakeNewEmbed("Users", userMsg), userMsg, "User_Joins_");
@@ -582,7 +583,6 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task UsersWithRole([Remainder] string input)
 		{
-			//Initializing input and variables
 			var role = await Actions.GetRole(Context, input);
 			if (role == null)
 			{
@@ -590,18 +590,16 @@ namespace Advobot
 				return;
 			}
 
-			//Grab each user
 			var users = "";
 			var count = 1;
 			(await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt.HasValue).ToList().OrderBy(x => x.JoinedAt).ToList().ForEach(x =>
 			{
 				if (x.RoleIds.ToList().Contains(role.Id))
 				{
-					users += String.Format("`{0}.` `{1}`\n", count++.ToString("00"), Actions.FormatUser(x));
+					users += String.Format("`{0}.` `{1}`\n", count++.ToString("00"), Actions.FormatUser(x, x?.Id));
 				}
 			});
 
-			//Checking if the message can fit in a single message
 			var roleName = role.Name.Substring(0, 3) + Constants.ZERO_LENGTH_CHAR + role.Name.Substring(3);
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(roleName, users));
 		}
@@ -614,23 +612,15 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task UsersWithName([Remainder] string input)
 		{
-			//Find the users
 			var users = (await Context.Guild.GetUsersAsync()).Where(x => Actions.CaseInsIndexOf(x.Username, input)).OrderBy(x => x.JoinedAt).ToList();
-
-			//Initialize the string
 			var description = "";
-
-			//Add them to the string
 			var count = 1;
 			users.ForEach(x =>
 			{
-				description += String.Format("`{0}.` `{1}`\n", count++.ToString("00"), Actions.FormatUser(x));
+				description += String.Format("`{0}.` `{1}`\n", count++.ToString("00"), Actions.FormatUser(x, x?.Id));
 			});
 
-			//Set the title
 			var title = String.Format("Users With Names Containing '{0}'", input);
-
-			//Make and send the embed
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, description));
 		}
 
@@ -1069,7 +1059,8 @@ namespace Advobot
 			//Make the role mentionable
 			await role.ModifyAsync(x => x.Mentionable = true);
 			//Send the message
-			await Actions.SendChannelMessage(Context, String.Format("{0}, {1}:{2}", Actions.FormatUser(Context.User), role.Mention, textStr));
+			var user = Context.User;
+			await Actions.SendChannelMessage(Context, String.Format("{0}, {1}:{2}", Actions.FormatUser(user, user?.Id), role.Mention, textStr));
 			//Remove the mentionability
 			await role.ModifyAsync(x => x.Mentionable = false);
 		}
@@ -1083,7 +1074,8 @@ namespace Advobot
 		public async Task MessageBotOwner([Remainder] string input)
 		{
 			var cutMsg = input.Substring(0, Math.Min(input.Length, 250));
-			var fromMsg = String.Format("From `{0}` in `{1}`:", Actions.FormatUser(Context.User), Actions.FormatGuild(Context.Guild));
+			var user = Context.User;
+			var fromMsg = String.Format("From `{0}` in `{1}`:", Actions.FormatUser(user, user?.Id), Actions.FormatGuild(Context.Guild));
 			var newMsg = String.Format("{0}\n```{1}```", fromMsg, cutMsg);
 			var owner = Variables.Client.GetUser(Properties.Settings.Default.BotOwner);
 			if (owner == null)

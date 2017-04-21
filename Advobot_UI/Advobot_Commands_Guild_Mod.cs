@@ -302,7 +302,7 @@ namespace Advobot
 			//Check if the bot's not the owner of the guild
 			else if (owner.Id != Variables.Bot_ID)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bot is not the owner of the guild. The owner is: `{0}`.", Actions.FormatUser(owner))));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bot is not the owner of the guild. The owner is: `{0}`.", Actions.FormatUser(owner, owner?.Id))));
 				return;
 			}
 

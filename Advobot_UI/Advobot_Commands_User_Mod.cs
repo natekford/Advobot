@@ -58,7 +58,7 @@ namespace Advobot
 				{
 					if (int.TryParse(inputArray[1], out int time))
 					{
-						Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user, muteRole, DateTime.UtcNow.AddMinutes(time)));
+						Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, muteRole, DateTime.UtcNow.AddMinutes(time)));
 						timeString = String.Format(" for {0} seconds", time);
 					}
 					else
@@ -70,7 +70,7 @@ namespace Advobot
 
 				//Give them the mute role
 				await Actions.GiveRole(user, muteRole);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully text muted `{0}`{1}.", Actions.FormatUser(user), timeString));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully text muted `{0}`{1}.", Actions.FormatUser(user, user?.Id), timeString));
 			}
 		}
 
@@ -101,7 +101,7 @@ namespace Advobot
 				{
 					if (int.TryParse(inputArray[1], out int time))
 					{
-						Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user, PunishmentType.Mute, DateTime.UtcNow.AddMinutes(time)));
+						Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, PunishmentType.Mute, DateTime.UtcNow.AddMinutes(time)));
 						timeString = String.Format(" for {0} minutes", time);
 					}
 					else
@@ -113,13 +113,13 @@ namespace Advobot
 				
 				//Mute the user
 				await user.ModifyAsync(x => x.Mute = true);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully muted `{0}`{1}.", Actions.FormatUser(user), timeString));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully muted `{0}`{1}.", Actions.FormatUser(user, user?.Id), timeString));
 			}
 			else
 			{
 				//Unmute the user
 				await user.ModifyAsync(x => x.Mute = false);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unmuted `{0}`.", Actions.FormatUser(user)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unmuted `{0}`.", Actions.FormatUser(user, user?.Id)));
 			}
 		}
 
@@ -150,7 +150,7 @@ namespace Advobot
 				{
 					if (int.TryParse(inputArray[1], out int time))
 					{
-						Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user, PunishmentType.Deafen, DateTime.UtcNow.AddMinutes(time)));
+						Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, PunishmentType.Deafen, DateTime.UtcNow.AddMinutes(time)));
 						timeString = String.Format(" for {0} minutes", time);
 					}
 					else
@@ -162,13 +162,13 @@ namespace Advobot
 
 				//Deafen them
 				await user.ModifyAsync(x => x.Deaf = true);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deafened `{0}`{1}.", Actions.FormatUser(user), timeString));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deafened `{0}`{1}.", Actions.FormatUser(user, user?.Id), timeString));
 			}
 			else
 			{
 				//Undeafen them
 				await user.ModifyAsync(x => x.Deaf = false);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully undeafened `{0}`.", Actions.FormatUser(user)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully undeafened `{0}`.", Actions.FormatUser(user, user?.Id)));
 			}
 		}
 
@@ -347,11 +347,11 @@ namespace Advobot
 			await Actions.ChangeNickname(user, nickname);
 			if (nickname != null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave the nickname `{0}` to `{1}`.", nickname, Actions.FormatUser(user)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave the nickname `{0}` to `{1}`.", nickname, Actions.FormatUser(user, user?.Id)));
 			}
 			else
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Sucessfully removed the nickname from `{0}`.", Actions.FormatUser(user)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Sucessfully removed the nickname from `{0}`.", Actions.FormatUser(user, user?.Id)));
 			}
 		}
 
@@ -536,8 +536,8 @@ namespace Advobot
 		public async Task SoftBan([Remainder] string input)
 		{
 			//Test if valid user mention
-			var inputUser = await Actions.GetUser(Context.Guild, input);
-			if (inputUser == null)
+			var user = await Actions.GetUser(Context.Guild, input);
+			if (user == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
@@ -546,22 +546,22 @@ namespace Advobot
 			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID);
 
 			//Determine if the user is allowed to softban this person
-			if (!Actions.UserCanBeModifiedByUser(Context, inputUser))
+			if (!Actions.UserCanBeModifiedByUser(Context, user))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is unable to be soft-banned by you."));
 				return;
 			}
 			//Determine if the bot can softban this person
-			else if (!Actions.UserCanBeModifiedByBot(Context.Guild, inputUser, bot))
+			else if (!Actions.UserCanBeModifiedByBot(Context.Guild, user, bot))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Bot is unable to soft-ban user."));
 				return;
 			}
 
 			//Softban the targetted user
-			await Context.Guild.AddBanAsync(inputUser, 3);
-			await Context.Guild.RemoveBanAsync(inputUser);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully softbanned `{0}`.", Actions.FormatUser(inputUser)));
+			await Context.Guild.AddBanAsync(user, 3);
+			await Context.Guild.RemoveBanAsync(user);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully softbanned `{0}`.", Actions.FormatUser(user, user?.Id)));
 		}
 
 		[Command("ban")]
@@ -573,6 +573,7 @@ namespace Advobot
 		public async Task Ban([Remainder] string input)
 		{
 			var inputArray = input.Split(' ');
+			var userStr = inputArray[0];
 			var daysStr = Actions.GetVariable(inputArray, "days");
 			var timeStr = Actions.GetVariable(inputArray, "time");
 
@@ -589,32 +590,39 @@ namespace Advobot
 			}
 
 			//Test if valid user mention
-			var inputUser = await Actions.GetUser(Context.Guild, inputArray[0]);
-			if (inputUser != null)
+			ulong banID;
+			var user = await Actions.GetUser(Context.Guild, userStr);
+			if (user != null)
 			{
 				var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID);
 
 				//Determine if the user is allowed to ban this person
-				if (!Actions.UserCanBeModifiedByUser(Context, inputUser))
+				if (!Actions.UserCanBeModifiedByUser(Context, user))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is unable to be banned by you."));
 					return;
 				}
 				//Determine if the bot can ban this person
-				else if (!Actions.UserCanBeModifiedByBot(Context.Guild, inputUser, bot))
+				else if (!Actions.UserCanBeModifiedByBot(Context.Guild, user, bot))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Bot is unable to ban user."));
 					return;
 				}
 
-				//Ban the user
-				await Context.Guild.AddBanAsync(inputUser, pruneDays);
+				banID = user.Id;
+			}
+			else if (ulong.TryParse(userStr, out ulong ID))
+			{
+				banID = ID;
 			}
 			else
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
+
+			//Ban the user
+			await Context.Guild.AddBanAsync(banID, pruneDays);
 
 			//Forming the second half of the string that prints out when a user is successfully banned
 			var plurality = pruneDays == 1 ? "day" : "days";
@@ -630,13 +638,13 @@ namespace Advobot
 				}
 				else
 				{
-					Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, inputUser, PunishmentType.Ban, DateTime.UtcNow.AddMinutes(timeForBan)));
+					Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, PunishmentType.Ban, DateTime.UtcNow.AddMinutes(timeForBan)));
 					timeStr = String.Format("They will be unbanned in `{0}` minutes.", timeForBan);
 				}
 			}
 
 			//Send a success message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully banned `{0}`{1}", Actions.FormatUser(inputUser), latterHalfOfString), 10000);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully banned `{0}`{1}", Actions.FormatUser(user, banID), latterHalfOfString), 10000);
 		}
 
 		[Command("unban")]
@@ -649,11 +657,7 @@ namespace Advobot
 		{
 			//Cut the user mention into the username and the discriminator
 			var inputArray = input.Split('#');
-
-			//Get a list of the bans
 			var bans = await Context.Guild.GetBansAsync();
-
-			//Get their name and discriminator or ulong
 			var secondHalfOfTheSecondaryMessage = "";
 
 			if (inputArray.Length == 2)
@@ -669,9 +673,9 @@ namespace Advobot
 				var bannedUserWithNameAndDiscriminator = bans.ToList().Where(x => x.User.Username.Equals(username) && x.User.Discriminator.Equals(discriminator)).ToList();
 
 				//Unban the user
-				var bannedUser = bannedUserWithNameAndDiscriminator[0].User;
-				await Context.Guild.RemoveBanAsync(bannedUser);
-				secondHalfOfTheSecondaryMessage = String.Format("unbanned the user `{0}`.", Actions.FormatUser(bannedUser));
+				var user = bannedUserWithNameAndDiscriminator[0].User;
+				await Context.Guild.RemoveBanAsync(user);
+				secondHalfOfTheSecondaryMessage = String.Format("unbanned the user `{0}`.", Actions.FormatUser(user, user?.Id));
 			}
 			else if (!ulong.TryParse(input, out ulong inputUserID))
 			{
@@ -680,16 +684,16 @@ namespace Advobot
 				if (bannedUsersWithSameName.Count > 1)
 				{
 					//Return a message saying if there are multiple users
-					var msg = String.Join("`, `", bannedUsersWithSameName.Select(x => Actions.FormatUser(x.User)));
+					var msg = String.Join("`, `", bannedUsersWithSameName.Select(x => Actions.FormatUser(x.User, x.User?.Id)));
 					await Actions.SendChannelMessage(Context, String.Format("The following users have that name: `{0}`.", msg));
 					return;
 				}
 				else if (bannedUsersWithSameName.Count == 1)
 				{
 					//Unban the user
-					var bannedUser = bannedUsersWithSameName[0].User;
-					await Context.Guild.RemoveBanAsync(bannedUser);
-					secondHalfOfTheSecondaryMessage = String.Format("unbanned the user `{0}`.", Actions.FormatUser(bannedUser));
+					var user = bannedUsersWithSameName[0].User;
+					await Context.Guild.RemoveBanAsync(user);
+					secondHalfOfTheSecondaryMessage = String.Format("unbanned the user `{0}`.", Actions.FormatUser(user, user?.Id));
 				}
 				else
 				{
@@ -722,32 +726,29 @@ namespace Advobot
 		public async Task Kick([Remainder] string input)
 		{
 			//Test if valid user mention
-			var inputUser = await Actions.GetUser(Context.Guild, input);
-			if (inputUser == null)
+			var user = await Actions.GetUser(Context.Guild, input);
+			if (user == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
 
-			//Get the bot
-			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID);
-
 			//Determine if the user is allowed to kick this person
-			if (!Actions.UserCanBeModifiedByUser(Context, inputUser))
+			if (!Actions.UserCanBeModifiedByUser(Context, user))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is unable to be kicked by you."));
 				return;
 			}
 			//Determine if the bot can kick this person
-			else if (!Actions.UserCanBeModifiedByBot(Context.Guild, inputUser, bot))
+			else if (!Actions.UserCanBeModifiedByBot(Context.Guild, user, await Actions.GetUser(Context.Guild, Variables.Bot_ID)))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Bot is unable to kick user."));
 				return;
 			}
 
 			//Kick the targetted user
-			await inputUser.KickAsync();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully kicked `{0}`.", Actions.FormatUser(inputUser)));
+			await user.KickAsync();
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully kicked `{0}`.", Actions.FormatUser(user, user?.Id)));
 		}
 
 		[Command("currentbanlist")]
@@ -758,26 +759,21 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task CurrentBanList()
 		{
-			//Get the bans
 			var bans = (await Context.Guild.GetBansAsync()).ToList();
-
-			//Format the ban string
 			var description = "";
 			var count = 1;
 			var lengthForCount = bans.Count.ToString().Length;
 			bans.ForEach(x =>
 			{
-				description += String.Format("`{0}.` `{1}`\n", count++.ToString().PadLeft(lengthForCount, '0'), Actions.FormatUser(x.User));
+				description += String.Format("`{0}.` `{1}`\n", count++.ToString().PadLeft(lengthForCount, '0'), Actions.FormatUser(x.User, x.User?.Id));
 			});
 
-			//Check the length of the message
 			if (String.IsNullOrWhiteSpace(description))
 			{
 				await Actions.SendChannelMessage(Context, "This guild has no bans.");
 			}
 			else
 			{
-				//Make and send the embed
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bans", description));
 			}
 		}
@@ -799,11 +795,11 @@ namespace Advobot
 			}
 
 			//Get the user mention
-			IGuildUser inputUser = null;
+			IGuildUser user = null;
 			var mentionedUsers = Context.Message.MentionedUserIds;
 			if (mentionedUsers.Count == 1)
 			{
-				inputUser = await Actions.GetUser(Context.Guild, mentionedUsers.FirstOrDefault());
+				user = await Actions.GetUser(Context.Guild, mentionedUsers.FirstOrDefault());
 			}
 			else if (mentionedUsers.Count > 1)
 			{
@@ -812,11 +808,11 @@ namespace Advobot
 			}
 
 			//Get the channel mention
-			var inputChannel = Context.Channel as ITextChannel;
+			var channel = Context.Channel as ITextChannel;
 			var mentionedChannels = Context.Message.MentionedChannelIds;
 			if (mentionedChannels.Count == 1)
 			{
-				inputChannel = await Context.Guild.GetTextChannelAsync(mentionedChannels.FirstOrDefault());
+				channel = await Context.Guild.GetTextChannelAsync(mentionedChannels.FirstOrDefault());
 			}
 			else if (mentionedChannels.Count > 1)
 			{
@@ -827,14 +823,14 @@ namespace Advobot
 			//Check if the channel that's having messages attempted to be removed on is a log channel
 			var serverlogChannel = Actions.GetServerLogChannel(Context.Guild);
 			var modlogChannel = Actions.GetModLogChannel(Context.Guild);
-			if (Context.User.Id != Context.Guild.OwnerId && (inputChannel == serverlogChannel || inputChannel == modlogChannel))
+			if (Context.User.Id != Context.Guild.OwnerId && (channel == serverlogChannel || channel == modlogChannel))
 			{
 				//Send a message in the channel
 				await Actions.SendChannelMessage(serverlogChannel ?? modlogChannel, String.Format("Hey, @here, {0} is trying to delete stuff.", Context.User.Mention));
 
 				//DM the owner of the server
 				await Actions.SendDMMessage(await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync(),
-					String.Format("`{0}` is trying to delete stuff from the server/mod log.", Actions.FormatUser(Context.User)));
+					String.Format("`{0}` is trying to delete stuff from the server/mod log.", Actions.FormatUser(Context.User, Context.User?.Id)));
 				return;
 			}
 
@@ -854,17 +850,17 @@ namespace Advobot
 			}
 
 			//Check if saying it on the same channel
-			if (Context.Channel == inputChannel)
+			if (Context.Channel == channel)
 			{
 				++requestCount;
 			}
 
-			await Actions.RemoveMessages(inputChannel, inputUser, requestCount);
+			await Actions.RemoveMessages(channel, user, requestCount);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` {1}{2}{3}.",
 				requestCount,
 				requestCount != 1 ? "messages" : "message",
-				inputUser == null ? "" : String.Format(" from `{0}`", Actions.FormatUser(inputUser)),
-				inputChannel == null ? "" : String.Format(" on `{0}`", Actions.FormatChannel(inputChannel))));
+				user == null ? "" : String.Format(" from `{0}`", Actions.FormatUser(user, user?.Id)),
+				channel == null ? "" : String.Format(" on `{0}`", Actions.FormatChannel(channel))));
 		}
 
 		[Command("slowmode")]

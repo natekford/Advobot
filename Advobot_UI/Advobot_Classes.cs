@@ -174,7 +174,7 @@ namespace Advobot
 			LogActions = new List<LogActions>();
 			SlowmodeChannels = new List<SlowmodeChannel>();
 			Invites = new List<BotInvite>();
-			EvaluatedRegex = new List<Regex>();
+			EvaluatedRegex = new List<string>();
 			BannedPhraseUsers = new List<BannedPhraseUser>();
 			FAWRNicknames = new List<string>();
 			FAWRRoles = new List<IRole>();
@@ -214,7 +214,7 @@ namespace Advobot
 		[JsonIgnore]
 		public List<BotInvite> Invites { get; private set; }
 		[JsonIgnore]
-		public List<Regex> EvaluatedRegex { get; private set; }
+		public List<string> EvaluatedRegex { get; private set; }
 		[JsonIgnore]
 		public List<BannedPhraseUser> BannedPhraseUsers { get; private set; }
 		[JsonIgnore]
@@ -419,14 +419,14 @@ namespace Advobot
 		public BannedPhrases()
 		{
 			Strings = new List<BannedPhrase<string>>();
-			Regex = new List<BannedPhrase<Regex>>();
+			Regex = new List<BannedPhrase<string>>();
 			Punishments = new List<BannedPhrasePunishment>();
 		}
 
 		[JsonProperty]
 		public List<BannedPhrase<string>> Strings { get; private set; }
 		[JsonProperty]
-		public List<BannedPhrase<Regex>> Regex { get; private set; }
+		public List<BannedPhrase<string>> Regex { get; private set; }
 		[JsonProperty]
 		public List<BannedPhrasePunishment> Punishments { get; private set; }
 
@@ -621,78 +621,27 @@ namespace Advobot
 		public GlobalSpamPrevention()
 		{
 			SpamPreventionUsers = new List<SpamPreventionUser>();
+			SpamPreventions = new Dictionary<SpamType, BaseSpamPrevention>();
+			Enum.GetValues(typeof(SpamType)).Cast<SpamType>().ToList().ForEach(x =>
+			{
+				SpamPreventions.Add(x, null);
+			});
 		}
 
 		[JsonIgnore]
 		public List<SpamPreventionUser> SpamPreventionUsers { get; private set; }
 		[JsonProperty]
-		public MessageSpamPrevention MessageSpamPrevention { get; private set; }
-		[JsonProperty]
-		public LongMessageSpamPrevention LongMessageSpamPrevention { get; private set; }
-		[JsonProperty]
-		public LinkSpamPrevention LinkSpamPrevention { get; private set; }
-		[JsonProperty]
-		public ImageSpamPrevention ImageSpamPrevention { get; private set; }
-		[JsonProperty]
-		public MentionSpamPrevention MentionSpamPrevention { get; private set; }
+		public Dictionary<SpamType, BaseSpamPrevention> SpamPreventions { get; private set; }
 
 		public BaseSpamPrevention GetSpamPrevention(SpamType type)
 		{
-			switch (type)
-			{
-				case SpamType.Message:
-				{
-					return MessageSpamPrevention;
-				}
-				case SpamType.Long_Message:
-				{
-					return LongMessageSpamPrevention;
-				}
-				case SpamType.Link:
-				{
-					return LinkSpamPrevention;
-				}
-				case SpamType.Image:
-				{
-					return ImageSpamPrevention;
-				}
-				case SpamType.Mention:
-				{
-					return MentionSpamPrevention;
-				}
-			}
-			return null;
+			SpamPreventions.TryGetValue(type, out BaseSpamPrevention spamPrev);
+			return spamPrev;
 		}
 		public void SetSpamPrevention(SpamType type, int amt, int votes, int spm)
 		{
-			switch (type)
-			{
-				case SpamType.Message:
-				{
-					MessageSpamPrevention = new MessageSpamPrevention(amt, votes, spm);
-					return;
-				}
-				case SpamType.Long_Message:
-				{
-					LongMessageSpamPrevention = new LongMessageSpamPrevention(amt, votes, spm);
-					return;
-				}
-				case SpamType.Link:
-				{
-					LinkSpamPrevention = new LinkSpamPrevention(amt, votes, spm);
-					return;
-				}
-				case SpamType.Image:
-				{
-					ImageSpamPrevention = new ImageSpamPrevention(amt, votes, spm);
-					return;
-				}
-				case SpamType.Mention:
-				{
-					MentionSpamPrevention = new MentionSpamPrevention(amt, votes, spm);
-					return;
-				}
-			}
+			SpamPreventions.Remove(type);
+			SpamPreventions.Add(type, new BaseSpamPrevention(amt, votes, spm, type));
 		}
 	}
 
@@ -963,14 +912,13 @@ namespace Advobot
 
 	public class SpamPreventionUser
 	{
-		public SpamPreventionUser(GlobalSpamPrevention global, IGuildUser user)
+		public SpamPreventionUser(IGuildUser user)
 		{
 			User = user;
 			VotesRequired = int.MaxValue;
 			PotentialKick = false;
 			AlreadyKicked = false;
 			UsersWhoHaveAlreadyVoted = new List<ulong>();
-			global.SpamPreventionUsers.Add(this);
 		}
 
 		public IGuildUser User { get; private set; }
@@ -979,11 +927,12 @@ namespace Advobot
 		public bool PotentialKick { get; private set; }
 		public bool AlreadyKicked { get; private set; }
 		public List<ulong> UsersWhoHaveAlreadyVoted { get; private set; }
-		public int MessageSpamAmount { get; private set; }
-		public int LongMessageSpamAmount { get; private set; }
-		public int LinkSpamAmount { get; private set; }
-		public int ImageSpamAmount { get; private set; }
-		public int MentionSpamAmount { get; private set; }
+		public BaseSpamInformation MessageSpamInfo { get; private set; }
+		public BaseSpamInformation LongMessageSpamInfo { get; private set; }
+		public BaseSpamInformation LinkSpamInfo { get; private set; }
+		public BaseSpamInformation ImageSpamInfo { get; private set; }
+		public BaseSpamInformation MentionSpamInfo { get; private set; }
+		public BaseSpamInformation ReactionSpamInfo { get; private set; }
 
 		public void IncreaseVotesToKick()
 		{
@@ -999,15 +948,16 @@ namespace Advobot
 		}
 		public void AddUserToVotedList(ulong ID)
 		{
-			UsersWhoHaveAlreadyVoted.Add(ID);
+			UsersWhoHaveAlreadyVoted.ThreadSafeAdd(ID);
 		}
 		public void ResetSpamUser()
 		{
-			MessageSpamAmount = 0;
-			LongMessageSpamAmount = 0;
-			LinkSpamAmount = 0;
-			ImageSpamAmount = 0;
-			MentionSpamAmount = 0;
+			MessageSpamInfo.Reset();
+			LongMessageSpamInfo.Reset();
+			LinkSpamInfo.Reset();
+			ImageSpamInfo.Reset();
+			MentionSpamInfo.Reset();
+			ReactionSpamInfo.Reset();
 			UsersWhoHaveAlreadyVoted = new List<ulong>();
 		}
 		public async Task CheckIfShouldKick(BaseSpamPrevention spamPrev, IMessage msg)
@@ -1017,27 +967,32 @@ namespace Advobot
 			{
 				case SpamType.Message:
 				{
-					spamAmount = ++MessageSpamAmount;
+					spamAmount = MessageSpamInfo.IncreaseAndGet();
 					break;
 				}
 				case SpamType.Long_Message:
 				{
-					spamAmount = ++LongMessageSpamAmount;
+					spamAmount = LongMessageSpamInfo.IncreaseAndGet();
 					break;
 				}
 				case SpamType.Link:
 				{
-					spamAmount = ++LinkSpamAmount;
+					spamAmount = LinkSpamInfo.IncreaseAndGet();
 					break;
 				}
 				case SpamType.Image:
 				{
-					spamAmount = ++ImageSpamAmount;
+					spamAmount = ImageSpamInfo.IncreaseAndGet();
 					break;
 				}
 				case SpamType.Mention:
 				{
-					spamAmount = ++MentionSpamAmount;
+					spamAmount = MentionSpamInfo.IncreaseAndGet();
+					break;
+				}
+				case SpamType.Reaction:
+				{
+					spamAmount = ReactionSpamInfo.IncreaseAndGet();
 					break;
 				}
 			}
@@ -1049,29 +1004,35 @@ namespace Advobot
 		}
 	}
 
-	public class MessageSpamPrevention : BaseSpamPrevention
+	public class BaseSpamInformation : ITimeInterface
 	{
-		public MessageSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfMsgs) : base(amountOfMessages, votesNeededForKick, amountOfMsgs, SpamType.Message) { }
-	}
+		public BaseSpamInformation(SpamType spamType)
+		{
+			SpamAmount = 0;
+			SpamType = spamType;
+		}
 
-	public class LongMessageSpamPrevention : BaseSpamPrevention
-	{
-		public LongMessageSpamPrevention(int amountOfMessages, int votesNeededForKick, int lengthOfMessage) : base(amountOfMessages, votesNeededForKick, lengthOfMessage, SpamType.Long_Message) {}
-	}
+		public int SpamAmount { get; private set; }
+		public SpamType SpamType { get; private set; }
+		public DateTime PunishmentRemove { get; private set; }
 
-	public class LinkSpamPrevention : BaseSpamPrevention
-	{
-		public LinkSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfLinks) : base(amountOfMessages, votesNeededForKick, amountOfLinks, SpamType.Link) {}
-	}
-
-	public class ImageSpamPrevention : BaseSpamPrevention
-	{
-		public ImageSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfImages) : base(amountOfMessages, votesNeededForKick, amountOfImages, SpamType.Image) { }
-	}
-
-	public class MentionSpamPrevention : BaseSpamPrevention
-	{
-		public MentionSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfMentions) : base(amountOfMessages, votesNeededForKick, amountOfMentions, SpamType.Mention) { }
+		public DateTime GetTime()
+		{
+			return PunishmentRemove;
+		}
+		public void SetTime(DateTime newTime)
+		{
+			PunishmentRemove = newTime;
+		}
+		public int IncreaseAndGet()
+		{
+			++SpamAmount;
+			return SpamAmount;
+		}
+		public void Reset()
+		{
+			SpamAmount = 0;
+		}
 	}
 
 	public abstract class DeletionSpamProtection
@@ -1351,25 +1312,25 @@ namespace Advobot
 
 	public struct RemovablePunishment : ITimeInterface
 	{
-		public RemovablePunishment(IGuild guild, IUser user, PunishmentType type, DateTime time)
+		public RemovablePunishment(IGuild guild, ulong userID, PunishmentType type, DateTime time)
 		{
 			Guild = guild;
-			User = user;
+			UserID = userID;
 			Type = type;
 			Time = time;
 			Role = null;
 		}
-		public RemovablePunishment(IGuild guild, IUser user, IRole role, DateTime time)
+		public RemovablePunishment(IGuild guild, ulong userID, IRole role, DateTime time)
 		{
 			Guild = guild;
-			User = user;
+			UserID = userID;
 			Type = PunishmentType.Role;
 			Time = time;
 			Role = role;
 		}
 
 		public IGuild Guild { get; private set; }
-		public IUser User { get; private set; }
+		public ulong UserID { get; private set; }
 		public PunishmentType Type { get; private set; }
 		public IRole Role { get; private set; }
 		public DateTime Time { get; private set; }
@@ -1539,7 +1500,8 @@ namespace Advobot
 		Long_Message = 2,
 		Link = 3,
 		Image = 4,
-		Mention = 5, 
+		Mention = 5,
+		Reaction = 6,
 	}
 
 	public enum FAWRType

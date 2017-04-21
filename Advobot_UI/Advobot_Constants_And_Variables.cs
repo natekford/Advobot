@@ -57,6 +57,7 @@ namespace Advobot
 		public const int MESSAGES_TO_GATHER = 100;
 		public const int PAD_RIGHT = 20;
 		public const int ACTIVE_CLOSE = 5000;
+		public const int REGEX_TIMEOUT = 1000000;
 
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;
@@ -103,6 +104,10 @@ namespace Advobot
 		public static ReadOnlyCollection<string> VALID_GUILD_FILES = new ReadOnlyCollection<string>(new List<string>()
 		{
 			GUILD_INFO_LOCATION,
+		});
+		public static ReadOnlyCollection<string> TEST_PHRASES = new ReadOnlyCollection<string>(new List<string>()
+		{
+			"Ӽ1(".PadRight(2000, 'A'), "Ϯ3|".PadLeft(1000, 'R'), "⁊a~".PadRight(500), "[&r".PadLeft(250, '8'),
 		});
 
 		public static ReadOnlyCollection<LogActions> DEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogActions>(new List<LogActions>()

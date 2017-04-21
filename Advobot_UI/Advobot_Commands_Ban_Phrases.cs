@@ -15,7 +15,7 @@ namespace Advobot
 		[Command("banregexeval")]
 		[Alias("bre")]
 		[Usage("[\"Regex\"] [\"Test Message\"]")]
-		[Summary("Evaluates a regex. Once a regex receives a good score then it can be used within the bot as a banned phrase.")]
+		[Summary("Evaluates a regex (case is ignored). The regex are also restricted to a 1,000,000 tick timeout. Once a regex receives a good score then it can be used within the bot as a banned phrase.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task BanRegexEvaluate([Remainder] string input)
@@ -54,11 +54,11 @@ namespace Advobot
 			}
 
 			//Test to see what it affects
-			var matchesMessage = regex.IsMatch(message);
-			var matchesEmpty = regex.IsMatch("");
-			var matchesSpace = regex.IsMatch(" ");
-			var matchesNewLine = regex.IsMatch(Environment.NewLine);
-			var matchesRandom = regex.IsMatch("Ӽ1(") && regex.IsMatch("Ϯ3|") && regex.IsMatch("⁊a~") && regex.IsMatch("[&r");
+			var matchesMessage = Regex.IsMatch(message, regex.ToString(), RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT));
+			var matchesEmpty = Regex.IsMatch("", regex.ToString(), RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT));
+			var matchesSpace = Regex.IsMatch(" ", regex.ToString(), RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT));
+			var matchesNewLine = Regex.IsMatch(Environment.NewLine, regex.ToString(), RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT));
+			var matchesRandom = Constants.TEST_PHRASES.Any(x => Regex.IsMatch(x, regex.ToString(), RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT)));
 			var matchesEverything = matchesMessage && matchesEmpty && matchesSpace && matchesNewLine && matchesRandom;
 			var okToUse = matchesMessage && !(matchesEmpty || matchesSpace || matchesNewLine || matchesEverything);
 
@@ -69,7 +69,7 @@ namespace Advobot
 				{
 					guildInfo.EvaluatedRegex.RemoveAt(0);
 				}
-				guildInfo.EvaluatedRegex.Add(regex);
+				guildInfo.EvaluatedRegex.Add(regex.ToString());
 			}
 
 			//Format the description
@@ -89,8 +89,8 @@ namespace Advobot
 
 		[Command("banregexmodify")]
 		[Alias("brm")]
-		[Usage("<Add|Remove> <Number>")]
-		[Summary("Adds the picked regex to the ban list. If no number is input it lists the possible regex.")]
+		[Usage("[Add|Remove] <Number>")]
+		[Summary("Adds/removes the picked regex to/from the ban list. If no number is input it lists the possible regex.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task BanRegexModify([Optional, Remainder] string input)
@@ -103,40 +103,15 @@ namespace Advobot
 				return;
 			}
 
-			//Check if the users wants to see all the valid regex
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				var count = 1;
-				var description = String.Join("\n", guildInfo.EvaluatedRegex.Select(x => String.Format("`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
-				description = String.IsNullOrWhiteSpace(description) ? "Nothing" : description;
-				var embed = Actions.MakeNewEmbed("Evaluated Regex", description);
-				await Actions.SendEmbedMessage(Context.Channel, embed);
-				return;
-			}
-
 			//Split the input
 			var inputArray = Actions.RemoveNewLines(input).Split(new char[] { ' ' }, 2);
-			if (inputArray.Length != 2)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
 			var action = inputArray[0];
-			var numberStr = inputArray[1];
-
-			//Get the lists
-			var eval = guildInfo.EvaluatedRegex;
-			var curr = guildInfo.BannedPhrases.Regex;
+			var numberStr = inputArray.Length == 2 ? inputArray[1] : null;
 
 			//Check if valid actions
 			bool add;
 			if (Actions.CaseInsEquals(action, "add"))
 			{
-				if (curr.Count >= Constants.MAX_BANNED_REGEX)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned regex at a time.", Constants.MAX_BANNED_REGEX));
-					return;
-				}
 				add = true;
 			}
 			else if (Actions.CaseInsEquals(action, "remove"))
@@ -149,38 +124,64 @@ namespace Advobot
 				return;
 			}
 
+			//Get the lists
+			var eval = guildInfo.EvaluatedRegex;
+			var curr = guildInfo.BannedPhrases.Regex;
+
+			//Check if the users wants to see all the valid regex
+			if (String.IsNullOrWhiteSpace(numberStr))
+			{
+				if (add)
+				{
+					var count = 1;
+					var description = String.Join("\n", eval.Select(x => String.Format("`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
+					description = String.IsNullOrWhiteSpace(description) ? "Nothing" : description;
+					var embed = Actions.MakeNewEmbed("Evaluated Regex", description);
+					await Actions.SendEmbedMessage(Context.Channel, embed);
+					return;
+				}
+				else
+				{
+					var count = 1;
+					var description = String.Join("\n", curr.Select(x => String.Format("`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
+					description = String.IsNullOrWhiteSpace(description) ? "Nothing" : description;
+					var embed = Actions.MakeNewEmbed("Evaluated Regex", description);
+					await Actions.SendEmbedMessage(Context.Channel, embed);
+					return;
+				}
+			}
+
 			//Check if number
 			if (!int.TryParse(numberStr, out int position))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for number."));
 				return;
 			}
-			else if (position < 0 || (position > eval.Count - 1 && add) || (position > curr.Count - 1 && !add))
+			position -= 1;
+			if (position < 0 || (position >= eval.Count && add) || (position >= curr.Count && !add))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid number."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position to edit."));
 				return;
 			}
 
-			Regex regex;
+			var regex = add ? eval[position] : curr[position].Phrase;
 			if (add)
 			{
-				//Get the given regex and add it to the guild's banned regex
-				regex = guildInfo.EvaluatedRegex[position];
-				curr.Add(new BannedPhrase<Regex>(regex, PunishmentType.Nothing));
+				if (curr.Count >= Constants.MAX_BANNED_REGEX)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned regex at a time.", Constants.MAX_BANNED_REGEX));
+					return;
+				}
+
+				curr.Add(new BannedPhrase<string>(regex, PunishmentType.Nothing));
 			}
 			else
 			{
-				//Get the give regex and remove the item at the given position
-				regex = curr[position].Phrase;
 				curr.RemoveAt(position);
 			}
 
-			//Resave everything
-			//TODO: make sure this gets a save function
-			//Actions.SaveBannedRegex(guildInfo, Context);
-
-			//Send a success message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the regex `{1}`.", (add ? "enabled" : "disabled"), regex.ToString()));
+			Actions.SaveGuildInfo(guildInfo);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the regex `{1}`.", (add ? "enabled" : "disabled"), regex));
 		}
 
 		[Command("banstringsmodify")]
@@ -332,7 +333,7 @@ namespace Advobot
 				bannedString.ChangePunishment(type);
 				phraseStr = bannedString.Phrase;
 			}
-			else if (regex && Actions.TryGetBannedRegex(guildInfo, posOrPhrase, out BannedPhrase<Regex> bannedRegex))
+			else if (regex && Actions.TryGetBannedRegex(guildInfo, posOrPhrase, out BannedPhrase<string> bannedRegex))
 			{
 				bannedRegex.ChangePunishment(type);
 				phraseStr = bannedRegex.Phrase.ToString();
@@ -592,7 +593,7 @@ namespace Advobot
 				bpUser.ResetRoleCount();
 				bpUser.ResetKickCount();
 				bpUser.ResetBanCount();
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the infractions for `{0}` to 0.", Actions.FormatUser(user)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the infractions for `{0}` to 0.", Actions.FormatUser(user, user?.Id)));
 			}
 			if (Actions.CaseInsEquals(inputArray[0], "current"))
 			{

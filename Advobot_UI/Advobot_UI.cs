@@ -213,7 +213,7 @@ namespace Advobot
 			{
 				var client = Variables.Client;
 				mLatency.Text = String.Format("Latency: {0}ms", client.GetLatency());
-				mMemory.Text = String.Format("Memory: {0}MB", (Actions.GetMemory() / 1024.0).ToString("0.00"));
+				mMemory.Text = String.Format("Memory: {0}MB", Actions.GetMemory().ToString("0.00"));
 				mThreads.Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
 				mShards.Text = String.Format("Shards: {0}", client.GetShards().Count);
 				mPrefix.Text = String.Format("Prefix: {0}", Properties.Settings.Default.Prefix);
@@ -888,10 +888,10 @@ namespace Advobot
 			//Check if it's current
 			else if (Actions.CaseInsEquals(input, "current"))
 			{
-				var user = Actions.GetBotOwner(Variables.Client);
-				if (user != null)
+				var botOwner = Actions.GetBotOwner(Variables.Client);
+				if (botOwner != null)
 				{
-					Actions.WriteLine(String.Format("The current bot owner is: '{0}'", Actions.FormatUser(user)));
+					Actions.WriteLine(String.Format("The current bot owner is: '{0}'", Actions.FormatUser(botOwner, botOwner?.Id)));
 				}
 				else
 				{
@@ -911,7 +911,8 @@ namespace Advobot
 			else if (Properties.Settings.Default.BotOwner != 0)
 			{
 				//Get the bot owner
-				Actions.WriteLine(String.Format("There is already a bot owner: '{0}'.", Actions.FormatUser(Actions.GetBotOwner(Variables.Client))));
+				var botOwner = Actions.GetBotOwner(Variables.Client);
+				Actions.WriteLine(String.Format("There is already a bot owner: '{0}'.", Actions.FormatUser(botOwner, botOwner?.Id)));
 				return;
 			}
 
@@ -924,16 +925,16 @@ namespace Advobot
 			}
 
 			//Finally check if it's an actual user
-			Discord.IUser globalUser = Variables.Client.GetUser(ID);
-			if (globalUser == null)
+			Discord.IUser user = Variables.Client.GetUser(ID);
+			if (user == null)
 			{
 				Actions.WriteLine("Unable to find any users with that ID.");
 				return;
 			}
 
-			Properties.Settings.Default.BotOwner = globalUser.Id;
+			Properties.Settings.Default.BotOwner = user.Id;
 			Properties.Settings.Default.Save();
-			Actions.WriteLine(String.Format("Successfully made '{0}' the new bot owner.", Actions.FormatUser(globalUser)));
+			Actions.WriteLine(String.Format("Successfully made '{0}' the new bot owner.", Actions.FormatUser(user, user?.Id)));
 		}
 
 		public static void UIGlobalSettings(string input)
@@ -1176,7 +1177,10 @@ namespace Advobot
 		{
 			//Go through each guild and add them to the list
 			int count = 1;
-			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("{0}. {1} Owner: {2}", count++.ToString("00"), Actions.FormatGuild(x), Actions.FormatUser(x.Owner)));
+			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x =>
+			{
+				return String.Format("{0}. {1} Owner: {2}", count++.ToString("00"), Actions.FormatGuild(x), Actions.FormatUser(x.Owner, x.OwnerId));
+			});
 
 			//Get the URL
 			Actions.TryToUploadToHastebin(String.Join("\n", guildStrings), out string url);

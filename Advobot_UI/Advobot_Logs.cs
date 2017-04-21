@@ -184,14 +184,14 @@ namespace Advobot
 			{
 				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteString, ageWarningString), Constants.JOIN);
 				Actions.AddFooter(embed, "Bot Joined");
-				Actions.AddAuthor(embed, Actions.FormatUser(user), user.GetAvatarUrl());
+				Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
 			}
 			else
 			{
 				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteString, ageWarningString), Constants.JOIN);
 				Actions.AddFooter(embed, "User Joined");
-				Actions.AddAuthor(embed, Actions.FormatUser(user), user.GetAvatarUrl());
+				Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
 			}
 
@@ -231,14 +231,14 @@ namespace Advobot
 			{
 				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
 				Actions.AddFooter(embed, "Bot Left");
-				Actions.AddAuthor(embed, Actions.FormatUser(user), user.GetAvatarUrl());
+				Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
 			}
 			else
 			{
 				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
 				Actions.AddFooter(embed, "User Left");
-				Actions.AddAuthor(embed, Actions.FormatUser(user), user.GetAvatarUrl());
+				Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
 			}
 
@@ -258,7 +258,7 @@ namespace Advobot
 
 			var embed = Actions.MakeNewEmbed(null, "**ID:** " + user.Id, Constants.UNBN);
 			Actions.AddFooter(embed, "User Unbanned");
-			Actions.AddAuthor(embed, Actions.FormatUser(user), user.GetAvatarUrl());
+			Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl());
 			await Actions.SendEmbedMessage(serverLog, embed);
 
 			++Variables.LoggedUnbans;
@@ -284,7 +284,7 @@ namespace Advobot
 
 			var embed = Actions.MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN);
 			Actions.AddFooter(embed, "User Banned");
-			Actions.AddAuthor(embed, Actions.FormatUser(user), user.GetAvatarUrl());
+			Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl());
 			await Actions.SendEmbedMessage(serverLog, embed);
 
 			++Variables.LoggedBans;
@@ -313,7 +313,7 @@ namespace Advobot
 					Actions.AddFooter(embed, "Name Changed");
 					Actions.AddField(embed, "Before:", "`" + beforeUser.Username + "`");
 					Actions.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
-					Actions.AddAuthor(embed, Actions.FormatUser(afterUser), afterUser.GetAvatarUrl());
+					Actions.AddAuthor(embed, Actions.FormatUser(afterUser, afterUser?.Id), afterUser.GetAvatarUrl());
 					await Actions.SendEmbedMessage(serverLog, embed);
 
 					++Variables.LoggedUserChanges;
@@ -347,7 +347,7 @@ namespace Advobot
 				Actions.AddFooter(embed, "Nickname Changed");
 				Actions.AddField(embed, "Before:", "`" + originalNickname + "`");
 				Actions.AddField(embed, "After:", "`" + newNickname + "`", false);
-				Actions.AddAuthor(embed, Actions.FormatUser(afterUser), afterUser.GetAvatarUrl());
+				Actions.AddAuthor(embed, Actions.FormatUser(afterUser, afterUser?.Id), afterUser.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
 
 				++Variables.LoggedUserChanges;
@@ -408,7 +408,7 @@ namespace Advobot
 
 					var embed = Actions.MakeNewEmbed(null, String.Format("**Role{0} Lost:** {1}", rolesChange.Count != 1 ? "s" : "", String.Join(", ", rolesChange)), Constants.UEDT);
 					Actions.AddFooter(embed, "Role Lost");
-					Actions.AddAuthor(embed, Actions.FormatUser(afterUser), afterUser.GetAvatarUrl());
+					Actions.AddAuthor(embed, Actions.FormatUser(afterUser, afterUser?.Id), afterUser.GetAvatarUrl());
 					await Actions.SendEmbedMessage(serverLog, embed);
 
 					++Variables.LoggedUserChanges;
@@ -430,7 +430,7 @@ namespace Advobot
 
 				var embed = Actions.MakeNewEmbed(null, String.Format("**Role{0} Gained:** {1}", rolesChange.Count != 1 ? "s" : "", String.Join(", ", rolesChange)), Constants.UEDT);
 				Actions.AddFooter(embed, "Role Gained");
-				Actions.AddAuthor(embed, Actions.FormatUser(afterUser), afterUser.GetAvatarUrl());
+				Actions.AddAuthor(embed, Actions.FormatUser(afterUser, afterUser?.Id), afterUser.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
 
 				++Variables.LoggedUserChanges;
@@ -500,11 +500,13 @@ namespace Advobot
 				afterMsgContent = afterMsgContent.Length > 667 ? "LONG MESSAGE" : afterMsgContent;
 			}
 
+			var user = afterMessage.Author;
+
 			var embed = Actions.MakeNewEmbed(null, null, Constants.MEDT);
 			Actions.AddFooter(embed, "Message Updated");
 			Actions.AddField(embed, "Before:", "`" + beforeMsgContent + "`");
 			Actions.AddField(embed, "After:", "`" + afterMsgContent + "`", false);
-			Actions.AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(afterMessage.Author), afterMessage.Channel), afterMessage.Author.GetAvatarUrl());
+			Actions.AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user, user?.Id), afterMessage.Channel), user.GetAvatarUrl());
 			await Actions.SendEmbedMessage(serverLog, embed);
 
 			++Variables.LoggedEdits;
@@ -700,7 +702,8 @@ namespace Advobot
 		public static async Task LogCommand(BotGuildInfo guildInfo, CommandContext context)
 		{
 			//Write into the console what the command was and who said it
-			Actions.WriteLine(String.Format("{0} on {1}: \"{2}\"", Actions.FormatUser(context.User), Actions.FormatGuild(context.Guild), context.Message.Content));
+			var user = context.User;
+			Actions.WriteLine(String.Format("{0} on {1}: \"{2}\"", Actions.FormatUser(user, user?.Id), Actions.FormatGuild(context.Guild), context.Message.Content));
 			Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Remove(context.Guild);
 			await Actions.DeleteMessage(context.Message);
 
@@ -715,7 +718,7 @@ namespace Advobot
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(description: context.Message.Content);
 			Actions.AddFooter(embed, "Mod Log");
-			Actions.AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(context.User), context.Channel.Name), context.User.GetAvatarUrl());
+			Actions.AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user, user?.Id), context.Channel.Name), context.User.GetAvatarUrl());
 			await Actions.SendEmbedMessage(modLog, embed);
 		}
 	}
@@ -830,13 +833,11 @@ namespace Advobot
 			if (message == null || message.Author.IsBot || message.Author.IsWebhook)
 				return;
 
-			//Check if the guild has slowmode enabled currently
 			if (guildInfo.SlowmodeGuild != null || guildInfo.SlowmodeChannels.Any(x => x.ChannelID == message.Channel.Id))
 			{
 				await Actions.Slowmode(message);
 			}
-			//Check if any banned phrases
-			else if (guildInfo.BannedPhrases.Strings.Any() || guildInfo.BannedPhrases.Regex.Any())
+			if (guildInfo.BannedPhrases.Strings.Any() || guildInfo.BannedPhrases.Regex.Any())
 			{
 				await Actions.BannedPhrases(message);
 			}
@@ -849,40 +850,12 @@ namespace Advobot
 				return;
 
 			var global = guildInfo.GlobalSpamPrevention;
-			var isSpam = false;
-
-			var message = global.MessageSpamPrevention;
-			if (Actions.SpamCheck(message, msg))
-			{
-				isSpam = isSpam || await Actions.HandleSpamPrevention(global, message, guild, author, msg);
-			}
-			var longmessage = global.LongMessageSpamPrevention;
-			if (Actions.SpamCheck(longmessage, msg))
-			{
-				isSpam = isSpam || await Actions.HandleSpamPrevention(global, longmessage, guild, author, msg);
-			}
-			var link = global.LinkSpamPrevention;
-			if (Actions.SpamCheck(link, msg))
-			{
-				isSpam = isSpam || await Actions.HandleSpamPrevention(global, link, guild, author, msg);
-			}
-			var image = global.ImageSpamPrevention;
-			if (Actions.SpamCheck(image, msg))
-			{
-				isSpam = isSpam || await Actions.HandleSpamPrevention(global, image, guild, author, msg);
-			}
-			var mention = global.MentionSpamPrevention;
-			if (Actions.SpamCheck(mention, msg))
-			{
-				isSpam = isSpam || await Actions.HandleSpamPrevention(global, mention, guild, author, msg);
-			}
+			var isSpam = await Actions.SpamCheck(global, guild, author, msg);
 
 			if (!isSpam)
 				return;
 
 			await Actions.DeleteMessage(msg);
-
-			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == author);
 		}
 
 		public static async Task VotingOnSpamPrevention(BotGuildInfo guildInfo, IGuild guild, IMessage message)

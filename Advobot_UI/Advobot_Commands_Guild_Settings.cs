@@ -167,11 +167,12 @@ namespace Advobot
 				var bannedPhraseStrings = guildInfo.BannedPhrases.Strings.Any();
 				var bannedPhraseRegex = guildInfo.BannedPhrases.Regex.Any();
 				var bannedPhrasePunishments = guildInfo.BannedPhrases.Punishments.Any();
-				var messageSpamPrevention = guildInfo.GlobalSpamPrevention.MessageSpamPrevention != null;
-				var longMessageSpamPrevention = guildInfo.GlobalSpamPrevention.LongMessageSpamPrevention != null;
-				var linkSpamPrevention = guildInfo.GlobalSpamPrevention.LinkSpamPrevention != null;
-				var imageSpamPrevention = guildInfo.GlobalSpamPrevention.ImageSpamPrevention != null;
-				var mentionSpamPrevention = guildInfo.GlobalSpamPrevention.MentionSpamPrevention != null;
+				var messageSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Message) != null;
+				var longMessageSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Long_Message) != null;
+				var linkSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Link) != null;
+				var imageSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Image) != null;
+				var mentionSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Mention) != null;
+				var reactionSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Reaction) != null;
 				var welcomeMessage = guildInfo.WelcomeMessage != null;
 				var goodbyeMessage = guildInfo.GoodbyeMessage != null;
 				var prefix = !String.IsNullOrWhiteSpace(guildInfo.Prefix);
@@ -250,7 +251,7 @@ namespace Advobot
 							}
 							else
 							{
-								str = String.Format("The user `{0}` has the following permission(s): `{1}`.", Actions.FormatUser(user), String.Join("`, `", perms));
+								str = String.Format("The user `{0}` has the following permission(s): `{1}`.", Actions.FormatUser(user, user?.Id), String.Join("`, `", perms));
 							}
 						}
 						else
@@ -333,35 +334,35 @@ namespace Advobot
 					}
 					case SettingsOnGuild.MessageSpamPrevention:
 					{
-						var spamPrev = guildInfo.GlobalSpamPrevention.MessageSpamPrevention;
+						var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Message);
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Timeframe:** `{2}`\n**Votes Needed For Kick:** `{3}`",
 							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
 						break;
 					}
 					case SettingsOnGuild.LongMessageSpamPrevention:
 					{
-						var spamPrev = guildInfo.GlobalSpamPrevention.LongMessageSpamPrevention;
+						var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Long_Message);
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Length:** `{2}`\n**Votes Needed For Kick:** `{3}`",
 							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
 						break;
 					}
 					case SettingsOnGuild.LinkSpamPrevention:
 					{
-						var spamPrev = guildInfo.GlobalSpamPrevention.LinkSpamPrevention;
+						var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Link);
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Link Count:** `{2}`\n**Votes Needed For Kick:** `{3}`",
 							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
 						break;
 					}
 					case SettingsOnGuild.ImageSpamPrevention:
 					{
-						var spamPrev = guildInfo.GlobalSpamPrevention.ImageSpamPrevention;
+						var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Image);
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Timeframe:** `{2}`\n**Votes Needed For Kick:** `{3}`",
 							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
 						break;
 					}
 					case SettingsOnGuild.MentionSpamPrevention:
 					{
-						var spamPrev = guildInfo.GlobalSpamPrevention.MentionSpamPrevention;
+						var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Mention);
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Mentions:** `{2}`\n**Votes Needed For Kick:** `{3}`",
 							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
 						break;
@@ -788,7 +789,7 @@ namespace Advobot
 					}
 					else
 					{
-						await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Permissions for " + Actions.FormatUser(user), String.Join("\n", showPerms)));
+						await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Permissions for " + Actions.FormatUser(user, user?.Id), String.Join("\n", showPerms)));
 					}
 				}
 				else
@@ -807,7 +808,7 @@ namespace Advobot
 
 				guildInfo.BotUsers.Remove(botUser);
 				Actions.SaveGuildInfo(guildInfo);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the bot user list.", Actions.FormatUser(user)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the bot user list.", Actions.FormatUser(user, user?.Id)));
 				return;
 			}
 
@@ -852,8 +853,8 @@ namespace Advobot
 			//Save everything and send a success message
 			Actions.SaveGuildInfo(guildInfo);
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {1}: `{0}`.", String.Join("`, `", permissions.Select(x => x.Name)),
-				type == ModifyTypes.Add ? String.Format("gave the user `{0}` the following permission{1}", Actions.FormatUser(user), permissions.Count() != 1 ? "s" : "") :
-									String.Format("removed the following permission{0} from the user `{1}`", permissions.Count() != 1 ? "s" : "", Actions.FormatUser(user))));
+				type == ModifyTypes.Add ? String.Format("gave the user `{0}` the following permission{1}", Actions.FormatUser(user, user?.Id), permissions.Count() != 1 ? "s" : "") :
+									String.Format("removed the following permission{0} from the user `{1}`", permissions.Count() != 1 ? "s" : "", Actions.FormatUser(user, user?.Id))));
 		}
 
 		[Command("remindsmodify")]
