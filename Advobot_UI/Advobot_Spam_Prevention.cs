@@ -266,6 +266,21 @@ namespace Advobot
 			}
 		}
 
+		[Command("preventrapidjoin")]
+		[Alias("prj")]
+		[Usage("[Enable] <User Count> <Time in Seconds> | [Disable]")]
+		[Summary("If the given amount of users joins within the given time frame then ")]
+		[PermissionRequirement]
+		[DefaultEnabled(false)]
+		public async Task PreventRapidJoin([Remainder] string input)
+		{
+			//Check if using the default preferences
+			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+		}
 		//TODO: Add in the other spam preventions
 	}
 }

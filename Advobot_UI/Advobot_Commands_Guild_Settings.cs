@@ -403,6 +403,20 @@ namespace Advobot
 			}
 		}
 
+		[Command("guildreload")]
+		[Alias("gdrl")]
+		[Usage("")]
+		[Summary("Reloads the guild's information. (Mainly for debug purposes when the JSON is edited manually)")]
+		[PermissionRequirement]
+		[DefaultEnabled(true)]
+		public async Task GuildReload()
+		{
+			Variables.Guilds.Remove(Context.Guild.Id);
+			Actions.LoadGuild(Context.Guild);
+
+			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully reloaded the guild.");
+		}
+
 		[Command("comconfigmodify")]
 		[Alias("ccm")]
 		[Usage("[Enable|Disable]")]
@@ -1029,10 +1043,8 @@ namespace Advobot
 				return;
 			}
 
-			var welcomeMessage = await Actions.GetGuildNotification(Context, input);
-			guildInfo.SetWelcomeMessage(welcomeMessage);
+			guildInfo.SetWelcomeMessage(await Actions.GetGuildNotification(Context, input));
 			Actions.SaveGuildInfo(guildInfo);
-			await Actions.SendGuildNotification(null, welcomeMessage);
 		}
 
 		[Command("goodbyemessage")]
@@ -1051,10 +1063,54 @@ namespace Advobot
 				return;
 			}
 
-			var goodbyeMessage = await Actions.GetGuildNotification(Context, input);
-			guildInfo.SetGoodbyeMessage(goodbyeMessage);
+			guildInfo.SetGoodbyeMessage(await Actions.GetGuildNotification(Context, input));
 			Actions.SaveGuildInfo(guildInfo);
-			await Actions.SendGuildNotification(null, goodbyeMessage);
+		}
+
+		[Command("testguildnotif")]
+		[Alias("tgn")]
+		[Usage("[Welcome|Goodbye]")]
+		[Summary("Sends the given guild notification in order to test it.")]
+		[PermissionRequirement]
+		[DefaultEnabled(false)]
+		public async Task TestGuildNotification([Remainder] string input)
+		{
+			//Check if using the default preferences
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			if (guildInfo.DefaultPrefs)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
+				return;
+			}
+
+			if (!Enum.TryParse(input, true, out GuildNotifications notifType))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid notification type supplied."));
+				return;
+			}
+
+			GuildNotification notif = null;
+			switch (notifType)
+			{
+				case GuildNotifications.Welcome:
+				{
+					notif = guildInfo.WelcomeMessage;
+					break;
+				}
+				case GuildNotifications.Goodbye:
+				{
+					notif = guildInfo.GoodbyeMessage;
+					break;
+				}
+			}
+
+			if (notif == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The notification does not exist."));
+				return;
+			}
+
+			await Actions.SendGuildNotification(null, notif);
 		}
 
 		[Command("getfile")]

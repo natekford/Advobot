@@ -13,8 +13,8 @@ namespace Advobot
 	public class Advobot_Commands_Administration : ModuleBase
 	{
 		#region Settings
-		[Command(SharedCommands.COWNER)]
-		[Alias(SharedCommands.AOWNER)]
+		[Command(BasicCommandStrings.COWNER)]
+		[Alias(BasicCommandStrings.AOWNER)]
 		[Usage("<Clear|Current>")]
 		[Summary("You must be the current guild owner. The bot will DM you asking for its key. **DO NOT INPUT THE KEY OUTSIDE OF DMS.** If you are experiencing trouble, refresh your bot's key.")]
 		[GuildOwnerRequirement]
@@ -74,8 +74,8 @@ namespace Advobot
 			await Actions.SendDMMessage(await Context.User.CreateDMChannelAsync(), "What is my key?");
 		}
 
-		[Command(SharedCommands.CPATH)]
-		[Alias(SharedCommands.APATH)]
+		[Command(BasicCommandStrings.CPATH)]
+		[Alias(BasicCommandStrings.APATH)]
 		[Usage("[Clear|Current|New Directory]")]
 		[Summary("Changes the save path's directory. Windows defaults to User/AppData/Roaming. Other OSes will not work without a save path set. Clearing the savepath means nothing will be able to save.")]
 		[BotOwnerRequirement]
@@ -129,8 +129,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the save path to: `{0}`.", input), 10000);
 		}
 
-		[Command(SharedCommands.CPREFIX)]
-		[Alias(SharedCommands.APREFIX)]
+		[Command(BasicCommandStrings.CPREFIX)]
+		[Alias(BasicCommandStrings.APREFIX)]
 		[Usage("[Clear|Current|New Prefix]")]
 		[Summary("Changes the bot's prefix to the given string. Clearing the prefix sets it back to `++`.")]
 		[BotOwnerRequirement]
@@ -167,8 +167,8 @@ namespace Advobot
 			await Actions.SetGame(oldPrefix);
 		}
 
-		[Command(SharedCommands.CSETTINGS)]
-		[Alias(SharedCommands.ASETTINGS)]
+		[Command(BasicCommandStrings.CSETTINGS)]
+		[Alias(BasicCommandStrings.ASETTINGS)]
 		[Usage("[Clear|Current]")]
 		[Summary("Shows all the settings on the bot aside from the bot's key. When clearing all settings the bot will have to be manually restarted if it reconnects.")]
 		[BotOwnerRequirement]
@@ -216,8 +216,8 @@ namespace Advobot
 		#endregion
 
 		#region Bot Changes
-		[Command(SharedCommands.CICON)]
-		[Alias(SharedCommands.AICON)]
+		[Command(BasicCommandStrings.CICON)]
+		[Alias(BasicCommandStrings.AICON)]
 		[Usage("[Attached Image|Embedded Image|Remove]")]
 		[Summary("Changes the bot's icon.")]
 		[BotOwnerRequirement]
@@ -227,8 +227,8 @@ namespace Advobot
 			await Actions.SetPicture(Context, input, true);
 		}
 
-		[Command(SharedCommands.CGAME)]
-		[Alias(SharedCommands.AGAME)]
+		[Command(BasicCommandStrings.CGAME)]
+		[Alias(BasicCommandStrings.AGAME)]
 		[Usage("[New Name]")]
 		[Summary("Changes the game the bot is currently listed as playing.")]
 		[BotOwnerRequirement]
@@ -251,8 +251,8 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, String.Format("Game set to `{0}`.", input));
 		}
 
-		[Command(SharedCommands.CSTREAM)]
-		[Alias(SharedCommands.ASTREAM)]
+		[Command(BasicCommandStrings.CSTREAM)]
+		[Alias(BasicCommandStrings.ASTREAM)]
 		[Usage("[Twitch.TV link]")]
 		[Summary("Changes the stream the bot has listed under its name.")]
 		[BotOwnerRequirement]
@@ -291,8 +291,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to `" + input + "`"));
 		}
 
-		[Command(SharedCommands.CNAME)]
-		[Alias(SharedCommands.ANAME)]
+		[Command(BasicCommandStrings.CNAME)]
+		[Alias(BasicCommandStrings.ANAME)]
 		[Usage("[New Name]")]
 		[Summary("Changes the bot's name to the given name.")]
 		[BotOwnerRequirement]
@@ -320,8 +320,8 @@ namespace Advobot
 		#endregion
 
 		#region Misc
-		[Command(SharedCommands.CDISC)]
-		[Alias(SharedCommands.ADISC_1, SharedCommands.ADISC_2)]
+		[Command(BasicCommandStrings.CDISC)]
+		[Alias(BasicCommandStrings.ADISC_1, BasicCommandStrings.ADISC_2)]
 		[Usage("")]
 		[Summary("Turns the bot off.")]
 		[BotOwnerRequirement]
@@ -338,8 +338,8 @@ namespace Advobot
 			}
 		}
 
-		[Command(SharedCommands.CRESTART)]
-		[Alias(SharedCommands.ARESTART)]
+		[Command(BasicCommandStrings.CRESTART)]
+		[Alias(BasicCommandStrings.ARESTART)]
 		[Usage("")]
 		[Summary("Restarts the bot.")]
 		[BotOwnerRequirement]
@@ -366,7 +366,7 @@ namespace Advobot
 			}
 		}
 
-		[Command(SharedCommands.CSHARDS)]
+		[Command(BasicCommandStrings.CSHARDS)]
 		[Usage("[Number]")]
 		[Summary("")]
 		[BotOwnerRequirement]
@@ -403,8 +403,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the shard amount to {0}.", number));
 		}
 
-		[Command(SharedCommands.CGUILDS)]
-		[Alias(SharedCommands.AGUILDS)]
+		[Command(BasicCommandStrings.CGUILDS)]
+		[Alias(BasicCommandStrings.AGUILDS)]
 		[Usage("")]
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 		[BotOwnerRequirement]
@@ -412,7 +412,7 @@ namespace Advobot
 		public async Task ListGuilds()
 		{
 			//Go through each guild and add them to the list
-			int count = 1;
+			var count = 1;
 			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("`{0}.` `{1}` Owner: `{2}`",
 				count++.ToString("00"), Actions.FormatGuild(x), Actions.FormatUser(x.Owner, x.Owner?.Id)));
 

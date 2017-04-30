@@ -308,7 +308,7 @@ namespace Advobot
 		[Command("roleposition")]
 		[Alias("rpos")]
 		[Usage("[Role] [New Position]")]
-		[Summary("Moves the role to the given position. @ev" + Constants.ZERO_LENGTH_CHAR + "eryone is the first position and starts at zero.")]
+		[Summary("Moves the role to the given position. " + Constants.FAKE_EVERYONE + " is the first position and starts at zero.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
 		[DefaultEnabled(true)]
 		public async Task RolePosition([Remainder] string input)
@@ -381,11 +381,11 @@ namespace Advobot
 			{
 				if (role == Context.Guild.EveryoneRole)
 				{
-					description += "`" + role.Position.ToString("00") + ".` @ev" + Constants.ZERO_LENGTH_CHAR + "eryone";
+					description += String.Format("`{0}.` {1}", role.Position.ToString("00"), Constants.FAKE_EVERYONE);
 				}
 				else
 				{
-					description += "`" + role.Position.ToString("00") + ".` " + role.Name + "\n";
+					description += String.Format("`{0}.` {1}\n", role.Position.ToString("00"), role.Name);
 				}
 			});
 

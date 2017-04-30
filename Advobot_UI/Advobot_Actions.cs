@@ -20,6 +20,9 @@ namespace Advobot
 		#region Saving and Loading
 		public static async Task LoadInformation()
 		{
+			if (Variables.Loaded)
+				return;
+
 			Variables.Bot_ID = Variables.Client.GetCurrentUser().Id;				//Give the variable Bot_ID the id of the bot
 			Variables.Bot_Name = Variables.Client.GetCurrentUser().Username;		//Give the variable Bot_Name the username of the bot
 
@@ -104,7 +107,7 @@ namespace Advobot
 						var attr = (UsageAttribute)method.GetCustomAttribute(typeof(UsageAttribute));
 						if (attr != null)
 						{
-							usage = attr.Usage;
+							usage = name + " " + attr.Usage;
 						}
 					}
 					//Get the base permissions
@@ -265,24 +268,27 @@ namespace Advobot
 			var guildInfo = LoadGuildInfo(guild);
 			if (guildInfo != null)
 			{
-				if (guildInfo.CommandSettings != null && guildInfo.CommandSettings.Any())
-				{
-					guildInfo.CommandSettings.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-					var cmds = guildInfo.CommandSettings.Select(x => x.Name).ToList();
-					var unaddedCmds = Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList();
-					unaddedCmds.ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
-				}
 				guildInfo.PostDeserialize();
 			}
 			else
 			{
 				guildInfo = new BotGuildInfo(guild.Id);
+			}
+
+			if (guildInfo.CommandSettings != null && guildInfo.CommandSettings.Any())
+			{
+				guildInfo.CommandSettings.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+				var cmds = guildInfo.CommandSettings.Select(x => x.Name).ToList();
+				Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList().ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
+			}
+			else
+			{
 				Variables.HelpList.ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 			}
+
 			guildInfo.TurnLoadedOn();
 			Task.Run(async () =>
 			{
-				//Get all of the invites and add their guildID, code, and current uses to the usage check list
 				guildInfo.Invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
 			});
 			Variables.Guilds.Add(guild.Id, guildInfo);
@@ -644,7 +650,7 @@ namespace Advobot
 		{
 			try
 			{
-				int bit = Variables.GuildPermissions.FirstOrDefault(x => CaseInsEquals(x.Name, permission)).Position;
+				var bit = Variables.GuildPermissions.FirstOrDefault(x => CaseInsEquals(x.Name, permission)).Position;
 				changeValue |= (1U << bit);
 				return changeValue;
 			}
@@ -810,6 +816,9 @@ namespace Advobot
 
 		public static string[] SplitByCharExceptInQuotes(string inputString, char inputChar)
 		{
+			if (String.IsNullOrWhiteSpace(inputString))
+				return null;
+
 			return inputString.Split('"').Select((element, index) =>
 			{
 				if (index % 2 == 0)
@@ -1128,6 +1137,78 @@ namespace Advobot
 			}
 			return curMatches;
 		}
+
+		public static bool GetIfValidUnicode(string str, int upperLimit)
+		{
+			if (String.IsNullOrWhiteSpace(str))
+				return false;
+
+			foreach (var c in str.ToCharArray())
+			{
+				if (c > upperLimit)
+					return false;
+			}
+			return true;
+		}
+
+		public static List<IGuildUser> GetUsersWithNonStandardUnicodeNames(List<IGuildUser> users, int upperLimit)
+		{
+			return users.Where(x => !GetIfValidUnicode(x.Username, upperLimit) && !GetIfValidUnicode(x?.Nickname, upperLimit)).ToList();
+		}
+
+		public static async Task<List<IGuildUser>> GetUsersTheBotAndUserCanEdit(ICommandContext context, List<IGuildUser> users)
+		{
+			var bot = await GetBot(context.Guild);
+			var user = context.User as IGuildUser;
+
+			var validUsers = users.Where(x =>
+			{
+				return UserCanBeModifiedByUser(context, x) && UserCanBeModifiedByBot(context.Guild, x, bot);
+			}).ToList();
+
+			return validUsers;
+		}
+
+		public static async Task RenicknameALotOfPeople(ICommandContext context, List<IGuildUser> users, string newNickname, int amtOfUsers = 100)
+		{
+			var validUsers = await GetUsersTheBotAndUserCanEdit(context, users);
+			validUsers = validUsers.GetRange(0, Math.Min(validUsers.Count, amtOfUsers));
+
+			//User count checking and stuff
+			var userCount = validUsers.Count;
+			if (userCount == 0)
+			{
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to find any users matching the search criteria."));
+				return;
+			}
+
+			//Have the bot stay in the typing state and have a message that can be updated 
+			var msg = await SendChannelMessage(context, String.Format("Attempting to change the nickname of `{0}` user{1}.", userCount, userCount != 1 ? "s" : "")) as IUserMessage;
+			var typing = context.Channel.EnterTypingState();
+
+			//Actually rename them all
+			var count = 0;
+			await validUsers.ForEachAsync(async x =>
+			{
+				++count;
+				if (count % 10 == 0)
+				{
+					await msg.ModifyAsync(y => y.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
+				}
+
+				await ChangeNickname(x, newNickname);
+			});
+
+			//Get rid of stuff and send a success message
+			typing.Dispose();
+			await DeleteMessage(msg);
+			await MakeAndDeleteSecondaryMessage(context, String.Format("Successfully changed the nicknames of `{0}` user{1}.", count, count != 1 ? "s" : ""));
+		}
+
+		public static int GetNumOfUsers(ICommandContext context, string[] inputArray)
+		{
+			return CaseInsContains(inputArray, Constants.BYPASS_STRING) && true /*TODO: put a bool here requiring bot owner?*/ ? int.MaxValue : 100;
+		}
 		#endregion
 
 		#region Roles
@@ -1310,7 +1391,7 @@ namespace Advobot
 			//Delete them in a try catch due to potential errors
 			try
 			{
-				await channel.DeleteMessagesAsync(messages.Where(x => x != null).Distinct());
+				await channel.DeleteMessagesAsync(messages.Where(x => x != null && DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 14).Distinct());
 			}
 			catch
 			{
@@ -1335,6 +1416,8 @@ namespace Advobot
 
 		public static string ERROR(string message)
 		{
+			++Variables.FailedCommands;
+
 			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
 		}
 		
@@ -1425,18 +1508,16 @@ namespace Advobot
 		public static string FormatLoggedThings()
 		{
 			const int spacing = Constants.PAD_RIGHT;
-			return String.Format("{0}\n{1}\n{2}\n{3}\n{4}\n{5}\n{6}\n{7}\n{8}\n{9}\n{10}",
-				String.Format("{0}{1}", "Logged Actions:".PadRight(spacing), "Count:"),
-				String.Format("{0}{1}", "Joins:".PadRight(spacing), Variables.LoggedJoins),
-				String.Format("{0}{1}", "Leaves:".PadRight(spacing), Variables.LoggedLeaves),
-				String.Format("{0}{1}", "Bans:".PadRight(spacing), Variables.LoggedBans),
-				String.Format("{0}{1}", "Unbans:".PadRight(spacing), Variables.LoggedUnbans),
-				String.Format("{0}{1}", "User changes:".PadRight(spacing), Variables.LoggedUserChanges),
-				String.Format("{0}{1}", "Edits:".PadRight(spacing), Variables.LoggedEdits),
-				String.Format("{0}{1}", "Deletes:".PadRight(spacing), Variables.LoggedDeletes),
-				String.Format("{0}{1}", "Images:".PadRight(spacing), Variables.LoggedImages),
-				String.Format("{0}{1}", "Gifs:".PadRight(spacing), Variables.LoggedGifs),
-				String.Format("{0}{1}", "Files:".PadRight(spacing), Variables.LoggedFiles));
+			var header = String.Format("{0}{1}", "**Logged Actions:**".PadRight(spacing), "Count:");
+			var joins = String.Format("{0}{1}", "**Joins:**".PadRight(spacing), Variables.LoggedJoins);
+			var leaves = String.Format("{0}{1}", "**Leaves:**".PadRight(spacing), Variables.LoggedLeaves);
+			var userChanges = String.Format("{0}{1}", "**User changes:**".PadRight(spacing), Variables.LoggedUserChanges);
+			var edits = String.Format("{0}{1}", "**Edits:**".PadRight(spacing), Variables.LoggedEdits);
+			var deletes = String.Format("{0}{1}", "**Deletes:**".PadRight(spacing), Variables.LoggedDeletes);
+			var images = String.Format("{0}{1}", "**Images:**".PadRight(spacing), Variables.LoggedImages);
+			var gifs = String.Format("{0}{1}", "**Gifs:**".PadRight(spacing), Variables.LoggedGifs);
+			var files = String.Format("{0}{1}", "**Files:**".PadRight(spacing), Variables.LoggedFiles);
+			return String.Join("\n", new[] { header, joins, leaves, userChanges, edits, deletes, images, gifs, files });
 		}
 
 		public static List<string> FormatDeletedMessages(List<IMessage> list)
@@ -2866,6 +2947,9 @@ namespace Advobot
 			var isSpam = false;
 			await global.SpamPreventions.Values.ToList().ForEachAsync(async x =>
 			{
+				if (x?.SpamType == null)
+					return;
+
 				switch (x.SpamType)
 				{
 					case SpamType.Message:
@@ -3183,7 +3267,7 @@ namespace Advobot
 
 		public static void ClearPunishedUsersList()
 		{
-			Variables.Guilds.ToList().ForEach(x => x.Value.GlobalSpamPrevention.SpamPreventionUsers.Clear());
+			Variables.Guilds.Values.ToList().ForEach(x => x.GlobalSpamPrevention.SpamPreventionUsers.Clear());
 		}
 
 		public static void RemovePunishments()
@@ -3266,6 +3350,20 @@ namespace Advobot
 			{
 				x.ResetMessagesLeft();
 			});
+		}
+
+		public static void ClearJoinCount()
+		{
+			Variables.Guilds.Values.Select(x => x.JoinProtection).Where(x => x.TimeToReset < DateTime.UtcNow).ToList().ForEach(x => x.Reset());
+		}
+
+		public static void ResetTimedSpamCounts()
+		{
+			//TODO: Implement correctly
+			/*Variables.Guilds.SelectMany(x => x.Value.GlobalSpamPrevention.SpamPreventionUsers).ToList().ForEach(x =>
+			{
+				if ()
+			});*/
 		}
 		#endregion
 
@@ -3350,7 +3448,7 @@ namespace Advobot
 
 		public static bool CaseInsContains(string[] array, string str)
 		{
-			if (!array.Any())
+			if (array == null || !array.Any())
 			{
 				return false;
 			}

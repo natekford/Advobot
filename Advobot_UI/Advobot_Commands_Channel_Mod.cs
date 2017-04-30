@@ -479,7 +479,7 @@ namespace Advobot
 
 		[Command("channelpermscopy")]
 		[Alias("chpc")]
-		[Usage(Constants.CHANNEL_INSTRUCTIONS + " " + Constants.CHANNEL_INSTRUCTIONS + " [Role|User|All]")]
+		[Usage(Constants.CHANNEL_INSTRUCTIONS + " " + Constants.CHANNEL_INSTRUCTIONS + " [\"Role\"|User|All]")]
 		[Summary("Copy permissions from one channel to another. Works for a role, a user, or everything.")]
 		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
 		[DefaultEnabled(true)]
@@ -568,7 +568,7 @@ namespace Advobot
 			}
 
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully copied `{0}` from `{1}` to `{2}`",
-				target, Actions.FormatChannel(inputChannel), Actions.FormatChannel(outputChannel)), 7500);
+				target, Actions.FormatChannel(inputChannel), Actions.FormatChannel(outputChannel)));
 		}
 
 		[Command("channelpermsclear")]

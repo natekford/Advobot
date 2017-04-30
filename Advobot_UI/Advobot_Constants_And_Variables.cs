@@ -12,8 +12,8 @@ namespace Advobot
 		public const int CACHED_MESSAGE_COUNT = 10000;
 		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
 
-		public const string BOT_VERSION = "0.9.20";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00699";
+		public const string BOT_VERSION = "0.9.31";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00719";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -44,6 +44,7 @@ namespace Advobot
 		public static readonly string DEFAULT_GAME = "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
 		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds as a text file.";
 		public const string NO_NN = "NO NICKNAME";
+		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG = 3;
@@ -163,7 +164,7 @@ namespace Advobot
 
 		public static int TotalUsers = 0;
 		public static int TotalGuilds = 0;
-		public static int SucceededCommands = 0;
+		public static int AttemptedCommands = 0;
 		public static int FailedCommands = 0;
 		public static int LoggedJoins = 0;
 		public static int LoggedLeaves = 0;
@@ -200,7 +201,7 @@ namespace Advobot
 		public readonly static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<Discord.IGuild>();
 	}
 
-	public static class SharedCommands
+	public static class BasicCommandStrings
 	{
 		public const string CPAUSE = "pause";
 		public const string APAUSE = "p";

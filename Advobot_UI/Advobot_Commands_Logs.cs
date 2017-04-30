@@ -100,7 +100,7 @@ namespace Advobot
 				}
 			}
 
-			if (guildInfo.ServerLogID == channel.Id)
+			if (guildInfo.ModLogID == channel.Id)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The given channel is already the current mod log."));
 				return;

@@ -380,23 +380,29 @@ namespace Advobot
 			//Test lengths
 			if (find.Length > Constants.MAX_NICKNAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to replace can only be up to `{0}` characters long.")));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to replace can only be up to `{0}` characters long.", Constants.MAX_NICKNAME_LENGTH)));
 				return;
 			}
-			if (with.Length > Constants.MAX_NICKNAME_LENGTH)
+
+			if (with.Length < Constants.MIN_NICKNAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to replace with can only be up to `{0}` characters long.")));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to replace with must be at least `{0}` characters long.", Constants.MIN_NICKNAME_LENGTH)));
+				return;
+			}
+			else if (with.Length > Constants.MAX_NICKNAME_LENGTH)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to replace with can only be up to `{0}` characters long.", Constants.MAX_NICKNAME_LENGTH)));
 				return;
 			}
 
 			//Get the users 
-			var maxLength = (inputArray.Length == 3 && Actions.CaseInsEquals(inputArray[2], Constants.BYPASS_STRING)) ? int.MaxValue : 100;
+			var maxLength = Actions.GetNumOfUsers(Context, inputArray);
 			var users = (await Context.Guild.GetUsersAsync()).Where(x => Actions.CaseInsIndexOf(x.Username, find) || (x.Nickname != null && Actions.CaseInsIndexOf(x.Nickname, find))).ToList();
-			var userCount = users.Count;
-			users.RemoveRange(Math.Min(maxLength, userCount), Math.Max(userCount - maxLength, 0));
+			users = await Actions.GetUsersTheBotAndUserCanEdit(Context, users);
+			users = users.GetRange(0, Math.Min(users.Count, maxLength));
 
 			//User count checking and stuff
-			userCount = users.Count;
+			var userCount = users.Count;
 			if (userCount == 0)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to find any users with the given string to replace."));
@@ -409,7 +415,6 @@ namespace Advobot
 
 			//Actually rename them all
 			var count = 0;
-			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID);
 			await users.ForEachAsync(async x =>
 			{
 				++count;
@@ -417,9 +422,6 @@ namespace Advobot
 				{
 					await msg.ModifyAsync(y => y.Content = String.Format("Attempting to rename `{0}` people.", userCount - count));
 				}
-
-				if (!Actions.UserCanBeModifiedByBot(Context.Guild, x, bot))
-					return;
 
 				if (x.Nickname != null)
 				{
@@ -437,6 +439,60 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully renamed `{0}` people.", count));
 		}
 
+		[Command("replacenonascii")]
+		[Alias("rna")]
+		[Usage("<\"Replacement:String to Replace With\"> <ANSI:True|False> <" + Constants.BYPASS_STRING + ">")]
+		[Summary("Any user who has a name and nickname with non regular ascii characters will have their username changed to the given string. No replace string just lists the users instead."
+			+ "Max is 100 users per use unless the bypass string is said.")]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageNicknames)]
+		[DefaultEnabled(true)]
+		public async Task ReplaceNonAscii([Optional, Remainder] string input)
+		{
+			//Splitting input
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
+			var replaceStr = Actions.GetVariable(inputArray, "replacement");
+			var ansiStr = Actions.GetVariable(inputArray, "ansi");
+
+			//Getting the upper limit for the Unicode characters
+			var upperLimit = 127;
+			if (!String.IsNullOrWhiteSpace(ansiStr))
+			{
+				if (!bool.TryParse(ansiStr, out bool ANSI))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for ANSI."));
+					return;
+				}
+				else if (ANSI)
+				{
+					upperLimit = 255;
+				}
+			}
+
+			//Find users who have invalid usernames and no valid nicknames
+			var users = Actions.GetUsersWithNonStandardUnicodeNames((await Context.Guild.GetUsersAsync()).ToList(), upperLimit);
+			if (String.IsNullOrWhiteSpace(replaceStr))
+			{
+				var count = 1;
+				var lengthForCount = users.Count.ToString().Length;
+				var description = String.Join("\n", users.Select(x =>
+				{
+					return String.Format("`{0}.` `{1}`", count++.ToString().PadLeft(lengthForCount, '0'), Actions.FormatUser(x, x?.Id));
+				}));
+				if (String.IsNullOrWhiteSpace(description))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No user has an invalid ASCII name."));
+					return;
+				}
+
+				var embed = Actions.MakeNewEmbed("Invalid Name Users", description);
+				await Actions.SendEmbedMessage(Context.Channel, embed);
+				return;
+			}
+
+			var maxLength = Actions.GetNumOfUsers(Context, inputArray);
+			await Actions.RenicknameALotOfPeople(Context, users, replaceStr, maxLength);
+		}
+
 		[Command("removeallnicknames")]
 		[Alias("rann")]
 		[Usage("<" + Constants.BYPASS_STRING + ">")]
@@ -445,44 +501,9 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task RemoveAllNickNames([Optional, Remainder] string input)
 		{
-			var maxLength = (input != null && Actions.CaseInsEquals(input, Constants.BYPASS_STRING)) ? int.MaxValue : 100;
+			var maxLength = Actions.GetNumOfUsers(Context, new[] { input });
 			var users = (await Context.Guild.GetUsersAsync()).Where(x => x.Nickname != null).ToList();
-			var userCount = users.Count;
-			users.RemoveRange(Math.Min(maxLength, userCount), Math.Max(userCount - maxLength, 0));
-
-			//User count checking and stuff
-			userCount = users.Count;
-			if (userCount == 0)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to find any users with a nickname."));
-				return;
-			}
-
-			//Have the bot stay in the typing state and have a message that can be updated 
-			var msg = await Actions.SendChannelMessage(Context, String.Format("Attempting to nickname from `{0}` people.", userCount)) as IUserMessage;
-			var typing = Context.Channel.EnterTypingState();
-
-			//Actually rename them all
-			var count = 0;
-			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID);
-			await users.ForEachAsync(async x =>
-			{
-				++count;
-				if (count % 10 == 0)
-				{
-					await msg.ModifyAsync(y => y.Content = String.Format("Attempting to remove the nickname from `{0}` people.", userCount - count));
-				}
-
-				if (!Actions.UserCanBeModifiedByBot(Context.Guild, x, bot))
-					return;
-
-				await Actions.ChangeNickname(x, null);
-			});
-
-			//Get rid of stuff and send a success message
-			typing.Dispose();
-			await Actions.DeleteMessage(msg);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the nicknames of `{0}` people.", count));
+			await Actions.RenicknameALotOfPeople(Context, users, null, maxLength);
 		}
 
 		[Command("prunemembers")]
@@ -710,9 +731,9 @@ namespace Advobot
 					return;
 				}
 
-				var bannedUser = bans.FirstOrDefault(x => x.User.Id.Equals(inputUserID)).User;
-				await Context.Guild.RemoveBanAsync(bannedUser);
-				secondHalfOfTheSecondaryMessage = String.Format("unbanned the user with the ID `{0}`.", inputUserID);
+				var user = bans.FirstOrDefault(x => x.User.Id.Equals(inputUserID)).User;
+				await Context.Guild.RemoveBanAsync(user);
+				secondHalfOfTheSecondaryMessage = String.Format("unbanned the user `{0}`.", Actions.FormatUser(user, user?.Id));
 			}
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0}", secondHalfOfTheSecondaryMessage), 10000);
 		}
@@ -760,13 +781,12 @@ namespace Advobot
 		public async Task CurrentBanList()
 		{
 			var bans = (await Context.Guild.GetBansAsync()).ToList();
-			var description = "";
 			var count = 1;
 			var lengthForCount = bans.Count.ToString().Length;
-			bans.ForEach(x =>
+			var description = String.Join("\n", bans.Select(x =>
 			{
-				description += String.Format("`{0}.` `{1}`\n", count++.ToString().PadLeft(lengthForCount, '0'), Actions.FormatUser(x.User, x.User?.Id));
-			});
+				return String.Format("`{0}.` `{1}`", count++.ToString().PadLeft(lengthForCount, '0'), Actions.FormatUser(x.User, x.User?.Id));
+			}));
 
 			if (String.IsNullOrWhiteSpace(description))
 			{
@@ -1066,7 +1086,6 @@ namespace Advobot
 			}
 			var inputStr = inputArray[1];
 			var outputStr = inputArray[2];
-			var bypassStr = inputArray.Length > 3 ? inputArray[3] : null;
 
 			//Verifying the attempted command is valid
 			var roleToGather = Actions.GetRole(Context.Guild, inputStr);
@@ -1095,12 +1114,9 @@ namespace Advobot
 			}
 
 			//Get the amount of users allowed
-			var maxLength = Actions.CaseInsEquals(bypassStr, Constants.BYPASS_STRING) && false /*TODO: Implement a bool here*/ ? int.MaxValue : 100;
-			var bot = await Actions.GetUser(Context.Guild, Variables.Bot_ID) as IGuildUser;
-			var listUsersWithRole = (await Context.Guild.GetUsersAsync()).Where(x =>
-			{
-				return x.RoleIds.Contains(roleToGather.Id) && Actions.UserCanBeModifiedByUser(Context, x) && Actions.UserCanBeModifiedByBot(Context.Guild, x, bot);
-			}).ToList().GetRange(0, maxLength);
+			var maxLength = Actions.GetNumOfUsers(Context, inputArray);
+			var listUsersWithRole = (await Actions.GetUsersTheBotAndUserCanEdit(Context, (await Context.Guild.GetUsersAsync()).Where(x => x.RoleIds.Contains(roleToGather.Id)).ToList()));
+			listUsersWithRole = listUsersWithRole.GetRange(0, maxLength);
 			var userCount = listUsersWithRole.Count;
 			if (userCount == 0)
 			{
@@ -1127,7 +1143,7 @@ namespace Advobot
 							return;
 						else if (Context.Guild.EveryoneRole.Id.Equals(outputRole.Id))
 						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, "You can't give the `@everyone` role.");
+							await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You can't give the `{0}` role.", Constants.FAKE_EVERYONE));
 							return;
 						}
 
@@ -1159,7 +1175,7 @@ namespace Advobot
 							return;
 						else if (Context.Guild.EveryoneRole.Id.Equals(outputRole.Id))
 						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, "You can't take the `@everyone` role.");
+							await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You can't take the `{0}` role.", Constants.FAKE_EVERYONE));
 							return;
 						}
 

@@ -183,6 +183,7 @@ namespace Advobot
 			GlobalSpamPrevention = new GlobalSpamPrevention();
 			RoleLoss = new RoleLoss();
 			MessageDeletion = new MessageDeletion();
+			JoinProtection = new RapidJoinProtection();
 
 			Prefix = null;
 			DefaultPrefs = true;
@@ -232,6 +233,8 @@ namespace Advobot
 		public GuildNotification GoodbyeMessage { get; private set; }
 		[JsonProperty]
 		public ListedInvite ListedInvite { get; private set; }
+		[JsonProperty]
+		public RapidJoinProtection JoinProtection { get; private set; }
 		[JsonProperty]
 		public string Prefix { get; private set; }
 		[JsonProperty]
@@ -344,6 +347,40 @@ namespace Advobot
 			{
 				Variables.InviteList.ThreadSafeAdd(ListedInvite);
 			}
+		}
+	}
+
+	public class RapidJoinProtection : ITimeInterface
+	{
+		public RapidJoinProtection()
+		{
+			TimeInterval = 2; //TODO: Give user option to set this
+			JoinLimit = 4; //TODO: Same as above
+			JoinCount = 0;
+			TimeToReset = DateTime.UtcNow.AddSeconds(TimeInterval);
+		}
+
+		[JsonProperty]
+		public int TimeInterval { get; private set; }
+		[JsonProperty]
+		public int JoinLimit { get; private set; }
+		[JsonIgnore]
+		public int JoinCount { get; private set; }
+		[JsonIgnore]
+		public DateTime TimeToReset { get; private set; }
+
+		public DateTime GetTime()
+		{
+			return TimeToReset;
+		}
+		public void Increase()
+		{
+			++JoinCount;
+		}
+		public void Reset()
+		{
+			JoinCount = 0;
+			TimeToReset = DateTime.UtcNow.AddSeconds(TimeInterval);
 		}
 	}
 
@@ -967,32 +1004,38 @@ namespace Advobot
 			{
 				case SpamType.Message:
 				{
-					spamAmount = MessageSpamInfo.IncreaseAndGet();
+					MessageSpamInfo.Add(msg.CreatedAt.UtcDateTime);
+					spamAmount = MessageSpamInfo.SpamCount(spamPrev.AmountOfMessages);
 					break;
 				}
 				case SpamType.Long_Message:
 				{
-					spamAmount = LongMessageSpamInfo.IncreaseAndGet();
+					LongMessageSpamInfo.Add(msg.CreatedAt.UtcDateTime);
+					spamAmount = LongMessageSpamInfo.SpamCount(spamPrev.AmountOfMessages);
 					break;
 				}
 				case SpamType.Link:
 				{
-					spamAmount = LinkSpamInfo.IncreaseAndGet();
+					LinkSpamInfo.Add(msg.CreatedAt.UtcDateTime);
+					spamAmount = LinkSpamInfo.SpamCount(spamPrev.AmountOfMessages);
 					break;
 				}
 				case SpamType.Image:
 				{
-					spamAmount = ImageSpamInfo.IncreaseAndGet();
+					ImageSpamInfo.Add(msg.CreatedAt.UtcDateTime);
+					spamAmount = ImageSpamInfo.SpamCount(spamPrev.AmountOfMessages);
 					break;
 				}
 				case SpamType.Mention:
 				{
-					spamAmount = MentionSpamInfo.IncreaseAndGet();
+					MentionSpamInfo.Add(msg.CreatedAt.UtcDateTime);
+					spamAmount = MentionSpamInfo.SpamCount(spamPrev.AmountOfMessages);
 					break;
 				}
 				case SpamType.Reaction:
 				{
-					spamAmount = ReactionSpamInfo.IncreaseAndGet();
+					ReactionSpamInfo.Add(msg.CreatedAt.UtcDateTime);
+					spamAmount = ReactionSpamInfo.SpamCount(spamPrev.AmountOfMessages);
 					break;
 				}
 			}
@@ -1004,34 +1047,73 @@ namespace Advobot
 		}
 	}
 
-	public class BaseSpamInformation : ITimeInterface
+	public class BaseSpamInformation
 	{
 		public BaseSpamInformation(SpamType spamType)
 		{
-			SpamAmount = 0;
 			SpamType = spamType;
+			TimeList = new List<DateTime>();
 		}
 
-		public int SpamAmount { get; private set; }
+		//TODO: Make the spam prevention have logical sense at some point
 		public SpamType SpamType { get; private set; }
-		public DateTime PunishmentRemove { get; private set; }
+		public List<DateTime> TimeList { get; private set; }
 
-		public DateTime GetTime()
+		public void Add(DateTime time)
 		{
-			return PunishmentRemove;
+			TimeList.ThreadSafeAdd(time);
 		}
-		public void SetTime(DateTime newTime)
+		public void Remove(DateTime time)
 		{
-			PunishmentRemove = newTime;
+			TimeList.ThreadSafeRemove(time);
 		}
-		public int IncreaseAndGet()
+		public int SpamCount(int requiredCount, int timeFrame = 0)
 		{
-			++SpamAmount;
-			return SpamAmount;
+			lock (TimeList)
+			{
+				//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
+				var listLength = TimeList.Count;
+				if (timeFrame == 0 || listLength < 2)
+					return listLength;
+
+				//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
+				var count = 0;
+				for (int i = 0; i < listLength; ++i)
+				{
+					for (int j = i + 1; j < listLength; ++j)
+					{
+						if ((int)TimeList[j].Subtract(TimeList[i]).TotalSeconds >= timeFrame)
+						{
+							//There's no point in gathering more than the required amount if it's met
+							count = Math.Max(count, j - i);
+							if (count >= requiredCount)
+								return count;
+
+							//Optimization by checking if the time difference between two numbers is too high to bother starting at i + 1
+							if ((int)TimeList[j].Subtract(TimeList[j - 1]).TotalSeconds > timeFrame)
+								i = j;
+							break;
+						}
+					}
+				}
+
+				//Remove all that are older than the given timeframe (with an added 1 second margin since this runs every quarter second)
+				var nowTime = DateTime.UtcNow;
+				for (int i = listLength - 1; i >= 0; --i)
+				{
+					if ((int)nowTime.Subtract(TimeList[i]).TotalSeconds > timeFrame + 1)
+					{
+						TimeList.RemoveRange(0, i + 1);
+						break;
+					}
+				}
+
+				return count;
+			}
 		}
 		public void Reset()
 		{
-			SpamAmount = 0;
+			TimeList = new List<DateTime>();
 		}
 	}
 
@@ -1110,7 +1192,7 @@ namespace Advobot
 		}
 		public void AddUserToMutedList(IGuildUser user)
 		{
-			UsersWhoHaveBeenMuted.Add(user);
+			UsersWhoHaveBeenMuted.ThreadSafeAdd(user);
 		}
 	}
 
@@ -1258,19 +1340,19 @@ namespace Advobot
 	{
 		private static ReadOnlyDictionary<UICommandEnum, string[]> NamesAndAliases = new ReadOnlyDictionary<UICommandEnum, string[]>(new Dictionary<UICommandEnum, string[]>()
 		{
-			{ UICommandEnum.Pause, new string[] { SharedCommands.CPAUSE, SharedCommands.APAUSE } },
-			{ UICommandEnum.BotOwner, new string[] { SharedCommands.COWNER, SharedCommands.AOWNER } },
-			{ UICommandEnum.SavePath, new string[] { SharedCommands.CPATH, SharedCommands.APATH } },
-			{ UICommandEnum.Prefix, new string[] { SharedCommands.CPREFIX, SharedCommands.APREFIX } },
-			{ UICommandEnum.Settings, new string[] { SharedCommands.CSETTINGS, SharedCommands.ASETTINGS } },
-			{ UICommandEnum.BotIcon, new string[] { SharedCommands.CICON, SharedCommands.AICON } },
-			{ UICommandEnum.BotGame, new string[] { SharedCommands.CGAME, SharedCommands.AGAME } },
-			{ UICommandEnum.BotStream, new string[] { SharedCommands.CSTREAM, SharedCommands.ASTREAM } },
-			{ UICommandEnum.BotName, new string[] { SharedCommands.CNAME, SharedCommands.ANAME } },
-			{ UICommandEnum.Disconnect, new string[] { SharedCommands.CDISC, SharedCommands.ADISC_1, SharedCommands.ADISC_2 } },
-			{ UICommandEnum.Restart, new string[] { SharedCommands.CRESTART, SharedCommands.ARESTART } },
-			{ UICommandEnum.ListGuilds, new string[] { SharedCommands.CGUILDS, SharedCommands.AGUILDS } },
-			{ UICommandEnum.Shards, new string[] { SharedCommands.CSHARDS, SharedCommands.ASHARDS } },
+			{ UICommandEnum.Pause, new string[] { BasicCommandStrings.CPAUSE, BasicCommandStrings.APAUSE } },
+			{ UICommandEnum.BotOwner, new string[] { BasicCommandStrings.COWNER, BasicCommandStrings.AOWNER } },
+			{ UICommandEnum.SavePath, new string[] { BasicCommandStrings.CPATH, BasicCommandStrings.APATH } },
+			{ UICommandEnum.Prefix, new string[] { BasicCommandStrings.CPREFIX, BasicCommandStrings.APREFIX } },
+			{ UICommandEnum.Settings, new string[] { BasicCommandStrings.CSETTINGS, BasicCommandStrings.ASETTINGS } },
+			{ UICommandEnum.BotIcon, new string[] { BasicCommandStrings.CICON, BasicCommandStrings.AICON } },
+			{ UICommandEnum.BotGame, new string[] { BasicCommandStrings.CGAME, BasicCommandStrings.AGAME } },
+			{ UICommandEnum.BotStream, new string[] { BasicCommandStrings.CSTREAM, BasicCommandStrings.ASTREAM } },
+			{ UICommandEnum.BotName, new string[] { BasicCommandStrings.CNAME, BasicCommandStrings.ANAME } },
+			{ UICommandEnum.Disconnect, new string[] { BasicCommandStrings.CDISC, BasicCommandStrings.ADISC_1, BasicCommandStrings.ADISC_2 } },
+			{ UICommandEnum.Restart, new string[] { BasicCommandStrings.CRESTART, BasicCommandStrings.ARESTART } },
+			{ UICommandEnum.ListGuilds, new string[] { BasicCommandStrings.CGUILDS, BasicCommandStrings.AGUILDS } },
+			{ UICommandEnum.Shards, new string[] { BasicCommandStrings.CSHARDS, BasicCommandStrings.ASHARDS } },
 		});
 
 		public static string[] GetNameAndAliases(UICommandEnum cmd)
@@ -1569,6 +1651,12 @@ namespace Advobot
 		Prefix = 18,
 		Serverlog = 19,
 		Modlog = 20,
+	}
+
+	public enum GuildNotifications
+	{
+		Welcome = 1,
+		Goodbye = 2,
 	}
 	#endregion
 }

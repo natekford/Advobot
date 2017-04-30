@@ -22,23 +22,18 @@ namespace Advobot
 		public static Task OnGuildAvailable(SocketGuild guild)
 		{
 			Actions.WriteLine(String.Format("{0}: {1} is now online on shard {2}.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild), Variables.Client.GetShardFor(guild).ShardId));
+			Variables.TotalUsers += guild.MemberCount;
+			Variables.TotalGuilds++;
 
 			if (!Variables.Guilds.ContainsKey(guild.Id))
 			{
-				Variables.TotalUsers += guild.MemberCount;
-				Variables.TotalGuilds++;
-
-				//Making sure the guild is not already in the botguildinfo list
-				if (!Variables.Guilds.ContainsKey(guild.Id))
+				if (Variables.Bot_ID != 0)
 				{
-					if (Variables.Bot_ID != 0)
-					{
-						Actions.LoadGuild(guild);
-					}
-					else
-					{
-						Variables.GuildsToBeLoaded.Add(guild);
-					}
+					Actions.LoadGuild(guild);
+				}
+				else
+				{
+					Variables.GuildsToBeLoaded.Add(guild);
 				}
 			}
 
@@ -172,6 +167,17 @@ namespace Advobot
 				//Add them to the list of users who have been muted
 				antiRaid.AddUserToMutedList(user);
 			}
+			//Antiraid Two - Electric Joinaroo
+			var antiJoin = guildInfo.JoinProtection;
+			if (antiJoin != null)
+			{
+				antiJoin.Increase();
+				if (antiJoin.JoinCount >= antiJoin.JoinLimit)
+				{
+					//TODO: Finish implementation later
+					//Actions.
+				}
+			}
 			//Welcome message
 			await Actions.SendGuildNotification(user, guildInfo.WelcomeMessage);
 
@@ -245,51 +251,6 @@ namespace Advobot
 			++Variables.LoggedLeaves;
 		}
 
-		public static async Task OnUserUnbanned(SocketUser user, SocketGuild inputGuild)
-		{
-			var guild = Actions.VerifyGuild(inputGuild, LogActions.UserUnbanned);
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
-
-			var embed = Actions.MakeNewEmbed(null, "**ID:** " + user.Id, Constants.UNBN);
-			Actions.AddFooter(embed, "User Unbanned");
-			Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl());
-			await Actions.SendEmbedMessage(serverLog, embed);
-
-			++Variables.LoggedUnbans;
-		}
-
-		public static async Task OnUserBanned(SocketUser user, SocketGuild inputGuild)
-		{
-			//Check if the bot was the one banned
-			if (user == inputGuild.GetUser(Variables.Bot_ID))
-			{
-				Variables.Guilds.Remove(inputGuild.Id);
-				return;
-			}
-
-			var guild = Actions.VerifyGuild(inputGuild, LogActions.UserBanned);
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
-
-			var embed = Actions.MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN);
-			Actions.AddFooter(embed, "User Banned");
-			Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl());
-			await Actions.SendEmbedMessage(serverLog, embed);
-
-			++Variables.LoggedBans;
-		}
-
 		public static async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
 		{
 			if (beforeUser.Username == null || afterUser.Username == null || Variables.Pause)
@@ -321,122 +282,6 @@ namespace Advobot
 			}
 		}
 
-		public static async Task OnGuildMemberUpdated(SocketGuildUser beforeUser, SocketGuildUser afterUser)
-		{
-			var guild = Actions.VerifyGuild(afterUser, LogActions.GuildMemberUpdated);
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
-
-			//Nickname change
-			if (beforeUser.Nickname != afterUser.Nickname)
-			{
-				//Format the nicknames
-				var originalNickname = String.IsNullOrWhiteSpace(beforeUser.Nickname) ? Constants.NO_NN : beforeUser.Nickname;
-				var newNickname = String.IsNullOrWhiteSpace(afterUser.Nickname) ? Constants.NO_NN : afterUser.Nickname;
-
-				if (guildInfo.FAWRNicknames.Contains(newNickname))
-					return;
-
-				//These ones are across more lines than the previous ones up above because it makes it easier to remember what is doing what
-				var embed = Actions.MakeNewEmbed(null, null, Constants.UEDT);
-				Actions.AddFooter(embed, "Nickname Changed");
-				Actions.AddField(embed, "Before:", "`" + originalNickname + "`");
-				Actions.AddField(embed, "After:", "`" + newNickname + "`", false);
-				Actions.AddAuthor(embed, Actions.FormatUser(afterUser, afterUser?.Id), afterUser.GetAvatarUrl());
-				await Actions.SendEmbedMessage(serverLog, embed);
-
-				++Variables.LoggedUserChanges;
-			}
-
-			//Role change
-			var firstNotSecond = beforeUser.Roles.Except(afterUser.Roles).ToList();
-			var secondNotFirst = afterUser.Roles.Except(beforeUser.Roles).ToList();
-			var rolesChange = new List<string>();
-			if (firstNotSecond.Any())
-			{
-				//Get or create the roleloss
-				lock (guildInfo.RoleLoss)
-				{
-					guildInfo.RoleLoss.AddToList(afterUser);
-				}
-
-				//Use a token so the messages do not get sent prematurely
-				var cancelToken = guildInfo.RoleLoss.CancelToken;
-				if (cancelToken != null)
-				{
-					cancelToken.Cancel();
-				}
-				cancelToken = new CancellationTokenSource();
-				guildInfo.RoleLoss.SetCancelToken(cancelToken);
-
-
-				var t = Task.Run(async () =>
-				{
-					try
-					{
-						await Task.Delay(TimeSpan.FromSeconds(Constants.TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG), cancelToken.Token);
-					}
-					catch (TaskCanceledException)
-					{
-						return;
-					}
-
-					//Make a copy of the list so they can be removed from the old one
-					List<IGuildUser> users;
-					lock (guildInfo.RoleLoss)
-					{
-						users = new List<IGuildUser>(guildInfo.RoleLoss.GetList().Select(x => x as IGuildUser));
-						guildInfo.RoleLoss.ClearList();
-					}
-
-					firstNotSecond.ForEach(x =>
-					{
-						//Ignore deleted roles
-						if (Variables.DeletedRoles.Contains(x.Id))
-							return;
-						rolesChange.Add(x.Name);
-					});
-
-					//If no roles then return so as to not send a blank message
-					if (!rolesChange.Any())
-						return;
-
-					var embed = Actions.MakeNewEmbed(null, String.Format("**Role{0} Lost:** {1}", rolesChange.Count != 1 ? "s" : "", String.Join(", ", rolesChange)), Constants.UEDT);
-					Actions.AddFooter(embed, "Role Lost");
-					Actions.AddAuthor(embed, Actions.FormatUser(afterUser, afterUser?.Id), afterUser.GetAvatarUrl());
-					await Actions.SendEmbedMessage(serverLog, embed);
-
-					++Variables.LoggedUserChanges;
-				});
-			}
-			else if (secondNotFirst.Any())
-			{
-				//Not necessary to have in a separate task like the method above
-				secondNotFirst.ForEach(x =>
-				{
-					if (!guildInfo.FAWRRoles.Contains(x))
-					{
-						rolesChange.Add(x.Name);
-					}
-				});
-
-				if (!rolesChange.Any())
-					return;
-
-				var embed = Actions.MakeNewEmbed(null, String.Format("**Role{0} Gained:** {1}", rolesChange.Count != 1 ? "s" : "", String.Join(", ", rolesChange)), Constants.UEDT);
-				Actions.AddFooter(embed, "Role Gained");
-				Actions.AddAuthor(embed, Actions.FormatUser(afterUser, afterUser?.Id), afterUser.GetAvatarUrl());
-				await Actions.SendEmbedMessage(serverLog, embed);
-
-				++Variables.LoggedUserChanges;
-			}
-		}
-
 		public static async Task OnMessageReceived(SocketMessage message)
 		{
 			var guild = Actions.GetGuildFromMessage(message);
@@ -455,7 +300,6 @@ namespace Advobot
 				{
 					await Message_Received_Actions.ModifyPreferences(guildInfo, guild, message);
 					await Message_Received_Actions.CloseWords(guildInfo, guild, message);
-
 				}
 				if (!guildInfo.IgnoredLogChannels.Contains(message.Channel.Id))
 				{
@@ -575,125 +419,6 @@ namespace Advobot
 
 			//To get it to not want an await
 			await Task.Yield();
-		}
-
-		public static async Task OnRoleCreated(SocketRole role)
-		{
-			var guild = Actions.VerifyGuild(role, LogActions.RoleCreated);
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
-
-			var embed = Actions.MakeNewEmbed("Role Created", String.Format("Name: `{0}`\nID: `{1}`", role.Name, role.Id), Constants.CCRE);
-			Actions.AddFooter(embed, "Role Created");
-			await Actions.SendEmbedMessage(serverLog, embed);
-		}
-
-		public static async Task OnRoleUpdated(SocketRole beforeRole, SocketRole afterRole)
-		{
-			var guild = Actions.VerifyGuild(afterRole, LogActions.RoleUpdated);
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
-
-			//Make sure the role's name is not the same
-			if (!Actions.CaseInsEquals(beforeRole.Name, afterRole.Name))
-			{
-				var embed = Actions.MakeNewEmbed("Role Name Changed", null, Constants.REDT);
-				Actions.AddFooter(embed, "Role Name Changed");
-				Actions.AddField(embed, "Before:", "`" + beforeRole.Name + "`");
-				Actions.AddField(embed, "After:", "`" + afterRole.Name + "`", false);
-				await Actions.SendEmbedMessage(serverLog, embed);
-			}
-		}
-
-		public static async Task OnRoleDeleted(SocketRole role)
-		{
-			//Add this to prevent massive spam fests when a role is deleted
-			Variables.DeletedRoles.Add(role.Id);
-
-			var guild = Actions.VerifyGuild(role, LogActions.RoleDeleted);
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
-
-			var embed = Actions.MakeNewEmbed("Role Deleted", String.Format("Name: `{0}`\nID: `{1}`", role.Name, role.Id), Constants.CCRE);
-			Actions.AddFooter(embed, "Role Deleted");
-			Actions.WriteLine("role deleted: " + role.Name);
-			await Actions.SendEmbedMessage(serverLog, embed);
-		}
-
-		public static async Task OnChannelCreated(SocketChannel channel)
-		{
-			var chan = channel as IGuildChannel;
-
-			var guild = Actions.VerifyGuild(chan, LogActions.ChannelCreated);
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
-
-			var embed = Actions.MakeNewEmbed("Channel Created", String.Format("Name: `{0}`\nID: `{1}`", chan.Name, chan.Id), Constants.CCRE);
-			Actions.AddFooter(embed, "Channel Created");
-			await Actions.SendEmbedMessage(serverLog, embed);
-		}
-
-		public static async Task OnChannelUpdated(SocketChannel beforeChannel, SocketChannel afterChannel)
-		{
-			var bChan = beforeChannel as IGuildChannel;
-			var aChan = afterChannel as IGuildChannel;
-
-			var guild = Actions.VerifyGuild(aChan, LogActions.ChannelUpdated);
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
-
-			//Check if the name is the bot channel name
-			if (!Actions.CaseInsEquals(aChan.Name, bChan.Name))
-			{
-				var embed = Actions.MakeNewEmbed("Channel Name Changed", null, Constants.CEDT);
-				Actions.AddFooter(embed, "Channel Name Changed");
-				Actions.AddField(embed, "Before:", "`" + bChan.Name + "`");
-				Actions.AddField(embed, "After:", "`" + aChan.Name + "`", false);
-				await Actions.SendEmbedMessage(serverLog, embed);
-			}			
-		}
-
-		public static async Task OnChannelDeleted(SocketChannel channel)
-		{
-			var chan = channel as IGuildChannel;
-
-			var guild = Actions.VerifyGuild(chan, LogActions.ChannelDeleted);
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
-
-			var embed = Actions.MakeNewEmbed("Channel Deleted", String.Format("Name: `{0}`\nID: `{1}`", chan.Name, chan.Id), Constants.CDEL);
-			Actions.AddFooter(embed, "Channel Deleted");
-			await Actions.SendEmbedMessage(serverLog, embed);
 		}
 	}
 

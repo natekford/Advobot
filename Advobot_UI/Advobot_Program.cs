@@ -98,19 +98,10 @@ namespace Advobot
 			ShardedClient.LeftGuild += Bot_Logs.OnLeftGuild;
 			ShardedClient.UserJoined += Server_Logs.OnUserJoined;
 			ShardedClient.UserLeft += Server_Logs.OnUserLeft;
-			ShardedClient.UserUnbanned += Server_Logs.OnUserUnbanned;
-			ShardedClient.UserBanned += Server_Logs.OnUserBanned;
-			ShardedClient.GuildMemberUpdated += Server_Logs.OnGuildMemberUpdated;
 			ShardedClient.UserUpdated += Server_Logs.OnUserUpdated;
 			ShardedClient.MessageReceived += Server_Logs.OnMessageReceived;
 			ShardedClient.MessageUpdated += Server_Logs.OnMessageUpdated;
 			ShardedClient.MessageDeleted += Server_Logs.OnMessageDeleted;
-			ShardedClient.RoleCreated += Server_Logs.OnRoleCreated;
-			ShardedClient.RoleUpdated += Server_Logs.OnRoleUpdated;
-			ShardedClient.RoleDeleted += Server_Logs.OnRoleDeleted;
-			ShardedClient.ChannelCreated += Server_Logs.OnChannelCreated;
-			ShardedClient.ChannelUpdated += Server_Logs.OnChannelUpdated;
-			ShardedClient.ChannelDestroyed += Server_Logs.OnChannelDeleted;
 
 			return ShardedClient;
 		}
@@ -131,19 +122,10 @@ namespace Advobot
 			SocketClient.LeftGuild += Bot_Logs.OnLeftGuild;
 			SocketClient.UserJoined += Server_Logs.OnUserJoined;
 			SocketClient.UserLeft += Server_Logs.OnUserLeft;
-			SocketClient.UserUnbanned += Server_Logs.OnUserUnbanned;
-			SocketClient.UserBanned += Server_Logs.OnUserBanned;
-			SocketClient.GuildMemberUpdated += Server_Logs.OnGuildMemberUpdated;
 			SocketClient.UserUpdated += Server_Logs.OnUserUpdated;
 			SocketClient.MessageReceived += Server_Logs.OnMessageReceived;
 			SocketClient.MessageUpdated += Server_Logs.OnMessageUpdated;
 			SocketClient.MessageDeleted += Server_Logs.OnMessageDeleted;
-			SocketClient.RoleCreated += Server_Logs.OnRoleCreated;
-			SocketClient.RoleUpdated += Server_Logs.OnRoleUpdated;
-			SocketClient.RoleDeleted += Server_Logs.OnRoleDeleted;
-			SocketClient.ChannelCreated += Server_Logs.OnChannelCreated;
-			SocketClient.ChannelUpdated += Server_Logs.OnChannelUpdated;
-			SocketClient.ChannelDestroyed += Server_Logs.OnChannelDeleted;
 
 			return SocketClient;
 		}

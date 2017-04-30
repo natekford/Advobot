@@ -73,15 +73,14 @@ namespace Advobot
 				return;
 
 			//Ignore unknown command errors because they're annoying and ignore the errors given by lack of permissions, etc. put in by me
+			++Variables.AttemptedCommands;
 			if (!result.IsSuccess && !(result.ErrorReason.Equals(Constants.IGNORE_ERROR) || result.Error.Equals(CommandError.UnknownCommand)))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(context, String.Format("**Error:** {0}", result.ErrorReason));
-				++Variables.FailedCommands;
+				await Actions.MakeAndDeleteSecondaryMessage(context, Actions.ERROR(result.ErrorReason));
 			}
 			else if (result.IsSuccess)
 			{
 				await Mod_Logs.LogCommand(guildInfo, context);
-				++Variables.SucceededCommands;
 			}
 		}
 	}
