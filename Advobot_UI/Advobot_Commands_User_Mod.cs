@@ -388,7 +388,7 @@ namespace Advobot
 
 			//Get the users 
 			var len = Actions.GetNumOfUsers(Context, inputArray);
-			var users = Actions.GetUpToXElement(await Actions.GetUsersTheBotAndUserCanEdit(Context, x => Actions.CaseInsIndexOf(x.Username, find) || Actions.CaseInsIndexOf(x?.Nickname, find)), len);
+			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => Actions.CaseInsIndexOf(x.Username, find) || Actions.CaseInsIndexOf(x?.Nickname, find))).GetUpToXElement(len);
 
 			//User count checking and stuff
 			var userCount = users.Count;
@@ -477,7 +477,8 @@ namespace Advobot
 			}
 			else
 			{
-				await Actions.RenicknameALotOfPeople(Context, Actions.GetUpToXElement(users, Actions.GetNumOfUsers(Context, inputArray)), replaceStr);
+				var validUsers = users.GetUpToXElement(Actions.GetNumOfUsers(Context, inputArray));
+				await Actions.RenicknameALotOfPeople(Context, validUsers, replaceStr);
 			}
 		}
 
@@ -489,7 +490,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task RemoveAllNickNames([Optional, Remainder] string input)
 		{
-			var users = Actions.GetUpToXElement(await Actions.GetUsersTheBotAndUserCanEdit(Context, x => x.Nickname != null), Actions.GetNumOfUsers(Context, new[] { input }));
+			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => x.Nickname != null)).GetUpToXElement(Actions.GetNumOfUsers(Context, new[] { input }));
 			await Actions.RenicknameALotOfPeople(Context, users, null);
 		}
 
@@ -1064,7 +1065,7 @@ namespace Advobot
 
 			//Get the amount of users allowed
 			var len = Actions.GetNumOfUsers(Context, inputArray);
-			var users = Actions.GetUpToXElement((await Actions.GetUsersTheBotAndUserCanEdit(Context, x => x.RoleIds.Contains(roleToGather.Id))), len);
+			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => x.RoleIds.Contains(roleToGather.Id))).GetUpToXElement(len);
 			var userCount = users.Count;
 			if (userCount == 0)
 			{
@@ -1073,9 +1074,8 @@ namespace Advobot
 			}
 
 			//Send a message detailing how many users are being changed and how long it will likely take
-			var plurality = userCount != 1 ? "s" : "";
 			var time = (int)(userCount * 1.2);
-			var msg = await Actions.SendChannelMessage(Context, String.Format("Grabbed `{0}` user{1}. ETA on completion: `{2}` seconds.", userCount, plurality, time)) as IUserMessage;
+			var msg = await Actions.SendChannelMessage(Context, String.Format("Grabbed `{0}` user{1}. ETA on completion: `{2}` seconds.", userCount, Actions.GetPlural(userCount), time)) as IUserMessage;
 			var typing = Context.Channel.EnterTypingState();
 
 			var guildInfo = Variables.Guilds[Context.Guild.Id];

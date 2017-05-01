@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -1244,12 +1243,12 @@ namespace Advobot
 			await user.AddRoleAsync(role);
 		}
 		
-		public static async Task GiveRole(IGuildUser user, IRole[] roles)
+		public static async Task GiveRoles(IGuildUser user, IEnumerable<IRole> roles)
 		{
 			await user.AddRolesAsync(roles);
 		}
 		
-		public static async Task TakeRole(IGuildUser user, IRole[] roles)
+		public static async Task TakeRoles(IGuildUser user, IEnumerable<IRole> roles)
 		{
 			if (roles.Count() == 0)
 				return;
@@ -1840,11 +1839,6 @@ namespace Advobot
 					String.Join("`, `", failure.Select(x => FormatUser(x, x?.Id))));
 			}
 			return succOutput + failOutput;
-		}
-
-		public static List<T> GetUpToXElement<T>(List<T> list, int x)
-		{
-			return list.GetRange(0, Math.Min(list.Count, x));
 		}
 		#endregion
 
@@ -3594,7 +3588,7 @@ namespace Advobot
 			}
 
 			//Have the bot stay in the typing state and have a message that can be updated 
-			var msg = await SendChannelMessage(context, String.Format("Attempting to change the nickname of `{0}` user{1}.", userCount, userCount != 1 ? "s" : "")) as IUserMessage;
+			var msg = await SendChannelMessage(context, String.Format("Attempting to change the nickname of `{0}` user{1}.", userCount, GetPlural(userCount))) as IUserMessage;
 			var typing = context.Channel.EnterTypingState();
 
 			//Actually rename them all
@@ -3613,10 +3607,8 @@ namespace Advobot
 			//Get rid of stuff and send a success message
 			typing.Dispose();
 			await DeleteMessage(msg);
-			await MakeAndDeleteSecondaryMessage(context, String.Format("Successfully changed the nicknames of `{0}` user{1}.", count, count != 1 ? "s" : ""));
+			await MakeAndDeleteSecondaryMessage(context, String.Format("Successfully changed the nicknames of `{0}` user{1}.", count, GetPlural(count)));
 		}
-
-
 		#endregion
 	}
 
@@ -3652,6 +3644,11 @@ namespace Advobot
 			{
 				list.RemoveAll(match);
 			}
+		}
+
+		public static List<T> GetUpToXElement<T>(this List<T> list, int x)
+		{
+			return list.GetRange(0, Math.Min(list.Count, x));
 		}
 	}
 }

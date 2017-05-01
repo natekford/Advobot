@@ -292,7 +292,7 @@ namespace Advobot
 			Actions.SaveGuildInfo(guildInfo);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
 				enableBool ? "enabled" : "disabled",
-				newLogActions.Count != 1 ? "s" : "",
+				Actions.GetPlural(newLogActions.Count),
 				String.Join("`, `", newLogActions.Select(x => Enum.GetName(typeof(LogActions), x)))));
 		}
 	}

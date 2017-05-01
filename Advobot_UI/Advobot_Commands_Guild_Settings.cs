@@ -576,7 +576,7 @@ namespace Advobot
 			//Save the preferences
 			Actions.SaveGuildInfo(guildInfo);
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {0} the command{1}: `{2}`.",
-				enableBool ? "enabled" : "disabled", commands.Count != 1 ? "s" : "", String.Join("`, `", commands.Select(x => x.Name))));
+				enableBool ? "enabled" : "disabled", Actions.GetPlural(commands.Count), String.Join("`, `", commands.Select(x => x.Name))));
 		}
 
 		[Command("comignore")]
@@ -867,8 +867,8 @@ namespace Advobot
 			//Save everything and send a success message
 			Actions.SaveGuildInfo(guildInfo);
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {1}: `{0}`.", String.Join("`, `", permissions.Select(x => x.Name)),
-				type == ModifyTypes.Add ? String.Format("gave the user `{0}` the following permission{1}", Actions.FormatUser(user, user?.Id), permissions.Count() != 1 ? "s" : "") :
-									String.Format("removed the following permission{0} from the user `{1}`", permissions.Count() != 1 ? "s" : "", Actions.FormatUser(user, user?.Id))));
+				type == ModifyTypes.Add ? String.Format("gave the user `{0}` the following permission{1}", Actions.FormatUser(user, user?.Id), Actions.GetPlural(permissions.Count)) :
+									String.Format("removed the following permission{0} from the user `{1}`", Actions.GetPlural(permissions.Count), Actions.FormatUser(user, user?.Id))));
 		}
 
 		[Command("remindsmodify")]

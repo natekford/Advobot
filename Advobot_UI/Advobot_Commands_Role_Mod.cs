@@ -26,49 +26,48 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+			var userStr = inputArray[0];
+			var roleStr = inputArray[1];
 
 			//Test if valid user mention
-			var inputUser = await Actions.GetUser(Context.Guild, inputArray[0]);
-			if (inputUser == null)
+			var user = await Actions.GetUser(Context.Guild, userStr);
+			if (user == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
 
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
-			var inputRoles = inputArray[1].Split('/').ToList();
-			if (inputRoles.Count == 1)
+			var splitRolesStr = roleStr.Split('/').ToList();
+			if (splitRolesStr.Count == 1)
 			{
 				//Check if it actually exists
-				var role = await Actions.GetRoleEditAbility(Context, inputRoles[0]);
+				var role = await Actions.GetRoleEditAbility(Context, splitRolesStr.First());
 				if (role == null)
 					return;
 
-				//See if the role is unable to be given due to management
+				//See if the role is unable to be given due to management or being the everyone role
 				if (role.IsManaged)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Role is managed and unable to be given."));
 					return;
 				}
-
-				//Check if trying to delete the everyone role
-				if (role == Context.Guild.EveryoneRole)
+				else if (role == Context.Guild.EveryoneRole)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to give the everyone role."));
 					return;
 				}
 
 				//Give the role and make a message
-				await Actions.GiveRole(inputUser, role);
+				await Actions.GiveRole(user, role);
 				await Actions.MakeAndDeleteSecondaryMessage(Context,
-					String.Format("Successfully gave `{0}#{1}` the `{2}` role.", inputUser.Username, inputUser.Discriminator, role));
+					String.Format("Successfully gave the role `{0}` to `{1}`.", role, Actions.FormatUser(user, user?.Id)));
 			}
 			else
 			{
 				var failedRoles = new List<string>();
-				var succeededRoles = new List<string>();
 				var roles = new List<IRole>();
-				await inputRoles.ForEachAsync(async roleName =>
+				await splitRolesStr.ForEachAsync(async roleName =>
 				{
 					var role = await Actions.GetRoleEditAbility(Context, roleName, true);
 					if (role == null || role.IsManaged || role == Context.Guild.EveryoneRole)
@@ -78,45 +77,44 @@ namespace Advobot
 					else
 					{
 						roles.Add(role);
-						succeededRoles.Add(roleName);
 					}
 				});
 
-				//Format the success message
-				var succeed = "";
-				if (succeededRoles.Any())
+				var succ = roles.Any();
+				var fail = failedRoles.Any();
+
+				//Format the response message
+				var succOutput = "";
+				if (succ)
 				{
-					succeed = String.Format("Successfully gave `{0}#{1}` the `{2}` role{3}",
-						inputUser.Username,
-						inputUser.Discriminator,
-						String.Join(", ", succeededRoles),
-						succeededRoles.Count != 1 ? "s" : "");
+					succOutput = String.Format("Successfully gave the role{1} `{0}` from `{2}`",
+						String.Join(", ", roles.Select(x => x.Name)),
+						Actions.GetPlural(roles.Count),
+						Actions.FormatUser(user, user?.Id));
 				}
-				//Check if an and is needed
 				var and = ".";
-				if (succeededRoles.Any() && failedRoles.Any())
+				if (succ && fail)
 				{
-					and = " and ";
+					and = ", and ";
 				}
-				//Format the fail message
-				var failed = "";
-				if (failedRoles.Any())
+				var failOutput = "";
+				if (fail)
 				{
-					failed = String.Format("{0}ailed to give{1} the `{2}` role{3}.",
-						String.IsNullOrEmpty(succeed) ? "F" : "f",
-						String.IsNullOrEmpty(succeed) ? String.Format(" `{0}#{1}`", inputUser.Username, inputUser.Discriminator) : "",
+					failOutput = String.Format("{0}ailed to give the role{2} `{1}`{3}.",
+						succ ? "F" : "f",
 						String.Join(", ", failedRoles),
-						failedRoles.Count != 1 ? "s" : "");
+						Actions.GetPlural(failedRoles.Count),
+						succ ? String.Format(" from `{0}#{1}`", Actions.FormatUser(user, user?.Id)) : "");
 				}
 
-				await Actions.GiveRole(inputUser, roles.ToArray());
-				await Actions.MakeAndDeleteSecondaryMessage(Context, succeed + and + failed);
+				await Actions.GiveRoles(user, roles);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, succOutput + and + failOutput);
 			}
 		}
 
 		[Command("roletake")]
 		[Alias("rta")]
-		[Usage("[@User] [Role]")]
+		[Usage("[@User] [Role]/<Role>/...")]
 		[Summary("Take the role from the user (assuming the person using the command and bot both have the ability to take that role).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
 		[DefaultEnabled(true)]
@@ -129,48 +127,47 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+			var userStr = inputArray[0];
+			var roleStr = inputArray[1];
 
 			//Test if valid user mention
-			var inputUser = await Actions.GetUser(Context.Guild, inputArray[0]);
-			if (inputUser == null)
+			var user = await Actions.GetUser(Context.Guild, userStr);
+			if (user == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
 
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
-			var inputRoles = inputArray[1].Split('/').ToList();
-			if (inputRoles.Count == 1)
+			var splitRolesStr = roleStr.Split('/').ToList();
+			if (splitRolesStr.Count == 1)
 			{
 				//Check if it actually exists
-				var role = await Actions.GetRoleEditAbility(Context, inputRoles[0]);
+				var role = await Actions.GetRoleEditAbility(Context, splitRolesStr.First());
 				if (role == null)
 					return;
 
-				//See if the role is unable to be taken due to management
+				//See if the role is unable to be taken due to management or is the everyone role
 				if (role.IsManaged)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Role is managed and unable to be taken."));
 					return;
 				}
-
-				//Check if trying to delete the everyone role
-				if (role == Context.Guild.EveryoneRole)
+				else if (role == Context.Guild.EveryoneRole)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to take the everyone role."));
 					return;
 				}
 
 				//Take the role and make a message
-				await Actions.TakeRole(inputUser, role);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully took `{0}` from `{1}#{2}`.", role, inputUser.Username, inputUser.Discriminator));
+				await Actions.TakeRole(user, role);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully took `{0}` from `{1}`.", role, Actions.FormatUser(user, user?.Id)));
 			}
 			else
 			{
 				var failedRoles = new List<string>();
-				var succeededRoles = new List<string>();
 				var roles = new List<IRole>();
-				await inputRoles.ForEachAsync(async roleName =>
+				await splitRolesStr.ForEachAsync(async roleName =>
 				{
 					var role = await Actions.GetRoleEditAbility(Context, roleName, true);
 					if (role == null || role.IsManaged || role == Context.Guild.EveryoneRole)
@@ -180,34 +177,38 @@ namespace Advobot
 					else
 					{
 						roles.Add(role);
-						succeededRoles.Add(roleName);
 					}
 				});
 
-				//Format the success message
-				var succeed = "";
-				if (succeededRoles.Any())
+				var succ = roles.Any();
+				var fail = failedRoles.Any();
+
+				//Format the response message
+				var succOutput = "";
+				if (succ)
 				{
-					succeed = String.Format("Successfully took the `{0}` role{1} from `{2}#{3}`",
-						String.Join(", ", succeededRoles), succeededRoles.Count != 1 ? "s" : "", inputUser.Username, inputUser.Discriminator);
+					succOutput = String.Format("Successfully took the role{1} `{0}` from `{2}`",
+						String.Join(", ", roles.Select(x => x.Name)),
+						Actions.GetPlural(roles.Count),
+						Actions.FormatUser(user, user?.Id));
 				}
-				//Check if an and is needed
 				var and = ".";
-				if (succeededRoles.Any() && failedRoles.Any())
+				if (succ && fail)
 				{
-					and = " and ";
+					and = ", and ";
 				}
-				//Format the fail message
-				var failed = "";
-				if (failedRoles.Any())
+				var failOutput = "";
+				if (fail)
 				{
-					failed = String.Format("{0}ailed to take the `{1}` role{2}{3}.",
-						String.IsNullOrEmpty(succeed) ? "F" : "f", String.Join(", ", failedRoles), failedRoles.Count != 1 ? "s" : "",
-						String.IsNullOrEmpty(succeed) ? String.Format(" from `{0}#{1}`", inputUser.Username, inputUser.Discriminator) : "");
+					failOutput = String.Format("{0}ailed to take the role{2} `{1}`{3}.",
+						succ ? "F" : "f",
+						String.Join(", ", failedRoles),
+						Actions.GetPlural(failedRoles.Count),
+						succ ? String.Format(" from `{0}#{1}`", Actions.FormatUser(user, user?.Id)) : "");
 				}
 
-				await Actions.TakeRole(inputUser, roles.ToArray());
-				await Actions.MakeAndDeleteSecondaryMessage(Context, succeed + and + failed);
+				await Actions.TakeRoles(user, roles);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, succOutput + and + failOutput);
 			}
 		}
 
@@ -233,7 +234,7 @@ namespace Advobot
 
 			//Create role
 			await Context.Guild.CreateRoleAsync(input, new GuildPermissions(0));
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created the `{0}` role.", input));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created the role `{0}`.", input));
 		}
 
 		[Command("rolesoftdelete")]
@@ -245,33 +246,31 @@ namespace Advobot
 		public async Task SoftDeleteRole([Remainder] string input)
 		{
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
-			var inputRole = await Actions.GetRoleEditAbility(Context, input);
-			if (inputRole == null)
+			var role = await Actions.GetRoleEditAbility(Context, input);
+			if (role == null)
 				return;
 
-			//Check if even removable
-			if (inputRole.IsManaged)
+			//Make sure not managed or everyone role
+			if (role.IsManaged)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Role is managed and unable to be softdeleted."));
 				return;
 			}
-
-			//Check if trying to delete the everyone role
-			if (inputRole == Context.Guild.EveryoneRole)
+			else if (role == Context.Guild.EveryoneRole)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to softdelete the everyone role."));
 				return;
 			}
 
 			//Get the properties of the role before it's deleted
-			var name = inputRole.Name;
-			var color = inputRole.Color;
-			var position = inputRole.Position;
+			var name = role.Name;
+			var color = role.Color;
+			var position = role.Position;
 
 			//Change the new role's position
-			await inputRole.DeleteAsync();
+			await role.DeleteAsync();
 			await Actions.ModifyRolePosition(await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), color), position);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all permissions from `{0}` and removed the role from all users on the guild.", inputRole.Name));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all permissions from the role `{0}` and removed the role from all users on the guild.", role.Name));
 		}
 
 		[Command("roledelete")]
@@ -287,39 +286,44 @@ namespace Advobot
 			if (role == null)
 				return;
 
-			//Check if even removable
+			//Make sure able to be deleted
 			if (role.IsManaged)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Role is managed and unable to be deleted."));
 				return;
 			}
-
-			//Check if trying to delete the everyone role
-			if (role == Context.Guild.EveryoneRole)
+			else if (role == Context.Guild.EveryoneRole)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to delete the everyone role."));
 				return;
 			}
 
 			await role.DeleteAsync();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted the `{0}` role.", input));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted the role `{0}`.", input));
 		}
 
 		[Command("roleposition")]
 		[Alias("rpos")]
-		[Usage("[Role] [New Position]")]
+		[Usage("[\"Role Name\"] [New Position]")]
 		[Summary("Moves the role to the given position. " + Constants.FAKE_EVERYONE + " is the first position and starts at zero.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
 		[DefaultEnabled(true)]
 		public async Task RolePosition([Remainder] string input)
 		{
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
+			if (inputArray.Length != 2)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				return;
+			}
+			var roleStr = inputArray[0];
+			var poseStr = inputArray[1];
+
 			//Get the role
-			var role = await Actions.GetRoleEditAbility(Context, input.Substring(0, input.LastIndexOf(' ')), true);
+			var role = await Actions.GetRoleEditAbility(Context, roleStr);
 			if (role == null)
 				return;
-
-			//Check if it's the everyone role
-			if (role == Context.Guild.EveryoneRole)
+			else if (role == Context.Guild.EveryoneRole)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to move the everyone role."));
 				return;
@@ -333,8 +337,7 @@ namespace Advobot
 			}
 
 			//Checking if valid positions
-			var maxPos = 0;
-			Context.Guild.Roles.ToList().ForEach(x => maxPos = Math.Max(maxPos, x.Position));
+			var maxPos = Context.Guild.Roles.Max(x => x.Position);
 			if (position <= 0)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Cannot set a role to a position lower than or equal to one."));
@@ -346,14 +349,13 @@ namespace Advobot
 				return;
 			}
 
-			//See if the user can access that position
+			//See if the user and bot can access that position
 			if (position > Actions.GetPosition(Context.Guild, Context.User as IGuildUser))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Position is higher than you can access."));
 				return;
 			}
-			//See if the bot can access that position
-			if (position > Actions.GetPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID)))
+			else if (position > Actions.GetPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID)))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Position is higher than the bot can access."));
 				return;
@@ -361,7 +363,7 @@ namespace Advobot
 
 			//Change its position
 			await Actions.ModifyRolePosition(role, position);
-			await Actions.SendChannelMessage(Context, String.Format("Successfully gave the `{0}` role the position `{1}`.", role.Name, position));
+			await Actions.SendChannelMessage(Context, String.Format("Successfully gave the role `{0}` the position `{1}`.", role.Name, position));
 		}
 
 		[Command("rolepositions")]
