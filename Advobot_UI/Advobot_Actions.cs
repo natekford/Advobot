@@ -1151,15 +1151,16 @@ namespace Advobot
 			return true;
 		}
 
-		public static List<IGuildUser> GetUsersWithNonStandardUnicodeNames(List<IGuildUser> users, int upperLimit)
-		{
-			return users.Where(x => !GetIfValidUnicode(x.Username, upperLimit) && !GetIfValidUnicode(x?.Nickname, upperLimit)).ToList();
-		}
-
-		public static async Task<List<IGuildUser>> GetUsersTheBotAndUserCanEdit(ICommandContext context, List<IGuildUser> users)
+		public static async Task<List<IGuildUser>> GetUsersTheBotAndUserCanEdit(ICommandContext context, Func<IGuildUser, bool> predicate = null)
 		{
 			var bot = await GetBot(context.Guild);
 			var user = context.User as IGuildUser;
+
+			var users = await GetUsers(context);
+			if (predicate != null)
+			{
+				users = users.Where(predicate).ToList();
+			}
 
 			var validUsers = users.Where(x =>
 			{
@@ -1169,45 +1170,48 @@ namespace Advobot
 			return validUsers;
 		}
 
-		public static async Task RenicknameALotOfPeople(ICommandContext context, List<IGuildUser> users, string newNickname, int amtOfUsers = 100)
-		{
-			var validUsers = await GetUsersTheBotAndUserCanEdit(context, users);
-			validUsers = validUsers.GetRange(0, Math.Min(validUsers.Count, amtOfUsers));
-
-			//User count checking and stuff
-			var userCount = validUsers.Count;
-			if (userCount == 0)
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to find any users matching the search criteria."));
-				return;
-			}
-
-			//Have the bot stay in the typing state and have a message that can be updated 
-			var msg = await SendChannelMessage(context, String.Format("Attempting to change the nickname of `{0}` user{1}.", userCount, userCount != 1 ? "s" : "")) as IUserMessage;
-			var typing = context.Channel.EnterTypingState();
-
-			//Actually rename them all
-			var count = 0;
-			await validUsers.ForEachAsync(async x =>
-			{
-				++count;
-				if (count % 10 == 0)
-				{
-					await msg.ModifyAsync(y => y.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
-				}
-
-				await ChangeNickname(x, newNickname);
-			});
-
-			//Get rid of stuff and send a success message
-			typing.Dispose();
-			await DeleteMessage(msg);
-			await MakeAndDeleteSecondaryMessage(context, String.Format("Successfully changed the nicknames of `{0}` user{1}.", count, count != 1 ? "s" : ""));
-		}
-
 		public static int GetNumOfUsers(ICommandContext context, string[] inputArray)
 		{
 			return CaseInsContains(inputArray, Constants.BYPASS_STRING) && true /*TODO: put a bool here requiring bot owner?*/ ? int.MaxValue : 100;
+		}
+
+		public static string GetPlural(int i)
+		{
+			return i == 1 ? "" : "s";
+		}
+
+		public static async Task<EditableUsers?> GetValidEditUsers(ICommandContext context)
+		{
+			//Gather the users
+			var input = context.Message.MentionedUserIds.ToList();
+			var success = new List<IGuildUser>();
+			var failure = new List<IGuildUser>();
+			if (!input.Any())
+			{
+				return null;
+			}
+			else
+			{
+				var bot = await GetUser(context.Guild, Variables.Bot_ID);
+				await input.ForEachAsync(async x =>
+				{
+					var user = await GetUser(context.Guild, x);
+					if (UserCanBeModifiedByUser(context, user) && UserCanBeModifiedByBot(context.Guild, user, bot))
+					{
+						success.Add(user);
+					}
+					else
+					{
+						failure.Add(user);
+					}
+				});
+			}
+			return new EditableUsers(success, failure);
+		}
+
+		public static async Task<List<IGuildUser>> GetUsers(ICommandContext context)
+		{
+			return (await context.Guild.GetUsersAsync()).ToList();
 		}
 		#endregion
 
@@ -1811,6 +1815,36 @@ namespace Advobot
 			{
 				await SendChannelMessage(notification.Channel, content);
 			}
+		}
+
+		public static string FormatResponseMessagesForCmdsOnLotsOfUsers(List<IGuildUser> success, List<IGuildUser> failure, string successAction, string failureAction)
+		{
+			var succOutput = "";
+			if (success.Any())
+			{
+				var c = success.Count;
+				succOutput = String.Format("Successfully {0} `{1}` user{2}: `{3}`. ",
+					successAction,
+					c,
+					GetPlural(c),
+					String.Join("`, `", success.Select(x => FormatUser(x, x?.Id))));
+			}
+			var failOutput = "";
+			if (failure.Any())
+			{
+				var c = failure.Count;
+				failOutput = String.Format("Failed to {0} `{1}` user{2}: `{3}`.",
+					failureAction, 
+					c,
+					GetPlural(c),
+					String.Join("`, `", failure.Select(x => FormatUser(x, x?.Id))));
+			}
+			return succOutput + failOutput;
+		}
+
+		public static List<T> GetUpToXElement<T>(List<T> list, int x)
+		{
+			return list.GetRange(0, Math.Min(list.Count, x));
 		}
 		#endregion
 
@@ -3548,6 +3582,41 @@ namespace Advobot
 		{
 			await user.ModifyAsync(x => x.Nickname = newNN ?? user.Username);
 		}
+
+		public static async Task RenicknameALotOfPeople(ICommandContext context, List<IGuildUser> validUsers, string newNickname)
+		{
+			//User count checking and stuff
+			var userCount = validUsers.Count;
+			if (userCount == 0)
+			{
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to find any users matching the search criteria which are able to be edited by the user and bot."));
+				return;
+			}
+
+			//Have the bot stay in the typing state and have a message that can be updated 
+			var msg = await SendChannelMessage(context, String.Format("Attempting to change the nickname of `{0}` user{1}.", userCount, userCount != 1 ? "s" : "")) as IUserMessage;
+			var typing = context.Channel.EnterTypingState();
+
+			//Actually rename them all
+			var count = 0;
+			await validUsers.ForEachAsync(async x =>
+			{
+				++count;
+				if (count % 10 == 0)
+				{
+					await msg.ModifyAsync(y => y.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
+				}
+
+				await ChangeNickname(x, newNickname);
+			});
+
+			//Get rid of stuff and send a success message
+			typing.Dispose();
+			await DeleteMessage(msg);
+			await MakeAndDeleteSecondaryMessage(context, String.Format("Successfully changed the nicknames of `{0}` user{1}.", count, count != 1 ? "s" : ""));
+		}
+
+
 		#endregion
 	}
 

@@ -1089,7 +1089,7 @@ namespace Advobot
 							if (count >= requiredCount)
 								return count;
 
-							//Optimization by checking if the time difference between two numbers is too high to bother starting at i + 1
+							//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
 							if ((int)TimeList[j].Subtract(TimeList[j - 1]).TotalSeconds > timeFrame)
 								i = j;
 							break;
@@ -1477,6 +1477,18 @@ namespace Advobot
 		{
 			return Time;
 		}
+	}
+
+	public struct EditableUsers
+	{
+		public EditableUsers(List<IGuildUser> success, List<IGuildUser> failure)
+		{
+			Success = success;
+			Failure = failure;
+		}
+
+		public List<IGuildUser> Success { get; private set; }
+		public List<IGuildUser> Failure { get; private set; }
 	}
 	#endregion
 
