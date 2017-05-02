@@ -11,10 +11,10 @@ namespace Advobot
 	[Name("Logs")]
 	public class Advobot_Commands_Logs : ModuleBase
 	{
-		[Command("logserver")]
-		[Alias("logs")]
-		[Usage("[#Channel|Off]")]
-		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, deleting messages, and bans/unbans.")]
+		[Command("logchannel")]
+		[Alias("logc")]
+		[Usage("[Server|Mod|Image] [#Channel|Off]")]
+		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
 		[GuildOwnerRequirement]
 		[DefaultEnabled(false)]
 		public async Task Serverlog([Remainder] string input)
@@ -27,102 +27,61 @@ namespace Advobot
 				return;
 			}
 
-			ITextChannel channel;
-			if (String.IsNullOrWhiteSpace(input))
+			var inputArray = input.Split(new[] { ' ' }, 2);
+			var typeStr = inputArray[0].ToLower();
+			if (!Enum.TryParse(typeStr, true, out LogChannelTypes type))
 			{
-				channel = Context.Channel as ITextChannel;
-			}
-			else if (Actions.CaseInsEquals(input, "off"))
-			{
-				channel = null;
-			}
-			else
-			{
-				channel = await Actions.GetChannel(Context, input) as ITextChannel;
-				if (channel == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
-					return;
-				}
-			}
-
-			if (guildInfo.ServerLogID == channel.Id)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The given channel is already the current server log."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
-			guildInfo.SetServerLog(channel);
+			var channelMentions = Context.Message.MentionedChannelIds;
+			if (channelMentions.Count != 1)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
+				return;
+			}
+			var channel = Actions.GetChannelPermability(await Actions.GetChannel(Context.Guild, channelMentions.First()), Context.User) as ITextChannel;
+			if (guildInfo.GetLogID(type) == channel.Id)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The given channel is already the current {0} log.", typeStr)));
+				return;
+			}
+
+			switch (type)
+			{
+				case LogChannelTypes.Server:
+				{
+					guildInfo.SetServerLog(channel);
+					break;
+				}
+				case LogChannelTypes.Mod:
+				{
+					guildInfo.SetModLog(channel);
+					break;
+				}
+				case LogChannelTypes.Image:
+				{
+					guildInfo.SetImageLog(channel);
+					break;
+				}
+			}
 			Actions.SaveGuildInfo(guildInfo);
 
 			if (channel != null)
 			{
-				await Actions.SendChannelMessage(Context, String.Format("The server log has been set on `{0}`.", Actions.FormatChannel(channel)));
+				await Actions.SendChannelMessage(Context, String.Format("The {0} log has been set on `{1}`.", typeStr, Actions.FormatChannel(channel)));
 			}
 			else
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled the server log.");
-			}
-		}
-
-		[Command("logmod")]
-		[Alias("logm")]
-		[Usage("[#Channel|Off]")]
-		[Summary("Puts the modlog on the specified channel. Modlog is a log of all commands used.")]
-		[GuildOwnerRequirement]
-		[DefaultEnabled(false)]
-		public async Task Modlog([Remainder] string input)
-		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
-			ITextChannel channel;
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				channel = Context.Channel as ITextChannel;
-			}
-			else if (Actions.CaseInsEquals(input, "off"))
-			{
-				channel = null;
-			}
-			else
-			{
-				channel = await Actions.GetChannel(Context, input) as ITextChannel;
-				if (channel == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
-					return;
-				}
-			}
-
-			if (guildInfo.ModLogID == channel.Id)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The given channel is already the current mod log."));
-				return;
-			}
-
-			guildInfo.SetModLog(channel);
-			Actions.SaveGuildInfo(guildInfo);
-
-			if (channel != null)
-			{
-				await Actions.SendChannelMessage(Context, String.Format("The mod log has been set on `{0}`.", Actions.FormatChannel(channel)));
-			}
-			else
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled the mod log.");
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully disabled the {0} log.", typeStr));
 			}
 		}
 
 		[Command("logignore")]
 		[Alias("logi")]
-		[Usage("[Add|Remove] [#Channel]")]
-		[Summary("Ignores all logging info that would have been gotten from a channel. Only works on text channels.")]
+		[Usage("[Add|Remove] [#Channel]/<#Channel>/...")]
+		[Summary("Ignores all logging info that would have been gotten from a channel. Only works on text channels that you and the bot have the ability to see.")]
 		[GuildOwnerRequirement]
 		[DefaultEnabled(false)]
 		public async Task IgnoreChannel([Remainder] string input)
@@ -135,65 +94,74 @@ namespace Advobot
 				return;
 			}
 
-			//Split the input
-			var inputArray = input.Split(new char[] { ' ' }, 2);
-			if (inputArray.Length != 2)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
+			//Split the input and determine whether to add or remove
+			var inputArray = input.Split(new[] { ' ' }, 2);
 			var action = inputArray[0];
-			var channelInput = inputArray[1];
-
-			bool addBool;
-			if (Actions.CaseInsEquals(action, "add"))
-			{
-				addBool = true;
-			}
-			else if (Actions.CaseInsEquals(action, "remove"))
-			{
-				addBool = false;
-			}
-			else
+			var add = Actions.CaseInsEquals(action, "add");
+			if (!Actions.CaseInsEquals(action, "remove"))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
-			//Get the channel
-			var returnedChannel = await Actions.GetChannelPermability(Context, channelInput);
-			var channel = returnedChannel.Channel;
-			if (channel == null)
+			//Get the channels
+			var evaluatedChannels = await Actions.GetValidEditChannels(Context);
+			if (!evaluatedChannels.HasValue)
 			{
-				await Actions.HandleChannelPermsLacked(Context, returnedChannel);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
 				return;
 			}
+			var success = evaluatedChannels.Value.Success;
+			var failure = evaluatedChannels.Value.Failure;
 
+			//Make sure stuff isn't already ignored
 			var ignoredLogChannels = guildInfo.IgnoredLogChannels;
-			if (addBool)
+			var alreadyAction = new List<IGuildChannel>();
+			if (add)
 			{
-				if (ignoredLogChannels.Contains(channel.Id))
+				success.ForEach(x =>
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already ignored by the server log."));
-					return;
-				}
-				ignoredLogChannels.Add(channel.Id);
+					if (ignoredLogChannels.Contains(x.Id))
+					{
+						alreadyAction.Add(x);
+					}
+					else
+					{
+						ignoredLogChannels.Add(x.Id);
+					}
+				});
 			}
 			else
 			{
-				if (!ignoredLogChannels.Contains(channel.Id))
+				success.ForEach(x =>
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This channel is already not ignored by the server log."));
-					return;
-				}
-				ignoredLogChannels.Remove(channel.Id);
+					if (!ignoredLogChannels.Contains(x.Id))
+					{
+						alreadyAction.Add(x);
+					}
+					else
+					{
+						ignoredLogChannels.Remove(x.Id);
+					}
+				});
 			}
-			ignoredLogChannels = ignoredLogChannels.Distinct().ToList();
+
+			//Format the response message
+			var pastTense = add ? "ignored" : "unignored";
+			var presentTense = add ? "ignore" : "unignore";
+			var output = Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "channel", pastTense, presentTense);
+			var alreadyActionOutput = "";
+			if (alreadyAction.Any())
+			{
+				alreadyActionOutput += String.Format("The following channel{0} were already {1}: `{2}`. ",
+					Actions.GetPlural(alreadyAction.Count),
+					pastTense,
+					String.Join("`, `", alreadyAction.Select(x => Actions.FormatChannel(x))));
+			}
 
 			//Save everything and send a success message
 			Actions.SaveGuildInfo(guildInfo);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the channel `{1}` {2} the log channel ignore list.",
-				addBool ? "added" : "removed", Actions.FormatChannel(channel), addBool ? "to" : "from"));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, output + alreadyActionOutput);
 		}
 
 		[Command("logactions")]

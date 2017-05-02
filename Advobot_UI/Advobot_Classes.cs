@@ -243,6 +243,8 @@ namespace Advobot
 		public ulong ServerLogID { get; private set; }
 		[JsonProperty]
 		public ulong ModLogID { get; private set; }
+		[JsonProperty]
+		public ulong ImageLogID { get; private set; }
 		[JsonIgnore]
 		public SlowmodeGuild SlowmodeGuild { get; private set; }
 		[JsonIgnore]
@@ -265,6 +267,8 @@ namespace Advobot
 		public ITextChannel ServerLog { get; private set; }
 		[JsonIgnore]
 		public ITextChannel ModLog { get; private set; }
+		[JsonIgnore]
+		public ITextChannel ImageLog { get; private set; }
 
 		public void TurnDefaultPrefsOff()
 		{
@@ -320,6 +324,30 @@ namespace Advobot
 			ModLogID = channel.Id;
 			ModLog = channel;
 		}
+		public void SetImageLog(ITextChannel channel)
+		{
+			ImageLogID = channel.Id;
+			ImageLog = channel;
+		}
+		public ulong GetLogID(LogChannelTypes type)
+		{
+			switch (type)
+			{
+				case LogChannelTypes.Server:
+				{
+					return ServerLogID;
+				}
+				case LogChannelTypes.Mod:
+				{
+					return ModLogID;
+				}
+				case LogChannelTypes.Image:
+				{
+					return ImageLogID;
+				}
+			}
+			return 0;
+		}
 		public void SetLogActions(List<LogActions> logActions)
 		{
 			LogActions = logActions;
@@ -342,6 +370,7 @@ namespace Advobot
 
 			ModLog = Guild.GetChannel(ModLogID) as ITextChannel;
 			ServerLog = Guild.GetChannel(ServerLogID) as ITextChannel;
+			ImageLog = Guild.GetChannel(ImageLogID) as ITextChannel;
 
 			if (ListedInvite != null)
 			{
@@ -1479,16 +1508,16 @@ namespace Advobot
 		}
 	}
 
-	public struct EditableUsers
+	public struct EditableDiscordObject<T>
 	{
-		public EditableUsers(List<IGuildUser> success, List<IGuildUser> failure)
+		public EditableDiscordObject(List<T> success, List<T> failure)
 		{
 			Success = success;
 			Failure = failure;
 		}
 
-		public List<IGuildUser> Success { get; private set; }
-		public List<IGuildUser> Failure { get; private set; }
+		public List<T> Success { get; private set; }
+		public List<T> Failure { get; private set; }
 	}
 	#endregion
 
@@ -1502,22 +1531,13 @@ namespace Advobot
 	#region Enums
 	public enum LogActions
 	{
+		//Legacy numbering due to deletion of certain enums
 		UserJoined = 1,
 		UserLeft = 2,
-		UserUnbanned = 3,
-		UserBanned = 4,
 		UserUpdated = 5,
-		GuildMemberUpdated = 6,
 		MessageReceived = 7,
 		MessageUpdated = 8,
 		MessageDeleted = 9,
-		RoleCreated = 10,
-		RoleUpdated = 11,
-		RoleDeleted = 12,
-		ChannelCreated = 12,
-		ChannelUpdated = 13,
-		ChannelDeleted = 14,
-		ImageLog = 15,
 		CommandLog = 16,
 	}
 
@@ -1669,6 +1689,13 @@ namespace Advobot
 	{
 		Welcome = 1,
 		Goodbye = 2,
+	}
+
+	public enum LogChannelTypes
+	{
+		Server = 1,
+		Mod = 2,
+		Image = 3,
 	}
 	#endregion
 }

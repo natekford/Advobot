@@ -12,7 +12,7 @@ namespace Advobot
 	public class Advobot_Commands_Role_Mod : ModuleBase
 	{
 		[Command("rolegive")]
-		[Alias("rgi")]
+		[Alias("rg")]
 		[Usage("[@User] [Role]/<Role>/...")]
 		[Summary("Gives the user the role (assuming the person using the command and bot both have the ability to give that role).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
@@ -113,7 +113,7 @@ namespace Advobot
 		}
 
 		[Command("roletake")]
-		[Alias("rta")]
+		[Alias("rt")]
 		[Usage("[@User] [Role]/<Role>/...")]
 		[Summary("Take the role from the user (assuming the person using the command and bot both have the ability to take that role).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]

@@ -306,7 +306,7 @@ namespace Advobot
 					await Message_Received_Actions.VotingOnSpamPrevention(guildInfo, guild, message);
 					await Message_Received_Actions.SpamPrevention(guildInfo, guild, message);
 					await Message_Received_Actions.SlowmodeOrBannedPhrases(guildInfo, guild, message);
-					await Message_Received_Actions.ImageLog(guildInfo, guildInfo.ServerLog, message);
+					await Message_Received_Actions.ImageLog(guildInfo, guildInfo.ImageLog, message);
 				}
 			}
 		}
@@ -468,7 +468,7 @@ namespace Advobot
 
 		public static async Task ImageLog(BotGuildInfo guildInfo, ITextChannel logChannel, IMessage message)
 		{
-			if (logChannel == null || !guildInfo.LogActions.Contains(LogActions.ImageLog) || message.Author.Id == Variables.Bot_ID)
+			if (logChannel == null || message.Author.Id == Variables.Bot_ID)
 				return;
 
 			if (message.Attachments.Any())

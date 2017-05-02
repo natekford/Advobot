@@ -339,11 +339,11 @@ namespace Advobot
 			await success.ForEachAsync(async x => await Actions.ChangeNickname(x, nickStr));
 			if (nickStr != null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfUsers(success, failure, "nicknamed", "nickname"));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "user", "nicknamed", "nickname"));
 			}
 			else
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfUsers(success, failure, "removed the nickname from", "remove the nickname from"));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "user", "removed the nickname from", "remove the nickname from"));
 			}
 		}
 
@@ -560,7 +560,7 @@ namespace Advobot
 				await Context.Guild.AddBanAsync(x, 3);
 				await Context.Guild.RemoveBanAsync(x);
 			});
-			await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfUsers(success, failure, "softbanned", "softban"));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "user", "softbanned", "softban"));
 		}
 
 		[Command("ban")]
@@ -615,7 +615,7 @@ namespace Advobot
 				}
 			});
 
-			var response = Actions.FormatResponseMessagesForCmdsOnLotsOfUsers(success, failure, "banned", "ban");
+			var response = Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "user", "banned", "ban");
 			if (success.Any() && pruneDays != 0)
 			{
 				response += String.Format("Also deleted `{0}` day{1} worth of messages for banned users. ", pruneDays, Actions.GetPlural(pruneDays));
@@ -719,7 +719,7 @@ namespace Advobot
 
 			//Kick the users and send a response message
 			await success.ForEachAsync(async x => await x.KickAsync());
-			await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfUsers(success, failure, "kicked", "kick"));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "user", "kicked", "kick"));
 		}
 
 		[Command("currentbanlist")]

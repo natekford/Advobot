@@ -317,7 +317,7 @@ namespace Advobot
 		public async Task InfoUser([Optional, Remainder] string input)
 		{
 			//Get the user
-			IUser user = await Actions.GetUser(Context.Guild, input);
+			IUser user = await Actions.GetUser(Context.Guild, input);// ?? await Actions.GetUserGlobal(input);
 			if (user == null)
 			{
 				if (!String.IsNullOrWhiteSpace(input) && ulong.TryParse(input, out ulong ID))

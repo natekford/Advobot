@@ -12,8 +12,8 @@ namespace Advobot
 		public const int CACHED_MESSAGE_COUNT = 10000;
 		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
 
-		public const string BOT_VERSION = "0.9.32";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00720";
+		public const string BOT_VERSION = "0.9.33";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00725";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -115,13 +115,9 @@ namespace Advobot
 		{
 			LogActions.UserJoined,
 			LogActions.UserLeft,
-			LogActions.UserUnbanned,
-			LogActions.UserBanned,
-			LogActions.GuildMemberUpdated,
 			LogActions.MessageReceived,
 			LogActions.MessageUpdated,
 			LogActions.MessageDeleted,
-			LogActions.ImageLog
 		});
 
 		public static readonly bool DISCONNECT = false;

@@ -464,7 +464,7 @@ namespace Advobot
 			return null;
 		}
 		
-		public static dynamic GetChannelPermability(IGuildChannel channel, IUser user)
+		public static IGuildChannel GetChannelPermability(IGuildChannel channel, IUser user)
 		{
 			var guildUser = user as IGuildUser;
 			if (guildUser == null)
@@ -480,7 +480,7 @@ namespace Advobot
 			return null;
 		}
 
-		public static dynamic GetChannelManagability(IGuildChannel channel, IUser user)
+		public static IGuildChannel GetChannelManagability(IGuildChannel channel, IUser user)
 		{
 			var guildUser = user as IGuildUser;
 			if (guildUser == null)
@@ -496,7 +496,7 @@ namespace Advobot
 			return null;
 		}
 
-		public static dynamic GetChannelMovability(IGuildChannel channel, IUser user)
+		public static IGuildChannel GetChannelMovability(IGuildChannel channel, IUser user)
 		{
 			var guildUser = user as IGuildUser;
 			if (guildUser == null)
@@ -595,6 +595,11 @@ namespace Advobot
 					break;
 				}
 			}
+		}
+
+		public static async Task<IGuildChannel> GetChannel(IGuild guild, ulong inputID)
+		{
+			return await guild.GetChannelAsync(inputID);
 		}
 		
 		public static async Task<IGuildChannel> GetChannel(ICommandContext context, string input)
@@ -1179,7 +1184,7 @@ namespace Advobot
 			return i == 1 ? "" : "s";
 		}
 
-		public static async Task<EditableUsers?> GetValidEditUsers(ICommandContext context)
+		public static async Task<EditableDiscordObject<IGuildUser>?> GetValidEditUsers(ICommandContext context)
 		{
 			//Gather the users
 			var input = context.Message.MentionedUserIds.ToList();
@@ -1205,7 +1210,37 @@ namespace Advobot
 					}
 				});
 			}
-			return new EditableUsers(success, failure);
+			return new EditableDiscordObject<IGuildUser>(success, failure);
+		}
+
+		public static async Task<EditableDiscordObject<IGuildChannel>?> GetValidEditChannels(ICommandContext context)
+		{
+			//Gather the users
+			var input = context.Message.MentionedUserIds.ToList();
+			var success = new List<IGuildChannel>();
+			var failure = new List<IGuildChannel>();
+			if (!input.Any())
+			{
+				return null;
+			}
+			else
+			{
+				var bot = await GetUser(context.Guild, Variables.Bot_ID);
+				var user = context.User;
+				await input.ForEachAsync(async x =>
+				{
+					var channel = await GetChannel(context.Guild, x);
+					if (GetChannelPermability(channel, user) != null && GetChannelPermability(channel, bot) != null)
+					{
+						success.Add(channel);
+					}
+					else
+					{
+						failure.Add(channel);
+					}
+				});
+			}
+			return new EditableDiscordObject<IGuildChannel>(success, failure);
 		}
 
 		public static async Task<List<IGuildUser>> GetUsers(ICommandContext context)
@@ -1470,6 +1505,34 @@ namespace Advobot
 			}
 
 			return input;
+		}
+
+		public static string FormatObject(object obj)
+		{
+			if (obj is IGuild)
+			{
+				var guild = obj as IGuild;
+				return FormatGuild(guild);
+			}
+			else if (obj is IUser)
+			{
+				var user = obj as IUser;
+				return FormatUser(user, user?.Id);
+			}
+			else if (obj is IChannel)
+			{
+				var channel = obj as IChannel;
+				return FormatChannel(channel);
+			}
+			else if (obj is IRole)
+			{
+				var role = obj as IRole;
+				return FormatRole(role);
+			}
+			else
+			{
+				return "if this gets seen then fug";
+			}
 		}
 
 		public static string FormatGuild(IGuild guild)
@@ -1816,27 +1879,29 @@ namespace Advobot
 			}
 		}
 
-		public static string FormatResponseMessagesForCmdsOnLotsOfUsers(List<IGuildUser> success, List<IGuildUser> failure, string successAction, string failureAction)
+		public static string FormatResponseMessagesForCmdsOnLotsOfObjects<T>(List<T> success, List<T> failure, string objType, string successAction, string failureAction)
 		{
 			var succOutput = "";
 			if (success.Any())
 			{
 				var c = success.Count;
-				succOutput = String.Format("Successfully {0} `{1}` user{2}: `{3}`. ",
+				succOutput = String.Format("Successfully {0} `{1}` {2}{3}: `{4}`. ",
 					successAction,
 					c,
+					objType,
 					GetPlural(c),
-					String.Join("`, `", success.Select(x => FormatUser(x, x?.Id))));
+					String.Join("`, `", success.Select(x => FormatObject(x))));
 			}
 			var failOutput = "";
 			if (failure.Any())
 			{
 				var c = failure.Count;
-				failOutput = String.Format("Failed to {0} `{1}` user{2}: `{3}`.",
+				failOutput = String.Format("Failed to {0} `{1}` {2}{3}: `{4}`.",
 					failureAction, 
 					c,
+					objType,
 					GetPlural(c),
-					String.Join("`, `", failure.Select(x => FormatUser(x, x?.Id))));
+					String.Join("`, `", failure.Select(x => FormatObject(x))));
 			}
 			return succOutput + failOutput;
 		}
@@ -2056,10 +2121,6 @@ namespace Advobot
 
 		public static async Task ImageLog(ITextChannel channel, IMessage message, bool embeds)
 		{
-			//Check if the guild has image logging enabled
-			if (!Variables.Guilds[channel.Guild.Id].LogActions.Contains(LogActions.ImageLog))
-				return;
-
 			//Get the user
 			var user = message.Author;
 
