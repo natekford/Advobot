@@ -115,13 +115,13 @@ namespace Advobot
 			{
 				//Check if valid channel
 				var returnedChannel = await Actions.GetChannelPermability(Context, info);
-				var channel = returnedChannel.Channel;
 				if (returnedChannel.Reason != FailureReason.Not_Failure)
 				{
-					await Actions.HandleChannelPermsLacked(Context, returnedChannel);
+					await Actions.HandleChannelErrors(Context, returnedChannel);
 					return;
 				}
-				else if (Actions.GetChannelType(channel) != Constants.VOICE_TYPE)
+				var channel = returnedChannel.Object;
+				if (Actions.GetChannelType(channel) != Constants.VOICE_TYPE)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The guild's afk channel has to be a voice channel."));
 					return;

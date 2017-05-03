@@ -15,7 +15,7 @@ namespace Advobot
 		[Alias("logc")]
 		[Usage("[Server|Mod|Image] [#Channel|Off]")]
 		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
-		[GuildOwnerRequirement]
+		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task Serverlog([Remainder] string input)
 		{
@@ -82,7 +82,7 @@ namespace Advobot
 		[Alias("logi")]
 		[Usage("[Add|Remove] [#Channel]/<#Channel>/...")]
 		[Summary("Ignores all logging info that would have been gotten from a channel. Only works on text channels that you and the bot have the ability to see.")]
-		[GuildOwnerRequirement]
+		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task IgnoreChannel([Remainder] string input)
 		{
@@ -168,7 +168,7 @@ namespace Advobot
 		[Alias("loga")]
 		[Usage("<Enable|Disable|Default> <All|Log Action/...>")]
 		[Summary("The server log will send messages when these events happen. `Default` overrides the current settings. Inputting nothing gives a list of the log actions.")]
-		[GuildOwnerRequirement]
+		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task SwitchLogActions([Optional, Remainder] string input)
 		{

@@ -26,7 +26,7 @@ namespace Advobot
 		public const string ACTION_ERROR = "Invalid action.";
 		public const string CHANNEL_PERMISSIONS_ERROR = "You do not have the ability to edit that channel.";
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
-		public const string MUTE_ROLE_NAME = "Muted";
+		public const string MUTE_ROLE_NAME = "Bot-Muted";
 		public const string SERVER_FOLDER = "Discord_Servers";
 		public const string SAVING_FILE_EXTENSION = ".json";
 		public const string GENERAL_FILE_EXTENSION = ".txt";

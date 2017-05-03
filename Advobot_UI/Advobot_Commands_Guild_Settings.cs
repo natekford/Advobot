@@ -613,24 +613,16 @@ namespace Advobot
 				return;
 			}
 			var returnedChannel = await Actions.GetChannelPermability(Context, mentions.FirstOrDefault().ToString());
-			var channel = returnedChannel.Channel;
-			if (channel == null)
+			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.HandleChannelPermsLacked(Context, returnedChannel);
+				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
 			}
+			var channel = returnedChannel.Object;
 
 			//Determine whether to add or remove
-			bool add;
-			if (Actions.CaseInsEquals(action, "enable"))
-			{
-				add = true;
-			}
-			else if (Actions.CaseInsEquals(action, "disable"))
-			{
-				add = false;
-			}
-			else
+			var add = Actions.CaseInsEquals(action, "enable");
+			if(!Actions.CaseInsEquals(action, "disable"))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;

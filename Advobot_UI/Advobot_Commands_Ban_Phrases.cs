@@ -352,7 +352,7 @@ namespace Advobot
 
 		[Command("banphrasespunishmodify")]
 		[Alias("bppm")]
-		[Usage("[Add] [Number] [Role Name|Kick|Ban] <Time> | [Remove] [Number]")]
+		[Usage("[Add] [Position:Number] [\"Punishment:Role Name|Kick|Ban\"] <Time:Number> | [Remove] [Position:Number]")]
 		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to the total of its type. Time is in minutes and only applies to roles.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -367,44 +367,46 @@ namespace Advobot
 			}
 
 			//Split the input
-			var inputArray = Actions.RemoveNewLines(input).Split(new char[] { ' ' }, 3);
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
 			if (inputArray.Length < 2 || inputArray.Length > 4)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
 			var action = inputArray[0];
-			var numberStr = inputArray[1];
+			var positionStr = Actions.GetVariable(inputArray, "position");
+			var punishmentStr = Actions.GetVariable(inputArray, "punishment");
+			var timeStr = Actions.GetVariable(inputArray, "time");
 
 			//Get the action
-			bool addBool;
-			if (Actions.CaseInsEquals(action, "add"))
-			{
-				addBool = true;
-			}
-			else if (Actions.CaseInsEquals(action, "remove"))
-			{
-				addBool = false;
-			}
-			else
+			var add = Actions.CaseInsEquals(action, "add");
+			if (!Actions.CaseInsEquals(action, "remove"))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
-			//Get the number
-			if (!int.TryParse(numberStr, out int number))
+			//Get the position
+			if (!int.TryParse(positionStr, out int number))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid number."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position."));
 				return;
 			}
+			//Get the time
+			var time = 0;
+			if (!String.IsNullOrWhiteSpace(timeStr))
+			{
+				if (!int.TryParse(timeStr, out time))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time."));
+					return;
+				}
+			}
 
-			//Get the list of punishments
+			//Get the list of punishments and make the new one or remove the old one
 			var punishments = guildInfo.BannedPhrases.Punishments;
-
-			//Get the punishment
 			BannedPhrasePunishment newPunishment = null;
-			if (addBool)
+			if (add)
 			{
 				//Check if trying to add to an already established spot
 				if (punishments.Any(x => x.NumberOfRemoves == number))
@@ -413,82 +415,55 @@ namespace Advobot
 					return;
 				}
 
-				var punishmentString = inputArray[2];
-
 				//Get the type
 				IRole punishmentRole = null;
-				var time = 0;
 				var punishmentType = PunishmentType.Nothing;
-				if (Actions.CaseInsEquals(punishmentString, "kick"))
+				if (Actions.CaseInsEquals(punishmentStr, "kick"))
 				{
 					punishmentType = PunishmentType.Kick;
-				}
-				else if (Actions.CaseInsEquals(punishmentString, "ban"))
-				{
-					punishmentType = PunishmentType.Ban;
-				}
-				else if (Context.Guild.Roles.Any(x => Actions.CaseInsEquals(x.Name, punishmentString)))
-				{
-					punishmentType = PunishmentType.Role;
-					punishmentRole = await Actions.GetRoleEditAbility(Context, punishmentString);
-				}
-				else
-				{
-					var lS = punishmentString.LastIndexOf(' ');
-					var possibleRole = punishmentString.Substring(0, lS).Trim();
-					var possibleTime = punishmentString.Substring(lS);
-
-					if (Context.Guild.Roles.Any(x => Actions.CaseInsEquals(x.Name, possibleRole)))
+					if (punishments.Any(x => x.Punishment == punishmentType))
 					{
-						punishmentType = PunishmentType.Role;
-						punishmentRole = await Actions.GetRoleEditAbility(Context, possibleRole);
-
-						if (!String.IsNullOrWhiteSpace(possibleTime) && !int.TryParse(possibleTime, out time))
-						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, "The input for time is not a number.");
-							return;
-						}
-					}
-					else
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid punishment; must be either Kick, Ban, or an existing role."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which kicks."));
 						return;
 					}
 				}
-
-				//Set the punishment and check against certain things to make sure it's valid
-				newPunishment = new BannedPhrasePunishment(number, punishmentType, Context.Guild.Id, punishmentRole.Id, time);
-				switch (punishmentType)
+				else if (Actions.CaseInsEquals(punishmentStr, "ban"))
 				{
-					case PunishmentType.Role:
+					punishmentType = PunishmentType.Ban;
+					if (punishments.Any(x => x.Punishment == punishmentType))
 					{
-						if (punishments.Any(x => x.Role == punishmentRole))
-						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which gives that role."));
-							return;
-						}
-						break;
-					}
-					case PunishmentType.Kick:
-					{
-						if (punishments.Any(x => x.Punishment == punishmentType))
-						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which kicks."));
-							return;
-						}
-						break;
-					}
-					case PunishmentType.Ban:
-					{
-						if (punishments.Any(x => x.Punishment == punishmentType))
-						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which bans."));
-							return;
-						}
-						break;
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which bans."));
+						return;
 					}
 				}
-				//Add it to the guild's list
+				else if (Context.Guild.Roles.Any(x => Actions.CaseInsEquals(x.Name, punishmentStr)))
+				{
+					punishmentType = PunishmentType.Role;
+					var evaluatedRole = await Actions.GetRole(Context, CheckType.Position, punishmentStr);
+					if (evaluatedRole.Reason != FailureReason.Not_Failure)
+					{
+						await Actions.HandleObjectGettingErrors(Context, evaluatedRole);
+						return;
+					}
+					else
+					{
+						punishmentRole = evaluatedRole.Object;
+					}
+
+					if (punishments.Any(x => x.Role == punishmentRole))
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which gives that role."));
+						return;
+					}
+				}
+				else
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid punishment; must be either kick, ban, or an existing role."));
+					return;
+				}
+
+				//Set the punishment and check against certain things to make sure it's valid then add it to the guild's list
+				newPunishment = new BannedPhrasePunishment(number, punishmentType, Context.Guild.Id, punishmentRole?.Id, time);
 				punishments.Add(newPunishment);
 			}
 			else
@@ -498,7 +473,7 @@ namespace Advobot
 				{
 					foreach (var gatheredPunishment in gatheredPunishments)
 					{
-						if (gatheredPunishment.Role != null && gatheredPunishment.Role.Position > Actions.GetPosition(Context.Guild, Context.User as IGuildUser))
+						if (gatheredPunishment.Role != null && gatheredPunishment.Role.Position > Actions.GetPosition(Context.Guild, Context.User))
 						{
 							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have the ability to remove a punishment with this role."));
 							return;
@@ -512,16 +487,6 @@ namespace Advobot
 					return;
 				}
 			}
-
-			//Create the string to resave everything with
-			var toSave = punishments.Select(x =>
-			{
-				return String.Format("{0} {1} {2} {3}",
-					x.NumberOfRemoves,
-					(int)x.Punishment,
-					x.Role == null ? "" : x.Role.Id.ToString(),
-					x.PunishmentTime == null ? "" : x.PunishmentTime.ToString()).Trim();
-			}).ToList();
 
 			//Save everything
 			Actions.SaveGuildInfo(guildInfo);
@@ -546,7 +511,7 @@ namespace Advobot
 				successMsg = String.Format("`{0}` at `{1}`", newPunishment.Role, newPunishment.NumberOfRemoves.ToString("00"));
 			}
 			var timeMsg = newPunishment.PunishmentTime != 0 ? String.Format(", and will last for `{0}` minute(s)", newPunishment.PunishmentTime) : "";
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", addBool ? "added" : "removed", successMsg, timeMsg));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", add ? "added" : "removed", successMsg, timeMsg));
 		}
 
 		[Command("banphrasesuser")]

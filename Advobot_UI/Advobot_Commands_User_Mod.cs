@@ -16,62 +16,62 @@ namespace Advobot
 	{
 		[Command("textmute")]
 		[Alias("tm")]
-		[Usage("[@User] <Time>")]
-		[Summary("If the user is not text muted, this will mute them. If they are text muted, this will unmute them. Time is in minutes, and if no time is given then the mute will not expire.")]
+		[Usage("[@User] <Time:Number>")]
+		[Summary("If the user is not text muted, this will mute them. Users can be unmuted via the `roletake` command. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirement((1U << (int)GuildPermission.ManageRoles) | (1U << (int)GuildPermission.ManageMessages))]
 		[DefaultEnabled(true)]
 		public async Task FullMute([Remainder] string input)
 		{
 			//Check if role already exists, if not, create it
-			var muteRole = await Actions.CreateMuteRoleIfNotFound(Context.Guild, Constants.MUTE_ROLE_NAME);
-			if (muteRole == null)
+			var returnedRole = await Actions.GetRole(Context, CheckType.Position, Constants.MUTE_ROLE_NAME);
+			if (returnedRole.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to get the mute role."));
+				await Actions.HandleObjectGettingErrors(Context, returnedRole);
 				return;
 			}
-
-			//See if both the bot and the user can edit/use this role
-			if (await Actions.GetRoleEditAbility(Context, role: muteRole) == null)
-				return;
+			var role = returnedRole.Object;
 
 			//Split the input
-			var inputArray = input.Split(new char[] { ' ' }, 2);
-			//Test if valid user mention
-			var user = await Actions.GetUser(Context.Guild, inputArray[0]);
-			if (user == null)
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
+			var timeStr = Actions.GetVariable(inputArray, "time");
+
+			//Get the time
+			var time = 0;
+			if (!String.IsNullOrWhiteSpace(timeStr))
+			{
+				if (!int.TryParse(timeStr, out time))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time."));
+					return;
+				}
+			}
+
+			//Get out the editable and uneditable users
+			var evaluatedUsers = await Actions.GetValidEditUsers(Context);
+			if (!evaluatedUsers.HasValue)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
+			var success = evaluatedUsers.Value.Success;
+			var failure = evaluatedUsers.Value.Failure;
 
-			if (user.RoleIds.Contains(muteRole.Id))
+			//Give the mute roles
+			await success.ForEachAsync(async x =>
 			{
-				//Remove the role
-				await Actions.TakeRole(user, Actions.GetRole(Context.Guild, Constants.MUTE_ROLE_NAME));
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unmuted `{0}#{1}`.", user.Username, user.Discriminator));
-			}
-			else
-			{
-				//Check if time is given
-				var timeString = "";
-				if (inputArray.Length == 2)
+				await Actions.GiveRole(x, role);
+				if (time != 0)
 				{
-					if (int.TryParse(inputArray[1], out int time))
-					{
-						Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, muteRole, DateTime.UtcNow.AddMinutes(time)));
-						timeString = String.Format(" for {0} seconds", time);
-					}
-					else
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
-						return;
-					}
+					Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, x.Id, role, DateTime.UtcNow.AddMinutes(time)));
 				}
+			});
 
-				//Give them the mute role
-				await Actions.GiveRole(user, muteRole);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully text muted `{0}`{1}.", Actions.FormatUser(user, user?.Id), timeString));
+			var response = Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "user", "muted", "mute");
+			if (time != 0)
+			{
+				response += String.Format("These mutes will last for `{0}` minutes.");
 			}
+			await Actions.MakeAndDeleteSecondaryMessage(Context, response);
 		}
 
 		[Command("voicemute")]

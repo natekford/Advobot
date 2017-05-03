@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Discord.WebSocket;
 
 namespace Advobot
 {
@@ -334,6 +335,7 @@ namespace Advobot
 		{
 			if (!File.Exists(path))
 			{
+				Directory.CreateDirectory(Path.GetDirectoryName(path));
 				File.Create(path).Close();
 			}
 		}
@@ -351,26 +353,7 @@ namespace Advobot
 		#region Gets
 		public static async Task<IRole> GetRole(ICommandContext context, string roleName)
 		{
-			roleName = roleName.Trim().Trim(new char[] { '<', '@', '&', '>' });
-
-			if (UInt64.TryParse(roleName, out ulong roleID))
-			{
-				return context.Guild.GetRole(roleID);
-			}
-
-			var roles = context.Guild.Roles.Where(x => CaseInsEquals(x.Name, roleName)).ToList();
-			if (roles.Count == 0)
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("No role has the name of `{0}`.", roleName)));
-			}
-			else if (roles.Count == 1)
-			{
-				return roles.First();
-			}
-			else if (roles.Count > 1)
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("Multiple roles with the same name. Please specify by mentioning the role or changing their names."));
-			}
+			
 			return null;
 		}
 		
@@ -402,9 +385,15 @@ namespace Advobot
 			return roleIDs.Max(x => guild.GetRole(x).Position);
 		}
 		
-		public static async Task<IGuildUser> GetUser(IGuild guild, string userName)
+		public static async Task<IGuildUser> GetUser(IGuild guild, string userStr)
 		{
-			return userName == null ? null : await guild.GetUserAsync(GetUlong(userName.Trim(new char[] { '<', '>', '@', '!' })));
+			if (String.IsNullOrWhiteSpace(userStr))
+				return null;
+
+			if (!ulong.TryParse(userStr.Trim(new char[] { '<', '>', '@', '!' }), out ulong ID))
+				return null;
+
+			return await guild.GetUserAsync(ID);
 		}
 
 		public static async Task<IGuildUser> GetUser(IGuild guild, ulong ID)
@@ -414,40 +403,79 @@ namespace Advobot
 		
 		public static ulong GetUlong(string inputString)
 		{
-			return UInt64.TryParse(inputString, out ulong number) ? number : 0;
+			return ulong.TryParse(inputString, out ulong number) ? number : 0;
+		}
+
+		public static async Task<ReturnedObject<IGuildUser>> GetUserEditability(ICommandContext context, string input, IGuildUser user = null)
+		{
+			user = user ?? await GetUser(context.Guild, input);
+			if (user == null)
+			{
+				return new ReturnedObject<IGuildUser>(user, FailureReason.Not_Found, GetObjectString(user), FormatObject(user));
+			}
+			else if (!UserCanBeModifiedByUser(context, user))
+			{
+				return new ReturnedObject<IGuildUser>(user, FailureReason.User_Inability, GetObjectString(user), FormatObject(user));
+			}
+			else if (!UserCanBeModifiedByBot(context.Guild, user))
+			{
+				return new ReturnedObject<IGuildUser>(user, FailureReason.Bot_Inability, GetObjectString(user), FormatObject(user));
+			}
+			else
+			{
+				return new ReturnedObject<IGuildUser>(user, FailureReason.Not_Failure, GetObjectString(user), FormatObject(user));
+			}
+		}
+
+		public static async Task<ReturnedObject<IRole>> GetRole(ICommandContext context, CheckType type, string input, IRole role = null)
+		{
+			if (role == null)
+			{
+				if (ulong.TryParse(input.Trim(new char[] { '<', '@', '&', '>' }), out ulong roleID))
+				{
+					role = context.Guild.GetRole(roleID);
+				}
+
+				var roles = context.Guild.Roles.Where(x => CaseInsEquals(x.Name, input)).ToList();
+				if (roles.Count == 0)
+				{
+					return new ReturnedObject<IRole>(role, FailureReason.Not_Found, GetObjectString(role), FormatObject(role));
+				}
+				else if (roles.Count == 1)
+				{
+					role = roles.First();
+				}
+				else
+				{
+					return new ReturnedObject<IRole>(role, FailureReason.Too_Many, GetObjectString(role), FormatObject(role));
+				}
+			}
+
+			switch (type)
+			{
+				case CheckType.Position:
+				{
+					if (role.Position > GetPosition(context.Guild, context.User))
+					{
+						return new ReturnedObject<IRole>(role, FailureReason.User_Inability, GetObjectString(role), FormatObject(role));
+					}
+					else if (role.Position > GetPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID)))
+					{
+						return new ReturnedObject<IRole>(role, FailureReason.Bot_Inability, GetObjectString(role), FormatObject(role));
+					}
+					else
+					{
+						return new ReturnedObject<IRole>(role, FailureReason.Not_Failure, GetObjectString(role), FormatObject(role));
+					}
+				}
+			}
+
+			return new ReturnedObject<IRole>(role, FailureReason.Not_Failure, GetObjectString(role), FormatObject(role));
 		}
 
 		public static async Task<IGuildUser> GetBot(IGuild guild)
 		{
 			return await guild.GetCurrentUserAsync();
-		}
-		
-		public static async Task<IRole> GetRoleEditAbility(ICommandContext context, string input = null, bool ignore_Errors = false, IRole role = null)
-		{
-			//Check if valid role
-			var inputRole = role ?? await GetRole(context, input);
-			if (inputRole == null)
-				return null;
-
-			if (inputRole.Position >= GetPosition(context.Guild, context.User))
-			{
-				if (!ignore_Errors)
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` has a higher position than you are allowed to edit or use.", inputRole.Name)));
-				}
-			}
-			else if (inputRole.Position >= GetPosition(context.Guild, await context.Guild.GetUserAsync(Variables.Bot_ID)))
-			{
-				if (!ignore_Errors)
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("`{0}` has a higher position than the bot is allowed to edit or use.", inputRole.Name)));
-				}
-			}
-			else
-			{
-				return inputRole;
-			}
-			return null;
 		}
 
 		public static IVoiceChannel GetUserMovability(IVoiceChannel channel, IUser user)
@@ -512,89 +540,82 @@ namespace Advobot
 			return null;
 		}
 
-		public static async Task<ReturnedChannel> GetChannelPermability(ICommandContext context, string input, IGuildChannel channel = null)
+		public static async Task<ReturnedObject<IGuildChannel>> GetChannelPermability(ICommandContext context, string input, IGuildChannel channel = null)
 		{
 			channel = channel ?? await GetChannel(context, input);
 			if (channel == null)
 			{
-				return new ReturnedChannel(null, FailureReason.Not_Found);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.Not_Found, GetObjectString(channel), FormatObject(channel));
 			}
 			else if (GetChannelPermability(channel, context.User) == null)
 			{
-				return new ReturnedChannel(channel, FailureReason.User_Inability);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.User_Inability, GetObjectString(channel), FormatObject(channel));
 			}
 			else if (GetChannelPermability(channel, await GetUser(context.Guild, Variables.Bot_ID)) == null)
 			{
-				return new ReturnedChannel(channel, FailureReason.Bot_Inability);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.Bot_Inability, GetObjectString(channel), FormatObject(channel));
 			}
 			else
 			{
-				return new ReturnedChannel(channel, FailureReason.Not_Failure);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.Not_Failure, GetObjectString(channel), FormatObject(channel));
 			}
 		}
 
-		public static async Task<ReturnedChannel> GetChannelManagability(ICommandContext context, string input, IGuildChannel channel = null)
+		public static async Task<ReturnedObject<IGuildChannel>> GetChannelManagability(ICommandContext context, string input, IGuildChannel channel = null)
 		{
 			channel = channel ?? await GetChannel(context, input);
 			if (channel == null)
 			{
-				return new ReturnedChannel(null, FailureReason.Not_Found);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.Not_Found, GetObjectString(channel), FormatObject(channel));
 			}
 			else if (GetChannelManagability(channel, context.User) == null)
 			{
-				return new ReturnedChannel(channel, FailureReason.User_Inability);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.User_Inability, GetObjectString(channel), FormatObject(channel));
 			}
 			else if (GetChannelManagability(channel, await GetUser(context.Guild, Variables.Bot_ID)) == null)
 			{
-				return new ReturnedChannel(channel, FailureReason.Bot_Inability);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.Bot_Inability, GetObjectString(channel), FormatObject(channel));
 			}
 			else
 			{
-				return new ReturnedChannel(channel, FailureReason.Not_Failure);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.Not_Failure, GetObjectString(channel), FormatObject(channel));
 			}
 		}
 
-		public static async Task<ReturnedChannel> GetChannelMovability(ICommandContext context, string input, IGuildChannel channel = null)
+		public static async Task<ReturnedObject<IGuildChannel>> GetChannelMovability(ICommandContext context, string input, IGuildChannel channel = null)
 		{
 			channel = channel ?? await GetChannel(context, input);
 			if (channel == null)
 			{
-				return new ReturnedChannel(null, FailureReason.Not_Found);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.Not_Found, GetObjectString(channel), FormatObject(channel));
 			}
 			else if (GetChannelMovability(channel, context.User) == null)
 			{
-				return new ReturnedChannel(channel, FailureReason.User_Inability);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.User_Inability, GetObjectString(channel), FormatObject(channel));
 			}
 			else if (GetChannelMovability(channel, await GetUser(context.Guild, Variables.Bot_ID)) == null)
 			{
-				return new ReturnedChannel(channel, FailureReason.Bot_Inability);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.Bot_Inability, GetObjectString(channel), FormatObject(channel));
 			}
 			else
 			{
-				return new ReturnedChannel(channel, FailureReason.Not_Failure);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.Not_Failure, GetObjectString(channel), FormatObject(channel));
 			}
 		}
 
-		public static async Task HandleChannelPermsLacked(ICommandContext context, ReturnedChannel channel)
+		public static string GetObjectString(IGuildUser user)
 		{
-			switch (channel.Reason)
-			{
-				case FailureReason.Not_Found:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to find the channel."));
-					break;
-				}
-				case FailureReason.User_Inability:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You are unable to make the given changes to the channel: `{0}`.", FormatChannel(channel.Channel))));
-					break;
-				}
-				case FailureReason.Bot_Inability:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("I am unable to make the given changes to the channel: `{0}`.", FormatChannel(channel.Channel))));
-					break;
-				}
-			}
+			return "user";
+		}
+
+		public static string GetObjectString(IGuildChannel user)
+		{
+			return "channel";
+		}
+
+		public static string GetObjectString(IRole role)
+		{
+			return "role";
 		}
 
 		public static async Task<IGuildChannel> GetChannel(IGuild guild, ulong inputID)
@@ -626,7 +647,7 @@ namespace Advobot
 				var channels = (await guild.GetVoiceChannelsAsync()).Where(x => CaseInsEquals(x.Name, input)).ToList();
 
 				//If zero then no channels have the name so return an error message
-				if (channels.Count < 1)
+				if (channels.Count == 0)
 				{
 					await MakeAndDeleteSecondaryMessage(channel, message, ERROR(String.Format("`{0}` does not exist as a channel on this guild.", input)));
 				}
@@ -636,7 +657,7 @@ namespace Advobot
 					return channels.FirstOrDefault();
 				}
 				//If more than one return an error message too because how are we supposed to know which one they want?
-				else if (channels.Count > 1)
+				else
 				{
 					await MakeAndDeleteSecondaryMessage(channel, message, ERROR(String.Format("More than one channel exists with the name `{0}`.", input)));
 				}
@@ -1014,8 +1035,9 @@ namespace Advobot
 			return bannerPosition > banneePosition;
 		}
 
-		public static bool UserCanBeModifiedByBot(IGuild guild, IGuildUser targetUser, IGuildUser bot)
+		public static bool UserCanBeModifiedByBot(IGuild guild, IGuildUser targetUser)
 		{
+			var bot = (guild as SocketGuild).GetUser(Variables.Bot_ID);
 			var botPosition = GetPosition(guild, bot);
 			var userPosition = GetPosition(guild, targetUser);
 			return botPosition > userPosition  || targetUser.Id == bot.Id;
@@ -1157,7 +1179,6 @@ namespace Advobot
 
 		public static async Task<List<IGuildUser>> GetUsersTheBotAndUserCanEdit(ICommandContext context, Func<IGuildUser, bool> predicate = null)
 		{
-			var bot = await GetBot(context.Guild);
 			var user = context.User as IGuildUser;
 
 			var users = await GetUsers(context);
@@ -1168,7 +1189,7 @@ namespace Advobot
 
 			var validUsers = users.Where(x =>
 			{
-				return UserCanBeModifiedByUser(context, x) && UserCanBeModifiedByBot(context.Guild, x, bot);
+				return UserCanBeModifiedByUser(context, x) && UserCanBeModifiedByBot(context.Guild, x);
 			}).ToList();
 
 			return validUsers;
@@ -1200,7 +1221,7 @@ namespace Advobot
 				await input.ForEachAsync(async x =>
 				{
 					var user = await GetUser(context.Guild, x);
-					if (UserCanBeModifiedByUser(context, user) && UserCanBeModifiedByBot(context.Guild, user, bot))
+					if (UserCanBeModifiedByUser(context, user) && UserCanBeModifiedByBot(context.Guild, user))
 					{
 						success.Add(user);
 					}
@@ -1250,23 +1271,21 @@ namespace Advobot
 		#endregion
 
 		#region Roles
-		public static async Task<IRole> CreateMuteRoleIfNotFound(IGuild guild, string roleName)
+		public static async Task<IRole> CreateMuteRoleIfNotFound(IGuild guild, IRole muteRole)
 		{
 			//Create the role if not found
-			var role = GetRole(guild, roleName);
-			if (role == null)
+			if (muteRole == null)
 			{
-				role = await guild.CreateRoleAsync(roleName);
+				muteRole = await guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME);
 			}
 			//Change its guild perms
-			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(0));
+			await muteRole.ModifyAsync(x => x.Permissions = new GuildPermissions(0));
 			//Change the perms it has on every single text channel
 			(await guild.GetTextChannelsAsync()).ToList().ForEach(x =>
 			{
-				x.AddPermissionOverwriteAsync(role, new OverwritePermissions(0, 805316689));
+				x.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, 805316689));
 			});
-			//Give the role back
-			return role;
+			return muteRole;
 		} 
 		
 		public static async Task GiveRole(IGuildUser user, IRole role)
@@ -1507,31 +1526,32 @@ namespace Advobot
 			return input;
 		}
 
-		public static string FormatObject(object obj)
+		public static string FormatObject<T>(T obj)
 		{
-			if (obj is IGuild)
+			var type = typeof(T);
+			if (type == typeof(IGuild))
 			{
 				var guild = obj as IGuild;
 				return FormatGuild(guild);
 			}
-			else if (obj is IUser)
+			else if (type == typeof(IGuildChannel))
 			{
-				var user = obj as IUser;
-				return FormatUser(user, user?.Id);
-			}
-			else if (obj is IChannel)
-			{
-				var channel = obj as IChannel;
+				var channel = obj as IGuildChannel;
 				return FormatChannel(channel);
 			}
-			else if (obj is IRole)
+			else if (type == typeof(IRole))
 			{
 				var role = obj as IRole;
 				return FormatRole(role);
 			}
+			else if (type == typeof(IUser))
+			{
+				var user = obj as IUser;
+				return FormatUser(user, user?.Id);
+			}
 			else
 			{
-				return "if this gets seen then fug";
+				return "This should not be seen.";
 			}
 		}
 
@@ -1904,6 +1924,34 @@ namespace Advobot
 					String.Join("`, `", failure.Select(x => FormatObject(x))));
 			}
 			return succOutput + failOutput;
+		}
+
+		public static async Task HandleObjectGettingErrors<T>(ICommandContext context, ReturnedObject<T> returnedObject)
+		{
+			var objType = returnedObject.ObjectType;
+			switch (returnedObject.Reason)
+			{
+				case FailureReason.Not_Found:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Unable to find the {0}.", objType)));
+					break;
+				}
+				case FailureReason.User_Inability:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, returnedObject.FormattedObject)));
+					break;
+				}
+				case FailureReason.Bot_Inability:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, returnedObject.FormattedObject)));
+					break;
+				}
+				case FailureReason.Too_Many:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("There are too many {0}s with the same name.", objType)));
+					break;
+				}
+			}
 		}
 		#endregion
 

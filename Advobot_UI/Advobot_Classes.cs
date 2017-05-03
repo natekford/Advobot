@@ -1477,16 +1477,20 @@ namespace Advobot
 		}
 	}
 
-	public struct ReturnedChannel
+	public struct ReturnedObject<T>
 	{
-		public ReturnedChannel(IGuildChannel channel, FailureReason reason)
+		public ReturnedObject(T obj, FailureReason reason, string type, string formatted)
 		{
-			Channel = channel;
+			Object = obj;
 			Reason = reason;
+			ObjectType = type;
+			FormattedObject = formatted;
 		}
 
-		public IGuildChannel Channel { get; private set; }
+		public T Object { get; private set; }
 		public FailureReason Reason { get; private set; }
+		public string ObjectType { get; private set; }
+		public string FormattedObject { get; private set; }
 	}
 
 	public struct GuildToggleAfterTime : ITimeInterface
@@ -1644,6 +1648,7 @@ namespace Advobot
 		Not_Found = 1,
 		User_Inability = 2,
 		Bot_Inability = 3,
+		Too_Many = 4,
 	}
 
 	public enum ModifyTypes
@@ -1696,6 +1701,15 @@ namespace Advobot
 		Server = 1,
 		Mod = 2,
 		Image = 3,
+	}
+
+	public enum CheckType
+	{
+		None = 0,
+		Position = 1,
+		Able_To_Be_Managed = 2,
+		Able_To_Have_Perms_Changed = 3,
+		Able_To_Move_Users = 4,
 	}
 	#endregion
 }

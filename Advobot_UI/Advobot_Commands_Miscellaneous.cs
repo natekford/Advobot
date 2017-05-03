@@ -753,12 +753,12 @@ namespace Advobot
 
 			//Check validity of channel
 			var returnedChannel = await Actions.GetChannelPermability(Context, channelInput);
-			var channel = returnedChannel.Channel;
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.HandleChannelPermsLacked(Context, returnedChannel);
+				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
 			}
+			var channel = returnedChannel.Object;
 
 			//Set the time in seconds
 			int? nullableTime = null;
@@ -867,14 +867,14 @@ namespace Advobot
 			if (!String.IsNullOrWhiteSpace(chanStr))
 			{
 				var returnedChannel = await Actions.GetChannelPermability(Context, chanStr);
-				channel = returnedChannel.Channel;
 				if (returnedChannel.Reason != FailureReason.Not_Failure)
 				{
-					await Actions.HandleChannelPermsLacked(Context, returnedChannel);
+					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 					return;
 				}
 				else
 				{
+					channel = returnedChannel.Object;
 					inviteCriteria.Add(DeleteInvAction.Channel);
 				}
 			}
