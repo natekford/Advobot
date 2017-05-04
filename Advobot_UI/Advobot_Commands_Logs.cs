@@ -41,12 +41,19 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
 				return;
 			}
-			var channel = Actions.GetChannelPermability(await Actions.GetChannel(Context.Guild, channelMentions.First()), Context.User) as ITextChannel;
-			if (guildInfo.GetLogID(type) == channel.Id)
+			else if (guildInfo.GetLogID(type) == channelMentions.First())
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The given channel is already the current {0} log.", typeStr)));
 				return;
 			}
+
+			var returnedChannel = Actions.GetChannel(Context, new[] { CheckType.Channel_Permissions, CheckType.Channel_Text_Type }, channelMentions.First().ToString());
+			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			{
+				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
+				return;
+			}
+			var channel = returnedChannel.Object as ITextChannel;
 
 			switch (type)
 			{
@@ -97,15 +104,16 @@ namespace Advobot
 			//Split the input and determine whether to add or remove
 			var inputArray = input.Split(new[] { ' ' }, 2);
 			var action = inputArray[0];
+
 			var add = Actions.CaseInsEquals(action, "add");
-			if (!Actions.CaseInsEquals(action, "remove"))
+			if (!add && !Actions.CaseInsEquals(action, "remove"))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
 			//Get the channels
-			var evaluatedChannels = await Actions.GetValidEditChannels(Context);
+			var evaluatedChannels = Actions.GetValidEditChannels(Context);
 			if (!evaluatedChannels.HasValue)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));

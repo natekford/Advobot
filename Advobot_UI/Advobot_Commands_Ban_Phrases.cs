@@ -439,15 +439,15 @@ namespace Advobot
 				else if (Context.Guild.Roles.Any(x => Actions.CaseInsEquals(x.Name, punishmentStr)))
 				{
 					punishmentType = PunishmentType.Role;
-					var evaluatedRole = await Actions.GetRole(Context, CheckType.Position, punishmentStr);
-					if (evaluatedRole.Reason != FailureReason.Not_Failure)
+					var returnedRole = Actions.GetRole(Context, new[] { CheckType.Role_Editability }, punishmentStr);
+					if (returnedRole.Reason != FailureReason.Not_Failure)
 					{
-						await Actions.HandleObjectGettingErrors(Context, evaluatedRole);
+						await Actions.HandleObjectGettingErrors(Context, returnedRole);
 						return;
 					}
 					else
 					{
-						punishmentRole = evaluatedRole.Object;
+						punishmentRole = returnedRole.Object;
 					}
 
 					if (punishments.Any(x => x.Role == punishmentRole))
@@ -473,7 +473,7 @@ namespace Advobot
 				{
 					foreach (var gatheredPunishment in gatheredPunishments)
 					{
-						if (gatheredPunishment.Role != null && gatheredPunishment.Role.Position > Actions.GetPosition(Context.Guild, Context.User))
+						if (gatheredPunishment.Role != null && gatheredPunishment.Role.Position > Actions.GetUserPosition(Context.Guild, Context.User))
 						{
 							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have the ability to remove a punishment with this role."));
 							return;
@@ -537,14 +537,17 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				return;
 			}
+			var actionStr = inputArray[0];
+			var userStr = inputArray[1];
 
 			//Get the user
-			var user = await Actions.GetUser(Context.Guild, inputArray[0]);
-			if (user == null)
+			var returnedUser = Actions.GetGuildUser(Context, new[] { CheckType.None }, userStr);
+			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
 				return;
 			}
+			var user = returnedUser.Object;
 			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User.Id == user.Id);
 			if (bpUser == null)
 			{
@@ -553,20 +556,21 @@ namespace Advobot
 			}
 
 			//Check if valid action
-			if (Actions.CaseInsEquals(inputArray[0], "clear"))
+			if (Actions.CaseInsEquals(actionStr, "clear"))
 			{
 				bpUser.ResetRoleCount();
 				bpUser.ResetKickCount();
 				bpUser.ResetBanCount();
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the infractions for `{0}` to 0.", Actions.FormatUser(user, user?.Id)));
+				var outputStr = Actions.FormatUser(user, user?.Id);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the infractions for `{0}` to 0.", outputStr));
 			}
-			if (Actions.CaseInsEquals(inputArray[0], "current"))
+			if (Actions.CaseInsEquals(actionStr, "current"))
 			{
 				var roleCount = bpUser?.MessagesForRole ?? 0;
 				var kickCount = bpUser?.MessagesForKick ?? 0;
 				var banCount = bpUser?.MessagesForBan ?? 0;
-				await Actions.MakeAndDeleteSecondaryMessage(Context,
-					String.Format("The user `{0}#{1}` has `{2}R/{3}K/{4}B` infractions.", user.Username, user.Discriminator, roleCount, kickCount, banCount));
+				var outputStr = Actions.FormatUser(user, user?.Id);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}` has `{1}R/{2}K/{3}B` infractions.", outputStr, roleCount, kickCount, banCount));
 			}
 			else
 			{

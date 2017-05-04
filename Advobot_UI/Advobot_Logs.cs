@@ -291,7 +291,7 @@ namespace Advobot
 				await Message_Received_Actions.BotOwner(message);
 				return;
 			}
-			else if (!Actions.VerifyMessage(message))
+			else if (!Actions.VerifyMessageShouldBeLogged(message))
 				return;
 
 			if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))

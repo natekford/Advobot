@@ -134,12 +134,13 @@ namespace Advobot
 			var mentions = Context.Message.MentionedUserIds;
 			if (mentions.Count == 1)
 			{
-				user = await Actions.GetUser(Context.Guild, mentions.FirstOrDefault());
-				if (user == null)
+				var returnedUser = Actions.GetGuildUser(Context, new[] { CheckType.None }, mentions.First().ToString());
+				if (returnedUser.Reason != FailureReason.Not_Failure)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+					await Actions.HandleObjectGettingErrors(Context, returnedUser);
 					return;
 				}
+				user = returnedUser.Object;
 			}
 			else if (mentions.Count > 1)
 			{
@@ -612,7 +613,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
 				return;
 			}
-			var returnedChannel = await Actions.GetChannelPermability(Context, mentions.FirstOrDefault().ToString());
+			var returnedChannel = Actions.GetChannel(Context, new[] { CheckType.Channel_Permissions }, mentions.FirstOrDefault().ToString());
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -763,17 +764,13 @@ namespace Advobot
 			}
 
 			//Get the user
-			var user = await Actions.GetUser(Context.Guild, userStr);
-			if (user == null)
+			var returnedUser = Actions.GetGuildUser(Context, new[] { CheckType.User_Editability }, userStr);
+			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
 			}
-			else if (!Actions.UserCanBeModifiedByUser(Context, user))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user has a higher position than you are able to edit."));
-				return;
-			}
+			var user = returnedUser.Object;
 
 			//Get the botuser
 			var botUser = guildInfo.BotUsers.FirstOrDefault(x => x.User == user);
@@ -1035,7 +1032,7 @@ namespace Advobot
 				return;
 			}
 
-			guildInfo.SetWelcomeMessage(await Actions.GetGuildNotification(Context, input));
+			guildInfo.SetWelcomeMessage(await Actions.MakeGuildNotification(Context, input));
 			Actions.SaveGuildInfo(guildInfo);
 		}
 
@@ -1055,7 +1052,7 @@ namespace Advobot
 				return;
 			}
 
-			guildInfo.SetGoodbyeMessage(await Actions.GetGuildNotification(Context, input));
+			guildInfo.SetGoodbyeMessage(await Actions.MakeGuildNotification(Context, input));
 			Actions.SaveGuildInfo(guildInfo);
 		}
 

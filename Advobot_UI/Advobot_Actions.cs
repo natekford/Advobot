@@ -720,6 +720,10 @@ namespace Advobot
 				{
 					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Bot_Inability);
 				}
+				else if (!GetIfChannelIsCorrectType(context, channel, user, type))
+				{
+					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Incorrect_Channel_Type);
+				}
 			}
 
 			return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Not_Failure);
@@ -742,7 +746,7 @@ namespace Advobot
 				input.ForEach(x =>
 				{
 					var channel = GetChannel(context.Guild, x);
-					if (GetIfUserCanDoActionOnChannel(context.Guild, channel, user, CheckType.Channel_Perms) && GetIfUserCanDoActionOnChannel(context.Guild, channel, bot, CheckType.Channel_Perms))
+					if (GetIfUserCanDoActionOnChannel(context, channel, user, CheckType.Channel_Permissions) && GetIfUserCanDoActionOnChannel(context, channel, bot, CheckType.Channel_Permissions))
 					{
 						success.Add(channel);
 					}
@@ -775,13 +779,17 @@ namespace Advobot
 					{
 						return channelPerms.ReadMessages && channelPerms.ManageChannel;
 					}
-					case CheckType.Channel_Perms:
+					case CheckType.Channel_Permissions:
 					{
 						return channelPerms.ReadMessages && channelPerms.ManageChannel && channelPerms.ManagePermissions;
 					}
 					case CheckType.Channel_Move_Channels:
 					{
 						return channelPerms.ReadMessages && guildPerms.ManageChannels;
+					}
+					case CheckType.Channel_Delete_Messages:
+					{
+						return channelPerms.ReadMessages && channelPerms.ManageMessages;
 					}
 				}
 			}
@@ -793,7 +801,7 @@ namespace Advobot
 					{
 						return channelPerms.ManageChannel;
 					}
-					case CheckType.Channel_Perms:
+					case CheckType.Channel_Permissions:
 					{
 						return channelPerms.ManageChannel && channelPerms.ManagePermissions;
 					}
@@ -807,7 +815,23 @@ namespace Advobot
 					}
 				}
 			}
-			return false;
+			return true;
+		}
+
+		public static bool GetIfChannelIsCorrectType(ICommandContext context, IGuildChannel target, IGuildUser user, CheckType type)
+		{
+			switch (type)
+			{
+				case CheckType.Channel_Text_Type:
+				{
+					return GetChannelType(target) == Constants.TEXT_TYPE;
+				}
+				case CheckType.Channel_Voice_Type:
+				{
+					return GetChannelType(target) == Constants.VOICE_TYPE;
+				}
+			}
+			return true;
 		}
 		#endregion
 
@@ -1093,17 +1117,17 @@ namespace Advobot
 
 			switch (type)
 			{
-				case CheckType.User_Move:
+				case CheckType.User_Channel_Move:
 				{
 					var channel = target.VoiceChannel;
 					return GetIfUserCanDoActionOnChannel(context, channel, user, type);
 				}
-				case CheckType.User_Position:
+				case CheckType.User_Editability:
 				{
 					return GetIfUserCanBeModifiedByUser(context, target) || GetIfUserCanBeModifiedByBot(context, user);
 				}
 			}
-			return false;
+			return true;
 		}
 
 		public static bool GetIfUserCanBeModifiedByUser(ICommandContext context, IGuildUser user)
@@ -1772,6 +1796,11 @@ namespace Advobot
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("There are too many {0}s with the same name.", objType)));
 					break;
 				}
+				case FailureReason.Incorrect_Channel_Type:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Invalid {0} type for the given variable requirement.", objType)));
+					break;
+				}
 			}
 		}
 		#endregion
@@ -2198,7 +2227,7 @@ namespace Advobot
 
 		public static IGuild VerifyGuild(IMessage message, LogActions logAction)
 		{
-			if (!VerifyMessage(message))
+			if (!VerifyMessageShouldBeLogged(message))
 				return null;
 			return VerifyUnpaused(VerifyLoggingAction(VerifyLoggingIsEnabledOnThisChannel(message), logAction));
 		}
@@ -3595,7 +3624,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task<GuildNotification> GetGuildNotification(ICommandContext context, string input)
+		public static async Task<GuildNotification> MakeGuildNotification(ICommandContext context, string input)
 		{
 			//Get the variables out
 			var inputArray = SplitByCharExceptInQuotes(input, ' ');
@@ -3618,15 +3647,13 @@ namespace Advobot
 			}
 
 			//Make sure the channel mention is valid
-			var channel = await GetChannel(context, channelStr);
-			if (channel == null)
-				return null;
-			var tChannel = channel as ITextChannel;
-			if (tChannel == null)
+			var returnedChannel = GetChannel(context, new[] { CheckType.Channel_Permissions, CheckType.Channel_Text_Type }, channelStr);
+			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("The welcome channel can only be set to a text channel."));
+				await HandleObjectGettingErrors(context, returnedChannel);
 				return null;
 			}
+			var channel = returnedChannel.Object as ITextChannel;
 
 			return new GuildNotification(content, title, desc, thumb, context.Guild.Id, channel.Id);
 		}

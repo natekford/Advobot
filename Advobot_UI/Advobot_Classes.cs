@@ -221,8 +221,6 @@ namespace Advobot
 		[JsonIgnore]
 		public AntiRaid AntiRaid { get; private set; }
 		[JsonIgnore]
-		public RoleLoss RoleLoss { get; private set; }
-		[JsonIgnore]
 		public MessageDeletion MessageDeletion { get; private set; }
 		[JsonIgnore]
 		public bool DefaultPrefs { get; private set; }
@@ -263,7 +261,6 @@ namespace Advobot
 
 			BannedPhrases = new BannedPhrases();
 			GlobalSpamPrevention = new GlobalSpamPrevention();
-			RoleLoss = new RoleLoss();
 			MessageDeletion = new MessageDeletion();
 			JoinProtection = new RapidJoinProtection();
 
@@ -595,16 +592,16 @@ namespace Advobot
 		public void AddRole(SelfAssignableRole role)
 		{
 			role.SetGroup(Group);
-			mRoles.Add(role);
+			Roles.Add(role);
 		}
 		public void AddRoles(List<SelfAssignableRole> roles)
 		{
 			roles.ForEach(x => x.SetGroup(Group));
-			mRoles.AddRange(roles);
+			Roles.AddRange(roles);
 		}
 		public void RemoveRoles(List<ulong> roleIDs)
 		{
-			mRoles.RemoveAll(x => roleIDs.Contains(x.Role.Id));
+			Roles.RemoveAll(x => roleIDs.Contains(x.Role.Id));
 		}
 	}
 
@@ -768,7 +765,7 @@ namespace Advobot
 
 		public void UpdateKeywords(string[] keywords)
 		{
-			mKeywords = keywords;
+			Keywords = keywords;
 		}
 		public void Bump()
 		{
@@ -1619,6 +1616,7 @@ namespace Advobot
 		User_Inability = 2,
 		Bot_Inability = 3,
 		Too_Many = 4,
+		Incorrect_Channel_Type = 5,
 	}
 
 	public enum ModifyTypes
@@ -1676,15 +1674,16 @@ namespace Advobot
 	public enum CheckType
 	{
 		None = 0,
-		Role_Position = 1,
+		Role_Editability = 1,
 		Channel_Management = 2,
-		Channel_Perms = 3,
+		Channel_Permissions = 3,
 		Channel_Move_Users = 4,
-		User_Move = 5,
-		User_Position = 6,
+		User_Channel_Move = 5,
+		User_Editability = 6,
 		Channel_Move_Channels = 7,
-		Role_Delete = 8,
-		Role_Edit = 9,
+		Channel_Delete_Messages = 8,
+		Channel_Voice_Type = 9,
+		Channel_Text_Type = 10,
 	}
 	#endregion
 }

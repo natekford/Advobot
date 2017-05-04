@@ -252,16 +252,17 @@ namespace Advobot
 			}
 
 			//Get the role. No edit ability checking in this command due to how that's already been done in the modify command
-			var wantedRole = await Actions.GetRole(Context, input);
-			if (wantedRole == null)
+			var returnedRole = Actions.GetRole(Context, new[] { CheckType.None }, input);
+			if (returnedRole.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no role with that name on this guild."));
+				await Actions.HandleObjectGettingErrors(Context, returnedRole);
 				return;
 			}
+			var role = returnedRole.Object;
 
 			//Check if any groups has it
 			var SAGroups = guildInfo.SelfAssignableGroups;
-			if (!SAGroups.Any(x => x.Roles.Select(y => y.Role).Contains(wantedRole)))
+			if (!SAGroups.Any(x => x.Roles.Select(y => y.Role).Contains(role)))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no self assignable role by that name."));
 				return;
@@ -270,15 +271,15 @@ namespace Advobot
 			//Get the user as an IGuildUser
 			var user = Context.User as IGuildUser;
 			//Check if the user wants to remove their role
-			if (user.RoleIds.Contains(wantedRole.Id))
+			if (user.RoleIds.Contains(role.Id))
 			{
-				await user.RemoveRoleAsync(wantedRole);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the role `" + wantedRole.Name + "`.");
+				await user.RemoveRoleAsync(role);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the role `{0}`.", role.Name));
 				return;
 			}
 
 			//Get the group that contains the role
-			var SAGroup = guildInfo.SelfAssignableGroups.FirstOrDefault(x => x.Roles.Select(y => y.Role).Contains(wantedRole));
+			var SAGroup = guildInfo.SelfAssignableGroups.FirstOrDefault(x => x.Roles.Select(y => y.Role).Contains(role));
 			//If a group that has roles conflict, remove all but the wanted role
 			var otherRoles = new List<IRole>();
 			if (SAGroup.Group != 0)
@@ -286,7 +287,7 @@ namespace Advobot
 				//Find the intersection of the group's roles and the user's roles
 				otherRoles = SAGroup.Roles.Select(x => x.Role.Id).Intersect(user.RoleIds).Select(x => Context.Guild.GetRole(x)).ToList();
 				//Check if the user already has the role they're wanting
-				if (otherRoles.Contains(wantedRole))
+				if (otherRoles.Contains(role))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "You already have that role.");
 					return;
@@ -294,10 +295,10 @@ namespace Advobot
 			}
 
 			await user.RemoveRolesAsync(otherRoles);
-			await user.AddRoleAsync(wantedRole);
+			await user.AddRoleAsync(role);
 
 			var removedRoles = otherRoles.Any() ? String.Format(", and removed `{0}`", String.Join("`, `", otherRoles)) : "";
-			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully gave you `" + wantedRole.Name + "`" + removedRoles + ".");
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave you `{0}`{1}.", role.Name, removedRoles);
 		}
 
 		[Command("selfroles")]
