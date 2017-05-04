@@ -218,7 +218,7 @@ namespace Advobot
 				return;
 
 			//Check if the bot was the one that left
-			if (user == user.Guild.GetUser(Variables.Bot_ID))
+			if (user.Id == Variables.Bot_ID)
 			{
 				Variables.Guilds.Remove(user.Guild.Id);
 				return;
@@ -473,11 +473,11 @@ namespace Advobot
 
 			if (message.Attachments.Any())
 			{
-				await Actions.ImageLog(logChannel, message, false);
+				await Actions.LogImage(logChannel, message, false);
 			}
 			if (message.Embeds.Any())
 			{
-				await Actions.ImageLog(logChannel, message, true);
+				await Actions.LogImage(logChannel, message, true);
 			}
 		}
 
@@ -571,7 +571,7 @@ namespace Advobot
 		public static async Task SpamPrevention(BotGuildInfo guildInfo, IGuild guild, IMessage msg)
 		{
 			var author = msg.Author as IGuildUser;
-			if (Actions.GetPosition(guild, author) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)))
+			if (Actions.GetUserPosition(guild, author) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)))
 				return;
 
 			var global = guildInfo.GlobalSpamPrevention;
@@ -601,7 +601,7 @@ namespace Advobot
 				//Add the author to the already voted list
 				x.AddUserToVotedList(message.Author.Id);
 				//Check if the bot can even kick/ban this user or if they should be punished
-				if (Actions.GetPosition(guild, x.User) >= Actions.GetPosition(guild, await guild.GetUserAsync(Variables.Bot_ID)) || x.VotesToKick < x.VotesRequired)
+				if (Actions.GetUserPosition(guild, x.User) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)) || x.VotesToKick < x.VotesRequired)
 					return;
 				//Check if they've already been kicked to determine if they should be banned or kicked
 				await (x.AlreadyKicked ? guild.AddBanAsync(x.User, 1) : x.User.KickAsync());

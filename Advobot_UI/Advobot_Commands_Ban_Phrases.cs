@@ -80,7 +80,7 @@ namespace Advobot
 			var randomStr = String.Format("The given regex matches random strings: `{0}`.", matchesRandom);
 			var everythingStr = String.Format("The given regex matches everything: `{0}`.", matchesEverything);
 			var okStr = String.Format("The given regex is `{0}`.", okToUse ? "GOOD" : "BAD");
-			var description = String.Join("\n", new string[] { messageStr, emptyStr, spaceStr, newLineStr, randomStr, everythingStr, okStr });
+			var description = String.Join("\n", new[] { messageStr, emptyStr, spaceStr, newLineStr, randomStr, everythingStr, okStr });
 
 			//Send the embed
 			var embed = Actions.MakeNewEmbed(title, description);
@@ -104,7 +104,7 @@ namespace Advobot
 			}
 
 			//Split the input
-			var inputArray = Actions.RemoveNewLines(input).Split(new char[] { ' ' }, 2);
+			var inputArray = Actions.RemoveNewLines(input).Split(new[] { ' ' }, 2);
 			var action = inputArray[0];
 			var numberStr = inputArray.Length == 2 ? inputArray[1] : null;
 
@@ -201,7 +201,7 @@ namespace Advobot
 			}
 
 			//Split the input
-			var inputArray = Actions.RemoveNewLines(input).Split(new char[] { ' ' }, 2);
+			var inputArray = Actions.RemoveNewLines(input).Split(new[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -531,7 +531,7 @@ namespace Advobot
 			}
 
 			//Split the input
-			var inputArray = input.Split(new char[] { ' ' }, 2);
+			var inputArray = input.Split(new[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));

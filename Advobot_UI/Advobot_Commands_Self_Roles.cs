@@ -44,7 +44,7 @@ namespace Advobot
 			}
 
 			//Break the input into pieces
-			var inputArray = input.Split(new char[] { ' ' }, 2);
+			var inputArray = input.Split(new[] { ' ' }, 2);
 			var action = inputArray[0];
 			var rolesString = inputArray[1];
 

@@ -37,7 +37,7 @@ namespace Advobot
 			}
 
 			//Get the input command, if nothing then link to documentation
-			var commandParts = input.Split(new char[] { '[' }, 2);
+			var commandParts = input.Split(new[] { '[' }, 2);
 			if (input.IndexOf('[') == 0)
 			{
 				if (Actions.CaseInsEquals(commandParts[1], "command"))
@@ -490,7 +490,7 @@ namespace Advobot
 		public async Task UserAvatar([Optional, Remainder] string input)
 		{
 			//Split the input
-			var inputArray = input?.Split(new char[] { ' ' }, 2).ToList();
+			var inputArray = input?.Split(new[] { ' ' }, 2);
 			var formatStr = Actions.GetVariableAndRemove(inputArray, "type");
 
 			//Get the type of image
@@ -1037,7 +1037,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task MentionRole([Remainder] string input)
 		{
-			var inputArray = input.Split(new char[] { '/' }, 2);
+			var inputArray = input.Split(new[] { '/' }, 2);
 			if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -1053,7 +1053,7 @@ namespace Advobot
 			}
 
 			//Get the role and see if it can be changed
-			var role = await Actions.GetRoleEditAbility(Context, roleStr);
+			var evaluatedRole = await Actions.GetRoleEditAbility(Context, roleStr);
 			if (role == null)
 				return;
 

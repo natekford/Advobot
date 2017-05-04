@@ -155,7 +155,7 @@ namespace Advobot
 			}
 
 			//Split input
-			var inputArray = input.Split(new char[] { ' ' }, 2);
+			var inputArray = input.Split(new[] { ' ' }, 2);
 			var action = inputArray[0];
 
 			//Set a bool for whichever input was gotten

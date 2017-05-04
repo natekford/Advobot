@@ -21,10 +21,8 @@ namespace Advobot
 
 			await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
 
-			//Use the BotClient's connected handler to start up the bot
+			//Use the BotClient's connected handler to start up the bot and the message received handler to handle commands
 			Client.AddConnectedHandler(this);
-
-			//Use the BotClient's message received handler to handle commands
 			Client.AddMessageReceivedHandler(this);
 		}
 

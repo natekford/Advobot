@@ -20,7 +20,7 @@ namespace Advobot
 		public async Task GiveRole([Remainder] string input)
 		{
 			//Test number of arguments
-			var inputArray = input.Split(new char[] { ' ' }, 2);
+			var inputArray = input.Split(new[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -121,7 +121,7 @@ namespace Advobot
 		public async Task TakeRole([Remainder] string input)
 		{
 			//Test number of arguments
-			var inputArray = input.Split(new char[] { ' ' }, 2);
+			var inputArray = input.Split(new[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
@@ -350,12 +350,12 @@ namespace Advobot
 			}
 
 			//See if the user and bot can access that position
-			if (position > Actions.GetPosition(Context.Guild, Context.User as IGuildUser))
+			if (position > Actions.GetUserPosition(Context.Guild, Context.User))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Position is higher than you can access."));
 				return;
 			}
-			else if (position > Actions.GetPosition(Context.Guild, await Context.Guild.GetUserAsync(Variables.Bot_ID)))
+			else if (position > Actions.GetUserPosition(Context.Guild, Actions.GetBot(Context.Guild)))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Position is higher than the bot can access."));
 				return;
@@ -408,7 +408,7 @@ namespace Advobot
 			var permissionTypeStrings = Variables.GuildPermissions.Select(x => x.Name).ToList();
 
 			//Separate the role and whether to add or remove from the permissions
-			var inputArray = input.Split(new char[] { ' ' }, 2);
+			var inputArray = input.Split(new[] { ' ' }, 2);
 			var permsString = "";
 			var roleString = "";
 			var show = false;
@@ -573,7 +573,7 @@ namespace Advobot
 		public async Task CopyRolePermissions([Remainder] string input)
 		{
 			//Put the input into a string
-			var inputArray = input.Split(new char[] { '/' }, 2);
+			var inputArray = input.Split(new[] { '/' }, 2);
 
 			//Test if two roles were input
 			if (inputArray.Length != 2)
@@ -659,7 +659,7 @@ namespace Advobot
 		public async Task ChangeRoleName([Remainder] string input)
 		{
 			//Split at the current role name and the new role name
-			var inputArray = input.Split(new char[] { '/' }, 2);
+			var inputArray = input.Split(new[] { '/' }, 2);
 
 			//Check if correct number of arguments
 			if (inputArray.Length != 2)
@@ -745,7 +745,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ChangeRoleColor([Remainder] string input)
 		{
-			var inputArray = input.Split(new char[] { '/' }, 2);
+			var inputArray = input.Split(new[] { '/' }, 2);
 
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
 			var role = await Actions.GetRoleEditAbility(Context, inputArray[0]);

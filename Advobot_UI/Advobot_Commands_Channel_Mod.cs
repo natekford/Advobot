@@ -434,7 +434,7 @@ namespace Advobot
 			}
 
 			//Changing the bit values
-			await permissions.ToList().ForEachAsync(async x => changeValue = await Actions.GetBit(Context, x, changeValue));
+			permissions.ToList().ForEach(x => changeValue = Actions.GetBit(Context, x, changeValue));
 			switch (action)
 			{
 				case CHPType.Allow:
@@ -643,7 +643,7 @@ namespace Advobot
 					}
 
 					//Split the input
-					var splitInputArray = channelInput.Split(new char[] { '/' }, 2);
+					var splitInputArray = channelInput.Split(new[] { '/' }, 2);
 					var channelType = splitInputArray[1];
 
 					var channels = new List<IGuildChannel>();
@@ -723,7 +723,7 @@ namespace Advobot
 		public async Task ChangeChannelTopic([Remainder] string input)
 		{
 			//Split the input
-			var inputArray = input.Split(new char[] { ' ' }, 2);
+			var inputArray = input.Split(new[] { ' ' }, 2);
 			if (inputArray.Length != 2)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));

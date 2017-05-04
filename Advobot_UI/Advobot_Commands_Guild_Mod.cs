@@ -117,7 +117,7 @@ namespace Advobot
 				var returnedChannel = await Actions.GetChannelPermability(Context, info);
 				if (returnedChannel.Reason != FailureReason.Not_Failure)
 				{
-					await Actions.HandleChannelErrors(Context, returnedChannel);
+					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 					return;
 				}
 				var channel = returnedChannel.Object;

@@ -163,7 +163,7 @@ namespace Advobot
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditButtonLayout, mEditCloseButton, 0, 1, 1, 1);
 
 			//Paragraphs
-			mFirstParagraph.Inlines.AddRange(new Inline[] { mHelpFirstHyperlink, mHelpSecondRun, mHelpSecondHyperlink });
+			mFirstParagraph.Inlines.AddRange(new[] { mHelpFirstHyperlink, mHelpSecondRun, mHelpSecondHyperlink });
 			mFourthParagraph.Inlines.Add(mFileTreeView);
 
 			//Events
@@ -629,7 +629,7 @@ namespace Advobot
 		public static void GatherInput()
 		{
 			//Get the current text
-			var text = BotWindow.Input.Text.Trim(new char[] { '\r', '\n' });
+			var text = BotWindow.Input.Text.Trim(new[] { '\r', '\n' });
 			BotWindow.Input.Text = "";
 			BotWindow.InputButton.IsEnabled = false;
 			//Write it out to the ghetto console
@@ -666,7 +666,7 @@ namespace Advobot
 				//Remove the prefix
 				input = input.Substring(Properties.Settings.Default.Prefix.Length);
 				//Split the input
-				var inputArray = input.Split(new char[] { ' ' }, 2);
+				var inputArray = input.Split(new[] { ' ' }, 2);
 				//Get the command
 				var cmd = inputArray[0];
 				//Get the args
