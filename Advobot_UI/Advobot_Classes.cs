@@ -23,26 +23,26 @@ namespace Advobot
 			mAnyFlags = anyOfTheListedPerms | (1U << (int)GuildPermission.Administrator);
 		}
 
-		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
 			if (context.Guild != null && Variables.Guilds.TryGetValue(context.Guild.Id, out BotGuildInfo guildInfo))
 			{
-				var user = await context.Guild.GetUserAsync(context.User.Id);
+				var user = context.User as IGuildUser;
 				var botBits = guildInfo.BotUsers.FirstOrDefault(x => x.User.Id == user.Id)?.Permissions;
 				if (botBits != null)
 				{
 					var perms = user.GuildPermissions.RawValue | botBits;
 					if (mAllFlags != 0 && (perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
-						return PreconditionResult.FromSuccess();
+						return Task.FromResult(PreconditionResult.FromSuccess());
 				}
 				else
 				{
 					var perms = user.GuildPermissions.RawValue;
 					if (mAllFlags != 0 && (perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
-						return PreconditionResult.FromSuccess();
+						return Task.FromResult(PreconditionResult.FromSuccess());
 				}
 			}
-			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
+			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 		}
 
 		public string AllText
@@ -61,36 +61,48 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class BotOwnerOrGuildOwnerRequirementAttribute : PreconditionAttribute
 	{
-		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			return await Task.Run(() =>
+			if (Actions.GetIfUserIsOwner(context.Guild, context.User) || Actions.GetIfUserIsBotOwner(context.User))
 			{
-				return Actions.GetIfUserIsOwner(context.Guild, context.User) || Actions.GetIfUserIsBotOwner(context.User) ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
-			});
+				return Task.FromResult(PreconditionResult.FromSuccess());
+			}
+			else
+			{
+				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
+			}
 		}
 	}
 
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class BotOwnerRequirementAttribute : PreconditionAttribute
 	{
-		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			return await Task.Run(() =>
+			if (Actions.GetIfUserIsBotOwner(context.User))
 			{
-				return Actions.GetIfUserIsBotOwner(context.User) ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
-			});
+				return Task.FromResult(PreconditionResult.FromSuccess());
+			}
+			else
+			{
+				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
+			}
 		}
 	}
 
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class GuildOwnerRequirementAttribute : PreconditionAttribute
 	{
-		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			return await Task.Run(() =>
+			if (Actions.GetIfUserIsOwner(context.Guild, context.User))
 			{
-				return Actions.GetIfUserIsOwner(context.Guild, context.User) ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(Constants.IGNORE_ERROR);
-			});
+				return Task.FromResult(PreconditionResult.FromSuccess());
+			}
+			else
+			{
+				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
+			}
 		}
 	}
 
@@ -112,28 +124,28 @@ namespace Advobot
 			| (1U << (int)GuildPermission.MoveMembers)
 			| (1U << (int)GuildPermission.MuteMembers);
 
-		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
 			if (context.Guild != null && Variables.Guilds.TryGetValue(context.Guild.Id, out BotGuildInfo guildInfo))
 			{
-				var user = await context.Guild.GetUserAsync(context.User.Id);
+				var user = context.User as IGuildUser;
 				var botBits = guildInfo.BotUsers.FirstOrDefault(x => x.User.Id == user.Id)?.Permissions;
 				if (botBits != null)
 				{
 					if (((user.GuildPermissions.RawValue | botBits) & PERMISSIONBITS) != 0)
 					{
-						return PreconditionResult.FromSuccess();
+						return Task.FromResult(PreconditionResult.FromSuccess());
 					}
 				}
 				else
 				{
 					if ((user.GuildPermissions.RawValue & PERMISSIONBITS) != 0)
 					{
-						return PreconditionResult.FromSuccess();
+						return Task.FromResult(PreconditionResult.FromSuccess());
 					}
 				}
 			}
-			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
+			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 		}
 	}
 
@@ -756,7 +768,7 @@ namespace Advobot
 		{
 			GuildID = guildID;
 			Guild = Variables.Client.GetGuild(GuildID);
-			HasGlobalEmotes = Guild.Emojis.Any(x => x.IsManaged);
+			HasGlobalEmotes = Guild.Emotes.Any(x => x.IsManaged);
 			LastBumped = DateTime.UtcNow;
 			Code = code;
 			URL = String.Concat("https://www.discord.gg/", Code);
@@ -1482,9 +1494,9 @@ namespace Advobot
 	public struct EditableDiscordObject<T>
 	{
 		public List<T> Success { get; private set; }
-		public List<T> Failure { get; private set; }
+		public List<string> Failure { get; private set; }
 
-		public EditableDiscordObject(List<T> success, List<T> failure)
+		public EditableDiscordObject(List<T> success, List<string> failure)
 		{
 			Success = success;
 			Failure = failure;
@@ -1617,6 +1629,8 @@ namespace Advobot
 		Bot_Inability = 3,
 		Too_Many = 4,
 		Incorrect_Channel_Type = 5,
+		Everyone_Role = 6,
+		Managed_Role = 7,
 	}
 
 	public enum ModifyTypes
@@ -1684,6 +1698,33 @@ namespace Advobot
 		Channel_Delete_Messages = 8,
 		Channel_Voice_Type = 9,
 		Channel_Text_Type = 10,
+	}
+
+	public enum UserCheck
+	{
+		None = 0,
+		Can_Be_Moved_From_Channel = 1,
+		Can_Be_Edited = 2,
+	}
+
+	public enum RoleCheck
+	{
+		None = 0,
+		Can_Be_Edited = 1,
+		Is_Everyone = 2,
+		Is_Managed = 3,
+	}
+
+	public enum ChannelCheck
+	{
+		None = 0,
+		Can_Be_Reordered = 1,
+		Can_Modify_Permissions = 2,
+		Can_Be_Managed = 3,
+		Is_Voice = 4,
+		Is_Text = 5,
+		Can_Move_Users = 6,
+		Can_Delete_Messages = 7,
 	}
 	#endregion
 }

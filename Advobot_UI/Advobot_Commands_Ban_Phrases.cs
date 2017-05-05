@@ -380,7 +380,7 @@ namespace Advobot
 
 			//Get the action
 			var add = Actions.CaseInsEquals(action, "add");
-			if (!Actions.CaseInsEquals(action, "remove"))
+			if (!add && !Actions.CaseInsEquals(action, "remove"))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
@@ -439,7 +439,7 @@ namespace Advobot
 				else if (Context.Guild.Roles.Any(x => Actions.CaseInsEquals(x.Name, punishmentStr)))
 				{
 					punishmentType = PunishmentType.Role;
-					var returnedRole = Actions.GetRole(Context, new[] { CheckType.Role_Editability }, punishmentStr);
+					var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, punishmentStr);
 					if (returnedRole.Reason != FailureReason.Not_Failure)
 					{
 						await Actions.HandleObjectGettingErrors(Context, returnedRole);
@@ -541,7 +541,7 @@ namespace Advobot
 			var userStr = inputArray[1];
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { CheckType.None }, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, userStr, new[] { UserCheck.None }, false);
 			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));

@@ -157,39 +157,26 @@ namespace Advobot
 			//Split input
 			var inputArray = input.Split(new[] { ' ' }, 2);
 			var action = inputArray[0];
+			var numStr = inputArray.Length > 1 ? inputArray[1] : null;
 
 			//Set a bool for whichever input was gotten
-			bool enableBool;
-			if (Actions.CaseInsEquals(action, "enable"))
-			{
-				enableBool = true;
-			}
-			else if (Actions.CaseInsEquals(action, "disable"))
-			{
-				enableBool = false;
-			}
-			else
+			var enable = Actions.CaseInsEquals(action, "enable");
+			if (!enable && !Actions.CaseInsEquals(action, "disable"))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
 			//Check if mute role already exists, if not, create it
-			var muteRole = await Actions.CreateMuteRoleIfNotFound(Context.Guild, Constants.MUTE_ROLE_NAME);
-			if (muteRole == null)
+			var returnedMuteRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, Constants.MUTE_ROLE_NAME);
+			var muteRole = returnedMuteRole.Object;
+			if (returnedMuteRole.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to get the mute role."));
-				return;
+				muteRole = await Context.Guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME);
 			}
 
-			//See if both the bot and the user can edit/use this role
-			if (await Actions.GetRoleEditAbility(Context, role: muteRole) == null)
-				return;
-
 			var antiRaid = Variables.Guilds[Context.Guild.Id].AntiRaid;
-
-			//Enable
-			if (enableBool)
+			if (enable)
 			{
 				//Make sure it's not already enabled
 				if (antiRaid != null)
@@ -226,7 +213,6 @@ namespace Advobot
 				//Send a success message
 				await Actions.SendChannelMessage(Context, String.Format("Successfully turned on raid prevention.{0}", actualMutes > 0 ? String.Format(" Muted `{0}` users.", actualMutes) : ""));
 			}
-			//Disable
 			else
 			{
 				//Make sure it's enabled

@@ -24,7 +24,7 @@ namespace Advobot
 		{
 			//Check if role already exists, if not, create it
 			//TODO: Have this create the role
-			var returnedRole = Actions.GetRole(Context, new[] { CheckType.Role_Editability }, Constants.MUTE_ROLE_NAME);
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, Constants.MUTE_ROLE_NAME);
 			if (returnedRole.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
@@ -77,21 +77,25 @@ namespace Advobot
 
 		[Command("voicemute")]
 		[Alias("vm")]
-		[Usage("[@User] <Time>")]
+		[Usage("[@User] <Time:Number>")]
 		[Summary("If the user is not voice muted, this will mute them. If they are voice muted, this will unmute them. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirement(1U << (int)GuildPermission.MuteMembers)]
 		[DefaultEnabled(true)]
 		public async Task Mute([Remainder] string input)
 		{
 			//Split the input
-			var inputArray = input.Split(new[] { ' ' }, 2);
+			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
+			var userStr = inputArray[0];
+			var timeStr = Actions.GetVariable(inputArray, "time");
+
 			//Test if valid user mention
-			var user = await Actions.GetUser(Context.Guild, inputArray[0]);
-			if (user == null)
+			var returnedUser = Actions.GetGuildUser(Context, userStr, new[] { UserCheck.None }, true);
+			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
 			}
+			var user = returnedUser.Object;
 
 			//See if it should mute or unmute
 			if (!user.IsMuted)
@@ -138,7 +142,7 @@ namespace Advobot
 			var timeStr = Actions.GetVariable(inputArray, "time");
 
 			//Test if valid user mention
-			var returnedUser = Actions.GetGuildUser(Context, new[] { CheckType.None }, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, userStr, new[] { UserCheck.None }, true);
 			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -195,7 +199,7 @@ namespace Advobot
 			var chanStr = inputArray[1];
 
 			//Check if valid user and that they're in a voice channel
-			var returnedUser = Actions.GetGuildUser(Context, new[] { CheckType.User_Channel_Move }, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, userStr, new[] { UserCheck.Can_Be_Moved_From_Channel }, true);
 			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -209,7 +213,7 @@ namespace Advobot
 			}
 
 			//Check if valid channel that the user can edit
-			var returnedChannel = Actions.GetChannel(Context, new[] { CheckType.Channel_Move_Users, CheckType.Channel_Voice_Type }, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Move_Users, ChannelCheck.Is_Voice }, chanStr);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -247,7 +251,7 @@ namespace Advobot
 			var outputStr = inputArray[1];
 
 			//Check if valid channel that the user can edit
-			var returnedInputChannel = Actions.GetChannel(Context, new[] { CheckType.Channel_Move_Channels, CheckType.Channel_Voice_Type }, inputStr);
+			var returnedInputChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Reordered, ChannelCheck.Is_Voice }, inputStr);
 			if (returnedInputChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedInputChannel);
@@ -256,7 +260,7 @@ namespace Advobot
 			var inputChannel = returnedInputChannel.Object as IVoiceChannel;
 
 			//Check if valid channel that the user can edit
-			var returnedOutputChannel = Actions.GetChannel(Context, new[] { CheckType.Channel_Move_Channels, CheckType.Channel_Voice_Type }, outputStr);
+			var returnedOutputChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Reordered, ChannelCheck.Is_Voice }, outputStr);
 			if (returnedOutputChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedOutputChannel);
@@ -752,7 +756,7 @@ namespace Advobot
 			var mentionedUsers = Context.Message.MentionedUserIds;
 			if (mentionedUsers.Count == 1)
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { CheckType.None }, mentionedUsers.First().ToString());
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, mentionedUsers.First());
 				if (returnedChannel.Reason != FailureReason.Not_Failure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -771,7 +775,7 @@ namespace Advobot
 			var mentionedChannels = Context.Message.MentionedChannelIds;
 			if (mentionedChannels.Count == 1)
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { CheckType.Channel_Delete_Messages }, mentionedChannels.First().ToString());
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Delete_Messages }, mentionedChannels.First());
 				if (returnedChannel.Reason != FailureReason.Not_Failure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -921,7 +925,7 @@ namespace Advobot
 				//Get each role name and check if it's a valid role
 				roleArray.ForEach(x =>
 				{
-					var returnedRole = Actions.GetRole(Context, new[] { CheckType.None }, x);
+					var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, x);
 					if (returnedRole.Reason == FailureReason.Not_Failure)
 					{
 						rolesIDs.Add(returnedRole.Object.Id);
@@ -993,7 +997,7 @@ namespace Advobot
 				!String.IsNullOrWhiteSpace(targetStr) ? Actions.FormatChannel(Context.Channel) : Actions.FormatGuild(Context.Guild),
 				msgsLimit,
 				timeLimit,
-				roleNames.Count == 0 ? "" : String.Format("\nImmune roles: `{0}`.", String.Join("`, `", roleNames))));
+				roleNames.Any() ? String.Format("\nImmune roles: `{0}`.", String.Join("`, `", roleNames)) : ""));
 		}
 
 		[Command("forallwithrole")]
@@ -1028,7 +1032,7 @@ namespace Advobot
 			var outputStr = inputArray[2];
 
 			//Verifying the attempted command is valid
-			var returnedInputRole = Actions.GetRole(Context, new[] { CheckType.None }, inputStr);
+			var returnedInputRole = Actions.GetRole(Context, new[] { RoleCheck.None }, inputStr);
 			if (returnedInputRole.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedInputRole);
@@ -1078,18 +1082,13 @@ namespace Advobot
 				{
 					case FAWRType.Give_Role:
 					{
-						var returnedOutputRole = Actions.GetRole(Context, new[] { CheckType.Role_Editability }, outputStr);
+						var returnedOutputRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, outputStr);
 						if (returnedOutputRole.Reason != FailureReason.Not_Failure)
 						{
 							await Actions.HandleObjectGettingErrors(Context, returnedOutputRole);
 							return;
 						}
 						var outputRole = returnedOutputRole.Object;
-						if (Context.Guild.EveryoneRole.Id.Equals(outputRole.Id))
-						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You can't give the `{0}` role.", Constants.FAKE_EVERYONE));
-							return;
-						}
 
 						guildInfo.FAWRRoles.Add(outputRole);
 						foreach (var user in users)
@@ -1114,18 +1113,13 @@ namespace Advobot
 					}
 					case FAWRType.Take_Role:
 					{
-						var returnedOutputRole = Actions.GetRole(Context, new[] { CheckType.Role_Editability }, outputStr);
+						var returnedOutputRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, outputStr);
 						if (returnedOutputRole.Reason != FailureReason.Not_Failure)
 						{
 							await Actions.HandleObjectGettingErrors(Context, returnedOutputRole);
 							return;
 						}
 						var outputRole = returnedOutputRole.Object;
-						if (Context.Guild.EveryoneRole.Id.Equals(outputRole.Id))
-						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You can't give the `{0}` role.", Constants.FAKE_EVERYONE));
-							return;
-						}
 
 						guildInfo.FAWRRoles.Add(outputRole);
 						foreach (var user in users)

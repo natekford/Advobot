@@ -130,23 +130,13 @@ namespace Advobot
 			}
 
 			//Get the user if one is input
-			IGuildUser user = null;
-			var mentions = Context.Message.MentionedUserIds;
-			if (mentions.Count == 1)
+			var returnedUser = Actions.GetGuildUser(Context, null, new[] { UserCheck.None }, true);
+			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
-				var returnedUser = Actions.GetGuildUser(Context, new[] { CheckType.None }, mentions.First().ToString());
-				if (returnedUser.Reason != FailureReason.Not_Failure)
-				{
-					await Actions.HandleObjectGettingErrors(Context, returnedUser);
-					return;
-				}
-				user = returnedUser.Object;
-			}
-			else if (mentions.Count > 1)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many user mentions."));
+				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
 			}
+			var user = returnedUser.Object;
 
 			//Split the input
 			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
@@ -613,7 +603,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
 				return;
 			}
-			var returnedChannel = Actions.GetChannel(Context, new[] { CheckType.Channel_Permissions }, mentions.FirstOrDefault().ToString());
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, mentions.FirstOrDefault().ToString());
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -623,7 +613,7 @@ namespace Advobot
 
 			//Determine whether to add or remove
 			var add = Actions.CaseInsEquals(action, "enable");
-			if(!Actions.CaseInsEquals(action, "disable"))
+			if(!add && !Actions.CaseInsEquals(action, "disable"))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
@@ -764,7 +754,7 @@ namespace Advobot
 			}
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { CheckType.User_Editability }, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, userStr, new[] { UserCheck.Can_Be_Edited }, true);
 			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);

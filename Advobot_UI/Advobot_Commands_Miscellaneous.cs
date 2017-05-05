@@ -154,7 +154,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ChannelID([Remainder] string input)
 		{
-			var returnedChannel = Actions.GetChannel(Context, new[] { CheckType.None }, input);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, input);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -173,7 +173,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task RoleID([Remainder] string input)
 		{
-			var returnedRole = Actions.GetRole(Context, new[] { CheckType.None }, input);
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, input);
 			if (returnedRole.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
@@ -191,13 +191,14 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task UserID([Optional, Remainder] string input)
 		{
-			var returnedUser = Actions.GetGuildUser(Context, new[] { CheckType.None }, input);
+			var returnedUser = Actions.GetGuildUser(Context, input, new[] { UserCheck.None }, true);
 			var user = returnedUser.Object;
 			if (user == null)
 			{
 				user = Context.User as IGuildUser;
 				return;
 			}
+
 			await Actions.SendChannelMessage(Context, String.Format("The user `{0}#{1}` has the ID `{2}`.", user.Username, user.Discriminator, user.Id));
 		}
 		#endregion
@@ -233,7 +234,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task InfoChannel([Remainder] string input)
 		{
-			var returnedChannel = Actions.GetChannel(Context, new[] { CheckType.None }, input);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, input);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -258,7 +259,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task InfoRole([Remainder] string input)
 		{
-			var returnedRole = Actions.GetRole(Context, new[] { CheckType.None }, input);
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, input);
 			if (returnedRole.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
@@ -329,7 +330,7 @@ namespace Advobot
 		public async Task InfoUser([Optional, Remainder] string input)
 		{
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { CheckType.None }, input);
+			var returnedUser = Actions.GetGuildUser(Context, input, new[] { UserCheck.None }, true);
 			IUser user = returnedUser.Object;
 			if (user == null)
 			{
@@ -445,7 +446,7 @@ namespace Advobot
 		public async Task InfoEmoji([Remainder] string input)
 		{
 			//Parse out the emoji
-			if (!Emoji.TryParse(input, out Emoji emoji))
+			if (!Emote.TryParse(input, out Emote emote))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid emoji supplied."));
 				return;
@@ -454,18 +455,18 @@ namespace Advobot
 			//Try to find the emoji if global
 			var guilds = (await Context.Client.GetGuildsAsync()).Where(x =>
 			{
-				var placeholder = x.Emojis.FirstOrDefault(y => y.Id == emoji.Id);
+				var placeholder = x.Emotes.FirstOrDefault(y => y.Id == emote.Id);
 				return placeholder.IsManaged && placeholder.RequireColons;
 			});
 
 			//Format a description
-			var description = String.Format("**ID:** `{0}`\n", emoji.Id);
+			var description = String.Format("**ID:** `{0}`\n", emote.Id);
 			if (guilds.Any())
 			{
 				description += String.Format("**From:** `{0}`", String.Join("`, `", guilds.Select(x => x.Name)));
 			}
 
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(emoji.Name, description, thumbnailURL: emoji.Url));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(emote.Name, description, thumbnailURL: emote.Url));
 		}
 
 		[Command("infoinvite")]
@@ -516,7 +517,7 @@ namespace Advobot
 			}
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { CheckType.None }, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, userStr, new[] { UserCheck.None }, true);
 			var user = returnedUser.Object;
 			if (user == null)
 			{
@@ -597,12 +598,12 @@ namespace Advobot
 		[Command("userswithrole")]
 		[Alias("uwr")]
 		[Usage("[Role]")]
-		[Summary("Prints out a list of all users with the given role. File specifies a text document which can show more symbols. Upload specifies to use a text uploader.")]
+		[Summary("Prints out a list of all users with the given role.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
 		[DefaultEnabled(true)]
 		public async Task UsersWithRole([Remainder] string input)
 		{
-			var returnedRole = Actions.GetRole(Context, new[] { CheckType.None }, input);
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, input);
 			if (returnedRole.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
@@ -660,7 +661,7 @@ namespace Advobot
 			if (Actions.CaseInsEquals(input, "guild"))
 			{
 				//Get all of the guild emojis
-				Context.Guild.Emojis.Where(x => !x.IsManaged).ToList().ForEach(x =>
+				Context.Guild.Emotes.Where(x => !x.IsManaged).ToList().ForEach(x =>
 				{
 					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
 				});
@@ -668,7 +669,7 @@ namespace Advobot
 			else if (Actions.CaseInsEquals(input, "global"))
 			{
 				//Get all of the global emojis
-				Context.Guild.Emojis.Where(x => x.IsManaged).ToList().ForEach(x =>
+				Context.Guild.Emotes.Where(x => x.IsManaged).ToList().ForEach(x =>
 				{
 					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
 				});
@@ -768,7 +769,7 @@ namespace Advobot
 			var tempStr = inputArray[3];
 
 			//Check validity of channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { CheckType.Channel_Permissions }, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, chanStr);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -868,7 +869,7 @@ namespace Advobot
 			IGuildUser user = null;
 			if (!String.IsNullOrWhiteSpace(userStr))
 			{
-				var returnedUser = Actions.GetGuildUser(Context, new[] { CheckType.None }, userStr);
+				var returnedUser = Actions.GetGuildUser(Context, userStr, new[] { UserCheck.None }, true);
 				if (returnedUser.Reason != FailureReason.Not_Failure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -882,7 +883,7 @@ namespace Advobot
 			IGuildChannel channel = null;
 			if (!String.IsNullOrWhiteSpace(chanStr))
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { CheckType.Channel_Permissions }, chanStr);
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, chanStr);
 				if (returnedChannel.Reason != FailureReason.Not_Failure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -1069,7 +1070,7 @@ namespace Advobot
 			}
 
 			//Get the role and see if it can be changed
-			var returnedRole = Actions.GetRole(Context, new[] { CheckType.Role_Editability }, roleStr);
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, roleStr);
 			if (returnedRole.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);

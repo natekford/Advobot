@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
@@ -73,12 +74,18 @@ namespace Advobot
 			}
 
 			//Add in the dependency map
-			var map = new DependencyMap();
-			map.Add(client);
+			var map = ConfigureServices(client);
 			await new Command_Handler().Install(map);
 
 			//Block this program until it is closed.
 			await Task.Delay(-1);
+		}
+
+		private IServiceProvider ConfigureServices(BotClient client)
+		{
+			var services = new ServiceCollection().AddSingleton(client).AddSingleton(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false }));
+			var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
+			return provider;
 		}
 
 		private static DiscordShardedClient CreateShardedClient()

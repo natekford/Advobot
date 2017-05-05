@@ -12,8 +12,8 @@ namespace Advobot
 		public const int CACHED_MESSAGE_COUNT = 10000;
 		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
 
-		public const string BOT_VERSION = "0.9.34";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00726";
+		public const string BOT_VERSION = "0.9.35";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00734";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -45,6 +45,10 @@ namespace Advobot
 		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds as a text file.";
 		public const string NO_NN = "NO NICKNAME";
 		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
+		public const string BASIC_TYPE_USER = "user";
+		public const string BASIC_TYPE_ROLE = "role";
+		public const string BASIC_TYPE_CHANNEL = "channel";
+		public const string BASIC_TYPE_GUILD = "guild";
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG = 3;

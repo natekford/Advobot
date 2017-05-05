@@ -47,7 +47,7 @@ namespace Advobot
 				return;
 			}
 
-			var returnedChannel = Actions.GetChannel(Context, new[] { CheckType.Channel_Permissions, CheckType.Channel_Text_Type }, channelMentions.First().ToString());
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Text }, channelMentions.First());
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
