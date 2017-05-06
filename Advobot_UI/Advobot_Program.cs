@@ -20,7 +20,7 @@ namespace Advobot
 			Actions.LoadBasicInformation();
 
 			//If the shard count is greater than one create a sharded client
-			if (Properties.Settings.Default.ShardCount > 1)
+			if (Variables.BotInfo.ShardCount > 1)
 			{
 				Variables.Client = new ShardedClient(CreateShardedClient());
 			}
@@ -94,7 +94,7 @@ namespace Advobot
 				AlwaysDownloadUsers = Constants.ALWAYS_DOWNLOAD_USERS,
 				MessageCacheSize = Constants.CACHED_MESSAGE_COUNT,
 				LogLevel = Constants.LOG_LEVEL,
-				TotalShards = Properties.Settings.Default.ShardCount,
+				TotalShards = Variables.BotInfo.ShardCount,
 			});
 
 			ShardedClient.Log += Bot_Logs.Log;

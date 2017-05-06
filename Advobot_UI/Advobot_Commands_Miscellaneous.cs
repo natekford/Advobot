@@ -22,17 +22,20 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Help([Optional, Remainder] string input)
 		{
-			//See if it's empty
+			var prefix = Variables.BotInfo.Prefix;
+			if (Variables.Guilds.TryGetValue(Context.Guild.Id, out BotGuildInfo guildInfo))
+			{
+				prefix = guildInfo.Prefix;
+			}
+
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				//Description string
-				var text = String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", Properties.Settings.Default.Prefix);
-				//Make the embed
-			    var embed = Actions.MakeNewEmbed("Commands", text);
-				Actions.AddField(embed, "Syntax", "[] means required.\n<> means optional.\n| means or.");
-				Actions.AddField(embed, "Links", "[GitHub Repository](https://github.com/advorange/Advobot)\n[Discord Server](https://discord.gg/ad)");
-				Actions.AddFooter(embed, "Help");
-				await Actions.SendEmbedMessage(Context.Channel, embed);
+				var desc = String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", prefix);
+			    var emb = Actions.MakeNewEmbed("Commands", desc);
+				Actions.AddField(emb, "Syntax", "[] means required.\n<> means optional.\n| means or.");
+				Actions.AddField(emb, "Links", "[GitHub Repository](https://github.com/advorange/Advobot)\n[Discord Server](https://discord.gg/ad)");
+				Actions.AddFooter(emb, "Help");
+				await Actions.SendEmbedMessage(Context.Channel, emb);
 				return;
 			}
 
@@ -42,11 +45,12 @@ namespace Advobot
 			{
 				if (Actions.CaseInsEquals(commandParts[1], "command"))
 				{
-					var text = "If you do not know what commands this bot has, type `" + Constants.BOT_PREFIX + "commands` for a list of commands.";
-					await Actions.MakeAndDeleteSecondaryMessage(Context, text, 10000);
-					return;
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Type `{0}commands` for a list of commands.", prefix));
 				}
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "[] means required information. <> means optional information. | means or.", 10000);
+				else
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "[] means required information. <> means optional information. | means or.");
+				}
 				return;
 			}
 
@@ -74,8 +78,6 @@ namespace Advobot
 						var count = 1;
 						var msg = "Did you mean any of the following:\n" + String.Join("\n", closeHelps.Select(x => String.Format("`{0}.` {1}", count++.ToString("00"), x.Help.Name)));
 
-						var guildInfo = Variables.Guilds[Context.Guild.Id];
-
 						//Create a new list, remove all others the user has, add the new one to the guild's list, remove it and the message that goes along with it after five seconds
 						var acHelp = new ActiveCloseHelp(Context.User as IGuildUser, closeHelps);
 						Variables.ActiveCloseHelp.ThreadSafeRemoveAll(x => x.User == Context.User);
@@ -91,13 +93,15 @@ namespace Advobot
 			}
 
 			var description = Actions.GetHelpString(helpEntry);
-			var guildPrefix = Variables.Guilds[Context.Guild.Id].Prefix;
+			var guildPrefix = guildInfo.Prefix;
 			if (!String.IsNullOrWhiteSpace(guildPrefix))
 			{
-				description = description.Replace(Properties.Settings.Default.Prefix, guildPrefix);
+				description = description.Replace(Variables.BotInfo.Prefix, guildPrefix);
 			}
 
-			await Actions.SendEmbedMessage(Context.Channel, Actions.AddFooter(Actions.MakeNewEmbed(helpEntry.Name, description), "Help"));
+			var embed = Actions.MakeNewEmbed(helpEntry.Name, description);
+			Actions.AddFooter(embed, "Help");
+			await Actions.SendEmbedMessage(Context.Channel, embed);
 		}
 
 		[Command("commands")]
@@ -1131,7 +1135,7 @@ namespace Advobot
 			var user = Context.User;
 			var fromMsg = String.Format("From `{0}` in `{1}`:", user.FormatUser(), Context.Guild.FormatGuild());
 			var newMsg = String.Format("{0}\n```{1}```", fromMsg, cutMsg);
-			var owner = Variables.Client.GetUser(Properties.Settings.Default.BotOwner);
+			var owner = Variables.Client.GetUser(Variables.BotInfo.BotOwner);
 			if (owner == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The owner is unable to be gotten."));

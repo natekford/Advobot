@@ -81,7 +81,7 @@ namespace Advobot
 			var argPos = 0;
 			if (String.IsNullOrWhiteSpace(guildPrefix))
 			{
-				if (message.HasStringPrefix(Properties.Settings.Default.Prefix, ref argPos))
+				if (message.HasStringPrefix(Variables.BotInfo.Prefix, ref argPos))
 				{
 					return argPos;
 				}

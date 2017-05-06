@@ -12,8 +12,8 @@ namespace Advobot
 		public const int CACHED_MESSAGE_COUNT = 10000;
 		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
 
-		public const string BOT_VERSION = "0.9.35";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00734";
+		public const string BOT_VERSION = "0.9.36";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc-00735";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -31,6 +31,8 @@ namespace Advobot
 		public const string SAVING_FILE_EXTENSION = ".json";
 		public const string GENERAL_FILE_EXTENSION = ".txt";
 		public const string GUILD_INFO_LOCATION = "GuildInfo" + SAVING_FILE_EXTENSION;
+		public const string BOT_INFO_LOCATION = "BotInfo" + SAVING_FILE_EXTENSION;
+		public const string BOT_KEYS = "DoNotShareThisFile" + SAVING_FILE_EXTENSION;
 		public const string CHANNEL_INSTRUCTIONS = "[#Channel|\"Channel Name\"]";
 		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|\"Channel Name\">";
 		public const string VOICE_TYPE = "voice";
@@ -41,7 +43,6 @@ namespace Advobot
 		public const string VIP_REGIONS = "VIP_REGIONS";
 		public const string VANITY_URL = "VANITY_URL";
 		public const string INVITE_SPLASH = "INVITE_SPLASH";
-		public static readonly string DEFAULT_GAME = "type \"" + Properties.Settings.Default.Prefix + "help\" for help.";
 		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds as a text file.";
 		public const string NO_NN = "NO NICKNAME";
 		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
@@ -150,6 +151,7 @@ namespace Advobot
 		public static BotClient Client;
 		public static UInt64 Bot_ID = 0;
 		public static string Bot_Name;
+		public static BotGlobalInfo BotInfo;
 
 		public static bool Windows = true;
 		public static bool Loaded = false;

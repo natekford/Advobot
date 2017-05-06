@@ -22,9 +22,9 @@ namespace Advobot
 		public async Task SetBotOwner([Optional, Remainder] string input)
 		{
 			//Check if it's current
-			if (input != null && Actions.CaseInsEquals(input, "current"))
+			if (Actions.CaseInsEquals(input, "current"))
 			{
-				var user = Actions.GetBotOwner(Variables.Client);
+				var user = Actions.GetBotOwner();
 				if (user != null)
 				{
 					await Actions.SendChannelMessage(Context, String.Format("The current bot owner is: `{0}`", user.FormatUser()));
@@ -44,13 +44,14 @@ namespace Advobot
 			}
 
 			//Check if it's clear
-			if (input != null && Actions.CaseInsEquals(input, "clear"))
+			var botInfo = Variables.BotInfo;
+			if (Actions.CaseInsEquals(input, "clear"))
 			{
 				//Only let the current bot owner to clear
-				if (Properties.Settings.Default.BotOwner == Context.User.Id)
+				if (botInfo.BotOwner == Context.User.Id)
 				{
-					Properties.Settings.Default.BotOwner = 0;
-					Properties.Settings.Default.Save();
+					botInfo.ResetBotOwner();
+					Actions.SaveBotInfo();
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the bot owner.");
 				}
 				else
@@ -61,11 +62,10 @@ namespace Advobot
 			}
 
 			//Check if there's already a bot owner
-			if (Properties.Settings.Default.BotOwner != 0)
+			if (botInfo.BotOwner != 0)
 			{
 				//Get the bot owner
-				var user = Actions.GetBotOwner(Variables.Client);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("There is already a bot owner: `{0}`.", user.FormatUser()));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("There is already a bot owner: `{0}`.", Actions.GetBotOwner().FormatUser()));
 				return;
 			}
 
@@ -138,33 +138,27 @@ namespace Advobot
 		public async Task SetGlobalPrefix([Remainder] string input)
 		{
 			//Get the old prefix
-			var oldPrefix = Properties.Settings.Default.Prefix;
+			var botInfo = Variables.BotInfo;
+			var oldPrefix = botInfo.Prefix;
 
 			//Check if to clear
 			if (Actions.CaseInsEquals(input, "clear"))
 			{
-				Properties.Settings.Default.Prefix = Constants.BOT_PREFIX;
-
-				//Send a success message
+				botInfo.SetPrefix(Constants.BOT_PREFIX);
 				await Actions.SendChannelMessage(Context, "Successfully reset the bot's prefix to `" + Constants.BOT_PREFIX + "`.");
 			}
 			else if (Actions.CaseInsEquals(input, "current"))
 			{
-				//Send a success message
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Then how did you use this command? :thinking:");
 			}
 			else
 			{
-				Properties.Settings.Default.Prefix = input.Trim();
-
-				//Send a success message
+				botInfo.SetPrefix(input);
 				await Actions.SendChannelMessage(Context, String.Format("Successfully changed the bot's prefix to `{0}`.", input));
 			}
 
 			//Save the settings
-			Properties.Settings.Default.Save();
-			//Update the game in case it's still the default
-			await Actions.SetGame(oldPrefix);
+			Actions.SaveBotInfo();
 		}
 
 		[Command(BasicCommandStrings.CSETTINGS)]
@@ -176,14 +170,15 @@ namespace Advobot
 		public async Task CurrentGlobalSettings([Remainder] string input)
 		{
 			//Check if current
+			var botInfo = Variables.BotInfo;
 			if (Actions.CaseInsEquals(input, "current"))
 			{
 				var description = "";
-				description += String.Format("**Prefix:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.Prefix) ? "N/A" : Properties.Settings.Default.Prefix);
-				description += String.Format("**Shards:** `{0}`\n", Properties.Settings.Default.ShardCount);
+				description += String.Format("**Prefix:** `{0}`\n", String.IsNullOrWhiteSpace(botInfo.Prefix) ? "N/A" : botInfo.Prefix);
+				description += String.Format("**Shards:** `{0}`\n", botInfo.ShardCount);
 				description += String.Format("**Save Path:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.Path) ? "N/A" : Properties.Settings.Default.Path);
-				description += String.Format("**Bot Owner ID:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.BotOwner.ToString()) ? "N/A" : Properties.Settings.Default.BotOwner.ToString());
-				description += String.Format("**Stream:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.Stream) ? "N/A" : Properties.Settings.Default.Stream);
+				description += String.Format("**Bot Owner ID:** `{0}`\n", String.IsNullOrWhiteSpace(botInfo.BotOwner.ToString()) ? "N/A" : botInfo.BotOwner.ToString());
+				description += String.Format("**Stream:** `{0}`\n", String.IsNullOrWhiteSpace(botInfo.Stream) ? "N/A" : botInfo.Stream);
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Bot Settings", description));
 			}
 			//Check if clear
@@ -229,65 +224,54 @@ namespace Advobot
 
 		[Command(BasicCommandStrings.CGAME)]
 		[Alias(BasicCommandStrings.AGAME)]
-		[Usage("[New Name]")]
+		[Usage("[Clear|New Name]")]
 		[Summary("Changes the game the bot is currently listed as playing.")]
 		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
 		public async Task SetGame([Remainder] string input)
 		{
-			//Check the game name length
 			if (input.Length > Constants.MAX_GAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context,
-					Actions.ERROR(String.Format("Game name cannot be longer than `{0}` characters or else it doesn't show to other people.", Constants.MAX_GAME_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context,Actions.ERROR(String.Format("Game name cannot be longer than `{0}` characters or else it doesn't show to other people.", Constants.MAX_GAME_LENGTH)));
 				return;
 			}
 
-			//Save the game as a setting
-			Properties.Settings.Default.Game = input;
-			Properties.Settings.Default.Save();
+			var botInfo = Variables.BotInfo;
+			if (Actions.CaseInsEquals(input, "clear"))
+			{
+				botInfo.ResetGame();
+				await Actions.SendChannelMessage(Context, "Game set to default.");
+			}
+			else
+			{
+				botInfo.SetGame(input);
+				await Actions.SendChannelMessage(Context, String.Format("Game set to `{0}`.", input));
+			}
 
-			await Variables.Client.SetGameAsync(input, Context.Client.CurrentUser.Game.Value.StreamUrl, Context.Client.CurrentUser.Game.Value.StreamType);
-			await Actions.SendChannelMessage(Context, String.Format("Game set to `{0}`.", input));
+			Actions.SaveBotInfo();
+			await Actions.UpdateGame();
 		}
 
 		[Command(BasicCommandStrings.CSTREAM)]
 		[Alias(BasicCommandStrings.ASTREAM)]
-		[Usage("[Twitch.TV link]")]
+		[Usage("[Clear|Twitch.TV Account Name]")]
 		[Summary("Changes the stream the bot has listed under its name.")]
 		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
 		public async Task BotStream([Optional, Remainder] string input)
 		{
-			//If empty string, take that as the notion to turn the stream off
-			if (!String.IsNullOrWhiteSpace(input))
+			var botInfo = Variables.BotInfo;
+			if (Actions.CaseInsEquals(input, "clear"))
 			{
-				//Check if it's an actual stream
-				if (!Actions.CaseInsStartsWith(input, "https://www.twitch.tv/"))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Link must be from Twitch.TV."));
-					return;
-				}
-				else if (input.Substring("https://www.twitch.tv/".Length).Contains('/'))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Link must be to a user's stream."));
-					return;
-				}
+				botInfo.ResetStream();
 			}
-
-			//Save the stream as a setting
-			Properties.Settings.Default.Stream = input;
-			Properties.Settings.Default.Save();
-
-			//Check if to turn off the streaming
-			var streamType = StreamType.Twitch;
-			if (input == null)
+			else
 			{
-				streamType = StreamType.NotStreaming;
+				botInfo.SetStream(Constants.STREAM_URL + input);
 			}
+			Actions.SaveBotInfo();
 
-			//Set the stream
-			await Variables.Client.SetGameAsync(Context.Client.CurrentUser.Game.Value.Name, input, streamType);
+			await Actions.UpdateGame();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to `" + input + "`"));
 		}
 
@@ -328,7 +312,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Disconnect()
 		{
-			if (Context.User.Id == Properties.Settings.Default.BotOwner || Constants.DISCONNECT)
+			if (Context.User.Id == Variables.BotInfo.BotOwner || Constants.DISCONNECT)
 			{
 				Environment.Exit(0);
 			}
@@ -346,7 +330,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Restart()
 		{
-			if (Context.User.Id == Properties.Settings.Default.BotOwner || Constants.DISCONNECT)
+			if (Context.User.Id == Variables.BotInfo.BotOwner || Constants.DISCONNECT)
 			{
 				try
 				{
@@ -373,21 +357,12 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ModifyShards([Remainder] string input)
 		{
-			//Make sure valid input is passed in
-			if (input == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid args supplied."));
-				return;
-			}
-
-			//Check if valid number
 			if (!int.TryParse(input, out int number))
 			{
 				Actions.WriteLine("Invalid input for number.");
 				return;
 			}
 
-			//Check if the client has too many servers for that to work
 			var curGuilds = Variables.Client.GetGuilds().Count;
 			if (curGuilds >= number * 2500)
 			{
@@ -395,11 +370,8 @@ namespace Advobot
 				return;
 			}
 
-			//Set and save the amount
-			Properties.Settings.Default.ShardCount = number;
-			Properties.Settings.Default.Save();
-
-			//Send a success message
+			Variables.BotInfo.SetShardCount(number);
+			Actions.SaveBotInfo();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the shard amount to {0}.", number));
 		}
 

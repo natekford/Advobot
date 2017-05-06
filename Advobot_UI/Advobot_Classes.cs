@@ -392,6 +392,88 @@ namespace Advobot
 		}
 	}
 
+	public class BotGlobalInfo
+	{
+		[JsonProperty]
+		public ulong BotOwner { get; private set; }
+		[JsonProperty]
+		public List<ulong> TrustedUsers { get; private set; }
+		[JsonProperty]
+		public string Prefix { get; private set; }
+		[JsonProperty]
+		public string Game { get; private set; }
+		[JsonProperty]
+		public string Stream { get; private set; }
+		[JsonProperty]
+		public int ShardCount { get; private set; }
+
+		public BotGlobalInfo()
+		{
+			BotOwner = 0;
+			TrustedUsers = new List<ulong>();
+			Prefix = Constants.BOT_PREFIX;
+			ShardCount = 1;
+		}
+
+		public void SetBotOwner(ulong ID)
+		{
+			BotOwner = ID;
+		}
+		public void ResetBotOwner()
+		{
+			BotOwner = 0;
+		}
+		public void AddTrustedUser(ulong ID)
+		{
+			TrustedUsers.ThreadSafeAdd(ID);
+		}
+		public void RemoveTrustedUser(ulong ID)
+		{
+			TrustedUsers.ThreadSafeRemove(ID);
+		}
+		public void ResetTrustedUsers()
+		{
+			TrustedUsers = new List<ulong>();
+		}
+		public void SetPrefix(string prefix)
+		{
+			Prefix = prefix;
+		}
+		public void ResetPrefix()
+		{
+			Prefix = Constants.BOT_PREFIX;
+		}
+		public void SetGame(string game)
+		{
+			Game = game;
+		}
+		public void ResetGame()
+		{
+			Game = null;
+		}
+		public void SetStream(string stream)
+		{
+			Stream = stream;
+		}
+		public void ResetStream()
+		{
+			Stream = null;
+		}
+		public void SetShardCount(int i)
+		{
+			ShardCount = i;
+		}
+		public void PostDeserialize()
+		{
+		}
+	}
+
+	//TODO: This class, probably should be struct instead, to potentially have the start of allowing multiple bots running at once
+	public class BotKeyAndID
+	{
+
+	}
+
 	public class RapidJoinProtection : ITimeInterface
 	{
 		[JsonProperty]

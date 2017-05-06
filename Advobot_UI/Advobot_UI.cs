@@ -216,9 +216,9 @@ namespace Advobot
 				mMemory.Text = String.Format("Memory: {0}MB", Actions.GetMemory().ToString("0.00"));
 				mThreads.Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
 				mShards.Text = String.Format("Shards: {0}", client.GetShards().Count);
-				mPrefix.Text = String.Format("Prefix: {0}", Properties.Settings.Default.Prefix);
+				mPrefix.Text = String.Format("Prefix: {0}", Variables.BotInfo.Prefix);
 				mThirdParagraph.Inlines.Clear();
-				mThirdParagraph.Inlines.Add(new Run(Actions.FormatLoggedThings() + "\n\nCharacter Count: ~525,000\nLine Count: ~15,000"));
+				mThirdParagraph.Inlines.Add(new Run(Actions.FormatLoggedThings() + "\n\nCharacter Count: ~540,000\nLine Count: ~15,500"));
 			};
 			//Make the timer update every so often
 			timer.Interval = new TimeSpan(0, 0, 0, 0, 500);
@@ -253,7 +253,7 @@ namespace Advobot
 		public void SaveOutput(object sender, RoutedEventArgs e)
 		{
 			//Make sure the path is valid
-			var path = Actions.GetDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
+			var path = Actions.GetBaseBotDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
 			if (path == null)
 			{
 				Actions.WriteLine("Unable to save the output log.");
@@ -334,7 +334,7 @@ namespace Advobot
 				}
 			}
 		}
-		public void ModifyMemHoverInfo(object sender, MouseEventArgs e)
+		public void ModifyMemHoverInfo(object sender, RoutedEventArgs e)
 		{
 			UILayoutModification.ToggleToolTip(mMemHoverInfo);
 		}
@@ -563,7 +563,7 @@ namespace Advobot
 		public static Paragraph MakeGuildTreeView(Paragraph input)
 		{
 			//Get the directory
-			var directory = Actions.GetDirectory();
+			var directory = Actions.GetBaseBotDirectory();
 			if (directory == null || !Directory.Exists(directory))
 				return input;
 
@@ -661,10 +661,10 @@ namespace Advobot
 		public static void HandleCommand(string input)
 		{
 			//Check if it's a global bot command done through the console
-			if (Actions.CaseInsStartsWith(input, Properties.Settings.Default.Prefix))
+			if (Actions.CaseInsStartsWith(input, Variables.BotInfo.Prefix))
 			{
 				//Remove the prefix
-				input = input.Substring(Properties.Settings.Default.Prefix.Length);
+				input = input.Substring(Variables.BotInfo.Prefix.Length);
 				//Split the input
 				var inputArray = input.Split(new[] { ' ' }, 2);
 				//Get the command
@@ -799,28 +799,22 @@ namespace Advobot
 			}
 
 			//Get the old prefix
-			var oldPrefix = Properties.Settings.Default.Prefix;
+			var oldPrefix = Variables.BotInfo.Prefix;
 
 			//Check if to clear
 			if (Actions.CaseInsEquals(input, "clear"))
 			{
-				Properties.Settings.Default.Prefix = Constants.BOT_PREFIX;
-
-				//Send a success message
+				Variables.BotInfo.SetPrefix(Constants.BOT_PREFIX);
 				Actions.WriteLine(String.Format("Successfully reset the bot's prefix to '{0}'.", Constants.BOT_PREFIX));
 			}
 			else
 			{
-				Properties.Settings.Default.Prefix = input.Trim();
-
-				//Send a success message
+				Variables.BotInfo.SetPrefix(input);
 				Actions.WriteLine(String.Format("Successfully changed the bot's prefix to '{0}'.", input));
 			}
 
-			//Save the settings
-			Properties.Settings.Default.Save();
-			//Update the game in case it's still the default
-			await Actions.SetGame(oldPrefix);
+			Actions.SaveBotInfo();
+			await Actions.UpdateGame();
 		}
 
 		public static void UIGlobalSavePath(string input)
@@ -886,9 +880,10 @@ namespace Advobot
 			}
 
 			//Check if it's current
-			else if (Actions.CaseInsEquals(input, "current"))
+			var botInfo = Variables.BotInfo;
+			if (Actions.CaseInsEquals(input, "current"))
 			{
-				var botOwner = Actions.GetBotOwner(Variables.Client);
+				var botOwner = Actions.GetBotOwner();
 				if (botOwner != null)
 				{
 					Actions.WriteLine(String.Format("The current bot owner is: '{0}'", botOwner.FormatUser()));
@@ -902,16 +897,16 @@ namespace Advobot
 			//Check if it's clear
 			else if (Actions.CaseInsEquals(input, "clear"))
 			{
-				Properties.Settings.Default.BotOwner = 0;
-				Properties.Settings.Default.Save();
+				botInfo.ResetBotOwner();
+				Actions.SaveBotInfo();
 				Actions.WriteLine("Successfully cleared the bot owner.");
 				return;
 			}
 			//Check if there's already a bot owner
-			else if (Properties.Settings.Default.BotOwner != 0)
+			else if (botInfo.BotOwner != 0)
 			{
 				//Get the bot owner
-				var botOwner = Actions.GetBotOwner(Variables.Client);
+				var botOwner = Actions.GetBotOwner();
 				Actions.WriteLine(String.Format("There is already a bot owner: '{0}'.", botOwner.FormatUser()));
 				return;
 			}
@@ -932,8 +927,8 @@ namespace Advobot
 				return;
 			}
 
-			Properties.Settings.Default.BotOwner = user.Id;
-			Properties.Settings.Default.Save();
+			botInfo.SetBotOwner(user.Id);
+			Actions.SaveBotInfo();
 			Actions.WriteLine(String.Format("Successfully made '{0}' the new bot owner.", user.FormatUser()));
 		}
 
@@ -951,8 +946,8 @@ namespace Advobot
 			{
 				var description = "";
 				description += String.Format("\n\tSave Path: {0}", String.IsNullOrWhiteSpace(Properties.Settings.Default.Path) ? "N/A" : Properties.Settings.Default.Path);
-				description += String.Format("\n\tBot Owner ID: {0}", String.IsNullOrWhiteSpace(Properties.Settings.Default.BotOwner.ToString()) ? "N/A" : Properties.Settings.Default.BotOwner.ToString());
-				description += String.Format("\n\tStream: {0}", String.IsNullOrWhiteSpace(Properties.Settings.Default.Stream) ? "N/A" : Properties.Settings.Default.Stream);
+				description += String.Format("\n\tBot Owner ID: {0}", String.IsNullOrWhiteSpace(Variables.BotInfo.BotOwner.ToString()) ? "N/A" : Variables.BotInfo.BotOwner.ToString());
+				description += String.Format("\n\tStream: {0}", String.IsNullOrWhiteSpace(Variables.BotInfo.Stream) ? "N/A" : Variables.BotInfo.Stream);
 				Actions.WriteLine(Actions.ReplaceMarkdownChars(description));
 			}
 			//Check if clear
@@ -1058,7 +1053,7 @@ namespace Advobot
 				Actions.WriteLine("Attempting to download the file...");
 
 				//Set the name of the file to prevent typos between the three places that use it
-				var path = Actions.GetDirectory("boticon" + Path.GetExtension(input).ToLower());
+				var path = Actions.GetBaseBotDirectory("boticon" + Path.GetExtension(input).ToLower());
 
 				//Download the image
 				using (var webclient = new WebClient())
@@ -1087,12 +1082,20 @@ namespace Advobot
 				return;
 			}
 
-			//Save the game as a setting
-			Properties.Settings.Default.Game = input;
-			Properties.Settings.Default.Save();
+			var botInfo = Variables.BotInfo;
+			if (Actions.CaseInsEquals(input, "clear"))
+			{
+				botInfo.ResetGame();
+				Actions.WriteLine("Game set to default.");
+			}
+			else
+			{
+				botInfo.SetGame(input);
+				Actions.WriteLine(String.Format("Game set to `{0}`.", input));
+			}
 
-			await Variables.Client.SetGameAsync(input, Variables.Client.GetCurrentUser().Game.Value.StreamUrl, Variables.Client.GetCurrentUser().Game.Value.StreamType);
-			Actions.WriteLine(String.Format("Game set to '{0}'.", input));
+			Actions.SaveBotInfo();
+			await Actions.UpdateGame();
 		}
 
 		public static async Task UIBotStream(string input)
@@ -1114,14 +1117,9 @@ namespace Advobot
 			}
 
 			//Save the stream as a setting
-			Properties.Settings.Default.Stream = input;
-			Properties.Settings.Default.Save();
-
-			//Check if to turn off the streaming
-			var streamType = input == null ? Discord.StreamType.NotStreaming : Discord.StreamType.Twitch;
-
-			//Set the stream
-			await Variables.Client.SetGameAsync(Variables.Client.GetCurrentUser().Game.Value.Name, input, streamType);
+			Variables.BotInfo.SetStream(input);
+			Actions.SaveBotInfo();
+			await Actions.UpdateGame();
 			Actions.WriteLine(String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to '" + input + "'"));
 		}
 
@@ -1212,17 +1210,28 @@ namespace Advobot
 				return;
 			}
 
-			//Set and save the amount
-			Properties.Settings.Default.ShardCount = number;
-			Properties.Settings.Default.Save();
-
-			//Send a success message
+			Variables.BotInfo.SetShardCount(number);
+			Actions.SaveBotInfo();
 			Actions.WriteLine(String.Format("Successfully set the shard amount to {0}.", number));
 		}
 
 		public static void UITest()
 		{
-			//Actions.WriteLine(Variables.Client.Latency.ToString());
+#if DEBUG
+			var programLoc = System.Reflection.Assembly.GetExecutingAssembly().Location;
+			var newPath = Path.GetFullPath(Path.Combine(programLoc, @"..\..\..\"));
+			var totalChars = 0;
+			var totalLines = 0;
+			foreach (var file in Directory.GetFiles(newPath))
+			{
+				if (Actions.CaseInsEquals(Path.GetExtension(file), ".cs"))
+				{
+					totalChars += File.ReadAllText(file).Length;
+					totalLines += File.ReadAllLines(file).Count();
+				}
+			}
+			Actions.WriteLine(String.Format("Current Totals:\n\tChars: {0}\n\tLines: {1}", totalChars, totalLines));
+#endif
 		}
 	}
 

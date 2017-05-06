@@ -25,7 +25,7 @@ namespace Advobot
 			if (UInt64.TryParse(input, out ulong guildID))
 			{
 				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
-				if (Context.User.Id.Equals(Properties.Settings.Default.BotOwner))
+				if (Context.User.Id == Variables.BotInfo.BotOwner)
 				{
 					var guild = Variables.Client.GetGuild(guildID);
 					if (guild == null)
@@ -89,7 +89,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please do not try to make a prefix longer than 25 characters."));
 				return;
 			}
-			else if (input.Equals(Properties.Settings.Default.Prefix))
+			else if (Actions.CaseInsEquals(input, Variables.BotInfo.Prefix))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That prefix is already the global prefix."));
 				return;
@@ -421,7 +421,7 @@ namespace Advobot
 			if (Actions.CaseInsEquals(input, "enable"))
 			{
 				//Member limit
-				if ((Context.Guild as SocketGuild).MemberCount < Constants.MEMBER_LIMIT && Context.User.Id != Properties.Settings.Default.BotOwner)
+				if ((Context.Guild as SocketGuild).MemberCount < Constants.MEMBER_LIMIT && Context.User.Id != Variables.BotInfo.BotOwner)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Sorry, but this guild is too small to warrant preferences. {0} or more members are required.",
 						Constants.MEMBER_LIMIT));

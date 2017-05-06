@@ -23,22 +23,76 @@ namespace Advobot
 			if (Variables.Loaded)
 				return;
 
-			Variables.Bot_ID = Variables.Client.GetCurrentUser().Id;				//Give the variable Bot_ID the id of the bot
+			HandleBotID(Variables.Client.GetCurrentUser().Id);						//Give the variable Bot_ID the id of the bot
 			Variables.Bot_Name = Variables.Client.GetCurrentUser().Username;		//Give the variable Bot_Name the username of the bot
 
 			LoadPermissionNames();													//Gets the names of the permission bits in Discord
 			LoadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
-			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));	//Gets all the active command names. Has to go after LCI
 
 			LoadGuilds();															//Loads the guilds that attempted to load before the Bot_ID was gotten.
-			await SetGame();                                                        //Set up the game and/or stream
+			await UpdateGame();														//Have the bot display its game and stream
 
 			HourTimer(null);														//Start the hourly timer
 			MinuteTimer(null);														//Start the minutely timer
 			OneFourthSecondTimer(null);												//Start the one fourth second timer
 
 			StartUpMessages();														//Say all of the start up messages
-			Variables.Loaded = true;												//Set a bool stating that everything is done loading.
+			Variables.Loaded = true;                                                //Set a bool stating that everything is done loading.
+		}
+
+		public static BotGlobalInfo LoadBotInfo()
+		{
+			BotGlobalInfo botInfo = null;
+			var path = GetBaseBotDirectory(Constants.BOT_INFO_LOCATION);
+			if (!File.Exists(path))
+			{
+				WriteLine("The bot information file does not exist.");
+				return botInfo;
+			}
+
+			try
+			{
+				using (var reader = new StreamReader(path))
+				{
+					botInfo = JsonConvert.DeserializeObject<BotGlobalInfo>(reader.ReadToEnd());
+				}
+				WriteLine("The bot information has successfully been loaded.");
+			}
+			catch (Exception e)
+			{
+				ExceptionToConsole("LoadBotInfo", e);
+			}
+			return botInfo;
+		}
+
+		public static BotGuildInfo LoadGuildInfo(IGuild guild)
+		{
+			BotGuildInfo guildInfo = null;
+			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
+			if (!File.Exists(path))
+			{
+				WriteLine(String.Format("The guild information file for {0} does not exist.", guild.FormatGuild()));
+				return guildInfo;
+			}
+
+			try
+			{
+				using (var reader = new StreamReader(path))
+				{
+					guildInfo = JsonConvert.DeserializeObject<BotGuildInfo>(reader.ReadToEnd());
+				}
+				WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
+			}
+			catch (Exception e)
+			{
+				ExceptionToConsole(String.Format("LoadGuildInfo for {0}", guild.FormatGuild()), e);
+			}
+			return guildInfo;
+		}
+
+		public static string Serialize(dynamic obj)
+		{
+			return JsonConvert.SerializeObject(obj, Formatting.Indented);
 		}
 
 		public static void MaybeStartBot()
@@ -54,16 +108,20 @@ namespace Advobot
 			if (Variables.Loaded)
 				return;
 
-			WriteLine("The current bot prefix is: " + Properties.Settings.Default.Prefix);
+			WriteLine("The current bot prefix is: " + Variables.BotInfo.Prefix);
 			WriteLine("Bot took " + String.Format("{0:n}", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - Variables.StartupTime.Ticks).TotalMilliseconds) + " milliseconds to load everything.");
 		}
 
 		public static void LoadBasicInformation()
 		{
+			//Get the bot's ID
+			HandleBotID(Properties.Settings.Default.BotID);
 			//Checks if the OS is Windows or not
 			GetOS();
 			//Check if console or WPF app
 			GetConsoleOrGUI();
+			//Loads up stuff like global prefix, game, shard count
+			LoadBot();
 		}
 
 		public static void LoadCommandInformation()
@@ -177,6 +235,7 @@ namespace Advobot
 					Variables.HelpList.Add(new HelpEntry(name, aliases, usage, basePerm, text, category, defaultEnabled));
 				}
 			}
+			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));
 		}
 
 		public static void LoadPermissionNames()
@@ -299,6 +358,26 @@ namespace Advobot
 			OverWriteFile(GetServerFilePath(guildInfo.GuildID, Constants.GUILD_INFO_LOCATION), Serialize(guildInfo));
 		}
 
+		public static void LoadBot()
+		{
+			var botInfo = LoadBotInfo();
+			if (botInfo != null)
+			{
+				botInfo.PostDeserialize();
+			}
+			else
+			{
+				botInfo = new BotGlobalInfo();
+			}
+
+			Variables.BotInfo = botInfo;
+		}
+
+		public static void SaveBotInfo()
+		{
+			OverWriteFile(GetBaseBotDirectory(Constants.BOT_INFO_LOCATION), Serialize(Variables.BotInfo));
+		}
+
 		public static void CreateFile(string path)
 		{
 			if (!File.Exists(path))
@@ -315,38 +394,6 @@ namespace Advobot
 			{
 				writer.Write(toSave);
 			}
-		}
-
-		public static string Serialize(dynamic obj)
-		{
-			return JsonConvert.SerializeObject(obj, Formatting.Indented);
-		}
-
-		public static BotGuildInfo LoadGuildInfo(IGuild guild)
-		{
-			BotGuildInfo guildInfo = null;
-
-			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
-			if (!File.Exists(path))
-			{
-				WriteLine(String.Format("The guild information for {0} does not exist.", guild.FormatGuild()));
-				return guildInfo;
-			}
-
-			try
-			{
-				using (var reader = new StreamReader(path))
-				{
-					guildInfo = JsonConvert.DeserializeObject<BotGuildInfo>(reader.ReadToEnd());
-				}
-				WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
-			}
-			catch (Exception e)
-			{
-				ExceptionToConsole(String.Format("LoadGuildInfo for {0}", guild.FormatGuild()), e);
-			}
-
-			return guildInfo;
 		}
 		#endregion
 
@@ -488,7 +535,7 @@ namespace Advobot
 		public static string GetServerFilePath(ulong guildId, string fileName)
 		{
 			//Make sure the bot's directory exists
-			var directory = GetDirectory();
+			var directory = GetBaseBotDirectory();
 			if (!Directory.Exists(directory))
 				return null;
 
@@ -496,7 +543,7 @@ namespace Advobot
 			return Path.Combine(directory, guildId.ToString(), fileName);
 		}
 
-		public static string GetDirectory(string nonGuildFileName = null)
+		public static string GetBaseBotDirectory(string nonGuildFileName = null)
 		{
 			//Make sure a save path exists
 			var folder = Properties.Settings.Default.Path;
@@ -579,7 +626,7 @@ namespace Advobot
 
 		public static bool GetIfUserIsBotOwner(IUser user)
 		{
-			return user.Id == Properties.Settings.Default.BotOwner;
+			return user.Id == Variables.BotInfo.BotOwner;
 		}
 
 		public static double GetMemory()
@@ -654,6 +701,26 @@ namespace Advobot
 		#endregion
 
 		#region Guilds
+		public static IGuild GetGuild(IMessage message)
+		{
+			//Check if the guild can be gotten from the message's channel or author
+			return message != null ? (message.Channel as IGuildChannel)?.Guild ?? (message.Author as IGuildUser)?.Guild : null;
+		}
+
+		public static IGuild GetGuild(IUser user)
+		{
+			return (user as IGuildUser)?.Guild;
+		}
+
+		public static IGuild GetGuild(IChannel channel)
+		{
+			return (channel as IGuildChannel)?.Guild;
+		}
+
+		public static IGuild GetGuild(IRole role)
+		{
+			return role?.Guild;
+		}
 		#endregion
 
 		#region Channels
@@ -859,6 +926,27 @@ namespace Advobot
 				x.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, 805316689));
 			});
 			return muteRole;
+		}
+
+		public static async Task<int> GetIfGroupIsValid(ICommandContext context, string input)
+		{
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Invalid input for group number."));
+				return -1;
+			}
+			if (!int.TryParse(input, out int groupNumber))
+			{
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Invalid group number."));
+				return -1;
+			}
+			if (groupNumber < 0)
+			{
+				await MakeAndDeleteSecondaryMessage(context, ERROR("Group number must be positive."));
+				return -1;
+			}
+
+			return groupNumber;
 		}
 
 		public static async Task ModifyRolePosition(IRole role, int position)
@@ -1215,9 +1303,9 @@ namespace Advobot
 			return Variables.Client.GetUser(ID);
 		}
 
-		public static IUser GetBotOwner(BotClient client)
+		public static IUser GetBotOwner()
 		{
-			return Variables.Client.GetUser(Properties.Settings.Default.BotOwner);
+			return Variables.Client.GetUser(Variables.BotInfo.BotOwner);
 		}
 
 		public static bool GetIfUserCanDoActionOnUser(ICommandContext context, IGuildUser target, IGuildUser user, UserCheck type)
@@ -1277,23 +1365,62 @@ namespace Advobot
 		#endregion
 
 		#region Messages
-		public static void WriteLine(string text)
+		public static async Task<IMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed, string content = null)
 		{
-			Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + ReplaceMarkdownChars(text));
+			var guildChannel = channel as ITextChannel;
+			if (guildChannel == null)
+				return null;
+			var guild = guildChannel.Guild;
+			if (guild == null)
+				return null;
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+				return null;
+
+			content = content ?? "";
+
+			//Replace all instances of the base prefix with the guild's prefix
+			//TODO: Make this discriminatory so it doesn't replace *every* single instance of it
+			var guildPrefix = guildInfo.Prefix;
+			if (!String.IsNullOrWhiteSpace(guildPrefix))
+			{
+				embed.Description.Replace(Variables.BotInfo.Prefix, guildPrefix);
+			}
+
+			try
+			{
+				//Generate the message
+				return await guildChannel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content, embed: embed.WithCurrentTimestamp());
+			}
+			//Embeds fail every now and then and I haven't been able to find the exact problem yet (I know fields are a problem, but not in this case)
+			catch (Exception e)
+			{
+				ExceptionToConsole("SendEmbedMessage", e);
+				return null;
+			}
 		}
 
-		public static void ExceptionToConsole(string method, Exception e)
+		public static async Task<IMessage> SendChannelMessage(ICommandContext context, string message)
 		{
-			if (e == null)
-				return;
+			if (context.Channel == null || !Variables.Guilds.ContainsKey(context.Guild.Id))
+				return null;
 
-			WriteLine(method + " EXCEPTION: " + e.ToString());
+			return await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
 
-		public static void WriteLoadDone(IGuild guild, string method, string name)
+		public static async Task<IMessage> SendChannelMessage(IMessageChannel channel, string message)
 		{
-			Variables.Guilds[guild.Id].TurnDefaultPrefsOff();
-			WriteLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, guild.FormatGuild()));
+			if (channel == null || !Variables.Guilds.ContainsKey((channel as ITextChannel).GuildId))
+				return null;
+
+			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
+		}
+
+		public static async Task<IMessage> SendDMMessage(IDMChannel channel, string message)
+		{
+			if (channel == null)
+				return null;
+
+			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
 
 		public static async Task MakeAndDeleteSecondaryMessage(ICommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
@@ -1433,35 +1560,301 @@ namespace Advobot
 			}
 		}
 
+		public static async Task SendDeleteMessage(IGuild guild, ITextChannel channel, List<string> inputList)
+		{
+			//Get the character count
+			int characterCount = 0;
+			inputList.ForEach(x => characterCount += (x.Length + 100));
+
+			if (!inputList.Any())
+			{
+				return;
+			}
+			else if (inputList.Count <= 5 && characterCount < Constants.MAX_MESSAGE_LENGTH_LONG)
+			{
+				//If there aren't many messages send the small amount in a message instead of a file or link
+				var embed = MakeNewEmbed("Deleted Messages", String.Join("\n", inputList), Constants.MDEL);
+				AddFooter(embed, "Deleted Messages");
+				await SendEmbedMessage(channel, embed);
+			}
+			else
+			{
+				var content = ReplaceMarkdownChars(String.Join("\n-----\n", inputList));
+				if (TryToUploadToHastebin(content, out string url))
+				{
+					//Upload the embed with the Hastebin link
+					var embed = MakeNewEmbed("Deleted Messages", String.Format("Click [here]({0}) to see the messages.", url), Constants.MDEL);
+					AddFooter(embed, "Deleted Messages");
+					await SendEmbedMessage(channel, embed);
+				}
+				else
+				{
+					await WriteAndUploadTextFile(guild, channel, content, "Deleted_Messages_", "Deleted Messages");
+				}
+			}
+		}
+
+		public static async Task SendGuildNotification(IUser user, GuildNotification notification)
+		{
+			if (notification == null)
+				return;
+
+			var userMention = user != null ? user.Mention : "Invalid User";
+			var content = notification.Content.Replace("@User", userMention);
+
+			if (notification.Embed != null)
+			{
+				await SendEmbedMessage(notification.Channel, notification.Embed, content);
+			}
+			else
+			{
+				await SendChannelMessage(notification.Channel, content);
+			}
+		}
+
+		public static async Task HandleObjectGettingErrors<T>(ICommandContext context, ReturnedDiscordObject<T> returnedObject)
+		{
+			var objType = GetObjectStringBasic((dynamic)returnedObject.Object);
+			switch (returnedObject.Reason)
+			{
+				case FailureReason.Not_Found:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Unable to find the {0}.", objType)));
+					break;
+				}
+				case FailureReason.User_Inability:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object))));
+					break;
+				}
+				case FailureReason.Bot_Inability:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object))));
+					break;
+				}
+				case FailureReason.Too_Many:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("There are too many {0}s with the same name.", objType)));
+					break;
+				}
+				case FailureReason.Incorrect_Channel_Type:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Invalid channel type for the given variable requirement.")));
+					break;
+				}
+				case FailureReason.Everyone_Role:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("The everyone role cannot be modified in that way.")));
+					break;
+				}
+				case FailureReason.Managed_Role:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Managed roles cannot be modified in that way.")));
+					break;
+				}
+			}
+		}
+
+		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null, string URL = null, string thumbnailURL = null)
+		{
+			//Make the embed builder
+			var embed = new EmbedBuilder().WithColor(Constants.BASE);
+
+			//Validate the URLs
+			imageURL = ValidateURL(imageURL) ? imageURL : null;
+			URL = ValidateURL(URL) ? URL : null;
+			thumbnailURL = ValidateURL(thumbnailURL) ? thumbnailURL : null;
+
+			//Add in the properties
+			if (title != null)
+			{
+				embed.WithTitle(title.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, title.Length)));
+			}
+			if (description != null)
+			{
+				var output = description;
+				//Descriptions can only be 2048 characters max
+				if (description.Length > Constants.MAX_EMBED_LENGTH_LONG)
+				{
+					if (TryToUploadToHastebin(description, out output))
+					{
+						output = String.Format("Content is past {0} characters. Click [here]({1}) to see it.", Constants.MAX_EMBED_LENGTH_LONG, output);
+					}
+				}
+				//Mobile can only show up to 20 or so lines on the description part of an embed
+				else if (GetLineBreaks(description) > Constants.MAX_DESCRIPTION_LINES)
+				{
+					if (TryToUploadToHastebin(description, out output))
+					{
+						output = String.Format("Content is past {0} new lines. Click [here]({1}) to see it.", Constants.MAX_DESCRIPTION_LINES, output);
+					}
+				}
+				embed.WithDescription(output);
+			}
+			if (color != null)
+			{
+				embed.WithColor(color.Value);
+			}
+			if (imageURL != null)
+			{
+				embed.WithImageUrl(imageURL);
+			}
+			if (URL != null)
+			{
+				embed.WithUrl(URL);
+			}
+			if (thumbnailURL != null)
+			{
+				embed.WithThumbnailUrl(thumbnailURL);
+			}
+
+			return embed;
+		}
+
+		public static EmbedBuilder AddAuthor(EmbedBuilder embed, string name = null, string iconURL = null, string URL = null)
+		{
+			//Create the author builder
+			var author = new EmbedAuthorBuilder().WithIconUrl("https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png");
+
+			//Verify the URLs
+			iconURL = ValidateURL(iconURL) ? iconURL : null;
+			URL = ValidateURL(URL) ? URL : null;
+
+			//Add in the properties
+			if (name != null)
+			{
+				author.WithName(name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length)));
+			}
+			if (iconURL != null)
+			{
+				author.WithIconUrl(iconURL);
+			}
+			if (URL != null)
+			{
+				author.WithUrl(URL);
+			}
+
+			return embed.WithAuthor(author);
+		}
+
+		public static EmbedBuilder AddFooter(EmbedBuilder embed, string text = null, string iconURL = null)
+		{
+			//Make the footer builder
+			var footer = new EmbedFooterBuilder();
+
+			//Verify the URL
+			iconURL = ValidateURL(iconURL) ? iconURL : null;
+
+			//Add in the properties
+			if (text != null)
+			{
+				footer.WithText(text.Substring(0, Math.Min(Constants.MAX_EMBED_LENGTH_LONG, text.Length)));
+			}
+			if (iconURL != null)
+			{
+				footer.WithIconUrl(iconURL);
+			}
+
+			return embed.WithFooter(footer);
+		}
+
+		public static EmbedBuilder AddField(EmbedBuilder embed, string name, string value, bool isInline = true)
+		{
+			if ((String.IsNullOrWhiteSpace(name) && String.IsNullOrWhiteSpace(value)) || embed.Build().Fields.Count() >= Constants.MAX_FIELDS)
+				return embed;
+
+			//Get the name and value
+			name = String.IsNullOrWhiteSpace(name) ? "Placeholder" : name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length));
+			value = String.IsNullOrWhiteSpace(name) ? "Placeholder" : value.Substring(0, Math.Min(value.Length, Constants.MAX_LENGTH_FOR_HASTEBIN));
+
+			embed.AddField(x =>
+			{
+				var outputValue = value;
+				//Embeds can only show up to 1024 chars per field
+				if (value.Length > Constants.MAX_EMBED_LENGTH_SHORT)
+				{
+					if (TryToUploadToHastebin(value, out outputValue))
+					{
+						outputValue = String.Format("Field has more than {0} characters; please click [here]({1}) to see the content.", Constants.MAX_EMBED_LENGTH_SHORT, outputValue);
+					}
+				}
+				//Fields can only show up to five lines on mobile
+				else if (GetLineBreaks(value) > Constants.MAX_FIELD_LINES)
+				{
+					if (TryToUploadToHastebin(value, out outputValue))
+					{
+						outputValue = String.Format("Field has more than {0} new lines; please click [here]({1}) to see the content.", Constants.MAX_FIELD_LINES, outputValue);
+					}
+				}
+
+				//Actually add in the values
+				x.Name = name;
+				x.Value = outputValue;
+				x.IsInline = isInline;
+			});
+
+			return embed;
+		}
+
+		public static List<string> FormatDeletedMessages(List<IMessage> list)
+		{
+			var deletedMessagesContent = new List<string>();
+			list.ForEach(x =>
+			{
+				//See if any embeds deleted
+				if (x.Embeds.Any())
+				{
+					//Get the first embed with a valid description, then URL, then image
+					var embed = x.Embeds.FirstOrDefault(desc => desc.Description != null) ?? x.Embeds.FirstOrDefault(url => url.Url != null) ?? x.Embeds.FirstOrDefault(img => img.Image != null);
+
+					if (embed != null)
+					{
+						var msgContent = String.IsNullOrWhiteSpace(x.Content) ? "" : "Message Content: " + x.Content;
+						var description = String.IsNullOrWhiteSpace(embed.Description) ? "" : "Embed Description: " + embed.Description;
+						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
+							x.Author.FormatUser(),
+							x.Channel.FormatChannel(),
+							x.CreatedAt.ToString("HH:mm:ss"),
+							ReplaceMarkdownChars((String.IsNullOrEmpty(msgContent) ? msgContent : msgContent + "\n") + description)));
+					}
+					else
+					{
+						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
+							x.Author.FormatUser(),
+							x.Channel.FormatChannel(),
+							x.CreatedAt.ToString("HH:mm:ss"),
+							"An embed which was unable to be gotten."));
+					}
+				}
+				//See if any attachments were put in
+				else if (x.Attachments.Any())
+				{
+					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
+					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
+						x.Author.FormatUser(),
+						x.Channel.FormatChannel(),
+						x.CreatedAt.ToString("HH:mm:ss"),
+						ReplaceMarkdownChars(content + " + " + x.Attachments.ToList().First().Filename)));
+				}
+				//Else add the message in normally
+				else
+				{
+					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
+					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
+						x.Author.FormatUser(),
+						x.Channel.FormatChannel(),
+						x.CreatedAt.ToString("HH:mm:ss"),
+						ReplaceMarkdownChars(content)));
+				}
+			});
+			return deletedMessagesContent;
+		}
+
 		public static string ERROR(string message)
 		{
 			++Variables.FailedCommands;
 
 			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
-		}
-		
-		public static async Task<IMessage> SendChannelMessage(ICommandContext context, string message)
-		{
-			if (context.Channel == null || !Variables.Guilds.ContainsKey(context.Guild.Id))
-				return null;
-
-			return await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
-		}
-
-		public static async Task<IMessage> SendChannelMessage(IMessageChannel channel, string message)
-		{
-			if (channel == null || !Variables.Guilds.ContainsKey((channel as ITextChannel).GuildId))
-				return null;
-
-			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
-		}
-
-		public static async Task<IMessage> SendDMMessage(IDMChannel channel, string message)
-		{
-			if (channel == null)
-				return null;
-
-			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
 		
 		public static string ReplaceMarkdownChars(string input)
@@ -1534,299 +1927,6 @@ namespace Advobot
 			return String.Join("\n", new[] { header, joins, leaves, userChanges, edits, deletes, images, gifs, files });
 		}
 
-		public static List<string> FormatDeletedMessages(List<IMessage> list)
-		{
-			var deletedMessagesContent = new List<string>();
-			list.ForEach(x =>
-			{
-				//See if any embeds deleted
-				if (x.Embeds.Any())
-				{
-					//Get the first embed with a valid description, then URL, then image
-					var embed = x.Embeds.FirstOrDefault(desc => desc.Description != null) ?? x.Embeds.FirstOrDefault(url => url.Url != null) ?? x.Embeds.FirstOrDefault(img => img.Image != null);
-
-					if (embed != null)
-					{
-						var msgContent = String.IsNullOrWhiteSpace(x.Content) ? "" : "Message Content: " + x.Content;
-						var description = String.IsNullOrWhiteSpace(embed.Description) ? "" : "Embed Description: " + embed.Description;
-						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-							x.Author.FormatUser(),
-							x.Channel.FormatChannel(),
-							x.CreatedAt.ToString("HH:mm:ss"),
-							ReplaceMarkdownChars((String.IsNullOrEmpty(msgContent) ? msgContent : msgContent + "\n") + description)));
-					}
-					else
-					{
-						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-							x.Author.FormatUser(),
-							x.Channel.FormatChannel(),
-							x.CreatedAt.ToString("HH:mm:ss"),
-							"An embed which was unable to be gotten."));
-					}
-				}
-				//See if any attachments were put in
-				else if (x.Attachments.Any())
-				{
-					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
-					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-						x.Author.FormatUser(),
-						x.Channel.FormatChannel(),
-						x.CreatedAt.ToString("HH:mm:ss"),
-						ReplaceMarkdownChars(content + " + " + x.Attachments.ToList().First().Filename)));
-				}
-				//Else add the message in normally
-				else
-				{
-					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
-					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-						x.Author.FormatUser(),
-						x.Channel.FormatChannel(),
-						x.CreatedAt.ToString("HH:mm:ss"),
-						ReplaceMarkdownChars(content)));
-				}
-			});
-			return deletedMessagesContent;
-		}
-
-		public static async Task SendDeleteMessage(IGuild guild, ITextChannel channel, List<string> inputList)
-		{
-			//Get the character count
-			int characterCount = 0;
-			inputList.ForEach(x => characterCount += (x.Length + 100));
-
-			if (!inputList.Any())
-			{
-				return;
-			}
-			else if (inputList.Count <= 5 && characterCount < Constants.MAX_MESSAGE_LENGTH_LONG)
-			{
-				//If there aren't many messages send the small amount in a message instead of a file or link
-				var embed = MakeNewEmbed("Deleted Messages", String.Join("\n", inputList), Constants.MDEL);
-				AddFooter(embed, "Deleted Messages");
-				await SendEmbedMessage(channel, embed);
-			}
-			else
-			{
-				var content = ReplaceMarkdownChars(String.Join("\n-----\n", inputList));
-				if (TryToUploadToHastebin(content, out string url))
-				{
-					//Upload the embed with the Hastebin link
-					var embed = MakeNewEmbed("Deleted Messages", String.Format("Click [here]({0}) to see the messages.", url), Constants.MDEL);
-					AddFooter(embed, "Deleted Messages");
-					await SendEmbedMessage(channel, embed);
-				}
-				else
-				{
-					await WriteAndUploadTextFile(guild, channel, content, "Deleted_Messages_", "Deleted Messages");
-				}
-			}
-		}
-
-		public static async Task<IMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed, string content = null)
-		{
-			var guildChannel = channel as ITextChannel;
-			if (guildChannel == null)
-				return null;
-			var guild = guildChannel.Guild;
-			if (guild == null)
-				return null;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return null;
-
-			content = content ?? "";
-
-			//Replace all instances of the base prefix with the guild's prefix
-			var guildPrefix = guildInfo.Prefix;
-			if (!String.IsNullOrWhiteSpace(guildPrefix))
-			{
-				embed.Description.Replace(Properties.Settings.Default.Prefix, guildPrefix);
-			}
-
-			try
-			{
-				//Generate the message
-				return await guildChannel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content, embed: embed.WithCurrentTimestamp());
-			}
-			//Embeds fail every now and then and I haven't been able to find the exact problem yet (I know fields are a problem, but not in this case)
-			catch (Exception e)
-			{
-				ExceptionToConsole("SendEmbedMessage", e);
-				return null;
-			}
-		}
-		
-		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null, string URL = null, string thumbnailURL = null)
-		{
-			//Make the embed builder
-			var embed = new EmbedBuilder().WithColor(Constants.BASE);
-
-			//Validate the URLs
-			imageURL = ValidateURL(imageURL) ? imageURL : null;
-			URL = ValidateURL(URL) ? URL : null;
-			thumbnailURL = ValidateURL(thumbnailURL) ? thumbnailURL : null;
-
-			//Add in the properties
-			if (title != null)
-			{
-				embed.WithTitle(title.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, title.Length)));
-			}
-			if (description != null)
-			{
-				var output = description;
-				//Descriptions can only be 2048 characters max
-				if (description.Length > Constants.MAX_EMBED_LENGTH_LONG)
-				{
-					if (TryToUploadToHastebin(description, out output))
-					{
-						output = String.Format("Content is past {0} characters. Click [here]({1}) to see it.", Constants.MAX_EMBED_LENGTH_LONG, output);
-					}
-				}
-				//Mobile can only show up to 20 or so lines on the description part of an embed
-				else if (GetLineBreaks(description) > Constants.MAX_DESCRIPTION_LINES)
-				{
-					if (TryToUploadToHastebin(description, out output))
-					{
-						output = String.Format("Content is past {0} new lines. Click [here]({1}) to see it.", Constants.MAX_DESCRIPTION_LINES, output);
-					}
-				}
-				embed.WithDescription(output);
-			}
-			if (color != null)
-			{
-				embed.WithColor(color.Value);
-			}
-			if (imageURL != null)
-			{
-				embed.WithImageUrl(imageURL);
-			}
-			if (URL != null)
-			{
-				embed.WithUrl(URL);
-			}
-			if (thumbnailURL != null)
-			{
-				embed.WithThumbnailUrl(thumbnailURL);
-			}
-
-			return embed;
-		}
-		
-		public static EmbedBuilder AddAuthor(EmbedBuilder embed, string name = null, string iconURL = null, string URL = null)
-		{
-			//Create the author builder
-			var author = new EmbedAuthorBuilder().WithIconUrl("https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png");
-
-			//Verify the URLs
-			iconURL = ValidateURL(iconURL) ? iconURL : null;
-			URL = ValidateURL(URL) ? URL : null;
-
-			//Add in the properties
-			if (name != null)
-			{
-				author.WithName(name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length)));
-			}
-			if (iconURL != null)
-			{
-				author.WithIconUrl(iconURL);
-			}
-			if (URL != null)
-			{
-				author.WithUrl(URL);
-			}
-
-			return embed.WithAuthor(author);
-		}
-		
-		public static EmbedBuilder AddFooter(EmbedBuilder embed, string text = null, string iconURL = null)
-		{
-			//Make the footer builder
-			var footer = new EmbedFooterBuilder();
-
-			//Verify the URL
-			iconURL = ValidateURL(iconURL) ? iconURL : null;
-
-			//Add in the properties
-			if (text != null)
-			{
-				footer.WithText(text.Substring(0, Math.Min(Constants.MAX_EMBED_LENGTH_LONG, text.Length)));
-			}
-			if (iconURL != null)
-			{
-				footer.WithIconUrl(iconURL);
-			}
-
-			return embed.WithFooter(footer);
-		}
-		
-		public static EmbedBuilder AddField(EmbedBuilder embed, string name, string value, bool isInline = true)
-		{
-			if ((String.IsNullOrWhiteSpace(name) && String.IsNullOrWhiteSpace(value)) || embed.Build().Fields.Count() >= Constants.MAX_FIELDS)
-				return embed;
-
-			//Get the name and value
-			name = String.IsNullOrWhiteSpace(name) ? "Placeholder" : name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length));
-			value = String.IsNullOrWhiteSpace(name) ? "Placeholder" : value.Substring(0, Math.Min(value.Length, Constants.MAX_LENGTH_FOR_HASTEBIN));
-
-			embed.AddField(x =>
-			{
-				var outputValue = value;
-				//Embeds can only show up to 1024 chars per field
-				if (value.Length > Constants.MAX_EMBED_LENGTH_SHORT)
-				{
-					if (TryToUploadToHastebin(value, out outputValue))
-					{
-						outputValue = String.Format("Field has more than {0} characters; please click [here]({1}) to see the content.", Constants.MAX_EMBED_LENGTH_SHORT, outputValue);
-					}
-				}
-				//Fields can only show up to five lines on mobile
-				else if (GetLineBreaks(value) > Constants.MAX_FIELD_LINES)
-				{
-					if (TryToUploadToHastebin(value, out outputValue))
-					{
-						outputValue = String.Format("Field has more than {0} new lines; please click [here]({1}) to see the content.", Constants.MAX_FIELD_LINES, outputValue);
-					}
-				}
-
-				//Actually add in the values
-				x.Name = name;
-				x.Value = outputValue;
-				x.IsInline = isInline;
-			});
-
-			return embed;
-		}
-
-		public static async Task SendPotentiallyBigEmbed(IGuild guild, IMessageChannel channel, EmbedBuilder embed, string input, string fileName)
-		{
-			//Send the embed
-			await SendEmbedMessage(channel, embed);
-
-			//If the description is the too long message then upload the string
-			if (embed.Description == Constants.HASTEBIN_ERROR)
-			{
-				//Send the file
-				await WriteAndUploadTextFile(guild, channel, input, fileName);
-			}
-		}
-
-		public static async Task SendGuildNotification(IUser user, GuildNotification notification)
-		{
-			if (notification == null)
-				return;
-
-			var userMention = user != null ? user.Mention : "Invalid User";
-			var content = notification.Content.Replace("@User", userMention);
-
-			if (notification.Embed != null)
-			{
-				await SendEmbedMessage(notification.Channel, notification.Embed, content);
-			}
-			else
-			{
-				await SendChannelMessage(notification.Channel, content);
-			}
-		}
-
 		public static string FormatResponseMessagesForCmdsOnLotsOfObjects<T>(List<T> success, List<string> failure, string objType, string successAction, string failureAction)
 		{
 			var succOutput = "";
@@ -1845,7 +1945,7 @@ namespace Advobot
 			{
 				var c = failure.Count;
 				failOutput = String.Format("Failed to {0} `{1}` {2}{3}: `{4}`.",
-					failureAction, 
+					failureAction,
 					c,
 					objType,
 					GetPlural(c),
@@ -1854,47 +1954,23 @@ namespace Advobot
 			return succOutput + failOutput;
 		}
 
-		public static async Task HandleObjectGettingErrors<T>(ICommandContext context, ReturnedDiscordObject<T> returnedObject)
+		public static void WriteLine(string text)
 		{
-			var objType = GetObjectStringBasic((dynamic)returnedObject.Object);
-			switch (returnedObject.Reason)
-			{
-				case FailureReason.Not_Found:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Unable to find the {0}.", objType)));
-					break;
-				}
-				case FailureReason.User_Inability:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object))));
-					break;
-				}
-				case FailureReason.Bot_Inability:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object))));
-					break;
-				}
-				case FailureReason.Too_Many:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("There are too many {0}s with the same name.", objType)));
-					break;
-				}
-				case FailureReason.Incorrect_Channel_Type:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Invalid channel type for the given variable requirement.")));
-					break;
-				}
-				case FailureReason.Everyone_Role:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("The everyone role cannot be modified in that way.")));
-					break;
-				}
-				case FailureReason.Managed_Role:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Managed roles cannot be modified in that way.")));
-					break;
-				}
-			}
+			Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + ReplaceMarkdownChars(text));
+		}
+
+		public static void ExceptionToConsole(string method, Exception e)
+		{
+			if (e == null)
+				return;
+
+			WriteLine(method + " EXCEPTION: " + e.ToString());
+		}
+
+		public static void WriteLoadDone(IGuild guild, string method, string name)
+		{
+			Variables.Guilds[guild.Id].TurnDefaultPrefsOff();
+			WriteLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, guild.FormatGuild()));
 		}
 		#endregion
 
@@ -1968,38 +2044,6 @@ namespace Advobot
 		#endregion
 
 		#region Uploads
-		public static bool TryToUploadToHastebin(string text, out string output)
-		{
-			//Check its length
-			if (text.Length > Constants.MAX_LENGTH_FOR_HASTEBIN)
-			{
-				output = Constants.HASTEBIN_ERROR;
-				return false;
-			}
-
-			//Regex for Getting the key out
-			var hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
-
-			//Upload the messages
-			using (var client = new WebClient())
-			{
-				try
-				{
-					//Double check that mark down characters have been removed
-					var response = client.UploadString("https://hastebin.com/documents", ReplaceMarkdownChars(text));
-
-					//Send the url back
-					output = String.Concat("https://hastebin.com/raw/", hasteKeyRegex.Match(response).Groups["key"]);
-				}
-				catch (Exception e)
-				{
-					output = e.Message;
-					return false;
-				}
-			}
-			return true;
-		}
-
 		public static async Task WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, List<string> textList, string fileName, string messageHeader)
 		{
 			//Messages in the format to upload
@@ -2146,6 +2190,51 @@ namespace Advobot
 			});
 		}
 
+		public static async Task SendPotentiallyBigEmbed(IGuild guild, IMessageChannel channel, EmbedBuilder embed, string input, string fileName)
+		{
+			//Send the embed
+			await SendEmbedMessage(channel, embed);
+
+			//If the description is the too long message then upload the string
+			if (embed.Description == Constants.HASTEBIN_ERROR)
+			{
+				//Send the file
+				await WriteAndUploadTextFile(guild, channel, input, fileName);
+			}
+		}
+
+		public static bool TryToUploadToHastebin(string text, out string output)
+		{
+			//Check its length
+			if (text.Length > Constants.MAX_LENGTH_FOR_HASTEBIN)
+			{
+				output = Constants.HASTEBIN_ERROR;
+				return false;
+			}
+
+			//Regex for Getting the key out
+			var hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
+
+			//Upload the messages
+			using (var client = new WebClient())
+			{
+				try
+				{
+					//Double check that mark down characters have been removed
+					var response = client.UploadString("https://hastebin.com/documents", ReplaceMarkdownChars(text));
+
+					//Send the url back
+					output = String.Concat("https://hastebin.com/raw/", hasteKeyRegex.Match(response).Groups["key"]);
+				}
+				catch (Exception e)
+				{
+					output = e.Message;
+					return false;
+				}
+			}
+			return true;
+		}
+
 		public static bool ValidateURL(string input)
 		{
 			if (input == null)
@@ -2156,6 +2245,12 @@ namespace Advobot
 		#endregion
 
 		#region Server/Mod Log
+		public static async Task<ITextChannel> VerifyLogChannel(IGuild guild, ITextChannel channel)
+		{
+			//Check to make sure the bot can post to there
+			return await PermissionCheck(channel) ? channel : null;
+		}
+
 		public static async Task<bool> PermissionCheck(ITextChannel channel)
 		{
 			//Return false if the channel doesn't exist
@@ -2278,33 +2373,6 @@ namespace Advobot
 			});
 		}
 
-		public static async Task<ITextChannel> VerifyLogChannel(IGuild guild, ITextChannel channel)
-		{
-			//Check to make sure the bot can post to there
-			return await PermissionCheck(channel) ? channel : null;
-		}
-
-		public static IGuild GetGuild(IMessage message)
-		{
-			//Check if the guild can be gotten from the message's channel or author
-			return message != null ? (message.Channel as IGuildChannel)?.Guild ?? (message.Author as IGuildUser)?.Guild : null;
-		}
-
-		public static IGuild GetGuild(IUser user)
-		{
-			return (user as IGuildUser)?.Guild;
-		}
-
-		public static IGuild GetGuild(IChannel channel)
-		{
-			return (channel as IGuildChannel)?.Guild;
-		}
-
-		public static IGuild GetGuild(IRole role)
-		{
-			return role?.Guild;
-		}
-
 		public static bool VerifyLoggingIsEnabledOnThisChannel(BotGuildInfo guildInfo, IMessage message)
 		{
 			return !guildInfo.IgnoredLogChannels.Contains(message.Channel.Id);
@@ -2343,6 +2411,65 @@ namespace Advobot
 		#endregion
 
 		#region Preferences/Settings
+		public static async Task<bool> ValidateBotKey(BotClient client, string input, bool startup = false)
+		{
+			input = input.Trim();
+
+			if (startup)
+			{
+				//Check if the bot already has a key
+				if (!String.IsNullOrWhiteSpace(input))
+				{
+					try
+					{
+						await client.LoginAsync(TokenType.Bot, input);
+						return true;
+					}
+					catch (Exception)
+					{
+						//If the key doesn't work then retry
+						WriteLine("The given key is no longer valid. Please enter a new valid key:");
+					}
+				}
+				else
+				{
+					WriteLine("Please enter the bot's key:");
+				}
+				return false;
+			}
+
+			//Login and connect to Discord.
+			if (input.Length > 59)
+			{
+				//If the length isn't the normal length of a key make it retry
+				WriteLine("The given key is too long. Please enter a regular length key:");
+			}
+			else if (input.Length < 59)
+			{
+				WriteLine("The given key is too short. Please enter a regular length key:");
+			}
+			else
+			{
+				try
+				{
+					//Try to login with the given key
+					await client.LoginAsync(TokenType.Bot, input);
+
+					//If the key works then save it within the settings
+					WriteLine("Succesfully logged in via the given bot key.");
+					Properties.Settings.Default.BotKey = input;
+					Properties.Settings.Default.Save();
+					return true;
+				}
+				catch (Exception)
+				{
+					//If the key doesn't work then retry
+					WriteLine("The given key is invalid. Please enter a valid key:");
+				}
+			}
+			return false;
+		}
+
 		public static async Task EnablePreferences(BotGuildInfo guildInfo, IGuild guild, IUserMessage message)
 		{
 			if (!guildInfo.EnablingPrefs)
@@ -2444,107 +2571,126 @@ namespace Advobot
 			}
 		}
 
-		public static async Task<bool> ValidateBotKey(BotClient client, string input, bool startup = false)
-		{
-			input = input.Trim();
-
-			if (startup)
-			{
-				//Check if the bot already has a key
-				if (!String.IsNullOrWhiteSpace(input))
-				{
-					try
-					{
-						await client.LoginAsync(TokenType.Bot, input);
-						return true;
-					}
-					catch (Exception)
-					{
-						//If the key doesn't work then retry
-						WriteLine("The given key is no longer valid. Please enter a new valid key:");
-					}
-				}
-				else
-				{
-					WriteLine("Please enter the bot's key:");
-				}
-				return false;
-			}
-
-			//Login and connect to Discord.
-			if (input.Length > 59)
-			{
-				//If the length isn't the normal length of a key make it retry
-				WriteLine("The given key is too long. Please enter a regular length key:");
-			}
-			else if (input.Length < 59)
-			{
-				WriteLine("The given key is too short. Please enter a regular length key:");
-			}
-			else
-			{
-				try
-				{
-					//Try to login with the given key
-					await client.LoginAsync(TokenType.Bot, input);
-
-					//If the key works then save it within the settings
-					WriteLine("Succesfully logged in via the given bot key.");
-					Properties.Settings.Default.BotKey = input;
-					Properties.Settings.Default.Save();
-					return true;
-				}
-				catch (Exception)
-				{
-					//If the key doesn't work then retry
-					WriteLine("The given key is invalid. Please enter a valid key:");
-				}
-			}
-			return false;
-		}
-
-		public static async Task SetGame(string prefix = null)
-		{
-			//Get the game
-			var game = Variables.Client.GetCurrentUser().Game.HasValue ? Variables.Client.GetCurrentUser().Game.Value.Name : Constants.DEFAULT_GAME;
-
-			//Check if there's a game in the settings
-			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Game))
-			{
-				game = Properties.Settings.Default.Game;
-			}
-
-			//Replace all instances of the prefix with the new current global prefix
-			if (prefix != null)
-			{
-				game.Replace(prefix, Properties.Settings.Default.Prefix);
-			}
-
-			//Check if there's a stream to set
-			if (!String.IsNullOrWhiteSpace(Properties.Settings.Default.Stream))
-			{
-				await Variables.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.Twitch);
-			}
-			else
-			{
-				await Variables.Client.SetGameAsync(game, Properties.Settings.Default.Stream, StreamType.NotStreaming);
-			}
-		}
-
 		public static void ResetSettings()
 		{
-			//Save the amount of shards that currently exist
-			var shards = Properties.Settings.Default.ShardCount;
-			//Reset the settings
-			Properties.Settings.Default.Reset();
-			//Add back in the shards
-			Properties.Settings.Default.ShardCount = shards;
-			//Save the settings
-			Properties.Settings.Default.Save();
+			//Reset everything but shards since shards are pretty important
+			var botInfo = Variables.BotInfo;
+			botInfo.ResetPrefix();
+			botInfo.ResetTrustedUsers();
+			botInfo.ResetBotOwner();
+			botInfo.ResetStream();
+			botInfo.ResetGame();
 		}
 		#endregion
 
 		#region Slowmode/Banned Phrases/Spam Prevention
+		public static async Task<bool> HandleSpamPrevention(GlobalSpamPrevention global, BaseSpamPrevention spamPrev, IGuild guild, IGuildUser user, IMessage msg)
+		{
+			if (spamPrev == null || !spamPrev.Enabled)
+				return false;
+
+			//Get the user from the list or, if not found, create a new one
+			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == user);
+			if (spUser == null)
+			{
+				spUser = new SpamPreventionUser(user);
+				global.SpamPreventionUsers.ThreadSafeAdd(spUser);
+			}
+			//Add one to the count of the spam type they triggered and check if the user should be kicked/banned
+			await spUser.CheckIfShouldKick(spamPrev, msg);
+			return true;
+		}
+
+		public static async Task<bool> SpamCheck(GlobalSpamPrevention global, IGuild guild, IGuildUser author, IMessage msg)
+		{
+			if (global == null)
+				return false;
+
+			var isSpam = false;
+			await global.SpamPreventions.Values.ToList().ForEachAsync(async x =>
+			{
+				if (x?.SpamType == null)
+					return;
+
+				switch (x.SpamType)
+				{
+					case SpamType.Message:
+					{
+						var curSpamTest = false;
+						isSpam = isSpam || curSpamTest;
+						if (curSpamTest)
+						{
+							await HandleSpamPrevention(global, x, guild, author, msg);
+						}
+						break;
+					}
+					case SpamType.Long_Message:
+					{
+						var curSpamTest = msg.Content.Length > x.AmountOfSpam;
+						isSpam = isSpam || curSpamTest;
+						if (curSpamTest)
+						{
+							await HandleSpamPrevention(global, x, guild, author, msg);
+						}
+						break;
+					}
+					case SpamType.Link:
+					{
+						var curSpamTest = false;
+						isSpam = isSpam || curSpamTest;
+						if (curSpamTest)
+						{
+							await HandleSpamPrevention(global, x, guild, author, msg);
+						}
+						break;
+					}
+					case SpamType.Image:
+					{
+						var curSpamTest = false;
+						isSpam = isSpam || curSpamTest;
+						if (curSpamTest)
+						{
+							await HandleSpamPrevention(global, x, guild, author, msg);
+						}
+						break;
+					}
+					case SpamType.Mention:
+					{
+						var curSpamTest = msg.MentionedUserIds.Distinct().Count() > x.AmountOfSpam;
+						isSpam = isSpam || curSpamTest;
+						if (curSpamTest)
+						{
+							await HandleSpamPrevention(global, x, guild, author, msg);
+						}
+						break;
+					}
+					case SpamType.Reaction:
+					{
+						var curSpamTest = false;
+						isSpam = isSpam || curSpamTest;
+						if (curSpamTest)
+						{
+							await HandleSpamPrevention(global, x, guild, author, msg);
+						}
+						break;
+					}
+				}
+			});
+
+			return isSpam;
+		}
+
+		public static async Task VotesHigherThanRequiredAmount(BaseSpamPrevention spamPrev, SpamPreventionUser spUser, IMessage msg)
+		{
+			//Make sure they have the lowest vote count required to kick
+			spUser.ChangeVotesRequired(spamPrev.VotesNeededForKick);
+			//Turn on their ability to be kicked so they can be kicked
+			spUser.EnablePotentialKick();
+			//Send this message updating the amount of votes the user needs
+			await MakeAndDeleteSecondaryMessage(msg.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
+				msg.Author.FormatUser(), spUser.VotesRequired - spUser.VotesToKick));
+		}
+
 		public static async Task Slowmode(BotGuildInfo guildInfo, IMessage message)
 		{
 			//Make a new SlowmodeUser
@@ -2632,23 +2778,18 @@ namespace Advobot
 			var phrase = bannedPhrases.Strings.FirstOrDefault(x => CaseInsIndexOf(message.Content, x.Phrase));
 			if (phrase != null)
 			{
-				await BannedStringPunishments(message, phrase);
+				await BannedStringPunishments(guildInfo, message, phrase);
 			}
 			var regex = bannedPhrases.Regex.FirstOrDefault(x => Regex.IsMatch(message.Content, x.Phrase, RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT)));
 			if (regex != null)
 			{
-				await BannedRegexPunishments(message, regex);
+				await BannedRegexPunishments(guildInfo, message, regex);
 			}
 		}
 
-		public static async Task BannedStringPunishments(IMessage message, BannedPhrase<string> phrase)
+		public static async Task BannedStringPunishments(BotGuildInfo guildInfo, IMessage message, BannedPhrase<string> phrase)
 		{
 			await DeleteMessage(message);
-			var guild = (message.Channel as IGuildChannel)?.Guild;
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
 			var user = message.Author as IGuildUser;
 			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user, guildInfo);
 
@@ -2728,7 +2869,7 @@ namespace Advobot
 					//If a time is specified, run through the time then remove the role
 					if (punishment.PunishmentTime != null)
 					{
-						Variables.PunishedUsers.Add(new RemovablePunishment(guild, user.Id, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
+						Variables.PunishedUsers.Add(new RemovablePunishment(guildInfo.Guild, user.Id, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
 					}
 
 					//Send a message to the logchannel
@@ -2743,20 +2884,9 @@ namespace Advobot
 			}
 		}
 
-		public static bool TryGetPunishment(BotGuildInfo guildInfo, PunishmentType type, int msgs, out BannedPhrasePunishment punishment)
-		{
-			punishment = guildInfo.BannedPhrases.Punishments.Where(x => x.Punishment == type).FirstOrDefault(x => x.NumberOfRemoves == msgs);
-			return punishment != null;
-		}
-
-		public static async Task BannedRegexPunishments(IMessage message, BannedPhrase<string> regex)
+		public static async Task BannedRegexPunishments(BotGuildInfo guildInfo, IMessage message, BannedPhrase<string> regex)
 		{
 			await DeleteMessage(message);
-			var guild = (message.Channel as IGuildChannel)?.Guild;
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
 			var user = message.Author as IGuildUser;
 			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user, guildInfo);
 
@@ -2833,7 +2963,7 @@ namespace Advobot
 					//If a time is specified, run through the time then remove the role
 					if (punishment.PunishmentTime != null)
 					{
-						Variables.PunishedUsers.Add(new RemovablePunishment(guild, user.Id, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
+						Variables.PunishedUsers.Add(new RemovablePunishment(guildInfo.Guild, user.Id, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
 					}
 
 					//Send a message to the logchannel
@@ -2845,6 +2975,40 @@ namespace Advobot
 					}
 					break;
 				}
+			}
+		}
+
+		public static bool TryGetPunishment(BotGuildInfo guildInfo, PunishmentType type, int msgs, out BannedPhrasePunishment punishment)
+		{
+			punishment = guildInfo.BannedPhrases.Punishments.Where(x => x.Punishment == type).FirstOrDefault(x => x.NumberOfRemoves == msgs);
+			return punishment != null;
+		}
+
+		public static bool TryGetBannedRegex(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<string> bannedRegex)
+		{
+			bannedRegex = guildInfo.BannedPhrases.Regex.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
+			return bannedRegex != null;
+		}
+
+		public static bool TryGetBannedString(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<string> bannedString)
+		{
+			bannedString = guildInfo.BannedPhrases.Strings.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
+			return bannedString != null;
+		}
+
+		public static bool TryCreateRegex(string input, out Regex regexOutput, out string stringOutput)
+		{
+			regexOutput = null;
+			stringOutput = null;
+			try
+			{
+				regexOutput = new Regex(input);
+				return true;
+			}
+			catch (Exception e)
+			{
+				stringOutput = e.Message;
+				return false;
 			}
 		}
 
@@ -2983,188 +3147,9 @@ namespace Advobot
 
 			return;
 		}
-
-		public static bool TryGetBannedRegex(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<string> bannedRegex)
-		{
-			bannedRegex = guildInfo.BannedPhrases.Regex.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
-			return bannedRegex != null;
-		}
-
-		public static bool TryGetBannedString(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<string> bannedString)
-		{
-			bannedString = guildInfo.BannedPhrases.Strings.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
-			return bannedString != null;
-		}
-
-		public static bool TryCreateRegex(string input, out Regex regexOutput, out string stringOutput)
-		{
-			regexOutput = null;
-			stringOutput = null;
-			try
-			{
-				regexOutput = new Regex(input);
-				return true;
-			}
-			catch (Exception e)
-			{
-				stringOutput = e.Message;
-				return false;
-			}
-		}
-
-		public static async Task<bool> HandleSpamPrevention(GlobalSpamPrevention global, BaseSpamPrevention spamPrev, IGuild guild, IGuildUser user, IMessage msg)
-		{
-			if (spamPrev == null || !spamPrev.Enabled)
-				return false;
-
-			//Get the user from the list or, if not found, create a new one
-			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == user);
-			if (spUser == null)
-			{
-				spUser = new SpamPreventionUser(user);
-				global.SpamPreventionUsers.ThreadSafeAdd(spUser);
-			}
-			//Add one to the count of the spam type they triggered and check if the user should be kicked/banned
-			await spUser.CheckIfShouldKick(spamPrev, msg);
-			return true;
-		}
-
-		public static async Task VotesHigherThanRequiredAmount(BaseSpamPrevention spamPrev, SpamPreventionUser spUser, IMessage msg)
-		{
-			//Make sure they have the lowest vote count required to kick
-			spUser.ChangeVotesRequired(spamPrev.VotesNeededForKick);
-			//Turn on their ability to be kicked so they can be kicked
-			spUser.EnablePotentialKick();
-			//Send this message updating the amount of votes the user needs
-			await MakeAndDeleteSecondaryMessage(msg.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
-				msg.Author.FormatUser(), spUser.VotesRequired - spUser.VotesToKick));
-		}
-
-		public static async Task<bool> SpamCheck(GlobalSpamPrevention global, IGuild guild, IGuildUser author, IMessage msg)
-		{
-			if (global == null)
-				return false;
-
-			var isSpam = false;
-			await global.SpamPreventions.Values.ToList().ForEachAsync(async x =>
-			{
-				if (x?.SpamType == null)
-					return;
-
-				switch (x.SpamType)
-				{
-					case SpamType.Message:
-					{
-						var curSpamTest = false;
-						isSpam = isSpam || curSpamTest;
-						if (curSpamTest)
-						{
-							await HandleSpamPrevention(global, x, guild, author, msg);
-						}
-						break;
-					}
-					case SpamType.Long_Message:
-					{
-						var curSpamTest = msg.Content.Length > x.AmountOfSpam;
-						isSpam = isSpam || curSpamTest;
-						if (curSpamTest)
-						{
-							await HandleSpamPrevention(global, x, guild, author, msg);
-						}
-						break;
-					}
-					case SpamType.Link:
-					{
-						var curSpamTest = false;
-						isSpam = isSpam || curSpamTest;
-						if (curSpamTest)
-						{
-							await HandleSpamPrevention(global, x, guild, author, msg);
-						}
-						break;
-					}
-					case SpamType.Image:
-					{
-						var curSpamTest = false;
-						isSpam = isSpam || curSpamTest;
-						if (curSpamTest)
-						{
-							await HandleSpamPrevention(global, x, guild, author, msg);
-						}
-						break;
-					}
-					case SpamType.Mention:
-					{
-						var curSpamTest = msg.MentionedUserIds.Distinct().Count() > x.AmountOfSpam;
-						isSpam = isSpam || curSpamTest;
-						if (curSpamTest)
-						{
-							await HandleSpamPrevention(global, x, guild, author, msg);
-						}
-						break;
-					}
-					case SpamType.Reaction:
-					{
-						var curSpamTest = false;
-						isSpam = isSpam || curSpamTest;
-						if (curSpamTest)
-						{
-							await HandleSpamPrevention(global, x, guild, author, msg);
-						}
-						break;
-					}
-				}
-			});
-
-			return isSpam;
-		}
 		#endregion
 
 		#region Close Words
-		public static int FindCloseName(string s, string t)
-		{
-			//Levenshtein Distance
-			int n = s.Length;
-			int m = t.Length;
-			int[,] d = new int[n + 1, m + 1];
-
-			//Step 1
-			if (n == 0)
-			{
-				return m;
-			}
-
-			if (m == 0)
-			{
-				return n;
-			}
-
-			//Step 2
-			for (int i = 0; i <= n; d[i, 0] = i++)
-			{
-			}
-
-			for (int j = 0; j <= m; d[0, j] = j++)
-			{
-			}
-
-			//Step 3
-			for (int i = 1; i <= n; i++)
-			{
-				//Step 4
-				for (int j = 1; j <= m; j++)
-				{
-					//Step 5
-					int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-
-					//Step 6
-					d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
-				}
-			}
-			//Step 7
-			return d[n, m];
-		}
-
 		public static List<CloseWord> GetRemindsWithSimilarNames(List<Remind> reminds, string input)
 		{
 			var closeWords = new List<CloseWord>();
@@ -3294,10 +3279,65 @@ namespace Advobot
 
 			return closeHelps;
 		}
+
+		public static int FindCloseName(string s, string t)
+		{
+			//Levenshtein Distance
+			int n = s.Length;
+			int m = t.Length;
+			int[,] d = new int[n + 1, m + 1];
+
+			//Step 1
+			if (n == 0)
+			{
+				return m;
+			}
+
+			if (m == 0)
+			{
+				return n;
+			}
+
+			//Step 2
+			for (int i = 0; i <= n; d[i, 0] = i++)
+			{
+			}
+
+			for (int j = 0; j <= m; d[0, j] = j++)
+			{
+			}
+
+			//Step 3
+			for (int i = 1; i <= n; i++)
+			{
+				//Step 4
+				for (int j = 1; j <= m; j++)
+				{
+					//Step 5
+					int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+
+					//Step 6
+					d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+				}
+			}
+			//Step 7
+			return d[n, m];
+		}
 		#endregion
 
 		#region Timers
-		public static void RemoveCommandMessages(List<IMessage> messages, Int32 time)
+		public static List<T> GetOutTimedObject<T>(List<T> inputList) where T : ITimeInterface
+		{
+			List<T> eligibleToBeGotten;
+			lock (inputList)
+			{
+				eligibleToBeGotten = inputList.Where(x => x.GetTime() <= DateTime.UtcNow).ToList();
+				inputList.RemoveAll(x => eligibleToBeGotten.Contains(x));
+			}
+			return eligibleToBeGotten;
+		}
+
+		public static void RemoveCommandMessages(List<IMessage> messages, int time)
 		{
 			lock (Variables.TimedMessages)
 			{
@@ -3305,7 +3345,7 @@ namespace Advobot
 			}
 		}
 
-		public static void RemoveCommandMessage(IMessage message, Int32 time)
+		public static void RemoveCommandMessage(IMessage message, int time)
 		{
 			lock (Variables.TimedMessages)
 			{
@@ -3353,17 +3393,6 @@ namespace Advobot
 				time -= (long)DateTime.UtcNow.TimeOfDay.TotalMilliseconds % PERIOD;
 			}
 			Variables.RemovePunishmentTimer = new Timer(OneFourthSecondTimer, null, time, Timeout.Infinite);
-		}
-
-		public static List<T> GetOutTimedObject<T>(List<T> inputList) where T : ITimeInterface
-		{
-			List<T> eligibleToBeGotten;
-			lock (inputList)
-			{
-				eligibleToBeGotten = inputList.Where(x => x.GetTime() <= DateTime.UtcNow).ToList();
-				inputList.RemoveAll(x => eligibleToBeGotten.Contains(x));
-			}
-			return eligibleToBeGotten;
 		}
 
 		public static void ClearPunishedUsersList()
@@ -3593,51 +3622,6 @@ namespace Advobot
 		#endregion
 
 		#region Miscellaneous
-		public static FAWRType ClarifyFAWRType(FAWRType type)
-		{
-			switch (type)
-			{
-				case FAWRType.GR:
-				{
-					return FAWRType.Give_Role;
-				}
-				case FAWRType.TR:
-				{
-					return FAWRType.Take_Role;
-				}
-				case FAWRType.GNN:
-				{
-					return FAWRType.Give_Nickname;
-				}
-				case FAWRType.TNN:
-				{
-					return FAWRType.Take_Nickname;
-				}
-			}
-			return type;
-		}
-
-		public static async Task<int> GetIfGroupIsValid(ICommandContext context, string input)
-		{
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("Invalid input for group number."));
-				return -1;
-			}
-			if (!int.TryParse(input, out int groupNumber))
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("Invalid group number."));
-				return -1;
-			}
-			if (groupNumber < 0)
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("Group number must be positive."));
-				return -1;
-			}
-
-			return groupNumber;
-		}
-
 		public static async Task<GuildNotification> MakeGuildNotification(ICommandContext context, string input)
 		{
 			//Get the variables out
@@ -3672,6 +3656,30 @@ namespace Advobot
 			return new GuildNotification(content, title, desc, thumb, context.Guild.Id, channel.Id);
 		}
 
+		public static FAWRType ClarifyFAWRType(FAWRType type)
+		{
+			switch (type)
+			{
+				case FAWRType.GR:
+				{
+					return FAWRType.Give_Role;
+				}
+				case FAWRType.TR:
+				{
+					return FAWRType.Take_Role;
+				}
+				case FAWRType.GNN:
+				{
+					return FAWRType.Give_Nickname;
+				}
+				case FAWRType.TNN:
+				{
+					return FAWRType.Take_Nickname;
+				}
+			}
+			return type;
+		}
+
 		public static string[] SplitByCharExceptInQuotes(string inputString, char inputChar)
 		{
 			if (String.IsNullOrWhiteSpace(inputString))
@@ -3688,6 +3696,29 @@ namespace Advobot
 					return new[] { element };
 				}
 			}).SelectMany(element => element).ToArray();
+		}
+
+		public static async Task UpdateGame()
+		{
+			var botInfo = Variables.BotInfo;
+			var gameStr = botInfo.Game ?? String.Format("type \"{0}help\" for help.", botInfo.Prefix);
+			var strmStr = botInfo.Stream;
+
+			if (String.IsNullOrWhiteSpace(strmStr))
+			{
+				await Variables.Client.SetGameAsync(gameStr, strmStr, StreamType.NotStreaming);
+			}
+			else
+			{
+				await Variables.Client.SetGameAsync(gameStr, strmStr, StreamType.Twitch);
+			}
+		}
+
+		public static void HandleBotID(ulong ID)
+		{
+			Variables.Bot_ID = ID;
+			Properties.Settings.Default.BotID = ID;
+			Properties.Settings.Default.Save();
 		}
 		#endregion
 	}

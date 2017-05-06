@@ -477,10 +477,10 @@ namespace Advobot
 			if (Variables.PotentialBotOwners.Contains(message.Author.Id))
 			{
 				//If the key they input is the same as the bots key then they become owner
-				if (message.Content.Trim().Equals(Properties.Settings.Default.BotKey))
+				if (message.Content.Equals(Properties.Settings.Default.BotKey))
 				{
-					Properties.Settings.Default.BotOwner = message.Author.Id;
-					Properties.Settings.Default.Save();
+					Variables.BotInfo.SetBotOwner(message.Author.Id);
+					Actions.SaveBotInfo();
 					Variables.PotentialBotOwners.Clear();
 					await Actions.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
 				}
