@@ -242,7 +242,7 @@ namespace Advobot
 							}
 							else
 							{
-								str = String.Format("The user `{0}` has the following permission(s): `{1}`.", Actions.FormatUser(user, user?.Id), String.Join("`, `", perms));
+								str = String.Format("The user `{0}` has the following permission(s): `{1}`.", user.FormatUser(), String.Join("`, `", perms));
 							}
 						}
 						else
@@ -282,17 +282,17 @@ namespace Advobot
 					}
 					case SettingsOnGuild.IgnoredCommandChannels:
 					{
-						str = String.Join("\n", guildInfo.IgnoredCommandChannels.Select(x => String.Format("`{0}`", Actions.FormatChannel((Context.Guild as SocketGuild).GetChannel(x)))));
+						str = String.Join("\n", guildInfo.IgnoredCommandChannels.Select(x => String.Format("`{0}`", (Context.Guild as SocketGuild).GetChannel(x).FormatChannel())));
 						break;
 					}
 					case SettingsOnGuild.IgnoredLogChannels:
 					{
-						str = String.Join("\n", guildInfo.IgnoredLogChannels.Select(x => String.Format("`{0}`", Actions.FormatChannel((Context.Guild as SocketGuild).GetChannel(x)))));
+						str = String.Join("\n", guildInfo.IgnoredLogChannels.Select(x => String.Format("`{0}`", (Context.Guild as SocketGuild).GetChannel(x).FormatChannel())));
 						break;
 					}
 					case SettingsOnGuild.ImageOnlyChannels:
 					{
-						str = String.Join("\n", guildInfo.ImageOnlyChannels.Select(x => String.Format("`{0}`", Actions.FormatChannel((Context.Guild as SocketGuild).GetChannel(x)))));
+						str = String.Join("\n", guildInfo.ImageOnlyChannels.Select(x => String.Format("`{0}`", (Context.Guild as SocketGuild).GetChannel(x).FormatChannel())));
 						break;
 					}
 					case SettingsOnGuild.LogActions:
@@ -377,12 +377,12 @@ namespace Advobot
 					}
 					case SettingsOnGuild.Serverlog:
 					{
-						str = String.Format("`{0}`", Actions.FormatChannel(guildInfo.ServerLog));
+						str = String.Format("`{0}`", guildInfo.ServerLog.FormatChannel());
 						break;
 					}
 					case SettingsOnGuild.Modlog:
 					{
-						str = String.Format("`{0}`", Actions.FormatChannel(guildInfo.ModLog));
+						str = String.Format("`{0}`", guildInfo.ModLog.FormatChannel());
 						break;
 					}
 				}
@@ -653,7 +653,7 @@ namespace Advobot
 						ignoredCmdsOnChans.RemoveAll(x => x.CommandName == cmd && x.ChannelID == channel.Id);
 					}
 					await Actions.MakeAndDeleteSecondaryMessage(Context,
-						String.Format("Successfully {0} the command `{1}` in `{2}`.", add ? "disabled" : "enabled", cmd, Actions.FormatChannel(channel)));
+						String.Format("Successfully {0} the command `{1}` in `{2}`.", add ? "disabled" : "enabled", cmd, channel.FormatChannel()));
 				}
 				else if (catCmds != null)
 				{
@@ -675,7 +675,7 @@ namespace Advobot
 						});
 					}
 					await Actions.MakeAndDeleteSecondaryMessage(Context,
-						String.Format("Successfully {0} the category `{1}` in `{2}`.", add ? "disabled" : "enabled", Enum.GetName(typeof(CommandCategory), cat), Actions.FormatChannel(channel)));
+						String.Format("Successfully {0} the category `{1}` in `{2}`.", add ? "disabled" : "enabled", Enum.GetName(typeof(CommandCategory), cat), channel.FormatChannel()));
 				}
 
 				//Save everything and send a success message
@@ -702,13 +702,21 @@ namespace Advobot
 					}
 					ignoredCmdChannels.Remove(channel.Id);
 				}
-
 				ignoredCmdChannels = ignoredCmdChannels.Distinct().ToList();
+
+				var outputStr = "";
+				if (add)
+				{
+					outputStr = String.Format("Successfully added the channel `{0}` to the command ignore list.", channel.FormatChannel());
+				}
+				else
+				{
+					outputStr = String.Format("Successfully removed the channel `{0}` from the command ignore list.", channel.FormatChannel());
+				}
 
 				//Save everything and send a success message
 				Actions.SaveGuildInfo(guildInfo);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the channel `{1}` {2} the command ignore list.",
-					add ? "added" : "removed", Actions.FormatChannel(channel), add ? "to" : "from"));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, outputStr);
 			}
 		}
 
@@ -782,7 +790,7 @@ namespace Advobot
 					}
 					else
 					{
-						await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Permissions for " + Actions.FormatUser(user, user?.Id), String.Join("\n", showPerms)));
+						await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Permissions for " + user.FormatUser(), String.Join("\n", showPerms)));
 					}
 				}
 				else
@@ -801,7 +809,7 @@ namespace Advobot
 
 				guildInfo.BotUsers.Remove(botUser);
 				Actions.SaveGuildInfo(guildInfo);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the bot user list.", Actions.FormatUser(user, user?.Id)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the bot user list.", user.FormatUser()));
 				return;
 			}
 
@@ -846,8 +854,8 @@ namespace Advobot
 			//Save everything and send a success message
 			Actions.SaveGuildInfo(guildInfo);
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {1}: `{0}`.", String.Join("`, `", permissions.Select(x => x.Name)),
-				type == ModifyTypes.Add ? String.Format("gave the user `{0}` the following permission{1}", Actions.FormatUser(user, user?.Id), Actions.GetPlural(permissions.Count)) :
-									String.Format("removed the following permission{0} from the user `{1}`", Actions.GetPlural(permissions.Count), Actions.FormatUser(user, user?.Id))));
+				type == ModifyTypes.Add ? String.Format("gave the user `{0}` the following permission{1}", user.FormatUser(), Actions.GetPlural(permissions.Count)) :
+									String.Format("removed the following permission{0} from the user `{1}`", Actions.GetPlural(permissions.Count), user.FormatUser())));
 		}
 
 		[Command("remindsmodify")]

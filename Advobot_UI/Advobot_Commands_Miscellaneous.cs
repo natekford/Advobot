@@ -213,9 +213,9 @@ namespace Advobot
 		{
 			var sGuild = Context.Guild as SocketGuild;
 			var sOwner = sGuild.Owner;
-			var title = Actions.FormatGuild(sGuild);
+			var title = sGuild.FormatGuild();
 			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", sGuild.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sGuild.CreatedAt.UtcDateTime).Days);
-			var owner = String.Format("**Owner:** `{0}`", Actions.FormatUser(sOwner, sOwner?.Id));
+			var owner = String.Format("**Owner:** `{0}`", sOwner.FormatUser());
 			var region = String.Format("**Region:** `{0}`\n", sGuild.VoiceRegionId);
 			var userCount = String.Format("**User Count:** `{0}`", sGuild.MemberCount);
 			var roleCount = String.Format("**Role Count:** `{0}`", sGuild.Roles.Count);
@@ -242,7 +242,7 @@ namespace Advobot
 			}
 			var channel = returnedChannel.Object as SocketGuildChannel;
 
-			var title = Actions.FormatChannel(channel);
+			var title = channel.FormatChannel();
 			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", channel.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(channel.CreatedAt.UtcDateTime).Days);
 			var users = String.Format("**User Count:** `{0}`", channel.Users.Count);
 			var all = String.Join("\n", new List<string>() { age, users });
@@ -432,7 +432,7 @@ namespace Advobot
 					user.Status);
 
 				var embed = Actions.MakeNewEmbed(null, description, null, thumbnailURL: user.GetAvatarUrl());
-				Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl(), user.GetAvatarUrl());
+				Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), user.GetAvatarUrl());
 				Actions.AddFooter(embed, "Userinfo");
 				await Actions.SendEmbedMessage(Context.Channel, embed);
 			}
@@ -485,8 +485,8 @@ namespace Advobot
 			}
 
 			var user = inv.Inviter;
-			var userStr = Actions.FormatUser(user, user?.Id);
-			var channelStr = Actions.FormatChannel(await Context.Guild.GetChannelAsync(inv.ChannelId));
+			var userStr = user.FormatUser();
+			var channelStr = (await Context.Guild.GetChannelAsync(inv.ChannelId)).FormatChannel();
 			var usesStr = inv.Uses;
 			var timeStr = inv.CreatedAt.UtcDateTime.ToShortTimeString();
 			var dateStr = inv.CreatedAt.UtcDateTime.ToShortDateString();
@@ -543,7 +543,7 @@ namespace Advobot
 			{
 				var time = x.JoinedAt.Value.UtcDateTime;
 				return String.Format("`{0}.` `{1}` joined at `{2}` on `{3}`.",
-					count++.ToString().PadLeft(padLength, '0'), Actions.FormatUser(x, x?.Id), time.ToShortTimeString(), time.ToShortDateString());
+					count++.ToString().PadLeft(padLength, '0'), x.FormatUser(), time.ToShortTimeString(), time.ToShortDateString());
 			}));
 
 			await Actions.SendPotentiallyBigEmbed(Context.Guild, Context.Channel, Actions.MakeNewEmbed("Users", userMsg), userMsg, "User_Joins_");
@@ -617,7 +617,7 @@ namespace Advobot
 			{
 				if (x.RoleIds.ToList().Contains(role.Id))
 				{
-					users += String.Format("`{0}.` `{1}`\n", count++.ToString("00"), Actions.FormatUser(x, x?.Id));
+					users += String.Format("`{0}.` `{1}`\n", count++.ToString("00"), x.FormatUser());
 				}
 			});
 
@@ -638,7 +638,7 @@ namespace Advobot
 			var count = 1;
 			users.ForEach(x =>
 			{
-				description += String.Format("`{0}.` `{1}`\n", count++.ToString("00"), Actions.FormatUser(x, x?.Id));
+				description += String.Format("`{0}.` `{1}`\n", count++.ToString("00"), x.FormatUser());
 			});
 
 			var title = String.Format("Users With Names Containing '{0}'", input);
@@ -750,8 +750,8 @@ namespace Advobot
 
 		[Command("invitecreate")]
 		[Alias("invc")]
-		[Usage(Constants.CHANNEL_INSTRUCTIONS + " [Forever|1800|3600|21600|43200|86400] [Infinite|1|5|10|25|50|100] [True|False]")]
-		[Summary("The first argument is the channel. The second is how long the invite will last for. The third is how many users can use the invite. The fourth is the temporary membership option.")]
+		[Usage(Constants.CHANNEL_INSTRUCTIONS + " <Time:1800|3600|21600|43200|86400> <Uses:1|5|10|25|50|100> <TempMem:True|False>")]
+		[Summary("Creates an invite on the given channel. No time specifies to not expire. No uses has no usage limit. Temp membership means when the user goes offline they get kicked.")]
 		[PermissionRequirement(1U << (int)GuildPermission.CreateInstantInvite)]
 		[DefaultEnabled(true)]
 		public async Task CreateInstantInvite([Remainder] string input)
@@ -764,9 +764,9 @@ namespace Advobot
 				return;
 			}
 			var chanStr = inputArray[0];
-			var timeStr = inputArray[1];
-			var usesStr = inputArray[2];
-			var tempStr = inputArray[3];
+			var timeStr = Actions.GetVariable(inputArray, "time");
+			var usesStr = Actions.GetVariable(inputArray, "uses");
+			var tempStr = Actions.GetVariable(inputArray, "tempmem");
 
 			//Check validity of channel
 			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, chanStr);
@@ -777,49 +777,74 @@ namespace Advobot
 			}
 			var channel = returnedChannel.Object;
 
-			//Set the time in seconds
 			int? nullableTime = null;
 			int[] validTimes = { 1800, 3600, 21600, 43200, 86400 };
-			if (int.TryParse(timeStr, out int time) && validTimes.Contains(time))
+			if (!String.IsNullOrWhiteSpace(timeStr))
 			{
-				nullableTime = time;
-			}
-			else
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
-				return;
+				if (int.TryParse(timeStr, out int time) && validTimes.Contains(time))
+				{
+					nullableTime = time;
+				}
+				else
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
+					return;
+				}
 			}
 
-			//Set the max amount of users
 			int? nullableUsers = null;
 			int[] validUsers = { 1, 5, 10, 25, 50, 100 };
-			if (int.TryParse(usesStr, out int users) && validUsers.Contains(users))
+			if (!String.IsNullOrWhiteSpace(usesStr))
 			{
-				nullableUsers = users;
+				if (int.TryParse(usesStr, out int users) && validUsers.Contains(users))
+				{
+					nullableUsers = users;
+				}
+				else
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid uses supplied."));
+					return;
+				}
+			}
+
+			var tempMembership = false;
+			if (!String.IsNullOrWhiteSpace(tempStr))
+			{
+				if (!bool.TryParse(tempStr, out tempMembership))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid temp membership boolean supplied."));
+					return;
+				}
+			}
+
+			var inv = await channel.CreateInviteAsync(nullableTime, nullableUsers, tempMembership);
+
+			//Format the response message
+			var timeOutputStr = "";
+			if (nullableTime == null)
+			{
+				timeOutputStr = "It will last until manually revoked.";
 			}
 			else
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid uses supplied."));
-				return;
+				timeOutputStr = String.Format("It will last for `{0}` seconds.", timeStr);
 			}
-
-			//Set tempmembership
-			if (!bool.TryParse(tempStr, out bool tempMembership))
+			var usersOutputStr = "";
+			if (nullableUsers == null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid uses supplied."));
-				return;
+				usersOutputStr = "It has no usage limit.";
+			}
+			else
+			{
+				usersOutputStr = String.Format("It has a limit of `{0}` uses.", usesStr);
+			}
+			var tempOutputStr = "";
+			if (tempMembership)
+			{
+				tempOutputStr = "Users will be kicked when they go offline unless they get a role.";
 			}
 
-			//Make into valid invite link
-			var inv = await channel.CreateInviteAsync(nullableTime, nullableUsers, tempMembership);
-
-			await Actions.SendChannelMessage(Context, String.Format("Here is your invite for `{0}`: {1} \nIt will last for{2}, {3}{4}.",
-				Actions.FormatChannel(channel),
-				inv.Url,
-				nullableTime == null ? "ever" : " " + time.ToString() + " seconds",
-				nullableUsers == null ? (tempMembership ? "has no limit of users" : "and has no limit of users") :
-										(tempMembership ? "has a limit of " + users.ToString() + " users" : " and has a limit of " + users.ToString() + " users"),
-				tempMembership ? ", and users will only receive temporary membership" : ""));
+			await Actions.SendChannelMessage(Context, String.Format("Here is your invite for `{0}`: {1}\n{2}\n{3}\n{4}.", channel.FormatChannel(), inv.Url, timeOutputStr, usersOutputStr, tempOutputStr));
 		}
 
 		[Command("invitedelete")]
@@ -1089,7 +1114,7 @@ namespace Advobot
 			await role.ModifyAsync(x => x.Mentionable = true);
 			//Send the message
 			var user = Context.User;
-			await Actions.SendChannelMessage(Context, String.Format("{0}, {1}:{2}", Actions.FormatUser(user, user?.Id), role.Mention, textStr));
+			await Actions.SendChannelMessage(Context, String.Format("{0}, {1}:{2}", user.FormatUser(), role.Mention, textStr));
 			//Remove the mentionability
 			await role.ModifyAsync(x => x.Mentionable = false);
 		}
@@ -1104,7 +1129,7 @@ namespace Advobot
 		{
 			var cutMsg = input.Substring(0, Math.Min(input.Length, 250));
 			var user = Context.User;
-			var fromMsg = String.Format("From `{0}` in `{1}`:", Actions.FormatUser(user, user?.Id), Actions.FormatGuild(Context.Guild));
+			var fromMsg = String.Format("From `{0}` in `{1}`:", user.FormatUser(), Context.Guild.FormatGuild());
 			var newMsg = String.Format("{0}\n```{1}```", fromMsg, cutMsg);
 			var owner = Variables.Client.GetUser(Properties.Settings.Default.BotOwner);
 			if (owner == null)

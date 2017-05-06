@@ -11,14 +11,14 @@ namespace Advobot
 	{
 		private static CommandService Commands;
 		private static BotClient Client;
-		private static IServiceProvider Map;
+		private static IServiceProvider Provider;
 
-		public async Task Install(IServiceProvider map)
+		public async Task Install(IServiceProvider provider)
 		{
 			//Create Command Service, inject it into Dependency Map
-			Client = (BotClient)map.GetService(typeof(BotClient));
+			Client = (BotClient)provider.GetService(typeof(BotClient));
 			Commands = new CommandService();
-			Map = map;
+			Provider = provider;
 
 			await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
 
@@ -62,7 +62,7 @@ namespace Advobot
 				return;
 
 			//Ignore unknown command errors because they're annoying and ignore the errors given by lack of permissions, etc. put in by me
-			var result = await Commands.ExecuteAsync(context, argPos, Map);
+			var result = await Commands.ExecuteAsync(context, argPos, Provider);
 			if (result.IsSuccess)
 			{
 				await Mod_Logs.LogCommand(guildInfo, context);

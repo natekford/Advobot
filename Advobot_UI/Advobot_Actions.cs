@@ -329,7 +329,7 @@ namespace Advobot
 			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
 			if (!File.Exists(path))
 			{
-				WriteLine(String.Format("The guild information for {0} does not exist.", FormatGuild(guild)));
+				WriteLine(String.Format("The guild information for {0} does not exist.", guild.FormatGuild()));
 				return guildInfo;
 			}
 
@@ -339,11 +339,11 @@ namespace Advobot
 				{
 					guildInfo = JsonConvert.DeserializeObject<BotGuildInfo>(reader.ReadToEnd());
 				}
-				WriteLine(String.Format("The guild information for {0} has successfully been loaded.", FormatGuild(guild)));
+				WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
 			}
 			catch (Exception e)
 			{
-				ExceptionToConsole(String.Format("LoadGuildInfo for {0}", FormatGuild(guild)), e);
+				ExceptionToConsole(String.Format("LoadGuildInfo for {0}", guild.FormatGuild()), e);
 			}
 
 			return guildInfo;
@@ -351,7 +351,7 @@ namespace Advobot
 		#endregion
 
 		#region Basic Gets
-		public static Dictionary<String, String> GetChannelPermissions(Overwrite overwrite)
+		public static Dictionary<String, String> GetChannelOverwritePermissions(Overwrite overwrite)
 		{
 			//Create a dictionary to hold the allow/deny/inherit values
 			var channelPerms = new Dictionary<String, String>();
@@ -383,34 +383,17 @@ namespace Advobot
 			return channelPerms;
 		}
 
-		public static Dictionary<String, String> GetTextChannelPermissions(Dictionary<String, String> dictionary)
+		public static Dictionary<String, String> GetFilteredChannelOverwritePermissions(Overwrite overwrite, IGuildChannel channel)
 		{
-			Variables.ChannelPermissions.Where(x => x.Voice).ToList().ForEach(x => dictionary.Remove(x.Name));
-			return dictionary;
-		}
-
-		public static Dictionary<String, String> GetVoiceChannelPermissions(Dictionary<String, String> dictionary)
-		{
-			Variables.ChannelPermissions.Where(x => x.Text).ToList().ForEach(x => dictionary.Remove(x.Name));
-			return dictionary;
-		}
-
-		public static Dictionary<String, String> GetPerms(Overwrite overwrite, IGuildChannel channel)
-		{
-			//Get the general perms from the overwrite given
-			Dictionary<String, String> dictionary = GetChannelPermissions(overwrite);
-
-			//See if the channel is a text channel and remove voice channel perms
-			if (GetChannelType(channel) == Constants.TEXT_TYPE)
+			var dictionary = GetChannelOverwritePermissions(overwrite);
+			if (channel is ITextChannel)
 			{
-				GetTextChannelPermissions(dictionary);
+				Variables.ChannelPermissions.Where(x => x.Voice).ToList().ForEach(x => dictionary.Remove(x.Name));
 			}
-			//See if the channel is a voice channel and remove text channel perms
-			else if (GetChannelType(channel) == Constants.VOICE_TYPE)
+			else
 			{
-				GetVoiceChannelPermissions(dictionary);
+				Variables.ChannelPermissions.Where(x => x.Text).ToList().ForEach(x => dictionary.Remove(x.Name));
 			}
-
 			return dictionary;
 		}
 
@@ -463,28 +446,29 @@ namespace Advobot
 			return Variables.Guilds[guild.Id].CommandSettings.Where(x => x.CategoryValue == number).Select(x => x.Name).ToArray();
 		}
 
-		public static string GetObjectStringBasic(string fullTypeName)
+		public static string GetObjectStringBasic(IUser user)
 		{
-			if (CaseInsIndexOf(fullTypeName, Constants.BASIC_TYPE_USER))
-			{
-				return Constants.BASIC_TYPE_USER;
-			}
-			else if (CaseInsIndexOf(fullTypeName, Constants.BASIC_TYPE_CHANNEL))
-			{
-				return Constants.BASIC_TYPE_CHANNEL;
-			}
-			else if (CaseInsIndexOf(fullTypeName, Constants.BASIC_TYPE_ROLE))
-			{
-				return Constants.BASIC_TYPE_ROLE;
-			}
-			else if (CaseInsIndexOf(fullTypeName, Constants.BASIC_TYPE_GUILD))
-			{
-				return Constants.BASIC_TYPE_GUILD;
-			}
-			else
-			{
-				return "(GetObjectStringBasic Error)";
-			}
+			return Constants.BASIC_TYPE_USER;
+		}
+
+		public static string GetObjectStringBasic(IChannel channel)
+		{
+			return Constants.BASIC_TYPE_CHANNEL;
+		}
+
+		public static string GetObjectStringBasic(IRole role)
+		{
+			return Constants.BASIC_TYPE_ROLE;
+		}
+
+		public static string GetObjectStringBasic(IGuild guild)
+		{
+			return Constants.BASIC_TYPE_GUILD;
+		}
+
+		public static string GetObjectStringBasic(object obj)
+		{
+			return "GetObjectStringBasic Error";
 		}
 
 		public static string GetHelpString(HelpEntry help)
@@ -526,9 +510,20 @@ namespace Advobot
 			return String.IsNullOrWhiteSpace(nonGuildFileName) ? Path.Combine(folder, botFolder) : Path.Combine(folder, botFolder, nonGuildFileName);
 		}
 
-		public static string GetChannelType(IGuildChannel channel)
+		public static string GetChannelType(IChannel channel)
 		{
-			return CaseInsIndexOf(channel.GetType().Name, Constants.TEXT_TYPE) ? Constants.TEXT_TYPE : Constants.VOICE_TYPE;
+			if (channel is ITextChannel)
+			{
+				return Constants.TEXT_TYPE;
+			}
+			else if (channel is IVoiceChannel)
+			{
+				return Constants.VOICE_TYPE;
+			}
+			else
+			{
+				return "GetChannelType Error";
+			}
 		}
 
 		public static string GetVariableAndRemove(List<string> inputList, string searchTerm)
@@ -668,7 +663,7 @@ namespace Advobot
 				return;
 
 			//Get all the channels that aren't the input channel
-			var channels = GetChannelType(channel).Equals(Constants.TEXT_TYPE)
+			var channels = CaseInsEquals(GetChannelType(channel), Constants.TEXT_TYPE)
 				? (await channel.Guild.GetTextChannelsAsync()).Where(x => x != channel).OrderBy(x => x.Position).Cast<IGuildChannel>().ToList()
 				: (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x != channel).OrderBy(x => x.Position).Cast<IGuildChannel>().ToList();
 			//Add the input channel into the given spot
@@ -765,7 +760,7 @@ namespace Advobot
 					}
 					else
 					{
-						failure.Add(FormatChannel(channel));
+						failure.Add(channel.FormatChannel());
 					}
 				});
 			}
@@ -1198,7 +1193,7 @@ namespace Advobot
 					}
 					else
 					{
-						failure.Add(FormatUser(user, user?.Id));
+						failure.Add(user.FormatUser());
 					}
 				});
 			}
@@ -1298,7 +1293,7 @@ namespace Advobot
 		public static void WriteLoadDone(IGuild guild, string method, string name)
 		{
 			Variables.Guilds[guild.Id].TurnDefaultPrefsOff();
-			WriteLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, FormatGuild(guild)));
+			WriteLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, guild.FormatGuild()));
 		}
 
 		public static async Task MakeAndDeleteSecondaryMessage(ICommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
@@ -1347,7 +1342,7 @@ namespace Advobot
 				}
 				catch
 				{
-					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count, FormatGuild(guildChannel.Guild), FormatChannel(channel)));
+					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count, guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
 					break;
 				}
 
@@ -1388,7 +1383,7 @@ namespace Advobot
 				}
 				catch
 				{
-					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count, FormatGuild(guildChannel.Guild), FormatChannel(channel)));
+					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count, guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
 					break;
 				}
 
@@ -1403,10 +1398,10 @@ namespace Advobot
 
 		public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages)
 		{
-			if (messages == null || !messages.Any())
-				return;
 			var guildChannel = channel as ITextChannel;
 			if (guildChannel == null)
+				return;
+			if (messages == null || !messages.Any())
 				return;
 
 			//Delete them in a try catch due to potential errors
@@ -1416,13 +1411,16 @@ namespace Advobot
 			}
 			catch
 			{
-				WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count(), FormatGuild(guildChannel.Guild), FormatChannel(channel)));
+				WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count(), guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
 			}
 		}
 
 		public static async Task DeleteMessage(IMessage message)
 		{
 			if (message == null)
+				return;
+			var guildChannel = message.Channel as ITextChannel;
+			if (guildChannel == null)
 				return;
 
 			try
@@ -1431,7 +1429,7 @@ namespace Advobot
 			}
 			catch
 			{
-				WriteLine(String.Format("Unable to delete the message {0} on channel {1}.", message.Id, FormatChannel(message.Channel)));
+				WriteLine(String.Format("Unable to delete the message {0} on channel {1}.", message.Id, guildChannel.FormatChannel()));
 			}
 		}
 
@@ -1466,12 +1464,6 @@ namespace Advobot
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
 		
-		public static async Task FormatEditMessage(ITextChannel logChannel, string time, IGuildUser user, IMessageChannel channel, string before, string after)
-		{
-			await SendChannelMessage(logChannel,
-				String.Format("{0} **EDIT:** `{1}` **IN** `#{2}`\n**FROM:** ```\n{3}```\n**TO:** ```\n{4}```", time, FormatUser(user, user?.Id), FormatChannel(channel), before, after));
-		}
-		
 		public static string ReplaceMarkdownChars(string input)
 		{
 			if (String.IsNullOrWhiteSpace(input))
@@ -1490,66 +1482,29 @@ namespace Advobot
 			return input;
 		}
 
-		public static string FormatObject(dynamic obj, string typeName)
+		public static string FormatObject(IUser user)
 		{
-			if (CaseInsEquals(typeName, Constants.BASIC_TYPE_USER))
-			{
-				var user = obj as IGuildUser;
-				if (user == null)
-					return "Invalid user";
-				return FormatUser(user, user?.Id);
-			}
-			else if (CaseInsEquals(typeName, Constants.BASIC_TYPE_CHANNEL))
-			{
-				var channel = obj as IGuildChannel;
-				if (channel == null)
-					return "Invalid channel";
-				return FormatChannel(channel);
-			}
-			else if (CaseInsEquals(typeName, Constants.BASIC_TYPE_ROLE))
-			{
-				var role = obj as IRole;
-				if (role == null)
-					return "Invalid role";
-				return FormatRole(role);
-			}
-			else if (CaseInsEquals(typeName, Constants.BASIC_TYPE_GUILD))
-			{
-				var guild = obj as IGuild;
-				if (guild == null)
-					return "Invalid guild";
-				return FormatGuild(guild);
-			}
-			else
-			{
-				return "(FormatObject Error)";
-			}
+			return user.FormatUser();
 		}
 
-		public static string FormatGuild(IGuild guild)
+		public static string FormatObject(IGuildChannel channel)
 		{
-			return String.Format("'{0}' ({1})", guild.Name, guild.Id);
+			return channel.FormatChannel();
 		}
 
-		public static string FormatUser(IUser user, ulong? ID)
+		public static string FormatObject(IRole role)
 		{
-			user = user ?? Variables.Client.GetUser((ulong)ID);
-			if (user != null)
-			{
-				return String.Format("{0}#{1} ({2})", user.Username, user.Discriminator, user.Id);
-			}
-			else
-			{
-				return String.Format("Irretrievable User ({0})", ID);
-			}
+			return FormatRole(role);
 		}
 
-		public static string FormatChannel(IChannel channel)
+		public static string FormatObject(IGuild guild)
 		{
-			var tempChan = channel as IGuildChannel;
-			if (tempChan == null)
-				return "Unable to get channel data.";
-			return String.Format("{0} ({1}) ({2})", channel.Name, GetChannelType(tempChan), channel.Id);
+			return guild.FormatGuild();
+		}
+
+		public static string FormatObject(object obj)
+		{
+			return "FormatObject Error";
 		}
 
 		public static string FormatRole(IRole role)
@@ -1595,16 +1550,16 @@ namespace Advobot
 						var msgContent = String.IsNullOrWhiteSpace(x.Content) ? "" : "Message Content: " + x.Content;
 						var description = String.IsNullOrWhiteSpace(embed.Description) ? "" : "Embed Description: " + embed.Description;
 						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-							FormatUser(x.Author, x.Author.Id),
-							FormatChannel(x.Channel),
+							x.Author.FormatUser(),
+							x.Channel.FormatChannel(),
 							x.CreatedAt.ToString("HH:mm:ss"),
 							ReplaceMarkdownChars((String.IsNullOrEmpty(msgContent) ? msgContent : msgContent + "\n") + description)));
 					}
 					else
 					{
 						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-							FormatUser(x.Author, x.Author.Id),
-							FormatChannel(x.Channel),
+							x.Author.FormatUser(),
+							x.Channel.FormatChannel(),
 							x.CreatedAt.ToString("HH:mm:ss"),
 							"An embed which was unable to be gotten."));
 					}
@@ -1614,8 +1569,8 @@ namespace Advobot
 				{
 					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-						FormatUser(x.Author, x.Author.Id),
-						FormatChannel(x.Channel),
+						x.Author.FormatUser(),
+						x.Channel.FormatChannel(),
 						x.CreatedAt.ToString("HH:mm:ss"),
 						ReplaceMarkdownChars(content + " + " + x.Attachments.ToList().First().Filename)));
 				}
@@ -1624,8 +1579,8 @@ namespace Advobot
 				{
 					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
 					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-						FormatUser(x.Author, x.Author.Id),
-						FormatChannel(x.Channel),
+						x.Author.FormatUser(),
+						x.Channel.FormatChannel(),
 						x.CreatedAt.ToString("HH:mm:ss"),
 						ReplaceMarkdownChars(content)));
 				}
@@ -1883,7 +1838,7 @@ namespace Advobot
 					c,
 					objType,
 					GetPlural(c),
-					String.Join("`, `", success.Select(x => FormatObject(x, GetObjectStringBasic(x.GetType().Name)))));
+					String.Join("`, `", success.Select(x => FormatObject((dynamic)x))));
 			}
 			var failOutput = "";
 			if (failure.Any())
@@ -1901,7 +1856,7 @@ namespace Advobot
 
 		public static async Task HandleObjectGettingErrors<T>(ICommandContext context, ReturnedDiscordObject<T> returnedObject)
 		{
-			var objType = GetObjectStringBasic(typeof(T).Name);
+			var objType = GetObjectStringBasic((dynamic)returnedObject.Object);
 			switch (returnedObject.Reason)
 			{
 				case FailureReason.Not_Found:
@@ -1911,12 +1866,12 @@ namespace Advobot
 				}
 				case FailureReason.User_Inability:
 				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject(returnedObject.Object, objType))));
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object))));
 					break;
 				}
 				case FailureReason.Bot_Inability:
 				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject(returnedObject.Object, objType))));
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object))));
 					break;
 				}
 				case FailureReason.Too_Many:
@@ -2268,9 +2223,10 @@ namespace Advobot
 				//Image attachment
 				if (CaseInsContains(Constants.VALID_IMAGE_EXTENSIONS, Path.GetExtension(x)))
 				{
-					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
+					var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+					var embed = MakeNewEmbed(null, desc, Constants.ATCH, x);
 					AddFooter(embed, "Attached Image");
-					AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl(), x);
+					AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), x);
 					await SendEmbedMessage(channel, embed);
 
 					++Variables.LoggedImages;
@@ -2278,9 +2234,10 @@ namespace Advobot
 				//Gif attachment
 				else if (CaseInsContains(Constants.VALID_GIF_EXTENTIONS, Path.GetExtension(x)))
 				{
-					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
+					var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+					var embed = MakeNewEmbed(null, desc, Constants.ATCH, x);
 					AddFooter(embed, "Attached Gif");
-					AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl(), x);
+					AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), x);
 					await SendEmbedMessage(channel, embed);
 
 					++Variables.LoggedGifs;
@@ -2288,9 +2245,10 @@ namespace Advobot
 				//Random file attachment
 				else
 				{
-					var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
+					var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+					var embed = MakeNewEmbed(null, desc, Constants.ATCH, x);
 					AddFooter(embed, "Attached File");
-					AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl(), x);
+					AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), x);
 					await SendEmbedMessage(channel, embed);
 
 					++Variables.LoggedFiles;
@@ -2299,9 +2257,10 @@ namespace Advobot
 			//Embedded images
 			await embedURLs.Distinct().ToList().ForEachAsync(async x =>
 			{
-				var embed = MakeNewEmbed(null, null, Constants.ATCH, x);
+				var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+				var embed = MakeNewEmbed(null, desc, Constants.ATCH, x);
 				AddFooter(embed, "Embedded Image");
-				AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl(), x);
+				AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), x);
 				await SendEmbedMessage(channel, embed);
 
 				++Variables.LoggedImages;
@@ -2309,9 +2268,10 @@ namespace Advobot
 			//Embedded videos/gifs
 			await videoEmbeds.GroupBy(x => x.Url).Select(x => x.First()).ToList().ForEachAsync(async x =>
 			{
-				var embed = MakeNewEmbed(null, null, Constants.ATCH, x.Thumbnail.Value.Url);
+				var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+				var embed = MakeNewEmbed(null, desc, Constants.ATCH, x.Thumbnail.Value.Url);
 				AddFooter(embed, "Embedded " + (CaseInsContains(Constants.VALID_GIF_EXTENTIONS, Path.GetExtension(x.Thumbnail.Value.Url)) ? "Gif" : "Video"));
-				AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl(), x.Url);
+				AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), x.Url);
 				await SendEmbedMessage(channel, embed);
 
 				++Variables.LoggedGifs;
@@ -2324,75 +2284,61 @@ namespace Advobot
 			return await PermissionCheck(channel) ? channel : null;
 		}
 
-		public static bool VerifyMessageShouldBeLogged(IMessage message)
-		{
-			return !(message == null || message.Author.IsWebhook || (message.Author.IsBot && message.Author.Id != Variables.Bot_ID));
-		}
-
-		public static IGuild GetGuildFromMessage(IMessage message)
+		public static IGuild GetGuild(IMessage message)
 		{
 			//Check if the guild can be gotten from the message's channel or author
 			return message != null ? (message.Channel as IGuildChannel)?.Guild ?? (message.Author as IGuildUser)?.Guild : null;
 		}
 
-		public static IGuild GetGuildFromUser(IUser user)
+		public static IGuild GetGuild(IUser user)
 		{
 			return (user as IGuildUser)?.Guild;
 		}
 
-		public static IGuild GetGuildFromChannel(IChannel channel)
+		public static IGuild GetGuild(IChannel channel)
 		{
 			return (channel as IGuildChannel)?.Guild;
 		}
 
-		public static IGuild GetGuildFromRole(IRole role)
+		public static IGuild GetGuild(IRole role)
 		{
 			return role?.Guild;
 		}
 
-		public static IGuild VerifyLoggingIsEnabledOnThisChannel(IMessage message)
+		public static bool VerifyLoggingIsEnabledOnThisChannel(BotGuildInfo guildInfo, IMessage message)
 		{
-			var guild = GetGuildFromMessage(message);
-			//Check if the message was sent on an ignored channel. If not give back the guild, if so send back null.
-			return guild != null && Variables.Guilds.ContainsKey(guild.Id) && !Variables.Guilds[guild.Id].IgnoredLogChannels.Contains(message.Channel.Id) ? guild : null;
+			return !guildInfo.IgnoredLogChannels.Contains(message.Channel.Id);
 		}
 
-		public static IGuild VerifyLoggingAction(IGuild guild, LogActions logAction)
+		public static bool VerifyLoggingAction(BotGuildInfo guildInfo, LogActions logAction)
 		{
-			//If the guild is null send back null. If the logaction being tested isn't turned on send back null.
-			return guild != null && Variables.Guilds.ContainsKey(guild.Id) && Variables.Guilds[guild.Id].LogActions.Contains(logAction) ? guild : null;
+			return guildInfo.LogActions.Contains(logAction);
 		}
 
-		public static IGuild VerifyGuild(IMessage message, LogActions logAction)
+		public static bool VerifyLogging(BotGuildInfo guildInfo, IMessage message, LogActions logAction)
 		{
-			if (!VerifyMessageShouldBeLogged(message))
-				return null;
-			return VerifyUnpaused(VerifyLoggingAction(VerifyLoggingIsEnabledOnThisChannel(message), logAction));
+			var shouldBeLogged = VerifyMessageShouldBeLogged(message);
+			var loggingOnChannel = VerifyLoggingIsEnabledOnThisChannel(guildInfo, message);
+			var loggingAction = VerifyLoggingAction(guildInfo, logAction);
+			var unpaused = VerifyUnpaused();
+			return shouldBeLogged && loggingOnChannel && loggingAction && unpaused;
 		}
 
-		public static IGuild VerifyGuild(IUser user, LogActions logAction)
+		public static bool VerifyLogging(BotGuildInfo guildInfo, LogActions logAction)
 		{
-			return VerifyUnpaused(VerifyLoggingAction(GetGuildFromUser(user), logAction));
+			var loggingAction = VerifyLoggingAction(guildInfo, logAction);
+			var unpaused = VerifyUnpaused();
+			return loggingAction && unpaused;
 		}
 
-		public static IGuild VerifyGuild(IGuild guild, LogActions logAction)
+		public static bool VerifyUnpaused()
 		{
-			return VerifyUnpaused(VerifyLoggingAction(guild, logAction));
+			return Variables.Pause;
 		}
 
-		public static IGuild VerifyGuild(IGuildChannel channel, LogActions logAction)
+		public static bool VerifyMessageShouldBeLogged(IMessage message)
 		{
-			return VerifyUnpaused(VerifyLoggingAction(GetGuildFromChannel(channel), logAction));
-		}
-
-		public static IGuild VerifyGuild(IRole role, LogActions logAction)
-		{
-			return VerifyUnpaused(VerifyLoggingAction(GetGuildFromRole(role), logAction));
-		}
-
-		public static IGuild VerifyUnpaused(IGuild guild)
-		{
-			return Variables.Pause ? null : guild;
+			return !(message == null || message.Author.IsWebhook || (message.Author.IsBot && message.Author.Id != Variables.Bot_ID));
 		}
 		#endregion
 
@@ -2599,13 +2545,8 @@ namespace Advobot
 		#endregion
 
 		#region Slowmode/Banned Phrases/Spam Prevention
-		public static async Task Slowmode(IMessage message)
+		public static async Task Slowmode(BotGuildInfo guildInfo, IMessage message)
 		{
-			//Get the guild and its info
-			var guild = GetGuildFromMessage(message);
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
-
 			//Make a new SlowmodeUser
 			var smUser = new SlowmodeUser();
 
@@ -2680,23 +2621,14 @@ namespace Advobot
 			}
 		}
 
-		public static async Task BannedPhrases(IMessage message)
+		public static async Task BannedPhrases(BotGuildInfo guildInfo, IMessage message)
 		{
 			//TODO: Better bool here
 			if ((message.Author as IGuildUser).GuildPermissions.Administrator)
 				return;
 
-			//Get the guild
-			var guild = GetGuildFromMessage(message);
-			if (guild == null)
-				return;
-
-			//Get the guild's bot data
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
-			var bannedPhrases = guildInfo.BannedPhrases;
-
 			//Check if it has any banned words or regex
+			var bannedPhrases = guildInfo.BannedPhrases;
 			var phrase = bannedPhrases.Strings.FirstOrDefault(x => CaseInsIndexOf(message.Content, x.Phrase));
 			if (phrase != null)
 			{
@@ -2764,7 +2696,7 @@ namespace Advobot
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl()));
+						await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", user.FormatUser(), message.Channel), user.GetAvatarUrl()));
 					}
 					break;
 				}
@@ -2783,7 +2715,7 @@ namespace Advobot
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user, user.Id), user.GetAvatarUrl()));
+						await SendEmbedMessage(logChannel, AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl()));
 					}
 					break;
 				}
@@ -2804,7 +2736,7 @@ namespace Advobot
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**Role Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user, user.Id), user.GetAvatarUrl()));
+						await SendEmbedMessage(logChannel, AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl()));
 					}
 					break;
 				}
@@ -2871,7 +2803,7 @@ namespace Advobot
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", FormatUser(user, user.Id), message.Channel), user.GetAvatarUrl()));
+						await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", user.FormatUser(), message.Channel), user.GetAvatarUrl()));
 					}
 					break;
 				}
@@ -2889,7 +2821,7 @@ namespace Advobot
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user, user.Id), user.GetAvatarUrl()));
+						await SendEmbedMessage(logChannel, AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl()));
 					}
 					break;
 				}
@@ -2909,7 +2841,7 @@ namespace Advobot
 					if (logChannel != null)
 					{
 						var embed = AddFooter(MakeNewEmbed(null, "**Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, FormatUser(user, user.Id), user.GetAvatarUrl()));
+						await SendEmbedMessage(logChannel, AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl()));
 					}
 					break;
 				}
@@ -3105,7 +3037,7 @@ namespace Advobot
 			spUser.EnablePotentialKick();
 			//Send this message updating the amount of votes the user needs
 			await MakeAndDeleteSecondaryMessage(msg.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
-				FormatUser(msg.Author, msg.Author.Id), spUser.VotesRequired - spUser.VotesToKick));
+				msg.Author.FormatUser(), spUser.VotesRequired - spUser.VotesToKick));
 		}
 
 		public static async Task<bool> SpamCheck(GlobalSpamPrevention global, IGuild guild, IGuildUser author, IMessage msg)
@@ -3760,7 +3692,7 @@ namespace Advobot
 		#endregion
 	}
 
-	public static class ListModifications
+	public static class ExtendedMethods
 	{
 		public static async Task ForEachAsync<T>(this List<T> list, Func<T, Task> func)
 		{
@@ -3797,6 +3729,49 @@ namespace Advobot
 		public static List<T> GetUpToXElement<T>(this List<T> list, int x)
 		{
 			return list.GetRange(0, Math.Min(list.Count, x));
+		}
+
+		public static string FormatUser(this IUser user, ulong? userID = 0)
+		{
+			user = user ?? Variables.Client.GetUser((ulong)userID);
+			if (user != null)
+			{
+				return String.Format("'{0}#{1}' ({2})", user.Username, user.Discriminator, user.Id);
+			}
+			else
+			{
+				return String.Format("Irretrievable User ({0})", userID);
+			}
+		}
+
+		public static string FormatRole(this IRole role)
+		{
+			return "";
+		}
+
+		public static string FormatChannel(this IChannel channel)
+		{
+			if (channel != null)
+			{
+				return String.Format("'{0}' ({1}) ({2})", channel.Name, Actions.GetChannelType(channel), channel.Id);
+			}
+			else
+			{
+				return "Irretrievable Channel";
+			}
+		}
+
+		public static string FormatGuild(this IGuild guild, ulong? guildID = 0)
+		{
+			guild = guild ?? Variables.Client.GetGuild((ulong)guildID);
+			if (guild != null)
+			{
+				return String.Format("'{0}' ({1})", guild.Name, guild.Id);
+			}
+			else
+			{
+				return String.Format("Irretrievable Guild ({0})", guildID); 
+			}
 		}
 	}
 }

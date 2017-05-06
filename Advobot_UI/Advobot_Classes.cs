@@ -1521,7 +1521,6 @@ namespace Advobot
 		MessageReceived = 7,
 		MessageUpdated = 8,
 		MessageDeleted = 9,
-		CommandLog = 16,
 	}
 
 	public enum CommandCategory

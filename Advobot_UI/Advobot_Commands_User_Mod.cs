@@ -118,13 +118,13 @@ namespace Advobot
 				
 				//Mute the user
 				await user.ModifyAsync(x => x.Mute = true);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully muted `{0}`{1}.", Actions.FormatUser(user, user?.Id), timeString));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully muted `{0}`{1}.", user.FormatUser(), timeString));
 			}
 			else
 			{
 				//Unmute the user
 				await user.ModifyAsync(x => x.Mute = false);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unmuted `{0}`.", Actions.FormatUser(user, user?.Id)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unmuted `{0}`.", user.FormatUser()));
 			}
 		}
 
@@ -170,13 +170,13 @@ namespace Advobot
 
 				//Deafen them
 				await user.ModifyAsync(x => x.Deaf = true);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deafened `{0}`{1}.", Actions.FormatUser(user, user?.Id), timeStr));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deafened `{0}`{1}.", user.FormatUser(), timeStr));
 			}
 			else
 			{
 				//Undeafen them
 				await user.ModifyAsync(x => x.Deaf = false);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully undeafened `{0}`.", Actions.FormatUser(user, user?.Id)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully undeafened `{0}`.", user.FormatUser()));
 			}
 		}
 
@@ -276,7 +276,7 @@ namespace Advobot
 			});
 
 			//Send a success message
-			var text = String.Format("Successfully moved `{0}` from `{1}` to `{2}`.", users.Count, Actions.FormatChannel(inputChannel), Actions.FormatChannel(outputChannel));
+			var text = String.Format("Successfully moved `{0}` from `{1}` to `{2}`.", users.Count, inputChannel.FormatChannel(), outputChannel.FormatChannel());
 			await Actions.MakeAndDeleteSecondaryMessage(Context, text);
 		}
 
@@ -457,7 +457,7 @@ namespace Advobot
 				//Format the description and send it
 				var count = 1;
 				var length = users.Count.ToString().Length;
-				var desc = String.Join("\n", users.Select(x => String.Format("`{0}.` `{1}`", count++.ToString().PadLeft(length, '0'), Actions.FormatUser(x, x?.Id))));
+				var desc = String.Join("\n", users.Select(x => String.Format("`{0}.` `{1}`", count++.ToString().PadLeft(length, '0'), x.FormatUser())));
 				var embed = Actions.MakeNewEmbed("Invalid Name Users", desc);
 				await Actions.SendEmbedMessage(Context.Channel, embed);
 				return;
@@ -662,7 +662,7 @@ namespace Advobot
 				//Return a message saying if there are multiple users
 				if (users.Count > 1)
 				{
-					var msg = String.Join("`, `", users.Select(x => Actions.FormatUser(x.User, x.User?.Id)));
+					var msg = String.Join("`, `", users.Select(x => user.FormatUser()));
 					await Actions.SendChannelMessage(Context, String.Format("The following users have that name: `{0}`.", msg));
 					return;
 				}
@@ -683,7 +683,7 @@ namespace Advobot
 			}
 
 			await Context.Guild.RemoveBanAsync(user);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unbanned the user `{0}`", Actions.FormatUser(user, user?.Id)));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unbanned the user `{0}`", user.FormatUser()));
 		}
 
 		[Command("kick")]
@@ -722,7 +722,7 @@ namespace Advobot
 			var lengthForCount = bans.Count.ToString().Length;
 			var description = String.Join("\n", bans.Select(x =>
 			{
-				return String.Format("`{0}.` `{1}`", count++.ToString().PadLeft(lengthForCount, '0'), Actions.FormatUser(x.User, x.User?.Id));
+				return String.Format("`{0}.` `{1}`", count++.ToString().PadLeft(lengthForCount, '0'), x.User.FormatUser());
 			}));
 
 			if (String.IsNullOrWhiteSpace(description))
@@ -801,8 +801,8 @@ namespace Advobot
 					await Actions.SendChannelMessage(channel, String.Format("Hey, @here, {0} is trying to delete stuff.", Context.User.Mention));
 
 					//DM the owner of the server
-					await Actions.SendDMMessage(await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync(),
-						String.Format("`{0}` is trying to delete stuff from the server/mod log.", Actions.FormatUser(Context.User, Context.User?.Id)));
+					var DMChannel = await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync();
+					await Actions.SendDMMessage(DMChannel, String.Format("`{0}` is trying to delete stuff from the server/mod log.", Context.User.FormatUser()));
 					return;
 				}
 			}
@@ -832,8 +832,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` {1}{2}{3}.",
 				requestCount,
 				requestCount != 1 ? "messages" : "message",
-				user == null ? "" : String.Format(" from `{0}`", Actions.FormatUser(user, user?.Id)),
-				channel == null ? "" : String.Format(" on `{0}`", Actions.FormatChannel(channel))));
+				user == null ? "" : String.Format(" from `{0}`", user.FormatUser()),
+				channel == null ? "" : String.Format(" on `{0}`", channel.FormatChannel())));
 		}
 
 		[Command("slowmode")]
@@ -994,7 +994,7 @@ namespace Advobot
 
 			//Send a success message
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled slowmode on `{0}` with a message limit of `{1}` and time interval of `{2}` seconds.{3}",
-				!String.IsNullOrWhiteSpace(targetStr) ? Actions.FormatChannel(Context.Channel) : Actions.FormatGuild(Context.Guild),
+				!String.IsNullOrWhiteSpace(targetStr) ? Context.Channel.FormatChannel() : Context.Guild.FormatGuild(),
 				msgsLimit,
 				timeLimit,
 				roleNames.Any() ? String.Format("\nImmune roles: `{0}`.", String.Join("`, `", roleNames)) : ""));

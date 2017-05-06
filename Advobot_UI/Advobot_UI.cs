@@ -891,7 +891,7 @@ namespace Advobot
 				var botOwner = Actions.GetBotOwner(Variables.Client);
 				if (botOwner != null)
 				{
-					Actions.WriteLine(String.Format("The current bot owner is: '{0}'", Actions.FormatUser(botOwner, botOwner?.Id)));
+					Actions.WriteLine(String.Format("The current bot owner is: '{0}'", botOwner.FormatUser()));
 				}
 				else
 				{
@@ -912,7 +912,7 @@ namespace Advobot
 			{
 				//Get the bot owner
 				var botOwner = Actions.GetBotOwner(Variables.Client);
-				Actions.WriteLine(String.Format("There is already a bot owner: '{0}'.", Actions.FormatUser(botOwner, botOwner?.Id)));
+				Actions.WriteLine(String.Format("There is already a bot owner: '{0}'.", botOwner.FormatUser()));
 				return;
 			}
 
@@ -934,7 +934,7 @@ namespace Advobot
 
 			Properties.Settings.Default.BotOwner = user.Id;
 			Properties.Settings.Default.Save();
-			Actions.WriteLine(String.Format("Successfully made '{0}' the new bot owner.", Actions.FormatUser(user, user?.Id)));
+			Actions.WriteLine(String.Format("Successfully made '{0}' the new bot owner.", user.FormatUser()));
 		}
 
 		public static void UIGlobalSettings(string input)
@@ -1179,7 +1179,7 @@ namespace Advobot
 			int count = 1;
 			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x =>
 			{
-				return String.Format("{0}. {1} Owner: {2}", count++.ToString("00"), Actions.FormatGuild(x), Actions.FormatUser(x.Owner, x.OwnerId));
+				return String.Format("{0}. {1} Owner: {2}", count++.ToString("00"), x.FormatGuild(), x.Owner.FormatUser());
 			});
 
 			//Get the URL

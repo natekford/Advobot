@@ -77,7 +77,7 @@ namespace Advobot
 
 			if (channel != null)
 			{
-				await Actions.SendChannelMessage(Context, String.Format("The {0} log has been set on `{1}`.", typeStr, Actions.FormatChannel(channel)));
+				await Actions.SendChannelMessage(Context, String.Format("The {0} log has been set on `{1}`.", typeStr, channel.FormatChannel()));
 			}
 			else
 			{
@@ -164,7 +164,7 @@ namespace Advobot
 				alreadyActionOutput += String.Format("The following channel{0} were already {1}: `{2}`. ",
 					Actions.GetPlural(alreadyAction.Count),
 					pastTense,
-					String.Join("`, `", alreadyAction.Select(x => Actions.FormatChannel(x))));
+					String.Join("`, `", alreadyAction.Select(x => x.FormatChannel())));
 			}
 
 			//Save everything and send a success message

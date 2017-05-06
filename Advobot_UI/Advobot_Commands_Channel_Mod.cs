@@ -55,7 +55,7 @@ namespace Advobot
 
 			//Get the channel
 			var channel = Actions.CaseInsEquals(type, Constants.TEXT_TYPE) ? await Context.Guild.CreateTextChannelAsync(name) as IGuildChannel : await Context.Guild.CreateVoiceChannelAsync(name);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created `{0}`.", Actions.FormatChannel(channel)));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created `{0}`.", channel.FormatChannel()));
 		}
 
 		[Command("channelsoftdelete")]
@@ -145,7 +145,7 @@ namespace Advobot
 			}
 
 			await channel.DeleteAsync();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}`.", Actions.FormatChannel(channel)));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}`.", channel.FormatChannel()));
 		}
 
 		[Command("channelposition")]
@@ -171,7 +171,7 @@ namespace Advobot
 			//Argument count checking
 			if (inputArray.Length != 2)
 			{
-				await Actions.SendChannelMessage(Context, String.Format("`{0}` has a position of `{1}`.", Actions.FormatChannel(channel), channel.Position));
+				await Actions.SendChannelMessage(Context, String.Format("`{0}` has a position of `{1}`.", channel.FormatChannel(), channel.Position));
 				return;
 			}
 
@@ -188,7 +188,7 @@ namespace Advobot
 
 			//Modify the channel's position
 			await Actions.ModifyChannelPosition(channel, position);
-			await Actions.SendChannelMessage(Context, String.Format("Successfully moved `{0}` to position `{1}`.", Actions.FormatChannel(channel), channel.Position));
+			await Actions.SendChannelMessage(Context, String.Format("Successfully moved `{0}` to position `{1}`.", channel.FormatChannel(), channel.Position));
 		}
 
 		[Command("channelpositions")]
@@ -337,7 +337,7 @@ namespace Advobot
 						});
 
 						//Make an embed saying the overwrites
-						var embed = Actions.MakeNewEmbed(Actions.FormatChannel(channel));
+						var embed = Actions.MakeNewEmbed(channel.FormatChannel());
 						Actions.AddField(embed, "Role", roleOverwrites.Any() ? String.Join("\n", roleOverwrites) : "None");
 						Actions.AddField(embed, "User", userOverwrites.Any() ? String.Join("\n", userOverwrites) : "None");
 						await Actions.SendEmbedMessage(Context.Channel, embed);
@@ -347,7 +347,7 @@ namespace Advobot
 					//Check to see if there are any overwrites
 					if (!channel.PermissionOverwrites.Any())
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Unable to show permissions for `{0}` on `{1}`.", targStr, Actions.FormatChannel(channel))));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Unable to show permissions for `{0}` on `{1}`.", targStr, channel.FormatChannel())));
 						return;
 					}
 
@@ -357,17 +357,17 @@ namespace Advobot
 						if (role != null && overwrite.TargetId.Equals(role.Id))
 						{
 							//Embed showing the perm overwrites on a role
-							var embed = Actions.MakeNewEmbed(title: String.Format("{0} on {1}", role.Name, Actions.FormatChannel(channel)));
-							Actions.AddField(embed, "Permission", String.Join("\n", Actions.GetPerms(overwrite, channel).Keys));
-							Actions.AddField(embed, "Value", String.Join("\n", Actions.GetPerms(overwrite, channel).Values));
+							var embed = Actions.MakeNewEmbed(title: String.Format("{0} on {1}", role.FormatRole(), channel.FormatChannel()));
+							Actions.AddField(embed, "Permission", String.Join("\n", Actions.GetFilteredChannelOverwritePermissions(overwrite, channel).Keys));
+							Actions.AddField(embed, "Value", String.Join("\n", Actions.GetFilteredChannelOverwritePermissions(overwrite, channel).Values));
 							await Actions.SendEmbedMessage(Context.Channel, embed);
 						}
 						else if (user != null && overwrite.TargetId.Equals(user.Id))
 						{
 							//Embed showing the perm overwrites on a user
-							var embed = Actions.MakeNewEmbed(title: String.Format("{0}#{1} on {2}", user.Username, user.Discriminator, Actions.FormatChannel(channel)));
-							Actions.AddField(embed, "Permission", String.Join("\n", Actions.GetPerms(overwrite, channel).Keys));
-							Actions.AddField(embed, "Value", String.Join("\n", Actions.GetPerms(overwrite, channel).Values));
+							var embed = Actions.MakeNewEmbed(title: String.Format("{0} on {2}", user.FormatUser(), channel.FormatChannel()));
+							Actions.AddField(embed, "Permission", String.Join("\n", Actions.GetFilteredChannelOverwritePermissions(overwrite, channel).Keys));
+							Actions.AddField(embed, "Value", String.Join("\n", Actions.GetFilteredChannelOverwritePermissions(overwrite, channel).Values));
 							await Actions.SendEmbedMessage(Context.Channel, embed);
 						}
 					});
@@ -457,11 +457,11 @@ namespace Advobot
 			else
 			{
 				await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits));
-				roleNameOrUsername = Actions.FormatUser(user, user?.Id);
+				roleNameOrUsername = user.FormatUser();
 			}
 
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}` on `{3}`",
-				actionStr, String.Join("`, `", permissions), roleNameOrUsername, Actions.FormatChannel(channel)));
+				actionStr, String.Join("`, `", permissions), roleNameOrUsername, channel.FormatChannel()));
 		}
 
 		[Command("channelpermscopy")]
@@ -576,8 +576,8 @@ namespace Advobot
 
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully copied `{0}` from `{1}` to `{2}`",
 				targetStr,
-				Actions.FormatChannel(inputChannel),
-				Actions.FormatChannel(outputChannel)));
+				inputChannel.FormatChannel(),
+				outputChannel.FormatChannel()));
 		}
 
 		[Command("channelpermsclear")]
@@ -616,7 +616,7 @@ namespace Advobot
 					await channel.RemovePermissionOverwriteAsync(await Context.Guild.GetUserAsync(x.TargetId));
 				}
 			});
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all channel permissions from `{0}`.", Actions.FormatChannel(channel)));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all channel permissions from `{0}`.", channel.FormatChannel()));
 		}
 
 		[Command("channelname")]
@@ -753,12 +753,13 @@ namespace Advobot
 			{
 				currentTopic = "NOTHING";
 			}
+			if (String.IsNullOrWhiteSpace(newTopic))
+			{
+				newTopic = "NOTHING";
+			}
 
 			await tc.ModifyAsync(x => x.Topic = newTopic);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the topic in `{0}` from `{1}` to `{2}`.",
-				Actions.FormatChannel(tc),
-				currentTopic,
-				String.IsNullOrWhiteSpace(newTopic) ? "NOTHING" : newTopic));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the topic in `{0}` from `{1}` to `{2}`.", tc.FormatChannel(), currentTopic, newTopic));
 		}
 
 		[Command("channellimit")]
@@ -807,7 +808,7 @@ namespace Advobot
 
 			//Change it and send a success message
 			await vc.ModifyAsync(x => x.UserLimit = limit);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}`.", Actions.FormatChannel(vc), limit));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}`.", vc.FormatChannel(), limit));
 		}
 
 		[Command("channelbitrate")]
@@ -867,7 +868,7 @@ namespace Advobot
 
 			//Change it and send a success message
 			await vc.ModifyAsync(x => x.Bitrate = bitRate * 1000);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}kbps`.", Actions.FormatChannel(vc), bitRate));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}kbps`.", vc.FormatChannel(), bitRate));
 		}
 	}
 }

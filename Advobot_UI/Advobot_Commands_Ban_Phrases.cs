@@ -561,16 +561,14 @@ namespace Advobot
 				bpUser.ResetRoleCount();
 				bpUser.ResetKickCount();
 				bpUser.ResetBanCount();
-				var outputStr = Actions.FormatUser(user, user?.Id);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the infractions for `{0}` to 0.", outputStr));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the infractions for `{0}` to 0.", user.FormatUser()));
 			}
 			if (Actions.CaseInsEquals(actionStr, "current"))
 			{
 				var roleCount = bpUser?.MessagesForRole ?? 0;
 				var kickCount = bpUser?.MessagesForKick ?? 0;
 				var banCount = bpUser?.MessagesForBan ?? 0;
-				var outputStr = Actions.FormatUser(user, user?.Id);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}` has `{1}R/{2}K/{3}B` infractions.", outputStr, roleCount, kickCount, banCount));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}` has `{1}R/{2}K/{3}B` infractions.", user.FormatUser(), roleCount, kickCount, banCount));
 			}
 			else
 			{

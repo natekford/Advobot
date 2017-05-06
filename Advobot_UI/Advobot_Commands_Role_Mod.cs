@@ -66,7 +66,7 @@ namespace Advobot
 				//Give the role and make a message
 				await Actions.GiveRole(user, role);
 				await Actions.MakeAndDeleteSecondaryMessage(Context,
-					String.Format("Successfully gave the role `{0}` to `{1}`.", role, Actions.FormatUser(user, user?.Id)));
+					String.Format("Successfully gave the role `{0}` to `{1}`.", role, user.FormatUser()));
 			}
 			else
 			{
@@ -92,15 +92,16 @@ namespace Advobot
 				var succOutput = "";
 				if (succ)
 				{
-					succOutput = String.Format("Successfully gave the role{1} `{0}` from `{2}`",
-						String.Join(", ", roles.Select(x => x.Name)),
-						Actions.GetPlural(roles.Count),
-						Actions.FormatUser(user, user?.Id));
+					succOutput = String.Format("Successfully gave the role{0} `{1}` to `{2}`", Actions.GetPlural(roles.Count), String.Join(", ", roles.Select(x => x.Name)), user.FormatUser());
 				}
-				var and = ".";
+				var and = "";
 				if (succ && fail)
 				{
 					and = ", and ";
+				}
+				else if (succ)
+				{
+					and = ".";
 				}
 				var failOutput = "";
 				if (fail)
@@ -109,7 +110,7 @@ namespace Advobot
 						succ ? "F" : "f",
 						String.Join(", ", failedRoles),
 						Actions.GetPlural(failedRoles.Count),
-						succ ? String.Format(" from `{0}#{1}`", Actions.FormatUser(user, user?.Id)) : "");
+						succ ? String.Format(" from `{0}`", user.FormatUser()) : "");
 				}
 
 				await Actions.GiveRoles(user, roles);
@@ -158,7 +159,7 @@ namespace Advobot
 				var role = returnedRole.Object;
 
 				await Actions.TakeRole(user, role);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully took `{0}` from `{1}`.", role, Actions.FormatUser(user, user?.Id)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully took `{0}` from `{1}`.", role, user.FormatUser()));
 			}
 			else
 			{

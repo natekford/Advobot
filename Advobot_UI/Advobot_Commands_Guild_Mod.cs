@@ -119,8 +119,7 @@ namespace Advobot
 
 				var bChan = Context.Guild.AFKChannelId.HasValue ? (await Context.Guild.GetChannelAsync(Context.Guild.AFKChannelId.Value)) : null;
 				await Context.Guild.ModifyAsync(x => x.AfkChannelId = channel.Id);
-				await Actions.MakeAndDeleteSecondaryMessage(Context,
-					String.Format("Successfully changed the guild's AFK channel from `{0}` to `{1}`", Actions.FormatChannel(bChan), Actions.FormatChannel(channel)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild's AFK channel from `{0}` to `{1}`", bChan.FormatChannel(), channel.FormatChannel()));
 			}
 			else if (!String.IsNullOrWhiteSpace(timeStr))
 			{
@@ -286,7 +285,7 @@ namespace Advobot
 			//Check if the bot's not the owner of the guild
 			else if (owner.Id != Variables.Bot_ID)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bot is not the owner of the guild. The owner is: `{0}`.", Actions.FormatUser(owner, owner?.Id))));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bot is not the owner of the guild. The owner is: `{0}`.", owner.FormatUser())));
 				return;
 			}
 

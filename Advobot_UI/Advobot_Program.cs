@@ -74,8 +74,8 @@ namespace Advobot
 			}
 
 			//Add in the dependency map
-			var map = ConfigureServices(client);
-			await new Command_Handler().Install(map);
+			var provider = ConfigureServices(client);
+			await new Command_Handler().Install(provider);
 
 			//Block this program until it is closed.
 			await Task.Delay(-1);
@@ -84,8 +84,7 @@ namespace Advobot
 		private IServiceProvider ConfigureServices(BotClient client)
 		{
 			var services = new ServiceCollection().AddSingleton(client).AddSingleton(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false }));
-			var provider = new DefaultServiceProviderFactory().CreateServiceProvider(services);
-			return provider;
+			return new DefaultServiceProviderFactory().CreateServiceProvider(services);
 		}
 
 		private static DiscordShardedClient CreateShardedClient()

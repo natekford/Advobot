@@ -27,7 +27,7 @@ namespace Advobot
 				var user = Actions.GetBotOwner(Variables.Client);
 				if (user != null)
 				{
-					await Actions.SendChannelMessage(Context, String.Format("The current bot owner is: `{0}`", Actions.FormatUser(user, user?.Id)));
+					await Actions.SendChannelMessage(Context, String.Format("The current bot owner is: `{0}`", user.FormatUser()));
 				}
 				else
 				{
@@ -65,7 +65,7 @@ namespace Advobot
 			{
 				//Get the bot owner
 				var user = Actions.GetBotOwner(Variables.Client);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("There is already a bot owner: `{0}`.", Actions.FormatUser(user, user?.Id)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("There is already a bot owner: `{0}`.", user.FormatUser()));
 				return;
 			}
 
@@ -411,12 +411,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ListGuilds()
 		{
-			//Go through each guild and add them to the list
 			var count = 1;
-			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("`{0}.` `{1}` Owner: `{2}`",
-				count++.ToString("00"), Actions.FormatGuild(x), Actions.FormatUser(x.Owner, x.Owner?.Id)));
-
-			//Make an embed and put the link to the hastebin in it
+			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("`{0}.` `{1}` Owner: `{2}`", count++.ToString("00"), x.FormatGuild(), x.Owner.FormatUser()));
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guilds", String.Join("\n", guildStrings)));
 		}
 		#endregion

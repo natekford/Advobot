@@ -21,7 +21,7 @@ namespace Advobot
 
 		public static Task OnGuildAvailable(SocketGuild guild)
 		{
-			Actions.WriteLine(String.Format("{0}: {1} is now online on shard {2}.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild), Variables.Client.GetShardFor(guild).ShardId));
+			Actions.WriteLine(String.Format("{0}: {1} is now online on shard {2}.", MethodBase.GetCurrentMethod().Name, guild.FormatGuild(), Variables.Client.GetShardFor(guild).ShardId));
 			Variables.TotalUsers += guild.MemberCount;
 			Variables.TotalGuilds++;
 
@@ -42,7 +42,7 @@ namespace Advobot
 
 		public static Task OnGuildUnavailable(SocketGuild guild)
 		{
-			Actions.WriteLine(String.Format("{0}: Guild is now offline {1}.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild)));
+			Actions.WriteLine(String.Format("{0}: Guild is now offline {1}.", MethodBase.GetCurrentMethod().Name, guild.FormatGuild()));
 
 			Variables.TotalUsers -= (guild.MemberCount + 1);
 			if (Variables.TotalUsers < 0)
@@ -56,7 +56,7 @@ namespace Advobot
 
 		public static Task OnJoinedGuild(SocketGuild guild)
 		{
-			Actions.WriteLine(String.Format("{0}: Bot has joined {1}.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild)));
+			Actions.WriteLine(String.Format("{0}: Bot has joined {1}.", MethodBase.GetCurrentMethod().Name, guild.FormatGuild()));
 
 			//Check how many bots are in the guild
 			int botCount = 0;
@@ -68,33 +68,28 @@ namespace Advobot
 				}
 			});
 
-			//Get the number of users in the guild
-			var users = guild.MemberCount;
 			//Determine what percentage of bot users to leave at
+			var users = guild.MemberCount;
 			double percentage;
-			if (users <= 10)
+			if (users <= 8)
 			{
-				//Allows up to 7 bots
 				percentage = .7;
 			}
 			else if (users <= 25)
 			{
-				//Allows up to 12 bots
 				percentage = .5;
 			}
-			else if (users <= 50)
+			else if (users <= 40)
 			{
-				//Allows up to 17 bots
-				percentage = .3;
+				percentage = .4;
 			}
-			else if (users <= 100)
+			else if (users <= 120)
 			{
-				//Allows up to 25 bots
-				percentage = .25;
+				percentage = .3;
 			}
 			else
 			{
-				percentage = .15;
+				percentage = .2;
 			}
 
 			//Leave if too many bots
@@ -109,19 +104,20 @@ namespace Advobot
 			//Warn if at the maximum
 			var guilds = Variables.Client.GetGuilds().Count;
 			var shards = Variables.Client.GetShards().Count;
-			if (guilds + 100 >= shards * 2500)
+			var curMax = shards * 2500;
+			if (guilds + 100 >= curMax)
 			{
-				Actions.WriteLine(String.Format("The bot currently has {0} out of {1} possible spots for servers filled. Please increase the shard count.", guilds, shards * 2500));
+				Actions.WriteLine(String.Format("The bot currently has {0} out of {1} possible spots for servers filled. Please increase the shard count.", guilds, curMax));
 			}
 			//Leave the guild
-			if (guilds > shards * 2500)
+			if (guilds > curMax)
 			{
 				Task.Run(async () =>
 				{
 					await guild.LeaveAsync();
 				});
 				//Send a message to the console
-				Actions.WriteLine(String.Format("Left the guild {0} due to having too many guilds on the client and not enough shards.", Actions.FormatGuild(guild)));
+				Actions.WriteLine(String.Format("Left the guild {0} due to having too many guilds on the client and not enough shards.", guild.FormatGuild()));
 			}
 
 			return Task.CompletedTask;
@@ -129,7 +125,7 @@ namespace Advobot
 
 		public static Task OnLeftGuild(SocketGuild guild)
 		{
-			Actions.WriteLine(String.Format("{0}: Bot has left {1}.", MethodBase.GetCurrentMethod().Name, Actions.FormatGuild(guild)));
+			Actions.WriteLine(String.Format("{0}: Bot has left {1}.", MethodBase.GetCurrentMethod().Name, guild.FormatGuild()));
 
 			Variables.TotalUsers -= (guild.MemberCount + 1);
 			Variables.TotalGuilds--;
@@ -144,17 +140,17 @@ namespace Advobot
 		{
 			++Variables.TotalUsers;
 
-			if (!Variables.Guilds.TryGetValue(user.Guild.Id, out BotGuildInfo guildInfo))
-				return;
-			var guild = Actions.VerifyGuild(user, LogActions.UserJoined);
+			var guild = user.Guild;
 			if (guild == null)
+				return;
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo) || !Actions.VerifyLogging(guildInfo, LogActions.UserJoined))
 				return;
 			var serverLog = guildInfo.ServerLog;
 			if (serverLog == null)
 				return;
 
 			//Slowmode
-			if (guildInfo.SlowmodeGuild != null || (await guild.GetTextChannelsAsync()).Select(x => x.Id).Intersect(guildInfo.SlowmodeChannels.Select(x => x.ChannelID)).Any())
+			if (guildInfo.SlowmodeGuild != null || guild.TextChannels.Select(x => x.Id).Intersect(guildInfo.SlowmodeChannels.Select(x => x.ChannelID)).Any())
 			{
 				await Actions.AddSlowmodeUser(guildInfo, user);
 			}
@@ -190,14 +186,14 @@ namespace Advobot
 			{
 				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteString, ageWarningString), Constants.JOIN);
 				Actions.AddFooter(embed, "Bot Joined");
-				Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl());
+				Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
 			}
 			else
 			{
 				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteString, ageWarningString), Constants.JOIN);
 				Actions.AddFooter(embed, "User Joined");
-				Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl());
+				Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
 			}
 
@@ -208,10 +204,10 @@ namespace Advobot
 		{
 			--Variables.TotalUsers;
 
-			var guild = Actions.VerifyGuild(user, LogActions.UserLeft);
+			var guild = Actions.GetGuild(user);
 			if (guild == null)
 				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo) || !Actions.VerifyLogging(guildInfo, LogActions.UserLeft))
 				return;
 			var serverLog = guildInfo.ServerLog;
 			if (serverLog == null)
@@ -237,14 +233,14 @@ namespace Advobot
 			{
 				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
 				Actions.AddFooter(embed, "Bot Left");
-				Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl());
+				Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
 			}
 			else
 			{
 				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
 				Actions.AddFooter(embed, "User Left");
-				Actions.AddAuthor(embed, Actions.FormatUser(user, user?.Id), user.GetAvatarUrl());
+				Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
 			}
 
@@ -261,10 +257,10 @@ namespace Advobot
 			{
 				await Variables.Client.GetGuilds().Where(x => x.Users.Contains(afterUser)).ToList().ForEachAsync(async inputGuild =>
 				{
-					var guild = Actions.VerifyGuild(inputGuild, LogActions.UserUpdated);
-					if (guild == null)
+					if (!Variables.Guilds.TryGetValue(inputGuild.Id, out BotGuildInfo guildInfo) || !Actions.VerifyLogging(guildInfo, LogActions.UserUpdated))
 						return;
-					if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+					var guild = guildInfo.Guild;
+					if (guild == null)
 						return;
 					var serverLog = guildInfo.ServerLog;
 					if (serverLog == null)
@@ -274,7 +270,7 @@ namespace Advobot
 					Actions.AddFooter(embed, "Name Changed");
 					Actions.AddField(embed, "Before:", "`" + beforeUser.Username + "`");
 					Actions.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
-					Actions.AddAuthor(embed, Actions.FormatUser(afterUser, afterUser?.Id), afterUser.GetAvatarUrl());
+					Actions.AddAuthor(embed, afterUser.FormatUser(), afterUser.GetAvatarUrl());
 					await Actions.SendEmbedMessage(serverLog, embed);
 
 					++Variables.LoggedUserChanges;
@@ -284,18 +280,17 @@ namespace Advobot
 
 		public static async Task OnMessageReceived(SocketMessage message)
 		{
-			var guild = Actions.GetGuildFromMessage(message);
+			var guild = Actions.GetGuild(message);
 			if (guild == null)
 			{
 				//Check if the user is trying to become the bot owner by DMing the bot is key
 				await Message_Received_Actions.BotOwner(message);
-				return;
 			}
-			else if (!Actions.VerifyMessageShouldBeLogged(message))
-				return;
-
-			if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+			else if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 			{
+				if (!Actions.VerifyMessageShouldBeLogged(message))
+					return;
+
 				if (!guildInfo.IgnoredCommandChannels.Contains(message.Channel.Id))
 				{
 					await Message_Received_Actions.ModifyPreferences(guildInfo, guild, message);
@@ -313,44 +308,45 @@ namespace Advobot
 		
 		public static async Task OnMessageUpdated(Cacheable<IMessage, ulong> beforeMessage, SocketMessage afterMessage, ISocketMessageChannel channel)
 		{
-			//Get the before message's value
 			var beforeMessageValue = beforeMessage.HasValue ? beforeMessage.Value : null;
-			//Check if the updated message has any banned phrases and should be deleted
-			await Actions.BannedPhrases(afterMessage);
-
-			var guild = Actions.VerifyGuild(afterMessage, LogActions.MessageUpdated);
+			var guild = Actions.GetGuild(channel);
 			if (guild == null)
 				return;
 			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+				return;
+			await Actions.BannedPhrases(guildInfo, afterMessage);
+			if (!Actions.VerifyLogging(guildInfo, afterMessage, LogActions.MessageUpdated))
 				return;
 			var serverLog = guildInfo.ServerLog;
 			if (serverLog == null)
 				return;
 
 			//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
-			if (!beforeMessage.HasValue || beforeMessageValue.Embeds.Count() < afterMessage.Embeds.Count())
+			if (beforeMessageValue?.Embeds.Count() < afterMessage.Embeds.Count())
+			{
 				await Message_Received_Actions.ImageLog(guildInfo, serverLog, afterMessage);
-			
+			}
+
 			var beforeMsgContent = Actions.ReplaceMarkdownChars(beforeMessageValue?.Content ?? "");
 			var afterMsgContent = Actions.ReplaceMarkdownChars(afterMessage.Content);
 			beforeMsgContent = String.IsNullOrWhiteSpace(beforeMsgContent) ? "Empty or unable to be gotten." : beforeMsgContent;
 			afterMsgContent = String.IsNullOrWhiteSpace(afterMsgContent) ? "Empty or unable to be gotten." : afterMsgContent;
 
 			if (beforeMsgContent.Equals(afterMsgContent))
+			{
 				return;
-			if (beforeMsgContent.Length + afterMsgContent.Length > Constants.MAX_MESSAGE_LENGTH_LONG)
+			}
+			else if (beforeMsgContent.Length + afterMsgContent.Length > Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
 				beforeMsgContent = beforeMsgContent.Length > 667 ? "LONG MESSAGE" : beforeMsgContent;
 				afterMsgContent = afterMsgContent.Length > 667 ? "LONG MESSAGE" : afterMsgContent;
 			}
 
-			var user = afterMessage.Author;
-
 			var embed = Actions.MakeNewEmbed(null, null, Constants.MEDT);
 			Actions.AddFooter(embed, "Message Updated");
-			Actions.AddField(embed, "Before:", "`" + beforeMsgContent + "`");
-			Actions.AddField(embed, "After:", "`" + afterMsgContent + "`", false);
-			Actions.AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user, user?.Id), afterMessage.Channel), user.GetAvatarUrl());
+			Actions.AddField(embed, "Before:", String.Format("`{0}`", beforeMsgContent));
+			Actions.AddField(embed, "After:", String.Format("`{0}`", afterMsgContent), false);
+			Actions.AddAuthor(embed, String.Format("{0} in #{1}", afterMessage.Author.FormatUser(), afterMessage.Channel), afterMessage.Author.GetAvatarUrl());
 			await Actions.SendEmbedMessage(serverLog, embed);
 
 			++Variables.LoggedEdits;
@@ -358,13 +354,11 @@ namespace Advobot
 
 		public static async Task OnMessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
 		{
-			//Get the message's value
 			var messageValue = message.HasValue ? message.Value : null;
-
-			var guild = Actions.VerifyGuild(messageValue, LogActions.MessageDeleted);
+			var guild = Actions.GetGuild(channel);
 			if (guild == null)
 				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo) || !Actions.VerifyLogging(guildInfo, messageValue, LogActions.MessageDeleted))
 				return;
 			var serverLog = guildInfo.ServerLog;
 			if (serverLog == null)
@@ -428,14 +422,10 @@ namespace Advobot
 		{
 			//Write into the console what the command was and who said it
 			var user = context.User;
-			Actions.WriteLine(String.Format("{0} on {1}: \"{2}\"", Actions.FormatUser(user, user?.Id), Actions.FormatGuild(context.Guild), context.Message.Content));
+			Actions.WriteLine(String.Format("{0} on {1}: \"{2}\"", user.FormatUser(), context.Guild.FormatGuild(), context.Message.Content));
 			Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Remove(context.Guild);
 			await Actions.DeleteMessage(context.Message);
 
-			//Get the guild and log channel
-			var guild = Actions.VerifyGuild(context.Message, LogActions.CommandLog);
-			if (guild == null)
-				return;
 			var modLog = guildInfo.ModLog;
 			if (modLog == null)
 				return;
@@ -443,7 +433,7 @@ namespace Advobot
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(description: context.Message.Content);
 			Actions.AddFooter(embed, "Mod Log");
-			Actions.AddAuthor(embed, String.Format("{0} in #{1}", Actions.FormatUser(user, user?.Id), context.Channel.Name), context.User.GetAvatarUrl());
+			Actions.AddAuthor(embed, String.Format("{0} in #{1}", user.FormatUser(), context.Channel.Name), context.User.GetAvatarUrl());
 			await Actions.SendEmbedMessage(modLog, embed);
 		}
 	}
@@ -560,11 +550,11 @@ namespace Advobot
 
 			if (guildInfo.SlowmodeGuild != null || guildInfo.SlowmodeChannels.Any(x => x.ChannelID == message.Channel.Id))
 			{
-				await Actions.Slowmode(message);
+				await Actions.Slowmode(guildInfo, message);
 			}
 			if (guildInfo.BannedPhrases.Strings.Any() || guildInfo.BannedPhrases.Regex.Any())
 			{
-				await Actions.BannedPhrases(message);
+				await Actions.BannedPhrases(guildInfo, message);
 			}
 		}
 
