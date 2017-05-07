@@ -111,29 +111,24 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Commands([Optional, Remainder] string input)
 		{
-			//See if it's empty
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				var embed = Actions.MakeNewEmbed("Categories",
-					String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}", Constants.BOT_PREFIX, String.Join("\n", Enum.GetNames(typeof(CommandCategory)))));
+				var desc = String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}", Constants.BOT_PREFIX, String.Join("\n", Enum.GetNames(typeof(CommandCategory))));
+				var embed = Actions.MakeNewEmbed("Categories", desc);
 				await Actions.SendEmbedMessage(Context.Channel, embed);
 				return;
 			}
-			//Check if all
 			else if (Actions.CaseInsEquals(input, "all"))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("ALL", String.Join("\n", Variables.CommandNames)));
 				return;
 			}
 
-			//Check what category
 			if (!Enum.TryParse(input, true, out CommandCategory category))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Category does not exist."));
 				return;
 			}
-
-			//Send the message
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(Enum.GetName(typeof(CommandCategory), category), String.Join("\n", Actions.GetCommands(Context.Guild, (int)category))));
 		}
 		#endregion
@@ -152,19 +147,14 @@ namespace Advobot
 
 		[Command("idchannel")]
 		[Alias("idc")]
-		[Usage(Constants.CHANNEL_INSTRUCTIONS)]
+		[Usage(Constants.OPTIONAL_CHANNEL_INSTRUCTIONS)]
 		[Summary("Shows the ID of the given channel.")]
 		[UserHasAPermission]
 		[DefaultEnabled(true)]
-		public async Task ChannelID([Remainder] string input)
+		public async Task ChannelID([Optional, Remainder] string input)
 		{
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, input);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var channel = returnedChannel.Object;
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, true, input);
+			var channel = returnedChannel.Object ?? Context.Channel as IGuildChannel;
 
 			await Actions.SendChannelMessage(Context, String.Format("The {0} channel `{1}` has the ID `{2}`.", Actions.GetChannelType(channel), channel.Name, channel.Id));
 		}
@@ -177,7 +167,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task RoleID([Remainder] string input)
 		{
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, input);
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, input);
 			if (returnedRole.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
@@ -195,13 +185,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task UserID([Optional, Remainder] string input)
 		{
-			var returnedUser = Actions.GetGuildUser(Context, input, new[] { UserCheck.None }, true);
-			var user = returnedUser.Object;
-			if (user == null)
-			{
-				user = Context.User as IGuildUser;
-				return;
-			}
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, input);
+			var user = returnedUser.Object ?? Context.User as IGuildUser;
 
 			await Actions.SendChannelMessage(Context, String.Format("The user `{0}#{1}` has the ID `{2}`.", user.Username, user.Discriminator, user.Id));
 		}
@@ -238,7 +223,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task InfoChannel([Remainder] string input)
 		{
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, input);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, true, input);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -249,9 +234,9 @@ namespace Advobot
 			var title = channel.FormatChannel();
 			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", channel.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(channel.CreatedAt.UtcDateTime).Days);
 			var users = String.Format("**User Count:** `{0}`", channel.Users.Count);
-			var all = String.Join("\n", new List<string>() { age, users });
+			var desc = String.Join("\n", new[] { age, users });
 
-			var embed = Actions.MakeNewEmbed(title, all);
+			var embed = Actions.MakeNewEmbed(title, desc);
 			Actions.AddFooter(embed, "Channel Info");
 			await Actions.SendEmbedMessage(Context.Channel, embed);
 		}
@@ -263,7 +248,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task InfoRole([Remainder] string input)
 		{
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, input);
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, input);
 			if (returnedRole.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
@@ -275,9 +260,9 @@ namespace Advobot
 			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", role.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(role.CreatedAt.UtcDateTime).Days);
 			var position = String.Format("**Position:** `{0}`", role.Position);
 			var users = String.Format("**User Count:** `{0}`", (await Context.Guild.GetUsersAsync()).Where(x => x.RoleIds.Contains(role.Id)).Count());
-			var all = String.Join("\n", new List<string>() { age, position, users });
+			var desc = String.Join("\n", new[] { age, position, users });
 
-			var embed = Actions.MakeNewEmbed(title, all);
+			var embed = Actions.MakeNewEmbed(title, desc);
 			Actions.AddFooter(embed, "Role Info");
 			await Actions.SendEmbedMessage(Context.Channel, embed);
 		}
@@ -334,118 +319,17 @@ namespace Advobot
 		public async Task InfoUser([Optional, Remainder] string input)
 		{
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, input, new[] { UserCheck.None }, true);
-			IUser user = returnedUser.Object;
-			if (user == null)
-			{
-				if (!String.IsNullOrWhiteSpace(input) && ulong.TryParse(input, out ulong ID))
-				{
-					user = Variables.Client.GetUser(ID);
-				}
-				else
-				{
-					user = await Context.Guild.GetUserAsync(Context.User.Id);
-				}
-			}
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, input);
+			var user = returnedUser.Object ?? Context.User as IGuildUser;
 
-			if (user is IGuildUser)
-			{
-				var guildUser = user as IGuildUser;
-
-				//Get a list of roles
-				var roles = guildUser.RoleIds.Where(x => x != Context.Guild.Id).Select(x => Context.Guild.GetRole(x));
-
-				//Get a list of channels
-				var channels = new List<string>();
-				(await Context.Guild.GetTextChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(x =>
-				{
-					if (roles.Any(y => x.GetPermissionOverwrite(y).HasValue && x.GetPermissionOverwrite(y).Value.ReadMessages == PermValue.Allow) || guildUser.GetPermissions(x).ReadMessages)
-					{
-						channels.Add(x.Name);
-					}
-				});
-				(await Context.Guild.GetVoiceChannelsAsync()).OrderBy(x => x.Position).ToList().ForEach(x =>
-				{
-					if (roles.Any(y => x.GetPermissionOverwrite(y).HasValue && x.GetPermissionOverwrite(y).Value.Connect == PermValue.Allow) || guildUser.GetPermissions(x).Connect)
-					{
-						channels.Add(x.Name + " (Voice)");
-					}
-				});
-
-				//Get an ordered list of when users joined the guild
-				var guildUsers = await Context.Guild.GetUsersAsync();
-				var users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
-
-				//Make the description
-				var description = String.Format(
-					"**ID:** `{0}`\n" +
-					"**Created:** `{1} {2}, {3} at {4}`\n" +
-					"**Joined:** `{5} {6}, {7} at {8}` (`{9}` to join the guild)\n" +
-					"\n" +
-					"**Current game:** `{10}`\n" +
-					"**Online status:** `{11}`\n",
-					user.Id,
-					System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(user.CreatedAt.Month),
-					user.CreatedAt.UtcDateTime.Day,
-					user.CreatedAt.UtcDateTime.Year,
-					user.CreatedAt.UtcDateTime.ToLongTimeString(),
-					System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(guildUser.JoinedAt.Value.UtcDateTime.Month),
-					guildUser.JoinedAt.Value.UtcDateTime.Day,
-					guildUser.JoinedAt.Value.UtcDateTime.Year,
-					guildUser.JoinedAt.Value.UtcDateTime.ToLongTimeString(),
-					users.IndexOf(guildUser) + 1,
-					user.Game == null ? "N/A" : user.Game.Value.Name.ToString(),
-					user.Status);
-
-				var embed = Actions.MakeNewEmbed(null, description, roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color, thumbnailURL: user.GetAvatarUrl());
-				Actions.AddAuthor(embed, String.Format("{0}#{1} {2}", user.Username, user.Discriminator, (guildUser.Nickname == null ? "" : "(" + guildUser.Nickname + ")")), user.GetAvatarUrl(), user.GetAvatarUrl());
-				Actions.AddFooter(embed, "Userinfo");
-				//Add the channels the user can access
-				if (channels.Count() != 0)
-				{
-					Actions.AddField(embed, "Channels", String.Join(", ", channels));
-				}
-				//Add the roles the user has
-				if (roles.Count() != 0)
-				{
-					Actions.AddField(embed, "Roles", String.Join(", ", roles.Select(x => x.Name)));
-				}
-				//Add the voice channel
-				if (guildUser.VoiceChannel != null)
-				{
-					var text = String.Format("Server mute: `{0}`\nServer deafen: `{1}`\nSelf mute: `{2}`\nSelf deafen: `{3}`",
-						guildUser.IsMuted.ToString(), guildUser.IsDeafened.ToString(), guildUser.IsSelfMuted.ToString(), guildUser.IsSelfDeafened.ToString());
-
-					Actions.AddField(embed, "Voice Channel: " + guildUser.VoiceChannel.Name, text);
-				}
-				await Actions.SendEmbedMessage(Context.Channel, embed);
-			}
-			else
-			{
-				//Make the description
-				var description = String.Format(
-					"**Created:** `{0} {1}, {2} at {3}`\n" +
-					"\n" +
-					"**Current game:** `{4}`\n" +
-					"**Online status:** `{5}`\n",
-					System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(user.CreatedAt.Month),
-					user.CreatedAt.UtcDateTime.Day,
-					user.CreatedAt.UtcDateTime.Year,
-					user.CreatedAt.UtcDateTime.ToLongTimeString(),
-					user.Game == null ? "N/A" : user.Game.Value.Name.ToString(),
-					user.Status);
-
-				var embed = Actions.MakeNewEmbed(null, description, null, thumbnailURL: user.GetAvatarUrl());
-				Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), user.GetAvatarUrl());
-				Actions.AddFooter(embed, "Userinfo");
-				await Actions.SendEmbedMessage(Context.Channel, embed);
-			}
+			var embed = Actions.FormatUserInfo(Context.Guild as SocketGuild, user);
+			await Actions.SendEmbedMessage(Context.Channel, embed);
 		}
 
 		[Command("infoemoji")]
 		[Alias("infe")]
 		[Usage("[Emoji]")]
-		[Summary("Discplays various information about an emoji. Only global emojis where the bot is in a guild that gives them will have a 'From...' text.")]
+		[Summary("Displays various information about an emoji. Only global emojis where the bot is in a guild that gives them will have a 'From...' text.")]
 		[DefaultEnabled(true)]
 		public async Task InfoEmoji([Remainder] string input)
 		{
@@ -488,15 +372,13 @@ namespace Advobot
 				return;
 			}
 
-			var user = inv.Inviter;
-			var userStr = user.FormatUser();
-			var channelStr = (await Context.Guild.GetChannelAsync(inv.ChannelId)).FormatChannel();
-			var usesStr = inv.Uses;
-			var timeStr = inv.CreatedAt.UtcDateTime.ToShortTimeString();
-			var dateStr = inv.CreatedAt.UtcDateTime.ToShortDateString();
+			var inviterStr = String.Format("**Inviter:** `{0}`", inv.Inviter.FormatUser());
+			var channelStr = String.Format("**Channel:** `{0}`", (await Context.Guild.GetChannelAsync(inv.ChannelId)).FormatChannel());
+			var usesStr = String.Format("**Uses:** `{0}`", inv.Uses);
+			var createdStr = String.Format("**Created At:** `{0} on {1}`", inv.CreatedAt.UtcDateTime.ToShortTimeString(), inv.CreatedAt.UtcDateTime.ToShortDateString());
+			var desc = String.Join("\n", new[] { inviterStr, channelStr, usesStr, createdStr });
 
-			var embed = Actions.MakeNewEmbed(inv.Code, String.Format("**Inviter:** `{0}`\n**Channel:** `{1}`\n**Uses:** `{2}`\n**Created At:** `{3}` on `{4}`",
-				userStr, channelStr, usesStr, timeStr, dateStr));
+			var embed = Actions.MakeNewEmbed(inv.Code, desc);
 			await Actions.SendEmbedMessage(Context.Channel, embed);
 		}
 
@@ -521,7 +403,7 @@ namespace Advobot
 			}
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, userStr, new[] { UserCheck.None }, true);
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
 			var user = returnedUser.Object;
 			if (user == null)
 			{
@@ -607,7 +489,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task UsersWithRole([Remainder] string input)
 		{
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, input);
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, input);
 			if (returnedRole.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
@@ -773,7 +655,7 @@ namespace Advobot
 			var tempStr = Actions.GetVariable(inputArray, "tempmem");
 
 			//Check validity of channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, chanStr);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -898,7 +780,7 @@ namespace Advobot
 			IGuildUser user = null;
 			if (!String.IsNullOrWhiteSpace(userStr))
 			{
-				var returnedUser = Actions.GetGuildUser(Context, userStr, new[] { UserCheck.None }, true);
+				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
 				if (returnedUser.Reason != FailureReason.Not_Failure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -912,7 +794,7 @@ namespace Advobot
 			IGuildChannel channel = null;
 			if (!String.IsNullOrWhiteSpace(chanStr))
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, chanStr);
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, chanStr);
 				if (returnedChannel.Reason != FailureReason.Not_Failure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -1099,7 +981,7 @@ namespace Advobot
 			}
 
 			//Get the role and see if it can be changed
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, roleStr);
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, true, roleStr);
 			if (returnedRole.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);

@@ -406,6 +406,12 @@ namespace Advobot
 		public string Stream { get; private set; }
 		[JsonProperty]
 		public int ShardCount { get; private set; }
+		[JsonProperty]
+		public int MessageCacheSize { get; private set; }
+		[JsonProperty]
+		public bool AlwaysDownloadUsers { get; private set; }
+		[JsonProperty]
+		public LogSeverity LogLevel { get; private set; }
 
 		public BotGlobalInfo()
 		{
@@ -413,6 +419,9 @@ namespace Advobot
 			TrustedUsers = new List<ulong>();
 			Prefix = Constants.BOT_PREFIX;
 			ShardCount = 1;
+			MessageCacheSize = 10000;
+			AlwaysDownloadUsers = true;
+			LogLevel = LogSeverity.Warning;
 		}
 
 		public void SetBotOwner(ulong ID)
@@ -463,15 +472,17 @@ namespace Advobot
 		{
 			ShardCount = i;
 		}
+		public void ResetAll()
+		{
+			ResetPrefix();
+			ResetTrustedUsers();
+			ResetBotOwner();
+			ResetStream();
+			ResetGame();
+		}
 		public void PostDeserialize()
 		{
 		}
-	}
-
-	//TODO: This class, probably should be struct instead, to potentially have the start of allowing multiple bots running at once
-	public class BotKeyAndID
-	{
-
 	}
 
 	public class RapidJoinProtection : ITimeInterface
@@ -912,6 +923,35 @@ namespace Advobot
 		}
 	}
 
+	public class BotCommandContext : ICommandContext
+	{
+		public IDiscordClient Client { get; private set; }
+		public IGuild Guild { get; private set; }
+		public IMessageChannel Channel { get; private set; }
+		public IUser User { get; private set; }
+		public IUserMessage Message { get; private set; }
+		public string[] Arguments { get; private set; }
+
+		public BotCommandContext(IDiscordClient client, IUserMessage message, int argPos)
+		{
+			Client = client;
+			Guild = (message.Channel as IGuildChannel)?.Guild;
+			Channel = message.Channel;
+			User = message.Author;
+			Message = message;
+
+			var breakPos = message.Content.IndexOf(' ');
+			if (breakPos != -1)
+			{
+				Arguments = Actions.SplitByCharExceptInQuotes(message.Content.Substring(breakPos), ' ');
+			}
+			else
+			{
+				Arguments = new string[0];
+			}
+		}
+	}
+
 	public abstract class BotClient
 	{
 		public abstract void AddMessageReceivedHandler(Command_Handler handler);
@@ -1164,7 +1204,6 @@ namespace Advobot
 
 	public class BaseSpamInformation
 	{
-		//TODO: Make the spam prevention have logical sense at some point
 		public SpamType SpamType { get; private set; }
 		public List<DateTime> TimeList { get; private set; }
 
@@ -1554,6 +1593,54 @@ namespace Advobot
 		}
 	}
 
+	public class ReturnedArguments
+	{
+		public string[] Arguments { get; private set; }
+		public Dictionary<string, string> SpecifiedArguments { get; private set; }
+		public List<ulong> MentionedUsers { get; private set; }
+		public List<ulong> MentionedRoles { get; private set; }
+		public List<ulong> MentionedChannels { get; private set; }
+		public ArgFailureReason Reason { get; private set; }
+
+		public ReturnedArguments(string[] args, ArgFailureReason reason)
+		{
+			Arguments = args;
+			SpecifiedArguments = null;
+			MentionedUsers = null;
+			MentionedRoles = null;
+			MentionedChannels = null;
+			Reason = reason;
+		}
+		public ReturnedArguments(string[] args, Dictionary<string, string> specifiedArgs, IMessage message)
+		{
+			Arguments = args;
+			SpecifiedArguments = specifiedArgs;
+			MentionedUsers = message.MentionedUserIds.ToList();
+			MentionedRoles = message.MentionedRoleIds.ToList();
+			MentionedChannels = message.MentionedChannelIds.ToList();
+			Reason = ArgFailureReason.Not_Failure;
+		}
+
+		/*
+		public void SetSpecifiedArguments(Dictionary<string, string> specifiedArgs)
+		{
+			SpecifiedArguments = specifiedArgs;
+		}
+		public void SetMentionedUsers(IEnumerable<ulong> users)
+		{
+			MentionedUsers = users.ToList();
+		}
+		public void SetMentionedRoles(IEnumerable<ulong> roles)
+		{
+			MentionedRoles = roles.ToList();
+		}
+		public void SetMentionedChannels(IEnumerable<ulong> channels)
+		{
+			MentionedChannels = channels.ToList();
+		}
+		*/
+	}
+
 	public struct GuildToggleAfterTime : ITimeInterface
 	{
 		public ulong GuildID { get; private set; }
@@ -1619,7 +1706,6 @@ namespace Advobot
 		Miscellaneous = 10,
 		Spam_Prevention = 11,
 		Channel_Settings = 12,
-		Guild_List = 13,
 	}
 
 	public enum PunishmentType
@@ -1806,6 +1892,16 @@ namespace Advobot
 		Is_Text = 5,
 		Can_Move_Users = 6,
 		Can_Delete_Messages = 7,
+	}
+
+	public enum ArgFailureReason
+	{
+		Not_Failure = 0,
+		Too_Many_Args = 1,
+		Too_Few_Args = 2,
+		Missing_Critical_Args = 3,
+		Max_Less_Than_Min = 4,
+		ShortenTo_Less_Than_Min = 5,
 	}
 	#endregion
 }

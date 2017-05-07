@@ -109,7 +109,7 @@ namespace Advobot
 			if (!String.IsNullOrWhiteSpace(chanStr))
 			{
 				//Check if valid channel
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Voice }, chanStr);
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Voice }, false, chanStr);
 				if (returnedChannel.Reason != FailureReason.Not_Failure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);

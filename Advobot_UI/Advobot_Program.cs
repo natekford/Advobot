@@ -20,20 +20,20 @@ namespace Advobot
 			Actions.LoadBasicInformation();
 
 			//If the shard count is greater than one create a sharded client
-			if (Variables.BotInfo.ShardCount > 1)
+			var botInfo = Variables.BotInfo;
+			if (botInfo.ShardCount > 1)
 			{
-				Variables.Client = new ShardedClient(CreateShardedClient());
+				Variables.Client = new ShardedClient(CreateShardedClient(botInfo));
 			}
 			//If not create a regular socket client
 			else
 			{
-				Variables.Client = new SocketClient(CreateSocketClient());
+				Variables.Client = new SocketClient(CreateSocketClient(botInfo));
 			}
 
 			//If not a console application then start the UI
 			if (!Variables.Console)
 			{
-				//Start the UI
 				new System.Windows.Application().Run(new BotWindow());
 			}
 			else
@@ -87,14 +87,14 @@ namespace Advobot
 			return new DefaultServiceProviderFactory().CreateServiceProvider(services);
 		}
 
-		private static DiscordShardedClient CreateShardedClient()
+		private static DiscordShardedClient CreateShardedClient(BotGlobalInfo botInfo)
 		{
 			var ShardedClient = new DiscordShardedClient(new DiscordSocketConfig
 			{
-				AlwaysDownloadUsers = Constants.ALWAYS_DOWNLOAD_USERS,
-				MessageCacheSize = Constants.CACHED_MESSAGE_COUNT,
-				LogLevel = Constants.LOG_LEVEL,
-				TotalShards = Variables.BotInfo.ShardCount,
+				AlwaysDownloadUsers = botInfo.AlwaysDownloadUsers,
+				MessageCacheSize = botInfo.MessageCacheSize,
+				LogLevel = botInfo.LogLevel,
+				TotalShards = botInfo.ShardCount,
 			});
 
 			ShardedClient.Log += Bot_Logs.Log;
@@ -112,13 +112,13 @@ namespace Advobot
 			return ShardedClient;
 		}
 
-		private static DiscordSocketClient CreateSocketClient()
+		private static DiscordSocketClient CreateSocketClient(BotGlobalInfo botInfo)
 		{
 			var SocketClient = new DiscordSocketClient(new DiscordSocketConfig
 			{
-				AlwaysDownloadUsers = Constants.ALWAYS_DOWNLOAD_USERS,
-				MessageCacheSize = Constants.CACHED_MESSAGE_COUNT,
-				LogLevel = Constants.LOG_LEVEL,
+				AlwaysDownloadUsers = botInfo.AlwaysDownloadUsers,
+				MessageCacheSize = botInfo.MessageCacheSize,
+				LogLevel = botInfo.LogLevel,
 			});
 
 			SocketClient.Log += Bot_Logs.Log;

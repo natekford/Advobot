@@ -57,7 +57,7 @@ namespace Advobot
 				return;
 
 			//Check if there is anything preventing the command from going through
-			var context = new CommandContext(Client.GetClient(), message);
+			var context = new BotCommandContext(Client.GetClient(), message, argPos);
 			if (!await ValidateCommand(guildInfo, context, argPos))
 				return;
 

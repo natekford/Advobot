@@ -168,11 +168,11 @@ namespace Advobot
 			}
 
 			//Check if mute role already exists, if not, create it
-			var returnedMuteRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, Constants.MUTE_ROLE_NAME);
+			var returnedMuteRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, false, Constants.MUTE_ROLE_NAME);
 			var muteRole = returnedMuteRole.Object;
 			if (returnedMuteRole.Reason != FailureReason.Not_Failure)
 			{
-				muteRole = await Context.Guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME);
+				muteRole = await Actions.CreateMuteRoleIfNotFound(Context.Guild, muteRole);
 			}
 
 			var antiRaid = Variables.Guilds[Context.Guild.Id].AntiRaid;

@@ -130,7 +130,7 @@ namespace Advobot
 			}
 
 			//Get the user if one is input
-			var returnedUser = Actions.GetGuildUser(Context, null, new[] { UserCheck.None }, true);
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, null);
 			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -597,13 +597,7 @@ namespace Advobot
 			var cmdInput = inputArray.Length > 2 ? inputArray[2] : null;
 
 			//Get the channel
-			var mentions = Context.Message.MentionedChannelIds;
-			if (mentions.Count != 1)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
-				return;
-			}
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, mentions.FirstOrDefault().ToString());
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, null);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -762,7 +756,7 @@ namespace Advobot
 			}
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, userStr, new[] { UserCheck.Can_Be_Edited }, true);
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, userStr);
 			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);

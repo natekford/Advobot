@@ -288,7 +288,7 @@ namespace Advobot
 			}
 			else if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 			{
-				if (!Actions.VerifyMessageShouldBeLogged(message))
+				if (!Actions.VerifyMessageShouldBeLogged(guildInfo, message))
 					return;
 
 				if (!guildInfo.IgnoredCommandChannels.Contains(message.Channel.Id))
@@ -418,7 +418,7 @@ namespace Advobot
 
 	public class Mod_Logs : ModuleBase
 	{
-		public static async Task LogCommand(BotGuildInfo guildInfo, CommandContext context)
+		public static async Task LogCommand(BotGuildInfo guildInfo, BotCommandContext context)
 		{
 			//Write into the console what the command was and who said it
 			var user = context.User;
@@ -426,6 +426,8 @@ namespace Advobot
 			Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Remove(context.Guild);
 			await Actions.DeleteMessage(context.Message);
 
+			if (!Actions.VerifyMessageShouldBeLogged(guildInfo, context.Message))
+				return;
 			var modLog = guildInfo.ModLog;
 			if (modLog == null)
 				return;

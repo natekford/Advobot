@@ -7,11 +7,6 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		//Client config
-		public const bool ALWAYS_DOWNLOAD_USERS = true;
-		public const int CACHED_MESSAGE_COUNT = 10000;
-		public const Discord.LogSeverity LOG_LEVEL = Discord.LogSeverity.Warning;
-
 		public const string BOT_VERSION = "0.9.36";
 		public const string API_VERSION = "Discord.Net v1.0.0-rc-00735";
 		public const string BOT_PREFIX = "+=";

@@ -241,7 +241,7 @@ namespace Advobot
 			}
 
 			//Get the role. No edit ability checking in this command due to how that's already been done in the modify command
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, input);
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, input);
 			if (returnedRole.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);

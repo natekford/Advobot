@@ -67,7 +67,7 @@ namespace Advobot
 		public async Task SoftDeleteChannel([Remainder] string input)
 		{
 			//See if the user can see and thus edit that channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, input);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, true, input);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -129,7 +129,7 @@ namespace Advobot
 		public async Task DeleteChannel([Remainder] string input)
 		{
 			//See if the user can see and thus edit that channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, input);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, true, input);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -160,7 +160,7 @@ namespace Advobot
 			var chanStr = inputArray[0];
 
 			//Get the channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Move_Users }, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Move_Users }, true, chanStr);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -282,7 +282,7 @@ namespace Advobot
 			}
 
 			//Get the channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, chanStr);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -295,7 +295,7 @@ namespace Advobot
 			IUser user = null;
 			if (Context.Message.MentionedUserIds.Any())
 			{
-				var returnedUser = Actions.GetGuildUser(Context, null, new[] { UserCheck.Can_Be_Edited }, true);
+				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, targStr);
 				if (returnedUser.Reason != FailureReason.Not_Failure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -305,7 +305,7 @@ namespace Advobot
 			}
 			else
 			{
-				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, targStr);
+				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, true, targStr);
 				if (returnedRole.Reason != FailureReason.Not_Failure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedRole);
@@ -484,7 +484,7 @@ namespace Advobot
 			var targetStr = inputArray[2];
 
 			//Separating the channels
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, firstChanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, false, firstChanStr);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -493,7 +493,7 @@ namespace Advobot
 			var inputChannel = returnedChannel.Object;
 
 			//See if the user can see and thus edit that channel
-			var returnedChannelTwo = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, secondChanStr);
+			var returnedChannelTwo = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, false, secondChanStr);
 			if (returnedChannelTwo.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannelTwo);
@@ -530,7 +530,7 @@ namespace Advobot
 			{
 				if (Context.Message.MentionedUserIds.Any())
 				{
-					var evaluatedUser = Actions.GetGuildUser(Context, null, new[] { UserCheck.Can_Be_Edited }, true);
+					var evaluatedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, targetStr);
 					if (evaluatedUser.Reason != FailureReason.Not_Failure)
 					{
 						await Actions.HandleObjectGettingErrors(Context, evaluatedUser);
@@ -552,7 +552,7 @@ namespace Advobot
 				}
 				else
 				{
-					var evaluatedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, targetStr);
+					var evaluatedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, true, targetStr);
 					if (evaluatedRole.Reason != FailureReason.Not_Failure)
 					{
 						await Actions.HandleObjectGettingErrors(Context, evaluatedRole);
@@ -589,7 +589,7 @@ namespace Advobot
 		public async Task ClearChannelPermissions([Remainder] string input)
 		{
 			//See if the user can see and thus edit that channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, input);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, input);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -619,6 +619,17 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all channel permissions from `{0}`.", channel.FormatChannel()));
 		}
 
+		[Command("channelnsfw")]
+		[Alias("chnsfw")]
+		[Usage(Constants.CHANNEL_INSTRUCTIONS)]
+		[Summary("Toggles the NSFW option on a channel.")]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[DefaultEnabled(true)]
+		public async Task ChannelNSFW([Remainder] string input)
+		{
+
+		}
+
 		[Command("channelname")]
 		[Alias("chn")]
 		[Usage("[#Channel|\"Channel Name\"|Position:Number Type:Text|Voice] [\"New Name\"]")]
@@ -639,7 +650,7 @@ namespace Advobot
 			var typeStr = Actions.GetVariable(inputArray, "type");
 
 			//See if it's a position trying to be gotten instead
-			var evaluatedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, chanStr);
+			var evaluatedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, true, chanStr);
 			var channel = evaluatedChannel.Object;
 			if (evaluatedChannel.Reason != FailureReason.Not_Failure)
 			{
@@ -734,7 +745,7 @@ namespace Advobot
 			}
 
 			//Test if valid channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, channelInput);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, true, channelInput);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -793,7 +804,7 @@ namespace Advobot
 			}
 
 			//Check if valid channel that the user can edit
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, false, chanStr);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -853,7 +864,7 @@ namespace Advobot
 			}
 
 			//Check if valid channel that the user can edit
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, false, chanStr);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);

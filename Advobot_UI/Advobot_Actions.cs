@@ -739,32 +739,43 @@ namespace Advobot
 			await channel.Guild.ReorderChannelsAsync(channels.Select(x => new ReorderChannelProperties(x.Id, channels.IndexOf(x))));
 		}
 
-		public static ReturnedDiscordObject<IGuildChannel> GetChannel(ICommandContext context, ChannelCheck[] checkingTypes, string input)
+		public static ReturnedDiscordObject<IGuildChannel> GetChannel(ICommandContext context, ChannelCheck[] checkingTypes, bool mentions, string input)
 		{
 			IGuildChannel channel = null;
-			if (ulong.TryParse(input.Trim(new[] { '<', '>', '@', '!' }), out ulong userID))
+			if (!String.IsNullOrWhiteSpace(input))
 			{
-				channel = GetChannel(context.Guild, userID);
-			}
-			else
-			{
-				var channels = (context.Guild as SocketGuild).VoiceChannels.Where(x => CaseInsEquals(x.Name, input));
-				if (!channels.Any())
+				if (MentionUtils.TryParseChannel(input, out ulong channelID))
 				{
-					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Not_Found);
-				}
-				else if (channels.Count() == 1)
-				{
-					channel = channels.First();
+					channel = GetChannel(context.Guild, channelID);
 				}
 				else
 				{
-					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Too_Many);
+					var channels = (context.Guild as SocketGuild).VoiceChannels.Where(x => CaseInsEquals(x.Name, input));
+					if (channels.Count() == 1)
+					{
+						channel = channels.First();
+					}
+					else if (channels.Count() > 1)
+					{
+						return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Too_Many);
+					}
 				}
 			}
+
 			if (channel == null)
 			{
-				return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Not_Found);
+				if (mentions)
+				{
+					var channelMentions = context.Message.MentionedChannelIds;
+					if (channelMentions.Count() == 1)
+					{
+						channel = GetChannel(context.Guild, channelMentions.First());
+					}
+					else if (channelMentions.Count() > 1)
+					{
+						return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Too_Many);
+					}
+				}
 			}
 
 			return GetChannel(context, checkingTypes, channel);
@@ -783,6 +794,11 @@ namespace Advobot
 
 		public static ReturnedDiscordObject<IGuildChannel> GetChannel(ICommandContext context, ChannelCheck[] checkingTypes, IGuildChannel channel)
 		{
+			if (channel == null)
+			{
+				return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Not_Found);
+			}
+
 			var bot = GetBot(context.Guild);
 			var user = context.User as IGuildUser;
 			foreach (var type in checkingTypes)
@@ -996,32 +1012,43 @@ namespace Advobot
 			await user.RemoveRolesAsync(roles);
 		}
 
-		public static ReturnedDiscordObject<IRole> GetRole(ICommandContext context, RoleCheck[] checkingTypes, string input)
+		public static ReturnedDiscordObject<IRole> GetRole(ICommandContext context, RoleCheck[] checkingTypes, bool mentions, string input)
 		{
 			IRole role = null;
-			if (ulong.TryParse(input.Trim(new[] { '<', '@', '&', '>' }), out ulong roleID))
+			if (!String.IsNullOrWhiteSpace(input))
 			{
-				role = context.Guild.GetRole(roleID);
-			}
-			else
-			{
-				var roles = context.Guild.Roles.Where(x => CaseInsEquals(x.Name, input));
-				if (!roles.Any())
+				if (MentionUtils.TryParseRole(input, out ulong roleID))
 				{
-					return new ReturnedDiscordObject<IRole>(role, FailureReason.Not_Found);
-				}
-				else if (roles.Count() == 1)
-				{
-					role = roles.First();
+					role = GetRole(context.Guild, roleID);
 				}
 				else
 				{
-					return new ReturnedDiscordObject<IRole>(role, FailureReason.Too_Many);
+					var roles = context.Guild.Roles.Where(x => CaseInsEquals(x.Name, input));
+					if (roles.Count() == 1)
+					{
+						role = roles.First();
+					}
+					else if (roles.Count() > 1)
+					{
+						return new ReturnedDiscordObject<IRole>(role, FailureReason.Too_Many);
+					}
 				}
 			}
+
 			if (role == null)
 			{
-				return new ReturnedDiscordObject<IRole>(role, FailureReason.Not_Found);
+				if (mentions)
+				{
+					var roleMentions = context.Message.MentionedRoleIds;
+					if (roleMentions.Count() == 1)
+					{
+						role = GetRole(context.Guild, roleMentions.First());
+					}
+					else if (roleMentions.Count() > 1)
+					{
+						return new ReturnedDiscordObject<IRole>(role, FailureReason.Too_Many);
+					}
+				}
 			}
 
 			return GetRole(context, checkingTypes, role);
@@ -1040,6 +1067,11 @@ namespace Advobot
 
 		public static ReturnedDiscordObject<IRole> GetRole(ICommandContext context, RoleCheck[] checkingTypes, IRole role)
 		{
+			if (role == null)
+			{
+				return new ReturnedDiscordObject<IRole>(role, FailureReason.Not_Found);
+			}
+
 			var bot = GetBot(context.Guild);
 			var user = context.User as IGuildUser;
 			foreach (var type in checkingTypes)
@@ -1091,7 +1123,7 @@ namespace Advobot
 				var bot = GetBot(context.Guild);
 				input.ForEach(x =>
 				{
-					var returnedRole = GetRole(context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, x);
+					var returnedRole = GetRole(context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, false, x);
 					if (returnedRole.Reason == FailureReason.Not_Failure)
 					{
 						success.Add(returnedRole.Object);
@@ -1181,13 +1213,13 @@ namespace Advobot
 			await MakeAndDeleteSecondaryMessage(context, String.Format("Successfully changed the nicknames of `{0}` user{1}.", count, GetPlural(count)));
 		}
 
-		public static ReturnedDiscordObject<IGuildUser> GetGuildUser(ICommandContext context, string input, UserCheck[] checkingTypes, bool mentions)
+		public static ReturnedDiscordObject<IGuildUser> GetGuildUser(ICommandContext context, UserCheck[] checkingTypes, bool mentions, string input)
 		{
 			//TODO: Rework others to be like this one
 			IGuildUser user = null;
 			if (!String.IsNullOrWhiteSpace(input))
 			{
-				if (ulong.TryParse(input.Trim(new[] { '<', '!', '@', '>' }), out ulong userID))
+				if (MentionUtils.TryParseUser(input, out ulong userID))
 				{
 					user = GetGuildUser(context.Guild, userID);
 				}
@@ -1221,27 +1253,22 @@ namespace Advobot
 				}
 			}
 
-			if (user == null)
-			{
-				return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.Not_Found);
-			}
-
 			return GetGuildUser(context, checkingTypes, user);
 		}
 
 		public static ReturnedDiscordObject<IGuildUser> GetGuildUser(ICommandContext context, UserCheck[] checkingTypes, ulong inputID)
 		{
-			IGuildUser user = GetGuildUser(context.Guild, inputID);
-			if (user == null)
-			{
-				return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.Not_Found);
-			}
-
+			var user = GetGuildUser(context.Guild, inputID);
 			return GetGuildUser(context, checkingTypes, user);
 		}
 
 		public static ReturnedDiscordObject<IGuildUser> GetGuildUser(ICommandContext context, UserCheck[] checkingTypes, IGuildUser user)
 		{
+			if (user == null)
+			{
+				return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.Not_Found);
+			}
+
 			var bot = GetBot(context.Guild);
 			var currUser = context.User as IGuildUser;
 			foreach (var type in checkingTypes)
@@ -1388,7 +1415,6 @@ namespace Advobot
 
 			try
 			{
-				//Generate the message
 				return await guildChannel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content, embed: embed.WithCurrentTimestamp());
 			}
 			//Embeds fail every now and then and I haven't been able to find the exact problem yet (I know fields are a problem, but not in this case)
@@ -1401,15 +1427,17 @@ namespace Advobot
 
 		public static async Task<IMessage> SendChannelMessage(ICommandContext context, string message)
 		{
-			if (context.Channel == null || !Variables.Guilds.ContainsKey(context.Guild.Id))
-				return null;
-
-			return await context.Channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
+			return await SendChannelMessage(context.Channel, message);
 		}
 
 		public static async Task<IMessage> SendChannelMessage(IMessageChannel channel, string message)
 		{
-			if (channel == null || !Variables.Guilds.ContainsKey((channel as ITextChannel).GuildId))
+			return await SendChannelMessage(channel as ITextChannel, message);
+		}
+
+		public static async Task<IMessage> SendChannelMessage(ITextChannel channel, string message)
+		{
+			if (channel == null || !Variables.Guilds.ContainsKey(channel.GuildId))
 				return null;
 
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
@@ -1972,6 +2000,89 @@ namespace Advobot
 			Variables.Guilds[guild.Id].TurnDefaultPrefsOff();
 			WriteLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, guild.FormatGuild()));
 		}
+
+		public static EmbedBuilder FormatUserInfo(SocketGuild guild, IGuildUser user)
+		{
+			var guildUser = user as SocketGuildUser;
+			var roles = guildUser.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone);
+			var channels = new List<string>();
+			guild.TextChannels.OrderBy(x => x.Position).ToList().ForEach(x =>
+			{
+				if (guildUser.GetPermissions(x).ReadMessages)
+				{
+					channels.Add(x.Name);
+				}
+			});
+			guild.VoiceChannels.OrderBy(x => x.Position).ToList().ForEach(x =>
+			{
+				if (guildUser.GetPermissions(x).Connect)
+				{
+					channels.Add(x.Name + " (Voice)");
+				}
+			});
+			var users = guild.Users.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
+			var created = guildUser.CreatedAt.UtcDateTime;
+			var joined = guildUser.JoinedAt.Value.UtcDateTime;
+
+			//Make the description
+			var IDstr = String.Format("**ID:** `{0}`", guildUser.Id);
+			var nicknameStr = String.Format("**Nickname:** `{0}`", String.IsNullOrWhiteSpace(guildUser.Nickname) ? "NO NICKNAME" : guildUser.Nickname);
+			var createdStr = String.Format("\n**Created:** `{0} {1}, {2} at {3}`",
+				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(created.Month),
+				created.Day,
+				created.Year,
+				created.ToLongTimeString());
+			var joinedStr = String.Format("**Joined:** `{0} {1}, {2} at {3}` (`{4}` to join the guild)\n",
+				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(joined.Month),
+				joined.Day,
+				joined.Year,
+				joined.ToLongTimeString(),
+				users.IndexOf(guildUser) + 1);
+			var gameStr = String.Format("**Current game:** `{0}`", guildUser.Game.HasValue ? user.Game.Value.Name : "N/A");
+			var statusStr = String.Format("**Online status:** `{0}`", guildUser.Status);
+			var description = String.Join("\n", new[] { IDstr, nicknameStr, createdStr, joinedStr, gameStr, statusStr });
+
+			var embed = MakeNewEmbed(null, description, roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color, thumbnailURL: user.GetAvatarUrl());
+			AddAuthor(embed, guildUser.FormatUser(), guildUser.GetAvatarUrl(), guildUser.GetAvatarUrl());
+			AddFooter(embed, "Userinfo");
+			//Add the channels the user can access
+			if (channels.Count() != 0)
+			{
+				AddField(embed, "Channels", String.Join(", ", channels));
+			}
+			//Add the roles the user has
+			if (roles.Count() != 0)
+			{
+				AddField(embed, "Roles", String.Join(", ", roles.Select(x => x.Name)));
+			}
+			//Add the voice channel
+			if (user.VoiceChannel != null)
+			{
+				var desc = String.Format("Server mute: `{0}`\nServer deafen: `{1}`\nSelf mute: `{2}`\nSelf deafen: `{3}`", user.IsMuted, user.IsDeafened, user.IsSelfMuted, user.IsSelfDeafened);
+				AddField(embed, "Voice Channel: " + user.VoiceChannel.Name, desc);
+			}
+			return embed;
+		}
+
+		public static EmbedBuilder FormatUserInfo(SocketGuild guild, IUser user)
+		{
+			var created = user.CreatedAt.UtcDateTime;
+
+			//Make the description
+			var createdStr = String.Format("**Created:** `{0} {1}, {2} at {3}`\n",
+				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(created.Month),
+				created.Day,
+				created.Year,
+				created.ToLongTimeString());
+			var gameStr = String.Format("**Current game:** `{0}`", user.Game.HasValue ? user.Game.Value.Name : "N/A");
+			var statusStr = String.Format("**Online status:** `{0}`", user.Status);
+			var description = String.Join("\n", new[] { createdStr, gameStr, statusStr });
+
+			var embed = MakeNewEmbed(null, description, null, thumbnailURL: user.GetAvatarUrl());
+			AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), user.GetAvatarUrl());
+			AddFooter(embed, "Userinfo");
+			return embed;
+		}
 		#endregion
 
 		#region Invites
@@ -2385,11 +2496,10 @@ namespace Advobot
 
 		public static bool VerifyLogging(BotGuildInfo guildInfo, IMessage message, LogActions logAction)
 		{
-			var shouldBeLogged = VerifyMessageShouldBeLogged(message);
-			var loggingOnChannel = VerifyLoggingIsEnabledOnThisChannel(guildInfo, message);
+			var shouldBeLogged = VerifyMessageShouldBeLogged(guildInfo, message);
 			var loggingAction = VerifyLoggingAction(guildInfo, logAction);
 			var unpaused = VerifyUnpaused();
-			return shouldBeLogged && loggingOnChannel && loggingAction && unpaused;
+			return shouldBeLogged && loggingAction && unpaused;
 		}
 
 		public static bool VerifyLogging(BotGuildInfo guildInfo, LogActions logAction)
@@ -2401,12 +2511,20 @@ namespace Advobot
 
 		public static bool VerifyUnpaused()
 		{
-			return Variables.Pause;
+			return !Variables.Pause;
 		}
 
-		public static bool VerifyMessageShouldBeLogged(IMessage message)
+		public static bool VerifyMessageShouldBeLogged(BotGuildInfo guildInfo, IMessage message)
 		{
-			return !(message == null || message.Author.IsWebhook || (message.Author.IsBot && message.Author.Id != Variables.Bot_ID));
+			if (message == null)
+				return false;
+			else if (message.Author.IsWebhook)
+				return false;
+			else if (message.Author.IsBot && message.Author.Id != Variables.Bot_ID)
+				return false;
+			else if (!VerifyLoggingIsEnabledOnThisChannel(guildInfo, message))
+				return false;
+			return true;
 		}
 		#endregion
 
@@ -2575,11 +2693,11 @@ namespace Advobot
 		{
 			//Reset everything but shards since shards are pretty important
 			var botInfo = Variables.BotInfo;
-			botInfo.ResetPrefix();
-			botInfo.ResetTrustedUsers();
-			botInfo.ResetBotOwner();
-			botInfo.ResetStream();
-			botInfo.ResetGame();
+			botInfo.ResetAll();
+			SaveBotInfo();
+
+			Properties.Settings.Default.Reset();
+			Properties.Settings.Default.Save();
 		}
 		#endregion
 
@@ -3645,7 +3763,7 @@ namespace Advobot
 			}
 
 			//Make sure the channel mention is valid
-			var returnedChannel = GetChannel(context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Text }, channelStr);
+			var returnedChannel = GetChannel(context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Text }, true, channelStr);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await HandleObjectGettingErrors(context, returnedChannel);
@@ -3719,6 +3837,84 @@ namespace Advobot
 			Variables.Bot_ID = ID;
 			Properties.Settings.Default.BotID = ID;
 			Properties.Settings.Default.Save();
+		}
+
+		//TODO: Implement this into commands
+		public static ReturnedArguments GetArgs(ICommandContext context, string[] argsToSearchFor = null, int min = -1, int max = -1, int keepThisAmount = -1, bool removeMentions = true)
+		{
+			var args = (context as BotCommandContext).Arguments;
+			if (min > max)
+			{
+				return new ReturnedArguments(args, ArgFailureReason.Max_Less_Than_Min);
+			}
+			else if (min > keepThisAmount)
+			{
+				return new ReturnedArguments(args, ArgFailureReason.ShortenTo_Less_Than_Min);
+			}
+			else if (min != -1 && args.Length < min)
+			{
+				return new ReturnedArguments(args, ArgFailureReason.Too_Few_Args);
+			}
+			else if (max != -1 && args.Length > max)
+			{
+				return new ReturnedArguments(args, ArgFailureReason.Too_Many_Args);
+			}
+
+			//Limiting the amount of args that are kept separate
+			if (keepThisAmount != -1)
+			{
+				var tempArray = new string[keepThisAmount];
+				for (int i = 0; i < args.Length; i++)
+				{
+					if (keepThisAmount > i)
+					{
+						tempArray[i] = args[i];
+					}
+					else
+					{
+						tempArray[keepThisAmount - 1] += " " + args[i];
+					}
+				}
+				args = tempArray;
+			}
+
+			//Finding the wanted arguments
+			var specifiedArgs = new Dictionary<string, string>();
+			foreach (var searchArg in argsToSearchFor)
+			{
+				var arg = GetVariable(args, searchArg);
+				if (arg != null)
+				{
+					specifiedArgs.Add(searchArg, arg);
+				}
+			}
+
+			//Remove all mentions
+			if (removeMentions)
+			{
+				var tempArray = new string[args.Length];
+				var count = 0;
+				foreach (var arg in args)
+				{
+					if (MentionUtils.TryParseChannel(arg, out ulong ID))
+					{
+					}
+					else if (MentionUtils.TryParseRole(arg, out ID))
+					{
+					}
+					else if (MentionUtils.TryParseUser(arg, out ID))
+					{
+					}
+					else
+					{
+						tempArray[count] = arg;
+						++count;
+					}
+				}
+				args = tempArray;
+			}
+
+			return new ReturnedArguments(args, specifiedArgs, context.Message);
 		}
 		#endregion
 	}
