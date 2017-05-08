@@ -15,7 +15,7 @@ namespace Advobot
 	{
 		[Command("preventspam")]
 		[Alias("prs")]
-		[Usage("[Message|LongMessage|Link|Image|Mention] [[Enable|Disable] | [Setup] <Messages:Number> <Spam:Number> <Votes:Number>]")]
+		[Usage("[Message|LongMessage|Link|Image|Mention] [Enable|Disable|Setup] <Messages:Number> <Spam:Number> <Votes:Number>")]
 		[Summary("Spam prevention allows for some protection against mention spammers. Messages are the amount of messages a user has to send with the given amount of mentions before being considered " + 
 			"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The first punishment is a kick, next is a ban. The spam users are reset every hour.")]
 		[PermissionRequirement]
@@ -31,29 +31,32 @@ namespace Advobot
 			}
 
 			//Split the input
-			var inputArray = input.Split(' ');
-			if (inputArray.Length > 5 || inputArray.Length < 2)
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 5, 5), true, new[] { "messages", "spam", "votes" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
+			var typeStr = returnedArgs.Arguments[0];
+			var actionStr = returnedArgs.Arguments[1];
+			var messageStr = returnedArgs.GetSpecifiedArg("messages");
+			var spamStr = returnedArgs.GetSpecifiedArg("spam");
+			var voteStr = returnedArgs.GetSpecifiedArg("votes");
 
-			var type = inputArray[0];
-			if (!Enum.TryParse(type, true, out SpamType typeEnum))
+			if (!Enum.TryParse(typeStr, true, out SpamType type))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid type supplied."));
 				return;
 			}
-			var action = inputArray[1];
-			if (!Enum.TryParse(action, true, out SpamPreventionAction actionEnum))
+			if (!Enum.TryParse(actionStr, true, out SpamPreventionAction action))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
 			//Check if a spam prevention exists or not
-			var spamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(typeEnum);
-			switch (actionEnum)
+			var spamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(type);
+			switch (action)
 			{
 				case SpamPreventionAction.Enable:
 				case SpamPreventionAction.Disable:
@@ -69,7 +72,7 @@ namespace Advobot
 			}
 
 			//Go through the given action
-			switch (actionEnum)
+			switch (action)
 			{
 				case SpamPreventionAction.Enable:
 				{
@@ -99,26 +102,18 @@ namespace Advobot
 				}
 				case SpamPreventionAction.Setup:
 				{
-					//Get the strings
-					var messagesString = Actions.GetVariable(inputArray, "messages");
-					var spamString = Actions.GetVariable(inputArray, "spam");
-					var votesString = Actions.GetVariable(inputArray, "votes");
-
 					//Get the ints
-					var messages = 5;
-					if (messagesString != null)
+					if (!int.TryParse(messageStr, out int messages))
 					{
-						int.TryParse(messagesString, out messages);
+						messages = 5;
 					}
-					var votes = 10;
-					if (votesString != null)
+					if (!int.TryParse(voteStr, out int votes))
 					{
-						int.TryParse(votesString, out votes);
+						votes = 10;
 					}
-					var spam = 3;
-					if (spamString != null)
+					if (!int.TryParse(spamStr, out int spam))
 					{
-						int.TryParse(spamString, out spam);
+						spam = 3;
 					}
 
 					//Give every number a valid input
@@ -127,7 +122,7 @@ namespace Advobot
 					var sp = spam < 1 ? 1 : spam;
 
 					//Create the spam prevention and add it to the guild
-					guildInfo.GlobalSpamPrevention.SetSpamPrevention(typeEnum, ms, vt, sp);
+					guildInfo.GlobalSpamPrevention.SetSpamPrevention(type, ms, vt, sp);
 
 					//Save everything and send a success message
 					Actions.SaveGuildInfo(guildInfo);

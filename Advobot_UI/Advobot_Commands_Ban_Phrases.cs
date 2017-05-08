@@ -541,10 +541,10 @@ namespace Advobot
 			var userStr = inputArray[1];
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, false, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
 			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
 			}
 			var user = returnedUser.Object;

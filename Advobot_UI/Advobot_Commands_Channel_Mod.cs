@@ -685,8 +685,13 @@ namespace Advobot
 					}
 					else if (channels.Count == 1)
 					{
-						//TODO: Add a check to this
-						channel = channels.First();
+						var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, channel);
+						if (returnedChannel.Reason != FailureReason.Not_Failure)
+						{
+							await Actions.HandleObjectGettingErrors(Context, returnedChannel);
+							return;
+						}
+						channel = returnedChannel.Object;
 					}
 					else
 					{
@@ -728,14 +733,13 @@ namespace Advobot
 		public async Task ChangeChannelTopic([Remainder] string input)
 		{
 			//Split the input
-			var inputArray = input.Split(new[] { ' ' }, 2);
-			if (inputArray.Length != 2)
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2), true);
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
-			var channelInput = inputArray[0];
-			var newTopic = inputArray[1];
+			var newTopic = returnedArgs.Arguments[0];
 
 			//See if valid length
 			if (newTopic.Length > Constants.MAX_TITLE_LENGTH)
@@ -745,7 +749,7 @@ namespace Advobot
 			}
 
 			//Test if valid channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, true, channelInput);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, true, null);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);

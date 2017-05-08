@@ -1230,7 +1230,7 @@ namespace Advobot
 					totalLines += File.ReadAllLines(file).Count();
 				}
 			}
-			Actions.WriteLine(String.Format("Current Totals:\n\tChars: {0}\n\tLines: {1}", totalChars, totalLines));
+			Actions.WriteLine(String.Format("Current Totals:{0}\t\tChars: {1}{0}\t\tLines: {2}", Environment.NewLine, totalChars, totalLines));
 #endif
 		}
 	}

@@ -419,6 +419,7 @@ namespace Advobot
 			TrustedUsers = new List<ulong>();
 			Prefix = Constants.BOT_PREFIX;
 			ShardCount = 1;
+			//TODO: a way to change these values
 			MessageCacheSize = 10000;
 			AlwaysDownloadUsers = true;
 			LogLevel = LogSeverity.Warning;
@@ -920,35 +921,6 @@ namespace Advobot
 		public void IncreaseUses()
 		{
 			++Uses;
-		}
-	}
-
-	public class BotCommandContext : ICommandContext
-	{
-		public IDiscordClient Client { get; private set; }
-		public IGuild Guild { get; private set; }
-		public IMessageChannel Channel { get; private set; }
-		public IUser User { get; private set; }
-		public IUserMessage Message { get; private set; }
-		public string[] Arguments { get; private set; }
-
-		public BotCommandContext(IDiscordClient client, IUserMessage message, int argPos)
-		{
-			Client = client;
-			Guild = (message.Channel as IGuildChannel)?.Guild;
-			Channel = message.Channel;
-			User = message.Author;
-			Message = message;
-
-			var breakPos = message.Content.IndexOf(' ');
-			if (breakPos != -1)
-			{
-				Arguments = Actions.SplitByCharExceptInQuotes(message.Content.Substring(breakPos), ' ');
-			}
-			else
-			{
-				Arguments = new string[0];
-			}
 		}
 	}
 
@@ -1595,14 +1567,14 @@ namespace Advobot
 
 	public class ReturnedArguments
 	{
-		public string[] Arguments { get; private set; }
+		public List<string> Arguments { get; private set; }
 		public Dictionary<string, string> SpecifiedArguments { get; private set; }
 		public List<ulong> MentionedUsers { get; private set; }
 		public List<ulong> MentionedRoles { get; private set; }
 		public List<ulong> MentionedChannels { get; private set; }
 		public ArgFailureReason Reason { get; private set; }
 
-		public ReturnedArguments(string[] args, ArgFailureReason reason)
+		public ReturnedArguments(List<string> args, ArgFailureReason reason)
 		{
 			Arguments = args;
 			SpecifiedArguments = null;
@@ -1611,7 +1583,7 @@ namespace Advobot
 			MentionedChannels = null;
 			Reason = reason;
 		}
-		public ReturnedArguments(string[] args, Dictionary<string, string> specifiedArgs, IMessage message)
+		public ReturnedArguments(List<string> args, Dictionary<string, string> specifiedArgs, IMessage message)
 		{
 			Arguments = args;
 			SpecifiedArguments = specifiedArgs;
@@ -1621,24 +1593,17 @@ namespace Advobot
 			Reason = ArgFailureReason.Not_Failure;
 		}
 
-		/*
-		public void SetSpecifiedArguments(Dictionary<string, string> specifiedArgs)
+		public string GetSpecifiedArg(string input)
 		{
-			SpecifiedArguments = specifiedArgs;
+			if (SpecifiedArguments.TryGetValue(input, out string value))
+			{
+				return value;
+			}
+			else
+			{
+				return null;
+			}
 		}
-		public void SetMentionedUsers(IEnumerable<ulong> users)
-		{
-			MentionedUsers = users.ToList();
-		}
-		public void SetMentionedRoles(IEnumerable<ulong> roles)
-		{
-			MentionedRoles = roles.ToList();
-		}
-		public void SetMentionedChannels(IEnumerable<ulong> channels)
-		{
-			MentionedChannels = channels.ToList();
-		}
-		*/
 	}
 
 	public struct GuildToggleAfterTime : ITimeInterface
@@ -1669,6 +1634,20 @@ namespace Advobot
 		{
 			Success = success;
 			Failure = failure;
+		}
+	}
+
+	public struct ArgNumbers
+	{
+		public int Min { get; private set; }
+		public int Max { get; private set; }
+		public int ShortenTo { get; private set; }
+
+		public ArgNumbers(int min, int max, int shortenTo)
+		{
+			Min = min;
+			Max = max;
+			ShortenTo = shortenTo;
 		}
 	}
 	#endregion

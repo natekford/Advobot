@@ -585,7 +585,7 @@ namespace Advobot
 			return null;
 		}
 
-		public static string GetVariable(string[] inputArray, string searchTerm)
+		public static string GetVariable(IEnumerable<string> inputArray, string searchTerm)
 		{
 			//Get the item
 			var first = inputArray?.Where(x => CaseInsEquals(x.Substring(0, Math.Max(x.IndexOf(':'), 1)), searchTerm)).FirstOrDefault();
@@ -1215,7 +1215,6 @@ namespace Advobot
 
 		public static ReturnedDiscordObject<IGuildUser> GetGuildUser(ICommandContext context, UserCheck[] checkingTypes, bool mentions, string input)
 		{
-			//TODO: Rework others to be like this one
 			IGuildUser user = null;
 			if (!String.IsNullOrWhiteSpace(input))
 			{
@@ -1648,37 +1647,69 @@ namespace Advobot
 				case FailureReason.Not_Found:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Unable to find the {0}.", objType)));
-					break;
+					return;
 				}
 				case FailureReason.User_Inability:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object))));
-					break;
+					return;
 				}
 				case FailureReason.Bot_Inability:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object))));
-					break;
+					return;
 				}
 				case FailureReason.Too_Many:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("There are too many {0}s with the same name.", objType)));
-					break;
+					return;
 				}
 				case FailureReason.Incorrect_Channel_Type:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Invalid channel type for the given variable requirement.")));
-					break;
+					return;
 				}
 				case FailureReason.Everyone_Role:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("The everyone role cannot be modified in that way.")));
-					break;
+					return;
 				}
 				case FailureReason.Managed_Role:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Managed roles cannot be modified in that way.")));
-					break;
+					return;
+				}
+			}
+		}
+
+		public static async Task HandleArgsGettingErrors(ICommandContext context, ReturnedArguments returnedArgs)
+		{
+			switch (returnedArgs.Reason)
+			{
+				case ArgFailureReason.Too_Many_Args:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR("Too many arguments."));
+					return;
+				}
+				case ArgFailureReason.Too_Few_Args:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR("Too few arguments."));
+					return;
+				}
+				case ArgFailureReason.Missing_Critical_Args:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR("Missing critical arguments."));
+					return;
+				}
+				case ArgFailureReason.Max_Less_Than_Min:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR("NOT USER ERROR: Max less than min."));
+					return;
+				}
+				case ArgFailureReason.ShortenTo_Less_Than_Min:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR("NOT USER ERROR: ShortenTo less than min."));
+					return;
 				}
 			}
 		}
@@ -1984,7 +2015,7 @@ namespace Advobot
 
 		public static void WriteLine(string text)
 		{
-			Console.WriteLine(DateTime.Now.ToString("HH:mm:ss") + " " + ReplaceMarkdownChars(text));
+			Console.WriteLine(String.Format("[{0}] {1}", DateTime.Now.ToString("HH:mm:ss"), ReplaceMarkdownChars(text)));
 		}
 
 		public static void ExceptionToConsole(string method, Exception e)
@@ -3840,60 +3871,41 @@ namespace Advobot
 		}
 
 		//TODO: Implement this into commands
-		public static ReturnedArguments GetArgs(ICommandContext context, string[] argsToSearchFor = null, int min = -1, int max = -1, int keepThisAmount = -1, bool removeMentions = true)
+		public static ReturnedArguments GetArgs(ICommandContext context, string input, ArgNumbers argNums, bool removeMentions, string[] argsToSearchFor = null)
 		{
-			var args = (context as BotCommandContext).Arguments;
+			/* Non specified arguments get left in a list of args going left to right (mentions are not included in this if the bool is true).
+			 * This list can keep all args separate or make the list a certain length. E.G. [ a, b, c, d ] (shortenTo = 3) => [ a, b, c d ]
+			 * Specified arguments get left in a dictionary.
+			 * Mentioned objects get left in respective lists of their ulong IDs.
+			 * TODO: Add in emotes/emojis maybe.
+			 */
+
+			var min = argNums.Min;
+			var max = argNums.Max;
+			var shortenTo = argNums.ShortenTo;
+
+			var args = SplitByCharExceptInQuotes(input, ' ').ToList();
 			if (min > max)
 			{
 				return new ReturnedArguments(args, ArgFailureReason.Max_Less_Than_Min);
 			}
-			else if (min > keepThisAmount)
+			else if (min > shortenTo)
 			{
 				return new ReturnedArguments(args, ArgFailureReason.ShortenTo_Less_Than_Min);
 			}
-			else if (min != -1 && args.Length < min)
+			else if (args.Count < min)
 			{
 				return new ReturnedArguments(args, ArgFailureReason.Too_Few_Args);
 			}
-			else if (max != -1 && args.Length > max)
+			else if (args.Count > max)
 			{
 				return new ReturnedArguments(args, ArgFailureReason.Too_Many_Args);
-			}
-
-			//Limiting the amount of args that are kept separate
-			if (keepThisAmount != -1)
-			{
-				var tempArray = new string[keepThisAmount];
-				for (int i = 0; i < args.Length; i++)
-				{
-					if (keepThisAmount > i)
-					{
-						tempArray[i] = args[i];
-					}
-					else
-					{
-						tempArray[keepThisAmount - 1] += " " + args[i];
-					}
-				}
-				args = tempArray;
-			}
-
-			//Finding the wanted arguments
-			var specifiedArgs = new Dictionary<string, string>();
-			foreach (var searchArg in argsToSearchFor)
-			{
-				var arg = GetVariable(args, searchArg);
-				if (arg != null)
-				{
-					specifiedArgs.Add(searchArg, arg);
-				}
 			}
 
 			//Remove all mentions
 			if (removeMentions)
 			{
-				var tempArray = new string[args.Length];
-				var count = 0;
+				var tempList = new List<string>();
 				foreach (var arg in args)
 				{
 					if (MentionUtils.TryParseChannel(arg, out ulong ID))
@@ -3907,11 +3919,40 @@ namespace Advobot
 					}
 					else
 					{
-						tempArray[count] = arg;
-						++count;
+						tempList.Add(arg);
 					}
 				}
-				args = tempArray;
+				args = tempList;
+			}
+
+			//Limiting the amount of args that are kept separate
+			if (shortenTo != int.MaxValue && args.Count > 1)
+			{
+				//[ a, b, c, d ]; args.Length = 4
+				//shortenToIndex = 3; [ a, b, c, d ] => [ a, b, c d ] <-- Used example
+				//shortenToIndex = 1; [ a, b, c, d ] => [ a b c d ]
+				var count = Math.Min(shortenTo, args.Count) - 1; //Min of (3, 4) which is 3 minus 1 is 2
+				var tempList = new List<string>(); //2 + 1 is 3 so an array of 3 objects
+				for (int i = 0; i < count; i++)
+				{
+					tempList.Add(args[i]); //Set the first two objects. [ a, b, empty ]
+				}
+				if (shortenTo < args.Count)
+				{
+					tempList.Add(String.Join(" ", args, count, args.Count - count)); //Grab the remaining objects (a b) and stuff them into the array
+				}
+				args = tempList;
+			}
+
+			//Finding the wanted arguments
+			var specifiedArgs = new Dictionary<string, string>();
+			foreach (var searchArg in argsToSearchFor)
+			{
+				var arg = GetVariableAndRemove(args, searchArg);
+				if (arg != null)
+				{
+					specifiedArgs.Add(searchArg, arg);
+				}
 			}
 
 			return new ReturnedArguments(args, specifiedArgs, context.Message);

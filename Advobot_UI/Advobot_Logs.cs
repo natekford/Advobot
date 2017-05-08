@@ -301,7 +301,7 @@ namespace Advobot
 					await Message_Received_Actions.VotingOnSpamPrevention(guildInfo, guild, message);
 					await Message_Received_Actions.SpamPrevention(guildInfo, guild, message);
 					await Message_Received_Actions.SlowmodeOrBannedPhrases(guildInfo, guild, message);
-					await Message_Received_Actions.ImageLog(guildInfo, guildInfo.ImageLog, message);
+					await Message_Received_Actions.LogImage(guildInfo, guildInfo.ImageLog, message);
 				}
 			}
 		}
@@ -317,39 +317,43 @@ namespace Advobot
 			await Actions.BannedPhrases(guildInfo, afterMessage);
 			if (!Actions.VerifyLogging(guildInfo, afterMessage, LogActions.MessageUpdated))
 				return;
+
 			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
-
-			//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
-			if (beforeMessageValue?.Embeds.Count() < afterMessage.Embeds.Count())
+			if (serverLog != null)
 			{
-				await Message_Received_Actions.ImageLog(guildInfo, serverLog, afterMessage);
+				var beforeMsgContent = Actions.ReplaceMarkdownChars(beforeMessageValue?.Content ?? "");
+				var afterMsgContent = Actions.ReplaceMarkdownChars(afterMessage.Content);
+				beforeMsgContent = String.IsNullOrWhiteSpace(beforeMsgContent) ? "Empty or unable to be gotten." : beforeMsgContent;
+				afterMsgContent = String.IsNullOrWhiteSpace(afterMsgContent) ? "Empty or unable to be gotten." : afterMsgContent;
+
+				if (beforeMsgContent.Equals(afterMsgContent))
+				{
+					return;
+				}
+				else if (beforeMsgContent.Length + afterMsgContent.Length > Constants.MAX_MESSAGE_LENGTH_LONG)
+				{
+					beforeMsgContent = beforeMsgContent.Length > 667 ? "LONG MESSAGE" : beforeMsgContent;
+					afterMsgContent = afterMsgContent.Length > 667 ? "LONG MESSAGE" : afterMsgContent;
+				}
+
+				var embed = Actions.MakeNewEmbed(null, null, Constants.MEDT);
+				Actions.AddFooter(embed, "Message Updated");
+				Actions.AddField(embed, "Before:", String.Format("`{0}`", beforeMsgContent));
+				Actions.AddField(embed, "After:", String.Format("`{0}`", afterMsgContent), false);
+				Actions.AddAuthor(embed, String.Format("{0} in #{1}", afterMessage.Author.FormatUser(), afterMessage.Channel), afterMessage.Author.GetAvatarUrl());
+				await Actions.SendEmbedMessage(serverLog, embed);
+				++Variables.LoggedEdits;
 			}
-
-			var beforeMsgContent = Actions.ReplaceMarkdownChars(beforeMessageValue?.Content ?? "");
-			var afterMsgContent = Actions.ReplaceMarkdownChars(afterMessage.Content);
-			beforeMsgContent = String.IsNullOrWhiteSpace(beforeMsgContent) ? "Empty or unable to be gotten." : beforeMsgContent;
-			afterMsgContent = String.IsNullOrWhiteSpace(afterMsgContent) ? "Empty or unable to be gotten." : afterMsgContent;
-
-			if (beforeMsgContent.Equals(afterMsgContent))
+			var imageLog = guildInfo.ImageLog;
+			if (imageLog != null)
 			{
-				return;
+				//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
+				if (beforeMessageValue?.Embeds.Count() < afterMessage.Embeds.Count())
+				{
+					await Message_Received_Actions.LogImage(guildInfo, imageLog, afterMessage);
+					++Variables.LoggedEdits;
+				}
 			}
-			else if (beforeMsgContent.Length + afterMsgContent.Length > Constants.MAX_MESSAGE_LENGTH_LONG)
-			{
-				beforeMsgContent = beforeMsgContent.Length > 667 ? "LONG MESSAGE" : beforeMsgContent;
-				afterMsgContent = afterMsgContent.Length > 667 ? "LONG MESSAGE" : afterMsgContent;
-			}
-
-			var embed = Actions.MakeNewEmbed(null, null, Constants.MEDT);
-			Actions.AddFooter(embed, "Message Updated");
-			Actions.AddField(embed, "Before:", String.Format("`{0}`", beforeMsgContent));
-			Actions.AddField(embed, "After:", String.Format("`{0}`", afterMsgContent), false);
-			Actions.AddAuthor(embed, String.Format("{0} in #{1}", afterMessage.Author.FormatUser(), afterMessage.Channel), afterMessage.Author.GetAvatarUrl());
-			await Actions.SendEmbedMessage(serverLog, embed);
-
-			++Variables.LoggedEdits;
 		}
 
 		public static async Task OnMessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
@@ -418,7 +422,7 @@ namespace Advobot
 
 	public class Mod_Logs : ModuleBase
 	{
-		public static async Task LogCommand(BotGuildInfo guildInfo, BotCommandContext context)
+		public static async Task LogCommand(BotGuildInfo guildInfo, ICommandContext context)
 		{
 			//Write into the console what the command was and who said it
 			var user = context.User;
@@ -458,7 +462,7 @@ namespace Advobot
 		//	}
 		//}
 
-		public static async Task ImageLog(BotGuildInfo guildInfo, ITextChannel logChannel, IMessage message)
+		public static async Task LogImage(BotGuildInfo guildInfo, ITextChannel logChannel, IMessage message)
 		{
 			if (logChannel == null || message.Author.Id == Variables.Bot_ID)
 				return;
@@ -560,19 +564,16 @@ namespace Advobot
 			}
 		}
 
-		public static async Task SpamPrevention(BotGuildInfo guildInfo, IGuild guild, IMessage msg)
+		public static async Task SpamPrevention(BotGuildInfo guildInfo, IGuild guild, IMessage message)
 		{
-			var author = msg.Author as IGuildUser;
+			var author = message.Author as IGuildUser;
 			if (Actions.GetUserPosition(guild, author) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)))
 				return;
 
-			var global = guildInfo.GlobalSpamPrevention;
-			var isSpam = await Actions.SpamCheck(global, guild, author, msg);
-
-			if (!isSpam)
-				return;
-
-			await Actions.DeleteMessage(msg);
+			if (await Actions.SpamCheck(guildInfo.GlobalSpamPrevention, guild, author, message))
+			{
+				await Actions.DeleteMessage(message);
+			}
 		}
 
 		public static async Task VotingOnSpamPrevention(BotGuildInfo guildInfo, IGuild guild, IMessage message)

@@ -35,25 +35,19 @@ namespace Advobot
 				return;
 			}
 
-			var channelMentions = Context.Message.MentionedChannelIds;
-			if (channelMentions.Count != 1)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.CHANNEL_ERROR));
-				return;
-			}
-			else if (guildInfo.GetLogID(type) == channelMentions.First())
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The given channel is already the current {0} log.", typeStr)));
-				return;
-			}
-
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Text }, channelMentions.First());
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Text }, true, null);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
 			}
 			var channel = returnedChannel.Object as ITextChannel;
+
+			if (guildInfo.GetLogID(type) == channel.Id)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The given channel is already the current {0} log.", typeStr)));
+				return;
+			}
 
 			switch (type)
 			{

@@ -7,8 +7,8 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const string BOT_VERSION = "0.9.36";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc-00735";
+		public const string BOT_VERSION = "0.9.37";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc2-00736";
 		public const string BOT_PREFIX = "+=";
 		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
