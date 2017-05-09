@@ -259,16 +259,18 @@ namespace Advobot
 			var permStr = inputArray.Length > 3 ? inputArray[3] : null;
 
 			//Get the action
-			if (!Enum.TryParse(actionStr, true, out CHPType action))
+			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Show, ActionType.Allow, ActionType.Inherit, ActionType.Deny });
+			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
 				return;
 			}
+			var action = returnedActionType.Type;
 
 			//If only show, take that as a person wanting to see the permission types
 			if (inputArray.Length == 1)
 			{
-				if (action == CHPType.Show)
+				if (action == ActionType.Show)
 				{
 					//Embed showing the channel permission types
 					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Channel Permission Types", String.Join("\n", Variables.ChannelPermissions.Select(x => x.Name))));
@@ -317,7 +319,7 @@ namespace Advobot
 			var permissions = new List<string>();
 			switch (action)
 			{
-				case CHPType.Show:
+				case ActionType.Show:
 				{
 					//Say the overwrites on a channel
 					if (inputArray.Length == 2)
@@ -373,13 +375,14 @@ namespace Advobot
 					});
 					return;
 				}
-				case CHPType.Allow:
-				case CHPType.Inherit:
-				case CHPType.Deny:
+				case ActionType.Allow:
+				case ActionType.Inherit:
+				case ActionType.Deny:
 				{
 					permissions = permStr.Split('/').ToList();
 					break;
 				}
+				//FISHY
 			}
 
 			//Check if valid permissions
@@ -424,21 +427,21 @@ namespace Advobot
 			permissions.ToList().ForEach(x => changeValue = Actions.GetBit(Context, x, changeValue));
 			switch (action)
 			{
-				case CHPType.Allow:
+				case ActionType.Allow:
 				{
 					allowBits |= changeValue;
 					denyBits &= ~changeValue;
 					actionStr = "allowed";
 					break;
 				}
-				case CHPType.Inherit:
+				case ActionType.Inherit:
 				{
 					allowBits &= ~changeValue;
 					denyBits &= ~changeValue;
 					actionStr = "inherited";
 					break;
 				}
-				case CHPType.Deny:
+				case ActionType.Deny:
 				{
 					allowBits &= ~changeValue;
 					denyBits |= changeValue;

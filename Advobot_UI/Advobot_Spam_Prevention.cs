@@ -48,18 +48,20 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid type supplied."));
 				return;
 			}
-			if (!Enum.TryParse(actionStr, true, out SpamPreventionAction action))
+			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
+			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
 				return;
 			}
+			var action = returnedActionType.Type;
 
 			//Check if a spam prevention exists or not
 			var spamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(type);
 			switch (action)
 			{
-				case SpamPreventionAction.Enable:
-				case SpamPreventionAction.Disable:
+				case ActionType.Enable:
+				case ActionType.Disable:
 				{
 					//Make sure the server guild has a spam prevention set up
 					if (spamPrevention == null)
@@ -74,7 +76,7 @@ namespace Advobot
 			//Go through the given action
 			switch (action)
 			{
-				case SpamPreventionAction.Enable:
+				case ActionType.Enable:
 				{
 					if (spamPrevention.Enabled)
 					{
@@ -87,7 +89,7 @@ namespace Advobot
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention has successfully been enabled."));
 					return;
 				}
-				case SpamPreventionAction.Disable:
+				case ActionType.Disable:
 				{
 					if (!spamPrevention.Enabled)
 					{
@@ -100,7 +102,7 @@ namespace Advobot
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention has successfully been disabled."));
 					return;
 				}
-				case SpamPreventionAction.Setup:
+				case ActionType.Setup:
 				{
 					//Get the ints
 					if (!int.TryParse(messageStr, out int messages))

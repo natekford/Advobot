@@ -30,6 +30,10 @@ namespace Advobot
 		public const string BOT_KEYS = "DoNotShareThisFile" + SAVING_FILE_EXTENSION;
 		public const string CHANNEL_INSTRUCTIONS = "[#Channel|\"Channel Name\"]";
 		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|\"Channel Name\">";
+		public const string USER_INSTRUCTIONS = "[@User|\"Username\"]";
+		public const string OPTIONAL_USER_INSTRUCTIONS = "<@User|\"Username\">";
+		public const string ROLE_INSTRUCTIONS = "[@Role|\"Role Name\"]";
+		public const string OPTIONAL_ROLE_INSTRUCTIONS = "<@Role|\"Role Name\">";
 		public const string VOICE_TYPE = "voice";
 		public const string TEXT_TYPE = "text";
 		public const string BYPASS_STRING = "Badoodle123";

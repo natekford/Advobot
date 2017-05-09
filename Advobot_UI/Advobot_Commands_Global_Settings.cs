@@ -383,9 +383,22 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ListGuilds()
 		{
-			var count = 1;
-			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x => String.Format("`{0}.` `{1}` Owner: `{2}`", count++.ToString("00"), x.FormatGuild(), x.Owner.FormatUser()));
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guilds", String.Join("\n", guildStrings)));
+			var guilds = Variables.Client.GetGuilds().ToList();
+			if (guilds.Count < 10)
+			{
+				var embed = Actions.MakeNewEmbed("Guilds");
+				guilds.ForEach(x =>
+				{
+					Actions.AddField(embed, x.FormatGuild(), String.Format("**Owner:** `{0}`", x.Owner.FormatUser()));
+				});
+				await Actions.SendEmbedMessage(Context.Channel, embed);
+			}
+			else
+			{
+				var count = 1;
+				var guildStrings = guilds.Select(x => String.Format("`{0}.` `{1}` Owner: `{2}`", count++.ToString("00"), x.FormatGuild(), x.Owner.FormatUser()));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guilds", String.Join("\n", guildStrings)));
+			}
 		}
 		#endregion
 	}

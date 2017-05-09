@@ -22,6 +22,7 @@ namespace Advobot
 		public static Task OnGuildAvailable(SocketGuild guild)
 		{
 			Actions.WriteLine(String.Format("{0}: {1} is now online on shard {2}.", MethodBase.GetCurrentMethod().Name, guild.FormatGuild(), Variables.Client.GetShardFor(guild).ShardId));
+			Actions.WriteLine(String.Format("Current memory usage is: {0}MB", Actions.GetMemory().ToString("0.00")));
 			Variables.TotalUsers += guild.MemberCount;
 			Variables.TotalGuilds++;
 
@@ -288,17 +289,12 @@ namespace Advobot
 			}
 			else if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 			{
-				if (!Actions.VerifyMessageShouldBeLogged(guildInfo, message))
-					return;
+				await Message_Received_Actions.CloseWords(guildInfo, guild, message);
+				await Message_Received_Actions.ModifyPreferences(guildInfo, guild, message);
+				await Message_Received_Actions.VotingOnSpamPrevention(guildInfo, guild, message);
 
-				if (!guildInfo.IgnoredCommandChannels.Contains(message.Channel.Id))
+				if (Actions.VerifyMessageShouldBeLogged(guildInfo, message))
 				{
-					await Message_Received_Actions.ModifyPreferences(guildInfo, guild, message);
-					await Message_Received_Actions.CloseWords(guildInfo, guild, message);
-				}
-				if (!guildInfo.IgnoredLogChannels.Contains(message.Channel.Id))
-				{
-					await Message_Received_Actions.VotingOnSpamPrevention(guildInfo, guild, message);
 					await Message_Received_Actions.SpamPrevention(guildInfo, guild, message);
 					await Message_Received_Actions.SlowmodeOrBannedPhrases(guildInfo, guild, message);
 					await Message_Received_Actions.LogImage(guildInfo, guildInfo.ImageLog, message);

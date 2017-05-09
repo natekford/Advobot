@@ -45,18 +45,20 @@ namespace Advobot
 
 			//Break the input into pieces
 			var inputArray = input.Split(new[] { ' ' }, 2);
-			var action = inputArray[0];
-			var rolesString = inputArray[1];
+			var actionStr = inputArray[0];
+			var roleStr = inputArray[1];
 
 			//Check which action it is
-			if (!Enum.TryParse(action, out SAGAction actionType))
+			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Create, ActionType.Add, ActionType.Remove });
+			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
 				return;
 			}
+			var action = returnedActionType.Type;
 
 			//Check if the guild has too many or no self assignable role lists yet
-			if (actionType != SAGAction.Create)
+			if (action != ActionType.Create)
 			{
 				if (!guildInfo.SelfAssignableGroups.Any())
 				{
@@ -78,14 +80,14 @@ namespace Advobot
 			var successStr = new List<string>();
 			var failureStr = new List<string>();
 			var deletedStr = new List<string>();
-			switch (actionType)
+			switch (action)
 			{
-				case SAGAction.Create:
-				case SAGAction.Add:
-				case SAGAction.Remove:
+				case ActionType.Create:
+				case ActionType.Add:
+				case ActionType.Remove:
 				{
 					//Get the position of the last space
-					int lastSpace = rolesString.LastIndexOf(' ');
+					int lastSpace = roleStr.LastIndexOf(' ');
 
 					//Make sure valid last space
 					if (lastSpace < 1)
@@ -95,9 +97,9 @@ namespace Advobot
 					}
 
 					//Make the group string everything after the last space
-					var groupString = rolesString.Substring(lastSpace).Trim();
+					var groupString = roleStr.Substring(lastSpace).Trim();
 					//Make the role string everything before the last space
-					rolesString = rolesString.Substring(0, lastSpace).Trim();
+					roleStr = roleStr.Substring(0, lastSpace).Trim();
 
 					groupNumber = await Actions.GetIfGroupIsValid(Context, Actions.GetVariable(groupString, "group"));
 					if (groupNumber == -1)
@@ -106,7 +108,7 @@ namespace Advobot
 					//Check if there are any groups already with that number
 					var guildGroups = guildInfo.SelfAssignableGroups;
 					//If create, do not allow a new one made with the same number
-					if (actionType == SAGAction.Create)
+					if (action == ActionType.Create)
 					{
 						if (guildGroups.Any(x => x.Group == groupNumber))
 						{
@@ -125,7 +127,7 @@ namespace Advobot
 					}
 
 					//Check validity of roles
-					var evaluatedRoles = Actions.GetValidEditRoles(Context, rolesString.Split('/').ToList());
+					var evaluatedRoles = Actions.GetValidEditRoles(Context, roleStr.Split('/').ToList());
 					if (!evaluatedRoles.HasValue)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ROLE_ERROR));
@@ -137,7 +139,7 @@ namespace Advobot
 
 					//Add all the roles to a list of self assignable roles
 					var SARoles = success.Select(x => new SelfAssignableRole(Context.Guild.Id, x.Id)).ToList();
-					if (actionType != SAGAction.Remove)
+					if (action != ActionType.Remove)
 					{
 						var SAGroups = guildInfo.SelfAssignableGroups;
 						var ulongs = SAGroups.SelectMany(x => x.Roles).Select(x => x.RoleID);
@@ -146,7 +148,7 @@ namespace Advobot
 						success.RemoveAll(x => ulongs.Contains(x.Id));
 						SARoles.RemoveAll(x => ulongs.Contains(x.RoleID));
 
-						if (actionType == SAGAction.Create)
+						if (action == ActionType.Create)
 						{
 							//Make a new group and add that to the global list
 							guildInfo.SelfAssignableGroups.Add(new SelfAssignableGroup(SARoles, groupNumber));
@@ -165,7 +167,7 @@ namespace Advobot
 					}
 					break;
 				}
-				case SAGAction.Delete:
+				case ActionType.Delete:
 				{
                     groupNumber = await Actions.GetIfGroupIsValid(Context, Actions.GetVariable(inputArray[1], "group"));
 					if (groupNumber == -1)
@@ -192,27 +194,27 @@ namespace Advobot
 			var fString = "";
 			var sBool = successStr.Any();
 			var fBool = failureStr.Any();
-			switch (actionType)
+			switch (action)
 			{
-				case SAGAction.Create:
+				case ActionType.Create:
 				{
 					sString = sBool ? String.Format("Successfully created the group `{0}` with the following roles: `{1}`", groupNumber.ToString("00"), String.Join("`, `", successStr)) : "";
 					fString = fBool ? String.Format("{0}ailed to add the following roles to `{1}`: `{2}`", sBool ? "f" : "F", groupNumber.ToString("00"), String.Join("`, `", failureStr)) : "";
 					break;
 				}
-				case SAGAction.Add:
+				case ActionType.Add:
 				{
 					sString = sBool ? String.Format("Successfully added the following roles to `{0}`: `{1}`", groupNumber.ToString("00"), String.Join("`, `", successStr)) : "";
 					fString = fBool ? String.Format("{0}ailed to add the following roles to `{1}`: `{2}`", sBool ? "f" : "F", groupNumber.ToString("00"), String.Join("`, `", failureStr)) : "";
 					break;
 				}
-				case SAGAction.Remove:
+				case ActionType.Remove:
 				{
 					sString = sBool ? String.Format("Successfully removed the following roles from `{0}`: `{1}`", groupNumber.ToString("00"), String.Join("`, `", successStr)) : "";
 					fString = fBool ? String.Format("{0}ailed to remove the following roles from `{1}`: `{2}`", sBool ? "f" : "F", groupNumber.ToString("00"), String.Join("`, `", failureStr)) : "";
 					break;
 				}
-				case SAGAction.Delete:
+				case ActionType.Delete:
 				{
 					sString = String.Format("Successfully deleted the group `{0}` which held the following roles: `{1}`", groupNumber.ToString("00"), String.Join("`, `", deletedStr));
 					break;

@@ -138,16 +138,40 @@ namespace Advobot
 
 			//Get the command
 			var cmdName = context.Message.Content.Substring(argPos).Split(' ').FirstOrDefault();
-			var cmd = Actions.GetCommand(context.Guild.Id, cmdName);
-			if (cmd != null && !cmd.ValAsBoolean)
+			var cmd = Actions.GetCommand(guildInfo, cmdName);
+			if (cmd == null)
 			{
 				return false;
 			}
-			if (guildInfo.CommandsDisabledOnChannel.Any(x => Actions.CaseInsEquals(cmd.Name, x.CommandName) && context.Channel.Id == x.ChannelID))
+			else if (!cmd.ValAsBoolean)
 			{
 				return false;
 			}
-			return true;
+
+			var users = guildInfo.CommandOverrides.Users.Where(x => Actions.CaseInsEquals(cmd.Name, x.Name)).ToList();
+			var roles = guildInfo.CommandOverrides.Roles.Where(x => Actions.CaseInsEquals(cmd.Name, x.Name)).ToList();
+			var channels = guildInfo.CommandOverrides.Channels.Where(x => Actions.CaseInsEquals(cmd.Name, x.Name)).ToList();
+
+			var channel = channels.FirstOrDefault(x => x.ID == context.Channel.Id)?.Enabled;
+			var user = users.FirstOrDefault(x => x.ID == context.User.Id)?.Enabled;
+			var role = roles.OrderBy(x => context.Guild.GetRole(x.ID).Position).LastOrDefault(x => (context.User as Discord.IGuildUser).RoleIds.ToList().Contains(x.ID))?.Enabled;
+
+			if (user != null)
+			{
+				return (bool)user;
+			}
+			else if (role != null)
+			{
+				return (bool)role;
+			}
+			else if (channel != null)
+			{
+				return (bool)channel;
+			}
+			else
+			{
+				return true;
+			}
 		}
 	}
 }

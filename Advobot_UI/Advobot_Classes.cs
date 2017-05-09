@@ -176,10 +176,6 @@ namespace Advobot
 	public class BotGuildInfo
 	{
 		[JsonProperty]
-		public List<CommandSwitch> CommandSettings { get; private set; }
-		[JsonProperty]
-		public List<CommandDisabledOnChannel> CommandsDisabledOnChannel { get; private set; }
-		[JsonProperty]
 		public List<BotImplementedPermissions> BotUsers { get; private set; }
 		[JsonProperty]
 		public List<SelfAssignableGroup> SelfAssignableGroups { get; private set; }
@@ -219,6 +215,8 @@ namespace Advobot
 		[JsonProperty]
 		public RapidJoinProtection JoinProtection { get; private set; }
 		[JsonProperty]
+		public CommandOverrides CommandOverrides { get; private set; }
+		[JsonProperty]
 		public string Prefix { get; private set; }
 		[JsonProperty]
 		public ulong GuildID { get; private set; }
@@ -255,8 +253,6 @@ namespace Advobot
 		{
 			GuildID = guildID;
 
-			CommandSettings = new List<CommandSwitch>();
-			CommandsDisabledOnChannel = new List<CommandDisabledOnChannel>();
 			BotUsers = new List<BotImplementedPermissions>();
 			SelfAssignableGroups = new List<SelfAssignableGroup>();
 			Reminds = new List<Remind>();
@@ -275,6 +271,7 @@ namespace Advobot
 			GlobalSpamPrevention = new GlobalSpamPrevention();
 			MessageDeletion = new MessageDeletion();
 			JoinProtection = new RapidJoinProtection();
+			CommandOverrides = new CommandOverrides();
 
 			Prefix = null;
 			DefaultPrefs = true;
@@ -880,6 +877,48 @@ namespace Advobot
 			Variables.InviteList.ThreadSafeAdd(this);
 		}
 	}
+
+	public class CommandOverrides
+	{
+		[JsonProperty]
+		public List<CommandOverride<IGuildUser>> Users { get; private set; }
+		[JsonProperty]
+		public List<CommandOverride<IRole>> Roles { get; private set; }
+		[JsonProperty]
+		public List<CommandOverride<IGuildChannel>> Channels { get; private set; }
+		[JsonProperty]
+		public List<CommandSwitch> Commands { get; private set; }
+
+		public CommandOverrides()
+		{
+			Users = new List<CommandOverride<IGuildUser>>();
+			Roles = new List<CommandOverride<IRole>>();
+			Channels = new List<CommandOverride<IGuildChannel>>();
+			Commands = new List<CommandSwitch>();
+		}
+	}
+
+	public class CommandOverride<T>
+	{
+		[JsonProperty]
+		public string Name { get; private set; }
+		[JsonProperty]
+		public ulong ID { get; private set; }
+		[JsonProperty]
+		public bool Enabled { get; private set; }
+
+		public CommandOverride(string name, ulong id, bool enabled)
+		{
+			Name = name;
+			ID = id;
+			Enabled = enabled;
+		}
+
+		public void Switch()
+		{
+			Enabled = !Enabled;
+		}
+	}
 	#endregion
 
 	#region Non-saved Classes
@@ -1347,20 +1386,6 @@ namespace Advobot
 			Text = text;
 		}
 	}
-
-	public struct CommandDisabledOnChannel
-	{
-		[JsonProperty]
-		public ulong ChannelID { get; private set; }
-		[JsonProperty]
-		public string CommandName { get; private set; }
-
-		public CommandDisabledOnChannel(ulong channelID, string commandName)
-		{
-			ChannelID = channelID;
-			CommandName = commandName;
-		}
-	}
 	#endregion
 
 	#region Non-saved Structs
@@ -1565,7 +1590,19 @@ namespace Advobot
 		}
 	}
 
-	public class ReturnedArguments
+	public struct ReturnedType
+	{
+		public ActionType Type { get; private set; }
+		public TypeFailureReason Reason { get; private set; }
+
+		public ReturnedType(ActionType type, TypeFailureReason reason)
+		{
+			Type = type;
+			Reason = reason;
+		}
+	}
+
+	public struct ReturnedArguments
 	{
 		public List<string> Arguments { get; private set; }
 		public Dictionary<string, string> SpecifiedArguments { get; private set; }
@@ -1685,6 +1722,7 @@ namespace Advobot
 		Miscellaneous = 10,
 		Spam_Prevention = 11,
 		Channel_Settings = 12,
+		Guild_List = 13,
 	}
 
 	public enum PunishmentType
@@ -1697,27 +1735,12 @@ namespace Advobot
 		Mute = 5,
 	}
 
-	public enum SAGAction
-	{
-		Create = 1,
-		Add = 2,
-		Remove = 3,
-		Delete = 4,
-	}
-
 	public enum DeleteInvAction
 	{
 		User = 1,
 		Channel = 2,
 		Uses = 3,
 		Expiry = 4,
-	}
-
-	public enum SpamPreventionAction
-	{
-		Enable = 1,
-		Disable = 2,
-		Setup = 3,
 	}
 
 	public enum UICommandEnum
@@ -1759,12 +1782,20 @@ namespace Advobot
 		TNN = 8,
 	}
 
-	public enum CHPType
+	public enum ActionType
 	{
+		Nothing = 0,
 		Show = 1,
 		Allow = 2,
 		Inherit = 3,
 		Deny = 4,
+		Enable = 5,
+		Disable = 6,
+		Setup = 7,
+		Create = 8,
+		Add = 9,
+		Remove = 10,
+		Delete = 11,
 	}
 
 	public enum FailureReason
@@ -1777,13 +1808,6 @@ namespace Advobot
 		Incorrect_Channel_Type = 5,
 		Everyone_Role = 6,
 		Managed_Role = 7,
-	}
-
-	public enum ModifyTypes
-	{
-		Add = 1,
-		Remove = 2,
-		Show = 3,
 	}
 
 	public enum GuildToggle
@@ -1799,9 +1823,7 @@ namespace Advobot
 		BotUsers = 3,
 		SelfAssignableGroups = 4,
 		Reminds = 5,
-		IgnoredCommandChannels = 22,
 		IgnoredLogChannels = 6,
-		ImageOnlyChannels = 21,
 		LogActions = 7,
 		BannedPhraseStrings = 8,
 		BannedPhraseRegex = 9,
@@ -1816,6 +1838,10 @@ namespace Advobot
 		Prefix = 18,
 		Serverlog = 19,
 		Modlog = 20,
+		ImageOnlyChannels = 21,
+		IgnoredCommandChannels = 22,
+		CommandsDisabledOnUser = 23,
+		CommandsDisabledOnRole = 24,
 	}
 
 	public enum GuildNotifications
@@ -1829,21 +1855,6 @@ namespace Advobot
 		Server = 1,
 		Mod = 2,
 		Image = 3,
-	}
-
-	public enum CheckType
-	{
-		None = 0,
-		Role_Editability = 1,
-		Channel_Management = 2,
-		Channel_Permissions = 3,
-		Channel_Move_Users = 4,
-		User_Channel_Move = 5,
-		User_Editability = 6,
-		Channel_Move_Channels = 7,
-		Channel_Delete_Messages = 8,
-		Channel_Voice_Type = 9,
-		Channel_Text_Type = 10,
 	}
 
 	public enum UserCheck
@@ -1881,6 +1892,13 @@ namespace Advobot
 		Missing_Critical_Args = 3,
 		Max_Less_Than_Min = 4,
 		ShortenTo_Less_Than_Min = 5,
+	}
+
+	public enum TypeFailureReason
+	{
+		Not_Failure = 0,
+		Not_Found = 1,
+		Invalid_Type = 2,
 	}
 	#endregion
 }

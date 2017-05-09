@@ -129,7 +129,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Category does not exist."));
 				return;
 			}
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(Enum.GetName(typeof(CommandCategory), category), String.Join("\n", Actions.GetCommands(Context.Guild, (int)category))));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(Enum.GetName(typeof(CommandCategory), category), String.Join("\n", Actions.GetCommands(category))));
 		}
 		#endregion
 
@@ -1028,9 +1028,6 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			var temp = new BaseSpamInformation(SpamType.Image);
-			temp.SpamCount(10, 5);
-
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
 		#endregion

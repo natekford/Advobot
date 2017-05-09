@@ -131,6 +131,7 @@ namespace Advobot
 				var className = ((NameAttribute)classType.GetCustomAttribute(typeof(NameAttribute)))?.Text;
 				if (className == null)
 					continue;
+
 				if (!Enum.TryParse(className, true, out CommandCategory category))
 				{
 					WriteLine(className + " is not currently in the CommandCategory enum.");
@@ -334,15 +335,19 @@ namespace Advobot
 				guildInfo = new BotGuildInfo(guild.Id);
 			}
 
-			if (guildInfo.CommandSettings != null && guildInfo.CommandSettings.Any())
+			if (guildInfo.CommandOverrides != null)
 			{
-				guildInfo.CommandSettings.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-				var cmds = guildInfo.CommandSettings.Select(x => x.Name).ToList();
-				Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList().ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
+				guildInfo.CommandOverrides.Users.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+				guildInfo.CommandOverrides.Roles.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+				guildInfo.CommandOverrides.Channels.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+				guildInfo.CommandOverrides.Commands.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+
+				var cmds = guildInfo.CommandOverrides.Commands.Select(x => x.Name).ToList();
+				Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList().ForEach(x => guildInfo.CommandOverrides.Commands.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 			}
 			else
 			{
-				Variables.HelpList.ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
+				Variables.HelpList.ForEach(x => guildInfo.CommandOverrides.Commands.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 			}
 
 			guildInfo.TurnLoadedOn();
@@ -444,14 +449,14 @@ namespace Advobot
 			return dictionary;
 		}
 
-		public static List<CommandSwitch> GetMultipleCommands(ulong id, CommandCategory category)
+		public static List<CommandSwitch> GetMultipleCommands(BotGuildInfo guildInfo, CommandCategory category)
 		{
-			return Variables.Guilds[id].CommandSettings.Where(x => x.CategoryEnum == category).ToList();
+			return guildInfo.CommandOverrides.Commands.Where(x => x.CategoryEnum == category).ToList();
 		}
 
-		public static CommandSwitch GetCommand(ulong id, string input)
+		public static CommandSwitch GetCommand(BotGuildInfo guildInfo, string input)
 		{
-			return Variables.Guilds[id].CommandSettings.FirstOrDefault(x =>
+			return guildInfo.CommandOverrides.Commands.FirstOrDefault(x =>
 			{
 				if (CaseInsEquals(x.Name, input))
 				{
@@ -485,20 +490,17 @@ namespace Advobot
 			return result;
 		}
 
-		public static string[] GetCommands(IGuild guild, int number)
+		public static string[] GetCommands(CommandCategory category)
 		{
-			if (!Variables.Guilds.ContainsKey(guild.Id))
-				return null;
-
-			return Variables.Guilds[guild.Id].CommandSettings.Where(x => x.CategoryValue == number).Select(x => x.Name).ToArray();
+			return Variables.HelpList.Where(x => x.Category == category).Select(x => x.Name).ToArray();
 		}
 
-		public static string GetObjectStringBasic(IUser user)
+		public static string GetObjectStringBasic(IGuildUser user)
 		{
 			return Constants.BASIC_TYPE_USER;
 		}
 
-		public static string GetObjectStringBasic(IChannel channel)
+		public static string GetObjectStringBasic(IGuildChannel channel)
 		{
 			return Constants.BASIC_TYPE_CHANNEL;
 		}
@@ -513,9 +515,28 @@ namespace Advobot
 			return Constants.BASIC_TYPE_GUILD;
 		}
 
-		public static string GetObjectStringBasic(object obj)
+		public static string GetObjectStringBasic(Type type)
 		{
-			return "GetObjectStringBasic Error";
+			if (typeof(IGuildUser) == type)
+			{
+				return Constants.BASIC_TYPE_USER;
+			}
+			else if (typeof(IGuildChannel) == type)
+			{
+				return Constants.BASIC_TYPE_CHANNEL;
+			}
+			else if (typeof(IRole) == type)
+			{
+				return Constants.BASIC_TYPE_ROLE;
+			}
+			else if (typeof(IGuild) == type)
+			{
+				return Constants.BASIC_TYPE_GUILD;
+			}
+			else
+			{
+				return "GetObjectStringBasic Error";
+			}
 		}
 
 		public static string GetHelpString(HelpEntry help)
@@ -1626,8 +1647,8 @@ namespace Advobot
 			if (notification == null)
 				return;
 
-			var userMention = user != null ? user.Mention : "Invalid User";
-			var content = notification.Content.Replace("@User", userMention);
+			var userMention = user != null ? user.Mention.Replace("<@!", "<@") : "Invalid User";
+			var content = CaseInsReplace(notification.Content, "{User}", userMention);
 
 			if (notification.Embed != null)
 			{
@@ -1641,7 +1662,15 @@ namespace Advobot
 
 		public static async Task HandleObjectGettingErrors<T>(ICommandContext context, ReturnedDiscordObject<T> returnedObject)
 		{
-			var objType = GetObjectStringBasic((dynamic)returnedObject.Object);
+			var objType = "";
+			if (returnedObject.Object == null)
+			{
+				objType = GetObjectStringBasic(typeof(T));
+			}
+			else
+			{
+				objType = GetObjectStringBasic((dynamic)returnedObject.Object);
+			}
 			switch (returnedObject.Reason)
 			{
 				case FailureReason.Not_Found:
@@ -1709,6 +1738,23 @@ namespace Advobot
 				case ArgFailureReason.ShortenTo_Less_Than_Min:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR("NOT USER ERROR: ShortenTo less than min."));
+					return;
+				}
+			}
+		}
+
+		public static async Task HandleTypeGettingErrors(ICommandContext context, ReturnedType returnedType)
+		{
+			switch (returnedType.Reason)
+			{
+				case TypeFailureReason.Not_Found:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to find the type for the given input."));
+					return;
+				}
+				case TypeFailureReason.Invalid_Type:
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("The type `{0}` is not accepted in this instance.")));
 					return;
 				}
 			}
@@ -1852,6 +1898,89 @@ namespace Advobot
 				x.IsInline = isInline;
 			});
 
+			return embed;
+		}
+
+		public static EmbedBuilder FormatUserInfo(SocketGuild guild, IGuildUser user)
+		{
+			var guildUser = user as SocketGuildUser;
+			var roles = guildUser.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone);
+			var channels = new List<string>();
+			guild.TextChannels.OrderBy(x => x.Position).ToList().ForEach(x =>
+			{
+				if (guildUser.GetPermissions(x).ReadMessages)
+				{
+					channels.Add(x.Name);
+				}
+			});
+			guild.VoiceChannels.OrderBy(x => x.Position).ToList().ForEach(x =>
+			{
+				if (guildUser.GetPermissions(x).Connect)
+				{
+					channels.Add(x.Name + " (Voice)");
+				}
+			});
+			var users = guild.Users.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
+			var created = guildUser.CreatedAt.UtcDateTime;
+			var joined = guildUser.JoinedAt.Value.UtcDateTime;
+
+			//Make the description
+			var IDstr = String.Format("**ID:** `{0}`", guildUser.Id);
+			var nicknameStr = String.Format("**Nickname:** `{0}`", String.IsNullOrWhiteSpace(guildUser.Nickname) ? "NO NICKNAME" : guildUser.Nickname);
+			var createdStr = String.Format("\n**Created:** `{0} {1}, {2} at {3}`",
+				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(created.Month),
+				created.Day,
+				created.Year,
+				created.ToLongTimeString());
+			var joinedStr = String.Format("**Joined:** `{0} {1}, {2} at {3}` (`{4}` to join the guild)\n",
+				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(joined.Month),
+				joined.Day,
+				joined.Year,
+				joined.ToLongTimeString(),
+				users.IndexOf(guildUser) + 1);
+			var gameStr = String.Format("**Current game:** `{0}`", guildUser.Game.HasValue ? user.Game.Value.Name : "N/A");
+			var statusStr = String.Format("**Online status:** `{0}`", guildUser.Status);
+			var description = String.Join("\n", new[] { IDstr, nicknameStr, createdStr, joinedStr, gameStr, statusStr });
+
+			var embed = MakeNewEmbed(null, description, roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color, thumbnailURL: user.GetAvatarUrl());
+			AddAuthor(embed, guildUser.FormatUser(), guildUser.GetAvatarUrl(), guildUser.GetAvatarUrl());
+			AddFooter(embed, "Userinfo");
+			//Add the channels the user can access
+			if (channels.Count() != 0)
+			{
+				AddField(embed, "Channels", String.Join(", ", channels));
+			}
+			//Add the roles the user has
+			if (roles.Count() != 0)
+			{
+				AddField(embed, "Roles", String.Join(", ", roles.Select(x => x.Name)));
+			}
+			//Add the voice channel
+			if (user.VoiceChannel != null)
+			{
+				var desc = String.Format("Server mute: `{0}`\nServer deafen: `{1}`\nSelf mute: `{2}`\nSelf deafen: `{3}`", user.IsMuted, user.IsDeafened, user.IsSelfMuted, user.IsSelfDeafened);
+				AddField(embed, "Voice Channel: " + user.VoiceChannel.Name, desc);
+			}
+			return embed;
+		}
+
+		public static EmbedBuilder FormatUserInfo(SocketGuild guild, IUser user)
+		{
+			var created = user.CreatedAt.UtcDateTime;
+
+			//Make the description
+			var createdStr = String.Format("**Created:** `{0} {1}, {2} at {3}`\n",
+				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(created.Month),
+				created.Day,
+				created.Year,
+				created.ToLongTimeString());
+			var gameStr = String.Format("**Current game:** `{0}`", user.Game.HasValue ? user.Game.Value.Name : "N/A");
+			var statusStr = String.Format("**Online status:** `{0}`", user.Status);
+			var description = String.Join("\n", new[] { createdStr, gameStr, statusStr });
+
+			var embed = MakeNewEmbed(null, description, null, thumbnailURL: user.GetAvatarUrl());
+			AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), user.GetAvatarUrl());
+			AddFooter(embed, "Userinfo");
 			return embed;
 		}
 
@@ -2030,89 +2159,6 @@ namespace Advobot
 		{
 			Variables.Guilds[guild.Id].TurnDefaultPrefsOff();
 			WriteLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, guild.FormatGuild()));
-		}
-
-		public static EmbedBuilder FormatUserInfo(SocketGuild guild, IGuildUser user)
-		{
-			var guildUser = user as SocketGuildUser;
-			var roles = guildUser.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone);
-			var channels = new List<string>();
-			guild.TextChannels.OrderBy(x => x.Position).ToList().ForEach(x =>
-			{
-				if (guildUser.GetPermissions(x).ReadMessages)
-				{
-					channels.Add(x.Name);
-				}
-			});
-			guild.VoiceChannels.OrderBy(x => x.Position).ToList().ForEach(x =>
-			{
-				if (guildUser.GetPermissions(x).Connect)
-				{
-					channels.Add(x.Name + " (Voice)");
-				}
-			});
-			var users = guild.Users.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
-			var created = guildUser.CreatedAt.UtcDateTime;
-			var joined = guildUser.JoinedAt.Value.UtcDateTime;
-
-			//Make the description
-			var IDstr = String.Format("**ID:** `{0}`", guildUser.Id);
-			var nicknameStr = String.Format("**Nickname:** `{0}`", String.IsNullOrWhiteSpace(guildUser.Nickname) ? "NO NICKNAME" : guildUser.Nickname);
-			var createdStr = String.Format("\n**Created:** `{0} {1}, {2} at {3}`",
-				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(created.Month),
-				created.Day,
-				created.Year,
-				created.ToLongTimeString());
-			var joinedStr = String.Format("**Joined:** `{0} {1}, {2} at {3}` (`{4}` to join the guild)\n",
-				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(joined.Month),
-				joined.Day,
-				joined.Year,
-				joined.ToLongTimeString(),
-				users.IndexOf(guildUser) + 1);
-			var gameStr = String.Format("**Current game:** `{0}`", guildUser.Game.HasValue ? user.Game.Value.Name : "N/A");
-			var statusStr = String.Format("**Online status:** `{0}`", guildUser.Status);
-			var description = String.Join("\n", new[] { IDstr, nicknameStr, createdStr, joinedStr, gameStr, statusStr });
-
-			var embed = MakeNewEmbed(null, description, roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color, thumbnailURL: user.GetAvatarUrl());
-			AddAuthor(embed, guildUser.FormatUser(), guildUser.GetAvatarUrl(), guildUser.GetAvatarUrl());
-			AddFooter(embed, "Userinfo");
-			//Add the channels the user can access
-			if (channels.Count() != 0)
-			{
-				AddField(embed, "Channels", String.Join(", ", channels));
-			}
-			//Add the roles the user has
-			if (roles.Count() != 0)
-			{
-				AddField(embed, "Roles", String.Join(", ", roles.Select(x => x.Name)));
-			}
-			//Add the voice channel
-			if (user.VoiceChannel != null)
-			{
-				var desc = String.Format("Server mute: `{0}`\nServer deafen: `{1}`\nSelf mute: `{2}`\nSelf deafen: `{3}`", user.IsMuted, user.IsDeafened, user.IsSelfMuted, user.IsSelfDeafened);
-				AddField(embed, "Voice Channel: " + user.VoiceChannel.Name, desc);
-			}
-			return embed;
-		}
-
-		public static EmbedBuilder FormatUserInfo(SocketGuild guild, IUser user)
-		{
-			var created = user.CreatedAt.UtcDateTime;
-
-			//Make the description
-			var createdStr = String.Format("**Created:** `{0} {1}, {2} at {3}`\n",
-				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(created.Month),
-				created.Day,
-				created.Year,
-				created.ToLongTimeString());
-			var gameStr = String.Format("**Current game:** `{0}`", user.Game.HasValue ? user.Game.Value.Name : "N/A");
-			var statusStr = String.Format("**Online status:** `{0}`", user.Status);
-			var description = String.Join("\n", new[] { createdStr, gameStr, statusStr });
-
-			var embed = MakeNewEmbed(null, description, null, thumbnailURL: user.GetAvatarUrl());
-			AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), user.GetAvatarUrl());
-			AddFooter(embed, "Userinfo");
-			return embed;
 		}
 		#endregion
 
@@ -2632,8 +2678,8 @@ namespace Advobot
 			}
 			if (!File.Exists(path))
 			{
-				var cmds = guildInfo.CommandSettings.Select(x => x.Name).ToList();
-				Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList().ForEach(x => guildInfo.CommandSettings.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
+				var cmds = guildInfo.CommandOverrides.Commands.Select(x => x.Name).ToList();
+				Variables.HelpList.Where(x => !CaseInsContains(cmds, x.Name)).ToList().ForEach(x => guildInfo.CommandOverrides.Commands.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 				SaveGuildInfo(guildInfo);
 			}
 			else
@@ -3933,29 +3979,53 @@ namespace Advobot
 				//shortenToIndex = 1; [ a, b, c, d ] => [ a b c d ]
 				var count = Math.Min(shortenTo, args.Count) - 1; //Min of (3, 4) which is 3 minus 1 is 2
 				var tempList = new List<string>(); //2 + 1 is 3 so an array of 3 objects
-				for (int i = 0; i < count; i++)
+				for (int i = 0; i <= count; i++)
 				{
 					tempList.Add(args[i]); //Set the first two objects. [ a, b, empty ]
 				}
 				if (shortenTo < args.Count)
 				{
-					tempList.Add(String.Join(" ", args, count, args.Count - count)); //Grab the remaining objects (a b) and stuff them into the array
+					tempList[count] = String.Join(" ", args.GetRange(count, args.Count - count)); //Grab the remaining objects (a b) and stuff them into the array
 				}
 				args = tempList;
 			}
 
 			//Finding the wanted arguments
 			var specifiedArgs = new Dictionary<string, string>();
-			foreach (var searchArg in argsToSearchFor)
+			if (argsToSearchFor != null)
 			{
-				var arg = GetVariableAndRemove(args, searchArg);
-				if (arg != null)
+				foreach (var searchArg in argsToSearchFor)
 				{
-					specifiedArgs.Add(searchArg, arg);
+					var arg = GetVariableAndRemove(args, searchArg);
+					if (arg != null)
+					{
+						specifiedArgs.Add(searchArg, arg);
+					}
 				}
 			}
 
+			for (int i = args.Count; i < max; i++)
+			{
+				args.Add(null);
+			}
+
 			return new ReturnedArguments(args, specifiedArgs, context.Message);
+		}
+
+		public static ReturnedType GetType(string input, ActionType[] validTypes)
+		{
+			if (!Enum.TryParse(input, true, out ActionType type))
+			{
+				return new ReturnedType(type, TypeFailureReason.Not_Found);
+			}
+			else if (!validTypes.Contains(type))
+			{
+				return new ReturnedType(type, TypeFailureReason.Invalid_Type);
+			}
+			else
+			{
+				return new ReturnedType(type, TypeFailureReason.Not_Failure);
+			}
 		}
 		#endregion
 	}
