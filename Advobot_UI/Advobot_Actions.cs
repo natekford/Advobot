@@ -650,6 +650,11 @@ namespace Advobot
 			return user.Id == Variables.BotInfo.BotOwner;
 		}
 
+		public static bool GetIfBypass(string str)
+		{
+			return CaseInsEquals(str, Constants.BYPASS_STRING);
+		}
+
 		public static double GetMemory()
 		{
 			if (Variables.Windows)
@@ -1938,7 +1943,7 @@ namespace Advobot
 				joined.Year,
 				joined.ToLongTimeString(),
 				users.IndexOf(guildUser) + 1);
-			var gameStr = String.Format("**Current game:** `{0}`", guildUser.Game.HasValue ? user.Game.Value.Name : "N/A");
+			var gameStr = FormatGameStr(guildUser);
 			var statusStr = String.Format("**Online status:** `{0}`", guildUser.Status);
 			var description = String.Join("\n", new[] { IDstr, nicknameStr, createdStr, joinedStr, gameStr, statusStr });
 
@@ -1974,7 +1979,7 @@ namespace Advobot
 				created.Day,
 				created.Year,
 				created.ToLongTimeString());
-			var gameStr = String.Format("**Current game:** `{0}`", user.Game.HasValue ? user.Game.Value.Name : "N/A");
+			var gameStr = FormatGameStr(user);
 			var statusStr = String.Format("**Online status:** `{0}`", user.Status);
 			var description = String.Join("\n", new[] { createdStr, gameStr, statusStr });
 
@@ -2036,6 +2041,23 @@ namespace Advobot
 				}
 			});
 			return deletedMessagesContent;
+		}
+
+		public static string FormatGameStr(IUser user)
+		{
+			if (user.Game.HasValue)
+			{
+				var game = user.Game.Value;
+				if (game.StreamType == StreamType.Twitch)
+				{
+					return String.Format("**Current Stream:** [{0}]({1})", game.Name, game.StreamUrl);
+				}
+				else
+				{
+					return String.Format("**Current Game:** `{0}`", game.Name);
+				}
+			}
+			return "**Current Game:** `N/A`";
 		}
 
 		public static string ERROR(string message)
@@ -2140,6 +2162,308 @@ namespace Advobot
 					String.Join("`, `", failure));
 			}
 			return succOutput + failOutput;
+		}
+
+		public static string FormatAllSettings(BotGuildInfo guildInfo)
+		{
+			//Getting bools
+			var commandPreferences = !guildInfo.DefaultPrefs;
+			var commandsDisabledOnUser = guildInfo.CommandOverrides.Users.Any();
+			var commandsDisabledOnRole = guildInfo.CommandOverrides.Roles.Any();
+			var commandsDisabledOnChannel = guildInfo.CommandOverrides.Channels.Any();
+			var botUsers = guildInfo.BotUsers.Any();
+			var selfAssignableGroups = guildInfo.SelfAssignableGroups.Any();
+			var reminds = guildInfo.Reminds.Any();
+			var ignoredCommandChannels = guildInfo.IgnoredCommandChannels.Any();
+			var ignoredLogChannels = guildInfo.IgnoredLogChannels.Any();
+			var imageOnlyChannels = guildInfo.ImageOnlyChannels.Any();
+			var logActions = guildInfo.LogActions.Any();
+			var bannedPhraseStrings = guildInfo.BannedPhrases.Strings.Any();
+			var bannedPhraseRegex = guildInfo.BannedPhrases.Regex.Any();
+			var bannedPhrasePunishments = guildInfo.BannedPhrases.Punishments.Any();
+			var messageSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Message) != null;
+			var longMessageSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Long_Message) != null;
+			var linkSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Link) != null;
+			var imageSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Image) != null;
+			var mentionSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Mention) != null;
+			var reactionSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Reaction) != null;
+			var welcomeMessage = guildInfo.WelcomeMessage != null;
+			var goodbyeMessage = guildInfo.GoodbyeMessage != null;
+			var prefix = !String.IsNullOrWhiteSpace(guildInfo.Prefix);
+			var serverlog = guildInfo.ServerLog != null;
+			var modlog = guildInfo.ModLog != null;
+			var imagelog = guildInfo.ImageLog != null;
+
+			//Formatting the description
+			var description = "";
+			description += String.Format("**Command Preferences:** `{0}`\n", commandPreferences ? "Yes" : "No");
+			description += String.Format("**Commands Disabled On User:** `{0}`\n", commandsDisabledOnUser ? "Yes" : "No");
+			description += String.Format("**Commands Disabled On Role:** `{0}`\n", commandsDisabledOnRole ? "Yes" : "No");
+			description += String.Format("**Commands Disabled On Channel:** `{0}`\n", commandsDisabledOnChannel ? "Yes" : "No");
+			description += String.Format("**Bot Users:** `{0}`\n", botUsers ? "Yes" : "No");
+			description += String.Format("**Self Assignable Roles:** `{0}`\n", selfAssignableGroups ? "Yes" : "No");
+			description += String.Format("**Reminds:** `{0}`\n", reminds ? "Yes" : "No");
+			description += String.Format("**Ignored Command Channels:** `{0}`\n", ignoredCommandChannels ? "Yes" : "No");
+			description += String.Format("**Ignored Log Channels:** `{0}`\n", ignoredLogChannels ? "Yes" : "No");
+			description += String.Format("**Image Only Channels:** `{0}`\n", imageOnlyChannels ? "Yes" : "No");
+			description += String.Format("**Log Actions:** `{0}`\n", logActions ? "Yes" : "No");
+			description += String.Format("**Banned Phrase Strings:** `{0}`\n", bannedPhraseStrings ? "Yes" : "No");
+			description += String.Format("**Banned Phrase Regex:** `{0}`\n", bannedPhraseRegex ? "Yes" : "No");
+			description += String.Format("**Banned Phrase Punishments:** `{0}`\n", bannedPhrasePunishments ? "Yes" : "No");
+			description += String.Format("**Message Spam Prevention:** `{0}`\n", messageSpamPrevention ? "Yes" : "No");
+			description += String.Format("**Long Message Spam Prevention:** `{0}`\n", longMessageSpamPrevention ? "Yes" : "No");
+			description += String.Format("**Link Spam Prevention:** `{0}`\n", linkSpamPrevention ? "Yes" : "No");
+			description += String.Format("**Image Spam Prevention:** `{0}`\n", imageSpamPrevention ? "Yes" : "No");
+			description += String.Format("**Mention Spam Prevention:** `{0}`\n", mentionSpamPrevention ? "Yes" : "No");
+			description += String.Format("**Welcome Message:** `{0}`\n", welcomeMessage ? "Yes" : "No");
+			description += String.Format("**Goodbye Message:** `{0}`\n", goodbyeMessage ? "Yes" : "No");
+			description += String.Format("**Prefix:** `{0}`\n", prefix ? "Yes" : "No");
+			description += String.Format("**Server Log:** `{0}`\n", serverlog ? "Yes" : "No");
+			description += String.Format("**Mod Log:** `{0}`\n", modlog ? "Yes" : "No");
+			description += String.Format("**Image Log:** `{ 0}`\n", imagelog ? "Yes" : "No");
+
+			return description;
+		}
+
+		public static async Task<EmbedBuilder> FormatSettingInfo(ICommandContext context, BotGuildInfo guildInfo, SettingsOnGuild setting, string targetStr, string extraStr)
+		{
+			var user = GetGuildUser(context, new[] { UserCheck.None }, true, targetStr).Object;
+			var role = GetRole(context, new[] { RoleCheck.None }, true, targetStr).Object;
+			var channel = GetChannel(context, new[] { ChannelCheck.None }, true, targetStr).Object;
+
+			var title = Enum.GetName(typeof(SettingsOnGuild), setting);
+			var str = "";
+			switch (setting)
+			{
+				case SettingsOnGuild.CommandPreferences:
+				{
+					str = String.Join("\n", guildInfo.CommandOverrides.Commands.Select(x => String.Format("`{0}` `{1}`", x.Name, x.ValAsString)));
+					break;
+				}
+				case SettingsOnGuild.CommandsDisabledOnChannel:
+				{
+					if (!String.IsNullOrWhiteSpace(extraStr))
+					{
+						var cmd = Variables.CommandNames.FirstOrDefault(x =>CaseInsEquals(x, extraStr));
+						if (cmd == null)
+						{
+							str = String.Format("The given input `{0}` is not a valid command.", extraStr);
+						}
+						else
+						{
+							var cmds = guildInfo.CommandOverrides.Channels.Where(x =>CaseInsEquals(x.Name, cmd));
+							str = String.Join("\n", cmds.Select(x => String.Format("`{0}` `{1}`", x.ID, x.Name)));
+							title = String.Format("Channels `{0}` is unable to be used on", cmd);
+						}
+					}
+					else
+					{
+						str = String.Join("\n", guildInfo.CommandOverrides.Channels.Select(x => String.Format("`{0}` `{1}`", x.ID, x.Name)));
+					}
+					break;
+				}
+				case SettingsOnGuild.BotUsers:
+				{
+					if (user != null)
+					{
+						var botUser = guildInfo.BotUsers.FirstOrDefault(x => x.User.Id == user.Id);
+						var perms =GetPermissionNames(botUser.Permissions);
+						if (botUser == null || !perms.Any())
+						{
+							str = ERROR("That user has no bot permissions.");
+						}
+						else
+						{
+							str = String.Format("The user `{0}` has the following permission(s): `{1}`.", user.FormatUser(), String.Join("`, `", perms));
+						}
+					}
+					else
+					{
+						str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}` `{1}`", x.UserID, x.Permissions)));
+					}
+					break;
+				}
+				case SettingsOnGuild.SelfAssignableGroups:
+				{
+					if (!String.IsNullOrWhiteSpace(extraStr))
+					{
+						var num = await GetIfGroupIsValid(context, extraStr);
+						if (num == -1)
+							return null;
+
+						var group = guildInfo.SelfAssignableGroups.FirstOrDefault(x => x.Group == num);
+						if (group == null)
+						{
+							str = "There is no group with that number.";
+						}
+						else
+						{
+							str = String.Format("`{0}`", String.Join("`\n`", group.Roles.Select(x => x.Role.Name))); ;
+						}
+					}
+					else
+					{
+						str = String.Join("\n", guildInfo.SelfAssignableGroups.SelectMany(x => x.Roles).OrderBy(x => x.Group).Select(x => String.Format("`{0}`: `{1}`", x.Group, x.RoleID)));
+					}
+					break;
+				}
+				case SettingsOnGuild.Reminds:
+				{
+					str = String.Join("\n", guildInfo.Reminds.Select(x => String.Format("`{0}`", x.Name)));
+					break;
+				}
+				case SettingsOnGuild.IgnoredLogChannels:
+				{
+					str = String.Join("\n", guildInfo.IgnoredLogChannels.Select(x => String.Format("`{0}`", (context.Guild as SocketGuild).GetChannel(x).FormatChannel())));
+					break;
+				}
+				case SettingsOnGuild.LogActions:
+				{
+					str = String.Join("\n", guildInfo.LogActions.Select(x => String.Format("`{0}`", Enum.GetName(typeof(LogActions), x))));
+					break;
+				}
+				case SettingsOnGuild.BannedPhraseStrings:
+				{
+					str = String.Join("\n", guildInfo.BannedPhrases.Strings.Select(x =>
+						String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), x.Punishment).Substring(0, 1), x.Phrase)));
+					break;
+				}
+				case SettingsOnGuild.BannedPhraseRegex:
+				{
+					str = String.Join("\n", guildInfo.BannedPhrases.Regex.Select(x =>
+						String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), x.Punishment).Substring(0, 1), x.Phrase.ToString())));
+					break;
+				}
+				case SettingsOnGuild.BannedPhrasePunishments:
+				{
+					str = String.Join("\n", String.Join("\n", guildInfo.BannedPhrases.Punishments.Select(x =>
+					{
+						return String.Format("`{0}` `{1}`{2}",
+							x.NumberOfRemoves.ToString("00"),
+							x.Role == null ? Enum.GetName(typeof(PunishmentType), x.Punishment) : x.Role.Name,
+							x.PunishmentTime == null ? "" : " `" + x.PunishmentTime + " minutes`");
+					})));
+					break;
+				}
+				case SettingsOnGuild.MessageSpamPrevention:
+				{
+					var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Message);
+					str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Timeframe:** `{2}`\n**Votes Needed For Kick:** `{3}`",
+						spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
+					break;
+				}
+				case SettingsOnGuild.LongMessageSpamPrevention:
+				{
+					var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Long_Message);
+					str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Length:** `{2}`\n**Votes Needed For Kick:** `{3}`",
+						spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
+					break;
+				}
+				case SettingsOnGuild.LinkSpamPrevention:
+				{
+					var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Link);
+					str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Link Count:** `{2}`\n**Votes Needed For Kick:** `{3}`",
+						spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
+					break;
+				}
+				case SettingsOnGuild.ImageSpamPrevention:
+				{
+					var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Image);
+					str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Timeframe:** `{2}`\n**Votes Needed For Kick:** `{3}`",
+						spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
+					break;
+				}
+				case SettingsOnGuild.MentionSpamPrevention:
+				{
+					var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Mention);
+					str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Mentions:** `{2}`\n**Votes Needed For Kick:** `{3}`",
+						spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
+					break;
+				}
+				case SettingsOnGuild.WelcomeMessage:
+				{
+					var wm = guildInfo.WelcomeMessage;
+					str = String.Format("**Content:** `{0}`\n**Title:** `{1}`\n**Description:** `{2}`\n**Thumbnail:** `{3}`", wm.Content, wm.Title, wm.Description, wm.ThumbURL);
+					break;
+				}
+				case SettingsOnGuild.GoodbyeMessage:
+				{
+					var gb = guildInfo.GoodbyeMessage;
+					str = String.Format("**Content:** `{0}`\n**Title:** `{1}`\n**Description:** `{2}`\n**Thumbnail:** `{3}`", gb.Content, gb.Title, gb.Description, gb.ThumbURL);
+					break;
+				}
+				case SettingsOnGuild.Prefix:
+				{
+					str = guildInfo.Prefix;
+					break;
+				}
+				case SettingsOnGuild.Serverlog:
+				{
+					str = String.Format("`{0}`", guildInfo.ServerLog.FormatChannel());
+					break;
+				}
+				case SettingsOnGuild.Modlog:
+				{
+					str = String.Format("`{0}`", guildInfo.ModLog.FormatChannel());
+					break;
+				}
+				case SettingsOnGuild.ImageOnlyChannels:
+				{
+					str = String.Join("\n", guildInfo.ImageOnlyChannels.Select(x => String.Format("`{0}`", (context.Guild as SocketGuild).GetChannel(x).FormatChannel())));
+					break;
+				}
+				case SettingsOnGuild.IgnoredCommandChannels:
+				{
+					str = String.Join("\n", guildInfo.IgnoredCommandChannels.Select(x => String.Format("`{0}`", (context.Guild as SocketGuild).GetChannel(x).FormatChannel())));
+					break;
+				}
+				case SettingsOnGuild.CommandsDisabledOnUser:
+				{
+					if (!String.IsNullOrWhiteSpace(extraStr))
+					{
+						var cmd = Variables.CommandNames.FirstOrDefault(x =>CaseInsEquals(x, extraStr));
+						if (cmd == null)
+						{
+							str = String.Format("The given input `{0}` is not a valid command.", extraStr);
+						}
+						else
+						{
+							var cmds = guildInfo.CommandOverrides.Users.Where(x =>CaseInsEquals(x.Name, cmd));
+							str = String.Join("\n", cmds.Select(x => String.Format("`{0}` `{1}`", x.ID, x.Name)));
+							title = String.Format("Users unable to use the command `{0}`", cmd);
+						}
+					}
+					else
+					{
+						str = String.Join("\n", guildInfo.CommandOverrides.Users.Select(x => String.Format("`{0}` `{1}`", x.ID, x.Name)));
+					}
+					break;
+				}
+				case SettingsOnGuild.CommandsDisabledOnRole:
+				{
+					if (!String.IsNullOrWhiteSpace(extraStr))
+					{
+						var cmd = Variables.CommandNames.FirstOrDefault(x =>CaseInsEquals(x, extraStr));
+						if (cmd == null)
+						{
+							str = String.Format("The given input `{0}` is not a valid command.", extraStr);
+						}
+						else
+						{
+							var cmds = guildInfo.CommandOverrides.Roles.Where(x =>CaseInsEquals(x.Name, cmd));
+							str = String.Join("\n", cmds.Select(x => String.Format("`{0}` `{1}`", x.ID, x.Name)));
+							title = String.Format("Roles unable to use the command `{0}`", cmd);
+						}
+					}
+					else
+					{
+						str = String.Join("\n", guildInfo.CommandOverrides.Roles.Select(x => String.Format("`{0}` `{1}`", x.ID, x.Name)));
+					}
+					break;
+				}
+			}
+
+			return MakeNewEmbed(title, String.IsNullOrWhiteSpace(str) ? "NOTHING" : str);
 		}
 
 		public static void WriteLine(string text)
@@ -3917,7 +4241,7 @@ namespace Advobot
 		}
 
 		//TODO: Implement this into commands
-		public static ReturnedArguments GetArgs(ICommandContext context, string input, ArgNumbers argNums, bool removeMentions, string[] argsToSearchFor = null)
+		public static ReturnedArguments GetArgs(ICommandContext context, string input, ArgNumbers argNums, string[] argsToSearchFor = null)
 		{
 			/* Non specified arguments get left in a list of args going left to right (mentions are not included in this if the bool is true).
 			 * This list can keep all args separate or make the list a certain length. E.G. [ a, b, c, d ] (shortenTo = 3) => [ a, b, c d ]
@@ -3949,6 +4273,7 @@ namespace Advobot
 			}
 
 			//Remove all mentions
+			/*
 			if (removeMentions)
 			{
 				var tempList = new List<string>();
@@ -3970,6 +4295,7 @@ namespace Advobot
 				}
 				args = tempList;
 			}
+			*/
 
 			//Limiting the amount of args that are kept separate
 			if (shortenTo != int.MaxValue && args.Count > 1)

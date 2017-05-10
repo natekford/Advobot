@@ -110,8 +110,8 @@ namespace Advobot
 
 		[Command("guildsettings")]
 		[Alias("gds")]
-		[Usage("<All|Setting Name> <@User> <\"Extra:Additional Info\"")]
-		[Summary("Displays guild settings. Inputting nothing gives a list of the names. Inputting current gives a list of all settings currently on the guild.")]
+		[Usage("[Nothing|All|Setting Name] <Target:Channel|Role|User> <Extra:\"Additional Info\"")]
+		[Summary("Displays guild settings. Inputting nothing gives a list of the names.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
 		public async Task GuildSettings([Optional, Remainder] string input)
@@ -129,312 +129,24 @@ namespace Advobot
 				return;
 			}
 
-			//Get the user if one is input
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, null);
-			if (returnedUser.Reason != FailureReason.Not_Failure)
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 3, 3), new[] { "target", "extra" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedUser);
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
-			var user = returnedUser.Object;
+			var settingStr = returnedArgs.Arguments[0];
+			var targetStr = returnedArgs.GetSpecifiedArg("target");
+			var extraStr = returnedArgs.GetSpecifiedArg("extra");
 
-			//Split the input
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
-			var target = inputArray[0];
-			var extraInfo = Actions.GetVariable(inputArray, "extra");
-
-			if (Actions.CaseInsEquals(target, "all"))
+			if (Actions.CaseInsEquals(settingStr, "all"))
 			{
-				//Getting bools
-				var commandPreferences = !guildInfo.DefaultPrefs;
-				var commandsDisabledOnUser = guildInfo.CommandOverrides.Users.Any();
-				var commandsDisabledOnRole = guildInfo.CommandOverrides.Roles.Any();
-				var commandsDisabledOnChannel = guildInfo.CommandOverrides.Channels.Any();
-				var botUsers = guildInfo.BotUsers.Any();
-				var selfAssignableGroups = guildInfo.SelfAssignableGroups.Any();
-				var reminds = guildInfo.Reminds.Any();
-				var ignoredCommandChannels = guildInfo.IgnoredCommandChannels.Any();
-				var ignoredLogChannels = guildInfo.IgnoredLogChannels.Any();
-				var imageOnlyChannels = guildInfo.ImageOnlyChannels.Any();
-				var logActions = guildInfo.LogActions.Any();
-				var bannedPhraseStrings = guildInfo.BannedPhrases.Strings.Any();
-				var bannedPhraseRegex = guildInfo.BannedPhrases.Regex.Any();
-				var bannedPhrasePunishments = guildInfo.BannedPhrases.Punishments.Any();
-				var messageSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Message) != null;
-				var longMessageSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Long_Message) != null;
-				var linkSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Link) != null;
-				var imageSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Image) != null;
-				var mentionSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Mention) != null;
-				var reactionSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Reaction) != null;
-				var welcomeMessage = guildInfo.WelcomeMessage != null;
-				var goodbyeMessage = guildInfo.GoodbyeMessage != null;
-				var prefix = !String.IsNullOrWhiteSpace(guildInfo.Prefix);
-				var serverlog = guildInfo.ServerLog != null;
-				var modlog = guildInfo.ModLog != null;
-
-				//Formatting the description
-				var description = "";
-				description += String.Format("**Command Preferences:** `{0}`\n", commandPreferences ? "Yes" : "No");
-				description += String.Format("**Commands Disabled On User:** `{0}`\n", commandsDisabledOnUser ? "Yes" : "No");
-				description += String.Format("**Commands Disabled On Role:** `{0}`\n", commandsDisabledOnRole ? "Yes" : "No");
-				description += String.Format("**Commands Disabled On Channel:** `{0}`\n", commandsDisabledOnChannel ? "Yes" : "No");
-				description += String.Format("**Bot Users:** `{0}`\n", botUsers ? "Yes" : "No");
-				description += String.Format("**Self Assignable Roles:** `{0}`\n", selfAssignableGroups ? "Yes" : "No");
-				description += String.Format("**Reminds:** `{0}`\n", reminds ? "Yes" : "No");
-				description += String.Format("**Ignored Command Channels:** `{0}`\n", ignoredCommandChannels ? "Yes" : "No");
-				description += String.Format("**Ignored Log Channels:** `{0}`\n", ignoredLogChannels ? "Yes" : "No");
-				description += String.Format("**Image Only Channels:** `{0}`\n", imageOnlyChannels ? "Yes" : "No");
-				description += String.Format("**Log Actions:** `{0}`\n", logActions ? "Yes" : "No");
-				description += String.Format("**Banned Phrase Strings:** `{0}`\n", bannedPhraseStrings ? "Yes" : "No");
-				description += String.Format("**Banned Phrase Regex:** `{0}`\n", bannedPhraseRegex ? "Yes" : "No");
-				description += String.Format("**Banned Phrase Punishments:** `{0}`\n", bannedPhrasePunishments ? "Yes" : "No");
-				description += String.Format("**Message Spam Prevention:** `{0}`\n", messageSpamPrevention ? "Yes" : "No");
-				description += String.Format("**Long Message Spam Prevention:** `{0}`\n", longMessageSpamPrevention ? "Yes" : "No");
-				description += String.Format("**Link Spam Prevention:** `{0}`\n", linkSpamPrevention ? "Yes" : "No");
-				description += String.Format("**Image Spam Prevention:** `{0}`\n", imageSpamPrevention ? "Yes" : "No");
-				description += String.Format("**Mention Spam Prevention:** `{0}`\n", mentionSpamPrevention ? "Yes" : "No");
-				description += String.Format("**Welcome Message:** `{0}`\n", welcomeMessage ? "Yes" : "No");
-				description += String.Format("**Goodbye Message:** `{0}`\n", goodbyeMessage ? "Yes" : "No");
-				description += String.Format("**Prefix:** `{0}`\n", prefix ? "Yes" : "No");
-				description += String.Format("**Server Log:** `{0}`\n", serverlog ? "Yes" : "No");
-				description += String.Format("**Mod Log:** `{0}`\n", modlog ? "Yes" : "No");
-
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Guild Settings", description));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Guild Settings", Actions.FormatAllSettings(guildInfo)));
 			}
-			else if (Enum.TryParse(target, true, out SettingsOnGuild setting))
+			else if (Enum.TryParse(settingStr, true, out SettingsOnGuild setting))
 			{
-				var title = Enum.GetName(typeof(SettingsOnGuild), setting);
-				var str = "";
-				switch (setting)
-				{
-					case SettingsOnGuild.CommandPreferences:
-					{
-						str = String.Join("\n", guildInfo.CommandOverrides.Commands.Select(x => String.Format("`{0}` `{1}`", x.Name, x.ValAsString)));
-						break;
-					}
-					case SettingsOnGuild.CommandsDisabledOnChannel:
-					{
-						if (!String.IsNullOrWhiteSpace(extraInfo))
-						{
-							var cmd = Variables.CommandNames.FirstOrDefault(x => Actions.CaseInsEquals(x, extraInfo));
-							if (cmd == null)
-							{
-								str = String.Format("The given input `{0}` is not a valid command.", inputArray[1]);
-							}
-							else
-							{
-								var cmds = guildInfo.CommandOverrides.Channels.Where(x => Actions.CaseInsEquals(x.Name, cmd));
-								str = String.Join("\n", cmds.Select(x => String.Format("`{0}` `{1}`", x.ID, x.Name)));
-								title = String.Format("Channels `{0}` is unable to be used on", cmd);
-							}
-						}
-						else
-						{
-							str = String.Join("\n", guildInfo.CommandOverrides.Channels.Select(x => String.Format("`{0}` `{1}`", x.ID, x.Name)));
-						}
-						break;
-					}
-					case SettingsOnGuild.BotUsers:
-					{
-						if (user != null)
-						{
-							var botUser = guildInfo.BotUsers.FirstOrDefault(x => x.User.Id == user.Id);
-							var perms = Actions.GetPermissionNames(botUser.Permissions);
-							if (botUser == null || !perms.Any())
-							{
-								str = Actions.ERROR("That user has no bot permissions.");
-							}
-							else
-							{
-								str = String.Format("The user `{0}` has the following permission(s): `{1}`.", user.FormatUser(), String.Join("`, `", perms));
-							}
-						}
-						else
-						{
-							str = String.Join("\n", guildInfo.BotUsers.Select(x => String.Format("`{0}` `{1}`", x.UserID, x.Permissions)));
-						}
-						break;
-					}
-					case SettingsOnGuild.SelfAssignableGroups:
-					{
-						if (!String.IsNullOrWhiteSpace(extraInfo))
-						{
-							var num = await Actions.GetIfGroupIsValid(Context, extraInfo);
-							if (num == -1)
-								return;
-
-							var group = guildInfo.SelfAssignableGroups.FirstOrDefault(x => x.Group == num);
-							if (group == null)
-							{
-								str = "There is no group with that number.";
-							}
-							else
-							{
-								str = String.Format("`{0}`", String.Join("`\n`", group.Roles.Select(x => x.Role.Name))); ;
-							}
-						}
-						else
-						{
-							str = String.Join("\n", guildInfo.SelfAssignableGroups.SelectMany(x => x.Roles).OrderBy(x => x.Group).Select(x => String.Format("`{0}`: `{1}`", x.Group, x.RoleID)));
-						}
-						break;
-					}
-					case SettingsOnGuild.Reminds:
-					{
-						str = String.Join("\n", guildInfo.Reminds.Select(x => String.Format("`{0}`", x.Name)));
-						break;
-					}
-					case SettingsOnGuild.IgnoredLogChannels:
-					{
-						str = String.Join("\n", guildInfo.IgnoredLogChannels.Select(x => String.Format("`{0}`", (Context.Guild as SocketGuild).GetChannel(x).FormatChannel())));
-						break;
-					}
-					case SettingsOnGuild.LogActions:
-					{
-						str = String.Join("\n", guildInfo.LogActions.Select(x => String.Format("`{0}`", Enum.GetName(typeof(LogActions), x))));
-						break;
-					}
-					case SettingsOnGuild.BannedPhraseStrings:
-					{
-						str = String.Join("\n", guildInfo.BannedPhrases.Strings.Select(x =>
-							String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), x.Punishment).Substring(0, 1), x.Phrase)));
-						break;
-					}
-					case SettingsOnGuild.BannedPhraseRegex:
-					{
-						str = String.Join("\n", guildInfo.BannedPhrases.Regex.Select(x =>
-							String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), x.Punishment).Substring(0, 1), x.Phrase.ToString())));
-						break;
-					}
-					case SettingsOnGuild.BannedPhrasePunishments:
-					{
-						str = String.Join("\n", String.Join("\n", guildInfo.BannedPhrases.Punishments.Select(x =>
-						{
-							return String.Format("`{0}` `{1}`{2}",
-								x.NumberOfRemoves.ToString("00"),
-								x.Role == null ? Enum.GetName(typeof(PunishmentType), x.Punishment) : x.Role.Name,
-								x.PunishmentTime == null ? "" : " `" + x.PunishmentTime + " minutes`");
-						})));
-						break;
-					}
-					case SettingsOnGuild.MessageSpamPrevention:
-					{
-						var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Message);
-						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Timeframe:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
-						break;
-					}
-					case SettingsOnGuild.LongMessageSpamPrevention:
-					{
-						var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Long_Message);
-						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Length:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
-						break;
-					}
-					case SettingsOnGuild.LinkSpamPrevention:
-					{
-						var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Link);
-						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Link Count:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
-						break;
-					}
-					case SettingsOnGuild.ImageSpamPrevention:
-					{
-						var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Image);
-						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Timeframe:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
-						break;
-					}
-					case SettingsOnGuild.MentionSpamPrevention:
-					{
-						var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Mention);
-						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Mentions:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
-						break;
-					}
-					case SettingsOnGuild.WelcomeMessage:
-					{
-						var wm = guildInfo.WelcomeMessage;
-						str = String.Format("**Content:** `{0}`\n**Title:** `{1}`\n**Description:** `{2}`\n**Thumbnail:** `{3}`", wm.Content, wm.Title, wm.Description, wm.ThumbURL);
-						break;
-					}
-					case SettingsOnGuild.GoodbyeMessage:
-					{
-						var gb = guildInfo.GoodbyeMessage;
-						str = String.Format("**Content:** `{0}`\n**Title:** `{1}`\n**Description:** `{2}`\n**Thumbnail:** `{3}`", gb.Content, gb.Title, gb.Description, gb.ThumbURL);
-						break;
-					}
-					case SettingsOnGuild.Prefix:
-					{
-						str = guildInfo.Prefix;
-						break;
-					}
-					case SettingsOnGuild.Serverlog:
-					{
-						str = String.Format("`{0}`", guildInfo.ServerLog.FormatChannel());
-						break;
-					}
-					case SettingsOnGuild.Modlog:
-					{
-						str = String.Format("`{0}`", guildInfo.ModLog.FormatChannel());
-						break;
-					}
-					case SettingsOnGuild.ImageOnlyChannels:
-					{
-						str = String.Join("\n", guildInfo.ImageOnlyChannels.Select(x => String.Format("`{0}`", (Context.Guild as SocketGuild).GetChannel(x).FormatChannel())));
-						break;
-					}
-					case SettingsOnGuild.IgnoredCommandChannels:
-					{
-						str = String.Join("\n", guildInfo.IgnoredCommandChannels.Select(x => String.Format("`{0}`", (Context.Guild as SocketGuild).GetChannel(x).FormatChannel())));
-						break;
-					}
-					case SettingsOnGuild.CommandsDisabledOnUser:
-					{
-						if (!String.IsNullOrWhiteSpace(extraInfo))
-						{
-							var cmd = Variables.CommandNames.FirstOrDefault(x => Actions.CaseInsEquals(x, extraInfo));
-							if (cmd == null)
-							{
-								str = String.Format("The given input `{0}` is not a valid command.", inputArray[1]);
-							}
-							else
-							{
-								var cmds = guildInfo.CommandOverrides.Users.Where(x => Actions.CaseInsEquals(x.Name, cmd));
-								str = String.Join("\n", cmds.Select(x => String.Format("`{0}` `{1}`", x.ID, x.Name)));
-								title = String.Format("Users unable to use the command `{0}`", cmd);
-							}
-						}
-						else
-						{
-							str = String.Join("\n", guildInfo.CommandOverrides.Users.Select(x => String.Format("`{0}` `{1}`", x.ID, x.Name)));
-						}
-						break;
-					}
-					case SettingsOnGuild.CommandsDisabledOnRole:
-					{
-						if (!String.IsNullOrWhiteSpace(extraInfo))
-						{
-							var cmd = Variables.CommandNames.FirstOrDefault(x => Actions.CaseInsEquals(x, extraInfo));
-							if (cmd == null)
-							{
-								str = String.Format("The given input `{0}` is not a valid command.", inputArray[1]);
-							}
-							else
-							{
-								var cmds = guildInfo.CommandOverrides.Roles.Where(x => Actions.CaseInsEquals(x.Name, cmd));
-								str = String.Join("\n", cmds.Select(x => String.Format("`{0}` `{1}`", x.ID, x.Name)));
-								title = String.Format("Roles unable to use the command `{0}`", cmd);
-							}
-						}
-						else
-						{
-							str = String.Join("\n", guildInfo.CommandOverrides.Roles.Select(x => String.Format("`{0}` `{1}`", x.ID, x.Name)));
-						}
-						break;
-					}
-				}
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, String.IsNullOrWhiteSpace(str) ? "Nothing" : str));
+				var embed = await Actions.FormatSettingInfo(Context, guildInfo, setting, targetStr, extraStr);
+				await Actions.SendEmbedMessage(Context.Channel, embed);
 			}
 			else
 			{
@@ -784,7 +496,7 @@ namespace Advobot
 
 		[Command("botusersmodify")]
 		[Alias("bum")]
-		[Usage("<Add|Remove> " + Constants.OPTIONAL_USER_INSTRUCTIONS + " <Permission/...>")]
+		[Usage("[Add|Remove] [User] <Permission/...>")]
 		[Summary("Gives a user permissions in the bot but not on Discord itself. Can remove a user by not specifying any perms with remove. Giving no input lists all the possible perms.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -805,7 +517,7 @@ namespace Advobot
 			}
 
 			//Split input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 3, 3), false);
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 3, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);

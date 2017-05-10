@@ -1,11 +1,6 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Advobot
@@ -31,7 +26,7 @@ namespace Advobot
 			}
 
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 5, 5), true, new[] { "messages", "spam", "votes" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 5, 5), new[] { "messages", "spam", "votes" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);

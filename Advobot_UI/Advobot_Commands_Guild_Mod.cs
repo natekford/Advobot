@@ -2,8 +2,6 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -94,16 +92,21 @@ namespace Advobot
 
 		[Command("guildafk")]
 		[Alias("gdafk")]
-		[Usage("<Channel:\"Channel Name\"> <Time:Time in Seconds>")]
-		[Summary("Either one of the arguments has to be given for the server to update the AFK channel or time respectively.")]
+		[Usage("[Channel] <Time:Time in Seconds>")]
+		[Summary("Updates the guild's afk channel and timeout.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
 		public async Task ChangeGuildAFK([Remainder] string input)
 		{
 			//Split at space into two args
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
-			var chanStr = Actions.GetVariable(inputArray, "channel");
-			var timeStr = Actions.GetVariable(inputArray, "time");
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2), new[] { "time" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var chanStr = returnedArgs.Arguments[0];
+			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
 			//Check if valid action
 			if (!String.IsNullOrWhiteSpace(chanStr))
@@ -174,35 +177,20 @@ namespace Advobot
 
 		[Command("guildverification")]
 		[Alias("gdv")]
-		[Usage("[0|1|2|3]")]
+		[Usage("[None|Low|Medium|High]")]
 		[Summary("Changes the verification level. 0 is the most lenient (no requirements to type), 3 is the harshest (10 minutes in the guild before new members can type).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
 		public async Task ChangeGuildVerification([Remainder] string input)
 		{
-			//Check if valid int
-			var vLevel = -1;
-			if (!int.TryParse(input, out vLevel))
+			if (Enum.TryParse(input, true, out VerificationLevel vLevel))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid verification level."));
-				return;
-			}
-
-			//Check if valid verification level position
-			if (vLevel > 3 || vLevel < 0)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid verification level. Verification levels range from 0 to 3."));
-				return;
+				await Context.Guild.ModifyAsync(x => x.VerificationLevel = vLevel);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild verification level as `{0}`.", Enum.GetName(typeof(VerificationLevel), vLevel)));
 			}
 			else
 			{
-				//Change the verification level
-				await Context.Guild.ModifyAsync(x => x.VerificationLevel = (VerificationLevel)vLevel);
-
-				//Get the verification level's name as a string
-				var vString = Enum.GetName(typeof(VerificationLevel), vLevel);
-				//Send a success message
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild verification level as `{0}`.", vString));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Invalid verification level provided.");
 			}
 		}
 
@@ -217,33 +205,6 @@ namespace Advobot
 			await Actions.SetPicture(Context, input, false);
 		}
 
-#if false
-		[Command("guildowner")]
-		[Alias("gdo")]
-		[Usage("<@User>")]
-		[Summary("Changes the guild's owner to the given user.")]
-		[PermissionRequirement]
-		[DefaultEnabled(true)]
-		public async Task GuildOwner([Optional, Remainder] string input)
-		{
-			var user = await (String.IsNullOrWhiteSpace(input) ? Context.Guild.GetUserAsync(Context.User.Id) : Actions.GetUser(Context.Guild, input));
-			if (user == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
-				return;
-			}
-
-			//Create the guild owner role
-			var role = await Actions.GetRole(Context, "Guild Owner") ?? await Context.Guild.CreateRoleAsync("Guild Owner");
-			//Give the role to the user
-			await user.AddRoleAsync(role);
-			//Change the position of the newly created role
-			await Actions.ModifyRolePosition(role, int.MaxValue);
-
-			//Have the bot leave and thus give the owner position to the highest ranking person
-			await Context.Guild.LeaveAsync();
-		}
-#endif
 		[Command("guildcreate")]
 		[Alias("gdc")]
 		[Usage("[Name]")]

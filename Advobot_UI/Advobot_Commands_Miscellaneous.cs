@@ -14,7 +14,6 @@ namespace Advobot
 	[Name("Miscellaneous")]
 	public class Advobot_Commands_Miscellaneous : ModuleBase
 	{
-		#region Help
 		[Command("help")]
 		[Alias("h", "info")]
 		[Usage("<Command>")]
@@ -32,7 +31,10 @@ namespace Advobot
 			{
 				var desc = String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", prefix);
 			    var emb = Actions.MakeNewEmbed("Commands", desc);
-				Actions.AddField(emb, "Syntax", "[] means required.\n<> means optional.\n| means or.");
+				Actions.AddField(emb, "Syntax", String.Format("[] means required.\n<> means optional.\n| means or.User means {0}.\nRole means {1}.\nChannel means {2}.",
+					Constants.USER_INSTRUCTIONS,
+					Constants.ROLE_INSTRUCTIONS,
+					Constants.CHANNEL_INSTRUCTIONS));
 				Actions.AddField(emb, "Links", "[GitHub Repository](https://github.com/advorange/Advobot)\n[Discord Server](https://discord.gg/ad)");
 				Actions.AddFooter(emb, "Help");
 				await Actions.SendEmbedMessage(Context.Channel, emb);
@@ -131,9 +133,7 @@ namespace Advobot
 			}
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(Enum.GetName(typeof(CommandCategory), category), String.Join("\n", Actions.GetCommands(category))));
 		}
-		#endregion
 
-		#region IDs
 		[Command("idguild")]
 		[Alias("idg")]
 		[Usage("")]
@@ -147,8 +147,8 @@ namespace Advobot
 
 		[Command("idchannel")]
 		[Alias("idc")]
-		[Usage(Constants.OPTIONAL_CHANNEL_INSTRUCTIONS)]
-		[Summary("Shows the ID of the given channel.")]
+		[Usage("<Channel>")]
+		[Summary("Shows the ID of the given channel. No channel defaults to the one the command is used on.")]
 		[UserHasAPermission]
 		[DefaultEnabled(true)]
 		public async Task ChannelID([Optional, Remainder] string input)
@@ -179,8 +179,8 @@ namespace Advobot
 
 		[Command("iduser")]
 		[Alias("idu")]
-		[Usage("<@User>")]
-		[Summary("Shows the ID of the given user.")]
+		[Usage("<User>")]
+		[Summary("Shows the ID of the given user. No user defaults to the one using the command.")]
 		[UserHasAPermission]
 		[DefaultEnabled(true)]
 		public async Task UserID([Optional, Remainder] string input)
@@ -190,9 +190,7 @@ namespace Advobot
 
 			await Actions.SendChannelMessage(Context, String.Format("The user `{0}#{1}` has the ID `{2}`.", user.Username, user.Discriminator, user.Id));
 		}
-		#endregion
 
-		#region Info
 		[Command("infoguild")]
 		[Alias("infg")]
 		[Usage("")]
@@ -203,10 +201,12 @@ namespace Advobot
 			var sGuild = Context.Guild as SocketGuild;
 			var sOwner = sGuild.Owner;
 			var title = sGuild.FormatGuild();
+			var onlineCount = sGuild.Users.Where(x => x.Status != UserStatus.Offline).Count();
+			var botCount = sGuild.Users.Where(x => x.IsBot).Count();
 			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", sGuild.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sGuild.CreatedAt.UtcDateTime).Days);
 			var owner = String.Format("**Owner:** `{0}`", sOwner.FormatUser());
 			var region = String.Format("**Region:** `{0}`\n", sGuild.VoiceRegionId);
-			var userCount = String.Format("**User Count:** `{0}`", sGuild.MemberCount);
+			var userCount = String.Format("**User Count:** `{0}` (`{1}` online, `{2}` bots)", sGuild.MemberCount, onlineCount, botCount);
 			var roleCount = String.Format("**Role Count:** `{0}`", sGuild.Roles.Count);
 			var channels = String.Format("**Channel Count:** `{0}` (`{1}` text, `{2}` voice)", sGuild.Channels.Count, sGuild.TextChannels.Count, sGuild.VoiceChannels.Count);
 			var all = String.Join("\n", new List<string>() { age, owner, region, userCount, roleCount, channels });
@@ -218,18 +218,13 @@ namespace Advobot
 
 		[Command("infochannel")]
 		[Alias("infc")]
-		[Usage(Constants.CHANNEL_INSTRUCTIONS)]
+		[Usage("<Channel>")]
 		[Summary("Displays various information about the given channel.")]
 		[DefaultEnabled(true)]
 		public async Task InfoChannel([Remainder] string input)
 		{
 			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, true, input);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var channel = returnedChannel.Object as SocketGuildChannel;
+			var channel = returnedChannel.Object as SocketGuildChannel ?? Context.Channel as SocketGuildChannel;
 
 			var title = channel.FormatChannel();
 			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", channel.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(channel.CreatedAt.UtcDateTime).Days);
@@ -313,7 +308,7 @@ namespace Advobot
 
 		[Command("infouser")]
 		[Alias("infu")]
-		[Usage("<@User|ID>")]
+		[Usage("<User>")]
 		[Summary("Displays various information about the user. Not 100% accurate. If an ID is provided then the bot can get information on users who aren't currently on the guild.")]
 		[DefaultEnabled(true)]
 		public async Task InfoUser([Optional, Remainder] string input)
@@ -336,7 +331,7 @@ namespace Advobot
 			//Parse out the emoji
 			if (!Emote.TryParse(input, out Emote emote))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid emoji supplied."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid emote supplied."));
 				return;
 			}
 
@@ -361,7 +356,6 @@ namespace Advobot
 		[Alias("infi")]
 		[Usage("[Invite Code]")]
 		[Summary("Lists the user who created the invite, the channel it was created on, the uses, and the creation date/time.")]
-		[UserHasAPermission]
 		[DefaultEnabled(true)]
 		public async Task InfoInvite([Remainder] string input)
 		{
@@ -384,35 +378,35 @@ namespace Advobot
 
 		[Command("useravatar")]
 		[Alias("uav")]
-		[Usage("<@User> <Type:Gif|Png|Jpg|Webp>")]
-		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily). Currently every avatar is displayed with an extension type of gif.")]
+		[Usage("<User> <Type:Gif|Png|Jpg|Webp>")]
+		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily).")]
 		[DefaultEnabled(true)]
 		public async Task UserAvatar([Optional, Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 2, 2), true, new[] { "type" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 2, 2), new[] { "type" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
+			var userStr = returnedArgs.Arguments[0];
 			var formatStr = returnedArgs.GetSpecifiedArg("type");
 
 			//Get the type of image
 			var format = ImageFormat.Auto;
-			if (!String.IsNullOrWhiteSpace(formatStr) && !Enum.TryParse(formatStr, true, out format))
+			if (!String.IsNullOrWhiteSpace(formatStr))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid avatar format supplied."));
-				return;
+				if (!Enum.TryParse(formatStr, true, out format))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid avatar format supplied."));
+					return;
+				}
 			}
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, null);
-			var user = returnedUser.Object;
-			if (user == null)
-			{
-				user = Context.User as IGuildUser;
-			}
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
+			var user = returnedUser.Object ?? Context.User as IGuildUser;
 
 			//Send a message with the URL
 			await Context.Channel.SendMessageAsync(user.GetAvatarUrl(format));
@@ -447,16 +441,15 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task UserJoinedAt([Remainder] string input)
 		{
-			if (Int32.TryParse(input, out int position))
+			if (int.TryParse(input, out int position))
 			{
 				var guildUsers = await Context.Guild.GetUsersAsync();
 				var users = guildUsers.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
 				if (position >= 1 && position < users.Count)
 				{
 					var user = users[position - 1];
-					await Actions.SendChannelMessage(Context, String.Format("`{0}#{1}` was #{2} to join the guild on `{3} {4}, {5}` at `{6}`.",
-						user.Username,
-						user.Discriminator,
+					await Actions.SendChannelMessage(Context, String.Format("`{0}` was #{1} to join the guild on `{2} {3}, {4}` at `{5}`.",
+						user.FormatUser(),
 						position,
 						System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(user.JoinedAt.Value.UtcDateTime.Month),
 						user.JoinedAt.Value.UtcDateTime.Day,
@@ -501,15 +494,11 @@ namespace Advobot
 			}
 			var role = returnedRole.Object;
 
-			var users = "";
 			var count = 1;
-			(await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt.HasValue).ToList().OrderBy(x => x.JoinedAt).ToList().ForEach(x =>
+			var users = String.Join("\n", (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt).Where(x => x.RoleIds.Contains(role.Id)).ToList().Select(x =>
 			{
-				if (x.RoleIds.ToList().Contains(role.Id))
-				{
-					users += String.Format("`{0}.` `{1}`\n", count++.ToString("00"), x.FormatUser());
-				}
-			});
+				return String.Format("`{0}.` `{1}`", count++.ToString("00"), x.FormatUser());
+			}));
 
 			var roleName = role.Name.Substring(0, 3) + Constants.ZERO_LENGTH_CHAR + role.Name.Substring(3);
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(roleName, users));
@@ -523,16 +512,14 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task UsersWithName([Remainder] string input)
 		{
-			var users = (await Context.Guild.GetUsersAsync()).Where(x => Actions.CaseInsIndexOf(x.Username, input)).OrderBy(x => x.JoinedAt).ToList();
-			var description = "";
 			var count = 1;
-			users.ForEach(x =>
+			var users = String.Join("\n", (await Context.Guild.GetUsersAsync()).Where(x => Actions.CaseInsIndexOf(x.Username, input)).OrderBy(x => x.JoinedAt).ToList().Select(x =>
 			{
-				description += String.Format("`{0}.` `{1}`\n", count++.ToString("00"), x.FormatUser());
-			});
+				return String.Format("`{0}.` `{1}`", count++.ToString("00"), x.FormatUser());
+			}));
 
 			var title = String.Format("Users With Names Containing '{0}'", input);
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, description));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, users));
 		}
 
 		[Command("listemojis")]
@@ -543,29 +530,26 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ListEmojis([Remainder] string input)
 		{
-			int count = 1;
-			var description = "";
+			var emotes = new List<GuildEmote>();
 			if (Actions.CaseInsEquals(input, "guild"))
 			{
-				//Get all of the guild emojis
-				Context.Guild.Emotes.Where(x => !x.IsManaged).ToList().ForEach(x =>
-				{
-					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
-				});
+				emotes = Context.Guild.Emotes.Where(x => !x.IsManaged).ToList();
 			}
 			else if (Actions.CaseInsEquals(input, "global"))
 			{
-				//Get all of the global emojis
-				Context.Guild.Emotes.Where(x => x.IsManaged).ToList().ForEach(x =>
-				{
-					description += String.Format("`{0}.` <:{1}:{2}> `{3}`\n", count++.ToString("00"), x.Name, x.Id, x.Name);
-				});
+				emotes = Context.Guild.Emotes.Where(x => x.IsManaged).ToList();
 			}
 			else
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid option."));
 				return;
 			}
+
+			int count = 1;
+			var description = String.Join("\n", emotes.Select(x =>
+			{
+				return String.Format("`{0}.` <:{1}:{2}> `{3}`", count++.ToString("00"), x.Name, x.Id, x.Name);
+			}));
 
 			description = description ?? String.Format("This guild has no {0} emojis.", input.ToLower());
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Emojis", description));
@@ -593,9 +577,7 @@ namespace Advobot
 			}
 			await Actions.SendChannelMessage(Context.Channel, String.Format("The number `{0}` has the following permissions: `{1}`.", num, String.Join("`, `", perms)));
 		}
-		#endregion
 
-		#region Instant Invites
 		[Command("invitelist")]
 		[Alias("invl")]
 		[Usage("")]
@@ -634,25 +616,26 @@ namespace Advobot
 
 		[Command("invitecreate")]
 		[Alias("invc")]
-		[Usage(Constants.CHANNEL_INSTRUCTIONS + " <Time:1800|3600|21600|43200|86400> <Uses:1|5|10|25|50|100> <TempMem:True|False>")]
+		[Usage("[Channel] <Time:1800|3600|21600|43200|86400> <Uses:1|5|10|25|50|100> <TempMem:True|False>")]
 		[Summary("Creates an invite on the given channel. No time specifies to not expire. No uses has no usage limit. Temp membership means when the user goes offline they get kicked.")]
 		[PermissionRequirement(1U << (int)GuildPermission.CreateInstantInvite)]
 		[DefaultEnabled(true)]
 		public async Task CreateInstantInvite([Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4, 4), true, new[] { "time", "uses", "tempmem" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4, 4), new[] { "time", "uses", "tempmem" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
+			var chanStr = returnedArgs.Arguments[0];
 			var timeStr = returnedArgs.GetSpecifiedArg("time");
 			var usesStr = returnedArgs.GetSpecifiedArg("uses");
 			var tempStr = returnedArgs.GetSpecifiedArg("tempmem");
 
 			//Check validity of channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, null);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, chanStr);
 			if (returnedChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -753,7 +736,7 @@ namespace Advobot
 
 		[Command("invitedeletemultiple")]
 		[Alias("invdm")]
-		[Usage("[User:@User|Channel:" + Constants.CHANNEL_INSTRUCTIONS + "|Uses:Number|Expires:[True|False]]")]
+		[Usage("User:User|Role:Role|Uses:Number|Expires:True|False]")]
 		[Summary("Deletes all invites satisfying the given condition of either user, creation channel, uses, or expiry time.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		[DefaultEnabled(true)]
@@ -768,12 +751,19 @@ namespace Advobot
 			}
 
 			//Get the given variable out
-			var userStr = Actions.GetVariable(input, "user");
-			var chanStr = Actions.GetVariable(input, "channel");
-			var usesStr = Actions.GetVariable(input, "uses");
-			var exprStr = Actions.GetVariable(input, "expired");
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4, 4), new[] { "user", "channel", "uses", "expires" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var userStr = returnedArgs.GetSpecifiedArg("user");
+			var chanStr = returnedArgs.GetSpecifiedArg("channel");
+			var usesStr = returnedArgs.GetSpecifiedArg("uses");
+			var exprStr = returnedArgs.GetSpecifiedArg("expires");
 
-			List<DeleteInvAction> inviteCriteria = new List<DeleteInvAction>();
+			//User
+			var inviteCriteria = new List<DeleteInvAction>();
 			IGuildUser user = null;
 			if (!String.IsNullOrWhiteSpace(userStr))
 			{
@@ -781,13 +771,15 @@ namespace Advobot
 				if (returnedUser.Reason != FailureReason.Not_Failure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedUser);
+					return;
 				}
 				else
 				{
-					inviteCriteria.Add(DeleteInvAction.User);
 					user = returnedUser.Object;
+					inviteCriteria.Add(DeleteInvAction.User);
 				}
 			}
+			//Channel
 			IGuildChannel channel = null;
 			if (!String.IsNullOrWhiteSpace(chanStr))
 			{
@@ -803,6 +795,7 @@ namespace Advobot
 					inviteCriteria.Add(DeleteInvAction.Channel);
 				}
 			}
+			//Uses
 			int uses = 0;
 			if (!String.IsNullOrWhiteSpace(usesStr))
 			{
@@ -816,7 +809,7 @@ namespace Advobot
 					inviteCriteria.Add(DeleteInvAction.Uses);
 				}
 			}
-			//Check if expiry time
+			//Expiry
 			bool expires = false;
 			if (!String.IsNullOrWhiteSpace(exprStr))
 			{
@@ -888,35 +881,37 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` instant invites on this guild.", invites.Count));
 			});
 		}
-		#endregion
 
-		#region Miscellaneous
 		[Command("makeanembed")]
 		[Alias("mae")]
 		[Usage("<\"Title:input\"> <\"Desc:input\"> <Img:url> <Url:url> <Thumb:url> <Color:int/int/int> <\"Author:input\"> <AuthorIcon:url> <AuthorUrl:url> <\"Foot:input\"> <FootIcon:url> " +
 				"<\"Field[1-25]:input\"> <\"FieldText[1-25]:input\"> <FieldInline[1-25]:true|false>")]
 		[Summary("Every single piece is optional. The stuff in quotes *must* be in quotes. URLs need the https:// in front. Fields need *both* Field and FieldText to work.")]
+		[UserHasAPermission]
 		[DefaultEnabled(true)]
 		public async Task MakeAnEmbed([Remainder] string input)
 		{
 			//Split the input
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ').ToList();
-
-			//Get the inputs
-			var title = Actions.GetVariableAndRemove(inputArray, "title");
-			var description = Actions.GetVariableAndRemove(inputArray, "desc");
-			var imageURL = Actions.GetVariableAndRemove(inputArray, "Img");
-			var URL = Actions.GetVariableAndRemove(inputArray, "url");
-			var thumbnail = Actions.GetVariableAndRemove(inputArray, "thumb");
-			var authorName = Actions.GetVariableAndRemove(inputArray, "author");
-			var authorIcon = Actions.GetVariableAndRemove(inputArray, "authoricon");
-			var authorURL = Actions.GetVariableAndRemove(inputArray, "authorurl");
-			var footerText = Actions.GetVariableAndRemove(inputArray, "foot");
-			var footerIcon = Actions.GetVariableAndRemove(inputArray, "footicon");
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 100, 100), new[] { "title", "desc", "img", "url", "thumb", "author", "authoricon", "authorurl", "foot", "footicon" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var title = returnedArgs.GetSpecifiedArg("title");
+			var description = returnedArgs.GetSpecifiedArg("desc");
+			var imageURL = returnedArgs.GetSpecifiedArg("img");
+			var URL = returnedArgs.GetSpecifiedArg("url");
+			var thumbnail = returnedArgs.GetSpecifiedArg("thumb");
+			var authorName = returnedArgs.GetSpecifiedArg("author");
+			var authorIcon = returnedArgs.GetSpecifiedArg("authoricon");
+			var authorURL = returnedArgs.GetSpecifiedArg("authorurl");
+			var footerText = returnedArgs.GetSpecifiedArg("foot");
+			var footerIcon = returnedArgs.GetSpecifiedArg("footicon");
 
 			//Get the color
 			var color = Constants.BASE;
-			var colorRGB = Actions.GetVariableAndRemove(inputArray, "color")?.Split('/');
+			var colorRGB = Actions.GetVariableAndRemove(returnedArgs.Arguments, "color")?.Split('/');
 			if (colorRGB != null && colorRGB.Length == 3)
 			{
 				const byte MAX_VAL = 255;
@@ -937,14 +932,14 @@ namespace Advobot
 			for (int i = 1; i < 25; i++)
 			{
 				//Get the input for fields
-				var field = Actions.GetVariableAndRemove(inputArray, "field" + i);
-				var fieldText = Actions.GetVariableAndRemove(inputArray, "fieldtext" + i);
+				var field = Actions.GetVariableAndRemove(returnedArgs.Arguments, "field" + i);
+				var fieldText = Actions.GetVariableAndRemove(returnedArgs.Arguments, "fieldtext" + i);
 				//If either is null break out of this loop because they shouldn't be null
 				if (field == null || fieldText == null)
 					break;
 
 				//Get the bool for the field
-				bool.TryParse(Actions.GetVariableAndRemove(inputArray, "fieldinline" + i), out bool inlineBool);
+				bool.TryParse(Actions.GetVariableAndRemove(returnedArgs.Arguments, "fieldinline" + i), out bool inlineBool);
 
 				//Add in the field
 				Actions.AddField(embed, field, fieldText, inlineBool);
@@ -956,13 +951,13 @@ namespace Advobot
 
 		[Command("mentionrole")]
 		[Alias("mnr")]
-		[Usage("[\"Role name\"] [\"Message\"]")]
+		[Usage("[Role] [\"Message\"]")]
 		[Summary("Mention an unmentionable role with the given message.")]
 		[UserHasAPermission]
 		[DefaultEnabled(true)]
 		public async Task MentionRole([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2), false);
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -1011,9 +1006,9 @@ namespace Advobot
 		public async Task MessageBotOwner([Remainder] string input)
 		{
 			var cutMsg = input.Substring(0, Math.Min(input.Length, 250));
-			var user = Context.User;
-			var fromMsg = String.Format("From `{0}` in `{1}`:", user.FormatUser(), Context.Guild.FormatGuild());
+			var fromMsg = String.Format("From `{0}` in `{1}`:", Context.User.FormatUser(), Context.Guild.FormatGuild());
 			var newMsg = String.Format("{0}\n```{1}```", fromMsg, cutMsg);
+
 			var owner = Variables.Client.GetUser(Variables.BotInfo.BotOwner);
 			if (owner == null)
 			{
@@ -1030,6 +1025,5 @@ namespace Advobot
 		{
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
-		#endregion
 	}
 }

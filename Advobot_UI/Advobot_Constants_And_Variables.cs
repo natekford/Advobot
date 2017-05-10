@@ -10,9 +10,18 @@ namespace Advobot
 		public const string BOT_VERSION = "0.9.37";
 		public const string API_VERSION = "Discord.Net v1.0.0-rc2-00736";
 		public const string BOT_PREFIX = "+=";
-		public const string IGNORE_ERROR = "Cx";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
+		public const string IGNORE_ERROR = "Cx";
 		public const string TEXT_HOST = "hastebin";
+		public const string STREAM_URL = "https://www.twitch.tv/";
+		public const string VIP_REGIONS = "VIP_REGIONS";
+		public const string VANITY_URL = "VANITY_URL";
+		public const string INVITE_SPLASH = "INVITE_SPLASH";
+		public const string NO_NN = "NO NICKNAME";
+		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
+		public const string BYPASS_STRING = "Bypass100";
+
+		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds as a text file.";
 		public const string ERROR_MESSAGE = "**ERROR:** ";
 		public const string ARGUMENTS_ERROR = "Invalid number of arguments.";
 		public const string USER_ERROR = "Invalid user.";
@@ -21,6 +30,8 @@ namespace Advobot
 		public const string ACTION_ERROR = "Invalid action.";
 		public const string CHANNEL_PERMISSIONS_ERROR = "You do not have the ability to edit that channel.";
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
+		public const string DENY_WITHOUT_PREFERENCES = "This guild does not have preferences enabled and thus cannot use this command. Please run the `comconfigmodify` command to enable them.";
+
 		public const string MUTE_ROLE_NAME = "Bot-Muted";
 		public const string SERVER_FOLDER = "Discord_Servers";
 		public const string SAVING_FILE_EXTENSION = ".json";
@@ -28,27 +39,21 @@ namespace Advobot
 		public const string GUILD_INFO_LOCATION = "GuildInfo" + SAVING_FILE_EXTENSION;
 		public const string BOT_INFO_LOCATION = "BotInfo" + SAVING_FILE_EXTENSION;
 		public const string BOT_KEYS = "DoNotShareThisFile" + SAVING_FILE_EXTENSION;
-		public const string CHANNEL_INSTRUCTIONS = "[#Channel|\"Channel Name\"]";
-		public const string OPTIONAL_CHANNEL_INSTRUCTIONS = "<#Channel|\"Channel Name\">";
-		public const string USER_INSTRUCTIONS = "[@User|\"Username\"]";
-		public const string OPTIONAL_USER_INSTRUCTIONS = "<@User|\"Username\">";
-		public const string ROLE_INSTRUCTIONS = "[@Role|\"Role Name\"]";
-		public const string OPTIONAL_ROLE_INSTRUCTIONS = "<@Role|\"Role Name\">";
+
 		public const string VOICE_TYPE = "voice";
 		public const string TEXT_TYPE = "text";
-		public const string BYPASS_STRING = "Badoodle123";
-		public const string DENY_WITHOUT_PREFERENCES = "This guild does not have preferences enabled and thus cannot use this command. Please run the `comconfigmodify` command to enable them.";
-		public const string STREAM_URL = "https://www.twitch.tv/";
-		public const string VIP_REGIONS = "VIP_REGIONS";
-		public const string VANITY_URL = "VANITY_URL";
-		public const string INVITE_SPLASH = "INVITE_SPLASH";
-		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds as a text file.";
-		public const string NO_NN = "NO NICKNAME";
-		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
 		public const string BASIC_TYPE_USER = "user";
 		public const string BASIC_TYPE_ROLE = "role";
 		public const string BASIC_TYPE_CHANNEL = "channel";
 		public const string BASIC_TYPE_GUILD = "guild";
+
+		public const string CHAN = "";
+		public const string ROLE = "";
+		public const string USER = "";
+		public const string CHANNEL_INSTRUCTIONS = "[" + CHAN + "#Channel|\"Channel Name\"]";
+		public const string USER_INSTRUCTIONS = "[" + USER + "@User|\"Username\"]";
+		public const string ROLE_INSTRUCTIONS = "[" + ROLE + "@Role|\"Role Name\"]";
+
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG = 3;
@@ -141,8 +146,6 @@ namespace Advobot
 		public static readonly Discord.Color CCRE = new Discord.Color(000, 204, 000);
 		public static readonly Discord.Color CEDT = new Discord.Color(000, 000, 153);
 		public static readonly Discord.Color CDEL = new Discord.Color(204, 000, 000);
-
-		public static readonly Regex FORMATREGEX = new Regex("\\\"[ ]+[+|\r|\n]{0,3}[ ]+\\\"", RegexOptions.Compiled);
 	}
 
 	public static class Variables
