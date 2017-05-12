@@ -48,7 +48,7 @@ namespace Advobot
 			var roleStr = inputArray[1];
 
 			//Check which action it is
-			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Create, ActionType.Add, ActionType.Remove });
+			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Create, ActionType.Add, ActionType.Remove });
 			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
@@ -133,7 +133,7 @@ namespace Advobot
 						return;
 					}
 					var success = evaluatedRoles.Value.Success;
-					successStr = success.Select(x => Actions.FormatRole(x)).ToList();
+					successStr = success.Select(x => x.FormatRole()).ToList();
 					var failure = evaluatedRoles.Value.Failure;
 
 					//Add all the roles to a list of self assignable roles
@@ -262,7 +262,7 @@ namespace Advobot
 			if (user.RoleIds.Contains(role.Id))
 			{
 				await user.RemoveRoleAsync(role);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the role `{0}`.", Actions.FormatRole(role)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the role `{0}`.", role.FormatRole()));
 				return;
 			}
 

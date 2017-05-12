@@ -496,8 +496,9 @@ namespace Advobot
 
 		[Command("botusersmodify")]
 		[Alias("bum")]
-		[Usage("[Add|Remove] [User] <Permission/...>")]
-		[Summary("Gives a user permissions in the bot but not on Discord itself. Can remove a user by not specifying any perms with remove. Giving no input lists all the possible perms.")]
+		[Usage("[Show|Add|Remove] [User] [Permission/...]")]
+		[Summary("Gives a user permissions in the bot but not on Discord itself. Type `" + Constants.BOT_PREFIX + "bum [Show]` to see the available permissions. " +
+			"Type `" + Constants.BOT_PREFIX + "bum [Show] [User]` to see the permissions of that user.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task BotUsersModify([Optional, Remainder] string input)
@@ -506,18 +507,12 @@ namespace Advobot
 			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			if (guildInfo.DefaultPrefs)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have preferences enabled."));
-				return;
-			}
-
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Permissions", String.Format("`{0}`", String.Join("`, `", Variables.GuildPermissions.Select(x => x.Name)))));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
 				return;
 			}
 
 			//Split input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 3, 3));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -528,13 +523,27 @@ namespace Advobot
 			var permStr = returnedArgs.Arguments[2];
 
 			//Check if valid action
-			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
 			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
 				return;
 			}
 			var action = returnedActionType.Type;
+
+			if (returnedArgs.ArgCount == 1)
+			{
+				if (action == ActionType.Show)
+				{
+					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Permissions", String.Format("`{0}`", String.Join("`, `", Variables.GuildPermissions.Select(x => x.Name)))));
+					return;
+				}
+				else
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+					return;
+				}
+			}
 
 			//Get the user
 			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, userStr);
@@ -551,7 +560,7 @@ namespace Advobot
 			{
 				case ActionType.Show:
 				{
-					if (returnedArgs.Arguments.Count == 2)
+					if (returnedArgs.ArgCount == 2)
 					{
 						if (botUser == null || botUser.Permissions == 0)
 						{
@@ -567,7 +576,9 @@ namespace Advobot
 						}
 						else
 						{
-							await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Permissions for " + user.FormatUser(), String.Join("\n", showPerms)));
+							var title = String.Format("Permissions for {0}", user.FormatUser());
+							var desc = String.Format("`{0}`", String.Join("`, `", showPerms)));
+							await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, desc));
 						}
 					}
 					else
@@ -578,7 +589,7 @@ namespace Advobot
 				}
 				case ActionType.Remove:
 				{
-					if (returnedArgs.Arguments.Count == 2)
+					if (returnedArgs.ArgCount == 2)
 					{
 						if (botUser == null)
 						{
@@ -635,7 +646,7 @@ namespace Advobot
 			}
 			if (botUser.Permissions == 0)
 			{
-				guildInfo.BotUsers.RemoveAll(x => x.User.Id == user.Id);
+				guildInfo.BotUsers.ThreadSafeRemoveAll(x => x.UserID == botUser.UserID);
 			}
 
 			//Save everything and send a success message

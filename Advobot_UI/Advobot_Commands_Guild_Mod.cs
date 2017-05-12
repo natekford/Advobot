@@ -178,7 +178,7 @@ namespace Advobot
 		[Command("guildverification")]
 		[Alias("gdv")]
 		[Usage("[None|Low|Medium|High]")]
-		[Summary("Changes the verification level. 0 is the most lenient (no requirements to type), 3 is the harshest (10 minutes in the guild before new members can type).")]
+		[Summary("Changes the verification level. None is the most lenient (no requirements to type), high is the harshest (10 minutes in the guild before new members can type).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
 		public async Task ChangeGuildVerification([Remainder] string input)
@@ -197,7 +197,7 @@ namespace Advobot
 		[Command("guildicon")]
 		[Alias("gdi")]
 		[Usage("[Attached Image|Embedded Image|Remove]")]
-		[Summary("Changes the guild icon to the given image. Must be less than 2.5MB simply because the bot would use more data and be slower otherwise.")]
+		[Summary("Changes the guild icon to the given image. Must be less than 2.5MB.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
 		public async Task ChangeGuildIcon([Optional] string input)
@@ -244,7 +244,7 @@ namespace Advobot
 				return;
 			}
 			//Check if the bot's not the owner of the guild
-			else if (owner.Id != Variables.Bot_ID)
+			else if (owner.Id != Variables.BotID)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bot is not the owner of the guild. The owner is: `{0}`.", owner.FormatUser())));
 				return;
@@ -280,7 +280,7 @@ namespace Advobot
 		public async Task GuildDelete()
 		{
 			//Check if the bot can delete the guild
-			if (Variables.Bot_ID != Context.Guild.OwnerId)
+			if (Variables.BotID != Context.Guild.OwnerId)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The bot is not the owner of the guild and thus cannot delete it."));
 				return;

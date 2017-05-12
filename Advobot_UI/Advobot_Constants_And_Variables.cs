@@ -7,13 +7,15 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const string BOT_VERSION = "0.9.37";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc2-00736";
-		public const string BOT_PREFIX = "+=";
+		public const string BOT_VERSION = "0.9.40";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc3-00742";
+		public const string BOT_PREFIX = "&&";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string IGNORE_ERROR = "Cx";
 		public const string TEXT_HOST = "hastebin";
+		public const string DISCORD_INV = "https://discord.gg/xd";
 		public const string STREAM_URL = "https://www.twitch.tv/";
+		public const string REPO = "https://github.com/advorange/Advobot";
 		public const string VIP_REGIONS = "VIP_REGIONS";
 		public const string VANITY_URL = "VANITY_URL";
 		public const string INVITE_SPLASH = "INVITE_SPLASH";
@@ -47,12 +49,13 @@ namespace Advobot
 		public const string BASIC_TYPE_CHANNEL = "channel";
 		public const string BASIC_TYPE_GUILD = "guild";
 
+		//In case I ever need to have a prefix for these to have better arg parsing
 		public const string CHAN = "";
 		public const string ROLE = "";
 		public const string USER = "";
-		public const string CHANNEL_INSTRUCTIONS = "[" + CHAN + "#Channel|\"Channel Name\"]";
-		public const string USER_INSTRUCTIONS = "[" + USER + "@User|\"Username\"]";
-		public const string ROLE_INSTRUCTIONS = "[" + ROLE + "@Role|\"Role Name\"]";
+		public const string CHANNEL_INSTRUCTIONS = CHAN + "#Channel|\"Channel Name\"";
+		public const string USER_INSTRUCTIONS = USER + "@User|\"Username\"";
+		public const string ROLE_INSTRUCTIONS = ROLE + "@Role|\"Role Name\"";
 
 
 		public const double PERCENT_AVERAGE = .75;
@@ -151,8 +154,8 @@ namespace Advobot
 	public static class Variables
 	{
 		public static BotClient Client;
-		public static UInt64 Bot_ID = 0;
-		public static string Bot_Name;
+		public static UInt64 BotID = 0;
+		public static string BotName;
 		public static BotGlobalInfo BotInfo;
 
 		public static bool Windows = true;

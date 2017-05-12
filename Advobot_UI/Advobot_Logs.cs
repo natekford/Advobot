@@ -15,7 +15,7 @@ namespace Advobot
 	{
 		public static Task Log(LogMessage msg)
 		{
-			Console.WriteLine(msg.ToString());
+			Console.WriteLine(msg);
 			return Task.CompletedTask;
 		}
 
@@ -28,7 +28,7 @@ namespace Advobot
 
 			if (!Variables.Guilds.ContainsKey(guild.Id))
 			{
-				if (Variables.Bot_ID != 0)
+				if (Variables.BotID != 0)
 				{
 					Actions.LoadGuild(guild);
 				}
@@ -215,7 +215,7 @@ namespace Advobot
 				return;
 
 			//Check if the bot was the one that left
-			if (user.Id == Variables.Bot_ID)
+			if (user.Id == Variables.BotID)
 			{
 				Variables.Guilds.Remove(user.Guild.Id);
 				return;
@@ -460,7 +460,7 @@ namespace Advobot
 
 		public static async Task LogImage(BotGuildInfo guildInfo, ITextChannel logChannel, IMessage message)
 		{
-			if (logChannel == null || message.Author.Id == Variables.Bot_ID)
+			if (logChannel == null || message.Author.Id == Variables.BotID)
 				return;
 
 			if (message.Attachments.Any())
@@ -538,7 +538,8 @@ namespace Advobot
 				{
 					var help = closeHelpList.List[number].Help;
 					Variables.ActiveCloseHelp.ThreadSafeRemove(closeHelpList);
-					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help)), "Help"));
+					var prefix = Actions.GetPrefix(guild);
+					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help, prefix)), "Help"));
 					await Actions.DeleteMessage(message);
 				}
 			}

@@ -69,9 +69,9 @@ namespace Advobot
 		private const string mHelpHelp = "\n\nNeed additional help? Join the Discord server: ";
 		private static readonly string mCmdsCmds = "Commands:".PadRight(Constants.PAD_RIGHT) + "Aliases:\n" + UICommandNames.FormatStringForUse();
 		private static Inline mHelpFirstRun = new Run(mHelpSynt + mHelpInf1 + mHelpInf2 + mHelpVers);
-		private static Inline mHelpFirstHyperlink = UIMakeElement.MakeHyperlink("https://github.com/advorange/Advobot", "Advobot");
+		private static Inline mHelpFirstHyperlink = UIMakeElement.MakeHyperlink(Constants.REPO, "Advobot");
 		private static Inline mHelpSecondRun = new Run(mHelpHelp);
-		private static Inline mHelpSecondHyperlink = UIMakeElement.MakeHyperlink("https://www.discord.gg/ad", "Here");
+		private static Inline mHelpSecondHyperlink = UIMakeElement.MakeHyperlink(Constants.DISCORD_INV, "Here");
 		private static Inline mCmdsFirstRun = new Run(mCmdsCmds);
 		private static Inline mInfoFirstRun = new Run(Actions.FormatLoggedThings());
 		private static TreeView mFileTreeView = new TreeView();
@@ -271,7 +271,7 @@ namespace Advobot
 		}
 		public void ClearOutput(object sender, RoutedEventArgs e)
 		{
-			var result = MessageBox.Show("Are you sure you want to clear the output window?", Variables.Bot_Name, MessageBoxButton.OKCancel);
+			var result = MessageBox.Show("Are you sure you want to clear the output window?", Variables.BotName, MessageBoxButton.OKCancel);
 
 			switch (result)
 			{
@@ -365,7 +365,7 @@ namespace Advobot
 		}
 		public static void CloseEditScreen(object sender, RoutedEventArgs e)
 		{
-			var result = MessageBox.Show("Are you sure you want to close the edit window?", Variables.Bot_Name, MessageBoxButton.OKCancel);
+			var result = MessageBox.Show("Are you sure you want to close the edit window?", Variables.BotName, MessageBoxButton.OKCancel);
 
 			switch (result)
 			{
@@ -381,7 +381,7 @@ namespace Advobot
 			var fileLocation = mEditBox.Tag.ToString();
 			if (String.IsNullOrWhiteSpace(fileLocation) || !File.Exists(fileLocation))
 			{
-				MessageBox.Show("Unable to gather the path for this file.", Variables.Bot_Name);
+				MessageBox.Show("Unable to gather the path for this file.", Variables.BotName);
 			}
 			else
 			{
@@ -396,7 +396,7 @@ namespace Advobot
 					catch (Exception exc)
 					{
 						Actions.ExceptionToConsole("SaveGuildInfo", exc);
-						MessageBox.Show("Failed to save the file.", Variables.Bot_Name);
+						MessageBox.Show("Failed to save the file.", Variables.BotName);
 						return;
 					}
 				}
@@ -798,9 +798,6 @@ namespace Advobot
 				return;
 			}
 
-			//Get the old prefix
-			var oldPrefix = Variables.BotInfo.Prefix;
-
 			//Check if to clear
 			if (Actions.CaseInsEquals(input, "clear"))
 			{
@@ -809,6 +806,12 @@ namespace Advobot
 			}
 			else
 			{
+				if (input.Length > 10)
+				{
+					Actions.WriteLine(String.Format("Keep the prefix to under 10 characters."));
+					return;
+				}
+
 				Variables.BotInfo.SetPrefix(input);
 				Actions.WriteLine(String.Format("Successfully changed the bot's prefix to '{0}'.", input));
 			}

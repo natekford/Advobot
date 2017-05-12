@@ -24,7 +24,7 @@ namespace Advobot
 				return;
 
 			HandleBotID(Variables.Client.GetCurrentUser().Id);						//Give the variable Bot_ID the id of the bot
-			Variables.Bot_Name = Variables.Client.GetCurrentUser().Username;		//Give the variable Bot_Name the username of the bot
+			Variables.BotName = Variables.Client.GetCurrentUser().Username;			//Give the variable Bot_Name the username of the bot
 
 			LoadPermissionNames();													//Gets the names of the permission bits in Discord
 			LoadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
@@ -539,13 +539,14 @@ namespace Advobot
 			}
 		}
 
-		public static string GetHelpString(HelpEntry help)
+		public static string GetHelpString(HelpEntry help, string prefix)
 		{
-			return String.Format("**Aliases:** {0}\n**Usage:** {1}\n\n**Base Permission(s):**\n{2}\n\n**Description:**\n{3}",
-				String.Join(", ", help.Aliases),
-				help.Usage,
-				help.BasePerm,
-				help.Text);
+			var aliasStr = String.Format("**Aliases:** {0}", String.Join(", ", help.Aliases));
+			var usageStr = String.Format("**Usage:** {0}", help.Usage);
+			var permStr = String.Format("\n**Base Permission(s):**\n{0}", help.BasePerm);
+			var descStr = String.Format("\n**Description:**\n{0}", help.Text);
+			var fullStr = String.Join("\n", new[] { aliasStr, usageStr, permStr, descStr });
+			return fullStr.Replace(Variables.BotInfo.Prefix, prefix);
 		}
 
 		public static string GetPlural(int i)
@@ -572,7 +573,7 @@ namespace Advobot
 				return null;
 
 			//Get the bot's folder
-			var botFolder = String.Format("{0}_{1}", Constants.SERVER_FOLDER, Variables.Bot_ID);
+			var botFolder = String.Format("{0}_{1}", Constants.SERVER_FOLDER, Variables.BotID);
 
 			//Send back the directory
 			return String.IsNullOrWhiteSpace(nonGuildFileName) ? Path.Combine(folder, botFolder) : Path.Combine(folder, botFolder, nonGuildFileName);
@@ -619,6 +620,20 @@ namespace Advobot
 			return (inputString != null && CaseInsEquals(input, searchTerm) ? inputString.Substring(inputString.IndexOf(':') + 1) : null);
 		}
 
+		public static string GetPrefix(IGuild guild)
+		{
+			var prefix = "";
+			if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+			{
+				prefix = guildInfo.Prefix;
+			}
+			if (String.IsNullOrWhiteSpace(prefix))
+			{
+				prefix = Variables.BotInfo.Prefix;
+			}
+			return prefix;
+		}
+
 		public static bool GetIfValidUnicode(string str, int upperLimit)
 		{
 			if (String.IsNullOrWhiteSpace(str))
@@ -642,7 +657,7 @@ namespace Advobot
 
 		public static bool GetIfUserIsOwnerButBotIsOwner(IGuild guild, IUser user)
 		{
-			return guild.OwnerId == Variables.Bot_ID && GetUserPosition(guild, user) == guild.Roles.Max(x => x.Position) - 1;
+			return guild.OwnerId == Variables.BotID && GetUserPosition(guild, user) == guild.Roles.Max(x => x.Position) - 1;
 		}
 
 		public static bool GetIfUserIsBotOwner(IUser user)
@@ -2105,6 +2120,11 @@ namespace Advobot
 			return guild.FormatGuild();
 		}
 
+		public static string FormatObject(string str)
+		{
+			return str;
+		}
+
 		public static string FormatObject(object obj)
 		{
 			return "FormatObject Error";
@@ -2137,12 +2157,12 @@ namespace Advobot
 			return String.Join("\n", new[] { header, joins, leaves, userChanges, edits, deletes, images, gifs, files });
 		}
 
-		public static string FormatResponseMessagesForCmdsOnLotsOfObjects<T>(List<T> success, List<string> failure, string objType, string successAction, string failureAction)
+		public static string FormatResponseMessagesForCmdsOnLotsOfObjects<T>(IEnumerable<T> success, IEnumerable<string> failure, string objType, string successAction, string failureAction)
 		{
 			var succOutput = "";
 			if (success.Any())
 			{
-				var c = success.Count;
+				var c = success.Count();
 				succOutput = String.Format("Successfully {0} `{1}` {2}{3}: `{4}`. ",
 					successAction,
 					c,
@@ -2153,7 +2173,7 @@ namespace Advobot
 			var failOutput = "";
 			if (failure.Any())
 			{
-				var c = failure.Count;
+				var c = failure.Count();
 				failOutput = String.Format("Failed to {0} `{1}` {2}{3}: `{4}`.",
 					failureAction,
 					c,
@@ -2921,7 +2941,7 @@ namespace Advobot
 				return false;
 			else if (message.Author.IsWebhook)
 				return false;
-			else if (message.Author.IsBot && message.Author.Id != Variables.Bot_ID)
+			else if (message.Author.IsBot && message.Author.Id != Variables.BotID)
 				return false;
 			else if (!VerifyLoggingIsEnabledOnThisChannel(guildInfo, message))
 				return false;
@@ -4235,7 +4255,7 @@ namespace Advobot
 
 		public static void HandleBotID(ulong ID)
 		{
-			Variables.Bot_ID = ID;
+			Variables.BotID = ID;
 			Properties.Settings.Default.BotID = ID;
 			Properties.Settings.Default.Save();
 		}
@@ -4338,7 +4358,7 @@ namespace Advobot
 			return new ReturnedArguments(args, specifiedArgs, context.Message);
 		}
 
-		public static ReturnedType GetType(string input, ActionType[] validTypes)
+		public static ReturnedType GetActionType(string input, ActionType[] validTypes)
 		{
 			if (!Enum.TryParse(input, true, out ActionType type))
 			{

@@ -43,7 +43,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid type supplied."));
 				return;
 			}
-			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
+			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
 			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedActionType);

@@ -35,13 +35,13 @@ namespace Advobot
 			var codeStr = returnedArgs.Arguments[1];
 			var keywordStr = returnedArgs.GetSpecifiedArg("keywords");
 
-			var returnedAction = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedAction.Reason != TypeFailureReason.Not_Failure)
+			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedAction);
+				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
 				return;
 			}
-			var action = returnedAction.Type;
+			var action = returnedActionType.Type;
 
 			switch (action)
 			{

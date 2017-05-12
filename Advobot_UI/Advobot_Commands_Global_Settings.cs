@@ -132,20 +132,15 @@ namespace Advobot
 		[Command(BasicCommandStrings.CPREFIX)]
 		[Alias(BasicCommandStrings.APREFIX)]
 		[Usage("[Clear|Current|New Prefix]")]
-		[Summary("Changes the bot's prefix to the given string. Clearing the prefix sets it back to `++`.")]
+		[Summary("Changes the bot's prefix to the given string. Clearing the prefix sets it back to `" + Constants.BOT_PREFIX + "`.")]
 		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
 		public async Task SetGlobalPrefix([Remainder] string input)
 		{
-			//Get the old prefix
-			var botInfo = Variables.BotInfo;
-			var oldPrefix = botInfo.Prefix;
-
-			//Check if to clear
 			if (Actions.CaseInsEquals(input, "clear"))
 			{
-				botInfo.SetPrefix(Constants.BOT_PREFIX);
-				await Actions.SendChannelMessage(Context, "Successfully reset the bot's prefix to `" + Constants.BOT_PREFIX + "`.");
+				Variables.BotInfo.SetPrefix(Constants.BOT_PREFIX);
+				await Actions.SendChannelMessage(Context, String.Format("Successfully reset the bot's prefix to `{0}`.", Constants.BOT_PREFIX));
 			}
 			else if (Actions.CaseInsEquals(input, "current"))
 			{
@@ -153,12 +148,18 @@ namespace Advobot
 			}
 			else
 			{
-				botInfo.SetPrefix(input);
+				if (input.Length > 10)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Keep the prefix to under 10 characters."));
+					return;
+				}
+
+				Variables.BotInfo.SetPrefix(input);
 				await Actions.SendChannelMessage(Context, String.Format("Successfully changed the bot's prefix to `{0}`.", input));
 			}
 
-			//Save the settings
 			Actions.SaveBotInfo();
+			await Actions.UpdateGame();
 		}
 
 		[Command(BasicCommandStrings.CSETTINGS)]

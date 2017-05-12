@@ -936,7 +936,7 @@ namespace Advobot
 		{
 			Name = name;
 			Aliases = aliases;
-			Usage = usage;
+			Usage = Variables.BotInfo.Prefix + usage;
 			BasePerm = basePerm;
 			Text = text;
 			Category = category;
@@ -1605,6 +1605,7 @@ namespace Advobot
 	public struct ReturnedArguments
 	{
 		public List<string> Arguments { get; private set; }
+		public int ArgCount { get; private set; }
 		public Dictionary<string, string> SpecifiedArguments { get; private set; }
 		public List<ulong> MentionedUsers { get; private set; }
 		public List<ulong> MentionedRoles { get; private set; }
@@ -1614,6 +1615,7 @@ namespace Advobot
 		public ReturnedArguments(List<string> args, ArgFailureReason reason)
 		{
 			Arguments = args;
+			ArgCount = args.Where(x => !String.IsNullOrWhiteSpace(x)).Count();
 			SpecifiedArguments = null;
 			MentionedUsers = null;
 			MentionedRoles = null;
@@ -1623,6 +1625,7 @@ namespace Advobot
 		public ReturnedArguments(List<string> args, Dictionary<string, string> specifiedArgs, IMessage message)
 		{
 			Arguments = args;
+			ArgCount = args.Where(x => !String.IsNullOrWhiteSpace(x)).Count();
 			SpecifiedArguments = specifiedArgs;
 			MentionedUsers = message.MentionedUserIds.ToList();
 			MentionedRoles = message.MentionedRoleIds.ToList();

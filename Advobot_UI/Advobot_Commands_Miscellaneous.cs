@@ -21,38 +21,18 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Help([Optional, Remainder] string input)
 		{
-			var prefix = Variables.BotInfo.Prefix;
-			if (Variables.Guilds.TryGetValue(Context.Guild.Id, out BotGuildInfo guildInfo))
-			{
-				prefix = guildInfo.Prefix;
-			}
-
+			var prefix = Actions.GetPrefix(Context.Guild);
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				var desc = String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", prefix);
-			    var emb = Actions.MakeNewEmbed("Commands", desc);
-				Actions.AddField(emb, "Syntax", String.Format("[] means required.\n<> means optional.\n| means or.User means {0}.\nRole means {1}.\nChannel means {2}.",
+			    var emb = Actions.MakeNewEmbed("General Help", String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", prefix));
+				Actions.AddField(emb, "Basic Syntax", "[] means required.\n<> means optional.\n| means or.");
+				Actions.AddField(emb, "Mention Syntax", String.Format("User means `{0}`.\nRole means `{1}`.\nChannel means `{2}`.",
 					Constants.USER_INSTRUCTIONS,
 					Constants.ROLE_INSTRUCTIONS,
 					Constants.CHANNEL_INSTRUCTIONS));
-				Actions.AddField(emb, "Links", "[GitHub Repository](https://github.com/advorange/Advobot)\n[Discord Server](https://discord.gg/ad)");
+				Actions.AddField(emb, "Links", String.Format("[GitHub Repository]({0})\n[Discord Server]({1})", Constants.REPO, Constants.DISCORD_INV));
 				Actions.AddFooter(emb, "Help");
 				await Actions.SendEmbedMessage(Context.Channel, emb);
-				return;
-			}
-
-			//Get the input command, if nothing then link to documentation
-			var commandParts = input.Split(new[] { '[' }, 2);
-			if (input.IndexOf('[') == 0)
-			{
-				if (Actions.CaseInsEquals(commandParts[1], "command"))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Type `{0}commands` for a list of commands.", prefix));
-				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "[] means required information. <> means optional information. | means or.");
-				}
 				return;
 			}
 
@@ -71,9 +51,8 @@ namespace Advobot
 				});
 				if (helpEntry == null)
 				{
-					//Find close words
+					//Find close help entries
 					var closeHelps = Actions.GetCommandsWithInputInName(Actions.GetCommandsWithSimilarName(input), input)?.Distinct().ToList();
-
 					if (closeHelps != null && closeHelps.Any())
 					{
 						//Format a message to be said
@@ -94,14 +73,7 @@ namespace Advobot
 				}
 			}
 
-			var description = Actions.GetHelpString(helpEntry);
-			var guildPrefix = guildInfo.Prefix;
-			if (!String.IsNullOrWhiteSpace(guildPrefix))
-			{
-				description = description.Replace(Variables.BotInfo.Prefix, guildPrefix);
-			}
-
-			var embed = Actions.MakeNewEmbed(helpEntry.Name, description);
+			var embed = Actions.MakeNewEmbed(helpEntry.Name, Actions.GetHelpString(helpEntry, prefix));
 			Actions.AddFooter(embed, "Help");
 			await Actions.SendEmbedMessage(Context.Channel, embed);
 		}
@@ -115,7 +87,7 @@ namespace Advobot
 		{
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				var desc = String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}", Constants.BOT_PREFIX, String.Join("\n", Enum.GetNames(typeof(CommandCategory))));
+				var desc = String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}", Actions.GetPrefix(Context.Guild), String.Join("\n", Enum.GetNames(typeof(CommandCategory))));
 				var embed = Actions.MakeNewEmbed("Categories", desc);
 				await Actions.SendEmbedMessage(Context.Channel, embed);
 				return;
@@ -138,18 +110,16 @@ namespace Advobot
 		[Alias("idg")]
 		[Usage("")]
 		[Summary("Shows the ID of the guild.")]
-		[UserHasAPermission]
 		[DefaultEnabled(true)]
 		public async Task ServerID()
 		{
-			await Actions.SendChannelMessage(Context, String.Format("This guild has the ID `{0}`.", Context.Guild.Id) + " ");
+			await Actions.SendChannelMessage(Context, String.Format("This guild has the ID `{0}`.", Context.Guild.Id));
 		}
 
 		[Command("idchannel")]
 		[Alias("idc")]
 		[Usage("<Channel>")]
 		[Summary("Shows the ID of the given channel. No channel defaults to the one the command is used on.")]
-		[UserHasAPermission]
 		[DefaultEnabled(true)]
 		public async Task ChannelID([Optional, Remainder] string input)
 		{
@@ -163,7 +133,6 @@ namespace Advobot
 		[Alias("idr")]
 		[Usage("[Role]")]
 		[Summary("Shows the ID of the given role.")]
-		[UserHasAPermission]
 		[DefaultEnabled(true)]
 		public async Task RoleID([Remainder] string input)
 		{
@@ -181,7 +150,6 @@ namespace Advobot
 		[Alias("idu")]
 		[Usage("<User>")]
 		[Summary("Shows the ID of the given user. No user defaults to the one using the command.")]
-		[UserHasAPermission]
 		[DefaultEnabled(true)]
 		public async Task UserID([Optional, Remainder] string input)
 		{
@@ -251,7 +219,7 @@ namespace Advobot
 			}
 			var role = returnedRole.Object as SocketRole;
 
-			var title = Actions.FormatRole(role);
+			var title = role.FormatRole();
 			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", role.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(role.CreatedAt.UtcDateTime).Days);
 			var position = String.Format("**Position:** `{0}`", role.Position);
 			var users = String.Format("**User Count:** `{0}`", (await Context.Guild.GetUsersAsync()).Where(x => x.RoleIds.Contains(role.Id)).Count());
@@ -281,7 +249,7 @@ namespace Advobot
 
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(null, description);
-			Actions.AddAuthor(embed, Variables.Bot_Name, Context.Client.CurrentUser.GetAvatarUrl());
+			Actions.AddAuthor(embed, Variables.BotName, Context.Client.CurrentUser.GetAvatarUrl());
 			Actions.AddFooter(embed, "Version " + Constants.BOT_VERSION);
 
 			//First field
