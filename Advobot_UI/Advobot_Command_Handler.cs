@@ -40,7 +40,7 @@ namespace Advobot
 
 			if (!Variables.Guilds.TryGetValue(channel.GuildId, out BotGuildInfo guildInfo))
 			{
-				Actions.LoadGuild(channel.Guild);
+				await Actions.LoadGuild(channel.Guild);
 				guildInfo = Variables.Guilds[channel.GuildId];
 			}
 

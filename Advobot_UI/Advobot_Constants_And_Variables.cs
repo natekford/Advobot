@@ -7,7 +7,7 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const string BOT_VERSION = "0.9.40";
+		public const string BOT_VERSION = "0.9.41";
 		public const string API_VERSION = "Discord.Net v1.0.0-rc3-00742";
 		public const string BOT_PREFIX = "&&";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
@@ -66,7 +66,6 @@ namespace Advobot
 		public const int MAX_REMINDS = 50;
 		public const int MAX_BANNED_STRINGS = 50;
 		public const int MAX_BANNED_REGEX = 25;
-		public const int OWNER_POSITION = int.MaxValue;
 		public const int MESSAGES_TO_GATHER = 100;
 		public const int PAD_RIGHT = 20;
 		public const int ACTIVE_CLOSE = 5000;

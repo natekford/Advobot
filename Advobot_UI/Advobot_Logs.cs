@@ -19,7 +19,7 @@ namespace Advobot
 			return Task.CompletedTask;
 		}
 
-		public static Task OnGuildAvailable(SocketGuild guild)
+		public static async Task OnGuildAvailable(SocketGuild guild)
 		{
 			Actions.WriteLine(String.Format("{0}: {1} is now online on shard {2}.", MethodBase.GetCurrentMethod().Name, guild.FormatGuild(), Variables.Client.GetShardFor(guild).ShardId));
 			Actions.WriteLine(String.Format("Current memory usage is: {0}MB", Actions.GetMemory().ToString("0.00")));
@@ -30,7 +30,7 @@ namespace Advobot
 			{
 				if (Variables.BotID != 0)
 				{
-					Actions.LoadGuild(guild);
+					await Actions.LoadGuild(guild);
 				}
 				else
 				{
@@ -38,7 +38,7 @@ namespace Advobot
 				}
 			}
 
-			return Task.CompletedTask;
+			return;
 		}
 
 		public static Task OnGuildUnavailable(SocketGuild guild)
@@ -55,7 +55,7 @@ namespace Advobot
 			return Task.CompletedTask;
 		}
 
-		public static Task OnJoinedGuild(SocketGuild guild)
+		public static async Task OnJoinedGuild(SocketGuild guild)
 		{
 			Actions.WriteLine(String.Format("{0}: Bot has joined {1}.", MethodBase.GetCurrentMethod().Name, guild.FormatGuild()));
 
@@ -96,10 +96,7 @@ namespace Advobot
 			//Leave if too many bots
 			if (botCount / (users * 1.0) > percentage)
 			{
-				Task.Run(async () =>
-				{
-					await guild.LeaveAsync();
-				});
+				await guild.LeaveAsync();
 			}
 
 			//Warn if at the maximum
@@ -113,15 +110,11 @@ namespace Advobot
 			//Leave the guild
 			if (guilds > curMax)
 			{
-				Task.Run(async () =>
-				{
-					await guild.LeaveAsync();
-				});
-				//Send a message to the console
+				await guild.LeaveAsync();
 				Actions.WriteLine(String.Format("Left the guild {0} due to having too many guilds on the client and not enough shards.", guild.FormatGuild()));
 			}
 
-			return Task.CompletedTask;
+			return;
 		}
 
 		public static Task OnLeftGuild(SocketGuild guild)
@@ -387,7 +380,7 @@ namespace Advobot
 			++Variables.LoggedDeletes;
 
 			//Make a separate task in order to not mess up the other commands
-			var t = Task.Run(async () =>
+			Task.Run(async () =>
 			{
 				try
 				{
@@ -409,7 +402,7 @@ namespace Advobot
 				//Put the message content into a list of strings for easy usage
 				var deletedMessagesContent = Actions.FormatDeletedMessages(deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks).ToList());
 				await Actions.SendDeleteMessage(guild, serverLog, deletedMessagesContent);
-			});
+			}).Forget();
 
 			//To get it to not want an await
 			await Task.Yield();

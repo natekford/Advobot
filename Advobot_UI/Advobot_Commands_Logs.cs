@@ -13,7 +13,7 @@ namespace Advobot
 	{
 		[Command("logchannel")]
 		[Alias("logc")]
-		[Usage("[Server|Mod|Image] [#Channel|Off]")]
+		[Usage("[Server|Mod|Image] [Channel|Off]")]
 		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -27,27 +27,38 @@ namespace Advobot
 				return;
 			}
 
-			var inputArray = input.Split(new[] { ' ' }, 2);
-			var typeStr = inputArray[0].ToLower();
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var typeStr = returnedArgs.Arguments[0];
+			var chanStr = returnedArgs.Arguments[1];
+
 			if (!Enum.TryParse(typeStr, true, out LogChannelTypes type))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Text }, true, null);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			ITextChannel channel = null;
+			if (!Actions.CaseInsEquals(chanStr, "off"))
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var channel = returnedChannel.Object as ITextChannel;
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Text }, true, chanStr);
+				if (returnedChannel.Reason != FailureReason.Not_Failure)
+				{
+					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
+					return;
+				}
+				channel = returnedChannel.Object as ITextChannel;
 
-			if (guildInfo.GetLogID(type) == channel.Id)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The given channel is already the current {0} log.", typeStr)));
-				return;
-			}
+				if (guildInfo.GetLogID(type) == channel.Id)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The given channel is already the current {0} log.", typeStr)));
+					return;
+				}
+			}		
 
 			switch (type)
 			{
@@ -67,8 +78,8 @@ namespace Advobot
 					break;
 				}
 			}
-			Actions.SaveGuildInfo(guildInfo);
 
+			Actions.SaveGuildInfo(guildInfo);
 			if (channel != null)
 			{
 				await Actions.SendChannelMessage(Context, String.Format("The {0} log has been set on `{1}`.", typeStr, channel.FormatChannel()));
@@ -81,7 +92,7 @@ namespace Advobot
 
 		[Command("logignore")]
 		[Alias("logi")]
-		[Usage("[Add|Remove] [#Channel]/<#Channel>/...")]
+		[Usage("[Add|Remove] [Channel]/<Channel>/...")]
 		[Summary("Ignores all logging info that would have been gotten from a channel. Only works on text channels that you and the bot have the ability to see.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -96,15 +107,21 @@ namespace Advobot
 			}
 
 			//Split the input and determine whether to add or remove
-			var inputArray = input.Split(new[] { ' ' }, 2);
-			var action = inputArray[0];
-
-			var add = Actions.CaseInsEquals(action, "add");
-			if (!add && !Actions.CaseInsEquals(action, "remove"))
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
+			var actionStr = returnedArgs.Arguments[0];
+
+			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			{
+				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				return;
+			}
+			var action = returnedActionType.Type;
 
 			//Get the channels
 			var evaluatedChannels = Actions.GetValidEditChannels(Context);
@@ -119,33 +136,40 @@ namespace Advobot
 			//Make sure stuff isn't already ignored
 			var ignoredLogChannels = guildInfo.IgnoredLogChannels;
 			var alreadyAction = new List<IGuildChannel>();
-			if (add)
+			var add = false;
+			switch (action)
 			{
-				success.ForEach(x =>
+				case ActionType.Add:
 				{
-					if (ignoredLogChannels.Contains(x.Id))
+					success.ForEach(x =>
 					{
-						alreadyAction.Add(x);
-					}
-					else
-					{
-						ignoredLogChannels.Add(x.Id);
-					}
-				});
-			}
-			else
-			{
-				success.ForEach(x =>
+						if (ignoredLogChannels.Contains(x.Id))
+						{
+							alreadyAction.Add(x);
+						}
+						else
+						{
+							ignoredLogChannels.Add(x.Id);
+						}
+					});
+					add = true;
+					break;
+				}
+				case ActionType.Remove:
 				{
-					if (!ignoredLogChannels.Contains(x.Id))
+					success.ForEach(x =>
 					{
-						alreadyAction.Add(x);
-					}
-					else
-					{
-						ignoredLogChannels.Remove(x.Id);
-					}
-				});
+						if (!ignoredLogChannels.Contains(x.Id))
+						{
+							alreadyAction.Add(x);
+						}
+						else
+						{
+							ignoredLogChannels.Remove(x.Id);
+						}
+					});
+					break;
+				}
 			}
 
 			//Format the response message
@@ -168,7 +192,7 @@ namespace Advobot
 
 		[Command("logactions")]
 		[Alias("loga")]
-		[Usage("<Enable|Disable|Default> <All|Log Action/...>")]
+		[Usage("<Add|Remove|Default> <All|Log Action/...>")]
 		[Summary("The server log will send messages when these events happen. `Default` overrides the current settings. Inputting nothing gives a list of the log actions.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -186,12 +210,12 @@ namespace Advobot
 			//Check if the person wants to only see the types
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Log Actions", String.Join("\n", Enum.GetNames(typeof(LogActions)))));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Log Actions", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(LogActions))))));
 				return;
 			}
 			else if (Actions.CaseInsEquals(input, "default"))
 			{
-				guildInfo.SetLogActions(Constants.DEFAULT_LOG_ACTIONS.ToList());
+				guildInfo.SetLogActions(Constants.DEFAULT_LOG_ACTIONS);
 
 				//Save everything and send a success message
 				Actions.SaveGuildInfo(guildInfo);
@@ -200,40 +224,32 @@ namespace Advobot
 			}
 
 			//Split the input
-			var inputArray = input.Split(new[] { ' ' }, 2);
-			if (inputArray.Length != 2)
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
-			var action = inputArray[0];
-			var logActionsString = inputArray[1];
+			var actionStr = returnedArgs.Arguments[0];
+			var logActStr = returnedArgs.Arguments[1];
 
-			//Check if enable or disable
-			bool enableBool;
-			if (action.Equals("enable"))
+			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
-				enableBool = true;
-			}
-			else if (action.Equals("disable"))
-			{
-				enableBool = false;
-			}
-			else
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
 				return;
 			}
+			var action = returnedActionType.Type;
 
 			//Get all the targetted log actions
 			var newLogActions = new List<LogActions>();
-			if (Actions.CaseInsEquals(logActionsString, "all"))
+			if (Actions.CaseInsEquals(logActStr, "all"))
 			{
 				newLogActions = Enum.GetValues(typeof(LogActions)).Cast<LogActions>().ToList();
 			}
 			else
 			{
-				logActionsString.Split('/').ToList().ForEach(x =>
+				logActStr.Split('/').ToList().ForEach(x =>
 				{
 					if (Enum.TryParse(x, true, out LogActions temp))
 					{
@@ -241,27 +257,34 @@ namespace Advobot
 					}
 				});
 			}
-
-			//Check if there are any valid log actions
 			if (!newLogActions.Any())
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid log actions were able to be gotten."));
 				return;
 			}
-			else if (enableBool)
+
+			var responseStr = "";
+			switch (action)
 			{
-				logActions.AddRange(newLogActions);
+				case ActionType.Add:
+				{
+					logActions.AddRange(newLogActions);
+					responseStr = "enabled";
+					break;
+				}
+				case ActionType.Remove:
+				{
+					logActions = logActions.Except(newLogActions).ToList();
+					responseStr = "disabled";
+					break;
+				}
 			}
-			else
-			{
-				logActions = logActions.Except(newLogActions).ToList();
-			}
-			guildInfo.SetLogActions(logActions.Distinct().ToList());
+			guildInfo.SetLogActions(logActions.Distinct());
 
 			//Save everything and send a success message
 			Actions.SaveGuildInfo(guildInfo);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
-				enableBool ? "enabled" : "disabled",
+				responseStr,
 				Actions.GetPlural(newLogActions.Count),
 				String.Join("`, `", newLogActions.Select(x => Enum.GetName(typeof(LogActions), x)))));
 		}

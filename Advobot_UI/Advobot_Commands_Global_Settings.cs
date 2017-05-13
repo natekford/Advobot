@@ -12,7 +12,6 @@ namespace Advobot
 	[Name("Global_Settings")]
 	public class Advobot_Commands_Administration : ModuleBase
 	{
-		#region Settings
 		[Command(BasicCommandStrings.COWNER)]
 		[Alias(BasicCommandStrings.AOWNER)]
 		[Usage("<Clear|Current>")]
@@ -21,29 +20,6 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task SetBotOwner([Optional, Remainder] string input)
 		{
-			//Check if it's current
-			if (Actions.CaseInsEquals(input, "current"))
-			{
-				var user = Actions.GetBotOwner();
-				if (user != null)
-				{
-					await Actions.SendChannelMessage(Context, String.Format("The current bot owner is: `{0}`", user.FormatUser()));
-				}
-				else
-				{
-					await Actions.SendChannelMessage(Context, "This bot is unowned.");
-				}
-				return;
-			}
-
-			//Everything past here requires the user to be the current guild owner
-			if (Context.Guild.OwnerId != Context.User.Id)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You must be the guild owner to set yourself as the bot owner."));
-				return;
-			}
-
-			//Check if it's clear
 			var botInfo = Variables.BotInfo;
 			if (Actions.CaseInsEquals(input, "clear"))
 			{
@@ -60,9 +36,20 @@ namespace Advobot
 				}
 				return;
 			}
-
-			//Check if there's already a bot owner
-			if (botInfo.BotOwner != 0)
+			else if (Actions.CaseInsEquals(input, "current"))
+			{
+				var user = Actions.GetBotOwner();
+				if (user != null)
+				{
+					await Actions.SendChannelMessage(Context, String.Format("The current bot owner is: `{0}`", user.FormatUser()));
+				}
+				else
+				{
+					await Actions.SendChannelMessage(Context, "This bot is unowned.");
+				}
+				return;
+			}
+			else if (botInfo.BotOwner != 0)
 			{
 				//Get the bot owner
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("There is already a bot owner: `{0}`.", Actions.GetBotOwner().FormatUser()));
@@ -82,8 +69,14 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task SetSavePath([Remainder] string input)
 		{
-			//Check if it's current
-			if (Actions.CaseInsEquals(input, "current"))
+			if (Actions.CaseInsEquals(input, "clear"))
+			{
+				Properties.Settings.Default.Path = null;
+				Properties.Settings.Default.Save();
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the current save path.", 5000);
+				return;
+			}
+			else if (Actions.CaseInsEquals(input, "current"))
 			{
 				//Check if the path is empty
 				if (String.IsNullOrWhiteSpace(Properties.Settings.Default.Path))
@@ -106,27 +99,15 @@ namespace Advobot
 				}
 				return;
 			}
-
-			//See if clear
-			if (Actions.CaseInsEquals(input, "clear"))
-			{
-				Properties.Settings.Default.Path = null;
-				Properties.Settings.Default.Save();
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the current save path.", 5000);
-				return;
-			}
-
-			//See if the directory exists
-			if (!Directory.Exists(input))
+			else if (!Directory.Exists(input))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That directory doesn't exist."));
 				return;
 			}
 
-			//Set the path
 			Properties.Settings.Default.Path = input;
 			Properties.Settings.Default.Save();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the save path to: `{0}`.", input), 10000);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the save path to: `{0}`.", input));
 		}
 
 		[Command(BasicCommandStrings.CPREFIX)]
@@ -209,9 +190,7 @@ namespace Advobot
 				return;
 			}
 		}
-		#endregion
 
-		#region Bot Changes
 		[Command(BasicCommandStrings.CICON)]
 		[Alias(BasicCommandStrings.AICON)]
 		[Usage("[Attached Image|Embedded Image|Remove]")]
@@ -270,8 +249,8 @@ namespace Advobot
 			{
 				botInfo.SetStream(Constants.STREAM_URL + input);
 			}
-			Actions.SaveBotInfo();
 
+			Actions.SaveBotInfo();
 			await Actions.UpdateGame();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to `" + input + "`"));
 		}
@@ -302,9 +281,7 @@ namespace Advobot
 			//Send a success message
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed my username to `{0}`.", input));
 		}
-		#endregion
 
-		#region Misc
 		[Command(BasicCommandStrings.CDISC)]
 		[Alias(BasicCommandStrings.ADISC_1, BasicCommandStrings.ADISC_2)]
 		[Usage("")]
@@ -401,6 +378,5 @@ namespace Advobot
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guilds", String.Join("\n", guildStrings)));
 			}
 		}
-		#endregion
 	}
 }

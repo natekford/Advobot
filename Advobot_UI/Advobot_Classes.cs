@@ -197,10 +197,6 @@ namespace Advobot
 		public List<string> EvaluatedRegex { get; private set; }
 		[JsonIgnore]
 		public List<BannedPhraseUser> BannedPhraseUsers { get; private set; }
-		[JsonIgnore]
-		public List<string> FAWRNicknames { get; private set; }
-		[JsonIgnore]
-		public List<IRole> FAWRRoles { get; private set; }
 
 		[JsonProperty]
 		public BannedPhrases BannedPhrases { get; private set; }
@@ -264,8 +260,6 @@ namespace Advobot
 			Invites = new List<BotInvite>();
 			EvaluatedRegex = new List<string>();
 			BannedPhraseUsers = new List<BannedPhraseUser>();
-			FAWRNicknames = new List<string>();
-			FAWRRoles = new List<IRole>();
 
 			BannedPhrases = new BannedPhrases();
 			GlobalSpamPrevention = new GlobalSpamPrevention();
@@ -358,9 +352,9 @@ namespace Advobot
 			}
 			return 0;
 		}
-		public void SetLogActions(List<LogActions> logActions)
+		public void SetLogActions(IEnumerable<LogActions> logActions)
 		{
-			LogActions = logActions;
+			LogActions = logActions.ToList();
 		}
 		public void SetListedInvite(ListedInvite listedInvite)
 		{

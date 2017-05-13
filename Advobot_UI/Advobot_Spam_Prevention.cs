@@ -147,17 +147,22 @@ namespace Advobot
 			}
 
 			//Split input
-			var inputArray = input.Split(new[] { ' ' }, 2);
-			var action = inputArray[0];
-			var numStr = inputArray.Length > 1 ? inputArray[1] : null;
-
-			//Set a bool for whichever input was gotten
-			var enable = Actions.CaseInsEquals(action, "enable");
-			if (!enable && !Actions.CaseInsEquals(action, "disable"))
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
+			var actionStr = returnedArgs.Arguments[0];
+			var numStr = returnedArgs.Arguments[1];
+
+			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Enable, ActionType.Disable });
+			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			{
+				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				return;
+			}
+			var action = returnedActionType.Type;
 
 			//Check if mute role already exists, if not, create it
 			var returnedMuteRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, false, Constants.MUTE_ROLE_NAME);
@@ -168,79 +173,81 @@ namespace Advobot
 			}
 
 			var antiRaid = Variables.Guilds[Context.Guild.Id].AntiRaid;
-			if (enable)
+			switch (action)
 			{
-				//Make sure it's not already enabled
-				if (antiRaid != null)
+				case ActionType.Enable:
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already enabled on the server."));
-					return;
-				}
-
-				//Enable raid mode in the bot
-				Variables.Guilds[Context.Guild.Id].SetAntiRaid(new AntiRaid(muteRole));
-
-				//Check if there's a valid number
-				var actualMutes = 0;
-				if (inputArray.Length == 2 && int.TryParse(inputArray[1], out int inputNum) && inputNum != 0)
-				{
-					//Get the users who have joined most recently
-					var users = (await Context.Guild.GetUsersAsync()).OrderBy(x => x.JoinedAt).Reverse().ToList();
-					//Get a suitable number for the input number
-					inputNum = Math.Min(Math.Min(Math.Abs(inputNum), users.Count), 25);
-					//Remove all of the users who are not supposed to be muted
-					users.RemoveRange(inputNum - 1, users.Count - inputNum);
-					//Mute all of the users
-					await users.ForEachAsync(async x =>
+					//Make sure it's not already enabled
+					if (antiRaid != null)
 					{
-						//Mute them
-						await x.AddRoleAsync(muteRole);
-						//Add them to the list of users who have been muted
-						Variables.Guilds[Context.Guild.Id].AntiRaid.AddUserToMutedList(x);
-						//Increment the mute count
-						++actualMutes;
-					});
-				}
-
-				//Send a success message
-				await Actions.SendChannelMessage(Context, String.Format("Successfully turned on raid prevention.{0}", actualMutes > 0 ? String.Format(" Muted `{0}` users.", actualMutes) : ""));
-			}
-			else
-			{
-				//Make sure it's enabled
-				if (antiRaid == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already disabled on the server."));
-					return;
-				}
-
-				//Disable raid mode in the bot
-				Variables.Guilds[Context.Guild.Id].SetAntiRaid(null);
-
-				//Total users muted
-				var ttl = antiRaid.UsersWhoHaveBeenMuted.Count();
-				var unm = 0;
-
-				//Unmute every user who was muted
-				await antiRaid.UsersWhoHaveBeenMuted.ToList().ForEachAsync(async x =>
-				{
-					//Check to make sure they're still on the guild
-					if ((await Context.Guild.GetUserAsync(x.Id)).RoleIds.Contains(muteRole.Id))
-					{
-						//Remove the mute role
-						await x.RemoveRoleAsync(muteRole);
-						//Increment the unmuted int
-						++unm;
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already enabled on the server."));
+						return;
 					}
-				});
 
-				//Calculate how many left
-				var lft = ttl - unm;
+					//Enable raid mode in the bot
+					Variables.Guilds[Context.Guild.Id].SetAntiRaid(new AntiRaid(muteRole));
 
-				//Send a success message
-				var first = unm == 1 ? "person has" : "people have";
-				var second = lft == 1 ? "raider" : "raiders";
-				await Actions.SendChannelMessage(Context, String.Format("Successfully turned off raid prevention. `{0}` {1} been unmuted. `{2}` {3} left during raid prevention.", unm, lft, first, second));
+					//Check if there's a valid number
+					var actualMutes = 0;
+					if (int.TryParse(numStr, out int inputNum))
+					{
+						//Get the users who have joined most recently
+						var users = (await Context.Guild.GetUsersAsync()).OrderBy(x => x.JoinedAt).Reverse().ToList();
+						//Get a suitable number for the input number
+						inputNum = Math.Min(Math.Min(Math.Abs(inputNum), users.Count), 25);
+						//Remove all of the users who are not supposed to be muted
+						users.RemoveRange(inputNum - 1, users.Count - inputNum);
+						//Mute all of the users
+						await users.ForEachAsync(async x =>
+						{
+							await x.AddRoleAsync(muteRole);
+							Variables.Guilds[Context.Guild.Id].AntiRaid.AddUserToMutedList(x);
+							++actualMutes;
+						});
+					}
+
+					//Send a success message
+					await Actions.SendChannelMessage(Context, String.Format("Successfully turned on raid prevention.{0}", actualMutes > 0 ? String.Format(" Muted `{0}` users.", actualMutes) : ""));
+					break;
+				}
+				case ActionType.Disable:
+				{
+					//Make sure it's enabled
+					if (antiRaid == null)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already disabled on the server."));
+						return;
+					}
+
+					//Disable raid mode in the bot
+					Variables.Guilds[Context.Guild.Id].SetAntiRaid(null);
+
+					//Total users muted
+					var ttl = antiRaid.UsersWhoHaveBeenMuted.Count();
+					var unm = 0;
+
+					//Unmute every user who was muted
+					await antiRaid.UsersWhoHaveBeenMuted.ToList().ForEachAsync(async x =>
+					{
+						//Check to make sure they're still on the guild
+						if ((await Context.Guild.GetUserAsync(x.Id)).RoleIds.Contains(muteRole.Id))
+						{
+							//Remove the mute role
+							await x.RemoveRoleAsync(muteRole);
+							//Increment the unmuted int
+							++unm;
+						}
+					});
+
+					//Calculate how many left
+					var lft = ttl - unm;
+
+					//Send a success message
+					var first = unm == 1 ? "user has" : "users have";
+					var desc = String.Format("Successfully turned off raid prevention. `{0}` {1} been unmuted. `{2}` raider{3} left during raid prevention.", unm, first, lft, Actions.GetPlural(lft));
+					await Actions.SendChannelMessage(Context, desc);
+					break;
+				}
 			}
 		}
 

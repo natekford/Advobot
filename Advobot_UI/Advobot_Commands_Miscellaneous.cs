@@ -170,14 +170,25 @@ namespace Advobot
 			var sOwner = sGuild.Owner;
 			var title = sGuild.FormatGuild();
 			var onlineCount = sGuild.Users.Where(x => x.Status != UserStatus.Offline).Count();
+			var nicknameCount = sGuild.Users.Where(x => x.Nickname != null).Count();
+			var gameCount = sGuild.Users.Where(x => x.Game.HasValue).Count();
 			var botCount = sGuild.Users.Where(x => x.IsBot).Count();
-			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", sGuild.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sGuild.CreatedAt.UtcDateTime).Days);
-			var owner = String.Format("**Owner:** `{0}`", sOwner.FormatUser());
-			var region = String.Format("**Region:** `{0}`\n", sGuild.VoiceRegionId);
-			var userCount = String.Format("**User Count:** `{0}` (`{1}` online, `{2}` bots)", sGuild.MemberCount, onlineCount, botCount);
-			var roleCount = String.Format("**Role Count:** `{0}`", sGuild.Roles.Count);
-			var channels = String.Format("**Channel Count:** `{0}` (`{1}` text, `{2}` voice)", sGuild.Channels.Count, sGuild.TextChannels.Count, sGuild.VoiceChannels.Count);
-			var all = String.Join("\n", new List<string>() { age, owner, region, userCount, roleCount, channels });
+			var voiceCount = sGuild.Users.Where(x => x.VoiceChannel != null).Count();
+			var localECount = sGuild.Emotes.Where(x => !x.IsManaged).Count();
+			var globalECount = sGuild.Emotes.Where(x => x.IsManaged).Count();
+
+			var ageStr = String.Format("**Created:** `{0}` (`{1}` days ago)", sGuild.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sGuild.CreatedAt.UtcDateTime).Days);
+			var ownerStr = String.Format("**Owner:** `{0}`", sOwner.FormatUser());
+			var regionStr = String.Format("**Region:** `{0}`", sGuild.VoiceRegionId);
+			var emoteStr = String.Format("**Emotes:** `{0}` (`{1}` local, `{2}` global)\n", localECount + globalECount, localECount, globalECount);
+			var userStr = String.Format("**User Count:** `{0}` (`{1}` online, `{2}` bots)", sGuild.MemberCount, onlineCount, botCount);
+			var nickStr = String.Format("**Users With Nickname:** `{0}`", nicknameCount);
+			var gameStr = String.Format("**Users Playing Games:** `{0}`", gameCount);
+			var voiceStr = String.Format("**Users In Voice:** `{0}`\n", voiceCount);
+			var roleStr = String.Format("**Role Count:** `{0}`", sGuild.Roles.Count);
+			var channelStr = String.Format("**Channel Count:** `{0}` (`{1}` text, `{2}` voice)", sGuild.Channels.Count, sGuild.TextChannels.Count, sGuild.VoiceChannels.Count);
+			var afkChanStr = String.Format("**AFK Channel:** `{0}` (`{1}` minute{2})", sGuild.AFKChannel.FormatChannel(), sGuild.AFKTimeout / 60, Actions.GetPlural(sGuild.AFKTimeout / 60));
+			var all = String.Join("\n", new List<string>() { ageStr, ownerStr, regionStr, emoteStr, userStr, nickStr, gameStr, voiceStr, roleStr, channelStr, afkChanStr });
 
 			var embed = Actions.MakeNewEmbed(title, all, thumbnailURL: sGuild.IconUrl);
 			Actions.AddFooter(embed, "Guild Info");
@@ -314,7 +325,7 @@ namespace Advobot
 			var description = String.Format("**ID:** `{0}`\n", emote.Id);
 			if (guilds.Any())
 			{
-				description += String.Format("**From:** `{0}`", String.Join("`, `", guilds.Select(x => x.Name)));
+				description += String.Format("**From:** `{0}`", String.Join("`, `", guilds.Select(x => x.FormatGuild())));
 			}
 
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(emote.Name, description, thumbnailURL: emote.Url));
@@ -841,13 +852,13 @@ namespace Advobot
 				return;
 			}
 
-			var t = Task.Run(async () =>
+			Task.Run(async () =>
 			{
 				var typing = Context.Channel.EnterTypingState();
 				await invites.ForEachAsync(async x => await x.DeleteAsync());
 				typing.Dispose();
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` instant invites on this guild.", invites.Count));
-			});
+			}).Forget();
 		}
 
 		[Command("makeanembed")]

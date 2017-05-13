@@ -29,7 +29,7 @@ namespace Advobot
 			LoadPermissionNames();													//Gets the names of the permission bits in Discord
 			LoadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
 
-			LoadGuilds();															//Loads the guilds that attempted to load before the Bot_ID was gotten.
+			await LoadGuilds();														//Loads the guilds that attempted to load before the Bot_ID was gotten.
 			await UpdateGame();														//Have the bot display its game and stream
 
 			HourTimer(null);														//Start the hourly timer
@@ -318,12 +318,12 @@ namespace Advobot
 			}
 		}
 
-		public static void LoadGuilds()
+		public static async Task LoadGuilds()
 		{
-			Variables.GuildsToBeLoaded.ForEach(x => LoadGuild(x));
+			await Variables.GuildsToBeLoaded.ForEachAsync(async x => await LoadGuild(x));
 		}
 
-		public static void LoadGuild(IGuild guild)
+		public static async Task LoadGuild(IGuild guild)
 		{
 			var guildInfo = LoadGuildInfo(guild);
 			if (guildInfo != null)
@@ -351,10 +351,7 @@ namespace Advobot
 			}
 
 			guildInfo.TurnLoadedOn();
-			Task.Run(async () =>
-			{
-				guildInfo.Invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
-			});
+			guildInfo.Invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
 			Variables.Guilds.Add(guild.Id, guildInfo);
 		}
 
@@ -712,7 +709,7 @@ namespace Advobot
 			return Int32.TryParse(inputString, out int number) ? number : -1;
 		}
 
-		public static int GetMaxNumOfUsersToGather(ICommandContext context, string[] inputArray)
+		public static int GetMaxNumOfUsersToGather(ICommandContext context, IEnumerable<string> inputArray)
 		{
 			return CaseInsContains(inputArray, Constants.BYPASS_STRING) && true /*TODO: put a bool here requiring bot owner?*/ ? int.MaxValue : 100;
 		}
@@ -987,17 +984,12 @@ namespace Advobot
 
 		public static async Task<int> GetIfGroupIsValid(ICommandContext context, string input)
 		{
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("Invalid input for group number."));
-				return -1;
-			}
 			if (!int.TryParse(input, out int groupNumber))
 			{
 				await MakeAndDeleteSecondaryMessage(context, ERROR("Invalid group number."));
 				return -1;
 			}
-			if (groupNumber < 0)
+			else if (groupNumber < 0)
 			{
 				await MakeAndDeleteSecondaryMessage(context, ERROR("Group number must be positive."));
 				return -1;
@@ -1412,22 +1404,12 @@ namespace Advobot
 
 		public static int GetUserPosition(IGuild guild, IUser user)
 		{
-			//Make sure they're an IGuildUser
-			var tempUser = user as IGuildUser;
+			//Make sure they're a SocketGuildUser
+			var tempUser = user as SocketGuildUser;
 			if (user == null)
 				return -1;
 
-			//Check if the user is the owner
-			if (user.Id == guild.OwnerId)
-				return Constants.OWNER_POSITION;
-
-			//Check if any roles
-			var roleIDs = tempUser.RoleIds;
-			if (!roleIDs.Any())
-				return -1;
-
-			//Get the position off of their roles
-			return roleIDs.Max(x => guild.GetRole(x).Position);
+			return tempUser.Hierarchy;
 		}
 		#endregion
 
@@ -2240,7 +2222,7 @@ namespace Advobot
 			description += String.Format("**Prefix:** `{0}`\n", prefix ? "Yes" : "No");
 			description += String.Format("**Server Log:** `{0}`\n", serverlog ? "Yes" : "No");
 			description += String.Format("**Mod Log:** `{0}`\n", modlog ? "Yes" : "No");
-			description += String.Format("**Image Log:** `{ 0}`\n", imagelog ? "Yes" : "No");
+			description += String.Format("**Image Log:** `{0}`\n", imagelog ? "Yes" : "No");
 
 			return description;
 		}
@@ -4103,7 +4085,7 @@ namespace Advobot
 			}
 		}
 
-		public static bool CaseInsContains(List<string> list, string str)
+		public static bool CaseInsContains(IEnumerable<string> list, string str)
 		{
 			if (!list.Any())
 			{
@@ -4234,7 +4216,7 @@ namespace Advobot
 				{
 					return new[] { element };
 				}
-			}).SelectMany(element => element).ToArray();
+			}).SelectMany(element => element).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
 		}
 
 		public static async Task UpdateGame()
@@ -4260,7 +4242,6 @@ namespace Advobot
 			Properties.Settings.Default.Save();
 		}
 
-		//TODO: Implement this into commands
 		public static ReturnedArguments GetArgs(ICommandContext context, string input, ArgNumbers argNums, string[] argsToSearchFor = null)
 		{
 			/* Non specified arguments get left in a list of args going left to right (mentions are not included in this if the bool is true).
@@ -4373,6 +4354,11 @@ namespace Advobot
 				return new ReturnedType(type, TypeFailureReason.Not_Failure);
 			}
 		}
+
+		public static bool CheckIfRegMatch(string msg, string pattern)
+		{
+			return Regex.IsMatch(msg, pattern, RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT));
+		}
 		#endregion
 	}
 
@@ -4430,7 +4416,14 @@ namespace Advobot
 
 		public static string FormatRole(this IRole role)
 		{
-			return "";
+			if (role != null)
+			{
+				return String.Format("'{0}' ({1})", role.Name, role.Id);
+			}
+			else
+			{
+				return "Irretrievable Role";
+			}
 		}
 
 		public static string FormatChannel(this IChannel channel)
@@ -4455,6 +4448,18 @@ namespace Advobot
 			else
 			{
 				return String.Format("Irretrievable Guild ({0})", guildID); 
+			}
+		}
+
+		public static async void Forget(this Task task)
+		{
+			try
+			{
+				await task.ConfigureAwait(false);
+			}
+			catch (Exception e)
+			{
+				Actions.ExceptionToConsole("Forget", e);
 			}
 		}
 	}

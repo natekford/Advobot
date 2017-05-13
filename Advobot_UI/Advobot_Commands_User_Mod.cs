@@ -14,8 +14,8 @@ namespace Advobot
 	{
 		[Command("textmute")]
 		[Alias("tm")]
-		[Usage("[@User] <Time:Number>")]
-		[Summary("If the user is not text muted, this will mute them. Users can be unmuted via the `roletake` command. Time is in minutes, and if no time is given then the mute will not expire.")]
+		[Usage("[User] <Time:Number>")]
+		[Summary("Prevents a user from typing. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirement((1U << (int)GuildPermission.ManageRoles) | (1U << (int)GuildPermission.ManageMessages))]
 		[DefaultEnabled(true)]
 		public async Task FullMute([Remainder] string input)
@@ -29,8 +29,14 @@ namespace Advobot
 			}
 
 			//Split the input
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
-			var timeStr = Actions.GetVariable(inputArray, "time");
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2), new[] { "time" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var userStr = returnedArgs.Arguments[0];
+			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
 			//Get the time
 			var time = 0;
@@ -43,48 +49,56 @@ namespace Advobot
 				}
 			}
 
-			//Get out the editable and uneditable users
-			var evaluatedUsers = Actions.GetValidEditUsers(Context);
-			if (!evaluatedUsers.HasValue)
+			//Get the user
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
+			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
 			}
-			var success = evaluatedUsers.Value.Success;
-			var failure = evaluatedUsers.Value.Failure;
+			var user = returnedUser.Object;
 
 			//Give the mute roles
-			await success.ForEachAsync(async x =>
-			{
-				await Actions.GiveRole(x, muteRole);
-				if (time != 0)
-				{
-					Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, x.Id, muteRole, DateTime.UtcNow.AddMinutes(time)));
-				}
-			});
-
-			var response = Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "user", "muted", "mute");
+			await Actions.GiveRole(user, muteRole);
+			var response = String.Format("Successfully muted `{0}`.", user.FormatUser());
 			if (time != 0)
 			{
-				response += String.Format("These mutes will last for `{0}` minutes.");
+				Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, muteRole, DateTime.UtcNow.AddMinutes(time)));
+				response += String.Format("The mute will last for `{0}` minute{1}.", time, Actions.GetPlural(time));
 			}
 			await Actions.MakeAndDeleteSecondaryMessage(Context, response);
 		}
 
 		[Command("voicemute")]
 		[Alias("vm")]
-		[Usage("[@User] <Time:Number>")]
-		[Summary("If the user is not voice muted, this will mute them. If they are voice muted, this will unmute them. Time is in minutes, and if no time is given then the mute will not expire.")]
+		[Usage("[User] <Time:Number>")]
+		[Summary("Prevents a user from speaking. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirement(1U << (int)GuildPermission.MuteMembers)]
 		[DefaultEnabled(true)]
 		public async Task Mute([Remainder] string input)
 		{
 			//Split the input
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
-			var userStr = inputArray[0];
-			var timeStr = Actions.GetVariable(inputArray, "time");
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2), new[] { "type" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var userStr = returnedArgs.Arguments[0];
+			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
-			//Test if valid user mention
+			//Get the time
+			var time = 0;
+			if (!String.IsNullOrWhiteSpace(timeStr))
+			{
+				if (!int.TryParse(timeStr, out time))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time."));
+					return;
+				}
+			}
+
+			//Get the user
 			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
 			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
@@ -96,29 +110,17 @@ namespace Advobot
 			//See if it should mute or unmute
 			if (!user.IsMuted)
 			{
-				//Check if time is given
-				var timeString = "";
-				if (inputArray.Length == 2)
-				{
-					if (int.TryParse(inputArray[1], out int time))
-					{
-						Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, PunishmentType.Mute, DateTime.UtcNow.AddMinutes(time)));
-						timeString = String.Format(" for {0} minutes", time);
-					}
-					else
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
-						return;
-					}
-				}
-				
-				//Mute the user
 				await user.ModifyAsync(x => x.Mute = true);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully muted `{0}`{1}.", user.FormatUser(), timeString));
+				var response = String.Format("Successfully muted `{0}`.", user.FormatUser());
+				if (time != 0)
+				{
+					Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, PunishmentType.Mute, DateTime.UtcNow.AddMinutes(time)));
+					response += String.Format("The mute will last for `{0}` minute{1}.", time, Actions.GetPlural(time));
+				}
+				await Actions.MakeAndDeleteSecondaryMessage(Context, response);
 			}
 			else
 			{
-				//Unmute the user
 				await user.ModifyAsync(x => x.Mute = false);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unmuted `{0}`.", user.FormatUser()));
 			}
@@ -126,18 +128,34 @@ namespace Advobot
 
 		[Command("deafen")]
 		[Alias("dfn", "d")]
-		[Usage("[@User] <Time:Time in Minutes>")]
-		[Summary("If the user is not voice muted, this will mute them. If they are voice muted, this will unmute them. Time is in minutes, and if no time is given then the mute will not expire.")]
+		[Usage("[User] <Time:Number>")]
+		[Summary("Prevents a user from hearing. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirement(1U << (int)GuildPermission.DeafenMembers)]
 		[DefaultEnabled(true)]
 		public async Task Deafen([Remainder] string input)
 		{
 			//Split the input
-			var inputArray = input.Split(' ');
-			var userStr = inputArray[0];
-			var timeStr = Actions.GetVariable(inputArray, "time");
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2), new[] { "time" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var userStr = returnedArgs.Arguments[0];
+			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
-			//Test if valid user mention
+			//Get the time
+			var time = 0;
+			if (!String.IsNullOrWhiteSpace(timeStr))
+			{
+				if (!int.TryParse(timeStr, out time))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time."));
+					return;
+				}
+			}
+
+			//Get the user
 			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
 			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
@@ -147,30 +165,19 @@ namespace Advobot
 			var user = returnedUser.Object;
 
 			//See if it should deafen or undeafen
-			if (!user.IsDeafened)
+			if (!user.IsMuted)
 			{
-				//Check if time was supplied
-				if (inputArray.Length == 2)
-				{
-					if (int.TryParse(timeStr, out int time))
-					{
-						Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, PunishmentType.Deafen, DateTime.UtcNow.AddMinutes(time)));
-						timeStr = String.Format(" for {0} minutes", time);
-					}
-					else
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
-						return;
-					}
-				}
-
-				//Deafen them
 				await user.ModifyAsync(x => x.Deaf = true);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deafened `{0}`{1}.", user.FormatUser(), timeStr));
+				var response = String.Format("Successfully deafened `{0}`.", user.FormatUser());
+				if (time != 0)
+				{
+					Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, PunishmentType.Deafen, DateTime.UtcNow.AddMinutes(time)));
+					response += String.Format("The deafen will last for `{0}` minute{1}.", time, Actions.GetPlural(time));
+				}
+				await Actions.MakeAndDeleteSecondaryMessage(Context, response);
 			}
 			else
 			{
-				//Undeafen them
 				await user.ModifyAsync(x => x.Deaf = false);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully undeafened `{0}`.", user.FormatUser()));
 			}
@@ -178,21 +185,20 @@ namespace Advobot
 
 		[Command("moveuser")]
 		[Alias("mu")]
-		[Usage("[@User] [Channel Name]")]
+		[Usage("[User] [Channel]")]
 		[Summary("Moves the user to the given voice channel.")]
 		[PermissionRequirement(1U << (int)GuildPermission.MoveMembers)]
 		[DefaultEnabled(true)]
 		public async Task MoveUser([Remainder] string input)
 		{
-			//Input and splitting
-			var inputArray = input.Split(new[] { ' ' }, 2);
-			if (inputArray.Length != 2)
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
-			var userStr = inputArray[0];
-			var chanStr = inputArray[1];
+			var userStr = returnedArgs.Arguments[0];
+			var chanStr = returnedArgs.Arguments[1];
 
 			//Check if valid user and that they're in a voice channel
 			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Moved_From_Channel }, true, userStr);
@@ -202,7 +208,9 @@ namespace Advobot
 				return;
 			}
 			var user = returnedUser.Object;
-			if (user.VoiceChannel == null)
+
+			var userChan = user.VoiceChannel;
+			if (userChan == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is not in a voice channel."));
 				return;
@@ -218,7 +226,6 @@ namespace Advobot
 			var channel = returnedChannel.Object as IVoiceChannel;
 
 			//See if trying to put user in the exact same channel
-			var userChan = user.VoiceChannel;
 			if (userChan == channel)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is already in that channel"));
@@ -226,28 +233,28 @@ namespace Advobot
 			}
 
 			await user.ModifyAsync(x => x.Channel = Optional.Create(channel));
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully moved `{0}#{1}` to `{2}`.", user.Username, user.Discriminator, channel.Name));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully moved `{0}` to `{1}`.", user.FormatUser(), channel.Name));
 		}
 
 		[Command("moveusers")]
 		[Alias("mus")]
-		[Usage("[\"Channel\"] [\"Channel\"]")]
+		[Usage("[Channel] [Channel]")]
 		[Summary("Moves all users from one channel to another.")]
 		[PermissionRequirement(1U << (int)GuildPermission.MoveMembers)]
 		[DefaultEnabled(true)]
 		public async Task MoveUsers([Remainder] string input)
 		{
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
-			if (inputArray.Length != 2)
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
-			var inputStr = inputArray[0];
-			var outputStr = inputArray[1];
+			var inputChanStr = returnedArgs.Arguments[0];
+			var outputChanStr = returnedArgs.Arguments[1];
 
-			//Check if valid channel that the user can edit
-			var returnedInputChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Reordered, ChannelCheck.Is_Voice }, false, inputStr);
+			//Get input channel
+			var returnedInputChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Move_Users, ChannelCheck.Is_Voice }, false, inputChanStr);
 			if (returnedInputChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedInputChannel);
@@ -255,8 +262,8 @@ namespace Advobot
 			}
 			var inputChannel = returnedInputChannel.Object as IVoiceChannel;
 
-			//Check if valid channel that the user can edit
-			var returnedOutputChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Reordered, ChannelCheck.Is_Voice }, false, outputStr);
+			//Get output channel
+			var returnedOutputChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Move_Users, ChannelCheck.Is_Voice }, false, outputChanStr);
 			if (returnedOutputChannel.Reason != FailureReason.Not_Failure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedOutputChannel);
@@ -264,29 +271,48 @@ namespace Advobot
 			}
 			var outputChannel = returnedOutputChannel.Object as IVoiceChannel;
 
-			//Move the users
+			//Grab all of the users in the input channel
 			var users = (await inputChannel.GetUsersAsync().ToList()).SelectMany(x => x).ToList();
+
+			//Have the bot stay in the typing state and have a message that can be updated
+			//TODO: Make sure this doesn't freeze the bot
+			var msg = await Actions.SendChannelMessage(Context, String.Format("Attempting to move `{0}` user{1}.", users.Count, Actions.GetPlural(users.Count))) as IUserMessage;
+			var typing = Context.Channel.EnterTypingState();
+
+			//Move them all
+			var count = 0;
 			await users.ForEachAsync(async x =>
 			{
+				++count;
+				if (count % 10 == 0)
+				{
+					await msg.ModifyAsync(y => y.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((users.Count - count) * 1.2)));
+				}
+
 				await x.ModifyAsync(y => y.Channel = Optional.Create(outputChannel));
 			});
 
 			//Send a success message
-			var text = String.Format("Successfully moved `{0}` from `{1}` to `{2}`.", users.Count, inputChannel.FormatChannel(), outputChannel.FormatChannel());
-			await Actions.MakeAndDeleteSecondaryMessage(Context, text);
+			var desc = String.Format("Successfully moved `{0}` user{1} from `{2}` to `{3}`.", users.Count, Actions.GetPlural(users.Count), inputChannel.FormatChannel(), outputChannel.FormatChannel());
+			await Actions.MakeAndDeleteSecondaryMessage(Context, desc);
 		}
 
 		[Command("nickname")]
 		[Alias("nn")]
-		[Usage("[@User] [\"Nickname:New Nickname|Remove\"]")]
+		[Usage("[User] [New Nickname|Remove]")]
 		[Summary("Gives the user a nickname.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageNicknames)]
 		[DefaultEnabled(true)]
 		public async Task Nickname([Remainder] string input)
 		{
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
-			var nickStr = Actions.GetVariable(inputArray, "nickname");
-			var mentionedUsers = Context.Message.MentionedUserIds;
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var userStr = returnedArgs.Arguments[0];
+			var nickStr = returnedArgs.Arguments[1];
 
 			if (String.IsNullOrWhiteSpace(nickStr))
 			{
@@ -308,25 +334,23 @@ namespace Advobot
 				return;
 			}
 
-			//Get out the editable and uneditable users
-			var evaluatedUsers = Actions.GetValidEditUsers(Context);
-			if (!evaluatedUsers.HasValue)
+			//Get the user
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, userStr);
+			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
 			}
-			var success = evaluatedUsers.Value.Success;
-			var failure = evaluatedUsers.Value.Failure;
+			var user = returnedUser.Object;
 
-			//Edit the nicknames of the users who can be edited then send the response message
-			await success.ForEachAsync(async x => await Actions.ChangeNickname(x, nickStr));
+			await Actions.ChangeNickname(user, nickStr);
 			if (nickStr != null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "user", "nicknamed", "nickname"));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave `{0}` the nickname `{1}`.", user.FormatUser(), nickStr));
 			}
 			else
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "user", "removed the nickname from", "remove the nickname from"));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the nickname on `{0}`.", user.FormatUser()));
 			}
 		}
 
@@ -339,39 +363,47 @@ namespace Advobot
 		public async Task NicknameAllWithName([Remainder] string input)
 		{
 			//Split and get variables
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
-			if (inputArray.Length < 2)
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3, 3));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
-			var find = inputArray[0];
-			var with = inputArray[1];
-			if (String.IsNullOrWhiteSpace(find) || String.IsNullOrWhiteSpace(with))
+			var findStr = returnedArgs.Arguments[0];
+			var replaceStr = returnedArgs.Arguments[1];
+
+			//Make sure both exist
+			if (String.IsNullOrWhiteSpace(findStr))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The strings to find or replace cannot be empty or null."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The string to find cannot be empty or null."));
+				return;
+			}
+			else if (String.IsNullOrWhiteSpace(replaceStr))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The string to replace with cannot be empty or null."));
+				return;
 			}
 
-			//Test lengths
-			if (find.Length > Constants.MAX_NICKNAME_LENGTH)
+			//Length
+			if (findStr.Length > Constants.MAX_NICKNAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to replace can only be up to `{0}` characters long.", Constants.MAX_NICKNAME_LENGTH)));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to find can only be up to `{0}` characters long.", Constants.MAX_NICKNAME_LENGTH)));
 				return;
 			}
-			if (with.Length < Constants.MIN_NICKNAME_LENGTH)
+			else if (replaceStr.Length < Constants.MIN_NICKNAME_LENGTH)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to replace with must be at least `{0}` characters long.", Constants.MIN_NICKNAME_LENGTH)));
 				return;
 			}
-			else if (with.Length > Constants.MAX_NICKNAME_LENGTH)
+			else if (replaceStr.Length > Constants.MAX_NICKNAME_LENGTH)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to replace with can only be up to `{0}` characters long.", Constants.MAX_NICKNAME_LENGTH)));
 				return;
 			}
 
 			//Get the users 
-			var len = Actions.GetMaxNumOfUsersToGather(Context, inputArray);
-			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => Actions.CaseInsIndexOf(x.Username, find) || Actions.CaseInsIndexOf(x?.Nickname, find))).GetUpToXElement(len);
+			var len = Actions.GetMaxNumOfUsersToGather(Context, returnedArgs.Arguments);
+			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => Actions.CaseInsIndexOf(x.Username, findStr) || Actions.CaseInsIndexOf(x?.Nickname, findStr))).GetUpToXElement(len);
 
 			//User count checking and stuff
 			var userCount = users.Count;
@@ -397,11 +429,11 @@ namespace Advobot
 
 				if (x.Nickname != null)
 				{
-					await Actions.ChangeNickname(x, Actions.CaseInsReplace(x.Nickname, find, with));
+					await Actions.ChangeNickname(x, Actions.CaseInsReplace(x.Nickname, findStr, replaceStr));
 				}
 				else
 				{
-					await Actions.ChangeNickname(x, Actions.CaseInsReplace(x.Username, find, with));
+					await Actions.ChangeNickname(x, Actions.CaseInsReplace(x.Username, findStr, replaceStr));
 				}
 			});
 
@@ -413,17 +445,22 @@ namespace Advobot
 
 		[Command("replacenonascii")]
 		[Alias("rna")]
-		[Usage("<\"Replacement:String to Replace With\"> <ANSI:True|False> <" + Constants.BYPASS_STRING + ">")]
-		[Summary("Any user who has a name and nickname with non regular ascii characters will have their username changed to the given string. No replace string just lists the users instead."
+		[Usage("[\"String to Replace With\"] <ANSI:True|False> <" + Constants.BYPASS_STRING + ">")]
+		[Summary("Any user who has a name and nickname with non regular ascii characters will have their username changed to the given string. No input lists all the users."
 			+ "Max is 100 users per use unless the bypass string is said.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageNicknames)]
 		[DefaultEnabled(true)]
 		public async Task ReplaceNonAscii([Optional, Remainder] string input)
 		{
 			//Splitting input
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
-			var replaceStr = Actions.GetVariable(inputArray, "replacement");
-			var ansiStr = Actions.GetVariable(inputArray, "ansi");
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 3, 3), new[] { "ansi" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var replaceStr = returnedArgs.Arguments[0];
+			var ansiStr = returnedArgs.GetSpecifiedArg("ansi");
 
 			//Getting the upper limit for the Unicode characters
 			var upperLimit = 127;
@@ -454,14 +491,14 @@ namespace Advobot
 				var count = 1;
 				var length = users.Count.ToString().Length;
 				var desc = String.Join("\n", users.Select(x => String.Format("`{0}.` `{1}`", count++.ToString().PadLeft(length, '0'), x.FormatUser())));
-				var embed = Actions.MakeNewEmbed("Invalid Name Users", desc);
+				var embed = Actions.MakeNewEmbed("Non ASCII Names", desc);
 				await Actions.SendEmbedMessage(Context.Channel, embed);
 				return;
 			}
 			else
 			{
-				var validUsers = users.GetUpToXElement(Actions.GetMaxNumOfUsersToGather(Context, inputArray));
-				await Actions.RenicknameALotOfPeople(Context, validUsers, replaceStr);
+				var validUsers = users.GetUpToXElement(Actions.GetMaxNumOfUsersToGather(Context, returnedArgs.Arguments));
+				Actions.RenicknameALotOfPeople(Context, validUsers, replaceStr).Forget();
 			}
 		}
 
@@ -474,95 +511,107 @@ namespace Advobot
 		public async Task RemoveAllNickNames([Optional, Remainder] string input)
 		{
 			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => x.Nickname != null)).GetUpToXElement(Actions.GetMaxNumOfUsersToGather(Context, new[] { input }));
-			await Actions.RenicknameALotOfPeople(Context, users, null);
+			Actions.RenicknameALotOfPeople(Context, users, null).Forget();
 		}
 
 		[Command("prunemembers")]
 		[Alias("pmems")]
-		[Usage("[1|7|30] <Real>")]
-		[Summary("Removes users who have no roles and have not been seen in the past given amount of days. Real means an actual prune, otherwise this returns the number of users that would have been pruned.")]
+		[Usage("[1|7|30] [True|False]")]
+		[Summary("Removes users who have no roles and have not been seen in the past given amount of days. True means an actual prune, otherwise this returns the number of users that would have been pruned.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
 		public async Task PruneMembers([Remainder] string input)
 		{
-			//Split into the ints and 'bool'
-			var inputArray = input.Split(new[] { ' ' }, 2);
-			int[] validDays = { 1, 7, 30 };
-
-			//Get the int
-			if (!int.TryParse(inputArray[0], out int amountOfDays))
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Not a number."));
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
-			else if (!validDays.Contains(amountOfDays))
+			var dayStr = returnedArgs.Arguments[0];
+			var simStr = returnedArgs.Arguments[1];
+
+			if (String.IsNullOrWhiteSpace(dayStr))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Not a valid number of days."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Days has to be input."));
+				return;
+			}
+			if (!int.TryParse(dayStr, out int amountOfDays))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for days is not a number."));
+				return;
+			}
+			else if (!new[] { 1, 7, 30 }.Contains(amountOfDays))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for days is not a valid number."));
 				return;
 			}
 
-			//If only one argument and it's an int then it's a simulation
-			if (inputArray.Length != 2)
+			if (String.IsNullOrWhiteSpace(simStr))
 			{
-				var amount = await Context.Guild.PruneUsersAsync(amountOfDays, true);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members would be pruned with a prune period of `{1}` days.", amount, amountOfDays));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The bool for simulate has to be input."));
+				return;
 			}
-			//Otherwise test if it's the real deal
-			else if (Actions.CaseInsEquals(inputArray[1], "real"))
+			if (!bool.TryParse(simStr, out bool simulate))
 			{
-				var amount = await Context.Guild.PruneUsersAsync(amountOfDays);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members have been pruned with a prune period of `{1}` days.", amount, amountOfDays));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for simulate is not a bool."));
+				return;
+			}
+
+			var amount = await Context.Guild.PruneUsersAsync(amountOfDays, simulate);
+			if (simulate)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members would have been pruned with a prune period of `{1}` days.", amount, amountOfDays));
 			}
 			else
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You input a valid number, but put some gibberish at the end."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members have been pruned with a prune period of `{1}` days.", amount, amountOfDays));
 			}
 		}
 
 		[Command("softban")]
 		[Alias("sb")]
-		[Usage("[@User]")]
+		[Usage("[User]")]
 		[Summary("Bans then unbans a user from the guild. Removes all recent messages from them.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
 		[DefaultEnabled(true)]
 		public async Task SoftBan([Remainder] string input)
 		{
-			//Get out the editable and uneditable users
-			var evaluatedUsers = Actions.GetValidEditUsers(Context);
-			if (!evaluatedUsers.HasValue)
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, input);
+			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
 			}
-			var success = evaluatedUsers.Value.Success;
-			var failure = evaluatedUsers.Value.Failure;
+			var user = returnedUser.Object;
 
-			//Softban the users and send a response message
-			await success.ForEachAsync(async x =>
-			{
-				await Context.Guild.AddBanAsync(x, 3);
-				await Context.Guild.RemoveBanAsync(x);
-			});
-			await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "user", "softbanned", "softban"));
+			await Context.Guild.AddBanAsync(user, 1);
+			await Context.Guild.RemoveBanAsync(user);
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully softbanned `{0}`.", user.FormatUser()));
 		}
 
 		[Command("ban")]
 		[Alias("b")]
-		[Usage("[@User] <Days:int> <Time:int>")]
-		[Summary("Bans the user or users from the guild. Days specifies how many days worth of messages to delete. Time specifies how long and is in minutes. Mentions must be used.")]
+		[Usage("[User] <Days:int> <Time:int>")]
+		[Summary("Bans the user from the guild. Days specifies how many days worth of messages to delete. Time specifies how long and is in minutes. Mentions must be used.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
 		[DefaultEnabled(true)]
 		public async Task Ban([Remainder] string input)
 		{
-			var inputArray = input.Split(' ');
-			var mentionedUsers = Context.Message.MentionedUserIds;
-			var daysStr = Actions.GetVariable(inputArray, "days");
-			var timeStr = Actions.GetVariable(inputArray, "time");
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3, 3), new[] { "days", "time" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var userStr = returnedArgs.Arguments[0];
+			var daysStr = returnedArgs.GetSpecifiedArg("days");
+			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
 			var pruneDays = 0;
 			if (!String.IsNullOrWhiteSpace(daysStr))
 			{
-				if (!Int32.TryParse(daysStr, out pruneDays))
+				if (!int.TryParse(daysStr, out pruneDays))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for days was not a number."));
 					return;
@@ -571,41 +620,37 @@ namespace Advobot
 			var timeForBan = 0;
 			if (!String.IsNullOrWhiteSpace(timeStr))
 			{
-				if (!Int32.TryParse(timeStr, out timeForBan))
+				if (!int.TryParse(timeStr, out timeForBan))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for time was not a number."));
 					return;
 				}
 			}
 
-			//Get out the editable and uneditable users
-			var evaluatedUsers = Actions.GetValidEditUsers(Context);
-			if (!evaluatedUsers.HasValue)
+			//Get the user
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, userStr);
+			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
 			}
-			var success = evaluatedUsers.Value.Success;
-			var failure = evaluatedUsers.Value.Failure;
-
-			//Ban the users
-			await success.ForEachAsync(async x =>
+			var user = returnedUser.Object;
+			
+			//Ban the user
+			await Context.Guild.AddBanAsync(user, pruneDays);
+			if (timeForBan != 0)
 			{
-				await Context.Guild.AddBanAsync(x, pruneDays);
-				if (timeForBan != 0)
-				{
-					Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, x.Id, PunishmentType.Ban, DateTime.UtcNow.AddMinutes(timeForBan)));
-				}
-			});
-
-			var response = Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "user", "banned", "ban");
-			if (success.Any() && pruneDays != 0)
-			{
-				response += String.Format("Also deleted `{0}` day{1} worth of messages for banned users. ", pruneDays, Actions.GetPlural(pruneDays));
+				Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, PunishmentType.Ban, DateTime.UtcNow.AddMinutes(timeForBan)));
 			}
-			if (success.Any() && timeForBan != 0)
+
+			var response = String.Format("Successfully banned `{0}`.", user.FormatUser());
+			if (pruneDays != 0)
 			{
-				response += String.Format("Banned users will be unbanned in `{0}` minute{1}. ", timeForBan, Actions.GetPlural(timeForBan));
+				response += String.Format("Also deleted `{0}` day{1} worth of messages. ", pruneDays, Actions.GetPlural(pruneDays));
+			}
+			if (timeForBan != 0)
+			{
+				response += String.Format("The user will be unbanned in `{0}` minute{1}. ", timeForBan, Actions.GetPlural(timeForBan));
 			}
 			await Actions.SendChannelMessage(Context, response);
 		}
@@ -618,11 +663,16 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Unban([Remainder] string input)
 		{
-			//Cut the user mention into the username and the discriminator
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
-			var username = Actions.GetVariable(inputArray, "username");
-			var discriminator = Actions.GetVariable(inputArray, "discriminator");
-			var userID = Actions.GetVariable(inputArray, "id");
+			//Split the args
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3, 3), new[] { "username", "discriminator", "id" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var username = returnedArgs.GetSpecifiedArg("username");
+			var discriminator = returnedArgs.GetSpecifiedArg("discriminator");
+			var userID = returnedArgs.GetSpecifiedArg("id");
 
 			IUser user = null;
 			var bans = (await Context.Guild.GetBansAsync()).ToList();
@@ -630,7 +680,7 @@ namespace Advobot
 			{
 				if (ulong.TryParse(input, out ulong inputUserID))
 				{
-					user = bans.FirstOrDefault(x => x.User.Id.Equals(inputUserID)).User;
+					user = bans.FirstOrDefault(x => x.User.Id == inputUserID).User;
 				}
 				else
 				{
@@ -656,10 +706,9 @@ namespace Advobot
 				}
 
 				//Return a message saying if there are multiple users
-				if (users.Count > 1)
+				if (users.Count == 0)
 				{
-					var msg = String.Join("`, `", users.Select(x => user.FormatUser()));
-					await Actions.SendChannelMessage(Context, String.Format("The following users have that name: `{0}`.", msg));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Could not find a user on the ban list matching the given criteria."));
 					return;
 				}
 				else if (users.Count == 1)
@@ -668,7 +717,8 @@ namespace Advobot
 				}
 				else
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Could not find a user on the ban list matching the given criteria."));
+					var msg = String.Join("`, `", users.Select(x => user.FormatUser()));
+					await Actions.SendChannelMessage(Context, String.Format("The following users have that name: `{0}`.", msg));
 					return;
 				}
 			}
@@ -684,25 +734,23 @@ namespace Advobot
 
 		[Command("kick")]
 		[Alias("k")]
-		[Usage("[@User]")]
-		[Summary("Kicks the user or users from the guild.")]
+		[Usage("[User]")]
+		[Summary("Kicks the user from the guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.KickMembers)]
 		[DefaultEnabled(true)]
 		public async Task Kick([Remainder] string input)
 		{
-			//Get out the editable and uneditable users
-			var evaluatedUsers = Actions.GetValidEditUsers(Context);
-			if (!evaluatedUsers.HasValue)
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, input);
+			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.USER_ERROR));
+				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
 			}
-			var success = evaluatedUsers.Value.Success;
-			var failure = evaluatedUsers.Value.Failure;
+			var user = returnedUser.Object;
 
 			//Kick the users and send a response message
-			await success.ForEachAsync(async x => await x.KickAsync());
-			await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "user", "kicked", "kick"));
+			await user.KickAsync();
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully kicked {0}.", user.FormatUser()));
 		}
 
 		[Command("currentbanlist")]
@@ -714,75 +762,58 @@ namespace Advobot
 		public async Task CurrentBanList()
 		{
 			var bans = (await Context.Guild.GetBansAsync()).ToList();
-			var count = 1;
-			var lengthForCount = bans.Count.ToString().Length;
-			var description = String.Join("\n", bans.Select(x =>
-			{
-				return String.Format("`{0}.` `{1}`", count++.ToString().PadLeft(lengthForCount, '0'), x.User.FormatUser());
-			}));
-
-			if (String.IsNullOrWhiteSpace(description))
+			if (!bans.Any())
 			{
 				await Actions.SendChannelMessage(Context, "This guild has no bans.");
+				return;
 			}
-			else
-			{
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bans", description));
-			}
+
+			var count = 1;
+			var lengthForCount = bans.Count.ToString().Length;
+			var description = String.Join("\n", bans.Select(x => String.Format("`{0}.` `{1}`", count++.ToString().PadLeft(lengthForCount, '0'), x.User.FormatUser())));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bans", description));
 		}
 
 		[Command("removemessages")]
 		[Alias("rm")]
 		[Usage("<@User> <#Channel> [Number of Messages]")]
-		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel. Administrators can delete more than 100 messages at a time.")]
+		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageMessages)]
 		[DefaultEnabled(true)]
 		public async Task RemoveMessages([Remainder] string input)
 		{
 			//Split the input
-			var inputArray = input.Split(' ');
-			if (inputArray.Length > 3)
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3, 3));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
 
-			//Get the user mention
+			//Get the user
 			IGuildUser user = null;
-			var mentionedUsers = Context.Message.MentionedUserIds;
-			if (mentionedUsers.Count == 1)
+			if (Context.Message.MentionedUserIds.Any())
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, mentionedUsers.First());
-				if (returnedChannel.Reason != FailureReason.Not_Failure)
+				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, null);
+				if (returnedUser.Reason != FailureReason.Not_Failure)
 				{
-					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
+					await Actions.HandleObjectGettingErrors(Context, returnedUser);
 					return;
 				}
-				user = returnedChannel.Object as IGuildUser;
-			}
-			else if (mentionedUsers.Count > 1)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("More than one user was input."));
-				return;
+				user = returnedUser.Object as IGuildUser;
 			}
 
-			//Get the channel mention
-			var channel = Context.Channel as ITextChannel;
-			var mentionedChannels = Context.Message.MentionedChannelIds;
-			if (mentionedChannels.Count == 1)
+			//Get the channel
+			ITextChannel channel = Context.Channel as ITextChannel;
+			if (Context.Message.MentionedChannelIds.Any())
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Delete_Messages }, mentionedChannels.First());
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Delete_Messages, ChannelCheck.Is_Text }, true, null);
 				if (returnedChannel.Reason != FailureReason.Not_Failure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 					return;
 				}
 				channel = returnedChannel.Object as ITextChannel;
-			}
-			else if (mentionedChannels.Count > 1)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("More than one channel was input."));
-				return;
 			}
 
 			//Check if the channel that's having messages attempted to be removed on is a log channel
@@ -805,16 +836,9 @@ namespace Advobot
 
 			//Checking for valid request count
 			var requestCount = -1;
-			if (inputArray.FirstOrDefault(x => int.TryParse(x, out requestCount)) == null || requestCount < 1)
+			if (returnedArgs.Arguments.FirstOrDefault(x => int.TryParse(x, out requestCount)) == null || requestCount < 1)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Incorrect input for number of messages to be removed."));
-				return;
-			}
-
-			//See if the user is trying to delete more than 100 messages at a time
-			if (requestCount > Constants.MESSAGES_TO_GATHER && !(Context.User as IGuildUser).GuildPermissions.Administrator)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You need administrator to remove more than 100 messages at a time."));
 				return;
 			}
 
@@ -824,64 +848,63 @@ namespace Advobot
 				++requestCount;
 			}
 
+			var response = String.Format("Successfully deleted `{0}` message{1}", requestCount, Actions.GetPlural(requestCount));
+			if (user != null)
+			{
+				response += String.Format(" from `{0}`", user.FormatUser());
+			}
+			if (channel != null)
+			{
+				response += String.Format(" on `{0}`", channel.FormatChannel());
+			}
+
 			await Actions.RemoveMessages(channel, user, requestCount);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` {1}{2}{3}.",
-				requestCount,
-				requestCount != 1 ? "messages" : "message",
-				user == null ? "" : String.Format(" from `{0}`", user.FormatUser()),
-				channel == null ? "" : String.Format(" on `{0}`", channel.FormatChannel())));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, response + ".");
 		}
 
 		[Command("slowmode")]
 		[Alias("sm")]
-		[Usage("<\"Roles:.../.../\"> <Messages:1 to 5> <Time:1 to 30> <Guild:Yes> | Off [Guild|Channel|All]")]
+		[Usage("<\"Roles:.../.../\"> <Messages:1 to 5> <Time:1 to 30> <Guild:Yes> | [Off] [Guild|Channel|All]")]
 		[Summary("The first argument is the roles that get ignored by slowmode, the second is the amount of messages, and the third is the time period. Default is: none, 1, 5." +
 			"Bots are unaffected by slowmode. Any users who are immune due to roles stay immune even if they lose said role until a new slowmode is started.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
 		public async Task SlowMode([Optional, Remainder] string input)
 		{
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
-			if (inputArray != null && inputArray.Length > 4)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
-			var roleStr = Actions.GetVariable(inputArray, "roles");
-			var msgStr = Actions.GetVariable(inputArray, "messages");
-			var timeStr = Actions.GetVariable(inputArray, "time");
-			var targetStr = Actions.GetVariable(inputArray, "guild");
-
-			//Get the guild info
 			var guildInfo = Variables.Guilds[Context.Guild.Id];
 
-			//Check if the input starts with 'off'
-			if (inputArray != null && Actions.CaseInsEquals(inputArray[0], "off"))
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4, 4), new[] { "roles", "messages", "time", "guild" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				if (inputArray.Length != 2)
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var roleStr = returnedArgs.GetSpecifiedArg("roles");
+			var msgStr = returnedArgs.GetSpecifiedArg("messages");
+			var timeStr = returnedArgs.GetSpecifiedArg("time");
+			var guildStr = returnedArgs.GetSpecifiedArg("guild");
+
+			if (Actions.CaseInsEquals(returnedArgs.Arguments[0], "off"))
+			{
+				var targStr = returnedArgs.Arguments[1];
+				if (returnedArgs.ArgCount != 2)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
 				}
-				else if (Actions.CaseInsEquals(inputArray[1], "guild"))
+				else if (Actions.CaseInsEquals(targStr, "guild"))
 				{
 					guildInfo.SetSlowmodeGuild(null);
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the guild.");
 				}
-				else if (Actions.CaseInsEquals(inputArray[1], "channel"))
+				else if (Actions.CaseInsEquals(targStr, "channel"))
 				{
-					//Remove the channel
 					guildInfo.SlowmodeChannels.RemoveAll(x => x.ChannelID == Context.Channel.Id);
-
-					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the channel.");
 				}
-				else if (Actions.CaseInsEquals(inputArray[1], "all"))
+				else if (Actions.CaseInsEquals(targStr, "all"))
 				{
-					//Remove the guild and every single channel on the guild
 					guildInfo.SetSlowmodeGuild(null);
 					guildInfo.ClearSMChannels();
-
-					//Send a success message
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed all slowmodes on the guild and its channels.");
 				}
 				else
@@ -892,21 +915,20 @@ namespace Advobot
 			}
 
 			//Check if the target is already in either dictionary
-			if (!String.IsNullOrWhiteSpace(targetStr))
+			var guild = !String.IsNullOrWhiteSpace(guildStr);
+			if (guild)
 			{
-				//Check the channel dictionary
-				if (guildInfo.SlowmodeChannels.Any(x => x.ChannelID == Context.Channel.Id))
+				if (guildInfo.SlowmodeGuild != null)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "Channel already is in slowmode.");
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "Guild already is in slowmode.");
 					return;
 				}
 			}
 			else
 			{
-				//Check the guild dicionary
-				if (guildInfo.SlowmodeGuild != null)
+				if (guildInfo.SlowmodeChannels.Any(x => x.ChannelID == Context.Channel.Id))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "Guild already is in slowmode.");
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "Channel already is in slowmode.");
 					return;
 				}
 			}
@@ -947,7 +969,6 @@ namespace Advobot
 				}
 			}
 
-
 			//Get the time limit
 			var timeLimit = 5;
 			if (!String.IsNullOrWhiteSpace(timeStr))
@@ -971,18 +992,18 @@ namespace Advobot
 			var slowmodeUsers = (await Context.Guild.GetUsersAsync()).Where(x => !x.RoleIds.Intersect(roleIDs).Any()).Select(x => new SlowmodeUser(x, msgsLimit, msgsLimit, timeLimit)).ToList();
 
 			//If targetString is null then take that as only the channel and not the guild
-			if (!String.IsNullOrWhiteSpace(targetStr))
+			if (guild)
 			{
-				guildInfo.SlowmodeChannels.Add(new SlowmodeChannel(Context.Channel.Id, slowmodeUsers));
+				guildInfo.SetSlowmodeGuild(new SlowmodeGuild(slowmodeUsers));
 			}
 			else
 			{
-				guildInfo.SetSlowmodeGuild(new SlowmodeGuild(slowmodeUsers));
+				guildInfo.SlowmodeChannels.Add(new SlowmodeChannel(Context.Channel.Id, slowmodeUsers));
 			}
 
 			//Send a success message
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled slowmode on `{0}` with a message limit of `{1}` and time interval of `{2}` seconds.{3}",
-				!String.IsNullOrWhiteSpace(targetStr) ? Context.Channel.FormatChannel() : Context.Guild.FormatGuild(),
+				guild ? Context.Guild.FormatGuild() : Context.Channel.FormatChannel(),
 				msgsLimit,
 				timeLimit,
 				roleNames.Any() ? String.Format("\nImmune roles: `{0}`.", String.Join("`, `", roleNames)) : ""));
@@ -991,35 +1012,39 @@ namespace Advobot
 		[Command("forallwithrole")]
 		[Alias("fawr")]
 		[Usage("[Give_Role|GR|Take_Role|TR|Give_Nickname|GNN|Take_Nickname|TNN] [\"Role\"] <\"Role\"|\"Nickname\"> <" + Constants.BYPASS_STRING + ">")]
-		[Summary("Only self hosted bots are allowed to go past 100 users per use. When used on a self bot, `" + Constants.BYPASS_STRING + "` removes the 100 users limit." +
-			"All actions but `Take_Nickame` require the output role/nickname.")]
+		[Summary("Max is 100 users per use unless the bypass string is said. All actions but `Take_Nickame` require the output role/nickname.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
 		public async Task ForAllWithRole([Remainder] string input)
 		{
-			//Argument checking
-			var inputArray = Actions.SplitByCharExceptInQuotes(input, ' ');
-			var action = inputArray[0];
-			if (!Enum.TryParse(action, true, out FAWRType actionEnum))
+			//Split arguments
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 4, 4));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var actionStr = returnedArgs.Arguments[0];
+			var inputStr = returnedArgs.Arguments[1];
+			var outputStr = returnedArgs.Arguments[2];
+
+			if (!Enum.TryParse(actionStr, true, out FAWRType action))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
-			actionEnum = Actions.ClarifyFAWRType(actionEnum);
-			if (actionEnum != FAWRType.Take_Nickname && inputArray.Length < 3)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
-			else if (actionEnum == FAWRType.Take_Nickname && inputArray.Length < 2)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-				return;
-			}
-			var inputStr = inputArray[1];
-			var outputStr = inputArray[2];
+			action = Actions.ClarifyFAWRType(action);
 
-			//Verifying the attempted command is valid
+			if (action != FAWRType.Take_Nickname)
+			{
+				if (returnedArgs.ArgCount < 3)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+					return;
+				}
+			}
+
+			//Input role
 			var returnedInputRole = Actions.GetRole(Context, new[] { RoleCheck.None }, false, inputStr);
 			if (returnedInputRole.Reason != FailureReason.Not_Failure)
 			{
@@ -1028,27 +1053,35 @@ namespace Advobot
 			}
 			var inputRole = returnedInputRole.Object;
 
-			if (actionEnum == FAWRType.Give_Role && Actions.CaseInsEquals(inputStr, outputStr))
+			switch (action)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Cannot give the same role that is being gathered."));
-				return;
-			}
-			else if (actionEnum == FAWRType.Give_Nickname)
-			{
-				if (outputStr.Length > Constants.MAX_NICKNAME_LENGTH)
+				case FAWRType.Give_Role:
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than `{0}` charaters.", Constants.MAX_NICKNAME_LENGTH)));
-					return;
+					if (Actions.CaseInsEquals(inputStr, outputStr))
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Cannot give the same role that is being gathered."));
+						return;
+					}
+					break;
 				}
-				else if (outputStr.Length < Constants.MIN_NICKNAME_LENGTH)
+				case FAWRType.Give_Nickname:
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MIN_NICKNAME_LENGTH)));
-					return;
+					if (outputStr.Length > Constants.MAX_NICKNAME_LENGTH)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than `{0}` charaters.", Constants.MAX_NICKNAME_LENGTH)));
+						return;
+					}
+					else if (outputStr.Length < Constants.MIN_NICKNAME_LENGTH)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MIN_NICKNAME_LENGTH)));
+						return;
+					}
+					break;
 				}
 			}
 
 			//Get the amount of users allowed
-			var len = Actions.GetMaxNumOfUsersToGather(Context, inputArray);
+			var len = Actions.GetMaxNumOfUsersToGather(Context, returnedArgs.Arguments);
 			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, (x => x.RoleIds.Contains(inputRole.Id)))).GetUpToXElement(len);
 			var userCount = users.Count;
 			if (userCount == 0)
@@ -1057,28 +1090,55 @@ namespace Advobot
 				return;
 			}
 
-			//Send a message detailing how many users are being changed and how long it will likely take
-			var time = (int)(userCount * 1.2);
-			var msg = await Actions.SendChannelMessage(Context, String.Format("Grabbed `{0}` user{1}. ETA on completion: `{2}` seconds.", userCount, Actions.GetPlural(userCount), time)) as IUserMessage;
-			var typing = Context.Channel.EnterTypingState();
-
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			var count = 0;
-			var t = Task.Run(async () =>
+			//Nickname stuff
+			switch (action)
 			{
-				switch (actionEnum)
+				case FAWRType.Give_Nickname:
+				{
+					Actions.RenicknameALotOfPeople(Context, users, outputStr).Forget();
+					return;
+				}
+				case FAWRType.Take_Nickname:
+				{
+					Actions.RenicknameALotOfPeople(Context, users, null).Forget();
+					return;
+				}
+			}
+
+			//Output role
+			var returnedOutputRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, false, outputStr);
+			if (returnedOutputRole.Reason != FailureReason.Not_Failure)
+			{
+				await Actions.HandleObjectGettingErrors(Context, returnedOutputRole);
+				return;
+			}
+			var outputRole = returnedOutputRole.Object;
+
+			//Make sure the users trying to give role to don't have it and trying to take from do have it.
+			switch (action)
+			{
+				case FAWRType.Give_Role:
+				{
+					users = users.Where(x => !x.RoleIds.Contains(outputRole.Id)).ToList();
+					break;
+				}
+				case FAWRType.Take_Role:
+				{
+					users = users.Where(x => x.RoleIds.Contains(outputRole.Id)).ToList();
+					break;
+				}
+			}
+
+			var msg = await Actions.SendChannelMessage(Context, String.Format("Attempted to edit `{0}` user{1}.", userCount, Actions.GetPlural(userCount))) as IUserMessage;
+			var typing = Context.Channel.EnterTypingState();
+			var count = 0;
+
+			Task.Run(async () =>
+			{
+				switch (action)
 				{
 					case FAWRType.Give_Role:
 					{
-						var returnedOutputRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, false, outputStr);
-						if (returnedOutputRole.Reason != FailureReason.Not_Failure)
-						{
-							await Actions.HandleObjectGettingErrors(Context, returnedOutputRole);
-							return;
-						}
-						var outputRole = returnedOutputRole.Object;
-
-						guildInfo.FAWRRoles.Add(outputRole);
 						foreach (var user in users)
 						{
 							++count;
@@ -1094,22 +1154,12 @@ namespace Advobot
 
 							await Actions.GiveRole(user, outputRole);
 						}
-						guildInfo.FAWRRoles.Remove(outputRole);
 
-						await Actions.SendChannelMessage(Context, String.Format("Successfully gave the role `{0}` to `{1}` users.", outputRole.Name, count));
+						await Actions.SendChannelMessage(Context, String.Format("Successfully gave the role `{0}` to `{1}` users.", outputRole.FormatRole(), count));
 						break;
 					}
 					case FAWRType.Take_Role:
 					{
-						var returnedOutputRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, false, outputStr);
-						if (returnedOutputRole.Reason != FailureReason.Not_Failure)
-						{
-							await Actions.HandleObjectGettingErrors(Context, returnedOutputRole);
-							return;
-						}
-						var outputRole = returnedOutputRole.Object;
-
-						guildInfo.FAWRRoles.Add(outputRole);
 						foreach (var user in users)
 						{
 							++count;
@@ -1125,52 +1175,14 @@ namespace Advobot
 
 							await Actions.TakeRole(user, outputRole);
 						}
-						guildInfo.FAWRRoles.Remove(outputRole);
 
-						await Actions.SendChannelMessage(Context, String.Format("Successfully took the role `{0}` from `{1}` users.", outputRole.Name, count));
-						break;
-					}
-					case FAWRType.Give_Nickname:
-					{
-						guildInfo.FAWRNicknames.Add(outputStr);
-						foreach (var user in users)
-						{
-							++count;
-							if (count % 10 == 0)
-							{
-								await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
-							}
-
-							await Actions.ChangeNickname(user, outputStr);
-						}
-						guildInfo.FAWRNicknames.Remove(outputStr);
-
-						await Actions.SendChannelMessage(Context, String.Format("Successfully gave the nickname `{0}` to `{1}` users.", outputStr, count));
-						break;
-					}
-					case FAWRType.Take_Nickname:
-					{
-						guildInfo.FAWRNicknames.Add(Constants.NO_NN);
-						foreach (var user in users)
-						{
-							++count;
-							if (count % 10 == 0)
-							{
-								await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
-							}
-
-							await Actions.ChangeNickname(user, null);
-						}
-						guildInfo.FAWRNicknames.Remove(Constants.NO_NN);
-
-						await Actions.SendChannelMessage(Context, String.Format("Successfully removed the nicknames of `{1}` users.", count));
+						await Actions.SendChannelMessage(Context, String.Format("Successfully took the role `{0}` from `{1}` users.", outputRole.FormatRole(), count));
 						break;
 					}
 				}
-
 				typing.Dispose();
 				await msg.DeleteAsync();
-			});
+			}).Forget();
 		}
 	}
 }

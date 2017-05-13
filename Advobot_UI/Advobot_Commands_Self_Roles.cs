@@ -43,9 +43,15 @@ namespace Advobot
 			}
 
 			//Break the input into pieces
-			var inputArray = input.Split(new[] { ' ' }, 2);
-			var actionStr = inputArray[0];
-			var roleStr = inputArray[1];
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3, 3), new[] { "group" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var actionStr = returnedArgs.Arguments[0];
+			var roleStr = returnedArgs.Arguments[1];
+			var groupStr = returnedArgs.GetSpecifiedArg("group");
 
 			//Check which action it is
 			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Create, ActionType.Add, ActionType.Remove });
@@ -74,8 +80,11 @@ namespace Advobot
 				}
 			}
 
+			var groupNumber = await Actions.GetIfGroupIsValid(Context, groupStr);
+			if (groupNumber == -1)
+				return;
+
 			//Necessary to know what group to target
-			int groupNumber = 0;
 			var successStr = new List<string>();
 			var failureStr = new List<string>();
 			var deletedStr = new List<string>();
@@ -85,28 +94,8 @@ namespace Advobot
 				case ActionType.Add:
 				case ActionType.Remove:
 				{
-					//Get the position of the last space
-					int lastSpace = roleStr.LastIndexOf(' ');
-
-					//Make sure valid last space
-					if (lastSpace < 1)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid group supplied."));
-						return;
-					}
-
-					//Make the group string everything after the last space
-					var groupString = roleStr.Substring(lastSpace).Trim();
-					//Make the role string everything before the last space
-					roleStr = roleStr.Substring(0, lastSpace).Trim();
-
-					groupNumber = await Actions.GetIfGroupIsValid(Context, Actions.GetVariable(groupString, "group"));
-					if (groupNumber == -1)
-						return;
-
-					//Check if there are any groups already with that number
-					var guildGroups = guildInfo.SelfAssignableGroups;
 					//If create, do not allow a new one made with the same number
+					var guildGroups = guildInfo.SelfAssignableGroups;
 					if (action == ActionType.Create)
 					{
 						if (guildGroups.Any(x => x.Group == groupNumber))
@@ -168,10 +157,6 @@ namespace Advobot
 				}
 				case ActionType.Delete:
 				{
-                    groupNumber = await Actions.GetIfGroupIsValid(Context, Actions.GetVariable(inputArray[1], "group"));
-					if (groupNumber == -1)
-						return;
-
 					//Get the groups
 					var guildGroups = guildInfo.SelfAssignableGroups;
 					//Check if any groups have that position
