@@ -52,7 +52,7 @@ namespace Advobot
 			{
 				var text = String.Join("\n", Constants.VALID_REGION_IDS);
 				//Check whether to show the VIP regions
-				if (Actions.CaseInsContains(Context.Guild.Features.ToList(), Constants.VIP_REGIONS))
+				if (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS))
 				{
 					text += "\n" + String.Join("\n", Constants.VIP_REGIONIDS);
 				}
@@ -62,7 +62,7 @@ namespace Advobot
 			{
 				await Actions.SendChannelMessage(Context, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
 			}
-			else if (Actions.CaseInsContains(Constants.VALID_REGION_IDS, input))
+			else if (Constants.VALID_REGION_IDS.CaseInsContains(input))
 			{
 				//Capture the previous region
 				var bRegion = Context.Guild.VoiceRegionId;
@@ -71,10 +71,10 @@ namespace Advobot
 				await Context.Guild.ModifyAsync(x => x.RegionId = input);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", bRegion, input));
 			}
-			else if (Actions.CaseInsContains(Constants.VIP_REGIONIDS, input))
+			else if (Constants.VIP_REGIONIDS.CaseInsContains(input))
 			{
 				//Check if the guild can access vip regions
-				if (Actions.CaseInsContains(Context.Guild.Features.ToList(), Constants.VIP_REGIONS))
+				if (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS))
 				{
 					//Capture the previous region
 					var bRegion = Context.Guild.VoiceRegionId;
@@ -197,7 +197,7 @@ namespace Advobot
 		[Command("guildicon")]
 		[Alias("gdi")]
 		[Usage("[Attached Image|Embedded Image|Remove]")]
-		[Summary("Changes the guild icon to the given image. Must be less than 2.5MB.")]
+		[Summary("Changes the guild's icon to the given image. Typing `" + Constants.BOT_PREFIX + "gdi remove` will remove the icon. The image must be smaller than 2.5MB.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
 		public async Task ChangeGuildIcon([Optional] string input)

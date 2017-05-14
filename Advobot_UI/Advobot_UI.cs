@@ -58,30 +58,29 @@ namespace Advobot
 			IsDocumentEnabled = true,
 			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
 			Background = Brushes.White,
-		};		
+		};
 		#endregion
 
 		#region Menu
-		private const string mHelpSynt = "Command Syntax:\n\t[] means required\n\t<> means optional\n\t| means or";
+		private static readonly string mCmdsCmds = "Commands:".PadRight(Constants.PAD_RIGHT) + "Aliases:\n" + UICommandNames.FormatStringForUse();
+		private const string mHelpSynt = "\n\nCommand Syntax:\n\t[] means required\n\t<> means optional\n\t| means or";
 		private const string mHelpInf1 = "\n\nLatency:\n\tTime it takes for a command to reach the bot.\nMemory:\n\tAmount of RAM the program is using.\n\t(This is wrong most of the time.)";
 		private const string mHelpInf2 = "\nThreads:\n\tWhere all the actions in the bot happen.\nShards:\n\tHold all the guilds a bot has on its client.\n\tThere is a limit of 2500 guilds per shard.";
 		private const string mHelpVers = "\n\nAPI Wrapper Version: " + Constants.API_VERSION + "\nBot Version: " + Constants.BOT_VERSION + "\nGitHub Repository: ";
 		private const string mHelpHelp = "\n\nNeed additional help? Join the Discord server: ";
-		private static readonly string mCmdsCmds = "Commands:".PadRight(Constants.PAD_RIGHT) + "Aliases:\n" + UICommandNames.FormatStringForUse();
-		private static Inline mHelpFirstRun = new Run(mHelpSynt + mHelpInf1 + mHelpInf2 + mHelpVers);
+		private static Inline mHelpFirstRun = new Run(mCmdsCmds + mHelpSynt + mHelpInf1 + mHelpInf2 + mHelpVers);
 		private static Inline mHelpFirstHyperlink = UIMakeElement.MakeHyperlink(Constants.REPO, "Advobot");
 		private static Inline mHelpSecondRun = new Run(mHelpHelp);
 		private static Inline mHelpSecondHyperlink = UIMakeElement.MakeHyperlink(Constants.DISCORD_INV, "Here");
-		private static Inline mCmdsFirstRun = new Run(mCmdsCmds);
-		private static Inline mInfoFirstRun = new Run(Actions.FormatLoggedThings());
+		private static Inline mInfoFirstRun = new Run(Actions.FormatLoggedThings(true));
 		private static TreeView mFileTreeView = new TreeView();
 		private static Paragraph mFirstParagraph = new Paragraph(mHelpFirstRun);
-		private static Paragraph mSecondParagraph = new Paragraph(mCmdsFirstRun);
+		private static Paragraph mSecondParagraph = new Paragraph();
 		private static Paragraph mThirdParagraph = new Paragraph(mInfoFirstRun);
 		private static Paragraph mFourthParagraph = new Paragraph();
 		private static RichTextBox mMenuBox = new RichTextBox { IsReadOnly = true, IsDocumentEnabled = true, Visibility = Visibility.Collapsed, Background = Brushes.White, };
 		private const string mFirstButtonString = "Help";
-		private const string mSecondButtonString = "Commands";
+		private const string mSecondButtonString = "Settings";
 		private const string mThirdButtonString = "Info";
 		private const string mFourthButtonString = "Files";
 		private static string mLastButtonClicked;
@@ -206,9 +205,7 @@ namespace Advobot
 		}
 		private void UpdateSystemInformation()
 		{
-			//Create the timer
-			var timer = new DispatcherTimer();
-			//Make the timer's action
+			var timer = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 500) };
 			timer.Tick += (sender, e) =>
 			{
 				var client = Variables.Client;
@@ -218,11 +215,8 @@ namespace Advobot
 				mShards.Text = String.Format("Shards: {0}", client.GetShards().Count);
 				mPrefix.Text = String.Format("Prefix: {0}", Variables.BotInfo.Prefix);
 				mThirdParagraph.Inlines.Clear();
-				mThirdParagraph.Inlines.Add(new Run(Actions.FormatLoggedThings() + "\n\nCharacter Count: ~540,000\nLine Count: ~15,500"));
+				mThirdParagraph.Inlines.Add(new Run(Actions.FormatLoggedThings(true) + "\n\nCharacter Count: ~540,000\nLine Count: ~15,500"));
 			};
-			//Make the timer update every so often
-			timer.Interval = new TimeSpan(0, 0, 0, 0, 500);
-			//Start the timer
 			timer.Start();
 		}
 
@@ -363,7 +357,7 @@ namespace Advobot
 			mEditBox.Tag = fileLocation;
 			mEditLayout.Visibility = Visibility.Visible;
 		}
-		public static void CloseEditScreen(object sender, RoutedEventArgs e)
+		public void CloseEditScreen(object sender, RoutedEventArgs e)
 		{
 			var result = MessageBox.Show("Are you sure you want to close the edit window?", Variables.BotName, MessageBoxButton.OKCancel);
 
@@ -376,7 +370,7 @@ namespace Advobot
 				}
 			}
 		}
-		public static void SaveEditScreen(object sender, RoutedEventArgs e)
+		public void SaveEditScreen(object sender, RoutedEventArgs e)
 		{
 			var fileLocation = mEditBox.Tag.ToString();
 			if (String.IsNullOrWhiteSpace(fileLocation) || !File.Exists(fileLocation))
@@ -395,7 +389,7 @@ namespace Advobot
 					}
 					catch (Exception exc)
 					{
-						Actions.ExceptionToConsole("SaveGuildInfo", exc);
+						Actions.ExceptionToConsole(exc);
 						MessageBox.Show("Failed to save the file.", Variables.BotName);
 						return;
 					}
@@ -682,72 +676,13 @@ namespace Advobot
 		public static bool FindCommand(string cmd, string args)
 		{
 			//Find what command it belongs to
-			if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.Pause), cmd))
+			if (UICommandNames.GetNameAndAliases(UICommandEnum.Pause).CaseInsContains(cmd))
 			{
 				UICommands.PAUSE(args);
 			}
-			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.BotOwner), cmd))
-			{
-				UICommands.UIGlobalBotOwner(args);
-			}
-			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.SavePath), cmd))
-			{
-				UICommands.UIGlobalSavePath(args);
-			}
-			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.Prefix), cmd))
-			{
-				Task.Run(async () =>
-				{
-					await UICommands.UIGlobalPrefix(args);
-				});
-			}
-			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.Settings), cmd))
-			{
-				UICommands.UIGlobalSettings(args);
-			}
-			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.BotIcon), cmd))
-			{
-				Task.Run(async () =>
-				{
-					await UICommands.UIBotIcon(args);
-				});
-			}
-			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.BotGame), cmd))
-			{
-				Task.Run(async () =>
-				{
-					await UICommands.UIBotGame(args);
-				});
-			}
-			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.BotStream), cmd))
-			{
-				Task.Run(async () =>
-				{
-					await UICommands.UIBotStream(args);
-				});
-			}
-			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.BotName), cmd))
-			{
-				Task.Run(async () =>
-				{
-					await UICommands.UIBotName(args);
-				});
-			}
-			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.Disconnect), cmd))
-			{
-				UICommands.UIDisconnect();
-			}
-			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.Restart), cmd))
-			{
-				UICommands.UIRestart();
-			}
-			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.ListGuilds), cmd))
+			else if (UICommandNames.GetNameAndAliases(UICommandEnum.ListGuilds).CaseInsContains(cmd))
 			{
 				UICommands.UIListGuilds();
-			}
-			else if (Actions.CaseInsContains(UICommandNames.GetNameAndAliases(UICommandEnum.Shards), cmd))
-			{
-				UICommands.UIModifyShards(args);
 			}
 			else if (Actions.CaseInsEquals(cmd, "test"))
 			{
@@ -789,433 +724,15 @@ namespace Advobot
 			}
 		}
 
-		public static async Task UIGlobalPrefix(string input)
-		{
-			//Make sure valid input is passed in
-			if (input == null)
-			{
-				Actions.WriteLine("No valid args supplied.");
-				return;
-			}
-
-			//Check if to clear
-			if (Actions.CaseInsEquals(input, "clear"))
-			{
-				Variables.BotInfo.SetPrefix(Constants.BOT_PREFIX);
-				Actions.WriteLine(String.Format("Successfully reset the bot's prefix to '{0}'.", Constants.BOT_PREFIX));
-			}
-			else
-			{
-				if (input.Length > 10)
-				{
-					Actions.WriteLine(String.Format("Keep the prefix to under 10 characters."));
-					return;
-				}
-
-				Variables.BotInfo.SetPrefix(input);
-				Actions.WriteLine(String.Format("Successfully changed the bot's prefix to '{0}'.", input));
-			}
-
-			Actions.SaveBotInfo();
-			await Actions.UpdateGame();
-		}
-
-		public static void UIGlobalSavePath(string input)
-		{
-			//Make sure valid input is passed in
-			if (input == null)
-			{
-				Actions.WriteLine("No valid args supplied.");
-				return;
-			}
-
-			//Check if it's current
-			else if (Actions.CaseInsEquals(input, "current"))
-			{
-				//Check if the path is empty
-				if (String.IsNullOrWhiteSpace(Properties.Settings.Default.Path))
-				{
-					//If windows then default to appdata
-					if (Variables.Windows)
-					{
-						Actions.WriteLine(String.Format("The current save path is: '{0}'.", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.SERVER_FOLDER)));
-					}
-					//If not windows then there's no folder
-					else
-					{
-						Actions.WriteLine("There is no save path set.");
-					}
-				}
-				else
-				{
-					Actions.WriteLine(String.Format("The current save path is: '{0}'.", Properties.Settings.Default.Path));
-				}
-				return;
-			}
-			//See if clear
-			else if (Actions.CaseInsEquals(input, "clear"))
-			{
-				Properties.Settings.Default.Path = null;
-				Properties.Settings.Default.Save();
-				Actions.WriteLine("Successfully cleared the current save path.");
-				return;
-			}
-			//See if the directory exists
-			else if (!Directory.Exists(input))
-			{
-				Actions.WriteLine(Actions.ERROR("That directory doesn't exist."));
-				return;
-			}
-
-			//Set the path
-			Properties.Settings.Default.Path = input;
-			Properties.Settings.Default.Save();
-			Actions.WriteLine(String.Format("Successfully changed the save path to: '{0}'.", input));
-		}
-
-		public static void UIGlobalBotOwner(string input)
-		{
-			//Make sure valid input is passed in
-			if (input == null)
-			{
-				Actions.WriteLine("No valid args supplied.");
-				return;
-			}
-
-			//Check if it's current
-			var botInfo = Variables.BotInfo;
-			if (Actions.CaseInsEquals(input, "current"))
-			{
-				var botOwner = Actions.GetBotOwner();
-				if (botOwner != null)
-				{
-					Actions.WriteLine(String.Format("The current bot owner is: '{0}'", botOwner.FormatUser()));
-				}
-				else
-				{
-					Actions.WriteLine("This bot is unowned.");
-				}
-				return;
-			}
-			//Check if it's clear
-			else if (Actions.CaseInsEquals(input, "clear"))
-			{
-				botInfo.ResetBotOwner();
-				Actions.SaveBotInfo();
-				Actions.WriteLine("Successfully cleared the bot owner.");
-				return;
-			}
-			//Check if there's already a bot owner
-			else if (botInfo.BotOwner != 0)
-			{
-				//Get the bot owner
-				var botOwner = Actions.GetBotOwner();
-				Actions.WriteLine(String.Format("There is already a bot owner: '{0}'.", botOwner.FormatUser()));
-				return;
-			}
-
-			//Check if ulong
-			var ID = Actions.GetUlong(input);
-			if (ID == 0)
-			{
-				Actions.WriteLine("The argument supplied is not a valid number.");
-				return;
-			}
-
-			//Finally check if it's an actual user
-			Discord.IUser user = Variables.Client.GetUser(ID);
-			if (user == null)
-			{
-				Actions.WriteLine("Unable to find any users with that ID.");
-				return;
-			}
-
-			botInfo.SetBotOwner(user.Id);
-			Actions.SaveBotInfo();
-			Actions.WriteLine(String.Format("Successfully made '{0}' the new bot owner.", user.FormatUser()));
-		}
-
-		public static void UIGlobalSettings(string input)
-		{
-			//Make sure valid input is passed in
-			if (input == null)
-			{
-				Actions.WriteLine("No valid args supplied.");
-				return;
-			}
-
-			//Check if current
-			else if (Actions.CaseInsEquals(input, "current"))
-			{
-				var description = "";
-				description += String.Format("\n\tSave Path: {0}", String.IsNullOrWhiteSpace(Properties.Settings.Default.Path) ? "N/A" : Properties.Settings.Default.Path);
-				description += String.Format("\n\tBot Owner ID: {0}", String.IsNullOrWhiteSpace(Variables.BotInfo.BotOwner.ToString()) ? "N/A" : Variables.BotInfo.BotOwner.ToString());
-				description += String.Format("\n\tStream: {0}", String.IsNullOrWhiteSpace(Variables.BotInfo.Stream) ? "N/A" : Variables.BotInfo.Stream);
-				Actions.WriteLine(Actions.ReplaceMarkdownChars(description));
-			}
-			//Check if clear
-			else if (Actions.CaseInsEquals(input, "clear"))
-			{
-				//Send a success message first instead of after due to the bot losing its ability to do so
-				Actions.WriteLine("Successfully cleared all settings. Restarting now...");
-				//Reset the settings
-				Actions.ResetSettings();
-				//Restart the bot
-				try
-				{
-					//Restart the application
-					Process.Start(Application.ResourceAssembly.Location);
-					//Close the previous version
-					Environment.Exit(0);
-				}
-				catch (Exception)
-				{
-					Actions.WriteLine("Bot is unable to restart.");
-				}
-			}
-			//Else give action error
-			else
-			{
-				Actions.WriteLine(Actions.ERROR(Constants.ACTION_ERROR));
-				return;
-			}
-		}
-
-		public static async Task UIBotIcon(string input)
-		{
-			//Make sure valid input is passed in
-			if (input == null)
-			{
-				Actions.WriteLine("No valid args supplied.");
-				return;
-			}
-
-			//See if the user wants to remove the icon
-			if (Actions.CaseInsEquals(input, "remove"))
-			{
-				await Variables.Client.GetCurrentUser().ModifyAsync(x => x.Avatar = new Discord.Image());
-				Actions.WriteLine("Successfully removed the bot's icon.");
-				return;
-			}
-
-			//Run separate due to the time it takes
-			await Task.Run(async () =>
-			{
-				//Make sure the input is a valid link
-				if (!Actions.ValidateURL(input))
-				{
-					Actions.WriteLine(Actions.ERROR("Invalid URL."));
-					return;
-				}
-
-				//Check the image's file size first
-				var req = HttpWebRequest.Create(input);
-				req.Method = "HEAD";
-				try
-				{
-					using (WebResponse resp = req.GetResponse())
-					{
-						if (int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
-						{
-							//Check if valid content type
-							if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
-							{
-								Actions.WriteLine(Actions.ERROR("Image must be a png or jpg."));
-								return;
-							}
-							else
-							{
-								if (ContentLength > 2500000)
-								{
-									//Check if bigger than 2.5MB
-									Actions.WriteLine(Actions.ERROR("Image is bigger than 2.5MB. Please manually upload instead."));
-									return;
-								}
-								else if (ContentLength == 0)
-								{
-									//Check if nothing was gotten
-									Actions.WriteLine(Actions.ERROR("Unable to get the image's file size."));
-									return;
-								}
-							}
-						}
-						else
-						{
-							Actions.WriteLine(Actions.ERROR("Unable to get the image's file size."));
-							return;
-						}
-					}
-				}
-				catch
-				{
-					Actions.WriteLine(Actions.ERROR("Unable to create webrequest with URL."));
-					return;
-				}
-
-				//Send a message saying how it's progressing
-				Actions.WriteLine("Attempting to download the file...");
-
-				//Set the name of the file to prevent typos between the three places that use it
-				var path = Actions.GetBaseBotDirectory("boticon" + Path.GetExtension(input).ToLower());
-
-				//Download the image
-				using (var webclient = new WebClient())
-				{
-					webclient.DownloadFile(input, path);
-				}
-
-				//Create a second filestream to upload the image
-				using (FileStream imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
-				{
-					await Variables.Client.GetCurrentUser().ModifyAsync(x => x.Avatar = new Discord.Image(imgStream));
-				}
-
-				//Delete the file and send a success message
-				File.Delete(path);
-				Actions.WriteLine("Successfully changed the bot's icon.");
-			});
-		}
-
-		public static async Task UIBotGame(string input)
-		{
-			//Check the game name length
-			if (input.Length > Constants.MAX_GAME_LENGTH)
-			{
-				Actions.WriteLine(Actions.ERROR(String.Format("Game name cannot be longer than '{0}' characters or else it doesn't show to other people.", Constants.MAX_GAME_LENGTH)));
-				return;
-			}
-
-			var botInfo = Variables.BotInfo;
-			if (Actions.CaseInsEquals(input, "clear"))
-			{
-				botInfo.ResetGame();
-				Actions.WriteLine("Game set to default.");
-			}
-			else
-			{
-				botInfo.SetGame(input);
-				Actions.WriteLine(String.Format("Game set to `{0}`.", input));
-			}
-
-			Actions.SaveBotInfo();
-			await Actions.UpdateGame();
-		}
-
-		public static async Task UIBotStream(string input)
-		{
-			//If empty string, take that as the notion to turn the stream off
-			if (!String.IsNullOrWhiteSpace(input))
-			{
-				//Check if it's an actual stream
-				if (!Actions.CaseInsStartsWith(input, Constants.STREAM_URL))
-				{
-					Actions.WriteLine(Actions.ERROR("Link must be from Twitch.TV."));
-					return;
-				}
-				else if (input.Substring(Constants.STREAM_URL.Length).Contains('/'))
-				{
-					Actions.WriteLine(Actions.ERROR("Link must be to a user's stream."));
-					return;
-				}
-			}
-
-			//Save the stream as a setting
-			Variables.BotInfo.SetStream(input);
-			Actions.SaveBotInfo();
-			await Actions.UpdateGame();
-			Actions.WriteLine(String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to '" + input + "'"));
-		}
-
-		public static async Task UIBotName(string input)
-		{
-			//Make sure valid input is passed in
-			if (input == null)
-			{
-				Actions.WriteLine("No valid args supplied.");
-				return;
-			}
-
-			//Names have the same length requirements as nicknames
-			if (input.Length > Constants.MAX_NICKNAME_LENGTH)
-			{
-				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be more than '{0}' characters.", Constants.MAX_NICKNAME_LENGTH)));
-				return;
-			}
-			else if (input.Length < Constants.MAX_NICKNAME_LENGTH)
-			{
-				Actions.WriteLine(Actions.ERROR(String.Format("Name cannot be less than '{0}' characters.", Constants.MAX_NICKNAME_LENGTH)));
-				return;
-			}
-
-			//Change the bots name to it
-			await Variables.Client.GetCurrentUser().ModifyAsync(x => x.Username = input);
-
-			//Send a success message
-			Actions.WriteLine(String.Format("Successfully changed my username to '{0}'.", input));
-		}
-
-		public static void UIDisconnect()
-		{
-			Environment.Exit(0);
-		}
-
-		public static void UIRestart()
-		{
-			try
-			{
-				//Restart the application
-				Process.Start(Application.ResourceAssembly.Location);
-				//Close the previous version
-				Environment.Exit(0);
-			}
-			catch (Exception)
-			{
-				Actions.WriteLine("Bot is unable to restart.");
-			}
-		}
-
 		public static void UIListGuilds()
 		{
-			//Go through each guild and add them to the list
-			int count = 1;
-			var guildStrings = Variables.Client.GetGuilds().ToList().Select(x =>
+			var guilds = Variables.Client.GetGuilds().ToList();
+			var countWidth = guilds.Count.ToString().Length;
+			var count = 1;
+			guilds.ForEach(x =>
 			{
-				return String.Format("{0}. {1} Owner: {2}", count++.ToString("00"), x.FormatGuild(), x.Owner.FormatUser());
+				Actions.WriteLine(String.Format("{0}. {1} Owner: {2}", count++.ToString().PadLeft(countWidth, '0'), x.FormatGuild(), x.Owner.FormatUser()));
 			});
-
-			//Get the URL
-			Actions.TryToUploadToHastebin(String.Join("\n", guildStrings), out string url);
-
-			//Send it to have the hyperlink created and go to the output window
-			UILayoutModification.AddHyperlink(BotWindow.Output, url, "Listed Guilds");
-		}
-
-		public static void UIModifyShards(string input)
-		{
-			//Make sure valid input is passed in
-			if (input == null)
-			{
-				Actions.WriteLine("No valid args supplied.");
-				return;
-			}
-
-			//Check if valid number
-			if (!int.TryParse(input, out int number))
-			{
-				Actions.WriteLine("Invalid input for number.");
-				return;
-			}
-
-			//Check if the client has too many servers for that to work
-			if (Variables.Client.GetGuilds().Count >= number * 2500)
-			{
-				Actions.WriteLine("With the current amount of guilds the client has, the minimum shard number is: " + Variables.Client.GetGuilds().Count / 2500 + 1);
-				return;
-			}
-
-			Variables.BotInfo.SetShardCount(number);
-			Actions.SaveBotInfo();
-			Actions.WriteLine(String.Format("Successfully set the shard amount to {0}.", number));
 		}
 
 		public static void UITest()

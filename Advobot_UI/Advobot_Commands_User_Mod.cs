@@ -275,26 +275,28 @@ namespace Advobot
 			var users = (await inputChannel.GetUsersAsync().ToList()).SelectMany(x => x).ToList();
 
 			//Have the bot stay in the typing state and have a message that can be updated
-			//TODO: Make sure this doesn't freeze the bot
-			var msg = await Actions.SendChannelMessage(Context, String.Format("Attempting to move `{0}` user{1}.", users.Count, Actions.GetPlural(users.Count))) as IUserMessage;
-			var typing = Context.Channel.EnterTypingState();
-
-			//Move them all
-			var count = 0;
-			await users.ForEachAsync(async x =>
+			Task.Run(async () =>
 			{
-				++count;
-				if (count % 10 == 0)
+				var msg = await Actions.SendChannelMessage(Context, String.Format("Attempting to move `{0}` user{1}.", users.Count, Actions.GetPlural(users.Count))) as IUserMessage;
+				var typing = Context.Channel.EnterTypingState();
+
+				//Move them all
+				var count = 0;
+				await users.ForEachAsync(async x =>
 				{
-					await msg.ModifyAsync(y => y.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((users.Count - count) * 1.2)));
-				}
+					++count;
+					if (count % 10 == 0)
+					{
+						await msg.ModifyAsync(y => y.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((users.Count - count) * 1.2)));
+					}
 
-				await x.ModifyAsync(y => y.Channel = Optional.Create(outputChannel));
-			});
+					await x.ModifyAsync(y => y.Channel = Optional.Create(outputChannel));
+				});
 
-			//Send a success message
-			var desc = String.Format("Successfully moved `{0}` user{1} from `{2}` to `{3}`.", users.Count, Actions.GetPlural(users.Count), inputChannel.FormatChannel(), outputChannel.FormatChannel());
-			await Actions.MakeAndDeleteSecondaryMessage(Context, desc);
+				//Send a success message
+				var desc = String.Format("Successfully moved `{0}` user{1} from `{2}` to `{3}`.", users.Count, Actions.GetPlural(users.Count), inputChannel.FormatChannel(), outputChannel.FormatChannel());
+				await Actions.MakeAndDeleteSecondaryMessage(Context, desc);
+			}).Forget();
 		}
 
 		[Command("nickname")]
@@ -592,8 +594,8 @@ namespace Advobot
 
 		[Command("ban")]
 		[Alias("b")]
-		[Usage("[User] <Days:int> <Time:int>")]
-		[Summary("Bans the user from the guild. Days specifies how many days worth of messages to delete. Time specifies how long and is in minutes. Mentions must be used.")]
+		[Usage("[User] <Reason> <Days:int> <Time:int>")]
+		[Summary("Bans the user from the guild. Days specifies how many days worth of messages to delete. Time specifies how long and is in minutes.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
 		[DefaultEnabled(true)]
 		public async Task Ban([Remainder] string input)
@@ -605,6 +607,7 @@ namespace Advobot
 				return;
 			}
 			var userStr = returnedArgs.Arguments[0];
+			var reasonStr = returnedArgs.Arguments[1];
 			var daysStr = returnedArgs.GetSpecifiedArg("days");
 			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
@@ -614,6 +617,11 @@ namespace Advobot
 				if (!int.TryParse(daysStr, out pruneDays))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for days was not a number."));
+					return;
+				}
+				else if (pruneDays > 7 || pruneDays < 0)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for days was not a valid number."));
 					return;
 				}
 			}
@@ -637,6 +645,7 @@ namespace Advobot
 			var user = returnedUser.Object;
 			
 			//Ban the user
+			//TODO: Put the ban reason in here at some point
 			await Context.Guild.AddBanAsync(user, pruneDays);
 			if (timeForBan != 0)
 			{
@@ -657,79 +666,52 @@ namespace Advobot
 
 		[Command("unban")]
 		[Alias("ub")]
-		[Usage("<\"Username:Name\"> <Discriminator:Number> <ID:User ID>")]
+		[Usage("<\"Username:Name\"> <Discriminator:Number> <ID:User ID> <Reason:True|False>")]
 		[Summary("Unbans the user from the guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
 		[DefaultEnabled(true)]
 		public async Task Unban([Remainder] string input)
 		{
 			//Split the args
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3, 3), new[] { "username", "discriminator", "id" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3, 3), new[] { "username", "discriminator", "id", "reason" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
-			var username = returnedArgs.GetSpecifiedArg("username");
-			var discriminator = returnedArgs.GetSpecifiedArg("discriminator");
-			var userID = returnedArgs.GetSpecifiedArg("id");
+			var nameStr = returnedArgs.GetSpecifiedArg("username");
+			var discStr = returnedArgs.GetSpecifiedArg("discriminator");
+			var idStr = returnedArgs.GetSpecifiedArg("id");
+			var reasonStr = returnedArgs.GetSpecifiedArg("reason");
 
-			IUser user = null;
-			var bans = (await Context.Guild.GetBansAsync()).ToList();
-			if (!String.IsNullOrWhiteSpace(userID))
+			var returnedBannedUser = Actions.GetBannedUser(Context, (await Context.Guild.GetBansAsync()).ToList(), nameStr, discStr, idStr);
+			if (returnedBannedUser.Reason != BannedUserFailureReason.Not_Failure)
 			{
-				if (ulong.TryParse(input, out ulong inputUserID))
+				await Actions.HandleBannedUserErrors(Context, returnedBannedUser);
+				return;
+			}
+			var ban = returnedBannedUser.Ban;
+
+			var reason = false;
+			if (!String.IsNullOrWhiteSpace(reasonStr))
+			{
+				if (!bool.TryParse(reasonStr, out reason))
 				{
-					user = bans.FirstOrDefault(x => x.User.Id == inputUserID).User;
-				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid user ID."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid bool for reason."));
 					return;
 				}
 			}
-			else if (!String.IsNullOrWhiteSpace(username))
-			{
-				//Find users with the given username then the given discriminator if provided
-				var users = bans.Where(x => Actions.CaseInsEquals(x.User.Username, input)).ToList();
-				if (!String.IsNullOrWhiteSpace(discriminator))
-				{
-					if (ushort.TryParse(discriminator, out ushort disc))
-					{
-						users = users.Where(x => x.User.Discriminator.Equals(disc)).ToList();
-					}
-					else
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid discriminator provided."));
-						return;
-					}
-				}
 
-				//Return a message saying if there are multiple users
-				if (users.Count == 0)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Could not find a user on the ban list matching the given criteria."));
-					return;
-				}
-				else if (users.Count == 1)
-				{
-					user = users.First().User;
-				}
-				else
-				{
-					var msg = String.Join("`, `", users.Select(x => user.FormatUser()));
-					await Actions.SendChannelMessage(Context, String.Format("The following users have that name: `{0}`.", msg));
-					return;
-				}
+			var user = ban.User;
+			if (reason)
+			{
+				await Actions.SendChannelMessage(Context, String.Format("`{0}`'s ban reason is `{1}`.", user.FormatUser(), ban.Reason));
 			}
 			else
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A username or ID must be provided."));
-				return;
+				await Context.Guild.RemoveBanAsync(user);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unbanned `{0}`", user.FormatUser()));
 			}
-
-			await Context.Guild.RemoveBanAsync(user);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unbanned the user `{0}`", user.FormatUser()));
 		}
 
 		[Command("kick")]

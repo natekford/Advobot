@@ -8,7 +8,6 @@ namespace Advobot
 {
 	public class Program
 	{
-		//Start the bot or start the UI then the bot
 		[STAThread]
 		private static void Main(string[] args)
 		{
@@ -56,7 +55,6 @@ namespace Advobot
 			}
 		}
 
-		//Try to have the bot connect and then add the dependency map
 		public async Task Start(BotClient client)
 		{
 			//Notify the user the bot has started connecting
@@ -69,7 +67,7 @@ namespace Advobot
 			}
 			catch (Exception e)
 			{
-				Actions.ExceptionToConsole("Client is unable to connect.", e);
+				Actions.ExceptionToConsole(e);
 				return;
 			}
 

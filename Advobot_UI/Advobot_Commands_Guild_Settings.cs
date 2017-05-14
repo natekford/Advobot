@@ -105,8 +105,8 @@ namespace Advobot
 
 		[Command("guildsettings")]
 		[Alias("gds")]
-		[Usage("[Nothing|All|Setting Name] <Target:Channel|Role|User> <Extra:\"Additional Info\"")]
-		[Summary("Displays guild settings. Inputting nothing gives a list of the names.")]
+		[Usage("<All|Setting Name> <Target:Channel|Role|User> <Extra:\"Additional Info\"")]
+		[Summary("Displays guild settings. Inputting nothing gives a list of the setting names.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
 		public async Task GuildSettings([Optional, Remainder] string input)
@@ -120,7 +120,7 @@ namespace Advobot
 			}
 			else if (String.IsNullOrWhiteSpace(input))
 			{
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingsOnGuild))))));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingOnGuild))))));
 				return;
 			}
 
@@ -138,7 +138,7 @@ namespace Advobot
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Guild Settings", Actions.FormatAllSettings(guildInfo)));
 			}
-			else if (Enum.TryParse(settingStr, true, out SettingsOnGuild setting))
+			else if (Enum.TryParse(settingStr, true, out SettingOnGuild setting))
 			{
 				var embed = await Actions.FormatSettingInfo(Context, guildInfo, setting, targetStr, extraStr);
 				await Actions.SendEmbedMessage(Context.Channel, embed);
@@ -321,7 +321,7 @@ namespace Advobot
 			var unableToBeRemoved = new List<CommandSwitch>();
 			commands.ForEach(cmd =>
 			{
-				if (Actions.CaseInsContains(Constants.COMMANDS_UNABLE_TO_BE_TURNED_OFF, cmd.Name))
+				if (Constants.COMMANDS_UNABLE_TO_BE_TURNED_OFF.CaseInsContains(cmd.Name))
 				{
 					unableToBeRemoved.Add(cmd);
 				}

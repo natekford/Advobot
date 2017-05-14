@@ -12,53 +12,120 @@ namespace Advobot
 	[Name("Global_Settings")]
 	public class Advobot_Commands_Administration : ModuleBase
 	{
+		[Command(BasicCommandStrings.CSETTINGS)]
+		[Alias(BasicCommandStrings.ASETTINGS)]
+		[Usage("<All|Setting Name>")]
+		[Summary("Displays global settings. Inputting nothing gives a list of the setting names.")]
+		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
+		public async Task CurrentGlobalSettings([Remainder] string input)
+		{
+			var botInfo = Variables.BotInfo;
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Global Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingOnBot))))));
+				return;
+			}
+
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 1, 1));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var settingStr = returnedArgs.Arguments[0];
+
+			if (Actions.CaseInsEquals(settingStr, "all"))
+			{
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Settings", Actions.FormatAllSettings(botInfo)));
+			}
+			else if (Enum.TryParse(settingStr, true, out SettingOnBot setting))
+			{
+				var embed = Actions.FormatSettingInfo(Context, botInfo, setting);
+				await Actions.SendEmbedMessage(Context.Channel, embed);
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid setting."));
+			}
+		}
+
+		[Command(BasicCommandStrings.CSETTINGSRESET)]
+		[Alias(BasicCommandStrings.ASETTINGSRESET)]
+		[Usage("")]
+		[Summary("Resets all the global settings on the bot.")]
+		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
+		public async Task GlobalSettingsReset([Remainder] string input)
+		{
+			Actions.ResetSettings();
+			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared all settings. Restarting now...");
+
+			try
+			{
+				//Restart the application and close the current session
+				System.Diagnostics.Process.Start(System.Windows.Application.ResourceAssembly.Location);
+				Environment.Exit(0);
+			}
+			catch (Exception)
+			{
+				Actions.WriteLine("Bot is unable to restart.");
+			}
+		}
+
 		[Command(BasicCommandStrings.COWNER)]
 		[Alias(BasicCommandStrings.AOWNER)]
-		[Usage("<Clear|Current>")]
+		[Usage("[Clear|Current|New Owner]")]
 		[Summary("You must be the current guild owner. The bot will DM you asking for its key. **DO NOT INPUT THE KEY OUTSIDE OF DMS.** If you are experiencing trouble, refresh your bot's key.")]
 		[GuildOwnerRequirement]
 		[DefaultEnabled(true)]
 		public async Task SetBotOwner([Optional, Remainder] string input)
 		{
 			var botInfo = Variables.BotInfo;
-			if (Actions.CaseInsEquals(input, "clear"))
+			if (Enum.TryParse(input, out CCEnum type))
 			{
-				//Only let the current bot owner to clear
-				if (botInfo.BotOwner == Context.User.Id)
+				switch (type)
 				{
-					botInfo.ResetBotOwner();
-					Actions.SaveBotInfo();
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the bot owner.");
+					case CCEnum.Clear:
+					{
+						if (botInfo.BotOwner == Context.User.Id)
+						{
+							botInfo.ResetBotOwner();
+							Actions.SaveBotInfo();
+							await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the bot owner.");
+						}
+						else
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, "Only the bot owner can clear their position.");
+						}
+						return;
+					}
+					case CCEnum.Current:
+					{
+						var user = Actions.GetBotOwner();
+						if (user != null)
+						{
+							await Actions.SendChannelMessage(Context, String.Format("The current bot owner is: `{0}`", user.FormatUser()));
+						}
+						else
+						{
+							await Actions.SendChannelMessage(Context, "This bot is unowned.");
+						}
+						return;
+					}
 				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "Only the bot owner can clear their position.");
-				}
-				return;
-			}
-			else if (Actions.CaseInsEquals(input, "current"))
-			{
-				var user = Actions.GetBotOwner();
-				if (user != null)
-				{
-					await Actions.SendChannelMessage(Context, String.Format("The current bot owner is: `{0}`", user.FormatUser()));
-				}
-				else
-				{
-					await Actions.SendChannelMessage(Context, "This bot is unowned.");
-				}
-				return;
 			}
 			else if (botInfo.BotOwner != 0)
 			{
-				//Get the bot owner
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("There is already a bot owner: `{0}`.", Actions.GetBotOwner().FormatUser()));
 				return;
 			}
-
-			//Add them to the list of people trying to become bot owner
-			Variables.PotentialBotOwners.Add(Context.User.Id);
-			await Actions.SendDMMessage(await Context.User.CreateDMChannelAsync(), "What is my key?");
+			else
+			{
+				//Add them to the list of people trying to become bot owner
+				Variables.PotentialBotOwners.Add(Context.User.Id);
+				await Actions.SendDMMessage(await Context.User.CreateDMChannelAsync(), "What is my key?");
+			}
 		}
 
 		[Command(BasicCommandStrings.CPATH)]
@@ -69,45 +136,42 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task SetSavePath([Remainder] string input)
 		{
-			if (Actions.CaseInsEquals(input, "clear"))
+			var settings = Properties.Settings.Default;
+			if (Enum.TryParse(input, out CCEnum type))
 			{
-				Properties.Settings.Default.Path = null;
-				Properties.Settings.Default.Save();
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the current save path.", 5000);
-				return;
-			}
-			else if (Actions.CaseInsEquals(input, "current"))
-			{
-				//Check if the path is empty
-				if (String.IsNullOrWhiteSpace(Properties.Settings.Default.Path))
+				switch (type)
 				{
-					//If windows then default to appdata
-					if (Variables.Windows)
+					case CCEnum.Clear:
 					{
-						await Actions.SendChannelMessage(Context, String.Format("The current save path is: `{0}`.",
-							Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.SERVER_FOLDER)));
+						settings.Path = null;
+						settings.Save();
+						await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the current save path.");
+						return;
 					}
-					//If not windows then there's no folder
-					else
+					case CCEnum.Current:
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, "There is no save path set.");
+						if (String.IsNullOrWhiteSpace(settings.Path))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, "There is no save path set.");
+						}
+						else
+						{
+							await Actions.SendChannelMessage(Context, String.Format("The current save path is: `{0}`.", settings.Path));
+						}
+						return;
 					}
 				}
-				else
-				{
-					await Actions.SendChannelMessage(Context, "The current save path is: `" + Properties.Settings.Default.Path + "`.");
-				}
-				return;
 			}
 			else if (!Directory.Exists(input))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That directory doesn't exist."));
-				return;
 			}
-
-			Properties.Settings.Default.Path = input;
-			Properties.Settings.Default.Save();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the save path to: `{0}`.", input));
+			else
+			{
+				settings.Path = input;
+				settings.Save();
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the save path to: `{0}`.", input));
+			}
 		}
 
 		[Command(BasicCommandStrings.CPREFIX)]
@@ -118,14 +182,25 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task SetGlobalPrefix([Remainder] string input)
 		{
-			if (Actions.CaseInsEquals(input, "clear"))
+			var botInfo = Variables.BotInfo;
+			if (Enum.TryParse(input, out CCEnum type))
 			{
-				Variables.BotInfo.SetPrefix(Constants.BOT_PREFIX);
-				await Actions.SendChannelMessage(Context, String.Format("Successfully reset the bot's prefix to `{0}`.", Constants.BOT_PREFIX));
-			}
-			else if (Actions.CaseInsEquals(input, "current"))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Then how did you use this command? :thinking:");
+				switch (type)
+				{
+					case CCEnum.Clear:
+					{
+						botInfo.SetPrefix(Constants.BOT_PREFIX);
+						Actions.SaveBotInfo();
+						await Actions.UpdateGame();
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the bot's prefix to `{0}`.", Constants.BOT_PREFIX));
+						return;
+					}
+					case CCEnum.Current:
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, "Then how did you use this command? :thinking:");
+						return;
+					}
+				}
 			}
 			else
 			{
@@ -135,66 +210,17 @@ namespace Advobot
 					return;
 				}
 
-				Variables.BotInfo.SetPrefix(input);
-				await Actions.SendChannelMessage(Context, String.Format("Successfully changed the bot's prefix to `{0}`.", input));
-			}
-
-			Actions.SaveBotInfo();
-			await Actions.UpdateGame();
-		}
-
-		[Command(BasicCommandStrings.CSETTINGS)]
-		[Alias(BasicCommandStrings.ASETTINGS)]
-		[Usage("[Clear|Current]")]
-		[Summary("Shows all the settings on the bot aside from the bot's key. When clearing all settings the bot will have to be manually restarted if it reconnects.")]
-		[BotOwnerRequirement]
-		[DefaultEnabled(true)]
-		public async Task CurrentGlobalSettings([Remainder] string input)
-		{
-			//Check if current
-			var botInfo = Variables.BotInfo;
-			if (Actions.CaseInsEquals(input, "current"))
-			{
-				var description = "";
-				description += String.Format("**Prefix:** `{0}`\n", String.IsNullOrWhiteSpace(botInfo.Prefix) ? "N/A" : botInfo.Prefix);
-				description += String.Format("**Shards:** `{0}`\n", botInfo.ShardCount);
-				description += String.Format("**Save Path:** `{0}`\n", String.IsNullOrWhiteSpace(Properties.Settings.Default.Path) ? "N/A" : Properties.Settings.Default.Path);
-				description += String.Format("**Bot Owner ID:** `{0}`\n", String.IsNullOrWhiteSpace(botInfo.BotOwner.ToString()) ? "N/A" : botInfo.BotOwner.ToString());
-				description += String.Format("**Stream:** `{0}`\n", String.IsNullOrWhiteSpace(botInfo.Stream) ? "N/A" : botInfo.Stream);
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Bot Settings", description));
-			}
-			//Check if clear
-			else if (Actions.CaseInsEquals(input, "clear"))
-			{
-				//Send a success message first instead of after due to the bot losing its ability to do so
-				await Actions.SendChannelMessage(Context, "Successfully cleared all settings. Restarting now...");
-				//Reset the settings
-				Actions.ResetSettings();
-				//Restart the bot
-				try
-				{
-					//Restart the application
-					System.Diagnostics.Process.Start(System.Windows.Application.ResourceAssembly.Location);
-					//Close the previous version
-					Environment.Exit(0);
-				}
-				catch (Exception)
-				{
-					Actions.WriteLine("Bot is unable to restart.");
-				}
-			}
-			//Else give action error
-			else
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
-				return;
+				botInfo.SetPrefix(input);
+				Actions.SaveBotInfo();
+				await Actions.UpdateGame();
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the bot's prefix to `{0}`.", input));
 			}
 		}
 
 		[Command(BasicCommandStrings.CICON)]
 		[Alias(BasicCommandStrings.AICON)]
 		[Usage("[Attached Image|Embedded Image|Remove]")]
-		[Summary("Changes the bot's icon.")]
+		[Summary("Changes the bot's icon to the given image. Typing `" + Constants.BOT_PREFIX + "bi remove` will remove the icon. The image must be smaller than 2.5MB.")]
 		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
 		public async Task BotIcon([Optional, Remainder] string input)
@@ -204,55 +230,83 @@ namespace Advobot
 
 		[Command(BasicCommandStrings.CGAME)]
 		[Alias(BasicCommandStrings.AGAME)]
-		[Usage("[Clear|New Name]")]
+		[Usage("[Clear|Current|New Name]")]
 		[Summary("Changes the game the bot is currently listed as playing.")]
 		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
 		public async Task SetGame([Remainder] string input)
 		{
-			if (input.Length > Constants.MAX_GAME_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context,Actions.ERROR(String.Format("Game name cannot be longer than `{0}` characters or else it doesn't show to other people.", Constants.MAX_GAME_LENGTH)));
-				return;
-			}
-
 			var botInfo = Variables.BotInfo;
-			if (Actions.CaseInsEquals(input, "clear"))
+			if (Enum.TryParse(input, out CCEnum type))
 			{
-				botInfo.ResetGame();
-				await Actions.SendChannelMessage(Context, "Game set to default.");
+				switch (type)
+				{
+					case CCEnum.Clear:
+					{
+						botInfo.ResetGame();
+						Actions.SaveBotInfo();
+						await Actions.UpdateGame();
+						await Actions.MakeAndDeleteSecondaryMessage(Context, "Game set to default.");
+						return;
+					}
+					case CCEnum.Current:
+					{
+						await Actions.SendChannelMessage(Context, String.Format("The current game is `{0}`.", botInfo.Game));
+						return;
+					}
+				}
+			}
+			else if (input.Length > Constants.MAX_GAME_LENGTH)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Game name cannot be longer than `{0}` characters or else it doesn't show to other people.", Constants.MAX_GAME_LENGTH)));
+				return;
 			}
 			else
 			{
 				botInfo.SetGame(input);
-				await Actions.SendChannelMessage(Context, String.Format("Game set to `{0}`.", input));
+				Actions.SaveBotInfo();
+				await Actions.UpdateGame();
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Game set to `{0}`.", input));
 			}
-
-			Actions.SaveBotInfo();
-			await Actions.UpdateGame();
 		}
 
 		[Command(BasicCommandStrings.CSTREAM)]
 		[Alias(BasicCommandStrings.ASTREAM)]
-		[Usage("[Clear|Twitch.TV Account Name]")]
+		[Usage("[Clear|Current|Twitch.TV Account Name]")]
 		[Summary("Changes the stream the bot has listed under its name.")]
 		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
 		public async Task BotStream([Optional, Remainder] string input)
 		{
 			var botInfo = Variables.BotInfo;
-			if (Actions.CaseInsEquals(input, "clear"))
+			if (Enum.TryParse(input, out CCEnum type))
 			{
-				botInfo.ResetStream();
+				switch (type)
+				{
+					case CCEnum.Clear:
+					{
+						input = null;
+						botInfo.ResetStream();
+						Actions.SaveBotInfo();
+						await Actions.UpdateGame();
+						await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset the bot's stream.");
+						return;
+					}
+					case CCEnum.Current:
+					{
+						await Actions.SendChannelMessage(Context, String.Format("The bot's stream is `{0}`.", botInfo.Stream));
+						return;
+					}
+				}
 			}
 			else
 			{
-				botInfo.SetStream(Constants.STREAM_URL + input);
+				var url = Constants.STREAM_URL + input;
+				botInfo.SetStream(url);
+				Actions.SaveBotInfo();
+				await Actions.UpdateGame();
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the bot's stream to `{0}`.", url));
 			}
-
-			Actions.SaveBotInfo();
-			await Actions.UpdateGame();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the bot's stream{1}.", input == null ? "reset" : "set", input == null ? "" : " to `" + input + "`"));
 		}
 
 		[Command(BasicCommandStrings.CNAME)]
@@ -275,10 +329,7 @@ namespace Advobot
 				return;
 			}
 
-			//Change the bots name to it
 			await Context.Client.CurrentUser.ModifyAsync(x => x.Username = input);
-
-			//Send a success message
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed my username to `{0}`.", input));
 		}
 
@@ -288,16 +339,10 @@ namespace Advobot
 		[Summary("Turns the bot off.")]
 		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
-		public async Task Disconnect()
+		public Task Disconnect()
 		{
-			if (Context.User.Id == Variables.BotInfo.BotOwner || Constants.DISCONNECT)
-			{
-				Environment.Exit(0);
-			}
-			else
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Disconnection is turned off for everyone but the bot owner currently.");
-			}
+			Environment.Exit(0);
+			return Task.CompletedTask;
 		}
 
 		[Command(BasicCommandStrings.CRESTART)]
@@ -306,26 +351,19 @@ namespace Advobot
 		[Summary("Restarts the bot.")]
 		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
-		public async Task Restart()
+		public Task Restart()
 		{
-			if (Context.User.Id == Variables.BotInfo.BotOwner || Constants.DISCONNECT)
+			try
 			{
-				try
-				{
-					//Create a new instance of the bot
-					System.Windows.Forms.Application.Restart();
-					//Close the old one
-					Environment.Exit(0);
-				}
-				catch (Exception)
-				{
-					Actions.WriteLine("Bot is unable to restart.");
-				}
+				//Create a new instance of the bot and close the old one
+				System.Diagnostics.Process.Start(System.Windows.Application.ResourceAssembly.Location);
+				Environment.Exit(0);
 			}
-			else
+			catch (Exception e)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Disconnection is turned off for everyone but the bot owner currently.");
+				Actions.ExceptionToConsole(e);
 			}
+			return Task.CompletedTask;
 		}
 
 		[Command(BasicCommandStrings.CSHARDS)]
@@ -337,20 +375,21 @@ namespace Advobot
 		{
 			if (!int.TryParse(input, out int number))
 			{
-				Actions.WriteLine("Invalid input for number.");
+				Actions.WriteLine("Invalid input for a number.");
 				return;
 			}
 
 			var curGuilds = Variables.Client.GetGuilds().Count;
 			if (curGuilds >= number * 2500)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("With the current amount of guilds the client has, the minimum shard number is: " + curGuilds / 2500 + 1));
+				var validNum = curGuilds / 2500 + 1;
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("With the current amount of guilds the client has, the minimum shard number is: `{0}`.", validNum)));
 				return;
 			}
 
 			Variables.BotInfo.SetShardCount(number);
 			Actions.SaveBotInfo();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the shard amount to {0}.", number));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the shard amount to `{0}`.", number));
 		}
 
 		[Command(BasicCommandStrings.CGUILDS)]

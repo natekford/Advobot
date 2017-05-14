@@ -264,7 +264,7 @@ namespace Advobot
 			Actions.AddFooter(embed, "Version " + Constants.BOT_VERSION);
 
 			//First field
-			var firstField = Actions.FormatLoggedThings();
+			var firstField = Actions.FormatLoggedThings(false);
 			Actions.AddField(embed, "Logged Actions", firstField);
 
 			//Second field

@@ -58,7 +58,7 @@ namespace Advobot
 					var invite = (await Context.Guild.GetInvitesAsync()).FirstOrDefault(x => Actions.CaseInsEquals(x.Code, codeStr));
 					if (invite == null)
 					{
-						if (!Actions.CaseInsContains(Context.Guild.Features.ToList(), Constants.VANITY_URL))
+						if (!Context.Guild.Features.CaseInsContains(Constants.VANITY_URL))
 						{
 							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid invite provided."));
 							return;
@@ -208,7 +208,7 @@ namespace Advobot
 			if (!String.IsNullOrWhiteSpace(keywordStr))
 			{
 				var keywords = keywordStr.Split(' ');
-				matchingInvs = Actions.GetMatchingInvites(matchingInvs, Variables.InviteList.Where(x => keywords.Any(y => Actions.CaseInsContains(x.Keywords, y))).ToList(), onlyOne, out onlyOne);
+				matchingInvs = Actions.GetMatchingInvites(matchingInvs, Variables.InviteList.Where(x => keywords.Any(y => x.Keywords.CaseInsContains(y))).ToList(), onlyOne, out onlyOne);
 			}
 
 			if (!matchingInvs.Any())

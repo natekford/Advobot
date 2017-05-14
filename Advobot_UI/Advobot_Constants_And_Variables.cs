@@ -212,6 +212,12 @@ namespace Advobot
 		public const string CPAUSE = "pause";
 		public const string APAUSE = "p";
 
+		public const string CSETTINGS = "globalsettings";
+		public const string ASETTINGS = "gls";
+
+		public const string CSETTINGSRESET = "globalsettingsreset";
+		public const string ASETTINGSRESET = "glsr";
+
 		public const string COWNER = "globalbotowner";
 		public const string AOWNER = "glbo";
 
@@ -220,9 +226,6 @@ namespace Advobot
 
 		public const string CPREFIX = "globalprefix";
 		public const string APREFIX = "glp";
-
-		public const string CSETTINGS = "globalsettings";
-		public const string ASETTINGS = "gls";
 
 		public const string CICON = "boticon";
 		public const string AICON = "bi";

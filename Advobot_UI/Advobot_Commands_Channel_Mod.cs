@@ -392,7 +392,7 @@ namespace Advobot
 			}
 
 			//Remove any attempt to change readmessages on the base channel because nothing can change that
-			if (channel.Id == Context.Guild.DefaultChannelId && Actions.CaseInsContains(permissions, "readmessages"))
+			if (channel.Id == Context.Guild.DefaultChannelId)
 			{
 				permissions.RemoveAll(x => Actions.CaseInsIndexOf(x, "readmessages"));
 			}
@@ -882,7 +882,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bitrate must be above or equal to `{0}`.", Constants.MIN_BITRATE)));
 				return;
 			}
-			else if (!Actions.CaseInsContains(Context.Guild.Features.ToList(), Constants.VIP_REGIONS) && bitRate > Constants.MAX_BITRATE)
+			else if (!Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && bitRate > Constants.MAX_BITRATE)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bitrate must be below or equal to `{0}`.", Constants.MAX_BITRATE)));
 				return;

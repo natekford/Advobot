@@ -320,17 +320,17 @@ namespace Advobot
 		}
 		public void SetServerLog(ITextChannel channel)
 		{
-			ServerLogID = channel.Id;
+			ServerLogID = channel?.Id ?? 0;
 			ServerLog = channel;
 		}
 		public void SetModLog(ITextChannel channel)
 		{
-			ModLogID = channel.Id;
+			ModLogID = channel?.Id ?? 0;
 			ModLog = channel;
 		}
 		public void SetImageLog(ITextChannel channel)
 		{
-			ImageLogID = channel.Id;
+			ImageLogID = channel?.Id ?? 0;
 			ImageLog = channel;
 		}
 		public ulong GetLogID(LogChannelTypes type)
@@ -1480,18 +1480,7 @@ namespace Advobot
 		private static ReadOnlyDictionary<UICommandEnum, string[]> NamesAndAliases = new ReadOnlyDictionary<UICommandEnum, string[]>(new Dictionary<UICommandEnum, string[]>()
 		{
 			{ UICommandEnum.Pause, new[] { BasicCommandStrings.CPAUSE, BasicCommandStrings.APAUSE } },
-			{ UICommandEnum.BotOwner, new[] { BasicCommandStrings.COWNER, BasicCommandStrings.AOWNER } },
-			{ UICommandEnum.SavePath, new[] { BasicCommandStrings.CPATH, BasicCommandStrings.APATH } },
-			{ UICommandEnum.Prefix, new[] { BasicCommandStrings.CPREFIX, BasicCommandStrings.APREFIX } },
-			{ UICommandEnum.Settings, new[] { BasicCommandStrings.CSETTINGS, BasicCommandStrings.ASETTINGS } },
-			{ UICommandEnum.BotIcon, new[] { BasicCommandStrings.CICON, BasicCommandStrings.AICON } },
-			{ UICommandEnum.BotGame, new[] { BasicCommandStrings.CGAME, BasicCommandStrings.AGAME } },
-			{ UICommandEnum.BotStream, new[] { BasicCommandStrings.CSTREAM, BasicCommandStrings.ASTREAM } },
-			{ UICommandEnum.BotName, new[] { BasicCommandStrings.CNAME, BasicCommandStrings.ANAME } },
-			{ UICommandEnum.Disconnect, new[] { BasicCommandStrings.CDISC, BasicCommandStrings.ADISC_1, BasicCommandStrings.ADISC_2 } },
-			{ UICommandEnum.Restart, new[] { BasicCommandStrings.CRESTART, BasicCommandStrings.ARESTART } },
 			{ UICommandEnum.ListGuilds, new[] { BasicCommandStrings.CGUILDS, BasicCommandStrings.AGUILDS } },
-			{ UICommandEnum.Shards, new[] { BasicCommandStrings.CSHARDS, BasicCommandStrings.ASHARDS } },
 		});
 
 		public static string[] GetNameAndAliases(UICommandEnum cmd)
@@ -1640,6 +1629,20 @@ namespace Advobot
 		}
 	}
 
+	public struct ReturnedBannedUser
+	{
+		public IBan Ban { get; private set; }
+		public BannedUserFailureReason Reason { get; private set; }
+		public List<IBan> MatchedBans { get; private set; }
+
+		public ReturnedBannedUser(IBan ban, BannedUserFailureReason reason, List<IBan> matchedBans = null)
+		{
+			Ban = ban;
+			Reason = reason;
+			MatchedBans = matchedBans;
+		}
+	}
+
 	public struct GuildToggleAfterTime : ITimeInterface
 	{
 		public ulong GuildID { get; private set; }
@@ -1743,18 +1746,7 @@ namespace Advobot
 	public enum UICommandEnum
 	{
 		Pause = 0,
-		BotOwner = 1,
-		SavePath = 2,
-		Prefix = 3,
-		Settings = 4,
-		BotIcon = 5,
-		BotGame = 6,
-		BotStream = 7,
-		BotName = 8,
-		Disconnect = 9,
-		Restart = 10,
-		ListGuilds = 11,
-		Shards = 12,
+		ListGuilds = 1,
 	};
 
 	public enum SpamType
@@ -1813,7 +1805,7 @@ namespace Advobot
 		DeletePrefs = 2,
 	}
 
-	public enum SettingsOnGuild
+	public enum SettingOnGuild
 	{
 		CommandPreferences = 1,
 		CommandsDisabledOnChannel = 2,
@@ -1839,6 +1831,20 @@ namespace Advobot
 		IgnoredCommandChannels = 22,
 		CommandsDisabledOnUser = 23,
 		CommandsDisabledOnRole = 24,
+	}
+
+	public enum SettingOnBot
+	{
+		BotOwner = 0,
+		TrustedUsers = 1,
+		Prefix = 2,
+		Game = 3,
+		Stream = 4,
+		ShardCount = 5,
+		MessageCacheSize = 6,
+		AlwaysDownloadUsers = 7,
+		LogLevel = 8,
+		SavePath = 9,
 	}
 
 	public enum GuildNotifications
@@ -1896,6 +1902,23 @@ namespace Advobot
 		Not_Failure = 0,
 		Not_Found = 1,
 		Invalid_Type = 2,
+	}
+
+	public enum BannedUserFailureReason
+	{
+		Not_Failure = 0,
+		No_Bans = 1,
+		No_Match = 2,
+		Too_Many_Matches = 3,
+		Invalid_Discriminator = 4,
+		Invalid_ID = 5,
+		No_Username_Or_ID = 6,
+	}
+
+	public enum CCEnum
+	{
+		Clear = 0,
+		Current = 1,
 	}
 	#endregion
 }

@@ -21,7 +21,7 @@ namespace Advobot
 
 		public static async Task OnGuildAvailable(SocketGuild guild)
 		{
-			Actions.WriteLine(String.Format("{0}: {1} is now online on shard {2}.", MethodBase.GetCurrentMethod().Name, guild.FormatGuild(), Variables.Client.GetShardFor(guild).ShardId));
+			Actions.WriteLine(String.Format("{0} is now online on shard {1}.", guild.FormatGuild(), Variables.Client.GetShardFor(guild).ShardId));
 			Actions.WriteLine(String.Format("Current memory usage is: {0}MB", Actions.GetMemory().ToString("0.00")));
 			Variables.TotalUsers += guild.MemberCount;
 			Variables.TotalGuilds++;
