@@ -301,11 +301,10 @@ namespace Advobot
 			}
 			else
 			{
-				var url = Constants.STREAM_URL + input;
-				botInfo.SetStream(url);
+				botInfo.SetStream(input);
 				Actions.SaveBotInfo();
 				await Actions.UpdateGame();
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the bot's stream to `{0}`.", url));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the bot's stream to `{0}`.", botInfo.Stream));
 			}
 		}
 

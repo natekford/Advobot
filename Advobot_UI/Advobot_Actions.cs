@@ -2676,7 +2676,7 @@ namespace Advobot
 			if (e == null)
 				return;
 
-			WriteLine("EXCEPTION: " + e.ToString(), name);
+			WriteLine("EXCEPTION: " + e, name);
 		}
 
 		public static void WriteLoadDone(IGuild guild, string method, string name)
@@ -4400,7 +4400,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Variables.Client.SetGameAsync(gameStr, strmStr, StreamType.Twitch);
+				await Variables.Client.SetGameAsync(gameStr, Constants.STREAM_URL + strmStr, StreamType.Twitch);
 			}
 		}
 

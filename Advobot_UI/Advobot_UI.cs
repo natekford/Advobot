@@ -72,33 +72,68 @@ namespace Advobot
 		private static Inline mHelpFirstHyperlink = UIMakeElement.MakeHyperlink(Constants.REPO, "Advobot");
 		private static Inline mHelpSecondRun = new Run(mHelpHelp);
 		private static Inline mHelpSecondHyperlink = UIMakeElement.MakeHyperlink(Constants.DISCORD_INV, "Here");
+		private static Paragraph mHelpParagraph = new Paragraph(mHelpFirstRun);
+
 		private static Inline mInfoFirstRun = new Run(Actions.FormatLoggedThings(true));
+		private static Paragraph mInfoParagraph = new Paragraph(mInfoFirstRun);
+
 		private static TreeView mFileTreeView = new TreeView();
-		private static Paragraph mFirstParagraph = new Paragraph(mHelpFirstRun);
-		private static Paragraph mSecondParagraph = new Paragraph();
-		private static Paragraph mThirdParagraph = new Paragraph(mInfoFirstRun);
-		private static Paragraph mFourthParagraph = new Paragraph();
+		private static Paragraph mFileParagraph = new Paragraph();
+
 		private static RichTextBox mMenuBox = new RichTextBox { IsReadOnly = true, IsDocumentEnabled = true, Visibility = Visibility.Collapsed, Background = Brushes.White, };
-		private const string mFirstButtonString = "Help";
-		private const string mSecondButtonString = "Settings";
-		private const string mThirdButtonString = "Info";
-		private const string mFourthButtonString = "Files";
+
 		private static string mLastButtonClicked;
 		private static Grid mButtonLayout = new Grid();
-		private static Button mFirstButton = new Button { Content = mFirstButtonString, };
-		private static Button mSecondButton = new Button { Content = mSecondButtonString, };
-		private static Button mThirdButton = new Button { Content = mThirdButtonString, };
-		private static Button mFourthButton = new Button { Content = mFourthButtonString, };
+		private static Button mHelpButton = new Button { Content = "Help", };
+		private static Button mSettingsButton = new Button { Content = "Settings", };
+		private static Button mInfoButton = new Button { Content = "Info", };
+		private static Button mFileButton = new Button { Content = "Files", };
+		#endregion
+
+		#region Settings
+		private static Grid mSettingsLayout = new Grid() { Visibility = Visibility.Collapsed };
+		private const int TITLE_START_COLUMN = 5;
+		private const int TITLE_COLUMN_LENGTH = 35;
+		private const int TB_START_COLUMN = 40;
+		private const int TB_COLUMN_LENGTH = 55;
+
+		private static CheckBox mAlwaysDownloadUsers = new CheckBox() { Content = "Always Download Users", IsChecked = Variables.BotInfo.AlwaysDownloadUsers, Tag = SettingOnBot.AlwaysDownloadUsers };
+		private static Viewbox mAlwaysDownloadUsersVB = new Viewbox() { Child = mAlwaysDownloadUsers, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
+
+		private static TextBox mPrefixTitle = new TextBox() { Text = "Prefix:", IsReadOnly = true, BorderThickness = new Thickness(0), VerticalAlignment = VerticalAlignment.Center };
+		private static TextBox mPrefixSetting = new TextBox() { Text = Variables.BotInfo.Prefix, Tag = SettingOnBot.Prefix, MaxLength = 10 };
+
+		private static TextBox mBotOwnerTitle = new TextBox() { Text = "Bot Owner:", IsReadOnly = true, BorderThickness = new Thickness(0), VerticalAlignment = VerticalAlignment.Center };
+		private static TextBox mBotOwnerSetting = new TextBox() { Text = Variables.BotInfo.BotOwner.ToString(), Tag = SettingOnBot.BotOwner, MaxLength = 18 };
+
+		private static TextBox mGameTitle = new TextBox() { Text = "Game:", IsReadOnly = true, BorderThickness = new Thickness(0), VerticalAlignment = VerticalAlignment.Center };
+		private static TextBox mGameSetting = new TextBox() { Text = Variables.BotInfo.Game, Tag = SettingOnBot.Game, MaxLength = 50 };
+
+		private static TextBox mStreamTitle = new TextBox() { Text = "Stream:", IsReadOnly = true, BorderThickness = new Thickness(0), VerticalAlignment = VerticalAlignment.Center };
+		private static TextBox mStreamSetting = new TextBox() { Text = Variables.BotInfo.Stream, Tag = SettingOnBot.Stream, MaxLength = 50 };
+
+		private static TextBox mShardTitle = new TextBox() { Text = "Shard Count:", IsReadOnly = true, BorderThickness = new Thickness(0), VerticalAlignment = VerticalAlignment.Center };
+		private static TextBox mShardSetting = new TextBox() { Text = Variables.BotInfo.ShardCount.ToString(), Tag = SettingOnBot.ShardCount, MaxLength = 3 };
+
+		private static TextBox mMessageCacheTitle = new TextBox() { Text = "Message Cache:", IsReadOnly = true, BorderThickness = new Thickness(0), VerticalAlignment = VerticalAlignment.Center };
+		private static TextBox mMessageCacheSetting = new TextBox() { Text = Variables.BotInfo.MessageCacheSize.ToString(), Tag = SettingOnBot.MessageCacheSize, MaxLength = 6 };
+
+		private static TextBox[] mTitleBoxes = new[] { mPrefixTitle, mBotOwnerTitle, mGameTitle, mStreamTitle, mShardTitle, mMessageCacheTitle };
+		private static TextBox[] mSettingBoxes = new[] { mPrefixSetting, mBotOwnerSetting, mGameSetting, mStreamSetting, mShardSetting, mMessageCacheSetting };
+
+		private static Button mSettingsSaveButton = new Button() { Content = "Save Settings" };
+
+		//TODO: LogLevel and TrustedUsers
 		#endregion
 
 		#region System Info
 		private static Grid mSysInfoLayout = new Grid();
 		private static TextBox mSysInfoUnder = new TextBox();
-		private static TextBox mLatency = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
-		private static TextBox mMemory = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
-		private static TextBox mThreads = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
-		private static TextBox mShards = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
-		private static TextBox mPrefix = new TextBox { IsReadOnly = true, BorderBrush = Brushes.Transparent, };
+		private static TextBox mLatency = new TextBox { IsReadOnly = true, BorderThickness = new Thickness(0, .5, 0, .5), };
+		private static TextBox mMemory = new TextBox { IsReadOnly = true, BorderThickness = new Thickness(0, .5, 0, .5), };
+		private static TextBox mThreads = new TextBox { IsReadOnly = true, BorderThickness = new Thickness(0, .5, 0, .5), };
+		private static TextBox mShards = new TextBox { IsReadOnly = true, BorderThickness = new Thickness(0, .5, 0, .5), };
+		private static TextBox mPrefix = new TextBox { IsReadOnly = true, BorderThickness = new Thickness(0, .5, 0, .5), };
 		private static Viewbox mLatencyView = new Viewbox { Child = mLatency, };
 		private static Viewbox mMemoryView = new Viewbox { Child = mMemory, };
 		private static Viewbox mThreadsView = new Viewbox { Child = mThreads, };
@@ -129,6 +164,16 @@ namespace Advobot
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mOutputBox, 0, 87, 0, 4);
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mMenuBox, 0, 90, 3, 1);
 
+			//Settings
+			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mSettingsLayout, 0, 87, 3, 1, 250, 100);
+			UILayoutModification.AddItemAndSetPositionsAndSpans(mSettingsLayout, mAlwaysDownloadUsersVB, 0, 10, 5, 90);
+			for (int i = 0; i < mTitleBoxes.Length; i++)
+			{
+				UILayoutModification.AddItemAndSetPositionsAndSpans(mSettingsLayout, mTitleBoxes[i], (i * 10) + 10, 10, TITLE_START_COLUMN, TITLE_COLUMN_LENGTH);
+				UILayoutModification.AddItemAndSetPositionsAndSpans(mSettingsLayout, mSettingBoxes[i], (i * 10) + 10, 10, TB_START_COLUMN, TB_COLUMN_LENGTH);
+			}
+			UILayoutModification.AddItemAndSetPositionsAndSpans(mSettingsLayout, mSettingsSaveButton, 240, 10, 0, 100);
+
 			//System Info
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mSysInfoLayout, 87, 3, 0, 3, 0, 5);
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mSysInfoLayout, mSysInfoUnder, 0, 1, 0, 5);
@@ -146,10 +191,10 @@ namespace Advobot
 
 			//Buttons
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mButtonLayout, 87, 13, 3, 1, 1, 4);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mButtonLayout, mFirstButton, 0, 1, 0, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mButtonLayout, mSecondButton, 0, 1, 1, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mButtonLayout, mThirdButton, 0, 1, 2, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mButtonLayout, mFourthButton, 0, 1, 3, 1);
+			UILayoutModification.AddItemAndSetPositionsAndSpans(mButtonLayout, mHelpButton, 0, 1, 0, 1);
+			UILayoutModification.AddItemAndSetPositionsAndSpans(mButtonLayout, mSettingsButton, 0, 1, 1, 1);
+			UILayoutModification.AddItemAndSetPositionsAndSpans(mButtonLayout, mInfoButton, 0, 1, 2, 1);
+			UILayoutModification.AddItemAndSetPositionsAndSpans(mButtonLayout, mFileButton, 0, 1, 3, 1);
 
 			//Edit
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mEditLayout, 0, 100, 0, 4, 100, 4);
@@ -162,8 +207,8 @@ namespace Advobot
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditButtonLayout, mEditCloseButton, 0, 1, 1, 1);
 
 			//Paragraphs
-			mFirstParagraph.Inlines.AddRange(new[] { mHelpFirstHyperlink, mHelpSecondRun, mHelpSecondHyperlink });
-			mFourthParagraph.Inlines.Add(mFileTreeView);
+			mHelpParagraph.Inlines.AddRange(new[] { mHelpFirstHyperlink, mHelpSecondRun, mHelpSecondHyperlink });
+			mFileParagraph.Inlines.Add(mFileTreeView);
 
 			//Events
 			mInputBox.KeyUp += AcceptInput;
@@ -172,12 +217,13 @@ namespace Advobot
 			mInputButton.Click += AcceptInput;
 			mOutputContextMenuSave.Click += SaveOutput;
 			mOutputContextMenuClear.Click += ClearOutput;
-			mFirstButton.Click += BringUpMenu;
-			mSecondButton.Click += BringUpMenu;
-			mThirdButton.Click += BringUpMenu;
-			mFourthButton.Click += BringUpMenu;
+			mHelpButton.Click += BringUpMenu;
+			mSettingsButton.Click += BringUpMenu;
+			mInfoButton.Click += BringUpMenu;
+			mFileButton.Click += BringUpMenu;
 			mEditCloseButton.Click += CloseEditScreen;
 			mEditSaveButton.Click += SaveEditScreen;
+			mSettingsSaveButton.Click += SaveSettings;
 
 			//Set this panel as the content for this window.
 			Content = mLayout;
@@ -212,15 +258,15 @@ namespace Advobot
 				mLatency.Text = String.Format("Latency: {0}ms", client.GetLatency());
 				mMemory.Text = String.Format("Memory: {0}MB", Actions.GetMemory().ToString("0.00"));
 				mThreads.Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
-				mShards.Text = String.Format("Shards: {0}", client.GetShards().Count);
-				mPrefix.Text = String.Format("Prefix: {0}", Variables.BotInfo.Prefix);
-				mThirdParagraph.Inlines.Clear();
-				mThirdParagraph.Inlines.Add(new Run(Actions.FormatLoggedThings(true) + "\n\nCharacter Count: ~540,000\nLine Count: ~15,500"));
+				mShards.Text = String.Format("Guilds: {0}", client.GetGuilds().Count);
+				mPrefix.Text = String.Format("Members: {0}", client.GetGuilds().SelectMany(x => x.Users).Select(x => x.Id).Distinct().Count());
+				mInfoParagraph.Inlines.Clear();
+				mInfoParagraph.Inlines.Add(new Run(Actions.FormatLoggedThings(true) + "\n\nCharacter Count: ~540,000\nLine Count: ~15,500"));
 			};
 			timer.Start();
 		}
 
-		public void AcceptInput(object sender, KeyEventArgs e)
+		private void AcceptInput(object sender, KeyEventArgs e)
 		{
 			var text = mInputBox.Text;
 			if (String.IsNullOrWhiteSpace(text))
@@ -240,11 +286,11 @@ namespace Advobot
 				}
 			}
 		}
-		public void AcceptInput(object sender, RoutedEventArgs e)
+		private void AcceptInput(object sender, RoutedEventArgs e)
 		{
 			UICommandHandler.GatherInput();
 		}
-		public void SaveOutput(object sender, RoutedEventArgs e)
+		private void SaveOutput(object sender, RoutedEventArgs e)
 		{
 			//Make sure the path is valid
 			var path = Actions.GetBaseBotDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
@@ -263,7 +309,7 @@ namespace Advobot
 			//Write to the console telling the user that the console log was successfully saved
 			Actions.WriteLine("Successfully saved the output log.");
 		}
-		public void ClearOutput(object sender, RoutedEventArgs e)
+		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
 			var result = MessageBox.Show("Are you sure you want to clear the output window?", Variables.BotName, MessageBoxButton.OKCancel);
 
@@ -276,7 +322,7 @@ namespace Advobot
 				}
 			}
 		}
-		public void BringUpMenu(object sender, RoutedEventArgs e)
+		private void BringUpMenu(object sender, RoutedEventArgs e)
 		{
 			//Make sure everything is loaded first
 			if (!Variables.Loaded)
@@ -285,79 +331,59 @@ namespace Advobot
 			var name = (sender as Button).Content.ToString();
 			//Remove the current blocks in the document
 			mMenuBox.Document.Blocks.Clear();
+			mMenuBox.Visibility = Visibility.Collapsed;
+			mSettingsLayout.Visibility = Visibility.Collapsed;
 			//Disable the rtb if the most recent button clicked is clicked again
 			if (Actions.CaseInsEquals(name, mLastButtonClicked))
 			{
 				UILayoutModification.SetColAndSpan(mOutputBox, 0, 4);
-				mMenuBox.Visibility = Visibility.Collapsed;
 				mLastButtonClicked = null;
 			}
 			else
 			{
 				//Resize the regular output window
 				UILayoutModification.SetColAndSpan(mOutputBox, 0, 3);
-				//Make the secondary output visible
-				mMenuBox.Visibility = Visibility.Visible;
 				//Keep track of the last button clicked
 				mLastButtonClicked = name;
 
 				//Show the text for help
-				if (Actions.CaseInsEquals(name, mFirstButtonString))
+				if (Actions.CaseInsEquals(name, mHelpButton.Content.ToString()))
 				{
+					//Make the secondary output visible
+					mMenuBox.Visibility = Visibility.Visible;
 					mMenuBox.SetBinding(FontSizeProperty, mFirstMenuBinding);
-					mMenuBox.Document.Blocks.Add(mFirstParagraph);
-				}
-				//Show the text for commands
-				else if (Actions.CaseInsEquals(name, mSecondButtonString))
-				{
-					mMenuBox.SetBinding(FontSizeProperty, mSecondMenuBinding);
-					mMenuBox.Document.Blocks.Add(mSecondParagraph);
-				}
-				//Show the text for info
-				else if (Actions.CaseInsEquals(name, mThirdButtonString))
-				{
-					mMenuBox.SetBinding(FontSizeProperty, mSecondMenuBinding);
-					mMenuBox.Document.Blocks.Add(mThirdParagraph);
+					mMenuBox.Document.Blocks.Add(mHelpParagraph);
 				}
 				//Show the text for settings
-				else if (Actions.CaseInsEquals(name, mFourthButtonString))
+				else if (Actions.CaseInsEquals(name, mSettingsButton.Content.ToString()))
 				{
-					mFourthParagraph = UIMakeElement.MakeGuildTreeView(mFourthParagraph);
+					//Make the settings layout visible
+					mSettingsLayout.Visibility = Visibility.Visible;
+				}
+				//Show the text for info
+				else if (Actions.CaseInsEquals(name, mInfoButton.Content.ToString()))
+				{
+					//Make the secondary output visible
+					mMenuBox.Visibility = Visibility.Visible;
 					mMenuBox.SetBinding(FontSizeProperty, mSecondMenuBinding);
-					mMenuBox.Document.Blocks.Add(mFourthParagraph);
+					mMenuBox.Document.Blocks.Add(mInfoParagraph);
+				}
+				//Show the text for settings
+				else if (Actions.CaseInsEquals(name, mFileButton.Content.ToString()))
+				{
+					//Make the secondary output visible
+					mMenuBox.Visibility = Visibility.Visible;
+					mFileParagraph = UIMakeElement.MakeGuildTreeView(mFileParagraph);
+					mMenuBox.SetBinding(FontSizeProperty, mSecondMenuBinding);
+					mMenuBox.Document.Blocks.Add(mFileParagraph);
 				}
 			}
 		}
-		public void ModifyMemHoverInfo(object sender, RoutedEventArgs e)
+		private void ModifyMemHoverInfo(object sender, RoutedEventArgs e)
 		{
 			UILayoutModification.ToggleToolTip(mMemHoverInfo);
 		}
-		public static void TreeViewDoubleClick(object sender, RoutedEventArgs e)
-		{
-			//Get the double clicked item
-			var treeItem = sender as TreeViewItem;
-			if (treeItem == null)
-				return;
-			//Get the path from the tag
-			var fileLocation = treeItem.Tag.ToString();
-			if (fileLocation == null)
-				return;
-			//Print out all the info in that file
-			var data = "";
-			using (var reader = new StreamReader(fileLocation))
-			{
-				string line;
-				while ((line = reader.ReadLine()) != null)
-				{
-					data += line + Environment.NewLine;
-				}
-			}
-			//Change the text in the bot and make it visible
-			mEditBox.Text = data;
-			mEditBox.Tag = fileLocation;
-			mEditLayout.Visibility = Visibility.Visible;
-		}
-		public void CloseEditScreen(object sender, RoutedEventArgs e)
+		private void CloseEditScreen(object sender, RoutedEventArgs e)
 		{
 			var result = MessageBox.Show("Are you sure you want to close the edit window?", Variables.BotName, MessageBoxButton.OKCancel);
 
@@ -370,7 +396,7 @@ namespace Advobot
 				}
 			}
 		}
-		public void SaveEditScreen(object sender, RoutedEventArgs e)
+		private void SaveEditScreen(object sender, RoutedEventArgs e)
 		{
 			var fileLocation = mEditBox.Tag.ToString();
 			if (String.IsNullOrWhiteSpace(fileLocation) || !File.Exists(fileLocation))
@@ -402,6 +428,119 @@ namespace Advobot
 				}
 				UILayoutModification.ToggleAndUntoggleUIEle(mEditSaveBox);
 			}
+		}
+		private void SaveSettings(object sender, RoutedEventArgs e)
+		{
+			var botInfo = Variables.BotInfo;
+			var success = new List<string>();
+			var changed = new List<string>();
+
+			//Go through each setting and update them
+			foreach (var tb in mSettingBoxes)
+			{
+				var setting = (SettingOnBot)tb.Tag;
+				if (setting == default(SettingOnBot))
+					continue;
+
+				var text = tb.Text;
+				if (Actions.CaseInsEquals(botInfo.GetSetting(setting), text))
+					continue;
+
+				var name = Enum.GetName(typeof(SettingOnBot), setting);
+				changed.Add(name);
+				switch (setting)
+				{
+					case SettingOnBot.Prefix:
+					{
+						botInfo.SetPrefix(text);
+						success.Add(name);
+						break;
+					}
+					case SettingOnBot.BotOwner:
+					{
+						if (ulong.TryParse(text, out ulong id))
+						{
+							botInfo.SetBotOwner(id);
+							success.Add(name);
+						}
+						break;
+					}
+					case SettingOnBot.Game:
+					{
+						botInfo.SetGame(text);
+						success.Add(name);
+						break;
+					}
+					case SettingOnBot.Stream:
+					{
+						botInfo.SetStream(text);
+						success.Add(name);
+						break;
+					}
+					case SettingOnBot.ShardCount:
+					{
+						if (int.TryParse(text, out int shardCount))
+						{
+							botInfo.SetShardCount(shardCount);
+							success.Add(name);
+						}
+						break;
+					}
+					case SettingOnBot.MessageCacheSize:
+					{
+						if (int.TryParse(text, out int cacheSize))
+						{
+							botInfo.SetCacheSize(cacheSize);
+							success.Add(name);
+						}
+						break;
+					}
+				}
+			}
+			var failure = changed.Except(success);
+
+			if (mAlwaysDownloadUsers.IsChecked.Value != botInfo.AlwaysDownloadUsers)
+			{
+				botInfo.SetAlwaysDownloadUsers(!botInfo.AlwaysDownloadUsers);
+				success.Add(Enum.GetName(typeof(SettingOnBot), SettingOnBot.AlwaysDownloadUsers));
+			}
+
+			//Notify what was saved
+			if (success.Any())
+			{
+				Actions.WriteLine(String.Format("Successfully saved: {0}", String.Join(", ", success)));
+				Actions.UpdateGame().Forget();
+				Actions.SaveBotInfo();
+			}
+			if (failure.Any())
+			{
+				Actions.WriteLine(String.Format("Failed to save: {0}", String.Join(", ", failure)));
+			}
+		}
+		public static void TreeViewDoubleClick(object sender, RoutedEventArgs e)
+		{
+			//Get the double clicked item
+			var treeItem = sender as TreeViewItem;
+			if (treeItem == null)
+				return;
+			//Get the path from the tag
+			var fileLocation = treeItem.Tag.ToString();
+			if (fileLocation == null)
+				return;
+			//Print out all the info in that file
+			var data = "";
+			using (var reader = new StreamReader(fileLocation))
+			{
+				string line;
+				while ((line = reader.ReadLine()) != null)
+				{
+					data += line + Environment.NewLine;
+				}
+			}
+			//Change the text in the bot and make it visible
+			mEditBox.Text = data;
+			mEditBox.Tag = fileLocation;
+			mEditLayout.Visibility = Visibility.Visible;
 		}
 
 		public static RichTextBox Output { get { return mOutputBox; } }
@@ -701,26 +840,15 @@ namespace Advobot
 	{
 		public static void PAUSE(string input)
 		{
-			//Make sure valid input is passed in
-			if (input == null)
+			if (Variables.Pause)
 			{
-				Actions.WriteLine("No valid args supplied.");
-				return;
-			}
-
-			if (Actions.CaseInsEquals(input, "on"))
-			{
-				Actions.WriteLine("Successfully paused the bot.");
-				Variables.Pause = true;
-			}
-			else if (Actions.CaseInsEquals(input, "off"))
-			{
-				Actions.WriteLine("Successfully unpaused the bot.");
 				Variables.Pause = false;
+				Actions.WriteLine("Successfully unpaused the bot.");
 			}
 			else
 			{
-				Actions.WriteLine(Constants.ACTION_ERROR);
+				Variables.Pause = true;
+				Actions.WriteLine("Successfully paused the bot.");
 			}
 		}
 
@@ -750,7 +878,7 @@ namespace Advobot
 					totalLines += File.ReadAllLines(file).Count();
 				}
 			}
-			Actions.WriteLine(String.Format("Current Totals:{0}\t\tChars: {1}{0}\t\tLines: {2}", Environment.NewLine, totalChars, totalLines));
+			Actions.WriteLine(String.Format("Current Totals:{0}\t\t\t Chars: {1}{0}\t\t\t Lines: {2}", Environment.NewLine, totalChars, totalLines));
 #endif
 		}
 	}

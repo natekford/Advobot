@@ -15,7 +15,7 @@ namespace Advobot
 	{
 		public static Task Log(LogMessage msg)
 		{
-			Console.WriteLine(msg);
+			Actions.WriteLine(msg.Message, msg.Source);
 			return Task.CompletedTask;
 		}
 

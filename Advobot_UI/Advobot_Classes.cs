@@ -411,11 +411,49 @@ namespace Advobot
 			Prefix = Constants.BOT_PREFIX;
 			ShardCount = 1;
 			//TODO: a way to change these values
-			MessageCacheSize = 10000;
+			MessageCacheSize = 1000;
 			AlwaysDownloadUsers = true;
 			LogLevel = LogSeverity.Warning;
 		}
 
+		public string GetSetting(SettingOnBot setting)
+		{
+			var text = "";
+			switch (setting)
+			{
+				case SettingOnBot.BotOwner:
+				{
+					text = BotOwner.ToString();
+					break;
+				}
+				case SettingOnBot.Prefix:
+				{
+					text = Prefix;
+					break;
+				}
+				case SettingOnBot.Game:
+				{
+					text = Game;
+					break;
+				}
+				case SettingOnBot.Stream:
+				{
+					text = Stream;
+					break;
+				}
+				case SettingOnBot.ShardCount:
+				{
+					text = ShardCount.ToString();
+					break;
+				}
+				case SettingOnBot.MessageCacheSize:
+				{
+					text = MessageCacheSize.ToString();
+					break;
+				}
+			}
+			return text;
+		}
 		public void SetBotOwner(ulong ID)
 		{
 			BotOwner = ID;
@@ -464,6 +502,30 @@ namespace Advobot
 		{
 			ShardCount = i;
 		}
+		public void SetCacheSize(int i)
+		{
+			MessageCacheSize = i;
+		}
+		public void ResetCacheSize()
+		{
+			MessageCacheSize = 1000;
+		}
+		public void SetAlwaysDownloadUsers(bool dl)
+		{
+			AlwaysDownloadUsers = dl;
+		}
+		public void ResetAlwaysDownloadUsers()
+		{
+			AlwaysDownloadUsers = true;
+		}
+		public void SetLogLevel(LogSeverity logLevel)
+		{
+			LogLevel = logLevel;
+		}
+		public void ResetLogLevel()
+		{
+			LogLevel = LogSeverity.Warning;
+		}
 		public void ResetAll()
 		{
 			ResetPrefix();
@@ -471,6 +533,9 @@ namespace Advobot
 			ResetBotOwner();
 			ResetStream();
 			ResetGame();
+			ResetCacheSize();
+			ResetAlwaysDownloadUsers();
+			ResetLogLevel();
 		}
 		public void PostDeserialize()
 		{
