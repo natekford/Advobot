@@ -61,7 +61,6 @@ namespace Advobot
 			IsReadOnly = true,
 			IsDocumentEnabled = true,
 			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
-			Background = Brushes.White,
 		};
 		#endregion
 
@@ -79,7 +78,6 @@ namespace Advobot
 			IsReadOnly = true,
 			IsDocumentEnabled = true,
 			Visibility = Visibility.Collapsed,
-			Background = Brushes.White,
 		};
 
 		private static string mLastButtonClicked;
@@ -112,12 +110,26 @@ namespace Advobot
 
 		private static Grid mSettingsLayout = new Grid
 		{
-			Visibility = Visibility.Collapsed
+			Visibility = Visibility.Collapsed,
 		};
 		private const int TITLE_START_COLUMN = 5;
 		private const int TITLE_COLUMN_LENGTH = 35;
 		private const int TB_START_COLUMN = 40;
 		private const int TB_COLUMN_LENGTH = 55;
+
+		/*
+		private static TextBox mDarkModeTitle = UIMakeElement.MakeTitle("Darkmode:");
+		private static Viewbox mDarkModeSetting = new Viewbox
+		{
+			Child = new CheckBox
+			{
+				IsChecked = Variables.BotInfo.DarkMode,
+				Tag = SettingOnBot.DarkMode,
+			},
+			HorizontalAlignment = HorizontalAlignment.Left,
+			VerticalAlignment = VerticalAlignment.Center,
+			Tag = SettingOnBot.DarkMode
+		};*/
 
 		private static TextBox mDownloadUsersTitle = UIMakeElement.MakeTitle("Download Users:");
 		private static Viewbox mDownloadUsersSetting = new Viewbox
@@ -155,11 +167,39 @@ namespace Advobot
 		{
 			VerticalContentAlignment = VerticalAlignment.Center,
 			Tag = SettingOnBot.LogLevel,
-			ItemsSource = UIMakeElement.MakeComboBoxSourceOutOfEnum(typeof(Discord.LogSeverity))
+			ItemsSource = UIMakeElement.MakeComboBoxSourceOutOfEnum(typeof(Discord.LogSeverity)),
+		};
+
+		private static TextBox mTrustedUsersTitle = UIMakeElement.MakeTitle("Trusted Users:");
+		private static TextBox mTrustedUsersAddBox = UIMakeElement.MakeSetting(SettingOnBot.TrustedUsers, 18);
+		private static Button mTrustedUsersAddButton = new Button
+		{
+			Content = "+",
+		};
+		private static Grid mTrustedUsersAddGrid = new Grid
+		{
+			Tag = SettingOnBot.TrustedUsers,
+		};
+
+		private static TextBox mPlaceholderTitle = UIMakeElement.MakeTitle("");
+		private static ComboBox mTrustedUsersComboBox = new ComboBox
+		{
+			VerticalContentAlignment = VerticalAlignment.Center,
+			Tag = SettingOnBot.TrustedUsers,
+			ItemsSource = Variables.BotInfo.TrustedUsers,
+		};
+		private static Button mTrustedUsersRemoveButton = new Button
+		{
+			Content = "-",
+		};
+		private static Grid mTrustedUsersRemoveGrid = new Grid
+		{
+			Tag = SettingOnBot.TrustedUsers,
 		};
 
 		private static Control[] mTitleBoxes = new[] 
 		{
+			//mDarkModeTitle,
 			mDownloadUsersTitle,
 			mPrefixTitle,
 			mBotOwnerTitle,
@@ -167,10 +207,13 @@ namespace Advobot
 			mStreamTitle,
 			mShardTitle,
 			mMessageCacheTitle,
-			mLogLevelTitle
+			mLogLevelTitle,
+			mTrustedUsersTitle,
+			mPlaceholderTitle,
 		};
 		private static UIElement[] mSettings = new UIElement[] 
 		{
+			//mDarkModeSetting,
 			mDownloadUsersSetting,
 			mPrefixSetting,
 			mBotOwnerSetting,
@@ -178,7 +221,9 @@ namespace Advobot
 			mStreamSetting,
 			mShardSetting,
 			mMessageCacheSetting,
-			mLogLevelComboBox
+			mLogLevelComboBox,
+			mTrustedUsersAddGrid,
+			mTrustedUsersRemoveGrid,
 		};
 
 		private static Button mSettingsSaveButton = new Button
@@ -225,26 +270,25 @@ namespace Advobot
 		};
 		private static Grid mSearchTextLayout = new Grid
 		{
-			Background = Brushes.White
 		};
 
 		private static Viewbox mNameHeader = UIMakeElement.MakeStandardViewBox("Guild Name:");
 		private static TextBox mNameInput = new TextBox
 		{
 			MaxLength = 100,
-			TextWrapping = TextWrapping.Wrap
+			TextWrapping = TextWrapping.Wrap,
 		};
 		private static Viewbox mIDHeader = UIMakeElement.MakeStandardViewBox("ID:");
 		private static TextBox mIDInput = new TextBox
 		{
 			MaxLength = 18,
-			TextWrapping = TextWrapping.Wrap
+			TextWrapping = TextWrapping.Wrap,
 		};
 		private static ComboBox mFileComboBox = new ComboBox
 		{
 			VerticalContentAlignment = VerticalAlignment.Center,
 			Tag = SettingOnBot.LogLevel,
-			ItemsSource = UIMakeElement.MakeComboBoxSourceOutOfEnum(typeof(FileType))
+			ItemsSource = UIMakeElement.MakeComboBoxSourceOutOfEnum(typeof(FileType)),
 		};
 
 		private static Button mSearchButton = new Button
@@ -259,26 +303,68 @@ namespace Advobot
 
 		#region System Info
 		private static Grid mSysInfoLayout = new Grid();
-		private static Viewbox mLatency = new Viewbox { Child = new TextBox { IsReadOnly = true, BorderThickness = new Thickness(0), }, };
-		private static Viewbox mMemory = new Viewbox { Child = new TextBox { IsReadOnly = true, BorderThickness = new Thickness(0), }, };
-		private static Viewbox mThreads = new Viewbox { Child = new TextBox { IsReadOnly = true, BorderThickness = new Thickness(0), }, };
-		private static Viewbox mGuilds = new Viewbox { Child = new TextBox { IsReadOnly = true, BorderThickness = new Thickness(0), }, };
-		private static Viewbox mUsers = new Viewbox { Child = new TextBox { IsReadOnly = true, BorderThickness = new Thickness(0), }, };
+		private static Viewbox mLatency = new Viewbox
+		{
+			Child = new TextBox
+			{
+				IsReadOnly = true,
+				BorderThickness = new Thickness(0),
+			},
+		};
+		private static Viewbox mMemory = new Viewbox
+		{
+			Child = new TextBox
+			{
+				IsReadOnly = true,
+				BorderThickness = new Thickness(0),
+			},
+		};
+		private static Viewbox mThreads = new Viewbox
+		{
+			Child = new TextBox
+			{
+				IsReadOnly = true,
+				BorderThickness = new Thickness(0),
+			},
+		};
+		private static Viewbox mGuilds = new Viewbox
+		{
+			Child = new TextBox
+			{
+				IsReadOnly = true,
+				BorderThickness = new Thickness(0),
+			},
+		};
+		private static Viewbox mUsers = new Viewbox
+		{
+			Child = new TextBox
+			{
+				IsReadOnly = true,
+				BorderThickness = new Thickness(0),
+			},
+		};
 		#endregion
 
 		#region Misc
-		private static ToolTip mMemHoverInfo = new ToolTip { Content = "This is not guaranteed to be 100% correct.", };
-		private static ToolTip mSaveToolTip = new ToolTip() { Content = "Successfully saved the file." };
-		private static Binding mLargeText = UILayoutModification.CreateBinding(.275);
-		private static Binding mMediumText = UILayoutModification.CreateBinding(.06);
-		private static Binding mSmallText = UILayoutModification.CreateBinding(.022);
-		private static Binding mTinyText = UILayoutModification.CreateBinding(.019);
+		private static ToolTip mMemHoverInfo = new ToolTip
+		{
+			Content = "This is not guaranteed to be 100% correct.",
+		};
+		private static ToolTip mSaveToolTip = new ToolTip
+		{
+			Content = "Successfully saved the file.",
+		};
+		public const double LARGE_TEXT = .275;
+		public const double MEDIUM_TEXT = .06;
+		public const double SMALL_TEXT = .022;
+		public const double TINY_TEXT = .019;
 		#endregion
 
 		public BotWindow()
 		{
 			FontFamily = new FontFamily("Courier New");
 			InitializeComponent();
+			Loaded += BotWindow_LoadedEvent;
 		}
 		private void InitializeComponent()
 		{
@@ -316,12 +402,18 @@ namespace Advobot
 
 			//Settings
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mSettingsLayout, 0, 87, 3, 1, 250, 100);
+			UILayoutModification.AddCols(mTrustedUsersAddGrid, 10);
+			UILayoutModification.AddItemAndSetPositionsAndSpans(mTrustedUsersAddGrid, mTrustedUsersAddBox, 0, 1, 0, 9);
+			UILayoutModification.AddItemAndSetPositionsAndSpans(mTrustedUsersAddGrid, mTrustedUsersAddButton, 0, 1, 9, 1);
+			UILayoutModification.AddCols(mTrustedUsersRemoveGrid, 10);
+			UILayoutModification.AddItemAndSetPositionsAndSpans(mTrustedUsersRemoveGrid, mTrustedUsersComboBox, 0, 1, 0, 9);
+			UILayoutModification.AddItemAndSetPositionsAndSpans(mTrustedUsersRemoveGrid, mTrustedUsersRemoveButton, 0, 1, 9, 1);
 			for (int i = 0; i < mTitleBoxes.Length; i++)
 			{
 				UILayoutModification.AddItemAndSetPositionsAndSpans(mSettingsLayout, mTitleBoxes[i], (i * 10), 10, TITLE_START_COLUMN, TITLE_COLUMN_LENGTH);
-				UILayoutModification.SetFontSizeProperty(mTitleBoxes[i], mSmallText);
+				UILayoutModification.SetFontSizeProperty(mTitleBoxes[i], SMALL_TEXT);
 				UILayoutModification.AddItemAndSetPositionsAndSpans(mSettingsLayout, mSettings[i], (i * 10), 10, TB_START_COLUMN, TB_COLUMN_LENGTH);
-				UILayoutModification.SetFontSizeProperty((dynamic)mSettings[i], mSmallText);
+				UILayoutModification.SetFontSizeProperty((dynamic)mSettings[i], SMALL_TEXT);
 			}
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mSettingsLayout, mSettingsSaveButton, 240, 10, 0, 100);
 
@@ -345,9 +437,9 @@ namespace Advobot
 			UILayoutModification.AddItemAndSetPositionsAndSpans(mSearchTextLayout, mSearchCloseButton, 69, 15, 55, 25);
 
 			//Font size properties
-			UILayoutModification.SetFontSizeProperties(new Control[] { mInputBox }, mLargeText);
-			UILayoutModification.SetFontSizeProperties(new Control[] { mNameInput, mIDInput }, mMediumText);
-			UILayoutModification.SetFontSizeProperties(new Control[] { mEditBox, mEditSaveBox }, mSmallText);
+			UILayoutModification.SetFontSizeProperties(new Control[] { mInputBox }, LARGE_TEXT);
+			UILayoutModification.SetFontSizeProperties(new Control[] { mNameInput, mIDInput }, MEDIUM_TEXT);
+			UILayoutModification.SetFontSizeProperties(new Control[] { mEditBox, mEditSaveBox }, SMALL_TEXT);
 
 			//Paragraphs
 			mFileParagraph.Inlines.Add(mFileTreeView);
@@ -359,6 +451,8 @@ namespace Advobot
 			mInputButton.Click += AcceptInput;
 			mOutputContextMenuSave.Click += SaveOutput;
 			mOutputContextMenuClear.Click += ClearOutput;
+			mTrustedUsersRemoveButton.Click += RemoveTrustedUser;
+			mTrustedUsersAddButton.Click += AddTrustedUser;
 			mHelpButton.Click += BringUpMenu;
 			mSettingsButton.Click += BringUpMenu;
 			mInfoButton.Click += BringUpMenu;
@@ -368,7 +462,7 @@ namespace Advobot
 			mSettingsSaveButton.Click += SaveSettings;
 			mFileSearchButton.Click += BringUpFileSearch;
 			mSearchButton.Click += FileSearch;
-			mSearchButton.Click += CloseSearch;
+			mSearchCloseButton.Click += CloseSearch;
 
 			//Set this panel as the content for this window and run the application
 			Content = mLayout;
@@ -409,6 +503,10 @@ namespace Advobot
 			};
 			timer.Start();
 		}
+		private void BotWindow_LoadedEvent(object sender, RoutedEventArgs e)
+		{
+
+		}
 
 		private void AcceptInput(object sender, KeyEventArgs e)
 		{
@@ -434,7 +532,6 @@ namespace Advobot
 		{
 			UICommandHandler.GatherInput();
 		}
-
 		private void SaveOutput(object sender, RoutedEventArgs e)
 		{
 			//Make sure the path is valid
@@ -498,7 +595,7 @@ namespace Advobot
 				//Show the text for help
 				if (Actions.CaseInsEquals(name, mHelpButton.Content.ToString()))
 				{
-					UILayoutModification.SetFontSizeProperty(mMenuOutput, mTinyText);
+					UILayoutModification.SetFontSizeProperty(mMenuOutput, TINY_TEXT);
 					mMenuOutput.Document.Blocks.Add(mHelpParagraph);
 				}
 				//Show the text for settings
@@ -510,13 +607,13 @@ namespace Advobot
 				//Show the text for info
 				else if (Actions.CaseInsEquals(name, mInfoButton.Content.ToString()))
 				{
-					UILayoutModification.SetFontSizeProperty(mMenuOutput, mSmallText);
+					UILayoutModification.SetFontSizeProperty(mMenuOutput, SMALL_TEXT);
 					mMenuOutput.Document.Blocks.Add(mInfoParagraph);
 				}
 				//Show the text for files
 				else if (Actions.CaseInsEquals(name, mFileButton.Content.ToString()))
 				{
-					UILayoutModification.SetFontSizeProperty(mMenuOutput, mSmallText);
+					UILayoutModification.SetFontSizeProperty(mMenuOutput, SMALL_TEXT);
 					mFileParagraph.Inlines.Clear();
 					mFileParagraph.Inlines.Add(mFileTreeView = UIMakeElement.MakeGuildTreeView());
 					mMenuOutput.Document.Blocks.Add(mFileParagraph);
@@ -527,6 +624,38 @@ namespace Advobot
 		private void ModifyMemHoverInfo(object sender, RoutedEventArgs e)
 		{
 			UILayoutModification.ToggleToolTip(mMemHoverInfo);
+		}
+		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
+		{
+			if (mTrustedUsersComboBox.SelectedItem == null)
+				return;
+
+			var userID = (ulong)mTrustedUsersComboBox.SelectedItem;
+			var curr = mTrustedUsersComboBox.Items.Cast<ulong>().ToList();
+			if (!curr.Contains(userID))
+				return;
+
+			curr.Remove(userID);
+			mTrustedUsersComboBox.ItemsSource = curr.Distinct();
+		}
+		private void AddTrustedUser(object sender, RoutedEventArgs e)
+		{
+			var text = mTrustedUsersAddBox.Text;
+			mTrustedUsersAddBox.Text = "";
+
+			if (ulong.TryParse(text, out ulong userID))
+			{
+				var curr = mTrustedUsersComboBox.Items.Cast<ulong>().ToList();
+				if (curr.Contains(userID))
+					return;
+
+				curr.Add(userID);
+				mTrustedUsersComboBox.ItemsSource = curr.Distinct();
+			}
+			else
+			{
+				Actions.WriteLine(String.Format("The given input '{0}' is not a valid ID.", text));
+			}
 		}
 
 		private void CloseSearch(object sender, RoutedEventArgs e)
@@ -758,13 +887,25 @@ namespace Advobot
 				Actions.WriteLine(String.Format("Failed to save: {0}", String.Join(", ", failure)));
 			}
 		}
+		private ReturnedSetting SaveSetting(Grid g, SettingOnBot setting, BotGlobalInfo botInfo)
+		{
+			var children = g.Children;
+			foreach (var child in children)
+			{
+				var saved = (ReturnedSetting)SaveSetting((dynamic)child, setting, botInfo);
+				if (saved.Status != NSF.Nothing)
+				{
+					return saved;
+				}
+			}
+			return new ReturnedSetting(setting, NSF.Nothing);
+		}
 		private ReturnedSetting SaveSetting(TextBox tb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
 			var text = tb.Text;
 			if (Actions.CaseInsEquals(botInfo.GetSetting(setting), text))
 				return new ReturnedSetting(setting, NSF.Nothing);
 
-			var name = Enum.GetName(typeof(SettingOnBot), setting);
 			switch (setting)
 			{
 				case SettingOnBot.Prefix:
@@ -822,20 +963,54 @@ namespace Advobot
 			if (!cb.IsChecked.HasValue)
 				return new ReturnedSetting(setting, NSF.Nothing);
 
-			if (cb.IsChecked.Value != botInfo.AlwaysDownloadUsers)
+			switch (setting)
 			{
-				botInfo.SetAlwaysDownloadUsers(!botInfo.AlwaysDownloadUsers);
-				return new ReturnedSetting(setting, NSF.Success);
+				case SettingOnBot.AlwaysDownloadUsers:
+				{
+					if (cb.IsChecked.Value != botInfo.AlwaysDownloadUsers)
+					{
+						botInfo.SetAlwaysDownloadUsers(!botInfo.AlwaysDownloadUsers);
+						return new ReturnedSetting(setting, NSF.Success);
+					}
+					break;
+				}
+				case SettingOnBot.DarkMode:
+				{
+					if (cb.IsChecked.Value != botInfo.DarkMode)
+					{
+						botInfo.SetDarkMode(!botInfo.DarkMode);
+						return new ReturnedSetting(setting, NSF.Success);
+					}
+					break;
+				}
 			}
 			return new ReturnedSetting(setting, NSF.Nothing);
 		}
 		private ReturnedSetting SaveSetting(ComboBox cb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
-			var logLevel = (Discord.LogSeverity)((TextBox)cb.SelectedItem).Tag;
-			if (logLevel != botInfo.LogLevel)
+			switch (setting)
 			{
-				botInfo.SetLogLevel(logLevel);
-				return new ReturnedSetting(setting, NSF.Success);
+				case SettingOnBot.LogLevel:
+				{
+					var logLevel = (Discord.LogSeverity)((TextBox)cb.SelectedItem).Tag;
+					if (logLevel != botInfo.LogLevel)
+					{
+						botInfo.SetLogLevel(logLevel);
+						return new ReturnedSetting(setting, NSF.Success);
+					}
+					break;
+				}
+				case SettingOnBot.TrustedUsers:
+				{
+					var trustedUsers = cb.Items.Cast<ulong>().ToList();
+					var diffUsers = botInfo.TrustedUsers.Except(trustedUsers);
+					if (trustedUsers.Count != botInfo.TrustedUsers.Count || diffUsers.Any())
+					{
+						botInfo.SetTrustedUsers(trustedUsers);
+						return new ReturnedSetting(setting, NSF.Success);
+					}
+					break;
+				}
 			}
 			return new ReturnedSetting(setting, NSF.Nothing);
 		}
@@ -897,7 +1072,7 @@ namespace Advobot
 			SetColAndSpan(child, columnStart, columnLength);
 		}
 
-		public static Binding CreateBinding(double val)
+		private static Binding CreateBinding(double val)
 		{
 			return new Binding
 			{
@@ -907,20 +1082,29 @@ namespace Advobot
 			};
 		}
 
-		public static void SetFontSizeProperties(IEnumerable<Control> elements, Binding binding)
+		public static void SetFontSizeProperties(IEnumerable<Control> elements, double size)
 		{
 			foreach (var ele in elements)
 			{
-				SetFontSizeProperty(ele, binding);
+				SetFontSizeProperty(ele, size);
 			}
 		}
 
-		public static void SetFontSizeProperty(Control element, Binding binding)
+		public static void SetFontSizeProperty(Control element, double size)
 		{
-			element.SetBinding(Control.FontSizeProperty, binding);
+			element.SetBinding(Control.FontSizeProperty, CreateBinding(size));
 		}
 
-		public static void SetFontSizeProperty(UIElement element, Binding binding)
+		public static void SetFontSizeProperty(Grid element, double size)
+		{
+			var children = element.Children;
+			foreach (var child in children)
+			{
+				SetFontSizeProperty((dynamic)child, size);
+			}
+		}
+
+		public static void SetFontSizeProperty(UIElement element, double size)
 		{
 			return;
 		}
@@ -994,7 +1178,7 @@ namespace Advobot
 			var tbs = new List<TextBox>();
 			foreach (var value in values)
 			{
-				var tempTB = new TextBox()
+				var tempTB = new TextBox
 				{
 					Text = Enum.GetName(type, value),
 					Tag = value,
@@ -1003,6 +1187,28 @@ namespace Advobot
 					BorderThickness = new Thickness(0),
 					Background = Brushes.Transparent,
 				};
+				tbs.Add(tempTB);
+			}
+			return tbs;
+		}
+
+		public static IEnumerable<TextBox> MakeRemoveableComboBoxSourceByNum(int num, int maxLength)
+		{
+			var ids = Variables.BotInfo.TrustedUsers;
+			var tbs = new List<TextBox>();
+			for (int i = 0; i < num; i++)
+			{
+				var tempTB = new TextBox
+				{
+					Text = ids.Count > i ? ids[i].ToString() : "",
+					IsReadOnly = false,
+					IsHitTestVisible = true,
+					Tag = i,
+					MaxLength = maxLength,
+					BorderThickness = new Thickness(0),
+					Background = Brushes.Transparent,
+				};
+				UILayoutModification.SetFontSizeProperty(tempTB, BotWindow.SMALL_TEXT);
 				tbs.Add(tempTB);
 			}
 			return tbs;
@@ -1118,12 +1324,23 @@ namespace Advobot
 
 		public static TextBox MakeTitle(string text)
 		{
-			return new TextBox { Text = text, IsReadOnly = true, BorderThickness = new Thickness(0), VerticalAlignment = VerticalAlignment.Center };
+			return new TextBox
+			{
+				Text = text,
+				IsReadOnly = true,
+				BorderThickness = new Thickness(0),
+				VerticalAlignment = VerticalAlignment.Center
+			};
 		}
 
 		public static TextBox MakeSetting(SettingOnBot setting, int length)
 		{
-			return new TextBox { VerticalContentAlignment = VerticalAlignment.Center, Tag = setting, MaxLength = length };
+			return new TextBox
+			{
+				VerticalContentAlignment = VerticalAlignment.Center,
+				Tag = setting,
+				MaxLength = length
+			};
 		}
 	}
 

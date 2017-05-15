@@ -403,6 +403,8 @@ namespace Advobot
 		public bool AlwaysDownloadUsers { get; private set; }
 		[JsonProperty]
 		public LogSeverity LogLevel { get; private set; }
+		[JsonProperty]
+		public bool DarkMode { get; private set; }
 
 		public BotGlobalInfo()
 		{
@@ -415,6 +417,7 @@ namespace Advobot
 			MessageCacheSize = 1000;
 			AlwaysDownloadUsers = true;
 			LogLevel = LogSeverity.Warning;
+			DarkMode = false;
 		}
 
 		public string GetSetting(SettingOnBot setting)
@@ -470,6 +473,10 @@ namespace Advobot
 		public void RemoveTrustedUser(ulong ID)
 		{
 			TrustedUsers.ThreadSafeRemove(ID);
+		}
+		public void SetTrustedUsers(List<ulong> IDs)
+		{
+			TrustedUsers = IDs;
 		}
 		public void ResetTrustedUsers()
 		{
@@ -527,6 +534,14 @@ namespace Advobot
 		{
 			LogLevel = LogSeverity.Warning;
 		}
+		public void SetDarkMode(bool dm)
+		{
+			DarkMode = dm;
+		}
+		public void ResetDarkMode()
+		{
+			DarkMode = false;
+		}
 		public void ResetAll()
 		{
 			ResetPrefix();
@@ -537,6 +552,7 @@ namespace Advobot
 			ResetCacheSize();
 			ResetAlwaysDownloadUsers();
 			ResetLogLevel();
+			ResetDarkMode();
 		}
 		public void PostDeserialize()
 		{
@@ -1947,6 +1963,7 @@ namespace Advobot
 		AlwaysDownloadUsers = 7,
 		LogLevel = 8,
 		SavePath = 9,
+		DarkMode = 10,
 	}
 
 	public enum GuildNotifications
