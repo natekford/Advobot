@@ -124,7 +124,7 @@ namespace Advobot
 				return;
 			}
 
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 3, 3), new[] { "target", "extra" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 3), new[] { "target", "extra" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -247,7 +247,7 @@ namespace Advobot
 				return;
 			}
 
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -377,7 +377,7 @@ namespace Advobot
 			}
 
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3, 3));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -524,7 +524,7 @@ namespace Advobot
 			}
 
 			//Split input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3, 3));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -683,7 +683,7 @@ namespace Advobot
 			}
 
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 3, 3));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);

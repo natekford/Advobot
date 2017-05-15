@@ -29,7 +29,7 @@ namespace Advobot
 			}
 
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2), new[] { "time" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2), new[] { "time" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -78,7 +78,7 @@ namespace Advobot
 		public async Task Mute([Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2), new[] { "type" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2), new[] { "type" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -135,7 +135,7 @@ namespace Advobot
 		public async Task Deafen([Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2), new[] { "time" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2), new[] { "time" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -191,7 +191,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task MoveUser([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -244,7 +244,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task MoveUsers([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -307,7 +307,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Nickname([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -365,7 +365,7 @@ namespace Advobot
 		public async Task NicknameAllWithName([Remainder] string input)
 		{
 			//Split and get variables
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3, 3));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -455,7 +455,7 @@ namespace Advobot
 		public async Task ReplaceNonAscii([Optional, Remainder] string input)
 		{
 			//Splitting input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 3, 3), new[] { "ansi" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 3), new[] { "ansi" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -524,7 +524,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task PruneMembers([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -600,7 +600,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Ban([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3, 3), new[] { "days", "time" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "days", "time" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -673,7 +673,7 @@ namespace Advobot
 		public async Task Unban([Remainder] string input)
 		{
 			//Split the args
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3, 3), new[] { "username", "discriminator", "id", "reason" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "username", "discriminator", "id", "reason" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -758,14 +758,14 @@ namespace Advobot
 
 		[Command("removemessages")]
 		[Alias("rm")]
-		[Usage("<@User> <#Channel> [Number of Messages]")]
-		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel.")]
+		[Usage("<User> <Channel> [Number of Messages]")]
+		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel. These arguments need to be mentions to work.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageMessages)]
 		[DefaultEnabled(true)]
 		public async Task RemoveMessages([Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3, 3));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -830,7 +830,7 @@ namespace Advobot
 				++requestCount;
 			}
 
-			var response = String.Format("Successfully deleted `{0}` message{1}", requestCount, Actions.GetPlural(requestCount));
+			var response = String.Format("Successfully deleted `{0}` message{1}", await Actions.RemoveMessages(channel, user, requestCount), Actions.GetPlural(requestCount));
 			if (user != null)
 			{
 				response += String.Format(" from `{0}`", user.FormatUser());
@@ -839,8 +839,6 @@ namespace Advobot
 			{
 				response += String.Format(" on `{0}`", channel.FormatChannel());
 			}
-
-			await Actions.RemoveMessages(channel, user, requestCount);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, response + ".");
 		}
 
@@ -855,7 +853,7 @@ namespace Advobot
 		{
 			var guildInfo = Variables.Guilds[Context.Guild.Id];
 
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4, 4), new[] { "roles", "messages", "time", "guild" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "roles", "messages", "time", "guild" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -1000,7 +998,7 @@ namespace Advobot
 		public async Task ForAllWithRole([Remainder] string input)
 		{
 			//Split arguments
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 4, 4));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 4));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);

@@ -43,7 +43,7 @@ namespace Advobot
 			}
 
 			//Break the input into pieces
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3, 3), new[] { "group" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "group" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);

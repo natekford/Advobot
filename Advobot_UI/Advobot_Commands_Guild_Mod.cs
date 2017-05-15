@@ -99,7 +99,7 @@ namespace Advobot
 		public async Task ChangeGuildAFK([Remainder] string input)
 		{
 			//Split at space into two args
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2), new[] { "time" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2), new[] { "time" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -208,7 +208,7 @@ namespace Advobot
 		[Command("guildcreate")]
 		[Alias("gdc")]
 		[Usage("[Name]")]
-		[Summary("Creates a guild.")]
+		[Summary("Creates a guild with the bot as the owner.")]
 		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
 		public async Task GuildCreate([Remainder] string input)
@@ -225,56 +225,30 @@ namespace Advobot
 			await (await Context.User.CreateDMChannelAsync()).SendMessageAsync(invite.Url);
 		}
 
-		[Command("guildadmin")]
-		[Alias("gda")]
+		[Command("guildowner")]
+		[Alias("gdo")]
 		[Usage("")]
-		[Summary("Gives you admin assuming only you and the bot are in the server.")]
+		[Summary("If the bot is the current owner of the guild this command will give you owner.")]
 		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
 		public async Task GuildAdmin()
 		{
-			//Gather the owner and roles in the guild
-			var owner = await Context.Guild.GetOwnerAsync();
-			var roles = Context.Guild.Roles.OrderBy(x => x.Position).ToList();
-
 			//Check if the user is the only person in the guild
-			if ((Context.Guild as SocketGuild).MemberCount > 2)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You are not the only person in the guild."));
-				return;
-			}
-			//Check if the bot's not the owner of the guild
-			else if (owner.Id != Variables.BotID)
+			var owner = await Context.Guild.GetOwnerAsync();
+			if (owner.Id != Variables.BotID)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bot is not the owner of the guild. The owner is: `{0}`.", owner.FormatUser())));
 				return;
 			}
 
-			//Get or make the roles
-			const string botRoleName = "Bot";
-			var botRole = roles.Where(x => x.Name == botRoleName).FirstOrDefault() ?? await Context.Guild.CreateRoleAsync(botRoleName, new GuildPermissions(0));
-			const string userRoleName = "Owner";
-			var userRole = roles.Where(x => x.Name == userRoleName).FirstOrDefault() ?? await Context.Guild.CreateRoleAsync(userRoleName, new GuildPermissions(8));
-
-			//Update roles
-			roles = Context.Guild.Roles.ToList();
-
-			//Make sure their positions are good
-			await Actions.ModifyRolePosition(botRole, Math.Max(roles.Count - 1, 2));
-			await Actions.ModifyRolePosition(userRole, Math.Max(roles.Count - 2, 1));
-
-			//Give the bot and user their roles
-			await Actions.GiveRole(owner, botRole);
-			await Actions.GiveRole(Context.User as IGuildUser, userRole);
-
-			//Send the success message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, "You have successfully effectively become the owner.");
+			await Context.Guild.ModifyAsync(x => x.Owner = new Optional<IUser>(Context.User));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, "You are now the owner.");
 		}
 
 		[Command("guilddelete")]
 		[Alias("gdd")]
 		[Usage("")]
-		[Summary("If the bot is the current owner of the guild it will delete it.")]
+		[Summary("If the bot is the current owner of the guild this command will delete the guild.")]
 		[BotOwnerRequirement]
 		[DefaultEnabled(true)]
 		public async Task GuildDelete()

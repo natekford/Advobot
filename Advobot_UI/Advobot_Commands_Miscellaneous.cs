@@ -363,7 +363,7 @@ namespace Advobot
 		public async Task UserAvatar([Optional, Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 2, 2), new[] { "type" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 2), new[] { "type" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -602,7 +602,7 @@ namespace Advobot
 		public async Task CreateInstantInvite([Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4, 4), new[] { "time", "uses", "tempmem" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "time", "uses", "tempmem" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -730,7 +730,7 @@ namespace Advobot
 			}
 
 			//Get the given variable out
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4, 4), new[] { "user", "channel", "uses", "expires" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "user", "channel", "uses", "expires" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -871,7 +871,7 @@ namespace Advobot
 		public async Task MakeAnEmbed([Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 100, 100), new[] { "title", "desc", "img", "url", "thumb", "author", "authoricon", "authorurl", "foot", "footicon" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 100), new[] { "title", "desc", "img", "url", "thumb", "author", "authoricon", "authorurl", "foot", "footicon" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -936,7 +936,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task MentionRole([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);

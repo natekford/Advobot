@@ -27,7 +27,7 @@ namespace Advobot
 				return;
 			}
 
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -107,7 +107,7 @@ namespace Advobot
 			}
 
 			//Split the input and determine whether to add or remove
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -224,7 +224,7 @@ namespace Advobot
 			}
 
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);

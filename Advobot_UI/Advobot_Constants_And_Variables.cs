@@ -7,8 +7,8 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const string BOT_VERSION = "0.9.41";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc3-00742";
+		public const string BOT_VERSION = "0.10.0";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc3-00743";
 		public const string BOT_PREFIX = "&&";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string IGNORE_ERROR = "Cx";
@@ -112,10 +112,6 @@ namespace Advobot
 		public static ReadOnlyCollection<string> COMMANDS_UNABLE_TO_BE_TURNED_OFF = new ReadOnlyCollection<string>(new List<string>()
 		{
 			"comconfig", "help",
-		});
-		public static ReadOnlyCollection<string> VALID_GUILD_FILES = new ReadOnlyCollection<string>(new List<string>()
-		{
-			GUILD_INFO_LOCATION,
 		});
 		public static ReadOnlyCollection<string> TEST_PHRASES = new ReadOnlyCollection<string>(new List<string>()
 		{

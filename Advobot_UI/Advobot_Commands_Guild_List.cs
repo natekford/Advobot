@@ -25,7 +25,7 @@ namespace Advobot
 				return;
 			}
 
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3, 3), new[] { "keywords" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "keywords" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -146,7 +146,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GetInvite([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 6, 6), new[] { "code", "name", "globalemotes", "morethan", "lessthan", "keywords" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 6), new[] { "code", "name", "globalemotes", "morethan", "lessthan", "keywords" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);

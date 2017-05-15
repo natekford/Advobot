@@ -20,7 +20,7 @@ namespace Advobot
 		public async Task GiveRole([Remainder] string input)
 		{
 			//Split input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -127,7 +127,7 @@ namespace Advobot
 		public async Task TakeRole([Remainder] string input)
 		{
 			//Split input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -260,7 +260,7 @@ namespace Advobot
 		public async Task RolePosition([Remainder] string input)
 		{
 			//Split input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -331,7 +331,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task RolePermissions([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3, 3));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -473,7 +473,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task CopyRolePermissions([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -563,7 +563,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ChangeRoleName([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2), new[] { "position" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2), new[] { "position" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -642,7 +642,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ChangeRoleColor([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2), new[] { "hex", "color" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2), new[] { "hex", "color" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);

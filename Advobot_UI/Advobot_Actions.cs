@@ -451,6 +451,114 @@ namespace Advobot
 			return guildInfo.CommandOverrides.Commands.Where(x => x.CategoryEnum == category).ToList();
 		}
 
+		public static ReturnedArguments GetArgs(ICommandContext context, string input, ArgNumbers argNums, string[] argsToSearchFor = null)
+		{
+			/* Non specified arguments get left in a list of args going left to right (mentions are not included in this if the bool is true).
+			 * This list can keep all args separate or make the list a certain length. E.G. [ a, b, c, d ] (shortenTo = 3) => [ a, b, c d ]
+			 * Specified arguments get left in a dictionary.
+			 * Mentioned objects get left in respective lists of their ulong IDs.
+			 * TODO: Add in emotes/emojis maybe.
+			 */
+
+			var min = argNums.Min;
+			var max = argNums.Max;
+
+			var args = SplitByCharExceptInQuotes(input, ' ').ToList();
+			if (min > max)
+			{
+				return new ReturnedArguments(args, ArgFailureReason.Max_Less_Than_Min);
+			}
+			else if (args.Count < min)
+			{
+				return new ReturnedArguments(args, ArgFailureReason.Too_Few_Args);
+			}
+			else if (args.Count > max)
+			{
+				return new ReturnedArguments(args, ArgFailureReason.Too_Many_Args);
+			}
+
+			//Remove all mentions
+			/*
+			if (removeMentions)
+			{
+				var tempList = new List<string>();
+				foreach (var arg in args)
+				{
+					if (MentionUtils.TryParseChannel(arg, out ulong ID))
+					{
+					}
+					else if (MentionUtils.TryParseRole(arg, out ID))
+					{
+					}
+					else if (MentionUtils.TryParseUser(arg, out ID))
+					{
+					}
+					else
+					{
+						tempList.Add(arg);
+					}
+				}
+				args = tempList;
+			}
+
+			//Limiting the amount of args that are kept separate
+			if (shortenTo != int.MaxValue && args.Count > 1)
+			{
+				//[ a, b, c, d ]; args.Length = 4
+				//shortenToIndex = 3; [ a, b, c, d ] => [ a, b, c d ] <-- Used example
+				//shortenToIndex = 1; [ a, b, c, d ] => [ a b c d ]
+				var count = Math.Min(shortenTo, args.Count) - 1; //Min of (3, 4) which is 3 minus 1 is 2
+				var tempList = new List<string>(); //2 + 1 is 3 so an array of 3 objects
+				for (int i = 0; i <= count; i++)
+				{
+					tempList.Add(args[i]); //Set the first two objects. [ a, b, empty ]
+				}
+				if (shortenTo < args.Count)
+				{
+					tempList[count] = String.Join(" ", args.GetRange(count, args.Count - count)); //Grab the remaining objects (a b) and stuff them into the array
+				}
+				args = tempList;
+			}
+			*/
+
+			//Finding the wanted arguments
+			var specifiedArgs = new Dictionary<string, string>();
+			if (argsToSearchFor != null)
+			{
+				foreach (var searchArg in argsToSearchFor)
+				{
+					var arg = GetVariableAndRemove(args, searchArg);
+					if (arg != null)
+					{
+						specifiedArgs.Add(searchArg, arg);
+					}
+				}
+			}
+
+			for (int i = args.Count; i < max; i++)
+			{
+				args.Add(null);
+			}
+
+			return new ReturnedArguments(args, specifiedArgs, context.Message);
+		}
+
+		public static ReturnedType GetActionType(string input, ActionType[] validTypes)
+		{
+			if (!Enum.TryParse(input, true, out ActionType type))
+			{
+				return new ReturnedType(type, TypeFailureReason.Not_Found);
+			}
+			else if (!validTypes.Contains(type))
+			{
+				return new ReturnedType(type, TypeFailureReason.Invalid_Type);
+			}
+			else
+			{
+				return new ReturnedType(type, TypeFailureReason.Not_Failure);
+			}
+		}
+
 		public static CommandSwitch GetCommand(BotGuildInfo guildInfo, string input)
 		{
 			return guildInfo.CommandOverrides.Commands.FirstOrDefault(x =>
@@ -736,6 +844,15 @@ namespace Advobot
 				Variables.Console = false;
 			}
 		}
+
+		public static FileType? GetFileType(string file)
+		{
+			if (Enum.TryParse(file, true, out FileType type))
+			{
+				return type;
+			}
+			return null;
+		}
 		#endregion
 
 		#region Guilds
@@ -782,7 +899,11 @@ namespace Advobot
 			IGuildChannel channel = null;
 			if (!String.IsNullOrWhiteSpace(input))
 			{
-				if (MentionUtils.TryParseChannel(input, out ulong channelID))
+				if (ulong.TryParse(input, out ulong channelID))
+				{
+					channel = GetChannel(context.Guild, channelID);
+				}
+				else if (MentionUtils.TryParseChannel(input, out channelID))
 				{
 					channel = GetChannel(context.Guild, channelID);
 				}
@@ -1050,7 +1171,11 @@ namespace Advobot
 			IRole role = null;
 			if (!String.IsNullOrWhiteSpace(input))
 			{
-				if (MentionUtils.TryParseRole(input, out ulong roleID))
+				if (ulong.TryParse(input, out ulong roleID))
+				{
+					role = GetRole(context.Guild, roleID);
+				}
+				else if (MentionUtils.TryParseRole(input, out roleID))
 				{
 					role = GetRole(context.Guild, roleID);
 				}
@@ -1251,7 +1376,11 @@ namespace Advobot
 			IGuildUser user = null;
 			if (!String.IsNullOrWhiteSpace(input))
 			{
-				if (MentionUtils.TryParseUser(input, out ulong userID))
+				if (ulong.TryParse(input, out ulong userID))
+				{
+					user = GetGuildUser(context.Guild, userID);
+				}
+				else if (MentionUtils.TryParseUser(input, out userID))
 				{
 					user = GetGuildUser(context.Guild, userID);
 				}
@@ -1818,79 +1947,86 @@ namespace Advobot
 			await MakeAndDeleteSecondaryMessage(channel, null, secondStr, time);
 		}
 
-		public static async Task RemoveMessages(IMessageChannel channel, int requestCount)
+		public static async Task<int> RemoveMessages(IMessageChannel channel, int requestCount)
 		{
 			var guildChannel = channel as ITextChannel;
 			if (guildChannel == null)
-				return;
+				return 0;
 
+			var deletedCount = 0;
 			while (requestCount > 0)
 			{
 				//Get the current messages and ones that aren't null
 				var newNum = Math.Min(requestCount, 100);
-				var messages = (await channel.GetMessagesAsync(newNum).ToList()).SelectMany(x => x).Where(x => x != null).ToList();
+				var messages = (await channel.GetMessagesAsync(newNum).ToList()).SelectMany(x => x).Where(x => x != null);
 				if (!messages.Any())
 					break;
 
 				//Delete them in a try catch due to potential errors
+				var msgAmt = messages.Count();
 				try
 				{
 					await DeleteMessages(channel, messages);
+					deletedCount += msgAmt;
 				}
 				catch
 				{
-					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count, guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
+					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", msgAmt, guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
 					break;
 				}
 
 				//Leave if the message count gathered implies that the channel is out of messages
-				if (messages.Count < newNum)
+				if (msgAmt < newNum)
 					break;
 
 				//Lower the request count
-				requestCount -= messages.Count;
+				requestCount -= msgAmt;
 			}
+			return deletedCount;
 		}
 		
-		public static async Task RemoveMessages(IMessageChannel channel, IUser user, int requestCount)
+		public static async Task<int> RemoveMessages(IMessageChannel channel, IUser user, int requestCount)
 		{
 			var guildChannel = channel as ITextChannel;
 			if (guildChannel == null)
-				return;
+				return 0;
 
 			//Make sure there's a user id
 			if (user == null)
 			{
-				await RemoveMessages(channel, requestCount);
-				return;
+				return await RemoveMessages(channel, requestCount);
 			}
 
+			var deletedCount = 0;
 			while (requestCount > 0)
 			{
 				//Get the current messages and ones that aren't null
 				var newNum = Math.Min(requestCount, 100);
-				var messages = (await channel.GetMessagesAsync(newNum).ToList()).SelectMany(x => x).Where(x => x.Author == user && x != null).ToList();
+				var messages = (await channel.GetMessagesAsync(newNum).ToList()).SelectMany(x => x).Where(x => x != null && x.Author.Id == user.Id);
 				if (!messages.Any())
 					break;
 
 				//Delete them in a try catch due to potential errors
+				var msgAmt = messages.Count();
 				try
 				{
 					await DeleteMessages(channel, messages);
+					deletedCount += msgAmt;
 				}
 				catch
 				{
-					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count, guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
+					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", msgAmt, guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
 					break;
 				}
 
 				//Leave if the message count gathered implies that the channel is out of messages
-				if (messages.Count < newNum)
+				if (msgAmt < newNum)
 					break;
 
 				//Lower the request count
-				requestCount -= messages.Count;
+				requestCount -= msgAmt;
 			}
+			return deletedCount;
 		}
 
 		public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages)
@@ -2055,11 +2191,6 @@ namespace Advobot
 				case ArgFailureReason.Max_Less_Than_Min:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR("NOT USER ERROR: Max less than min."));
-					return;
-				}
-				case ArgFailureReason.ShortenTo_Less_Than_Min:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR("NOT USER ERROR: ShortenTo less than min."));
 					return;
 				}
 			}
@@ -4411,122 +4542,23 @@ namespace Advobot
 			Properties.Settings.Default.Save();
 		}
 
-		public static ReturnedArguments GetArgs(ICommandContext context, string input, ArgNumbers argNums, string[] argsToSearchFor = null)
-		{
-			/* Non specified arguments get left in a list of args going left to right (mentions are not included in this if the bool is true).
-			 * This list can keep all args separate or make the list a certain length. E.G. [ a, b, c, d ] (shortenTo = 3) => [ a, b, c d ]
-			 * Specified arguments get left in a dictionary.
-			 * Mentioned objects get left in respective lists of their ulong IDs.
-			 * TODO: Add in emotes/emojis maybe.
-			 */
-
-			var min = argNums.Min;
-			var max = argNums.Max;
-			var shortenTo = argNums.ShortenTo;
-
-			var args = SplitByCharExceptInQuotes(input, ' ').ToList();
-			if (min > max)
-			{
-				return new ReturnedArguments(args, ArgFailureReason.Max_Less_Than_Min);
-			}
-			else if (min > shortenTo)
-			{
-				return new ReturnedArguments(args, ArgFailureReason.ShortenTo_Less_Than_Min);
-			}
-			else if (args.Count < min)
-			{
-				return new ReturnedArguments(args, ArgFailureReason.Too_Few_Args);
-			}
-			else if (args.Count > max)
-			{
-				return new ReturnedArguments(args, ArgFailureReason.Too_Many_Args);
-			}
-
-			//Remove all mentions
-			/*
-			if (removeMentions)
-			{
-				var tempList = new List<string>();
-				foreach (var arg in args)
-				{
-					if (MentionUtils.TryParseChannel(arg, out ulong ID))
-					{
-					}
-					else if (MentionUtils.TryParseRole(arg, out ID))
-					{
-					}
-					else if (MentionUtils.TryParseUser(arg, out ID))
-					{
-					}
-					else
-					{
-						tempList.Add(arg);
-					}
-				}
-				args = tempList;
-			}
-			*/
-
-			//Limiting the amount of args that are kept separate
-			if (shortenTo != int.MaxValue && args.Count > 1)
-			{
-				//[ a, b, c, d ]; args.Length = 4
-				//shortenToIndex = 3; [ a, b, c, d ] => [ a, b, c d ] <-- Used example
-				//shortenToIndex = 1; [ a, b, c, d ] => [ a b c d ]
-				var count = Math.Min(shortenTo, args.Count) - 1; //Min of (3, 4) which is 3 minus 1 is 2
-				var tempList = new List<string>(); //2 + 1 is 3 so an array of 3 objects
-				for (int i = 0; i <= count; i++)
-				{
-					tempList.Add(args[i]); //Set the first two objects. [ a, b, empty ]
-				}
-				if (shortenTo < args.Count)
-				{
-					tempList[count] = String.Join(" ", args.GetRange(count, args.Count - count)); //Grab the remaining objects (a b) and stuff them into the array
-				}
-				args = tempList;
-			}
-
-			//Finding the wanted arguments
-			var specifiedArgs = new Dictionary<string, string>();
-			if (argsToSearchFor != null)
-			{
-				foreach (var searchArg in argsToSearchFor)
-				{
-					var arg = GetVariableAndRemove(args, searchArg);
-					if (arg != null)
-					{
-						specifiedArgs.Add(searchArg, arg);
-					}
-				}
-			}
-
-			for (int i = args.Count; i < max; i++)
-			{
-				args.Add(null);
-			}
-
-			return new ReturnedArguments(args, specifiedArgs, context.Message);
-		}
-
-		public static ReturnedType GetActionType(string input, ActionType[] validTypes)
-		{
-			if (!Enum.TryParse(input, true, out ActionType type))
-			{
-				return new ReturnedType(type, TypeFailureReason.Not_Found);
-			}
-			else if (!validTypes.Contains(type))
-			{
-				return new ReturnedType(type, TypeFailureReason.Invalid_Type);
-			}
-			else
-			{
-				return new ReturnedType(type, TypeFailureReason.Not_Failure);
-			}
-		}
-
 		public static bool CheckIfRegMatch(string msg, string pattern)
 		{
 			return Regex.IsMatch(msg, pattern, RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT));
+		}
+
+		public static void RestartBot()
+		{
+			try
+			{
+				//Create a new instance of the bot and close the old one
+				System.Diagnostics.Process.Start(System.Windows.Application.ResourceAssembly.Location);
+				Environment.Exit(0);
+			}
+			catch (Exception e)
+			{
+				Actions.ExceptionToConsole(e);
+			}
 		}
 		#endregion
 	}

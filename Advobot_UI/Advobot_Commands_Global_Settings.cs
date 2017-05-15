@@ -27,7 +27,7 @@ namespace Advobot
 				return;
 			}
 
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 1, 1));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 1));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -352,16 +352,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public Task Restart()
 		{
-			try
-			{
-				//Create a new instance of the bot and close the old one
-				System.Diagnostics.Process.Start(System.Windows.Application.ResourceAssembly.Location);
-				Environment.Exit(0);
-			}
-			catch (Exception e)
-			{
-				Actions.ExceptionToConsole(e);
-			}
+			Actions.RestartBot();
 			return Task.CompletedTask;
 		}
 

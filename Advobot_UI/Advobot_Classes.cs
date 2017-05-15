@@ -409,8 +409,9 @@ namespace Advobot
 			BotOwner = 0;
 			TrustedUsers = new List<ulong>();
 			Prefix = Constants.BOT_PREFIX;
+			Game = String.Format("type \"{0}help\" for help.", Prefix);
+			Stream = null;
 			ShardCount = 1;
-			//TODO: a way to change these values
 			MessageCacheSize = 1000;
 			AlwaysDownloadUsers = true;
 			LogLevel = LogSeverity.Warning;
@@ -1743,13 +1744,49 @@ namespace Advobot
 	{
 		public int Min { get; private set; }
 		public int Max { get; private set; }
-		public int ShortenTo { get; private set; }
 
-		public ArgNumbers(int min, int max, int shortenTo)
+		public ArgNumbers(int min, int max)
 		{
 			Min = min;
 			Max = max;
-			ShortenTo = shortenTo;
+		}
+	}
+
+	public struct ReturnedSetting
+	{
+		public String Setting { get; private set; }
+		public NSF Status { get; private set; }
+
+		public ReturnedSetting(SettingOnBot setting, NSF status)
+		{
+			Setting = Enum.GetName(typeof(SettingOnBot), setting);
+			Status = status;
+		}
+	}
+
+	public struct GuildFileInformation
+	{
+		public ulong ID { get; private set; }
+		public string Name { get; private set; }
+		public int MemberCount { get; private set; }
+
+		public GuildFileInformation(ulong id, string name, int memberCount)
+		{
+			ID = id;
+			Name = name;
+			MemberCount = memberCount;
+		}
+	}
+
+	public struct FileInformation
+	{
+		public FileType FileType { get; private set; }
+		public string FileLocation { get; private set; }
+
+		public FileInformation(FileType fileType, string fileLocation)
+		{
+			FileType = fileType;
+			FileLocation = fileLocation;
 		}
 	}
 	#endregion
@@ -1959,7 +1996,6 @@ namespace Advobot
 		Too_Few_Args = 2,
 		Missing_Critical_Args = 3,
 		Max_Less_Than_Min = 4,
-		ShortenTo_Less_Than_Min = 5,
 	}
 
 	public enum TypeFailureReason
@@ -1984,6 +2020,18 @@ namespace Advobot
 	{
 		Clear = 0,
 		Current = 1,
+	}
+
+	public enum NSF
+	{
+		Nothing = 0,
+		Success = 1,
+		Failure = 2,
+	}
+
+	public enum FileType
+	{
+		GuildInfo = 0,
 	}
 	#endregion
 }

@@ -20,7 +20,7 @@ namespace Advobot
 		public async Task CreateChannel([Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -166,7 +166,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ChannelPosition([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -241,7 +241,7 @@ namespace Advobot
 		public async Task ChannelPermissions([Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 4, 4));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 4));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -471,7 +471,7 @@ namespace Advobot
 		public async Task CopyChannelPermissions([Remainder] string input)
 		{
 			//Get arguments
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 3, 3));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -659,7 +659,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ChangeChannelName([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3, 3), new[] { "position", "type" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "position", "type" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -758,7 +758,7 @@ namespace Advobot
 		public async Task ChangeChannelTopic([Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -812,7 +812,7 @@ namespace Advobot
 		public async Task ChangeChannelLimit([Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -861,7 +861,7 @@ namespace Advobot
 		public async Task ChangeChannelBitRate([Remainder] string input)
 		{
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
