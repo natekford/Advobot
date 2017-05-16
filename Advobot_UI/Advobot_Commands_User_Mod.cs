@@ -635,24 +635,46 @@ namespace Advobot
 				}
 			}
 
-			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, userStr);
-			if (returnedUser.Reason != FailureReason.Not_Failure)
+			//First try to get the ID out. If the ID is not on the guild then no need to check if the user and bot have the permission to ban the person since they won't have perms
+			IGuildUser user = null;
+			if ((ulong.TryParse(userStr, out ulong banID) || MentionUtils.TryParseUser(userStr, out banID)) && !(Context.Guild as Discord.WebSocket.SocketGuild).Users.Select(x => x.Id).Contains(banID))
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedUser);
-				return;
 			}
-			var user = returnedUser.Object;
-			
-			//Ban the user
-			//TODO: Put the ban reason in here at some point
-			await Context.Guild.AddBanAsync(user, pruneDays);
-			if (timeForBan != 0)
+			else
 			{
-				Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, PunishmentType.Ban, DateTime.UtcNow.AddMinutes(timeForBan)));
+				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, userStr);
+				if (returnedUser.Reason != FailureReason.Not_Failure)
+				{
+					await Actions.HandleObjectGettingErrors(Context, returnedUser);
+					return;
+				}
+				user = returnedUser.Object;
+				banID = user.Id;
 			}
 
-			var response = String.Format("Successfully banned `{0}`.", user.FormatUser());
+			//Make sure not banning already banned person
+			var ban = (await Context.Guild.GetBansAsync()).FirstOrDefault(x => x.User.Id == banID);
+			if (ban != null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The user `{0}` is already banned from the server.", ban.User.FormatUser())));
+				return;
+			}
+
+			//Make sure reason string is not being taken as a daysstr or timestr
+			if (new[] { daysStr, timeStr }.CaseInsContains(reasonStr))
+			{
+				reasonStr = null;
+			}
+
+			//Ban the user
+			//TODO: Put the ban reason in here at some point
+			await Context.Guild.AddBanAsync(banID, pruneDays);
+			if (timeForBan != 0)
+			{
+				Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, banID, PunishmentType.Ban, DateTime.UtcNow.AddMinutes(timeForBan)));
+			}
+
+			var response = String.Format("Successfully banned `{0}`.", user.FormatUser(banID));
 			if (pruneDays != 0)
 			{
 				response += String.Format("Also deleted `{0}` day{1} worth of messages. ", pruneDays, Actions.GetPlural(pruneDays));
@@ -660,6 +682,10 @@ namespace Advobot
 			if (timeForBan != 0)
 			{
 				response += String.Format("The user will be unbanned in `{0}` minute{1}. ", timeForBan, Actions.GetPlural(timeForBan));
+			}
+			if (!String.IsNullOrWhiteSpace(reasonStr))
+			{
+				response += String.Format("The given reason for banning is: `{0}`.", reasonStr);
 			}
 			await Actions.SendChannelMessage(Context, response);
 		}

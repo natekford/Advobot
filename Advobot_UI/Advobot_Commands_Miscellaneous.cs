@@ -722,8 +722,8 @@ namespace Advobot
 		public async Task DeleteMultipleInvites([Remainder] string input)
 		{
 			//Get the guild's invites
-			var guildInvites = await Context.Guild.GetInvitesAsync();
-			if (!guildInvites.Any())
+			var invites = (await Context.Guild.GetInvitesAsync()).ToList();
+			if (!invites.Any())
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no invites."));
 				return;
@@ -741,114 +741,64 @@ namespace Advobot
 			var usesStr = returnedArgs.GetSpecifiedArg("uses");
 			var exprStr = returnedArgs.GetSpecifiedArg("expires");
 
-			//User
-			var inviteCriteria = new List<DeleteInvAction>();
-			IGuildUser user = null;
-			if (!String.IsNullOrWhiteSpace(userStr))
+			if (String.IsNullOrWhiteSpace(userStr) && new[] { userStr, chanStr, usesStr, exprStr }.CaseInsEverythingSame())
 			{
-				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
-				if (returnedUser.Reason != FailureReason.Not_Failure)
-				{
-					await Actions.HandleObjectGettingErrors(Context, returnedUser);
-					return;
-				}
-				else
-				{
-					user = returnedUser.Object;
-					inviteCriteria.Add(DeleteInvAction.User);
-				}
-			}
-			//Channel
-			IGuildChannel channel = null;
-			if (!String.IsNullOrWhiteSpace(chanStr))
-			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, chanStr);
-				if (returnedChannel.Reason != FailureReason.Not_Failure)
-				{
-					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-					return;
-				}
-				else
-				{
-					channel = returnedChannel.Object;
-					inviteCriteria.Add(DeleteInvAction.Channel);
-				}
-			}
-			//Uses
-			int uses = 0;
-			if (!String.IsNullOrWhiteSpace(usesStr))
-			{
-				if (!int.TryParse(usesStr, out uses))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid number for uses."));
-					return;
-				}
-				else
-				{
-					inviteCriteria.Add(DeleteInvAction.Uses);
-				}
-			}
-			//Expiry
-			bool expires = false;
-			if (!String.IsNullOrWhiteSpace(exprStr))
-			{
-				if (!bool.TryParse(exprStr, out expires))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid boolean for expiry."));
-					return;
-				}
-				else
-				{
-					inviteCriteria.Add(DeleteInvAction.Uses);
-				}
-			}
-			//Have gone through every other check so it's an error at this point
-			if (!inviteCriteria.Any())
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid target supplied."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("At least one of the arguments must be specified."));
 				return;
 			}
 
-			//Make a new list to store the invites that match the conditions in
-			var invites = guildInvites.ToList();
-			foreach (var action in inviteCriteria)
+			//User
+			if (!String.IsNullOrWhiteSpace(userStr))
 			{
-				switch (action)
+				if (ulong.TryParse(userStr, out ulong userID))
 				{
-					case DeleteInvAction.User:
+					invites = invites.Where(x => x.Inviter.Id == userID).ToList();
+				}
+				else if (MentionUtils.TryParseUser(userStr, out userID))
+				{
+					invites = invites.Where(x => x.Inviter.Id == userID).ToList();
+				}
+				else
+				{
+					invites = invites.Where(x => Actions.CaseInsEquals(x.Inviter.Username, userStr)).ToList();
+				}
+			}
+			//Channel
+			if (!String.IsNullOrWhiteSpace(chanStr))
+			{
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, chanStr);
+				if (returnedChannel.Reason == FailureReason.Not_Failure)
+				{
+					invites = invites.Where(x => x.ChannelId == returnedChannel.Object.Id).ToList();
+				}
+			}
+			//Uses
+			if (!String.IsNullOrWhiteSpace(usesStr))
+			{
+				if (int.TryParse(usesStr, out int uses))
+				{
+					invites = invites.Where(x => x.Uses == uses).ToList();
+				}
+			}
+			//Expiry
+			if (!String.IsNullOrWhiteSpace(exprStr))
+			{
+				if (bool.TryParse(exprStr, out bool expires))
+				{
+					if (expires)
 					{
-						invites = invites.Where(x => x.Inviter.Id == user.Id).ToList();
-						break;
+						invites = invites.Where(x => x.MaxAge != null).ToList();
 					}
-					case DeleteInvAction.Channel:
+					else
 					{
-						invites = invites.Where(x => x.ChannelId == channel.Id).ToList();
-						break;
-					}
-					case DeleteInvAction.Uses:
-					{
-						invites = invites.Where(x => x.Uses == uses).ToList();
-						break;
-					}
-					case DeleteInvAction.Expiry:
-					{
-						if (expires)
-						{
-							invites = invites.Where(x => x.MaxAge != null).ToList();
-						}
-						else
-						{
-							invites = invites.Where(x => x.MaxAge == null).ToList();
-						}
-						break;
+						invites = invites.Where(x => x.MaxAge == null).ToList();
 					}
 				}
 			}
 
-			//Check if any invites were gotten
 			if (!invites.Any())
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No invites satisfied the given condition."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No invites satisfied the given conditions."));
 				return;
 			}
 

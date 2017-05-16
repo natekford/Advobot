@@ -17,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using System.Collections.Generic;
 
+
 namespace Advobot
 {
 	//Create the UI
@@ -61,11 +62,15 @@ namespace Advobot
 			IsReadOnly = true,
 			IsDocumentEnabled = true,
 			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
+			Background = null,
 		};
 		#endregion
 
 		#region Menu
-		private static Grid mMenuLayout = new Grid();
+		private static Grid mMenuLayout = new Grid
+		{
+			Visibility = Visibility.Collapsed,
+		};
 
 		private static Paragraph mHelpParagraph = UIMakeElement.MakeHelpParagraph();
 		private static Paragraph mInfoParagraph = new Paragraph(new Run(Actions.FormatLoggedThings(true)));
@@ -77,7 +82,7 @@ namespace Advobot
 		{
 			IsReadOnly = true,
 			IsDocumentEnabled = true,
-			Visibility = Visibility.Collapsed,
+			Background = null,
 		};
 
 		private static string mLastButtonClicked;
@@ -106,18 +111,19 @@ namespace Advobot
 		#endregion
 
 		#region Settings
-		//TODO: TrustedUsers
-
 		private static Grid mSettingsLayout = new Grid
 		{
 			Visibility = Visibility.Collapsed,
+		};
+		private static TextBox mSettingsPlaceholderTB = new TextBox
+		{
+			IsReadOnly = true,
 		};
 		private const int TITLE_START_COLUMN = 5;
 		private const int TITLE_COLUMN_LENGTH = 35;
 		private const int TB_START_COLUMN = 40;
 		private const int TB_COLUMN_LENGTH = 55;
 
-		/*
 		private static TextBox mDarkModeTitle = UIMakeElement.MakeTitle("Darkmode:");
 		private static Viewbox mDarkModeSetting = new Viewbox
 		{
@@ -128,8 +134,8 @@ namespace Advobot
 			},
 			HorizontalAlignment = HorizontalAlignment.Left,
 			VerticalAlignment = VerticalAlignment.Center,
-			Tag = SettingOnBot.DarkMode
-		};*/
+			Tag = SettingOnBot.DarkMode,
+		};
 
 		private static TextBox mDownloadUsersTitle = UIMakeElement.MakeTitle("Download Users:");
 		private static Viewbox mDownloadUsersSetting = new Viewbox
@@ -137,11 +143,11 @@ namespace Advobot
 			Child = new CheckBox
 			{
 				IsChecked = Variables.BotInfo.AlwaysDownloadUsers,
-				Tag = SettingOnBot.AlwaysDownloadUsers
+				Tag = SettingOnBot.AlwaysDownloadUsers,
 			},
 			HorizontalAlignment = HorizontalAlignment.Left,
 			VerticalAlignment = VerticalAlignment.Center,
-			Tag = SettingOnBot.AlwaysDownloadUsers
+			Tag = SettingOnBot.AlwaysDownloadUsers,
 		};
 
 		private static TextBox mPrefixTitle = UIMakeElement.MakeTitle("Prefix:");
@@ -199,7 +205,7 @@ namespace Advobot
 
 		private static Control[] mTitleBoxes = new[] 
 		{
-			//mDarkModeTitle,
+			mDarkModeTitle,
 			mDownloadUsersTitle,
 			mPrefixTitle,
 			mBotOwnerTitle,
@@ -213,7 +219,7 @@ namespace Advobot
 		};
 		private static UIElement[] mSettings = new UIElement[] 
 		{
-			//mDarkModeSetting,
+			mDarkModeSetting,
 			mDownloadUsersSetting,
 			mPrefixSetting,
 			mBotOwnerSetting,
@@ -268,10 +274,12 @@ namespace Advobot
 			Background = (Brush)new BrushConverter().ConvertFrom("#BF000000"),
 			Visibility = Visibility.Collapsed
 		};
-		private static Grid mSearchTextLayout = new Grid
-		{
-		};
+		private static Grid mSearchTextLayout = new Grid();
 
+		private static TextBox mSearchPlaceholderTB = new TextBox
+		{
+			IsReadOnly = true,
+		};
 		private static Viewbox mNameHeader = UIMakeElement.MakeStandardViewBox("Guild Name:");
 		private static TextBox mNameInput = new TextBox
 		{
@@ -303,45 +311,26 @@ namespace Advobot
 
 		#region System Info
 		private static Grid mSysInfoLayout = new Grid();
+		private static TextBox mSysInfoUnder = new TextBox();
 		private static Viewbox mLatency = new Viewbox
 		{
-			Child = new TextBox
-			{
-				IsReadOnly = true,
-				BorderThickness = new Thickness(0),
-			},
+			Child = UIMakeElement.MakeSysInfoBox(),
 		};
 		private static Viewbox mMemory = new Viewbox
 		{
-			Child = new TextBox
-			{
-				IsReadOnly = true,
-				BorderThickness = new Thickness(0),
-			},
+			Child = UIMakeElement.MakeSysInfoBox(),
 		};
 		private static Viewbox mThreads = new Viewbox
 		{
-			Child = new TextBox
-			{
-				IsReadOnly = true,
-				BorderThickness = new Thickness(0),
-			},
+			Child = UIMakeElement.MakeSysInfoBox(),
 		};
 		private static Viewbox mGuilds = new Viewbox
 		{
-			Child = new TextBox
-			{
-				IsReadOnly = true,
-				BorderThickness = new Thickness(0),
-			},
+			Child = UIMakeElement.MakeSysInfoBox(),
 		};
 		private static Viewbox mUsers = new Viewbox
 		{
-			Child = new TextBox
-			{
-				IsReadOnly = true,
-				BorderThickness = new Thickness(0),
-			},
+			Child = UIMakeElement.MakeSysInfoBox(),
 		};
 		#endregion
 
@@ -373,68 +362,73 @@ namespace Advobot
 			UILayoutModification.AddCols(mLayout, 4);
 
 			//Output
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mOutputBox, 0, 87, 0, 4);
+			UILayoutModification.AddElement(mLayout, mOutputBox, 0, 87, 0, 4);
 
 			//System Info
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mSysInfoLayout, 87, 3, 0, 3, 0, 5);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSysInfoLayout, mLatency, 0, 1, 0, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSysInfoLayout, mMemory, 0, 1, 1, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSysInfoLayout, mThreads, 0, 1, 2, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSysInfoLayout, mGuilds, 0, 1, 3, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSysInfoLayout, mUsers, 0, 1, 4, 1);
+			UILayoutModification.AddElement(mLayout, mSysInfoLayout, 87, 3, 0, 3, 0, 5);
+			UILayoutModification.AddElement(mSysInfoLayout, mSysInfoUnder, 0, 1, 0, 5);
+			UILayoutModification.AddElement(mSysInfoLayout, mLatency, 0, 1, 0, 1);
+			UILayoutModification.AddElement(mSysInfoLayout, mMemory, 0, 1, 1, 1);
+			UILayoutModification.AddElement(mSysInfoLayout, mThreads, 0, 1, 2, 1);
+			UILayoutModification.AddElement(mSysInfoLayout, mGuilds, 0, 1, 3, 1);
+			UILayoutModification.AddElement(mSysInfoLayout, mUsers, 0, 1, 4, 1);
 
 			//Input
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mInputLayout, 90, 10, 0, 3, 1, 10);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mInputLayout, mInputBox, 0, 1, 0, 9);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mInputLayout, mInputButton, 0, 1, 9, 1);
+			UILayoutModification.AddElement(mLayout, mInputLayout, 90, 10, 0, 3, 1, 10);
+			UILayoutModification.AddElement(mInputLayout, mInputBox, 0, 1, 0, 9);
+			UILayoutModification.AddElement(mInputLayout, mInputButton, 0, 1, 9, 1);
 
 			//Buttons
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mButtonLayout, 87, 13, 3, 1, 1, 4);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mButtonLayout, mHelpButton, 0, 1, 0, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mButtonLayout, mSettingsButton, 0, 1, 1, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mButtonLayout, mInfoButton, 0, 1, 2, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mButtonLayout, mFileButton, 0, 1, 3, 1);
+			UILayoutModification.AddElement(mLayout, mButtonLayout, 87, 13, 3, 1, 1, 4);
+			UILayoutModification.AddElement(mButtonLayout, mHelpButton, 0, 1, 0, 1);
+			UILayoutModification.AddElement(mButtonLayout, mSettingsButton, 0, 1, 1, 1);
+			UILayoutModification.AddElement(mButtonLayout, mInfoButton, 0, 1, 2, 1);
+			UILayoutModification.AddElement(mButtonLayout, mFileButton, 0, 1, 3, 1);
 
 			//Menu
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mMenuLayout, 0, 87, 3, 1, 100, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mMenuLayout, mMenuOutput, 0, 100, 3, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mMenuLayout, mFileSearchButton, 96, 4, 3, 1);
+			UILayoutModification.AddElement(mLayout, mMenuLayout, 0, 87, 3, 1, 100, 1);
+			UILayoutModification.AddElement(mMenuLayout, mMenuOutput, 0, 100, 3, 1);
+			UILayoutModification.AddElement(mMenuLayout, mFileSearchButton, 96, 4, 3, 1);
 
 			//Settings
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mSettingsLayout, 0, 87, 3, 1, 250, 100);
+			UILayoutModification.AddElement(mLayout, mSettingsLayout, 0, 87, 3, 1, 250, 100);
+			UILayoutModification.AddElement(mSettingsLayout, mSettingsPlaceholderTB, 0, 250, 0, 100);
 			UILayoutModification.AddCols(mTrustedUsersAddGrid, 10);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mTrustedUsersAddGrid, mTrustedUsersAddBox, 0, 1, 0, 9);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mTrustedUsersAddGrid, mTrustedUsersAddButton, 0, 1, 9, 1);
+			UILayoutModification.AddElement(mTrustedUsersAddGrid, mTrustedUsersAddBox, 0, 1, 0, 9);
+			UILayoutModification.AddElement(mTrustedUsersAddGrid, mTrustedUsersAddButton, 0, 1, 9, 1);
 			UILayoutModification.AddCols(mTrustedUsersRemoveGrid, 10);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mTrustedUsersRemoveGrid, mTrustedUsersComboBox, 0, 1, 0, 9);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mTrustedUsersRemoveGrid, mTrustedUsersRemoveButton, 0, 1, 9, 1);
+			UILayoutModification.AddElement(mTrustedUsersRemoveGrid, mTrustedUsersComboBox, 0, 1, 0, 9);
+			UILayoutModification.AddElement(mTrustedUsersRemoveGrid, mTrustedUsersRemoveButton, 0, 1, 9, 1);
 			for (int i = 0; i < mTitleBoxes.Length; i++)
 			{
-				UILayoutModification.AddItemAndSetPositionsAndSpans(mSettingsLayout, mTitleBoxes[i], (i * 10), 10, TITLE_START_COLUMN, TITLE_COLUMN_LENGTH);
-				UILayoutModification.SetFontSizeProperty(mTitleBoxes[i], SMALL_TEXT);
-				UILayoutModification.AddItemAndSetPositionsAndSpans(mSettingsLayout, mSettings[i], (i * 10), 10, TB_START_COLUMN, TB_COLUMN_LENGTH);
-				UILayoutModification.SetFontSizeProperty((dynamic)mSettings[i], SMALL_TEXT);
+				var title = mTitleBoxes[i];
+				dynamic setting = mSettings[i];
+				UILayoutModification.AddElement(mSettingsLayout, title, (i * 10), 10, TITLE_START_COLUMN, TITLE_COLUMN_LENGTH);
+				UILayoutModification.SetFontSizeProperty(title, SMALL_TEXT);
+				UILayoutModification.AddElement(mSettingsLayout, setting, (i * 10), 10, TB_START_COLUMN, TB_COLUMN_LENGTH);
+				UILayoutModification.SetFontSizeProperty(setting, SMALL_TEXT);
 			}
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSettingsLayout, mSettingsSaveButton, 240, 10, 0, 100);
+			UILayoutModification.AddElement(mSettingsLayout, mSettingsSaveButton, 240, 10, 0, 100);
 
 			//Edit
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mEditLayout, 0, 100, 0, 4, 100, 4);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditLayout, mEditBox, 0, 100, 0, 3);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditLayout, mEditSaveBox, 84, 3, 3, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditLayout, mEditButtonLayout, 87, 13, 3, 1, 1, 2);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditButtonLayout, mEditSaveButton, 0, 1, 0, 1);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mEditButtonLayout, mEditCloseButton, 0, 1, 1, 1);
+			UILayoutModification.AddElement(mLayout, mEditLayout, 0, 100, 0, 4, 100, 4);
+			UILayoutModification.AddElement(mEditLayout, mEditBox, 0, 100, 0, 3);
+			UILayoutModification.AddElement(mEditLayout, mEditSaveBox, 84, 3, 3, 1);
+			UILayoutModification.AddElement(mEditLayout, mEditButtonLayout, 87, 13, 3, 1, 1, 2);
+			UILayoutModification.AddElement(mEditButtonLayout, mEditSaveButton, 0, 1, 0, 1);
+			UILayoutModification.AddElement(mEditButtonLayout, mEditCloseButton, 0, 1, 1, 1);
 
 			//Search
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mLayout, mSearchLayout, 0, 100, 0, 4, 10, 10);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSearchLayout, mSearchTextLayout, 3, 4, 3, 4, 100, 100);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSearchTextLayout, mNameHeader, 10, 10, 20, 60);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSearchTextLayout, mNameInput, 20, 15, 20, 60);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSearchTextLayout, mIDHeader, 35, 10, 20, 60);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSearchTextLayout, mIDInput, 45, 10, 20, 60);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSearchTextLayout, mFileComboBox, 57, 10, 20, 60);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSearchTextLayout, mSearchButton, 69, 15, 20, 25);
-			UILayoutModification.AddItemAndSetPositionsAndSpans(mSearchTextLayout, mSearchCloseButton, 69, 15, 55, 25);
+			UILayoutModification.AddElement(mLayout, mSearchLayout, 0, 100, 0, 4, 10, 10);
+			UILayoutModification.AddElement(mSearchLayout, mSearchTextLayout, 3, 4, 3, 4, 100, 100);
+			UILayoutModification.AddElement(mSearchTextLayout, mSearchPlaceholderTB, 0, 100, 0, 100);
+			UILayoutModification.AddElement(mSearchTextLayout, mNameHeader, 10, 10, 20, 60);
+			UILayoutModification.AddElement(mSearchTextLayout, mNameInput, 20, 15, 20, 60);
+			UILayoutModification.AddElement(mSearchTextLayout, mIDHeader, 35, 10, 20, 60);
+			UILayoutModification.AddElement(mSearchTextLayout, mIDInput, 45, 10, 20, 60);
+			UILayoutModification.AddElement(mSearchTextLayout, mFileComboBox, 57, 10, 20, 60);
+			UILayoutModification.AddElement(mSearchTextLayout, mSearchButton, 69, 15, 20, 25);
+			UILayoutModification.AddElement(mSearchTextLayout, mSearchCloseButton, 69, 15, 55, 25);
 
 			//Font size properties
 			UILayoutModification.SetFontSizeProperties(new Control[] { mInputBox }, LARGE_TEXT);
@@ -505,7 +499,7 @@ namespace Advobot
 		}
 		private void BotWindow_LoadedEvent(object sender, RoutedEventArgs e)
 		{
-
+			SwitchColorMode();
 		}
 
 		private void AcceptInput(object sender, KeyEventArgs e)
@@ -575,7 +569,7 @@ namespace Advobot
 
 			//Hide everything so stuff doesn't overlap
 			mMenuOutput.Document.Blocks.Clear();
-			mMenuOutput.Visibility = Visibility.Collapsed;
+			mMenuLayout.Visibility = Visibility.Collapsed;
 			mSettingsLayout.Visibility = Visibility.Collapsed;
 			mFileSearchButton.Visibility = Visibility.Collapsed;
 
@@ -589,7 +583,6 @@ namespace Advobot
 			{
 				//Resize the regular output window and have the menubox appear
 				UILayoutModification.SetColAndSpan(mOutputBox, 0, 3);
-				mMenuOutput.Visibility = Visibility.Visible;
 				mLastButtonClicked = name;
 
 				//Show the text for help
@@ -597,6 +590,7 @@ namespace Advobot
 				{
 					UILayoutModification.SetFontSizeProperty(mMenuOutput, TINY_TEXT);
 					mMenuOutput.Document.Blocks.Add(mHelpParagraph);
+					mMenuLayout.Visibility = Visibility.Visible;
 				}
 				//Show the text for settings
 				else if (Actions.CaseInsEquals(name, mSettingsButton.Content.ToString()))
@@ -609,15 +603,18 @@ namespace Advobot
 				{
 					UILayoutModification.SetFontSizeProperty(mMenuOutput, SMALL_TEXT);
 					mMenuOutput.Document.Blocks.Add(mInfoParagraph);
+					mMenuLayout.Visibility = Visibility.Visible;
 				}
 				//Show the text for files
 				else if (Actions.CaseInsEquals(name, mFileButton.Content.ToString()))
 				{
-					UILayoutModification.SetFontSizeProperty(mMenuOutput, SMALL_TEXT);
 					mFileParagraph.Inlines.Clear();
 					mFileParagraph.Inlines.Add(mFileTreeView = UIMakeElement.MakeGuildTreeView());
-					mMenuOutput.Document.Blocks.Add(mFileParagraph);
 					mFileSearchButton.Visibility = Visibility.Visible;
+
+					UILayoutModification.SetFontSizeProperty(mMenuOutput, SMALL_TEXT);
+					mMenuOutput.Document.Blocks.Add(mFileParagraph);
+					mMenuLayout.Visibility = Visibility.Visible;
 				}
 			}
 		}
@@ -828,9 +825,51 @@ namespace Advobot
 			}
 		}
 
+		public static void SwitchColorMode()
+		{
+			UIColors.SwitchActive(Variables.BotInfo.DarkMode);
+			var elements = GetAllElements();
+			foreach (var element in elements)
+			{
+				UILayoutModification.SwitchColorMode((dynamic)element);
+			}
+		}
+		public static List<DependencyObject> GetAllElements()
+		{
+			var elements = new List<DependencyObject>();
+			var currentElements = mLayout.Children.Cast<DependencyObject>().ToList();
+			while (true)
+			{
+				currentElements.RemoveAll(x => x == null);
+				var tempArray = currentElements.ToArray();
+				if (tempArray.Length == 0)
+					break;
+
+				currentElements.Clear();
+				for (int i = 0; i < tempArray.Length; i++)
+				{
+					var tempEle = tempArray[i];
+					elements.Add(tempEle);
+
+					var childrenCount = VisualTreeHelper.GetChildrenCount(tempEle);
+					if (childrenCount == 0)
+					{
+						continue;
+					}
+
+					for (int c = 0; c < childrenCount; c++)
+					{
+						currentElements.Add(VisualTreeHelper.GetChild(tempEle, c) as DependencyObject);
+					}
+				}
+			}
+			return elements.Distinct().ToList();
+		}
+
 		private void UpdateSettingsWhenOpened()
 		{
 			var botInfo = Variables.BotInfo;
+			((CheckBox)mDarkModeSetting.Child).IsChecked = botInfo.DarkMode;
 			((CheckBox)mDownloadUsersSetting.Child).IsChecked = botInfo.AlwaysDownloadUsers;
 			mPrefixSetting.Text = botInfo.Prefix;
 			mBotOwnerSetting.Text = botInfo.BotOwner.ToString();
@@ -979,6 +1018,7 @@ namespace Advobot
 					if (cb.IsChecked.Value != botInfo.DarkMode)
 					{
 						botInfo.SetDarkMode(!botInfo.DarkMode);
+						SwitchColorMode();
 						return new ReturnedSetting(setting, NSF.Success);
 					}
 					break;
@@ -1029,6 +1069,70 @@ namespace Advobot
 		public static Button InputButton { get { return mInputButton; } }
 	}
 
+	//For darkmode or not
+	public class UIColors
+	{
+		private static readonly Brush DarkModeBackground = (Brush)new BrushConverter().ConvertFrom("#1C1C1C");
+		private static readonly Brush DarkModeForeground = (Brush)new BrushConverter().ConvertFrom("#9E9E9E");
+		private static readonly Brush DarkModeBorder = (Brush)new BrushConverter().ConvertFrom("#FF000000"); //TODO:
+		private static readonly Brush LightModeBackground = (Brush)new BrushConverter().ConvertFrom("#FFFFFFFF");
+		private static readonly Brush LightModeForeground = (Brush)new BrushConverter().ConvertFrom("#FF000000");
+		private static readonly Brush LightModeBorder = (Brush)new BrushConverter().ConvertFrom("#FF000000"); //TODO:
+
+		private static Brush mActiveBackground = Variables.BotInfo.DarkMode ? DarkModeBackground : LightModeBackground;
+		private static Brush mActiveForeground = Variables.BotInfo.DarkMode ? DarkModeForeground : LightModeForeground;
+		private static Brush mActiveBorder = Variables.BotInfo.DarkMode ? DarkModeBorder : LightModeBorder;
+		private static Brush mDisabledBackground = Variables.BotInfo.DarkMode ? LightModeBackground : DarkModeBackground;
+		private static Brush mDisabledForeground = Variables.BotInfo.DarkMode ? LightModeForeground : DarkModeForeground;
+		private static Brush mDisabledBorder = Variables.BotInfo.DarkMode ? LightModeBorder : DarkModeBorder;
+
+		public static void SwitchActive(bool darkModeActive)
+		{
+			if (darkModeActive)
+			{
+				mActiveBackground = DarkModeBackground;
+				mActiveForeground = DarkModeForeground;
+				mActiveBorder = DarkModeBorder;
+				mDisabledBackground = LightModeBackground;
+				mDisabledForeground = LightModeForeground;
+				mDisabledBorder = LightModeBorder;
+			}
+			else
+			{
+				mActiveBackground = LightModeBackground;
+				mActiveForeground = LightModeForeground;
+				mActiveBorder = LightModeBorder;
+				mDisabledBackground = DarkModeBackground;
+				mDisabledForeground = DarkModeForeground;
+				mDisabledBorder = DarkModeBorder;
+			}
+		}
+		public static Brush ActiveBackground
+		{
+			get { return mActiveBackground; }
+		}
+		public static Brush ActiveForeground
+		{
+			get { return mActiveForeground; }
+		}
+		public static Brush ActiveBorder
+		{
+			get { return mActiveBorder; }
+		}
+		public static Brush DisabledBackground
+		{
+			get { return mDisabledBackground; }
+		}
+		public static Brush DisabledForeground
+		{
+			get { return mDisabledForeground; }
+		}
+		public static Brush DisabledBorder
+		{
+			get { return mDisabledBorder; }
+		}
+	}
+
 	//Modify the UI
 	public class UILayoutModification
 	{
@@ -1039,7 +1143,6 @@ namespace Advobot
 				grid.RowDefinitions.Add(new RowDefinition());
 			}
 		}
-
 		public static void AddCols(Grid grid, int amount)
 		{
 			for (int i = 0; i < amount; i++)
@@ -1047,31 +1150,93 @@ namespace Advobot
 				grid.ColumnDefinitions.Add(new ColumnDefinition());
 			}
 		}
-
 		public static void SetRowAndSpan(UIElement item, int start = 0, int length = 1)
 		{
 			Grid.SetRow(item, start < 0 ? 0 : start);
 			Grid.SetRowSpan(item, length < 1 ? 1 : length);
 		}
-
 		public static void SetColAndSpan(UIElement item, int start = 0, int length = 1)
 		{
 			Grid.SetColumn(item, start < 0 ? 0 : start);
 			Grid.SetColumnSpan(item, length < 1 ? 1 : length);
 		}
-
-		public static void AddItemAndSetPositionsAndSpans(Panel parent, UIElement child, int rowStart, int rowLength, int columnStart, int columnLength, int setRows = 0, int setColumns = 0)
+		public static void AddElement(Grid parent, Grid child, int rowStart, int rowLength, int columnStart, int columnLength, int setRows = 0, int setColumns = 0)
 		{
-			if (child is Grid)
-			{
-				AddRows(child as Grid, setRows);
-				AddCols(child as Grid, setColumns);
-			}
+			AddRows(child, setRows);
+			AddCols(child, setColumns);
+			parent.Children.Add(child);
+			SetRowAndSpan(child, rowStart, rowLength);
+			SetColAndSpan(child, columnStart, columnLength);
+		}
+		public static void AddElement(Grid parent, UIElement child, int rowStart, int rowLength, int columnStart, int columnLength)
+		{
 			parent.Children.Add(child);
 			SetRowAndSpan(child, rowStart, rowLength);
 			SetColAndSpan(child, columnStart, columnLength);
 		}
 
+		public static void SwitchColorMode(Control element)
+		{
+			var eleBackground = element?.Background as SolidColorBrush;
+			if (eleBackground == null || CheckIfSameBrush(eleBackground, UIColors.DisabledBackground))
+			{
+				element.Background = UIColors.ActiveBackground;
+			}
+			var eleForeground = element?.Foreground as SolidColorBrush;
+			if (eleForeground == null || CheckIfSameBrush(eleForeground, UIColors.DisabledForeground))
+			{
+				element.Foreground = UIColors.ActiveForeground;
+			}
+		}
+		public static void SwitchColorMode(Grid element) { }
+		public static void SwitchColorMode(Viewbox element) { }
+		public static void SwitchColorMode(CheckBox element) { }
+		public static void SwitchColorMode(Button element) { }
+		public static void SwitchColorMode(object element) { }
+		private static bool CheckIfSameBrush(Brush firstBrush, Brush secondBrush)
+		{
+			if (firstBrush == null)
+			{
+				return secondBrush == null;
+			}
+			else if (secondBrush == null)
+			{
+				return false;
+			}
+
+			var firstColor = ((SolidColorBrush)firstBrush).Color;
+			var secondColor = ((SolidColorBrush)secondBrush).Color;
+
+			var a = firstColor.A == secondColor.A;
+			var r = firstColor.R == secondColor.R;
+			var g = firstColor.G == secondColor.G;
+			var b = firstColor.B == secondColor.B;
+			return a && r && g && b;
+		}
+
+		public static void SetFontSizeProperties(IEnumerable<Control> elements, double size)
+		{
+			foreach (var ele in elements)
+			{
+				SetFontSizeProperty(ele, size);
+			}
+		}
+		public static void SetFontSizeProperty(Control element, double size)
+		{
+			element.SetBinding(Control.FontSizeProperty, CreateBinding(size));
+		}
+		public static void SetFontSizeProperty(Grid element, double size)
+		{
+			var children = element.Children;
+			foreach (var child in children)
+			{
+				SetFontSizeProperty((dynamic)child, size);
+			}
+		}
+		public static void SetFontSizeProperty(object element, double size)
+		{
+			return;
+		}
 		private static Binding CreateBinding(double val)
 		{
 			return new Binding
@@ -1082,43 +1247,14 @@ namespace Advobot
 			};
 		}
 
-		public static void SetFontSizeProperties(IEnumerable<Control> elements, double size)
-		{
-			foreach (var ele in elements)
-			{
-				SetFontSizeProperty(ele, size);
-			}
-		}
-
-		public static void SetFontSizeProperty(Control element, double size)
-		{
-			element.SetBinding(Control.FontSizeProperty, CreateBinding(size));
-		}
-
-		public static void SetFontSizeProperty(Grid element, double size)
-		{
-			var children = element.Children;
-			foreach (var child in children)
-			{
-				SetFontSizeProperty((dynamic)child, size);
-			}
-		}
-
-		public static void SetFontSizeProperty(UIElement element, double size)
-		{
-			return;
-		}
-
 		public static void ToggleToolTip(ToolTip ttip)
 		{
 			ttip.IsOpen = !ttip.IsOpen;
 		}
-
 		public static void ToggleUIElement(UIElement ele)
 		{
 			ele.Visibility = ele.Visibility == Visibility.Collapsed ? Visibility.Visible : Visibility.Collapsed;
 		}
-
 		public static void ToggleAndUntoggleUIEle(UIElement ele)
 		{
 			ele.Dispatcher.InvokeAsync(async () =>
@@ -1192,28 +1328,6 @@ namespace Advobot
 			return tbs;
 		}
 
-		public static IEnumerable<TextBox> MakeRemoveableComboBoxSourceByNum(int num, int maxLength)
-		{
-			var ids = Variables.BotInfo.TrustedUsers;
-			var tbs = new List<TextBox>();
-			for (int i = 0; i < num; i++)
-			{
-				var tempTB = new TextBox
-				{
-					Text = ids.Count > i ? ids[i].ToString() : "",
-					IsReadOnly = false,
-					IsHitTestVisible = true,
-					Tag = i,
-					MaxLength = maxLength,
-					BorderThickness = new Thickness(0),
-					Background = Brushes.Transparent,
-				};
-				UILayoutModification.SetFontSizeProperty(tempTB, BotWindow.SMALL_TEXT);
-				tbs.Add(tempTB);
-			}
-			return tbs;
-		}
-
 		public static Hyperlink MakeHyperlink(string link, string name)
 		{
 			//Make sure the input is a valid link
@@ -1266,7 +1380,13 @@ namespace Advobot
 					if (!fileType.HasValue)
 						return;
 
-					var fileItem = new TreeViewItem() { Header = Path.GetFileName(fileLoc), Tag = new FileInformation(fileType.Value, fileLoc) };
+					var fileItem = new TreeViewItem
+					{
+						Header = Path.GetFileName(fileLoc),
+						Tag = new FileInformation(fileType.Value, fileLoc),
+						Background = UIColors.ActiveBackground,
+						Foreground = UIColors.ActiveForeground,
+					};
 					fileItem.MouseDoubleClick += BotWindow.GuildFilesDoubleClick;
 					listOfFiles.Add(fileItem);
 				});
@@ -1276,7 +1396,13 @@ namespace Advobot
 					return;
 
 				//Create the guild item
-				var guildItem = new TreeViewItem { Header = String.Format("({0}) {1}", strID, guild.Name), Tag = new GuildFileInformation(ID, guild.Name, guild.MemberCount) };
+				var guildItem = new TreeViewItem
+				{
+					Header = String.Format("({0}) {1}", strID, guild.Name),
+					Tag = new GuildFileInformation(ID, guild.Name, guild.MemberCount),
+					Background = UIColors.ActiveBackground,
+					Foreground = UIColors.ActiveForeground,
+				};
 				listOfFiles.ForEach(x =>
 				{
 					guildItem.Items.Add(x);
@@ -1285,7 +1411,13 @@ namespace Advobot
 				guildItems.Add(guildItem);
 			});
 
-			return new TreeView { BorderThickness = new Thickness(0), ItemsSource = guildItems.OrderBy(x => ((GuildFileInformation)x.Tag).MemberCount).Reverse() };
+			return new TreeView
+			{
+				ItemsSource = guildItems.OrderBy(x => ((GuildFileInformation)x.Tag).MemberCount).Reverse(),
+				BorderThickness = new Thickness(0),
+				Background = UIColors.ActiveBackground,
+				Foreground = UIColors.ActiveForeground,
+			};
 		}
 
 		public static Paragraph MakeHelpParagraph()
@@ -1340,6 +1472,16 @@ namespace Advobot
 				VerticalContentAlignment = VerticalAlignment.Center,
 				Tag = setting,
 				MaxLength = length
+			};
+		}
+
+		public static TextBox MakeSysInfoBox()
+		{
+			return new TextBox
+			{
+				IsReadOnly = true,
+				BorderThickness = new Thickness(0, 1, 0, 1),
+				Background = null,
 			};
 		}
 	}
