@@ -15,6 +15,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using static Advobot.UIColors;
 
 namespace Advobot
 {
@@ -26,7 +27,7 @@ namespace Advobot
 		#region Input
 		private static Grid mInputLayout = new Grid();
 		//Max height has to be set here as a large number to a) not get in the way and b) not crash when resized small. I don't want to use a RTB for input.
-		private static TextBox mInputBox = new TextBox
+		private static TextBox mInputBox = new MyTextBox
 		{
 			MaxLength = 250,
 			MaxLines = 5,
@@ -50,7 +51,7 @@ namespace Advobot
 		{
 			Header = "Clear Output Log",
 		};
-		private static RichTextBox mOutputBox = new RichTextBox
+		private static RichTextBox mOutputBox = new MyRichTextBox
 		{
 			ContextMenu = new ContextMenu
 			{
@@ -59,7 +60,6 @@ namespace Advobot
 			IsReadOnly = true,
 			IsDocumentEnabled = true,
 			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
-			Background = null,
 		};
 		#endregion
 
@@ -75,11 +75,10 @@ namespace Advobot
 		private static TreeView mFileTreeView = new TreeView();
 		private static Paragraph mFileParagraph = new Paragraph();
 
-		private static RichTextBox mMenuOutput = new RichTextBox
+		private static RichTextBox mMenuOutput = new MyRichTextBox
 		{
 			IsReadOnly = true,
 			IsDocumentEnabled = true,
-			Background = null,
 		};
 
 		private static string mLastButtonClicked;
@@ -120,7 +119,7 @@ namespace Advobot
 		{
 			Visibility = Visibility.Collapsed,
 		};
-		private static TextBox mSettingsPlaceholderTB = new TextBox
+		private static TextBox mSettingsPlaceholderTB = new MyTextBox
 		{
 			IsReadOnly = true,
 		};
@@ -255,7 +254,7 @@ namespace Advobot
 			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
 			ShowLineNumbers = true,
 		};
-		private static TextBox mEditSaveBox = new TextBox
+		private static TextBox mEditSaveBox = new MyTextBox
 		{
 			Text = "Successfully saved the file.",
 			Visibility = Visibility.Collapsed,
@@ -276,23 +275,23 @@ namespace Advobot
 		#region Guild Search
 		private static Grid mSearchLayout = new Grid
 		{
-			Background = (Brush)new BrushConverter().ConvertFrom("#BF000000"),
+			Background = UIMakeElement.MakeBrush("#BF000000"),
 			Visibility = Visibility.Collapsed
 		};
 		private static Grid mSearchTextLayout = new Grid();
 
-		private static TextBox mSearchPlaceholderTB = new TextBox
+		private static TextBox mSearchPlaceholderTB = new MyTextBox
 		{
 			IsReadOnly = true,
 		};
 		private static Viewbox mNameHeader = UIMakeElement.MakeStandardViewBox("Guild Name:");
-		private static TextBox mNameInput = new TextBox
+		private static TextBox mNameInput = new MyTextBox
 		{
 			MaxLength = 100,
 			TextWrapping = TextWrapping.Wrap,
 		};
 		private static Viewbox mIDHeader = UIMakeElement.MakeStandardViewBox("ID:");
-		private static TextBox mIDInput = new TextBox
+		private static TextBox mIDInput = new MyTextBox
 		{
 			MaxLength = 18,
 			TextWrapping = TextWrapping.Wrap,
@@ -316,7 +315,7 @@ namespace Advobot
 
 		#region System Info
 		private static Grid mSysInfoLayout = new Grid();
-		private static TextBox mSysInfoUnder = new TextBox();
+		private static TextBox mSysInfoUnder = new MyTextBox();
 		private static Viewbox mLatency = new Viewbox
 		{
 			Child = UIMakeElement.MakeSysInfoBox(),
@@ -504,7 +503,9 @@ namespace Advobot
 		}
 		private void BotWindow_LoadedEvent(object sender, RoutedEventArgs e)
 		{
-			SwitchColorMode();
+			InitializeColors();
+			ToggleDarkMode();
+			SetColorMode(mLayout);
 		}
 
 		private void AcceptInput(object sender, KeyEventArgs e)
@@ -832,34 +833,21 @@ namespace Advobot
 			}
 		}
 
-		public static void SwitchColorMode()
-		{
-			UIColors.SwitchActive(Variables.BotInfo.DarkMode);
-			SwitchColorMode(mLayout);
-		}
-		public static void SwitchColorMode(DependencyObject parent)
+		public static void SetColorMode(DependencyObject parent)
 		{
 			for (int c = 0; c < VisualTreeHelper.GetChildrenCount(parent); c++)
 			{
 				var child = VisualTreeHelper.GetChild(parent, c) as DependencyObject;
-				var type = child.GetType();
-				if (type == typeof(TextBox))
+				if (child is Control)
 				{
-					UILayoutModification.SwitchElementColor((TextBox)child);
+					if (child is CheckBox)
+					{
+						continue;
+					}
+
+					UILayoutModification.SwitchElementColor((Control)child);
 				}
-				else if (type == typeof(RichTextBox))
-				{
-					UILayoutModification.SwitchElementColor((RichTextBox)child);
-				}
-				else if (type == typeof(TextEditor))
-				{
-					UILayoutModification.SwitchElementColor((TextEditor)child);
-				}
-				else if (type == typeof(MyButton))
-				{
-					UILayoutModification.SwitchElementColor((MyButton)child);
-				}
-				SwitchColorMode(child);
+				SetColorMode(child);
 			}
 		}
 
@@ -885,17 +873,11 @@ namespace Advobot
 			//Go through each setting and update them
 			foreach (dynamic ele in mSettings)
 			{
-				SettingOnBot setting;
-				try
-				{
-					setting = (SettingOnBot)ele.Tag;
-				}
-				catch
-				{
+				var setting = ele.Tag as SettingOnBot?;
+				if (setting == null)
 					continue;
-				}
 
-				ReturnedSetting response = SaveSetting(ele, setting, botInfo);
+				ReturnedSetting response = SaveSetting(ele, (SettingOnBot)setting, botInfo);
 				switch (response.Status)
 				{
 					case NSF.Success:
@@ -1015,7 +997,7 @@ namespace Advobot
 					if (cb.IsChecked.Value != botInfo.DarkMode)
 					{
 						botInfo.SetDarkMode(!botInfo.DarkMode);
-						SwitchColorMode();
+						ToggleDarkMode();
 						return new ReturnedSetting(setting, NSF.Success);
 					}
 					break;
@@ -1068,37 +1050,28 @@ namespace Advobot
 
 	public class UIColors
 	{
-		private static bool mDarkMode = false;
+		public const string BG = "Background";
+		public const string FG = "Foreground";
+		public const string B = "Border";
 
-		private static readonly Brush DarkModeBackground = (Brush)new BrushConverter().ConvertFrom("#1C1C1C");
-		private static readonly Brush DarkModeForeground = (Brush)new BrushConverter().ConvertFrom("#9E9E9E");
-		private static readonly Brush LightModeBackground = (Brush)new BrushConverter().ConvertFrom("#FFFFFF");
-		private static readonly Brush LightModeForeground = (Brush)new BrushConverter().ConvertFrom("#000000");
-		private static readonly Brush Border = (Brush)new BrushConverter().ConvertFrom("#ABADB3");
+		private static readonly Brush LightModeBackground = UIMakeElement.MakeBrush("#FFFFFF");
+		private static readonly Brush LightModeForeground = UIMakeElement.MakeBrush("#000000");
+		private static readonly Brush LightModeBorder = UIMakeElement.MakeBrush("#ABADB3");
+		private static readonly Brush DarkModeBackground = UIMakeElement.MakeBrush("#1C1C1C");
+		private static readonly Brush DarkModeForeground = UIMakeElement.MakeBrush("#9E9E9E");
+		private static readonly Brush DarkModeBorder = UIMakeElement.MakeBrush("#ABADB3");
 
-		public static void SwitchActive(bool darkModeActive)
+		public static void InitializeColors()
 		{
-			mDarkMode = darkModeActive;
+			Application.Current.Resources.Add(BG, LightModeBackground);
+			Application.Current.Resources.Add(FG, LightModeForeground);
+			Application.Current.Resources.Add(B, LightModeBorder);
 		}
-		public static Brush ActiveBackground
+		public static void ToggleDarkMode()
 		{
-			get { return mDarkMode ? DarkModeBackground : LightModeBackground; }
-		}
-		public static Brush ActiveForeground
-		{
-			get { return mDarkMode ? DarkModeForeground : LightModeForeground; }
-		}
-		public static Brush ActiveBorder
-		{
-			get { return Border; }
-		}
-		public static Brush DisabledBackground
-		{
-			get { return mDarkMode ? LightModeBackground : DarkModeBackground; }
-		}
-		public static Brush DisabledForeground
-		{
-			get { return mDarkMode ? LightModeForeground : DarkModeForeground; }
+			Application.Current.Resources[BG] = Variables.BotInfo.DarkMode ? DarkModeBackground : LightModeBackground;
+			Application.Current.Resources[FG] = Variables.BotInfo.DarkMode ? DarkModeForeground : LightModeForeground;
+			Application.Current.Resources[B] = Variables.BotInfo.DarkMode ? DarkModeBorder : LightModeBorder;
 		}
 	}
 
@@ -1146,16 +1119,20 @@ namespace Advobot
 		public static void SwitchElementColor(Control element)
 		{
 			var eleBackground = element?.Background as SolidColorBrush;
-			if (eleBackground == null || CheckIfSameBrush(eleBackground, UIColors.DisabledBackground))
+			if (eleBackground == null)
 			{
-				element.Background = UIColors.ActiveBackground;
+				element.SetResourceReference(Control.BackgroundProperty, BG);
 			}
 			var eleForeground = element?.Foreground as SolidColorBrush;
-			if (eleForeground == null || CheckIfSameBrush(eleForeground, UIColors.DisabledForeground))
+			if (eleForeground == null)
 			{
-				element.Foreground = UIColors.ActiveForeground;
+				element.SetResourceReference(Control.ForegroundProperty, FG);
 			}
-			element.BorderBrush = UIColors.ActiveBorder;
+			var eleBorder = element?.BorderBrush as SolidColorBrush;
+			if (eleBorder == null)
+			{
+				element.SetResourceReference(Control.BorderBrushProperty, B);
+			}
 		}
 		public static void SwitchElementColor(object element) { }
 		private static bool CheckIfSameBrush(Brush firstBrush, Brush secondBrush)
@@ -1274,7 +1251,7 @@ namespace Advobot
 			var tbs = new List<TextBox>();
 			foreach (var value in values)
 			{
-				var tempTB = new TextBox
+				tbs.Add(new MyTextBox
 				{
 					Text = Enum.GetName(type, value),
 					Tag = value,
@@ -1282,10 +1259,14 @@ namespace Advobot
 					IsHitTestVisible = false,
 					BorderThickness = new Thickness(0),
 					Background = Brushes.Transparent,
-				};
-				tbs.Add(tempTB);
+				});
 			}
 			return tbs;
+		}
+
+		public static SolidColorBrush MakeBrush(string color)
+		{
+			return (SolidColorBrush)new BrushConverter().ConvertFrom(color);
 		}
 
 		public static Hyperlink MakeHyperlink(string link, string name)
@@ -1344,8 +1325,8 @@ namespace Advobot
 					{
 						Header = Path.GetFileName(fileLoc),
 						Tag = new FileInformation(fileType.Value, fileLoc),
-						Background = UIColors.ActiveBackground,
-						Foreground = UIColors.ActiveForeground,
+						Background = (Brush)Application.Current.Resources[BG],
+						Foreground = (Brush)Application.Current.Resources[FG],
 					};
 					fileItem.MouseDoubleClick += BotWindow.GuildFilesDoubleClick;
 					listOfFiles.Add(fileItem);
@@ -1360,8 +1341,8 @@ namespace Advobot
 				{
 					Header = String.Format("({0}) {1}", strID, guild.Name),
 					Tag = new GuildFileInformation(ID, guild.Name, guild.MemberCount),
-					Background = UIColors.ActiveBackground,
-					Foreground = UIColors.ActiveForeground,
+					Background = (Brush)Application.Current.Resources[BG],
+					Foreground = (Brush)Application.Current.Resources[FG],
 				};
 				listOfFiles.ForEach(x =>
 				{
@@ -1375,8 +1356,8 @@ namespace Advobot
 			{
 				ItemsSource = guildItems.OrderBy(x => ((GuildFileInformation)x.Tag).MemberCount).Reverse(),
 				BorderThickness = new Thickness(0),
-				Background = UIColors.ActiveBackground,
-				Foreground = UIColors.ActiveForeground,
+				Background = (Brush)Application.Current.Resources[BG],
+				Foreground = (Brush)Application.Current.Resources[FG],
 			};
 		}
 
@@ -1403,7 +1384,7 @@ namespace Advobot
 		{
 			return new Viewbox
 			{
-				Child = new TextBox
+				Child = new MyTextBox
 				{
 					Text = text,
 					VerticalAlignment = VerticalAlignment.Bottom,
@@ -1416,7 +1397,7 @@ namespace Advobot
 
 		public static TextBox MakeTitle(string text)
 		{
-			return new TextBox
+			return new MyTextBox
 			{
 				Text = text,
 				IsReadOnly = true,
@@ -1427,7 +1408,7 @@ namespace Advobot
 
 		public static TextBox MakeSetting(SettingOnBot setting, int length)
 		{
-			return new TextBox
+			return new MyTextBox
 			{
 				VerticalContentAlignment = VerticalAlignment.Center,
 				Tag = setting,
@@ -1437,7 +1418,7 @@ namespace Advobot
 
 		public static TextBox MakeSysInfoBox()
 		{
-			return new TextBox
+			return new MyTextBox
 			{
 				IsReadOnly = true,
 				BorderThickness = new Thickness(0, 1, 0, 1),
@@ -1629,25 +1610,43 @@ namespace Advobot
 		}
 	}
 
+	public class MyRichTextBox : RichTextBox
+	{
+		public MyRichTextBox()
+		{
+			this.Background = null;
+			this.Foreground = null;
+			this.BorderBrush = null;
+		}
+	}
+
+	public class MyTextBox : TextBox
+	{
+		public MyTextBox()
+		{
+			this.Background = null;
+			this.Foreground = null;
+			this.BorderBrush = null;
+		}
+	}
+
 	public class MyButton : Button
 	{
 		private static Style mButtonStyle = null;
 
-		private static readonly SolidColorBrush NORMAL_BRUSH = MakeBrush("#DDD");
-		private static readonly SolidColorBrush DISABLED_FOREGROUND_BRUSH = MakeBrush("#888");
-		private static readonly SolidColorBrush DISABLED_BACKGROUND_BRUSH = MakeBrush("#EEE");
-		private static readonly SolidColorBrush NORMAL_BORDER_BRUSH = MakeBrush("#888");
-		private static readonly SolidColorBrush DISABLED_BORDER_BRUSH = MakeBrush("#AAA");
+		private static readonly SolidColorBrush NORMAL_BRUSH = UIMakeElement.MakeBrush("#DDD");
+		private static readonly SolidColorBrush DISABLED_FOREGROUND_BRUSH = UIMakeElement.MakeBrush("#888");
+		private static readonly SolidColorBrush DISABLED_BACKGROUND_BRUSH = UIMakeElement.MakeBrush("#EEE");
+		private static readonly SolidColorBrush NORMAL_BORDER_BRUSH = UIMakeElement.MakeBrush("#888");
+		private static readonly SolidColorBrush DISABLED_BORDER_BRUSH = UIMakeElement.MakeBrush("#AAA");
 
 		public MyButton()
 		{
+			this.Background = null;
+			this.Foreground = null;
+			this.BorderBrush = null;
 			this.Style = GetButtonStyle();
 			this.BorderThickness = new Thickness(1);
-		}
-
-		private static SolidColorBrush MakeBrush(string color)
-		{
-			return (SolidColorBrush)new BrushConverter().ConvertFrom(color);
 		}
 
 		private static Style GetButtonStyle()
@@ -1713,7 +1712,7 @@ namespace Advobot
 				};
 				buttonFocusRectangle.SetBinding(System.Windows.Shapes.Shape.MarginProperty, new Binding("Margin") { FallbackValue = new Thickness(2) });
 				buttonFocusRectangle.SetBinding(System.Windows.Shapes.Shape.StrokeThicknessProperty, new Binding("StrokeThickness") { FallbackValue = 1.0 });
-				buttonFocusRectangle.SetBinding(System.Windows.Shapes.Shape.StrokeProperty, new Binding("Stroke") { FallbackValue = MakeBrush("#60000000") });
+				buttonFocusRectangle.SetBinding(System.Windows.Shapes.Shape.StrokeProperty, new Binding("Stroke") { FallbackValue = UIMakeElement.MakeBrush("#60000000") });
 				buttonFocusRectangle.SetBinding(System.Windows.Shapes.Shape.StrokeDashArrayProperty, new Binding("StrokeDashArray") { FallbackValue = new DoubleCollection { 1.0, 2.0 } });
 
 				var buttonFocusBorder = new FrameworkElementFactory
@@ -1764,7 +1763,6 @@ namespace Advobot
 
 			return mButtonStyle;
 		}
-
 		private static List<Trigger> CreateTriggers()
 		{
 			var isKeyboardFocusedTrigger = new Trigger
@@ -1840,7 +1838,7 @@ namespace Advobot
 				new Setter
 				{
 					Property = Button.ForegroundProperty,
-					Value = DISABLED_BACKGROUND_BRUSH,
+					Value = DISABLED_FOREGROUND_BRUSH,
 				},
 			}.ForEach(x => isEnabledTrigger.Setters.Add(x));
 
