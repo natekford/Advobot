@@ -287,27 +287,16 @@ namespace Advobot
 			var channel = returnedChannel.Object;
 
 			//Get the role or user
+			IGuildUser user = null;
 			IRole role = null;
-			IUser user = null;
-			if (!String.IsNullOrWhiteSpace(targStr))
+			user = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, targStr).Object;
+			if (user == null)
 			{
-				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, targStr);
-				if (returnedUser.Reason != FailureReason.Not_Failure)
+				role = Actions.GetRole(Context, new[] { RoleCheck.None }, true, targStr).Object;
+				if (role == null)
 				{
-					var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, true, targStr);
-					if (returnedRole.Reason != FailureReason.Not_Failure)
-					{
-						await Actions.HandleObjectGettingErrors(Context, returnedRole);
-						return;
-					}
-					else
-					{
-						role = returnedRole.Object;
-					}
-				}
-				else
-				{
-					user = returnedUser.Object;
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid target supplied."));
+					return;
 				}
 			}
 
@@ -353,19 +342,24 @@ namespace Advobot
 					{
 						if (role != null && overwrite.TargetId.Equals(role.Id))
 						{
+							var perms = Actions.GetFilteredChannelOverwritePermissions(overwrite, channel);
+							var maxLen = perms.Keys.Max(x => x.Length);
+
 							//Embed showing the perm overwrites on a role
-							var embed = Actions.MakeNewEmbed(title: String.Format("{0} on {1}", role.FormatRole(), channel.FormatChannel()));
-							//TODO: Make this not use new lines
-							Actions.AddField(embed, "Permission", String.Join("\n", Actions.GetFilteredChannelOverwritePermissions(overwrite, channel).Keys));
-							Actions.AddField(embed, "Value", String.Join("\n", Actions.GetFilteredChannelOverwritePermissions(overwrite, channel).Values));
+							var formattedPerms = String.Join("\n", perms.Select(x => String.Format("{0} {1}", x.Key.PadRight(maxLen), x.Value)));
+							var description = String.Format("**Channel:** `{0}`\n**Role:** `{1}`\n```{2}```", channel.FormatChannel(), role.FormatRole(), formattedPerms);
+							var embed = Actions.MakeNewEmbed("Channel Permissions On Role", description);
 							await Actions.SendEmbedMessage(Context.Channel, embed);
 						}
 						else if (user != null && overwrite.TargetId.Equals(user.Id))
 						{
+							var perms = Actions.GetFilteredChannelOverwritePermissions(overwrite, channel);
+							var maxLen = perms.Keys.Max(x => x.Length);
+
 							//Embed showing the perm overwrites on a user
-							var embed = Actions.MakeNewEmbed(title: String.Format("{0} on {2}", user.FormatUser(), channel.FormatChannel()));
-							Actions.AddField(embed, "Permission", String.Join("\n", Actions.GetFilteredChannelOverwritePermissions(overwrite, channel).Keys));
-							Actions.AddField(embed, "Value", String.Join("\n", Actions.GetFilteredChannelOverwritePermissions(overwrite, channel).Values));
+							var formattedPerms = String.Join("\n", perms.Select(x => String.Format("{0} {1}", x.Key.PadRight(maxLen), x.Value)));
+							var description = String.Format("**Channel:** `{0}`\n**User:** `{1}`\n```{2}```", channel.FormatChannel(), user.FormatUser(), formattedPerms);
+							var embed = Actions.MakeNewEmbed("Channel Permissions On User", description);
 							await Actions.SendEmbedMessage(Context.Channel, embed);
 						}
 					});
@@ -377,6 +371,25 @@ namespace Advobot
 				{
 					permissions = permStr.Split('/').ToList();
 					break;
+				}
+			}
+
+			if (user != null)
+			{
+				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, user);
+				if (returnedUser.Reason != FailureReason.Not_Failure)
+				{
+					await Actions.HandleObjectGettingErrors(Context, returnedUser);
+					return;
+				}
+			}
+			else if (role != null)
+			{
+				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, role);
+				if (returnedRole.Reason != FailureReason.Not_Failure)
+				{
+					await Actions.HandleObjectGettingErrors(Context, returnedRole);
+					return;
 				}
 			}
 

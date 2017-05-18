@@ -386,7 +386,7 @@ namespace Advobot
 	public class BotGlobalInfo
 	{
 		[JsonProperty]
-		public ulong BotOwner { get; private set; }
+		public ulong BotOwnerID { get; private set; }
 		[JsonProperty]
 		public List<ulong> TrustedUsers { get; private set; }
 		[JsonProperty]
@@ -405,10 +405,12 @@ namespace Advobot
 		public LogSeverity LogLevel { get; private set; }
 		[JsonProperty]
 		public bool DarkMode { get; private set; }
+		[JsonProperty]
+		public int MaxUserGatherCount { get; private set; }
 
 		public BotGlobalInfo()
 		{
-			BotOwner = 0;
+			BotOwnerID = 0;
 			TrustedUsers = new List<ulong>();
 			Prefix = Constants.BOT_PREFIX;
 			Game = String.Format("type \"{0}help\" for help.", Prefix);
@@ -418,6 +420,7 @@ namespace Advobot
 			AlwaysDownloadUsers = true;
 			LogLevel = LogSeverity.Warning;
 			DarkMode = false;
+			MaxUserGatherCount = 100;
 		}
 
 		public string GetSetting(SettingOnBot setting)
@@ -427,7 +430,7 @@ namespace Advobot
 			{
 				case SettingOnBot.BotOwner:
 				{
-					text = BotOwner.ToString();
+					text = BotOwnerID.ToString();
 					break;
 				}
 				case SettingOnBot.Prefix:
@@ -455,16 +458,21 @@ namespace Advobot
 					text = MessageCacheSize.ToString();
 					break;
 				}
+				case SettingOnBot.MaxUserGatherCount:
+				{
+					text = MaxUserGatherCount.ToString();
+					break;
+				}
 			}
 			return text;
 		}
 		public void SetBotOwner(ulong ID)
 		{
-			BotOwner = ID;
+			BotOwnerID = ID;
 		}
 		public void ResetBotOwner()
 		{
-			BotOwner = 0;
+			BotOwnerID = 0;
 		}
 		public void AddTrustedUser(ulong ID)
 		{
@@ -542,6 +550,14 @@ namespace Advobot
 		{
 			DarkMode = false;
 		}
+		public void SetMaxUserGatherCount(int count)
+		{
+			MaxUserGatherCount = count;
+		}
+		public void ResetMaxUserGatherCount()
+		{
+			MaxUserGatherCount = 100;
+		}
 		public void ResetAll()
 		{
 			ResetPrefix();
@@ -553,6 +569,7 @@ namespace Advobot
 			ResetAlwaysDownloadUsers();
 			ResetLogLevel();
 			ResetDarkMode();
+			ResetMaxUserGatherCount();
 		}
 		public void PostDeserialize()
 		{
@@ -1964,6 +1981,7 @@ namespace Advobot
 		LogLevel = 8,
 		SavePath = 9,
 		DarkMode = 10,
+		MaxUserGatherCount = 11,
 	}
 
 	public enum GuildNotifications

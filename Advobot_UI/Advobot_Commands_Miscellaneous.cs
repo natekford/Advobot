@@ -25,8 +25,8 @@ namespace Advobot
 			if (String.IsNullOrWhiteSpace(input))
 			{
 			    var emb = Actions.MakeNewEmbed("General Help", String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", prefix));
-				Actions.AddField(emb, "Basic Syntax", "[] means required.\n<> means optional.\n| means or.");
-				Actions.AddField(emb, "Mention Syntax", String.Format("User means `{0}`.\nRole means `{1}`.\nChannel means `{2}`.",
+				Actions.AddField(emb, "Basic Syntax", "`[]` means required.\n`<>` means optional.\n`|` means or.");
+				Actions.AddField(emb, "Mention Syntax", String.Format("`User` means `{0}`.\n`Role` means `{1}`.\n`Channel` means `{2}`.",
 					Constants.USER_INSTRUCTIONS,
 					Constants.ROLE_INSTRUCTIONS,
 					Constants.CHANNEL_INSTRUCTIONS));
@@ -938,7 +938,7 @@ namespace Advobot
 			var fromMsg = String.Format("From `{0}` in `{1}`:", Context.User.FormatUser(), Context.Guild.FormatGuild());
 			var newMsg = String.Format("{0}\n```{1}```", fromMsg, cutMsg);
 
-			var owner = Variables.Client.GetUser(Variables.BotInfo.BotOwner);
+			var owner = Variables.Client.GetUser(Variables.BotInfo.BotOwnerID);
 			if (owner == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The owner is unable to be gotten."));

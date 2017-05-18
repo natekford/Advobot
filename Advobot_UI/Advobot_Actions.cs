@@ -457,7 +457,6 @@ namespace Advobot
 			 * This list can keep all args separate or make the list a certain length. E.G. [ a, b, c, d ] (shortenTo = 3) => [ a, b, c d ]
 			 * Specified arguments get left in a dictionary.
 			 * Mentioned objects get left in respective lists of their ulong IDs.
-			 * TODO: Add in emotes/emojis maybe.
 			 */
 
 			var min = argNums.Min;
@@ -767,7 +766,7 @@ namespace Advobot
 
 		public static bool GetIfUserIsBotOwner(IUser user)
 		{
-			return user.Id == Variables.BotInfo.BotOwner;
+			return user.Id == Variables.BotInfo.BotOwnerID;
 		}
 
 		public static bool GetIfBypass(string str)
@@ -819,7 +818,7 @@ namespace Advobot
 
 		public static int GetMaxNumOfUsersToGather(ICommandContext context, IEnumerable<string> inputArray)
 		{
-			return inputArray.CaseInsContains(Constants.BYPASS_STRING) && true /*TODO: put a bool here requiring bot owner?*/ ? int.MaxValue : 100;
+			return inputArray.CaseInsContains(Constants.BYPASS_STRING) && context.User.Id == Variables.BotInfo.BotOwnerID ? int.MaxValue : Variables.BotInfo.MaxUserGatherCount;
 		}
 
 		public static int GetLineBreaks(string input)
@@ -1542,7 +1541,7 @@ namespace Advobot
 
 		public static IUser GetBotOwner()
 		{
-			return Variables.Client.GetUser(Variables.BotInfo.BotOwner);
+			return Variables.Client.GetUser(Variables.BotInfo.BotOwnerID);
 		}
 
 		public static bool GetIfUserCanDoActionOnUser(ICommandContext context, IGuildUser target, IGuildUser user, UserCheck type)
@@ -1877,7 +1876,6 @@ namespace Advobot
 			content = content ?? "";
 
 			//Replace all instances of the base prefix with the guild's prefix
-			//TODO: Make this discriminatory so it doesn't replace *every* single instance of it
 			var guildPrefix = guildInfo.Prefix;
 			if (!String.IsNullOrWhiteSpace(guildPrefix))
 			{
@@ -1888,7 +1886,6 @@ namespace Advobot
 			{
 				return await guildChannel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content, embed: embed.WithCurrentTimestamp());
 			}
-			//Embeds fail every now and then and I haven't been able to find the exact problem yet (I know fields are a problem, but not in this case)
 			catch (Exception e)
 			{
 				ExceptionToConsole(e);
@@ -2483,7 +2480,7 @@ namespace Advobot
 			{
 				case SettingOnBot.BotOwner:
 				{
-					str = String.Format("`{0}`", Variables.Client.GetUser(botInfo.BotOwner).FormatUser());
+					str = String.Format("`{0}`", Variables.Client.GetUser(botInfo.BotOwnerID).FormatUser());
 					break;
 				}
 				case SettingOnBot.TrustedUsers:
@@ -2792,7 +2789,7 @@ namespace Advobot
 			var prefStr = String.Format("**Prefix:** `{0}`", String.IsNullOrWhiteSpace(botInfo.Prefix) ? "N/A" : botInfo.Prefix);
 			var shardStr = String.Format("**Shards:** `{0}`", botInfo.ShardCount);
 			var saveStr = String.Format("**Save Path:** `{0}`", String.IsNullOrWhiteSpace(Properties.Settings.Default.Path) ? "N/A" : Properties.Settings.Default.Path);
-			var ownerStr = String.Format("**Bot Owner ID:** `{0}`", String.IsNullOrWhiteSpace(botInfo.BotOwner.ToString()) ? "N/A" : botInfo.BotOwner.ToString());
+			var ownerStr = String.Format("**Bot Owner ID:** `{0}`", String.IsNullOrWhiteSpace(botInfo.BotOwnerID.ToString()) ? "N/A" : botInfo.BotOwnerID.ToString());
 			var streamStr = String.Format("**Stream:** `{0}`", String.IsNullOrWhiteSpace(botInfo.Stream) ? "N/A" : botInfo.Stream);
 			return String.Join("\n", new[] { prefStr, shardStr, saveStr, ownerStr, streamStr });
 		}
@@ -4342,15 +4339,6 @@ namespace Advobot
 		public static void ClearJoinCount()
 		{
 			Variables.Guilds.Values.Select(x => x.JoinProtection).Where(x => x.TimeToReset < DateTime.UtcNow).ToList().ForEach(x => x.Reset());
-		}
-
-		public static void ResetTimedSpamCounts()
-		{
-			//TODO: Implement correctly
-			/*Variables.Guilds.SelectMany(x => x.Value.GlobalSpamPrevention.SpamPreventionUsers).ToList().ForEach(x =>
-			{
-				if ()
-			});*/
 		}
 		#endregion
 

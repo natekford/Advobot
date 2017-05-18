@@ -15,11 +15,10 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using static Advobot.UIColors;
+using static Advobot.UIAttributes;
 
 namespace Advobot
 {
-	//Create the UI
 	public class BotWindow : Window
 	{
 		private static Grid mLayout = new Grid();
@@ -86,6 +85,7 @@ namespace Advobot
 		private static Button mHelpButton = new MyButton
 		{
 			Content = "Help",
+			Background = Brushes.Red,
 		};
 		private static Button mSettingsButton = new MyButton
 		{
@@ -172,6 +172,9 @@ namespace Advobot
 		private static TextBox mMessageCacheTitle = UIMakeElement.MakeTitle("Message Cache:");
 		private static TextBox mMessageCacheSetting = UIMakeElement.MakeSetting(SettingOnBot.MessageCacheSize, 6);
 
+		private static TextBox mUserGatherCountTitle = UIMakeElement.MakeTitle("Gather Count:");
+		private static TextBox mUserGatherCountSetting = UIMakeElement.MakeSetting(SettingOnBot.MaxUserGatherCount, 5);
+
 		private static TextBox mLogLevelTitle = UIMakeElement.MakeTitle("Log Level:");
 		private static ComboBox mLogLevelComboBox = new ComboBox
 		{
@@ -196,7 +199,6 @@ namespace Advobot
 		{
 			VerticalContentAlignment = VerticalAlignment.Center,
 			Tag = SettingOnBot.TrustedUsers,
-			ItemsSource = Variables.BotInfo.TrustedUsers,
 		};
 		private static Button mTrustedUsersRemoveButton = new MyButton
 		{
@@ -207,7 +209,7 @@ namespace Advobot
 			Tag = SettingOnBot.TrustedUsers,
 		};
 
-		private static Control[] mTitleBoxes = new[] 
+		private static UIElement[] mTitleBoxes = new UIElement[]
 		{
 			mDarkModeTitle,
 			mDownloadUsersTitle,
@@ -217,6 +219,7 @@ namespace Advobot
 			mStreamTitle,
 			mShardTitle,
 			mMessageCacheTitle,
+			mUserGatherCountTitle,
 			mLogLevelTitle,
 			mTrustedUsersTitle,
 			mPlaceholderTitle,
@@ -231,6 +234,7 @@ namespace Advobot
 			mStreamSetting,
 			mShardSetting,
 			mMessageCacheSetting,
+			mUserGatherCountSetting,
 			mLogLevelComboBox,
 			mTrustedUsersAddGrid,
 			mTrustedUsersRemoveGrid,
@@ -250,8 +254,11 @@ namespace Advobot
 		private static Grid mEditButtonLayout = new Grid();
 		private static TextEditor mEditBox = new TextEditor
 		{
-			WordWrap = true,
+			Background = null,
+			Foreground = null,
+			BorderBrush = null,
 			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
+			WordWrap = true,
 			ShowLineNumbers = true,
 		};
 		private static TextBox mEditSaveBox = new MyTextBox
@@ -405,7 +412,7 @@ namespace Advobot
 			UILayoutModification.AddElement(mTrustedUsersRemoveGrid, mTrustedUsersRemoveButton, 0, 1, 9, 1);
 			for (int i = 0; i < mTitleBoxes.Length; i++)
 			{
-				var title = mTitleBoxes[i];
+				dynamic title = mTitleBoxes[i];
 				dynamic setting = mSettings[i];
 				UILayoutModification.AddElement(mSettingsLayout, title, (i * 10), 10, TITLE_START_COLUMN, TITLE_COLUMN_LENGTH);
 				UILayoutModification.SetFontSizeProperty(title, SMALL_TEXT);
@@ -628,19 +635,6 @@ namespace Advobot
 		{
 			UILayoutModification.ToggleToolTip(mMemHoverInfo);
 		}
-		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
-		{
-			if (mTrustedUsersComboBox.SelectedItem == null)
-				return;
-
-			var userID = (ulong)mTrustedUsersComboBox.SelectedItem;
-			var curr = mTrustedUsersComboBox.Items.Cast<ulong>().ToList();
-			if (!curr.Contains(userID))
-				return;
-
-			curr.Remove(userID);
-			mTrustedUsersComboBox.ItemsSource = curr.Distinct();
-		}
 		private void AddTrustedUser(object sender, RoutedEventArgs e)
 		{
 			var text = mTrustedUsersAddBox.Text;
@@ -650,17 +644,30 @@ namespace Advobot
 				return;
 			else if (ulong.TryParse(text, out ulong userID))
 			{
-				var curr = mTrustedUsersComboBox.Items.Cast<ulong>().ToList();
-				if (curr.Contains(userID))
+				var currTBs = mTrustedUsersComboBox.Items.Cast<TextBox>().ToList();
+				if (currTBs.Select(x => (ulong)x.Tag).Contains(userID))
 					return;
 
-				curr.Add(userID);
-				mTrustedUsersComboBox.ItemsSource = curr.Distinct();
+				currTBs.Add(UIMakeElement.MakeTextBoxFromUserID(userID));
+				mTrustedUsersComboBox.ItemsSource = currTBs;
 			}
 			else
 			{
 				Actions.WriteLine(String.Format("The given input '{0}' is not a valid ID.", text));
 			}
+		}
+		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
+		{
+			if (mTrustedUsersComboBox.SelectedItem == null)
+				return;
+
+			var userID = (ulong)((TextBox)mTrustedUsersComboBox.SelectedItem).Tag;
+			var currTBs = mTrustedUsersComboBox.Items.Cast<TextBox>().ToList();
+			if (!currTBs.Select(x => (ulong)x.Tag).Contains(userID))
+				return;
+
+			currTBs.RemoveAll(x => (ulong)x.Tag == userID);
+			mTrustedUsersComboBox.ItemsSource = currTBs;
 		}
 
 		private void CloseSearch(object sender, RoutedEventArgs e)
@@ -801,7 +808,7 @@ namespace Advobot
 				{
 					writer.WriteLine(mEditBox.Text);
 				}
-				UILayoutModification.ToggleAndUntoggleUIEle(mEditSaveBox);
+				UILayoutModification.ToggleAndRetogglElement(mEditSaveBox);
 			}
 		}
 		private static bool BringUpEditLayout(TreeViewItem treeItem)
@@ -840,12 +847,22 @@ namespace Advobot
 				var child = VisualTreeHelper.GetChild(parent, c) as DependencyObject;
 				if (child is Control)
 				{
-					if (child is CheckBox)
+					if (child is CheckBox || child is ComboBox)
 					{
 						continue;
 					}
-
-					UILayoutModification.SwitchElementColor((Control)child);
+					if (child is MyButton)
+					{
+						UILayoutModification.SwitchElementColor((MyButton)child);
+					}
+					if (child is TextEditor)
+					{
+						UILayoutModification.SwitchElementColor((Control)child);
+					}
+					else
+					{
+						UILayoutModification.SwitchElementColor((Control)child);
+					}
 				}
 				SetColorMode(child);
 			}
@@ -857,12 +874,14 @@ namespace Advobot
 			((CheckBox)mDarkModeSetting.Child).IsChecked = botInfo.DarkMode;
 			((CheckBox)mDownloadUsersSetting.Child).IsChecked = botInfo.AlwaysDownloadUsers;
 			mPrefixSetting.Text = botInfo.Prefix;
-			mBotOwnerSetting.Text = botInfo.BotOwner.ToString();
+			mBotOwnerSetting.Text = botInfo.BotOwnerID.ToString();
 			mGameSetting.Text = botInfo.Game;
 			mStreamSetting.Text = botInfo.Stream;
 			mShardSetting.Text = botInfo.ShardCount.ToString();
 			mMessageCacheSetting.Text = botInfo.MessageCacheSize.ToString();
+			mUserGatherCountSetting.Text = botInfo.MaxUserGatherCount.ToString();
 			mLogLevelComboBox.SelectedItem = GetSelectedLogLevel();
+			mTrustedUsersComboBox.ItemsSource = FormatTrustedUsers();
 		}
 		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
@@ -968,6 +987,15 @@ namespace Advobot
 					}
 					return new ReturnedSetting(setting, NSF.Failure);
 				}
+				case SettingOnBot.MaxUserGatherCount:
+				{
+					if (int.TryParse(text, out int count))
+					{
+						botInfo.SetMaxUserGatherCount(count);
+						return new ReturnedSetting(setting, NSF.Success);
+					}
+					return new ReturnedSetting(setting, NSF.Failure);
+				}
 			}
 			return new ReturnedSetting(setting, NSF.Nothing);
 		}
@@ -1021,7 +1049,7 @@ namespace Advobot
 				}
 				case SettingOnBot.TrustedUsers:
 				{
-					var trustedUsers = cb.Items.Cast<ulong>().ToList();
+					var trustedUsers = cb.Items.Cast<TextBox>().Select(x => (ulong)x.Tag).ToList();
 					var diffUsers = botInfo.TrustedUsers.Except(trustedUsers);
 					if (trustedUsers.Count != botInfo.TrustedUsers.Count || diffUsers.Any())
 					{
@@ -1041,6 +1069,10 @@ namespace Advobot
 		{
 			return mLogLevelComboBox.Items.OfType<TextBox>().FirstOrDefault(x => (Discord.LogSeverity)x.Tag == Variables.BotInfo.LogLevel);
 		}
+		private static IEnumerable<TextBox> FormatTrustedUsers()
+		{
+			return Variables.BotInfo.TrustedUsers.Select(x => UIMakeElement.MakeTextBoxFromUserID(x));
+		}
 
 		public static RichTextBox Output { get { return mOutputBox; } }
 		public static RichTextBox Menu { get { return mMenuOutput; } }
@@ -1048,30 +1080,77 @@ namespace Advobot
 		public static Button InputButton { get { return mInputButton; } }
 	}
 
-	public class UIColors
+	public class UIAttributes
 	{
-		public const string BG = "Background";
-		public const string FG = "Foreground";
-		public const string B = "Border";
+		public const string BASE_BACKGROUND = "Background";
+		public const string BASE_FOREGROUND = "Foreground";
+		public const string BASE_BORDER = "Border";
+		public const string BUTTON_BACKGROUND = "ButtonBackground";
+		public const string BUTTON_BORDER = "ButtonBorder";
+		public const string BUTTON_DISABLED_BACKGROUND = "ButtonDisabledBackground";
+		public const string BUTTON_DISABLED_FOREGROUND = "ButtonDisabledForeground";
+		public const string BUTTON_DISABLED_BORDER = "ButtonDisabledBorder";
+		public const string BUTTON_STYLE = "ButtonStyle";
 
 		private static readonly Brush LightModeBackground = UIMakeElement.MakeBrush("#FFFFFF");
 		private static readonly Brush LightModeForeground = UIMakeElement.MakeBrush("#000000");
 		private static readonly Brush LightModeBorder = UIMakeElement.MakeBrush("#ABADB3");
+		private static readonly Brush LightModeButtonBackground = UIMakeElement.MakeBrush("#DDDDDD");
+		private static readonly Brush LightModeButtonBorder = UIMakeElement.MakeBrush("#707070");
+		private static readonly Brush LightModeButtonDisabledBackground = UIMakeElement.MakeBrush("#F4F4F4");
+		private static readonly Brush LightModeButtonDisabledForeground = UIMakeElement.MakeBrush("#888888");
+		private static readonly Brush LightModeButtonDisabledBorder = UIMakeElement.MakeBrush("#ADB2B5");
+		private static readonly Style LightModeButtonStyle = UIMakeElement.MakeButtonStyle
+			(
+			LightModeButtonBackground,
+			LightModeForeground,
+			LightModeButtonBorder,
+			LightModeButtonDisabledBackground,
+			LightModeButtonDisabledForeground,
+			LightModeButtonDisabledBorder
+			);
+
 		private static readonly Brush DarkModeBackground = UIMakeElement.MakeBrush("#1C1C1C");
-		private static readonly Brush DarkModeForeground = UIMakeElement.MakeBrush("#9E9E9E");
+		private static readonly Brush DarkModeForeground = UIMakeElement.MakeBrush("#E1E1E1");
 		private static readonly Brush DarkModeBorder = UIMakeElement.MakeBrush("#ABADB3");
+		private static readonly Brush DarkModeButtonBackground = UIMakeElement.MakeBrush("#151515");
+		private static readonly Brush DarkModeButtonBorder = UIMakeElement.MakeBrush("#ABADB3");
+		private static readonly Brush DarkModeButtonDisabledBackground = UIMakeElement.MakeBrush("#343434");
+		private static readonly Brush DarkModeButtonDisabledForeground = UIMakeElement.MakeBrush("#a0a0a0");
+		private static readonly Brush DarkModeButtonDisabledBorder = UIMakeElement.MakeBrush("#ADB2B5");
+		private static readonly Style DarkModeButtonStyle = UIMakeElement.MakeButtonStyle
+			(
+			DarkModeButtonBackground,
+			DarkModeForeground,
+			DarkModeButtonBorder,
+			DarkModeButtonDisabledBackground,
+			DarkModeButtonDisabledForeground,
+			DarkModeButtonDisabledBorder
+			);
 
 		public static void InitializeColors()
 		{
-			Application.Current.Resources.Add(BG, LightModeBackground);
-			Application.Current.Resources.Add(FG, LightModeForeground);
-			Application.Current.Resources.Add(B, LightModeBorder);
+			Application.Current.Resources.Add(BASE_BACKGROUND, LightModeBackground);
+			Application.Current.Resources.Add(BASE_FOREGROUND, LightModeForeground);
+			Application.Current.Resources.Add(BASE_BORDER, LightModeBorder);
+			Application.Current.Resources.Add(BUTTON_BACKGROUND, LightModeButtonBackground);
+			Application.Current.Resources.Add(BUTTON_BORDER, LightModeButtonBorder);
+			Application.Current.Resources.Add(BUTTON_DISABLED_BACKGROUND, LightModeButtonDisabledBackground);
+			Application.Current.Resources.Add(BUTTON_DISABLED_FOREGROUND, LightModeButtonDisabledForeground);
+			Application.Current.Resources.Add(BUTTON_DISABLED_BORDER, LightModeButtonDisabledBorder);
+			Application.Current.Resources.Add(BUTTON_STYLE, LightModeButtonStyle);
 		}
 		public static void ToggleDarkMode()
 		{
-			Application.Current.Resources[BG] = Variables.BotInfo.DarkMode ? DarkModeBackground : LightModeBackground;
-			Application.Current.Resources[FG] = Variables.BotInfo.DarkMode ? DarkModeForeground : LightModeForeground;
-			Application.Current.Resources[B] = Variables.BotInfo.DarkMode ? DarkModeBorder : LightModeBorder;
+			Application.Current.Resources[BASE_BACKGROUND] = Variables.BotInfo.DarkMode ? DarkModeBackground : LightModeBackground;
+			Application.Current.Resources[BASE_FOREGROUND] = Variables.BotInfo.DarkMode ? DarkModeForeground : LightModeForeground;
+			Application.Current.Resources[BASE_BORDER] = Variables.BotInfo.DarkMode ? DarkModeBorder : LightModeBorder;
+			Application.Current.Resources[BUTTON_BACKGROUND] = Variables.BotInfo.DarkMode ? DarkModeButtonBackground : LightModeButtonBackground;
+			Application.Current.Resources[BUTTON_BORDER] = Variables.BotInfo.DarkMode ? DarkModeButtonBorder : LightModeButtonBorder;
+			Application.Current.Resources[BUTTON_DISABLED_BACKGROUND] = Variables.BotInfo.DarkMode ? DarkModeButtonDisabledBackground : LightModeButtonDisabledBackground;
+			Application.Current.Resources[BUTTON_DISABLED_FOREGROUND] = Variables.BotInfo.DarkMode ? DarkModeButtonDisabledForeground : LightModeButtonDisabledForeground;
+			Application.Current.Resources[BUTTON_DISABLED_BORDER] = Variables.BotInfo.DarkMode ? DarkModeButtonDisabledBorder : LightModeButtonDisabledBorder;
+			Application.Current.Resources[BUTTON_STYLE] = Variables.BotInfo.DarkMode ? DarkModeButtonStyle : LightModeButtonStyle;
 		}
 	}
 
@@ -1121,21 +1200,34 @@ namespace Advobot
 			var eleBackground = element?.Background as SolidColorBrush;
 			if (eleBackground == null)
 			{
-				element.SetResourceReference(Control.BackgroundProperty, BG);
+				element.SetResourceReference(Control.BackgroundProperty, BASE_BACKGROUND);
 			}
 			var eleForeground = element?.Foreground as SolidColorBrush;
 			if (eleForeground == null)
 			{
-				element.SetResourceReference(Control.ForegroundProperty, FG);
+				element.SetResourceReference(Control.ForegroundProperty, BASE_FOREGROUND);
 			}
 			var eleBorder = element?.BorderBrush as SolidColorBrush;
 			if (eleBorder == null)
 			{
-				element.SetResourceReference(Control.BorderBrushProperty, B);
+				element.SetResourceReference(Control.BorderBrushProperty, BASE_BORDER);
+			}
+		}
+		public static void SwitchElementColor(MyButton element)
+		{
+			var style = element.Style;
+			if (style == null)
+			{
+				element.SetResourceReference(MyButton.StyleProperty, BUTTON_STYLE);
+			}
+			var eleForeground = element?.Foreground as SolidColorBrush;
+			if (eleForeground == null)
+			{
+				element.SetResourceReference(Control.ForegroundProperty, BASE_FOREGROUND);
 			}
 		}
 		public static void SwitchElementColor(object element) { }
-		private static bool CheckIfSameBrush(Brush firstBrush, Brush secondBrush)
+		public static bool CheckIfSameBrush(Brush firstBrush, Brush secondBrush)
 		{
 			if (firstBrush == null || secondBrush == null)
 			{
@@ -1161,7 +1253,7 @@ namespace Advobot
 		}
 		public static void SetFontSizeProperty(Control element, double size)
 		{
-			element.SetBinding(Control.FontSizeProperty, CreateBinding(size));
+			element.SetBinding(Control.FontSizeProperty, UIMakeElement.MakeTextSizeBinding(size));
 		}
 		public static void SetFontSizeProperty(Grid element, double size)
 		{
@@ -1171,75 +1263,20 @@ namespace Advobot
 				SetFontSizeProperty((dynamic)child, size);
 			}
 		}
-		public static void SetFontSizeProperty(object element, double size)
-		{
-			return;
-		}
-		private static Binding CreateBinding(double val)
-		{
-			return new Binding
-			{
-				Path = new PropertyPath("ActualHeight"),
-				RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
-				Converter = new UIFontResizer(val),
-			};
-		}
+		public static void SetFontSizeProperty(object element, double size) { }
 
 		public static void ToggleToolTip(ToolTip ttip)
 		{
 			ttip.IsOpen = !ttip.IsOpen;
 		}
-		public static void ToggleUIElement(UIElement ele)
+		public static void ToggleAndRetogglElement(UIElement element)
 		{
-			ele.Visibility = ele.Visibility == Visibility.Collapsed ? Visibility.Visible : Visibility.Collapsed;
-		}
-		public static void ToggleAndUntoggleUIEle(UIElement ele)
-		{
-			ele.Dispatcher.InvokeAsync(async () =>
+			element.Dispatcher.InvokeAsync(async () =>
 			{
-				ToggleUIElement(ele);
+				element.Visibility = element.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
 				await Task.Delay(2500);
-				ToggleUIElement(ele);
+				element.Visibility = element.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
 			});
-		}
-
-		public static void AddHyperlink(RichTextBox output, string link, string name, string beforeText = null, string afterText = null)
-		{
-			//Create the hyperlink
-			var hyperlink = UIMakeElement.MakeHyperlink(link, name);
-			if (hyperlink == null)
-			{
-				return;
-			}
-			//Check if the paragraph is valid
-			var para = BotWindow.Output.Document.Blocks.LastBlock as Paragraph;
-			if (para == null)
-			{
-				Actions.WriteLine(link);
-				return;
-			}
-			//Format the text before the hyperlink
-			if (String.IsNullOrWhiteSpace(beforeText))
-			{
-				para.Inlines.Add(new Run(DateTime.Now.ToString("HH:mm:ss") + ": "));
-			}
-			else
-			{
-				para.Inlines.Add(new Run(beforeText));
-			}
-			//Add in the hyperlink
-			para.Inlines.Add(hyperlink);
-			//Format the text after the hyperlink
-			if (String.IsNullOrWhiteSpace(beforeText))
-			{
-				para.Inlines.Add(new Run("\r"));
-			}
-			else
-			{
-				para.Inlines.Add(new Run(afterText));
-			}
-			//Add the paragraph to the ouput
-			output.Document.Blocks.Add(para);
 		}
 	}
 
@@ -1259,6 +1296,7 @@ namespace Advobot
 					IsHitTestVisible = false,
 					BorderThickness = new Thickness(0),
 					Background = Brushes.Transparent,
+					Foreground = Brushes.Black,
 				});
 			}
 			return tbs;
@@ -1325,8 +1363,8 @@ namespace Advobot
 					{
 						Header = Path.GetFileName(fileLoc),
 						Tag = new FileInformation(fileType.Value, fileLoc),
-						Background = (Brush)Application.Current.Resources[BG],
-						Foreground = (Brush)Application.Current.Resources[FG],
+						Background = (Brush)Application.Current.Resources[BASE_BACKGROUND],
+						Foreground = (Brush)Application.Current.Resources[BASE_FOREGROUND],
 					};
 					fileItem.MouseDoubleClick += BotWindow.GuildFilesDoubleClick;
 					listOfFiles.Add(fileItem);
@@ -1341,8 +1379,8 @@ namespace Advobot
 				{
 					Header = String.Format("({0}) {1}", strID, guild.Name),
 					Tag = new GuildFileInformation(ID, guild.Name, guild.MemberCount),
-					Background = (Brush)Application.Current.Resources[BG],
-					Foreground = (Brush)Application.Current.Resources[FG],
+					Background = (Brush)Application.Current.Resources[BASE_BACKGROUND],
+					Foreground = (Brush)Application.Current.Resources[BASE_FOREGROUND],
 				};
 				listOfFiles.ForEach(x =>
 				{
@@ -1356,8 +1394,8 @@ namespace Advobot
 			{
 				ItemsSource = guildItems.OrderBy(x => ((GuildFileInformation)x.Tag).MemberCount).Reverse(),
 				BorderThickness = new Thickness(0),
-				Background = (Brush)Application.Current.Resources[BG],
-				Foreground = (Brush)Application.Current.Resources[FG],
+				Background = (Brush)Application.Current.Resources[BASE_BACKGROUND],
+				Foreground = (Brush)Application.Current.Resources[BASE_FOREGROUND],
 			};
 		}
 
@@ -1425,6 +1463,152 @@ namespace Advobot
 				Background = null,
 			};
 		}
+
+		public static Style MakeButtonStyle(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB)
+		{
+			var templateContentPresenter = new FrameworkElementFactory
+			{
+				Type = typeof(ContentPresenter),
+			};
+			templateContentPresenter.SetValue(ContentPresenter.MarginProperty, new Thickness(2));
+			templateContentPresenter.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+			templateContentPresenter.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
+			templateContentPresenter.SetValue(ContentPresenter.RecognizesAccessKeyProperty, true);
+
+			var templateBorder = new FrameworkElementFactory
+			{
+				Type = typeof(Border),
+				Name = "Border",
+			};
+			templateBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1));
+			templateBorder.SetValue(Border.BackgroundProperty, regBG);
+			templateBorder.SetValue(Border.BorderBrushProperty, regB);
+			//templateBorder.SetResourceReference(Border.BackgroundProperty, BUTTON_BACKGROUND);
+			//templateBorder.SetResourceReference(Border.BorderBrushProperty, BUTTON_BORDER);
+			templateBorder.AppendChild(templateContentPresenter);
+
+			//Create the template
+			var template = new ControlTemplate
+			{
+				TargetType = typeof(Button),
+				VisualTree = templateBorder,
+			};
+			//Add in the triggers
+			MakeButtonTriggers(regBG, regFG, regB, disabledBG, disabledFG, disabledB).ForEach(x => template.Triggers.Add(x));
+
+			var buttonFocusRectangle = new FrameworkElementFactory
+			{
+				Type = typeof(System.Windows.Shapes.Rectangle),
+			};
+			buttonFocusRectangle.SetValue(System.Windows.Shapes.Shape.MarginProperty, new Thickness(2));
+			buttonFocusRectangle.SetValue(System.Windows.Shapes.Shape.StrokeThicknessProperty, 1.0);
+			buttonFocusRectangle.SetValue(System.Windows.Shapes.Shape.StrokeProperty, UIMakeElement.MakeBrush("#60000000"));
+			buttonFocusRectangle.SetValue(System.Windows.Shapes.Shape.StrokeDashArrayProperty, new DoubleCollection { 1.0, 2.0 });
+
+			var buttonFocusBorder = new FrameworkElementFactory
+			{
+				Type = typeof(Border),
+			};
+			buttonFocusBorder.AppendChild(buttonFocusRectangle);
+
+			var buttonFocusVisual = new Style();
+			new List<Setter>
+			{
+				new Setter
+				{
+					Property = Control.TemplateProperty,
+					Value = new ControlTemplate
+					{
+						VisualTree = buttonFocusBorder,
+					}
+				},
+			}.ForEach(x => buttonFocusVisual.Setters.Add(x));
+
+			//Add in the template
+			var buttonStyle = new Style();
+			new List<Setter>
+			{
+				new Setter
+				{
+					Property = Button.SnapsToDevicePixelsProperty,
+					Value = true,
+				},
+				new Setter
+				{
+					Property = Button.OverridesDefaultStyleProperty,
+					Value = true,
+				},
+				new Setter
+				{
+					Property = Button.FocusVisualStyleProperty,
+					Value = buttonFocusVisual,
+				},
+				new Setter
+				{
+					Property = Button.TemplateProperty,
+					Value = template,
+				},
+			}.ForEach(x => buttonStyle.Setters.Add(x));
+
+			return buttonStyle;
+		}
+
+		public static List<Trigger> MakeButtonTriggers(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB)
+		{
+			//This used to have 4 triggers until I realized how useless a lot of them were. It never had the mouseover one though because fuck mouse over effects.
+			var isEnabledTrigger = new Trigger
+			{
+				Property = Button.IsEnabledProperty,
+				Value = false,
+			};
+			new List<Setter>
+			{
+				new Setter
+				{
+					TargetName = "Border",
+					Property = Border.BackgroundProperty,
+					Value = disabledBG,
+				},
+				new Setter
+				{
+					TargetName = "Border",
+					Property = Border.BorderBrushProperty,
+					Value = disabledB,
+				},
+				new Setter
+				{
+					Property = Button.ForegroundProperty,
+					Value = disabledFG,
+				},
+			}.ForEach(x => isEnabledTrigger.Setters.Add(x));
+
+			return new List<Trigger> { isEnabledTrigger };
+		}
+
+		public static Binding MakeTextSizeBinding(double val)
+		{
+			return new Binding
+			{
+				Path = new PropertyPath("ActualHeight"),
+				RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
+				Converter = new UIFontResizer(val),
+			};
+		}
+
+		public static TextBox MakeTextBoxFromUserID(ulong userID)
+		{
+			var user = Actions.GetGlobalUser(userID);
+			return new MyTextBox
+			{
+				Text = String.Format("'{0}#{1}' ({2})", (Actions.GetIfValidUnicode(user.Username, 127) ? user.Username : "Non-Standard Name"), user.Discriminator, user.Id),
+				Tag = userID,
+				IsReadOnly = true,
+				IsHitTestVisible = false,
+				BorderThickness = new Thickness(0),
+				Background = Brushes.Transparent,
+				Foreground = Brushes.Black,
+			};
+		}
 	}
 
 	public class UICommandHandler
@@ -1435,6 +1619,10 @@ namespace Advobot
 			var text = BotWindow.Input.Text.Trim(new[] { '\r', '\n' });
 			BotWindow.Input.Text = "";
 			BotWindow.InputButton.IsEnabled = false;
+			if (text.Contains("﷽"))
+			{
+				text += "\nThis program really doesn't like that long Arabic character for some reason. Whenever there are a lot of them it completely crashes the program instead of only giving an exception.";
+			}
 			Console.WriteLine(text);
 			//Make sure both the path and key are set
 			if (!Variables.GotPath || !Variables.GotKey)
@@ -1568,6 +1756,11 @@ namespace Advobot
 				Write(mCurrentLineText);
 				mCurrentLineText = null;
 			}
+			//Done because crashes program
+			else if (value.Equals('﷽'))
+			{
+				return;
+			}
 			else
 			{
 				mCurrentLineText += value;
@@ -1576,7 +1769,7 @@ namespace Advobot
 
 		public override void Write(string value)
 		{
-			if (mIgnoreNewLines && value.Equals('\n'))
+			if (value == null || (mIgnoreNewLines && value.Equals('\n')))
 				return;
 
 			mOutput.Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() =>
@@ -1593,15 +1786,15 @@ namespace Advobot
 
 	public class UIFontResizer : IValueConverter
 	{
-		double convertFactor;
+		private double mConvertFactor;
 		public UIFontResizer(double convertFactor)
 		{
-			this.convertFactor = convertFactor;
+			this.mConvertFactor = convertFactor;
 		}
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return Math.Max((int)(System.Convert.ToDouble(value) * convertFactor), -1);
+			return Math.Max((int)(System.Convert.ToDouble(value) * mConvertFactor), -1);
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -1632,217 +1825,11 @@ namespace Advobot
 
 	public class MyButton : Button
 	{
-		private static Style mButtonStyle = null;
-
-		private static readonly SolidColorBrush NORMAL_BRUSH = UIMakeElement.MakeBrush("#DDD");
-		private static readonly SolidColorBrush DISABLED_FOREGROUND_BRUSH = UIMakeElement.MakeBrush("#888");
-		private static readonly SolidColorBrush DISABLED_BACKGROUND_BRUSH = UIMakeElement.MakeBrush("#EEE");
-		private static readonly SolidColorBrush NORMAL_BORDER_BRUSH = UIMakeElement.MakeBrush("#888");
-		private static readonly SolidColorBrush DISABLED_BORDER_BRUSH = UIMakeElement.MakeBrush("#AAA");
-
 		public MyButton()
 		{
 			this.Background = null;
 			this.Foreground = null;
 			this.BorderBrush = null;
-			this.Style = GetButtonStyle();
-			this.BorderThickness = new Thickness(1);
-		}
-
-		private static Style GetButtonStyle()
-		{
-			if (mButtonStyle == null)
-			{
-				var templateContentPresenter = new FrameworkElementFactory
-				{
-					Type = typeof(ContentPresenter),
-				};
-				templateContentPresenter.SetBinding(ContentPresenter.MarginProperty, new Binding("Margin")
-				{
-					FallbackValue = new Thickness(2),
-				});
-				templateContentPresenter.SetBinding(ContentPresenter.HorizontalAlignmentProperty, new Binding("HorizontalAlignment")
-				{
-					FallbackValue = HorizontalAlignment.Center,
-				});
-				templateContentPresenter.SetBinding(ContentPresenter.VerticalAlignmentProperty, new Binding("VerticalAlignment")
-				{
-					FallbackValue = VerticalAlignment.Center,
-				});
-				templateContentPresenter.SetBinding(ContentPresenter.RecognizesAccessKeyProperty, new Binding("RecognizesAccessKey")
-				{
-					FallbackValue = true,
-				});
-
-				var templateBorder = new FrameworkElementFactory
-				{
-					Type = typeof(Border),
-					Name = "Border",
-				};
-				templateBorder.SetBinding(Border.CornerRadiusProperty, new Binding("CornerRadius")
-				{
-					FallbackValue = new Thickness(2),
-				});
-				templateBorder.SetBinding(Border.BorderThicknessProperty, new Binding("BorderThickness")
-				{
-					RelativeSource = RelativeSource.TemplatedParent,
-				});
-				templateBorder.SetBinding(Border.BackgroundProperty, new Binding("Background")
-				{
-					RelativeSource = RelativeSource.TemplatedParent,
-				});
-				templateBorder.SetBinding(Border.BorderBrushProperty, new Binding("BorderBrush")
-				{
-					RelativeSource = RelativeSource.TemplatedParent,
-				});
-				templateBorder.AppendChild(templateContentPresenter);
-
-				//Create the template
-				var template = new ControlTemplate
-				{
-					TargetType = typeof(Button),
-					VisualTree = templateBorder,
-				};
-				//Add in the triggers
-				CreateTriggers().ForEach(x => template.Triggers.Add(x));
-
-				var buttonFocusRectangle = new FrameworkElementFactory
-				{
-					Type = typeof(System.Windows.Shapes.Rectangle),
-				};
-				buttonFocusRectangle.SetBinding(System.Windows.Shapes.Shape.MarginProperty, new Binding("Margin") { FallbackValue = new Thickness(2) });
-				buttonFocusRectangle.SetBinding(System.Windows.Shapes.Shape.StrokeThicknessProperty, new Binding("StrokeThickness") { FallbackValue = 1.0 });
-				buttonFocusRectangle.SetBinding(System.Windows.Shapes.Shape.StrokeProperty, new Binding("Stroke") { FallbackValue = UIMakeElement.MakeBrush("#60000000") });
-				buttonFocusRectangle.SetBinding(System.Windows.Shapes.Shape.StrokeDashArrayProperty, new Binding("StrokeDashArray") { FallbackValue = new DoubleCollection { 1.0, 2.0 } });
-
-				var buttonFocusBorder = new FrameworkElementFactory
-				{
-					Type = typeof(Border),
-				};
-				buttonFocusBorder.AppendChild(buttonFocusRectangle);
-
-				var buttonFocusVisual = new Style();
-				new List<Setter>
-				{
-					new Setter
-					{
-						Property = Control.TemplateProperty,
-						Value = new ControlTemplate
-						{
-							VisualTree = buttonFocusBorder,
-						}
-					},
-				}.ForEach(x => buttonFocusVisual.Setters.Add(x));
-
-				//Add in the template
-				mButtonStyle = new Style();
-				new List<Setter>
-				{
-					new Setter
-					{
-						Property = Button.SnapsToDevicePixelsProperty,
-						Value = true,
-					},
-					new Setter
-					{
-						Property = Button.OverridesDefaultStyleProperty,
-						Value = true,
-					},
-					new Setter
-					{
-						Property = Button.FocusVisualStyleProperty,
-						Value = buttonFocusVisual,
-					},
-					new Setter
-					{
-						Property = Button.TemplateProperty,
-						Value = template,
-					},
-				}.ForEach(x => mButtonStyle.Setters.Add(x));
-			}
-
-			return mButtonStyle;
-		}
-		private static List<Trigger> CreateTriggers()
-		{
-			var isKeyboardFocusedTrigger = new Trigger
-			{
-				Property = Button.IsKeyboardFocusedProperty,
-				Value = true,
-			};
-			new List<Setter>
-			{
-				new Setter
-				{
-					TargetName = "Border",
-					Property = Border.BorderBrushProperty,
-					Value = NORMAL_BRUSH,
-				},
-			}.ForEach(x => isKeyboardFocusedTrigger.Setters.Add(x));
-
-			var isDefaultedTrigger = new Trigger
-			{
-				Property = Button.IsDefaultedProperty,
-				Value = true,
-			};
-			new List<Setter>
-			{
-				new Setter
-				{
-					TargetName = "Border",
-					Property = Border.BorderBrushProperty,
-					Value = NORMAL_BORDER_BRUSH,
-				},
-			}.ForEach(x => isDefaultedTrigger.Setters.Add(x));
-
-			var isPressedTrigger = new Trigger
-			{
-				Property = Button.IsPressedProperty,
-				Value = true,
-			};
-			new List<Setter>
-			{
-				new Setter
-				{
-					TargetName = "Border",
-					Property = Border.BackgroundProperty,
-					Value = NORMAL_BRUSH,
-				},
-				new Setter
-				{
-					TargetName = "Border",
-					Property = Border.BorderBrushProperty,
-					Value = NORMAL_BORDER_BRUSH,
-				},
-			}.ForEach(x => isPressedTrigger.Setters.Add(x));
-
-			var isEnabledTrigger = new Trigger
-			{
-				Property = Button.IsEnabledProperty,
-				Value = false,
-			};
-			new List<Setter>
-			{
-				new Setter
-				{
-					TargetName = "Border",
-					Property = Border.BackgroundProperty,
-					Value = DISABLED_BACKGROUND_BRUSH,
-				},
-				new Setter
-				{
-					TargetName = "Border",
-					Property = Border.BorderBrushProperty,
-					Value = DISABLED_BORDER_BRUSH,
-				},
-				new Setter
-				{
-					Property = Button.ForegroundProperty,
-					Value = DISABLED_FOREGROUND_BRUSH,
-				},
-			}.ForEach(x => isEnabledTrigger.Setters.Add(x));
-
-			return new List<Trigger> { isKeyboardFocusedTrigger, isDefaultedTrigger, isPressedTrigger, isEnabledTrigger };
 		}
 	}
 }

@@ -25,7 +25,7 @@ namespace Advobot
 			if (ulong.TryParse(input, out ulong guildID))
 			{
 				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
-				if (Context.User.Id == Variables.BotInfo.BotOwner)
+				if (Context.User.Id == Variables.BotInfo.BotOwnerID)
 				{
 					var guild = Variables.Client.GetGuild(guildID);
 					if (guild == null)
@@ -206,7 +206,7 @@ namespace Advobot
 				case ActionType.Enable:
 				{
 					//Member limit
-					if ((Context.Guild as SocketGuild).MemberCount < Constants.MEMBER_LIMIT && Context.User.Id != Variables.BotInfo.BotOwner)
+					if ((Context.Guild as SocketGuild).MemberCount < Constants.MEMBER_LIMIT && Context.User.Id != Variables.BotInfo.BotOwnerID)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Sorry, but this guild is too small to warrant preferences. {0} or more members are required.",
 							Constants.MEMBER_LIMIT));
@@ -256,7 +256,7 @@ namespace Advobot
 			var actionStr = returnedArgs.Arguments[0];
 			var cmdStr = returnedArgs.Arguments[1];
 
-			var returnedActionType = Actions.GetActionType(input, new[] { ActionType.Enable, ActionType.Disable });
+			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Enable, ActionType.Disable });
 			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
@@ -294,7 +294,7 @@ namespace Advobot
 			{
 				case ActionType.Enable:
 				{
-					if (command.ValAsBoolean)
+					if (command != null && command.ValAsBoolean)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already enabled."));
 						return;
@@ -303,7 +303,7 @@ namespace Advobot
 				}
 				case ActionType.Disable:
 				{
-					if (!command.ValAsBoolean)
+					if (command != null && !command.ValAsBoolean)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already disabled."));
 						return;

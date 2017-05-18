@@ -88,7 +88,7 @@ namespace Advobot
 				{
 					case CCEnum.Clear:
 					{
-						if (botInfo.BotOwner == Context.User.Id)
+						if (botInfo.BotOwnerID == Context.User.Id)
 						{
 							botInfo.ResetBotOwner();
 							Actions.SaveBotInfo();
@@ -115,7 +115,7 @@ namespace Advobot
 					}
 				}
 			}
-			else if (botInfo.BotOwner != 0)
+			else if (botInfo.BotOwnerID != 0)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("There is already a bot owner: `{0}`.", Actions.GetBotOwner().FormatUser()));
 				return;
