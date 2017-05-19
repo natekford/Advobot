@@ -248,11 +248,9 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task InfoBot()
 		{
-			var span = DateTime.UtcNow.Subtract(Variables.StartupTime);
-
 			//Make the description
 			var online = String.Format("**Online Since:** {0}", Variables.StartupTime);
-			var uptime = String.Format("**Uptime:** {0}:{1}:{2}:{3}", span.Days, span.Hours.ToString("00"), span.Minutes.ToString("00"), span.Seconds.ToString("00"));
+			var uptime = Actions.GetUptime();
 			var guildCount = String.Format("**Guild Count:** {0}", Variables.TotalGuilds);
 			var memberCount = String.Format("**Cumulative Member Count:** {0}", Variables.TotalUsers);
 			var currShard = String.Format("**Current Shard:** {0}", Variables.Client.GetShardFor(Context.Guild).ShardId);
@@ -264,7 +262,7 @@ namespace Advobot
 			Actions.AddFooter(embed, "Version " + Constants.BOT_VERSION);
 
 			//First field
-			var firstField = Actions.FormatLoggedThings(false);
+			var firstField = Actions.FormatLoggedThings();
 			Actions.AddField(embed, "Logged Actions", firstField);
 
 			//Second field

@@ -340,7 +340,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public Task Disconnect()
 		{
-			Environment.Exit(0);
+			Actions.DisconnectBot();
 			return Task.CompletedTask;
 		}
 

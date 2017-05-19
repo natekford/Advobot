@@ -738,6 +738,12 @@ namespace Advobot
 			return prefix;
 		}
 
+		public static string GetUptime()
+		{
+			var span = DateTime.UtcNow.Subtract(Variables.StartupTime);
+			return String.Format("**Uptime:** {0}:{1}:{2}:{3}", span.Days, span.Hours.ToString("00"), span.Minutes.ToString("00"), span.Seconds.ToString("00"));
+		}
+
 		public static bool GetIfValidUnicode(string str, int upperLimit)
 		{
 			if (String.IsNullOrWhiteSpace(str))
@@ -2680,10 +2686,9 @@ namespace Advobot
 			return input.Replace(Environment.NewLine, "").Replace("\r", "").Replace("\n", "");
 		}
 
-		public static string FormatLoggedThings(bool removeMarkdown)
+		public static string FormatLoggedThings()
 		{
 			const int spacing = Constants.PAD_RIGHT;
-			var header = String.Format("{0}{1}", "**Logged Actions:**".PadRight(spacing), "Count:");
 			var joins = String.Format("{0}{1}", "**Joins:**".PadRight(spacing), Variables.LoggedJoins);
 			var leaves = String.Format("{0}{1}", "**Leaves:**".PadRight(spacing), Variables.LoggedLeaves);
 			var userChanges = String.Format("{0}{1}", "**User changes:**".PadRight(spacing), Variables.LoggedUserChanges);
@@ -2692,8 +2697,7 @@ namespace Advobot
 			var images = String.Format("{0}{1}", "**Images:**".PadRight(spacing), Variables.LoggedImages);
 			var gifs = String.Format("{0}{1}", "**Gifs:**".PadRight(spacing), Variables.LoggedGifs);
 			var files = String.Format("{0}{1}", "**Files:**".PadRight(spacing), Variables.LoggedFiles);
-			var all = String.Join("\n", new[] { header, joins, leaves, userChanges, edits, deletes, images, gifs, files });
-			return removeMarkdown ? ReplaceMarkdownChars(all) : all;
+			return String.Join("\n", new[] { joins, leaves, userChanges, edits, deletes, images, gifs, files });
 		}
 
 		public static string FormatResponseMessagesForCmdsOnLotsOfObjects<T>(IEnumerable<T> success, IEnumerable<string> failure, string objType, string successAction, string failureAction)
@@ -4465,6 +4469,22 @@ namespace Advobot
 			return new GuildNotification(content, title, desc, thumb, context.Guild.Id, channel.Id);
 		}
 
+		public static async Task UpdateGame()
+		{
+			var botInfo = Variables.BotInfo;
+			var gameStr = String.IsNullOrWhiteSpace(botInfo.Game) ? String.Format("type \"{0}help\" for help.", botInfo.Prefix) : botInfo.Game;
+			var strmStr = botInfo.Stream;
+
+			if (String.IsNullOrWhiteSpace(strmStr))
+			{
+				await Variables.Client.SetGameAsync(gameStr, strmStr, StreamType.NotStreaming);
+			}
+			else
+			{
+				await Variables.Client.SetGameAsync(gameStr, Constants.STREAM_URL + strmStr, StreamType.Twitch);
+			}
+		}
+
 		public static FAWRType ClarifyFAWRType(FAWRType type)
 		{
 			switch (type)
@@ -4507,20 +4527,9 @@ namespace Advobot
 			}).SelectMany(element => element).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
 		}
 
-		public static async Task UpdateGame()
+		public static bool CheckIfRegMatch(string msg, string pattern)
 		{
-			var botInfo = Variables.BotInfo;
-			var gameStr = botInfo.Game ?? String.Format("type \"{0}help\" for help.", botInfo.Prefix);
-			var strmStr = botInfo.Stream;
-
-			if (String.IsNullOrWhiteSpace(strmStr))
-			{
-				await Variables.Client.SetGameAsync(gameStr, strmStr, StreamType.NotStreaming);
-			}
-			else
-			{
-				await Variables.Client.SetGameAsync(gameStr, Constants.STREAM_URL + strmStr, StreamType.Twitch);
-			}
+			return Regex.IsMatch(msg, pattern, RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT));
 		}
 
 		public static void HandleBotID(ulong ID)
@@ -4528,11 +4537,6 @@ namespace Advobot
 			Variables.BotID = ID;
 			Properties.Settings.Default.BotID = ID;
 			Properties.Settings.Default.Save();
-		}
-
-		public static bool CheckIfRegMatch(string msg, string pattern)
-		{
-			return Regex.IsMatch(msg, pattern, RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT));
 		}
 
 		public static void RestartBot()
@@ -4547,6 +4551,11 @@ namespace Advobot
 			{
 				Actions.ExceptionToConsole(e);
 			}
+		}
+
+		public static void DisconnectBot()
+		{
+			Environment.Exit(0);
 		}
 		#endregion
 	}

@@ -1574,36 +1574,6 @@ namespace Advobot
 		}
 	}
 
-	public struct UICommandNames
-	{
-		private static ReadOnlyDictionary<UICommandEnum, string[]> NamesAndAliases = new ReadOnlyDictionary<UICommandEnum, string[]>(new Dictionary<UICommandEnum, string[]>()
-		{
-			{ UICommandEnum.Pause, new[] { BasicCommandStrings.CPAUSE, BasicCommandStrings.APAUSE } },
-			{ UICommandEnum.ListGuilds, new[] { BasicCommandStrings.CGUILDS, BasicCommandStrings.AGUILDS } },
-		});
-
-		public static string[] GetNameAndAliases(UICommandEnum cmd)
-		{
-			return NamesAndAliases.ContainsKey(cmd) ? NamesAndAliases[cmd] : new string[] { };
-		}
-		public static string GetName(UICommandEnum cmd)
-		{
-			return NamesAndAliases.ContainsKey(cmd) ? NamesAndAliases[cmd][0] : null;
-		}
-		public static string[] GetAliases(UICommandEnum cmd)
-		{
-			return NamesAndAliases.ContainsKey(cmd) ? NamesAndAliases[cmd].Skip(1).ToArray() : new string[] { };
-		}
-		public static string FormatStringForUse()
-		{
-			return String.Join("\n", Enum.GetValues(typeof(UICommandEnum)).Cast<UICommandEnum>().ToList().Select(x =>
-			{
-				var aliases = String.Join(", ", GetAliases(x));
-				return String.Format("{0,-20}{1}", GetName(x), String.IsNullOrWhiteSpace(aliases) ? "This command has no aliases." : aliases);
-			}));
-		}
-	}
-
 	public struct RemovablePunishment : ITimeInterface
 	{
 		public IGuild Guild { get; private set; }
@@ -1877,12 +1847,6 @@ namespace Advobot
 		Uses = 3,
 		Expiry = 4,
 	}
-
-	public enum UICommandEnum
-	{
-		Pause = 0,
-		ListGuilds = 1,
-	};
 
 	public enum SpamType
 	{
