@@ -5,9 +5,7 @@ using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -404,8 +402,6 @@ namespace Advobot
 		[JsonProperty]
 		public LogSeverity LogLevel { get; private set; }
 		[JsonProperty]
-		public bool DarkMode { get; private set; }
-		[JsonProperty]
 		public int MaxUserGatherCount { get; private set; }
 
 		public BotGlobalInfo()
@@ -419,7 +415,6 @@ namespace Advobot
 			MessageCacheSize = 1000;
 			AlwaysDownloadUsers = true;
 			LogLevel = LogSeverity.Warning;
-			DarkMode = false;
 			MaxUserGatherCount = 100;
 		}
 
@@ -542,14 +537,6 @@ namespace Advobot
 		{
 			LogLevel = LogSeverity.Warning;
 		}
-		public void SetDarkMode(bool dm)
-		{
-			DarkMode = dm;
-		}
-		public void ResetDarkMode()
-		{
-			DarkMode = false;
-		}
 		public void SetMaxUserGatherCount(int count)
 		{
 			MaxUserGatherCount = count;
@@ -568,7 +555,6 @@ namespace Advobot
 			ResetCacheSize();
 			ResetAlwaysDownloadUsers();
 			ResetLogLevel();
-			ResetDarkMode();
 			ResetMaxUserGatherCount();
 		}
 		public void PostDeserialize()

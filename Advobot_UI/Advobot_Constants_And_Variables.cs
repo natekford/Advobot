@@ -40,7 +40,7 @@ namespace Advobot
 		public const string GENERAL_FILE_EXTENSION = ".txt";
 		public const string GUILD_INFO_LOCATION = "GuildInfo" + SAVING_FILE_EXTENSION;
 		public const string BOT_INFO_LOCATION = "BotInfo" + SAVING_FILE_EXTENSION;
-		public const string BOT_KEYS = "DoNotShareThisFile" + SAVING_FILE_EXTENSION;
+		public const string UI_INFO_LOCATION = "BotUIInfo" + SAVING_FILE_EXTENSION;
 
 		public const string VOICE_TYPE = "voice";
 		public const string TEXT_TYPE = "text";
@@ -56,7 +56,6 @@ namespace Advobot
 		public const string CHANNEL_INSTRUCTIONS = CHAN + "#Channel|\"Channel Name\"";
 		public const string USER_INSTRUCTIONS = USER + "@User|\"Username\"";
 		public const string ROLE_INSTRUCTIONS = ROLE + "@Role|\"Role Name\"";
-
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG = 3;
