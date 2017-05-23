@@ -462,6 +462,23 @@ namespace Advobot
 			var min = argNums.Min;
 			var max = argNums.Max;
 
+			if (input == null)
+			{
+				var list = new List<string>();
+				for (int i = 0; i < min; i++)
+				{
+					list.Add(null);
+				}
+				if (min == 0)
+				{
+					return new ReturnedArguments(list, ArgFailureReason.Not_Failure);
+				}
+				else
+				{
+					return new ReturnedArguments(list, ArgFailureReason.Too_Few_Args);
+				}
+			}
+
 			var args = SplitByCharExceptInQuotes(input, ' ').ToList();
 			if (min > max)
 			{
@@ -1911,8 +1928,26 @@ namespace Advobot
 
 		public static async Task<IMessage> SendChannelMessage(ITextChannel channel, string message)
 		{
-			if (channel == null || !Variables.Guilds.ContainsKey(channel.GuildId))
+			var guild = GetGuild(channel);
+			if (channel == null || guild == null || !Variables.Guilds.ContainsKey(guild.Id))
 				return null;
+
+			var everyoneMention = guild.EveryoneRole.Mention;
+			message = message.Replace(everyoneMention, Constants.FAKE_EVERYONE);
+			message = CaseInsReplace(message, "@everyone", Constants.FAKE_EVERYONE);
+
+			if (message.Length >= Constants.MAX_MESSAGE_LENGTH_LONG)
+			{
+				if (TryToUploadToHastebin(message, out string urlOrError))
+				{
+					message = String.Format("The given content for this message is over 2,000 characters and can be found at {0}.", urlOrError);
+				}
+				else
+				{
+					await SendPotentiallyBigMessage(channel.Guild, channel, message, urlOrError, "Very_Long_Message_");
+					return null;
+				}
+			}
 
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
@@ -3054,6 +3089,16 @@ namespace Advobot
 			}
 		}
 
+		public static async Task SendPotentiallyBigMessage(IGuild guild, IMessageChannel channel, string error, string input, string fileName)
+		{
+			await SendChannelMessage(channel, error);
+
+			if (error == Constants.HASTEBIN_ERROR)
+			{
+				await WriteAndUploadTextFile(guild, channel, input, fileName);
+			}
+		}
+
 		public static bool TryToUploadToHastebin(string text, out string output)
 		{
 			//Check its length
@@ -3071,11 +3116,7 @@ namespace Advobot
 			{
 				try
 				{
-					//Double check that mark down characters have been removed
-					var response = client.UploadString("https://hastebin.com/documents", ReplaceMarkdownChars(text));
-
-					//Send the url back
-					output = String.Concat("https://hastebin.com/raw/", hasteKeyRegex.Match(response).Groups["key"]);
+					output = String.Concat("https://hastebin.com/raw/", hasteKeyRegex.Match(client.UploadString("https://hastebin.com/documents", ReplaceMarkdownChars(text))).Groups["key"]);
 				}
 				catch (Exception e)
 				{

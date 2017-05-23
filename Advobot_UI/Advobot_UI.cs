@@ -58,6 +58,7 @@ namespace Advobot
 			},
 			IsReadOnly = true,
 			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
+			TextWrapping = TextWrapping.Wrap,
 		};
 		#endregion
 
@@ -1135,16 +1136,15 @@ namespace Advobot
 					var currValue = uiInfo.ColorTargets?.FirstOrDefault(x => x.Target == childTarget);
 					if (!currValue.HasValue)
 					{
-						uiInfo.ColorTargets.Add(new BrushTargetAndValue((ColorTarget)childTarget, childText));
 					}
 					else if (!childText.Equals(UIModification.FormatBrush(currValue.Value.Brush)))
 					{
 						uiInfo.ColorTargets.Remove(currValue.Value);
-						uiInfo.ColorTargets.Add(new BrushTargetAndValue((ColorTarget)childTarget, childText));
 					}
 					else
 						continue;
 
+					uiInfo.ColorTargets.Add(new BrushTargetAndValue((ColorTarget)childTarget, childText));
 					Actions.WriteLine(String.Format("Successfully updated the color for {0}.", Enum.GetName(typeof(ColorTarget), childTarget)));
 				}
 				else if (child is ComboBox)
@@ -1176,6 +1176,7 @@ namespace Advobot
 		private static readonly Brush LightModeButtonDisabledBackground = UIModification.MakeBrush("#F4F4F4");
 		private static readonly Brush LightModeButtonDisabledForeground = UIModification.MakeBrush("#888888");
 		private static readonly Brush LightModeButtonDisabledBorder = UIModification.MakeBrush("#ADB2B5");
+		private static readonly Brush LightModeButtonMouseOver = UIModification.MakeBrush("#BEE6FD");
 		private static readonly Style LightModeButtonStyle = UIModification.MakeButtonStyle
 			(
 			LightModeButtonBackground,
@@ -1183,7 +1184,8 @@ namespace Advobot
 			LightModeButtonBorder,
 			LightModeButtonDisabledBackground,
 			LightModeButtonDisabledForeground,
-			LightModeButtonDisabledBorder
+			LightModeButtonDisabledBorder,
+			LightModeButtonMouseOver
 			);
 
 		private static readonly Brush DarkModeBackground = UIModification.MakeBrush("#1C1C1C");
@@ -1192,8 +1194,9 @@ namespace Advobot
 		private static readonly Brush DarkModeButtonBackground = UIModification.MakeBrush("#151515");
 		private static readonly Brush DarkModeButtonBorder = UIModification.MakeBrush("#ABADB3");
 		private static readonly Brush DarkModeButtonDisabledBackground = UIModification.MakeBrush("#343434");
-		private static readonly Brush DarkModeButtonDisabledForeground = UIModification.MakeBrush("#a0a0a0");
+		private static readonly Brush DarkModeButtonDisabledForeground = UIModification.MakeBrush("#A0A0A0");
 		private static readonly Brush DarkModeButtonDisabledBorder = UIModification.MakeBrush("#ADB2B5");
+		private static readonly Brush DarkModeButtonMouseOver = UIModification.MakeBrush("#303333");
 		private static readonly Style DarkModeButtonStyle = UIModification.MakeButtonStyle
 			(
 			DarkModeButtonBackground,
@@ -1201,20 +1204,23 @@ namespace Advobot
 			DarkModeButtonBorder,
 			DarkModeButtonDisabledBackground,
 			DarkModeButtonDisabledForeground,
-			DarkModeButtonDisabledBorder
+			DarkModeButtonDisabledBorder,
+			DarkModeButtonMouseOver
 			);
 
 		public static void InitializeColors()
 		{
-			Application.Current.Resources.Add(ColorTarget.Base_Background, LightModeBackground);
-			Application.Current.Resources.Add(ColorTarget.Base_Foreground, LightModeForeground);
-			Application.Current.Resources.Add(ColorTarget.Base_Border, LightModeBorder);
-			Application.Current.Resources.Add(ColorTarget.Button_Background, LightModeButtonBackground);
-			Application.Current.Resources.Add(ColorTarget.Button_Border, LightModeButtonBorder);
-			Application.Current.Resources.Add(ColorTarget.Button_Disabled_Background, LightModeButtonDisabledBackground);
-			Application.Current.Resources.Add(ColorTarget.Button_Disabled_Foreground, LightModeButtonDisabledForeground);
-			Application.Current.Resources.Add(ColorTarget.Button_Disabled_Border, LightModeButtonDisabledBorder);
-			Application.Current.Resources.Add(OtherTarget.Button_Style, LightModeButtonStyle);
+			var res = Application.Current.Resources;
+			res.Add(ColorTarget.Base_Background, LightModeBackground);
+			res.Add(ColorTarget.Base_Foreground, LightModeForeground);
+			res.Add(ColorTarget.Base_Border, LightModeBorder);
+			res.Add(ColorTarget.Button_Background, LightModeButtonBackground);
+			res.Add(ColorTarget.Button_Border, LightModeButtonBorder);
+			res.Add(ColorTarget.Button_Disabled_Background, LightModeButtonDisabledBackground);
+			res.Add(ColorTarget.Button_Disabled_Foreground, LightModeButtonDisabledForeground);
+			res.Add(ColorTarget.Button_Disabled_Border, LightModeButtonDisabledBorder);
+			res.Add(ColorTarget.Button_Mouse_Over_Background, LightModeButtonMouseOver);
+			res.Add(OtherTarget.Button_Style, LightModeButtonStyle);
 		}
 		public static void SetTheme(ColorTheme theme)
 		{
@@ -1248,6 +1254,7 @@ namespace Advobot
 			res[ColorTarget.Button_Disabled_Background] = LightModeButtonDisabledBackground;
 			res[ColorTarget.Button_Disabled_Foreground] = LightModeButtonDisabledForeground;
 			res[ColorTarget.Button_Disabled_Border] = LightModeButtonDisabledBorder;
+			res[ColorTarget.Button_Mouse_Over_Background] = LightModeButtonMouseOver;
 			res[OtherTarget.Button_Style] = LightModeButtonStyle;
 		}
 		private static void SetDarkMode()
@@ -1261,6 +1268,7 @@ namespace Advobot
 			res[ColorTarget.Button_Disabled_Background] = DarkModeButtonDisabledBackground;
 			res[ColorTarget.Button_Disabled_Foreground] = DarkModeButtonDisabledForeground;
 			res[ColorTarget.Button_Disabled_Border] = DarkModeButtonDisabledBorder;
+			res[ColorTarget.Button_Mouse_Over_Background] = DarkModeButtonMouseOver;
 			res[OtherTarget.Button_Style] = DarkModeButtonStyle;
 		}
 		private static void SetUserMade()
@@ -1277,7 +1285,8 @@ namespace Advobot
 				(Brush)res[ColorTarget.Base_Border],
 				(Brush)res[ColorTarget.Button_Disabled_Background],
 				(Brush)res[ColorTarget.Button_Disabled_Foreground],
-				(Brush)res[ColorTarget.Button_Disabled_Border]
+				(Brush)res[ColorTarget.Button_Disabled_Border],
+				(Brush)res[ColorTarget.Button_Mouse_Over_Background]
 				);
 		}
 
@@ -1486,6 +1495,7 @@ namespace Advobot
 			AddElement(child, placeHolderTB, 0, 100, 0, 100);
 
 			var themeTitle = MakeTitle("Themes:");
+			SetFontSizeProperty(themeTitle, .019);
 			AddElement(child, themeTitle, 2, 5, 10, 55);
 			var themeComboBox = new ComboBox
 			{
@@ -1511,7 +1521,7 @@ namespace Advobot
 				};
 				AddElement(child, title, i * 5 + 7, 5, 10, 55);
 				AddElement(child, setting, i * 5 + 7, 5, 65, 25);
-				SetFontSizeProperties(.02, new[] { title, setting });
+				SetFontSizeProperties(.019, new[] { title, setting });
 			}
 
 			AddElement(child, button, 95, 5, 0, 100);
@@ -1733,7 +1743,7 @@ namespace Advobot
 				Converter = new UIFontResizer(val),
 			};
 		}
-		public static Style MakeButtonStyle(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB)
+		public static Style MakeButtonStyle(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB, Brush mouseOverBG)
 		{
 			var templateContentPresenter = new FrameworkElementFactory
 			{
@@ -1761,7 +1771,7 @@ namespace Advobot
 				VisualTree = templateBorder,
 			};
 			//Add in the triggers
-			MakeButtonTriggers(regBG, regFG, regB, disabledBG, disabledFG, disabledB).ForEach(x => template.Triggers.Add(x));
+			MakeButtonTriggers(regBG, regFG, regB, disabledBG, disabledFG, disabledB, mouseOverBG).ForEach(x => template.Triggers.Add(x));
 
 			var buttonFocusRectangle = new FrameworkElementFactory
 			{
@@ -1819,9 +1829,24 @@ namespace Advobot
 
 			return buttonStyle;
 		}
-		public static List<Trigger> MakeButtonTriggers(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB)
+		public static List<Trigger> MakeButtonTriggers(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB, Brush mouseOverBG)
 		{
-			//This used to have 4 triggers until I realized how useless a lot of them were. It never had the mouseover one though because fuck mouse over effects.
+			//This used to have 5 triggers until I realized how useless a lot of them were.
+			var isMouseOverTrigger = new Trigger
+			{
+				Property = Button.IsMouseOverProperty,
+				Value = true,
+			};
+			new List<Setter>
+			{
+				new Setter
+				{
+					TargetName = "Border",
+					Property = Border.BackgroundProperty,
+					Value = mouseOverBG,
+				},
+			}.ForEach(x => isMouseOverTrigger.Setters.Add(x));
+
 			var isEnabledTrigger = new Trigger
 			{
 				Property = Button.IsEnabledProperty,
@@ -1848,7 +1873,7 @@ namespace Advobot
 				},
 			}.ForEach(x => isEnabledTrigger.Setters.Add(x));
 
-			return new List<Trigger> { isEnabledTrigger };
+			return new List<Trigger> { isMouseOverTrigger, isEnabledTrigger };
 		}
 	}
 
@@ -2094,6 +2119,7 @@ namespace Advobot
 		Button_Disabled_Background = 6,
 		Button_Disabled_Foreground = 7,
 		Button_Disabled_Border = 8,
+		Button_Mouse_Over_Background = 9,
 	}
 
 	public enum OtherTarget

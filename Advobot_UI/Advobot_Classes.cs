@@ -1814,6 +1814,7 @@ namespace Advobot
 		Spam_Prevention = 11,
 		Channel_Settings = 12,
 		Guild_List = 13,
+		Nickname_Moderation = 14,
 	}
 
 	public enum PunishmentType

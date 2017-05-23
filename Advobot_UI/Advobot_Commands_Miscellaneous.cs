@@ -87,14 +87,14 @@ namespace Advobot
 		{
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				var desc = String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}", Actions.GetPrefix(Context.Guild), String.Join("\n", Enum.GetNames(typeof(CommandCategory))));
+				var desc = String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}", Actions.GetPrefix(Context.Guild), String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))));
 				var embed = Actions.MakeNewEmbed("Categories", desc);
 				await Actions.SendEmbedMessage(Context.Channel, embed);
 				return;
 			}
 			else if (Actions.CaseInsEquals(input, "all"))
 			{
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("ALL", String.Join("\n", Variables.CommandNames)));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("All Commands", String.Format("`{0}`", String.Join("`, `", Variables.CommandNames))));
 				return;
 			}
 
@@ -103,7 +103,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Category does not exist."));
 				return;
 			}
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(Enum.GetName(typeof(CommandCategory), category), String.Join("\n", Actions.GetCommands(category))));
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(Enum.GetName(typeof(CommandCategory), category), String.Format("`{0}`", String.Join("`, `", Actions.GetCommands(category)))));
 		}
 
 		[Command("idguild")]
@@ -483,20 +483,82 @@ namespace Advobot
 
 		[Command("userswithname")]
 		[Alias("uwn")]
-		[Usage("[Name]")]
+		[Usage("[\"Name to Search For\"] <Exact:True|False> <Count:True|False> <Nickname:True|False>")]
 		[Summary("Lists all users where their username contains the given string.")]
 		[UserHasAPermission]
 		[DefaultEnabled(true)]
 		public async Task UsersWithName([Remainder] string input)
 		{
-			var count = 1;
-			var users = String.Join("\n", (await Context.Guild.GetUsersAsync()).Where(x => Actions.CaseInsIndexOf(x.Username, input)).OrderBy(x => x.JoinedAt).ToList().Select(x =>
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 4), new[] { "exact", "count", "nickname" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				return String.Format("`{0}.` `{1}`", count++.ToString("00"), x.FormatUser());
-			}));
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var nameStr = returnedArgs.Arguments[0];
+			var exactStr = returnedArgs.GetSpecifiedArg("exact");
+			var countStr = returnedArgs.GetSpecifiedArg("count");
+			var nickStr = returnedArgs.GetSpecifiedArg("nickname");
 
-			var title = String.Format("Users With Names Containing '{0}'", input);
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, users));
+			var exact = false;
+			if (!String.IsNullOrWhiteSpace(exactStr))
+			{
+				if (!bool.TryParse(exactStr, out exact))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for exact."));
+					return;
+				}
+			}
+			var count = false;
+			if (!String.IsNullOrWhiteSpace(countStr))
+			{
+				if (!bool.TryParse(countStr, out count))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for count."));
+					return;
+				}
+			}
+			var nickname = false;
+			if (!String.IsNullOrWhiteSpace(nickStr))
+			{
+				if (!bool.TryParse(nickStr, out nickname))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for nickname."));
+					return;
+				}
+			}
+
+			var users = await Context.Guild.GetUsersAsync();
+			if (exact)
+			{
+				users = users.Where(x =>
+				{
+					return Actions.CaseInsEquals(x.Username, nameStr) || (nickname && Actions.CaseInsEquals(x?.Nickname, nameStr));
+				}).ToList();
+			}
+			else
+			{
+				users = users.Where(x =>
+				{
+					return Actions.CaseInsIndexOf(x.Username, nameStr) || (nickname && Actions.CaseInsIndexOf(x?.Nickname, nameStr));
+				}).ToList();
+			}
+
+			if (count)
+			{
+				await Actions.SendChannelMessage(Context, String.Format("The following number of users have a name containing `{0}`: `{1}`.", nameStr, users.Count));
+			}
+			else
+			{
+				var c = 1;
+				var response = String.Join("\n", users.OrderBy(x => x.JoinedAt).ToList().Select(x =>
+				{
+					return String.Format("`{0}.` `{1}`", c++.ToString("00"), x.FormatUser());
+				}));
+
+				var title = String.Format("Users With Names Containing '{0}'", input);
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, response));
+			}
 		}
 
 		[Command("listemojis")]
@@ -919,7 +981,7 @@ namespace Advobot
 			await role.ModifyAsync(x => x.Mentionable = true);
 			//Send the message
 			var user = Context.User;
-			await Actions.SendChannelMessage(Context, String.Format("{0}, {1}:{2}", user.FormatUser(), role.Mention, textStr));
+			await Actions.SendChannelMessage(Context, String.Format("`{0}`, {1}: {2}", user.FormatUser(), role.Mention, textStr));
 			//Remove the mentionability
 			await role.ModifyAsync(x => x.Mentionable = false);
 		}

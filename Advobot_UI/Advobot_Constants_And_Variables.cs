@@ -114,7 +114,7 @@ namespace Advobot
 		});
 		public static ReadOnlyCollection<string> TEST_PHRASES = new ReadOnlyCollection<string>(new List<string>()
 		{
-			"Ӽ1(".PadRight(2000, 'A'), "Ϯ3|".PadLeft(1000, 'R'), "⁊a~".PadRight(500), "[&r".PadLeft(250, '8'),
+			"Ӽ1(", "Ϯ3|", "⁊a~", "[&r",
 		});
 
 		public static ReadOnlyCollection<LogActions> DEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogActions>(new List<LogActions>()
