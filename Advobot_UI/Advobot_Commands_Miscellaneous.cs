@@ -159,6 +159,32 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, String.Format("The user `{0}#{1}` has the ID `{2}`.", user.Username, user.Discriminator, user.Id));
 		}
 
+		[Command("listguilds")]
+		[Alias("lgds")]
+		[Usage("")]
+		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
+		[BotOwnerRequirement]
+		[DefaultEnabled(true)]
+		public async Task ListGuilds()
+		{
+			var guilds = Variables.Client.GetGuilds().ToList();
+			if (guilds.Count < 10)
+			{
+				var embed = Actions.MakeNewEmbed("Guilds");
+				guilds.ForEach(x =>
+				{
+					Actions.AddField(embed, x.FormatGuild(), String.Format("**Owner:** `{0}`", x.Owner.FormatUser()));
+				});
+				await Actions.SendEmbedMessage(Context.Channel, embed);
+			}
+			else
+			{
+				var count = 1;
+				var guildStrings = guilds.Select(x => String.Format("`{0}.` `{1}` Owner: `{2}`", count++.ToString("00"), x.FormatGuild(), x.Owner.FormatUser()));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guilds", String.Join("\n", guildStrings)));
+			}
+		}
+
 		[Command("infoguild")]
 		[Alias("infg")]
 		[Usage("")]
@@ -262,7 +288,7 @@ namespace Advobot
 			Actions.AddFooter(embed, "Version " + Constants.BOT_VERSION);
 
 			//First field
-			var firstField = Actions.FormatLoggedThings();
+			var firstField = Actions.FormatLoggedThings(Constants.PAD_RIGHT);
 			Actions.AddField(embed, "Logged Actions", firstField);
 
 			//Second field

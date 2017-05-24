@@ -193,7 +193,7 @@ namespace Advobot
 		{
 			var guildInfo = Variables.Guilds[Context.Guild.Id];
 
-			var returnedActionType = Actions.GetActionType(input, new[] { ActionType.Enable, ActionType.Disable });
+			var returnedActionType = Actions.GetType(input, new[] { ActionType.Enable, ActionType.Disable });
 			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
@@ -256,7 +256,7 @@ namespace Advobot
 			var actionStr = returnedArgs.Arguments[0];
 			var cmdStr = returnedArgs.Arguments[1];
 
-			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Enable, ActionType.Disable });
+			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable });
 			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
@@ -396,13 +396,13 @@ namespace Advobot
 			}
 			var channel = returnedChannel.Object;
 
-			var returnedActionType = Actions.GetActionType(input, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			var returnedType = Actions.GetType(input, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedActionType.Type;
+			var action = returnedType.Type;
 			var add = action == ActionType.Add;
 
 			//Get the lists the bot will use for this command
@@ -535,7 +535,7 @@ namespace Advobot
 			var permStr = returnedArgs.Arguments[2];
 
 			//Check if valid action
-			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
+			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
 			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
@@ -693,7 +693,7 @@ namespace Advobot
 			var nameStr = returnedArgs.Arguments[1];
 			var textStr = returnedArgs.Arguments[2];
 
-			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
 			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedActionType);

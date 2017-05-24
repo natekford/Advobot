@@ -341,7 +341,7 @@ namespace Advobot
 			var roleStr = returnedArgs.Arguments[1];
 			var permStr = returnedArgs.Arguments[2];
 
-			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
+			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
 			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedActionType);

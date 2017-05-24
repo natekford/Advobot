@@ -161,8 +161,8 @@ namespace Advobot
 			var antiJoin = guildInfo.JoinProtection;
 			if (antiJoin != null)
 			{
-				antiJoin.Increase();
-				if (antiJoin.JoinCount >= antiJoin.JoinLimit)
+				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
+				if (antiJoin.SpamCount(antiJoin.TimeInterval) >= antiJoin.RequiredCount)
 				{
 					//TODO: Finish implementation later
 					//Actions.

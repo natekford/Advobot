@@ -559,20 +559,25 @@ namespace Advobot
 			return new ReturnedArguments(args, specifiedArgs, context.Message);
 		}
 
-		public static ReturnedType GetActionType(string input, ActionType[] validTypes)
+		public static ReturnedType<T> GetType<T>(string input, IEnumerable<T> validTypes, IEnumerable<T> invalidTypes = null) where T : struct
 		{
-			if (!Enum.TryParse(input, true, out ActionType type))
+			if (!Enum.TryParse<T>(input, true, out T type))
 			{
-				return new ReturnedType(type, TypeFailureReason.Not_Found);
+				return new ReturnedType<T>(type, TypeFailureReason.Not_Found);
 			}
-			else if (!validTypes.Contains(type))
+			else if (invalidTypes != null)
 			{
-				return new ReturnedType(type, TypeFailureReason.Invalid_Type);
+				if (invalidTypes.Contains(type))
+				{
+					return new ReturnedType<T>(type, TypeFailureReason.Invalid_Type);
+				}
 			}
-			else
+			else if (!validTypes.ToList().Contains(type))
 			{
-				return new ReturnedType(type, TypeFailureReason.Not_Failure);
+				return new ReturnedType<T>(type, TypeFailureReason.Invalid_Type);
 			}
+
+			return new ReturnedType<T>(type, TypeFailureReason.Not_Failure);
 		}
 
 		public static CommandSwitch GetCommand(BotGuildInfo guildInfo, string input)
@@ -609,6 +614,15 @@ namespace Advobot
 				}
 			}
 			return result;
+		}
+
+		public static FileType? GetFileType(string file)
+		{
+			if (Enum.TryParse(file, true, out FileType type))
+			{
+				return type;
+			}
+			return null;
 		}
 
 		public static string[] GetCommands(CommandCategory category)
@@ -792,6 +806,11 @@ namespace Advobot
 			return user.Id == Variables.BotInfo.BotOwnerID;
 		}
 
+		public static bool GetIfUserIsTrustedUser(IUser user)
+		{
+			return Variables.BotInfo.TrustedUsers.Contains(user.Id);
+		}
+
 		public static bool GetIfBypass(string str)
 		{
 			return CaseInsEquals(str, Constants.BYPASS_STRING);
@@ -849,6 +868,46 @@ namespace Advobot
 			return input.Count(y => y == '\n' || y == '\r');
 		}
 
+		public static int GetCountOfItemsInTimeFrame<T>(List<T> timeList, int timeFrame = 0) where T : ITimeInterface
+		{
+			lock (timeList)
+			{
+				//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
+				var listLength = timeList.Count;
+				if (timeFrame == 0 || listLength < 2)
+					return listLength;
+
+				//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
+				var count = 0;
+				for (int i = 0; i < listLength; ++i)
+				{
+					for (int j = i + 1; j < listLength; ++j)
+					{
+						if ((int)timeList[j].GetTime().Subtract(timeList[i].GetTime()).TotalSeconds >= timeFrame)
+						{
+							//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
+							if ((int)timeList[j].GetTime().Subtract(timeList[j - 1].GetTime()).TotalSeconds > timeFrame)
+								i = j;
+							break;
+						}
+					}
+				}
+
+				//Remove all that are older than the given timeframe (with an added 1 second margin)
+				var nowTime = DateTime.UtcNow;
+				for (int i = listLength - 1; i >= 0; --i)
+				{
+					if ((int)nowTime.Subtract(timeList[i].GetTime()).TotalSeconds > timeFrame + 1)
+					{
+						timeList.RemoveRange(0, i + 1);
+						break;
+					}
+				}
+
+				return count;
+			}
+		}
+
 		public static void GetOS()
 		{
 			var windir = Environment.GetEnvironmentVariable("windir");
@@ -865,15 +924,6 @@ namespace Advobot
 			{
 				Variables.Console = false;
 			}
-		}
-
-		public static FileType? GetFileType(string file)
-		{
-			if (Enum.TryParse(file, true, out FileType type))
-			{
-				return type;
-			}
-			return null;
 		}
 		#endregion
 
@@ -2234,7 +2284,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task HandleTypeGettingErrors(ICommandContext context, ReturnedType returnedType)
+		public static async Task HandleTypeGettingErrors<T>(ICommandContext context, ReturnedType<T> returnedType)
 		{
 			switch (returnedType.Reason)
 			{
@@ -2245,7 +2295,7 @@ namespace Advobot
 				}
 				case TypeFailureReason.Invalid_Type:
 				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("The type `{0}` is not accepted in this instance.")));
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("The type `{0}` is not accepted in this instance.", returnedType.Type)));
 					return;
 				}
 			}
@@ -2371,7 +2421,7 @@ namespace Advobot
 			return embed.WithAuthor(author);
 		}
 
-		public static EmbedBuilder AddFooter(EmbedBuilder embed, string text = null, string iconURL = null)
+		public static EmbedBuilder AddFooter(EmbedBuilder embed, [CallerMemberName] string text = null, string iconURL = null)
 		{
 			//Make the footer builder
 			var footer = new EmbedFooterBuilder();
@@ -2533,7 +2583,7 @@ namespace Advobot
 				{
 					if (!String.IsNullOrWhiteSpace(botInfo.Prefix))
 					{
-						str = String.Format("`{0}`", botInfo.Prefix);
+						str = "Then how did you use this command. :thinking:";
 					}
 					break;
 				}
@@ -2721,9 +2771,8 @@ namespace Advobot
 			return input.Replace(Environment.NewLine, "").Replace("\r", "").Replace("\n", "");
 		}
 
-		public static string FormatLoggedThings()
+		public static string FormatLoggedThings(int spacing)
 		{
-			const int spacing = Constants.PAD_RIGHT;
 			var joins = String.Format("{0}{1}", "**Joins:**".PadRight(spacing), Variables.LoggedJoins);
 			var leaves = String.Format("{0}{1}", "**Leaves:**".PadRight(spacing), Variables.LoggedLeaves);
 			var userChanges = String.Format("{0}{1}", "**User changes:**".PadRight(spacing), Variables.LoggedUserChanges);
@@ -2733,6 +2782,14 @@ namespace Advobot
 			var gifs = String.Format("{0}{1}", "**Gifs:**".PadRight(spacing), Variables.LoggedGifs);
 			var files = String.Format("{0}{1}", "**Files:**".PadRight(spacing), Variables.LoggedFiles);
 			return String.Join("\n", new[] { joins, leaves, userChanges, edits, deletes, images, gifs, files });
+		}
+
+		public static string FormatLoggedCommands(int spacing)
+		{
+			var attempted = String.Format("{0}{1}", "**Attempted:**".PadRight(spacing), Variables.AttemptedCommands);
+			var successful = String.Format("{0}{1}", "**Successful:**".PadRight(spacing), Variables.AttemptedCommands - Variables.FailedCommands);
+			var failed = String.Format("{0}{1}", "**Failed:**".PadRight(spacing), Variables.FailedCommands);
+			return String.Join("\n", new[] { attempted, successful, failed });
 		}
 
 		public static string FormatResponseMessagesForCmdsOnLotsOfObjects<T>(IEnumerable<T> success, IEnumerable<string> failure, string objType, string successAction, string failureAction)
@@ -2825,6 +2882,7 @@ namespace Advobot
 
 		public static string FormatAllSettings(BotGlobalInfo botInfo)
 		{
+			//TODO: Put rest of stuff in here
 			var prefStr = String.Format("**Prefix:** `{0}`", String.IsNullOrWhiteSpace(botInfo.Prefix) ? "N/A" : botInfo.Prefix);
 			var shardStr = String.Format("**Shards:** `{0}`", botInfo.ShardCount);
 			var saveStr = String.Format("**Save Path:** `{0}`", String.IsNullOrWhiteSpace(Properties.Settings.Default.Path) ? "N/A" : Properties.Settings.Default.Path);
@@ -4379,11 +4437,6 @@ namespace Advobot
 			{
 				x.ResetMessagesLeft();
 			});
-		}
-
-		public static void ClearJoinCount()
-		{
-			Variables.Guilds.Values.Select(x => x.JoinProtection).Where(x => x.TimeToReset < DateTime.UtcNow).ToList().ForEach(x => x.Reset());
 		}
 		#endregion
 

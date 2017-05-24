@@ -21,13 +21,9 @@ namespace Advobot
 			Provider = provider;
 
 			await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
-
-			//Use the BotClient's connected handler to start up the bot and the message received handler to handle commands
-			Client.AddConnectedHandler(this);
-			Client.AddMessageReceivedHandler(this);
 		}
 
-		public async Task HandleCommand(SocketMessage parameterMessage)
+		public static async Task HandleCommand(SocketMessage parameterMessage)
 		{
 			if (Variables.Pause)
 				return;

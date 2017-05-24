@@ -15,6 +15,9 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class PermissionRequirementAttribute : PreconditionAttribute
 	{
+		private uint mAllFlags;
+		private uint mAnyFlags;
+
 		public PermissionRequirementAttribute(uint anyOfTheListedPerms = 0, uint allOfTheListedPerms = 0)
 		{
 			mAllFlags = allOfTheListedPerms;
@@ -51,17 +54,31 @@ namespace Advobot
 		{
 			get { return String.Join("|", Actions.GetPermissionNames(mAnyFlags)); }
 		}
-
-		private uint mAllFlags;
-		private uint mAnyFlags;
 	}
 
+	/*
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class BotOwnerOrGuildOwnerRequirementAttribute : PreconditionAttribute
+	public class OtherRequirementAttribute : PermissionRequirementAttribute
+	{
+		private uint mPreconditions;
+
+		public OtherRequirementAttribute(uint preconditions)
+		{
+			mPreconditions = preconditions;
+		}
+
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
+		{
+			//TODO: implement later
+		}
+	}*/
+
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+	public class BotOwnerRequirementAttribute : PreconditionAttribute
 	{
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			if (Actions.GetIfUserIsOwner(context.Guild, context.User) || Actions.GetIfUserIsBotOwner(context.User))
+			if (Actions.GetIfUserIsBotOwner(context.User))
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
@@ -73,11 +90,31 @@ namespace Advobot
 	}
 
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class BotOwnerRequirementAttribute : PreconditionAttribute
+	public class BotOwnerOrTrustedUserRequirementAttribute : PreconditionAttribute
 	{
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
 			if (Actions.GetIfUserIsBotOwner(context.User))
+			{
+				return Task.FromResult(PreconditionResult.FromSuccess());
+			}
+			else if (Actions.GetIfUserIsTrustedUser(context.User))
+			{
+				return Task.FromResult(PreconditionResult.FromSuccess());
+			}
+			else
+			{
+				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
+			}
+		}
+	}
+
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+	public class BotOwnerOrGuildOwnerRequirementAttribute : PreconditionAttribute
+	{
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
+		{
+			if (Actions.GetIfUserIsOwner(context.Guild, context.User) || Actions.GetIfUserIsBotOwner(context.User))
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
@@ -180,21 +217,21 @@ namespace Advobot
 		[JsonProperty]
 		public List<Remind> Reminds { get; private set; }
 		[JsonProperty]
+		public List<LogActions> LogActions { get; private set; }
+		[JsonProperty]
 		public List<ulong> IgnoredCommandChannels { get; private set; }
 		[JsonProperty]
 		public List<ulong> IgnoredLogChannels { get; private set; }
 		[JsonProperty]
 		public List<ulong> ImageOnlyChannels { get; private set; }
-		[JsonProperty]
-		public List<LogActions> LogActions { get; private set; }
+		[JsonIgnore]
+		public List<BannedPhraseUser> BannedPhraseUsers { get; private set; }
 		[JsonIgnore]
 		public List<SlowmodeChannel> SlowmodeChannels { get; private set; }
 		[JsonIgnore]
 		public List<BotInvite> Invites { get; private set; }
 		[JsonIgnore]
 		public List<string> EvaluatedRegex { get; private set; }
-		[JsonIgnore]
-		public List<BannedPhraseUser> BannedPhraseUsers { get; private set; }
 
 		[JsonProperty]
 		public BannedPhrases BannedPhrases { get; private set; }
@@ -227,6 +264,12 @@ namespace Advobot
 		[JsonIgnore]
 		public MessageDeletion MessageDeletion { get; private set; }
 		[JsonIgnore]
+		public ITextChannel ServerLog { get; private set; }
+		[JsonIgnore]
+		public ITextChannel ModLog { get; private set; }
+		[JsonIgnore]
+		public ITextChannel ImageLog { get; private set; }
+		[JsonIgnore]
 		public bool DefaultPrefs { get; private set; }
 		[JsonIgnore]
 		public bool Loaded { get; private set; }
@@ -236,12 +279,6 @@ namespace Advobot
 		public bool DeletingPrefs { get; private set; }
 		[JsonIgnore]
 		public SocketGuild Guild { get; private set; }
-		[JsonIgnore]
-		public ITextChannel ServerLog { get; private set; }
-		[JsonIgnore]
-		public ITextChannel ModLog { get; private set; }
-		[JsonIgnore]
-		public ITextChannel ImageLog { get; private set; }
 
 		public BotGuildInfo(ulong guildID)
 		{
@@ -262,7 +299,6 @@ namespace Advobot
 			BannedPhrases = new BannedPhrases();
 			GlobalSpamPrevention = new GlobalSpamPrevention();
 			MessageDeletion = new MessageDeletion();
-			JoinProtection = new RapidJoinProtection();
 			CommandOverrides = new CommandOverrides();
 
 			Prefix = null;
@@ -562,38 +598,9 @@ namespace Advobot
 		}
 	}
 
-	public class RapidJoinProtection : ITimeInterface
+	public class RapidJoinProtection : BaseSpamInformation
 	{
-		[JsonProperty]
-		public int TimeInterval { get; private set; }
-		[JsonProperty]
-		public int JoinLimit { get; private set; }
-		[JsonIgnore]
-		public int JoinCount { get; private set; }
-		[JsonIgnore]
-		public DateTime TimeToReset { get; private set; }
-
-		public RapidJoinProtection()
-		{
-			TimeInterval = 2; //TODO: Give user option to set this
-			JoinLimit = 4; //TODO: Same as above
-			JoinCount = 0;
-			TimeToReset = DateTime.UtcNow.AddSeconds(TimeInterval);
-		}
-
-		public DateTime GetTime()
-		{
-			return TimeToReset;
-		}
-		public void Increase()
-		{
-			++JoinCount;
-		}
-		public void Reset()
-		{
-			JoinCount = 0;
-			TimeToReset = DateTime.UtcNow.AddSeconds(TimeInterval);
-		}
+		public RapidJoinProtection(int timeInterval, int requiredCount) : base(SpamType.Rapid_Joins, timeInterval, requiredCount) { }
 	}
 
 	public class CommandSwitch
@@ -998,6 +1005,46 @@ namespace Advobot
 			Enabled = !Enabled;
 		}
 	}
+
+	public class BaseSpamInformation
+	{
+		[JsonProperty]
+		public int TimeInterval { get; private set; }
+		[JsonProperty]
+		public int RequiredCount { get; private set; }
+		[JsonIgnore]
+		public SpamType SpamType { get; private set; }
+		[JsonIgnore]
+		public List<GenericTimeInterface> TimeList { get; private set; }
+
+		public BaseSpamInformation(SpamType spamType, int timeInterval, int requiredCount)
+		{
+			SpamType = spamType;
+			TimeInterval = timeInterval;
+			RequiredCount = requiredCount;
+			TimeList = new List<GenericTimeInterface>();
+		}
+
+		public void Add(DateTime time)
+		{
+			TimeList.ThreadSafeAdd(new GenericTimeInterface(time));
+		}
+		public void Remove(DateTime time)
+		{
+			TimeList.ThreadSafeRemoveAll(x =>
+			{
+				return x.GetTime().Equals(time);
+			});
+		}
+		public int SpamCount(int timeFrame = 0)
+		{
+			return Actions.GetCountOfItemsInTimeFrame(TimeList, timeFrame);
+		}
+		public void Reset()
+		{
+			TimeList = new List<GenericTimeInterface>();
+		}
+	}
 	#endregion
 
 	#region Non-saved Classes
@@ -1044,8 +1091,6 @@ namespace Advobot
 
 	public abstract class BotClient
 	{
-		public abstract void AddMessageReceivedHandler(Command_Handler handler);
-		public abstract void AddConnectedHandler(Command_Handler handler);
 		public abstract BaseDiscordClient GetClient();
 		public abstract SocketSelfUser GetCurrentUser();
 		public abstract IUser GetUser(ulong id);
@@ -1070,8 +1115,6 @@ namespace Advobot
 
 		public SocketClient(DiscordSocketClient client) { mSocketClient = client; }
 
-		public override void AddMessageReceivedHandler(Command_Handler handler) { mSocketClient.MessageReceived += handler.HandleCommand; }
-		public override void AddConnectedHandler(Command_Handler handler) { mSocketClient.Connected += Actions.LoadInformation; }
 		public override BaseDiscordClient GetClient() { return mSocketClient; }
 		public override SocketSelfUser GetCurrentUser() { return mSocketClient.CurrentUser; }
 		public override IUser GetUser(ulong id) { return mSocketClient.GetUser(id); }
@@ -1096,8 +1139,6 @@ namespace Advobot
 
 		public ShardedClient(DiscordShardedClient client) { mShardedClient = client; }
 
-		public override void AddMessageReceivedHandler(Command_Handler handler) { mShardedClient.MessageReceived += handler.HandleCommand; }
-		public override void AddConnectedHandler(Command_Handler handler) { mShardedClient.Shards.FirstOrDefault().Connected += Actions.LoadInformation; }
 		public override BaseDiscordClient GetClient() { return mShardedClient; }
 		public override SocketSelfUser GetCurrentUser() { return mShardedClient.Shards.FirstOrDefault().CurrentUser; }
 		public override IUser GetUser(ulong id) { return mShardedClient.GetUser(id); }
@@ -1289,75 +1330,6 @@ namespace Advobot
 			{
 				await Actions.VotesHigherThanRequiredAmount(spamPrev, this, msg);
 			}
-		}
-	}
-
-	public class BaseSpamInformation
-	{
-		public SpamType SpamType { get; private set; }
-		public List<DateTime> TimeList { get; private set; }
-
-		public BaseSpamInformation(SpamType spamType)
-		{
-			SpamType = spamType;
-			TimeList = new List<DateTime>();
-		}
-
-		public void Add(DateTime time)
-		{
-			TimeList.ThreadSafeAdd(time);
-		}
-		public void Remove(DateTime time)
-		{
-			TimeList.ThreadSafeRemove(time);
-		}
-		public int SpamCount(int requiredCount, int timeFrame = 0)
-		{
-			lock (TimeList)
-			{
-				//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
-				var listLength = TimeList.Count;
-				if (timeFrame == 0 || listLength < 2)
-					return listLength;
-
-				//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
-				var count = 0;
-				for (int i = 0; i < listLength; ++i)
-				{
-					for (int j = i + 1; j < listLength; ++j)
-					{
-						if ((int)TimeList[j].Subtract(TimeList[i]).TotalSeconds >= timeFrame)
-						{
-							//There's no point in gathering more than the required amount if it's met
-							count = Math.Max(count, j - i);
-							if (count >= requiredCount)
-								return count;
-
-							//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
-							if ((int)TimeList[j].Subtract(TimeList[j - 1]).TotalSeconds > timeFrame)
-								i = j;
-							break;
-						}
-					}
-				}
-
-				//Remove all that are older than the given timeframe (with an added 1 second margin since this runs every quarter second)
-				var nowTime = DateTime.UtcNow;
-				for (int i = listLength - 1; i >= 0; --i)
-				{
-					if ((int)nowTime.Subtract(TimeList[i]).TotalSeconds > timeFrame + 1)
-					{
-						TimeList.RemoveRange(0, i + 1);
-						break;
-					}
-				}
-
-				return count;
-			}
-		}
-		public void Reset()
-		{
-			TimeList = new List<DateTime>();
 		}
 	}
 
@@ -1628,12 +1600,12 @@ namespace Advobot
 		}
 	}
 
-	public struct ReturnedType
+	public struct ReturnedType<T>
 	{
-		public ActionType Type { get; private set; }
+		public T Type { get; private set; }
 		public TypeFailureReason Reason { get; private set; }
 
-		public ReturnedType(ActionType type, TypeFailureReason reason)
+		public ReturnedType(T type, TypeFailureReason reason)
 		{
 			Type = type;
 			Reason = reason;
@@ -1717,6 +1689,21 @@ namespace Advobot
 		}
 	}
 
+	public struct GenericTimeInterface : ITimeInterface
+	{
+		private DateTime mTime;
+
+		public GenericTimeInterface(DateTime time)
+		{
+			mTime = time;
+		}
+
+		public DateTime GetTime()
+		{
+			return mTime;
+		}
+	}
+
 	public struct EditableDiscordObject<T>
 	{
 		public List<T> Success { get; private set; }
@@ -1785,6 +1772,13 @@ namespace Advobot
 	{
 		DateTime GetTime();
 	}
+
+	public interface ITimeListInterface
+	{
+		void Add();
+		void Remove();
+		int GetCount();
+	}
 	#endregion
 
 	#region Enums
@@ -1843,6 +1837,7 @@ namespace Advobot
 		Image = 4,
 		Mention = 5,
 		Reaction = 6,
+		Rapid_Joins = 7,
 	}
 
 	public enum FAWRType
@@ -1931,7 +1926,6 @@ namespace Advobot
 		AlwaysDownloadUsers = 7,
 		LogLevel = 8,
 		SavePath = 9,
-		DarkMode = 10,
 		MaxUserGatherCount = 11,
 	}
 
@@ -2018,6 +2012,14 @@ namespace Advobot
 	public enum FileType
 	{
 		GuildInfo = 0,
+	}
+
+	public enum Precondition
+	{
+		User_Has_A_Perm = 0,
+		Guild_Owner = 1,
+		Trusted_User = 2,
+		Bot_Owner = 3,
 	}
 	#endregion
 }

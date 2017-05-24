@@ -249,11 +249,16 @@ namespace Advobot
 		{
 			Visibility = Visibility.Collapsed,
 		};
+		private static readonly TextBox mInfoPlaceholderTB = new MyTextBox
+		{
+			IsReadOnly = true,
+		};
 		private static readonly RichTextBox mInfoOutput = new MyRichTextBox
 		{
 			IsReadOnly = true,
 			IsDocumentEnabled = true,
 			Document = UIModification.MakeInfoMenu(),
+			BorderThickness = new Thickness(0, 1, 0, 1),
 		};
 		#endregion
 
@@ -446,8 +451,9 @@ namespace Advobot
 			UIModification.AddElement(mLayout, mColorsLayout, 0, 87, 3, 1, 100, 100);
 
 			//Info Menu
-			UIModification.AddElement(mLayout, mInfoLayout, 0, 87, 3, 1, 1, 1);
-			UIModification.AddElement(mInfoLayout, mInfoOutput, 0, 1, 0, 1);
+			UIModification.AddElement(mLayout, mInfoLayout, 0, 87, 3, 1, 1, 10);
+			UIModification.AddElement(mInfoLayout, mInfoPlaceholderTB, 0, 1, 0, 10);
+			UIModification.AddElement(mInfoLayout, mInfoOutput, 0, 1, 1, 8);
 
 			//File Menu
 			UIModification.AddElement(mLayout, mFileLayout, 0, 87, 3, 1, 100, 1);
@@ -476,11 +482,10 @@ namespace Advobot
 
 			//Font size properties
 			UIModification.SetFontSizeProperties(.275, new UIElement[] { mInput, });
-			UIModification.SetFontSizeProperties(.06, new UIElement[] { mNameInput, mIDInput, });
-			UIModification.SetFontSizeProperties(.04, new UIElement[] { mInfoOutput, });
+			UIModification.SetFontSizeProperties(.060, new UIElement[] { mNameInput, mIDInput, });
+			UIModification.SetFontSizeProperties(.035, new UIElement[] { mInfoOutput, });
 			UIModification.SetFontSizeProperties(.022, new UIElement[] { mEditBox, mEditSaveBox, mFileOutput, });
-			UIModification.SetFontSizeProperties(.02, mTitleBoxes, mSettingBoxes);
-			UIModification.SetFontSizeProperties(.019, new UIElement[] { mMainMenuOutput, });
+			UIModification.SetFontSizeProperties(.018, new UIElement[] { mMainMenuOutput, }, mTitleBoxes, mSettingBoxes);
 
 			//Events
 			mInput.KeyUp += AcceptInput;
@@ -508,7 +513,9 @@ namespace Advobot
 			mColorsSaveButton.Click += UpdateColors;
 
 			//Set this panel as the content for this window and run the application
-			Content = mLayout;
+			this.Content = mLayout;
+			this.WindowState = WindowState.Maximized;
+
 			RunApplication();
 		}
 		private void RunApplication()
@@ -668,7 +675,7 @@ namespace Advobot
 				}
 				else if (Actions.CaseInsEquals(name, mColorsButton.Content.ToString()))
 				{
-					UIModification.UpdateColorDisplayer(mColorsLayout, mColorsSaveButton);
+					UIModification.MakeColorDisplayer(mColorsLayout, mColorsSaveButton, .018);
 					mColorsLayout.Visibility = Visibility.Visible;
 				}
 				//Show the text for info
@@ -1289,7 +1296,6 @@ namespace Advobot
 				(Brush)res[ColorTarget.Button_Mouse_Over_Background]
 				);
 		}
-
 		public static BotUIInfo LoadBotUIInfo()
 		{
 			var botInfo = new BotUIInfo();
@@ -1321,6 +1327,16 @@ namespace Advobot
 
 	public class UIModification
 	{
+		public static string FormatBrush(Brush b)
+		{
+			var color = ((SolidColorBrush)b)?.Color;
+			if (!color.HasValue)
+				return "";
+
+			var c = color.Value;
+			return String.Format("#{0}{1}{2}{3}", c.A.ToString("X2"), c.R.ToString("X2"), c.G.ToString("X2"), c.B.ToString("X2"));
+		}
+
 		public static void AddRows(Grid grid, int amount)
 		{
 			for (int i = 0; i < amount; i++)
@@ -1328,6 +1344,7 @@ namespace Advobot
 				grid.RowDefinitions.Add(new RowDefinition());
 			}
 		}
+
 		public static void AddCols(Grid grid, int amount)
 		{
 			for (int i = 0; i < amount; i++)
@@ -1335,16 +1352,19 @@ namespace Advobot
 				grid.ColumnDefinitions.Add(new ColumnDefinition());
 			}
 		}
+
 		public static void SetRowAndSpan(UIElement item, int start = 0, int length = 1)
 		{
 			Grid.SetRow(item, start < 0 ? 0 : start);
 			Grid.SetRowSpan(item, length < 1 ? 1 : length);
 		}
+
 		public static void SetColAndSpan(UIElement item, int start = 0, int length = 1)
 		{
 			Grid.SetColumn(item, start < 0 ? 0 : start);
 			Grid.SetColumnSpan(item, length < 1 ? 1 : length);
 		}
+
 		public static void AddElement(Grid parent, Grid child, int rowStart, int rowLength, int columnStart, int columnLength, int setRows = 0, int setColumns = 0)
 		{
 			AddRows(child, setRows);
@@ -1353,6 +1373,7 @@ namespace Advobot
 			SetRowAndSpan(child, rowStart, rowLength);
 			SetColAndSpan(child, columnStart, columnLength);
 		}
+
 		public static void AddElement(Grid parent, UIElement child, int rowStart, int rowLength, int columnStart, int columnLength)
 		{
 			parent.Children.Add(child);
@@ -1364,29 +1385,26 @@ namespace Advobot
 		{
 			for (int c = 0; c < VisualTreeHelper.GetChildrenCount(parent); c++)
 			{
-				var child = VisualTreeHelper.GetChild(parent, c) as DependencyObject;
-				if (child is Control)
+				var element = VisualTreeHelper.GetChild(parent, c) as DependencyObject;
+				if (element is Control)
 				{
-					if (child is CheckBox || child is ComboBox)
+					if (element is CheckBox || element is ComboBox)
 					{
 						continue;
 					}
-					if (child is MyButton)
+					if (element is MyButton)
 					{
-						SwitchElementColor((MyButton)child);
-					}
-					if (child is TextEditor)
-					{
-						SwitchElementColor((Control)child);
+						SwitchElementColor((MyButton)element);
 					}
 					else
 					{
-						SwitchElementColor((Control)child);
+						SwitchElementColor((Control)element);
 					}
 				}
-				SetColorMode(child);
+				SetColorMode(element);
 			}
 		}
+
 		public static void SwitchElementColor(Control element)
 		{
 			var eleBackground = element.Background as SolidColorBrush;
@@ -1405,6 +1423,7 @@ namespace Advobot
 				element.SetResourceReference(Control.BorderBrushProperty, ColorTarget.Base_Border);
 			}
 		}
+
 		public static void SwitchElementColor(MyButton element)
 		{
 			var style = element.Style;
@@ -1418,37 +1437,8 @@ namespace Advobot
 				element.SetResourceReference(Control.ForegroundProperty, ColorTarget.Base_Foreground);
 			}
 		}
+
 		public static void SwitchElementColor(object element) { }
-
-		public static bool CheckIfSameBrush(Brush firstBrush, Brush secondBrush)
-		{
-			if (firstBrush == null || secondBrush == null)
-			{
-				return secondBrush == null && secondBrush == null;
-			}
-
-			var firstColor = ((SolidColorBrush)firstBrush).Color;
-			var secondColor = ((SolidColorBrush)secondBrush).Color;
-
-			var a = firstColor.A == secondColor.A;
-			var r = firstColor.R == secondColor.R;
-			var g = firstColor.G == secondColor.G;
-			var b = firstColor.B == secondColor.B;
-			return a && r && g && b;
-		}
-		public static string FormatBrush(Brush b)
-		{
-			var color = ((SolidColorBrush)b)?.Color;
-			if (!color.HasValue)
-				return "";
-
-			var c = color.Value;
-			return String.Format("#{0}{1}{2}{3}", c.A.ToString("X2"), c.R.ToString("X2"), c.G.ToString("X2"), c.B.ToString("X2"));
-		}
-		public static SolidColorBrush MakeBrush(string color)
-		{
-			return (SolidColorBrush)new BrushConverter().ConvertFrom(color);
-		}
 
 		public static void SetFontSizeProperties(double size, params IEnumerable<UIElement>[] elements)
 		{
@@ -1457,10 +1447,12 @@ namespace Advobot
 				SetFontSizeProperty(ele, size);
 			}
 		}
+
 		public static void SetFontSizeProperty(Control element, double size)
 		{
 			element.SetBinding(Control.FontSizeProperty, MakeTextSizeBinding(size));
 		}
+
 		public static void SetFontSizeProperty(Grid element, double size)
 		{
 			var children = element.Children;
@@ -1469,12 +1461,14 @@ namespace Advobot
 				SetFontSizeProperty((dynamic)child, size);
 			}
 		}
+
 		public static void SetFontSizeProperty(object element, double size) { }
 
 		public static void ToggleToolTip(ToolTip ttip)
 		{
 			ttip.IsOpen = !ttip.IsOpen;
 		}
+
 		public static void ToggleAndRetoggleElement(UIElement element)
 		{
 			element.Dispatcher.InvokeAsync(async () =>
@@ -1483,49 +1477,6 @@ namespace Advobot
 				await Task.Delay(2500);
 				element.Visibility = element.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
 			});
-		}
-		public static void UpdateColorDisplayer(Grid child, Button button)
-		{
-			child.Children.Clear();
-
-			var placeHolderTB = new MyTextBox
-			{
-				IsReadOnly = true,
-			};
-			AddElement(child, placeHolderTB, 0, 100, 0, 100);
-
-			var themeTitle = MakeTitle("Themes:");
-			SetFontSizeProperty(themeTitle, .019);
-			AddElement(child, themeTitle, 2, 5, 10, 55);
-			var themeComboBox = new ComboBox
-			{
-				ItemsSource = MakeComboBoxSourceOutOfEnum(typeof(ColorTheme)),
-				VerticalContentAlignment = VerticalAlignment.Center,
-			};
-			themeComboBox.SelectedItem = themeComboBox.Items.Cast<MyTextBox>().FirstOrDefault(x => (ColorTheme)x.Tag == UIAttributes.BotUIInfo.Theme);
-			AddElement(child, themeComboBox, 2, 5, 65, 25);
-
-			var colorResourceKeys = Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>().ToArray();
-			for (int i = 0; i < colorResourceKeys.Length; i++)
-			{
-				var key = colorResourceKeys[i];
-				var value = FormatBrush(UIAttributes.BotUIInfo.ColorTargets.FirstOrDefault(x => x.Target == key).Brush);
-
-				var title = MakeTitle(String.Format("{0}:", Enum.GetName(typeof(ColorTarget), key)));
-				var setting = new MyTextBox
-				{
-					VerticalContentAlignment = VerticalAlignment.Center,
-					Tag = key,
-					MaxLength = 10,
-					Text = value,
-				};
-				AddElement(child, title, i * 5 + 7, 5, 10, 55);
-				AddElement(child, setting, i * 5 + 7, 5, 65, 25);
-				SetFontSizeProperties(.019, new[] { title, setting });
-			}
-
-			AddElement(child, button, 95, 5, 0, 100);
-			SetColorMode(child);
 		}
 
 		public static IEnumerable<TextBox> MakeComboBoxSourceOutOfEnum(Type type)
@@ -1547,20 +1498,7 @@ namespace Advobot
 			}
 			return tbs;
 		}
-		public static Viewbox MakeStandardViewBox(string text)
-		{
-			return new Viewbox
-			{
-				Child = new MyTextBox
-				{
-					Text = text,
-					VerticalAlignment = VerticalAlignment.Bottom,
-					IsReadOnly = true,
-					BorderThickness = new Thickness(0)
-				},
-				HorizontalAlignment = HorizontalAlignment.Left
-			};
-		}
+
 		public static TextBox MakeTitle(string text)
 		{
 			return new MyTextBox
@@ -1573,6 +1511,7 @@ namespace Advobot
 				TextWrapping = TextWrapping.WrapWithOverflow,
 			};
 		}
+
 		public static TextBox MakeSetting(SettingOnBot setting, int length)
 		{
 			return new MyTextBox
@@ -1582,15 +1521,17 @@ namespace Advobot
 				MaxLength = length
 			};
 		}
+
 		public static TextBox MakeSysInfoBox()
 		{
 			return new MyTextBox
 			{
 				IsReadOnly = true,
-				BorderThickness = new Thickness(0, 1, 0, 1),
+				BorderThickness = new Thickness(0, .5, 0, .5),
 				Background = null,
 			};
 		}
+
 		public static TextBox MakeTextBoxFromUserID(ulong userID)
 		{
 			var user = Actions.GetGlobalUser(userID);
@@ -1606,34 +1547,34 @@ namespace Advobot
 			};
 		}
 
-		public static Hyperlink MakeHyperlink(string link, string name)
+		public static Viewbox MakeStandardViewBox(string text)
 		{
-			//Make sure the input is a valid link
-			if (!Actions.ValidateURL(link))
+			return new Viewbox
 			{
-				Actions.WriteLine(Actions.ERROR("Invalid URL."));
-				return null;
-			}
-			//Create the hyperlink
-			var hyperlink = new Hyperlink(new Run(name))
-			{
-				NavigateUri = new Uri(link),
-				IsEnabled = true,
+				Child = new MyTextBox
+				{
+					Text = text,
+					VerticalAlignment = VerticalAlignment.Bottom,
+					IsReadOnly = true,
+					BorderThickness = new Thickness(0)
+				},
+				HorizontalAlignment = HorizontalAlignment.Left
 			};
-			//Make it work when clicked
-			hyperlink.RequestNavigate += (sender, e) =>
-			{
-				Process.Start(e.Uri.ToString());
-				e.Handled = true;
-			};
-			return hyperlink;
 		}
-		public static TreeView MakeGuildTreeView()
+
+		public static TreeView MakeGuildTreeView(TreeView tv)
 		{
 			//Get the directory
 			var directory = Actions.GetBaseBotDirectory();
 			if (directory == null || !Directory.Exists(directory))
-				return null;
+				return tv;
+
+			//Remove its parent so it can be added back to something
+			var parent = tv.Parent;
+			if (parent != null)
+			{
+				(parent as InlineUIContainer).Child = null;
+			}
 
 			//Format the treeviewitems
 			var guildItems = new List<TreeViewItem>();
@@ -1688,14 +1629,14 @@ namespace Advobot
 				guildItems.Add(guildItem);
 			});
 
-			return new TreeView
-			{
-				ItemsSource = guildItems.OrderBy(x => ((GuildFileInformation)x.Tag).MemberCount).Reverse(),
-				BorderThickness = new Thickness(0),
-				Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
-				Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
-			};
+			tv.ItemsSource = guildItems.OrderBy(x => ((GuildFileInformation)x.Tag).MemberCount).Reverse();
+			tv.BorderThickness = new Thickness(0);
+			tv.Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background];
+			tv.Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground];
+
+			return tv;
 		}
+
 		public static FlowDocument MakeMainMenu()
 		{
 			var defs1 = "Latency:\n\tTime it takes for a command to reach the bot.\nMemory:\n\tAmount of RAM the program is using.\n\t(This is wrong most of the time.)";
@@ -1712,14 +1653,12 @@ namespace Advobot
 
 			return new FlowDocument(temp);
 		}
+
 		public static FlowDocument MakeInfoMenu()
 		{
 			var uptime = Actions.GetUptime();
-			var cmds = String.Format("Attempted Commands: {0}\rSuccessful Commands: {1}\rFailed Commands: {2}",
-				Variables.AttemptedCommands,
-				Variables.AttemptedCommands - Variables.FailedCommands,
-				Variables.FailedCommands);
-			var logs = Actions.FormatLoggedThings();
+			var cmds = String.Format("Logged Commands:\n{0}", Actions.FormatLoggedCommands(Constants.PAD_RIGHT));
+			var logs = String.Format("Logged Actions:\n{0}", Actions.FormatLoggedThings(Constants.PAD_RIGHT));
 			var str = Actions.ReplaceMarkdownChars(String.Format("{0}\r\r{1}\r\r{2}", uptime, cmds, logs));
 			var paragraph = new Paragraph(new Run(str))
 			{
@@ -1727,11 +1666,84 @@ namespace Advobot
 			};
 			return new FlowDocument(paragraph);
 		}
-		public static FlowDocument MakeFileMenu(TreeView treeView)
+
+		public static FlowDocument MakeFileMenu(TreeView tv)
 		{
-			var para = new Paragraph();
-			para.Inlines.Add(treeView = MakeGuildTreeView());
-			return new FlowDocument(para);
+			return new FlowDocument(new Paragraph(new InlineUIContainer(MakeGuildTreeView(tv))));
+		}
+
+		public static Grid MakeColorDisplayer(Grid child, Button button, double fontSizeProperty)
+		{
+			child.Children.Clear();
+
+			var placeHolderTB = new MyTextBox
+			{
+				IsReadOnly = true,
+			};
+			AddElement(child, placeHolderTB, 0, 100, 0, 100);
+
+			var themeTitle = MakeTitle("Themes:");
+			SetFontSizeProperty(themeTitle, fontSizeProperty);
+			AddElement(child, themeTitle, 2, 5, 10, 55);
+			var themeComboBox = new ComboBox
+			{
+				ItemsSource = MakeComboBoxSourceOutOfEnum(typeof(ColorTheme)),
+				VerticalContentAlignment = VerticalAlignment.Center,
+			};
+			themeComboBox.SelectedItem = themeComboBox.Items.Cast<MyTextBox>().FirstOrDefault(x => (ColorTheme)x.Tag == UIAttributes.BotUIInfo.Theme);
+			AddElement(child, themeComboBox, 2, 5, 65, 25);
+
+			var colorResourceKeys = Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>().ToArray();
+			for (int i = 0; i < colorResourceKeys.Length; i++)
+			{
+				var key = colorResourceKeys[i];
+				var value = FormatBrush(UIAttributes.BotUIInfo.ColorTargets.FirstOrDefault(x => x.Target == key).Brush);
+
+				var title = MakeTitle(String.Format("{0}:", Enum.GetName(typeof(ColorTarget), key)));
+				var setting = new MyTextBox
+				{
+					VerticalContentAlignment = VerticalAlignment.Center,
+					Tag = key,
+					MaxLength = 10,
+					Text = value,
+				};
+				AddElement(child, title, i * 5 + 7, 5, 10, 55);
+				AddElement(child, setting, i * 5 + 7, 5, 65, 25);
+				SetFontSizeProperties(fontSizeProperty, new[] { title, setting });
+			}
+
+			AddElement(child, button, 95, 5, 0, 100);
+			SetColorMode(child);
+
+			return child;
+		}
+
+		public static Hyperlink MakeHyperlink(string link, string name)
+		{
+			//Make sure the input is a valid link
+			if (!Actions.ValidateURL(link))
+			{
+				Actions.WriteLine(Actions.ERROR("Invalid URL."));
+				return null;
+			}
+			//Create the hyperlink
+			var hyperlink = new Hyperlink(new Run(name))
+			{
+				NavigateUri = new Uri(link),
+				IsEnabled = true,
+			};
+			//Make it work when clicked
+			hyperlink.RequestNavigate += (sender, e) =>
+			{
+				Process.Start(e.Uri.ToString());
+				e.Handled = true;
+			};
+			return hyperlink;
+		}
+
+		public static Brush MakeBrush(string color)
+		{
+			return (SolidColorBrush)new BrushConverter().ConvertFrom(color);
 		}
 
 		public static Binding MakeTextSizeBinding(double val)
@@ -1743,6 +1755,7 @@ namespace Advobot
 				Converter = new UIFontResizer(val),
 			};
 		}
+
 		public static Style MakeButtonStyle(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB, Brush mouseOverBG)
 		{
 			var templateContentPresenter = new FrameworkElementFactory
@@ -1829,6 +1842,7 @@ namespace Advobot
 
 			return buttonStyle;
 		}
+
 		public static List<Trigger> MakeButtonTriggers(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB, Brush mouseOverBG)
 		{
 			//This used to have 5 triggers until I realized how useless a lot of them were.
@@ -1897,8 +1911,10 @@ namespace Advobot
 				{
 					if (!Variables.GotPath)
 					{
-						Variables.GotPath = Actions.ValidatePath(text);
-						Variables.GotKey = Variables.GotPath && await Actions.ValidateBotKey(Variables.Client, Properties.Settings.Default.BotKey, true);
+						if (Variables.GotPath = Actions.ValidatePath(text))
+						{
+							Variables.GotKey = await Actions.ValidateBotKey(Variables.Client, Properties.Settings.Default.BotKey, true);
+						}
 					}
 					else if (!Variables.GotKey)
 					{
@@ -1995,7 +2011,7 @@ namespace Advobot
 				Write(mCurrentLineText);
 				mCurrentLineText = null;
 			}
-			//Done because crashes program
+			//Done because crashes program without exception. Could not for the life of me figure out why; something in the .dlls themself.
 			else if (value.Equals('﷽'))
 			{
 				return;

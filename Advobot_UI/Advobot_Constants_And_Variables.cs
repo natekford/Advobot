@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text.RegularExpressions;
 
 namespace Advobot
 {
@@ -200,51 +199,5 @@ namespace Advobot
 		public readonly static List<SlowmodeUser> SlowmodeUsers = new List<SlowmodeUser>();
 		public readonly static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
 		public readonly static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<Discord.IGuild>();
-	}
-
-	public static class BasicCommandStrings
-	{
-		public const string CPAUSE = "pause";
-		public const string APAUSE = "p";
-
-		public const string CSETTINGS = "globalsettings";
-		public const string ASETTINGS = "gls";
-
-		public const string CSETTINGSRESET = "globalsettingsreset";
-		public const string ASETTINGSRESET = "glsr";
-
-		public const string COWNER = "globalbotowner";
-		public const string AOWNER = "glbo";
-
-		public const string CPATH = "globalsavepath";
-		public const string APATH = "glsp";
-
-		public const string CPREFIX = "globalprefix";
-		public const string APREFIX = "glp";
-
-		public const string CICON = "boticon";
-		public const string AICON = "bi";
-
-		public const string CGAME = "botgame";
-		public const string AGAME = "bg";
-
-		public const string CSTREAM = "botstream";
-		public const string ASTREAM = "bst";
-
-		public const string CNAME = "botname";
-		public const string ANAME = "bn";
-
-		public const string CDISC = "disconnect";
-		public const string ADISC_1 = "dc";
-		public const string ADISC_2 = "runescapeservers";
-
-		public const string CRESTART = "restart";
-		public const string ARESTART = "res";
-
-		public const string CGUILDS = "listguilds";
-		public const string AGUILDS = "lgds";
-
-		public const string CSHARDS = "modifyshards";
-		public const string ASHARDS = "msh";
 	}
 }

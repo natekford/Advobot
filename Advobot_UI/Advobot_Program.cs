@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Advobot
@@ -96,6 +97,7 @@ namespace Advobot
 			});
 
 			ShardedClient.Log += Bot_Logs.Log;
+			ShardedClient.MessageReceived += Command_Handler.HandleCommand;
 			ShardedClient.GuildAvailable += Bot_Logs.OnGuildAvailable;
 			ShardedClient.GuildUnavailable += Bot_Logs.OnGuildUnavailable;
 			ShardedClient.JoinedGuild += Bot_Logs.OnJoinedGuild;
@@ -106,6 +108,7 @@ namespace Advobot
 			ShardedClient.MessageReceived += Server_Logs.OnMessageReceived;
 			ShardedClient.MessageUpdated += Server_Logs.OnMessageUpdated;
 			ShardedClient.MessageDeleted += Server_Logs.OnMessageDeleted;
+			ShardedClient.Shards.FirstOrDefault().Connected += Actions.LoadInformation; 
 
 			return ShardedClient;
 		}
@@ -120,6 +123,7 @@ namespace Advobot
 			});
 
 			SocketClient.Log += Bot_Logs.Log;
+			SocketClient.MessageReceived += Command_Handler.HandleCommand;
 			SocketClient.GuildAvailable += Bot_Logs.OnGuildAvailable;
 			SocketClient.GuildUnavailable += Bot_Logs.OnGuildUnavailable;
 			SocketClient.JoinedGuild += Bot_Logs.OnJoinedGuild;
@@ -130,6 +134,7 @@ namespace Advobot
 			SocketClient.MessageReceived += Server_Logs.OnMessageReceived;
 			SocketClient.MessageUpdated += Server_Logs.OnMessageUpdated;
 			SocketClient.MessageDeleted += Server_Logs.OnMessageDeleted;
+			SocketClient.Connected += Actions.LoadInformation;
 
 			return SocketClient;
 		}
