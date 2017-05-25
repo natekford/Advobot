@@ -17,7 +17,7 @@ namespace Advobot
 		[Command("guildleave")]
 		[Usage("<Guild ID>")]
 		[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
-		[BotOwnerOrGuildOwnerRequirement]
+		[OtherRequirement((1U << (int)Precondition.Guild_Owner) | (1U << (int)Precondition.Bot_Owner))]
 		[DefaultEnabled(true)]
 		public async Task GuildLeave([Optional, Remainder] string input)
 		{
@@ -65,7 +65,7 @@ namespace Advobot
 		[Alias("gdp")]
 		[Usage("[New Prefix|Clear]")]
 		[Summary("Makes the guild use the given prefix from now on.")]
-		[GuildOwnerRequirement]
+		[OtherRequirement(1U << (int)Precondition.Guild_Owner)]
 		[DefaultEnabled(false)]
 		public async Task GuildPrefix([Remainder] string input)
 		{
@@ -187,19 +187,19 @@ namespace Advobot
 		[Alias("ccm")]
 		[Usage("[Enable|Disable]")]
 		[Summary("Gives the guild preferences which allows using self-assignable roles, toggling commands, and changing the permissions of commands.")]
-		[GuildOwnerRequirement]
+		[OtherRequirement(1U << (int)Precondition.Guild_Owner)]
 		[DefaultEnabled(true)]
 		public async Task CommandConfigModify([Remainder] string input)
 		{
 			var guildInfo = Variables.Guilds[Context.Guild.Id];
 
-			var returnedActionType = Actions.GetType(input, new[] { ActionType.Enable, ActionType.Disable });
-			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			var returnedType = Actions.GetType(input, new[] { ActionType.Enable, ActionType.Disable });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedActionType.Type;
+			var action = returnedType.Type;
 
 			switch (action)
 			{
@@ -256,13 +256,13 @@ namespace Advobot
 			var actionStr = returnedArgs.Arguments[0];
 			var cmdStr = returnedArgs.Arguments[1];
 
-			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable });
-			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedActionType.Type;
+			var action = returnedType.Type;
 
 			//Check if all
 			var allBool = false;
@@ -535,13 +535,13 @@ namespace Advobot
 			var permStr = returnedArgs.Arguments[2];
 
 			//Check if valid action
-			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
-			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedActionType.Type;
+			var action = returnedType.Type;
 
 			if (returnedArgs.ArgCount == 1)
 			{
@@ -668,9 +668,9 @@ namespace Advobot
 
 		[Command("remindsmodify")]
 		[Alias("remm")]
-		[Usage("[Add|Remove] [\"Name\"] [\"Text\"]")]
+		[Usage("[Add|Remove] [\"Name\"] <\"Text\">")]
 		[Summary("Adds the given text to a list that can be called through the `remind` command.")]
-		[UserHasAPermission]
+		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task RemindsModify([Remainder] string input)
 		{
@@ -683,7 +683,7 @@ namespace Advobot
 			}
 
 			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 3));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -693,13 +693,13 @@ namespace Advobot
 			var nameStr = returnedArgs.Arguments[1];
 			var textStr = returnedArgs.Arguments[2];
 
-			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedActionType.Type;
+			var action = returnedType.Type;
 			var add = action == ActionType.Add;
 
 			var reminds = guildInfo.Reminds;
@@ -720,8 +720,15 @@ namespace Advobot
 					return;
 				}
 
+				//Make sure there's text
+				if (String.IsNullOrWhiteSpace(textStr))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Adding a remind requires text."));
+					return;
+				}
+
 				//Add them to the list
-				guildInfo.Reminds.Add(new Remind(nameStr, textStr.Trim()));
+				guildInfo.Reminds.Add(new Remind(nameStr, textStr));
 			}
 			else
 			{
@@ -745,6 +752,7 @@ namespace Advobot
 		[Alias("rem", "r")]
 		[Usage("<Name>")]
 		[Summary("Shows the content for the given remind. If null then shows the list of the current reminds.")]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(false)]
 		public async Task Reminds([Optional, Remainder] string input)
 		{
@@ -808,7 +816,7 @@ namespace Advobot
 		[Command("welcomemessage")]
 		[Alias("wm")]
 		[Usage("[#Channel] <\"Content:string\"> <\"Title:string\"> <\"Desc:string\"> <\"Thumb:string\">")]
-		[Summary("Displays a welcome message with the given content whenever a user joins. `{User}` will be replaced with a mention of the joining user.")]
+		[Summary("Displays a welcome message with the given content whenever a user joins. `{User}` will be replaced with the formatted user.  `{UserMention}` will be replaced with a mention of the joining user.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task WelcomeMessage([Remainder] string input)
@@ -832,7 +840,7 @@ namespace Advobot
 		[Command("goodbyemessage")]
 		[Alias("gm")]
 		[Usage("[Channel] <\"Content:string\"> <\"Title:string\"> <\"Desc:string\"> <\"Thumb:string\">")]
-		[Summary("Displays a goodbye message with the given content whenever a user leaves. `@User` will be replaced with a mention of the joining user.")]
+		[Summary("Displays a goodbye message with the given content whenever a user leaves. `{User}` will be replaced with the formatted user.  `{UserMention}` will be replaced with a mention of the joining user.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task GoodbyeMessage([Remainder] string input)

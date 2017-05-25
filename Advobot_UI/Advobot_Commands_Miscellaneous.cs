@@ -163,7 +163,7 @@ namespace Advobot
 		[Alias("lgds")]
 		[Usage("")]
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
-		[BotOwnerRequirement]
+		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
 		[DefaultEnabled(true)]
 		public async Task ListGuilds()
 		{
@@ -419,7 +419,7 @@ namespace Advobot
 		[Alias("ujs")]
 		[Usage("")]
 		[Summary("Lists most of the users who have joined the guild. Not 100% accurate.")]
-		[UserHasAPermission]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task UserJoins()
 		{
@@ -440,7 +440,7 @@ namespace Advobot
 		[Alias("ujat")]
 		[Usage("[Position]")]
 		[Summary("Shows the user which joined the guild in that position. Not 100% accurate.")]
-		[UserHasAPermission]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task UserJoinedAt([Remainder] string input)
 		{
@@ -474,7 +474,7 @@ namespace Advobot
 		[Alias("cmc")]
 		[Usage("")]
 		[Summary("Shows the current number of members in the guild.")]
-		[UserHasAPermission]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task CurrentMemberCount()
 		{
@@ -511,7 +511,7 @@ namespace Advobot
 		[Alias("uwn")]
 		[Usage("[\"Name to Search For\"] <Exact:True|False> <Count:True|False> <Nickname:True|False>")]
 		[Summary("Lists all users where their username contains the given string.")]
-		[UserHasAPermission]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task UsersWithName([Remainder] string input)
 		{
@@ -624,7 +624,7 @@ namespace Advobot
 		[Alias("getperms")]
 		[Usage("[Number]")]
 		[Summary("Lists all the perms that come from the given value.")]
-		[UserHasAPermission]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task GetPermsFromValue([Remainder] string input)
 		{
@@ -647,7 +647,7 @@ namespace Advobot
 		[Alias("invl")]
 		[Usage("")]
 		[Summary("Gives a list of all the instant invites on the guild.")]
-		[UserHasAPermission]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task ListInstantInvites()
 		{
@@ -902,7 +902,7 @@ namespace Advobot
 		[Usage("<\"Title:input\"> <\"Desc:input\"> <Img:url> <Url:url> <Thumb:url> <Color:int/int/int> <\"Author:input\"> <AuthorIcon:url> <AuthorUrl:url> <\"Foot:input\"> <FootIcon:url> " +
 				"<\"Field[1-25]:input\"> <\"FieldText[1-25]:input\"> <FieldInline[1-25]:true|false>")]
 		[Summary("Every single piece is optional. The stuff in quotes *must* be in quotes. URLs need the https:// in front. Fields need *both* Field and FieldText to work.")]
-		[UserHasAPermission]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task MakeAnEmbed([Remainder] string input)
 		{
@@ -968,7 +968,7 @@ namespace Advobot
 		[Alias("mnr")]
 		[Usage("[Role] [\"Message\"]")]
 		[Summary("Mention an unmentionable role with the given message.")]
-		[UserHasAPermission]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task MentionRole([Remainder] string input)
 		{
@@ -1016,7 +1016,7 @@ namespace Advobot
 		[Alias("mbo")]
 		[Usage("[Message]")]
 		[Summary("Sends a message to the bot owner with the given text. Messages will be cut down to 250 characters.")]
-		[UserHasAPermission]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task MessageBotOwner([Remainder] string input)
 		{
@@ -1034,7 +1034,7 @@ namespace Advobot
 		}
 
 		[Command("test")]
-		[BotOwnerRequirement]
+		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{

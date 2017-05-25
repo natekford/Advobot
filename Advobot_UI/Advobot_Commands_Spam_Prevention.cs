@@ -43,13 +43,13 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid type supplied."));
 				return;
 			}
-			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
-			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedActionType.Type;
+			var action = returnedType.Type;
 
 			//Check if a spam prevention exists or not
 			var spamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(type);
@@ -156,13 +156,13 @@ namespace Advobot
 			var actionStr = returnedArgs.Arguments[0];
 			var numStr = returnedArgs.Arguments[1];
 
-			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Enable, ActionType.Disable });
-			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedActionType.Type;
+			var action = returnedType.Type;
 
 			//Check if mute role already exists, if not, create it
 			var returnedMuteRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, false, Constants.MUTE_ROLE_NAME);

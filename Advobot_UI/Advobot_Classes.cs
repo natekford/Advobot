@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	#region Attributes
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class PermissionRequirementAttribute : PreconditionAttribute
 	{
 		private uint mAllFlags;
@@ -52,99 +51,13 @@ namespace Advobot
 		}
 		public string AnyText
 		{
-			get { return String.Join("|", Actions.GetPermissionNames(mAnyFlags)); }
+			get { return String.Join(" | ", Actions.GetPermissionNames(mAnyFlags)); }
 		}
 	}
 
-	/*
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public class OtherRequirementAttribute : PermissionRequirementAttribute
 	{
-		private uint mPreconditions;
-
-		public OtherRequirementAttribute(uint preconditions)
-		{
-			mPreconditions = preconditions;
-		}
-
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
-		{
-			//TODO: implement later
-		}
-	}*/
-
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class BotOwnerRequirementAttribute : PreconditionAttribute
-	{
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
-		{
-			if (Actions.GetIfUserIsBotOwner(context.User))
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-			else
-			{
-				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
-			}
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class BotOwnerOrTrustedUserRequirementAttribute : PreconditionAttribute
-	{
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
-		{
-			if (Actions.GetIfUserIsBotOwner(context.User))
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-			else if (Actions.GetIfUserIsTrustedUser(context.User))
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-			else
-			{
-				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
-			}
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class BotOwnerOrGuildOwnerRequirementAttribute : PreconditionAttribute
-	{
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
-		{
-			if (Actions.GetIfUserIsOwner(context.Guild, context.User) || Actions.GetIfUserIsBotOwner(context.User))
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-			else
-			{
-				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
-			}
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public class GuildOwnerRequirementAttribute : PreconditionAttribute
-	{
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
-		{
-			if (Actions.GetIfUserIsOwner(context.Guild, context.User))
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-			else
-			{
-				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
-			}
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
-	public class UserHasAPermissionAttribute : PreconditionAttribute
-	{
-		private const UInt32 PERMISSIONBITS = 0
+		private const uint PERMISSIONBITS = 0
 			| (1U << (int)GuildPermission.Administrator)
 			| (1U << (int)GuildPermission.BanMembers)
 			| (1U << (int)GuildPermission.DeafenMembers)
@@ -158,12 +71,30 @@ namespace Advobot
 			| (1U << (int)GuildPermission.ManageWebhooks)
 			| (1U << (int)GuildPermission.MoveMembers)
 			| (1U << (int)GuildPermission.MuteMembers);
+		public uint Requirements { get; private set; }
+
+		public OtherRequirementAttribute(uint preconditions)
+		{
+			Requirements = preconditions;
+		}
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			if (context.Guild != null && Variables.Guilds.TryGetValue(context.Guild.Id, out BotGuildInfo guildInfo))
+			var user = context.User as IGuildUser;
+			var guild = context.Guild;
+			if (!Variables.Guilds.TryGetValue(context.Guild.Id, out BotGuildInfo guildInfo))
 			{
-				var user = context.User as IGuildUser;
+				return Task.FromResult(PreconditionResult.FromError("Guild is not loaded correctly."));
+			}
+
+			var permissions = (Requirements & (1U << (int)Precondition.User_Has_A_Perm)) != 0;
+			var guildOwner = (Requirements & (1U << (int)Precondition.Guild_Owner)) != 0;
+			var trustedUser = (Requirements & (1U << (int)Precondition.Trusted_User)) != 0;
+			var botOwner = (Requirements & (1U << (int)Precondition.Bot_Owner)) != 0;
+
+			//Check if users has any permissions
+			if (permissions)
+			{
 				var botBits = guildInfo.BotUsers.FirstOrDefault(x => x.User.Id == user.Id)?.Permissions;
 				if (botBits != null)
 				{
@@ -180,11 +111,36 @@ namespace Advobot
 					}
 				}
 			}
+			//Check if the user is the guild owner
+			if (guildOwner)
+			{
+				if (Actions.GetIfUserIsOwner(context.Guild, user))
+				{
+					return Task.FromResult(PreconditionResult.FromSuccess());
+				}
+			}
+			//Check if the user is a trusted user
+			if (trustedUser)
+			{
+				if (Actions.GetIfUserIsTrustedUser(user))
+				{
+					return Task.FromResult(PreconditionResult.FromSuccess());
+				}
+			}
+			//Check if the user is the bot owner
+			if (botOwner)
+			{
+				if (Actions.GetIfUserIsBotOwner(user))
+				{
+					return Task.FromResult(PreconditionResult.FromSuccess());
+				}
+			}
+
+			//If they don't match any checks then return an error
 			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 		}
 	}
 
-	[AttributeUsage(AttributeTargets.Method)]
 	public class DefaultEnabledAttribute : Attribute
 	{
 		public DefaultEnabledAttribute(bool enabled)
@@ -195,7 +151,6 @@ namespace Advobot
 		public bool Enabled { get; private set; }
 	}
 
-	[AttributeUsage(AttributeTargets.Method)]
 	public class UsageAttribute : Attribute
 	{
 		public UsageAttribute(string usage)
@@ -2014,12 +1969,13 @@ namespace Advobot
 		GuildInfo = 0,
 	}
 
+	[Flags]
 	public enum Precondition
 	{
-		User_Has_A_Perm = 0,
-		Guild_Owner = 1,
-		Trusted_User = 2,
-		Bot_Owner = 3,
+		User_Has_A_Perm = 1,
+		Guild_Owner = 2,
+		Trusted_User = 4,
+		Bot_Owner = 8,
 	}
 	#endregion
 }

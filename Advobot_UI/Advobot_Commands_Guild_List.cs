@@ -35,13 +35,13 @@ namespace Advobot
 			var codeStr = returnedArgs.Arguments[1];
 			var keywordStr = returnedArgs.GetSpecifiedArg("keywords");
 
-			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedActionType.Type;
+			var action = returnedType.Type;
 
 			switch (action)
 			{
@@ -116,7 +116,7 @@ namespace Advobot
 		[Alias("glb")]
 		[Usage("")]
 		[Summary("Bumps the invite on the guild.")]
-		[UserHasAPermission]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(false)]
 		public async Task BumpInvite()
 		{

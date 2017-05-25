@@ -341,13 +341,13 @@ namespace Advobot
 			var roleStr = returnedArgs.Arguments[1];
 			var permStr = returnedArgs.Arguments[2];
 
-			var returnedActionType = Actions.GetType(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
-			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedActionType.Type;
+			var action = returnedType.Type;
 
 			//If only show, take that as a person wanting to see the permission types
 			if (returnedArgs.ArgCount == 1)

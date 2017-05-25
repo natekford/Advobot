@@ -209,7 +209,7 @@ namespace Advobot
 		[Alias("gdc")]
 		[Usage("[Name]")]
 		[Summary("Creates a guild with the bot as the owner.")]
-		[BotOwnerRequirement]
+		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
 		[DefaultEnabled(true)]
 		public async Task GuildCreate([Remainder] string input)
 		{
@@ -229,7 +229,7 @@ namespace Advobot
 		[Alias("gdo")]
 		[Usage("")]
 		[Summary("If the bot is the current owner of the guild this command will give you owner.")]
-		[BotOwnerRequirement]
+		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
 		[DefaultEnabled(true)]
 		public async Task GuildAdmin()
 		{
@@ -249,7 +249,7 @@ namespace Advobot
 		[Alias("gdd")]
 		[Usage("")]
 		[Summary("If the bot is the current owner of the guild this command will delete the guild.")]
-		[BotOwnerRequirement]
+		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
 		[DefaultEnabled(true)]
 		public async Task GuildDelete()
 		{

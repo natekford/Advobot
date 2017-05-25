@@ -12,7 +12,7 @@ namespace Advobot
 		[Alias("oi")]
 		[Usage("<#Channel>")]
 		[Summary("Makes the bot delete any message sent on a channel which is not an image or has an embed. No input channel means it applies to the current channel.")]
-		[UserHasAPermission]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(false)]
 		public async Task ImagesOnly([Optional, Remainder] string input)
 		{

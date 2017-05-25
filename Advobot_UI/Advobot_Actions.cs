@@ -209,35 +209,7 @@ namespace Advobot
 					//Get the base permissions
 					var basePerm = "N/A";
 					{
-						var attr = (PermissionRequirementAttribute)method.GetCustomAttribute(typeof(PermissionRequirementAttribute));
-						if (attr != null)
-						{
-							basePerm = String.IsNullOrWhiteSpace(attr.AllText) ? "" : "[" + attr.AllText;
-							if (!basePerm.Equals("[Administrator"))
-							{
-								basePerm += basePerm.Contains('[') ? String.Format("|{0}]", attr.AnyText) : String.Format("[{0}]", attr.AnyText);
-							}
-							else
-							{
-								basePerm += "]";
-							}
-						}
-						else if ((BotOwnerRequirementAttribute)method.GetCustomAttribute(typeof(BotOwnerRequirementAttribute)) != null)
-						{
-							basePerm = "[Bot Owner]";
-						}
-						else if ((BotOwnerOrGuildOwnerRequirementAttribute)method.GetCustomAttribute(typeof(BotOwnerOrGuildOwnerRequirementAttribute)) != null)
-						{
-							basePerm = "[Bot Owner|Guild Owner]";
-						}
-						else if ((GuildOwnerRequirementAttribute)method.GetCustomAttribute(typeof(GuildOwnerRequirementAttribute)) != null)
-						{
-							basePerm = "[Guild Owner]";
-						}
-						else if ((UserHasAPermissionAttribute)method.GetCustomAttribute(typeof(UserHasAPermissionAttribute)) != null)
-						{
-							basePerm = "[Administrator|Any perm starting with 'Manage'|Any perm ending with 'Members']";
-						}
+						basePerm = FormatAttribute((dynamic)method.GetCustomAttribute(typeof(PermissionRequirementAttribute)));
 					}
 					//Get the description
 					var text = "N/A";
@@ -2193,8 +2165,9 @@ namespace Advobot
 			if (notification == null)
 				return;
 
-			var userMention = user != null ? user.Mention.Replace("<@!", "<@") : "Invalid User";
-			var content = CaseInsReplace(notification.Content, "{User}", userMention);
+			var content = notification.Content;
+			content = CaseInsReplace(content, "{UserMention}", user != null ? user.Mention : "Invalid User");
+			content = CaseInsReplace(content, "{User}", user != null ? user.FormatUser() : "Invalid User");
 
 			if (notification.Embed != null)
 			{
@@ -2889,6 +2862,76 @@ namespace Advobot
 			var ownerStr = String.Format("**Bot Owner ID:** `{0}`", String.IsNullOrWhiteSpace(botInfo.BotOwnerID.ToString()) ? "N/A" : botInfo.BotOwnerID.ToString());
 			var streamStr = String.Format("**Stream:** `{0}`", String.IsNullOrWhiteSpace(botInfo.Stream) ? "N/A" : botInfo.Stream);
 			return String.Join("\n", new[] { prefStr, shardStr, saveStr, ownerStr, streamStr });
+		}
+
+		public static string FormatAttribute(PermissionRequirementAttribute attr)
+		{
+			var basePerm = "";
+			if (attr != null)
+			{
+				var all = !String.IsNullOrWhiteSpace(attr.AllText);
+				var any = !String.IsNullOrWhiteSpace(attr.AnyText);
+
+				basePerm = "[";
+				if (all)
+				{
+					basePerm += attr.AllText;
+				}
+				if (any)
+				{
+					if (all)
+					{
+						basePerm += " | ";
+					}
+					basePerm += attr.AnyText;
+				}
+				basePerm += "]";
+			}
+			return basePerm;
+		}
+
+		public static string FormatAttribute(OtherRequirementAttribute attr)
+		{
+			var basePerm = "N/A";
+			if (attr != null)
+			{
+				var perms = (attr.Requirements & (1U << (int)Precondition.User_Has_A_Perm)) != 0;
+				var guild = (attr.Requirements & (1U << (int)Precondition.Guild_Owner)) != 0;
+				var trust = (attr.Requirements & (1U << (int)Precondition.Trusted_User)) != 0;
+				var owner = (attr.Requirements & (1U << (int)Precondition.Bot_Owner)) != 0;
+
+				basePerm = "[";
+				if (perms)
+				{
+					basePerm += "Administrator | Any perm ending with 'Members' | Any perm starting with 'Manage'";
+				}
+				if (guild)
+				{
+					if (perms)
+					{
+						basePerm += " | ";
+					}
+					basePerm += "Guild Owner";
+				}
+				if (trust)
+				{
+					if (perms || guild)
+					{
+						basePerm += " | ";
+					}
+					basePerm += "Trusted User";
+				}
+				if (owner)
+				{
+					if (perms || guild || trust)
+					{
+						basePerm += " | ";
+					}
+					basePerm += "Bot Owner";
+				}
+				basePerm += "]";
+			}
+			return basePerm;
 		}
 
 		public static void WriteLine(string text, [CallerMemberName] string name = "")

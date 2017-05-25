@@ -1966,7 +1966,7 @@ namespace Advobot
 		public static void UITest()
 		{
 #if DEBUG
-			var codeLen = false;
+			var codeLen = true;
 			if (codeLen)
 			{
 				var totalChars = 0;

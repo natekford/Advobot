@@ -113,13 +113,13 @@ namespace Advobot
 			var actionStr = returnedArgs.Arguments[0];
 			var numStr = returnedArgs.Arguments[1];
 
-			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedActionType.Type;
+			var action = returnedType.Type;
 
 			//Get the lists
 			var eval = guildInfo.EvaluatedRegex;
@@ -231,13 +231,13 @@ namespace Advobot
 			var actionStr = returnedArgs.Arguments[0];
 			var phraseStr = returnedArgs.Arguments[1];
 
-			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedActionType.Type;
+			var action = returnedType.Type;
 
 			var add = false;
 			switch (action)
@@ -410,13 +410,13 @@ namespace Advobot
 			var punishStr = returnedArgs.GetSpecifiedArg("punishment");
 			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
-			var returnedActionType = Actions.GetActionType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedActionType.Reason != TypeFailureReason.Not_Failure)
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedActionType);
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedActionType.Type;
+			var action = returnedType.Type;
 
 			//Get the position
 			if (!int.TryParse(posStr, out int number))

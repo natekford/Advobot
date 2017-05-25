@@ -146,23 +146,28 @@ namespace Advobot
 
 			var users = guildInfo.CommandOverrides.Users.Where(x => Actions.CaseInsEquals(cmd.Name, x.Name)).ToList();
 			var roles = guildInfo.CommandOverrides.Roles.Where(x => Actions.CaseInsEquals(cmd.Name, x.Name)).ToList();
-			var channels = guildInfo.CommandOverrides.Channels.Where(x => Actions.CaseInsEquals(cmd.Name, x.Name)).ToList();
-
-			var channel = channels.FirstOrDefault(x => x.ID == context.Channel.Id)?.Enabled;
 			var user = users.FirstOrDefault(x => x.ID == context.User.Id)?.Enabled;
 			var role = roles.OrderBy(x => context.Guild.GetRole(x.ID).Position).LastOrDefault(x => (context.User as Discord.IGuildUser).RoleIds.ToList().Contains(x.ID))?.Enabled;
+			if (user.HasValue || role.HasValue)
+			{
+				var tempUser = true;
+				if (user.HasValue)
+				{
+					tempUser = user.Value;
+				}
+				var tempRole = true;
+				if (role.HasValue)
+				{
+					tempRole = role.Value;
+				}
+				return tempUser && tempRole;
+			}
 
-			if (user != null)
+			var channels = guildInfo.CommandOverrides.Channels.Where(x => Actions.CaseInsEquals(cmd.Name, x.Name)).ToList();
+			var channel = channels.FirstOrDefault(x => x.ID == context.Channel.Id)?.Enabled;
+			if (channel.HasValue)
 			{
-				return (bool)user;
-			}
-			else if (role != null)
-			{
-				return (bool)role;
-			}
-			else if (channel != null)
-			{
-				return (bool)channel;
+				return channel.Value;
 			}
 			else
 			{
