@@ -143,6 +143,16 @@ namespace Advobot
 			if (serverLog == null)
 				return;
 
+			//TODO: Make this toggleable (potentially have the ability to add other banned words in names)
+			//Bans people who join with a given word in their name
+			if (Actions.CaseInsIndexOf(user.Username, "discord.gg") || (Actions.CaseInsIndexOf(user.Username, "discord") && Actions.CaseInsIndexOf(user.Username, "gg")))
+			{
+				await guild.AddBanAsync(user);
+				await Actions.SendChannelMessage(guild.GetChannel(215494551824105475) as IMessageChannel, "Successfully banned a loser trying to make his server popular. :ok_hand:");
+				Actions.WriteLine(String.Format("Banned loser: {0}", user.FormatUser()));
+				return;
+			}
+
 			//Slowmode
 			if (guildInfo.SlowmodeGuild != null || guild.TextChannels.Select(x => x.Id).Intersect(guildInfo.SlowmodeChannels.Select(x => x.ChannelID)).Any())
 			{
@@ -198,7 +208,7 @@ namespace Advobot
 		{
 			--Variables.TotalUsers;
 
-			var guild = Actions.GetGuild(user);
+			var guild = user.Guild;
 			if (guild == null)
 				return;
 			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo) || !Actions.VerifyLogging(guildInfo, LogActions.UserLeft))
@@ -206,6 +216,12 @@ namespace Advobot
 			var serverLog = guildInfo.ServerLog;
 			if (serverLog == null)
 				return;
+
+			//To not have people with a banned name show up in the goodbyemessage
+			if (Actions.CaseInsIndexOf(user.Username, "discord.gg") || (Actions.CaseInsIndexOf(user.Username, "discord") && Actions.CaseInsIndexOf(user.Username, "gg")))
+			{
+				return;
+			}
 
 			//Check if the bot was the one that left
 			if (user.Id == Variables.BotID)

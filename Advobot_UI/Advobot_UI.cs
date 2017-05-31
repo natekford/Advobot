@@ -1302,7 +1302,10 @@ namespace Advobot
 			var path = Actions.GetBaseBotDirectory(Constants.UI_INFO_LOCATION);
 			if (!File.Exists(path))
 			{
-				Actions.WriteLine("The bot UI information file does not exist.");
+				if (Variables.Loaded)
+				{
+					Actions.WriteLine("The bot UI information file does not exist.");
+				}
 				return botInfo;
 			}
 

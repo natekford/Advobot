@@ -174,6 +174,8 @@ namespace Advobot
 		[JsonProperty]
 		public List<LogActions> LogActions { get; private set; }
 		[JsonProperty]
+		public List<string> BannedWordsForJoiningUsers { get; private set; }
+		[JsonProperty]
 		public List<ulong> IgnoredCommandChannels { get; private set; }
 		[JsonProperty]
 		public List<ulong> IgnoredLogChannels { get; private set; }
@@ -242,6 +244,7 @@ namespace Advobot
 			BotUsers = new List<BotImplementedPermissions>();
 			SelfAssignableGroups = new List<SelfAssignableGroup>();
 			Reminds = new List<Remind>();
+			BannedWordsForJoiningUsers = new List<string>();
 			IgnoredCommandChannels = new List<ulong>();
 			IgnoredLogChannels = new List<ulong>();
 			ImageOnlyChannels = new List<ulong>();

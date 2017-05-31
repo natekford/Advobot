@@ -2168,6 +2168,8 @@ namespace Advobot
 			var content = notification.Content;
 			content = CaseInsReplace(content, "{UserMention}", user != null ? user.Mention : "Invalid User");
 			content = CaseInsReplace(content, "{User}", user != null ? user.FormatUser() : "Invalid User");
+			//Put a zero length character in between invite links for names so the invite links will no longer embed
+			content = CaseInsReplace(content, "discord.gg", String.Format("discord{0}.gg", Constants.ZERO_LENGTH_CHAR));
 
 			if (notification.Embed != null)
 			{
@@ -2746,23 +2748,28 @@ namespace Advobot
 
 		public static string FormatLoggedThings(int spacing)
 		{
-			var joins = String.Format("{0}{1}", "**Joins:**".PadRight(spacing), Variables.LoggedJoins);
-			var leaves = String.Format("{0}{1}", "**Leaves:**".PadRight(spacing), Variables.LoggedLeaves);
-			var userChanges = String.Format("{0}{1}", "**User changes:**".PadRight(spacing), Variables.LoggedUserChanges);
-			var edits = String.Format("{0}{1}", "**Edits:**".PadRight(spacing), Variables.LoggedEdits);
-			var deletes = String.Format("{0}{1}", "**Deletes:**".PadRight(spacing), Variables.LoggedDeletes);
-			var images = String.Format("{0}{1}", "**Images:**".PadRight(spacing), Variables.LoggedImages);
-			var gifs = String.Format("{0}{1}", "**Gifs:**".PadRight(spacing), Variables.LoggedGifs);
-			var files = String.Format("{0}{1}", "**Files:**".PadRight(spacing), Variables.LoggedFiles);
+			var joins = FormatStringsWithLength("**Joins:**", Variables.LoggedJoins.ToString(), spacing);
+			var leaves = FormatStringsWithLength("**Leaves:**", Variables.LoggedLeaves.ToString(), spacing);
+			var userChanges = FormatStringsWithLength("**User Changes:**", Variables.LoggedUserChanges.ToString(), spacing);
+			var edits = FormatStringsWithLength("**Edits:**", Variables.LoggedEdits.ToString(), spacing);
+			var deletes = FormatStringsWithLength("**Deletes:**", Variables.LoggedDeletes.ToString(), spacing);
+			var images = FormatStringsWithLength("**Images:**", Variables.LoggedImages.ToString(), spacing);
+			var gifs = FormatStringsWithLength("**Gifs:**", Variables.LoggedGifs.ToString(), spacing);
+			var files = FormatStringsWithLength("**Files:**", Variables.LoggedFiles.ToString(), spacing);
 			return String.Join("\n", new[] { joins, leaves, userChanges, edits, deletes, images, gifs, files });
 		}
 
 		public static string FormatLoggedCommands(int spacing)
 		{
-			var attempted = String.Format("{0}{1}", "**Attempted:**".PadRight(spacing), Variables.AttemptedCommands);
-			var successful = String.Format("{0}{1}", "**Successful:**".PadRight(spacing), Variables.AttemptedCommands - Variables.FailedCommands);
-			var failed = String.Format("{0}{1}", "**Failed:**".PadRight(spacing), Variables.FailedCommands);
+			var attempted = FormatStringsWithLength("**Attempted:**", Variables.AttemptedCommands.ToString(), spacing);
+			var successful = FormatStringsWithLength("**Successful:**", (Variables.AttemptedCommands - Variables.FailedCommands).ToString(), spacing);
+			var failed = FormatStringsWithLength("**Failed:**", Variables.FailedCommands.ToString(), spacing);
 			return String.Join("\n", new[] { attempted, successful, failed });
+		}
+
+		public static string FormatStringsWithLength(string str1, string str2, int len)
+		{
+			return String.Format("{0}{1}", str1.PadRight(len - str2.Length), str2);
 		}
 
 		public static string FormatResponseMessagesForCmdsOnLotsOfObjects<T>(IEnumerable<T> success, IEnumerable<string> failure, string objType, string successAction, string failureAction)
