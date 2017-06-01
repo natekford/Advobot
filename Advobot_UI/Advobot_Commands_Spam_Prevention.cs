@@ -200,8 +200,7 @@ namespace Advobot
 						//Mute all of the users
 						await users.ForEachAsync(async x =>
 						{
-							await x.AddRoleAsync(muteRole);
-							Variables.Guilds[Context.Guild.Id].AntiRaid.AddUserToMutedList(x);
+							await Variables.Guilds[Context.Guild.Id].AntiRaid.MuteUserAndAddToList(x);
 							++actualMutes;
 						});
 					}

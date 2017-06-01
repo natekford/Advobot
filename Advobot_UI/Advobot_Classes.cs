@@ -1065,6 +1065,7 @@ namespace Advobot
 		public abstract Task<RestGuild> CreateGuildAsync(string name, IVoiceRegion region);
 		public abstract Task<IVoiceRegion> GetOptimalVoiceRegionAsync();
 		public abstract Task<RestInvite> GetInviteAsync(string code);
+		public abstract Task<IEnumerable<IDMChannel>> GetDMChannelsAsync();
 	}
 
 	public class SocketClient : BotClient
@@ -1089,6 +1090,7 @@ namespace Advobot
 		public override async Task<RestGuild> CreateGuildAsync(string name, IVoiceRegion region) { return await mSocketClient.CreateGuildAsync(name, region); }
 		public override async Task<IVoiceRegion> GetOptimalVoiceRegionAsync() { return await mSocketClient.GetOptimalVoiceRegionAsync(); }
 		public override async Task<RestInvite> GetInviteAsync(string code) { return await mSocketClient.GetInviteAsync(code); }
+		public override async Task<IEnumerable<IDMChannel>> GetDMChannelsAsync() { return await mSocketClient.GetDMChannelsAsync(); }
 	}
 
 	public class ShardedClient : BotClient
@@ -1113,6 +1115,7 @@ namespace Advobot
 		public override async Task<RestGuild> CreateGuildAsync(string name, IVoiceRegion region) { return await mShardedClient.CreateGuildAsync(name, region); }
 		public override async Task<IVoiceRegion> GetOptimalVoiceRegionAsync() { return await mShardedClient.GetOptimalVoiceRegionAsync(); }
 		public override async Task<RestInvite> GetInviteAsync(string code) { return await mShardedClient.GetInviteAsync(code); }
+		public override async Task<IEnumerable<IDMChannel>> GetDMChannelsAsync() { return await mShardedClient.GetDMChannelsAsync(); }
 	}
 
 	public class SlowmodeUser : ITimeInterface
@@ -1342,8 +1345,9 @@ namespace Advobot
 		{
 			MuteRole = null;
 		}
-		public void AddUserToMutedList(IGuildUser user)
+		public async Task MuteUserAndAddToList(IGuildUser user)
 		{
+			await Actions.GiveRole(user, MuteRole);
 			UsersWhoHaveBeenMuted.ThreadSafeAdd(user);
 		}
 	}
@@ -1377,6 +1381,20 @@ namespace Advobot
 		public void SetUserList(List<SlowmodeUser> users)
 		{
 			Users = users;
+		}
+	}
+
+	public class VerifiedLoggingAction
+	{
+		public SocketGuild Guild { get; private set; }
+		public BotGuildInfo GuildInfo { get; private set; }
+		public ITextChannel LoggingChannel { get; private set; }
+
+		public VerifiedLoggingAction(SocketGuild guild, BotGuildInfo guildInfo, ITextChannel loggingChannel)
+		{
+			Guild = guild;
+			GuildInfo = guildInfo;
+			LoggingChannel = loggingChannel;
 		}
 	}
 	#endregion

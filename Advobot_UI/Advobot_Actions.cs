@@ -4701,6 +4701,23 @@ namespace Advobot
 		{
 			Environment.Exit(0);
 		}
+
+		public static bool VerifyServerLoggingAction(SocketGuildUser user, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
+		{
+			verifLoggingAction = null;
+
+			var guild = user.Guild;
+			if (guild == null)
+				return false;
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo) || !VerifyLogging(guildInfo, LogActions.UserJoined))
+				return false;
+			var logChannel = guildInfo.ServerLog;
+			if (logChannel == null)
+				return false;
+
+			verifLoggingAction = new VerifiedLoggingAction(guild, guildInfo, logChannel);
+			return true;
+		}
 		#endregion
 	}
 

@@ -133,95 +133,72 @@ namespace Advobot
 		public static async Task OnUserJoined(SocketGuildUser user)
 		{
 			++Variables.TotalUsers;
+			if (Actions.VerifyServerLoggingAction(user, LogActions.UserJoined, out VerifiedLoggingAction verified))
+			{
+				var guild = verified.Guild;
+				var guildInfo = verified.GuildInfo;
+				var serverLog = verified.LoggingChannel;
 
-			var guild = user.Guild;
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo) || !Actions.VerifyLogging(guildInfo, LogActions.UserJoined))
-				return;
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
+				var curInv = await Actions.GetInviteUserJoinedOn(guild);
+				var inviteStr = curInv != null ? String.Format("\n**Invite:** {0}", curInv.Code) : "";
+				var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
+				var ageWarningStr = userAccAge.TotalHours <= 24 ? String.Format("\n**New Account:** {0} hours, {1} minutes old.", (int)userAccAge.TotalHours, (int)userAccAge.Minutes) : "";
+				var botOrUserStr = user.IsBot ? "Bot" : "User";
 
-			//TODO: Make this toggleable (potentially have the ability to add other banned words in names)
-			//Bans people who join with a given word in their name
-			if (Actions.CaseInsIndexOf(user.Username, "discord.gg") || (Actions.CaseInsIndexOf(user.Username, "discord") && Actions.CaseInsIndexOf(user.Username, "gg")))
-			{
-				await guild.AddBanAsync(user);
-				await Actions.SendChannelMessage(guild.GetChannel(215494551824105475) as IMessageChannel, "Successfully banned a loser trying to make his server popular. :ok_hand:");
-				Actions.WriteLine(String.Format("Banned loser: {0}", user.FormatUser()));
-				return;
-			}
-
-			//Slowmode
-			if (guildInfo.SlowmodeGuild != null || guild.TextChannels.Select(x => x.Id).Intersect(guildInfo.SlowmodeChannels.Select(x => x.ChannelID)).Any())
-			{
-				await Actions.AddSlowmodeUser(guildInfo, user);
-			}
-			//Antiraid
-			var antiRaid = guildInfo.AntiRaid;
-			if (antiRaid != null)
-			{
-				//Give them the mute role
-				await user.AddRoleAsync(antiRaid.MuteRole);
-				//Add them to the list of users who have been muted
-				antiRaid.AddUserToMutedList(user);
-			}
-			//Antiraid Two - Electric Joinaroo
-			var antiJoin = guildInfo.JoinProtection;
-			if (antiJoin != null)
-			{
-				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
-				if (antiJoin.SpamCount(antiJoin.TimeInterval) >= antiJoin.RequiredCount)
+				//TODO: Make this toggleable (potentially have the ability to add other banned words in names)
+				//Bans people who join with a given word in their name
+				if (guildInfo.BannedWordsForJoiningUsers.Any(x => Actions.CaseInsIndexOf(user.Username, x)))
 				{
-					//TODO: Finish implementation later
-					//Actions.
+					await guild.AddBanAsync(user);
+					var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.BANN);
+					Actions.AddFooter(embed, "Banned Name");
+					Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
+					await Actions.SendEmbedMessage(serverLog, embed);
+					return;
 				}
-			}
-			//Welcome message
-			await Actions.SendGuildNotification(user, guildInfo.WelcomeMessage);
+				//Welcome message
+				else
+				{
+					await Actions.SendGuildNotification(user, guildInfo.WelcomeMessage);
+				}
 
-			var curInv = await Actions.GetInviteUserJoinedOn(guild);
-			var inviteString = curInv != null ? String.Format("\n**Invite:** {0}", curInv.Code) : "";
-			var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
-			var ageWarningString = userAccAge.TotalHours <= 24 ? String.Format("\n**New Account:** {0} hours, {1} minutes old.", (int)userAccAge.TotalHours, (int)userAccAge.Minutes) : "";
+				//Slowmode
+				if (guildInfo.SlowmodeGuild != null || guild.TextChannels.Select(x => x.Id).Intersect(guildInfo.SlowmodeChannels.Select(x => x.ChannelID)).Any())
+				{
+					await Actions.AddSlowmodeUser(guildInfo, user);
+				}
+				//Antiraid
+				var antiRaid = guildInfo.AntiRaid;
+				if (antiRaid != null)
+				{
+					await antiRaid.MuteUserAndAddToList(user);
+				}
+				//Antiraid Two - Electric Joinaroo
+				var antiJoin = guildInfo.JoinProtection;
+				if (antiJoin != null)
+				{
+					antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
+					if (antiJoin.SpamCount(antiJoin.TimeInterval) >= antiJoin.RequiredCount)
+					{
+						//TODO: Finish implementation later
+						//Actions.
+					}
+				}
 
-			if (user.IsBot)
-			{
-				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteString, ageWarningString), Constants.JOIN);
-				Actions.AddFooter(embed, "Bot Joined");
-				Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
-				await Actions.SendEmbedMessage(serverLog, embed);
-			}
-			else
-			{
-				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteString, ageWarningString), Constants.JOIN);
-				Actions.AddFooter(embed, "User Joined");
-				Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
-				await Actions.SendEmbedMessage(serverLog, embed);
-			}
+				{
+					var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.JOIN);
+					Actions.AddFooter(embed, String.Format("{0} Joined", botOrUserStr));
+					Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
+					await Actions.SendEmbedMessage(serverLog, embed);
+				}
 
-			++Variables.LoggedJoins;
+				++Variables.LoggedJoins;
+			}
 		}
 
 		public static async Task OnUserLeft(SocketGuildUser user)
 		{
 			--Variables.TotalUsers;
-
-			var guild = user.Guild;
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo) || !Actions.VerifyLogging(guildInfo, LogActions.UserLeft))
-				return;
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
-
-			//To not have people with a banned name show up in the goodbyemessage
-			if (Actions.CaseInsIndexOf(user.Username, "discord.gg") || (Actions.CaseInsIndexOf(user.Username, "discord") && Actions.CaseInsIndexOf(user.Username, "gg")))
-			{
-				return;
-			}
 
 			//Check if the bot was the one that left
 			if (user.Id == Variables.BotID)
@@ -229,32 +206,33 @@ namespace Advobot
 				Variables.Guilds.Remove(user.Guild.Id);
 				return;
 			}
-			//Goodbye message
-			await Actions.SendGuildNotification(user, guildInfo.GoodbyeMessage);
-			//Format the length stayed string
-			var lengthStayed = "";
-			if (user.JoinedAt.HasValue)
-			{
-				var time = DateTime.UtcNow.Subtract(user.JoinedAt.Value.UtcDateTime);
-				lengthStayed = String.Format("\n**Stayed for:** {0}:{1:00}:{2:00}:{3:00}", time.Days, time.Hours, time.Minutes, time.Seconds);
-			}
 
-			if (user.IsBot)
+			if (Actions.VerifyServerLoggingAction(user, LogActions.UserLeft, out VerifiedLoggingAction verified))
 			{
+				var guild = verified.Guild;
+				var guildInfo = verified.GuildInfo;
+				var serverLog = verified.LoggingChannel;
+
+				if (guildInfo.BannedWordsForJoiningUsers.Any(x => Actions.CaseInsIndexOf(user.Username, x)))
+					return;
+
+				await Actions.SendGuildNotification(user, guildInfo.GoodbyeMessage);
+
+				var lengthStayed = "";
+				if (user.JoinedAt.HasValue)
+				{
+					var time = DateTime.UtcNow.Subtract(user.JoinedAt.Value.UtcDateTime);
+					lengthStayed = String.Format("\n**Stayed for:** {0}:{1:00}:{2:00}:{3:00}", time.Days, time.Hours, time.Minutes, time.Seconds);
+				}
+				var botOrUserStr = user.IsBot ? "Bot" : "User";
+
 				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
-				Actions.AddFooter(embed, "Bot Left");
+				Actions.AddFooter(embed, String.Format("{0} Left", botOrUserStr));
 				Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
 				await Actions.SendEmbedMessage(serverLog, embed);
-			}
-			else
-			{
-				var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
-				Actions.AddFooter(embed, "User Left");
-				Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
-				await Actions.SendEmbedMessage(serverLog, embed);
-			}
 
-			++Variables.LoggedLeaves;
+				++Variables.LoggedLeaves;
+			}
 		}
 
 		public static async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
