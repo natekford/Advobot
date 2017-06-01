@@ -43,7 +43,7 @@ namespace Advobot
 
 		public static Task OnGuildUnavailable(SocketGuild guild)
 		{
-			Actions.WriteLine(String.Format("{0}: Guild is now offline {1}.", MethodBase.GetCurrentMethod().Name, guild.FormatGuild()));
+			Actions.WriteLine(String.Format("Guild is now offline {0}.", guild.FormatGuild()));
 
 			Variables.TotalUsers -= (guild.MemberCount + 1);
 			if (Variables.TotalUsers < 0)
@@ -57,7 +57,7 @@ namespace Advobot
 
 		public static async Task OnJoinedGuild(SocketGuild guild)
 		{
-			Actions.WriteLine(String.Format("{0}: Bot has joined {1}.", MethodBase.GetCurrentMethod().Name, guild.FormatGuild()));
+			Actions.WriteLine(String.Format("Bot has joined {0}.", guild.FormatGuild()));
 
 			//Check how many bots are in the guild
 			int botCount = 0;
@@ -119,7 +119,7 @@ namespace Advobot
 
 		public static Task OnLeftGuild(SocketGuild guild)
 		{
-			Actions.WriteLine(String.Format("{0}: Bot has left {1}.", MethodBase.GetCurrentMethod().Name, guild.FormatGuild()));
+			Actions.WriteLine(String.Format("Bot has left {0}.", guild.FormatGuild()));
 
 			Variables.TotalUsers -= (guild.MemberCount + 1);
 			Variables.TotalGuilds--;
@@ -133,11 +133,17 @@ namespace Advobot
 		public static async Task OnUserJoined(SocketGuildUser user)
 		{
 			++Variables.TotalUsers;
+
 			if (Actions.VerifyServerLoggingAction(user, LogActions.UserJoined, out VerifiedLoggingAction verified))
 			{
 				var guild = verified.Guild;
 				var guildInfo = verified.GuildInfo;
 				var serverLog = verified.LoggingChannel;
+
+				if (guildInfo != null)
+				{
+					await Actions.HandleJoiningUsers(guildInfo, user);
+				}
 
 				var curInv = await Actions.GetInviteUserJoinedOn(guild);
 				var inviteStr = curInv != null ? String.Format("\n**Invite:** {0}", curInv.Code) : "";
@@ -162,29 +168,6 @@ namespace Advobot
 					await Actions.SendGuildNotification(user, guildInfo.WelcomeMessage);
 				}
 
-				//Slowmode
-				if (guildInfo.SlowmodeGuild != null || guild.TextChannels.Select(x => x.Id).Intersect(guildInfo.SlowmodeChannels.Select(x => x.ChannelID)).Any())
-				{
-					await Actions.AddSlowmodeUser(guildInfo, user);
-				}
-				//Antiraid
-				var antiRaid = guildInfo.AntiRaid;
-				if (antiRaid != null)
-				{
-					await antiRaid.MuteUserAndAddToList(user);
-				}
-				//Antiraid Two - Electric Joinaroo
-				var antiJoin = guildInfo.JoinProtection;
-				if (antiJoin != null)
-				{
-					antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
-					if (antiJoin.SpamCount(antiJoin.TimeInterval) >= antiJoin.RequiredCount)
-					{
-						//TODO: Finish implementation later
-						//Actions.
-					}
-				}
-
 				{
 					var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.JOIN);
 					Actions.AddFooter(embed, String.Format("{0} Joined", botOrUserStr));
@@ -193,6 +176,14 @@ namespace Advobot
 				}
 
 				++Variables.LoggedJoins;
+			}
+			else
+			{
+				var guildInfo = verified.GuildInfo;
+				if (guildInfo == null)
+					return;
+
+				await Actions.HandleJoiningUsers(guildInfo, user);
 			}
 		}
 
@@ -243,26 +234,23 @@ namespace Advobot
 			//Name change
 			if (!Actions.CaseInsEquals(beforeUser.Username, afterUser.Username))
 			{
-				await Variables.Client.GetGuilds().Where(x => x.Users.Contains(afterUser)).ToList().ForEachAsync(async inputGuild =>
+				foreach (var guild in Variables.Client.GetGuilds().Where(x => x.Users.Contains(afterUser)))
 				{
-					if (!Variables.Guilds.TryGetValue(inputGuild.Id, out BotGuildInfo guildInfo) || !Actions.VerifyLogging(guildInfo, LogActions.UserUpdated))
-						return;
-					var guild = guildInfo.Guild;
-					if (guild == null)
-						return;
-					var serverLog = guildInfo.ServerLog;
-					if (serverLog == null)
-						return;
+					if (Actions.VerifyServerLoggingAction(guild, LogActions.UserLeft, out VerifiedLoggingAction verified))
+					{
+						var guildInfo = verified.GuildInfo;
+						var serverLog = verified.LoggingChannel;
 
-					var embed = Actions.MakeNewEmbed(null, null, Constants.UEDT);
-					Actions.AddFooter(embed, "Name Changed");
-					Actions.AddField(embed, "Before:", "`" + beforeUser.Username + "`");
-					Actions.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
-					Actions.AddAuthor(embed, afterUser.FormatUser(), afterUser.GetAvatarUrl());
-					await Actions.SendEmbedMessage(serverLog, embed);
+						var embed = Actions.MakeNewEmbed(null, null, Constants.UEDT);
+						Actions.AddFooter(embed, "Name Changed");
+						Actions.AddField(embed, "Before:", "`" + beforeUser.Username + "`");
+						Actions.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
+						Actions.AddAuthor(embed, afterUser.FormatUser(), afterUser.GetAvatarUrl());
+						await Actions.SendEmbedMessage(serverLog, embed);
 
-					++Variables.LoggedUserChanges;
-				});
+						++Variables.LoggedUserChanges;
+					}
+				}
 			}
 		}
 
@@ -271,7 +259,7 @@ namespace Advobot
 			var guild = Actions.GetGuild(message);
 			if (guild == null)
 			{
-				//Check if the user is trying to become the bot owner by DMing the bot is key
+				//Check if the user is trying to become the bot owner by DMing the bot its key
 				await Message_Received_Actions.BotOwner(message);
 			}
 			else if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
@@ -289,117 +277,124 @@ namespace Advobot
 			}
 		}
 		
-		public static async Task OnMessageUpdated(Cacheable<IMessage, ulong> beforeMessage, SocketMessage afterMessage, ISocketMessageChannel channel)
+		public static async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage afterMessage, ISocketMessageChannel channel)
 		{
-			var beforeMessageValue = beforeMessage.HasValue ? beforeMessage.Value : null;
-			var guild = Actions.GetGuild(channel);
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return;
-			await Actions.BannedPhrases(guildInfo, afterMessage);
-			if (!Actions.VerifyLogging(guildInfo, afterMessage, LogActions.MessageUpdated))
-				return;
-
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog != null)
+			if (Actions.VerifyServerLoggingAction(channel, LogActions.MessageUpdated, out VerifiedLoggingAction verified))
 			{
-				var beforeMsgContent = Actions.ReplaceMarkdownChars(beforeMessageValue?.Content ?? "");
-				var afterMsgContent = Actions.ReplaceMarkdownChars(afterMessage.Content);
-				beforeMsgContent = String.IsNullOrWhiteSpace(beforeMsgContent) ? "Empty or unable to be gotten." : beforeMsgContent;
-				afterMsgContent = String.IsNullOrWhiteSpace(afterMsgContent) ? "Empty or unable to be gotten." : afterMsgContent;
+				var guild = verified.Guild;
+				var guildInfo = verified.GuildInfo;
+				var serverLog = verified.LoggingChannel;
 
-				if (beforeMsgContent.Equals(afterMsgContent))
-				{
+				var beforeMessage = cached.HasValue ? cached.Value : null;
+				if (!Actions.VerifyMessageShouldBeLogged(guildInfo, afterMessage))
 					return;
-				}
-				else if (beforeMsgContent.Length + afterMsgContent.Length > Constants.MAX_MESSAGE_LENGTH_LONG)
-				{
-					beforeMsgContent = beforeMsgContent.Length > 667 ? "LONG MESSAGE" : beforeMsgContent;
-					afterMsgContent = afterMsgContent.Length > 667 ? "LONG MESSAGE" : afterMsgContent;
-				}
+				await Actions.BannedPhrases(guildInfo, afterMessage);
 
-				var embed = Actions.MakeNewEmbed(null, null, Constants.MEDT);
-				Actions.AddFooter(embed, "Message Updated");
-				Actions.AddField(embed, "Before:", String.Format("`{0}`", beforeMsgContent));
-				Actions.AddField(embed, "After:", String.Format("`{0}`", afterMsgContent), false);
-				Actions.AddAuthor(embed, String.Format("{0} in #{1}", afterMessage.Author.FormatUser(), afterMessage.Channel), afterMessage.Author.GetAvatarUrl());
-				await Actions.SendEmbedMessage(serverLog, embed);
-				++Variables.LoggedEdits;
-			}
-			var imageLog = guildInfo.ImageLog;
-			if (imageLog != null)
-			{
-				//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
-				if (beforeMessageValue?.Embeds.Count() < afterMessage.Embeds.Count())
+				if (serverLog != null)
 				{
-					await Message_Received_Actions.LogImage(guildInfo, imageLog, afterMessage);
+					var beforeMsgContent = Actions.ReplaceMarkdownChars(beforeMessage?.Content ?? "");
+					var afterMsgContent = Actions.ReplaceMarkdownChars(afterMessage.Content);
+					beforeMsgContent = String.IsNullOrWhiteSpace(beforeMsgContent) ? "Empty or unable to be gotten." : beforeMsgContent;
+					afterMsgContent = String.IsNullOrWhiteSpace(afterMsgContent) ? "Empty or unable to be gotten." : afterMsgContent;
+
+					if (beforeMsgContent.Equals(afterMsgContent))
+					{
+						return;
+					}
+					else if (beforeMsgContent.Length + afterMsgContent.Length > Constants.MAX_MESSAGE_LENGTH_LONG)
+					{
+						beforeMsgContent = beforeMsgContent.Length > 667 ? "LONG MESSAGE" : beforeMsgContent;
+						afterMsgContent = afterMsgContent.Length > 667 ? "LONG MESSAGE" : afterMsgContent;
+					}
+
+					var embed = Actions.MakeNewEmbed(null, null, Constants.MEDT);
+					Actions.AddFooter(embed, "Message Updated");
+					Actions.AddField(embed, "Before:", String.Format("`{0}`", beforeMsgContent));
+					Actions.AddField(embed, "After:", String.Format("`{0}`", afterMsgContent), false);
+					Actions.AddAuthor(embed, String.Format("{0} in #{1}", afterMessage.Author.FormatUser(), afterMessage.Channel), afterMessage.Author.GetAvatarUrl());
+					await Actions.SendEmbedMessage(serverLog, embed);
 					++Variables.LoggedEdits;
 				}
+				var imageLog = guildInfo.ImageLog;
+				if (imageLog != null)
+				{
+					//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
+					if (beforeMessage?.Embeds.Count() < afterMessage.Embeds.Count())
+					{
+						await Message_Received_Actions.LogImage(guildInfo, imageLog, afterMessage);
+						++Variables.LoggedEdits;
+					}
+				}
+			}
+			else
+			{
+				var guildInfo = verified.GuildInfo;
+				if (guildInfo == null)
+					return;
+
+				var beforeMessage = cached.HasValue ? cached.Value : null;
+				if (!Actions.VerifyMessageShouldBeLogged(guildInfo, afterMessage))
+					return;
+				await Actions.BannedPhrases(guildInfo, afterMessage);
 			}
 		}
 
-		public static async Task OnMessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
+		public static async Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
-			var messageValue = message.HasValue ? message.Value : null;
-			var guild = Actions.GetGuild(channel);
-			if (guild == null)
-				return;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo) || !Actions.VerifyLogging(guildInfo, messageValue, LogActions.MessageDeleted))
-				return;
-			var serverLog = guildInfo.ServerLog;
-			if (serverLog == null)
-				return;
-
-			//Get the info stored for that guild on the bot
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo botInfo))
-				return;
-
-			//Get the list of deleted messages it contains
-			lock (botInfo.MessageDeletion)
+			if (Actions.VerifyServerLoggingAction(channel, LogActions.MessageUpdated, out VerifiedLoggingAction verified))
 			{
-				botInfo.MessageDeletion.AddToList(message.Value);
+				var guild = verified.Guild;
+				var guildInfo = verified.GuildInfo;
+				var serverLog = verified.LoggingChannel;
+
+				var message = cached.HasValue ? cached.Value : null;
+
+				//Get the list of deleted messages it contains
+				lock (guildInfo.MessageDeletion)
+				{
+					guildInfo.MessageDeletion.AddToList(message);
+				}
+
+				//Use a token so the messages do not get sent prematurely
+				var cancelToken = guildInfo.MessageDeletion.CancelToken;
+				if (cancelToken != null)
+				{
+					cancelToken.Cancel();
+				}
+				cancelToken = new CancellationTokenSource();
+				guildInfo.MessageDeletion.SetCancelToken(cancelToken);
+
+				//Increment the deleted messages count
+				++Variables.LoggedDeletes;
+
+				//Make a separate task in order to not mess up the other commands
+				Task.Run(async () =>
+				{
+					try
+					{
+						await Task.Delay(TimeSpan.FromSeconds(Constants.TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG), cancelToken.Token);
+					}
+					catch (TaskCanceledException)
+					{
+						return;
+					}
+
+					//Give the messages to a new list so they can be removed from the old one
+					List<IMessage> deletedMessages;
+					lock (guildInfo.MessageDeletion)
+					{
+						deletedMessages = new List<IMessage>(guildInfo.MessageDeletion.GetList().Select(x => x as IMessage));
+						guildInfo.MessageDeletion.ClearList();
+					}
+
+					//Put the message content into a list of strings for easy usage
+					var deletedMessagesContent = Actions.FormatDeletedMessages(deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks).ToList());
+					await Actions.SendDeleteMessage(guild, serverLog, deletedMessagesContent);
+				}).Forget();
+
+				//To get it to not want an await
+				await Task.Yield();
 			}
-
-			//Use a token so the messages do not get sent prematurely
-			var cancelToken = botInfo.MessageDeletion.CancelToken;
-			if (cancelToken != null)
-			{
-				cancelToken.Cancel();
-			}
-			cancelToken = new CancellationTokenSource();
-			botInfo.MessageDeletion.SetCancelToken(cancelToken);
-
-			//Increment the deleted messages count
-			++Variables.LoggedDeletes;
-
-			//Make a separate task in order to not mess up the other commands
-			Task.Run(async () =>
-			{
-				try
-				{
-					await Task.Delay(TimeSpan.FromSeconds(Constants.TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG), cancelToken.Token);
-				}
-				catch (TaskCanceledException)
-				{
-					return;
-				}
-
-				//Give the messages to a new list so they can be removed from the old one
-				List<IMessage> deletedMessages;
-				lock (botInfo.MessageDeletion)
-				{
-					deletedMessages = new List<IMessage>(botInfo.MessageDeletion.GetList().Select(x => x as IMessage));
-					botInfo.MessageDeletion.ClearList();
-				}
-
-				//Put the message content into a list of strings for easy usage
-				var deletedMessagesContent = Actions.FormatDeletedMessages(deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks).ToList());
-				await Actions.SendDeleteMessage(guild, serverLog, deletedMessagesContent);
-			}).Forget();
-
-			//To get it to not want an await
-			await Task.Yield();
 		}
 	}
 
@@ -429,22 +424,6 @@ namespace Advobot
 
 	public class Message_Received_Actions : ModuleBase
 	{
-		//public static async Task xd(IGuild guild, IUser user)
-		//{
-		//	const string XD = "xd";
-
-		//	//Make sure the user is valid
-		//	var guildUser = user as IGuildUser;
-		//	if (guildUser == null)
-		//		return;
-
-		//	//Make sure the user's nickname isn't already xd and make sure the bot has the position to modify this user's nickname
-		//	if (!Actions.CaseInsEquals(guildUser.Nickname, XD) && Actions.GetPosition(guild, user) < Actions.GetPosition(guild, await Actions.GetBot(guild)))
-		//	{
-		//		await guildUser.ModifyAsync(x => x.Nickname = XD);
-		//	}
-		//}
-
 		public static async Task LogImage(BotGuildInfo guildInfo, ITextChannel logChannel, IMessage message)
 		{
 			if (logChannel == null || message.Author.Id == Variables.BotID)

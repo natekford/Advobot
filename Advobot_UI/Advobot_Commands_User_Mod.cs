@@ -620,9 +620,9 @@ namespace Advobot
 			//Check if the channel that's having messages attempted to be removed on is a log channel
 			if (Variables.Guilds.TryGetValue(Context.Guild.Id, out BotGuildInfo guildInfo))
 			{
-				var serverLog = guildInfo.ServerLog.Id == channel.Id;
-				var modLog = guildInfo.ModLog.Id == channel.Id;
-				var imageLog = guildInfo.ImageLog.Id == channel.Id;
+				var serverLog = guildInfo.ServerLog?.Id == channel.Id;
+				var modLog = guildInfo.ModLog?.Id == channel.Id;
+				var imageLog = guildInfo.ImageLog?.Id == channel.Id;
 				if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
 				{
 					//DM the owner of the server

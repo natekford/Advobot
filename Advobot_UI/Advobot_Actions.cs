@@ -665,8 +665,7 @@ namespace Advobot
 		{
 			//Make sure the bot's directory exists
 			var directory = GetBaseBotDirectory();
-			if (!Directory.Exists(directory))
-				return null;
+			Directory.CreateDirectory(directory);
 
 			//This string will be similar to C:\Users\User\AppData\Roaming\Discord_Servers_... if on using appdata. If not then it can be anything
 			return Path.Combine(directory, guildId.ToString(), fileName);
@@ -3378,42 +3377,47 @@ namespace Advobot
 			return !guildInfo.IgnoredLogChannels.Contains(message.Channel.Id);
 		}
 
-		public static bool VerifyLoggingAction(BotGuildInfo guildInfo, LogActions logAction)
-		{
-			return guildInfo.LogActions.Contains(logAction);
-		}
-
-		public static bool VerifyLogging(BotGuildInfo guildInfo, IMessage message, LogActions logAction)
-		{
-			var shouldBeLogged = VerifyMessageShouldBeLogged(guildInfo, message);
-			var loggingAction = VerifyLoggingAction(guildInfo, logAction);
-			var unpaused = VerifyUnpaused();
-			return shouldBeLogged && loggingAction && unpaused;
-		}
-
-		public static bool VerifyLogging(BotGuildInfo guildInfo, LogActions logAction)
-		{
-			var loggingAction = VerifyLoggingAction(guildInfo, logAction);
-			var unpaused = VerifyUnpaused();
-			return loggingAction && unpaused;
-		}
-
-		public static bool VerifyUnpaused()
-		{
-			return !Variables.Pause;
-		}
-
 		public static bool VerifyMessageShouldBeLogged(BotGuildInfo guildInfo, IMessage message)
 		{
+			//Ignore null messages
 			if (message == null)
 				return false;
+			//Ignore webhook messages
 			else if (message.Author.IsWebhook)
 				return false;
+			//Ignore bot messgaes
 			else if (message.Author.IsBot && message.Author.Id != Variables.BotID)
 				return false;
+			//Ignore commands on channels that shouldn't be logged
 			else if (!VerifyLoggingIsEnabledOnThisChannel(guildInfo, message))
 				return false;
 			return true;
+		}
+
+		public static async Task HandleJoiningUsers(BotGuildInfo guildInfo, IGuildUser user)
+		{
+			//Slowmode
+			if (guildInfo.SlowmodeGuild != null || guildInfo.SlowmodeChannels.Any())
+			{
+				await Actions.AddSlowmodeUser(guildInfo, user);
+			}
+			//Antiraid
+			var antiRaid = guildInfo.AntiRaid;
+			if (antiRaid != null)
+			{
+				await antiRaid.MuteUserAndAddToList(user);
+			}
+			//Antiraid Two - Electric Joinaroo
+			var antiJoin = guildInfo.JoinProtection;
+			if (antiJoin != null)
+			{
+				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
+				if (antiJoin.SpamCount(antiJoin.TimeInterval) >= antiJoin.RequiredCount)
+				{
+					//TODO: Finish implementation later
+					//Actions.
+				}
+			}
 		}
 		#endregion
 
@@ -3777,7 +3781,7 @@ namespace Advobot
 		public static async Task BannedPhrases(BotGuildInfo guildInfo, IMessage message)
 		{
 			//TODO: Better bool here
-			if ((message.Author as IGuildUser).GuildPermissions.Administrator)
+			if (guildInfo == null || (message.Author as IGuildUser).GuildPermissions.Administrator)
 				return;
 
 			//Check if it has any banned words or regex
@@ -4693,7 +4697,7 @@ namespace Advobot
 			}
 			catch (Exception e)
 			{
-				Actions.ExceptionToConsole(e);
+				ExceptionToConsole(e);
 			}
 		}
 
@@ -4704,19 +4708,24 @@ namespace Advobot
 
 		public static bool VerifyServerLoggingAction(SocketGuildUser user, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
 		{
-			verifLoggingAction = null;
+			return VerifyServerLoggingAction(user.Guild, logAction, out verifLoggingAction);
+		}
 
-			var guild = user.Guild;
-			if (guild == null)
+		public static bool VerifyServerLoggingAction(ISocketMessageChannel channel, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
+		{
+			return VerifyServerLoggingAction(GetGuild(channel) as SocketGuild, logAction, out verifLoggingAction);
+		}
+
+		public static bool VerifyServerLoggingAction(SocketGuild guild, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
+		{
+			verifLoggingAction = new VerifiedLoggingAction(null, null, null);
+			if (Variables.Pause)
 				return false;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo) || !VerifyLogging(guildInfo, LogActions.UserJoined))
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 				return false;
 			var logChannel = guildInfo.ServerLog;
-			if (logChannel == null)
-				return false;
-
 			verifLoggingAction = new VerifiedLoggingAction(guild, guildInfo, logChannel);
-			return true;
+			return logChannel != null && guildInfo.LogActions.Contains(logAction);
 		}
 		#endregion
 	}
