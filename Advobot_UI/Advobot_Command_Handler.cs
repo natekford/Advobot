@@ -144,35 +144,33 @@ namespace Advobot
 				return false;
 			}
 
-			var users = guildInfo.CommandOverrides.Users.Where(x => Actions.CaseInsEquals(cmd.Name, x.Name)).ToList();
-			var roles = guildInfo.CommandOverrides.Roles.Where(x => Actions.CaseInsEquals(cmd.Name, x.Name)).ToList();
-			var user = users.FirstOrDefault(x => x.ID == context.User.Id)?.Enabled;
-			var role = roles.OrderBy(x => context.Guild.GetRole(x.ID).Position).LastOrDefault(x => (context.User as Discord.IGuildUser).RoleIds.ToList().Contains(x.ID))?.Enabled;
-			if (user.HasValue || role.HasValue)
+			/* I'm not sure exactly how I want this permission system set up.
+			 * I think I want it to be like this:
+			 * If user is set, use user setting
+			 * Else if role is set, use role setting
+			 * Else if channel is set, use channel setting
+			 * Else default to current command switch setting
+			 */
+
+			var user = guildInfo.CommandOverrides.Users.FirstOrDefault(x => x.ID == context.User.Id && Actions.CaseInsEquals(cmd.Name, x.Name));
+			if (user != null)
 			{
-				var tempUser = true;
-				if (user.HasValue)
-				{
-					tempUser = user.Value;
-				}
-				var tempRole = true;
-				if (role.HasValue)
-				{
-					tempRole = role.Value;
-				}
-				return tempUser && tempRole;
+				return user.Enabled;
 			}
 
-			var channels = guildInfo.CommandOverrides.Channels.Where(x => Actions.CaseInsEquals(cmd.Name, x.Name)).ToList();
-			var channel = channels.FirstOrDefault(x => x.ID == context.Channel.Id)?.Enabled;
-			if (channel.HasValue)
+			var roles = guildInfo.CommandOverrides.Roles.Where(x => (context.User as Discord.IGuildUser).RoleIds.Contains(x.ID) && Actions.CaseInsEquals(cmd.Name, x.Name)).ToList();
+			if (roles.Any())
 			{
-				return channel.Value;
+				return !roles.Any(x => !x.Enabled);
 			}
-			else
+
+			var channel = guildInfo.CommandOverrides.Channels.FirstOrDefault(x => x.ID == context.Channel.Id && Actions.CaseInsEquals(cmd.Name, x.Name));
+			if (channel != null)
 			{
-				return true;
+				return channel.Enabled;
 			}
+
+			return true;
 		}
 	}
 }

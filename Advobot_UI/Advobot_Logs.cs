@@ -415,7 +415,7 @@ namespace Advobot
 				return;
 
 			//Make the embed
-			var embed = Actions.MakeNewEmbed(description: context.Message.Content);
+			var embed = Actions.MakeNewEmbed(null, context.Message.Content);
 			Actions.AddFooter(embed, "Mod Log");
 			Actions.AddAuthor(embed, String.Format("{0} in #{1}", user.FormatUser(), context.Channel.Name), context.User.GetAvatarUrl());
 			await Actions.SendEmbedMessage(modLog, embed);
