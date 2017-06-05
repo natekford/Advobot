@@ -214,6 +214,8 @@ namespace Advobot
 		public ulong ModLogID { get; private set; }
 		[JsonProperty]
 		public ulong ImageLogID { get; private set; }
+		[JsonProperty]
+		public ulong MuteRoleID { get; private set; }
 		[JsonIgnore]
 		public SlowmodeGuild SlowmodeGuild { get; private set; }
 		[JsonIgnore]
@@ -227,13 +229,9 @@ namespace Advobot
 		[JsonIgnore]
 		public ITextChannel ImageLog { get; private set; }
 		[JsonIgnore]
-		public bool DefaultPrefs { get; private set; }
+		public IRole MuteRole { get; private set; }
 		[JsonIgnore]
 		public bool Loaded { get; private set; }
-		[JsonIgnore]
-		public bool EnablingPrefs { get; private set; }
-		[JsonIgnore]
-		public bool DeletingPrefs { get; private set; }
 		[JsonIgnore]
 		public SocketGuild Guild { get; private set; }
 
@@ -260,31 +258,12 @@ namespace Advobot
 			CommandOverrides = new CommandOverrides();
 
 			Prefix = null;
-			DefaultPrefs = true;
 			Loaded = false;
-			EnablingPrefs = false;
-			DeletingPrefs = false;
 		}
 
-		public void TurnDefaultPrefsOff()
-		{
-			DefaultPrefs = false;
-		}
-		public void TurnDefaultPrefsOn()
-		{
-			DefaultPrefs = true;
-		}
 		public void TurnLoadedOn()
 		{
 			Loaded = true;
-		}
-		public void SwitchEnablingPrefs()
-		{
-			EnablingPrefs = !EnablingPrefs;
-		}
-		public void SwitchDeletingPrefs()
-		{
-			DeletingPrefs = !DeletingPrefs;
 		}
 		public void SetBannedPhrases(BannedPhrases bannedPhrases)
 		{
@@ -325,6 +304,11 @@ namespace Advobot
 			ImageLogID = channel?.Id ?? 0;
 			ImageLog = channel;
 		}
+		public void SetMuteRole(IRole muteRole)
+		{
+			MuteRoleID = muteRole?.Id ?? 0;
+			MuteRole = muteRole;
+		}
 		public ulong GetLogID(LogChannelTypes type)
 		{
 			switch (type)
@@ -358,8 +342,6 @@ namespace Advobot
 		}
 		public void PostDeserialize()
 		{
-			DefaultPrefs = false;
-
 			Guild = Variables.Client.GetGuild(GuildID);
 			if (Guild == null)
 				return;
@@ -367,6 +349,7 @@ namespace Advobot
 			ModLog = Guild.GetChannel(ModLogID) as ITextChannel;
 			ServerLog = Guild.GetChannel(ServerLogID) as ITextChannel;
 			ImageLog = Guild.GetChannel(ImageLogID) as ITextChannel;
+			MuteRole = Guild.GetRole(MuteRoleID);
 
 			if (ListedInvite != null)
 			{
@@ -397,6 +380,8 @@ namespace Advobot
 		public LogSeverity LogLevel { get; private set; }
 		[JsonProperty]
 		public int MaxUserGatherCount { get; private set; }
+		[JsonIgnore]
+		public List<ulong> PotentialBotOwners { get; private set; }
 
 		public BotGlobalInfo()
 		{
@@ -410,6 +395,7 @@ namespace Advobot
 			AlwaysDownloadUsers = true;
 			LogLevel = LogSeverity.Warning;
 			MaxUserGatherCount = 100;
+			PotentialBotOwners = new List<ulong>();
 		}
 
 		public string GetSetting(SettingOnBot setting)
@@ -558,7 +544,19 @@ namespace Advobot
 
 	public class RapidJoinProtection : BaseSpamInformation
 	{
-		public RapidJoinProtection(int timeInterval, int requiredCount) : base(SpamType.Rapid_Joins, timeInterval, requiredCount) { }
+		public IRole MuteRole { get; private set; }
+		public List<IGuildUser> UsersWhoHaveBeenMuted { get; private set; }
+
+		public RapidJoinProtection(IRole muteRole, int timeInterval, int requiredCount) : base(SpamType.Rapid_Joins, timeInterval, requiredCount)
+		{
+			MuteRole = muteRole;
+		}
+
+		public async Task MuteUserAndAddToList(IGuildUser user)
+		{
+			await Actions.GiveRole(user, MuteRole);
+			UsersWhoHaveBeenMuted.ThreadSafeAdd(user);
+		}
 	}
 
 	public class CommandSwitch
@@ -729,11 +727,10 @@ namespace Advobot
 		[JsonProperty]
 		public int Group { get; private set; }
 
-		public SelfAssignableGroup(List<SelfAssignableRole> roles, int group)
+		public SelfAssignableGroup(int group)
 		{
-			Roles = roles;
+			Roles = new List<SelfAssignableRole>();
 			Group = group;
-			roles.ForEach(x => x.SetGroup(Group));
 		}
 
 		public void AddRole(SelfAssignableRole role)
@@ -741,12 +738,15 @@ namespace Advobot
 			role.SetGroup(Group);
 			Roles.Add(role);
 		}
-		public void AddRoles(List<SelfAssignableRole> roles)
+		public void AddRoles(IEnumerable<SelfAssignableRole> roles)
 		{
-			roles.ForEach(x => x.SetGroup(Group));
+			foreach (var role in roles)
+			{
+				role.SetGroup(Group);
+			}
 			Roles.AddRange(roles);
 		}
-		public void RemoveRoles(List<ulong> roleIDs)
+		public void RemoveRoles(IEnumerable<ulong> roleIDs)
 		{
 			Roles.RemoveAll(x => roleIDs.Contains(x.Role.Id));
 		}
@@ -1646,25 +1646,6 @@ namespace Advobot
 		}
 	}
 
-	public struct GuildToggleAfterTime : ITimeInterface
-	{
-		public ulong GuildID { get; private set; }
-		public GuildToggle Toggle { get; private set; }
-		public DateTime Time { get; private set; }
-
-		public GuildToggleAfterTime(ulong guildID, GuildToggle toggle, DateTime time)
-		{
-			GuildID = guildID;
-			Toggle = toggle;
-			Time = time;
-		}
-
-		public DateTime GetTime()
-		{
-			return Time;
-		}
-	}
-
 	public struct GenericTimeInterface : ITimeInterface
 	{
 		private DateTime mTime;
@@ -1854,12 +1835,6 @@ namespace Advobot
 		Incorrect_Channel_Type = 5,
 		Everyone_Role = 6,
 		Managed_Role = 7,
-	}
-
-	public enum GuildToggle
-	{
-		EnablePrefs = 1,
-		DeletePrefs = 2,
 	}
 
 	public enum SettingOnGuild

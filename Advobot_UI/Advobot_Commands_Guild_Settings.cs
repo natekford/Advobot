@@ -69,14 +69,6 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task GuildPrefix([Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			input = input.Trim().Replace("\n", "").Replace("\r", "");
 
 			if (input.Length > 25)
@@ -111,14 +103,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GuildSettings([Optional, Remainder] string input)
 		{
-			//Get the guild
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-			else if (String.IsNullOrWhiteSpace(input))
+			if (String.IsNullOrWhiteSpace(input))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingOnGuild))))));
 				return;
@@ -171,64 +156,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GuildResave()
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			Actions.SaveGuildInfo(guildInfo);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully resaved the guild.");
-		}
-
-		[Command("comconfigmodify")]
-		[Alias("ccm")]
-		[Usage("[Enable|Disable]")]
-		[Summary("Gives the guild preferences which allows using self-assignable roles, toggling commands, and changing the permissions of commands.")]
-		[OtherRequirement(1U << (int)Precondition.Guild_Owner)]
-		[DefaultEnabled(true)]
-		public async Task CommandConfigModify([Remainder] string input)
-		{
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-
-			var returnedType = Actions.GetType(input, new[] { ActionType.Enable, ActionType.Disable });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
-			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
-				return;
-			}
-			var action = returnedType.Type;
-
-			switch (action)
-			{
-				case ActionType.Enable:
-				{
-					//Member limit
-					if ((Context.Guild as SocketGuild).MemberCount < Constants.MEMBER_LIMIT && Context.User.Id != Variables.BotInfo.BotOwnerID)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Sorry, but this guild is too small to warrant preferences. {0} or more members are required.",
-							Constants.MEMBER_LIMIT));
-						return;
-					}
-
-					await Actions.SendChannelMessage(Context, "By turning preferences on you will be enabling the ability to toggle commands, change who can use commands, " +
-						"and many more features. This data will be stored in a text file off of the guild, and whoever is hosting the bot will most likely have " +
-						"access to it. A new text channel will be automatically created to display preferences and the server/mod log. If you agree to this, say `Yes`.");
-					guildInfo.SwitchEnablingPrefs();
-					Variables.GuildToggles.Add(new GuildToggleAfterTime(Context.Guild.Id, GuildToggle.EnablePrefs, DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE)));
-					break;
-				}
-				case ActionType.Disable:
-				{
-					await Actions.SendChannelMessage(Context, "If you are sure you want to delete your preferences, say `Yes`.");
-					guildInfo.SwitchDeletingPrefs();
-					Variables.GuildToggles.Add(new GuildToggleAfterTime(Context.Guild.Id, GuildToggle.DeletePrefs, DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE)));
-					break;
-				}
-				//The actual stuff happens in OnMessageReceived in Serverlogs
-			}
 		}
 
 		[Command("comconfig")]
@@ -239,14 +168,6 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task CommandConfig([Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
@@ -368,14 +289,6 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task CommandIgnore([Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -515,14 +428,6 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BotUsersModify([Optional, Remainder] string input)
 		{
-			//Check if they've enabled preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -674,14 +579,6 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task RemindsModify([Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -702,6 +599,7 @@ namespace Advobot
 			var action = returnedType.Type;
 			var add = action == ActionType.Add;
 
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var reminds = guildInfo.Reminds;
 			nameStr = Actions.ReplaceMarkdownChars(nameStr);
 			if (add)
@@ -756,14 +654,6 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task Reminds([Optional, Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			var reminds = guildInfo.Reminds;
 			if (String.IsNullOrWhiteSpace(input))
 			{
@@ -821,14 +711,6 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task WelcomeMessage([Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			var welcomeMessage = await Actions.MakeGuildNotification(Context, input);
 			if (welcomeMessage == null)
 				return;
@@ -845,14 +727,6 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task GoodbyeMessage([Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			var goodbyeMessage = await Actions.MakeGuildNotification(Context, input);
 			if (goodbyeMessage == null)
 				return;
@@ -869,14 +743,6 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task TestGuildNotification([Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			if (!Enum.TryParse(input, true, out GuildNotifications notifType))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid notification type supplied."));

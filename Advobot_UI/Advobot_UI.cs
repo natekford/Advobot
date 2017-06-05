@@ -1660,8 +1660,8 @@ namespace Advobot
 		public static FlowDocument MakeInfoMenu()
 		{
 			var uptime = Actions.GetUptime();
-			var cmds = String.Format("Logged Commands:\n{0}", Actions.FormatLoggedCommands(Constants.PAD_RIGHT));
-			var logs = String.Format("Logged Actions:\n{0}", Actions.FormatLoggedThings(Constants.PAD_RIGHT));
+			var cmds = String.Format("Logged Commands:\n{0}", Actions.FormatLoggedCommands());
+			var logs = String.Format("Logged Actions:\n{0}", Actions.FormatLoggedThings());
 			var str = Actions.ReplaceMarkdownChars(String.Format("{0}\r\r{1}\r\r{2}", uptime, cmds, logs));
 			var paragraph = new Paragraph(new Run(str))
 			{

@@ -1131,18 +1131,38 @@ namespace Advobot
 		#region Roles
 		public static async Task<IRole> CreateMuteRoleIfNotFound(IGuild guild, IRole muteRole)
 		{
-			//Create the role if not found
 			if (muteRole == null)
 			{
-				muteRole = await guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME);
+				muteRole = await guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0));
 			}
-			//Change its guild perms
-			await muteRole.ModifyAsync(x => x.Permissions = new GuildPermissions(0));
-			//Change the perms it has on every single text channel
+
+			const uint TEXT_PERMS = 0
+			| (1U << (int)ChannelPermission.CreateInstantInvite)
+			| (1U << (int)ChannelPermission.ManageChannel)
+			| (1U << (int)ChannelPermission.ManagePermissions)
+			| (1U << (int)ChannelPermission.ManageWebhooks)
+			| (1U << (int)ChannelPermission.SendMessages)
+			| (1U << (int)ChannelPermission.ManageMessages)
+			| (1U << (int)ChannelPermission.AddReactions);
 			(await guild.GetTextChannelsAsync()).ToList().ForEach(x =>
 			{
-				x.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, 805316689));
+				x.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, TEXT_PERMS));
 			});
+
+			const uint VOICE_PERMS = 0
+			| (1U << (int)ChannelPermission.CreateInstantInvite)
+			| (1U << (int)ChannelPermission.ManageChannel)
+			| (1U << (int)ChannelPermission.ManagePermissions)
+			| (1U << (int)ChannelPermission.ManageWebhooks)
+			| (1U << (int)ChannelPermission.Speak)
+			| (1U << (int)ChannelPermission.MuteMembers)
+			| (1U << (int)ChannelPermission.DeafenMembers)
+			| (1U << (int)ChannelPermission.MoveMembers);
+			(await guild.GetVoiceChannelsAsync()).ToList().ForEach(x =>
+			{
+				x.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, VOICE_PERMS));
+			});
+
 			return muteRole;
 		}
 
@@ -1310,19 +1330,19 @@ namespace Advobot
 			return new ReturnedDiscordObject<IRole>(role, FailureReason.Not_Failure);
 		}
 
-		public static EditableDiscordObject<IRole>? GetValidEditRoles(ICommandContext context, List<string> input)
+		public static EditableDiscordObject<IRole>? GetValidEditRoles(ICommandContext context, IEnumerable<string> input)
 		{
 			//Gather the users
 			var success = new List<IRole>();
 			var failure = new List<string>();
-			if (!input.Any())
+			if (input == null || !input.Any())
 			{
 				return null;
 			}
 			else
 			{
 				var bot = GetBot(context.Guild);
-				input.ForEach(x =>
+				input.ToList().ForEach(x =>
 				{
 					var returnedRole = GetRole(context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, false, x);
 					if (returnedRole.Reason == FailureReason.Not_Failure)
@@ -2607,6 +2627,14 @@ namespace Advobot
 			return MakeNewEmbed(title, String.IsNullOrWhiteSpace(str) ? "`NOTHING`" : str);
 		}
 
+		public static EmbedBuilder FormatAllSettings(EmbedBuilder embed, BotGlobalInfo botInfo)
+		{
+			AddField(embed, "Strings", FormatStringSettings(botInfo));
+			AddField(embed, "Numbers", FormatNumberSettings(botInfo));
+			AddField(embed, "Others", FormatOtherSettings(botInfo));
+			return embed;
+		}
+
 		public static List<string> FormatDeletedMessages(List<IMessage> list)
 		{
 			var deletedMessagesContent = new List<string>();
@@ -2715,7 +2743,7 @@ namespace Advobot
 
 		public static string FormatObject(IRole role)
 		{
-			return FormatRole(role);
+			return role.FormatRole();
 		}
 
 		public static string FormatObject(IGuild guild)
@@ -2733,42 +2761,77 @@ namespace Advobot
 			return "FormatObject Error";
 		}
 
-		public static string FormatRole(IRole role)
-		{
-			if (role == null)
-				return "Unable to get role data.";
-			return String.Format("{0} ({1})", role.Name, role.Id);
-		}
-
 		public static string RemoveNewLines(string input)
 		{
 			return input.Replace(Environment.NewLine, "").Replace("\r", "").Replace("\n", "");
 		}
 
-		public static string FormatLoggedThings(int spacing)
+		public static string FormatLoggedThings()
 		{
-			var joins = FormatStringsWithLength("**Joins:**", Variables.LoggedJoins.ToString(), spacing);
-			var leaves = FormatStringsWithLength("**Leaves:**", Variables.LoggedLeaves.ToString(), spacing);
-			var userChanges = FormatStringsWithLength("**User Changes:**", Variables.LoggedUserChanges.ToString(), spacing);
-			var edits = FormatStringsWithLength("**Edits:**", Variables.LoggedEdits.ToString(), spacing);
-			var deletes = FormatStringsWithLength("**Deletes:**", Variables.LoggedDeletes.ToString(), spacing);
-			var images = FormatStringsWithLength("**Images:**", Variables.LoggedImages.ToString(), spacing);
-			var gifs = FormatStringsWithLength("**Gifs:**", Variables.LoggedGifs.ToString(), spacing);
-			var files = FormatStringsWithLength("**Files:**", Variables.LoggedFiles.ToString(), spacing);
+			var j = Variables.LoggedJoins;
+			var l = Variables.LoggedLeaves;
+			var u = Variables.LoggedUserChanges;
+			var e = Variables.LoggedEdits;
+			var d = Variables.LoggedDeletes;
+			var i = Variables.LoggedImages;
+			var g = Variables.LoggedGifs;
+			var f = Variables.LoggedFiles;
+			var leftSpacing = new[] { j, l, u, e, d, i, g, f }.Max().ToString().Length;
+
+			var jTitle = "**Joins:**";
+			var lTitle = "**Leaves:**";
+			var uTitle = "**User Changes:**";
+			var eTitle = "**Edits:**";
+			var dTitle = "**Deletes:**";
+			var iTitle = "**Images:**";
+			var gTitle = "**Gifs:**";
+			var fTitle = "**Files:**";
+			var rightSpacing = new[] { jTitle, lTitle, uTitle, eTitle, dTitle, iTitle, gTitle, fTitle }.Max(x => x.Length) + 1;
+
+			var joins = FormatStringsWithLength(jTitle, j, rightSpacing, leftSpacing);
+			var leaves = FormatStringsWithLength(lTitle, l, rightSpacing, leftSpacing);
+			var userChanges = FormatStringsWithLength(uTitle, u, rightSpacing, leftSpacing);
+			var edits = FormatStringsWithLength(eTitle, e, rightSpacing, leftSpacing);
+			var deletes = FormatStringsWithLength(dTitle, d, rightSpacing, leftSpacing);
+			var images = FormatStringsWithLength(iTitle, i, rightSpacing, leftSpacing);
+			var gifs = FormatStringsWithLength(gTitle, g, rightSpacing, leftSpacing);
+			var files = FormatStringsWithLength(fTitle, f, rightSpacing, leftSpacing);
 			return String.Join("\n", new[] { joins, leaves, userChanges, edits, deletes, images, gifs, files });
 		}
 
-		public static string FormatLoggedCommands(int spacing)
+		public static string FormatLoggedCommands()
 		{
-			var attempted = FormatStringsWithLength("**Attempted:**", Variables.AttemptedCommands.ToString(), spacing);
-			var successful = FormatStringsWithLength("**Successful:**", (Variables.AttemptedCommands - Variables.FailedCommands).ToString(), spacing);
-			var failed = FormatStringsWithLength("**Failed:**", Variables.FailedCommands.ToString(), spacing);
+			var a = Variables.AttemptedCommands;
+			var s = Variables.AttemptedCommands - Variables.FailedCommands;
+			var f = Variables.FailedCommands;
+			var maxNumLen = new[] { a, s, f }.Max().ToString().Length;
+
+			var aStr = "**Attempted:**";
+			var sStr = "**Successful:**";
+			var fStr = "**Failed:**";
+			var maxStrLen = new[] { aStr, sStr, fStr }.Max(x => x.Length);
+
+			var leftSpacing = maxNumLen;
+			var rightSpacing = maxStrLen + 1;
+
+			var attempted = FormatStringsWithLength(aStr, a, rightSpacing, leftSpacing);
+			var successful = FormatStringsWithLength(sStr, s, rightSpacing, leftSpacing);
+			var failed = FormatStringsWithLength(fStr, f, rightSpacing, leftSpacing);
 			return String.Join("\n", new[] { attempted, successful, failed });
 		}
 
-		public static string FormatStringsWithLength(string str1, string str2, int len)
+		public static string FormatStringsWithLength(object obj1, object obj2, int len)
 		{
+			var str1 = obj1.ToString();
+			var str2 = obj2.ToString();
 			return String.Format("{0}{1}", str1.PadRight(len - str2.Length), str2);
+		}
+
+		public static string FormatStringsWithLength(object obj1, object obj2, int right, int left)
+		{
+			var str1 = obj1.ToString().PadRight(right);
+			var str2 = obj2.ToString().PadLeft(left);
+			return String.Format("{0}{1}", str1, str2);
 		}
 
 		public static string FormatResponseMessagesForCmdsOnLotsOfObjects<T>(IEnumerable<T> success, IEnumerable<string> failure, string objType, string successAction, string failureAction)
@@ -2801,7 +2864,6 @@ namespace Advobot
 		public static string FormatAllSettings(BotGuildInfo guildInfo)
 		{
 			//Getting bools
-			var commandPreferences = !guildInfo.DefaultPrefs;
 			var commandsDisabledOnUser = guildInfo.CommandOverrides.Users.Any();
 			var commandsDisabledOnRole = guildInfo.CommandOverrides.Roles.Any();
 			var commandsDisabledOnChannel = guildInfo.CommandOverrides.Channels.Any();
@@ -2830,7 +2892,6 @@ namespace Advobot
 
 			//Formatting the description
 			var description = "";
-			description += String.Format("**Command Preferences:** `{0}`\n", commandPreferences ? "Yes" : "No");
 			description += String.Format("**Commands Disabled On User:** `{0}`\n", commandsDisabledOnUser ? "Yes" : "No");
 			description += String.Format("**Commands Disabled On Role:** `{0}`\n", commandsDisabledOnRole ? "Yes" : "No");
 			description += String.Format("**Commands Disabled On Channel:** `{0}`\n", commandsDisabledOnChannel ? "Yes" : "No");
@@ -2861,13 +2922,35 @@ namespace Advobot
 
 		public static string FormatAllSettings(BotGlobalInfo botInfo)
 		{
-			//TODO: Put rest of stuff in here
-			var prefStr = String.Format("**Prefix:** `{0}`", String.IsNullOrWhiteSpace(botInfo.Prefix) ? "N/A" : botInfo.Prefix);
-			var shardStr = String.Format("**Shards:** `{0}`", botInfo.ShardCount);
+			var strs = FormatStringSettings(botInfo);
+			var nums = FormatNumberSettings(botInfo);
+			var other = FormatOtherSettings(botInfo);
+			return String.Join("\n", new[] { strs, nums, other });
+		}
+
+		public static string FormatStringSettings(BotGlobalInfo botInfo)
+		{
 			var saveStr = String.Format("**Save Path:** `{0}`", String.IsNullOrWhiteSpace(Properties.Settings.Default.Path) ? "N/A" : Properties.Settings.Default.Path);
-			var ownerStr = String.Format("**Bot Owner ID:** `{0}`", String.IsNullOrWhiteSpace(botInfo.BotOwnerID.ToString()) ? "N/A" : botInfo.BotOwnerID.ToString());
+			var prefStr = String.Format("**Prefix:** `{0}`", String.IsNullOrWhiteSpace(botInfo.Prefix) ? "N/A" : botInfo.Prefix);
+			var gameStr = String.Format("**Game:** `{0}`", String.IsNullOrWhiteSpace(botInfo.Game) ? "N/A" : botInfo.Game);
 			var streamStr = String.Format("**Stream:** `{0}`", String.IsNullOrWhiteSpace(botInfo.Stream) ? "N/A" : botInfo.Stream);
-			return String.Join("\n", new[] { prefStr, shardStr, saveStr, ownerStr, streamStr });
+			return String.Join("\n", new[] { saveStr, prefStr, gameStr, streamStr });
+		}
+
+		public static string FormatNumberSettings(BotGlobalInfo botInfo)
+		{
+			var shardStr = String.Format("**Shards:** `{0}`", botInfo.ShardCount);
+			var ownerStr = String.Format("**Bot Owner ID:** `{0}`", String.IsNullOrWhiteSpace(botInfo.BotOwnerID.ToString()) ? "N/A" : botInfo.BotOwnerID.ToString());
+			var ugcStr = String.Format("**Max User Gather Count:** `{0}`", botInfo.MaxUserGatherCount);
+			var cacheStr = String.Format("**Message Cache:** `{0}`", botInfo.MessageCacheSize);
+			return String.Join("\n", new[] { shardStr, ownerStr, ugcStr, cacheStr });
+		}
+
+		public static string FormatOtherSettings(BotGlobalInfo botInfo)
+		{
+			var logStr = String.Format("**Log Level:** `{0}`", Enum.GetName(typeof(LogSeverity), botInfo.LogLevel));
+			var dlUsersStr = String.Format("**Always Download Users:** `{0}`", botInfo.AlwaysDownloadUsers);
+			return String.Join("\n", new[] { logStr, dlUsersStr });
 		}
 
 		public static string FormatAttribute(PermissionRequirementAttribute attr)
@@ -2955,7 +3038,6 @@ namespace Advobot
 
 		public static void WriteLoadDone(IGuild guild, string method, string name)
 		{
-			Variables.Guilds[guild.Id].TurnDefaultPrefsOff();
 			WriteLine(String.Format("{0}: {1} for the guild {2} have been loaded.", method, name, guild.FormatGuild()));
 		}
 		#endregion
@@ -3399,7 +3481,7 @@ namespace Advobot
 			//Slowmode
 			if (guildInfo.SlowmodeGuild != null || guildInfo.SlowmodeChannels.Any())
 			{
-				await Actions.AddSlowmodeUser(guildInfo, user);
+				await AddSlowmodeUser(guildInfo, user);
 			}
 			//Antiraid
 			var antiRaid = guildInfo.AntiRaid;
@@ -3414,8 +3496,15 @@ namespace Advobot
 				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
 				if (antiJoin.SpamCount(antiJoin.TimeInterval) >= antiJoin.RequiredCount)
 				{
-					//TODO: Finish implementation later
-					//Actions.
+					await antiJoin.MuteUserAndAddToList(user);
+					if (guildInfo.ServerLog != null)
+					{
+						await SendEmbedMessage(guildInfo.ServerLog, MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
+					}
+					else if (guildInfo.ModLog != null)
+					{
+						await SendEmbedMessage(guildInfo.ServerLog, MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
+					}
 				}
 			}
 		}
@@ -3481,15 +3570,12 @@ namespace Advobot
 			return false;
 		}
 
-		public static async Task EnablePreferences(BotGuildInfo guildInfo, IGuild guild, IUserMessage message)
+		public static void EnablePreferences(BotGuildInfo guildInfo, IGuild guild)
 		{
-			if (!guildInfo.EnablingPrefs)
-				return;
-
 			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
 			if (path == null)
 			{
-				await MakeAndDeleteSecondaryMessage(message.Channel, message, ERROR(Constants.PATH_ERROR));
+				WriteLine(String.Format("Unable to write the preference file for {0}.", guild.FormatGuild()));
 				return;
 			}
 			if (!File.Exists(path))
@@ -3498,43 +3584,6 @@ namespace Advobot
 				Variables.HelpList.Where(x => !cmds.CaseInsContains(x.Name)).ToList().ForEach(x => guildInfo.CommandOverrides.Commands.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 				SaveGuildInfo(guildInfo);
 			}
-			else
-			{
-				await MakeAndDeleteSecondaryMessage(message.Channel, message, "Preferences are already turned on.");
-				guildInfo.SwitchEnablingPrefs();
-				return;
-			}
-
-			guildInfo.SwitchEnablingPrefs();
-			guildInfo.TurnDefaultPrefsOff();
-			await SendChannelMessage(message.Channel, "Successfully created the preferences for this guild.");
-		}
-		
-		public static async Task DeletePreferences(BotGuildInfo guildInfo, IGuild guild, IUserMessage message)
-		{
-			if (!guildInfo.DeletingPrefs)
-				return;
-
-			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
-			if (path == null)
-			{
-				await MakeAndDeleteSecondaryMessage(message.Channel, message, ERROR(Constants.PATH_ERROR));
-				return;
-			}
-			if (File.Exists(path))
-			{
-				File.Delete(path);
-			}
-			else
-			{
-				await MakeAndDeleteSecondaryMessage(message.Channel, message, "The preferences file has already been deleted.");
-				guildInfo.SwitchEnablingPrefs();
-				return;
-			}
-
-			guildInfo.SwitchDeletingPrefs();
-			guildInfo.TurnDefaultPrefsOn();
-			await SendChannelMessage(message.Channel, "Successfully deleted the stored preferences for this guild.");
 		}
 
 		public static bool ValidatePath(string input, bool startup = false)
@@ -4394,7 +4443,6 @@ namespace Advobot
 		{
 			DeleteTargettedMessages();
 			RemoveActiveCloseHelpAndWords();
-			ActivateGuildToggles();
 			ResetSMUserMessages();
 
 			const long PERIOD = 250;
@@ -4463,26 +4511,6 @@ namespace Advobot
 		{
 			GetOutTimedObject(Variables.ActiveCloseHelp);
 			GetOutTimedObject(Variables.ActiveCloseWords);
-		}
-
-		public static void ActivateGuildToggles()
-		{
-			GetOutTimedObject(Variables.GuildToggles).ForEach(x =>
-			{
-				switch (x.Toggle)
-				{
-					case GuildToggle.EnablePrefs:
-					{
-						Variables.Guilds[x.GuildID].SwitchEnablingPrefs();
-						break;
-					}
-					case GuildToggle.DeletePrefs:
-					{
-						Variables.Guilds[x.GuildID].SwitchDeletingPrefs();
-						break;
-					}
-				}
-			});
 		}
 
 		public static void ResetSMUserMessages()

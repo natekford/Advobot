@@ -12,16 +12,16 @@ namespace Advobot
 	[Name("User_Moderation")]
 	public class Advobot_Commands_User_Mod : ModuleBase
 	{
-		[Command("textmute")]
-		[Alias("tm")]
+		[Command("mute")]
+		[Alias("m")]
 		[Usage("[User] <Time>")]
-		[Summary("Prevents a user from typing. Time is in minutes, and if no time is given then the mute will not expire.")]
+		[Summary("Prevents a user from typing and speaking and doing much else in the server. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirement((1U << (int)GuildPermission.ManageRoles) | (1U << (int)GuildPermission.ManageMessages))]
 		[DefaultEnabled(true)]
 		public async Task FullMute([Remainder] string input)
 		{
 			//Check if role already exists, if not, create it
-			var returnedMuteRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, false, Constants.MUTE_ROLE_NAME);
+			var returnedMuteRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Managed }, false, Constants.MUTE_ROLE_NAME);
 			var muteRole = returnedMuteRole.Object;
 			if (returnedMuteRole.Reason != FailureReason.Not_Failure)
 			{
@@ -64,7 +64,7 @@ namespace Advobot
 			if (time != 0)
 			{
 				Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, muteRole, DateTime.UtcNow.AddMinutes(time)));
-				response += String.Format("The mute will last for `{0}` minute{1}.", time, Actions.GetPlural(time));
+				response += String.Format("\nThe mute will last for `{0}` minute{1}.", time, Actions.GetPlural(time));
 			}
 			await Actions.MakeAndDeleteSecondaryMessage(Context, response);
 		}

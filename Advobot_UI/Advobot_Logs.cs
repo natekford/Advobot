@@ -114,6 +114,19 @@ namespace Advobot
 				Actions.WriteLine(String.Format("Left the guild {0} due to having too many guilds on the client and not enough shards.", guild.FormatGuild()));
 			}
 
+			if (!Variables.Guilds.ContainsKey(guild.Id))
+			{
+				if (Variables.BotID != 0)
+				{
+					await Actions.LoadGuild(guild);
+				}
+				else
+				{
+					Variables.GuildsToBeLoaded.Add(guild);
+				}
+			}
+			Actions.EnablePreferences(Variables.Guilds[guild.Id], guild);
+
 			return;
 		}
 
@@ -265,7 +278,6 @@ namespace Advobot
 			else if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 			{
 				await Message_Received_Actions.CloseWords(guildInfo, guild, message);
-				await Message_Received_Actions.ModifyPreferences(guildInfo, guild, message);
 				await Message_Received_Actions.VotingOnSpamPrevention(guildInfo, guild, message);
 
 				if (Actions.VerifyMessageShouldBeLogged(guildInfo, message))
@@ -442,42 +454,20 @@ namespace Advobot
 		public static async Task BotOwner(IMessage message)
 		{
 			//See if they're on the list to be a potential bot owner
-			if (Variables.PotentialBotOwners.Contains(message.Author.Id))
+			if (Variables.BotInfo.PotentialBotOwners.Contains(message.Author.Id))
 			{
 				//If the key they input is the same as the bots key then they become owner
 				if (message.Content.Equals(Properties.Settings.Default.BotKey))
 				{
 					Variables.BotInfo.SetBotOwner(message.Author.Id);
 					Actions.SaveBotInfo();
-					Variables.PotentialBotOwners.Clear();
+					Variables.BotInfo.PotentialBotOwners.Clear();
 					await Actions.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
 				}
 				else
 				{
-					Variables.PotentialBotOwners.Remove(message.Author.Id);
+					Variables.BotInfo.PotentialBotOwners.Remove(message.Author.Id);
 					await Actions.SendDMMessage(message.Channel as IDMChannel, "That is the incorrect key.");
-				}
-			}
-		}
-
-		public static async Task ModifyPreferences(BotGuildInfo guildInfo, IGuild guild, IMessage message)
-		{
-			//Check if it's the owner of the guild saying something
-			if (message.Author.Id == guild.OwnerId || Actions.GetIfUserIsOwnerButBotIsOwner(guild, message.Author))
-			{
-				//If the message is only 'yes' then check if they're enabling or deleting preferences
-				if (Actions.CaseInsEquals(message.Content, "yes"))
-				{
-					if (guildInfo.EnablingPrefs)
-					{
-						//Enable preferences
-						await Actions.EnablePreferences(guildInfo, guild, message as IUserMessage);
-					}
-					else if (guildInfo.DeletingPrefs)
-					{
-						//Delete preferences
-						await Actions.DeletePreferences(guildInfo, guild, message as IUserMessage);
-					}
 				}
 			}
 		}

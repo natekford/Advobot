@@ -120,14 +120,6 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BumpInvite()
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			var listedInvite = Variables.InviteList.FirstOrDefault(x => x.GuildID == Context.Guild.Id);
 			if ((DateTime.UtcNow - listedInvite.LastBumped).TotalHours < 1)
 			{

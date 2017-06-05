@@ -17,14 +17,6 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task PreventMentionSpam([Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 5), new[] { "messages", "spam", "votes" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -52,6 +44,7 @@ namespace Advobot
 			var action = returnedType.Type;
 
 			//Check if a spam prevention exists or not
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var spamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(type);
 			switch (action)
 			{
@@ -139,13 +132,6 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task PreventRaidSpam([Remainder] string input)
 		{
-			//Check if using the default preferences
-			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -165,7 +151,7 @@ namespace Advobot
 			var action = returnedType.Type;
 
 			//Check if mute role already exists, if not, create it
-			var returnedMuteRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, false, Constants.MUTE_ROLE_NAME);
+			var returnedMuteRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Managed }, false, Constants.MUTE_ROLE_NAME);
 			var muteRole = returnedMuteRole.Object;
 			if (returnedMuteRole.Reason != FailureReason.Not_Failure)
 			{
@@ -253,18 +239,12 @@ namespace Advobot
 		[Command("preventrapidjoin")]
 		[Alias("prj")]
 		[Usage("[Enable] <User Count> <Time in Seconds> | [Disable]")]
-		[Summary("If the given amount of users joins within the given time frame then ")]
+		[Summary("If the given amount of users joins within the given time frame then all of the users will be muted.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task PreventRapidJoin([Remainder] string input)
 		{
-			//Check if using the default preferences
-			if (Variables.Guilds[Context.Guild.Id].DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
+			//TODO: Make this create an anti rapid join class
 		}
-		//TODO: Add in the other spam preventions
 	}
 }

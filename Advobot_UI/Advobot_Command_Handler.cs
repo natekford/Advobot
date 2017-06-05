@@ -30,29 +30,19 @@ namespace Advobot
 			var message = parameterMessage as SocketUserMessage;
 			if (message == null)
 				return;
-			var channel = message.Channel as Discord.ITextChannel;
-			if (channel == null)
+			var guild = (message.Channel as SocketTextChannel)?.Guild;
+			if (guild == null)
 				return;
 
-			if (!Variables.Guilds.TryGetValue(channel.GuildId, out BotGuildInfo guildInfo))
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 			{
-				await Actions.LoadGuild(channel.Guild);
-				guildInfo = Variables.Guilds[channel.GuildId];
+				await Actions.LoadGuild(guild);
+				guildInfo = Variables.Guilds[guild.Id];
 			}
 
-			if (!guildInfo.Loaded)
-			{
-				await Actions.SendChannelMessage(channel, "The guild is not fully loaded, please wait.");
-				return;
-			}
-			else if (guildInfo.IgnoredCommandChannels.Contains(channel.Id))
+			if (!PrefixHandling(message, guildInfo.Prefix, out int argPos))
 				return;
 
-			var argPos = await PrefixHandling(message, guildInfo.Prefix);
-			if (argPos == -1)
-				return;
-
-			//Check if there is anything preventing the command from going through
 			var context = new CommandContext(Client.GetClient(), message);
 			if (!await ValidateCommand(guildInfo, context, argPos))
 				return;
@@ -72,45 +62,34 @@ namespace Advobot
 			}
 		}
 
-		public static async Task<int> PrefixHandling(SocketUserMessage message, string guildPrefix)
+		public static bool PrefixHandling(SocketUserMessage message, string guildPrefix, out int argPos)
 		{
-			var argPos = 0;
+			argPos = -1;
 			if (String.IsNullOrWhiteSpace(guildPrefix))
 			{
 				if (message.HasStringPrefix(Variables.BotInfo.Prefix, ref argPos))
 				{
-					return argPos;
+					return true;
 				}
 			}
 			else
 			{
 				if (message.HasStringPrefix(guildPrefix, ref argPos))
 				{
-					return argPos;
+					return true;
 				}
 				else if (message.HasMentionPrefix(Variables.Client.GetCurrentUser(), ref argPos))
 				{
-					await Actions.SendChannelMessage(message.Channel, String.Format("The guild's current prefix is: `{0}`.", guildPrefix));
+					return true;
 				}
 			}
-			return -1;
+			return false;
 		}
 
 		public static async Task<bool> ValidateCommand(BotGuildInfo guildInfo, ICommandContext context, int argPos)
 		{
-			//Check to make sure everything is loaded
-			if (!Variables.Loaded)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(context, Actions.ERROR("Please wait until everything the bot is loaded."));
-				return false;
-			}
-			//Check if a command is disabled
-			else if (!CheckCommandEnabled(guildInfo, context, argPos))
-			{
-				return false;
-			}
-			//Check if the bot still has admin
-			else if (!(await context.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
+			//Admin check
+			if (!(await context.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
 			{
 				//If the server has been told already, ignore future commands fully
 				if (Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Contains(context.Guild))
@@ -120,6 +99,28 @@ namespace Advobot
 				Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Add(context.Guild);
 				return false;
 			}
+			//Bot loaded check
+			else if (!Variables.Loaded)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(context, Actions.ERROR("Wait until the bot is loaded."));
+				return false;
+			}
+			//Guild loaded check
+			if (!guildInfo.Loaded)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(context, Actions.ERROR("Wait until the guild is loaded."));
+				return false;
+			}
+			//Ignored channel check
+			else if (guildInfo.IgnoredCommandChannels.Contains(context.Channel.Id))
+			{
+				return false;
+			}
+			//Command disabled check
+			else if (!CheckIfCommandEnabled(guildInfo, context, argPos))
+			{
+				return false;
+			}
 			else
 			{
 				++Variables.AttemptedCommands;
@@ -127,14 +128,13 @@ namespace Advobot
 			}
 		}
 
-		public static bool CheckCommandEnabled(BotGuildInfo guildInfo, ICommandContext context, int argPos)
+		public static bool CheckIfCommandEnabled(BotGuildInfo guildInfo, ICommandContext context, int argPos)
 		{
 			if (context.Guild == null)
 				return false;
 
 			//Get the command
-			var cmdName = context.Message.Content.Substring(argPos).Split(' ').FirstOrDefault();
-			var cmd = Actions.GetCommand(guildInfo, cmdName);
+			var cmd = Actions.GetCommand(guildInfo, context.Message.Content.Substring(argPos).Split(' ').FirstOrDefault());
 			if (cmd == null)
 			{
 				return false;
@@ -147,9 +147,8 @@ namespace Advobot
 			/* I'm not sure exactly how I want this permission system set up.
 			 * I think I want it to be like this:
 			 * If user is set, use user setting
-			 * Else if role is set, use role setting
+			 * Else if any roles are set, use the highest role setting
 			 * Else if channel is set, use channel setting
-			 * Else default to current command switch setting
 			 */
 
 			var user = guildInfo.CommandOverrides.Users.FirstOrDefault(x => x.ID == context.User.Id && Actions.CaseInsEquals(cmd.Name, x.Name));
@@ -158,10 +157,10 @@ namespace Advobot
 				return user.Enabled;
 			}
 
-			var roles = guildInfo.CommandOverrides.Roles.Where(x => (context.User as Discord.IGuildUser).RoleIds.Contains(x.ID) && Actions.CaseInsEquals(cmd.Name, x.Name)).ToList();
-			if (roles.Any())
+			var role = guildInfo.CommandOverrides.Roles.Where(x => context.Guild.Roles.Select(y => y.Id).Contains(x.ID) && Actions.CaseInsEquals(cmd.Name, x.Name)).OrderBy(x => context.Guild.GetRole(x.ID).Position).LastOrDefault();
+			if (role != null)
 			{
-				return !roles.Any(x => !x.Enabled);
+				return role.Enabled;
 			}
 
 			var channel = guildInfo.CommandOverrides.Channels.FirstOrDefault(x => x.ID == context.Channel.Id && Actions.CaseInsEquals(cmd.Name, x.Name));

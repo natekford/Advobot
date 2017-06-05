@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Discord;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace Advobot
 {
@@ -125,30 +127,30 @@ namespace Advobot
 			LogActions.MessageDeleted,
 		});
 
-		public static readonly bool DISCONNECT = false;
+		public const bool DISCONNECT = false;
 
-		public static readonly Discord.Color BASE = new Discord.Color(255, 100, 000);
-		public static readonly Discord.Color JOIN = new Discord.Color(000, 255, 000);
-		public static readonly Discord.Color LEAV = new Discord.Color(255, 000, 000);
-		public static readonly Discord.Color UNBN = new Discord.Color(000, 153, 000);
-		public static readonly Discord.Color BANN = new Discord.Color(153, 000, 000);
-		public static readonly Discord.Color UEDT = new Discord.Color(051, 051, 255);
-		public static readonly Discord.Color ATCH = new Discord.Color(000, 204, 204);
-		public static readonly Discord.Color MEDT = new Discord.Color(000, 000, 255);
-		public static readonly Discord.Color MDEL = new Discord.Color(255, 051, 051);
-		public static readonly Discord.Color RCRE = new Discord.Color(000, 175, 000);
-		public static readonly Discord.Color REDT = new Discord.Color(000, 000, 204);
-		public static readonly Discord.Color RDEL = new Discord.Color(175, 000, 000);
-		public static readonly Discord.Color CCRE = new Discord.Color(000, 204, 000);
-		public static readonly Discord.Color CEDT = new Discord.Color(000, 000, 153);
-		public static readonly Discord.Color CDEL = new Discord.Color(204, 000, 000);
+		public static readonly Color BASE = new Color(255, 100, 000);
+		public static readonly Color JOIN = new Color(000, 255, 000);
+		public static readonly Color LEAV = new Color(255, 000, 000);
+		public static readonly Color UNBN = new Color(000, 153, 000);
+		public static readonly Color BANN = new Color(153, 000, 000);
+		public static readonly Color UEDT = new Color(051, 051, 255);
+		public static readonly Color ATCH = new Color(000, 204, 204);
+		public static readonly Color MEDT = new Color(000, 000, 255);
+		public static readonly Color MDEL = new Color(255, 051, 051);
+		public static readonly Color RCRE = new Color(000, 175, 000);
+		public static readonly Color REDT = new Color(000, 000, 204);
+		public static readonly Color RDEL = new Color(175, 000, 000);
+		public static readonly Color CCRE = new Color(000, 204, 000);
+		public static readonly Color CEDT = new Color(000, 000, 153);
+		public static readonly Color CDEL = new Color(204, 000, 000);
 	}
 
 	public static class Variables
 	{
-		public static BotClient Client;
-		public static UInt64 BotID = 0;
+		public static ulong BotID = 0;
 		public static string BotName;
+		public static BotClient Client;
 		public static BotGlobalInfo BotInfo;
 
 		public static bool Windows = true;
@@ -159,8 +161,8 @@ namespace Advobot
 		public static bool Pause = false;
 
 		public static DateTime StartupTime = DateTime.UtcNow;
-		public static System.Threading.Timer SpamTimer;
-		public static System.Threading.Timer RemovePunishmentTimer;
+		public static Timer SpamTimer;
+		public static Timer RemovePunishmentTimer;
 
 		public static int TotalUsers = 0;
 		public static int TotalGuilds = 0;
@@ -188,16 +190,13 @@ namespace Advobot
 		public readonly static List<BotChannelPermissionType> ChannelPermissions = new List<BotChannelPermissionType>();
 
 		//Lists that change as the bot is used
-		public readonly static List<ulong> PotentialBotOwners = new List<ulong>();
-		public readonly static List<ulong> DeletedRoles = new List<ulong>();
 		public readonly static List<ListedInvite> InviteList = new List<ListedInvite>();
 		public readonly static List<RemovablePunishment> PunishedUsers = new List<RemovablePunishment>();
 		public readonly static List<RemovableMessage> TimedMessages = new List<RemovableMessage>();
 		public readonly static List<ActiveCloseHelp> ActiveCloseHelp = new List<ActiveCloseHelp>();
 		public readonly static List<ActiveCloseWords> ActiveCloseWords = new List<ActiveCloseWords>();
-		public readonly static List<GuildToggleAfterTime> GuildToggles = new List<GuildToggleAfterTime>();
 		public readonly static List<SlowmodeUser> SlowmodeUsers = new List<SlowmodeUser>();
-		public readonly static List<Discord.IGuild> GuildsToBeLoaded = new List<Discord.IGuild>();
-		public readonly static List<Discord.IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<Discord.IGuild>();
+		public readonly static List<IGuild> GuildsToBeLoaded = new List<IGuild>();
+		public readonly static List<IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<IGuild>();
 	}
 }

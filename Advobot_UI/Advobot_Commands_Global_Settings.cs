@@ -37,7 +37,8 @@ namespace Advobot
 
 			if (Actions.CaseInsEquals(settingStr, "all"))
 			{
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Global Settings", Actions.FormatAllSettings(botInfo)));
+				var embed = Actions.MakeNewEmbed("Current Global Settings");
+				await Actions.SendEmbedMessage(Context.Channel, Actions.FormatAllSettings(embed, botInfo));
 			}
 			else if (Enum.TryParse(settingStr, true, out SettingOnBot setting))
 			{
@@ -120,7 +121,7 @@ namespace Advobot
 						else
 						{
 							//Add them to the list of people trying to become bot owner
-							Variables.PotentialBotOwners.Add(Context.User.Id);
+							Variables.BotInfo.PotentialBotOwners.Add(Context.User.Id);
 							await Actions.SendDMMessage(await Context.User.CreateDMChannelAsync(), "What is my key?");
 						}
 					}
