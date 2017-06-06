@@ -71,6 +71,7 @@ namespace Advobot
 		{
 			input = input.Trim().Replace("\n", "").Replace("\r", "");
 
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			if (input.Length > 25)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please do not try to make a prefix longer than 25 characters."));
@@ -119,6 +120,7 @@ namespace Advobot
 			var targetStr = returnedArgs.GetSpecifiedArg("target");
 			var extraStr = returnedArgs.GetSpecifiedArg("extra");
 
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			if (Actions.CaseInsEquals(settingStr, "all"))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Guild Settings", Actions.FormatAllSettings(guildInfo)));
@@ -156,6 +158,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GuildResave()
 		{
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			Actions.SaveGuildInfo(guildInfo);
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully resaved the guild.");
 		}
@@ -192,6 +195,7 @@ namespace Advobot
 				allBool = true;
 			}
 
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var command = Actions.GetCommand(guildInfo, cmdStr);
 			var commands = new List<CommandSwitch>();
 			if (allBool)
@@ -317,6 +321,8 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 			var add = action == ActionType.Add;
+
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 
 			//Get the lists the bot will use for this command
 			var ignoredCmdChannels = guildInfo.IgnoredCommandChannels;
@@ -472,6 +478,7 @@ namespace Advobot
 			var user = returnedUser.Object;
 
 			//Get the botuser
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var botUser = guildInfo.BotUsers.FirstOrDefault(x => x.User == user);
 			switch (action)
 			{
@@ -654,6 +661,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task Reminds([Optional, Remainder] string input)
 		{
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var reminds = guildInfo.Reminds;
 			if (String.IsNullOrWhiteSpace(input))
 			{
@@ -715,6 +723,7 @@ namespace Advobot
 			if (welcomeMessage == null)
 				return;
 
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			guildInfo.SetWelcomeMessage(welcomeMessage);
 			Actions.SaveGuildInfo(guildInfo);
 		}
@@ -731,6 +740,7 @@ namespace Advobot
 			if (goodbyeMessage == null)
 				return;
 
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			guildInfo.SetGoodbyeMessage(goodbyeMessage);
 			Actions.SaveGuildInfo(guildInfo);
 		}
@@ -749,6 +759,7 @@ namespace Advobot
 				return;
 			}
 
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			GuildNotification notif = null;
 			switch (notifType)
 			{

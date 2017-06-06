@@ -546,12 +546,21 @@ namespace Advobot
 	{
 		public IRole MuteRole { get; private set; }
 		public List<IGuildUser> UsersWhoHaveBeenMuted { get; private set; }
+		public bool Enabled { get; private set; }
 
 		public RapidJoinProtection(IRole muteRole, int timeInterval, int requiredCount) : base(SpamType.Rapid_Joins, timeInterval, requiredCount)
 		{
 			MuteRole = muteRole;
 		}
 
+		public void Disable()
+		{
+			Enabled = false;
+		}
+		public void Enable()
+		{
+			Enabled = true;
+		}
 		public async Task MuteUserAndAddToList(IGuildUser user)
 		{
 			await Actions.GiveRole(user, MuteRole);

@@ -125,7 +125,7 @@ namespace Advobot
 
 		[Command("preventraid")]
 		[Alias("prr")]
-		[Usage("[Enable] <Number> | [Disable]")]
+		[Usage("[Enable|Disable] <Number>")]
 		[Summary("Any users who joins from now on will get text muted. Once `preventraidspam` is turned off all the users who were muted will be unmuted. " +
 			"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
 		[PermissionRequirement]
@@ -177,14 +177,9 @@ namespace Advobot
 					var actualMutes = 0;
 					if (int.TryParse(numStr, out int inputNum))
 					{
-						//Get the users who have joined most recently
 						var users = (await Context.Guild.GetUsersAsync()).OrderBy(x => x.JoinedAt).Reverse().ToList();
-						//Get a suitable number for the input number
-						inputNum = Math.Min(Math.Min(Math.Abs(inputNum), users.Count), 25);
-						//Remove all of the users who are not supposed to be muted
-						users.RemoveRange(inputNum - 1, users.Count - inputNum);
-						//Mute all of the users
-						await users.ForEachAsync(async x =>
+						var numToGather = Math.Min(Math.Min(Math.Abs(inputNum), users.Count), 25);
+						await users.GetRange(0, numToGather).ForEachAsync(async x =>
 						{
 							await Variables.Guilds[Context.Guild.Id].AntiRaid.MuteUserAndAddToList(x);
 							++actualMutes;
@@ -238,12 +233,29 @@ namespace Advobot
 
 		[Command("preventrapidjoin")]
 		[Alias("prj")]
-		[Usage("[Enable] <User Count> <Time in Seconds> | [Disable]")]
-		[Summary("If the given amount of users joins within the given time frame then all of the users will be muted.")]
+		[Usage("[Enable|Disable|Setup] <Count:Number> <Time:Number>")]
+		[Summary("If the given amount of users joins within the given time frame then all of the users will be muted. Time is in seconds.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task PreventRapidJoin([Remainder] string input)
 		{
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "count", "time" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var actionStr = returnedArgs.Arguments[0];
+			var countStr = returnedArgs.GetSpecifiedArg("count");
+			var timeStr = returnedArgs.GetSpecifiedArg("time");
+
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			{
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				return;
+			}
+			var action = returnedType.Type;
 			//TODO: Make this create an anti rapid join class
 		}
 	}

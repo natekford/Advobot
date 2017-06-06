@@ -437,16 +437,16 @@ namespace Advobot
 			if (input == null)
 			{
 				var list = new List<string>();
-				for (int i = 0; i < min; i++)
-				{
-					list.Add(null);
-				}
 				if (min == 0)
 				{
 					return new ReturnedArguments(list, ArgFailureReason.Not_Failure);
 				}
 				else
 				{
+					for (int i = 0; i < min; i++)
+					{
+						list.Add(null);
+					}
 					return new ReturnedArguments(list, ArgFailureReason.Too_Few_Args);
 				}
 			}
