@@ -45,7 +45,7 @@ namespace Advobot
 			await Variables.GuildsToBeLoaded.ForEachAsync(async x => await LoadGuild(x));
 		}
 
-		public static async Task LoadGuild(IGuild guild)
+		public static async Task<BotGuildInfo> LoadGuild(IGuild guild)
 		{
 			var guildInfo = LoadGuildInfo(guild);
 			if (guildInfo != null)
@@ -75,6 +75,7 @@ namespace Advobot
 			guildInfo.TurnLoadedOn();
 			guildInfo.Invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
 			Variables.Guilds.Add(guild.Id, guildInfo);
+			return guildInfo;
 		}
 
 		public static BotGlobalInfo LoadBotInfo()
@@ -899,6 +900,16 @@ namespace Advobot
 		#endregion
 
 		#region Guilds
+		public static async Task<BotGuildInfo> GetGuildInfo(IGuild guild)
+		{
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+			{
+				await LoadGuild(guild);
+				EnablePreferences(Variables.Guilds[guild.Id], guild);
+			}
+			return guildInfo;
+		}
+
 		public static IGuild GetGuild(IMessage message)
 		{
 			//Check if the guild can be gotten from the message's channel or author
@@ -1129,11 +1140,24 @@ namespace Advobot
 		#endregion
 
 		#region Roles
-		public static async Task<IRole> CreateMuteRoleIfNotFound(IGuild guild, IRole muteRole)
+		public static async Task<IRole> GetMuteRole(BotGuildInfo guildInfo, ICommandContext context)
+		{
+			var returnedMuteRole = GetRole(context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Managed }, guildInfo.MuteRole);
+			var muteRole = returnedMuteRole.Object;
+			if (returnedMuteRole.Reason != FailureReason.Not_Failure)
+			{
+				muteRole = await CreateMuteRoleIfNotFound(guildInfo, context.Guild, muteRole);
+			}
+			return muteRole;
+		}
+
+		public static async Task<IRole> CreateMuteRoleIfNotFound(BotGuildInfo guildInfo, IGuild guild, IRole muteRole)
 		{
 			if (muteRole == null)
 			{
-				muteRole = await guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0));
+				muteRole = await guild.CreateRoleAsync("Advobot_Mute", new GuildPermissions(0));
+				guildInfo.SetMuteRole(muteRole);
+				SaveGuildInfo(guildInfo);
 			}
 
 			const uint TEXT_PERMS = 0
@@ -1973,9 +1997,9 @@ namespace Advobot
 			if (channel == null || guild == null || !Variables.Guilds.ContainsKey(guild.Id))
 				return null;
 
-			var everyoneMention = guild.EveryoneRole.Mention;
-			message = message.Replace(everyoneMention, Constants.FAKE_EVERYONE);
+			message = CaseInsReplace(message, guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE);
 			message = CaseInsReplace(message, "@everyone", Constants.FAKE_EVERYONE);
+			message = CaseInsReplace(message, "\tts", Constants.FAKE_TTS);
 
 			if (message.Length >= Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
@@ -3490,7 +3514,7 @@ namespace Advobot
 				await antiRaid.MuteUserAndAddToList(user);
 			}
 			//Antiraid Two - Electric Joinaroo
-			var antiJoin = guildInfo.JoinProtection;
+			var antiJoin = guildInfo.RapidJoinProtection;
 			if (antiJoin != null)
 			{
 				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);

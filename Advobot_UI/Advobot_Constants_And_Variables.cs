@@ -22,6 +22,7 @@ namespace Advobot
 		public const string INVITE_SPLASH = "INVITE_SPLASH";
 		public const string NO_NN = "NO NICKNAME";
 		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
+		public const string FAKE_TTS = "\\" + ZERO_LENGTH_CHAR + "tts";
 		public const string BYPASS_STRING = "Bypass100";
 
 		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds as a text file.";
@@ -35,7 +36,6 @@ namespace Advobot
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
 		public const string DENY_WITHOUT_PREFERENCES = "This guild does not have preferences enabled and thus cannot use this command. Please run the `comconfigmodify` command to enable them.";
 
-		public const string MUTE_ROLE_NAME = "Bot-Muted";
 		public const string SERVER_FOLDER = "Discord_Servers";
 		public const string SAVING_FILE_EXTENSION = ".json";
 		public const string GENERAL_FILE_EXTENSION = ".txt";

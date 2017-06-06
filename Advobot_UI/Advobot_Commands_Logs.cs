@@ -19,13 +19,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task Serverlog([Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -98,13 +92,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task IgnoreChannel([Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
+			var guildInfo = Actions.GetGuildInfo(Context.Guild);
 
 			//Split the input and determine whether to add or remove
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
@@ -198,13 +186,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task SwitchLogActions([Optional, Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
+			var guildInfo = Actions.GetGuildInfo(Context.Guild);
 			var logActions = guildInfo.LogActions;
 
 			//Check if the person wants to only see the types

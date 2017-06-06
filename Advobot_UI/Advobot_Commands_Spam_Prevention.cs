@@ -132,6 +132,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task PreventRaidSpam([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -150,13 +152,7 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
-			//Check if mute role already exists, if not, create it
-			var returnedMuteRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Managed }, false, Constants.MUTE_ROLE_NAME);
-			var muteRole = returnedMuteRole.Object;
-			if (returnedMuteRole.Reason != FailureReason.Not_Failure)
-			{
-				muteRole = await Actions.CreateMuteRoleIfNotFound(Context.Guild, muteRole);
-			}
+			var muteRole = await Actions.GetMuteRole(guildInfo, Context);
 
 			var antiRaid = Variables.Guilds[Context.Guild.Id].AntiRaid;
 			switch (action)
@@ -234,7 +230,7 @@ namespace Advobot
 		[Command("preventrapidjoin")]
 		[Alias("prj")]
 		[Usage("[Enable|Disable|Setup] <Count:Number> <Time:Number>")]
-		[Summary("If the given amount of users joins within the given time frame then all of the users will be muted. Time is in seconds.")]
+		[Summary("If the given amount of users joins within the given time frame then all of the users will be muted. Time is in seconds. Default is 5 users in 3 seconds.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task PreventRapidJoin([Remainder] string input)
@@ -249,6 +245,28 @@ namespace Advobot
 			var countStr = returnedArgs.GetSpecifiedArg("count");
 			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
+			var count = 5;
+			if (!String.IsNullOrEmpty(countStr))
+			{
+				if (!int.TryParse(countStr, out count))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid user count supplied."));
+					return;
+				}
+				count = Math.Abs(count);
+			}
+
+			var time = 3;
+			if (!String.IsNullOrWhiteSpace(timeStr))
+			{
+				if (!int.TryParse(timeStr, out time))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
+					return;
+				}
+				time = Math.Abs(time);
+			}
+
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
 			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
@@ -256,6 +274,43 @@ namespace Advobot
 				return;
 			}
 			var action = returnedType.Type;
+
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			switch (action)
+			{
+				case ActionType.Setup:
+				{
+					guildInfo.SetRapidJoinProtection(new RapidJoinProtection(guildInfo.MuteRole, time, count));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created a rapid join protection with a time period of `{0}` and a user count of `{1}`.", time, count));
+					break;
+				}
+				case ActionType.Enable:
+				{
+					var antiJoin = guildInfo.RapidJoinProtection;
+					if (antiJoin == null)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no rapid join protection to enable."));
+						return;
+					}
+
+					antiJoin.Enable();
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully enabled the rapid join protection on this guild.");
+					break;
+				}
+				case ActionType.Disable:
+				{
+					var antiJoin = guildInfo.RapidJoinProtection;
+					if (antiJoin == null)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no rapid join protection to disable."));
+						return;
+					}
+
+					antiJoin.Disable();
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled the rapid join protection on this guild.");
+					break;
+				}
+			}
 			//TODO: Make this create an anti rapid join class
 		}
 	}

@@ -60,14 +60,7 @@ namespace Advobot
 			Actions.WriteLine(String.Format("Bot has joined {0}.", guild.FormatGuild()));
 
 			//Check how many bots are in the guild
-			int botCount = 0;
-			guild.Users.ToList().ForEach(x =>
-			{
-				if (x.IsBot)
-				{
-					++botCount;
-				}
-			});
+			var botCount = guild.Users.Count(x => x.IsBot);
 
 			//Determine what percentage of bot users to leave at
 			var users = guild.MemberCount;
@@ -113,19 +106,6 @@ namespace Advobot
 				await guild.LeaveAsync();
 				Actions.WriteLine(String.Format("Left the guild {0} due to having too many guilds on the client and not enough shards.", guild.FormatGuild()));
 			}
-
-			if (!Variables.Guilds.ContainsKey(guild.Id))
-			{
-				if (Variables.BotID != 0)
-				{
-					await Actions.LoadGuild(guild);
-				}
-				else
-				{
-					Variables.GuildsToBeLoaded.Add(guild);
-				}
-			}
-			Actions.EnablePreferences(Variables.Guilds[guild.Id], guild);
 
 			return;
 		}

@@ -34,11 +34,7 @@ namespace Advobot
 			if (guild == null)
 				return;
 
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-			{
-				await Actions.LoadGuild(guild);
-				guildInfo = Variables.Guilds[guild.Id];
-			}
+			var guildInfo = await Actions.GetGuildInfo(guild);
 
 			if (!PrefixHandling(message, guildInfo.Prefix, out int argPos))
 				return;

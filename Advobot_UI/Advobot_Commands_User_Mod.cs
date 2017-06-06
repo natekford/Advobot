@@ -20,13 +20,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task FullMute([Remainder] string input)
 		{
-			//Check if role already exists, if not, create it
-			var returnedMuteRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Managed }, false, Constants.MUTE_ROLE_NAME);
-			var muteRole = returnedMuteRole.Object;
-			if (returnedMuteRole.Reason != FailureReason.Not_Failure)
-			{
-				muteRole = await Actions.CreateMuteRoleIfNotFound(Context.Guild, muteRole);
-			}
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
@@ -37,6 +31,8 @@ namespace Advobot
 			}
 			var userStr = returnedArgs.Arguments[0];
 			var timeStr = returnedArgs.Arguments[1];
+
+			var muteRole = await Actions.GetMuteRole(guildInfo, Context);
 
 			//Get the time
 			var time = 0;

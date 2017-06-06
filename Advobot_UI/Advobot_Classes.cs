@@ -201,7 +201,7 @@ namespace Advobot
 		[JsonProperty]
 		public ListedInvite ListedInvite { get; private set; }
 		[JsonProperty]
-		public RapidJoinProtection JoinProtection { get; private set; }
+		public RapidJoinProtection RapidJoinProtection { get; private set; }
 		[JsonProperty]
 		public CommandOverrides CommandOverrides { get; private set; }
 		[JsonProperty]
@@ -284,6 +284,10 @@ namespace Advobot
 		public void SetGoodbyeMessage(GuildNotification goodbyeMessage)
 		{
 			GoodbyeMessage = goodbyeMessage;
+		}
+		public void SetRapidJoinProtection(RapidJoinProtection rapidJoinProtection)
+		{
+			RapidJoinProtection = rapidJoinProtection;
 		}
 		public void SetPrefix(string prefix)
 		{
@@ -551,6 +555,7 @@ namespace Advobot
 		public RapidJoinProtection(IRole muteRole, int timeInterval, int requiredCount) : base(SpamType.Rapid_Joins, timeInterval, requiredCount)
 		{
 			MuteRole = muteRole;
+			Enabled = true;
 		}
 
 		public void Disable()

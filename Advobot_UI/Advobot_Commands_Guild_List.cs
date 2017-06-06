@@ -17,14 +17,6 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task AddInvite([Remainder] string input)
 		{
-			//Check if using the default preferences
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			if (guildInfo.DefaultPrefs)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.DENY_WITHOUT_PREFERENCES));
-				return;
-			}
-
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "keywords" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
@@ -43,6 +35,7 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			switch (action)
 			{
 				case ActionType.Add:
