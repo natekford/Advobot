@@ -17,6 +17,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task PreventMentionSpam([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 5), new[] { "messages", "spam", "votes" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -44,7 +46,6 @@ namespace Advobot
 			var action = returnedType.Type;
 
 			//Check if a spam prevention exists or not
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var spamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(type);
 			switch (action)
 			{
@@ -154,7 +155,7 @@ namespace Advobot
 
 			var muteRole = await Actions.GetMuteRole(guildInfo, Context);
 
-			var antiRaid = Variables.Guilds[Context.Guild.Id].AntiRaid;
+			var antiRaid = guildInfo.AntiRaid;
 			switch (action)
 			{
 				case ActionType.Enable:
@@ -167,7 +168,7 @@ namespace Advobot
 					}
 
 					//Enable raid mode in the bot
-					Variables.Guilds[Context.Guild.Id].SetAntiRaid(new AntiRaid(muteRole));
+					guildInfo.SetAntiRaid(new AntiRaid(muteRole));
 
 					//Check if there's a valid number
 					var actualMutes = 0;
@@ -177,7 +178,7 @@ namespace Advobot
 						var numToGather = Math.Min(Math.Min(Math.Abs(inputNum), users.Count), 25);
 						await users.GetRange(0, numToGather).ForEachAsync(async x =>
 						{
-							await Variables.Guilds[Context.Guild.Id].AntiRaid.MuteUserAndAddToList(x);
+							await guildInfo.AntiRaid.MuteUserAndAddToList(x);
 							++actualMutes;
 						});
 					}
@@ -196,7 +197,7 @@ namespace Advobot
 					}
 
 					//Disable raid mode in the bot
-					Variables.Guilds[Context.Guild.Id].SetAntiRaid(null);
+					guildInfo.SetAntiRaid(null);
 
 					//Total users muted
 					var ttl = antiRaid.UsersWhoHaveBeenMuted.Count();
@@ -235,6 +236,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task PreventRapidJoin([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "count", "time" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
@@ -275,7 +278,6 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			switch (action)
 			{
 				case ActionType.Setup:

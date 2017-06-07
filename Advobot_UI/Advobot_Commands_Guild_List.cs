@@ -17,6 +17,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task AddInvite([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "keywords" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
@@ -35,7 +37,6 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			switch (action)
 			{
 				case ActionType.Add:

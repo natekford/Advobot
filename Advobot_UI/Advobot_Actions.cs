@@ -42,12 +42,36 @@ namespace Advobot
 
 		public static async Task LoadGuilds()
 		{
-			await Variables.GuildsToBeLoaded.ForEachAsync(async x => await LoadGuild(x));
+			await Variables.GuildsToBeLoaded.ForEachAsync(async x =>
+			{
+				Variables.Guilds.Add(x.Id, await CreateGuildInfo(x));
+			});
 		}
 
-		public static async Task<BotGuildInfo> LoadGuild(IGuild guild)
+		public static async Task<BotGuildInfo> CreateGuildInfo(IGuild guild)
 		{
-			var guildInfo = LoadGuildInfo(guild);
+			BotGuildInfo guildInfo = null;
+			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
+			if (File.Exists(path))
+			{
+				try
+				{
+					using (var reader = new StreamReader(path))
+					{
+						guildInfo = JsonConvert.DeserializeObject<BotGuildInfo>(reader.ReadToEnd());
+					}
+					WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
+				}
+				catch (Exception e)
+				{
+					ExceptionToConsole(e);
+				}
+			}
+			else
+			{
+				WriteLine(String.Format("The guild information file for {0} does not exist.", guild.FormatGuild()));
+			}
+
 			if (guildInfo != null)
 			{
 				guildInfo.PostDeserialize();
@@ -74,58 +98,54 @@ namespace Advobot
 
 			guildInfo.TurnLoadedOn();
 			guildInfo.Invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
-			Variables.Guilds.Add(guild.Id, guildInfo);
 			return guildInfo;
 		}
 
-		public static BotGlobalInfo LoadBotInfo()
+		public static async Task<BotGuildInfo> GetGuildInfo(IGuild guild)
+		{
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+			{
+				guildInfo = await CreateGuildInfo(guild);
+				Variables.Guilds.Add(guild.Id, guildInfo);
+				SaveGuildInfo(guildInfo);
+			}
+			return guildInfo;
+		}
+
+		public static BotGlobalInfo CreateBotInfo()
 		{
 			BotGlobalInfo botInfo = null;
 			var path = GetBaseBotDirectory(Constants.BOT_INFO_LOCATION);
-			if (!File.Exists(path))
+			if (File.Exists(path))
+			{
+				try
+				{
+					using (var reader = new StreamReader(path))
+					{
+						botInfo = JsonConvert.DeserializeObject<BotGlobalInfo>(reader.ReadToEnd());
+					}
+					WriteLine("The bot information has successfully been loaded.");
+				}
+				catch (Exception e)
+				{
+					ExceptionToConsole(e);
+				}
+			}
+			else
 			{
 				WriteLine("The bot information file does not exist.");
-				return botInfo;
 			}
 
-			try
+			if (botInfo != null)
 			{
-				using (var reader = new StreamReader(path))
-				{
-					botInfo = JsonConvert.DeserializeObject<BotGlobalInfo>(reader.ReadToEnd());
-				}
-				WriteLine("The bot information has successfully been loaded.");
+				botInfo.PostDeserialize();
 			}
-			catch (Exception e)
+			else
 			{
-				ExceptionToConsole(e);
+				botInfo = new BotGlobalInfo();
 			}
+
 			return botInfo;
-		}
-
-		public static BotGuildInfo LoadGuildInfo(IGuild guild)
-		{
-			BotGuildInfo guildInfo = null;
-			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
-			if (!File.Exists(path))
-			{
-				WriteLine(String.Format("The guild information file for {0} does not exist.", guild.FormatGuild()));
-				return guildInfo;
-			}
-
-			try
-			{
-				using (var reader = new StreamReader(path))
-				{
-					guildInfo = JsonConvert.DeserializeObject<BotGuildInfo>(reader.ReadToEnd());
-				}
-				WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
-			}
-			catch (Exception e)
-			{
-				ExceptionToConsole(e);
-			}
-			return guildInfo;
 		}
 
 		public static string Serialize(dynamic obj)
@@ -152,14 +172,10 @@ namespace Advobot
 
 		public static void LoadBasicInformation()
 		{
-			//Get the bot's ID
 			HandleBotID(Properties.Settings.Default.BotID);
-			//Checks if the OS is Windows or not
-			GetOS();
-			//Check if console or WPF app
-			GetConsoleOrGUI();
-			//Loads up stuff like global prefix, game, shard count
-			LoadBot();
+			Variables.Windows = GetOS();
+			Variables.Console = GetConsoleOrGUI();
+			Variables.BotInfo = CreateBotInfo();
 		}
 
 		public static void LoadCommandInformation()
@@ -333,24 +349,9 @@ namespace Advobot
 			OverWriteFile(GetServerFilePath(guildInfo.GuildID, Constants.GUILD_INFO_LOCATION), Serialize(guildInfo));
 		}
 
-		public static void LoadBot()
+		public static void SaveBotInfo(BotGlobalInfo botInfo)
 		{
-			var botInfo = LoadBotInfo();
-			if (botInfo != null)
-			{
-				botInfo.PostDeserialize();
-			}
-			else
-			{
-				botInfo = new BotGlobalInfo();
-			}
-
-			Variables.BotInfo = botInfo;
-		}
-
-		public static void SaveBotInfo()
-		{
-			OverWriteFile(GetBaseBotDirectory(Constants.BOT_INFO_LOCATION), Serialize(Variables.BotInfo));
+			OverWriteFile(GetBaseBotDirectory(Constants.BOT_INFO_LOCATION), Serialize(botInfo));
 		}
 
 		public static void CreateFile(string path)
@@ -788,6 +789,25 @@ namespace Advobot
 			return CaseInsEquals(str, Constants.BYPASS_STRING);
 		}
 
+		public static bool GetOS()
+		{
+			var windir = Environment.GetEnvironmentVariable("windir");
+			return !String.IsNullOrEmpty(windir) && windir.Contains(@"\") && Directory.Exists(windir);
+		}
+
+		public static bool GetConsoleOrGUI()
+		{
+			try
+			{
+				var window_height = Console.WindowHeight;
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
 		public static double GetMemory()
 		{
 			if (Variables.Windows)
@@ -880,36 +900,28 @@ namespace Advobot
 			}
 		}
 
-		public static void GetOS()
+		public static int GetMinFromMultipleNumbers(params int[] nums)
 		{
-			var windir = Environment.GetEnvironmentVariable("windir");
-			Variables.Windows = !String.IsNullOrEmpty(windir) && windir.Contains(@"\") && Directory.Exists(windir);
+			var min = int.MaxValue;
+			foreach (var num in nums)
+			{
+				min = Math.Min(min, num);
+			}
+			return min;
 		}
 
-		public static void GetConsoleOrGUI()
+		public static int GetMaxFromMultipleNumbers(params int[] nums)
 		{
-			try
+			var max = int.MinValue;
+			foreach (var num in nums)
 			{
-				var window_height = Console.WindowHeight;
+				max = Math.Max(max, num);
 			}
-			catch
-			{
-				Variables.Console = false;
-			}
+			return max;
 		}
 		#endregion
 
 		#region Guilds
-		public static async Task<BotGuildInfo> GetGuildInfo(IGuild guild)
-		{
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-			{
-				await LoadGuild(guild);
-				EnablePreferences(Variables.Guilds[guild.Id], guild);
-			}
-			return guildInfo;
-		}
-
 		public static IGuild GetGuild(IMessage message)
 		{
 			//Check if the guild can be gotten from the message's channel or author
@@ -1958,8 +1970,7 @@ namespace Advobot
 			var guild = guildChannel.Guild;
 			if (guild == null)
 				return null;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return null;
+			var guildInfo = await GetGuildInfo(guild);
 
 			content = content ?? "";
 
@@ -1994,7 +2005,7 @@ namespace Advobot
 		public static async Task<IMessage> SendChannelMessage(ITextChannel channel, string message)
 		{
 			var guild = GetGuild(channel);
-			if (channel == null || guild == null || !Variables.Guilds.ContainsKey(guild.Id))
+			if (channel == null || guild == null)
 				return null;
 
 			message = CaseInsReplace(message, guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE);
@@ -2056,14 +2067,21 @@ namespace Advobot
 			if (guildChannel == null)
 				return 0;
 
+			var msg = (await channel.GetMessagesAsync(1).ToList()).SelectMany(x => x).FirstOrDefault();
+			if (msg == null)
+				return 0;
+
 			var deletedCount = 0;
 			while (requestCount > 0)
 			{
 				//Get the current messages and ones that aren't null
 				var newNum = Math.Min(requestCount, 100);
-				var messages = (await channel.GetMessagesAsync(newNum).ToList()).SelectMany(x => x).Where(x => x != null);
+				var messages = (await channel.GetMessagesAsync(msg, Direction.Before, newNum).ToList()).SelectMany(x => x).Where(x => x != null);
 				if (!messages.Any())
 					break;
+
+				//Set the from message as the last of the currently grabbed ones
+				msg = messages.Last();
 
 				//Delete them in a try catch due to potential errors
 				var msgAmt = messages.Count();
@@ -2094,20 +2112,33 @@ namespace Advobot
 			if (guildChannel == null)
 				return 0;
 
-			//Make sure there's a user id
 			if (user == null)
 			{
 				return await RemoveMessages(channel, requestCount);
 			}
 
+			var msg = (await channel.GetMessagesAsync(1).ToList()).SelectMany(x => x).FirstOrDefault();
+			if (msg == null)
+				return 0;
+
 			var deletedCount = 0;
 			while (requestCount > 0)
 			{
 				//Get the current messages and ones that aren't null
-				var newNum = Math.Min(requestCount, 100);
-				var messages = (await channel.GetMessagesAsync(newNum).ToList()).SelectMany(x => x).Where(x => x != null && x.Author.Id == user.Id);
+				var messages = (await channel.GetMessagesAsync(msg, Direction.Before, 100).ToList()).SelectMany(x => x).Where(x => x != null);
 				if (!messages.Any())
 					break;
+
+				//Set the from message as the last of the currently grabbed ones
+				msg = messages.Last();
+
+				//Check for messages of the targetted user
+				messages = messages.Where(x => x.Author.Id == user.Id);
+				if (!messages.Any())
+					break;
+
+				var gatheredForUserAmt = messages.Count();
+				messages = messages.ToList().GetRange(0, GetMinFromMultipleNumbers(requestCount, gatheredForUserAmt, 100));
 
 				//Delete them in a try catch due to potential errors
 				var msgAmt = messages.Count();
@@ -2122,8 +2153,8 @@ namespace Advobot
 					break;
 				}
 
-				//Leave if the message count gathered implies that the channel is out of messages
-				if (msgAmt < newNum)
+				//Leave if the message count gathered implies that the channel is out of messages or that enough 
+				if (msgAmt < gatheredForUserAmt)
 					break;
 
 				//Lower the request count
@@ -3085,7 +3116,7 @@ namespace Advobot
 			if (curInvs == null)
 				return null;
 			//Get the bot's stored invites
-			var botInvs = Variables.Guilds[guild.Id].Invites;
+			var botInvs = (await Actions.GetGuildInfo(guild)).Invites;
 			if (!botInvs.Any())
 				return null;
 
@@ -3594,22 +3625,6 @@ namespace Advobot
 			return false;
 		}
 
-		public static void EnablePreferences(BotGuildInfo guildInfo, IGuild guild)
-		{
-			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
-			if (path == null)
-			{
-				WriteLine(String.Format("Unable to write the preference file for {0}.", guild.FormatGuild()));
-				return;
-			}
-			if (!File.Exists(path))
-			{
-				var cmds = guildInfo.CommandOverrides.Commands.Select(x => x.Name).ToList();
-				Variables.HelpList.Where(x => !cmds.CaseInsContains(x.Name)).ToList().ForEach(x => guildInfo.CommandOverrides.Commands.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
-				SaveGuildInfo(guildInfo);
-			}
-		}
-
 		public static bool ValidatePath(string input, bool startup = false)
 		{
 			var path = input.Trim();
@@ -3660,7 +3675,7 @@ namespace Advobot
 			//Reset everything but shards since shards are pretty important
 			var botInfo = Variables.BotInfo;
 			botInfo.ResetAll();
-			SaveBotInfo();
+			SaveBotInfo(Variables.BotInfo);
 
 			Properties.Settings.Default.Reset();
 			Properties.Settings.Default.Save();
@@ -3674,7 +3689,7 @@ namespace Advobot
 				return false;
 
 			//Get the user from the list or, if not found, create a new one
-			var spUser = Variables.Guilds[guild.Id].GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == user);
+			var spUser = (await GetGuildInfo(guild)).GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == user);
 			if (spUser == null)
 			{
 				spUser = new SpamPreventionUser(user);

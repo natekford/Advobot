@@ -92,7 +92,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task IgnoreChannel([Remainder] string input)
 		{
-			var guildInfo = Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
 
 			//Split the input and determine whether to add or remove
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
@@ -186,7 +186,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task SwitchLogActions([Optional, Remainder] string input)
 		{
-			var guildInfo = Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
 			var logActions = guildInfo.LogActions;
 
 			//Check if the person wants to only see the types

@@ -384,8 +384,6 @@ namespace Advobot
 		public LogSeverity LogLevel { get; private set; }
 		[JsonProperty]
 		public int MaxUserGatherCount { get; private set; }
-		[JsonIgnore]
-		public List<ulong> PotentialBotOwners { get; private set; }
 
 		public BotGlobalInfo()
 		{
@@ -399,7 +397,6 @@ namespace Advobot
 			AlwaysDownloadUsers = true;
 			LogLevel = LogSeverity.Warning;
 			MaxUserGatherCount = 100;
-			PotentialBotOwners = new List<ulong>();
 		}
 
 		public string GetSetting(SettingOnBot setting)
@@ -546,30 +543,45 @@ namespace Advobot
 		}
 	}
 
-	public class RapidJoinProtection : BaseSpamInformation
+	public class CommandOverrides
 	{
-		public IRole MuteRole { get; private set; }
-		public List<IGuildUser> UsersWhoHaveBeenMuted { get; private set; }
+		[JsonProperty]
+		public List<CommandOverride<IGuildUser>> Users { get; private set; }
+		[JsonProperty]
+		public List<CommandOverride<IRole>> Roles { get; private set; }
+		[JsonProperty]
+		public List<CommandOverride<IGuildChannel>> Channels { get; private set; }
+		[JsonProperty]
+		public List<CommandSwitch> Commands { get; private set; }
+
+		public CommandOverrides()
+		{
+			Users = new List<CommandOverride<IGuildUser>>();
+			Roles = new List<CommandOverride<IRole>>();
+			Channels = new List<CommandOverride<IGuildChannel>>();
+			Commands = new List<CommandSwitch>();
+		}
+	}
+
+	public class CommandOverride<T>
+	{
+		[JsonProperty]
+		public string Name { get; private set; }
+		[JsonProperty]
+		public ulong ID { get; private set; }
+		[JsonProperty]
 		public bool Enabled { get; private set; }
 
-		public RapidJoinProtection(IRole muteRole, int timeInterval, int requiredCount) : base(SpamType.Rapid_Joins, timeInterval, requiredCount)
+		public CommandOverride(string name, ulong id, bool enabled)
 		{
-			MuteRole = muteRole;
-			Enabled = true;
+			Name = name;
+			ID = id;
+			Enabled = enabled;
 		}
 
-		public void Disable()
+		public void Switch()
 		{
-			Enabled = false;
-		}
-		public void Enable()
-		{
-			Enabled = true;
-		}
-		public async Task MuteUserAndAddToList(IGuildUser user)
-		{
-			await Actions.GiveRole(user, MuteRole);
-			UsersWhoHaveBeenMuted.ThreadSafeAdd(user);
+			Enabled = !Enabled;
 		}
 	}
 
@@ -589,35 +601,17 @@ namespace Advobot
 		public string[] Aliases { get; private set; }
 
 		[JsonIgnore]
-		public string CategoryName
-		{
-			get { return Enum.GetName(typeof(CommandCategory), (int)Category); }
-		}
+		public string CategoryName { get { return Enum.GetName(typeof(CommandCategory), (int)Category); } }
 		[JsonIgnore]
-		public int CategoryValue
-		{
-			get { return (int)Category; }
-		}
+		public int CategoryValue { get { return (int)Category; } }
 		[JsonProperty]
-		public CommandCategory CategoryEnum
-		{
-			get { return Category; }
-		}
+		public CommandCategory CategoryEnum { get { return Category; } }
 		[JsonIgnore]
-		public string ValAsString
-		{
-			get { return Value ? "ON" : "OFF"; }
-		}
+		public string ValAsString { get { return Value ? "ON" : "OFF"; } }
 		[JsonIgnore]
-		public int ValAsInteger
-		{
-			get { return Value ? 1 : -1; }
-		}
+		public int ValAsInteger { get { return Value ? 1 : -1; } }
 		[JsonIgnore]
-		public bool ValAsBoolean
-		{
-			get { return Value; }
-		}
+		public bool ValAsBoolean { get { return Value; } }
 
 		public CommandSwitch(string name, bool value)
 		{
@@ -710,30 +704,6 @@ namespace Advobot
 		}
 	}
 
-	public class SelfAssignableRole
-	{
-		[JsonProperty]
-		public ulong GuildID { get; private set; }
-		[JsonProperty]
-		public ulong RoleID { get; private set; }
-		[JsonIgnore]
-		public int Group { get; private set; }
-		[JsonIgnore]
-		public IRole Role { get; private set; }
-
-		public SelfAssignableRole(ulong guildID, ulong roleID)
-		{
-			GuildID = guildID;
-			RoleID = roleID;
-			Role = Variables.Client.GetGuild(guildID).GetRole(roleID);
-		}
-
-		public void SetGroup(int group)
-		{
-			Group = group;
-		}
-	}
-
 	public class SelfAssignableGroup
 	{
 		[JsonProperty]
@@ -763,6 +733,30 @@ namespace Advobot
 		public void RemoveRoles(IEnumerable<ulong> roleIDs)
 		{
 			Roles.RemoveAll(x => roleIDs.Contains(x.Role.Id));
+		}
+	}
+
+	public class SelfAssignableRole
+	{
+		[JsonProperty]
+		public ulong GuildID { get; private set; }
+		[JsonProperty]
+		public ulong RoleID { get; private set; }
+		[JsonIgnore]
+		public int Group { get; private set; }
+		[JsonIgnore]
+		public IRole Role { get; private set; }
+
+		public SelfAssignableRole(ulong guildID, ulong roleID)
+		{
+			GuildID = guildID;
+			RoleID = roleID;
+			Role = Variables.Client.GetGuild(guildID).GetRole(roleID);
+		}
+
+		public void SetGroup(int group)
+		{
+			Group = group;
 		}
 	}
 
@@ -839,63 +833,6 @@ namespace Advobot
 		}
 	}
 
-	public class GlobalSpamPrevention
-	{
-		[JsonIgnore]
-		public List<SpamPreventionUser> SpamPreventionUsers { get; private set; }
-		[JsonProperty]
-		public Dictionary<SpamType, BaseSpamPrevention> SpamPreventions { get; private set; }
-
-		public GlobalSpamPrevention()
-		{
-			SpamPreventionUsers = new List<SpamPreventionUser>();
-			SpamPreventions = new Dictionary<SpamType, BaseSpamPrevention>();
-			Enum.GetValues(typeof(SpamType)).Cast<SpamType>().ToList().ForEach(x =>
-			{
-				SpamPreventions.Add(x, null);
-			});
-		}
-
-		public BaseSpamPrevention GetSpamPrevention(SpamType type)
-		{
-			SpamPreventions.TryGetValue(type, out BaseSpamPrevention spamPrev);
-			return spamPrev;
-		}
-		public void SetSpamPrevention(SpamType type, int amt, int votes, int spm)
-		{
-			SpamPreventions.Remove(type);
-			SpamPreventions.Add(type, new BaseSpamPrevention(amt, votes, spm, type));
-		}
-	}
-
-	public class BaseSpamPrevention
-	{
-		[JsonProperty]
-		public int AmountOfMessages { get; private set; }
-		[JsonProperty]
-		public int VotesNeededForKick { get; private set; }
-		[JsonProperty]
-		public int AmountOfSpam { get; private set; }
-		[JsonProperty]
-		public SpamType SpamType { get; private set; }
-		[JsonProperty]
-		public bool Enabled { get; private set; }
-
-		public BaseSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfSpam, SpamType spamType)
-		{
-			AmountOfMessages = amountOfMessages;
-			VotesNeededForKick = votesNeededForKick;
-			AmountOfSpam = amountOfSpam;
-			SpamType = spamType;
-			Enabled = true;
-		}
-
-		public void SwitchEnabled(bool newVal)
-		{
-			Enabled = newVal;
-		}
-	}
-
 	public class ListedInvite
 	{
 		[JsonProperty]
@@ -936,131 +873,22 @@ namespace Advobot
 		}
 	}
 
-	public class CommandOverrides
-	{
-		[JsonProperty]
-		public List<CommandOverride<IGuildUser>> Users { get; private set; }
-		[JsonProperty]
-		public List<CommandOverride<IRole>> Roles { get; private set; }
-		[JsonProperty]
-		public List<CommandOverride<IGuildChannel>> Channels { get; private set; }
-		[JsonProperty]
-		public List<CommandSwitch> Commands { get; private set; }
-
-		public CommandOverrides()
-		{
-			Users = new List<CommandOverride<IGuildUser>>();
-			Roles = new List<CommandOverride<IRole>>();
-			Channels = new List<CommandOverride<IGuildChannel>>();
-			Commands = new List<CommandSwitch>();
-		}
-	}
-
-	public class CommandOverride<T>
+	public class Remind
 	{
 		[JsonProperty]
 		public string Name { get; private set; }
 		[JsonProperty]
-		public ulong ID { get; private set; }
-		[JsonProperty]
-		public bool Enabled { get; private set; }
+		public string Text { get; private set; }
 
-		public CommandOverride(string name, ulong id, bool enabled)
+		public Remind(string name, string text)
 		{
 			Name = name;
-			ID = id;
-			Enabled = enabled;
-		}
-
-		public void Switch()
-		{
-			Enabled = !Enabled;
-		}
-	}
-
-	public class BaseSpamInformation
-	{
-		[JsonProperty]
-		public int TimeInterval { get; private set; }
-		[JsonProperty]
-		public int RequiredCount { get; private set; }
-		[JsonIgnore]
-		public SpamType SpamType { get; private set; }
-		[JsonIgnore]
-		public List<GenericTimeInterface> TimeList { get; private set; }
-
-		public BaseSpamInformation(SpamType spamType, int timeInterval, int requiredCount)
-		{
-			SpamType = spamType;
-			TimeInterval = timeInterval;
-			RequiredCount = requiredCount;
-			TimeList = new List<GenericTimeInterface>();
-		}
-
-		public void Add(DateTime time)
-		{
-			TimeList.ThreadSafeAdd(new GenericTimeInterface(time));
-		}
-		public void Remove(DateTime time)
-		{
-			TimeList.ThreadSafeRemoveAll(x =>
-			{
-				return x.GetTime().Equals(time);
-			});
-		}
-		public int SpamCount(int timeFrame = 0)
-		{
-			return Actions.GetCountOfItemsInTimeFrame(TimeList, timeFrame);
-		}
-		public void Reset()
-		{
-			TimeList = new List<GenericTimeInterface>();
+			Text = text;
 		}
 	}
 	#endregion
 
 	#region Non-saved Classes
-	public class HelpEntry
-	{
-		public string Name { get; private set; }
-		public string[] Aliases { get; private set; }
-		public string Usage { get; private set; }
-		public string BasePerm { get; private set; }
-		public string Text { get; private set; }
-		public CommandCategory Category { get; private set; }
-		public bool DefaultEnabled { get; private set; }
-
-		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text, CommandCategory category, bool defaultEnabled)
-		{
-			Name = name;
-			Aliases = aliases;
-			Usage = Variables.BotInfo.Prefix + usage;
-			BasePerm = basePerm;
-			Text = text;
-			Category = category;
-			DefaultEnabled = defaultEnabled;
-		}
-	}
-
-	public class BotInvite
-	{
-		public ulong GuildID { get; private set; }
-		public string Code { get; private set; }
-		public int Uses { get; private set; }
-
-		public BotInvite(ulong guildID, string code, int uses)
-		{
-			GuildID = guildID;
-			Code = code;
-			Uses = uses;
-		}
-
-		public void IncreaseUses()
-		{
-			++Uses;
-		}
-	}
-
 	public abstract class BotClient
 	{
 		public abstract BaseDiscordClient GetClient();
@@ -1130,6 +958,47 @@ namespace Advobot
 		public override async Task<IVoiceRegion> GetOptimalVoiceRegionAsync() { return await mShardedClient.GetOptimalVoiceRegionAsync(); }
 		public override async Task<RestInvite> GetInviteAsync(string code) { return await mShardedClient.GetInviteAsync(code); }
 		public override async Task<IEnumerable<IDMChannel>> GetDMChannelsAsync() { return await mShardedClient.GetDMChannelsAsync(); }
+	}
+
+	public class HelpEntry
+	{
+		public string Name { get; private set; }
+		public string[] Aliases { get; private set; }
+		public string Usage { get; private set; }
+		public string BasePerm { get; private set; }
+		public string Text { get; private set; }
+		public CommandCategory Category { get; private set; }
+		public bool DefaultEnabled { get; private set; }
+
+		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text, CommandCategory category, bool defaultEnabled)
+		{
+			Name = name;
+			Aliases = aliases;
+			Usage = Variables.BotInfo.Prefix + usage;
+			BasePerm = basePerm;
+			Text = text;
+			Category = category;
+			DefaultEnabled = defaultEnabled;
+		}
+	}
+
+	public class BotInvite
+	{
+		public ulong GuildID { get; private set; }
+		public string Code { get; private set; }
+		public int Uses { get; private set; }
+
+		public BotInvite(ulong guildID, string code, int uses)
+		{
+			GuildID = guildID;
+			Code = code;
+			Uses = uses;
+		}
+
+		public void IncreaseUses()
+		{
+			++Uses;
+		}
 	}
 
 	public class SlowmodeUser : ITimeInterface
@@ -1205,6 +1074,164 @@ namespace Advobot
 		public void ResetBanCount()
 		{
 			MessagesForBan = 0;
+		}
+	}
+
+	public class MessageDeletion
+	{
+		public CancellationTokenSource CancelToken { get; private set; }
+		private List<IMessage> mMessages = new List<IMessage>();
+
+		public void SetCancelToken(CancellationTokenSource cancelToken)
+		{
+			CancelToken = cancelToken;
+		}
+		public List<ISnowflakeEntity> GetList()
+		{
+			return mMessages.Select(x => x as ISnowflakeEntity).ToList();
+		}
+		public void SetList(List<ISnowflakeEntity> InList)
+		{
+			mMessages = InList.Select(x => x as IMessage).ToList();
+		}
+		public void AddToList(ISnowflakeEntity Item)
+		{
+			mMessages.Add(Item as IMessage);
+		}
+		public void ClearList()
+		{
+			mMessages.Clear();
+		}
+	}
+
+	public class SlowmodeGuild
+	{
+		public List<SlowmodeUser> Users { get; private set; }
+
+		public SlowmodeGuild(List<SlowmodeUser> users)
+		{
+			Users = users;
+		}
+	}
+
+	public class SlowmodeChannel
+	{
+		public ulong ChannelID { get; private set; }
+		public List<SlowmodeUser> Users { get; private set; }
+
+		public SlowmodeChannel(ulong channelID)
+		{
+			ChannelID = channelID;
+			Users = new List<SlowmodeUser>();
+		}
+		public SlowmodeChannel(ulong channelID, List<SlowmodeUser> users)
+		{
+			ChannelID = channelID;
+			Users = users;
+		}
+
+		public void SetUserList(List<SlowmodeUser> users)
+		{
+			Users = users;
+		}
+	}
+	#endregion
+
+	#region Spam Prevention
+	public class GlobalSpamPrevention
+	{
+		[JsonIgnore]
+		public List<SpamPreventionUser> SpamPreventionUsers { get; private set; }
+		[JsonProperty]
+		public Dictionary<SpamType, BaseSpamPrevention> SpamPreventions { get; private set; }
+
+		public GlobalSpamPrevention()
+		{
+			SpamPreventionUsers = new List<SpamPreventionUser>();
+			SpamPreventions = new Dictionary<SpamType, BaseSpamPrevention>();
+			Enum.GetValues(typeof(SpamType)).Cast<SpamType>().ToList().ForEach(x =>
+			{
+				SpamPreventions.Add(x, null);
+			});
+		}
+
+		public BaseSpamPrevention GetSpamPrevention(SpamType type)
+		{
+			SpamPreventions.TryGetValue(type, out BaseSpamPrevention spamPrev);
+			return spamPrev;
+		}
+		public void SetSpamPrevention(SpamType type, int amt, int votes, int spm)
+		{
+			SpamPreventions.Remove(type);
+			SpamPreventions.Add(type, new BaseSpamPrevention(amt, votes, spm, type));
+		}
+	}
+
+	public class BaseSpamPrevention
+	{
+		[JsonProperty]
+		public int AmountOfMessages { get; private set; }
+		[JsonProperty]
+		public int VotesNeededForKick { get; private set; }
+		[JsonProperty]
+		public int AmountOfSpam { get; private set; }
+		[JsonProperty]
+		public SpamType SpamType { get; private set; }
+		[JsonProperty]
+		public bool Enabled { get; private set; }
+
+		public BaseSpamPrevention(int amountOfMessages, int votesNeededForKick, int amountOfSpam, SpamType spamType)
+		{
+			AmountOfMessages = amountOfMessages;
+			VotesNeededForKick = votesNeededForKick;
+			AmountOfSpam = amountOfSpam;
+			SpamType = spamType;
+			Enabled = true;
+		}
+
+		public void SwitchEnabled(bool newVal)
+		{
+			Enabled = newVal;
+		}
+	}
+
+	public class BaseSpamInformation
+	{
+		[JsonProperty]
+		public int TimeInterval { get; private set; }
+		[JsonProperty]
+		public int RequiredCount { get; private set; }
+		[JsonIgnore]
+		public SpamType SpamType { get; private set; }
+		[JsonIgnore]
+		public List<BasicTimeInterface> TimeList { get; private set; }
+
+		public BaseSpamInformation(SpamType spamType, int timeInterval, int requiredCount)
+		{
+			SpamType = spamType;
+			TimeInterval = timeInterval;
+			RequiredCount = requiredCount;
+			TimeList = new List<BasicTimeInterface>();
+		}
+
+		public void Add(DateTime time)
+		{
+			TimeList.ThreadSafeAdd(new BasicTimeInterface(time));
+		}
+		public void Remove(DateTime time)
+		{
+			TimeList.ThreadSafeRemoveAll(x =>
+			{
+				return x.GetTime().Equals(time);
+			});
+		}
+		public int SpamCount(int timeFrame = 0)
+		{
+			return Actions.GetCountOfItemsInTimeFrame(TimeList, timeFrame);
+		}
+		public void Reset()
+		{
+			TimeList = new List<BasicTimeInterface>();
 		}
 	}
 
@@ -1308,39 +1335,31 @@ namespace Advobot
 		}
 	}
 
-	public abstract class DeletionSpamProtection
+	//TODO: rewrite these to be more similar
+	public class RapidJoinProtection : BaseSpamInformation
 	{
-		public CancellationTokenSource CancelToken { get; private set; }
+		public IRole MuteRole { get; private set; }
+		public List<IGuildUser> UsersWhoHaveBeenMuted { get; private set; }
+		public bool Enabled { get; private set; }
 
-		public void SetCancelToken(CancellationTokenSource cancelToken)
+		public RapidJoinProtection(IRole muteRole, int timeInterval, int requiredCount) : base(SpamType.Rapid_Joins, timeInterval, requiredCount)
 		{
-			CancelToken = cancelToken;
+			MuteRole = muteRole;
+			Enabled = true;
 		}
-		public abstract List<ISnowflakeEntity> GetList();
-		public abstract void SetList(List<ISnowflakeEntity> InList);
-		public abstract void AddToList(ISnowflakeEntity Item);
-		public abstract void ClearList();
-	}
 
-	public class MessageDeletion : DeletionSpamProtection
-	{
-		private List<IMessage> mMessages = new List<IMessage>();
-
-		public override List<ISnowflakeEntity> GetList()
+		public void Disable()
 		{
-			return mMessages.Select(x => x as ISnowflakeEntity).ToList();
+			Enabled = false;
 		}
-		public override void SetList(List<ISnowflakeEntity> InList)
+		public void Enable()
 		{
-			mMessages = InList.Select(x => x as IMessage).ToList();
+			Enabled = true;
 		}
-		public override void AddToList(ISnowflakeEntity Item)
+		public async Task MuteUserAndAddToList(IGuildUser user)
 		{
-			mMessages.Add(Item as IMessage);
-		}
-		public override void ClearList()
-		{
-			mMessages.Clear();
+			await Actions.GiveRole(user, MuteRole);
+			UsersWhoHaveBeenMuted.ThreadSafeAdd(user);
 		}
 	}
 
@@ -1365,71 +1384,9 @@ namespace Advobot
 			UsersWhoHaveBeenMuted.ThreadSafeAdd(user);
 		}
 	}
-
-	public class SlowmodeGuild
-	{
-		public List<SlowmodeUser> Users { get; private set; }
-
-		public SlowmodeGuild(List<SlowmodeUser> users)
-		{
-			Users = users;
-		}
-	}
-
-	public class SlowmodeChannel
-	{
-		public ulong ChannelID { get; private set; }
-		public List<SlowmodeUser> Users { get; private set; }
-
-		public SlowmodeChannel(ulong channelID)
-		{
-			ChannelID = channelID;
-			Users = new List<SlowmodeUser>();
-		}
-		public SlowmodeChannel(ulong channelID, List<SlowmodeUser> users)
-		{
-			ChannelID = channelID;
-			Users = users;
-		}
-
-		public void SetUserList(List<SlowmodeUser> users)
-		{
-			Users = users;
-		}
-	}
-
-	public class VerifiedLoggingAction
-	{
-		public SocketGuild Guild { get; private set; }
-		public BotGuildInfo GuildInfo { get; private set; }
-		public ITextChannel LoggingChannel { get; private set; }
-
-		public VerifiedLoggingAction(SocketGuild guild, BotGuildInfo guildInfo, ITextChannel loggingChannel)
-		{
-			Guild = guild;
-			GuildInfo = guildInfo;
-			LoggingChannel = loggingChannel;
-		}
-	}
 	#endregion
 
-	#region Saved Structs
-	public struct Remind
-	{
-		[JsonProperty]
-		public string Name { get; private set; }
-		[JsonProperty]
-		public string Text { get; private set; }
-
-		public Remind(string name, string text)
-		{
-			Name = name;
-			Text = text;
-		}
-	}
-	#endregion
-
-	#region Non-saved Structs
+	#region Structs
 	public struct BotGuildPermissionType
 	{
 		public string Name { get; private set; }
@@ -1460,6 +1417,25 @@ namespace Advobot
 		}
 	}
 
+	public struct ActiveCloseWords : ITimeInterface
+	{
+		public IGuildUser User { get; private set; }
+		public List<CloseWord> List { get; private set; }
+		public DateTime Time { get; private set; }
+
+		public ActiveCloseWords(IGuildUser user, List<CloseWord> list)
+		{
+			User = user;
+			List = list;
+			Time = DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE);
+		}
+
+		public DateTime GetTime()
+		{
+			return Time;
+		}
+	}
+
 	public struct CloseWord
 	{
 		public string Name { get; private set; }
@@ -1472,13 +1448,13 @@ namespace Advobot
 		}
 	}
 
-	public struct ActiveCloseWords : ITimeInterface
+	public struct ActiveCloseHelp : ITimeInterface
 	{
 		public IGuildUser User { get; private set; }
-		public List<CloseWord> List { get; private set; }
+		public List<CloseHelp> List { get; private set; }
 		public DateTime Time { get; private set; }
 
-		public ActiveCloseWords(IGuildUser user, List<CloseWord> list)
+		public ActiveCloseHelp(IGuildUser user, List<CloseHelp> list)
 		{
 			User = user;
 			List = list;
@@ -1500,25 +1476,6 @@ namespace Advobot
 		{
 			Help = help;
 			Closeness = closeness;
-		}
-	}
-
-	public struct ActiveCloseHelp : ITimeInterface
-	{
-		public IGuildUser User { get; private set; }
-		public List<CloseHelp> List { get; private set; }
-		public DateTime Time { get; private set; }
-
-		public ActiveCloseHelp(IGuildUser user, List<CloseHelp> list)
-		{
-			User = user;
-			List = list;
-			Time = DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE);
-		}
-
-		public DateTime GetTime()
-		{
-			return Time;
 		}
 	}
 
@@ -1575,6 +1532,18 @@ namespace Advobot
 		public DateTime GetTime()
 		{
 			return Time;
+		}
+	}
+
+	public struct EditableDiscordObject<T>
+	{
+		public List<T> Success { get; private set; }
+		public List<string> Failure { get; private set; }
+
+		public EditableDiscordObject(List<T> success, List<string> failure)
+		{
+			Success = success;
+			Failure = failure;
 		}
 	}
 
@@ -1660,11 +1629,23 @@ namespace Advobot
 		}
 	}
 
-	public struct GenericTimeInterface : ITimeInterface
+	public struct ReturnedSetting
+	{
+		public String Setting { get; private set; }
+		public NSF Status { get; private set; }
+
+		public ReturnedSetting(SettingOnBot setting, NSF status)
+		{
+			Setting = Enum.GetName(typeof(SettingOnBot), setting);
+			Status = status;
+		}
+	}
+
+	public struct BasicTimeInterface : ITimeInterface
 	{
 		private DateTime mTime;
 
-		public GenericTimeInterface(DateTime time)
+		public BasicTimeInterface(DateTime time)
 		{
 			mTime = time;
 		}
@@ -1672,18 +1653,6 @@ namespace Advobot
 		public DateTime GetTime()
 		{
 			return mTime;
-		}
-	}
-
-	public struct EditableDiscordObject<T>
-	{
-		public List<T> Success { get; private set; }
-		public List<string> Failure { get; private set; }
-
-		public EditableDiscordObject(List<T> success, List<string> failure)
-		{
-			Success = success;
-			Failure = failure;
 		}
 	}
 
@@ -1696,18 +1665,6 @@ namespace Advobot
 		{
 			Min = min;
 			Max = max;
-		}
-	}
-
-	public struct ReturnedSetting
-	{
-		public String Setting { get; private set; }
-		public NSF Status { get; private set; }
-
-		public ReturnedSetting(SettingOnBot setting, NSF status)
-		{
-			Setting = Enum.GetName(typeof(SettingOnBot), setting);
-			Status = status;
 		}
 	}
 
@@ -1736,19 +1693,26 @@ namespace Advobot
 			FileLocation = fileLocation;
 		}
 	}
+
+	public struct VerifiedLoggingAction
+	{
+		public SocketGuild Guild { get; private set; }
+		public BotGuildInfo GuildInfo { get; private set; }
+		public ITextChannel LoggingChannel { get; private set; }
+
+		public VerifiedLoggingAction(SocketGuild guild, BotGuildInfo guildInfo, ITextChannel loggingChannel)
+		{
+			Guild = guild;
+			GuildInfo = guildInfo;
+			LoggingChannel = loggingChannel;
+		}
+	}
 	#endregion
 
 	#region Interfaces
 	public interface ITimeInterface
 	{
 		DateTime GetTime();
-	}
-
-	public interface ITimeListInterface
-	{
-		void Add();
-		void Remove();
-		int GetCount();
 	}
 	#endregion
 

@@ -114,16 +114,7 @@ namespace Advobot
 					}
 					else
 					{
-						if (botInfo.BotOwnerID != 0)
-						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("There is already a bot owner: `{0}`.", Actions.GetBotOwner().FormatUser()));
-						}
-						else
-						{
-							//Add them to the list of people trying to become bot owner
-							Variables.BotInfo.PotentialBotOwners.Add(Context.User.Id);
-							await Actions.SendDMMessage(await Context.User.CreateDMChannelAsync(), "What is my key?");
-						}
+						await Actions.MakeAndDeleteSecondaryMessage(Context, "Clear the bot owner instead of trying to set a new one through this.");
 					}
 					break;
 				}
@@ -188,7 +179,7 @@ namespace Advobot
 					if (clear)
 					{
 						var minShardCount = (Variables.Client.GetGuilds().Count / 2500) + 1;
-						Variables.BotInfo.SetShardCount(minShardCount);
+						botInfo.SetShardCount(minShardCount);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the shard count to `{0}`.", minShardCount));
 					}
 					else
@@ -207,7 +198,7 @@ namespace Advobot
 							return;
 						}
 
-						Variables.BotInfo.SetShardCount(number);
+						botInfo.SetShardCount(number);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the shard amount to `{0}`.", number));
 					}
 					break;
@@ -223,10 +214,12 @@ namespace Advobot
 					{
 						if (!int.TryParse(infoStr, out int cacheSize))
 						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for cache size has to be an integer number."));
 							return;
 						}
 
-
+						botInfo.SetCacheSize(cacheSize);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the message cache size to `{0}`.", cacheSize));
 					}
 					break;
 				}
@@ -241,10 +234,12 @@ namespace Advobot
 					{
 						if (!bool.TryParse(infoStr, out bool alwaysDLUsers))
 						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for always download users has to be a boolean."));
 							return;
 						}
 
-
+						botInfo.SetAlwaysDownloadUsers(alwaysDLUsers);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set always download users to `{0}`.", alwaysDLUsers));
 					}
 					break;
 				}
@@ -259,10 +254,13 @@ namespace Advobot
 					{
 						if (!Enum.TryParse(infoStr, true, out LogSeverity logLevel))
 						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The input for log level has to be one of the following: `{0}`.",
+								String.Join("`, `", Enum.GetNames(typeof(LogSeverity))))));
 							return;
 						}
 
-
+						botInfo.SetLogLevel(logLevel);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the log level to `{0}`.", Enum.GetName(typeof(LogSeverity), logLevel)));
 					}
 					break;
 				}
@@ -298,17 +296,19 @@ namespace Advobot
 					{
 						if (!int.TryParse(infoStr, out int maxUserGatherCount))
 						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for max user gather count has to be an integer number."));
 							return;
 						}
 
-
+						botInfo.SetMaxUserGatherCount(maxUserGatherCount);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the max user gather count to `{0}`.", maxUserGatherCount));
 					}
 					break;
 				}
 			}
 
 			settings.Save();
-			Actions.SaveBotInfo();
+			Actions.SaveBotInfo(Variables.BotInfo);
 			await Actions.UpdateGame();
 		}
 

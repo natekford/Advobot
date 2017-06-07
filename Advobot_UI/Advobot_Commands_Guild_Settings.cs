@@ -69,9 +69,10 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task GuildPrefix([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			input = input.Trim().Replace("\n", "").Replace("\r", "");
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			if (input.Length > 25)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Please do not try to make a prefix longer than 25 characters."));
@@ -104,6 +105,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GuildSettings([Optional, Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingOnGuild))))));
@@ -120,7 +123,6 @@ namespace Advobot
 			var targetStr = returnedArgs.GetSpecifiedArg("target");
 			var extraStr = returnedArgs.GetSpecifiedArg("extra");
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			if (Actions.CaseInsEquals(settingStr, "all"))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Guild Settings", Actions.FormatAllSettings(guildInfo)));
@@ -136,31 +138,47 @@ namespace Advobot
 			}
 		}
 
-		[Command("guildreload")]
-		[Alias("gdrl")]
+		[Command("guildfileactions")]
+		[Alias("gdfa")]
 		[Usage("")]
-		[Summary("Reloads the guild's information. (Mainly for debug purposes when the JSON is edited manually)")]
-		[PermissionRequirement]
+		[Summary("Reload, resave, or reset the guild's settings on the bot. (Mainly for debug purposes when the JSON is edited manually)")]
+		[OtherRequirement(1U << (int)Precondition.Guild_Owner)]
 		[DefaultEnabled(true)]
-		public async Task GuildReload()
+		public async Task GuildReload([Remainder] string input)
 		{
-			Variables.Guilds.Remove(Context.Guild.Id);
-			await Actions.LoadGuild(Context.Guild);
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
 
-			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully reloaded the guild.");
-		}
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 1));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var actionStr = returnedArgs.Arguments[0];
 
-		[Command("guildresave")]
-		[Alias("gdrs")]
-		[Usage("")]
-		[Summary("Resaves the guild's information. (Mainly for debug purposes when the save structure is edited.")]
-		[PermissionRequirement]
-		[DefaultEnabled(true)]
-		public async Task GuildResave()
-		{
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-			Actions.SaveGuildInfo(guildInfo);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully resaved the guild.");
+			var guild = Context.Guild;
+			if (Actions.CaseInsEquals(actionStr, "reload"))
+			{
+				Variables.Guilds.Remove(guild.Id);
+				Variables.Guilds.Add(guild.Id, await Actions.CreateGuildInfo(guild));
+
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully reloaded the guild's bot information.");
+			}
+			else if (Actions.CaseInsEquals(actionStr, "resave"))
+			{
+				Actions.SaveGuildInfo(guildInfo);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully resaved the guild's bot information.");
+			}
+			else if (Actions.CaseInsEquals(actionStr, "reset"))
+			{
+				Variables.Guilds.Remove(guild.Id);
+
+				var path = Actions.GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
+				File.Delete(path);
+
+				Variables.Guilds.Add(guild.Id, await Actions.CreateGuildInfo(guild));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset the guild's bot information.");
+			}
 		}
 
 		[Command("comconfig")]
@@ -171,6 +189,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task CommandConfig([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
@@ -195,7 +215,6 @@ namespace Advobot
 				allBool = true;
 			}
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var command = Actions.GetCommand(guildInfo, cmdStr);
 			var commands = new List<CommandSwitch>();
 			if (allBool)
@@ -293,6 +312,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task CommandIgnore([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -321,8 +342,6 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 			var add = action == ActionType.Add;
-
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 
 			//Get the lists the bot will use for this command
 			var ignoredCmdChannels = guildInfo.IgnoredCommandChannels;
@@ -434,6 +453,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BotUsersModify([Optional, Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -478,7 +499,6 @@ namespace Advobot
 			var user = returnedUser.Object;
 
 			//Get the botuser
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var botUser = guildInfo.BotUsers.FirstOrDefault(x => x.User == user);
 			switch (action)
 			{
@@ -586,6 +606,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task RemindsModify([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -606,7 +628,6 @@ namespace Advobot
 			var action = returnedType.Type;
 			var add = action == ActionType.Add;
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var reminds = guildInfo.Reminds;
 			nameStr = Actions.ReplaceMarkdownChars(nameStr);
 			if (add)
@@ -661,7 +682,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task Reminds([Optional, Remainder] string input)
 		{
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
 			var reminds = guildInfo.Reminds;
 			if (String.IsNullOrWhiteSpace(input))
 			{
@@ -719,11 +740,12 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task WelcomeMessage([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			var welcomeMessage = await Actions.MakeGuildNotification(Context, input);
 			if (welcomeMessage == null)
 				return;
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			guildInfo.SetWelcomeMessage(welcomeMessage);
 			Actions.SaveGuildInfo(guildInfo);
 		}
@@ -736,11 +758,12 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task GoodbyeMessage([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			var goodbyeMessage = await Actions.MakeGuildNotification(Context, input);
 			if (goodbyeMessage == null)
 				return;
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			guildInfo.SetGoodbyeMessage(goodbyeMessage);
 			Actions.SaveGuildInfo(guildInfo);
 		}
@@ -753,13 +776,14 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task TestGuildNotification([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			if (!Enum.TryParse(input, true, out GuildNotifications notifType))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid notification type supplied."));
 				return;
 			}
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			GuildNotification notif = null;
 			switch (notifType)
 			{

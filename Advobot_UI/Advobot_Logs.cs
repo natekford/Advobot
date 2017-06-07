@@ -30,7 +30,7 @@ namespace Advobot
 			{
 				if (Variables.BotID != 0)
 				{
-					await Actions.LoadGuild(guild);
+					Variables.Guilds.Add(guild.Id, await Actions.CreateGuildInfo(guild));
 				}
 				else
 				{
@@ -398,7 +398,6 @@ namespace Advobot
 			var user = context.User;
 			Actions.WriteLine(String.Format("{0} on {1}: \"{2}\"", user.FormatUser(), context.Guild.FormatGuild(), context.Message.Content));
 			Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Remove(context.Guild);
-			await Actions.DeleteMessage(context.Message);
 
 			if (!Actions.VerifyMessageShouldBeLogged(guildInfo, context.Message))
 				return;
@@ -433,21 +432,13 @@ namespace Advobot
 
 		public static async Task BotOwner(IMessage message)
 		{
-			//See if they're on the list to be a potential bot owner
-			if (Variables.BotInfo.PotentialBotOwners.Contains(message.Author.Id))
+			if (message.Content.Equals(Properties.Settings.Default.BotKey))
 			{
-				//If the key they input is the same as the bots key then they become owner
-				if (message.Content.Equals(Properties.Settings.Default.BotKey))
+				if (Variables.BotInfo.BotOwnerID == 0)
 				{
 					Variables.BotInfo.SetBotOwner(message.Author.Id);
-					Actions.SaveBotInfo();
-					Variables.BotInfo.PotentialBotOwners.Clear();
+					Actions.SaveBotInfo(Variables.BotInfo);
 					await Actions.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
-				}
-				else
-				{
-					Variables.BotInfo.PotentialBotOwners.Remove(message.Author.Id);
-					await Actions.SendDMMessage(message.Channel as IDMChannel, "That is the incorrect key.");
 				}
 			}
 		}
@@ -464,7 +455,7 @@ namespace Advobot
 				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
 				if (closeWordList.User != null && closeWordList.List.Count > number)
 				{
-					var remind = Variables.Guilds[guild.Id].Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
+					var remind = guildInfo.Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
 					Variables.ActiveCloseWords.ThreadSafeRemove(closeWordList);
 					await Actions.SendChannelMessage(message.Channel, remind.Text);
 					await Actions.DeleteMessage(message);

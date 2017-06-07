@@ -20,6 +20,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanRegexEvaluate([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			//Get the arguments
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -55,7 +57,6 @@ namespace Advobot
 			var okToUse = matchesMessage && !(matchesEmpty || matchesSpace || matchesNewLine || matchesRandom || matchesEverything);
 
 			//If the regex is ok then add it to the evaluated list
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			if (okToUse)
 			{
 				if (guildInfo.EvaluatedRegex.Count >= 5)
@@ -88,6 +89,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanRegexModify([Optional, Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -107,7 +110,6 @@ namespace Advobot
 			var action = returnedType.Type;
 
 			//Get the lists
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var eval = guildInfo.EvaluatedRegex;
 			var curr = guildInfo.BannedPhrases.Regex;
 
@@ -199,7 +201,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesModify([Remainder] string input)
 		{
-			//Split the input
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2), new[] { "position" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
@@ -216,8 +219,6 @@ namespace Advobot
 				return;
 			}
 			var action = returnedType.Type;
-
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 
 			var add = false;
 			switch (action)
@@ -273,6 +274,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesChangeType([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			//First split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "position" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -291,8 +294,6 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
-
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 
 			//Check if position or phrase
 			var regex = Actions.CaseInsEquals(regexStr, "regex");
@@ -363,6 +364,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesPunishModify([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 4), new[] { "position", "punishment", "time" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -400,7 +403,6 @@ namespace Advobot
 				}
 			}
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var punishments = guildInfo.BannedPhrases.Punishments;
 
 			//Get the list of punishments and make the new one or remove the old one
@@ -524,6 +526,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesUser([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -543,7 +547,6 @@ namespace Advobot
 			}
 			var user = returnedUser.Object;
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
 			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User.Id == user.Id);
 			if (bpUser == null)
 			{

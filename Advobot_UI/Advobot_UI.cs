@@ -961,7 +961,7 @@ namespace Advobot
 			{
 				Actions.WriteLine(String.Format("Successfully saved: {0}", String.Join(", ", success)));
 				Actions.UpdateGame().Forget();
-				Actions.SaveBotInfo();
+				Actions.SaveBotInfo(Variables.BotInfo);
 			}
 			if (failure.Any())
 			{
