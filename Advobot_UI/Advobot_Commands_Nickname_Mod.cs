@@ -118,7 +118,7 @@ namespace Advobot
 
 			//Get the users 
 			var len = Actions.GetMaxNumOfUsersToGather(Context, returnedArgs.Arguments);
-			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => Actions.CaseInsIndexOf(x.Username, findStr) || Actions.CaseInsIndexOf(x?.Nickname, findStr))).GetUpToXElement(len);
+			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => Actions.CaseInsIndexOf(x.Username, findStr) || Actions.CaseInsIndexOf(x?.Nickname, findStr))).GetUpToAndIncludingMinNum(len);
 
 			//User count checking and stuff
 			var userCount = users.Count;
@@ -212,7 +212,8 @@ namespace Advobot
 			}
 			else
 			{
-				var validUsers = users.GetUpToXElement(Actions.GetMaxNumOfUsersToGather(Context, returnedArgs.Arguments));
+				var len = Actions.GetMaxNumOfUsersToGather(Context, returnedArgs.Arguments);
+				var validUsers = users.GetUpToAndIncludingMinNum(len);
 				Actions.RenicknameALotOfPeople(Context, validUsers, replaceStr).Forget();
 			}
 		}
@@ -225,7 +226,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task RemoveAllNickNames([Optional, Remainder] string input)
 		{
-			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => x.Nickname != null)).GetUpToXElement(Actions.GetMaxNumOfUsersToGather(Context, new[] { input }));
+			var len = Actions.GetMaxNumOfUsersToGather(Context, new[] { input });
+			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => x.Nickname != null)).GetUpToAndIncludingMinNum(len);
 			Actions.RenicknameALotOfPeople(Context, users, null).Forget();
 		}
 	}

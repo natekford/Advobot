@@ -10,7 +10,7 @@ namespace Advobot
 	{
 		[Command("preventspam")]
 		[Alias("prs")]
-		[Usage("[Message|LongMessage|Link|Image|Mention] [Enable|Disable|Setup] <Messages:Number> <Spam:Number> <Votes:Number>")]
+		[Usage("[Message|LongMessage|Link|Image|Mention] [Enable|Disable|Setup] <Messages:Number> <Spam:Number> <Votes:Number> <Timeframe:Number>")]
 		[Summary("Spam prevention allows for some protection against mention spammers. Messages are the amount of messages a user has to send with the given amount of mentions before being considered " + 
 			"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The first punishment is a kick, next is a ban. The spam users are reset every hour.")]
 		[PermissionRequirement]
@@ -31,8 +31,9 @@ namespace Advobot
 			var messageStr = returnedArgs.GetSpecifiedArg("messages");
 			var spamStr = returnedArgs.GetSpecifiedArg("spam");
 			var voteStr = returnedArgs.GetSpecifiedArg("votes");
+			var timeStr = returnedArgs.GetSpecifiedArg("timeframe");
 
-			if (!Enum.TryParse(typeStr, true, out SpamType type))
+			if (!Enum.TryParse(typeStr, true, out SpamType spamType))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid type supplied."));
 				return;
@@ -45,49 +46,40 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
-			//Check if a spam prevention exists or not
-			var spamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(type);
+			var spamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(spamType);
 			switch (action)
 			{
 				case ActionType.Enable:
-				case ActionType.Disable:
 				{
-					//Make sure the server guild has a spam prevention set up
 					if (spamPrevention == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not have any spam prevention to modify."));
 						return;
 					}
-					break;
-				}
-			}
-
-			//Go through the given action
-			switch (action)
-			{
-				case ActionType.Enable:
-				{
-					if (spamPrevention.Enabled)
+					else if (spamPrevention.Enabled)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention is already enabled."));
 						return;
 					}
 
-					//Enable it
-					spamPrevention.SwitchEnabled(true);
+					spamPrevention.Enable();
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention has successfully been enabled."));
 					return;
 				}
 				case ActionType.Disable:
 				{
-					if (!spamPrevention.Enabled)
+					if (spamPrevention == null)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not have any spam prevention to modify."));
+						return;
+					}
+					else if (!spamPrevention.Enabled)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention is already disabled."));
 						return;
 					}
 
-					//Disable it
-					spamPrevention.SwitchEnabled(false);
+					spamPrevention.Disable();
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention has successfully been disabled."));
 					return;
 				}
@@ -106,14 +98,19 @@ namespace Advobot
 					{
 						spam = 3;
 					}
+					if (!int.TryParse(timeStr, out int time))
+					{
+						time = 5;
+					}
 
 					//Give every number a valid input
 					var ms = messages < 1 ? 1 : messages;
 					var vt = votes < 1 ? 1 : votes;
 					var sp = spam < 1 ? 1 : spam;
+					var tf = time < 1 ? 1 : time;
 
 					//Create the spam prevention and add it to the guild
-					guildInfo.GlobalSpamPrevention.SetSpamPrevention(type, ms, vt, sp);
+					guildInfo.GuildSpamAndRaidPrevention.SetSpamPrevention(spamType, PunishmentType.Role, tf, ms, vt, sp);
 
 					//Save everything and send a success message
 					Actions.SaveGuildInfo(guildInfo);
@@ -153,22 +150,21 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
-			var muteRole = await Actions.GetMuteRole(guildInfo, Context);
-
-			var antiRaid = guildInfo.AntiRaid;
+			var muteRole = await Actions.GetMuteRole(Context, guildInfo);
+			var antiRaid = guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Regular);
 			switch (action)
 			{
 				case ActionType.Enable:
 				{
 					//Make sure it's not already enabled
-					if (antiRaid != null)
+					if ((antiRaid?.Enabled).HasValue && antiRaid.Enabled)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already enabled on the server."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already enabled on the guild."));
 						return;
 					}
 
 					//Enable raid mode in the bot
-					guildInfo.SetAntiRaid(new AntiRaid(muteRole));
+					guildInfo.GuildSpamAndRaidPrevention.SetRaidPrevention(RaidType.Regular, PunishmentType.Role, -1, -1);
 
 					//Check if there's a valid number
 					var actualMutes = 0;
@@ -178,7 +174,7 @@ namespace Advobot
 						var numToGather = Math.Min(Math.Min(Math.Abs(inputNum), users.Count), 25);
 						await users.GetRange(0, numToGather).ForEachAsync(async x =>
 						{
-							await guildInfo.AntiRaid.MuteUserAndAddToList(x);
+							await guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Regular).PunishUser(x);
 							++actualMutes;
 						});
 					}
@@ -190,21 +186,21 @@ namespace Advobot
 				case ActionType.Disable:
 				{
 					//Make sure it's enabled
-					if (antiRaid == null)
+					if (!(antiRaid?.Enabled).HasValue || !antiRaid.Enabled)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already disabled on the server."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already disabled on the guild."));
 						return;
 					}
 
 					//Disable raid mode in the bot
-					guildInfo.SetAntiRaid(null);
+					guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Regular).Disable();
 
 					//Total users muted
-					var ttl = antiRaid.UsersWhoHaveBeenMuted.Count();
+					var ttl = antiRaid.PunishedUsers.Count();
 					var unm = 0;
 
 					//Unmute every user who was muted
-					await antiRaid.UsersWhoHaveBeenMuted.ToList().ForEachAsync(async x =>
+					await antiRaid.PunishedUsers.ToList().ForEachAsync(async x =>
 					{
 						//Check to make sure they're still on the guild
 						if ((await Context.Guild.GetUserAsync(x.Id)).RoleIds.Contains(muteRole.Id))
@@ -282,13 +278,13 @@ namespace Advobot
 			{
 				case ActionType.Setup:
 				{
-					guildInfo.SetRapidJoinProtection(new RapidJoinProtection(guildInfo.MuteRole, time, count));
+					guildInfo.GuildSpamAndRaidPrevention.SetRaidPrevention(RaidType.Rapid_Joins, PunishmentType.Role, time, count);
 					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created a rapid join protection with a time period of `{0}` and a user count of `{1}`.", time, count));
 					break;
 				}
 				case ActionType.Enable:
 				{
-					var antiJoin = guildInfo.RapidJoinProtection;
+					var antiJoin = guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Rapid_Joins);
 					if (antiJoin == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no rapid join protection to enable."));
@@ -301,7 +297,7 @@ namespace Advobot
 				}
 				case ActionType.Disable:
 				{
-					var antiJoin = guildInfo.RapidJoinProtection;
+					var antiJoin = guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Rapid_Joins);
 					if (antiJoin == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no rapid join protection to disable."));

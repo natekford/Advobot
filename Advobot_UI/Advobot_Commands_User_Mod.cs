@@ -32,7 +32,7 @@ namespace Advobot
 			var userStr = returnedArgs.Arguments[0];
 			var timeStr = returnedArgs.Arguments[1];
 
-			var muteRole = await Actions.GetMuteRole(guildInfo, Context);
+			var muteRole = await Actions.GetMuteRole(Context, guildInfo);
 
 			//Get the time
 			var time = 0;
@@ -860,7 +860,7 @@ namespace Advobot
 
 			//Get the amount of users allowed
 			var len = Actions.GetMaxNumOfUsersToGather(Context, returnedArgs.Arguments);
-			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, (x => x.RoleIds.Contains(inputRole.Id)))).GetUpToXElement(len);
+			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, (x => x.RoleIds.Contains(inputRole.Id)))).GetUpToAndIncludingMinNum(len);
 			var userCount = users.Count;
 			if (userCount == 0)
 			{

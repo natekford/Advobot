@@ -23,21 +23,21 @@ namespace Advobot
 			if (Variables.Loaded)
 				return;
 
-			HandleBotID(Variables.Client.GetCurrentUser().Id);						//Give the variable Bot_ID the id of the bot
-			Variables.BotName = Variables.Client.GetCurrentUser().Username;			//Give the variable Bot_Name the username of the bot
+			HandleBotID(Variables.Client.GetCurrentUser().Id);				//Give the variable Bot_ID the id of the bot
+			Variables.BotName = Variables.Client.GetCurrentUser().Username;	//Give the variable Bot_Name the username of the bot
 
-			LoadPermissionNames();													//Gets the names of the permission bits in Discord
-			LoadCommandInformation();												//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
+			LoadPermissionNames();											//Gets the names of the permission bits in Discord
+			LoadCommandInformation();										//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
 
-			await LoadGuilds();														//Loads the guilds that attempted to load before the Bot_ID was gotten.
-			await UpdateGame();														//Have the bot display its game and stream
+			await LoadGuilds();												//Loads the guilds that attempted to load before the Bot_ID was gotten.
+			await UpdateGame();												//Have the bot display its game and stream
 
-			HourTimer(null);														//Start the hourly timer
-			MinuteTimer(null);														//Start the minutely timer
-			OneFourthSecondTimer(null);												//Start the one fourth second timer
+			HourTimer(null);												//Start the hourly timer
+			MinuteTimer(null);												//Start the minutely timer
+			OneFourthSecondTimer(null);										//Start the one fourth second timer
 
-			StartUpMessages();														//Say all of the start up messages
-			Variables.Loaded = true;                                                //Set a bool stating that everything is done loading.
+			StartUpMessages();												//Say all of the start up messages
+			Variables.Loaded = true;										//Set a bool stating that everything is done loading.
 		}
 
 		public static async Task LoadGuilds()
@@ -467,50 +467,6 @@ namespace Advobot
 				return new ReturnedArguments(args, ArgFailureReason.Too_Many_Args);
 			}
 
-			//Remove all mentions
-			/*
-			if (removeMentions)
-			{
-				var tempList = new List<string>();
-				foreach (var arg in args)
-				{
-					if (MentionUtils.TryParseChannel(arg, out ulong ID))
-					{
-					}
-					else if (MentionUtils.TryParseRole(arg, out ID))
-					{
-					}
-					else if (MentionUtils.TryParseUser(arg, out ID))
-					{
-					}
-					else
-					{
-						tempList.Add(arg);
-					}
-				}
-				args = tempList;
-			}
-
-			//Limiting the amount of args that are kept separate
-			if (shortenTo != int.MaxValue && args.Count > 1)
-			{
-				//[ a, b, c, d ]; args.Length = 4
-				//shortenToIndex = 3; [ a, b, c, d ] => [ a, b, c d ] <-- Used example
-				//shortenToIndex = 1; [ a, b, c, d ] => [ a b c d ]
-				var count = Math.Min(shortenTo, args.Count) - 1; //Min of (3, 4) which is 3 minus 1 is 2
-				var tempList = new List<string>(); //2 + 1 is 3 so an array of 3 objects
-				for (int i = 0; i <= count; i++)
-				{
-					tempList.Add(args[i]); //Set the first two objects. [ a, b, empty ]
-				}
-				if (shortenTo < args.Count)
-				{
-					tempList[count] = String.Join(" ", args.GetRange(count, args.Count - count)); //Grab the remaining objects (a b) and stuff them into the array
-				}
-				args = tempList;
-			}
-			*/
-
 			//Finding the wanted arguments
 			var specifiedArgs = new Dictionary<string, string>();
 			if (argsToSearchFor != null)
@@ -866,7 +822,7 @@ namespace Advobot
 			{
 				//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
 				var listLength = timeList.Count;
-				if (timeFrame == 0 || listLength < 2)
+				if (timeFrame <= 0 || listLength < 2)
 					return listLength;
 
 				//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
@@ -1152,13 +1108,14 @@ namespace Advobot
 		#endregion
 
 		#region Roles
-		public static async Task<IRole> GetMuteRole(BotGuildInfo guildInfo, ICommandContext context)
+		public static async Task<IRole> GetMuteRole(ICommandContext context, BotGuildInfo guildInfo)
 		{
 			var returnedMuteRole = GetRole(context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Managed }, guildInfo.MuteRole);
 			var muteRole = returnedMuteRole.Object;
 			if (returnedMuteRole.Reason != FailureReason.Not_Failure)
 			{
 				muteRole = await CreateMuteRoleIfNotFound(guildInfo, context.Guild, muteRole);
+                guildInfo.SetMuteRole(muteRole);
 			}
 			return muteRole;
 		}
@@ -1813,51 +1770,51 @@ namespace Advobot
 				}
 				case SettingOnGuild.MessageSpamPrevention:
 				{
-					var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Message);
+					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Message);
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Timeframe:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
+							spamPrev.Enabled, spamPrev.RequiredMessageCount, spamPrev.TimeInterval, spamPrev.VotesForKick);
 					}
 					break;
 				}
 				case SettingOnGuild.LongMessageSpamPrevention:
 				{
-					var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Long_Message);
+					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Long_Message);
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Length:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
+							spamPrev.Enabled, spamPrev.RequiredMessageCount, spamPrev.RequiredAmountOfSpamPerMessage, spamPrev.VotesForKick);
 					}
 					break;
 				}
 				case SettingOnGuild.LinkSpamPrevention:
 				{
-					var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Link);
+					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Link);
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Link Count:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
+							spamPrev.Enabled, spamPrev.RequiredMessageCount, spamPrev.RequiredAmountOfSpamPerMessage, spamPrev.VotesForKick);
 					}
 					break;
 				}
 				case SettingOnGuild.ImageSpamPrevention:
 				{
-					var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Image);
+					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Image);
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Timeframe:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
+							spamPrev.Enabled, spamPrev.RequiredMessageCount, spamPrev.TimeInterval, spamPrev.VotesForKick);
 					}
 					break;
 				}
 				case SettingOnGuild.MentionSpamPrevention:
 				{
-					var spamPrev = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Mention);
+					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Mention);
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Mentions:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.AmountOfMessages, spamPrev.AmountOfSpam, spamPrev.VotesNeededForKick);
+							spamPrev.Enabled, spamPrev.RequiredMessageCount, spamPrev.RequiredAmountOfSpamPerMessage, spamPrev.VotesForKick);
 					}
 					break;
 				}
@@ -2138,7 +2095,7 @@ namespace Advobot
 					break;
 
 				var gatheredForUserAmt = messages.Count();
-				messages = messages.ToList().GetRange(0, GetMinFromMultipleNumbers(requestCount, gatheredForUserAmt, 100));
+				messages = messages.ToList().GetUpToAndIncludingMinNum(requestCount, gatheredForUserAmt, 100);
 
 				//Delete them in a try catch due to potential errors
 				var msgAmt = messages.Count();
@@ -2932,12 +2889,12 @@ namespace Advobot
 			var bannedPhraseStrings = guildInfo.BannedPhrases.Strings.Any();
 			var bannedPhraseRegex = guildInfo.BannedPhrases.Regex.Any();
 			var bannedPhrasePunishments = guildInfo.BannedPhrases.Punishments.Any();
-			var messageSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Message) != null;
-			var longMessageSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Long_Message) != null;
-			var linkSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Link) != null;
-			var imageSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Image) != null;
-			var mentionSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Mention) != null;
-			var reactionSpamPrevention = guildInfo.GlobalSpamPrevention.GetSpamPrevention(SpamType.Reaction) != null;
+			var messageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Message) != null;
+			var longMessageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Long_Message) != null;
+			var linkSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Link) != null;
+			var imageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Image) != null;
+			var mentionSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Mention) != null;
+			var reactionSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Reaction) != null;
 			var welcomeMessage = guildInfo.WelcomeMessage != null;
 			var goodbyeMessage = guildInfo.GoodbyeMessage != null;
 			var prefix = !String.IsNullOrWhiteSpace(guildInfo.Prefix);
@@ -3539,24 +3496,20 @@ namespace Advobot
 				await AddSlowmodeUser(guildInfo, user);
 			}
 			//Antiraid
-			var antiRaid = guildInfo.AntiRaid;
-			if (antiRaid != null)
+			var antiRaid = guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Regular);
+			if ((antiRaid?.Enabled).HasValue)
 			{
-				await antiRaid.MuteUserAndAddToList(user);
+				await antiRaid.PunishUser(user);
 			}
 			//Antiraid Two - Electric Joinaroo
-			var antiJoin = guildInfo.RapidJoinProtection;
-			if (antiJoin != null)
+			var antiJoin = guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Rapid_Joins);
+			if ((antiJoin?.Enabled).HasValue)
 			{
 				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
-				if (antiJoin.SpamCount(antiJoin.TimeInterval) >= antiJoin.RequiredCount)
+				if (antiJoin.GetSpamCount() >= antiJoin.RequiredCount)
 				{
-					await antiJoin.MuteUserAndAddToList(user);
+					await antiJoin.PunishUser(user);
 					if (guildInfo.ServerLog != null)
-					{
-						await SendEmbedMessage(guildInfo.ServerLog, MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
-					}
-					else if (guildInfo.ModLog != null)
 					{
 						await SendEmbedMessage(guildInfo.ServerLog, MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
 					}
@@ -3683,13 +3636,13 @@ namespace Advobot
 		#endregion
 
 		#region Slowmode/Banned Phrases/Spam Prevention
-		public static async Task<bool> HandleSpamPrevention(GlobalSpamPrevention global, BaseSpamPrevention spamPrev, IGuild guild, IGuildUser user, IMessage msg)
+		public static async Task<bool> HandleSpamPrevention(GuildSpamAndRaidPrevention global, SpamPrevention spamPrev, IGuild guild, IGuildUser user, IMessage msg)
 		{
 			if (spamPrev == null || !spamPrev.Enabled)
 				return false;
 
 			//Get the user from the list or, if not found, create a new one
-			var spUser = (await GetGuildInfo(guild)).GlobalSpamPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == user);
+			var spUser = (await GetGuildInfo(guild)).GuildSpamAndRaidPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == user);
 			if (spUser == null)
 			{
 				spUser = new SpamPreventionUser(user);
@@ -3700,89 +3653,64 @@ namespace Advobot
 			return true;
 		}
 
-		public static async Task<bool> SpamCheck(GlobalSpamPrevention global, IGuild guild, IGuildUser author, IMessage msg)
+		public static async Task SpamCheck(GuildSpamAndRaidPrevention global, IGuild guild, IGuildUser author, IMessage msg)
 		{
 			if (global == null)
-				return false;
+				return;
 
-			var isSpam = false;
-			await global.SpamPreventions.Values.ToList().ForEachAsync(async x =>
+			var spamUser = global.SpamPreventionUsers.FirstOrDefault(x => x.User.Id == author.Id);
+			if (spamUser == null)
 			{
-				if (x?.SpamType == null)
+				spamUser = new SpamPreventionUser(author);
+				global.SpamPreventionUsers.Add(spamUser);
+			}
+
+			//TODO: Get this to work
+			foreach (var spamPrev in global.SpamPreventions.Values)
+			{
+				if (spamPrev?.SpamType == null)
 					return;
 
-				switch (x.SpamType)
+				switch (spamPrev.SpamType)
 				{
 					case SpamType.Message:
 					{
-						var curSpamTest = false;
-						isSpam = isSpam || curSpamTest;
-						if (curSpamTest)
-						{
-							await HandleSpamPrevention(global, x, guild, author, msg);
-						}
+						await HandleSpamPrevention(global, spamPrev, guild, author, msg);
 						break;
 					}
 					case SpamType.Long_Message:
 					{
-						var curSpamTest = msg.Content.Length > x.AmountOfSpam;
-						isSpam = isSpam || curSpamTest;
-						if (curSpamTest)
-						{
-							await HandleSpamPrevention(global, x, guild, author, msg);
-						}
+						await HandleSpamPrevention(global, spamPrev, guild, author, msg);
 						break;
 					}
 					case SpamType.Link:
 					{
-						var curSpamTest = false;
-						isSpam = isSpam || curSpamTest;
-						if (curSpamTest)
-						{
-							await HandleSpamPrevention(global, x, guild, author, msg);
-						}
+						await HandleSpamPrevention(global, spamPrev, guild, author, msg);
 						break;
 					}
 					case SpamType.Image:
 					{
-						var curSpamTest = false;
-						isSpam = isSpam || curSpamTest;
-						if (curSpamTest)
-						{
-							await HandleSpamPrevention(global, x, guild, author, msg);
-						}
+						await HandleSpamPrevention(global, spamPrev, guild, author, msg);
 						break;
 					}
 					case SpamType.Mention:
 					{
-						var curSpamTest = msg.MentionedUserIds.Distinct().Count() > x.AmountOfSpam;
-						isSpam = isSpam || curSpamTest;
-						if (curSpamTest)
-						{
-							await HandleSpamPrevention(global, x, guild, author, msg);
-						}
+						await HandleSpamPrevention(global, spamPrev, guild, author, msg);
 						break;
 					}
 					case SpamType.Reaction:
 					{
-						var curSpamTest = false;
-						isSpam = isSpam || curSpamTest;
-						if (curSpamTest)
-						{
-							await HandleSpamPrevention(global, x, guild, author, msg);
-						}
+						await HandleSpamPrevention(global, spamPrev, guild, author, msg);
 						break;
 					}
 				}
-			});
-
-			return isSpam;
+			}
 		}
 
-		public static async Task VotesHigherThanRequiredAmount(BaseSpamPrevention spamPrev, SpamPreventionUser spUser, IMessage msg)
+		public static async Task VotesHigherThanRequiredAmount(SpamPrevention spamPrev, SpamPreventionUser spUser, IMessage msg)
 		{
 			//Make sure they have the lowest vote count required to kick
-			spUser.ChangeVotesRequired(spamPrev.VotesNeededForKick);
+			spUser.ChangeVotesRequired(spamPrev.VotesForKick);
 			//Turn on their ability to be kicked so they can be kicked
 			spUser.EnablePotentialKick();
 			//Send this message updating the amount of votes the user needs
@@ -4495,7 +4423,7 @@ namespace Advobot
 
 		public static void ClearPunishedUsersList()
 		{
-			Variables.Guilds.Values.ToList().ForEach(x => x.GlobalSpamPrevention.SpamPreventionUsers.Clear());
+			Variables.Guilds.Values.ToList().ForEach(x => x.GuildSpamAndRaidPrevention.SpamPreventionUsers.Clear());
 		}
 
 		public static void RemovePunishments()
@@ -4831,9 +4759,10 @@ namespace Advobot
 			}
 		}
 
-		public static List<T> GetUpToXElement<T>(this List<T> list, int x)
+		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
 		{
-			return list.GetRange(0, Math.Min(list.Count, x));
+			var len = Math.Max(0, Math.Min(list.Count, Actions.GetMinFromMultipleNumbers(x)));
+			return list.GetRange(0, len);
 		}
 
 		public static string FormatUser(this IUser user, ulong? userID = 0)

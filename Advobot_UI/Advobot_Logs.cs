@@ -268,7 +268,7 @@ namespace Advobot
 				}
 			}
 		}
-		
+
 		public static async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage afterMessage, ISocketMessageChannel channel)
 		{
 			if (Actions.VerifyServerLoggingAction(channel, LogActions.MessageUpdated, out VerifiedLoggingAction verified))
@@ -494,16 +494,13 @@ namespace Advobot
 			if (Actions.GetUserPosition(guild, author) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)))
 				return;
 
-			if (await Actions.SpamCheck(guildInfo.GlobalSpamPrevention, guild, author, message))
-			{
-				await Actions.DeleteMessage(message);
-			}
+			await Actions.SpamCheck(guildInfo.GuildSpamAndRaidPrevention, guild, author, message);
 		}
 
 		public static async Task VotingOnSpamPrevention(BotGuildInfo guildInfo, IGuild guild, IMessage message)
 		{
 			//Get the users primed to be kicked/banned by the spam prevention
-			var users = guildInfo.GlobalSpamPrevention.SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
+			var users = guildInfo.GuildSpamAndRaidPrevention.SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
 			if (!users.Any())
 				return;
 
@@ -513,9 +510,7 @@ namespace Advobot
 				//Check if mentioned users contains any users almost kicked. Check if the person has already voted. Don't allow users to vote on themselves.
 				if (x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id) || x.User.Id == message.Author.Id)
 					return;
-				//Increment the votes on that user
 				x.IncreaseVotesToKick();
-				//Add the author to the already voted list
 				x.AddUserToVotedList(message.Author.Id);
 				//Check if the bot can even kick/ban this user or if they should be punished
 				if (Actions.GetUserPosition(guild, x.User) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)) || x.VotesToKick < x.VotesRequired)
