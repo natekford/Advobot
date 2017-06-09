@@ -1166,7 +1166,7 @@ namespace Advobot
 		}
 		public void SetRaidPrevention(RaidType raidType, PunishmentType punishType, int tf, int amt)
 		{
-			RaidPreventions[raidType] = new RaidPrevention(raidType, punishType, tf, amt, -1, -1);
+			RaidPreventions[raidType] = new RaidPrevention(raidType, punishType, tf, amt);
 		}
 	}
 
@@ -1178,24 +1178,25 @@ namespace Advobot
 		public bool PotentialKick { get; private set; }
 		public bool AlreadyKicked { get; private set; }
 		public List<ulong> UsersWhoHaveAlreadyVoted { get; private set; }
-		public PreventionInformation<SpamType> MessageSpamInfo { get; private set; }
-		public PreventionInformation<SpamType> LongMessageSpamInfo { get; private set; }
-		public PreventionInformation<SpamType> LinkSpamInfo { get; private set; }
-		public PreventionInformation<SpamType> ImageSpamInfo { get; private set; }
-		public PreventionInformation<SpamType> MentionSpamInfo { get; private set; }
-		public PreventionInformation<SpamType> ReactionSpamInfo { get; private set; }
+		public Dictionary<SpamType, List<BasicTimeInterface>> SpamLists { get; private set; }
 
 		public SpamPreventionUser(IGuildUser user)
 		{
 			User = user;
+			VotesToKick = 0;
 			VotesRequired = int.MaxValue;
 			PotentialKick = false;
 			AlreadyKicked = false;
 			UsersWhoHaveAlreadyVoted = new List<ulong>();
+			foreach (var spamType in Enum.GetValues(typeof(SpamType)).Cast<SpamType>())
+			{
+				SpamLists.Add(spamType, new List<BasicTimeInterface>());
+			}
 		}
 
-		public void IncreaseVotesToKick()
+		public void IncreaseVotesToKick(ulong ID)
 		{
+			UsersWhoHaveAlreadyVoted.ThreadSafeAdd(ID);
 			++VotesToKick;
 		}
 		public void ChangeVotesRequired(int input)
@@ -1206,74 +1207,97 @@ namespace Advobot
 		{
 			PotentialKick = true;
 		}
-		public void AddUserToVotedList(ulong ID)
-		{
-			UsersWhoHaveAlreadyVoted.ThreadSafeAdd(ID);
-		}
 		public void ResetSpamUser()
 		{
-			MessageSpamInfo.Reset();
-			LongMessageSpamInfo.Reset();
-			LinkSpamInfo.Reset();
-			ImageSpamInfo.Reset();
-			MentionSpamInfo.Reset();
-			ReactionSpamInfo.Reset();
+			VotesToKick = 0;
+			VotesRequired = int.MaxValue;
+			PotentialKick = false;
+			AlreadyKicked = false;
 			UsersWhoHaveAlreadyVoted = new List<ulong>();
+			SpamLists.Values.ToList().ForEach(x =>
+			{
+				x.Clear();
+			});
 		}
-		public async Task CheckIfShouldKick(SpamPrevention spamPrev, IMessage msg)
+		public bool CheckIfAllowedToPunish(SpamPrevention spamPrev, IMessage msg)
 		{
-			var spamAmount = 0;
-			switch (spamPrev.SpamType)
-			{
-				case SpamType.Message:
-				{
-					MessageSpamInfo.Add(msg.CreatedAt.UtcDateTime);
-					spamAmount = MessageSpamInfo.GetSpamCount();
-					break;
-				}
-				case SpamType.Long_Message:
-				{
-					LongMessageSpamInfo.Add(msg.CreatedAt.UtcDateTime);
-					spamAmount = LongMessageSpamInfo.GetSpamCount();
-					break;
-				}
-				case SpamType.Link:
-				{
-					LinkSpamInfo.Add(msg.CreatedAt.UtcDateTime);
-					spamAmount = LinkSpamInfo.GetSpamCount();
-					break;
-				}
-				case SpamType.Image:
-				{
-					ImageSpamInfo.Add(msg.CreatedAt.UtcDateTime);
-					spamAmount = ImageSpamInfo.GetSpamCount();
-					break;
-				}
-				case SpamType.Mention:
-				{
-					MentionSpamInfo.Add(msg.CreatedAt.UtcDateTime);
-					spamAmount = MentionSpamInfo.GetSpamCount();
-					break;
-				}
-				case SpamType.Reaction:
-				{
-					ReactionSpamInfo.Add(msg.CreatedAt.UtcDateTime);
-					spamAmount = ReactionSpamInfo.GetSpamCount();
-					break;
-				}
-			}
-
-			if (spamAmount >= spamPrev.RequiredCount)
-			{
-				await Actions.VotesHigherThanRequiredAmount(spamPrev, this, msg);
-			}
+			return Actions.GetCountOfItemsInTimeFrame(SpamLists[spamPrev.SpamType], spamPrev.TimeInterval) >= spamPrev.RequiredSpamInstances;
 		}
 	}
 
-	public class PreventionInformation<T>
+	public class SpamPrevention
 	{
 		[JsonProperty]
-		public T SpamType { get; private set; }
+		public SpamType SpamType { get; private set; }
+		[JsonProperty]
+		public PunishmentType PunishmentType { get; private set; }
+		[JsonProperty]
+		public int TimeInterval { get; private set; }
+		[JsonProperty]
+		public int RequiredSpamInstances { get; private set; }
+		[JsonProperty]
+		public int RequiredSpamPerMessage { get; private set; }
+		[JsonProperty]
+		public int VotesForKick { get; private set; }
+		[JsonProperty]
+		public bool Enabled { get; private set; }
+		[JsonIgnore]
+		public List<IGuildUser> PunishedUsers { get; private set; }
+
+		public SpamPrevention(SpamType spamType, PunishmentType punishmentType, int timeInterval, int requiredSpamInstances, int requiredSpamPerMessage, int votesForKick)
+		{
+			SpamType = spamType;
+			PunishmentType = punishmentType;
+			TimeInterval = timeInterval;
+			RequiredSpamInstances = requiredSpamInstances;
+			RequiredSpamPerMessage = requiredSpamPerMessage;
+			VotesForKick = votesForKick;
+			Enabled = true;
+		}
+
+		public void Disable()
+		{
+			Enabled = false;
+		}
+		public void Enable()
+		{
+			Enabled = true;
+		}
+		public async Task PunishUser(IGuildUser user)
+		{
+			var guild = user.Guild;
+			var guildInfo = await Actions.GetGuildInfo(guild);
+			switch (PunishmentType)
+			{
+				case PunishmentType.Ban:
+				{
+					await guild.AddBanAsync(user);
+					break;
+				}
+				case PunishmentType.Kick:
+				{
+					await user.KickAsync();
+					break;
+				}
+				case PunishmentType.Kick_Then_Ban:
+				{
+					await (guildInfo.GuildSpamAndRaidPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User.Id == user.Id).AlreadyKicked ? guild.AddBanAsync(user) : user.KickAsync());
+					break;
+				}
+				case PunishmentType.Role:
+				{
+					await Actions.GiveRole(user, guildInfo.MuteRole);
+					break;
+				}
+			}
+			PunishedUsers.ThreadSafeAdd(user);
+		}
+	}
+
+	public class RaidPrevention
+	{
+		[JsonProperty]
+		public RaidType RaidType { get; private set; }
 		[JsonProperty]
 		public PunishmentType PunishmentType { get; private set; }
 		[JsonProperty]
@@ -1281,24 +1305,18 @@ namespace Advobot
 		[JsonProperty]
 		public int RequiredCount { get; private set; }
 		[JsonProperty]
-		public int RequiredAmountOfSpamPerMessage { get; private set; }
-		[JsonProperty]
-		public int VotesForKick { get; private set; }
-		[JsonProperty]
 		public bool Enabled { get; private set; }
 		[JsonIgnore]
 		public List<BasicTimeInterface> TimeList { get; private set; }
 		[JsonIgnore]
 		public List<IGuildUser> PunishedUsers { get; private set; }
 
-		public PreventionInformation(T spamType, PunishmentType punishmentType, int timeInterval, int requiredCount, int requiredAmountOfSpamPerMessage, int votesForKick)
+		public RaidPrevention(RaidType raidType, PunishmentType punishmentType, int timeInterval, int requiredCount)
 		{
-			SpamType = spamType;
+			RaidType = raidType;
 			PunishmentType = punishmentType;
 			TimeInterval = timeInterval;
 			RequiredCount = requiredCount;
-			RequiredAmountOfSpamPerMessage = requiredAmountOfSpamPerMessage;
-			VotesForKick = votesForKick;
 			TimeList = new List<BasicTimeInterface>();
 			Enabled = true;
 		}
@@ -1359,18 +1377,6 @@ namespace Advobot
 			}
 			PunishedUsers.ThreadSafeAdd(user);
 		}
-	}
-
-	public class SpamPrevention : PreventionInformation<SpamType>
-	{
-		public SpamPrevention(SpamType spamType, PunishmentType punishType, int timeFrame = -1, int amtOfMessages = -1, int amtOfSpam = -1, int votesForKick = -1)
-			 : base(spamType, punishType, timeFrame, amtOfMessages, amtOfSpam, votesForKick) { }
-	}
-
-	public class RaidPrevention : PreventionInformation<RaidType>
-	{
-		public RaidPrevention(RaidType raidType, PunishmentType punishType, int timeFrame = -1, int amtOfMessages = -1, int amtOfSpam = -1, int votesForKick = -1)
-			 : base(raidType, punishType, timeFrame, amtOfMessages, amtOfSpam, votesForKick) { }
 	}
 	#endregion
 
@@ -1635,7 +1641,7 @@ namespace Advobot
 
 		public BasicTimeInterface(DateTime time)
 		{
-			mTime = time;
+			mTime = time.ToUniversalTime();
 		}
 
 		public DateTime GetTime()
@@ -1760,7 +1766,6 @@ namespace Advobot
 		Link = 3,
 		Image = 4,
 		Mention = 5,
-		Reaction = 6,
 	}
 
 	public enum RaidType

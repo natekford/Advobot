@@ -510,8 +510,7 @@ namespace Advobot
 				//Check if mentioned users contains any users almost kicked. Check if the person has already voted. Don't allow users to vote on themselves.
 				if (x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id) || x.User.Id == message.Author.Id)
 					return;
-				x.IncreaseVotesToKick();
-				x.AddUserToVotedList(message.Author.Id);
+				x.IncreaseVotesToKick(message.Author.Id);
 				//Check if the bot can even kick/ban this user or if they should be punished
 				if (Actions.GetUserPosition(guild, x.User) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)) || x.VotesToKick < x.VotesRequired)
 					return;

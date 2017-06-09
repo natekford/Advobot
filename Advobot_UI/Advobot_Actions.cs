@@ -1774,7 +1774,7 @@ namespace Advobot
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Timeframe:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.RequiredMessageCount, spamPrev.TimeInterval, spamPrev.VotesForKick);
+							spamPrev.Enabled, spamPrev.RequiredSpamInstances, spamPrev.TimeInterval, spamPrev.VotesForKick);
 					}
 					break;
 				}
@@ -1784,7 +1784,7 @@ namespace Advobot
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Length:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.RequiredMessageCount, spamPrev.RequiredAmountOfSpamPerMessage, spamPrev.VotesForKick);
+							spamPrev.Enabled, spamPrev.RequiredSpamInstances, spamPrev.RequiredSpamPerMessage, spamPrev.VotesForKick);
 					}
 					break;
 				}
@@ -1794,7 +1794,7 @@ namespace Advobot
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Link Count:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.RequiredMessageCount, spamPrev.RequiredAmountOfSpamPerMessage, spamPrev.VotesForKick);
+							spamPrev.Enabled, spamPrev.RequiredSpamInstances, spamPrev.RequiredSpamPerMessage, spamPrev.VotesForKick);
 					}
 					break;
 				}
@@ -1804,7 +1804,7 @@ namespace Advobot
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Timeframe:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.RequiredMessageCount, spamPrev.TimeInterval, spamPrev.VotesForKick);
+							spamPrev.Enabled, spamPrev.RequiredSpamInstances, spamPrev.TimeInterval, spamPrev.VotesForKick);
 					}
 					break;
 				}
@@ -1814,7 +1814,7 @@ namespace Advobot
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Mentions:** `{2}`\n**Votes Needed For Kick:** `{3}`",
-							spamPrev.Enabled, spamPrev.RequiredMessageCount, spamPrev.RequiredAmountOfSpamPerMessage, spamPrev.VotesForKick);
+							spamPrev.Enabled, spamPrev.RequiredSpamInstances, spamPrev.RequiredSpamPerMessage, spamPrev.VotesForKick);
 					}
 					break;
 				}
@@ -2894,7 +2894,6 @@ namespace Advobot
 			var linkSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Link) != null;
 			var imageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Image) != null;
 			var mentionSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Mention) != null;
-			var reactionSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Reaction) != null;
 			var welcomeMessage = guildInfo.WelcomeMessage != null;
 			var goodbyeMessage = guildInfo.GoodbyeMessage != null;
 			var prefix = !String.IsNullOrWhiteSpace(guildInfo.Prefix);
@@ -3636,23 +3635,6 @@ namespace Advobot
 		#endregion
 
 		#region Slowmode/Banned Phrases/Spam Prevention
-		public static async Task<bool> HandleSpamPrevention(GuildSpamAndRaidPrevention global, SpamPrevention spamPrev, IGuild guild, IGuildUser user, IMessage msg)
-		{
-			if (spamPrev == null || !spamPrev.Enabled)
-				return false;
-
-			//Get the user from the list or, if not found, create a new one
-			var spUser = (await GetGuildInfo(guild)).GuildSpamAndRaidPrevention.SpamPreventionUsers.FirstOrDefault(x => x.User == user);
-			if (spUser == null)
-			{
-				spUser = new SpamPreventionUser(user);
-				global.SpamPreventionUsers.ThreadSafeAdd(spUser);
-			}
-			//Add one to the count of the spam type they triggered and check if the user should be kicked/banned
-			await spUser.CheckIfShouldKick(spamPrev, msg);
-			return true;
-		}
-
 		public static async Task SpamCheck(GuildSpamAndRaidPrevention global, IGuild guild, IGuildUser author, IMessage msg)
 		{
 			if (global == null)
@@ -3666,56 +3648,83 @@ namespace Advobot
 			}
 
 			//TODO: Get this to work
-			foreach (var spamPrev in global.SpamPreventions.Values)
+			var spam = false;
+			foreach (var kvp in global.SpamPreventions)
 			{
-				if (spamPrev?.SpamType == null)
+				var spamType = kvp.Key;
+				var spamPrev = kvp.Value;
+				if (spamPrev == null || !spamPrev.Enabled)
 					return;
 
+				var userSpamList = spamUser.SpamLists[spamType];
+
+				var shouldAdd = false;
 				switch (spamPrev.SpamType)
 				{
 					case SpamType.Message:
 					{
-						await HandleSpamPrevention(global, spamPrev, guild, author, msg);
+						shouldAdd = true;
 						break;
 					}
 					case SpamType.Long_Message:
 					{
-						await HandleSpamPrevention(global, spamPrev, guild, author, msg);
+						shouldAdd = msg.Content?.Length >= spamPrev.RequiredSpamPerMessage;
 						break;
 					}
 					case SpamType.Link:
 					{
-						await HandleSpamPrevention(global, spamPrev, guild, author, msg);
+						//TODO: have this get non absolute uris at some point
+						var linkCount = msg.Content?.Split(' ').Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute));
+						shouldAdd = linkCount >= spamPrev.RequiredSpamPerMessage;
 						break;
 					}
 					case SpamType.Image:
 					{
-						await HandleSpamPrevention(global, spamPrev, guild, author, msg);
+						var attachCount = msg.Attachments.Where(x =>
+						{
+							return false
+							|| x.Height != null
+							|| x.Width != null;
+						}).Count();
+						var embedCount = msg.Embeds.Where(x =>
+						{
+							return false
+							|| x.Image != null
+							|| x.Video != null
+							|| x.Thumbnail != null;
+						}).Count();
+						shouldAdd = (attachCount + embedCount) >= spamPrev.RequiredSpamPerMessage;
 						break;
 					}
 					case SpamType.Mention:
 					{
-						await HandleSpamPrevention(global, spamPrev, guild, author, msg);
-						break;
-					}
-					case SpamType.Reaction:
-					{
-						await HandleSpamPrevention(global, spamPrev, guild, author, msg);
+						shouldAdd = msg.MentionedUserIds.Distinct().Count() >= spamPrev.RequiredSpamPerMessage;
 						break;
 					}
 				}
-			}
-		}
 
-		public static async Task VotesHigherThanRequiredAmount(SpamPrevention spamPrev, SpamPreventionUser spUser, IMessage msg)
-		{
-			//Make sure they have the lowest vote count required to kick
-			spUser.ChangeVotesRequired(spamPrev.VotesForKick);
-			//Turn on their ability to be kicked so they can be kicked
-			spUser.EnablePotentialKick();
-			//Send this message updating the amount of votes the user needs
-			await MakeAndDeleteSecondaryMessage(msg.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
-				msg.Author.FormatUser(), spUser.VotesRequired - spUser.VotesToKick));
+				if (shouldAdd)
+				{
+					userSpamList.ThreadSafeAdd(new BasicTimeInterface(msg.CreatedAt.UtcDateTime));
+				}
+
+				if (spamUser.CheckIfAllowedToPunish(spamPrev, msg))
+				{
+					await DeleteMessage(msg);
+
+					//Make sure they have the lowest vote count required to kick
+					spamUser.ChangeVotesRequired(spamPrev.VotesForKick);
+					spamUser.EnablePotentialKick();
+
+					spam = true;
+				}
+			}
+
+			if (spam)
+			{
+				await MakeAndDeleteSecondaryMessage(msg.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
+					msg.Author.FormatUser(), spamUser.VotesRequired - spamUser.VotesToKick));
+			}
 		}
 
 		public static async Task Slowmode(BotGuildInfo guildInfo, IMessage message)
