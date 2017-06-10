@@ -628,6 +628,7 @@ namespace Advobot
 				return;
 			}
 
+			await Actions.DeleteMessage(Context.Message);
 			var response = String.Format("Successfully deleted `{0}` message{1}", await Actions.RemoveMessages(channel, user, requestCount), Actions.GetPlural(requestCount));
 			if (user != null)
 			{

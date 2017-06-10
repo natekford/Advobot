@@ -46,7 +46,7 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
-			var spamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(spamType);
+			var spamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[spamType];
 			switch (action)
 			{
 				case ActionType.Enable:
@@ -151,7 +151,7 @@ namespace Advobot
 			var action = returnedType.Type;
 
 			var muteRole = await Actions.GetMuteRole(Context, guildInfo);
-			var antiRaid = guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Regular);
+			var antiRaid = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Regular];
 			switch (action)
 			{
 				case ActionType.Enable:
@@ -174,7 +174,7 @@ namespace Advobot
 						var numToGather = Math.Min(Math.Min(Math.Abs(inputNum), users.Count), 25);
 						await users.GetRange(0, numToGather).ForEachAsync(async x =>
 						{
-							await guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Regular).PunishUser(x);
+							await guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Regular].PunishUser(x);
 							++actualMutes;
 						});
 					}
@@ -193,7 +193,7 @@ namespace Advobot
 					}
 
 					//Disable raid mode in the bot
-					guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Regular).Disable();
+					guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Regular].Disable();
 
 					//Total users muted
 					var ttl = antiRaid.PunishedUsers.Count();
@@ -284,7 +284,7 @@ namespace Advobot
 				}
 				case ActionType.Enable:
 				{
-					var antiJoin = guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Rapid_Joins);
+					var antiJoin = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Rapid_Joins];
 					if (antiJoin == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no rapid join protection to enable."));
@@ -297,7 +297,7 @@ namespace Advobot
 				}
 				case ActionType.Disable:
 				{
-					var antiJoin = guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Rapid_Joins);
+					var antiJoin = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Rapid_Joins];
 					if (antiJoin == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no rapid join protection to disable."));

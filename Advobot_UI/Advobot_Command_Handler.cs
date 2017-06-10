@@ -43,21 +43,22 @@ namespace Advobot
 			if (!await ValidateCommand(guildInfo, context, argPos))
 				return;
 
-			await Actions.DeleteMessage(context.Message);
-
 			//Ignore unknown command errors because they're annoying and ignore the errors given by lack of permissions, etc. put in by me
 			var result = await Commands.ExecuteAsync(context, argPos, Provider);
 			if (result.IsSuccess)
 			{
 				await Mod_Logs.LogCommand(guildInfo, context);
 			}
+			else if (!(Actions.CaseInsEquals(result.ErrorReason, Constants.IGNORE_ERROR) || result.Error == CommandError.UnknownCommand))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(context, Actions.ERROR(result.ErrorReason));
+			}
 			else
 			{
-				if (!(Actions.CaseInsEquals(result.ErrorReason, Constants.IGNORE_ERROR) || result.Error == CommandError.UnknownCommand))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(context, Actions.ERROR(result.ErrorReason));
-				}
+				return;
 			}
+
+			await Actions.DeleteMessage(message);
 		}
 
 		public static bool PrefixHandling(SocketUserMessage message, string guildPrefix, out int argPos)

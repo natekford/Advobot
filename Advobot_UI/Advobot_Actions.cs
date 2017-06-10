@@ -495,14 +495,11 @@ namespace Advobot
 			{
 				return new ReturnedType<T>(type, TypeFailureReason.Not_Found);
 			}
-			else if (invalidTypes != null)
+			else if (invalidTypes != null && invalidTypes.Contains(type))
 			{
-				if (invalidTypes.Contains(type))
-				{
-					return new ReturnedType<T>(type, TypeFailureReason.Invalid_Type);
-				}
+				return new ReturnedType<T>(type, TypeFailureReason.Invalid_Type);
 			}
-			else if (!validTypes.ToList().Contains(type))
+			else if (!validTypes.Contains(type))
 			{
 				return new ReturnedType<T>(type, TypeFailureReason.Invalid_Type);
 			}
@@ -1770,7 +1767,7 @@ namespace Advobot
 				}
 				case SettingOnGuild.MessageSpamPrevention:
 				{
-					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Message);
+					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Message];
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Timeframe:** `{2}`\n**Votes Needed For Kick:** `{3}`",
@@ -1780,7 +1777,7 @@ namespace Advobot
 				}
 				case SettingOnGuild.LongMessageSpamPrevention:
 				{
-					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Long_Message);
+					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Long_Message];
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Length:** `{2}`\n**Votes Needed For Kick:** `{3}`",
@@ -1790,7 +1787,7 @@ namespace Advobot
 				}
 				case SettingOnGuild.LinkSpamPrevention:
 				{
-					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Link);
+					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Link];
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Link Count:** `{2}`\n**Votes Needed For Kick:** `{3}`",
@@ -1800,7 +1797,7 @@ namespace Advobot
 				}
 				case SettingOnGuild.ImageSpamPrevention:
 				{
-					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Image);
+					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Image];
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Timeframe:** `{2}`\n**Votes Needed For Kick:** `{3}`",
@@ -1810,7 +1807,7 @@ namespace Advobot
 				}
 				case SettingOnGuild.MentionSpamPrevention:
 				{
-					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Mention);
+					var spamPrev = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Mention];
 					if (spamPrev != null)
 					{
 						str = String.Format("**Enabled:** `{0}`\n**Amount Of Messages:** `{1}`\n**Mentions:** `{2}`\n**Votes Needed For Kick:** `{3}`",
@@ -2110,7 +2107,7 @@ namespace Advobot
 					break;
 				}
 
-				//Leave if the message count gathered implies that the channel is out of messages or that enough 
+				//Leave if the message count gathered implies that enough user messages have been deleted 
 				if (msgAmt < gatheredForUserAmt)
 					break;
 
@@ -2889,11 +2886,11 @@ namespace Advobot
 			var bannedPhraseStrings = guildInfo.BannedPhrases.Strings.Any();
 			var bannedPhraseRegex = guildInfo.BannedPhrases.Regex.Any();
 			var bannedPhrasePunishments = guildInfo.BannedPhrases.Punishments.Any();
-			var messageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Message) != null;
-			var longMessageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Long_Message) != null;
-			var linkSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Link) != null;
-			var imageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Image) != null;
-			var mentionSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.GetSpamPrevention(SpamType.Mention) != null;
+			var messageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Message] != null;
+			var longMessageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Long_Message] != null;
+			var linkSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Link] != null;
+			var imageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Image] != null;
+			var mentionSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Mention] != null;
 			var welcomeMessage = guildInfo.WelcomeMessage != null;
 			var goodbyeMessage = guildInfo.GoodbyeMessage != null;
 			var prefix = !String.IsNullOrWhiteSpace(guildInfo.Prefix);
@@ -3465,6 +3462,35 @@ namespace Advobot
 			});
 		}
 
+		public static async Task HandleJoiningUsers(BotGuildInfo guildInfo, IGuildUser user)
+		{
+			//Slowmode
+			if (guildInfo.SlowmodeGuild != null || guildInfo.SlowmodeChannels.Any())
+			{
+				await AddSlowmodeUser(guildInfo, user);
+			}
+			//Antiraid
+			var antiRaid = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Regular];
+			if (antiRaid != null && antiRaid.Enabled)
+			{
+				await antiRaid.PunishUser(user);
+			}
+			//Antiraid Two - Electric Joinaroo
+			var antiJoin = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Rapid_Joins];
+			if (antiJoin != null && antiJoin.Enabled)
+			{
+				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
+				if (antiJoin.GetSpamCount() >= antiJoin.RequiredCount)
+				{
+					await antiJoin.PunishUser(user);
+					if (guildInfo.ServerLog != null)
+					{
+						await SendEmbedMessage(guildInfo.ServerLog, MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
+					}
+				}
+			}
+		}
+
 		public static bool VerifyLoggingIsEnabledOnThisChannel(BotGuildInfo guildInfo, IMessage message)
 		{
 			return !guildInfo.IgnoredLogChannels.Contains(message.Channel.Id);
@@ -3485,35 +3511,6 @@ namespace Advobot
 			else if (!VerifyLoggingIsEnabledOnThisChannel(guildInfo, message))
 				return false;
 			return true;
-		}
-
-		public static async Task HandleJoiningUsers(BotGuildInfo guildInfo, IGuildUser user)
-		{
-			//Slowmode
-			if (guildInfo.SlowmodeGuild != null || guildInfo.SlowmodeChannels.Any())
-			{
-				await AddSlowmodeUser(guildInfo, user);
-			}
-			//Antiraid
-			var antiRaid = guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Regular);
-			if ((antiRaid?.Enabled).HasValue)
-			{
-				await antiRaid.PunishUser(user);
-			}
-			//Antiraid Two - Electric Joinaroo
-			var antiJoin = guildInfo.GuildSpamAndRaidPrevention.GetRaidPrevention(RaidType.Rapid_Joins);
-			if ((antiJoin?.Enabled).HasValue)
-			{
-				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
-				if (antiJoin.GetSpamCount() >= antiJoin.RequiredCount)
-				{
-					await antiJoin.PunishUser(user);
-					if (guildInfo.ServerLog != null)
-					{
-						await SendEmbedMessage(guildInfo.ServerLog, MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
-					}
-				}
-			}
 		}
 		#endregion
 

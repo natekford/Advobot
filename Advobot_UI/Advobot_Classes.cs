@@ -1150,16 +1150,6 @@ namespace Advobot
 			}
 		}
 
-		public SpamPrevention GetSpamPrevention(SpamType type)
-		{
-			SpamPreventions.TryGetValue(type, out SpamPrevention spamPrev);
-			return spamPrev;
-		}
-		public RaidPrevention GetRaidPrevention(RaidType type)
-		{
-			RaidPreventions.TryGetValue(type, out RaidPrevention raidPrev);
-			return raidPrev;
-		}
 		public void SetSpamPrevention(SpamType spamType, PunishmentType punishType, int tf, int amt, int votes, int spm)
 		{
 			SpamPreventions[spamType] = new SpamPrevention(spamType, punishType, tf, amt, spm, votes);
