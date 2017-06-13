@@ -2701,7 +2701,13 @@ namespace Advobot
 				if (x.Embeds.Any())
 				{
 					//Get the first embed with a valid description, then URL, then image
-					var embed = x.Embeds.FirstOrDefault(desc => desc.Description != null) ?? x.Embeds.FirstOrDefault(url => url.Url != null) ?? x.Embeds.FirstOrDefault(img => img.Image != null);
+					var embed = x.Embeds.FirstOrDefault(emb =>
+					{
+						return false
+						|| emb.Description != null
+						|| emb.Url != null
+						|| emb.Image != null;
+					});
 
 					if (embed != null)
 					{
@@ -2715,7 +2721,7 @@ namespace Advobot
 					}
 					else
 					{
-						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
+						deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **AT** `[{2}]`\n```\n{3}```",
 							x.Author.FormatUser(),
 							x.Channel.FormatChannel(),
 							x.CreatedAt.ToString("HH:mm:ss"),
@@ -2726,17 +2732,17 @@ namespace Advobot
 				else if (x.Attachments.Any())
 				{
 					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
-					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
+					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **AT** `[{2}]`\n```\n{3}```",
 						x.Author.FormatUser(),
 						x.Channel.FormatChannel(),
 						x.CreatedAt.ToString("HH:mm:ss"),
-						ReplaceMarkdownChars(content + " + " + x.Attachments.ToList().First().Filename)));
+						ReplaceMarkdownChars(content + " + " + String.Join(" + ", x.Attachments.Select(y => y.Filename)))));
 				}
 				//Else add the message in normally
 				else
 				{
 					var content = String.IsNullOrEmpty(x.Content) ? "EMPTY MESSAGE" : x.Content;
-					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
+					deletedMessagesContent.Add(String.Format("`{0}` **IN** `{1}` **AT** `[{2}]`\n```\n{3}```",
 						x.Author.FormatUser(),
 						x.Channel.FormatChannel(),
 						x.CreatedAt.ToString("HH:mm:ss"),
@@ -2920,28 +2926,34 @@ namespace Advobot
 
 		public static string FormatAllSettings(BotGuildInfo guildInfo)
 		{
-			//Getting bools
-			var commandsDisabledOnUser = guildInfo.CommandOverrides.Users.Any();
-			var commandsDisabledOnRole = guildInfo.CommandOverrides.Roles.Any();
-			var commandsDisabledOnChannel = guildInfo.CommandOverrides.Channels.Any();
 			var botUsers = guildInfo.BotUsers.Any();
 			var selfAssignableGroups = guildInfo.SelfAssignableGroups.Any();
 			var reminds = guildInfo.Reminds.Any();
+			var logActions = guildInfo.LogActions.Any();
+			var bannedWordForJoiningUsers = guildInfo.BannedWordsForJoiningUsers.Any();
+
 			var ignoredCommandChannels = guildInfo.IgnoredCommandChannels.Any();
 			var ignoredLogChannels = guildInfo.IgnoredLogChannels.Any();
 			var imageOnlyChannels = guildInfo.ImageOnlyChannels.Any();
-			var logActions = guildInfo.LogActions.Any();
+
 			var bannedPhraseStrings = guildInfo.BannedPhrases.Strings.Any();
 			var bannedPhraseRegex = guildInfo.BannedPhrases.Regex.Any();
 			var bannedPhrasePunishments = guildInfo.BannedPhrases.Punishments.Any();
+
 			var messageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Message] != null;
 			var longMessageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Long_Message] != null;
 			var linkSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Link] != null;
 			var imageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Image] != null;
 			var mentionSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Mention] != null;
+
+			var commandsDisabledOnUser = guildInfo.CommandOverrides.Users.Any();
+			var commandsDisabledOnRole = guildInfo.CommandOverrides.Roles.Any();
+			var commandsDisabledOnChannel = guildInfo.CommandOverrides.Channels.Any();
+
 			var welcomeMessage = guildInfo.WelcomeMessage != null;
 			var goodbyeMessage = guildInfo.GoodbyeMessage != null;
 			var prefix = !String.IsNullOrWhiteSpace(guildInfo.Prefix);
+			var listedInvite = guildInfo.ListedInvite != null;
 			var serverlog = guildInfo.ServerLog != null;
 			var modlog = guildInfo.ModLog != null;
 			var imagelog = guildInfo.ImageLog != null;

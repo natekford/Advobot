@@ -574,5 +574,75 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
 			}
 		}
+
+		[Command("modifybannednamesforjoiningusers")]
+		[Alias("mbnfju")]
+		[Usage("[Add|Remove] [\"Phrase\"]")]
+		[Summary("If a user joins with the given phrase in their name, the bot will automatically ban them.")]
+		[PermissionRequirement]
+		[DefaultEnabled(false)]
+		public async Task ModifyBannedWordsForJoiningUsers([Remainder] string input)
+		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var actionStr = returnedArgs.Arguments[0];
+			var phraseStr = returnedArgs.Arguments[1];
+
+			if (phraseStr.Length < Constants.MIN_NICKNAME_LENGTH)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The banned name must be at least `{0}` characters long.", Constants.MIN_NICKNAME_LENGTH)));
+				return;
+			}
+			else if (phraseStr.Length > Constants.MAX_NICKNAME_LENGTH)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The banned name must be less than or equal to `{0}` characters long.", Constants.MAX_NICKNAME_LENGTH)));
+				return;
+			}
+
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			{
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				return;
+			}
+			var action = returnedType.Type;
+
+			var bannedWords = guildInfo.BannedWordsForJoiningUsers;
+			switch (action)
+			{
+				case ActionType.Add:
+				{
+					if (bannedWords.CaseInsContains(phraseStr))
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The phrase `{0}` is already on the banned names when joining list.", phraseStr)));
+						return;
+					}
+
+					bannedWords.Add(phraseStr);
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the phrase `{0}` to the banned name when joining list.", phraseStr));
+					break;
+				}
+				case ActionType.Remove:
+				{
+					if (!bannedWords.CaseInsContains(phraseStr))
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The phrase `{0}` is not on the banned names when joining list.", phraseStr)));
+						return;
+					}
+
+					bannedWords.RemoveAll(x => Actions.CaseInsEquals(x, phraseStr));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the phrase `{0}` from the banned name when joining list.", phraseStr));
+					break;
+				}
+			}
+
+			Actions.SaveGuildInfo(guildInfo);
+		}
 	}
 }
