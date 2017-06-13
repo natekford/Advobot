@@ -256,7 +256,7 @@ namespace Advobot
 					});
 					if (simCmds.Any())
 					{
-						WriteLine(String.Format("The following commands have conflicts: {0}\n{1}", String.Join("\n", simCmds.Select(x => x.Name)), name));
+						WriteLine(String.Format("The following commands have conflicts: {0}\n{1}", String.Join(" + ", simCmds.Select(x => x.Name)), name));
 					}
 					//Add it to the helplist
 					Variables.HelpList.Add(new HelpEntry(name, aliases, usage, basePerm, text, category, defaultEnabled));
@@ -1964,33 +1964,72 @@ namespace Advobot
 			return MakeNewEmbed(title, String.IsNullOrWhiteSpace(str) ? "`NOTHING`" : str);
 		}
 
-		public static async Task<IMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed, string content = null)
+		public static async Task SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed, string content = null)
 		{
-			var guildChannel = channel as ITextChannel;
-			if (guildChannel == null)
-				return null;
-			var guild = guildChannel.Guild;
+			var guild = GetGuild(channel);
 			if (guild == null)
-				return null;
+				return;
 			var guildInfo = await GetGuildInfo(guild);
 
-			content = content ?? "";
-
-			//Replace all instances of the base prefix with the guild's prefix
-			var guildPrefix = guildInfo.Prefix;
-			if (!String.IsNullOrWhiteSpace(guildPrefix))
+			//Descriptions can only be 2048 characters max and mobile can only show up to 20 line breaks
+			var description = embed.Description;
+			var badDesc = false;
+			if (!String.IsNullOrWhiteSpace(description))
 			{
-				embed.Description.Replace(Variables.BotInfo.Prefix, guildPrefix);
+				if (description.Length > Constants.MAX_EMBED_LENGTH_LONG)
+				{
+					embed.WithDescription(String.Format("The description is over `{0}` characters and will be sent as a text file instead.", Constants.MAX_EMBED_LENGTH_LONG));
+					badDesc = true;
+				}
+				else if (GetLineBreaks(description) > Constants.MAX_DESCRIPTION_LINES)
+				{
+					embed.WithDescription(String.Format("The description is over `{0}` lines and will be sent as a text file instead.", Constants.MAX_DESCRIPTION_LINES));
+					badDesc = true;
+				}
+			}
+
+			//Embeds can only be 1024 characters max and mobile can only show up to 5 line breaks
+			var fields = embed.Fields;
+			var badFields = new List<Tuple<int, string>>();
+			for (int i = 0; i < fields.Count; i++)
+			{
+				var field = fields[i];
+				var val = field.Value.ToString();
+				if (!String.IsNullOrWhiteSpace(val))
+				{
+					if (val.Length > Constants.MAX_EMBED_LENGTH_SHORT)
+					{
+						field.WithValue(String.Format("This field is over `{0}` characters and will be sent as a text file instead.", Constants.MAX_EMBED_LENGTH_SHORT));
+						badFields.Add(new Tuple<int, string>(i, val));
+					}
+					else if (GetLineBreaks(val) > Constants.MAX_FIELD_LINES)
+					{
+						field.WithValue(String.Format("This field is over `{0}` lines and will be sent as a text file instead.", Constants.MAX_FIELD_LINES));
+						badFields.Add(new Tuple<int, string>(i, val));
+					}
+				}
 			}
 
 			try
 			{
-				return await guildChannel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content, embed: embed.WithCurrentTimestamp());
+				await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + (content ?? ""), false, embed.WithCurrentTimestamp());
 			}
 			catch (Exception e)
 			{
 				ExceptionToConsole(e);
-				return null;
+				await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + ERROR(e.Message));
+			}
+
+			//Go send the description/fields that had an error
+			if (badDesc)
+			{
+				await WriteAndUploadTextFile(guild, channel, description, "Description_");
+			}
+			foreach (var tuple in badFields)
+			{
+				var num = tuple.Item1;
+				var val = tuple.Item2;
+				await WriteAndUploadTextFile(guild, channel, val, String.Format("Field_{0}_", num));
 			}
 		}
 
@@ -2014,20 +2053,16 @@ namespace Advobot
 			message = CaseInsReplace(message, "@everyone", Constants.FAKE_EVERYONE);
 			message = CaseInsReplace(message, "\tts", Constants.FAKE_TTS);
 
+			IMessage msg = null;
 			if (message.Length >= Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
-				if (TryToUploadToHastebin(message, out string urlOrError))
-				{
-					message = String.Format("The given content for this message is over 2,000 characters and can be found at {0}.", urlOrError);
-				}
-				else
-				{
-					await SendPotentiallyBigMessage(channel.Guild, channel, message, urlOrError, "Very_Long_Message_");
-					return null;
-				}
+				msg = await WriteAndUploadTextFile(guild, channel, message, "Long_Message_", "The response is a long message and was sent as a text file instead");
 			}
-
-			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
+			else
+			{
+				msg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
+			}
+			return msg;
 		}
 
 		public static async Task<IMessage> SendDMMessage(IDMChannel channel, string message)
@@ -2221,18 +2256,7 @@ namespace Advobot
 			}
 			else
 			{
-				var content = ReplaceMarkdownChars(String.Join("\n-----\n", inputList));
-				if (TryToUploadToHastebin(content, out string url))
-				{
-					//Upload the embed with the Hastebin link
-					var embed = MakeNewEmbed("Deleted Messages", String.Format("Click [here]({0}) to see the messages.", url), Constants.MDEL);
-					AddFooter(embed, "Deleted Messages");
-					await SendEmbedMessage(channel, embed);
-				}
-				else
-				{
-					await WriteAndUploadTextFile(guild, channel, content, "Deleted_Messages_", "Deleted Messages");
-				}
+				await WriteAndUploadTextFile(guild, channel, ReplaceMarkdownChars(String.Join("\n-----\n", inputList)), "Deleted_Messages_", String.Format("{0} Deleted Messages", inputList.Count));
 			}
 		}
 
@@ -2407,24 +2431,7 @@ namespace Advobot
 			}
 			if (description != null)
 			{
-				var output = description;
-				//Descriptions can only be 2048 characters max
-				if (description.Length > Constants.MAX_EMBED_LENGTH_LONG)
-				{
-					if (TryToUploadToHastebin(description, out output))
-					{
-						output = String.Format("Content is past {0} characters. Click [here]({1}) to see it.", Constants.MAX_EMBED_LENGTH_LONG, output);
-					}
-				}
-				//Mobile can only show up to 20 or so lines on the description part of an embed
-				else if (GetLineBreaks(description) > Constants.MAX_DESCRIPTION_LINES)
-				{
-					if (TryToUploadToHastebin(description, out output))
-					{
-						output = String.Format("Content is past {0} new lines. Click [here]({1}) to see it.", Constants.MAX_DESCRIPTION_LINES, output);
-					}
-				}
-				embed.WithDescription(output);
+				embed.WithDescription(description);
 			}
 			if (color != null)
 			{
@@ -2500,31 +2507,12 @@ namespace Advobot
 
 			//Get the name and value
 			name = String.IsNullOrWhiteSpace(name) ? "Placeholder" : name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length));
-			value = String.IsNullOrWhiteSpace(name) ? "Placeholder" : value.Substring(0, Math.Min(value.Length, Constants.MAX_LENGTH_FOR_HASTEBIN));
+			value = String.IsNullOrWhiteSpace(name) ? "Placeholder" : value.Substring(0, Math.Min(Constants.MAX_LENGTH_FOR_FIELD_VALUE, value.Length));
 
 			embed.AddField(x =>
 			{
-				var outputValue = value;
-				//Embeds can only show up to 1024 chars per field
-				if (value.Length > Constants.MAX_EMBED_LENGTH_SHORT)
-				{
-					if (TryToUploadToHastebin(value, out outputValue))
-					{
-						outputValue = String.Format("Field has more than {0} characters; please click [here]({1}) to see the content.", Constants.MAX_EMBED_LENGTH_SHORT, outputValue);
-					}
-				}
-				//Fields can only show up to five lines on mobile
-				else if (GetLineBreaks(value) > Constants.MAX_FIELD_LINES)
-				{
-					if (TryToUploadToHastebin(value, out outputValue))
-					{
-						outputValue = String.Format("Field has more than {0} new lines; please click [here]({1}) to see the content.", Constants.MAX_FIELD_LINES, outputValue);
-					}
-				}
-
-				//Actually add in the values
 				x.Name = name;
-				x.Value = outputValue;
+				x.Value = value;
 				x.IsInline = isInline;
 			});
 
@@ -2926,64 +2914,106 @@ namespace Advobot
 
 		public static string FormatAllSettings(BotGuildInfo guildInfo)
 		{
-			var botUsers = guildInfo.BotUsers.Any();
-			var selfAssignableGroups = guildInfo.SelfAssignableGroups.Any();
-			var reminds = guildInfo.Reminds.Any();
+			var misc = FormatMiscSettings(guildInfo);
+			var log = FormatLogSettings(guildInfo);
+			var bannedPhrase = FormatBannedPhraseSettings(guildInfo);
+			var spamAndRaid = FormatSpamAndRaidSettings(guildInfo);
+			var command = FormatCommandSettings(guildInfo);
+			return String.Join("\n", new[] { misc, log, bannedPhrase, spamAndRaid, command });
+		}
+
+		public static string FormatLogSettings(BotGuildInfo guildInfo)
+		{
+			var description = "";
+
+			var serverlog = guildInfo.ServerLog != null;
+			description += String.Format("**Server Log:** `{0}`\n", serverlog ? "Yes" : "No");
+			var modlog = guildInfo.ModLog != null;
+			description += String.Format("**Mod Log:** `{0}`\n", modlog ? "Yes" : "No");
+			var imagelog = guildInfo.ImageLog != null;
+			description += String.Format("**Image Log:** `{0}`\n", imagelog ? "Yes" : "No");
 			var logActions = guildInfo.LogActions.Any();
-			var bannedWordForJoiningUsers = guildInfo.BannedWordsForJoiningUsers.Any();
-
+			description += String.Format("**Log Actions:** `{0}`\n", logActions ? "Yes" : "No");
 			var ignoredCommandChannels = guildInfo.IgnoredCommandChannels.Any();
+			description += String.Format("**Ignored Command Channels:** `{0}`\n", ignoredCommandChannels ? "Yes" : "No");
 			var ignoredLogChannels = guildInfo.IgnoredLogChannels.Any();
+			description += String.Format("**Ignored Log Channels:** `{0}`\n", ignoredLogChannels ? "Yes" : "No");
 			var imageOnlyChannels = guildInfo.ImageOnlyChannels.Any();
+			description += String.Format("**Image Only Channels:** `{0}`\n", imageOnlyChannels ? "Yes" : "No");
 
+			return description;
+		}
+
+		public static string FormatBannedPhraseSettings(BotGuildInfo guildInfo)
+		{
+			var description = "";
+
+			var bannedWordForJoiningUsers = guildInfo.BannedWordsForJoiningUsers.Any();
+			description += String.CompareOrdinal("**Banned Names for Joining Users:** `{0}`\n", bannedWordForJoiningUsers ? "Yes" : "No");
 			var bannedPhraseStrings = guildInfo.BannedPhrases.Strings.Any();
+			description += String.Format("**Banned Phrase Strings:** `{0}`\n", bannedPhraseStrings ? "Yes" : "No");
 			var bannedPhraseRegex = guildInfo.BannedPhrases.Regex.Any();
+			description += String.Format("**Banned Phrase Regex:** `{0}`\n", bannedPhraseRegex ? "Yes" : "No");
 			var bannedPhrasePunishments = guildInfo.BannedPhrases.Punishments.Any();
+			description += String.Format("**Banned Phrase Punishments:** `{0}`\n", bannedPhrasePunishments ? "Yes" : "No");
+
+			return description;
+		}
+
+		public static string FormatSpamAndRaidSettings(BotGuildInfo guildInfo)
+		{
+			var description = "";
 
 			var messageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Message] != null;
+			description += String.Format("**Message Spam Prevention:** `{0}`\n", messageSpamPrevention ? "Yes" : "No");
 			var longMessageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Long_Message] != null;
+			description += String.Format("**Long Message Spam Prevention:** `{0}`\n", longMessageSpamPrevention ? "Yes" : "No");
 			var linkSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Link] != null;
+			description += String.Format("**Link Spam Prevention:** `{0}`\n", linkSpamPrevention ? "Yes" : "No");
 			var imageSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Image] != null;
+			description += String.Format("**Image Spam Prevention:** `{0}`\n", imageSpamPrevention ? "Yes" : "No");
 			var mentionSpamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[SpamType.Mention] != null;
+			description += String.Format("**Mention Spam Prevention:** `{0}`\n", mentionSpamPrevention ? "Yes" : "No");
+			var raidProtection = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Regular] != null;
+			description += String.Format("**Raid Protection:** `{0}`\n", raidProtection ? "Yes" : "No");
+			var rapidJoinProtection = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Rapid_Joins] != null;
+			description += String.Format("**Rapid Join Protection:** `{0}`\n", rapidJoinProtection ? "Yes" : "No");
+
+			return description;
+		}
+
+		public static string FormatCommandSettings(BotGuildInfo guildInfo)
+		{
+			var description = "";
 
 			var commandsDisabledOnUser = guildInfo.CommandOverrides.Users.Any();
-			var commandsDisabledOnRole = guildInfo.CommandOverrides.Roles.Any();
-			var commandsDisabledOnChannel = guildInfo.CommandOverrides.Channels.Any();
-
-			var welcomeMessage = guildInfo.WelcomeMessage != null;
-			var goodbyeMessage = guildInfo.GoodbyeMessage != null;
-			var prefix = !String.IsNullOrWhiteSpace(guildInfo.Prefix);
-			var listedInvite = guildInfo.ListedInvite != null;
-			var serverlog = guildInfo.ServerLog != null;
-			var modlog = guildInfo.ModLog != null;
-			var imagelog = guildInfo.ImageLog != null;
-
-			//Formatting the description
-			var description = "";
 			description += String.Format("**Commands Disabled On User:** `{0}`\n", commandsDisabledOnUser ? "Yes" : "No");
+			var commandsDisabledOnRole = guildInfo.CommandOverrides.Roles.Any();
 			description += String.Format("**Commands Disabled On Role:** `{0}`\n", commandsDisabledOnRole ? "Yes" : "No");
+			var commandsDisabledOnChannel = guildInfo.CommandOverrides.Channels.Any();
 			description += String.Format("**Commands Disabled On Channel:** `{0}`\n", commandsDisabledOnChannel ? "Yes" : "No");
-			description += String.Format("**Bot Users:** `{0}`\n", botUsers ? "Yes" : "No");
-			description += String.Format("**Self Assignable Roles:** `{0}`\n", selfAssignableGroups ? "Yes" : "No");
-			description += String.Format("**Reminds:** `{0}`\n", reminds ? "Yes" : "No");
-			description += String.Format("**Ignored Command Channels:** `{0}`\n", ignoredCommandChannels ? "Yes" : "No");
-			description += String.Format("**Ignored Log Channels:** `{0}`\n", ignoredLogChannels ? "Yes" : "No");
-			description += String.Format("**Image Only Channels:** `{0}`\n", imageOnlyChannels ? "Yes" : "No");
-			description += String.Format("**Log Actions:** `{0}`\n", logActions ? "Yes" : "No");
-			description += String.Format("**Banned Phrase Strings:** `{0}`\n", bannedPhraseStrings ? "Yes" : "No");
-			description += String.Format("**Banned Phrase Regex:** `{0}`\n", bannedPhraseRegex ? "Yes" : "No");
-			description += String.Format("**Banned Phrase Punishments:** `{0}`\n", bannedPhrasePunishments ? "Yes" : "No");
-			description += String.Format("**Message Spam Prevention:** `{0}`\n", messageSpamPrevention ? "Yes" : "No");
-			description += String.Format("**Long Message Spam Prevention:** `{0}`\n", longMessageSpamPrevention ? "Yes" : "No");
-			description += String.Format("**Link Spam Prevention:** `{0}`\n", linkSpamPrevention ? "Yes" : "No");
-			description += String.Format("**Image Spam Prevention:** `{0}`\n", imageSpamPrevention ? "Yes" : "No");
-			description += String.Format("**Mention Spam Prevention:** `{0}`\n", mentionSpamPrevention ? "Yes" : "No");
-			description += String.Format("**Welcome Message:** `{0}`\n", welcomeMessage ? "Yes" : "No");
-			description += String.Format("**Goodbye Message:** `{0}`\n", goodbyeMessage ? "Yes" : "No");
+
+			return description;
+		}
+
+		public static string FormatMiscSettings(BotGuildInfo guildInfo)
+		{
+			var description = "";
+
+			var prefix = !String.IsNullOrWhiteSpace(guildInfo.Prefix);
 			description += String.Format("**Prefix:** `{0}`\n", prefix ? "Yes" : "No");
-			description += String.Format("**Server Log:** `{0}`\n", serverlog ? "Yes" : "No");
-			description += String.Format("**Mod Log:** `{0}`\n", modlog ? "Yes" : "No");
-			description += String.Format("**Image Log:** `{0}`\n", imagelog ? "Yes" : "No");
+			var botUsers = guildInfo.BotUsers.Any();
+			description += String.Format("**Bot Users:** `{0}`\n", botUsers ? "Yes" : "No");
+			var selfAssignableGroups = guildInfo.SelfAssignableGroups.Any();
+			description += String.Format("**Self Assignable Roles:** `{0}`\n", selfAssignableGroups ? "Yes" : "No");
+			var reminds = guildInfo.Reminds.Any();
+			description += String.Format("**Reminds:** `{0}`\n", reminds ? "Yes" : "No");
+			var welcomeMessage = guildInfo.WelcomeMessage != null;
+			description += String.Format("**Welcome Message:** `{0}`\n", welcomeMessage ? "Yes" : "No");
+			var goodbyeMessage = guildInfo.GoodbyeMessage != null;
+			description += String.Format("**Goodbye Message:** `{0}`\n", goodbyeMessage ? "Yes" : "No");
+			var listedInvite = guildInfo.ListedInvite != null;
+			description += String.Format("**Listed Invite:** `{0}`\n", listedInvite ? "Yes" : "No");
 
 			return description;
 		}
@@ -3180,31 +3210,22 @@ namespace Advobot
 		#endregion
 
 		#region Uploads
-		public static async Task WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, List<string> textList, string fileName, string messageHeader)
-		{
-			//Messages in the format to upload
-			var text = ReplaceMarkdownChars(String.Join("\n-----\n", textList));
-			await WriteAndUploadTextFile(guild, channel, text, fileName, messageHeader);
-		}
-
-		public static async Task WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string fileMessage = null)
+		public static async Task<IMessage> WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string contentToSayOnTopOfMessage = null)
 		{
 			//Get the file path
 			var file = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION;
 			var path = GetServerFilePath(guild.Id, file);
 			if (path == null)
-				return;
-
-			//Double check that all markdown characters are removed
-			text = ReplaceMarkdownChars(text);
-			fileMessage = String.IsNullOrWhiteSpace(fileMessage) ? "" : String.Format("**{0}:**", fileMessage);
+				return null;
 
 			using (var writer = new StreamWriter(path))
 			{
-				writer.WriteLine(text);
+				writer.WriteLine(ReplaceMarkdownChars(text));
 			}
-			await channel.SendFileAsync(path, fileMessage);
+
+			var msg = await channel.SendFileAsync(path, String.IsNullOrWhiteSpace(contentToSayOnTopOfMessage) ? "" : String.Format("**{0}:**", contentToSayOnTopOfMessage));
 			File.Delete(path);
+			return msg;
 		}
 
 		public static async Task UploadFile(IMessageChannel channel, string path, string text = null)
@@ -3331,57 +3352,6 @@ namespace Advobot
 				await DeleteMessage(msg);
 				await SendChannelMessage(context, String.Format("Successfully changed the {0} icon.", user ? "bot" : "guild"));
 			}).Forget();
-		}
-
-		public static async Task SendPotentiallyBigEmbed(IGuild guild, IMessageChannel channel, EmbedBuilder embed, string input, string fileName)
-		{
-			//Send the embed
-			await SendEmbedMessage(channel, embed);
-
-			//If the description is the too long message then upload the string
-			if (embed.Description == Constants.HASTEBIN_ERROR)
-			{
-				//Send the file
-				await WriteAndUploadTextFile(guild, channel, input, fileName);
-			}
-		}
-
-		public static async Task SendPotentiallyBigMessage(IGuild guild, IMessageChannel channel, string error, string input, string fileName)
-		{
-			await SendChannelMessage(channel, error);
-
-			if (error == Constants.HASTEBIN_ERROR)
-			{
-				await WriteAndUploadTextFile(guild, channel, input, fileName);
-			}
-		}
-
-		public static bool TryToUploadToHastebin(string text, out string output)
-		{
-			//Check its length
-			if (text.Length > Constants.MAX_LENGTH_FOR_HASTEBIN)
-			{
-				output = Constants.HASTEBIN_ERROR;
-				return false;
-			}
-
-			//Regex for Getting the key out
-			var hasteKeyRegex = new Regex(@"{""key"":""(?<key>[a-z].*)""}", RegexOptions.Compiled);
-
-			//Upload the messages
-			using (var client = new WebClient())
-			{
-				try
-				{
-					output = String.Concat("https://hastebin.com/raw/", hasteKeyRegex.Match(client.UploadString("https://hastebin.com/documents", ReplaceMarkdownChars(text))).Groups["key"]);
-				}
-				catch (Exception e)
-				{
-					output = e.Message;
-					return false;
-				}
-			}
-			return true;
 		}
 
 		public static bool ValidateURL(string input)

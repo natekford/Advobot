@@ -106,8 +106,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("bump")]
-		[Alias("b")]
+		[Command("bumpguildlisting")]
+		[Alias("bump")]
 		[Usage("")]
 		[Summary("Bumps the invite on the guild.")]
 		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
@@ -227,14 +227,7 @@ namespace Advobot
 				});
 				var text = String.Format("{0}{1}{2}  {3}\n{4}", guildName, URL, memC, emo, String.Join("\n", formatted));
 
-				if (Actions.TryToUploadToHastebin(text, out string erl))
-				{
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guilds", erl));
-				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(erl));
-				}
+				await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "Guilds_");
 			}
 			else
 			{

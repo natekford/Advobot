@@ -13,7 +13,6 @@ namespace Advobot
 		public const string BOT_PREFIX = "&&";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string IGNORE_ERROR = "Cx";
-		public const string TEXT_HOST = "hastebin";
 		public const string DISCORD_INV = "https://discord.gg/xd";
 		public const string STREAM_URL = "https://www.twitch.tv/";
 		public const string REPO = "https://github.com/advorange/Advobot";
@@ -25,7 +24,6 @@ namespace Advobot
 		public const string FAKE_TTS = "\\" + ZERO_LENGTH_CHAR + "tts";
 		public const string BYPASS_STRING = "Bypass100";
 
-		public const string HASTEBIN_ERROR = "The length of the content is over 200,000 characters and will be sent in a few seconds as a text file.";
 		public const string ERROR_MESSAGE = "**ERROR:** ";
 		public const string ARGUMENTS_ERROR = "Invalid number of arguments.";
 		public const string USER_ERROR = "Invalid user.";
@@ -90,7 +88,7 @@ namespace Advobot
 		public const int MAX_FIELDS = 25;
 		public const int MAX_DESCRIPTION_LINES = 20;
 		public const int MAX_FIELD_LINES = 5;
-		public const int MAX_LENGTH_FOR_HASTEBIN = 200000;
+		public const int MAX_LENGTH_FOR_FIELD_VALUE = 250000;
 		public const int MAX_LENGTH_FOR_REGEX = 100;
 
 		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>()

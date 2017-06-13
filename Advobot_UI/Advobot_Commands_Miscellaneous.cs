@@ -417,7 +417,7 @@ namespace Advobot
 					count++.ToString().PadLeft(padLength, '0'), x.FormatUser(), time.ToShortTimeString(), time.ToShortDateString());
 			}));
 
-			await Actions.SendPotentiallyBigEmbed(Context.Guild, Context.Channel, Actions.MakeNewEmbed("Users", userMsg), userMsg, "User_Joins_");
+			await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel, userMsg, "User_Joins_");
 		}
 
 		[Command("getuserjoinedat")]
@@ -1022,6 +1022,14 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{
+			var a = new string('a', 2050);
+			var embed = Actions.MakeNewEmbed("test", a);
+			Actions.AddField(embed, "name", a);
+			Actions.AddField(embed, "2", "test");
+			Actions.AddField(embed, "asdf", a);
+
+			await Actions.SendEmbedMessage(Context.Channel, embed);
+
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
 	}
