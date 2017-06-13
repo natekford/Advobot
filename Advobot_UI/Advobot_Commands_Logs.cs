@@ -11,8 +11,8 @@ namespace Advobot
 	[Name("Logs")]
 	public class Advobot_Commands_Logs : ModuleBase
 	{
-		[Command("logchannel")]
-		[Alias("logc")]
+		[Command("modifylogchannels")]
+		[Alias("mlc")]
 		[Usage("[Server|Mod|Image] [Channel|Off]")]
 		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
 		[PermissionRequirement]
@@ -84,8 +84,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("logignore")]
-		[Alias("logi")]
+		[Command("modifyignoredlogchannels")]
+		[Alias("milc")]
 		[Usage("[Add|Remove] [Channel]/<Channel>/...")]
 		[Summary("Ignores all logging info that would have been gotten from a channel. Only works on text channels that you and the bot have the ability to see.")]
 		[PermissionRequirement]
@@ -178,8 +178,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, output + alreadyActionOutput);
 		}
 
-		[Command("logactions")]
-		[Alias("loga")]
+		[Command("modifylogactions")]
+		[Alias("mla")]
 		[Usage("<Add|Remove|Default> <All|Log Action/...>")]
 		[Summary("The server log will send messages when these events happen. `Default` overrides the current settings. Inputting nothing gives a list of the log actions.")]
 		[PermissionRequirement]

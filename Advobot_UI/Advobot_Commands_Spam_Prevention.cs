@@ -123,7 +123,7 @@ namespace Advobot
 
 		[Command("preventraid")]
 		[Alias("prr")]
-		[Usage("[Enable|Disable] <Number>")]
+		[Usage("[Enable|Disable|Setup] <Count:Number>")]
 		[Summary("Any users who joins from now on will get text muted. Once `preventraidspam` is turned off all the users who were muted will be unmuted. " +
 			"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
 		[PermissionRequirement]
@@ -133,16 +133,16 @@ namespace Advobot
 			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
 
 			//Split input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2), new[] { "count" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
 			var actionStr = returnedArgs.Arguments[0];
-			var numStr = returnedArgs.Arguments[1];
+			var countStr = returnedArgs.GetSpecifiedArg("count");
 
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable });
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
 			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
@@ -150,78 +150,91 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
-			var muteRole = await Actions.GetMuteRole(Context, guildInfo);
-			var antiRaid = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Regular];
 			switch (action)
 			{
+				case ActionType.Setup:
+				{
+					var count = 10;
+					if (!String.IsNullOrWhiteSpace(countStr))
+					{
+						if (!int.TryParse(countStr, out count))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid count supplied."));
+							return;
+						}
+						count = Math.Abs(count);
+					}
+
+					guildInfo.GuildSpamAndRaidPrevention.SetRaidPrevention(RaidType.Regular, PunishmentType.Role, -1, count);
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created a raid protection with a user count of `{0}`.", count));
+					break;
+				}
 				case ActionType.Enable:
 				{
-					//Make sure it's not already enabled
-					if ((antiRaid?.Enabled).HasValue && antiRaid.Enabled)
+					var antiRaid = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Regular];
+					if (antiRaid == null)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already enabled on the guild."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no raid protection to enable."));
 						return;
 					}
-
-					//Enable raid mode in the bot
-					guildInfo.GuildSpamAndRaidPrevention.SetRaidPrevention(RaidType.Regular, PunishmentType.Role, -1, -1);
-
-					//Check if there's a valid number
-					var actualMutes = 0;
-					if (int.TryParse(numStr, out int inputNum))
+					else if (antiRaid.Enabled)
 					{
-						var users = (await Context.Guild.GetUsersAsync()).OrderBy(x => x.JoinedAt).Reverse().ToList();
-						var numToGather = Math.Min(Math.Min(Math.Abs(inputNum), users.Count), 25);
-						await users.GetRange(0, numToGather).ForEachAsync(async x =>
-						{
-							await guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Regular].PunishUser(x);
-							++actualMutes;
-						});
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Raid protection is already enabled."));
+						return;
 					}
+					antiRaid.Enable();
 
-					//Send a success message
-					await Actions.SendChannelMessage(Context, String.Format("Successfully turned on raid prevention.{0}", actualMutes > 0 ? String.Format(" Muted `{0}` users.", actualMutes) : ""));
+					//Mute the newest joining users
+					var m = 0;
+					var users = (await Context.Guild.GetUsersAsync()).OrderBy(x => x.JoinedAt).Reverse().ToList();
+					await users.GetUpToAndIncludingMinNum(antiRaid.RequiredCount, users.Count, 25).ForEachAsync(async x =>
+					{
+						await antiRaid.PunishUser(x);
+						++m;
+					});
+
+					await Actions.SendChannelMessage(Context, String.Format("Successfully turned on raid prevention.{0}", m > 0 ? String.Format(" Muted `{0}` users.", m) : ""));
 					break;
 				}
 				case ActionType.Disable:
 				{
-					//Make sure it's enabled
-					if (!(antiRaid?.Enabled).HasValue || !antiRaid.Enabled)
+					var antiRaid = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Regular];
+					if (antiRaid == null)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Antiraid is already disabled on the guild."));
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no raid protection to disable."));
 						return;
 					}
-
-					//Disable raid mode in the bot
-					guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Regular].Disable();
-
-					//Total users muted
-					var ttl = antiRaid.PunishedUsers.Count();
-					var unm = 0;
+					else if (!antiRaid.Enabled)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Raid protection is already disabled."));
+						return;
+					}
+					antiRaid.Disable();
 
 					//Unmute every user who was muted
+					var ttl = antiRaid.PunishedUsers.Count();
+					var unm = 0;
+					var muteRole = await Actions.GetMuteRole(Context, guildInfo);
 					await antiRaid.PunishedUsers.ToList().ForEachAsync(async x =>
 					{
-						//Check to make sure they're still on the guild
-						if ((await Context.Guild.GetUserAsync(x.Id)).RoleIds.Contains(muteRole.Id))
+						var user = await Context.Guild.GetUserAsync(x.Id);
+						if (user != null && user.RoleIds.Contains(muteRole.Id))
 						{
-							//Remove the mute role
 							await x.RemoveRoleAsync(muteRole);
-							//Increment the unmuted int
 							++unm;
 						}
 					});
 
 					//Calculate how many left
 					var lft = ttl - unm;
-
-					//Send a success message
 					var first = unm == 1 ? "user has" : "users have";
 					var desc = String.Format("Successfully turned off raid prevention. `{0}` {1} been unmuted. `{2}` raider{3} left during raid prevention.", unm, first, lft, Actions.GetPlural(lft));
 					await Actions.SendChannelMessage(Context, desc);
 					break;
 				}
 			}
+
+			Actions.SaveGuildInfo(guildInfo);
 		}
 
 		[Command("preventrapidjoin")]
@@ -244,28 +257,6 @@ namespace Advobot
 			var countStr = returnedArgs.GetSpecifiedArg("count");
 			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
-			var count = 5;
-			if (!String.IsNullOrEmpty(countStr))
-			{
-				if (!int.TryParse(countStr, out count))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid user count supplied."));
-					return;
-				}
-				count = Math.Abs(count);
-			}
-
-			var time = 3;
-			if (!String.IsNullOrWhiteSpace(timeStr))
-			{
-				if (!int.TryParse(timeStr, out time))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
-					return;
-				}
-				time = Math.Abs(time);
-			}
-
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
 			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
@@ -278,6 +269,28 @@ namespace Advobot
 			{
 				case ActionType.Setup:
 				{
+					var count = 5;
+					if (!String.IsNullOrWhiteSpace(countStr))
+					{
+						if (!int.TryParse(countStr, out count))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid user count supplied."));
+							return;
+						}
+						count = Math.Abs(count);
+					}
+
+					var time = 3;
+					if (!String.IsNullOrWhiteSpace(timeStr))
+					{
+						if (!int.TryParse(timeStr, out time))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
+							return;
+						}
+						time = Math.Abs(time);
+					}
+
 					guildInfo.GuildSpamAndRaidPrevention.SetRaidPrevention(RaidType.Rapid_Joins, PunishmentType.Role, time, count);
 					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created a rapid join protection with a time period of `{0}` and a user count of `{1}`.", time, count));
 					break;
@@ -288,6 +301,11 @@ namespace Advobot
 					if (antiJoin == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no rapid join protection to enable."));
+						return;
+					}
+					else if (antiJoin.Enabled)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Rapid join protection is already enabled."));
 						return;
 					}
 
@@ -303,13 +321,19 @@ namespace Advobot
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no rapid join protection to disable."));
 						return;
 					}
+					else if (!antiJoin.Enabled)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Rapid join protection is already disabled."));
+						return;
+					}
 
 					antiJoin.Disable();
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled the rapid join protection on this guild.");
 					break;
 				}
 			}
-			//TODO: Make this create an anti rapid join class
+
+			Actions.SaveGuildInfo(guildInfo);
 		}
 	}
 }

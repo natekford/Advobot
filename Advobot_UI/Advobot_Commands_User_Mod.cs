@@ -390,27 +390,21 @@ namespace Advobot
 			var daysStr = returnedArgs.GetSpecifiedArg("days");
 			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
-			var pruneDays = 0;
+			var pruneDays = 1;
 			if (!String.IsNullOrWhiteSpace(daysStr))
 			{
-				if (!int.TryParse(daysStr, out pruneDays))
+				if (int.TryParse(daysStr, out pruneDays) && (pruneDays > 7 || pruneDays < 0))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for days was not a number."));
-					return;
-				}
-				else if (pruneDays > 7 || pruneDays < 0)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for days was not a valid number."));
-					return;
+					pruneDays = 1;
 				}
 			}
+
 			var timeForBan = 0;
 			if (!String.IsNullOrWhiteSpace(timeStr))
 			{
-				if (!int.TryParse(timeStr, out timeForBan))
+				if (int.TryParse(timeStr, out timeForBan) && (timeForBan < 0))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for time was not a number."));
-					return;
+					timeForBan = 0;
 				}
 			}
 
@@ -456,15 +450,15 @@ namespace Advobot
 			var response = String.Format("Successfully banned `{0}`.", user.FormatUser(banID));
 			if (pruneDays != 0)
 			{
-				response += String.Format("Also deleted `{0}` day{1} worth of messages. ", pruneDays, Actions.GetPlural(pruneDays));
+				response += String.Format(" Also deleted `{0}` day{1} worth of messages.", pruneDays, Actions.GetPlural(pruneDays));
 			}
 			if (timeForBan != 0)
 			{
-				response += String.Format("The user will be unbanned in `{0}` minute{1}. ", timeForBan, Actions.GetPlural(timeForBan));
+				response += String.Format(" The user will be unbanned in `{0}` minute{1}.", timeForBan, Actions.GetPlural(timeForBan));
 			}
 			if (!String.IsNullOrWhiteSpace(reasonStr))
 			{
-				response += String.Format("The given reason for banning is: `{0}`.", reasonStr);
+				response += String.Format(" The given reason for banning is: `{0}`.", reasonStr);
 			}
 			await Actions.SendChannelMessage(Context, response);
 		}
@@ -540,8 +534,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully kicked `{0}`.", user.FormatUser()));
 		}
 
-		[Command("currentbanlist")]
-		[Alias("cbl")]
+		[Command("displaycurrentbanlist")]
+		[Alias("dcbl")]
 		[Usage("")]
 		[Summary("Displays all the bans on the guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
@@ -641,8 +635,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, response + ".");
 		}
 
-		[Command("slowmode")]
-		[Alias("sm")]
+		[Command("modifyslowmode")]
+		[Alias("msm")]
 		[Usage("<\"Roles:.../.../\"> <Messages:1 to 5> <Time:1 to 30> <Guild:Yes> | [Off] [Guild|Channel|All]")]
 		[Summary("The first argument is the roles that get ignored by slowmode, the second is the amount of messages, and the third is the time period. Default is: none, 1, 5." +
 			"Bots are unaffected by slowmode. Any users who are immune due to roles stay immune even if they lose said role until a new slowmode is started.")]
@@ -788,6 +782,7 @@ namespace Advobot
 				roleNames.Any() ? String.Format("\nImmune roles: `{0}`.", String.Join("`, `", roleNames)) : ""));
 		}
 
+		//TODO: Split this up into separate commands
 		[Command("forallwithrole")]
 		[Alias("fawr")]
 		[Usage("[Give_Role|GR|Take_Role|TR|Give_Nickname|GNN|Take_Nickname|TNN] [\"Role\"] <\"Role\"|\"Nickname\"> <" + Constants.BYPASS_STRING + ">")]

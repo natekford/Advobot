@@ -1644,6 +1644,54 @@ namespace Advobot
 		}
 		#endregion
 
+		#region Emojis
+		public static ReturnedDiscordObject<Emote> GetEmoji(ICommandContext context, bool usage, string input)
+		{
+			Emote emote = null;
+			if (!String.IsNullOrWhiteSpace(input))
+			{
+				if (Emote.TryParse(input, out emote))
+				{
+					return new ReturnedDiscordObject<Emote>(emote, FailureReason.Not_Failure);
+				}
+				else if (ulong.TryParse(input, out ulong emoteID))
+				{
+					emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == emoteID);
+				}
+				else
+				{
+					var emotes = context.Guild.Emotes.Where(x => CaseInsEquals(x.Name, input));
+					if (emotes.Count() == 1)
+					{
+						emote = emotes.First();
+					}
+					else if (emotes.Count() > 1)
+					{
+						return new ReturnedDiscordObject<Emote>(emote, FailureReason.Too_Many);
+					}
+				}
+			}
+
+			if (emote == null)
+			{
+				if (usage)
+				{
+					var emoteMentions = context.Message.Tags.Where(x => x.Type == TagType.Emoji);
+					if (emoteMentions.Count() == 1)
+					{
+						emote = emoteMentions.First().Value as Emote;
+					}
+					else if (emoteMentions.Count() > 1)
+					{
+						return new ReturnedDiscordObject<Emote>(emote, FailureReason.Too_Many);
+					}
+				}
+			}
+
+			return new ReturnedDiscordObject<Emote>(emote, FailureReason.Not_Failure);
+		}
+		#endregion
+
 		#region Messages
 		public static async Task<EmbedBuilder> FormatSettingInfo(ICommandContext context, BotGuildInfo guildInfo, SettingOnGuild setting, string targetStr, string extraStr)
 		{
@@ -1990,31 +2038,6 @@ namespace Advobot
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
 
-		public static async Task MakeAndDeleteSecondaryMessage(ICommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
-		{
-			await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, secondStr, time);
-		}
-		
-		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, Int32 time = Constants.WAIT_TIME)
-		{
-			var secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
-			var messages = new List<IMessage> { secondMsg, message };
-
-			if (message == null)
-			{
-				RemoveCommandMessage(secondMsg, time);
-			}
-			else
-			{
-				RemoveCommandMessages(messages, time);
-			}
-		}
-
-		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, string secondStr, Int32 time = Constants.WAIT_TIME)
-		{
-			await MakeAndDeleteSecondaryMessage(channel, null, secondStr, time);
-		}
-
 		public static async Task<int> RemoveMessages(IMessageChannel channel, int requestCount)
 		{
 			var guildChannel = channel as ITextChannel;
@@ -2059,7 +2082,7 @@ namespace Advobot
 			}
 			return deletedCount;
 		}
-		
+
 		public static async Task<int> RemoveMessages(IMessageChannel channel, IUser user, int requestCount)
 		{
 			var guildChannel = channel as ITextChannel;
@@ -2115,6 +2138,31 @@ namespace Advobot
 				requestCount -= msgAmt;
 			}
 			return deletedCount;
+		}
+
+		public static async Task MakeAndDeleteSecondaryMessage(ICommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
+		{
+			await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, secondStr, time);
+		}
+		
+		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, Int32 time = Constants.WAIT_TIME)
+		{
+			var secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
+			var messages = new List<IMessage> { secondMsg, message };
+
+			if (message == null)
+			{
+				RemoveCommandMessage(secondMsg, time);
+			}
+			else
+			{
+				RemoveCommandMessages(messages, time);
+			}
+		}
+
+		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, string secondStr, Int32 time = Constants.WAIT_TIME)
+		{
+			await MakeAndDeleteSecondaryMessage(channel, null, secondStr, time);
 		}
 
 		public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages)
@@ -2508,7 +2556,7 @@ namespace Advobot
 
 			//Make the description
 			var IDstr = String.Format("**ID:** `{0}`", guildUser.Id);
-			var nicknameStr = String.Format("**Nickname:** `{0}`", String.IsNullOrWhiteSpace(guildUser.Nickname) ? "NO NICKNAME" : guildUser.Nickname);
+			var nicknameStr = String.Format("**Nickname:** `{0}`", String.IsNullOrWhiteSpace(guildUser.Nickname) ? "NO NICKNAME" : EscapeMarkdown(guildUser.Nickname));
 			var createdStr = String.Format("\n**Created:** `{0} {1}, {2} at {3}`",
 				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(created.Month),
 				created.Day,
@@ -2520,7 +2568,7 @@ namespace Advobot
 				joined.Year,
 				joined.ToLongTimeString(),
 				users.IndexOf(guildUser) + 1);
-			var gameStr = FormatGameStr(guildUser);
+			var gameStr = EscapeMarkdown(FormatGameStr(guildUser));
 			var statusStr = String.Format("**Online status:** `{0}`", guildUser.Status);
 			var description = String.Join("\n", new[] { IDstr, nicknameStr, createdStr, joinedStr, gameStr, statusStr });
 
@@ -2787,14 +2835,14 @@ namespace Advobot
 			var f = Variables.LoggedFiles;
 			var leftSpacing = new[] { j, l, u, e, d, i, g, f }.Max().ToString().Length;
 
-			var jTitle = "**Joins:**";
-			var lTitle = "**Leaves:**";
-			var uTitle = "**User Changes:**";
-			var eTitle = "**Edits:**";
-			var dTitle = "**Deletes:**";
-			var iTitle = "**Images:**";
-			var gTitle = "**Gifs:**";
-			var fTitle = "**Files:**";
+			const string jTitle = "**Joins:**";
+			const string lTitle = "**Leaves:**";
+			const string uTitle = "**User Changes:**";
+			const string eTitle = "**Edits:**";
+			const string dTitle = "**Deletes:**";
+			const string iTitle = "**Images:**";
+			const string gTitle = "**Gifs:**";
+			const string fTitle = "**Files:**";
 			var rightSpacing = new[] { jTitle, lTitle, uTitle, eTitle, dTitle, iTitle, gTitle, fTitle }.Max(x => x.Length) + 1;
 
 			var joins = FormatStringsWithLength(jTitle, j, rightSpacing, leftSpacing);
@@ -3512,6 +3560,28 @@ namespace Advobot
 				return false;
 			return true;
 		}
+
+		public static bool VerifyServerLoggingAction(SocketGuildUser user, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
+		{
+			return VerifyServerLoggingAction(user.Guild, logAction, out verifLoggingAction);
+		}
+
+		public static bool VerifyServerLoggingAction(ISocketMessageChannel channel, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
+		{
+			return VerifyServerLoggingAction(GetGuild(channel) as SocketGuild, logAction, out verifLoggingAction);
+		}
+
+		public static bool VerifyServerLoggingAction(SocketGuild guild, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
+		{
+			verifLoggingAction = new VerifiedLoggingAction(null, null, null);
+			if (Variables.Pause)
+				return false;
+			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+				return false;
+			var logChannel = guildInfo.ServerLog;
+			verifLoggingAction = new VerifiedLoggingAction(guild, guildInfo, logChannel);
+			return logChannel != null && guildInfo.LogActions.Contains(logAction);
+		}
 		#endregion
 
 		#region Preferences/Settings
@@ -3644,7 +3714,7 @@ namespace Advobot
 				global.SpamPreventionUsers.Add(spamUser);
 			}
 
-			//TODO: Get this to work
+			//TODO: Make sure this works
 			var spam = false;
 			foreach (var kvp in global.SpamPreventions)
 			{
@@ -3670,7 +3740,6 @@ namespace Advobot
 					}
 					case SpamType.Link:
 					{
-						//TODO: have this get non absolute uris at some point
 						var linkCount = msg.Content?.Split(' ').Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute));
 						shouldAdd = linkCount >= spamPrev.RequiredSpamPerMessage;
 						break;
@@ -3702,7 +3771,11 @@ namespace Advobot
 
 				if (shouldAdd)
 				{
-					userSpamList.ThreadSafeAdd(new BasicTimeInterface(msg.CreatedAt.UtcDateTime));
+					//Ticks should be small enough that this will not allow duplicates of the same message, but can still allow rapidly spammed messages
+					if (!userSpamList.Any(x => x.GetTime().Ticks == msg.CreatedAt.UtcTicks))
+					{
+						userSpamList.ThreadSafeAdd(new BasicTimeInterface(msg.CreatedAt.UtcDateTime));
+					}
 				}
 
 				if (spamUser.CheckIfAllowedToPunish(spamPrev, msg))
@@ -4584,40 +4657,6 @@ namespace Advobot
 		#endregion
 
 		#region Miscellaneous
-		public static async Task<GuildNotification> MakeGuildNotification(ICommandContext context, string input)
-		{
-			//Get the variables out
-			var inputArray = SplitByCharExceptInQuotes(input, ' ');
-			var channelStr = inputArray[0];
-			var content = GetVariable(inputArray, "content");
-			var title = GetVariable(inputArray, "title");
-			var desc = GetVariable(inputArray, "desc");
-			var thumb = GetVariable(inputArray, "thumb");
-			thumb = ValidateURL(thumb) ? thumb : null;
-
-			//Check if everything is null
-			var contentB = String.IsNullOrWhiteSpace(content);
-			var titleB = String.IsNullOrWhiteSpace(title);
-			var descB = String.IsNullOrWhiteSpace(desc);
-			var thumbB = String.IsNullOrWhiteSpace(thumb);
-			if (contentB && titleB && descB && thumbB)
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("One of the variables has to be given."));
-				return null;
-			}
-
-			//Make sure the channel mention is valid
-			var returnedChannel = GetChannel(context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Text }, true, channelStr);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
-			{
-				await HandleObjectGettingErrors(context, returnedChannel);
-				return null;
-			}
-			var channel = returnedChannel.Object as ITextChannel;
-
-			return new GuildNotification(content, title, desc, thumb, context.Guild.Id, channel.Id);
-		}
-
 		public static async Task UpdateGame()
 		{
 			var botInfo = Variables.BotInfo;
@@ -4707,26 +4746,9 @@ namespace Advobot
 			Environment.Exit(0);
 		}
 
-		public static bool VerifyServerLoggingAction(SocketGuildUser user, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
+		public static string EscapeMarkdown(string str)
 		{
-			return VerifyServerLoggingAction(user.Guild, logAction, out verifLoggingAction);
-		}
-
-		public static bool VerifyServerLoggingAction(ISocketMessageChannel channel, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
-		{
-			return VerifyServerLoggingAction(GetGuild(channel) as SocketGuild, logAction, out verifLoggingAction);
-		}
-
-		public static bool VerifyServerLoggingAction(SocketGuild guild, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
-		{
-			verifLoggingAction = new VerifiedLoggingAction(null, null, null);
-			if (Variables.Pause)
-				return false;
-			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-				return false;
-			var logChannel = guildInfo.ServerLog;
-			verifLoggingAction = new VerifiedLoggingAction(guild, guildInfo, logChannel);
-			return logChannel != null && guildInfo.LogActions.Contains(logAction);
+			return str.Replace("*", "\\*").Replace("`", "\\`").Replace("_", "\\_");
 		}
 		#endregion
 	}
@@ -4739,6 +4761,24 @@ namespace Advobot
 			{
 				await func(value);
 			}
+		}
+
+		public static async void Forget(this Task task)
+		{
+			try
+			{
+				await task.ConfigureAwait(false);
+			}
+			catch (Exception e)
+			{
+				Actions.ExceptionToConsole(e);
+			}
+		}
+
+		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
+		{
+			var len = Math.Max(0, Math.Min(list.Count, Actions.GetMinFromMultipleNumbers(x)));
+			return list.GetRange(0, len);
 		}
 
 		public static void ThreadSafeAdd<T>(this List<T> list, T obj)
@@ -4765,18 +4805,12 @@ namespace Advobot
 			}
 		}
 
-		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
-		{
-			var len = Math.Max(0, Math.Min(list.Count, Actions.GetMinFromMultipleNumbers(x)));
-			return list.GetRange(0, len);
-		}
-
 		public static string FormatUser(this IUser user, ulong? userID = 0)
 		{
 			user = user ?? Variables.Client.GetUser((ulong)userID);
 			if (user != null)
 			{
-				return String.Format("'{0}#{1}' ({2})", user.Username, user.Discriminator, user.Id);
+				return String.Format("'{0}#{1}' ({2})", Actions.EscapeMarkdown(user.Username), user.Discriminator, user.Id);
 			}
 			else
 			{
@@ -4788,7 +4822,7 @@ namespace Advobot
 		{
 			if (role != null)
 			{
-				return String.Format("'{0}' ({1})", role.Name, role.Id);
+				return String.Format("'{0}' ({1})", Actions.EscapeMarkdown(role.Name), role.Id);
 			}
 			else
 			{
@@ -4800,7 +4834,7 @@ namespace Advobot
 		{
 			if (channel != null)
 			{
-				return String.Format("'{0}' ({1}) ({2})", channel.Name, Actions.GetChannelType(channel), channel.Id);
+				return String.Format("'{0}' ({1}) ({2})", Actions.EscapeMarkdown(channel.Name), Actions.GetChannelType(channel), channel.Id);
 			}
 			else
 			{
@@ -4813,23 +4847,11 @@ namespace Advobot
 			guild = guild ?? Variables.Client.GetGuild((ulong)guildID);
 			if (guild != null)
 			{
-				return String.Format("'{0}' ({1})", guild.Name, guild.Id);
+				return String.Format("'{0}' ({1})", Actions.EscapeMarkdown(guild.Name), guild.Id);
 			}
 			else
 			{
 				return String.Format("Irretrievable Guild ({0})", guildID); 
-			}
-		}
-
-		public static async void Forget(this Task task)
-		{
-			try
-			{
-				await task.ConfigureAwait(false);
-			}
-			catch (Exception e)
-			{
-				Actions.ExceptionToConsole(e);
 			}
 		}
 

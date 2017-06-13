@@ -12,8 +12,8 @@ namespace Advobot
 	[Name("Ban_Phrases")]
 	public class Advobot_Commands_Ban_Phrases : ModuleBase
 	{
-		[Command("banregexeval")]
-		[Alias("bre")]
+		[Command("evaluatebannedregex")]
+		[Alias("ebr")]
 		[Usage("[\"Regex\"] [\"Test Message\"]")]
 		[Summary("Evaluates a regex (case is ignored). The regex are also restricted to a 1,000,000 tick timeout. Once a regex receives a good score then it can be used within the bot as a banned phrase.")]
 		[PermissionRequirement]
@@ -81,8 +81,8 @@ namespace Advobot
 			await Actions.SendEmbedMessage(Context.Channel, embed);
 		}
 
-		[Command("banregexmodify")]
-		[Alias("brm")]
+		[Command("modifybannedregex")]
+		[Alias("mbr")]
 		[Usage("[Add|Remove] <Number>")]
 		[Summary("Adds/removes the picked regex to/from the ban list. If no number is input it lists the possible regex.")]
 		[PermissionRequirement]
@@ -193,8 +193,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the regex `{1}`.", responseStr, regex));
 		}
 
-		[Command("banstringsmodify")]
-		[Alias("bsm")]
+		[Command("modifybannedstrings")]
+		[Alias("mbs")]
 		[Usage("[Add] [\"Phrase\"/...] | [Remove] [\"Phrase\"/...|Position:Number/...]")]
 		[Summary("Adds/removes the given string to/from the ban list.")]
 		[PermissionRequirement]
@@ -266,8 +266,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
 		}
 
-		[Command("banphraseschangetype")]
-		[Alias("bpct")]
+		[Command("changepunishmenttypeofbannedphrase")]
+		[Alias("cptofbp")]
 		[Usage("[\"Phrase\"|Position:int] [Nothing|Role|Kick|Ban] <Regex>")]
 		[Summary("Changes the punishment type of the input string or regex to the given type.")]
 		[PermissionRequirement]
@@ -356,8 +356,8 @@ namespace Advobot
 				(regex ? "regex" : "string"), phraseStr, Enum.GetName(typeof(PunishmentType), type)));
 		}
 
-		[Command("banphrasespunishmodify")]
-		[Alias("bppm")]
+		[Command("modifybannedphrasespunishment")]
+		[Alias("mbpp")]
 		[Usage("[Add] [Position:Number] [Punishment:\"Role Name\"|Kick|Ban] <Time:Number> | [Remove] [Position:Number]")]
 		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to the total of its type. Time is in minutes and only applies to roles.")]
 		[PermissionRequirement]
@@ -518,8 +518,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", add ? "added" : "removed", successMsg, timeMsg));
 		}
 
-		[Command("banphrasesuser")]
-		[Alias("bpu")]
+		[Command("modifybannedphraseuser")]
+		[Alias("mbpu")]
 		[Usage("[User] [Current|Clear]")]
 		[Summary("Shows or removes all infraction points a user has on the guild.")]
 		[PermissionRequirement]

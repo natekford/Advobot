@@ -11,8 +11,8 @@ namespace Advobot
 	[Name("Self_Roles")]
 	public class Advobot_Commands_Self_Roles : ModuleBase
 	{
-		[Command("selfrolesmodify")]
-		[Alias("srm")]
+		[Command("modifyselfroles")]
+		[Alias("msr")]
 		[Usage("[Help] | [Create|Delete] [Group:Number] | [Add|Remove] [Role/...] [Group:Number]")]
 		[Summary("Adds a role to the self assignable list. Roles can be grouped together which means only one role in the group can be self assigned at a time. There is an extra help command too.")]
 		[PermissionRequirement]
@@ -196,8 +196,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, responseMessage + ".");
 		}
 
-		[Command("selfrolesassign")]
-		[Alias("sra")]
+		[Command("assignselfrole")]
+		[Alias("asr")]
 		[Usage("[Role]")]
 		[Summary("Gives or takes a role depending on if the user has it already. Removes all other roles in the same group unless the group is `0`.")]
 		[DefaultEnabled(false)]
@@ -255,8 +255,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave you `{0}`{1}.", role.Name, removedRoles));
 		}
 
-		[Command("selfroles")]
-		[Alias("srs")]
+		[Command("displayselfroles")]
+		[Alias("dsr")]
 		[Usage("<Number>")]
 		[Summary("Shows the current group numbers that exists on the guild. If a number is input then it shows the roles in that group.")]
 		[DefaultEnabled(false)]
@@ -293,7 +293,7 @@ namespace Advobot
 				var embed = Actions.MakeNewEmbed(String.Format("Self Roles Group {0}", groupNumber));
 				if (group.Roles.Any())
 				{
-					embed.Description = String.Format("`{0}`", String.Join("`, `", group.Roles.Select(x => x.Role.Name)));
+					embed.Description = String.Format("`{0}`", String.Join("`, `", group.Roles.Select(x => x.Role?.Name ?? "null")));
 				}
 				else
 				{

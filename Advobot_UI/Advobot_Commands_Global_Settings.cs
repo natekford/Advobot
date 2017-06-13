@@ -12,8 +12,8 @@ namespace Advobot
 	[Name("Global_Settings")]
 	public class Advobot_Commands_Administration : ModuleBase
 	{
-		[Command("globalsettings")]
-		[Alias("gls")]
+		[Command("displayglobalsettings")]
+		[Alias("dgls")]
 		[Usage("<All|Setting Name>")]
 		[Summary("Displays global settings. Inputting nothing gives a list of the setting names.")]
 		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
@@ -51,8 +51,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("globalsettingsreset")]
-		[Alias("glsr")]
+		[Command("resetglobalsettings")]
+		[Alias("rgls")]
 		[Usage("")]
 		[Summary("Resets all the global settings on the bot.")]
 		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
@@ -74,8 +74,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("globalsettingsmodify")]
-		[Alias("glsm")]
+		[Command("modifyglobalsettings")]
+		[Alias("mgls")]
 		[Summary("Modify the given setting on the bot. Inputting help as the second argument gives information about what arguments that setting takes.")]
 		[Usage("[Setting Name] [Help|Clear|New Value]")]
 		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
@@ -312,8 +312,8 @@ namespace Advobot
 			await Actions.UpdateGame();
 		}
 
-		[Command("boticon")]
-		[Alias("bi")]
+		[Command("changeboticon")]
+		[Alias("cbi")]
 		[Usage("[Attached Image|Embedded Image|Remove]")]
 		[Summary("Changes the bot's icon to the given image. Typing `" + Constants.BOT_PREFIX + "bi remove` will remove the icon. The image must be smaller than 2.5MB.")]
 		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
@@ -323,8 +323,8 @@ namespace Advobot
 			await Actions.SetPicture(Context, input, true);
 		}
 
-		[Command("botname")]
-		[Alias("bn")]
+		[Command("changebotname")]
+		[Alias("cbn")]
 		[Usage("[New Name]")]
 		[Summary("Changes the bot's name to the given name.")]
 		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]

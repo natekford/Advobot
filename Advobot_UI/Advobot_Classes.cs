@@ -343,6 +343,11 @@ namespace Advobot
 			ImageLog = Guild.GetChannel(ImageLogID) as ITextChannel;
 			MuteRole = Guild.GetRole(MuteRoleID);
 
+			foreach (var group in SelfAssignableGroups)
+			{
+				group.Roles.RemoveAll(x => x == null);
+			}
+
 			if (ListedInvite != null)
 			{
 				Variables.InviteList.ThreadSafeAdd(ListedInvite);

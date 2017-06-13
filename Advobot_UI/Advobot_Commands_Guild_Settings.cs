@@ -14,7 +14,7 @@ namespace Advobot
 	[Name("Guild_Settings")]
 	public class Advobot_Commands_Guild_Settings : ModuleBase
 	{
-		[Command("guildleave")]
+		[Command("leaveguild")]
 		[Usage("<Guild ID>")]
 		[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
 		[OtherRequirement((1U << (int)Precondition.Guild_Owner) | (1U << (int)Precondition.Bot_Owner))]
@@ -61,8 +61,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("guildprefix")]
-		[Alias("gdp")]
+		[Command("modifyguildprefix")]
+		[Alias("mgdp")]
 		[Usage("[New Prefix|Clear]")]
 		[Summary("Makes the guild use the given prefix from now on.")]
 		[OtherRequirement(1U << (int)Precondition.Guild_Owner)]
@@ -97,8 +97,8 @@ namespace Advobot
 			Actions.SaveGuildInfo(guildInfo);
 		}
 
-		[Command("guildsettings")]
-		[Alias("gds")]
+		[Command("displayguildsettings")]
+		[Alias("dgds")]
 		[Usage("<All|Setting Name> <Target:Channel|Role|User> <Extra:\"Additional Info\"")]
 		[Summary("Displays guild settings. Inputting nothing gives a list of the setting names.")]
 		[PermissionRequirement]
@@ -138,9 +138,9 @@ namespace Advobot
 			}
 		}
 
-		[Command("guildfileactions")]
-		[Alias("gdfa")]
-		[Usage("")]
+		[Command("modifyguildfile")]
+		[Alias("mgdf")]
+		[Usage("[Reload|Resave|Reset]")]
 		[Summary("Reload, resave, or reset the guild's settings on the bot. (Mainly for debug purposes when the JSON is edited manually)")]
 		[OtherRequirement(1U << (int)Precondition.Guild_Owner)]
 		[DefaultEnabled(true)]
@@ -181,10 +181,10 @@ namespace Advobot
 			}
 		}
 
-		[Command("comconfig")]
-		[Alias("ccon")]
+		[Command("configurecommands")]
+		[Alias("concom", "cncm")]
 		[Usage("[Enable|Disable] [Command Name|Category Name|All]")]
-		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `comconfig`, `comconfigmodify`, or `help`.")]
+		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `configurecommands` or `help`.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
 		public async Task CommandConfig([Remainder] string input)
@@ -304,8 +304,8 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, desc);
 		}
 
-		[Command("comignore")]
-		[Alias("cign")]
+		[Command("modifyignoredcommandchannels")]
+		[Alias("micc")]
 		[Usage("[Add|Remove] [Channel] <Command Name|Category Name>")]
 		[Summary("The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.")]
 		[PermissionRequirement]
@@ -444,11 +444,11 @@ namespace Advobot
 			}
 		}
 
-		[Command("botusersmodify")]
-		[Alias("bum")]
+		[Command("modifybotusers")]
+		[Alias("mbu")]
 		[Usage("[Show|Add|Remove] [User] [Permission/...]")]
-		[Summary("Gives a user permissions in the bot but not on Discord itself. Type `" + Constants.BOT_PREFIX + "bum [Show]` to see the available permissions. " +
-			"Type `" + Constants.BOT_PREFIX + "bum [Show] [User]` to see the permissions of that user.")]
+		[Summary("Gives a user permissions in the bot but not on Discord itself. Type `" + Constants.BOT_PREFIX + "mbu [Show]` to see the available permissions. " +
+			"Type `" + Constants.BOT_PREFIX + "mbu [Show] [User]` to see the permissions of that user.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
 		public async Task BotUsersModify([Optional, Remainder] string input)
@@ -598,8 +598,8 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {0}: `{1}`.", outputStr, String.Join("`, `", permissions.Select(x => x.Name))));
 		}
 
-		[Command("remindsmodify")]
-		[Alias("remm")]
+		[Command("modifyreminds")]
+		[Alias("mrem")]
 		[Usage("[Add|Remove] [\"Name\"] <\"Text\">")]
 		[Summary("Adds the given text to a list that can be called through the `remind` command.")]
 		[PermissionRequirement]
@@ -674,8 +674,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following remind: `{1}`.", add ? "added" : "removed", nameStr));
 		}
 
-		[Command("reminds")]
-		[Alias("rem", "r")]
+		[Command("sayremind")]
+		[Alias("sr")]
 		[Usage("<Name>")]
 		[Summary("Shows the content for the given remind. If null then shows the list of the current reminds.")]
 		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
@@ -732,39 +732,76 @@ namespace Advobot
 			}
 		}
 
-		[Command("welcomemessage")]
-		[Alias("wm")]
-		[Usage("[#Channel] <\"Content:string\"> <\"Title:string\"> <\"Desc:string\"> <\"Thumb:string\">")]
-		[Summary("Displays a welcome message with the given content whenever a user joins. `{User}` will be replaced with the formatted user.  `{UserMention}` will be replaced with a mention of the joining user.")]
+		[Command("setguildnotif")]
+		[Alias("sgn")]
+		[Usage("[Welcome|Goodbye] [#Channel] <\"Content:string\"> <\"Title:string\"> <\"Desc:string\"> <\"Thumb:string\">")]
+		[Summary("The bot send a message to the given channel when the self explantory event happens. `{User}` will be replaced with the formatted user.  `{UserMention}` will be replaced with a mention of the joining user.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
-		public async Task WelcomeMessage([Remainder] string input)
+		public async Task SetGuildNotif([Remainder] string input)
 		{
 			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
 
-			var welcomeMessage = await Actions.MakeGuildNotification(Context, input);
-			if (welcomeMessage == null)
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 6), new[] { "content", "title", "desc", "thumb" });
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
+			}
+			var typeStr = returnedArgs.Arguments[0];
+			var chanStr = returnedArgs.Arguments[1];
+			var contStr = returnedArgs.GetSpecifiedArg("content");
+			var titleStr = returnedArgs.GetSpecifiedArg("title");
+			var descStr = returnedArgs.GetSpecifiedArg("desc");
+			var thumbStr = returnedArgs.GetSpecifiedArg("thumb");
+			thumbStr = Actions.ValidateURL(thumbStr) ? thumbStr : null;
 
-			guildInfo.SetWelcomeMessage(welcomeMessage);
-			Actions.SaveGuildInfo(guildInfo);
-		}
-
-		[Command("goodbyemessage")]
-		[Alias("gm")]
-		[Usage("[Channel] <\"Content:string\"> <\"Title:string\"> <\"Desc:string\"> <\"Thumb:string\">")]
-		[Summary("Displays a goodbye message with the given content whenever a user leaves. `{User}` will be replaced with the formatted user.  `{UserMention}` will be replaced with a mention of the joining user.")]
-		[PermissionRequirement]
-		[DefaultEnabled(false)]
-		public async Task GoodbyeMessage([Remainder] string input)
-		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
-
-			var goodbyeMessage = await Actions.MakeGuildNotification(Context, input);
-			if (goodbyeMessage == null)
+			//Check if everything is null
+			var contentB = String.IsNullOrWhiteSpace(contStr);
+			var titleB = String.IsNullOrWhiteSpace(titleStr);
+			var descB = String.IsNullOrWhiteSpace(descStr);
+			var thumbB = String.IsNullOrWhiteSpace(thumbStr);
+			if (contentB && titleB && descB && thumbB)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("One of the variables has to be given."));
 				return;
+			}
 
-			guildInfo.SetGoodbyeMessage(goodbyeMessage);
+			//Make sure the target type is valid
+			var returnedType = Actions.GetType(typeStr, new[] { GuildNotifications.Welcome, GuildNotifications.Goodbye });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			{
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				return;
+			}
+			var type = returnedType.Type;
+
+			//Make sure the channel mention is valid
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Text }, true, chanStr);
+			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			{
+				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
+				return;
+			}
+			var channel = returnedChannel.Object as ITextChannel;
+
+			var guildNotif = new GuildNotification(contStr, titleStr, descStr, thumbStr, Context.Guild.Id, channel.Id);
+			switch (type)
+			{
+				case GuildNotifications.Welcome:
+				{
+					guildInfo.SetWelcomeMessage(guildNotif);
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the welcome message.");
+					break;
+				}
+				case GuildNotifications.Goodbye:
+				{
+					guildInfo.SetGoodbyeMessage(guildNotif);
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the goodbye message.");
+					break;
+				}
+			}
+
 			Actions.SaveGuildInfo(guildInfo);
 		}
 

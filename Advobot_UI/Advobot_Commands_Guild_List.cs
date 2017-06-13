@@ -9,8 +9,8 @@ namespace Advobot
 	[Name("Guild_List")]
 	public class Advobot_Commands_Guild_List : ModuleBase
 	{
-		[Command("guildlistmodify")]
-		[Alias("glm")]
+		[Command("modifyguildlisting")]
+		[Alias("mgl")]
 		[Usage("[Add|Remove] [Code] <\"Keywords:Keywords/...>\"")]
 		[Summary("Adds a guild to the guild list.")]
 		[PermissionRequirement]
@@ -106,8 +106,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("guildlistbump")]
-		[Alias("glb")]
+		[Command("bump")]
+		[Alias("b")]
 		[Usage("")]
 		[Summary("Bumps the invite on the guild.")]
 		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
@@ -125,8 +125,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully bumped the guild.");
 		}
 
-		[Command("guildlistget")]
-		[Alias("glg")]
+		[Command("getguildlisting")]
+		[Alias("ggl")]
 		[Usage("<Code:Code> <Name:Name> <GlobalEmotes:True|False> <MoreThan:Number> <LessThan:Number> <\"Keywords:Word/...\">")]
 		[Summary("Gets an invite meeting the given criteria.")]
 		[DefaultEnabled(true)]

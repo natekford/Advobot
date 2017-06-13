@@ -111,7 +111,7 @@ namespace Advobot
 		});
 		public static ReadOnlyCollection<string> COMMANDS_UNABLE_TO_BE_TURNED_OFF = new ReadOnlyCollection<string>(new List<string>()
 		{
-			"comconfig", "help",
+			"configurecommands", "help",
 		});
 		public static ReadOnlyCollection<string> TEST_PHRASES = new ReadOnlyCollection<string>(new List<string>()
 		{

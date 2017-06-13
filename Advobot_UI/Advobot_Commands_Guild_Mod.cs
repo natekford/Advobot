@@ -12,8 +12,8 @@ namespace Advobot
 	[Name("Guild_Moderation")]
 	public class Advobot_Commands_Guild_Mod : ModuleBase
 	{
-		[Command("guildname")]
-		[Alias("gdn")]
+		[Command("changeguildname")]
+		[Alias("cgn")]
 		[Usage("[New Name]")]
 		[Summary("Change the name of the guild to the given name.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
@@ -39,8 +39,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild name to `{0}`.", input));
 		}
 
-		[Command("guildregion")]
-		[Alias("gdr")]
+		[Command("changeguildregion")]
+		[Alias("cgr")]
 		[Usage("[Regions|Current|Region ID]")]
 		[Summary("Shows or changes the guild's server region. `Regions` lists all valid region IDs.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
@@ -90,8 +90,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("guildafk")]
-		[Alias("gdafk")]
+		[Command("changeguildafk")]
+		[Alias("cgafk")]
 		[Usage("[Channel] <Time:Time in Seconds>")]
 		[Summary("Updates the guild's afk channel and timeout.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
@@ -151,8 +151,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("guildmsgnotifications")]
-		[Alias("gdmn")]
+		[Command("changeguildmsgnotif")]
+		[Alias("cgmn")]
 		[Usage("[All|Mentions]")]
 		[Summary("Changes the message notifications to either all messages or mentions only.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
@@ -175,8 +175,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("guildverification")]
-		[Alias("gdv")]
+		[Command("changeguildverif")]
+		[Alias("cgv")]
 		[Usage("[None|Low|Medium|High]")]
 		[Summary("Changes the verification level. None is the most lenient (no requirements to type), high is the harshest (10 minutes in the guild before new members can type).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
@@ -194,8 +194,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("guildicon")]
-		[Alias("gdi")]
+		[Command("changeguildicon")]
+		[Alias("cgi")]
 		[Usage("[Attached Image|Embedded Image|Remove]")]
 		[Summary("Changes the guild's icon to the given image. Typing `" + Constants.BOT_PREFIX + "gdi remove` will remove the icon. The image must be smaller than 2.5MB.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
@@ -205,8 +205,8 @@ namespace Advobot
 			await Actions.SetPicture(Context, input, false);
 		}
 
-		[Command("guildcreate")]
-		[Alias("gdc")]
+		[Command("createguild")]
+		[Alias("cg")]
 		[Usage("[Name]")]
 		[Summary("Creates a guild with the bot as the owner.")]
 		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
@@ -225,10 +225,10 @@ namespace Advobot
 			await (await Context.User.CreateDMChannelAsync()).SendMessageAsync(invite.Url);
 		}
 
-		[Command("guildowner")]
-		[Alias("gdo")]
+		[Command("changeguildowner")]
+		[Alias("cgo")]
 		[Usage("")]
-		[Summary("If the bot is the current owner of the guild this command will give you owner.")]
+		[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
 		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
 		[DefaultEnabled(true)]
 		public async Task GuildAdmin()
@@ -245,10 +245,10 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "You are now the owner.");
 		}
 
-		[Command("guilddelete")]
-		[Alias("gdd")]
+		[Command("deleteguild")]
+		[Alias("dg")]
 		[Usage("")]
-		[Summary("If the bot is the current owner of the guild this command will delete the guild.")]
+		[Summary("If the bot is the current owner of the guild, this command will delete the guild.")]
 		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
 		[DefaultEnabled(true)]
 		public async Task GuildDelete()

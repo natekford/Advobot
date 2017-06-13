@@ -106,61 +106,239 @@ namespace Advobot
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(Enum.GetName(typeof(CommandCategory), category), String.Format("`{0}`", String.Join("`, `", Actions.GetCommands(category)))));
 		}
 
-		[Command("idguild")]
-		[Alias("idg")]
-		[Usage("")]
-		[Summary("Shows the ID of the guild.")]
+		[Command("getid")]
+		[Alias("gid")]
+		[Usage("[Guild|Channel|Role|User|Emoji|Bot] <\"Other Input\">")]
+		[Summary("Shows the ID of the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 		[DefaultEnabled(true)]
-		public async Task ServerID()
+		public async Task GetID([Remainder] string input)
 		{
-			await Actions.SendChannelMessage(Context, String.Format("This guild has the ID `{0}`.", Context.Guild.Id));
-		}
-
-		[Command("idchannel")]
-		[Alias("idc")]
-		[Usage("<Channel>")]
-		[Summary("Shows the ID of the given channel. No channel defaults to the one the command is used on.")]
-		[DefaultEnabled(true)]
-		public async Task ChannelID([Optional, Remainder] string input)
-		{
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, true, input);
-			var channel = returnedChannel.Object ?? Context.Channel as IGuildChannel;
-
-			await Actions.SendChannelMessage(Context, String.Format("The {0} channel `{1}` has the ID `{2}`.", Actions.GetChannelType(channel), channel.Name, channel.Id));
-		}
-
-		[Command("idrole")]
-		[Alias("idr")]
-		[Usage("[Role]")]
-		[Summary("Shows the ID of the given role.")]
-		[DefaultEnabled(true)]
-		public async Task RoleID([Remainder] string input)
-		{
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, input);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedRole);
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
-			var role = returnedRole.Object;
-			await Actions.SendChannelMessage(Context, String.Format("The role `{0}` has the ID `{1}`.", role.Name, role.Id));
+			var targetStr = returnedArgs.Arguments[0];
+			var otherStr = returnedArgs.Arguments[1];
+
+			if (Actions.CaseInsEquals(targetStr, "guild"))
+			{
+				await Actions.SendChannelMessage(Context, String.Format("This guild has the ID `{0}`.", Context.Guild.Id));
+			}
+			else if (Actions.CaseInsEquals(targetStr, "channel"))
+			{
+				var channel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, true, otherStr).Object ?? Context.Channel as IGuildChannel;
+
+				await Actions.SendChannelMessage(Context, String.Format("The {0} channel `{1}` has the ID `{2}`.", Actions.GetChannelType(channel), Actions.EscapeMarkdown(channel.Name), channel.Id));
+			}
+			else if (Actions.CaseInsEquals(targetStr, "role"))
+			{
+				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, otherStr);
+				if (returnedRole.Reason != FailureReason.Not_Failure)
+				{
+					await Actions.HandleObjectGettingErrors(Context, returnedRole);
+					return;
+				}
+				var role = returnedRole.Object;
+
+				await Actions.SendChannelMessage(Context, String.Format("The role `{0}` has the ID `{1}`.", Actions.EscapeMarkdown(role.Name), role.Id));
+			}
+			else if (Actions.CaseInsEquals(targetStr, "user"))
+			{
+				var user = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, otherStr).Object ?? Context.User as IGuildUser;
+
+				await Actions.SendChannelMessage(Context, String.Format("The user `{0}#{1}` has the ID `{2}`.", Actions.EscapeMarkdown(user.Username), user.Discriminator, user.Id));
+			}
+			else if (Actions.CaseInsEquals(targetStr, "emoji"))
+			{
+				var returnedEmoji = Actions.GetEmoji(Context, true, otherStr);
+				if (returnedEmoji.Reason != FailureReason.Not_Failure)
+				{
+					await Actions.HandleObjectGettingErrors(Context, returnedEmoji);
+					return;
+				}
+				var emoji = returnedEmoji.Object;
+
+				await Actions.SendChannelMessage(Context, String.Format("The emoji `{0}` has the ID `{1}`.", Actions.EscapeMarkdown(emoji.Name), emoji.Id));
+			}
+			else if (Actions.CaseInsEquals(targetStr, "bot"))
+			{
+				await Actions.SendChannelMessage(Context, String.Format("The bot has the ID `{0}.`", Variables.BotID));
+			}
 		}
 
-		[Command("iduser")]
-		[Alias("idu")]
-		[Usage("<User>")]
-		[Summary("Shows the ID of the given user. No user defaults to the one using the command.")]
+		[Command("getinfo")]
+		[Alias("ginf")]
+		[Usage("[Guild|Channel|Role|User|Emoji|Invite|Bot] <\"Other Input\">")]
+		[Summary("Shows information about the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 		[DefaultEnabled(true)]
-		public async Task UserID([Optional, Remainder] string input)
+		public async Task GetInfo([Remainder] string input)
 		{
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, input);
-			var user = returnedUser.Object ?? Context.User as IGuildUser;
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var targetStr = returnedArgs.Arguments[0];
+			var otherStr = returnedArgs.Arguments[1];
 
-			await Actions.SendChannelMessage(Context, String.Format("The user `{0}#{1}` has the ID `{2}`.", user.Username, user.Discriminator, user.Id));
+			if (Actions.CaseInsEquals(targetStr, "guild"))
+			{
+				var sGuild = Context.Guild as SocketGuild;
+				var sOwner = sGuild.Owner;
+				var title = sGuild.FormatGuild();
+				var onlineCount = sGuild.Users.Where(x => x.Status != UserStatus.Offline).Count();
+				var nicknameCount = sGuild.Users.Where(x => x.Nickname != null).Count();
+				var gameCount = sGuild.Users.Where(x => x.Game.HasValue).Count();
+				var botCount = sGuild.Users.Where(x => x.IsBot).Count();
+				var voiceCount = sGuild.Users.Where(x => x.VoiceChannel != null).Count();
+				var localECount = sGuild.Emotes.Where(x => !x.IsManaged).Count();
+				var globalECount = sGuild.Emotes.Where(x => x.IsManaged).Count();
+
+				var ageStr = String.Format("**Created:** `{0}` (`{1}` days ago)", sGuild.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sGuild.CreatedAt.UtcDateTime).Days);
+				var ownerStr = String.Format("**Owner:** `{0}`", sOwner.FormatUser());
+				var regionStr = String.Format("**Region:** `{0}`", sGuild.VoiceRegionId);
+				var emoteStr = String.Format("**Emotes:** `{0}` (`{1}` local, `{2}` global)\n", localECount + globalECount, localECount, globalECount);
+				var userStr = String.Format("**User Count:** `{0}` (`{1}` online, `{2}` bots)", sGuild.MemberCount, onlineCount, botCount);
+				var nickStr = String.Format("**Users With Nickname:** `{0}`", nicknameCount);
+				var gameStr = String.Format("**Users Playing Games:** `{0}`", gameCount);
+				var voiceStr = String.Format("**Users In Voice:** `{0}`\n", voiceCount);
+				var roleStr = String.Format("**Role Count:** `{0}`", sGuild.Roles.Count);
+				var channelStr = String.Format("**Channel Count:** `{0}` (`{1}` text, `{2}` voice)", sGuild.Channels.Count, sGuild.TextChannels.Count, sGuild.VoiceChannels.Count);
+				var afkChanStr = String.Format("**AFK Channel:** `{0}` (`{1}` minute{2})", sGuild.AFKChannel.FormatChannel(), sGuild.AFKTimeout / 60, Actions.GetPlural(sGuild.AFKTimeout / 60));
+				var all = String.Join("\n", new List<string>() { ageStr, ownerStr, regionStr, emoteStr, userStr, nickStr, gameStr, voiceStr, roleStr, channelStr, afkChanStr });
+
+				var embed = Actions.MakeNewEmbed(title, all, thumbnailURL: sGuild.IconUrl);
+				Actions.AddFooter(embed, "Guild Info");
+				await Actions.SendEmbedMessage(Context.Channel, embed);
+			}
+			else if (Actions.CaseInsEquals(targetStr, "channel"))
+			{
+				var channel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, true, otherStr).Object as SocketChannel ?? Context.Channel as SocketChannel;
+
+				var title = channel.FormatChannel();
+				var age = String.Format("**Created:** `{0}` (`{1}` days ago)", channel.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(channel.CreatedAt.UtcDateTime).Days);
+				var users = String.Format("**User Count:** `{0}`", channel.Users.Count);
+				var desc = String.Join("\n", new[] { age, users });
+
+				var embed = Actions.MakeNewEmbed(title, desc);
+				Actions.AddFooter(embed, "Channel Info");
+				await Actions.SendEmbedMessage(Context.Channel, embed);
+			}
+			else if (Actions.CaseInsEquals(targetStr, "role"))
+			{
+				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, otherStr);
+				if (returnedRole.Reason != FailureReason.Not_Failure)
+				{
+					await Actions.HandleObjectGettingErrors(Context, returnedRole);
+					return;
+				}
+				var role = returnedRole.Object as SocketRole;
+
+				var title = role.FormatRole();
+				var age = String.Format("**Created:** `{0}` (`{1}` days ago)", role.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(role.CreatedAt.UtcDateTime).Days);
+				var position = String.Format("**Position:** `{0}`", role.Position);
+				var users = String.Format("**User Count:** `{0}`", (await Context.Guild.GetUsersAsync()).Where(x => x.RoleIds.Contains(role.Id)).Count());
+				var desc = String.Join("\n", new[] { age, position, users });
+
+				var embed = Actions.MakeNewEmbed(title, desc);
+				Actions.AddFooter(embed, "Role Info");
+				await Actions.SendEmbedMessage(Context.Channel, embed);
+			}
+			else if (Actions.CaseInsEquals(targetStr, "user"))
+			{
+				var user = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, otherStr).Object ?? Context.User as IGuildUser;
+
+				var embed = Actions.FormatUserInfo(Context.Guild as SocketGuild, user);
+				await Actions.SendEmbedMessage(Context.Channel, embed);
+			}
+			else if (Actions.CaseInsEquals(targetStr, "emoji"))
+			{
+				var returnedEmoji = Actions.GetEmoji(Context, true, otherStr);
+				if (returnedEmoji.Reason != FailureReason.Not_Failure)
+				{
+					await Actions.HandleObjectGettingErrors(Context, returnedEmoji);
+					return;
+				}
+				var emoji = returnedEmoji.Object;
+
+				//Try to find the emoji if global
+				var guilds = (await Context.Client.GetGuildsAsync()).Where(x =>
+				{
+					var placeholder = x.Emotes.FirstOrDefault(y => y.Id == emoji.Id);
+					return placeholder.IsManaged && placeholder.RequireColons;
+				});
+
+				//Format a description
+				var description = String.Format("**ID:** `{0}`\n", emoji.Id);
+				if (guilds.Any())
+				{
+					description += String.Format("**From:** `{0}`", String.Join("`, `", guilds.Select(x => x.FormatGuild())));
+				}
+
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(emoji.Name, description, thumbnailURL: emoji.Url));
+			}
+			else if (Actions.CaseInsEquals(targetStr, "invite"))
+			{
+				var inv = (await Context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code == otherStr);
+				if (inv == null)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No invite with that code could be gotten."));
+					return;
+				}
+
+				var inviterStr = String.Format("**Inviter:** `{0}`", inv.Inviter.FormatUser());
+				var channelStr = String.Format("**Channel:** `{0}`", (await Context.Guild.GetChannelAsync(inv.ChannelId)).FormatChannel());
+				var usesStr = String.Format("**Uses:** `{0}`", inv.Uses);
+				var createdStr = String.Format("**Created At:** `{0} on {1}`", inv.CreatedAt.UtcDateTime.ToShortTimeString(), inv.CreatedAt.UtcDateTime.ToShortDateString());
+				var desc = String.Join("\n", new[] { inviterStr, channelStr, usesStr, createdStr });
+
+				var embed = Actions.MakeNewEmbed(inv.Code, desc);
+				await Actions.SendEmbedMessage(Context.Channel, embed);
+
+			}
+			else if (Actions.CaseInsEquals(targetStr, "bot"))
+			{
+				//Make the description
+				var online = String.Format("**Online Since:** {0}", Variables.StartupTime);
+				var uptime = Actions.GetUptime();
+				var guildCount = String.Format("**Guild Count:** {0}", Variables.TotalGuilds);
+				var memberCount = String.Format("**Cumulative Member Count:** {0}", Variables.TotalUsers);
+				var currShard = String.Format("**Current Shard:** {0}", Variables.Client.GetShardFor(Context.Guild).ShardId);
+				var description = String.Join("\n", new[] { online, uptime, guildCount, memberCount, currShard });
+
+				//Make the embed
+				var embed = Actions.MakeNewEmbed(null, description);
+				Actions.AddAuthor(embed, Variables.BotName, Context.Client.CurrentUser.GetAvatarUrl());
+				Actions.AddFooter(embed, "Version " + Constants.BOT_VERSION);
+
+				//First field
+				var firstField = Actions.FormatLoggedThings();
+				Actions.AddField(embed, "Logged Actions", firstField);
+
+				//Second field
+				var attempt = String.Format("**Attempted Commands:** {0}", Variables.AttemptedCommands);
+				var successful = String.Format("**Successful Commands:** {0}", Variables.AttemptedCommands - Variables.FailedCommands);
+				var failed = String.Format("**Failed Commands:** {0}", Variables.FailedCommands);
+				var secondField = String.Join("\n", new[] { attempt, successful, failed });
+				Actions.AddField(embed, "Commands", secondField);
+
+				//Third field
+				var latency = String.Format("**Latency:** {0}ms", Variables.Client.GetLatency());
+				var memory = String.Format("**Memory Usage:** {0}MB", Actions.GetMemory().ToString("0.00"));
+				var threads = String.Format("**Thread Count:** {0}", Process.GetCurrentProcess().Threads.Count);
+				var thirdField = String.Join("\n", new[] { latency, memory, threads });
+				Actions.AddField(embed, "Technical", thirdField);
+
+				//Send the embed
+				await Actions.SendEmbedMessage(Context.Channel, embed);
+			}
 		}
 
-		[Command("listguilds")]
-		[Alias("lgds")]
+		[Command("displayguilds")]
+		[Alias("dgs")]
 		[Usage("")]
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
@@ -185,202 +363,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("infoguild")]
-		[Alias("infg")]
-		[Usage("")]
-		[Summary("Displays various information about the guild.")]
-		[DefaultEnabled(true)]
-		public async Task InfoGuild()
-		{
-			var sGuild = Context.Guild as SocketGuild;
-			var sOwner = sGuild.Owner;
-			var title = sGuild.FormatGuild();
-			var onlineCount = sGuild.Users.Where(x => x.Status != UserStatus.Offline).Count();
-			var nicknameCount = sGuild.Users.Where(x => x.Nickname != null).Count();
-			var gameCount = sGuild.Users.Where(x => x.Game.HasValue).Count();
-			var botCount = sGuild.Users.Where(x => x.IsBot).Count();
-			var voiceCount = sGuild.Users.Where(x => x.VoiceChannel != null).Count();
-			var localECount = sGuild.Emotes.Where(x => !x.IsManaged).Count();
-			var globalECount = sGuild.Emotes.Where(x => x.IsManaged).Count();
-
-			var ageStr = String.Format("**Created:** `{0}` (`{1}` days ago)", sGuild.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(sGuild.CreatedAt.UtcDateTime).Days);
-			var ownerStr = String.Format("**Owner:** `{0}`", sOwner.FormatUser());
-			var regionStr = String.Format("**Region:** `{0}`", sGuild.VoiceRegionId);
-			var emoteStr = String.Format("**Emotes:** `{0}` (`{1}` local, `{2}` global)\n", localECount + globalECount, localECount, globalECount);
-			var userStr = String.Format("**User Count:** `{0}` (`{1}` online, `{2}` bots)", sGuild.MemberCount, onlineCount, botCount);
-			var nickStr = String.Format("**Users With Nickname:** `{0}`", nicknameCount);
-			var gameStr = String.Format("**Users Playing Games:** `{0}`", gameCount);
-			var voiceStr = String.Format("**Users In Voice:** `{0}`\n", voiceCount);
-			var roleStr = String.Format("**Role Count:** `{0}`", sGuild.Roles.Count);
-			var channelStr = String.Format("**Channel Count:** `{0}` (`{1}` text, `{2}` voice)", sGuild.Channels.Count, sGuild.TextChannels.Count, sGuild.VoiceChannels.Count);
-			var afkChanStr = String.Format("**AFK Channel:** `{0}` (`{1}` minute{2})", sGuild.AFKChannel.FormatChannel(), sGuild.AFKTimeout / 60, Actions.GetPlural(sGuild.AFKTimeout / 60));
-			var all = String.Join("\n", new List<string>() { ageStr, ownerStr, regionStr, emoteStr, userStr, nickStr, gameStr, voiceStr, roleStr, channelStr, afkChanStr });
-
-			var embed = Actions.MakeNewEmbed(title, all, thumbnailURL: sGuild.IconUrl);
-			Actions.AddFooter(embed, "Guild Info");
-			await Actions.SendEmbedMessage(Context.Channel, embed);
-		}
-
-		[Command("infochannel")]
-		[Alias("infc")]
-		[Usage("<Channel>")]
-		[Summary("Displays various information about the given channel.")]
-		[DefaultEnabled(true)]
-		public async Task InfoChannel([Remainder] string input)
-		{
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, true, input);
-			var channel = returnedChannel.Object as SocketGuildChannel ?? Context.Channel as SocketGuildChannel;
-
-			var title = channel.FormatChannel();
-			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", channel.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(channel.CreatedAt.UtcDateTime).Days);
-			var users = String.Format("**User Count:** `{0}`", channel.Users.Count);
-			var desc = String.Join("\n", new[] { age, users });
-
-			var embed = Actions.MakeNewEmbed(title, desc);
-			Actions.AddFooter(embed, "Channel Info");
-			await Actions.SendEmbedMessage(Context.Channel, embed);
-		}
-
-		[Command("inforole")]
-		[Alias("infr")]
-		[Usage("[Role]")]
-		[Summary("Displays various information about the given role.")]
-		[DefaultEnabled(true)]
-		public async Task InfoRole([Remainder] string input)
-		{
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, input);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedRole);
-				return;
-			}
-			var role = returnedRole.Object as SocketRole;
-
-			var title = role.FormatRole();
-			var age = String.Format("**Created:** `{0}` (`{1}` days ago)", role.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(role.CreatedAt.UtcDateTime).Days);
-			var position = String.Format("**Position:** `{0}`", role.Position);
-			var users = String.Format("**User Count:** `{0}`", (await Context.Guild.GetUsersAsync()).Where(x => x.RoleIds.Contains(role.Id)).Count());
-			var desc = String.Join("\n", new[] { age, position, users });
-
-			var embed = Actions.MakeNewEmbed(title, desc);
-			Actions.AddFooter(embed, "Role Info");
-			await Actions.SendEmbedMessage(Context.Channel, embed);
-		}
-
-		[Command("infobot")]
-		[Alias("infb")]
-		[Usage("")]
-		[Summary("Displays various information about the bot.")]
-		[DefaultEnabled(true)]
-		public async Task InfoBot()
-		{
-			//Make the description
-			var online = String.Format("**Online Since:** {0}", Variables.StartupTime);
-			var uptime = Actions.GetUptime();
-			var guildCount = String.Format("**Guild Count:** {0}", Variables.TotalGuilds);
-			var memberCount = String.Format("**Cumulative Member Count:** {0}", Variables.TotalUsers);
-			var currShard = String.Format("**Current Shard:** {0}", Variables.Client.GetShardFor(Context.Guild).ShardId);
-			var description = String.Join("\n", new[] { online, uptime, guildCount, memberCount, currShard });
-
-			//Make the embed
-			var embed = Actions.MakeNewEmbed(null, description);
-			Actions.AddAuthor(embed, Variables.BotName, Context.Client.CurrentUser.GetAvatarUrl());
-			Actions.AddFooter(embed, "Version " + Constants.BOT_VERSION);
-
-			//First field
-			var firstField = Actions.FormatLoggedThings();
-			Actions.AddField(embed, "Logged Actions", firstField);
-
-			//Second field
-			var attempt = String.Format("**Attempted Commands:** {0}", Variables.AttemptedCommands);
-			var successful = String.Format("**Successful Commands:** {0}", Variables.AttemptedCommands - Variables.FailedCommands);
-			var failed = String.Format("**Failed Commands:** {0}", Variables.FailedCommands);
-			var secondField = String.Join("\n", new[] { attempt, successful, failed });
-			Actions.AddField(embed, "Commands", secondField);
-
-			//Third field
-			var latency = String.Format("**Latency:** {0}ms", Variables.Client.GetLatency());
-			var memory = String.Format("**Memory Usage:** {0}MB", Actions.GetMemory().ToString("0.00"));
-			var threads = String.Format("**Thread Count:** {0}", Process.GetCurrentProcess().Threads.Count);
-			var thirdField = String.Join("\n", new[] { latency, memory, threads });
-			Actions.AddField(embed, "Technical", thirdField);
-
-			//Send the embed
-			await Actions.SendEmbedMessage(Context.Channel, embed);
-		}
-
-		[Command("infouser")]
-		[Alias("infu")]
-		[Usage("<User>")]
-		[Summary("Displays various information about the user. Not 100% accurate. If an ID is provided then the bot can get information on users who aren't currently on the guild.")]
-		[DefaultEnabled(true)]
-		public async Task InfoUser([Optional, Remainder] string input)
-		{
-			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, input);
-			var user = returnedUser.Object ?? Context.User as IGuildUser;
-
-			var embed = Actions.FormatUserInfo(Context.Guild as SocketGuild, user);
-			await Actions.SendEmbedMessage(Context.Channel, embed);
-		}
-
-		[Command("infoemoji")]
-		[Alias("infe")]
-		[Usage("[Emoji]")]
-		[Summary("Displays various information about an emoji. Only global emojis where the bot is in a guild that gives them will have a 'From...' text.")]
-		[DefaultEnabled(true)]
-		public async Task InfoEmoji([Remainder] string input)
-		{
-			//Parse out the emoji
-			if (!Emote.TryParse(input, out Emote emote))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid emote supplied."));
-				return;
-			}
-
-			//Try to find the emoji if global
-			var guilds = (await Context.Client.GetGuildsAsync()).Where(x =>
-			{
-				var placeholder = x.Emotes.FirstOrDefault(y => y.Id == emote.Id);
-				return placeholder.IsManaged && placeholder.RequireColons;
-			});
-
-			//Format a description
-			var description = String.Format("**ID:** `{0}`\n", emote.Id);
-			if (guilds.Any())
-			{
-				description += String.Format("**From:** `{0}`", String.Join("`, `", guilds.Select(x => x.FormatGuild())));
-			}
-
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(emote.Name, description, thumbnailURL: emote.Url));
-		}
-
-		[Command("infoinvite")]
-		[Alias("infi")]
-		[Usage("[Invite Code]")]
-		[Summary("Lists the user who created the invite, the channel it was created on, the uses, and the creation date/time.")]
-		[DefaultEnabled(true)]
-		public async Task InfoInvite([Remainder] string input)
-		{
-			var inv = (await Context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code == input);
-			if (inv == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No invite with that code could be gotten."));
-				return;
-			}
-
-			var inviterStr = String.Format("**Inviter:** `{0}`", inv.Inviter.FormatUser());
-			var channelStr = String.Format("**Channel:** `{0}`", (await Context.Guild.GetChannelAsync(inv.ChannelId)).FormatChannel());
-			var usesStr = String.Format("**Uses:** `{0}`", inv.Uses);
-			var createdStr = String.Format("**Created At:** `{0} on {1}`", inv.CreatedAt.UtcDateTime.ToShortTimeString(), inv.CreatedAt.UtcDateTime.ToShortDateString());
-			var desc = String.Join("\n", new[] { inviterStr, channelStr, usesStr, createdStr });
-
-			var embed = Actions.MakeNewEmbed(inv.Code, desc);
-			await Actions.SendEmbedMessage(Context.Channel, embed);
-		}
-
-		[Command("useravatar")]
-		[Alias("uav")]
+		[Command("getuseravatar")]
+		[Alias("gua")]
 		[Usage("<User> <Type:Gif|Png|Jpg|Webp>")]
 		[Summary("Shows the URL of the given user's avatar (no formatting in case people on mobile want it easily).")]
 		[DefaultEnabled(true)]
@@ -415,8 +399,8 @@ namespace Advobot
 			await Context.Channel.SendMessageAsync(user.GetAvatarUrl(format));
 		}
 
-		[Command("userjoins")]
-		[Alias("ujs")]
+		[Command("displayuserjoinlist")]
+		[Alias("dujl")]
 		[Usage("")]
 		[Summary("Lists most of the users who have joined the guild. Not 100% accurate.")]
 		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
@@ -436,8 +420,8 @@ namespace Advobot
 			await Actions.SendPotentiallyBigEmbed(Context.Guild, Context.Channel, Actions.MakeNewEmbed("Users", userMsg), userMsg, "User_Joins_");
 		}
 
-		[Command("userjoinedat")]
-		[Alias("ujat")]
+		[Command("getuserjoinedat")]
+		[Alias("gujat")]
 		[Usage("[Position]")]
 		[Summary("Shows the user which joined the guild in that position. Not 100% accurate.")]
 		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
@@ -470,7 +454,7 @@ namespace Advobot
 			}
 		}
 
-		[Command("currentmembercount")]
+		[Command("getcurrentmembercount")]
 		[Alias("cmc")]
 		[Usage("")]
 		[Summary("Shows the current number of members in the guild.")]
@@ -481,11 +465,11 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, String.Format("The current member count is `{0}`.", (Context.Guild as SocketGuild).MemberCount));
 		}
 
-		[Command("userswithrole")]
-		[Alias("uwr")]
+		[Command("getuserswithrole")]
+		[Alias("guwr")]
 		[Usage("[Role]")]
 		[Summary("Prints out a list of all users with the given role.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task UsersWithRole([Remainder] string input)
 		{
@@ -507,8 +491,8 @@ namespace Advobot
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(roleName, users));
 		}
 
-		[Command("userswithname")]
-		[Alias("uwn")]
+		[Command("getuserswithname")]
+		[Alias("guwn")]
 		[Usage("[\"Name to Search For\"] <Exact:True|False> <Count:True|False> <Nickname:True|False>")]
 		[Summary("Lists all users where their username contains the given string.")]
 		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
@@ -587,11 +571,11 @@ namespace Advobot
 			}
 		}
 
-		[Command("listemojis")]
-		[Alias("lemojis")]
+		[Command("displayemojis")]
+		[Alias("demojis")]
 		[Usage("[Global|Guild]")]
 		[Summary("Lists the emoji in the guild. As of right now, with the current API wrapper version this bot uses, there's no way to upload or remove emojis yet; sorry.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageEmojis)]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task ListEmojis([Remainder] string input)
 		{
@@ -620,31 +604,8 @@ namespace Advobot
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Emojis", description));
 		}
 
-		[Command("getpermnamesfromvalue")]
-		[Alias("getperms")]
-		[Usage("[Number]")]
-		[Summary("Lists all the perms that come from the given value.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
-		[DefaultEnabled(true)]
-		public async Task GetPermsFromValue([Remainder] string input)
-		{
-			if (!uint.TryParse(input, out uint num))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Input is not a number."));
-				return;
-			}
-
-			var perms = Actions.GetPermissionNames(num);
-			if (!perms.Any())
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The given number holds no permissions."));
-				return;
-			}
-			await Actions.SendChannelMessage(Context.Channel, String.Format("The number `{0}` has the following permissions: `{1}`.", num, String.Join("`, `", perms)));
-		}
-
-		[Command("invitelist")]
-		[Alias("invl")]
+		[Command("displayinvites")]
+		[Alias("dinvs")]
 		[Usage("")]
 		[Summary("Gives a list of all the instant invites on the guild.")]
 		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
@@ -679,8 +640,8 @@ namespace Advobot
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Instant Invite List", description));
 		}
 
-		[Command("invitecreate")]
-		[Alias("invc")]
+		[Command("createinvite")]
+		[Alias("cinv")]
 		[Usage("[Channel] <Time:1800|3600|21600|43200|86400> <Uses:1|5|10|25|50|100> <TempMem:True|False>")]
 		[Summary("Creates an invite on the given channel. No time specifies to not expire. No uses has no usage limit. Temp membership means when the user goes offline they get kicked.")]
 		[PermissionRequirement(1U << (int)GuildPermission.CreateInstantInvite)]
@@ -778,8 +739,8 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, String.Format("Here is your invite for `{0}`: {1}\n{2}\n{3}\n{4}", channel.FormatChannel(), inv.Url, timeOutputStr, usersOutputStr, tempOutputStr));
 		}
 
-		[Command("invitedelete")]
-		[Alias("invd")]
+		[Command("deleteinvite")]
+		[Alias("dinv")]
 		[Usage("[Invite Code]")]
 		[Summary("Deletes the invite with the given code.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
@@ -799,8 +760,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted the invite `{0}`.", invite.Code));
 		}
 
-		[Command("invitedeletemultiple")]
-		[Alias("invdm")]
+		[Command("deletemultipleinvites")]
+		[Alias("dminv")]
 		[Usage("User:User|Role:Role|Uses:Number|Expires:True|False]")]
 		[Summary("Deletes all invites satisfying the given condition of either user, creation channel, uses, or expiry time.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
@@ -1031,6 +992,29 @@ namespace Advobot
 				return;
 			}
 			await (await owner.CreateDMChannelAsync()).SendMessageAsync(newMsg);
+		}
+
+		[Command("getpermnamesfromvalue")]
+		[Alias("getperms")]
+		[Usage("[Number]")]
+		[Summary("Lists all the perms that come from the given value.")]
+		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
+		[DefaultEnabled(true)]
+		public async Task GetPermsFromValue([Remainder] string input)
+		{
+			if (!uint.TryParse(input, out uint num))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Input is not a number."));
+				return;
+			}
+
+			var perms = Actions.GetPermissionNames(num);
+			if (!perms.Any())
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The given number holds no permissions."));
+				return;
+			}
+			await Actions.SendChannelMessage(Context.Channel, String.Format("The number `{0}` has the following permissions: `{1}`.", num, String.Join("`, `", perms)));
 		}
 
 		[Command("test")]

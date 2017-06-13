@@ -11,8 +11,8 @@ namespace Advobot
 	[Name("Channel_Moderation")]
 	public class Advobot_Commands_Channel_Mod : ModuleBase
 	{
-		[Command("channelcreate")]
-		[Alias("chc")]
+		[Command("createchannel")]
+		[Alias("cch")]
 		[Usage("[Name] [Text|Voice]")]
 		[Summary("Adds a channel to the guild of the given type with the given name. The name CANNOT contain any spaces: use underscores or dashes instead.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
@@ -68,8 +68,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created `{0}`.", channel.FormatChannel()));
 		}
 
-		[Command("channelsoftdelete")]
-		[Alias("chsd")]
+		[Command("softdeletechannel")]
+		[Alias("sdch")]
 		[Usage("[Channel]")]
 		[Summary("Makes most roles unable to read the channel and moves it to the bottom of the channel list. Only works for text channels.")]
 		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
@@ -130,8 +130,8 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything on this channel.");
 		}
 
-		[Command("channeldelete")]
-		[Alias("chd")]
+		[Command("deletechannel")]
+		[Alias("dch")]
 		[Usage("[Channel]")]
 		[Summary("Deletes the channel.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
@@ -158,8 +158,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}`.", channel.FormatChannel()));
 		}
 
-		[Command("channelposition")]
-		[Alias("chpos")]
+		[Command("changechannelposition")]
+		[Alias("cchpo")]
 		[Usage("[Channel] <Number>")]
 		[Summary("If only the channel is input the channel's position will be listed. Else, gives the channel the given position. Position zero is the top most position.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
@@ -207,8 +207,8 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, String.Format("Successfully moved `{0}` to position `{1}`.", channel.FormatChannel(), position));
 		}
 
-		[Command("channelpositions")]
-		[Alias("chposs")]
+		[Command("displaychannelpositions")]
+		[Alias("dchp")]
 		[Usage("[Text|Voice]")]
 		[Summary("Lists the positions of each text or voice channel on the guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
@@ -230,8 +230,8 @@ namespace Advobot
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, desc));
 		}
 
-		[Command("channelperms")]
-		[Alias("chp")]
+		[Command("changechannelperms")]
+		[Alias("cchpe")]
 		[Usage("[Show|Allow|Inherit|Deny] [Channel] [User|Role] [Permission/...]")]
 		[Summary("Permissions must be separated by a `/`. Type `" + Constants.BOT_PREFIX + "chp [Show]` to see the available permissions. " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel]` to see all permissions on a channel. " +
@@ -475,8 +475,8 @@ namespace Advobot
 				actionStr, String.Join("`, `", permissions), roleNameOrUsername, channel.FormatChannel()));
 		}
 
-		[Command("channelpermscopy")]
-		[Alias("chpc")]
+		[Command("copychannelperms")]
+		[Alias("cochp")]
 		[Usage("[Channel] [Channel] [User|Role|All]")]
 		[Summary("Copy permissions from one channel to another. Works for a role, a user, or everything.")]
 		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
@@ -591,8 +591,8 @@ namespace Advobot
 				outputChannel.FormatChannel()));
 		}
 
-		[Command("channelpermsclear")]
-		[Alias("chpcl")]
+		[Command("clearchannelperms")]
+		[Alias("clchp")]
 		[Usage("[Channel]")]
 		[Summary("Removes all permissions set on a channel.")]
 		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
@@ -630,8 +630,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all channel permissions from `{0}`.", channel.FormatChannel()));
 		}
 
-		[Command("channelnsfw")]
-		[Alias("chnsfw")]
+		[Command("changechannelnsfw")]
+		[Alias("cchnsfw")]
 		[Usage("[Channel]")]
 		[Summary("Toggles the NSFW option on a channel.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
@@ -664,8 +664,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, response);
 		}
 
-		[Command("channelname")]
-		[Alias("chn")]
+		[Command("changechannelname")]
+		[Alias("cchn")]
 		[Usage("[Channel|Position:Number Type:Text|Voice] [\"New Name\"]")]
 		[Summary("Changes the name of the channel. This is *extremely* useful for when multiple channels have the same name but you want to edit things.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
@@ -762,8 +762,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed channel `{0}` to `{1}`.", previousName, nameStr));
 		}
 
-		[Command("channeltopic")]
-		[Alias("cht")]
+		[Command("changechanneltopic")]
+		[Alias("ccht")]
 		[Usage("[Channel] [New Topic]")]
 		[Summary("Changes the subtext of a channel to whatever is input.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
@@ -816,8 +816,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the topic in `{0}` from `{1}` to `{2}`.", tc.FormatChannel(), currentTopic, newTopic));
 		}
 
-		[Command("channellimit")]
-		[Alias("chl")]
+		[Command("changechannellimit")]
+		[Alias("cchl")]
 		[Usage("[Channel] [New Limit]")]
 		[Summary("Changes the limit to how many users can be in a voice channel. The limit ranges from 0 (no limit) to 99.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
@@ -865,8 +865,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}`.", vc.FormatChannel(), limit));
 		}
 
-		[Command("channelbitrate")]
-		[Alias("chbr")]
+		[Command("changechannelbitrate")]
+		[Alias("cchbr")]
 		[Usage("[Channel] [8 to 96]")]
 		[Summary("Changes the bit rate (in kbps) on the selected channel to the given value. The default value is 64. The bitrate can go up to 128 on a partnered guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]

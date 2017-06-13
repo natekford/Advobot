@@ -11,8 +11,8 @@ namespace Advobot
 	[Name("Role_Moderation")]
 	public class Advobot_Commands_Role_Mod : ModuleBase
 	{
-		[Command("rolegive")]
-		[Alias("rg")]
+		[Command("giverole")]
+		[Alias("gr")]
 		[Usage("[User] [Role]/<Role>/...")]
 		[Summary("Gives the user the role (assuming the person using the command and bot both have the ability to give that role).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
@@ -118,8 +118,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("roletake")]
-		[Alias("rt")]
+		[Command("takerole")]
+		[Alias("tr")]
 		[Usage("[@User] [Role]/<Role>/...")]
 		[Summary("Take the role from the user (assuming the person using the command and bot both have the ability to take that role).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
@@ -177,8 +177,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("rolecreate")]
-		[Alias("rcr")]
+		[Command("createrole")]
+		[Alias("cr")]
 		[Usage("[Name]")]
 		[Summary("Adds a role to the guild with the chosen name.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
@@ -202,8 +202,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created the role `{0}`.", input));
 		}
 
-		[Command("rolesoftdelete")]
-		[Alias("rsd")]
+		[Command("softdeleterole")]
+		[Alias("sdr")]
 		[Usage("[Role]")]
 		[Summary("Removes all permissions from a role (and all channels the role had permissions on) and removes the role from everyone. Leaves the name and color behind.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
@@ -230,8 +230,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all permissions from the role `{0}` and removed the role from all users on the guild.", role.Name));
 		}
 
-		[Command("roledelete")]
-		[Alias("rd")]
+		[Command("deleterole")]
+		[Alias("dr")]
 		[Usage("[Role]")]
 		[Summary("Deletes the role.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
@@ -251,8 +251,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted the role `{0}`.", input));
 		}
 
-		[Command("roleposition")]
-		[Alias("rpos")]
+		[Command("changeroleposition")]
+		[Alias("crpo")]
 		[Usage("[Role] <Position>")]
 		[Summary("If only a role is input its position will be listed, else moves the role to the given position. " + Constants.FAKE_EVERYONE + " is the first position and starts at zero.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
@@ -300,8 +300,8 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, String.Format("Successfully gave the role `{0}` the position `{1}`.", role.Name, position));
 		}
 
-		[Command("rolepositions")]
-		[Alias("rposs")]
+		[Command("displayrolepositions")]
+		[Alias("drp")]
 		[Usage("")]
 		[Summary("Lists the positions of each role on the guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
@@ -322,8 +322,8 @@ namespace Advobot
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Role Positions", description));
 		}
 
-		[Command("roleperms")]
-		[Alias("rp")]
+		[Command("changeroleperms")]
+		[Alias("crpe")]
 		[Usage("[Show|Add|Remove] [Role] [Permission/...]")]
 		[Summary("Permissions must be separated by a `/`. Type `" + Constants.BOT_PREFIX + "rp [Show]` to see the available permissions. " +
 			"Type `" + Constants.BOT_PREFIX + "rp [Show] [Role]` to see the permissions of that role.")]
@@ -464,8 +464,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("On `{0}`: {1}", role.FormatRole(), responseStr));
 		}
 
-		[Command("rolepermscopy")]
-		[Alias("rpc")]
+		[Command("copyroleperms")]
+		[Alias("corp")]
 		[Usage("[Role] [Role]")]
 		[Summary("Copies the permissions from the first role to the second role. Will not copy roles that the user does not have access to." +
 			"Will not overwrite roles that are above the user's top role.")]
@@ -533,8 +533,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("From `{0}` to `{1}`: {2}", inputRole.FormatRole(), outputRole.FormatRole(), responseStr));
 		}
 
-		[Command("rolepermsclear")]
-		[Alias("rpcl")]
+		[Command("clearroleperms")]
+		[Alias("clrp")]
 		[Usage("[Role]")]
 		[Summary("Removes all permissions from a role.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
@@ -555,8 +555,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all permissions from `{0}`.", input));
 		}
 
-		[Command("rolename")]
-		[Alias("rn")]
+		[Command("changerolename")]
+		[Alias("crn")]
 		[Usage("[Role|Position:Number] [\"New Name\"]")]
 		[Summary("Changes the name of the role. This is *extremely* useful for when multiple roles have the same name but you want to edit things.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
@@ -633,8 +633,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the name of the role `{0}` to `{1}`.", beforeName, role.Name));
 		}
 
-		[Command("rolecolor")]
-		[Alias("rc")]
+		[Command("changerolecolor")]
+		[Alias("crc")]
 		[Usage("[Role] [Hex:Hexadecimal|Name:Color Name]")]
 		[Summary("Changes the role's color. A color of '0' sets the role back to the default color. " +
 			"Colors must either be in hexadecimal format or be a color listed [here](https://msdn.microsoft.com/en-us/library/system.drawing.color).")]
@@ -696,8 +696,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the color of `{0}` to `{1}`.", role.FormatRole(), hexStr ?? colorStr));
 		}
 
-		[Command("rolehoist")]
-		[Alias("rh")]
+		[Command("changerolehoist")]
+		[Alias("crh")]
 		[Usage("[Role]")]
 		[Summary("Displays a role separately from others on the user list. Saying the command again remove it from being hoisted.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
@@ -724,8 +724,8 @@ namespace Advobot
 			}
 		}
 
-		[Command("rolementionability")]
-		[Alias("rma")]
+		[Command("changerolementionability")]
+		[Alias("crma")]
 		[Usage("[Role]")]
 		[Summary("Allows the role to be mentioned. Saying the command again removes its ability to be mentioned.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]

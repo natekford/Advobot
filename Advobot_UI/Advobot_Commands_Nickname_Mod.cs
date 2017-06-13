@@ -12,8 +12,8 @@ namespace Advobot
 	[Name("Nickname_Moderation")]
 	class Advobot_Commands_Nickname_Mod : ModuleBase
 	{
-		[Command("nickname")]
-		[Alias("nn")]
+		[Command("changenickname")]
+		[Alias("cnn")]
 		[Usage("[User] [New Nickname|Remove]")]
 		[Summary("Gives the user a nickname.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageNicknames)]
