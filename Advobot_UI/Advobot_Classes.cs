@@ -1184,6 +1184,7 @@ namespace Advobot
 			PotentialKick = false;
 			AlreadyKicked = false;
 			UsersWhoHaveAlreadyVoted = new List<ulong>();
+			SpamLists = new Dictionary<SpamType, List<BasicTimeInterface>>();
 			foreach (var spamType in Enum.GetValues(typeof(SpamType)).Cast<SpamType>())
 			{
 				SpamLists.Add(spamType, new List<BasicTimeInterface>());
