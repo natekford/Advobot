@@ -46,7 +46,7 @@ namespace Advobot
 			var groupStr = returnedArgs.GetSpecifiedArg("group");
 
 			//Check which action it is
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Create, ActionType.Add, ActionType.Remove });
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Create, ActionType.Delete, ActionType.Add, ActionType.Remove });
 			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
@@ -93,6 +93,17 @@ namespace Advobot
 					}
 
 					guildInfo.SelfAssignableGroups.Add(new SelfAssignableGroup(groupNumber));
+					break;
+				}
+				case ActionType.Delete:
+				{
+					if (!guildGroups.Any(x => x.Group == groupNumber))
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A group needs to exist with that position before it can be deleted."));
+						return;
+					}
+
+					guildGroups.RemoveAll(x => x.Group == groupNumber);
 					break;
 				}
 				case ActionType.Add:
@@ -145,17 +156,6 @@ namespace Advobot
 
 					successStr.AddRange(SARoles.Select(x => x.Role.FormatRole()));
 					failureStr.AddRange(failure);
-					break;
-				}
-				case ActionType.Delete:
-				{					
-					if (!guildGroups.Any(x => x.Group == groupNumber))
-					{
-					    await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A group needs to exist with that position before it can be deleted."));
-						return;
-					}
-
-					guildGroups.RemoveAll(x => x.Group == groupNumber);
 					break;
 				}
 			}
@@ -231,27 +231,26 @@ namespace Advobot
 			}
 
 			//If a group that has roles conflict, remove all but the wanted role
-			var SAGroup = guildInfo.SelfAssignableGroups.FirstOrDefault(x => x.Group == SARole.Group);
-			var otherRoles = new List<IRole>();
+			var SAGroup = guildInfo.SelfAssignableGroups.FirstOrDefault(x => x?.Group == SARole?.Group);
+			var removedRoles = "";
 			if (SAGroup.Group != 0)
 			{
-				//Find the intersection of the group's roles and the user's roles
-				otherRoles = SAGroup.Roles.Select(x => x.Role.Id).Intersect(user.RoleIds).Select(x => Context.Guild.GetRole(x)).ToList();
-				if (otherRoles.Contains(role))
+				var otherRoles = SAGroup.Roles.Where(x =>
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "You already have that role.");
-					return;
+					return true
+					&& x != null
+					&& user.RoleIds.Contains(x.RoleID);
+				}).Select(x => x.Role);
+
+				await Actions.TakeRoles(user, otherRoles);
+
+				if (otherRoles.Any())
+				{
+					removedRoles = String.Format(", and removed `{0}`", String.Join("`, `", otherRoles.Select(x => x.FormatRole())));
 				}
 			}
 
-			await Actions.TakeRoles(user, otherRoles);
 			await Actions.GiveRole(user, role);
-
-			var removedRoles = "";
-			if (otherRoles.Any())
-			{
-				removedRoles = String.Format(", and removed `{0}`", String.Join("`, `", otherRoles));
-			}
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave you `{0}`{1}.", role.Name, removedRoles));
 		}
 

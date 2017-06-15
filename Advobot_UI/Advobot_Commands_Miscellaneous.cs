@@ -455,7 +455,7 @@ namespace Advobot
 		}
 
 		[Command("getcurrentmembercount")]
-		[Alias("cmc")]
+		[Alias("gcmc")]
 		[Usage("")]
 		[Summary("Shows the current number of members in the guild.")]
 		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
@@ -538,25 +538,21 @@ namespace Advobot
 				}
 			}
 
-			var users = await Context.Guild.GetUsersAsync();
-			if (exact)
+			var users = (await Context.Guild.GetUsersAsync()).Where(x =>
 			{
-				users = users.Where(x =>
+				if (exact)
 				{
 					return Actions.CaseInsEquals(x.Username, nameStr) || (nickname && Actions.CaseInsEquals(x?.Nickname, nameStr));
-				}).ToList();
-			}
-			else
-			{
-				users = users.Where(x =>
+				}
+				else
 				{
 					return Actions.CaseInsIndexOf(x.Username, nameStr) || (nickname && Actions.CaseInsIndexOf(x?.Nickname, nameStr));
-				}).ToList();
-			}
+				}
+			});
 
 			if (count)
 			{
-				await Actions.SendChannelMessage(Context, String.Format("The following number of users have a name containing `{0}`: `{1}`.", nameStr, users.Count));
+				await Actions.SendChannelMessage(Context, String.Format("The following number of users have a name containing `{0}`: `{1}`.", nameStr, users.Count()));
 			}
 			else
 			{
@@ -566,7 +562,7 @@ namespace Advobot
 					return String.Format("`{0}.` `{1}`", c++.ToString("00"), x.FormatUser());
 				}));
 
-				var title = String.Format("Users With Names Containing '{0}'", input);
+				var title = String.Format("Users With Names Containing '{0}'", nameStr);
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, response));
 			}
 		}

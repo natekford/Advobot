@@ -2502,7 +2502,7 @@ namespace Advobot
 
 		public static EmbedBuilder AddField(EmbedBuilder embed, string name, string value, bool isInline = true)
 		{
-			if ((String.IsNullOrWhiteSpace(name) && String.IsNullOrWhiteSpace(value)) || embed.Build().Fields.Count() >= Constants.MAX_FIELDS)
+			if (embed.Build().Fields.Count() >= Constants.MAX_FIELDS)
 				return embed;
 
 			//Get the name and value
@@ -2556,7 +2556,7 @@ namespace Advobot
 				joined.Year,
 				joined.ToLongTimeString(),
 				users.IndexOf(guildUser) + 1);
-			var gameStr = EscapeMarkdown(FormatGameStr(guildUser));
+			var gameStr = FormatGameStr(guildUser);
 			var statusStr = String.Format("**Online status:** `{0}`", guildUser.Status);
 			var description = String.Join("\n", new[] { IDstr, nicknameStr, createdStr, joinedStr, gameStr, statusStr });
 
@@ -2747,11 +2747,11 @@ namespace Advobot
 				var game = user.Game.Value;
 				if (game.StreamType == StreamType.Twitch)
 				{
-					return String.Format("**Current Stream:** [{0}]({1})", game.Name, game.StreamUrl);
+					return String.Format("**Current Stream:** [{0}]({1})", EscapeMarkdown(game.Name), game.StreamUrl);
 				}
 				else
 				{
-					return String.Format("**Current Game:** `{0}`", game.Name);
+					return String.Format("**Current Game:** `{0}`", EscapeMarkdown(game.Name));
 				}
 			}
 			return "**Current Game:** `N/A`";
@@ -3550,7 +3550,7 @@ namespace Advobot
 
 		public static bool VerifyServerLoggingAction(ISocketMessageChannel channel, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
 		{
-			return VerifyServerLoggingAction(GetGuild(channel) as SocketGuild, logAction, out verifLoggingAction);
+			return VerifyServerLoggingAction(GetGuild(channel) as SocketGuild, logAction, out verifLoggingAction) && !verifLoggingAction.GuildInfo.IgnoredLogChannels.Contains(channel.Id);
 		}
 
 		public static bool VerifyServerLoggingAction(SocketGuild guild, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
@@ -3775,7 +3775,7 @@ namespace Advobot
 			if (spam)
 			{
 				await MakeAndDeleteSecondaryMessage(msg.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
-					msg.Author.FormatUser(), spamUser.VotesRequired - spamUser.VotesToKick));
+					author.FormatUser(), spamUser.VotesRequired - spamUser.VotesToKick));
 			}
 		}
 
