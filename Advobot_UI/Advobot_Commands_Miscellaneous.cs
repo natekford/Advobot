@@ -130,7 +130,7 @@ namespace Advobot
 			{
 				var channel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, true, otherStr).Object ?? Context.Channel as IGuildChannel;
 
-				await Actions.SendChannelMessage(Context, String.Format("The {0} channel `{1}` has the ID `{2}`.", Actions.GetChannelType(channel), Actions.EscapeMarkdown(channel.Name), channel.Id));
+				await Actions.SendChannelMessage(Context, String.Format("The {0} channel `{1}` has the ID `{2}`.", Actions.GetChannelType(channel), Actions.EscapeMarkdown(channel.Name, true), channel.Id));
 			}
 			else if (Actions.CaseInsEquals(targetStr, "role"))
 			{
@@ -142,13 +142,13 @@ namespace Advobot
 				}
 				var role = returnedRole.Object;
 
-				await Actions.SendChannelMessage(Context, String.Format("The role `{0}` has the ID `{1}`.", Actions.EscapeMarkdown(role.Name), role.Id));
+				await Actions.SendChannelMessage(Context, String.Format("The role `{0}` has the ID `{1}`.", Actions.EscapeMarkdown(role.Name, true), role.Id));
 			}
 			else if (Actions.CaseInsEquals(targetStr, "user"))
 			{
 				var user = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, otherStr).Object ?? Context.User as IGuildUser;
 
-				await Actions.SendChannelMessage(Context, String.Format("The user `{0}#{1}` has the ID `{2}`.", Actions.EscapeMarkdown(user.Username), user.Discriminator, user.Id));
+				await Actions.SendChannelMessage(Context, String.Format("The user `{0}#{1}` has the ID `{2}`.", Actions.EscapeMarkdown(user.Username, true), user.Discriminator, user.Id));
 			}
 			else if (Actions.CaseInsEquals(targetStr, "emoji"))
 			{
@@ -160,7 +160,7 @@ namespace Advobot
 				}
 				var emoji = returnedEmoji.Object;
 
-				await Actions.SendChannelMessage(Context, String.Format("The emoji `{0}` has the ID `{1}`.", Actions.EscapeMarkdown(emoji.Name), emoji.Id));
+				await Actions.SendChannelMessage(Context, String.Format("The emoji `{0}` has the ID `{1}`.", Actions.EscapeMarkdown(emoji.Name, true), emoji.Id));
 			}
 			else if (Actions.CaseInsEquals(targetStr, "bot"))
 			{

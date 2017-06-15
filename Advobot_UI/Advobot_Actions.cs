@@ -2544,7 +2544,7 @@ namespace Advobot
 
 			//Make the description
 			var IDstr = String.Format("**ID:** `{0}`", guildUser.Id);
-			var nicknameStr = String.Format("**Nickname:** `{0}`", String.IsNullOrWhiteSpace(guildUser.Nickname) ? "NO NICKNAME" : EscapeMarkdown(guildUser.Nickname));
+			var nicknameStr = String.Format("**Nickname:** `{0}`", String.IsNullOrWhiteSpace(guildUser.Nickname) ? "NO NICKNAME" : EscapeMarkdown(guildUser.Nickname, true));
 			var createdStr = String.Format("\n**Created:** `{0} {1}, {2} at {3}`",
 				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(created.Month),
 				created.Day,
@@ -2747,11 +2747,11 @@ namespace Advobot
 				var game = user.Game.Value;
 				if (game.StreamType == StreamType.Twitch)
 				{
-					return String.Format("**Current Stream:** [{0}]({1})", EscapeMarkdown(game.Name), game.StreamUrl);
+					return String.Format("**Current Stream:** [{0}]({1})", EscapeMarkdown(game.Name, true), game.StreamUrl);
 				}
 				else
 				{
-					return String.Format("**Current Game:** `{0}`", EscapeMarkdown(game.Name));
+					return String.Format("**Current Game:** `{0}`", EscapeMarkdown(game.Name, true));
 				}
 			}
 			return "**Current Game:** `N/A`";
@@ -4728,9 +4728,10 @@ namespace Advobot
 			Environment.Exit(0);
 		}
 
-		public static string EscapeMarkdown(string str)
+		public static string EscapeMarkdown(string str, bool onlyAccentGrave)
 		{
-			return str.Replace("*", "\\*").Replace("`", "\\`").Replace("_", "\\_");
+			str = str.Replace("`", "\\`");
+			return onlyAccentGrave ? str : str.Replace("*", "\\*").Replace("_", "\\_");
 		}
 		#endregion
 	}
@@ -4792,7 +4793,7 @@ namespace Advobot
 			user = user ?? Variables.Client.GetUser((ulong)userID);
 			if (user != null)
 			{
-				return String.Format("'{0}#{1}' ({2})", Actions.EscapeMarkdown(user.Username), user.Discriminator, user.Id);
+				return String.Format("'{0}#{1}' ({2})", Actions.EscapeMarkdown(user.Username, true), user.Discriminator, user.Id);
 			}
 			else
 			{
@@ -4804,7 +4805,7 @@ namespace Advobot
 		{
 			if (role != null)
 			{
-				return String.Format("'{0}' ({1})", Actions.EscapeMarkdown(role.Name), role.Id);
+				return String.Format("'{0}' ({1})", Actions.EscapeMarkdown(role.Name, true), role.Id);
 			}
 			else
 			{
@@ -4816,7 +4817,7 @@ namespace Advobot
 		{
 			if (channel != null)
 			{
-				return String.Format("'{0}' ({1}) ({2})", Actions.EscapeMarkdown(channel.Name), Actions.GetChannelType(channel), channel.Id);
+				return String.Format("'{0}' ({1}) ({2})", Actions.EscapeMarkdown(channel.Name, true), Actions.GetChannelType(channel), channel.Id);
 			}
 			else
 			{
@@ -4829,7 +4830,7 @@ namespace Advobot
 			guild = guild ?? Variables.Client.GetGuild((ulong)guildID);
 			if (guild != null)
 			{
-				return String.Format("'{0}' ({1})", Actions.EscapeMarkdown(guild.Name), guild.Id);
+				return String.Format("'{0}' ({1})", Actions.EscapeMarkdown(guild.Name, true), guild.Id);
 			}
 			else
 			{

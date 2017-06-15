@@ -345,11 +345,8 @@ namespace Advobot
 
 			foreach (var group in SelfAssignableGroups)
 			{
-				group.Roles.RemoveAll(x => x == null);
-				group.Roles.ForEach(x =>
-				{
-					x = new SelfAssignableRole(GuildID, x.RoleID);
-				});
+				group.Roles.RemoveAll(x => x == null || x.Role == null);
+				group.Roles.ForEach(x => x.SetGroup(group.Group));
 			}
 
 			if (ListedInvite != null)

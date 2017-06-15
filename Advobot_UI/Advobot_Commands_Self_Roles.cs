@@ -233,7 +233,7 @@ namespace Advobot
 			//If a group that has roles conflict, remove all but the wanted role
 			var SAGroup = guildInfo.SelfAssignableGroups.FirstOrDefault(x => x?.Group == SARole?.Group);
 			var removedRoles = "";
-			if (SAGroup.Group != 0)
+			if (SAGroup?.Group != 0)
 			{
 				var otherRoles = SAGroup.Roles.Where(x =>
 				{
