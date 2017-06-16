@@ -30,11 +30,13 @@ namespace Advobot
 			var typeStr = returnedArgs.Arguments[0];
 			var chanStr = returnedArgs.Arguments[1];
 
-			if (!Enum.TryParse(typeStr, true, out LogChannelTypes type))
+			var returnedType = Actions.GetType(typeStr, new[] { LogChannelTypes.Server, LogChannelTypes.Mod, LogChannelTypes.Image });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
+			var type = returnedType.Type;
 
 			ITextChannel channel = null;
 			if (!Actions.CaseInsEquals(chanStr, "off"))

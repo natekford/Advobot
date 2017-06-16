@@ -681,13 +681,9 @@ namespace Advobot
 			return (inputString != null && CaseInsEquals(input, searchTerm) ? inputString.Substring(inputString.IndexOf(':') + 1) : null);
 		}
 
-		public static string GetPrefix(IGuild guild)
+		public static string GetPrefix(BotGuildInfo guildInfo)
 		{
-			var prefix = "";
-			if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-			{
-				prefix = guildInfo.Prefix;
-			}
+			var prefix = guildInfo.Prefix;
 			if (String.IsNullOrWhiteSpace(prefix))
 			{
 				prefix = Variables.BotInfo.Prefix;
@@ -719,12 +715,7 @@ namespace Advobot
 			if (guild == null || user == null)
 				return false;
 
-			return guild.OwnerId == user.Id || GetIfUserIsOwnerButBotIsOwner(guild, user);
-		}
-
-		public static bool GetIfUserIsOwnerButBotIsOwner(IGuild guild, IUser user)
-		{
-			return guild.OwnerId == Variables.BotID && GetUserPosition(guild, user) == guild.Roles.Max(x => x.Position) - 1;
+			return guild.OwnerId == user.Id || guild.OwnerId == Variables.BotID;
 		}
 
 		public static bool GetIfUserIsBotOwner(IUser user)
@@ -1591,6 +1582,15 @@ namespace Advobot
 		public static IUser GetGlobalUser(ulong ID)
 		{
 			return Variables.Client.GetUser(ID);
+		}
+
+		public static IUser GetGlobalUser(string idStr)
+		{
+			if (ulong.TryParse(idStr, out ulong ID))
+			{
+				return GetGlobalUser(ID);
+			}
+			return null;
 		}
 
 		public static IUser GetBotOwner()

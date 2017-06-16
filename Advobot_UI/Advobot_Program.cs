@@ -42,13 +42,13 @@ namespace Advobot
 			{
 				//Set the path to save files
 				var startup = true;
-				while (!Actions.ValidatePath(startup ? Properties.Settings.Default.Path : System.Console.ReadLine(), startup))
+				while (!Actions.ValidatePath(startup ? Properties.Settings.Default.Path : Console.ReadLine(), startup))
 				{
 					startup = false;
 				}
 				//Set the bot's key
 				startup = true;
-				while (!Actions.ValidateBotKey(Variables.Client, startup ? Properties.Settings.Default.BotKey : System.Console.ReadLine(), startup).Result)
+				while (!Actions.ValidateBotKey(Variables.Client, startup ? Properties.Settings.Default.BotKey : Console.ReadLine(), startup).Result)
 				{
 					startup = false;
 				}
@@ -75,8 +75,7 @@ namespace Advobot
 			}
 
 			//Add in the dependency map
-			var provider = ConfigureServices(client);
-			await new Command_Handler().Install(provider);
+			await new Command_Handler().Install(ConfigureServices(client));
 
 			//Block this program until it is closed.
 			await Task.Delay(-1);

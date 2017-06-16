@@ -21,7 +21,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Help([Optional, Remainder] string input)
 		{
-			var prefix = Actions.GetPrefix(Context.Guild);
+			var prefix = Actions.GetPrefix(await Actions.GetGuildInfo(Context.Guild));
 			if (String.IsNullOrWhiteSpace(input))
 			{
 			    var emb = Actions.MakeNewEmbed("General Help", String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", prefix));
@@ -87,7 +87,9 @@ namespace Advobot
 		{
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				var desc = String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}", Actions.GetPrefix(Context.Guild), String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))));
+				var desc = String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}",
+					Actions.GetPrefix(await Actions.GetGuildInfo(Context.Guild)),
+					String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))));
 				var embed = Actions.MakeNewEmbed("Categories", desc);
 				await Actions.SendEmbedMessage(Context.Channel, embed);
 				return;
@@ -175,6 +177,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GetInfo([Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
@@ -217,11 +221,27 @@ namespace Advobot
 			else if (Actions.CaseInsEquals(targetStr, "channel"))
 			{
 				var channel = Actions.GetChannel(Context, new[] { ChannelCheck.None }, true, otherStr).Object as SocketChannel ?? Context.Channel as SocketChannel;
+				var ignoredFromLog = guildInfo.IgnoredLogChannels.Contains(channel.Id);
+				var ignoredFromCommands = guildInfo.IgnoredCommandChannels.Contains(channel.Id);
+				var imageOnly = guildInfo.ImageOnlyChannels.Contains(channel.Id);
+				var sanitary = guildInfo.SanitaryChannels.Contains(channel.Id);
+				var slowmode = guildInfo.SlowmodeChannels.Any(x => x.ChannelID == channel.Id);
+				var serverlog = guildInfo.ServerLogID == channel.Id;
+				var modlog = guildInfo.ModLogID == channel.Id;
+				var imagelog = guildInfo.ImageLogID == channel.Id;
 
 				var title = channel.FormatChannel();
 				var age = String.Format("**Created:** `{0}` (`{1}` days ago)", channel.CreatedAt.UtcDateTime, DateTime.UtcNow.Subtract(channel.CreatedAt.UtcDateTime).Days);
 				var users = String.Format("**User Count:** `{0}`", channel.Users.Count);
-				var desc = String.Join("\n", new[] { age, users });
+				var log = String.Format("\n**Ignored From Log:** `{0}`", ignoredFromLog ? "Yes" : "No");
+				var cmds = String.Format("**Ignored From Commands:** `{0}`", ignoredFromCommands ? "Yes" : "No");
+				var image = String.Format("**Image Only:** `{0}`", imageOnly ? "Yes" : "No");
+				var san = String.Format("**Sanitary:** `{0}`", sanitary ? "Yes" : "No");
+				var sm = String.Format("**Slowmode:** `{0}`", slowmode ? "Yes" : "No");
+				var sl = String.Format("\n**Serverlog:** `{0}`", serverlog ? "Yes" : "No");
+				var ml = String.Format("**Modlog:** `{0}`", modlog ? "Yes" : "No");
+				var il = String.Format("**Imagelog:** `{0}`", imagelog ? "Yes" : "No");
+				var desc = String.Join("\n", new[] { age, users, log, cmds, image, san, sm, sl, ml, il });
 
 				var embed = Actions.MakeNewEmbed(title, desc);
 				Actions.AddFooter(embed, "Channel Info");
@@ -249,7 +269,7 @@ namespace Advobot
 			}
 			else if (Actions.CaseInsEquals(targetStr, "user"))
 			{
-				var user = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, otherStr).Object ?? Context.User as IGuildUser;
+				var user = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, otherStr).Object ?? Actions.GetGlobalUser(otherStr) ?? Context.User as IGuildUser;
 
 				var embed = Actions.FormatUserInfo(Context.Guild as SocketGuild, user);
 				await Actions.SendEmbedMessage(Context.Channel, embed);
@@ -402,7 +422,7 @@ namespace Advobot
 		[Command("displayuserjoinlist")]
 		[Alias("dujl")]
 		[Usage("")]
-		[Summary("Lists most of the users who have joined the guild. Not 100% accurate.")]
+		[Summary("Lists most of the users who have joined the guild.")]
 		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task UserJoins()
@@ -423,7 +443,7 @@ namespace Advobot
 		[Command("getuserjoinedat")]
 		[Alias("gujat")]
 		[Usage("[Position]")]
-		[Summary("Shows the user which joined the guild in that position. Not 100% accurate.")]
+		[Summary("Shows the user which joined the guild in that position.")]
 		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
 		public async Task UserJoinedAt([Remainder] string input)
@@ -454,61 +474,24 @@ namespace Advobot
 			}
 		}
 
-		[Command("getcurrentmembercount")]
-		[Alias("gcmc")]
-		[Usage("")]
-		[Summary("Shows the current number of members in the guild.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
-		[DefaultEnabled(true)]
-		public async Task CurrentMemberCount()
-		{
-			await Actions.SendChannelMessage(Context, String.Format("The current member count is `{0}`.", (Context.Guild as SocketGuild).MemberCount));
-		}
-
-		[Command("getuserswithrole")]
+		[Command("getuserswithreason")]
 		[Alias("guwr")]
-		[Usage("[Role]")]
-		[Summary("Prints out a list of all users with the given role.")]
+		[Usage("[Role|Name|Game|Streaming] [\"Other Argument\"] <Exact:True|False> <Count:True|False> <Nickname:True|False>")]
 		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
 		[DefaultEnabled(true)]
-		public async Task UsersWithRole([Remainder] string input)
+		public async Task GetUsersWithReason([Remainder] string input)
 		{
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, input);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedRole);
-				return;
-			}
-			var role = returnedRole.Object;
-
-			var count = 1;
-			var users = String.Join("\n", (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt.HasValue).OrderBy(x => x.JoinedAt).Where(x => x.RoleIds.Contains(role.Id)).ToList().Select(x =>
-			{
-				return String.Format("`{0}.` `{1}`", count++.ToString("00"), x.FormatUser());
-			}));
-
-			var roleName = role.Name.Substring(0, 3) + Constants.ZERO_LENGTH_CHAR + role.Name.Substring(3);
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(roleName, users));
-		}
-
-		[Command("getuserswithname")]
-		[Alias("guwn")]
-		[Usage("[\"Name to Search For\"] <Exact:True|False> <Count:True|False> <Nickname:True|False>")]
-		[Summary("Lists all users where their username contains the given string.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
-		[DefaultEnabled(true)]
-		public async Task UsersWithName([Remainder] string input)
-		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 4), new[] { "exact", "count", "nickname" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 5), new[] { "exact", "count", "nickname" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
-			var nameStr = returnedArgs.Arguments[0];
+			var targetStr = returnedArgs.Arguments[0];
+			var otherArgStr = returnedArgs.Arguments[1];
 			var exactStr = returnedArgs.GetSpecifiedArg("exact");
 			var countStr = returnedArgs.GetSpecifiedArg("count");
-			var nickStr = returnedArgs.GetSpecifiedArg("nickname");
+			var nicknameStr = returnedArgs.GetSpecifiedArg("nickname");
 
 			var exact = false;
 			if (!String.IsNullOrWhiteSpace(exactStr))
@@ -529,42 +512,102 @@ namespace Advobot
 				}
 			}
 			var nickname = false;
-			if (!String.IsNullOrWhiteSpace(nickStr))
+			if (!String.IsNullOrWhiteSpace(nicknameStr))
 			{
-				if (!bool.TryParse(nickStr, out nickname))
+				if (!bool.TryParse(nicknameStr, out nickname))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for nickname."));
 					return;
 				}
 			}
 
-			var users = (await Context.Guild.GetUsersAsync()).Where(x =>
+			var title = "";
+			var desc = "";
+			var users = (await Context.Guild.GetUsersAsync()).ToList();
+			if (Actions.CaseInsEquals(targetStr, "role"))
 			{
-				if (exact)
+				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, otherArgStr);
+				if (returnedRole.Reason != FailureReason.Not_Failure)
 				{
-					return Actions.CaseInsEquals(x.Username, nameStr) || (nickname && Actions.CaseInsEquals(x?.Nickname, nameStr));
+					await Actions.HandleObjectGettingErrors(Context, returnedRole);
+					return;
 				}
-				else
+				var role = returnedRole.Object;
+
+				title = String.Format("Users With The Role '{0}'", role.Name.Insert(3, Constants.ZERO_LENGTH_CHAR));
+				users = users.Where(x =>
 				{
-					return Actions.CaseInsIndexOf(x.Username, nameStr) || (nickname && Actions.CaseInsIndexOf(x?.Nickname, nameStr));
-				}
-			});
+					return x.RoleIds.Contains(role.Id);
+				}).ToList();
+			}
+			else if (Actions.CaseInsEquals(targetStr, "name"))
+			{
+				title = String.Format("Users With Names Containing '{0}'", otherArgStr);
+				users = users.Where(x =>
+				{
+					if (exact)
+					{
+						return Actions.CaseInsEquals(otherArgStr, x.Username) || (nickname && Actions.CaseInsEquals(otherArgStr, x?.Nickname));
+					}
+					else
+					{
+						return Actions.CaseInsIndexOf(otherArgStr, x.Username) || (nickname && Actions.CaseInsIndexOf(otherArgStr, x?.Nickname));
+					}
+				}).ToList();
+			}
+			else if (Actions.CaseInsEquals(targetStr, "game"))
+			{
+				title = String.Format("Users With Games Containing '{0}'", otherArgStr);
+				users = users.Where(x =>
+				{
+					if (!x.Game.HasValue)
+					{
+						return false;
+					}
+
+					var gameName = x.Game.Value.Name;
+					if (exact)
+					{
+						return Actions.CaseInsEquals(otherArgStr, gameName);
+					}
+					else
+					{
+						return Actions.CaseInsIndexOf(otherArgStr, gameName);
+					}
+				}).ToList();
+			}
+			else if (Actions.CaseInsEquals(targetStr, "streaming"))
+			{
+				title = "Users Who Are Streaming";
+				users = users.Where(x =>
+				{
+					if (!x.Game.HasValue)
+					{
+						return false;
+					}
+
+					return x.Game.Value.StreamType != StreamType.NotStreaming;
+				}).ToList();
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid target type."));
+				return;
+			}
+
 
 			if (count)
 			{
-				await Actions.SendChannelMessage(Context, String.Format("The following number of users have a name containing `{0}`: `{1}`.", nameStr, users.Count()));
+				desc = String.Format("**Count:** `{0}`", users.Count);
 			}
 			else
 			{
 				var c = 1;
-				var response = String.Join("\n", users.OrderBy(x => x.JoinedAt).ToList().Select(x =>
-				{
-					return String.Format("`{0}.` `{1}`", c++.ToString("00"), x.FormatUser());
-				}));
-
-				var title = String.Format("Users With Names Containing '{0}'", nameStr);
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, response));
+				var padLeft = users.Count.ToString().Length;
+				desc = String.Join("\n", users.OrderBy(x => x.JoinedAt).Select(x => String.Format("`{0}.` `{1}`", c++.ToString().PadLeft(padLeft, '0'), x.FormatUser())));
 			}
+
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, desc));
 		}
 
 		[Command("displayemojis")]
@@ -1000,7 +1043,7 @@ namespace Advobot
 		{
 			if (!uint.TryParse(input, out uint num))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Input is not a number."));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Input is not a valid number."));
 				return;
 			}
 
@@ -1018,14 +1061,6 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			var a = new string('a', 2050);
-			var embed = Actions.MakeNewEmbed("test", a);
-			Actions.AddField(embed, "name", a);
-			Actions.AddField(embed, "2", "test");
-			Actions.AddField(embed, "asdf", a);
-
-			await Actions.SendEmbedMessage(Context.Channel, embed);
-
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
 		}
 	}

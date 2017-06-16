@@ -598,6 +598,68 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {0}: `{1}`.", outputStr, String.Join("`, `", permissions.Select(x => x.Name))));
 		}
 
+		[Command("modifychannelsettings")]
+		[Alias("mcs")]
+		[Usage("[ImageOnly|Sanitary] <Channel>")]
+		[Summary("Image only works solely on attachments. Sanitary means any message sent by someone without admin gets deleted. " +
+			"No input channel means it applies to the current channel. Using the command on an already targetted channel turned it off.")]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[DefaultEnabled(false)]
+		public async Task ModifyImageOnly([Optional, Remainder] string input)
+		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
+			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var settingStr = returnedArgs.Arguments[0];
+			var chanStr = returnedArgs.Arguments[1];
+
+			var returnedType = Actions.GetType(settingStr, new[] { ChannelSettings.ImageOnly, ChannelSettings.Sanitary });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			{
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				return;
+			}
+			var type = returnedType.Type;
+
+			var channel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed, ChannelCheck.Can_Delete_Messages, ChannelCheck.Is_Text }, true, input).Object ?? Context.Channel as ITextChannel;
+			switch (type)
+			{
+				case ChannelSettings.ImageOnly:
+				{
+					if (guildInfo.ImageOnlyChannels.Contains(channel.Id))
+					{
+						guildInfo.ImageOnlyChannels.Remove(channel.Id);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the channel `{0}` from the image only list."));
+					}
+					else
+					{
+						guildInfo.ImageOnlyChannels.Add(channel.Id);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the channel `{0}` to the image only list."));
+					}
+					break;
+				}
+				case ChannelSettings.Sanitary:
+				{
+					if (guildInfo.SanitaryChannels.Contains(channel.Id))
+					{
+						guildInfo.SanitaryChannels.Remove(channel.Id);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the channel `{0}` from the sanitary list."));
+					}
+					else
+					{
+						guildInfo.SanitaryChannels.Add(channel.Id);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the channel `{0}` to the sanitary list."));
+					}
+					break;
+				}
+			}
+		}
+
 		[Command("modifyreminds")]
 		[Alias("mrem")]
 		[Usage("[Add|Remove] [\"Name\"] <\"Text\">")]

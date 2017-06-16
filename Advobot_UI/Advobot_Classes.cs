@@ -166,6 +166,8 @@ namespace Advobot
 	public class BotGuildInfo
 	{
 		[JsonProperty]
+		public Dictionary<int, PyramidalRoleSystem> PyramidalRoleSystem { get; private set; }
+		[JsonProperty]
 		public List<BotImplementedPermissions> BotUsers { get; private set; }
 		[JsonProperty]
 		public List<SelfAssignableGroup> SelfAssignableGroups { get; private set; }
@@ -181,6 +183,8 @@ namespace Advobot
 		public List<ulong> IgnoredLogChannels { get; private set; }
 		[JsonProperty]
 		public List<ulong> ImageOnlyChannels { get; private set; }
+		[JsonProperty]
+		public List<ulong> SanitaryChannels { get; private set; }
 		[JsonIgnore]
 		public List<BannedPhraseUser> BannedPhraseUsers { get; private set; }
 		[JsonIgnore]
@@ -235,6 +239,7 @@ namespace Advobot
 		{
 			GuildID = guildID;
 
+			PyramidalRoleSystem = new Dictionary<int, PyramidalRoleSystem>();
 			BotUsers = new List<BotImplementedPermissions>();
 			SelfAssignableGroups = new List<SelfAssignableGroup>();
 			Reminds = new List<Remind>();
@@ -242,6 +247,7 @@ namespace Advobot
 			IgnoredCommandChannels = new List<ulong>();
 			IgnoredLogChannels = new List<ulong>();
 			ImageOnlyChannels = new List<ulong>();
+			SanitaryChannels = new List<ulong>();
 			LogActions = new List<LogActions>();
 			SlowmodeChannels = new List<SlowmodeChannel>();
 			Invites = new List<BotInvite>();
@@ -878,6 +884,43 @@ namespace Advobot
 		{
 			Name = name;
 			Text = text;
+		}
+	}
+
+	public class PyramidalRoleSystem
+	{
+		/*  ▲
+		 * ▲ ▲
+		 * I originally thought this should resemble a pyramid;
+		 * At this point, it's more of just the current Discord system except multiple things can occupy the same slot-
+		 * Pyramidal Role System sounds a lot cooler than Bot Role System though.
+		 */
+		[JsonProperty]
+		public List<ulong> Users { get; private set; }
+		[JsonProperty]
+		public List<ulong> Roles { get; private set; }
+
+		public PyramidalRoleSystem()
+		{
+			Users = new List<ulong>();
+			Roles = new List<ulong>();
+		}
+
+		public void AddUser(ulong ID)
+		{
+			Users.Add(ID);
+		}
+		public void RemoveUser(ulong ID)
+		{
+			Users.RemoveAll(x => x == ID);
+		}
+		public void AddRole(ulong ID)
+		{
+			Roles.Add(ID);
+		}
+		public void RemoveRole(ulong ID)
+		{
+			Roles.RemoveAll(x => x == ID);
 		}
 	}
 	#endregion
@@ -1797,6 +1840,8 @@ namespace Advobot
 		Add = 9,
 		Remove = 10,
 		Delete = 11,
+		Clear = 12,
+		Current = 13,
 	}
 
 	public enum FailureReason
@@ -1856,15 +1901,15 @@ namespace Advobot
 
 	public enum GuildNotifications
 	{
-		Welcome = 1,
-		Goodbye = 2,
+		Welcome = 0,
+		Goodbye = 1,
 	}
 
 	public enum LogChannelTypes
 	{
-		Server = 1,
-		Mod = 2,
-		Image = 3,
+		Server = 0,
+		Mod = 1,
+		Image = 2,
 	}
 
 	public enum UserCheck
@@ -1946,6 +1991,12 @@ namespace Advobot
 		Guild_Owner = 2,
 		Trusted_User = 4,
 		Bot_Owner = 8,
+	}
+
+	public enum ChannelSettings
+	{
+		ImageOnly = 0,
+		Sanitary = 1,
 	}
 	#endregion
 }

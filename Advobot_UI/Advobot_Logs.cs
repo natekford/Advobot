@@ -253,19 +253,19 @@ namespace Advobot
 			if (guild == null)
 			{
 				//Check if the user is trying to become the bot owner by DMing the bot its key
-				await Message_Received_Actions.BotOwner(message);
+				await Message_Received_Actions.HandlePotentialBotOwner(message);
 			}
-			else if (Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
-			{
-				await Message_Received_Actions.CloseWords(guildInfo, guild, message);
-				await Message_Received_Actions.VotingOnSpamPrevention(guildInfo, guild, message);
 
-				if (Actions.VerifyMessageShouldBeLogged(guildInfo, message))
-				{
-					await Message_Received_Actions.SpamPrevention(guildInfo, guild, message);
-					await Message_Received_Actions.SlowmodeOrBannedPhrases(guildInfo, guild, message);
-					await Message_Received_Actions.LogImage(guildInfo, guildInfo.ImageLog, message);
-				}
+			var guildInfo = await Actions.GetGuildInfo(guild);
+			await Message_Received_Actions.HandleCloseWords(guildInfo, message);
+			await Message_Received_Actions.HandleSpamPreventionVoting(guildInfo, message);
+
+			if (Actions.VerifyMessageShouldBeLogged(guildInfo, message))
+			{
+				await Message_Received_Actions.HandleChannelSettings(guildInfo, message);
+				await Message_Received_Actions.HandleSpamPrevention(guildInfo, message);
+				await Message_Received_Actions.HandleSlowmodeOrBannedPhrases(guildInfo, message);
+				await Message_Received_Actions.HandleImageLogging(guildInfo, message);
 			}
 		}
 
@@ -313,7 +313,7 @@ namespace Advobot
 					//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
 					if (beforeMessage?.Embeds.Count() < afterMessage.Embeds.Count())
 					{
-						await Message_Received_Actions.LogImage(guildInfo, imageLog, afterMessage);
+						await Message_Received_Actions.HandleImageLogging(guildInfo, afterMessage);
 						++Variables.LoggedEdits;
 					}
 				}
@@ -415,8 +415,39 @@ namespace Advobot
 
 	public class Message_Received_Actions : ModuleBase
 	{
-		public static async Task LogImage(BotGuildInfo guildInfo, ITextChannel logChannel, IMessage message)
+		public static async Task HandlePotentialBotOwner(IMessage message)
 		{
+			if (message.Content.Equals(Properties.Settings.Default.BotKey) && Variables.BotInfo.BotOwnerID == 0)
+			{
+				Variables.BotInfo.SetBotOwner(message.Author.Id);
+				Actions.SaveBotInfo(Variables.BotInfo);
+				await Actions.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
+			}
+		}
+
+		public static async Task HandleChannelSettings(BotGuildInfo guildInfo, IMessage message)
+		{
+			var channel = message.Channel as ITextChannel;
+			var author = message.Author as IGuildUser;
+			if (channel == null || author == null || author.GuildPermissions.Administrator)
+				return;
+
+			if (guildInfo.ImageOnlyChannels.Contains(channel.Id))
+			{
+				if (!(message.Attachments.Any(x => x.Height != null || x.Width != null) || message.Embeds.Any(x => x.Image != null)))
+				{
+					await message.DeleteAsync();
+				}
+			}
+			if (guildInfo.SanitaryChannels.Contains(channel.Id))
+			{
+				await message.DeleteAsync();
+			}
+		}
+
+		public static async Task HandleImageLogging(BotGuildInfo guildInfo, IMessage message)
+		{
+			var logChannel = guildInfo.ImageLog;
 			if (logChannel == null || message.Author.Id == Variables.BotID)
 				return;
 
@@ -430,20 +461,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task BotOwner(IMessage message)
-		{
-			if (message.Content.Equals(Properties.Settings.Default.BotKey))
-			{
-				if (Variables.BotInfo.BotOwnerID == 0)
-				{
-					Variables.BotInfo.SetBotOwner(message.Author.Id);
-					Actions.SaveBotInfo(Variables.BotInfo);
-					await Actions.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
-				}
-			}
-		}
-
-		public static async Task CloseWords(BotGuildInfo guildInfo, IGuild guild, IMessage message)
+		public static async Task HandleCloseWords(BotGuildInfo guildInfo, IMessage message)
 		{
 			//Get the number
 			if (!int.TryParse(message.Content, out int number))
@@ -465,19 +483,15 @@ namespace Advobot
 				{
 					var help = closeHelpList.List[number].Help;
 					Variables.ActiveCloseHelp.ThreadSafeRemove(closeHelpList);
-					var prefix = Actions.GetPrefix(guild);
+					var prefix = Actions.GetPrefix(guildInfo);
 					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help, prefix)), "Help"));
 					await Actions.DeleteMessage(message);
 				}
 			}
 		}
 
-		public static async Task SlowmodeOrBannedPhrases(BotGuildInfo guildInfo, IGuild guild, IMessage message)
+		public static async Task HandleSlowmodeOrBannedPhrases(BotGuildInfo guildInfo, IMessage message)
 		{
-			//Make sure the message is a valid message to do this to
-			if (message == null || message.Author.IsBot || message.Author.IsWebhook)
-				return;
-
 			if (guildInfo.SlowmodeGuild != null || guildInfo.SlowmodeChannels.Any(x => x.ChannelID == message.Channel.Id))
 			{
 				await Actions.Slowmode(guildInfo, message);
@@ -488,8 +502,9 @@ namespace Advobot
 			}
 		}
 
-		public static async Task SpamPrevention(BotGuildInfo guildInfo, IGuild guild, IMessage message)
+		public static async Task HandleSpamPrevention(BotGuildInfo guildInfo, IMessage message)
 		{
+			var guild = guildInfo.Guild;
 			var author = message.Author as IGuildUser;
 			if (Actions.GetUserPosition(guild, author) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)))
 				return;
@@ -497,7 +512,7 @@ namespace Advobot
 			await Actions.SpamCheck(guildInfo.GuildSpamAndRaidPrevention, guild, author, message);
 		}
 
-		public static async Task VotingOnSpamPrevention(BotGuildInfo guildInfo, IGuild guild, IMessage message)
+		public static async Task HandleSpamPreventionVoting(BotGuildInfo guildInfo, IMessage message)
 		{
 			//Get the users primed to be kicked/banned by the spam prevention
 			var users = guildInfo.GuildSpamAndRaidPrevention.SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
@@ -505,6 +520,7 @@ namespace Advobot
 				return;
 
 			//Cross reference the almost kicked users and the mentioned users
+			var guild = guildInfo.Guild;
 			await users.Where(x => message.MentionedUserIds.Contains(x.User.Id)).ToList().ForEachAsync(async x =>
 			{
 				//Check if mentioned users contains any users almost kicked. Check if the person has already voted. Don't allow users to vote on themselves.

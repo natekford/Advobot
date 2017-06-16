@@ -288,22 +288,29 @@ namespace Advobot
 			var typeStr = returnedArgs.Arguments[1];
 			var regexStr = returnedArgs.Arguments[2];
 
-			//Get the type
-			if (!Enum.TryParse(typeStr, true, out PunishmentType type))
+			var returnedType = Actions.GetType(typeStr, new[] { PunishmentType.Nothing, PunishmentType.Role, PunishmentType.Kick, PunishmentType.Ban });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
+			var type = returnedType.Type;
 
-			//Check if position or phrase
-			var regex = Actions.CaseInsEquals(regexStr, "regex");
+			var position = -1;
 			if (!String.IsNullOrWhiteSpace(posStr))
 			{
-				if (!int.TryParse(posStr, out int position))
+				if (!int.TryParse(posStr, out position))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid number for position."));
 					return;
 				}
+			}
+
+			//Check if position or phrase
+			var regex = Actions.CaseInsEquals(regexStr, "regex");
+			BannedPhrase<string> bannedPhrase = null;
+			if (position > -1)
+			{
 				if (regex)
 				{
 					var bannedRegex = guildInfo.BannedPhrases.Regex;
@@ -312,9 +319,7 @@ namespace Advobot
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The list of banned regex does not go to that position"));
 						return;
 					}
-					var bannedPhrase = bannedRegex[position];
-					bannedPhrase.ChangePunishment(type);
-					phraseStr = bannedPhrase.Phrase.ToString();
+					bannedPhrase = bannedRegex[position];
 				}
 				else
 				{
@@ -324,31 +329,31 @@ namespace Advobot
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The list of banned strings does not go to that position"));
 						return;
 					}
-					var bannedPhrase = bannedStrings[position];
-					bannedPhrase.ChangePunishment(type);
-					phraseStr = bannedPhrase.Phrase;
+					bannedPhrase = bannedStrings[position];
 				}
-			}
-			else if (regex)
-			{
-				if (!Actions.TryGetBannedRegex(guildInfo, phraseStr, out BannedPhrase<string> bannedRegex))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No banned regex could be found which matches the given phrase."));
-					return;
-				}
-				bannedRegex.ChangePunishment(type);
-				phraseStr = bannedRegex.Phrase;
 			}
 			else
 			{
-				if (!Actions.TryGetBannedString(guildInfo, phraseStr, out BannedPhrase<string> bannedString))
+				if (regex)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No banned string could be found which matches the given phrase."));
-					return;
+					if (!Actions.TryGetBannedRegex(guildInfo, phraseStr, out bannedPhrase))
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No banned regex could be found which matches the given phrase."));
+						return;
+					}
 				}
-				bannedString.ChangePunishment(type);
-				phraseStr = bannedString.Phrase;
+				else
+				{
+					if (!Actions.TryGetBannedString(guildInfo, phraseStr, out bannedPhrase))
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No banned string could be found which matches the given phrase."));
+						return;
+					}
+				}
 			}
+
+			bannedPhrase.ChangePunishment(type);
+			phraseStr = bannedPhrase.Phrase.ToString();
 
 			//Resave everything and send a success message
 			Actions.SaveGuildInfo(guildInfo);
@@ -528,7 +533,6 @@ namespace Advobot
 		{
 			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
 
-			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
@@ -538,7 +542,6 @@ namespace Advobot
 			var userStr = returnedArgs.Arguments[0];
 			var actionStr = returnedArgs.Arguments[1];
 
-			//Get the user
 			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
 			if (returnedUser.Reason != FailureReason.Not_Failure)
 			{
@@ -554,24 +557,32 @@ namespace Advobot
 				return;
 			}
 
-			//Check if valid action
-			if (Actions.CaseInsEquals(actionStr, "clear"))
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Clear, ActionType.Current });
+			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
-				bpUser.ResetRoleCount();
-				bpUser.ResetKickCount();
-				bpUser.ResetBanCount();
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the infractions for `{0}` to 0.", user.FormatUser()));
+				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				return;
 			}
-			if (Actions.CaseInsEquals(actionStr, "current"))
+			var type = returnedType.Type;
+
+			switch (type)
 			{
-				var roleCount = bpUser?.MessagesForRole ?? 0;
-				var kickCount = bpUser?.MessagesForKick ?? 0;
-				var banCount = bpUser?.MessagesForBan ?? 0;
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}` has `{1}R/{2}K/{3}B` infractions.", user.FormatUser(), roleCount, kickCount, banCount));
-			}
-			else
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				case ActionType.Clear:
+				{
+					bpUser.ResetRoleCount();
+					bpUser.ResetKickCount();
+					bpUser.ResetBanCount();
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the infractions for `{0}` to 0.", user.FormatUser()));
+					break;
+				}
+				case ActionType.Current:
+				{
+					var roleCount = bpUser?.MessagesForRole ?? 0;
+					var kickCount = bpUser?.MessagesForKick ?? 0;
+					var banCount = bpUser?.MessagesForBan ?? 0;
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}` has `{1}R/{2}K/{3}B` infractions.", user.FormatUser(), roleCount, kickCount, banCount));
+					break;
+				}
 			}
 		}
 

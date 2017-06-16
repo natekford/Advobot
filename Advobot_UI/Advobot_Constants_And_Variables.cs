@@ -8,8 +8,8 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const string BOT_VERSION = "0.10.1";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc3-00746";
+		public const string BOT_VERSION = "0.10.8";
+		public const string API_VERSION = "Discord.Net v1.0.0-rc3-00755";
 		public const string BOT_PREFIX = "&&";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string IGNORE_ERROR = "Cx";
@@ -25,11 +25,9 @@ namespace Advobot
 		public const string BYPASS_STRING = "Bypass100";
 
 		public const string ERROR_MESSAGE = "**ERROR:** ";
-		public const string ARGUMENTS_ERROR = "Invalid number of arguments.";
-		public const string USER_ERROR = "Invalid user.";
-		public const string ROLE_ERROR = "Invalid role.";
-		public const string CHANNEL_ERROR = "Invalid channel.";
-		public const string ACTION_ERROR = "Invalid action.";
+		public const string ROLE_ERROR = "None of the targetted roles were valid.";
+		public const string CHANNEL_ERROR = "None of the targetted channels were valid.";
+		public const string ARGUMENTS_ERROR = "An invalid number of arguments was supplied.";
 		public const string CHANNEL_PERMISSIONS_ERROR = "You do not have the ability to edit that channel.";
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
 		public const string DENY_WITHOUT_PREFERENCES = "This guild does not have preferences enabled and thus cannot use this command. Please run the `comconfigmodify` command to enable them.";

@@ -783,6 +783,7 @@ namespace Advobot
 		}
 
 		//TODO: Split this up into separate commands
+		/*
 		[Command("forallwithrole")]
 		[Alias("fawr")]
 		[Usage("[Give_Role|GR|Take_Role|TR|Give_Nickname|GNN|Take_Nickname|TNN] [\"Role\"] <\"Role\"|\"Nickname\"> <" + Constants.BYPASS_STRING + ">")]
@@ -957,6 +958,6 @@ namespace Advobot
 				typing.Dispose();
 				await msg.DeleteAsync();
 			}).Forget();
-		}
+		}*/
 	}
 }

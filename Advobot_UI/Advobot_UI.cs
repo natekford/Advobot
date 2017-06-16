@@ -356,7 +356,10 @@ namespace Advobot
 
 		#region System Info
 		private static readonly Grid mSysInfoLayout = new Grid();
-		private static readonly TextBox mSysInfoUnder = new MyTextBox();
+		private static readonly TextBox mSysInfoUnder = new MyTextBox()
+		{
+			IsReadOnly = true,
+		};
 
 		private static readonly Viewbox mLatency = new Viewbox
 		{
@@ -1047,7 +1050,7 @@ namespace Advobot
 		{
 			return SaveSetting((dynamic)vb.Child, setting, botInfo);
 		}
-		private ReturnedSetting SaveSetting (CheckBox cb, SettingOnBot setting, BotGlobalInfo botInfo)
+		private ReturnedSetting SaveSetting(CheckBox cb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
 			if (!cb.IsChecked.HasValue)
 				return new ReturnedSetting(setting, NSF.Nothing);
