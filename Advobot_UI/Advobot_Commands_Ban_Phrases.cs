@@ -170,7 +170,7 @@ namespace Advobot
 					}
 
 					regex = eval[position];
-					curr.Add(new BannedPhrase<string>(regex, PunishmentType.Nothing));
+					curr.Add(new BannedPhrase(regex, PunishmentType.Nothing));
 					responseStr = "added";
 					break;
 				}
@@ -235,7 +235,7 @@ namespace Advobot
 				}
 			}
 
-			Actions.HandleBannedStringModification(guildInfo.BannedPhrases.Strings, Actions.SplitByCharExceptInQuotes(phraseStr, '/').ToList(), add, out List<string> success, out List<string> failure);
+			Actions.HandleBannedPhraseModification(guildInfo.BannedPhrases.Strings, Actions.SplitByCharExceptInQuotes(phraseStr, '/').ToList(), add, out List<string> success, out List<string> failure);
 
 			var successMessage = "";
 			if (success.Any())
@@ -308,7 +308,7 @@ namespace Advobot
 
 			//Check if position or phrase
 			var regex = Actions.CaseInsEquals(regexStr, "regex");
-			BannedPhrase<string> bannedPhrase = null;
+			BannedPhrase bannedPhrase = null;
 			if (position > -1)
 			{
 				if (regex)

@@ -555,10 +555,9 @@ namespace Advobot
 				return;
 			}
 
-			var count = 1;
-			var lengthForCount = bans.Count.ToString().Length;
-			var description = String.Join("\n", bans.Select(x => String.Format("`{0}.` `{1}`", count++.ToString().PadLeft(lengthForCount, '0'), x.User.FormatUser())));
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bans", description));
+
+			var str = bans.FormatNumberedList("`{0}`", x => x.User.FormatUser());
+			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bans", str));
 		}
 
 		[Command("removemessages")]
@@ -615,7 +614,8 @@ namespace Advobot
 			if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
 			{
 				//DM the owner of the server
-				var DMChannel = await (await Context.Guild.GetOwnerAsync()).CreateDMChannelAsync();
+				var owner = await Context.Guild.GetOwnerAsync();
+				var DMChannel = await owner.GetOrCreateDMChannelAsync();
 				await Actions.SendDMMessage(DMChannel, String.Format("`{0}` is trying to delete stuff from a log channel: `{1}`.", Context.User.FormatUser(), channel.FormatChannel()));
 				return;
 			}

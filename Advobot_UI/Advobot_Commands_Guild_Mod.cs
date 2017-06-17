@@ -196,16 +196,9 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GuildCreate([Remainder] string input)
 		{
-			//Get a region for the bot to create the guild with
-			var region = await Variables.Client.GetOptimalVoiceRegionAsync();
-			//Create the guild
-			var guild = await Variables.Client.CreateGuildAsync(input, region);
-			//Add the guild to the list of guilds
+			var guild = await Variables.Client.CreateGuildAsync(input, await Variables.Client.GetOptimalVoiceRegionAsync());
 			Variables.Guilds.Add(guild.Id, new BotGuildInfo(guild.Id));
-			//Create an invite
-			var invite = await (await guild.GetTextChannelsAsync()).FirstOrDefault().CreateInviteAsync(null);
-			//Send that invite to the user who used this command
-			await (await Context.User.CreateDMChannelAsync()).SendMessageAsync(invite.Url);
+			await Actions.SendDMMessage(await Context.User.GetOrCreateDMChannelAsync(), (await (await guild.GetDefaultChannelAsync()).CreateInviteAsync()).Url);
 		}
 
 		[Command("changeguildowner")]

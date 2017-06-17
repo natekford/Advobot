@@ -99,7 +99,7 @@ namespace Advobot
 
 		[Command("displayguildsettings")]
 		[Alias("dgds")]
-		[Usage("<All|Setting Name> <Target:Channel|Role|User> <Extra:\"Additional Info\"")]
+		[Usage("<All|Setting Name> <Target:Channel|Role|User> <Extra:\"Additional Info\">")]
 		[Summary("Displays guild settings. Inputting nothing gives a list of the setting names.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
@@ -771,21 +771,13 @@ namespace Advobot
 			{
 				//Find close words
 				var closeWords = Actions.GetRemindsWithSimilarNames(reminds, input).Distinct().ToList();
-
 				if (closeWords.Any())
 				{
-					//Format a message to be said
-					var count = 1;
-					var msg = "Did you mean any of the following:\n" + String.Join("\n", closeWords.Select(x => String.Format("`{0}.` {1}", count++.ToString("00"), x.Name)));
+					var msg = "Did you mean any of the following:\n" + closeWords.FormatNumberedList("{0}", x => x.Name);
 
-					//Create the list, add it to the guild, remove it after five seconds, and delete the message that goes along with it after 5 seconds
-					var acWords = new ActiveCloseWords(Context.User as IGuildUser, closeWords);
-					lock (Variables.ActiveCloseWords)
-					{
-						Variables.ActiveCloseWords.RemoveAll(x => x.User == Context.User);
-						Variables.ActiveCloseWords.Add(acWords);
-					}
-					await Actions.MakeAndDeleteSecondaryMessage(Context, msg, 5000);
+					Variables.ActiveCloseWords.ThreadSafeRemoveAll(x => x.UserID == Context.User.Id);
+					Variables.ActiveCloseWords.ThreadSafeAdd(new ActiveCloseWords(Context.User.Id, closeWords));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.ACTIVE_CLOSE);
 				}
 				else
 				{

@@ -143,47 +143,57 @@ namespace Advobot
 
 	public class DefaultEnabledAttribute : Attribute
 	{
+		public bool Enabled { get; private set; }
+
 		public DefaultEnabledAttribute(bool enabled)
 		{
 			Enabled = enabled;
 		}
-
-		public bool Enabled { get; private set; }
 	}
 
 	public class UsageAttribute : Attribute
 	{
+		public string Usage { get; private set; }
+
 		public UsageAttribute(string usage)
 		{
 			Usage = usage;
 		}
+	}
 
-		public string Usage { get; private set; }
+	public class GuildSettingAttribute : Attribute
+	{
+		public SettingOnGuild Setting { get; private set; }
+
+		public GuildSettingAttribute(SettingOnGuild setting)
+		{
+			Setting = setting;
+		}
 	}
 	#endregion
 
 	#region Saved Classes
 	public class BotGuildInfo
 	{
-		[JsonProperty]
-		public Dictionary<int, PyramidalRoleSystem> PyramidalRoleSystem { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.PyramidalRoleSystem)]
+		public Dictionary<uint, PyramidalRoleSystem> PyramidalRoleSystem { get; private set; }
+		[GuildSetting(SettingOnGuild.BotUsers)]
 		public List<BotImplementedPermissions> BotUsers { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.SelfAssignableGroups)]
 		public List<SelfAssignableGroup> SelfAssignableGroups { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.Reminds)]
 		public List<Remind> Reminds { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.LogActions)]
 		public List<LogActions> LogActions { get; private set; }
-		[JsonProperty]
-		public List<string> BannedWordsForJoiningUsers { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.BannedNamesForJoiningUsers)]
+		public List<string> BannedNamesForJoiningUsers { get; private set; }
+		[GuildSetting(SettingOnGuild.IgnoredCommandChannels)]
 		public List<ulong> IgnoredCommandChannels { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.IgnoredLogChannels)]
 		public List<ulong> IgnoredLogChannels { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.ImageOnlyChannels)]
 		public List<ulong> ImageOnlyChannels { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.SanitaryChannels)]
 		public List<ulong> SanitaryChannels { get; private set; }
 		[JsonIgnore]
 		public List<BannedPhraseUser> BannedPhraseUsers { get; private set; }
@@ -194,29 +204,40 @@ namespace Advobot
 		[JsonIgnore]
 		public List<string> EvaluatedRegex { get; private set; }
 
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.BannedPhraseStrings
+					| SettingOnGuild.BannedPhraseRegex
+					| SettingOnGuild.BannedPhrasePunishments)]
 		public BannedPhrases BannedPhrases { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.MessageSpamPrevention
+					| SettingOnGuild.LongMessageSpamPrevention
+					| SettingOnGuild.LinkSpamPrevention
+					| SettingOnGuild.ImageSpamPrevention
+					| SettingOnGuild.MentionSpamPrevention
+					| SettingOnGuild.RaidPrevention
+					| SettingOnGuild.RapidJoinPrevention)]
 		public GuildSpamAndRaidPrevention GuildSpamAndRaidPrevention { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.CommandPreferences
+					| SettingOnGuild.CommandsDisabledOnUser
+					| SettingOnGuild.CommandsDisabledOnRole
+					| SettingOnGuild.CommandsDisabledOnChannel)]
 		public CommandOverrides CommandOverrides { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.WelcomeMessage)]
 		public GuildNotification WelcomeMessage { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.GoodbyeMessage)]
 		public GuildNotification GoodbyeMessage { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.ListedInvite)]
 		public ListedInvite ListedInvite { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.Prefix)]
 		public string Prefix { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.Nothing)]
 		public ulong GuildID { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.ServerLog)]
 		public ulong ServerLogID { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.ModLog)]
 		public ulong ModLogID { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.ImageLog)]
 		public ulong ImageLogID { get; private set; }
-		[JsonProperty]
+		[GuildSetting(SettingOnGuild.MuteRole)]
 		public ulong MuteRoleID { get; private set; }
 		[JsonIgnore]
 		public SlowmodeGuild SlowmodeGuild { get; private set; }
@@ -239,11 +260,11 @@ namespace Advobot
 		{
 			GuildID = guildID;
 
-			PyramidalRoleSystem = new Dictionary<int, PyramidalRoleSystem>();
+			PyramidalRoleSystem = new Dictionary<uint, PyramidalRoleSystem>();
 			BotUsers = new List<BotImplementedPermissions>();
 			SelfAssignableGroups = new List<SelfAssignableGroup>();
 			Reminds = new List<Remind>();
-			BannedWordsForJoiningUsers = new List<string>();
+			BannedNamesForJoiningUsers = new List<string>();
 			IgnoredCommandChannels = new List<ulong>();
 			IgnoredLogChannels = new List<ulong>();
 			ImageOnlyChannels = new List<ulong>();
@@ -266,6 +287,10 @@ namespace Advobot
 		public void TurnLoadedOn()
 		{
 			Loaded = true;
+		}
+		public void GetSetting(SettingOnGuild setting)
+		{
+			
 		}
 		public void SetBannedPhrases(BannedPhrases bannedPhrases)
 		{
@@ -638,16 +663,16 @@ namespace Advobot
 	public class BannedPhrases
 	{
 		[JsonProperty]
-		public List<BannedPhrase<string>> Strings { get; private set; }
+		public List<BannedPhrase> Strings { get; private set; }
 		[JsonProperty]
-		public List<BannedPhrase<string>> Regex { get; private set; }
+		public List<BannedPhrase> Regex { get; private set; }
 		[JsonProperty]
 		public List<BannedPhrasePunishment> Punishments { get; private set; }
 
 		public BannedPhrases()
 		{
-			Strings = new List<BannedPhrase<string>>();
-			Regex = new List<BannedPhrase<string>>();
+			Strings = new List<BannedPhrase>();
+			Regex = new List<BannedPhrase>();
 			Punishments = new List<BannedPhrasePunishment>();
 		}
 
@@ -659,14 +684,14 @@ namespace Advobot
 		}
 	}
 
-	public class BannedPhrase<T>
+	public class BannedPhrase
 	{
 		[JsonProperty]
-		public T Phrase { get; private set; }
+		public string Phrase { get; private set; }
 		[JsonProperty]
 		public PunishmentType Punishment { get; private set; }
 
-		public BannedPhrase(T phrase, PunishmentType punishment)
+		public BannedPhrase(string phrase, PunishmentType punishment)
 		{
 			Phrase = phrase;
 			Punishment = (punishment == PunishmentType.Deafen || punishment == PunishmentType.Mute) ? PunishmentType.Nothing : punishment;
@@ -1453,13 +1478,13 @@ namespace Advobot
 
 	public struct ActiveCloseWords : ITimeInterface
 	{
-		public IGuildUser User { get; private set; }
+		public ulong UserID { get; private set; }
 		public List<CloseWord> List { get; private set; }
 		public DateTime Time { get; private set; }
 
-		public ActiveCloseWords(IGuildUser user, List<CloseWord> list)
+		public ActiveCloseWords(ulong userID, List<CloseWord> list)
 		{
-			User = user;
+			UserID = userID;
 			List = list;
 			Time = DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE);
 		}
@@ -1484,13 +1509,13 @@ namespace Advobot
 
 	public struct ActiveCloseHelp : ITimeInterface
 	{
-		public IGuildUser User { get; private set; }
+		public ulong UserID { get; private set; }
 		public List<CloseHelp> List { get; private set; }
 		public DateTime Time { get; private set; }
 
-		public ActiveCloseHelp(IGuildUser user, List<CloseHelp> list)
+		public ActiveCloseHelp(ulong userID, List<CloseHelp> list)
 		{
-			User = user;
+			UserID = userID;
 			List = list;
 			Time = DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE);
 		}
@@ -1858,6 +1883,7 @@ namespace Advobot
 
 	public enum SettingOnGuild
 	{
+		Nothing = 0,
 		CommandPreferences = 1,
 		CommandsDisabledOnChannel = 2,
 		BotUsers = 3,
@@ -1876,12 +1902,20 @@ namespace Advobot
 		WelcomeMessage = 16,
 		GoodbyeMessage = 17,
 		Prefix = 18,
-		Serverlog = 19,
-		Modlog = 20,
+		ServerLog = 19,
+		ModLog = 20,
 		ImageOnlyChannels = 21,
 		IgnoredCommandChannels = 22,
 		CommandsDisabledOnUser = 23,
 		CommandsDisabledOnRole = 24,
+		ImageLog = 25,
+		ListedInvite = 26,
+		BannedNamesForJoiningUsers = 27,
+		RaidPrevention = 28,
+		RapidJoinPrevention = 29,
+		PyramidalRoleSystem = 30,
+		MuteRole = 31,
+		SanitaryChannels = 32,
 	}
 
 	public enum SettingOnBot

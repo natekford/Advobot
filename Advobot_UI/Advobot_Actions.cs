@@ -1889,7 +1889,7 @@ namespace Advobot
 					}
 					break;
 				}
-				case SettingOnGuild.Serverlog:
+				case SettingOnGuild.ServerLog:
 				{
 					if (guildInfo.ServerLog != null)
 					{
@@ -1897,7 +1897,7 @@ namespace Advobot
 					}
 					break;
 				}
-				case SettingOnGuild.Modlog:
+				case SettingOnGuild.ModLog:
 				{
 					if (guildInfo.ModLog != null)
 					{
@@ -3089,7 +3089,7 @@ namespace Advobot
 			var description = "";
 
 			var bannedWordForJoiningUsers = guildInfo.BannedWordsForJoiningUsers.Any();
-			description += String.CompareOrdinal("**Banned Names for Joining Users:** `{0}`\n", bannedWordForJoiningUsers ? "Yes" : "No");
+			description += String.Format("**Banned Names for Joining Users:** `{0}`\n", bannedWordForJoiningUsers ? "Yes" : "No");
 			var bannedPhraseStrings = guildInfo.BannedPhrases.Strings.Any();
 			description += String.Format("**Banned Phrase Strings:** `{0}`\n", bannedPhraseStrings ? "Yes" : "No");
 			var bannedPhraseRegex = guildInfo.BannedPhrases.Regex.Any();
@@ -4015,7 +4015,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task BannedStringPunishments(BotGuildInfo guildInfo, IMessage message, BannedPhrase<string> phrase)
+		public static async Task BannedStringPunishments(BotGuildInfo guildInfo, IMessage message, BannedPhrase phrase)
 		{
 			await DeleteMessage(message);
 			var user = message.Author as IGuildUser;
@@ -4112,7 +4112,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task BannedRegexPunishments(BotGuildInfo guildInfo, IMessage message, BannedPhrase<string> regex)
+		public static async Task BannedRegexPunishments(BotGuildInfo guildInfo, IMessage message, BannedPhrase regex)
 		{
 			await DeleteMessage(message);
 			var user = message.Author as IGuildUser;
@@ -4212,13 +4212,13 @@ namespace Advobot
 			return punishment != null;
 		}
 
-		public static bool TryGetBannedRegex(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<string> bannedRegex)
+		public static bool TryGetBannedRegex(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase bannedRegex)
 		{
 			bannedRegex = guildInfo.BannedPhrases.Regex.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
 			return bannedRegex != null;
 		}
 
-		public static bool TryGetBannedString(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase<string> bannedString)
+		public static bool TryGetBannedString(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase bannedString)
 		{
 			bannedString = guildInfo.BannedPhrases.Strings.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
 			return bannedString != null;
@@ -4240,7 +4240,7 @@ namespace Advobot
 			}
 		}
 
-		public static void HandleBannedRegexModification(List<BannedPhrase<Regex>> bannedRegex, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
+		public static void HandleBannedPhraseModification(List<BannedPhrase> bannedStrings, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
 		{
 			success = new List<string>();
 			failure = new List<string>();
@@ -4248,80 +4248,7 @@ namespace Advobot
 			{
 				foreach (var str in inputPhrases)
 				{
-					if (TryCreateRegex(str, out Regex regex, out string error))
-					{
-						bannedRegex.Add(new BannedPhrase<Regex>(regex, PunishmentType.Nothing));
-						success.Add(str);
-					}
-					else
-					{
-						failure.Add(error);
-					}
-				}
-			}
-			else
-			{
-				var positions = new List<int>();
-				inputPhrases.ForEach(potentialNumber =>
-				{
-					//Check if is a number and is less than the count of the list
-					if (int.TryParse(potentialNumber, out int temp) && temp < bannedRegex.Count)
-					{
-						positions.Add(temp);
-					}
-				});
-
-				if (!positions.Any())
-				{
-					foreach (var str in inputPhrases)
-					{
-						var tempRegex = bannedRegex.FirstOrDefault(y => y.Phrase.ToString() == str);
-						if (tempRegex == null)
-						{
-							failure.Add(str);
-						}
-						else
-						{
-							success.Add(str);
-							bannedRegex.Remove(tempRegex);
-						}
-					}
-				}
-				else
-				{
-					//Put them in descending order so as to not delete low values before high ones
-					foreach (var position in positions.OrderByDescending(x => x))
-					{
-						if (bannedRegex.Count - 1 <= position)
-						{
-							var tempRegex = bannedRegex[position];
-							if (tempRegex != null)
-							{
-								bannedRegex.Remove(tempRegex);
-								success.Add(tempRegex.Phrase.ToString());
-								continue;
-							}
-						}
-						else
-						{
-							failure.Add("Regex at position " + position);
-						}
-					}
-				}
-			}
-
-			return;
-		}
-
-		public static void HandleBannedStringModification(List<BannedPhrase<string>> bannedStrings, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
-		{
-			success = new List<string>();
-			failure = new List<string>();
-			if (add)
-			{
-				foreach (var str in inputPhrases)
-				{
-					bannedStrings.Add(new BannedPhrase<string>(str, PunishmentType.Nothing));
+					bannedStrings.Add(new BannedPhrase(str, PunishmentType.Nothing));
 					success.Add(str);
 				}
 			}
@@ -4474,7 +4401,7 @@ namespace Advobot
 				closeHelps.OrderBy(y => y.Closeness);
 			});
 
-			return closeHelps;
+			return GetCommandsWithInputInName(closeHelps, input);
 		}
 
 		public static List<CloseHelp> GetCommandsWithInputInName(List<CloseHelp> list, string input)
@@ -4900,8 +4827,7 @@ namespace Advobot
 
 		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
 		{
-			var len = Math.Max(0, Math.Min(list.Count, Actions.GetMinFromMultipleNumbers(x)));
-			return list.GetRange(0, len);
+			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, Actions.GetMinFromMultipleNumbers(x))));
 		}
 
 		public static void ThreadSafeAdd<T>(this List<T> list, T obj)
@@ -4926,6 +4852,14 @@ namespace Advobot
 			{
 				list.RemoveAll(match);
 			}
+		}
+
+		public static string FormatNumberedList<T>(this IEnumerable<T> list, string format, params Func<T, object>[] args)
+		{
+			var c = 1;
+			var maxLen = list.Count().ToString().Length;
+			//.ToArray() must be used or else String.Format tries to use an overload accepting object as a parameter instead of object[] thus causing an exception
+			return String.Join("\n", list.Select(x => String.Format("`{0}.` ", c++.ToString().PadLeft(maxLen, '0')) + String.Format(@format, args.Select(y => y(x)).ToArray())));
 		}
 
 		public static string FormatUser(this IUser user, ulong? userID = 0)

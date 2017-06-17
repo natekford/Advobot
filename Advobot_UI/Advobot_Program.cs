@@ -83,8 +83,14 @@ namespace Advobot
 
 		private IServiceProvider ConfigureServices(BotClient client)
 		{
-			var services = new ServiceCollection().AddSingleton(client).AddSingleton(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false }));
-			return new DefaultServiceProviderFactory().CreateServiceProvider(services);
+			return new DefaultServiceProviderFactory().CreateServiceProvider(
+				new ServiceCollection()
+				.AddSingleton(client)
+				.AddSingleton(new CommandService(new CommandServiceConfig
+				{
+					CaseSensitiveCommands = false,
+					ThrowOnError = false,
+				})));
 		}
 
 		private static DiscordShardedClient CreateShardedClient(BotGlobalInfo botInfo)

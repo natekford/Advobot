@@ -146,7 +146,7 @@ namespace Advobot
 
 				//TODO: Make this toggleable (potentially have the ability to add other banned words in names)
 				//Bans people who join with a given word in their name
-				if (guildInfo.BannedWordsForJoiningUsers.Any(x => Actions.CaseInsIndexOf(user.Username, x)))
+				if (guildInfo.BannedNamesForJoiningUsers.Any(x => Actions.CaseInsIndexOf(user.Username, x)))
 				{
 					await guild.AddBanAsync(user);
 					var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.BANN);
@@ -197,7 +197,7 @@ namespace Advobot
 				var guildInfo = verified.GuildInfo;
 				var serverLog = verified.LoggingChannel;
 
-				if (guildInfo.BannedWordsForJoiningUsers.Any(x => Actions.CaseInsIndexOf(user.Username, x)))
+				if (guildInfo.BannedNamesForJoiningUsers.Any(x => Actions.CaseInsIndexOf(user.Username, x)))
 					return;
 
 				await Actions.SendGuildNotification(user, guildInfo.GoodbyeMessage);
@@ -470,21 +470,20 @@ namespace Advobot
 			if (number > 0 && number < 6)
 			{
 				--number;
-				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.User == message.Author as IGuildUser);
-				if (closeWordList.User != null && closeWordList.List.Count > number)
+				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.UserID == message.Author.Id);
+				if (!closeWordList.Equals(default(ActiveCloseWords)) && closeWordList.List.Count > number)
 				{
 					var remind = guildInfo.Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
 					Variables.ActiveCloseWords.ThreadSafeRemove(closeWordList);
 					await Actions.SendChannelMessage(message.Channel, remind.Text);
 					await Actions.DeleteMessage(message);
 				}
-				var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.User == message.Author as IGuildUser);
-				if (closeHelpList.User != null && closeHelpList.List.Count > number)
+				var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.UserID == message.Author.Id);
+				if (!closeHelpList.Equals(default(ActiveCloseHelp)) && closeHelpList.List.Count > number)
 				{
 					var help = closeHelpList.List[number].Help;
 					Variables.ActiveCloseHelp.ThreadSafeRemove(closeHelpList);
-					var prefix = Actions.GetPrefix(guildInfo);
-					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help, prefix)), "Help"));
+					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help, Actions.GetPrefix(guildInfo))), "Help"));
 					await Actions.DeleteMessage(message);
 				}
 			}
