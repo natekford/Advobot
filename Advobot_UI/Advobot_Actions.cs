@@ -15,7 +15,7 @@ using System.Runtime.CompilerServices;
 
 namespace Advobot
 {
-	public class Actions
+	public static class Actions
 	{
 		#region Saving and Loading
 		public static async Task LoadInformation()
@@ -1644,8 +1644,8 @@ namespace Advobot
 		}
 		#endregion
 
-		#region Emojis
-		public static ReturnedDiscordObject<Emote> GetEmoji(ICommandContext context, bool usage, string input)
+		#region Emotes
+		public static ReturnedDiscordObject<Emote> GetEmote(ICommandContext context, bool usage, string input)
 		{
 			Emote emote = null;
 			if (!String.IsNullOrWhiteSpace(input))
@@ -2519,7 +2519,7 @@ namespace Advobot
 			return embed;
 		}
 
-		public static EmbedBuilder FormatUserInfo(SocketGuild guild, IGuildUser user)
+		public static EmbedBuilder FormatUserInfo(BotGuildInfo guildInfo, SocketGuild guild, SocketGuildUser user)
 		{
 			var guildUser = user as SocketGuildUser;
 			var roles = guildUser.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone);
@@ -2542,63 +2542,188 @@ namespace Advobot
 			var created = guildUser.CreatedAt.UtcDateTime;
 			var joined = guildUser.JoinedAt.Value.UtcDateTime;
 
-			//Make the description
 			var IDstr = String.Format("**ID:** `{0}`", guildUser.Id);
 			var nicknameStr = String.Format("**Nickname:** `{0}`", String.IsNullOrWhiteSpace(guildUser.Nickname) ? "NO NICKNAME" : EscapeMarkdown(guildUser.Nickname, true));
-			var createdStr = String.Format("\n**Created:** `{0} {1}, {2} at {3}`",
-				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(created.Month),
-				created.Day,
-				created.Year,
-				created.ToLongTimeString());
-			var joinedStr = String.Format("**Joined:** `{0} {1}, {2} at {3}` (`{4}` to join the guild)\n",
-				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(joined.Month),
-				joined.Day,
-				joined.Year,
-				joined.ToLongTimeString(),
-				users.IndexOf(guildUser) + 1);
+			var createdStr = String.Format("\n**Created:** `{0}`", FormatDateTime(guildUser.CreatedAt.UtcDateTime));
+			var joinedStr = String.Format("**Joined:** `{0}` (`{1}` to join the guild)\n", FormatDateTime(guildUser.JoinedAt.Value.UtcDateTime), users.IndexOf(guildUser) + 1);
 			var gameStr = FormatGameStr(guildUser);
 			var statusStr = String.Format("**Online status:** `{0}`", guildUser.Status);
 			var description = String.Join("\n", new[] { IDstr, nicknameStr, createdStr, joinedStr, gameStr, statusStr });
 
-			var embed = MakeNewEmbed(null, description, roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color, thumbnailURL: user.GetAvatarUrl());
-			AddAuthor(embed, guildUser.FormatUser(), guildUser.GetAvatarUrl(), guildUser.GetAvatarUrl());
-			AddFooter(embed, "Userinfo");
-			//Add the channels the user can access
+			var color = roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
+			var embed = MakeNewEmbed(null, description, color, thumbnailURL: user.GetAvatarUrl());
 			if (channels.Count() != 0)
 			{
 				AddField(embed, "Channels", String.Join(", ", channels));
 			}
-			//Add the roles the user has
 			if (roles.Count() != 0)
 			{
 				AddField(embed, "Roles", String.Join(", ", roles.Select(x => x.Name)));
 			}
-			//Add the voice channel
 			if (user.VoiceChannel != null)
 			{
 				var desc = String.Format("Server mute: `{0}`\nServer deafen: `{1}`\nSelf mute: `{2}`\nSelf deafen: `{3}`", user.IsMuted, user.IsDeafened, user.IsSelfMuted, user.IsSelfDeafened);
 				AddField(embed, "Voice Channel: " + user.VoiceChannel.Name, desc);
 			}
+			AddAuthor(embed, guildUser.FormatUser(), guildUser.GetAvatarUrl(), guildUser.GetAvatarUrl());
+			AddFooter(embed, "User Info");
 			return embed;
 		}
 
-		public static EmbedBuilder FormatUserInfo(SocketGuild guild, IUser user)
+		public static EmbedBuilder FormatUserInfo(BotGuildInfo guildInfo, SocketGuild guild, SocketUser user)
 		{
-			var created = user.CreatedAt.UtcDateTime;
-
-			//Make the description
-			var createdStr = String.Format("**Created:** `{0} {1}, {2} at {3}`\n",
-				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(created.Month),
-				created.Day,
-				created.Year,
-				created.ToLongTimeString());
+			var ageStr = String.Format("**Created:** `{0}`\n", FormatDateTime(user.CreatedAt.UtcDateTime));
 			var gameStr = FormatGameStr(user);
 			var statusStr = String.Format("**Online status:** `{0}`", user.Status);
-			var description = String.Join("\n", new[] { createdStr, gameStr, statusStr });
+			var description = String.Join("\n", new[] { ageStr, gameStr, statusStr });
 
 			var embed = MakeNewEmbed(null, description, null, thumbnailURL: user.GetAvatarUrl());
 			AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), user.GetAvatarUrl());
-			AddFooter(embed, "Userinfo");
+			AddFooter(embed, "User Info");
+			return embed;
+		}
+
+		public static EmbedBuilder FormatRoleInfo(BotGuildInfo guildInfo, SocketGuild guild, SocketRole role)
+		{
+			var ageStr = String.Format("**Created:** `{0}` (`{1}` days ago)", FormatDateTime(role.CreatedAt.UtcDateTime), DateTime.UtcNow.Subtract(role.CreatedAt.UtcDateTime).Days);
+			var positionStr = String.Format("**Position:** `{0}`", role.Position);
+			var usersStr = String.Format("**User Count:** `{0}`", guild.Users.Where(x => x.Roles.Any(y => y.Id == role.Id)).Count());
+			var description = String.Join("\n", new[] { ageStr, positionStr, usersStr });
+
+			var color = role.Color;
+			var embed = MakeNewEmbed(null, description, color);
+			AddAuthor(embed, role.FormatRole());
+			AddFooter(embed, "Role Info");
+			return embed;
+		}
+
+		public static EmbedBuilder FormatChannelInfo(BotGuildInfo guildInfo, SocketGuild guild, SocketChannel channel)
+		{
+			var ignoredFromLog = guildInfo.IgnoredLogChannels.Contains(channel.Id);
+			var ignoredFromCmd = guildInfo.IgnoredCommandChannels.Contains(channel.Id);
+			var imageOnly = guildInfo.ImageOnlyChannels.Contains(channel.Id);
+			var sanitary = guildInfo.SanitaryChannels.Contains(channel.Id);
+			var slowmode = guildInfo.SlowmodeChannels.Any(x => x.ChannelID == channel.Id);
+			var serverLog = guildInfo.ServerLogID == channel.Id;
+			var modLog = guildInfo.ModLogID == channel.Id;
+			var imageLog = guildInfo.ImageLogID == channel.Id;
+
+			var ageStr = String.Format("**Created:** `{0}` (`{1}` days ago)", FormatDateTime(channel.CreatedAt.UtcDateTime), DateTime.UtcNow.Subtract(channel.CreatedAt.UtcDateTime).Days);
+			var userCountStr = String.Format("**User Count:** `{0}`", channel.Users.Count);
+			var ignoredFromLogStr = String.Format("\n**Ignored From Log:** `{0}`", ignoredFromLog ? "Yes" : "No");
+			var ignoredFromCmdStr = String.Format("**Ignored From Commands:** `{0}`", ignoredFromCmd ? "Yes" : "No");
+			var imageOnlyStr = String.Format("**Image Only:** `{0}`", imageOnly ? "Yes" : "No");
+			var sanitaryStr = String.Format("**Sanitary:** `{0}`", sanitary ? "Yes" : "No");
+			var slowmodeStr = String.Format("**Slowmode:** `{0}`", slowmode ? "Yes" : "No");
+			var serverLogStr = String.Format("\n**Serverlog:** `{0}`", serverLog ? "Yes" : "No");
+			var modLogStr = String.Format("**Modlog:** `{0}`", modLog ? "Yes" : "No");
+			var imageLogStr = String.Format("**Imagelog:** `{0}`", imageLog ? "Yes" : "No");
+			var description = String.Join("\n", new[] { ageStr, userCountStr, ignoredFromLogStr, ignoredFromCmdStr, imageOnlyStr, sanitaryStr, slowmodeStr, serverLogStr, modLogStr, imageLogStr });
+
+			var embed = MakeNewEmbed(null, description);
+			AddAuthor(embed, channel.FormatChannel());
+			AddFooter(embed, "Channel Info");
+			return embed;
+		}
+
+		public static EmbedBuilder FormatGuildInfo(BotGuildInfo guildInfo, SocketGuild guild)
+		{
+			var owner = guild.Owner;
+			var onlineCount = guild.Users.Where(x => x.Status != UserStatus.Offline).Count();
+			var nicknameCount = guild.Users.Where(x => x.Nickname != null).Count();
+			var gameCount = guild.Users.Where(x => x.Game.HasValue).Count();
+			var botCount = guild.Users.Where(x => x.IsBot).Count();
+			var voiceCount = guild.Users.Where(x => x.VoiceChannel != null).Count();
+			var localECount = guild.Emotes.Where(x => !x.IsManaged).Count();
+			var globalECount = guild.Emotes.Where(x => x.IsManaged).Count();
+
+			var ageStr = String.Format("**Created:** `{0}` (`{1}` days ago)", FormatDateTime(guild.CreatedAt.UtcDateTime), DateTime.UtcNow.Subtract(guild.CreatedAt.UtcDateTime).Days);
+			var ownerStr = String.Format("**Owner:** `{0}`", owner.FormatUser());
+			var regionStr = String.Format("**Region:** `{0}`", guild.VoiceRegionId);
+			var emoteStr = String.Format("**Emotes:** `{0}` (`{1}` local, `{2}` global)\n", localECount + globalECount, localECount, globalECount);
+			var userStr = String.Format("**User Count:** `{0}` (`{1}` online, `{2}` bots)", guild.MemberCount, onlineCount, botCount);
+			var nickStr = String.Format("**Users With Nickname:** `{0}`", nicknameCount);
+			var gameStr = String.Format("**Users Playing Games:** `{0}`", gameCount);
+			var voiceStr = String.Format("**Users In Voice:** `{0}`\n", voiceCount);
+			var roleStr = String.Format("**Role Count:** `{0}`", guild.Roles.Count);
+			var channelStr = String.Format("**Channel Count:** `{0}` (`{1}` text, `{2}` voice)", guild.Channels.Count, guild.TextChannels.Count, guild.VoiceChannels.Count);
+			var afkChanStr = String.Format("**AFK Channel:** `{0}` (`{1}` minute{2})", guild.AFKChannel.FormatChannel(), guild.AFKTimeout / 60, GetPlural(guild.AFKTimeout / 60));
+			var description = String.Join("\n", new List<string>() { ageStr, ownerStr, regionStr, emoteStr, userStr, nickStr, gameStr, voiceStr, roleStr, channelStr, afkChanStr });
+
+			var color = owner.Roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
+			var embed = MakeNewEmbed(null, description, color, thumbnailURL: guild.IconUrl);
+			AddAuthor(embed, guild.FormatGuild());
+			AddFooter(embed, "Guild Info");
+			return embed;
+		}
+
+		public static EmbedBuilder FormatEmoteInfo(BotGuildInfo guildInfo, Emote emote)
+		{
+			//Try to find the emoji if global
+			var guilds = Variables.Client.GetGuilds().Where(x =>
+			{
+				var placeholder = x.Emotes.FirstOrDefault(y => y.Id == emote.Id);
+				if (placeholder == null)
+				{
+					return false;
+				}
+				return placeholder.IsManaged && placeholder.RequireColons;
+			});
+
+			var description = String.Format("**ID:** `{0}`\n", emote.Id);
+			if (guilds.Any())
+			{
+				description += String.Format("**From:** `{0}`", String.Join("`, `", guilds.Select(x => x.FormatGuild())));
+			}
+
+			var embed = MakeNewEmbed(null, description, thumbnailURL: emote.Url);
+			AddAuthor(embed, emote.Name);
+			AddFooter(embed, "Emoji Info");
+			return embed;
+		}
+
+		public static EmbedBuilder FormatInviteInfo(BotGuildInfo guildInfo, SocketGuild guild, IInviteMetadata invite)
+		{
+			var inviterStr = String.Format("**Inviter:** `{0}`", invite.Inviter.FormatUser());
+			var channelStr = String.Format("**Channel:** `{0}`", guild.Channels.FirstOrDefault(x => x.Id == invite.ChannelId).FormatChannel());
+			var usesStr = String.Format("**Uses:** `{0}`", invite.Uses);
+			var createdStr = String.Format("**Created At:** `{0}`", FormatDateTime(invite.CreatedAt.UtcDateTime));
+			var description = String.Join("\n", new[] { inviterStr, channelStr, usesStr, createdStr });
+
+			var embed = MakeNewEmbed(null, description);
+			AddAuthor(embed, invite.Code);
+			AddFooter(embed, "Emote Info");
+			return embed;
+		}
+
+		public static EmbedBuilder FormatBotInfo(SocketGuild guild)
+		{
+			var online = String.Format("**Online Since:** {0}", Variables.StartupTime);
+			var uptime = GetUptime();
+			var guildCount = String.Format("**Guild Count:** {0}", Variables.TotalGuilds);
+			var memberCount = String.Format("**Cumulative Member Count:** {0}", Variables.TotalUsers);
+			var currShard = String.Format("**Current Shard:** {0}", Variables.Client.GetShardFor(guild).ShardId);
+			var description = String.Join("\n", new[] { online, uptime, guildCount, memberCount, currShard });
+
+			var embed = MakeNewEmbed(null, description);
+			AddAuthor(embed, Variables.BotName, Variables.Client.GetCurrentUser().GetAvatarUrl());
+			AddFooter(embed, "Version " + Constants.BOT_VERSION);
+
+			var firstField = FormatLoggedThings();
+			AddField(embed, "Logged Actions", firstField);
+
+			var attempt = String.Format("**Attempted Commands:** {0}", Variables.AttemptedCommands);
+			var successful = String.Format("**Successful Commands:** {0}", Variables.AttemptedCommands - Variables.FailedCommands);
+			var failed = String.Format("**Failed Commands:** {0}", Variables.FailedCommands);
+			var secondField = String.Join("\n", new[] { attempt, successful, failed });
+			AddField(embed, "Commands", secondField);
+
+			var latency = String.Format("**Latency:** {0}ms", Variables.Client.GetLatency());
+			var memory = String.Format("**Memory Usage:** {0}MB", GetMemory().ToString("0.00"));
+			var threads = String.Format("**Thread Count:** {0}", System.Diagnostics.Process.GetCurrentProcess().Threads.Count);
+			var thirdField = String.Join("\n", new[] { latency, memory, threads });
+			AddField(embed, "Technical", thirdField);
+
 			return embed;
 		}
 
@@ -2738,6 +2863,21 @@ namespace Advobot
 				}
 			});
 			return deletedMessagesContent;
+		}
+
+		public static string FormatDateTime(DateTime dt)
+		{
+			if (dt == null)
+			{
+				return "N/A";
+			}
+
+			dt = dt.ToUniversalTime();
+			return String.Format("{0} {1}, {2} at {3}",
+				System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(dt.Month),
+				dt.Day,
+				dt.Year,
+				dt.ToLongTimeString());
 		}
 
 		public static string FormatGameStr(IUser user)
@@ -3707,23 +3847,22 @@ namespace Advobot
 
 				var userSpamList = spamUser.SpamLists[spamType];
 
-				var shouldAdd = false;
+				var spamAmt = 0;
 				switch (spamPrev.SpamType)
 				{
 					case SpamType.Message:
 					{
-						shouldAdd = true;
+						spamAmt = int.MaxValue;
 						break;
 					}
 					case SpamType.Long_Message:
 					{
-						shouldAdd = msg.Content?.Length >= spamPrev.RequiredSpamPerMessage;
+						spamAmt = msg.Content?.Length ?? 0;
 						break;
 					}
 					case SpamType.Link:
 					{
-						var linkCount = msg.Content?.Split(' ').Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute));
-						shouldAdd = linkCount >= spamPrev.RequiredSpamPerMessage;
+						spamAmt = msg.Content?.Split(' ').Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) ?? 0;
 						break;
 					}
 					case SpamType.Image:
@@ -3741,17 +3880,18 @@ namespace Advobot
 							|| x.Video != null
 							|| x.Thumbnail != null;
 						}).Count();
-						shouldAdd = (attachCount + embedCount) >= spamPrev.RequiredSpamPerMessage;
+
+						spamAmt = attachCount + embedCount;
 						break;
 					}
 					case SpamType.Mention:
 					{
-						shouldAdd = msg.MentionedUserIds.Distinct().Count() >= spamPrev.RequiredSpamPerMessage;
+						spamAmt = msg.MentionedUserIds.Distinct().Count();
 						break;
 					}
 				}
 
-				if (shouldAdd)
+				if (spamAmt >= spamPrev.RequiredSpamPerMessage)
 				{
 					//Ticks should be small enough that this will not allow duplicates of the same message, but can still allow rapidly spammed messages
 					if (!userSpamList.Any(x => x.GetTime().Ticks == msg.CreatedAt.UtcTicks))

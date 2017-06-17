@@ -1775,7 +1775,7 @@ namespace Advobot
 		Guild_Moderation = 9,
 		Miscellaneous = 10,
 		Spam_Prevention = 11,
-		Channel_Settings = 12,
+		Invite_Moderation = 15,
 		Guild_List = 13,
 		Nickname_Moderation = 14,
 	}

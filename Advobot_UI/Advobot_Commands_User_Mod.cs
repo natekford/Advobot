@@ -390,22 +390,28 @@ namespace Advobot
 			var daysStr = returnedArgs.GetSpecifiedArg("days");
 			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
-			var pruneDays = 1;
-			if (!String.IsNullOrWhiteSpace(daysStr))
+			if (int.TryParse(daysStr, out int pruneDays))
 			{
-				if (int.TryParse(daysStr, out pruneDays) && (pruneDays > 7 || pruneDays < 0))
+				if (pruneDays > 7 || pruneDays < 0)
 				{
 					pruneDays = 1;
 				}
 			}
-
-			var timeForBan = 0;
-			if (!String.IsNullOrWhiteSpace(timeStr))
+			else
 			{
-				if (int.TryParse(timeStr, out timeForBan) && (timeForBan < 0))
+				pruneDays = 1;
+			}
+
+			if (int.TryParse(timeStr, out int timeForBan))
+			{
+				if (timeForBan < 0)
 				{
 					timeForBan = 0;
 				}
+			}
+			else
+			{
+				timeForBan = 0;
 			}
 
 			//First try to get the ID out. If the ID is not on the guild then no need to check if the user and bot have the permission to ban the person since they won't have perms
@@ -447,7 +453,7 @@ namespace Advobot
 				Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, banID, PunishmentType.Ban, DateTime.UtcNow.AddMinutes(timeForBan)));
 			}
 
-			var response = String.Format("Successfully banned `{0}`.", user.FormatUser(banID));
+			var response = String.Format("Successfully banned `{0}`.", (await Context.Guild.GetBansAsync()).FirstOrDefault(x => x.User.Id == banID).User.FormatUser());
 			if (pruneDays != 0)
 			{
 				response += String.Format(" Also deleted `{0}` day{1} worth of messages.", pruneDays, Actions.GetPlural(pruneDays));
