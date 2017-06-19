@@ -146,7 +146,7 @@ namespace Advobot
 
 				//TODO: Make this toggleable (potentially have the ability to add other banned words in names)
 				//Bans people who join with a given word in their name
-				if (guildInfo.BannedNamesForJoiningUsers.Any(x => Actions.CaseInsIndexOf(user.Username, x)))
+				if (((List<string>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers)).Any(x => Actions.CaseInsIndexOf(user.Username, x)))
 				{
 					await guild.AddBanAsync(user);
 					var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.BANN);
@@ -158,7 +158,7 @@ namespace Advobot
 				//Welcome message
 				else
 				{
-					await Actions.SendGuildNotification(user, guildInfo.WelcomeMessage);
+					await Actions.SendGuildNotification(user, ((GuildNotification)guildInfo.GetSetting(SettingOnGuild.WelcomeMessage)));
 				}
 
 				{
@@ -197,10 +197,11 @@ namespace Advobot
 				var guildInfo = verified.GuildInfo;
 				var serverLog = verified.LoggingChannel;
 
-				if (guildInfo.BannedNamesForJoiningUsers.Any(x => Actions.CaseInsIndexOf(user.Username, x)))
+				//Don't log them to the server if they're someone who was just banned for joining with a banned name
+				if (((List<string>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers)).Any(x => Actions.CaseInsIndexOf(user.Username, x)))
 					return;
 
-				await Actions.SendGuildNotification(user, guildInfo.GoodbyeMessage);
+				await Actions.SendGuildNotification(user, ((GuildNotification)guildInfo.GetSetting(SettingOnGuild.GoodbyeMessage)));
 
 				var lengthStayed = "";
 				if (user.JoinedAt.HasValue)
@@ -284,8 +285,8 @@ namespace Advobot
 
 				if (serverLog != null)
 				{
-					var beforeMsgContent = Actions.ReplaceMarkdownChars(beforeMessage?.Content ?? "");
-					var afterMsgContent = Actions.ReplaceMarkdownChars(afterMessage.Content);
+					var beforeMsgContent = Actions.ReplaceMarkdownChars(beforeMessage?.Content ?? "", true);
+					var afterMsgContent = Actions.ReplaceMarkdownChars(afterMessage.Content, true);
 					beforeMsgContent = String.IsNullOrWhiteSpace(beforeMsgContent) ? "Empty or unable to be gotten." : beforeMsgContent;
 					afterMsgContent = String.IsNullOrWhiteSpace(afterMsgContent) ? "Empty or unable to be gotten." : afterMsgContent;
 
@@ -307,7 +308,7 @@ namespace Advobot
 					await Actions.SendEmbedMessage(serverLog, embed);
 					++Variables.LoggedEdits;
 				}
-				var imageLog = guildInfo.ImageLog;
+				var imageLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ImageLog));
 				if (imageLog != null)
 				{
 					//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
@@ -333,7 +334,7 @@ namespace Advobot
 
 		public static async Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
-			if (Actions.VerifyServerLoggingAction(channel, LogActions.MessageUpdated, out VerifiedLoggingAction verified))
+			if (Actions.VerifyServerLoggingAction(channel, LogActions.MessageDeleted, out VerifiedLoggingAction verified))
 			{
 				var guild = verified.Guild;
 				var guildInfo = verified.GuildInfo;
@@ -401,7 +402,7 @@ namespace Advobot
 
 			if (!Actions.VerifyMessageShouldBeLogged(guildInfo, context.Message))
 				return;
-			var modLog = guildInfo.ModLog;
+			var modLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog))?.Object;
 			if (modLog == null)
 				return;
 
@@ -432,14 +433,14 @@ namespace Advobot
 			if (channel == null || author == null || author.GuildPermissions.Administrator)
 				return;
 
-			if (guildInfo.ImageOnlyChannels.Contains(channel.Id))
+			if (((List<ulong>)guildInfo.GetSetting(SettingOnGuild.ImageOnlyChannels)).Contains(channel.Id))
 			{
 				if (!(message.Attachments.Any(x => x.Height != null || x.Width != null) || message.Embeds.Any(x => x.Image != null)))
 				{
 					await message.DeleteAsync();
 				}
 			}
-			if (guildInfo.SanitaryChannels.Contains(channel.Id))
+			if (((List<ulong>)guildInfo.GetSetting(SettingOnGuild.SanitaryChannels)).Contains(channel.Id))
 			{
 				await message.DeleteAsync();
 			}
@@ -447,7 +448,7 @@ namespace Advobot
 
 		public static async Task HandleImageLogging(BotGuildInfo guildInfo, IMessage message)
 		{
-			var logChannel = guildInfo.ImageLog;
+			var logChannel = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ImageLog))?.Object;
 			if (logChannel == null || message.Author.Id == Variables.BotID)
 				return;
 
@@ -473,7 +474,7 @@ namespace Advobot
 				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.UserID == message.Author.Id);
 				if (!closeWordList.Equals(default(ActiveCloseWords)) && closeWordList.List.Count > number)
 				{
-					var remind = guildInfo.Reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
+					var remind = ((List<Remind>)guildInfo.GetSetting(SettingOnGuild.Reminds)).FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
 					Variables.ActiveCloseWords.ThreadSafeRemove(closeWordList);
 					await Actions.SendChannelMessage(message.Channel, remind.Text);
 					await Actions.DeleteMessage(message);
@@ -495,7 +496,8 @@ namespace Advobot
 			{
 				await Actions.Slowmode(guildInfo, message);
 			}
-			if (guildInfo.BannedPhrases.Strings.Any() || guildInfo.BannedPhrases.Regex.Any())
+			var bannedPhrases = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhrasePunishments));
+			if (bannedPhrases.Strings.Any() || bannedPhrases.Regex.Any())
 			{
 				await Actions.BannedPhrases(guildInfo, message);
 			}
@@ -503,23 +505,23 @@ namespace Advobot
 
 		public static async Task HandleSpamPrevention(BotGuildInfo guildInfo, IMessage message)
 		{
-			var guild = guildInfo.Guild;
+			var guild = ((DiscordObjectWithID<SocketGuild>)guildInfo.GetSetting(SettingOnGuild.Guild)).Object;
 			var author = message.Author as IGuildUser;
 			if (Actions.GetUserPosition(guild, author) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)))
 				return;
 
-			await Actions.SpamCheck(guildInfo.GuildSpamAndRaidPrevention, guild, author, message);
+			await Actions.SpamCheck((GuildSpamAndRaidPrevention)guildInfo.GetSetting(SettingOnGuild.MessageSpamPrevention), guild, author, message);
 		}
 
 		public static async Task HandleSpamPreventionVoting(BotGuildInfo guildInfo, IMessage message)
 		{
 			//Get the users primed to be kicked/banned by the spam prevention
-			var users = guildInfo.GuildSpamAndRaidPrevention.SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
+			var users = ((GuildSpamAndRaidPrevention)guildInfo.GetSetting(SettingOnGuild.MessageSpamPrevention)).SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
 			if (!users.Any())
 				return;
 
 			//Cross reference the almost kicked users and the mentioned users
-			var guild = guildInfo.Guild;
+			var guild = ((DiscordObjectWithID<SocketGuild>)guildInfo.GetSetting(SettingOnGuild.Guild)).Object;
 			await users.Where(x => message.MentionedUserIds.Contains(x.User.Id)).ToList().ForEachAsync(async x =>
 			{
 				//Check if mentioned users contains any users almost kicked. Check if the person has already voted. Don't allow users to vote on themselves.

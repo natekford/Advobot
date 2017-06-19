@@ -19,6 +19,8 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task ModifySelfAssignableRoles([Remainder] string input)
 		{
+			var guildInfo = Variables.Guilds[Context.Guild.Id];
+
 			//Check if it's extra help wanted
 			if (Actions.CaseInsEquals(input, "help"))
 			{
@@ -54,12 +56,10 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
-
 			//Check if the guild has too many or no self assignable role lists yet
 			if (action != ActionType.Create)
 			{
-				if (!guildInfo.SelfAssignableGroups.Any())
+				if (!((List<SelfAssignableGroup>)guildInfo.GetSetting(SettingOnGuild.SelfAssignableGroups)).Any())
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Before you can edit or delete a group, you need to first create one."));
 					return;
@@ -67,21 +67,23 @@ namespace Advobot
 			}
 			else
 			{
-				if (guildInfo.SelfAssignableGroups.Count == Constants.MAX_SA_GROUPS)
+				if (((List<SelfAssignableGroup>)guildInfo.GetSetting(SettingOnGuild.SelfAssignableGroups)).Count == Constants.MAX_SA_GROUPS)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "You have too many groups. " + Constants.MAX_SA_GROUPS + " is the maximum.");
 					return;
 				}
 			}
 
-			var groupNumber = await Actions.GetIfGroupIsValid(Context, groupStr);
-			if (groupNumber == -1)
+			if (!int.TryParse(groupStr, out int groupNumber) || groupNumber < 0)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid group number supplied."));
 				return;
+			}
 
 			//Necessary to know what group to target
 			var successStr = new List<string>();
 			var failureStr = new List<string>();
-			var guildGroups = guildInfo.SelfAssignableGroups;
+			var guildGroups = ((List<SelfAssignableGroup>)guildInfo.GetSetting(SettingOnGuild.SelfAssignableGroups));
 			switch (action)
 			{
 				case ActionType.Create:
@@ -92,7 +94,7 @@ namespace Advobot
 						return;
 					}
 
-					guildInfo.SelfAssignableGroups.Add(new SelfAssignableGroup(groupNumber));
+					((List<SelfAssignableGroup>)guildInfo.GetSetting(SettingOnGuild.SelfAssignableGroups)).Add(new SelfAssignableGroup(groupNumber));
 					break;
 				}
 				case ActionType.Delete:
@@ -203,19 +205,18 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task AssignSelfRole([Remainder] string input)
 		{
-			//Get the role. No edit ability checking in this command due to how that's already been done in the modify command
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, input);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedRole);
-				return;
-			}
-			var role = returnedRole.Object;
-
 			var guildInfo = Variables.Guilds[Context.Guild.Id];
 
+			//Get the role. No edit ability checking in this command due to how that's already been done in the modify command
+			var role = Actions.GetRole(Context, new[] { RoleCheck.None }, true, input).Object;
+			if (role == null)
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no self assignable role by that name."));
+				return;
+			}
+
 			//Check if any groups has it
-			var SARole = guildInfo.SelfAssignableGroups.SelectMany(x => x.Roles).FirstOrDefault(x => x.RoleID == role.Id);
+			var SARole = ((List<SelfAssignableGroup>)guildInfo.GetSetting(SettingOnGuild.SelfAssignableGroups)).SelectMany(x => x.Roles).FirstOrDefault(x => x.RoleID == role.Id);
 			if (SARole == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no self assignable role by that name."));
@@ -231,7 +232,7 @@ namespace Advobot
 			}
 
 			//If a group that has roles conflict, remove all but the wanted role
-			var SAGroup = guildInfo.SelfAssignableGroups.FirstOrDefault(x => x?.Group == SARole?.Group);
+			var SAGroup = ((List<SelfAssignableGroup>)guildInfo.GetSetting(SettingOnGuild.SelfAssignableGroups)).FirstOrDefault(x => x?.Group == SARole?.Group);
 			var removedRoles = "";
 			if (SAGroup?.Group != 0)
 			{
@@ -261,28 +262,32 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task CurrentGroups([Optional, Remainder] string input)
 		{
+			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+
 			var groupNumber = -1;
 			if (!String.IsNullOrWhiteSpace(input))
 			{
-				groupNumber = await Actions.GetIfGroupIsValid(Context, input);
-				if (groupNumber == -1)
+				if (!int.TryParse(input, out groupNumber) || groupNumber < 0)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid group number supplied."));
 					return;
+				}
 			}
 
-			var guildInfo = Variables.Guilds[Context.Guild.Id];
+			var SAGroups = (List<SelfAssignableGroup>)guildInfo.GetSetting(SettingOnGuild.SelfAssignableGroups);
 			if (groupNumber == -1)
 			{
-				var groupNumbers = guildInfo.SelfAssignableGroups.Select(x => x.Group).Distinct().ToList();
+				var groupNumbers = SAGroups.Select(x => x.Group).Distinct().OrderBy(x => x).ToList();
 				if (!groupNumbers.Any())
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are currently no self assignable role groups on this guild."));
 					return;
 				}
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Self Assignable Role Groups", String.Join(", ", groupNumbers.OrderBy(x => x).Distinct())));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Self Assignable Role Groups", String.Format("`{0}`", String.Join("`, `", groupNumbers))));
 			}
 			else
 			{
-				var group = guildInfo.SelfAssignableGroups.FirstOrDefault(x => x.Group == groupNumber);
+				var group = SAGroups.FirstOrDefault(x => x.Group == groupNumber);
 				if (group == null)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no group with that number."));

@@ -608,9 +608,9 @@ namespace Advobot
 
 			//Check if the channel that's having messages attempted to be removed on is a log channel
 			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
-			var serverLog = guildInfo.ServerLog?.Id == channel.Id;
-			var modLog = guildInfo.ModLog?.Id == channel.Id;
-			var imageLog = guildInfo.ImageLog?.Id == channel.Id;
+			var serverLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog))?.ID == channel.Id;
+			var modLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog))?.ID == channel.Id;
+			var imageLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ImageLog))?.ID == channel.Id;
 			if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
 			{
 				//DM the owner of the server
@@ -672,7 +672,7 @@ namespace Advobot
 				}
 				else if (Actions.CaseInsEquals(targStr, "guild"))
 				{
-					guildInfo.SetSlowmodeGuild(null);
+					guildInfo.SlowmodeGuild = null;
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the guild.");
 				}
 				else if (Actions.CaseInsEquals(targStr, "channel"))
@@ -682,8 +682,8 @@ namespace Advobot
 				}
 				else if (Actions.CaseInsEquals(targStr, "all"))
 				{
-					guildInfo.SetSlowmodeGuild(null);
-					guildInfo.ClearSMChannels();
+					guildInfo.SlowmodeGuild = null;
+					guildInfo.SlowmodeChannels.Clear();
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed all slowmodes on the guild and its channels.");
 				}
 				else
@@ -773,7 +773,7 @@ namespace Advobot
 			//If targetString is null then take that as only the channel and not the guild
 			if (guild)
 			{
-				guildInfo.SetSlowmodeGuild(new SlowmodeGuild(slowmodeUsers));
+				guildInfo.SlowmodeGuild = new SlowmodeGuild(slowmodeUsers);
 			}
 			else
 			{

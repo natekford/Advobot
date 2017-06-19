@@ -81,11 +81,16 @@ namespace Advobot
 					var keywords = keywordStr?.Split('/');
 					var listedInv = new ListedInvite(Context.Guild.Id, codeStr, keywords);
 					Variables.InviteList.ThreadSafeAdd(listedInv);
-					guildInfo.SetListedInvite(listedInv);
-					Actions.SaveGuildInfo(guildInfo);
 
-					var keywordString = keywords != null ? String.Format(" with the keywords `{1}`", String.Join("`, `", keywords)) : "";
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the invite `{0}` to the guild list{1}.", codeStr, keywordString));
+					if (guildInfo.SetSetting(SettingOnGuild.ListedInvite, listedInv))
+					{
+						var keywordString = keywords != null ? String.Format(" with the keywords `{1}`", String.Join("`, `", keywords)) : "";
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the invite `{0}` to the guild list{1}.", codeStr, keywordString));
+					}
+					else
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Failed to save the listed invite."));
+					}
 					break;
 				}
 				case ActionType.Remove:
@@ -98,9 +103,14 @@ namespace Advobot
 					}
 					Variables.InviteList.ThreadSafeRemove(listedInvite);
 
-					guildInfo.SetListedInvite(null);
-					Actions.SaveGuildInfo(guildInfo);
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the invite on the guild list.");
+					if (guildInfo.SetSetting(SettingOnGuild.ListedInvite, null))
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the invite on the guild list.");
+					}
+					else
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Failed to remove the listed invite."));
+					}
 					break;
 				}
 			}

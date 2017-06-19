@@ -51,7 +51,7 @@ namespace Advobot
 				if (helpEntry == null)
 				{
 					//Find close help entries
-					var closeHelps = Actions.GetCommandsWithSimilarName(input).Distinct().ToList();
+					var closeHelps = Actions.GetCommandsWithSimilarName(input)?.Distinct().ToList();
 					if (closeHelps != null && closeHelps.Any())
 					{
 						var msg = "Did you mean any of the following:\n" + closeHelps.FormatNumberedList("{0}", x => x.Help.Name);
@@ -667,7 +667,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			await Actions.MakeAndDeleteSecondaryMessage(Context, "test");
+			await Actions.SendChannelMessage(Context, "test");
 		}
 	}
 }

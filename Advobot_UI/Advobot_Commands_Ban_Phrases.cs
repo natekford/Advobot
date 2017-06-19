@@ -111,7 +111,7 @@ namespace Advobot
 
 			//Get the lists
 			var eval = guildInfo.EvaluatedRegex;
-			var curr = guildInfo.BannedPhrases.Regex;
+			var curr = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex)).Regex;
 
 			//Check if the users wants to see all the valid regex
 			if (String.IsNullOrWhiteSpace(numStr))
@@ -221,11 +221,12 @@ namespace Advobot
 			var action = returnedType.Type;
 
 			var add = false;
+			var strings = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings)).Strings;
 			switch (action)
 			{
 				case ActionType.Add:
 				{
-					if (guildInfo.BannedPhrases.Strings.Count >= Constants.MAX_BANNED_STRINGS)
+					if (strings.Count >= Constants.MAX_BANNED_STRINGS)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned strings at a time.", Constants.MAX_BANNED_STRINGS));
 						return;
@@ -235,7 +236,7 @@ namespace Advobot
 				}
 			}
 
-			Actions.HandleBannedPhraseModification(guildInfo.BannedPhrases.Strings, Actions.SplitByCharExceptInQuotes(phraseStr, '/').ToList(), add, out List<string> success, out List<string> failure);
+			Actions.HandleBannedPhraseModification(strings, Actions.SplitByCharExceptInQuotes(phraseStr, '/').ToList(), add, out List<string> success, out List<string> failure);
 
 			var successMessage = "";
 			if (success.Any())
@@ -313,7 +314,7 @@ namespace Advobot
 			{
 				if (regex)
 				{
-					var bannedRegex = guildInfo.BannedPhrases.Regex;
+					var bannedRegex = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex)).Regex;
 					if (bannedRegex.Count <= position)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The list of banned regex does not go to that position"));
@@ -323,7 +324,7 @@ namespace Advobot
 				}
 				else
 				{
-					var bannedStrings = guildInfo.BannedPhrases.Strings;
+					var bannedStrings = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings)).Strings;
 					if (bannedStrings.Count <= position)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The list of banned strings does not go to that position"));
@@ -408,11 +409,10 @@ namespace Advobot
 				}
 			}
 
-			var punishments = guildInfo.BannedPhrases.Punishments;
-
 			//Get the list of punishments and make the new one or remove the old one
 			BannedPhrasePunishment newPunishment = null;
 			bool add = false;
+			var punishments = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhrasePunishments)).Punishments;
 			switch (action)
 			{
 				case ActionType.Add:
@@ -624,7 +624,7 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
-			var bannedWords = guildInfo.BannedWordsForJoiningUsers;
+			var bannedWords = (List<string>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers);
 			switch (action)
 			{
 				case ActionType.Add:

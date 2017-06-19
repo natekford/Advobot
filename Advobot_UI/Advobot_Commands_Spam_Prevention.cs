@@ -46,7 +46,7 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
-			var spamPrevention = guildInfo.GuildSpamAndRaidPrevention.SpamPreventions[spamType];
+			var spamPrevention = ((GuildSpamAndRaidPrevention)guildInfo.GetSetting(SettingOnGuild.MessageSpamPrevention)).SpamPreventions[spamType];
 			switch (action)
 			{
 				case ActionType.Enable:
@@ -110,7 +110,7 @@ namespace Advobot
 					var tf = time < 1 ? 1 : time;
 
 					//Create the spam prevention and add it to the guild
-					guildInfo.GuildSpamAndRaidPrevention.SetSpamPrevention(spamType, PunishmentType.Role, tf, ms, vt, sp);
+					((GuildSpamAndRaidPrevention)guildInfo.GetSetting(SettingOnGuild.MessageSpamPrevention)).SetSpamPrevention(spamType, PunishmentType.Role, tf, ms, vt, sp);
 
 					//Save everything and send a success message
 					Actions.SaveGuildInfo(guildInfo);
@@ -150,6 +150,7 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
+			var guildSpamRaidPrevention = ((GuildSpamAndRaidPrevention)guildInfo.GetSetting(SettingOnGuild.MessageSpamPrevention));
 			switch (action)
 			{
 				case ActionType.Setup:
@@ -165,13 +166,13 @@ namespace Advobot
 						count = Math.Abs(count);
 					}
 
-					guildInfo.GuildSpamAndRaidPrevention.SetRaidPrevention(RaidType.Regular, PunishmentType.Role, -1, count);
+					guildSpamRaidPrevention.SetRaidPrevention(RaidType.Regular, PunishmentType.Role, -1, count);
 					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created a raid protection with a user count of `{0}`.", count));
 					break;
 				}
 				case ActionType.Enable:
 				{
-					var antiRaid = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Regular];
+					var antiRaid = guildSpamRaidPrevention.RaidPreventions[RaidType.Regular];
 					if (antiRaid == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no raid protection to enable."));
@@ -198,7 +199,7 @@ namespace Advobot
 				}
 				case ActionType.Disable:
 				{
-					var antiRaid = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Regular];
+					var antiRaid = guildSpamRaidPrevention.RaidPreventions[RaidType.Regular];
 					if (antiRaid == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no raid protection to disable."));
@@ -265,6 +266,7 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
+			var guildSpamRaidPrevention = ((GuildSpamAndRaidPrevention)guildInfo.GetSetting(SettingOnGuild.MessageSpamPrevention));
 			switch (action)
 			{
 				case ActionType.Setup:
@@ -291,13 +293,13 @@ namespace Advobot
 						time = Math.Abs(time);
 					}
 
-					guildInfo.GuildSpamAndRaidPrevention.SetRaidPrevention(RaidType.Rapid_Joins, PunishmentType.Role, time, count);
+					guildSpamRaidPrevention.SetRaidPrevention(RaidType.Rapid_Joins, PunishmentType.Role, time, count);
 					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created a rapid join protection with a time period of `{0}` and a user count of `{1}`.", time, count));
 					break;
 				}
 				case ActionType.Enable:
 				{
-					var antiJoin = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Rapid_Joins];
+					var antiJoin = guildSpamRaidPrevention.RaidPreventions[RaidType.Rapid_Joins];
 					if (antiJoin == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no rapid join protection to enable."));
@@ -315,7 +317,7 @@ namespace Advobot
 				}
 				case ActionType.Disable:
 				{
-					var antiJoin = guildInfo.GuildSpamAndRaidPrevention.RaidPreventions[RaidType.Rapid_Joins];
+					var antiJoin = guildSpamRaidPrevention.RaidPreventions[RaidType.Rapid_Joins];
 					if (antiJoin == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no rapid join protection to disable."));

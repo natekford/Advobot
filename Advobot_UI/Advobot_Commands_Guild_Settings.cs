@@ -85,52 +85,61 @@ namespace Advobot
 			}
 			else if (Actions.CaseInsEquals(input, "clear"))
 			{
-				guildInfo.SetPrefix(null);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild prefix.");
+				if (guildInfo.SetSetting(SettingOnGuild.Prefix, null))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild's prefix.");
+				}
+				else
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Failed to clear the guild's prefix."));
+				}
 			}
 			else
 			{
-				guildInfo.SetPrefix(input);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set this guild's prefix to: `{0}`.", input));
+				if (guildInfo.SetSetting(SettingOnGuild.Prefix, input))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set this guild's prefix to: `{0}`.", input));
+				}
+				else
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Failed to set the guild's prefix."));
+				}
 			}
-
-			Actions.SaveGuildInfo(guildInfo);
 		}
 
 		[Command("displayguildsettings")]
 		[Alias("dgds")]
-		[Usage("<All|Setting Name> <Target:Channel|Role|User> <Extra:\"Additional Info\">")]
+		[Usage("<All|Setting Name>")]
 		[Summary("Displays guild settings. Inputting nothing gives a list of the setting names.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
 		public async Task GuildSettings([Optional, Remainder] string input)
 		{
 			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
-
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingOnGuild))))));
 				return;
 			}
 
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 3), new[] { "target", "extra" });
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 1));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
 			var settingStr = returnedArgs.Arguments[0];
-			var targetStr = returnedArgs.GetSpecifiedArg("target");
-			var extraStr = returnedArgs.GetSpecifiedArg("extra");
 
+			var guild = Context.Guild as SocketGuild;
 			if (Actions.CaseInsEquals(settingStr, "all"))
 			{
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Guild Settings", Actions.FormatAllSettings(guildInfo)));
+				await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel, Actions.FormatAllSettings(guild, guildInfo), "Current_Guild_Settings");
 			}
 			else if (Enum.TryParse(settingStr, true, out SettingOnGuild setting))
 			{
-				var embed = await Actions.FormatSettingInfo(Context, guildInfo, setting, targetStr, extraStr);
-				await Actions.SendEmbedMessage(Context.Channel, embed);
+				var title = Enum.GetName(typeof(SettingOnGuild), setting);
+				var desc = Actions.FormatSettingInfo(guild, guildInfo, setting);
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, desc));
 			}
 			else
 			{
@@ -219,7 +228,7 @@ namespace Advobot
 			var commands = new List<CommandSwitch>();
 			if (allBool)
 			{
-				commands = guildInfo.CommandOverrides.Commands;
+				commands = ((CommandOverrides)guildInfo.GetSetting(SettingOnGuild.CommandPreferences)).Commands;
 			}
 			else if (command == null)
 			{
@@ -334,7 +343,7 @@ namespace Advobot
 			}
 			var channel = returnedChannel.Object;
 
-			var returnedType = Actions.GetType(input, new[] { ActionType.Add, ActionType.Remove });
+			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
 			if (returnedType.Reason != TypeFailureReason.Not_Failure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
@@ -344,8 +353,8 @@ namespace Advobot
 			var add = action == ActionType.Add;
 
 			//Get the lists the bot will use for this command
-			var ignoredCmdChannels = guildInfo.IgnoredCommandChannels;
-			var ignoredCmdsOnChans = guildInfo.CommandOverrides.Channels;
+			var ignoredCmdChannels = ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.IgnoredCommandChannels));
+			var ignoredCmdsOnChans = ((CommandOverrides)guildInfo.GetSetting(SettingOnGuild.CommandPreferences)).Channels;
 			if (!String.IsNullOrWhiteSpace(cmdStr))
 			{
 				var cmd = Variables.CommandNames.FirstOrDefault(x => Actions.CaseInsEquals(x, cmdStr));
@@ -499,7 +508,7 @@ namespace Advobot
 			var user = returnedUser.Object;
 
 			//Get the botuser
-			var botUser = guildInfo.BotUsers.FirstOrDefault(x => x.User == user);
+			var botUser = ((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).FirstOrDefault(x => x.User == user);
 			switch (action)
 			{
 				case ActionType.Show:
@@ -541,7 +550,7 @@ namespace Advobot
 							return;
 						}
 
-						guildInfo.BotUsers.Remove(botUser);
+						((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).ThreadSafeRemove(botUser);
 						Actions.SaveGuildInfo(guildInfo);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the bot user list.", user.FormatUser()));
 						return;
@@ -590,7 +599,7 @@ namespace Advobot
 			}
 			if (botUser.Permissions == 0)
 			{
-				guildInfo.BotUsers.ThreadSafeRemoveAll(x => x.UserID == botUser.UserID);
+				((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).ThreadSafeRemoveAll(x => x.UserID == botUser.UserID);
 			}
 
 			//Save everything and send a success message
@@ -631,28 +640,30 @@ namespace Advobot
 			{
 				case ChannelSettings.ImageOnly:
 				{
-					if (guildInfo.ImageOnlyChannels.Contains(channel.Id))
+					var imgOnly = ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.ImageOnlyChannels));
+					if (imgOnly.Contains(channel.Id))
 					{
-						guildInfo.ImageOnlyChannels.Remove(channel.Id);
+						imgOnly.Remove(channel.Id);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the channel `{0}` from the image only list."));
 					}
 					else
 					{
-						guildInfo.ImageOnlyChannels.Add(channel.Id);
+						imgOnly.Add(channel.Id);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the channel `{0}` to the image only list."));
 					}
 					break;
 				}
 				case ChannelSettings.Sanitary:
 				{
-					if (guildInfo.SanitaryChannels.Contains(channel.Id))
+					var sanitary = ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.SanitaryChannels));
+					if (sanitary.Contains(channel.Id))
 					{
-						guildInfo.SanitaryChannels.Remove(channel.Id);
+						sanitary.Remove(channel.Id);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the channel `{0}` from the sanitary list."));
 					}
 					else
 					{
-						guildInfo.SanitaryChannels.Add(channel.Id);
+						sanitary.Add(channel.Id);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the channel `{0}` to the sanitary list."));
 					}
 					break;
@@ -678,7 +689,7 @@ namespace Advobot
 				return;
 			}
 			var actionStr = returnedArgs.Arguments[0];
-			var nameStr = returnedArgs.Arguments[1];
+			var nameStr = Actions.ReplaceMarkdownChars(returnedArgs.Arguments[1], true);
 			var textStr = returnedArgs.Arguments[2];
 
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
@@ -690,8 +701,7 @@ namespace Advobot
 			var action = returnedType.Type;
 			var add = action == ActionType.Add;
 
-			var reminds = guildInfo.Reminds;
-			nameStr = Actions.ReplaceMarkdownChars(nameStr);
+			var reminds = ((List<Remind>)guildInfo.GetSetting(SettingOnGuild.Reminds));
 			if (add)
 			{
 				//Check if at the max number of reminds
@@ -716,7 +726,7 @@ namespace Advobot
 				}
 
 				//Add them to the list
-				guildInfo.Reminds.Add(new Remind(nameStr, textStr));
+				((List<Remind>)guildInfo.GetSetting(SettingOnGuild.Reminds)).Add(new Remind(nameStr, textStr));
 			}
 			else
 			{
@@ -745,7 +755,7 @@ namespace Advobot
 		public async Task Reminds([Optional, Remainder] string input)
 		{
 			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
-			var reminds = guildInfo.Reminds;
+			var reminds = ((List<Remind>)guildInfo.GetSetting(SettingOnGuild.Reminds));
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				//Check if any exist
@@ -844,19 +854,29 @@ namespace Advobot
 			{
 				case GuildNotifications.Welcome:
 				{
-					guildInfo.SetWelcomeMessage(guildNotif);
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the welcome message.");
+					if (guildInfo.SetSetting(SettingOnGuild.WelcomeMessage, guildNotif))
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the welcome message.");
+					}
+					else
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Failed to set the welcome message."));
+					}
 					break;
 				}
 				case GuildNotifications.Goodbye:
 				{
-					guildInfo.SetGoodbyeMessage(guildNotif);
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the goodbye message.");
+					if (guildInfo.SetSetting(SettingOnGuild.GoodbyeMessage, guildNotif))
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the goodbye message.");
+					}
+					else
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Failed to set the goodbye message."));
+					}
 					break;
 				}
 			}
-
-			Actions.SaveGuildInfo(guildInfo);
 		}
 
 		[Command("testguildnotif")]
@@ -880,12 +900,12 @@ namespace Advobot
 			{
 				case GuildNotifications.Welcome:
 				{
-					notif = guildInfo.WelcomeMessage;
+					notif = ((GuildNotification)guildInfo.GetSetting(SettingOnGuild.WelcomeMessage));
 					break;
 				}
 				case GuildNotifications.Goodbye:
 				{
-					notif = guildInfo.GoodbyeMessage;
+					notif = ((GuildNotification)guildInfo.GetSetting(SettingOnGuild.GoodbyeMessage));
 					break;
 				}
 			}

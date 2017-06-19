@@ -27,7 +27,7 @@ namespace Advobot
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
-			var typeStr = returnedArgs.Arguments[0];
+			var typeStr = returnedArgs.Arguments[0].ToLower();
 			var chanStr = returnedArgs.Arguments[1];
 
 			var returnedType = Actions.GetType(typeStr, new[] { LogChannelTypes.Server, LogChannelTypes.Mod, LogChannelTypes.Image });
@@ -49,40 +49,67 @@ namespace Advobot
 				}
 				channel = returnedChannel.Object as ITextChannel;
 
-				if (guildInfo.GetLogID(type) == channel.Id)
+				ulong currID = 0;
+				switch (type)
+				{
+					case LogChannelTypes.Server:
+					{
+						currID = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog))?.ID ?? 0;
+						break;
+					}
+					case LogChannelTypes.Mod:
+					{
+						currID = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog))?.ID ?? 0;
+						break;
+					}
+					case LogChannelTypes.Image:
+					{
+						currID = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ImageLog))?.ID ?? 0;
+						break;
+					}
+				}
+
+				if (currID == channel.Id)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The given channel is already the current {0} log.", typeStr)));
 					return;
 				}
-			}		
+			}
 
+			var success = false;
 			switch (type)
 			{
 				case LogChannelTypes.Server:
 				{
-					guildInfo.SetServerLog(channel);
+					success = guildInfo.SetSetting(SettingOnGuild.ServerLog, new DiscordObjectWithID<ITextChannel>(channel));
 					break;
 				}
 				case LogChannelTypes.Mod:
 				{
-					guildInfo.SetModLog(channel);
+					success = guildInfo.SetSetting(SettingOnGuild.ModLog, new DiscordObjectWithID<ITextChannel>(channel));
 					break;
 				}
 				case LogChannelTypes.Image:
 				{
-					guildInfo.SetImageLog(channel);
+					success = guildInfo.SetSetting(SettingOnGuild.ImageLog, new DiscordObjectWithID<ITextChannel>(channel));
 					break;
 				}
 			}
 
-			Actions.SaveGuildInfo(guildInfo);
-			if (channel != null)
+			if (success)
 			{
-				await Actions.SendChannelMessage(Context, String.Format("The {0} log has been set on `{1}`.", typeStr, channel.FormatChannel()));
+				if (channel != null)
+				{
+					await Actions.SendChannelMessage(Context, String.Format("The {0} log has been set on `{1}`.", typeStr, channel.FormatChannel()));
+				}
+				else
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully disabled the {0} log.", typeStr));
+				}
 			}
 			else
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully disabled the {0} log.", typeStr));
+				await Actions.SendChannelMessage(Context, Actions.ERROR(String.Format("Failed to set the {0} log.", typeStr)));
 			}
 		}
 
@@ -124,7 +151,7 @@ namespace Advobot
 			var failure = evaluatedChannels.Value.Failure;
 
 			//Make sure stuff isn't already ignored
-			var ignoredLogChannels = guildInfo.IgnoredLogChannels;
+			var ignoredLogChannels = ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.IgnoredLogChannels));
 			var alreadyAction = new List<IGuildChannel>();
 			var add = false;
 			switch (action)
@@ -189,7 +216,7 @@ namespace Advobot
 		public async Task SwitchLogActions([Optional, Remainder] string input)
 		{
 			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
-			var logActions = guildInfo.LogActions;
+			var logActions = (List<LogActions>)guildInfo.GetSetting(SettingOnGuild.LogActions);
 
 			//Check if the person wants to only see the types
 			if (String.IsNullOrWhiteSpace(input))
@@ -199,11 +226,14 @@ namespace Advobot
 			}
 			else if (Actions.CaseInsEquals(input, "default"))
 			{
-				guildInfo.SetLogActions(Constants.DEFAULT_LOG_ACTIONS);
-
-				//Save everything and send a success message
-				Actions.SaveGuildInfo(guildInfo);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully restored the default log actions.");
+				if (guildInfo.SetSetting(SettingOnGuild.LogActions, Constants.DEFAULT_LOG_ACTIONS.ToList()))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully restored the default log actions.");
+				}
+				else
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Failed to save the default log actions."));
+				}
 				return;
 			}
 
@@ -263,14 +293,19 @@ namespace Advobot
 					break;
 				}
 			}
-			guildInfo.SetLogActions(logActions.Distinct());
 
-			//Save everything and send a success message
-			Actions.SaveGuildInfo(guildInfo);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
-				responseStr,
-				Actions.GetPlural(newLogActions.Count),
-				String.Join("`, `", newLogActions.Select(x => Enum.GetName(typeof(LogActions), x)))));
+			if (guildInfo.SetSetting(SettingOnGuild.LogActions, logActions.Distinct()))
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
+					responseStr,
+					Actions.GetPlural(newLogActions.Count),
+					String.Join("`, `", newLogActions.Select(x => Enum.GetName(typeof(LogActions), x)))));
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Failed to save the log actions."));
+				return;
+			}
 		}
 	}
 }

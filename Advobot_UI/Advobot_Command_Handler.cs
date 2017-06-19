@@ -1,9 +1,10 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using System;
-using System.Linq;
 
 namespace Advobot
 {
@@ -36,7 +37,7 @@ namespace Advobot
 
 			var guildInfo = await Actions.GetGuildInfo(guild);
 
-			if (!PrefixHandling(message, guildInfo.Prefix, out int argPos))
+			if (!PrefixHandling(message, ((string)guildInfo.GetSetting(SettingOnGuild.Prefix)), out int argPos))
 				return;
 
 			var context = new CommandContext(Client.GetClient(), message);
@@ -108,7 +109,8 @@ namespace Advobot
 			 * Else if channel is set, use channel setting
 			 */
 
-			var user = guildInfo.CommandOverrides.Users.FirstOrDefault(x =>
+			var cmdOverrides = ((CommandOverrides)guildInfo.GetSetting(SettingOnGuild.CommandPreferences));
+			var user = cmdOverrides.Users.FirstOrDefault(x =>
 			{
 				return true
 				&& Actions.CaseInsEquals(cmd.Name, x.Name)
@@ -119,7 +121,7 @@ namespace Advobot
 				return user.Enabled;
 			}
 
-			var role = guildInfo.CommandOverrides.Roles.Where(x =>
+			var role = cmdOverrides.Roles.Where(x =>
 			{
 				return true
 				&& Actions.CaseInsEquals(cmd.Name, x.Name)
@@ -133,7 +135,7 @@ namespace Advobot
 				return role.Enabled;
 			}
 
-			var channel = guildInfo.CommandOverrides.Channels.FirstOrDefault(x =>
+			var channel = cmdOverrides.Channels.FirstOrDefault(x =>
 			{
 				return true
 				&& Actions.CaseInsEquals(cmd.Name, x.Name)
@@ -173,7 +175,7 @@ namespace Advobot
 				return false;
 			}
 			//Ignored channel check
-			else if (guildInfo.IgnoredCommandChannels.Contains(context.Channel.Id))
+			else if (((List<ulong>)guildInfo.GetSetting(SettingOnGuild.IgnoredCommandChannels)).Contains(context.Channel.Id))
 			{
 				return false;
 			}
