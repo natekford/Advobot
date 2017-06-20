@@ -69,7 +69,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task GuildPrefix([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			input = input.Trim().Replace("\n", "").Replace("\r", "");
 
@@ -115,7 +115,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GuildSettings([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingOnGuild))))));
@@ -155,7 +155,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GuildReload([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 1));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -169,13 +169,13 @@ namespace Advobot
 			if (Actions.CaseInsEquals(actionStr, "reload"))
 			{
 				Variables.Guilds.Remove(guild.Id);
-				Variables.Guilds.Add(guild.Id, await Actions.CreateGuildInfo(guild));
+				Variables.Guilds.Add(guild.Id, await Actions.CreateOrGetGetGuildInfo(guild));
 
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully reloaded the guild's bot information.");
 			}
 			else if (Actions.CaseInsEquals(actionStr, "resave"))
 			{
-				guildInfo.SaveGuildSettings();
+				guildInfo.SaveInfo();
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully resaved the guild's bot information.");
 			}
 			else if (Actions.CaseInsEquals(actionStr, "reset"))
@@ -185,7 +185,7 @@ namespace Advobot
 				var path = Actions.GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
 				File.Delete(path);
 
-				Variables.Guilds.Add(guild.Id, await Actions.CreateGuildInfo(guild));
+				Variables.Guilds.Add(guild.Id, await Actions.CreateOrGetGetGuildInfo(guild));
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset the guild's bot information.");
 			}
 		}
@@ -198,7 +198,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task CommandConfig([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -228,7 +228,7 @@ namespace Advobot
 			var commands = new List<CommandSwitch>();
 			if (allBool)
 			{
-				commands = ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandPreferences));
+				commands = ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandSwitches));
 			}
 			else if (command == null)
 			{
@@ -307,10 +307,8 @@ namespace Advobot
 				}
 			}
 
-			//Save the preferences
-			guildInfo.SaveGuildSettings();
-			var desc = Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(commands.Select(x => x.Name), unableToBeRemoved.Select(x => x.Name), "command", pastTense, presentTense);
-			await Actions.SendChannelMessage(Context, desc);
+			guildInfo.SaveInfo();
+			await Actions.SendChannelMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(commands.Select(x => x.Name), unableToBeRemoved.Select(x => x.Name), "command", pastTense, presentTense));
 		}
 
 		[Command("modifyignoredcommandchannels")]
@@ -321,7 +319,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task CommandIgnore([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
@@ -354,7 +352,7 @@ namespace Advobot
 
 			//Get the lists the bot will use for this command
 			var ignoredCmdChannels = ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.IgnoredCommandChannels));
-			var ignoredCmdsOnChans = ((List<CommandOverride<IGuildChannel>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel));
+			var ignoredCmdsOnChans = ((List<CommandOverride>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel));
 			if (!String.IsNullOrWhiteSpace(cmdStr))
 			{
 				var cmd = Variables.CommandNames.FirstOrDefault(x => Actions.CaseInsEquals(x, cmdStr));
@@ -374,7 +372,7 @@ namespace Advobot
 							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command is already ignored on this channel."));
 							return;
 						}
-						ignoredCmdsOnChans.Add(new CommandOverride<IGuildChannel>(cmd, channel.Id, false));
+						ignoredCmdsOnChans.Add(new CommandOverride(cmd, channel.Id, false));
 					}
 					else
 					{
@@ -396,7 +394,7 @@ namespace Advobot
 						{
 							if (!ignoredCmdsOnChans.Any(y => y.Name == x.Name && y.ID == channel.Id))
 							{
-								ignoredCmdsOnChans.Add(new CommandOverride<IGuildChannel>(x.Name, channel.Id, false));
+								ignoredCmdsOnChans.Add(new CommandOverride(x.Name, channel.Id, false));
 							}
 						});
 					}
@@ -411,8 +409,7 @@ namespace Advobot
 						String.Format("Successfully {0} the category `{1}` in `{2}`.", add ? "disabled" : "enabled", Enum.GetName(typeof(CommandCategory), cat), channel.FormatChannel()));
 				}
 
-				//Save everything and send a success message
-				guildInfo.SaveGuildSettings();
+				guildInfo.SaveInfo();
 			}
 			else
 			{
@@ -447,8 +444,7 @@ namespace Advobot
 					outputStr = String.Format("Successfully removed the channel `{0}` from the command ignore list.", channel.FormatChannel());
 				}
 
-				//Save everything and send a success message
-				guildInfo.SaveGuildSettings();
+				guildInfo.SaveInfo();
 				await Actions.MakeAndDeleteSecondaryMessage(Context, outputStr);
 			}
 		}
@@ -462,7 +458,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BotUsersModify([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
@@ -508,7 +504,7 @@ namespace Advobot
 			var user = returnedUser.Object;
 
 			//Get the botuser
-			var botUser = ((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).FirstOrDefault(x => x.User == user);
+			var botUser = ((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).FirstOrDefault(x => x.UserID == user.Id);
 			switch (action)
 			{
 				case ActionType.Show:
@@ -551,7 +547,7 @@ namespace Advobot
 						}
 
 						((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).ThreadSafeRemove(botUser);
-						guildInfo.SaveGuildSettings();
+						guildInfo.SaveInfo();
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the bot user list.", user.FormatUser()));
 						return;
 					}
@@ -572,7 +568,7 @@ namespace Advobot
 			}
 
 			//Modify the user's perms
-			botUser = botUser ?? new BotImplementedPermissions(Context.Guild.Id, user.Id, 0, guildInfo);
+			botUser = botUser ?? new BotImplementedPermissions(user.Id, 0, guildInfo);
 			var outputStr = "";
 			switch (action)
 			{
@@ -602,8 +598,7 @@ namespace Advobot
 				((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).ThreadSafeRemoveAll(x => x.UserID == botUser.UserID);
 			}
 
-			//Save everything and send a success message
-			guildInfo.SaveGuildSettings();
+			guildInfo.SaveInfo();
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {0}: `{1}`.", outputStr, String.Join("`, `", permissions.Select(x => x.Name))));
 		}
 
@@ -616,7 +611,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task ModifyImageOnly([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -679,7 +674,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task RemindsModify([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
@@ -741,8 +736,7 @@ namespace Advobot
 				reminds.RemoveAll(x => Actions.CaseInsEquals(x.Name, nameStr));
 			}
 
-			//Save everything and send a success message
-			guildInfo.SaveGuildSettings();
+			guildInfo.SaveInfo();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following remind: `{1}`.", add ? "added" : "removed", nameStr));
 		}
 
@@ -754,7 +748,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task Reminds([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 			var reminds = ((List<Remind>)guildInfo.GetSetting(SettingOnGuild.Reminds));
 			if (String.IsNullOrWhiteSpace(input))
 			{
@@ -804,7 +798,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task SetGuildNotif([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 6), new[] { "content", "title", "desc", "thumb" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -887,7 +881,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task TestGuildNotification([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			if (!Enum.TryParse(input, true, out GuildNotifications notifType))
 			{

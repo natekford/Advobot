@@ -99,33 +99,84 @@ namespace Advobot
 			}
 			var setting = returnedType.Type;
 
-			var clear = Actions.CaseInsEquals(infoStr, "clear");
-
 			var botInfo = Variables.BotInfo;
 			var settings = Properties.Settings.Default;
-			switch (setting)
+			if (Actions.CaseInsEquals(infoStr, "clear"))
 			{
-				case SettingOnBot.BotOwner:
+				switch (setting)
 				{
-					if (clear)
+					case SettingOnBot.BotOwnerID:
 					{
-						botInfo.ResetBotOwner();
+						botInfo.ResetSetting(setting);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the bot owner back to the default value `{0}`.", botInfo.BotOwnerID));
+						break;
 					}
-					else
+					case SettingOnBot.Prefix:
+					{
+						botInfo.ResetSetting(setting);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the prefix back to the default value `{0}`.", botInfo.Prefix));
+						break;
+					}
+					case SettingOnBot.Game:
+					{
+						botInfo.ResetSetting(setting);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the game back to the default value `{0}`.", botInfo.Game));
+						break;
+					}
+					case SettingOnBot.Stream:
+					{
+						botInfo.ResetSetting(setting);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the stream back to the default value `{0}`.", botInfo.Stream));
+						break;
+					}
+					case SettingOnBot.ShardCount:
+					{
+						botInfo.SetSetting(setting, (Variables.Client.GetGuilds().Count / 2500) + 1);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the shard count to `{0}`.", botInfo.ShardCount));
+						break;
+					}
+					case SettingOnBot.MessageCacheCount:
+					{
+						botInfo.ResetSetting(setting);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the message cache size back to the default value `{0}`.", botInfo.MessageCacheCount));
+						break;
+					}
+					case SettingOnBot.AlwaysDownloadUsers:
+					{
+						botInfo.ResetSetting(setting);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the always download users bool back to the default value `{0}`.", botInfo.AlwaysDownloadUsers));
+						break;
+					}
+					case SettingOnBot.LogLevel:
+					{
+						botInfo.ResetSetting(setting);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the log level back to the default value `{0}`.", Enum.GetName(typeof(LogSeverity), botInfo.LogLevel)));
+						break;
+					}
+					case SettingOnBot.SavePath:
+					{
+						settings.Path = null;
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the save path back to the default value `{0}`.", "NOTHING"));
+						break;
+					}
+					case SettingOnBot.MaxUserGatherCount:
+					{
+						botInfo.ResetSetting(setting);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the max user gather count back to the default value `{0}`.", botInfo.MaxUserGatherCount));
+						break;
+					}
+				}
+			}
+			else
+			{
+				switch (setting)
+				{
+					case SettingOnBot.BotOwnerID:
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, "Clear the bot owner instead of trying to set a new one through this.");
+						break;
 					}
-					break;
-				}
-				case SettingOnBot.Prefix:
-				{
-					if (clear)
-					{
-						botInfo.ResetPrefix();
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the prefix back to the default value `{0}`.", botInfo.Prefix));
-					}
-					else
+					case SettingOnBot.Prefix:
 					{
 						if (input.Length > 10)
 						{
@@ -133,56 +184,29 @@ namespace Advobot
 							return;
 						}
 
-						botInfo.SetPrefix(input);
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the bot's prefix to `{0}`.", input));
+						botInfo.SetSetting(setting, input);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the bot's prefix to `{0}`.", botInfo.Prefix));
+						break;
 					}
-					break;
-				}
-				case SettingOnBot.Game:
-				{
-					if (clear)
-					{
-						botInfo.ResetGame();
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the game back to the default value `{0}`.", botInfo.Game));
-					}
-					else
+					case SettingOnBot.Game:
 					{
 						if (input.Length > Constants.MAX_GAME_LENGTH)
 						{
 							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Game name cannot be longer than `{0}` characters or else it doesn't show to other people.", Constants.MAX_GAME_LENGTH)));
 							return;
 						}
-						else
-						{
-							botInfo.SetGame(input);
-							await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Game set to `{0}`.", input));
-						}
+
+						botInfo.SetSetting(setting, input);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Game set to `{0}`.", botInfo.Game));
+						break;
 					}
-					break;
-				}
-				case SettingOnBot.Stream:
-				{
-					if (clear)
+					case SettingOnBot.Stream:
 					{
-						botInfo.ResetStream();
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the stream back to the default value `{0}`.", botInfo.Stream));
+						botInfo.SetSetting(setting, input);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the bot's stream to `{0}`.", botInfo.Stream));
+						break;
 					}
-					else
-					{
-						botInfo.SetStream(input);
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the bot's stream to `{0}`.", input));
-					}
-					break;
-				}
-				case SettingOnBot.ShardCount:
-				{
-					if (clear)
-					{
-						var minShardCount = (Variables.Client.GetGuilds().Count / 2500) + 1;
-						botInfo.SetShardCount(minShardCount);
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the shard count to `{0}`.", minShardCount));
-					}
-					else
+					case SettingOnBot.ShardCount:
 					{
 						if (!int.TryParse(input, out int number))
 						{
@@ -198,19 +222,11 @@ namespace Advobot
 							return;
 						}
 
-						botInfo.SetShardCount(number);
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the shard amount to `{0}`.", number));
+						botInfo.SetSetting(setting, number);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the shard amount to `{0}`.", botInfo.ShardCount));
+						break;
 					}
-					break;
-				}
-				case SettingOnBot.MessageCacheSize:
-				{
-					if (clear)
-					{
-						botInfo.ResetCacheSize();
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the message cache size back to the default value `{0}`.", botInfo.MessageCacheSize));
-					}
-					else
+					case SettingOnBot.MessageCacheCount:
 					{
 						if (!int.TryParse(infoStr, out int cacheSize))
 						{
@@ -218,19 +234,11 @@ namespace Advobot
 							return;
 						}
 
-						botInfo.SetCacheSize(cacheSize);
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the message cache size to `{0}`.", cacheSize));
+						botInfo.SetSetting(setting, cacheSize);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the message cache size to `{0}`.", botInfo.MessageCacheCount));
+						break;
 					}
-					break;
-				}
-				case SettingOnBot.AlwaysDownloadUsers:
-				{
-					if (clear)
-					{
-						botInfo.ResetAlwaysDownloadUsers();
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the always download users bool back to the default value `{0}`.", botInfo.AlwaysDownloadUsers));
-					}
-					else
+					case SettingOnBot.AlwaysDownloadUsers:
 					{
 						if (!bool.TryParse(infoStr, out bool alwaysDLUsers))
 						{
@@ -238,19 +246,11 @@ namespace Advobot
 							return;
 						}
 
-						botInfo.SetAlwaysDownloadUsers(alwaysDLUsers);
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set always download users to `{0}`.", alwaysDLUsers));
+						botInfo.SetSetting(setting, alwaysDLUsers);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set always download users to `{0}`.", botInfo.AlwaysDownloadUsers));
+						break;
 					}
-					break;
-				}
-				case SettingOnBot.LogLevel:
-				{
-					if (clear)
-					{
-						botInfo.ResetLogLevel();
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the log level back to the default value `{0}`.", Enum.GetName(typeof(LogSeverity), botInfo.LogLevel)));
-					}
-					else
+					case SettingOnBot.LogLevel:
 					{
 						if (!Enum.TryParse(infoStr, true, out LogSeverity logLevel))
 						{
@@ -259,40 +259,22 @@ namespace Advobot
 							return;
 						}
 
-						botInfo.SetLogLevel(logLevel);
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the log level to `{0}`.", Enum.GetName(typeof(LogSeverity), logLevel)));
+						botInfo.SetSetting(setting, logLevel);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the log level to `{0}`.", Enum.GetName(typeof(LogSeverity), botInfo.LogLevel)));
+						break;
 					}
-					break;
-				}
-				case SettingOnBot.SavePath:
-				{
-					if (clear)
-					{
-						settings.Path = null;
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the save path back to the default value `{0}`.", "NOTHING"));
-					}
-					else
+					case SettingOnBot.SavePath:
 					{
 						if (!Directory.Exists(infoStr))
 						{
 							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That directory doesn't exist."));
 						}
-						else
-						{
-							settings.Path = infoStr;
-							await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the save path to: `{0}`.", infoStr));
-						}
+
+						settings.Path = infoStr;
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the save path to: `{0}`.", infoStr));
+						break;
 					}
-					break;
-				}
-				case SettingOnBot.MaxUserGatherCount:
-				{
-					if (clear)
-					{
-						botInfo.ResetMaxUserGatherCount();
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the max user gather count back to the default value `{0}`.", botInfo.MaxUserGatherCount));
-					}
-					else
+					case SettingOnBot.MaxUserGatherCount:
 					{
 						if (!int.TryParse(infoStr, out int maxUserGatherCount))
 						{
@@ -300,15 +282,15 @@ namespace Advobot
 							return;
 						}
 
-						botInfo.SetMaxUserGatherCount(maxUserGatherCount);
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the max user gather count to `{0}`.", maxUserGatherCount));
+						botInfo.SetSetting(setting, maxUserGatherCount);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the max user gather count to `{0}`.", botInfo.MaxUserGatherCount));
+						break;
 					}
-					break;
 				}
 			}
 
 			settings.Save();
-			Actions.SaveBotInfo(Variables.BotInfo);
+			Variables.BotInfo.SaveInfo();
 			await Actions.UpdateGame();
 		}
 

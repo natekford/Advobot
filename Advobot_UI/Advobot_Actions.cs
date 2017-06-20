@@ -44,61 +44,53 @@ namespace Advobot
 		{
 			await Variables.GuildsToBeLoaded.ForEachAsync(async x =>
 			{
-				Variables.Guilds.Add(x.Id, await CreateGuildInfo(x));
+				Variables.Guilds.Add(x.Id, await CreateOrGetGetGuildInfo(x));
 			});
 		}
 
-		public static async Task<BotGuildInfo> CreateGuildInfo(IGuild guild)
+		public static async Task<BotGuildInfo> CreateOrGetGetGuildInfo(IGuild guild)
 		{
-			BotGuildInfo guildInfo = null;
-			var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
-			if (File.Exists(path))
+			if (guild == null)
 			{
-				try
-				{
-					using (var reader = new StreamReader(path))
-					{
-						var settings = JsonConvert.DeserializeObject<Dictionary<SettingOnGuild, dynamic>>(reader.ReadToEnd());
-						settings.Values.ToList().ForEach(x => x = (dynamic)x);
-						guildInfo = new BotGuildInfo(settings);
-					}
-					WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
-				}
-				catch (Exception e)
-				{
-					ExceptionToConsole(e);
-				}
+				return null;
 			}
-			else
-			{
-				WriteLine(String.Format("The guild information file for {0} does not exist.", guild.FormatGuild()));
-			}
-			guildInfo = guildInfo ?? new BotGuildInfo(guild.Id);
 
-			var temp = guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnUser);
-			var cmdUsers = ((List<CommandOverride<IGuildUser>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnUser));
-			cmdUsers.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			var cmdRoles = ((List<CommandOverride<IRole>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnRole));
-			cmdRoles.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			var cmdChans = ((List<CommandOverride<IGuildChannel>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel));
-			cmdChans.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-
-			var cmdOverrides = ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandPreferences));
-			cmdOverrides.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			Variables.HelpList.Where(x => !cmdOverrides.Select(y => y.Name).CaseInsContains(x.Name)).ToList().ForEach(x => cmdOverrides.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
-
-			guildInfo.Invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
-			guildInfo.PostDeserialize(guild.Id);
-			return guildInfo;
-		}
-
-		public static async Task<BotGuildInfo> GetGuildInfo(IGuild guild)
-		{
 			if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 			{
-				guildInfo = await CreateGuildInfo(guild);
-				Variables.Guilds.Add(guild.Id, guildInfo);
-				SaveGuildSettings(guildInfo);
+				var path = GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
+				if (File.Exists(path))
+				{
+					try
+					{
+						using (var reader = new StreamReader(path))
+						{
+							guildInfo = JsonConvert.DeserializeObject<BotGuildInfo>(reader.ReadToEnd());
+						}
+						WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
+					}
+					catch (Exception e)
+					{
+						ExceptionToConsole(e);
+					}
+				}
+				else
+				{
+					WriteLine(String.Format("The guild information file for {0} could not be found; using default.", guild.FormatGuild()));
+				}
+				guildInfo = guildInfo ?? new BotGuildInfo(guild.Id);
+
+				var cmdUsers = ((List<CommandOverride>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnUser));
+				cmdUsers.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+				var cmdRoles = ((List<CommandOverride>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnRole));
+				cmdRoles.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+				var cmdChans = ((List<CommandOverride>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel));
+				cmdChans.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+				var cmdSwitches = ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandSwitches));
+				cmdSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+				Variables.HelpList.Where(x => !cmdSwitches.Select(y => y.Name).CaseInsContains(x.Name)).ToList().ForEach(x => cmdSwitches.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
+
+				guildInfo.Invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
+				guildInfo.PostDeserialize(guild.Id);
 			}
 			return guildInfo;
 		}
@@ -124,18 +116,11 @@ namespace Advobot
 			}
 			else
 			{
-				WriteLine("The bot information file does not exist.");
+				WriteLine("The bot information file could not be found; using default.");
 			}
+			botInfo = botInfo ?? new BotGlobalInfo();
 
-			if (botInfo != null)
-			{
-				botInfo.PostDeserialize();
-			}
-			else
-			{
-				botInfo = new BotGlobalInfo();
-			}
-
+			botInfo.PostDeserialize();
 			return botInfo;
 		}
 
@@ -335,16 +320,6 @@ namespace Advobot
 			}
 		}
 
-		public static void SaveGuildSettings(BotGuildInfo guildInfo)
-		{
-			
-		}
-
-		public static void SaveBotInfo(BotGlobalInfo botInfo)
-		{
-			OverWriteFile(GetBaseBotDirectory(Constants.BOT_INFO_LOCATION), Serialize(botInfo));
-		}
-
 		public static void CreateFile(string path)
 		{
 			if (!File.Exists(path))
@@ -413,7 +388,7 @@ namespace Advobot
 
 		public static List<CommandSwitch> GetMultipleCommands(BotGuildInfo guildInfo, CommandCategory category)
 		{
-			return ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandPreferences)).Where(x => x.Category == category).ToList();
+			return ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandSwitches)).Where(x => x.Category == category).ToList();
 		}
 
 		public static ReturnedArguments GetArgs(ICommandContext context, string input, ArgNumbers argNums, string[] argsToSearchFor = null)
@@ -500,7 +475,7 @@ namespace Advobot
 
 		public static CommandSwitch GetCommand(BotGuildInfo guildInfo, string input)
 		{
-			return ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandPreferences)).FirstOrDefault(x =>
+			return ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandSwitches)).FirstOrDefault(x =>
 			{
 				if (CaseInsEquals(x.Name, input))
 				{
@@ -1671,7 +1646,7 @@ namespace Advobot
 			var guild = GetGuild(channel);
 			if (guild == null)
 				return;
-			var guildInfo = await GetGuildInfo(guild);
+			var guildInfo = await CreateOrGetGetGuildInfo(guild);
 
 			//Descriptions can only be 2048 characters max and mobile can only show up to 20 line breaks
 			var description = embed.Description;
@@ -2435,7 +2410,7 @@ namespace Advobot
 			var str = "";
 			switch (setting)
 			{
-				case SettingOnBot.BotOwner:
+				case SettingOnBot.BotOwnerID:
 				{
 					str = String.Format("`{0}`", Variables.Client.GetUser(botInfo.BotOwnerID).FormatUser());
 					break;
@@ -2474,9 +2449,9 @@ namespace Advobot
 					str = String.Format("`{0}`", botInfo.ShardCount);
 					break;
 				}
-				case SettingOnBot.MessageCacheSize:
+				case SettingOnBot.MessageCacheCount:
 				{
-					str = String.Format("`{0}`", botInfo.MessageCacheSize);
+					str = String.Format("`{0}`", botInfo.MessageCacheCount);
 					break;
 				}
 				case SettingOnBot.AlwaysDownloadUsers:
@@ -2776,7 +2751,7 @@ namespace Advobot
 			var shardStr = String.Format("**Shards:** `{0}`", botInfo.ShardCount);
 			var ownerStr = String.Format("**Bot Owner ID:** `{0}`", String.IsNullOrWhiteSpace(botInfo.BotOwnerID.ToString()) ? "N/A" : botInfo.BotOwnerID.ToString());
 			var ugcStr = String.Format("**Max User Gather Count:** `{0}`", botInfo.MaxUserGatherCount);
-			var cacheStr = String.Format("**Message Cache:** `{0}`", botInfo.MessageCacheSize);
+			var cacheStr = String.Format("**Message Cache:** `{0}`", botInfo.MessageCacheCount);
 			return String.Join("\n", new[] { shardStr, ownerStr, ugcStr, cacheStr });
 		}
 
@@ -2936,6 +2911,12 @@ namespace Advobot
 			return String.Format("`{0}`", setting.ToString());
 		}
 
+		public static string EscapeMarkdown(string str, bool onlyAccentGrave)
+		{
+			str = str.Replace("`", "\\`");
+			return onlyAccentGrave ? str : str.Replace("*", "\\*").Replace("_", "\\_");
+		}
+
 		public static void WriteLine(string text, [CallerMemberName] string name = "")
 		{
 			Console.WriteLine(String.Format("[{0}] [{1}]: {2}", DateTime.Now.ToString("HH:mm:ss"), name, ReplaceMarkdownChars(text, true)));
@@ -2974,7 +2955,7 @@ namespace Advobot
 			if (curInvs == null)
 				return null;
 			//Get the bot's stored invites
-			var botInvs = (await Actions.GetGuildInfo(guild)).Invites;
+			var botInvs = (await Actions.CreateOrGetGetGuildInfo(guild)).Invites;
 			if (!botInvs.Any())
 				return null;
 
@@ -3495,10 +3476,9 @@ namespace Advobot
 
 		public static void ResetSettings()
 		{
-			//Reset everything but shards since shards are pretty important
 			var botInfo = Variables.BotInfo;
 			botInfo.ResetAll();
-			SaveBotInfo(Variables.BotInfo);
+			Variables.BotInfo.SaveInfo();
 
 			Properties.Settings.Default.Reset();
 			Properties.Settings.Default.Save();
@@ -4374,12 +4354,6 @@ namespace Advobot
 		public static void DisconnectBot()
 		{
 			Environment.Exit(0);
-		}
-
-		public static string EscapeMarkdown(string str, bool onlyAccentGrave)
-		{
-			str = str.Replace("`", "\\`");
-			return onlyAccentGrave ? str : str.Replace("*", "\\*").Replace("_", "\\_");
 		}
 		#endregion
 	}

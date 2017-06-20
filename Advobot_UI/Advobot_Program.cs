@@ -98,7 +98,7 @@ namespace Advobot
 			var ShardedClient = new DiscordShardedClient(new DiscordSocketConfig
 			{
 				AlwaysDownloadUsers = botInfo.AlwaysDownloadUsers,
-				MessageCacheSize = botInfo.MessageCacheSize,
+				MessageCacheSize = botInfo.MessageCacheCount,
 				LogLevel = botInfo.LogLevel,
 				TotalShards = botInfo.ShardCount,
 			});
@@ -125,7 +125,7 @@ namespace Advobot
 			var SocketClient = new DiscordSocketClient(new DiscordSocketConfig
 			{
 				AlwaysDownloadUsers = botInfo.AlwaysDownloadUsers,
-				MessageCacheSize = botInfo.MessageCacheSize,
+				MessageCacheSize = botInfo.MessageCacheCount,
 				LogLevel = botInfo.LogLevel,
 			});
 

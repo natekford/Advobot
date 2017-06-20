@@ -20,7 +20,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanRegexEvaluate([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			//Get the arguments
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
@@ -89,7 +89,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanRegexModify([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
@@ -188,7 +188,7 @@ namespace Advobot
 				}
 			}
 
-			guildInfo.SaveGuildSettings();
+			guildInfo.SaveInfo();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the regex `{1}`.", responseStr, regex));
 		}
 
@@ -200,7 +200,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesModify([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2), new[] { "position" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -262,7 +262,7 @@ namespace Advobot
 				eitherEmpty = ", and ";
 			}
 
-			guildInfo.SaveGuildSettings();
+			guildInfo.SaveInfo();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
 		}
 
@@ -274,7 +274,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesChangeType([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			//First split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "position" });
@@ -355,7 +355,7 @@ namespace Advobot
 			bannedPhrase.ChangePunishment(type);
 			phraseStr = bannedPhrase.Phrase.ToString();
 
-			guildInfo.SaveGuildSettings();
+			guildInfo.SaveInfo();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the punishment type on the banned {0} `{1}` to `{2}`.",
 				(regex ? "regex" : "string"), phraseStr, Enum.GetName(typeof(PunishmentType), type)));
 		}
@@ -368,7 +368,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesPunishModify([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 4), new[] { "position", "punishment", "time" });
@@ -517,7 +517,7 @@ namespace Advobot
 			}
 			var timeMsg = newPunishment.PunishmentTime != 0 ? String.Format(", and will last for `{0}` minute(s)", newPunishment.PunishmentTime) : "";
 
-			guildInfo.SaveGuildSettings();
+			guildInfo.SaveInfo();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", add ? "added" : "removed", successMsg, timeMsg));
 		}
 
@@ -529,7 +529,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesUser([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -592,7 +592,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task ModifyBannedWordsForJoiningUsers([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -651,7 +651,7 @@ namespace Advobot
 				}
 			}
 
-			guildInfo.SaveGuildSettings();
+			guildInfo.SaveInfo();
 		}
 	}
 }

@@ -36,7 +36,7 @@ namespace Advobot
 			if (guild == null)
 				return;
 
-			var guildInfo = await Actions.GetGuildInfo(guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(guild);
 			if (!PrefixHandling(message, ((string)guildInfo.GetSetting(SettingOnGuild.Prefix)), out int argPos))
 				return;
 
@@ -109,7 +109,7 @@ namespace Advobot
 			 * Else if channel is set, use channel setting
 			 */
 
-			var user = ((List<CommandOverride<IGuildUser>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnUser)).FirstOrDefault(x =>
+			var user = ((List<CommandOverride>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnUser)).FirstOrDefault(x =>
 			{
 				return true
 				&& Actions.CaseInsEquals(cmd.Name, x.Name)
@@ -120,7 +120,7 @@ namespace Advobot
 				return user.Enabled;
 			}
 
-			var role = ((List<CommandOverride<IRole>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnRole)).Where(x =>
+			var role = ((List<CommandOverride>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnRole)).Where(x =>
 			{
 				return true
 				&& Actions.CaseInsEquals(cmd.Name, x.Name)
@@ -134,7 +134,7 @@ namespace Advobot
 				return role.Enabled;
 			}
 
-			var channel = ((List<CommandOverride<IGuildChannel>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel)).FirstOrDefault(x =>
+			var channel = ((List<CommandOverride>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel)).FirstOrDefault(x =>
 			{
 				return true
 				&& Actions.CaseInsEquals(cmd.Name, x.Name)

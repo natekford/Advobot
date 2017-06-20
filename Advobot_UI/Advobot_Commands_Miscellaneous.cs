@@ -20,7 +20,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Help([Optional, Remainder] string input)
 		{
-			var prefix = Actions.GetPrefix(await Actions.GetGuildInfo(Context.Guild));
+			var prefix = Actions.GetPrefix(await Actions.CreateOrGetGetGuildInfo(Context.Guild));
 			if (String.IsNullOrWhiteSpace(input))
 			{
 			    var emb = Actions.MakeNewEmbed("General Help", String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", prefix));
@@ -83,7 +83,7 @@ namespace Advobot
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				var desc = String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}",
-					Actions.GetPrefix(await Actions.GetGuildInfo(Context.Guild)),
+					Actions.GetPrefix(await Actions.CreateOrGetGetGuildInfo(Context.Guild)),
 					String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))));
 				var embed = Actions.MakeNewEmbed("Categories", desc);
 				await Actions.SendEmbedMessage(Context.Channel, embed);
@@ -172,7 +172,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GetInfo([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -667,7 +667,13 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			await Actions.SendChannelMessage(Context, "test");
+			var msg = "";
+			foreach (var e in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
+			{
+				var name = Enum.GetName(typeof(SettingOnGuild), e);
+				msg += String.Concat("{ SettingOnGuild.", name, ",  },\n");
+			}
+			await Actions.SendChannelMessage(Context, msg);
 		}
 	}
 }

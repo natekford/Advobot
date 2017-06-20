@@ -30,7 +30,7 @@ namespace Advobot
 			{
 				if (Variables.BotID != 0)
 				{
-					Variables.Guilds.Add(guild.Id, await Actions.CreateGuildInfo(guild));
+					Variables.Guilds.Add(guild.Id, await Actions.CreateOrGetGetGuildInfo(guild));
 				}
 				else
 				{
@@ -257,7 +257,7 @@ namespace Advobot
 				await Message_Received_Actions.HandlePotentialBotOwner(message);
 			}
 
-			var guildInfo = await Actions.GetGuildInfo(guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(guild);
 			await Message_Received_Actions.HandleCloseWords(guildInfo, message);
 			await Message_Received_Actions.HandleSpamPreventionVoting(guildInfo, message);
 
@@ -420,8 +420,7 @@ namespace Advobot
 		{
 			if (message.Content.Equals(Properties.Settings.Default.BotKey) && Variables.BotInfo.BotOwnerID == 0)
 			{
-				Variables.BotInfo.SetBotOwner(message.Author.Id);
-				Actions.SaveBotInfo(Variables.BotInfo);
+				Variables.BotInfo.SetSetting(SettingOnBot.BotOwnerID, message.Author.Id);
 				await Actions.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
 			}
 		}

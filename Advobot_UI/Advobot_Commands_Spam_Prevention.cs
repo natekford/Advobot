@@ -17,7 +17,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task PreventMentionSpam([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 5), new[] { "messages", "spam", "votes" });
@@ -114,7 +114,7 @@ namespace Advobot
 					guildInfo.SetSpamPrevention(spamType, new SpamPrevention(PunishmentType.Role, tf, ms, vt, sp));
 
 					//Save everything and send a success message
-					guildInfo.SaveGuildSettings();
+					guildInfo.SaveInfo();
 					await Actions.MakeAndDeleteSecondaryMessage(Context,
 						String.Format("Successfully created and enabled a spam prevention with the requirement of `{0}` messages with a spam amount of `{1}` and requires `{2}` votes.", ms, sp, vt));
 					return;
@@ -131,7 +131,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task PreventRaidSpam([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2), new[] { "count" });
@@ -235,7 +235,7 @@ namespace Advobot
 				}
 			}
 
-			guildInfo.SaveGuildSettings();
+			guildInfo.SaveInfo();
 		}
 
 		[Command("preventrapidjoin")]
@@ -246,7 +246,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task PreventRapidJoin([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "count", "time" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
@@ -334,7 +334,7 @@ namespace Advobot
 				}
 			}
 
-			guildInfo.SaveGuildSettings();
+			guildInfo.SaveInfo();
 		}
 	}
 }

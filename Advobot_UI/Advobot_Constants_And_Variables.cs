@@ -76,7 +76,7 @@ namespace Advobot
 		public const int MIN_NICKNAME_LENGTH = 2;
 		public const int MAX_CHANNEL_NAME_LENGTH = 100;
 		public const int MIN_CHANNEL_NAME_LENGTH = 2;
-		public const int MAX_ROLE_NAME_LENGTH = 32;
+		public const int MAX_ROLE_NAME_LENGTH = 100;
 		public const int MIN_ROLE_NAME_LENGTH = 1;
 		public const int MAX_TOPIC_LENGTH = 1024;
 		public const int MAX_GAME_LENGTH = 128; //Yes, I know it CAN go past that, but it won't show for others.

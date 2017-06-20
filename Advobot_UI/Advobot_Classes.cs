@@ -30,7 +30,7 @@ namespace Advobot
 			if (context.Guild != null && Variables.Guilds.TryGetValue(context.Guild.Id, out BotGuildInfo guildInfo))
 			{
 				var user = context.User as IGuildUser;
-				var botBits = ((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).FirstOrDefault(x => x.User.Id == user.Id)?.Permissions;
+				var botBits = ((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).FirstOrDefault(x => x.UserID == user.Id)?.Permissions;
 				if (botBits != null)
 				{
 					var perms = user.GuildPermissions.RawValue | botBits;
@@ -97,7 +97,7 @@ namespace Advobot
 			//Check if users has any permissions
 			if (permissions)
 			{
-				var botBits = ((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).FirstOrDefault(x => x.User.Id == user.Id)?.Permissions;
+				var botBits = ((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).FirstOrDefault(x => x.UserID == user.Id)?.Permissions;
 				if (botBits != null)
 				{
 					if (((user.GuildPermissions.RawValue | botBits) & PERMISSIONBITS) != 0)
@@ -165,46 +165,57 @@ namespace Advobot
 
 	public class GuildSettingAttribute : Attribute
 	{
-		public List<SettingOnGuild> Settings { get; private set; }
+		public ReadOnlyCollection<SettingOnGuild> Settings { get; private set; }
 
 		public GuildSettingAttribute(params SettingOnGuild[] settings)
 		{
-			Settings = settings.ToList();
+			Settings = new ReadOnlyCollection<SettingOnGuild>(settings);
+		}
+	}
+
+	public class BotSettingAttribute : Attribute
+	{
+		public ReadOnlyCollection<SettingOnBot> Settings { get; private set; }
+
+		public BotSettingAttribute(params SettingOnBot[] settings)
+		{
+			Settings = new ReadOnlyCollection<SettingOnBot>(settings);
 		}
 	}
 	#endregion
 
 	#region Saved Classes
-	public class BotGuildInfo
+	public abstract class SettingHolder<T>
 	{
-		[JsonProperty("Settings")]
-		private Dictionary<SettingOnGuild, object> mSettings = new Dictionary<SettingOnGuild, object>
-		{
-			{ SettingOnGuild.CommandPreferences, new List<CommandSwitch>() },
-			{ SettingOnGuild.CommandsDisabledOnUser, new List<CommandOverride<IGuildUser>>() },
-			{ SettingOnGuild.CommandsDisabledOnRole, new List<CommandOverride<IRole>>() },
-			{ SettingOnGuild.CommandsDisabledOnChannel, new List<CommandOverride<IGuildChannel>>() },
+		public abstract FieldInfo GetField(T setting);
+		public abstract dynamic GetSetting(T setting);
+		public abstract bool SetSetting(T setting, dynamic val);
+		public abstract bool ResetSetting(T setting);
+		public abstract void ResetAll();
+		public virtual void PostDeserialize(ulong id) { throw new NotImplementedException(); }
+		public virtual void PostDeserialize() { throw new NotImplementedException(); }
+		public abstract void SaveInfo();
+	}
 
+	public class BotGuildInfo : SettingHolder<SettingOnGuild>
+	{
+		//Disabling warning 414 since these fields are accessed via reflection
+#pragma warning disable 414
+		[JsonIgnore]
+		private ReadOnlyDictionary<SettingOnGuild, dynamic> mDefaultSettings = new ReadOnlyDictionary<SettingOnGuild, dynamic>(new Dictionary<SettingOnGuild, dynamic>
+		{
+			//These settings are in a jumbled order. Put in when thought of and the order is wack.
+			//{ SettingOnGuild.Guild, new DiscordObjectWithID<SocketGuild>(null) }, Shouldn't reset the guild setting since that's kinda barely a setting
+			{ SettingOnGuild.CommandSwitches, new List<CommandSwitch>() },
+			{ SettingOnGuild.CommandsDisabledOnChannel, new List<CommandOverride>() },
 			{ SettingOnGuild.BotUsers, new List<BotImplementedPermissions>() },
 			{ SettingOnGuild.SelfAssignableGroups, new List<SelfAssignableGroup>() },
 			{ SettingOnGuild.Reminds, new List<Remind>() },
+			{ SettingOnGuild.IgnoredLogChannels, new List<ulong>() },
 			{ SettingOnGuild.LogActions, new List<LogActions>() },
 			{ SettingOnGuild.BannedPhraseStrings, new List<BannedPhrase>() },
 			{ SettingOnGuild.BannedPhraseRegex, new List<BannedPhrase>() },
 			{ SettingOnGuild.BannedPhrasePunishments, new List<BannedPhrasePunishment>() },
-
-			{ SettingOnGuild.IgnoredCommandChannels, new List<ulong>() },
-			{ SettingOnGuild.IgnoredLogChannels, new List<ulong>() },
-			{ SettingOnGuild.ImageOnlyChannels, new List<ulong>() },
-			{ SettingOnGuild.SanitaryChannels, new List<ulong>() },
-			{ SettingOnGuild.BannedNamesForJoiningUsers, new List<string>() },
-
-			{ SettingOnGuild.Guild, new DiscordObjectWithID<SocketGuild>(null) },
-			{ SettingOnGuild.ServerLog, new DiscordObjectWithID<ITextChannel>(null) },
-			{ SettingOnGuild.ModLog, new DiscordObjectWithID<ITextChannel>(null) },
-			{ SettingOnGuild.ImageLog, new DiscordObjectWithID<ITextChannel>(null) },
-			{ SettingOnGuild.MuteRole, new DiscordObjectWithID<IRole>(null) },
-
 			{ SettingOnGuild.MessageSpamPrevention, null },
 			{ SettingOnGuild.LongMessageSpamPrevention, null },
 			{ SettingOnGuild.LinkSpamPrevention, null },
@@ -213,11 +224,127 @@ namespace Advobot
 			{ SettingOnGuild.WelcomeMessage, null },
 			{ SettingOnGuild.GoodbyeMessage, null },
 			{ SettingOnGuild.Prefix, null },
+			{ SettingOnGuild.ServerLog, new DiscordObjectWithID<ITextChannel>(null) },
+			{ SettingOnGuild.ModLog, new DiscordObjectWithID<ITextChannel>(null) },
+			{ SettingOnGuild.ImageOnlyChannels, new List<ulong>() },
+			{ SettingOnGuild.IgnoredCommandChannels, new List<ulong>() },
+			{ SettingOnGuild.CommandsDisabledOnUser, new List<CommandOverride>() },
+			{ SettingOnGuild.CommandsDisabledOnRole, new List<CommandOverride>() },
+			{ SettingOnGuild.ImageLog, new DiscordObjectWithID<ITextChannel>(null) },
 			{ SettingOnGuild.ListedInvite, null },
+			{ SettingOnGuild.BannedNamesForJoiningUsers, new List<string>() },
 			{ SettingOnGuild.RaidPrevention, null },
 			{ SettingOnGuild.RapidJoinPrevention, null },
 			{ SettingOnGuild.PyramidalRoleSystem, new PyramidalRoleSystem() },
-		};
+			{ SettingOnGuild.MuteRole, new DiscordObjectWithID<IRole>(null) },
+			{ SettingOnGuild.SanitaryChannels, new List<ulong>() },
+		});
+
+		[GuildSetting(SettingOnGuild.BotUsers)]
+		[JsonProperty("BotUsers")]
+		private List<BotImplementedPermissions> BotUsers = new List<BotImplementedPermissions>();
+		[GuildSetting(SettingOnGuild.SelfAssignableGroups)]
+		[JsonProperty("SelfAssignableGroups")]
+		private List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
+		[GuildSetting(SettingOnGuild.Reminds)]
+		[JsonProperty("Reminds")]
+		private List<Remind> Reminds = new List<Remind>();
+		[GuildSetting(SettingOnGuild.LogActions)]
+		[JsonProperty("LogActions")]
+		private List<LogActions> LogActions = new List<LogActions>();
+		[GuildSetting(SettingOnGuild.BannedNamesForJoiningUsers)]
+		[JsonProperty("BannedNamesForJoiningUsers")]
+		private List<string> BannedNamesForJoiningUsers = new List<string>();
+
+		[GuildSetting(SettingOnGuild.IgnoredCommandChannels)]
+		[JsonProperty("IgnoredCommandChannels")]
+		private List<ulong> IgnoredCommandChannels = new List<ulong>();
+		[GuildSetting(SettingOnGuild.IgnoredLogChannels)]
+		[JsonProperty("IgnoredLogChannels")]
+		private List<ulong> IgnoredLogChannels = new List<ulong>();
+		[GuildSetting(SettingOnGuild.ImageOnlyChannels)]
+		[JsonProperty("ImageOnlyChannels")]
+		private List<ulong> ImageOnlyChannels = new List<ulong>();
+		[GuildSetting(SettingOnGuild.SanitaryChannels)]
+		[JsonProperty("SanitaryChannels")]
+		private List<ulong> SanitaryChannels = new List<ulong>();
+
+		[GuildSetting(SettingOnGuild.BannedPhraseStrings)]
+		[JsonProperty("BannedPhraseStrings")]
+		private List<BannedPhrase> BannedPhraseStrings = new List<BannedPhrase>();
+		[GuildSetting(SettingOnGuild.BannedPhraseRegex)]
+		[JsonProperty("BannedPhraseRegex")]
+		private List<BannedPhrase> BannedPhraseRegex = new List<BannedPhrase>();
+		[GuildSetting(SettingOnGuild.BannedPhrasePunishments)]
+		[JsonProperty("BannedPhrasePunishments")]
+		private List<BannedPhrasePunishment> BannedPhrasePunishments = new List<BannedPhrasePunishment>();
+
+		[GuildSetting(SettingOnGuild.CommandSwitches)]
+		[JsonProperty("CommandSwitches")]
+		private List<CommandSwitch> CommandSwitches = new List<CommandSwitch>();
+		[GuildSetting(SettingOnGuild.CommandsDisabledOnUser)]
+		[JsonProperty("CommandsDisabledOnUser")]
+		private List<CommandOverride> CommandsDisabledOnUser = new List<CommandOverride>();
+		[GuildSetting(SettingOnGuild.CommandsDisabledOnRole)]
+		[JsonProperty("CommandsDisabledOnRole")]
+		private List<CommandOverride> CommandsDisabledOnRole = new List<CommandOverride>();
+		[GuildSetting(SettingOnGuild.CommandsDisabledOnChannel)]
+		[JsonProperty("CommandsDisabledOnChannel")]
+		private List<CommandOverride> CommandsDisabledOnChannel = new List<CommandOverride>();
+
+		[GuildSetting(SettingOnGuild.Guild)]
+		[JsonProperty("Guild")]
+		private DiscordObjectWithID<SocketGuild> Guild = new DiscordObjectWithID<SocketGuild>(null);
+		[GuildSetting(SettingOnGuild.ServerLog)]
+		[JsonProperty("ServerLog")]
+		private DiscordObjectWithID<ITextChannel> ServerLog = new DiscordObjectWithID<ITextChannel>(null);
+		[GuildSetting(SettingOnGuild.ModLog)]
+		[JsonProperty("ModLog")]
+		private DiscordObjectWithID<ITextChannel> ModLog = new DiscordObjectWithID<ITextChannel>(null);
+		[GuildSetting(SettingOnGuild.ImageLog)]
+		[JsonProperty("ImageLog")]
+		private DiscordObjectWithID<ITextChannel> ImageLog = new DiscordObjectWithID<ITextChannel>(null);
+		[GuildSetting(SettingOnGuild.MuteRole)]
+		[JsonProperty("MuteRole")]
+		private DiscordObjectWithID<IRole> MuteRole = new DiscordObjectWithID<IRole>(null);
+
+		[GuildSetting(SettingOnGuild.MessageSpamPrevention)]
+		[JsonProperty("MessageSpamPrevention")]
+		private SpamPrevention MessageSpamPrevention = null;
+		[GuildSetting(SettingOnGuild.LongMessageSpamPrevention)]
+		[JsonProperty("LongMessageSpamPrevention")]
+		private SpamPrevention LongMessageSpamPrevention = null;
+		[GuildSetting(SettingOnGuild.LinkSpamPrevention)]
+		[JsonProperty("LinkSpamPrevention")]
+		private SpamPrevention LinkSpamPrevention = null;
+		[GuildSetting(SettingOnGuild.ImageSpamPrevention)]
+		[JsonProperty("ImageSpamPrevention")]
+		private SpamPrevention ImageSpamPrevention = null;
+		[GuildSetting(SettingOnGuild.MentionSpamPrevention)]
+		[JsonProperty("MentionSpamPrevention")]
+		private SpamPrevention MentionSpamPrevention = null;
+		[GuildSetting(SettingOnGuild.RaidPrevention)]
+		[JsonProperty("RaidPrevention")]
+		private RaidPrevention RaidPrevention = null;
+		[GuildSetting(SettingOnGuild.RapidJoinPrevention)]
+		[JsonProperty("RapidJoinPrevention")]
+		private RaidPrevention RapidJoinPrevention = null;
+
+		[GuildSetting(SettingOnGuild.PyramidalRoleSystem)]
+		[JsonProperty("PyramidalRoleSystem")]
+		private PyramidalRoleSystem PyramidalRoleSystem = new PyramidalRoleSystem();
+		[GuildSetting(SettingOnGuild.WelcomeMessage)]
+		[JsonProperty("WelcomeMessage")]
+		private GuildNotification WelcomeMessage = null;
+		[GuildSetting(SettingOnGuild.GoodbyeMessage)]
+		[JsonProperty("GoodbyeMessage")]
+		private GuildNotification GoodbyeMessage = null;
+		[GuildSetting(SettingOnGuild.ListedInvite)]
+		[JsonProperty("ListedInvite")]
+		private ListedInvite ListedInvite = null;
+		[GuildSetting(SettingOnGuild.Prefix)]
+		[JsonProperty("Prefix")]
+		private string Prefix = null;
 
 		[JsonIgnore]
 		public List<BannedPhraseUser> BannedPhraseUsers = new List<BannedPhraseUser>();
@@ -235,145 +362,93 @@ namespace Advobot
 		public MessageDeletion MessageDeletion = new MessageDeletion();
 		[JsonIgnore]
 		public bool Loaded = false;
+#pragma warning restore 414
 
-		[JsonConstructor]
-		public BotGuildInfo(Dictionary<SettingOnGuild, object> settings)
-		{
-			mSettings = settings;
-		}
 		public BotGuildInfo(ulong guildID)
 		{
-			SetSetting(SettingOnGuild.Guild, new DiscordObjectWithID<SocketGuild>(guildID));
+			Guild = new DiscordObjectWithID<SocketGuild>(guildID);
 		}
 
-		public dynamic GetSetting(SettingOnGuild setting)
+		public override FieldInfo GetField(SettingOnGuild setting)
 		{
-			try
+			foreach (var field in GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
 			{
-				return mSettings[setting];
+				var attr = (GuildSettingAttribute)field.GetCustomAttribute(typeof(GuildSettingAttribute));
+				if (attr != null)
+				{
+					if (attr.Settings.Contains(setting))
+					{
+						return field;
+					}
+				}
 			}
-			catch (Exception e)
+			Actions.WriteLine(String.Format("Unable to get the guild setting for {0}.", Enum.GetName(typeof(SettingOnGuild), setting)));
+			return null;
+		}
+		public override dynamic GetSetting(SettingOnGuild setting)
+		{
+			var field = GetField(setting);
+			if (field == null)
 			{
-				Actions.ExceptionToConsole(e);
 				return null;
 			}
-		}
-		public bool SetSetting(SettingOnGuild setting, dynamic obj)
-		{
-			try
+			else
 			{
-				mSettings[setting] = obj;
-				SaveGuildSettings();
-				return true;
+				return field.GetValue(this);
 			}
-			catch (Exception e)
+		}
+		public override bool SetSetting(SettingOnGuild setting, dynamic val)
+		{
+			var field = GetField(setting);
+			if (field == null)
 			{
-				Actions.ExceptionToConsole(e);
+				return false;
+			}
+			else
+			{
+				try
+				{
+					field.SetValue(this, val);
+					SaveInfo();
+					return true;
+				}
+				catch (Exception e)
+				{
+					Actions.ExceptionToConsole(e);
+					return false;
+				}
+			}
+		}
+		public override bool ResetSetting(SettingOnGuild setting)
+		{
+			var field = GetField(setting);
+			if (field != null && mDefaultSettings.TryGetValue(setting, out dynamic val))
+			{
+				try
+				{
+					field.SetValue(this, val);
+					SaveInfo();
+					return true;
+				}
+				catch (Exception e)
+				{
+					Actions.ExceptionToConsole(e);
+					return false;
+				}
+			}
+			else
+			{
 				return false;
 			}
 		}
-		public SpamPrevention GetSpamPrevention(SpamType spamType)
+		public override void ResetAll()
 		{
-			switch (spamType)
+			foreach (var setting in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
 			{
-				case SpamType.Message:
-				{
-					return (SpamPrevention)mSettings[SettingOnGuild.MessageSpamPrevention];
-				}
-				case SpamType.Long_Message:
-				{
-					return (SpamPrevention)mSettings[SettingOnGuild.LongMessageSpamPrevention];
-				}
-				case SpamType.Link:
-				{
-					return (SpamPrevention)mSettings[SettingOnGuild.LinkSpamPrevention];
-				}
-				case SpamType.Image:
-				{
-					return (SpamPrevention)mSettings[SettingOnGuild.ImageSpamPrevention];
-				}
-				case SpamType.Mention:
-				{
-					return (SpamPrevention)mSettings[SettingOnGuild.MentionSpamPrevention];
-				}
-				default:
-				{
-					return null;
-				}
+				ResetSetting(setting);
 			}
 		}
-		public RaidPrevention GetRaidPrevention(RaidType raidType)
-		{
-			switch (raidType)
-			{
-				case RaidType.Regular:
-				{
-					return (RaidPrevention)mSettings[SettingOnGuild.RaidPrevention];
-				}
-				case RaidType.Rapid_Joins:
-				{
-					return (RaidPrevention)mSettings[SettingOnGuild.RapidJoinPrevention];
-				}
-				default:
-				{
-					return null;
-				}
-			}
-		}
-		public void SetSpamPrevention(SpamType spamType, SpamPrevention spamPrev)
-		{
-			switch (spamType)
-			{
-				case SpamType.Message:
-				{
-					mSettings[SettingOnGuild.MessageSpamPrevention] = spamPrev;
-					return;
-				}
-				case SpamType.Long_Message:
-				{
-					mSettings[SettingOnGuild.LongMessageSpamPrevention] = spamPrev;
-					return;
-				}
-				case SpamType.Link:
-				{
-					mSettings[SettingOnGuild.LinkSpamPrevention] = spamPrev;
-					return;
-				}
-				case SpamType.Image:
-				{
-					mSettings[SettingOnGuild.ImageSpamPrevention] = spamPrev;
-					return;
-				}
-				case SpamType.Mention:
-				{
-					mSettings[SettingOnGuild.MentionSpamPrevention] = spamPrev;
-					return;
-				}
-			}
-		}
-		public void SetRaidPrevention(RaidType raidType, RaidPrevention raidPrev)
-		{
-			switch (raidType)
-			{
-				case RaidType.Regular:
-				{
-					mSettings[SettingOnGuild.RaidPrevention] = raidPrev;
-					return;
-				}
-				case RaidType.Rapid_Joins:
-				{
-					mSettings[SettingOnGuild.RapidJoinPrevention] = raidPrev;
-					return;
-				}
-			}
-		}
-		public void SaveGuildSettings()
-		{
-			var path = Actions.GetServerFilePath(((DiscordObjectWithID<SocketGuild>)GetSetting(SettingOnGuild.Guild)).ID, Constants.GUILD_INFO_LOCATION);
-			var serializedSettings = Actions.Serialize(mSettings);
-			Actions.OverWriteFile(path, serializedSettings);
-		}
-		public void PostDeserialize(ulong guildID)
+		public override void PostDeserialize(ulong guildID)
 		{
 			var guild = ((DiscordObjectWithID<SocketGuild>)GetSetting(SettingOnGuild.Guild));
 			if (guild.ID == 0)
@@ -408,186 +483,257 @@ namespace Advobot
 
 			Loaded = true;
 		}
-	}
-
-	public class BotGlobalInfo
-	{
-		[JsonProperty]
-		public ulong BotOwnerID { get; private set; }
-		[JsonProperty]
-		public List<ulong> TrustedUsers { get; private set; }
-		[JsonProperty]
-		public string Prefix { get; private set; }
-		[JsonProperty]
-		public string Game { get; private set; }
-		[JsonProperty]
-		public string Stream { get; private set; }
-		[JsonProperty]
-		public int ShardCount { get; private set; }
-		[JsonProperty]
-		public int MessageCacheSize { get; private set; }
-		[JsonProperty]
-		public bool AlwaysDownloadUsers { get; private set; }
-		[JsonProperty]
-		public LogSeverity LogLevel { get; private set; }
-		[JsonProperty]
-		public int MaxUserGatherCount { get; private set; }
-
-		public BotGlobalInfo()
+		public override void SaveInfo()
 		{
-			BotOwnerID = 0;
-			TrustedUsers = new List<ulong>();
-			Prefix = Constants.BOT_PREFIX;
-			Game = String.Format("type \"{0}help\" for help.", Prefix);
-			Stream = null;
-			ShardCount = 1;
-			MessageCacheSize = 1000;
-			AlwaysDownloadUsers = true;
-			LogLevel = LogSeverity.Warning;
-			MaxUserGatherCount = 100;
+			var guildID = ((DiscordObjectWithID<SocketGuild>)GetSetting(SettingOnGuild.Guild)).ID;
+			if (guildID != 0)
+			{
+				Actions.OverWriteFile(Actions.GetServerFilePath(guildID, Constants.GUILD_INFO_LOCATION), Actions.Serialize(this));
+			}
 		}
 
-		public string GetSetting(SettingOnBot setting)
+		public SpamPrevention GetSpamPrevention(SpamType spamType)
 		{
-			var text = "";
-			switch (setting)
+			switch (spamType)
 			{
-				case SettingOnBot.BotOwner:
+				case SpamType.Message:
 				{
-					text = BotOwnerID.ToString();
-					break;
+					return GetSetting(SettingOnGuild.MessageSpamPrevention);
 				}
-				case SettingOnBot.Prefix:
+				case SpamType.Long_Message:
 				{
-					text = Prefix;
-					break;
+					return GetSetting(SettingOnGuild.LongMessageSpamPrevention);
 				}
-				case SettingOnBot.Game:
+				case SpamType.Link:
 				{
-					text = Game;
-					break;
+					return GetSetting(SettingOnGuild.LinkSpamPrevention);
 				}
-				case SettingOnBot.Stream:
+				case SpamType.Image:
 				{
-					text = Stream;
-					break;
+					return GetSetting(SettingOnGuild.ImageSpamPrevention);
 				}
-				case SettingOnBot.ShardCount:
+				case SpamType.Mention:
 				{
-					text = ShardCount.ToString();
-					break;
+					return GetSetting(SettingOnGuild.MentionSpamPrevention);
 				}
-				case SettingOnBot.MessageCacheSize:
+				default:
 				{
-					text = MessageCacheSize.ToString();
-					break;
-				}
-				case SettingOnBot.MaxUserGatherCount:
-				{
-					text = MaxUserGatherCount.ToString();
-					break;
+					return null;
 				}
 			}
-			return text;
 		}
-		public void SetBotOwner(ulong ID)
+		public RaidPrevention GetRaidPrevention(RaidType raidType)
 		{
-			BotOwnerID = ID;
+			switch (raidType)
+			{
+				case RaidType.Regular:
+				{
+					return GetSetting(SettingOnGuild.RaidPrevention);
+				}
+				case RaidType.Rapid_Joins:
+				{
+					return GetSetting(SettingOnGuild.RapidJoinPrevention);
+				}
+				default:
+				{
+					return null;
+				}
+			}
 		}
-		public void ResetBotOwner()
+		public void SetSpamPrevention(SpamType spamType, SpamPrevention spamPrev)
 		{
-			BotOwnerID = 0;
+			switch (spamType)
+			{
+				case SpamType.Message:
+				{
+					SetSetting(SettingOnGuild.MessageSpamPrevention, spamPrev);
+					return;
+				}
+				case SpamType.Long_Message:
+				{
+					SetSetting(SettingOnGuild.LongMessageSpamPrevention, spamPrev);
+					return;
+				}
+				case SpamType.Link:
+				{
+					SetSetting(SettingOnGuild.LinkSpamPrevention, spamPrev);
+					return;
+				}
+				case SpamType.Image:
+				{
+					SetSetting(SettingOnGuild.ImageSpamPrevention, spamPrev);
+					return;
+				}
+				case SpamType.Mention:
+				{
+					SetSetting(SettingOnGuild.MentionSpamPrevention, spamPrev);
+					return;
+				}
+			}
 		}
-		public void AddTrustedUser(ulong ID)
+		public void SetRaidPrevention(RaidType raidType, RaidPrevention raidPrev)
 		{
-			TrustedUsers.ThreadSafeAdd(ID);
+			switch (raidType)
+			{
+				case RaidType.Regular:
+				{
+					SetSetting(SettingOnGuild.RaidPrevention, raidPrev);
+					return;
+				}
+				case RaidType.Rapid_Joins:
+				{
+					SetSetting(SettingOnGuild.RaidPrevention, raidPrev);
+					return;
+				}
+			}
 		}
-		public void RemoveTrustedUser(ulong ID)
+	}
+
+	public class BotGlobalInfo : SettingHolder<SettingOnBot>
+	{
+		//Disabling for same reason as BotGuildInfo
+#pragma warning disable 414
+		[JsonIgnore]
+		private ReadOnlyDictionary<SettingOnBot, dynamic> mDefaultSettings = new ReadOnlyDictionary<SettingOnBot, dynamic>(new Dictionary<SettingOnBot, dynamic>
 		{
-			TrustedUsers.ThreadSafeRemove(ID);
+			{ SettingOnBot.BotOwnerID, 0 },
+			{ SettingOnBot.TrustedUsers, new List<ulong>() },
+			{ SettingOnBot.Prefix, Constants.BOT_PREFIX },
+			{ SettingOnBot.Game, String.Format("type \"{0}help\" for help.", Constants.BOT_PREFIX) },
+			{ SettingOnBot.Stream, null },
+			//{ SettingOnBot.ShardCount, 1 }, Leaving this one out since shard count shouldn't be reset without checking guild count
+			{ SettingOnBot.MessageCacheCount, 1000 },
+			{ SettingOnBot.AlwaysDownloadUsers, true },
+			{ SettingOnBot.LogLevel, LogSeverity.Warning },
+			{ SettingOnBot.MaxUserGatherCount, 100 },
+		});
+
+		[BotSetting(SettingOnBot.BotOwnerID)]
+		[JsonProperty("BotOwnerID")]
+		public ulong BotOwnerID = 0;
+		[BotSetting(SettingOnBot.TrustedUsers)]
+		[JsonProperty("TrustedUsers")]
+		public List<ulong> TrustedUsers = new List<ulong>();
+		[BotSetting(SettingOnBot.Prefix)]
+		[JsonProperty("Prefix")]
+		public string Prefix = Constants.BOT_PREFIX;
+		[BotSetting(SettingOnBot.Game)]
+		[JsonProperty("Game")]
+		public string Game = String.Format("type \"{0}help\" for help.", Constants.BOT_PREFIX);
+		[BotSetting(SettingOnBot.Stream)]
+		[JsonProperty("Stream")]
+		public string Stream = null;
+		[BotSetting(SettingOnBot.ShardCount)]
+		[JsonProperty("ShardCount")]
+		public int ShardCount = 1;
+		[BotSetting(SettingOnBot.MessageCacheCount)]
+		[JsonProperty("MessageCacheCount")]
+		public int MessageCacheCount = 1000;
+		[BotSetting(SettingOnBot.AlwaysDownloadUsers)]
+		[JsonProperty("AlwaysDownloadUsers")]
+		public bool AlwaysDownloadUsers = true;
+		[BotSetting(SettingOnBot.LogLevel)]
+		[JsonProperty("LogLevel")]
+		public LogSeverity LogLevel = LogSeverity.Warning;
+		[BotSetting(SettingOnBot.MaxUserGatherCount)]
+		[JsonProperty("MaxUserGatherCount")]
+		public int MaxUserGatherCount = 100;
+#pragma warning restore 414
+
+		public override FieldInfo GetField(SettingOnBot setting)
+		{
+			foreach (var field in GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
+			{
+				var attr = (BotSettingAttribute)field.GetCustomAttribute(typeof(BotSettingAttribute));
+				if (attr != null)
+				{
+					if (attr.Settings.Contains(setting))
+					{
+						return field;
+					}
+				}
+			}
+			Actions.WriteLine(String.Format("Unable to get the bot setting for {0}.", Enum.GetName(typeof(SettingOnBot), setting)));
+			return null;
 		}
-		public void SetTrustedUsers(List<ulong> IDs)
+		public override dynamic GetSetting(SettingOnBot setting)
 		{
-			TrustedUsers = IDs;
+			var field = GetField(setting);
+			if (field == null)
+			{
+				return null;
+			}
+			else
+			{
+				return field.GetValue(this);
+			}
 		}
-		public void ResetTrustedUsers()
+		public override bool SetSetting(SettingOnBot setting, dynamic val)
 		{
-			TrustedUsers = new List<ulong>();
+			var field = GetField(setting);
+			if (field == null)
+			{
+				return false;
+			}
+			else
+			{
+				try
+				{
+					field.SetValue(this, val);
+					SaveInfo();
+					return true;
+				}
+				catch (Exception e)
+				{
+					Actions.ExceptionToConsole(e);
+					return false;
+				}
+			}
 		}
-		public void SetPrefix(string prefix)
+		public override bool ResetSetting(SettingOnBot setting)
 		{
-			Prefix = prefix;
+			var field = GetField(setting);
+			if (field != null && mDefaultSettings.TryGetValue(setting, out dynamic val))
+			{
+				try
+				{
+					field.SetValue(this, val);
+					SaveInfo();
+					return true;
+				}
+				catch (Exception e)
+				{
+					Actions.ExceptionToConsole(e);
+					return false;
+				}
+			}
+			else
+			{
+				return false;
+			}
 		}
-		public void ResetPrefix()
+		public override void ResetAll()
 		{
-			Prefix = Constants.BOT_PREFIX;
+			foreach (var setting in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
+			{
+				if (setting == SettingOnBot.ShardCount)
+				{
+					//Don't reset shards to 1. Reset it to enough to allow the current amount of guilds + some buffer
+					SetSetting(setting, Variables.Client.GetGuilds().Count / 2500 + 1);
+				}
+				else
+				{
+					ResetSetting(setting);
+				}
+			}
 		}
-		public void SetGame(string game)
+		public override void PostDeserialize()
 		{
-			Game = game;
+			//Probably will be needed in the future, but for now it's just an empty method. I think it's being called in a few spots too, hmm.
 		}
-		public void ResetGame()
+		public override void SaveInfo()
 		{
-			Game = null;
-		}
-		public void SetStream(string stream)
-		{
-			Stream = stream;
-		}
-		public void ResetStream()
-		{
-			Stream = null;
-		}
-		public void SetShardCount(int i)
-		{
-			ShardCount = i;
-		}
-		public void SetCacheSize(int i)
-		{
-			MessageCacheSize = i;
-		}
-		public void ResetCacheSize()
-		{
-			MessageCacheSize = 1000;
-		}
-		public void SetAlwaysDownloadUsers(bool dl)
-		{
-			AlwaysDownloadUsers = dl;
-		}
-		public void ResetAlwaysDownloadUsers()
-		{
-			AlwaysDownloadUsers = true;
-		}
-		public void SetLogLevel(LogSeverity logLevel)
-		{
-			LogLevel = logLevel;
-		}
-		public void ResetLogLevel()
-		{
-			LogLevel = LogSeverity.Warning;
-		}
-		public void SetMaxUserGatherCount(int count)
-		{
-			MaxUserGatherCount = count;
-		}
-		public void ResetMaxUserGatherCount()
-		{
-			MaxUserGatherCount = 100;
-		}
-		public void ResetAll()
-		{
-			ResetPrefix();
-			ResetTrustedUsers();
-			ResetBotOwner();
-			ResetStream();
-			ResetGame();
-			ResetCacheSize();
-			ResetAlwaysDownloadUsers();
-			ResetLogLevel();
-			ResetMaxUserGatherCount();
-		}
-		public void PostDeserialize()
-		{
+			Actions.OverWriteFile(Actions.GetBaseBotDirectory(Constants.BOT_INFO_LOCATION), Actions.Serialize(this));
 		}
 	}
 
@@ -597,7 +743,7 @@ namespace Advobot
 		public abstract string SettingToString(SocketGuild guild);
 	}
 
-	public class CommandOverride<T> : Setting
+	public class CommandOverride : Setting
 	{
 		[JsonProperty]
 		public string Name { get; private set; }
@@ -663,7 +809,6 @@ namespace Advobot
 			Category = mHelpEntry.Category;
 			Aliases = mHelpEntry.Aliases;
 		}
-
 
 		public void Disable()
 		{
@@ -821,22 +966,15 @@ namespace Advobot
 
 	public class BotImplementedPermissions : Setting
 	{
-		//TODO: Remove GuildID field?
-		[JsonProperty]
-		public ulong GuildID { get; private set; }
 		[JsonProperty]
 		public ulong UserID { get; private set; }
 		[JsonProperty]
 		public uint Permissions { get; private set; }
-		[JsonIgnore]
-		public IGuildUser User { get; private set; }
 
-		public BotImplementedPermissions(ulong guildID, ulong userID, uint permissions, BotGuildInfo guildInfo = null)
+		public BotImplementedPermissions(ulong userID, uint permissions, BotGuildInfo guildInfo = null)
 		{
-			GuildID = guildID;
 			UserID = userID;
 			Permissions = permissions;
-			User = Variables.Client.GetGuild(guildID).GetUser(userID);
 			if (guildInfo != null)
 			{
 				((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).ThreadSafeAdd(this);
@@ -853,11 +991,11 @@ namespace Advobot
 		}
 		public override string SettingToString()
 		{
-			return String.Format("**User:** `{0}`\n**Permissions:** `{1}`", User.FormatUser(), Permissions);
+			return String.Format("**User:** `{0}`\n**Permissions:** `{1}`", UserID, Permissions);
 		}
 		public override string SettingToString(SocketGuild guild)
 		{
-			return SettingToString();
+			return String.Format("**User:** `{0}`\n**Permissions:** `{1}`", guild.GetUser(UserID).FormatUser(), Permissions);
 		}
 	}
 
@@ -1300,17 +1438,17 @@ namespace Advobot
 		{
 			CancelToken = cancelToken;
 		}
-		public List<ISnowflakeEntity> GetList()
+		public List<IMessage> GetList()
 		{
-			return mMessages.Select(x => x as ISnowflakeEntity).ToList();
+			return mMessages.ToList();
 		}
-		public void SetList(List<ISnowflakeEntity> InList)
+		public void SetList(List<IMessage> InList)
 		{
-			mMessages = InList.Select(x => x as IMessage).ToList();
+			mMessages = InList.ToList();
 		}
-		public void AddToList(ISnowflakeEntity Item)
+		public void AddToList(IMessage Item)
 		{
-			mMessages.Add(Item as IMessage);
+			mMessages.Add(Item);
 		}
 		public void ClearList()
 		{
@@ -1445,7 +1583,7 @@ namespace Advobot
 		public async Task PunishUser(IGuildUser user)
 		{
 			var guild = user.Guild;
-			var guildInfo = await Actions.GetGuildInfo(guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(guild);
 			switch (PunishmentType)
 			{
 				case PunishmentType.Ban:
@@ -1540,7 +1678,7 @@ namespace Advobot
 		public async Task PunishUser(IGuildUser user)
 		{
 			var guild = user.Guild;
-			var guildInfo = await Actions.GetGuildInfo(guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(guild);
 			switch (PunishmentType)
 			{
 				case PunishmentType.Ban:
@@ -1912,115 +2050,115 @@ namespace Advobot
 	#endregion
 
 	#region Enums
+	//I know enums don't need "= x," but I like it.
 	public enum LogActions
 	{
-		//Legacy numbering due to deletion of certain enums because of audit logs
-		UserJoined = 1,
-		UserLeft = 2,
-		UserUpdated = 5,
-		MessageReceived = 7,
-		MessageUpdated = 8,
-		MessageDeleted = 9,
+		UserJoined						= 0,
+		UserLeft						= 1,
+		UserUpdated						= 2,
+		MessageReceived					= 3,
+		MessageUpdated					= 4,
+		MessageDeleted					= 5,
 	}
 
 	public enum CommandCategory
 	{
-		Global_Settings = 1,
-		Guild_Settings = 2,
-		Logs = 3,
-		Ban_Phrases = 4,
-		Self_Roles = 5,
-		User_Moderation = 6,
-		Role_Moderation = 7,
-		Channel_Moderation = 8,
-		Guild_Moderation = 9,
-		Miscellaneous = 10,
-		Spam_Prevention = 11,
-		Invite_Moderation = 15,
-		Guild_List = 13,
-		Nickname_Moderation = 14,
+		Global_Settings					= 0,
+		Guild_Settings					= 1,
+		Logs							= 2,
+		Ban_Phrases						= 3,
+		Self_Roles						= 4,
+		User_Moderation					= 5,
+		Role_Moderation					= 6,
+		Channel_Moderation				= 7,
+		Guild_Moderation				= 8,
+		Miscellaneous					= 9,
+		Spam_Prevention					= 10,
+		Invite_Moderation				= 11,
+		Guild_List						= 12,
+		Nickname_Moderation				= 13,
 	}
 
 	public enum PunishmentType
 	{
-		Nothing = 0,
-		Kick = 1,
-		Ban = 2,
-		Role = 3,
-		Deafen = 4,
-		Mute = 5,
-		Kick_Then_Ban = 6,
+		Nothing							= 0,
+		Kick							= 1,
+		Ban								= 2,
+		Role							= 3,
+		Deafen							= 4,
+		Mute							= 5,
+		Kick_Then_Ban					= 6,
 	}
 
 	public enum DeleteInvAction
 	{
-		User = 1,
-		Channel = 2,
-		Uses = 3,
-		Expiry = 4,
+		User							= 0,
+		Channel							= 1,
+		Uses							= 2,
+		Expiry							= 3,
 	}
 
 	public enum SpamType
 	{
-		Message = 1,
-		Long_Message = 2,
-		Link = 3,
-		Image = 4,
-		Mention = 5,
+		Message							= 0,
+		Long_Message					= 1,
+		Link							= 2,
+		Image							= 3,
+		Mention							= 4,
 	}
 
 	public enum RaidType
 	{
-		Regular = 1,
-		Rapid_Joins = 2,
+		Regular							= 0,
+		Rapid_Joins						= 1,
 	}
 
 	public enum FAWRType
 	{
-		Give_Role = 1,
-		GR = 2,
-		Take_Role = 3,
-		TR = 4,
-		Give_Nickname = 5,
-		GNN = 6,
-		Take_Nickname = 7,
-		TNN = 8,
+		Give_Role						= 0,
+		GR								= 1,
+		Take_Role						= 2,
+		TR								= 3,
+		Give_Nickname					= 4,
+		GNN								= 5,
+		Take_Nickname					= 6,
+		TNN								= 7,
 	}
 
 	public enum ActionType
 	{
-		Nothing = 0,
-		Show = 1,
-		Allow = 2,
-		Inherit = 3,
-		Deny = 4,
-		Enable = 5,
-		Disable = 6,
-		Setup = 7,
-		Create = 8,
-		Add = 9,
-		Remove = 10,
-		Delete = 11,
-		Clear = 12,
-		Current = 13,
+		Nothing							= 0,
+		Show							= 1,
+		Allow							= 2,
+		Inherit							= 3,
+		Deny							= 4,
+		Enable							= 5,
+		Disable							= 6,
+		Setup							= 7,
+		Create							= 8,
+		Add								= 9,
+		Remove							= 10,
+		Delete							= 11,
+		Clear							= 12,
+		Current							= 13,
 	}
 
 	public enum FailureReason
 	{
-		Not_Failure = 0,
-		Not_Found = 1,
-		User_Inability = 2,
-		Bot_Inability = 3,
-		Too_Many = 4,
-		Incorrect_Channel_Type = 5,
-		Everyone_Role = 6,
-		Managed_Role = 7,
+		Not_Failure						= 0,
+		Not_Found						= 1,
+		User_Inability					= 2,
+		Bot_Inability					= 3,
+		Too_Many						= 4,
+		Incorrect_Channel_Type			= 5,
+		Everyone_Role					= 6,
+		Managed_Role					= 7,
 	}
 
 	public enum SettingOnGuild
 	{
-		Nothing							= 0,
-		CommandPreferences				= 1,
+		Guild							= 0,
+		CommandSwitches					= 1,
 		CommandsDisabledOnChannel		= 2,
 		BotUsers						= 3,
 		SelfAssignableGroups			= 4,
@@ -2052,122 +2190,122 @@ namespace Advobot
 		PyramidalRoleSystem				= 30,
 		MuteRole						= 31,
 		SanitaryChannels				= 32,
-		Guild							= 33,
 	}
 
 	public enum SettingOnBot
 	{
-		BotOwner = 0,
-		TrustedUsers = 1,
-		Prefix = 2,
-		Game = 3,
-		Stream = 4,
-		ShardCount = 5,
-		MessageCacheSize = 6,
-		AlwaysDownloadUsers = 7,
-		LogLevel = 8,
-		SavePath = 9,
-		MaxUserGatherCount = 11,
+		BotOwnerID						= 0,
+		TrustedUsers					= 1,
+		Prefix							= 2,
+		Game							= 3,
+		Stream							= 4,
+		ShardCount						= 5,
+		MessageCacheCount				= 6,
+		AlwaysDownloadUsers				= 7,
+		LogLevel						= 8,
+		SavePath						= 9,
+		MaxUserGatherCount				= 11,
+		UnableToDMOwnerUsers			= 12,
+		IgnoredCommandUsers				= 13,
 	}
 
 	public enum GuildNotifications
 	{
-		Welcome = 0,
-		Goodbye = 1,
+		Welcome							= 0,
+		Goodbye							= 1,
 	}
 
 	public enum LogChannelTypes
 	{
-		Server = 0,
-		Mod = 1,
-		Image = 2,
+		Server							= 0,
+		Mod								= 1,
+		Image							= 2,
 	}
 
 	public enum UserCheck
 	{
-		None = 0,
-		Can_Be_Moved_From_Channel = 1,
-		Can_Be_Edited = 2,
+		None							= 0,
+		Can_Be_Moved_From_Channel		= 1,
+		Can_Be_Edited					= 2,
 	}
 
 	public enum RoleCheck
 	{
-		None = 0,
-		Can_Be_Edited = 1,
-		Is_Everyone = 2,
-		Is_Managed = 3,
+		None							= 0,
+		Can_Be_Edited					= 1,
+		Is_Everyone						= 2,
+		Is_Managed						= 3,
 	}
 
 	public enum ChannelCheck
 	{
-		None = 0,
-		Can_Be_Reordered = 1,
-		Can_Modify_Permissions = 2,
-		Can_Be_Managed = 3,
-		Is_Voice = 4,
-		Is_Text = 5,
-		Can_Move_Users = 6,
-		Can_Delete_Messages = 7,
+		None							= 0,
+		Can_Be_Reordered				= 1,
+		Can_Modify_Permissions			= 2,
+		Can_Be_Managed					= 3,
+		Is_Voice						= 4,
+		Is_Text							= 5,
+		Can_Move_Users					= 6,
+		Can_Delete_Messages				= 7,
 	}
 
 	public enum ArgFailureReason
 	{
-		Not_Failure = 0,
-		Too_Many_Args = 1,
-		Too_Few_Args = 2,
-		Missing_Critical_Args = 3,
-		Max_Less_Than_Min = 4,
+		Not_Failure						= 0,
+		Too_Many_Args					= 1,
+		Too_Few_Args					= 2,
+		Missing_Critical_Args			= 3,
+		Max_Less_Than_Min				= 4,
 	}
 
 	public enum TypeFailureReason
 	{
-		Not_Failure = 0,
-		Not_Found = 1,
-		Invalid_Type = 2,
+		Not_Failure						= 0,
+		Not_Found						= 1,
+		Invalid_Type					= 2,
 	}
 
 	public enum BannedUserFailureReason
 	{
-		Not_Failure = 0,
-		No_Bans = 1,
-		No_Match = 2,
-		Too_Many_Matches = 3,
-		Invalid_Discriminator = 4,
-		Invalid_ID = 5,
-		No_Username_Or_ID = 6,
+		Not_Failure						= 0,
+		No_Bans							= 1,
+		No_Match						= 2,
+		Too_Many_Matches				= 3,
+		Invalid_Discriminator			= 4,
+		Invalid_ID						= 5,
+		No_Username_Or_ID				= 6,
 	}
 
 	public enum CCEnum
 	{
-		Clear = 0,
-		Current = 1,
+		Clear							= 0,
+		Current							= 1,
 	}
 
 	public enum NSF
 	{
-		Nothing = 0,
-		Success = 1,
-		Failure = 2,
+		Nothing							= 0,
+		Success							= 1,
+		Failure							= 2,
 	}
 
 	public enum FileType
 	{
-		GuildInfo = 0,
+		GuildInfo						= 0,
 	}
 
-	[Flags]
 	public enum Precondition
 	{
-		User_Has_A_Perm = 1,
-		Guild_Owner = 2,
-		Trusted_User = 4,
-		Bot_Owner = 8,
+		User_Has_A_Perm					= 0,
+		Guild_Owner						= 1,
+		Trusted_User					= 2,
+		Bot_Owner						= 3,
 	}
 
 	public enum ChannelSettings
 	{
-		ImageOnly = 0,
-		Sanitary = 1,
+		ImageOnly						= 0,
+		Sanitary						= 1,
 	}
 	#endregion
 }

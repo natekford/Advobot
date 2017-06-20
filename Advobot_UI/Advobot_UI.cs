@@ -146,7 +146,7 @@ namespace Advobot
 		private static readonly TextBox mPrefixSetting = UIModification.MakeSetting(SettingOnBot.Prefix, 10);
 
 		private static readonly TextBox mBotOwnerTitle = UIModification.MakeTitle("Bot Owner:");
-		private static readonly TextBox mBotOwnerSetting = UIModification.MakeSetting(SettingOnBot.BotOwner, 18);
+		private static readonly TextBox mBotOwnerSetting = UIModification.MakeSetting(SettingOnBot.BotOwnerID, 18);
 
 		private static readonly TextBox mGameTitle = UIModification.MakeTitle("Game:");
 		private static readonly TextBox mGameSetting = UIModification.MakeSetting(SettingOnBot.Game, 100);
@@ -158,7 +158,7 @@ namespace Advobot
 		private static readonly TextBox mShardSetting = UIModification.MakeSetting(SettingOnBot.ShardCount, 3);
 
 		private static readonly TextBox mMessageCacheTitle = UIModification.MakeTitle("Message Cache:");
-		private static readonly TextBox mMessageCacheSetting = UIModification.MakeSetting(SettingOnBot.MessageCacheSize, 6);
+		private static readonly TextBox mMessageCacheSetting = UIModification.MakeSetting(SettingOnBot.MessageCacheCount, 6);
 
 		private static readonly TextBox mUserGatherCountTitle = UIModification.MakeTitle("Max User Gather:");
 		private static readonly TextBox mUserGatherCountSetting = UIModification.MakeSetting(SettingOnBot.MaxUserGatherCount, 5);
@@ -925,7 +925,7 @@ namespace Advobot
 			mGameSetting.Text = botInfo.Game;
 			mStreamSetting.Text = botInfo.Stream;
 			mShardSetting.Text = botInfo.ShardCount.ToString();
-			mMessageCacheSetting.Text = botInfo.MessageCacheSize.ToString();
+			mMessageCacheSetting.Text = botInfo.MessageCacheCount.ToString();
 			mUserGatherCountSetting.Text = botInfo.MaxUserGatherCount.ToString();
 			mLogLevelComboBox.SelectedItem = GetSelectedLogLevel();
 			mTrustedUsersComboBox.ItemsSource = FormatTrustedUsers();
@@ -964,7 +964,6 @@ namespace Advobot
 			{
 				Actions.WriteLine(String.Format("Successfully saved: {0}", String.Join(", ", success)));
 				Actions.UpdateGame().Forget();
-				Actions.SaveBotInfo(Variables.BotInfo);
 			}
 			if (failure.Any())
 			{
@@ -987,64 +986,50 @@ namespace Advobot
 		private ReturnedSetting SaveSetting(TextBox tb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
 			var text = tb.Text;
-			if (Actions.CaseInsEquals(botInfo.GetSetting(setting), text))
+			if (Actions.CaseInsEquals(botInfo.GetSetting(setting).ToString(), text))
 				return new ReturnedSetting(setting, NSF.Nothing);
 
+			var nothingSuccessFailure = NSF.Nothing;
 			switch (setting)
 			{
 				case SettingOnBot.Prefix:
 				{
-					botInfo.SetPrefix(text);
-					return new ReturnedSetting(setting, NSF.Success);
+					nothingSuccessFailure = botInfo.SetSetting(setting, text) ? NSF.Success : NSF.Failure;
+					break;
 				}
-				case SettingOnBot.BotOwner:
+				case SettingOnBot.BotOwnerID:
 				{
-					if (ulong.TryParse(text, out ulong id))
-					{
-						botInfo.SetBotOwner(id);
-						return new ReturnedSetting(setting, NSF.Success);
-					}
-					return new ReturnedSetting(setting, NSF.Failure);
+					nothingSuccessFailure = ulong.TryParse(text, out ulong num) && botInfo.SetSetting(setting, num) ? NSF.Success : NSF.Failure;
+					break;
 				}
 				case SettingOnBot.Game:
 				{
-					botInfo.SetGame(text);
-					return new ReturnedSetting(setting, NSF.Success);
+					nothingSuccessFailure = botInfo.SetSetting(setting, text) ? NSF.Success : NSF.Failure;
+					break;
 				}
 				case SettingOnBot.Stream:
 				{
-					botInfo.SetStream(text);
-					return new ReturnedSetting(setting, NSF.Success);
+					nothingSuccessFailure = botInfo.SetSetting(setting, text) ? NSF.Success : NSF.Failure;
+					break;
 				}
 				case SettingOnBot.ShardCount:
 				{
-					if (int.TryParse(text, out int shardCount))
-					{
-						botInfo.SetShardCount(shardCount);
-						return new ReturnedSetting(setting, NSF.Success);
-					}
-					return new ReturnedSetting(setting, NSF.Failure);
+					nothingSuccessFailure = int.TryParse(text, out int num) && botInfo.SetSetting(setting, num) ? NSF.Success : NSF.Failure;
+					break;
 				}
-				case SettingOnBot.MessageCacheSize:
+				case SettingOnBot.MessageCacheCount:
 				{
-					if (int.TryParse(text, out int cacheSize))
-					{
-						botInfo.SetCacheSize(cacheSize);
-						return new ReturnedSetting(setting, NSF.Success);
-					}
-					return new ReturnedSetting(setting, NSF.Failure);
+					nothingSuccessFailure = int.TryParse(text, out int num) && botInfo.SetSetting(setting, num) ? NSF.Success : NSF.Failure;
+					break;
 				}
 				case SettingOnBot.MaxUserGatherCount:
 				{
-					if (int.TryParse(text, out int count))
-					{
-						botInfo.SetMaxUserGatherCount(count);
-						return new ReturnedSetting(setting, NSF.Success);
-					}
-					return new ReturnedSetting(setting, NSF.Failure);
+					nothingSuccessFailure = int.TryParse(text, out int num) && botInfo.SetSetting(setting, num) ? NSF.Success : NSF.Failure;
+					break;
 				}
 			}
-			return new ReturnedSetting(setting, NSF.Nothing);
+
+			return new ReturnedSetting(setting, nothingSuccessFailure);
 		}
 		private ReturnedSetting SaveSetting(Viewbox vb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
@@ -1061,7 +1046,7 @@ namespace Advobot
 				{
 					if (cb.IsChecked.Value != botInfo.AlwaysDownloadUsers)
 					{
-						botInfo.SetAlwaysDownloadUsers(!botInfo.AlwaysDownloadUsers);
+						botInfo.SetSetting(SettingOnBot.AlwaysDownloadUsers, !botInfo.AlwaysDownloadUsers);
 						return new ReturnedSetting(setting, NSF.Success);
 					}
 					break;
@@ -1078,7 +1063,7 @@ namespace Advobot
 					var logLevel = (Discord.LogSeverity)(cb.SelectedItem as TextBox).Tag;
 					if (logLevel != botInfo.LogLevel)
 					{
-						botInfo.SetLogLevel(logLevel);
+						botInfo.SetSetting(SettingOnBot.LogLevel, logLevel);
 						return new ReturnedSetting(setting, NSF.Success);
 					}
 					break;
@@ -1089,7 +1074,7 @@ namespace Advobot
 					var diffUsers = botInfo.TrustedUsers.Except(trustedUsers);
 					if (trustedUsers.Count != botInfo.TrustedUsers.Count || diffUsers.Any())
 					{
-						botInfo.SetTrustedUsers(trustedUsers);
+						botInfo.SetSetting(SettingOnBot.TrustedUsers, trustedUsers);
 						return new ReturnedSetting(setting, NSF.Success);
 					}
 					break;

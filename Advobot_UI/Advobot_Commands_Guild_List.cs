@@ -17,7 +17,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task AddInvite([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "keywords" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)

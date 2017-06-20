@@ -20,7 +20,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task FullMute([Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
@@ -607,7 +607,7 @@ namespace Advobot
 			}
 
 			//Check if the channel that's having messages attempted to be removed on is a log channel
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 			var serverLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog))?.ID == channel.Id;
 			var modLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog))?.ID == channel.Id;
 			var imageLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ImageLog))?.ID == channel.Id;
@@ -650,7 +650,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task SlowMode([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.GetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "roles", "messages", "time", "guild" });
 			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
