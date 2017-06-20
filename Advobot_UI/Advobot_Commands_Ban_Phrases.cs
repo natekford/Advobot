@@ -109,9 +109,8 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
-			//Get the lists
 			var eval = guildInfo.EvaluatedRegex;
-			var curr = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex)).Regex;
+			var curr = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex);
 
 			//Check if the users wants to see all the valid regex
 			if (String.IsNullOrWhiteSpace(numStr))
@@ -189,7 +188,7 @@ namespace Advobot
 				}
 			}
 
-			Actions.SaveGuildInfo(guildInfo);
+			guildInfo.SaveGuildSettings();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the regex `{1}`.", responseStr, regex));
 		}
 
@@ -221,7 +220,7 @@ namespace Advobot
 			var action = returnedType.Type;
 
 			var add = false;
-			var strings = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings)).Strings;
+			var strings = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings);
 			switch (action)
 			{
 				case ActionType.Add:
@@ -263,7 +262,7 @@ namespace Advobot
 				eitherEmpty = ", and ";
 			}
 
-			Actions.SaveGuildInfo(guildInfo);
+			guildInfo.SaveGuildSettings();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
 		}
 
@@ -314,7 +313,7 @@ namespace Advobot
 			{
 				if (regex)
 				{
-					var bannedRegex = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex)).Regex;
+					var bannedRegex = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex);
 					if (bannedRegex.Count <= position)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The list of banned regex does not go to that position"));
@@ -324,7 +323,7 @@ namespace Advobot
 				}
 				else
 				{
-					var bannedStrings = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings)).Strings;
+					var bannedStrings = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings);
 					if (bannedStrings.Count <= position)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The list of banned strings does not go to that position"));
@@ -356,8 +355,7 @@ namespace Advobot
 			bannedPhrase.ChangePunishment(type);
 			phraseStr = bannedPhrase.Phrase.ToString();
 
-			//Resave everything and send a success message
-			Actions.SaveGuildInfo(guildInfo);
+			guildInfo.SaveGuildSettings();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the punishment type on the banned {0} `{1}` to `{2}`.",
 				(regex ? "regex" : "string"), phraseStr, Enum.GetName(typeof(PunishmentType), type)));
 		}
@@ -412,7 +410,7 @@ namespace Advobot
 			//Get the list of punishments and make the new one or remove the old one
 			BannedPhrasePunishment newPunishment = null;
 			bool add = false;
-			var punishments = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhrasePunishments)).Punishments;
+			var punishments = (List<BannedPhrasePunishment>)guildInfo.GetSetting(SettingOnGuild.BannedPhrasePunishments);
 			switch (action)
 			{
 				case ActionType.Add:
@@ -519,7 +517,7 @@ namespace Advobot
 			}
 			var timeMsg = newPunishment.PunishmentTime != 0 ? String.Format(", and will last for `{0}` minute(s)", newPunishment.PunishmentTime) : "";
 
-			Actions.SaveGuildInfo(guildInfo);
+			guildInfo.SaveGuildSettings();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", add ? "added" : "removed", successMsg, timeMsg));
 		}
 
@@ -653,7 +651,7 @@ namespace Advobot
 				}
 			}
 
-			Actions.SaveGuildInfo(guildInfo);
+			guildInfo.SaveGuildSettings();
 		}
 	}
 }

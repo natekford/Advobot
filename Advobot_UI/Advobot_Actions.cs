@@ -58,7 +58,9 @@ namespace Advobot
 				{
 					using (var reader = new StreamReader(path))
 					{
-						guildInfo = JsonConvert.DeserializeObject<BotGuildInfo>(reader.ReadToEnd());
+						var settings = JsonConvert.DeserializeObject<Dictionary<SettingOnGuild, dynamic>>(reader.ReadToEnd());
+						settings.Values.ToList().ForEach(x => x = (dynamic)x);
+						guildInfo = new BotGuildInfo(settings);
 					}
 					WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
 				}
@@ -71,27 +73,22 @@ namespace Advobot
 			{
 				WriteLine(String.Format("The guild information file for {0} does not exist.", guild.FormatGuild()));
 			}
-
 			guildInfo = guildInfo ?? new BotGuildInfo(guild.Id);
 
-			var cmdOverrides = (CommandOverrides)guildInfo.GetSetting(SettingOnGuild.CommandPreferences);
-			if (cmdOverrides != null)
-			{
-				cmdOverrides.Users.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-				cmdOverrides.Roles.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-				cmdOverrides.Channels.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-				cmdOverrides.Commands.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			var temp = guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnUser);
+			var cmdUsers = ((List<CommandOverride<IGuildUser>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnUser));
+			cmdUsers.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			var cmdRoles = ((List<CommandOverride<IRole>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnRole));
+			cmdRoles.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			var cmdChans = ((List<CommandOverride<IGuildChannel>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel));
+			cmdChans.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 
-				var cmds = cmdOverrides.Commands.Select(x => x.Name).ToList();
-				Variables.HelpList.Where(x => !cmds.CaseInsContains(x.Name)).ToList().ForEach(x => cmdOverrides.Commands.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
-			}
-			else
-			{
-				Variables.HelpList.ForEach(x => cmdOverrides.Commands.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
-			}
+			var cmdOverrides = ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandPreferences));
+			cmdOverrides.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			Variables.HelpList.Where(x => !cmdOverrides.Select(y => y.Name).CaseInsContains(x.Name)).ToList().ForEach(x => cmdOverrides.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 
 			guildInfo.Invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
-			guildInfo.PostDeserialize();
+			guildInfo.PostDeserialize(guild.Id);
 			return guildInfo;
 		}
 
@@ -101,7 +98,7 @@ namespace Advobot
 			{
 				guildInfo = await CreateGuildInfo(guild);
 				Variables.Guilds.Add(guild.Id, guildInfo);
-				SaveGuildInfo(guildInfo);
+				SaveGuildSettings(guildInfo);
 			}
 			return guildInfo;
 		}
@@ -338,9 +335,9 @@ namespace Advobot
 			}
 		}
 
-		public static void SaveGuildInfo(BotGuildInfo guildInfo)
+		public static void SaveGuildSettings(BotGuildInfo guildInfo)
 		{
-			OverWriteFile(GetServerFilePath(((DiscordObjectWithID<SocketGuild>)guildInfo.GetSetting(SettingOnGuild.Guild)).ID, Constants.GUILD_INFO_LOCATION), Serialize(guildInfo));
+			
 		}
 
 		public static void SaveBotInfo(BotGlobalInfo botInfo)
@@ -416,7 +413,7 @@ namespace Advobot
 
 		public static List<CommandSwitch> GetMultipleCommands(BotGuildInfo guildInfo, CommandCategory category)
 		{
-			return ((CommandOverrides)guildInfo.GetSetting(SettingOnGuild.CommandPreferences)).Commands.Where(x => x.Category == category).ToList();
+			return ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandPreferences)).Where(x => x.Category == category).ToList();
 		}
 
 		public static ReturnedArguments GetArgs(ICommandContext context, string input, ArgNumbers argNums, string[] argsToSearchFor = null)
@@ -503,7 +500,7 @@ namespace Advobot
 
 		public static CommandSwitch GetCommand(BotGuildInfo guildInfo, string input)
 		{
-			return ((CommandOverrides)guildInfo.GetSetting(SettingOnGuild.CommandPreferences)).Commands.FirstOrDefault(x =>
+			return ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandPreferences)).FirstOrDefault(x =>
 			{
 				if (CaseInsEquals(x.Name, input))
 				{
@@ -2622,6 +2619,11 @@ namespace Advobot
 			return new Regex("[*`]", RegexOptions.Compiled).Replace(input, "");
 		}
 
+		public static string ConcatStringsWithNewLinesBetween(params string[] strs)
+		{
+			return String.Join("\n", strs.Where(x => !String.IsNullOrWhiteSpace(x)).ToArray());
+		}
+
 		public static string FormatObject(IUser user)
 		{
 			return user.FormatUser();
@@ -3026,6 +3028,11 @@ namespace Advobot
 		public static async Task<IMessage> WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string contentToSayOnTopOfMessage = null)
 		{
 			//Get the file path
+			if (!fileName.EndsWith("_"))
+			{
+				fileName += "_";
+			}
+
 			var file = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION;
 			var path = GetServerFilePath(guild.Id, file);
 			if (path == null)
@@ -3313,14 +3320,13 @@ namespace Advobot
 				await AddSlowmodeUser(guildInfo, user);
 			}
 			//Antiraid
-			var globalSpamRaidPrevention = ((GuildSpamAndRaidPrevention)guildInfo.GetSetting(SettingOnGuild.MessageSpamPrevention));
-			var antiRaid = globalSpamRaidPrevention.RaidPreventions[RaidType.Regular];
+			var antiRaid = guildInfo.GetRaidPrevention(RaidType.Regular);
 			if (antiRaid != null && antiRaid.Enabled)
 			{
 				await antiRaid.PunishUser(user);
 			}
 			//Antiraid Two - Electric Joinaroo
-			var antiJoin = globalSpamRaidPrevention.RaidPreventions[RaidType.Rapid_Joins];
+			var antiJoin = guildInfo.GetRaidPrevention(RaidType.Rapid_Joins);
 			if (antiJoin != null && antiJoin.Enabled)
 			{
 				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
@@ -3500,24 +3506,20 @@ namespace Advobot
 		#endregion
 
 		#region Slowmode/Banned Phrases/Spam Prevention
-		public static async Task SpamCheck(GuildSpamAndRaidPrevention global, IGuild guild, IGuildUser author, IMessage msg)
+		public static async Task SpamCheck(BotGuildInfo guildInfo, IGuild guild, IGuildUser author, IMessage msg)
 		{
-			if (global == null)
-				return;
-
-			var spamUser = global.SpamPreventionUsers.FirstOrDefault(x => x.User.Id == author.Id);
+			var spamUser = guildInfo.SpamPreventionUsers.FirstOrDefault(x => x.User.Id == author.Id);
 			if (spamUser == null)
 			{
 				spamUser = new SpamPreventionUser(author);
-				global.SpamPreventionUsers.Add(spamUser);
+				guildInfo.SpamPreventionUsers.ThreadSafeAdd(spamUser);
 			}
 
 			//TODO: Make sure this works
 			var spam = false;
-			foreach (var kvp in global.SpamPreventions)
+			foreach (var spamType in Enum.GetValues(typeof(SpamType)).Cast<SpamType>())
 			{
-				var spamType = kvp.Key;
-				var spamPrev = kvp.Value;
+				var spamPrev = guildInfo.GetSpamPrevention(spamType);
 				if (spamPrev == null || !spamPrev.Enabled)
 					return;
 
@@ -3538,7 +3540,7 @@ namespace Advobot
 					}
 					case SpamType.Link:
 					{
-						spamAmt = msg.Content?.Split(' ').Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) ?? 0;
+						spamAmt = msg.Content?.Split(' ')?.Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) ?? 0;
 						break;
 					}
 					case SpamType.Image:
@@ -3549,12 +3551,12 @@ namespace Advobot
 							|| x.Height != null
 							|| x.Width != null;
 						}).Count();
+
 						var embedCount = msg.Embeds.Where(x =>
 						{
 							return false
 							|| x.Image != null
-							|| x.Video != null
-							|| x.Thumbnail != null;
+							|| x.Video != null;
 						}).Count();
 
 						spamAmt = attachCount + embedCount;
@@ -3677,14 +3679,19 @@ namespace Advobot
 			if (guildInfo == null || (message.Author as IGuildUser).GuildPermissions.Administrator)
 				return;
 
-			//Check if it has any banned words or regex
-			var bannedPhrases = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings));
-			var phrase = bannedPhrases.Strings.FirstOrDefault(x => CaseInsIndexOf(message.Content, x.Phrase));
+			var phrase = ((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings)).FirstOrDefault(x =>
+			{
+				return CaseInsIndexOf(message.Content, x.Phrase);
+			});
 			if (phrase != null)
 			{
 				await BannedPhrasePunishments(guildInfo, message, phrase);
 			}
-			var regex = bannedPhrases.Regex.FirstOrDefault(x => Regex.IsMatch(message.Content, x.Phrase, RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT)));
+
+			var regex = ((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex)).FirstOrDefault(x =>
+			{
+				return Regex.IsMatch(message.Content, x.Phrase, RegexOptions.IgnoreCase, new TimeSpan(Constants.REGEX_TIMEOUT));
+			});
 			if (regex != null)
 			{
 				await BannedPhrasePunishments(guildInfo, message, regex);
@@ -3782,19 +3789,19 @@ namespace Advobot
 
 		public static bool TryGetPunishment(BotGuildInfo guildInfo, PunishmentType type, int msgs, out BannedPhrasePunishment punishment)
 		{
-			punishment = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhrasePunishments)).Punishments.Where(x => x.Punishment == type).FirstOrDefault(x => x.NumberOfRemoves == msgs);
+			punishment = ((List<BannedPhrasePunishment>)guildInfo.GetSetting(SettingOnGuild.BannedPhrasePunishments)).FirstOrDefault(x => x.Punishment == type && x.NumberOfRemoves == msgs);
 			return punishment != null;
 		}
 
 		public static bool TryGetBannedRegex(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase bannedRegex)
 		{
-			bannedRegex = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex)).Regex.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
+			bannedRegex = ((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex)).FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
 			return bannedRegex != null;
 		}
 
 		public static bool TryGetBannedString(BotGuildInfo guildInfo, string searchPhrase, out BannedPhrase bannedString)
 		{
-			bannedString = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings)).Strings.FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
+			bannedString = ((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings)).FirstOrDefault(x => CaseInsEquals(x.Phrase, searchPhrase));
 			return bannedString != null;
 		}
 
@@ -4125,7 +4132,7 @@ namespace Advobot
 
 		public static void ClearPunishedUsersList()
 		{
-			Variables.Guilds.Values.ToList().ForEach(x => ((GuildSpamAndRaidPrevention)x.GetSetting(SettingOnGuild.MessageSpamPrevention)).SpamPreventionUsers.Clear());
+			Variables.Guilds.Values.ToList().ForEach(x => x.SpamPreventionUsers.Clear());
 		}
 
 		public static void RemovePunishments()

@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,6 @@ namespace Advobot
 				return;
 
 			var guildInfo = await Actions.GetGuildInfo(guild);
-
 			if (!PrefixHandling(message, ((string)guildInfo.GetSetting(SettingOnGuild.Prefix)), out int argPos))
 				return;
 
@@ -109,8 +109,7 @@ namespace Advobot
 			 * Else if channel is set, use channel setting
 			 */
 
-			var cmdOverrides = ((CommandOverrides)guildInfo.GetSetting(SettingOnGuild.CommandPreferences));
-			var user = cmdOverrides.Users.FirstOrDefault(x =>
+			var user = ((List<CommandOverride<IGuildUser>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnUser)).FirstOrDefault(x =>
 			{
 				return true
 				&& Actions.CaseInsEquals(cmd.Name, x.Name)
@@ -121,11 +120,11 @@ namespace Advobot
 				return user.Enabled;
 			}
 
-			var role = cmdOverrides.Roles.Where(x =>
+			var role = ((List<CommandOverride<IRole>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnRole)).Where(x =>
 			{
 				return true
 				&& Actions.CaseInsEquals(cmd.Name, x.Name)
-				&& (context.User as Discord.IGuildUser).RoleIds.Contains(x.ID);
+				&& (context.User as IGuildUser).RoleIds.Contains(x.ID);
 			}).OrderBy(x =>
 			{
 				return context.Guild.GetRole(x.ID).Position;
@@ -135,7 +134,7 @@ namespace Advobot
 				return role.Enabled;
 			}
 
-			var channel = cmdOverrides.Channels.FirstOrDefault(x =>
+			var channel = ((List<CommandOverride<IGuildChannel>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel)).FirstOrDefault(x =>
 			{
 				return true
 				&& Actions.CaseInsEquals(cmd.Name, x.Name)

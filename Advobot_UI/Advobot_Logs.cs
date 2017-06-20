@@ -496,8 +496,10 @@ namespace Advobot
 			{
 				await Actions.Slowmode(guildInfo, message);
 			}
-			var bannedPhrases = ((BannedPhrases)guildInfo.GetSetting(SettingOnGuild.BannedPhrasePunishments));
-			if (bannedPhrases.Strings.Any() || bannedPhrases.Regex.Any())
+
+			var bannedStrings = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings);
+			var bannedRegex = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex);
+			if (bannedStrings.Any() || bannedRegex.Any())
 			{
 				await Actions.BannedPhrases(guildInfo, message);
 			}
@@ -510,13 +512,13 @@ namespace Advobot
 			if (Actions.GetUserPosition(guild, author) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)))
 				return;
 
-			await Actions.SpamCheck((GuildSpamAndRaidPrevention)guildInfo.GetSetting(SettingOnGuild.MessageSpamPrevention), guild, author, message);
+			await Actions.SpamCheck(guildInfo, guild, author, message);
 		}
 
 		public static async Task HandleSpamPreventionVoting(BotGuildInfo guildInfo, IMessage message)
 		{
 			//Get the users primed to be kicked/banned by the spam prevention
-			var users = ((GuildSpamAndRaidPrevention)guildInfo.GetSetting(SettingOnGuild.MessageSpamPrevention)).SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
+			var users = guildInfo.SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
 			if (!users.Any())
 				return;
 

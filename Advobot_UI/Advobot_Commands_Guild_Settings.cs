@@ -175,7 +175,7 @@ namespace Advobot
 			}
 			else if (Actions.CaseInsEquals(actionStr, "resave"))
 			{
-				Actions.SaveGuildInfo(guildInfo);
+				guildInfo.SaveGuildSettings();
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully resaved the guild's bot information.");
 			}
 			else if (Actions.CaseInsEquals(actionStr, "reset"))
@@ -228,7 +228,7 @@ namespace Advobot
 			var commands = new List<CommandSwitch>();
 			if (allBool)
 			{
-				commands = ((CommandOverrides)guildInfo.GetSetting(SettingOnGuild.CommandPreferences)).Commands;
+				commands = ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandPreferences));
 			}
 			else if (command == null)
 			{
@@ -308,7 +308,7 @@ namespace Advobot
 			}
 
 			//Save the preferences
-			Actions.SaveGuildInfo(guildInfo);
+			guildInfo.SaveGuildSettings();
 			var desc = Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(commands.Select(x => x.Name), unableToBeRemoved.Select(x => x.Name), "command", pastTense, presentTense);
 			await Actions.SendChannelMessage(Context, desc);
 		}
@@ -354,7 +354,7 @@ namespace Advobot
 
 			//Get the lists the bot will use for this command
 			var ignoredCmdChannels = ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.IgnoredCommandChannels));
-			var ignoredCmdsOnChans = ((CommandOverrides)guildInfo.GetSetting(SettingOnGuild.CommandPreferences)).Channels;
+			var ignoredCmdsOnChans = ((List<CommandOverride<IGuildChannel>>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel));
 			if (!String.IsNullOrWhiteSpace(cmdStr))
 			{
 				var cmd = Variables.CommandNames.FirstOrDefault(x => Actions.CaseInsEquals(x, cmdStr));
@@ -412,7 +412,7 @@ namespace Advobot
 				}
 
 				//Save everything and send a success message
-				Actions.SaveGuildInfo(guildInfo);
+				guildInfo.SaveGuildSettings();
 			}
 			else
 			{
@@ -448,7 +448,7 @@ namespace Advobot
 				}
 
 				//Save everything and send a success message
-				Actions.SaveGuildInfo(guildInfo);
+				guildInfo.SaveGuildSettings();
 				await Actions.MakeAndDeleteSecondaryMessage(Context, outputStr);
 			}
 		}
@@ -551,7 +551,7 @@ namespace Advobot
 						}
 
 						((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).ThreadSafeRemove(botUser);
-						Actions.SaveGuildInfo(guildInfo);
+						guildInfo.SaveGuildSettings();
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the bot user list.", user.FormatUser()));
 						return;
 					}
@@ -603,7 +603,7 @@ namespace Advobot
 			}
 
 			//Save everything and send a success message
-			Actions.SaveGuildInfo(guildInfo);
+			guildInfo.SaveGuildSettings();
 			await Actions.SendChannelMessage(Context, String.Format("Successfully {0}: `{1}`.", outputStr, String.Join("`, `", permissions.Select(x => x.Name))));
 		}
 
@@ -742,7 +742,7 @@ namespace Advobot
 			}
 
 			//Save everything and send a success message
-			Actions.SaveGuildInfo(guildInfo);
+			guildInfo.SaveGuildSettings();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following remind: `{1}`.", add ? "added" : "removed", nameStr));
 		}
 

@@ -194,7 +194,7 @@ namespace Advobot
 			var responseMessage = (sBool && fBool) ? (sString + ", and " + fString) : (sString + fString);
 
 			//Save everything and send a success message
-			Actions.SaveGuildInfo(guildInfo);
+			guildInfo.SaveGuildSettings();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, responseMessage + ".");
 		}
 

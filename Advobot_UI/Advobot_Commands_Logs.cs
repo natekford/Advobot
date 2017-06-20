@@ -203,7 +203,7 @@ namespace Advobot
 			}
 
 			//Save everything and send a success message
-			Actions.SaveGuildInfo(guildInfo);
+			guildInfo.SaveGuildSettings();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, output + alreadyActionOutput);
 		}
 

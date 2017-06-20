@@ -199,7 +199,7 @@ namespace Advobot
 			var guild = await Variables.Client.CreateGuildAsync(input, await Variables.Client.GetOptimalVoiceRegionAsync());
 			var guildInfo = new BotGuildInfo(guild.Id);
 			Variables.Guilds.Add(guild.Id, guildInfo);
-			guildInfo.PostDeserialize();
+			guildInfo.PostDeserialize(guild.Id);
 			await Actions.SendDMMessage(await Context.User.GetOrCreateDMChannelAsync(), (await (await guild.GetDefaultChannelAsync()).CreateInviteAsync()).Url);
 		}
 

@@ -57,10 +57,10 @@ namespace Advobot
 		[Summary("Resets all the global settings on the bot.")]
 		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
 		[DefaultEnabled(true)]
-		public async Task GlobalSettingsReset([Remainder] string input)
+		public async Task GlobalSettingsReset([Optional, Remainder] string input)
 		{
-			Actions.ResetSettings();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared all settings. Restarting now...");
+			Actions.ResetSettings();
 
 			try
 			{
@@ -310,6 +310,31 @@ namespace Advobot
 			settings.Save();
 			Actions.SaveBotInfo(Variables.BotInfo);
 			await Actions.UpdateGame();
+		}
+
+		[Command("stopusingbot")]
+		[Alias("sub")]
+		[Usage("")]
+		[Summary("Remove's the currently used bot's key so that a different bot can be used instead.")]
+		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
+		[DefaultEnabled(true)]
+		public async Task StopUsingBot([Optional, Remainder] string input)
+		{
+			await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the bot key. Restarting now...");
+			var settings = Properties.Settings.Default;
+			settings.BotKey = null;
+			settings.Save();
+
+			try
+			{
+				//Restart the application and close the current session
+				System.Diagnostics.Process.Start(System.Windows.Application.ResourceAssembly.Location);
+				Environment.Exit(0);
+			}
+			catch (Exception)
+			{
+				Actions.WriteLine("Bot is unable to restart.");
+			}
 		}
 
 		[Command("changeboticon")]
