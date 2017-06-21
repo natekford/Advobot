@@ -22,7 +22,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -31,7 +31,7 @@ namespace Advobot
 			var chanStr = returnedArgs.Arguments[1];
 
 			var returnedType = Actions.GetType(typeStr, new[] { LogChannelTypes.Server, LogChannelTypes.Mod, LogChannelTypes.Image });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -41,8 +41,8 @@ namespace Advobot
 			ITextChannel channel = null;
 			if (!Actions.CaseInsEquals(chanStr, "off"))
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Text }, true, chanStr);
-				if (returnedChannel.Reason != FailureReason.Not_Failure)
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions, ChannelCheck.IsText }, true, chanStr);
+				if (returnedChannel.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 					return;
@@ -125,7 +125,7 @@ namespace Advobot
 
 			//Split the input and determine whether to add or remove
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -133,7 +133,7 @@ namespace Advobot
 			var actionStr = returnedArgs.Arguments[0];
 
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -238,7 +238,7 @@ namespace Advobot
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -247,7 +247,7 @@ namespace Advobot
 			var logActStr = returnedArgs.Arguments[1];
 
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;

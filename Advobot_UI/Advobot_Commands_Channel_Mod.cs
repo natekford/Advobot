@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	//Channel Moderation commands are commands that affect the channels in a guild
-	[Name("Channel_Moderation")]
+	[Name("ChannelModeration")]
 	public class Advobot_Commands_Channel_Mod : ModuleBase
 	{
 		[Command("createchannel")]
@@ -21,7 +21,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -77,8 +77,8 @@ namespace Advobot
 		public async Task SoftDeleteChannel([Remainder] string input)
 		{
 			//See if the user can see and thus edit that channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed, ChannelCheck.Is_Text }, true, input);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged, ChannelCheck.IsText }, true, input);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
@@ -139,8 +139,8 @@ namespace Advobot
 		public async Task DeleteChannel([Remainder] string input)
 		{
 			//See if the user can see and thus edit that channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, true, input);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged }, true, input);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
@@ -167,7 +167,7 @@ namespace Advobot
 		public async Task ChannelPosition([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -176,8 +176,8 @@ namespace Advobot
 			var posStr = returnedArgs.Arguments[1];
 
 			//Get the channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Reordered }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeReordered }, true, chanStr);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
@@ -242,7 +242,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 4));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -254,7 +254,7 @@ namespace Advobot
 
 			//Get the action
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Show, ActionType.Allow, ActionType.Inherit, ActionType.Deny });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -278,8 +278,8 @@ namespace Advobot
 			}
 
 			//Get the channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, true, chanStr);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
@@ -376,8 +376,8 @@ namespace Advobot
 
 			if (user != null)
 			{
-				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, user);
-				if (returnedUser.Reason != FailureReason.Not_Failure)
+				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, user);
+				if (returnedUser.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedUser);
 					return;
@@ -385,8 +385,8 @@ namespace Advobot
 			}
 			else if (role != null)
 			{
-				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, role);
-				if (returnedRole.Reason != FailureReason.Not_Failure)
+				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited }, role);
+				if (returnedRole.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedRole);
 					return;
@@ -485,7 +485,7 @@ namespace Advobot
 		{
 			//Get arguments
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 3));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -495,8 +495,8 @@ namespace Advobot
 			var targetStr = returnedArgs.Arguments[2];
 
 			//Separating the channels
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, false, firstChanStr);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, false, firstChanStr);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
@@ -504,8 +504,8 @@ namespace Advobot
 			var inputChannel = returnedChannel.Object;
 
 			//See if the user can see and thus edit that channel
-			var returnedChannelTwo = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, false, secondChanStr);
-			if (returnedChannelTwo.Reason != FailureReason.Not_Failure)
+			var returnedChannelTwo = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, false, secondChanStr);
+			if (returnedChannelTwo.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannelTwo);
 				return;
@@ -541,8 +541,8 @@ namespace Advobot
 			{
 				if (Context.Message.MentionedUserIds.Any())
 				{
-					var evaluatedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, targetStr);
-					if (evaluatedUser.Reason != FailureReason.Not_Failure)
+					var evaluatedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, targetStr);
+					if (evaluatedUser.Reason != FailureReason.NotFailure)
 					{
 						await Actions.HandleObjectGettingErrors(Context, evaluatedUser);
 						return;
@@ -563,8 +563,8 @@ namespace Advobot
 				}
 				else
 				{
-					var evaluatedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, true, targetStr);
-					if (evaluatedRole.Reason != FailureReason.Not_Failure)
+					var evaluatedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited }, true, targetStr);
+					if (evaluatedRole.Reason != FailureReason.NotFailure)
 					{
 						await Actions.HandleObjectGettingErrors(Context, evaluatedRole);
 						return;
@@ -600,8 +600,8 @@ namespace Advobot
 		public async Task ClearChannelPermissions([Remainder] string input)
 		{
 			//See if the user can see and thus edit that channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, input);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, true, input);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
@@ -638,8 +638,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ChannelNSFW([Remainder] string input)
 		{
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed, ChannelCheck.Is_Text }, true, input);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged, ChannelCheck.IsText }, true, input);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
@@ -673,7 +673,7 @@ namespace Advobot
 		public async Task ChangeChannelName([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "position", "type" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -715,8 +715,8 @@ namespace Advobot
 				}
 				else if (channels.Count == 1)
 				{
-					var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, channel);
-					if (returnedChannel.Reason != FailureReason.Not_Failure)
+					var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged }, channel);
+					if (returnedChannel.Reason != FailureReason.NotFailure)
 					{
 						await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 						return;
@@ -731,8 +731,8 @@ namespace Advobot
 			}
 			else
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed }, true, chanStr);
-				if (returnedChannel.Reason != FailureReason.Not_Failure)
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged }, true, chanStr);
+				if (returnedChannel.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 					return;
@@ -772,7 +772,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -788,8 +788,8 @@ namespace Advobot
 			}
 
 			//Test if valid channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed, ChannelCheck.Is_Text }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged, ChannelCheck.IsText }, true, chanStr);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
@@ -826,7 +826,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -847,8 +847,8 @@ namespace Advobot
 			}
 
 			//Check if valid channel that the user can edit
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed, ChannelCheck.Is_Voice }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged, ChannelCheck.IsVoice }, true, chanStr);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
@@ -875,7 +875,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -907,8 +907,8 @@ namespace Advobot
 			}
 
 			//Check if valid channel that the user can edit
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed, ChannelCheck.Is_Voice }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged, ChannelCheck.IsVoice }, true, chanStr);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;

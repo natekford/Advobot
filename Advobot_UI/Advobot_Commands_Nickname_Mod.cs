@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -9,7 +8,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	//Commands that affect nicknames
-	[Name("Nickname_Moderation")]
+	[Name("NicknameModeration")]
 	class Advobot_Commands_Nickname_Mod : ModuleBase
 	{
 		[Command("changenickname")]
@@ -21,7 +20,7 @@ namespace Advobot
 		public async Task Nickname([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -50,8 +49,8 @@ namespace Advobot
 			}
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, userStr);
-			if (returnedUser.Reason != FailureReason.Not_Failure)
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, userStr);
+			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
@@ -79,7 +78,7 @@ namespace Advobot
 		{
 			//Split and get variables
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -169,7 +168,7 @@ namespace Advobot
 		{
 			//Splitting input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 3), new[] { "ansi" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;

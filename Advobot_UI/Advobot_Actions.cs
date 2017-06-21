@@ -24,10 +24,11 @@ namespace Advobot
 				return;
 
 			HandleBotID(Variables.Client.GetCurrentUser().Id);				//Give the variable Bot_ID the id of the bot
-			Variables.BotName = Variables.Client.GetCurrentUser().Username;	//Give the variable Bot_Name the username of the bot
+			Variables.BotName = Variables.Client.GetCurrentUser().Username; //Give the variable Bot_Name the username of the bot
 
+			LoadSettingFieldDictionaries();                                 //Gets the fields of BotGuildSetting into a dictionary. I don't know why, but this cannot go directly before LoadGuilds();.
 			LoadPermissionNames();											//Gets the names of the permission bits in Discord
-			LoadCommandInformation();										//Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
+			LoadCommandInformation();                                       //Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
 
 			await LoadGuilds();												//Loads the guilds that attempted to load before the Bot_ID was gotten.
 			await UpdateGame();												//Have the bot display its game and stream
@@ -89,7 +90,8 @@ namespace Advobot
 				cmdSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 				Variables.HelpList.Where(x => !cmdSwitches.Select(y => y.Name).CaseInsContains(x.Name)).ToList().ForEach(x => cmdSwitches.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 
-				guildInfo.Invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
+				var invites = ((List<BotInvite>)guildInfo.GetSetting(SettingOnGuild.Invites));
+				invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
 				guildInfo.PostDeserialize(guild.Id);
 			}
 			return guildInfo;
@@ -320,6 +322,11 @@ namespace Advobot
 			}
 		}
 
+		public static void LoadSettingFieldDictionaries()
+		{
+			BotGuildInfo.CreateFieldDictionary();
+		}
+
 		public static void CreateFile(string path)
 		{
 			if (!File.Exists(path))
@@ -407,7 +414,7 @@ namespace Advobot
 				var list = new List<string>();
 				if (min == 0)
 				{
-					return new ReturnedArguments(list, ArgFailureReason.Not_Failure);
+					return new ReturnedArguments(list, ArgFailureReason.NotFailure);
 				}
 				else
 				{
@@ -415,22 +422,22 @@ namespace Advobot
 					{
 						list.Add(null);
 					}
-					return new ReturnedArguments(list, ArgFailureReason.Too_Few_Args);
+					return new ReturnedArguments(list, ArgFailureReason.TooFewArgs);
 				}
 			}
 
 			var args = SplitByCharExceptInQuotes(input, ' ').ToList();
 			if (min > max)
 			{
-				return new ReturnedArguments(args, ArgFailureReason.Max_Less_Than_Min);
+				return new ReturnedArguments(args, ArgFailureReason.MaxLessThanMin);
 			}
 			else if (args.Count < min)
 			{
-				return new ReturnedArguments(args, ArgFailureReason.Too_Few_Args);
+				return new ReturnedArguments(args, ArgFailureReason.TooFewArgs);
 			}
 			else if (args.Count > max)
 			{
-				return new ReturnedArguments(args, ArgFailureReason.Too_Many_Args);
+				return new ReturnedArguments(args, ArgFailureReason.TooManyArgs);
 			}
 
 			//Finding the wanted arguments
@@ -459,18 +466,18 @@ namespace Advobot
 		{
 			if (!Enum.TryParse<T>(input, true, out T type))
 			{
-				return new ReturnedType<T>(type, TypeFailureReason.Not_Found);
+				return new ReturnedType<T>(type, TypeFailureReason.NotFound);
 			}
 			else if (invalidTypes != null && invalidTypes.Contains(type))
 			{
-				return new ReturnedType<T>(type, TypeFailureReason.Invalid_Type);
+				return new ReturnedType<T>(type, TypeFailureReason.InvalidType);
 			}
 			else if (!validTypes.Contains(type))
 			{
-				return new ReturnedType<T>(type, TypeFailureReason.Invalid_Type);
+				return new ReturnedType<T>(type, TypeFailureReason.InvalidType);
 			}
 
-			return new ReturnedType<T>(type, TypeFailureReason.Not_Failure);
+			return new ReturnedType<T>(type, TypeFailureReason.NotFailure);
 		}
 
 		public static CommandSwitch GetCommand(BotGuildInfo guildInfo, string input)
@@ -892,7 +899,7 @@ namespace Advobot
 					}
 					else if (channels.Count() > 1)
 					{
-						return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Too_Many);
+						return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.TooMany);
 					}
 				}
 			}
@@ -908,7 +915,7 @@ namespace Advobot
 					}
 					else if (channelMentions.Count() > 1)
 					{
-						return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Too_Many);
+						return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.TooMany);
 					}
 				}
 			}
@@ -921,7 +928,7 @@ namespace Advobot
 			IGuildChannel channel = GetChannel(context.Guild, inputID);
 			if (channel == null)
 			{
-				return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Not_Found);
+				return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.NotFound);
 			}
 
 			return GetChannel(context, checkingTypes, channel);
@@ -931,7 +938,7 @@ namespace Advobot
 		{
 			if (channel == null)
 			{
-				return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Not_Found);
+				return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.NotFound);
 			}
 
 			var bot = GetBot(context.Guild);
@@ -940,19 +947,19 @@ namespace Advobot
 			{
 				if (!GetIfUserCanDoActionOnChannel(context, channel, user, type))
 				{
-					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.User_Inability);
+					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.UserInability);
 				}
 				else if (!GetIfUserCanDoActionOnChannel(context, channel, bot, type))
 				{
-					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Bot_Inability);
+					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.BotInability);
 				}
 				else if (!GetIfChannelIsCorrectType(context, channel, user, type))
 				{
-					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Incorrect_Channel_Type);
+					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.IncorrectChannelType);
 				}
 			}
 
-			return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.Not_Failure);
+			return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.NotFailure);
 		}
 
 		public static EditableDiscordObject<IGuildChannel>? GetValidEditChannels(ICommandContext context)
@@ -972,7 +979,7 @@ namespace Advobot
 				input.ForEach(x =>
 				{
 					var channel = GetChannel(context.Guild, x);
-					if (GetIfUserCanDoActionOnChannel(context, channel, user, ChannelCheck.Can_Modify_Permissions) && GetIfUserCanDoActionOnChannel(context, channel, bot, ChannelCheck.Can_Modify_Permissions))
+					if (GetIfUserCanDoActionOnChannel(context, channel, user, ChannelCheck.CanModifyPermissions) && GetIfUserCanDoActionOnChannel(context, channel, bot, ChannelCheck.CanModifyPermissions))
 					{
 						success.Add(channel);
 					}
@@ -1001,19 +1008,19 @@ namespace Advobot
 			{
 				switch (type)
 				{
-					case ChannelCheck.Can_Be_Managed:
+					case ChannelCheck.CanBeManaged:
 					{
 						return channelPerms.ReadMessages && channelPerms.ManageChannel;
 					}
-					case ChannelCheck.Can_Modify_Permissions:
+					case ChannelCheck.CanModifyPermissions:
 					{
 						return channelPerms.ReadMessages && channelPerms.ManageChannel && channelPerms.ManagePermissions;
 					}
-					case ChannelCheck.Can_Be_Reordered:
+					case ChannelCheck.CanBeReordered:
 					{
 						return channelPerms.ReadMessages && guildPerms.ManageChannels;
 					}
-					case ChannelCheck.Can_Delete_Messages:
+					case ChannelCheck.CanDeleteMessages:
 					{
 						return channelPerms.ReadMessages && channelPerms.ManageMessages;
 					}
@@ -1023,19 +1030,19 @@ namespace Advobot
 			{
 				switch (type)
 				{
-					case ChannelCheck.Can_Be_Managed:
+					case ChannelCheck.CanBeManaged:
 					{
 						return channelPerms.ManageChannel;
 					}
-					case ChannelCheck.Can_Modify_Permissions:
+					case ChannelCheck.CanModifyPermissions:
 					{
 						return channelPerms.ManageChannel && channelPerms.ManagePermissions;
 					}
-					case ChannelCheck.Can_Be_Reordered:
+					case ChannelCheck.CanBeReordered:
 					{
 						return guildPerms.ManageChannels;
 					}
-					case ChannelCheck.Can_Move_Users:
+					case ChannelCheck.CanMoveUsers:
 					{
 						return channelPerms.MoveMembers;
 					}
@@ -1048,11 +1055,11 @@ namespace Advobot
 		{
 			switch (type)
 			{
-				case ChannelCheck.Is_Text:
+				case ChannelCheck.IsText:
 				{
 					return GetChannelType(target) == Constants.TEXT_TYPE;
 				}
-				case ChannelCheck.Is_Voice:
+				case ChannelCheck.IsVoice:
 				{
 					return GetChannelType(target) == Constants.VOICE_TYPE;
 				}
@@ -1064,9 +1071,9 @@ namespace Advobot
 		#region Roles
 		public static async Task<IRole> GetMuteRole(ICommandContext context, BotGuildInfo guildInfo)
 		{
-			var returnedMuteRole = GetRole(context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Managed }, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
+			var returnedMuteRole = GetRole(context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsManaged }, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
 			var muteRole = returnedMuteRole.Object;
-			if (returnedMuteRole.Reason != FailureReason.Not_Failure)
+			if (returnedMuteRole.Reason != FailureReason.NotFailure)
 			{
 				muteRole = await CreateMuteRoleIfNotFound(guildInfo, context.Guild, muteRole);
 			}
@@ -1180,7 +1187,7 @@ namespace Advobot
 					}
 					else if (roles.Count() > 1)
 					{
-						return new ReturnedDiscordObject<IRole>(role, FailureReason.Too_Many);
+						return new ReturnedDiscordObject<IRole>(role, FailureReason.TooMany);
 					}
 				}
 			}
@@ -1196,7 +1203,7 @@ namespace Advobot
 					}
 					else if (roleMentions.Count() > 1)
 					{
-						return new ReturnedDiscordObject<IRole>(role, FailureReason.Too_Many);
+						return new ReturnedDiscordObject<IRole>(role, FailureReason.TooMany);
 					}
 				}
 			}
@@ -1209,7 +1216,7 @@ namespace Advobot
 			IRole role = GetRole(context.Guild, inputID);
 			if (role == null)
 			{
-				return new ReturnedDiscordObject<IRole>(role, FailureReason.Not_Found);
+				return new ReturnedDiscordObject<IRole>(role, FailureReason.NotFound);
 			}
 
 			return GetRole(context, checkingTypes, role);
@@ -1219,7 +1226,7 @@ namespace Advobot
 		{
 			if (role == null)
 			{
-				return new ReturnedDiscordObject<IRole>(role, FailureReason.Not_Found);
+				return new ReturnedDiscordObject<IRole>(role, FailureReason.NotFound);
 			}
 
 			var bot = GetBot(context.Guild);
@@ -1228,35 +1235,35 @@ namespace Advobot
 			{
 				if (!GetIfUserCanDoActionOnRole(context, role, user, type))
 				{
-					return new ReturnedDiscordObject<IRole>(role, FailureReason.User_Inability);
+					return new ReturnedDiscordObject<IRole>(role, FailureReason.UserInability);
 				}
 				else if (!GetIfUserCanDoActionOnRole(context, role, bot, type))
 				{
-					return new ReturnedDiscordObject<IRole>(role, FailureReason.Bot_Inability);
+					return new ReturnedDiscordObject<IRole>(role, FailureReason.BotInability);
 				}
 
 				switch (type)
 				{
-					case RoleCheck.Is_Everyone:
+					case RoleCheck.IsEveryone:
 					{
 						if (context.Guild.EveryoneRole.Id == role.Id)
 						{
-							return new ReturnedDiscordObject<IRole>(role, FailureReason.Everyone_Role);
+							return new ReturnedDiscordObject<IRole>(role, FailureReason.EveryoneRole);
 						}
 						break;
 					}
-					case RoleCheck.Is_Managed:
+					case RoleCheck.IsManaged:
 					{
 						if (role.IsManaged)
 						{
-							return new ReturnedDiscordObject<IRole>(role, FailureReason.Managed_Role);
+							return new ReturnedDiscordObject<IRole>(role, FailureReason.ManagedRole);
 						}
 						break;
 					}
 				}
 			}
 
-			return new ReturnedDiscordObject<IRole>(role, FailureReason.Not_Failure);
+			return new ReturnedDiscordObject<IRole>(role, FailureReason.NotFailure);
 		}
 
 		public static EditableDiscordObject<IRole>? GetValidEditRoles(ICommandContext context, IEnumerable<string> input)
@@ -1273,8 +1280,8 @@ namespace Advobot
 				var bot = GetBot(context.Guild);
 				input.ToList().ForEach(x =>
 				{
-					var returnedRole = GetRole(context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, false, x);
-					if (returnedRole.Reason == FailureReason.Not_Failure)
+					var returnedRole = GetRole(context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone, RoleCheck.IsManaged }, false, x);
+					if (returnedRole.Reason == FailureReason.NotFailure)
 					{
 						success.Add(returnedRole.Object);
 					}
@@ -1299,7 +1306,7 @@ namespace Advobot
 
 			switch (type)
 			{
-				case RoleCheck.Can_Be_Edited:
+				case RoleCheck.CanBeEdited:
 				{
 					return target.Position < GetUserPosition(context.Guild, user);
 				}
@@ -1385,7 +1392,7 @@ namespace Advobot
 					}
 					else if (users.Count() > 1)
 					{
-						return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.Too_Many);
+						return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.TooMany);
 					}
 				}
 			}
@@ -1401,7 +1408,7 @@ namespace Advobot
 					}
 					else if (userMentions.Count() > 1)
 					{
-						return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.Too_Many);
+						return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.TooMany);
 					}
 				}
 			}
@@ -1419,7 +1426,7 @@ namespace Advobot
 		{
 			if (user == null)
 			{
-				return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.Not_Found);
+				return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.NotFound);
 			}
 
 			var bot = GetBot(context.Guild);
@@ -1428,15 +1435,15 @@ namespace Advobot
 			{
 				if (!GetIfUserCanDoActionOnUser(context, user, currUser, type))
 				{
-					return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.User_Inability);
+					return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.UserInability);
 				}
 				else if (!GetIfUserCanDoActionOnUser(context, user, bot, type))
 				{
-					return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.Bot_Inability);
+					return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.BotInability);
 				}
 			}
 
-			return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.Not_Failure);
+			return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.NotFailure);
 		}
 
 		public static EditableDiscordObject<IGuildUser>? GetValidEditUsers(ICommandContext context)
@@ -1474,11 +1481,11 @@ namespace Advobot
 			{
 				if (ulong.TryParse(userID, out ulong inputUserID))
 				{
-					return new ReturnedBannedUser(bans.FirstOrDefault(x => x.User.Id == inputUserID), BannedUserFailureReason.Not_Failure);
+					return new ReturnedBannedUser(bans.FirstOrDefault(x => x.User.Id == inputUserID), BannedUserFailureReason.NotFailure);
 				}
 				else
 				{
-					return new ReturnedBannedUser(null, BannedUserFailureReason.Invalid_ID);
+					return new ReturnedBannedUser(null, BannedUserFailureReason.InvalidID);
 				}
 			}
 			else if (!String.IsNullOrWhiteSpace(username))
@@ -1493,27 +1500,27 @@ namespace Advobot
 					}
 					else
 					{
-						return new ReturnedBannedUser(null, BannedUserFailureReason.Invalid_Discriminator);
+						return new ReturnedBannedUser(null, BannedUserFailureReason.InvalidDiscriminator);
 					}
 				}
 
 				//Return a message saying if there are multiple users
 				if (users.Count == 0)
 				{
-					return new ReturnedBannedUser(null, BannedUserFailureReason.No_Match);
+					return new ReturnedBannedUser(null, BannedUserFailureReason.NoMatch);
 				}
 				else if (users.Count == 1)
 				{
-					return new ReturnedBannedUser(users.First(), BannedUserFailureReason.Not_Failure);
+					return new ReturnedBannedUser(users.First(), BannedUserFailureReason.NotFailure);
 				}
 				else
 				{
-					return new ReturnedBannedUser(null, BannedUserFailureReason.Too_Many_Matches, users);
+					return new ReturnedBannedUser(null, BannedUserFailureReason.TooManyMatches, users);
 				}
 			}
 			else
 			{
-				return new ReturnedBannedUser(null, BannedUserFailureReason.No_Username_Or_ID);
+				return new ReturnedBannedUser(null, BannedUserFailureReason.NoUsernameOrID);
 			}
 		}
 
@@ -1553,12 +1560,12 @@ namespace Advobot
 
 			switch (type)
 			{
-				case UserCheck.Can_Be_Moved_From_Channel:
+				case UserCheck.CanBeMovedFromChannel:
 				{
 					var channel = target.VoiceChannel;
-					return GetIfUserCanDoActionOnChannel(context, channel, user, ChannelCheck.Can_Move_Users);
+					return GetIfUserCanDoActionOnChannel(context, channel, user, ChannelCheck.CanMoveUsers);
 				}
-				case UserCheck.Can_Be_Edited:
+				case UserCheck.CanBeEdited:
 				{
 					return GetIfUserCanBeModifiedByUser(context, target) || GetIfUserCanBeModifiedByBot(context, user);
 				}
@@ -1600,7 +1607,7 @@ namespace Advobot
 			{
 				if (Emote.TryParse(input, out emote))
 				{
-					return new ReturnedDiscordObject<Emote>(emote, FailureReason.Not_Failure);
+					return new ReturnedDiscordObject<Emote>(emote, FailureReason.NotFailure);
 				}
 				else if (ulong.TryParse(input, out ulong emoteID))
 				{
@@ -1615,7 +1622,7 @@ namespace Advobot
 					}
 					else if (emotes.Count() > 1)
 					{
-						return new ReturnedDiscordObject<Emote>(emote, FailureReason.Too_Many);
+						return new ReturnedDiscordObject<Emote>(emote, FailureReason.TooMany);
 					}
 				}
 			}
@@ -1631,12 +1638,12 @@ namespace Advobot
 					}
 					else if (emoteMentions.Count() > 1)
 					{
-						return new ReturnedDiscordObject<Emote>(emote, FailureReason.Too_Many);
+						return new ReturnedDiscordObject<Emote>(emote, FailureReason.TooMany);
 					}
 				}
 			}
 
-			return new ReturnedDiscordObject<Emote>(emote, FailureReason.Not_Failure);
+			return new ReturnedDiscordObject<Emote>(emote, FailureReason.NotFailure);
 		}
 		#endregion
 
@@ -1971,37 +1978,37 @@ namespace Advobot
 			}
 			switch (returnedObject.Reason)
 			{
-				case FailureReason.Not_Found:
+				case FailureReason.NotFound:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Unable to find the {0}.", objType)));
 					return;
 				}
-				case FailureReason.User_Inability:
+				case FailureReason.UserInability:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object))));
 					return;
 				}
-				case FailureReason.Bot_Inability:
+				case FailureReason.BotInability:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object))));
 					return;
 				}
-				case FailureReason.Too_Many:
+				case FailureReason.TooMany:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("There are too many {0}s with the same name.", objType)));
 					return;
 				}
-				case FailureReason.Incorrect_Channel_Type:
+				case FailureReason.IncorrectChannelType:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Invalid channel type for the given variable requirement.")));
 					return;
 				}
-				case FailureReason.Everyone_Role:
+				case FailureReason.EveryoneRole:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("The everyone role cannot be modified in that way.")));
 					return;
 				}
-				case FailureReason.Managed_Role:
+				case FailureReason.ManagedRole:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Managed roles cannot be modified in that way.")));
 					return;
@@ -2013,22 +2020,22 @@ namespace Advobot
 		{
 			switch (returnedArgs.Reason)
 			{
-				case ArgFailureReason.Too_Many_Args:
+				case ArgFailureReason.TooManyArgs:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR("Too many arguments."));
 					return;
 				}
-				case ArgFailureReason.Too_Few_Args:
+				case ArgFailureReason.TooFewArgs:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR("Too few arguments."));
 					return;
 				}
-				case ArgFailureReason.Missing_Critical_Args:
+				case ArgFailureReason.MissingCriticalArgs:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR("Missing critical arguments."));
 					return;
 				}
-				case ArgFailureReason.Max_Less_Than_Min:
+				case ArgFailureReason.MaxLessThanMin:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR("NOT USER ERROR: Max less than min."));
 					return;
@@ -2040,12 +2047,12 @@ namespace Advobot
 		{
 			switch (returnedType.Reason)
 			{
-				case TypeFailureReason.Not_Found:
+				case TypeFailureReason.NotFound:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to find the type for the given input."));
 					return;
 				}
-				case TypeFailureReason.Invalid_Type:
+				case TypeFailureReason.InvalidType:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("The type `{0}` is not accepted in this instance.", returnedType.Type)));
 					return;
@@ -2057,33 +2064,33 @@ namespace Advobot
 		{
 			switch (returnedBannedUser.Reason)
 			{
-				case BannedUserFailureReason.No_Bans:
+				case BannedUserFailureReason.NoBans:
 				{
 					await MakeAndDeleteSecondaryMessage(context, "The guild has no bans.");
 					return;
 				}
-				case BannedUserFailureReason.No_Match:
+				case BannedUserFailureReason.NoMatch:
 				{
 					await MakeAndDeleteSecondaryMessage(context, "No ban was found which matched the given criteria.");
 					return;
 				}
-				case BannedUserFailureReason.Too_Many_Matches:
+				case BannedUserFailureReason.TooManyMatches:
 				{
 					var msg = String.Join("`, `", returnedBannedUser.MatchedBans.Select(x => x.User.FormatUser()));
 					await SendChannelMessage(context, String.Format("The following users have that name: `{0}`.", msg));
 					return;
 				}
-				case BannedUserFailureReason.Invalid_Discriminator:
+				case BannedUserFailureReason.InvalidDiscriminator:
 				{
 					await MakeAndDeleteSecondaryMessage(context, "The given discriminator is invalid.");
 					return;
 				}
-				case BannedUserFailureReason.Invalid_ID:
+				case BannedUserFailureReason.InvalidID:
 				{
 					await MakeAndDeleteSecondaryMessage(context, "The given ID is invalid.");
 					return;
 				}
-				case BannedUserFailureReason.No_Username_Or_ID:
+				case BannedUserFailureReason.NoUsernameOrID:
 				{
 					await MakeAndDeleteSecondaryMessage(context, "A username or ID must be provided");
 					return;
@@ -2133,7 +2140,7 @@ namespace Advobot
 		public static EmbedBuilder AddAuthor(EmbedBuilder embed, string name = null, string iconURL = null, string URL = null)
 		{
 			//Create the author builder
-			var author = new EmbedAuthorBuilder().WithIconUrl("https://discordapp.com/assets/322c936a8c8be1b803cd94861bdfa868.png");
+			var author = new EmbedAuthorBuilder();
 
 			//Verify the URLs
 			iconURL = ValidateURL(iconURL) ? iconURL : null;
@@ -2280,7 +2287,7 @@ namespace Advobot
 			var ignoredFromCmd		= ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.IgnoredCommandChannels)).Contains(channel.Id);
 			var imageOnly			= ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.ImageOnlyChannels)).Contains(channel.Id);
 			var sanitary			= ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.SanitaryChannels)).Contains(channel.Id);
-			var slowmode			= guildInfo.SlowmodeChannels.Any(x => x.ChannelID == channel.Id);
+			var slowmode			= ((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels)).Any(x => x.ChannelID == channel.Id);
 			var serverLog			= ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog)).ID == channel.Id;
 			var modLog				= ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog)).ID == channel.Id;
 			var imageLog			= ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ImageLog)).ID == channel.Id;
@@ -2619,6 +2626,11 @@ namespace Advobot
 			return guild.FormatGuild();
 		}
 
+		public static string FormatObject(SocketGuild guild)
+		{
+			return guild.FormatGuild();
+		}
+
 		public static string FormatObject(string str)
 		{
 			return str;
@@ -2793,10 +2805,10 @@ namespace Advobot
 			var basePerm = "N/A";
 			if (attr != null)
 			{
-				var perms = (attr.Requirements & (1U << (int)Precondition.User_Has_A_Perm)) != 0;
-				var guild = (attr.Requirements & (1U << (int)Precondition.Guild_Owner)) != 0;
-				var trust = (attr.Requirements & (1U << (int)Precondition.Trusted_User)) != 0;
-				var owner = (attr.Requirements & (1U << (int)Precondition.Bot_Owner)) != 0;
+				var perms = (attr.Requirements & (1U << (int)Precondition.UserHasAPerm)) != 0;
+				var guild = (attr.Requirements & (1U << (int)Precondition.GuildOwner)) != 0;
+				var trust = (attr.Requirements & (1U << (int)Precondition.TrustedUser)) != 0;
+				var owner = (attr.Requirements & (1U << (int)Precondition.BotOwner)) != 0;
 
 				basePerm = "[";
 				if (perms)
@@ -2834,43 +2846,36 @@ namespace Advobot
 
 		public static string FormatAllSettings(SocketGuild guild, BotGuildInfo guildInfo)
 		{
-			var alreadyUsedSettings = new List<object>();
-
 			var str = "";
 			foreach (var e in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
 			{
-				var setting = guildInfo.GetSetting(e);
-				if (alreadyUsedSettings.Contains(setting))
+				var formatted = FormatSettingInfo(guild, guildInfo, e);
+				if (!String.IsNullOrWhiteSpace(formatted))
 				{
-					continue;
+					str += String.Format("**{0}**:\n{1}\n\n", Enum.GetName(typeof(SettingOnGuild), e), formatted);
 				}
-				else if (setting != null)
-				{
-					var formatted = FormatSettingInfo(guild, setting);
-					if (!String.IsNullOrWhiteSpace(formatted))
-					{
-						str += String.Format("**{0}**:\n{1}\n\n", Enum.GetName(typeof(SettingOnGuild), e), formatted);
-					}
-				}
-				alreadyUsedSettings.Add(setting);
 			}
 			return str;
 		}
 
 		public static string FormatSettingInfo(SocketGuild guild, BotGuildInfo guildInfo, SettingOnGuild setting)
 		{
-			var set = guildInfo.GetSetting(setting);
-
-			string str = null;
-			if (set != null)
+			var field = guildInfo.GetField(setting);
+			if (field != null)
 			{
-				str = FormatSettingInfo(guild, set);
-				if (String.IsNullOrWhiteSpace(str))
+				var notSaved = (JsonIgnoreAttribute)field.GetCustomAttribute(typeof(JsonIgnoreAttribute));
+				if (notSaved != null)
 				{
-					str = "`Nothing`";
+					return null;
+				}
+
+				var set = guildInfo.GetSetting(setting);
+				if (set != null)
+				{
+					return FormatSettingInfo(guild, set);
 				}
 			}
-			return str;
+			return null;
 		}
 
 		public static string FormatSettingInfo(SocketGuild guild, Setting setting)
@@ -2948,14 +2953,14 @@ namespace Advobot
 			return invs.Any() ? invs : null;
 		}
 
-		public static async Task<BotInvite> GetInviteUserJoinedOn(IGuild guild)
+		public static async Task<BotInvite> GetInviteUserJoinedOn(BotGuildInfo guildInfo, IGuild guild)
 		{
 			//Get the current invites
 			var curInvs = await GetInvites(guild);
 			if (curInvs == null)
 				return null;
 			//Get the bot's stored invites
-			var botInvs = (await Actions.CreateOrGetGetGuildInfo(guild)).Invites;
+			var botInvs = ((List<BotInvite>)guildInfo.GetSetting(SettingOnGuild.Invites));
 			if (!botInvs.Any())
 				return null;
 
@@ -3296,31 +3301,44 @@ namespace Advobot
 		public static async Task HandleJoiningUsers(BotGuildInfo guildInfo, IGuildUser user)
 		{
 			//Slowmode
-			if (guildInfo.SlowmodeGuild != null || guildInfo.SlowmodeChannels.Any())
 			{
-				await AddSlowmodeUser(guildInfo, user);
-			}
-			//Antiraid
-			var antiRaid = guildInfo.GetRaidPrevention(RaidType.Regular);
-			if (antiRaid != null && antiRaid.Enabled)
-			{
-				await antiRaid.PunishUser(user);
-			}
-			//Antiraid Two - Electric Joinaroo
-			var antiJoin = guildInfo.GetRaidPrevention(RaidType.Rapid_Joins);
-			if (antiJoin != null && antiJoin.Enabled)
-			{
-				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
-				if (antiJoin.GetSpamCount() >= antiJoin.RequiredCount)
+				var smGuild = ((SlowmodeGuild)guildInfo.GetSetting(SettingOnGuild.SlowmodeGuild));
+				if (smGuild != null)
 				{
-					await antiJoin.PunishUser(user);
-					var serverLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog)).Object;
-					if (serverLog != null)
+					smGuild.Users.ThreadSafeAdd(new SlowmodeUser(user, smGuild.BaseMessages, smGuild.Interval));
+				}
+				var smChannels = ((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels));
+				if (smChannels.Any())
+				{
+					smChannels.Where(x => (user.Guild as SocketGuild).TextChannels.Select(y => y.Id).Contains(x.ChannelID)).ToList().ForEach(smChan =>
 					{
-						await SendEmbedMessage(serverLog, MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
-					}
+						smChan.Users.ThreadSafeAdd(new SlowmodeUser(user, smChan.BaseMessages, smChan.Interval));
+					});
 				}
 			}
+
+			//Raid Prevention
+			{
+				var antiRaid = guildInfo.GetRaidPrevention(RaidType.Regular);
+				if (antiRaid != null && antiRaid.Enabled)
+				{
+					await antiRaid.PunishUser(user);
+				}
+				var antiJoin = guildInfo.GetRaidPrevention(RaidType.RapidJoins);
+				if (antiJoin != null && antiJoin.Enabled)
+				{
+					antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
+					if (antiJoin.GetSpamCount() >= antiJoin.RequiredCount)
+					{
+						await antiJoin.PunishUser(user);
+						var serverLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog)).Object;
+						if (serverLog != null)
+						{
+							await SendEmbedMessage(serverLog, MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
+						}
+					}
+				}
+			}	
 		}
 
 		public static bool VerifyLoggingIsEnabledOnThisChannel(BotGuildInfo guildInfo, IMessage message)
@@ -3488,11 +3506,12 @@ namespace Advobot
 		#region Slowmode/Banned Phrases/Spam Prevention
 		public static async Task SpamCheck(BotGuildInfo guildInfo, IGuild guild, IGuildUser author, IMessage msg)
 		{
-			var spamUser = guildInfo.SpamPreventionUsers.FirstOrDefault(x => x.User.Id == author.Id);
+			var spamPrevUsers = ((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers));
+			var spamUser = spamPrevUsers.FirstOrDefault(x => x.User.Id == author.Id);
 			if (spamUser == null)
 			{
 				spamUser = new SpamPreventionUser(author);
-				guildInfo.SpamPreventionUsers.ThreadSafeAdd(spamUser);
+				spamPrevUsers.ThreadSafeAdd(spamUser);
 			}
 
 			//TODO: Make sure this works
@@ -3513,7 +3532,7 @@ namespace Advobot
 						spamAmt = int.MaxValue;
 						break;
 					}
-					case SpamType.Long_Message:
+					case SpamType.LongMessage:
 					{
 						spamAmt = msg.Content?.Length ?? 0;
 						break;
@@ -3577,43 +3596,33 @@ namespace Advobot
 			}
 		}
 
-		public static async Task Slowmode(BotGuildInfo guildInfo, IMessage message)
+		public static async Task HandleSlowmode(SlowmodeGuild smGuild, SlowmodeChannel smChannel, IMessage message)
 		{
-			//Make a new SlowmodeUser
-			var smUser = new SlowmodeUser();
-
-			//Get SlowmodeUser from the guild ID
-			if (guildInfo.SlowmodeGuild != null)
+			if (smGuild != null)
 			{
-				smUser = guildInfo.SlowmodeGuild.Users.FirstOrDefault(x => x.User.Id == message.Author.Id);
+				await HandleSlowmodeUser(smGuild.Users.FirstOrDefault(x => x.User.Id == message.Author.Id), message);
 			}
-			//If that fails, try to get it from the channel ID
-			var channelSM = guildInfo.SlowmodeChannels.FirstOrDefault(x => x.ChannelID == message.Channel.Id);
-			if (channelSM != null)
+			if (smChannel != null)
 			{
-				//Find a channel slowmode where the channel ID is the same as the message channel ID then get the user
-				smUser = channelSM.Users.FirstOrDefault(x => x.User.Id == message.Author.Id);
+				await HandleSlowmodeUser(smChannel.Users.FirstOrDefault(x => x.User.Id == message.Author.Id), message);
 			}
+		}
 
-			//Once the user within the SlowmodeUser class isn't null then go through with slowmode
-			if (smUser != null)
+		public static async Task HandleSlowmodeUser(SlowmodeUser user, IMessage message)
+		{
+			if (user != null)
 			{
-				//Check if their messages allowed is above 0
-				if (smUser.CurrentMessagesLeft > 0)
+				//If the user still has messages left, check if this is the first of their interval. Start a countdown if it is. Else lower by one or delete the message.
+				if (user.CurrentMessagesLeft > 0)
 				{
-					if (smUser.CurrentMessagesLeft == smUser.BaseMessages)
+					if (user.CurrentMessagesLeft == user.BaseMessages)
 					{
-						smUser.SetNewTime(DateTime.UtcNow.AddSeconds(smUser.Interval));
-						lock (Variables.SlowmodeUsers)
-						{
-							Variables.SlowmodeUsers.Add(smUser);
-						}
+						user.SetNewTime(DateTime.UtcNow.AddSeconds(user.Interval));
+						Variables.SlowmodeUsers.ThreadSafeAdd(user);
 					}
 
-					//Lower it by one
-					smUser.LowerMessagesLeft();
+					user.LowerMessagesLeft();
 				}
-				//Else delete the message
 				else
 				{
 					await DeleteMessage(message);
@@ -3621,39 +3630,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task AddSlowmodeUser(BotGuildInfo guildInfo, IGuildUser user)
-		{
-			//Check if the guild has slowmode enabled
-			if (guildInfo.SlowmodeGuild != null)
-			{
-				//Get the variables out of a different user
-				var messages = guildInfo.SlowmodeGuild.Users.FirstOrDefault().BaseMessages;
-				var interval = guildInfo.SlowmodeGuild.Users.FirstOrDefault().Interval;
-
-				//Add them to the list for the slowmode in this guild
-				guildInfo.SlowmodeGuild.Users.Add(new SlowmodeUser(user, messages, messages, interval));
-			}
-
-			//Get a list of the IDs of the guild's channels
-			var guildChannelIDList = (await user.Guild.GetTextChannelsAsync()).Select(x => x.Id);
-			//Find if any of them are a slowmode channel
-			var smChannels = guildInfo.SlowmodeChannels.Where(x => guildChannelIDList.Contains(x.ChannelID)).ToList();
-			//If greater than zero, add the user to each one
-			if (smChannels.Any())
-			{
-				smChannels.ForEach(x =>
-				{
-					//Get the variables out of a different user
-					var messages = x.Users.FirstOrDefault().BaseMessages;
-					var interval = x.Users.FirstOrDefault().Interval;
-
-					//Add them to the list for the slowmode in this guild
-					x.Users.Add(new SlowmodeUser(user, messages, messages, interval));
-				});
-			}
-		}
-
-		public static async Task BannedPhrases(BotGuildInfo guildInfo, IMessage message)
+		public static async Task HandleBannedPhrases(BotGuildInfo guildInfo, IMessage message)
 		{
 			//TODO: Better bool here
 			if (guildInfo == null || (message.Author as IGuildUser).GuildPermissions.Administrator)
@@ -3665,7 +3642,7 @@ namespace Advobot
 			});
 			if (phrase != null)
 			{
-				await BannedPhrasePunishments(guildInfo, message, phrase);
+				await HandleBannedPhrasePunishments(guildInfo, message, phrase);
 			}
 
 			var regex = ((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex)).FirstOrDefault(x =>
@@ -3674,15 +3651,15 @@ namespace Advobot
 			});
 			if (regex != null)
 			{
-				await BannedPhrasePunishments(guildInfo, message, regex);
+				await HandleBannedPhrasePunishments(guildInfo, message, regex);
 			}
 		}
 
-		public static async Task BannedPhrasePunishments(BotGuildInfo guildInfo, IMessage message, BannedPhrase phrase)
+		public static async Task HandleBannedPhrasePunishments(BotGuildInfo guildInfo, IMessage message, BannedPhrase phrase)
 		{
 			await DeleteMessage(message);
 			var user = message.Author as IGuildUser;
-			var bpUser = guildInfo.BannedPhraseUsers.FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user, guildInfo);
+			var bpUser = ((List<BannedPhraseUser>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseUsers)).FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user, guildInfo);
 
 			var amountOfMsgs = 0;
 			switch (phrase.Punishment)
@@ -3799,6 +3776,19 @@ namespace Advobot
 				stringOutput = e.Message;
 				return false;
 			}
+		}
+
+		public static void AddSlowmodeUser(SlowmodeGuild smGuild, List<SlowmodeChannel> smChannels, IGuildUser user)
+		{
+			if (smGuild != null)
+			{
+				smGuild.Users.ThreadSafeAdd(new SlowmodeUser(user, smGuild.BaseMessages, smGuild.Interval));
+			}
+
+			smChannels.Where(x => (user.Guild as SocketGuild).TextChannels.Select(y => y.Id).Contains(x.ChannelID)).ToList().ForEach(smChan =>
+			{
+				smChan.Users.ThreadSafeAdd(new SlowmodeUser(user, smChan.BaseMessages, smChan.Interval));
+			});
 		}
 
 		public static void HandleBannedPhraseModification(List<BannedPhrase> bannedStrings, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
@@ -4044,12 +4034,8 @@ namespace Advobot
 		#region Timers
 		public static List<T> GetOutTimedObject<T>(List<T> inputList) where T : ITimeInterface
 		{
-			List<T> eligibleToBeGotten;
-			lock (inputList)
-			{
-				eligibleToBeGotten = inputList.Where(x => x.GetTime() <= DateTime.UtcNow).ToList();
-				inputList.RemoveAll(x => eligibleToBeGotten.Contains(x));
-			}
+			var eligibleToBeGotten = inputList.Where(x => x.GetTime() <= DateTime.UtcNow).ToList();
+			inputList.ThreadSafeRemoveAll(x => eligibleToBeGotten.Contains(x));
 			return eligibleToBeGotten;
 		}
 
@@ -4112,7 +4098,7 @@ namespace Advobot
 
 		public static void ClearPunishedUsersList()
 		{
-			Variables.Guilds.Values.ToList().ForEach(x => x.SpamPreventionUsers.Clear());
+			Variables.Guilds.Values.ToList().ForEach(x => ((List<SpamPreventionUser>)x.GetSetting(SettingOnGuild.SpamPreventionUsers)).Clear());
 		}
 
 		public static void RemovePunishments()
@@ -4132,6 +4118,7 @@ namespace Advobot
 				var guildUser = await punishment.Guild.GetUserAsync(userID);
 				if (guildUser == null)
 					return;
+
 				switch (punishment.Type)
 				{
 					case PunishmentType.Role:
@@ -4289,19 +4276,19 @@ namespace Advobot
 			{
 				case FAWRType.GR:
 				{
-					return FAWRType.Give_Role;
+					return FAWRType.GiveRole;
 				}
 				case FAWRType.TR:
 				{
-					return FAWRType.Take_Role;
+					return FAWRType.TakeRole;
 				}
 				case FAWRType.GNN:
 				{
-					return FAWRType.Give_Nickname;
+					return FAWRType.GiveNickname;
 				}
 				case FAWRType.TNN:
 				{
-					return FAWRType.Take_Nickname;
+					return FAWRType.TakeNickname;
 				}
 			}
 			return type;
@@ -4322,7 +4309,7 @@ namespace Advobot
 				{
 					return new[] { element };
 				}
-			}).SelectMany(element => element).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
+			}).SelectMany(x => x).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
 		}
 
 		public static bool CheckIfRegMatch(string msg, string pattern)

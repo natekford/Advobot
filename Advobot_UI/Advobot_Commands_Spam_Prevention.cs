@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
-	[Name("Spam_Prevention")]
+	[Name("SpamPrevention")]
 	public class Advobot_Commands_Spam_Prevention : ModuleBase
 	{
 		[Command("preventspam")]
@@ -21,7 +21,7 @@ namespace Advobot
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 5), new[] { "messages", "spam", "votes" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -34,7 +34,7 @@ namespace Advobot
 			var timeStr = returnedArgs.GetSpecifiedArg("timeframe");
 
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -135,7 +135,7 @@ namespace Advobot
 
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2), new[] { "count" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -144,7 +144,7 @@ namespace Advobot
 			var countStr = returnedArgs.GetSpecifiedArg("count");
 
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -249,7 +249,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "count", "time" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -259,7 +259,7 @@ namespace Advobot
 			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -292,13 +292,13 @@ namespace Advobot
 						time = Math.Abs(time);
 					}
 
-					guildInfo.SetRaidPrevention(RaidType.Rapid_Joins, new RaidPrevention(PunishmentType.Role, time, count));
+					guildInfo.SetRaidPrevention(RaidType.RapidJoins, new RaidPrevention(PunishmentType.Role, time, count));
 					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created a rapid join protection with a time period of `{0}` and a user count of `{1}`.", time, count));
 					break;
 				}
 				case ActionType.Enable:
 				{
-					var antiJoin = guildInfo.GetRaidPrevention(RaidType.Rapid_Joins);
+					var antiJoin = guildInfo.GetRaidPrevention(RaidType.RapidJoins);
 					if (antiJoin == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no rapid join protection to enable."));
@@ -316,7 +316,7 @@ namespace Advobot
 				}
 				case ActionType.Disable:
 				{
-					var antiJoin = guildInfo.GetRaidPrevention(RaidType.Rapid_Joins);
+					var antiJoin = guildInfo.GetRaidPrevention(RaidType.RapidJoins);
 					if (antiJoin == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no rapid join protection to disable."));

@@ -154,11 +154,11 @@ namespace Advobot
 			if (!(await context.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
 			{
 				//If the server has been told already, ignore future commands fully
-				if (Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Contains(context.Guild))
-					return false;
-
-				await Actions.SendChannelMessage(context, "This bot will not function without the `Administrator` permission, sorry.");
-				Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Add(context.Guild);
+				if (!Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Contains(context.Guild))
+				{
+					await Actions.SendChannelMessage(context, "This bot will not function without the `Administrator` permission, sorry.");
+					Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Add(context.Guild);
+				}
 				return false;
 			}
 			//Bot loaded check
@@ -168,7 +168,7 @@ namespace Advobot
 				return false;
 			}
 			//Guild loaded check
-			if (!guildInfo.Loaded)
+			if (!((bool)guildInfo.GetSetting(SettingOnGuild.Loaded)))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(context, Actions.ERROR("Wait until the guild is loaded."));
 				return false;

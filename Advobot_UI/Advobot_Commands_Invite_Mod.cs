@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
-	[Name("Invite_Moderation")]
+	[Name("InviteModeration")]
 	class Advobot_Commands_Invite_Mod : ModuleBase
 	{
 		[Command("displayinvites")]
 		[Alias("dinvs")]
 		[Usage("")]
 		[Summary("Gives a list of all the instant invites on the guild.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
+		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public async Task ListInstantInvites()
 		{
@@ -55,7 +55,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "time", "uses", "tempmem" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -66,8 +66,8 @@ namespace Advobot
 			var tempStr = returnedArgs.GetSpecifiedArg("tempmem");
 
 			//Check validity of channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, true, chanStr);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
@@ -183,7 +183,7 @@ namespace Advobot
 
 			//Get the given variable out
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "user", "channel", "uses", "expires" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -218,8 +218,8 @@ namespace Advobot
 			//Channel
 			if (!String.IsNullOrWhiteSpace(chanStr))
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, chanStr);
-				if (returnedChannel.Reason == FailureReason.Not_Failure)
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, true, chanStr);
+				if (returnedChannel.Reason == FailureReason.NotFailure)
 				{
 					invites = invites.Where(x => x.ChannelId == returnedChannel.Object.Id).ToList();
 				}

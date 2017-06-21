@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
-	[Name("Self_Roles")]
+	[Name("SelfRoles")]
 	public class Advobot_Commands_Self_Roles : ModuleBase
 	{
 		[Command("modifyselfroles")]
@@ -38,7 +38,7 @@ namespace Advobot
 
 			//Break the input into pieces
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "group" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -49,7 +49,7 @@ namespace Advobot
 
 			//Check which action it is
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Create, ActionType.Delete, ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;

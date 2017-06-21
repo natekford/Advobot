@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	//Guild Settings commands are commands that only affect that specific guild
-	[Name("Guild_Settings")]
+	[Name("GuildSettings")]
 	public class Advobot_Commands_Guild_Settings : ModuleBase
 	{
 		[Command("leaveguild")]
 		[Usage("<Guild ID>")]
 		[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
-		[OtherRequirement((1U << (int)Precondition.Guild_Owner) | (1U << (int)Precondition.Bot_Owner))]
+		[OtherRequirement((1U << (int)Precondition.GuildOwner) | (1U << (int)Precondition.BotOwner))]
 		[DefaultEnabled(true)]
 		public async Task GuildLeave([Optional, Remainder] string input)
 		{
@@ -65,7 +65,7 @@ namespace Advobot
 		[Alias("mgdp")]
 		[Usage("[New Prefix|Clear]")]
 		[Summary("Makes the guild use the given prefix from now on.")]
-		[OtherRequirement(1U << (int)Precondition.Guild_Owner)]
+		[OtherRequirement(1U << (int)Precondition.GuildOwner)]
 		[DefaultEnabled(false)]
 		public async Task GuildPrefix([Remainder] string input)
 		{
@@ -123,7 +123,7 @@ namespace Advobot
 			}
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 1));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -151,14 +151,14 @@ namespace Advobot
 		[Alias("mgdf")]
 		[Usage("[Reload|Resave|Reset]")]
 		[Summary("Reload, resave, or reset the guild's settings on the bot. (Mainly for debug purposes when the JSON is edited manually)")]
-		[OtherRequirement(1U << (int)Precondition.Guild_Owner)]
+		[OtherRequirement(1U << (int)Precondition.GuildOwner)]
 		[DefaultEnabled(true)]
 		public async Task GuildReload([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 1));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -201,7 +201,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -210,7 +210,7 @@ namespace Advobot
 			var cmdStr = returnedArgs.Arguments[1];
 
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -323,7 +323,7 @@ namespace Advobot
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -333,8 +333,8 @@ namespace Advobot
 			var cmdStr = returnedArgs.Arguments[2];
 
 			//Get the channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, true, chanStr);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
@@ -342,7 +342,7 @@ namespace Advobot
 			var channel = returnedChannel.Object;
 
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -462,7 +462,7 @@ namespace Advobot
 
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -473,7 +473,7 @@ namespace Advobot
 
 			//Check if valid action
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -495,8 +495,8 @@ namespace Advobot
 			}
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, userStr);
-			if (returnedUser.Reason != FailureReason.Not_Failure)
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, userStr);
+			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
@@ -614,7 +614,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -623,14 +623,14 @@ namespace Advobot
 			var chanStr = returnedArgs.Arguments[1];
 
 			var returnedType = Actions.GetType(settingStr, new[] { ChannelSettings.ImageOnly, ChannelSettings.Sanitary });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
 			}
 			var type = returnedType.Type;
 
-			var channel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Be_Managed, ChannelCheck.Can_Delete_Messages, ChannelCheck.Is_Text }, true, input).Object ?? Context.Channel as ITextChannel;
+			var channel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged, ChannelCheck.CanDeleteMessages, ChannelCheck.IsText }, true, input).Object ?? Context.Channel as ITextChannel;
 			switch (type)
 			{
 				case ChannelSettings.ImageOnly:
@@ -678,7 +678,7 @@ namespace Advobot
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -688,7 +688,7 @@ namespace Advobot
 			var textStr = returnedArgs.Arguments[2];
 
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -744,7 +744,7 @@ namespace Advobot
 		[Alias("sr")]
 		[Usage("<Name>")]
 		[Summary("Shows the content for the given remind. If null then shows the list of the current reminds.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
+		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(false)]
 		public async Task Reminds([Optional, Remainder] string input)
 		{
@@ -801,7 +801,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 6), new[] { "content", "title", "desc", "thumb" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -827,7 +827,7 @@ namespace Advobot
 
 			//Make sure the target type is valid
 			var returnedType = Actions.GetType(typeStr, new[] { GuildNotifications.Welcome, GuildNotifications.Goodbye });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -835,8 +835,8 @@ namespace Advobot
 			var type = returnedType.Type;
 
 			//Make sure the channel mention is valid
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Modify_Permissions, ChannelCheck.Is_Text }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions, ChannelCheck.IsText }, true, chanStr);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;

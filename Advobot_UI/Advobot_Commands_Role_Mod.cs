@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	//Role Moderation commands are commands that affect the roles in a guild
-	[Name("Role_Moderation")]
+	[Name("RoleModeration")]
 	public class Advobot_Commands_Role_Mod : ModuleBase
 	{
 		[Command("giverole")]
@@ -21,7 +21,7 @@ namespace Advobot
 		{
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -31,7 +31,7 @@ namespace Advobot
 
 			//Test if valid user mention
 			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
-			if (returnedUser.Reason != FailureReason.Not_Failure)
+			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
@@ -43,8 +43,8 @@ namespace Advobot
 			if (splitRolesStr.Count == 1)
 			{
 				//Check if it actually exists
-				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, true, roleStr);
-				if (returnedRole.Reason != FailureReason.Not_Failure)
+				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone, RoleCheck.IsManaged }, true, roleStr);
+				if (returnedRole.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedRole);
 					return;
@@ -74,8 +74,8 @@ namespace Advobot
 				var roles = new List<IRole>();
 				splitRolesStr.ForEach(x =>
 				{
-					var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, false, x);
-					if (returnedRole.Reason == FailureReason.Not_Failure)
+					var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone, RoleCheck.IsManaged }, false, x);
+					if (returnedRole.Reason == FailureReason.NotFailure)
 					{
 						roles.Add(returnedRole.Object);
 					}
@@ -128,7 +128,7 @@ namespace Advobot
 		{
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -138,7 +138,7 @@ namespace Advobot
 
 			//Test if valid user mention
 			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
-			if (returnedUser.Reason != FailureReason.Not_Failure)
+			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
@@ -150,8 +150,8 @@ namespace Advobot
 			if (splitRolesStr.Count == 1)
 			{
 				//Check if it actually exists
-				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, true, roleStr);
-				if (returnedRole.Reason != FailureReason.Not_Failure)
+				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone, RoleCheck.IsManaged }, true, roleStr);
+				if (returnedRole.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedRole);
 					return;
@@ -211,8 +211,8 @@ namespace Advobot
 		public async Task SoftDeleteRole([Remainder] string input)
 		{
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, true, input);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone, RoleCheck.IsManaged }, true, input);
+			if (returnedRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
 				return;
@@ -239,8 +239,8 @@ namespace Advobot
 		public async Task DeleteRole([Remainder] string input)
 		{
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone, RoleCheck.Is_Managed }, true, input);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone, RoleCheck.IsManaged }, true, input);
+			if (returnedRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
 				return;
@@ -261,7 +261,7 @@ namespace Advobot
 		{
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -270,8 +270,8 @@ namespace Advobot
 			var posStr = returnedArgs.Arguments[1];
 
 			//Get the role
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, true, roleStr);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone }, true, roleStr);
+			if (returnedRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
 				return;
@@ -332,7 +332,7 @@ namespace Advobot
 		public async Task RolePermissions([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -342,7 +342,7 @@ namespace Advobot
 			var permStr = returnedArgs.Arguments[2];
 
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -365,8 +365,8 @@ namespace Advobot
 				}
 			}
 
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, true, roleStr);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited }, true, roleStr);
+			if (returnedRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
 				return;
@@ -474,7 +474,7 @@ namespace Advobot
 		public async Task CopyRolePermissions([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -484,7 +484,7 @@ namespace Advobot
 
 			//Determine if the input role exists
 			var returnedInputRole = Actions.GetRole(Context, new[] { RoleCheck.None }, false, inputRoleStr);
-			if (returnedInputRole.Reason != FailureReason.Not_Failure)
+			if (returnedInputRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedInputRole);
 				return;
@@ -492,8 +492,8 @@ namespace Advobot
 			var inputRole = returnedInputRole.Object;
 
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
-			var returnedOutputRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, false, outputRoleStr);
-			if (returnedOutputRole.Reason != FailureReason.Not_Failure)
+			var returnedOutputRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited }, false, outputRoleStr);
+			if (returnedOutputRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedOutputRole);
 				return;
@@ -542,8 +542,8 @@ namespace Advobot
 		public async Task ClearRolePermissions([Remainder] string input)
 		{
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited }, true, input);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited }, true, input);
+			if (returnedRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
 				return;
@@ -564,7 +564,7 @@ namespace Advobot
 		public async Task ChangeRoleName([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2), new[] { "position" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -603,8 +603,8 @@ namespace Advobot
 				}
 				else if (roles.Count == 1)
 				{
-					var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, roles.First());
-					if (returnedRole.Reason != FailureReason.Not_Failure)
+					var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone }, roles.First());
+					if (returnedRole.Reason != FailureReason.NotFailure)
 					{
 						await Actions.HandleObjectGettingErrors(Context, returnedRole);
 						return;
@@ -619,8 +619,8 @@ namespace Advobot
 			}
 			else
 			{
-				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, true, nameStr);
-				if (returnedRole.Reason != FailureReason.Not_Failure)
+				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone }, true, nameStr);
+				if (returnedRole.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedRole);
 					return;
@@ -643,7 +643,7 @@ namespace Advobot
 		public async Task ChangeRoleColor([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2), new[] { "hex", "color" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -653,8 +653,8 @@ namespace Advobot
 			var colorStr = returnedArgs.GetSpecifiedArg("color");
 
 			//Determine if the role exists and if it is able to be edited by both the bot and the user
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, true, roleStr);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone }, true, roleStr);
+			if (returnedRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
 				return;
@@ -704,8 +704,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task HoistRole([Remainder] string input)
 		{
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, true, input);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone }, true, input);
+			if (returnedRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
 				return;
@@ -732,8 +732,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ChangeMentionRole([Remainder] string input)
 		{
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, true, input);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone }, true, input);
+			if (returnedRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
 				return;

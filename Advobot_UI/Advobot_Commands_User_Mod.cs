@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	//User Moderation commands are commands that affect the users of a guild
-	[Name("User_Moderation")]
+	[Name("UserModeration")]
 	public class Advobot_Commands_User_Mod : ModuleBase
 	{
 		[Command("mute")]
@@ -24,7 +24,7 @@ namespace Advobot
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -47,7 +47,7 @@ namespace Advobot
 
 			//Get the user
 			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
-			if (returnedUser.Reason != FailureReason.Not_Failure)
+			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
@@ -75,7 +75,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -96,7 +96,7 @@ namespace Advobot
 
 			//Get the user
 			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
-			if (returnedUser.Reason != FailureReason.Not_Failure)
+			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
@@ -132,7 +132,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -153,7 +153,7 @@ namespace Advobot
 
 			//Get the user
 			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
-			if (returnedUser.Reason != FailureReason.Not_Failure)
+			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
@@ -188,7 +188,7 @@ namespace Advobot
 		public async Task MoveUser([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -197,8 +197,8 @@ namespace Advobot
 			var chanStr = returnedArgs.Arguments[1];
 
 			//Check if valid user and that they're in a voice channel
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Moved_From_Channel }, true, userStr);
-			if (returnedUser.Reason != FailureReason.Not_Failure)
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeMovedFromChannel }, true, userStr);
+			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
@@ -213,8 +213,8 @@ namespace Advobot
 			}
 
 			//Check if valid channel that the user can edit
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Move_Users, ChannelCheck.Is_Voice }, false, chanStr);
-			if (returnedChannel.Reason != FailureReason.Not_Failure)
+			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanMoveUsers, ChannelCheck.IsVoice }, false, chanStr);
+			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 				return;
@@ -241,7 +241,7 @@ namespace Advobot
 		public async Task MoveUsers([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -250,8 +250,8 @@ namespace Advobot
 			var outputChanStr = returnedArgs.Arguments[1];
 
 			//Get input channel
-			var returnedInputChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Move_Users, ChannelCheck.Is_Voice }, false, inputChanStr);
-			if (returnedInputChannel.Reason != FailureReason.Not_Failure)
+			var returnedInputChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanMoveUsers, ChannelCheck.IsVoice }, false, inputChanStr);
+			if (returnedInputChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedInputChannel);
 				return;
@@ -259,8 +259,8 @@ namespace Advobot
 			var inputChannel = returnedInputChannel.Object as IVoiceChannel;
 
 			//Get output channel
-			var returnedOutputChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Move_Users, ChannelCheck.Is_Voice }, false, outputChanStr);
-			if (returnedOutputChannel.Reason != FailureReason.Not_Failure)
+			var returnedOutputChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanMoveUsers, ChannelCheck.IsVoice }, false, outputChanStr);
+			if (returnedOutputChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedOutputChannel);
 				return;
@@ -304,7 +304,7 @@ namespace Advobot
 		public async Task PruneMembers([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -358,8 +358,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task SoftBan([Remainder] string input)
 		{
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, input);
-			if (returnedUser.Reason != FailureReason.Not_Failure)
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, input);
+			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
@@ -380,7 +380,7 @@ namespace Advobot
 		public async Task Ban([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "days", "time" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -421,8 +421,8 @@ namespace Advobot
 			}
 			else
 			{
-				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, userStr);
-				if (returnedUser.Reason != FailureReason.Not_Failure)
+				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, userStr);
+				if (returnedUser.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedUser);
 					return;
@@ -479,7 +479,7 @@ namespace Advobot
 		{
 			//Split the args
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "username", "discriminator", "id", "reason" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -490,7 +490,7 @@ namespace Advobot
 			var reasonStr = returnedArgs.GetSpecifiedArg("reason");
 
 			var returnedBannedUser = Actions.GetBannedUser(Context, (await Context.Guild.GetBansAsync()).ToList(), nameStr, discStr, idStr);
-			if (returnedBannedUser.Reason != BannedUserFailureReason.Not_Failure)
+			if (returnedBannedUser.Reason != BannedUserFailureReason.NotFailure)
 			{
 				await Actions.HandleBannedUserErrors(Context, returnedBannedUser);
 				return;
@@ -527,8 +527,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Kick([Remainder] string input)
 		{
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.Can_Be_Edited }, true, input);
-			if (returnedUser.Reason != FailureReason.Not_Failure)
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, input);
+			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
 				return;
@@ -570,7 +570,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -587,8 +587,8 @@ namespace Advobot
 			ITextChannel channel = Context.Channel as ITextChannel;
 			if (Context.Message.MentionedChannelIds.Any())
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Delete_Messages, ChannelCheck.Is_Text }, true, null);
-				if (returnedChannel.Reason != FailureReason.Not_Failure)
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanDeleteMessages, ChannelCheck.IsText }, true, null);
+				if (returnedChannel.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 					return;
@@ -597,8 +597,8 @@ namespace Advobot
 			}
 			else
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.Can_Delete_Messages, ChannelCheck.Is_Text }, channel);
-				if (returnedChannel.Reason != FailureReason.Not_Failure)
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanDeleteMessages, ChannelCheck.IsText }, channel);
+				if (returnedChannel.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 					return;
@@ -653,7 +653,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "roles", "messages", "time", "guild" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -672,18 +672,18 @@ namespace Advobot
 				}
 				else if (Actions.CaseInsEquals(targStr, "guild"))
 				{
-					guildInfo.SlowmodeGuild = null;
+					guildInfo.SetSetting(SettingOnGuild.SlowmodeGuild, null, false);
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the guild.");
 				}
 				else if (Actions.CaseInsEquals(targStr, "channel"))
 				{
-					guildInfo.SlowmodeChannels.RemoveAll(x => x.ChannelID == Context.Channel.Id);
+					((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels)).ThreadSafeRemoveAll(x => x.ChannelID == Context.Channel.Id);
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the channel.");
 				}
 				else if (Actions.CaseInsEquals(targStr, "all"))
 				{
-					guildInfo.SlowmodeGuild = null;
-					guildInfo.SlowmodeChannels.Clear();
+					guildInfo.SetSetting(SettingOnGuild.SlowmodeGuild, null, false);
+					((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels)).Clear();
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed all slowmodes on the guild and its channels.");
 				}
 				else
@@ -697,7 +697,8 @@ namespace Advobot
 			var guild = !String.IsNullOrWhiteSpace(guildStr);
 			if (guild)
 			{
-				if (guildInfo.SlowmodeGuild != null)
+				var smGuild = ((SlowmodeGuild)guildInfo.GetSetting(SettingOnGuild.SlowmodeGuild));
+				if (smGuild != null)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Guild already is in slowmode.");
 					return;
@@ -705,7 +706,8 @@ namespace Advobot
 			}
 			else
 			{
-				if (guildInfo.SlowmodeChannels.Any(x => x.ChannelID == Context.Channel.Id))
+				var smChannel = ((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels)).FirstOrDefault(x => x.ChannelID == Context.Channel.Id);
+				if (smChannel != null)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Channel already is in slowmode.");
 					return;
@@ -719,7 +721,7 @@ namespace Advobot
 				roleStr.Split('/').ToList().ForEach(x =>
 				{
 					var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, false, x);
-					if (returnedRole.Reason == FailureReason.Not_Failure)
+					if (returnedRole.Reason == FailureReason.NotFailure)
 					{
 						roles.Add(returnedRole.Object);
 					}
@@ -767,17 +769,14 @@ namespace Advobot
 				}
 			}
 
-			//Add the users into the list with their given messages and if they're affected
-			var slowmodeUsers = (await Context.Guild.GetUsersAsync()).Where(x => !x.RoleIds.Intersect(roleIDs).Any()).Select(x => new SlowmodeUser(x, msgsLimit, msgsLimit, timeLimit)).ToList();
-
-			//If targetString is null then take that as only the channel and not the guild
+			var slowmodeUsers = (await Context.Guild.GetUsersAsync()).Where(x => !x.RoleIds.Intersect(roleIDs).Any()).Select(x => new SlowmodeUser(x, msgsLimit, timeLimit)).ToList();
 			if (guild)
 			{
-				guildInfo.SlowmodeGuild = new SlowmodeGuild(slowmodeUsers);
+				guildInfo.SetSetting(SettingOnGuild.SlowmodeGuild, new SlowmodeGuild(msgsLimit, timeLimit, slowmodeUsers), false);
 			}
 			else
 			{
-				guildInfo.SlowmodeChannels.Add(new SlowmodeChannel(Context.Channel.Id, slowmodeUsers));
+				guildInfo.SetSetting(SettingOnGuild.SlowmodeChannels, new SlowmodeGuild(msgsLimit, timeLimit, slowmodeUsers), false);
 			}
 
 			//Send a success message
@@ -800,7 +799,7 @@ namespace Advobot
 		{
 			//Split arguments
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 4));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -827,7 +826,7 @@ namespace Advobot
 
 			//Input role
 			var returnedInputRole = Actions.GetRole(Context, new[] { RoleCheck.None }, false, inputStr);
-			if (returnedInputRole.Reason != FailureReason.Not_Failure)
+			if (returnedInputRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedInputRole);
 				return;
@@ -887,8 +886,8 @@ namespace Advobot
 			}
 
 			//Output role
-			var returnedOutputRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, false, outputStr);
-			if (returnedOutputRole.Reason != FailureReason.Not_Failure)
+			var returnedOutputRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone }, false, outputStr);
+			if (returnedOutputRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedOutputRole);
 				return;

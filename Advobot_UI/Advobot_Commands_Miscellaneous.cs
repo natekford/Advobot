@@ -111,7 +111,7 @@ namespace Advobot
 		public async Task GetID([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -132,7 +132,7 @@ namespace Advobot
 			else if (Actions.CaseInsEquals(targetStr, "role"))
 			{
 				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, otherStr);
-				if (returnedRole.Reason != FailureReason.Not_Failure)
+				if (returnedRole.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedRole);
 					return;
@@ -150,7 +150,7 @@ namespace Advobot
 			else if (Actions.CaseInsEquals(targetStr, "emote"))
 			{
 				var returnedEmote = Actions.GetEmote(Context, true, otherStr);
-				if (returnedEmote.Reason != FailureReason.Not_Failure)
+				if (returnedEmote.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedEmote);
 					return;
@@ -175,7 +175,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -197,7 +197,7 @@ namespace Advobot
 			else if (Actions.CaseInsEquals(targetStr, "role"))
 			{
 				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, otherStr);
-				if (returnedRole.Reason != FailureReason.Not_Failure)
+				if (returnedRole.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedRole);
 					return;
@@ -215,7 +215,7 @@ namespace Advobot
 			else if (Actions.CaseInsEquals(targetStr, "emote"))
 			{
 				var returnedEmote = Actions.GetEmote(Context, true, otherStr);
-				if (returnedEmote.Reason != FailureReason.Not_Failure)
+				if (returnedEmote.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedEmote);
 					return;
@@ -244,12 +244,12 @@ namespace Advobot
 		[Command("getuserswithreason")]
 		[Alias("guwr")]
 		[Usage("[Role|Name|Game|Streaming] [\"Other Argument\"] <Exact:True|False> <Count:True|False> <Nickname:True|False>")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
+		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public async Task GetUsersWithReason([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 5), new[] { "exact", "count", "nickname" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -294,7 +294,7 @@ namespace Advobot
 			if (Actions.CaseInsEquals(targetStr, "role"))
 			{
 				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, true, otherArgStr);
-				if (returnedRole.Reason != FailureReason.Not_Failure)
+				if (returnedRole.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedRole);
 					return;
@@ -384,7 +384,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 2), new[] { "type" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -415,7 +415,7 @@ namespace Advobot
 		[Alias("gujat")]
 		[Usage("[Position]")]
 		[Summary("Shows the user which joined the guild in that position.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
+		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public async Task UserJoinedAt([Remainder] string input)
 		{
@@ -449,7 +449,7 @@ namespace Advobot
 		[Alias("dgs")]
 		[Usage("")]
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
-		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
+		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task ListGuilds()
 		{
@@ -474,7 +474,7 @@ namespace Advobot
 		[Alias("dujl")]
 		[Usage("")]
 		[Summary("Lists most of the users who have joined the guild.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
+		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public async Task UserJoins()
 		{
@@ -487,7 +487,7 @@ namespace Advobot
 		[Alias("de")]
 		[Usage("[Global|Guild]")]
 		[Summary("Lists the emotes in the guild. As of right now, with the current API wrapper version this bot uses, there's no way to upload or remove emotes yet; sorry.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
+		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public async Task ListEmojis([Remainder] string input)
 		{
@@ -510,18 +510,29 @@ namespace Advobot
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Emotes", description));
 		}
 
+		[Command("downloadmessages")]
+		[Alias("dlm")]
+		[Usage("[Number]")]
+		[Summary("Downloads the past x amount of messages. Up to 1MB worth of messages, which is roughly 1,000,000 characters, so at minimum it caps out at 500 messages of 2,000 characters each.")]
+		[PermissionRequirement]
+		[DefaultEnabled(true)]
+		public async Task DownloadMessages([Remainder] string input)
+		{
+
+		}
+
 		[Command("makeanembed")]
 		[Alias("mae")]
 		[Usage("<\"Title:input\"> <\"Desc:input\"> <Img:url> <Url:url> <Thumb:url> <Color:int/int/int> <\"Author:input\"> <AuthorIcon:url> <AuthorUrl:url> <\"Foot:input\"> <FootIcon:url> " +
 				"<\"Field[1-25]:input\"> <\"FieldText[1-25]:input\"> <FieldInline[1-25]:true|false>")]
 		[Summary("Every single piece is optional. The stuff in quotes *must* be in quotes. URLs need the https:// in front. Fields need *both* Field and FieldText to work.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
+		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public async Task MakeAnEmbed([Remainder] string input)
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 100), new[] { "title", "desc", "img", "url", "thumb", "author", "authoricon", "authorurl", "foot", "footicon" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -573,12 +584,12 @@ namespace Advobot
 		[Alias("mnr")]
 		[Usage("[Role] [\"Message\"]")]
 		[Summary("Mention an unmentionable role with the given message.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
+		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public async Task MentionRole([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -593,8 +604,8 @@ namespace Advobot
 			}
 
 			//Get the role and see if it can be changed
-			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.Can_Be_Edited, RoleCheck.Is_Everyone }, true, roleStr);
-			if (returnedRole.Reason != FailureReason.Not_Failure)
+			var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone }, true, roleStr);
+			if (returnedRole.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedRole);
 				return;
@@ -621,7 +632,7 @@ namespace Advobot
 		[Alias("mbo")]
 		[Usage("[Message]")]
 		[Summary("Sends a message to the bot owner with the given text. Messages will be cut down to 250 characters.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
+		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public async Task MessageBotOwner([Remainder] string input)
 		{
@@ -643,7 +654,7 @@ namespace Advobot
 		[Alias("getperms")]
 		[Usage("[Number]")]
 		[Summary("Lists all the perms that come from the given value.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
+		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public async Task GetPermsFromValue([Remainder] string input)
 		{
@@ -662,18 +673,23 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context.Channel, String.Format("The number `{0}` has the following permissions: `{1}`.", num, String.Join("`, `", perms)));
 		}
 
+		[Command("getvaluesinenum")]
+		[Alias("getenum")]
+		[Usage("<Enum Name>")]
+		[Summary("Lists the values in an enum. No input lists all the enums in the bot.")]
+		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
+		[DefaultEnabled(true)]
+		public async Task GetValuesInEnum([Optional, Remainder] string input)
+		{
+
+		}
+
 		[Command("test")]
-		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
+		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			var msg = "";
-			foreach (var e in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
-			{
-				var name = Enum.GetName(typeof(SettingOnGuild), e);
-				msg += String.Concat("{ SettingOnGuild.", name, ",  },\n");
-			}
-			await Actions.SendChannelMessage(Context, msg);
+			await Actions.SendChannelMessage(Context, "test");
 		}
 	}
 }

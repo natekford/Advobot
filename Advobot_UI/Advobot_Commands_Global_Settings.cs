@@ -2,21 +2,20 @@
 using Discord.Commands;
 using System;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot
 {
 	//Global Settings commands are commands that work on the bot globally
-	[Name("Global_Settings")]
+	[Name("GlobalSettings")]
 	public class Advobot_Commands_Administration : ModuleBase
 	{
 		[Command("displayglobalsettings")]
 		[Alias("dgls")]
 		[Usage("<All|Setting Name>")]
 		[Summary("Displays global settings. Inputting nothing gives a list of the setting names.")]
-		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
+		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task CurrentGlobalSettings([Remainder] string input)
 		{
@@ -28,7 +27,7 @@ namespace Advobot
 			}
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 1));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -55,7 +54,7 @@ namespace Advobot
 		[Alias("rgls")]
 		[Usage("")]
 		[Summary("Resets all the global settings on the bot.")]
-		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
+		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task GlobalSettingsReset([Optional, Remainder] string input)
 		{
@@ -78,12 +77,12 @@ namespace Advobot
 		[Alias("mgls")]
 		[Summary("Modify the given setting on the bot. Inputting help as the second argument gives information about what arguments that setting takes.")]
 		[Usage("[Setting Name] [Help|Clear|New Value]")]
-		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
+		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task GlobalSettingsModify([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -92,7 +91,7 @@ namespace Advobot
 			var infoStr = returnedArgs.Arguments[1];
 
 			var returnedType = Actions.GetType(settingStr, null, new[] { SettingOnBot.TrustedUsers });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -298,7 +297,7 @@ namespace Advobot
 		[Alias("sub")]
 		[Usage("")]
 		[Summary("Remove's the currently used bot's key so that a different bot can be used instead.")]
-		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
+		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task StopUsingBot([Optional, Remainder] string input)
 		{
@@ -323,7 +322,7 @@ namespace Advobot
 		[Alias("cbi")]
 		[Usage("[Attached Image|Embedded Image|Remove]")]
 		[Summary("Changes the bot's icon to the given image. Typing `" + Constants.BOT_PREFIX + "bi remove` will remove the icon. The image must be smaller than 2.5MB.")]
-		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
+		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task BotIcon([Optional, Remainder] string input)
 		{
@@ -334,7 +333,7 @@ namespace Advobot
 		[Alias("cbn")]
 		[Usage("[New Name]")]
 		[Summary("Changes the bot's name to the given name.")]
-		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
+		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task BotName([Remainder] string input)
 		{
@@ -358,7 +357,7 @@ namespace Advobot
 		[Alias("dc", "runescapeservers")]
 		[Usage("")]
 		[Summary("Turns the bot off.")]
-		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
+		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public Task Disconnect()
 		{
@@ -370,7 +369,7 @@ namespace Advobot
 		[Alias("res")]
 		[Usage("")]
 		[Summary("Restarts the bot.")]
-		[OtherRequirement(1U << (int)Precondition.Bot_Owner)]
+		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public Task Restart()
 		{

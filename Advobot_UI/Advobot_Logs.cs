@@ -138,7 +138,7 @@ namespace Advobot
 					await Actions.HandleJoiningUsers(guildInfo, user);
 				}
 
-				var curInv = await Actions.GetInviteUserJoinedOn(guild);
+				var curInv = await Actions.GetInviteUserJoinedOn(guildInfo, guild);
 				var inviteStr = curInv != null ? String.Format("\n**Invite:** {0}", curInv.Code) : "";
 				var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
 				var ageWarningStr = userAccAge.TotalHours <= 24 ? String.Format("\n**New Account:** {0} hours, {1} minutes old.", (int)userAccAge.TotalHours, (int)userAccAge.Minutes) : "";
@@ -281,7 +281,7 @@ namespace Advobot
 				var beforeMessage = cached.HasValue ? cached.Value : null;
 				if (!Actions.VerifyMessageShouldBeLogged(guildInfo, afterMessage))
 					return;
-				await Actions.BannedPhrases(guildInfo, afterMessage);
+				await Actions.HandleBannedPhrases(guildInfo, afterMessage);
 
 				if (serverLog != null)
 				{
@@ -328,7 +328,7 @@ namespace Advobot
 				var beforeMessage = cached.HasValue ? cached.Value : null;
 				if (!Actions.VerifyMessageShouldBeLogged(guildInfo, afterMessage))
 					return;
-				await Actions.BannedPhrases(guildInfo, afterMessage);
+				await Actions.HandleBannedPhrases(guildInfo, afterMessage);
 			}
 		}
 
@@ -343,19 +343,20 @@ namespace Advobot
 				var message = cached.HasValue ? cached.Value : null;
 
 				//Get the list of deleted messages it contains
-				lock (guildInfo.MessageDeletion)
+				var msgDeletion = ((MessageDeletion)guildInfo.GetSetting(SettingOnGuild.MessageDeletion));
+				lock (msgDeletion)
 				{
-					guildInfo.MessageDeletion.AddToList(message);
+					msgDeletion.AddToList(message);
 				}
 
 				//Use a token so the messages do not get sent prematurely
-				var cancelToken = guildInfo.MessageDeletion.CancelToken;
+				var cancelToken = msgDeletion.CancelToken;
 				if (cancelToken != null)
 				{
 					cancelToken.Cancel();
 				}
 				cancelToken = new CancellationTokenSource();
-				guildInfo.MessageDeletion.SetCancelToken(cancelToken);
+				msgDeletion.SetCancelToken(cancelToken);
 
 				//Increment the deleted messages count
 				++Variables.LoggedDeletes;
@@ -374,15 +375,14 @@ namespace Advobot
 
 					//Give the messages to a new list so they can be removed from the old one
 					List<IMessage> deletedMessages;
-					lock (guildInfo.MessageDeletion)
+					lock (msgDeletion)
 					{
-						deletedMessages = new List<IMessage>(guildInfo.MessageDeletion.GetList().Select(x => x as IMessage));
-						guildInfo.MessageDeletion.ClearList();
+						deletedMessages = new List<IMessage>(msgDeletion.GetList().Select(x => x as IMessage));
+						msgDeletion.ClearList();
 					}
 
 					//Put the message content into a list of strings for easy usage
-					var deletedMessagesContent = Actions.FormatDeletedMessages(deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks).ToList());
-					await Actions.SendDeleteMessage(guild, serverLog, deletedMessagesContent);
+					await Actions.SendDeleteMessage(guild, serverLog, Actions.FormatDeletedMessages(deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks).ToList()));
 				}).Forget();
 
 				//To get it to not want an await
@@ -491,16 +491,18 @@ namespace Advobot
 
 		public static async Task HandleSlowmodeOrBannedPhrases(BotGuildInfo guildInfo, IMessage message)
 		{
-			if (guildInfo.SlowmodeGuild != null || guildInfo.SlowmodeChannels.Any(x => x.ChannelID == message.Channel.Id))
+			var smGuild = ((SlowmodeGuild)guildInfo.GetSetting(SettingOnGuild.SlowmodeGuild));
+			var smChan = ((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels)).FirstOrDefault(x => x.ChannelID == message.Channel.Id);
+			if (smGuild != null || smChan != null)
 			{
-				await Actions.Slowmode(guildInfo, message);
+				await Actions.HandleSlowmode(smGuild, smChan, message);
 			}
 
 			var bannedStrings = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings);
 			var bannedRegex = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex);
 			if (bannedStrings.Any() || bannedRegex.Any())
 			{
-				await Actions.BannedPhrases(guildInfo, message);
+				await Actions.HandleBannedPhrases(guildInfo, message);
 			}
 		}
 
@@ -517,7 +519,7 @@ namespace Advobot
 		public static async Task HandleSpamPreventionVoting(BotGuildInfo guildInfo, IMessage message)
 		{
 			//Get the users primed to be kicked/banned by the spam prevention
-			var users = guildInfo.SpamPreventionUsers.Where(x => x.PotentialKick).ToList();
+			var users = ((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).Where(x => x.PotentialKick).ToList();
 			if (!users.Any())
 				return;
 

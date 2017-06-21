@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
-	[Name("Guild_List")]
+	[Name("GuildList")]
 	public class Advobot_Commands_Guild_List : ModuleBase
 	{
 		[Command("modifyguildlisting")]
@@ -20,7 +20,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "keywords" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -30,7 +30,7 @@ namespace Advobot
 			var keywordStr = returnedArgs.GetSpecifiedArg("keywords");
 
 			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.Not_Failure)
+			if (returnedType.Reason != TypeFailureReason.NotFailure)
 			{
 				await Actions.HandleTypeGettingErrors(Context, returnedType);
 				return;
@@ -120,7 +120,7 @@ namespace Advobot
 		[Alias("bump")]
 		[Usage("")]
 		[Summary("Bumps the invite on the guild.")]
-		[OtherRequirement(1U << (int)Precondition.User_Has_A_Perm)]
+		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(false)]
 		public async Task BumpInvite()
 		{
@@ -143,7 +143,7 @@ namespace Advobot
 		public async Task GetInvite([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 6), new[] { "code", "name", "globalemotes", "morethan", "lessthan", "keywords" });
-			if (returnedArgs.Reason != ArgFailureReason.Not_Failure)
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
