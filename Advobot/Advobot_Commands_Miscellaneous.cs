@@ -481,6 +481,7 @@ namespace Advobot
 			var users = (await Context.Guild.GetUsersAsync()).OrderBy(x => x.JoinedAt);
 			var str = users.FormatNumberedList("`{0}` joined on `{1}`", x => x.FormatUser(), x => Actions.FormatDateTime(x.JoinedAt.HasValue ? x.JoinedAt.Value.UtcDateTime : null as DateTime?));
 			await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel, str, "User_Joins_");
+			//test
 		}
 
 		[Command("displayemotes")]
