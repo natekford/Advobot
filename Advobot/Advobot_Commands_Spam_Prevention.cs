@@ -17,7 +17,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task PreventMentionSpam([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 5), new[] { "messages", "spam", "votes" });
@@ -50,40 +50,6 @@ namespace Advobot
 			var spamPrevention = guildInfo.GetSpamPrevention(spamType);
 			switch (action)
 			{
-				case ActionType.Enable:
-				{
-					if (spamPrevention == null)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not have any spam prevention to modify."));
-						return;
-					}
-					else if (spamPrevention.Enabled)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention is already enabled."));
-						return;
-					}
-
-					spamPrevention.Enable();
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention has successfully been enabled."));
-					return;
-				}
-				case ActionType.Disable:
-				{
-					if (spamPrevention == null)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not have any spam prevention to modify."));
-						return;
-					}
-					else if (!spamPrevention.Enabled)
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention is already disabled."));
-						return;
-					}
-
-					spamPrevention.Disable();
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention has successfully been disabled."));
-					return;
-				}
 				case ActionType.Setup:
 				{
 					//Get the ints
@@ -110,13 +76,45 @@ namespace Advobot
 					var sp = spam < 1 ? 1 : spam;
 					var tf = time < 1 ? 1 : time;
 
-					//Create the spam prevention and add it to the guild
 					guildInfo.SetSpamPrevention(spamType, new SpamPrevention(PunishmentType.Role, tf, ms, vt, sp));
-
-					//Save everything and send a success message
-					guildInfo.SaveInfo();
 					await Actions.MakeAndDeleteSecondaryMessage(Context,
 						String.Format("Successfully created and enabled a spam prevention with the requirement of `{0}` messages with a spam amount of `{1}` and requires `{2}` votes.", ms, sp, vt));
+					return;
+				}
+				case ActionType.Enable:
+				{
+					if (spamPrevention == null)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not have any spam prevention to modify."));
+						return;
+					}
+					else if (spamPrevention.Enabled)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention is already enabled."));
+						return;
+					}
+
+					spamPrevention.Enable();
+					guildInfo.SaveInfo();
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention has successfully been enabled."));
+					return;
+				}
+				case ActionType.Disable:
+				{
+					if (spamPrevention == null)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild does not have any spam prevention to modify."));
+						return;
+					}
+					else if (!spamPrevention.Enabled)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention is already disabled."));
+						return;
+					}
+
+					spamPrevention.Disable();
+					guildInfo.SaveInfo();
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The targetted spam prevention has successfully been disabled."));
 					return;
 				}
 			}
@@ -131,7 +129,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task PreventRaidSpam([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2), new[] { "count" });
@@ -184,6 +182,7 @@ namespace Advobot
 						return;
 					}
 					antiRaid.Enable();
+					guildInfo.SaveInfo();
 
 					//Mute the newest joining users
 					var m = 0;
@@ -211,6 +210,7 @@ namespace Advobot
 						return;
 					}
 					antiRaid.Disable();
+					guildInfo.SaveInfo();
 
 					//Unmute every user who was muted
 					var ttl = antiRaid.PunishedUsers.Count();
@@ -234,8 +234,6 @@ namespace Advobot
 					break;
 				}
 			}
-
-			guildInfo.SaveInfo();
 		}
 
 		[Command("preventrapidjoin")]
@@ -246,7 +244,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task PreventRapidJoin([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "count", "time" });
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
@@ -311,6 +309,7 @@ namespace Advobot
 					}
 
 					antiJoin.Enable();
+					guildInfo.SaveInfo();
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully enabled the rapid join protection on this guild.");
 					break;
 				}
@@ -329,12 +328,11 @@ namespace Advobot
 					}
 
 					antiJoin.Disable();
+					guildInfo.SaveInfo();
 					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled the rapid join protection on this guild.");
 					break;
 				}
 			}
-
-			guildInfo.SaveInfo();
 		}
 	}
 }

@@ -213,7 +213,7 @@ namespace Advobot
 			{
 				var len = Actions.GetMaxNumOfUsersToGather(Context, returnedArgs.Arguments);
 				var validUsers = users.GetUpToAndIncludingMinNum(len);
-				Actions.DontWaitForResultOfUnimportantBigFunction(async () =>
+				Actions.DontWaitForResultOfBigUnimportantFunction(Context.Channel, async () =>
 				{
 					await Actions.RenicknameALotOfPeople(Context, validUsers, replaceStr);
 				});
@@ -230,7 +230,7 @@ namespace Advobot
 		{
 			var len = Actions.GetMaxNumOfUsersToGather(Context, new[] { input });
 			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => x.Nickname != null)).GetUpToAndIncludingMinNum(len);
-			Actions.DontWaitForResultOfUnimportantBigFunction(async () =>
+			Actions.DontWaitForResultOfBigUnimportantFunction(Context.Channel, async () =>
 			{
 				await Actions.RenicknameALotOfPeople(Context, users, null);
 			});

@@ -19,7 +19,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task Serverlog([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
@@ -121,7 +121,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task IgnoreChannel([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Split the input and determine whether to add or remove
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
@@ -214,7 +214,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task SwitchLogActions([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 			var logActions = (List<LogActions>)guildInfo.GetSetting(SettingOnGuild.LogActions);
 
 			//Check if the person wants to only see the types

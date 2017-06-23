@@ -20,7 +20,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task FullMute([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
@@ -271,10 +271,9 @@ namespace Advobot
 			var users = (await inputChannel.GetUsersAsync().ToList()).SelectMany(x => x).ToList();
 
 			//Have the bot stay in the typing state and have a message that can be updated
-			Actions.DontWaitForResultOfUnimportantBigFunction(async () =>
+			Actions.DontWaitForResultOfBigUnimportantFunction(Context.Channel, async () =>
 			{
 				var msg = await Actions.SendChannelMessage(Context, String.Format("Attempting to move `{0}` user{1}.", users.Count, Actions.GetPlural(users.Count))) as IUserMessage;
-				var typing = Context.Channel.EnterTypingState();
 
 				//Move them all
 				var count = 0;
@@ -607,7 +606,7 @@ namespace Advobot
 			}
 
 			//Check if the channel that's having messages attempted to be removed on is a log channel
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 			var serverLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog))?.ID == channel.Id;
 			var modLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog))?.ID == channel.Id;
 			var imageLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ImageLog))?.ID == channel.Id;
@@ -650,7 +649,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task SlowMode([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "roles", "messages", "time", "guild" });
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)

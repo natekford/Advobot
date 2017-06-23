@@ -20,7 +20,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanRegexEvaluate([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Get the arguments
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
@@ -90,7 +90,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanRegexModify([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
@@ -201,7 +201,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesModify([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2), new[] { "position" });
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
@@ -275,7 +275,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesChangeType([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//First split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "position" });
@@ -369,7 +369,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesPunishModify([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 4), new[] { "position", "punishment", "time" });
@@ -530,7 +530,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesUser([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
@@ -593,7 +593,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task ModifyBannedWordsForJoiningUsers([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)

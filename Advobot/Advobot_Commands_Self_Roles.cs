@@ -19,7 +19,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task ModifySelfAssignableRoles([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Check if it's extra help wanted
 			if (Actions.CaseInsEquals(input, "help"))
@@ -204,7 +204,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task AssignSelfRole([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Get the role. No edit ability checking in this command due to how that's already been done in the modify command
 			var role = Actions.GetRole(Context, new[] { RoleCheck.None }, true, input).Object;
@@ -261,7 +261,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task CurrentGroups([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var groupNumber = -1;
 			if (!String.IsNullOrWhiteSpace(input))

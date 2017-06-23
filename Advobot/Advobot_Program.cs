@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 //I am too lazy to type out .ConfigureAwait(false) on every await I do so I don't use it.
 //Also, a lot of the things that go into DontWaitForResultOfUnimportantBigFunction make the bot hang, so that's why they use async void
+//If I wasn't the one writing this, I probably wouldn't be using it. Be warned. 
 namespace Advobot
 {
 	public class Program

@@ -254,11 +254,9 @@ namespace Advobot
 				return;
 			}
 
-			Actions.DontWaitForResultOfUnimportantBigFunction(async () =>
+			Actions.DontWaitForResultOfBigUnimportantFunction(Context.Channel, async () =>
 			{
-				var typing = Context.Channel.EnterTypingState();
 				await invites.ForEachAsync(async x => await x.DeleteAsync());
-				typing.Dispose();
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` instant invites on this guild.", invites.Count));
 			});
 		}

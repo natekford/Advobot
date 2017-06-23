@@ -42,6 +42,10 @@ namespace Advobot
 		#endregion
 
 		#region Output
+		private static readonly MenuItem mOutputContextMenuSearch = new MenuItem
+		{
+			Header = "Search For...",
+		};
 		private static readonly MenuItem mOutputContextMenuSave = new MenuItem
 		{
 			Header = "Save Output Log",
@@ -54,7 +58,7 @@ namespace Advobot
 		{
 			ContextMenu = new ContextMenu
 			{
-				ItemsSource = new[] { mOutputContextMenuSave, mOutputContextMenuClear },
+				ItemsSource = new[] { mOutputContextMenuSearch, mOutputContextMenuSave, mOutputContextMenuClear },
 			},
 			IsReadOnly = true,
 			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
@@ -129,7 +133,8 @@ namespace Advobot
 		private const int TB_START_COLUMN = 40;
 		private const int TB_COLUMN_LENGTH = 55;
 
-		private static readonly TextBox mDownloadUsersTitle = UIModification.MakeTitle("Download Users:");
+		private static readonly TextBox mDownloadUsersTitle = UIModification.MakeTitle("Download Users:",
+			"When checked the bot will download users the instant it joins the guild. Having this off means that a lot of commands will not work correctly since I haven't bothered to put a way to manually download users.");
 		private static readonly Viewbox mDownloadUsersSetting = new Viewbox
 		{
 			Child = new CheckBox
@@ -142,28 +147,40 @@ namespace Advobot
 			Tag = SettingOnBot.AlwaysDownloadUsers,
 		};
 
-		private static readonly TextBox mPrefixTitle = UIModification.MakeTitle("Prefix:");
+		private static readonly TextBox mPrefixTitle = UIModification.MakeTitle("Prefix:", 
+			"The prefix which is needed to be said before commands.");
 		private static readonly TextBox mPrefixSetting = UIModification.MakeSetting(SettingOnBot.Prefix, 10);
 
-		private static readonly TextBox mBotOwnerTitle = UIModification.MakeTitle("Bot Owner:");
+		private static readonly TextBox mBotOwnerTitle = UIModification.MakeTitle("Bot Owner:",
+			"The number here is the ID of a user. The bot owner can use some additional commands.");
 		private static readonly TextBox mBotOwnerSetting = UIModification.MakeSetting(SettingOnBot.BotOwnerID, 18);
 
-		private static readonly TextBox mGameTitle = UIModification.MakeTitle("Game:");
+		private static readonly TextBox mGameTitle = UIModification.MakeTitle("Game:",
+			"Changes what the bot says it's playing.");
 		private static readonly TextBox mGameSetting = UIModification.MakeSetting(SettingOnBot.Game, 100);
 
-		private static readonly TextBox mStreamTitle = UIModification.MakeTitle("Stream:");
+		private static readonly TextBox mStreamTitle = UIModification.MakeTitle("Stream:", 
+			"Can set whatever stream you want as long as it's a valid Twitch.tv stream.");
 		private static readonly TextBox mStreamSetting = UIModification.MakeSetting(SettingOnBot.Stream, 50);
 
-		private static readonly TextBox mShardTitle = UIModification.MakeTitle("Shard Count:");
+		private static readonly TextBox mShardTitle = UIModification.MakeTitle("Shard Count:",
+			"Each shard can hold up to 2500 guilds.");
 		private static readonly TextBox mShardSetting = UIModification.MakeSetting(SettingOnBot.ShardCount, 3);
 
-		private static readonly TextBox mMessageCacheTitle = UIModification.MakeTitle("Message Cache:");
+		private static readonly TextBox mMessageCacheTitle = UIModification.MakeTitle("Message Cache:",
+			"The amount of messages the bot will hold in its cache.");
 		private static readonly TextBox mMessageCacheSetting = UIModification.MakeSetting(SettingOnBot.MessageCacheCount, 6);
 
-		private static readonly TextBox mUserGatherCountTitle = UIModification.MakeTitle("Max User Gather:");
+		private static readonly TextBox mUserGatherCountTitle = UIModification.MakeTitle("Max User Gather:",
+			"Limits the amount of users a command can modify at once.");
 		private static readonly TextBox mUserGatherCountSetting = UIModification.MakeSetting(SettingOnBot.MaxUserGatherCount, 5);
 
-		private static readonly TextBox mLogLevelTitle = UIModification.MakeTitle("Log Level:");
+		private static readonly TextBox mMessageGatherSizeTitle = UIModification.MakeTitle("Max Msg Gather:",
+			"For the download messages command. This is in bytes, which to be very basic is roughly two bytes per character.");
+		private static readonly TextBox mMessageGatherSizeSetting = UIModification.MakeSetting(SettingOnBot.MaxMessageGatherSize, 7);
+
+		private static readonly TextBox mLogLevelTitle = UIModification.MakeTitle("Log Level:",
+			"Certain events in the Discord library used in this bot have a required log level to be said in the console.");
 		private static readonly ComboBox mLogLevelComboBox = new ComboBox
 		{
 			VerticalContentAlignment = VerticalAlignment.Center,
@@ -171,7 +188,8 @@ namespace Advobot
 			ItemsSource = UIModification.MakeComboBoxSourceOutOfEnum(typeof(Discord.LogSeverity)),
 		};
 
-		private static readonly TextBox mTrustedUsersTitle = UIModification.MakeTitle("Trusted Users:");
+		private static readonly TextBox mTrustedUsersTitle = UIModification.MakeTitle("Trusted Users:",
+			"Some commands can only be run by the bot owner or user IDs that they have designated as trust worthy.");
 		private static readonly TextBox mTrustedUsersAddBox = UIModification.MakeSetting(SettingOnBot.TrustedUsers, 18);
 		private static readonly Button mTrustedUsersAddButton = new MyButton
 		{
@@ -182,7 +200,7 @@ namespace Advobot
 			Tag = SettingOnBot.TrustedUsers,
 		};
 
-		private static readonly TextBox mPlaceholderTitle = UIModification.MakeTitle("");
+		private static readonly TextBox mPlaceholderTitle = UIModification.MakeTitle("", "");
 		private static readonly ComboBox mTrustedUsersComboBox = new ComboBox
 		{
 			VerticalContentAlignment = VerticalAlignment.Center,
@@ -207,6 +225,7 @@ namespace Advobot
 			mShardTitle,
 			mMessageCacheTitle,
 			mUserGatherCountTitle,
+			mMessageGatherSizeTitle,
 			mLogLevelTitle,
 			mTrustedUsersTitle,
 			mPlaceholderTitle,
@@ -221,6 +240,7 @@ namespace Advobot
 			mShardSetting,
 			mMessageCacheSetting,
 			mUserGatherCountSetting,
+			mMessageGatherSizeSetting,
 			mLogLevelComboBox,
 			mTrustedUsersAddGrid,
 			mTrustedUsersRemoveGrid,
@@ -280,7 +300,7 @@ namespace Advobot
 		};
 		#endregion
 
-		#region Edit
+		#region Edit Menu
 		private static readonly Grid mEditLayout = new Grid
 		{
 			Visibility = Visibility.Collapsed,
@@ -314,41 +334,76 @@ namespace Advobot
 		#endregion
 
 		#region Guild Search
-		private static readonly Grid mSearchLayout = new Grid
+		private static readonly Grid mGuildSearchLayout = new Grid
 		{
 			Background = UIModification.MakeBrush("#BF000000"),
 			Visibility = Visibility.Collapsed
 		};
-		private static readonly Grid mSearchTextLayout = new Grid();
+		private static readonly Grid mGuildSearchTextLayout = new Grid();
 
-		private static readonly TextBox mSearchPlaceholderTB = new MyTextBox
+		private static readonly TextBox mGuildSearchPlaceholderTB = new MyTextBox
 		{
 			IsReadOnly = true,
 		};
-		private static readonly Viewbox mNameHeader = UIModification.MakeStandardViewBox("Guild Name:");
-		private static readonly TextBox mNameInput = new MyTextBox
+		private static readonly Viewbox mGuildSearchNameHeader = UIModification.MakeStandardViewBox("Guild Name:");
+		private static readonly TextBox mGuildSearchNameInput = new MyTextBox
 		{
 			MaxLength = 100,
 			TextWrapping = TextWrapping.Wrap,
 		};
-		private static readonly Viewbox mIDHeader = UIModification.MakeStandardViewBox("ID:");
-		private static readonly TextBox mIDInput = new MyTextBox
+		private static readonly Viewbox mGuildSearchIDHeader = UIModification.MakeStandardViewBox("ID:");
+		private static readonly TextBox mGuildSearchIDInput = new MyTextBox
 		{
 			MaxLength = 18,
 			TextWrapping = TextWrapping.Wrap,
 		};
-		private static readonly ComboBox mFileComboBox = new ComboBox
+		private static readonly ComboBox mGuildSearchFileComboBox = new ComboBox
 		{
 			VerticalContentAlignment = VerticalAlignment.Center,
 			Tag = SettingOnBot.LogLevel,
 			ItemsSource = UIModification.MakeComboBoxSourceOutOfEnum(typeof(FileType)),
 		};
 
-		private static readonly Button mSearchButton = new MyButton
+		private static readonly Button mGuildSearchButton = new MyButton
 		{
 			Content = "Search",
 		};
-		private static readonly Button mSearchCloseButton = new MyButton
+		private static readonly Button mGuildSearchCloseButton = new MyButton
+		{
+			Content = "Close",
+		};
+		#endregion
+
+		#region Output Search
+		private static readonly Grid mOutputSearchLayout = new Grid
+		{
+			Background = UIModification.MakeBrush("#BF000000"),
+			Visibility = Visibility.Collapsed
+		};
+		private static readonly Grid mOutputSearchTextLayout = new Grid();
+
+		private static readonly TextBox mOutputSearchResults = new MyTextBox
+		{
+			IsReadOnly = true,
+			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
+			TextWrapping = TextWrapping.Wrap,
+		};
+		private static readonly TextBox mOutputSearchPlaceholderTB = new MyTextBox
+		{
+			IsReadOnly = true,
+		};
+
+		private static readonly ComboBox mOutputSearchComboBox = new ComboBox
+		{
+			VerticalContentAlignment = VerticalAlignment.Center,
+			Tag = SettingOnBot.LogLevel,
+		};
+
+		private static readonly Button mOutputSearchButton = new MyButton
+		{
+			Content = "Search",
+		};
+		private static readonly Button mOutputSearchCloseButton = new MyButton
 		{
 			Content = "Close",
 		};
@@ -392,7 +447,7 @@ namespace Advobot
 		{
 			FontFamily = new FontFamily("Courier New");
 			InitializeComponent();
-			Loaded += BotWindow_LoadedEvent;
+			Loaded += RunApplication;
 		}
 		private void InitializeComponent()
 		{
@@ -471,21 +526,29 @@ namespace Advobot
 			UIModification.AddElement(mEditButtonLayout, mEditSaveButton, 0, 1, 0, 1);
 			UIModification.AddElement(mEditButtonLayout, mEditCloseButton, 0, 1, 1, 1);
 
-			//Search
-			UIModification.AddElement(mLayout, mSearchLayout, 0, 100, 0, 4, 10, 10);
-			UIModification.AddElement(mSearchLayout, mSearchTextLayout, 3, 4, 3, 4, 100, 100);
-			UIModification.AddElement(mSearchTextLayout, mSearchPlaceholderTB, 0, 100, 0, 100);
-			UIModification.AddElement(mSearchTextLayout, mNameHeader, 10, 10, 20, 60);
-			UIModification.AddElement(mSearchTextLayout, mNameInput, 20, 15, 20, 60);
-			UIModification.AddElement(mSearchTextLayout, mIDHeader, 35, 10, 20, 60);
-			UIModification.AddElement(mSearchTextLayout, mIDInput, 45, 10, 20, 60);
-			UIModification.AddElement(mSearchTextLayout, mFileComboBox, 57, 10, 20, 60);
-			UIModification.AddElement(mSearchTextLayout, mSearchButton, 69, 15, 20, 25);
-			UIModification.AddElement(mSearchTextLayout, mSearchCloseButton, 69, 15, 55, 25);
+			//Guild Search
+			UIModification.AddElement(mLayout, mGuildSearchLayout, 0, 100, 0, 4, 10, 10);
+			UIModification.AddElement(mGuildSearchLayout, mGuildSearchTextLayout, 3, 4, 3, 4, 100, 100);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchPlaceholderTB, 0, 100, 0, 100);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchNameHeader, 10, 10, 20, 60);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchNameInput, 20, 15, 20, 60);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchIDHeader, 35, 10, 20, 60);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchIDInput, 45, 10, 20, 60);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchFileComboBox, 57, 10, 20, 60);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchButton, 69, 15, 20, 25);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchCloseButton, 69, 15, 55, 25);
+
+			//Output Search
+			UIModification.AddElement(mLayout, mOutputSearchLayout, 0, 100, 0, 4, 100, 100);
+			UIModification.AddElement(mOutputSearchLayout, mOutputSearchResults, 10, 75, 10, 80);
+			UIModification.AddElement(mOutputSearchLayout, mOutputSearchPlaceholderTB, 85, 5, 10, 80);
+			UIModification.AddElement(mOutputSearchLayout, mOutputSearchComboBox, 86, 3, 12, 25);
+			UIModification.AddElement(mOutputSearchLayout, mOutputSearchButton, 86, 3, 76, 5);
+			UIModification.AddElement(mOutputSearchLayout, mOutputSearchCloseButton, 86, 3, 83, 5);  
 
 			//Font size properties
 			UIModification.SetFontSizeProperties(.275, new UIElement[] { mInput, });
-			UIModification.SetFontSizeProperties(.060, new UIElement[] { mNameInput, mIDInput, });
+			UIModification.SetFontSizeProperties(.060, new UIElement[] { mGuildSearchNameInput, mGuildSearchIDInput, });
 			UIModification.SetFontSizeProperties(.035, new UIElement[] { mInfoOutput, });
 			UIModification.SetFontSizeProperties(.022, new UIElement[] { mEditBox, mEditSaveBox, mFileOutput, });
 			UIModification.SetFontSizeProperties(.018, new UIElement[] { mMainMenuOutput, }, mTitleBoxes, mSettingBoxes);
@@ -504,24 +567,26 @@ namespace Advobot
 			mColorsButton.Click += BringUpMenu;
 			mInfoButton.Click += BringUpMenu;
 			mFileButton.Click += BringUpMenu;
-			mEditCloseButton.Click += CloseEditScreen;
-			mEditSaveButton.Click += SaveEditScreen;
+			mEditCloseButton.Click += CloseEditLayout;
+			mEditSaveButton.Click += SaveEditLayout;
 			mSettingsSaveButton.Click += SaveSettings;
 			mFileSearchButton.Click += BringUpFileSearch;
-			mSearchButton.Click += FileSearch;
-			mSearchCloseButton.Click += CloseSearch;
+			mGuildSearchButton.Click += FileSearch;
+			mGuildSearchCloseButton.Click += CloseFileSearch;
 			mPauseButton.Click += Pause;
 			mRestartButton.Click += Restart;
 			mDisconnectButton.Click += Disconnect;
 			mColorsSaveButton.Click += UpdateColors;
+			mOutputContextMenuSearch.Click += BringUpOutputSearch;
+			mOutputSearchCloseButton.Click += CloseOutputSearch;
+			mOutputSearchButton.Click += OutputSearch;
 
 			//Set this panel as the content for this window and run the application
 			this.Content = mLayout;
 			this.WindowState = WindowState.Maximized;
-
-			RunApplication();
 		}
-		private void RunApplication()
+
+		private void RunApplication(object sender, RoutedEventArgs e)
 		{
 			//Make console output show on the output text block and box
 			Console.SetOut(new UITextBoxStreamWriter(mOutput));
@@ -537,16 +602,11 @@ namespace Advobot
 				Actions.MaybeStartBot();
 			});
 
-			//Make sure the system information stays updated
-			UpdateSystemInformation();
-		}
-		private void BotWindow_LoadedEvent(object sender, RoutedEventArgs e)
-		{
 			InitializeColors();
 			SetTheme(UIAttributes.BotUIInfo.Theme);
 			UIModification.SetColorMode(mLayout);
+			UpdateSystemInformation();
 		}
-
 		private void Pause(object sender, RoutedEventArgs e)
 		{
 			if (Variables.Pause)
@@ -582,7 +642,6 @@ namespace Advobot
 				}
 			}
 		}
-
 		private void AcceptInput(object sender, KeyEventArgs e)
 		{
 			var text = mInput.Text;
@@ -637,123 +696,50 @@ namespace Advobot
 				}
 			}
 		}
-
-		private void BringUpMenu(object sender, RoutedEventArgs e)
+		private void BringUpOutputSearch(object sender, RoutedEventArgs e)
 		{
-			//Make sure everything is loaded first
-			if (!Variables.Loaded)
-				return;
-
-			var name = (sender as Button).Content.ToString();
-
-			//Hide everything so stuff doesn't overlap
-			mMainMenuLayout.Visibility = Visibility.Collapsed;
-			mSettingsLayout.Visibility = Visibility.Collapsed;
-			mColorsLayout.Visibility = Visibility.Collapsed;
-			mInfoLayout.Visibility = Visibility.Collapsed;
-			mFileLayout.Visibility = Visibility.Collapsed;
-
-			//If clicking the same button then resize the output window to the regular size
-			if (Actions.CaseInsEquals(name, mLastButtonClicked))
-			{
-				UIModification.SetColAndSpan(mOutput, 0, 4);
-				mLastButtonClicked = null;
-			}
-			else
-			{
-				//Resize the regular output window and have the menubox appear
-				UIModification.SetColAndSpan(mOutput, 0, 3);
-				mLastButtonClicked = name;
-
-				//Show the text for help
-				if (Actions.CaseInsEquals(name, mHelpButton.Content.ToString()))
-				{
-					mMainMenuLayout.Visibility = Visibility.Visible;
-				}
-				//Show the text for settings
-				else if (Actions.CaseInsEquals(name, mSettingsButton.Content.ToString()))
-				{
-					UpdateSettingsWhenOpened();
-					mSettingsLayout.Visibility = Visibility.Visible;
-				}
-				else if (Actions.CaseInsEquals(name, mColorsButton.Content.ToString()))
-				{
-					UIModification.MakeColorDisplayer(mColorsLayout, mColorsSaveButton, .018);
-					mColorsLayout.Visibility = Visibility.Visible;
-				}
-				//Show the text for info
-				else if (Actions.CaseInsEquals(name, mInfoButton.Content.ToString()))
-				{
-					mInfoLayout.Visibility = Visibility.Visible;
-				}
-				//Show the text for files
-				else if (Actions.CaseInsEquals(name, mFileButton.Content.ToString()))
-				{
-					mFileOutput.Document = UIModification.MakeFileMenu(mFileTreeView);
-					mFileLayout.Visibility = Visibility.Visible;
-				}
-			}
+			mOutputSearchComboBox.ItemsSource = UIModification.MakeComboBoxSourceOutOfStrings(Variables.WrittenLines.Keys);
+			mOutputSearchLayout.Visibility = Visibility.Visible;
 		}
-		private void ModifyMemHoverInfo(object sender, RoutedEventArgs e)
+		private void CloseOutputSearch(object sender, RoutedEventArgs e)
 		{
-			UIModification.ToggleToolTip(mMemHoverInfo);
+			mOutputSearchComboBox.SelectedItem = null;
+			mOutputSearchResults.Text = null;
+			mOutputSearchLayout.Visibility = Visibility.Collapsed;
 		}
-		private void AddTrustedUser(object sender, RoutedEventArgs e)
+		private void OutputSearch(object sender, RoutedEventArgs e)
 		{
-			var text = mTrustedUsersAddBox.Text;
-			mTrustedUsersAddBox.Text = "";
-
-			if (String.IsNullOrWhiteSpace(text))
-				return;
-			else if (ulong.TryParse(text, out ulong userID))
+			var selectedItem = (TextBox)mOutputSearchComboBox.SelectedItem;
+			if (selectedItem != null)
 			{
-				var currTBs = mTrustedUsersComboBox.Items.Cast<TextBox>().ToList();
-				if (currTBs.Select(x => (ulong)x.Tag).Contains(userID))
-					return;
-
-				currTBs.Add(UIModification.MakeTextBoxFromUserID(userID));
-				mTrustedUsersComboBox.ItemsSource = currTBs;
+				mOutputSearchResults.Text = null;
+				Variables.WrittenLines[selectedItem.Text].ForEach(x => mOutputSearchResults.AppendText(x + Environment.NewLine));
 			}
-			else
-			{
-				Actions.WriteLine(String.Format("The given input '{0}' is not a valid ID.", text));
-			}
-		}
-		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
-		{
-			if (mTrustedUsersComboBox.SelectedItem == null)
-				return;
-
-			var userID = (ulong)((TextBox)mTrustedUsersComboBox.SelectedItem).Tag;
-			var currTBs = mTrustedUsersComboBox.Items.Cast<TextBox>().ToList();
-			if (!currTBs.Select(x => (ulong)x.Tag).Contains(userID))
-				return;
-
-			currTBs.RemoveAll(x => (ulong)x.Tag == userID);
-			mTrustedUsersComboBox.ItemsSource = currTBs;
-		}
-
-		private void CloseSearch(object sender, RoutedEventArgs e)
-		{
-			HideSearchMenu();
 		}
 		private void BringUpFileSearch(object sender, RoutedEventArgs e)
 		{
-			mSearchLayout.Visibility = Visibility.Visible;
+			mGuildSearchLayout.Visibility = Visibility.Visible;
+		}
+		private void CloseFileSearch(object sender, RoutedEventArgs e)
+		{
+			mGuildSearchFileComboBox.SelectedItem = null;
+			mGuildSearchNameInput.Text = "";
+			mGuildSearchIDInput.Text = "";
+			mGuildSearchLayout.Visibility = Visibility.Collapsed;
 		}
 		private void FileSearch(object sender, RoutedEventArgs e)
 		{
-			var tb = (TextBox)mFileComboBox.SelectedItem;
+			var tb = (TextBox)mGuildSearchFileComboBox.SelectedItem;
 			if (tb == null)
 				return;
 
-			var nameStr = mNameInput.Text;
-			var idStr = mIDInput.Text;
+			var nameStr = mGuildSearchNameInput.Text;
+			var idStr = mGuildSearchIDInput.Text;
 			if (String.IsNullOrWhiteSpace(nameStr) && String.IsNullOrWhiteSpace(idStr))
 				return;
 
 			var fileType = (FileType)tb.Tag;
-			HideSearchMenu();
+			CloseFileSearch(sender, e);
 
 			TreeViewItem guild = null;
 			if (!String.IsNullOrWhiteSpace(idStr))
@@ -808,7 +794,7 @@ namespace Advobot
 
 				if (item != null)
 				{
-					if (BringUpEditLayout(item))
+					if (CheckIfTreeViewItemFileExists(item))
 					{
 						mEditLayout.Visibility = Visibility.Visible;
 						mFileSearchButton.Visibility = Visibility.Collapsed;
@@ -819,15 +805,15 @@ namespace Advobot
 				Actions.WriteLine("Unable to bring up the file.");
 			}
 		}
-		private void HideSearchMenu()
+		private void BringUpEditLayout(object sender, RoutedEventArgs e)
 		{
-			mFileComboBox.SelectedItem = null;
-			mNameInput.Text = "";
-			mIDInput.Text = "";
-			mSearchLayout.Visibility = Visibility.Collapsed;
+			if (CheckIfTreeViewItemFileExists((TreeViewItem)sender))
+			{
+				mEditLayout.Visibility = Visibility.Visible;
+				mFileSearchButton.Visibility = Visibility.Collapsed;
+			}
 		}
-
-		private void CloseEditScreen(object sender, RoutedEventArgs e)
+		private void CloseEditLayout(object sender, RoutedEventArgs e)
 		{
 			var result = MessageBox.Show("Are you sure you want to close the edit window?", Variables.BotName, MessageBoxButton.OKCancel);
 
@@ -841,7 +827,7 @@ namespace Advobot
 				}
 			}
 		}
-		private void SaveEditScreen(object sender, RoutedEventArgs e)
+		private void SaveEditLayout(object sender, RoutedEventArgs e)
 		{
 			var fileLocation = mEditBox.Tag.ToString();
 			if (String.IsNullOrWhiteSpace(fileLocation) || !File.Exists(fileLocation))
@@ -874,61 +860,64 @@ namespace Advobot
 				UIModification.ToggleAndRetoggleElement(mEditSaveBox);
 			}
 		}
-		private static bool BringUpEditLayout(TreeViewItem treeItem)
+		private void BringUpMenu(object sender, RoutedEventArgs e)
 		{
-			//Get the path from the tag
-			var fileLocation = ((FileInformation)treeItem.Tag).FileLocation;
-			if (fileLocation == null)
-				return false;
+			if (!Variables.Loaded)
+				return;
 
-			//Change the text in the bot and make it visible
-			using (var reader = new StreamReader(fileLocation))
+			//Hide everything so stuff doesn't overlap
+			mMainMenuLayout.Visibility = Visibility.Collapsed;
+			mSettingsLayout.Visibility = Visibility.Collapsed;
+			mColorsLayout.Visibility = Visibility.Collapsed;
+			mInfoLayout.Visibility = Visibility.Collapsed;
+			mFileLayout.Visibility = Visibility.Collapsed;
+
+			//If clicking the same button then resize the output window to the regular size
+			var name = (sender as Button).Content.ToString();
+			if (Actions.CaseInsEquals(name, mLastButtonClicked))
 			{
-				mEditBox.Text = reader.ReadToEnd();
+				UIModification.SetColAndSpan(mOutput, 0, 4);
+				mLastButtonClicked = null;
 			}
-			mEditBox.Tag = fileLocation;
-			return true;
-		}
-		public static void AddGuildFileDoubleClick(TreeViewItem treeViewItem)
-		{
-			treeViewItem.MouseDoubleClick += (sender, e) =>
+			else
 			{
-				if (BringUpEditLayout(treeViewItem))
-				{
-					mEditLayout.Visibility = Visibility.Visible;
-					mFileSearchButton.Visibility = Visibility.Collapsed;
-				}
-			};
-		}
+				//Resize the regular output window and have the menubox appear
+				UIModification.SetColAndSpan(mOutput, 0, 3);
+				mLastButtonClicked = name;
 
-		private void UpdateSystemInformation()
-		{
-			var timer = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 500) };
-			timer.Tick += (sender, e) =>
-			{
-				var client = Variables.Client;
-				((TextBox)mLatency.Child).Text = String.Format("Latency: {0}ms", client.GetLatency());
-				((TextBox)mMemory.Child).Text = String.Format("Memory: {0}MB", Actions.GetMemory().ToString("0.00"));
-				((TextBox)mThreads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
-				((TextBox)mGuilds.Child).Text = String.Format("Guilds: {0}", client.GetGuilds().Count);
-				((TextBox)mUsers.Child).Text = String.Format("Members: {0}", client.GetGuilds().SelectMany(x => x.Users).Select(x => x.Id).Distinct().Count());
-				mInfoOutput.Document = UIModification.MakeInfoMenu();
-			};
-			timer.Start();
-		}
-		private void UpdateSettingsWhenOpened()
-		{
-			var botInfo = Variables.BotInfo;
-			((CheckBox)mDownloadUsersSetting.Child).IsChecked = ((bool)botInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers));
-			mPrefixSetting.Text = ((string)botInfo.GetSetting(SettingOnBot.Prefix));
-			mBotOwnerSetting.Text = ((ulong)botInfo.GetSetting(SettingOnBot.BotOwnerID)).ToString();
-			mGameSetting.Text = ((string)botInfo.GetSetting(SettingOnBot.Game));
-			mStreamSetting.Text = ((string)botInfo.GetSetting(SettingOnBot.Stream));
-			mShardSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.ShardCount)).ToString();
-			mMessageCacheSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.MaxUserGatherCount)).ToString();
-			mUserGatherCountSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.MaxUserGatherCount)).ToString();
-			mLogLevelComboBox.SelectedItem = GetSelectedLogLevel();
-			mTrustedUsersComboBox.ItemsSource = FormatTrustedUsers();
+				//Show the text for help
+				if (Actions.CaseInsEquals(name, mHelpButton.Content.ToString()))
+				{
+					mMainMenuLayout.Visibility = Visibility.Visible;
+				}
+				//Show the text for settings
+				else if (Actions.CaseInsEquals(name, mSettingsButton.Content.ToString()))
+				{
+					UpdateSettingsWhenOpened();
+					mSettingsLayout.Visibility = Visibility.Visible;
+				}
+				else if (Actions.CaseInsEquals(name, mColorsButton.Content.ToString()))
+				{
+					UIModification.MakeColorDisplayer(mColorsLayout, mColorsSaveButton, .018);
+					mColorsLayout.Visibility = Visibility.Visible;
+				}
+				//Show the text for info
+				else if (Actions.CaseInsEquals(name, mInfoButton.Content.ToString()))
+				{
+					mInfoLayout.Visibility = Visibility.Visible;
+				}
+				//Show the text for files
+				else if (Actions.CaseInsEquals(name, mFileButton.Content.ToString()))
+				{
+					var treeView = UIModification.MakeGuildTreeView(mFileTreeView);
+					treeView.Items.Cast<TreeViewItem>().SelectMany(x => x.Items.Cast<TreeViewItem>()).ToList().ForEach(x =>
+					{
+						x.MouseDoubleClick += BringUpEditLayout;
+					});
+					mFileOutput.Document = new FlowDocument(new Paragraph(new InlineUIContainer(treeView)));
+					mFileLayout.Visibility = Visibility.Visible;
+				}
+			}
 		}
 		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
@@ -963,7 +952,7 @@ namespace Advobot
 			if (success.Any())
 			{
 				Actions.WriteLine(String.Format("Successfully saved: {0}", String.Join(", ", success)));
-				Actions.DontWaitForResultOfUnimportantBigFunction(async () =>
+				Actions.DontWaitForResultOfBigUnimportantFunction(null, async () =>
 				{
 					await Actions.UpdateGame();
 				});
@@ -972,6 +961,151 @@ namespace Advobot
 			{
 				Actions.WriteLine(String.Format("Failed to save: {0}", String.Join(", ", failure)));
 			}
+		}
+		private void UpdateColors(object sender, RoutedEventArgs e)
+		{
+			SaveColors();
+			SaveBotUIInfo();
+			SetTheme(UIAttributes.BotUIInfo.Theme);
+			UIModification.SetColorMode(mLayout);
+		}
+		private void ModifyMemHoverInfo(object sender, RoutedEventArgs e)
+		{
+			UIModification.ToggleToolTip(mMemHoverInfo);
+		}
+		private void AddTrustedUser(object sender, RoutedEventArgs e)
+		{
+			var text = mTrustedUsersAddBox.Text;
+			mTrustedUsersAddBox.Text = "";
+
+			if (String.IsNullOrWhiteSpace(text))
+				return;
+			else if (ulong.TryParse(text, out ulong userID))
+			{
+				var currTBs = mTrustedUsersComboBox.Items.Cast<TextBox>().ToList();
+				if (currTBs.Select(x => (ulong)x.Tag).Contains(userID))
+					return;
+
+				currTBs.Add(UIModification.MakeTextBoxFromUserID(userID));
+				mTrustedUsersComboBox.ItemsSource = currTBs;
+			}
+			else
+			{
+				Actions.WriteLine(String.Format("The given input '{0}' is not a valid ID.", text));
+			}
+		}
+		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
+		{
+			if (mTrustedUsersComboBox.SelectedItem == null)
+				return;
+
+			var userID = (ulong)((TextBox)mTrustedUsersComboBox.SelectedItem).Tag;
+			var currTBs = mTrustedUsersComboBox.Items.Cast<TextBox>().ToList();
+			if (!currTBs.Select(x => (ulong)x.Tag).Contains(userID))
+				return;
+
+			currTBs.RemoveAll(x => (ulong)x.Tag == userID);
+			mTrustedUsersComboBox.ItemsSource = currTBs;
+		}
+
+		private void SaveColors()
+		{
+			var UIInfo = UIAttributes.BotUIInfo;
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(mColorsLayout); i++)
+			{
+				var child = VisualTreeHelper.GetChild(mColorsLayout, i);
+				if (child is MyTextBox)
+				{
+					var castedChild = child as MyTextBox;
+
+					if (!(castedChild.Tag is ColorTarget))
+						continue;
+					var target = (ColorTarget)castedChild.Tag;
+
+					var childText = castedChild.Text;
+					if (String.IsNullOrWhiteSpace(childText))
+					{
+						continue;
+					}
+					else if (!childText.StartsWith("#"))
+					{
+						childText = "#" + childText;
+					}
+
+					Brush brush = null;
+					try
+					{
+						brush = UIModification.MakeBrush(childText);
+					}
+					catch
+					{
+						Actions.WriteLine(String.Format("Invalid color supplied for {0}.", Enum.GetName(typeof(ColorTarget), target)));
+						continue;
+					}
+
+					if (!Actions.CaseInsEquals(UIModification.FormatBrush(UIInfo.ColorTargets[target]), childText))
+					{
+						UIInfo.ColorTargets[target] = brush;
+						castedChild.Text = childText.ToUpper();
+						Actions.WriteLine(String.Format("Successfully updated the color for {0}.", Enum.GetName(typeof(ColorTarget), target)));
+					}
+				}
+				else if (child is ComboBox)
+				{
+					var selected = ((ComboBox)child).SelectedItem as MyTextBox;
+					var tag = selected?.Tag as ColorTheme?;
+					if (!tag.HasValue || tag == UIInfo.Theme)
+						continue;
+
+					UIInfo.SetTheme((ColorTheme)tag);
+					Actions.WriteLine("Successfully updated the theme type.");
+				}
+			}
+		}
+		private void UpdateSystemInformation()
+		{
+			var timer = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 500) };
+			timer.Tick += (sender, e) =>
+			{
+				var client = Variables.Client;
+				((TextBox)mLatency.Child).Text = String.Format("Latency: {0}ms", client.GetLatency());
+				((TextBox)mMemory.Child).Text = String.Format("Memory: {0}MB", Actions.GetMemory().ToString("0.00"));
+				((TextBox)mThreads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
+				((TextBox)mGuilds.Child).Text = String.Format("Guilds: {0}", client.GetGuilds().Count);
+				((TextBox)mUsers.Child).Text = String.Format("Members: {0}", client.GetGuilds().SelectMany(x => x.Users).Select(x => x.Id).Distinct().Count());
+				mInfoOutput.Document = UIModification.MakeInfoMenu();
+			};
+			timer.Start();
+		}
+		private void UpdateSettingsWhenOpened()
+		{
+			var botInfo = Variables.BotInfo;
+			((CheckBox)mDownloadUsersSetting.Child).IsChecked = ((bool)botInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers));
+			mPrefixSetting.Text = ((string)botInfo.GetSetting(SettingOnBot.Prefix));
+			mBotOwnerSetting.Text = ((ulong)botInfo.GetSetting(SettingOnBot.BotOwnerID)).ToString();
+			mGameSetting.Text = ((string)botInfo.GetSetting(SettingOnBot.Game));
+			mStreamSetting.Text = ((string)botInfo.GetSetting(SettingOnBot.Stream));
+			mShardSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.ShardCount)).ToString();
+			mMessageCacheSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.MaxUserGatherCount)).ToString();
+			mUserGatherCountSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.MaxUserGatherCount)).ToString();
+			mMessageGatherSizeSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.MaxMessageGatherSize)).ToString();
+			mLogLevelComboBox.SelectedItem = mLogLevelComboBox.Items.OfType<TextBox>().FirstOrDefault(x => (Discord.LogSeverity)x.Tag == ((Discord.LogSeverity)Variables.BotInfo.GetSetting(SettingOnBot.LogLevel)));
+			mTrustedUsersComboBox.ItemsSource = ((List<ulong>)Variables.BotInfo.GetSetting(SettingOnBot.TrustedUsers)).Select(x => UIModification.MakeTextBoxFromUserID(x));
+		}
+		private bool CheckIfTreeViewItemFileExists(TreeViewItem treeItem)
+		{
+			//Get the path from the tag
+			var fileLocation = ((FileInformation)treeItem.Tag).FileLocation;
+			if (fileLocation == null)
+				return false;
+
+			//Change the text in the bot and make it visible
+			using (var reader = new StreamReader(fileLocation))
+			{
+				mEditBox.Text = reader.ReadToEnd();
+			}
+			mEditBox.Tag = fileLocation;
+			return true;
 		}
 		private ReturnedSetting SaveSetting(Grid g, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
@@ -1026,6 +1160,11 @@ namespace Advobot
 					break;
 				}
 				case SettingOnBot.MaxUserGatherCount:
+				{
+					nothingSuccessFailure = int.TryParse(text, out int num) && botInfo.SetSetting(setting, num) ? NSF.Success : NSF.Failure;
+					break;
+				}
+				case SettingOnBot.MaxMessageGatherSize:
 				{
 					nothingSuccessFailure = int.TryParse(text, out int num) && botInfo.SetSetting(setting, num) ? NSF.Success : NSF.Failure;
 					break;
@@ -1091,77 +1230,6 @@ namespace Advobot
 		private ReturnedSetting SaveSetting(object obj, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
 			return new ReturnedSetting(setting, NSF.Nothing);
-		}
-		private static TextBox GetSelectedLogLevel()
-		{
-			return mLogLevelComboBox.Items.OfType<TextBox>().FirstOrDefault(x => (Discord.LogSeverity)x.Tag == ((Discord.LogSeverity)Variables.BotInfo.GetSetting(SettingOnBot.LogLevel)));
-		}
-		private static IEnumerable<TextBox> FormatTrustedUsers()
-		{
-			return ((List<ulong>)Variables.BotInfo.GetSetting(SettingOnBot.TrustedUsers)).Select(x => UIModification.MakeTextBoxFromUserID(x));
-		}
-
-		private void UpdateColors(object sender, RoutedEventArgs e)
-		{
-			SaveColors();
-			SaveBotUIInfo();
-			SetTheme(UIAttributes.BotUIInfo.Theme);
-			UIModification.SetColorMode(mLayout);
-		}
-		private void SaveColors()
-		{
-			var uiInfo = UIAttributes.BotUIInfo;
-			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(mColorsLayout); i++)
-			{
-				var child = VisualTreeHelper.GetChild(mColorsLayout, i);
-				if (child is MyTextBox)
-				{
-					var childTarget = ((MyTextBox)child)?.Tag as ColorTarget?;
-					if (childTarget == null)
-						continue;
-
-					var childText = ((MyTextBox)child).Text;
-					if (String.IsNullOrWhiteSpace(childText))
-						continue;
-
-					try
-					{
-						UIModification.MakeBrush(childText);
-					}
-					catch
-					{
-						Actions.WriteLine(String.Format("Invalid color supplied for {0}.", Enum.GetName(typeof(ColorTarget), childTarget)));
-						continue;
-					}
-
-					var currValue = uiInfo.ColorTargets?.FirstOrDefault(x => x.Target == childTarget);
-					if (!currValue.HasValue)
-					{
-					}
-					else if (!childText.Equals(UIModification.FormatBrush(currValue.Value.Brush)))
-					{
-						uiInfo.ColorTargets.Remove(currValue.Value);
-					}
-					else
-						continue;
-
-					uiInfo.ColorTargets.Add(new BrushTargetAndValue((ColorTarget)childTarget, childText));
-					Actions.WriteLine(String.Format("Successfully updated the color for {0}.", Enum.GetName(typeof(ColorTarget), childTarget)));
-				}
-				else if (child is ComboBox)
-				{
-					var selected = ((ComboBox)child).SelectedItem as MyTextBox;
-					if (selected == null)
-						continue;
-
-					var tag = selected.Tag as ColorTheme?;
-					if (tag == null || tag == UIAttributes.BotUIInfo.Theme)
-						continue;
-
-					UIAttributes.BotUIInfo.SetTheme((ColorTheme)tag);
-					Actions.WriteLine("Successfully updated the theme type.");
-				}
-			}
 		}
 	}
 
@@ -1275,9 +1343,9 @@ namespace Advobot
 		private static void SetUserMade()
 		{
 			var res = Application.Current.Resources;
-			foreach (var colorTargetAndValue in BotUIInfo.ColorTargets)
+			foreach (var kvp in BotUIInfo.ColorTargets)
 			{
-				res[colorTargetAndValue.Target] = colorTargetAndValue.Brush;
+				res[kvp.Key] = kvp.Value;
 			}
 			res[OtherTarget.Button_Style] = UIModification.MakeButtonStyle
 				(
@@ -1324,16 +1392,6 @@ namespace Advobot
 
 	public class UIModification
 	{
-		public static string FormatBrush(Brush b)
-		{
-			var color = ((SolidColorBrush)b)?.Color;
-			if (!color.HasValue)
-				return "";
-
-			var c = color.Value;
-			return String.Format("#{0}{1}{2}{3}", c.A.ToString("X2"), c.R.ToString("X2"), c.G.ToString("X2"), c.B.ToString("X2"));
-		}
-
 		public static void AddRows(Grid grid, int amount)
 		{
 			for (int i = 0; i < amount; i++)
@@ -1476,29 +1534,62 @@ namespace Advobot
 			});
 		}
 
+		public static string FormatBrush(Brush b)
+		{
+			var color = ((SolidColorBrush)b)?.Color;
+			if (!color.HasValue)
+				return "";
+
+			var c = color.Value;
+			return String.Format("#{0}{1}{2}{3}", c.A.ToString("X2"), c.R.ToString("X2"), c.G.ToString("X2"), c.B.ToString("X2"));
+		}
+
 		public static IEnumerable<TextBox> MakeComboBoxSourceOutOfEnum(Type type)
 		{
-			var values = Enum.GetValues(type);
-			var tbs = new List<TextBox>();
-			foreach (var value in values)
+			return Enum.GetValues(type).Cast<dynamic>().Select(x =>
 			{
-				tbs.Add(new MyTextBox
+				return new MyTextBox
 				{
-					Text = Enum.GetName(type, value),
-					Tag = value,
+					Text = Enum.GetName(type, x),
+					Tag = x,
 					IsReadOnly = true,
 					IsHitTestVisible = false,
 					BorderThickness = new Thickness(0),
 					Background = Brushes.Transparent,
 					Foreground = Brushes.Black,
-				});
-			}
-			return tbs;
+				};
+			});
 		}
 
-		public static TextBox MakeTitle(string text)
+		public static IEnumerable<TextBox> MakeComboBoxSourceOutOfStrings(IEnumerable<string> strings)
 		{
-			return new MyTextBox
+			return strings.Select(x =>
+			{
+				return new MyTextBox
+				{
+					Text = x,
+					Tag = x,
+					IsReadOnly = true,
+					IsHitTestVisible = false,
+					BorderThickness = new Thickness(0),
+					Background = Brushes.Transparent,
+					Foreground = Brushes.Black,
+				};
+			});
+		}
+
+		public static TextBox MakeTitle(string text, string summary)
+		{
+			ToolTip tt = null;
+			if (!String.IsNullOrWhiteSpace(summary))
+			{
+				tt = new ToolTip
+				{
+					Content = summary,
+				};
+			}
+
+			var tb = new MyTextBox
 			{
 				Text = text,
 				IsReadOnly = true,
@@ -1507,6 +1598,20 @@ namespace Advobot
 				HorizontalAlignment = HorizontalAlignment.Left,
 				TextWrapping = TextWrapping.WrapWithOverflow,
 			};
+
+			if (tt != null)
+			{
+				tb.MouseEnter += (sender, e) =>
+				{
+					ToggleToolTip(tt);
+				};
+				tb.MouseLeave += (sender, e) =>
+				{
+					ToggleToolTip(tt);
+				};
+			}
+
+			return tb;
 		}
 
 		public static TextBox MakeSetting(SettingOnBot setting, int length)
@@ -1602,7 +1707,6 @@ namespace Advobot
 						Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
 						Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
 					};
-					BotWindow.AddGuildFileDoubleClick(fileItem);
 					listOfFiles.Add(fileItem);
 				});
 
@@ -1664,11 +1768,6 @@ namespace Advobot
 			return new FlowDocument(paragraph);
 		}
 
-		public static FlowDocument MakeFileMenu(TreeView tv)
-		{
-			return new FlowDocument(new Paragraph(new InlineUIContainer(MakeGuildTreeView(tv))));
-		}
-
 		public static Grid MakeColorDisplayer(Grid child, Button button, double fontSizeProperty)
 		{
 			child.Children.Clear();
@@ -1679,7 +1778,7 @@ namespace Advobot
 			};
 			AddElement(child, placeHolderTB, 0, 100, 0, 100);
 
-			var themeTitle = MakeTitle("Themes:");
+			var themeTitle = MakeTitle("Themes:", "");
 			SetFontSizeProperty(themeTitle, fontSizeProperty);
 			AddElement(child, themeTitle, 2, 5, 10, 55);
 			var themeComboBox = new ComboBox
@@ -1694,9 +1793,9 @@ namespace Advobot
 			for (int i = 0; i < colorResourceKeys.Length; i++)
 			{
 				var key = colorResourceKeys[i];
-				var value = FormatBrush(UIAttributes.BotUIInfo.ColorTargets.FirstOrDefault(x => x.Target == key).Brush);
+				var value = FormatBrush(UIAttributes.BotUIInfo.ColorTargets[key]);
 
-				var title = MakeTitle(String.Format("{0}:", Enum.GetName(typeof(ColorTarget), key)));
+				var title = MakeTitle(String.Format("{0}:", Enum.GetName(typeof(ColorTarget), key)), "");
 				var setting = new MyTextBox
 				{
 					VerticalContentAlignment = VerticalAlignment.Center,
@@ -1898,9 +1997,9 @@ namespace Advobot
 			b.IsEnabled = false;
 			if (text.Contains("﷽"))
 			{
-				text += "\nThis program really doesn't like that long Arabic character for some reason. Whenever there are a lot of them it crashes the program completely.";
+				text += Environment.NewLine + "This program really doesn't like that long Arabic character for some reason. Whenever there are a lot of them it crashes the program completely.";
 			}
-			Console.WriteLine(text);
+			Actions.WriteLine(text);
 			//Make sure both the path and key are set
 			if (!Variables.GotPath || !Variables.GotKey)
 			{
@@ -2080,14 +2179,16 @@ namespace Advobot
 	public class BotUIInfo
 	{
 		[JsonProperty]
-		public ColorTheme Theme { get; private set; }
+		public ColorTheme Theme { get; private set; } = ColorTheme.Classic;
 		[JsonProperty]
-		public List<BrushTargetAndValue> ColorTargets { get; private set; }
+		public Dictionary<ColorTarget, Brush> ColorTargets { get; private set; } = new Dictionary<ColorTarget, Brush>();
 
 		public BotUIInfo()
 		{
-			Theme = ColorTheme.Classic;
-			ColorTargets = new List<BrushTargetAndValue>();
+			foreach (var target in Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>())
+			{
+				ColorTargets.Add(target, null);
+			}
 		}
 
 		public void SetTheme(ColorTheme theme)

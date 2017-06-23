@@ -187,7 +187,6 @@ namespace Advobot
 	#region Saved Classes
 	public abstract class SettingHolder<T>
 	{
-		public abstract FieldInfo GetField(T setting);
 		public abstract dynamic GetSetting(T setting);
 		public abstract dynamic GetSetting(FieldInfo field);
 		public abstract bool SetSetting(T setting, dynamic val, bool save = true);
@@ -246,6 +245,8 @@ namespace Advobot
 		});
 		[JsonIgnore]
 		private static Dictionary<SettingOnGuild, FieldInfo> mFieldInfo = new Dictionary<SettingOnGuild, FieldInfo>();
+		[JsonIgnore]
+		private static bool mFieldInfoLoaded = false;
 
 		[GuildSetting(SettingOnGuild.BotUsers)]
 		[JsonProperty("BotUsers")]
@@ -379,9 +380,19 @@ namespace Advobot
 		private bool Loaded = false;
 #pragma warning restore 414
 
+		[JsonConstructor]
 		public BotGuildInfo(ulong guildID)
 		{
 			Guild = new DiscordObjectWithID<SocketGuild>(guildID);
+
+			if (!mFieldInfoLoaded)
+			{
+				foreach (var setting in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
+				{
+					mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
+				}
+				mFieldInfoLoaded = true;
+			}
 		}
 
 		private static FieldInfo CreateFieldDictionaryItem(SettingOnGuild setting)
@@ -397,17 +408,9 @@ namespace Advobot
 					}
 				}
 			}
-			Actions.WriteLine(String.Format("Unable to get the guild setting for {0}.", Enum.GetName(typeof(SettingOnGuild), setting)));
 			return null;
 		}
-		public static void CreateFieldDictionary()
-		{
-			foreach (var setting in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
-			{
-				mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
-			}
-		}
-		public override FieldInfo GetField(SettingOnGuild setting)
+		public static FieldInfo GetField(SettingOnGuild setting)
 		{
 			if (mFieldInfo.TryGetValue(setting, out FieldInfo value))
 			{
@@ -630,6 +633,8 @@ namespace Advobot
 					return;
 				}
 			}
+
+			SaveInfo();
 		}
 		public void SetRaidPrevention(RaidType raidType, RaidPrevention raidPrev)
 		{
@@ -646,6 +651,8 @@ namespace Advobot
 					return;
 				}
 			}
+
+			SaveInfo();
 		}
 	}
 
@@ -666,9 +673,12 @@ namespace Advobot
 			{ SettingOnBot.AlwaysDownloadUsers, true },
 			{ SettingOnBot.LogLevel, LogSeverity.Warning },
 			{ SettingOnBot.MaxUserGatherCount, 100 },
+			{ SettingOnBot.MaxMessageGatherSize, 500000 },
 		});
 		[JsonIgnore]
 		private static Dictionary<SettingOnBot, FieldInfo> mFieldInfo = new Dictionary<SettingOnBot, FieldInfo>();
+		[JsonIgnore]
+		private static bool mFieldInfoLoaded = false;
 
 		[BotSetting(SettingOnBot.BotOwnerID)]
 		[JsonProperty("BotOwnerID")]
@@ -700,7 +710,23 @@ namespace Advobot
 		[BotSetting(SettingOnBot.MaxUserGatherCount)]
 		[JsonProperty("MaxUserGatherCount")]
 		private int MaxUserGatherCount = 100;
+		[BotSetting(SettingOnBot.MaxMessageGatherSize)]
+		[JsonProperty("MaxMessageGatherSize")]
+		private int MaxMessageGatherSize = 500000;
 #pragma warning restore 414
+
+		[JsonConstructor]
+		public BotGlobalInfo()
+		{
+			if (!mFieldInfoLoaded)
+			{
+				foreach (var setting in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
+				{
+					mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
+				}
+				mFieldInfoLoaded = true;
+			}
+		}
 
 		private static FieldInfo CreateFieldDictionaryItem(SettingOnBot setting)
 		{
@@ -715,17 +741,9 @@ namespace Advobot
 					}
 				}
 			}
-			Actions.WriteLine(String.Format("Unable to get the global setting for {0}.", Enum.GetName(typeof(SettingOnBot), setting)));
 			return null;
 		}
-		public static void CreateFieldDictionary()
-		{
-			foreach (var setting in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
-			{
-				mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
-			}
-		}
-		public override FieldInfo GetField(SettingOnBot setting)
+		public static FieldInfo GetField(SettingOnBot setting)
 		{
 			if (mFieldInfo.TryGetValue(setting, out FieldInfo value))
 			{
@@ -1342,6 +1360,193 @@ namespace Advobot
 			return userStr + spaceBetween + roleStr;
 		}
 	}
+
+	public class SpamPrevention : Setting
+	{
+		[JsonProperty]
+		public PunishmentType PunishmentType { get; private set; }
+		[JsonProperty]
+		public int TimeInterval { get; private set; }
+		[JsonProperty]
+		public int RequiredSpamInstances { get; private set; }
+		[JsonProperty]
+		public int RequiredSpamPerMessage { get; private set; }
+		[JsonProperty]
+		public int VotesForKick { get; private set; }
+		[JsonProperty]
+		public bool Enabled { get; private set; }
+		[JsonIgnore]
+		public List<IGuildUser> PunishedUsers { get; private set; }
+
+		public SpamPrevention(PunishmentType punishmentType, int timeInterval, int requiredSpamInstances, int requiredSpamPerMessage, int votesForKick)
+		{
+			PunishmentType = punishmentType;
+			TimeInterval = timeInterval;
+			RequiredSpamInstances = requiredSpamInstances;
+			RequiredSpamPerMessage = requiredSpamPerMessage;
+			VotesForKick = votesForKick;
+			Enabled = true;
+		}
+
+		public void Disable()
+		{
+			Enabled = false;
+		}
+		public void Enable()
+		{
+			Enabled = true;
+		}
+		public async Task PunishUser(IGuildUser user)
+		{
+			var guild = user.Guild;
+			var guildInfo = await Actions.CreateOrGetGuildInfo(guild);
+			switch (PunishmentType)
+			{
+				case PunishmentType.Ban:
+				{
+					await guild.AddBanAsync(user);
+					break;
+				}
+				case PunishmentType.Kick:
+				{
+					await user.KickAsync();
+					break;
+				}
+				case PunishmentType.KickThenBan:
+				{
+					if (((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).FirstOrDefault(x => x.User.Id == user.Id).AlreadyKicked)
+					{
+						await guild.AddBanAsync(user, 1);
+					}
+					else
+					{
+						await user.KickAsync();
+					}
+					break;
+				}
+				case PunishmentType.Role:
+				{
+					await Actions.GiveRole(user, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
+					break;
+				}
+			}
+			PunishedUsers.ThreadSafeAdd(user);
+		}
+		public override string SettingToString()
+		{
+			return String.Format("**Enabled:** `{0}`\n**Spam Instances:** `{1}`\n**Spam Amount/Time Interval:** `{2}`\n**Votes Needed For Kick:** `{3}`\n**Punishment:** `{4}`",
+				Enabled,
+				RequiredSpamInstances,
+				RequiredSpamPerMessage,
+				VotesForKick,
+				Enum.GetName(typeof(PunishmentType), PunishmentType));
+		}
+		public override string SettingToString(SocketGuild guild)
+		{
+			return SettingToString();
+		}
+	}
+
+	public class RaidPrevention : Setting
+	{
+		[JsonProperty]
+		public PunishmentType PunishmentType { get; private set; }
+		[JsonProperty]
+		public int TimeInterval { get; private set; }
+		[JsonProperty]
+		public int RequiredCount { get; private set; }
+		[JsonProperty]
+		public bool Enabled { get; private set; }
+		[JsonIgnore]
+		public List<BasicTimeInterface> TimeList { get; private set; }
+		[JsonIgnore]
+		public List<IGuildUser> PunishedUsers { get; private set; }
+
+		public RaidPrevention(PunishmentType punishmentType, int timeInterval, int requiredCount)
+		{
+			PunishmentType = punishmentType;
+			TimeInterval = timeInterval;
+			RequiredCount = requiredCount;
+			TimeList = new List<BasicTimeInterface>();
+			Enabled = true;
+		}
+
+		public int GetSpamCount()
+		{
+			return Actions.GetCountOfItemsInTimeFrame(TimeList, TimeInterval);
+		}
+		public void Add(DateTime time)
+		{
+			TimeList.ThreadSafeAdd(new BasicTimeInterface(time));
+		}
+		public void Remove(DateTime time)
+		{
+			TimeList.ThreadSafeRemoveAll(x =>
+			{
+				return x.GetTime().Equals(time);
+			});
+		}
+		public void Disable()
+		{
+			Enabled = false;
+		}
+		public void Enable()
+		{
+			Enabled = true;
+		}
+		public void Reset()
+		{
+			TimeList = new List<BasicTimeInterface>();
+		}
+		public async Task PunishUser(IGuildUser user)
+		{
+			var guild = user.Guild;
+			var guildInfo = await Actions.CreateOrGetGuildInfo(guild);
+			switch (PunishmentType)
+			{
+				case PunishmentType.Ban:
+				{
+					await guild.AddBanAsync(user);
+					break;
+				}
+				case PunishmentType.Kick:
+				{
+					await user.KickAsync();
+					break;
+				}
+				case PunishmentType.KickThenBan:
+				{
+					if (((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).FirstOrDefault(x => x.User.Id == user.Id).AlreadyKicked)
+					{
+						await guild.AddBanAsync(user, 1);
+					}
+					else
+					{
+						await user.KickAsync();
+					}
+					break;
+				}
+				case PunishmentType.Role:
+				{
+					await Actions.GiveRole(user, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
+					break;
+				}
+			}
+			PunishedUsers.ThreadSafeAdd(user);
+		}
+		public override string SettingToString()
+		{
+			return String.Format("**Enabled:** `{0}`\n**Users:** `{1}`\n**Time Interval:** `{2}`\n**Punishment:** `{3}`",
+				Enabled,
+				RequiredCount,
+				TimeInterval,
+				Enum.GetName(typeof(PunishmentType), PunishmentType));
+		}
+		public override string SettingToString(SocketGuild guild)
+		{
+			return SettingToString();
+		}
+	}
 	#endregion
 
 	#region Non-saved Classes
@@ -1607,9 +1812,7 @@ namespace Advobot
 			Users = users;
 		}
 	}
-	#endregion
 
-	#region Spam Prevention
 	public class SpamPreventionUser
 	{
 		public IGuildUser User { get; private set; }
@@ -1662,193 +1865,6 @@ namespace Advobot
 		public bool CheckIfAllowedToPunish(SpamPrevention spamPrev, SpamType spamType, IMessage msg)
 		{
 			return Actions.GetCountOfItemsInTimeFrame(SpamLists[spamType], spamPrev.TimeInterval) >= spamPrev.RequiredSpamInstances;
-		}
-	}
-
-	public class SpamPrevention : Setting
-	{
-		[JsonProperty]
-		public PunishmentType PunishmentType { get; private set; }
-		[JsonProperty]
-		public int TimeInterval { get; private set; }
-		[JsonProperty]
-		public int RequiredSpamInstances { get; private set; }
-		[JsonProperty]
-		public int RequiredSpamPerMessage { get; private set; }
-		[JsonProperty]
-		public int VotesForKick { get; private set; }
-		[JsonProperty]
-		public bool Enabled { get; private set; }
-		[JsonIgnore]
-		public List<IGuildUser> PunishedUsers { get; private set; }
-
-		public SpamPrevention(PunishmentType punishmentType, int timeInterval, int requiredSpamInstances, int requiredSpamPerMessage, int votesForKick)
-		{
-			PunishmentType = punishmentType;
-			TimeInterval = timeInterval;
-			RequiredSpamInstances = requiredSpamInstances;
-			RequiredSpamPerMessage = requiredSpamPerMessage;
-			VotesForKick = votesForKick;
-			Enabled = true;
-		}
-
-		public void Disable()
-		{
-			Enabled = false;
-		}
-		public void Enable()
-		{
-			Enabled = true;
-		}
-		public async Task PunishUser(IGuildUser user)
-		{
-			var guild = user.Guild;
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(guild);
-			switch (PunishmentType)
-			{
-				case PunishmentType.Ban:
-				{
-					await guild.AddBanAsync(user);
-					break;
-				}
-				case PunishmentType.Kick:
-				{
-					await user.KickAsync();
-					break;
-				}
-				case PunishmentType.KickThenBan:
-				{
-					if (((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).FirstOrDefault(x => x.User.Id == user.Id).AlreadyKicked)
-					{
-						await guild.AddBanAsync(user, 1);
-					}
-					else
-					{
-						await user.KickAsync();
-					}
-					break;
-				}
-				case PunishmentType.Role:
-				{
-					await Actions.GiveRole(user, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
-					break;
-				}
-			}
-			PunishedUsers.ThreadSafeAdd(user);
-		}
-		public override string SettingToString()
-		{
-			return String.Format("**Enabled:** `{0}`\n**Spam Instances:** `{1}`\n**Spam Amount/Time Interval:** `{2}`\n**Votes Needed For Kick:** `{3}`\n**Punishment:** `{4}`",
-				Enabled,
-				RequiredSpamInstances,
-				RequiredSpamPerMessage,
-				VotesForKick,
-				Enum.GetName(typeof(PunishmentType), PunishmentType));
-		}
-		public override string SettingToString(SocketGuild guild)
-		{
-			return SettingToString();
-		}
-	}
-
-	public class RaidPrevention : Setting
-	{
-		[JsonProperty]
-		public PunishmentType PunishmentType { get; private set; }
-		[JsonProperty]
-		public int TimeInterval { get; private set; }
-		[JsonProperty]
-		public int RequiredCount { get; private set; }
-		[JsonProperty]
-		public bool Enabled { get; private set; }
-		[JsonIgnore]
-		public List<BasicTimeInterface> TimeList { get; private set; }
-		[JsonIgnore]
-		public List<IGuildUser> PunishedUsers { get; private set; }
-
-		public RaidPrevention(PunishmentType punishmentType, int timeInterval, int requiredCount)
-		{
-			PunishmentType = punishmentType;
-			TimeInterval = timeInterval;
-			RequiredCount = requiredCount;
-			TimeList = new List<BasicTimeInterface>();
-			Enabled = true;
-		}
-
-		public int GetSpamCount()
-		{
-			return Actions.GetCountOfItemsInTimeFrame(TimeList, TimeInterval);
-		}
-		public void Add(DateTime time)
-		{
-			TimeList.ThreadSafeAdd(new BasicTimeInterface(time));
-		}
-		public void Remove(DateTime time)
-		{
-			TimeList.ThreadSafeRemoveAll(x =>
-			{
-				return x.GetTime().Equals(time);
-			});
-		}
-		public void Disable()
-		{
-			Enabled = false;
-		}
-		public void Enable()
-		{
-			Enabled = true;
-		}
-		public void Reset()
-		{
-			TimeList = new List<BasicTimeInterface>();
-		}
-		public async Task PunishUser(IGuildUser user)
-		{
-			var guild = user.Guild;
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(guild);
-			switch (PunishmentType)
-			{
-				case PunishmentType.Ban:
-				{
-					await guild.AddBanAsync(user);
-					break;
-				}
-				case PunishmentType.Kick:
-				{
-					await user.KickAsync();
-					break;
-				}
-				case PunishmentType.KickThenBan:
-				{
-					if (((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).FirstOrDefault(x => x.User.Id == user.Id).AlreadyKicked)
-					{
-						await guild.AddBanAsync(user, 1);
-					}
-					else
-					{
-						await user.KickAsync();
-					}
-					break;
-				}
-				case PunishmentType.Role:
-				{
-					await Actions.GiveRole(user, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
-					break;
-				}
-			}
-			PunishedUsers.ThreadSafeAdd(user);
-		}
-		public override string SettingToString()
-		{
-			return String.Format("**Enabled:** `{0}`\n**Users:** `{1}`\n**Time Interval:** `{2}`\n**Punishment:** `{3}`",
-				Enabled,
-				RequiredCount,
-				TimeInterval,
-				Enum.GetName(typeof(PunishmentType), PunishmentType));
-		}
-		public override string SettingToString(SocketGuild guild)
-		{
-			return SettingToString();
 		}
 	}
 	#endregion
@@ -1979,20 +1995,20 @@ namespace Advobot
 
 	public struct RemovableMessage : ITimeInterface
 	{
-		public IMessage Message { get; private set; }
-		public List<IMessage> Messages { get; private set; }
+		public IEnumerable<IMessage> Messages { get; private set; }
+		public IMessageChannel Channel { get; private set; }
 		public DateTime Time { get; private set; }
 
 		public RemovableMessage(IMessage message, DateTime time)
 		{
-			Message = message;
-			Messages = null;
+			Messages = new[] { message };
+			Channel = message.Channel;
 			Time = time;
 		}
-		public RemovableMessage(List<IMessage> messages, DateTime time)
+		public RemovableMessage(IEnumerable<IMessage> messages, DateTime time)
 		{
-			Message = null;
 			Messages = messages;
+			Channel = messages.FirstOrDefault().Channel;
 			Time = time;
 		}
 
@@ -2174,6 +2190,34 @@ namespace Advobot
 			LoggingChannel = loggingChannel;
 		}
 	}
+
+	public struct LoggedCommand
+	{
+		public string Guild { get; private set; }
+		public string Channel { get; private set; }
+		public string User { get; private set; }
+		public string Time { get; private set; }
+		public string Text { get; private set; }
+
+		public LoggedCommand(ICommandContext context)
+		{
+			Guild = context.Guild.FormatGuild();
+			Channel = context.Channel.FormatChannel();
+			User = context.User.FormatUser();
+			Time = Actions.FormatDateTime(context.Message.CreatedAt);
+			Text = context.Message.Content;
+		}
+
+		public override string ToString()
+		{
+			var guild = String.Format("Guild: {0}", Guild);
+			var channel = String.Format("Channel: {0}", Channel);
+			var user = String.Format("User: {0}", User);
+			var time = String.Format("Time: {0}", Time);
+			var text = String.Format("Text: {0}", Text);
+			return String.Join(Environment.NewLine + new string(' ', 25), new[] { guild, channel, user, time, text });
+		}
+	}
 	#endregion
 
 	#region Interfaces
@@ -2352,6 +2396,7 @@ namespace Advobot
 		MaxUserGatherCount				= 11,
 		UnableToDMOwnerUsers			= 12,
 		IgnoredCommandUsers				= 13,
+		MaxMessageGatherSize			= 14,
 	}
 
 	public enum GuildNotifications

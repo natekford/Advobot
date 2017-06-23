@@ -36,7 +36,7 @@ namespace Advobot
 			if (guild == null)
 				return;
 
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(guild);
 			if (!PrefixHandling(message, ((string)guildInfo.GetSetting(SettingOnGuild.Prefix)), out int argPos))
 				return;
 
@@ -155,10 +155,10 @@ namespace Advobot
 			if (!(await context.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
 			{
 				//If the server has been told already, ignore future commands fully
-				if (!Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Contains(context.Guild))
+				if (!Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Contains(context.Guild.Id))
 				{
 					await Actions.SendChannelMessage(context, "This bot will not function without the `Administrator` permission, sorry.");
-					Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Add(context.Guild);
+					Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Add(context.Guild.Id);
 				}
 				return false;
 			}

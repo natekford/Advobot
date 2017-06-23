@@ -72,7 +72,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task GuildPrefix([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 			var globalPrefix = ((string)Variables.BotInfo.GetSetting(SettingOnBot.Prefix));
 
 			input = input.Trim().Replace("\n", "").Replace("\r", "");
@@ -119,7 +119,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GuildSettings([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingOnGuild))))));
@@ -159,7 +159,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GuildReload([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 1));
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
@@ -173,7 +173,7 @@ namespace Advobot
 			if (Actions.CaseInsEquals(actionStr, "reload"))
 			{
 				Variables.Guilds.Remove(guild.Id);
-				Variables.Guilds.Add(guild.Id, await Actions.CreateOrGetGetGuildInfo(guild));
+				Variables.Guilds.Add(guild.Id, await Actions.CreateOrGetGuildInfo(guild));
 
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully reloaded the guild's bot information.");
 			}
@@ -189,7 +189,7 @@ namespace Advobot
 				var path = Actions.GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
 				File.Delete(path);
 
-				Variables.Guilds.Add(guild.Id, await Actions.CreateOrGetGetGuildInfo(guild));
+				Variables.Guilds.Add(guild.Id, await Actions.CreateOrGetGuildInfo(guild));
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset the guild's bot information.");
 			}
 		}
@@ -202,7 +202,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task CommandConfig([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
@@ -323,7 +323,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task CommandIgnore([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
@@ -462,7 +462,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BotUsersModify([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
@@ -615,7 +615,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task ModifyImageOnly([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
@@ -678,7 +678,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task RemindsModify([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
@@ -752,7 +752,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task Reminds([Optional, Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 			var reminds = ((List<Remind>)guildInfo.GetSetting(SettingOnGuild.Reminds));
 			if (String.IsNullOrWhiteSpace(input))
 			{
@@ -802,7 +802,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task SetGuildNotif([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 6), new[] { "content", "title", "desc", "thumb" });
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
@@ -885,7 +885,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task TestGuildNotification([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			if (!Enum.TryParse(input, true, out GuildNotifications notifType))
 			{

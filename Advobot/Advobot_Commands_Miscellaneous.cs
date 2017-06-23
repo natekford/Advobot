@@ -20,7 +20,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Help([Optional, Remainder] string input)
 		{
-			var prefix = Actions.GetPrefix(await Actions.CreateOrGetGetGuildInfo(Context.Guild));
+			var prefix = Actions.GetPrefix(await Actions.CreateOrGetGuildInfo(Context.Guild));
 			if (String.IsNullOrWhiteSpace(input))
 			{
 			    var emb = Actions.MakeNewEmbed("General Help", String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", prefix));
@@ -83,7 +83,7 @@ namespace Advobot
 			if (String.IsNullOrWhiteSpace(input))
 			{
 				var desc = String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}",
-					Actions.GetPrefix(await Actions.CreateOrGetGetGuildInfo(Context.Guild)),
+					Actions.GetPrefix(await Actions.CreateOrGetGuildInfo(Context.Guild)),
 					String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))));
 				var embed = Actions.MakeNewEmbed("Categories", desc);
 				await Actions.SendEmbedMessage(Context.Channel, embed);
@@ -172,7 +172,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task GetInfo([Remainder] string input)
 		{
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(Context.Guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
@@ -238,6 +238,10 @@ namespace Advobot
 			else if (Actions.CaseInsEquals(targetStr, "bot"))
 			{
 				await Actions.SendEmbedMessage(Context.Channel, Actions.FormatBotInfo(guild));
+			}
+			else
+			{
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid target type supplied."));
 			}
 		}
 
@@ -481,7 +485,6 @@ namespace Advobot
 			var users = (await Context.Guild.GetUsersAsync()).OrderBy(x => x.JoinedAt);
 			var str = users.FormatNumberedList("`{0}` joined on `{1}`", x => x.FormatUser(), x => Actions.FormatDateTime(x.JoinedAt.HasValue ? x.JoinedAt.Value.UtcDateTime : null as DateTime?));
 			await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel, str, "User_Joins_");
-			//test
 		}
 
 		[Command("displayemotes")]
@@ -538,29 +541,21 @@ namespace Advobot
 				return;
 			}
 
-			Actions.DontWaitForResultOfUnimportantBigFunction(async () =>
-			{
-				var typing = Context.Channel.EnterTypingState();
-				var messages = (await Actions.GetMessages(Context.Channel, num)).OrderBy(x => x.CreatedAt.Ticks);
+			var limitAmt = 500000; //TODO: not hardcode this in
 
-				var formattedMessages = new List<string>();
+			Actions.DontWaitForResultOfBigUnimportantFunction(Context.Channel, async () =>
+			{
 				var charCount = 0;
-				foreach (var message in messages)
+				var formattedMessages = (await Actions.GetMessages(Context.Channel, num)).OrderBy(x => x.CreatedAt.Ticks).Select(msg =>
 				{
-					var temp = Actions.ReplaceMarkdownChars(Actions.FormatMessage(message), true);
-					formattedMessages.Add(temp);
-					charCount += temp.Length;
-					if (charCount >= 500000)
-					{
-						break;
-					}
-				}
+					var temp = Actions.ReplaceMarkdownChars(Actions.FormatMessage(msg), true);
+					return (charCount += System.Text.Encoding.ASCII.GetByteCount(temp)) < limitAmt ? temp : null;
+				}).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
 
 				await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel,
 					String.Join("\n-----\n", formattedMessages),
 					String.Format("{0}_Messages", Context.Channel.Name),
-					String.Format("Successfully got `{0}` messages", formattedMessages.Count));
-				typing.Dispose();
+					String.Format("Successfully got `{0}` messages", formattedMessages.Length));
 			});
 		}
 
@@ -714,17 +709,6 @@ namespace Advobot
 				return;
 			}
 			await Actions.SendChannelMessage(Context.Channel, String.Format("The number `{0}` has the following permissions: `{1}`.", num, String.Join("`, `", perms)));
-		}
-
-		[Command("getvaluesinenum")]
-		[Alias("getenum")]
-		[Usage("<Enum Name>")]
-		[Summary("Lists the values in an enum. No input lists all the enums in the bot.")]
-		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
-		[DefaultEnabled(true)]
-		public async Task GetValuesInEnum([Optional, Remainder] string input)
-		{
-
 		}
 
 		[Command("test")]

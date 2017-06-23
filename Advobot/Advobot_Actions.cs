@@ -36,8 +36,7 @@ namespace Advobot
 			MinuteTimer(null);												//Start the minutely timer
 			OneFourthSecondTimer(null);                                     //Start the one fourth second timer
 
-			WriteLine("The current bot prefix is: " + ((string)Variables.BotInfo.GetSetting(SettingOnBot.Prefix)));
-			WriteLine("Bot took " + String.Format("{0:n}", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - Variables.StartupTime.Ticks).TotalMilliseconds) + " milliseconds to load everything.");
+			StartupMessages();
 			Variables.Loaded = true;
 		}
 
@@ -45,11 +44,11 @@ namespace Advobot
 		{
 			await Variables.GuildsToBeLoaded.ForEachAsync(async x =>
 			{
-				Variables.Guilds.Add(x.Id, await CreateOrGetGetGuildInfo(x));
+				Variables.Guilds.Add(x.Id, await CreateOrGetGuildInfo(x));
 			});
 		}
 
-		public static async Task<BotGuildInfo> CreateOrGetGetGuildInfo(IGuild guild)
+		public static async Task<BotGuildInfo> CreateOrGetGuildInfo(IGuild guild)
 		{
 			if (guild == null)
 			{
@@ -148,8 +147,6 @@ namespace Advobot
 
 		public static void LoadCriticalInformation()
 		{
-			BotGuildInfo.CreateFieldDictionary();
-			BotGlobalInfo.CreateFieldDictionary();
 			HandleBotID(Properties.Settings.Default.BotID);
 			Variables.Windows = GetWindowsOrNot();
 			Variables.Console = GetConsoleOrGUI();
@@ -337,6 +334,26 @@ namespace Advobot
 			using (var writer = new StreamWriter(path))
 			{
 				writer.Write(toSave);
+			}
+		}
+
+		public static void StartupMessages()
+		{
+			WriteLine("The current bot prefix is: " + ((string)Variables.BotInfo.GetSetting(SettingOnBot.Prefix)));
+			WriteLine(String.Format("Bot took {0:n} milliseconds to load everything.", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - Variables.StartupTime.Ticks).TotalMilliseconds));
+			foreach (var e in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
+			{
+				if (BotGlobalInfo.GetField(e) == null)
+				{
+					WriteLine(String.Format("Unable to get the global setting for {0}.", Enum.GetName(typeof(SettingOnBot), e)));
+				}
+			}
+			foreach (var e in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
+			{
+				if (BotGuildInfo.GetField(e) == null)
+				{
+					WriteLine(String.Format("Unable to get the global setting for {0}.", Enum.GetName(typeof(SettingOnBot), e)));
+				}
 			}
 		}
 		#endregion
@@ -1362,7 +1379,6 @@ namespace Advobot
 
 			//Have the bot stay in the typing state and have a message that can be updated 
 			var msg = await SendChannelMessage(context, String.Format("Attempting to change the nickname of `{0}` user{1}.", userCount, GetPlural(userCount))) as IUserMessage;
-			var typing = context.Channel.EnterTypingState();
 
 			//Actually rename them all
 			var count = 0;
@@ -1378,7 +1394,6 @@ namespace Advobot
 			});
 
 			//Get rid of stuff and send a success message
-			typing.Dispose();
 			await DeleteMessage(msg);
 			await MakeAndDeleteSecondaryMessage(context, String.Format("Successfully changed the nicknames of `{0}` user{1}.", count, GetPlural(count)));
 		}
@@ -1666,7 +1681,7 @@ namespace Advobot
 			var guild = GetGuild(channel);
 			if (guild == null)
 				return;
-			var guildInfo = await CreateOrGetGetGuildInfo(guild);
+			var guildInfo = await CreateOrGetGuildInfo(guild);
 
 			//Descriptions can only be 2048 characters max and mobile can only show up to 20 line breaks
 			var description = embed.Description;
@@ -1940,7 +1955,7 @@ namespace Advobot
 			//Delete them in a try catch due to potential errors
 			try
 			{
-				await channel.DeleteMessagesAsync(messages.Where(x => x != null && DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 14).Distinct());
+				await channel.DeleteMessagesAsync(messages.Where(x => DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 14).Distinct());
 			}
 			catch
 			{
@@ -1950,7 +1965,7 @@ namespace Advobot
 
 		public static async Task DeleteMessage(IMessage message)
 		{
-			if (message == null)
+			if (message == null || DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalDays >= 14)
 				return;
 			var guildChannel = message.Channel as ITextChannel;
 			if (guildChannel == null)
@@ -2279,7 +2294,7 @@ namespace Advobot
 			var statusStr = String.Format("**Online status:** `{0}`", guildUser.Status);
 			var description = String.Join("\n", new[] { IDstr, nicknameStr, createdStr, joinedStr, gameStr, statusStr });
 
-			var color = roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
+			var color = roles.OrderBy(x => x.Position).LastOrDefault(x => x.Color.RawValue != 0)?.Color;
 			var embed = MakeNewEmbed(null, description, color, thumbnailURL: user.GetAvatarUrl());
 			if (channels.Count() != 0)
 			{
@@ -2533,6 +2548,16 @@ namespace Advobot
 				ndt.ToLongTimeString());
 		}
 
+		public static string FormatDateTime(DateTimeOffset? dt)
+		{
+			if (!dt.HasValue)
+			{
+				return "N/A";
+			}
+
+			return FormatDateTime(dt.Value.UtcDateTime);
+		}
+
 		public static string FormatGameStr(IUser user)
 		{
 			if (user.Game.HasValue)
@@ -2572,7 +2597,7 @@ namespace Advobot
 
 		public static string ConcatStringsWithNewLinesBetween(params string[] strs)
 		{
-			return String.Join("\n", strs.Where(x => !String.IsNullOrWhiteSpace(x)).ToArray());
+			return String.Join("\n", strs.Where(x => !String.IsNullOrWhiteSpace(x)));
 		}
 
 		public static string FormatObject(IUser user)
@@ -2796,7 +2821,7 @@ namespace Advobot
 
 		public static string FormatSettingInfo(BotGlobalInfo globalInfo, SettingOnBot setting)
 		{
-			var field = globalInfo.GetField(setting);
+			var field = BotGlobalInfo.GetField(setting);
 			if (field != null)
 			{
 				var notSaved = (JsonIgnoreAttribute)field.GetCustomAttribute(typeof(JsonIgnoreAttribute));
@@ -2857,7 +2882,7 @@ namespace Advobot
 
 		public static string FormatSettingInfo(SocketGuild guild, BotGuildInfo guildInfo, SettingOnGuild setting)
 		{
-			var field = guildInfo.GetField(setting);
+			var field = BotGuildInfo.GetField(setting);
 			if (field != null)
 			{
 				var notSaved = (JsonIgnoreAttribute)field.GetCustomAttribute(typeof(JsonIgnoreAttribute));
@@ -2921,7 +2946,18 @@ namespace Advobot
 
 		public static void WriteLine(string text, [CallerMemberName] string name = "")
 		{
-			Console.WriteLine(String.Format("[{0}] [{1}]: {2}", DateTime.Now.ToString("HH:mm:ss"), name, ReplaceMarkdownChars(text, true)));
+			var line = String.Format("[{0}] [{1}]: {2}", DateTime.Now.ToString("HH:mm:ss"), name, ReplaceMarkdownChars(text, true));
+
+			if (!Variables.Console)
+			{
+				if (!Variables.WrittenLines.TryGetValue(name, out List<string> list))
+				{
+					Variables.WrittenLines.Add(name, list = new List<string>());
+				}
+				list.Add(line);
+			}
+
+			Console.WriteLine(line);
 		}
 
 		public static void ExceptionToConsole(Exception e, [CallerMemberName] string name = "")
@@ -3071,7 +3107,7 @@ namespace Advobot
 			var imageURL = context.Message.Embeds.Count == 1 ? context.Message.Embeds.First().Thumbnail.ToString() : context.Message.Attachments.First().Url;
 
 			//Run separate due to the time it takes
-			Actions.DontWaitForResultOfUnimportantBigFunction(async () =>
+			Actions.DontWaitForResultOfBigUnimportantFunction(context.Channel, async () =>
 			{
 				//Check the image's file size first
 				var req = HttpWebRequest.Create(imageURL);
@@ -3111,7 +3147,6 @@ namespace Advobot
 
 				//Send a message saying how it's progressing
 				var msg = await SendChannelMessage(context, "Attempting to download the file...");
-				var typing = context.Channel.EnterTypingState();
 
 				//Set the name of the file to prevent typos between the three places that use it
 				var path = GetServerFilePath(context.Guild.Id, (user ? "boticon" : "guildicon") + Path.GetExtension(imageURL).ToLower());
@@ -3151,7 +3186,6 @@ namespace Advobot
 
 				//Delete the file and send a success message
 				File.Delete(path);
-				typing.Dispose();
 				await DeleteMessage(msg);
 				await SendChannelMessage(context, String.Format("Successfully changed the {0} icon.", user ? "bot" : "guild"));
 			});
@@ -4062,7 +4096,7 @@ namespace Advobot
 			{
 				time -= (long)DateTime.UtcNow.TimeOfDay.TotalMilliseconds % PERIOD;
 			}
-			Variables.SpamTimer = new Timer(HourTimer, null, time, Timeout.Infinite);
+			Variables.HourTimer = new Timer(HourTimer, null, time, Timeout.Infinite);
 		}
 
 		public static void MinuteTimer(object obj)
@@ -4075,14 +4109,14 @@ namespace Advobot
 			{
 				time -= (long)DateTime.UtcNow.TimeOfDay.TotalMilliseconds % PERIOD;
 			}
-			Variables.RemovePunishmentTimer = new Timer(MinuteTimer, null, time, Timeout.Infinite);
+			Variables.MinuteTimer = new Timer(MinuteTimer, null, time, Timeout.Infinite);
 		}
 
 		public static void OneFourthSecondTimer(object obj)
 		{
 			DeleteTargettedMessages();
 			RemoveActiveCloseHelpAndWords();
-			ResetSMUserMessages();
+			ResetSlowModeUserMessages();
 
 			const long PERIOD = 250;
 			var time = PERIOD;
@@ -4090,7 +4124,7 @@ namespace Advobot
 			{
 				time -= (long)DateTime.UtcNow.TimeOfDay.TotalMilliseconds % PERIOD;
 			}
-			Variables.RemovePunishmentTimer = new Timer(OneFourthSecondTimer, null, time, Timeout.Infinite);
+			Variables.OneFourthSecondTimer = new Timer(OneFourthSecondTimer, null, time, Timeout.Infinite);
 		}
 
 		public static void ClearPunishedUsersList()
@@ -4142,8 +4176,14 @@ namespace Advobot
 			//The reason this is not a foreachasync is 1) it doesn't work well with a timer and 2) the results of this are unimportant
 			GetOutTimedObject(Variables.TimedMessages).ForEach(async timed =>
 			{
-				await DeleteMessage(timed.Message);
-				await DeleteMessages(timed.Messages.FirstOrDefault().Channel, timed.Messages);
+				if (timed.Messages.Count() == 1)
+				{
+					await DeleteMessage(timed.Messages.FirstOrDefault());
+				}
+				else
+				{
+					await DeleteMessages(timed.Channel, timed.Messages);
+				}
 			});
 		}
 
@@ -4153,7 +4193,7 @@ namespace Advobot
 			GetOutTimedObject(Variables.ActiveCloseWords);
 		}
 
-		public static void ResetSMUserMessages()
+		public static void ResetSlowModeUserMessages()
 		{
 			GetOutTimedObject(Variables.SlowmodeUsers).ForEach(x =>
 			{
@@ -4338,9 +4378,22 @@ namespace Advobot
 			Environment.Exit(0);
 		}
 
-		public static void DontWaitForResultOfUnimportantBigFunction(Func<Task> func)
+		public static void DontWaitForResultOfBigUnimportantFunction(IMessageChannel channel, Action func)
 		{
-			Task.Run(func).Forget();
+			Task.Run(() =>
+			{
+				IDisposable typing = null;
+				if (channel != null)
+				{
+					typing = channel.EnterTypingState();
+				}
+
+				func.Invoke();
+				if (typing != null)
+				{
+					typing.Dispose();
+				}
+			}).Forget();
 		}
 		#endregion
 	}

@@ -30,7 +30,7 @@ namespace Advobot
 			{
 				if (Variables.BotID != 0)
 				{
-					Variables.Guilds.Add(guild.Id, await Actions.CreateOrGetGetGuildInfo(guild));
+					Variables.Guilds.Add(guild.Id, await Actions.CreateOrGetGuildInfo(guild));
 				}
 				else
 				{
@@ -257,7 +257,7 @@ namespace Advobot
 				await Message_Received_Actions.HandlePotentialBotOwner(message);
 			}
 
-			var guildInfo = await Actions.CreateOrGetGetGuildInfo(guild);
+			var guildInfo = await Actions.CreateOrGetGuildInfo(guild);
 			await Message_Received_Actions.HandleCloseWords(guildInfo, message);
 			await Message_Received_Actions.HandleSpamPreventionVoting(guildInfo, message);
 
@@ -362,7 +362,7 @@ namespace Advobot
 				++Variables.LoggedDeletes;
 
 				//Make a separate task in order to not mess up the other commands
-				Actions.DontWaitForResultOfUnimportantBigFunction(async () =>
+				Actions.DontWaitForResultOfBigUnimportantFunction(null, async () =>
 				{
 					try
 					{
@@ -395,10 +395,8 @@ namespace Advobot
 	{
 		public static async Task LogCommand(BotGuildInfo guildInfo, ICommandContext context)
 		{
-			//Write into the console what the command was and who said it
-			var user = context.User;
-			Actions.WriteLine(String.Format("{0} on {1}: \"{2}\"", user.FormatUser(), context.Guild.FormatGuild(), context.Message.Content));
-			Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.Remove(context.Guild);
+			Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.ThreadSafeRemove(context.Guild.Id);
+			Actions.WriteLine(new LoggedCommand(context).ToString());
 
 			if (!Actions.VerifyMessageShouldBeLogged(guildInfo, context.Message))
 				return;
@@ -409,7 +407,7 @@ namespace Advobot
 			//Make the embed
 			var embed = Actions.MakeNewEmbed(null, context.Message.Content);
 			Actions.AddFooter(embed, "Mod Log");
-			Actions.AddAuthor(embed, String.Format("{0} in #{1}", user.FormatUser(), context.Channel.Name), context.User.GetAvatarUrl());
+			Actions.AddAuthor(embed, String.Format("{0} in #{1}", context.User.FormatUser(), context.Channel.Name), context.User.GetAvatarUrl());
 			await Actions.SendEmbedMessage(modLog, embed);
 		}
 	}

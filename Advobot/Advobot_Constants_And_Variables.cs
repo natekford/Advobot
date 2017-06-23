@@ -157,8 +157,9 @@ namespace Advobot
 		public static bool Pause = false;
 
 		public static DateTime StartupTime = DateTime.UtcNow;
-		public static Timer SpamTimer;
-		public static Timer RemovePunishmentTimer;
+		public static Timer HourTimer;
+		public static Timer MinuteTimer;
+		public static Timer OneFourthSecondTimer;
 
 		public static int TotalUsers = 0;
 		public static int TotalGuilds = 0;
@@ -177,6 +178,7 @@ namespace Advobot
 		public static int LoggedFiles = 0;
 
 		public static Dictionary<ulong, BotGuildInfo> Guilds = new Dictionary<ulong, BotGuildInfo>();
+		public static SortedDictionary<string, List<string>> WrittenLines = new SortedDictionary<string, List<string>>();
 
 		//Lists that can only be modified through code for the most part
 		public readonly static List<string> CommandNames = new List<string>();
@@ -193,6 +195,6 @@ namespace Advobot
 		public readonly static List<ActiveCloseWords> ActiveCloseWords = new List<ActiveCloseWords>();
 		public readonly static List<SlowmodeUser> SlowmodeUsers = new List<SlowmodeUser>();
 		public readonly static List<IGuild> GuildsToBeLoaded = new List<IGuild>();
-		public readonly static List<IGuild> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<IGuild>();
+		public readonly static List<ulong> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<ulong>();
 	}
 }
