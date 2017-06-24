@@ -62,6 +62,7 @@ namespace Advobot
 		public const int MAX_REMINDS = 50;
 		public const int MAX_BANNED_STRINGS = 50;
 		public const int MAX_BANNED_REGEX = 25;
+		public const int MAX_BANNED_NAMES = 25;
 		public const int MESSAGES_TO_GATHER = 100;
 		public const int PAD_RIGHT = 20;
 		public const int ACTIVE_CLOSE = 5000;

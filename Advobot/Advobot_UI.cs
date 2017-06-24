@@ -2131,9 +2131,10 @@ namespace Advobot
 	public class UIFontResizer : IValueConverter
 	{
 		private double mConvertFactor;
+
 		public UIFontResizer(double convertFactor)
 		{
-			this.mConvertFactor = convertFactor;
+			mConvertFactor = convertFactor;
 		}
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

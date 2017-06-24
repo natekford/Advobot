@@ -195,7 +195,7 @@ namespace Advobot
 
 		[Command("modifybannedstrings")]
 		[Alias("mbs")]
-		[Usage("[Add] [\"Phrase\"/...] | [Remove] [\"Phrase\"/...|Position:Number/...]")]
+		[Usage("[Add] [\"Phrase/...\"] | [Remove] [\"Phrase/...\"|Position:Number/...]")]
 		[Summary("Adds/removes the given string to/from the ban list.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -267,8 +267,8 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
 		}
 
-		[Command("changepunishmenttypeofbannedphrase")]
-		[Alias("cptofbp")]
+		[Command("modifypunishmenttype")]
+		[Alias("mpt")]
 		[Usage("[\"Phrase\"|Position:int] [Nothing|Role|Kick|Ban] <Regex>")]
 		[Summary("Changes the punishment type of the input string or regex to the given type.")]
 		[PermissionRequirement]
@@ -363,7 +363,7 @@ namespace Advobot
 
 		[Command("modifybannedphrasespunishment")]
 		[Alias("mbpp")]
-		[Usage("[Add] [Position:Number] [Punishment:\"Role Name\"|Kick|Ban] <Time:Number> | [Remove] [Position:Number]")]
+		[Usage("[Add] [Position:Number] [\"Punishment:Role Name|Kick|Ban\"] <Time:Number> | [Remove] [Position:Number]")]
 		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to the total of its type. Time is in minutes and only applies to roles.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -585,8 +585,9 @@ namespace Advobot
 			}
 		}
 
-		[Command("modifybannednamesforjoiningusers")]
-		[Alias("mbnfju")]
+		//Reason you can't add/remove more than one at a time like modifybannedstrings is because fuck that
+		[Command("modifybannednames")]
+		[Alias("mbn")]
 		[Usage("[Add|Remove] [\"Phrase\"]")]
 		[Summary("If a user joins with the given phrase in their name, the bot will automatically ban them.")]
 		[PermissionRequirement]
@@ -628,7 +629,12 @@ namespace Advobot
 			{
 				case ActionType.Add:
 				{
-					if (bannedWords.CaseInsContains(phraseStr))
+					if (bannedWords.Count >= Constants.MAX_BANNED_NAMES)
+					{
+						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned names at a time.", Constants.MAX_BANNED_NAMES));
+						return;
+					}
+					else if (bannedWords.CaseInsContains(phraseStr))
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The phrase `{0}` is already on the banned names when joining list.", phraseStr)));
 						return;

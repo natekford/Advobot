@@ -387,11 +387,11 @@ namespace Advobot
 
 			if (!mFieldInfoLoaded)
 			{
+				mFieldInfoLoaded = true;
 				foreach (var setting in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
 				{
 					mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
 				}
-				mFieldInfoLoaded = true;
 			}
 		}
 
@@ -720,11 +720,11 @@ namespace Advobot
 		{
 			if (!mFieldInfoLoaded)
 			{
+				mFieldInfoLoaded = true;
 				foreach (var setting in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
 				{
 					mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
 				}
-				mFieldInfoLoaded = true;
 			}
 		}
 
