@@ -1086,7 +1086,7 @@ namespace Advobot
 			mGameSetting.Text = ((string)botInfo.GetSetting(SettingOnBot.Game));
 			mStreamSetting.Text = ((string)botInfo.GetSetting(SettingOnBot.Stream));
 			mShardSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.ShardCount)).ToString();
-			mMessageCacheSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.MaxUserGatherCount)).ToString();
+			mMessageCacheSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.MessageCacheCount)).ToString();
 			mUserGatherCountSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.MaxUserGatherCount)).ToString();
 			mMessageGatherSizeSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.MaxMessageGatherSize)).ToString();
 			mLogLevelComboBox.SelectedItem = mLogLevelComboBox.Items.OfType<TextBox>().FirstOrDefault(x => (Discord.LogSeverity)x.Tag == ((Discord.LogSeverity)Variables.BotInfo.GetSetting(SettingOnBot.LogLevel)));
@@ -1123,7 +1123,7 @@ namespace Advobot
 		private ReturnedSetting SaveSetting(TextBox tb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
 			var text = tb.Text;
-			if (Actions.CaseInsEquals(botInfo.GetSetting(setting).ToString(), text))
+			if (Actions.CaseInsEquals(botInfo.GetSetting(setting)?.ToString(), text))
 				return new ReturnedSetting(setting, NSF.Nothing);
 
 			var nothingSuccessFailure = NSF.Nothing;

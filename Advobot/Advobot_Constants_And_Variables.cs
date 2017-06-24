@@ -13,7 +13,7 @@ namespace Advobot
 		public const string BOT_PREFIX = "&&";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string IGNORE_ERROR = "Cx";
-		public const string DISCORD_INV = "https://discord.gg/xd";
+		public const string DISCORD_INV = "https://discord.gg/MBXypxb"; //Switched from /xd to this invite since no matter what this inv will link to my server and never someone else's server
 		public const string STREAM_URL = "https://www.twitch.tv/";
 		public const string REPO = "https://github.com/advorange/Advobot";
 		public const string VIP_REGIONS = "VIP_REGIONS";
