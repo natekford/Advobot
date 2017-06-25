@@ -341,7 +341,7 @@ namespace Advobot
 		{
 			WriteLine("The current bot prefix is: " + ((string)Variables.BotInfo.GetSetting(SettingOnBot.Prefix)));
 			WriteLine(String.Format("Bot took {0:n} milliseconds to load everything.", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - Variables.StartupTime.Ticks).TotalMilliseconds));
-			foreach (var e in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
+			foreach (var e in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>().Except(new List<SettingOnBot> { SettingOnBot.SavePath }))
 			{
 				if (BotGlobalInfo.GetField(e) == null)
 				{
@@ -3822,46 +3822,55 @@ namespace Advobot
 			});
 		}
 
-		public static void HandleBannedPhraseModification(List<BannedPhrase> bannedStrings, List<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
+		public static void HandleBannedPhraseModification(List<BannedPhrase> bannedStrings, IEnumerable<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
 		{
 			success = new List<string>();
 			failure = new List<string>();
 			if (add)
 			{
+				//Don't add duplicate words
 				foreach (var str in inputPhrases)
 				{
-					bannedStrings.Add(new BannedPhrase(str, PunishmentType.Nothing));
-					success.Add(str);
+					if (!bannedStrings.Any(x => CaseInsEquals(x.Phrase, str)))
+					{
+						bannedStrings.Add(new BannedPhrase(str, PunishmentType.Nothing));
+						success.Add(str);
+					}
+					else
+					{
+						failure.Add(str);
+					}
 				}
 			}
 			else
 			{
 				var positions = new List<int>();
-				inputPhrases.ForEach(potentialNumber =>
+				foreach (var potentialPosition in inputPhrases)
 				{
-					//Check if is a number and is less than the count of the list
-					if (int.TryParse(potentialNumber, out int temp) && temp < bannedStrings.Count)
+					if (int.TryParse(potentialPosition, out int temp) && temp < bannedStrings.Count)
 					{
 						positions.Add(temp);
 					}
-				});
+				}
 
+				//Removing by phrase
 				if (!positions.Any())
 				{
 					foreach (var str in inputPhrases)
 					{
-						var tempString = bannedStrings.FirstOrDefault(y => y.Phrase.ToString() == str);
-						if (tempString == null)
+						var temp = bannedStrings.FirstOrDefault(x => x.Phrase.Equals(str));
+						if (temp != null)
 						{
-							failure.Add(str);
+							success.Add(str);
+							bannedStrings.Remove(temp);
 						}
 						else
 						{
-							success.Add(str);
-							bannedStrings.Remove(tempString);
+							failure.Add(str);
 						}
 					}
 				}
+				//Removing by index
 				else
 				{
 					//Put them in descending order so as to not delete low values before high ones
@@ -3869,13 +3878,10 @@ namespace Advobot
 					{
 						if (bannedStrings.Count - 1 <= position)
 						{
-							var tempString = bannedStrings[position];
-							if (tempString != null)
-							{
-								bannedStrings.Remove(tempString);
-								success.Add(tempString.Phrase);
-								continue;
-							}
+							var temp = bannedStrings[position];
+							bannedStrings.Remove(temp);
+							success.Add(temp?.Phrase ?? "null");
+							continue;
 						}
 						failure.Add("String at position " + position);
 					}

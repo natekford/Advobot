@@ -16,13 +16,13 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using static Advobot.UIAttributes;
 
 namespace Advobot
 {
 	public class BotWindow : Window
 	{
 		private static readonly Grid mLayout = new Grid();
+		private static readonly BotUIInfo mUIInfo = BotUIInfo.LoadBotUIInfo();
 
 		#region Input
 		private static readonly Grid mInputLayout = new Grid();
@@ -553,7 +553,6 @@ namespace Advobot
 			UIModification.SetFontSizeProperties(.022, new UIElement[] { mEditBox, mEditSaveBox, mFileOutput, });
 			UIModification.SetFontSizeProperties(.018, new UIElement[] { mMainMenuOutput, }, mTitleBoxes, mSettingBoxes);
 
-			//Events
 			mInput.KeyUp += AcceptInput;
 			mMemory.MouseEnter += ModifyMemHoverInfo;
 			mMemory.MouseLeave += ModifyMemHoverInfo;
@@ -569,16 +568,22 @@ namespace Advobot
 			mFileButton.Click += BringUpMenu;
 			mEditCloseButton.Click += CloseEditLayout;
 			mEditSaveButton.Click += SaveEditLayout;
-			mSettingsSaveButton.Click += SaveSettings;
-			mFileSearchButton.Click += BringUpFileSearch;
-			mGuildSearchButton.Click += FileSearch;
-			mGuildSearchCloseButton.Click += CloseFileSearch;
+
 			mPauseButton.Click += Pause;
 			mRestartButton.Click += Restart;
 			mDisconnectButton.Click += Disconnect;
-			mColorsSaveButton.Click += UpdateColors;
+
+			mSettingsSaveButton.Click += SaveSettings;
+			mColorsSaveButton.Click += SaveColors;
+
+			mFileSearchButton.Click += BringUpFileSearch;
+			mGuildSearchCloseButton.Click += CloseFileSearch;
+			mGuildSearchLayout.MouseUp += CloseFileSearch;
+			mGuildSearchButton.Click += FileSearch;
+
 			mOutputContextMenuSearch.Click += BringUpOutputSearch;
 			mOutputSearchCloseButton.Click += CloseOutputSearch;
+			mOutputSearchLayout.MouseUp += CloseOutputSearch;
 			mOutputSearchButton.Click += OutputSearch;
 
 			//Set this panel as the content for this window and run the application
@@ -602,8 +607,8 @@ namespace Advobot
 				Actions.MaybeStartBot();
 			});
 
-			InitializeColors();
-			SetTheme(UIAttributes.BotUIInfo.Theme);
+			mUIInfo.InitializeColors();
+			mUIInfo.ActivateTheme();
 			UIModification.SetColorMode(mLayout);
 			UpdateSystemInformation();
 		}
@@ -842,7 +847,7 @@ namespace Advobot
 					//Make sure the guild info stays valid
 					try
 					{
-						var throwaway = Newtonsoft.Json.JsonConvert.DeserializeObject<BotGuildInfo>(mEditBox.Text);
+						var throwaway = JsonConvert.DeserializeObject<BotGuildInfo>(mEditBox.Text);
 					}
 					catch (Exception exc)
 					{
@@ -898,7 +903,7 @@ namespace Advobot
 				}
 				else if (Actions.CaseInsEquals(name, mColorsButton.Content.ToString()))
 				{
-					UIModification.MakeColorDisplayer(mColorsLayout, mColorsSaveButton, .018);
+					UIModification.MakeColorDisplayer(mUIInfo, mColorsLayout, mColorsSaveButton, .018);
 					mColorsLayout.Visibility = Visibility.Visible;
 				}
 				//Show the text for info
@@ -962,11 +967,61 @@ namespace Advobot
 				Actions.WriteLine(String.Format("Failed to save: {0}", String.Join(", ", failure)));
 			}
 		}
-		private void UpdateColors(object sender, RoutedEventArgs e)
+		private void SaveColors(object sender, RoutedEventArgs e)
 		{
-			SaveColors();
-			SaveBotUIInfo();
-			SetTheme(UIAttributes.BotUIInfo.Theme);
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(mColorsLayout); i++)
+			{
+				var child = VisualTreeHelper.GetChild(mColorsLayout, i);
+				if (child is MyTextBox)
+				{
+					var castedChild = child as MyTextBox;
+
+					if (!(castedChild.Tag is ColorTarget))
+						continue;
+					var target = (ColorTarget)castedChild.Tag;
+
+					var childText = castedChild.Text;
+					if (String.IsNullOrWhiteSpace(childText))
+					{
+						continue;
+					}
+					else if (!childText.StartsWith("#"))
+					{
+						childText = "#" + childText;
+					}
+
+					Brush brush = null;
+					try
+					{
+						brush = UIModification.MakeBrush(childText);
+					}
+					catch
+					{
+						Actions.WriteLine(String.Format("Invalid color supplied for {0}.", Enum.GetName(typeof(ColorTarget), target)));
+						continue;
+					}
+
+					if (!UIModification.CheckIfTwoBrushesAreTheSame(mUIInfo.ColorTargets[target], brush))
+					{
+						mUIInfo.ColorTargets[target] = brush;
+						castedChild.Text = UIModification.FormatBrush(brush);
+						Actions.WriteLine(String.Format("Successfully updated the color for {0}.", Enum.GetName(typeof(ColorTarget), target)));
+					}
+				}
+				else if (child is ComboBox)
+				{
+					var selected = ((ComboBox)child).SelectedItem as MyTextBox;
+					var tag = selected?.Tag as ColorTheme?;
+					if (!tag.HasValue || tag == mUIInfo.Theme)
+						continue;
+
+					mUIInfo.SetTheme((ColorTheme)tag);
+					Actions.WriteLine("Successfully updated the theme type.");
+				}
+			}
+
+			mUIInfo.SaveBotUIInfo();
+			mUIInfo.ActivateTheme();
 			UIModification.SetColorMode(mLayout);
 		}
 		private void ModifyMemHoverInfo(object sender, RoutedEventArgs e)
@@ -1008,60 +1063,6 @@ namespace Advobot
 			mTrustedUsersComboBox.ItemsSource = currTBs;
 		}
 
-		private void SaveColors()
-		{
-			var UIInfo = UIAttributes.BotUIInfo;
-			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(mColorsLayout); i++)
-			{
-				var child = VisualTreeHelper.GetChild(mColorsLayout, i);
-				if (child is MyTextBox)
-				{
-					var castedChild = child as MyTextBox;
-
-					if (!(castedChild.Tag is ColorTarget))
-						continue;
-					var target = (ColorTarget)castedChild.Tag;
-
-					var childText = castedChild.Text;
-					if (String.IsNullOrWhiteSpace(childText))
-					{
-						continue;
-					}
-					else if (!childText.StartsWith("#"))
-					{
-						childText = "#" + childText;
-					}
-
-					Brush brush = null;
-					try
-					{
-						brush = UIModification.MakeBrush(childText);
-					}
-					catch
-					{
-						Actions.WriteLine(String.Format("Invalid color supplied for {0}.", Enum.GetName(typeof(ColorTarget), target)));
-						continue;
-					}
-
-					if (!Actions.CaseInsEquals(UIModification.FormatBrush(UIInfo.ColorTargets[target]), childText))
-					{
-						UIInfo.ColorTargets[target] = brush;
-						castedChild.Text = childText.ToUpper();
-						Actions.WriteLine(String.Format("Successfully updated the color for {0}.", Enum.GetName(typeof(ColorTarget), target)));
-					}
-				}
-				else if (child is ComboBox)
-				{
-					var selected = ((ComboBox)child).SelectedItem as MyTextBox;
-					var tag = selected?.Tag as ColorTheme?;
-					if (!tag.HasValue || tag == UIInfo.Theme)
-						continue;
-
-					UIInfo.SetTheme((ColorTheme)tag);
-					Actions.WriteLine("Successfully updated the theme type.");
-				}
-			}
-		}
 		private void UpdateSystemInformation()
 		{
 			var timer = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 500) };
@@ -1233,163 +1234,6 @@ namespace Advobot
 		}
 	}
 
-	public class UIAttributes
-	{
-		public static readonly BotUIInfo BotUIInfo = LoadBotUIInfo();
-
-		private static readonly Brush LightModeBackground = UIModification.MakeBrush("#FFFFFF");
-		private static readonly Brush LightModeForeground = UIModification.MakeBrush("#000000");
-		private static readonly Brush LightModeBorder = UIModification.MakeBrush("#ABADB3");
-		private static readonly Brush LightModeButtonBackground = UIModification.MakeBrush("#DDDDDD");
-		private static readonly Brush LightModeButtonBorder = UIModification.MakeBrush("#707070");
-		private static readonly Brush LightModeButtonDisabledBackground = UIModification.MakeBrush("#F4F4F4");
-		private static readonly Brush LightModeButtonDisabledForeground = UIModification.MakeBrush("#888888");
-		private static readonly Brush LightModeButtonDisabledBorder = UIModification.MakeBrush("#ADB2B5");
-		private static readonly Brush LightModeButtonMouseOver = UIModification.MakeBrush("#BEE6FD");
-		private static readonly Style LightModeButtonStyle = UIModification.MakeButtonStyle
-			(
-			LightModeButtonBackground,
-			LightModeForeground,
-			LightModeButtonBorder,
-			LightModeButtonDisabledBackground,
-			LightModeButtonDisabledForeground,
-			LightModeButtonDisabledBorder,
-			LightModeButtonMouseOver
-			);
-
-		private static readonly Brush DarkModeBackground = UIModification.MakeBrush("#1C1C1C");
-		private static readonly Brush DarkModeForeground = UIModification.MakeBrush("#E1E1E1");
-		private static readonly Brush DarkModeBorder = UIModification.MakeBrush("#ABADB3");
-		private static readonly Brush DarkModeButtonBackground = UIModification.MakeBrush("#151515");
-		private static readonly Brush DarkModeButtonBorder = UIModification.MakeBrush("#ABADB3");
-		private static readonly Brush DarkModeButtonDisabledBackground = UIModification.MakeBrush("#343434");
-		private static readonly Brush DarkModeButtonDisabledForeground = UIModification.MakeBrush("#A0A0A0");
-		private static readonly Brush DarkModeButtonDisabledBorder = UIModification.MakeBrush("#ADB2B5");
-		private static readonly Brush DarkModeButtonMouseOver = UIModification.MakeBrush("#303333");
-		private static readonly Style DarkModeButtonStyle = UIModification.MakeButtonStyle
-			(
-			DarkModeButtonBackground,
-			DarkModeForeground,
-			DarkModeButtonBorder,
-			DarkModeButtonDisabledBackground,
-			DarkModeButtonDisabledForeground,
-			DarkModeButtonDisabledBorder,
-			DarkModeButtonMouseOver
-			);
-
-		public static void InitializeColors()
-		{
-			var res = Application.Current.Resources;
-			res.Add(ColorTarget.Base_Background, LightModeBackground);
-			res.Add(ColorTarget.Base_Foreground, LightModeForeground);
-			res.Add(ColorTarget.Base_Border, LightModeBorder);
-			res.Add(ColorTarget.Button_Background, LightModeButtonBackground);
-			res.Add(ColorTarget.Button_Border, LightModeButtonBorder);
-			res.Add(ColorTarget.Button_Disabled_Background, LightModeButtonDisabledBackground);
-			res.Add(ColorTarget.Button_Disabled_Foreground, LightModeButtonDisabledForeground);
-			res.Add(ColorTarget.Button_Disabled_Border, LightModeButtonDisabledBorder);
-			res.Add(ColorTarget.Button_Mouse_Over_Background, LightModeButtonMouseOver);
-			res.Add(OtherTarget.Button_Style, LightModeButtonStyle);
-		}
-		public static void SetTheme(ColorTheme theme)
-		{
-			switch (theme)
-			{
-				case ColorTheme.Classic:
-				{
-					SetClassic();
-					return;
-				}
-				case ColorTheme.Dark_Mode:
-				{
-					SetDarkMode();
-					return;
-				}
-				case ColorTheme.User_Made:
-				{
-					SetUserMade();
-					return;
-				}
-			}
-		}
-		private static void SetClassic()
-		{
-			var res = Application.Current.Resources;
-			res[ColorTarget.Base_Background] = LightModeBackground;
-			res[ColorTarget.Base_Foreground] = LightModeForeground;
-			res[ColorTarget.Base_Border] = LightModeBorder;
-			res[ColorTarget.Button_Background] = LightModeButtonBackground;
-			res[ColorTarget.Button_Border] = LightModeButtonBorder;
-			res[ColorTarget.Button_Disabled_Background] = LightModeButtonDisabledBackground;
-			res[ColorTarget.Button_Disabled_Foreground] = LightModeButtonDisabledForeground;
-			res[ColorTarget.Button_Disabled_Border] = LightModeButtonDisabledBorder;
-			res[ColorTarget.Button_Mouse_Over_Background] = LightModeButtonMouseOver;
-			res[OtherTarget.Button_Style] = LightModeButtonStyle;
-		}
-		private static void SetDarkMode()
-		{
-			var res = Application.Current.Resources;
-			res[ColorTarget.Base_Background] = DarkModeBackground;
-			res[ColorTarget.Base_Foreground] = DarkModeForeground;
-			res[ColorTarget.Base_Border] = DarkModeBorder;
-			res[ColorTarget.Button_Background] = DarkModeButtonBackground;
-			res[ColorTarget.Button_Border] = DarkModeButtonBorder;
-			res[ColorTarget.Button_Disabled_Background] = DarkModeButtonDisabledBackground;
-			res[ColorTarget.Button_Disabled_Foreground] = DarkModeButtonDisabledForeground;
-			res[ColorTarget.Button_Disabled_Border] = DarkModeButtonDisabledBorder;
-			res[ColorTarget.Button_Mouse_Over_Background] = DarkModeButtonMouseOver;
-			res[OtherTarget.Button_Style] = DarkModeButtonStyle;
-		}
-		private static void SetUserMade()
-		{
-			var res = Application.Current.Resources;
-			foreach (var kvp in BotUIInfo.ColorTargets)
-			{
-				res[kvp.Key] = kvp.Value;
-			}
-			res[OtherTarget.Button_Style] = UIModification.MakeButtonStyle
-				(
-				(Brush)res[ColorTarget.Base_Background],
-				(Brush)res[ColorTarget.Base_Foreground],
-				(Brush)res[ColorTarget.Base_Border],
-				(Brush)res[ColorTarget.Button_Disabled_Background],
-				(Brush)res[ColorTarget.Button_Disabled_Foreground],
-				(Brush)res[ColorTarget.Button_Disabled_Border],
-				(Brush)res[ColorTarget.Button_Mouse_Over_Background]
-				);
-		}
-		public static BotUIInfo LoadBotUIInfo()
-		{
-			var botInfo = new BotUIInfo();
-			var path = Actions.GetBaseBotDirectory(Constants.UI_INFO_LOCATION);
-			if (!File.Exists(path))
-			{
-				if (Variables.Loaded)
-				{
-					Actions.WriteLine("The bot UI information file does not exist.");
-				}
-				return botInfo;
-			}
-
-			try
-			{
-				using (var reader = new StreamReader(path))
-				{
-					botInfo = JsonConvert.DeserializeObject<BotUIInfo>(reader.ReadToEnd());
-				}
-			}
-			catch (Exception e)
-			{
-				Actions.ExceptionToConsole(e);
-			}
-			return botInfo;
-		}
-		public static void SaveBotUIInfo()
-		{
-			Actions.OverWriteFile(Actions.GetBaseBotDirectory(Constants.UI_INFO_LOCATION), Actions.Serialize(BotUIInfo));
-		}
-	}
-
 	public class UIModification
 	{
 		public static void AddRows(Grid grid, int amount)
@@ -1532,6 +1376,27 @@ namespace Advobot
 				await Task.Delay(2500);
 				element.Visibility = element.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
 			});
+		}
+
+		public static bool CheckIfTwoBrushesAreTheSame(Brush b1, Brush b2)
+		{
+			var nullableColor1 = ((SolidColorBrush)b1)?.Color;
+			var nullableColor2 = ((SolidColorBrush)b2)?.Color;
+			var color1IsNull = !nullableColor1.HasValue;
+			var color2IsNull = !nullableColor2.HasValue;
+			if (color1IsNull || color2IsNull)
+			{
+				return color1IsNull && color2IsNull;
+			}
+
+			var color1 = nullableColor1.Value;
+			var color2 = nullableColor2.Value;
+
+			var a = color1.A == color2.A;
+			var r = color1.R == color2.R;
+			var g = color1.G == color2.G;
+			var b = color1.B == color2.B;
+			return a && r && g && b;
 		}
 
 		public static string FormatBrush(Brush b)
@@ -1730,7 +1595,7 @@ namespace Advobot
 				guildItems.Add(guildItem);
 			});
 
-			tv.ItemsSource = guildItems.OrderBy(x => ((GuildFileInformation)x.Tag).MemberCount).Reverse();
+			tv.ItemsSource = guildItems.OrderByDescending(x => ((GuildFileInformation)x.Tag).MemberCount);
 			tv.BorderThickness = new Thickness(0);
 			tv.Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background];
 			tv.Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground];
@@ -1768,7 +1633,7 @@ namespace Advobot
 			return new FlowDocument(paragraph);
 		}
 
-		public static Grid MakeColorDisplayer(Grid child, Button button, double fontSizeProperty)
+		public static Grid MakeColorDisplayer(BotUIInfo UIInfo, Grid child, Button button, double fontSizeProperty)
 		{
 			child.Children.Clear();
 
@@ -1786,14 +1651,14 @@ namespace Advobot
 				ItemsSource = MakeComboBoxSourceOutOfEnum(typeof(ColorTheme)),
 				VerticalContentAlignment = VerticalAlignment.Center,
 			};
-			themeComboBox.SelectedItem = themeComboBox.Items.Cast<MyTextBox>().FirstOrDefault(x => (ColorTheme)x.Tag == UIAttributes.BotUIInfo.Theme);
+			themeComboBox.SelectedItem = themeComboBox.Items.Cast<MyTextBox>().FirstOrDefault(x => (ColorTheme)x.Tag == UIInfo.Theme);
 			AddElement(child, themeComboBox, 2, 5, 65, 25);
 
 			var colorResourceKeys = Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>().ToArray();
 			for (int i = 0; i < colorResourceKeys.Length; i++)
 			{
 				var key = colorResourceKeys[i];
-				var value = FormatBrush(UIAttributes.BotUIInfo.ColorTargets[key]);
+				var value = FormatBrush(UIInfo.ColorTargets[key]);
 
 				var title = MakeTitle(String.Format("{0}:", Enum.GetName(typeof(ColorTarget), key)), "");
 				var setting = new MyTextBox
@@ -1993,13 +1858,15 @@ namespace Advobot
 		{
 			//Get the current text
 			var text = tb.Text.Trim(new[] { '\r', '\n' });
-			tb.Text = "";
-			b.IsEnabled = false;
 			if (text.Contains("﷽"))
 			{
-				text += Environment.NewLine + "This program really doesn't like that long Arabic character for some reason. Whenever there are a lot of them it crashes the program completely.";
+				text += "This program really doesn't like that long Arabic character for some reason. Whenever there are a lot of them it crashes the program completely.";
 			}
 			Actions.WriteLine(text);
+
+			tb.Text = "";
+			b.IsEnabled = false;
+
 			//Make sure both the path and key are set
 			if (!Variables.GotPath || !Variables.GotKey)
 			{
@@ -2179,11 +2046,72 @@ namespace Advobot
 
 	public class BotUIInfo
 	{
-		[JsonProperty]
+		[JsonIgnore]
+		private static readonly Brush LightModeBackground = UIModification.MakeBrush("#FFFFFF");
+		[JsonIgnore]
+		private static readonly Brush LightModeForeground = UIModification.MakeBrush("#000000");
+		[JsonIgnore]
+		private static readonly Brush LightModeBorder = UIModification.MakeBrush("#ABADB3");
+		[JsonIgnore]
+		private static readonly Brush LightModeButtonBackground = UIModification.MakeBrush("#DDDDDD");
+		[JsonIgnore]
+		private static readonly Brush LightModeButtonBorder = UIModification.MakeBrush("#707070");
+		[JsonIgnore]
+		private static readonly Brush LightModeButtonDisabledBackground = UIModification.MakeBrush("#F4F4F4");
+		[JsonIgnore]
+		private static readonly Brush LightModeButtonDisabledForeground = UIModification.MakeBrush("#888888");
+		[JsonIgnore]
+		private static readonly Brush LightModeButtonDisabledBorder = UIModification.MakeBrush("#ADB2B5");
+		[JsonIgnore]
+		private static readonly Brush LightModeButtonMouseOver = UIModification.MakeBrush("#BEE6FD");
+		[JsonIgnore]
+		private static readonly Style LightModeButtonStyle = UIModification.MakeButtonStyle
+			(
+			LightModeButtonBackground,
+			LightModeForeground,
+			LightModeButtonBorder,
+			LightModeButtonDisabledBackground,
+			LightModeButtonDisabledForeground,
+			LightModeButtonDisabledBorder,
+			LightModeButtonMouseOver
+			);
+
+		[JsonIgnore]
+		private static readonly Brush DarkModeBackground = UIModification.MakeBrush("#1C1C1C");
+		[JsonIgnore]
+		private static readonly Brush DarkModeForeground = UIModification.MakeBrush("#E1E1E1");
+		[JsonIgnore]
+		private static readonly Brush DarkModeBorder = UIModification.MakeBrush("#ABADB3");
+		[JsonIgnore]
+		private static readonly Brush DarkModeButtonBackground = UIModification.MakeBrush("#151515");
+		[JsonIgnore]
+		private static readonly Brush DarkModeButtonBorder = UIModification.MakeBrush("#ABADB3");
+		[JsonIgnore]
+		private static readonly Brush DarkModeButtonDisabledBackground = UIModification.MakeBrush("#343434");
+		[JsonIgnore]
+		private static readonly Brush DarkModeButtonDisabledForeground = UIModification.MakeBrush("#A0A0A0");
+		[JsonIgnore]
+		private static readonly Brush DarkModeButtonDisabledBorder = UIModification.MakeBrush("#ADB2B5");
+		[JsonIgnore]
+		private static readonly Brush DarkModeButtonMouseOver = UIModification.MakeBrush("#303333");
+		[JsonIgnore]
+		private static readonly Style DarkModeButtonStyle = UIModification.MakeButtonStyle
+			(
+			DarkModeButtonBackground,
+			DarkModeForeground,
+			DarkModeButtonBorder,
+			DarkModeButtonDisabledBackground,
+			DarkModeButtonDisabledForeground,
+			DarkModeButtonDisabledBorder,
+			DarkModeButtonMouseOver
+			);
+
+		[JsonProperty("Theme")]
 		public ColorTheme Theme { get; private set; } = ColorTheme.Classic;
-		[JsonProperty]
+		[JsonProperty("ColorTargets")]
 		public Dictionary<ColorTarget, Brush> ColorTargets { get; private set; } = new Dictionary<ColorTarget, Brush>();
 
+		[JsonConstructor]
 		public BotUIInfo()
 		{
 			foreach (var target in Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>())
@@ -2195,6 +2123,118 @@ namespace Advobot
 		public void SetTheme(ColorTheme theme)
 		{
 			Theme = theme;
+		}
+		public void SaveBotUIInfo()
+		{
+			Actions.OverWriteFile(Actions.GetBaseBotDirectory(Constants.UI_INFO_LOCATION), Actions.Serialize(this));
+		}
+		public void InitializeColors()
+		{
+			var res = Application.Current.Resources;
+			res.Add(ColorTarget.Base_Background, LightModeBackground);
+			res.Add(ColorTarget.Base_Foreground, LightModeForeground);
+			res.Add(ColorTarget.Base_Border, LightModeBorder);
+			res.Add(ColorTarget.Button_Background, LightModeButtonBackground);
+			res.Add(ColorTarget.Button_Border, LightModeButtonBorder);
+			res.Add(ColorTarget.Button_Disabled_Background, LightModeButtonDisabledBackground);
+			res.Add(ColorTarget.Button_Disabled_Foreground, LightModeButtonDisabledForeground);
+			res.Add(ColorTarget.Button_Disabled_Border, LightModeButtonDisabledBorder);
+			res.Add(ColorTarget.Button_Mouse_Over_Background, LightModeButtonMouseOver);
+			res.Add(OtherTarget.Button_Style, LightModeButtonStyle);
+		}
+		public void ActivateTheme()
+		{
+			switch (Theme)
+			{
+				case ColorTheme.Classic:
+				{
+					ActivateClassic();
+					return;
+				}
+				case ColorTheme.Dark_Mode:
+				{
+					ActivateDarkMode();
+					return;
+				}
+				case ColorTheme.User_Made:
+				{
+					ActivateUserMade();
+					return;
+				}
+			}
+		}
+		private void ActivateClassic()
+		{
+			var res = Application.Current.Resources;
+			res[ColorTarget.Base_Background] = LightModeBackground;
+			res[ColorTarget.Base_Foreground] = LightModeForeground;
+			res[ColorTarget.Base_Border] = LightModeBorder;
+			res[ColorTarget.Button_Background] = LightModeButtonBackground;
+			res[ColorTarget.Button_Border] = LightModeButtonBorder;
+			res[ColorTarget.Button_Disabled_Background] = LightModeButtonDisabledBackground;
+			res[ColorTarget.Button_Disabled_Foreground] = LightModeButtonDisabledForeground;
+			res[ColorTarget.Button_Disabled_Border] = LightModeButtonDisabledBorder;
+			res[ColorTarget.Button_Mouse_Over_Background] = LightModeButtonMouseOver;
+			res[OtherTarget.Button_Style] = LightModeButtonStyle;
+		}
+		private void ActivateDarkMode()
+		{
+			var res = Application.Current.Resources;
+			res[ColorTarget.Base_Background] = DarkModeBackground;
+			res[ColorTarget.Base_Foreground] = DarkModeForeground;
+			res[ColorTarget.Base_Border] = DarkModeBorder;
+			res[ColorTarget.Button_Background] = DarkModeButtonBackground;
+			res[ColorTarget.Button_Border] = DarkModeButtonBorder;
+			res[ColorTarget.Button_Disabled_Background] = DarkModeButtonDisabledBackground;
+			res[ColorTarget.Button_Disabled_Foreground] = DarkModeButtonDisabledForeground;
+			res[ColorTarget.Button_Disabled_Border] = DarkModeButtonDisabledBorder;
+			res[ColorTarget.Button_Mouse_Over_Background] = DarkModeButtonMouseOver;
+			res[OtherTarget.Button_Style] = DarkModeButtonStyle;
+		}
+		private void ActivateUserMade()
+		{
+			var res = Application.Current.Resources;
+			foreach (var kvp in ColorTargets)
+			{
+				res[kvp.Key] = kvp.Value;
+			}
+			res[OtherTarget.Button_Style] = UIModification.MakeButtonStyle
+				(
+				(Brush)res[ColorTarget.Base_Background],
+				(Brush)res[ColorTarget.Base_Foreground],
+				(Brush)res[ColorTarget.Base_Border],
+				(Brush)res[ColorTarget.Button_Disabled_Background],
+				(Brush)res[ColorTarget.Button_Disabled_Foreground],
+				(Brush)res[ColorTarget.Button_Disabled_Border],
+				(Brush)res[ColorTarget.Button_Mouse_Over_Background]
+				);
+		}
+
+		public static BotUIInfo LoadBotUIInfo()
+		{
+			var botInfo = new BotUIInfo();
+			var path = Actions.GetBaseBotDirectory(Constants.UI_INFO_LOCATION);
+			if (!File.Exists(path))
+			{
+				if (Variables.Loaded)
+				{
+					Actions.WriteLine("The bot UI information file does not exist.");
+				}
+				return botInfo;
+			}
+
+			try
+			{
+				using (var reader = new StreamReader(path))
+				{
+					botInfo = JsonConvert.DeserializeObject<BotUIInfo>(reader.ReadToEnd());
+				}
+			}
+			catch (Exception e)
+			{
+				Actions.ExceptionToConsole(e);
+			}
+			return botInfo;
 		}
 	}
 

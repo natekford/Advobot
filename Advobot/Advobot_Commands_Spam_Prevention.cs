@@ -186,7 +186,7 @@ namespace Advobot
 
 					//Mute the newest joining users
 					var m = 0;
-					var users = (await Context.Guild.GetUsersAsync()).OrderBy(x => x.JoinedAt).Reverse().ToList();
+					var users = (await Context.Guild.GetUsersAsync()).OrderByDescending(x => x.JoinedAt).ToList();
 					await users.GetUpToAndIncludingMinNum(antiRaid.RequiredCount, users.Count, 25).ForEachAsync(async x =>
 					{
 						await antiRaid.PunishUser(x);

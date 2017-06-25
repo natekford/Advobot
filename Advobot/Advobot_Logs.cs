@@ -144,9 +144,8 @@ namespace Advobot
 				var ageWarningStr = userAccAge.TotalHours <= 24 ? String.Format("\n**New Account:** {0} hours, {1} minutes old.", (int)userAccAge.TotalHours, (int)userAccAge.Minutes) : "";
 				var botOrUserStr = user.IsBot ? "Bot" : "User";
 
-				//TODO: Make this toggleable (potentially have the ability to add other banned words in names)
 				//Bans people who join with a given word in their name
-				if (((List<string>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers)).Any(x => Actions.CaseInsIndexOf(user.Username, x)))
+				if (((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers)).Any(x => Actions.CaseInsIndexOf(user.Username, x.Phrase)))
 				{
 					await guild.AddBanAsync(user);
 					var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.BANN);
@@ -198,7 +197,7 @@ namespace Advobot
 				var serverLog = verified.LoggingChannel;
 
 				//Don't log them to the server if they're someone who was just banned for joining with a banned name
-				if (((List<string>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers)).Any(x => Actions.CaseInsIndexOf(user.Username, x)))
+				if (((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers)).Any(x => Actions.CaseInsIndexOf(user.Username, x.Phrase)))
 					return;
 
 				await Actions.SendGuildNotification(user, ((GuildNotification)guildInfo.GetSetting(SettingOnGuild.GoodbyeMessage)));

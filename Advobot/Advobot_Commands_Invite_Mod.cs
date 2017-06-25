@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	[Name("InviteModeration")]
-	class Advobot_Commands_Invite_Mod : ModuleBase
+	public class Advobot_Commands_Invite_Mod : ModuleBase
 	{
 		[Command("displayinvites")]
 		[Alias("dinvs")]
@@ -18,7 +18,7 @@ namespace Advobot
 		public async Task ListInstantInvites()
 		{
 			//Get the invites
-			var invites = (await Context.Guild.GetInvitesAsync()).OrderBy(x => x.Uses).Reverse().ToList();
+			var invites = (await Context.Guild.GetInvitesAsync()).OrderByDescending(x => x.Uses).ToList();
 
 			//Make sure there are some invites
 			if (!invites.Any())
@@ -27,21 +27,9 @@ namespace Advobot
 				return;
 			}
 
-			//Format the description
-			var description = "";
-			var count = 1;
-			var lengthForCount = invites.Count.ToString().Length;
-			var lengthForCode = invites.Max(x => x.Code.Length);
-			var lengthForUses = invites.Max(x => x.Uses).ToString().Length;
-			invites.ForEach(x =>
-			{
-				var cnt = count++.ToString().PadLeft(lengthForCount, '0');
-				var code = x.Code.PadRight(lengthForCode);
-				var uses = x.Uses.ToString().PadRight(lengthForUses);
-				description += String.Format("`{0}.` `{1}` `{2}` `{3}`\n", cnt, code, uses, x.Inviter.Username);
-			});
-
-			//Send a success message
+			var lenForCode = invites.Max(x => x.Code.Length);
+			var lenForUses = invites.Max(x => x.Uses).ToString().Length;
+			var description = String.Join("\n", invites.FormatNumberedList("`{0}` `{1}` `{2}`", x => x.Code.PadRight(lenForCode), x => x.Uses.ToString().PadRight(lenForUses), x => x.Inviter.FormatUser()));
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Instant Invite List", description));
 		}
 

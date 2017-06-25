@@ -236,7 +236,7 @@ namespace Advobot
 			{ SettingOnGuild.CommandsDisabledOnRole, new List<CommandOverride>() },
 			{ SettingOnGuild.ImageLog, new DiscordObjectWithID<ITextChannel>(null) },
 			{ SettingOnGuild.ListedInvite, null },
-			{ SettingOnGuild.BannedNamesForJoiningUsers, new List<string>() },
+			{ SettingOnGuild.BannedNamesForJoiningUsers, new List<BannedPhrase>() },
 			{ SettingOnGuild.RaidPrevention, null },
 			{ SettingOnGuild.RapidJoinPrevention, null },
 			{ SettingOnGuild.PyramidalRoleSystem, new PyramidalRoleSystem() },
@@ -250,140 +250,140 @@ namespace Advobot
 
 		[GuildSetting(SettingOnGuild.BotUsers)]
 		[JsonProperty("BotUsers")]
-		private List<BotImplementedPermissions> BotUsers = new List<BotImplementedPermissions>();
+		private List<BotImplementedPermissions> mBotUsers = new List<BotImplementedPermissions>();
 		[GuildSetting(SettingOnGuild.SelfAssignableGroups)]
 		[JsonProperty("SelfAssignableGroups")]
-		private List<SelfAssignableGroup> SelfAssignableGroups = new List<SelfAssignableGroup>();
+		private List<SelfAssignableGroup> mSelfAssignableGroups = new List<SelfAssignableGroup>();
 		[GuildSetting(SettingOnGuild.Reminds)]
 		[JsonProperty("Reminds")]
-		private List<Remind> Reminds = new List<Remind>();
+		private List<Remind> mReminds = new List<Remind>();
 		[GuildSetting(SettingOnGuild.LogActions)]
 		[JsonProperty("LogActions")]
-		private List<LogActions> LogActions = new List<LogActions>();
-		[GuildSetting(SettingOnGuild.BannedNamesForJoiningUsers)]
-		[JsonProperty("BannedNamesForJoiningUsers")]
-		private List<string> BannedNamesForJoiningUsers = new List<string>();
+		private List<LogActions> mLogActions = new List<LogActions>();
 
 		[GuildSetting(SettingOnGuild.IgnoredCommandChannels)]
 		[JsonProperty("IgnoredCommandChannels")]
-		private List<ulong> IgnoredCommandChannels = new List<ulong>();
+		private List<ulong> mIgnoredCommandChannels = new List<ulong>();
 		[GuildSetting(SettingOnGuild.IgnoredLogChannels)]
 		[JsonProperty("IgnoredLogChannels")]
-		private List<ulong> IgnoredLogChannels = new List<ulong>();
+		private List<ulong> mIgnoredLogChannels = new List<ulong>();
 		[GuildSetting(SettingOnGuild.ImageOnlyChannels)]
 		[JsonProperty("ImageOnlyChannels")]
-		private List<ulong> ImageOnlyChannels = new List<ulong>();
+		private List<ulong> mImageOnlyChannels = new List<ulong>();
 		[GuildSetting(SettingOnGuild.SanitaryChannels)]
 		[JsonProperty("SanitaryChannels")]
-		private List<ulong> SanitaryChannels = new List<ulong>();
+		private List<ulong> mSanitaryChannels = new List<ulong>();
 
 		[GuildSetting(SettingOnGuild.BannedPhraseStrings)]
 		[JsonProperty("BannedPhraseStrings")]
-		private List<BannedPhrase> BannedPhraseStrings = new List<BannedPhrase>();
+		private List<BannedPhrase> mBannedPhraseStrings = new List<BannedPhrase>();
 		[GuildSetting(SettingOnGuild.BannedPhraseRegex)]
 		[JsonProperty("BannedPhraseRegex")]
-		private List<BannedPhrase> BannedPhraseRegex = new List<BannedPhrase>();
+		private List<BannedPhrase> mBannedPhraseRegex = new List<BannedPhrase>();
+		[GuildSetting(SettingOnGuild.BannedNamesForJoiningUsers)]
+		[JsonProperty("BannedNamesForJoiningUsers")]
+		private List<BannedPhrase> mBannedNamesForJoiningUsers = new List<BannedPhrase>();
 		[GuildSetting(SettingOnGuild.BannedPhrasePunishments)]
 		[JsonProperty("BannedPhrasePunishments")]
-		private List<BannedPhrasePunishment> BannedPhrasePunishments = new List<BannedPhrasePunishment>();
+		private List<BannedPhrasePunishment> mBannedPhrasePunishments = new List<BannedPhrasePunishment>();
 
 		[GuildSetting(SettingOnGuild.CommandSwitches)]
 		[JsonProperty("CommandSwitches")]
-		private List<CommandSwitch> CommandSwitches = new List<CommandSwitch>();
+		private List<CommandSwitch> mCommandSwitches = new List<CommandSwitch>();
 		[GuildSetting(SettingOnGuild.CommandsDisabledOnUser)]
 		[JsonProperty("CommandsDisabledOnUser")]
-		private List<CommandOverride> CommandsDisabledOnUser = new List<CommandOverride>();
+		private List<CommandOverride> mCommandsDisabledOnUser = new List<CommandOverride>();
 		[GuildSetting(SettingOnGuild.CommandsDisabledOnRole)]
 		[JsonProperty("CommandsDisabledOnRole")]
-		private List<CommandOverride> CommandsDisabledOnRole = new List<CommandOverride>();
+		private List<CommandOverride> mCommandsDisabledOnRole = new List<CommandOverride>();
 		[GuildSetting(SettingOnGuild.CommandsDisabledOnChannel)]
 		[JsonProperty("CommandsDisabledOnChannel")]
-		private List<CommandOverride> CommandsDisabledOnChannel = new List<CommandOverride>();
+		private List<CommandOverride> mCommandsDisabledOnChannel = new List<CommandOverride>();
 
 		[GuildSetting(SettingOnGuild.Guild)]
 		[JsonProperty("Guild")]
-		private DiscordObjectWithID<SocketGuild> Guild = new DiscordObjectWithID<SocketGuild>(null);
+		private DiscordObjectWithID<SocketGuild> mGuild = new DiscordObjectWithID<SocketGuild>(null);
 		[GuildSetting(SettingOnGuild.ServerLog)]
 		[JsonProperty("ServerLog")]
-		private DiscordObjectWithID<ITextChannel> ServerLog = new DiscordObjectWithID<ITextChannel>(null);
+		private DiscordObjectWithID<ITextChannel> mServerLog = new DiscordObjectWithID<ITextChannel>(null);
 		[GuildSetting(SettingOnGuild.ModLog)]
 		[JsonProperty("ModLog")]
-		private DiscordObjectWithID<ITextChannel> ModLog = new DiscordObjectWithID<ITextChannel>(null);
+		private DiscordObjectWithID<ITextChannel> mModLog = new DiscordObjectWithID<ITextChannel>(null);
 		[GuildSetting(SettingOnGuild.ImageLog)]
 		[JsonProperty("ImageLog")]
-		private DiscordObjectWithID<ITextChannel> ImageLog = new DiscordObjectWithID<ITextChannel>(null);
+		private DiscordObjectWithID<ITextChannel> mImageLog = new DiscordObjectWithID<ITextChannel>(null);
 		[GuildSetting(SettingOnGuild.MuteRole)]
 		[JsonProperty("MuteRole")]
-		private DiscordObjectWithID<IRole> MuteRole = new DiscordObjectWithID<IRole>(null);
+		private DiscordObjectWithID<IRole> mMuteRole = new DiscordObjectWithID<IRole>(null);
 
 		[GuildSetting(SettingOnGuild.MessageSpamPrevention)]
 		[JsonProperty("MessageSpamPrevention")]
-		private SpamPrevention MessageSpamPrevention = null;
+		private SpamPrevention mMessageSpamPrevention = null;
 		[GuildSetting(SettingOnGuild.LongMessageSpamPrevention)]
 		[JsonProperty("LongMessageSpamPrevention")]
-		private SpamPrevention LongMessageSpamPrevention = null;
+		private SpamPrevention mLongMessageSpamPrevention = null;
 		[GuildSetting(SettingOnGuild.LinkSpamPrevention)]
 		[JsonProperty("LinkSpamPrevention")]
-		private SpamPrevention LinkSpamPrevention = null;
+		private SpamPrevention mLinkSpamPrevention = null;
 		[GuildSetting(SettingOnGuild.ImageSpamPrevention)]
 		[JsonProperty("ImageSpamPrevention")]
-		private SpamPrevention ImageSpamPrevention = null;
+		private SpamPrevention mImageSpamPrevention = null;
 		[GuildSetting(SettingOnGuild.MentionSpamPrevention)]
 		[JsonProperty("MentionSpamPrevention")]
-		private SpamPrevention MentionSpamPrevention = null;
+		private SpamPrevention mMentionSpamPrevention = null;
 		[GuildSetting(SettingOnGuild.RaidPrevention)]
 		[JsonProperty("RaidPrevention")]
-		private RaidPrevention RaidPrevention = null;
+		private RaidPrevention mRaidPrevention = null;
 		[GuildSetting(SettingOnGuild.RapidJoinPrevention)]
 		[JsonProperty("RapidJoinPrevention")]
-		private RaidPrevention RapidJoinPrevention = null;
+		private RaidPrevention mRapidJoinPrevention = null;
 
 		[GuildSetting(SettingOnGuild.PyramidalRoleSystem)]
 		[JsonProperty("PyramidalRoleSystem")]
-		private PyramidalRoleSystem PyramidalRoleSystem = new PyramidalRoleSystem();
+		private PyramidalRoleSystem mPyramidalRoleSystem = new PyramidalRoleSystem();
 		[GuildSetting(SettingOnGuild.WelcomeMessage)]
 		[JsonProperty("WelcomeMessage")]
-		private GuildNotification WelcomeMessage = null;
+		private GuildNotification mWelcomeMessage = null;
 		[GuildSetting(SettingOnGuild.GoodbyeMessage)]
 		[JsonProperty("GoodbyeMessage")]
-		private GuildNotification GoodbyeMessage = null;
+		private GuildNotification mGoodbyeMessage = null;
 		[GuildSetting(SettingOnGuild.ListedInvite)]
 		[JsonProperty("ListedInvite")]
-		private ListedInvite ListedInvite = null;
+		private ListedInvite mListedInvite = null;
 		[GuildSetting(SettingOnGuild.Prefix)]
 		[JsonProperty("Prefix")]
-		private string Prefix = null;
+		private string mPrefix = null;
 
 		[GuildSetting(SettingOnGuild.BannedPhraseUsers)]
 		[JsonIgnore]
-		private List<BannedPhraseUser> BannedPhraseUsers = new List<BannedPhraseUser>();
+		private List<BannedPhraseUser> mBannedPhraseUsers = new List<BannedPhraseUser>();
 		[GuildSetting(SettingOnGuild.SpamPreventionUsers)]
 		[JsonIgnore]
-		private List<SpamPreventionUser> SpamPreventionUsers = new List<SpamPreventionUser>();
+		private List<SpamPreventionUser> mSpamPreventionUsers = new List<SpamPreventionUser>();
 		[GuildSetting(SettingOnGuild.SlowmodeChannels)]
 		[JsonIgnore]
-		private List<SlowmodeChannel> SlowmodeChannels = new List<SlowmodeChannel>();
+		private List<SlowmodeChannel> mSlowmodeChannels = new List<SlowmodeChannel>();
 		[GuildSetting(SettingOnGuild.Invites)]
 		[JsonIgnore]
-		private List<BotInvite> Invites = new List<BotInvite>();
+		private List<BotInvite> mInvites = new List<BotInvite>();
 		[GuildSetting(SettingOnGuild.EvaluatedRegex)]
 		[JsonIgnore]
-		private List<string> EvaluatedRegex = new List<string>();
+		private List<string> mEvaluatedRegex = new List<string>();
 		[GuildSetting(SettingOnGuild.SlowmodeGuild)]
 		[JsonIgnore]
-		private SlowmodeGuild SlowmodeGuild = null;
+		private SlowmodeGuild mSlowmodeGuild = null;
 		[GuildSetting(SettingOnGuild.MessageDeletion)]
 		[JsonIgnore]
-		private MessageDeletion MessageDeletion = new MessageDeletion();
+		private MessageDeletion mMessageDeletion = new MessageDeletion();
 		[GuildSetting(SettingOnGuild.Loaded)]
 		[JsonIgnore]
-		private bool Loaded = false;
+		private bool mLoaded = false;
 #pragma warning restore 414
 
 		[JsonConstructor]
 		public BotGuildInfo(ulong guildID)
 		{
-			Guild = new DiscordObjectWithID<SocketGuild>(guildID);
+			mGuild = new DiscordObjectWithID<SocketGuild>(guildID);
 
 			if (!mFieldInfoLoaded)
 			{
@@ -544,7 +544,7 @@ namespace Advobot
 				Variables.InviteList.ThreadSafeAdd(listedInv);
 			}
 
-			Loaded = true;
+			mLoaded = true;
 		}
 		public override void SaveInfo()
 		{
@@ -674,6 +674,8 @@ namespace Advobot
 			{ SettingOnBot.LogLevel, LogSeverity.Warning },
 			{ SettingOnBot.MaxUserGatherCount, 100 },
 			{ SettingOnBot.MaxMessageGatherSize, 500000 },
+			{ SettingOnBot.UnableToDMOwnerUsers, new List<ulong>() },
+			{ SettingOnBot.IgnoredCommandUsers, new List<ulong>() },
 		});
 		[JsonIgnore]
 		private static Dictionary<SettingOnBot, FieldInfo> mFieldInfo = new Dictionary<SettingOnBot, FieldInfo>();
@@ -682,37 +684,43 @@ namespace Advobot
 
 		[BotSetting(SettingOnBot.BotOwnerID)]
 		[JsonProperty("BotOwnerID")]
-		private ulong BotOwnerID = 0;
+		private ulong mBotOwnerID = 0;
 		[BotSetting(SettingOnBot.TrustedUsers)]
 		[JsonProperty("TrustedUsers")]
-		private List<ulong> TrustedUsers = new List<ulong>();
+		private List<ulong> mTrustedUsers = new List<ulong>();
 		[BotSetting(SettingOnBot.Prefix)]
 		[JsonProperty("Prefix")]
-		private string Prefix = Constants.BOT_PREFIX;
+		private string mPrefix = Constants.BOT_PREFIX;
 		[BotSetting(SettingOnBot.Game)]
 		[JsonProperty("Game")]
-		private string Game = String.Format("type \"{0}help\" for help.", Constants.BOT_PREFIX);
+		private string mGame = String.Format("type \"{0}help\" for help.", Constants.BOT_PREFIX);
 		[BotSetting(SettingOnBot.Stream)]
 		[JsonProperty("Stream")]
-		private string Stream = null;
+		private string mStream = null;
 		[BotSetting(SettingOnBot.ShardCount)]
 		[JsonProperty("ShardCount")]
-		private int ShardCount = 1;
+		private int mShardCount = 1;
 		[BotSetting(SettingOnBot.MessageCacheCount)]
 		[JsonProperty("MessageCacheCount")]
-		private int MessageCacheCount = 1000;
+		private int mMessageCacheCount = 1000;
 		[BotSetting(SettingOnBot.AlwaysDownloadUsers)]
 		[JsonProperty("AlwaysDownloadUsers")]
-		private bool AlwaysDownloadUsers = true;
+		private bool mAlwaysDownloadUsers = true;
 		[BotSetting(SettingOnBot.LogLevel)]
 		[JsonProperty("LogLevel")]
-		private LogSeverity LogLevel = LogSeverity.Warning;
+		private LogSeverity mLogLevel = LogSeverity.Warning;
 		[BotSetting(SettingOnBot.MaxUserGatherCount)]
 		[JsonProperty("MaxUserGatherCount")]
-		private int MaxUserGatherCount = 100;
+		private int mMaxUserGatherCount = 100;
 		[BotSetting(SettingOnBot.MaxMessageGatherSize)]
 		[JsonProperty("MaxMessageGatherSize")]
-		private int MaxMessageGatherSize = 500000;
+		private int mMaxMessageGatherSize = 500000;
+		[BotSetting(SettingOnBot.UnableToDMOwnerUsers)]
+		[JsonProperty("UnableToDMOwnerUsers")]
+		private List<ulong> mUnableToDMOwnerUsers = new List<ulong>();
+		[BotSetting(SettingOnBot.IgnoredCommandUsers)]
+		[JsonProperty("IgnoredCommandUsers")]
+		private List<ulong> mIgnoredCommandUsers = new List<ulong>();
 #pragma warning restore 414
 
 		[JsonConstructor]

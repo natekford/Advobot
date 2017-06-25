@@ -541,8 +541,7 @@ namespace Advobot
 				return;
 			}
 
-			var limitAmt = 500000; //TODO: not hardcode this in
-
+			var limitAmt = ((int)Variables.BotInfo.GetSetting(SettingOnBot.MaxMessageGatherSize));
 			Actions.DontWaitForResultOfBigUnimportantFunction(Context.Channel, async () =>
 			{
 				var charCount = 0;
@@ -716,6 +715,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{
+			var temp = AppDomain.CurrentDomain;
 			await Actions.SendChannelMessage(Context, "test");
 		}
 	}

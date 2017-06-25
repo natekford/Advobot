@@ -308,7 +308,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ListRolePositions()
 		{
-			var description = String.Join("\n", Context.Guild.Roles.OrderBy(x => x.Position).Reverse().Select(x =>
+			var description = String.Join("\n", Context.Guild.Roles.OrderByDescending(x => x.Position).Select(x =>
 			{
 				if (x == Context.Guild.EveryoneRole)
 				{

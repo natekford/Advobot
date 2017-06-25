@@ -221,7 +221,7 @@ namespace Advobot
 			var action = returnedType.Type;
 
 			var add = false;
-			var strings = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings);
+			var strings = ((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings));
 			switch (action)
 			{
 				case ActionType.Add:
@@ -236,7 +236,7 @@ namespace Advobot
 				}
 			}
 
-			Actions.HandleBannedPhraseModification(strings, Actions.SplitByCharExceptInQuotes(phraseStr, '/').ToList(), add, out List<string> success, out List<string> failure);
+			Actions.HandleBannedPhraseModification(strings, Actions.SplitByCharExceptInQuotes(phraseStr, '/'), add, out List<string> success, out List<string> failure);
 
 			var successMessage = "";
 			if (success.Any())
@@ -269,7 +269,7 @@ namespace Advobot
 
 		[Command("modifypunishmenttype")]
 		[Alias("mpt")]
-		[Usage("[\"Phrase\"|Position:int] [Nothing|Role|Kick|Ban] <Regex>")]
+		[Usage("[\"Phrase\"|Position:Number] [Nothing|Role|Kick|Ban] <Regex>")]
 		[Summary("Changes the punishment type of the input string or regex to the given type.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
@@ -585,7 +585,7 @@ namespace Advobot
 			}
 		}
 
-		//Reason you can't add/remove more than one at a time like modifybannedstrings is because fuck that
+		//Reason you can't add/remove more than one at a time like modifybannedstrings is because too effort to put in
 		[Command("modifybannednames")]
 		[Alias("mbn")]
 		[Usage("[Add|Remove] [\"Phrase\"]")]
@@ -624,41 +624,51 @@ namespace Advobot
 			}
 			var action = returnedType.Type;
 
-			var bannedWords = (List<string>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers);
+			var add = false;
+			var names = ((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers));
 			switch (action)
 			{
 				case ActionType.Add:
 				{
-					if (bannedWords.Count >= Constants.MAX_BANNED_NAMES)
+					if (names.Count >= Constants.MAX_BANNED_NAMES)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned names at a time.", Constants.MAX_BANNED_NAMES));
 						return;
 					}
-					else if (bannedWords.CaseInsContains(phraseStr))
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The phrase `{0}` is already on the banned names when joining list.", phraseStr)));
-						return;
-					}
-
-					bannedWords.Add(phraseStr);
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the phrase `{0}` to the banned name when joining list.", phraseStr));
-					break;
-				}
-				case ActionType.Remove:
-				{
-					if (!bannedWords.CaseInsContains(phraseStr))
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The phrase `{0}` is not on the banned names when joining list.", phraseStr)));
-						return;
-					}
-
-					bannedWords.RemoveAll(x => Actions.CaseInsEquals(x, phraseStr));
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the phrase `{0}` from the banned name when joining list.", phraseStr));
+					add = true;
 					break;
 				}
 			}
 
+			Actions.HandleBannedPhraseModification(names, Actions.SplitByCharExceptInQuotes(phraseStr, '/'), add, out List<string> success, out List<string> failure);
+
+			var successMessage = "";
+			if (success.Any())
+			{
+				successMessage = String.Format("Successfully {0} the following {1} {2} the banned name list: `{3}`",
+					add ? "added" : "removed",
+					success.Count != 1 ? "phrases" : "phrase",
+					add ? "to" : "from",
+					String.Join("`, `", success));
+			}
+			var failureMessage = "";
+			if (failure.Any())
+			{
+				failureMessage = String.Format("{0}ailed to {1} the following {2} {3} the banned name list: `{4}`",
+					String.IsNullOrWhiteSpace(successMessage) ? "F" : "f",
+					add ? "add" : "remove",
+					failure.Count != 1 ? "phrases" : "phrase",
+					add ? "to" : "from",
+					String.Join("`, `", failure));
+			}
+			var eitherEmpty = "";
+			if (!(String.IsNullOrWhiteSpace(successMessage) || String.IsNullOrWhiteSpace(failureMessage)))
+			{
+				eitherEmpty = ", and ";
+			}
+
 			guildInfo.SaveInfo();
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
 		}
 	}
 }

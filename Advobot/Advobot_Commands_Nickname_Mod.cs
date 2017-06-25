@@ -9,7 +9,7 @@ namespace Advobot
 {
 	//Commands that affect nicknames
 	[Name("NicknameModeration")]
-	class Advobot_Commands_Nickname_Mod : ModuleBase
+	public class Advobot_Commands_Nickname_Mod : ModuleBase
 	{
 		[Command("changenickname")]
 		[Alias("cnn")]
