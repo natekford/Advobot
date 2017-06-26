@@ -378,6 +378,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Ban([Remainder] string input)
 		{
+			//I don't want to put in ban reasons being DMd to people because that seems kinda spiteful
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "days", "time" });
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
@@ -436,12 +437,6 @@ namespace Advobot
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The user `{0}` is already banned from the server.", ban.User.FormatUser())));
 				return;
-			}
-
-			//Make sure reason string is not being taken as a daysstr or timestr
-			if (new[] { daysStr, timeStr }.CaseInsContains(reasonStr))
-			{
-				reasonStr = null;
 			}
 
 			//Ban the user

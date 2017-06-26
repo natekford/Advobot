@@ -710,12 +710,75 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context.Channel, String.Format("The number `{0}` has the following permissions: `{1}`.", num, String.Join("`, `", perms)));
 		}
 
+		//TODO: put this into the UI
+		[Command("getbotdms")]
+		[Alias("gbd")]
+		[Usage("<User>")]
+		[Summary("Lists all the people who have sent the bot DMs or shows the DMs with a person if one is specified.")]
+		[OtherRequirement(1U << (int)Precondition.BotOwner)]
+		[DefaultEnabled(true)]
+		public async Task GetBotDMs([Optional, Remainder] string input)
+		{
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 1));
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var userStr = returnedArgs.Arguments[0];
+
+			if (!String.IsNullOrWhiteSpace(userStr))
+			{
+				var user = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr).Object ?? Actions.GetGlobalUser(userStr);
+				if (user == null)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to get the supplied user."));
+					return;
+				}
+
+				var channel = (await Variables.Client.GetDMChannelsAsync()).FirstOrDefault(x => x.Recipient != null && x.Recipient.Id == user.Id);
+				if (channel == null)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The bot does not have a DM open with that user."));
+					return;
+				}
+
+				var messages = await Actions.GetBotDMs(channel);
+				if (messages.Any())
+				{
+					var fileTitle = String.Format("DMs_From_{0}", user.Username);
+					await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel, Actions.ReplaceMarkdownChars(String.Join("\n-----\n", Actions.FormatMessages(messages)), true), fileTitle, String.Format("{0} Direct Messages", messages.Count));
+				}
+				else
+				{
+					await channel.CloseAsync();
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "There are no DMs from that user. I don't know why the bot is saying there were some.");
+					return;
+				}
+			}
+			else
+			{
+				var users = (await Variables.Client.GetDMChannelsAsync()).Select(x => x.Recipient).Where(x => x != null);
+
+				var desc = "";
+				if (users.Any())
+				{
+					desc = String.Format("`{0}`", String.Join("`\n`", users.OrderBy(x => x.Id).Select(x => x.FormatUser())));
+				}
+				else
+				{
+					desc = "`None`";
+				}
+
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Users Who Have DMd The Bot", desc));
+			}
+		}
+
 		[Command("test")]
 		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task Test([Optional, Remainder] string input)
 		{
-			var temp = AppDomain.CurrentDomain;
 			await Actions.SendChannelMessage(Context, "test");
 		}
 	}

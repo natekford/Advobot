@@ -116,7 +116,7 @@ namespace Advobot
 			ShardedClient.MessageReceived += Server_Logs.OnMessageReceived;
 			ShardedClient.MessageUpdated += Server_Logs.OnMessageUpdated;
 			ShardedClient.MessageDeleted += Server_Logs.OnMessageDeleted;
-			ShardedClient.Shards.FirstOrDefault().Connected += Actions.LoadInformation; 
+			ShardedClient.Shards.FirstOrDefault().Connected += Actions.LoadInformation;
 
 			return ShardedClient;
 		}

@@ -424,16 +424,16 @@ namespace Advobot
 			if (input == null)
 			{
 				var list = new List<string>();
+				for (int i = 0; i < max; i++)
+				{
+					list.Add(null);
+				}
 				if (min == 0)
 				{
 					return new ReturnedArguments(list, ArgFailureReason.NotFailure);
 				}
 				else
 				{
-					for (int i = 0; i < min; i++)
-					{
-						list.Add(null);
-					}
 					return new ReturnedArguments(list, ArgFailureReason.TooFewArgs);
 				}
 			}
@@ -1919,12 +1919,12 @@ namespace Advobot
 			return list;
 		}
 
-		public static async Task MakeAndDeleteSecondaryMessage(ICommandContext context, string secondStr, Int32 time = Constants.WAIT_TIME)
+		public static async Task MakeAndDeleteSecondaryMessage(ICommandContext context, string secondStr, int time = Constants.WAIT_TIME)
 		{
 			await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, secondStr, time);
 		}
 		
-		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, Int32 time = Constants.WAIT_TIME)
+		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, int time = Constants.WAIT_TIME)
 		{
 			var secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
 			var messages = new List<IMessage> { secondMsg, message };
@@ -1939,7 +1939,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, string secondStr, Int32 time = Constants.WAIT_TIME)
+		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, string secondStr, int time = Constants.WAIT_TIME)
 		{
 			await MakeAndDeleteSecondaryMessage(channel, null, secondStr, time);
 		}
@@ -2156,6 +2156,22 @@ namespace Advobot
 					return;
 				}
 			}
+		}
+
+		public static async Task<Dictionary<IMessageChannel, List<IMessage>>> GetAllBotDMs()
+		{
+			var dict = new Dictionary<IMessageChannel, List<IMessage>>();
+			foreach (var channel in await Variables.Client.GetDMChannelsAsync())
+			{
+				var msgs = await GetMessages(channel, int.MaxValue);
+				dict.Add(channel, msgs);
+			}
+			return dict;
+		}
+
+		public static async Task<List<IMessage>> GetBotDMs(IDMChannel channel)
+		{
+			return await GetMessages(channel, 500);
 		}
 
 		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null, string URL = null, string thumbnailURL = null)

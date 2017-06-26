@@ -553,34 +553,30 @@ namespace Advobot
 			UIModification.SetFontSizeProperties(.022, new UIElement[] { mEditBox, mEditSaveBox, mFileOutput, });
 			UIModification.SetFontSizeProperties(.018, new UIElement[] { mMainMenuOutput, }, mTitleBoxes, mSettingBoxes);
 
+			mPauseButton.Click += Pause;
+			mRestartButton.Click += Restart;
+			mDisconnectButton.Click += Disconnect;
 			mInput.KeyUp += AcceptInput;
+			mInputButton.Click += AcceptInput;
 			mMemory.MouseEnter += ModifyMemHoverInfo;
 			mMemory.MouseLeave += ModifyMemHoverInfo;
-			mInputButton.Click += AcceptInput;
-			mOutputContextMenuSave.Click += SaveOutput;
-			mOutputContextMenuClear.Click += ClearOutput;
-			mTrustedUsersRemoveButton.Click += RemoveTrustedUser;
-			mTrustedUsersAddButton.Click += AddTrustedUser;
 			mHelpButton.Click += BringUpMenu;
 			mSettingsButton.Click += BringUpMenu;
 			mColorsButton.Click += BringUpMenu;
 			mInfoButton.Click += BringUpMenu;
 			mFileButton.Click += BringUpMenu;
-			mEditCloseButton.Click += CloseEditLayout;
-			mEditSaveButton.Click += SaveEditLayout;
-
-			mPauseButton.Click += Pause;
-			mRestartButton.Click += Restart;
-			mDisconnectButton.Click += Disconnect;
-
+			mOutputContextMenuSave.Click += SaveOutput;
+			mOutputContextMenuClear.Click += ClearOutput;
+			mTrustedUsersRemoveButton.Click += RemoveTrustedUser;
+			mTrustedUsersAddButton.Click += AddTrustedUser;
 			mSettingsSaveButton.Click += SaveSettings;
 			mColorsSaveButton.Click += SaveColors;
-
+			mEditCloseButton.Click += CloseEditLayout;
+			mEditSaveButton.Click += SaveEditLayout;
 			mFileSearchButton.Click += BringUpFileSearch;
 			mGuildSearchCloseButton.Click += CloseFileSearch;
 			mGuildSearchLayout.MouseUp += CloseFileSearch;
 			mGuildSearchButton.Click += FileSearch;
-
 			mOutputContextMenuSearch.Click += BringUpOutputSearch;
 			mOutputSearchCloseButton.Click += CloseOutputSearch;
 			mOutputSearchLayout.MouseUp += CloseOutputSearch;
