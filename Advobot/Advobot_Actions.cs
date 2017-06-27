@@ -2158,13 +2158,16 @@ namespace Advobot
 			}
 		}
 
-		public static async Task<Dictionary<IMessageChannel, List<IMessage>>> GetAllBotDMs()
+		public static async Task<Dictionary<IUser, IMessageChannel>> GetAllBotDMs()
 		{
-			var dict = new Dictionary<IMessageChannel, List<IMessage>>();
+			var dict = new Dictionary<IUser, IMessageChannel>();
 			foreach (var channel in await Variables.Client.GetDMChannelsAsync())
 			{
-				var msgs = await GetMessages(channel, int.MaxValue);
-				dict.Add(channel, msgs);
+				var recep = channel.Recipient;
+				if (recep != null)
+				{
+					dict.Add(recep, channel);
+				}
 			}
 			return dict;
 		}
@@ -2492,6 +2495,11 @@ namespace Advobot
 			return list.Select(x => FormatMessage(x)).ToList();
 		}
 
+		public static List<string> FormatDMs(IEnumerable<IMessage> list)
+		{
+			return list.Select(x => FormatDM(x)).ToList();
+		}
+
 		public static string FormatMessage(IMessage msg)
 		{
 			var content = String.IsNullOrEmpty(msg.Content) ? "EMPTY MESSAGE CONTENT" : msg.Content;
@@ -2545,6 +2553,60 @@ namespace Advobot
 					msg.Author.FormatUser(),
 					msg.Channel.FormatChannel(),
 					msg.CreatedAt.ToString("HH:mm:ss"),
+					ReplaceMarkdownChars(content, true));
+			}
+		}
+
+		public static string FormatDM(IMessage msg)
+		{
+			var content = String.IsNullOrEmpty(msg.Content) ? "EMPTY MESSAGE CONTENT" : msg.Content;
+			if (msg.Embeds.Any())
+			{
+				var descriptions = msg.Embeds.Where(x =>
+				{
+					return false
+					|| x.Description != null
+					|| x.Url != null
+					|| x.Image.HasValue;
+				}).Select(x =>
+				{
+					if (x.Url != null)
+					{
+						return String.Format("{0} URL: {1}", x.Description, x.Url);
+					}
+					if (x.Image.HasValue)
+					{
+						return String.Format("{0} IURL: {1}", x.Description, x.Image.Value.Url);
+					}
+					else
+					{
+						return x.Description;
+					}
+				}).ToArray();
+
+				var formattedDescriptions = "";
+				for (int i = 0; i < descriptions.Count(); i++)
+				{
+					formattedDescriptions += String.Format("Embed {0}: {1}", i + 1, descriptions[i]);
+				}
+
+				return String.Format("`{0}` **SENT AT** `[{1}]`\n```\n{2}```",
+					msg.Author.FormatUser(),
+					FormatDateTime(msg.CreatedAt),
+					ReplaceMarkdownChars(content + "\n" + formattedDescriptions, true));
+			}
+			else if (msg.Attachments.Any())
+			{
+				return String.Format("`{0}` **SENT AT** `[{1}]`\n```\n{2}```",
+					msg.Author.FormatUser(),
+					FormatDateTime(msg.CreatedAt),
+					ReplaceMarkdownChars(content + " + " + String.Join(" + ", msg.Attachments.Select(y => y.Filename)), true));
+			}
+			else
+			{
+				return String.Format("`{0}` **SENT AT** `[{1}]`\n```\n{2}```",
+					msg.Author.FormatUser(),
+					FormatDateTime(msg.CreatedAt),
 					ReplaceMarkdownChars(content, true));
 			}
 		}

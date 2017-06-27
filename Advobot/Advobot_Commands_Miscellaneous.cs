@@ -747,7 +747,7 @@ namespace Advobot
 				if (messages.Any())
 				{
 					var fileTitle = String.Format("DMs_From_{0}", user.Username);
-					await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel, Actions.ReplaceMarkdownChars(String.Join("\n-----\n", Actions.FormatMessages(messages)), true), fileTitle, String.Format("{0} Direct Messages", messages.Count));
+					await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel, String.Join("\n-----\n", Actions.FormatDMs(messages)), fileTitle, String.Format("{0} Direct Messages", messages.Count));
 				}
 				else
 				{
