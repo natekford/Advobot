@@ -181,11 +181,10 @@ namespace Advobot
 
 		private static readonly TextBox mLogLevelTitle = UIModification.MakeTitle("Log Level:",
 			"Certain events in the Discord library used in this bot have a required log level to be said in the console.");
-		private static readonly ComboBox mLogLevelComboBox = new ComboBox
+		private static readonly ComboBox mLogLevelComboBox = new MyAutoFillComboBox(UIModification.MakeComboBoxSourceOutOfEnum(typeof(Discord.LogSeverity)))
 		{
 			VerticalContentAlignment = VerticalAlignment.Center,
 			Tag = SettingOnBot.LogLevel,
-			ItemsSource = UIModification.MakeComboBoxSourceOutOfEnum(typeof(Discord.LogSeverity)),
 		};
 
 		private static readonly TextBox mTrustedUsersTitle = UIModification.MakeTitle("Trusted Users:",
@@ -201,7 +200,7 @@ namespace Advobot
 		};
 
 		private static readonly TextBox mPlaceholderTitle = UIModification.MakeTitle("", "");
-		private static readonly ComboBox mTrustedUsersComboBox = new ComboBox
+		private static readonly ComboBox mTrustedUsersComboBox = new MyAutoFillComboBox
 		{
 			VerticalContentAlignment = VerticalAlignment.Center,
 			Tag = SettingOnBot.TrustedUsers,
@@ -357,7 +356,7 @@ namespace Advobot
 			MaxLength = 18,
 			TextWrapping = TextWrapping.Wrap,
 		};
-		private static readonly ComboBox mGuildSearchFileComboBox = new ComboBox
+		private static readonly ComboBox mGuildSearchFileComboBox = new MyAutoFillComboBox
 		{
 			VerticalContentAlignment = VerticalAlignment.Center,
 			Tag = SettingOnBot.LogLevel,
@@ -393,7 +392,7 @@ namespace Advobot
 			IsReadOnly = true,
 		};
 
-		private static readonly ComboBox mOutputSearchComboBox = new ComboBox
+		private static readonly ComboBox mOutputSearchComboBox = new MyAutoFillComboBox
 		{
 			VerticalContentAlignment = VerticalAlignment.Center,
 			Tag = SettingOnBot.LogLevel,
@@ -699,7 +698,7 @@ namespace Advobot
 		}
 		private void BringUpOutputSearch(object sender, RoutedEventArgs e)
 		{
-			mOutputSearchComboBox.ItemsSource = UIModification.MakeComboBoxSourceOutOfStrings(Variables.WrittenLines.Keys);
+			((MyAutoFillComboBox)mOutputSearchComboBox).SetItemsSource(UIModification.MakeComboBoxSourceOutOfStrings(Variables.WrittenLines.Keys));
 			mOutputSearchLayout.Visibility = Visibility.Visible;
 		}
 		private void CloseOutputSearch(object sender, RoutedEventArgs e)
@@ -1030,14 +1029,22 @@ namespace Advobot
 			mTrustedUsersAddBox.Text = "";
 
 			if (String.IsNullOrWhiteSpace(text))
+			{
 				return;
+			}
 			else if (ulong.TryParse(text, out ulong userID))
 			{
 				var currTBs = mTrustedUsersComboBox.Items.Cast<TextBox>().ToList();
 				if (currTBs.Select(x => (ulong)x.Tag).Contains(userID))
 					return;
 
-				currTBs.Add(UIModification.MakeTextBoxFromUserID(userID));
+				var tb = UIModification.MakeTextBoxFromUserID(userID);
+				if (tb == null)
+				{
+					return;
+				}
+
+				currTBs.Add(tb);
 				mTrustedUsersComboBox.ItemsSource = currTBs;
 			}
 			else
@@ -1086,7 +1093,7 @@ namespace Advobot
 			mMessageCacheSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.MessageCacheCount)).ToString();
 			mUserGatherCountSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.MaxUserGatherCount)).ToString();
 			mMessageGatherSizeSetting.Text = ((int)botInfo.GetSetting(SettingOnBot.MaxMessageGatherSize)).ToString();
-			mLogLevelComboBox.SelectedItem = mLogLevelComboBox.Items.OfType<TextBox>().FirstOrDefault(x => (Discord.LogSeverity)x.Tag == ((Discord.LogSeverity)Variables.BotInfo.GetSetting(SettingOnBot.LogLevel)));
+			mLogLevelComboBox.SelectedItem = mLogLevelComboBox.Items.OfType<TextBox>().FirstOrDefault(x => x.Tag != null && (Discord.LogSeverity)x.Tag == ((Discord.LogSeverity)Variables.BotInfo.GetSetting(SettingOnBot.LogLevel)));
 			mTrustedUsersComboBox.ItemsSource = ((List<ulong>)Variables.BotInfo.GetSetting(SettingOnBot.TrustedUsers)).Select(x => UIModification.MakeTextBoxFromUserID(x));
 		}
 		private bool CheckIfTreeViewItemFileExists(TreeViewItem treeItem)
@@ -1498,6 +1505,11 @@ namespace Advobot
 		public static TextBox MakeTextBoxFromUserID(ulong userID)
 		{
 			var user = Actions.GetGlobalUser(userID);
+			if (user == null)
+			{
+				return null;
+			}
+
 			return new MyTextBox
 			{
 				Text = String.Format("'{0}#{1}' ({2})", (Actions.GetIfValidUnicode(user.Username, 127) ? user.Username : "Non-Standard Name"), user.Discriminator, user.Id),
@@ -1642,7 +1654,7 @@ namespace Advobot
 			var themeTitle = MakeTitle("Themes:", "");
 			SetFontSizeProperty(themeTitle, fontSizeProperty);
 			AddElement(child, themeTitle, 2, 5, 10, 55);
-			var themeComboBox = new ComboBox
+			var themeComboBox = new MyAutoFillComboBox
 			{
 				ItemsSource = MakeComboBoxSourceOutOfEnum(typeof(ColorTheme)),
 				VerticalContentAlignment = VerticalAlignment.Center,
@@ -2037,6 +2049,85 @@ namespace Advobot
 			this.Background = null;
 			this.Foreground = null;
 			this.BorderBrush = null;
+		}
+	}
+
+	//TODO: Make this not a piece of shit
+	public class MyAutoFillComboBox : ComboBox
+	{
+		private List<TextBox> mItemsSource;
+		private ToolTip mToolTip = new ToolTip();
+		private string mSearchWord;
+
+		public MyAutoFillComboBox()
+		{
+			mItemsSource = new List<TextBox>();
+			Init();
+		}
+		public MyAutoFillComboBox(IEnumerable<string> itemSource)
+		{
+			mItemsSource = itemSource.Select(x =>
+			{
+				return new MyTextBox
+				{
+					Text = x,
+					Tag = x,
+					IsReadOnly = true,
+					IsHitTestVisible = false,
+					BorderThickness = new Thickness(0),
+					Background = Brushes.Transparent,
+					Foreground = Brushes.Black,
+				} as TextBox;
+			}).ToList();
+			Init();
+		}
+		public MyAutoFillComboBox(IEnumerable<TextBox> itemSource)
+		{
+			mItemsSource = itemSource.ToList();
+			Init();
+		}
+
+		private void Init()
+		{
+			this.ItemsSource = mItemsSource;
+			this.ToolTip = mToolTip;
+			this.PreviewTextInput += MyAutoFillComboBox_TextInput;
+			this.DropDownClosed += MyAutoFillComboBox_DropDownClosed;
+		}
+		private void MyAutoFillComboBox_TextInput(object sender, TextCompositionEventArgs e)
+		{
+			var typedChar = e.Text.FirstOrDefault().ToString();
+			if (!String.IsNullOrWhiteSpace(typedChar))
+			{
+				mSearchWord += typedChar;
+				var itemsWithCharAtIndex = this.ItemsSource.Cast<TextBox>().Where(x => Actions.CaseInsStartsWith(x.Text, mSearchWord)).ToArray();
+				if (itemsWithCharAtIndex.Any())
+				{
+					mToolTip.Content = mSearchWord;
+					mToolTip.IsOpen = true;
+					this.ItemsSource = itemsWithCharAtIndex;
+					return;
+				}
+			}
+
+			{
+				Reset();
+			}
+		}
+		private void MyAutoFillComboBox_DropDownClosed(object sender, EventArgs e)
+		{
+			Reset();
+		}
+		private void Reset()
+		{
+			mSearchWord = null;
+			mToolTip.IsOpen = false;
+			this.ItemsSource = mItemsSource;
+		}
+		public void SetItemsSource(IEnumerable<TextBox> itemsSource)
+		{
+			mItemsSource = itemsSource.ToList();
+			this.ItemsSource = mItemsSource;
 		}
 	}
 
