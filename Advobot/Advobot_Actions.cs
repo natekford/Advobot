@@ -352,7 +352,7 @@ namespace Advobot
 			{
 				if (BotGuildInfo.GetField(e) == null)
 				{
-					WriteLine(String.Format("Unable to get the global setting for {0}.", Enum.GetName(typeof(SettingOnBot), e)));
+					WriteLine(String.Format("Unable to get the guild setting for {0}.", Enum.GetName(typeof(SettingOnBot), e)));
 				}
 			}
 		}

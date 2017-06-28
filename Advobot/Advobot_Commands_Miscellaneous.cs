@@ -710,7 +710,6 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context.Channel, String.Format("The number `{0}` has the following permissions: `{1}`.", num, String.Join("`, `", perms)));
 		}
 
-		//TODO: put this into the UI
 		[Command("getbotdms")]
 		[Alias("gbd")]
 		[Usage("<User>")]
