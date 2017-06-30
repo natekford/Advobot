@@ -776,7 +776,7 @@ namespace Advobot
 		[Command("test")]
 		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
-		public async Task Test([Optional, Remainder] string input)
+		public async Task Test(string input)
 		{
 			await Actions.SendChannelMessage(Context, "test");
 		}

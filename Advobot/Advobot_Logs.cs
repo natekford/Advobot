@@ -254,6 +254,7 @@ namespace Advobot
 			{
 				//Check if the user is trying to become the bot owner by DMing the bot its key
 				await Message_Received_Actions.HandlePotentialBotOwner(message);
+				return;
 			}
 
 			var guildInfo = await Actions.CreateOrGetGuildInfo(guild);
@@ -369,6 +370,11 @@ namespace Advobot
 					}
 					catch (TaskCanceledException)
 					{
+						return;
+					}
+					catch (Exception e)
+					{
+						Actions.ExceptionToConsole(e);
 						return;
 					}
 

@@ -24,6 +24,10 @@ namespace Advobot
 				return;
 
 			HandleBotID(Variables.Client.GetCurrentUser().Id);				//Give the variable Bot_ID the id of the bot
+			if (Variables.FirstInstanceOfBotStartingUpWithCurrentKey)
+			{
+				RestartBot();                                               //Restart so the bot can get the correct botInfo loaded
+			}
 			Variables.BotName = Variables.Client.GetCurrentUser().Username; //Give the variable Bot_Name the username of the bot
 
 			LoadPermissionNames();											//Gets the names of the permission bits in Discord
@@ -117,7 +121,10 @@ namespace Advobot
 			}
 			else
 			{
-				WriteLine("The bot information file could not be found; using default.");
+				if (!Variables.FirstInstanceOfBotStartingUpWithCurrentKey)
+				{
+					WriteLine("The bot information file could not be found; using default.");
+				}
 			}
 			botInfo = botInfo ?? new BotGlobalInfo();
 
@@ -147,7 +154,10 @@ namespace Advobot
 
 		public static void LoadCriticalInformation()
 		{
+			BotGuildInfo.CreateFieldDictionary();
+			BotGlobalInfo.CreateFieldDictionary();
 			HandleBotID(Properties.Settings.Default.BotID);
+			Variables.FirstInstanceOfBotStartingUpWithCurrentKey = Properties.Settings.Default.BotID == 0;
 			Variables.Windows = GetWindowsOrNot();
 			Variables.Console = GetConsoleOrGUI();
 			Variables.BotInfo = CreateBotInfo();
@@ -619,7 +629,7 @@ namespace Advobot
 				return null;
 
 			//Get the bot's folder
-			var botFolder = String.Format("{0}_{1}", Constants.SERVER_FOLDER, Variables.BotID);
+			var botFolder = String.Format("{0}_{1}", Constants.SERVER_FOLDER, Properties.Settings.Default.BotID);
 
 			//Send back the directory
 			return String.IsNullOrWhiteSpace(nonGuildFileName) ? Path.Combine(folder, botFolder) : Path.Combine(folder, botFolder, nonGuildFileName);
@@ -1681,7 +1691,6 @@ namespace Advobot
 			var guild = GetGuild(channel);
 			if (guild == null)
 				return;
-			var guildInfo = await CreateOrGetGuildInfo(guild);
 
 			//Descriptions can only be 2048 characters max and mobile can only show up to 20 line breaks
 			var description = embed.Description;
@@ -1897,6 +1906,7 @@ namespace Advobot
 				return list;
 			}
 
+			list.Add(msg);
 			while (requestCount > 0)
 			{
 				var newNum = Math.Min(requestCount, 100);
@@ -2174,7 +2184,7 @@ namespace Advobot
 
 		public static async Task<List<IMessage>> GetBotDMs(IDMChannel channel)
 		{
-			return await GetMessages(channel, 500);
+			return (await GetMessages(channel, 500)).OrderBy(x => x.CreatedAt).ToList();
 		}
 
 		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null, string URL = null, string thumbnailURL = null)
@@ -2665,12 +2675,21 @@ namespace Advobot
 			if (String.IsNullOrWhiteSpace(input))
 				return "";
 
-			while (replaceNewLines && input.Contains("\n\n"))
+			input = new Regex("[*`]", RegexOptions.Compiled).Replace(input, "");
+
+			while (replaceNewLines)
 			{
-				input = input.Replace("\n\n", "\n");
+				if (input.Contains("\n\n"))
+				{
+					input = input.Replace("\n\n", "\n");
+				}
+				else
+				{
+					break;
+				}
 			}
 
-			return new Regex("[*`]", RegexOptions.Compiled).Replace(input, "");
+			return input;
 		}
 
 		public static string ConcatStringsWithNewLinesBetween(params string[] strs)
@@ -3497,9 +3516,9 @@ namespace Advobot
 		#endregion
 
 		#region Preferences/Settings
-		public static async Task<bool> ValidateBotKey(BotClient client, string input, bool startup = false)
+		public static async Task ValidateBotKey(BotClient client, string input, bool startup = false)
 		{
-			input = input.Trim();
+			var key = input.Trim();
 
 			if (startup)
 			{
@@ -3508,8 +3527,8 @@ namespace Advobot
 				{
 					try
 					{
-						await client.LoginAsync(TokenType.Bot, input);
-						return true;
+						await client.LoginAsync(TokenType.Bot, key);
+						Variables.GotKey = true;
 					}
 					catch (Exception)
 					{
@@ -3521,16 +3540,16 @@ namespace Advobot
 				{
 					WriteLine("Please enter the bot's key:");
 				}
-				return false;
+				return;
 			}
 
 			//Login and connect to Discord.
-			if (input.Length > 59)
+			if (key.Length > 59)
 			{
 				//If the length isn't the normal length of a key make it retry
 				WriteLine("The given key is too long. Please enter a regular length key:");
 			}
-			else if (input.Length < 59)
+			else if (key.Length < 59)
 			{
 				WriteLine("The given key is too short. Please enter a regular length key:");
 			}
@@ -3539,13 +3558,13 @@ namespace Advobot
 				try
 				{
 					//Try to login with the given key
-					await client.LoginAsync(TokenType.Bot, input);
+					await client.LoginAsync(TokenType.Bot, key);
 
 					//If the key works then save it within the settings
 					WriteLine("Succesfully logged in via the given bot key.");
-					Properties.Settings.Default.BotKey = input;
+					Properties.Settings.Default.BotKey = key;
 					Properties.Settings.Default.Save();
-					return true;
+					Variables.GotKey = true;
 				}
 				catch (Exception)
 				{
@@ -3553,10 +3572,9 @@ namespace Advobot
 					WriteLine("The given key is invalid. Please enter a valid key:");
 				}
 			}
-			return false;
 		}
 
-		public static bool ValidatePath(string input, bool startup = false)
+		public static void ValidatePath(string input, bool startup = false)
 		{
 			var path = input.Trim();
 
@@ -3567,20 +3585,21 @@ namespace Advobot
 				{
 					Properties.Settings.Default.Path = path;
 					Properties.Settings.Default.Save();
-					return true;
-				}
-
-				//Send the initial message
-				if (Variables.Windows)
-				{
-					WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
+					Variables.GotPath = true;
 				}
 				else
 				{
-					WriteLine("Please enter a valid directory path in which to save files:");
+					//Send the initial message
+					if (Variables.Windows)
+					{
+						WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
+					}
+					else
+					{
+						WriteLine("Please enter a valid directory path in which to save files:");
+					}
 				}
-
-				return false;
+				return;
 			}
 
 			if (Variables.Windows && CaseInsEquals(path, "appdata"))
@@ -3588,16 +3607,15 @@ namespace Advobot
 				path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 			}
 
-			if (!Directory.Exists(path))
-			{
-				WriteLine("Invalid directory. Please enter a valid directory:");
-				return false;
-			}
-			else
+			if (Directory.Exists(path))
 			{
 				Properties.Settings.Default.Path = path;
 				Properties.Settings.Default.Save();
-				return true;
+				Variables.GotPath = true;
+			}
+			else
+			{
+				WriteLine("Invalid directory. Please enter a valid directory:");
 			}
 		}
 

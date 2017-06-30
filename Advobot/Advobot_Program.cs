@@ -5,9 +5,12 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-//I am too lazy to type out .ConfigureAwait(false) on every await I do so I don't use it.
-//Also, a lot of the things that go into DontWaitForResultOfUnimportantBigFunction make the bot hang, so that's why they use async void
-//If I wasn't the one writing this, I probably wouldn't be using it. Be warned. 
+/* First, to get the really shitty part of the bot out of the way:
+ * I am too lazy to type out .ConfigureAwait(false) on every await I do and I don't really know what it does so I don't use it.
+ * A lot of the things that go into DontWaitForResultOfUnimportantBigFunction make the bot hang, so that's why they use async void. I don't know the correct way to not make them hang.
+ * I wasn't aware of the arg parsing of Discord.Net when I first used it, so that's why I have my custom arg parsing.
+ * My arg parsing is definitely more inefficient, but since I'm the one writing it I can provide more specific error messages.
+ */
 namespace Advobot
 {
 	public class Program
@@ -41,21 +44,20 @@ namespace Advobot
 			}
 			else
 			{
-				//Set the path to save files
 				var startup = true;
-				while (!Actions.ValidatePath(startup ? Properties.Settings.Default.Path : Console.ReadLine(), startup))
+				while (!Variables.GotPath)
 				{
+					Actions.ValidatePath(startup ? Properties.Settings.Default.Path : Console.ReadLine(), startup);
 					startup = false;
 				}
-				//Set the bot's key
 				startup = true;
-				while (!Actions.ValidateBotKey(Variables.Client, startup ? Properties.Settings.Default.BotKey : Console.ReadLine(), startup).Result)
+				while (!Variables.GotKey)
 				{
+					Actions.ValidateBotKey(Variables.Client, startup ? Properties.Settings.Default.BotKey : Console.ReadLine(), startup).GetAwaiter().GetResult();
 					startup = false;
 				}
 
-				//Start the bot. This line needs to stay the same. Do not change the method to MaybeStartBot
-				new Program().Start(Variables.Client).GetAwaiter().GetResult();
+				Actions.MaybeStartBot();
 			}
 		}
 

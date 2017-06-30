@@ -245,8 +245,6 @@ namespace Advobot
 		});
 		[JsonIgnore]
 		private static Dictionary<SettingOnGuild, FieldInfo> mFieldInfo = new Dictionary<SettingOnGuild, FieldInfo>();
-		[JsonIgnore]
-		private static bool mFieldInfoLoaded = false;
 
 		[GuildSetting(SettingOnGuild.BotUsers)]
 		[JsonProperty("BotUsers")]
@@ -384,15 +382,6 @@ namespace Advobot
 		public BotGuildInfo(ulong guildID)
 		{
 			mGuild = new DiscordObjectWithID<SocketGuild>(guildID);
-
-			if (!mFieldInfoLoaded)
-			{
-				mFieldInfoLoaded = true;
-				foreach (var setting in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
-				{
-					mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
-				}
-			}
 		}
 
 		private static FieldInfo CreateFieldDictionaryItem(SettingOnGuild setting)
@@ -409,6 +398,13 @@ namespace Advobot
 				}
 			}
 			return null;
+		}
+		public static void CreateFieldDictionary()
+		{
+			foreach (var setting in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
+			{
+				mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
+			}
 		}
 		public static FieldInfo GetField(SettingOnGuild setting)
 		{
@@ -663,7 +659,7 @@ namespace Advobot
 		[JsonIgnore]
 		private static ReadOnlyDictionary<SettingOnBot, dynamic> mDefaultSettings = new ReadOnlyDictionary<SettingOnBot, dynamic>(new Dictionary<SettingOnBot, dynamic>
 		{
-			{ SettingOnBot.BotOwnerID, 0 },
+			{ SettingOnBot.BotOwnerID, (ulong)0 }, //Needs to be cast as a ulong or gets an exception when trying to set it
 			{ SettingOnBot.TrustedUsers, new List<ulong>() },
 			{ SettingOnBot.Prefix, Constants.BOT_PREFIX },
 			{ SettingOnBot.Game, String.Format("type \"{0}help\" for help.", Constants.BOT_PREFIX) },
@@ -679,8 +675,6 @@ namespace Advobot
 		});
 		[JsonIgnore]
 		private static Dictionary<SettingOnBot, FieldInfo> mFieldInfo = new Dictionary<SettingOnBot, FieldInfo>();
-		[JsonIgnore]
-		private static bool mFieldInfoLoaded = false;
 
 		[BotSetting(SettingOnBot.BotOwnerID)]
 		[JsonProperty("BotOwnerID")]
@@ -726,14 +720,6 @@ namespace Advobot
 		[JsonConstructor]
 		public BotGlobalInfo()
 		{
-			if (!mFieldInfoLoaded)
-			{
-				mFieldInfoLoaded = true;
-				foreach (var setting in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
-				{
-					mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
-				}
-			}
 		}
 
 		private static FieldInfo CreateFieldDictionaryItem(SettingOnBot setting)
@@ -750,6 +736,13 @@ namespace Advobot
 				}
 			}
 			return null;
+		}
+		public static void CreateFieldDictionary()
+		{
+			foreach (var setting in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
+			{
+				mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
+			}
 		}
 		public static FieldInfo GetField(SettingOnBot setting)
 		{

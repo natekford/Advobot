@@ -17,7 +17,7 @@ namespace Advobot
 		[Summary("Displays global settings. Inputting nothing gives a list of the setting names.")]
 		[OtherRequirement(1U << (int)Precondition.BotOwner)]
 		[DefaultEnabled(true)]
-		public async Task CurrentGlobalSettings([Remainder] string input)
+		public async Task CurrentGlobalSettings([Optional, Remainder] string input)
 		{
 			var botInfo = Variables.BotInfo;
 			if (String.IsNullOrWhiteSpace(input))

@@ -8,8 +8,8 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const string BOT_VERSION = "0.10.8";
-		public const string API_VERSION = "Discord.Net v1.0.0-rc3-00755";
+		public const string BOT_VERSION = "0.10.9";
+		public const string API_VERSION = "Discord.Net v1.0.0";
 		public const string BOT_PREFIX = "&&";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string IGNORE_ERROR = "Cx";
@@ -156,6 +156,7 @@ namespace Advobot
 		public static bool GotPath = false;
 		public static bool GotKey = false;
 		public static bool Pause = false;
+		public static bool FirstInstanceOfBotStartingUpWithCurrentKey = true;
 
 		public static DateTime StartupTime = DateTime.UtcNow;
 		public static Timer HourTimer;
