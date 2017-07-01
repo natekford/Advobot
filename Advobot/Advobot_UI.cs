@@ -1028,11 +1028,11 @@ namespace Advobot
 			}
 
 			mSpecificFileDisplay.Clear();
+			mSpecificFileDisplay.Tag = fileLocation;
 			using (var reader = new StreamReader(fileLocation))
 			{
 				mSpecificFileDisplay.AppendText(reader.ReadToEnd());
 			}
-			mSpecificFileDisplay.Tag = fileLocation;
 			return true;
 		}
 		private async Task<bool> CheckIfDMExists(TreeViewItem treeItem)
@@ -1044,11 +1044,21 @@ namespace Advobot
 			}
 
 			mSpecificDMDisplay.Clear();
-			foreach (var message in Actions.FormatDMs(await Actions.GetBotDMs(DMChannel)))
-			{
-				mSpecificDMDisplay.AppendText(String.Format("{0}{1}----------{1}", Actions.ReplaceMarkdownChars(message, true), Environment.NewLine));
-			}
 			mSpecificDMDisplay.Tag = DMChannel;
+
+			var messages = Actions.FormatDMs(await Actions.GetBotDMs(DMChannel));
+			if (messages.Any())
+			{
+				foreach (var message in messages)
+				{
+					mSpecificDMDisplay.AppendText(String.Format("{0}{1}----------{1}", Actions.ReplaceMarkdownChars(message, true), Environment.NewLine));
+				}
+			}
+			else
+			{
+				mSpecificDMDisplay.AppendText(String.Format("No DMs with this user exist; I am not sure why Discord says some do, but I will close the DMs with this person now."));
+				await DMChannel.CloseAsync();
+			}
 			return true;
 		}
 		private ReturnedSetting SaveSetting(Grid g, SettingOnBot setting, BotGlobalInfo botInfo)
@@ -1197,13 +1207,13 @@ namespace Advobot
 		}
 		public static void SetRowAndSpan(UIElement item, int start = 0, int length = 1)
 		{
-			Grid.SetRow(item, start < 0 ? 0 : start);
-			Grid.SetRowSpan(item, length < 1 ? 1 : length);
+			Grid.SetRow(item, Math.Max(0, start));
+			Grid.SetRowSpan(item, Math.Max(1, length));
 		}
 		public static void SetColAndSpan(UIElement item, int start = 0, int length = 1)
 		{
-			Grid.SetColumn(item, start < 0 ? 0 : start);
-			Grid.SetColumnSpan(item, length < 1 ? 1 : length);
+			Grid.SetColumn(item, Math.Max(0, start));
+			Grid.SetColumnSpan(item, Math.Max(1, length));
 		}
 		public static void AddElement(Grid parent, Grid child, int rowStart, int rowLength, int columnStart, int columnLength, int setRows = 0, int setColumns = 0)
 		{
