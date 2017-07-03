@@ -34,13 +34,13 @@ namespace Advobot
 				if (botBits != null)
 				{
 					var perms = user.GuildPermissions.RawValue | botBits;
-					if (mAllFlags != 0 && (perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
+					if ((perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
 						return Task.FromResult(PreconditionResult.FromSuccess());
 				}
 				else
 				{
 					var perms = user.GuildPermissions.RawValue;
-					if (mAllFlags != 0 && (perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
+					if ((perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
 						return Task.FromResult(PreconditionResult.FromSuccess());
 				}
 			}

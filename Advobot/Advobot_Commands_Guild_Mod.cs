@@ -196,9 +196,7 @@ namespace Advobot
 		public async Task GuildCreate([Remainder] string input)
 		{
 			var guild = await Variables.Client.CreateGuildAsync(input, await Variables.Client.GetOptimalVoiceRegionAsync());
-			var guildInfo = new BotGuildInfo(guild.Id);
-			Variables.Guilds.Add(guild.Id, guildInfo);
-			guildInfo.PostDeserialize(guild.Id);
+			await Actions.CreateOrGetGuildInfo(guild);
 			await Actions.SendDMMessage(await Context.User.GetOrCreateDMChannelAsync(), (await (await guild.GetDefaultChannelAsync()).CreateInviteAsync()).Url);
 		}
 

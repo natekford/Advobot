@@ -30,7 +30,7 @@ namespace Advobot
 			{
 				if (Variables.BotID != 0)
 				{
-					Variables.Guilds.Add(guild.Id, await Actions.CreateOrGetGuildInfo(guild));
+					await Actions.CreateOrGetGuildInfo(guild);
 				}
 				else
 				{

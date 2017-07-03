@@ -46,10 +46,7 @@ namespace Advobot
 
 		public static async Task LoadGuilds()
 		{
-			await Variables.GuildsToBeLoaded.ForEachAsync(async x =>
-			{
-				Variables.Guilds.Add(x.Id, await CreateOrGetGuildInfo(x));
-			});
+			await Variables.GuildsToBeLoaded.ForEachAsync(async x => await CreateOrGetGuildInfo(x));
 		}
 
 		public static async Task<BotGuildInfo> CreateOrGetGuildInfo(IGuild guild)
@@ -91,11 +88,17 @@ namespace Advobot
 				cmdChans.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 				var cmdSwitches = ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandSwitches));
 				cmdSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-				Variables.HelpList.Where(x => !cmdSwitches.Select(y => y.Name).CaseInsContains(x.Name)).ToList().ForEach(x => cmdSwitches.Add(new CommandSwitch(x.Name, x.DefaultEnabled)));
 
-				var invites = ((List<BotInvite>)guildInfo.GetSetting(SettingOnGuild.Invites));
-				invites.AddRange((await guild.GetInvitesAsync()).ToList().Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
+				foreach (var cmd in Variables.HelpList.Where(x => !cmdSwitches.Select(y => y.Name).CaseInsContains(x.Name)))
+				{
+					cmdSwitches.Add(new CommandSwitch(cmd.Name, cmd.DefaultEnabled));
+				}
+
+				var guildInvites = ((List<BotInvite>)guildInfo.GetSetting(SettingOnGuild.Invites));
+				guildInvites.AddRange((await GetInvites(guild)).Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)));
 				guildInfo.PostDeserialize(guild.Id);
+
+				Variables.Guilds.Add(guild.Id, guildInfo);
 			}
 			return guildInfo;
 		}
@@ -3074,38 +3077,32 @@ namespace Advobot
 		#region Invites
 		public static async Task<IReadOnlyCollection<IInviteMetadata>> GetInvites(IGuild guild)
 		{
-			//Make sure the guild exists
 			if (guild == null)
-				return null;
-			//Get the invites
-			var invs = await guild.GetInvitesAsync();
-			//If no invites return null
-			return invs.Any() ? invs : null;
+				return new List<IInviteMetadata>();
+
+			var currUser = await guild.GetCurrentUserAsync();
+			if (!currUser.GuildPermissions.ManageGuild)
+				return new List<IInviteMetadata>();
+
+			return await guild.GetInvitesAsync();
 		}
 
 		public static async Task<BotInvite> GetInviteUserJoinedOn(BotGuildInfo guildInfo, IGuild guild)
 		{
-			//Get the current invites
 			var curInvs = await GetInvites(guild);
-			if (curInvs == null)
+			if (!curInvs.Any())
 				return null;
-			//Get the bot's stored invites
 			var botInvs = ((List<BotInvite>)guildInfo.GetSetting(SettingOnGuild.Invites));
-			if (!botInvs.Any())
-				return null;
 
-			//Set an invite to hold the current invite the user joined on
-			BotInvite joinInv = null;
 			//Find the first invite where the bot invite has the same code as the current invite but different use counts
-			joinInv = botInvs.FirstOrDefault(bI => curInvs.Any(cI => cI.Code == bI.Code && cI.Uses != bI.Uses));
+			var joinInv = botInvs.FirstOrDefault(bI => curInvs.Any(cI => cI.Code == bI.Code && cI.Uses != bI.Uses));
 			//If the invite is null, take that as meaning there are new invites on the guild
 			if (joinInv == null)
 			{
 				//Get the new invites on the guild by finding which guild invites aren't on the bot invites list
-				var botInvCodes = botInvs.Select(y => y.Code);
-				var newInvs = curInvs.Where(x => !botInvCodes.Contains(x.Code));
+				var newInvs = curInvs.Where(cI => !botInvs.Select(bI => bI.Code).Contains(cI.Code));
 				//If there's only one, then use that as the current inv. If there's more than one then there's no way to know what invite it was on
-				if (guild.Features.CaseInsContains(Constants.VANITY_URL) && (!newInvs.Any() || (newInvs.Count() == 1 && newInvs.First().Uses == 0)))
+				if (guild.Features.CaseInsContains(Constants.VANITY_URL) && (!newInvs.Any() || newInvs.All(x => x.Uses == 0)))
 				{
 					joinInv = new BotInvite(guild.Id, "Vanity URL", 0);
 				}
@@ -3113,7 +3110,6 @@ namespace Advobot
 				{
 					joinInv = new BotInvite(newInvs.First().GuildId, newInvs.First().Code, newInvs.First().Uses);
 				}
-				//Add all of the invites to the bot invites list
 				botInvs.AddRange(newInvs.Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
 			}
 			else
@@ -4307,11 +4303,11 @@ namespace Advobot
 		#region Case Insensitive Searches
 		public static bool CaseInsEquals(string str1, string str2)
 		{
-			if (String.IsNullOrWhiteSpace(str1))
+			if (str1 == null)
 			{
-				return String.IsNullOrWhiteSpace(str2) ? true : false;
+				return str2 == null;
 			}
-			else if (str1 == null || str2 == null)
+			if (str2 == null)
 			{
 				return false;
 			}
@@ -4336,15 +4332,14 @@ namespace Advobot
 		public static bool CaseInsIndexOf(string source, string search, out int position)
 		{
 			position = -1;
-			if (source != null && search != null)
+			if (source == null || search == null)
 			{
-				position = source.IndexOf(search, StringComparison.OrdinalIgnoreCase);
-				if (position != -1)
-				{
-					return true;
-				}
+				return false;
 			}
-			return false;
+			else
+			{
+				return (position = source.IndexOf(search, StringComparison.OrdinalIgnoreCase)) >= 0;
+			}
 		}
 
 		public static bool CaseInsStartsWith(string source, string search)
@@ -4375,8 +4370,8 @@ namespace Advobot
 		{
 			System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
-			int previousIndex = 0;
-			int index = str.IndexOf(oldValue, StringComparison.OrdinalIgnoreCase);
+			var previousIndex = 0;
+			var index = str.IndexOf(oldValue, StringComparison.OrdinalIgnoreCase);
 			while (index != -1)
 			{
 				sb.Append(str.Substring(previousIndex, index - previousIndex));
@@ -4484,16 +4479,16 @@ namespace Advobot
 		{
 			Task.Run(() =>
 			{
-				IDisposable typing = null;
 				if (channel != null)
 				{
-					typing = channel.EnterTypingState();
+					using (var typing = channel.EnterTypingState())
+					{
+						func.Invoke();
+					}
 				}
-
-				func.Invoke();
-				if (typing != null)
+				else
 				{
-					typing.Dispose();
+					func.Invoke();
 				}
 			}).Forget();
 		}
@@ -4622,14 +4617,11 @@ namespace Advobot
 
 		public static bool CaseInsContains(this IEnumerable<string> enumerable, string search)
 		{
-			if (!enumerable.Any())
-			{
-				return false;
-			}
-			else
+			if (enumerable.Any())
 			{
 				return enumerable.Contains(search, StringComparer.OrdinalIgnoreCase);
 			}
+			return false;
 		}
 	}
 }

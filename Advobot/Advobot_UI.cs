@@ -318,13 +318,12 @@ namespace Advobot
 			{
 				const int TITLE_START_COLUMN = 5;
 				const int TITLE_COLUMN_LENGTH = 35;
-				const int TB_START_COLUMN = 40;
-				const int TB_COLUMN_LENGTH = 55;
+				const int SETTING_START_COLUMN = 40;
+				const int SETTING_COLUMN_LENGTH = 55;
+				const int LENGTH_FOR_SETTINGS = 4;
 
-				dynamic title = mSettings[i].Title;
-				dynamic setting = mSettings[i].Setting;
-				UIModification.AddElement(mSettingsLayout, title, (i * 4), 4, TITLE_START_COLUMN, TITLE_COLUMN_LENGTH);
-				UIModification.AddElement(mSettingsLayout, setting, (i * 4), 4, TB_START_COLUMN, TB_COLUMN_LENGTH);
+				UIModification.AddElement(mSettingsLayout, mSettings[i].Title, (i * LENGTH_FOR_SETTINGS), LENGTH_FOR_SETTINGS, TITLE_START_COLUMN, TITLE_COLUMN_LENGTH);
+				UIModification.AddElement(mSettingsLayout, mSettings[i].Setting, (i * LENGTH_FOR_SETTINGS), LENGTH_FOR_SETTINGS, SETTING_START_COLUMN, SETTING_COLUMN_LENGTH);
 			}
 
 			//Colors menu

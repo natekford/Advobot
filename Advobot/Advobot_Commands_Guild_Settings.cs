@@ -173,7 +173,7 @@ namespace Advobot
 			if (Actions.CaseInsEquals(actionStr, "reload"))
 			{
 				Variables.Guilds.Remove(guild.Id);
-				Variables.Guilds.Add(guild.Id, await Actions.CreateOrGetGuildInfo(guild));
+				await Actions.CreateOrGetGuildInfo(guild);
 
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully reloaded the guild's bot information.");
 			}
@@ -189,7 +189,7 @@ namespace Advobot
 				var path = Actions.GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
 				File.Delete(path);
 
-				Variables.Guilds.Add(guild.Id, await Actions.CreateOrGetGuildInfo(guild));
+				await Actions.CreateOrGetGuildInfo(guild);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset the guild's bot information.");
 			}
 		}
