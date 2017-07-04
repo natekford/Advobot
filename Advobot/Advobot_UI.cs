@@ -355,17 +355,17 @@ namespace Advobot
 			UIModification.AddElement(mGuildSearchLayout, mGuildSearchTextLayout, 3, 4, 3, 4, 100, 100);
 			UIModification.PutInBGWithMouseUpEvent(mGuildSearchLayout, mGuildSearchTextLayout, null, CloseFileSearch);
 			UIModification.AddPlaceHolderTB(mGuildSearchTextLayout, 0, 100, 0, 100);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchNameHeader, 10, 10, 20, 60);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchNameInput, 20, 15, 20, 60);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchIDHeader, 35, 10, 20, 60);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchIDInput, 45, 10, 20, 60);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchFileComboBox, 57, 10, 20, 60);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchSearchButton, 69, 15, 20, 25);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchCloseButton, 69, 15, 55, 25);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchNameHeader, 10, 10, 15, 70);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchNameInput, 20, 21, 15, 70);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchIDHeader, 41, 10, 15, 70);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchIDInput, 51, 10, 15, 70);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchFileComboBox, 63, 10, 20, 60);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchSearchButton, 75, 15, 20, 25);
+			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchCloseButton, 75, 15, 55, 25);
 
 			//Output search
-			UIModification.AddElement(mLayout, mOutputSearchLayout, 0, 100, 0, 4, 100, 100);
-			UIModification.AddElement(mOutputSearchLayout, mOutputSearchTextLayout, 10, 80, 10, 80, 100, 100);
+			UIModification.AddElement(mLayout, mOutputSearchLayout, 0, 100, 0, 4, 10, 10);
+			UIModification.AddElement(mOutputSearchLayout, mOutputSearchTextLayout, 1, 8, 1, 8, 100, 100);
 			UIModification.PutInBGWithMouseUpEvent(mOutputSearchLayout, mOutputSearchTextLayout, null, CloseOutputSearch);
 			UIModification.AddPlaceHolderTB(mOutputSearchTextLayout, 90, 10, 0, 100);
 			UIModification.AddElement(mOutputSearchTextLayout, mOutputSearchResults, 0, 90, 0, 100);
@@ -373,9 +373,23 @@ namespace Advobot
 			UIModification.AddElement(mOutputSearchTextLayout, mOutputSearchButton, 92, 6, 66, 15);
 			UIModification.AddElement(mOutputSearchTextLayout, mOutputSearchCloseButton, 92, 6, 83, 15);
 
+			//DM search
+			UIModification.AddElement(mLayout, mDMSearchLayout, 0, 100, 0, 4, 10, 10);
+			UIModification.AddElement(mDMSearchLayout, mDMSearchTextLayout, 3, 4, 3, 4, 72, 100);
+			UIModification.PutInBGWithMouseUpEvent(mDMSearchLayout, mDMSearchTextLayout, null, CloseDMSearch);
+			UIModification.AddPlaceHolderTB(mDMSearchTextLayout, 0, 100, 0, 100);
+			UIModification.AddElement(mDMSearchTextLayout, mDMSearchNameHeader, 10, 10, 15, 50);
+			UIModification.AddElement(mDMSearchTextLayout, mDMSearchNameInput, 20, 10, 15, 50);
+			UIModification.AddElement(mDMSearchTextLayout, mDMSearchDiscHeader, 10, 10, 65, 20);
+			UIModification.AddElement(mDMSearchTextLayout, mDMSearchDiscInput, 20, 10, 65, 20);
+			UIModification.AddElement(mDMSearchTextLayout, mDMSearchIDHeader, 30, 10, 15, 70);
+			UIModification.AddElement(mDMSearchTextLayout, mDMSearchIDInput, 40, 10, 15, 70);
+			UIModification.AddElement(mDMSearchTextLayout, mDMSearchSearchButton, 52, 10, 20, 25);
+			UIModification.AddElement(mDMSearchTextLayout, mDMSearchCloseButton, 52, 10, 55, 25);
+
 			//Font size properties
 			UIModification.SetFontSizeProperties(.275, new UIElement[] { mInput, });
-			UIModification.SetFontSizeProperties(.060, new UIElement[] { mGuildSearchNameInput, mGuildSearchIDInput, });
+			UIModification.SetFontSizeProperties(.060, new UIElement[] { mGuildSearchNameInput, mGuildSearchIDInput, mDMSearchNameInput, mDMSearchDiscInput, mDMSearchIDInput });
 			UIModification.SetFontSizeProperties(.035, new UIElement[] { mInfoOutput, });
 			UIModification.SetFontSizeProperties(.022, new UIElement[] { mSpecificFileDisplay, mFileOutput, mOutputSearchComboBox, mDMOutput });
 			UIModification.SetFontSizeProperties(.018, new UIElement[] { mMainMenuOutput, }, mSettings.Select(x => x.Title), mSettings.Select(x => x.Setting));
@@ -714,7 +728,7 @@ namespace Advobot
 			mFileSearchButton.Click += OpenFileSearch;
 			mGuildSearchSearchButton.Click += SearchForFile;
 			mGuildSearchCloseButton.Click += CloseFileSearch;
-			mSpecificFileCloseButton.Click += CloseFileEditLayout;
+			mSpecificFileCloseButton.Click += CloseSpecificFileLayout;
 			mSpecificFileContextMenuSave.Click += SaveFile;
 		}
 		private void OpenFileSearch(object sender, RoutedEventArgs e)
@@ -748,18 +762,19 @@ namespace Advobot
 				if (!ulong.TryParse(idStr, out ulong guildID))
 				{
 					Actions.WriteLine(String.Format("The ID '{0}' is not a valid number.", idStr));
+					return;
 				}
 				else
 				{
 					guild = mFileTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x =>
 					{
-						var info = (GuildFileInformation)x.Tag;
-						return info.ID == guildID;
+						return ((GuildFileInformation)x.Tag).ID == guildID;
 					});
 
 					if (guild == null)
 					{
 						Actions.WriteLine(String.Format("No guild could be found with the ID '{0}'.", guildID));
+						return;
 					}
 				}
 			}
@@ -767,13 +782,13 @@ namespace Advobot
 			{
 				var guilds = mFileTreeView.Items.Cast<TreeViewItem>().Where(x =>
 				{
-					var info = (GuildFileInformation)x.Tag;
-					return Actions.CaseInsEquals(info.Name, nameStr);
+					return Actions.CaseInsEquals(((GuildFileInformation)x.Tag).Name, nameStr);
 				});
 
 				if (guilds.Count() == 0)
 				{
 					Actions.WriteLine(String.Format("No guild could be found with the name '{0}'.", nameStr));
+					return;
 				}
 				else if (guilds.Count() == 1)
 				{
@@ -782,6 +797,7 @@ namespace Advobot
 				else
 				{
 					Actions.WriteLine("More than one guild has the name '{0}'.", nameStr);
+					return;
 				}
 			}
 
@@ -789,24 +805,16 @@ namespace Advobot
 			{
 				var item = guild.Items.Cast<TreeViewItem>().FirstOrDefault(x =>
 				{
-					var info = (FileInformation)x.Tag;
-					return info.FileType == fileType;
+					return ((FileInformation)x.Tag).FileType == fileType;
 				});
 
 				if (item != null)
 				{
-					if (CheckIfTreeViewItemFileExists(item))
-					{
-						mSpecificFileLayout.Visibility = Visibility.Visible;
-						mFileSearchButton.Visibility = Visibility.Collapsed;
-						return;
-					}
+					OpenSpecificFileLayout(item, e);
 				}
-
-				Actions.WriteLine("Unable to bring up the file.");
 			}
 		}
-		private void OpenFileEditLayout(object sender, RoutedEventArgs e)
+		private void OpenSpecificFileLayout(object sender, RoutedEventArgs e)
 		{
 			if (CheckIfTreeViewItemFileExists((TreeViewItem)sender))
 			{
@@ -814,8 +822,12 @@ namespace Advobot
 				mSpecificFileLayout.Visibility = Visibility.Visible;
 				mFileSearchButton.Visibility = Visibility.Collapsed;
 			}
+			else
+			{
+				Actions.WriteLine("Unable to bring up the file.");
+			}
 		}
-		private void CloseFileEditLayout(object sender, RoutedEventArgs e)
+		private void CloseSpecificFileLayout(object sender, RoutedEventArgs e)
 		{
 			var result = MessageBox.Show("Are you sure you want to close the edit window?", Variables.BotName, MessageBoxButton.OKCancel);
 
@@ -869,30 +881,110 @@ namespace Advobot
 			mDMSearchButton.Click += OpenDMSearch;
 			mDMSearchSearchButton.Click += SearchForDM;
 			mDMSearchCloseButton.Click += CloseDMSearch;
-			mSpecificDMCloseButton.Click += CloseDMLayout;
+			mSpecificDMCloseButton.Click += CloseSpecificDMLayout;
 		}
 		private void OpenDMSearch(object sender, RoutedEventArgs e)
 		{
-
+			mDMSearchLayout.Visibility = Visibility.Visible;
 		}
 		private void CloseDMSearch(object sender, RoutedEventArgs e)
 		{
-
+			mDMSearchNameInput.Text = "";
+			mDMSearchDiscInput.Text = "";
+			mDMSearchIDInput.Text = "";
+			mDMSearchLayout.Visibility = Visibility.Collapsed;
 		}
 		private void SearchForDM(object sender, RoutedEventArgs e)
 		{
+			var nameStr = mDMSearchNameInput.Text;
+			var discStr = mDMSearchDiscInput.Text;
+			var idStr = mDMSearchIDInput.Text;
 
+			if (String.IsNullOrWhiteSpace(nameStr) && String.IsNullOrWhiteSpace(idStr))
+				return;
+			CloseDMSearch(sender, e);
+
+			TreeViewItem DMChannel = null;
+			if (!String.IsNullOrWhiteSpace(idStr))
+			{
+				if (!ulong.TryParse(idStr, out ulong userID))
+				{
+					Actions.WriteLine(String.Format("The ID '{0}' is not a valid number.", idStr));
+					return;
+				}
+				else
+				{
+					DMChannel = mDMTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x =>
+					{
+						return ((Discord.IDMChannel)x.Tag)?.Recipient?.Id == userID;
+					});
+
+					if (DMChannel == null)
+					{
+						Actions.WriteLine(String.Format("No user could be found with the ID '{0}'.", userID));
+						return;
+					}
+				}
+			}
+			else if (!String.IsNullOrWhiteSpace(nameStr))
+			{
+				var DMChannels = mDMTreeView.Items.Cast<TreeViewItem>().Where(x =>
+				{
+					return Actions.CaseInsEquals(((Discord.IDMChannel)x.Tag)?.Recipient?.Username, nameStr);
+				});
+
+				if (!String.IsNullOrWhiteSpace(discStr))
+				{
+					if (!ushort.TryParse(discStr, out ushort disc))
+					{
+						Actions.WriteLine(String.Format("The discriminator '{0}' is not a valid number.", discStr));
+						return;
+					}
+					else
+					{
+						DMChannels = DMChannels.Where(x =>
+						{
+							//Why are discriminators strings instead of ints????
+							return (bool)((Discord.IDMChannel)x.Tag)?.Recipient?.Discriminator.Equals(discStr);
+						});
+					}
+				}
+
+				if (DMChannels.Count() == 0)
+				{
+					Actions.WriteLine(String.Format("No user could be found with the name '{0}'.", nameStr));
+					return;
+				}
+				else if (DMChannels.Count() == 1)
+				{
+					DMChannel = DMChannels.FirstOrDefault();
+				}
+				else
+				{
+					Actions.WriteLine("More than one user has the name '{0}'.", nameStr);
+					return;
+				}
+			}
+
+			if (DMChannel != null)
+			{
+				OpenSpecificDMLayout(DMChannel, e);
+			}
 		}
-		private async void OpenDMLayout(object sender, RoutedEventArgs e)
+		private async void OpenSpecificDMLayout(object sender, RoutedEventArgs e)
 		{
-			if (await CheckIfDMExists((TreeViewItem)sender))
+			if (await CheckIfTreeViewItemDMExists((TreeViewItem)sender))
 			{
 				UIModification.SetRowAndSpan(mDMLayout, 0, 100);
 				mSpecificDMLayout.Visibility = Visibility.Visible;
 				mDMSearchButton.Visibility = Visibility.Collapsed;
 			}
+			else
+			{
+				Actions.WriteLine("Unable to bring up the DMs.");
+			}
 		}
-		private void CloseDMLayout(object sender, RoutedEventArgs e)
+		private void CloseSpecificDMLayout(object sender, RoutedEventArgs e)
 		{
 			UIModification.SetRowAndSpan(mDMLayout, 0, 87);
 			mSpecificDMDisplay.Tag = null;
@@ -964,7 +1056,7 @@ namespace Advobot
 						var treeView = await UIModification.MakeDMTreeView(mDMTreeView);
 						treeView.Items.Cast<TreeViewItem>().ToList().ForEach(x =>
 						{
-							x.MouseDoubleClick += OpenDMLayout;
+							x.MouseDoubleClick += OpenSpecificDMLayout;
 						});
 						mDMOutput.Document = new FlowDocument(new Paragraph(new InlineUIContainer(treeView)));
 						mDMLayout.Visibility = Visibility.Visible;
@@ -975,7 +1067,7 @@ namespace Advobot
 						var treeView = UIModification.MakeGuildTreeView(mFileTreeView);
 						treeView.Items.Cast<TreeViewItem>().SelectMany(x => x.Items.Cast<TreeViewItem>()).ToList().ForEach(x =>
 						{
-							x.MouseDoubleClick += OpenFileEditLayout;
+							x.MouseDoubleClick += OpenSpecificFileLayout;
 						});
 						mFileOutput.Document = new FlowDocument(new Paragraph(new InlineUIContainer(treeView)));
 						mFileLayout.Visibility = Visibility.Visible;
@@ -1034,7 +1126,7 @@ namespace Advobot
 			}
 			return true;
 		}
-		private async Task<bool> CheckIfDMExists(TreeViewItem treeItem)
+		private async Task<bool> CheckIfTreeViewItemDMExists(TreeViewItem treeItem)
 		{
 			var DMChannel = (Discord.IDMChannel)treeItem.Tag;
 			if (DMChannel == null || DMChannel.Id == ((Discord.IDMChannel)mSpecificDMDisplay.Tag)?.Id)
@@ -2055,7 +2147,8 @@ namespace Advobot
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return Math.Max((int)(System.Convert.ToDouble(value) * mConvertFactor), -1);
+			var converted = (int)(System.Convert.ToInt16(value) * mConvertFactor);
+			return Math.Max(converted, -1);
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
@@ -2201,7 +2294,6 @@ namespace Advobot
 		[JsonProperty("ColorTargets")]
 		public Dictionary<ColorTarget, Brush> ColorTargets { get; private set; } = new Dictionary<ColorTarget, Brush>();
 
-		[JsonConstructor]
 		public BotUIInfo()
 		{
 			foreach (var target in Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>())

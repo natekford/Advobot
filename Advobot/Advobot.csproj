@@ -65,10 +65,6 @@
     <Reference Include="Discord.Net.Core, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Discord.Net.Core.1.0.1-build-00785\lib\net45\Discord.Net.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Discord.Net.Modules, Version=0.9.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Discord.Net.Modules.0.9.6\lib\net45\Discord.Net.Modules.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Discord.Net.Rest, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Discord.Net.Rest.1.0.1-build-00785\lib\net45\Discord.Net.Rest.dll</HintPath>
     </Reference>
