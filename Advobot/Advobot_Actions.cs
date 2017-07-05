@@ -23,21 +23,21 @@ namespace Advobot
 			if (Variables.Loaded)
 				return;
 
-			HandleBotID(Variables.Client.GetCurrentUser().Id);				//Give the variable Bot_ID the id of the bot
+			HandleBotID(Variables.Client.GetCurrentUser().Id);              //Give the variable Bot_ID the id of the bot
 			if (Variables.FirstInstanceOfBotStartingUpWithCurrentKey)
 			{
 				RestartBot();                                               //Restart so the bot can get the correct botInfo loaded
 			}
 			Variables.BotName = Variables.Client.GetCurrentUser().Username; //Give the variable Bot_Name the username of the bot
 
-			LoadPermissionNames();											//Gets the names of the permission bits in Discord
+			LoadPermissionNames();                                          //Gets the names of the permission bits in Discord
 			LoadCommandInformation();                                       //Gets the information of a command (name, aliases, usage, summary). Has to go after LPN
 
-			await LoadGuilds();												//Loads the guilds that attempted to load before the Bot_ID was gotten.
-			await UpdateGame();												//Have the bot display its game and stream
+			await LoadGuilds();                                             //Loads the guilds that attempted to load before the Bot_ID was gotten.
+			await UpdateGame();                                             //Have the bot display its game and stream
 
-			HourTimer(null);												//Start the hourly timer
-			MinuteTimer(null);												//Start the minutely timer
+			HourTimer(null);                                                //Start the hourly timer
+			MinuteTimer(null);                                              //Start the minutely timer
 			OneFourthSecondTimer(null);                                     //Start the one fourth second timer
 
 			StartupMessages();
@@ -1051,6 +1051,10 @@ namespace Advobot
 			{
 				switch (type)
 				{
+					case ChannelCheck.CanBeRead:
+					{
+						return channelPerms.ReadMessages;
+					}
 					case ChannelCheck.CanBeManaged:
 					{
 						return channelPerms.ReadMessages && channelPerms.ManageChannel;
@@ -1112,13 +1116,14 @@ namespace Advobot
 		#endregion
 
 		#region Roles
-		public static async Task<IRole> GetMuteRole(ICommandContext context, BotGuildInfo guildInfo)
+		public static async Task<IRole> GetMuteRole(IGuild guild, BotGuildInfo guildInfo)
 		{
-			var returnedMuteRole = GetRole(context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsManaged }, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
+			//Even though GetRole requires an IGuildUser to check against, I can just throw in the bot a second time and it will be fine for the most part. Failures from this will be UserInability instead.
+			var returnedMuteRole = GetRole(guild, GetBot(guild), new[] { RoleCheck.CanBeEdited, RoleCheck.IsManaged }, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
 			var muteRole = returnedMuteRole.Object;
 			if (returnedMuteRole.Reason != FailureReason.NotFailure)
 			{
-				muteRole = await CreateMuteRoleIfNotFound(guildInfo, context.Guild, muteRole);
+				muteRole = await CreateMuteRoleIfNotFound(guildInfo, guild, muteRole);
 			}
 			return muteRole;
 		}
@@ -1173,7 +1178,7 @@ namespace Advobot
 			//Convert into reorder properties and use to reorder
 			await role.Guild.ReorderRolesAsync(roles.Select(x => new ReorderRoleProperties(x.Id, roles.IndexOf(x))));
 		}
-		
+
 		public static async Task GiveRole(IGuildUser user, IRole role)
 		{
 			if (role == null)
@@ -1182,7 +1187,7 @@ namespace Advobot
 				return;
 			await user.AddRoleAsync(role);
 		}
-		
+
 		public static async Task GiveRoles(IGuildUser user, IEnumerable<IRole> roles)
 		{
 			if (!roles.Any())
@@ -1190,7 +1195,7 @@ namespace Advobot
 
 			await user.AddRolesAsync(roles);
 		}
-		
+
 		public static async Task TakeRole(IGuildUser user, IRole role)
 		{
 			if (role == null)
@@ -1206,6 +1211,16 @@ namespace Advobot
 				return;
 
 			await user.RemoveRolesAsync(roles);
+		}
+
+		public static async Task MuteUser(BotGuildInfo guildInfo, IGuildUser user, int time = -1)
+		{
+			var muteRole = await GetMuteRole(user.Guild, guildInfo);
+			await GiveRole(user, muteRole);
+			if (time > 0)
+			{
+				Variables.PunishedUsers.Add(new RemovablePunishment(user.Guild, user.Id, muteRole, DateTime.UtcNow.AddMinutes(time)));
+			}
 		}
 
 		public static ReturnedDiscordObject<IRole> GetRole(ICommandContext context, RoleCheck[] checkingTypes, bool mentions, string input)
@@ -1267,20 +1282,24 @@ namespace Advobot
 
 		public static ReturnedDiscordObject<IRole> GetRole(ICommandContext context, RoleCheck[] checkingTypes, IRole role)
 		{
+			return GetRole(context.Guild, context.User as IGuildUser, checkingTypes, role);
+		}
+
+		public static ReturnedDiscordObject<IRole> GetRole(IGuild guild, IGuildUser user, RoleCheck[] checkingTypes, IRole role)
+		{
 			if (role == null)
 			{
 				return new ReturnedDiscordObject<IRole>(role, FailureReason.NotFound);
 			}
 
-			var bot = GetBot(context.Guild);
-			var user = context.User as IGuildUser;
+			var bot = GetBot(guild);
 			foreach (var type in checkingTypes)
 			{
-				if (!GetIfUserCanDoActionOnRole(context, role, user, type))
+				if (!GetIfUserCanDoActionOnRole(guild, role, user, type))
 				{
 					return new ReturnedDiscordObject<IRole>(role, FailureReason.UserInability);
 				}
-				else if (!GetIfUserCanDoActionOnRole(context, role, bot, type))
+				else if (!GetIfUserCanDoActionOnRole(guild, role, bot, type))
 				{
 					return new ReturnedDiscordObject<IRole>(role, FailureReason.BotInability);
 				}
@@ -1289,7 +1308,7 @@ namespace Advobot
 				{
 					case RoleCheck.IsEveryone:
 					{
-						if (context.Guild.EveryoneRole.Id == role.Id)
+						if (guild.EveryoneRole.Id == role.Id)
 						{
 							return new ReturnedDiscordObject<IRole>(role, FailureReason.EveryoneRole);
 						}
@@ -1342,7 +1361,7 @@ namespace Advobot
 			return guild.GetRole(ID);
 		}
 
-		public static bool GetIfUserCanDoActionOnRole(ICommandContext context, IRole target, IGuildUser user, RoleCheck type)
+		public static bool GetIfUserCanDoActionOnRole(IGuild guild, IRole target, IGuildUser user, RoleCheck type)
 		{
 			if (target == null || user == null)
 				return false;
@@ -1351,7 +1370,7 @@ namespace Advobot
 			{
 				case RoleCheck.CanBeEdited:
 				{
-					return target.Position < GetUserPosition(context.Guild, user);
+					return target.Position < GetUserPosition(guild, user);
 				}
 			}
 			return true;
@@ -1359,14 +1378,9 @@ namespace Advobot
 		#endregion
 
 		#region Users
-		public static async Task<List<IGuildUser>> GetUsers(ICommandContext context)
-		{
-			return (await context.Guild.GetUsersAsync()).ToList();
-		}
-
 		public static async Task<List<IGuildUser>> GetUsersTheBotAndUserCanEdit(ICommandContext context, Func<IGuildUser, bool> predicate = null)
 		{
-			var users = await GetUsers(context);
+			var users = await context.Guild.GetUsersAsync();
 			if (predicate != null)
 			{
 				users = users.Where(predicate).ToList();
@@ -1409,6 +1423,26 @@ namespace Advobot
 			//Get rid of stuff and send a success message
 			await DeleteMessage(msg);
 			await MakeAndDeleteSecondaryMessage(context, String.Format("Successfully changed the nicknames of `{0}` user{1}.", count, GetPlural(count)));
+		}
+
+		public static async Task BotBanUser(IGuild guild, ulong userID, int days = 1, string reason = null)
+		{
+			await guild.AddBanAsync(userID, days, FormatBotReason(reason));
+		}
+
+		public static async Task UserBanUser(ICommandContext context, ulong userID, int days = 1, string reason = null)
+		{
+			await context.Guild.AddBanAsync(userID, days, FormatUserReason(context.User, reason));
+		}
+
+		public static async Task BotKickUser(IGuildUser user, string reason = null)
+		{
+			await user.KickAsync(FormatBotReason(reason));
+		}
+
+		public static async Task UserKickUser(ICommandContext context, IGuildUser user, string reason = null)
+		{
+			await user.KickAsync(FormatUserReason(context.User, reason));
 		}
 
 		public static ReturnedDiscordObject<IGuildUser> GetGuildUser(ICommandContext context, UserCheck[] checkingTypes, bool mentions, string input)
@@ -1516,7 +1550,7 @@ namespace Advobot
 			return new EditableDiscordObject<IGuildUser>(success, failure);
 		}
 
-		public static ReturnedBannedUser GetBannedUser(ICommandContext context, List<IBan> bans, string username, string discriminator, string userID)
+		public static ReturnedBannedUser GetBannedUser(ICommandContext context, IEnumerable<IBan> bans, string username, string discriminator, string userID)
 		{
 			if (!String.IsNullOrWhiteSpace(userID))
 			{
@@ -1797,52 +1831,18 @@ namespace Advobot
 			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 		}
 
-		public static async Task<int> RemoveMessages(IMessageChannel channel, int requestCount)
+		public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount)
 		{
 			var guildChannel = channel as ITextChannel;
 			if (guildChannel == null)
 				return 0;
 
-			var msg = (await channel.GetMessagesAsync(1).ToList()).SelectMany(x => x).FirstOrDefault();
-			if (msg == null)
-				return 0;
-
-			var deletedCount = 0;
-			while (requestCount > 0)
-			{
-				//Get the current messages and ones that aren't null
-				var newNum = Math.Min(requestCount, 100);
-				var messages = (await channel.GetMessagesAsync(msg, Direction.Before, newNum).ToList()).SelectMany(x => x);
-				var msgAmt = messages.Count();
-				if (msgAmt == 0)
-					break;
-
-				//Set the from message as the last of the currently grabbed ones
-				msg = messages.Last();
-
-				//Delete them in a try catch due to potential errors
-				try
-				{
-					await DeleteMessages(channel, messages);
-					deletedCount += msgAmt;
-				}
-				catch
-				{
-					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", msgAmt, guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
-					break;
-				}
-
-				//Leave if the message count gathered implies that the channel is out of messages
-				if (msgAmt < newNum)
-					break;
-
-				//Lower the request count
-				requestCount -= msgAmt;
-			}
-			return deletedCount;
+			var messages = (await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).ToList()).SelectMany(x => x);
+			await DeleteMessages(channel, messages);
+			return messages.Count();
 		}
 
-		public static async Task<int> RemoveMessages(IMessageChannel channel, IUser user, int requestCount)
+		public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage msg, IUser user, int requestCount)
 		{
 			var guildChannel = channel as ITextChannel;
 			if (guildChannel == null)
@@ -1850,12 +1850,8 @@ namespace Advobot
 
 			if (user == null)
 			{
-				return await RemoveMessages(channel, requestCount);
+				return await RemoveMessages(channel, msg, requestCount);
 			}
-
-			var msg = (await channel.GetMessagesAsync(1).ToList()).SelectMany(x => x).FirstOrDefault();
-			if (msg == null)
-				return 0;
 
 			var deletedCount = 0;
 			while (requestCount > 0)
@@ -1893,7 +1889,6 @@ namespace Advobot
 				if (msgAmt < gatheredForUserAmt)
 					break;
 
-				//Lower the request count
 				requestCount -= msgAmt;
 			}
 			return deletedCount;
@@ -1901,35 +1896,7 @@ namespace Advobot
 
 		public static async Task<List<IMessage>> GetMessages(IMessageChannel channel, int requestCount)
 		{
-			var list = new List<IMessage>();
-
-			var msg = (await channel.GetMessagesAsync(1).ToList()).SelectMany(x => x).FirstOrDefault();
-			if (msg == null)
-			{
-				return list;
-			}
-
-			list.Add(msg);
-			while (requestCount > 0)
-			{
-				var newNum = Math.Min(requestCount, 100);
-				var messages = (await channel.GetMessagesAsync(msg, Direction.Before, newNum).ToList()).SelectMany(x => x);
-				var msgAmt = messages.Count();
-				if (msgAmt == 0)
-				{
-					break;
-				}
-
-				msg = messages.Last();
-				list.AddRange(messages);
-
-				//Leave if the message count gathered implies that the channel is out of messages
-				if (msgAmt < newNum)
-					break;
-
-				requestCount -= msgAmt;
-			}
-			return list;
+			return (await channel.GetMessagesAsync(++requestCount).ToList()).SelectMany(x => x).ToList();
 		}
 
 		public static async Task MakeAndDeleteSecondaryMessage(ICommandContext context, string secondStr, int time = Constants.WAIT_TIME)
@@ -1960,15 +1927,12 @@ namespace Advobot
 		public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages)
 		{
 			var guildChannel = channel as ITextChannel;
-			if (guildChannel == null)
-				return;
-			if (messages == null || !messages.Any())
+			if (guildChannel == null || messages == null || !messages.Any())
 				return;
 
-			//Delete them in a try catch due to potential errors
 			try
 			{
-				await channel.DeleteMessagesAsync(messages.Where(x => DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 14).Distinct());
+				await guildChannel.DeleteMessagesAsync(messages.Where(x => DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 14).Distinct());
 			}
 			catch
 			{
@@ -1978,10 +1942,8 @@ namespace Advobot
 
 		public static async Task DeleteMessage(IMessage message)
 		{
-			if (message == null || DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalDays >= 14)
-				return;
 			var guildChannel = message.Channel as ITextChannel;
-			if (guildChannel == null)
+			if (guildChannel == null || message == null || DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalDays >= 14)
 				return;
 
 			try
@@ -3044,6 +3006,36 @@ namespace Advobot
 			return onlyAccentGrave ? str : str.Replace("*", "\\*").Replace("_", "\\_");
 		}
 
+		public static string FormatUserReason(IUser user, string reason)
+		{
+			if (!String.IsNullOrWhiteSpace(reason))
+			{
+				reason = String.Format("Action by {0}. Reason is {1}.", user.FormatUser(), reason.TrimEnd('.'));
+				reason = reason.Substring(0, Math.Min(reason.Length, Constants.MAX_LENGTH_FOR_REASON));
+			}
+			else
+			{
+				reason = String.Format("Action by {0}.", user.FormatUser());
+			}
+
+			return reason;
+		}
+
+		public static string FormatBotReason(string reason)
+		{
+			if (!String.IsNullOrWhiteSpace(reason))
+			{
+				reason = String.Format("Automated action. User triggered {0}.", reason.TrimEnd('.'));
+				reason = reason.Substring(0, Math.Min(reason.Length, Constants.MAX_LENGTH_FOR_REASON));
+			}
+			else
+			{
+				reason = "Automated action. User triggered something.";
+			}
+
+			return reason;
+		}
+
 		public static void WriteLine(string text, [CallerMemberName] string name = "")
 		{
 			var line = String.Format("[{0}] [{1}]: {2}", DateTime.Now.ToString("HH:mm:ss"), name, ReplaceMarkdownChars(text, true));
@@ -3627,14 +3619,13 @@ namespace Advobot
 		#endregion
 
 		#region Slowmode/Banned Phrases/Spam Prevention
-		public static async Task SpamCheck(BotGuildInfo guildInfo, IGuild guild, IGuildUser author, IMessage msg)
+		public static async Task SpamCheck(BotGuildInfo guildInfo, IGuild guild, IUser author, IMessage msg)
 		{
 			var spamPrevUsers = ((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers));
 			var spamUser = spamPrevUsers.FirstOrDefault(x => x.User.Id == author.Id);
 			if (spamUser == null)
 			{
-				spamUser = new SpamPreventionUser(author);
-				spamPrevUsers.ThreadSafeAdd(spamUser);
+				spamPrevUsers.ThreadSafeAdd(spamUser = new SpamPreventionUser(author as IGuildUser));
 			}
 
 			//TODO: Make sure this works
@@ -3704,9 +3695,10 @@ namespace Advobot
 				{
 					await DeleteMessage(msg);
 
-					//Make sure they have the lowest vote count required to kick
+					//Make sure they have the lowest vote count required to kick and the most severe punishment type
 					spamUser.ChangeVotesRequired(spamPrev.VotesForKick);
-					spamUser.EnablePotentialKick();
+					spamUser.ChangePunishmentType(spamPrev.PunishmentType);
+					spamUser.EnablePunishable();
 
 					spam = true;
 				}
@@ -3753,10 +3745,10 @@ namespace Advobot
 			}
 		}
 
-		public static async Task HandleBannedPhrases(BotGuildInfo guildInfo, IMessage message)
+		public static async Task HandleBannedPhrases(BotGuildInfo guildInfo, SocketGuild guild, IMessage message)
 		{
-			//TODO: Better bool here
-			if (guildInfo == null || (message.Author as IGuildUser).GuildPermissions.Administrator)
+			//Ignore admins and messages older than an hour. (Accidentally deleted something important once due to not having these checks in place, but this should stop most accidental deletions)
+			if ((message.Author as IGuildUser).GuildPermissions.Administrator || (int)DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalHours > 0)
 				return;
 
 			var phrase = ((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings)).FirstOrDefault(x =>
@@ -3765,7 +3757,7 @@ namespace Advobot
 			});
 			if (phrase != null)
 			{
-				await HandleBannedPhrasePunishments(guildInfo, message, phrase);
+				await HandleBannedPhrasePunishments(guildInfo, guild, message, phrase);
 			}
 
 			var regex = ((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex)).FirstOrDefault(x =>
@@ -3774,11 +3766,11 @@ namespace Advobot
 			});
 			if (regex != null)
 			{
-				await HandleBannedPhrasePunishments(guildInfo, message, regex);
+				await HandleBannedPhrasePunishments(guildInfo, guild, message, regex);
 			}
 		}
 
-		public static async Task HandleBannedPhrasePunishments(BotGuildInfo guildInfo, IMessage message, BannedPhrase phrase)
+		public static async Task HandleBannedPhrasePunishments(BotGuildInfo guildInfo, SocketGuild guild, IMessage message, BannedPhrase phrase)
 		{
 			await DeleteMessage(message);
 			var user = message.Author as IGuildUser;
@@ -3820,14 +3812,8 @@ namespace Advobot
 					if (GetUserPosition(user.Guild, user) > GetUserPosition(user.Guild, GetBot(user.Guild)))
 						return;
 
-					await user.KickAsync();
+					await BotKickUser(user, "banned phrases");
 					bpUser.ResetKickCount();
-
-					if (logChannel != null)
-					{
-						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.LEAV), "Banned Phrases Leave");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, String.Format("{0} in #{1}", user.FormatUser(), message.Channel), user.GetAvatarUrl()));
-					}
 					break;
 				}
 				case PunishmentType.Ban:
@@ -3836,14 +3822,8 @@ namespace Advobot
 					if (GetUserPosition(user.Guild, user) > GetUserPosition(user.Guild, GetBot(user.Guild)))
 						return;
 
-					await user.Guild.AddBanAsync(user);
+					await BotBanUser(user.Guild, user.Id, 1, "banned phrases");
 					bpUser.ResetBanCount();
-
-					if (logChannel != null)
-					{
-						var embed = AddFooter(MakeNewEmbed(null, "**ID:** " + user.Id, Constants.BANN), "Banned Phrases Ban");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl()));
-					}
 					break;
 				}
 				case PunishmentType.Role:
@@ -3854,7 +3834,7 @@ namespace Advobot
 					//If a time is specified, run through the time then remove the role
 					if (punishment.PunishmentTime != null)
 					{
-						Variables.PunishedUsers.Add(new RemovablePunishment(((DiscordObjectWithID<SocketGuild>)guildInfo.GetSetting(SettingOnGuild.Guild)).Object, user.Id, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
+						Variables.PunishedUsers.Add(new RemovablePunishment(guild, user.Id, punishment.Role, DateTime.UtcNow.AddMinutes((int)punishment.PunishmentTime)));
 					}
 
 					if (logChannel != null)
@@ -3985,7 +3965,7 @@ namespace Advobot
 		#endregion
 
 		#region Close Words
-		public static List<CloseWord> GetRemindsWithSimilarNames(List<Remind> reminds, string input)
+		public static List<CloseWord> GetRemindsWithSimilarNames(List<Quote> reminds, string input)
 		{
 			var closeWords = new List<CloseWord>();
 			reminds.ToList().ForEach(x =>
@@ -3998,7 +3978,7 @@ namespace Advobot
 				//If no words in the list already, add it
 				if (closeWords.Count < 3)
 				{
-					closeWords.Add(new CloseWord(x.Name, closeness));
+					closeWords.Add(new CloseWord(x, closeness));
 				}
 				else
 				{
@@ -4007,7 +3987,7 @@ namespace Advobot
 					{
 						if (closeness < help.Closeness)
 						{
-							closeWords.Insert(closeWords.IndexOf(help), new CloseWord(x.Name, closeness));
+							closeWords.Insert(closeWords.IndexOf(help), new CloseWord(x, closeness));
 							break;
 						}
 					}
@@ -4021,7 +4001,7 @@ namespace Advobot
 			return GetRemindsWithInputInName(closeWords, reminds, input);
 		}
 
-		public static List<CloseWord> GetRemindsWithInputInName(List<CloseWord> closeReminds, List<Remind> reminds, string input)
+		public static List<CloseWord> GetRemindsWithInputInName(List<CloseWord> closeReminds, List<Quote> reminds, string input)
 		{
 			//Check if any were gotten
 			if (!reminds.Any())
@@ -4033,9 +4013,9 @@ namespace Advobot
 				{
 					return;
 				}
-				else if (!closeReminds.Any(y => x.Name == y.Name))
+				else if (!closeReminds.Any(y => x.Name == y.Quote.Name))
 				{
-					closeReminds.Add(new CloseWord(x.Name, 0));
+					closeReminds.Add(new CloseWord(x, 0));
 				}
 			});
 

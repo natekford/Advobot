@@ -215,7 +215,7 @@ namespace Advobot
 					//Unmute every user who was muted
 					var ttl = antiRaid.PunishedUsers.Count();
 					var unm = 0;
-					var muteRole = await Actions.GetMuteRole(Context, guildInfo);
+					var muteRole = await Actions.GetMuteRole(Context.Guild, guildInfo);
 					await antiRaid.PunishedUsers.ToList().ForEachAsync(async x =>
 					{
 						var user = await Context.Guild.GetUserAsync(x.Id);

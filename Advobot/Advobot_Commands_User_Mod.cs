@@ -32,8 +32,6 @@ namespace Advobot
 			var userStr = returnedArgs.Arguments[0];
 			var timeStr = returnedArgs.Arguments[1];
 
-			var muteRole = await Actions.GetMuteRole(Context, guildInfo);
-
 			//Get the time
 			var time = 0;
 			if (!String.IsNullOrWhiteSpace(timeStr))
@@ -54,12 +52,11 @@ namespace Advobot
 			}
 			var user = returnedUser.Object;
 
-			//Give the mute roles
-			await Actions.GiveRole(user, muteRole);
+			await Actions.MuteUser(guildInfo, user, time);
+
 			var response = String.Format("Successfully muted `{0}`.", user.FormatUser());
 			if (time != 0)
 			{
-				Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, muteRole, DateTime.UtcNow.AddMinutes(time)));
 				response += String.Format("\nThe mute will last for `{0}` minute{1}.", time, Actions.GetPlural(time));
 			}
 			await Actions.MakeAndDeleteSecondaryMessage(Context, response);
@@ -351,13 +348,22 @@ namespace Advobot
 
 		[Command("softban")]
 		[Alias("sb")]
-		[Usage("[User]")]
+		[Usage("[User] <Reason>")]
 		[Summary("Bans then unbans a user from the guild. Removes all recent messages from them.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
 		[DefaultEnabled(true)]
 		public async Task SoftBan([Remainder] string input)
 		{
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, input);
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var userStr = returnedArgs.Arguments[0];
+			var reasonStr = returnedArgs.Arguments[1];
+
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, userStr);
 			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -365,9 +371,15 @@ namespace Advobot
 			}
 			var user = returnedUser.Object;
 
-			await Context.Guild.AddBanAsync(user, 1);
+			await Actions.UserBanUser(Context, user.Id, 1, reasonStr);
 			await Context.Guild.RemoveBanAsync(user);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully softbanned `{0}`.", user.FormatUser()));
+
+			var response = String.Format("Successfully softbanned `{0}`.", user.FormatUser());
+			if (!String.IsNullOrWhiteSpace(reasonStr))
+			{
+				response += String.Format(" The given reason for softbanning is: `{0}`.", reasonStr);
+			}
+			await Actions.MakeAndDeleteSecondaryMessage(Context, response);
 		}
 
 		[Command("ban")]
@@ -378,7 +390,6 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task Ban([Remainder] string input)
 		{
-			//I don't want to put in ban reasons being DMd to people because that seems kinda spiteful
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "days", "time" });
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
@@ -439,9 +450,7 @@ namespace Advobot
 				return;
 			}
 
-			//Ban the user
-			//TODO: Put the ban reason in here at some point
-			await Context.Guild.AddBanAsync(banID, pruneDays);
+			await Actions.UserBanUser(Context, banID, pruneDays, reasonStr);
 			if (timeForBan != 0)
 			{
 				Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, banID, PunishmentType.Ban, DateTime.UtcNow.AddMinutes(timeForBan)));
@@ -466,7 +475,7 @@ namespace Advobot
 		[Command("unban")]
 		[Alias("ub")]
 		[Usage("<\"Username:Name\"> <Discriminator:Number> <ID:User ID> <Reason:True|False>")]
-		[Summary("Unbans the user from the guild.")]
+		[Summary("Unbans the user from the guild. If the reason argument is true it only says the reason without unbanning.")]
 		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
 		[DefaultEnabled(true)]
 		public async Task Unban([Remainder] string input)
@@ -483,7 +492,7 @@ namespace Advobot
 			var idStr = returnedArgs.GetSpecifiedArg("id");
 			var reasonStr = returnedArgs.GetSpecifiedArg("reason");
 
-			var returnedBannedUser = Actions.GetBannedUser(Context, (await Context.Guild.GetBansAsync()).ToList(), nameStr, discStr, idStr);
+			var returnedBannedUser = Actions.GetBannedUser(Context, await Context.Guild.GetBansAsync(), nameStr, discStr, idStr);
 			if (returnedBannedUser.Reason != BannedUserFailureReason.NotFailure)
 			{
 				await Actions.HandleBannedUserErrors(Context, returnedBannedUser);
@@ -515,13 +524,22 @@ namespace Advobot
 
 		[Command("kick")]
 		[Alias("k")]
-		[Usage("[User]")]
+		[Usage("[User] <Reason>")]
 		[Summary("Kicks the user from the guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.KickMembers)]
 		[DefaultEnabled(true)]
 		public async Task Kick([Remainder] string input)
 		{
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, input);
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
+			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			{
+				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				return;
+			}
+			var userStr = returnedArgs.Arguments[0];
+			var reasonStr = returnedArgs.Arguments[1];
+
+			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, userStr);
 			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -529,9 +547,14 @@ namespace Advobot
 			}
 			var user = returnedUser.Object;
 
-			//Kick the users and send a response message
-			await user.KickAsync();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully kicked `{0}`.", user.FormatUser()));
+			await Actions.UserKickUser(Context, user, reasonStr);
+
+			var response = String.Format("Successfully kicked `{0}`.", user.FormatUser());
+			if (!String.IsNullOrWhiteSpace(reasonStr))
+			{
+				response += String.Format(" The given reason for kicking is: `{0}`.", reasonStr);
+			}
+			await Actions.MakeAndDeleteSecondaryMessage(Context, response);
 		}
 
 		[Command("displaycurrentbanlist")]
@@ -622,8 +645,7 @@ namespace Advobot
 				return;
 			}
 
-			await Actions.DeleteMessage(Context.Message);
-			var response = String.Format("Successfully deleted `{0}` message{1}", await Actions.RemoveMessages(channel, user, requestCount), Actions.GetPlural(requestCount));
+			var response = String.Format("Successfully deleted `{0}` message{1}", await Actions.RemoveMessages(channel, Context.Message, user, requestCount), Actions.GetPlural(requestCount));
 			if (user != null)
 			{
 				response += String.Format(" from `{0}`", user.FormatUser());

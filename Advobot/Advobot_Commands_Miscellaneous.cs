@@ -516,19 +516,20 @@ namespace Advobot
 
 		[Command("downloadmessages")]
 		[Alias("dlm")]
-		[Usage("[Number]")]
+		[Usage("[Number] <Channel>")]
 		[Summary("Downloads the past x amount of messages. Up to 1000 messages or 500KB worth of formatted text.")]
 		[PermissionRequirement]
 		[DefaultEnabled(true)]
 		public async Task DownloadMessages([Remainder] string input)
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 1));
+			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
 			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
 			var numStr = returnedArgs.Arguments[0];
+			var chanStr = returnedArgs.Arguments[1];
 
 			if (!int.TryParse(numStr, out int num))
 			{
@@ -541,19 +542,21 @@ namespace Advobot
 				return;
 			}
 
+			var channel = Actions.GetChannel(Context, new[] { ChannelCheck.IsText, ChannelCheck.CanBeRead }, true, chanStr).Object as ITextChannel ?? Context.Channel;
+
 			var limitAmt = ((int)Variables.BotInfo.GetSetting(SettingOnBot.MaxMessageGatherSize));
-			Actions.DontWaitForResultOfBigUnimportantFunction(Context.Channel, async () =>
+			Actions.DontWaitForResultOfBigUnimportantFunction(channel, async () =>
 			{
 				var charCount = 0;
-				var formattedMessages = (await Actions.GetMessages(Context.Channel, num)).OrderBy(x => x.CreatedAt.Ticks).Select(msg =>
+				var formattedMessages = (await Actions.GetMessages(channel, num)).OrderBy(x => x.CreatedAt.Ticks).Select(msg =>
 				{
 					var temp = Actions.ReplaceMarkdownChars(Actions.FormatMessage(msg), true);
 					return (charCount += System.Text.Encoding.ASCII.GetByteCount(temp)) < limitAmt ? temp : null;
 				}).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
 
-				await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel,
+				await Actions.WriteAndUploadTextFile(Context.Guild, channel,
 					String.Join("\n-----\n", formattedMessages),
-					String.Format("{0}_Messages", Context.Channel.Name),
+					String.Format("{0}_Messages", channel.Name),
 					String.Format("Successfully got `{0}` messages", formattedMessages.Length));
 			});
 		}

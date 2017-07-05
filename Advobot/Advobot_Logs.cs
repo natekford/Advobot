@@ -4,7 +4,6 @@ using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +14,11 @@ namespace Advobot
 	{
 		public static Task Log(LogMessage msg)
 		{
-			Actions.WriteLine(msg.Message, msg.Source);
+			if (!String.IsNullOrWhiteSpace(msg.Message))
+			{
+				Actions.WriteLine(msg.Message, msg.Source);
+			}
+
 			return Task.CompletedTask;
 		}
 
@@ -147,11 +150,7 @@ namespace Advobot
 				//Bans people who join with a given word in their name
 				if (((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers)).Any(x => Actions.CaseInsIndexOf(user.Username, x.Phrase)))
 				{
-					await guild.AddBanAsync(user);
-					var embed = Actions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.BANN);
-					Actions.AddFooter(embed, "Banned Name");
-					Actions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
-					await Actions.SendEmbedMessage(serverLog, embed);
+					await Actions.BotBanUser(guild, user.Id, 1, "banned name");
 					return;
 				}
 				//Welcome message
@@ -249,7 +248,7 @@ namespace Advobot
 
 		public static async Task OnMessageReceived(SocketMessage message)
 		{
-			var guild = Actions.GetGuild(message);
+			var guild = Actions.GetGuild(message) as SocketGuild;
 			if (guild == null)
 			{
 				//Check if the user is trying to become the bot owner by DMing the bot its key
@@ -259,13 +258,13 @@ namespace Advobot
 
 			var guildInfo = await Actions.CreateOrGetGuildInfo(guild);
 			await Message_Received_Actions.HandleCloseWords(guildInfo, message);
-			await Message_Received_Actions.HandleSpamPreventionVoting(guildInfo, message);
+			await Message_Received_Actions.HandleSpamPreventionVoting(guildInfo, guild, message);
 
 			if (Actions.VerifyMessageShouldBeLogged(guildInfo, message))
 			{
 				await Message_Received_Actions.HandleChannelSettings(guildInfo, message);
-				await Message_Received_Actions.HandleSpamPrevention(guildInfo, message);
-				await Message_Received_Actions.HandleSlowmodeOrBannedPhrases(guildInfo, message);
+				await Message_Received_Actions.HandleSpamPrevention(guildInfo, guild, message);
+				await Message_Received_Actions.HandleSlowmodeOrBannedPhrases(guildInfo, guild, message);
 				await Message_Received_Actions.HandleImageLogging(guildInfo, message);
 			}
 		}
@@ -281,7 +280,7 @@ namespace Advobot
 				var beforeMessage = cached.HasValue ? cached.Value : null;
 				if (!Actions.VerifyMessageShouldBeLogged(guildInfo, afterMessage))
 					return;
-				await Actions.HandleBannedPhrases(guildInfo, afterMessage);
+				await Actions.HandleBannedPhrases(guildInfo, guild, afterMessage);
 
 				if (serverLog != null)
 				{
@@ -321,14 +320,18 @@ namespace Advobot
 			}
 			else
 			{
+				var guild = verified.Guild;
+				if (guild == null)
+					return;
 				var guildInfo = verified.GuildInfo;
 				if (guildInfo == null)
 					return;
 
 				var beforeMessage = cached.HasValue ? cached.Value : null;
-				if (!Actions.VerifyMessageShouldBeLogged(guildInfo, afterMessage))
-					return;
-				await Actions.HandleBannedPhrases(guildInfo, afterMessage);
+				if (Actions.VerifyMessageShouldBeLogged(guildInfo, afterMessage))
+				{
+					await Actions.HandleBannedPhrases(guildInfo, guild, afterMessage);
+				}
 			}
 		}
 
@@ -403,17 +406,17 @@ namespace Advobot
 			Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.ThreadSafeRemove(context.Guild.Id);
 			Actions.WriteLine(new LoggedCommand(context).ToString());
 
-			if (!Actions.VerifyMessageShouldBeLogged(guildInfo, context.Message))
-				return;
-			var modLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog))?.Object;
-			if (modLog == null)
-				return;
+			if (Actions.VerifyMessageShouldBeLogged(guildInfo, context.Message))
+			{
+				var modLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog))?.Object;
+				if (modLog == null)
+					return;
 
-			//Make the embed
-			var embed = Actions.MakeNewEmbed(null, context.Message.Content);
-			Actions.AddFooter(embed, "Mod Log");
-			Actions.AddAuthor(embed, String.Format("{0} in #{1}", context.User.FormatUser(), context.Channel.Name), context.User.GetAvatarUrl());
-			await Actions.SendEmbedMessage(modLog, embed);
+				var embed = Actions.MakeNewEmbed(null, context.Message.Content);
+				Actions.AddFooter(embed, "Mod Log");
+				Actions.AddAuthor(embed, String.Format("{0} in #{1}", context.User.FormatUser(), context.Channel.Name), context.User.GetAvatarUrl());
+				await Actions.SendEmbedMessage(modLog, embed);
+			}
 		}
 	}
 
@@ -466,19 +469,15 @@ namespace Advobot
 
 		public static async Task HandleCloseWords(BotGuildInfo guildInfo, IMessage message)
 		{
-			//Get the number
-			if (!int.TryParse(message.Content, out int number))
-				return;
-
-			if (number > 0 && number < 6)
+			if (int.TryParse(message.Content, out int number) && number > 0 && number < 6)
 			{
 				--number;
 				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.UserID == message.Author.Id);
 				if (!closeWordList.Equals(default(ActiveCloseWords)) && closeWordList.List.Count > number)
 				{
-					var remind = ((List<Remind>)guildInfo.GetSetting(SettingOnGuild.Reminds)).FirstOrDefault(x => Actions.CaseInsEquals(x.Name, closeWordList.List[number].Name));
+					var quote = closeWordList.List[number].Quote;
 					Variables.ActiveCloseWords.ThreadSafeRemove(closeWordList);
-					await Actions.SendChannelMessage(message.Channel, remind.Text);
+					await Actions.SendChannelMessage(message.Channel, quote.Text);
 					await Actions.DeleteMessage(message);
 				}
 				var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.UserID == message.Author.Id);
@@ -492,7 +491,7 @@ namespace Advobot
 			}
 		}
 
-		public static async Task HandleSlowmodeOrBannedPhrases(BotGuildInfo guildInfo, IMessage message)
+		public static async Task HandleSlowmodeOrBannedPhrases(BotGuildInfo guildInfo, SocketGuild guild, IMessage message)
 		{
 			var smGuild = ((SlowmodeGuild)guildInfo.GetSetting(SettingOnGuild.SlowmodeGuild));
 			var smChan = ((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels)).FirstOrDefault(x => x.ChannelID == message.Channel.Id);
@@ -505,43 +504,42 @@ namespace Advobot
 			var bannedRegex = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex);
 			if (bannedStrings.Any() || bannedRegex.Any())
 			{
-				await Actions.HandleBannedPhrases(guildInfo, message);
+				await Actions.HandleBannedPhrases(guildInfo, guild, message);
 			}
 		}
 
-		public static async Task HandleSpamPrevention(BotGuildInfo guildInfo, IMessage message)
+		public static async Task HandleSpamPrevention(BotGuildInfo guildInfo, SocketGuild guild, IMessage message)
 		{
-			var guild = ((DiscordObjectWithID<SocketGuild>)guildInfo.GetSetting(SettingOnGuild.Guild)).Object;
-			var author = message.Author as IGuildUser;
-			if (Actions.GetUserPosition(guild, author) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)))
-				return;
-
-			await Actions.SpamCheck(guildInfo, guild, author, message);
+			if (Actions.GetUserPosition(guild, message.Author) < Actions.GetUserPosition(guild, Actions.GetBot(guild)))
+			{
+				await Actions.SpamCheck(guildInfo, guild, message.Author as IGuildUser, message);
+			}
 		}
 
-		public static async Task HandleSpamPreventionVoting(BotGuildInfo guildInfo, IMessage message)
+		public static async Task HandleSpamPreventionVoting(BotGuildInfo guildInfo, SocketGuild guild, IMessage message)
 		{
+			//TODO: Make this work for all spam types
 			//Get the users primed to be kicked/banned by the spam prevention
-			var users = ((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).Where(x => x.PotentialKick).ToList();
-			if (!users.Any())
-				return;
-
-			//Cross reference the almost kicked users and the mentioned users
-			var guild = ((DiscordObjectWithID<SocketGuild>)guildInfo.GetSetting(SettingOnGuild.Guild)).Object;
-			await users.Where(x => message.MentionedUserIds.Contains(x.User.Id)).ToList().ForEachAsync(async x =>
+			var users = ((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).Where(x =>
 			{
-				//Check if mentioned users contains any users almost kicked. Check if the person has already voted. Don't allow users to vote on themselves.
-				if (x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id) || x.User.Id == message.Author.Id)
-					return;
-				x.IncreaseVotesToKick(message.Author.Id);
-				//Check if the bot can even kick/ban this user or if they should be punished
-				if (Actions.GetUserPosition(guild, x.User) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)) || x.VotesToKick < x.VotesRequired)
-					return;
-				//Check if they've already been kicked to determine if they should be banned or kicked
-				await (x.AlreadyKicked ? guild.AddBanAsync(x.User, 1) : x.User.KickAsync());
-				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
-				x.ResetSpamUser();
+				return true
+				&& x.PotentialPunishment
+				&& message.MentionedUserIds.Contains(x.User.Id)
+				&& !x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id)
+				&& x.User.Id != message.Author.Id;
 			});
+
+			foreach (var user in users)
+			{
+				user.IncreaseVotesToKick(message.Author.Id);
+				if (Actions.GetUserPosition(guild, user.User) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)) || user.VotesToKick < user.VotesRequired)
+					return;
+
+				await user.Punish(guildInfo, guild);
+
+				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
+				user.ResetSpamUser();
+			}
 		}
 	}
 }

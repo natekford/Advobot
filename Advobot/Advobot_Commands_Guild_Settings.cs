@@ -670,13 +670,13 @@ namespace Advobot
 			}
 		}
 
-		[Command("modifyreminds")]
+		[Command("modifyquotess")]
 		[Alias("mrem")]
 		[Usage("[Add|Remove] [\"Name\"] <\"Text\">")]
-		[Summary("Adds the given text to a list that can be called through the `remind` command.")]
+		[Summary("Adds the given text to a list that can be called through the `sayquote` command.")]
 		[PermissionRequirement]
 		[DefaultEnabled(false)]
-		public async Task RemindsModify([Remainder] string input)
+		public async Task ModifyQuotes([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
@@ -700,88 +700,81 @@ namespace Advobot
 			var action = returnedType.Type;
 			var add = action == ActionType.Add;
 
-			var reminds = ((List<Remind>)guildInfo.GetSetting(SettingOnGuild.Reminds));
+			var quotes = ((List<Quote>)guildInfo.GetSetting(SettingOnGuild.Quotes));
 			if (add)
 			{
-				//Check if at the max number of reminds
-				if (reminds.Count >= Constants.MAX_REMINDS)
+				if (quotes.Count >= Constants.MAX_QUOTES)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild already has the max number of reminds, which is 50."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild already has the max number of quotes, which is 50."));
 					return;
 				}
 
-				//Check if any reminds have already have the same name
-				if (reminds.Any(x => Actions.CaseInsEquals(x.Name, nameStr)))
+				if (quotes.Any(x => Actions.CaseInsEquals(x.Name, nameStr)))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A remind already has that name."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A quote already has that name."));
 					return;
 				}
 
 				//Make sure there's text
 				if (String.IsNullOrWhiteSpace(textStr))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Adding a remind requires text."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Adding a quote requires text."));
 					return;
 				}
 
-				//Add them to the list
-				((List<Remind>)guildInfo.GetSetting(SettingOnGuild.Reminds)).Add(new Remind(nameStr, textStr));
+				((List<Quote>)guildInfo.GetSetting(SettingOnGuild.Quotes)).Add(new Quote(nameStr, textStr));
 			}
 			else
 			{
-				//Make sure there are some reminds
-				if (!reminds.Any())
+				if (!quotes.Any())
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There needs to be at least one remind before you can remove any."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There needs to be at least one quote before you can remove any."));
 					return;
 				}
 
-				//Remove all reminds with the same name
-				reminds.RemoveAll(x => Actions.CaseInsEquals(x.Name, nameStr));
+				//Remove all quotes with the same name
+				quotes.RemoveAll(x => Actions.CaseInsEquals(x.Name, nameStr));
 			}
 
 			guildInfo.SaveInfo();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following remind: `{1}`.", add ? "added" : "removed", nameStr));
+			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following quote: `{1}`.", add ? "added" : "removed", nameStr));
 		}
 
-		[Command("sayremind")]
-		[Alias("sr")]
+		[Command("sayquote")]
+		[Alias("sq")]
 		[Usage("<Name>")]
-		[Summary("Shows the content for the given remind. If null then shows the list of the current reminds.")]
+		[Summary("Shows the content for the given quote. If nothing is input, then shows the list of the current quotes.")]
 		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(false)]
-		public async Task Reminds([Optional, Remainder] string input)
+		public async Task SayQuote([Optional, Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-			var reminds = ((List<Remind>)guildInfo.GetSetting(SettingOnGuild.Reminds));
+			var quotes = ((List<Quote>)guildInfo.GetSetting(SettingOnGuild.Quotes));
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				//Check if any exist
-				if (!reminds.Any())
+				if (!quotes.Any())
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are no reminds."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There are no quotes."));
 				}
 				else
 				{
-					//Send the names of all of the reminds
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Reminds", String.Format("`{0}`", String.Join("`, `", reminds.Select(x => x.Name)))));
+					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("quotes", String.Format("`{0}`", String.Join("`, `", quotes.Select(x => x.Name)))));
 				}
 				return;
 			}
 
-			//Check if any reminds have the given name
-			var remind = reminds.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, input));
-			if (remind.Name != null)
+			var quote = quotes.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, input));
+			if (quote.Name != null)
 			{
-				await Actions.SendChannelMessage(Context, remind.Text);
+				await Actions.SendChannelMessage(Context, quote.Text);
 			}
 			else
 			{
 				//Find close words
-				var closeWords = Actions.GetRemindsWithSimilarNames(reminds, input).Distinct().ToList();
+				var closeWords = Actions.GetRemindsWithSimilarNames(quotes, input).Distinct().ToList();
 				if (closeWords.Any())
 				{
-					var msg = "Did you mean any of the following:\n" + closeWords.FormatNumberedList("{0}", x => x.Name);
+					var msg = "Did you mean any of the following:\n" + closeWords.FormatNumberedList("{0}", x => x.Quote.Name);
 
 					Variables.ActiveCloseWords.ThreadSafeRemoveAll(x => x.UserID == Context.User.Id);
 					Variables.ActiveCloseWords.ThreadSafeAdd(new ActiveCloseWords(Context.User.Id, closeWords));
@@ -789,7 +782,7 @@ namespace Advobot
 				}
 				else
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nothing similar to that remind can be found."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nothing similar to that name can be found."));
 				}
 			}
 		}

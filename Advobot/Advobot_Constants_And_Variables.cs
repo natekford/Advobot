@@ -59,7 +59,7 @@ namespace Advobot
 		public const int WAIT_TIME = 3000;
 		public const int MEMBER_LIMIT = 0;
 		public const int MAX_SA_GROUPS = 10;
-		public const int MAX_REMINDS = 50;
+		public const int MAX_QUOTES = 50;
 		public const int MAX_BANNED_STRINGS = 50;
 		public const int MAX_BANNED_REGEX = 25;
 		public const int MAX_BANNED_NAMES = 25;
@@ -89,6 +89,7 @@ namespace Advobot
 		public const int MAX_FIELD_LINES = 5;
 		public const int MAX_LENGTH_FOR_FIELD_VALUE = 250000;
 		public const int MAX_LENGTH_FOR_REGEX = 100;
+		public const int MAX_LENGTH_FOR_REASON = 512;
 
 		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>()
 		{
@@ -122,6 +123,18 @@ namespace Advobot
 			LogActions.MessageReceived,
 			LogActions.MessageUpdated,
 			LogActions.MessageDeleted,
+		});
+
+		//Because the enum values might change in the future. These are never saved in JSON so these can be modified
+		public static ReadOnlyDictionary<PunishmentType, int> Severity = new ReadOnlyDictionary<PunishmentType, int>(new Dictionary<PunishmentType, int>
+		{
+			{ PunishmentType.Nothing, 1 },
+			{ PunishmentType.Deafen, 2 },
+			{ PunishmentType.Mute, 3 },
+			{ PunishmentType.Role, 4 },
+			{ PunishmentType.Kick, 5 },
+			{ PunishmentType.KickThenBan, 7 },
+			{ PunishmentType.Ban, 8 },
 		});
 
 		public const bool DISCONNECT = false;

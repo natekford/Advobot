@@ -150,7 +150,7 @@ namespace Advobot
 
 		public static async Task<bool> ValidateCommand(BotGuildInfo guildInfo, ICommandContext context, int argPos)
 		{
-			//Admin check TODO: Use RequireBotPermission attribute 
+			//Admin check 
 			if (!(await context.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
 			{
 				//If the server has been told already, ignore future commands fully

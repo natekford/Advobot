@@ -214,7 +214,7 @@ namespace Advobot
 			{ SettingOnGuild.CommandsDisabledOnChannel, new List<CommandOverride>() },
 			{ SettingOnGuild.BotUsers, new List<BotImplementedPermissions>() },
 			{ SettingOnGuild.SelfAssignableGroups, new List<SelfAssignableGroup>() },
-			{ SettingOnGuild.Reminds, new List<Remind>() },
+			{ SettingOnGuild.Quotes, new List<Quote>() },
 			{ SettingOnGuild.IgnoredLogChannels, new List<ulong>() },
 			{ SettingOnGuild.LogActions, new List<LogActions>() },
 			{ SettingOnGuild.BannedPhraseStrings, new List<BannedPhrase>() },
@@ -252,9 +252,9 @@ namespace Advobot
 		[GuildSetting(SettingOnGuild.SelfAssignableGroups)]
 		[JsonProperty("SelfAssignableGroups")]
 		private List<SelfAssignableGroup> mSelfAssignableGroups = new List<SelfAssignableGroup>();
-		[GuildSetting(SettingOnGuild.Reminds)]
-		[JsonProperty("Reminds")]
-		private List<Remind> mReminds = new List<Remind>();
+		[GuildSetting(SettingOnGuild.Quotes)]
+		[JsonProperty("Quotes")]
+		private List<Quote> mQuotes = new List<Quote>();
 		[GuildSetting(SettingOnGuild.LogActions)]
 		[JsonProperty("LogActions")]
 		private List<LogActions> mLogActions = new List<LogActions>();
@@ -351,6 +351,9 @@ namespace Advobot
 		[GuildSetting(SettingOnGuild.Prefix)]
 		[JsonProperty("Prefix")]
 		private string mPrefix = null;
+		[GuildSetting(SettingOnGuild.VerboseErrors)]
+		[JsonProperty("VerboseErrors")]
+		private bool mVerboseErrors = true;
 
 		[GuildSetting(SettingOnGuild.BannedPhraseUsers)]
 		[JsonIgnore]
@@ -378,7 +381,6 @@ namespace Advobot
 		private bool mLoaded = false;
 #pragma warning restore 414
 
-		[JsonConstructor]
 		public BotGuildInfo(ulong guildID)
 		{
 			mGuild = new DiscordObjectWithID<SocketGuild>(guildID);
@@ -403,6 +405,9 @@ namespace Advobot
 		{
 			foreach (var setting in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
 			{
+				if (mFieldInfo.ContainsKey(setting))
+					break;
+
 				mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
 			}
 		}
@@ -417,7 +422,7 @@ namespace Advobot
 				return null;
 			}
 		}
-		public override dynamic GetSetting(SettingOnGuild setting)
+		public override object GetSetting(SettingOnGuild setting)
 		{
 			var field = GetField(setting);
 			if (field != null)
@@ -429,7 +434,7 @@ namespace Advobot
 				return null;
 			}
 		}
-		public override dynamic GetSetting(FieldInfo field)
+		public override object GetSetting(FieldInfo field)
 		{
 			try
 			{
@@ -557,41 +562,23 @@ namespace Advobot
 			{
 				case SpamType.Message:
 				{
-					return GetSetting(SettingOnGuild.MessageSpamPrevention);
+					return (SpamPrevention)GetSetting(SettingOnGuild.MessageSpamPrevention);
 				}
 				case SpamType.LongMessage:
 				{
-					return GetSetting(SettingOnGuild.LongMessageSpamPrevention);
+					return (SpamPrevention)GetSetting(SettingOnGuild.LongMessageSpamPrevention);
 				}
 				case SpamType.Link:
 				{
-					return GetSetting(SettingOnGuild.LinkSpamPrevention);
+					return (SpamPrevention)GetSetting(SettingOnGuild.LinkSpamPrevention);
 				}
 				case SpamType.Image:
 				{
-					return GetSetting(SettingOnGuild.ImageSpamPrevention);
+					return (SpamPrevention)GetSetting(SettingOnGuild.ImageSpamPrevention);
 				}
 				case SpamType.Mention:
 				{
-					return GetSetting(SettingOnGuild.MentionSpamPrevention);
-				}
-				default:
-				{
-					return null;
-				}
-			}
-		}
-		public RaidPrevention GetRaidPrevention(RaidType raidType)
-		{
-			switch (raidType)
-			{
-				case RaidType.Regular:
-				{
-					return GetSetting(SettingOnGuild.RaidPrevention);
-				}
-				case RaidType.RapidJoins:
-				{
-					return GetSetting(SettingOnGuild.RapidJoinPrevention);
+					return (SpamPrevention)GetSetting(SettingOnGuild.MentionSpamPrevention);
 				}
 				default:
 				{
@@ -631,6 +618,24 @@ namespace Advobot
 			}
 
 			SaveInfo();
+		}
+		public RaidPrevention GetRaidPrevention(RaidType raidType)
+		{
+			switch (raidType)
+			{
+				case RaidType.Regular:
+				{
+					return (RaidPrevention)GetSetting(SettingOnGuild.RaidPrevention);
+				}
+				case RaidType.RapidJoins:
+				{
+					return (RaidPrevention)GetSetting(SettingOnGuild.RapidJoinPrevention);
+				}
+				default:
+				{
+					return null;
+				}
+			}
 		}
 		public void SetRaidPrevention(RaidType raidType, RaidPrevention raidPrev)
 		{
@@ -717,11 +722,6 @@ namespace Advobot
 		private List<ulong> mIgnoredCommandUsers = new List<ulong>();
 #pragma warning restore 414
 
-		[JsonConstructor]
-		public BotGlobalInfo()
-		{
-		}
-
 		private static FieldInfo CreateFieldDictionaryItem(SettingOnBot setting)
 		{
 			foreach (var field in typeof(BotGlobalInfo).GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
@@ -755,7 +755,7 @@ namespace Advobot
 				return null;
 			}
 		}
-		public override dynamic GetSetting(SettingOnBot setting)
+		public override object GetSetting(SettingOnBot setting)
 		{
 			var field = GetField(setting);
 			if (field != null)
@@ -767,7 +767,7 @@ namespace Advobot
 				return null;
 			}
 		}
-		public override dynamic GetSetting(FieldInfo field)
+		public override object GetSetting(FieldInfo field)
 		{
 			try
 			{
@@ -1206,12 +1206,12 @@ namespace Advobot
 		}
 		public override string SettingToString()
 		{
-			if (!String.IsNullOrWhiteSpace(Code))
+			if (String.IsNullOrWhiteSpace(Code))
 			{
 				return null;
 			}
 
-			var codeStr = String.Format("**Code:** `{0}`\n");
+			var codeStr = String.Format("**Code:** `{0}`\n", Code);
 			var keywordStr = "";
 			if (Keywords.Any())
 			{
@@ -1225,14 +1225,14 @@ namespace Advobot
 		}
 	}
 
-	public class Remind : Setting
+	public class Quote : Setting
 	{
 		[JsonProperty]
 		public string Name { get; private set; }
 		[JsonProperty]
 		public string Text { get; private set; }
 
-		public Remind(string name, string text)
+		public Quote(string name, string text)
 		{
 			Name = name;
 			Text = text;
@@ -1405,23 +1405,23 @@ namespace Advobot
 			{
 				case PunishmentType.Ban:
 				{
-					await guild.AddBanAsync(user);
+					await Actions.BotBanUser(guild, user.Id, 1, "spam prevention.");
 					break;
 				}
 				case PunishmentType.Kick:
 				{
-					await user.KickAsync();
+					await Actions.BotKickUser(user, "spam prevention");
 					break;
 				}
 				case PunishmentType.KickThenBan:
 				{
 					if (((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).FirstOrDefault(x => x.User.Id == user.Id).AlreadyKicked)
 					{
-						await guild.AddBanAsync(user, 1);
+						await Actions.BotBanUser(guild, user.Id, 1, "spam prevention");
 					}
 					else
 					{
-						await user.KickAsync();
+						await Actions.BotKickUser(user, "spam prevention");
 					}
 					break;
 				}
@@ -1507,23 +1507,23 @@ namespace Advobot
 			{
 				case PunishmentType.Ban:
 				{
-					await guild.AddBanAsync(user);
+					await Actions.BotBanUser(guild, user.Id, 1, "raid prevention");
 					break;
 				}
 				case PunishmentType.Kick:
 				{
-					await user.KickAsync();
+					await Actions.BotKickUser(user, "raid prevention");
 					break;
 				}
 				case PunishmentType.KickThenBan:
 				{
 					if (((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).FirstOrDefault(x => x.User.Id == user.Id).AlreadyKicked)
 					{
-						await guild.AddBanAsync(user, 1);
+						await Actions.BotBanUser(guild, user.Id, 1, "raid prevention");
 					}
 					else
 					{
-						await user.KickAsync();
+						await Actions.BotKickUser(user, "raid prevention");
 					}
 					break;
 				}
@@ -1817,22 +1817,17 @@ namespace Advobot
 	public class SpamPreventionUser
 	{
 		public IGuildUser User { get; private set; }
-		public int VotesToKick { get; private set; }
-		public int VotesRequired { get; private set; }
-		public bool PotentialKick { get; private set; }
-		public bool AlreadyKicked { get; private set; }
-		public List<ulong> UsersWhoHaveAlreadyVoted { get; private set; }
-		public Dictionary<SpamType, List<BasicTimeInterface>> SpamLists { get; private set; }
+		public int VotesToKick { get; private set; } = 0;
+		public int VotesRequired { get; private set; } = int.MaxValue;
+		public bool PotentialPunishment { get; private set; } = false;
+		public bool AlreadyKicked { get; private set; } = false;
+		public List<ulong> UsersWhoHaveAlreadyVoted { get; private set; } = new List<ulong>();
+		public PunishmentType Punishment { get; private set; } = PunishmentType.Nothing;
+		public Dictionary<SpamType, List<BasicTimeInterface>> SpamLists { get; private set; } = new Dictionary<SpamType, List<BasicTimeInterface>>();
 
 		public SpamPreventionUser(IGuildUser user)
 		{
 			User = user;
-			VotesToKick = 0;
-			VotesRequired = int.MaxValue;
-			PotentialKick = false;
-			AlreadyKicked = false;
-			UsersWhoHaveAlreadyVoted = new List<ulong>();
-			SpamLists = new Dictionary<SpamType, List<BasicTimeInterface>>();
 			foreach (var spamType in Enum.GetValues(typeof(SpamType)).Cast<SpamType>())
 			{
 				SpamLists.Add(spamType, new List<BasicTimeInterface>());
@@ -1848,24 +1843,71 @@ namespace Advobot
 		{
 			VotesRequired = Math.Min(input, VotesRequired);
 		}
-		public void EnablePotentialKick()
+		public void ChangePunishmentType(PunishmentType punishmentType)
 		{
-			PotentialKick = true;
+			if (Constants.Severity[punishmentType] > Constants.Severity[Punishment])
+			{
+				Punishment = punishmentType;
+			}
+		}
+		public void EnablePunishable()
+		{
+			PotentialPunishment = true;
 		}
 		public void ResetSpamUser()
 		{
+			//Don't reset already kicked since KickThenBan requires it
 			VotesToKick = 0;
 			VotesRequired = int.MaxValue;
-			PotentialKick = false;
-			UsersWhoHaveAlreadyVoted = new List<ulong>();
-			SpamLists.Values.ToList().ForEach(x =>
+			PotentialPunishment = false;
+			UsersWhoHaveAlreadyVoted.Clear();
+			Punishment = PunishmentType.Nothing;
+			foreach (var spamList in SpamLists.Values)
 			{
-				x.Clear();
-			});
+				spamList.Clear();
+			}
 		}
 		public bool CheckIfAllowedToPunish(SpamPrevention spamPrev, SpamType spamType, IMessage msg)
 		{
 			return Actions.GetCountOfItemsInTimeFrame(SpamLists[spamType], spamPrev.TimeInterval) >= spamPrev.RequiredSpamInstances;
+		}
+		public async Task Punish(BotGuildInfo guildInfo, IGuild guild)
+		{
+			switch (Punishment)
+			{
+				case PunishmentType.Role:
+				{
+					await Actions.MuteUser(guildInfo, User);
+					return;
+				}
+				case PunishmentType.Kick:
+				{
+					await Actions.BotKickUser(User, "voted spam prevention");
+					return;
+				}
+				case PunishmentType.KickThenBan:
+				{
+					//Check if they've already been kicked to determine if they should be banned or kicked
+					if (AlreadyKicked)
+					{
+						await Actions.BotBanUser(guild, User.Id, 1, "voted spam prevention");
+					}
+					else
+					{
+						await Actions.BotKickUser(User, "voted spam prevention");
+					}
+					return;
+				}
+				case PunishmentType.Ban:
+				{
+					await Actions.BotBanUser(guild, User.Id, 1, "voted spam prevention");
+					return;
+				}
+				default:
+				{
+					return;
+				}
+			}
 		}
 	}
 	#endregion
@@ -1922,12 +1964,12 @@ namespace Advobot
 
 	public struct CloseWord
 	{
-		public string Name { get; private set; }
+		public Quote Quote { get; private set; }
 		public int Closeness { get; private set; }
 
-		public CloseWord(string name, int closeness)
+		public CloseWord(Quote quote, int closeness)
 		{
-			Name = name;
+			Quote = quote;
 			Closeness = closeness;
 		}
 	}
@@ -2352,7 +2394,7 @@ namespace Advobot
 		CommandsDisabledOnChannel		= 2,
 		BotUsers						= 3,
 		SelfAssignableGroups			= 4,
-		Reminds							= 5,
+		Quotes							= 5,
 		IgnoredLogChannels				= 6,
 		LogActions						= 7,
 		BannedPhraseStrings				= 8,
@@ -2380,6 +2422,7 @@ namespace Advobot
 		PyramidalRoleSystem				= 30,
 		MuteRole						= 31,
 		SanitaryChannels				= 32,
+		VerboseErrors					= 33,
 	}
 
 	public enum SettingOnBot
@@ -2438,6 +2481,7 @@ namespace Advobot
 		IsText							= 5,
 		CanMoveUsers					= 6,
 		CanDeleteMessages				= 7,
+		CanBeRead						= 8,
 	}
 
 	public enum ArgFailureReason

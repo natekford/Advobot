@@ -16,7 +16,7 @@ namespace Advobot
 	public class Program
 	{
 		[STAThread]
-		private static void Main(string[] args)
+		private static void Main()
 		{
 			//Make sure only one instance is running at the same time
 #if RELEASE

@@ -250,7 +250,7 @@ namespace Advobot
 			InitializeComponents();
 			Loaded += RunApplication;
 		}
-		private void InitializeComponents()
+		private void InitializeComponents()  
 		{
 			//Main layout
 			UIModification.AddRows(mLayout, 100);
@@ -1106,7 +1106,7 @@ namespace Advobot
 			((TextBox)mMessageGatherSizeSetting.Setting).Text = ((int)botInfo.GetSetting(SettingOnBot.MaxMessageGatherSize)).ToString();
 			((ComboBox)mLogLevelComboBox.Setting).SelectedItem = ((ComboBox)mLogLevelComboBox.Setting).Items.OfType<TextBox>().FirstOrDefault(x =>
 			{
-				return (Discord.LogSeverity)x.Tag == Variables.BotInfo.GetSetting(SettingOnBot.LogLevel);
+				return (Discord.LogSeverity)x.Tag == (Discord.LogSeverity)Variables.BotInfo.GetSetting(SettingOnBot.LogLevel);
 			});
 			mTrustedUsersComboBox.ItemsSource = ((List<ulong>)Variables.BotInfo.GetSetting(SettingOnBot.TrustedUsers)).Select(x => UIModification.MakeTextBoxFromUserID(x));
 		}
