@@ -168,87 +168,68 @@ namespace Advobot
 
 		public static void LoadCommandInformation()
 		{
-			foreach (var classType in AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes()).Where(type => type.IsSubclassOf(typeof(ModuleBase))))
+			foreach (var classType in Assembly.GetCallingAssembly().GetTypes().Where(x => x.IsSubclassOf(typeof(ModuleBase))))
 			{
-				var className = ((NameAttribute)classType.GetCustomAttribute(typeof(NameAttribute)))?.Text;
-				if (className == null)
-					continue;
-
-				if (!Enum.TryParse(className, true, out CommandCategory category))
+				var innerMostNameSpace = classType.Namespace.Substring(classType.Namespace.LastIndexOf('.') + 1);
+				if (!Enum.TryParse(innerMostNameSpace, true, out CommandCategory category))
 				{
-					WriteLine(className + " is not currently in the CommandCategory enum.");
+					WriteLine(innerMostNameSpace + " is not currently in the CommandCategory enum.");
+					continue;
+				}
+				else if (classType.IsNotPublic)
+				{
+					WriteLine(innerMostNameSpace + " is not public and commands will not execute from it.");
 					continue;
 				}
 
-				foreach (var method in classType.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic))
+				var commands = classType.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic);
+				var mainCommand = commands[0];
+
+				var nameAttr = (CommandAttribute)mainCommand.GetCustomAttribute(typeof(CommandAttribute));
+				var name = nameAttr?.Text;
+
+				var aliasAttr = (AliasAttribute)mainCommand.GetCustomAttribute(typeof(AliasAttribute));
+				var aliases = aliasAttr?.Aliases;
+
+				var summaryAttr = (SummaryAttribute)classType.GetCustomAttribute(typeof(SummaryAttribute));
+				var summary = summaryAttr?.Text;
+
+				var usageAttr = (UsageAttribute)classType.GetCustomAttribute(typeof(UsageAttribute));
+				var usage = usageAttr == null ? null : name + " " + usageAttr.Usage;
+
+				var permReqsAttr = (PermissionRequirementAttribute)classType.GetCustomAttribute(typeof(PermissionRequirementAttribute));
+				var permReqs = permReqsAttr == null ? null : FormatAttribute(permReqsAttr);
+
+				var otherReqsAttr = (OtherRequirementAttribute)classType.GetCustomAttribute(typeof(OtherRequirementAttribute));
+				var otherReqs = otherReqsAttr == null ? null : FormatAttribute(otherReqsAttr);
+
+				var defaultEnabledAttr = (DefaultEnabledAttribute)classType.GetCustomAttribute(typeof(DefaultEnabledAttribute));
+				var defaultEnabled = defaultEnabledAttr == null ? false : defaultEnabledAttr.Enabled;
+				if (defaultEnabledAttr == null)
 				{
-					//Get the name
-					var name = "N/A";
-					{
-						var attr = (CommandAttribute)method.GetCustomAttribute(typeof(CommandAttribute));
-						if (attr != null)
-						{
-							name = attr.Text;
-						}
-						else
-							continue;
-					}
-					//Get the aliases
-					string[] aliases = { "N/A" };
-					{
-						var attr = (AliasAttribute)method.GetCustomAttribute(typeof(AliasAttribute));
-						if (attr != null)
-						{
-							aliases = attr.Aliases;
-						}
-					}
-					//Get the usage
-					var usage = "N/A";
-					{
-						var attr = (UsageAttribute)method.GetCustomAttribute(typeof(UsageAttribute));
-						if (attr != null)
-						{
-							usage = name + " " + attr.Usage;
-						}
-					}
-					//Get the base permissions
-					var basePerm = "N/A";
-					{
-						basePerm = FormatAttribute((dynamic)method.GetCustomAttribute(typeof(PermissionRequirementAttribute)));
-					}
-					//Get the description
-					var text = "N/A";
-					{
-						var attr = (SummaryAttribute)method.GetCustomAttribute(typeof(SummaryAttribute));
-						if (attr != null)
-						{
-							text = attr.Text;
-						}
-					}
-					//Get the default enabled
-					var defaultEnabled = false;
-					{
-						var attr = (DefaultEnabledAttribute)method.GetCustomAttribute(typeof(DefaultEnabledAttribute));
-						if (attr != null)
-						{
-							defaultEnabled = attr.Enabled;
-						}
-						else
-						{
-							WriteLine("Command does not have a default enabled value set: " + name);
-						}
-					}
-					var simCmds = Variables.HelpList.Where(x =>
-					{
-						return CaseInsEquals(x.Name, name) || (x.Aliases[0] != "N/A" && x.Aliases.Intersect(aliases, StringComparer.OrdinalIgnoreCase).Any());
-					});
-					if (simCmds.Any())
-					{
-						WriteLine(String.Format("The following commands have conflicts: {0}\n{1}", String.Join(" + ", simCmds.Select(x => x.Name)), name));
-					}
-					//Add it to the helplist
-					Variables.HelpList.Add(new HelpEntry(name, aliases, usage, basePerm, text, category, defaultEnabled));
+					WriteLine("Command does not have a default enabled value set: " + name);
 				}
+
+				foreach (var cmd in commands.Except(new[] { mainCommand }))
+				{
+					if (!CaseInsEquals(name, ((CommandAttribute)cmd.GetCustomAttribute(typeof(CommandAttribute)))?.Text))
+					{
+						//TODO: finish reworking this and 
+						WriteLine(String.Format("One of the commands in {0} does not have the correct name.", );
+					}
+					else if (aliases.Length != ((AliasAttribute)cmd.GetCustomAttribute(typeof(AliasAttribute)))?.Aliases.Length)
+					{
+
+					}
+				}
+
+				var similarCmds = Variables.HelpList.Where(x => CaseInsEquals(x.Name, name) || (x.Aliases != null && aliases != null && x.Aliases.Intersect(aliases, StringComparer.OrdinalIgnoreCase).Any()));
+				if (similarCmds.Any())
+				{
+					WriteLine(String.Format("The following commands have conflicts: {0} + {1}", String.Join(" + ", similarCmds.Select(x => x.Name)), name));
+				}
+
+				Variables.HelpList.Add(new HelpEntry(name, aliases, usage, String.Join(" | ", new[] { permReqs, otherReqs }), summary, category, defaultEnabled));
 			}
 			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));
 		}
@@ -2508,28 +2489,23 @@ namespace Advobot
 					formattedDescriptions += String.Format("Embed {0}: {1}", i + 1, descriptions[i]);
 				}
 
-				return String.Format("`{0}` **IN** `{1}` **SENT AT** `[{2}]`\n```\n{3}```",
-					msg.Author.FormatUser(),
-					msg.Channel.FormatChannel(),
-					msg.CreatedAt.ToString("HH:mm:ss"),
-					ReplaceMarkdownChars(content + "\n" + formattedDescriptions, true));
+				content = String.Format("{0}\n{1}", content, formattedDescriptions);
 			}
-			else if (msg.Attachments.Any())
+			if (msg.Attachments.Any())
 			{
-				return String.Format("`{0}` **IN** `{1}` **AT** `[{2}]`\n```\n{3}```",
-					msg.Author.FormatUser(),
-					msg.Channel.FormatChannel(),
-					msg.CreatedAt.ToString("HH:mm:ss"),
-					ReplaceMarkdownChars(content + " + " + String.Join(" + ", msg.Attachments.Select(y => y.Filename)), true));
+				content = String.Format("{0} + {1}", content, String.Join(" + ", msg.Attachments.Select(y => y.Filename)));
 			}
-			else
-			{
-				return String.Format("`{0}` **IN** `{1}` **AT** `[{2}]`\n```\n{3}```",
-					msg.Author.FormatUser(),
-					msg.Channel.FormatChannel(),
-					msg.CreatedAt.ToString("HH:mm:ss"),
-					ReplaceMarkdownChars(content, true));
-			}
+
+			return FormatMessage(msg, content);
+		}
+
+		public static string FormatMessage(IMessage message, string text)
+		{
+			return String.Format("`[{2}]` `{0}` **IN** `{1}`\n```\n{3}```",
+					message.Author.FormatUser(),
+					message.Channel.FormatChannel(),
+					message.CreatedAt.ToString("HH:mm:ss"),
+					ReplaceMarkdownChars(text, true));
 		}
 
 		public static string FormatDM(IMessage msg)
@@ -2655,11 +2631,6 @@ namespace Advobot
 			}
 
 			return input;
-		}
-
-		public static string ConcatStringsWithNewLinesBetween(params string[] strs)
-		{
-			return String.Join("\n", strs.Where(x => !String.IsNullOrWhiteSpace(x)));
 		}
 
 		public static string FormatObject(IUser user)
@@ -2799,7 +2770,7 @@ namespace Advobot
 
 		public static string FormatAttribute(PermissionRequirementAttribute attr)
 		{
-			var basePerm = "";
+			var basePerm = "N/A";
 			if (attr != null)
 			{
 				var all = !String.IsNullOrWhiteSpace(attr.AllText);
@@ -2833,36 +2804,24 @@ namespace Advobot
 				var trust = (attr.Requirements & (1U << (int)Precondition.TrustedUser)) != 0;
 				var owner = (attr.Requirements & (1U << (int)Precondition.BotOwner)) != 0;
 
-				basePerm = "[";
+				var text = new List<string>();
 				if (perms)
 				{
-					basePerm += "Administrator | Any perm ending with 'Members' | Any perm starting with 'Manage'";
+					text.Add("Administrator | Any perm ending with 'Members' | Any perm starting with 'Manage'");
 				}
 				if (guild)
 				{
-					if (perms)
-					{
-						basePerm += " | ";
-					}
-					basePerm += "Guild Owner";
+					text.Add("Guild Owner");
 				}
 				if (trust)
 				{
-					if (perms || guild)
-					{
-						basePerm += " | ";
-					}
-					basePerm += "Trusted User";
+					text.Add("Trusted User");
 				}
 				if (owner)
 				{
-					if (perms || guild || trust)
-					{
-						basePerm += " | ";
-					}
-					basePerm += "Bot Owner";
+					text.Add("Bot Owner");
 				}
-				basePerm += "]";
+				basePerm = String.Format("[{0}]", String.Join(" | ", text));
 			}
 			return basePerm;
 		}

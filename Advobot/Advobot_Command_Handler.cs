@@ -150,7 +150,8 @@ namespace Advobot
 
 		public static async Task<bool> ValidateCommand(BotGuildInfo guildInfo, ICommandContext context, int argPos)
 		{
-			//Admin check 
+			//Admin check
+			/*
 			if (!(await context.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
 			{
 				//If the server has been told already, ignore future commands fully
@@ -162,7 +163,7 @@ namespace Advobot
 				return false;
 			}
 			//Bot loaded check
-			else if (!Variables.Loaded)
+			else*/ if (!Variables.Loaded)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(context, Actions.ERROR("Wait until the bot is loaded."));
 				return false;

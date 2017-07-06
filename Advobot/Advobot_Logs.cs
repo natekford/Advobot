@@ -47,13 +47,8 @@ namespace Advobot
 		public static Task OnGuildUnavailable(SocketGuild guild)
 		{
 			Actions.WriteLine(String.Format("Guild is now offline {0}.", guild.FormatGuild()));
-
-			Variables.TotalUsers -= (guild.MemberCount + 1);
-			if (Variables.TotalUsers < 0)
-				Variables.TotalUsers = 0;
-			Variables.TotalGuilds--;
-			if (Variables.TotalGuilds < 0)
-				Variables.TotalGuilds = 0;
+			Variables.TotalUsers = Math.Max(0, Variables.TotalUsers - guild.MemberCount);
+			Variables.TotalGuilds = Math.Max(0, Variables.TotalGuilds--);
 
 			return Task.CompletedTask;
 		}

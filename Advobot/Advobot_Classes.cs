@@ -57,7 +57,7 @@ namespace Advobot
 		}
 	}
 
-	public class OtherRequirementAttribute : PermissionRequirementAttribute
+	public class OtherRequirementAttribute : PreconditionAttribute
 	{
 		private const uint PERMISSIONBITS = 0
 			| (1U << (int)GuildPermission.Administrator)
@@ -1631,14 +1631,15 @@ namespace Advobot
 		public string Text { get; private set; }
 		public CommandCategory Category { get; private set; }
 		public bool DefaultEnabled { get; private set; }
+		private const string placeHolderStr = "N/A";
 
 		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text, CommandCategory category, bool defaultEnabled)
 		{
-			Name = name;
-			Aliases = aliases;
-			Usage = ((string)Variables.BotInfo.GetSetting(SettingOnBot.Prefix)) + usage;
-			BasePerm = basePerm;
-			Text = text;
+			Name = name ?? placeHolderStr;
+			Aliases = aliases ?? new[] { placeHolderStr };
+			Usage = usage != null ? ((string)Variables.BotInfo.GetSetting(SettingOnBot.Prefix)) + usage : placeHolderStr;
+			BasePerm = basePerm ?? placeHolderStr;
+			Text = text ?? placeHolderStr;
 			Category = category;
 			DefaultEnabled = defaultEnabled;
 		}
