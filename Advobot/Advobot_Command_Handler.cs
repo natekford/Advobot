@@ -25,14 +25,11 @@ namespace Advobot
 			await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
 		}
 
-		public static async Task HandleCommand(SocketMessage parameterMessage)
+		public static async Task HandleCommand(SocketUserMessage message)
 		{
 			if (Variables.Pause)
 				return;
-			var message = parameterMessage as SocketUserMessage;
-			if (message == null)
-				return;
-			var guild = (message.Channel as SocketTextChannel)?.Guild;
+			var guild = (message?.Channel as SocketTextChannel)?.Guild;
 			if (guild == null)
 				return;
 
@@ -40,8 +37,8 @@ namespace Advobot
 			if (!PrefixHandling(message, ((string)guildInfo.GetSetting(SettingOnGuild.Prefix)), out int argPos))
 				return;
 
-			var context = new CommandContext(Client.GetClient(), message);
-			if (!await ValidateCommand(guildInfo, context, argPos))
+			var context = new MyCommandContext(guildInfo, Client.GetClient(), message);
+			if (!await ValidateCommand(context, argPos))
 				return;
 			
 			//Ignore unknown command errors because they're annoying and ignore the errors given by lack of permissions, etc. put in by me
@@ -61,7 +58,7 @@ namespace Advobot
 			}
 		}
 
-		public static bool PrefixHandling(SocketUserMessage message, string guildPrefix, out int argPos)
+		public static bool PrefixHandling(IUserMessage message, string guildPrefix, out int argPos)
 		{
 			argPos = -1;
 			if (String.IsNullOrWhiteSpace(guildPrefix))
@@ -86,13 +83,13 @@ namespace Advobot
 			return false;
 		}
 
-		public static bool CheckIfCommandEnabled(BotGuildInfo guildInfo, ICommandContext context, int argPos)
+		public static bool CheckIfCommandEnabled(MyCommandContext context, int argPos)
 		{
 			if (context.Guild == null)
 				return false;
 
 			//Get the command
-			var cmd = Actions.GetCommand(guildInfo, context.Message.Content.Substring(argPos).Split(' ').FirstOrDefault());
+			var cmd = Actions.GetCommand(context.GuildInfo, context.Message.Content.Substring(argPos).Split(' ').FirstOrDefault());
 			if (cmd == null)
 			{
 				return false;
@@ -109,7 +106,7 @@ namespace Advobot
 			 * Else if channel is set, use channel setting
 			 */
 
-			var user = ((List<CommandOverride>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnUser)).FirstOrDefault(x =>
+			var user = ((List<CommandOverride>)context.GuildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnUser)).FirstOrDefault(x =>
 			{
 				return true
 				&& Actions.CaseInsEquals(cmd.Name, x.Name)
@@ -120,7 +117,7 @@ namespace Advobot
 				return user.Enabled;
 			}
 
-			var role = ((List<CommandOverride>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnRole)).Where(x =>
+			var role = ((List<CommandOverride>)context.GuildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnRole)).Where(x =>
 			{
 				return true
 				&& Actions.CaseInsEquals(cmd.Name, x.Name)
@@ -134,7 +131,7 @@ namespace Advobot
 				return role.Enabled;
 			}
 
-			var channel = ((List<CommandOverride>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel)).FirstOrDefault(x =>
+			var channel = ((List<CommandOverride>)context.GuildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel)).FirstOrDefault(x =>
 			{
 				return true
 				&& Actions.CaseInsEquals(cmd.Name, x.Name)
@@ -148,7 +145,7 @@ namespace Advobot
 			return true;
 		}
 
-		public static async Task<bool> ValidateCommand(BotGuildInfo guildInfo, ICommandContext context, int argPos)
+		public static async Task<bool> ValidateCommand(MyCommandContext context, int argPos)
 		{
 			//Admin check
 			/*
@@ -169,18 +166,18 @@ namespace Advobot
 				return false;
 			}
 			//Guild loaded check
-			if (!((bool)guildInfo.GetSetting(SettingOnGuild.Loaded)))
+			if (!((bool)context.GuildInfo.GetSetting(SettingOnGuild.Loaded)))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(context, Actions.ERROR("Wait until the guild is loaded."));
 				return false;
 			}
 			//Ignored channel check
-			else if (((List<ulong>)guildInfo.GetSetting(SettingOnGuild.IgnoredCommandChannels)).Contains(context.Channel.Id))
+			else if (((List<ulong>)context.GuildInfo.GetSetting(SettingOnGuild.IgnoredCommandChannels)).Contains(context.Channel.Id))
 			{
 				return false;
 			}
 			//Command disabled check
-			else if (!CheckIfCommandEnabled(guildInfo, context, argPos))
+			else if (!CheckIfCommandEnabled(context, argPos))
 			{
 				return false;
 			}

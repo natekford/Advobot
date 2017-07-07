@@ -3,155 +3,110 @@ using Discord.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace Advobot
 {
-	[Name("InviteModeration")]
-	public class Advobot_Commands_Invite_Mod : ModuleBase
+	namespace InviteModeration
 	{
-		[Command("displayinvites")]
-		[Alias("dinvs")]
 		[Usage("")]
 		[Summary("Gives a list of all the instant invites on the guild.")]
 		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
-		public async Task ListInstantInvites()
+		public class DisplayInvites : ModuleBase<MyCommandContext>
 		{
-			//Get the invites
-			var invites = (await Context.Guild.GetInvitesAsync()).OrderByDescending(x => x.Uses).ToList();
-
-			//Make sure there are some invites
-			if (!invites.Any())
+			[Command("displayinvites")]
+			[Alias("dinvs")]
+			public async Task Command()
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no invites."));
-				return;
+				await CommandRunner();
 			}
 
-			var lenForCode = invites.Max(x => x.Code.Length);
-			var lenForUses = invites.Max(x => x.Uses).ToString().Length;
-			var description = String.Join("\n", invites.FormatNumberedList("`{0}` `{1}` `{2}`", x => x.Code.PadRight(lenForCode), x => x.Uses.ToString().PadRight(lenForUses), x => x.Inviter.FormatUser()));
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Instant Invite List", description));
+			private async Task CommandRunner()
+			{
+				var invites = (await Context.Guild.GetInvitesAsync()).OrderByDescending(x => x.Uses);
+				if (!invites.Any())
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no invites."));
+					return;
+				}
+
+				var lenForCode = invites.Max(x => x.Code.Length);
+				var lenForUses = invites.Max(x => x.Uses).ToString().Length;
+				var desc = String.Join("\n", invites.FormatNumberedList("`{0}` `{1}` `{2}`", x => x.Code.PadRight(lenForCode), x => x.Uses.ToString().PadRight(lenForUses), x => x.Inviter.FormatUser()));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Instant Invite List", desc));
+			}
 		}
 
-		[Command("createinvite")]
-		[Alias("cinv")]
-		[Usage("[Channel] <Time:1800|3600|21600|43200|86400> <Uses:1|5|10|25|50|100> <TempMem:True|False>")]
+		[Usage("[Channel] <1800|3600|21600|43200|86400> <1|5|10|25|50|100> <True|False>")]
 		[Summary("Creates an invite on the given channel. No time specifies to not expire. No uses has no usage limit. Temp membership means when the user goes offline they get kicked.")]
 		[PermissionRequirement(1U << (int)GuildPermission.CreateInstantInvite)]
 		[DefaultEnabled(true)]
-		public async Task CreateInstantInvite([Remainder] string input)
+		public class CreateInvite : ModuleBase<MyCommandContext>
 		{
-			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "time", "uses", "tempmem" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var chanStr = returnedArgs.Arguments[0];
-			var timeStr = returnedArgs.GetSpecifiedArg("time");
-			var usesStr = returnedArgs.GetSpecifiedArg("uses");
-			var tempStr = returnedArgs.GetSpecifiedArg("tempmem");
+			private static readonly int[] validTimes = { 1800, 3600, 21600, 43200, 86400 };
+			private static readonly int[] validUses = { 1, 5, 10, 25, 50, 100 };
 
-			//Check validity of channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
+			[Command("createinvite")]
+			[Alias("cinv")]
+			public async Task Command(IGuildChannel channel, [Optional] int time, [Optional] int uses, [Optional] bool tempMem)
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
+				await CommandRunner(channel, time, uses, tempMem);
 			}
-			var channel = returnedChannel.Object;
 
-			int? nullableTime = null;
-			int[] validTimes = { 1800, 3600, 21600, 43200, 86400 };
-			if (!String.IsNullOrWhiteSpace(timeStr))
+			private async Task CommandRunner(IGuildChannel channel, int? nullableTime = 86400, int? nullableUses = null, bool tempMem = false)
 			{
-				if (int.TryParse(timeStr, out int time) && validTimes.Contains(time))
+				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanCreateInstantInvite }, channel);
+				if (returnedChannel.Reason != FailureReason.NotFailure)
 				{
-					nullableTime = time;
-				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time supplied."));
+					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 					return;
 				}
-			}
-
-			int? nullableUsers = null;
-			int[] validUsers = { 1, 5, 10, 25, 50, 100 };
-			if (!String.IsNullOrWhiteSpace(usesStr))
-			{
-				if (int.TryParse(usesStr, out int users) && validUsers.Contains(users))
+				else if (nullableTime.HasValue && !validTimes.Contains(nullableTime.Value))
 				{
-					nullableUsers = users;
-				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid uses supplied."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Invalid time supplied, must be one of the following: `{0]`.", String.Join("`, `", validTimes))));
 					return;
 				}
-			}
-
-			var tempMembership = false;
-			if (!String.IsNullOrWhiteSpace(tempStr))
-			{
-				if (!bool.TryParse(tempStr, out tempMembership))
+				else if (nullableUses.HasValue && !validUses.Contains(nullableUses.Value))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid temp membership boolean supplied."));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Invalid uses supplied, must be one of the following: `{0}`", String.Join("`, `", validUses))));
 					return;
 				}
-			}
 
-			var inv = await channel.CreateInviteAsync(nullableTime, nullableUsers, tempMembership);
+				var inv = await channel.CreateInviteAsync(nullableTime, nullableUses, tempMem);
 
-			//Format the response message
-			var timeOutputStr = "";
-			if (nullableTime == null)
-			{
-				timeOutputStr = "It will last until manually revoked.";
+				var timeOutputStr = nullableTime.HasValue ? String.Format("It will last for this amount of time: `{0}`.", nullableTime) : "It will last until manually revoked.";
+				var usersOutputStr = nullableUses.HasValue ? String.Format("It will last for this amount of uses: `{0}`.", nullableUses) : "It has no usage limit.";
+				var tempOutputStr = tempMem ? "Users will be kicked when they go offline unless they get a role." : "Users will not be kicked when they go offline and do not have a role.";
+				await Actions.SendChannelMessage(Context, String.Format("Here is your invite for `{0}`: {1}",
+					channel.FormatChannel(), 
+					Actions.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usersOutputStr, tempOutputStr)));
 			}
-			else
-			{
-				timeOutputStr = String.Format("It will last for this amount of time: `{0}`.", timeStr);
-			}
-			var usersOutputStr = "";
-			if (nullableUsers == null)
-			{
-				usersOutputStr = "It has no usage limit.";
-			}
-			else
-			{
-				usersOutputStr = String.Format("It will last for this amount of uses: `{0}`.", usesStr);
-			}
-			var tempOutputStr = "";
-			if (tempMembership)
-			{
-				tempOutputStr = "Users will be kicked when they go offline unless they get a role.";
-			}
-
-			await Actions.SendChannelMessage(Context, String.Format("Here is your invite for `{0}`: {1}\n{2}\n{3}\n{4}", channel.FormatChannel(), inv.Url, timeOutputStr, usersOutputStr, tempOutputStr));
 		}
 
-		[Command("deleteinvite")]
-		[Alias("dinv")]
 		[Usage("[Invite Code]")]
 		[Summary("Deletes the invite with the given code.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		[DefaultEnabled(true)]
-		public async Task DeleteInstantInvite([Remainder] string input)
+		public class DeleteInvite : ModuleBase<MyCommandContext>
 		{
-			//Get the input
-			var invite = (await Context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code == input);
-			if (invite == null)
+			[Command("deleteinvite")]
+			[Alias("dinv")]
+			public async Task Command([OverrideTypeReader(typeof(IInviteTypeReader))] IInvite invite)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That invite doesn't exist."));
-				return;
+				await CommandRunner(invite);
 			}
 
-			//Delete the invite and send a success message
-			await invite.DeleteAsync();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted the invite `{0}`.", invite.Code));
+			private async Task CommandRunner(IInvite invite)
+			{
+				await invite.DeleteAsync();
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted the invite `{0}`.", invite.Code));
+			}
 		}
+	}
+	[Name("InviteModeration")]
+	public class Advobot_Commands_Invite_Mod : ModuleBase
+	{
 
 		[Command("deletemultipleinvites")]
 		[Alias("dminv")]

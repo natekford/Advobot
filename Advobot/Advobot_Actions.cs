@@ -168,7 +168,7 @@ namespace Advobot
 
 		public static void LoadCommandInformation()
 		{
-			foreach (var classType in Assembly.GetCallingAssembly().GetTypes().Where(x => x.IsSubclassOf(typeof(ModuleBase))))
+			foreach (var classType in Assembly.GetCallingAssembly().GetTypes().Where(x => x.IsSubclassOf(typeof(ModuleBase<MyCommandContext>))))
 			{
 				var innerMostNameSpace = classType.Namespace.Substring(classType.Namespace.LastIndexOf('.') + 1);
 				if (!Enum.TryParse(innerMostNameSpace, true, out CommandCategory category))
@@ -212,14 +212,25 @@ namespace Advobot
 
 				foreach (var cmd in commands.Except(new[] { mainCommand }))
 				{
-					if (!CaseInsEquals(name, ((CommandAttribute)cmd.GetCustomAttribute(typeof(CommandAttribute)))?.Text))
+					var tempName = ((CommandAttribute)cmd.GetCustomAttribute(typeof(CommandAttribute)))?.Text;
+					if (!CaseInsEquals(name, tempName))
 					{
-						//TODO: finish reworking this and 
-						WriteLine(String.Format("One of the commands in {0} does not have the correct name.", );
+						WriteLine(String.Format("One of the commands in {0} does not have the correct name.", name));
 					}
-					else if (aliases.Length != ((AliasAttribute)cmd.GetCustomAttribute(typeof(AliasAttribute)))?.Aliases.Length)
+					var tempAliases = ((AliasAttribute)cmd.GetCustomAttribute(typeof(AliasAttribute)))?.Aliases;
+					if (aliases?.Length != tempAliases?.Length)
 					{
-
+						WriteLine(String.Format("One of the commands in {0} does not have the correct amount of aliases.", name));
+					}
+					else
+					{
+						for (int i = 0; i < aliases?.Length; i++)
+						{
+							if (!CaseInsEquals(aliases[i], tempAliases[i]))
+							{
+								WriteLine(String.Format("One of the aliases in {0} does not have the correct name.", name));
+							}
+						}
 					}
 				}
 
@@ -229,9 +240,9 @@ namespace Advobot
 					WriteLine(String.Format("The following commands have conflicts: {0} + {1}", String.Join(" + ", similarCmds.Select(x => x.Name)), name));
 				}
 
-				Variables.HelpList.Add(new HelpEntry(name, aliases, usage, String.Join(" | ", new[] { permReqs, otherReqs }), summary, category, defaultEnabled));
+				Variables.HelpList.Add(new HelpEntry(name, aliases, usage, JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, category, defaultEnabled));
 			}
-			Variables.HelpList.ForEach(x => Variables.CommandNames.Add(x.Name));
+			Variables.CommandNames.AddRange(Variables.HelpList.Select(x => x.Name));
 		}
 
 		public static void LoadPermissionNames()
@@ -407,9 +418,7 @@ namespace Advobot
 		public static ReturnedArguments GetArgs(ICommandContext context, string input, ArgNumbers argNums, string[] argsToSearchFor = null)
 		{
 			/* Non specified arguments get left in a list of args going left to right (mentions are not included in this if the bool is true).
-			 * This list can keep all args separate or make the list a certain length. E.G. [ a, b, c, d ] (shortenTo = 3) => [ a, b, c d ]
 			 * Specified arguments get left in a dictionary.
-			 * Mentioned objects get left in respective lists of their ulong IDs.
 			 */
 
 			var min = argNums.Min;
@@ -1035,6 +1044,10 @@ namespace Advobot
 					case ChannelCheck.CanBeRead:
 					{
 						return channelPerms.ReadMessages;
+					}
+					case ChannelCheck.CanCreateInstantInvite:
+					{
+						return channelPerms.ReadMessages && channelPerms.CreateInstantInvite;
 					}
 					case ChannelCheck.CanBeManaged:
 					{
@@ -1969,7 +1982,6 @@ namespace Advobot
 			content = CaseInsReplace(content, "{UserMention}", user != null ? user.Mention : "Invalid User");
 			content = CaseInsReplace(content, "{User}", user != null ? user.FormatUser() : "Invalid User");
 			//Put a zero length character in between invite links for names so the invite links will no longer embed
-			content = CaseInsReplace(content, "discord.gg", String.Format("discord{0}.gg", Constants.ZERO_LENGTH_CHAR));
 
 			if (notification.Embed != null)
 			{
@@ -2993,6 +3005,11 @@ namespace Advobot
 			}
 
 			return reason;
+		}
+
+		public static string JoinNonNullStrings(string joining, params string[] toJoin)
+		{
+			return String.Join(joining, toJoin.Where(x => !String.IsNullOrWhiteSpace(x)));
 		}
 
 		public static void WriteLine(string text, [CallerMemberName] string name = "")
@@ -4246,7 +4263,7 @@ namespace Advobot
 			{
 				return str2 == null;
 			}
-			if (str2 == null)
+			else if (str2 == null)
 			{
 				return false;
 			}
@@ -4498,7 +4515,10 @@ namespace Advobot
 			user = user ?? Variables.Client.GetUser((ulong)userID);
 			if (user != null)
 			{
-				return String.Format("'{0}#{1}' ({2})", Actions.EscapeMarkdown(user.Username, true), user.Discriminator, user.Id);
+				return String.Format("'{0}#{1}' ({2})",
+					Actions.CaseInsReplace(Actions.EscapeMarkdown(user.Username, true), "discord.gg", String.Format("discord{0}.gg", Constants.ZERO_LENGTH_CHAR)),
+					user.Discriminator,
+					user.Id);
 			}
 			else
 			{

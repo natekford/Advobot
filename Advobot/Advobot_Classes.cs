@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	#region Attributes
+	[AttributeUsage(AttributeTargets.Class)]
 	public class PermissionRequirementAttribute : PreconditionAttribute
 	{
 		private uint mAllFlags;
@@ -57,9 +58,10 @@ namespace Advobot
 		}
 	}
 
+	[AttributeUsage(AttributeTargets.Class)]
 	public class OtherRequirementAttribute : PreconditionAttribute
 	{
-		private const uint PERMISSIONBITS = 0
+		private const uint PERMISSION_BITS = 0
 			| (1U << (int)GuildPermission.Administrator)
 			| (1U << (int)GuildPermission.BanMembers)
 			| (1U << (int)GuildPermission.DeafenMembers)
@@ -75,9 +77,9 @@ namespace Advobot
 			| (1U << (int)GuildPermission.MuteMembers);
 		public uint Requirements { get; private set; }
 
-		public OtherRequirementAttribute(uint preconditions)
+		public OtherRequirementAttribute(uint requirements)
 		{
-			Requirements = preconditions;
+			Requirements = requirements;
 		}
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
@@ -94,55 +96,42 @@ namespace Advobot
 			var trustedUser = (Requirements & (1U << (int)Precondition.TrustedUser)) != 0;
 			var botOwner = (Requirements & (1U << (int)Precondition.BotOwner)) != 0;
 
-			//Check if users has any permissions
 			if (permissions)
 			{
 				var botBits = ((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).FirstOrDefault(x => x.UserID == user.Id)?.Permissions;
 				if (botBits != null)
 				{
-					if (((user.GuildPermissions.RawValue | botBits) & PERMISSIONBITS) != 0)
+					if (((user.GuildPermissions.RawValue | botBits) & PERMISSION_BITS) != 0)
 					{
 						return Task.FromResult(PreconditionResult.FromSuccess());
 					}
 				}
 				else
 				{
-					if ((user.GuildPermissions.RawValue & PERMISSIONBITS) != 0)
+					if ((user.GuildPermissions.RawValue & PERMISSION_BITS) != 0)
 					{
 						return Task.FromResult(PreconditionResult.FromSuccess());
 					}
 				}
 			}
-			//Check if the user is the guild owner
-			if (guildOwner)
+			if (guildOwner && Actions.GetIfUserIsOwner(context.Guild, user))
 			{
-				if (Actions.GetIfUserIsOwner(context.Guild, user))
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
+				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-			//Check if the user is a trusted user
-			if (trustedUser)
+			if (trustedUser && Actions.GetIfUserIsTrustedUser(user))
 			{
-				if (Actions.GetIfUserIsTrustedUser(user))
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
+				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-			//Check if the user is the bot owner
-			if (botOwner)
+			if (botOwner && Actions.GetIfUserIsBotOwner(user))
 			{
-				if (Actions.GetIfUserIsBotOwner(user))
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
+				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
 
-			//If they don't match any checks then return an error
 			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 		}
 	}
 
+	[AttributeUsage(AttributeTargets.Class)]
 	public class DefaultEnabledAttribute : Attribute
 	{
 		public bool Enabled { get; private set; }
@@ -153,6 +142,7 @@ namespace Advobot
 		}
 	}
 
+	[AttributeUsage(AttributeTargets.Class)]
 	public class UsageAttribute : Attribute
 	{
 		public string Usage { get; private set; }
@@ -163,6 +153,7 @@ namespace Advobot
 		}
 	}
 
+	[AttributeUsage(AttributeTargets.Field)]
 	public class GuildSettingAttribute : Attribute
 	{
 		public ReadOnlyCollection<SettingOnGuild> Settings { get; private set; }
@@ -173,6 +164,7 @@ namespace Advobot
 		}
 	}
 
+	[AttributeUsage(AttributeTargets.Field)]
 	public class BotSettingAttribute : Attribute
 	{
 		public ReadOnlyCollection<SettingOnBot> Settings { get; private set; }
@@ -182,6 +174,17 @@ namespace Advobot
 			Settings = new ReadOnlyCollection<SettingOnBot>(settings);
 		}
 	}
+
+	public class IInviteTypeReader : TypeReader
+	{
+		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+		{
+			var invite = (await context.Guild.GetInvitesAsync()).FirstOrDefault(x => Actions.CaseInsEquals(x.Code, input));
+			return invite != null ? TypeReaderResult.FromSuccess(invite) : TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find an invite with the given code.");
+		}
+	}
+
+
 	#endregion
 
 	#region Saved Classes
@@ -1551,6 +1554,16 @@ namespace Advobot
 	#endregion
 
 	#region Non-saved Classes
+	public class MyCommandContext : CommandContext
+	{
+		public BotGuildInfo GuildInfo { get; private set; }
+
+		public MyCommandContext(BotGuildInfo guildInfo, IDiscordClient client, IUserMessage msg) : base(client, msg)
+		{
+			GuildInfo = guildInfo;
+		}
+	}
+
 	public abstract class BotClient
 	{
 		public abstract BaseDiscordClient GetClient();
@@ -1635,11 +1648,11 @@ namespace Advobot
 
 		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text, CommandCategory category, bool defaultEnabled)
 		{
-			Name = name ?? placeHolderStr;
+			Name = String.IsNullOrWhiteSpace(name) ? placeHolderStr : name;
 			Aliases = aliases ?? new[] { placeHolderStr };
-			Usage = usage != null ? ((string)Variables.BotInfo.GetSetting(SettingOnBot.Prefix)) + usage : placeHolderStr;
-			BasePerm = basePerm ?? placeHolderStr;
-			Text = text ?? placeHolderStr;
+			Usage = String.IsNullOrWhiteSpace(usage) ? placeHolderStr : ((string)Variables.BotInfo.GetSetting(SettingOnBot.Prefix)) + usage;
+			BasePerm = String.IsNullOrWhiteSpace(basePerm) ? placeHolderStr : basePerm;
+			Text = String.IsNullOrWhiteSpace(text) ? placeHolderStr : text;
 			Category = category;
 			DefaultEnabled = defaultEnabled;
 		}
@@ -1981,10 +1994,10 @@ namespace Advobot
 		public List<CloseHelp> List { get; private set; }
 		public DateTime Time { get; private set; }
 
-		public ActiveCloseHelp(ulong userID, List<CloseHelp> list)
+		public ActiveCloseHelp(ulong userID, IEnumerable<CloseHelp> list)
 		{
 			UserID = userID;
-			List = list;
+			List = list.ToList();
 			Time = DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE);
 		}
 
@@ -2483,6 +2496,7 @@ namespace Advobot
 		CanMoveUsers					= 6,
 		CanDeleteMessages				= 7,
 		CanBeRead						= 8,
+		CanCreateInstantInvite			= 9,
 	}
 
 	public enum ArgFailureReason
@@ -2542,6 +2556,25 @@ namespace Advobot
 	{
 		ImageOnly						= 0,
 		Sanitary						= 1,
+	}
+
+	public enum GetUsersWithReasonTargets
+	{
+		Role							= 0,
+		Name							= 1,
+		Game							= 2,
+		Stream							= 3,
+	}
+
+	public enum GetIDInfoType
+	{
+		Guild							= 0,
+		Channel							= 1,
+		Role							= 2,
+		User							= 3,
+		Emote							= 4,
+		Invite							= 5,
+		Bot								= 6,
 	}
 	#endregion
 }

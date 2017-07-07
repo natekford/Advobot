@@ -86,14 +86,16 @@ namespace Advobot
 
 		private IServiceProvider ConfigureServices(BotClient client)
 		{
-			return new DefaultServiceProviderFactory().CreateServiceProvider(
+			return new DefaultServiceProviderFactory().CreateServiceProvider
+				(
 				new ServiceCollection()
 				.AddSingleton(client)
 				.AddSingleton(new CommandService(new CommandServiceConfig
 				{
 					CaseSensitiveCommands = false,
 					ThrowOnError = false,
-				})));
+				}))
+				);
 		}
 
 		private static DiscordShardedClient CreateShardedClient(BotGlobalInfo botInfo)
@@ -107,7 +109,7 @@ namespace Advobot
 			});
 
 			ShardedClient.Log += Bot_Logs.Log;
-			ShardedClient.MessageReceived += Command_Handler.HandleCommand;
+			ShardedClient.MessageReceived += (SocketMessage message) => Command_Handler.HandleCommand(message as SocketUserMessage);
 			ShardedClient.GuildAvailable += Bot_Logs.OnGuildAvailable;
 			ShardedClient.GuildUnavailable += Bot_Logs.OnGuildUnavailable;
 			ShardedClient.JoinedGuild += Bot_Logs.OnJoinedGuild;
@@ -133,7 +135,7 @@ namespace Advobot
 			});
 
 			SocketClient.Log += Bot_Logs.Log;
-			SocketClient.MessageReceived += Command_Handler.HandleCommand;
+			SocketClient.MessageReceived += (SocketMessage message) => Command_Handler.HandleCommand(message as SocketUserMessage);
 			SocketClient.GuildAvailable += Bot_Logs.OnGuildAvailable;
 			SocketClient.GuildUnavailable += Bot_Logs.OnGuildUnavailable;
 			SocketClient.JoinedGuild += Bot_Logs.OnJoinedGuild;
