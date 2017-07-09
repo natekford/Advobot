@@ -22,7 +22,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -30,18 +30,18 @@ namespace Advobot
 			var typeStr = returnedArgs.Arguments[0].ToLower();
 			var chanStr = returnedArgs.Arguments[1];
 
-			var returnedType = Actions.GetType(typeStr, new[] { LogChannelTypes.Server, LogChannelTypes.Mod, LogChannelTypes.Image });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(typeStr, new[] { LogChannelType.Server, LogChannelType.Mod, LogChannelType.Image });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var type = returnedType.Type;
+			var type = returnedType.Object;
 
 			ITextChannel channel = null;
 			if (!Actions.CaseInsEquals(chanStr, "off"))
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions, ChannelCheck.IsText }, true, chanStr);
+				var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions, ObjectVerification.IsText }, true, chanStr);
 				if (returnedChannel.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -52,17 +52,17 @@ namespace Advobot
 				ulong currID = 0;
 				switch (type)
 				{
-					case LogChannelTypes.Server:
+					case LogChannelType.Server:
 					{
 						currID = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog))?.ID ?? 0;
 						break;
 					}
-					case LogChannelTypes.Mod:
+					case LogChannelType.Mod:
 					{
 						currID = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog))?.ID ?? 0;
 						break;
 					}
-					case LogChannelTypes.Image:
+					case LogChannelType.Image:
 					{
 						currID = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ImageLog))?.ID ?? 0;
 						break;
@@ -79,17 +79,17 @@ namespace Advobot
 			var success = false;
 			switch (type)
 			{
-				case LogChannelTypes.Server:
+				case LogChannelType.Server:
 				{
 					success = guildInfo.SetSetting(SettingOnGuild.ServerLog, new DiscordObjectWithID<ITextChannel>(channel));
 					break;
 				}
-				case LogChannelTypes.Mod:
+				case LogChannelType.Mod:
 				{
 					success = guildInfo.SetSetting(SettingOnGuild.ModLog, new DiscordObjectWithID<ITextChannel>(channel));
 					break;
 				}
-				case LogChannelTypes.Image:
+				case LogChannelType.Image:
 				{
 					success = guildInfo.SetSetting(SettingOnGuild.ImageLog, new DiscordObjectWithID<ITextChannel>(channel));
 					break;
@@ -125,20 +125,20 @@ namespace Advobot
 
 			//Split the input and determine whether to add or remove
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
 			}
 			var actionStr = returnedArgs.Arguments[0];
 
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 
 			//Get the channels
 			var evaluatedChannels = Actions.GetValidEditChannels(Context);
@@ -215,12 +215,12 @@ namespace Advobot
 		public async Task SwitchLogActions([Optional, Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-			var logActions = (List<LogActions>)guildInfo.GetSetting(SettingOnGuild.LogActions);
+			var logActions = (List<LogAction>)guildInfo.GetSetting(SettingOnGuild.LogActions);
 
 			//Check if the person wants to only see the types
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Log Actions", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(LogActions))))));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Log Actions", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(LogAction))))));
 				return;
 			}
 			else if (Actions.CaseInsEquals(input, "default"))
@@ -238,7 +238,7 @@ namespace Advobot
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -246,25 +246,25 @@ namespace Advobot
 			var actionStr = returnedArgs.Arguments[0];
 			var logActStr = returnedArgs.Arguments[1];
 
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 
 			//Get all the targetted log actions
-			var newLogActions = new List<LogActions>();
+			var newLogActions = new List<LogAction>();
 			if (Actions.CaseInsEquals(logActStr, "all"))
 			{
-				newLogActions = Enum.GetValues(typeof(LogActions)).Cast<LogActions>().ToList();
+				newLogActions = Enum.GetValues(typeof(LogAction)).Cast<LogAction>().ToList();
 			}
 			else
 			{
 				logActStr.Split('/').ToList().ForEach(x =>
 				{
-					if (Enum.TryParse(x, true, out LogActions temp))
+					if (Enum.TryParse(x, true, out LogAction temp))
 					{
 						newLogActions.Add(temp);
 					}
@@ -298,7 +298,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
 					responseStr,
 					Actions.GetPlural(newLogActions.Count),
-					String.Join("`, `", newLogActions.Select(x => Enum.GetName(typeof(LogActions), x)))));
+					String.Join("`, `", newLogActions.Select(x => Enum.GetName(typeof(LogAction), x)))));
 			}
 			else
 			{

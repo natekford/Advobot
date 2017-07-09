@@ -20,7 +20,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "keywords" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -29,13 +29,13 @@ namespace Advobot
 			var codeStr = returnedArgs.Arguments[1];
 			var keywordStr = returnedArgs.GetSpecifiedArg("keywords");
 
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 
 			switch (action)
 			{
@@ -120,7 +120,7 @@ namespace Advobot
 		[Alias("bump")]
 		[Usage("")]
 		[Summary("Bumps the invite on the guild.")]
-		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
+		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(false)]
 		public async Task BumpInvite()
 		{
@@ -143,7 +143,7 @@ namespace Advobot
 		public async Task GetInvite([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 6), new[] { "code", "name", "globalemotes", "morethan", "lessthan", "keywords" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;

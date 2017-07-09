@@ -125,7 +125,7 @@ namespace Advobot
 		{
 			++Variables.TotalUsers;
 
-			if (Actions.VerifyServerLoggingAction(user, LogActions.UserJoined, out VerifiedLoggingAction verified))
+			if (Actions.VerifyServerLoggingAction(user, LogAction.UserJoined, out VerifiedLoggingAction verified))
 			{
 				var guild = verified.Guild;
 				var guildInfo = verified.GuildInfo;
@@ -184,7 +184,7 @@ namespace Advobot
 				return;
 			}
 
-			if (Actions.VerifyServerLoggingAction(user, LogActions.UserLeft, out VerifiedLoggingAction verified))
+			if (Actions.VerifyServerLoggingAction(user, LogAction.UserLeft, out VerifiedLoggingAction verified))
 			{
 				var guild = verified.Guild;
 				var guildInfo = verified.GuildInfo;
@@ -223,7 +223,7 @@ namespace Advobot
 			{
 				foreach (var guild in Variables.Client.GetGuilds().Where(x => x.Users.Contains(afterUser)))
 				{
-					if (Actions.VerifyServerLoggingAction(guild, LogActions.UserLeft, out VerifiedLoggingAction verified))
+					if (Actions.VerifyServerLoggingAction(guild, LogAction.UserLeft, out VerifiedLoggingAction verified))
 					{
 						var guildInfo = verified.GuildInfo;
 						var serverLog = verified.LoggingChannel;
@@ -266,7 +266,7 @@ namespace Advobot
 
 		public static async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage afterMessage, ISocketMessageChannel channel)
 		{
-			if (Actions.VerifyServerLoggingAction(channel, LogActions.MessageUpdated, out VerifiedLoggingAction verified))
+			if (Actions.VerifyServerLoggingAction(channel, LogAction.MessageUpdated, out VerifiedLoggingAction verified))
 			{
 				var guild = verified.Guild;
 				var guildInfo = verified.GuildInfo;
@@ -332,7 +332,7 @@ namespace Advobot
 
 		public static async Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
-			if (Actions.VerifyServerLoggingAction(channel, LogActions.MessageDeleted, out VerifiedLoggingAction verified))
+			if (Actions.VerifyServerLoggingAction(channel, LogAction.MessageDeleted, out VerifiedLoggingAction verified))
 			{
 				var guild = verified.Guild;
 				var guildInfo = verified.GuildInfo;

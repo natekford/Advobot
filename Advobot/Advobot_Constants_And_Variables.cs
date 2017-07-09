@@ -116,25 +116,24 @@ namespace Advobot
 			"Ӽ1(", "Ϯ3|", "⁊a~", "[&r",
 		});
 
-		public static ReadOnlyCollection<LogActions> DEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogActions>(new List<LogActions>()
+		public static ReadOnlyCollection<LogAction> DEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogAction>(new List<LogAction>()
 		{
-			LogActions.UserJoined,
-			LogActions.UserLeft,
-			LogActions.MessageReceived,
-			LogActions.MessageUpdated,
-			LogActions.MessageDeleted,
+			LogAction.UserJoined,
+			LogAction.UserLeft,
+			LogAction.MessageReceived,
+			LogAction.MessageUpdated,
+			LogAction.MessageDeleted,
 		});
 
 		//Because the enum values might change in the future. These are never saved in JSON so these can be modified
 		public static ReadOnlyDictionary<PunishmentType, int> Severity = new ReadOnlyDictionary<PunishmentType, int>(new Dictionary<PunishmentType, int>
 		{
-			{ PunishmentType.Nothing, 1 },
-			{ PunishmentType.Deafen, 2 },
-			{ PunishmentType.Mute, 3 },
-			{ PunishmentType.Role, 4 },
-			{ PunishmentType.Kick, 5 },
-			{ PunishmentType.KickThenBan, 7 },
-			{ PunishmentType.Ban, 8 },
+			{ PunishmentType.Deafen, 0 },
+			{ PunishmentType.Mute, 100 },
+			{ PunishmentType.Role, 250 },
+			{ PunishmentType.Kick, 500 },
+			{ PunishmentType.KickThenBan, 750 },
+			{ PunishmentType.Ban, 1000 },
 		});
 
 		public const bool DISCONNECT = false;

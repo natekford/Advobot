@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	#region Attributes
-	[AttributeUsage(AttributeTargets.Class)]
+	//[AttributeUsage(AttributeTargets.Class)]
 	public class PermissionRequirementAttribute : PreconditionAttribute
 	{
 		private uint mAllFlags;
@@ -58,7 +58,7 @@ namespace Advobot
 		}
 	}
 
-	[AttributeUsage(AttributeTargets.Class)]
+	//[AttributeUsage(AttributeTargets.Class)]
 	public class OtherRequirementAttribute : PreconditionAttribute
 	{
 		private const uint PERMISSION_BITS = 0
@@ -75,9 +75,9 @@ namespace Advobot
 			| (1U << (int)GuildPermission.ManageWebhooks)
 			| (1U << (int)GuildPermission.MoveMembers)
 			| (1U << (int)GuildPermission.MuteMembers);
-		public uint Requirements { get; private set; }
+		public Precondition Requirements { get; private set; }
 
-		public OtherRequirementAttribute(uint requirements)
+		public OtherRequirementAttribute(Precondition requirements)
 		{
 			Requirements = requirements;
 		}
@@ -91,10 +91,10 @@ namespace Advobot
 				return Task.FromResult(PreconditionResult.FromError("Guild is not loaded correctly."));
 			}
 
-			var permissions = (Requirements & (1U << (int)Precondition.UserHasAPerm)) != 0;
-			var guildOwner = (Requirements & (1U << (int)Precondition.GuildOwner)) != 0;
-			var trustedUser = (Requirements & (1U << (int)Precondition.TrustedUser)) != 0;
-			var botOwner = (Requirements & (1U << (int)Precondition.BotOwner)) != 0;
+			var permissions = (Requirements & Precondition.UserHasAPerm) != 0;
+			var guildOwner = (Requirements & Precondition.GuildOwner) != 0;
+			var trustedUser = (Requirements & Precondition.TrustedUser) != 0;
+			var botOwner = (Requirements & Precondition.BotOwner) != 0;
 
 			if (permissions)
 			{
@@ -131,7 +131,7 @@ namespace Advobot
 		}
 	}
 
-	[AttributeUsage(AttributeTargets.Class)]
+	//[AttributeUsage(AttributeTargets.Class)]
 	public class DefaultEnabledAttribute : Attribute
 	{
 		public bool Enabled { get; private set; }
@@ -142,7 +142,7 @@ namespace Advobot
 		}
 	}
 
-	[AttributeUsage(AttributeTargets.Class)]
+	//[AttributeUsage(AttributeTargets.Class)]
 	public class UsageAttribute : Attribute
 	{
 		public string Usage { get; private set; }
@@ -175,16 +175,111 @@ namespace Advobot
 		}
 	}
 
+	[AttributeUsage(AttributeTargets.Parameter)]
+	public class VerifyObjectAttribute : ParameterPreconditionAttribute
+	{
+		private readonly ObjectVerification[] mChecks;
+
+		public VerifyObjectAttribute(params ObjectVerification[] checks)
+		{
+			mChecks = checks;
+		}
+
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
+		{
+			var returnedObject = Actions.GetDiscordObject(context.Guild, context.User as IGuildUser, mChecks, (dynamic)value);
+			if (returnedObject.Reason != FailureReason.NotFailure)
+			{
+				return Task.FromResult(PreconditionResult.FromError(Actions.FormatErrorString(context.Guild, returnedObject)));
+			}
+			else
+			{
+				return Task.FromResult(PreconditionResult.FromSuccess());
+			}
+		}
+	}
+
+	[AttributeUsage(AttributeTargets.Parameter)]
+	public class VerifyEnumAttribute : ParameterPreconditionAttribute
+	{
+		private readonly uint mAllowed;
+		private readonly uint mDisallowed;
+
+		public VerifyEnumAttribute(uint allowed = 0, uint disallowed = 0)
+		{
+			mAllowed = allowed;
+			mDisallowed = disallowed;
+		}
+
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
+		{
+			var enumVal = (uint)value;
+			if (mAllowed != 0 && ((mAllowed & ~enumVal) != 0))
+			{
+				return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command.", value)));
+			}
+			else if (mDisallowed != 0 && ((mDisallowed & enumVal) != 0))
+			{
+				return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command.", value)));
+			}
+			else
+			{
+				return Task.FromResult(PreconditionResult.FromSuccess());
+			}
+		}
+	}
+	#endregion
+
+	#region Typereaders
 	public class IInviteTypeReader : TypeReader
 	{
 		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
 			var invite = (await context.Guild.GetInvitesAsync()).FirstOrDefault(x => Actions.CaseInsEquals(x.Code, input));
-			return invite != null ? TypeReaderResult.FromSuccess(invite) : TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find an invite with the given code.");
+			return invite != null ? TypeReaderResult.FromSuccess(invite) : TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching invite.");
 		}
 	}
 
+	public class IBanTypeReader : TypeReader
+	{
+		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+		{
+			IBan ban = null;
+			var bans = await context.Guild.GetBansAsync();
+			if (MentionUtils.TryParseUser(input, out ulong userID))
+			{
+				ban = bans.FirstOrDefault(x => x.User.Id == userID);
+			}
+			else if (ulong.TryParse(input, out userID))
+			{
+				ban = bans.FirstOrDefault(x => x.User.Id == userID);
+			}
+			else if (input.Contains('#'))
+			{
+				var usernameAndDiscriminator = input.Split('#');
+				if (usernameAndDiscriminator.Length == 2 && ushort.TryParse(usernameAndDiscriminator[1], out ushort discriminator))
+				{
+					ban = bans.FirstOrDefault(x => x.User.DiscriminatorValue == discriminator && Actions.CaseInsEquals(x.User.Username, usernameAndDiscriminator[0]));
+				}
+			}
 
+			if (ban == null)
+			{
+				var matchingUsernames = bans.Where(x => Actions.CaseInsEquals(x.User.Username, input));
+
+				if (matchingUsernames.Count() == 1)
+				{
+					ban = matchingUsernames.FirstOrDefault();
+				}
+				else if (matchingUsernames.Count() > 1)
+				{
+					return TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many bans found with the same username.");
+				}
+			}
+
+			return ban != null ? TypeReaderResult.FromSuccess(ban) : TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching ban.");
+		}
+	}
 	#endregion
 
 	#region Saved Classes
@@ -219,7 +314,7 @@ namespace Advobot
 			{ SettingOnGuild.SelfAssignableGroups, new List<SelfAssignableGroup>() },
 			{ SettingOnGuild.Quotes, new List<Quote>() },
 			{ SettingOnGuild.IgnoredLogChannels, new List<ulong>() },
-			{ SettingOnGuild.LogActions, new List<LogActions>() },
+			{ SettingOnGuild.LogActions, new List<LogAction>() },
 			{ SettingOnGuild.BannedPhraseStrings, new List<BannedPhrase>() },
 			{ SettingOnGuild.BannedPhraseRegex, new List<BannedPhrase>() },
 			{ SettingOnGuild.BannedPhrasePunishments, new List<BannedPhrasePunishment>() },
@@ -260,7 +355,7 @@ namespace Advobot
 		private List<Quote> mQuotes = new List<Quote>();
 		[GuildSetting(SettingOnGuild.LogActions)]
 		[JsonProperty("LogActions")]
-		private List<LogActions> mLogActions = new List<LogActions>();
+		private List<LogAction> mLogActions = new List<LogAction>();
 
 		[GuildSetting(SettingOnGuild.IgnoredCommandChannels)]
 		[JsonProperty("IgnoredCommandChannels")]
@@ -958,6 +1053,7 @@ namespace Advobot
 			Punishment = (punishment == PunishmentType.Deafen || punishment == PunishmentType.Mute) ? PunishmentType.Nothing : punishment;
 		}
 
+		//TODO: Fix this weird shit that's using ternary operators
 		public void ChangePunishment(PunishmentType type)
 		{
 			Punishment = (type == PunishmentType.Deafen || type == PunishmentType.Mute) ? PunishmentType.Nothing : type;
@@ -2087,26 +2183,14 @@ namespace Advobot
 		}
 	}
 
-	public struct ReturnedDiscordObject<T>
+	public struct ReturnedObject<T>
 	{
 		public T Object { get; private set; }
 		public FailureReason Reason { get; private set; }
 
-		public ReturnedDiscordObject(T obj, FailureReason reason)
+		public ReturnedObject(T obj, FailureReason reason)
 		{
 			Object = obj;
-			Reason = reason;
-		}
-	}
-
-	public struct ReturnedType<T>
-	{
-		public T Type { get; private set; }
-		public TypeFailureReason Reason { get; private set; }
-
-		public ReturnedType(T type, TypeFailureReason reason)
-		{
-			Type = type;
 			Reason = reason;
 		}
 	}
@@ -2119,9 +2203,9 @@ namespace Advobot
 		public List<ulong> MentionedUsers { get; private set; }
 		public List<ulong> MentionedRoles { get; private set; }
 		public List<ulong> MentionedChannels { get; private set; }
-		public ArgFailureReason Reason { get; private set; }
+		public FailureReason Reason { get; private set; }
 
-		public ReturnedArguments(List<string> args, ArgFailureReason reason)
+		public ReturnedArguments(List<string> args, FailureReason reason)
 		{
 			Arguments = args;
 			ArgCount = args.Where(x => !String.IsNullOrWhiteSpace(x)).Count();
@@ -2139,7 +2223,7 @@ namespace Advobot
 			MentionedUsers = message.MentionedUserIds.ToList();
 			MentionedRoles = message.MentionedRoleIds.ToList();
 			MentionedChannels = message.MentionedChannelIds.ToList();
-			Reason = ArgFailureReason.NotFailure;
+			Reason = FailureReason.NotFailure;
 		}
 
 		public string GetSpecifiedArg(string input)
@@ -2158,10 +2242,10 @@ namespace Advobot
 	public struct ReturnedBannedUser
 	{
 		public IBan Ban { get; private set; }
-		public BannedUserFailureReason Reason { get; private set; }
+		public FailureReason Reason { get; private set; }
 		public List<IBan> MatchedBans { get; private set; }
 
-		public ReturnedBannedUser(IBan ban, BannedUserFailureReason reason, List<IBan> matchedBans = null)
+		public ReturnedBannedUser(IBan ban, FailureReason reason, List<IBan> matchedBans = null)
 		{
 			Ban = ban;
 			Reason = reason;
@@ -2286,7 +2370,7 @@ namespace Advobot
 
 	#region Enums
 	//I know enums don't need "= x," but I like it.
-	public enum LogActions
+	public enum LogAction
 	{
 		UserJoined						= 0,
 		UserLeft						= 1,
@@ -2298,96 +2382,20 @@ namespace Advobot
 
 	public enum CommandCategory
 	{
-		GlobalSettings					= 0,
-		GuildSettings					= 1,
-		Logs							= 2,
-		BanPhrases						= 3,
-		SelfRoles						= 4,
-		UserModeration					= 5,
-		RoleModeration					= 6,
-		ChannelModeration				= 7,
-		GuildModeration					= 8,
-		Miscellaneous					= 9,
-		SpamPrevention					= 10,
-		InviteModeration				= 11,
-		GuildList						= 12,
-		NicknameModeration				= 13,
-	}
-
-	public enum PunishmentType
-	{
-		Nothing							= 0,
-		Kick							= 1,
-		Ban								= 2,
-		Role							= 3,
-		Deafen							= 4,
-		Mute							= 5,
-		KickThenBan						= 6,
-	}
-
-	public enum DeleteInvAction
-	{
-		User							= 0,
-		Channel							= 1,
-		Uses							= 2,
-		Expiry							= 3,
-	}
-
-	public enum SpamType
-	{
-		Message							= 0,
-		LongMessage						= 1,
-		Link							= 2,
-		Image							= 3,
-		Mention							= 4,
-	}
-
-	public enum RaidType
-	{
-		Regular							= 0,
-		RapidJoins						= 1,
-	}
-
-	public enum FAWRType
-	{
-		GiveRole						= 0,
-		GR								= 1,
-		TakeRole						= 2,
-		TR								= 3,
-		GiveNickname					= 4,
-		GNN								= 5,
-		TakeNickname					= 6,
-		TNN								= 7,
-	}
-
-	public enum ActionType
-	{
-		Nothing							= 0,
-		Show							= 1,
-		Allow							= 2,
-		Inherit							= 3,
-		Deny							= 4,
-		Enable							= 5,
-		Disable							= 6,
-		Setup							= 7,
-		Create							= 8,
-		Add								= 9,
-		Remove							= 10,
-		Delete							= 11,
-		Clear							= 12,
-		Current							= 13,
-	}
-
-	public enum FailureReason
-	{
-		NotFailure						= 0,
-		NotFound						= 1,
-		UserInability					= 2,
-		BotInability					= 3,
-		TooMany							= 4,
-		IncorrectChannelType			= 5,
-		EveryoneRole					= 6,
-		ManagedRole						= 7,
+		GlobalSettings					= 1,
+		GuildSettings					= 2,
+		Logs							= 3,
+		BanPhrases						= 4,
+		SelfRoles						= 5,
+		UserModeration					= 6,
+		RoleModeration					= 7,
+		ChannelModeration				= 8,
+		GuildModeration					= 9,
+		Miscellaneous					= 10,
+		SpamPrevention					= 11,
+		InviteModeration				= 12,
+		GuildList						= 13,
+		NicknameModeration				= 14,
 	}
 
 	public enum SettingOnGuild
@@ -2403,7 +2411,6 @@ namespace Advobot
 		BannedPhraseUsers				= -1,
 
 		//Saved settings
-		Guild							= 0,
 		CommandSwitches					= 1,
 		CommandsDisabledOnChannel		= 2,
 		BotUsers						= 3,
@@ -2437,99 +2444,106 @@ namespace Advobot
 		MuteRole						= 31,
 		SanitaryChannels				= 32,
 		VerboseErrors					= 33,
+		Guild							= 34,
 	}
 
 	public enum SettingOnBot
 	{
-		BotOwnerID						= 0,
-		TrustedUsers					= 1,
-		Prefix							= 2,
-		Game							= 3,
-		Stream							= 4,
-		ShardCount						= 5,
-		MessageCacheCount				= 6,
-		AlwaysDownloadUsers				= 7,
-		LogLevel						= 8,
-		SavePath						= 9,
-		MaxUserGatherCount				= 11,
-		UnableToDMOwnerUsers			= 12,
-		IgnoredCommandUsers				= 13,
-		MaxMessageGatherSize			= 14,
+		//Saved in Properties.Settings
+		SavePath						= -1,
+
+		//Saved in JSON
+		BotOwnerID						= 1,
+		TrustedUsers					= 2,
+		Prefix							= 3,
+		Game							= 4,
+		Stream							= 5,
+		ShardCount						= 6,
+		MessageCacheCount				= 7,
+		AlwaysDownloadUsers				= 8,
+		LogLevel						= 9,
+		MaxUserGatherCount				= 10,
+		UnableToDMOwnerUsers			= 11,
+		IgnoredCommandUsers				= 12,
+		MaxMessageGatherSize			= 13,
 	}
 
-	public enum GuildNotifications
+	public enum GuildNotificationType
 	{
-		Welcome							= 0,
-		Goodbye							= 1,
+		Welcome							= 1,
+		Goodbye							= 2,
 	}
 
-	public enum LogChannelTypes
+	public enum EmoteType
 	{
-		Server							= 0,
-		Mod								= 1,
-		Image							= 2,
+		Global							= 1,
+		Guild							= 2,
 	}
 
-	public enum UserCheck
+	public enum ChannelType
 	{
-		None							= 0,
-		CanBeMovedFromChannel			= 1,
-		CanBeEdited						= 2,
+		Text							= 1,
+		Voice							= 2,
 	}
 
-	public enum RoleCheck
+	public enum LogChannelType
 	{
+		Server							= 1,
+		Mod								= 2,
+		Image							= 3,
+	}
+
+	public enum ObjectVerification
+	{
+		//Generic
 		None							= 0,
 		CanBeEdited						= 1,
-		IsEveryone						= 2,
-		IsManaged						= 3,
+
+		//User
+		CanBeMovedFromChannel			= 100,
+
+		//Channels
+		IsVoice							= 200,
+		IsText							= 201,
+		CanBeReordered					= 202,
+		CanModifyPermissions			= 203,
+		CanBeManaged					= 204,
+		CanMoveUsers					= 205,
+		CanDeleteMessages				= 206,
+		CanBeRead						= 207,
+		CanCreateInstantInvite			= 208,
+
+		//Roles
+		IsEveryone						= 300,
+		IsManaged						= 301,
 	}
 
-	public enum ChannelCheck
+	public enum FailureReason
 	{
-		None							= 0,
-		CanBeReordered					= 1,
-		CanModifyPermissions			= 2,
-		CanBeManaged					= 3,
-		IsVoice							= 4,
-		IsText							= 5,
-		CanMoveUsers					= 6,
-		CanDeleteMessages				= 7,
-		CanBeRead						= 8,
-		CanCreateInstantInvite			= 9,
-	}
-
-	public enum ArgFailureReason
-	{
+		//Generic
 		NotFailure						= 0,
-		TooManyArgs						= 1,
-		TooFewArgs						= 2,
-		MissingCriticalArgs				= 3,
-		MaxLessThanMin					= 4,
-	}
+		TooFew							= 1,
+		TooMany							= 2,
 
-	public enum TypeFailureReason
-	{
-		NotFailure						= 0,
-		NotFound						= 1,
-		InvalidType						= 2,
-	}
+		//User
+		UserInability					= 100,
+		BotInability					= 101,
+		
+		//Channels
+		ChannelType						= 200,
 
-	public enum BannedUserFailureReason
-	{
-		NotFailure						= 0,
-		NoBans							= 1,
-		NoMatch							= 2,
-		TooManyMatches					= 3,
-		InvalidDiscriminator			= 4,
-		InvalidID						= 5,
-		NoUsernameOrID					= 6,
-	}
+		//Roles
+		EveryoneRole					= 300,
+		ManagedRole						= 301,
 
-	public enum CCEnum
-	{
-		Clear							= 0,
-		Current							= 1,
+		//Enums
+		InvalidEnum						= 400,
+
+		//Bans
+		NoBans							= 500,
+		InvalidDiscriminator			= 501,
+		InvalidID						= 502,
+		NoUsernameOrID					= 503,
 	}
 
 	public enum NSF
@@ -2544,37 +2558,97 @@ namespace Advobot
 		GuildInfo						= 0,
 	}
 
-	public enum Precondition
+	[Flags]
+	public enum PunishmentType : uint
 	{
-		UserHasAPerm					= 0,
-		GuildOwner						= 1,
-		TrustedUser						= 2,
-		BotOwner						= 3,
+		Nothing							= (1U << 0),
+		Kick							= (1U << 1),
+		Ban								= (1U << 2),
+		Role							= (1U << 3),
+		Deafen							= (1U << 4),
+		Mute							= (1U << 5),
+		KickThenBan						= (1U << 6),
 	}
 
-	public enum ChannelSettings
+	[Flags]
+	public enum DeleteInvAction : uint
 	{
-		ImageOnly						= 0,
-		Sanitary						= 1,
+		User							= (1U << 0),
+		Channel							= (1U << 1),
+		Uses							= (1U << 2),
+		Expiry							= (1U << 3),
 	}
 
-	public enum GetUsersWithReasonTargets
+	[Flags]
+	public enum SpamType : uint
 	{
-		Role							= 0,
-		Name							= 1,
-		Game							= 2,
-		Stream							= 3,
+		Message							= (1U << 0),
+		LongMessage						= (1U << 1),
+		Link							= (1U << 2),
+		Image							= (1U << 3),
+		Mention							= (1U << 4),
 	}
 
-	public enum GetIDInfoType
+	[Flags]
+	public enum RaidType : uint
 	{
-		Guild							= 0,
-		Channel							= 1,
-		Role							= 2,
-		User							= 3,
-		Emote							= 4,
-		Invite							= 5,
-		Bot								= 6,
+		Regular							= (1U << 0),
+		RapidJoins						= (1U << 1),
+	}
+
+	[Flags]
+	public enum ActionType : uint
+	{
+		Show							= (1U << 0),
+		Allow							= (1U << 1),
+		Inherit							= (1U << 2),
+		Deny							= (1U << 3),
+		Enable							= (1U << 4),
+		Disable							= (1U << 5),
+		Setup							= (1U << 6),
+		Create							= (1U << 7),
+		Add								= (1U << 8),
+		Remove							= (1U << 9),
+		Delete							= (1U << 10),
+		Clear							= (1U << 11),
+		Current							= (1U << 12),
+	}
+
+	[Flags]
+	public enum Precondition : uint
+	{
+		UserHasAPerm					= (1U << 0),
+		GuildOwner						= (1U << 1),
+		TrustedUser						= (1U << 2),
+		BotOwner						= (1U << 3),
+	}
+
+	[Flags]
+	public enum ChannelSetting : uint
+	{
+		ImageOnly						= (1U << 0),
+		Sanitary						= (1U << 1),
+	}
+
+	[Flags]
+	public enum GetUsersWithReasonTarget : uint
+	{
+		Role							= (1U << 0),
+		Name							= (1U << 1),
+		Game							= (1U << 2),
+		Stream							= (1U << 3),
+	}
+
+	[Flags]
+	public enum GetIDInfoType : uint
+	{
+		Guild							= (1U << 0),
+		Channel							= (1U << 1),
+		Role							= (1U << 2),
+		User							= (1U << 3),
+		Emote							= (1U << 4),
+		Invite							= (1U << 5),
+		Bot								= (1U << 6),
 	}
 	#endregion
 }

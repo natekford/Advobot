@@ -38,7 +38,7 @@ namespace Advobot
 
 			//Break the input into pieces
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "group" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -48,13 +48,13 @@ namespace Advobot
 			var groupStr = returnedArgs.GetSpecifiedArg("group");
 
 			//Check which action it is
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Create, ActionType.Delete, ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Create, ActionType.Delete, ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 
 			//Check if the guild has too many or no self assignable role lists yet
 			if (action != ActionType.Create)
@@ -207,7 +207,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			//Get the role. No edit ability checking in this command due to how that's already been done in the modify command
-			var role = Actions.GetRole(Context, new[] { RoleCheck.None }, true, input).Object;
+			var role = Actions.GetRole(Context, new[] { ObjectVerification.None }, true, input).Object;
 			if (role == null)
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("There is no self assignable role by that name."));

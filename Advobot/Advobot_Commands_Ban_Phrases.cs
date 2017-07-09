@@ -24,7 +24,7 @@ namespace Advobot
 
 			//Get the arguments
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -94,7 +94,7 @@ namespace Advobot
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -102,13 +102,13 @@ namespace Advobot
 			var actionStr = returnedArgs.Arguments[0];
 			var numStr = returnedArgs.Arguments[1];
 
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 
 			var eval = ((List<string>)guildInfo.GetSetting(SettingOnGuild.EvaluatedRegex));
 			var curr = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex);
@@ -204,7 +204,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2), new[] { "position" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -212,13 +212,13 @@ namespace Advobot
 			var actionStr = returnedArgs.Arguments[0];
 			var phraseStr = returnedArgs.Arguments[1];
 
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 
 			var add = false;
 			var strings = ((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings));
@@ -279,7 +279,7 @@ namespace Advobot
 
 			//First split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "position" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -289,13 +289,13 @@ namespace Advobot
 			var typeStr = returnedArgs.Arguments[1];
 			var regexStr = returnedArgs.Arguments[2];
 
-			var returnedType = Actions.GetType(typeStr, new[] { PunishmentType.Nothing, PunishmentType.Role, PunishmentType.Kick, PunishmentType.Ban });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(typeStr, new[] { PunishmentType.Nothing, PunishmentType.Role, PunishmentType.Kick, PunishmentType.Ban });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var type = returnedType.Type;
+			var type = returnedType.Object;
 
 			var position = -1;
 			if (!String.IsNullOrWhiteSpace(posStr))
@@ -373,7 +373,7 @@ namespace Advobot
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 4), new[] { "position", "punishment", "time" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -383,13 +383,13 @@ namespace Advobot
 			var punishStr = returnedArgs.GetSpecifiedArg("punishment");
 			var timeStr = returnedArgs.GetSpecifiedArg("time");
 
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 
 			//Get the position
 			if (!int.TryParse(posStr, out int number))
@@ -447,7 +447,7 @@ namespace Advobot
 					else if (Context.Guild.Roles.Any(x => Actions.CaseInsEquals(x.Name, punishStr)))
 					{
 						punishmentType = PunishmentType.Role;
-						var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone, RoleCheck.IsManaged }, true, punishStr);
+						var returnedRole = Actions.GetRole(Context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged }, true, punishStr);
 						if (returnedRole.Reason != FailureReason.NotFailure)
 						{
 							await Actions.HandleObjectGettingErrors(Context, returnedRole);
@@ -533,7 +533,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -541,7 +541,7 @@ namespace Advobot
 			var userStr = returnedArgs.Arguments[0];
 			var actionStr = returnedArgs.Arguments[1];
 
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.None }, true, userStr);
 			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -556,13 +556,13 @@ namespace Advobot
 				return;
 			}
 
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Clear, ActionType.Current });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Clear, ActionType.Current });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var type = returnedType.Type;
+			var type = returnedType.Object;
 
 			switch (type)
 			{
@@ -597,7 +597,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -616,13 +616,13 @@ namespace Advobot
 				return;
 			}
 
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 
 			var add = false;
 			var names = ((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers));

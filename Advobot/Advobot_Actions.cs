@@ -178,11 +178,11 @@ namespace Advobot
 				}
 				else if (classType.IsNotPublic)
 				{
-					WriteLine(innerMostNameSpace + " is not public and commands will not execute from it.");
+					WriteLine(classType.Name + " is not public and commands will not execute from it.");
 					continue;
 				}
 
-				var commands = classType.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic);
+				var commands = classType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
 				var mainCommand = commands[0];
 
 				var nameAttr = (CommandAttribute)mainCommand.GetCustomAttribute(typeof(CommandAttribute));
@@ -433,26 +433,22 @@ namespace Advobot
 				}
 				if (min == 0)
 				{
-					return new ReturnedArguments(list, ArgFailureReason.NotFailure);
+					return new ReturnedArguments(list, FailureReason.NotFailure);
 				}
 				else
 				{
-					return new ReturnedArguments(list, ArgFailureReason.TooFewArgs);
+					return new ReturnedArguments(list, FailureReason.TooFew);
 				}
 			}
 
 			var args = SplitByCharExceptInQuotes(input, ' ').ToList();
-			if (min > max)
+			if (args.Count < min)
 			{
-				return new ReturnedArguments(args, ArgFailureReason.MaxLessThanMin);
-			}
-			else if (args.Count < min)
-			{
-				return new ReturnedArguments(args, ArgFailureReason.TooFewArgs);
+				return new ReturnedArguments(args, FailureReason.TooFew);
 			}
 			else if (args.Count > max)
 			{
-				return new ReturnedArguments(args, ArgFailureReason.TooManyArgs);
+				return new ReturnedArguments(args, FailureReason.TooMany);
 			}
 
 			//Finding the wanted arguments
@@ -477,22 +473,18 @@ namespace Advobot
 			return new ReturnedArguments(args, specifiedArgs, context.Message);
 		}
 
-		public static ReturnedType<T> GetType<T>(string input, IEnumerable<T> validTypes, IEnumerable<T> invalidTypes = null) where T : struct
+		public static ReturnedObject<T> GetEnum<T>(string input, IEnumerable<T> validEnums, IEnumerable<T> invalidEnums = null) where T : struct
 		{
-			if (!Enum.TryParse<T>(input, true, out T type))
+			if (!Enum.TryParse<T>(input, true, out T tempEnum))
 			{
-				return new ReturnedType<T>(type, TypeFailureReason.NotFound);
+				return new ReturnedObject<T>(tempEnum, FailureReason.TooFew);
 			}
-			else if (invalidTypes != null && invalidTypes.Contains(type))
+			else if (!validEnums.Contains(tempEnum) || (invalidEnums != null && invalidEnums.Contains(tempEnum)))
 			{
-				return new ReturnedType<T>(type, TypeFailureReason.InvalidType);
-			}
-			else if (!validTypes.Contains(type))
-			{
-				return new ReturnedType<T>(type, TypeFailureReason.InvalidType);
+				return new ReturnedObject<T>(tempEnum, FailureReason.InvalidEnum);
 			}
 
-			return new ReturnedType<T>(type, TypeFailureReason.NotFailure);
+			return new ReturnedObject<T>(tempEnum, FailureReason.NotFailure);
 		}
 
 		public static CommandSwitch GetCommand(BotGuildInfo guildInfo, string input)
@@ -567,19 +559,19 @@ namespace Advobot
 
 		public static string GetObjectStringBasic(Type type)
 		{
-			if (typeof(IGuildUser) == type)
+			if (type.Equals(typeof(IGuildUser)))
 			{
 				return Constants.BASIC_TYPE_USER;
 			}
-			else if (typeof(IGuildChannel) == type)
+			else if (type.Equals(typeof(IGuildChannel)))
 			{
 				return Constants.BASIC_TYPE_CHANNEL;
 			}
-			else if (typeof(IRole) == type)
+			else if (type.Equals(typeof(IRole)))
 			{
 				return Constants.BASIC_TYPE_ROLE;
 			}
-			else if (typeof(IGuild) == type)
+			else if (type.Equals(typeof(IGuild)))
 			{
 				return Constants.BASIC_TYPE_GUILD;
 			}
@@ -910,7 +902,7 @@ namespace Advobot
 			await channel.Guild.ReorderChannelsAsync(channels.Select(x => new ReorderChannelProperties(x.Id, channels.IndexOf(x))));
 		}
 
-		public static ReturnedDiscordObject<IGuildChannel> GetChannel(ICommandContext context, ChannelCheck[] checkingTypes, bool mentions, string input)
+		public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ObjectVerification[] checkingTypes, bool mentions, string input)
 		{
 			IGuildChannel channel = null;
 			if (!String.IsNullOrWhiteSpace(input))
@@ -932,7 +924,7 @@ namespace Advobot
 					}
 					else if (channels.Count() > 1)
 					{
-						return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.TooMany);
+						return new ReturnedObject<IGuildChannel>(channel, FailureReason.TooMany);
 					}
 				}
 			}
@@ -948,7 +940,7 @@ namespace Advobot
 					}
 					else if (channelMentions.Count() > 1)
 					{
-						return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.TooMany);
+						return new ReturnedObject<IGuildChannel>(channel, FailureReason.TooMany);
 					}
 				}
 			}
@@ -956,43 +948,47 @@ namespace Advobot
 			return GetChannel(context, checkingTypes, channel);
 		}
 
-		public static ReturnedDiscordObject<IGuildChannel> GetChannel(ICommandContext context, ChannelCheck[] checkingTypes, ulong inputID)
+		public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ObjectVerification[] checkingTypes, ulong inputID)
 		{
-			IGuildChannel channel = GetChannel(context.Guild, inputID);
+			var channel = GetChannel(context.Guild, inputID);
 			if (channel == null)
 			{
-				return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.NotFound);
+				return new ReturnedObject<IGuildChannel>(channel, FailureReason.TooFew);
 			}
 
 			return GetChannel(context, checkingTypes, channel);
 		}
 
-		public static ReturnedDiscordObject<IGuildChannel> GetChannel(ICommandContext context, ChannelCheck[] checkingTypes, IGuildChannel channel)
+		public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ObjectVerification[] checkingTypes, IGuildChannel channel)
+		{
+			return GetChannel(context.Guild, context.User as IGuildUser, checkingTypes, channel);
+		}
+
+		public static ReturnedObject<T> GetChannel<T>(IGuild guild, IGuildUser user, ObjectVerification[] checkingTypes, T channel) where T : IGuildChannel
 		{
 			if (channel == null)
 			{
-				return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.NotFound);
+				return new ReturnedObject<T>(channel, FailureReason.TooFew);
 			}
 
-			var bot = GetBot(context.Guild);
-			var user = context.User as IGuildUser;
+			var bot = GetBot(guild);
 			foreach (var type in checkingTypes)
 			{
-				if (!GetIfUserCanDoActionOnChannel(context, channel, user, type))
+				if (!GetIfUserCanDoActionOnChannel(channel, user, type))
 				{
-					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.UserInability);
+					return new ReturnedObject<T>(channel, FailureReason.UserInability);
 				}
-				else if (!GetIfUserCanDoActionOnChannel(context, channel, bot, type))
+				else if (!GetIfUserCanDoActionOnChannel(channel, bot, type))
 				{
-					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.BotInability);
+					return new ReturnedObject<T>(channel, FailureReason.BotInability);
 				}
-				else if (!GetIfChannelIsCorrectType(context, channel, user, type))
+				else if (!GetIfChannelIsCorrectType(channel, user, type))
 				{
-					return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.IncorrectChannelType);
+					return new ReturnedObject<T>(channel, FailureReason.ChannelType);
 				}
 			}
 
-			return new ReturnedDiscordObject<IGuildChannel>(channel, FailureReason.NotFailure);
+			return new ReturnedObject<T>(channel, FailureReason.NotFailure);
 		}
 
 		public static EditableDiscordObject<IGuildChannel>? GetValidEditChannels(ICommandContext context)
@@ -1012,7 +1008,7 @@ namespace Advobot
 				input.ForEach(x =>
 				{
 					var channel = GetChannel(context.Guild, x);
-					if (GetIfUserCanDoActionOnChannel(context, channel, user, ChannelCheck.CanModifyPermissions) && GetIfUserCanDoActionOnChannel(context, channel, bot, ChannelCheck.CanModifyPermissions))
+					if (GetIfUserCanDoActionOnChannel(channel, user, ObjectVerification.CanModifyPermissions) && GetIfUserCanDoActionOnChannel(channel, bot, ObjectVerification.CanModifyPermissions))
 					{
 						success.Add(channel);
 					}
@@ -1030,82 +1026,123 @@ namespace Advobot
 			return (guild as SocketGuild).GetChannel(ID);
 		}
 
-		public static bool GetIfUserCanDoActionOnChannel(ICommandContext context, IGuildChannel target, IGuildUser user, ChannelCheck type)
+		public static bool GetIfUserCanDoActionOnChannel(IGuildChannel target, IGuildUser user, ObjectVerification type)
 		{
 			if (target == null || user == null)
 				return false;
 
 			var channelPerms = user.GetPermissions(target);
 			var guildPerms = user.GuildPermissions;
-			if (target is ITextChannel)
+
+			var dontCheckReadPerms = target is IVoiceChannel;
+			switch (type)
 			{
-				switch (type)
+				case ObjectVerification.None:
 				{
-					case ChannelCheck.CanBeRead:
-					{
-						return channelPerms.ReadMessages;
-					}
-					case ChannelCheck.CanCreateInstantInvite:
-					{
-						return channelPerms.ReadMessages && channelPerms.CreateInstantInvite;
-					}
-					case ChannelCheck.CanBeManaged:
-					{
-						return channelPerms.ReadMessages && channelPerms.ManageChannel;
-					}
-					case ChannelCheck.CanModifyPermissions:
-					{
-						return channelPerms.ReadMessages && channelPerms.ManageChannel && channelPerms.ManagePermissions;
-					}
-					case ChannelCheck.CanBeReordered:
-					{
-						return channelPerms.ReadMessages && guildPerms.ManageChannels;
-					}
-					case ChannelCheck.CanDeleteMessages:
-					{
-						return channelPerms.ReadMessages && channelPerms.ManageMessages;
-					}
+					return true;
+				}
+				case ObjectVerification.CanBeRead:
+				{
+					return (dontCheckReadPerms || channelPerms.ReadMessages);
+				}
+				case ObjectVerification.CanCreateInstantInvite:
+				{
+					return (dontCheckReadPerms || channelPerms.ReadMessages) && channelPerms.CreateInstantInvite;
+				}
+				case ObjectVerification.CanBeManaged:
+				{
+					return (dontCheckReadPerms || channelPerms.ReadMessages) && channelPerms.ManageChannel;
+				}
+				case ObjectVerification.CanModifyPermissions:
+				{
+					return (dontCheckReadPerms || channelPerms.ReadMessages) && channelPerms.ManageChannel && channelPerms.ManagePermissions;
+				}
+				case ObjectVerification.CanBeReordered:
+				{
+					return (dontCheckReadPerms || channelPerms.ReadMessages) && guildPerms.ManageChannels;
+				}
+				case ObjectVerification.CanDeleteMessages:
+				{
+					return (dontCheckReadPerms || channelPerms.ReadMessages) && channelPerms.ManageMessages;
+				}
+				case ObjectVerification.CanMoveUsers:
+				{
+					return dontCheckReadPerms && channelPerms.MoveMembers;
+				}
+				default:
+				{
+					return false;
 				}
 			}
-			else
-			{
-				switch (type)
-				{
-					case ChannelCheck.CanBeManaged:
-					{
-						return channelPerms.ManageChannel;
-					}
-					case ChannelCheck.CanModifyPermissions:
-					{
-						return channelPerms.ManageChannel && channelPerms.ManagePermissions;
-					}
-					case ChannelCheck.CanBeReordered:
-					{
-						return guildPerms.ManageChannels;
-					}
-					case ChannelCheck.CanMoveUsers:
-					{
-						return channelPerms.MoveMembers;
-					}
-				}
-			}
-			return true;
 		}
 
-		public static bool GetIfChannelIsCorrectType(ICommandContext context, IGuildChannel target, IGuildUser user, ChannelCheck type)
+		public static bool GetIfChannelIsCorrectType(IGuildChannel target, IGuildUser user, ObjectVerification type)
 		{
 			switch (type)
 			{
-				case ChannelCheck.IsText:
+				case ObjectVerification.IsText:
 				{
 					return GetChannelType(target) == Constants.TEXT_TYPE;
 				}
-				case ChannelCheck.IsVoice:
+				case ObjectVerification.IsVoice:
 				{
 					return GetChannelType(target) == Constants.VOICE_TYPE;
 				}
+				default:
+				{
+					return true;
+				}
 			}
-			return true;
+		}
+
+		public static ulong GetOverwriteAllowBits(IGuildChannel channel, IRole role)
+		{
+			return channel.GetPermissionOverwrite(role)?.AllowValue ?? 0;
+		}
+
+		public static ulong GetOverwriteAllowBits(IGuildChannel channel, IUser user)
+		{
+			return channel.GetPermissionOverwrite(user)?.AllowValue ?? 0;
+		}
+
+		public static ulong GetOverwriteDenyBits(IGuildChannel channel, IRole role)
+		{
+			return channel.GetPermissionOverwrite(role)?.DenyValue ?? 0;
+		}
+
+		public static ulong GetOverwriteDenyBits(IGuildChannel channel, IUser user)
+		{
+			return channel.GetPermissionOverwrite(user)?.DenyValue ?? 0;
+		}
+
+		public static ulong AddChannelPermissions(ulong startBits, params ChannelPermission[] permissions)
+		{
+			foreach (var permission in permissions)
+			{
+				startBits = startBits & ~(1U << (int)permission);
+			}
+			return startBits;
+		}
+
+		public static ulong RemoveChannelPermissions(ulong startBits, params ChannelPermission[] permissions)
+		{
+			foreach (var permission in permissions)
+			{
+				startBits = startBits | (1U << (int)permission);
+			}
+			return startBits;
+		}
+
+		public static async Task ModifyOverwrite(IGuildChannel channel, IRole role, ulong allowBits, ulong denyBits)
+		{
+			await channel.RemovePermissionOverwriteAsync(role);
+			await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allowBits, denyBits));
+		}
+
+		public static async Task ModifyOverwrite(IGuildChannel channel, IUser user, ulong allowBits, ulong denyBits)
+		{
+			await channel.RemovePermissionOverwriteAsync(user);
+			await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits));
 		}
 		#endregion
 
@@ -1113,7 +1150,7 @@ namespace Advobot
 		public static async Task<IRole> GetMuteRole(IGuild guild, BotGuildInfo guildInfo)
 		{
 			//Even though GetRole requires an IGuildUser to check against, I can just throw in the bot a second time and it will be fine for the most part. Failures from this will be UserInability instead.
-			var returnedMuteRole = GetRole(guild, GetBot(guild), new[] { RoleCheck.CanBeEdited, RoleCheck.IsManaged }, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
+			var returnedMuteRole = GetRole(guild, GetBot(guild), new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
 			var muteRole = returnedMuteRole.Object;
 			if (returnedMuteRole.Reason != FailureReason.NotFailure)
 			{
@@ -1217,7 +1254,7 @@ namespace Advobot
 			}
 		}
 
-		public static ReturnedDiscordObject<IRole> GetRole(ICommandContext context, RoleCheck[] checkingTypes, bool mentions, string input)
+		public static ReturnedObject<IRole> GetRole(ICommandContext context, ObjectVerification[] checkingTypes, bool mentions, string input)
 		{
 			IRole role = null;
 			if (!String.IsNullOrWhiteSpace(input))
@@ -1239,7 +1276,7 @@ namespace Advobot
 					}
 					else if (roles.Count() > 1)
 					{
-						return new ReturnedDiscordObject<IRole>(role, FailureReason.TooMany);
+						return new ReturnedObject<IRole>(role, FailureReason.TooMany);
 					}
 				}
 			}
@@ -1255,7 +1292,7 @@ namespace Advobot
 					}
 					else if (roleMentions.Count() > 1)
 					{
-						return new ReturnedDiscordObject<IRole>(role, FailureReason.TooMany);
+						return new ReturnedObject<IRole>(role, FailureReason.TooMany);
 					}
 				}
 			}
@@ -1263,27 +1300,27 @@ namespace Advobot
 			return GetRole(context, checkingTypes, role);
 		}
 
-		public static ReturnedDiscordObject<IRole> GetRole(ICommandContext context, RoleCheck[] checkingTypes, ulong inputID)
+		public static ReturnedObject<IRole> GetRole(ICommandContext context, ObjectVerification[] checkingTypes, ulong inputID)
 		{
-			IRole role = GetRole(context.Guild, inputID);
+			var role = GetRole(context.Guild, inputID);
 			if (role == null)
 			{
-				return new ReturnedDiscordObject<IRole>(role, FailureReason.NotFound);
+				return new ReturnedObject<IRole>(role, FailureReason.TooFew);
 			}
 
 			return GetRole(context, checkingTypes, role);
 		}
 
-		public static ReturnedDiscordObject<IRole> GetRole(ICommandContext context, RoleCheck[] checkingTypes, IRole role)
+		public static ReturnedObject<IRole> GetRole(ICommandContext context, ObjectVerification[] checkingTypes, IRole role)
 		{
 			return GetRole(context.Guild, context.User as IGuildUser, checkingTypes, role);
 		}
 
-		public static ReturnedDiscordObject<IRole> GetRole(IGuild guild, IGuildUser user, RoleCheck[] checkingTypes, IRole role)
+		public static ReturnedObject<T> GetRole<T>(IGuild guild, IGuildUser user, ObjectVerification[] checkingTypes, T role) where T : IRole
 		{
 			if (role == null)
 			{
-				return new ReturnedDiscordObject<IRole>(role, FailureReason.NotFound);
+				return new ReturnedObject<T>(role, FailureReason.TooFew);
 			}
 
 			var bot = GetBot(guild);
@@ -1291,35 +1328,35 @@ namespace Advobot
 			{
 				if (!GetIfUserCanDoActionOnRole(guild, role, user, type))
 				{
-					return new ReturnedDiscordObject<IRole>(role, FailureReason.UserInability);
+					return new ReturnedObject<T>(role, FailureReason.UserInability);
 				}
 				else if (!GetIfUserCanDoActionOnRole(guild, role, bot, type))
 				{
-					return new ReturnedDiscordObject<IRole>(role, FailureReason.BotInability);
+					return new ReturnedObject<T>(role, FailureReason.BotInability);
 				}
 
 				switch (type)
 				{
-					case RoleCheck.IsEveryone:
+					case ObjectVerification.IsEveryone:
 					{
 						if (guild.EveryoneRole.Id == role.Id)
 						{
-							return new ReturnedDiscordObject<IRole>(role, FailureReason.EveryoneRole);
+							return new ReturnedObject<T>(role, FailureReason.EveryoneRole);
 						}
 						break;
 					}
-					case RoleCheck.IsManaged:
+					case ObjectVerification.IsManaged:
 					{
 						if (role.IsManaged)
 						{
-							return new ReturnedDiscordObject<IRole>(role, FailureReason.ManagedRole);
+							return new ReturnedObject<T>(role, FailureReason.ManagedRole);
 						}
 						break;
 					}
 				}
 			}
 
-			return new ReturnedDiscordObject<IRole>(role, FailureReason.NotFailure);
+			return new ReturnedObject<T>(role, FailureReason.NotFailure);
 		}
 
 		public static EditableDiscordObject<IRole>? GetValidEditRoles(ICommandContext context, IEnumerable<string> input)
@@ -1336,7 +1373,7 @@ namespace Advobot
 				var bot = GetBot(context.Guild);
 				input.ToList().ForEach(x =>
 				{
-					var returnedRole = GetRole(context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone, RoleCheck.IsManaged }, false, x);
+					var returnedRole = GetRole(context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged }, false, x);
 					if (returnedRole.Reason == FailureReason.NotFailure)
 					{
 						success.Add(returnedRole.Object);
@@ -1355,19 +1392,26 @@ namespace Advobot
 			return guild.GetRole(ID);
 		}
 
-		public static bool GetIfUserCanDoActionOnRole(IGuild guild, IRole target, IGuildUser user, RoleCheck type)
+		public static bool GetIfUserCanDoActionOnRole(IGuild guild, IRole target, IGuildUser user, ObjectVerification type)
 		{
 			if (target == null || user == null)
 				return false;
 
 			switch (type)
 			{
-				case RoleCheck.CanBeEdited:
+				case ObjectVerification.None:
+				{
+					return true;
+				}
+				case ObjectVerification.CanBeEdited:
 				{
 					return target.Position < GetUserPosition(guild, user);
 				}
+				default:
+				{
+					return false;
+				}
 			}
-			return true;
 		}
 		#endregion
 
@@ -1380,7 +1424,8 @@ namespace Advobot
 				users = users.Where(predicate).ToList();
 			}
 
-			return users.Where(x => GetIfUserCanBeModifiedByUser(context, x) && GetIfUserCanBeModifiedByBot(context, x)).ToList();
+			var guild = context.Guild;
+			return users.Where(x => GetIfUserCanBeModifiedByUser(guild, context.User as IGuildUser, x) && GetIfUserCanBeModifiedByUser(guild, GetBot(guild), x)).ToList();
 		}
 
 		public static async Task ChangeNickname(IGuildUser user, string newNN)
@@ -1439,7 +1484,7 @@ namespace Advobot
 			await user.KickAsync(FormatUserReason(context.User, reason));
 		}
 
-		public static ReturnedDiscordObject<IGuildUser> GetGuildUser(ICommandContext context, UserCheck[] checkingTypes, bool mentions, string input)
+		public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, ObjectVerification[] checkingTypes, bool mentions, string input)
 		{
 			IGuildUser user = null;
 			if (!String.IsNullOrWhiteSpace(input))
@@ -1461,7 +1506,7 @@ namespace Advobot
 					}
 					else if (users.Count() > 1)
 					{
-						return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.TooMany);
+						return new ReturnedObject<IGuildUser>(user, FailureReason.TooMany);
 					}
 				}
 			}
@@ -1477,7 +1522,7 @@ namespace Advobot
 					}
 					else if (userMentions.Count() > 1)
 					{
-						return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.TooMany);
+						return new ReturnedObject<IGuildUser>(user, FailureReason.TooMany);
 					}
 				}
 			}
@@ -1485,34 +1530,38 @@ namespace Advobot
 			return GetGuildUser(context, checkingTypes, user);
 		}
 
-		public static ReturnedDiscordObject<IGuildUser> GetGuildUser(ICommandContext context, UserCheck[] checkingTypes, ulong inputID)
+		public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, ObjectVerification[] checkingTypes, ulong inputID)
 		{
 			var user = GetGuildUser(context.Guild, inputID);
 			return GetGuildUser(context, checkingTypes, user);
 		}
 
-		public static ReturnedDiscordObject<IGuildUser> GetGuildUser(ICommandContext context, UserCheck[] checkingTypes, IGuildUser user)
+		public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, ObjectVerification[] checkingTypes, IGuildUser user)
+		{
+			return GetGuildUser(context.Guild, context.User as IGuildUser, checkingTypes, user);
+		}
+
+		public static ReturnedObject<T> GetGuildUser<T>(IGuild guild, IGuildUser currUser, ObjectVerification[] checkingTypes, T user) where T : IGuildUser
 		{
 			if (user == null)
 			{
-				return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.NotFound);
+				return new ReturnedObject<T>(user, FailureReason.TooFew);
 			}
 
-			var bot = GetBot(context.Guild);
-			var currUser = context.User as IGuildUser;
+			var bot = GetBot(guild);
 			foreach (var type in checkingTypes)
 			{
-				if (!GetIfUserCanDoActionOnUser(context, user, currUser, type))
+				if (!GetIfUserCanDoActionOnUser(guild, currUser, type, user))
 				{
-					return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.UserInability);
+					return new ReturnedObject<T>(user, FailureReason.UserInability);
 				}
-				else if (!GetIfUserCanDoActionOnUser(context, user, bot, type))
+				else if (!GetIfUserCanDoActionOnUser(guild, bot, type, user))
 				{
-					return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.BotInability);
+					return new ReturnedObject<T>(user, FailureReason.BotInability);
 				}
 			}
 
-			return new ReturnedDiscordObject<IGuildUser>(user, FailureReason.NotFailure);
+			return new ReturnedObject<T>(user, FailureReason.NotFailure);
 		}
 
 		public static EditableDiscordObject<IGuildUser>? GetValidEditUsers(ICommandContext context)
@@ -1530,67 +1579,18 @@ namespace Advobot
 				var bot = GetBot(context.Guild);
 				input.ForEach(x =>
 				{
-					var user = GetGuildUser(context.Guild, x);
-					if (GetIfUserCanBeModifiedByUser(context, user) && GetIfUserCanBeModifiedByBot(context, user))
+					var targetUser = GetGuildUser(context.Guild, x);
+					if (GetIfUserCanBeModifiedByUser(context.Guild, context.User as IGuildUser, targetUser) && GetIfUserCanBeModifiedByUser(context.Guild, bot, targetUser))
 					{
-						success.Add(user);
+						success.Add(targetUser);
 					}
 					else
 					{
-						failure.Add(user.FormatUser());
+						failure.Add(targetUser.FormatUser());
 					}
 				});
 			}
 			return new EditableDiscordObject<IGuildUser>(success, failure);
-		}
-
-		public static ReturnedBannedUser GetBannedUser(ICommandContext context, IEnumerable<IBan> bans, string username, string discriminator, string userID)
-		{
-			if (!String.IsNullOrWhiteSpace(userID))
-			{
-				if (ulong.TryParse(userID, out ulong inputUserID))
-				{
-					return new ReturnedBannedUser(bans.FirstOrDefault(x => x.User.Id == inputUserID), BannedUserFailureReason.NotFailure);
-				}
-				else
-				{
-					return new ReturnedBannedUser(null, BannedUserFailureReason.InvalidID);
-				}
-			}
-			else if (!String.IsNullOrWhiteSpace(username))
-			{
-				//Find users with the given username then the given discriminator if provided
-				var users = bans.Where(x => CaseInsEquals(x.User.Username, username)).ToList();
-				if (!String.IsNullOrWhiteSpace(discriminator))
-				{
-					if (ushort.TryParse(discriminator, out ushort disc))
-					{
-						users = users.Where(x => x.User.Discriminator.Equals(disc)).ToList();
-					}
-					else
-					{
-						return new ReturnedBannedUser(null, BannedUserFailureReason.InvalidDiscriminator);
-					}
-				}
-
-				//Return a message saying if there are multiple users
-				if (users.Count == 0)
-				{
-					return new ReturnedBannedUser(null, BannedUserFailureReason.NoMatch);
-				}
-				else if (users.Count == 1)
-				{
-					return new ReturnedBannedUser(users.First(), BannedUserFailureReason.NotFailure);
-				}
-				else
-				{
-					return new ReturnedBannedUser(null, BannedUserFailureReason.TooManyMatches, users);
-				}
-			}
-			else
-			{
-				return new ReturnedBannedUser(null, BannedUserFailureReason.NoUsernameOrID);
-			}
 		}
 
 		public static IGuildUser GetGuildUser(IGuild guild, ulong ID)
@@ -1622,39 +1622,42 @@ namespace Advobot
 			return Variables.Client.GetUser(((ulong)Variables.BotInfo.GetSetting(SettingOnBot.BotOwnerID)));
 		}
 
-		public static bool GetIfUserCanDoActionOnUser(ICommandContext context, IGuildUser target, IGuildUser user, UserCheck type)
+		public static bool GetIfUserCanDoActionOnUser(IGuild guild, IGuildUser currUser, ObjectVerification type, IGuildUser targetUser)
 		{
-			if (target == null || user == null)
+			if (targetUser == null || currUser == null)
 				return false;
 
 			switch (type)
 			{
-				case UserCheck.CanBeMovedFromChannel:
+				case ObjectVerification.None:
 				{
-					var channel = target.VoiceChannel;
-					return GetIfUserCanDoActionOnChannel(context, channel, user, ChannelCheck.CanMoveUsers);
+					return true;
 				}
-				case UserCheck.CanBeEdited:
+				case ObjectVerification.CanBeMovedFromChannel:
 				{
-					return GetIfUserCanBeModifiedByUser(context, target) || GetIfUserCanBeModifiedByBot(context, user);
+					return GetIfUserCanDoActionOnChannel(targetUser.VoiceChannel, currUser, ObjectVerification.CanMoveUsers);
+				}
+				case ObjectVerification.CanBeEdited:
+				{
+					return GetIfUserCanBeModifiedByUser(guild, currUser, targetUser) || GetIfUserCanBeModifiedByUser(guild, Actions.GetBot(guild), targetUser);
+				}
+				default:
+				{
+					return false;
 				}
 			}
-			return true;
 		}
 
-		public static bool GetIfUserCanBeModifiedByUser(ICommandContext context, IGuildUser user)
+		public static bool GetIfUserCanBeModifiedByUser(IGuild guild, IGuildUser currUser, IGuildUser targetUser)
 		{
-			var bannerPosition = GetUserPosition(context.Guild, context.User);
-			var banneePosition = GetUserPosition(context.Guild, user);
+			if (currUser.Id == Variables.BotID && targetUser.Id == Variables.BotID)
+			{
+				return true;
+			}
+
+			var bannerPosition = GetUserPosition(guild, currUser);
+			var banneePosition = GetUserPosition(guild, targetUser);
 			return bannerPosition > banneePosition;
-		}
-
-		public static bool GetIfUserCanBeModifiedByBot(ICommandContext context, IGuildUser user)
-		{
-			var bot = GetBot(context.Guild);
-			var botPosition = GetUserPosition(context.Guild, bot);
-			var userPosition = GetUserPosition(context.Guild, user);
-			return botPosition > userPosition || user.Id == bot.Id;
 		}
 
 		public static int GetUserPosition(IGuild guild, IUser user)
@@ -1669,14 +1672,14 @@ namespace Advobot
 		#endregion
 
 		#region Emotes
-		public static ReturnedDiscordObject<Emote> GetEmote(ICommandContext context, bool usage, string input)
+		public static ReturnedObject<Emote> GetEmote(ICommandContext context, bool usage, string input)
 		{
 			Emote emote = null;
 			if (!String.IsNullOrWhiteSpace(input))
 			{
 				if (Emote.TryParse(input, out emote))
 				{
-					return new ReturnedDiscordObject<Emote>(emote, FailureReason.NotFailure);
+					return new ReturnedObject<Emote>(emote, FailureReason.NotFailure);
 				}
 				else if (ulong.TryParse(input, out ulong emoteID))
 				{
@@ -1691,7 +1694,7 @@ namespace Advobot
 					}
 					else if (emotes.Count() > 1)
 					{
-						return new ReturnedDiscordObject<Emote>(emote, FailureReason.TooMany);
+						return new ReturnedObject<Emote>(emote, FailureReason.TooMany);
 					}
 				}
 			}
@@ -1707,12 +1710,12 @@ namespace Advobot
 					}
 					else if (emoteMentions.Count() > 1)
 					{
-						return new ReturnedDiscordObject<Emote>(emote, FailureReason.TooMany);
+						return new ReturnedObject<Emote>(emote, FailureReason.TooMany);
 					}
 				}
 			}
 
-			return new ReturnedDiscordObject<Emote>(emote, FailureReason.NotFailure);
+			return new ReturnedObject<Emote>(emote, FailureReason.NotFailure);
 		}
 		#endregion
 
@@ -1993,136 +1996,37 @@ namespace Advobot
 			}
 		}
 
-		public static async Task HandleObjectGettingErrors<T>(ICommandContext context, ReturnedDiscordObject<T> returnedObject)
+		public static async Task HandleObjectGettingErrors<T>(ICommandContext context, ReturnedObject<T> returnedObject)
 		{
-			var objType = "";
-			if (returnedObject.Object == null)
-			{
-				objType = GetObjectStringBasic(typeof(T));
-			}
-			else
-			{
-				objType = GetObjectStringBasic((dynamic)returnedObject.Object);
-			}
-			switch (returnedObject.Reason)
-			{
-				case FailureReason.NotFound:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Unable to find the {0}.", objType)));
-					return;
-				}
-				case FailureReason.UserInability:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object))));
-					return;
-				}
-				case FailureReason.BotInability:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object))));
-					return;
-				}
-				case FailureReason.TooMany:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("There are too many {0}s with the same name.", objType)));
-					return;
-				}
-				case FailureReason.IncorrectChannelType:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Invalid channel type for the given variable requirement.")));
-					return;
-				}
-				case FailureReason.EveryoneRole:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("The everyone role cannot be modified in that way.")));
-					return;
-				}
-				case FailureReason.ManagedRole:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Managed roles cannot be modified in that way.")));
-					return;
-				}
-			}
+			await MakeAndDeleteSecondaryMessage(context, FormatErrorString(context.Guild, returnedObject));
 		}
 
 		public static async Task HandleArgsGettingErrors(ICommandContext context, ReturnedArguments returnedArgs)
 		{
+			//TODO: Remove my own arg parsing.
 			switch (returnedArgs.Reason)
 			{
-				case ArgFailureReason.TooManyArgs:
+				case FailureReason.TooMany:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR("Too many arguments."));
 					return;
 				}
-				case ArgFailureReason.TooFewArgs:
+				case FailureReason.TooFew:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR("Too few arguments."));
 					return;
 				}
-				case ArgFailureReason.MissingCriticalArgs:
+				/*
+				case FailureReason.MissingCriticalArgs:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR("Missing critical arguments."));
 					return;
 				}
-				case ArgFailureReason.MaxLessThanMin:
+				case FailureReason.MaxLessThanMin:
 				{
 					await MakeAndDeleteSecondaryMessage(context, ERROR("NOT USER ERROR: Max less than min."));
 					return;
-				}
-			}
-		}
-
-		public static async Task HandleTypeGettingErrors<T>(ICommandContext context, ReturnedType<T> returnedType)
-		{
-			switch (returnedType.Reason)
-			{
-				case TypeFailureReason.NotFound:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to find the type for the given input."));
-					return;
-				}
-				case TypeFailureReason.InvalidType:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("The type `{0}` is not accepted in this instance.", returnedType.Type)));
-					return;
-				}
-			}
-		}
-
-		public static async Task HandleBannedUserErrors(ICommandContext context, ReturnedBannedUser returnedBannedUser)
-		{
-			switch (returnedBannedUser.Reason)
-			{
-				case BannedUserFailureReason.NoBans:
-				{
-					await MakeAndDeleteSecondaryMessage(context, "The guild has no bans.");
-					return;
-				}
-				case BannedUserFailureReason.NoMatch:
-				{
-					await MakeAndDeleteSecondaryMessage(context, "No ban was found which matched the given criteria.");
-					return;
-				}
-				case BannedUserFailureReason.TooManyMatches:
-				{
-					var msg = String.Join("`, `", returnedBannedUser.MatchedBans.Select(x => x.User.FormatUser()));
-					await SendChannelMessage(context, String.Format("The following users have that name: `{0}`.", msg));
-					return;
-				}
-				case BannedUserFailureReason.InvalidDiscriminator:
-				{
-					await MakeAndDeleteSecondaryMessage(context, "The given discriminator is invalid.");
-					return;
-				}
-				case BannedUserFailureReason.InvalidID:
-				{
-					await MakeAndDeleteSecondaryMessage(context, "The given ID is invalid.");
-					return;
-				}
-				case BannedUserFailureReason.NoUsernameOrID:
-				{
-					await MakeAndDeleteSecondaryMessage(context, "A username or ID must be provided");
-					return;
-				}
+				}*/
 			}
 		}
 
@@ -2468,6 +2372,50 @@ namespace Advobot
 			return list.Select(x => FormatDM(x)).ToList();
 		}
 
+		public static string FormatErrorString<T>(IGuild guild, ReturnedObject<T> returnedObject)
+		{
+			var objType = returnedObject.Object == null ? GetObjectStringBasic(typeof(T)) : GetObjectStringBasic((dynamic)returnedObject.Object);
+			switch (returnedObject.Reason)
+			{
+				case FailureReason.TooFew:
+				{
+					return ERROR(String.Format("Unable to find the {0}.", objType));
+				}
+				case FailureReason.UserInability:
+				{
+					return ERROR(String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object)));
+				}
+				case FailureReason.BotInability:
+				{
+					return ERROR(String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object)));
+				}
+				case FailureReason.TooMany:
+				{
+					return ERROR(String.Format("There are too many {0}s with the same name.", objType));
+				}
+				case FailureReason.ChannelType:
+				{
+					return ERROR(String.Format("Invalid channel type for the given variable requirement."));
+				}
+				case FailureReason.EveryoneRole:
+				{
+					return ERROR(String.Format("The everyone role cannot be modified in that way."));
+				}
+				case FailureReason.ManagedRole:
+				{
+					return ERROR(String.Format("Managed roles cannot be modified in that way."));
+				}
+				case FailureReason.InvalidEnum:
+				{
+					return ERROR(String.Format("The type `{0}` is not accepted in this instance.", returnedObject.Object));
+				}
+				default:
+				{
+					return ERROR("idk, this shouldn't be seen. - Advobot");
+				}
+			}
+		}
+
 		public static string FormatMessage(IMessage msg)
 		{
 			var content = String.IsNullOrEmpty(msg.Content) ? "EMPTY MESSAGE CONTENT" : msg.Content;
@@ -2811,10 +2759,10 @@ namespace Advobot
 			var basePerm = "N/A";
 			if (attr != null)
 			{
-				var perms = (attr.Requirements & (1U << (int)Precondition.UserHasAPerm)) != 0;
-				var guild = (attr.Requirements & (1U << (int)Precondition.GuildOwner)) != 0;
-				var trust = (attr.Requirements & (1U << (int)Precondition.TrustedUser)) != 0;
-				var owner = (attr.Requirements & (1U << (int)Precondition.BotOwner)) != 0;
+				var perms = (attr.Requirements & Precondition.UserHasAPerm) != 0;
+				var guild = (attr.Requirements & Precondition.GuildOwner) != 0;
+				var trust = (attr.Requirements & Precondition.TrustedUser) != 0;
+				var owner = (attr.Requirements & Precondition.BotOwner) != 0;
 
 				var text = new List<string>();
 				if (perms)
@@ -3455,17 +3403,17 @@ namespace Advobot
 			return true;
 		}
 
-		public static bool VerifyServerLoggingAction(SocketGuildUser user, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
+		public static bool VerifyServerLoggingAction(SocketGuildUser user, LogAction logAction, out VerifiedLoggingAction verifLoggingAction)
 		{
 			return VerifyServerLoggingAction(user.Guild, logAction, out verifLoggingAction);
 		}
 
-		public static bool VerifyServerLoggingAction(ISocketMessageChannel channel, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
+		public static bool VerifyServerLoggingAction(ISocketMessageChannel channel, LogAction logAction, out VerifiedLoggingAction verifLoggingAction)
 		{
 			return VerifyServerLoggingAction(GetGuild(channel) as SocketGuild, logAction, out verifLoggingAction) && !((List<ulong>)verifLoggingAction.GuildInfo.GetSetting(SettingOnGuild.IgnoredLogChannels)).Contains(channel.Id);
 		}
 
-		public static bool VerifyServerLoggingAction(SocketGuild guild, LogActions logAction, out VerifiedLoggingAction verifLoggingAction)
+		public static bool VerifyServerLoggingAction(SocketGuild guild, LogAction logAction, out VerifiedLoggingAction verifLoggingAction)
 		{
 			verifLoggingAction = new VerifiedLoggingAction(null, null, null);
 			if (Variables.Pause)
@@ -3475,7 +3423,7 @@ namespace Advobot
 
 			var logChannel = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog)).Object;
 			verifLoggingAction = new VerifiedLoggingAction(guild, guildInfo, logChannel);
-			return logChannel != null && ((List<LogActions>)guildInfo.GetSetting(SettingOnGuild.LogActions)).Contains(logAction);
+			return logChannel != null && ((List<LogAction>)guildInfo.GetSetting(SettingOnGuild.LogActions)).Contains(logAction);
 		}
 		#endregion
 
@@ -4365,30 +4313,6 @@ namespace Advobot
 			}
 		}
 
-		public static FAWRType ClarifyFAWRType(FAWRType type)
-		{
-			switch (type)
-			{
-				case FAWRType.GR:
-				{
-					return FAWRType.GiveRole;
-				}
-				case FAWRType.TR:
-				{
-					return FAWRType.TakeRole;
-				}
-				case FAWRType.GNN:
-				{
-					return FAWRType.GiveNickname;
-				}
-				case FAWRType.TNN:
-				{
-					return FAWRType.TakeNickname;
-				}
-			}
-			return type;
-		}
-
 		public static string[] SplitByCharExceptInQuotes(string inputString, char inputChar)
 		{
 			if (String.IsNullOrWhiteSpace(inputString))
@@ -4447,6 +4371,26 @@ namespace Advobot
 					func.Invoke();
 				}
 			}).Forget();
+		}
+
+		public static ReturnedObject<T> GetDiscordObject<T>(IGuild guild, IGuildUser user, ObjectVerification[] verif, T obj) where T : ISnowflakeEntity
+		{
+			if (obj is IGuildChannel)
+			{
+				return GetChannel(guild, user, verif, (dynamic)obj);
+			}
+			else if (obj is IRole)
+			{
+				return GetRole(guild, user, verif, (dynamic)obj);
+			}
+			else if (obj is IGuildUser)
+			{
+				return GetGuildUser(guild, user, verif, (dynamic)obj);
+			}
+			else
+			{
+				return new ReturnedObject<T>(obj, FailureReason.NotFailure);
+			}
 		}
 		#endregion
 	}

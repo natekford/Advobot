@@ -8,6 +8,35 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
+	namespace UserModeration
+	{
+		[Usage("<User ID|\"Username#Discriminator\"> <True|False>")]
+		[Summary("Unbans the user from the guild. If the reason argument is true it only says the reason without unbanning.")]
+		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
+		[DefaultEnabled(true)]
+		public class Unban : ModuleBase<MyCommandContext>
+		{
+			[Command("unban")]
+			[Alias("ub")]
+			public async Task Command([OverrideTypeReader(typeof(IBanTypeReader))] IBan ban, [Optional] bool reason)
+			{
+				await CommandRunner(ban, reason);
+			}
+
+			private async Task CommandRunner(IBan ban, bool reason)
+			{
+				if (reason)
+				{
+					await Actions.SendChannelMessage(Context, String.Format("`{0}`'s ban reason is `{1}`.", ban.User.FormatUser(), ban.Reason ?? "Nothing"));
+				}
+				else
+				{
+					await Context.Guild.RemoveBanAsync(ban.User);
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unbanned `{0}`", ban.User.FormatUser()));
+				}
+			}
+		}
+	}
 	//User Moderation commands are commands that affect the users of a guild
 	[Name("UserModeration")]
 	public class Advobot_Commands_User_Mod : ModuleBase
@@ -24,7 +53,7 @@ namespace Advobot
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -44,7 +73,7 @@ namespace Advobot
 			}
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.None }, true, userStr);
 			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -72,7 +101,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -92,7 +121,7 @@ namespace Advobot
 			}
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.None }, true, userStr);
 			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -129,7 +158,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -149,7 +178,7 @@ namespace Advobot
 			}
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.None }, true, userStr);
 			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -185,7 +214,7 @@ namespace Advobot
 		public async Task MoveUser([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -194,7 +223,7 @@ namespace Advobot
 			var chanStr = returnedArgs.Arguments[1];
 
 			//Check if valid user and that they're in a voice channel
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeMovedFromChannel }, true, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.CanBeMovedFromChannel }, true, userStr);
 			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -210,7 +239,7 @@ namespace Advobot
 			}
 
 			//Check if valid channel that the user can edit
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanMoveUsers, ChannelCheck.IsVoice }, false, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanMoveUsers, ObjectVerification.IsVoice }, false, chanStr);
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -238,7 +267,7 @@ namespace Advobot
 		public async Task MoveUsers([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -247,7 +276,7 @@ namespace Advobot
 			var outputChanStr = returnedArgs.Arguments[1];
 
 			//Get input channel
-			var returnedInputChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanMoveUsers, ChannelCheck.IsVoice }, false, inputChanStr);
+			var returnedInputChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanMoveUsers, ObjectVerification.IsVoice }, false, inputChanStr);
 			if (returnedInputChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedInputChannel);
@@ -256,7 +285,7 @@ namespace Advobot
 			var inputChannel = returnedInputChannel.Object as IVoiceChannel;
 
 			//Get output channel
-			var returnedOutputChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanMoveUsers, ChannelCheck.IsVoice }, false, outputChanStr);
+			var returnedOutputChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanMoveUsers, ObjectVerification.IsVoice }, false, outputChanStr);
 			if (returnedOutputChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedOutputChannel);
@@ -300,7 +329,7 @@ namespace Advobot
 		public async Task PruneMembers([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -355,7 +384,7 @@ namespace Advobot
 		public async Task SoftBan([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -363,7 +392,7 @@ namespace Advobot
 			var userStr = returnedArgs.Arguments[0];
 			var reasonStr = returnedArgs.Arguments[1];
 
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.CanBeEdited }, true, userStr);
 			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -391,7 +420,7 @@ namespace Advobot
 		public async Task Ban([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "days", "time" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -432,7 +461,7 @@ namespace Advobot
 			}
 			else
 			{
-				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, userStr);
+				var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.CanBeEdited }, true, userStr);
 				if (returnedUser.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -472,56 +501,6 @@ namespace Advobot
 			await Actions.SendChannelMessage(Context, response);
 		}
 
-		[Command("unban")]
-		[Alias("ub")]
-		[Usage("<\"Username:Name\"> <Discriminator:Number> <ID:User ID> <Reason:True|False>")]
-		[Summary("Unbans the user from the guild. If the reason argument is true it only says the reason without unbanning.")]
-		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
-		[DefaultEnabled(true)]
-		public async Task Unban([Remainder] string input)
-		{
-			//Split the args
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3), new[] { "username", "discriminator", "id", "reason" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var nameStr = returnedArgs.GetSpecifiedArg("username");
-			var discStr = returnedArgs.GetSpecifiedArg("discriminator");
-			var idStr = returnedArgs.GetSpecifiedArg("id");
-			var reasonStr = returnedArgs.GetSpecifiedArg("reason");
-
-			var returnedBannedUser = Actions.GetBannedUser(Context, await Context.Guild.GetBansAsync(), nameStr, discStr, idStr);
-			if (returnedBannedUser.Reason != BannedUserFailureReason.NotFailure)
-			{
-				await Actions.HandleBannedUserErrors(Context, returnedBannedUser);
-				return;
-			}
-			var ban = returnedBannedUser.Ban;
-
-			var reason = false;
-			if (!String.IsNullOrWhiteSpace(reasonStr))
-			{
-				if (!bool.TryParse(reasonStr, out reason))
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid bool for reason."));
-					return;
-				}
-			}
-
-			var user = ban.User;
-			if (reason)
-			{
-				await Actions.SendChannelMessage(Context, String.Format("`{0}`'s ban reason is `{1}`.", user.FormatUser(), ban.Reason));
-			}
-			else
-			{
-				await Context.Guild.RemoveBanAsync(user);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unbanned `{0}`", user.FormatUser()));
-			}
-		}
-
 		[Command("kick")]
 		[Alias("k")]
 		[Usage("[User] <Reason>")]
@@ -531,7 +510,7 @@ namespace Advobot
 		public async Task Kick([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -539,7 +518,7 @@ namespace Advobot
 			var userStr = returnedArgs.Arguments[0];
 			var reasonStr = returnedArgs.Arguments[1];
 
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.CanBeEdited }, true, userStr);
 			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -587,7 +566,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -604,7 +583,7 @@ namespace Advobot
 			ITextChannel channel = Context.Channel as ITextChannel;
 			if (Context.Message.MentionedChannelIds.Any())
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanDeleteMessages, ChannelCheck.IsText }, true, null);
+				var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanDeleteMessages, ObjectVerification.IsText }, true, null);
 				if (returnedChannel.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -614,7 +593,7 @@ namespace Advobot
 			}
 			else
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanDeleteMessages, ChannelCheck.IsText }, channel);
+				var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanDeleteMessages, ObjectVerification.IsText }, channel);
 				if (returnedChannel.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -669,7 +648,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "roles", "messages", "time", "guild" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -736,7 +715,7 @@ namespace Advobot
 			{
 				roleStr.Split('/').ToList().ForEach(x =>
 				{
-					var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.None }, false, x);
+					var returnedRole = Actions.GetRole(Context, new[] { ObjectVerification.None }, false, x);
 					if (returnedRole.Reason == FailureReason.NotFailure)
 					{
 						roles.Add(returnedRole.Object);
@@ -815,7 +794,7 @@ namespace Advobot
 		{
 			//Split arguments
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 4));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;

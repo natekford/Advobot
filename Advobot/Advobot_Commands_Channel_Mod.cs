@@ -7,156 +7,243 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
-	//Channel Moderation commands are commands that affect the channels in a guild
-	[Name("ChannelModeration")]
-	public class Advobot_Commands_Channel_Mod : ModuleBase
+	namespace ChannelModeration
 	{
-		[Command("createchannel")]
-		[Alias("cch")]
-		[Usage("[Name] [Text|Voice]")]
-		[Summary("Adds a channel to the guild of the given type with the given name. The name CANNOT contain any spaces: use underscores or dashes instead.")]
+		[Usage("[Text|Voice] [Name]")]
+		[Summary("Adds a channel to the guild of the given type with the given name. Text channel names cannot contain any spaces.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		[DefaultEnabled(true)]
-		public async Task CreateChannel([Remainder] string input)
+		public class CreateChannel : ModuleBase<MyCommandContext>
 		{
-			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			[Command("createchannel")]
+			[Alias("cch")]
+			public async Task Command(ChannelType channelType, [Remainder] string name)
 			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var nameStr = returnedArgs.Arguments[0];
-			var typeStr = returnedArgs.Arguments[1];
-
-			//Make sure valid type
-			var text = Actions.CaseInsEquals(typeStr, Constants.TEXT_TYPE);
-			var voice = Actions.CaseInsEquals(typeStr, Constants.VOICE_TYPE);
-			if (!text && !voice)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid channel type."));
-				return;
+				await CommandRunner(channelType, name);
 			}
 
-			//Test for name validity
-			if (text && nameStr.Contains(' '))
+			private async Task CommandRunner(ChannelType channelType, string name)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No spaces are allowed in a text channel name."));
-				return;
-			}
-			else if (nameStr.Length > Constants.MAX_CHANNEL_NAME_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.MAX_CHANNEL_NAME_LENGTH)));
-				return;
-			}
-			else if (nameStr.Length < Constants.MIN_CHANNEL_NAME_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.MIN_CHANNEL_NAME_LENGTH)));
-				return;
-			}
+				if (name.Length > Constants.MAX_CHANNEL_NAME_LENGTH)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.MAX_CHANNEL_NAME_LENGTH)));
+					return;
+				}
+				else if (name.Length < Constants.MIN_CHANNEL_NAME_LENGTH)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.MIN_CHANNEL_NAME_LENGTH)));
+					return;
+				}
 
-			//Get the channel
-			IGuildChannel channel = null;
-			if (text)
-			{
-				channel = await Context.Guild.CreateTextChannelAsync(nameStr);
+				IGuildChannel channel;
+				switch (channelType)
+				{
+					case ChannelType.Text:
+					{
+						if (name.Contains(' '))
+						{
+							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No spaces are allowed in a text channel name."));
+							return;
+						}
+
+						channel = await Context.Guild.CreateTextChannelAsync(name);
+						break;
+					}
+					case ChannelType.Voice:
+					{
+						channel = await Context.Guild.CreateVoiceChannelAsync(name);
+						break;
+					}
+					default:
+					{
+						return;
+					}
+				}
+
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created `{0}`.", channel.FormatChannel()));
 			}
-			else
-			{
-				channel = await Context.Guild.CreateVoiceChannelAsync(nameStr);
-			}
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created `{0}`.", channel.FormatChannel()));
 		}
 
-		[Command("softdeletechannel")]
-		[Alias("sdch")]
 		[Usage("[Channel]")]
 		[Summary("Makes most roles unable to read the channel and moves it to the bottom of the channel list. Only works for text channels.")]
 		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
 		[DefaultEnabled(true)]
-		public async Task SoftDeleteChannel([Remainder] string input)
+		public class SoftDeleteChannel : ModuleBase<MyCommandContext>
 		{
-			//See if the user can see and thus edit that channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged, ChannelCheck.IsText }, true, input);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
+			[Command("softdeletechannel")]
+			[Alias("sdch")]
+			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] ITextChannel channel)
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var channel = returnedChannel.Object;
-
-			//See if not attempted on a text channel
-			if (Actions.GetChannelType(channel) != Constants.TEXT_TYPE)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Softdelete only works on text channels inside a guild."));
-				return;
-			}
-			//Check if tried on the base channel
-			else if (channel.Id == Context.Guild.DefaultChannelId)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to softdelete the base channel."));
-				return;
+				await CommandRunner(channel);
 			}
 
-			//Make it so only admins/the owner can read the channel
-			await channel.PermissionOverwrites.ToList().ForEachAsync(async overwrite =>
+			public async Task CommandRunner(ITextChannel channel)
 			{
-				if (overwrite.TargetType == PermissionTarget.Role)
+				if (channel.Id == Context.Guild.DefaultChannelId)
 				{
-					var role = Context.Guild.GetRole(overwrite.TargetId);
-					var allowBits = (uint)channel.GetPermissionOverwrite(role).Value.AllowValue & ~(1U << (int)ChannelPermission.ReadMessages);
-					var denyBits = (uint)channel.GetPermissionOverwrite(role).Value.DenyValue | (1U << (int)ChannelPermission.ReadMessages);
-					await channel.RemovePermissionOverwriteAsync(role);
-					await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allowBits, denyBits));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to softdelete the base channel."));
+					return;
 				}
-				else
+
+				foreach (var overwrite in channel.PermissionOverwrites)
 				{
-					var user = await Context.Guild.GetUserAsync(overwrite.TargetId);
-					var allowBits = (uint)channel.GetPermissionOverwrite(user).Value.AllowValue & ~(1U << (int)ChannelPermission.ReadMessages);
-					var denyBits = (uint)channel.GetPermissionOverwrite(user).Value.DenyValue | (1U << (int)ChannelPermission.ReadMessages);
-					await channel.RemovePermissionOverwriteAsync(user);
-					await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits));
+					dynamic obj;
+					switch (overwrite.TargetType)
+					{
+						case PermissionTarget.Role:
+						{
+							obj = Context.Guild.GetRole(overwrite.TargetId);
+							break;
+						}
+						case PermissionTarget.User:
+						{
+							obj = await Context.Guild.GetUserAsync(overwrite.TargetId);
+							break;
+						}
+						default:
+						{
+							continue;
+						}
+					}
+
+					var allowBits = Actions.RemoveChannelPermissions(Actions.GetOverwriteAllowBits(channel, obj), ChannelPermission.ReadMessages);
+					var denyBits = Actions.AddChannelPermissions(Actions.GetOverwriteDenyBits(channel, obj), ChannelPermission.ReadMessages);
+					await Actions.ModifyOverwrite(channel, obj, allowBits, denyBits);
 				}
-			});
 
-			//Double check the everyone role has the correct perms
-			if (!channel.PermissionOverwrites.Any(x => x.TargetId == Context.Guild.EveryoneRole.Id))
-			{
-				await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny));
+				//Double check the everyone role has the correct perms
+				if (!channel.PermissionOverwrites.Any(x => x.TargetId == Context.Guild.EveryoneRole.Id))
+				{
+					await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny));
+				}
+
+				//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
+				await Actions.ModifyChannelPosition(channel, (await Context.Guild.GetTextChannelsAsync()).Max(x => x.Position));
+				await Actions.SendChannelMessage(Context, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything in this channel.");
 			}
-
-			//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
-			await Actions.ModifyChannelPosition(channel, (await Context.Guild.GetTextChannelsAsync()).Max(x => x.Position));
-			await Actions.SendChannelMessage(Context, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything on this channel.");
 		}
 
-		[Command("deletechannel")]
-		[Alias("dch")]
 		[Usage("[Channel]")]
 		[Summary("Deletes the channel.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		[DefaultEnabled(true)]
-		public async Task DeleteChannel([Remainder] string input)
+		public class DeleteChannel : ModuleBase<MyCommandContext>
 		{
-			//See if the user can see and thus edit that channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged }, true, input);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
+			[Command("deletechannel")]
+			[Alias("dch")]
+			public async Task Command()
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var channel = returnedChannel.Object;
 
-			//Check if tried on the base channel
-			if (channel.Id == Context.Guild.DefaultChannelId)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to delete the base channel."));
-				return;
 			}
 
-			await channel.DeleteAsync();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}`.", channel.FormatChannel()));
+			public async Task CommandRunner(IGuildChannel channel)
+			{
+				//Check if tried on the base channel
+				if (channel.Id == Context.Guild.DefaultChannelId)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to delete the base channel."));
+					return;
+				}
+
+				await channel.DeleteAsync();
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}`.", channel.FormatChannel()));
+			}
 		}
+		/*
+		public class Temp : ModuleBase<MyCommandContext>
+		{
+			public async Task Command()
+			{
+
+			}
+
+			public async Task CommandRunner()
+			{
+
+			}
+		}
+
+		public class Temp : ModuleBase<MyCommandContext>
+		{
+			public async Task Command()
+			{
+
+			}
+
+			public async Task CommandRunner()
+			{
+
+			}
+		}
+
+		public class Temp : ModuleBase<MyCommandContext>
+		{
+			public async Task Command()
+			{
+
+			}
+
+			public async Task CommandRunner()
+			{
+
+			}
+		}
+
+		public class Temp : ModuleBase<MyCommandContext>
+		{
+			public async Task Command()
+			{
+
+			}
+
+			public async Task CommandRunner()
+			{
+
+			}
+		}
+
+		public class Temp : ModuleBase<MyCommandContext>
+		{
+			public async Task Command()
+			{
+
+			}
+
+			public async Task CommandRunner()
+			{
+
+			}
+		}
+
+		public class Temp : ModuleBase<MyCommandContext>
+		{
+			public async Task Command()
+			{
+
+			}
+
+			public async Task CommandRunner()
+			{
+
+			}
+		}
+
+		public class Temp : ModuleBase<MyCommandContext>
+		{
+			public async Task Command()
+			{
+
+			}
+
+			public async Task CommandRunner()
+			{
+
+			}
+		}*/
+	}
+	[Name("ChannelModeration")]
+	public class Advobot_Commands_Channel_Mod : ModuleBase
+	{
 
 		[Command("changechannelposition")]
 		[Alias("cchpo")]
@@ -167,7 +254,7 @@ namespace Advobot
 		public async Task ChannelPosition([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -176,7 +263,7 @@ namespace Advobot
 			var posStr = returnedArgs.Arguments[1];
 
 			//Get the channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeReordered }, true, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeReordered }, true, chanStr);
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -242,7 +329,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 4));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -253,13 +340,13 @@ namespace Advobot
 			var permStr = returnedArgs.Arguments[3];
 
 			//Get the action
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Show, ActionType.Allow, ActionType.Inherit, ActionType.Deny });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Show, ActionType.Allow, ActionType.Inherit, ActionType.Deny });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 
 			//If only show, take that as a person wanting to see the permission types
 			if (returnedArgs.ArgCount == 1)
@@ -278,7 +365,7 @@ namespace Advobot
 			}
 
 			//Get the channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, true, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions }, true, chanStr);
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -289,10 +376,10 @@ namespace Advobot
 			//Get the role or user
 			IGuildUser user = null;
 			IRole role = null;
-			user = Actions.GetGuildUser(Context, new[] { UserCheck.None }, true, targStr).Object;
+			user = Actions.GetGuildUser(Context, new[] { ObjectVerification.None }, true, targStr).Object;
 			if (user == null)
 			{
-				role = Actions.GetRole(Context, new[] { RoleCheck.None }, true, targStr).Object;
+				role = Actions.GetRole(Context, new[] { ObjectVerification.None }, true, targStr).Object;
 				if (role == null)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid target supplied."));
@@ -376,7 +463,7 @@ namespace Advobot
 
 			if (user != null)
 			{
-				var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, user);
+				var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.CanBeEdited }, user);
 				if (returnedUser.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -385,7 +472,7 @@ namespace Advobot
 			}
 			else if (role != null)
 			{
-				var returnedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited }, role);
+				var returnedRole = Actions.GetRole(Context, new[] { ObjectVerification.CanBeEdited }, role);
 				if (returnedRole.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedRole);
@@ -485,7 +572,7 @@ namespace Advobot
 		{
 			//Get arguments
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 3));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -495,7 +582,7 @@ namespace Advobot
 			var targetStr = returnedArgs.Arguments[2];
 
 			//Separating the channels
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, false, firstChanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions }, false, firstChanStr);
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -504,7 +591,7 @@ namespace Advobot
 			var inputChannel = returnedChannel.Object;
 
 			//See if the user can see and thus edit that channel
-			var returnedChannelTwo = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, false, secondChanStr);
+			var returnedChannelTwo = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions }, false, secondChanStr);
 			if (returnedChannelTwo.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannelTwo);
@@ -541,7 +628,7 @@ namespace Advobot
 			{
 				if (Context.Message.MentionedUserIds.Any())
 				{
-					var evaluatedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, targetStr);
+					var evaluatedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.CanBeEdited }, true, targetStr);
 					if (evaluatedUser.Reason != FailureReason.NotFailure)
 					{
 						await Actions.HandleObjectGettingErrors(Context, evaluatedUser);
@@ -563,7 +650,7 @@ namespace Advobot
 				}
 				else
 				{
-					var evaluatedRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited }, true, targetStr);
+					var evaluatedRole = Actions.GetRole(Context, new[] { ObjectVerification.CanBeEdited }, true, targetStr);
 					if (evaluatedRole.Reason != FailureReason.NotFailure)
 					{
 						await Actions.HandleObjectGettingErrors(Context, evaluatedRole);
@@ -600,7 +687,7 @@ namespace Advobot
 		public async Task ClearChannelPermissions([Remainder] string input)
 		{
 			//See if the user can see and thus edit that channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, true, input);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions }, true, input);
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -638,7 +725,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task ChannelNSFW([Remainder] string input)
 		{
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged, ChannelCheck.IsText }, true, input);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.IsText }, true, input);
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -673,7 +760,7 @@ namespace Advobot
 		public async Task ChangeChannelName([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "position", "type" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -715,7 +802,7 @@ namespace Advobot
 				}
 				else if (channels.Count == 1)
 				{
-					var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged }, channel);
+					var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged }, channel);
 					if (returnedChannel.Reason != FailureReason.NotFailure)
 					{
 						await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -731,7 +818,7 @@ namespace Advobot
 			}
 			else
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged }, true, chanStr);
+				var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged }, true, chanStr);
 				if (returnedChannel.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -772,7 +859,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -788,7 +875,7 @@ namespace Advobot
 			}
 
 			//Test if valid channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged, ChannelCheck.IsText }, true, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.IsText }, true, chanStr);
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -826,7 +913,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -847,7 +934,7 @@ namespace Advobot
 			}
 
 			//Check if valid channel that the user can edit
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged, ChannelCheck.IsVoice }, true, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.IsVoice }, true, chanStr);
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -875,7 +962,7 @@ namespace Advobot
 		{
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -907,7 +994,7 @@ namespace Advobot
 			}
 
 			//Check if valid channel that the user can edit
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged, ChannelCheck.IsVoice }, true, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.IsVoice }, true, chanStr);
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);

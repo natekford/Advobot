@@ -11,7 +11,7 @@ namespace Advobot
 	{
 		[Usage("")]
 		[Summary("Gives a list of all the instant invites on the guild.")]
-		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
+		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public class DisplayInvites : ModuleBase<MyCommandContext>
 		{
@@ -56,7 +56,7 @@ namespace Advobot
 
 			private async Task CommandRunner(IGuildChannel channel, int? nullableTime = 86400, int? nullableUses = null, bool tempMem = false)
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanCreateInstantInvite }, channel);
+				var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanCreateInstantInvite }, channel);
 				if (returnedChannel.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -126,7 +126,7 @@ namespace Advobot
 
 			//Get the given variable out
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "user", "channel", "uses", "expires" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -161,7 +161,7 @@ namespace Advobot
 			//Channel
 			if (!String.IsNullOrWhiteSpace(chanStr))
 			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, true, chanStr);
+				var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions }, true, chanStr);
 				if (returnedChannel.Reason == FailureReason.NotFailure)
 				{
 					invites = invites.Where(x => x.ChannelId == returnedChannel.Object.Id).ToList();

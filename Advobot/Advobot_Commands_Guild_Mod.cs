@@ -99,7 +99,7 @@ namespace Advobot
 		{
 			//Split at space into two args
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -107,7 +107,7 @@ namespace Advobot
 			var chanStr = returnedArgs.Arguments[0];
 			var timeStr = returnedArgs.Arguments[1];
 
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions, ChannelCheck.IsVoice }, false, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions, ObjectVerification.IsVoice }, false, chanStr);
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -191,7 +191,7 @@ namespace Advobot
 		[Alias("cg")]
 		[Usage("[Name]")]
 		[Summary("Creates a guild with the bot as the owner.")]
-		[OtherRequirement(1U << (int)Precondition.BotOwner)]
+		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task GuildCreate([Remainder] string input)
 		{
@@ -204,7 +204,7 @@ namespace Advobot
 		[Alias("cgo")]
 		[Usage("")]
 		[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
-		[OtherRequirement(1U << (int)Precondition.BotOwner)]
+		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task GuildAdmin()
 		{
@@ -224,7 +224,7 @@ namespace Advobot
 		[Alias("dg")]
 		[Usage("")]
 		[Summary("If the bot is the current owner of the guild, this command will delete the guild.")]
-		[OtherRequirement(1U << (int)Precondition.BotOwner)]
+		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task GuildDelete()
 		{

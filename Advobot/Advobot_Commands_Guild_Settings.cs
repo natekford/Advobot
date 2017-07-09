@@ -17,7 +17,7 @@ namespace Advobot
 		[Command("leaveguild")]
 		[Usage("<Guild ID>")]
 		[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
-		[OtherRequirement((1U << (int)Precondition.GuildOwner) | (1U << (int)Precondition.BotOwner))]
+		[OtherRequirement(Precondition.GuildOwner | Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public async Task GuildLeave([Optional, Remainder] string input)
 		{
@@ -68,7 +68,7 @@ namespace Advobot
 		[Alias("mgdp")]
 		[Usage("[New Prefix|Clear]")]
 		[Summary("Makes the guild use the given prefix from now on.")]
-		[OtherRequirement(1U << (int)Precondition.GuildOwner)]
+		[OtherRequirement(Precondition.GuildOwner)]
 		[DefaultEnabled(false)]
 		public async Task GuildPrefix([Remainder] string input)
 		{
@@ -127,7 +127,7 @@ namespace Advobot
 			}
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 1));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -155,14 +155,14 @@ namespace Advobot
 		[Alias("mgdf")]
 		[Usage("[Reload|Resave|Reset]")]
 		[Summary("Reload, resave, or reset the guild's settings on the bot. (Mainly for debug purposes when the JSON is edited manually)")]
-		[OtherRequirement(1U << (int)Precondition.GuildOwner)]
+		[OtherRequirement(Precondition.GuildOwner)]
 		[DefaultEnabled(true)]
 		public async Task GuildReload([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 1));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -205,7 +205,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -213,13 +213,13 @@ namespace Advobot
 			var actionStr = returnedArgs.Arguments[0];
 			var cmdStr = returnedArgs.Arguments[1];
 
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Enable, ActionType.Disable });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Enable, ActionType.Disable });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 
 			//Check if all
 			var allBool = false;
@@ -327,7 +327,7 @@ namespace Advobot
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -337,7 +337,7 @@ namespace Advobot
 			var cmdStr = returnedArgs.Arguments[2];
 
 			//Get the channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions }, true, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions }, true, chanStr);
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -345,13 +345,13 @@ namespace Advobot
 			}
 			var channel = returnedChannel.Object;
 
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 			var add = action == ActionType.Add;
 
 			//Get the lists the bot will use for this command
@@ -466,7 +466,7 @@ namespace Advobot
 
 			//Split input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -476,13 +476,13 @@ namespace Advobot
 			var permStr = returnedArgs.Arguments[2];
 
 			//Check if valid action
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 
 			if (returnedArgs.ArgCount == 1)
 			{
@@ -499,7 +499,7 @@ namespace Advobot
 			}
 
 			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { UserCheck.CanBeEdited }, true, userStr);
+			var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.CanBeEdited }, true, userStr);
 			if (returnedUser.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedUser);
@@ -618,7 +618,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -626,18 +626,18 @@ namespace Advobot
 			var settingStr = returnedArgs.Arguments[0];
 			var chanStr = returnedArgs.Arguments[1];
 
-			var returnedType = Actions.GetType(settingStr, new[] { ChannelSettings.ImageOnly, ChannelSettings.Sanitary });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(settingStr, new[] { ChannelSetting.ImageOnly, ChannelSetting.Sanitary });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var type = returnedType.Type;
+			var type = returnedType.Object;
 
-			var channel = Actions.GetChannel(Context, new[] { ChannelCheck.CanBeManaged, ChannelCheck.CanDeleteMessages, ChannelCheck.IsText }, true, input).Object ?? Context.Channel as ITextChannel;
+			var channel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.CanDeleteMessages, ObjectVerification.IsText }, true, input).Object ?? Context.Channel as ITextChannel;
 			switch (type)
 			{
-				case ChannelSettings.ImageOnly:
+				case ChannelSetting.ImageOnly:
 				{
 					var imgOnly = ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.ImageOnlyChannels));
 					if (imgOnly.Contains(channel.Id))
@@ -652,7 +652,7 @@ namespace Advobot
 					}
 					break;
 				}
-				case ChannelSettings.Sanitary:
+				case ChannelSetting.Sanitary:
 				{
 					var sanitary = ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.SanitaryChannels));
 					if (sanitary.Contains(channel.Id))
@@ -682,7 +682,7 @@ namespace Advobot
 
 			//Split the input
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -691,13 +691,13 @@ namespace Advobot
 			var nameStr = Actions.ReplaceMarkdownChars(returnedArgs.Arguments[1], true);
 			var textStr = returnedArgs.Arguments[2];
 
-			var returnedType = Actions.GetType(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var action = returnedType.Type;
+			var action = returnedType.Object;
 			var add = action == ActionType.Add;
 
 			var quotes = ((List<Quote>)guildInfo.GetSetting(SettingOnGuild.Quotes));
@@ -744,7 +744,7 @@ namespace Advobot
 		[Alias("sq")]
 		[Usage("<Name>")]
 		[Summary("Shows the content for the given quote. If nothing is input, then shows the list of the current quotes.")]
-		[OtherRequirement(1U << (int)Precondition.UserHasAPerm)]
+		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(false)]
 		public async Task SayQuote([Optional, Remainder] string input)
 		{
@@ -798,7 +798,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 6), new[] { "content", "title", "desc", "thumb" });
-			if (returnedArgs.Reason != ArgFailureReason.NotFailure)
+			if (returnedArgs.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
 				return;
@@ -823,16 +823,16 @@ namespace Advobot
 			}
 
 			//Make sure the target type is valid
-			var returnedType = Actions.GetType(typeStr, new[] { GuildNotifications.Welcome, GuildNotifications.Goodbye });
-			if (returnedType.Reason != TypeFailureReason.NotFailure)
+			var returnedType = Actions.GetEnum(typeStr, new[] { GuildNotificationType.Welcome, GuildNotificationType.Goodbye });
+			if (returnedType.Reason != FailureReason.NotFailure)
 			{
-				await Actions.HandleTypeGettingErrors(Context, returnedType);
+				await Actions.HandleObjectGettingErrors(Context, returnedType);
 				return;
 			}
-			var type = returnedType.Type;
+			var type = returnedType.Object;
 
 			//Make sure the channel mention is valid
-			var returnedChannel = Actions.GetChannel(Context, new[] { ChannelCheck.CanModifyPermissions, ChannelCheck.IsText }, true, chanStr);
+			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions, ObjectVerification.IsText }, true, chanStr);
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
@@ -843,7 +843,7 @@ namespace Advobot
 			var guildNotif = new GuildNotification(contStr, titleStr, descStr, thumbStr, Context.Guild.Id, channel.Id);
 			switch (type)
 			{
-				case GuildNotifications.Welcome:
+				case GuildNotificationType.Welcome:
 				{
 					if (guildInfo.SetSetting(SettingOnGuild.WelcomeMessage, guildNotif))
 					{
@@ -855,7 +855,7 @@ namespace Advobot
 					}
 					break;
 				}
-				case GuildNotifications.Goodbye:
+				case GuildNotificationType.Goodbye:
 				{
 					if (guildInfo.SetSetting(SettingOnGuild.GoodbyeMessage, guildNotif))
 					{
@@ -880,7 +880,7 @@ namespace Advobot
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
-			if (!Enum.TryParse(input, true, out GuildNotifications notifType))
+			if (!Enum.TryParse(input, true, out GuildNotificationType notifType))
 			{
 				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid notification type supplied."));
 				return;
@@ -889,12 +889,12 @@ namespace Advobot
 			GuildNotification notif = null;
 			switch (notifType)
 			{
-				case GuildNotifications.Welcome:
+				case GuildNotificationType.Welcome:
 				{
 					notif = ((GuildNotification)guildInfo.GetSetting(SettingOnGuild.WelcomeMessage));
 					break;
 				}
-				case GuildNotifications.Goodbye:
+				case GuildNotificationType.Goodbye:
 				{
 					notif = ((GuildNotification)guildInfo.GetSetting(SettingOnGuild.GoodbyeMessage));
 					break;
