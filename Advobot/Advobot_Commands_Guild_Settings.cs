@@ -764,27 +764,24 @@ namespace Advobot
 			}
 
 			var quote = quotes.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, input));
-			if (quote.Name != null)
+			if (quote != null)
 			{
 				await Actions.SendChannelMessage(Context, quote.Text);
+				return;
 			}
-			else
-			{
-				//Find close words
-				var closeWords = Actions.GetRemindsWithSimilarNames(quotes, input).Distinct().ToList();
-				if (closeWords.Any())
-				{
-					var msg = "Did you mean any of the following:\n" + closeWords.FormatNumberedList("{0}", x => x.Quote.Name);
 
-					Variables.ActiveCloseWords.ThreadSafeRemoveAll(x => x.UserID == Context.User.Id);
-					Variables.ActiveCloseWords.ThreadSafeAdd(new ActiveCloseWords(Context.User.Id, closeWords));
-					await Actions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.ACTIVE_CLOSE);
-				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nothing similar to that name can be found."));
-				}
+			var closeQuotes = Actions.GetQuotesWithSimilarNames(quotes, input).Distinct();
+			if (closeQuotes.Any())
+			{
+				Variables.ActiveCloseWords.ThreadSafeRemoveAll(x => x.UserID == Context.User.Id);
+				Variables.ActiveCloseWords.ThreadSafeAdd(new ActiveCloseWord<Quote>(Context.User.Id, closeQuotes));
+
+				var msg = "Did you mean any of the following:\n" + closeQuotes.FormatNumberedList("{0}", x => x.Word.Name);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.ACTIVE_CLOSE);
+				return;
 			}
+
+			await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nonexistent quote."));
 		}
 
 		[Command("setguildnotif")]

@@ -120,7 +120,7 @@ namespace Advobot
 
 		[Command("takerole")]
 		[Alias("tr")]
-		[Usage("[@User] [Role]/<Role>/...")]
+		[Usage("[User] [Role]/<Role>/...")]
 		[Summary("Take the role from the user (assuming the person using the command and bot both have the ability to take that role).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
 		[DefaultEnabled(true)]

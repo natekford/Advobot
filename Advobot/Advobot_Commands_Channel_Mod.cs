@@ -1,8 +1,10 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot
@@ -77,7 +79,7 @@ namespace Advobot
 				await CommandRunner(channel);
 			}
 
-			public async Task CommandRunner(ITextChannel channel)
+			private async Task CommandRunner(ITextChannel channel)
 			{
 				if (channel.Id == Context.Guild.DefaultChannelId)
 				{
@@ -118,7 +120,7 @@ namespace Advobot
 				}
 
 				//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
-				await Actions.ModifyChannelPosition(channel, (await Context.Guild.GetTextChannelsAsync()).Max(x => x.Position));
+				await Actions.ModifyChannelPosition(channel, (uint)(await Context.Guild.GetTextChannelsAsync()).Max(x => x.Position));
 				await Actions.SendChannelMessage(Context, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything in this channel.");
 			}
 		}
@@ -131,12 +133,12 @@ namespace Advobot
 		{
 			[Command("deletechannel")]
 			[Alias("dch")]
-			public async Task Command()
+			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] IGuildChannel channel)
 			{
-
+				await CommandRunner(channel);
 			}
 
-			public async Task CommandRunner(IGuildChannel channel)
+			private async Task CommandRunner(IGuildChannel channel)
 			{
 				//Check if tried on the base channel
 				if (channel.Id == Context.Guild.DefaultChannelId)
@@ -149,182 +151,213 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}`.", channel.FormatChannel()));
 			}
 		}
-		/*
-		public class Temp : ModuleBase<MyCommandContext>
-		{
-			public async Task Command()
-			{
 
-			}
-
-			public async Task CommandRunner()
-			{
-
-			}
-		}
-
-		public class Temp : ModuleBase<MyCommandContext>
-		{
-			public async Task Command()
-			{
-
-			}
-
-			public async Task CommandRunner()
-			{
-
-			}
-		}
-
-		public class Temp : ModuleBase<MyCommandContext>
-		{
-			public async Task Command()
-			{
-
-			}
-
-			public async Task CommandRunner()
-			{
-
-			}
-		}
-
-		public class Temp : ModuleBase<MyCommandContext>
-		{
-			public async Task Command()
-			{
-
-			}
-
-			public async Task CommandRunner()
-			{
-
-			}
-		}
-
-		public class Temp : ModuleBase<MyCommandContext>
-		{
-			public async Task Command()
-			{
-
-			}
-
-			public async Task CommandRunner()
-			{
-
-			}
-		}
-
-		public class Temp : ModuleBase<MyCommandContext>
-		{
-			public async Task Command()
-			{
-
-			}
-
-			public async Task CommandRunner()
-			{
-
-			}
-		}
-
-		public class Temp : ModuleBase<MyCommandContext>
-		{
-			public async Task Command()
-			{
-
-			}
-
-			public async Task CommandRunner()
-			{
-
-			}
-		}*/
-	}
-	[Name("ChannelModeration")]
-	public class Advobot_Commands_Channel_Mod : ModuleBase
-	{
-
-		[Command("changechannelposition")]
-		[Alias("cchpo")]
-		[Usage("[Channel] <Number>")]
-		[Summary("If only the channel is input the channel's position will be listed. Else, gives the channel the given position. Position zero is the top most position.")]
+		[Usage("[Channel] [Number]")]
+		[Summary("If only the channel is input the channel's position will be listed. Position zero is the top most position.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		[DefaultEnabled(true)]
-		public async Task ChannelPosition([Remainder] string input)
+		public class ChangeChannelPosition : ModuleBase<MyCommandContext>
 		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
+			[Command("changechannelposition")]
+			[Alias("cchpo")]
+			public async Task Command([VerifyObject(ObjectVerification.CanBeReordered)] IGuildChannel channel, uint position)
 			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var chanStr = returnedArgs.Arguments[0];
-			var posStr = returnedArgs.Arguments[1];
-
-			//Get the channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeReordered }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var channel = returnedChannel.Object;
-
-			//Argument count checking
-			if (String.IsNullOrWhiteSpace(posStr))
-			{
-				await Actions.SendChannelMessage(Context, String.Format("`{0}` has a position of `{1}`.", channel.FormatChannel(), channel.Position));
-				return;
+				await CommandRunner(channel, position);
 			}
 
-			if (!int.TryParse(posStr, out int position))
+			private async Task CommandRunner(IGuildChannel channel, uint position)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position."));
-				return;
+				await Actions.ModifyChannelPosition(channel, position);
+				await Actions.SendChannelMessage(Context, String.Format("Successfully moved `{0}` to position `{1}`.", channel.FormatChannel(), position));
 			}
-			else if (position < 0)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Cannot set a channel to a position lower than zero."));
-				return;
-			}
-
-			//Modify the channel's position
-			await Actions.ModifyChannelPosition(channel, position);
-			await Actions.SendChannelMessage(Context, String.Format("Successfully moved `{0}` to position `{1}`.", channel.FormatChannel(), position));
 		}
 
-		[Command("displaychannelpositions")]
-		[Alias("dchp")]
 		[Usage("[Text|Voice]")]
 		[Summary("Lists the positions of each text or voice channel on the guild.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		[DefaultEnabled(true)]
-		public async Task ListChannelPositions([Remainder] string input)
+		public class DisplayChannelPosition : ModuleBase<MyCommandContext>
 		{
-			//Check if valid type
-			var text = Actions.CaseInsEquals(input, Constants.TEXT_TYPE);
-			var voice = Actions.CaseInsEquals(input, Constants.VOICE_TYPE);
-			if (!voice && !text)
+			[Command("displaychannelpositions")]
+			[Alias("dchp")]
+			public async Task Command(ChannelType channelType)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid channel type."));
-				return;
+				await CommandRunner(channelType);
 			}
 
-			var channels = (text ? (await Context.Guild.GetTextChannelsAsync()).Cast<IGuildChannel>() : (await Context.Guild.GetVoiceChannelsAsync()).Cast<IGuildChannel>()).OrderBy(x => x.Position).ToList();
-			var title = String.Format("{0} Channel Positions", text ? "Text" : "Voice");
-			var desc = String.Join("\n", channels.Select(x => String.Format("`{0}.` `{1}`", x.Position.ToString("00"), x.Name)));
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, desc));
+			private async Task CommandRunner(ChannelType channelType)
+			{
+				string title;
+				IEnumerable<IGuildChannel> channels;
+				switch (channelType)
+				{
+					case ChannelType.Text:
+					{
+						title = "Text Channel Positions";
+						channels = (await Context.Guild.GetTextChannelsAsync()).Cast<IGuildChannel>();
+						break;
+					}
+					case ChannelType.Voice:
+					{
+						title = "Voice Channel Positions";
+						channels = (await Context.Guild.GetVoiceChannelsAsync()).Cast<IGuildChannel>();
+						break;
+					}
+					default:
+					{
+						return;
+					}
+				}
+
+				var desc = String.Join("\n", channels.OrderBy(x => x.Position).Select(x => String.Format("`{0}.` `{1}`", x.Position.ToString("00"), x.Name)));
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, desc));
+			}
 		}
 
-		[Command("changechannelperms")]
-		[Alias("cchpe")]
-		[Usage("[Show|Allow|Inherit|Deny] [Channel] [User|Role] [Permission/...]")]
+		[Usage("[Show|Allow|Inherit|Deny] <Channel> <User|Role> <Permission/...>")]
 		[Summary("Permissions must be separated by a `/`. Type `" + Constants.BOT_PREFIX + "chp [Show]` to see the available permissions. " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel]` to see all permissions on a channel. " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel] [Role|User]` to see permissions a role/user has on a channel.")]
 		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
 		[DefaultEnabled(true)]
+		public class ChangeChannelPerms : ModuleBase<MyCommandContext>
+		{
+			[Command("changechannelperms")]
+			[Alias("cchpe")]
+			public async Task Command([VerifyEnum((uint)(ActionType.Allow | ActionType.Inherit | ActionType.Deny))] ActionType actionType,
+									  [VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
+									  IRole role,
+									  string uncutPermissions)
+			{
+				await CommandRunner(actionType, channel, role, uncutPermissions);
+			}
+			[Command("changechannelperms")]
+			[Alias("cchpe")]
+			public async Task Command([VerifyEnum((uint)(ActionType.Allow | ActionType.Inherit | ActionType.Deny))] ActionType actionType,
+									  [VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
+									  IGuildUser user,
+									  string uncutPermissions)
+			{
+				await CommandRunner(actionType, channel, user, uncutPermissions);
+			}
+			[Command("changechannelperms")]
+			[Alias("cchpe")]
+			public async Task Command([VerifyEnum((uint)ActionType.Show)] ActionType actionType,
+									  [Optional, VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
+									  [Optional] IRole role)
+			{
+				await CommandRunner(channel, role);
+			}
+			[Command("changechannelperms")]
+			[Alias("cchpe")]
+			public async Task Command([VerifyEnum((uint)ActionType.Show)] ActionType actionType,
+									  [Optional, VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
+									  [Optional] IGuildUser user)
+			{
+				await CommandRunner(channel, user);
+			}
+
+			private async Task CommandRunner(ActionType actionType, IGuildChannel channel, dynamic discordObject, string uncutPermissions)
+			{
+				var permissions = uncutPermissions.Split('/').ToList();
+				var validPerms = permissions.Where(x => Variables.ChannelPermissions.Select(y => y.Name).CaseInsContains(x));
+				var invalidPerms = permissions.Where(x => !Variables.ChannelPermissions.Select(y => y.Name).CaseInsContains(x));
+				if (invalidPerms.Any())
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Invalid permission{0} supplied: `{1}`.",
+						Actions.GetPlural(invalidPerms.Count()),
+						String.Join("`, `", invalidPerms))));
+					return;
+				}
+
+				//Remove any attempt to change readmessages on the base channel because nothing can change that
+				if (channel.Id == Context.Guild.DefaultChannelId)
+				{
+					permissions.RemoveAll(x => Actions.CaseInsEquals(x, Enum.GetName(typeof(ChannelPermission), ChannelPermission.ReadMessages)));
+				}
+
+				var allowBits = channel.GetPermissionOverwrite(discordObject)?.AllowValue ?? 0;
+				var denyBits = channel.GetPermissionOverwrite(discordObject)?.DenyValue ?? 0;
+
+				//Put all the bit values to change into one
+				ulong changeValue = 0;
+				foreach (var permission in permissions)
+				{
+					changeValue = Actions.AddGuildPermissionBit(permission, changeValue);
+				}
+
+				var actionStr = "";
+				switch (actionType)
+				{
+					case ActionType.Allow:
+					{
+						allowBits |= changeValue;
+						denyBits &= ~changeValue;
+						actionStr = "allowed";
+						break;
+					}
+					case ActionType.Inherit:
+					{
+						allowBits &= ~changeValue;
+						denyBits &= ~changeValue;
+						actionStr = "inherited";
+						break;
+					}
+					case ActionType.Deny:
+					{
+						allowBits &= ~changeValue;
+						denyBits |= changeValue;
+						actionStr = "denied";
+						break;
+					}
+				}
+
+				await Actions.ModifyOverwrite(channel, discordObject, allowBits, denyBits);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}` on `{3}`",
+					actionStr, String.Join("`, `", permissions), Actions.FormatObject(discordObject), channel.FormatChannel()));
+			}
+			private async Task CommandRunner(IGuildChannel channel, dynamic discordObject)
+			{
+				//This CommandRunner will only go when the actionType is show
+				if (channel == null)
+				{
+					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Channel Permission Types", String.Format("`{0}`", String.Join("`, `", Variables.ChannelPermissions.Select(x => x.Name)))));
+					return;
+				}
+
+				if (discordObject == null)
+				{
+					var roleOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.Role).Select(x => Context.Guild.GetRole(x.TargetId).Name);
+					var userOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.User).Select(x => ((Context.Guild as SocketGuild).GetUser(x.TargetId)).Username);
+
+					var embed = Actions.MakeNewEmbed(channel.FormatChannel());
+					Actions.AddField(embed, "Role", String.Format("`{0}`", roleOverwrites.Any() ? String.Join("`, `", roleOverwrites) : "None"));
+					Actions.AddField(embed, "User", String.Format("`{0}`", userOverwrites.Any() ? String.Join("`, `", userOverwrites) : "None"));
+					await Actions.SendEmbedMessage(Context.Channel, embed);
+					return;
+				}
+
+				if (!channel.PermissionOverwrites.Any())
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Unable to show permissions for `{0}` on `{1}`.", Actions.FormatObject(discordObject), channel.FormatChannel())));
+					return;
+				}
+
+				var perms = Actions.GetFilteredChannelOverwritePermissions(channel.PermissionOverwrites.FirstOrDefault(x => (discordObject as ISnowflakeEntity).Id == x.TargetId), channel);
+				var maxLen = perms.Keys.Max(x => x.Length);
+
+				var formattedPerms = String.Join("\n", perms.Select(x => String.Format("{0} {1}", x.Key.PadRight(maxLen), x.Value)));
+				var desc = String.Format("**Channel:** `{0}`\n**Overwrite:** `{1}`\n```{2}```", channel.FormatChannel(), Actions.FormatObject(discordObject), formattedPerms);
+				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Channel Overwrite", desc));
+			}
+		}
+	}
+	[Name("ChannelModeration")]
+	public class Advobot_Commands_Channel_Mod : ModuleBase
+	{
+
+
+
 		public async Task ChannelPermissions([Remainder] string input)
 		{
 			//Split the input
@@ -498,28 +531,28 @@ namespace Advobot
 			}
 
 			//Get the permissions
-			uint changeValue = 0;
-			uint allowBits = 0;
-			uint denyBits = 0;
+			ulong changeValue = 0;
+			ulong allowBits = 0;
+			ulong denyBits = 0;
 			if (role != null)
 			{
 				if (channel.GetPermissionOverwrite(role).HasValue)
 				{
-					allowBits = (uint)channel.GetPermissionOverwrite(role).Value.AllowValue;
-					denyBits = (uint)channel.GetPermissionOverwrite(role).Value.DenyValue;
+					allowBits = (ulong)channel.GetPermissionOverwrite(role).Value.AllowValue;
+					denyBits = (ulong)channel.GetPermissionOverwrite(role).Value.DenyValue;
 				}
 			}
 			else
 			{
 				if (channel.GetPermissionOverwrite(user).HasValue)
 				{
-					allowBits = (uint)channel.GetPermissionOverwrite(user).Value.AllowValue;
-					denyBits = (uint)channel.GetPermissionOverwrite(user).Value.DenyValue;
+					allowBits = (ulong)channel.GetPermissionOverwrite(user).Value.AllowValue;
+					denyBits = (ulong)channel.GetPermissionOverwrite(user).Value.DenyValue;
 				}
 			}
 
 			//Changing the bit values
-			permissions.ToList().ForEach(x => changeValue = Actions.GetBit(Context, x, changeValue));
+			permissions.ToList().ForEach(x => changeValue = Actions.AddGuildPermissionBit(x, changeValue));
 			switch (action)
 			{
 				case ActionType.Allow:

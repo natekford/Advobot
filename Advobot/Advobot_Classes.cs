@@ -187,6 +187,12 @@ namespace Advobot
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
 		{
+			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
+			if (value == null)
+			{
+				return Task.FromResult(PreconditionResult.FromSuccess());
+			}
+
 			var returnedObject = Actions.GetDiscordObject(context.Guild, context.User as IGuildUser, mChecks, (dynamic)value);
 			if (returnedObject.Reason != FailureReason.NotFailure)
 			{
@@ -2023,19 +2029,19 @@ namespace Advobot
 	#endregion
 
 	#region Structs
-	public struct BotGuildPermissionType
+	public struct BotGuildPermission
 	{
 		public string Name { get; private set; }
 		public int Position { get; private set; }
 
-		public BotGuildPermissionType(string name, int position)
+		public BotGuildPermission(string name, int position)
 		{
 			Name = name;
 			Position = position;
 		}
 	}
 
-	public struct BotChannelPermissionType
+	public struct BotChannelPermission
 	{
 		public string Name { get; private set; }
 		public int Position { get; private set; }
@@ -2043,7 +2049,7 @@ namespace Advobot
 		public bool Text { get; private set; }
 		public bool Voice { get; private set; }
 
-		public BotChannelPermissionType(string name, int position, bool gen = false, bool text = false, bool voice = false)
+		public BotChannelPermission(string name, int position, bool gen = false, bool text = false, bool voice = false)
 		{
 			Name = name;
 			Position = position;
@@ -2053,44 +2059,13 @@ namespace Advobot
 		}
 	}
 
-	public struct ActiveCloseWords : ITimeInterface
+	public struct ActiveCloseWord<T> : ITimeInterface
 	{
 		public ulong UserID { get; private set; }
-		public List<CloseWord> List { get; private set; }
+		public List<CloseWord<T>> List { get; private set; }
 		public DateTime Time { get; private set; }
 
-		public ActiveCloseWords(ulong userID, List<CloseWord> list)
-		{
-			UserID = userID;
-			List = list;
-			Time = DateTime.UtcNow.AddMilliseconds(Constants.ACTIVE_CLOSE);
-		}
-
-		public DateTime GetTime()
-		{
-			return Time;
-		}
-	}
-
-	public struct CloseWord
-	{
-		public Quote Quote { get; private set; }
-		public int Closeness { get; private set; }
-
-		public CloseWord(Quote quote, int closeness)
-		{
-			Quote = quote;
-			Closeness = closeness;
-		}
-	}
-
-	public struct ActiveCloseHelp : ITimeInterface
-	{
-		public ulong UserID { get; private set; }
-		public List<CloseHelp> List { get; private set; }
-		public DateTime Time { get; private set; }
-
-		public ActiveCloseHelp(ulong userID, IEnumerable<CloseHelp> list)
+		public ActiveCloseWord(ulong userID, IEnumerable<CloseWord<T>> list)
 		{
 			UserID = userID;
 			List = list.ToList();
@@ -2103,14 +2078,14 @@ namespace Advobot
 		}
 	}
 
-	public struct CloseHelp
+	public struct CloseWord<T>
 	{
-		public HelpEntry Help { get; private set; }
+		public T Word { get; private set; }
 		public int Closeness { get; private set; }
 
-		public CloseHelp(HelpEntry help, int closeness)
+		public CloseWord(T word, int closeness)
 		{
-			Help = help;
+			Word = word;
 			Closeness = closeness;
 		}
 	}

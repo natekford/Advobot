@@ -468,17 +468,17 @@ namespace Advobot
 			{
 				--number;
 				var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.UserID == message.Author.Id);
-				if (!closeWordList.Equals(default(ActiveCloseWords)) && closeWordList.List.Count > number)
+				if (!closeWordList.Equals(default(ActiveCloseWord<Quote>)) && closeWordList.List.Count > number)
 				{
-					var quote = closeWordList.List[number].Quote;
+					var quote = closeWordList.List[number].Word;
 					Variables.ActiveCloseWords.ThreadSafeRemove(closeWordList);
 					await Actions.SendChannelMessage(message.Channel, quote.Text);
 					await Actions.DeleteMessage(message);
 				}
 				var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.UserID == message.Author.Id);
-				if (!closeHelpList.Equals(default(ActiveCloseHelp)) && closeHelpList.List.Count > number)
+				if (!closeHelpList.Equals(default(ActiveCloseWord<HelpEntry>)) && closeHelpList.List.Count > number)
 				{
-					var help = closeHelpList.List[number].Help;
+					var help = closeHelpList.List[number].Word;
 					Variables.ActiveCloseHelp.ThreadSafeRemove(closeHelpList);
 					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help, Actions.GetPrefix(guildInfo))), "Help"));
 					await Actions.DeleteMessage(message);

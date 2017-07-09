@@ -261,7 +261,7 @@ namespace Advobot
 					WriteLine("Bad enum for GuildPermission: " + i);
 					continue;
 				}
-				Variables.GuildPermissions.Add(new BotGuildPermissionType(name, i));
+				Variables.GuildPermissions.Add(new BotGuildPermission(name, i));
 			}
 			//Load all special cases
 			LoadChannelPermissionNames();
@@ -311,15 +311,15 @@ namespace Advobot
 				}
 				if ((GENERAL_BITS & (1U << i)) != 0)
 				{
-					Variables.ChannelPermissions.Add(new BotChannelPermissionType(name, i, gen: true));
+					Variables.ChannelPermissions.Add(new BotChannelPermission(name, i, gen: true));
 				}
 				if ((TEXT_BITS & (1U << i)) != 0)
 				{
-					Variables.ChannelPermissions.Add(new BotChannelPermissionType(name, i, text: true));
+					Variables.ChannelPermissions.Add(new BotChannelPermission(name, i, text: true));
 				}
 				if ((VOICE_BITS & (1U << i)) != 0)
 				{
-					Variables.ChannelPermissions.Add(new BotChannelPermissionType(name, i, voice: true));
+					Variables.ChannelPermissions.Add(new BotChannelPermission(name, i, voice: true));
 				}
 			}
 		}
@@ -685,7 +685,7 @@ namespace Advobot
 			if (String.IsNullOrWhiteSpace(str))
 				return false;
 
-			foreach (var c in str.ToCharArray())
+			foreach (var c in str)
 			{
 				if (c > upperLimit)
 					return false;
@@ -753,30 +753,6 @@ namespace Advobot
 			}
 		}
 
-		public static ulong GetUlong(string inputString)
-		{
-			return ulong.TryParse(inputString, out ulong number) ? number : 0;
-		}
-
-		public static uint GetBit(ICommandContext context, string permission, uint changeValue)
-		{
-			try
-			{
-				var bit = Variables.GuildPermissions.FirstOrDefault(x => CaseInsEquals(x.Name, permission)).Position;
-				changeValue |= (1U << bit);
-			}
-			catch (Exception e)
-			{
-				ExceptionToConsole(e);
-			}
-			return changeValue;
-		}
-
-		public static int GetInteger(string inputString)
-		{
-			return Int32.TryParse(inputString, out int number) ? number : -1;
-		}
-
 		public static int GetMaxNumOfUsersToGather(ICommandContext context, IEnumerable<string> inputArray)
 		{
 			var ownerID = ((ulong)Variables.BotInfo.GetSetting(SettingOnBot.BotOwnerID));
@@ -794,7 +770,7 @@ namespace Advobot
 
 		public static int GetLineBreaks(string input)
 		{
-			return input.Count(y => y == '\n' || y == '\r');
+			return input.Count(x => x == '\n' || x == '\r');
 		}
 
 		public static int GetCountOfItemsInTimeFrame<T>(List<T> timeList, int timeFrame = 0) where T : ITimeInterface
@@ -836,26 +812,6 @@ namespace Advobot
 				return count;
 			}
 		}
-
-		public static int GetMinFromMultipleNumbers(params int[] nums)
-		{
-			var min = int.MaxValue;
-			foreach (var num in nums)
-			{
-				min = Math.Min(min, num);
-			}
-			return min;
-		}
-
-		public static int GetMaxFromMultipleNumbers(params int[] nums)
-		{
-			var max = int.MinValue;
-			foreach (var num in nums)
-			{
-				max = Math.Max(max, num);
-			}
-			return max;
-		}
 		#endregion
 
 		#region Guilds
@@ -887,17 +843,17 @@ namespace Advobot
 		#endregion
 
 		#region Channels
-		public static async Task ModifyChannelPosition(IGuildChannel channel, int position)
+		public static async Task ModifyChannelPosition(IGuildChannel channel, uint position)
 		{
 			if (channel == null)
 				return;
 
 			//Get all the channels that aren't the input channel
 			var channels = CaseInsEquals(GetChannelType(channel), Constants.TEXT_TYPE)
-				? (await channel.Guild.GetTextChannelsAsync()).Where(x => x != channel).OrderBy(x => x.Position).Cast<IGuildChannel>().ToList()
-				: (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x != channel).OrderBy(x => x.Position).Cast<IGuildChannel>().ToList();
+				? (await channel.Guild.GetTextChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToList()
+				: (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToList();
 			//Add the input channel into the given spot
-			channels.Insert(Math.Max(Math.Min(channels.Count(), position), 0), channel);
+			channels.Insert(Math.Min(channels.Count(), (int)position), channel);
 			//Convert into reorder properties and use to reorder
 			await channel.Guild.ReorderChannelsAsync(channels.Select(x => new ReorderChannelProperties(x.Id, channels.IndexOf(x))));
 		}
@@ -1834,7 +1790,7 @@ namespace Advobot
 			if (guildChannel == null)
 				return 0;
 
-			var messages = (await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).ToList()).SelectMany(x => x);
+			var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).Flatten();
 			await DeleteMessages(channel, messages);
 			return messages.Count();
 		}
@@ -1854,7 +1810,7 @@ namespace Advobot
 			while (requestCount > 0)
 			{
 				//Get the current messages and ones that aren't null
-				var messages = (await channel.GetMessagesAsync(msg, Direction.Before, 100).ToList()).SelectMany(x => x);
+				var messages = await channel.GetMessagesAsync(msg, Direction.Before, 100).Flatten();
 				if (!messages.Any())
 					break;
 
@@ -1893,7 +1849,7 @@ namespace Advobot
 
 		public static async Task<List<IMessage>> GetMessages(IMessageChannel channel, int requestCount)
 		{
-			return (await channel.GetMessagesAsync(++requestCount).ToList()).SelectMany(x => x).ToList();
+			return (await channel.GetMessagesAsync(++requestCount).Flatten()).ToList();
 		}
 
 		public static async Task MakeAndDeleteSecondaryMessage(ICommandContext context, string secondStr, int time = Constants.WAIT_TIME)
@@ -3889,144 +3845,81 @@ namespace Advobot
 		#endregion
 
 		#region Close Words
-		public static List<CloseWord> GetRemindsWithSimilarNames(List<Quote> reminds, string input)
+		public static List<CloseWord<Quote>> GetQuotesWithSimilarNames(List<Quote> quotes, string input)
 		{
-			var closeWords = new List<CloseWord>();
-			reminds.ToList().ForEach(x =>
+			var closeQuotes = new List<CloseWord<Quote>>();
+			foreach (var quote in quotes)
 			{
-				//Check how close the word is to the input
-				var closeness = FindCloseName(x.Name, input);
-				//Ignore all closewords greater than a difference of five
+				var closeness = FindCloseName(quote.Name, input);
 				if (closeness > 5)
-					return;
-				//If no words in the list already, add it
-				if (closeWords.Count < 3)
+					continue;
+
+				closeQuotes.Add(new CloseWord<Quote>(quote, closeness));
+				if (closeQuotes.Count > 5)
 				{
-					closeWords.Add(new CloseWord(x, closeness));
+					closeQuotes.OrderBy(x => x.Closeness);
+					closeQuotes.RemoveRange(4, closeQuotes.Count - 4);
 				}
-				else
-				{
-					//If three words in the list, check closeness value now
-					foreach (var help in closeWords)
-					{
-						if (closeness < help.Closeness)
-						{
-							closeWords.Insert(closeWords.IndexOf(help), new CloseWord(x, closeness));
-							break;
-						}
-					}
-
-					//Remove all words that are now after the third item
-					closeWords.RemoveRange(3, closeWords.Count - 3);
-				}
-				closeWords.OrderBy(y => y.Closeness);
-			});
-
-			return GetRemindsWithInputInName(closeWords, reminds, input);
-		}
-
-		public static List<CloseWord> GetRemindsWithInputInName(List<CloseWord> closeReminds, List<Quote> reminds, string input)
-		{
-			//Check if any were gotten
-			if (!reminds.Any())
-				return new List<CloseWord>();
-
-			reminds.ForEach(x =>
-			{
-				if (closeReminds.Count >= 5)
-				{
-					return;
-				}
-				else if (!closeReminds.Any(y => x.Name == y.Quote.Name))
-				{
-					closeReminds.Add(new CloseWord(x, 0));
-				}
-			});
-
-			//Remove all words that are now after the fifth item
-			if (closeReminds.Count >= 5)
-			{
-				closeReminds.RemoveRange(5, closeReminds.Count - 5);
 			}
 
-			return closeReminds;
-		}
-
-		public static List<CloseHelp> GetCommandsWithSimilarName(string input)
-		{
-			var closeHelps = new List<CloseHelp>();
-			Variables.HelpList.ForEach(HelpEntry =>
+			//TODO: Remove double foreach loops
+			foreach (var quote in quotes)
 			{
-				//Check how close the word is to the input
-				var closeness = FindCloseName(HelpEntry.Name, input);
-				//Ignore all closewords greater than a difference of five
-				if (closeness > 5)
-					return;
-				//If no words in the list already, add it
-				if (closeHelps.Count < 3)
+				if (closeQuotes.Count >= 5)
 				{
-					closeHelps.Add(new CloseHelp(HelpEntry, closeness));
+					break;
 				}
-				else
+				else if (!closeQuotes.Any(x => CaseInsEquals(quote.Name, x.Word.Name)))
 				{
-					//If three words in the list, check closeness value now
-					foreach (var help in closeHelps)
-					{
-						if (closeness < help.Closeness)
-						{
-							closeHelps.Insert(closeHelps.IndexOf(help), new CloseHelp(HelpEntry, closeness));
-							break;
-						}
-					}
-
-					//Remove all words that are now after the third item
-					closeHelps.RemoveRange(3, closeHelps.Count - 3);
+					closeQuotes.Add(new CloseWord<Quote>(quote, 5));
 				}
-				closeHelps.OrderBy(y => y.Closeness);
-			});
-
-			return GetCommandsWithInputInName(closeHelps, input);
-		}
-
-		public static List<CloseHelp> GetCommandsWithInputInName(List<CloseHelp> list, string input)
-		{
-			//Find commands with the input in their name
-			var commands = Variables.HelpList.Where(x => CaseInsIndexOf(x.Name, input)).ToList();
-
-			//Check if any were gotten
-			if (!commands.Any())
-				return null;
-
-			var closeHelps = new List<CloseHelp>();
-			commands.ForEach(x =>
-			{
-				if (closeHelps.Count >= 5)
-				{
-					return;
-				}
-				else if (!closeHelps.Any(y => x.Name == y.Help.Name))
-				{
-					closeHelps.Add(new CloseHelp(x, 0));
-				}
-			});
-
-			//Remove all words that are now after the fifth item
-			if (closeHelps.Count >= 5)
-			{
-				closeHelps.RemoveRange(5, closeHelps.Count - 5);
 			}
 
-			return closeHelps;
+			return closeQuotes;
+		}
+
+		public static List<CloseWord<HelpEntry>> GetHelpEntriesWithSimilarName(string input)
+		{
+			var closeHelpEntries = new List<CloseWord<HelpEntry>>();
+			foreach (var helpEntry in Variables.HelpList)
+			{
+				var closeness = FindCloseName(helpEntry.Name, input);
+				if (closeness > 5)
+					continue;
+
+				closeHelpEntries.Add(new CloseWord<HelpEntry>(helpEntry, closeness));
+				if (closeHelpEntries.Count > 5)
+				{
+					closeHelpEntries.OrderBy(x => x.Closeness);
+					closeHelpEntries.RemoveRange(4, closeHelpEntries.Count - 4);
+				}
+			}
+
+			//TODO: Optimize this so it doesn't do two foreach loops
+			foreach (var helpEntry in Variables.HelpList.Where(x => CaseInsIndexOf(x.Name, input)))
+			{
+				if (closeHelpEntries.Count >= 5)
+				{
+					break;
+				}
+				else if (!closeHelpEntries.Any(x => CaseInsEquals(helpEntry.Name, x.Word.Name)))
+				{
+					closeHelpEntries.Add(new CloseWord<HelpEntry>(helpEntry, 5));
+				}
+			}
+
+			return closeHelpEntries;
 		}
 
 		public static int FindCloseName(string s, string t)
 		{
-			//Levenshtein Distance
+			/* Levenshtein Distance: https://en.wikipedia.org/wiki/Levenshtein_distance
+			 * Switch this one instead maybe? https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
+			 */
 			int n = s.Length;
 			int m = t.Length;
 			int[,] d = new int[n + 1, m + 1];
 
-			//Step 1
 			if (n == 0)
 			{
 				return m;
@@ -4037,7 +3930,6 @@ namespace Advobot
 				return n;
 			}
 
-			//Step 2
 			for (int i = 0; i <= n; d[i, 0] = i++)
 			{
 			}
@@ -4046,20 +3938,16 @@ namespace Advobot
 			{
 			}
 
-			//Step 3
 			for (int i = 1; i <= n; i++)
 			{
-				//Step 4
 				for (int j = 1; j <= m; j++)
 				{
-					//Step 5
 					int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
 
-					//Step 6
 					d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
 				}
 			}
-			//Step 7
+
 			return d[n, m];
 		}
 		#endregion
@@ -4392,6 +4280,16 @@ namespace Advobot
 				return new ReturnedObject<T>(obj, FailureReason.NotFailure);
 			}
 		}
+
+		public static ulong AddGuildPermissionBit(string permissionName, ulong inputValue)
+		{
+			var permission = Variables.GuildPermissions.FirstOrDefault(x => CaseInsEquals(x.Name, permissionName));
+			if (!permission.Equals(default(BotGuildPermission)))
+			{
+				inputValue |= (1U << permission.Position);
+			}
+			return inputValue;
+		}
 		#endregion
 	}
 
@@ -4419,7 +4317,7 @@ namespace Advobot
 
 		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
 		{
-			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, Actions.GetMinFromMultipleNumbers(x))));
+			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
 		}
 
 		public static void ThreadSafeAdd<T>(this List<T> list, T obj)

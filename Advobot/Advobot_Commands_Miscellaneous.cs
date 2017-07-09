@@ -18,7 +18,7 @@ namespace Advobot
 		{
 			[Command("help")]
 			[Alias("h", "info")]
-			public async Task Command(string command)
+			public async Task Command([Optional] string command)
 			{
 				await CommandRunner(command);
 			}
@@ -41,28 +41,26 @@ namespace Advobot
 				else
 				{
 					var helpEntry = Variables.HelpList.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, command) || x.Aliases.CaseInsContains(command));
-					if (helpEntry == null)
-					{
-						var closeHelps = Actions.GetCommandsWithSimilarName(command)?.Distinct();
-						if (closeHelps != null && closeHelps.Any())
-						{
-							var msg = "Did you mean any of the following:\n" + closeHelps.FormatNumberedList("{0}", x => x.Help.Name);
-
-							Variables.ActiveCloseHelp.ThreadSafeRemoveAll(x => x.UserID == Context.User.Id);
-							Variables.ActiveCloseHelp.ThreadSafeAdd(new ActiveCloseHelp(Context.User.Id, closeHelps));
-							await Actions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.ACTIVE_CLOSE);
-						}
-						else
-						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nonexistent command."));
-						}
-					}
-					else
+					if (helpEntry != null)
 					{
 						var embed = Actions.MakeNewEmbed(helpEntry.Name, Actions.GetHelpString(helpEntry, prefix));
 						Actions.AddFooter(embed, "Help");
 						await Actions.SendEmbedMessage(Context.Channel, embed);
+						return;
 					}
+
+					var closeHelps = Actions.GetHelpEntriesWithSimilarName(command).Distinct();
+					if (closeHelps.Any())
+					{
+						Variables.ActiveCloseHelp.ThreadSafeRemoveAll(x => x.UserID == Context.User.Id);
+						Variables.ActiveCloseHelp.ThreadSafeAdd(new ActiveCloseWord<HelpEntry>(Context.User.Id, closeHelps));
+
+						var msg = "Did you mean any of the following:\n" + closeHelps.FormatNumberedList("{0}", x => x.Word.Name);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.ACTIVE_CLOSE);
+						return;
+					}
+
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Nonexistent command."));
 				}
 			}
 		}
@@ -467,7 +465,7 @@ namespace Advobot
 		{
 			[Command("downloadmessages")]
 			[Alias("dlm")]
-			public async Task Command(int num, [Optional] ITextChannel channel)
+			public async Task Command(int num, [Optional, VerifyObject(ObjectVerification.CanBeRead)] ITextChannel channel)
 			{
 				await CommandRunner(num, channel);
 			}
@@ -720,7 +718,6 @@ namespace Advobot
 
 			private async Task CommandRunner()
 			{
-				var test = Context.GuildInfo;
 				await Actions.SendChannelMessage(Context, "test");
 			}
 		}

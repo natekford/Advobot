@@ -8,8 +8,8 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const string BOT_VERSION = "0.10.9";
-		public const string API_VERSION = "Discord.Net v1.0.0";
+		public const string BOT_VERSION = "0.11.0";
+		public const string API_VERSION = "Discord.Net v1.0.1";
 		public const string BOT_PREFIX = "&&";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string IGNORE_ERROR = "Cx";
@@ -25,12 +25,10 @@ namespace Advobot
 		public const string BYPASS_STRING = "Bypass100";
 
 		public const string ERROR_MESSAGE = "**ERROR:** ";
-		public const string ROLE_ERROR = "None of the targetted roles were valid.";
-		public const string CHANNEL_ERROR = "None of the targetted channels were valid.";
-		public const string ARGUMENTS_ERROR = "An invalid number of arguments was supplied.";
-		public const string CHANNEL_PERMISSIONS_ERROR = "You do not have the ability to edit that channel.";
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
-		public const string DENY_WITHOUT_PREFERENCES = "This guild does not have preferences enabled and thus cannot use this command. Please run the `comconfigmodify` command to enable them.";
+		public const string ROLE_ERROR = "TODO: remove";
+		public const string CHANNEL_ERROR = ROLE_ERROR;
+		public const string ARGUMENTS_ERROR = CHANNEL_ERROR;
 
 		public const string SERVER_FOLDER = "Discord_Servers";
 		public const string SAVING_FILE_EXTENSION = ".json";
@@ -198,15 +196,15 @@ namespace Advobot
 		public readonly static List<string> CommandNames = new List<string>();
 		public readonly static List<string> RegionIDs = new List<string>();
 		public readonly static List<HelpEntry> HelpList = new List<HelpEntry>();
-		public readonly static List<BotGuildPermissionType> GuildPermissions = new List<BotGuildPermissionType>();
-		public readonly static List<BotChannelPermissionType> ChannelPermissions = new List<BotChannelPermissionType>();
+		public readonly static List<BotGuildPermission> GuildPermissions = new List<BotGuildPermission>();
+		public readonly static List<BotChannelPermission> ChannelPermissions = new List<BotChannelPermission>();
 
 		//Lists that change as the bot is used
 		public readonly static List<ListedInvite> InviteList = new List<ListedInvite>();
 		public readonly static List<RemovablePunishment> PunishedUsers = new List<RemovablePunishment>();
 		public readonly static List<RemovableMessage> TimedMessages = new List<RemovableMessage>();
-		public readonly static List<ActiveCloseHelp> ActiveCloseHelp = new List<ActiveCloseHelp>();
-		public readonly static List<ActiveCloseWords> ActiveCloseWords = new List<ActiveCloseWords>();
+		public readonly static List<ActiveCloseWord<HelpEntry>> ActiveCloseHelp = new List<ActiveCloseWord<HelpEntry>>();
+		public readonly static List<ActiveCloseWord<Quote>> ActiveCloseWords = new List<ActiveCloseWord<Quote>>();
 		public readonly static List<SlowmodeUser> SlowmodeUsers = new List<SlowmodeUser>();
 		public readonly static List<IGuild> GuildsToBeLoaded = new List<IGuild>();
 		public readonly static List<ulong> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<ulong>();

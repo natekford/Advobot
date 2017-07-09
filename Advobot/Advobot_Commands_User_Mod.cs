@@ -36,6 +36,56 @@ namespace Advobot
 				}
 			}
 		}
+
+		[Usage("[Number of Messages] <User> <Channel>")]
+		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel. These arguments need to be mentions to work.")]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageMessages)]
+		[DefaultEnabled(true)]
+		public class RemoveMessages : ModuleBase<MyCommandContext>
+		{
+			[Command("removemessages")]
+			[Alias("rm")]
+			public async Task Command(uint requestCount, [Optional] IGuildUser user, [Optional, VerifyObject(ObjectVerification.CanDeleteMessages)] ITextChannel channel)
+			{
+				await CommandRunner((int)requestCount, user, channel);
+			}
+			[Command("removemessages")]
+			[Alias("rm")]
+			public async Task Command(uint requestCount, [Optional, VerifyObject(ObjectVerification.CanDeleteMessages)] ITextChannel channel, [Optional] IGuildUser user)
+			{
+				await CommandRunner((int)requestCount, user, channel);
+			}
+
+			private async Task CommandRunner(int requestCount, IGuildUser user, ITextChannel channel)
+			{
+				if (channel == null)
+				{
+					//Default to channel command was said on if no channel was specified
+					var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanDeleteMessages }, Context.Channel as ITextChannel);
+					if (returnedChannel.Reason != FailureReason.NotFailure)
+					{
+						await Actions.HandleObjectGettingErrors(Context, returnedChannel);
+						return;
+					}
+					channel = returnedChannel.Object as ITextChannel;
+				}
+				
+				var serverLog = ((DiscordObjectWithID<ITextChannel>)Context.GuildInfo.GetSetting(SettingOnGuild.ServerLog))?.ID == channel.Id;
+				var modLog = ((DiscordObjectWithID<ITextChannel>)Context.GuildInfo.GetSetting(SettingOnGuild.ModLog))?.ID == channel.Id;
+				var imageLog = ((DiscordObjectWithID<ITextChannel>)Context.GuildInfo.GetSetting(SettingOnGuild.ImageLog))?.ID == channel.Id;
+				if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
+				{
+					var DMChannel = await (await Context.Guild.GetOwnerAsync()).GetOrCreateDMChannelAsync();
+					await Actions.SendDMMessage(DMChannel, String.Format("`{0}` is trying to delete stuff from a log channel: `{1}`.", Context.User.FormatUser(), channel.FormatChannel()));
+					return;
+				}
+
+				var response = String.Format("Successfully deleted `{0}` message{1}", await Actions.RemoveMessages(channel, Context.Message, user, requestCount), Actions.GetPlural(requestCount));
+				var userResp = user != null ? String.Format(" from `{0}`", user.FormatUser()) : null;
+				var chanResp = channel != null ? String.Format(" on `{0}`", channel.FormatChannel()) : null;
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.JoinNonNullStrings(" ", response, userResp, chanResp) + ".");
+			}
+		}
 	}
 	//User Moderation commands are commands that affect the users of a guild
 	[Name("UserModeration")]
@@ -294,7 +344,7 @@ namespace Advobot
 			var outputChannel = returnedOutputChannel.Object as IVoiceChannel;
 
 			//Grab all of the users in the input channel
-			var users = (await inputChannel.GetUsersAsync().ToList()).SelectMany(x => x).ToList();
+			var users = (await inputChannel.GetUsersAsync().Flatten()).ToList();
 
 			//Have the bot stay in the typing state and have a message that can be updated
 			Actions.DontWaitForResultOfBigUnimportantFunction(Context.Channel, async () =>
@@ -556,85 +606,7 @@ namespace Advobot
 			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bans", str));
 		}
 
-		[Command("removemessages")]
-		[Alias("rm")]
-		[Usage("<User> <Channel> [Number of Messages]")]
-		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel. These arguments need to be mentions to work.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageMessages)]
-		[DefaultEnabled(true)]
-		public async Task RemoveMessages([Remainder] string input)
-		{
-			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-
-			//Get the user
-			IUser user = null;
-			if (Context.Message.MentionedUserIds.Any())
-			{
-				user = Actions.GetGlobalUser(Context.Message.MentionedUserIds.First());
-			}
-
-			//Get the channel
-			ITextChannel channel = Context.Channel as ITextChannel;
-			if (Context.Message.MentionedChannelIds.Any())
-			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanDeleteMessages, ObjectVerification.IsText }, true, null);
-				if (returnedChannel.Reason != FailureReason.NotFailure)
-				{
-					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-					return;
-				}
-				channel = returnedChannel.Object as ITextChannel;
-			}
-			else
-			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanDeleteMessages, ObjectVerification.IsText }, channel);
-				if (returnedChannel.Reason != FailureReason.NotFailure)
-				{
-					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-					return;
-				}
-				channel = returnedChannel.Object as ITextChannel;
-			}
-
-			//Check if the channel that's having messages attempted to be removed on is a log channel
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-			var serverLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog))?.ID == channel.Id;
-			var modLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog))?.ID == channel.Id;
-			var imageLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ImageLog))?.ID == channel.Id;
-			if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
-			{
-				//DM the owner of the server
-				var owner = await Context.Guild.GetOwnerAsync();
-				var DMChannel = await owner.GetOrCreateDMChannelAsync();
-				await Actions.SendDMMessage(DMChannel, String.Format("`{0}` is trying to delete stuff from a log channel: `{1}`.", Context.User.FormatUser(), channel.FormatChannel()));
-				return;
-			}
-
-			//Checking for valid request count
-			var requestCount = -1;
-			if (returnedArgs.Arguments.FirstOrDefault(x => int.TryParse(x, out requestCount)) == null || requestCount < 1)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Incorrect input for number of messages to be removed."));
-				return;
-			}
-
-			var response = String.Format("Successfully deleted `{0}` message{1}", await Actions.RemoveMessages(channel, Context.Message, user, requestCount), Actions.GetPlural(requestCount));
-			if (user != null)
-			{
-				response += String.Format(" from `{0}`", user.FormatUser());
-			}
-			if (channel != null)
-			{
-				response += String.Format(" on `{0}`", channel.FormatChannel());
-			}
-			await Actions.MakeAndDeleteSecondaryMessage(Context, response + ".");
-		}
+		
 
 		[Command("modifyslowmode")]
 		[Alias("msm")]
