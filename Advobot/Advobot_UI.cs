@@ -564,7 +564,7 @@ namespace Advobot
 					}
 					catch
 					{
-						Actions.WriteLine(String.Format("Invalid color supplied for {0}.", Enum.GetName(typeof(ColorTarget), target)));
+						Actions.WriteLine(String.Format("Invalid color supplied for {0}.", target.EnumName()));
 						continue;
 					}
 
@@ -572,7 +572,7 @@ namespace Advobot
 					{
 						mUIInfo.ColorTargets[target] = brush;
 						castedChild.Text = UIModification.FormatBrush(brush);
-						Actions.WriteLine(String.Format("Successfully updated the color for {0}.", Enum.GetName(typeof(ColorTarget), target)));
+						Actions.WriteLine(String.Format("Successfully updated the color for {0}.", target.EnumName()));
 					}
 				}
 				else if (child is ComboBox)
@@ -1947,7 +1947,7 @@ namespace Advobot
 				var key = colorResourceKeys[i];
 				var value = FormatBrush(UIInfo.ColorTargets[key]);
 
-				var title = MakeTitle(String.Format("{0}:", Enum.GetName(typeof(ColorTarget), key)), "");
+				var title = MakeTitle(String.Format("{0}:", key.EnumName()), "");
 				var setting = new MyTextBox
 				{
 					VerticalContentAlignment = VerticalAlignment.Center,

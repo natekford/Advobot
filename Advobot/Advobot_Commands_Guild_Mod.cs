@@ -7,236 +7,262 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
-	//Guild Moderation commands are commands that affect the guild itself and nothing else
-	[Name("GuildModeration")]
-	public class Advobot_Commands_Guild_Mod : ModuleBase
+	namespace GuildModeration
 	{
-		[Command("changeguildname")]
-		[Alias("cgn")]
-		[Usage("[New Name]")]
+		[Usage("[Name]")]
 		[Summary("Change the name of the guild to the given name.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
-		public async Task ChangeGuildName([Remainder] string input)
+		public class ChangeGuildName : ModuleBase<MyCommandContext>
 		{
-			//Guild names have the same length requirements as channel names, so I'm not changing the variable names
-
-			//Check if valid length
-			if (input.Length > Constants.MAX_CHANNEL_NAME_LENGTH)
+			[Command("changeguildname")]
+			[Alias("cgn")]
+			public async Task Command(string name)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.MAX_CHANNEL_NAME_LENGTH)));
-				return;
-			}
-			else if (input.Length < Constants.MIN_CHANNEL_NAME_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.MIN_CHANNEL_NAME_LENGTH)));
-				return;
+				await CommandRunner(name);
 			}
 
-			//Change the name and say what it was changed to
-			await Context.Guild.ModifyAsync(x => x.Name = input);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild name to `{0}`.", input));
+			private async Task CommandRunner(string name)
+			{
+				if (name.Length > Constants.MAX_GUILD_NAME_LENGTH)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Guild names cannot be more than `{0}` characters.", Constants.MAX_GUILD_NAME_LENGTH)));
+					return;
+				}
+				else if (name.Length < Constants.MIN_GUILD_NAME_LENGTH)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Guild names cannot be less than `{0}` characters.", Constants.MIN_GUILD_NAME_LENGTH)));
+					return;
+				}
+
+				await Context.Guild.ModifyAsync(x => x.Name = name);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild name to `{0}`.", name));
+			}
 		}
 
-		[Command("changeguildregion")]
-		[Alias("cgr")]
-		[Usage("[Regions|Current|Region ID]")]
-		[Summary("Shows or changes the guild's server region. `Regions` lists all valid region IDs.")]
+		[Usage("<Current|Region ID>")]
+		[Summary("Shows or changes the guild's server region. Inputting nothing lists all valid region IDs.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
-		public async Task ChangeGuildLocation([Remainder] string input)
+		public class ChangeGuildRegion : ModuleBase<MyCommandContext>
 		{
-			//Check if a valid region or asking to see the region types
-			if (Actions.CaseInsEquals(input, "regions"))
+			[Command("changeguildregion")]
+			[Alias("cgr")]
+			public async Task Command(string region)
 			{
-				var text = String.Join("\n", Constants.VALID_REGION_IDS);
-				//Check whether to show the VIP regions
-				if (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS))
-				{
-					text += "\n" + String.Join("\n", Constants.VIP_REGIONIDS);
-				}
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Region IDs", text));
+				await CommandRunner(region);
 			}
-			else if (Actions.CaseInsEquals(input, "current"))
-			{
-				await Actions.SendChannelMessage(Context, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
-			}
-			else if (Constants.VALID_REGION_IDS.CaseInsContains(input))
-			{
-				//Capture the previous region
-				var bRegion = Context.Guild.VoiceRegionId;
 
-				//Change the region
-				await Context.Guild.ModifyAsync(x => x.RegionId = input);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", bRegion, input));
-			}
-			else if (Constants.VIP_REGIONIDS.CaseInsContains(input))
-			{
-				//Check if the guild can access vip regions
-				if (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS))
-				{
-					//Capture the previous region
-					var bRegion = Context.Guild.VoiceRegionId;
+			private static readonly string mRegionIDs = String.Join("\n", Constants.VALID_REGION_IDS);
+			private static readonly string mVIPRegionIDs = String.Join("\n", Constants.VIP_REGIONIDS);
+			private static readonly string mAllRegionIDs = mRegionIDs + "\n" + mVIPRegionIDs;
 
-					//Change the region
-					await Context.Guild.ModifyAsync(x => x.RegionId = input);
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", bRegion, input));
-				}
-			}
-			else
+			private async Task CommandRunner(string region)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid region ID was input."));
+				if (String.IsNullOrWhiteSpace(region))
+				{
+					var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? mAllRegionIDs : mRegionIDs;
+					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Region IDs", desc));
+				}
+				else if (Actions.CaseInsEquals(region, "current"))
+				{
+					await Actions.SendChannelMessage(Context, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
+				}
+				else if (Constants.VALID_REGION_IDS.CaseInsContains(region) || (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && Constants.VIP_REGIONIDS.CaseInsContains(region)))
+				{
+					var beforeRegion = Context.Guild.VoiceRegionId;
+					await Context.Guild.ModifyAsync(x => x.RegionId = region);
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", beforeRegion, region));
+				}
+				else
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid region ID was input."));
+				}
 			}
 		}
 
-		[Command("changeguildafk")]
-		[Alias("cgafk")]
-		[Usage("[Channel] [Time]")]
-		[Summary("Updates the guild's afk channel and timeout.")]
+		[Usage("[Number]")]
+		[Summary("Updates the guild's AFK timeout.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
-		public async Task ChangeGuildAFK([Remainder] string input)
+		public class ChangeGuildAFKTimer : ModuleBase<MyCommandContext>
 		{
-			//Split at space into two args
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
+			[Command("changeguildafktimer")]
+			[Alias("cgafkt")]
+			public async Task Command(uint time)
 			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var chanStr = returnedArgs.Arguments[0];
-			var timeStr = returnedArgs.Arguments[1];
-
-			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions, ObjectVerification.IsVoice }, false, chanStr);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var channel = returnedChannel.Object;
-
-			int[] validAmount = { 60, 300, 900, 1800, 3600 };
-			if (!int.TryParse(timeStr, out int time))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for time."));
-				return;
-			}
-			else if (!validAmount.Contains(time))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Invalid time input, must be one of the following: `{0}`.", String.Join("`, `", validAmount))));
-				return;
+				await CommandRunner(time);
 			}
 
-			await Context.Guild.ModifyAsync(x => x.AfkChannelId = channel.Id);
-			await Context.Guild.ModifyAsync(x => x.AfkTimeout = time);
+			private async Task CommandRunner(uint time)
+			{
+				if (!Constants.VALID_AFK_TIMES.Contains(time))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Invalid time input, must be one of the following: `{0}`.", String.Join("`, `", Constants.VALID_AFK_TIMES))));
+					return;
+				}
 
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild's AFK channel to `{0}` and set the AFK time to `{1}`.", channel.FormatChannel(), time));
+				await Context.Guild.ModifyAsync(x => x.AfkTimeout = (int)time);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild's AFK timeout to `{0}`.", time));
+			}
 		}
 
-		[Command("changeguildmsgnotif")]
-		[Alias("cgmn")]
-		[Usage("[All|Mentions]")]
+		[Usage("[Channel]")]
+		[Summary("Updates the guild's AFK channel.")]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
+		[DefaultEnabled(true)]
+		public class ChangeGuildAFKChannel : ModuleBase<MyCommandContext>
+		{
+			[Command("changeguildafkchannel")]
+			[Alias("cgafkc")]
+			public async Task Command(IVoiceChannel channel)
+			{
+				await CommandRunner(channel);
+			}
+
+			private async Task CommandRunner(IVoiceChannel channel)
+			{
+				await Context.Guild.ModifyAsync(x => x.AfkChannel = new Optional<IVoiceChannel>(channel));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild's AFK channel to `{0}`.", channel.FormatChannel()));
+			}
+		}
+
+		[Usage("[AllMessages|MentionsOnly]")]
 		[Summary("Changes the message notifications to either all messages or mentions only.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
-		public async Task ChangeGuildMsgNotifications([Remainder] string input)
+		public class ChangeGuildMsgNotif : ModuleBase<MyCommandContext>
 		{
-			if (Actions.CaseInsEquals(input, "all"))
+			[Command("changeguildmsgnotif")]
+			[Alias("cgmn")]
+			public async Task Command(DefaultMessageNotifications msgNotifs)
 			{
-				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = DefaultMessageNotifications.AllMessages);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully changed the default message notification setting to all messages.");
+				await CommandRunner(msgNotifs);
 			}
-			else if (Actions.CaseInsEquals(input, "mentions"))
+
+			private async Task CommandRunner(DefaultMessageNotifications msgNotifs)
 			{
-				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = DefaultMessageNotifications.MentionsOnly);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully changed the default message notification setting to mentions only.");
-			}
-			else
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid message notification setting."));
+				await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the default message notification setting to `{0}`.", msgNotifs.EnumName()));
 			}
 		}
 
-		[Command("changeguildverif")]
-		[Alias("cgv")]
-		[Usage("[None|Low|Medium|High]")]
+		[Usage("[None|Low|Medium|High|Extreme]")]
 		[Summary("Changes the verification level. None is the most lenient (no requirements to type), high is the harshest (10 minutes in the guild before new members can type).")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
-		public async Task ChangeGuildVerification([Remainder] string input)
+		public class ChangeGuildVerif : ModuleBase<MyCommandContext>
 		{
-			if (Enum.TryParse(input, true, out VerificationLevel vLevel))
+			[Command("changeguildverif")]
+			[Alias("cgv")]
+			public async Task Command(VerificationLevel verif)
 			{
-				await Context.Guild.ModifyAsync(x => x.VerificationLevel = vLevel);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild verification level as `{0}`.", Enum.GetName(typeof(VerificationLevel), vLevel)));
+				await CommandRunner(verif);
 			}
-			else
+
+			private async Task CommandRunner(VerificationLevel verif)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Invalid verification level provided.");
+				await Context.Guild.ModifyAsync(x => x.VerificationLevel = verif);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild verification level as `{0}`.", verif.EnumName()));
 			}
 		}
 
-		[Command("changeguildicon")]
-		[Alias("cgi")]
 		[Usage("[Attached Image|Embedded Image|Remove]")]
 		[Summary("Changes the guild's icon to the given image. Typing `" + Constants.BOT_PREFIX + "gdi remove` will remove the icon. The image must be smaller than 2.5MB.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
-		public async Task ChangeGuildIcon([Optional] string input)
+		public class ChangeGuildIcon : ModuleBase<MyCommandContext>
 		{
-			await Actions.SetPicture(Context, input, false);
+			[Command("changeguildicon")]
+			[Alias("cgi")]
+			//TODO: TypeReader for images from Attachments or embeds
+			public async Task Command(string other)
+			{
+				await CommandRunner(other);
+			}
+
+			//TODO:separate out setpicture and rework this command
+			private async Task CommandRunner(string other)
+			{
+				await Actions.SetPicture(Context, other, false);
+			}
 		}
 
-		[Command("createguild")]
-		[Alias("cg")]
 		[Usage("[Name]")]
 		[Summary("Creates a guild with the bot as the owner.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
-		public async Task GuildCreate([Remainder] string input)
+		public class CreateGuild : ModuleBase<MyCommandContext>
 		{
-			var guild = await Variables.Client.CreateGuildAsync(input, await Variables.Client.GetOptimalVoiceRegionAsync());
-			await Actions.CreateOrGetGuildInfo(guild);
-			await Actions.SendDMMessage(await Context.User.GetOrCreateDMChannelAsync(), (await (await guild.GetDefaultChannelAsync()).CreateInviteAsync()).Url);
+			[Command("createguild")]
+			[Alias("cg")]
+			public async Task Command(string name)
+			{
+				await CommandRunner(name);
+			}
+
+			private async Task CommandRunner(string name)
+			{
+				var optimalVoiceRegion = await Variables.Client.GetOptimalVoiceRegionAsync();
+				var guild = await Variables.Client.CreateGuildAsync(name, optimalVoiceRegion);
+				await Actions.CreateOrGetGuildInfo(guild);
+
+				var defaultChannel = await guild.GetDefaultChannelAsync();
+				var invite = await defaultChannel.CreateInviteAsync();
+				var DMChannel = await Context.User.GetOrCreateDMChannelAsync();
+				await Actions.SendDMMessage(DMChannel, invite.Url);
+			}
 		}
 
-		[Command("changeguildowner")]
-		[Alias("cgo")]
 		[Usage("")]
 		[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
-		public async Task GuildAdmin()
+		public class ChangeGuildOwner : ModuleBase<MyCommandContext>
 		{
-			//Check if the user is the only person in the guild
-			var owner = await Context.Guild.GetOwnerAsync();
-			if (owner.Id != Variables.BotID)
+			[Command("changeguildowner")]
+			[Alias("cgo")]
+			public async Task Command()
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bot is not the owner of the guild. The owner is: `{0}`.", owner.FormatUser())));
-				return;
+				await CommandRunner();
 			}
 
-			await Context.Guild.ModifyAsync(x => x.Owner = new Optional<IUser>(Context.User));
-			await Actions.MakeAndDeleteSecondaryMessage(Context, "You are now the owner.");
+			private async Task CommandRunner()
+			{
+				if ((await Context.Guild.GetOwnerAsync()).Id == Variables.BotID)
+				{
+					await Context.Guild.ModifyAsync(x => x.Owner = new Optional<IUser>(Context.User));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0} is now the owner.", Context.User.Mention));
+					return;
+				}
+
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The bot is not the owner of the guild."));
+			}
 		}
 
-		[Command("deleteguild")]
-		[Alias("dg")]
 		[Usage("")]
 		[Summary("If the bot is the current owner of the guild, this command will delete the guild.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
-		public async Task GuildDelete()
+		public class DeleteGuild : ModuleBase<MyCommandContext>
 		{
-			//Check if the bot can delete the guild
-			if (Variables.BotID != Context.Guild.OwnerId)
+			[Command("deleteguild")]
+			[Alias("dg")]
+			public async Task Command()
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The bot is not the owner of the guild and thus cannot delete it."));
-				return;
+				await CommandRunner();
 			}
 
-			//Delete the guild
-			await Context.Guild.DeleteAsync();
+			private async Task CommandRunner()
+			{
+				if (Variables.BotID == Context.Guild.OwnerId)
+				{
+					await Context.Guild.DeleteAsync();
+					return;
+				}
+
+				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The bot is not the owner of the guild and thus cannot delete it."));
+			}
 		}
 	}
 }

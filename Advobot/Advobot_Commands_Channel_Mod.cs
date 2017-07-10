@@ -214,7 +214,7 @@ namespace Advobot
 			}
 		}
 
-		[Usage("[Show|Allow|Inherit|Deny] <Channel> <User|Role> <Permission/...>")]
+		[Usage("[Show|Allow|Inherit|Deny] <Channel> <Role|User> <Permission/...>")]
 		[Summary("Permissions must be separated by a `/`. Type `" + Constants.BOT_PREFIX + "chp [Show]` to see the available permissions. " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel]` to see all permissions on a channel. " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel] [Role|User]` to see permissions a role/user has on a channel.")]
@@ -273,11 +273,11 @@ namespace Advobot
 				//Remove any attempt to change readmessages on the base channel because nothing can change that
 				if (channel.Id == Context.Guild.DefaultChannelId)
 				{
-					permissions.RemoveAll(x => Actions.CaseInsEquals(x, Enum.GetName(typeof(ChannelPermission), ChannelPermission.ReadMessages)));
+					permissions.RemoveAll(x => Actions.CaseInsEquals(x, ChannelPermission.ReadMessages.EnumName()));
 				}
 
-				var allowBits = channel.GetPermissionOverwrite(discordObject)?.AllowValue ?? 0;
-				var denyBits = channel.GetPermissionOverwrite(discordObject)?.DenyValue ?? 0;
+				ulong allowBits = channel.GetPermissionOverwrite(discordObject)?.AllowValue ?? 0;
+				ulong denyBits = channel.GetPermissionOverwrite(discordObject)?.DenyValue ?? 0;
 
 				//Put all the bit values to change into one
 				ulong changeValue = 0;
@@ -351,698 +351,283 @@ namespace Advobot
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Channel Overwrite", desc));
 			}
 		}
-	}
-	[Name("ChannelModeration")]
-	public class Advobot_Commands_Channel_Mod : ModuleBase
-	{
 
-
-
-		public async Task ChannelPermissions([Remainder] string input)
-		{
-			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 4));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var actionStr = returnedArgs.Arguments[0];
-			var chanStr = returnedArgs.Arguments[1];
-			var targStr = returnedArgs.Arguments[2];
-			var permStr = returnedArgs.Arguments[3];
-
-			//Get the action
-			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Show, ActionType.Allow, ActionType.Inherit, ActionType.Deny });
-			if (returnedType.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedType);
-				return;
-			}
-			var action = returnedType.Object;
-
-			//If only show, take that as a person wanting to see the permission types
-			if (returnedArgs.ArgCount == 1)
-			{
-				if (action == ActionType.Show)
-				{
-					//Embed showing the channel permission types
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Channel Permission Types", String.Format("`{0}`", String.Join("`, `", Variables.ChannelPermissions.Select(x => x.Name)))));
-					return;
-				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
-					return;
-				}
-			}
-
-			//Get the channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var channel = returnedChannel.Object;
-
-			//Get the role or user
-			IGuildUser user = null;
-			IRole role = null;
-			user = Actions.GetGuildUser(Context, new[] { ObjectVerification.None }, true, targStr).Object;
-			if (user == null)
-			{
-				role = Actions.GetRole(Context, new[] { ObjectVerification.None }, true, targStr).Object;
-				if (role == null)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No valid target supplied."));
-					return;
-				}
-			}
-
-			var permissions = new List<string>();
-			switch (action)
-			{
-				case ActionType.Show:
-				{
-					//Say the overwrites on a channel
-					if (returnedArgs.ArgCount == 2)
-					{
-						var roleOverwrites = new List<string>();
-						var userOverwrites = new List<string>();
-						await channel.PermissionOverwrites.ToList().ForEachAsync(async x =>
-						{
-							if (x.TargetType == PermissionTarget.Role)
-							{
-								roleOverwrites.Add(Context.Guild.GetRole(x.TargetId).Name);
-							}
-							else
-							{
-								userOverwrites.Add((await Context.Guild.GetUserAsync(x.TargetId)).Username);
-							}
-						});
-
-						//Make an embed saying the overwrites
-						var embed = Actions.MakeNewEmbed(channel.FormatChannel());
-						Actions.AddField(embed, "Role", String.Format("`{0}`", roleOverwrites.Any() ? String.Join("`, `", roleOverwrites) : "NONE"));
-						Actions.AddField(embed, "User", String.Format("`{0}`", userOverwrites.Any() ? String.Join("`, `", userOverwrites) : "NONE"));
-						await Actions.SendEmbedMessage(Context.Channel, embed);
-						return;
-					}
-
-					//Check to see if there are any overwrites
-					if (!channel.PermissionOverwrites.Any())
-					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Unable to show permissions for `{0}` on `{1}`.", targStr, channel.FormatChannel())));
-						return;
-					}
-
-					//Say the permissions of the overwrite
-					await channel.PermissionOverwrites.ToList().ForEachAsync(async overwrite =>
-					{
-						if (role != null && overwrite.TargetId.Equals(role.Id))
-						{
-							var perms = Actions.GetFilteredChannelOverwritePermissions(overwrite, channel);
-							var maxLen = perms.Keys.Max(x => x.Length);
-
-							//Embed showing the perm overwrites on a role
-							var formattedPerms = String.Join("\n", perms.Select(x => String.Format("{0} {1}", x.Key.PadRight(maxLen), x.Value)));
-							var description = String.Format("**Channel:** `{0}`\n**Role:** `{1}`\n```{2}```", channel.FormatChannel(), role.FormatRole(), formattedPerms);
-							var embed = Actions.MakeNewEmbed("Channel Permissions On Role", description);
-							await Actions.SendEmbedMessage(Context.Channel, embed);
-						}
-						else if (user != null && overwrite.TargetId.Equals(user.Id))
-						{
-							var perms = Actions.GetFilteredChannelOverwritePermissions(overwrite, channel);
-							var maxLen = perms.Keys.Max(x => x.Length);
-
-							//Embed showing the perm overwrites on a user
-							var formattedPerms = String.Join("\n", perms.Select(x => String.Format("{0} {1}", x.Key.PadRight(maxLen), x.Value)));
-							var description = String.Format("**Channel:** `{0}`\n**User:** `{1}`\n```{2}```", channel.FormatChannel(), user.FormatUser(), formattedPerms);
-							var embed = Actions.MakeNewEmbed("Channel Permissions On User", description);
-							await Actions.SendEmbedMessage(Context.Channel, embed);
-						}
-					});
-					return;
-				}
-				case ActionType.Allow:
-				case ActionType.Inherit:
-				case ActionType.Deny:
-				{
-					permissions = permStr.Split('/').ToList();
-					break;
-				}
-			}
-
-			if (user != null)
-			{
-				var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.CanBeEdited }, user);
-				if (returnedUser.Reason != FailureReason.NotFailure)
-				{
-					await Actions.HandleObjectGettingErrors(Context, returnedUser);
-					return;
-				}
-			}
-			else if (role != null)
-			{
-				var returnedRole = Actions.GetRole(Context, new[] { ObjectVerification.CanBeEdited }, role);
-				if (returnedRole.Reason != FailureReason.NotFailure)
-				{
-					await Actions.HandleObjectGettingErrors(Context, returnedRole);
-					return;
-				}
-			}
-
-			//Check if valid permissions
-			var validPerms = permissions.Intersect(Variables.ChannelPermissions.Select(x => x.Name).ToList(), StringComparer.OrdinalIgnoreCase).ToList();
-			if (validPerms.Count != permissions.Count)
-			{
-				var invalidPerms = permissions.Where(x => !validPerms.Contains(x, StringComparer.OrdinalIgnoreCase)).ToList();
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Invalid permission{0} supplied: `{1}`.",
-					Actions.GetPlural(invalidPerms.Count),
-					String.Join("`, `", invalidPerms))));
-				return;
-			}
-
-			//Remove any attempt to change readmessages on the base channel because nothing can change that
-			if (channel.Id == Context.Guild.DefaultChannelId)
-			{
-				permissions.RemoveAll(x => Actions.CaseInsIndexOf(x, "readmessages"));
-			}
-
-			//Get the permissions
-			ulong changeValue = 0;
-			ulong allowBits = 0;
-			ulong denyBits = 0;
-			if (role != null)
-			{
-				if (channel.GetPermissionOverwrite(role).HasValue)
-				{
-					allowBits = (ulong)channel.GetPermissionOverwrite(role).Value.AllowValue;
-					denyBits = (ulong)channel.GetPermissionOverwrite(role).Value.DenyValue;
-				}
-			}
-			else
-			{
-				if (channel.GetPermissionOverwrite(user).HasValue)
-				{
-					allowBits = (ulong)channel.GetPermissionOverwrite(user).Value.AllowValue;
-					denyBits = (ulong)channel.GetPermissionOverwrite(user).Value.DenyValue;
-				}
-			}
-
-			//Changing the bit values
-			permissions.ToList().ForEach(x => changeValue = Actions.AddGuildPermissionBit(x, changeValue));
-			switch (action)
-			{
-				case ActionType.Allow:
-				{
-					allowBits |= changeValue;
-					denyBits &= ~changeValue;
-					actionStr = "allowed";
-					break;
-				}
-				case ActionType.Inherit:
-				{
-					allowBits &= ~changeValue;
-					denyBits &= ~changeValue;
-					actionStr = "inherited";
-					break;
-				}
-				case ActionType.Deny:
-				{
-					allowBits &= ~changeValue;
-					denyBits |= changeValue;
-					actionStr = "denied";
-					break;
-				}
-			}
-
-			//Change the permissions
-			var roleNameOrUsername = "";
-			if (role != null)
-			{
-				await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allowBits, denyBits));
-				roleNameOrUsername = role.FormatRole();
-			}
-			else
-			{
-				await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits));
-				roleNameOrUsername = user.FormatUser();
-			}
-
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}` on `{3}`",
-				actionStr, String.Join("`, `", permissions), roleNameOrUsername, channel.FormatChannel()));
-		}
-
-		[Command("copychannelperms")]
-		[Alias("cochp")]
-		[Usage("[Channel] [Channel] [User|Role|All]")]
-		[Summary("Copy permissions from one channel to another. Works for a role, a user, or everything.")]
+		[Usage("[Channel] [Channel] <Role|User>")]
+		[Summary("Copy permissions from one channel to another. Works for a role, a user, or everything. If nothing is specified, copies everything.")]
 		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
 		[DefaultEnabled(true)]
-		public async Task CopyChannelPermissions([Remainder] string input)
+		public class CopyChannelPerms : ModuleBase<MyCommandContext>
 		{
-			//Get arguments
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(3, 3));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
+			[Command("copychannelperms")]
+			[Alias("cochp")]
+			public async Task Command([VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
+									  [VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel,
+									  IRole role)
 			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
+				await CommandRunner(inputChannel, outputChannel, role);
 			}
-			var firstChanStr = returnedArgs.Arguments[0];
-			var secondChanStr = returnedArgs.Arguments[1];
-			var targetStr = returnedArgs.Arguments[2];
-
-			//Separating the channels
-			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions }, false, firstChanStr);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
+			[Command("copychannelperms")]
+			[Alias("cochp")]
+			public async Task Command([VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
+									  [VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel,
+									  IGuildUser user)
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
+				await CommandRunner(inputChannel, outputChannel, user);
 			}
-			var inputChannel = returnedChannel.Object;
-
-			//See if the user can see and thus edit that channel
-			var returnedChannelTwo = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions }, false, secondChanStr);
-			if (returnedChannelTwo.Reason != FailureReason.NotFailure)
+			[Command("copychannelperms")]
+			[Alias("cochp")]
+			public async Task Command([VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
+									  [VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel)
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannelTwo);
-				return;
-			}
-			var outputChannel = returnedChannelTwo.Object;
-
-			//Make sure channels are the same type
-			if (inputChannel.GetType() != outputChannel.GetType())
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Channels must be the same type."));
-				return;
+				await CommandRunner(inputChannel, outputChannel, null);
 			}
 
-			//Copy the selected target
-			if (Actions.CaseInsEquals(targetStr, "all"))
+			private async Task CommandRunner(IGuildChannel inputChannel, IGuildChannel outputChannel, dynamic discordObject)
 			{
-				targetStr = "ALL";
-				await inputChannel.PermissionOverwrites.ToList().ForEachAsync(async permissionOverwrite =>
+				//Make sure channels are the same type
+				if (inputChannel.GetType() != outputChannel.GetType())
 				{
-					if (permissionOverwrite.TargetType == PermissionTarget.Role)
-					{
-						var role = Context.Guild.GetRole(permissionOverwrite.TargetId);
-						await outputChannel.AddPermissionOverwriteAsync(role, new OverwritePermissions(permissionOverwrite.Permissions.AllowValue, permissionOverwrite.Permissions.DenyValue));
-					}
-					else
-					{
-						var user = await Context.Guild.GetUserAsync(permissionOverwrite.TargetId);
-						await outputChannel.AddPermissionOverwriteAsync(user, new OverwritePermissions(permissionOverwrite.Permissions.AllowValue, permissionOverwrite.Permissions.DenyValue));
-					}
-				});
-			}
-			else
-			{
-				if (Context.Message.MentionedUserIds.Any())
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Channels must be the same type."));
+					return;
+				}
+
+				string target;
+				if (discordObject == null)
 				{
-					var evaluatedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.CanBeEdited }, true, targetStr);
-					if (evaluatedUser.Reason != FailureReason.NotFailure)
+					target = "All";
+					foreach (var overwrite in inputChannel.PermissionOverwrites)
 					{
-						await Actions.HandleObjectGettingErrors(Context, evaluatedUser);
-						return;
-					}
-					else
-					{
-						var user = evaluatedUser.Object;
-						var currOver = inputChannel.GetPermissionOverwrite(user);
-						if (!currOver.HasValue)
+						switch (overwrite.TargetType)
 						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A permission overwrite for that user does not exist to copy over."));
-							return;
+							case PermissionTarget.Role:
+							{
+								var role = Context.Guild.GetRole(overwrite.TargetId);
+								await outputChannel.AddPermissionOverwriteAsync(role, new OverwritePermissions(overwrite.Permissions.AllowValue, overwrite.Permissions.DenyValue));
+								break;
+							}
+							case PermissionTarget.User:
+							{
+								var user = await Context.Guild.GetUserAsync(overwrite.TargetId);
+								await outputChannel.AddPermissionOverwriteAsync(user, new OverwritePermissions(overwrite.Permissions.AllowValue, overwrite.Permissions.DenyValue));
+								break;
+							}
 						}
-
-						targetStr = user.Username;
-						await outputChannel.AddPermissionOverwriteAsync(user, new OverwritePermissions(currOver.Value.AllowValue, currOver.Value.DenyValue));
 					}
 				}
 				else
 				{
-					var evaluatedRole = Actions.GetRole(Context, new[] { ObjectVerification.CanBeEdited }, true, targetStr);
-					if (evaluatedRole.Reason != FailureReason.NotFailure)
+					target = Actions.FormatObject(discordObject);
+					OverwritePermissions? overwrite = inputChannel.GetPermissionOverwrite(discordObject);
+					if (!overwrite.HasValue)
 					{
-						await Actions.HandleObjectGettingErrors(Context, evaluatedRole);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("A permission overwrite for {0} does not exist to copy over.", target)));
 						return;
 					}
-					else
-					{
-						var role = evaluatedRole.Object;
-						var currOver = inputChannel.GetPermissionOverwrite(role);
-						if (!currOver.HasValue)
-						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A permission overwrite for that role does not exist to copy over."));
-							return;
-						}
 
-						targetStr = role.Name;
-						await outputChannel.AddPermissionOverwriteAsync(role, new OverwritePermissions(currOver.Value.AllowValue, currOver.Value.DenyValue));
-					}
+					await outputChannel.AddPermissionOverwriteAsync(discordObject, new OverwritePermissions(overwrite?.AllowValue ?? 0, overwrite?.DenyValue ?? 0));
 				}
-			}
 
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully copied `{0}` from `{1}` to `{2}`",
-				targetStr,
-				inputChannel.FormatChannel(),
-				outputChannel.FormatChannel()));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully copied `{0}` from `{1}` to `{2}`",
+					target,
+					inputChannel.FormatChannel(),
+					outputChannel.FormatChannel()));
+			}
 		}
 
-		[Command("clearchannelperms")]
-		[Alias("clchp")]
 		[Usage("[Channel]")]
 		[Summary("Removes all permissions set on a channel.")]
 		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
 		[DefaultEnabled(true)]
-		public async Task ClearChannelPermissions([Remainder] string input)
+		public class ClearChannelPerms : ModuleBase<MyCommandContext>
 		{
-			//See if the user can see and thus edit that channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions }, true, input);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
+			[Command("clearchannelperms")]
+			[Alias("clchp")]
+			public async Task Command([VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel channel)
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var channel = returnedChannel.Object;
-
-			//Check if channel has permissions to clear
-			if (!channel.PermissionOverwrites.Any())
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Channel has no permissions to clear."));
-				return;
+				await CommandRunner(channel);
 			}
 
-			//Remove all the permission overwrites
-			await channel.PermissionOverwrites.ToList().ForEachAsync(async x =>
+			private async Task CommandRunner(IGuildChannel channel)
 			{
-				if (x.TargetType == PermissionTarget.Role)
+				foreach (var overwrite in channel.PermissionOverwrites)
 				{
-					await channel.RemovePermissionOverwriteAsync(Context.Guild.GetRole(x.TargetId));
+					switch (overwrite.TargetType)
+					{
+						case PermissionTarget.Role:
+						{
+							await channel.RemovePermissionOverwriteAsync(Context.Guild.GetRole(overwrite.TargetId));
+							break;
+						}
+						case PermissionTarget.User:
+						{
+							await channel.RemovePermissionOverwriteAsync(await Context.Guild.GetUserAsync(overwrite.TargetId));
+							break;
+						}
+					}
 				}
-				else
-				{
-					await channel.RemovePermissionOverwriteAsync(await Context.Guild.GetUserAsync(x.TargetId));
-				}
-			});
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all channel permissions from `{0}`.", channel.FormatChannel()));
+
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all channel permission overwrites from `{0}`.", channel.FormatChannel()));
+			}
 		}
 
-		[Command("changechannelnsfw")]
-		[Alias("cchnsfw")]
 		[Usage("[Channel]")]
 		[Summary("Toggles the NSFW option on a channel.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		[DefaultEnabled(true)]
-		public async Task ChannelNSFW([Remainder] string input)
+		public class ChangeChannelNSFW : ModuleBase<MyCommandContext>
 		{
-			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.IsText }, true, input);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
+			[Command("changechannelnsfw")]
+			[Alias("cchnsfw")]
+			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] ITextChannel channel)
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var channel = returnedChannel.Object;
-
-			var name = channel.Name;
-			var response = "";
-			if (channel.IsNsfw)
-			{
-				name = name.Substring("nsfw-".Length);
-				response = String.Format("Successfully removed the NSFW prefix from `{0}`.", channel.FormatChannel());
-			}
-			else
-			{
-				name = ("nsfw-" + name);
-				name = name.Substring(0, Math.Min(name.Length, 32));
-				response = String.Format("Successfully added the NSFW prefix to `{0}`.", channel.FormatChannel());
+				await CommandRunner(channel);
 			}
 
-			await channel.ModifyAsync(x => x.Name = name);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, response);
-		}
-
-		[Command("changechannelname")]
-		[Alias("cchn")]
-		[Usage("[Channel|Position:Number Type:Text|Voice] [\"New Name\"]")]
-		[Summary("Changes the name of the channel. This is *extremely* useful for when multiple channels have the same name but you want to edit things.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
-		[DefaultEnabled(true)]
-		public async Task ChangeChannelName([Remainder] string input)
-		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "position", "type" });
-			if (returnedArgs.Reason != FailureReason.NotFailure)
+			private async Task CommandRunner(ITextChannel channel)
 			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var chanStr = returnedArgs.Arguments[0];
-			var nameStr = returnedArgs.Arguments[1];
-			var positionStr = returnedArgs.GetSpecifiedArg("position");
-			var typeStr = returnedArgs.GetSpecifiedArg("type");
+				const string nsfwPrefix = "nsfw-";
+				const int prefixLen = 5;
 
-			IGuildChannel channel = null;
-			if (!String.IsNullOrWhiteSpace(positionStr))
-			{
-				if (!int.TryParse(positionStr, out int position))
+				var name = channel.Name;
+				string response;
+				if (channel.IsNsfw)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position supplied."));
-					return;
-				}
-
-				var channels = new List<IGuildChannel>();
-				if (Actions.CaseInsEquals(typeStr, Constants.TEXT_TYPE))
-				{
-					channels = (await Context.Guild.GetTextChannelsAsync()).Where(x => x.Position == position).Cast<IGuildChannel>().ToList();
-				}
-				else if (Actions.CaseInsEquals(typeStr, Constants.VOICE_TYPE))
-				{
-					channels = (await Context.Guild.GetVoiceChannelsAsync()).Where(x => x.Position == position).Cast<IGuildChannel>().ToList();
+					name = name.Substring(prefixLen);
+					response = String.Format("Successfully removed the NSFW prefix from `{0}`.", channel.FormatChannel());
 				}
 				else
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid channel type supplied."));
-					return;
+					name = (nsfwPrefix + name).Substring(0, Math.Min(name.Length + prefixLen, Constants.MAX_CHANNEL_NAME_LENGTH));
+					response = String.Format("Successfully added the NSFW prefix to `{0}`.", channel.FormatChannel());
 				}
 
-				//Check the count now
-				if (!channels.Any())
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("No {0} channel has the position `{1}`.", typeStr.ToLower(), position)));
-					return;
-				}
-				else if (channels.Count == 1)
-				{
-					var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged }, channel);
-					if (returnedChannel.Reason != FailureReason.NotFailure)
-					{
-						await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-						return;
-					}
-					channel = returnedChannel.Object;
-				}
-				else
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` {1} channels have the position `{2}`.", channels.Count, typeStr.ToLower(), position));
-					return;
-				}
+				await channel.ModifyAsync(x => x.Name = name);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, response);
 			}
-			else
-			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged }, true, chanStr);
-				if (returnedChannel.Reason != FailureReason.NotFailure)
-				{
-					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-					return;
-				}
-				channel = returnedChannel.Object;
-			}
-
-			//Checking if valid name
-			if (Actions.CaseInsEquals(Actions.GetChannelType(channel), Constants.TEXT_TYPE) && nameStr.Contains(' '))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No spaces are allowed in a text channel name."));
-				return;
-			}
-			else if (nameStr.Length > Constants.MAX_CHANNEL_NAME_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.MAX_CHANNEL_NAME_LENGTH)));
-				return;
-			}
-			else if (nameStr.Length < Constants.MIN_CHANNEL_NAME_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.MIN_CHANNEL_NAME_LENGTH)));
-				return;
-			}
-
-			var previousName = channel.Name;
-			await channel.ModifyAsync(x => x.Name = nameStr);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed channel `{0}` to `{1}`.", previousName, nameStr));
 		}
 
-		[Command("changechanneltopic")]
-		[Alias("ccht")]
-		[Usage("[Channel] [New Topic]")]
-		[Summary("Changes the subtext of a channel to whatever is input.")]
+		[Usage("[Channel] [Name]")]
+		[Summary("Changes the name of the channel.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		[DefaultEnabled(true)]
-		public async Task ChangeChannelTopic([Remainder] string input)
+		public class ChangeChannelName : ModuleBase<MyCommandContext>
 		{
-			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
+			[Command("changechannelname")]
+			[Alias("cchn")]
+			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] IGuildChannel channel, [Remainder] string name)
 			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var chanStr = returnedArgs.Arguments[0];
-			var newTopic = returnedArgs.Arguments[1];
-
-			//See if valid length
-			if (newTopic.Length > Constants.MAX_TITLE_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Topics cannot be longer than `{0}` characters in length.", Constants.MAX_TITLE_LENGTH)));
-				return;
+				await CommandRunner(channel, name);
 			}
 
-			//Test if valid channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.IsText }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
+			//Removed the option to rename based on position because it's not really needed. Might put back in later.
+			private async Task CommandRunner(IGuildChannel channel, string name)
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var tc = returnedChannel.Object as ITextChannel;
-			if (tc == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Only text channels can have their topic set."));
-				return;
-			}
+				if (name.Length > Constants.MAX_CHANNEL_NAME_LENGTH)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Channel name cannot be more than `{0}` characters.", Constants.MAX_CHANNEL_NAME_LENGTH)));
+					return;
+				}
+				else if (name.Length < Constants.MIN_CHANNEL_NAME_LENGTH)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Channel name cannot be less than `{0}` characters.", Constants.MIN_CHANNEL_NAME_LENGTH)));
+					return;
+				}
+				else if (channel is ITextChannel && name.Contains(' '))
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Spaces are not allowed in text channel names."));
+					return;
+				}
 
-			//See what current topic is
-			var currentTopic = tc.Topic;
-			if (String.IsNullOrWhiteSpace(currentTopic))
-			{
-				currentTopic = "NOTHING";
+				await channel.ModifyAsync(x => x.Name = name);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the name of `{0}` to `{1}`.", channel.FormatChannel(), name));
 			}
-			if (String.IsNullOrWhiteSpace(newTopic))
-			{
-				newTopic = "NOTHING";
-			}
-
-			await tc.ModifyAsync(x => x.Topic = newTopic);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the topic in `{0}` from `{1}` to `{2}`.", tc.FormatChannel(), currentTopic, newTopic));
 		}
 
-		[Command("changechannellimit")]
-		[Alias("cchl")]
-		[Usage("[Channel] [New Limit]")]
+		[Usage("[Channel] <Topic>")]
+		[Summary("Changes the topic of a channel to whatever is input. Clears the topic if nothing is input")]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[DefaultEnabled(true)]
+		public class ChangeChannelTopic : ModuleBase<MyCommandContext>
+		{
+			[Command("changechanneltopic")]
+			[Alias("ccht")]
+			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] ITextChannel channel, [Optional, Remainder] string topic)
+			{
+				await CommandRunner(channel, topic);
+			}
+
+			private async Task CommandRunner(ITextChannel channel, string topic)
+			{
+				if (topic?.Length > Constants.MAX_TOPIC_LENGTH)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Topics cannot be longer than `{0}` characters in length.", Constants.MAX_TOPIC_LENGTH)));
+					return;
+				}
+
+				await channel.ModifyAsync(x => x.Topic = topic);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the topic in `{0}` from `{1}` to `{2}`.", channel.FormatChannel(), channel.Topic ?? "Nothing", topic ?? "Nothing"));
+			}
+		}
+
+		[Usage("[Channel] [Number]")]
 		[Summary("Changes the limit to how many users can be in a voice channel. The limit ranges from 0 (no limit) to 99.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		[DefaultEnabled(true)]
-		public async Task ChangeChannelLimit([Remainder] string input)
+		public class ChangeChannelLimit : ModuleBase<MyCommandContext>
 		{
-			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
+			[Command("changechannellimit")]
+			[Alias("cchl")]
+			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] IVoiceChannel channel, uint limit)
 			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var chanStr = returnedArgs.Arguments[0];
-			var limtStr = returnedArgs.Arguments[1];
-
-			//Check if valid number
-			if (!int.TryParse(limtStr, out int limit))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The second argument is not a valid number."));
-				return;
-			}
-			else if (limit > 99 || limit < 0)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Number must be between 0 and 99 inclusive."));
-				return;
+				await CommandRunner(channel, limit);
 			}
 
-			//Check if valid channel that the user can edit
-			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.IsVoice }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
+			private async Task CommandRunner(IVoiceChannel channel, uint limit)
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var vc = returnedChannel.Object as IVoiceChannel;
-			if (vc == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command will not work on a text channel."));
-				return;
-			}
+				if (limit > Constants.MAX_VOICE_CHANNEL_USER_LIMIT)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The highest a voice channel user limit can be is `{0}`.", Constants.MAX_VOICE_CHANNEL_USER_LIMIT)));
+				}
 
-			//Change it and send a success message
-			await vc.ModifyAsync(x => x.UserLimit = limit);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}`.", vc.FormatChannel(), limit));
+				await channel.ModifyAsync(x => x.UserLimit = (int)limit);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}`.", channel.FormatChannel(), limit));
+			}
 		}
 
-		[Command("changechannelbitrate")]
-		[Alias("cchbr")]
-		[Usage("[Channel] [8 to 96]")]
-		[Summary("Changes the bit rate (in kbps) on the selected channel to the given value. The default value is 64. The bitrate can go up to 128 on a partnered guild.")]
+		[Usage("[Channel] [Number]")]
+		[Summary("Changes the bitrate on a voice channel. Lowest is 8, highest is 96 (unless on a partnered guild, then it goes up to 128), default is 64.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		[DefaultEnabled(true)]
-		public async Task ChangeChannelBitRate([Remainder] string input)
+		public class ChangeChannelBitrate : ModuleBase<MyCommandContext>
 		{
-			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
+			[Command("changechannelbitrate")]
+			[Alias("cchbr")]
+			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] IVoiceChannel channel, uint bitrate)
 			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var chanStr = returnedArgs.Arguments[0];
-			var bitrateStr = returnedArgs.Arguments[1];
-
-			//Check if valid number
-			if (!int.TryParse(bitrateStr, out int bitRate))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The second argument is not a valid number."));
-				return;
-			}
-			//Check if number between 8 and 96
-			else if (bitRate < Constants.MIN_BITRATE)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bitrate must be above or equal to `{0}`.", Constants.MIN_BITRATE)));
-				return;
-			}
-			else if (!Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && bitRate > Constants.MAX_BITRATE)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bitrate must be below or equal to `{0}`.", Constants.MAX_BITRATE)));
-				return;
-			}
-			else if (bitRate > Constants.VIP_BITRATE)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bitrate must be below or equal to `{0}`.", Constants.VIP_BITRATE)));
-				return;
+				await CommandRunner(channel, bitrate);
 			}
 
-			//Check if valid channel that the user can edit
-			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.IsVoice }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
+			private async Task CommandRunner(IVoiceChannel channel, uint bitrate)
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var vc = returnedChannel.Object as IVoiceChannel;
-			if (vc == null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This command will not work on a text channel."));
-				return;
-			}
+				if (bitrate < Constants.MIN_BITRATE)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bitrate must be above or equal to `{0}`.", Constants.MIN_BITRATE)));
+					return;
+				}
+				else if (!Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && bitrate > Constants.MAX_BITRATE)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bitrate must be below or equal to `{0}`.", Constants.MAX_BITRATE)));
+					return;
+				}
+				else if (bitrate > Constants.VIP_BITRATE)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The bitrate must be below or equal to `{0}`.", Constants.VIP_BITRATE)));
+					return;
+				}
 
-			//Change it and send a success message
-			await vc.ModifyAsync(x => x.Bitrate = bitRate * 1000);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}kbps`.", vc.FormatChannel(), bitRate));
+				await channel.ModifyAsync(x => x.Bitrate = (int)bitrate * 1000);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}kbps`.", channel.FormatChannel(), bitrate));
+			}
 		}
 	}
 }

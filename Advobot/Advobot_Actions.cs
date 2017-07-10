@@ -350,14 +350,14 @@ namespace Advobot
 			{
 				if (BotGlobalInfo.GetField(e) == null)
 				{
-					WriteLine(String.Format("Unable to get the global setting for {0}.", Enum.GetName(typeof(SettingOnBot), e)));
+					WriteLine(String.Format("Unable to get the global setting for {0}.", e.EnumName()));
 				}
 			}
 			foreach (var e in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
 			{
 				if (BotGuildInfo.GetField(e) == null)
 				{
-					WriteLine(String.Format("Unable to get the guild setting for {0}.", Enum.GetName(typeof(SettingOnBot), e)));
+					WriteLine(String.Format("Unable to get the guild setting for {0}.", e.EnumName()));
 				}
 			}
 		}
@@ -1091,13 +1091,11 @@ namespace Advobot
 
 		public static async Task ModifyOverwrite(IGuildChannel channel, IRole role, ulong allowBits, ulong denyBits)
 		{
-			await channel.RemovePermissionOverwriteAsync(role);
 			await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allowBits, denyBits));
 		}
 
 		public static async Task ModifyOverwrite(IGuildChannel channel, IUser user, ulong allowBits, ulong denyBits)
 		{
-			await channel.RemovePermissionOverwriteAsync(user);
 			await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits));
 		}
 		#endregion
@@ -2750,7 +2748,7 @@ namespace Advobot
 				var formatted = FormatSettingInfo(globalInfo, e);
 				if (!String.IsNullOrWhiteSpace(formatted))
 				{
-					str += String.Format("**{0}**:\n{1}\n\n", Enum.GetName(typeof(SettingOnBot), e), formatted);
+					str += String.Format("**{0}**:\n{1}\n\n", e.EnumName(), formatted);
 				}
 			}
 			return str;
@@ -2811,7 +2809,7 @@ namespace Advobot
 				var formatted = FormatSettingInfo(guild, guildInfo, e);
 				if (!String.IsNullOrWhiteSpace(formatted))
 				{
-					str += String.Format("**{0}**:\n{1}\n\n", Enum.GetName(typeof(SettingOnGuild), e), formatted);
+					str += String.Format("**{0}**:\n{1}\n\n", e.EnumName(), formatted);
 				}
 			}
 			return str;
@@ -4423,6 +4421,11 @@ namespace Advobot
 				return enumerable.Contains(search, StringComparer.OrdinalIgnoreCase);
 			}
 			return false;
+		}
+
+		public static string EnumName(this Enum e)
+		{
+			return Enum.GetName(e.GetType(), e);
 		}
 	}
 }

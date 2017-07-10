@@ -40,7 +40,7 @@ namespace Advobot
 			}
 			else if (Enum.TryParse(settingStr, true, out SettingOnBot setting))
 			{
-				var title = Enum.GetName(typeof(SettingOnBot), setting);
+				var title = setting.EnumName();
 				var desc = Actions.FormatSettingInfo(botInfo, setting);
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, desc));
 			}
@@ -157,7 +157,7 @@ namespace Advobot
 					{
 						botInfo.ResetSetting(setting);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the log level back to the default value `{0}`.",
-							Enum.GetName(typeof(LogSeverity), ((LogSeverity)botInfo.GetSetting(SettingOnBot.LogLevel)))));
+							((LogSeverity)botInfo.GetSetting(SettingOnBot.LogLevel))));
 						break;
 					}
 					case SettingOnBot.SavePath:
@@ -278,7 +278,7 @@ namespace Advobot
 
 						botInfo.SetSetting(setting, logLevel);
 						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the log level to `{0}`.",
-							Enum.GetName(typeof(LogSeverity), ((LogSeverity)botInfo.GetSetting(SettingOnBot.LogLevel)))));
+							((LogSeverity)botInfo.GetSetting(SettingOnBot.LogLevel))));
 						break;
 					}
 					case SettingOnBot.SavePath:

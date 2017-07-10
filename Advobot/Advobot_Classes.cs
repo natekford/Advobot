@@ -222,11 +222,11 @@ namespace Advobot
 			var enumVal = (uint)value;
 			if (mAllowed != 0 && ((mAllowed & ~enumVal) != 0))
 			{
-				return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command.", value)));
+				return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command overload.", value)));
 			}
 			else if (mDisallowed != 0 && ((mDisallowed & enumVal) != 0))
 			{
-				return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command.", value)));
+				return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command overload.", value)));
 			}
 			else
 			{
@@ -1010,7 +1010,7 @@ namespace Advobot
 		[JsonProperty]
 		public CommandCategory Category { get; private set; }
 		[JsonIgnore]
-		public string CategoryName { get { return Enum.GetName(typeof(CommandCategory), (int)Category); } }
+		public string CategoryName { get { return Category.EnumName(); } }
 		[JsonIgnore]
 		public int CategoryValue { get { return (int)Category; } }
 
@@ -1066,7 +1066,7 @@ namespace Advobot
 		}
 		public override string SettingToString()
 		{
-			return String.Format("`{0}` `{1}`", Enum.GetName(typeof(PunishmentType), Punishment).Substring(0, 1), Phrase);
+			return String.Format("`{0}` `{1}`", Punishment.EnumName().Substring(0, 1), Phrase);
 		}
 		public override string SettingToString(SocketGuild guild)
 		{
@@ -1102,7 +1102,7 @@ namespace Advobot
 		{
 			return String.Format("`{0}.` `{1}`{2}",
 				NumberOfRemoves.ToString("00"),
-				Role == null ? Enum.GetName(typeof(PunishmentType), Punishment) : Role.Name,
+				Role == null ? Punishment.EnumName() : Role.Name,
 				PunishmentTime == null ? "" : " `" + PunishmentTime + " minutes`");
 		}
 		public override string SettingToString(SocketGuild guild)
@@ -1545,7 +1545,7 @@ namespace Advobot
 				RequiredSpamInstances,
 				RequiredSpamPerMessage,
 				VotesForKick,
-				Enum.GetName(typeof(PunishmentType), PunishmentType));
+				PunishmentType.EnumName());
 		}
 		public override string SettingToString(SocketGuild guild)
 		{
@@ -1646,7 +1646,7 @@ namespace Advobot
 				Enabled,
 				RequiredCount,
 				TimeInterval,
-				Enum.GetName(typeof(PunishmentType), PunishmentType));
+				PunishmentType.EnumName());
 		}
 		public override string SettingToString(SocketGuild guild)
 		{
@@ -2230,12 +2230,12 @@ namespace Advobot
 
 	public struct ReturnedSetting
 	{
-		public String Setting { get; private set; }
+		public string Setting { get; private set; }
 		public NSF Status { get; private set; }
 
 		public ReturnedSetting(SettingOnBot setting, NSF status)
 		{
-			Setting = Enum.GetName(typeof(SettingOnBot), setting);
+			Setting = setting.EnumName();
 			Status = status;
 		}
 	}

@@ -358,7 +358,7 @@ namespace Advobot
 
 			guildInfo.SaveInfo();
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the punishment type on the banned {0} `{1}` to `{2}`.",
-				(regex ? "regex" : "string"), phraseStr, Enum.GetName(typeof(PunishmentType), type)));
+				(regex ? "regex" : "string"), phraseStr, type.EnumName()));
 		}
 
 		[Command("modifybannedphrasespunishment")]
@@ -506,11 +506,11 @@ namespace Advobot
 			}
 			else if (newPunishment.Punishment == PunishmentType.Kick)
 			{
-				successMsg = String.Format("`{0}` at `{1}`", Enum.GetName(typeof(PunishmentType), newPunishment.Punishment), newPunishment.NumberOfRemoves.ToString("00"));
+				successMsg = String.Format("`{0}` at `{1}`", newPunishment.Punishment.EnumName(), newPunishment.NumberOfRemoves.ToString("00"));
 			}
 			else if (newPunishment.Punishment == PunishmentType.Ban)
 			{
-				successMsg = String.Format("`{0}` at `{1}`", Enum.GetName(typeof(PunishmentType), newPunishment.Punishment), newPunishment.NumberOfRemoves.ToString("00"));
+				successMsg = String.Format("`{0}` at `{1}`", newPunishment.Punishment.EnumName(), newPunishment.NumberOfRemoves.ToString("00"));
 			}
 			else if (newPunishment.Role != null)
 			{

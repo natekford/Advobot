@@ -298,7 +298,7 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
 					responseStr,
 					Actions.GetPlural(newLogActions.Count),
-					String.Join("`, `", newLogActions.Select(x => Enum.GetName(typeof(LogAction), x)))));
+					String.Join("`, `", newLogActions.Select(x => x.EnumName()))));
 			}
 			else
 			{

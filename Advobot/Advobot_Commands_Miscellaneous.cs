@@ -94,7 +94,7 @@ namespace Advobot
 				else if (Enum.TryParse(targetStr, true, out CommandCategory category))
 				{
 					var desc = String.Format("`{0}`", String.Join("`, `", Actions.GetCommands(category)));
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(Enum.GetName(typeof(CommandCategory), category), desc));
+					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(category.EnumName(), desc));
 				}
 				else
 				{
@@ -452,7 +452,7 @@ namespace Advobot
 
 				var desc = emotes.Any() 
 					? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name) 
-					: String.Format("This guild has no `{0}` emotes.", Enum.GetName(typeof(EmoteType), target));
+					: String.Format("This guild has no `{0}` emotes.", target.EnumName());
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Emotes", desc));
 			}
 		}

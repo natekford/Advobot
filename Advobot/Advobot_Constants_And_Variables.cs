@@ -44,13 +44,9 @@ namespace Advobot
 		public const string BASIC_TYPE_CHANNEL = "channel";
 		public const string BASIC_TYPE_GUILD = "guild";
 
-		//In case I ever need to have a prefix for these to have better arg parsing
-		public const string CHAN = "";
-		public const string ROLE = "";
-		public const string USER = "";
-		public const string CHANNEL_INSTRUCTIONS = CHAN + "#Channel|\"Channel Name\"";
-		public const string USER_INSTRUCTIONS = USER + "@User|\"Username\"";
-		public const string ROLE_INSTRUCTIONS = ROLE + "@Role|\"Role Name\"";
+		public const string CHANNEL_INSTRUCTIONS = "#Channel|\"Channel Name\"";
+		public const string USER_INSTRUCTIONS = "@User|\"Username\"";
+		public const string ROLE_INSTRUCTIONS = "@Role|\"Role Name\"";
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG = 3;
@@ -73,6 +69,8 @@ namespace Advobot
 		public const int MAX_MESSAGE_LENGTH_SHORT = 750;
 		public const int MAX_NICKNAME_LENGTH = 32;
 		public const int MIN_NICKNAME_LENGTH = 2;
+		public const int MAX_GUILD_NAME_LENGTH = 100;
+		public const int MIN_GUILD_NAME_LENGTH = 2;
 		public const int MAX_CHANNEL_NAME_LENGTH = 100;
 		public const int MIN_CHANNEL_NAME_LENGTH = 2;
 		public const int MAX_ROLE_NAME_LENGTH = 100;
@@ -88,33 +86,37 @@ namespace Advobot
 		public const int MAX_LENGTH_FOR_FIELD_VALUE = 250000;
 		public const int MAX_LENGTH_FOR_REGEX = 100;
 		public const int MAX_LENGTH_FOR_REASON = 512;
+		public const int MAX_VOICE_CHANNEL_USER_LIMIT = 99;
 
-		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>()
+		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>
 		{
 			".jpeg", ".jpg", ".png",
 		});
-		public static ReadOnlyCollection<string> VALID_GIF_EXTENTIONS = new ReadOnlyCollection<string>(new List<string>()
+		public static ReadOnlyCollection<string> VALID_GIF_EXTENTIONS = new ReadOnlyCollection<string>(new List<string>
 		{
 			".gif", ".gifv",
 		});
-		public static ReadOnlyCollection<string> VALID_REGION_IDS = new ReadOnlyCollection<string>(new List<string>()
+		public static ReadOnlyCollection<string> VALID_REGION_IDS = new ReadOnlyCollection<string>(new List<string>
 		{
 			"brazil", "eu-central", "eu-west", "hongkong", "russia", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west",
 		});
-		public static ReadOnlyCollection<string> VIP_REGIONIDS = new ReadOnlyCollection<string>(new List<string>()
+		public static ReadOnlyCollection<string> VIP_REGIONIDS = new ReadOnlyCollection<string>(new List<string>
 		{
 			"vip-amsterdam", "vip-us-east", "vip-us-west",
 		});
-		public static ReadOnlyCollection<string> COMMANDS_UNABLE_TO_BE_TURNED_OFF = new ReadOnlyCollection<string>(new List<string>()
+		public static ReadOnlyCollection<string> COMMANDS_UNABLE_TO_BE_TURNED_OFF = new ReadOnlyCollection<string>(new List<string>
 		{
 			"configurecommands", "help",
 		});
-		public static ReadOnlyCollection<string> TEST_PHRASES = new ReadOnlyCollection<string>(new List<string>()
+		public static ReadOnlyCollection<string> TEST_PHRASES = new ReadOnlyCollection<string>(new List<string>
 		{
 			"Ӽ1(", "Ϯ3|", "⁊a~", "[&r",
 		});
-
-		public static ReadOnlyCollection<LogAction> DEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogAction>(new List<LogAction>()
+		public static ReadOnlyCollection<uint> VALID_AFK_TIMES = new ReadOnlyCollection<uint>(new List<uint>
+		{
+			60, 300, 900, 1800, 3600,
+		});
+		public static ReadOnlyCollection<LogAction> DEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogAction>(new List<LogAction>
 		{
 			LogAction.UserJoined,
 			LogAction.UserLeft,

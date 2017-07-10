@@ -141,7 +141,7 @@ namespace Advobot
 			}
 			else if (Enum.TryParse(settingStr, true, out SettingOnGuild setting))
 			{
-				var title = Enum.GetName(typeof(SettingOnGuild), setting);
+				var title = setting.EnumName();
 				var desc = Actions.FormatSettingInfo(guild, guildInfo, setting);
 				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, desc));
 			}
@@ -410,7 +410,7 @@ namespace Advobot
 						});
 					}
 					await Actions.MakeAndDeleteSecondaryMessage(Context,
-						String.Format("Successfully {0} the category `{1}` in `{2}`.", add ? "disabled" : "enabled", Enum.GetName(typeof(CommandCategory), cat), channel.FormatChannel()));
+						String.Format("Successfully {0} the category `{1}` in `{2}`.", add ? "disabled" : "enabled", cat.EnumName(), channel.FormatChannel()));
 				}
 
 				guildInfo.SaveInfo();
@@ -568,7 +568,7 @@ namespace Advobot
 			}
 			else if (Context.User.Id != Context.Guild.OwnerId)
 			{
-				permissions.RemoveAll(x => Actions.CaseInsEquals(x.Name, Enum.GetName(typeof(GuildPermission), GuildPermission.Administrator)));
+				permissions.RemoveAll(x => Actions.CaseInsEquals(x.Name, GuildPermission.Administrator.EnumName()));
 			}
 
 			//Modify the user's perms
