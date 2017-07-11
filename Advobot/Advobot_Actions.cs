@@ -3035,122 +3035,73 @@ namespace Advobot
 			await channel.SendFileAsync(path, text);
 		}
 
-		public static async Task SetPicture(ICommandContext context, string input, bool user)
+		public static async Task SetBotIcon(ICommandContext context, string imageURL)
 		{
-			//See if the user wants to remove the icon
-			if (CaseInsEquals(input, "remove"))
+			if (imageURL == null)
 			{
-				if (!user)
+				await context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image());
+				await MakeAndDeleteSecondaryMessage(context, "Successfully removed the bot's icon.");
+				return;
+			}
+
+			var fileType = await GetFileTypeOrSayErrors(context, imageURL);
+			if (fileType == null)
+				return;
+
+			var path = GetServerFilePath(context.Guild.Id, Constants.BOT_ICON_LOCATION + fileType);
+			using (var webclient = new WebClient())
+			{
+				webclient.DownloadFileAsync(new Uri(imageURL), path);
+				webclient.DownloadFileCompleted += (sender, e) => SetIcon(sender, e, context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(path)), context, path);
+			}
+		}
+
+		public static async Task<string> GetFileTypeOrSayErrors(ICommandContext context, string imageURL)
+		{
+			string fileType;
+			var req = WebRequest.Create(imageURL);
+			req.Method = WebRequestMethods.Http.Head;
+			using (var resp = req.GetResponse())
+			{
+				if (!Constants.VALID_IMAGE_EXTENSIONS.Contains(fileType = "." + resp.Headers.Get("Content-Type").Split('/').Last()))
 				{
-					await context.Guild.ModifyAsync(x => x.Icon = new Image());
-					await SendChannelMessage(context, "Successfully removed the guild's icon.");
+					await MakeAndDeleteSecondaryMessage(context, ERROR("Image must be a png or jpg."));
+					return null;
+				}
+				else if (!int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
+					return null;
+				}
+				else if (ContentLength > Constants.MAX_ICON_FILE_SIZE)
+				{
+					await MakeAndDeleteSecondaryMessage(context, ERROR(String.Format("Image is bigger than {0:0.0}MB. Manually upload instead.", (double)Constants.MAX_ICON_FILE_SIZE / 1000000)));
+					return null;
+				}
+			}
+			return fileType;
+		}
+
+		public static void SetIcon(object sender, System.ComponentModel.AsyncCompletedEventArgs e, Task iconSetter, ICommandContext context, string path)
+		{
+			iconSetter.ContinueWith(async prevTask =>
+			{
+				if (prevTask?.Exception?.InnerExceptions?.Any() ?? false)
+				{
+					var exceptionMessages = new List<string>();
+					foreach (var exception in prevTask.Exception.InnerExceptions)
+					{
+						ExceptionToConsole(exception);
+						exceptionMessages.Add(exception.Message);
+					}
+					await SendChannelMessage(context, String.Format("Failed to change the bot icon. Following exceptions occurred:\n{0}.", String.Join("\n", exceptionMessages)));
 				}
 				else
 				{
-					await context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image());
-					await SendChannelMessage(context, "Successfully removed the bot's icon.");
-				}
-				return;
-			}
-
-			//Check if there are even any attachments or embeds
-			if (context.Message.Attachments.Count + context.Message.Embeds.Count == 0)
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("No attached or embedded image."));
-				return;
-			}
-			//Check if there are too many
-			else if (context.Message.Attachments.Count + context.Message.Embeds.Count > 1)
-			{
-				await MakeAndDeleteSecondaryMessage(context, ERROR("Too many attached or embedded images."));
-				return;
-			}
-
-			//Get the URL of the image
-			var imageURL = context.Message.Embeds.Count == 1 ? context.Message.Embeds.First().Thumbnail.ToString() : context.Message.Attachments.First().Url;
-
-			//Run separate due to the time it takes
-			Actions.DontWaitForResultOfBigUnimportantFunction(context.Channel, async () =>
-			{
-				//Check the image's file size first
-				var req = HttpWebRequest.Create(imageURL);
-				req.Method = "HEAD";
-				using (var resp = req.GetResponse())
-				{
-					if (int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
-					{
-						//Check if valid content type
-						if (!Constants.VALID_IMAGE_EXTENSIONS.Contains("." + resp.Headers.Get("Content-Type").Split('/').Last()))
-						{
-							await MakeAndDeleteSecondaryMessage(context, ERROR("Image must be a png or jpg."));
-							return;
-						}
-						else
-						{
-							if (ContentLength > 2500000)
-							{
-								//Check if bigger than 2.5MB
-								await MakeAndDeleteSecondaryMessage(context, ERROR("Image is bigger than 2.5MB. Please manually upload instead."));
-								return;
-							}
-							else if (ContentLength == 0)
-							{
-								//Check if nothing was gotten
-								await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
-								return;
-							}
-						}
-					}
-					else
-					{
-						await MakeAndDeleteSecondaryMessage(context, ERROR("Unable to get the image's file size."));
-						return;
-					}
+					await MakeAndDeleteSecondaryMessage(context, "Successfully changed the bot icon.");
 				}
 
-				//Send a message saying how it's progressing
-				var msg = await SendChannelMessage(context, "Attempting to download the file...");
-
-				//Set the name of the file to prevent typos between the three places that use it
-				var path = GetServerFilePath(context.Guild.Id, (user ? "boticon" : "guildicon") + Path.GetExtension(imageURL).ToLower());
-
-				//Download the image
-				using (var webclient = new WebClient())
-				{
-					webclient.DownloadFile(imageURL, path);
-				}
-
-				//Create a filestream to check the image's size if trying to set a guild icon
-				if (!user)
-				{
-					using (var imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
-					{
-						var img = System.Drawing.Image.FromStream(imgStream);
-						if (img.Width < 128 || img.Height < 128)
-						{
-							await MakeAndDeleteSecondaryMessage(context, ERROR("Images must be at least 128x128 pixels."));
-							return;
-						}
-					}
-				}
-
-				//Create a second filestream to upload the image
-				using (var imgStream = new FileStream(path, FileMode.Open, FileAccess.Read))
-				{
-					if (!user)
-					{
-						await context.Guild.ModifyAsync(x => x.Icon = new Image(imgStream));
-					}
-					else
-					{
-						await context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(imgStream));
-					}
-				}
-
-				//Delete the file and send a success message
 				File.Delete(path);
-				await DeleteMessage(msg);
-				await SendChannelMessage(context, String.Format("Successfully changed the {0} icon.", user ? "bot" : "guild"));
 			});
 		}
 

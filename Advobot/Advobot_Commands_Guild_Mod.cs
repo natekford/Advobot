@@ -168,24 +168,47 @@ namespace Advobot
 			}
 		}
 
-		[Usage("[Attached Image|Embedded Image|Remove]")]
-		[Summary("Changes the guild's icon to the given image. Typing `" + Constants.BOT_PREFIX + "gdi remove` will remove the icon. The image must be smaller than 2.5MB.")]
+		[Usage("<Attached Image|Embedded Image>")]
+		[Summary("Changes the guild's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the guild's icon.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
 		[DefaultEnabled(true)]
 		public class ChangeGuildIcon : ModuleBase<MyCommandContext>
 		{
 			[Command("changeguildicon")]
 			[Alias("cgi")]
-			//TODO: TypeReader for images from Attachments or embeds
-			public async Task Command(Discord.Image other)
+			public async Task Command()
 			{
-				await CommandRunner(other);
+				await CommandRunner();
 			}
 
-			//TODO:separate out setpicture and rework this command
-			private async Task CommandRunner(Image other)
+			private async Task CommandRunner()
 			{
-				//await Actions.SetPicture(Context, other, false);
+				var attach = Context.Message.Attachments.Where(x => x.Width != null && x.Height != null).Select(x => x.Url);
+				var embeds = Context.Message.Embeds.Where(x => x.Image.HasValue).Select(x => x.Image?.Url);
+				var validImages = attach.Concat(embeds);
+				if (validImages.Count() == 0)
+				{
+					await Context.Guild.ModifyAsync(x => x.Icon = new Image());
+					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the guild's icon.");
+					return;
+				}
+				else if (validImages.Count() > 1)
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Too many attached or embedded images."));
+					return;
+				}
+
+				var imageURL = validImages.First();
+				var fileType = await Actions.GetFileTypeOrSayErrors(Context, imageURL);
+				if (fileType == null)
+					return;
+
+				var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.GUILD_ICON_LOCATION + fileType);
+				using (var webClient = new System.Net.WebClient())
+				{
+					webClient.DownloadFileAsync(new Uri(imageURL), path);
+					webClient.DownloadFileCompleted += (sender, e) => Actions.SetIcon(sender, e, Context.Guild.ModifyAsync(x => x.Icon = new Image(path)), Context, path);
+				}
 			}
 		}
 
@@ -204,8 +227,8 @@ namespace Advobot
 
 			private async Task CommandRunner(string name)
 			{
-				var optimalVoiceRegion = await Variables.Client.GetOptimalVoiceRegionAsync();
-				var guild = await Variables.Client.CreateGuildAsync(name, optimalVoiceRegion);
+				var optimalVoiceRegion = await Context.Client.GetOptimalVoiceRegionAsync();
+				var guild = await Context.Client.CreateGuildAsync(name, optimalVoiceRegion);
 				await Actions.CreateOrGetGuildInfo(guild);
 
 				var defaultChannel = await guild.GetDefaultChannelAsync();

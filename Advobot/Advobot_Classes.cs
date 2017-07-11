@@ -193,14 +193,32 @@ namespace Advobot
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
 
-			var returnedObject = Actions.GetDiscordObject(context.Guild, context.User as IGuildUser, mChecks, (dynamic)value);
+			return Task.FromResult(GetPreconditionResult(context, (dynamic)value));
+		}
+
+		private PreconditionResult GetPreconditionResult(ICommandContext context, System.Collections.IEnumerable list)
+		{
+			foreach (var item in list)
+			{
+				var preconditionResult = GetPreconditionResult(context, item);
+				if (!preconditionResult.IsSuccess)
+				{
+					return preconditionResult;
+				}
+			}
+
+			return PreconditionResult.FromSuccess();
+		}
+		private PreconditionResult GetPreconditionResult(ICommandContext context, dynamic value)
+		{
+			var returnedObject = Actions.GetDiscordObject(context.Guild, context.User as IGuildUser, mChecks, value);
 			if (returnedObject.Reason != FailureReason.NotFailure)
 			{
-				return Task.FromResult(PreconditionResult.FromError(Actions.FormatErrorString(context.Guild, returnedObject)));
+				return PreconditionResult.FromError(Actions.FormatErrorString(context.Guild, returnedObject));
 			}
 			else
 			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
+				return PreconditionResult.FromSuccess();
 			}
 		}
 	}
@@ -232,6 +250,28 @@ namespace Advobot
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
+		}
+	}
+
+	[AttributeUsage(AttributeTargets.Parameter)]
+	public class VerifyStringAttribute : ParameterPreconditionAttribute
+	{
+		private readonly string[] mValidStrings;
+
+		public VerifyStringAttribute(params string[] validStrings)
+		{
+			mValidStrings = validStrings;
+		}
+
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
+		{
+			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
+			if (value == null)
+			{
+				return Task.FromResult(PreconditionResult.FromSuccess());
+			}
+
+			return mValidStrings.CaseInsContains(value.ToString()) ? Task.FromResult(PreconditionResult.FromSuccess()) : Task.FromResult(PreconditionResult.FromError("Invalid string provided."));
 		}
 	}
 	#endregion
@@ -284,15 +324,6 @@ namespace Advobot
 			}
 
 			return ban != null ? TypeReaderResult.FromSuccess(ban) : TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching ban.");
-		}
-	}
-
-	public class ImageTypeReader : TypeReader
-	{
-		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
-		{
-			var attachedImages = context.Message.Attachments.Where(x => x.Width != null || x.Height != null);
-			var embeddedImages = context.Message.Embeds.Select(x => x.Image).Where(x => x.HasValue).Cast<EmbedImage>();
 		}
 	}
 	#endregion

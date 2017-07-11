@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 namespace Advobot
 {
@@ -103,105 +104,81 @@ namespace Advobot
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted the invite `{0}`.", invite.Code));
 			}
 		}
-	}
-	[Name("InviteModeration")]
-	public class Advobot_Commands_Invite_Mod : ModuleBase
-	{
 
-		[Command("deletemultipleinvites")]
-		[Alias("dminv")]
-		[Usage("User:User|Role:Role|Uses:Number|Expires:True|False]")]
-		[Summary("Deletes all invites satisfying the given condition of either user, creation channel, uses, or expiry time.")]
+		[Usage("[User|Channel|Number|True|False]")]
+		[Summary("Deletes all invites satisfying the given condition of either user, creation channel, use limit, or if it expires or not.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
 		[DefaultEnabled(true)]
-		public async Task DeleteMultipleInvites([Remainder] string input)
+		public class DeleteMultipleInvites : ModuleBase<MyCommandContext>
 		{
-			//Get the guild's invites
-			var invites = (await Context.Guild.GetInvitesAsync()).ToList();
-			if (!invites.Any())
+			[Command("deletemultipleinvites")]
+			[Alias("dminv")]
+			public async Task Command(IGuildUser user)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no invites."));
-				return;
+				await CommandRunner(user: user);
+			}
+			[Command("deletemultipleinvites")]
+			[Alias("dminv")]
+			public async Task Command(IGuildChannel channel)
+			{
+				await CommandRunner(channel: channel);
+			}
+			[Command("deletemultipleinvites")]
+			[Alias("dminv")]
+			public async Task Command(uint uses)
+			{
+				await CommandRunner(uses: uses);
+			}
+			[Command("deletemultipleinvites")]
+			[Alias("dminv")]
+			public async Task Command(bool expiry)
+			{
+				await CommandRunner(expiry: expiry);
 			}
 
-			//Get the given variable out
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "user", "channel", "uses", "expires" });
-			if (returnedArgs.Reason != FailureReason.NotFailure)
+			//TODO: Put more options in this and other stuff
+			private async Task CommandRunner(IGuildUser user = null, IGuildChannel channel = null, uint? uses = null, bool? expiry = null)
 			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var userStr = returnedArgs.GetSpecifiedArg("user");
-			var chanStr = returnedArgs.GetSpecifiedArg("channel");
-			var usesStr = returnedArgs.GetSpecifiedArg("uses");
-			var exprStr = returnedArgs.GetSpecifiedArg("expires");
-
-			if (String.IsNullOrWhiteSpace(userStr) && new[] { userStr, chanStr, usesStr, exprStr }.CaseInsEverythingSame())
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("At least one of the arguments must be specified."));
-				return;
-			}
-
-			//User
-			if (!String.IsNullOrWhiteSpace(userStr))
-			{
-				if (ulong.TryParse(userStr, out ulong userID))
+				var invites = (await Context.Guild.GetInvitesAsync()).AsEnumerable();
+				if (!invites.Any())
 				{
-					invites = invites.Where(x => x.Inviter.Id == userID).ToList();
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("This guild has no invites."));
+					return;
 				}
-				else if (MentionUtils.TryParseUser(userStr, out userID))
+
+				if (user != null)
 				{
-					invites = invites.Where(x => x.Inviter.Id == userID).ToList();
+					invites = invites.Where(x => x.Inviter.Id == user.Id);
+				}
+				else if (channel != null)
+				{
+					invites = invites.Where(x => x.ChannelId == channel.Id);
+				}
+				else if (uses != null)
+				{
+					invites = invites.Where(x => x.MaxUses == uses);
+				}
+				else if (expiry != null)
+				{
+					invites = invites.Where(x => expiry.Value ? x.MaxAge != null : x.MaxAge == null);
 				}
 				else
 				{
-					invites = invites.Where(x => Actions.CaseInsEquals(x.Inviter.Username, userStr)).ToList();
+					return;
 				}
-			}
-			//Channel
-			if (!String.IsNullOrWhiteSpace(chanStr))
-			{
-				var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions }, true, chanStr);
-				if (returnedChannel.Reason == FailureReason.NotFailure)
-				{
-					invites = invites.Where(x => x.ChannelId == returnedChannel.Object.Id).ToList();
-				}
-			}
-			//Uses
-			if (!String.IsNullOrWhiteSpace(usesStr))
-			{
-				if (int.TryParse(usesStr, out int uses))
-				{
-					invites = invites.Where(x => x.Uses == uses).ToList();
-				}
-			}
-			//Expiry
-			if (!String.IsNullOrWhiteSpace(exprStr))
-			{
-				if (bool.TryParse(exprStr, out bool expires))
-				{
-					if (expires)
-					{
-						invites = invites.Where(x => x.MaxAge != null).ToList();
-					}
-					else
-					{
-						invites = invites.Where(x => x.MaxAge == null).ToList();
-					}
-				}
-			}
 
-			if (!invites.Any())
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No invites satisfied the given conditions."));
-				return;
+				if (!invites.Any())
+				{
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No invites satisfied the given conditions."));
+					return;
+				}
+				
+				foreach (var invite in invites)
+				{
+					await invite.DeleteAsync();
+				}
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` instant invites.", invites.Count()));
 			}
-
-			Actions.DontWaitForResultOfBigUnimportantFunction(Context.Channel, async () =>
-			{
-				await invites.ForEachAsync(async x => await x.DeleteAsync());
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}` instant invites on this guild.", invites.Count));
-			});
 		}
 	}
 }

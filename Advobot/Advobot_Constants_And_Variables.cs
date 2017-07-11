@@ -23,6 +23,7 @@ namespace Advobot
 		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
 		public const string FAKE_TTS = "\\" + ZERO_LENGTH_CHAR + "tts";
 		public const string BYPASS_STRING = "Bypass100";
+		public const string MODIFY_ASYNC = "ModifyAsync";
 
 		public const string ERROR_MESSAGE = "**ERROR:** ";
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
@@ -36,6 +37,8 @@ namespace Advobot
 		public const string GUILD_INFO_LOCATION = "GuildInfo" + SAVING_FILE_EXTENSION;
 		public const string BOT_INFO_LOCATION = "BotInfo" + SAVING_FILE_EXTENSION;
 		public const string UI_INFO_LOCATION = "BotUIInfo" + SAVING_FILE_EXTENSION;
+		public const string BOT_ICON_LOCATION = "BotIcon";
+		public const string GUILD_ICON_LOCATION = "GuildIcon";
 
 		public const string VOICE_TYPE = "voice";
 		public const string TEXT_TYPE = "text";
@@ -61,6 +64,7 @@ namespace Advobot
 		public const int PAD_RIGHT = 20;
 		public const int ACTIVE_CLOSE = 5000;
 		public const int REGEX_TIMEOUT = 1000000;
+		public const int MAX_ICON_FILE_SIZE = 2500000;
 
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;

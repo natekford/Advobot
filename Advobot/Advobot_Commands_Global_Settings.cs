@@ -347,7 +347,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public async Task BotIcon([Optional, Remainder] string input)
 		{
-			await Actions.SetPicture(Context, input, true);
+			//await Actions.SetPicture(Context, input, true);
 		}
 
 		[Command("changebotname")]

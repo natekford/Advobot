@@ -378,14 +378,14 @@ namespace Advobot
 
 			private async Task CommandRunner()
 			{
-				var guilds = Variables.Client.GetGuilds().ToList();
-				if (guilds.Count <= 10)
+				var guilds = (Context.Client as SocketClient).GetGuilds();
+				if (guilds.Count() <= 10)
 				{
 					var embed = Actions.MakeNewEmbed("Guilds");
-					guilds.ForEach(x =>
+					foreach (var guild in guilds)
 					{
-						Actions.AddField(embed, x.FormatGuild(), String.Format("**Owner:** `{0}`", x.Owner.FormatUser()));
-					});
+						Actions.AddField(embed, guild.FormatGuild(), String.Format("**Owner:** `{0}`", guild.Owner.FormatUser()));
+					}
 					await Actions.SendEmbedMessage(Context.Channel, embed);
 				}
 				else
@@ -615,18 +615,18 @@ namespace Advobot
 
 			private async Task CommandRunner(string input)
 			{
-				var cutMsg = input.Substring(0, Math.Min(input.Length, 250));
-				var fromMsg = String.Format("From `{0}` in `{1}`:", Context.User.FormatUser(), Context.Guild.FormatGuild());
-				var newMsg = String.Format("{0}\n```\n{1}```", fromMsg, cutMsg);
+				var newMsg = String.Format("From `{0}` in `{1}`:\n```\n{2}```", Context.User.FormatUser(), Context.Guild.FormatGuild(), input.Substring(0, Math.Min(input.Length, 250)));
 
-				var owner = Variables.Client.GetUser(((ulong)Variables.BotInfo.GetSetting(SettingOnBot.BotOwnerID)));
-				if (owner == null)
+				var owner = Actions.GetGlobalUser(((ulong)Variables.BotInfo.GetSetting(SettingOnBot.BotOwnerID)));
+				if (owner != null)
+				{
+					var DMChannel = await owner.GetOrCreateDMChannelAsync();
+					await Actions.SendDMMessage(DMChannel, newMsg);
+				}
+				else
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The owner is unable to be gotten."));
-					return;
 				}
-				var DMChannel = await owner.GetOrCreateDMChannelAsync();
-				await Actions.SendDMMessage(DMChannel, newMsg);
 			}
 		}
 

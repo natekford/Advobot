@@ -7,175 +7,52 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
+	namespace RoleModeration
+	{
+		[Usage("[User] [Role] <Role> ...")]
+		[Summary("Gives the user the role (assuming the person using the command and bot both have the ability to give that role).")]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
+		public class GiveRole : ModuleBase<MyCommandContext>
+		{
+			[Command("giverole")]
+			[Alias("gr")]
+			public async Task Command(IGuildUser user, [VerifyObject(ObjectVerification.CanBeEdited)] params IRole[] roles)
+			{
+				await CommandRunner(user, roles);
+			}
+
+			private async Task CommandRunner(IGuildUser user, IRole[] roles)
+			{
+				await Actions.GiveRoles(user, roles);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave the following roles to `{0}`: `{1}`.", user.FormatUser(), String.Join("`, `", roles.Select(x => x.FormatRole()))));
+			}
+		}
+
+		[Usage("[User] [Role] <Role> ...")]
+		[Summary("Take the role from the user (assuming the person using the command and bot both have the ability to take that role).")]
+		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
+		[DefaultEnabled(true)]
+		public class TakeRole : ModuleBase<MyCommandContext>
+		{
+			[Command("takerole")]
+			[Alias("tr")]
+			public async Task Command(IGuildUser user, [VerifyObject(ObjectVerification.CanBeEdited)] params IRole[] roles)
+			{
+				await CommandRunner(user, roles);
+			}
+
+			private async Task CommandRunner(IGuildUser user, IRole[] roles)
+			{
+				await Actions.TakeRoles(user, roles);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully took the following roles from `{0}`: `{1}`.", user.FormatUser(), String.Join("`, `", roles.Select(x => x.FormatRole()))));
+			}
+		}
+	}
 	//Role Moderation commands are commands that affect the roles in a guild
 	[Name("RoleModeration")]
 	public class Advobot_Commands_Role_Mod : ModuleBase
 	{
-		[Command("giverole")]
-		[Alias("gr")]
-		[Usage("[User] [Role]/<Role>/...")]
-		[Summary("Gives the user the role (assuming the person using the command and bot both have the ability to give that role).")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
-		[DefaultEnabled(true)]
-		public async Task GiveRole([Remainder] string input)
-		{
-			//Split input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var userStr = returnedArgs.Arguments[0];
-			var roleStr = returnedArgs.Arguments[1];
-
-			//Test if valid user mention
-			var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.None }, true, userStr);
-			if (returnedUser.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedUser);
-				return;
-			}
-			var user = returnedUser.Object;
-
-			//Determine if the role exists and if it is able to be edited by both the bot and the user
-			var splitRolesStr = roleStr.Split('/').ToList();
-			if (splitRolesStr.Count == 1)
-			{
-				//Check if it actually exists
-				var returnedRole = Actions.GetRole(Context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged }, true, roleStr);
-				if (returnedRole.Reason != FailureReason.NotFailure)
-				{
-					await Actions.HandleObjectGettingErrors(Context, returnedRole);
-					return;
-				}
-				var role = returnedRole.Object;
-
-				//See if the role is unable to be given due to management or being the everyone role
-				if (role.IsManaged)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Role is managed and unable to be given."));
-					return;
-				}
-				else if (role == Context.Guild.EveryoneRole)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to give the everyone role."));
-					return;
-				}
-
-				//Give the role and make a message
-				await Actions.GiveRole(user, role);
-				await Actions.MakeAndDeleteSecondaryMessage(Context,
-					String.Format("Successfully gave the role `{0}` to `{1}`.", role, user.FormatUser()));
-			}
-			else
-			{
-				var failedRoles = new List<string>();
-				var roles = new List<IRole>();
-				splitRolesStr.ForEach(x =>
-				{
-					var returnedRole = Actions.GetRole(Context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged }, false, x);
-					if (returnedRole.Reason == FailureReason.NotFailure)
-					{
-						roles.Add(returnedRole.Object);
-					}
-					else
-					{
-						failedRoles.Add(x);
-					}
-				});
-
-				var succ = roles.Any();
-				var fail = failedRoles.Any();
-
-				//Format the response message
-				var succOutput = "";
-				if (succ)
-				{
-					succOutput = String.Format("Successfully gave the role{0} `{1}` to `{2}`", Actions.GetPlural(roles.Count), String.Join(", ", roles.Select(x => x.Name)), user.FormatUser());
-				}
-				var and = "";
-				if (succ && fail)
-				{
-					and = ", and ";
-				}
-				else if (succ)
-				{
-					and = ".";
-				}
-				var failOutput = "";
-				if (fail)
-				{
-					failOutput = String.Format("{0}ailed to give the role{2} `{1}`{3}.",
-						succ ? "F" : "f",
-						String.Join(", ", failedRoles),
-						Actions.GetPlural(failedRoles.Count),
-						succ ? String.Format(" from `{0}`", user.FormatUser()) : "");
-				}
-
-				await Actions.GiveRoles(user, roles);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, succOutput + and + failOutput);
-			}
-		}
-
-		[Command("takerole")]
-		[Alias("tr")]
-		[Usage("[User] [Role]/<Role>/...")]
-		[Summary("Take the role from the user (assuming the person using the command and bot both have the ability to take that role).")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageRoles)]
-		[DefaultEnabled(true)]
-		public async Task TakeRole([Remainder] string input)
-		{
-			//Split input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var userStr = returnedArgs.Arguments[0];
-			var roleStr = returnedArgs.Arguments[1];
-
-			//Test if valid user mention
-			var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.None }, true, userStr);
-			if (returnedUser.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedUser);
-				return;
-			}
-			var user = returnedUser.Object;
-
-			//Determine if the role exists and if it is able to be edited by both the bot and the user
-			var splitRolesStr = roleStr.Split('/').ToList();
-			if (splitRolesStr.Count == 1)
-			{
-				//Check if it actually exists
-				var returnedRole = Actions.GetRole(Context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged }, true, roleStr);
-				if (returnedRole.Reason != FailureReason.NotFailure)
-				{
-					await Actions.HandleObjectGettingErrors(Context, returnedRole);
-					return;
-				}
-				var role = returnedRole.Object;
-
-				await Actions.TakeRole(user, role);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully took `{0}` from `{1}`.", role, user.FormatUser()));
-			}
-			else
-			{
-				var evaluatedRoles = Actions.GetValidEditRoles(Context, splitRolesStr);
-				if (!evaluatedRoles.HasValue)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ROLE_ERROR));
-					return;
-				}
-				var success = evaluatedRoles.Value.Success;
-				var failure = evaluatedRoles.Value.Failure;
-
-				await Actions.TakeRoles(user, success);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(success, failure, "role", "took", "take"));
-			}
-		}
 
 		[Command("createrole")]
 		[Alias("cr")]
