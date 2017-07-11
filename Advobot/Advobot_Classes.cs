@@ -286,6 +286,15 @@ namespace Advobot
 			return ban != null ? TypeReaderResult.FromSuccess(ban) : TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching ban.");
 		}
 	}
+
+	public class ImageTypeReader : TypeReader
+	{
+		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+		{
+			var attachedImages = context.Message.Attachments.Where(x => x.Width != null || x.Height != null);
+			var embeddedImages = context.Message.Embeds.Select(x => x.Image).Where(x => x.HasValue).Cast<EmbedImage>();
+		}
+	}
 	#endregion
 
 	#region Saved Classes

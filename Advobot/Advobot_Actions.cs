@@ -182,7 +182,7 @@ namespace Advobot
 					continue;
 				}
 
-				var commands = classType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+				var commands = classType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public);
 				var mainCommand = commands[0];
 
 				var nameAttr = (CommandAttribute)mainCommand.GetCustomAttribute(typeof(CommandAttribute));

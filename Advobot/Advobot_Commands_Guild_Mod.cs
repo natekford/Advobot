@@ -9,6 +9,7 @@ namespace Advobot
 {
 	namespace GuildModeration
 	{
+		//TODO: error strings in the classes themselves
 		[Usage("[Name]")]
 		[Summary("Change the name of the guild to the given name.")]
 		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
@@ -176,15 +177,15 @@ namespace Advobot
 			[Command("changeguildicon")]
 			[Alias("cgi")]
 			//TODO: TypeReader for images from Attachments or embeds
-			public async Task Command(string other)
+			public async Task Command(Discord.Image other)
 			{
 				await CommandRunner(other);
 			}
 
 			//TODO:separate out setpicture and rework this command
-			private async Task CommandRunner(string other)
+			private async Task CommandRunner(Image other)
 			{
-				await Actions.SetPicture(Context, other, false);
+				//await Actions.SetPicture(Context, other, false);
 			}
 		}
 
