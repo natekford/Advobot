@@ -115,7 +115,7 @@ namespace Advobot
 		[Alias("dgds")]
 		[Usage("<All|Setting Name>")]
 		[Summary("Displays guild settings. Inputting nothing gives a list of the setting names.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(true)]
 		public async Task GuildSettings([Optional, Remainder] string input)
 		{
@@ -198,7 +198,7 @@ namespace Advobot
 		[Alias("concom", "cncm")]
 		[Usage("[Enable|Disable] [Command Name|Category Name|All]")]
 		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `configurecommands` or `help`.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(true)]
 		public async Task CommandConfig([Remainder] string input)
 		{
@@ -319,7 +319,7 @@ namespace Advobot
 		[Alias("micc")]
 		[Usage("[Add|Remove] [Channel] <Command Name|Category Name>")]
 		[Summary("The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task CommandIgnore([Remainder] string input)
 		{
@@ -458,7 +458,7 @@ namespace Advobot
 		[Usage("[Show|Add|Remove] [User] [Permission/...]")]
 		[Summary("Gives a user permissions in the bot but not on Discord itself. Type `" + Constants.BOT_PREFIX + "mbu [Show]` to see the available permissions. " +
 			"Type `" + Constants.BOT_PREFIX + "mbu [Show] [User]` to see the permissions of that user.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task BotUsersModify([Optional, Remainder] string input)
 		{
@@ -611,7 +611,7 @@ namespace Advobot
 		[Usage("[ImageOnly|Sanitary] <Channel>")]
 		[Summary("Image only works solely on attachments. Sanitary means any message sent by someone without admin gets deleted. " +
 			"No input channel means it applies to the current channel. Using the command on an already targetted channel turned it off.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(false)]
 		public async Task ModifyImageOnly([Optional, Remainder] string input)
 		{
@@ -674,7 +674,7 @@ namespace Advobot
 		[Alias("mrem")]
 		[Usage("[Add|Remove] [\"Name\"] <\"Text\">")]
 		[Summary("Adds the given text to a list that can be called through the `sayquote` command.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task ModifyQuotes([Remainder] string input)
 		{
@@ -788,7 +788,7 @@ namespace Advobot
 		[Alias("sgn")]
 		[Usage("[Welcome|Goodbye] [#Channel] <\"Content:string\"> <\"Title:string\"> <\"Desc:string\"> <\"Thumb:string\">")]
 		[Summary("The bot send a message to the given channel when the self explantory event happens. `{User}` will be replaced with the formatted user.  `{UserMention}` will be replaced with a mention of the joining user.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task SetGuildNotif([Remainder] string input)
 		{
@@ -871,7 +871,7 @@ namespace Advobot
 		[Alias("tgn")]
 		[Usage("[Welcome|Goodbye]")]
 		[Summary("Sends the given guild notification in order to test it.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task TestGuildNotification([Remainder] string input)
 		{
@@ -911,7 +911,7 @@ namespace Advobot
 		[Alias("gf")]
 		[Usage("")]
 		[Summary("Sends the file containing all the guild's saved bot information.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task GetFile()
 		{

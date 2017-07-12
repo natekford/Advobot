@@ -20,29 +20,45 @@ namespace Advobot
 		private uint mAllFlags;
 		private uint mAnyFlags;
 
+		//This doesn't have default values for the parameters since that makes it harder to potentially provide the wrong permissions
+		public PermissionRequirementAttribute(GuildPermission[] anyOfTheListedPerms, GuildPermission[] allOfTheListedPerms)
+		{
+			mAnyFlags |= (1U << (int)GuildPermission.Administrator);
+			foreach (var perm in anyOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
+			{
+				mAnyFlags |= (1U << (int)perm);
+			}
+			foreach (var perm in allOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
+			{
+				mAllFlags |= (1U << (int)perm);
+			}
+		}
+		//For when/if GuildPermission values get put as bits
+		public PermissionRequirementAttribute(GuildPermission anyOfTheListedPerms, GuildPermission allOfTheListedPerms)
+		{
+			throw new NotImplementedException();
+		}
+		/*
 		public PermissionRequirementAttribute(uint anyOfTheListedPerms = 0, uint allOfTheListedPerms = 0)
 		{
-			mAllFlags = allOfTheListedPerms;
 			mAnyFlags = anyOfTheListedPerms | (1U << (int)GuildPermission.Administrator);
-		}
+			mAllFlags = allOfTheListedPerms;
+		}*/
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			if (context.Guild != null && Variables.Guilds.TryGetValue(context.Guild.Id, out BotGuildInfo guildInfo))
+			if (context is MyCommandContext)
 			{
+				var cont = context as MyCommandContext;
 				var user = context.User as IGuildUser;
-				var botBits = ((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).FirstOrDefault(x => x.UserID == user.Id)?.Permissions;
-				if (botBits != null)
+
+				var botBits = ((List<BotImplementedPermissions>)cont.GuildInfo.GetSetting(SettingOnGuild.BotUsers));
+				var userBits = botBits.FirstOrDefault(x => x.UserID == user.Id)?.Permissions ?? 0;
+
+				var perms = user.GuildPermissions.RawValue | userBits;
+				if ((perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
 				{
-					var perms = user.GuildPermissions.RawValue | botBits;
-					if ((perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
-						return Task.FromResult(PreconditionResult.FromSuccess());
-				}
-				else
-				{
-					var perms = user.GuildPermissions.RawValue;
-					if ((perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
-						return Task.FromResult(PreconditionResult.FromSuccess());
+					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
 			}
 			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
@@ -84,49 +100,39 @@ namespace Advobot
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			var user = context.User as IGuildUser;
-			var guild = context.Guild;
-			if (!Variables.Guilds.TryGetValue(context.Guild.Id, out BotGuildInfo guildInfo))
+			if (context is MyCommandContext)
 			{
-				return Task.FromResult(PreconditionResult.FromError("Guild is not loaded correctly."));
-			}
+				var cont = context as MyCommandContext;
+				var user = context.User as IGuildUser;
 
-			var permissions = (Requirements & Precondition.UserHasAPerm) != 0;
-			var guildOwner = (Requirements & Precondition.GuildOwner) != 0;
-			var trustedUser = (Requirements & Precondition.TrustedUser) != 0;
-			var botOwner = (Requirements & Precondition.BotOwner) != 0;
+				var permissions = (Requirements & Precondition.UserHasAPerm) != 0;
+				var guildOwner = (Requirements & Precondition.GuildOwner) != 0;
+				var trustedUser = (Requirements & Precondition.TrustedUser) != 0;
+				var botOwner = (Requirements & Precondition.BotOwner) != 0;
 
-			if (permissions)
-			{
-				var botBits = ((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).FirstOrDefault(x => x.UserID == user.Id)?.Permissions;
-				if (botBits != null)
+				if (permissions)
 				{
-					if (((user.GuildPermissions.RawValue | botBits) & PERMISSION_BITS) != 0)
+					var botBits = ((List<BotImplementedPermissions>)cont.GuildInfo.GetSetting(SettingOnGuild.BotUsers));
+					var userBits = botBits.FirstOrDefault(x => x.UserID == user.Id)?.Permissions ?? 0;
+
+					if (((user.GuildPermissions.RawValue | userBits) & PERMISSION_BITS) != 0)
 					{
 						return Task.FromResult(PreconditionResult.FromSuccess());
 					}
 				}
-				else
+				if (guildOwner && Actions.GetIfUserIsOwner(context.Guild, user))
 				{
-					if ((user.GuildPermissions.RawValue & PERMISSION_BITS) != 0)
-					{
-						return Task.FromResult(PreconditionResult.FromSuccess());
-					}
+					return Task.FromResult(PreconditionResult.FromSuccess());
+				}
+				if (trustedUser && Actions.GetIfUserIsTrustedUser(user))
+				{
+					return Task.FromResult(PreconditionResult.FromSuccess());
+				}
+				if (botOwner && Actions.GetIfUserIsBotOwner(user))
+				{
+					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
 			}
-			if (guildOwner && Actions.GetIfUserIsOwner(context.Guild, user))
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-			if (trustedUser && Actions.GetIfUserIsTrustedUser(user))
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-			if (botOwner && Actions.GetIfUserIsBotOwner(user))
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-
 			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 		}
 	}
@@ -238,7 +244,7 @@ namespace Advobot
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			var enumVal = (uint)value;
-			if (mAllowed != 0 && ((mAllowed & ~enumVal) != 0))
+			if (mAllowed != 0 && ((mAllowed & enumVal) == 0))
 			{
 				return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command overload.", value)));
 			}
@@ -2527,6 +2533,7 @@ namespace Advobot
 		CanDeleteMessages				= 206,
 		CanBeRead						= 207,
 		CanCreateInstantInvite			= 208,
+		IsDefault						= 209,
 
 		//Roles
 		IsEveryone						= 300,
@@ -2546,6 +2553,7 @@ namespace Advobot
 		
 		//Channels
 		ChannelType						= 200,
+		DefaultChannel					= 201,
 
 		//Roles
 		EveryoneRole					= 300,

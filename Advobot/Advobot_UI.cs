@@ -424,11 +424,9 @@ namespace Advobot
 			//Validate path/botkey after the UI has launched to have them logged
 			Task.Run(async () =>
 			{
-				//Check if valid path at startup
 				Actions.ValidatePath(Properties.Settings.Default.Path, true);
-				//Check if valid key at startup
 				await Actions.ValidateBotKey(Variables.Client, Properties.Settings.Default.BotKey, true);
-				Actions.MaybeStartBot();
+				await Actions.MaybeStartBot();
 			});
 
 			mUIInfo.InitializeColors();
@@ -2027,7 +2025,7 @@ namespace Advobot
 					{
 						await Actions.ValidateBotKey(Variables.Client, text);
 					}
-					Actions.MaybeStartBot();
+					await Actions.MaybeStartBot();
 				});
 			}
 			else

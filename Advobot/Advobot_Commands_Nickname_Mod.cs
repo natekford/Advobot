@@ -15,7 +15,7 @@ namespace Advobot
 		[Alias("cnn")]
 		[Usage("[User] [New Nickname|Remove]")]
 		[Summary("Gives the user a nickname.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageNicknames)]
+		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 		[DefaultEnabled(true)]
 		public async Task Nickname([Remainder] string input)
 		{
@@ -72,7 +72,7 @@ namespace Advobot
 		[Alias("rwin")]
 		[Usage("[\"String to Find\"] [\"String to Replace\"] <" + Constants.BYPASS_STRING + ">")]
 		[Summary("Gives any users who have a username/nickname with the given string a new nickname that replaces it. Max is 100 users per use unless the bypass string is said.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageNicknames)]
+		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 		[DefaultEnabled(true)]
 		public async Task NicknameAllWithName([Remainder] string input)
 		{
@@ -162,7 +162,7 @@ namespace Advobot
 		[Usage("[\"String to Replace With\"] <ANSI:True|False> <" + Constants.BYPASS_STRING + ">")]
 		[Summary("Any user who has a name and nickname with non regular ascii characters will have their username changed to the given string. No input lists all the users. "
 			+ "Max is 100 users per use unless the bypass string is said.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageNicknames)]
+		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 		[DefaultEnabled(true)]
 		public async Task ReplaceNonAscii([Optional, Remainder] string input)
 		{
@@ -224,7 +224,7 @@ namespace Advobot
 		[Alias("rann")]
 		[Usage("<" + Constants.BYPASS_STRING + ">")]
 		[Summary("Remove all nicknames of users on the guild. Max is 100 users per use unless the bypass string is said.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageNicknames)]
+		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 		[DefaultEnabled(true)]
 		public async Task RemoveAllNickNames([Optional, Remainder] string input)
 		{

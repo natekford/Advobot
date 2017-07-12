@@ -16,7 +16,7 @@ namespace Advobot
 		[Alias("ebr")]
 		[Usage("[\"Regex\"] [\"Test Message\"]")]
 		[Summary("Evaluates a regex (case is ignored). The regex are also restricted to a 1,000,000 tick timeout. Once a regex receives a good score then it can be used within the bot as a banned phrase.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task BanRegexEvaluate([Remainder] string input)
 		{
@@ -86,7 +86,7 @@ namespace Advobot
 		[Alias("mbr")]
 		[Usage("[Add|Remove] <Number>")]
 		[Summary("Adds/removes the picked regex to/from the ban list. If no number is input it lists the possible regex.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task BanRegexModify([Optional, Remainder] string input)
 		{
@@ -197,7 +197,7 @@ namespace Advobot
 		[Alias("mbs")]
 		[Usage("[Add] [\"Phrase/...\"] | [Remove] [\"Phrase/...\"|Position:Number/...]")]
 		[Summary("Adds/removes the given string to/from the ban list.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesModify([Remainder] string input)
 		{
@@ -271,7 +271,7 @@ namespace Advobot
 		[Alias("mpt")]
 		[Usage("[\"Phrase\"|Position:Number] [Nothing|Role|Kick|Ban] <Regex>")]
 		[Summary("Changes the punishment type of the input string or regex to the given type.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesChangeType([Remainder] string input)
 		{
@@ -365,7 +365,7 @@ namespace Advobot
 		[Alias("mbpp")]
 		[Usage("[Add] [Position:Number] [\"Punishment:Role Name|Kick|Ban\"] <Time:Number> | [Remove] [Position:Number]")]
 		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to the total of its type. Time is in minutes and only applies to roles.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesPunishModify([Remainder] string input)
 		{
@@ -480,7 +480,7 @@ namespace Advobot
 					{
 						foreach (var gatheredPunishment in gatheredPunishments)
 						{
-							if (gatheredPunishment.Role != null && gatheredPunishment.Role.Position >= Actions.GetUserPosition(Context.Guild, Context.User))
+							if (gatheredPunishment.Role != null && gatheredPunishment.Role.Position >= Actions.GetUserPosition(Context.User))
 							{
 								await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have the ability to remove a punishment with this role."));
 								return;
@@ -526,7 +526,7 @@ namespace Advobot
 		[Alias("mbpu")]
 		[Usage("[User] [Current|Clear]")]
 		[Summary("Shows or removes all infraction points a user has on the guild.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task BanPhrasesUser([Remainder] string input)
 		{
@@ -590,7 +590,7 @@ namespace Advobot
 		[Alias("mbn")]
 		[Usage("[Add|Remove] [\"Phrase\"]")]
 		[Summary("If a user joins with the given phrase in their name, the bot will automatically ban them.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task ModifyBannedWordsForJoiningUsers([Remainder] string input)
 		{

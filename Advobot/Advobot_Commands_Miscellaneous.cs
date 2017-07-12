@@ -11,13 +11,14 @@ namespace Advobot
 {
 	namespace Miscellaneous
 	{
+		[Group("help")]
+		[Alias("h", "info")]
 		[Usage("<Command>")]
 		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. If left blank will print out a link to the documentation of this bot.")]
 		[DefaultEnabled(true)]
 		public class Help : ModuleBase<MyCommandContext>
 		{
-			[Command("help")]
-			[Alias("h", "info")]
+			[Command]
 			public async Task Command([Optional] string command)
 			{
 				await CommandRunner(command);
@@ -65,13 +66,14 @@ namespace Advobot
 			}
 		}
 
+		[Group("commands")]
+		[Alias("cmds")]
 		[Usage("<Category|All>")]
 		[Summary("Prints out the commands in that category of the command list.")]
 		[DefaultEnabled(true)]
 		public class Commands : ModuleBase<MyCommandContext>
 		{
-			[Command("commands")]
-			[Alias("cmds")]
+			[Command]
 			public async Task Command([Optional] string targetStr)
 			{
 				await CommandRunner(targetStr);
@@ -103,13 +105,14 @@ namespace Advobot
 			}
 		}
 
+		[Group("getid")]
+		[Alias("gid")]
 		[Usage("[Guild|Channel|Role|User|Emote|Invite|Bot] <\"Other Argument\">")]
 		[Summary("Shows the ID of the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 		[DefaultEnabled(true)]
 		public class GetID : ModuleBase<MyCommandContext>
 		{
-			[Command("getid")]
-			[Alias("gid")]
+			[Command]
 			public async Task Command(GetIDInfoType target, [Optional] string otherArg)
 			{
 				await CommandRunner(target, otherArg);
@@ -180,13 +183,14 @@ namespace Advobot
 			}
 		}
 
+		[Group("getinfo")]
+		[Alias("ginf")]
 		[Usage("[Guild|Channel|Role|User|Emote|Invite|Bot] <\"Other Argument\">")]
 		[Summary("Shows information about the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 		[DefaultEnabled(true)]
 		public class GetInfo : ModuleBase<MyCommandContext>
 		{
-			[Command("getinfo")]
-			[Alias("ginf")]
+			[Command]
 			public async Task Command(GetIDInfoType target, [Optional] string otherArg)
 			{
 				await CommandRunner(target, otherArg);
@@ -258,14 +262,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("getuserswithreason")]
+		[Alias("guwr")]
 		[Usage("[Role|Name|Game|Stream] <\"Other Argument\"> <True|False> <True|False> <True|False>")]
 		[Summary("Gets users with a variable reason. First bool specifies if to only give a count. Second specifies if to search for the other argument exactly. Third specifies if to include nicknames.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public class GetUsersWithReason : ModuleBase<MyCommandContext>
 		{
-			[Command("getuserswithreason")]
-			[Alias("guwr")]
+			[Command]
 			public async Task Command(GetUsersWithReasonTarget target, [Optional] string otherArg, [Optional] bool count, [Optional] bool exact, [Optional] bool nickname)
 			{
 				await CommandRunner(target, otherArg, count, exact, nickname);
@@ -322,13 +327,14 @@ namespace Advobot
 			}
 		}
 
+		[Group("getuseravatar")]
+		[Alias("gua")]
 		[Usage("<User> <Number> <Gif|Png|Jpg|Webp>")]
 		[Summary("Shows the URL of the given user's avatar. Can supply a format and size.")]
 		[DefaultEnabled(true)]
 		public class GetUserAvatar : ModuleBase<MyCommandContext>
 		{
-			[Command("getuseravatar")]
-			[Alias("gua")]
+			[Command]
 			public async Task Command([Optional] IUser user, [Optional] ushort size, [Optional] ImageFormat format)
 			{
 				await CommandRunner(user, size, format);
@@ -340,14 +346,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("getuserjoinedat")]
+		[Alias("gujat")]
 		[Usage("[Number]")]
 		[Summary("Shows the user which joined the guild in that position.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public class GetUserJoinedAt : ModuleBase<MyCommandContext>
 		{
-			[Command("getuserjoinedat")]
-			[Alias("gujat")]
+			[Command]
 			public async Task Command(uint position)
 			{
 				await CommandRunner(position);
@@ -363,14 +370,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("displayguilds")]
+		[Alias("dgs")]
 		[Usage("")]
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public class DisplayGuilds : ModuleBase<MyCommandContext>
 		{
-			[Command("displayguilds")]
-			[Alias("dgs")]
+			[Command]
 			public async Task Command()
 			{
 				await CommandRunner();
@@ -396,14 +404,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("displayuserjoinlist")]
+		[Alias("dujl")]
 		[Usage("")]
 		[Summary("Lists most of the users who have joined the guild.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public class DisplayUserJoinList : ModuleBase<MyCommandContext>
 		{
-			[Command("displayuserjoinlist")]
-			[Alias("dujl")]
+			[Command(RunMode = RunMode.Async)]
 			public async Task Command()
 			{
 				await CommandRunner();
@@ -416,14 +425,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("displayemotes")]
+		[Alias("de")]
 		[Usage("[Global|Guild]")]
 		[Summary("Lists the emotes in the guild. As of right now, there's no way to upload or remove emotes through Discord's API.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public class DisplayEmotes : ModuleBase<MyCommandContext>
 		{
-			[Command("displayemotes")]
-			[Alias("de")]
+			[Command]
 			public async Task Command(EmoteType target)
 			{
 				await CommandRunner(target);
@@ -457,14 +467,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("downloadmessages")]
+		[Alias("dlm")]
 		[Usage("[Number] <Channel>")]
 		[Summary("Downloads the past x amount of messages. Up to 1000 messages or 500KB worth of formatted text.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(true)]
 		public class DownloadMessages : ModuleBase<MyCommandContext>
 		{
-			[Command("downloadmessages")]
-			[Alias("dlm")]
+			[Command(RunMode = RunMode.Async)]
 			public async Task Command(int num, [Optional, VerifyObject(ObjectVerification.CanBeRead)] ITextChannel channel)
 			{
 				await CommandRunner(num, channel);
@@ -499,6 +510,8 @@ namespace Advobot
 			}
 		}
 
+		[Group("makeanembed")]
+		[Alias("mae")]
 		[Usage("<\"Title:input\"> <\"Desc:input\"> <Img:url> <Url:url> <Thumb:url> <Color:int/int/int> <\"Author:input\"> <AuthorIcon:url> <AuthorUrl:url> <\"Foot:input\"> <FootIcon:url> " +
 			"<\"Field[1-25]:input\"> <\"FieldText[1-25]:input\"> <FieldInline[1-25]:true|false>")]
 		[Summary("Every single piece is optional. The stuff in quotes *must* be in quotes. URLs need the https:// in front. Fields need *both* Field and FieldText to work.")]
@@ -506,8 +519,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public class MakeAnEmbed : ModuleBase<MyCommandContext>
 		{
-			[Command("makeanembed")]
-			[Alias("mae")]
+			[Command(RunMode = RunMode.Async)]
 			public async Task Command([Remainder] string input)
 			{
 				await CommandRunner(input);
@@ -565,14 +577,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("mentionrole")]
+		[Alias("mnr")]
 		[Usage("[Role] [Message]")]
 		[Summary("Mention an unmentionable role with the given message.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public class MentionRole : ModuleBase<MyCommandContext>
 		{
-			[Command("mentionrole")]
-			[Alias("mnr")]
+			[Command]
 			public async Task Command(IRole role, [Remainder] string text)
 			{
 				await CommandRunner(role, text);
@@ -600,14 +613,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("messagebotowner")]
+		[Alias("mbo")]
 		[Usage("[Message]")]
 		[Summary("Sends a message to the bot owner with the given text. Messages will be cut down to 250 characters.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public class MessageBotOwner : ModuleBase<MyCommandContext>
 		{
-			[Command("messagebotowner")]
-			[Alias("mbo")]
+			[Command]
 			public async Task Command([Remainder] string input)
 			{
 				await CommandRunner(input);
@@ -630,14 +644,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("getpermnamesfromvalue")]
+		[Alias("getperms")]
 		[Usage("[Number]")]
 		[Summary("Lists all the perms that come from the given value.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public class GetPermNamesFromValue : ModuleBase<MyCommandContext>
 		{
-			[Command("getpermnamesfromvalue")]
-			[Alias("getperms")]
+			[Command]
 			public async Task Command(uint permNum)
 			{
 				await CommandRunner(permNum);
@@ -657,14 +672,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("getbotdms")]
+		[Alias("gbd")]
 		[Usage("<User>")]
 		[Summary("Lists all the people who have sent the bot DMs or shows the DMs with a person if one is specified.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public class GetBotDMs : ModuleBase<MyCommandContext>
 		{
-			[Command("getbotdms")]
-			[Alias("gbd")]
+			[Command(RunMode = RunMode.Async)]
 			public async Task Command([Optional] IUser user)
 			{
 				await CommandRunner(user);
@@ -703,14 +719,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("test")]
+		[Alias("t")]
 		[Usage("")]
 		[Summary("Mostly just makes the bot say test.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public class Test : ModuleBase<MyCommandContext>
 		{
-			[Command("test")]
-			[Alias("t")]
+			[Command(RunMode = RunMode.Async)]
 			public async Task Command()
 			{
 				await CommandRunner();

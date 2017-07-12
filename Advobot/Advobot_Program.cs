@@ -18,6 +18,11 @@ namespace Advobot
 		[STAThread]
 		private static void Main()
 		{
+			new Program().SubMain().GetAwaiter().GetResult();
+		}
+
+		private async Task SubMain()
+		{
 			//Make sure only one instance is running at the same time
 #if RELEASE
 			if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Length > 1)
@@ -53,11 +58,11 @@ namespace Advobot
 				startup = true;
 				while (!Variables.GotKey)
 				{
-					Actions.ValidateBotKey(Variables.Client, startup ? Properties.Settings.Default.BotKey : Console.ReadLine(), startup).GetAwaiter().GetResult();
+					await Actions.ValidateBotKey(Variables.Client, startup ? Properties.Settings.Default.BotKey : Console.ReadLine(), startup);
 					startup = false;
 				}
 
-				Actions.MaybeStartBot();
+				await Actions.MaybeStartBot();
 			}
 		}
 
@@ -86,16 +91,14 @@ namespace Advobot
 
 		private IServiceProvider ConfigureServices(BotClient client)
 		{
-			return new DefaultServiceProviderFactory().CreateServiceProvider
-				(
+			return new DefaultServiceProviderFactory().CreateServiceProvider(
 				new ServiceCollection()
 				.AddSingleton(client)
 				.AddSingleton(new CommandService(new CommandServiceConfig
 				{
 					CaseSensitiveCommands = false,
 					ThrowOnError = false,
-				}))
-				);
+				})));
 		}
 
 		private static DiscordShardedClient CreateShardedClient(BotGlobalInfo botInfo)

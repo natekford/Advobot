@@ -10,15 +10,16 @@ namespace Advobot
 {
 	namespace UserModeration
 	{
+		[Group("unban")]
+		[Alias("ub")]
 		[Usage("<User ID|\"Username#Discriminator\"> <True|False>")]
 		[Summary("Unbans the user from the guild. If the reason argument is true it only says the reason without unbanning.")]
-		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
+		[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 		[DefaultEnabled(true)]
 		public class Unban : ModuleBase<MyCommandContext>
 		{
-			[Command("unban")]
-			[Alias("ub")]
-			public async Task Command([OverrideTypeReader(typeof(IBanTypeReader))] IBan ban, [Optional] bool reason)
+			[Command]
+			public async Task Command(IBan ban, [Optional] bool reason)
 			{
 				await CommandRunner(ban, reason);
 			}
@@ -37,20 +38,20 @@ namespace Advobot
 			}
 		}
 
+		[Group("removemessages")]
+		[Alias("rm")]
 		[Usage("[Number of Messages] <User> <Channel>")]
 		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel. These arguments need to be mentions to work.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageMessages)]
+		[PermissionRequirement(new[] { GuildPermission.ManageMessages }, null)]
 		[DefaultEnabled(true)]
 		public class RemoveMessages : ModuleBase<MyCommandContext>
 		{
-			[Command("removemessages")]
-			[Alias("rm")]
+			[Command]
 			public async Task Command(uint requestCount, [Optional] IGuildUser user, [Optional, VerifyObject(ObjectVerification.CanDeleteMessages)] ITextChannel channel)
 			{
 				await CommandRunner((int)requestCount, user, channel);
 			}
-			[Command("removemessages")]
-			[Alias("rm")]
+			[Command]
 			public async Task Command(uint requestCount, [Optional, VerifyObject(ObjectVerification.CanDeleteMessages)] ITextChannel channel, [Optional] IGuildUser user)
 			{
 				await CommandRunner((int)requestCount, user, channel);
@@ -95,7 +96,7 @@ namespace Advobot
 		[Alias("m")]
 		[Usage("[User] <Time>")]
 		[Summary("Prevents a user from typing and speaking and doing much else in the server. Time is in minutes, and if no time is given then the mute will not expire.")]
-		[PermissionRequirement((1U << (int)GuildPermission.ManageRoles) | (1U << (int)GuildPermission.ManageMessages))]
+		[PermissionRequirement(new[] { GuildPermission.ManageRoles, GuildPermission.ManageMessages }, null)]
 		[DefaultEnabled(true)]
 		public async Task FullMute([Remainder] string input)
 		{
@@ -145,7 +146,7 @@ namespace Advobot
 		[Alias("vm")]
 		[Usage("[User] <Time")]
 		[Summary("Prevents a user from speaking. Time is in minutes, and if no time is given then the mute will not expire.")]
-		[PermissionRequirement(1U << (int)GuildPermission.MuteMembers)]
+		[PermissionRequirement(new[] { GuildPermission.MuteMembers }, null)]
 		[DefaultEnabled(true)]
 		public async Task Mute([Remainder] string input)
 		{
@@ -202,7 +203,7 @@ namespace Advobot
 		[Alias("dfn", "d")]
 		[Usage("[User] <Time>")]
 		[Summary("Prevents a user from hearing. Time is in minutes, and if no time is given then the mute will not expire.")]
-		[PermissionRequirement(1U << (int)GuildPermission.DeafenMembers)]
+		[PermissionRequirement(new[] { GuildPermission.DeafenMembers }, null)]
 		[DefaultEnabled(true)]
 		public async Task Deafen([Remainder] string input)
 		{
@@ -259,7 +260,7 @@ namespace Advobot
 		[Alias("mu")]
 		[Usage("[User] [Channel]")]
 		[Summary("Moves the user to the given voice channel.")]
-		[PermissionRequirement(1U << (int)GuildPermission.MoveMembers)]
+		[PermissionRequirement(new[] { GuildPermission.MoveMembers }, null)]
 		[DefaultEnabled(true)]
 		public async Task MoveUser([Remainder] string input)
 		{
@@ -312,7 +313,7 @@ namespace Advobot
 		[Alias("mus")]
 		[Usage("[Channel] [Channel]")]
 		[Summary("Moves all users from one channel to another.")]
-		[PermissionRequirement(1U << (int)GuildPermission.MoveMembers)]
+		[PermissionRequirement(new[] { GuildPermission.MoveMembers }, null)]
 		[DefaultEnabled(true)]
 		public async Task MoveUsers([Remainder] string input)
 		{
@@ -374,7 +375,7 @@ namespace Advobot
 		[Alias("pmems")]
 		[Usage("[1|7|30] [True|False]")]
 		[Summary("Removes users who have no roles and have not been seen in the past given amount of days. True means an actual prune, otherwise this returns the number of users that would have been pruned.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(true)]
 		public async Task PruneMembers([Remainder] string input)
 		{
@@ -429,7 +430,7 @@ namespace Advobot
 		[Alias("sb")]
 		[Usage("[User] <Reason>")]
 		[Summary("Bans then unbans a user from the guild. Removes all recent messages from them.")]
-		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
+		[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 		[DefaultEnabled(true)]
 		public async Task SoftBan([Remainder] string input)
 		{
@@ -465,7 +466,7 @@ namespace Advobot
 		[Alias("b")]
 		[Usage("[User] <Reason> <Days:int> <Time:int>")]
 		[Summary("Bans the user from the guild. Days specifies how many days worth of messages to delete. Time specifies how long and is in minutes.")]
-		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
+		[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 		[DefaultEnabled(true)]
 		public async Task Ban([Remainder] string input)
 		{
@@ -555,7 +556,7 @@ namespace Advobot
 		[Alias("k")]
 		[Usage("[User] <Reason>")]
 		[Summary("Kicks the user from the guild.")]
-		[PermissionRequirement(1U << (int)GuildPermission.KickMembers)]
+		[PermissionRequirement(new[] { GuildPermission.KickMembers }, null)]
 		[DefaultEnabled(true)]
 		public async Task Kick([Remainder] string input)
 		{
@@ -590,7 +591,7 @@ namespace Advobot
 		[Alias("dcbl")]
 		[Usage("")]
 		[Summary("Displays all the bans on the guild.")]
-		[PermissionRequirement(1U << (int)GuildPermission.BanMembers)]
+		[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 		[DefaultEnabled(true)]
 		public async Task CurrentBanList()
 		{
@@ -613,7 +614,7 @@ namespace Advobot
 		[Usage("<\"Roles:.../.../\"> <Messages:1 to 5> <Time:1 to 30> <Guild:Yes> | [Off] [Guild|Channel|All]")]
 		[Summary("The first argument is the roles that get ignored by slowmode, the second is the amount of messages, and the third is the time period. Default is: none, 1, 5." +
 			"Bots are unaffected by slowmode. Any users who are immune due to roles stay immune even if they lose said role until a new slowmode is started.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(true)]
 		public async Task SlowMode([Optional, Remainder] string input)
 		{

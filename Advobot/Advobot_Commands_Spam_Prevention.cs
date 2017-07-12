@@ -13,7 +13,7 @@ namespace Advobot
 		[Usage("[Message|LongMessage|Link|Image|Mention] [Enable|Disable|Setup] <Messages:Number> <Spam:Number> <Votes:Number> <Timeframe:Number>")]
 		[Summary("Spam prevention allows for some protection against mention spammers. Messages are the amount of messages a user has to send with the given amount of mentions before being considered " + 
 			"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The first punishment is a kick, next is a ban. The spam users are reset every hour.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task PreventMentionSpam([Remainder] string input)
 		{
@@ -125,7 +125,7 @@ namespace Advobot
 		[Usage("[Enable|Disable|Setup] <Count:Number>")]
 		[Summary("Any users who joins from now on will get text muted. Once `preventraidspam` is turned off all the users who were muted will be unmuted. " +
 			"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task PreventRaidSpam([Remainder] string input)
 		{
@@ -240,7 +240,7 @@ namespace Advobot
 		[Alias("prj")]
 		[Usage("[Enable|Disable|Setup] <Count:Number> <Time:Number>")]
 		[Summary("If the given amount of users joins within the given time frame then all of the users will be muted. Time is in seconds. Default is 5 users in 3 seconds.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task PreventRapidJoin([Remainder] string input)
 		{

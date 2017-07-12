@@ -13,7 +13,7 @@ namespace Advobot
 		[Alias("mgl")]
 		[Usage("[Add|Remove] [Code] <\"Keywords:Keywords/...>\"")]
 		[Summary("Adds a guild to the guild list.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task AddInvite([Remainder] string input)
 		{

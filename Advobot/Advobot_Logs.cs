@@ -480,7 +480,10 @@ namespace Advobot
 				{
 					var help = closeHelpList.List[number].Word;
 					Variables.ActiveCloseHelp.ThreadSafeRemove(closeHelpList);
-					await Actions.SendEmbedMessage(message.Channel, Actions.AddFooter(Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help, Actions.GetPrefix(guildInfo))), "Help"));
+
+					var embed = Actions.MakeNewEmbed(help.Name, Actions.GetHelpString(help, Actions.GetPrefix(guildInfo)));
+					Actions.AddFooter(embed, "Help");
+					await Actions.SendEmbedMessage(message.Channel, embed);
 					await Actions.DeleteMessage(message);
 				}
 			}
@@ -505,7 +508,7 @@ namespace Advobot
 
 		public static async Task HandleSpamPrevention(BotGuildInfo guildInfo, SocketGuild guild, IMessage message)
 		{
-			if (Actions.GetUserPosition(guild, message.Author) < Actions.GetUserPosition(guild, Actions.GetBot(guild)))
+			if (Actions.GetUserPosition(message.Author) < Actions.GetUserPosition(Actions.GetBot(guild)))
 			{
 				await Actions.SpamCheck(guildInfo, guild, message.Author as IGuildUser, message);
 			}
@@ -527,7 +530,7 @@ namespace Advobot
 			foreach (var user in users)
 			{
 				user.IncreaseVotesToKick(message.Author.Id);
-				if (Actions.GetUserPosition(guild, user.User) >= Actions.GetUserPosition(guild, Actions.GetBot(guild)) || user.VotesToKick < user.VotesRequired)
+				if (Actions.GetUserPosition(user.User) >= Actions.GetUserPosition(Actions.GetBot(guild)) || user.VotesToKick < user.VotesRequired)
 					return;
 
 				await user.Punish(guildInfo, guild);

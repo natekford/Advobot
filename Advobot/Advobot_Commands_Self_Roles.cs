@@ -15,7 +15,7 @@ namespace Advobot
 		[Alias("msr")]
 		[Usage("[Help] | [Create|Delete] [Group:Number] | [Add|Remove] [Role/...] [Group:Number]")]
 		[Summary("Adds a role to the self assignable list. Roles can be grouped together which means only one role in the group can be self assigned at a time. There is an extra help command too.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task ModifySelfAssignableRoles([Remainder] string input)
 		{

@@ -9,7 +9,7 @@ namespace Advobot
 	public static class Constants
 	{
 		public const string BOT_VERSION = "0.11.0";
-		public const string API_VERSION = "Discord.Net v1.0.1";
+		public const string API_VERSION = "Discord.Net v1.0.2-build-00795";
 		public const string BOT_PREFIX = "&&";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string IGNORE_ERROR = "Cx";
@@ -81,6 +81,7 @@ namespace Advobot
 		public const int MIN_ROLE_NAME_LENGTH = 1;
 		public const int MAX_TOPIC_LENGTH = 1024;
 		public const int MAX_GAME_LENGTH = 128; //Yes, I know it CAN go past that, but it won't show for others.
+		public const int MAX_EMBED_TOTAL_LENGTH = 6000;
 		public const int MAX_EMBED_LENGTH_LONG = 2048;
 		public const int MAX_EMBED_LENGTH_SHORT = 1024;
 		public const int MAX_TITLE_LENGTH = 256;

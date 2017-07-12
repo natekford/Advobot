@@ -15,7 +15,7 @@ namespace Advobot
 		[Alias("mlc")]
 		[Usage("[Server|Mod|Image] [Channel|Off]")]
 		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task Serverlog([Remainder] string input)
 		{
@@ -117,7 +117,7 @@ namespace Advobot
 		[Alias("milc")]
 		[Usage("[Add|Remove] [Channel]/<Channel>/...")]
 		[Summary("Ignores all logging info that would have been gotten from a channel. Only works on text channels that you and the bot have the ability to see.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task IgnoreChannel([Remainder] string input)
 		{
@@ -210,7 +210,7 @@ namespace Advobot
 		[Alias("mla")]
 		[Usage("<Add|Remove|Default> <All|Log Action/...>")]
 		[Summary("The server log will send messages when these events happen. `Default` overrides the current settings. Inputting nothing gives a list of the log actions.")]
-		[PermissionRequirement]
+		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public async Task SwitchLogActions([Optional, Remainder] string input)
 		{

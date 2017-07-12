@@ -11,14 +11,15 @@ namespace Advobot
 {
 	namespace ChannelModeration
 	{
+		[Group("createchannel")]
+		[Alias("cch")]
 		[Usage("[Text|Voice] [Name]")]
 		[Summary("Adds a channel to the guild of the given type with the given name. Text channel names cannot contain any spaces.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
 		public class CreateChannel : ModuleBase<MyCommandContext>
 		{
-			[Command("createchannel")]
-			[Alias("cch")]
+			[Command]
 			public async Task Command(ChannelType channelType, [Remainder] string name)
 			{
 				await CommandRunner(channelType, name);
@@ -28,12 +29,12 @@ namespace Advobot
 			{
 				if (name.Length > Constants.MAX_CHANNEL_NAME_LENGTH)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be more than `{0}` characters.", Constants.MAX_CHANNEL_NAME_LENGTH)));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Channel names cannot be more than `{0}` characters.", Constants.MAX_CHANNEL_NAME_LENGTH)));
 					return;
 				}
 				else if (name.Length < Constants.MIN_CHANNEL_NAME_LENGTH)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Name cannot be less than `{0}` characters.", Constants.MIN_CHANNEL_NAME_LENGTH)));
+					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Channel names cannot be less than `{0}` characters.", Constants.MIN_CHANNEL_NAME_LENGTH)));
 					return;
 				}
 
@@ -66,15 +67,16 @@ namespace Advobot
 			}
 		}
 
+		[Group("softdeletechannel")]
+		[Alias("sdch")]
 		[Usage("[Channel]")]
 		[Summary("Makes most roles unable to read the channel and moves it to the bottom of the channel list. Only works for text channels.")]
-		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
+		[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 		[DefaultEnabled(true)]
 		public class SoftDeleteChannel : ModuleBase<MyCommandContext>
 		{
-			[Command("softdeletechannel")]
-			[Alias("sdch")]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] ITextChannel channel)
+			[Command]
+			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged, ObjectVerification.IsDefault)] ITextChannel channel)
 			{
 				await CommandRunner(channel);
 			}
@@ -120,20 +122,21 @@ namespace Advobot
 				}
 
 				//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
-				await Actions.ModifyChannelPosition(channel, (uint)(await Context.Guild.GetTextChannelsAsync()).Max(x => x.Position));
+				await Actions.ModifyChannelPosition(channel, (await Context.Guild.GetTextChannelsAsync()).Max(x => x.Position));
 				await Actions.SendChannelMessage(Context, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything in this channel.");
 			}
 		}
 
+		[Group("deletechannel")]
+		[Alias("dch")]
 		[Usage("[Channel]")]
 		[Summary("Deletes the channel.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
 		public class DeleteChannel : ModuleBase<MyCommandContext>
 		{
-			[Command("deletechannel")]
-			[Alias("dch")]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] IGuildChannel channel)
+			[Command]
+			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged, ObjectVerification.IsDefault)] IGuildChannel channel)
 			{
 				await CommandRunner(channel);
 			}
@@ -152,14 +155,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changechannelposition")]
+		[Alias("cchpo")]
 		[Usage("[Channel] [Number]")]
 		[Summary("If only the channel is input the channel's position will be listed. Position zero is the top most position.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeChannelPosition : ModuleBase<MyCommandContext>
 		{
-			[Command("changechannelposition")]
-			[Alias("cchpo")]
+			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeReordered)] IGuildChannel channel, uint position)
 			{
 				await CommandRunner(channel, position);
@@ -167,19 +171,20 @@ namespace Advobot
 
 			private async Task CommandRunner(IGuildChannel channel, uint position)
 			{
-				await Actions.ModifyChannelPosition(channel, position);
+				await Actions.ModifyChannelPosition(channel, (int)position);
 				await Actions.SendChannelMessage(Context, String.Format("Successfully moved `{0}` to position `{1}`.", channel.FormatChannel(), position));
 			}
 		}
 
+		[Group("displaychannelpositions")]
+		[Alias("dchp")]
 		[Usage("[Text|Voice]")]
 		[Summary("Lists the positions of each text or voice channel on the guild.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
 		public class DisplayChannelPosition : ModuleBase<MyCommandContext>
 		{
-			[Command("displaychannelpositions")]
-			[Alias("dchp")]
+			[Command]
 			public async Task Command(ChannelType channelType)
 			{
 				await CommandRunner(channelType);
@@ -214,42 +219,40 @@ namespace Advobot
 			}
 		}
 
+		[Group("changechannelperms")]
+		[Alias("cchpe")]
 		[Usage("[Show|Allow|Inherit|Deny] <Channel> <Role|User> <Permission/...>")]
 		[Summary("Permissions must be separated by a `/`. Type `" + Constants.BOT_PREFIX + "chp [Show]` to see the available permissions. " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel]` to see all permissions on a channel. " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel] [Role|User]` to see permissions a role/user has on a channel.")]
-		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
+		[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 		[DefaultEnabled(true)]
 		public class ChangeChannelPerms : ModuleBase<MyCommandContext>
 		{
-			[Command("changechannelperms")]
-			[Alias("cchpe")]
+			[Command]
 			public async Task Command([VerifyEnum((uint)(ActionType.Allow | ActionType.Inherit | ActionType.Deny))] ActionType actionType,
 									  [VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
 									  IRole role,
-									  string uncutPermissions)
+									  [Remainder] string uncutPermissions)
 			{
 				await CommandRunner(actionType, channel, role, uncutPermissions);
 			}
-			[Command("changechannelperms")]
-			[Alias("cchpe")]
+			[Command]
 			public async Task Command([VerifyEnum((uint)(ActionType.Allow | ActionType.Inherit | ActionType.Deny))] ActionType actionType,
 									  [VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
 									  IGuildUser user,
-									  string uncutPermissions)
+									  [Remainder] string uncutPermissions)
 			{
 				await CommandRunner(actionType, channel, user, uncutPermissions);
 			}
-			[Command("changechannelperms")]
-			[Alias("cchpe")]
+			[Command]
 			public async Task Command([VerifyEnum((uint)ActionType.Show)] ActionType actionType,
 									  [Optional, VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
 									  [Optional] IRole role)
 			{
 				await CommandRunner(channel, role);
 			}
-			[Command("changechannelperms")]
-			[Alias("cchpe")]
+			[Command]
 			public async Task Command([VerifyEnum((uint)ActionType.Show)] ActionType actionType,
 									  [Optional, VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
 									  [Optional] IGuildUser user)
@@ -259,7 +262,7 @@ namespace Advobot
 
 			private async Task CommandRunner(ActionType actionType, IGuildChannel channel, dynamic discordObject, string uncutPermissions)
 			{
-				var permissions = uncutPermissions.Split('/').ToList();
+				var permissions = uncutPermissions.Split('/').SelectMany(x => x.Split(' ').Select(y => y.Trim(','))).ToList();
 				var validPerms = permissions.Where(x => Variables.ChannelPermissions.Select(y => y.Name).CaseInsContains(x));
 				var invalidPerms = permissions.Where(x => !Variables.ChannelPermissions.Select(y => y.Name).CaseInsContains(x));
 				if (invalidPerms.Any())
@@ -313,8 +316,11 @@ namespace Advobot
 				}
 
 				await Actions.ModifyOverwrite(channel, discordObject, allowBits, denyBits);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}` on `{3}`",
-					actionStr, String.Join("`, `", permissions), Actions.FormatObject(discordObject), channel.FormatChannel()));
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}` on `{3}`.",
+					actionStr,
+					String.Join("`, `", permissions),
+					Actions.FormatObject(discordObject),
+					channel.FormatChannel()));
 			}
 			private async Task CommandRunner(IGuildChannel channel, dynamic discordObject)
 			{
@@ -352,30 +358,29 @@ namespace Advobot
 			}
 		}
 
+		[Group("copychannelperms")]
+		[Alias("cochp")]
 		[Usage("[Channel] [Channel] <Role|User>")]
 		[Summary("Copy permissions from one channel to another. Works for a role, a user, or everything. If nothing is specified, copies everything.")]
-		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
+		[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 		[DefaultEnabled(true)]
 		public class CopyChannelPerms : ModuleBase<MyCommandContext>
 		{
-			[Command("copychannelperms")]
-			[Alias("cochp")]
+			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
 									  [VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel,
 									  IRole role)
 			{
 				await CommandRunner(inputChannel, outputChannel, role);
 			}
-			[Command("copychannelperms")]
-			[Alias("cochp")]
+			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
 									  [VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel,
 									  IGuildUser user)
 			{
 				await CommandRunner(inputChannel, outputChannel, user);
 			}
-			[Command("copychannelperms")]
-			[Alias("cochp")]
+			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
 									  [VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel)
 			{
@@ -434,14 +439,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("clearchannelperms")]
+		[Alias("clchp")]
 		[Usage("[Channel]")]
 		[Summary("Removes all permissions set on a channel.")]
-		[PermissionRequirement(0, (1U << (int)GuildPermission.ManageChannels) | (1U << (int)GuildPermission.ManageRoles))]
+		[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 		[DefaultEnabled(true)]
 		public class ClearChannelPerms : ModuleBase<MyCommandContext>
 		{
-			[Command("clearchannelperms")]
-			[Alias("clchp")]
+			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel channel)
 			{
 				await CommandRunner(channel);
@@ -470,14 +476,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changechannelnsfw")]
+		[Alias("cchnsfw")]
 		[Usage("[Channel]")]
 		[Summary("Toggles the NSFW option on a channel.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeChannelNSFW : ModuleBase<MyCommandContext>
 		{
-			[Command("changechannelnsfw")]
-			[Alias("cchnsfw")]
+			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] ITextChannel channel)
 			{
 				await CommandRunner(channel);
@@ -506,14 +513,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changechannelname")]
+		[Alias("cchn")]
 		[Usage("[Channel] [Name]")]
 		[Summary("Changes the name of the channel.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeChannelName : ModuleBase<MyCommandContext>
 		{
-			[Command("changechannelname")]
-			[Alias("cchn")]
+			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] IGuildChannel channel, [Remainder] string name)
 			{
 				await CommandRunner(channel, name);
@@ -543,14 +551,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changechanneltopic")]
+		[Alias("ccht")]
 		[Usage("[Channel] <Topic>")]
 		[Summary("Changes the topic of a channel to whatever is input. Clears the topic if nothing is input")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeChannelTopic : ModuleBase<MyCommandContext>
 		{
-			[Command("changechanneltopic")]
-			[Alias("ccht")]
+			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] ITextChannel channel, [Optional, Remainder] string topic)
 			{
 				await CommandRunner(channel, topic);
@@ -569,14 +578,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changechannellimit")]
+		[Alias("cchl")]
 		[Usage("[Channel] [Number]")]
 		[Summary("Changes the limit to how many users can be in a voice channel. The limit ranges from 0 (no limit) to 99.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeChannelLimit : ModuleBase<MyCommandContext>
 		{
-			[Command("changechannellimit")]
-			[Alias("cchl")]
+			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] IVoiceChannel channel, uint limit)
 			{
 				await CommandRunner(channel, limit);
@@ -594,14 +604,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changechannelbitrate")]
+		[Alias("cchbr")]
 		[Usage("[Channel] [Number]")]
 		[Summary("Changes the bitrate on a voice channel. Lowest is 8, highest is 96 (unless on a partnered guild, then it goes up to 128), default is 64.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeChannelBitrate : ModuleBase<MyCommandContext>
 		{
-			[Command("changechannelbitrate")]
-			[Alias("cchbr")]
+			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] IVoiceChannel channel, uint bitrate)
 			{
 				await CommandRunner(channel, bitrate);

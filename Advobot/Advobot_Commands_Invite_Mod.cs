@@ -10,14 +10,15 @@ namespace Advobot
 {
 	namespace InviteModeration
 	{
+		[Group("displayinvites")]
+		[Alias("dinvs")]
 		[Usage("")]
 		[Summary("Gives a list of all the instant invites on the guild.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public class DisplayInvites : ModuleBase<MyCommandContext>
 		{
-			[Command("displayinvites")]
-			[Alias("dinvs")]
+			[Command]
 			public async Task Command()
 			{
 				await CommandRunner();
@@ -39,23 +40,24 @@ namespace Advobot
 			}
 		}
 
+		[Group("createinvite")]
+		[Alias("cinv")]
 		[Usage("[Channel] <1800|3600|21600|43200|86400> <1|5|10|25|50|100> <True|False>")]
 		[Summary("Creates an invite on the given channel. No time specifies to not expire. No uses has no usage limit. Temp membership means when the user goes offline they get kicked.")]
-		[PermissionRequirement(1U << (int)GuildPermission.CreateInstantInvite)]
+		[PermissionRequirement(new[] { GuildPermission.CreateInstantInvite }, null)]
 		[DefaultEnabled(true)]
 		public class CreateInvite : ModuleBase<MyCommandContext>
 		{
-			private static readonly int[] validTimes = { 1800, 3600, 21600, 43200, 86400 };
-			private static readonly int[] validUses = { 1, 5, 10, 25, 50, 100 };
-
-			[Command("createinvite")]
-			[Alias("cinv")]
+			[Command]
 			public async Task Command(IGuildChannel channel, [Optional] int time, [Optional] int uses, [Optional] bool tempMem)
 			{
 				await CommandRunner(channel, time, uses, tempMem);
 			}
 
-			private async Task CommandRunner(IGuildChannel channel, int? nullableTime = 86400, int? nullableUses = null, bool tempMem = false)
+			private static readonly int[] validTimes = { 1800, 3600, 21600, 43200, 86400 };
+			private static readonly int[] validUses = { 1, 5, 10, 25, 50, 100 };
+
+			private async Task CommandRunner(IGuildChannel channel, int? time = 86400, int? uses = null, bool tempMem = false)
 			{
 				var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanCreateInstantInvite }, channel);
 				if (returnedChannel.Reason != FailureReason.NotFailure)
@@ -63,37 +65,38 @@ namespace Advobot
 					await Actions.HandleObjectGettingErrors(Context, returnedChannel);
 					return;
 				}
-				else if (nullableTime.HasValue && !validTimes.Contains(nullableTime.Value))
+				else if (time.HasValue && !validTimes.Contains(time.Value))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Invalid time supplied, must be one of the following: `{0]`.", String.Join("`, `", validTimes))));
 					return;
 				}
-				else if (nullableUses.HasValue && !validUses.Contains(nullableUses.Value))
+				else if (uses.HasValue && !validUses.Contains(uses.Value))
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Invalid uses supplied, must be one of the following: `{0}`", String.Join("`, `", validUses))));
 					return;
 				}
 
-				var inv = await channel.CreateInviteAsync(nullableTime, nullableUses, tempMem);
+				var inv = await channel.CreateInviteAsync(time, uses, tempMem);
 
-				var timeOutputStr = nullableTime.HasValue ? String.Format("It will last for this amount of time: `{0}`.", nullableTime) : "It will last until manually revoked.";
-				var usersOutputStr = nullableUses.HasValue ? String.Format("It will last for this amount of uses: `{0}`.", nullableUses) : "It has no usage limit.";
+				var timeOutputStr = time.HasValue ? String.Format("It will last for this amount of time: `{0}`.", time) : "It will last until manually revoked.";
+				var usesOutputStr = uses.HasValue ? String.Format("It will last for this amount of uses: `{0}`.", uses) : "It has no usage limit.";
 				var tempOutputStr = tempMem ? "Users will be kicked when they go offline unless they get a role." : "Users will not be kicked when they go offline and do not have a role.";
 				await Actions.SendChannelMessage(Context, String.Format("Here is your invite for `{0}`: {1}",
 					channel.FormatChannel(), 
-					Actions.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usersOutputStr, tempOutputStr)));
+					Actions.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usesOutputStr, tempOutputStr)));
 			}
 		}
 
+		[Group("deleteinvite")]
+		[Alias("dinv")]
 		[Usage("[Invite Code]")]
 		[Summary("Deletes the invite with the given code.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
 		public class DeleteInvite : ModuleBase<MyCommandContext>
 		{
-			[Command("deleteinvite")]
-			[Alias("dinv")]
-			public async Task Command([OverrideTypeReader(typeof(IInviteTypeReader))] IInvite invite)
+			[Command]
+			public async Task Command(IInvite invite)
 			{
 				await CommandRunner(invite);
 			}
@@ -105,32 +108,30 @@ namespace Advobot
 			}
 		}
 
+		[Group("deletemultipleinvites")]
+		[Alias("dminv")]
 		[Usage("[User|Channel|Number|True|False]")]
 		[Summary("Deletes all invites satisfying the given condition of either user, creation channel, use limit, or if it expires or not.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageChannels)]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
 		public class DeleteMultipleInvites : ModuleBase<MyCommandContext>
 		{
-			[Command("deletemultipleinvites")]
-			[Alias("dminv")]
+			[Command(RunMode = RunMode.Async)]
 			public async Task Command(IGuildUser user)
 			{
 				await CommandRunner(user: user);
 			}
-			[Command("deletemultipleinvites")]
-			[Alias("dminv")]
+			[Command(RunMode = RunMode.Async)]
 			public async Task Command(IGuildChannel channel)
 			{
 				await CommandRunner(channel: channel);
 			}
-			[Command("deletemultipleinvites")]
-			[Alias("dminv")]
+			[Command(RunMode = RunMode.Async)]
 			public async Task Command(uint uses)
 			{
 				await CommandRunner(uses: uses);
 			}
-			[Command("deletemultipleinvites")]
-			[Alias("dminv")]
+			[Command(RunMode = RunMode.Async)]
 			public async Task Command(bool expiry)
 			{
 				await CommandRunner(expiry: expiry);

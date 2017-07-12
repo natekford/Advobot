@@ -22,6 +22,8 @@ namespace Advobot
 			Commands = (CommandService)provider.GetService(typeof(CommandService));
 			Provider = provider;
 
+			Commands.AddTypeReader(typeof(IInvite), new IInviteTypeReader());
+			Commands.AddTypeReader(typeof(IBan), new IBanTypeReader());
 			await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
 		}
 

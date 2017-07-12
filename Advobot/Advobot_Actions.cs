@@ -140,11 +140,11 @@ namespace Advobot
 			return JsonConvert.SerializeObject(obj, Formatting.Indented);
 		}
 
-		public static void MaybeStartBot()
+		public static async Task MaybeStartBot()
 		{
 			if (Variables.GotPath && Variables.GotKey && !Variables.Loaded)
 			{
-				new Program().Start(Variables.Client).GetAwaiter().GetResult();
+				await new Program().Start(Variables.Client);
 			}
 		}
 
@@ -181,14 +181,16 @@ namespace Advobot
 					WriteLine(classType.Name + " is not public and commands will not execute from it.");
 					continue;
 				}
+				else if (classType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public).Any(x => x.GetCustomAttribute(typeof(CommandAttribute)) == null))
+				{
+					WriteLine(classType.Name + " has a command missing the command attribute.");
+					continue;
+				}
 
-				var commands = classType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public);
-				var mainCommand = commands[0];
+				var groupAttr = (GroupAttribute)classType.GetCustomAttribute(typeof(GroupAttribute));
+				var name = groupAttr?.Prefix;
 
-				var nameAttr = (CommandAttribute)mainCommand.GetCustomAttribute(typeof(CommandAttribute));
-				var name = nameAttr?.Text;
-
-				var aliasAttr = (AliasAttribute)mainCommand.GetCustomAttribute(typeof(AliasAttribute));
+				var aliasAttr = (AliasAttribute)classType.GetCustomAttribute(typeof(AliasAttribute));
 				var aliases = aliasAttr?.Aliases;
 
 				var summaryAttr = (SummaryAttribute)classType.GetCustomAttribute(typeof(SummaryAttribute));
@@ -210,30 +212,6 @@ namespace Advobot
 					WriteLine("Command does not have a default enabled value set: " + name);
 				}
 
-				foreach (var cmd in commands.Except(new[] { mainCommand }))
-				{
-					var tempName = ((CommandAttribute)cmd.GetCustomAttribute(typeof(CommandAttribute)))?.Text;
-					if (!CaseInsEquals(name, tempName))
-					{
-						WriteLine(String.Format("One of the commands in {0} does not have the correct name.", name));
-					}
-					var tempAliases = ((AliasAttribute)cmd.GetCustomAttribute(typeof(AliasAttribute)))?.Aliases;
-					if (aliases?.Length != tempAliases?.Length)
-					{
-						WriteLine(String.Format("One of the commands in {0} does not have the correct amount of aliases.", name));
-					}
-					else
-					{
-						for (int i = 0; i < aliases?.Length; i++)
-						{
-							if (!CaseInsEquals(aliases[i], tempAliases[i]))
-							{
-								WriteLine(String.Format("One of the aliases in {0} does not have the correct name.", name));
-							}
-						}
-					}
-				}
-
 				var similarCmds = Variables.HelpList.Where(x => CaseInsEquals(x.Name, name) || (x.Aliases != null && aliases != null && x.Aliases.Intersect(aliases, StringComparer.OrdinalIgnoreCase).Any()));
 				if (similarCmds.Any())
 				{
@@ -247,7 +225,7 @@ namespace Advobot
 
 		public static void LoadPermissionNames()
 		{
-			for (int i = 0; i < 32; ++i)
+			for (int i = 0; i < 64; ++i)
 			{
 				var name = "";
 				try
@@ -295,7 +273,7 @@ namespace Advobot
 				| (1U << (int)GuildPermission.MoveMembers)
 				| (1U << (int)GuildPermission.UseVAD);
 
-			for (int i = 0; i < 32; i++)
+			for (int i = 0; i < 64; i++)
 			{
 				var name = "";
 				try
@@ -506,12 +484,12 @@ namespace Advobot
 			});
 		}
 
-		public static List<string> GetPermissionNames(uint flags)
+		public static List<string> GetPermissionNames(ulong flags)
 		{
 			var result = new List<string>();
-			for (int i = 0; i < 32; ++i)
+			for (int i = 0; i < 32; i++)
 			{
-				if ((flags & (1 << i)) != 0)
+				if ((flags & (1U << i)) != 0)
 				{
 					var name = Variables.GuildPermissions.FirstOrDefault(x => x.Position == i).Name;
 					if (!String.IsNullOrWhiteSpace(name))
@@ -770,7 +748,7 @@ namespace Advobot
 
 		public static int GetLineBreaks(string input)
 		{
-			return input.Count(x => x == '\n' || x == '\r');
+			return input == null ? 0 : input.Count(x => x == '\n' || x == '\r');
 		}
 
 		public static int GetCountOfItemsInTimeFrame<T>(List<T> timeList, int timeFrame = 0) where T : ITimeInterface
@@ -843,19 +821,40 @@ namespace Advobot
 		#endregion
 
 		#region Channels
-		public static async Task ModifyChannelPosition(IGuildChannel channel, uint position)
+		public static async Task ModifyChannelPosition(IGuildChannel channel, int position)
 		{
 			if (channel == null)
 				return;
 
-			//Get all the channels that aren't the input channel
-			var channels = CaseInsEquals(GetChannelType(channel), Constants.TEXT_TYPE)
-				? (await channel.Guild.GetTextChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToList()
-				: (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToList();
-			//Add the input channel into the given spot
-			channels.Insert(Math.Min(channels.Count(), (int)position), channel);
-			//Convert into reorder properties and use to reorder
-			await channel.Guild.ReorderChannelsAsync(channels.Select(x => new ReorderChannelProperties(x.Id, channels.IndexOf(x))));
+			IGuildChannel[] channels;
+			if (channel is ITextChannel)
+			{
+				channels = (await channel.Guild.GetTextChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
+			}
+			else
+			{
+				channels = (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
+			}
+			position = Math.Max(0, Math.Min(position, channels.Length));
+
+			var reorderProperties = new ReorderChannelProperties[channels.Length];
+			for (int i = 0; i < channels.Length; i++)
+			{
+				if (i < position)
+				{
+					reorderProperties[i] = new ReorderChannelProperties(channels[i].Id, i);
+				}
+				else if (i > position)
+				{
+					reorderProperties[i] = new ReorderChannelProperties(channels[i - 1].Id, i);
+				}
+				else
+				{
+					reorderProperties[i] = new ReorderChannelProperties(channel.Id, i);
+				}
+			}
+
+			await channel.Guild.ReorderChannelsAsync(reorderProperties);
 		}
 
 		public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ObjectVerification[] checkingTypes, bool mentions, string input)
@@ -938,9 +937,33 @@ namespace Advobot
 				{
 					return new ReturnedObject<T>(channel, FailureReason.BotInability);
 				}
-				else if (!GetIfChannelIsCorrectType(channel, user, type))
+
+				switch (type)
 				{
-					return new ReturnedObject<T>(channel, FailureReason.ChannelType);
+					case ObjectVerification.IsDefault:
+					{
+						if (channel.Id == guild.DefaultChannelId)
+						{
+							return new ReturnedObject<T>(channel, FailureReason.DefaultChannel);
+						}
+						break;
+					}
+					case ObjectVerification.IsText:
+					{
+						if (!(channel is ITextChannel))
+						{
+							return new ReturnedObject<T>(channel, FailureReason.ChannelType);
+						}
+						break;
+					}
+					case ObjectVerification.IsVoice:
+					{
+						if (!(channel is IVoiceChannel))
+						{
+							return new ReturnedObject<T>(channel, FailureReason.ChannelType);
+						}
+						break;
+					}
 				}
 			}
 
@@ -993,10 +1016,6 @@ namespace Advobot
 			var dontCheckReadPerms = target is IVoiceChannel;
 			switch (type)
 			{
-				case ObjectVerification.None:
-				{
-					return true;
-				}
 				case ObjectVerification.CanBeRead:
 				{
 					return (dontCheckReadPerms || channelPerms.ReadMessages);
@@ -1024,25 +1043,6 @@ namespace Advobot
 				case ObjectVerification.CanMoveUsers:
 				{
 					return dontCheckReadPerms && channelPerms.MoveMembers;
-				}
-				default:
-				{
-					return false;
-				}
-			}
-		}
-
-		public static bool GetIfChannelIsCorrectType(IGuildChannel target, IGuildUser user, ObjectVerification type)
-		{
-			switch (type)
-			{
-				case ObjectVerification.IsText:
-				{
-					return GetChannelType(target) == Constants.TEXT_TYPE;
-				}
-				case ObjectVerification.IsVoice:
-				{
-					return GetChannelType(target) == Constants.VOICE_TYPE;
 				}
 				default:
 				{
@@ -1151,17 +1151,33 @@ namespace Advobot
 			return muteRole;
 		}
 
-		public static async Task ModifyRolePosition(IRole role, int position)
+		public static async Task<int> ModifyRolePosition(IRole role, int position)
 		{
 			if (role == null)
-				return;
+				return -1;
 
-			//Get all the roles that aren't the input role
-			var roles = role.Guild.Roles.Where(x => x != role).OrderBy(x => x.Position).ToList();
-			//Add in the input role into the given spot
-			roles.Insert(Math.Max(Math.Min(roles.Count(), position), 0), role);
-			//Convert into reorder properties and use to reorder
-			await role.Guild.ReorderRolesAsync(roles.Select(x => new ReorderRoleProperties(x.Id, roles.IndexOf(x))));
+			var roles = role.Guild.Roles.Where(x => x.Id != role.Id && x.Position < GetUserPosition(GetBot(role.Guild))).OrderBy(x => x.Position).ToArray();
+			position = Math.Max(1, Math.Min(position, roles.Length));
+
+			var reorderProperties = new ReorderRoleProperties[roles.Length + 1];
+			for (int i = 0; i < reorderProperties.Length; i++)
+			{
+				if (i == position)
+				{
+					reorderProperties[i] = new ReorderRoleProperties(role.Id, i);
+				}
+				else if (i > position)
+				{
+					reorderProperties[i] = new ReorderRoleProperties(roles[i - 1].Id, i);
+				}
+				else if (i < position)
+				{
+					reorderProperties[i] = new ReorderRoleProperties(roles[i].Id, i);
+				}
+			}
+
+			await role.Guild.ReorderRolesAsync(reorderProperties);
+			return reorderProperties.FirstOrDefault(x => x.Id == role.Id)?.Position ?? -1;
 		}
 
 		public static async Task GiveRole(IGuildUser user, IRole role)
@@ -1280,11 +1296,11 @@ namespace Advobot
 			var bot = GetBot(guild);
 			foreach (var type in checkingTypes)
 			{
-				if (!GetIfUserCanDoActionOnRole(guild, role, user, type))
+				if (!GetIfUserCanDoActionOnRole(role, user, type))
 				{
 					return new ReturnedObject<T>(role, FailureReason.UserInability);
 				}
-				else if (!GetIfUserCanDoActionOnRole(guild, role, bot, type))
+				else if (!GetIfUserCanDoActionOnRole(role, bot, type))
 				{
 					return new ReturnedObject<T>(role, FailureReason.BotInability);
 				}
@@ -1346,24 +1362,20 @@ namespace Advobot
 			return guild.GetRole(ID);
 		}
 
-		public static bool GetIfUserCanDoActionOnRole(IGuild guild, IRole target, IGuildUser user, ObjectVerification type)
+		public static bool GetIfUserCanDoActionOnRole(IRole target, IGuildUser user, ObjectVerification type)
 		{
 			if (target == null || user == null)
 				return false;
 
 			switch (type)
 			{
-				case ObjectVerification.None:
-				{
-					return true;
-				}
 				case ObjectVerification.CanBeEdited:
 				{
-					return target.Position < GetUserPosition(guild, user);
+					return target.Position < GetUserPosition(user);
 				}
 				default:
 				{
-					return false;
+					return true;
 				}
 			}
 		}
@@ -1379,7 +1391,7 @@ namespace Advobot
 			}
 
 			var guild = context.Guild;
-			return users.Where(x => GetIfUserCanBeModifiedByUser(guild, context.User as IGuildUser, x) && GetIfUserCanBeModifiedByUser(guild, GetBot(guild), x)).ToList();
+			return users.Where(x => GetIfUserCanBeModifiedByUser(context.User as IGuildUser, x) && GetIfUserCanBeModifiedByUser(GetBot(guild), x)).ToList();
 		}
 
 		public static async Task ChangeNickname(IGuildUser user, string newNN)
@@ -1505,11 +1517,11 @@ namespace Advobot
 			var bot = GetBot(guild);
 			foreach (var type in checkingTypes)
 			{
-				if (!GetIfUserCanDoActionOnUser(guild, currUser, type, user))
+				if (!GetIfUserCanDoActionOnUser(currUser, type, user))
 				{
 					return new ReturnedObject<T>(user, FailureReason.UserInability);
 				}
-				else if (!GetIfUserCanDoActionOnUser(guild, bot, type, user))
+				else if (!GetIfUserCanDoActionOnUser(bot, type, user))
 				{
 					return new ReturnedObject<T>(user, FailureReason.BotInability);
 				}
@@ -1534,7 +1546,7 @@ namespace Advobot
 				input.ForEach(x =>
 				{
 					var targetUser = GetGuildUser(context.Guild, x);
-					if (GetIfUserCanBeModifiedByUser(context.Guild, context.User as IGuildUser, targetUser) && GetIfUserCanBeModifiedByUser(context.Guild, bot, targetUser))
+					if (GetIfUserCanBeModifiedByUser(context.User as IGuildUser, targetUser) && GetIfUserCanBeModifiedByUser(bot, targetUser))
 					{
 						success.Add(targetUser);
 					}
@@ -1576,45 +1588,41 @@ namespace Advobot
 			return Variables.Client.GetUser(((ulong)Variables.BotInfo.GetSetting(SettingOnBot.BotOwnerID)));
 		}
 
-		public static bool GetIfUserCanDoActionOnUser(IGuild guild, IGuildUser currUser, ObjectVerification type, IGuildUser targetUser)
+		public static bool GetIfUserCanDoActionOnUser(IGuildUser currUser, ObjectVerification type, IGuildUser targetUser)
 		{
 			if (targetUser == null || currUser == null)
 				return false;
 
 			switch (type)
 			{
-				case ObjectVerification.None:
-				{
-					return true;
-				}
 				case ObjectVerification.CanBeMovedFromChannel:
 				{
 					return GetIfUserCanDoActionOnChannel(targetUser.VoiceChannel, currUser, ObjectVerification.CanMoveUsers);
 				}
 				case ObjectVerification.CanBeEdited:
 				{
-					return GetIfUserCanBeModifiedByUser(guild, currUser, targetUser) || GetIfUserCanBeModifiedByUser(guild, Actions.GetBot(guild), targetUser);
+					return GetIfUserCanBeModifiedByUser(currUser, targetUser);
 				}
 				default:
 				{
-					return false;
+					return true;
 				}
 			}
 		}
 
-		public static bool GetIfUserCanBeModifiedByUser(IGuild guild, IGuildUser currUser, IGuildUser targetUser)
+		public static bool GetIfUserCanBeModifiedByUser(IGuildUser currUser, IGuildUser targetUser)
 		{
 			if (currUser.Id == Variables.BotID && targetUser.Id == Variables.BotID)
 			{
 				return true;
 			}
 
-			var bannerPosition = GetUserPosition(guild, currUser);
-			var banneePosition = GetUserPosition(guild, targetUser);
+			var bannerPosition = GetUserPosition(currUser);
+			var banneePosition = GetUserPosition(targetUser);
 			return bannerPosition > banneePosition;
 		}
 
-		public static int GetUserPosition(IGuild guild, IUser user)
+		public static int GetUserPosition(IUser user)
 		{
 			//Make sure they're a SocketGuildUser
 			var tempUser = user as SocketGuildUser;
@@ -1674,65 +1682,78 @@ namespace Advobot
 		#endregion
 
 		#region Messages
+		private static readonly string DESC_LEN_ERROR = String.Format("The description is over `{0}` characters and will be sent as a text file instead.", Constants.MAX_EMBED_LENGTH_LONG);
+		private static readonly string DESC_LINE_ERROR = String.Format("The description is over `{0}` lines and will be sent as a text file instead.", Constants.MAX_DESCRIPTION_LINES);
+		private static readonly string FIELD_LEN_ERROR = String.Format("This field is over `{0}` characters and will be sent as a text file instead.", Constants.MAX_EMBED_LENGTH_SHORT);
+		private static readonly string FIELD_LINE_ERROR = String.Format("This field is over `{0}` lines and will be sent as a text file instead.", Constants.MAX_FIELD_LINES);
+		private static readonly string TOTAL_CHAR_ERROR = String.Format("`{0}` char limit close.", Constants.MAX_EMBED_TOTAL_LENGTH);
 		public static async Task SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed, string content = null)
 		{
 			var guild = GetGuild(channel);
 			if (guild == null)
 				return;
 
+			//Embeds have a global limit of 6000 characters
+			var totalChars = 0
+				+ embed?.Author?.Name?.Length
+				+ embed?.Title?.Length
+				+ embed?.Footer?.Text?.Length;
+
 			//Descriptions can only be 2048 characters max and mobile can only show up to 20 line breaks
-			var description = embed.Description;
-			var badDesc = false;
-			if (!String.IsNullOrWhiteSpace(description))
+			string badDesc = null;
+			if (embed.Description?.Length > Constants.MAX_EMBED_LENGTH_LONG)
 			{
-				if (description.Length > Constants.MAX_EMBED_LENGTH_LONG)
-				{
-					embed.WithDescription(String.Format("The description is over `{0}` characters and will be sent as a text file instead.", Constants.MAX_EMBED_LENGTH_LONG));
-					badDesc = true;
-				}
-				else if (GetLineBreaks(description) > Constants.MAX_DESCRIPTION_LINES)
-				{
-					embed.WithDescription(String.Format("The description is over `{0}` lines and will be sent as a text file instead.", Constants.MAX_DESCRIPTION_LINES));
-					badDesc = true;
-				}
+				badDesc = embed.Description;
+				embed.WithDescription(DESC_LEN_ERROR);
 			}
+			else if (GetLineBreaks(embed.Description) > Constants.MAX_DESCRIPTION_LINES)
+			{
+				badDesc = embed.Description;
+				embed.WithDescription(DESC_LINE_ERROR);
+			}
+			totalChars += embed.Description?.Length ?? 0;
 
 			//Embeds can only be 1024 characters max and mobile can only show up to 5 line breaks
-			var fields = embed.Fields;
 			var badFields = new List<Tuple<int, string>>();
-			for (int i = 0; i < fields.Count; i++)
+			for (int i = 0; i < embed.Fields.Count; i++)
 			{
-				var field = fields[i];
-				var val = field.Value.ToString();
-				if (!String.IsNullOrWhiteSpace(val))
+				var field = embed.Fields[i];
+				var value = field.Value.ToString();
+				if (totalChars > Constants.MAX_EMBED_TOTAL_LENGTH - 1500)
 				{
-					if (val.Length > Constants.MAX_EMBED_LENGTH_SHORT)
-					{
-						field.WithValue(String.Format("This field is over `{0}` characters and will be sent as a text file instead.", Constants.MAX_EMBED_LENGTH_SHORT));
-						badFields.Add(new Tuple<int, string>(i, val));
-					}
-					else if (GetLineBreaks(val) > Constants.MAX_FIELD_LINES)
-					{
-						field.WithValue(String.Format("This field is over `{0}` lines and will be sent as a text file instead.", Constants.MAX_FIELD_LINES));
-						badFields.Add(new Tuple<int, string>(i, val));
-					}
+					badFields.Add(new Tuple<int, string>(i, value));
+					field.WithName(i.ToString());
+					field.WithValue(TOTAL_CHAR_ERROR);
 				}
+				else if (value?.Length > Constants.MAX_EMBED_LENGTH_SHORT)
+				{
+					badFields.Add(new Tuple<int, string>(i, value));
+					field.WithValue(FIELD_LEN_ERROR);
+				}
+				else if (GetLineBreaks(value) > Constants.MAX_FIELD_LINES)
+				{
+					badFields.Add(new Tuple<int, string>(i, value));
+					field.WithValue(FIELD_LINE_ERROR);
+				}
+				totalChars += value?.Length ?? 0;
+				totalChars += field.Name?.Length ?? 0;
 			}
 
 			try
 			{
-				await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + (content ?? ""), false, embed.WithCurrentTimestamp());
+				await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content ?? "", false, embed.WithCurrentTimestamp());
 			}
 			catch (Exception e)
 			{
 				ExceptionToConsole(e);
 				await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + ERROR(e.Message));
+				return;
 			}
 
 			//Go send the description/fields that had an error
-			if (badDesc)
+			if (badDesc != null)
 			{
-				await WriteAndUploadTextFile(guild, channel, description, "Description_");
+				await WriteAndUploadTextFile(guild, channel, badDesc, "Description_");
 			}
 			foreach (var tuple in badFields)
 			{
@@ -2042,7 +2063,7 @@ namespace Advobot
 			return embed;
 		}
 
-		public static EmbedBuilder AddAuthor(EmbedBuilder embed, string name = null, string iconURL = null, string URL = null)
+		public static void AddAuthor(EmbedBuilder embed, string name = null, string iconURL = null, string URL = null)
 		{
 			//Create the author builder
 			var author = new EmbedAuthorBuilder();
@@ -2065,10 +2086,10 @@ namespace Advobot
 				author.WithUrl(URL);
 			}
 
-			return embed.WithAuthor(author);
+			embed.WithAuthor(author);
 		}
 
-		public static EmbedBuilder AddFooter(EmbedBuilder embed, [CallerMemberName] string text = null, string iconURL = null)
+		public static void AddFooter(EmbedBuilder embed, [CallerMemberName] string text = null, string iconURL = null)
 		{
 			//Make the footer builder
 			var footer = new EmbedFooterBuilder();
@@ -2086,13 +2107,13 @@ namespace Advobot
 				footer.WithIconUrl(iconURL);
 			}
 
-			return embed.WithFooter(footer);
+			embed.WithFooter(footer);
 		}
 
-		public static EmbedBuilder AddField(EmbedBuilder embed, string name, string value, bool isInline = true)
+		public static void AddField(EmbedBuilder embed, string name, string value, bool isInline = true)
 		{
 			if (embed.Build().Fields.Count() >= Constants.MAX_FIELDS)
-				return embed;
+				return;
 
 			//Get the name and value
 			name = String.IsNullOrWhiteSpace(name) ? "Placeholder" : name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length));
@@ -2104,8 +2125,6 @@ namespace Advobot
 				x.Value = value;
 				x.IsInline = isInline;
 			});
-
-			return embed;
 		}
 
 		public static EmbedBuilder FormatUserInfo(BotGuildInfo guildInfo, SocketGuild guild, SocketGuildUser user)
@@ -2333,39 +2352,43 @@ namespace Advobot
 			{
 				case FailureReason.TooFew:
 				{
-					return ERROR(String.Format("Unable to find the {0}.", objType));
+					return String.Format("Unable to find the {0}.", objType);
 				}
 				case FailureReason.UserInability:
 				{
-					return ERROR(String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object)));
+					return String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object));
 				}
 				case FailureReason.BotInability:
 				{
-					return ERROR(String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object)));
+					return String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object));
 				}
 				case FailureReason.TooMany:
 				{
-					return ERROR(String.Format("There are too many {0}s with the same name.", objType));
+					return String.Format("There are too many {0}s with the same name.", objType);
 				}
 				case FailureReason.ChannelType:
 				{
-					return ERROR(String.Format("Invalid channel type for the given variable requirement."));
+					return "Invalid channel type for the given variable requirement.";
+				}
+				case FailureReason.DefaultChannel:
+				{
+					return "The default channel cannot be deleted.";
 				}
 				case FailureReason.EveryoneRole:
 				{
-					return ERROR(String.Format("The everyone role cannot be modified in that way."));
+					return "The everyone role cannot be modified in that way.";
 				}
 				case FailureReason.ManagedRole:
 				{
-					return ERROR(String.Format("Managed roles cannot be modified in that way."));
+					return "Managed roles cannot be modified in that way.";
 				}
 				case FailureReason.InvalidEnum:
 				{
-					return ERROR(String.Format("The type `{0}` is not accepted in this instance.", returnedObject.Object));
+					return String.Format("The type `{0}` is not accepted in this instance.", returnedObject.Object);
 				}
 				default:
 				{
-					return ERROR("idk, this shouldn't be seen. - Advobot");
+					return "This shouldn't be seen. - Advobot";
 				}
 			}
 		}
@@ -2978,9 +3001,10 @@ namespace Advobot
 				}
 				else if (newInvs.Count() == 1)
 				{
-					joinInv = new BotInvite(newInvs.First().GuildId, newInvs.First().Code, newInvs.First().Uses);
+					var newInv = newInvs.First();
+					joinInv = new BotInvite(newInv.GuildId, newInv.Code, newInv.Uses);
 				}
-				botInvs.AddRange(newInvs.Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)).ToList());
+				botInvs.AddRange(newInvs.Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)));
 			}
 			else
 			{
@@ -3007,7 +3031,7 @@ namespace Advobot
 		#endregion
 
 		#region Uploads
-		public static async Task<IMessage> WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string contentToSayOnTopOfMessage = null)
+		public static async Task<IMessage> WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string content = null)
 		{
 			//Get the file path
 			if (!fileName.EndsWith("_"))
@@ -3025,7 +3049,8 @@ namespace Advobot
 				writer.WriteLine(ReplaceMarkdownChars(text, false));
 			}
 
-			var msg = await channel.SendFileAsync(path, String.IsNullOrWhiteSpace(contentToSayOnTopOfMessage) ? "" : String.Format("**{0}:**", contentToSayOnTopOfMessage));
+			var textOnTop = String.IsNullOrWhiteSpace(content) ? "" : String.Format("**{0}:**", content);
+			var msg = await channel.SendFileAsync(path, textOnTop);
 			File.Delete(path);
 			return msg;
 		}
@@ -3638,7 +3663,7 @@ namespace Advobot
 				case PunishmentType.Kick:
 				{
 					//Check if can kick them
-					if (GetUserPosition(user.Guild, user) > GetUserPosition(user.Guild, GetBot(user.Guild)))
+					if (GetUserPosition(user) > GetUserPosition(GetBot(user.Guild)))
 						return;
 
 					await BotKickUser(user, "banned phrases");
@@ -3648,7 +3673,7 @@ namespace Advobot
 				case PunishmentType.Ban:
 				{
 					//Check if can ban them
-					if (GetUserPosition(user.Guild, user) > GetUserPosition(user.Guild, GetBot(user.Guild)))
+					if (GetUserPosition(user) > GetUserPosition(GetBot(user.Guild)))
 						return;
 
 					await BotBanUser(user.Guild, user.Id, 1, "banned phrases");
@@ -3668,8 +3693,10 @@ namespace Advobot
 
 					if (logChannel != null)
 					{
-						var embed = AddFooter(MakeNewEmbed(null, "**Role Gained:** " + punishment.Role.Name, Constants.UEDT), "Banned Phrases Role");
-						await SendEmbedMessage(logChannel, AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl()));
+						var embed = MakeNewEmbed(null, "**Role Gained:** " + punishment.Role.Name, Constants.UEDT);
+						AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
+						AddFooter(embed, "Banned Phrases Role");
+						await SendEmbedMessage(logChannel, embed);
 					}
 					break;
 				}
@@ -3800,7 +3827,7 @@ namespace Advobot
 			foreach (var quote in quotes)
 			{
 				var closeness = FindCloseName(quote.Name, input);
-				if (closeness > 5)
+				if (closeness > 3)
 					continue;
 
 				closeQuotes.Add(new CloseWord<Quote>(quote, closeness));
@@ -3811,8 +3838,7 @@ namespace Advobot
 				}
 			}
 
-			//TODO: Remove double foreach loops
-			foreach (var quote in quotes)
+			foreach (var quote in quotes.Where(x => CaseInsIndexOf(x.Name, input)))
 			{
 				if (closeQuotes.Count >= 5)
 				{
@@ -3833,7 +3859,7 @@ namespace Advobot
 			foreach (var helpEntry in Variables.HelpList)
 			{
 				var closeness = FindCloseName(helpEntry.Name, input);
-				if (closeness > 5)
+				if (closeness > 3)
 					continue;
 
 				closeHelpEntries.Add(new CloseWord<HelpEntry>(helpEntry, closeness));
@@ -3844,7 +3870,6 @@ namespace Advobot
 				}
 			}
 
-			//TODO: Optimize this so it doesn't do two foreach loops
 			foreach (var helpEntry in Variables.HelpList.Where(x => CaseInsIndexOf(x.Name, input)))
 			{
 				if (closeHelpEntries.Count >= 5)
@@ -3860,44 +3885,84 @@ namespace Advobot
 			return closeHelpEntries;
 		}
 
-		public static int FindCloseName(string s, string t)
+		public static int FindCloseName(string source, string target, int threshold = 10)
 		{
-			/* Levenshtein Distance: https://en.wikipedia.org/wiki/Levenshtein_distance
-			 * Switch this one instead maybe? https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
+			/* Damerau Levenshtein Distance: https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
+			 * Copied verbatim from: https://stackoverflow.com/a/9454016 
 			 */
-			int n = s.Length;
-			int m = t.Length;
-			int[,] d = new int[n + 1, m + 1];
+			int length1 = source.Length;
+			int length2 = target.Length;
 
-			if (n == 0)
+			// Return trivial case - difference in string lengths exceeds threshhold
+			if (Math.Abs(length1 - length2) > threshold) { return int.MaxValue; }
+
+			// Ensure arrays [i] / length1 use shorter length 
+			if (length1 > length2)
 			{
-				return m;
+				Swap(ref target, ref source);
+				Swap(ref length1, ref length2);
 			}
 
-			if (m == 0)
-			{
-				return n;
-			}
+			int maxi = length1;
+			int maxj = length2;
 
-			for (int i = 0; i <= n; d[i, 0] = i++)
-			{
-			}
+			int[] dCurrent = new int[maxi + 1];
+			int[] dMinus1 = new int[maxi + 1];
+			int[] dMinus2 = new int[maxi + 1];
+			int[] dSwap;
 
-			for (int j = 0; j <= m; d[0, j] = j++)
-			{
-			}
+			for (int i = 0; i <= maxi; i++) { dCurrent[i] = i; }
 
-			for (int i = 1; i <= n; i++)
+			int jm1 = 0, im1 = 0, im2 = -1;
+
+			for (int j = 1; j <= maxj; j++)
 			{
-				for (int j = 1; j <= m; j++)
+
+				// Rotate
+				dSwap = dMinus2;
+				dMinus2 = dMinus1;
+				dMinus1 = dCurrent;
+				dCurrent = dSwap;
+
+				// Initialize
+				int minDistance = int.MaxValue;
+				dCurrent[0] = j;
+				im1 = 0;
+				im2 = -1;
+
+				for (int i = 1; i <= maxi; i++)
 				{
-					int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
 
-					d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+					int cost = source[im1] == target[jm1] ? 0 : 1;
+
+					int del = dCurrent[im1] + 1;
+					int ins = dMinus1[i] + 1;
+					int sub = dMinus1[im1] + cost;
+
+					//Fastest execution for min value of 3 integers
+					int min = (del > ins) ? (ins > sub ? sub : ins) : (del > sub ? sub : del);
+
+					if (i > 1 && j > 1 && source[im2] == target[jm1] && source[im1] == target[j - 2])
+						min = Math.Min(min, dMinus2[im2] + cost);
+
+					dCurrent[i] = min;
+					if (min < minDistance) { minDistance = min; }
+					im1++;
+					im2++;
 				}
+				jm1++;
+				if (minDistance > threshold) { return int.MaxValue; }
 			}
 
-			return d[n, m];
+			int result = dCurrent[maxi];
+			return (result > threshold) ? int.MaxValue : result;
+		}
+
+		public static void Swap<T>(ref T arg1, ref T arg2)
+		{
+			T temp = arg1;
+			arg1 = arg2;
+			arg2 = temp;
 		}
 		#endregion
 
@@ -4234,6 +4299,16 @@ namespace Advobot
 		{
 			var permission = Variables.GuildPermissions.FirstOrDefault(x => CaseInsEquals(x.Name, permissionName));
 			if (!permission.Equals(default(BotGuildPermission)))
+			{
+				inputValue |= (1U << permission.Position);
+			}
+			return inputValue;
+		}
+
+		public static ulong AddChannelPermissionBit(string permissionName, ulong inputValue)
+		{
+			var permission = Variables.ChannelPermissions.FirstOrDefault(x => CaseInsEquals(x.Name, permissionName));
+			if (!permission.Equals(default(BotChannelPermission)))
 			{
 				inputValue |= (1U << permission.Position);
 			}

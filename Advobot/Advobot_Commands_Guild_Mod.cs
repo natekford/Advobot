@@ -9,15 +9,15 @@ namespace Advobot
 {
 	namespace GuildModeration
 	{
-		//TODO: error strings in the classes themselves
+		[Group("changeguildname")]
+		[Alias("cgn")]
 		[Usage("[Name]")]
 		[Summary("Change the name of the guild to the given name.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeGuildName : ModuleBase<MyCommandContext>
 		{
-			[Command("changeguildname")]
-			[Alias("cgn")]
+			[Command]
 			public async Task Command(string name)
 			{
 				await CommandRunner(name);
@@ -41,14 +41,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changeguildregion")]
+		[Alias("cgr")]
 		[Usage("<Current|Region ID>")]
 		[Summary("Shows or changes the guild's server region. Inputting nothing lists all valid region IDs.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeGuildRegion : ModuleBase<MyCommandContext>
 		{
-			[Command("changeguildregion")]
-			[Alias("cgr")]
+			[Command]
 			public async Task Command(string region)
 			{
 				await CommandRunner(region);
@@ -82,14 +83,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changeguildafktimer")]
+		[Alias("cgafkt")]
 		[Usage("[Number]")]
 		[Summary("Updates the guild's AFK timeout.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeGuildAFKTimer : ModuleBase<MyCommandContext>
 		{
-			[Command("changeguildafktimer")]
-			[Alias("cgafkt")]
+			[Command]
 			public async Task Command(uint time)
 			{
 				await CommandRunner(time);
@@ -108,14 +110,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changeguildafkchannel")]
+		[Alias("cgafkc")]
 		[Usage("[Channel]")]
 		[Summary("Updates the guild's AFK channel.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeGuildAFKChannel : ModuleBase<MyCommandContext>
 		{
-			[Command("changeguildafkchannel")]
-			[Alias("cgafkc")]
+			[Command]
 			public async Task Command(IVoiceChannel channel)
 			{
 				await CommandRunner(channel);
@@ -128,14 +131,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changeguildmsgnotif")]
+		[Alias("cgmn")]
 		[Usage("[AllMessages|MentionsOnly]")]
 		[Summary("Changes the message notifications to either all messages or mentions only.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeGuildMsgNotif : ModuleBase<MyCommandContext>
 		{
-			[Command("changeguildmsgnotif")]
-			[Alias("cgmn")]
+			[Command]
 			public async Task Command(DefaultMessageNotifications msgNotifs)
 			{
 				await CommandRunner(msgNotifs);
@@ -148,14 +152,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changeguildverif")]
+		[Alias("cgv")]
 		[Usage("[None|Low|Medium|High|Extreme]")]
 		[Summary("Changes the verification level. None is the most lenient (no requirements to type), high is the harshest (10 minutes in the guild before new members can type).")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeGuildVerif : ModuleBase<MyCommandContext>
 		{
-			[Command("changeguildverif")]
-			[Alias("cgv")]
+			[Command]
 			public async Task Command(VerificationLevel verif)
 			{
 				await CommandRunner(verif);
@@ -168,14 +173,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changeguildicon")]
+		[Alias("cgi")]
 		[Usage("<Attached Image|Embedded Image>")]
 		[Summary("Changes the guild's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the guild's icon.")]
-		[PermissionRequirement(1U << (int)GuildPermission.ManageGuild)]
+		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
 		public class ChangeGuildIcon : ModuleBase<MyCommandContext>
 		{
-			[Command("changeguildicon")]
-			[Alias("cgi")]
+			[Command]
 			public async Task Command()
 			{
 				await CommandRunner();
@@ -212,14 +218,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("createguild")]
+		[Alias("cg")]
 		[Usage("[Name]")]
 		[Summary("Creates a guild with the bot as the owner.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public class CreateGuild : ModuleBase<MyCommandContext>
 		{
-			[Command("createguild")]
-			[Alias("cg")]
+			[Command]
 			public async Task Command(string name)
 			{
 				await CommandRunner(name);
@@ -238,14 +245,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("changeguildowner")]
+		[Alias("cgo")]
 		[Usage("")]
 		[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public class ChangeGuildOwner : ModuleBase<MyCommandContext>
 		{
-			[Command("changeguildowner")]
-			[Alias("cgo")]
+			[Command]
 			public async Task Command()
 			{
 				await CommandRunner();
@@ -264,14 +272,15 @@ namespace Advobot
 			}
 		}
 
+		[Group("deleteguild")]
+		[Alias("dg")]
 		[Usage("")]
 		[Summary("If the bot is the current owner of the guild, this command will delete the guild.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public class DeleteGuild : ModuleBase<MyCommandContext>
 		{
-			[Command("deleteguild")]
-			[Alias("dg")]
+			[Command]
 			public async Task Command()
 			{
 				await CommandRunner();
