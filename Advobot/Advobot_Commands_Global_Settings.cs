@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
+	/*
 	//Global Settings commands are commands that work on the bot globally
 	[Name("GlobalSettings")]
 	public class Advobot_Commands_Administration : ModuleBase
@@ -398,4 +399,5 @@ namespace Advobot
 			return Task.CompletedTask;
 		}
 	}
+	*/
 }

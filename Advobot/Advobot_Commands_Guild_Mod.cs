@@ -2,52 +2,38 @@
 using Discord.Commands;
 using System;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot
 {
 	namespace GuildModeration
 	{
-		[Group("changeguildname")]
-		[Alias("cgn")]
+		[Group("changeguildname"), Alias("cgn")]
 		[Usage("[Name]")]
 		[Summary("Change the name of the guild to the given name.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeGuildName : ModuleBase<MyCommandContext>
+		public class ChangeGuildName : MyModuleBase
 		{
 			[Command]
-			public async Task Command(string name)
+			public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
 			{
 				await CommandRunner(name);
 			}
 
 			private async Task CommandRunner(string name)
 			{
-				if (name.Length > Constants.MAX_GUILD_NAME_LENGTH)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Guild names cannot be more than `{0}` characters.", Constants.MAX_GUILD_NAME_LENGTH)));
-					return;
-				}
-				else if (name.Length < Constants.MIN_GUILD_NAME_LENGTH)
-				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Guild names cannot be less than `{0}` characters.", Constants.MIN_GUILD_NAME_LENGTH)));
-					return;
-				}
-
 				await Context.Guild.ModifyAsync(x => x.Name = name);
 				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild name to `{0}`.", name));
 			}
 		}
 
-		[Group("changeguildregion")]
-		[Alias("cgr")]
+		[Group("changeguildregion"), Alias("cgr")]
 		[Usage("<Current|Region ID>")]
 		[Summary("Shows or changes the guild's server region. Inputting nothing lists all valid region IDs.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeGuildRegion : ModuleBase<MyCommandContext>
+		public class ChangeGuildRegion : MyModuleBase
 		{
 			[Command]
 			public async Task Command(string region)
@@ -66,7 +52,7 @@ namespace Advobot
 					var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? mAllRegionIDs : mRegionIDs;
 					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Region IDs", desc));
 				}
-				else if (Actions.CaseInsEquals(region, "current"))
+				else if ("current".CaseInsEquals(region))
 				{
 					await Actions.SendChannelMessage(Context, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
 				}
@@ -83,13 +69,12 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildafktimer")]
-		[Alias("cgafkt")]
+		[Group("changeguildafktimer"), Alias("cgafkt")]
 		[Usage("[Number]")]
 		[Summary("Updates the guild's AFK timeout.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeGuildAFKTimer : ModuleBase<MyCommandContext>
+		public class ChangeGuildAFKTimer : MyModuleBase
 		{
 			[Command]
 			public async Task Command(uint time)
@@ -110,13 +95,12 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildafkchannel")]
-		[Alias("cgafkc")]
+		[Group("changeguildafkchannel"), Alias("cgafkc")]
 		[Usage("[Channel]")]
 		[Summary("Updates the guild's AFK channel.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeGuildAFKChannel : ModuleBase<MyCommandContext>
+		public class ChangeGuildAFKChannel : MyModuleBase
 		{
 			[Command]
 			public async Task Command(IVoiceChannel channel)
@@ -131,13 +115,12 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildmsgnotif")]
-		[Alias("cgmn")]
+		[Group("changeguildmsgnotif"), Alias("cgmn")]
 		[Usage("[AllMessages|MentionsOnly]")]
 		[Summary("Changes the message notifications to either all messages or mentions only.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeGuildMsgNotif : ModuleBase<MyCommandContext>
+		public class ChangeGuildMsgNotif : MyModuleBase
 		{
 			[Command]
 			public async Task Command(DefaultMessageNotifications msgNotifs)
@@ -152,13 +135,12 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildverif")]
-		[Alias("cgv")]
+		[Group("changeguildverif"), Alias("cgv")]
 		[Usage("[None|Low|Medium|High|Extreme]")]
 		[Summary("Changes the verification level. None is the most lenient (no requirements to type), high is the harshest (10 minutes in the guild before new members can type).")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeGuildVerif : ModuleBase<MyCommandContext>
+		public class ChangeGuildVerif : MyModuleBase
 		{
 			[Command]
 			public async Task Command(VerificationLevel verif)
@@ -173,13 +155,12 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildicon")]
-		[Alias("cgi")]
+		[Group("changeguildicon"), Alias("cgi")]
 		[Usage("<Attached Image|Embedded Image>")]
 		[Summary("Changes the guild's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the guild's icon.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeGuildIcon : ModuleBase<MyCommandContext>
+		public class ChangeGuildIcon : MyModuleBase
 		{
 			[Command]
 			public async Task Command()
@@ -218,16 +199,15 @@ namespace Advobot
 			}
 		}
 
-		[Group("createguild")]
-		[Alias("cg")]
+		[Group("createguild"), Alias("cg")]
 		[Usage("[Name]")]
 		[Summary("Creates a guild with the bot as the owner.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
-		public class CreateGuild : ModuleBase<MyCommandContext>
+		public class CreateGuild : MyModuleBase
 		{
 			[Command]
-			public async Task Command(string name)
+			public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
 			{
 				await CommandRunner(name);
 			}
@@ -245,13 +225,12 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildowner")]
-		[Alias("cgo")]
+		[Group("changeguildowner"), Alias("cgo")]
 		[Usage("")]
 		[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
-		public class ChangeGuildOwner : ModuleBase<MyCommandContext>
+		public class ChangeGuildOwner : MyModuleBase
 		{
 			[Command]
 			public async Task Command()
@@ -261,7 +240,7 @@ namespace Advobot
 
 			private async Task CommandRunner()
 			{
-				if ((await Context.Guild.GetOwnerAsync()).Id == Variables.BotID)
+				if (Context.Guild.OwnerId == Variables.BotID)
 				{
 					await Context.Guild.ModifyAsync(x => x.Owner = new Optional<IUser>(Context.User));
 					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0} is now the owner.", Context.User.Mention));
@@ -272,13 +251,12 @@ namespace Advobot
 			}
 		}
 
-		[Group("deleteguild")]
-		[Alias("dg")]
+		[Group("deleteguild"), Alias("dg")]
 		[Usage("")]
 		[Summary("If the bot is the current owner of the guild, this command will delete the guild.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
-		public class DeleteGuild : ModuleBase<MyCommandContext>
+		public class DeleteGuild : MyModuleBase
 		{
 			[Command]
 			public async Task Command()

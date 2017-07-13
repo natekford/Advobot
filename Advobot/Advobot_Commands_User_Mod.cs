@@ -16,7 +16,7 @@ namespace Advobot
 		[Summary("Unbans the user from the guild. If the reason argument is true it only says the reason without unbanning.")]
 		[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 		[DefaultEnabled(true)]
-		public class Unban : ModuleBase<MyCommandContext>
+		public class Unban : MyModuleBase
 		{
 			[Command]
 			public async Task Command(IBan ban, [Optional] bool reason)
@@ -44,7 +44,7 @@ namespace Advobot
 		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel. These arguments need to be mentions to work.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageMessages }, null)]
 		[DefaultEnabled(true)]
-		public class RemoveMessages : ModuleBase<MyCommandContext>
+		public class RemoveMessages : MyModuleBase
 		{
 			[Command]
 			public async Task Command(uint requestCount, [Optional] IGuildUser user, [Optional, VerifyObject(ObjectVerification.CanDeleteMessages)] ITextChannel channel)
@@ -76,7 +76,7 @@ namespace Advobot
 				var imageLog = ((DiscordObjectWithID<ITextChannel>)Context.GuildInfo.GetSetting(SettingOnGuild.ImageLog))?.ID == channel.Id;
 				if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
 				{
-					var DMChannel = await (await Context.Guild.GetOwnerAsync()).GetOrCreateDMChannelAsync();
+					var DMChannel = await Context.Guild.Owner.GetOrCreateDMChannelAsync();
 					await Actions.SendDMMessage(DMChannel, String.Format("`{0}` is trying to delete stuff from a log channel: `{1}`.", Context.User.FormatUser(), channel.FormatChannel()));
 					return;
 				}
@@ -88,6 +88,7 @@ namespace Advobot
 			}
 		}
 	}
+	/*
 	//User Moderation commands are commands that affect the users of a guild
 	[Name("UserModeration")]
 	public class Advobot_Commands_User_Mod : ModuleBase
@@ -931,6 +932,6 @@ namespace Advobot
 				typing.Dispose();
 				await msg.DeleteAsync();
 			}).Forget();
-		}*/
-	}
+		}
+	}*/
 }

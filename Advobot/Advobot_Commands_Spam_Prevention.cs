@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
+	/*
 	[Name("SpamPrevention")]
 	public class Advobot_Commands_Spam_Prevention : ModuleBase
 	{
@@ -335,4 +336,5 @@ namespace Advobot
 			}
 		}
 	}
+	*/
 }

@@ -57,9 +57,6 @@ namespace Advobot
 		{
 			Actions.WriteLine(String.Format("Bot has joined {0}.", guild.FormatGuild()));
 
-			//Check how many bots are in the guild
-			var botCount = guild.Users.Count(x => x.IsBot);
-
 			//Determine what percentage of bot users to leave at
 			var users = guild.MemberCount;
 			double percentage;
@@ -85,7 +82,7 @@ namespace Advobot
 			}
 
 			//Leave if too many bots
-			if (botCount / (users * 1.0) > percentage)
+			if ((double)guild.Users.Count(x => x.IsBot) / users > percentage)
 			{
 				await guild.LeaveAsync();
 			}
@@ -143,7 +140,7 @@ namespace Advobot
 				var botOrUserStr = user.IsBot ? "Bot" : "User";
 
 				//Bans people who join with a given word in their name
-				if (((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers)).Any(x => Actions.CaseInsIndexOf(user.Username, x.Phrase)))
+				if (((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers)).Any(x => user.Username.CaseInsContains(x.Phrase)))
 				{
 					await Actions.BotBanUser(guild, user.Id, 1, "banned name");
 					return;
@@ -191,7 +188,7 @@ namespace Advobot
 				var serverLog = verified.LoggingChannel;
 
 				//Don't log them to the server if they're someone who was just banned for joining with a banned name
-				if (((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers)).Any(x => Actions.CaseInsIndexOf(user.Username, x.Phrase)))
+				if (((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers)).Any(x => user.Username.CaseInsContains(x.Phrase)))
 					return;
 
 				await Actions.SendGuildNotification(user, ((GuildNotification)guildInfo.GetSetting(SettingOnGuild.GoodbyeMessage)));
@@ -219,7 +216,7 @@ namespace Advobot
 				return;
 
 			//Name change
-			if (!Actions.CaseInsEquals(beforeUser.Username, afterUser.Username))
+			if (!beforeUser.Username.CaseInsEquals(afterUser.Username))
 			{
 				foreach (var guild in Variables.Client.GetGuilds().Where(x => x.Users.Contains(afterUser)))
 				{
@@ -396,14 +393,15 @@ namespace Advobot
 
 	public class Mod_Logs : ModuleBase
 	{
-		public static async Task LogCommand(BotGuildInfo guildInfo, ICommandContext context)
+		public static async Task LogCommand(MyCommandContext context)
 		{
-			Variables.GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts.ThreadSafeRemove(context.Guild.Id);
+			Variables.GuildsToldBotDoesntWorkWithoutAdmin.ThreadSafeRemove(context.Guild.Id);
 			Actions.WriteLine(new LoggedCommand(context).ToString());
+			await Actions.DeleteMessage(context.Message);
 
-			if (Actions.VerifyMessageShouldBeLogged(guildInfo, context.Message))
+			if (Actions.VerifyMessageShouldBeLogged(context.GuildInfo, context.Message))
 			{
-				var modLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog))?.Object;
+				var modLog = ((DiscordObjectWithID<ITextChannel>)context.GuildInfo.GetSetting(SettingOnGuild.ModLog))?.Object;
 				if (modLog == null)
 					return;
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
+	/*
 	[Name("GuildList")]
 	public class Advobot_Commands_Guild_List : ModuleBase
 	{
@@ -246,4 +247,5 @@ namespace Advobot
 			}
 		}
 	}
+	*/
 }

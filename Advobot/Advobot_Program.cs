@@ -68,10 +68,8 @@ namespace Advobot
 
 		public async Task Start(BotClient client)
 		{
-			//Notify the user the bot has started connecting
 			Actions.WriteLine("Connecting the client...");
 
-			//Connect the bot
 			try
 			{
 				await client.StartAsync();
@@ -91,14 +89,11 @@ namespace Advobot
 
 		private IServiceProvider ConfigureServices(BotClient client)
 		{
-			return new DefaultServiceProviderFactory().CreateServiceProvider(
-				new ServiceCollection()
-				.AddSingleton(client)
-				.AddSingleton(new CommandService(new CommandServiceConfig
-				{
-					CaseSensitiveCommands = false,
-					ThrowOnError = false,
-				})));
+			var serviceCollection = new ServiceCollection();
+			serviceCollection.AddSingleton(client);
+			serviceCollection.AddSingleton(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, }));
+
+			return new DefaultServiceProviderFactory().CreateServiceProvider(serviceCollection);
 		}
 
 		private static DiscordShardedClient CreateShardedClient(BotGlobalInfo botInfo)

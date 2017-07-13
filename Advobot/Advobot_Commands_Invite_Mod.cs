@@ -10,13 +10,12 @@ namespace Advobot
 {
 	namespace InviteModeration
 	{
-		[Group("displayinvites")]
-		[Alias("dinvs")]
+		[Group("displayinvites"), Alias("dinvs")]
 		[Usage("")]
 		[Summary("Gives a list of all the instant invites on the guild.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
-		public class DisplayInvites : ModuleBase<MyCommandContext>
+		public class DisplayInvites : MyModuleBase
 		{
 			[Command]
 			public async Task Command()
@@ -40,13 +39,12 @@ namespace Advobot
 			}
 		}
 
-		[Group("createinvite")]
-		[Alias("cinv")]
+		[Group("createinvite"), Alias("cinv")]
 		[Usage("[Channel] <1800|3600|21600|43200|86400> <1|5|10|25|50|100> <True|False>")]
 		[Summary("Creates an invite on the given channel. No time specifies to not expire. No uses has no usage limit. Temp membership means when the user goes offline they get kicked.")]
 		[PermissionRequirement(new[] { GuildPermission.CreateInstantInvite }, null)]
 		[DefaultEnabled(true)]
-		public class CreateInvite : ModuleBase<MyCommandContext>
+		public class CreateInvite : MyModuleBase
 		{
 			[Command]
 			public async Task Command(IGuildChannel channel, [Optional] int time, [Optional] int uses, [Optional] bool tempMem)
@@ -87,13 +85,12 @@ namespace Advobot
 			}
 		}
 
-		[Group("deleteinvite")]
-		[Alias("dinv")]
+		[Group("deleteinvite"), Alias("dinv")]
 		[Usage("[Invite Code]")]
 		[Summary("Deletes the invite with the given code.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
-		public class DeleteInvite : ModuleBase<MyCommandContext>
+		public class DeleteInvite : MyModuleBase
 		{
 			[Command]
 			public async Task Command(IInvite invite)
@@ -108,13 +105,12 @@ namespace Advobot
 			}
 		}
 
-		[Group("deletemultipleinvites")]
-		[Alias("dminv")]
+		[Group("deletemultipleinvites"), Alias("dminv")]
 		[Usage("[User|Channel|Number|True|False]")]
 		[Summary("Deletes all invites satisfying the given condition of either user, creation channel, use limit, or if it expires or not.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
-		public class DeleteMultipleInvites : ModuleBase<MyCommandContext>
+		public class DeleteMultipleInvites : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command(IGuildUser user)

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
+	/*
 	[Name("Logs")]
 	public class Advobot_Commands_Logs : ModuleBase
 	{
@@ -307,4 +308,5 @@ namespace Advobot
 			}
 		}
 	}
+	*/
 }

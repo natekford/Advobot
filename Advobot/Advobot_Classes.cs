@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace Advobot
 {
 	#region Attributes
-	//[AttributeUsage(AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Class)]
 	public class PermissionRequirementAttribute : PreconditionAttribute
 	{
 		private uint mAllFlags;
@@ -33,17 +33,17 @@ namespace Advobot
 				mAllFlags |= (1U << (int)perm);
 			}
 		}
-		//For when/if GuildPermission values get put as bits
+		/* For when/if GuildPermission values get put as bits
 		public PermissionRequirementAttribute(GuildPermission anyOfTheListedPerms, GuildPermission allOfTheListedPerms)
 		{
 			throw new NotImplementedException();
 		}
-		/*
 		public PermissionRequirementAttribute(uint anyOfTheListedPerms = 0, uint allOfTheListedPerms = 0)
 		{
 			mAnyFlags = anyOfTheListedPerms | (1U << (int)GuildPermission.Administrator);
 			mAllFlags = allOfTheListedPerms;
-		}*/
+		}
+		*/
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
@@ -74,7 +74,7 @@ namespace Advobot
 		}
 	}
 
-	//[AttributeUsage(AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Class)]
 	public class OtherRequirementAttribute : PreconditionAttribute
 	{
 		private const uint PERMISSION_BITS = 0
@@ -120,7 +120,7 @@ namespace Advobot
 						return Task.FromResult(PreconditionResult.FromSuccess());
 					}
 				}
-				if (guildOwner && Actions.GetIfUserIsOwner(context.Guild, user))
+				if (guildOwner && Actions.GetIfUserIsOwner(cont.Guild, user))
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
@@ -137,7 +137,82 @@ namespace Advobot
 		}
 	}
 
-	//[AttributeUsage(AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Class)]
+	public class CommandRequirementsAttribute : PreconditionAttribute
+	{
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
+		{
+			if (context is MyCommandContext)
+			{
+				var cont = context as MyCommandContext;
+				var user = context.User as IGuildUser;
+
+				if (!cont.Guild.CurrentUser.GuildPermissions.Administrator && !Variables.GuildsToldBotDoesntWorkWithoutAdmin.Contains(cont.Guild.Id))
+				{
+					Variables.GuildsToldBotDoesntWorkWithoutAdmin.Add(cont.Guild.Id);
+					return Task.FromResult(PreconditionResult.FromError("This bot will not function without the `Administrator` permission."));
+				}
+				else if (!Variables.Loaded)
+				{
+					return Task.FromResult(PreconditionResult.FromError("Wait until the bot is loaded."));
+				}
+				if (!((bool)cont.GuildInfo.GetSetting(SettingOnGuild.Loaded)))
+				{
+					return Task.FromResult(PreconditionResult.FromError("Wait until the guild is loaded."));
+				}
+				else if (((List<ulong>)cont.GuildInfo.GetSetting(SettingOnGuild.IgnoredCommandChannels)).Contains(context.Channel.Id) || !CheckIfCommandIsEnabled(cont, command, user))
+				{
+					return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
+				}
+				else
+				{
+					++Variables.AttemptedCommands;
+					return Task.FromResult(PreconditionResult.FromSuccess());
+				}
+			}
+			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
+		}
+
+		private bool CheckIfCommandIsEnabled(MyCommandContext context, CommandInfo command, IGuildUser user)
+		{
+			//Use the first alias since that's what group gets set as (could use any alias since GetCommand works for aliases too)
+			var cmd = Actions.GetCommand(context.GuildInfo, command.Aliases[0]);
+			if (!cmd.ValAsBoolean)
+			{
+				return false;
+			}
+
+			/* If user is set, use user setting
+			 * Else if any roles are set, use the highest role setting
+			 * Else if channel is set, use channel setting
+			 */
+
+			var userOverrides = ((List<CommandOverride>)context.GuildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnUser));
+			var userOverride = userOverrides.FirstOrDefault(x => x.ID == context.User.Id && cmd.Name.CaseInsEquals(x.Name));
+			if (userOverride != null)
+			{
+				return userOverride.Enabled;
+			}
+
+			var roleOverrides = ((List<CommandOverride>)context.GuildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnRole));
+			var roleOverride = roleOverrides.Where(x => user.RoleIds.Contains(x.ID) && cmd.Name.CaseInsEquals(x.Name)).OrderBy(x => context.Guild.GetRole(x.ID).Position).LastOrDefault();
+			if (roleOverride != null)
+			{
+				return roleOverride.Enabled;
+			}
+
+			var channelOverrides = ((List<CommandOverride>)context.GuildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel));
+			var channelOverride = channelOverrides.FirstOrDefault(x => x.ID == context.Channel.Id && cmd.Name.CaseInsEquals(x.Name));
+			if (channelOverride != null)
+			{
+				return channelOverride.Enabled;
+			}
+
+			return true;
+		}
+	}
+
+	[AttributeUsage(AttributeTargets.Class)]
 	public class DefaultEnabledAttribute : Attribute
 	{
 		public bool Enabled { get; private set; }
@@ -148,7 +223,7 @@ namespace Advobot
 		}
 	}
 
-	//[AttributeUsage(AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Class)]
 	public class UsageAttribute : Attribute
 	{
 		public string Usage { get; private set; }
@@ -162,22 +237,22 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Field)]
 	public class GuildSettingAttribute : Attribute
 	{
-		public ReadOnlyCollection<SettingOnGuild> Settings { get; private set; }
+		public SettingOnGuild Setting { get; private set; }
 
-		public GuildSettingAttribute(params SettingOnGuild[] settings)
+		public GuildSettingAttribute(SettingOnGuild setting)
 		{
-			Settings = new ReadOnlyCollection<SettingOnGuild>(settings);
+			Setting = setting;
 		}
 	}
 
 	[AttributeUsage(AttributeTargets.Field)]
 	public class BotSettingAttribute : Attribute
 	{
-		public ReadOnlyCollection<SettingOnBot> Settings { get; private set; }
+		public SettingOnBot Setting { get; private set; }
 
-		public BotSettingAttribute(params SettingOnBot[] settings)
+		public BotSettingAttribute(SettingOnBot setting)
 		{
-			Settings = new ReadOnlyCollection<SettingOnBot>(settings);
+			Setting = setting;
 		}
 	}
 
@@ -280,24 +355,108 @@ namespace Advobot
 			return mValidStrings.CaseInsContains(value.ToString()) ? Task.FromResult(PreconditionResult.FromSuccess()) : Task.FromResult(PreconditionResult.FromError("Invalid string provided."));
 		}
 	}
+	
+	[AttributeUsage(AttributeTargets.Parameter)]
+	public class VerifyStringLengthAttribute : ParameterPreconditionAttribute
+	{
+		private readonly ReadOnlyDictionary<Target, Tuple<int, int, string>> mMinsAndMaxesAndErrors = new ReadOnlyDictionary<Target, Tuple<int, int, string>>(new Dictionary<Target, Tuple<int, int, string>>
+		{
+			{ Target.Guild, new Tuple<int, int, string>(Constants.MIN_GUILD_NAME_LENGTH, Constants.MAX_GUILD_NAME_LENGTH, "guild name") },
+			{ Target.Channel, new Tuple<int, int, string>(Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "channel name") },
+			{ Target.Role, new Tuple<int, int, string>(Constants.MIN_ROLE_NAME_LENGTH, Constants.MAX_ROLE_NAME_LENGTH, "role name") },
+			{ Target.Name, new Tuple<int, int, string>(Constants.MIN_USERNAME_LENGTH, Constants.MAX_USERNAME_LENGTH, "username") },
+			{ Target.Nickname, new Tuple<int, int, string>(Constants.MIN_NICKNAME_LENGTH, Constants.MAX_NICKNAME_LENGTH, "nickname") },
+			{ Target.Game, new Tuple<int, int, string>(Constants.MIN_GAME_LENGTH, Constants.MAX_GAME_LENGTH, "game") },
+			{ Target.Stream, new Tuple<int, int, string>(Constants.MIN_STREAM_LENGTH, Constants.MAX_STREAM_LENGTH, "stream name") },
+			{ Target.Topic, new Tuple<int, int, string>(Constants.MIN_TOPIC_LENGTH, Constants.MAX_TOPIC_LENGTH, "channel topic") },
+		});
+		private int mMin;
+		private int mMax;
+		private string mTooShort;
+		private string mTooLong;
+
+		public VerifyStringLengthAttribute(Target target)
+		{
+			if (mMinsAndMaxesAndErrors.TryGetValue(target, out var minAndMaxAndError))
+			{
+				mMin = minAndMaxAndError.Item1;
+				mMax = minAndMaxAndError.Item2;
+				mTooShort = String.Format("A {0} must be at least `{1}` characters long.", minAndMaxAndError.Item3, mMin);
+				mTooLong = String.Format("A {0} must be at most `{1}` characters long.", minAndMaxAndError.Item3, mMax);
+			}
+			else
+			{
+				throw new NotSupportedException("Inputted enum doesn't have a min and max or error output.");
+			}
+		}
+
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
+		{
+			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
+			if (value == null)
+			{
+				return Task.FromResult(PreconditionResult.FromSuccess());
+			}
+
+			if (value.GetType() == typeof(string))
+			{
+				var str = value.ToString();
+				if (str.Length < mMin)
+				{
+					return Task.FromResult(PreconditionResult.FromError(mTooShort));
+				}
+				else if (str.Length > mMax)
+				{
+					return Task.FromResult(PreconditionResult.FromError(mTooLong));
+				}
+				else
+				{
+					return Task.FromResult(PreconditionResult.FromSuccess());
+				}
+			}
+			else
+			{
+				throw new NotSupportedException(String.Format("{0} only supports strings.", nameof(VerifyStringLengthAttribute)));
+			}
+		}
+	}
 	#endregion
 
 	#region Typereaders
-	public class IInviteTypeReader : TypeReader
+	public abstract class MyTypeReader : TypeReader
+	{
+		public bool TryParseMyCommandContext(ICommandContext context, out MyCommandContext myContext)
+		{
+			return (myContext = context as MyCommandContext) != null;
+		}
+	}
+
+	public class IInviteTypeReader : MyTypeReader
 	{
 		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
-			var invite = (await context.Guild.GetInvitesAsync()).FirstOrDefault(x => Actions.CaseInsEquals(x.Code, input));
+			if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
+			{
+				return TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided.");
+			}
+
+			var invites = await myContext.Guild.GetInvitesAsync();
+			var invite = invites.FirstOrDefault(x => x.Code.CaseInsEquals(input));
 			return invite != null ? TypeReaderResult.FromSuccess(invite) : TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching invite.");
 		}
 	}
 
-	public class IBanTypeReader : TypeReader
+	public class IBanTypeReader : MyTypeReader
 	{
 		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
+			if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
+			{
+				return TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided.");
+			}
+
 			IBan ban = null;
-			var bans = await context.Guild.GetBansAsync();
+			var bans = await myContext.Guild.GetBansAsync();
 			if (MentionUtils.TryParseUser(input, out ulong userID))
 			{
 				ban = bans.FirstOrDefault(x => x.User.Id == userID);
@@ -311,13 +470,13 @@ namespace Advobot
 				var usernameAndDiscriminator = input.Split('#');
 				if (usernameAndDiscriminator.Length == 2 && ushort.TryParse(usernameAndDiscriminator[1], out ushort discriminator))
 				{
-					ban = bans.FirstOrDefault(x => x.User.DiscriminatorValue == discriminator && Actions.CaseInsEquals(x.User.Username, usernameAndDiscriminator[0]));
+					ban = bans.FirstOrDefault(x => x.User.DiscriminatorValue == discriminator && x.User.Username.CaseInsEquals(usernameAndDiscriminator[0]));
 				}
 			}
 
 			if (ban == null)
 			{
-				var matchingUsernames = bans.Where(x => Actions.CaseInsEquals(x.User.Username, input));
+				var matchingUsernames = bans.Where(x => x.User.Username.CaseInsEquals(input));
 
 				if (matchingUsernames.Count() == 1)
 				{
@@ -330,6 +489,88 @@ namespace Advobot
 			}
 
 			return ban != null ? TypeReaderResult.FromSuccess(ban) : TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching ban.");
+		}
+	}
+
+	public class IEmoteTypeReader : MyTypeReader
+	{
+		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+		{
+			if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
+			{
+				return Task.FromResult(TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided."));
+			}
+
+			IEmote emote = null;
+			if (Emote.TryParse(input, out Emote tempEmote))
+			{
+				emote = tempEmote;
+			}
+			else if (ulong.TryParse(input, out ulong emoteID))
+			{
+				emote = myContext.Guild.Emotes.FirstOrDefault(x => x.Id == emoteID);
+			}
+
+			if (emote == null)
+			{
+				var emotes = myContext.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input));
+				if (emotes.Count() == 1)
+				{
+					emote = emotes.First();
+				}
+				else if (emotes.Count() > 1)
+				{
+					return Task.FromResult(TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many emotes have the provided name."));
+				}
+			}
+
+			return emote != null ? Task.FromResult(TypeReaderResult.FromSuccess(emote)) : Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching emote."));
+		}
+	}
+
+	public class ColorTypeReader : MyTypeReader
+	{
+		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+		{
+			if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
+			{
+				return Task.FromResult(TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided."));
+			}
+
+			Color? color = null;
+			//By name
+			if (Constants.Colors.TryGetValue(input, out Color temp))
+			{
+				color = temp;
+			}
+			//By hex
+			else if (uint.TryParse(input.TrimStart(new[] { '&', 'h', '#', '0', 'x' }), System.Globalization.NumberStyles.HexNumber, null, out uint hex))
+			{
+				color = new Color(hex);
+			}
+			//By RGB
+			else if (input.Contains('/'))
+			{
+				var colorRGB = input.Split('/');
+				if (colorRGB.Length == 3)
+				{
+					const byte MAX_VAL = 255;
+					if (byte.TryParse(colorRGB[0], out byte r) && byte.TryParse(colorRGB[1], out byte g) && byte.TryParse(colorRGB[2], out byte b))
+					{
+						color = new Color(Math.Min(r, MAX_VAL), Math.Min(g, MAX_VAL), Math.Min(b, MAX_VAL));
+					}
+				}
+			}
+
+			return color != null ? Task.FromResult(TypeReaderResult.FromSuccess(color)) : Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching color."));
+		}
+	}
+
+	public class BypassUserLimitTypeReader : MyTypeReader
+	{
+		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+		{
+			return Task.FromResult(TypeReaderResult.FromSuccess(Constants.BYPASS_STRING.CaseInsEquals(input)));
 		}
 	}
 	#endregion
@@ -541,12 +782,9 @@ namespace Advobot
 			foreach (var field in typeof(BotGuildInfo).GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
 			{
 				var attr = (GuildSettingAttribute)field.GetCustomAttribute(typeof(GuildSettingAttribute));
-				if (attr != null)
+				if (attr != null && attr.Setting == setting)
 				{
-					if (attr.Settings.Contains(setting))
-					{
-						return field;
-					}
+					return field;
 				}
 			}
 			return null;
@@ -877,12 +1115,9 @@ namespace Advobot
 			foreach (var field in typeof(BotGlobalInfo).GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
 			{
 				var attr = (BotSettingAttribute)field.GetCustomAttribute(typeof(BotSettingAttribute));
-				if (attr != null)
+				if (attr != null && attr.Setting == setting)
 				{
-					if (attr.Settings.Contains(setting))
-					{
-						return field;
-					}
+					return field;
 				}
 			}
 			return null;
@@ -1234,9 +1469,9 @@ namespace Advobot
 		[JsonProperty]
 		public ulong UserID { get; private set; }
 		[JsonProperty]
-		public uint Permissions { get; private set; }
+		public ulong Permissions { get; private set; }
 
-		public BotImplementedPermissions(ulong userID, uint permissions, BotGuildInfo guildInfo = null)
+		public BotImplementedPermissions(ulong userID, ulong permissions, BotGuildInfo guildInfo = null)
 		{
 			UserID = userID;
 			Permissions = permissions;
@@ -1246,13 +1481,13 @@ namespace Advobot
 			}
 		}
 
-		public void AddPermission(int add)
+		public void AddPermission(ulong bit)
 		{
-			Permissions |= (1U << add);
+			Permissions |= bit;
 		}
-		public void RemovePermission(int remove)
+		public void RemovePermission(ulong bit)
 		{
-			Permissions &= ~(1U << remove);
+			Permissions &= ~bit;
 		}
 		public override string SettingToString()
 		{
@@ -1376,7 +1611,7 @@ namespace Advobot
 		}
 	}
 
-	public class Quote : Setting
+	public class Quote : Setting, INameAndText
 	{
 		[JsonProperty]
 		public string Name { get; private set; }
@@ -1702,11 +1937,14 @@ namespace Advobot
 	#endregion
 
 	#region Non-saved Classes
-	public class MyCommandContext : CommandContext
+	[CommandRequirements]
+	public class MyModuleBase : ModuleBase<MyCommandContext> { }
+
+	public class MyCommandContext : SocketCommandContext
 	{
 		public BotGuildInfo GuildInfo { get; private set; }
 
-		public MyCommandContext(BotGuildInfo guildInfo, IDiscordClient client, IUserMessage msg) : base(client, msg)
+		public MyCommandContext(BotGuildInfo guildInfo, DiscordSocketClient client, SocketUserMessage msg) : base(client, msg)
 		{
 			GuildInfo = guildInfo;
 		}
@@ -1783,7 +2021,7 @@ namespace Advobot
 		public override async Task<IEnumerable<IDMChannel>> GetDMChannelsAsync() { return await mShardedClient.GetDMChannelsAsync(); }
 	}
 
-	public class HelpEntry
+	public class HelpEntry : INameAndText
 	{
 		public string Name { get; private set; }
 		public string[] Aliases { get; private set; }
@@ -2078,19 +2316,19 @@ namespace Advobot
 	public struct BotGuildPermission
 	{
 		public string Name { get; private set; }
-		public int Position { get; private set; }
+		public ulong Bit { get; private set; }
 
 		public BotGuildPermission(string name, int position)
 		{
 			Name = name;
-			Position = position;
+			Bit = (1U << position);
 		}
 	}
 
 	public struct BotChannelPermission
 	{
 		public string Name { get; private set; }
-		public int Position { get; private set; }
+		public ulong Bit { get; private set; }
 		public bool General { get; private set; }
 		public bool Text { get; private set; }
 		public bool Voice { get; private set; }
@@ -2098,14 +2336,14 @@ namespace Advobot
 		public BotChannelPermission(string name, int position, bool gen = false, bool text = false, bool voice = false)
 		{
 			Name = name;
-			Position = position;
+			Bit = (1U << position);
 			General = gen;
 			Text = text;
 			Voice = voice;
 		}
 	}
 
-	public struct ActiveCloseWord<T> : ITimeInterface
+	public struct ActiveCloseWord<T> : ITimeInterface where T : INameAndText
 	{
 		public ulong UserID { get; private set; }
 		public List<CloseWord<T>> List { get; private set; }
@@ -2124,7 +2362,7 @@ namespace Advobot
 		}
 	}
 
-	public struct CloseWord<T>
+	public struct CloseWord<T> where T : INameAndText
 	{
 		public T Word { get; private set; }
 		public int Closeness { get; private set; }
@@ -2386,6 +2624,12 @@ namespace Advobot
 	public interface ITimeInterface
 	{
 		DateTime GetTime();
+	}
+
+	public interface INameAndText
+	{
+		string Name { get; }
+		string Text { get; }
 	}
 	#endregion
 
@@ -2654,16 +2898,7 @@ namespace Advobot
 	}
 
 	[Flags]
-	public enum GetUsersWithReasonTarget : uint
-	{
-		Role							= (1U << 0),
-		Name							= (1U << 1),
-		Game							= (1U << 2),
-		Stream							= (1U << 3),
-	}
-
-	[Flags]
-	public enum GetIDInfoType : uint
+	public enum Target : uint
 	{
 		Guild							= (1U << 0),
 		Channel							= (1U << 1),
@@ -2672,6 +2907,11 @@ namespace Advobot
 		Emote							= (1U << 4),
 		Invite							= (1U << 5),
 		Bot								= (1U << 6),
+		Name							= (1U << 7),
+		Nickname						= (1U << 8),
+		Game							= (1U << 9),
+		Stream							= (1U << 10),
+		Topic							= (1U << 11),
 	}
 	#endregion
 }

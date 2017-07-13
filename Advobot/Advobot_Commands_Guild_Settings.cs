@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
+	/*
 	//Guild Settings commands are commands that only affect that specific guild
 	[Name("GuildSettings")]
 	public class Advobot_Commands_Guild_Settings : ModuleBase
@@ -580,7 +581,7 @@ namespace Advobot
 				{
 					permissions.ForEach(x =>
 					{
-						botUser.AddPermission(x.Position);
+						botUser.AddPermission(x.Bit);
 					});
 					outputStr = String.Format("gave the user `{0}` the following bot permission{1}", user.FormatUser(), Actions.GetPlural(permissions.Count));
 					break;
@@ -591,7 +592,7 @@ namespace Advobot
 					{
 						if (botUser.Permissions == 0)
 							return;
-						botUser.RemovePermission(x.Position);
+						botUser.RemovePermission(x.Bit);
 					});
 					outputStr = String.Format("removed the following bot permission{0} from the user `{1}`", Actions.GetPlural(permissions.Count), user.FormatUser());
 					break;
@@ -924,4 +925,5 @@ namespace Advobot
 			await Actions.UploadFile(Context.Channel, path);
 		}
 	}
+	*/
 }

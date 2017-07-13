@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
+	/*
 	[Name("BanPhrases")]
 	public class Advobot_Commands_Ban_Phrases : ModuleBase
 	{
@@ -671,4 +672,5 @@ namespace Advobot
 			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
 		}
 	}
+	*/
 }

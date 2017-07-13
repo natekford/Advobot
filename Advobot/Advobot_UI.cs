@@ -780,7 +780,7 @@ namespace Advobot
 			{
 				var guilds = mFileTreeView.Items.Cast<TreeViewItem>().Where(x =>
 				{
-					return Actions.CaseInsEquals(((GuildFileInformation)x.Tag).Name, nameStr);
+					return ((GuildFileInformation)x.Tag).Name.CaseInsEquals(nameStr);
 				});
 
 				if (guilds.Count() == 0)
@@ -928,7 +928,8 @@ namespace Advobot
 			{
 				var DMChannels = mDMTreeView.Items.Cast<TreeViewItem>().Where(x =>
 				{
-					return Actions.CaseInsEquals(((Discord.IDMChannel)x.Tag)?.Recipient?.Username, nameStr);
+					var username = ((Discord.IDMChannel)x.Tag)?.Recipient?.Username;
+					return username.CaseInsEquals(nameStr);
 				});
 
 				if (!String.IsNullOrWhiteSpace(discStr))
@@ -1166,7 +1167,8 @@ namespace Advobot
 		private ReturnedSetting SaveSetting(TextBox tb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
 			var text = tb.Text;
-			if (Actions.CaseInsEquals(botInfo.GetSetting(setting)?.ToString(), text))
+			var settingText = botInfo.GetSetting(setting)?.ToString();
+			if (settingText.CaseInsEquals(text))
 				return new ReturnedSetting(setting, NSF.Nothing);
 
 			var nothingSuccessFailure = NSF.Nothing;
@@ -1762,7 +1764,7 @@ namespace Advobot
 
 			return new MyTextBox
 			{
-				Text = String.Format("'{0}#{1}' ({2})", (Actions.GetIfValidUnicode(user.Username, 127) ? user.Username : "Non-Standard Name"), user.Discriminator, user.Id),
+				Text = String.Format("'{0}#{1}' ({2})", (user.Username.AllCharactersAreWithinUpperLimit(Constants.MAX_UTF16_VAL_FOR_NAMES) ? user.Username : "Non-Standard Name"), user.Discriminator, user.Id),
 				Tag = userID,
 				IsReadOnly = true,
 				IsHitTestVisible = false,
@@ -1874,7 +1876,7 @@ namespace Advobot
 
 				return new TreeViewItem
 				{
-					Header = String.Format("'{0}#{1}' ({2})", (Actions.GetIfValidUnicode(user.Username, 127) ? user.Username : "Non-Standard Name"), user.Discriminator, user.Id),
+					Header = String.Format("'{0}#{1}' ({2})", (user.Username.AllCharactersAreWithinUpperLimit(Constants.MAX_UTF16_VAL_FOR_NAMES) ? user.Username : "Non-Standard Name"), user.Discriminator, user.Id),
 					Tag = x,
 					Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
 					Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
@@ -1912,7 +1914,7 @@ namespace Advobot
 		}
 		public static FlowDocument MakeInfoMenu()
 		{
-			var uptime = Actions.GetUptime();
+			var uptime = String.Format("Uptime: {0}", Actions.GetUptime());
 			var cmds = String.Format("Logged Commands:\n{0}", Actions.FormatLoggedCommands());
 			var logs = String.Format("Logged Actions:\n{0}", Actions.FormatLoggedThings());
 			var str = Actions.ReplaceMarkdownChars(String.Format("{0}\r\r{1}\r\r{2}", uptime, cmds, logs), true);
@@ -2036,7 +2038,7 @@ namespace Advobot
 		public static void HandleCommand(string input)
 		{
 			var prefix = ((string)Variables.BotInfo.GetSetting(SettingOnBot.Prefix));
-			if (Actions.CaseInsStartsWith(input, prefix))
+			if (input.CaseInsStartsWith(prefix))
 			{
 				var inputArray = input.Substring(prefix.Length)?.Split(new[] { ' ' }, 2);
 				var cmd = inputArray[0];
@@ -2050,7 +2052,7 @@ namespace Advobot
 		public static bool FindCommand(string cmd, string args)
 		{
 			//Find what command it belongs to
-			if (Actions.CaseInsEquals(cmd, "test"))
+			if ("test".CaseInsEquals(cmd))
 			{
 				UITest();
 			}
@@ -2070,7 +2072,7 @@ namespace Advobot
 				var totalLines = 0;
 				foreach (var file in Directory.GetFiles(Path.GetFullPath(Path.Combine(System.Reflection.Assembly.GetExecutingAssembly().Location, @"..\..\..\"))))
 				{
-					if (Actions.CaseInsEquals(Path.GetExtension(file), ".cs"))
+					if (".cs".CaseInsEquals(Path.GetExtension(file)))
 					{
 						totalChars += File.ReadAllText(file).Length;
 						totalLines += File.ReadAllLines(file).Count();

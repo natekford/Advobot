@@ -14,16 +14,16 @@ namespace Advobot
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string IGNORE_ERROR = "Cx";
 		public const string DISCORD_INV = "https://discord.gg/MBXypxb"; //Switched from /xd to this invite since no matter what this inv will link to my server and never someone else's server
-		public const string STREAM_URL = "https://www.twitch.tv/";
+		public const string TWITCH_URL = "https://www.twitch.tv/";
 		public const string REPO = "https://github.com/advorange/Advobot";
 		public const string VIP_REGIONS = "VIP_REGIONS";
 		public const string VANITY_URL = "VANITY_URL";
 		public const string INVITE_SPLASH = "INVITE_SPLASH";
 		public const string NO_NN = "NO NICKNAME";
+		public const string FAKE_DISCORD_LINK = "discord" + ZERO_LENGTH_CHAR + ".gg";
 		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
 		public const string FAKE_TTS = "\\" + ZERO_LENGTH_CHAR + "tts";
 		public const string BYPASS_STRING = "Bypass100";
-		public const string MODIFY_ASYNC = "ModifyAsync";
 
 		public const string ERROR_MESSAGE = "**ERROR:** ";
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
@@ -51,47 +51,54 @@ namespace Advobot
 		public const string USER_INSTRUCTIONS = "@User|\"Username\"";
 		public const string ROLE_INSTRUCTIONS = "@Role|\"Role Name\"";
 
-		public const double PERCENT_AVERAGE = .75;
 		public const int TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG = 3;
 		public const int WAIT_TIME = 3000;
+		public const int ACTIVE_CLOSE = 5000;
+		public const int REGEX_TIMEOUT = 1000000;
+
+		public const double PERCENT_AVERAGE = .75;
 		public const int MEMBER_LIMIT = 0;
+		public const int MAX_LENGTH_FOR_REGEX = 100;
+		public const int MAX_LENGTH_FOR_REASON = 512;
 		public const int MAX_SA_GROUPS = 10;
 		public const int MAX_QUOTES = 50;
 		public const int MAX_BANNED_STRINGS = 50;
 		public const int MAX_BANNED_REGEX = 25;
 		public const int MAX_BANNED_NAMES = 25;
-		public const int MESSAGES_TO_GATHER = 100;
-		public const int PAD_RIGHT = 20;
-		public const int ACTIVE_CLOSE = 5000;
-		public const int REGEX_TIMEOUT = 1000000;
 		public const int MAX_ICON_FILE_SIZE = 2500000;
+		public const int MAX_UTF16_VAL_FOR_NAMES = 1000;
 
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;
 		public const int VIP_BITRATE = 128;
-		public const int MAX_MESSAGE_LENGTH_LONG = 1900;
+		public const int MAX_MESSAGE_LENGTH_LONG = 1900; //Gives a little margin of error.
 		public const int MAX_MESSAGE_LENGTH_SHORT = 750;
-		public const int MAX_NICKNAME_LENGTH = 32;
-		public const int MIN_NICKNAME_LENGTH = 2;
+		public const int MAX_VOICE_CHANNEL_USER_LIMIT = 99;
+		public const int MAX_STREAM_LENGTH = 25; //Source: https://www.reddit.com/r/Twitch/comments/32w5b2/username_requirements/cqf8yh0/
+		public const int MIN_STREAM_LENGTH = 4;
+		public const int MAX_GAME_LENGTH = 128; //Yes, I know it CAN go past that, but it won't show for others.
+		public const int MIN_GAME_LENGTH = -1;
+		public const int MAX_TOPIC_LENGTH = 1024;
+		public const int MIN_TOPIC_LENGTH = -1;
 		public const int MAX_GUILD_NAME_LENGTH = 100;
 		public const int MIN_GUILD_NAME_LENGTH = 2;
 		public const int MAX_CHANNEL_NAME_LENGTH = 100;
 		public const int MIN_CHANNEL_NAME_LENGTH = 2;
 		public const int MAX_ROLE_NAME_LENGTH = 100;
 		public const int MIN_ROLE_NAME_LENGTH = 1;
-		public const int MAX_TOPIC_LENGTH = 1024;
-		public const int MAX_GAME_LENGTH = 128; //Yes, I know it CAN go past that, but it won't show for others.
+		public const int MAX_NICKNAME_LENGTH = 32;
+		public const int MIN_NICKNAME_LENGTH = 1;
+		public const int MAX_USERNAME_LENGTH = 32;
+		public const int MIN_USERNAME_LENGTH = 2;
 		public const int MAX_EMBED_TOTAL_LENGTH = 6000;
-		public const int MAX_EMBED_LENGTH_LONG = 2048;
-		public const int MAX_EMBED_LENGTH_SHORT = 1024;
 		public const int MAX_TITLE_LENGTH = 256;
-		public const int MAX_FIELDS = 25;
+		public const int MAX_FOOTER_LENGTH = 2048;
 		public const int MAX_DESCRIPTION_LINES = 20;
+		public const int MAX_DESCRIPTION_LENGTH = 2048;
+		public const int MAX_FIELDS = 25;
 		public const int MAX_FIELD_LINES = 5;
-		public const int MAX_LENGTH_FOR_FIELD_VALUE = 250000;
-		public const int MAX_LENGTH_FOR_REGEX = 100;
-		public const int MAX_LENGTH_FOR_REASON = 512;
-		public const int MAX_VOICE_CHANNEL_USER_LIMIT = 99;
+		public const int MAX_FIELD_NAME_LENGTH = 256;
+		public const int MAX_FIELD_VALUE_LENGTH = 1024;
 
 		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>
 		{
@@ -140,8 +147,7 @@ namespace Advobot
 			{ PunishmentType.KickThenBan, 750 },
 			{ PunishmentType.Ban, 1000 },
 		});
-
-		public const bool DISCONNECT = false;
+		public static ReadOnlyDictionary<string, Color> Colors = new ReadOnlyDictionary<string, Color>(Actions.CreateColorDictionary());
 
 		public static readonly Color BASE = new Color(255, 100, 000);
 		public static readonly Color JOIN = new Color(000, 255, 000);
@@ -214,6 +220,6 @@ namespace Advobot
 		public readonly static List<ActiveCloseWord<Quote>> ActiveCloseWords = new List<ActiveCloseWord<Quote>>();
 		public readonly static List<SlowmodeUser> SlowmodeUsers = new List<SlowmodeUser>();
 		public readonly static List<IGuild> GuildsToBeLoaded = new List<IGuild>();
-		public readonly static List<ulong> GuildsThatHaveBeenToldTheBotDoesNotWorkWithoutAdministratorAndWillBeIgnoredThuslyUntilTheyGiveTheBotAdministratorOrTheBotRestarts = new List<ulong>();
+		public readonly static List<ulong> GuildsToldBotDoesntWorkWithoutAdmin = new List<ulong>();
 	}
 }

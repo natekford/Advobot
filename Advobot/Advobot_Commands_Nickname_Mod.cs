@@ -7,163 +7,98 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
+	namespace NicknameModeration
+	{
+		[Group("changenickname"), Alias("cnn")]
+		[Usage("[User] <Nickname>")]
+		[Summary("Gives the user a nickname. Inputting no nickname resets their nickname.")]
+		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
+		[DefaultEnabled(true)]
+		public class ChangeNickname : MyModuleBase
+		{
+			[Command]
+			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, VerifyStringLength(Target.Nickname)] string nickname)
+			{
+				await CommandRunner(user, nickname);
+			}
+
+			private async Task CommandRunner(IGuildUser user, string nickname)
+			{
+				await Actions.ChangeNickname(user, nickname);
+				var response = nickname == null
+					? String.Format("Successfully removed the nickname from `{0}`.", user.FormatUser())
+					: String.Format("Successfully gave `{0}` the nickname `{1}`.", user.FormatUser(), nickname);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, response);
+			}
+		}
+
+		[Group("replacewordsinnames"), Alias("rwin")]
+		[Usage("[\"Find\"] [\"Replace\"] <" + Constants.BYPASS_STRING + ">")]
+		[Summary("Gives users a new nickname based off of words in their nickname or username. Max is 100 users per use unless the bypass string is said.")]
+		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
+		[DefaultEnabled(true)]
+		public class ReplaceWordsInNames : MyModuleBase
+		{
+			[Command(RunMode = RunMode.Async)]
+			public async Task Command([VerifyStringLength(Target.Nickname)] string search,
+									  [VerifyStringLength(Target.Nickname)] string replace,
+									  [Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+			{
+				await CommandRunner(search, replace, bypass);
+			}
+
+			private async Task CommandRunner(string search, string replace, bool bypass)
+			{
+				var users = Actions.GetUsersTheBotAndUserCanEdit(Context).Where(x => false
+					|| (x.Nickname != null && x.Nickname.CaseInsContains(search)) //If nickname is there, check based off of nickname
+					|| (x.Nickname == null && x.Username.CaseInsContains(search)) //If nickname isn't there, check based off of username
+					).ToList().GetUpToAndIncludingMinNum(Actions.GetMaxAmountOfUsersToGather(bypass));
+
+				var msg = await Actions.SendChannelMessage(Context, String.Format("Attempting to rename `{0}` people.", users.Count)) as IUserMessage;
+				for (int i = 0; i < users.Count; i++)
+				{
+					if (i % 10 == 0)
+					{
+						await msg.ModifyAsync(y => y.Content = String.Format("Attempting to rename `{0}` people.", users.Count - i));
+					}
+
+					await Actions.ChangeNickname(users[i], replace);
+				}
+
+				await Actions.DeleteMessage(msg);
+				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully renamed `{0}` people.", users.Count));
+			}
+		}
+
+		[Group("replacenonascii"), Alias("rna")]
+		[Usage("[Number] [\"Replace\"] <" + Constants.BYPASS_STRING + ">")]
+		[Summary("Replaces nickname/usernames that contain any characters above the supplied number. Max is 100 users per use unless the bypass string is said.")]
+		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
+		[DefaultEnabled(true)]
+		public class ReplaceNonAscii : MyModuleBase
+		{
+			[Command(RunMode = RunMode.Async)]
+			public async Task Command(uint upperLimit, [VerifyStringLength(Target.Nickname)] string replace, [Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+			{
+				await CommandRunner(upperLimit, replace, bypass);
+			}
+
+			private async Task CommandRunner(uint upperLimit, string replace, bool bypass)
+			{
+				var users = Actions.GetUsersTheBotAndUserCanEdit(Context).Where(x => false
+					|| (x.Nickname != null && !x.Nickname.AllCharactersAreWithinUpperLimit((int)upperLimit)) //If nickname is there, check based off of nickname
+					|| (x.Nickname == null && !x.Username.AllCharactersAreWithinUpperLimit((int)upperLimit)) //If nickname isn't there, check based off of username
+					).ToList().GetUpToAndIncludingMinNum(Actions.GetMaxAmountOfUsersToGather(bypass));
+			}
+		}
+	}
+	/*
 	//Commands that affect nicknames
 	[Name("NicknameModeration")]
 	public class Advobot_Commands_Nickname_Mod : ModuleBase
 	{
-		[Command("changenickname")]
-		[Alias("cnn")]
-		[Usage("[User] [New Nickname|Remove]")]
-		[Summary("Gives the user a nickname.")]
-		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
-		[DefaultEnabled(true)]
-		public async Task Nickname([Remainder] string input)
-		{
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var userStr = returnedArgs.Arguments[0];
-			var nickStr = returnedArgs.Arguments[1];
 
-			if (String.IsNullOrWhiteSpace(nickStr))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No input for nickname was given."));
-				return;
-			}
-			else if (Actions.CaseInsEquals(nickStr, "remove"))
-			{
-				nickStr = null;
-			}
-			else if (nickStr.Length > Constants.MAX_NICKNAME_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than `{0}` characters.", Constants.MAX_NICKNAME_LENGTH)));
-				return;
-			}
-			else if (nickStr.Length < Constants.MIN_NICKNAME_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MIN_NICKNAME_LENGTH)));
-				return;
-			}
 
-			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.CanBeEdited }, true, userStr);
-			if (returnedUser.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedUser);
-				return;
-			}
-			var user = returnedUser.Object;
-
-			await Actions.ChangeNickname(user, nickStr);
-			if (nickStr != null)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave `{0}` the nickname `{1}`.", user.FormatUser(), nickStr));
-			}
-			else
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the nickname on `{0}`.", user.FormatUser()));
-			}
-		}
-
-		[Command("replacewordsinnames")]
-		[Alias("rwin")]
-		[Usage("[\"String to Find\"] [\"String to Replace\"] <" + Constants.BYPASS_STRING + ">")]
-		[Summary("Gives any users who have a username/nickname with the given string a new nickname that replaces it. Max is 100 users per use unless the bypass string is said.")]
-		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
-		[DefaultEnabled(true)]
-		public async Task NicknameAllWithName([Remainder] string input)
-		{
-			//Split and get variables
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var findStr = returnedArgs.Arguments[0];
-			var replaceStr = returnedArgs.Arguments[1];
-
-			//Make sure both exist
-			if (String.IsNullOrWhiteSpace(findStr))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The string to find cannot be empty or null."));
-				return;
-			}
-			else if (String.IsNullOrWhiteSpace(replaceStr))
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The string to replace with cannot be empty or null."));
-				return;
-			}
-
-			//Length
-			if (findStr.Length > Constants.MAX_NICKNAME_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to find can only be up to `{0}` characters long.", Constants.MAX_NICKNAME_LENGTH)));
-				return;
-			}
-			else if (replaceStr.Length < Constants.MIN_NICKNAME_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to replace with must be at least `{0}` characters long.", Constants.MIN_NICKNAME_LENGTH)));
-				return;
-			}
-			else if (replaceStr.Length > Constants.MAX_NICKNAME_LENGTH)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The string to replace with can only be up to `{0}` characters long.", Constants.MAX_NICKNAME_LENGTH)));
-				return;
-			}
-
-			//Get the users 
-			var len = Actions.GetMaxNumOfUsersToGather(Context, returnedArgs.Arguments);
-			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => Actions.CaseInsIndexOf(x.Username, findStr) || Actions.CaseInsIndexOf(x?.Nickname, findStr))).GetUpToAndIncludingMinNum(len);
-
-			//User count checking and stuff
-			var userCount = users.Count;
-			if (userCount == 0)
-			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to find any users with the given string to replace."));
-				return;
-			}
-
-			//Have the bot stay in the typing state and have a message that can be updated 
-			var msg = await Actions.SendChannelMessage(Context, String.Format("Attempting to rename `{0}` people.", userCount)) as IUserMessage;
-			var typing = Context.Channel.EnterTypingState();
-
-			//Actually rename them all
-			var count = 0;
-			await users.ForEachAsync(async x =>
-			{
-				++count;
-				if (count % 10 == 0)
-				{
-					await msg.ModifyAsync(y => y.Content = String.Format("Attempting to rename `{0}` people.", userCount - count));
-				}
-
-				if (x.Nickname != null)
-				{
-					await Actions.ChangeNickname(x, Actions.CaseInsReplace(x.Nickname, findStr, replaceStr));
-				}
-				else
-				{
-					await Actions.ChangeNickname(x, Actions.CaseInsReplace(x.Username, findStr, replaceStr));
-				}
-			});
-
-			//Get rid of stuff and send a success message
-			typing.Dispose();
-			await Actions.DeleteMessage(msg);
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully renamed `{0}` people.", count));
-		}
-
-		[Command("replacenonascii")]
-		[Alias("rna")]
-		[Usage("[\"String to Replace With\"] <ANSI:True|False> <" + Constants.BYPASS_STRING + ">")]
-		[Summary("Any user who has a name and nickname with non regular ascii characters will have their username changed to the given string. No input lists all the users. "
-			+ "Max is 100 users per use unless the bypass string is said.")]
-		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
-		[DefaultEnabled(true)]
 		public async Task ReplaceNonAscii([Optional, Remainder] string input)
 		{
 			//Splitting input
@@ -236,4 +171,5 @@ namespace Advobot
 			});
 		}
 	}
+	*/
 }

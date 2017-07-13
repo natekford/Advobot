@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
+	/*
 	[Name("SelfRoles")]
 	public class Advobot_Commands_Self_Roles : ModuleBase
 	{
@@ -306,4 +307,5 @@ namespace Advobot
 			}
 		}
 	}
+	*/
 }
