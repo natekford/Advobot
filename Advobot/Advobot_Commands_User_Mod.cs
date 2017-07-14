@@ -76,7 +76,7 @@ namespace Advobot
 				var imageLog = ((DiscordObjectWithID<ITextChannel>)Context.GuildInfo.GetSetting(SettingOnGuild.ImageLog))?.ID == channel.Id;
 				if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
 				{
-					var DMChannel = await Context.Guild.Owner.GetOrCreateDMChannelAsync();
+					var DMChannel = await (await Context.Guild.GetOwnerAsync()).GetOrCreateDMChannelAsync();
 					await Actions.SendDMMessage(DMChannel, String.Format("`{0}` is trying to delete stuff from a log channel: `{1}`.", Context.User.FormatUser(), channel.FormatChannel()));
 					return;
 				}

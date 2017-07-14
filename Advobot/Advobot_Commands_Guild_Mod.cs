@@ -240,7 +240,7 @@ namespace Advobot
 
 			private async Task CommandRunner()
 			{
-				if (Context.Guild.OwnerId == Variables.BotID)
+				if (Context.Client.CurrentUser.Id == Context.Guild.OwnerId)
 				{
 					await Context.Guild.ModifyAsync(x => x.Owner = new Optional<IUser>(Context.User));
 					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0} is now the owner.", Context.User.Mention));
@@ -266,7 +266,7 @@ namespace Advobot
 
 			private async Task CommandRunner()
 			{
-				if (Variables.BotID == Context.Guild.OwnerId)
+				if (Context.Client.CurrentUser.Id == Context.Guild.OwnerId)
 				{
 					await Context.Guild.DeleteAsync();
 					return;

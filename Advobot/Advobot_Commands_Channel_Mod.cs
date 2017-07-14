@@ -70,7 +70,7 @@ namespace Advobot
 
 			private async Task CommandRunner(ITextChannel channel)
 			{
-				if (channel.Id == Context.Guild.DefaultChannel.Id)
+				if (channel.Id == Context.Guild.DefaultChannelId)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to softdelete the base channel."));
 					return;
@@ -88,7 +88,7 @@ namespace Advobot
 						}
 						case PermissionTarget.User:
 						{
-							obj = Context.Guild.GetUser(overwrite.TargetId);
+							obj = await Context.Guild.GetUserAsync(overwrite.TargetId);
 							break;
 						}
 						default:
@@ -109,7 +109,7 @@ namespace Advobot
 				}
 
 				//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
-				await Actions.ModifyChannelPosition(channel, Context.Guild.TextChannels.Max(x => x.Position));
+				await Actions.ModifyChannelPosition(channel, (await Context.Guild.GetTextChannelsAsync()).Max(x => x.Position));
 				await Actions.SendChannelMessage(Context, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything in this channel.");
 			}
 		}
@@ -129,8 +129,7 @@ namespace Advobot
 
 			private async Task CommandRunner(IGuildChannel channel)
 			{
-				//Check if tried on the base channel
-				if (channel.Id == Context.Guild.DefaultChannel.Id)
+				if (channel.Id == Context.Guild.DefaultChannelId)
 				{
 					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to delete the base channel."));
 					return;
@@ -183,13 +182,13 @@ namespace Advobot
 					case ChannelType.Text:
 					{
 						title = "Text Channel Positions";
-						channels = Context.Guild.TextChannels.Cast<IGuildChannel>();
+						channels = (await Context.Guild.GetTextChannelsAsync()).Cast<IGuildChannel>();
 						break;
 					}
 					case ChannelType.Voice:
 					{
 						title = "Voice Channel Positions";
-						channels = Context.Guild.VoiceChannels.Cast<IGuildChannel>();
+						channels = (await Context.Guild.GetVoiceChannelsAsync()).Cast<IGuildChannel>();
 						break;
 					}
 					default:
@@ -257,7 +256,7 @@ namespace Advobot
 				}
 
 				//Remove any attempt to change readmessages on the base channel because nothing can change that
-				if (channel.Id == Context.Guild.DefaultChannel.Id)
+				if (channel.Id == Context.Guild.DefaultChannelId)
 				{
 					permissions.RemoveAll(x => ChannelPermission.ReadMessages.EnumName().CaseInsEquals(x));
 				}
@@ -394,7 +393,7 @@ namespace Advobot
 							}
 							case PermissionTarget.User:
 							{
-								var user = Context.Guild.GetUser(overwrite.TargetId);
+								var user = await Context.Guild.GetUserAsync(overwrite.TargetId);
 								await outputChannel.AddPermissionOverwriteAsync(user, new OverwritePermissions(overwrite.Permissions.AllowValue, overwrite.Permissions.DenyValue));
 								break;
 							}
@@ -447,7 +446,7 @@ namespace Advobot
 						}
 						case PermissionTarget.User:
 						{
-							await channel.RemovePermissionOverwriteAsync(Context.Guild.GetUser(overwrite.TargetId));
+							await channel.RemovePermissionOverwriteAsync(await Context.Guild.GetUserAsync(overwrite.TargetId));
 							break;
 						}
 					}

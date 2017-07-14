@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
+using Discord.WebSocket;
 
 namespace Advobot
 {
@@ -27,9 +28,6 @@ namespace Advobot
 
 		public const string ERROR_MESSAGE = "**ERROR:** ";
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
-		public const string ROLE_ERROR = "TODO: remove";
-		public const string CHANNEL_ERROR = ROLE_ERROR;
-		public const string ARGUMENTS_ERROR = CHANNEL_ERROR;
 
 		public const string SERVER_FOLDER = "Discord_Servers";
 		public const string SAVING_FILE_EXTENSION = ".json";
@@ -51,10 +49,9 @@ namespace Advobot
 		public const string USER_INSTRUCTIONS = "@User|\"Username\"";
 		public const string ROLE_INSTRUCTIONS = "@Role|\"Role Name\"";
 
-		public const int TIME_TO_WAIT_BEFORE_MESSAGE_PRINT_TO_THE_SERVER_LOG = 3;
-		public const int WAIT_TIME = 3000;
-		public const int ACTIVE_CLOSE = 5000;
-		public const int REGEX_TIMEOUT = 1000000;
+		public const uint SECONDS_DEFAULT = 3;
+		public const uint SECONDS_ACTIVE_CLOSE = 5;
+		public const uint TICKS_REGEX_TIMEOUT = 1000000;
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int MEMBER_LIMIT = 0;
@@ -168,24 +165,6 @@ namespace Advobot
 
 	public static class Variables
 	{
-		public static ulong BotID = 0;
-		public static string BotName;
-		public static BotClient Client;
-		public static BotGlobalInfo BotInfo;
-
-		public static bool Windows = true;
-		public static bool Loaded = false;
-		public static bool Console = true;
-		public static bool GotPath = false;
-		public static bool GotKey = false;
-		public static bool Pause = false;
-		public static bool FirstInstanceOfBotStartingUpWithCurrentKey = true;
-
-		public static DateTime StartupTime = DateTime.UtcNow;
-		public static Timer HourTimer;
-		public static Timer MinuteTimer;
-		public static Timer OneFourthSecondTimer;
-
 		public static int TotalUsers = 0;
 		public static int TotalGuilds = 0;
 		public static int AttemptedCommands = 0;
@@ -202,6 +181,10 @@ namespace Advobot
 		public static int LoggedGifs = 0;
 		public static int LoggedFiles = 0;
 
+		public static Timer HourTimer;
+		public static Timer MinuteTimer;
+		public static Timer OneFourthSecondTimer;
+
 		public static Dictionary<ulong, BotGuildInfo> Guilds = new Dictionary<ulong, BotGuildInfo>();
 		public static SortedDictionary<string, List<string>> WrittenLines = new SortedDictionary<string, List<string>>();
 
@@ -214,12 +197,12 @@ namespace Advobot
 
 		//Lists that change as the bot is used
 		public readonly static List<ListedInvite> InviteList = new List<ListedInvite>();
-		public readonly static List<RemovablePunishment> PunishedUsers = new List<RemovablePunishment>();
+		public readonly static List<RemovablePunishment> RemovablePunishments = new List<RemovablePunishment>();
 		public readonly static List<RemovableMessage> TimedMessages = new List<RemovableMessage>();
 		public readonly static List<ActiveCloseWord<HelpEntry>> ActiveCloseHelp = new List<ActiveCloseWord<HelpEntry>>();
 		public readonly static List<ActiveCloseWord<Quote>> ActiveCloseWords = new List<ActiveCloseWord<Quote>>();
 		public readonly static List<SlowmodeUser> SlowmodeUsers = new List<SlowmodeUser>();
-		public readonly static List<IGuild> GuildsToBeLoaded = new List<IGuild>();
+		public readonly static List<SocketGuild> GuildsToBeLoaded = new List<SocketGuild>();
 		public readonly static List<ulong> GuildsToldBotDoesntWorkWithoutAdmin = new List<ulong>();
 	}
 }

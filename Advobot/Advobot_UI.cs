@@ -1,4 +1,6 @@
-﻿using ICSharpCode.AvalonEdit;
+﻿using Advobot.Logging;
+using Discord;
+using ICSharpCode.AvalonEdit;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -22,9 +24,13 @@ namespace Advobot
 {
 	public class BotWindow : Window
 	{
+		//These top two are not prefixed with m because they're used all over the place
+		private readonly IDiscordClient Client;
+		private readonly BotGlobalInfo BotInfo;
+		private readonly BotUIInfo mUIInfo;
+
 		private readonly Grid mLayout = new Grid();
 		private readonly ToolTip mToolTip = new ToolTip { Placement = PlacementMode.Relative };
-		private readonly BotUIInfo mUIInfo = BotUIInfo.LoadBotUIInfo();
 
 		#region Input
 		private readonly Grid mInputLayout = new Grid();
@@ -86,7 +92,6 @@ namespace Advobot
 			{
 				Child = new CheckBox
 				{
-					IsChecked = ((bool)Variables.BotInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers)),
 					Tag = SettingOnBot.AlwaysDownloadUsers,
 				},
 				HorizontalAlignment = HorizontalAlignment.Left,
@@ -165,7 +170,6 @@ namespace Advobot
 		private readonly Grid mInfoLayout = new Grid { Visibility = Visibility.Collapsed, };
 		private readonly RichTextBox mInfoOutput = new MyRichTextBox
 		{
-			Document = UIModification.MakeInfoMenu(),
 			BorderThickness = new Thickness(0, 1, 0, 1),
 			IsReadOnly = true,
 			IsDocumentEnabled = true,
@@ -244,8 +248,12 @@ namespace Advobot
 		private readonly ToolTip mMemHoverInfo = new ToolTip { Content = "This is not guaranteed to be 100% correct.", };
 		#endregion
 
-		public BotWindow()
+		public BotWindow(IServiceProvider provider)
 		{
+			Client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
+			BotInfo = (BotGlobalInfo)provider.GetService(typeof(BotGlobalInfo));
+			mUIInfo = BotUIInfo.LoadBotUIInfo(BotInfo.Loaded);
+
 			FontFamily = new FontFamily("Courier New");
 			InitializeComponents();
 			Loaded += RunApplication;
@@ -424,9 +432,9 @@ namespace Advobot
 			//Validate path/botkey after the UI has launched to have them logged
 			Task.Run(async () =>
 			{
-				Actions.ValidatePath(Properties.Settings.Default.Path, true);
-				await Actions.ValidateBotKey(Variables.Client, Properties.Settings.Default.BotKey, true);
-				await Actions.MaybeStartBot();
+				Actions.ValidatePath(BotInfo, Properties.Settings.Default.Path, true);
+				await Actions.ValidateBotKey(Client, BotInfo, Properties.Settings.Default.BotKey, true);
+				await Actions.MaybeStartBot(Client, BotInfo);
 			});
 
 			mUIInfo.InitializeColors();
@@ -451,20 +459,20 @@ namespace Advobot
 		}
 		private void Pause(object sender, RoutedEventArgs e)
 		{
-			if (Variables.Pause)
+			if (BotInfo.Pause)
 			{
 				Actions.WriteLine("The bot is now unpaused.");
-				Variables.Pause = false;
+				BotInfo.TogglePause();
 			}
 			else
 			{
 				Actions.WriteLine("The bot is now paused.");
-				Variables.Pause = true;
+				BotInfo.TogglePause();
 			}
 		}
 		private void Restart(object sender, RoutedEventArgs e)
 		{
-			switch (MessageBox.Show("Are you sure you want to restart the bot?", Variables.BotName, MessageBoxButton.OKCancel))
+			switch (MessageBox.Show("Are you sure you want to restart the bot?", Client.CurrentUser.Username, MessageBoxButton.OKCancel))
 			{
 				case MessageBoxResult.OK:
 				{
@@ -475,7 +483,7 @@ namespace Advobot
 		}
 		private void Disconnect(object sender, RoutedEventArgs e)
 		{
-			switch (MessageBox.Show("Are you sure you want to disconnect the bot?", Variables.BotName, MessageBoxButton.OKCancel))
+			switch (MessageBox.Show("Are you sure you want to disconnect the bot?", Client.CurrentUser.Username, MessageBoxButton.OKCancel))
 			{
 				case MessageBoxResult.OK:
 				{
@@ -490,7 +498,6 @@ namespace Advobot
 		}
 		private void SaveSettings(object sender, RoutedEventArgs e)
 		{
-			var botInfo = Variables.BotInfo;
 			var success = new List<string>();
 			var failure = new List<string>();
 
@@ -501,17 +508,18 @@ namespace Advobot
 				var setting = (ele as Control)?.Tag;
 				if (setting is SettingOnBot)
 				{
-					var response = SaveSetting((dynamic)ele, (SettingOnBot)setting, botInfo);
-					switch (response.Status)
+					var castSetting = setting as SettingOnBot?;
+					var response = SaveSetting((dynamic)ele, (SettingOnBot)castSetting, BotInfo);
+					switch (response)
 					{
 						case NSF.Success:
 						{
-							success.Add(response.Setting);
+							success.Add(castSetting.EnumName());
 							break;
 						}
 						case NSF.Failure:
 						{
-							failure.Add(response.Setting);
+							failure.Add(castSetting.EnumName());
 							break;
 						}
 					}
@@ -524,7 +532,7 @@ namespace Advobot
 				Actions.WriteLine(String.Format("Successfully saved: {0}", String.Join(", ", success)));
 				Actions.DontWaitForResultOfBigUnimportantFunction(null, async () =>
 				{
-					await Actions.UpdateGame();
+					await Actions.UpdateGame(Client, BotInfo);
 				});
 			}
 			if (failure.Any())
@@ -589,7 +597,7 @@ namespace Advobot
 			mUIInfo.ActivateTheme();
 			UIModification.SetColorMode(mLayout);
 		}
-		private void AddTrustedUser(object sender, RoutedEventArgs e)
+		private async void AddTrustedUser(object sender, RoutedEventArgs e)
 		{
 			var text = mTrustedUsersAddBox.Text;
 			mTrustedUsersAddBox.Text = "";
@@ -604,7 +612,7 @@ namespace Advobot
 				if (currTBs.Select(x => (ulong)x.Tag).Contains(userID))
 					return;
 
-				var tb = UIModification.MakeTextBoxFromUserID(userID);
+				var tb = UIModification.MakeTextBoxFromUserID(await Client.GetUserAsync(userID));
 				if (tb == null)
 				{
 					return;
@@ -649,7 +657,7 @@ namespace Advobot
 			{
 				if (e.Key.Equals(Key.Enter) || e.Key.Equals(Key.Return))
 				{
-					UICommandHandler.GatherInput(mInput, mInputButton);
+					DoStuffWithInput(UICommandHandler.GatherInput(mInput, mInputButton));
 				}
 				else
 				{
@@ -660,6 +668,29 @@ namespace Advobot
 		private void AcceptInput(object sender, RoutedEventArgs e)
 		{
 			UICommandHandler.GatherInput(mInput, mInputButton);
+		}
+		private void DoStuffWithInput(string input)
+		{
+			//Make sure both the path and key are set
+			if (!BotInfo.GotPath || !BotInfo.GotKey)
+			{
+				Task.Run(async () =>
+				{
+					if (!BotInfo.GotPath)
+					{
+						Actions.ValidatePath(BotInfo, input);
+					}
+					else if (!BotInfo.GotKey)
+					{
+						await Actions.ValidateBotKey(Client, BotInfo, input);
+					}
+					await Actions.MaybeStartBot(Client, BotInfo);
+				});
+			}
+			else
+			{
+				UICommandHandler.HandleCommand(input, ((string)BotInfo.GetSetting(SettingOnBot.Prefix)));
+			}
 		}
 
 		private void MakeOutputEvents()
@@ -691,7 +722,7 @@ namespace Advobot
 		}
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
-			switch (MessageBox.Show("Are you sure you want to clear the output window?", Variables.BotName, MessageBoxButton.OKCancel))
+			switch (MessageBox.Show("Are you sure you want to clear the output window?", Client.CurrentUser.Username, MessageBoxButton.OKCancel))
 			{
 				case MessageBoxResult.OK:
 				{
@@ -827,7 +858,7 @@ namespace Advobot
 		}
 		private void CloseSpecificFileLayout(object sender, RoutedEventArgs e)
 		{
-			var result = MessageBox.Show("Are you sure you want to close the edit window?", Variables.BotName, MessageBoxButton.OKCancel);
+			var result = MessageBox.Show("Are you sure you want to close the edit window?", Client.CurrentUser.Username, MessageBoxButton.OKCancel);
 
 			switch (result)
 			{
@@ -1002,7 +1033,7 @@ namespace Advobot
 		}
 		private async void OpenMenu(object sender, RoutedEventArgs e)
 		{
-			if (!Variables.Loaded)
+			if (!BotInfo.Loaded)
 				return;
 
 			//Hide everything so stuff doesn't overlap
@@ -1052,7 +1083,7 @@ namespace Advobot
 					}
 					case MenuType.DMs:
 					{
-						var treeView = await UIModification.MakeDMTreeView(mDMTreeView);
+						var treeView = UIModification.MakeDMTreeView(mDMTreeView, await Client.GetDMChannelsAsync());
 						treeView.Items.Cast<TreeViewItem>().ToList().ForEach(x =>
 						{
 							x.MouseDoubleClick += OpenSpecificDMLayout;
@@ -1063,7 +1094,7 @@ namespace Advobot
 					}
 					case MenuType.Files:
 					{
-						var treeView = UIModification.MakeGuildTreeView(mFileTreeView);
+						var treeView = UIModification.MakeGuildTreeView(mFileTreeView, await Client.GetGuildsAsync());
 						treeView.Items.Cast<TreeViewItem>().SelectMany(x => x.Items.Cast<TreeViewItem>()).ToList().ForEach(x =>
 						{
 							x.MouseDoubleClick += OpenSpecificFileLayout;
@@ -1079,35 +1110,45 @@ namespace Advobot
 		private void UpdateSystemInformation()
 		{
 			var timer = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 500) };
-			timer.Tick += (sender, e) =>
+			timer.Tick += async (sender, e) =>
 			{
-				var client = Variables.Client;
-				((TextBox)mLatency.Child).Text = String.Format("Latency: {0}ms", client.GetLatency());
-				((TextBox)mMemory.Child).Text = String.Format("Memory: {0}MB", Actions.GetMemory().ToString("0.00"));
+				var guilds = await Client.GetGuildsAsync();
+				var userIDs = new List<ulong>();
+				foreach (var guild in guilds)
+				{
+					userIDs.AddRange((await guild.GetUsersAsync()).Select(x => x.Id));
+				}
+
+				((TextBox)mLatency.Child).Text = String.Format("Latency: {0}ms", Actions.GetLatency((dynamic)Client));
+				((TextBox)mMemory.Child).Text = String.Format("Memory: {0}MB", Actions.GetMemory(BotInfo.Windows).ToString("0.00"));
 				((TextBox)mThreads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
-				((TextBox)mGuilds.Child).Text = String.Format("Guilds: {0}", client.GetGuilds().Count);
-				((TextBox)mUsers.Child).Text = String.Format("Members: {0}", client.GetGuilds().SelectMany(x => x.Users).Select(x => x.Id).Distinct().Count());
-				mInfoOutput.Document = UIModification.MakeInfoMenu();
+				((TextBox)mGuilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
+				((TextBox)mUsers.Child).Text = String.Format("Members: {0}", userIDs.Distinct().Count());
+				mInfoOutput.Document = UIModification.MakeInfoMenu(Actions.GetUptime(BotInfo));
 			};
 			timer.Start();
 		}
-		private void UpdateSettingsWhenOpened()
+		private async void UpdateSettingsWhenOpened()
 		{
-			var botInfo = Variables.BotInfo;
-			((CheckBox)((Viewbox)mDownloadUsersSetting.Setting).Child).IsChecked = ((bool)botInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers));
-			((TextBox)mPrefixSetting.Setting).Text = ((string)botInfo.GetSetting(SettingOnBot.Prefix));
-			((TextBox)mBotOwnerSetting.Setting).Text = ((ulong)botInfo.GetSetting(SettingOnBot.BotOwnerID)).ToString();
-			((TextBox)mGameSetting.Setting).Text = ((string)botInfo.GetSetting(SettingOnBot.Game));
-			((TextBox)mStreamSetting.Setting).Text = ((string)botInfo.GetSetting(SettingOnBot.Stream));
-			((TextBox)mShardSetting.Setting).Text = ((int)botInfo.GetSetting(SettingOnBot.ShardCount)).ToString();
-			((TextBox)mMessageCacheSetting.Setting).Text = ((int)botInfo.GetSetting(SettingOnBot.MessageCacheCount)).ToString();
-			((TextBox)mUserGatherCountSetting.Setting).Text = ((int)botInfo.GetSetting(SettingOnBot.MaxUserGatherCount)).ToString();
-			((TextBox)mMessageGatherSizeSetting.Setting).Text = ((int)botInfo.GetSetting(SettingOnBot.MaxMessageGatherSize)).ToString();
+			((CheckBox)((Viewbox)mDownloadUsersSetting.Setting).Child).IsChecked = ((bool)BotInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers));
+			((TextBox)mPrefixSetting.Setting).Text = ((string)BotInfo.GetSetting(SettingOnBot.Prefix));
+			((TextBox)mBotOwnerSetting.Setting).Text = ((ulong)BotInfo.GetSetting(SettingOnBot.BotOwnerID)).ToString();
+			((TextBox)mGameSetting.Setting).Text = ((string)BotInfo.GetSetting(SettingOnBot.Game));
+			((TextBox)mStreamSetting.Setting).Text = ((string)BotInfo.GetSetting(SettingOnBot.Stream));
+			((TextBox)mShardSetting.Setting).Text = ((int)BotInfo.GetSetting(SettingOnBot.ShardCount)).ToString();
+			((TextBox)mMessageCacheSetting.Setting).Text = ((int)BotInfo.GetSetting(SettingOnBot.MessageCacheCount)).ToString();
+			((TextBox)mUserGatherCountSetting.Setting).Text = ((int)BotInfo.GetSetting(SettingOnBot.MaxUserGatherCount)).ToString();
+			((TextBox)mMessageGatherSizeSetting.Setting).Text = ((int)BotInfo.GetSetting(SettingOnBot.MaxMessageGatherSize)).ToString();
 			((ComboBox)mLogLevelComboBox.Setting).SelectedItem = ((ComboBox)mLogLevelComboBox.Setting).Items.OfType<TextBox>().FirstOrDefault(x =>
 			{
-				return (Discord.LogSeverity)x.Tag == (Discord.LogSeverity)Variables.BotInfo.GetSetting(SettingOnBot.LogLevel);
+				return (LogSeverity)x.Tag == (LogSeverity)BotInfo.GetSetting(SettingOnBot.LogLevel);
 			});
-			mTrustedUsersComboBox.ItemsSource = ((List<ulong>)Variables.BotInfo.GetSetting(SettingOnBot.TrustedUsers)).Select(x => UIModification.MakeTextBoxFromUserID(x));
+			var itemsSource = new List<TextBox>();
+			foreach (var trustedUser in ((List<ulong>)BotInfo.GetSetting(SettingOnBot.TrustedUsers)))
+			{
+				itemsSource.Add(UIModification.MakeTextBoxFromUserID(await Client.GetUserAsync(trustedUser)));
+			}
+			mTrustedUsersComboBox.ItemsSource = itemsSource;
 		}
 		private bool CheckIfTreeViewItemFileExists(TreeViewItem treeItem)
 		{
@@ -1151,25 +1192,25 @@ namespace Advobot
 			}
 			return true;
 		}
-		private ReturnedSetting SaveSetting(Grid g, SettingOnBot setting, BotGlobalInfo botInfo)
+		private NSF SaveSetting(Grid g, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
 			var children = g.Children;
 			foreach (var child in children)
 			{
-				var saved = (ReturnedSetting)SaveSetting((dynamic)child, setting, botInfo);
+				var saved = SaveSetting((dynamic)child, setting, botInfo);
 				if (saved.Status != NSF.Nothing)
 				{
 					return saved;
 				}
 			}
-			return new ReturnedSetting(setting, NSF.Nothing);
+			return NSF.Nothing;
 		}
-		private ReturnedSetting SaveSetting(TextBox tb, SettingOnBot setting, BotGlobalInfo botInfo)
+		private NSF SaveSetting(TextBox tb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
 			var text = tb.Text;
 			var settingText = botInfo.GetSetting(setting)?.ToString();
 			if (settingText.CaseInsEquals(text))
-				return new ReturnedSetting(setting, NSF.Nothing);
+				return NSF.Nothing;
 
 			var nothingSuccessFailure = NSF.Nothing;
 			switch (setting)
@@ -1216,16 +1257,16 @@ namespace Advobot
 				}
 			}
 
-			return new ReturnedSetting(setting, nothingSuccessFailure);
+			return nothingSuccessFailure;
 		}
-		private ReturnedSetting SaveSetting(Viewbox vb, SettingOnBot setting, BotGlobalInfo botInfo)
+		private NSF SaveSetting(Viewbox vb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
 			return SaveSetting((dynamic)vb.Child, setting, botInfo);
 		}
-		private ReturnedSetting SaveSetting(CheckBox cb, SettingOnBot setting, BotGlobalInfo botInfo)
+		private NSF SaveSetting(CheckBox cb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
 			if (!cb.IsChecked.HasValue)
-				return new ReturnedSetting(setting, NSF.Nothing);
+				return NSF.Nothing;
 
 			switch (setting)
 			{
@@ -1235,14 +1276,14 @@ namespace Advobot
 					if (cb.IsChecked.Value != alwaysDLUsers)
 					{
 						botInfo.SetSetting(SettingOnBot.AlwaysDownloadUsers, !alwaysDLUsers);
-						return new ReturnedSetting(setting, NSF.Success);
+						return NSF.Success;
 					}
 					break;
 				}
 			}
-			return new ReturnedSetting(setting, NSF.Nothing);
+			return NSF.Nothing;
 		}
-		private ReturnedSetting SaveSetting(ComboBox cb, SettingOnBot setting, BotGlobalInfo botInfo)
+		private NSF SaveSetting(ComboBox cb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
 			switch (setting)
 			{
@@ -1253,28 +1294,28 @@ namespace Advobot
 					if (logLevel != currLogLevel)
 					{
 						botInfo.SetSetting(SettingOnBot.LogLevel, logLevel);
-						return new ReturnedSetting(setting, NSF.Success);
+						return NSF.Success;
 					}
 					break;
 				}
 				case SettingOnBot.TrustedUsers:
 				{
 					var trustedUsers = cb.Items.OfType<TextBox>().Select(x => (ulong)x.Tag).ToList();
-					var currTrustedUsers = ((List<ulong>)Variables.BotInfo.GetSetting(SettingOnBot.TrustedUsers));
+					var currTrustedUsers = ((List<ulong>)BotInfo.GetSetting(SettingOnBot.TrustedUsers));
 					var diffUsers = currTrustedUsers.Except(trustedUsers);
 					if (trustedUsers.Count != currTrustedUsers.Count || diffUsers.Any())
 					{
 						botInfo.SetSetting(SettingOnBot.TrustedUsers, trustedUsers);
-						return new ReturnedSetting(setting, NSF.Success);
+						return NSF.Success;
 					}
 					break;
 				}
 			}
-			return new ReturnedSetting(setting, NSF.Nothing);
+			return NSF.Nothing;
 		}
-		private ReturnedSetting SaveSetting(object obj, SettingOnBot setting, BotGlobalInfo botInfo)
+		private NSF SaveSetting(object obj, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
-			return new ReturnedSetting(setting, NSF.Nothing);
+			return NSF.Nothing;
 		}
 	}
 
@@ -1754,9 +1795,8 @@ namespace Advobot
 				Background = null,
 			};
 		}
-		public static TextBox MakeTextBoxFromUserID(ulong userID)
+		public static TextBox MakeTextBoxFromUserID(IUser user)
 		{
-			var user = Actions.GetGlobalUser(userID);
 			if (user == null)
 			{
 				return null;
@@ -1765,7 +1805,7 @@ namespace Advobot
 			return new MyTextBox
 			{
 				Text = String.Format("'{0}#{1}' ({2})", (user.Username.AllCharactersAreWithinUpperLimit(Constants.MAX_UTF16_VAL_FOR_NAMES) ? user.Username : "Non-Standard Name"), user.Discriminator, user.Id),
-				Tag = userID,
+				Tag = user.Id,
 				IsReadOnly = true,
 				IsHitTestVisible = false,
 				BorderThickness = new Thickness(0),
@@ -1787,7 +1827,7 @@ namespace Advobot
 				HorizontalAlignment = HorizontalAlignment.Left
 			};
 		}
-		public static TreeView MakeGuildTreeView(TreeView tv)
+		public static TreeView MakeGuildTreeView(TreeView tv, IEnumerable<IGuild> guilds)
 		{
 			//Get the directory
 			var directory = Actions.GetBaseBotDirectory();
@@ -1812,7 +1852,7 @@ namespace Advobot
 				if (!ulong.TryParse(strID, out ulong ID))
 					return null;
 
-				var guild = Variables.Client.GetGuild(ID);
+				var guild = guilds.FirstOrDefault(x => x.Id == ID);
 				if (guild == null)
 					return null;
 
@@ -1842,7 +1882,7 @@ namespace Advobot
 				var guildItem = new TreeViewItem
 				{
 					Header = guild.FormatGuild(),
-					Tag = new GuildFileInformation(ID, guild.Name, guild.MemberCount),
+					Tag = new GuildFileInformation(ID, guild.Name, (guild as Discord.WebSocket.SocketGuild).MemberCount),
 					Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
 					Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
 				};
@@ -1856,7 +1896,7 @@ namespace Advobot
 
 			return tv;
 		}
-		public static async Task<TreeView> MakeDMTreeView(TreeView tv)
+		public static TreeView MakeDMTreeView(TreeView tv, IEnumerable<IDMChannel> dms)
 		{
 			//Remove its parent so it can be added back to something
 			var parent = tv.Parent;
@@ -1868,7 +1908,7 @@ namespace Advobot
 			tv.BorderThickness = new Thickness(0);
 			tv.Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background];
 			tv.Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground];
-			tv.ItemsSource = (await Variables.Client.GetDMChannelsAsync()).Select(x =>
+			tv.ItemsSource = dms.Select(x =>
 			{
 				var user = x.Recipient;
 				if (user == null)
@@ -1912,9 +1952,9 @@ namespace Advobot
 
 			return new FlowDocument(temp);
 		}
-		public static FlowDocument MakeInfoMenu()
+		public static FlowDocument MakeInfoMenu(string botUptime)
 		{
-			var uptime = String.Format("Uptime: {0}", Actions.GetUptime());
+			var uptime = String.Format("Uptime: {0}", botUptime);
 			var cmds = String.Format("Logged Commands:\n{0}", Actions.FormatLoggedCommands());
 			var logs = String.Format("Logged Actions:\n{0}", Actions.FormatLoggedThings());
 			var str = Actions.ReplaceMarkdownChars(String.Format("{0}\r\r{1}\r\r{2}", uptime, cmds, logs), true);
@@ -2001,7 +2041,7 @@ namespace Advobot
 
 	public class UICommandHandler
 	{
-		public static void GatherInput(TextBox tb, Button b)
+		public static string GatherInput(TextBox tb, Button b)
 		{
 			//Get the current text
 			var text = tb.Text.Trim(new[] { '\r', '\n' });
@@ -2014,30 +2054,10 @@ namespace Advobot
 			tb.Text = "";
 			b.IsEnabled = false;
 
-			//Make sure both the path and key are set
-			if (!Variables.GotPath || !Variables.GotKey)
-			{
-				Task.Run(async () =>
-				{
-					if (!Variables.GotPath)
-					{
-						Actions.ValidatePath(text);
-					}
-					else if (!Variables.GotKey)
-					{
-						await Actions.ValidateBotKey(Variables.Client, text);
-					}
-					await Actions.MaybeStartBot();
-				});
-			}
-			else
-			{
-				HandleCommand(text);
-			}
+			return text;
 		}
-		public static void HandleCommand(string input)
+		public static void HandleCommand(string input, string prefix)
 		{
-			var prefix = ((string)Variables.BotInfo.GetSetting(SettingOnBot.Prefix));
 			if (input.CaseInsStartsWith(prefix))
 			{
 				var inputArray = input.Substring(prefix.Length)?.Split(new[] { ' ' }, 2);
@@ -2392,13 +2412,13 @@ namespace Advobot
 				);
 		}
 
-		public static BotUIInfo LoadBotUIInfo()
+		public static BotUIInfo LoadBotUIInfo(bool loaded)
 		{
 			var botInfo = new BotUIInfo();
 			var path = Actions.GetBaseBotDirectory(Constants.UI_INFO_LOCATION);
 			if (!File.Exists(path))
 			{
-				if (Variables.Loaded)
+				if (loaded)
 				{
 					Actions.WriteLine("The bot UI information file does not exist.");
 				}

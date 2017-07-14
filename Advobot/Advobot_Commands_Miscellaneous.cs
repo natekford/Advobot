@@ -25,10 +25,9 @@ namespace Advobot
 
 			private async Task CommandRunner(string command)
 			{
-				var prefix = Actions.GetPrefix(Context.GuildInfo);
 				if (String.IsNullOrWhiteSpace(command))
 				{
-					var embed = Actions.MakeNewEmbed("General Help", String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", prefix));
+					var embed = Actions.MakeNewEmbed("General Help", String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", Constants.BOT_PREFIX));
 					Actions.AddField(embed, "Basic Syntax", "`[]` means required.\n`<>` means optional.\n`|` means or.");
 					Actions.AddField(embed, "Mention Syntax", String.Format("`User` means `{0}`.\n`Role` means `{1}`.\n`Channel` means `{2}`.",
 						Constants.USER_INSTRUCTIONS,
@@ -43,7 +42,7 @@ namespace Advobot
 					var helpEntry = Variables.HelpList.FirstOrDefault(x => x.Name.CaseInsEquals(command) || x.Aliases.CaseInsContains(command));
 					if (helpEntry != null)
 					{
-						var embed = Actions.MakeNewEmbed(helpEntry.Name, Actions.GetHelpString(helpEntry, prefix));
+						var embed = Actions.MakeNewEmbed(helpEntry.Name, Actions.GetHelpString(helpEntry));
 						Actions.AddFooter(embed, "Help");
 						await Actions.SendEmbedMessage(Context.Channel, embed);
 						return;
@@ -56,7 +55,7 @@ namespace Advobot
 						Variables.ActiveCloseHelp.ThreadSafeAdd(new ActiveCloseWord<HelpEntry>(Context.User.Id, closeHelps));
 
 						var msg = "Did you mean any of the following:\n" + closeHelps.FormatNumberedList("{0}", x => x.Word.Name);
-						await Actions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.ACTIVE_CLOSE);
+						await Actions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.SECONDS_ACTIVE_CLOSE);
 						return;
 					}
 
@@ -82,7 +81,7 @@ namespace Advobot
 				if (String.IsNullOrWhiteSpace(targetStr))
 				{
 					var desc = String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}",
-						Actions.GetPrefix(await Actions.CreateOrGetGuildInfo(Context.Guild)),
+						Constants.BOT_PREFIX,
 						String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))));
 					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Categories", desc));
 				}
@@ -146,7 +145,7 @@ namespace Advobot
 					}
 					case Target.Bot:
 					{
-						await Actions.SendChannelMessage(Context.Channel, String.Format("The bot has the ID `{0}`.", Variables.BotID));
+						await Actions.SendChannelMessage(Context.Channel, String.Format("The bot has the ID `{0}`.", Context.Client.CurrentUser.Id));
 						return;
 					}
 					case Target.Channel:
@@ -210,43 +209,43 @@ namespace Advobot
 				await CommandRunner(targetType, target);
 			}
 
-			private async Task CommandRunner(Target targetType, dynamic target)
+			private async Task CommandRunner(Target targetType, object target)
 			{
 				switch (targetType)
 				{
 					case Target.Guild:
 					{
-						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatGuildInfo(Context.GuildInfo, Context.Guild));
+						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatGuildInfo(Context.GuildInfo, Context.Guild as SocketGuild));
 						return;
 					}
 					case Target.Bot:
 					{
-						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatBotInfo(Context.Guild));
+						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatBotInfo(Context.GlobalInfo, Context.Client, Context.Guild));
 						return;
 					}
 					case Target.Channel:
 					{
-						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatChannelInfo(Context.GuildInfo, Context.Guild, target as SocketChannel));
+						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatChannelInfo(Context.GuildInfo, Context.Guild as SocketGuild, target as SocketChannel));
 						return;
 					}
 					case Target.Role:
 					{
-						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatRoleInfo(Context.GuildInfo, Context.Guild, target as SocketRole));
+						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatRoleInfo(Context.GuildInfo, Context.Guild as SocketGuild, target as SocketRole));
 						return;
 					}
 					case Target.User:
 					{
-						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatUserInfo(Context.GuildInfo, Context.Guild, target));
+						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatUserInfo(Context.GuildInfo, Context.Guild as SocketGuild, (dynamic)target));
 						return;
 					}
 					case Target.Emote:
 					{
-						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatEmoteInfo(Context.GuildInfo, Context.Client, target as Emote));
+						await Actions.SendEmbedMessage(Context.Channel, await Actions.FormatEmoteInfo(Context.GuildInfo, Context.Client, target as Emote));
 						return;
 					}
 					case Target.Invite:
 					{
-						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatInviteInfo(Context.GuildInfo, Context.Guild, target as IInviteMetadata));
+						await Actions.SendEmbedMessage(Context.Channel, Actions.FormatInviteInfo(Context.GuildInfo, Context.Guild as SocketGuild, target as IInviteMetadata));
 						return;
 					}
 				}
@@ -270,7 +269,7 @@ namespace Advobot
 			private async Task CommandRunner(Target targetType, string otherArg, bool count = false, bool exact = false, bool nickname = false)
 			{
 				var title = "";
-				var users = Context.Guild.Users.AsEnumerable();
+				var users = (await Context.Guild.GetUsersAsync()).AsEnumerable();
 				switch (targetType)
 				{
 					case Target.Role:
@@ -284,7 +283,7 @@ namespace Advobot
 						var role = returnedRole.Object;
 
 						title = String.Format("Users With The Role '{0}'", role.Name);
-						users = users.Where(x => x.Roles.Select(y => y.Id).Contains(role.Id));
+						users = users.Where(x => x.RoleIds.Contains(role.Id));
 						break;
 					}
 					case Target.Name:
@@ -377,7 +376,7 @@ namespace Advobot
 
 			private async Task CommandRunner(uint position)
 			{
-				var users = Context.Guild.Users.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToArray();
+				var users = (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToArray();
 
 				var newPos = Math.Max(1, Math.Min(position, users.Length));
 				var user = users[newPos - 1];
@@ -400,19 +399,25 @@ namespace Advobot
 
 			private async Task CommandRunner()
 			{
-				var guilds = Context.Client.Guilds;
+				var guilds = await Context.Client.GetGuildsAsync();
 				if (guilds.Count() <= 10)
 				{
 					var embed = Actions.MakeNewEmbed("Guilds");
 					foreach (var guild in guilds)
 					{
-						Actions.AddField(embed, guild.FormatGuild(), String.Format("**Owner:** `{0}`", guild.Owner.FormatUser()));
+						Actions.AddField(embed, guild.FormatGuild(), String.Format("**Owner:** `{0}`", (await guild.GetOwnerAsync()).FormatUser()));
 					}
 					await Actions.SendEmbedMessage(Context.Channel, embed);
 				}
 				else
 				{
-					var desc = guilds.FormatNumberedList("`{0}` Owner: `{1}`", x => x.FormatGuild(), x => x.Owner.FormatUser());
+					//This may be one of the most retarded work arounds I have ever done.
+					var tempTupleList = new List<Tuple<IGuild, IGuildUser>>();
+					foreach (var guild in guilds)
+					{
+						tempTupleList.Add(new Tuple<IGuild, IGuildUser>(guild, await guild.GetOwnerAsync()));
+					}
+					var desc = tempTupleList.FormatNumberedList("`{0}` Owner: `{1}`", x => x.Item1.FormatGuild(), x => x.Item2.FormatUser());
 					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guilds", desc));
 				}
 			}
@@ -433,7 +438,7 @@ namespace Advobot
 
 			private async Task CommandRunner()
 			{
-				var users = Context.Guild.Users.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToArray();
+				var users = (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToArray();
 
 				var text = users.FormatNumberedList("`{0}` joined on `{1}`", x => x.FormatUser(), x => Actions.FormatDateTime(x.JoinedAt));
 				await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "User_Joins_");
@@ -496,17 +501,14 @@ namespace Advobot
 
 			private async Task CommandRunner(int num, ITextChannel channel)
 			{
-				num = Math.Min(num, 1000);
-				channel = Actions.GetChannel(Context, new[] { ObjectVerification.IsText, ObjectVerification.CanBeRead }, channel).Object as ITextChannel ?? Context.Channel as ITextChannel;
-
-				var limitAmt = ((int)Variables.BotInfo.GetSetting(SettingOnBot.MaxMessageGatherSize));
+				channel = channel ?? Context.Channel as ITextChannel;
 
 				var charCount = 0;
 				var formattedMessages = new List<string>();
-				foreach (var msg in (await Actions.GetMessages(channel, num)).OrderBy(x => x.CreatedAt.Ticks))
+				foreach (var msg in (await Actions.GetMessages(channel, Math.Min(num, 1000))).OrderBy(x => x.CreatedAt.Ticks))
 				{
 					var temp = Actions.ReplaceMarkdownChars(Actions.FormatMessage(msg), true);
-					if ((charCount += temp.Length) < limitAmt)
+					if ((charCount += temp.Length) < ((int)Context.GlobalInfo.GetSetting(SettingOnBot.MaxMessageGatherSize)))
 					{
 						formattedMessages.Add(temp);
 					}
@@ -539,7 +541,7 @@ namespace Advobot
 
 			private async Task CommandRunner(string input)
 			{
-				var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 100), new[] { "title", "desc", "img", "url", "thumb", "author", "authoricon", "authorurl", "foot", "footicon" });
+				var returnedArgs = Actions.GetArgs(Context, input, 0, 100, new[] { "title", "desc", "img", "url", "thumb", "author", "authoricon", "authorurl", "foot", "footicon" });
 				if (returnedArgs.Reason != FailureReason.NotFailure)
 				{
 					await Actions.HandleArgsGettingErrors(Context, returnedArgs);
@@ -634,7 +636,7 @@ namespace Advobot
 			{
 				var newMsg = String.Format("From `{0}` in `{1}`:\n```\n{2}```", Context.User.FormatUser(), Context.Guild.FormatGuild(), input.Substring(0, Math.Min(input.Length, 250)));
 
-				var owner = Actions.GetGlobalUser(((ulong)Variables.BotInfo.GetSetting(SettingOnBot.BotOwnerID)));
+				var owner = await Actions.GetGlobalUser(Context.Client, ((ulong)Context.GlobalInfo.GetSetting(SettingOnBot.BotOwnerID)));
 				if (owner != null)
 				{
 					var DMChannel = await owner.GetOrCreateDMChannelAsync();
@@ -691,7 +693,7 @@ namespace Advobot
 			{
 				if (user != null)
 				{
-					var channel = (await Variables.Client.GetDMChannelsAsync()).FirstOrDefault(x => x.Recipient?.Id == user.Id);
+					var channel = (await Context.Client.GetDMChannelsAsync()).FirstOrDefault(x => x.Recipient?.Id == user.Id);
 					if (channel == null)
 					{
 						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The bot does not have a DM open with that user."));
@@ -712,7 +714,7 @@ namespace Advobot
 				}
 				else
 				{
-					var users = (await Variables.Client.GetDMChannelsAsync()).Select(x => x.Recipient).Where(x => x != null);
+					var users = (await Context.Client.GetDMChannelsAsync()).Select(x => x.Recipient).Where(x => x != null);
 
 					var desc = users.Any() ? String.Format("`{0}`", String.Join("`\n`", users.OrderBy(x => x.Id).Select(x => x.FormatUser()))) : "`None`";
 					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Users Who Have DMd The Bot", desc));

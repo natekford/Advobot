@@ -3,21 +3,25 @@ using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
-using System.Linq;
+using Advobot.Logging;
 
 namespace Advobot
 {
-	public class Command_Handler
+	public class CommandHandler
 	{
-		private static CommandService Commands;
-		private static BotClient Client;
 		private static IServiceProvider Provider;
+		private static IDiscordClient Client;
+		private static CommandService Commands;
+		private static BotGlobalInfo BotInfo;
+		private static LogHolder Logging;
 
-		public async Task Install(IServiceProvider provider)
+		public static async Task Install(IServiceProvider provider)
 		{
-			Client = (BotClient)provider.GetService(typeof(BotClient));
-			Commands = (CommandService)provider.GetService(typeof(CommandService));
 			Provider = provider;
+			Client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
+			Commands = (CommandService)provider.GetService(typeof(CommandService));
+			BotInfo = (BotGlobalInfo)provider.GetService(typeof(BotGlobalInfo));
+			Logging = (LogHolder)provider.GetService(typeof(LogHolder));
 
 			Commands.AddTypeReader(typeof(IInvite), new IInviteTypeReader());
 			Commands.AddTypeReader(typeof(IBan), new IBanTypeReader());
@@ -26,9 +30,14 @@ namespace Advobot
 			await Commands.AddModulesAsync(System.Reflection.Assembly.GetEntryAssembly());
 		}
 
+		public static async Task LoadInformation()
+		{
+			await Actions.LoadInformation(Client, BotInfo);
+		}
+
 		public static async Task HandleCommand(SocketUserMessage message)
 		{
-			if (Variables.Pause)
+			if (BotInfo.Pause)
 				return;
 
 			var guild = (message?.Channel as SocketTextChannel)?.Guild;
@@ -39,11 +48,11 @@ namespace Advobot
 			if (!TryGetArgPos(message, ((string)guildInfo.GetSetting(SettingOnGuild.Prefix)), out int argPos))
 				return;
 
-			var context = new MyCommandContext(guildInfo, (DiscordSocketClient)Client.GetClient(), message);
+			var context = new MyCommandContext(BotInfo, guildInfo, Client, message);
 			var result = await Commands.ExecuteAsync(context, argPos, Provider);
 			if (result.IsSuccess)
 			{
-				await Mod_Logs.LogCommand(context);
+				await Logging.ModLog.LogCommand(context);
 			}
 			else if (Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
 			{
@@ -72,12 +81,12 @@ namespace Advobot
 			}
 		}
 
-		public static bool TryGetArgPos(IUserMessage message, string guildPrefix, out int argPos)
+		private static bool TryGetArgPos(IUserMessage message, string guildPrefix, out int argPos)
 		{
 			argPos = -1;
 			if (String.IsNullOrWhiteSpace(guildPrefix))
 			{
-				var globalPrefix = ((string)Variables.BotInfo.GetSetting(SettingOnBot.Prefix));
+				var globalPrefix = ((string)BotInfo.GetSetting(SettingOnBot.Prefix));
 				if (message.HasStringPrefix(globalPrefix, ref argPos))
 				{
 					return true;
@@ -85,7 +94,7 @@ namespace Advobot
 			}
 			else
 			{
-				if (message.HasStringPrefix(guildPrefix, ref argPos) || message.HasMentionPrefix(Variables.Client.GetCurrentUser(), ref argPos))
+				if (message.HasStringPrefix(guildPrefix, ref argPos) || message.HasMentionPrefix(Client.CurrentUser, ref argPos))
 				{
 					return true;
 				}

@@ -58,5 +58,17 @@ namespace Advobot.Properties {
                 this["BotID"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BotName {
+            get {
+                return ((string)(this["BotName"]));
+            }
+            set {
+                this["BotName"] = value;
+            }
+        }
     }
 }

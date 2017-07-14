@@ -1,8 +1,8 @@
-﻿using Discord.Commands;
-using Discord.WebSocket;
+﻿using Advobot.Logging;
+using Discord;
+using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 /* First, to get the really shitty part of the bot out of the way:
@@ -30,43 +30,39 @@ namespace Advobot
 #endif
 
 			//Things that when not loaded fuck the bot completely
-			Actions.LoadCriticalInformation();
+			var botInfo = Actions.LoadCriticalInformation();
+			var logging = new LogHolder();
+			var client = Actions.CreateBotClient(botInfo, logging);
+			logging.StartLogging(client, botInfo);
 
-			var botInfo = Variables.BotInfo;
-			if (((int)botInfo.GetSetting(SettingOnBot.ShardCount)) > 1)
-			{
-				Variables.Client = new ShardedClient(CreateShardedClient(botInfo));
-			}
-			else
-			{
-				Variables.Client = new SocketClient(CreateSocketClient(botInfo));
-			}
+			var provider = ConfigureServices(client, botInfo, logging);
+			await CommandHandler.Install(provider);
 
 			//If not a console application then start the UI
-			if (!Variables.Console)
+			if (!botInfo.Console)
 			{
-				new System.Windows.Application().Run(new BotWindow());
+				new System.Windows.Application().Run(new BotWindow(provider));
 			}
 			else
 			{
 				var startup = true;
-				while (!Variables.GotPath)
+				while (!botInfo.GotPath)
 				{
-					Actions.ValidatePath(startup ? Properties.Settings.Default.Path : Console.ReadLine(), startup);
+					Actions.ValidatePath(botInfo, (startup ? Properties.Settings.Default.Path : Console.ReadLine()), startup);
 					startup = false;
 				}
 				startup = true;
-				while (!Variables.GotKey)
+				while (!botInfo.GotKey)
 				{
-					await Actions.ValidateBotKey(Variables.Client, startup ? Properties.Settings.Default.BotKey : Console.ReadLine(), startup);
+					await Actions.ValidateBotKey(client, botInfo, (startup ? Properties.Settings.Default.BotKey : Console.ReadLine()), startup);
 					startup = false;
 				}
 
-				await Actions.MaybeStartBot();
+				await Actions.MaybeStartBot(client, botInfo);
 			}
 		}
 
-		public async Task Start(BotClient client)
+		public async Task Start(IDiscordClient client)
 		{
 			Actions.WriteLine("Connecting the client...");
 
@@ -80,73 +76,18 @@ namespace Advobot
 				return;
 			}
 
-			//Add in the dependency map
-			await new Command_Handler().Install(ConfigureServices(client));
-
-			//Block this program until it is closed.
 			await Task.Delay(-1);
 		}
 
-		private IServiceProvider ConfigureServices(BotClient client)
+		private IServiceProvider ConfigureServices(IDiscordClient client, BotGlobalInfo globalInfo, LogHolder logHolder)
 		{
 			var serviceCollection = new ServiceCollection();
 			serviceCollection.AddSingleton(client);
 			serviceCollection.AddSingleton(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, }));
+			serviceCollection.AddSingleton(globalInfo);
+			serviceCollection.AddSingleton(logHolder);
 
 			return new DefaultServiceProviderFactory().CreateServiceProvider(serviceCollection);
-		}
-
-		private static DiscordShardedClient CreateShardedClient(BotGlobalInfo botInfo)
-		{
-			var ShardedClient = new DiscordShardedClient(new DiscordSocketConfig
-			{
-				AlwaysDownloadUsers = ((bool)botInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers)),
-				MessageCacheSize = ((int)botInfo.GetSetting(SettingOnBot.MessageCacheCount)),
-				LogLevel = ((Discord.LogSeverity)botInfo.GetSetting(SettingOnBot.LogLevel)),
-				TotalShards = ((int)botInfo.GetSetting(SettingOnBot.ShardCount)),
-			});
-
-			ShardedClient.Log += Bot_Logs.Log;
-			ShardedClient.MessageReceived += (SocketMessage message) => Command_Handler.HandleCommand(message as SocketUserMessage);
-			ShardedClient.GuildAvailable += Bot_Logs.OnGuildAvailable;
-			ShardedClient.GuildUnavailable += Bot_Logs.OnGuildUnavailable;
-			ShardedClient.JoinedGuild += Bot_Logs.OnJoinedGuild;
-			ShardedClient.LeftGuild += Bot_Logs.OnLeftGuild;
-			ShardedClient.UserJoined += Server_Logs.OnUserJoined;
-			ShardedClient.UserLeft += Server_Logs.OnUserLeft;
-			ShardedClient.UserUpdated += Server_Logs.OnUserUpdated;
-			ShardedClient.MessageReceived += Server_Logs.OnMessageReceived;
-			ShardedClient.MessageUpdated += Server_Logs.OnMessageUpdated;
-			ShardedClient.MessageDeleted += Server_Logs.OnMessageDeleted;
-			ShardedClient.Shards.FirstOrDefault().Connected += Actions.LoadInformation;
-
-			return ShardedClient;
-		}
-
-		private static DiscordSocketClient CreateSocketClient(BotGlobalInfo botInfo)
-		{
-			var SocketClient = new DiscordSocketClient(new DiscordSocketConfig
-			{
-				AlwaysDownloadUsers = ((bool)botInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers)),
-				MessageCacheSize = ((int)botInfo.GetSetting(SettingOnBot.MaxUserGatherCount)),
-				LogLevel = ((Discord.LogSeverity)Variables.BotInfo.GetSetting(SettingOnBot.LogLevel)),
-			});
-
-			SocketClient.Log += Bot_Logs.Log;
-			SocketClient.MessageReceived += (SocketMessage message) => Command_Handler.HandleCommand(message as SocketUserMessage);
-			SocketClient.GuildAvailable += Bot_Logs.OnGuildAvailable;
-			SocketClient.GuildUnavailable += Bot_Logs.OnGuildUnavailable;
-			SocketClient.JoinedGuild += Bot_Logs.OnJoinedGuild;
-			SocketClient.LeftGuild += Bot_Logs.OnLeftGuild;
-			SocketClient.UserJoined += Server_Logs.OnUserJoined;
-			SocketClient.UserLeft += Server_Logs.OnUserLeft;
-			SocketClient.UserUpdated += Server_Logs.OnUserUpdated;
-			SocketClient.MessageReceived += Server_Logs.OnMessageReceived;
-			SocketClient.MessageUpdated += Server_Logs.OnMessageUpdated;
-			SocketClient.MessageDeleted += Server_Logs.OnMessageDeleted;
-			SocketClient.Connected += Actions.LoadInformation;
-
-			return SocketClient;
 		}
 	}
 }
