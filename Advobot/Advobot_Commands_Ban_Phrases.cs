@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using Advobot.Actions;
+using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,7 @@ namespace Advobot
 			//Check the length of the regex
 			if (regexStr.Length > Constants.MAX_LENGTH_FOR_REGEX)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Please keep the regex under `{0}` characters.", Constants.MAX_LENGTH_FOR_REGEX));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Please keep the regex under `{0}` characters.", Constants.MAX_LENGTH_FOR_REGEX));
 				return;
 			}
 
@@ -44,7 +45,7 @@ namespace Advobot
 			var title = String.Format("`{0}`", regexStr);
 			if (!Actions.TryCreateRegex(regexStr, out Regex regex, out string error))
 			{
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(title, String.Format("**Error:** `{0}`", error)));
+				await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, String.Format("**Error:** `{0}`", error)));
 				return;
 			}
 
@@ -79,8 +80,8 @@ namespace Advobot
 			var description = String.Join("\n", new[] { messageStr, emptyStr, spaceStr, newLineStr, randomStr, everythingStr, okStr });
 
 			//Send the embed
-			var embed = Actions.MakeNewEmbed(title, description);
-			await Actions.SendEmbedMessage(Context.Channel, embed);
+			var embed = Messages.MakeNewEmbed(title, description);
+			await Messages.SendEmbedMessage(Context.Channel, embed);
 		}
 
 		[Command("modifybannedregex")]
@@ -124,8 +125,8 @@ namespace Advobot
 						var count = 1;
 						var description = String.Join("\n", eval.Select(x => String.Format("`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
 						description = String.IsNullOrWhiteSpace(description) ? "Nothing" : description;
-						var embed = Actions.MakeNewEmbed("Evaluated Regex", description);
-						await Actions.SendEmbedMessage(Context.Channel, embed);
+						var embed = Messages.MakeNewEmbed("Evaluated Regex", description);
+						await Messages.SendEmbedMessage(Context.Channel, embed);
 						return;
 					}
 					case ActionType.Remove:
@@ -133,8 +134,8 @@ namespace Advobot
 						var count = 1;
 						var description = String.Join("\n", curr.Select(x => String.Format("`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
 						description = String.IsNullOrWhiteSpace(description) ? "Nothing" : description;
-						var embed = Actions.MakeNewEmbed("Evaluated Regex", description);
-						await Actions.SendEmbedMessage(Context.Channel, embed);
+						var embed = Messages.MakeNewEmbed("Evaluated Regex", description);
+						await Messages.SendEmbedMessage(Context.Channel, embed);
 						return;
 					}
 				}
@@ -143,13 +144,13 @@ namespace Advobot
 			//Check if number
 			if (!int.TryParse(numStr, out int position))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid input for number."));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid input for number."));
 				return;
 			}
 			position -= 1;
 			if (position < 0)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The number must be greater than or equal to 1."));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The number must be greater than or equal to 1."));
 				return;
 			}
 
@@ -161,12 +162,12 @@ namespace Advobot
 				{
 					if (position >= eval.Count)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position to add."));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid position to add."));
 						return;
 					}
 					else if (curr.Count >= Constants.MAX_BANNED_REGEX)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned regex at a time.", Constants.MAX_BANNED_REGEX));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned regex at a time.", Constants.MAX_BANNED_REGEX));
 						return;
 					}
 
@@ -179,7 +180,7 @@ namespace Advobot
 				{
 					if (position >= curr.Count)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position to remove."));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid position to remove."));
 						return;
 					}
 
@@ -191,7 +192,7 @@ namespace Advobot
 			}
 
 			guildInfo.SaveInfo();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the regex `{1}`.", responseStr, regex));
+			await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the regex `{1}`.", responseStr, regex));
 		}
 
 		[Command("modifybannedstrings")]
@@ -229,7 +230,7 @@ namespace Advobot
 				{
 					if (strings.Count >= Constants.MAX_BANNED_STRINGS)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned strings at a time.", Constants.MAX_BANNED_STRINGS));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned strings at a time.", Constants.MAX_BANNED_STRINGS));
 						return;
 					}
 					add = true;
@@ -265,7 +266,7 @@ namespace Advobot
 			}
 
 			guildInfo.SaveInfo();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
+			await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
 		}
 
 		[Command("modifypunishmenttype")]
@@ -303,7 +304,7 @@ namespace Advobot
 			{
 				if (!int.TryParse(posStr, out position))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid number for position."));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid number for position."));
 					return;
 				}
 			}
@@ -318,7 +319,7 @@ namespace Advobot
 					var bannedRegex = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex);
 					if (bannedRegex.Count <= position)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The list of banned regex does not go to that position"));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The list of banned regex does not go to that position"));
 						return;
 					}
 					bannedPhrase = bannedRegex[position];
@@ -328,7 +329,7 @@ namespace Advobot
 					var bannedStrings = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings);
 					if (bannedStrings.Count <= position)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The list of banned strings does not go to that position"));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The list of banned strings does not go to that position"));
 						return;
 					}
 					bannedPhrase = bannedStrings[position];
@@ -340,7 +341,7 @@ namespace Advobot
 				{
 					if (!Actions.TryGetBannedRegex(guildInfo, phraseStr, out bannedPhrase))
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No banned regex could be found which matches the given phrase."));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("No banned regex could be found which matches the given phrase."));
 						return;
 					}
 				}
@@ -348,7 +349,7 @@ namespace Advobot
 				{
 					if (!Actions.TryGetBannedString(guildInfo, phraseStr, out bannedPhrase))
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No banned string could be found which matches the given phrase."));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("No banned string could be found which matches the given phrase."));
 						return;
 					}
 				}
@@ -358,7 +359,7 @@ namespace Advobot
 			phraseStr = bannedPhrase.Phrase.ToString();
 
 			guildInfo.SaveInfo();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the punishment type on the banned {0} `{1}` to `{2}`.",
+			await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the punishment type on the banned {0} `{1}` to `{2}`.",
 				(regex ? "regex" : "string"), phraseStr, type.EnumName()));
 		}
 
@@ -395,7 +396,7 @@ namespace Advobot
 			//Get the position
 			if (!int.TryParse(posStr, out int number))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid position."));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid position."));
 				return;
 			}
 			//Get the time
@@ -404,7 +405,7 @@ namespace Advobot
 			{
 				if (!int.TryParse(timeStr, out time))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time."));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid time."));
 					return;
 				}
 			}
@@ -420,7 +421,7 @@ namespace Advobot
 					//Check if trying to add to an already established spot
 					if (punishments.Any(x => x.NumberOfRemoves == number))
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists for that number of banned phrases said."));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("A punishment already exists for that number of banned phrases said."));
 						return;
 					}
 
@@ -432,7 +433,7 @@ namespace Advobot
 						punishmentType = PunishmentType.Kick;
 						if (punishments.Any(x => x.Punishment == punishmentType))
 						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which kicks."));
+							await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("A punishment already exists which kicks."));
 							return;
 						}
 					}
@@ -441,7 +442,7 @@ namespace Advobot
 						punishmentType = PunishmentType.Ban;
 						if (punishments.Any(x => x.Punishment == punishmentType))
 						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which bans."));
+							await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("A punishment already exists which bans."));
 							return;
 						}
 					}
@@ -458,13 +459,13 @@ namespace Advobot
 
 						if (punishments.Any(x => x.Role == punishmentRole))
 						{
-							await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("A punishment already exists which gives that role."));
+							await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("A punishment already exists which gives that role."));
 							return;
 						}
 					}
 					else
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid punishment; must be either kick, ban, or an existing role."));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid punishment; must be either kick, ban, or an existing role."));
 						return;
 					}
 
@@ -483,7 +484,7 @@ namespace Advobot
 						{
 							if (gatheredPunishment.Role != null && gatheredPunishment.Role.Position >= Actions.GetUserPosition(Context.User))
 							{
-								await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("You do not have the ability to remove a punishment with this role."));
+								await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("You do not have the ability to remove a punishment with this role."));
 								return;
 							}
 							punishments.Remove(gatheredPunishment);
@@ -491,7 +492,7 @@ namespace Advobot
 					}
 					else
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("No punishments require that number of banned phrases said."));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("No punishments require that number of banned phrases said."));
 						return;
 					}
 					break;
@@ -502,7 +503,7 @@ namespace Advobot
 			var successMsg = "";
 			if (newPunishment == null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the punishment at position `{0}`.", number);
+				await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the punishment at position `{0}`.", number);
 				return;
 			}
 			else if (newPunishment.Punishment == PunishmentType.Kick)
@@ -520,7 +521,7 @@ namespace Advobot
 			var timeMsg = newPunishment.PunishmentTime != 0 ? String.Format(", and will last for `{0}` minute(s)", newPunishment.PunishmentTime) : "";
 
 			guildInfo.SaveInfo();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", add ? "added" : "removed", successMsg, timeMsg));
+			await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", add ? "added" : "removed", successMsg, timeMsg));
 		}
 
 		[Command("modifybannedphraseuser")]
@@ -553,7 +554,7 @@ namespace Advobot
 			var bpUser = ((List<BannedPhraseUser>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseUsers)).FirstOrDefault(x => x.User.Id == user.Id);
 			if (bpUser == null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("That user is not on the banned phrase punishment list."));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That user is not on the banned phrase punishment list."));
 				return;
 			}
 
@@ -572,7 +573,7 @@ namespace Advobot
 					bpUser.ResetRoleCount();
 					bpUser.ResetKickCount();
 					bpUser.ResetBanCount();
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the infractions for `{0}` to 0.", user.FormatUser()));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the infractions for `{0}` to 0.", user.FormatUser()));
 					break;
 				}
 				case ActionType.Current:
@@ -580,7 +581,7 @@ namespace Advobot
 					var roleCount = bpUser?.MessagesForRole ?? 0;
 					var kickCount = bpUser?.MessagesForKick ?? 0;
 					var banCount = bpUser?.MessagesForBan ?? 0;
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}` has `{1}R/{2}K/{3}B` infractions.", user.FormatUser(), roleCount, kickCount, banCount));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}` has `{1}R/{2}K/{3}B` infractions.", user.FormatUser(), roleCount, kickCount, banCount));
 					break;
 				}
 			}
@@ -608,12 +609,12 @@ namespace Advobot
 
 			if (phraseStr.Length < Constants.MIN_NICKNAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The banned name must be at least `{0}` characters long.", Constants.MIN_NICKNAME_LENGTH)));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("The banned name must be at least `{0}` characters long.", Constants.MIN_NICKNAME_LENGTH)));
 				return;
 			}
 			else if (phraseStr.Length > Constants.MAX_NICKNAME_LENGTH)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The banned name must be less than or equal to `{0}` characters long.", Constants.MAX_NICKNAME_LENGTH)));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("The banned name must be less than or equal to `{0}` characters long.", Constants.MAX_NICKNAME_LENGTH)));
 				return;
 			}
 
@@ -633,7 +634,7 @@ namespace Advobot
 				{
 					if (names.Count >= Constants.MAX_BANNED_NAMES)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned names at a time.", Constants.MAX_BANNED_NAMES));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned names at a time.", Constants.MAX_BANNED_NAMES));
 						return;
 					}
 					add = true;
@@ -669,7 +670,7 @@ namespace Advobot
 			}
 
 			guildInfo.SaveInfo();
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
+			await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
 		}
 	}
 	*/

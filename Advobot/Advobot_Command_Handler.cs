@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using Advobot.Actions;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
@@ -32,7 +33,7 @@ namespace Advobot
 
 		public static async Task LoadInformation()
 		{
-			await Actions.LoadInformation(Client, BotInfo);
+			await SavingAndLoading.LoadInformation(Client, BotInfo);
 		}
 
 		public static async Task HandleCommand(SocketUserMessage message)
@@ -44,7 +45,7 @@ namespace Advobot
 			if (guild == null)
 				return;
 
-			var guildInfo = await Actions.CreateOrGetGuildInfo(guild);
+			var guildInfo = await SavingAndLoading.CreateOrGetGuildInfo(guild);
 			if (!TryGetArgPos(message, ((string)guildInfo.GetSetting(SettingOnGuild.Prefix)), out int argPos))
 				return;
 
@@ -69,12 +70,12 @@ namespace Advobot
 					}
 					case CommandError.Exception:
 					{
-						Actions.WriteLine(result.ErrorReason);
+						Messages.WriteLine(result.ErrorReason);
 						return;
 					}
 					default:
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(message.Channel, message, Actions.ERROR(result.ErrorReason));
+						await Messages.MakeAndDeleteSecondaryMessage(message.Channel, message, Formatting.ERROR(result.ErrorReason));
 						return;
 					}
 				}

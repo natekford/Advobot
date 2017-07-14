@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using Advobot.Actions;
+using Discord;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -144,7 +145,7 @@ namespace Advobot
 			{ PunishmentType.KickThenBan, 750 },
 			{ PunishmentType.Ban, 1000 },
 		});
-		public static ReadOnlyDictionary<string, Color> Colors = new ReadOnlyDictionary<string, Color>(Actions.CreateColorDictionary());
+		public static ReadOnlyDictionary<string, Color> Colors = new ReadOnlyDictionary<string, Color>(Gets.GetColorDictionary());
 
 		public static readonly Color BASE = new Color(255, 100, 000);
 		public static readonly Color JOIN = new Color(000, 255, 000);

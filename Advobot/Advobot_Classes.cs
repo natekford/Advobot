@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using Advobot.Actions;
+using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
@@ -66,11 +67,11 @@ namespace Advobot
 
 		public string AllText
 		{
-			get { return String.Join(" & ", Actions.GetPermissionNames(mAllFlags)); }
+			get { return String.Join(" & ", Gets.GetPermissionNames(mAllFlags)); }
 		}
 		public string AnyText
 		{
-			get { return String.Join(" | ", Actions.GetPermissionNames(mAnyFlags)); }
+			get { return String.Join(" | ", Gets.GetPermissionNames(mAnyFlags)); }
 		}
 	}
 
@@ -124,7 +125,7 @@ namespace Advobot
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
-				if (trustedUser && Actions.GetIfUserIsTrustedUser(cont.GlobalInfo, user))
+				if (trustedUser && ((List<ulong>)cont.GlobalInfo.GetSetting(SettingOnBot.TrustedUsers)).Contains(user.Id))
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
@@ -176,7 +177,7 @@ namespace Advobot
 		private bool CheckIfCommandIsEnabled(MyCommandContext context, CommandInfo command, IGuildUser user)
 		{
 			//Use the first alias since that's what group gets set as (could use any alias since GetCommand works for aliases too)
-			var cmd = Actions.GetCommand(context.GuildInfo, command.Aliases[0]);
+			var cmd = Gets.GetCommand(context.GuildInfo, command.Aliases[0]);
 			if (!cmd.ValAsBoolean)
 			{
 				return false;
@@ -292,10 +293,10 @@ namespace Advobot
 		}
 		private PreconditionResult GetPreconditionResult(ICommandContext context, dynamic value)
 		{
-			var returnedObject = Actions.GetDiscordObject(context.Guild, context.User as IGuildUser, mChecks, value);
+			var returnedObject = Misc.GetDiscordObject(context.Guild, context.User as IGuildUser, mChecks, value);
 			if (returnedObject.Reason != FailureReason.NotFailure)
 			{
-				return PreconditionResult.FromError(Actions.FormatErrorString(context.Guild, returnedObject));
+				return PreconditionResult.FromError(Advobot.Actions.Formatting.FormatErrorString(context.Guild, returnedObject));
 			}
 			else
 			{
@@ -818,7 +819,7 @@ namespace Advobot
 			}
 			catch (Exception e)
 			{
-				Actions.ExceptionToConsole(e);
+				Messages.ExceptionToConsole(e);
 				return null;
 			}
 		}
@@ -838,7 +839,7 @@ namespace Advobot
 				}
 				catch (Exception e)
 				{
-					Actions.ExceptionToConsole(e);
+					Messages.ExceptionToConsole(e);
 					return false;
 				}
 			}
@@ -860,7 +861,7 @@ namespace Advobot
 				}
 				catch (Exception e)
 				{
-					Actions.ExceptionToConsole(e);
+					Messages.ExceptionToConsole(e);
 					return false;
 				}
 			}
@@ -928,7 +929,7 @@ namespace Advobot
 		{
 			if (mGuild != null)
 			{
-				Actions.OverWriteFile(Actions.GetServerFilePath(mGuild.Id, Constants.GUILD_INFO_LOCATION), Actions.Serialize(this));
+				SavingAndLoading.OverWriteFile(Gets.GetServerFilePath(mGuild.Id, Constants.GUILD_INFO_LOCATION), SavingAndLoading.Serialize(this));
 			}
 		}
 
@@ -1170,7 +1171,7 @@ namespace Advobot
 			}
 			catch (Exception e)
 			{
-				Actions.ExceptionToConsole(e);
+				Messages.ExceptionToConsole(e);
 				return null;
 			}
 		}
@@ -1190,7 +1191,7 @@ namespace Advobot
 				}
 				catch (Exception e)
 				{
-					Actions.ExceptionToConsole(e);
+					Messages.ExceptionToConsole(e);
 					return false;
 				}
 			}
@@ -1212,7 +1213,7 @@ namespace Advobot
 				}
 				catch (Exception e)
 				{
-					Actions.ExceptionToConsole(e);
+					Messages.ExceptionToConsole(e);
 					return false;
 				}
 			}
@@ -1244,7 +1245,7 @@ namespace Advobot
 		}
 		public override void SaveInfo()
 		{
-			Actions.OverWriteFile(Actions.GetBaseBotDirectory(Constants.BOT_INFO_LOCATION), Actions.Serialize(this));
+			SavingAndLoading.OverWriteFile(Gets.GetBaseBotDirectory(Constants.BOT_INFO_LOCATION), SavingAndLoading.Serialize(this));
 		}
 
 		public void TogglePause()
@@ -1578,7 +1579,7 @@ namespace Advobot
 			ChannelID = channelID;
 			if (!(String.IsNullOrWhiteSpace(title) && String.IsNullOrWhiteSpace(description) && String.IsNullOrWhiteSpace(thumbURL)))
 			{
-				Embed = Actions.MakeNewEmbed(title, description, null, null, null, thumbURL);
+				Embed = Messages.MakeNewEmbed(title, description, null, null, null, thumbURL);
 			}
 		}
 		public GuildNotification(string content, string title, string description, string thumbURL, ITextChannel channel) : this(content, title, description, thumbURL, channel.Id)
@@ -1735,7 +1736,7 @@ namespace Advobot
 		{
 			if (Object != null)
 			{
-				return Actions.FormatObject((dynamic)Object);
+				return Actions.Formatting.FormatObject((dynamic)Object);
 			}
 			else
 			{
@@ -1846,29 +1847,29 @@ namespace Advobot
 			{
 				case PunishmentType.Ban:
 				{
-					await Actions.BotBanUser(user.Guild, user.Id, 1, "spam prevention.");
+					await Users.BotBanUser(user.Guild, user.Id, 1, "spam prevention.");
 					break;
 				}
 				case PunishmentType.Kick:
 				{
-					await Actions.BotKickUser(user, "spam prevention");
+					await Users.BotKickUser(user, "spam prevention");
 					break;
 				}
 				case PunishmentType.KickThenBan:
 				{
 					if (((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).FirstOrDefault(x => x.User.Id == user.Id).AlreadyKicked)
 					{
-						await Actions.BotBanUser(user.Guild, user.Id, 1, "spam prevention");
+						await Users.BotBanUser(user.Guild, user.Id, 1, "spam prevention");
 					}
 					else
 					{
-						await Actions.BotKickUser(user, "spam prevention");
+						await Users.BotKickUser(user, "spam prevention");
 					}
 					break;
 				}
 				case PunishmentType.Role:
 				{
-					await Actions.GiveRole(user, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
+					await Roles.GiveRole(user, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
 					break;
 				}
 			}
@@ -1916,7 +1917,7 @@ namespace Advobot
 
 		public int GetSpamCount()
 		{
-			return Actions.GetCountOfItemsInTimeFrame(TimeList, TimeInterval);
+			return Gets.GetCountOfItemsInTimeFrame(TimeList, TimeInterval);
 		}
 		public void Add(DateTime time)
 		{
@@ -1947,29 +1948,29 @@ namespace Advobot
 			{
 				case PunishmentType.Ban:
 				{
-					await Actions.BotBanUser(user.Guild, user.Id, 1, "raid prevention");
+					await Users.BotBanUser(user.Guild, user.Id, 1, "raid prevention");
 					break;
 				}
 				case PunishmentType.Kick:
 				{
-					await Actions.BotKickUser(user, "raid prevention");
+					await Users.BotKickUser(user, "raid prevention");
 					break;
 				}
 				case PunishmentType.KickThenBan:
 				{
 					if (((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).FirstOrDefault(x => x.User.Id == user.Id).AlreadyKicked)
 					{
-						await Actions.BotBanUser(user.Guild, user.Id, 1, "raid prevention");
+						await Users.BotBanUser(user.Guild, user.Id, 1, "raid prevention");
 					}
 					else
 					{
-						await Actions.BotKickUser(user, "raid prevention");
+						await Users.BotKickUser(user, "raid prevention");
 					}
 					break;
 				}
 				case PunishmentType.Role:
 				{
-					await Actions.GiveRole(user, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
+					await Roles.GiveRole(user, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
 					break;
 				}
 			}
@@ -2027,6 +2028,15 @@ namespace Advobot
 			Text = String.IsNullOrWhiteSpace(text) ? placeHolderStr : text;
 			Category = category;
 			DefaultEnabled = defaultEnabled;
+		}
+
+		public override string ToString()
+		{
+			var aliasStr = String.Format("**Aliases:** {0}", String.Join(", ", Aliases));
+			var usageStr = String.Format("**Usage:** {0}", Usage);
+			var permStr = String.Format("\n**Base Permission(s):**\n{0}", BasePerm);
+			var descStr = String.Format("\n**Description:**\n{0}", Text);
+			return String.Join("\n", new[] { aliasStr, usageStr, permStr, descStr });
 		}
 	}
 
@@ -2255,7 +2265,7 @@ namespace Advobot
 		}
 		public bool CheckIfAllowedToPunish(SpamPrevention spamPrev, SpamType spamType, IMessage msg)
 		{
-			return Actions.GetCountOfItemsInTimeFrame(SpamLists[spamType], spamPrev.TimeInterval) >= spamPrev.RequiredSpamInstances;
+			return Gets.GetCountOfItemsInTimeFrame(SpamLists[spamType], spamPrev.TimeInterval) >= spamPrev.RequiredSpamInstances;
 		}
 		public async Task Punish(BotGuildInfo guildInfo, IGuild guild)
 		{
@@ -2263,12 +2273,12 @@ namespace Advobot
 			{
 				case PunishmentType.Role:
 				{
-					await Actions.MuteUser(guildInfo, User);
+					await Roles.MuteUser(guildInfo, User);
 					return;
 				}
 				case PunishmentType.Kick:
 				{
-					await Actions.BotKickUser(User, "voted spam prevention");
+					await Users.BotKickUser(User, "voted spam prevention");
 					return;
 				}
 				case PunishmentType.KickThenBan:
@@ -2276,17 +2286,17 @@ namespace Advobot
 					//Check if they've already been kicked to determine if they should be banned or kicked
 					if (AlreadyKicked)
 					{
-						await Actions.BotBanUser(guild, User.Id, 1, "voted spam prevention");
+						await Users.BotBanUser(guild, User.Id, 1, "voted spam prevention");
 					}
 					else
 					{
-						await Actions.BotKickUser(User, "voted spam prevention");
+						await Users.BotKickUser(User, "voted spam prevention");
 					}
 					return;
 				}
 				case PunishmentType.Ban:
 				{
-					await Actions.BotBanUser(guild, User.Id, 1, "voted spam prevention");
+					await Users.BotBanUser(guild, User.Id, 1, "voted spam prevention");
 					return;
 				}
 				default:
@@ -2586,7 +2596,7 @@ namespace Advobot
 			Guild = context.Guild.FormatGuild();
 			Channel = context.Channel.FormatChannel();
 			User = context.User.FormatUser();
-			Time = Actions.FormatDateTime(context.Message.CreatedAt);
+			Time = Actions.Formatting.FormatDateTime(context.Message.CreatedAt);
 			Text = context.Message.Content;
 		}
 

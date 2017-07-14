@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using Advobot.Actions;
+using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -28,12 +29,12 @@ namespace Advobot
 			{
 				if (reason)
 				{
-					await Actions.SendChannelMessage(Context, String.Format("`{0}`'s ban reason is `{1}`.", ban.User.FormatUser(), ban.Reason ?? "Nothing"));
+					await Messages.SendChannelMessage(Context, String.Format("`{0}`'s ban reason is `{1}`.", ban.User.FormatUser(), ban.Reason ?? "Nothing"));
 				}
 				else
 				{
 					await Context.Guild.RemoveBanAsync(ban.User);
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unbanned `{0}`", ban.User.FormatUser()));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unbanned `{0}`", ban.User.FormatUser()));
 				}
 			}
 		}
@@ -62,10 +63,10 @@ namespace Advobot
 				if (channel == null)
 				{
 					//Default to channel command was said on if no channel was specified
-					var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanDeleteMessages }, Context.Channel as ITextChannel);
+					var returnedChannel = Channels.GetChannel(Context, new[] { ObjectVerification.CanDeleteMessages }, Context.Channel as ITextChannel);
 					if (returnedChannel.Reason != FailureReason.NotFailure)
 					{
-						await Actions.HandleObjectGettingErrors(Context, returnedChannel);
+						await Messages.HandleObjectGettingErrors(Context, returnedChannel);
 						return;
 					}
 					channel = returnedChannel.Object as ITextChannel;
@@ -77,14 +78,14 @@ namespace Advobot
 				if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
 				{
 					var DMChannel = await (await Context.Guild.GetOwnerAsync()).GetOrCreateDMChannelAsync();
-					await Actions.SendDMMessage(DMChannel, String.Format("`{0}` is trying to delete stuff from a log channel: `{1}`.", Context.User.FormatUser(), channel.FormatChannel()));
+					await Messages.SendDMMessage(DMChannel, String.Format("`{0}` is trying to delete stuff from a log channel: `{1}`.", Context.User.FormatUser(), channel.FormatChannel()));
 					return;
 				}
 
-				var response = String.Format("Successfully deleted `{0}` message{1}", await Actions.RemoveMessages(channel, Context.Message, user, requestCount), Actions.GetPlural(requestCount));
+				var response = String.Format("Successfully deleted `{0}` message{1}", await Messages.RemoveMessages(channel, Context.Message, user, requestCount), Gets.GetPlural(requestCount));
 				var userResp = user != null ? String.Format(" from `{0}`", user.FormatUser()) : null;
 				var chanResp = channel != null ? String.Format(" on `{0}`", channel.FormatChannel()) : null;
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.JoinNonNullStrings(" ", response, userResp, chanResp) + ".");
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.JoinNonNullStrings(" ", response, userResp, chanResp) + ".");
 			}
 		}
 	}
@@ -119,7 +120,7 @@ namespace Advobot
 			{
 				if (!int.TryParse(timeStr, out time))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time."));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid time."));
 					return;
 				}
 			}
@@ -140,7 +141,7 @@ namespace Advobot
 			{
 				response += String.Format("\nThe mute will last for `{0}` minute{1}.", time, Actions.GetPlural(time));
 			}
-			await Actions.MakeAndDeleteSecondaryMessage(Context, response);
+			await Messages.MakeAndDeleteSecondaryMessage(Context, response);
 		}
 
 		[Command("voicemute")]
@@ -167,7 +168,7 @@ namespace Advobot
 			{
 				if (!int.TryParse(timeStr, out time))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time."));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid time."));
 					return;
 				}
 			}
@@ -191,12 +192,12 @@ namespace Advobot
 					Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, PunishmentType.Mute, DateTime.UtcNow.AddMinutes(time)));
 					response += String.Format("The mute will last for `{0}` minute{1}.", time, Actions.GetPlural(time));
 				}
-				await Actions.MakeAndDeleteSecondaryMessage(Context, response);
+				await Messages.MakeAndDeleteSecondaryMessage(Context, response);
 			}
 			else
 			{
 				await user.ModifyAsync(x => x.Mute = false);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unmuted `{0}`.", user.FormatUser()));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unmuted `{0}`.", user.FormatUser()));
 			}
 		}
 
@@ -224,7 +225,7 @@ namespace Advobot
 			{
 				if (!int.TryParse(timeStr, out time))
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Invalid time."));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid time."));
 					return;
 				}
 			}
@@ -248,12 +249,12 @@ namespace Advobot
 					Variables.PunishedUsers.Add(new RemovablePunishment(Context.Guild, user.Id, PunishmentType.Deafen, DateTime.UtcNow.AddMinutes(time)));
 					response += String.Format("The deafen will last for `{0}` minute{1}.", time, Actions.GetPlural(time));
 				}
-				await Actions.MakeAndDeleteSecondaryMessage(Context, response);
+				await Messages.MakeAndDeleteSecondaryMessage(Context, response);
 			}
 			else
 			{
 				await user.ModifyAsync(x => x.Deaf = false);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully undeafened `{0}`.", user.FormatUser()));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully undeafened `{0}`.", user.FormatUser()));
 			}
 		}
 
@@ -286,7 +287,7 @@ namespace Advobot
 			var userChan = user.VoiceChannel;
 			if (userChan == null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is not in a voice channel."));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("User is not in a voice channel."));
 				return;
 			}
 
@@ -302,12 +303,12 @@ namespace Advobot
 			//See if trying to put user in the exact same channel
 			if (userChan == channel)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("User is already in that channel"));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("User is already in that channel"));
 				return;
 			}
 
 			await user.ModifyAsync(x => x.Channel = Optional.Create(channel));
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully moved `{0}` to `{1}`.", user.FormatUser(), channel.Name));
+			await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully moved `{0}` to `{1}`.", user.FormatUser(), channel.Name));
 		}
 
 		[Command("moveusers")]
@@ -351,7 +352,7 @@ namespace Advobot
 			//Have the bot stay in the typing state and have a message that can be updated
 			Actions.DontWaitForResultOfBigUnimportantFunction(Context.Channel, async () =>
 			{
-				var msg = await Actions.SendChannelMessage(Context, String.Format("Attempting to move `{0}` user{1}.", users.Count, Actions.GetPlural(users.Count))) as IUserMessage;
+				var msg = await Messages.SendChannelMessage(Context, String.Format("Attempting to move `{0}` user{1}.", users.Count, Actions.GetPlural(users.Count))) as IUserMessage;
 
 				//Move them all
 				var count = 0;
@@ -368,7 +369,7 @@ namespace Advobot
 
 				//Send a success message
 				var desc = String.Format("Successfully moved `{0}` user{1} from `{2}` to `{3}`.", users.Count, Actions.GetPlural(users.Count), inputChannel.FormatChannel(), outputChannel.FormatChannel());
-				await Actions.MakeAndDeleteSecondaryMessage(Context, desc);
+				await Messages.MakeAndDeleteSecondaryMessage(Context, desc);
 			});
 		}
 
@@ -391,39 +392,39 @@ namespace Advobot
 
 			if (String.IsNullOrWhiteSpace(dayStr))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Days has to be input."));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Days has to be input."));
 				return;
 			}
 			if (!int.TryParse(dayStr, out int amountOfDays))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for days is not a number."));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The input for days is not a number."));
 				return;
 			}
 			else if (!new[] { 1, 7, 30 }.Contains(amountOfDays))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for days is not a valid number."));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The input for days is not a valid number."));
 				return;
 			}
 
 			if (String.IsNullOrWhiteSpace(simStr))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The bool for simulate has to be input."));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The bool for simulate has to be input."));
 				return;
 			}
 			if (!bool.TryParse(simStr, out bool simulate))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for simulate is not a bool."));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The input for simulate is not a bool."));
 				return;
 			}
 
 			var amount = await Context.Guild.PruneUsersAsync(amountOfDays, simulate);
 			if (simulate)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members would have been pruned with a prune period of `{1}` days.", amount, amountOfDays));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members would have been pruned with a prune period of `{1}` days.", amount, amountOfDays));
 			}
 			else
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members have been pruned with a prune period of `{1}` days.", amount, amountOfDays));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` members have been pruned with a prune period of `{1}` days.", amount, amountOfDays));
 			}
 		}
 
@@ -460,7 +461,7 @@ namespace Advobot
 			{
 				response += String.Format(" The given reason for softbanning is: `{0}`.", reasonStr);
 			}
-			await Actions.MakeAndDeleteSecondaryMessage(Context, response);
+			await Messages.MakeAndDeleteSecondaryMessage(Context, response);
 		}
 
 		[Command("ban")]
@@ -527,7 +528,7 @@ namespace Advobot
 			var ban = (await Context.Guild.GetBansAsync()).FirstOrDefault(x => x.User.Id == banID);
 			if (ban != null)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("The user `{0}` is already banned from the server.", ban.User.FormatUser())));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("The user `{0}` is already banned from the server.", ban.User.FormatUser())));
 				return;
 			}
 
@@ -550,7 +551,7 @@ namespace Advobot
 			{
 				response += String.Format(" The given reason for banning is: `{0}`.", reasonStr);
 			}
-			await Actions.SendChannelMessage(Context, response);
+			await Messages.SendChannelMessage(Context, response);
 		}
 
 		[Command("kick")]
@@ -585,7 +586,7 @@ namespace Advobot
 			{
 				response += String.Format(" The given reason for kicking is: `{0}`.", reasonStr);
 			}
-			await Actions.MakeAndDeleteSecondaryMessage(Context, response);
+			await Messages.MakeAndDeleteSecondaryMessage(Context, response);
 		}
 
 		[Command("displaycurrentbanlist")]
@@ -599,13 +600,13 @@ namespace Advobot
 			var bans = (await Context.Guild.GetBansAsync()).ToList();
 			if (!bans.Any())
 			{
-				await Actions.SendChannelMessage(Context, "This guild has no bans.");
+				await Messages.SendChannelMessage(Context, "This guild has no bans.");
 				return;
 			}
 
 
 			var str = bans.FormatNumberedList("`{0}`", x => x.User.FormatUser());
-			await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Current Bans", str));
+			await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Current Bans", str));
 		}
 
 		
@@ -637,27 +638,27 @@ namespace Advobot
 				var targStr = returnedArgs.Arguments[1];
 				if (returnedArgs.ArgCount != 2)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(Constants.ARGUMENTS_ERROR));
 				}
 				else if (Actions.CaseInsEquals(targStr, "guild"))
 				{
 					guildInfo.SetSetting(SettingOnGuild.SlowmodeGuild, null, false);
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the guild.");
+					await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the guild.");
 				}
 				else if (Actions.CaseInsEquals(targStr, "channel"))
 				{
 					((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels)).ThreadSafeRemoveAll(x => x.ChannelID == Context.Channel.Id);
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the channel.");
+					await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the channel.");
 				}
 				else if (Actions.CaseInsEquals(targStr, "all"))
 				{
 					guildInfo.SetSetting(SettingOnGuild.SlowmodeGuild, null, false);
 					((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels)).Clear();
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed all slowmodes on the guild and its channels.");
+					await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully removed all slowmodes on the guild and its channels.");
 				}
 				else
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("With off, the second argument must be either Guild, Channel, or All."));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("With off, the second argument must be either Guild, Channel, or All."));
 				}
 				return;
 			}
@@ -669,7 +670,7 @@ namespace Advobot
 				var smGuild = ((SlowmodeGuild)guildInfo.GetSetting(SettingOnGuild.SlowmodeGuild));
 				if (smGuild != null)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "Guild already is in slowmode.");
+					await Messages.MakeAndDeleteSecondaryMessage(Context, "Guild already is in slowmode.");
 					return;
 				}
 			}
@@ -678,7 +679,7 @@ namespace Advobot
 				var smChannel = ((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels)).FirstOrDefault(x => x.ChannelID == Context.Channel.Id);
 				if (smChannel != null)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, "Channel already is in slowmode.");
+					await Messages.MakeAndDeleteSecondaryMessage(Context, "Channel already is in slowmode.");
 					return;
 				}
 			}
@@ -708,13 +709,13 @@ namespace Advobot
 				{
 					if (msgsLimit > 5 || msgsLimit < 1)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Message limit must be between 1 and 5 inclusive."));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Message limit must be between 1 and 5 inclusive."));
 						return;
 					}
 				}
 				else
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for messages was not a number. Remember: no space after the colon."));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The input for messages was not a number. Remember: no space after the colon."));
 					return;
 				}
 			}
@@ -727,13 +728,13 @@ namespace Advobot
 				{
 					if (timeLimit > 30 || timeLimit < 1)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Time must be between 1 and 10 inclusive."));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Time must be between 1 and 10 inclusive."));
 						return;
 					}
 				}
 				else
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The input for time was not a number. Remember: no space after the colon."));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The input for time was not a number. Remember: no space after the colon."));
 					return;
 				}
 			}
@@ -749,7 +750,7 @@ namespace Advobot
 			}
 
 			//Send a success message
-			await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled slowmode on `{0}` with a message limit of `{1}` and time interval of `{2}` seconds.{3}",
+			await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled slowmode on `{0}` with a message limit of `{1}` and time interval of `{2}` seconds.{3}",
 				guild ? Context.Guild.FormatGuild() : Context.Channel.FormatChannel(),
 				msgsLimit,
 				timeLimit,
@@ -779,7 +780,7 @@ namespace Advobot
 
 			if (!Enum.TryParse(actionStr, true, out FAWRType action))
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ACTION_ERROR));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(Constants.ACTION_ERROR));
 				return;
 			}
 			action = Actions.ClarifyFAWRType(action);
@@ -788,7 +789,7 @@ namespace Advobot
 			{
 				if (returnedArgs.ArgCount < 3)
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(Constants.ARGUMENTS_ERROR));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(Constants.ARGUMENTS_ERROR));
 					return;
 				}
 			}
@@ -808,7 +809,7 @@ namespace Advobot
 				{
 					if (Actions.CaseInsEquals(inputStr, outputStr))
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Cannot give the same role that is being gathered."));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Cannot give the same role that is being gathered."));
 						return;
 					}
 					break;
@@ -817,12 +818,12 @@ namespace Advobot
 				{
 					if (outputStr.Length > Constants.MAX_NICKNAME_LENGTH)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be longer than `{0}` charaters.", Constants.MAX_NICKNAME_LENGTH)));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("Nicknames cannot be longer than `{0}` charaters.", Constants.MAX_NICKNAME_LENGTH)));
 						return;
 					}
 					else if (outputStr.Length < Constants.MIN_NICKNAME_LENGTH)
 					{
-						await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MIN_NICKNAME_LENGTH)));
+						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("Nicknames cannot be less than `{0}` characters.", Constants.MIN_NICKNAME_LENGTH)));
 						return;
 					}
 					break;
@@ -835,7 +836,7 @@ namespace Advobot
 			var userCount = users.Count;
 			if (userCount == 0)
 			{
-				await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("Unable to find any users with the input role that could be modified."));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Unable to find any users with the input role that could be modified."));
 				return;
 			}
 
@@ -878,7 +879,7 @@ namespace Advobot
 				}
 			}
 
-			var msg = await Actions.SendChannelMessage(Context, String.Format("Attempted to edit `{0}` user{1}.", userCount, Actions.GetPlural(userCount))) as IUserMessage;
+			var msg = await Messages.SendChannelMessage(Context, String.Format("Attempted to edit `{0}` user{1}.", userCount, Actions.GetPlural(userCount))) as IUserMessage;
 			var typing = Context.Channel.EnterTypingState();
 			var count = 0;
 
@@ -896,7 +897,7 @@ namespace Advobot
 								await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
 								if (Context.Guild.GetRole(outputRole.Id) == null)
 								{
-									await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The output role has been deleted."));
+									await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The output role has been deleted."));
 									return;
 								}
 							}
@@ -904,7 +905,7 @@ namespace Advobot
 							await Actions.GiveRole(user, outputRole);
 						}
 
-						await Actions.SendChannelMessage(Context, String.Format("Successfully gave the role `{0}` to `{1}` users.", outputRole.FormatRole(), count));
+						await Messages.SendChannelMessage(Context, String.Format("Successfully gave the role `{0}` to `{1}` users.", outputRole.FormatRole(), count));
 						break;
 					}
 					case FAWRType.Take_Role:
@@ -917,7 +918,7 @@ namespace Advobot
 								await msg.ModifyAsync(x => x.Content = String.Format("ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
 								if (Context.Guild.GetRole(outputRole.Id) == null)
 								{
-									await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR("The output role has been deleted."));
+									await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The output role has been deleted."));
 									return;
 								}
 							}
@@ -925,7 +926,7 @@ namespace Advobot
 							await Actions.TakeRole(user, outputRole);
 						}
 
-						await Actions.SendChannelMessage(Context, String.Format("Successfully took the role `{0}` from `{1}` users.", outputRole.FormatRole(), count));
+						await Messages.SendChannelMessage(Context, String.Format("Successfully took the role `{0}` from `{1}` users.", outputRole.FormatRole(), count));
 						break;
 					}
 				}

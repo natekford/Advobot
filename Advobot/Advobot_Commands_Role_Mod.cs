@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using Advobot.Actions;
+using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -25,8 +26,8 @@ namespace Advobot
 
 			private async Task CommandRunner(IGuildUser user, IRole[] roles)
 			{
-				await Actions.GiveRoles(user, roles);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave the following roles to `{0}`: `{1}`.", user.FormatUser(), String.Join("`, `", roles.Select(x => x.FormatRole()))));
+				await Roles.GiveRoles(user, roles);
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave the following roles to `{0}`: `{1}`.", user.FormatUser(), String.Join("`, `", roles.Select(x => x.FormatRole()))));
 			}
 		}
 
@@ -45,8 +46,8 @@ namespace Advobot
 
 			private async Task CommandRunner(IGuildUser user, IRole[] roles)
 			{
-				await Actions.TakeRoles(user, roles);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully took the following roles from `{0}`: `{1}`.", user.FormatUser(), String.Join("`, `", roles.Select(x => x.FormatRole()))));
+				await Roles.TakeRoles(user, roles);
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully took the following roles from `{0}`: `{1}`.", user.FormatUser(), String.Join("`, `", roles.Select(x => x.FormatRole()))));
 			}
 		}
 
@@ -66,7 +67,7 @@ namespace Advobot
 			private async Task CommandRunner(string name)
 			{
 				await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0));
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created the role `{0}`.", name));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created the role `{0}`.", name));
 			}
 		}
 
@@ -93,8 +94,8 @@ namespace Advobot
 				await role.DeleteAsync();
 				var newRole = await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), color);
 
-				await Actions.ModifyRolePosition(newRole, position);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all permissions from the role `{0}` and removed the role from all users on the guild.", role.Name));
+				await Roles.ModifyRolePosition(newRole, position);
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all permissions from the role `{0}` and removed the role from all users on the guild.", role.Name));
 			}
 		}
 
@@ -114,7 +115,7 @@ namespace Advobot
 			private async Task CommandRunner(IRole role)
 			{
 				await role.DeleteAsync();
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}`.", role.FormatRole()));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}`.", role.FormatRole()));
 			}
 		}
 
@@ -133,14 +134,14 @@ namespace Advobot
 
 			private async Task CommandRunner(IRole role, uint position)
 			{
-				var newPos = await Actions.ModifyRolePosition(role, (int)position);
+				var newPos = await Roles.ModifyRolePosition(role, (int)position);
 				if (newPos != -1)
 				{
-					await Actions.SendChannelMessage(Context, String.Format("Successfully gave `{0}` the position `{1}`.", role.FormatRole(), newPos));
+					await Messages.SendChannelMessage(Context, String.Format("Successfully gave `{0}` the position `{1}`.", role.FormatRole(), newPos));
 				}
 				else
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Failed to give `{0}` the position `{1}`.", role.FormatRole(), position));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Failed to give `{0}` the position `{1}`.", role.FormatRole(), position));
 				}
 			}
 		}
@@ -171,7 +172,7 @@ namespace Advobot
 						return String.Format("`{0}.` {1}", x.Position.ToString("00"), x.Name);
 					}
 				}));
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Role Positions", desc));
+				await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Role Positions", desc));
 			}
 		}
 
@@ -204,8 +205,8 @@ namespace Advobot
 				var invalidPerms = permissions.Where(x => !Variables.GuildPermissions.Select(y => y.Name).CaseInsContains(x));
 				if (invalidPerms.Any())
 				{
-					await Actions.MakeAndDeleteSecondaryMessage(Context, Actions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.",
-						Actions.GetPlural(invalidPerms.Count()),
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("Invalid permission{0} provided: `{1}`.",
+						Gets.GetPlural(invalidPerms.Count()),
 						String.Join("`, `", invalidPerms))));
 					return;
 				}
@@ -213,7 +214,7 @@ namespace Advobot
 				ulong changeValue = 0;
 				foreach (var permission in permissions)
 				{
-					changeValue = Actions.AddGuildPermissionBit(permission, changeValue);
+					changeValue = Guilds.AddGuildPermissionBit(permission, changeValue);
 				}
 
 				//Only modify permissions the user has the ability to
@@ -239,8 +240,8 @@ namespace Advobot
 
 				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(roleBits));
 
-				var changedPerms = Actions.GetPermissionNames(changeValue);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}`.",
+				var changedPerms = Gets.GetPermissionNames(changeValue);
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}`.",
 					actionStr,
 					changedPerms.Any() ? String.Join("`, `", changedPerms) : "Nothing",
 					role.FormatRole()));
@@ -249,13 +250,13 @@ namespace Advobot
 			{
 				if (role == null)
 				{
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Guild Permission Types", String.Format("`{0}`", String.Join("`, `", Variables.GuildPermissions.Select(x => x.Name)))));
+					await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Guild Permission Types", String.Format("`{0}`", String.Join("`, `", Variables.GuildPermissions.Select(x => x.Name)))));
 					return;
 				}
 
 				var currentRolePerms = Variables.GuildPermissions.Where(x => (role.Permissions.RawValue & x.Bit) != 0).Select(x => x.Name);
 				var permissions = currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission";
-				await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed(role.Name, String.Format("`{0}`", permissions)));
+				await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(role.Name, String.Format("`{0}`", permissions)));
 			}
 		}
 
@@ -299,15 +300,15 @@ namespace Advobot
 
 				await outputRole.ModifyAsync(x => x.Permissions = new GuildPermissions(newRoleBits));
 
-				var immovablePerms = Actions.GetPermissionNames(immovableBits);
-				var failedToCopy = Actions.GetPermissionNames(inputRoleBits & ~copyBits);
-				var newPerms = Actions.GetPermissionNames(newRoleBits);
+				var immovablePerms = Gets.GetPermissionNames(immovableBits);
+				var failedToCopy = Gets.GetPermissionNames(inputRoleBits & ~copyBits);
+				var newPerms = Gets.GetPermissionNames(newRoleBits);
 				var immovablePermsStr = immovablePerms.Any() ? "Output role had some permissions unable to be removed by you." : null;
 				var failedToCopyStr = failedToCopy.Any() ? "Input role had some permission unable to be copied by you." : null;
 				var newPermsStr = String.Format("`{0}` now has the following permissions: `{1}`.", outputRole.FormatRole(), newPerms.Any() ? String.Join("`, `", newPerms) : "Nothing");
 
-				var response = Actions.JoinNonNullStrings(" ", immovablePermsStr, failedToCopyStr, newPermsStr);
-				await Actions.SendChannelMessage(Context, response);
+				var response = Formatting.JoinNonNullStrings(" ", immovablePermsStr, failedToCopyStr, newPermsStr);
+				await Messages.SendChannelMessage(Context, response);
 			}
 		}
 
@@ -332,12 +333,12 @@ namespace Advobot
 
 				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(immovableBits));
 
-				var immovablePerms = Actions.GetPermissionNames(immovableBits);
+				var immovablePerms = Gets.GetPermissionNames(immovableBits);
 				var immovablePermsStr = immovablePerms.Any() ? "Role had some permissions unable to be cleared by you." : null;
 				var newPermsStr = String.Format("`{0}` now has the following permissions: `{1}`.", role.FormatRole(), immovablePerms.Any() ? String.Join("`, `", immovablePerms) : "Nothing");
 
-				var response = Actions.JoinNonNullStrings(" ", immovablePermsStr, newPermsStr);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, response);
+				var response = Formatting.JoinNonNullStrings(" ", immovablePermsStr, newPermsStr);
+				await Messages.MakeAndDeleteSecondaryMessage(Context, response);
 			}
 		}
 
@@ -357,7 +358,7 @@ namespace Advobot
 			private async Task CommandRunner(IRole role, string name)
 			{
 				await Context.Guild.GetRole(role.Id).ModifyAsync(x => x.Name = name);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the name of `{0}` to `{1}`.", role.FormatRole(), name));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the name of `{0}` to `{1}`.", role.FormatRole(), name));
 			}
 		}
 
@@ -381,12 +382,12 @@ namespace Advobot
 				if (role == null)
 				{
 					var desc = String.Format("`{0}`", String.Join("`, `", Constants.Colors.Keys));
-					await Actions.SendEmbedMessage(Context.Channel, Actions.MakeNewEmbed("Colors", desc));
+					await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Colors", desc));
 					return;
 				}
 
 				await role.ModifyAsync(x => x.Color = color);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the color of `{0}` to `{1}/{2}/{3}`.", role.FormatRole(), color.R, color.G, color.B));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the color of `{0}` to `{1}/{2}/{3}`.", role.FormatRole(), color.R, color.G, color.B));
 			}
 		}
 
@@ -406,7 +407,7 @@ namespace Advobot
 			private async Task CommandRunner(IRole role)
 			{
 				await role.ModifyAsync(x => x.Hoist = !role.IsHoisted);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}`.", (role.IsHoisted ? "dehoisted" : "hoisted"), role.FormatRole()));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}`.", (role.IsHoisted ? "dehoisted" : "hoisted"), role.FormatRole()));
 			}
 		}
 
@@ -426,7 +427,7 @@ namespace Advobot
 			private async Task CommandRunner(IRole role)
 			{
 				await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable);
-				await Actions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully made `{0}` {1}.", role.FormatRole(), (role.IsMentionable ? "unmentionable" : "mentionable")));
+				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully made `{0}` {1}.", role.FormatRole(), (role.IsMentionable ? "unmentionable" : "mentionable")));
 			}
 		}
 	}

@@ -1,4 +1,5 @@
-﻿using Advobot.Logging;
+﻿using Advobot.Actions;
+using Advobot.Logging;
 using Discord;
 using ICSharpCode.AvalonEdit;
 using Newtonsoft.Json;
@@ -432,9 +433,9 @@ namespace Advobot
 			//Validate path/botkey after the UI has launched to have them logged
 			Task.Run(async () =>
 			{
-				Actions.ValidatePath(BotInfo, Properties.Settings.Default.Path, true);
-				await Actions.ValidateBotKey(Client, BotInfo, Properties.Settings.Default.BotKey, true);
-				await Actions.MaybeStartBot(Client, BotInfo);
+				SavingAndLoading.ValidatePath(BotInfo, Properties.Settings.Default.Path, true);
+				await SavingAndLoading.ValidateBotKey(Client, BotInfo, Properties.Settings.Default.BotKey, true);
+				await SavingAndLoading.MaybeStartBot(Client, BotInfo);
 			});
 
 			mUIInfo.InitializeColors();
@@ -461,12 +462,12 @@ namespace Advobot
 		{
 			if (BotInfo.Pause)
 			{
-				Actions.WriteLine("The bot is now unpaused.");
+				Messages.WriteLine("The bot is now unpaused.");
 				BotInfo.TogglePause();
 			}
 			else
 			{
-				Actions.WriteLine("The bot is now paused.");
+				Messages.WriteLine("The bot is now paused.");
 				BotInfo.TogglePause();
 			}
 		}
@@ -476,7 +477,7 @@ namespace Advobot
 			{
 				case MessageBoxResult.OK:
 				{
-					Actions.RestartBot();
+					Misc.RestartBot();
 					return;
 				}
 			}
@@ -487,7 +488,7 @@ namespace Advobot
 			{
 				case MessageBoxResult.OK:
 				{
-					Actions.DisconnectBot();
+					Misc.DisconnectBot();
 					return;
 				}
 			}
@@ -529,15 +530,15 @@ namespace Advobot
 			//Notify what was saved
 			if (success.Any())
 			{
-				Actions.WriteLine(String.Format("Successfully saved: {0}", String.Join(", ", success)));
-				Actions.DontWaitForResultOfBigUnimportantFunction(null, async () =>
+				Messages.WriteLine(String.Format("Successfully saved: {0}", String.Join(", ", success)));
+				Misc.DontWaitForResultOfBigUnimportantFunction(null, async () =>
 				{
-					await Actions.UpdateGame(Client, BotInfo);
+					await Misc.UpdateGame(Client, BotInfo);
 				});
 			}
 			if (failure.Any())
 			{
-				Actions.WriteLine(String.Format("Failed to save: {0}", String.Join(", ", failure)));
+				Messages.WriteLine(String.Format("Failed to save: {0}", String.Join(", ", failure)));
 			}
 		}
 		private void SaveColors(object sender, RoutedEventArgs e)
@@ -570,7 +571,7 @@ namespace Advobot
 					}
 					catch
 					{
-						Actions.WriteLine(String.Format("Invalid color supplied for {0}.", target.EnumName()));
+						Messages.WriteLine(String.Format("Invalid color supplied for {0}.", target.EnumName()));
 						continue;
 					}
 
@@ -578,7 +579,7 @@ namespace Advobot
 					{
 						mUIInfo.ColorTargets[target] = brush;
 						castedChild.Text = UIModification.FormatBrush(brush);
-						Actions.WriteLine(String.Format("Successfully updated the color for {0}.", target.EnumName()));
+						Messages.WriteLine(String.Format("Successfully updated the color for {0}.", target.EnumName()));
 					}
 				}
 				else if (child is ComboBox)
@@ -589,7 +590,7 @@ namespace Advobot
 						continue;
 
 					mUIInfo.SetTheme((ColorTheme)tag);
-					Actions.WriteLine("Successfully updated the theme type.");
+					Messages.WriteLine("Successfully updated the theme type.");
 				}
 			}
 
@@ -623,7 +624,7 @@ namespace Advobot
 			}
 			else
 			{
-				Actions.WriteLine(String.Format("The given input '{0}' is not a valid ID.", text));
+				Messages.WriteLine(String.Format("The given input '{0}' is not a valid ID.", text));
 			}
 		}
 		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
@@ -678,13 +679,13 @@ namespace Advobot
 				{
 					if (!BotInfo.GotPath)
 					{
-						Actions.ValidatePath(BotInfo, input);
+						SavingAndLoading.ValidatePath(BotInfo, input);
 					}
 					else if (!BotInfo.GotKey)
 					{
-						await Actions.ValidateBotKey(Client, BotInfo, input);
+						await SavingAndLoading.ValidateBotKey(Client, BotInfo, input);
 					}
-					await Actions.MaybeStartBot(Client, BotInfo);
+					await SavingAndLoading.MaybeStartBot(Client, BotInfo);
 				});
 			}
 			else
@@ -704,10 +705,10 @@ namespace Advobot
 		private void SaveOutput(object sender, RoutedEventArgs e)
 		{
 			//Make sure the path is valid
-			var path = Actions.GetBaseBotDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
+			var path = Gets.GetBaseBotDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
 			if (path == null)
 			{
-				Actions.WriteLine("Unable to save the output log.");
+				Messages.WriteLine("Unable to save the output log.");
 				return;
 			}
 
@@ -718,7 +719,7 @@ namespace Advobot
 			}
 
 			//Write to the console telling the user that the console log was successfully saved
-			Actions.WriteLine("Successfully saved the output log.");
+			Messages.WriteLine("Successfully saved the output log.");
 		}
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
@@ -790,7 +791,7 @@ namespace Advobot
 			{
 				if (!ulong.TryParse(idStr, out ulong guildID))
 				{
-					Actions.WriteLine(String.Format("The ID '{0}' is not a valid number.", idStr));
+					Messages.WriteLine(String.Format("The ID '{0}' is not a valid number.", idStr));
 					return;
 				}
 				else
@@ -802,7 +803,7 @@ namespace Advobot
 
 					if (guild == null)
 					{
-						Actions.WriteLine(String.Format("No guild could be found with the ID '{0}'.", guildID));
+						Messages.WriteLine(String.Format("No guild could be found with the ID '{0}'.", guildID));
 						return;
 					}
 				}
@@ -816,7 +817,7 @@ namespace Advobot
 
 				if (guilds.Count() == 0)
 				{
-					Actions.WriteLine(String.Format("No guild could be found with the name '{0}'.", nameStr));
+					Messages.WriteLine(String.Format("No guild could be found with the name '{0}'.", nameStr));
 					return;
 				}
 				else if (guilds.Count() == 1)
@@ -825,7 +826,7 @@ namespace Advobot
 				}
 				else
 				{
-					Actions.WriteLine("More than one guild has the name '{0}'.", nameStr);
+					Messages.WriteLine("More than one guild has the name '{0}'.", nameStr);
 					return;
 				}
 			}
@@ -853,7 +854,7 @@ namespace Advobot
 			}
 			else
 			{
-				Actions.WriteLine("Unable to bring up the file.");
+				Messages.WriteLine("Unable to bring up the file.");
 			}
 		}
 		private void CloseSpecificFileLayout(object sender, RoutedEventArgs e)
@@ -891,7 +892,7 @@ namespace Advobot
 				}
 				catch (Exception exc)
 				{
-					Actions.ExceptionToConsole(exc);
+					Messages.ExceptionToConsole(exc);
 					UIModification.MakeFollowingToolTip(mLayout, mToolTip, "Failed to save the file.").Forget();
 					return;
 				}
@@ -938,7 +939,7 @@ namespace Advobot
 			{
 				if (!ulong.TryParse(idStr, out ulong userID))
 				{
-					Actions.WriteLine(String.Format("The ID '{0}' is not a valid number.", idStr));
+					Messages.WriteLine(String.Format("The ID '{0}' is not a valid number.", idStr));
 					return;
 				}
 				else
@@ -950,7 +951,7 @@ namespace Advobot
 
 					if (DMChannel == null)
 					{
-						Actions.WriteLine(String.Format("No user could be found with the ID '{0}'.", userID));
+						Messages.WriteLine(String.Format("No user could be found with the ID '{0}'.", userID));
 						return;
 					}
 				}
@@ -967,7 +968,7 @@ namespace Advobot
 				{
 					if (!ushort.TryParse(discStr, out ushort disc))
 					{
-						Actions.WriteLine(String.Format("The discriminator '{0}' is not a valid number.", discStr));
+						Messages.WriteLine(String.Format("The discriminator '{0}' is not a valid number.", discStr));
 						return;
 					}
 					else
@@ -982,7 +983,7 @@ namespace Advobot
 
 				if (DMChannels.Count() == 0)
 				{
-					Actions.WriteLine(String.Format("No user could be found with the name '{0}'.", nameStr));
+					Messages.WriteLine(String.Format("No user could be found with the name '{0}'.", nameStr));
 					return;
 				}
 				else if (DMChannels.Count() == 1)
@@ -991,7 +992,7 @@ namespace Advobot
 				}
 				else
 				{
-					Actions.WriteLine("More than one user has the name '{0}'.", nameStr);
+					Messages.WriteLine("More than one user has the name '{0}'.", nameStr);
 					return;
 				}
 			}
@@ -1011,7 +1012,7 @@ namespace Advobot
 			}
 			else
 			{
-				Actions.WriteLine("Unable to bring up the DMs.");
+				Messages.WriteLine("Unable to bring up the DMs.");
 			}
 		}
 		private void CloseSpecificDMLayout(object sender, RoutedEventArgs e)
@@ -1119,12 +1120,12 @@ namespace Advobot
 					userIDs.AddRange((await guild.GetUsersAsync()).Select(x => x.Id));
 				}
 
-				((TextBox)mLatency.Child).Text = String.Format("Latency: {0}ms", Actions.GetLatency((dynamic)Client));
-				((TextBox)mMemory.Child).Text = String.Format("Memory: {0}MB", Actions.GetMemory(BotInfo.Windows).ToString("0.00"));
+				((TextBox)mLatency.Child).Text = String.Format("Latency: {0}ms", Gets.GetLatency((dynamic)Client));
+				((TextBox)mMemory.Child).Text = String.Format("Memory: {0}MB", Gets.GetMemory(BotInfo.Windows).ToString("0.00"));
 				((TextBox)mThreads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
 				((TextBox)mGuilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
 				((TextBox)mUsers.Child).Text = String.Format("Members: {0}", userIDs.Distinct().Count());
-				mInfoOutput.Document = UIModification.MakeInfoMenu(Actions.GetUptime(BotInfo));
+				mInfoOutput.Document = UIModification.MakeInfoMenu(Gets.GetUptime(BotInfo));
 			};
 			timer.Start();
 		}
@@ -1177,12 +1178,12 @@ namespace Advobot
 			mSpecificDMDisplay.Clear();
 			mSpecificDMDisplay.Tag = DMChannel;
 
-			var messages = Actions.FormatDMs(await Actions.GetBotDMs(DMChannel));
+			var messages = Actions.Formatting.FormatDMs(await Messages.GetBotDMs(DMChannel));
 			if (messages.Any())
 			{
 				foreach (var message in messages)
 				{
-					mSpecificDMDisplay.AppendText(String.Format("{0}{1}----------{1}", Actions.ReplaceMarkdownChars(message, true), Environment.NewLine));
+					mSpecificDMDisplay.AppendText(String.Format("{0}{1}----------{1}", Actions.Formatting.ReplaceMarkdownChars(message, true), Environment.NewLine));
 				}
 			}
 			else
@@ -1647,7 +1648,7 @@ namespace Advobot
 				}
 				catch (Exception e)
 				{
-					Actions.ExceptionToConsole(e);
+					Messages.ExceptionToConsole(e);
 					return;
 				}
 
@@ -1723,9 +1724,9 @@ namespace Advobot
 		public static Hyperlink MakeHyperlink(string link, string name)
 		{
 			//Make sure the input is a valid link
-			if (!Actions.ValidateURL(link))
+			if (!Uploads.ValidateURL(link))
 			{
-				Actions.WriteLine(Actions.ERROR("Invalid URL."));
+				Messages.WriteLine(Actions.Formatting.ERROR("Invalid URL."));
 				return null;
 			}
 			//Create the hyperlink
@@ -1830,7 +1831,7 @@ namespace Advobot
 		public static TreeView MakeGuildTreeView(TreeView tv, IEnumerable<IGuild> guilds)
 		{
 			//Get the directory
-			var directory = Actions.GetBaseBotDirectory();
+			var directory = Gets.GetBaseBotDirectory();
 			if (directory == null || !Directory.Exists(directory))
 				return tv;
 
@@ -1860,7 +1861,7 @@ namespace Advobot
 				var listOfFiles = new List<TreeViewItem>();
 				Directory.GetFiles(guildDir).ToList().ForEach(fileLoc =>
 				{
-					var fileType = Actions.GetFileType(Path.GetFileNameWithoutExtension(fileLoc));
+					var fileType = Gets.GetFileType(Path.GetFileNameWithoutExtension(fileLoc));
 					if (!fileType.HasValue)
 						return;
 
@@ -1955,9 +1956,9 @@ namespace Advobot
 		public static FlowDocument MakeInfoMenu(string botUptime)
 		{
 			var uptime = String.Format("Uptime: {0}", botUptime);
-			var cmds = String.Format("Logged Commands:\n{0}", Actions.FormatLoggedCommands());
-			var logs = String.Format("Logged Actions:\n{0}", Actions.FormatLoggedThings());
-			var str = Actions.ReplaceMarkdownChars(String.Format("{0}\r\r{1}\r\r{2}", uptime, cmds, logs), true);
+			var cmds = String.Format("Logged Commands:\n{0}", Actions.Formatting.FormatLoggedCommands());
+			var logs = String.Format("Logged Actions:\n{0}", Actions.Formatting.FormatLoggedThings());
+			var str = Actions.Formatting.ReplaceMarkdownChars(String.Format("{0}\r\r{1}\r\r{2}", uptime, cmds, logs), true);
 			var paragraph = new Paragraph(new Run(str))
 			{
 				TextAlignment = TextAlignment.Center,
@@ -2049,7 +2050,7 @@ namespace Advobot
 			{
 				text += "This program really doesn't like that long Arabic character for some reason. Whenever there are a lot of them it crashes the program completely.";
 			}
-			Actions.WriteLine(text);
+			Messages.WriteLine(text);
 
 			tb.Text = "";
 			b.IsEnabled = false;
@@ -2065,7 +2066,7 @@ namespace Advobot
 				var args = inputArray.Length > 1 ? inputArray[1] : null;
 				if (!FindCommand(cmd, args))
 				{
-					Actions.WriteLine("No command could be found with that name.");
+					Messages.WriteLine("No command could be found with that name.");
 				}
 			}
 		}
@@ -2098,14 +2099,14 @@ namespace Advobot
 						totalLines += File.ReadAllLines(file).Count();
 					}
 				}
-				Actions.WriteLine(String.Format("Current Totals:{0}\t\t\t Chars: {1}{0}\t\t\t Lines: {2}", Environment.NewLine, totalChars, totalLines));
+				Messages.WriteLine(String.Format("Current Totals:{0}\t\t\t Chars: {1}{0}\t\t\t Lines: {2}", Environment.NewLine, totalChars, totalLines));
 			}
 			var resetKey = false;
 			if (resetKey)
 			{
 				Properties.Settings.Default.BotKey = "";
 				Properties.Settings.Default.Save();
-				Actions.DisconnectBot();
+				Misc.DisconnectBot();
 			}
 #endif
 		}
@@ -2328,7 +2329,7 @@ namespace Advobot
 		}
 		public void SaveBotUIInfo()
 		{
-			Actions.OverWriteFile(Actions.GetBaseBotDirectory(Constants.UI_INFO_LOCATION), Actions.Serialize(this));
+			SavingAndLoading.OverWriteFile(Gets.GetBaseBotDirectory(Constants.UI_INFO_LOCATION), SavingAndLoading.Serialize(this));
 		}
 		public void InitializeColors()
 		{
@@ -2415,12 +2416,12 @@ namespace Advobot
 		public static BotUIInfo LoadBotUIInfo(bool loaded)
 		{
 			var botInfo = new BotUIInfo();
-			var path = Actions.GetBaseBotDirectory(Constants.UI_INFO_LOCATION);
+			var path = Gets.GetBaseBotDirectory(Constants.UI_INFO_LOCATION);
 			if (!File.Exists(path))
 			{
 				if (loaded)
 				{
-					Actions.WriteLine("The bot UI information file does not exist.");
+					Messages.WriteLine("The bot UI information file does not exist.");
 				}
 				return botInfo;
 			}
@@ -2434,7 +2435,7 @@ namespace Advobot
 			}
 			catch (Exception e)
 			{
-				Actions.ExceptionToConsole(e);
+				Messages.ExceptionToConsole(e);
 			}
 			return botInfo;
 		}

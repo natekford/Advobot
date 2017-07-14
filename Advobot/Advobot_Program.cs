@@ -1,4 +1,5 @@
-﻿using Advobot.Logging;
+﻿using Advobot.Actions;
+using Advobot.Logging;
 using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,9 +31,9 @@ namespace Advobot
 #endif
 
 			//Things that when not loaded fuck the bot completely
-			var botInfo = Actions.LoadCriticalInformation();
-			var logging = new LogHolder();
-			var client = Actions.CreateBotClient(botInfo, logging);
+			var botInfo = SavingAndLoading.LoadCriticalInformation();
+			var logging = new LogHolder(); //Circular logic, whoops
+			var client = SavingAndLoading.CreateBotClient(botInfo, logging);
 			logging.StartLogging(client, botInfo);
 
 			var provider = ConfigureServices(client, botInfo, logging);
@@ -48,23 +49,23 @@ namespace Advobot
 				var startup = true;
 				while (!botInfo.GotPath)
 				{
-					Actions.ValidatePath(botInfo, (startup ? Properties.Settings.Default.Path : Console.ReadLine()), startup);
+					SavingAndLoading.ValidatePath(botInfo, (startup ? Properties.Settings.Default.Path : Console.ReadLine()), startup);
 					startup = false;
 				}
 				startup = true;
 				while (!botInfo.GotKey)
 				{
-					await Actions.ValidateBotKey(client, botInfo, (startup ? Properties.Settings.Default.BotKey : Console.ReadLine()), startup);
+					await SavingAndLoading.ValidateBotKey(client, botInfo, (startup ? Properties.Settings.Default.BotKey : Console.ReadLine()), startup);
 					startup = false;
 				}
 
-				await Actions.MaybeStartBot(client, botInfo);
+				await SavingAndLoading.MaybeStartBot(client, botInfo);
 			}
 		}
 
 		public async Task Start(IDiscordClient client)
 		{
-			Actions.WriteLine("Connecting the client...");
+			Messages.WriteLine("Connecting the client...");
 
 			try
 			{
@@ -72,7 +73,7 @@ namespace Advobot
 			}
 			catch (Exception e)
 			{
-				Actions.ExceptionToConsole(e);
+				Messages.ExceptionToConsole(e);
 				return;
 			}
 
