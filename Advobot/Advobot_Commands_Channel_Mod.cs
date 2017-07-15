@@ -17,7 +17,7 @@ namespace Advobot
 		[Summary("Adds a channel to the guild of the given type with the given name. Text channel names cannot contain any spaces.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
-		public class CreateChannel : MyModuleBase
+		public sealed class CreateChannel : MyModuleBase
 		{
 			[Command]
 			public async Task Command(ChannelType channelType, [Remainder, VerifyStringLength(Target.Channel)] string name)
@@ -61,7 +61,7 @@ namespace Advobot
 		[Summary("Makes most roles unable to read the channel and moves it to the bottom of the channel list. Only works for text channels.")]
 		[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 		[DefaultEnabled(true)]
-		public class SoftDeleteChannel : MyModuleBase
+		public sealed class SoftDeleteChannel : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged, ObjectVerification.IsDefault)] ITextChannel channel)
@@ -120,7 +120,7 @@ namespace Advobot
 		[Summary("Deletes the channel.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
-		public class DeleteChannel : MyModuleBase
+		public sealed class DeleteChannel : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged, ObjectVerification.IsDefault)] IGuildChannel channel)
@@ -146,7 +146,7 @@ namespace Advobot
 		[Summary("If only the channel is input the channel's position will be listed. Position zero is the top most position.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeChannelPosition : MyModuleBase
+		public sealed class ChangeChannelPosition : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeReordered)] IGuildChannel channel, uint position)
@@ -166,7 +166,7 @@ namespace Advobot
 		[Summary("Lists the positions of each text or voice channel on the guild.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
-		public class DisplayChannelPosition : MyModuleBase
+		public sealed class DisplayChannelPosition : MyModuleBase
 		{
 			[Command]
 			public async Task Command(ChannelType channelType)
@@ -199,7 +199,7 @@ namespace Advobot
 				}
 
 				var desc = String.Join("\n", channels.OrderBy(x => x.Position).Select(x => String.Format("`{0}.` `{1}`", x.Position.ToString("00"), x.Name)));
-				await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, desc));
+				await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed(title, desc));
 			}
 		}
 
@@ -210,7 +210,7 @@ namespace Advobot
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel] [Role|User]` to see permissions a role/user has on a channel.")]
 		[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 		[DefaultEnabled(true)]
-		public class ChangeChannelPerms : MyModuleBase
+		public sealed class ChangeChannelPerms : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyEnum((uint)(ActionType.Allow | ActionType.Inherit | ActionType.Deny))] ActionType actionType,
@@ -311,7 +311,7 @@ namespace Advobot
 				//This CommandRunner will only go when the actionType is show
 				if (channel == null)
 				{
-					await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Channel Permission Types", String.Format("`{0}`", String.Join("`, `", Variables.ChannelPermissions.Select(x => x.Name)))));
+					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("Channel Permission Types", String.Format("`{0}`", String.Join("`, `", Variables.ChannelPermissions.Select(x => x.Name)))));
 					return;
 				}
 
@@ -320,9 +320,9 @@ namespace Advobot
 					var roleOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.Role).Select(x => Context.Guild.GetRole(x.TargetId).Name);
 					var userOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.User).Select(x => ((Context.Guild as SocketGuild).GetUser(x.TargetId)).Username);
 
-					var embed = Messages.MakeNewEmbed(channel.FormatChannel());
-					Messages.AddField(embed, "Role", String.Format("`{0}`", roleOverwrites.Any() ? String.Join("`, `", roleOverwrites) : "None"));
-					Messages.AddField(embed, "User", String.Format("`{0}`", userOverwrites.Any() ? String.Join("`, `", userOverwrites) : "None"));
+					var embed = Embeds.MakeNewEmbed(channel.FormatChannel());
+					Embeds.AddField(embed, "Role", String.Format("`{0}`", roleOverwrites.Any() ? String.Join("`, `", roleOverwrites) : "None"));
+					Embeds.AddField(embed, "User", String.Format("`{0}`", userOverwrites.Any() ? String.Join("`, `", userOverwrites) : "None"));
 					await Messages.SendEmbedMessage(Context.Channel, embed);
 					return;
 				}
@@ -338,7 +338,7 @@ namespace Advobot
 
 				var formattedPerms = String.Join("\n", perms.Select(x => String.Format("{0} {1}", x.Key.PadRight(maxLen), x.Value)));
 				var desc = String.Format("**Channel:** `{0}`\n**Overwrite:** `{1}`\n```{2}```", channel.FormatChannel(), Formatting.FormatObject(discordObject), formattedPerms);
-				await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Channel Overwrite", desc));
+				await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("Channel Overwrite", desc));
 			}
 		}
 
@@ -347,7 +347,7 @@ namespace Advobot
 		[Summary("Copy permissions from one channel to another. Works for a role, a user, or everything. If nothing is specified, copies everything.")]
 		[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 		[DefaultEnabled(true)]
-		public class CopyChannelPerms : MyModuleBase
+		public sealed class CopyChannelPerms : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
@@ -427,7 +427,7 @@ namespace Advobot
 		[Summary("Removes all permissions set on a channel.")]
 		[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 		[DefaultEnabled(true)]
-		public class ClearChannelPerms : MyModuleBase
+		public sealed class ClearChannelPerms : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanModifyPermissions)] IGuildChannel channel)
@@ -463,7 +463,7 @@ namespace Advobot
 		[Summary("Toggles the NSFW option on a channel.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeChannelNSFW : MyModuleBase
+		public sealed class ChangeChannelNSFW : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] ITextChannel channel)
@@ -499,7 +499,7 @@ namespace Advobot
 		[Summary("Changes the name of the channel.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeChannelName : MyModuleBase
+		public sealed class ChangeChannelName : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] IGuildChannel channel, [Remainder, VerifyStringLength(Target.Channel)] string name)
@@ -525,7 +525,7 @@ namespace Advobot
 		[Summary("Changes the topic of a channel to whatever is input. Clears the topic if nothing is input")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeChannelTopic : MyModuleBase
+		public sealed class ChangeChannelTopic : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] ITextChannel channel, [Optional, Remainder, VerifyStringLength(Target.Topic)] string topic)
@@ -545,7 +545,7 @@ namespace Advobot
 		[Summary("Changes the limit to how many users can be in a voice channel. The limit ranges from 0 (no limit) to 99.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeChannelLimit : MyModuleBase
+		public sealed class ChangeChannelLimit : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] IVoiceChannel channel, uint limit)
@@ -570,7 +570,7 @@ namespace Advobot
 		[Summary("Changes the bitrate on a voice channel. Lowest is 8, highest is 96 (unless on a partnered guild, then it goes up to 128), default is 64.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeChannelBitrate : MyModuleBase
+		public sealed class ChangeChannelBitrate : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeManaged)] IVoiceChannel channel, uint bitrate)

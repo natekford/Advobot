@@ -16,7 +16,7 @@ namespace Advobot
 		[Usage("<Command>")]
 		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. If left blank will print out a link to the documentation of this bot.")]
 		[DefaultEnabled(true)]
-		public class Help : MyModuleBase
+		public sealed class Help : MyModuleBase
 		{
 			[Command]
 			public async Task Command([Optional] string command)
@@ -28,14 +28,14 @@ namespace Advobot
 			{
 				if (String.IsNullOrWhiteSpace(command))
 				{
-					var embed = Messages.MakeNewEmbed("General Help", String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", Constants.BOT_PREFIX));
-					Messages.AddField(embed, "Basic Syntax", "`[]` means required.\n`<>` means optional.\n`|` means or.");
-					Messages.AddField(embed, "Mention Syntax", String.Format("`User` means `{0}`.\n`Role` means `{1}`.\n`Channel` means `{2}`.",
+					var embed = Embeds.MakeNewEmbed("General Help", String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", Constants.BOT_PREFIX));
+					Embeds.AddField(embed, "Basic Syntax", "`[]` means required.\n`<>` means optional.\n`|` means or.");
+					Embeds.AddField(embed, "Mention Syntax", String.Format("`User` means `{0}`.\n`Role` means `{1}`.\n`Channel` means `{2}`.",
 						Constants.USER_INSTRUCTIONS,
 						Constants.ROLE_INSTRUCTIONS,
 						Constants.CHANNEL_INSTRUCTIONS));
-					Messages.AddField(embed, "Links", String.Format("[GitHub Repository]({0})\n[Discord Server]({1})", Constants.REPO, Constants.DISCORD_INV));
-					Messages.AddFooter(embed, "Help");
+					Embeds.AddField(embed, "Links", String.Format("[GitHub Repository]({0})\n[Discord Server]({1})", Constants.REPO, Constants.DISCORD_INV));
+					Embeds.AddFooter(embed, "Help");
 					await Messages.SendEmbedMessage(Context.Channel, embed);
 				}
 				else
@@ -43,8 +43,8 @@ namespace Advobot
 					var helpEntry = Variables.HelpList.FirstOrDefault(x => x.Name.CaseInsEquals(command) || x.Aliases.CaseInsContains(command));
 					if (helpEntry != null)
 					{
-						var embed = Messages.MakeNewEmbed(helpEntry.Name, helpEntry.ToString());
-						Messages.AddFooter(embed, "Help");
+						var embed = Embeds.MakeNewEmbed(helpEntry.Name, helpEntry.ToString());
+						Embeds.AddFooter(embed, "Help");
 						await Messages.SendEmbedMessage(Context.Channel, embed);
 						return;
 					}
@@ -69,7 +69,7 @@ namespace Advobot
 		[Usage("<Category|All>")]
 		[Summary("Prints out the commands in that category of the command list.")]
 		[DefaultEnabled(true)]
-		public class Commands : MyModuleBase
+		public sealed class Commands : MyModuleBase
 		{
 			[Command]
 			public async Task Command([Optional] string targetStr)
@@ -84,17 +84,17 @@ namespace Advobot
 					var desc = String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}",
 						Constants.BOT_PREFIX,
 						String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))));
-					await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Categories", desc));
+					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("Categories", desc));
 				}
 				else if ("all".CaseInsEquals(targetStr))
 				{
 					var desc = String.Format("`{0}`", String.Join("`, `", Variables.CommandNames));
-					await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("All Commands", desc));
+					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("All Commands", desc));
 				}
 				else if (Enum.TryParse(targetStr, true, out CommandCategory category))
 				{
 					var desc = String.Format("`{0}`", String.Join("`, `", Gets.GetCommands(category)));
-					await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(category.EnumName(), desc));
+					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed(category.EnumName(), desc));
 				}
 				else
 				{
@@ -107,7 +107,7 @@ namespace Advobot
 		[Usage("[Bot|Guild|Channel|Role|User|Emote] <\"Other Argument\">")]
 		[Summary("Shows the ID of the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 		[DefaultEnabled(true)]
-		public class GetID : MyModuleBase
+		public sealed class GetID : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyEnum((uint)(Target.Guild | Target.Bot))] Target targetType)
@@ -177,7 +177,7 @@ namespace Advobot
 		[Usage("[Bot|Guild|Channel|Role|User|Emote|Invite] <\"Other Argument\">")]
 		[Summary("Shows information about the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 		[DefaultEnabled(true)]
-		public class GetInfo : MyModuleBase
+		public sealed class GetInfo : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyEnum((uint)(Target.Guild | Target.Bot))] Target targetType)
@@ -258,7 +258,7 @@ namespace Advobot
 		[Summary("Gets users with a variable reason. First bool specifies if to only give a count. Second specifies if to search for the other argument exactly. Third specifies if to include nicknames.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
-		public class GetUsersWithReason : MyModuleBase
+		public sealed class GetUsersWithReason : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyEnum((uint)(Target.Role | Target.Name | Target.Game | Target.Stream))] Target targetType,
@@ -314,7 +314,7 @@ namespace Advobot
 				}
 
 				var desc = count ? String.Format("**Count:** `{0}`", users.Count()) : users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.FormatUser());
-				await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, desc));
+				await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed(title, desc));
 			}
 		}
 
@@ -322,7 +322,7 @@ namespace Advobot
 		[Usage("<User> <Number> <Gif|Png|Jpg|Webp>")]
 		[Summary("Shows the URL of the given user's avatar. Can supply a format and size.")]
 		[DefaultEnabled(true)]
-		public class GetUserAvatar : MyModuleBase
+		public sealed class GetUserAvatar : MyModuleBase
 		{
 			//TODO: Figure out how to make this not need 6 explicitly typed overloads
 			[Command]
@@ -367,7 +367,7 @@ namespace Advobot
 		[Summary("Shows the user which joined the guild in that position.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
-		public class GetUserJoinedAt : MyModuleBase
+		public sealed class GetUserJoinedAt : MyModuleBase
 		{
 			[Command]
 			public async Task Command(uint position)
@@ -390,7 +390,7 @@ namespace Advobot
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
-		public class DisplayGuilds : MyModuleBase
+		public sealed class DisplayGuilds : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command()
@@ -403,10 +403,10 @@ namespace Advobot
 				var guilds = await Context.Client.GetGuildsAsync();
 				if (guilds.Count() <= 10)
 				{
-					var embed = Messages.MakeNewEmbed("Guilds");
+					var embed = Embeds.MakeNewEmbed("Guilds");
 					foreach (var guild in guilds)
 					{
-						Messages.AddField(embed, guild.FormatGuild(), String.Format("**Owner:** `{0}`", (await guild.GetOwnerAsync()).FormatUser()));
+						Embeds.AddField(embed, guild.FormatGuild(), String.Format("**Owner:** `{0}`", (await guild.GetOwnerAsync()).FormatUser()));
 					}
 					await Messages.SendEmbedMessage(Context.Channel, embed);
 				}
@@ -419,7 +419,7 @@ namespace Advobot
 						tempTupleList.Add(new Tuple<IGuild, IGuildUser>(guild, await guild.GetOwnerAsync()));
 					}
 					var desc = tempTupleList.FormatNumberedList("`{0}` Owner: `{1}`", x => x.Item1.FormatGuild(), x => x.Item2.FormatUser());
-					await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Guilds", desc));
+					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("Guilds", desc));
 				}
 			}
 		}
@@ -429,7 +429,7 @@ namespace Advobot
 		[Summary("Lists most of the users who have joined the guild.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
-		public class DisplayUserJoinList : MyModuleBase
+		public sealed class DisplayUserJoinList : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command()
@@ -451,7 +451,7 @@ namespace Advobot
 		[Summary("Lists the emotes in the guild. As of right now, there's no way to upload or remove emotes through Discord's API.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
-		public class DisplayEmotes : MyModuleBase
+		public sealed class DisplayEmotes : MyModuleBase
 		{
 			[Command]
 			public async Task Command(EmoteType target)
@@ -461,17 +461,17 @@ namespace Advobot
 
 			private async Task CommandRunner(EmoteType target)
 			{
-				List<GuildEmote> emotes;
+				IEnumerable<GuildEmote> emotes;
 				switch (target)
 				{
 					case EmoteType.Global:
 					{
-						emotes = Context.Guild.Emotes.Where(x => x.IsManaged).ToList();
+						emotes = Context.Guild.Emotes.Where(x => x.IsManaged);
 						break;
 					}
 					case EmoteType.Guild:
 					{
-						emotes = Context.Guild.Emotes.Where(x => !x.IsManaged).ToList();
+						emotes = Context.Guild.Emotes.Where(x => !x.IsManaged);
 						break;
 					}
 					default:
@@ -483,7 +483,7 @@ namespace Advobot
 				var desc = emotes.Any() 
 					? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name) 
 					: String.Format("This guild has no `{0}` emotes.", target.EnumName());
-				await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Emotes", desc));
+				await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("Emotes", desc));
 			}
 		}
 
@@ -492,7 +492,7 @@ namespace Advobot
 		[Summary("Downloads the past x amount of messages. Up to 1000 messages or 500KB worth of formatted text.")]
 		[PermissionRequirement(null, null)]
 		[DefaultEnabled(true)]
-		public class DownloadMessages : MyModuleBase
+		public sealed class DownloadMessages : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command(int num, [Optional, VerifyObject(ObjectVerification.CanBeRead)] ITextChannel channel)
@@ -508,7 +508,7 @@ namespace Advobot
 				var formattedMessages = new List<string>();
 				foreach (var msg in (await Messages.GetMessages(channel, Math.Min(num, 1000))).OrderBy(x => x.CreatedAt.Ticks))
 				{
-					var temp = Formatting.ReplaceMarkdownChars(Formatting.FormatMessage(msg), true);
+					var temp = Formatting.RemoveMarkdownChars(Formatting.FormatNonDM(msg), true);
 					if ((charCount += temp.Length) < ((int)Context.GlobalInfo.GetSetting(SettingOnBot.MaxMessageGatherSize)))
 					{
 						formattedMessages.Add(temp);
@@ -532,7 +532,7 @@ namespace Advobot
 		[Summary("Every single piece is optional. The stuff in quotes *must* be in quotes. URLs need the https:// in front. Fields need *both* Field and FieldText to work.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
-		public class MakeAnEmbed : MyModuleBase
+		public sealed class MakeAnEmbed : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command([Remainder] string input)
@@ -571,12 +571,12 @@ namespace Advobot
 					}
 				}
 
-				var embed = Messages.MakeNewEmbed(title, description, color, imageURL, URL, thumbnail);
-				Messages.AddAuthor(embed, authorName, authorIcon, authorURL);
-				Messages.AddFooter(embed, footerText, footerIcon);
+				var embed = Embeds.MakeNewEmbed(title, description, color, imageURL, URL, thumbnail);
+				Embeds.AddAuthor(embed, authorName, authorIcon, authorURL);
+				Embeds.AddFooter(embed, footerText, footerIcon);
 
 				//Add in the fields and text
-				for (int i = 1; i < 25; i++)
+				for (int i = 1; i < 25; ++i)
 				{
 					var field = Gets.GetVariableAndRemove(returnedArgs.Arguments, "field" + i);
 					var fieldText = Gets.GetVariableAndRemove(returnedArgs.Arguments, "fieldtext" + i);
@@ -585,7 +585,7 @@ namespace Advobot
 						break;
 
 					bool.TryParse(Gets.GetVariableAndRemove(returnedArgs.Arguments, "fieldinline" + i), out bool inlineBool);
-					Messages.AddField(embed, field, fieldText, inlineBool);
+					Embeds.AddField(embed, field, fieldText, inlineBool);
 				}
 
 				await Messages.SendEmbedMessage(Context.Channel, embed);
@@ -597,7 +597,7 @@ namespace Advobot
 		[Summary("Mention an unmentionable role with the given message.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
-		public class MentionRole : MyModuleBase
+		public sealed class MentionRole : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder] string text)
@@ -625,7 +625,7 @@ namespace Advobot
 		[Summary("Sends a message to the bot owner with the given text. Messages will be cut down to 250 characters.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
-		public class MessageBotOwner : MyModuleBase
+		public sealed class MessageBotOwner : MyModuleBase
 		{
 			[Command]
 			public async Task Command([Remainder] string input)
@@ -655,7 +655,7 @@ namespace Advobot
 		[Summary("Lists all the perms that come from the given value.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
-		public class GetPermNamesFromValue : MyModuleBase
+		public sealed class GetPermNamesFromValue : MyModuleBase
 		{
 			[Command]
 			public async Task Command(ulong permNum)
@@ -682,7 +682,7 @@ namespace Advobot
 		[Summary("Lists all the people who have sent the bot DMs or shows the DMs with a person if one is specified.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
-		public class GetBotDMs : MyModuleBase
+		public sealed class GetBotDMs : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command([Optional] IUser user)
@@ -720,7 +720,7 @@ namespace Advobot
 					var users = (await Context.Client.GetDMChannelsAsync()).Select(x => x.Recipient).Where(x => x != null);
 
 					var desc = users.Any() ? String.Format("`{0}`", String.Join("`\n`", users.OrderBy(x => x.Id).Select(x => x.FormatUser()))) : "`None`";
-					await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Users Who Have DMd The Bot", desc));
+					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("Users Who Have DMd The Bot", desc));
 				}
 			}
 		}
@@ -730,9 +730,9 @@ namespace Advobot
 		[Summary("Mostly just makes the bot say test.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
-		public class Test : MyModuleBase
+		public sealed class Test : MyModuleBase
 		{
-			[Command(RunMode = RunMode.Async)]
+			[Command]
 			public async Task Command()
 			{
 				await CommandRunner();
@@ -740,6 +740,9 @@ namespace Advobot
 
 			private async Task CommandRunner()
 			{
+				var objVerif = new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsDefault };
+				var obj = Context.User;
+				objVerif.AssertEnumsAreAllCorrectTargetType(obj);
 				await Messages.SendChannelMessage(Context, "test");
 			}
 		}

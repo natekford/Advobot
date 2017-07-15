@@ -57,25 +57,24 @@ namespace Advobot
 				if (botInfo.GotPath && botInfo.GotKey && !botInfo.Loaded)
 				{
 					await new Program().Start(client);
+					Messages.WriteLine(String.Format("Successfully started the bot {0} with the ID {1}.", client.CurrentUser.Username, client.CurrentUser.Id));
 				}
 			}
-			public static async Task ValidateBotKey(IDiscordClient client, BotGlobalInfo globalInfo, string input, bool startup = false)
+			public static async Task<bool> ValidateBotKey(IDiscordClient client, string input, bool startup = false)
 			{
-				var key = input.Trim();
+				var key = input?.Trim();
 
 				if (startup)
 				{
-					//Check if the bot already has a key
 					if (!String.IsNullOrWhiteSpace(input))
 					{
 						try
 						{
 							await Login((dynamic)client, key);
-							globalInfo.SetGotKey();
+							return true;
 						}
 						catch (Exception)
 						{
-							//If the key doesn't work then retry
 							Messages.WriteLine("The given key is no longer valid. Please enter a new valid key:");
 						}
 					}
@@ -83,16 +82,14 @@ namespace Advobot
 					{
 						Messages.WriteLine("Please enter the bot's key:");
 					}
-					return;
+					return false;
 				}
 
-				//Login and connect to Discord.
-				if (key.Length > 59)
+				if (key.Length > Constants.VALID_KEY_LENGTH)
 				{
-					//If the length isn't the normal length of a key make it retry
 					Messages.WriteLine("The given key is too long. Please enter a regular length key:");
 				}
-				else if (key.Length < 59)
+				else if (key.Length < Constants.VALID_KEY_LENGTH)
 				{
 					Messages.WriteLine("The given key is too short. Please enter a regular length key:");
 				}
@@ -100,65 +97,60 @@ namespace Advobot
 				{
 					try
 					{
-						//Try to login with the given key
 						await Login((dynamic)client, key);
 
-						//If the key works then save it within the settings
 						Messages.WriteLine("Succesfully logged in via the given bot key.");
 						Properties.Settings.Default.BotKey = key;
 						Properties.Settings.Default.Save();
-						globalInfo.SetGotKey();
+						return true;
 					}
 					catch (Exception)
 					{
-						//If the key doesn't work then retry
 						Messages.WriteLine("The given key is invalid. Please enter a valid key:");
 					}
 				}
+
+				return false;
 			}
-			public static void ValidatePath(BotGlobalInfo globalInfo, string input, bool startup = false)
+			public static bool ValidatePath(string input, bool windows, bool startup = false)
 			{
-				var path = input.Trim();
+				var path = input?.Trim();
 
 				if (startup)
 				{
-					//Check if a path is already input
 					if (!String.IsNullOrWhiteSpace(path) && Directory.Exists(path))
 					{
 						Properties.Settings.Default.Path = path;
 						Properties.Settings.Default.Save();
-						globalInfo.SetGotPath();
+						return true;
+					}
+
+					if (windows)
+					{
+						Messages.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
 					}
 					else
 					{
-						//Send the initial message
-						if (globalInfo.Windows)
-						{
-							Messages.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
-						}
-						else
-						{
-							Messages.WriteLine("Please enter a valid directory path in which to save files:");
-						}
+						Messages.WriteLine("Please enter a valid directory path in which to save files:");
 					}
-					return;
+					return false;
 				}
 
-				if (globalInfo.Windows && "appdata".CaseInsEquals(path))
+				if (windows && "appdata".CaseInsEquals(path))
 				{
 					path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 				}
 
 				if (Directory.Exists(path))
 				{
+					Messages.WriteLine("Successfully set the save path as " + path);
 					Properties.Settings.Default.Path = path;
 					Properties.Settings.Default.Save();
-					globalInfo.SetGotPath();
+					return true;
 				}
-				else
-				{
-					Messages.WriteLine("Invalid directory. Please enter a valid directory:");
-				}
+
+				Messages.WriteLine("Invalid directory. Please enter a valid directory:");
+				return false;
 			}
 
 			public static async Task Login(DiscordSocketClient client, string key)
@@ -349,7 +341,7 @@ namespace Advobot
 				return SocketClient;
 			}
 
-			public static string Serialize(dynamic obj)
+			public static string Serialize(object obj)
 			{
 				return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented);
 			}
@@ -465,7 +457,7 @@ namespace Advobot
 					| (1U << (int)ChannelPermission.MoveMembers)
 					| (1U << (int)ChannelPermission.UseVAD);
 
-				for (int i = 0; i < 64; i++)
+				for (int i = 0; i < 64; ++i)
 				{
 					var name = Enum.GetName(typeof(ChannelPermission), i);
 					if (name == null)
@@ -545,8 +537,9 @@ namespace Advobot
 				return dict;
 			}
 
-			public static string GetPlural(int i)
+			public static string GetPlural(double i)
 			{
+				//Double allows most, if not all, number types in. https://stackoverflow.com/a/828963
 				return i == 1 ? "" : "s";
 			}
 
@@ -597,7 +590,7 @@ namespace Advobot
 			public static List<string> GetPermissionNames(ulong flags)
 			{
 				var result = new List<string>();
-				for (int i = 0; i < 64; i++)
+				for (int i = 0; i < 64; ++i)
 				{
 					ulong bit = 1U << i;
 					if ((flags & bit) != 0)
@@ -621,7 +614,7 @@ namespace Advobot
 				if (input == null)
 				{
 					var list = new List<string>();
-					for (int i = 0; i < max; i++)
+					for (int i = 0; i < max; ++i)
 					{
 						list.Add(null);
 					}
@@ -635,7 +628,7 @@ namespace Advobot
 					}
 				}
 
-				var args = Misc.SplitByCharExceptInQuotes(input, ' ').ToList();
+				var args = input.SplitByCharExceptInQuotes(' ').ToList();
 				if (args.Count < min)
 				{
 					return new ReturnedArguments(args, FailureReason.TooFew);
@@ -659,7 +652,7 @@ namespace Advobot
 					}
 				}
 
-				for (int i = args.Count; i < max; i++)
+				for (int i = args.Count; i < max; ++i)
 				{
 					args.Add(null);
 				}
@@ -819,45 +812,6 @@ namespace Advobot
 				}
 			}
 
-			public static int GetCountOfItemsInTimeFrame<T>(List<T> timeList, int timeFrame = 0) where T : ITimeInterface
-			{
-				lock (timeList)
-				{
-					//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
-					var listLength = timeList.Count;
-					if (timeFrame <= 0 || listLength < 2)
-						return listLength;
-
-					//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
-					var count = 0;
-					for (int i = 0; i < listLength; ++i)
-					{
-						for (int j = i + 1; j < listLength; ++j)
-						{
-							if ((int)timeList[j].GetTime().Subtract(timeList[i].GetTime()).TotalSeconds >= timeFrame)
-							{
-								//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
-								if ((int)timeList[j].GetTime().Subtract(timeList[j - 1].GetTime()).TotalSeconds > timeFrame)
-									i = j;
-								break;
-							}
-						}
-					}
-
-					//Remove all that are older than the given timeframe (with an added 1 second margin)
-					var nowTime = DateTime.UtcNow;
-					for (int i = listLength - 1; i >= 0; --i)
-					{
-						if ((int)nowTime.Subtract(timeList[i].GetTime()).TotalSeconds > timeFrame + 1)
-						{
-							timeList.RemoveRange(0, i + 1);
-							break;
-						}
-					}
-
-					return count;
-				}
-			}
 			public static int GetMaxAmountOfUsersToGather(BotGlobalInfo globalInfo, bool bypass)
 			{
 				return bypass ? int.MaxValue : ((int)globalInfo.GetSetting(SettingOnBot.MaxUserGatherCount));
@@ -913,6 +867,15 @@ namespace Advobot
 				}
 				return inputValue;
 			}
+			public static ulong RemoveGuildPermissionBit(string permissionName, ulong inputValue)
+			{
+				var permission = Variables.GuildPermissions.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
+				if (!permission.Equals(default(BotGuildPermission)))
+				{
+					inputValue &= ~permission.Bit;
+				}
+				return inputValue;
+			}
 		}
 
 		public static class Channels
@@ -932,7 +895,7 @@ namespace Advobot
 					}
 					else
 					{
-						var channels = (context.Guild as SocketGuild).VoiceChannels.Where(x => x.Name.CaseInsEquals(input));
+						var channels = (context.Guild as SocketGuild).Channels.Where(x => x.Name.CaseInsEquals(input));
 						if (channels.Count() == 1)
 						{
 							channel = channels.First();
@@ -944,19 +907,16 @@ namespace Advobot
 					}
 				}
 
-				if (channel == null)
+				if (channel == null && mentions)
 				{
-					if (mentions)
+					var channelMentions = context.Message.MentionedChannelIds;
+					if (channelMentions.Count() == 1)
 					{
-						var channelMentions = context.Message.MentionedChannelIds;
-						if (channelMentions.Count() == 1)
-						{
-							channel = GetChannel(context.Guild, channelMentions.First());
-						}
-						else if (channelMentions.Count() > 1)
-						{
-							return new ReturnedObject<IGuildChannel>(channel, FailureReason.TooMany);
-						}
+						channel = GetChannel(context.Guild, channelMentions.First());
+					}
+					else if (channelMentions.Count() > 1)
+					{
+						return new ReturnedObject<IGuildChannel>(channel, FailureReason.TooMany);
 					}
 				}
 
@@ -964,20 +924,15 @@ namespace Advobot
 			}
 			public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ObjectVerification[] checkingTypes, ulong inputID)
 			{
-				var channel = GetChannel(context.Guild, inputID);
-				if (channel == null)
-				{
-					return new ReturnedObject<IGuildChannel>(channel, FailureReason.TooFew);
-				}
-
-				return GetChannel(context, checkingTypes, channel);
+				return GetChannel(context, checkingTypes, GetChannel(context.Guild, inputID));
 			}
 			public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ObjectVerification[] checkingTypes, IGuildChannel channel)
 			{
 				return GetChannel(context.Guild, context.User as IGuildUser, checkingTypes, channel);
 			}
-			public static ReturnedObject<T> GetChannel<T>(IGuild guild, IGuildUser user, ObjectVerification[] checkingTypes, T channel) where T : IGuildChannel
+			public static ReturnedObject<T> GetChannel<T>(IGuild guild, IGuildUser currUser, ObjectVerification[] checkingTypes, T channel) where T : IGuildChannel
 			{
+				checkingTypes.AssertEnumsAreAllCorrectTargetType(channel);
 				if (channel == null)
 				{
 					return new ReturnedObject<T>(channel, FailureReason.TooFew);
@@ -986,7 +941,7 @@ namespace Advobot
 				var bot = Users.GetBot(guild);
 				foreach (var type in checkingTypes)
 				{
-					if (!GetIfUserCanDoActionOnChannel(channel, user, type))
+					if (!GetIfUserCanDoActionOnChannel(channel, currUser, type))
 					{
 						return new ReturnedObject<T>(channel, FailureReason.UserInability);
 					}
@@ -1076,10 +1031,10 @@ namespace Advobot
 				}
 			}
 
-			public static async Task ModifyChannelPosition(IGuildChannel channel, int position)
+			public static async Task<int> ModifyChannelPosition(IGuildChannel channel, int position)
 			{
 				if (channel == null)
-					return;
+					return -1;
 
 				IGuildChannel[] channels;
 				if (channel is ITextChannel)
@@ -1093,15 +1048,15 @@ namespace Advobot
 				position = Math.Max(0, Math.Min(position, channels.Length));
 
 				var reorderProperties = new ReorderChannelProperties[channels.Length];
-				for (int i = 0; i < channels.Length; i++)
+				for (int i = 0; i < channels.Length; ++i)
 				{
-					if (i < position)
-					{
-						reorderProperties[i] = new ReorderChannelProperties(channels[i].Id, i);
-					}
-					else if (i > position)
+					if (i > position)
 					{
 						reorderProperties[i] = new ReorderChannelProperties(channels[i - 1].Id, i);
+					}
+					else if (i < position)
+					{
+						reorderProperties[i] = new ReorderChannelProperties(channels[i].Id, i);
 					}
 					else
 					{
@@ -1110,6 +1065,7 @@ namespace Advobot
 				}
 
 				await channel.Guild.ReorderChannelsAsync(reorderProperties);
+				return reorderProperties.FirstOrDefault(x => x.Id == channel.Id)?.Position ?? -1;
 			}
 
 			public static async Task ModifyOverwrite(IGuildChannel channel, IRole role, ulong allowBits, ulong denyBits)
@@ -1183,19 +1139,16 @@ namespace Advobot
 					}
 				}
 
-				if (role == null)
+				if (role == null && mentions)
 				{
-					if (mentions)
+					var roleMentions = context.Message.MentionedRoleIds;
+					if (roleMentions.Count() == 1)
 					{
-						var roleMentions = context.Message.MentionedRoleIds;
-						if (roleMentions.Count() == 1)
-						{
-							role = GetRole(context.Guild, roleMentions.First());
-						}
-						else if (roleMentions.Count() > 1)
-						{
-							return new ReturnedObject<IRole>(role, FailureReason.TooMany);
-						}
+						role = GetRole(context.Guild, roleMentions.First());
+					}
+					else if (roleMentions.Count() > 1)
+					{
+						return new ReturnedObject<IRole>(role, FailureReason.TooMany);
 					}
 				}
 
@@ -1203,20 +1156,15 @@ namespace Advobot
 			}
 			public static ReturnedObject<IRole> GetRole(ICommandContext context, ObjectVerification[] checkingTypes, ulong inputID)
 			{
-				var role = GetRole(context.Guild, inputID);
-				if (role == null)
-				{
-					return new ReturnedObject<IRole>(role, FailureReason.TooFew);
-				}
-
-				return GetRole(context, checkingTypes, role);
+				return GetRole(context, checkingTypes, GetRole(context.Guild, inputID));
 			}
 			public static ReturnedObject<IRole> GetRole(ICommandContext context, ObjectVerification[] checkingTypes, IRole role)
 			{
 				return GetRole(context.Guild, context.User as IGuildUser, checkingTypes, role);
 			}
-			public static ReturnedObject<T> GetRole<T>(IGuild guild, IGuildUser user, ObjectVerification[] checkingTypes, T role) where T : IRole
+			public static ReturnedObject<T> GetRole<T>(IGuild guild, IGuildUser currUser, ObjectVerification[] checkingTypes, T role) where T : IRole
 			{
+				checkingTypes.AssertEnumsAreAllCorrectTargetType(role);
 				if (role == null)
 				{
 					return new ReturnedObject<T>(role, FailureReason.TooFew);
@@ -1225,7 +1173,7 @@ namespace Advobot
 				var bot = Users.GetBot(guild);
 				foreach (var type in checkingTypes)
 				{
-					if (!GetIfUserCanDoActionOnRole(role, user, type))
+					if (!GetIfUserCanDoActionOnRole(role, currUser, type))
 					{
 						return new ReturnedObject<T>(role, FailureReason.UserInability);
 					}
@@ -1288,13 +1236,9 @@ namespace Advobot
 				position = Math.Max(1, Math.Min(position, roles.Length));
 
 				var reorderProperties = new ReorderRoleProperties[roles.Length + 1];
-				for (int i = 0; i < reorderProperties.Length; i++)
+				for (int i = 0; i < reorderProperties.Length; ++i)
 				{
-					if (i == position)
-					{
-						reorderProperties[i] = new ReorderRoleProperties(role.Id, i);
-					}
-					else if (i > position)
+					if (i > position)
 					{
 						reorderProperties[i] = new ReorderRoleProperties(roles[i - 1].Id, i);
 					}
@@ -1302,63 +1246,65 @@ namespace Advobot
 					{
 						reorderProperties[i] = new ReorderRoleProperties(roles[i].Id, i);
 					}
+					else
+					{
+						reorderProperties[i] = new ReorderRoleProperties(role.Id, i);
+					}
 				}
 
 				await role.Guild.ReorderRolesAsync(reorderProperties);
 				return reorderProperties.FirstOrDefault(x => x.Id == role.Id)?.Position ?? -1;
 			}
 
-			public static async Task<IRole> GetMuteRole(IGuild guild, BotGuildInfo guildInfo)
+			public static async Task<IRole> GetMuteRole(BotGuildInfo guildInfo, IGuild guild, IGuildUser user)
 			{
 				//Even though GetRole requires an IGuildUser to check against, I can just throw in the bot a second time and it will be fine for the most part. Failures from this will be UserInability instead.
-				var returnedMuteRole = GetRole(guild, Users.GetBot(guild), new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
+				var returnedMuteRole = GetRole(guild, user, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
 				var muteRole = returnedMuteRole.Object;
-				if (returnedMuteRole.Reason != FailureReason.NotFailure)
-				{
-					muteRole = await CreateMuteRoleIfNotFound(guildInfo, guild, muteRole);
-				}
-				return muteRole;
-			}
-			public static async Task<IRole> CreateMuteRoleIfNotFound(BotGuildInfo guildInfo, IGuild guild, IRole muteRole)
-			{
 				if (muteRole == null)
 				{
-					muteRole = await guild.CreateRoleAsync("Advobot_Mute", new GuildPermissions(0));
+					muteRole = await guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0));
 					guildInfo.SetSetting(SettingOnGuild.MuteRole, new DiscordObjectWithID<IRole>(muteRole));
 				}
 
 				const uint TEXT_PERMS = 0
-				| (1U << (int)ChannelPermission.CreateInstantInvite)
-				| (1U << (int)ChannelPermission.ManageChannel)
-				| (1U << (int)ChannelPermission.ManagePermissions)
-				| (1U << (int)ChannelPermission.ManageWebhooks)
-				| (1U << (int)ChannelPermission.SendMessages)
-				| (1U << (int)ChannelPermission.ManageMessages)
-				| (1U << (int)ChannelPermission.AddReactions);
-				(await guild.GetTextChannelsAsync()).ToList().ForEach(x =>
+					| (1U << (int)ChannelPermission.CreateInstantInvite)
+					| (1U << (int)ChannelPermission.ManageChannel)
+					| (1U << (int)ChannelPermission.ManagePermissions)
+					| (1U << (int)ChannelPermission.ManageWebhooks)
+					| (1U << (int)ChannelPermission.SendMessages)
+					| (1U << (int)ChannelPermission.ManageMessages)
+					| (1U << (int)ChannelPermission.AddReactions);
+				foreach (var textChannel in await guild.GetTextChannelsAsync())
 				{
-					x.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, TEXT_PERMS));
-				});
+					if (textChannel.GetPermissionOverwrite(muteRole) == null)
+					{
+						await textChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, TEXT_PERMS));
+					}
+				}
 
 				const uint VOICE_PERMS = 0
-				| (1U << (int)ChannelPermission.CreateInstantInvite)
-				| (1U << (int)ChannelPermission.ManageChannel)
-				| (1U << (int)ChannelPermission.ManagePermissions)
-				| (1U << (int)ChannelPermission.ManageWebhooks)
-				| (1U << (int)ChannelPermission.Speak)
-				| (1U << (int)ChannelPermission.MuteMembers)
-				| (1U << (int)ChannelPermission.DeafenMembers)
-				| (1U << (int)ChannelPermission.MoveMembers);
-				(await guild.GetVoiceChannelsAsync()).ToList().ForEach(x =>
+					| (1U << (int)ChannelPermission.CreateInstantInvite)
+					| (1U << (int)ChannelPermission.ManageChannel)
+					| (1U << (int)ChannelPermission.ManagePermissions)
+					| (1U << (int)ChannelPermission.ManageWebhooks)
+					| (1U << (int)ChannelPermission.Speak)
+					| (1U << (int)ChannelPermission.MuteMembers)
+					| (1U << (int)ChannelPermission.DeafenMembers)
+					| (1U << (int)ChannelPermission.MoveMembers);
+				foreach (var voiceChannel in await guild.GetVoiceChannelsAsync())
 				{
-					x.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, VOICE_PERMS));
-				});
+					if (voiceChannel.GetPermissionOverwrite(muteRole) == null)
+					{
+						await voiceChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, VOICE_PERMS));
+					}
+				}
 
 				return muteRole;
 			}
 			public static async Task MuteUser(BotGuildInfo guildInfo, IGuildUser user, uint time = 0)
 			{
-				var muteRole = await GetMuteRole(user.Guild, guildInfo);
+				var muteRole = await GetMuteRole(guildInfo, user.Guild, user);
 				await GiveRole(user, muteRole);
 				if (time > 0)
 				{
@@ -1427,19 +1373,16 @@ namespace Advobot
 					}
 				}
 
-				if (user == null)
+				if (user == null && mentions)
 				{
-					if (mentions)
+					var userMentions = context.Message.MentionedUserIds;
+					if (userMentions.Count() == 1)
 					{
-						var userMentions = context.Message.MentionedUserIds;
-						if (userMentions.Count() == 1)
-						{
-							user = GetGuildUser(context.Guild, userMentions.First());
-						}
-						else if (userMentions.Count() > 1)
-						{
-							return new ReturnedObject<IGuildUser>(user, FailureReason.TooMany);
-						}
+						user = GetGuildUser(context.Guild, userMentions.First());
+					}
+					else if (userMentions.Count() > 1)
+					{
+						return new ReturnedObject<IGuildUser>(user, FailureReason.TooMany);
 					}
 				}
 
@@ -1447,8 +1390,7 @@ namespace Advobot
 			}
 			public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, ObjectVerification[] checkingTypes, ulong inputID)
 			{
-				var user = GetGuildUser(context.Guild, inputID);
-				return GetGuildUser(context, checkingTypes, user);
+				return GetGuildUser(context, checkingTypes, GetGuildUser(context.Guild, inputID));
 			}
 			public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, ObjectVerification[] checkingTypes, IGuildUser user)
 			{
@@ -1456,6 +1398,7 @@ namespace Advobot
 			}
 			public static ReturnedObject<T> GetGuildUser<T>(IGuild guild, IGuildUser currUser, ObjectVerification[] checkingTypes, T user) where T : IGuildUser
 			{
+				checkingTypes.AssertEnumsAreAllCorrectTargetType(user);
 				if (user == null)
 				{
 					return new ReturnedObject<T>(user, FailureReason.TooFew);
@@ -1480,27 +1423,6 @@ namespace Advobot
 			{
 				return (guild as SocketGuild).GetUser(ID);
 			}
-			public static IGuildUser GetBot(IGuild guild)
-			{
-				return (guild as SocketGuild).CurrentUser;
-			}
-			public static async Task<IUser> GetGlobalUser(IDiscordClient client, ulong ID)
-			{
-				return await client.GetUserAsync(ID);
-			}
-			public static async Task<IUser> GetGlobalUser(IDiscordClient client, string idStr)
-			{
-				if (ulong.TryParse(idStr, out ulong ID))
-				{
-					return await GetGlobalUser(client, ID);
-				}
-				return null;
-			}
-			public static async Task<IUser> GetBotOwner(IDiscordClient client, BotGlobalInfo globalInfo)
-			{
-				return await client.GetUserAsync(((ulong)globalInfo.GetSetting(SettingOnBot.BotOwnerID)));
-			}
-
 			public static bool GetIfUserCanDoActionOnUser(IGuildUser currUser, ObjectVerification type, IGuildUser targetUser)
 			{
 				if (targetUser == null || currUser == null)
@@ -1522,11 +1444,21 @@ namespace Advobot
 					}
 				}
 			}
-			public static bool GetIfUserCanBeModifiedByUser(IUser currUser, IUser targetUser)
+
+			public static IGuildUser GetBot(IGuild guild)
 			{
-				return GetIfUserCanBeModifiedByUser(currUser as IGuildUser, targetUser as IGuildUser);
+				return (guild as SocketGuild).CurrentUser;
 			}
-			public static bool GetIfUserCanBeModifiedByUser(IGuildUser currUser, IGuildUser targetUser)
+			public static async Task<IUser> GetGlobalUser(IDiscordClient client, ulong ID)
+			{
+				return await client.GetUserAsync(ID);
+			}
+			public static async Task<IUser> GetBotOwner(IDiscordClient client, BotGlobalInfo globalInfo)
+			{
+				return await client.GetUserAsync(((ulong)globalInfo.GetSetting(SettingOnBot.BotOwnerID)));
+			}
+
+			public static bool GetIfUserCanBeModifiedByUser(IUser currUser, IUser targetUser)
 			{
 				if (currUser.Id == Properties.Settings.Default.BotID && targetUser.Id == Properties.Settings.Default.BotID)
 				{
@@ -1575,7 +1507,7 @@ namespace Advobot
 			public static async Task NicknameManyUsers(ICommandContext context, List<IGuildUser> users, string replace)
 			{
 				var msg = await Messages.SendChannelMessage(context, String.Format("Attempting to rename `{0}` people.", users.Count));
-				for (int i = 0; i < users.Count; i++)
+				for (int i = 0; i < users.Count; ++i)
 				{
 					if (i % 10 == 0)
 					{
@@ -1619,19 +1551,16 @@ namespace Advobot
 					}
 				}
 
-				if (emote == null)
+				if (emote == null && usage)
 				{
-					if (usage)
+					var emoteMentions = context.Message.Tags.Where(x => x.Type == TagType.Emoji);
+					if (emoteMentions.Count() == 1)
 					{
-						var emoteMentions = context.Message.Tags.Where(x => x.Type == TagType.Emoji);
-						if (emoteMentions.Count() == 1)
-						{
-							emote = emoteMentions.First().Value as Emote;
-						}
-						else if (emoteMentions.Count() > 1)
-						{
-							return new ReturnedObject<Emote>(emote, FailureReason.TooMany);
-						}
+						emote = emoteMentions.First().Value as Emote;
+					}
+					else if (emoteMentions.Count() > 1)
+					{
+						return new ReturnedObject<Emote>(emote, FailureReason.TooMany);
 					}
 				}
 
@@ -1668,39 +1597,39 @@ namespace Advobot
 				var nicknameStr = String.Format("**Nickname:** `{0}`", String.IsNullOrWhiteSpace(guildUser.Nickname) ? "NO NICKNAME" : EscapeMarkdown(guildUser.Nickname, true));
 				var createdStr = String.Format("\n**Created:** `{0}`", FormatDateTime(guildUser.CreatedAt.UtcDateTime));
 				var joinedStr = String.Format("**Joined:** `{0}` (`{1}` to join the guild)\n", FormatDateTime(guildUser.JoinedAt.Value.UtcDateTime), users.IndexOf(guildUser) + 1);
-				var gameStr = FormatGameStr(guildUser);
+				var gameStr = FormatGame(guildUser);
 				var statusStr = String.Format("**Online status:** `{0}`", guildUser.Status);
 				var description = String.Join("\n", new[] { IDstr, nicknameStr, createdStr, joinedStr, gameStr, statusStr });
 
 				var color = roles.OrderBy(x => x.Position).LastOrDefault(x => x.Color.RawValue != 0)?.Color;
-				var embed = Messages.MakeNewEmbed(null, description, color, thumbnailURL: user.GetAvatarUrl());
+				var embed = Embeds.MakeNewEmbed(null, description, color, thumbnailURL: user.GetAvatarUrl());
 				if (channels.Count() != 0)
 				{
-					Messages.AddField(embed, "Channels", String.Join(", ", channels));
+					Embeds.AddField(embed, "Channels", String.Join(", ", channels));
 				}
 				if (roles.Count() != 0)
 				{
-					Messages.AddField(embed, "Roles", String.Join(", ", roles.Select(x => x.Name)));
+					Embeds.AddField(embed, "Roles", String.Join(", ", roles.Select(x => x.Name)));
 				}
 				if (user.VoiceChannel != null)
 				{
 					var desc = String.Format("Server mute: `{0}`\nServer deafen: `{1}`\nSelf mute: `{2}`\nSelf deafen: `{3}`", user.IsMuted, user.IsDeafened, user.IsSelfMuted, user.IsSelfDeafened);
-					Messages.AddField(embed, "Voice Channel: " + user.VoiceChannel.Name, desc);
+					Embeds.AddField(embed, "Voice Channel: " + user.VoiceChannel.Name, desc);
 				}
-				Messages.AddAuthor(embed, guildUser.FormatUser(), guildUser.GetAvatarUrl(), guildUser.GetAvatarUrl());
-				Messages.AddFooter(embed, "User Info");
+				Embeds.AddAuthor(embed, guildUser);
+				Embeds.AddFooter(embed, "User Info");
 				return embed;
 			}
 			public static EmbedBuilder FormatUserInfo(BotGuildInfo guildInfo, SocketGuild guild, SocketUser user)
 			{
 				var ageStr = String.Format("**Created:** `{0}`\n", FormatDateTime(user.CreatedAt.UtcDateTime));
-				var gameStr = FormatGameStr(user);
+				var gameStr = FormatGame(user);
 				var statusStr = String.Format("**Online status:** `{0}`", user.Status);
 				var description = String.Join("\n", new[] { ageStr, gameStr, statusStr });
 
-				var embed = Messages.MakeNewEmbed(null, description, null, thumbnailURL: user.GetAvatarUrl());
-				Messages.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), user.GetAvatarUrl());
-				Messages.AddFooter(embed, "User Info");
+				var embed = Embeds.MakeNewEmbed(null, description, null, thumbnailURL: user.GetAvatarUrl());
+				Embeds.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), user.GetAvatarUrl());
+				Embeds.AddFooter(embed, "User Info");
 				return embed;
 			}
 			public static EmbedBuilder FormatRoleInfo(BotGuildInfo guildInfo, SocketGuild guild, SocketRole role)
@@ -1711,9 +1640,9 @@ namespace Advobot
 				var description = String.Join("\n", new[] { ageStr, positionStr, usersStr });
 
 				var color = role.Color;
-				var embed = Messages.MakeNewEmbed(null, description, color);
-				Messages.AddAuthor(embed, role.FormatRole());
-				Messages.AddFooter(embed, "Role Info");
+				var embed = Embeds.MakeNewEmbed(null, description, color);
+				Embeds.AddAuthor(embed, role.FormatRole());
+				Embeds.AddFooter(embed, "Role Info");
 				return embed;
 			}
 			public static EmbedBuilder FormatChannelInfo(BotGuildInfo guildInfo, SocketGuild guild, SocketChannel channel)
@@ -1739,9 +1668,9 @@ namespace Advobot
 				var imageLogStr = String.Format("**Imagelog:** `{0}`", imageLog ? "Yes" : "No");
 				var description = String.Join("\n", new[] { ageStr, userCountStr, ignoredFromLogStr, ignoredFromCmdStr, imageOnlyStr, sanitaryStr, slowmodeStr, serverLogStr, modLogStr, imageLogStr });
 
-				var embed = Messages.MakeNewEmbed(null, description);
-				Messages.AddAuthor(embed, channel.FormatChannel());
-				Messages.AddFooter(embed, "Channel Info");
+				var embed = Embeds.MakeNewEmbed(null, description);
+				Embeds.AddAuthor(embed, channel.FormatChannel());
+				Embeds.AddFooter(embed, "Channel Info");
 				return embed;
 			}
 			public static EmbedBuilder FormatGuildInfo(BotGuildInfo guildInfo, SocketGuild guild)
@@ -1769,15 +1698,15 @@ namespace Advobot
 				var description = String.Join("\n", new List<string>() { ageStr, ownerStr, regionStr, emoteStr, userStr, nickStr, gameStr, voiceStr, roleStr, channelStr, afkChanStr });
 
 				var color = owner.Roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
-				var embed = Messages.MakeNewEmbed(null, description, color, thumbnailURL: guild.IconUrl);
-				Messages.AddAuthor(embed, guild.FormatGuild());
-				Messages.AddFooter(embed, "Guild Info");
+				var embed = Embeds.MakeNewEmbed(null, description, color, thumbnailURL: guild.IconUrl);
+				Embeds.AddAuthor(embed, guild.FormatGuild());
+				Embeds.AddFooter(embed, "Guild Info");
 				return embed;
 			}
 			public static EmbedBuilder FormatEmoteInfo(BotGuildInfo guildInfo, IEnumerable<IGuild> guilds, Emote emote)
 			{
 				//Try to find the emoji if global
-				var guildsWithEmote = guilds.Where(x => x.Emotes.Any(y => y.Id == emote.Id && y.IsManaged && y.RequireColons));
+				var guildsWithEmote = guilds.Where(x => x.HasGlobalEmotes());
 
 				var description = String.Format("**ID:** `{0}`\n", emote.Id);
 				if (guildsWithEmote.Any())
@@ -1785,9 +1714,9 @@ namespace Advobot
 					description += String.Format("**From:** `{0}`", String.Join("`, `", guildsWithEmote.Select(x => x.FormatGuild())));
 				}
 
-				var embed = Messages.MakeNewEmbed(null, description, thumbnailURL: emote.Url);
-				Messages.AddAuthor(embed, emote.Name);
-				Messages.AddFooter(embed, "Emoji Info");
+				var embed = Embeds.MakeNewEmbed(null, description, thumbnailURL: emote.Url);
+				Embeds.AddAuthor(embed, emote.Name);
+				Embeds.AddFooter(embed, "Emoji Info");
 				return embed;
 			}
 			public static EmbedBuilder FormatInviteInfo(BotGuildInfo guildInfo, SocketGuild guild, IInviteMetadata invite)
@@ -1798,9 +1727,9 @@ namespace Advobot
 				var createdStr = String.Format("**Created At:** `{0}`", FormatDateTime(invite.CreatedAt.UtcDateTime));
 				var description = String.Join("\n", new[] { inviterStr, channelStr, usesStr, createdStr });
 
-				var embed = Messages.MakeNewEmbed(null, description);
-				Messages.AddAuthor(embed, invite.Code);
-				Messages.AddFooter(embed, "Emote Info");
+				var embed = Embeds.MakeNewEmbed(null, description);
+				Embeds.AddAuthor(embed, invite.Code);
+				Embeds.AddFooter(embed, "Emote Info");
 				return embed;
 			}
 			public static EmbedBuilder FormatBotInfo(BotGlobalInfo globalInfo, IDiscordClient client, IGuild guild)
@@ -1812,98 +1741,57 @@ namespace Advobot
 				var currShard = String.Format("**Current Shard:** `{0}`", Gets.GetShardID((dynamic)client, guild));
 				var description = String.Join("\n", new[] { online, uptime, guildCount, memberCount, currShard });
 
-				var embed = Messages.MakeNewEmbed(null, description);
-				Messages.AddAuthor(embed, client.CurrentUser.Username, client.CurrentUser.GetAvatarUrl());
-				Messages.AddFooter(embed, "Version " + Constants.BOT_VERSION);
+				var embed = Embeds.MakeNewEmbed(null, description);
+				Embeds.AddAuthor(embed, client.CurrentUser);
+				Embeds.AddFooter(embed, "Version " + Constants.BOT_VERSION);
 
 				var firstField = FormatLoggedThings();
-				Messages.AddField(embed, "Logged Actions", firstField);
+				Embeds.AddField(embed, "Logged Actions", firstField);
 
 				var attempt = String.Format("**Attempted Commands:** `{0}`", Variables.AttemptedCommands);
 				var successful = String.Format("**Successful Commands:** `{0}`", Variables.AttemptedCommands - Variables.FailedCommands);
 				var failed = String.Format("**Failed Commands:** `{0}`", Variables.FailedCommands);
 				var secondField = String.Join("\n", new[] { attempt, successful, failed });
-				Messages.AddField(embed, "Commands", secondField);
+				Embeds.AddField(embed, "Commands", secondField);
 
 				var latency = String.Format("**Latency:** `{0}ms`", Gets.GetLatency((dynamic)client));
 				var memory = String.Format("**Memory Usage:** `{0}MB`", Gets.GetMemory(globalInfo.Windows).ToString("0.00"));
 				var threads = String.Format("**Thread Count:** `{0}`", System.Diagnostics.Process.GetCurrentProcess().Threads.Count);
 				var thirdField = String.Join("\n", new[] { latency, memory, threads });
-				Messages.AddField(embed, "Technical", thirdField);
+				Embeds.AddField(embed, "Technical", thirdField);
 
 				return embed;
 			}
 
 			public static List<string> FormatMessages(IEnumerable<IMessage> list)
 			{
-				return list.Select(x => FormatMessage(x)).ToList();
-			}
-			public static string FormatMessage(IMessage msg)
-			{
-				var content = String.IsNullOrEmpty(msg.Content) ? "EMPTY MESSAGE CONTENT" : msg.Content;
-				if (msg.Embeds.Any())
-				{
-					var descriptions = msg.Embeds.Where(x =>
-					{
-						return false
-						|| x.Description != null
-						|| x.Url != null
-						|| x.Image.HasValue;
-					}).Select(x =>
-					{
-						if (x.Url != null)
-						{
-							return String.Format("{0} URL: {1}", x.Description, x.Url);
-						}
-						if (x.Image.HasValue)
-						{
-							return String.Format("{0} IURL: {1}", x.Description, x.Image.Value.Url);
-						}
-						else
-						{
-							return x.Description;
-						}
-					}).ToArray();
-
-					var formattedDescriptions = "";
-					for (int i = 0; i < descriptions.Count(); i++)
-					{
-						formattedDescriptions += String.Format("Embed {0}: {1}", i + 1, descriptions[i]);
-					}
-
-					content = String.Format("{0}\n{1}", content, formattedDescriptions);
-				}
-				if (msg.Attachments.Any())
-				{
-					content = String.Format("{0} + {1}", content, String.Join(" + ", msg.Attachments.Select(y => y.Filename)));
-				}
-
-				return FormatMessage(msg, content);
-			}
-			public static string FormatMessage(IMessage message, string text)
-			{
-				return String.Format("`[{2}]` `{0}` **IN** `{1}`\n```\n{3}```",
-						message.Author.FormatUser(),
-						message.Channel.FormatChannel(),
-						message.CreatedAt.ToString("HH:mm:ss"),
-						ReplaceMarkdownChars(text, true));
+				return list.Select(x => FormatNonDM(x)).ToList();
 			}
 			public static List<string> FormatDMs(IEnumerable<IMessage> list)
 			{
 				return list.Select(x => FormatDM(x)).ToList();
 			}
-			public static string FormatDM(IMessage msg)
+			public static string FormatNonDM(IMessage message)
 			{
-				var content = String.IsNullOrEmpty(msg.Content) ? "EMPTY MESSAGE CONTENT" : msg.Content;
-				if (msg.Embeds.Any())
+				return String.Format("`[{0}]` `{1}` **IN** `{2}`\n```\n{3}```",
+					message.CreatedAt.ToString("HH:mm:ss"),
+					message.Author.FormatUser(),
+					message.Channel.FormatChannel(),
+					RemoveMarkdownChars(FormatMessageContent(message), true));
+			}
+			public static string FormatDM(IMessage message)
+			{
+				return String.Format("`[{0}]` `{1}`\n```\n{2}```",
+					FormatDateTime(message.CreatedAt),
+					message.Author.FormatUser(),
+					RemoveMarkdownChars(FormatMessageContent(message), true));
+			}
+			public static string FormatMessageContent(IMessage message)
+			{
+				var content = String.IsNullOrEmpty(message.Content) ? "Empty message content" : message.Content;
+				if (message.Embeds.Any())
 				{
-					var descriptions = msg.Embeds.Where(x =>
-					{
-						return false
-						|| x.Description != null
-						|| x.Url != null
-						|| x.Image.HasValue;
-					}).Select(x =>
+					var descriptions = message.Embeds.Where(x => x.Description != null || x.Url != null || x.Image.HasValue).Select(x =>
 					{
 						if (x.Url != null)
 						{
@@ -1920,30 +1808,19 @@ namespace Advobot
 					}).ToArray();
 
 					var formattedDescriptions = "";
-					for (int i = 0; i < descriptions.Count(); i++)
+					for (int i = 0; i < descriptions.Length; ++i)
 					{
 						formattedDescriptions += String.Format("Embed {0}: {1}", i + 1, descriptions[i]);
 					}
 
-					return String.Format("`{0}` **SENT AT** `[{1}]`\n```\n{2}```",
-						msg.Author.FormatUser(),
-						FormatDateTime(msg.CreatedAt),
-						ReplaceMarkdownChars(content + "\n" + formattedDescriptions, true));
+					content += "\n" + formattedDescriptions;
 				}
-				else if (msg.Attachments.Any())
+				if (message.Attachments.Any())
 				{
-					return String.Format("`{0}` **SENT AT** `[{1}]`\n```\n{2}```",
-						msg.Author.FormatUser(),
-						FormatDateTime(msg.CreatedAt),
-						ReplaceMarkdownChars(content + " + " + String.Join(" + ", msg.Attachments.Select(y => y.Filename)), true));
+					content += " + " + String.Join(" + ", message.Attachments.Select(x => x.Filename));
 				}
-				else
-				{
-					return String.Format("`{0}` **SENT AT** `[{1}]`\n```\n{2}```",
-						msg.Author.FormatUser(),
-						FormatDateTime(msg.CreatedAt),
-						ReplaceMarkdownChars(content, true));
-				}
+
+				return content;
 			}
 
 			public static string FormatDateTime(DateTime? dt)
@@ -1962,29 +1839,27 @@ namespace Advobot
 			}
 			public static string FormatDateTime(DateTimeOffset? dt)
 			{
-				if (!dt.HasValue)
-				{
-					return "N/A";
-				}
-
-				return FormatDateTime(dt.Value.UtcDateTime);
+				return FormatDateTime(dt?.UtcDateTime);
 			}
 
-			public static string FormatGameStr(IUser user)
+			public static string FormatGame(IUser user)
 			{
-				if (user.Game.HasValue)
+				var game = user.Game;
+				switch (game?.StreamType)
 				{
-					var game = user.Game.Value;
-					if (game.StreamType == StreamType.Twitch)
+					case StreamType.NotStreaming:
 					{
-						return String.Format("**Current Stream:** [{0}]({1})", EscapeMarkdown(game.Name, true), game.StreamUrl);
+						return String.Format("**Current Game:** `{0}`", EscapeMarkdown(game?.Name, true));
 					}
-					else
+					case StreamType.Twitch:
 					{
-						return String.Format("**Current Game:** `{0}`", EscapeMarkdown(game.Name, true));
+						return String.Format("**Current Stream:** [{0}]({1})", EscapeMarkdown(game?.Name, true), game?.StreamUrl);
+					}
+					default:
+					{
+						return "**Current Game:** `N/A`";
 					}
 				}
-				return "**Current Game:** `N/A`";
 			}
 
 			public static string FormatErrorString<T>(IGuild guild, ReturnedObject<T> returnedObject)
@@ -2034,8 +1909,9 @@ namespace Advobot
 					}
 				}
 			}
-			public static string ERROR(string message, [CallerMemberName] string name = "")
+			public static string ERROR(string message)
 			{
+				//TODO: Accept guildInfo so can make errors not appear
 				++Variables.FailedCommands;
 
 				return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
@@ -2043,10 +1919,9 @@ namespace Advobot
 
 			public static string EscapeMarkdown(string str, bool onlyAccentGrave)
 			{
-				str = str.Replace("`", "\\`");
-				return onlyAccentGrave ? str : str.Replace("*", "\\*").Replace("_", "\\_");
+				return onlyAccentGrave ? str.Replace("`", "\\`") : str.Replace("`", "\\`").Replace("*", "\\*").Replace("_", "\\_");
 			}
-			public static string ReplaceMarkdownChars(string input, bool replaceNewLines)
+			public static string RemoveMarkdownChars(string input, bool replaceNewLines)
 			{
 				if (String.IsNullOrWhiteSpace(input))
 					return "";
@@ -2169,53 +2044,27 @@ namespace Advobot
 
 			public static string FormatAttribute(PermissionRequirementAttribute attr)
 			{
-				var basePerm = "N/A";
-				if (attr != null)
-				{
-					var all = !String.IsNullOrWhiteSpace(attr.AllText);
-					var any = !String.IsNullOrWhiteSpace(attr.AnyText);
-
-					basePerm = "[";
-					if (all)
-					{
-						basePerm += attr.AllText;
-					}
-					if (any)
-					{
-						if (all)
-						{
-							basePerm += " | ";
-						}
-						basePerm += attr.AnyText;
-					}
-					basePerm += "]";
-				}
-				return basePerm;
+				return attr != null ? String.Format("[{0}]", JoinNonNullStrings(" | ", attr.AllText, attr.AnyText)) : "N/A";
 			}
 			public static string FormatAttribute(OtherRequirementAttribute attr)
 			{
 				var basePerm = "N/A";
 				if (attr != null)
 				{
-					var perms = (attr.Requirements & Precondition.UserHasAPerm) != 0;
-					var guild = (attr.Requirements & Precondition.GuildOwner) != 0;
-					var trust = (attr.Requirements & Precondition.TrustedUser) != 0;
-					var owner = (attr.Requirements & Precondition.BotOwner) != 0;
-
 					var text = new List<string>();
-					if (perms)
+					if ((attr.Requirements & Precondition.UserHasAPerm) != 0)
 					{
 						text.Add("Administrator | Any perm ending with 'Members' | Any perm starting with 'Manage'");
 					}
-					if (guild)
+					if ((attr.Requirements & Precondition.GuildOwner) != 0)
 					{
 						text.Add("Guild Owner");
 					}
-					if (trust)
+					if ((attr.Requirements & Precondition.TrustedUser) != 0)
 					{
 						text.Add("Trusted User");
 					}
-					if (owner)
+					if ((attr.Requirements & Precondition.BotOwner) != 0)
 					{
 						text.Add("Bot Owner");
 					}
@@ -2418,7 +2267,7 @@ namespace Advobot
 
 				//Embeds can only be 1024 characters max and mobile can only show up to 5 line breaks
 				var badFields = new List<Tuple<int, string>>();
-				for (int i = 0; i < embed.Fields.Count; i++)
+				for (int i = 0; i < embed.Fields.Count; ++i)
 				{
 					var field = embed.Fields[i];
 					var value = field.Value.ToString();
@@ -2445,11 +2294,18 @@ namespace Advobot
 				IUserMessage msg;
 				try
 				{
+					if (content != null)
+					{
+						content = content.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE);
+						content = content.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE);
+						content = content.CaseInsReplace("\tts", Constants.FAKE_TTS);
+					}
+
 					msg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content ?? "", false, embed.WithCurrentTimestamp());
 				}
 				catch (Exception e)
 				{
-					Messages.ExceptionToConsole(e);
+					ExceptionToConsole(e);
 					msg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + Formatting.ERROR(e.Message));
 					return null;
 				}
@@ -2468,32 +2324,28 @@ namespace Advobot
 
 				return msg;
 			}
-			public static async Task<IUserMessage> SendChannelMessage(ICommandContext context, string message)
+			public static async Task<IUserMessage> SendChannelMessage(ICommandContext context, string content)
 			{
-				return await SendChannelMessage(context.Channel, message);
+				return await SendChannelMessage(context.Channel, content);
 			}
-			public static async Task<IUserMessage> SendChannelMessage(IMessageChannel channel, string message)
+			public static async Task<IUserMessage> SendChannelMessage(IMessageChannel channel, string content)
 			{
-				return await SendChannelMessage(channel as ITextChannel, message);
-			}
-			public static async Task<IUserMessage> SendChannelMessage(ITextChannel channel, string message)
-			{
-				var guild = channel.GetGuild();
-				if (channel == null || guild == null)
+				var guild = (channel as ITextChannel)?.Guild;
+				if (guild == null)
 					return null;
 
-				message = message.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE);
-				message = message.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE);
-				message = message.CaseInsReplace("\tts", Constants.FAKE_TTS);
+				content = content.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE);
+				content = content.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE);
+				content = content.CaseInsReplace("\tts", Constants.FAKE_TTS);
 
 				IUserMessage msg = null;
-				if (message.Length >= Constants.MAX_MESSAGE_LENGTH_LONG)
+				if (content.Length >= Constants.MAX_MESSAGE_LENGTH_LONG)
 				{
-					msg = await Uploads.WriteAndUploadTextFile(guild, channel, message, "Long_Message_", "The response is a long message and was sent as a text file instead");
+					msg = await Uploads.WriteAndUploadTextFile(guild, channel, content, "Long_Message_", "The response is a long message and was sent as a text file instead");
 				}
 				else
 				{
-					msg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
+					msg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content);
 				}
 				return msg;
 			}
@@ -2515,7 +2367,7 @@ namespace Advobot
 				await DeleteMessages(channel, messages);
 				return messages.Count();
 			}
-			public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage msg, IUser user, int requestCount)
+			public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount, IUser user)
 			{
 				var guildChannel = channel as ITextChannel;
 				if (guildChannel == null)
@@ -2523,19 +2375,19 @@ namespace Advobot
 
 				if (user == null)
 				{
-					return await RemoveMessages(channel, msg, requestCount);
+					return await RemoveMessages(channel, fromMessage, requestCount);
 				}
 
 				var deletedCount = 0;
 				while (requestCount > 0)
 				{
 					//Get the current messages and ones that aren't null
-					var messages = await channel.GetMessagesAsync(msg, Direction.Before, 100).Flatten();
+					var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).Flatten();
 					if (!messages.Any())
 						break;
 
 					//Set the from message as the last of the currently grabbed ones
-					msg = messages.Last();
+					fromMessage = messages.Last();
 
 					//Check for messages of the targetted user
 					messages = messages.Where(x => x.Author.Id == user.Id);
@@ -2554,7 +2406,7 @@ namespace Advobot
 					}
 					catch
 					{
-						Messages.WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", msgAmt, guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
+						WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", msgAmt, guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
 						break;
 					}
 
@@ -2589,30 +2441,24 @@ namespace Advobot
 					Timers.RemoveCommandMessages(messages, time);
 				}
 			}
-			public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, string secondStr, uint time = Constants.SECONDS_DEFAULT)
-			{
-				await MakeAndDeleteSecondaryMessage(channel, null, secondStr, time);
-			}
 
 			public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages)
 			{
-				var guildChannel = channel as ITextChannel;
-				if (guildChannel == null || messages == null || !messages.Any())
+				if (messages == null || !messages.Any())
 					return;
 
 				try
 				{
-					await guildChannel.DeleteMessagesAsync(messages.Where(x => DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 14).Distinct());
+					await channel.DeleteMessagesAsync(messages.Where(x => DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 14).Distinct());
 				}
 				catch
 				{
-					Messages.WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count(), guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
+					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count(), channel.GetGuild().FormatGuild(), channel.FormatChannel()));
 				}
 			}
 			public static async Task DeleteMessage(IMessage message)
 			{
-				var guildChannel = message.Channel as ITextChannel;
-				if (guildChannel == null || message == null || DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalDays >= 14)
+				if (message == null || DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalDays >= 14)
 					return;
 
 				try
@@ -2621,29 +2467,28 @@ namespace Advobot
 				}
 				catch
 				{
-					Messages.WriteLine(String.Format("Unable to delete the message {0} on channel {1}.", message.Id, guildChannel.FormatChannel()));
+					WriteLine(String.Format("Unable to delete the message {0} on channel {1}.", message.Id, message.Channel.FormatChannel()));
 				}
 			}
-			public static async Task SendDeleteMessage(IGuild guild, ITextChannel channel, List<string> inputList)
+			public static async Task SendMessageContainingFormattedDeletedMessages(IGuild guild, ITextChannel channel, List<string> inputList)
 			{
-				//Get the character count
-				int characterCount = 0;
-				inputList.ForEach(x => characterCount += (x.Length + 100));
-
 				if (!inputList.Any())
 				{
 					return;
 				}
-				else if (inputList.Count <= 5 && characterCount < Constants.MAX_MESSAGE_LENGTH_LONG)
+
+				var characterCount = 0;
+				inputList.ForEach(x => characterCount += (x.Length + 100));
+
+				if (inputList.Count <= 5 && characterCount < Constants.MAX_MESSAGE_LENGTH_LONG)
 				{
-					//If there aren't many messages send the small amount in a message instead of a file or link
-					var embed = Messages.MakeNewEmbed("Deleted Messages", String.Join("\n", inputList), Constants.MDEL);
-					AddFooter(embed, "Deleted Messages");
+					var embed = Embeds.MakeNewEmbed("Deleted Messages", String.Join("\n", inputList), Constants.MDEL);
+					Embeds.AddFooter(embed, "Deleted Messages");
 					await SendEmbedMessage(channel, embed);
 				}
 				else
 				{
-					var text = Formatting.ReplaceMarkdownChars(String.Join("\n-----\n", inputList), true);
+					var text = Formatting.RemoveMarkdownChars(String.Join("\n-----\n", inputList), true);
 					var name = "Deleted_Messages_";
 					var content = String.Format("{0} Deleted Messages", inputList.Count);
 					await Uploads.WriteAndUploadTextFile(guild, channel, text, name, content);
@@ -2718,9 +2563,32 @@ namespace Advobot
 			}
 			public static async Task<List<IMessage>> GetBotDMs(IDMChannel channel)
 			{
-				return (await GetMessages(channel, 500)).OrderBy(x => x.CreatedAt).ToList();
+				return (await GetMessages(channel, Constants.AMT_OF_DMS_TO_GATHER)).OrderBy(x => x?.CreatedAt).ToList();
 			}
 
+			public static void WriteLine(string text, [CallerMemberName] string name = "")
+			{
+				var line = String.Format("[{0}] [{1}]: {2}", DateTime.Now.ToString("HH:mm:ss"), name, Formatting.RemoveMarkdownChars(text, true));
+
+				if (!Variables.WrittenLines.TryGetValue(name, out List<string> list))
+				{
+					Variables.WrittenLines.Add(name, list = new List<string>());
+				}
+				list.Add(line);
+
+				Console.WriteLine(line);
+			}
+			public static void ExceptionToConsole(Exception e, [CallerMemberName] string name = "")
+			{
+				if (e == null)
+					return;
+
+				Messages.WriteLine("EXCEPTION: " + e, name);
+			}
+		}
+
+		public static class Embeds
+		{
 			public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null, string URL = null, string thumbnailURL = null)
 			{
 				//Make the embed builder
@@ -2784,6 +2652,10 @@ namespace Advobot
 
 				embed.WithAuthor(author);
 			}
+			public static void AddAuthor(EmbedBuilder embed, IUser user, string URL = null)
+			{
+				AddAuthor(embed, user.Username, user.GetAvatarUrl(), URL ?? user.GetAvatarUrl());
+			}
 			public static void AddFooter(EmbedBuilder embed, [CallerMemberName] string text = null, string iconURL = null)
 			{
 				//Make the footer builder
@@ -2819,26 +2691,6 @@ namespace Advobot
 					x.Value = value;
 					x.IsInline = isInline;
 				});
-			}
-
-			public static void WriteLine(string text, [CallerMemberName] string name = "")
-			{
-				var line = String.Format("[{0}] [{1}]: {2}", DateTime.Now.ToString("HH:mm:ss"), name, Formatting.ReplaceMarkdownChars(text, true));
-
-				if (!Variables.WrittenLines.TryGetValue(name, out List<string> list))
-				{
-					Variables.WrittenLines.Add(name, list = new List<string>());
-				}
-				list.Add(line);
-
-				Console.WriteLine(line);
-			}
-			public static void ExceptionToConsole(Exception e, [CallerMemberName] string name = "")
-			{
-				if (e == null)
-					return;
-
-				Messages.WriteLine("EXCEPTION: " + e, name);
 			}
 		}
 
@@ -2907,7 +2759,7 @@ namespace Advobot
 
 				using (var writer = new StreamWriter(path))
 				{
-					writer.WriteLine(Formatting.ReplaceMarkdownChars(text, false));
+					writer.WriteLine(Formatting.RemoveMarkdownChars(text, false));
 				}
 
 				var textOnTop = String.IsNullOrWhiteSpace(content) ? "" : String.Format("**{0}:**", content);
@@ -3001,10 +2853,6 @@ namespace Advobot
 		{
 			public static async Task LogImage(ITextChannel channel, IMessage message, bool embeds)
 			{
-				//Get the user
-				var user = message.Author;
-
-				//Get the links
 				var attachmentURLs = new List<string>();
 				var embedURLs = new List<string>();
 				var videoEmbeds = new List<IEmbed>();
@@ -3016,48 +2864,48 @@ namespace Advobot
 				else if (embeds && message.Embeds.Any())
 				{
 					//If embed this is slightly trickier, but only images/videos can embed (AFAIK)
-					message.Embeds.ToList().ForEach(x =>
+					foreach (var embed in message.Embeds)
 					{
-						if (x.Video == null)
+						if (embed.Video == null)
 						{
 							//If no video then it has to be just an image
-							if (x.Thumbnail.HasValue && !String.IsNullOrEmpty(x.Thumbnail.Value.Url))
+							if (!String.IsNullOrEmpty(embed.Thumbnail?.Url))
 							{
-								embedURLs.Add(x.Thumbnail.Value.Url);
+								embedURLs.Add(embed.Thumbnail?.Url);
 							}
-							if (x.Image.HasValue && !String.IsNullOrEmpty(x.Image.Value.Url))
+							if (!String.IsNullOrEmpty(embed.Image?.Url))
 							{
-								embedURLs.Add(x.Image.Value.Url);
+								embedURLs.Add(embed.Image?.Url);
 							}
 						}
 						else
 						{
 							//Add the video URL and the thumbnail URL
-							videoEmbeds.Add(x);
+							videoEmbeds.Add(embed);
 						}
-					});
+					}
 				}
 				//Attached files
-				await attachmentURLs.ForEachAsync(async x =>
+				foreach (var attachmentURL in attachmentURLs)
 				{
 					//Image attachment
-					if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(x)))
+					if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentURL)))
 					{
 						var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
-						var embed = Messages.MakeNewEmbed(null, desc, Constants.ATCH, x);
-						Messages.AddFooter(embed, "Attached Image");
-						Messages.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), x);
+						var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
+						Embeds.AddFooter(embed, "Attached Image");
+						Embeds.AddAuthor(embed, message.Author, attachmentURL);
 						await Messages.SendEmbedMessage(channel, embed);
 
 						++Variables.LoggedImages;
 					}
 					//Gif attachment
-					else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(x)))
+					else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL)))
 					{
 						var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
-						var embed = Messages.MakeNewEmbed(null, desc, Constants.ATCH, x);
-						Messages.AddFooter(embed, "Attached Gif");
-						Messages.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), x);
+						var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
+						Embeds.AddFooter(embed, "Attached Gif");
+						Embeds.AddAuthor(embed, message.Author, attachmentURL);
 						await Messages.SendEmbedMessage(channel, embed);
 
 						++Variables.LoggedGifs;
@@ -3066,36 +2914,36 @@ namespace Advobot
 					else
 					{
 						var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
-						var embed = Messages.MakeNewEmbed(null, desc, Constants.ATCH, x);
-						Messages.AddFooter(embed, "Attached File");
-						Messages.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), x);
+						var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
+						Embeds.AddFooter(embed, "Attached File");
+						Embeds.AddAuthor(embed, message.Author, attachmentURL);
 						await Messages.SendEmbedMessage(channel, embed);
 
 						++Variables.LoggedFiles;
 					}
-				});
+				}
 				//Embedded images
-				await embedURLs.Distinct().ToList().ForEachAsync(async x =>
+				foreach (var embedURL in embedURLs.Distinct())
 				{
 					var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
-					var embed = Messages.MakeNewEmbed(null, desc, Constants.ATCH, x);
-					Messages.AddFooter(embed, "Embedded Image");
-					Messages.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), x);
+					var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, embedURL);
+					Embeds.AddFooter(embed, "Embedded Image");
+					Embeds.AddAuthor(embed, message.Author, embedURL);
 					await Messages.SendEmbedMessage(channel, embed);
 
 					++Variables.LoggedImages;
-				});
+				}
 				//Embedded videos/gifs
-				await videoEmbeds.GroupBy(x => x.Url).Select(x => x.First()).ToList().ForEachAsync(async x =>
+				foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First()))
 				{
 					var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
-					var embed = Messages.MakeNewEmbed(null, desc, Constants.ATCH, x.Thumbnail.Value.Url);
-					Messages.AddFooter(embed, "Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(x.Thumbnail.Value.Url)) ? "Gif" : "Video"));
-					Messages.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), x.Url);
+					var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, videoEmbed.Thumbnail?.Url);
+					Embeds.AddFooter(embed, "Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
+					Embeds.AddAuthor(embed, message.Author, videoEmbed.Url);
 					await Messages.SendEmbedMessage(channel, embed);
 
 					++Variables.LoggedGifs;
-				});
+				}
 			}
 			public static async Task HandleJoiningUsers(BotGuildInfo guildInfo, IGuildUser user)
 			{
@@ -3133,7 +2981,7 @@ namespace Advobot
 							var serverLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog)).Object;
 							if (serverLog != null)
 							{
-								await Messages.SendEmbedMessage(serverLog, Messages.MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
+								await Messages.SendEmbedMessage(serverLog, Embeds.MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
 							}
 						}
 					}
@@ -3172,9 +3020,7 @@ namespace Advobot
 			public static bool VerifyServerLoggingAction(BotGlobalInfo botInfo, IGuild guild, LogAction logAction, out VerifiedLoggingAction verifLoggingAction)
 			{
 				verifLoggingAction = new VerifiedLoggingAction(null, null, null);
-				if (botInfo.Pause)
-					return false;
-				if (!Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
+				if (botInfo.Pause || !Variables.Guilds.TryGetValue(guild.Id, out BotGuildInfo guildInfo))
 					return false;
 
 				var logChannel = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog)).Object;
@@ -3257,7 +3103,7 @@ namespace Advobot
 						}
 					}
 
-					if (spamUser.CheckIfAllowedToPunish(spamPrev, spamType, msg))
+					if (spamUser.CheckIfAllowedToPunish(spamPrev, spamType))
 					{
 						await Messages.DeleteMessage(msg);
 
@@ -3272,8 +3118,8 @@ namespace Advobot
 
 				if (spam)
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(msg.Channel, String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote to kick them by mentioning them.",
-						author.FormatUser(), spamUser.VotesRequired - spamUser.VotesToKick));
+					var content = String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote by mentioning them.", author.FormatUser(), spamUser.VotesRequired - spamUser.UsersWhoHaveAlreadyVoted.Count);
+					await Messages.MakeAndDeleteSecondaryMessage(msg.Channel, null, content, 10);
 				}
 			}
 			public static async Task HandleSlowmode(SlowmodeGuild smGuild, SlowmodeChannel smChannel, IMessage message)
@@ -3296,7 +3142,7 @@ namespace Advobot
 					{
 						if (user.CurrentMessagesLeft == user.BaseMessages)
 						{
-							user.SetNewTime(DateTime.UtcNow.AddSeconds(user.Interval));
+							user.SetNewTime();
 							Variables.SlowmodeUsers.ThreadSafeAdd(user);
 						}
 
@@ -3393,9 +3239,9 @@ namespace Advobot
 
 						if (logChannel != null)
 						{
-							var embed = Messages.MakeNewEmbed(null, "**Role Gained:** " + role.Name, Constants.UEDT);
-							Messages.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
-							Messages.AddFooter(embed, "Banned Phrases Role");
+							var embed = Embeds.MakeNewEmbed(null, "**Role Gained:** " + role.Name, Constants.UEDT);
+							Embeds.AddAuthor(embed, user);
+							Embeds.AddFooter(embed, "Banned Phrases Role");
 							await Messages.SendEmbedMessage(logChannel, embed);
 						}
 						break;
@@ -3446,25 +3292,66 @@ namespace Advobot
 					smGuild.Users.ThreadSafeAdd(new SlowmodeUser(user, smGuild.BaseMessages, smGuild.Interval));
 				}
 
-				smChannels.Where(x => (user.Guild as SocketGuild).TextChannels.Select(y => y.Id).Contains(x.ChannelID)).ToList().ForEach(smChan =>
+				foreach (var smChannel in smChannels.Where(x => (user.Guild as SocketGuild).TextChannels.Select(y => y.Id).Contains(x.ChannelID)))
 				{
-					smChan.Users.ThreadSafeAdd(new SlowmodeUser(user, smChan.BaseMessages, smChan.Interval));
-				});
+					smChannel.Users.ThreadSafeAdd(new SlowmodeUser(user, smChannel.BaseMessages, smChannel.Interval));
+				}
 			}
 
-			public static void HandleBannedPhraseModification(List<BannedPhrase> bannedStrings, IEnumerable<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
+			public static void HandleBannedPhraseModification(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
+			{
+				if (add)
+				{
+					AddBannedPhrases(bannedPhrases, inputPhrases, out success, out failure);
+				}
+				else
+				{
+					RemoveBannedPhrases(bannedPhrases, inputPhrases, out success, out failure);
+				}
+			}
+			public static void AddBannedPhrases(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, out List<string> success, out List<string> failure)
 			{
 				success = new List<string>();
 				failure = new List<string>();
-				if (add)
+
+				//Don't add duplicate words
+				foreach (var str in inputPhrases)
 				{
-					//Don't add duplicate words
+					if (!bannedPhrases.Any(x => x.Phrase.CaseInsEquals(str)))
+					{
+						success.Add(str);
+						bannedPhrases.Add(new BannedPhrase(str, PunishmentType.Nothing));
+					}
+					else
+					{
+						failure.Add(str);
+					}
+				}
+			}
+			public static void RemoveBannedPhrases(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, out List<string> success, out List<string> failure)
+			{
+				success = new List<string>();
+				failure = new List<string>();
+
+				var positions = new List<int>();
+				foreach (var potentialPosition in inputPhrases)
+				{
+					if (int.TryParse(potentialPosition, out int temp) && temp < bannedPhrases.Count)
+					{
+						positions.Add(temp);
+					}
+				}
+
+				//Removing by phrase
+				if (!positions.Any())
+				{
 					foreach (var str in inputPhrases)
 					{
-						if (!bannedStrings.Any(x => x.Phrase.CaseInsEquals(str)))
+						var temp = bannedPhrases.FirstOrDefault(x => x.Phrase.Equals(str));
+						if (temp != null)
 						{
-							bannedStrings.Add(new BannedPhrase(str, PunishmentType.Nothing));
 							success.Add(str);
+							bannedPhrases.Remove(temp);
 						}
 						else
 						{
@@ -3472,53 +3359,23 @@ namespace Advobot
 						}
 					}
 				}
+				//Removing by index
 				else
 				{
-					var positions = new List<int>();
-					foreach (var potentialPosition in inputPhrases)
+					//Put them in descending order so as to not delete low values before high ones
+					foreach (var position in positions.OrderByDescending(x => x))
 					{
-						if (int.TryParse(potentialPosition, out int temp) && temp < bannedStrings.Count)
+						if (bannedPhrases.Count - 1 <= position)
 						{
-							positions.Add(temp);
+							success.Add(bannedPhrases[position]?.Phrase ?? "null");
+							bannedPhrases.RemoveAt(position);
 						}
-					}
-
-					//Removing by phrase
-					if (!positions.Any())
-					{
-						foreach (var str in inputPhrases)
+						else
 						{
-							var temp = bannedStrings.FirstOrDefault(x => x.Phrase.Equals(str));
-							if (temp != null)
-							{
-								success.Add(str);
-								bannedStrings.Remove(temp);
-							}
-							else
-							{
-								failure.Add(str);
-							}
-						}
-					}
-					//Removing by index
-					else
-					{
-						//Put them in descending order so as to not delete low values before high ones
-						foreach (var position in positions.OrderByDescending(x => x))
-						{
-							if (bannedStrings.Count - 1 <= position)
-							{
-								var temp = bannedStrings[position];
-								bannedStrings.Remove(temp);
-								success.Add(temp?.Phrase ?? "null");
-								continue;
-							}
 							failure.Add("String at position " + position);
 						}
 					}
 				}
-
-				return;
 			}
 		}
 
@@ -3666,7 +3523,10 @@ namespace Advobot
 			}
 			public static void ClearPunishedUsersList()
 			{
-				Variables.Guilds.Values.ToList().ForEach(x => ((List<SpamPreventionUser>)x.GetSetting(SettingOnGuild.SpamPreventionUsers)).Clear());
+				foreach (var guild in Variables.Guilds.Values)
+				{
+					((List<SpamPreventionUser>)guild.GetSetting(SettingOnGuild.SpamPreventionUsers)).Clear();
+				}
 			}
 
 			public static void MinuteTimer(object obj)
@@ -3794,24 +3654,6 @@ namespace Advobot
 				await client.SetGameAsync(game, streamURL, streamType);
 			}
 
-			public static string[] SplitByCharExceptInQuotes(string inputString, char inputChar)
-			{
-				if (String.IsNullOrWhiteSpace(inputString))
-					return null;
-
-				return inputString.Split('"').Select((element, index) =>
-				{
-					if (index % 2 == 0)
-					{
-						return element.Split(new[] { inputChar }, StringSplitOptions.RemoveEmptyEntries);
-					}
-					else
-					{
-						return new[] { element };
-					}
-				}).SelectMany(x => x).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
-			}
-
 			public static void RestartBot()
 			{
 				try
@@ -3874,256 +3716,347 @@ namespace Advobot
 				return TWITCH_USERNAME_REGEX.IsMatch(input);
 			}
 		}
-	}
 
-	public static class ExtendedMethods
-	{
-		public static async Task ForEachAsync<T>(this List<T> list, Func<T, Task> func)
+		public static class ExtendedMethods
 		{
-			foreach (var value in list)
+			public static async Task ForEachAsync<T>(this List<T> list, Func<T, Task> func)
 			{
-				await func(value);
+				foreach (var value in list)
+				{
+					await func(value);
+				}
 			}
-		}
-		public static async void Forget(this Task task)
-		{
-			try
+			public static async void Forget(this Task task)
 			{
-				await task.ConfigureAwait(false);
+				try
+				{
+					await task.ConfigureAwait(false);
+				}
+				catch (Exception e)
+				{
+					Messages.ExceptionToConsole(e);
+				}
 			}
-			catch (Exception e)
-			{
-				Messages.ExceptionToConsole(e);
-			}
-		}
 
-		public static void ThreadSafeAdd<T>(this List<T> list, T obj)
-		{
-			lock (list)
+			public static void ThreadSafeAdd<T>(this List<T> list, T obj)
 			{
-				list.Add(obj);
+				lock (list)
+				{
+					list.Add(obj);
+				}
 			}
-		}
-		public static void ThreadSafeRemove<T>(this List<T> list, T obj)
-		{
-			lock (list)
+			public static void ThreadSafeRemove<T>(this List<T> list, T obj)
 			{
-				list.Remove(obj);
+				lock (list)
+				{
+					list.Remove(obj);
+				}
 			}
-		}
-		public static void ThreadSafeRemoveAll<T>(this List<T> list, Predicate<T> match)
-		{
-			lock (list)
+			public static void ThreadSafeRemoveAll<T>(this List<T> list, Predicate<T> match)
 			{
-				list.RemoveAll(match);
+				lock (list)
+				{
+					list.RemoveAll(match);
+				}
 			}
-		}
 
-		public static string FormatNumberedList<T>(this IEnumerable<T> list, string format, params Func<T, object>[] args)
-		{
-			var count = 1;
-			var maxLen = list.Count().ToString().Length;
-			//.ToArray() must be used or else String.Format tries to use an overload accepting object as a parameter instead of object[] thus causing an exception
-			return String.Join("\n", list.Select(x => String.Format("`{0}.` ", count++.ToString().PadLeft(maxLen, '0')) + String.Format(@format, args.Select(y => y(x)).ToArray())));
-		}
-		public static string FormatUser(this IUser user, ulong? userID = 0)
-		{
-			if (user != null)
+			public static string FormatNumberedList<T>(this IEnumerable<T> list, string format, params Func<T, object>[] args)
 			{
-				return String.Format("'{0}#{1}' ({2})",
-					Actions.Formatting.EscapeMarkdown(user.Username, true).CaseInsReplace("discord.gg", Constants.FAKE_DISCORD_LINK),
-					user.Discriminator,
-					user.Id);
+				var count = 0;
+				var maxLen = list.Count().ToString().Length;
+				//.ToArray() must be used or else String.Format tries to use an overload accepting object as a parameter instead of object[] thus causing an exception
+				return String.Join("\n", list.Select(x => String.Format("`{0}.` ", (++count).ToString().PadLeft(maxLen, '0')) + String.Format(@format, args.Select(y => y(x)).ToArray())));
 			}
-			else
+			public static string FormatUser(this IUser user, ulong? userID = 0)
 			{
-				return String.Format("Irretrievable User ({0})", userID);
+				if (user != null)
+				{
+					return String.Format("'{0}#{1}' ({2})",
+						Actions.Formatting.EscapeMarkdown(user.Username, true).CaseInsReplace("discord.gg", Constants.FAKE_DISCORD_LINK),
+						user.Discriminator,
+						user.Id);
+				}
+				else
+				{
+					return String.Format("Irretrievable User ({0})", userID);
+				}
 			}
-		}
-		public static string FormatRole(this IRole role)
-		{
-			if (role != null)
+			public static string FormatRole(this IRole role)
 			{
-				return String.Format("'{0}' ({1})", Actions.Formatting.EscapeMarkdown(role.Name, true), role.Id);
+				if (role != null)
+				{
+					return String.Format("'{0}' ({1})", Actions.Formatting.EscapeMarkdown(role.Name, true), role.Id);
+				}
+				else
+				{
+					return "Irretrievable Role";
+				}
 			}
-			else
+			public static string FormatChannel(this IChannel channel)
 			{
-				return "Irretrievable Role";
+				if (channel != null)
+				{
+					return String.Format("'{0}' ({1}) ({2})", Actions.Formatting.EscapeMarkdown(channel.Name, true), (channel is IMessageChannel ? "text" : "voice"), channel.Id);
+				}
+				else
+				{
+					return "Irretrievable Channel";
+				}
 			}
-		}
-		public static string FormatChannel(this IChannel channel)
-		{
-			if (channel != null)
+			public static string FormatGuild(this IGuild guild, ulong? guildID = 0)
 			{
-				return String.Format("'{0}' ({1}) ({2})", Actions.Formatting.EscapeMarkdown(channel.Name, true), (channel is IMessageChannel ? "text" : "voice"), channel.Id);
+				if (guild != null)
+				{
+					return String.Format("'{0}' ({1})", Actions.Formatting.EscapeMarkdown(guild.Name, true), guild.Id);
+				}
+				else
+				{
+					return String.Format("Irretrievable Guild ({0})", guildID);
+				}
 			}
-			else
-			{
-				return "Irretrievable Channel";
-			}
-		}
-		public static string FormatGuild(this IGuild guild, ulong? guildID = 0)
-		{
-			if (guild != null)
-			{
-				return String.Format("'{0}' ({1})", Actions.Formatting.EscapeMarkdown(guild.Name, true), guild.Id);
-			}
-			else
-			{
-				return String.Format("Irretrievable Guild ({0})", guildID); 
-			}
-		}
 
-		public static bool CaseInsEquals(this string str1, string str2)
-		{
-			if (str1 == null)
+			public static bool CaseInsEquals(this string str1, string str2)
 			{
-				return str2 == null;
-			}
-			else if (str2 == null)
-			{
-				return false;
-			}
-			else
-			{
-				return str1.Equals(str2, StringComparison.OrdinalIgnoreCase);
-			}
-		}
-		public static bool CaseInsContains(this string source, string search)
-		{
-			if (source == null || search == null)
-			{
-				return false;
-			}
-			else
-			{
-				return source.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
-			}
-		}
-		public static bool CaseInsIndexOf(this string source, string search, out int position)
-		{
-			position = -1;
-			if (source == null || search == null)
-			{
-				return false;
-			}
-			else
-			{
-				return (position = source.IndexOf(search, StringComparison.OrdinalIgnoreCase)) >= 0;
-			}
-		}
-		public static bool CaseInsStartsWith(this string source, string search)
-		{
-			if (source == null || search == null)
-			{
-				return false;
-			}
-			else
-			{
-				return source.StartsWith(search, StringComparison.OrdinalIgnoreCase);
-			}
-		}
-		public static bool CaseInsEndsWith(this string source, string search)
-		{
-			if (source == null || search == null)
-			{
-				return false;
-			}
-			else
-			{
-				return source.EndsWith(search, StringComparison.OrdinalIgnoreCase);
-			}
-		}
-		public static string CaseInsReplace(this string str, string oldValue, string newValue)
-		{
-			System.Text.StringBuilder sb = new System.Text.StringBuilder();
-
-			var previousIndex = 0;
-			var index = str.IndexOf(oldValue, StringComparison.OrdinalIgnoreCase);
-			while (index != -1)
-			{
-				sb.Append(str.Substring(previousIndex, index - previousIndex));
-				sb.Append(newValue);
-				index += oldValue.Length;
-
-				previousIndex = index;
-				index = str.IndexOf(oldValue, index, StringComparison.OrdinalIgnoreCase);
-			}
-			sb.Append(str.Substring(previousIndex));
-
-			return sb.ToString();
-		}
-		public static bool CaseInsEverythingSame(this IEnumerable<string> enumerable)
-		{
-			var array = enumerable.ToArray();
-			for (int i = 1; i < array.Length; i++)
-			{
-				if (!array[i - 1].CaseInsEquals(array[i]))
+				if (str1 == null)
+				{
+					return str2 == null;
+				}
+				else if (str2 == null)
+				{
 					return false;
+				}
+				else
+				{
+					return str1.Equals(str2, StringComparison.OrdinalIgnoreCase);
+				}
 			}
-			return true;
-		}
-		public static bool CaseInsContains(this IEnumerable<string> enumerable, string search)
-		{
-			if (enumerable.Any())
+			public static bool CaseInsContains(this string source, string search)
 			{
-				return enumerable.Contains(search, StringComparer.OrdinalIgnoreCase);
-			}
-			return false;
-		}
-
-		public static string EnumName(this Enum e)
-		{
-			return Enum.GetName(e.GetType(), e);
-		}
-
-		public static bool AllCharactersAreWithinUpperLimit(this string str, int upperLimit)
-		{
-			if (String.IsNullOrWhiteSpace(str))
-				return false;
-
-			foreach (var c in str)
-			{
-				if (c > upperLimit)
+				if (source == null || search == null)
+				{
 					return false;
+				}
+				else
+				{
+					return source.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
+				}
 			}
-			return true;
-		}
+			public static bool CaseInsIndexOf(this string source, string search, out int position)
+			{
+				position = -1;
+				if (source == null || search == null)
+				{
+					return false;
+				}
+				else
+				{
+					return (position = source.IndexOf(search, StringComparison.OrdinalIgnoreCase)) >= 0;
+				}
+			}
+			public static bool CaseInsStartsWith(this string source, string search)
+			{
+				if (source == null || search == null)
+				{
+					return false;
+				}
+				else
+				{
+					return source.StartsWith(search, StringComparison.OrdinalIgnoreCase);
+				}
+			}
+			public static bool CaseInsEndsWith(this string source, string search)
+			{
+				if (source == null || search == null)
+				{
+					return false;
+				}
+				else
+				{
+					return source.EndsWith(search, StringComparison.OrdinalIgnoreCase);
+				}
+			}
+			public static string CaseInsReplace(this string source, string oldValue, string newValue)
+			{
+				System.Text.StringBuilder sb = new System.Text.StringBuilder();
 
-		public static int GetLineBreaks(this string str)
-		{
-			if (str == null)
-				return 0;
+				var previousIndex = 0;
+				var index = source.IndexOf(oldValue, StringComparison.OrdinalIgnoreCase);
+				while (index != -1)
+				{
+					sb.Append(source.Substring(previousIndex, index - previousIndex));
+					sb.Append(newValue);
+					index += oldValue.Length;
 
-			return str.Count(x => x == '\r' || x == '\n');
-		}
+					previousIndex = index;
+					index = source.IndexOf(oldValue, index, StringComparison.OrdinalIgnoreCase);
+				}
+				sb.Append(source.Substring(previousIndex));
 
-		public static IGuild GetGuild(this IMessage message)
-		{
-			return (message?.Channel as IGuildChannel)?.Guild;
-		}
-		public static IGuild GetGuild(this IUser user)
-		{
-			return (user as IGuildUser)?.Guild;
-		}
-		public static IGuild GetGuild(this IChannel channel)
-		{
-			return (channel as IGuildChannel)?.Guild;
-		}
-		public static IGuild GetGuild(this IRole role)
-		{
-			return role?.Guild;
-		}
+				return sb.ToString();
+			}
+			public static bool CaseInsEverythingSame(this IEnumerable<string> enumerable)
+			{
+				var array = enumerable.ToArray();
+				for (int i = 1; i < array.Length; ++i)
+				{
+					if (!array[i - 1].CaseInsEquals(array[i]))
+						return false;
+				}
+				return true;
+			}
+			public static bool CaseInsContains(this IEnumerable<string> enumerable, string search)
+			{
+				if (enumerable.Any())
+				{
+					return enumerable.Contains(search, StringComparer.OrdinalIgnoreCase);
+				}
+				return false;
+			}
 
-		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
-		{
-			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
-		}
-		public static List<T> GetOutTimedObjects<T>(this List<T> inputList) where T : ITimeInterface
-		{
-			var eligibleToBeGotten = inputList.Where(x => x.GetTime() <= DateTime.UtcNow).ToList();
-			inputList.ThreadSafeRemoveAll(x => eligibleToBeGotten.Contains(x));
-			return eligibleToBeGotten;
+			public static string EnumName(this Enum e)
+			{
+				return Enum.GetName(e.GetType(), e);
+			}
+
+			public static bool AllCharactersAreWithinUpperLimit(this string str, int upperLimit)
+			{
+				if (String.IsNullOrWhiteSpace(str))
+					return false;
+
+				foreach (var c in str)
+				{
+					if (c > upperLimit)
+						return false;
+				}
+				return true;
+			}
+			public static bool HasGlobalEmotes(this IGuild guild)
+			{
+				return guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
+			}
+
+			public static void AssertEnumsAreAllCorrectTargetType(this IEnumerable<ObjectVerification> enums, ISnowflakeEntity obj)
+			{
+				Target correctEnumTarget;
+				if (obj is IUser)
+				{
+					correctEnumTarget = Target.User;
+				}
+				else if (obj is IChannel)
+				{
+					correctEnumTarget = Target.Channel;
+				}
+				else if (obj is IRole)
+				{
+					correctEnumTarget = Target.Role;
+				}
+				else
+				{
+					throw new ArgumentException("Provided object is not a user, channel, or role.");
+				}
+
+				foreach (var e in enums)
+				{
+					var eTarget = (uint)((DiscordObjectTargetAttribute)typeof(ObjectVerification).GetField(e.EnumName()).GetCustomAttribute(typeof(DiscordObjectTargetAttribute)))?.Target;
+					if ((eTarget & (uint)correctEnumTarget) != eTarget)
+					{
+						throw new ArgumentException("Invalid object verification enum provided for a " + correctEnumTarget.EnumName());
+					}
+				}
+			}
+
+			public static int GetLineBreaks(this string str)
+			{
+				if (str == null)
+					return 0;
+
+				return str.Count(x => x == '\r' || x == '\n');
+			}
+
+			public static IGuild GetGuild(this IMessage message)
+			{
+				return (message?.Channel as IGuildChannel)?.Guild;
+			}
+			public static IGuild GetGuild(this IUser user)
+			{
+				return (user as IGuildUser)?.Guild;
+			}
+			public static IGuild GetGuild(this IChannel channel)
+			{
+				return (channel as IGuildChannel)?.Guild;
+			}
+			public static IGuild GetGuild(this IRole role)
+			{
+				return role?.Guild;
+			}
+
+			public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
+			{
+				return list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
+			}
+			public static List<T> GetOutTimedObjects<T>(this List<T> inputList) where T : ITimeInterface
+			{
+				var eligibleToBeGotten = inputList.Where(x => x.GetTime() <= DateTime.UtcNow).ToList();
+				inputList.ThreadSafeRemoveAll(x => eligibleToBeGotten.Contains(x));
+				return eligibleToBeGotten;
+			}
+			public static int GetCountOfItemsInTimeFrame<T>(this List<T> timeList, int timeFrame = 0) where T : ITimeInterface
+			{
+				lock (timeList)
+				{
+					//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
+					var listLength = timeList.Count;
+					if (timeFrame <= 0 || listLength < 2)
+						return listLength;
+
+					//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
+					var count = 0;
+					for (int i = 0; i < listLength; ++i)
+					{
+						for (int j = i + 1; j < listLength; ++j)
+						{
+							if ((int)timeList[j].GetTime().Subtract(timeList[i].GetTime()).TotalSeconds >= timeFrame)
+							{
+								//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
+								if ((int)timeList[j].GetTime().Subtract(timeList[j - 1].GetTime()).TotalSeconds > timeFrame)
+									i = j;
+								break;
+							}
+						}
+					}
+
+					//Remove all that are older than the given timeframe (with an added 1 second margin)
+					var nowTime = DateTime.UtcNow;
+					for (int i = listLength - 1; i >= 0; --i)
+					{
+						if ((int)nowTime.Subtract(timeList[i].GetTime()).TotalSeconds > timeFrame + 1)
+						{
+							timeList.RemoveRange(0, i + 1);
+							break;
+						}
+					}
+
+					return count;
+				}
+			}
+
+			public static string[] SplitByCharExceptInQuotes(this string inputString, char inputChar)
+			{
+				if (String.IsNullOrWhiteSpace(inputString))
+					return null;
+
+				return inputString.Split('"').Select((element, index) =>
+				{
+					if (index % 2 == 0)
+					{
+						return element.Split(new[] { inputChar }, StringSplitOptions.RemoveEmptyEntries);
+					}
+					else
+					{
+						return new[] { element };
+					}
+				}).SelectMany(x => x).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
+			}
 		}
 	}
 }

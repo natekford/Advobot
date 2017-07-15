@@ -12,7 +12,7 @@ namespace Advobot
 {
 	namespace Logging
 	{
-		public sealed class LogHolder
+		public class LogHolder
 		{
 			public BotLog BotLog { get; }
 			public ServerLog ServerLog { get; }
@@ -62,7 +62,7 @@ namespace Advobot
 				Messages.WriteLine(String.Format("{0} is now online on shard {1}.", guild.FormatGuild(), Gets.GetShardIdFor((dynamic)Client, guild)));
 				Messages.WriteLine(String.Format("Current memory usage is: {0}MB", Gets.GetMemory(BotInfo.Windows).ToString("0.00")));
 				Variables.TotalUsers += guild.MemberCount;
-				Variables.TotalGuilds++;
+				++Variables.TotalGuilds;
 
 				if (!Variables.Guilds.ContainsKey(guild.Id))
 				{
@@ -187,9 +187,9 @@ namespace Advobot
 					}
 
 					{
-						var embed = Messages.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.JOIN);
-						Messages.AddFooter(embed, String.Format("{0} Joined", botOrUserStr));
-						Messages.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
+						var embed = Embeds.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.JOIN);
+						Embeds.AddFooter(embed, String.Format("{0} Joined", botOrUserStr));
+						Embeds.AddAuthor(embed, user);
 						await Messages.SendEmbedMessage(serverLog, embed);
 					}
 
@@ -236,9 +236,9 @@ namespace Advobot
 					}
 					var botOrUserStr = user.IsBot ? "Bot" : "User";
 
-					var embed = Messages.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
-					Messages.AddFooter(embed, String.Format("{0} Left", botOrUserStr));
-					Messages.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl());
+					var embed = Embeds.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
+					Embeds.AddFooter(embed, String.Format("{0} Left", botOrUserStr));
+					Embeds.AddAuthor(embed, user);
 					await Messages.SendEmbedMessage(serverLog, embed);
 
 					++Variables.LoggedLeaves;
@@ -263,11 +263,11 @@ namespace Advobot
 							var guildInfo = verified.GuildInfo;
 							var serverLog = verified.LoggingChannel;
 
-							var embed = Messages.MakeNewEmbed(null, null, Constants.UEDT);
-							Messages.AddFooter(embed, "Name Changed");
-							Messages.AddField(embed, "Before:", "`" + beforeUser.Username + "`");
-							Messages.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
-							Messages.AddAuthor(embed, afterUser.FormatUser(), afterUser.GetAvatarUrl());
+							var embed = Embeds.MakeNewEmbed(null, null, Constants.UEDT);
+							Embeds.AddFooter(embed, "Name Changed");
+							Embeds.AddField(embed, "Before:", "`" + beforeUser.Username + "`");
+							Embeds.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
+							Embeds.AddAuthor(embed, afterUser);
 							await Messages.SendEmbedMessage(serverLog, embed);
 
 							++Variables.LoggedUserChanges;
@@ -314,8 +314,8 @@ namespace Advobot
 
 					if (serverLog != null)
 					{
-						var beforeMsgContent = Formatting.ReplaceMarkdownChars(beforeMessage?.Content ?? "", true);
-						var afterMsgContent = Formatting.ReplaceMarkdownChars(afterMessage.Content, true);
+						var beforeMsgContent = Formatting.RemoveMarkdownChars(beforeMessage?.Content ?? "", true);
+						var afterMsgContent = Formatting.RemoveMarkdownChars(afterMessage.Content, true);
 						beforeMsgContent = String.IsNullOrWhiteSpace(beforeMsgContent) ? "Empty or unable to be gotten." : beforeMsgContent;
 						afterMsgContent = String.IsNullOrWhiteSpace(afterMsgContent) ? "Empty or unable to be gotten." : afterMsgContent;
 
@@ -329,11 +329,11 @@ namespace Advobot
 							afterMsgContent = afterMsgContent.Length > 667 ? "LONG MESSAGE" : afterMsgContent;
 						}
 
-						var embed = Messages.MakeNewEmbed(null, null, Constants.MEDT);
-						Messages.AddFooter(embed, "Message Updated");
-						Messages.AddField(embed, "Before:", String.Format("`{0}`", beforeMsgContent));
-						Messages.AddField(embed, "After:", String.Format("`{0}`", afterMsgContent), false);
-						Messages.AddAuthor(embed, String.Format("{0} in #{1}", afterMessage.Author.FormatUser(), afterMessage.Channel), afterMessage.Author.GetAvatarUrl());
+						var embed = Embeds.MakeNewEmbed(null, null, Constants.MEDT);
+						Embeds.AddFooter(embed, "Message Updated");
+						Embeds.AddField(embed, "Before:", String.Format("`{0}`", beforeMsgContent));
+						Embeds.AddField(embed, "After:", String.Format("`{0}`", afterMsgContent), false);
+						Embeds.AddAuthor(embed, afterMessage.Author);
 						await Messages.SendEmbedMessage(serverLog, embed);
 						++Variables.LoggedEdits;
 					}
@@ -419,7 +419,8 @@ namespace Advobot
 						}
 
 						//Put the message content into a list of strings for easy usage
-						await Messages.SendDeleteMessage(guild, serverLog, Formatting.FormatMessages(deletedMessages.Where(x => x.CreatedAt != null).OrderBy(x => x.CreatedAt.Ticks)));
+						var formattedMessages = Formatting.FormatMessages(deletedMessages.OrderBy(x => x?.CreatedAt.Ticks));
+						await Messages.SendMessageContainingFormattedDeletedMessages(guild, serverLog, formattedMessages);
 					});
 				}
 
@@ -490,8 +491,8 @@ namespace Advobot
 						var help = closeHelpList.List[number].Word;
 						Variables.ActiveCloseHelp.ThreadSafeRemove(closeHelpList);
 
-						var embed = Messages.MakeNewEmbed(help.Name, help.ToString());
-						Messages.AddFooter(embed, "Help");
+						var embed = Embeds.MakeNewEmbed(help.Name, help.ToString());
+						Embeds.AddFooter(embed, "Help");
 						await Messages.SendEmbedMessage(message.Channel, embed);
 						await Messages.DeleteMessage(message);
 					}
@@ -539,7 +540,7 @@ namespace Advobot
 				foreach (var user in users)
 				{
 					user.IncreaseVotesToKick(message.Author.Id);
-					if (!Users.GetIfUserCanBeModifiedByUser(Users.GetBot(guild), user.User) || user.VotesToKick < user.VotesRequired)
+					if (!Users.GetIfUserCanBeModifiedByUser(Users.GetBot(guild), user.User) || user.UsersWhoHaveAlreadyVoted.Count < user.VotesRequired)
 						return;
 
 					await user.Punish(guildInfo, guild);
@@ -564,9 +565,9 @@ namespace Advobot
 					if (modLog == null)
 						return;
 
-					var embed = Messages.MakeNewEmbed(null, context.Message.Content);
-					Messages.AddFooter(embed, "Mod Log");
-					Messages.AddAuthor(embed, String.Format("{0} in #{1}", context.User.FormatUser(), context.Channel.Name), context.User.GetAvatarUrl());
+					var embed = Embeds.MakeNewEmbed(null, context.Message.Content);
+					Embeds.AddFooter(embed, "Mod Log");
+					Embeds.AddAuthor(embed, context.User);
 					await Messages.SendEmbedMessage(modLog, embed);
 				}
 			}

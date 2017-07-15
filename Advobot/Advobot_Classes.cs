@@ -92,7 +92,7 @@ namespace Advobot
 			| (1U << (int)GuildPermission.ManageWebhooks)
 			| (1U << (int)GuildPermission.MoveMembers)
 			| (1U << (int)GuildPermission.MuteMembers);
-		public Precondition Requirements { get; private set; }
+		public Precondition Requirements { get; }
 
 		public OtherRequirementAttribute(Precondition requirements)
 		{
@@ -167,7 +167,7 @@ namespace Advobot
 				}
 				else
 				{
-					Variables.AttemptedCommands++;
+					++Variables.AttemptedCommands;
 					return PreconditionResult.FromSuccess();
 				}
 			}
@@ -216,7 +216,7 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Class)]
 	public class DefaultEnabledAttribute : Attribute
 	{
-		public bool Enabled { get; private set; }
+		public bool Enabled { get; }
 
 		public DefaultEnabledAttribute(bool enabled)
 		{
@@ -227,7 +227,7 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Class)]
 	public class UsageAttribute : Attribute
 	{
-		public string Usage { get; private set; }
+		public string Usage { get; }
 
 		public UsageAttribute(string usage)
 		{
@@ -236,9 +236,20 @@ namespace Advobot
 	}
 
 	[AttributeUsage(AttributeTargets.Field)]
+	public class DiscordObjectTargetAttribute : Attribute
+	{
+		public Target Target { get; }
+
+		public DiscordObjectTargetAttribute(Target target)
+		{
+			Target = target;
+		}
+	}
+
+	[AttributeUsage(AttributeTargets.Field)]
 	public class GuildSettingAttribute : Attribute
 	{
-		public SettingOnGuild Setting { get; private set; }
+		public SettingOnGuild Setting { get; }
 
 		public GuildSettingAttribute(SettingOnGuild setting)
 		{
@@ -249,7 +260,7 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Field)]
 	public class BotSettingAttribute : Attribute
 	{
-		public SettingOnBot Setting { get; private set; }
+		public SettingOnBot Setting { get; }
 
 		public BotSettingAttribute(SettingOnBot setting)
 		{
@@ -877,6 +888,13 @@ namespace Advobot
 				ResetSetting(setting);
 			}
 		}
+		public override void SaveInfo()
+		{
+			if (mGuild != null)
+			{
+				SavingAndLoading.OverWriteFile(Gets.GetServerFilePath(mGuild.Id, Constants.GUILD_INFO_LOCATION), SavingAndLoading.Serialize(this));
+			}
+		}
 		public void PostDeserialize(IGuild guild)
 		{
 			mGuild = guild as SocketGuild;
@@ -919,18 +937,11 @@ namespace Advobot
 
 			foreach (var group in mSelfAssignableGroups)
 			{
-				group.Roles.ForEach(x => x.PostDeserialize(mGuild, group.Group));
+				group.Roles.ForEach(x => x.PostDeserialize(mGuild));
 				group.Roles.RemoveAll(x => x == null || x.Role == null);
 			}
 
 			mLoaded = true;
-		}
-		public override void SaveInfo()
-		{
-			if (mGuild != null)
-			{
-				SavingAndLoading.OverWriteFile(Gets.GetServerFilePath(mGuild.Id, Constants.GUILD_INFO_LOCATION), SavingAndLoading.Serialize(this));
-			}
 		}
 
 		public SpamPrevention GetSpamPrevention(SpamType spamType)
@@ -1228,8 +1239,8 @@ namespace Advobot
 			{
 				if (setting == SettingOnBot.ShardCount)
 				{
-					//Don't reset shards to 1. Reset it to enough to allow the current amount of guilds + some buffer
-					//SetSetting(setting, client.GetGuilds().Count / 2500 + 1);
+					//Don't reset shards.
+					continue;
 				}
 				else
 				{
@@ -1237,15 +1248,15 @@ namespace Advobot
 				}
 			}
 		}
+		public override void SaveInfo()
+		{
+			SavingAndLoading.OverWriteFile(Gets.GetBaseBotDirectory(Constants.BOT_INFO_LOCATION), SavingAndLoading.Serialize(this));
+		}
 		public void PostDeserialize(bool windows, bool console, bool firstInstance)
 		{
 			Windows = windows;
 			Console = console;
 			FirstInstanceOfBotStartingUpWithCurrentKey = firstInstance;
-		}
-		public override void SaveInfo()
-		{
-			SavingAndLoading.OverWriteFile(Gets.GetBaseBotDirectory(Constants.BOT_INFO_LOCATION), SavingAndLoading.Serialize(this));
 		}
 
 		public void TogglePause()
@@ -1275,9 +1286,9 @@ namespace Advobot
 	public class CommandOverride : Setting
 	{
 		[JsonProperty]
-		public string Name { get; private set; }
+		public string Name { get; }
 		[JsonProperty]
-		public ulong ID { get; private set; }
+		public ulong ID { get; }
 		[JsonProperty]
 		public bool Enabled { get; private set; }
 
@@ -1288,7 +1299,7 @@ namespace Advobot
 			Enabled = enabled;
 		}
 
-		public void Switch()
+		public void ToggleEnabled()
 		{
 			Enabled = !Enabled;
 		}
@@ -1306,9 +1317,9 @@ namespace Advobot
 	public class CommandSwitch : Setting
 	{
 		[JsonProperty]
-		public string Name { get; private set; }
+		public string Name { get; }
 		[JsonIgnore]
-		public string[] Aliases { get; private set; }
+		public string[] Aliases { get; }
 		[JsonProperty]
 		public bool Value { get; private set; }
 		[JsonIgnore]
@@ -1318,7 +1329,7 @@ namespace Advobot
 		[JsonIgnore]
 		public bool ValAsBoolean { get { return Value; } }
 		[JsonProperty]
-		public CommandCategory Category { get; private set; }
+		public CommandCategory Category { get; }
 		[JsonIgnore]
 		public string CategoryName { get { return Category.EnumName(); } }
 		[JsonIgnore]
@@ -1331,19 +1342,16 @@ namespace Advobot
 			mHelpEntry = Variables.HelpList.FirstOrDefault(x => x.Name.Equals(name));
 			if (mHelpEntry == null)
 				return;
+
 			Name = name;
 			Value = value;
 			Category = mHelpEntry.Category;
 			Aliases = mHelpEntry.Aliases;
 		}
 
-		public void Disable()
+		public void ToggleEnabled()
 		{
-			Value = false;
-		}
-		public void Enable()
-		{
-			Value = true;
+			Value = !Value;
 		}
 
 		public override string SettingToString()
@@ -1359,20 +1367,34 @@ namespace Advobot
 	public class BannedPhrase : Setting
 	{
 		[JsonProperty]
-		public string Phrase { get; private set; }
+		public string Phrase { get; }
 		[JsonProperty]
 		public PunishmentType Punishment { get; private set; }
 
 		public BannedPhrase(string phrase, PunishmentType punishment)
 		{
 			Phrase = phrase;
-			Punishment = (punishment == PunishmentType.Deafen || punishment == PunishmentType.Mute) ? PunishmentType.Nothing : punishment;
+			ChangePunishment(punishment);
 		}
 
-		//TODO: Fix this weird shit that's using ternary operators
-		public void ChangePunishment(PunishmentType type)
+		public void ChangePunishment(PunishmentType punishment)
 		{
-			Punishment = (type == PunishmentType.Deafen || type == PunishmentType.Mute) ? PunishmentType.Nothing : type;
+			switch (punishment)
+			{
+				case PunishmentType.Role:
+				case PunishmentType.Kick:
+				case PunishmentType.KickThenBan:
+				case PunishmentType.Ban:
+				{
+					Punishment = punishment;
+					return;
+				}
+				default:
+				{
+					Punishment = PunishmentType.Nothing;
+					return;
+				}
+			}
 		}
 
 		public override string SettingToString()
@@ -1388,15 +1410,15 @@ namespace Advobot
 	public class BannedPhrasePunishment : Setting
 	{
 		[JsonProperty]
-		public int NumberOfRemoves { get; private set; }
+		public int NumberOfRemoves { get; }
 		[JsonProperty]
-		public PunishmentType Punishment { get; private set; }
+		public PunishmentType Punishment { get; }
 		[JsonProperty]
-		public ulong RoleID { get; private set; }
+		public ulong RoleID { get; }
 		[JsonProperty]
-		public ulong GuildID { get; private set; }
+		public ulong GuildID { get; }
 		[JsonProperty]
-		public uint PunishmentTime { get; private set; }
+		public uint PunishmentTime { get; }
 		[JsonIgnore]
 		public IRole Role { get; private set; }
 
@@ -1450,15 +1472,10 @@ namespace Advobot
 
 		public void AddRole(SelfAssignableRole role)
 		{
-			role.SetGroup(Group);
 			Roles.Add(role);
 		}
 		public void AddRoles(IEnumerable<SelfAssignableRole> roles)
 		{
-			foreach (var role in roles)
-			{
-				role.SetGroup(Group);
-			}
 			Roles.AddRange(roles);
 		}
 		public void RemoveRoles(IEnumerable<ulong> roleIDs)
@@ -1468,7 +1485,7 @@ namespace Advobot
 
 		public override string SettingToString()
 		{
-			return String.Format("`Group: {0}`\n{1}", Group, String.Join("\n", Roles.Select(x => String.Format("`{0}`", x.Role.FormatRole()))));
+			return String.Format("`Group: {0}`\n{1}", Group, String.Join("\n", Roles.Select(x => x.SettingToString())));
 		}
 		public override string SettingToString(SocketGuild guild)
 		{
@@ -1479,9 +1496,7 @@ namespace Advobot
 	public class SelfAssignableRole : Setting
 	{
 		[JsonProperty]
-		public ulong RoleID { get; private set; }
-		[JsonIgnore]
-		public int Group { get; private set; }
+		public ulong RoleID { get; }
 		[JsonIgnore]
 		public IRole Role { get; private set; }
 
@@ -1496,19 +1511,14 @@ namespace Advobot
 			Role = role;
 		}
 
-		public void SetGroup(int group)
+		public void PostDeserialize(SocketGuild guild)
 		{
-			Group = group;
-		}
-		public void PostDeserialize(SocketGuild guild, int group)
-		{
-			SetGroup(group);
 			Role = guild.GetRole(RoleID);
 		}
 
 		public override string SettingToString()
 		{
-			return String.Format("**Group:** `{0}`\n**Role:** `{1}`", Group, Role.FormatRole());
+			return String.Format("**Role:** `{0}`", Role.FormatRole());
 		}
 		public override string SettingToString(SocketGuild guild)
 		{
@@ -1519,7 +1529,7 @@ namespace Advobot
 	public class BotImplementedPermissions : Setting
 	{
 		[JsonProperty]
-		public ulong UserID { get; private set; }
+		public ulong UserID { get; }
 		[JsonProperty]
 		public ulong Permissions { get; private set; }
 
@@ -1555,17 +1565,17 @@ namespace Advobot
 	public class GuildNotification : Setting
 	{
 		[JsonProperty]
-		public string Content { get; private set; }
+		public string Content { get; }
 		[JsonProperty]
-		public string Title { get; private set; }
+		public string Title { get; }
 		[JsonProperty]
-		public string Description { get; private set; }
+		public string Description { get; }
 		[JsonProperty]
-		public string ThumbURL { get; private set; }
+		public string ThumbURL { get; }
 		[JsonProperty]
-		public ulong ChannelID { get; private set; }
+		public ulong ChannelID { get; }
 		[JsonIgnore]
-		public EmbedBuilder Embed { get; private set; }
+		public EmbedBuilder Embed { get; }
 		[JsonIgnore]
 		public ITextChannel Channel { get; private set; }
 
@@ -1579,7 +1589,7 @@ namespace Advobot
 			ChannelID = channelID;
 			if (!(String.IsNullOrWhiteSpace(title) && String.IsNullOrWhiteSpace(description) && String.IsNullOrWhiteSpace(thumbURL)))
 			{
-				Embed = Messages.MakeNewEmbed(title, description, null, null, null, thumbURL);
+				Embed = Embeds.MakeNewEmbed(title, description, null, null, null, thumbURL);
 			}
 		}
 		public GuildNotification(string content, string title, string description, string thumbURL, ITextChannel channel) : this(content, title, description, thumbURL, channel.Id)
@@ -1629,7 +1639,6 @@ namespace Advobot
 		[JsonConstructor]
 		public ListedInvite(string code, string[] keywords)
 		{
-			HasGlobalEmotes = Guild.Emotes.Any(x => x.IsManaged);
 			LastBumped = DateTime.UtcNow;
 			Code = code;
 			URL = String.Concat("https://www.discord.gg/", Code);
@@ -1638,8 +1647,14 @@ namespace Advobot
 		public ListedInvite(SocketGuild guild, string code, string[] keywords) : this(code, keywords)
 		{
 			Guild = guild;
+			HasGlobalEmotes = Guild.HasGlobalEmotes();
 		}
 
+		public void UpdateCode(string code)
+		{
+			Code = code;
+			URL = String.Concat("https://www.discord.gg/", Code);
+		}
 		public void UpdateKeywords(string[] keywords)
 		{
 			Keywords = keywords;
@@ -1653,6 +1668,7 @@ namespace Advobot
 		public void PostDeserialize(SocketGuild guild)
 		{
 			Guild = guild;
+			HasGlobalEmotes = Guild.HasGlobalEmotes();
 		}
 
 		public override string SettingToString()
@@ -1679,9 +1695,9 @@ namespace Advobot
 	public class Quote : Setting, INameAndText
 	{
 		[JsonProperty]
-		public string Name { get; private set; }
+		public string Name { get; }
 		[JsonProperty]
-		public string Text { get; private set; }
+		public string Text { get; }
 
 		public Quote(string name, string text)
 		{
@@ -1708,7 +1724,7 @@ namespace Advobot
 			{ typeof(ITextChannel), (SocketGuild guild, ulong ID) => { return guild.GetTextChannel(ID); } },
 		});
 		[JsonProperty]
-		public ulong ID { get; private set; }
+		public ulong ID { get; }
 		[JsonIgnore]
 		public T Object { get; private set; }
 
@@ -1752,9 +1768,9 @@ namespace Advobot
 	public class PyramidalRoleSystem : Setting
 	{
 		[JsonProperty]
-		public Dictionary<int, ulong> Users { get; private set; }
+		public Dictionary<int, ulong> Users { get; }
 		[JsonProperty]
-		public Dictionary<int, ulong> Roles { get; private set; }
+		public Dictionary<int, ulong> Roles { get; }
 
 		public PyramidalRoleSystem()
 		{
@@ -1809,19 +1825,19 @@ namespace Advobot
 	public class SpamPrevention : Setting
 	{
 		[JsonProperty]
-		public PunishmentType PunishmentType { get; private set; }
+		public PunishmentType PunishmentType { get; }
 		[JsonProperty]
-		public int TimeInterval { get; private set; }
+		public int TimeInterval { get; }
 		[JsonProperty]
-		public int RequiredSpamInstances { get; private set; }
+		public int RequiredSpamInstances { get; }
 		[JsonProperty]
-		public int RequiredSpamPerMessage { get; private set; }
+		public int RequiredSpamPerMessage { get; }
 		[JsonProperty]
-		public int VotesForKick { get; private set; }
+		public int VotesForKick { get; }
 		[JsonProperty]
 		public bool Enabled { get; private set; }
 		[JsonIgnore]
-		public List<IGuildUser> PunishedUsers { get; private set; }
+		public List<IGuildUser> PunishedUsers { get; }
 
 		public SpamPrevention(PunishmentType punishmentType, int timeInterval, int requiredSpamInstances, int requiredSpamPerMessage, int votesForKick)
 		{
@@ -1833,13 +1849,9 @@ namespace Advobot
 			Enabled = true;
 		}
 
-		public void Disable()
+		public void ToggleEnabled()
 		{
-			Enabled = false;
-		}
-		public void Enable()
-		{
-			Enabled = true;
+			Enabled = !Enabled;
 		}
 		public async Task PunishUser(BotGuildInfo guildInfo, IGuildUser user)
 		{
@@ -1894,17 +1906,17 @@ namespace Advobot
 	public class RaidPrevention : Setting
 	{
 		[JsonProperty]
-		public PunishmentType PunishmentType { get; private set; }
+		public PunishmentType PunishmentType { get; }
 		[JsonProperty]
-		public int TimeInterval { get; private set; }
+		public int TimeInterval { get; }
 		[JsonProperty]
-		public int RequiredCount { get; private set; }
+		public int RequiredCount { get; }
 		[JsonProperty]
 		public bool Enabled { get; private set; }
 		[JsonIgnore]
-		public List<BasicTimeInterface> TimeList { get; private set; }
+		public List<BasicTimeInterface> TimeList { get; }
 		[JsonIgnore]
-		public List<IGuildUser> PunishedUsers { get; private set; }
+		public List<IGuildUser> PunishedUsers { get; }
 
 		public RaidPrevention(PunishmentType punishmentType, int timeInterval, int requiredCount)
 		{
@@ -1917,7 +1929,7 @@ namespace Advobot
 
 		public int GetSpamCount()
 		{
-			return Gets.GetCountOfItemsInTimeFrame(TimeList, TimeInterval);
+			return TimeList.GetCountOfItemsInTimeFrame(TimeInterval);
 		}
 		public void Add(DateTime time)
 		{
@@ -1925,22 +1937,15 @@ namespace Advobot
 		}
 		public void Remove(DateTime time)
 		{
-			TimeList.ThreadSafeRemoveAll(x =>
-			{
-				return x.GetTime().Equals(time);
-			});
+			TimeList.ThreadSafeRemoveAll(x => x.GetTime().Equals(time));
 		}
-		public void Disable()
+		public void ToggleEnabled()
 		{
-			Enabled = false;
-		}
-		public void Enable()
-		{
-			Enabled = true;
+			Enabled = !Enabled;
 		}
 		public void Reset()
 		{
-			TimeList = new List<BasicTimeInterface>();
+			TimeList.Clear();
 		}
 		public async Task PunishUser(BotGuildInfo guildInfo, IGuildUser user)
 		{
@@ -1994,7 +1999,9 @@ namespace Advobot
 
 	#region Non-saved Classes
 	[CommandRequirements]
-	public class MyModuleBase : ModuleBase<MyCommandContext> { }
+	public class MyModuleBase : ModuleBase<MyCommandContext>
+	{
+	}
 
 	public class MyCommandContext : CommandContext
 	{
@@ -2010,13 +2017,13 @@ namespace Advobot
 
 	public class HelpEntry : INameAndText
 	{
-		public string Name { get; private set; }
-		public string[] Aliases { get; private set; }
-		public string Usage { get; private set; }
-		public string BasePerm { get; private set; }
-		public string Text { get; private set; }
-		public CommandCategory Category { get; private set; }
-		public bool DefaultEnabled { get; private set; }
+		public string Name { get; }
+		public string[] Aliases { get; }
+		public string Usage { get; }
+		public string BasePerm { get; }
+		public string Text { get; }
+		public CommandCategory Category { get; }
+		public bool DefaultEnabled { get; }
 		private const string placeHolderStr = "N/A";
 
 		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text, CommandCategory category, bool defaultEnabled)
@@ -2042,8 +2049,8 @@ namespace Advobot
 
 	public class BotInvite
 	{
-		public ulong GuildID { get; private set; }
-		public string Code { get; private set; }
+		public ulong GuildID { get; }
+		public string Code { get; }
 		public int Uses { get; private set; }
 
 		public BotInvite(ulong guildID, string code, int uses)
@@ -2061,18 +2068,18 @@ namespace Advobot
 
 	public class SlowmodeUser : ITimeInterface
 	{
-		public IGuildUser User { get; private set; }
+		public IGuildUser User { get; }
+		public int BaseMessages { get; }
+		public int Interval { get; }
 		public int CurrentMessagesLeft { get; private set; }
-		public int BaseMessages { get; private set; }
-		public int Interval { get; private set; }
 		public DateTime Time { get; private set; }
 
-		public SlowmodeUser(IGuildUser user = null, int baseMessages = 1, int interval = 5)
+		public SlowmodeUser(IGuildUser user, int baseMessages, int interval)
 		{
 			User = user;
-			CurrentMessagesLeft = baseMessages;
 			BaseMessages = baseMessages;
 			Interval = interval;
+			CurrentMessagesLeft = baseMessages;
 		}
 
 		public void LowerMessagesLeft()
@@ -2083,9 +2090,9 @@ namespace Advobot
 		{
 			CurrentMessagesLeft = BaseMessages;
 		}
-		public void SetNewTime(DateTime time)
+		public void SetNewTime()
 		{
-			Time = time;
+			Time = DateTime.UtcNow.AddSeconds(Interval);
 		}
 		public DateTime GetTime()
 		{
@@ -2095,7 +2102,7 @@ namespace Advobot
 
 	public class BannedPhraseUser
 	{
-		public IGuildUser User { get; private set; }
+		public IGuildUser User { get; }
 		public int MessagesForRole { get; private set; }
 		public int MessagesForKick { get; private set; }
 		public int MessagesForBan { get; private set; }
@@ -2164,9 +2171,9 @@ namespace Advobot
 
 	public class SlowmodeGuild
 	{
-		public int BaseMessages { get; private set; }
-		public int Interval { get; private set; }
-		public List<SlowmodeUser> Users { get; private set; }
+		public int BaseMessages { get; }
+		public int Interval { get; }
+		public List<SlowmodeUser> Users { get; }
 
 		public SlowmodeGuild(int baseMessages, int interval)
 		{
@@ -2184,10 +2191,10 @@ namespace Advobot
 
 	public class SlowmodeChannel
 	{
-		public ulong ChannelID { get; private set; }
-		public int BaseMessages { get; private set; }
-		public int Interval { get; private set; }
-		public List<SlowmodeUser> Users { get; private set; }
+		public ulong ChannelID { get; }
+		public int BaseMessages { get; }
+		public int Interval { get; }
+		public List<SlowmodeUser> Users { get; }
 
 		public SlowmodeChannel(ulong channelID, int baseMessages, int interval)
 		{
@@ -2203,23 +2210,18 @@ namespace Advobot
 			Interval = interval;
 			Users = users;
 		}
-
-		public void SetUserList(List<SlowmodeUser> users)
-		{
-			Users = users;
-		}
 	}
 
 	public class SpamPreventionUser
 	{
-		public IGuildUser User { get; private set; }
-		public int VotesToKick { get; private set; } = 0;
+		public IGuildUser User { get; }
+		public List<ulong> UsersWhoHaveAlreadyVoted { get; } = new List<ulong>();
+		public Dictionary<SpamType, List<BasicTimeInterface>> SpamLists { get; } = new Dictionary<SpamType, List<BasicTimeInterface>>();
+
 		public int VotesRequired { get; private set; } = int.MaxValue;
 		public bool PotentialPunishment { get; private set; } = false;
 		public bool AlreadyKicked { get; private set; } = false;
-		public List<ulong> UsersWhoHaveAlreadyVoted { get; private set; } = new List<ulong>();
 		public PunishmentType Punishment { get; private set; } = PunishmentType.Nothing;
-		public Dictionary<SpamType, List<BasicTimeInterface>> SpamLists { get; private set; } = new Dictionary<SpamType, List<BasicTimeInterface>>();
 
 		public SpamPreventionUser(IGuildUser user)
 		{
@@ -2233,17 +2235,16 @@ namespace Advobot
 		public void IncreaseVotesToKick(ulong ID)
 		{
 			UsersWhoHaveAlreadyVoted.ThreadSafeAdd(ID);
-			++VotesToKick;
 		}
-		public void ChangeVotesRequired(int input)
+		public void ChangeVotesRequired(int newVotesRequired)
 		{
-			VotesRequired = Math.Min(input, VotesRequired);
+			VotesRequired = Math.Min(newVotesRequired, VotesRequired);
 		}
-		public void ChangePunishmentType(PunishmentType punishmentType)
+		public void ChangePunishmentType(PunishmentType newPunishment)
 		{
-			if (Constants.Severity[punishmentType] > Constants.Severity[Punishment])
+			if (Constants.Severity[newPunishment] > Constants.Severity[Punishment])
 			{
-				Punishment = punishmentType;
+				Punishment = newPunishment;
 			}
 		}
 		public void EnablePunishable()
@@ -2253,19 +2254,19 @@ namespace Advobot
 		public void ResetSpamUser()
 		{
 			//Don't reset already kicked since KickThenBan requires it
-			VotesToKick = 0;
-			VotesRequired = int.MaxValue;
-			PotentialPunishment = false;
 			UsersWhoHaveAlreadyVoted.Clear();
-			Punishment = PunishmentType.Nothing;
 			foreach (var spamList in SpamLists.Values)
 			{
 				spamList.Clear();
 			}
+
+			VotesRequired = int.MaxValue;
+			PotentialPunishment = false;
+			Punishment = PunishmentType.Nothing;
 		}
-		public bool CheckIfAllowedToPunish(SpamPrevention spamPrev, SpamType spamType, IMessage msg)
+		public bool CheckIfAllowedToPunish(SpamPrevention spamPrev, SpamType spamType)
 		{
-			return Gets.GetCountOfItemsInTimeFrame(SpamLists[spamType], spamPrev.TimeInterval) >= spamPrev.RequiredSpamInstances;
+			return SpamLists[spamType].GetCountOfItemsInTimeFrame(spamPrev.TimeInterval) >= spamPrev.RequiredSpamInstances;
 		}
 		public async Task Punish(BotGuildInfo guildInfo, IGuild guild)
 		{
@@ -2643,24 +2644,6 @@ namespace Advobot
 		MessageDeleted					= 5,
 	}
 
-	public enum CommandCategory
-	{
-		GlobalSettings					= 1,
-		GuildSettings					= 2,
-		Logs							= 3,
-		BanPhrases						= 4,
-		SelfRoles						= 5,
-		UserModeration					= 6,
-		RoleModeration					= 7,
-		ChannelModeration				= 8,
-		GuildModeration					= 9,
-		Miscellaneous					= 10,
-		SpamPrevention					= 11,
-		InviteModeration				= 12,
-		GuildList						= 13,
-		NicknameModeration				= 14,
-	}
-
 	public enum SettingOnGuild
 	{
 		//Nonsaved settings
@@ -2737,49 +2720,83 @@ namespace Advobot
 		Goodbye							= 2,
 	}
 
-	public enum EmoteType
+	[Flags]
+	public enum CommandCategory : uint
 	{
-		Global							= 1,
-		Guild							= 2,
+		GlobalSettings					= (1U << 0),
+		GuildSettings					= (1U << 1),
+		Logs							= (1U << 2),
+		BanPhrases						= (1U << 3),
+		SelfRoles						= (1U << 4),
+		UserModeration					= (1U << 5),
+		RoleModeration					= (1U << 6),
+		ChannelModeration				= (1U << 7),
+		GuildModeration					= (1U << 8),
+		Miscellaneous					= (1U << 9),
+		SpamPrevention					= (1U << 10),
+		InviteModeration				= (1U << 11),
+		GuildList						= (1U << 12),
+		NicknameModeration				= (1U << 13),
 	}
 
-	public enum ChannelType
+	[Flags]
+	public enum EmoteType : uint
 	{
-		Text							= 1,
-		Voice							= 2,
+		Global							= (1U << 0),
+		Guild							= (1U << 1),
 	}
 
-	public enum LogChannelType
+	[Flags]
+	public enum ChannelType : uint
 	{
-		Server							= 1,
-		Mod								= 2,
-		Image							= 3,
+		Text							= (1U << 0),
+		Voice							= (1U << 1),
 	}
 
-	public enum ObjectVerification
+	[Flags]
+	public enum LogChannelType : uint
 	{
-		//Generic
-		None							= 0,
-		CanBeEdited						= 1,
+		Server							= (1U << 0),
+		Mod								= (1U << 1),
+		Image							= (1U << 2),
+	}
 
-		//User
-		CanBeMovedFromChannel			= 100,
+	[Flags]
+	public enum ObjectVerification : uint
+	{
+		[DiscordObjectTarget(0)]
+		None							= (1U << 0),
+		[DiscordObjectTarget(0)]
+		CanBeEdited						= (1U << 1),
 
-		//Channels
-		IsVoice							= 200,
-		IsText							= 201,
-		CanBeReordered					= 202,
-		CanModifyPermissions			= 203,
-		CanBeManaged					= 204,
-		CanMoveUsers					= 205,
-		CanDeleteMessages				= 206,
-		CanBeRead						= 207,
-		CanCreateInstantInvite			= 208,
-		IsDefault						= 209,
+		[DiscordObjectTarget(Target.User)]
+		CanBeMovedFromChannel			= (1U << 0),
 
-		//Roles
-		IsEveryone						= 300,
-		IsManaged						= 301,
+		[DiscordObjectTarget(Target.Channel)]
+		IsVoice							= (1U << 0),
+		[DiscordObjectTarget(Target.Channel)]
+		IsText							= (1U << 1),
+		[DiscordObjectTarget(Target.Channel)]
+		CanBeReordered					= (1U << 2),
+		[DiscordObjectTarget(Target.Channel)]
+		CanModifyPermissions			= (1U << 3),
+		[DiscordObjectTarget(Target.Channel)]
+		CanBeManaged					= (1U << 4),
+		[DiscordObjectTarget(Target.Channel)]
+		CanMoveUsers					= (1U << 5),
+		[DiscordObjectTarget(Target.Channel)]
+		CanDeleteMessages				= (1U << 6),
+		[DiscordObjectTarget(Target.Channel)]
+		CanBeRead						= (1U << 7),
+		[DiscordObjectTarget(Target.Channel)]
+		CanCreateInstantInvite			= (1U << 8),
+		[DiscordObjectTarget(Target.Channel)]
+		IsDefault						= (1U << 9),
+
+		[DiscordObjectTarget(Target.Role)]
+		IsEveryone						= (1U << 0),
+		[DiscordObjectTarget(Target.Role)]
+		IsManaged						= (1U << 1),
 	}
 
 	public enum FailureReason
@@ -2811,16 +2828,18 @@ namespace Advobot
 		NoUsernameOrID					= 503,
 	}
 
-	public enum NSF
+	[Flags]
+	public enum NSF : uint
 	{
-		Nothing							= 0,
-		Success							= 1,
-		Failure							= 2,
+		Nothing							= (1U << 0),
+		Success							= (1U << 1),
+		Failure							= (1U << 2),
 	}
 
-	public enum FileType
+	[Flags]
+	public enum FileType : uint
 	{
-		GuildInfo						= 0,
+		GuildInfo						= (1U << 0),
 	}
 
 	[Flags]

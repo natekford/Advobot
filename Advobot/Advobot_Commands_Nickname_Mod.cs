@@ -15,7 +15,7 @@ namespace Advobot
 		[Summary("Gives the user a nickname. Inputting no nickname resets their nickname.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 		[DefaultEnabled(true)]
-		public class ChangeNickname : MyModuleBase
+		public sealed class ChangeNickname : MyModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, VerifyStringLength(Target.Nickname)] string nickname)
@@ -38,7 +38,7 @@ namespace Advobot
 		[Summary("Gives users a new nickname if their nickname or username contains the search phrase. Max is 100 users per use unless the bypass string is said.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 		[DefaultEnabled(true)]
-		public class ReplaceWordsInNames : MyModuleBase
+		public sealed class ReplaceWordsInNames : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command([VerifyStringLength(Target.Nickname)] string search,
@@ -64,7 +64,7 @@ namespace Advobot
 		[Summary("Replaces nickname/usernames that contain any characters above the supplied character value in UTF-16. Max is 100 users per use unless the bypass string is said.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 		[DefaultEnabled(true)]
-		public class ReplaceByUTF16 : MyModuleBase
+		public sealed class ReplaceByUTF16 : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command(uint upperLimit, [VerifyStringLength(Target.Nickname)] string replace, [Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
@@ -88,7 +88,7 @@ namespace Advobot
 		[Summary("Remove all nicknames of users on the guild. Max is 100 users per use unless the bypass string is said.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 		[DefaultEnabled(true)]
-		public class RemoveAllNicknames : MyModuleBase
+		public sealed class RemoveAllNicknames : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
@@ -104,22 +104,4 @@ namespace Advobot
 			}
 		}
 	}
-	/*
-	//Commands that affect nicknames
-	[Name("NicknameModeration")]
-	public class Advobot_Commands_Nickname_Mod : ModuleBase
-	{
-
-
-		public async Task RemoveAllNickNames([Optional, Remainder] string input)
-		{
-			var len = Actions.GetMaxNumOfUsersToGather(Context, new[] { input });
-			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, x => x.Nickname != null)).GetUpToAndIncludingMinNum(len);
-			Actions.DontWaitForResultOfBigUnimportantFunction(Context.Channel, async () =>
-			{
-				await Actions.RenicknameALotOfPeople(Context, users, null);
-			});
-		}
-	}
-	*/
 }

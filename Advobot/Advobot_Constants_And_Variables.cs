@@ -26,6 +26,7 @@ namespace Advobot
 		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
 		public const string FAKE_TTS = "\\" + ZERO_LENGTH_CHAR + "tts";
 		public const string BYPASS_STRING = "Bypass100";
+		public const string MUTE_ROLE_NAME = "Advobot_Mute";
 
 		public const string ERROR_MESSAGE = "**ERROR:** ";
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
@@ -65,6 +66,8 @@ namespace Advobot
 		public const int MAX_BANNED_NAMES = 25;
 		public const int MAX_ICON_FILE_SIZE = 2500000;
 		public const int MAX_UTF16_VAL_FOR_NAMES = 1000;
+		public const int AMT_OF_DMS_TO_GATHER = 500;
+		public const int VALID_KEY_LENGTH = 59; //This probably shouldn't be hardcoded in tbh
 
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;

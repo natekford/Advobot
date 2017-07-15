@@ -49,13 +49,19 @@ namespace Advobot
 				var startup = true;
 				while (!botInfo.GotPath)
 				{
-					SavingAndLoading.ValidatePath(botInfo, (startup ? Properties.Settings.Default.Path : Console.ReadLine()), startup);
+					if (SavingAndLoading.ValidatePath((startup ? Properties.Settings.Default.Path : Console.ReadLine()), botInfo.Windows, startup))
+					{
+						botInfo.SetGotPath();
+					}
 					startup = false;
 				}
 				startup = true;
 				while (!botInfo.GotKey)
 				{
-					await SavingAndLoading.ValidateBotKey(client, botInfo, (startup ? Properties.Settings.Default.BotKey : Console.ReadLine()), startup);
+					if (await SavingAndLoading.ValidateBotKey(client, (startup ? Properties.Settings.Default.BotKey : Console.ReadLine()), startup))
+					{
+						botInfo.SetGotKey();
+					}
 					startup = false;
 				}
 

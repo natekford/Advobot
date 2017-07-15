@@ -25,7 +25,7 @@ namespace Advobot
 {
 	public class BotWindow : Window
 	{
-		//These top two are not prefixed with m because they're used all over the place
+		//These top two are not prefixed with m because they're used all over the place outside of this class.
 		private readonly IDiscordClient Client;
 		private readonly BotGlobalInfo BotInfo;
 		private readonly BotUIInfo mUIInfo;
@@ -323,7 +323,7 @@ namespace Advobot
 				mTrustedUsersAdd, 
 				mTrustedUsersRemove,
 			};
-			for (int i = 0; i < mSettings.Length; i++)
+			for (int i = 0; i < mSettings.Length; ++i)
 			{
 				const int TITLE_START_COLUMN = 5;
 				const int TITLE_COLUMN_LENGTH = 35;
@@ -430,11 +430,16 @@ namespace Advobot
 			//Make console output show on the output text block and box
 			Console.SetOut(new UITextBoxStreamWriter(mOutput));
 
-			//Validate path/botkey after the UI has launched to have them logged
 			Task.Run(async () =>
 			{
-				SavingAndLoading.ValidatePath(BotInfo, Properties.Settings.Default.Path, true);
-				await SavingAndLoading.ValidateBotKey(Client, BotInfo, Properties.Settings.Default.BotKey, true);
+				if (SavingAndLoading.ValidatePath(Properties.Settings.Default.Path, BotInfo.Windows, true))
+				{
+					BotInfo.SetGotPath();
+				}
+				if (await SavingAndLoading.ValidateBotKey(Client, Properties.Settings.Default.BotKey, true))
+				{
+					BotInfo.SetGotKey();
+				}
 				await SavingAndLoading.MaybeStartBot(Client, BotInfo);
 			});
 
@@ -503,7 +508,7 @@ namespace Advobot
 			var failure = new List<string>();
 
 			//Go through each setting and update them
-			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(mSettingsLayout); i++)
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(mSettingsLayout); ++i)
 			{
 				var ele = VisualTreeHelper.GetChild(mSettingsLayout, i);
 				var setting = (ele as Control)?.Tag;
@@ -543,7 +548,7 @@ namespace Advobot
 		}
 		private void SaveColors(object sender, RoutedEventArgs e)
 		{
-			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(mColorsLayout); i++)
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(mColorsLayout); ++i)
 			{
 				var child = VisualTreeHelper.GetChild(mColorsLayout, i);
 				if (child is MyTextBox)
@@ -646,7 +651,7 @@ namespace Advobot
 			mInput.KeyUp += AcceptInput;
 			mInputButton.Click += AcceptInput;
 		}
-		private void AcceptInput(object sender, KeyEventArgs e)
+		private async void AcceptInput(object sender, KeyEventArgs e)
 		{
 			var text = mInput.Text;
 			if (String.IsNullOrWhiteSpace(text))
@@ -658,7 +663,7 @@ namespace Advobot
 			{
 				if (e.Key.Equals(Key.Enter) || e.Key.Equals(Key.Return))
 				{
-					DoStuffWithInput(UICommandHandler.GatherInput(mInput, mInputButton));
+					await DoStuffWithInput(UICommandHandler.GatherInput(mInput, mInputButton));
 				}
 				else
 				{
@@ -666,27 +671,30 @@ namespace Advobot
 				}
 			}
 		}
-		private void AcceptInput(object sender, RoutedEventArgs e)
+		private async void AcceptInput(object sender, RoutedEventArgs e)
 		{
-			UICommandHandler.GatherInput(mInput, mInputButton);
+			await DoStuffWithInput(UICommandHandler.GatherInput(mInput, mInputButton));
 		}
-		private void DoStuffWithInput(string input)
+		private async Task DoStuffWithInput(string input)
 		{
 			//Make sure both the path and key are set
 			if (!BotInfo.GotPath || !BotInfo.GotKey)
 			{
-				Task.Run(async () =>
+				if (!BotInfo.GotPath)
 				{
-					if (!BotInfo.GotPath)
+					if (SavingAndLoading.ValidatePath(input, BotInfo.Windows))
 					{
-						SavingAndLoading.ValidatePath(BotInfo, input);
+						BotInfo.SetGotPath();
 					}
-					else if (!BotInfo.GotKey)
+				}
+				else if (!BotInfo.GotKey)
+				{
+					if (await SavingAndLoading.ValidateBotKey(Client, input))
 					{
-						await SavingAndLoading.ValidateBotKey(Client, BotInfo, input);
+						BotInfo.SetGotKey();
 					}
-					await SavingAndLoading.MaybeStartBot(Client, BotInfo);
-				});
+				}
+				await SavingAndLoading.MaybeStartBot(Client, BotInfo);
 			}
 			else
 			{
@@ -1046,11 +1054,11 @@ namespace Advobot
 			mDMLayout.Visibility = Visibility.Collapsed;
 
 			//If clicking the same button then resize the output window to the regular size
-			var type = (sender as Button)?.Tag as MenuType? ?? MenuType.Nothing;
+			var type = (sender as Button)?.Tag as MenuType? ?? default(MenuType);
 			if (type == mLastButtonClicked)
 			{
 				UIModification.SetColAndSpan(mOutput, 0, 4);
-				mLastButtonClicked = MenuType.Nothing;
+				mLastButtonClicked = default(MenuType);
 			}
 			else
 			{
@@ -1183,7 +1191,7 @@ namespace Advobot
 			{
 				foreach (var message in messages)
 				{
-					mSpecificDMDisplay.AppendText(String.Format("{0}{1}----------{1}", Actions.Formatting.ReplaceMarkdownChars(message, true), Environment.NewLine));
+					mSpecificDMDisplay.AppendText(String.Format("{0}{1}----------{1}", Actions.Formatting.RemoveMarkdownChars(message, true), Environment.NewLine));
 				}
 			}
 			else
@@ -1326,14 +1334,14 @@ namespace Advobot
 
 		public static void AddRows(Grid grid, int amount)
 		{
-			for (int i = 0; i < amount; i++)
+			for (int i = 0; i < amount; ++i)
 			{
 				grid.RowDefinitions.Add(new RowDefinition());
 			}
 		}
 		public static void AddCols(Grid grid, int amount)
 		{
-			for (int i = 0; i < amount; i++)
+			for (int i = 0; i < amount; ++i)
 			{
 				grid.ColumnDefinitions.Add(new ColumnDefinition());
 			}
@@ -1369,9 +1377,9 @@ namespace Advobot
 
 		public static void SetColorMode(DependencyObject parent)
 		{
-			for (int c = 0; c < VisualTreeHelper.GetChildrenCount(parent); c++)
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); ++i)
 			{
-				var element = VisualTreeHelper.GetChild(parent, c) as DependencyObject;
+				var element = VisualTreeHelper.GetChild(parent, i) as DependencyObject;
 				if (element is Control)
 				{
 					if (element is CheckBox || element is ComboBox)
@@ -1710,7 +1718,7 @@ namespace Advobot
 		{
 			//Because setting the entire layout with the MouseUp event meant the empty combobox when clicked would trigger it even when IsHitTestVisible = True. No idea why, but this is the workaround.
 			var BGPoints = FigureOutWhereToPutBG(parent, child);
-			for (int i = 0; i < BGPoints.GetLength(0); i++)
+			for (int i = 0; i < BGPoints.GetLength(0); ++i)
 			{
 				var temp = new Grid { Background = brush ?? Brushes.Transparent, SnapsToDevicePixels = true, };
 				if (action != null)
@@ -1958,7 +1966,7 @@ namespace Advobot
 			var uptime = String.Format("Uptime: {0}", botUptime);
 			var cmds = String.Format("Logged Commands:\n{0}", Actions.Formatting.FormatLoggedCommands());
 			var logs = String.Format("Logged Actions:\n{0}", Actions.Formatting.FormatLoggedThings());
-			var str = Actions.Formatting.ReplaceMarkdownChars(String.Format("{0}\r\r{1}\r\r{2}", uptime, cmds, logs), true);
+			var str = Actions.Formatting.RemoveMarkdownChars(String.Format("{0}\r\r{1}\r\r{2}", uptime, cmds, logs), true);
 			var paragraph = new Paragraph(new Run(str))
 			{
 				TextAlignment = TextAlignment.Center,
@@ -1983,7 +1991,7 @@ namespace Advobot
 			AddElement(child, themeComboBox, 2, 5, 65, 25);
 
 			var colorResourceKeys = Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>().ToArray();
-			for (int i = 0; i < colorResourceKeys.Length; i++)
+			for (int i = 0; i < colorResourceKeys.Length; ++i)
 			{
 				var key = colorResourceKeys[i];
 				var value = FormatBrush(UIInfo.ColorTargets[key]);
@@ -2086,7 +2094,7 @@ namespace Advobot
 		public static void UITest()
 		{
 #if DEBUG
-			var codeLen = true;
+			var codeLen = false;
 			if (codeLen)
 			{
 				var totalChars = 0;
@@ -2101,10 +2109,13 @@ namespace Advobot
 				}
 				Messages.WriteLine(String.Format("Current Totals:{0}\t\t\t Chars: {1}{0}\t\t\t Lines: {2}", Environment.NewLine, totalChars, totalLines));
 			}
-			var resetKey = false;
-			if (resetKey)
+			var resetInfo = true;
+			if (resetInfo)
 			{
-				Properties.Settings.Default.BotKey = "";
+				Properties.Settings.Default.BotKey = null;
+				Properties.Settings.Default.Path = null;
+				Properties.Settings.Default.BotName = null;
+				Properties.Settings.Default.BotID = 0;
 				Properties.Settings.Default.Save();
 				Misc.DisconnectBot();
 			}
@@ -2455,39 +2466,42 @@ namespace Advobot
 		}
 	}
 
-	public enum ColorTheme
+	[Flags]
+	public enum ColorTheme : uint
 	{
-		Classic								= 0,
-		Dark_Mode							= 1,
-		User_Made							= 2,
+		Classic								= (1U << 0),
+		Dark_Mode							= (1U << 1),
+		User_Made							= (1U << 2),
 	}
 
-	public enum ColorTarget
+	[Flags]
+	public enum ColorTarget : uint
 	{
-		Base_Background						= 0,
-		Base_Foreground						= 1,
-		Base_Border							= 2,
-		Button_Background					= 3,
-		Button_Border						= 4,
-		Button_Disabled_Background			= 5,
-		Button_Disabled_Foreground			= 6,
-		Button_Disabled_Border				= 7,
-		Button_Mouse_Over_Background		= 8,
+		Base_Background						= (1U << 0),
+		Base_Foreground						= (1U << 1),
+		Base_Border							= (1U << 2),
+		Button_Background					= (1U << 3),
+		Button_Border						= (1U << 4),
+		Button_Disabled_Background			= (1U << 5),
+		Button_Disabled_Foreground			= (1U << 6),
+		Button_Disabled_Border				= (1U << 7),
+		Button_Mouse_Over_Background		= (1U << 8),
 	}
 
-	public enum OtherTarget
+	[Flags]
+	public enum OtherTarget : uint
 	{
-		Button_Style						= 0,
+		Button_Style						= (1U << 0),
 	}
 
-	public enum MenuType
+	[Flags]
+	public enum MenuType : uint
 	{
-		Nothing								= -1,
-		Main								= 0,
-		Info								= 1,
-		Settings							= 2,
-		Colors								= 3,
-		DMs									= 4,
-		Files								= 5,
+		Main								= (1U << 1),
+		Info								= (1U << 2),
+		Settings							= (1U << 3),
+		Colors								= (1U << 4),
+		DMs									= (1U << 5),
+		Files								= (1U << 6),
 	}
 }

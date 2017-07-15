@@ -11,13 +11,38 @@ namespace Advobot
 {
 	namespace UserModeration
 	{
-		[Group("unban")]
-		[Alias("ub")]
+		[Group("mute"), Alias("m")]
+		[Usage("[User] <Number>")]
+		[Summary("Prevents a user from typing and speaking and doing much else in the server. Time is in minutes, and if no time is given then the mute will not expire.")]
+		[PermissionRequirement(new[] { GuildPermission.ManageRoles, GuildPermission.ManageMessages }, null)]
+		[DefaultEnabled(true)]
+		public sealed class Mute : MyModuleBase
+		{
+			[Command]
+			public async Task Command(IGuildUser user, [Optional] uint time)
+			{
+				await CommandRunner(user, time);
+			}
+
+			private async Task CommandRunner(IGuildUser user, uint time)
+			{
+				await Roles.MuteUser(Context.GuildInfo, user, time);
+
+				var response = String.Format("Successfully muted `{0}`.", user.FormatUser());
+				if (time != 0)
+				{
+					response += String.Format("\nThe mute will last for `{0}` minute{1}.", time, Gets.GetPlural(time));
+				}
+				await Messages.MakeAndDeleteSecondaryMessage(Context, response);
+			}
+		}
+
+		[Group("unban"), Alias("ub")]
 		[Usage("<User ID|\"Username#Discriminator\"> <True|False>")]
 		[Summary("Unbans the user from the guild. If the reason argument is true it only says the reason without unbanning.")]
 		[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 		[DefaultEnabled(true)]
-		public class Unban : MyModuleBase
+		public sealed class Unban : MyModuleBase
 		{
 			[Command]
 			public async Task Command(IBan ban, [Optional] bool reason)
@@ -39,13 +64,12 @@ namespace Advobot
 			}
 		}
 
-		[Group("removemessages")]
-		[Alias("rm")]
-		[Usage("[Number of Messages] <User> <Channel>")]
-		[Summary("Removes the selected number of messages from either the user, the channel, both, or, if neither is input, the current channel. These arguments need to be mentions to work.")]
+		[Group("removemessages"), Alias("rm")]
+		[Usage("[Number] <User> <Channel>")]
+		[Summary("Removes the provided number of messages from either the user, the channel, both, or, if neither is input, the current channel.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageMessages }, null)]
 		[DefaultEnabled(true)]
-		public class RemoveMessages : MyModuleBase
+		public sealed class RemoveMessages : MyModuleBase
 		{
 			[Command]
 			public async Task Command(uint requestCount, [Optional] IGuildUser user, [Optional, VerifyObject(ObjectVerification.CanDeleteMessages)] ITextChannel channel)
@@ -82,7 +106,7 @@ namespace Advobot
 					return;
 				}
 
-				var response = String.Format("Successfully deleted `{0}` message{1}", await Messages.RemoveMessages(channel, Context.Message, user, requestCount), Gets.GetPlural(requestCount));
+				var response = String.Format("Successfully deleted `{0}` message{1}", await Messages.RemoveMessages(channel, Context.Message, requestCount, user), Gets.GetPlural(requestCount));
 				var userResp = user != null ? String.Format(" from `{0}`", user.FormatUser()) : null;
 				var chanResp = channel != null ? String.Format(" on `{0}`", channel.FormatChannel()) : null;
 				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.JoinNonNullStrings(" ", response, userResp, chanResp) + ".");
