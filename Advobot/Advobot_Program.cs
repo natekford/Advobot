@@ -31,12 +31,11 @@ namespace Advobot
 #endif
 
 			//Things that when not loaded fuck the bot completely
-			var botInfo = SavingAndLoading.LoadCriticalInformation();
-			var logging = new LogHolder(); //Circular logic, whoops
-			var client = SavingAndLoading.CreateBotClient(botInfo, logging);
-			logging.StartLogging(client, botInfo);
+			BotGlobalInfo botInfo = SavingAndLoading.LoadCriticalInformation();
+			IDiscordClient client = ClientActions.CreateBotClient(botInfo);
+			LogHolder logHolder = new LogHolder(client, botInfo);
 
-			var provider = ConfigureServices(client, botInfo, logging);
+			var provider = ConfigureServices(client, botInfo, logHolder);
 			await CommandHandler.Install(provider);
 
 			//If not a console application then start the UI
@@ -65,25 +64,8 @@ namespace Advobot
 					startup = false;
 				}
 
-				await SavingAndLoading.MaybeStartBot(client, botInfo);
+				await ClientActions.MaybeStartBot(client, botInfo);
 			}
-		}
-
-		public async Task Start(IDiscordClient client)
-		{
-			Messages.WriteLine("Connecting the client...");
-
-			try
-			{
-				await client.StartAsync();
-			}
-			catch (Exception e)
-			{
-				Messages.ExceptionToConsole(e);
-				return;
-			}
-
-			await Task.Delay(-1);
 		}
 
 		private IServiceProvider ConfigureServices(IDiscordClient client, BotGlobalInfo globalInfo, LogHolder logHolder)

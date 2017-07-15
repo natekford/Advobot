@@ -440,7 +440,7 @@ namespace Advobot
 				{
 					BotInfo.SetGotKey();
 				}
-				await SavingAndLoading.MaybeStartBot(Client, BotInfo);
+				await ClientActions.MaybeStartBot(Client, BotInfo);
 			});
 
 			mUIInfo.InitializeColors();
@@ -502,7 +502,7 @@ namespace Advobot
 		{
 			UIModification.ToggleToolTip(mMemHoverInfo);
 		}
-		private void SaveSettings(object sender, RoutedEventArgs e)
+		private async void SaveSettings(object sender, RoutedEventArgs e)
 		{
 			var success = new List<string>();
 			var failure = new List<string>();
@@ -511,11 +511,13 @@ namespace Advobot
 			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(mSettingsLayout); ++i)
 			{
 				var ele = VisualTreeHelper.GetChild(mSettingsLayout, i);
-				var setting = (ele as Control)?.Tag;
+				var setting = (ele as FrameworkElement)?.Tag;
 				if (setting is SettingOnBot)
 				{
-					var castSetting = setting as SettingOnBot?;
-					var response = SaveSetting((dynamic)ele, (SettingOnBot)castSetting, BotInfo);
+					var fuckYouForTellingMeToPatternMatch = setting as SettingOnBot?;
+					var castSetting = (SettingOnBot)fuckYouForTellingMeToPatternMatch;
+
+					var response = SaveSetting(ele, castSetting, BotInfo);
 					switch (response)
 					{
 						case NSF.Success:
@@ -536,10 +538,7 @@ namespace Advobot
 			if (success.Any())
 			{
 				Messages.WriteLine(String.Format("Successfully saved: {0}", String.Join(", ", success)));
-				Misc.DontWaitForResultOfBigUnimportantFunction(null, async () =>
-				{
-					await Misc.UpdateGame(Client, BotInfo);
-				});
+				await ClientActions.SetGame(Client, BotInfo);
 			}
 			if (failure.Any())
 			{
@@ -694,7 +693,7 @@ namespace Advobot
 						BotInfo.SetGotKey();
 					}
 				}
-				await SavingAndLoading.MaybeStartBot(Client, BotInfo);
+				await ClientActions.MaybeStartBot(Client, BotInfo);
 			}
 			else
 			{
@@ -1128,7 +1127,7 @@ namespace Advobot
 					userIDs.AddRange((await guild.GetUsersAsync()).Select(x => x.Id));
 				}
 
-				((TextBox)mLatency.Child).Text = String.Format("Latency: {0}ms", Gets.GetLatency((dynamic)Client));
+				((TextBox)mLatency.Child).Text = String.Format("Latency: {0}ms", ClientActions.GetLatency(Client));
 				((TextBox)mMemory.Child).Text = String.Format("Memory: {0}MB", Gets.GetMemory(BotInfo.Windows).ToString("0.00"));
 				((TextBox)mThreads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
 				((TextBox)mGuilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
@@ -1201,16 +1200,39 @@ namespace Advobot
 			}
 			return true;
 		}
+		private NSF SaveSetting(object obj, SettingOnBot setting, BotGlobalInfo botInfo)
+		{
+			if (obj is Grid)
+			{
+				return SaveSetting(obj as Grid, setting, botInfo);
+			}
+			else if (obj is TextBox)
+			{
+				return SaveSetting(obj as TextBox, setting, botInfo);
+			}
+			else if (obj is Viewbox)
+			{
+				return SaveSetting(obj as Viewbox, setting, botInfo);
+			}
+			else if (obj is CheckBox)
+			{
+				return SaveSetting(obj as CheckBox, setting, botInfo);
+			}
+			else if (obj is ComboBox)
+			{
+				return SaveSetting(obj as ComboBox, setting, botInfo);
+			}
+			else
+			{
+				return NSF.Nothing;
+			}
+		}
 		private NSF SaveSetting(Grid g, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
 			var children = g.Children;
 			foreach (var child in children)
 			{
-				var saved = SaveSetting((dynamic)child, setting, botInfo);
-				if (saved.Status != NSF.Nothing)
-				{
-					return saved;
-				}
+				return SaveSetting(child, setting, botInfo);
 			}
 			return NSF.Nothing;
 		}
@@ -1270,7 +1292,7 @@ namespace Advobot
 		}
 		private NSF SaveSetting(Viewbox vb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
-			return SaveSetting((dynamic)vb.Child, setting, botInfo);
+			return SaveSetting(vb.Child, setting, botInfo);
 		}
 		private NSF SaveSetting(CheckBox cb, SettingOnBot setting, BotGlobalInfo botInfo)
 		{
@@ -1298,8 +1320,8 @@ namespace Advobot
 			{
 				case SettingOnBot.LogLevel:
 				{
-					var logLevel = (Discord.LogSeverity)(cb.SelectedItem as TextBox).Tag;
-					var currLogLevel = ((Discord.LogSeverity)botInfo.GetSetting(SettingOnBot.LogLevel));
+					var logLevel = (LogSeverity)(cb.SelectedItem as TextBox).Tag;
+					var currLogLevel = ((LogSeverity)botInfo.GetSetting(SettingOnBot.LogLevel));
 					if (logLevel != currLogLevel)
 					{
 						botInfo.SetSetting(SettingOnBot.LogLevel, logLevel);
@@ -1320,10 +1342,6 @@ namespace Advobot
 					break;
 				}
 			}
-			return NSF.Nothing;
-		}
-		private NSF SaveSetting(object obj, SettingOnBot setting, BotGlobalInfo botInfo)
-		{
 			return NSF.Nothing;
 		}
 	}
@@ -1599,29 +1617,30 @@ namespace Advobot
 
 		public static void SetFontSizeProperties(double size, params IEnumerable<UIElement>[] elements)
 		{
-			foreach (dynamic ele in elements.SelectMany(x => x))
+			foreach (var ele in elements.SelectMany(x => x))
 			{
 				SetFontSizeProperty(ele, size);
 			}
 		}
-		public static void SetFontSizeProperty(Control element, double size)
+		public static void SetFontSizeProperty(UIElement element, double size)
 		{
-			element.SetBinding(Control.FontSizeProperty, new Binding
+			if (element is Control)
 			{
-				Path = new PropertyPath("ActualHeight"),
-				RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
-				Converter = new UIFontResizer(size),
-			});
-		}
-		public static void SetFontSizeProperty(Grid element, double size)
-		{
-			var children = element.Children;
-			foreach (var child in children)
+				(element as Control).SetBinding(Control.FontSizeProperty, new Binding
+				{
+					Path = new PropertyPath("ActualHeight"),
+					RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
+					Converter = new UIFontResizer(size),
+				});
+			}
+			else if (element is Grid)
 			{
-				SetFontSizeProperty((dynamic)child, size);
+				foreach (var child in (element as Grid).Children.OfType<Control>())
+				{
+					SetFontSizeProperty(child, size);
+				}
 			}
 		}
-		public static void SetFontSizeProperty(object element, double size) { }
 
 		public static void ToggleToolTip(ToolTip ttip)
 		{
@@ -1932,7 +1951,7 @@ namespace Advobot
 				};
 			}).Where(x => x != null);
 
-			if (tv.ItemsSource.Cast<dynamic>().Count() == 0)
+			if (tv.ItemsSource.Cast<object>().Count() == 0)
 			{
 				var temp = new TreeViewItem
 				{
@@ -2016,7 +2035,7 @@ namespace Advobot
 		}
 		public static IEnumerable<TextBox> MakeComboBoxSourceOutOfEnum(Type type)
 		{
-			return Enum.GetValues(type).Cast<dynamic>().Select(x =>
+			return Enum.GetValues(type).Cast<object>().Select(x =>
 			{
 				return new MyTextBox
 				{

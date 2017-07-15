@@ -79,7 +79,7 @@ namespace Advobot
 
 				foreach (var overwrite in channel.PermissionOverwrites)
 				{
-					dynamic obj;
+					ISnowflakeEntity obj;
 					switch (overwrite.TargetType)
 					{
 						case PermissionTarget.Role:
@@ -243,7 +243,7 @@ namespace Advobot
 				await CommandRunner(channel, user);
 			}
 
-			private async Task CommandRunner(ActionType actionType, IGuildChannel channel, dynamic discordObject, string uncutPermissions)
+			private async Task CommandRunner(ActionType actionType, IGuildChannel channel, object discordObject, string uncutPermissions)
 			{
 				var permissions = uncutPermissions.Split('/', ' ').Select(x => x.Trim(',')).ToList();
 				var validPerms = permissions.Where(x => Variables.ChannelPermissions.Select(y => y.Name).CaseInsContains(x));
@@ -262,8 +262,8 @@ namespace Advobot
 					permissions.RemoveAll(x => ChannelPermission.ReadMessages.EnumName().CaseInsEquals(x));
 				}
 
-				ulong allowBits = channel.GetPermissionOverwrite(discordObject)?.AllowValue ?? 0;
-				ulong denyBits = channel.GetPermissionOverwrite(discordObject)?.DenyValue ?? 0;
+				ulong allowBits = Channels.GetOverwriteAllowBits(channel, discordObject);
+				ulong denyBits = Channels.GetOverwriteDenyBits(channel, discordObject);
 
 				//Put all the bit values to change into one
 				ulong changeValue = 0;
@@ -306,7 +306,7 @@ namespace Advobot
 					Formatting.FormatObject(discordObject),
 					channel.FormatChannel()));
 			}
-			private async Task CommandRunner(IGuildChannel channel, dynamic discordObject)
+			private async Task CommandRunner(IGuildChannel channel, object discordObject)
 			{
 				//This CommandRunner will only go when the actionType is show
 				if (channel == null)
@@ -370,7 +370,7 @@ namespace Advobot
 				await CommandRunner(inputChannel, outputChannel, null);
 			}
 
-			private async Task CommandRunner(IGuildChannel inputChannel, IGuildChannel outputChannel, dynamic discordObject)
+			private async Task CommandRunner(IGuildChannel inputChannel, IGuildChannel outputChannel, object discordObject)
 			{
 				//Make sure channels are the same type
 				if (inputChannel.GetType() != outputChannel.GetType())
@@ -405,14 +405,14 @@ namespace Advobot
 				else
 				{
 					target = Formatting.FormatObject(discordObject);
-					OverwritePermissions? overwrite = inputChannel.GetPermissionOverwrite(discordObject);
+					var overwrite = Channels.GetOverwrite(inputChannel, discordObject);
 					if (!overwrite.HasValue)
 					{
 						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("A permission overwrite for {0} does not exist to copy over.", target)));
 						return;
 					}
 
-					await outputChannel.AddPermissionOverwriteAsync(discordObject, new OverwritePermissions(overwrite?.AllowValue ?? 0, overwrite?.DenyValue ?? 0));
+					await Channels.ModifyOverwrite(outputChannel, discordObject, overwrite?.AllowValue ?? 0, overwrite?.DenyValue ?? 0);
 				}
 
 				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully copied `{0}` from `{1}` to `{2}`",

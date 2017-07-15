@@ -38,7 +38,7 @@ namespace Advobot
 				LoadCommandInformation(); //Has to go after LPN
 
 				await LoadGuilds();
-				await Misc.UpdateGame(client, botInfo);
+				await ClientActions.SetGame(client, botInfo);
 
 				Timers.HourTimer(botInfo.StartupTime);
 				Timers.MinuteTimer(botInfo.StartupTime);
@@ -52,14 +52,6 @@ namespace Advobot
 				await Variables.GuildsToBeLoaded.ForEachAsync(async x => await CreateOrGetGuildInfo(x));
 			}
 
-			public static async Task MaybeStartBot(IDiscordClient client, BotGlobalInfo botInfo)
-			{
-				if (botInfo.GotPath && botInfo.GotKey && !botInfo.Loaded)
-				{
-					await new Program().Start(client);
-					Messages.WriteLine(String.Format("Successfully started the bot {0} with the ID {1}.", client.CurrentUser.Username, client.CurrentUser.Id));
-				}
-			}
 			public static async Task<bool> ValidateBotKey(IDiscordClient client, string input, bool startup = false)
 			{
 				var key = input?.Trim();
@@ -70,7 +62,7 @@ namespace Advobot
 					{
 						try
 						{
-							await Login((dynamic)client, key);
+							await ClientActions.Login(client, key);
 							return true;
 						}
 						catch (Exception)
@@ -97,7 +89,7 @@ namespace Advobot
 				{
 					try
 					{
-						await Login((dynamic)client, key);
+						await ClientActions.Login(client, key);
 
 						Messages.WriteLine("Succesfully logged in via the given bot key.");
 						Properties.Settings.Default.BotKey = key;
@@ -151,15 +143,6 @@ namespace Advobot
 
 				Messages.WriteLine("Invalid directory. Please enter a valid directory:");
 				return false;
-			}
-
-			public static async Task Login(DiscordSocketClient client, string key)
-			{
-				await client.LoginAsync(TokenType.Bot, key);
-			}
-			public static async Task Login(DiscordShardedClient client, string key)
-			{
-				await client.LoginAsync(TokenType.Bot, key);
 			}
 
 			public static async Task<BotGuildInfo> CreateOrGetGuildInfo(IGuild guild)
@@ -273,72 +256,6 @@ namespace Advobot
 				var firstInstance = Properties.Settings.Default.BotID == 0;
 
 				return CreateBotInfo(windows, console, firstInstance);
-			}
-			public static IDiscordClient CreateBotClient(BotGlobalInfo botInfo, LogHolder logs)
-			{
-				IDiscordClient client;
-				if (((int)botInfo.GetSetting(SettingOnBot.ShardCount)) > 1)
-				{
-					client = CreateShardedClient(botInfo, logs);
-				}
-				else
-				{
-					client = CreateSocketClient(botInfo, logs);
-				}
-				return client;
-			}
-			public static DiscordShardedClient CreateShardedClient(BotGlobalInfo botInfo, LogHolder logHolder)
-			{
-				var ShardedClient = new DiscordShardedClient(new DiscordSocketConfig
-				{
-					AlwaysDownloadUsers = ((bool)botInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers)),
-					MessageCacheSize = ((int)botInfo.GetSetting(SettingOnBot.MessageCacheCount)),
-					LogLevel = ((LogSeverity)botInfo.GetSetting(SettingOnBot.LogLevel)),
-					TotalShards = ((int)botInfo.GetSetting(SettingOnBot.ShardCount)),
-				});
-
-				ShardedClient.MessageReceived += (SocketMessage message) => CommandHandler.HandleCommand(message as SocketUserMessage);
-				ShardedClient.Shards.FirstOrDefault().Connected += CommandHandler.LoadInformation;
-
-				ShardedClient.Log += logHolder.BotLog.Log;
-				ShardedClient.GuildAvailable += logHolder.BotLog.OnGuildAvailable;
-				ShardedClient.GuildUnavailable += logHolder.BotLog.OnGuildUnavailable;
-				ShardedClient.JoinedGuild += logHolder.BotLog.OnJoinedGuild;
-				ShardedClient.LeftGuild += logHolder.BotLog.OnLeftGuild;
-				ShardedClient.UserJoined += logHolder.ServerLog.OnUserJoined;
-				ShardedClient.UserLeft += logHolder.ServerLog.OnUserLeft;
-				ShardedClient.UserUpdated += logHolder.ServerLog.OnUserUpdated;
-				ShardedClient.MessageReceived += logHolder.ServerLog.OnMessageReceived;
-				ShardedClient.MessageUpdated += logHolder.ServerLog.OnMessageUpdated;
-				ShardedClient.MessageDeleted += logHolder.ServerLog.OnMessageDeleted;
-
-				return ShardedClient;
-			}
-			public static DiscordSocketClient CreateSocketClient(BotGlobalInfo botInfo, LogHolder logHolder)
-			{
-				var SocketClient = new DiscordSocketClient(new DiscordSocketConfig
-				{
-					AlwaysDownloadUsers = ((bool)botInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers)),
-					MessageCacheSize = ((int)botInfo.GetSetting(SettingOnBot.MaxUserGatherCount)),
-					LogLevel = ((LogSeverity)botInfo.GetSetting(SettingOnBot.LogLevel)),
-				});
-
-				SocketClient.MessageReceived += (SocketMessage message) => CommandHandler.HandleCommand(message as SocketUserMessage);
-				SocketClient.Connected += CommandHandler.LoadInformation;
-
-				SocketClient.Log += logHolder.BotLog.Log;
-				SocketClient.GuildAvailable += logHolder.BotLog.OnGuildAvailable;
-				SocketClient.GuildUnavailable += logHolder.BotLog.OnGuildUnavailable;
-				SocketClient.JoinedGuild += logHolder.BotLog.OnJoinedGuild;
-				SocketClient.LeftGuild += logHolder.BotLog.OnLeftGuild;
-				SocketClient.UserJoined += logHolder.ServerLog.OnUserJoined;
-				SocketClient.UserLeft += logHolder.ServerLog.OnUserLeft;
-				SocketClient.UserUpdated += logHolder.ServerLog.OnUserUpdated;
-				SocketClient.MessageReceived += logHolder.ServerLog.OnMessageReceived;
-				SocketClient.MessageUpdated += logHolder.ServerLog.OnMessageUpdated;
-				SocketClient.MessageDeleted += logHolder.ServerLog.OnMessageDeleted;
-
-				return SocketClient;
 			}
 
 			public static string Serialize(object obj)
@@ -525,6 +442,145 @@ namespace Advobot
 			}
 		}
 
+		public static class ClientActions
+		{
+			public static async Task MaybeStartBot(IDiscordClient client, BotGlobalInfo botInfo)
+			{
+				if (botInfo.GotPath && botInfo.GotKey && !botInfo.Loaded)
+				{
+					Messages.WriteLine("Connecting the client...");
+
+					try
+					{
+						await client.StartAsync();
+					}
+					catch (Exception e)
+					{
+						Messages.ExceptionToConsole(e);
+					}
+
+					Messages.WriteLine(String.Format("Successfully started the bot {0} with the ID {1}.", client.CurrentUser.Username, client.CurrentUser.Id));
+					await Task.Delay(-1);
+				}
+			}
+
+			public static IDiscordClient CreateBotClient(BotGlobalInfo botInfo)
+			{
+				IDiscordClient client;
+				if (((int)botInfo.GetSetting(SettingOnBot.ShardCount)) > 1)
+				{
+					client = CreateShardedClient(botInfo);
+				}
+				else
+				{
+					client = CreateSocketClient(botInfo);
+				}
+				return client;
+			}
+			public static DiscordShardedClient CreateShardedClient(BotGlobalInfo botInfo)
+			{
+				return new DiscordShardedClient(new DiscordSocketConfig
+				{
+					AlwaysDownloadUsers = ((bool)botInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers)),
+					MessageCacheSize = ((int)botInfo.GetSetting(SettingOnBot.MessageCacheCount)),
+					LogLevel = ((LogSeverity)botInfo.GetSetting(SettingOnBot.LogLevel)),
+					TotalShards = ((int)botInfo.GetSetting(SettingOnBot.ShardCount)),
+				});
+			}
+			public static DiscordSocketClient CreateSocketClient(BotGlobalInfo botInfo)
+			{
+				return new DiscordSocketClient(new DiscordSocketConfig
+				{
+					AlwaysDownloadUsers = ((bool)botInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers)),
+					MessageCacheSize = ((int)botInfo.GetSetting(SettingOnBot.MaxUserGatherCount)),
+					LogLevel = ((LogSeverity)botInfo.GetSetting(SettingOnBot.LogLevel)),
+				});
+			}
+
+			public static async Task Login(IDiscordClient client, string key)
+			{
+				if (client is DiscordSocketClient)
+				{
+					await (client as DiscordSocketClient).LoginAsync(TokenType.Bot, key);
+				}
+				else if (client is DiscordShardedClient)
+				{
+					await (client as DiscordShardedClient).LoginAsync(TokenType.Bot, key);
+				}
+			}
+			public static async Task SetGame(IDiscordClient client, BotGlobalInfo globalInfo)
+			{
+				var game = ((string)globalInfo.GetSetting(SettingOnBot.Game));
+				var stream = ((string)globalInfo.GetSetting(SettingOnBot.Stream));
+				var prefix = ((string)globalInfo.GetSetting(SettingOnBot.Prefix));
+
+				var streamType = StreamType.NotStreaming;
+				if (!String.IsNullOrWhiteSpace(stream))
+				{
+					stream = Constants.TWITCH_URL + stream.Substring(stream.LastIndexOf('/') + 1);
+					streamType = StreamType.Twitch;
+				}
+
+				if (client is DiscordSocketClient)
+				{
+					await (client as DiscordSocketClient).SetGameAsync(game ?? String.Format("type \"{0}help\" for help.", prefix), stream, streamType);
+				}
+				else if (client is DiscordShardedClient)
+				{
+					await (client as DiscordShardedClient).SetGameAsync(game ?? String.Format("type \"{0}help\" for help.", prefix), stream, streamType);
+				}
+			}
+			public static int GetShardID(DiscordSocketClient client)
+			{
+				return client.ShardId;
+			}
+			public static int GetLatency(IDiscordClient client)
+			{
+				if (client is DiscordSocketClient)
+				{
+					return (client as DiscordSocketClient).Latency;
+				}
+				else if (client is DiscordShardedClient)
+				{
+					return (client as DiscordShardedClient).Latency;
+				}
+				else
+				{
+					return -1;
+				}
+			}
+			public static int GetShardCount(IDiscordClient client)
+			{
+				if (client is DiscordSocketClient)
+				{
+					return 1;
+				}
+				else if (client is DiscordShardedClient)
+				{
+					return (client as DiscordShardedClient).Shards.Count;
+				}
+				else
+				{
+					return -1;
+				}
+			}
+			public static int GetShardIdFor(IDiscordClient client, IGuild guild)
+			{
+				if (client is DiscordSocketClient)
+				{
+					return (client as DiscordSocketClient).ShardId;
+				}
+				else if (client is DiscordShardedClient)
+				{
+					return (client as DiscordShardedClient).GetShardIdFor(guild);
+				}
+				else
+				{
+					return -1;
+				}
+			}
+		}
+
 		public static class Gets
 		{
 			public static Dictionary<string, Color> GetColorDictionary()
@@ -700,22 +756,6 @@ namespace Advobot
 				return Variables.HelpList.Where(x => x.Category == category).Select(x => x.Name).ToArray();
 			}
 
-			public static string GetObjectStringBasic(IUser user)
-			{
-				return Constants.BASIC_TYPE_USER;
-			}
-			public static string GetObjectStringBasic(IChannel channel)
-			{
-				return Constants.BASIC_TYPE_CHANNEL;
-			}
-			public static string GetObjectStringBasic(IRole role)
-			{
-				return Constants.BASIC_TYPE_ROLE;
-			}
-			public static string GetObjectStringBasic(IGuild guild)
-			{
-				return Constants.BASIC_TYPE_GUILD;
-			}
 			public static string GetObjectStringBasic(Type type)
 			{
 				if (type.Equals(typeof(IGuildUser)))
@@ -815,39 +855,6 @@ namespace Advobot
 			public static int GetMaxAmountOfUsersToGather(BotGlobalInfo globalInfo, bool bypass)
 			{
 				return bypass ? int.MaxValue : ((int)globalInfo.GetSetting(SettingOnBot.MaxUserGatherCount));
-			}
-
-			public static int GetShardID(DiscordSocketClient client, IGuild guild)
-			{
-				return client.ShardId;
-			}
-			public static int GetShardID(DiscordShardedClient client, IGuild guild)
-			{
-				return client.GetShardIdFor(guild);
-			}
-			public static int GetLatency(DiscordSocketClient client)
-			{
-				return client.Latency;
-			}
-			public static int GetLatency(DiscordShardedClient client)
-			{
-				return client.Latency;
-			}
-			public static int GetShardCount(DiscordSocketClient client)
-			{
-				return 1;
-			}
-			public static int GetShardCount(DiscordShardedClient client)
-			{
-				return client.Shards.Count;
-			}
-			public static int GetShardIdFor(DiscordSocketClient client, IGuild guild)
-			{
-				return client.ShardId;
-			}
-			public static int GetShardIdFor(DiscordShardedClient client, IGuild guild)
-			{
-				return client.GetShardIdFor(guild);
 			}
 		}
 
@@ -1068,13 +1075,20 @@ namespace Advobot
 				return reorderProperties.FirstOrDefault(x => x.Id == channel.Id)?.Position ?? -1;
 			}
 
-			public static async Task ModifyOverwrite(IGuildChannel channel, IRole role, ulong allowBits, ulong denyBits)
+			public static async Task ModifyOverwrite(IGuildChannel channel, object obj, ulong allowBits, ulong denyBits)
 			{
-				await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allowBits, denyBits));
-			}
-			public static async Task ModifyOverwrite(IGuildChannel channel, IUser user, ulong allowBits, ulong denyBits)
-			{
-				await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits));
+				if (obj is IRole)
+				{
+					await channel.AddPermissionOverwriteAsync(obj as IRole, new OverwritePermissions(allowBits, denyBits));
+				}
+				else if (obj is IUser)
+				{
+					await channel.AddPermissionOverwriteAsync(obj as IUser, new OverwritePermissions(allowBits, denyBits));
+				}
+				else
+				{
+					throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
+				}
 			}
 			public static ulong AddChannelPermissions(ulong startBits, params ChannelPermission[] permissions)
 			{
@@ -1092,21 +1106,50 @@ namespace Advobot
 				}
 				return startBits;
 			}
-			public static ulong GetOverwriteAllowBits(IGuildChannel channel, IRole role)
+			public static OverwritePermissions? GetOverwrite(IGuildChannel channel, object obj)
 			{
-				return channel.GetPermissionOverwrite(role)?.AllowValue ?? 0;
+				if (obj is IRole)
+				{
+					return channel.GetPermissionOverwrite(obj as IRole);
+				}
+				else if (obj is IUser)
+				{
+					return channel.GetPermissionOverwrite(obj as IUser);
+				}
+				else
+				{
+					throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
+				}
 			}
-			public static ulong GetOverwriteAllowBits(IGuildChannel channel, IUser user)
+			public static ulong GetOverwriteAllowBits(IGuildChannel channel, object obj)
 			{
-				return channel.GetPermissionOverwrite(user)?.AllowValue ?? 0;
+				if (obj is IRole)
+				{
+					return channel.GetPermissionOverwrite(obj as IRole)?.AllowValue ?? 0;
+				}
+				else if (obj is IUser)
+				{
+					return channel.GetPermissionOverwrite(obj as IUser)?.AllowValue ?? 0;
+				}
+				else
+				{
+					throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
+				}
 			}
-			public static ulong GetOverwriteDenyBits(IGuildChannel channel, IRole role)
+			public static ulong GetOverwriteDenyBits(IGuildChannel channel, object obj)
 			{
-				return channel.GetPermissionOverwrite(role)?.DenyValue ?? 0;
-			}
-			public static ulong GetOverwriteDenyBits(IGuildChannel channel, IUser user)
-			{
-				return channel.GetPermissionOverwrite(user)?.DenyValue ?? 0;
+				if (obj is IRole)
+				{
+					return channel.GetPermissionOverwrite(obj as IRole)?.DenyValue ?? 0;
+				}
+				else if (obj is IUser)
+				{
+					return channel.GetPermissionOverwrite(obj as IUser)?.DenyValue ?? 0;
+				}
+				else
+				{
+					throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
+				}
 			}
 		}
 
@@ -1258,7 +1301,6 @@ namespace Advobot
 
 			public static async Task<IRole> GetMuteRole(BotGuildInfo guildInfo, IGuild guild, IGuildUser user)
 			{
-				//Even though GetRole requires an IGuildUser to check against, I can just throw in the bot a second time and it will be fine for the most part. Failures from this will be UserInability instead.
 				var returnedMuteRole = GetRole(guild, user, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
 				var muteRole = returnedMuteRole.Object;
 				if (muteRole == null)
@@ -1301,15 +1343,6 @@ namespace Advobot
 				}
 
 				return muteRole;
-			}
-			public static async Task MuteUser(BotGuildInfo guildInfo, IGuildUser user, uint time = 0)
-			{
-				var muteRole = await GetMuteRole(guildInfo, user.Guild, user);
-				await GiveRole(user, muteRole);
-				if (time > 0)
-				{
-					Variables.RemovablePunishments.Add(new RemovableRole(user.Guild, user.Id, time, muteRole));
-				}
 			}
 
 			public static async Task GiveRole(IGuildUser user, IRole role)
@@ -1484,22 +1517,6 @@ namespace Advobot
 				return (await context.Guild.GetUsersAsync()).Where(x => GetIfUserCanBeModifiedByUser(context.User, x) && GetIfUserCanBeModifiedByUser(GetBot(context.Guild), x));
 			}
 
-			public static async Task BotBanUser(IGuild guild, ulong userID, int days = 1, string reason = null)
-			{
-				await guild.AddBanAsync(userID, days, Formatting.FormatBotReason(reason));
-			}
-			public static async Task UserBanUser(ICommandContext context, ulong userID, int days = 1, string reason = null)
-			{
-				await context.Guild.AddBanAsync(userID, days, Formatting.FormatUserReason(context.User, reason));
-			}
-			public static async Task BotKickUser(IGuildUser user, string reason = null)
-			{
-				await user.KickAsync(Formatting.FormatBotReason(reason));
-			}
-			public static async Task UserKickUser(ICommandContext context, IGuildUser user, string reason = null)
-			{
-				await user.KickAsync(Formatting.FormatUserReason(context.User, reason));
-			}
 			public static async Task ChangeNickname(IGuildUser user, string newNN)
 			{
 				await user.ModifyAsync(x => x.Nickname = newNN ?? user.Username);
@@ -1511,7 +1528,9 @@ namespace Advobot
 				{
 					if (i % 10 == 0)
 					{
-						await msg.ModifyAsync(x => x.Content = String.Format("Attempting to rename `{0}` people.", users.Count - i));
+						await msg.ModifyAsync(x => x.Content = String.Format("Attempting to rename `{0}` people. ETA on completion: `{1}`.", 
+							users.Count - i,
+							(int)((users.Count - i) * 1.2)));
 					}
 
 					await ChangeNickname(users[i], replace);
@@ -1519,6 +1538,28 @@ namespace Advobot
 
 				await Messages.DeleteMessage(msg);
 				await Messages.MakeAndDeleteSecondaryMessage(context, String.Format("Successfully renamed `{0}` people.", users.Count));
+			}
+			public static async Task MoveUser(IGuildUser user, IVoiceChannel channel)
+			{
+				await user.ModifyAsync(x => x.Channel = Optional.Create(channel));
+			}
+			public static async Task MoveManyUsers(ICommandContext context, List<IGuildUser> users, IVoiceChannel outputChannel)
+			{
+				var msg = await Messages.SendChannelMessage(context, String.Format("Attempting to move `{0}` people.", users.Count));
+				for (int i = 0; i < users.Count; ++i)
+				{
+					if (i % 10 == 0)
+					{
+						await msg.ModifyAsync(x => x.Content = String.Format("Attempting to move `{0}` people. ETA on completion: `{1}`.",
+							users.Count - i,
+							(int)((users.Count - i) * 1.2)));
+					}
+
+					await MoveUser(users[i], outputChannel);
+				}
+
+				await Messages.DeleteMessage(msg);
+				await Messages.MakeAndDeleteSecondaryMessage(context, String.Format("Successfully moved `{0}` people.", users.Count));
 			}
 		}
 
@@ -1738,7 +1779,7 @@ namespace Advobot
 				var uptime = String.Format("**Uptime:** `{0}`", Gets.GetUptime(globalInfo));
 				var guildCount = String.Format("**Guild Count:** `{0}`", Variables.TotalGuilds);
 				var memberCount = String.Format("**Cumulative Member Count:** `{0}`", Variables.TotalUsers);
-				var currShard = String.Format("**Current Shard:** `{0}`", Gets.GetShardID((dynamic)client, guild));
+				var currShard = String.Format("**Current Shard:** `{0}`", ClientActions.GetShardIdFor(client, guild));
 				var description = String.Join("\n", new[] { online, uptime, guildCount, memberCount, currShard });
 
 				var embed = Embeds.MakeNewEmbed(null, description);
@@ -1754,7 +1795,7 @@ namespace Advobot
 				var secondField = String.Join("\n", new[] { attempt, successful, failed });
 				Embeds.AddField(embed, "Commands", secondField);
 
-				var latency = String.Format("**Latency:** `{0}ms`", Gets.GetLatency((dynamic)client));
+				var latency = String.Format("**Latency:** `{0}ms`", ClientActions.GetLatency(client));
 				var memory = String.Format("**Memory Usage:** `{0}MB`", Gets.GetMemory(globalInfo.Windows).ToString("0.00"));
 				var threads = String.Format("**Thread Count:** `{0}`", System.Diagnostics.Process.GetCurrentProcess().Threads.Count);
 				var thirdField = String.Join("\n", new[] { latency, memory, threads });
@@ -1862,53 +1903,6 @@ namespace Advobot
 				}
 			}
 
-			public static string FormatErrorString<T>(IGuild guild, ReturnedObject<T> returnedObject)
-			{
-				var objType = returnedObject.Object == null ? Gets.GetObjectStringBasic(typeof(T)) : Gets.GetObjectStringBasic((dynamic)returnedObject.Object);
-				switch (returnedObject.Reason)
-				{
-					case FailureReason.TooFew:
-					{
-						return String.Format("Unable to find the {0}.", objType);
-					}
-					case FailureReason.UserInability:
-					{
-						return String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object));
-					}
-					case FailureReason.BotInability:
-					{
-						return String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject((dynamic)returnedObject.Object));
-					}
-					case FailureReason.TooMany:
-					{
-						return String.Format("There are too many {0}s with the same name.", objType);
-					}
-					case FailureReason.ChannelType:
-					{
-						return "Invalid channel type for the given variable requirement.";
-					}
-					case FailureReason.DefaultChannel:
-					{
-						return "The default channel cannot be deleted.";
-					}
-					case FailureReason.EveryoneRole:
-					{
-						return "The everyone role cannot be modified in that way.";
-					}
-					case FailureReason.ManagedRole:
-					{
-						return "Managed roles cannot be modified in that way.";
-					}
-					case FailureReason.InvalidEnum:
-					{
-						return String.Format("The type `{0}` is not accepted in this instance.", returnedObject.Object);
-					}
-					default:
-					{
-						return "This shouldn't be seen. - Advobot";
-					}
-				}
-			}
 			public static string ERROR(string message)
 			{
 				//TODO: Accept guildInfo so can make errors not appear
@@ -1947,33 +1941,98 @@ namespace Advobot
 				return input.Replace(Environment.NewLine, "").Replace("\r", "").Replace("\n", "");
 			}
 
-			public static string FormatObject(IUser user)
+			public static string FormatErrorString(IGuild guild, FailureReason failureReason, object obj)
 			{
-				return user.FormatUser();
+				var objType = FormatObjectType(obj);
+				switch (failureReason)
+				{
+					case FailureReason.TooFew:
+					{
+						return String.Format("Unable to find the {0}.", objType);
+					}
+					case FailureReason.UserInability:
+					{
+						return String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject(obj));
+					}
+					case FailureReason.BotInability:
+					{
+						return String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject(obj));
+					}
+					case FailureReason.TooMany:
+					{
+						return String.Format("There are too many {0}s with the same name.", objType);
+					}
+					case FailureReason.ChannelType:
+					{
+						return "Invalid channel type for the given variable requirement.";
+					}
+					case FailureReason.DefaultChannel:
+					{
+						return "The default channel cannot be modified in that way.";
+					}
+					case FailureReason.EveryoneRole:
+					{
+						return "The everyone role cannot be modified in that way.";
+					}
+					case FailureReason.ManagedRole:
+					{
+						return "Managed roles cannot be modified in that way.";
+					}
+					case FailureReason.InvalidEnum:
+					{
+						return String.Format("The option `{0}` is not accepted in this instance.", (obj as Enum).EnumName());
+					}
+					default:
+					{
+						return "This shouldn't be seen. - Advobot";
+					}
+				}
 			}
-			public static string FormatObject(IGuildChannel channel)
+			public static string FormatObjectType(object obj)
 			{
-				return channel.FormatChannel();
-			}
-			public static string FormatObject(IRole role)
-			{
-				return role.FormatRole();
-			}
-			public static string FormatObject(IGuild guild)
-			{
-				return guild.FormatGuild();
-			}
-			public static string FormatObject(SocketGuild guild)
-			{
-				return guild.FormatGuild();
-			}
-			public static string FormatObject(string str)
-			{
-				return str;
+				if (obj is IUser)
+				{
+					return Constants.BASIC_TYPE_USER;
+				}
+				else if (obj is IChannel)
+				{
+					return Constants.BASIC_TYPE_CHANNEL;
+				}
+				else if (obj is IRole)
+				{
+					return Constants.BASIC_TYPE_ROLE;
+				}
+				else if (obj is IGuild)
+				{
+					return Constants.BASIC_TYPE_GUILD;
+				}
+				else
+				{
+					return "Error fetching type";
+				}
 			}
 			public static string FormatObject(object obj)
 			{
-				return "FormatObject Error";
+				if (obj is IUser)
+				{
+					return (obj as IUser).FormatUser();
+				}
+				else if (obj is IChannel)
+				{
+					return (obj as IChannel).FormatChannel();
+				}
+				else if (obj is IRole)
+				{
+					return (obj as IRole).FormatRole();
+				}
+				else if (obj is IGuild)
+				{
+					return (obj as IGuild).FormatGuild();
+				}
+				else
+				{
+					return "Error formatting object";
+				}
 			}
 
 			public static string FormatLoggedThings()
@@ -2073,12 +2132,12 @@ namespace Advobot
 				return basePerm;
 			}
 
-			public static async Task<string> FormatAllSettings(IDiscordClient client, BotGlobalInfo globalInfo)
+			public static async Task<string> FormatAllBotSettings(IDiscordClient client, BotGlobalInfo globalInfo)
 			{
 				var str = "";
 				foreach (var e in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
 				{
-					var formatted = await FormatSettingInfo(client, globalInfo, e);
+					var formatted = await FormatBotSettingInfo(client, globalInfo, e);
 					if (!String.IsNullOrWhiteSpace(formatted))
 					{
 						str += String.Format("**{0}**:\n{1}\n\n", e.EnumName(), formatted);
@@ -2086,7 +2145,7 @@ namespace Advobot
 				}
 				return str;
 			}
-			public static async Task<string> FormatSettingInfo(IDiscordClient client, BotGlobalInfo globalInfo, SettingOnBot setting)
+			public static async Task<string> FormatBotSettingInfo(IDiscordClient client, BotGlobalInfo globalInfo, SettingOnBot setting)
 			{
 				var field = BotGlobalInfo.GetField(setting);
 				if (field != null)
@@ -2100,47 +2159,55 @@ namespace Advobot
 					var set = globalInfo.GetSetting(field);
 					if (set != null)
 					{
-						return await FormatSettingInfo(client, set);
+						return await FormatBotSettingInfo(client, set);
 					}
 				}
 				return null;
 			}
-			public static async Task<string> FormatSettingInfo(IDiscordClient client, System.Collections.IEnumerable settings)
+			public static async Task<string> FormatBotSettingInfo(IDiscordClient client, object setting)
 			{
-				var temp = new List<string>();
-				foreach (var setting in settings.Cast<dynamic>())
+				if (setting is ulong)
 				{
-					temp.Add(await FormatSettingInfo(client, setting));
+					var user = await Users.GetGlobalUser(client, (ulong)setting);
+					if (user != null)
+					{
+						return String.Format("`{0}`", user.FormatUser());
+					}
+
+					var guild = await Guilds.GetGuild(client, (ulong)setting);
+					if (guild != null)
+					{
+						return String.Format("`{0}`", guild.FormatGuild());
+					}
+
+					return ((ulong)setting).ToString();
 				}
-				return String.Join("\n", temp);
-			}
-			public static async Task<string> FormatSettingInfo(IDiscordClient client, ulong setting)
-			{
-				var user = await Users.GetGlobalUser(client, setting);
-				if (user != null)
+				//Because strings are char[] this pointless else if has to be here so it doesn't go into the else if directly below
+				else if (setting is string)
 				{
-					return user.FormatUser();
+					return String.IsNullOrWhiteSpace(setting.ToString()) ? "`Nothing`" : String.Format("`{0}`", setting.ToString());
 				}
-
-				var guild = await Guilds.GetGuild(client, setting);
-				if (guild != null)
+				else if (setting is System.Collections.IEnumerable)
 				{
-					return guild.FormatGuild();
+					var temp = new List<string>();
+					foreach (var tempSetting in ((System.Collections.IEnumerable)setting).Cast<object>())
+					{
+						temp.Add(await FormatBotSettingInfo(client, tempSetting));
+					}
+					return String.Join("\n", temp);
 				}
-
-				return null;
-			}
-			public static async Task<string> FormatSettingInfo(IDiscordClient client, object setting)
-			{
-				return await Task.Run(() => String.Format("`{0}`", setting.ToString()));
+				else
+				{
+					return String.Format("`{0}`", setting.ToString());
+				}
 			}
 
-			public static string FormatAllSettings(SocketGuild guild, BotGuildInfo guildInfo)
+			public static string FormatAllGuildSettings(SocketGuild guild, BotGuildInfo guildInfo)
 			{
 				var str = "";
 				foreach (var e in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
 				{
-					var formatted = FormatSettingInfo(guild, guildInfo, e);
+					var formatted = FormatGuildSettingInfo(guild as SocketGuild, guildInfo, e);
 					if (!String.IsNullOrWhiteSpace(formatted))
 					{
 						str += String.Format("**{0}**:\n{1}\n\n", e.EnumName(), formatted);
@@ -2148,7 +2215,7 @@ namespace Advobot
 				}
 				return str;
 			}
-			public static string FormatSettingInfo(SocketGuild guild, BotGuildInfo guildInfo, SettingOnGuild setting)
+			public static string FormatGuildSettingInfo(SocketGuild guild, BotGuildInfo guildInfo, SettingOnGuild setting)
 			{
 				var field = BotGuildInfo.GetField(setting);
 				if (field != null)
@@ -2162,44 +2229,52 @@ namespace Advobot
 					var set = guildInfo.GetSetting(field);
 					if (set != null)
 					{
-						return FormatSettingInfo(guild, set);
+						return FormatGuildSettingInfo(guild, set);
 					}
 				}
 				return null;
 			}
-			public static string FormatSettingInfo(SocketGuild guild, Setting setting)
+			public static string FormatGuildSettingInfo(SocketGuild guild, object setting)
 			{
-				return setting.SettingToString();
-			}
-			public static string FormatSettingInfo(SocketGuild guild, System.Collections.IEnumerable setting)
-			{
-				return String.Join("\n", setting.Cast<dynamic>().Select(x => FormatSettingInfo(guild, x)));
-			}
-			public static string FormatSettingInfo(SocketGuild guild, ulong setting)
-			{
-				var chan = guild.GetChannel(setting);
-				if (chan != null)
+				if (setting is Setting)
 				{
-					return chan.FormatChannel();
+					return ((Setting)setting).SettingToString();
 				}
-
-				var role = guild.GetRole(setting);
-				if (role != null)
+				else if (setting is ulong)
 				{
-					return role.FormatRole();
-				}
+					var chan = guild.GetChannel((ulong)setting);
+					if (chan != null)
+					{
+						return String.Format("`{0}`", chan.FormatChannel());
+					}
 
-				var user = guild.GetUser(setting);
-				if (user != null)
+					var role = guild.GetRole((ulong)setting);
+					if (role != null)
+					{
+						return String.Format("`{0}`", role.FormatRole());
+					}
+
+					var user = guild.GetUser((ulong)setting);
+					if (user != null)
+					{
+						return String.Format("`{0}`", user.FormatUser());
+					}
+
+					return ((ulong)setting).ToString();
+				}
+				//Because strings are char[] this pointless else if has to be here so it doesn't go into the else if directly below
+				else if (setting is string)
 				{
-					return user.FormatUser();
+					return String.IsNullOrWhiteSpace(setting.ToString()) ? "`Nothing`" : String.Format("`{0}`", setting.ToString());
 				}
-
-				return null;
-			}
-			public static string FormatSettingInfo(SocketGuild guild, object setting)
-			{
-				return String.Format("`{0}`", setting.ToString());
+				else if (setting is System.Collections.IEnumerable)
+				{
+					return String.Join("\n", ((System.Collections.IEnumerable)setting).Cast<object>().Select(x => FormatGuildSettingInfo(guild, x)));
+				}
+				else
+				{
+					return String.Format("`{0}`", setting.ToString());
+				}
 			}
 
 			public static string FormatUserReason(IUser user, string reason)
@@ -2517,7 +2592,7 @@ namespace Advobot
 
 			public static async Task HandleObjectGettingErrors<T>(ICommandContext context, ReturnedObject<T> returnedObject)
 			{
-				await MakeAndDeleteSecondaryMessage(context, Formatting.FormatErrorString(context.Guild, returnedObject));
+				await MakeAndDeleteSecondaryMessage(context, Formatting.FormatErrorString(context.Guild, returnedObject.Reason, returnedObject.Object));
 			}
 			public static async Task HandleArgsGettingErrors(ICommandContext context, ReturnedArguments returnedArgs)
 			{
@@ -2580,10 +2655,7 @@ namespace Advobot
 			}
 			public static void ExceptionToConsole(Exception e, [CallerMemberName] string name = "")
 			{
-				if (e == null)
-					return;
-
-				Messages.WriteLine("EXCEPTION: " + e, name);
+				WriteLine("EXCEPTION: " + e, name);
 			}
 		}
 
@@ -2849,6 +2921,180 @@ namespace Advobot
 			}
 		}
 
+		public static class Punishments
+		{
+			public static async Task RoleMuteUser(IGuildUser user, IRole role, uint time = 0)
+			{
+				await Roles.GiveRole(user, role);
+
+				if (time > 0)
+				{
+					Variables.RemovablePunishments.ThreadSafeAdd(new RemovableRoleMute(user.Guild, user, time, role));
+				}
+			}
+			public static async Task VoiceMuteUser(IGuildUser user, uint time = 0)
+			{
+				await user.ModifyAsync(x => x.Mute = true);
+
+				if (time > 0)
+				{
+					Variables.RemovablePunishments.ThreadSafeAdd(new RemovableVoiceMute(user.Guild, user, time));
+				}
+			}
+			public static async Task DeafenUser(IGuildUser user, uint time = 0)
+			{
+				await user.ModifyAsync(x => x.Deaf = true);
+
+				if (time > 0)
+				{
+					Variables.RemovablePunishments.ThreadSafeAdd(new RemovableDeafen(user.Guild, user, time));
+				}
+			}
+
+			public static async Task ManualRoleUnmuteUser(IGuildUser user, IRole role)
+			{
+				await Roles.TakeRole(user, role);
+
+				Variables.RemovablePunishments.ThreadSafeRemoveAll(x => x.UserID == user.Id && x.PunishmentType == PunishmentType.RoleMute);
+			}
+			public static async Task ManualVoiceUnmuteUser(IGuildUser user)
+			{
+				await user.ModifyAsync(x => x.Mute = false);
+
+				Variables.RemovablePunishments.ThreadSafeRemoveAll(x => x.UserID == user.Id && x.PunishmentType == PunishmentType.VoiceMute);
+			}
+			public static async Task ManualUndeafenUser(IGuildUser user)
+			{
+				await user.ModifyAsync(x => x.Deaf = false);
+
+				Variables.RemovablePunishments.ThreadSafeRemoveAll(x => x.UserID == user.Id && x.PunishmentType == PunishmentType.Deafen);
+			}
+			public static async Task ManualBan(ICommandContext context, ulong userID, int days = 0, uint time = 0, string reason = null)
+			{
+				await context.Guild.AddBanAsync(userID, days, Formatting.FormatUserReason(context.User, reason));
+
+				if (time > 0)
+				{
+					Variables.RemovablePunishments.ThreadSafeAdd(new RemovableBan(context.Guild, userID, time));
+				}
+			}
+			public static async Task ManualSoftban(ICommandContext context, ulong userID, string reason = null)
+			{
+				await context.Guild.AddBanAsync(userID, 7, Formatting.FormatUserReason(context.User, reason));
+				await context.Guild.RemoveBanAsync(userID);
+			}
+			public static async Task ManualKick(ICommandContext context, IGuildUser user, string reason = null)
+			{
+				await user.KickAsync(Formatting.FormatUserReason(context.User, reason));
+			}
+
+			public static async Task AutomaticRoleUnmuteUser(IGuildUser user, IRole role)
+			{
+				await Roles.TakeRole(user, role);
+			}
+			public static async Task AutomaticVoiceUnmuteUser(IGuildUser user)
+			{
+				await user.ModifyAsync(x => x.Mute = false);
+			}
+			public static async Task AutomaticUndeafenUser(IGuildUser user)
+			{
+				await user.ModifyAsync(x => x.Deaf = false);
+			}
+			public static async Task AutomaticBan(IGuild guild, ulong userID, [CallerMemberName] string reason = null)
+			{
+				await guild.AddBanAsync(userID, 7, Formatting.FormatBotReason(reason));
+			}
+			public static async Task AutomaticSoftban(IGuild guild, ulong userID, [CallerMemberName] string reason = null)
+			{
+				await guild.AddBanAsync(userID, 7, Formatting.FormatBotReason(reason));
+				await guild.RemoveBanAsync(userID);
+			}
+			public static async Task AutomaticKick(IGuildUser user, [CallerMemberName] string reason = null)
+			{
+				await user.KickAsync(Formatting.FormatBotReason(reason));
+			}
+
+			public static async Task AutomaticPunishments(BotGuildInfo guildInfo, IGuildUser user, PunishmentType punishmentType, bool alreadyKicked = false, uint time = 0, [CallerMemberName] string caller = "")
+			{
+				//TODO: Rework the 4 big punishment things
+				//Basically a consolidation of 4 separate big banning things into one. I still need to rework a lot of this.
+				var guild = user.Guild;
+				if (!Users.GetIfUserCanBeModifiedByUser(Users.GetBot(guild), user))
+					return;
+
+				switch (punishmentType)
+				{
+					case PunishmentType.Nothing:
+					{
+						return;
+					}
+					case PunishmentType.Deafen:
+					{
+						await DeafenUser(user, time);
+
+						if (time > 0)
+						{
+							Variables.RemovablePunishments.ThreadSafeAdd(new RemovableDeafen(guild, user, time));
+						}
+						return;
+					}
+					case PunishmentType.VoiceMute:
+					{
+						await VoiceMuteUser(user, time);
+
+						if (time > 0)
+						{
+							Variables.RemovablePunishments.ThreadSafeAdd(new RemovableVoiceMute(guild, user, time));
+						}
+						return;
+					}
+					case PunishmentType.RoleMute:
+					{
+						var muteRole = ((IRole)guildInfo.GetSetting(SettingOnGuild.MuteRole));
+						await RoleMuteUser(user, muteRole, time);
+
+						if (time > 0)
+						{
+							Variables.RemovablePunishments.ThreadSafeAdd(new RemovableRoleMute(guild, user, time, muteRole));
+						}
+						return;
+					}
+					case PunishmentType.Kick:
+					{
+						await AutomaticKick(user, caller);
+						return;
+					}
+					case PunishmentType.KickThenBan:
+					{
+						if (!alreadyKicked)
+						{
+							await AutomaticKick(user, caller);
+						}
+						else
+						{
+							await AutomaticBan(guild, user.Id, caller);
+
+							if (time > 0)
+							{
+								Variables.RemovablePunishments.ThreadSafeAdd(new RemovableBan(guild, user, time));
+							}
+						}
+						return;
+					}
+					case PunishmentType.Ban:
+					{
+						await AutomaticBan(guild, user.Id, caller);
+						
+						if (time > 0)
+						{
+							Variables.RemovablePunishments.ThreadSafeAdd(new RemovableBan(guild, user, time));
+						}
+						return;
+					}
+				}
+			}
+		}
+
 		public static class LogChannels
 		{
 			public static async Task LogImage(ITextChannel channel, IMessage message, bool embeds)
@@ -2969,7 +3215,7 @@ namespace Advobot
 					var antiRaid = guildInfo.GetRaidPrevention(RaidType.Regular);
 					if (antiRaid != null && antiRaid.Enabled)
 					{
-						await antiRaid.PunishUser(guildInfo, user);
+						await antiRaid.RaidPreventionPunishment(guildInfo, user);
 					}
 					var antiJoin = guildInfo.GetRaidPrevention(RaidType.RapidJoins);
 					if (antiJoin != null && antiJoin.Enabled)
@@ -2977,7 +3223,7 @@ namespace Advobot
 						antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
 						if (antiJoin.GetSpamCount() >= antiJoin.RequiredCount)
 						{
-							await antiJoin.PunishUser(guildInfo, user);
+							await antiJoin.RaidPreventionPunishment(guildInfo, user);
 							var serverLog = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog)).Object;
 							if (serverLog != null)
 							{
@@ -3175,13 +3421,15 @@ namespace Advobot
 			public static async Task HandleBannedPhrasePunishments(BotGuildInfo guildInfo, IGuild guild, IMessage message, BannedPhrase phrase)
 			{
 				await Messages.DeleteMessage(message);
+
 				var user = message.Author as IGuildUser;
 				var bpUser = ((List<BannedPhraseUser>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseUsers)).FirstOrDefault(x => x.User == user) ?? new BannedPhraseUser(user, guildInfo);
+				var punishmentType = phrase.Punishment;
 
 				var amountOfMsgs = 0;
-				switch (phrase.Punishment)
+				switch (punishmentType)
 				{
-					case PunishmentType.Role:
+					case PunishmentType.RoleMute:
 					{
 						bpUser.IncreaseRoleCount();
 						amountOfMsgs = bpUser.MessagesForRole;
@@ -3202,49 +3450,27 @@ namespace Advobot
 				}
 
 				//Get the banned phrases punishments from the guild
-				if (!TryGetPunishment(guildInfo, phrase.Punishment, amountOfMsgs, out BannedPhrasePunishment punishment))
+				if (!TryGetPunishment(guildInfo, punishmentType, amountOfMsgs, out BannedPhrasePunishment punishment))
 					return;
 
-				var logChannel = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog)).Object;
-				switch (punishment.Punishment)
+				//TODO: include all automatic punishments in this
+				await Punishments.AutomaticPunishments(guildInfo, user, punishmentType, false, punishment.PunishmentTime);
+				switch (punishmentType)
 				{
 					case PunishmentType.Kick:
 					{
-						if (!Users.GetIfUserCanBeModifiedByUser(Users.GetBot(user.Guild), user))
-							return;
-
-						await Users.BotKickUser(user, "banned phrases");
 						bpUser.ResetKickCount();
-						break;
+						return;
 					}
 					case PunishmentType.Ban:
 					{
-						if (!Users.GetIfUserCanBeModifiedByUser(Users.GetBot(user.Guild), user))
-							return;
-
-						await Users.BotBanUser(user.Guild, user.Id, 1, "banned phrases");
 						bpUser.ResetBanCount();
-						break;
+						return;
 					}
-					case PunishmentType.Role:
+					case PunishmentType.RoleMute:
 					{
-						var role = guild.GetRole(punishment.RoleID);
-
-						await Roles.GiveRole(user, role);
 						bpUser.ResetRoleCount();
-						if (punishment.PunishmentTime != 0)
-						{
-							Variables.RemovablePunishments.Add(new RemovableRole(guild, user, punishment.PunishmentTime, role));
-						}
-
-						if (logChannel != null)
-						{
-							var embed = Embeds.MakeNewEmbed(null, "**Role Gained:** " + role.Name, Constants.UEDT);
-							Embeds.AddAuthor(embed, user);
-							Embeds.AddFooter(embed, "Banned Phrases Role");
-							await Messages.SendEmbedMessage(logChannel, embed);
-						}
-						break;
+						return;
 					}
 				}
 			}
@@ -3562,21 +3788,17 @@ namespace Advobot
 					{
 						case PunishmentType.Deafen:
 						{
-							await guildUser.ModifyAsync(x => x.Deaf = false);
+							await Punishments.AutomaticUndeafenUser(guildUser);
 							return;
 						}
-						case PunishmentType.Mute:
+						case PunishmentType.VoiceMute:
 						{
 							await guildUser.ModifyAsync(x => x.Mute = false);
 							return;
 						}
-						case PunishmentType.Role:
+						case PunishmentType.RoleMute:
 						{
-							if (punishment is RemovableRole)
-							{
-								var rPun = punishment as RemovableRole;
-								await guildUser.RemoveRoleAsync(rPun.Role);
-							}
+							await Roles.TakeRole(guildUser, (punishment as RemovableRoleMute)?.Role);
 							return;
 						}
 					}
@@ -3627,33 +3849,6 @@ namespace Advobot
 
 		public static class Misc
 		{
-			public static async Task UpdateGame(IDiscordClient client, BotGlobalInfo globalInfo)
-			{
-				var game = ((string)globalInfo.GetSetting(SettingOnBot.Game));
-				var stream = ((string)globalInfo.GetSetting(SettingOnBot.Stream));
-				var prefix = ((string)globalInfo.GetSetting(SettingOnBot.Prefix));
-
-				if (String.IsNullOrWhiteSpace(game))
-				{
-					game = String.Format("type \"{0}help\" for help.", prefix);
-				}
-
-				if (!String.IsNullOrWhiteSpace(stream))
-				{
-					stream = Constants.TWITCH_URL + stream.Substring(stream.LastIndexOf('/') + 1);
-				}
-
-				await SetGame((dynamic)client, game, stream);
-			}
-			public static async Task SetGame(DiscordSocketClient client, string game, string streamURL = null, StreamType streamType = StreamType.NotStreaming)
-			{
-				await client.SetGameAsync(game, streamURL, streamType);
-			}
-			public static async Task SetGame(DiscordShardedClient client, string game, string streamURL = null, StreamType streamType = StreamType.NotStreaming)
-			{
-				await client.SetGameAsync(game, streamURL, streamType);
-			}
-
 			public static void RestartBot()
 			{
 				try
@@ -3670,44 +3865,6 @@ namespace Advobot
 			public static void DisconnectBot()
 			{
 				Environment.Exit(0);
-			}
-
-			public static void DontWaitForResultOfBigUnimportantFunction(IMessageChannel channel, Action func)
-			{
-				Task.Run(() =>
-				{
-					if (channel != null)
-					{
-						using (var typing = channel.EnterTypingState())
-						{
-							func.Invoke();
-						}
-					}
-					else
-					{
-						func.Invoke();
-					}
-				}).Forget();
-			}
-
-			public static ReturnedObject<T> GetDiscordObject<T>(IGuild guild, IGuildUser user, ObjectVerification[] verif, T obj) where T : ISnowflakeEntity
-			{
-				if (obj is IGuildChannel)
-				{
-					return Channels.GetChannel(guild, user, verif, (dynamic)obj);
-				}
-				else if (obj is IRole)
-				{
-					return Roles.GetRole(guild, user, verif, (dynamic)obj);
-				}
-				else if (obj is IGuildUser)
-				{
-					return Users.GetGuildUser(guild, user, verif, (dynamic)obj);
-				}
-				else
-				{
-					return new ReturnedObject<T>(obj, FailureReason.NotFailure);
-				}
 			}
 
 			private static readonly Regex TWITCH_USERNAME_REGEX = new Regex("^[a-zA-Z0-9_]{4,25}$", RegexOptions.Compiled); //Source: https://www.reddit.com/r/Twitch/comments/32w5b2/username_requirements/cqf8yh0/

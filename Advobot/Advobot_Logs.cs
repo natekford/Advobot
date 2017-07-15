@@ -14,22 +14,67 @@ namespace Advobot
 	{
 		public class LogHolder
 		{
-			public BotLog BotLog { get; }
-			public ServerLog ServerLog { get; }
-			public ModLog ModLog { get; }
+			public BotLog BotLog { get; private set; }
+			public ServerLog ServerLog { get; private set; }
+			public ModLog ModLog { get; private set; }
 
-			public LogHolder()
+			public LogHolder(IDiscordClient client, BotGlobalInfo botInfo)
 			{
-				BotLog = new BotLog();
-				ServerLog = new ServerLog();
-				ModLog = new ModLog();
+				if (client is DiscordSocketClient)
+				{
+					CreateLogHolder(client as DiscordSocketClient, botInfo);
+				}
+				else if (client is DiscordShardedClient)
+				{
+					CreateLogHolder(client as DiscordShardedClient, botInfo);
+				}
+				else
+				{
+					throw new ArgumentException("Invalid client provided. Must be either a DiscordSocketClient or a DiscordShardedClient.");
+				}
 			}
 
-			public void StartLogging(IDiscordClient client, BotGlobalInfo botInfo)
+			private void CreateLogHolder(DiscordSocketClient client, BotGlobalInfo botInfo)
 			{
-				BotLog.StartLogging(client, botInfo);
-				ServerLog.StartLogging(client, botInfo);
-				ModLog.StartLogging(client, botInfo);
+				BotLog = new BotLog(client, botInfo);
+				ServerLog = new ServerLog(client, botInfo);
+				ModLog = new ModLog(client, botInfo);
+
+				client.MessageReceived += (SocketMessage message) => CommandHandler.HandleCommand(message as SocketUserMessage);
+				client.Connected += CommandHandler.LoadInformation;
+
+				client.Log += BotLog.Log;
+				client.GuildAvailable += BotLog.OnGuildAvailable;
+				client.GuildUnavailable += BotLog.OnGuildUnavailable;
+				client.JoinedGuild += BotLog.OnJoinedGuild;
+				client.LeftGuild += BotLog.OnLeftGuild;
+				client.UserJoined += ServerLog.OnUserJoined;
+				client.UserLeft += ServerLog.OnUserLeft;
+				client.UserUpdated += ServerLog.OnUserUpdated;
+				client.MessageReceived += ServerLog.OnMessageReceived;
+				client.MessageUpdated += ServerLog.OnMessageUpdated;
+				client.MessageDeleted += ServerLog.OnMessageDeleted;
+			}
+			private void CreateLogHolder(DiscordShardedClient client, BotGlobalInfo botInfo)
+			{
+				BotLog = new BotLog(client, botInfo);
+				ServerLog = new ServerLog(client, botInfo);
+				ModLog = new ModLog(client, botInfo);
+
+				client.MessageReceived += (SocketMessage message) => CommandHandler.HandleCommand(message as SocketUserMessage);
+				client.Shards.FirstOrDefault().Connected += CommandHandler.LoadInformation;
+
+				client.Log += BotLog.Log;
+				client.GuildAvailable += BotLog.OnGuildAvailable;
+				client.GuildUnavailable += BotLog.OnGuildUnavailable;
+				client.JoinedGuild += BotLog.OnJoinedGuild;
+				client.LeftGuild += BotLog.OnLeftGuild;
+				client.UserJoined += ServerLog.OnUserJoined;
+				client.UserLeft += ServerLog.OnUserLeft;
+				client.UserUpdated += ServerLog.OnUserUpdated;
+				client.MessageReceived += ServerLog.OnMessageReceived;
+				client.MessageUpdated += ServerLog.OnMessageUpdated;
+				client.MessageDeleted += ServerLog.OnMessageDeleted;
 			}
 		}
 
@@ -38,7 +83,7 @@ namespace Advobot
 			protected IDiscordClient Client;
 			protected BotGlobalInfo BotInfo;
 
-			public void StartLogging(IDiscordClient client, BotGlobalInfo botInfo)
+			public BaseLog(IDiscordClient client, BotGlobalInfo botInfo)
 			{
 				Client = client;
 				BotInfo = botInfo;
@@ -47,6 +92,10 @@ namespace Advobot
 
 		public sealed class BotLog : BaseLog
 		{
+			public BotLog(IDiscordClient client, BotGlobalInfo botInfo) : base(client, botInfo)
+			{
+			}
+
 			public Task Log(LogMessage msg)
 			{
 				if (!String.IsNullOrWhiteSpace(msg.Message))
@@ -59,8 +108,8 @@ namespace Advobot
 
 			public async Task OnGuildAvailable(SocketGuild guild)
 			{
-				Messages.WriteLine(String.Format("{0} is now online on shard {1}.", guild.FormatGuild(), Gets.GetShardIdFor((dynamic)Client, guild)));
-				Messages.WriteLine(String.Format("Current memory usage is: {0}MB", Gets.GetMemory(BotInfo.Windows).ToString("0.00")));
+				Messages.WriteLine(String.Format("{0} is now online on shard {1}.", guild.FormatGuild(), ClientActions.GetShardIdFor(Client, guild)));
+				Messages.WriteLine(String.Format("Current memory usage is: {0}MB.", Gets.GetMemory(BotInfo.Windows).ToString("0.00")));
 				Variables.TotalUsers += guild.MemberCount;
 				++Variables.TotalGuilds;
 
@@ -124,7 +173,7 @@ namespace Advobot
 
 				//Warn if at the maximum
 				var guilds = (await Client.GetGuildsAsync()).Count;
-				var shards = Gets.GetShardCount((dynamic)Client);
+				var shards = ClientActions.GetShardCount(Client);
 				var curMax = shards * 2500;
 				if (guilds + 100 >= curMax)
 				{
@@ -153,6 +202,10 @@ namespace Advobot
 
 		public sealed class ServerLog : BaseLog
 		{
+			public ServerLog(IDiscordClient client, BotGlobalInfo botInfo) : base(client, botInfo)
+			{
+			}
+
 			public async Task OnUserJoined(SocketGuildUser user)
 			{
 				++Variables.TotalUsers;
@@ -177,7 +230,7 @@ namespace Advobot
 					//Bans people who join with a given word in their name
 					if (((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedNamesForJoiningUsers)).Any(x => user.Username.CaseInsContains(x.Phrase)))
 					{
-						await Users.BotBanUser(guild, user.Id, 1, "banned name");
+						await Punishments.AutomaticBan(guild, user.Id, "banned name");
 						return;
 					}
 					//Welcome message
@@ -393,8 +446,8 @@ namespace Advobot
 
 					++Variables.LoggedDeletes;
 
-					//Make a separate task in order to not mess up the other commands
-					Misc.DontWaitForResultOfBigUnimportantFunction(null, async () =>
+					//Make async so doesn't publish prematurely
+					Task.Run(async () =>
 					{
 						try
 						{
@@ -540,10 +593,10 @@ namespace Advobot
 				foreach (var user in users)
 				{
 					user.IncreaseVotesToKick(message.Author.Id);
-					if (!Users.GetIfUserCanBeModifiedByUser(Users.GetBot(guild), user.User) || user.UsersWhoHaveAlreadyVoted.Count < user.VotesRequired)
+					if (user.UsersWhoHaveAlreadyVoted.Count < user.VotesRequired)
 						return;
 
-					await user.Punish(guildInfo, guild);
+					await user.SpamPreventionPunishment(guildInfo);
 
 					//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
 					user.ResetSpamUser();
@@ -553,6 +606,10 @@ namespace Advobot
 
 		public sealed class ModLog : BaseLog
 		{
+			public ModLog(IDiscordClient client, BotGlobalInfo botInfo) : base(client, botInfo)
+			{
+			}
+
 			public async Task LogCommand(MyCommandContext context)
 			{
 				Variables.GuildsToldBotDoesntWorkWithoutAdmin.ThreadSafeRemove(context.Guild.Id);

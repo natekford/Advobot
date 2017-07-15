@@ -236,7 +236,7 @@ namespace Advobot
 					}
 					case Target.User:
 					{
-						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatUserInfo(Context.GuildInfo, Context.Guild as SocketGuild, (dynamic)target));
+						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatUserInfo(Context.GuildInfo, Context.Guild as SocketGuild, target as SocketGuildUser ?? target as SocketUser));
 						return;
 					}
 					case Target.Emote:
@@ -740,9 +740,6 @@ namespace Advobot
 
 			private async Task CommandRunner()
 			{
-				var objVerif = new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsDefault };
-				var obj = Context.User;
-				objVerif.AssertEnumsAreAllCorrectTargetType(obj);
 				await Messages.SendChannelMessage(Context, "test");
 			}
 		}

@@ -286,7 +286,7 @@ namespace Advobot
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
 
-			return Task.FromResult(GetPreconditionResult(context, (dynamic)value));
+			return Task.FromResult(GetPreconditionResult(context, value));
 		}
 
 		private PreconditionResult GetPreconditionResult(ICommandContext context, System.Collections.IEnumerable list)
@@ -302,12 +302,36 @@ namespace Advobot
 
 			return PreconditionResult.FromSuccess();
 		}
-		private PreconditionResult GetPreconditionResult(ICommandContext context, dynamic value)
+		private PreconditionResult GetPreconditionResult(ICommandContext context, object value)
 		{
-			var returnedObject = Misc.GetDiscordObject(context.Guild, context.User as IGuildUser, mChecks, value);
-			if (returnedObject.Reason != FailureReason.NotFailure)
+			FailureReason failureReason = default(FailureReason);
+			object obj = null;
+			if (value is IGuildChannel)
 			{
-				return PreconditionResult.FromError(Advobot.Actions.Formatting.FormatErrorString(context.Guild, returnedObject));
+				var returned = Channels.GetChannel(context.Guild, context.User as IGuildUser, mChecks, value as IGuildChannel);
+				failureReason = returned.Reason;
+				obj = returned.Object;
+			}
+			else if (value is IRole)
+			{
+				var returned = Roles.GetRole(context.Guild, context.User as IGuildUser, mChecks, value as IRole);
+				failureReason = returned.Reason;
+				obj = returned.Object;
+			}
+			else if (value is IGuildUser)
+			{
+				var returned = Users.GetGuildUser(context.Guild, context.User as IGuildUser, mChecks, value as IGuildUser);
+				failureReason = returned.Reason;
+				obj = returned.Object;
+			}
+			else if (value is IUser)
+			{
+				obj = value ?? Users.GetGlobalUser(context.Client, (ulong)value);
+			}
+
+			if (failureReason != FailureReason.NotFailure)
+			{
+				return PreconditionResult.FromError(Actions.Formatting.FormatErrorString(context.Guild, failureReason, obj));
 			}
 			else
 			{
@@ -590,9 +614,9 @@ namespace Advobot
 	#region Saved Classes
 	public abstract class SettingHolder<T>
 	{
-		public abstract dynamic GetSetting(T setting);
-		public abstract dynamic GetSetting(FieldInfo field);
-		public abstract bool SetSetting(T setting, dynamic val, bool save = true);
+		public abstract object GetSetting(T setting);
+		public abstract object GetSetting(FieldInfo field);
+		public abstract bool SetSetting(T setting, object val, bool save = true);
 		public abstract bool ResetSetting(T setting);
 		public abstract void ResetAll();
 		public abstract void SaveInfo();
@@ -604,7 +628,7 @@ namespace Advobot
 		//The problem with that was when deserializing I didn't know how to get JSON to deserialize to the correct type.
 #pragma warning disable 414 //Disabled warning 414 since these fields are accessed via reflection.
 		[JsonIgnore]
-		private static ReadOnlyDictionary<SettingOnGuild, dynamic> mDefaultSettings = new ReadOnlyDictionary<SettingOnGuild, dynamic>(new Dictionary<SettingOnGuild, dynamic>
+		private static ReadOnlyDictionary<SettingOnGuild, object> mDefaultSettings = new ReadOnlyDictionary<SettingOnGuild, object>(new Dictionary<SettingOnGuild, object>
 		{
 			{ SettingOnGuild.CommandSwitches, new List<CommandSwitch>() },
 			{ SettingOnGuild.CommandsDisabledOnChannel, new List<CommandOverride>() },
@@ -834,7 +858,7 @@ namespace Advobot
 				return null;
 			}
 		}
-		public override bool SetSetting(SettingOnGuild setting, dynamic val, bool save = true)
+		public override bool SetSetting(SettingOnGuild setting, object val, bool save = true)
 		{
 			var field = GetField(setting);
 			if (field != null)
@@ -862,7 +886,7 @@ namespace Advobot
 		public override bool ResetSetting(SettingOnGuild setting)
 		{
 			var field = GetField(setting);
-			if (field != null && mDefaultSettings.TryGetValue(setting, out dynamic val))
+			if (field != null && mDefaultSettings.TryGetValue(setting, out object val))
 			{
 				try
 				{
@@ -1049,7 +1073,7 @@ namespace Advobot
 	{
 #pragma warning disable 414 //Disabling for same reason as above
 		[JsonIgnore]
-		private static ReadOnlyDictionary<SettingOnBot, dynamic> mDefaultSettings = new ReadOnlyDictionary<SettingOnBot, dynamic>(new Dictionary<SettingOnBot, dynamic>
+		private static ReadOnlyDictionary<SettingOnBot, object> mDefaultSettings = new ReadOnlyDictionary<SettingOnBot, object>(new Dictionary<SettingOnBot, object>
 		{
 			{ SettingOnBot.BotOwnerID, (ulong)0 }, //Needs to be cast as a ulong or gets an exception when trying to set it
 			{ SettingOnBot.TrustedUsers, new List<ulong>() },
@@ -1186,7 +1210,7 @@ namespace Advobot
 				return null;
 			}
 		}
-		public override bool SetSetting(SettingOnBot setting, dynamic val, bool save = true)
+		public override bool SetSetting(SettingOnBot setting, object val, bool save = true)
 		{
 			var field = GetField(setting);
 			if (field != null)
@@ -1214,7 +1238,7 @@ namespace Advobot
 		public override bool ResetSetting(SettingOnBot setting)
 		{
 			var field = GetField(setting);
-			if (field != null && mDefaultSettings.TryGetValue(setting, out dynamic val))
+			if (field != null && mDefaultSettings.TryGetValue(setting, out object val))
 			{
 				try
 				{
@@ -1381,7 +1405,7 @@ namespace Advobot
 		{
 			switch (punishment)
 			{
-				case PunishmentType.Role:
+				case PunishmentType.RoleMute:
 				case PunishmentType.Kick:
 				case PunishmentType.KickThenBan:
 				case PunishmentType.Ban:
@@ -1718,7 +1742,7 @@ namespace Advobot
 	public class DiscordObjectWithID<T> : Setting where T : ISnowflakeEntity
 	{
 		[JsonIgnore]
-		private ReadOnlyDictionary<Type, Func<SocketGuild, ulong, dynamic>> inits = new ReadOnlyDictionary<Type, Func<SocketGuild, ulong, dynamic>>(new Dictionary<Type, Func<SocketGuild, ulong, dynamic>>
+		private ReadOnlyDictionary<Type, Func<SocketGuild, ulong, object>> inits = new ReadOnlyDictionary<Type, Func<SocketGuild, ulong, object>>(new Dictionary<Type, Func<SocketGuild, ulong, object>>
 		{
 			{ typeof(IRole), (SocketGuild guild, ulong ID) => { return guild.GetRole(ID); } },
 			{ typeof(ITextChannel), (SocketGuild guild, ulong ID) => { return guild.GetTextChannel(ID); } },
@@ -1744,7 +1768,7 @@ namespace Advobot
 		{
 			if (inits.TryGetValue(typeof(T), out var method))
 			{
-				Object = method(guild, ID);
+				Object = (T)method(guild, ID);
 			}
 		}
 
@@ -1752,7 +1776,7 @@ namespace Advobot
 		{
 			if (Object != null)
 			{
-				return Actions.Formatting.FormatObject((dynamic)Object);
+				return Actions.Formatting.FormatObject(Object);
 			}
 			else
 			{
@@ -1836,8 +1860,6 @@ namespace Advobot
 		public int VotesForKick { get; }
 		[JsonProperty]
 		public bool Enabled { get; private set; }
-		[JsonIgnore]
-		public List<IGuildUser> PunishedUsers { get; }
 
 		public SpamPrevention(PunishmentType punishmentType, int timeInterval, int requiredSpamInstances, int requiredSpamPerMessage, int votesForKick)
 		{
@@ -1852,40 +1874,6 @@ namespace Advobot
 		public void ToggleEnabled()
 		{
 			Enabled = !Enabled;
-		}
-		public async Task PunishUser(BotGuildInfo guildInfo, IGuildUser user)
-		{
-			switch (PunishmentType)
-			{
-				case PunishmentType.Ban:
-				{
-					await Users.BotBanUser(user.Guild, user.Id, 1, "spam prevention.");
-					break;
-				}
-				case PunishmentType.Kick:
-				{
-					await Users.BotKickUser(user, "spam prevention");
-					break;
-				}
-				case PunishmentType.KickThenBan:
-				{
-					if (((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).FirstOrDefault(x => x.User.Id == user.Id).AlreadyKicked)
-					{
-						await Users.BotBanUser(user.Guild, user.Id, 1, "spam prevention");
-					}
-					else
-					{
-						await Users.BotKickUser(user, "spam prevention");
-					}
-					break;
-				}
-				case PunishmentType.Role:
-				{
-					await Roles.GiveRole(user, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
-					break;
-				}
-			}
-			PunishedUsers.ThreadSafeAdd(user);
 		}
 
 		public override string SettingToString()
@@ -1915,8 +1903,6 @@ namespace Advobot
 		public bool Enabled { get; private set; }
 		[JsonIgnore]
 		public List<BasicTimeInterface> TimeList { get; }
-		[JsonIgnore]
-		public List<IGuildUser> PunishedUsers { get; }
 
 		public RaidPrevention(PunishmentType punishmentType, int timeInterval, int requiredCount)
 		{
@@ -1947,39 +1933,10 @@ namespace Advobot
 		{
 			TimeList.Clear();
 		}
-		public async Task PunishUser(BotGuildInfo guildInfo, IGuildUser user)
+		public async Task RaidPreventionPunishment(BotGuildInfo guildInfo, IGuildUser user)
 		{
-			switch (PunishmentType)
-			{
-				case PunishmentType.Ban:
-				{
-					await Users.BotBanUser(user.Guild, user.Id, 1, "raid prevention");
-					break;
-				}
-				case PunishmentType.Kick:
-				{
-					await Users.BotKickUser(user, "raid prevention");
-					break;
-				}
-				case PunishmentType.KickThenBan:
-				{
-					if (((List<SpamPreventionUser>)guildInfo.GetSetting(SettingOnGuild.SpamPreventionUsers)).FirstOrDefault(x => x.User.Id == user.Id).AlreadyKicked)
-					{
-						await Users.BotBanUser(user.Guild, user.Id, 1, "raid prevention");
-					}
-					else
-					{
-						await Users.BotKickUser(user, "raid prevention");
-					}
-					break;
-				}
-				case PunishmentType.Role:
-				{
-					await Roles.GiveRole(user, ((DiscordObjectWithID<IRole>)guildInfo.GetSetting(SettingOnGuild.MuteRole))?.Object);
-					break;
-				}
-			}
-			PunishedUsers.ThreadSafeAdd(user);
+			//TODO: make this not 0
+			await Punishments.AutomaticPunishments(guildInfo, user, PunishmentType, false, 0);
 		}
 
 		public override string SettingToString()
@@ -2268,43 +2225,10 @@ namespace Advobot
 		{
 			return SpamLists[spamType].GetCountOfItemsInTimeFrame(spamPrev.TimeInterval) >= spamPrev.RequiredSpamInstances;
 		}
-		public async Task Punish(BotGuildInfo guildInfo, IGuild guild)
+		public async Task SpamPreventionPunishment(BotGuildInfo guildInfo)
 		{
-			switch (Punishment)
-			{
-				case PunishmentType.Role:
-				{
-					await Roles.MuteUser(guildInfo, User);
-					return;
-				}
-				case PunishmentType.Kick:
-				{
-					await Users.BotKickUser(User, "voted spam prevention");
-					return;
-				}
-				case PunishmentType.KickThenBan:
-				{
-					//Check if they've already been kicked to determine if they should be banned or kicked
-					if (AlreadyKicked)
-					{
-						await Users.BotBanUser(guild, User.Id, 1, "voted spam prevention");
-					}
-					else
-					{
-						await Users.BotKickUser(User, "voted spam prevention");
-					}
-					return;
-				}
-				case PunishmentType.Ban:
-				{
-					await Users.BotBanUser(guild, User.Id, 1, "voted spam prevention");
-					return;
-				}
-				default:
-				{
-					return;
-				}
-			}
+			//TODO: make this not 0
+			await Punishments.AutomaticPunishments(guildInfo, User, Punishment, AlreadyKicked, 0);
 		}
 	}
 	#endregion
@@ -2345,22 +2269,21 @@ namespace Advobot
 		}
 	}
 
-	public class RemovableRole : RemovablePunishment
+	public class RemovableRoleMute : RemovablePunishment
 	{
 		public IRole Role { get; }
 
-		public RemovableRole(IGuild guild, ulong userID, uint minutes, IRole role) : base(guild, userID, PunishmentType.Role, minutes)
+		public RemovableRoleMute(IGuild guild, ulong userID, uint minutes, IRole role) : base(guild, userID, PunishmentType.RoleMute, minutes)
 		{
-			Role = role;
 		}
-		public RemovableRole(IGuild guild, IUser user, uint minutes, IRole role) : this(guild, user.Id, minutes, role)
+		public RemovableRoleMute(IGuild guild, IUser user, uint minutes, IRole role) : this(guild, user.Id, minutes, role)
 		{
 		}
 	}
 
 	public class RemovableVoiceMute : RemovablePunishment
 	{
-		public RemovableVoiceMute(IGuild guild, ulong userID, uint minutes) : base(guild, userID, PunishmentType.Mute, minutes)
+		public RemovableVoiceMute(IGuild guild, ulong userID, uint minutes) : base(guild, userID, PunishmentType.VoiceMute, minutes)
 		{
 		}
 		public RemovableVoiceMute(IGuild guild, IUser user, uint minutes) : this(guild, user.Id, minutes)
@@ -2799,33 +2722,34 @@ namespace Advobot
 		IsManaged						= (1U << 1),
 	}
 
-	public enum FailureReason
+	[Flags]
+	public enum FailureReason : uint
 	{
 		//Generic
-		NotFailure						= 0,
-		TooFew							= 1,
-		TooMany							= 2,
+		NotFailure						= (1U << 1),
+		TooFew							= (1U << 2),
+		TooMany							= (1U << 3),
 
 		//User
-		UserInability					= 100,
-		BotInability					= 101,
+		UserInability					= (1U << 4),
+		BotInability					= (1U << 5),
 		
 		//Channels
-		ChannelType						= 200,
-		DefaultChannel					= 201,
+		ChannelType						= (1U << 6),
+		DefaultChannel					= (1U << 7),
 
 		//Roles
-		EveryoneRole					= 300,
-		ManagedRole						= 301,
+		EveryoneRole					= (1U << 8),
+		ManagedRole						= (1U << 9),
 
 		//Enums
-		InvalidEnum						= 400,
+		InvalidEnum						= (1U << 10),
 
 		//Bans
-		NoBans							= 500,
-		InvalidDiscriminator			= 501,
-		InvalidID						= 502,
-		NoUsernameOrID					= 503,
+		NoBans							= (1U << 11),
+		InvalidDiscriminator			= (1U << 12),
+		InvalidID						= (1U << 13),
+		NoUsernameOrID					= (1U << 14),
 	}
 
 	[Flags]
@@ -2848,10 +2772,10 @@ namespace Advobot
 		Nothing							= (1U << 0),
 		Kick							= (1U << 1),
 		Ban								= (1U << 2),
-		Role							= (1U << 3),
-		Deafen							= (1U << 4),
-		Mute							= (1U << 5),
-		KickThenBan						= (1U << 6),
+		Deafen							= (1U << 3),
+		VoiceMute						= (1U << 4),
+		KickThenBan						= (1U << 5),
+		RoleMute						= (1U << 6),
 	}
 
 	[Flags]

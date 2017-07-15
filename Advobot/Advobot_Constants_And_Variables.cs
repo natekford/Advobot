@@ -142,8 +142,8 @@ namespace Advobot
 		public static ReadOnlyDictionary<PunishmentType, int> Severity = new ReadOnlyDictionary<PunishmentType, int>(new Dictionary<PunishmentType, int>
 		{
 			{ PunishmentType.Deafen, 0 },
-			{ PunishmentType.Mute, 100 },
-			{ PunishmentType.Role, 250 },
+			{ PunishmentType.VoiceMute, 100 },
+			{ PunishmentType.RoleMute, 250 },
 			{ PunishmentType.Kick, 500 },
 			{ PunishmentType.KickThenBan, 750 },
 			{ PunishmentType.Ban, 1000 },
