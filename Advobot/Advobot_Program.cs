@@ -31,17 +31,19 @@ namespace Advobot
 #endif
 
 			//Things that when not loaded fuck the bot completely
-			BotGlobalInfo botInfo = SavingAndLoading.LoadCriticalInformation();
+			CriticalInformation criticalInfo = SavingAndLoading.LoadCriticalInformation();
+			IGlobalSettings botInfo = SavingAndLoading.CreateBotInfo(Constants.GLOBAL_SETTINGS_TYPE, criticalInfo.Windows, criticalInfo.Console, criticalInfo.FirstInstance);
 			IDiscordClient client = ClientActions.CreateBotClient(botInfo);
-			LogHolder logHolder = new LogHolder(client, botInfo);
+			IGuildSettingsModule guildSettingsModule = new GuildSettingsModule(Constants.GUILDS_SETTINGS_TYPE);
+			ILogModule logModule = new LogModule(client, botInfo, guildSettingsModule);
 
-			var provider = ConfigureServices(client, botInfo, logHolder);
+			var provider = ConfigureServices(botInfo, client, guildSettingsModule, logModule);
 			await CommandHandler.Install(provider);
 
 			//If not a console application then start the UI
 			if (!botInfo.Console)
 			{
-				new System.Windows.Application().Run(new BotWindow(provider));
+				new System.Windows.Application().Run(new BotWindow(client, botInfo, logModule));
 			}
 			else
 			{
@@ -68,13 +70,14 @@ namespace Advobot
 			}
 		}
 
-		private IServiceProvider ConfigureServices(IDiscordClient client, BotGlobalInfo globalInfo, LogHolder logHolder)
+		private IServiceProvider ConfigureServices(IGlobalSettings botInfo, IDiscordClient client, IGuildSettingsModule guildSettingsModule, ILogModule logModule)
 		{
 			var serviceCollection = new ServiceCollection();
+			serviceCollection.AddSingleton(botInfo);
 			serviceCollection.AddSingleton(client);
+			serviceCollection.AddSingleton(guildSettingsModule);
+			serviceCollection.AddSingleton(logModule);
 			serviceCollection.AddSingleton(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, }));
-			serviceCollection.AddSingleton(globalInfo);
-			serviceCollection.AddSingleton(logHolder);
 
 			return new DefaultServiceProviderFactory().CreateServiceProvider(serviceCollection);
 		}

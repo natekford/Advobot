@@ -40,7 +40,7 @@ namespace Advobot
 				}
 				else
 				{
-					var helpEntry = Variables.HelpList.FirstOrDefault(x => x.Name.CaseInsEquals(command) || x.Aliases.CaseInsContains(command));
+					var helpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.CaseInsEquals(command) || x.Aliases.CaseInsContains(command));
 					if (helpEntry != null)
 					{
 						var embed = Embeds.MakeNewEmbed(helpEntry.Name, helpEntry.ToString());
@@ -49,7 +49,7 @@ namespace Advobot
 						return;
 					}
 
-					var closeHelps = CloseWords.GetObjectsWithSimilarNames(Variables.HelpList, command).Distinct();
+					var closeHelps = CloseWords.GetObjectsWithSimilarNames(Constants.HELP_ENTRIES, command).Distinct();
 					if (closeHelps.Any())
 					{
 						Variables.ActiveCloseHelp.ThreadSafeRemoveAll(x => x.UserID == Context.User.Id);
@@ -88,7 +88,7 @@ namespace Advobot
 				}
 				else if ("all".CaseInsEquals(targetStr))
 				{
-					var desc = String.Format("`{0}`", String.Join("`, `", Variables.CommandNames));
+					var desc = String.Format("`{0}`", String.Join("`, `", Constants.COMMAND_NAMES));
 					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("All Commands", desc));
 				}
 				else if (Enum.TryParse(targetStr, true, out CommandCategory category))
@@ -221,7 +221,7 @@ namespace Advobot
 					}
 					case Target.Bot:
 					{
-						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatBotInfo(Context.GlobalInfo, Context.Client, Context.Guild));
+						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatBotInfo(Context.GlobalInfo, Context.Client, Context.Logging, Context.Guild));
 						return;
 					}
 					case Target.Channel:
@@ -495,21 +495,19 @@ namespace Advobot
 		public sealed class DownloadMessages : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task Command(int num, [Optional, VerifyObject(ObjectVerification.CanBeRead)] ITextChannel channel)
+			public async Task Command(int num, [Optional, VerifyObject(true, ObjectVerification.CanBeRead)] ITextChannel channel)
 			{
 				await CommandRunner(num, channel);
 			}
 
 			private async Task CommandRunner(int num, ITextChannel channel)
 			{
-				channel = channel ?? Context.Channel as ITextChannel;
-
 				var charCount = 0;
 				var formattedMessages = new List<string>();
 				foreach (var msg in (await Messages.GetMessages(channel, Math.Min(num, 1000))).OrderBy(x => x.CreatedAt.Ticks))
 				{
 					var temp = Formatting.RemoveMarkdownChars(Formatting.FormatNonDM(msg), true);
-					if ((charCount += temp.Length) < ((int)Context.GlobalInfo.GetSetting(SettingOnBot.MaxMessageGatherSize)))
+					if ((charCount += temp.Length) < Context.GlobalInfo.MaxMessageGatherSize)
 					{
 						formattedMessages.Add(temp);
 					}
@@ -600,7 +598,7 @@ namespace Advobot
 		public sealed class MentionRole : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder] string text)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder] string text)
 			{
 				await CommandRunner(role, text);
 			}
@@ -637,7 +635,7 @@ namespace Advobot
 			{
 				var newMsg = String.Format("From `{0}` in `{1}`:\n```\n{2}```", Context.User.FormatUser(), Context.Guild.FormatGuild(), input.Substring(0, Math.Min(input.Length, 250)));
 
-				var owner = await Users.GetGlobalUser(Context.Client, ((ulong)Context.GlobalInfo.GetSetting(SettingOnBot.BotOwnerID)));
+				var owner = await Users.GetGlobalUser(Context.Client, Context.GlobalInfo.BotOwnerID);
 				if (owner != null)
 				{
 					var DMChannel = await owner.GetOrCreateDMChannelAsync();

@@ -1,5 +1,4 @@
 ﻿using Advobot.Actions;
-using Advobot.Logging;
 using Discord;
 using ICSharpCode.AvalonEdit;
 using Newtonsoft.Json;
@@ -21,13 +20,15 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 
+//This entire file *should* be able to be removed from the solution with no adverse effects aside from the single error in Advobot_Program.cs
 namespace Advobot
 {
 	public class BotWindow : Window
 	{
 		//These top two are not prefixed with m because they're used all over the place outside of this class.
 		private readonly IDiscordClient Client;
-		private readonly BotGlobalInfo BotInfo;
+		private readonly IGlobalSettings BotInfo;
+		private readonly ILogModule LogModule;
 		private readonly BotUIInfo mUIInfo;
 
 		private readonly Grid mLayout = new Grid();
@@ -249,10 +250,11 @@ namespace Advobot
 		private readonly ToolTip mMemHoverInfo = new ToolTip { Content = "This is not guaranteed to be 100% correct.", };
 		#endregion
 
-		public BotWindow(IServiceProvider provider)
+		public BotWindow(IDiscordClient client, IGlobalSettings botInfo, ILogModule logModule)
 		{
-			Client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
-			BotInfo = (BotGlobalInfo)provider.GetService(typeof(BotGlobalInfo));
+			Client = client;
+			BotInfo = botInfo;
+			LogModule = logModule;
 			mUIInfo = BotUIInfo.LoadBotUIInfo(BotInfo.Loaded);
 
 			FontFamily = new FontFamily("Courier New");
@@ -697,7 +699,7 @@ namespace Advobot
 			}
 			else
 			{
-				UICommandHandler.HandleCommand(input, ((string)BotInfo.GetSetting(SettingOnBot.Prefix)));
+				UICommandHandler.HandleCommand(input, BotInfo.Prefix);
 			}
 		}
 
@@ -895,7 +897,7 @@ namespace Advobot
 				//Make sure the guild info stays valid
 				try
 				{
-					var throwaway = JsonConvert.DeserializeObject<BotGuildInfo>(mSpecificFileDisplay.Text);
+					var throwaway = JsonConvert.DeserializeObject(mSpecificFileDisplay.Text, Constants.GUILDS_SETTINGS_TYPE);
 				}
 				catch (Exception exc)
 				{
@@ -1132,27 +1134,24 @@ namespace Advobot
 				((TextBox)mThreads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
 				((TextBox)mGuilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
 				((TextBox)mUsers.Child).Text = String.Format("Members: {0}", userIDs.Distinct().Count());
-				mInfoOutput.Document = UIModification.MakeInfoMenu(Gets.GetUptime(BotInfo));
+				mInfoOutput.Document = UIModification.MakeInfoMenu(Gets.GetUptime(BotInfo), LogModule.FormatLoggedCommands(), LogModule.FormatLoggedActions());
 			};
 			timer.Start();
 		}
 		private async void UpdateSettingsWhenOpened()
 		{
-			((CheckBox)((Viewbox)mDownloadUsersSetting.Setting).Child).IsChecked = ((bool)BotInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers));
-			((TextBox)mPrefixSetting.Setting).Text = ((string)BotInfo.GetSetting(SettingOnBot.Prefix));
-			((TextBox)mBotOwnerSetting.Setting).Text = ((ulong)BotInfo.GetSetting(SettingOnBot.BotOwnerID)).ToString();
-			((TextBox)mGameSetting.Setting).Text = ((string)BotInfo.GetSetting(SettingOnBot.Game));
-			((TextBox)mStreamSetting.Setting).Text = ((string)BotInfo.GetSetting(SettingOnBot.Stream));
-			((TextBox)mShardSetting.Setting).Text = ((int)BotInfo.GetSetting(SettingOnBot.ShardCount)).ToString();
-			((TextBox)mMessageCacheSetting.Setting).Text = ((int)BotInfo.GetSetting(SettingOnBot.MessageCacheCount)).ToString();
-			((TextBox)mUserGatherCountSetting.Setting).Text = ((int)BotInfo.GetSetting(SettingOnBot.MaxUserGatherCount)).ToString();
-			((TextBox)mMessageGatherSizeSetting.Setting).Text = ((int)BotInfo.GetSetting(SettingOnBot.MaxMessageGatherSize)).ToString();
-			((ComboBox)mLogLevelComboBox.Setting).SelectedItem = ((ComboBox)mLogLevelComboBox.Setting).Items.OfType<TextBox>().FirstOrDefault(x =>
-			{
-				return (LogSeverity)x.Tag == (LogSeverity)BotInfo.GetSetting(SettingOnBot.LogLevel);
-			});
+			((CheckBox)((Viewbox)mDownloadUsersSetting.Setting).Child).IsChecked = BotInfo.AlwaysDownloadUsers;
+			((TextBox)mPrefixSetting.Setting).Text = BotInfo.Prefix;
+			((TextBox)mBotOwnerSetting.Setting).Text = BotInfo.BotOwnerID.ToString();
+			((TextBox)mGameSetting.Setting).Text = BotInfo.Game;
+			((TextBox)mStreamSetting.Setting).Text = BotInfo.Stream;
+			((TextBox)mShardSetting.Setting).Text = BotInfo.ShardCount.ToString();
+			((TextBox)mMessageCacheSetting.Setting).Text = BotInfo.MessageCacheCount.ToString();
+			((TextBox)mUserGatherCountSetting.Setting).Text = BotInfo.MaxUserGatherCount.ToString();
+			((TextBox)mMessageGatherSizeSetting.Setting).Text = BotInfo.MaxMessageGatherSize.ToString();
+			((ComboBox)mLogLevelComboBox.Setting).SelectedItem = ((ComboBox)mLogLevelComboBox.Setting).Items.OfType<TextBox>().FirstOrDefault(x => (LogSeverity)x.Tag == BotInfo.LogLevel);
 			var itemsSource = new List<TextBox>();
-			foreach (var trustedUser in ((List<ulong>)BotInfo.GetSetting(SettingOnBot.TrustedUsers)))
+			foreach (var trustedUser in BotInfo.TrustedUsers)
 			{
 				itemsSource.Add(UIModification.MakeTextBoxFromUserID(await Client.GetUserAsync(trustedUser)));
 			}
@@ -1200,7 +1199,7 @@ namespace Advobot
 			}
 			return true;
 		}
-		private NSF SaveSetting(object obj, SettingOnBot setting, BotGlobalInfo botInfo)
+		private NSF SaveSetting<T>(object obj, SettingOnBot setting, T botInfo) where T : IGlobalSettings, ISettingHolder
 		{
 			if (obj is Grid)
 			{
@@ -1227,7 +1226,7 @@ namespace Advobot
 				return NSF.Nothing;
 			}
 		}
-		private NSF SaveSetting(Grid g, SettingOnBot setting, BotGlobalInfo botInfo)
+		private NSF SaveSetting<T>(Grid g, SettingOnBot setting, T botInfo) where T : IGlobalSettings, ISettingHolder
 		{
 			var children = g.Children;
 			foreach (var child in children)
@@ -1236,7 +1235,7 @@ namespace Advobot
 			}
 			return NSF.Nothing;
 		}
-		private NSF SaveSetting(TextBox tb, SettingOnBot setting, BotGlobalInfo botInfo)
+		private NSF SaveSetting<T>(TextBox tb, SettingOnBot setting, T botInfo) where T : IGlobalSettings, ISettingHolder
 		{
 			var text = tb.Text;
 			var settingText = botInfo.GetSetting(setting)?.ToString();
@@ -1290,11 +1289,11 @@ namespace Advobot
 
 			return nothingSuccessFailure;
 		}
-		private NSF SaveSetting(Viewbox vb, SettingOnBot setting, BotGlobalInfo botInfo)
+		private NSF SaveSetting<T>(Viewbox vb, SettingOnBot setting, T botInfo) where T : IGlobalSettings, ISettingHolder
 		{
 			return SaveSetting(vb.Child, setting, botInfo);
 		}
-		private NSF SaveSetting(CheckBox cb, SettingOnBot setting, BotGlobalInfo botInfo)
+		private NSF SaveSetting<T>(CheckBox cb, SettingOnBot setting, T botInfo) where T : IGlobalSettings, ISettingHolder
 		{
 			if (!cb.IsChecked.HasValue)
 				return NSF.Nothing;
@@ -1303,7 +1302,7 @@ namespace Advobot
 			{
 				case SettingOnBot.AlwaysDownloadUsers:
 				{
-					var alwaysDLUsers = ((bool)botInfo.GetSetting(SettingOnBot.AlwaysDownloadUsers));
+					var alwaysDLUsers = botInfo.AlwaysDownloadUsers;
 					if (cb.IsChecked.Value != alwaysDLUsers)
 					{
 						botInfo.SetSetting(SettingOnBot.AlwaysDownloadUsers, !alwaysDLUsers);
@@ -1314,15 +1313,14 @@ namespace Advobot
 			}
 			return NSF.Nothing;
 		}
-		private NSF SaveSetting(ComboBox cb, SettingOnBot setting, BotGlobalInfo botInfo)
+		private NSF SaveSetting<T>(ComboBox cb, SettingOnBot setting, T botInfo) where T : IGlobalSettings, ISettingHolder
 		{
 			switch (setting)
 			{
 				case SettingOnBot.LogLevel:
 				{
 					var logLevel = (LogSeverity)(cb.SelectedItem as TextBox).Tag;
-					var currLogLevel = ((LogSeverity)botInfo.GetSetting(SettingOnBot.LogLevel));
-					if (logLevel != currLogLevel)
+					if (logLevel != botInfo.LogLevel)
 					{
 						botInfo.SetSetting(SettingOnBot.LogLevel, logLevel);
 						return NSF.Success;
@@ -1332,9 +1330,8 @@ namespace Advobot
 				case SettingOnBot.TrustedUsers:
 				{
 					var trustedUsers = cb.Items.OfType<TextBox>().Select(x => (ulong)x.Tag).ToList();
-					var currTrustedUsers = ((List<ulong>)BotInfo.GetSetting(SettingOnBot.TrustedUsers));
-					var diffUsers = currTrustedUsers.Except(trustedUsers);
-					if (trustedUsers.Count != currTrustedUsers.Count || diffUsers.Any())
+					var diffUsers = botInfo.TrustedUsers.Except(trustedUsers);
+					if (trustedUsers.Count != botInfo.TrustedUsers.Count || diffUsers.Any())
 					{
 						botInfo.SetSetting(SettingOnBot.TrustedUsers, trustedUsers);
 						return NSF.Success;
@@ -1980,11 +1977,11 @@ namespace Advobot
 
 			return new FlowDocument(temp);
 		}
-		public static FlowDocument MakeInfoMenu(string botUptime)
+		public static FlowDocument MakeInfoMenu(string botUptime, string formattedLoggedCommands, string formattedLoggedThings)
 		{
 			var uptime = String.Format("Uptime: {0}", botUptime);
-			var cmds = String.Format("Logged Commands:\n{0}", Actions.Formatting.FormatLoggedCommands());
-			var logs = String.Format("Logged Actions:\n{0}", Actions.Formatting.FormatLoggedThings());
+			var cmds = String.Format("Logged Commands:\n{0}", formattedLoggedCommands);
+			var logs = String.Format("Logged Actions:\n{0}", formattedLoggedThings);
 			var str = Actions.Formatting.RemoveMarkdownChars(String.Format("{0}\r\r{1}\r\r{2}", uptime, cmds, logs), true);
 			var paragraph = new Paragraph(new Run(str))
 			{

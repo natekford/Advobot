@@ -101,45 +101,76 @@ namespace Advobot
 		public const int MAX_FIELD_NAME_LENGTH = 256;
 		public const int MAX_FIELD_VALUE_LENGTH = 1024;
 
-		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>
+		private static ReadOnlyCollection<string> mVALID_IMAGE_EXTENSIONS;
+		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS => mVALID_IMAGE_EXTENSIONS ?? (mVALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>
 		{
-			".jpeg", ".jpg", ".png",
-		});
-		public static ReadOnlyCollection<string> VALID_GIF_EXTENTIONS = new ReadOnlyCollection<string>(new List<string>
+			".jpeg",
+			".jpg",
+			".png",
+		}));
+		private static ReadOnlyCollection<string> mVALID_GIF_EXTENSIONS;
+		public static ReadOnlyCollection<string> VALID_GIF_EXTENTIONS => mVALID_GIF_EXTENSIONS ?? (mVALID_GIF_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>
 		{
-			".gif", ".gifv",
-		});
-		public static ReadOnlyCollection<string> VALID_REGION_IDS = new ReadOnlyCollection<string>(new List<string>
+			".gif",
+			".gifv",
+		}));
+		private static ReadOnlyCollection<string> mVALID_REGION_IDS;
+		public static ReadOnlyCollection<string> VALID_REGION_IDS => mVALID_REGION_IDS ?? (mVALID_REGION_IDS = new ReadOnlyCollection<string>(new List<string>
 		{
-			"brazil", "eu-central", "eu-west", "hongkong", "russia", "singapore", "sydney", "us-east", "us-central", "us-south", "us-west",
-		});
-		public static ReadOnlyCollection<string> VIP_REGIONIDS = new ReadOnlyCollection<string>(new List<string>
+			"brazil",
+			"eu-central",
+			"eu-west",
+			"hongkong",
+			"russia",
+			"singapore",
+			"sydney",
+			"us-east",
+			"us-central",
+			"us-south",
+			"us-west",
+		}));
+		private static ReadOnlyCollection<string> mVIP_REGION_IDS;
+		public static ReadOnlyCollection<string> VIP_REGIONIDS => mVIP_REGION_IDS ?? (mVIP_REGION_IDS = new ReadOnlyCollection<string>(new List<string>
 		{
-			"vip-amsterdam", "vip-us-east", "vip-us-west",
-		});
-		public static ReadOnlyCollection<string> COMMANDS_UNABLE_TO_BE_TURNED_OFF = new ReadOnlyCollection<string>(new List<string>
+			"vip-amsterdam",
+			"vip-us-east",
+			"vip-us-west",
+		}));
+		private static ReadOnlyCollection<string> mCOMMANDS_UNABLE_TO_BE_TURNED_OFF;
+		public static ReadOnlyCollection<string> COMMANDS_UNABLE_TO_BE_TURNED_OFF => mCOMMANDS_UNABLE_TO_BE_TURNED_OFF ?? (mCOMMANDS_UNABLE_TO_BE_TURNED_OFF = new ReadOnlyCollection<string>(new List<string>
 		{
-			"configurecommands", "help",
-		});
-		public static ReadOnlyCollection<string> TEST_PHRASES = new ReadOnlyCollection<string>(new List<string>
+			"configurecommands",
+			"help",
+		}));
+		private static ReadOnlyCollection<string> mTEST_PHRASES;
+		public static ReadOnlyCollection<string> TEST_PHRASES => mTEST_PHRASES ?? (mTEST_PHRASES = new ReadOnlyCollection<string>(new List<string>
 		{
-			"Ӽ1(", "Ϯ3|", "⁊a~", "[&r",
-		});
-		public static ReadOnlyCollection<uint> VALID_AFK_TIMES = new ReadOnlyCollection<uint>(new List<uint>
-		{
-			60, 300, 900, 1800, 3600,
-		});
-		public static ReadOnlyCollection<LogAction> DEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogAction>(new List<LogAction>
+			"Ӽ1(",
+			"Ϯ3|",
+			"⁊a~",
+			"[&r",
+		}));
+		private static ReadOnlyCollection<LogAction> mDEFAULT_LOG_ACTIONS;
+		public static ReadOnlyCollection<LogAction> DEFAULT_LOG_ACTIONS => mDEFAULT_LOG_ACTIONS ?? (mDEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogAction>(new List<LogAction>
 		{
 			LogAction.UserJoined,
 			LogAction.UserLeft,
 			LogAction.MessageReceived,
 			LogAction.MessageUpdated,
 			LogAction.MessageDeleted,
-		});
+		}));
+		private static ReadOnlyCollection<HelpEntry> mHELP_ENTRIES;
+		public static ReadOnlyCollection<HelpEntry> HELP_ENTRIES => mHELP_ENTRIES ?? (mHELP_ENTRIES = new ReadOnlyCollection<HelpEntry>(SavingAndLoading.LoadHelpList()));
+		private static ReadOnlyCollection<string> mCOMMAND_NAMES;
+		public static ReadOnlyCollection<string> COMMAND_NAMES => mCOMMAND_NAMES ?? (mCOMMAND_NAMES = new ReadOnlyCollection<string>(SavingAndLoading.LoadCommandNames(HELP_ENTRIES)));
+		private static ReadOnlyCollection<BotGuildPermission> mGUILD_PERMISSIONS;
+		public static ReadOnlyCollection<BotGuildPermission> GUILD_PERMISSIONS => mGUILD_PERMISSIONS ?? (mGUILD_PERMISSIONS = new ReadOnlyCollection<BotGuildPermission>(SavingAndLoading.LoadGuildPermissions()));
+		private static ReadOnlyCollection<BotChannelPermission> mCHANNEL_PERMISSIONS;
+		public static ReadOnlyCollection<BotChannelPermission> CHANNEL_PERMISSIONS => mCHANNEL_PERMISSIONS ?? (mCHANNEL_PERMISSIONS = new ReadOnlyCollection<BotChannelPermission>(SavingAndLoading.LoadChannelPermissions()));
 
 		//Because the enum values might change in the future. These are never saved in JSON so these can be modified
-		public static ReadOnlyDictionary<PunishmentType, int> Severity = new ReadOnlyDictionary<PunishmentType, int>(new Dictionary<PunishmentType, int>
+		private static ReadOnlyDictionary<PunishmentType, int> mPUNISHMENT_SEVERITY;
+		public static ReadOnlyDictionary<PunishmentType, int> PUNISHMENT_SEVERITY => mPUNISHMENT_SEVERITY ?? (mPUNISHMENT_SEVERITY = new ReadOnlyDictionary<PunishmentType, int>(new Dictionary<PunishmentType, int>
 		{
 			{ PunishmentType.Deafen, 0 },
 			{ PunishmentType.VoiceMute, 100 },
@@ -147,66 +178,41 @@ namespace Advobot
 			{ PunishmentType.Kick, 500 },
 			{ PunishmentType.KickThenBan, 750 },
 			{ PunishmentType.Ban, 1000 },
-		});
-		public static ReadOnlyDictionary<string, Color> Colors = new ReadOnlyDictionary<string, Color>(Gets.GetColorDictionary());
+		}));
+		private static ReadOnlyDictionary<string, Color> mCOLORS;
+		public static ReadOnlyDictionary<string, Color> COLORS => mCOLORS ?? (mCOLORS = new ReadOnlyDictionary<string, Color>(Gets.GetColorDictionary()));
 
-		public static readonly Color BASE = new Color(255, 100, 000);
-		public static readonly Color JOIN = new Color(000, 255, 000);
-		public static readonly Color LEAV = new Color(255, 000, 000);
-		public static readonly Color UNBN = new Color(000, 153, 000);
-		public static readonly Color BANN = new Color(153, 000, 000);
-		public static readonly Color UEDT = new Color(051, 051, 255);
-		public static readonly Color ATCH = new Color(000, 204, 204);
-		public static readonly Color MEDT = new Color(000, 000, 255);
-		public static readonly Color MDEL = new Color(255, 051, 051);
-		public static readonly Color RCRE = new Color(000, 175, 000);
-		public static readonly Color REDT = new Color(000, 000, 204);
-		public static readonly Color RDEL = new Color(175, 000, 000);
-		public static readonly Color CCRE = new Color(000, 204, 000);
-		public static readonly Color CEDT = new Color(000, 000, 153);
-		public static readonly Color CDEL = new Color(204, 000, 000);
+		public static Color BASE { get; } = new Color(255, 100, 000);
+		public static Color JOIN { get; } = new Color(000, 255, 000);
+		public static Color LEAV { get; } = new Color(255, 000, 000);
+		public static Color UNBN { get; } = new Color(000, 153, 000);
+		public static Color BANN { get; } = new Color(153, 000, 000);
+		public static Color UEDT { get; } = new Color(051, 051, 255);
+		public static Color ATCH { get; } = new Color(000, 204, 204);
+		public static Color MEDT { get; } = new Color(000, 000, 255);
+		public static Color MDEL { get; } = new Color(255, 051, 051);
+		public static Color RCRE { get; } = new Color(000, 175, 000);
+		public static Color REDT { get; } = new Color(000, 000, 204);
+		public static Color RDEL { get; } = new Color(175, 000, 000);
+		public static Color CCRE { get; } = new Color(000, 204, 000);
+		public static Color CEDT { get; } = new Color(000, 000, 153);
+		public static Color CDEL { get; } = new Color(204, 000, 000);
+
+		public static Type GUILDS_SETTINGS_TYPE { get; } = typeof(BotGuildInfo);
+		public static Type GLOBAL_SETTINGS_TYPE { get; } = typeof(BotGlobalInfo);
 	}
 
 	public static class Variables
 	{
-		public static int TotalUsers = 0;
-		public static int TotalGuilds = 0;
-		public static int AttemptedCommands = 0;
-		public static int FailedCommands = 0;
-		public static int LoggedJoins = 0;
-		public static int LoggedLeaves = 0;
-		public static int LoggedBans = 0;
-		public static int LoggedUnbans = 0;
-		public static int LoggedUserChanges = 0;
-		public static int LoggedEdits = 0;
-		public static int LoggedDeletes = 0;
-		public static int LoggedMessages = 0;
-		public static int LoggedImages = 0;
-		public static int LoggedGifs = 0;
-		public static int LoggedFiles = 0;
-
-		public static Timer HourTimer;
-		public static Timer MinuteTimer;
-		public static Timer OneFourthSecondTimer;
-
-		public static Dictionary<ulong, BotGuildInfo> Guilds = new Dictionary<ulong, BotGuildInfo>();
 		public static SortedDictionary<string, List<string>> WrittenLines = new SortedDictionary<string, List<string>>();
 
-		//Lists that can only be modified through code for the most part
-		public readonly static List<string> CommandNames = new List<string>();
-		public readonly static List<string> RegionIDs = new List<string>();
-		public readonly static List<HelpEntry> HelpList = new List<HelpEntry>();
-		public readonly static List<BotGuildPermission> GuildPermissions = new List<BotGuildPermission>();
-		public readonly static List<BotChannelPermission> ChannelPermissions = new List<BotChannelPermission>();
-
-		//Lists that change as the bot is used
 		public readonly static List<ListedInvite> InviteList = new List<ListedInvite>();
+
+		//TODO: Put these five lists into a new module
 		public readonly static List<RemovablePunishment> RemovablePunishments = new List<RemovablePunishment>();
 		public readonly static List<RemovableMessage> TimedMessages = new List<RemovableMessage>();
 		public readonly static List<ActiveCloseWord<HelpEntry>> ActiveCloseHelp = new List<ActiveCloseWord<HelpEntry>>();
 		public readonly static List<ActiveCloseWord<Quote>> ActiveCloseWords = new List<ActiveCloseWord<Quote>>();
 		public readonly static List<SlowmodeUser> SlowmodeUsers = new List<SlowmodeUser>();
-		public readonly static List<SocketGuild> GuildsToBeLoaded = new List<SocketGuild>();
-		public readonly static List<ulong> GuildsToldBotDoesntWorkWithoutAdmin = new List<ulong>();
 	}
 }

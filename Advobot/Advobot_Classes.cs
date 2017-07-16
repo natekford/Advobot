@@ -1,12 +1,13 @@
 ﻿using Advobot.Actions;
+using Advobot.Logging;
 using Discord;
 using Discord.Commands;
-using Discord.Rest;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -53,8 +54,7 @@ namespace Advobot
 				var cont = context as MyCommandContext;
 				var user = context.User as IGuildUser;
 
-				var botBits = ((List<BotImplementedPermissions>)cont.GuildInfo.GetSetting(SettingOnGuild.BotUsers));
-				var userBits = botBits.FirstOrDefault(x => x.UserID == user.Id)?.Permissions ?? 0;
+				var userBits = cont.GuildInfo.BotUsers.FirstOrDefault(x => x.UserID == user.Id)?.Permissions ?? 0;
 
 				var perms = user.GuildPermissions.RawValue | userBits;
 				if ((perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
@@ -113,9 +113,7 @@ namespace Advobot
 
 				if (permissions)
 				{
-					var botBits = ((List<BotImplementedPermissions>)cont.GuildInfo.GetSetting(SettingOnGuild.BotUsers));
-					var userBits = botBits.FirstOrDefault(x => x.UserID == user.Id)?.Permissions ?? 0;
-
+					var userBits = cont.GuildInfo.BotUsers.FirstOrDefault(x => x.UserID == user.Id)?.Permissions ?? 0;
 					if (((user.GuildPermissions.RawValue | userBits) & PERMISSION_BITS) != 0)
 					{
 						return Task.FromResult(PreconditionResult.FromSuccess());
@@ -125,11 +123,11 @@ namespace Advobot
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
-				if (trustedUser && ((List<ulong>)cont.GlobalInfo.GetSetting(SettingOnBot.TrustedUsers)).Contains(user.Id))
+				if (trustedUser && cont.GlobalInfo.TrustedUsers.Contains(user.Id))
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
-				if (botOwner && ((ulong)cont.GlobalInfo.GetSetting(SettingOnBot.BotOwnerID)) == user.Id)
+				if (botOwner && cont.GlobalInfo.BotOwnerID == user.Id)
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
@@ -148,26 +146,24 @@ namespace Advobot
 				var cont = context as MyCommandContext;
 				var user = context.User as IGuildUser;
 
-				if (!(await cont.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator && !Variables.GuildsToldBotDoesntWorkWithoutAdmin.Contains(cont.Guild.Id))
+				if (!(await cont.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
 				{
-					Variables.GuildsToldBotDoesntWorkWithoutAdmin.Add(cont.Guild.Id);
 					return PreconditionResult.FromError("This bot will not function without the `Administrator` permission.");
 				}
 				else if (!cont.GlobalInfo.Loaded)
 				{
 					return PreconditionResult.FromError("Wait until the bot is loaded.");
 				}
-				if (!((bool)cont.GuildInfo.GetSetting(SettingOnGuild.Loaded)))
+				if (!cont.GuildInfo.Loaded)
 				{
 					return PreconditionResult.FromError("Wait until the guild is loaded.");
 				}
-				else if (((List<ulong>)cont.GuildInfo.GetSetting(SettingOnGuild.IgnoredCommandChannels)).Contains(context.Channel.Id) || !CheckIfCommandIsEnabled(cont, command, user))
+				else if (cont.GuildInfo.IgnoredCommandChannels.Contains(context.Channel.Id) || !CheckIfCommandIsEnabled(cont, command, user))
 				{
 					return PreconditionResult.FromError(Constants.IGNORE_ERROR);
 				}
 				else
 				{
-					++Variables.AttemptedCommands;
 					return PreconditionResult.FromSuccess();
 				}
 			}
@@ -188,21 +184,21 @@ namespace Advobot
 			 * Else if channel is set, use channel setting
 			 */
 
-			var userOverrides = ((List<CommandOverride>)context.GuildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnUser));
+			var userOverrides = context.GuildInfo.CommandsDisabledOnUser;
 			var userOverride = userOverrides.FirstOrDefault(x => x.ID == context.User.Id && cmd.Name.CaseInsEquals(x.Name));
 			if (userOverride != null)
 			{
 				return userOverride.Enabled;
 			}
 
-			var roleOverrides = ((List<CommandOverride>)context.GuildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnRole));
+			var roleOverrides = context.GuildInfo.CommandsDisabledOnRole;
 			var roleOverride = roleOverrides.Where(x => user.RoleIds.Contains(x.ID) && cmd.Name.CaseInsEquals(x.Name)).OrderBy(x => context.Guild.GetRole(x.ID).Position).LastOrDefault();
 			if (roleOverride != null)
 			{
 				return roleOverride.Enabled;
 			}
 
-			var channelOverrides = ((List<CommandOverride>)context.GuildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel));
+			var channelOverrides = context.GuildInfo.CommandsDisabledOnChannel;
 			var channelOverride = channelOverrides.FirstOrDefault(x => x.ID == context.Channel.Id && cmd.Name.CaseInsEquals(x.Name));
 			if (channelOverride != null)
 			{
@@ -246,7 +242,7 @@ namespace Advobot
 		}
 	}
 
-	[AttributeUsage(AttributeTargets.Field)]
+	[AttributeUsage(AttributeTargets.Property)]
 	public class GuildSettingAttribute : Attribute
 	{
 		public SettingOnGuild Setting { get; }
@@ -257,7 +253,7 @@ namespace Advobot
 		}
 	}
 
-	[AttributeUsage(AttributeTargets.Field)]
+	[AttributeUsage(AttributeTargets.Property)]
 	public class BotSettingAttribute : Attribute
 	{
 		public SettingOnBot Setting { get; }
@@ -271,17 +267,19 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public class VerifyObjectAttribute : ParameterPreconditionAttribute
 	{
+		private readonly bool mIfNullDrawFromContext;
 		private readonly ObjectVerification[] mChecks;
 
-		public VerifyObjectAttribute(params ObjectVerification[] checks)
+		public VerifyObjectAttribute(bool ifNullDrawFromContext, params ObjectVerification[] checks)
 		{
+			mIfNullDrawFromContext = ifNullDrawFromContext;
 			mChecks = checks;
 		}
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
-			if (value == null)
+			if (value == null && !mIfNullDrawFromContext)
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
@@ -306,9 +304,21 @@ namespace Advobot
 		{
 			FailureReason failureReason = default(FailureReason);
 			object obj = null;
-			if (value is IGuildChannel)
+			if (value is ITextChannel)
 			{
-				var returned = Channels.GetChannel(context.Guild, context.User as IGuildUser, mChecks, value as IGuildChannel);
+				var returned = Channels.GetChannel(context.Guild, context.User as IGuildUser, mChecks, (value ?? context.Channel) as IGuildChannel);
+				failureReason = returned.Reason;
+				obj = returned.Object;
+			}
+			else if (value is IVoiceChannel)
+			{
+				var returned = Channels.GetChannel(context.Guild, context.User as IGuildUser, mChecks, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel);
+				failureReason = returned.Reason;
+				obj = returned.Object;
+			}
+			else if (value is IGuildUser)
+			{
+				var returned = Users.GetGuildUser(context.Guild, context.User as IGuildUser, mChecks, (value ?? context.User) as IGuildUser);
 				failureReason = returned.Reason;
 				obj = returned.Object;
 			}
@@ -317,16 +327,6 @@ namespace Advobot
 				var returned = Roles.GetRole(context.Guild, context.User as IGuildUser, mChecks, value as IRole);
 				failureReason = returned.Reason;
 				obj = returned.Object;
-			}
-			else if (value is IGuildUser)
-			{
-				var returned = Users.GetGuildUser(context.Guild, context.User as IGuildUser, mChecks, value as IGuildUser);
-				failureReason = returned.Reason;
-				obj = returned.Object;
-			}
-			else if (value is IUser)
-			{
-				obj = value ?? Users.GetGlobalUser(context.Client, (ulong)value);
 			}
 
 			if (failureReason != FailureReason.NotFailure)
@@ -575,7 +575,7 @@ namespace Advobot
 
 			Color? color = null;
 			//By name
-			if (Constants.Colors.TryGetValue(input, out Color temp))
+			if (Constants.COLORS.TryGetValue(input, out Color temp))
 			{
 				color = temp;
 			}
@@ -612,21 +612,10 @@ namespace Advobot
 	#endregion
 
 	#region Saved Classes
-	public abstract class SettingHolder<T>
+	public class BotGuildInfo : IGuildSettings, IConvertGenericEnum<SettingOnGuild>
 	{
-		public abstract object GetSetting(T setting);
-		public abstract object GetSetting(FieldInfo field);
-		public abstract bool SetSetting(T setting, object val, bool save = true);
-		public abstract bool ResetSetting(T setting);
-		public abstract void ResetAll();
-		public abstract void SaveInfo();
-	}
-
-	public class BotGuildInfo : SettingHolder<SettingOnGuild>
-	{
-		//I wanted to go put all of the settings in a Dictionary<SettingOnGuild, object>;
-		//The problem with that was when deserializing I didn't know how to get JSON to deserialize to the correct type.
-#pragma warning disable 414 //Disabled warning 414 since these fields are accessed via reflection.
+		//I wanted to go put all of the settings in a Dictionary<SettingOnGuild, object>
+		//The problem with that was when deserializing I didn't know how to get JSON to deserialize to the correct types.
 		[JsonIgnore]
 		private static ReadOnlyDictionary<SettingOnGuild, object> mDefaultSettings = new ReadOnlyDictionary<SettingOnGuild, object>(new Dictionary<SettingOnGuild, object>
 		{
@@ -664,204 +653,170 @@ namespace Advobot
 			{ SettingOnGuild.SanitaryChannels, new List<ulong>() },
 		});
 		[JsonIgnore]
-		private static Dictionary<SettingOnGuild, FieldInfo> mFieldInfo = new Dictionary<SettingOnGuild, FieldInfo>();
+		private static ReadOnlyDictionary<SettingOnGuild, FieldInfo> mSettingFields = new ReadOnlyDictionary<SettingOnGuild, FieldInfo>(CreateFieldDictionary());
 
 		[GuildSetting(SettingOnGuild.BotUsers)]
 		[JsonProperty("BotUsers")]
-		private List<BotImplementedPermissions> mBotUsers = new List<BotImplementedPermissions>();
+		public List<BotImplementedPermissions> BotUsers { get; private set; } = new List<BotImplementedPermissions>();
 		[GuildSetting(SettingOnGuild.SelfAssignableGroups)]
 		[JsonProperty("SelfAssignableGroups")]
-		private List<SelfAssignableGroup> mSelfAssignableGroups = new List<SelfAssignableGroup>();
+		public List<SelfAssignableGroup> SelfAssignableGroups { get; private set; } = new List<SelfAssignableGroup>();
 		[GuildSetting(SettingOnGuild.Quotes)]
 		[JsonProperty("Quotes")]
-		private List<Quote> mQuotes = new List<Quote>();
+		public List<Quote> Quotes { get; private set; } = new List<Quote>();
 		[GuildSetting(SettingOnGuild.LogActions)]
 		[JsonProperty("LogActions")]
-		private List<LogAction> mLogActions = new List<LogAction>();
+		public List<LogAction> LogActions { get; private set; } = new List<LogAction>();
 
 		[GuildSetting(SettingOnGuild.IgnoredCommandChannels)]
 		[JsonProperty("IgnoredCommandChannels")]
-		private List<ulong> mIgnoredCommandChannels = new List<ulong>();
+		public List<ulong> IgnoredCommandChannels { get; private set; } = new List<ulong>();
 		[GuildSetting(SettingOnGuild.IgnoredLogChannels)]
 		[JsonProperty("IgnoredLogChannels")]
-		private List<ulong> mIgnoredLogChannels = new List<ulong>();
+		public List<ulong> IgnoredLogChannels { get; private set; } = new List<ulong>();
 		[GuildSetting(SettingOnGuild.ImageOnlyChannels)]
 		[JsonProperty("ImageOnlyChannels")]
-		private List<ulong> mImageOnlyChannels = new List<ulong>();
+		public List<ulong> ImageOnlyChannels { get; private set; } = new List<ulong>();
 		[GuildSetting(SettingOnGuild.SanitaryChannels)]
 		[JsonProperty("SanitaryChannels")]
-		private List<ulong> mSanitaryChannels = new List<ulong>();
+		public List<ulong> SanitaryChannels { get; private set; } = new List<ulong>();
 
 		[GuildSetting(SettingOnGuild.BannedPhraseStrings)]
 		[JsonProperty("BannedPhraseStrings")]
-		private List<BannedPhrase> mBannedPhraseStrings = new List<BannedPhrase>();
+		public List<BannedPhrase> BannedPhraseStrings { get; private set; } = new List<BannedPhrase>();
 		[GuildSetting(SettingOnGuild.BannedPhraseRegex)]
 		[JsonProperty("BannedPhraseRegex")]
-		private List<BannedPhrase> mBannedPhraseRegex = new List<BannedPhrase>();
+		public List<BannedPhrase> BannedPhraseRegex { get; private set; } = new List<BannedPhrase>();
 		[GuildSetting(SettingOnGuild.BannedNamesForJoiningUsers)]
 		[JsonProperty("BannedNamesForJoiningUsers")]
-		private List<BannedPhrase> mBannedNamesForJoiningUsers = new List<BannedPhrase>();
+		public List<BannedPhrase> BannedNamesForJoiningUsers { get; private set; } = new List<BannedPhrase>();
 		[GuildSetting(SettingOnGuild.BannedPhrasePunishments)]
 		[JsonProperty("BannedPhrasePunishments")]
-		private List<BannedPhrasePunishment> mBannedPhrasePunishments = new List<BannedPhrasePunishment>();
+		public List<BannedPhrasePunishment> BannedPhrasePunishments { get; private set; } = new List<BannedPhrasePunishment>();
 
 		[GuildSetting(SettingOnGuild.CommandSwitches)]
 		[JsonProperty("CommandSwitches")]
-		private List<CommandSwitch> mCommandSwitches = new List<CommandSwitch>();
+		public List<CommandSwitch> CommandSwitches { get; private set; } = new List<CommandSwitch>();
 		[GuildSetting(SettingOnGuild.CommandsDisabledOnUser)]
 		[JsonProperty("CommandsDisabledOnUser")]
-		private List<CommandOverride> mCommandsDisabledOnUser = new List<CommandOverride>();
+		public List<CommandOverride> CommandsDisabledOnUser { get; private set; } = new List<CommandOverride>();
 		[GuildSetting(SettingOnGuild.CommandsDisabledOnRole)]
 		[JsonProperty("CommandsDisabledOnRole")]
-		private List<CommandOverride> mCommandsDisabledOnRole = new List<CommandOverride>();
+		public List<CommandOverride> CommandsDisabledOnRole { get; private set; } = new List<CommandOverride>();
 		[GuildSetting(SettingOnGuild.CommandsDisabledOnChannel)]
 		[JsonProperty("CommandsDisabledOnChannel")]
-		private List<CommandOverride> mCommandsDisabledOnChannel = new List<CommandOverride>();
+		public List<CommandOverride> CommandsDisabledOnChannel { get; private set; } = new List<CommandOverride>();
 
 		[GuildSetting(SettingOnGuild.ServerLog)]
 		[JsonProperty("ServerLog")]
-		private DiscordObjectWithID<ITextChannel> mServerLog = new DiscordObjectWithID<ITextChannel>(null);
+		public DiscordObjectWithID<ITextChannel> ServerLog { get; private set; } = new DiscordObjectWithID<ITextChannel>(null);
 		[GuildSetting(SettingOnGuild.ModLog)]
 		[JsonProperty("ModLog")]
-		private DiscordObjectWithID<ITextChannel> mModLog = new DiscordObjectWithID<ITextChannel>(null);
+		public DiscordObjectWithID<ITextChannel> ModLog { get; private set; } = new DiscordObjectWithID<ITextChannel>(null);
 		[GuildSetting(SettingOnGuild.ImageLog)]
 		[JsonProperty("ImageLog")]
-		private DiscordObjectWithID<ITextChannel> mImageLog = new DiscordObjectWithID<ITextChannel>(null);
+		public DiscordObjectWithID<ITextChannel> ImageLog { get; private set; } = new DiscordObjectWithID<ITextChannel>(null);
 		[GuildSetting(SettingOnGuild.MuteRole)]
 		[JsonProperty("MuteRole")]
-		private DiscordObjectWithID<IRole> mMuteRole = new DiscordObjectWithID<IRole>(null);
+		public DiscordObjectWithID<IRole> MuteRole { get; private set; } = new DiscordObjectWithID<IRole>(null);
 
 		[GuildSetting(SettingOnGuild.MessageSpamPrevention)]
 		[JsonProperty("MessageSpamPrevention")]
-		private SpamPrevention mMessageSpamPrevention = null;
+		public SpamPrevention MessageSpamPrevention { get; private set; } = null;
 		[GuildSetting(SettingOnGuild.LongMessageSpamPrevention)]
 		[JsonProperty("LongMessageSpamPrevention")]
-		private SpamPrevention mLongMessageSpamPrevention = null;
+		public SpamPrevention LongMessageSpamPrevention { get; private set; } = null;
 		[GuildSetting(SettingOnGuild.LinkSpamPrevention)]
 		[JsonProperty("LinkSpamPrevention")]
-		private SpamPrevention mLinkSpamPrevention = null;
+		public SpamPrevention LinkSpamPrevention { get; private set; } = null;
 		[GuildSetting(SettingOnGuild.ImageSpamPrevention)]
 		[JsonProperty("ImageSpamPrevention")]
-		private SpamPrevention mImageSpamPrevention = null;
+		public SpamPrevention ImageSpamPrevention { get; private set; } = null;
 		[GuildSetting(SettingOnGuild.MentionSpamPrevention)]
 		[JsonProperty("MentionSpamPrevention")]
-		private SpamPrevention mMentionSpamPrevention = null;
+		public SpamPrevention MentionSpamPrevention { get; private set; } = null;
 		[GuildSetting(SettingOnGuild.RaidPrevention)]
 		[JsonProperty("RaidPrevention")]
-		private RaidPrevention mRaidPrevention = null;
+		public RaidPrevention RaidPrevention { get; private set; } = null;
 		[GuildSetting(SettingOnGuild.RapidJoinPrevention)]
 		[JsonProperty("RapidJoinPrevention")]
-		private RaidPrevention mRapidJoinPrevention = null;
+		public RaidPrevention RapidJoinPrevention { get; private set; } = null;
 
 		[GuildSetting(SettingOnGuild.PyramidalRoleSystem)]
 		[JsonProperty("PyramidalRoleSystem")]
-		private PyramidalRoleSystem mPyramidalRoleSystem = new PyramidalRoleSystem();
+		public PyramidalRoleSystem PyramidalRoleSystem { get; private set; } = new PyramidalRoleSystem();
 		[GuildSetting(SettingOnGuild.WelcomeMessage)]
 		[JsonProperty("WelcomeMessage")]
-		private GuildNotification mWelcomeMessage = null;
+		public GuildNotification WelcomeMessage { get; private set; } = null;
 		[GuildSetting(SettingOnGuild.GoodbyeMessage)]
 		[JsonProperty("GoodbyeMessage")]
-		private GuildNotification mGoodbyeMessage = null;
+		public GuildNotification GoodbyeMessage { get; private set; } = null;
 		[GuildSetting(SettingOnGuild.ListedInvite)]
 		[JsonProperty("ListedInvite")]
-		private ListedInvite mListedInvite = null;
+		public ListedInvite ListedInvite { get; private set; } = null;
 		[GuildSetting(SettingOnGuild.Prefix)]
 		[JsonProperty("Prefix")]
-		private string mPrefix = null;
+		public string Prefix { get; private set; } = null;
 		[GuildSetting(SettingOnGuild.VerboseErrors)]
 		[JsonProperty("VerboseErrors")]
-		private bool mVerboseErrors = true;
+		public bool VerboseErrors { get; private set; } = true;
 
 		[GuildSetting(SettingOnGuild.BannedPhraseUsers)]
 		[JsonIgnore]
-		private List<BannedPhraseUser> mBannedPhraseUsers = new List<BannedPhraseUser>();
+		public List<BannedPhraseUser> BannedPhraseUsers { get; private set; } = new List<BannedPhraseUser>();
 		[GuildSetting(SettingOnGuild.SpamPreventionUsers)]
 		[JsonIgnore]
-		private List<SpamPreventionUser> mSpamPreventionUsers = new List<SpamPreventionUser>();
+		public List<SpamPreventionUser> SpamPreventionUsers { get; private set; } = new List<SpamPreventionUser>();
 		[GuildSetting(SettingOnGuild.SlowmodeChannels)]
 		[JsonIgnore]
-		private List<SlowmodeChannel> mSlowmodeChannels = new List<SlowmodeChannel>();
+		public List<SlowmodeChannel> SlowmodeChannels { get; private set; } = new List<SlowmodeChannel>();
 		[GuildSetting(SettingOnGuild.Invites)]
 		[JsonIgnore]
-		private List<BotInvite> mInvites = new List<BotInvite>();
+		public List<BotInvite> Invites { get; private set; } = new List<BotInvite>();
 		[GuildSetting(SettingOnGuild.EvaluatedRegex)]
 		[JsonIgnore]
-		private List<string> mEvaluatedRegex = new List<string>();
+		public List<string> EvaluatedRegex { get; private set; } = new List<string>();
 		[GuildSetting(SettingOnGuild.SlowmodeGuild)]
 		[JsonIgnore]
-		private SlowmodeGuild mSlowmodeGuild = null;
+		public SlowmodeGuild SlowmodeGuild { get; private set; } = null;
 		[GuildSetting(SettingOnGuild.MessageDeletion)]
 		[JsonIgnore]
-		private MessageDeletion mMessageDeletion = new MessageDeletion();
+		public MessageDeletion MessageDeletion { get; private set; } = new MessageDeletion();
 		[GuildSetting(SettingOnGuild.Guild)]
 		[JsonIgnore]
-		private SocketGuild mGuild = null;
+		public SocketGuild Guild { get; private set; } = null;
 		[GuildSetting(SettingOnGuild.Loaded)]
 		[JsonIgnore]
-		private bool mLoaded = false;
-#pragma warning restore 414
+		public bool Loaded { get; private set; } = false;
 
-		private static FieldInfo CreateFieldDictionaryItem(SettingOnGuild setting)
+		private static Dictionary<SettingOnGuild, FieldInfo> CreateFieldDictionary()
 		{
-			foreach (var field in typeof(BotGuildInfo).GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
+			var tempDict = new Dictionary<SettingOnGuild, FieldInfo>();
+			foreach (var field in Constants.GUILDS_SETTINGS_TYPE.GetFields(BindingFlags.Public | BindingFlags.Instance))
 			{
 				var attr = (GuildSettingAttribute)field.GetCustomAttribute(typeof(GuildSettingAttribute));
-				if (attr != null && attr.Setting == setting)
+				if (attr != null)
 				{
-					return field;
+					tempDict.Add(attr.Setting, field);
+				}
+			}
+			return tempDict;
+		}
+		public object GetSetting(Enum setting)
+		{
+			if (mSettingFields.TryGetValue(Convert(setting), out FieldInfo field))
+			{
+				var jsonIgnoreAttr = (JsonIgnoreAttribute)field.GetCustomAttribute(typeof(JsonIgnoreAttribute));
+				if (jsonIgnoreAttr == null)
+				{
+					return field.GetValue(this);
 				}
 			}
 			return null;
 		}
-		public static void CreateFieldDictionary()
+		public bool SetSetting(Enum setting, object val, bool save = true)
 		{
-			foreach (var setting in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
-			{
-				if (mFieldInfo.ContainsKey(setting))
-					break;
-
-				mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
-			}
-		}
-		public static FieldInfo GetField(SettingOnGuild setting)
-		{
-			if (mFieldInfo.TryGetValue(setting, out FieldInfo value))
-			{
-				return value;
-			}
-			else
-			{
-				return null;
-			}
-		}
-		public override object GetSetting(SettingOnGuild setting)
-		{
-			var field = GetField(setting);
-			if (field != null)
-			{
-				return field.GetValue(this);
-			}
-			else
-			{
-				return null;
-			}
-		}
-		public override object GetSetting(FieldInfo field)
-		{
-			try
-			{
-				return field.GetValue(this);
-			}
-			catch (Exception e)
-			{
-				Messages.ExceptionToConsole(e);
-				return null;
-			}
-		}
-		public override bool SetSetting(SettingOnGuild setting, object val, bool save = true)
-		{
-			var field = GetField(setting);
-			if (field != null)
+			if (mSettingFields.TryGetValue(Convert(setting), out FieldInfo field))
 			{
 				try
 				{
@@ -875,18 +830,13 @@ namespace Advobot
 				catch (Exception e)
 				{
 					Messages.ExceptionToConsole(e);
-					return false;
 				}
 			}
-			else
-			{
-				return false;
-			}
+			return false;
 		}
-		public override bool ResetSetting(SettingOnGuild setting)
+		public bool ResetSetting(Enum setting)
 		{
-			var field = GetField(setting);
-			if (field != null && mDefaultSettings.TryGetValue(setting, out object val))
+			if (mSettingFields.TryGetValue(Convert(setting), out FieldInfo field) && mDefaultSettings.TryGetValue(Convert(setting), out object val))
 			{
 				try
 				{
@@ -897,75 +847,82 @@ namespace Advobot
 				catch (Exception e)
 				{
 					Messages.ExceptionToConsole(e);
-					return false;
 				}
 			}
-			else
-			{
-				return false;
-			}
+			return false;
 		}
-		public override void ResetAll()
+		public void ResetAll()
 		{
 			foreach (var setting in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
 			{
 				ResetSetting(setting);
 			}
 		}
-		public override void SaveInfo()
+		public void SaveInfo()
 		{
-			if (mGuild != null)
+			if (Guild != null)
 			{
-				SavingAndLoading.OverWriteFile(Gets.GetServerFilePath(mGuild.Id, Constants.GUILD_INFO_LOCATION), SavingAndLoading.Serialize(this));
+				SavingAndLoading.OverWriteFile(Gets.GetServerFilePath(Guild.Id, Constants.GUILD_INFO_LOCATION), SavingAndLoading.Serialize(this));
+			}
+		}
+		public SettingOnGuild Convert(Enum e)
+		{
+			if (e is SettingOnGuild)
+			{
+				return (SettingOnGuild)e;
+			}
+			else
+			{
+				throw new ArgumentException("Invalid enum supplied.");
 			}
 		}
 		public void PostDeserialize(IGuild guild)
 		{
-			mGuild = guild as SocketGuild;
+			Guild = guild as SocketGuild;
 
-			if (mModLog != null)
+			if (ModLog != null)
 			{
-				mModLog.PostDeserialize(mGuild);
+				ModLog.PostDeserialize(Guild);
 			}
-			if (mServerLog != null)
+			if (ServerLog != null)
 			{
-				mServerLog.PostDeserialize(mGuild);
+				ServerLog.PostDeserialize(Guild);
 			}
-			if (mImageLog != null)
+			if (ImageLog != null)
 			{
-				mImageLog.PostDeserialize(mGuild);
+				ImageLog.PostDeserialize(Guild);
 			}
-			if (mMuteRole != null)
+			if (MuteRole != null)
 			{
-				mMuteRole.PostDeserialize(mGuild);
-			}
-
-			if (mListedInvite != null)
-			{
-				mListedInvite.PostDeserialize(mGuild);
-				Variables.InviteList.ThreadSafeAdd(mListedInvite);
-			}
-			if (mWelcomeMessage != null)
-			{
-				mWelcomeMessage.PostDeserialize(mGuild);
-			}
-			if (mGoodbyeMessage != null)
-			{
-				mGoodbyeMessage.PostDeserialize(mGuild);
+				MuteRole.PostDeserialize(Guild);
 			}
 
-			foreach (var bannedPhrasePunishment in mBannedPhrasePunishments)
+			if (ListedInvite != null)
 			{
-				bannedPhrasePunishment.PostDeserialize(mGuild);
+				ListedInvite.PostDeserialize(Guild);
+				Variables.InviteList.ThreadSafeAdd(ListedInvite);
+			}
+			if (WelcomeMessage != null)
+			{
+				WelcomeMessage.PostDeserialize(Guild);
+			}
+			if (GoodbyeMessage != null)
+			{
+				GoodbyeMessage.PostDeserialize(Guild);
 			}
 
-			foreach (var group in mSelfAssignableGroups)
+			foreach (var bannedPhrasePunishment in BannedPhrasePunishments)
 			{
-				group.Roles.ForEach(x => x.PostDeserialize(mGuild));
+				bannedPhrasePunishment.PostDeserialize(Guild);
+			}
+
+			foreach (var group in SelfAssignableGroups)
+			{
+				group.Roles.ForEach(x => x.PostDeserialize(Guild));
 				group.Roles.RemoveAll(x => x == null || x.Role == null);
 			}
 
-			mLoaded = true;
+			Loaded = true;
 		}
 
 		public SpamPrevention GetSpamPrevention(SpamType spamType)
@@ -974,23 +931,23 @@ namespace Advobot
 			{
 				case SpamType.Message:
 				{
-					return (SpamPrevention)GetSetting(SettingOnGuild.MessageSpamPrevention);
+					return MessageSpamPrevention;
 				}
 				case SpamType.LongMessage:
 				{
-					return (SpamPrevention)GetSetting(SettingOnGuild.LongMessageSpamPrevention);
+					return LongMessageSpamPrevention;
 				}
 				case SpamType.Link:
 				{
-					return (SpamPrevention)GetSetting(SettingOnGuild.LinkSpamPrevention);
+					return LinkSpamPrevention;
 				}
 				case SpamType.Image:
 				{
-					return (SpamPrevention)GetSetting(SettingOnGuild.ImageSpamPrevention);
+					return ImageSpamPrevention;
 				}
 				case SpamType.Mention:
 				{
-					return (SpamPrevention)GetSetting(SettingOnGuild.MentionSpamPrevention);
+					return MentionSpamPrevention;
 				}
 				default:
 				{
@@ -1037,11 +994,11 @@ namespace Advobot
 			{
 				case RaidType.Regular:
 				{
-					return (RaidPrevention)GetSetting(SettingOnGuild.RaidPrevention);
+					return RaidPrevention;
 				}
 				case RaidType.RapidJoins:
 				{
-					return (RaidPrevention)GetSetting(SettingOnGuild.RapidJoinPrevention);
+					return RapidJoinPrevention;
 				}
 				default:
 				{
@@ -1069,9 +1026,8 @@ namespace Advobot
 		}
 	}
 
-	public class BotGlobalInfo : SettingHolder<SettingOnBot>
+	public class BotGlobalInfo : IGlobalSettings, IConvertGenericEnum<SettingOnBot>
 	{
-#pragma warning disable 414 //Disabling for same reason as above
 		[JsonIgnore]
 		private static ReadOnlyDictionary<SettingOnBot, object> mDefaultSettings = new ReadOnlyDictionary<SettingOnBot, object>(new Dictionary<SettingOnBot, object>
 		{
@@ -1090,48 +1046,47 @@ namespace Advobot
 			{ SettingOnBot.IgnoredCommandUsers, new List<ulong>() },
 		});
 		[JsonIgnore]
-		private static Dictionary<SettingOnBot, FieldInfo> mFieldInfo = new Dictionary<SettingOnBot, FieldInfo>();
+		private static ReadOnlyDictionary<SettingOnBot, FieldInfo> mSettingFields = new ReadOnlyDictionary<SettingOnBot, FieldInfo>(CreateFieldDictionary());
 
 		[BotSetting(SettingOnBot.BotOwnerID)]
 		[JsonProperty("BotOwnerID")]
-		private ulong mBotOwnerID = 0;
+		public ulong BotOwnerID { get; private set; } = 0;
 		[BotSetting(SettingOnBot.TrustedUsers)]
 		[JsonProperty("TrustedUsers")]
-		private List<ulong> mTrustedUsers = new List<ulong>();
+		public List<ulong> TrustedUsers { get; private set; } = new List<ulong>();
 		[BotSetting(SettingOnBot.Prefix)]
 		[JsonProperty("Prefix")]
-		private string mPrefix = Constants.BOT_PREFIX;
+		public string Prefix { get; private set; } = Constants.BOT_PREFIX;
 		[BotSetting(SettingOnBot.Game)]
 		[JsonProperty("Game")]
-		private string mGame = String.Format("type \"{0}help\" for help.", Constants.BOT_PREFIX);
+		public string Game { get; private set; } = String.Format("type \"{0}help\" for help.", Constants.BOT_PREFIX);
 		[BotSetting(SettingOnBot.Stream)]
 		[JsonProperty("Stream")]
-		private string mStream = null;
+		public string Stream { get; private set; } = null;
 		[BotSetting(SettingOnBot.ShardCount)]
 		[JsonProperty("ShardCount")]
-		private int mShardCount = 1;
+		public int ShardCount { get; private set; } = 1;
 		[BotSetting(SettingOnBot.MessageCacheCount)]
 		[JsonProperty("MessageCacheCount")]
-		private int mMessageCacheCount = 1000;
+		public int MessageCacheCount { get; private set; } = 1000;
 		[BotSetting(SettingOnBot.AlwaysDownloadUsers)]
 		[JsonProperty("AlwaysDownloadUsers")]
-		private bool mAlwaysDownloadUsers = true;
+		public bool AlwaysDownloadUsers { get; private set; } = true;
 		[BotSetting(SettingOnBot.LogLevel)]
 		[JsonProperty("LogLevel")]
-		private LogSeverity mLogLevel = LogSeverity.Warning;
+		public LogSeverity LogLevel { get; private set; } = LogSeverity.Warning;
 		[BotSetting(SettingOnBot.MaxUserGatherCount)]
 		[JsonProperty("MaxUserGatherCount")]
-		private int mMaxUserGatherCount = 100;
+		public int MaxUserGatherCount { get; private set; } = 100;
 		[BotSetting(SettingOnBot.MaxMessageGatherSize)]
 		[JsonProperty("MaxMessageGatherSize")]
-		private int mMaxMessageGatherSize = 500000;
+		public int MaxMessageGatherSize { get; private set; } = 500000;
 		[BotSetting(SettingOnBot.UnableToDMOwnerUsers)]
-		[JsonProperty("UnableToDMOwnerUsers")]
-		private List<ulong> mUnableToDMOwnerUsers = new List<ulong>();
+		[JsonProperty("UsersUnableToDMOwner")]
+		public List<ulong> UsersUnableToDMOwner { get; private set; } = new List<ulong>();
 		[BotSetting(SettingOnBot.IgnoredCommandUsers)]
-		[JsonProperty("IgnoredCommandUsers")]
-		private List<ulong> mIgnoredCommandUsers = new List<ulong>();
-#pragma warning restore 414
+		[JsonProperty("UsersIgnoredFromCommands")]
+		public List<ulong> UsersIgnoredFromCommands { get; private set; } = new List<ulong>();
 
 		[JsonIgnore]
 		public bool Windows { get; private set; }
@@ -1149,71 +1104,36 @@ namespace Advobot
 		public bool Pause { get; private set; }
 
 		[JsonIgnore]
-		public DateTime StartupTime { get; }
+		public DateTime StartupTime { get; } = DateTime.UtcNow;
 
-		public BotGlobalInfo()
+		private static Dictionary<SettingOnBot, FieldInfo> CreateFieldDictionary()
 		{
-			StartupTime = DateTime.UtcNow;
-		}
-
-		private static FieldInfo CreateFieldDictionaryItem(SettingOnBot setting)
-		{
-			foreach (var field in typeof(BotGlobalInfo).GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
+			var tempDict = new Dictionary<SettingOnBot, FieldInfo>();
+			foreach (var field in Constants.GLOBAL_SETTINGS_TYPE.GetFields(BindingFlags.Public | BindingFlags.Instance))
 			{
 				var attr = (BotSettingAttribute)field.GetCustomAttribute(typeof(BotSettingAttribute));
-				if (attr != null && attr.Setting == setting)
+				if (attr != null)
 				{
-					return field;
+					tempDict.Add(attr.Setting, field);
+				}
+			}
+			return tempDict;
+		}
+		public object GetSetting(Enum setting)
+		{
+			if (mSettingFields.TryGetValue(Convert(setting), out FieldInfo field))
+			{
+				var jsonIgnoreAttr = (JsonIgnoreAttribute)field.GetCustomAttribute(typeof(JsonIgnoreAttribute));
+				if (jsonIgnoreAttr == null)
+				{
+					return field.GetValue(this);
 				}
 			}
 			return null;
 		}
-		public static void CreateFieldDictionary()
+		public bool SetSetting(Enum setting, object val, bool save = true)
 		{
-			foreach (var setting in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
-			{
-				mFieldInfo.Add(setting, CreateFieldDictionaryItem(setting));
-			}
-		}
-		public static FieldInfo GetField(SettingOnBot setting)
-		{
-			if (mFieldInfo.TryGetValue(setting, out FieldInfo value))
-			{
-				return value;
-			}
-			else
-			{
-				return null;
-			}
-		}
-		public override object GetSetting(SettingOnBot setting)
-		{
-			var field = GetField(setting);
-			if (field != null)
-			{
-				return field.GetValue(this);
-			}
-			else
-			{
-				return null;
-			}
-		}
-		public override object GetSetting(FieldInfo field)
-		{
-			try
-			{
-				return field.GetValue(this);
-			}
-			catch (Exception e)
-			{
-				Messages.ExceptionToConsole(e);
-				return null;
-			}
-		}
-		public override bool SetSetting(SettingOnBot setting, object val, bool save = true)
-		{
-			var field = GetField(setting);
-			if (field != null)
+			if (mSettingFields.TryGetValue(Convert(setting), out FieldInfo field))
 			{
 				try
 				{
@@ -1227,18 +1147,13 @@ namespace Advobot
 				catch (Exception e)
 				{
 					Messages.ExceptionToConsole(e);
-					return false;
 				}
 			}
-			else
-			{
-				return false;
-			}
+			return false;
 		}
-		public override bool ResetSetting(SettingOnBot setting)
+		public bool ResetSetting(Enum setting)
 		{
-			var field = GetField(setting);
-			if (field != null && mDefaultSettings.TryGetValue(setting, out object val))
+			if (mSettingFields.TryGetValue(Convert(setting), out FieldInfo field) && mDefaultSettings.TryGetValue(Convert(setting), out object val))
 			{
 				try
 				{
@@ -1249,15 +1164,11 @@ namespace Advobot
 				catch (Exception e)
 				{
 					Messages.ExceptionToConsole(e);
-					return false;
 				}
 			}
-			else
-			{
-				return false;
-			}
+			return false;
 		}
-		public override void ResetAll()
+		public void ResetAll()
 		{
 			foreach (var setting in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
 			{
@@ -1272,9 +1183,20 @@ namespace Advobot
 				}
 			}
 		}
-		public override void SaveInfo()
+		public void SaveInfo()
 		{
 			SavingAndLoading.OverWriteFile(Gets.GetBaseBotDirectory(Constants.BOT_INFO_LOCATION), SavingAndLoading.Serialize(this));
+		}
+		public SettingOnBot Convert(Enum e)
+		{
+			if (e is SettingOnBot)
+			{
+				return (SettingOnBot)e;
+			}
+			else
+			{
+				throw new ArgumentException("Invalid enum supplied.");
+			}
 		}
 		public void PostDeserialize(bool windows, bool console, bool firstInstance)
 		{
@@ -1363,7 +1285,7 @@ namespace Advobot
 
 		public CommandSwitch(string name, bool value)
 		{
-			mHelpEntry = Variables.HelpList.FirstOrDefault(x => x.Name.Equals(name));
+			mHelpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.Equals(name));
 			if (mHelpEntry == null)
 				return;
 
@@ -1557,13 +1479,13 @@ namespace Advobot
 		[JsonProperty]
 		public ulong Permissions { get; private set; }
 
-		public BotImplementedPermissions(ulong userID, ulong permissions, BotGuildInfo guildInfo = null)
+		public BotImplementedPermissions(ulong userID, ulong permissions, IGuildSettings guildInfo = null)
 		{
 			UserID = userID;
 			Permissions = permissions;
 			if (guildInfo != null)
 			{
-				((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).ThreadSafeAdd(this);
+				guildInfo.BotUsers.ThreadSafeAdd(this);
 			}
 		}
 
@@ -1933,7 +1855,7 @@ namespace Advobot
 		{
 			TimeList.Clear();
 		}
-		public async Task RaidPreventionPunishment(BotGuildInfo guildInfo, IGuildUser user)
+		public async Task RaidPreventionPunishment(IGuildSettings guildInfo, IGuildUser user)
 		{
 			//TODO: make this not 0
 			await Punishments.AutomaticPunishments(guildInfo, user, PunishmentType, false, 0);
@@ -1962,13 +1884,106 @@ namespace Advobot
 
 	public class MyCommandContext : CommandContext
 	{
-		public BotGlobalInfo GlobalInfo { get; }
-		public BotGuildInfo GuildInfo { get; }
+		public IGlobalSettings GlobalInfo { get; }
+		public IGuildSettings GuildInfo { get; }
+		public ILogModule Logging { get; } //Yes, this module is put into MyCommandContext for a single usage in the getinfo command.
 
-		public MyCommandContext(BotGlobalInfo globalInfo, BotGuildInfo guildInfo, IDiscordClient client, IUserMessage msg) : base(client, msg)
+		public MyCommandContext(IGlobalSettings globalInfo, IGuildSettings guildInfo, ILogModule logging, IDiscordClient client, IUserMessage msg) : base(client, msg)
 		{
 			GlobalInfo = globalInfo;
 			GuildInfo = guildInfo;
+			Logging = logging;
+		}
+	}
+
+	public class GuildSettingsModule : MyModuleBase, IGuildSettingsModule
+	{
+		private Dictionary<ulong, IGuildSettings> mGuildSettings = new Dictionary<ulong, IGuildSettings>();
+		private Type mGuildSettingsType;
+
+		public GuildSettingsModule(Type guildSettingsType)
+		{
+			if (guildSettingsType == null || !guildSettingsType.GetInterfaces().Contains(typeof(IGuildSettings)))
+			{
+				throw new ArgumentException("Invalid type for guild settings provided.");
+			}
+
+			mGuildSettingsType = guildSettingsType;
+		}
+
+		public async Task AddGuild(IGuild guild)
+		{
+			if (!mGuildSettings.ContainsKey(guild.Id))
+			{
+				mGuildSettings.Add(guild.Id, await CreateGuildSettings(mGuildSettingsType, guild));
+			}
+		}
+		public Task RemoveGuild(IGuild guild)
+		{
+			if (mGuildSettings.ContainsKey(guild.Id))
+			{
+				mGuildSettings.Remove(guild.Id);
+			}
+			return Task.FromResult(0);
+		}
+		public IGuildSettings GetSettings(IGuild guild)
+		{
+			return mGuildSettings[guild.Id];
+		}
+		public IEnumerable<IGuildSettings> GetAllSettings()
+		{
+			return mGuildSettings.Values;
+		}
+		public bool TryGetSettings(IGuild guild, out IGuildSettings settings)
+		{
+			return mGuildSettings.TryGetValue(guild.Id, out settings);
+		}
+
+		private async Task<IGuildSettings> CreateGuildSettings(Type guildSettingsType, IGuild guild)
+		{
+			if (!mGuildSettings.TryGetValue(guild.Id, out IGuildSettings guildInfo))
+			{
+				var path = Gets.GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
+				if (File.Exists(path))
+				{
+					try
+					{
+						using (var reader = new StreamReader(path))
+						{
+							guildInfo = (IGuildSettings)JsonConvert.DeserializeObject(reader.ReadToEnd(), guildSettingsType);
+						}
+						Messages.WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
+					}
+					catch (Exception e)
+					{
+						Messages.ExceptionToConsole(e);
+					}
+				}
+				else
+				{
+					Messages.WriteLine(String.Format("The guild information file for {0} could not be found; using default.", guild.FormatGuild()));
+				}
+				guildInfo = guildInfo ?? (IGuildSettings)Activator.CreateInstance(guildSettingsType);
+
+				guildInfo.CommandSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+				guildInfo.CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+				guildInfo.CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+				guildInfo.CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+
+				foreach (var cmd in Constants.HELP_ENTRIES.Where(x => !guildInfo.CommandSwitches.Select(y => y.Name).CaseInsContains(x.Name)))
+				{
+					guildInfo.CommandSwitches.Add(new CommandSwitch(cmd.Name, cmd.DefaultEnabled));
+				}
+
+				guildInfo.Invites.AddRange((await Invites.GetInvites(guild)).Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)));
+
+				if (guildInfo is BotGuildInfo)
+				{
+					(guildInfo as BotGuildInfo).PostDeserialize(guild);
+				}
+			}
+
+			return guildInfo;
 		}
 	}
 
@@ -2064,12 +2079,12 @@ namespace Advobot
 		public int MessagesForKick { get; private set; }
 		public int MessagesForBan { get; private set; }
 
-		public BannedPhraseUser(IGuildUser user, BotGuildInfo guildInfo = null)
+		public BannedPhraseUser(IGuildUser user, IGuildSettings guildInfo = null)
 		{
 			User = user;
 			if (guildInfo != null)
 			{
-				((List<BannedPhraseUser>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseUsers)).ThreadSafeAdd(this);
+				guildInfo.BannedPhraseUsers.ThreadSafeAdd(this);
 			}
 		}
 
@@ -2199,7 +2214,7 @@ namespace Advobot
 		}
 		public void ChangePunishmentType(PunishmentType newPunishment)
 		{
-			if (Constants.Severity[newPunishment] > Constants.Severity[Punishment])
+			if (Constants.PUNISHMENT_SEVERITY[newPunishment] > Constants.PUNISHMENT_SEVERITY[Punishment])
 			{
 				Punishment = newPunishment;
 			}
@@ -2225,7 +2240,7 @@ namespace Advobot
 		{
 			return SpamLists[spamType].GetCountOfItemsInTimeFrame(spamPrev.TimeInterval) >= spamPrev.RequiredSpamInstances;
 		}
-		public async Task SpamPreventionPunishment(BotGuildInfo guildInfo)
+		public async Task SpamPreventionPunishment(IGuildSettings guildInfo)
 		{
 			//TODO: make this not 0
 			await Punishments.AutomaticPunishments(guildInfo, User, Punishment, AlreadyKicked, 0);
@@ -2496,10 +2511,10 @@ namespace Advobot
 	public struct VerifiedLoggingAction
 	{
 		public IGuild Guild { get; }
-		public BotGuildInfo GuildInfo { get; }
+		public IGuildSettings GuildInfo { get; }
 		public ITextChannel LoggingChannel { get; }
 
-		public VerifiedLoggingAction(IGuild guild, BotGuildInfo guildInfo, ITextChannel loggingChannel)
+		public VerifiedLoggingAction(IGuild guild, IGuildSettings guildInfo, ITextChannel loggingChannel)
 		{
 			Guild = guild;
 			GuildInfo = guildInfo;
@@ -2534,6 +2549,20 @@ namespace Advobot
 			return String.Join(Environment.NewLine + new string(' ', 25), new[] { guild, channel, user, time, text });
 		}
 	}
+
+	public struct CriticalInformation
+	{
+		public bool Windows { get; }
+		public bool Console { get; }
+		public bool FirstInstance { get; }
+
+		public CriticalInformation(bool windows, bool console, bool firstInstance)
+		{
+			Windows = windows;
+			Console = console;
+			FirstInstance = firstInstance;
+		}
+	}
 	#endregion
 
 	#region Interfaces
@@ -2552,6 +2581,159 @@ namespace Advobot
 	{
 		string Name { get; }
 		string Text { get; }
+	}
+
+	public interface IGuildSettingsModule
+	{
+		Task AddGuild(IGuild guild);
+		Task RemoveGuild(IGuild guild);
+		IGuildSettings GetSettings(IGuild guild);
+		IEnumerable<IGuildSettings> GetAllSettings();
+		bool TryGetSettings(IGuild guild, out IGuildSettings settings);
+	}
+
+	public interface ILogModule
+	{
+		uint TotalUsers { get; }
+		uint TotalGuilds { get; }
+		uint SuccessfulCommands { get; }
+		uint FailedCommands { get; }
+		uint LoggedJoins { get; }
+		uint LoggedLeaves { get; }
+		uint LoggedUserChanges { get; }
+		uint LoggedEdits { get; }
+		uint LoggedDeletes { get; }
+		uint LoggedMessages { get; }
+		uint LoggedImages { get; }
+		uint LoggedGifs { get; }
+		uint LoggedFiles { get; }
+
+		BaseLog BotLog { get; }
+		BaseLog ServerLog { get; }
+		BaseLog ModLog { get; }
+
+		void AddUsers(int users);
+		void RemoveUsers(int users);
+		void IncrementUsers();
+		void DecrementUsers();
+		void IncrementGuilds();
+		void DecrementGuilds();
+		void IncrementSuccessfulCommands();
+		void IncrementFailedCommands();
+		void IncrementJoins();
+		void IncrementLeaves();
+		void IncrementUserChanges();
+		void IncrementEdits();
+		void IncrementDeletes();
+		void IncrementMessages();
+		void IncrementImages();
+		void IncrementGifs();
+		void IncrementFiles();
+
+		string FormatLoggedCommands();
+		string FormatLoggedActions();
+	}
+
+	public interface IConvertGenericEnum<TEnum>
+	{
+		TEnum Convert(Enum e);
+	}
+
+	public interface ISettingHolder
+	{
+		object GetSetting(Enum setting);
+		bool SetSetting(Enum setting, object val, bool save = true);
+		bool ResetSetting(Enum setting);
+		void ResetAll();
+		void SaveInfo();
+	}
+
+	public interface IGlobalSettings : ISettingHolder
+	{
+		ulong BotOwnerID { get; }
+		List<ulong> TrustedUsers { get; }
+		List<ulong> UsersUnableToDMOwner { get; }
+		List<ulong> UsersIgnoredFromCommands { get; }
+		int ShardCount { get; }
+		int MessageCacheCount { get; }
+		int MaxUserGatherCount { get; }
+		int MaxMessageGatherSize { get; }
+		string Prefix { get; }
+		string Game { get; }
+		string Stream { get; }
+		bool AlwaysDownloadUsers { get; }
+		LogSeverity LogLevel { get; }
+
+		bool Windows { get; }
+		bool Console { get; }
+		bool FirstInstanceOfBotStartingUpWithCurrentKey { get; }
+		bool GotPath { get; }
+		bool GotKey { get; }
+		bool Loaded { get; }
+		bool Pause { get; }
+		DateTime StartupTime { get; }
+
+		void TogglePause();
+		void SetLoaded();
+		void SetGotKey();
+		void SetGotPath();
+	}
+
+	public interface IGuildSettings : ISettingHolder
+	{
+		List<BotImplementedPermissions> BotUsers { get; }
+		List<SelfAssignableGroup> SelfAssignableGroups { get; }
+		List<Quote> Quotes { get; }
+		List<LogAction> LogActions { get; }
+
+		List<ulong> IgnoredCommandChannels { get; }
+		List<ulong> IgnoredLogChannels { get; }
+		List<ulong> ImageOnlyChannels { get; }
+		List<ulong> SanitaryChannels { get; }
+
+		List<BannedPhrase> BannedPhraseStrings { get; }
+		List<BannedPhrase> BannedPhraseRegex { get; }
+		List<BannedPhrase> BannedNamesForJoiningUsers { get; }
+		List<BannedPhrasePunishment> BannedPhrasePunishments { get; }
+
+		List<CommandSwitch> CommandSwitches { get; }
+		List<CommandOverride> CommandsDisabledOnUser { get; }
+		List<CommandOverride> CommandsDisabledOnRole { get; }
+		List<CommandOverride> CommandsDisabledOnChannel { get; }
+
+		DiscordObjectWithID<ITextChannel> ServerLog { get; }
+		DiscordObjectWithID<ITextChannel> ModLog { get; }
+		DiscordObjectWithID<ITextChannel> ImageLog { get; }
+		DiscordObjectWithID<IRole> MuteRole { get; }
+
+		SpamPrevention MessageSpamPrevention { get; }
+		SpamPrevention LongMessageSpamPrevention { get; }
+		SpamPrevention LinkSpamPrevention { get; }
+		SpamPrevention ImageSpamPrevention { get; }
+		SpamPrevention MentionSpamPrevention { get; }
+		RaidPrevention RaidPrevention { get; }
+		RaidPrevention RapidJoinPrevention { get; }
+
+		PyramidalRoleSystem PyramidalRoleSystem { get; }
+		GuildNotification WelcomeMessage { get; }
+		GuildNotification GoodbyeMessage { get; }
+		ListedInvite ListedInvite { get; }
+
+		string Prefix { get; }
+		bool VerboseErrors { get; }
+
+		List<BannedPhraseUser> BannedPhraseUsers { get; }
+		List<SpamPreventionUser> SpamPreventionUsers { get; }
+		List<SlowmodeChannel> SlowmodeChannels { get; }
+		List<BotInvite> Invites { get; }
+		List<string> EvaluatedRegex { get; }
+		SlowmodeGuild SlowmodeGuild { get; }
+		MessageDeletion MessageDeletion { get; }
+		SocketGuild Guild { get; }
+		bool Loaded { get; }
+
+		SpamPrevention GetSpamPrevention(SpamType spamType);
+		RaidPrevention GetRaidPrevention(RaidType raidType);
 	}
 	#endregion
 

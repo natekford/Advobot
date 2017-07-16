@@ -11,18 +11,20 @@ namespace Advobot
 	public class CommandHandler
 	{
 		private static IServiceProvider Provider;
-		private static IDiscordClient Client;
 		private static CommandService Commands;
-		private static BotGlobalInfo BotInfo;
-		private static LogHolder Logging;
+		private static IGlobalSettings BotInfo;
+		private static IDiscordClient Client;
+		private static ILogModule Logging;
+		private static IGuildSettingsModule GuildSettings;
 
 		public static async Task Install(IServiceProvider provider)
 		{
 			Provider = provider;
-			Client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
 			Commands = (CommandService)provider.GetService(typeof(CommandService));
-			BotInfo = (BotGlobalInfo)provider.GetService(typeof(BotGlobalInfo));
-			Logging = (LogHolder)provider.GetService(typeof(LogHolder));
+			BotInfo = (IGlobalSettings)provider.GetService(typeof(IGlobalSettings));
+			Client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
+			Logging = (ILogModule)provider.GetService(typeof(ILogModule));
+			GuildSettings = (IGuildSettingsModule)provider.GetService(typeof(IGuildSettingsModule));
 
 			Commands.AddTypeReader(typeof(IInvite), new IInviteTypeReader());
 			Commands.AddTypeReader(typeof(IBan), new IBanTypeReader());
@@ -33,7 +35,7 @@ namespace Advobot
 
 		public static async Task LoadInformation()
 		{
-			await SavingAndLoading.LoadInformation(Client, BotInfo);
+			await SavingAndLoading.LoadInformation(Client, BotInfo, GuildSettings);
 		}
 
 		public static async Task HandleCommand(SocketUserMessage message)
@@ -45,21 +47,24 @@ namespace Advobot
 			if (guild == null)
 				return;
 
-			var guildInfo = await SavingAndLoading.CreateOrGetGuildInfo(guild);
-			if (!TryGetArgPos(message, ((string)guildInfo.GetSetting(SettingOnGuild.Prefix)), out int argPos))
+			if (!GuildSettings.TryGetSettings(guild, out IGuildSettings guildInfo))
+			{
+				await GuildSettings.AddGuild(guild);
+				guildInfo = GuildSettings.GetSettings(guild);
+			}
+			if (!TryGetArgPos(message, guildInfo.Prefix, BotInfo.Prefix, out int argPos))
 				return;
 
-			var context = new MyCommandContext(BotInfo, guildInfo, Client, message);
+			var context = new MyCommandContext(BotInfo, guildInfo, Logging, Client, message);
 			var result = await Commands.ExecuteAsync(context, argPos, Provider);
+
 			if (result.IsSuccess)
 			{
-				await Logging.ModLog.LogCommand(context);
+				await (Logging.ModLog as ModLogger).LogCommand(context);
+
+				Logging.IncrementSuccessfulCommands();
 			}
-			else if (Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
-			{
-				return;
-			}
-			else
+			else if (!Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
 			{
 				//Ignore commands with the unknown command error because it's annoying
 				switch (result.Error)
@@ -71,23 +76,24 @@ namespace Advobot
 					case CommandError.Exception:
 					{
 						Messages.WriteLine(result.ErrorReason);
-						return;
+						break;
 					}
 					default:
 					{
 						await Messages.MakeAndDeleteSecondaryMessage(message.Channel, message, Formatting.ERROR(result.ErrorReason));
-						return;
+						break;
 					}
 				}
+
+				Logging.IncrementFailedCommands();
 			}
 		}
 
-		private static bool TryGetArgPos(IUserMessage message, string guildPrefix, out int argPos)
+		private static bool TryGetArgPos(IUserMessage message, string guildPrefix, string globalPrefix, out int argPos)
 		{
 			argPos = -1;
 			if (String.IsNullOrWhiteSpace(guildPrefix))
 			{
-				var globalPrefix = ((string)BotInfo.GetSetting(SettingOnBot.Prefix));
 				if (message.HasStringPrefix(globalPrefix, ref argPos))
 				{
 					return true;

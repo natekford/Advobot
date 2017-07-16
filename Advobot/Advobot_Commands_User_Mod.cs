@@ -128,7 +128,7 @@ namespace Advobot
 		public sealed class MoveUser : MyModuleBase
 		{
 			[Command]
-			public async Task Command(IGuildUser user, [VerifyObject(ObjectVerification.CanMoveUsers)] IVoiceChannel channel)
+			public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel channel)
 			{
 				await CommandRunner(user, channel);
 			}
@@ -160,8 +160,8 @@ namespace Advobot
 		public sealed class MoveUsers : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task Command([VerifyObject(ObjectVerification.CanMoveUsers)] IVoiceChannel inputChannel,
-									  [VerifyObject(ObjectVerification.CanMoveUsers)] IVoiceChannel outputChannel,
+			public async Task Command([VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel inputChannel,
+									  [VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel outputChannel,
 									  [OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				await CommandRunner(inputChannel, outputChannel, bypass);
@@ -211,7 +211,7 @@ namespace Advobot
 		public sealed class SoftBan : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 			{
 				await CommandRunner(user, reason);
 			}
@@ -237,17 +237,17 @@ namespace Advobot
 		public sealed class Ban : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited)] IUser user, [Optional] uint time, [Optional] uint days, [Optional, Remainder] string reason)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user, [Optional] uint time, [Optional] uint days, [Optional, Remainder] string reason)
 			{
 				await CommandRunner(user, time, days, reason);
 			}
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited)] IUser user, [Optional] uint time, [Optional, Remainder] string reason)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user, [Optional] uint time, [Optional, Remainder] string reason)
 			{
 				await CommandRunner(user, time, 0, reason);
 			}
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited)] IUser user, [Optional, Remainder] string reason)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user, [Optional, Remainder] string reason)
 			{
 				await CommandRunner(user, 0, 0, reason);
 			}
@@ -308,7 +308,7 @@ namespace Advobot
 		public sealed class Kick : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 			{
 				await CommandRunner(user, reason);
 			}
@@ -361,33 +361,21 @@ namespace Advobot
 		public sealed class RemoveMessages : MyModuleBase
 		{
 			[Command]
-			public async Task Command(uint requestCount, [Optional] IGuildUser user, [Optional, VerifyObject(ObjectVerification.CanDeleteMessages)] ITextChannel channel)
+			public async Task Command(uint requestCount, [Optional] IGuildUser user, [Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel)
 			{
 				await CommandRunner((int)requestCount, user, channel);
 			}
 			[Command]
-			public async Task Command(uint requestCount, [Optional, VerifyObject(ObjectVerification.CanDeleteMessages)] ITextChannel channel, [Optional] IGuildUser user)
+			public async Task Command(uint requestCount, [Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel, [Optional] IGuildUser user)
 			{
 				await CommandRunner((int)requestCount, user, channel);
 			}
 
 			private async Task CommandRunner(int requestCount, IGuildUser user, ITextChannel channel)
 			{
-				if (channel == null)
-				{
-					//Default to channel command was said on if no channel was specified
-					var returnedChannel = Channels.GetChannel(Context, new[] { ObjectVerification.CanDeleteMessages }, Context.Channel as ITextChannel);
-					if (returnedChannel.Reason != FailureReason.NotFailure)
-					{
-						await Messages.HandleObjectGettingErrors(Context, returnedChannel);
-						return;
-					}
-					channel = returnedChannel.Object as ITextChannel;
-				}
-				
-				var serverLog = ((DiscordObjectWithID<ITextChannel>)Context.GuildInfo.GetSetting(SettingOnGuild.ServerLog))?.ID == channel.Id;
-				var modLog = ((DiscordObjectWithID<ITextChannel>)Context.GuildInfo.GetSetting(SettingOnGuild.ModLog))?.ID == channel.Id;
-				var imageLog = ((DiscordObjectWithID<ITextChannel>)Context.GuildInfo.GetSetting(SettingOnGuild.ImageLog))?.ID == channel.Id;
+				var serverLog = Context.GuildInfo.ServerLog?.ID == channel.Id;
+				var modLog = Context.GuildInfo.ModLog?.ID == channel.Id;
+				var imageLog = Context.GuildInfo.ImageLog?.ID == channel.Id;
 				if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
 				{
 					var DMChannel = await (await Context.Guild.GetOwnerAsync()).GetOrCreateDMChannelAsync();

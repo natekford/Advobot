@@ -18,7 +18,7 @@ namespace Advobot
 		public sealed class GiveRole : MyModuleBase
 		{
 			[Command]
-			public async Task Command(IGuildUser user, [VerifyObject(ObjectVerification.CanBeEdited)] params IRole[] roles)
+			public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
 			{
 				await CommandRunner(user, roles);
 			}
@@ -38,7 +38,7 @@ namespace Advobot
 		public sealed class TakeRole : MyModuleBase
 		{
 			[Command]
-			public async Task Command(IGuildUser user, [VerifyObject(ObjectVerification.CanBeEdited)] params IRole[] roles)
+			public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
 			{
 				await CommandRunner(user, roles);
 			}
@@ -78,7 +78,7 @@ namespace Advobot
 		public sealed class SoftDeleteRole : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole role)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole role)
 			{
 				await CommandRunner(role);
 			}
@@ -106,7 +106,7 @@ namespace Advobot
 		public sealed class DeleteRole : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole role)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole role)
 			{
 				await CommandRunner(role);
 			}
@@ -126,7 +126,7 @@ namespace Advobot
 		public sealed class ChangeRolePosition : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, uint position)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, uint position)
 			{
 				await CommandRunner(role, position);
 			}
@@ -185,14 +185,14 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command([VerifyEnum((uint)(ActionType.Allow | ActionType.Deny))] ActionType actionType,
-									  [VerifyObject(ObjectVerification.CanBeEdited)] IRole role,
+									  [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role,
 									  [Remainder] string uncutPermissions)
 			{
 				await CommandRunner(actionType, role, uncutPermissions);
 			}
 			[Command]
 			public async Task Command([VerifyEnum((uint)ActionType.Show)] ActionType actionType,
-									  [Optional, VerifyObject(ObjectVerification.CanBeEdited)] IRole role)
+									  [Optional, VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(role);
 			}
@@ -200,8 +200,8 @@ namespace Advobot
 			private async Task CommandRunner(ActionType actionType, IRole role, string uncutPermissions)
 			{
 				var permissions = uncutPermissions.Split('/', ' ').Select(x => x.Trim(',')).ToList();
-				var validPerms = permissions.Where(x => Variables.GuildPermissions.Select(y => y.Name).CaseInsContains(x));
-				var invalidPerms = permissions.Where(x => !Variables.GuildPermissions.Select(y => y.Name).CaseInsContains(x));
+				var validPerms = permissions.Where(x => Constants.GUILD_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
+				var invalidPerms = permissions.Where(x => !Constants.GUILD_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
 				if (invalidPerms.Any())
 				{
 					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("Invalid permission{0} provided: `{1}`.",
@@ -249,11 +249,11 @@ namespace Advobot
 			{
 				if (role == null)
 				{
-					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("Guild Permission Types", String.Format("`{0}`", String.Join("`, `", Variables.GuildPermissions.Select(x => x.Name)))));
+					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("Guild Permission Types", String.Format("`{0}`", String.Join("`, `", Constants.GUILD_PERMISSIONS.Select(x => x.Name)))));
 					return;
 				}
 
-				var currentRolePerms = Variables.GuildPermissions.Where(x => (role.Permissions.RawValue & x.Bit) != 0).Select(x => x.Name);
+				var currentRolePerms = Constants.GUILD_PERMISSIONS.Where(x => (role.Permissions.RawValue & x.Bit) != 0).Select(x => x.Name);
 				var permissions = currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission";
 				await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed(role.Name, String.Format("`{0}`", permissions)));
 			}
@@ -267,8 +267,8 @@ namespace Advobot
 		public sealed class CopyRolePerms : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited)] IRole inputRole,
-									  [VerifyObject(ObjectVerification.CanBeEdited)] IRole outputRole)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole inputRole,
+									  [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole outputRole)
 			{
 				await CommandRunner(inputRole, outputRole);
 			}
@@ -319,7 +319,7 @@ namespace Advobot
 		public sealed class ClearRolePerms : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited)] IRole role)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(role);
 			}
@@ -349,7 +349,7 @@ namespace Advobot
 		public sealed class ChangeRoleName : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited)] IRole role, [Remainder, VerifyStringLength(Target.Role)] string name)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, VerifyStringLength(Target.Role)] string name)
 			{
 				await CommandRunner(role, name);
 			}
@@ -371,7 +371,7 @@ namespace Advobot
 		public sealed class ChangeRoleColor : MyModuleBase
 		{
 			[Command]
-			public async Task Command([Optional, VerifyObject(ObjectVerification.CanBeEdited)] IRole role, [Optional] Color color)
+			public async Task Command([Optional, VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Optional] Color color)
 			{
 				await CommandRunner(role, color);
 			}
@@ -380,7 +380,7 @@ namespace Advobot
 			{
 				if (role == null)
 				{
-					var desc = String.Format("`{0}`", String.Join("`, `", Constants.Colors.Keys));
+					var desc = String.Format("`{0}`", String.Join("`, `", Constants.COLORS.Keys));
 					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("Colors", desc));
 					return;
 				}
@@ -398,7 +398,7 @@ namespace Advobot
 		public sealed class ChangeRoleHoist : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited)] IRole role)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(role);
 			}
@@ -418,7 +418,7 @@ namespace Advobot
 		public sealed class ChangeRoleMentionability : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(ObjectVerification.CanBeEdited)] IRole role)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 			{
 				await CommandRunner(role);
 			}

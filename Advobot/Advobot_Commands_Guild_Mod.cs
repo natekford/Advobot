@@ -83,11 +83,13 @@ namespace Advobot
 				await CommandRunner(time);
 			}
 
+			private static readonly uint[] validAFKTimes = { 60, 300, 900, 1800, 3600 };
+
 			private async Task CommandRunner(uint time)
 			{
-				if (!Constants.VALID_AFK_TIMES.Contains(time))
+				if (!validAFKTimes.Contains(time))
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("Invalid time input, must be one of the following: `{0}`.", String.Join("`, `", Constants.VALID_AFK_TIMES))));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("Invalid time input, must be one of the following: `{0}`.", String.Join("`, `", validAFKTimes))));
 					return;
 				}
 
@@ -217,7 +219,6 @@ namespace Advobot
 			{
 				var optimalVoiceRegion = await Context.Client.GetOptimalVoiceRegionAsync();
 				var guild = await Context.Client.CreateGuildAsync(name, optimalVoiceRegion);
-				await SavingAndLoading.CreateOrGetGuildInfo(guild);
 
 				var defaultChannel = await guild.GetDefaultChannelAsync();
 				var invite = await defaultChannel.CreateInviteAsync();
