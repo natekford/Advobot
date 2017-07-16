@@ -204,7 +204,6 @@ namespace Advobot
 
 	public static class Variables
 	{
-		public static SortedDictionary<string, List<string>> WrittenLines = new SortedDictionary<string, List<string>>();
 
 		public readonly static List<ListedInvite> InviteList = new List<ListedInvite>();
 

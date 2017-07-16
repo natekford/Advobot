@@ -75,7 +75,7 @@ namespace Advobot
 					}
 					case CommandError.Exception:
 					{
-						Messages.WriteLine(result.ErrorReason);
+						ConsoleActions.WriteLine(result.ErrorReason);
 						break;
 					}
 					default:

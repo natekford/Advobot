@@ -738,7 +738,8 @@ namespace Advobot
 
 			private async Task CommandRunner()
 			{
-				await Messages.SendChannelMessage(Context, "test");
+				var str = await Formatting.FormatAllBotSettings(Context.Client, Context.GlobalInfo);
+				await Messages.SendChannelMessage(Context, str);
 			}
 		}
 	}}

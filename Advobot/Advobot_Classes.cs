@@ -612,7 +612,7 @@ namespace Advobot
 	#endregion
 
 	#region Saved Classes
-	public class BotGuildInfo : IGuildSettings, IConvertGenericEnum<SettingOnGuild>
+	public class BotGuildInfo : IGuildSettings
 	{
 		//I wanted to go put all of the settings in a Dictionary<SettingOnGuild, object>
 		//The problem with that was when deserializing I didn't know how to get JSON to deserialize to the correct types.
@@ -829,7 +829,7 @@ namespace Advobot
 				}
 				catch (Exception e)
 				{
-					Messages.ExceptionToConsole(e);
+					ConsoleActions.ExceptionToConsole(e);
 				}
 			}
 			return false;
@@ -846,7 +846,7 @@ namespace Advobot
 				}
 				catch (Exception e)
 				{
-					Messages.ExceptionToConsole(e);
+					ConsoleActions.ExceptionToConsole(e);
 				}
 			}
 			return false;
@@ -1026,67 +1026,165 @@ namespace Advobot
 		}
 	}
 
-	public class BotGlobalInfo : IGlobalSettings, IConvertGenericEnum<SettingOnBot>
+	public class BotGlobalInfo : IGlobalSettings
 	{
-		[JsonIgnore]
-		private static ReadOnlyDictionary<SettingOnBot, object> mDefaultSettings = new ReadOnlyDictionary<SettingOnBot, object>(new Dictionary<SettingOnBot, object>
-		{
-			{ SettingOnBot.BotOwnerID, (ulong)0 }, //Needs to be cast as a ulong or gets an exception when trying to set it
-			{ SettingOnBot.TrustedUsers, new List<ulong>() },
-			{ SettingOnBot.Prefix, Constants.BOT_PREFIX },
-			{ SettingOnBot.Game, String.Format("type \"{0}help\" for help.", Constants.BOT_PREFIX) },
-			{ SettingOnBot.Stream, null },
-			//{ SettingOnBot.ShardCount, 1 }, Leaving this one out since shard count shouldn't be reset without checking guild count
-			{ SettingOnBot.MessageCacheCount, 1000 },
-			{ SettingOnBot.AlwaysDownloadUsers, true },
-			{ SettingOnBot.LogLevel, LogSeverity.Warning },
-			{ SettingOnBot.MaxUserGatherCount, 100 },
-			{ SettingOnBot.MaxMessageGatherSize, 500000 },
-			{ SettingOnBot.UnableToDMOwnerUsers, new List<ulong>() },
-			{ SettingOnBot.IgnoredCommandUsers, new List<ulong>() },
-		});
-		[JsonIgnore]
-		private static ReadOnlyDictionary<SettingOnBot, FieldInfo> mSettingFields = new ReadOnlyDictionary<SettingOnBot, FieldInfo>(CreateFieldDictionary());
-
-		[BotSetting(SettingOnBot.BotOwnerID)]
-		[JsonProperty("BotOwnerID")]
-		public ulong BotOwnerID { get; private set; } = 0;
-		[BotSetting(SettingOnBot.TrustedUsers)]
 		[JsonProperty("TrustedUsers")]
-		public List<ulong> TrustedUsers { get; private set; } = new List<ulong>();
-		[BotSetting(SettingOnBot.Prefix)]
-		[JsonProperty("Prefix")]
-		public string Prefix { get; private set; } = Constants.BOT_PREFIX;
-		[BotSetting(SettingOnBot.Game)]
-		[JsonProperty("Game")]
-		public string Game { get; private set; } = String.Format("type \"{0}help\" for help.", Constants.BOT_PREFIX);
-		[BotSetting(SettingOnBot.Stream)]
-		[JsonProperty("Stream")]
-		public string Stream { get; private set; } = null;
-		[BotSetting(SettingOnBot.ShardCount)]
-		[JsonProperty("ShardCount")]
-		public int ShardCount { get; private set; } = 1;
-		[BotSetting(SettingOnBot.MessageCacheCount)]
-		[JsonProperty("MessageCacheCount")]
-		public int MessageCacheCount { get; private set; } = 1000;
-		[BotSetting(SettingOnBot.AlwaysDownloadUsers)]
-		[JsonProperty("AlwaysDownloadUsers")]
-		public bool AlwaysDownloadUsers { get; private set; } = true;
-		[BotSetting(SettingOnBot.LogLevel)]
-		[JsonProperty("LogLevel")]
-		public LogSeverity LogLevel { get; private set; } = LogSeverity.Warning;
-		[BotSetting(SettingOnBot.MaxUserGatherCount)]
-		[JsonProperty("MaxUserGatherCount")]
-		public int MaxUserGatherCount { get; private set; } = 100;
-		[BotSetting(SettingOnBot.MaxMessageGatherSize)]
-		[JsonProperty("MaxMessageGatherSize")]
-		public int MaxMessageGatherSize { get; private set; } = 500000;
-		[BotSetting(SettingOnBot.UnableToDMOwnerUsers)]
+		private List<ulong> _TrustedUsers = new List<ulong>();
 		[JsonProperty("UsersUnableToDMOwner")]
-		public List<ulong> UsersUnableToDMOwner { get; private set; } = new List<ulong>();
-		[BotSetting(SettingOnBot.IgnoredCommandUsers)]
+		private List<ulong> _UsersUnableToDMOwner = new List<ulong>();
 		[JsonProperty("UsersIgnoredFromCommands")]
-		public List<ulong> UsersIgnoredFromCommands { get; private set; } = new List<ulong>();
+		private List<ulong> _UsersIgnoredFromCommands = new List<ulong>();
+		[JsonProperty("BotOwnerID")]
+		private ulong _BotOwnerID = 0;
+		[JsonProperty("ShardCount")]
+		private uint _ShardCount = 1;
+		[JsonProperty("MessageCacheCount")]
+		private uint _MessageCacheCount = 1000;
+		[JsonProperty("MaxUserGatherCount")]
+		private uint _MaxUserGatherCount = 100;
+		[JsonProperty("MaxMessageGatherSize")]
+		private uint _MaxMessageGatherSize = 500000;
+		[JsonProperty("Prefix")]
+		private string _Prefix = Constants.BOT_PREFIX;
+		[JsonProperty("Game")]
+		private string _Game = String.Format("type \"{0}help\" for help.", Constants.BOT_PREFIX);
+		[JsonProperty("Stream")]
+		private string _Stream = null;
+		[JsonProperty("AlwaysDownloadUsers")]
+		private bool _AlwaysDownloadUsers = true;
+		[JsonProperty("LogLevel")]
+		private LogSeverity _LogLevel = LogSeverity.Warning;
+
+		[JsonIgnore]
+		public List<ulong> TrustedUsers
+		{
+			get => _TrustedUsers ?? (_TrustedUsers = new List<ulong>());
+			set
+			{
+				_TrustedUsers = value;
+				SaveInfo();
+			}
+		}
+		[JsonIgnore]
+		public List<ulong> UsersUnableToDMOwner
+		{
+			get => _UsersUnableToDMOwner ?? (_UsersUnableToDMOwner = new List<ulong>());
+			set
+			{
+				_UsersUnableToDMOwner = value;
+				SaveInfo();
+			}
+		}
+		[JsonIgnore]
+		public List<ulong> UsersIgnoredFromCommands
+		{
+			get => _UsersIgnoredFromCommands ?? (_UsersIgnoredFromCommands = new List<ulong>());
+			set
+			{
+				_UsersIgnoredFromCommands = value;
+				SaveInfo();
+			}
+		}
+		[JsonIgnore]
+		public ulong BotOwnerID
+		{
+			get => _BotOwnerID;
+			set
+			{
+				_BotOwnerID = value;
+				SaveInfo();
+			}
+		}
+		[JsonIgnore]
+		public uint ShardCount
+		{
+			get => _ShardCount > 1 ? _ShardCount : (_ShardCount = 1);
+			set
+			{
+				_ShardCount = value;
+				SaveInfo();
+			}
+		}
+		[JsonIgnore]
+		public uint MessageCacheCount
+		{
+			get => _MessageCacheCount;
+			set
+			{
+				_MessageCacheCount = value;
+				SaveInfo();
+			}
+		}
+		[JsonIgnore]
+		public uint MaxUserGatherCount
+		{
+			get => _MaxUserGatherCount;
+			set
+			{
+				_MaxUserGatherCount = value;
+				SaveInfo();
+			}
+		}
+		[JsonIgnore]
+		public uint MaxMessageGatherSize
+		{
+			get => _MaxMessageGatherSize;
+			set
+			{
+				_MaxMessageGatherSize = value;
+				SaveInfo();
+			}
+		}
+		[JsonIgnore]
+		public string Prefix
+		{
+			get => _Prefix ?? (_Prefix = Constants.BOT_PREFIX);
+			set
+			{
+				_Prefix = value;
+				SaveInfo();
+			}
+		}
+		[JsonIgnore]
+		public string Game
+		{
+			get => _Game;
+			set
+			{
+				_Game = value;
+				SaveInfo();
+			}
+		}
+		[JsonIgnore]
+		public string Stream
+		{
+			get => _Stream;
+			set
+			{
+				_Stream = value;
+				SaveInfo();
+			}
+		}
+		[JsonIgnore]
+		public bool AlwaysDownloadUsers
+		{
+			get => _AlwaysDownloadUsers;
+			set
+			{
+				_AlwaysDownloadUsers = value;
+				SaveInfo();
+			}
+		}
+		[JsonIgnore]
+		public LogSeverity LogLevel
+		{
+			get => _LogLevel;
+			set
+			{
+				_LogLevel = value;
+				SaveInfo();
+			}
+		}
 
 		[JsonIgnore]
 		public bool Windows { get; private set; }
@@ -1106,97 +1204,9 @@ namespace Advobot
 		[JsonIgnore]
 		public DateTime StartupTime { get; } = DateTime.UtcNow;
 
-		private static Dictionary<SettingOnBot, FieldInfo> CreateFieldDictionary()
-		{
-			var tempDict = new Dictionary<SettingOnBot, FieldInfo>();
-			foreach (var field in Constants.GLOBAL_SETTINGS_TYPE.GetFields(BindingFlags.Public | BindingFlags.Instance))
-			{
-				var attr = (BotSettingAttribute)field.GetCustomAttribute(typeof(BotSettingAttribute));
-				if (attr != null)
-				{
-					tempDict.Add(attr.Setting, field);
-				}
-			}
-			return tempDict;
-		}
-		public object GetSetting(Enum setting)
-		{
-			if (mSettingFields.TryGetValue(Convert(setting), out FieldInfo field))
-			{
-				var jsonIgnoreAttr = (JsonIgnoreAttribute)field.GetCustomAttribute(typeof(JsonIgnoreAttribute));
-				if (jsonIgnoreAttr == null)
-				{
-					return field.GetValue(this);
-				}
-			}
-			return null;
-		}
-		public bool SetSetting(Enum setting, object val, bool save = true)
-		{
-			if (mSettingFields.TryGetValue(Convert(setting), out FieldInfo field))
-			{
-				try
-				{
-					field.SetValue(this, val);
-					if (save)
-					{
-						SaveInfo();
-					}
-					return true;
-				}
-				catch (Exception e)
-				{
-					Messages.ExceptionToConsole(e);
-				}
-			}
-			return false;
-		}
-		public bool ResetSetting(Enum setting)
-		{
-			if (mSettingFields.TryGetValue(Convert(setting), out FieldInfo field) && mDefaultSettings.TryGetValue(Convert(setting), out object val))
-			{
-				try
-				{
-					field.SetValue(this, val);
-					SaveInfo();
-					return true;
-				}
-				catch (Exception e)
-				{
-					Messages.ExceptionToConsole(e);
-				}
-			}
-			return false;
-		}
-		public void ResetAll()
-		{
-			foreach (var setting in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
-			{
-				if (setting == SettingOnBot.ShardCount)
-				{
-					//Don't reset shards.
-					continue;
-				}
-				else
-				{
-					ResetSetting(setting);
-				}
-			}
-		}
 		public void SaveInfo()
 		{
 			SavingAndLoading.OverWriteFile(Gets.GetBaseBotDirectory(Constants.BOT_INFO_LOCATION), SavingAndLoading.Serialize(this));
-		}
-		public SettingOnBot Convert(Enum e)
-		{
-			if (e is SettingOnBot)
-			{
-				return (SettingOnBot)e;
-			}
-			else
-			{
-				throw new ArgumentException("Invalid enum supplied.");
-			}
 		}
 		public void PostDeserialize(bool windows, bool console, bool firstInstance)
 		{
@@ -1952,16 +1962,16 @@ namespace Advobot
 						{
 							guildInfo = (IGuildSettings)JsonConvert.DeserializeObject(reader.ReadToEnd(), guildSettingsType);
 						}
-						Messages.WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
+						ConsoleActions.WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
 					}
 					catch (Exception e)
 					{
-						Messages.ExceptionToConsole(e);
+						ConsoleActions.ExceptionToConsole(e);
 					}
 				}
 				else
 				{
-					Messages.WriteLine(String.Format("The guild information file for {0} could not be found; using default.", guild.FormatGuild()));
+					ConsoleActions.WriteLine(String.Format("The guild information file for {0} could not be found; using default.", guild.FormatGuild()));
 				}
 				guildInfo = guildInfo ?? (IGuildSettings)Activator.CreateInstance(guildSettingsType);
 
@@ -2634,35 +2644,26 @@ namespace Advobot
 		string FormatLoggedActions();
 	}
 
-	public interface IConvertGenericEnum<TEnum>
-	{
-		TEnum Convert(Enum e);
-	}
-
 	public interface ISettingHolder
 	{
-		object GetSetting(Enum setting);
-		bool SetSetting(Enum setting, object val, bool save = true);
-		bool ResetSetting(Enum setting);
-		void ResetAll();
 		void SaveInfo();
 	}
 
 	public interface IGlobalSettings : ISettingHolder
 	{
-		ulong BotOwnerID { get; }
-		List<ulong> TrustedUsers { get; }
-		List<ulong> UsersUnableToDMOwner { get; }
-		List<ulong> UsersIgnoredFromCommands { get; }
-		int ShardCount { get; }
-		int MessageCacheCount { get; }
-		int MaxUserGatherCount { get; }
-		int MaxMessageGatherSize { get; }
-		string Prefix { get; }
-		string Game { get; }
-		string Stream { get; }
-		bool AlwaysDownloadUsers { get; }
-		LogSeverity LogLevel { get; }
+		List<ulong> TrustedUsers { get; set; }
+		List<ulong> UsersUnableToDMOwner { get; set; }
+		List<ulong> UsersIgnoredFromCommands { get; set; }
+		ulong BotOwnerID { get; set; }
+		uint ShardCount { get; set; }
+		uint MessageCacheCount { get; set; }
+		uint MaxUserGatherCount { get; set; }
+		uint MaxMessageGatherSize { get; set; }
+		string Prefix { get; set; }
+		string Game { get; set; }
+		string Stream { get; set; }
+		bool AlwaysDownloadUsers { get; set; }
+		LogSeverity LogLevel { get; set; }
 
 		bool Windows { get; }
 		bool Console { get; }

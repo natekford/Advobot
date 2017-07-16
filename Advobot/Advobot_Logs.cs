@@ -249,7 +249,7 @@ namespace Advobot
 			{
 				if (!String.IsNullOrWhiteSpace(msg.Message))
 				{
-					Messages.WriteLine(msg.Message, msg.Source);
+					ConsoleActions.WriteLine(msg.Message, msg.Source);
 				}
 
 				return Task.CompletedTask;
@@ -257,8 +257,8 @@ namespace Advobot
 
 			public async Task OnGuildAvailable(SocketGuild guild)
 			{
-				Messages.WriteLine(String.Format("{0} is now online on shard {1}.", guild.FormatGuild(), ClientActions.GetShardIdFor(Client, guild)));
-				Messages.WriteLine(String.Format("Current memory usage is: {0}MB.", Gets.GetMemory(BotInfo.Windows).ToString("0.00")));
+				ConsoleActions.WriteLine(String.Format("{0} is now online on shard {1}.", guild.FormatGuild(), ClientActions.GetShardIdFor(Client, guild)));
+				ConsoleActions.WriteLine(String.Format("Current memory usage is: {0}MB.", Gets.GetMemory(BotInfo.Windows).ToString("0.00")));
 				CurrentLogModule.AddUsers(guild.MemberCount);
 				CurrentLogModule.IncrementGuilds();
 
@@ -267,7 +267,7 @@ namespace Advobot
 
 			public Task OnGuildUnavailable(SocketGuild guild)
 			{
-				Messages.WriteLine(String.Format("Guild is now offline {0}.", guild.FormatGuild()));
+				ConsoleActions.WriteLine(String.Format("Guild is now offline {0}.", guild.FormatGuild()));
 				CurrentLogModule.RemoveUsers(guild.MemberCount);
 				CurrentLogModule.DecrementGuilds();
 
@@ -276,7 +276,7 @@ namespace Advobot
 
 			public async Task OnJoinedGuild(SocketGuild guild)
 			{
-				Messages.WriteLine(String.Format("Bot has joined {0}.", guild.FormatGuild()));
+				ConsoleActions.WriteLine(String.Format("Bot has joined {0}.", guild.FormatGuild()));
 
 				//Determine what percentage of bot users to leave at
 				var users = guild.MemberCount;
@@ -314,13 +314,13 @@ namespace Advobot
 				var curMax = shards * 2500;
 				if (guilds + 100 >= curMax)
 				{
-					Messages.WriteLine(String.Format("The bot currently has {0} out of {1} possible spots for servers filled. Please increase the shard count.", guilds, curMax));
+					ConsoleActions.WriteLine(String.Format("The bot currently has {0} out of {1} possible spots for servers filled. Please increase the shard count.", guilds, curMax));
 				}
 				//Leave the guild
 				if (guilds > curMax)
 				{
 					await guild.LeaveAsync();
-					Messages.WriteLine(String.Format("Left the guild {0} due to having too many guilds on the client and not enough shards.", guild.FormatGuild()));
+					ConsoleActions.WriteLine(String.Format("Left the guild {0} due to having too many guilds on the client and not enough shards.", guild.FormatGuild()));
 				}
 
 				return;
@@ -328,7 +328,7 @@ namespace Advobot
 
 			public Task OnLeftGuild(SocketGuild guild)
 			{
-				Messages.WriteLine(String.Format("Bot has left {0}.", guild.FormatGuild()));
+				ConsoleActions.WriteLine(String.Format("Bot has left {0}.", guild.FormatGuild()));
 
 				CurrentLogModule.RemoveUsers(guild.MemberCount);
 				CurrentLogModule.DecrementGuilds();
@@ -602,7 +602,7 @@ namespace Advobot
 						}
 						catch (Exception e)
 						{
-							Messages.ExceptionToConsole(e);
+							ConsoleActions.ExceptionToConsole(e);
 							return;
 						}
 
@@ -627,7 +627,7 @@ namespace Advobot
 			{
 				if (message.Content.Equals(Properties.Settings.Default.BotKey) && BotInfo.BotOwnerID == 0)
 				{
-					BotInfo.SetSetting(SettingOnBot.BotOwnerID, message.Author.Id);
+					BotInfo.BotOwnerID = message.Author.Id;
 					await Messages.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
 				}
 			}
@@ -747,7 +747,7 @@ namespace Advobot
 
 			public async Task LogCommand(MyCommandContext context)
 			{
-				Messages.WriteLine(new LoggedCommand(context).ToString());
+				ConsoleActions.WriteLine(new LoggedCommand(context).ToString());
 				await Messages.DeleteMessage(context.Message);
 
 				if (LogChannels.VerifyMessageShouldBeLogged(context.GuildInfo, context.Message))

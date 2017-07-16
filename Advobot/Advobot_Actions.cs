@@ -36,8 +36,8 @@ namespace Advobot
 
 				Timers.StartTimers(guildSettingsModule);
 
-				Messages.WriteLine("The current bot prefix is: " + botInfo.Prefix);
-				Messages.WriteLine(String.Format("Bot took {0:n} milliseconds to load everything.", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - botInfo.StartupTime.Ticks).TotalMilliseconds));
+				ConsoleActions.WriteLine("The current bot prefix is: " + botInfo.Prefix);
+				ConsoleActions.WriteLine(String.Format("Bot took {0:n} milliseconds to load everything.", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - botInfo.StartupTime.Ticks).TotalMilliseconds));
 				botInfo.SetLoaded();
 			}
 			public static void HandleBotID(ulong ID)
@@ -66,23 +66,23 @@ namespace Advobot
 						}
 						catch (Exception)
 						{
-							Messages.WriteLine("The given key is no longer valid. Please enter a new valid key:");
+							ConsoleActions.WriteLine("The given key is no longer valid. Please enter a new valid key:");
 						}
 					}
 					else
 					{
-						Messages.WriteLine("Please enter the bot's key:");
+						ConsoleActions.WriteLine("Please enter the bot's key:");
 					}
 					return false;
 				}
 
 				if (key.Length > Constants.VALID_KEY_LENGTH)
 				{
-					Messages.WriteLine("The given key is too long. Please enter a regular length key:");
+					ConsoleActions.WriteLine("The given key is too long. Please enter a regular length key:");
 				}
 				else if (key.Length < Constants.VALID_KEY_LENGTH)
 				{
-					Messages.WriteLine("The given key is too short. Please enter a regular length key:");
+					ConsoleActions.WriteLine("The given key is too short. Please enter a regular length key:");
 				}
 				else
 				{
@@ -90,14 +90,14 @@ namespace Advobot
 					{
 						await ClientActions.Login(client, key);
 
-						Messages.WriteLine("Succesfully logged in via the given bot key.");
+						ConsoleActions.WriteLine("Succesfully logged in via the given bot key.");
 						Properties.Settings.Default.BotKey = key;
 						Properties.Settings.Default.Save();
 						return true;
 					}
 					catch (Exception)
 					{
-						Messages.WriteLine("The given key is invalid. Please enter a valid key:");
+						ConsoleActions.WriteLine("The given key is invalid. Please enter a valid key:");
 					}
 				}
 
@@ -118,11 +118,11 @@ namespace Advobot
 
 					if (windows)
 					{
-						Messages.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
+						ConsoleActions.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
 					}
 					else
 					{
-						Messages.WriteLine("Please enter a valid directory path in which to save files:");
+						ConsoleActions.WriteLine("Please enter a valid directory path in which to save files:");
 					}
 					return false;
 				}
@@ -134,13 +134,13 @@ namespace Advobot
 
 				if (Directory.Exists(path))
 				{
-					Messages.WriteLine("Successfully set the save path as " + path);
+					ConsoleActions.WriteLine("Successfully set the save path as " + path);
 					Properties.Settings.Default.Path = path;
 					Properties.Settings.Default.Save();
 					return true;
 				}
 
-				Messages.WriteLine("Invalid directory. Please enter a valid directory:");
+				ConsoleActions.WriteLine("Invalid directory. Please enter a valid directory:");
 				return false;
 			}
 
@@ -161,16 +161,16 @@ namespace Advobot
 						{
 							globalSettings = (IGlobalSettings)JsonConvert.DeserializeObject(reader.ReadToEnd(), globalSettingType);
 						}
-						Messages.WriteLine("The bot information has successfully been loaded.");
+						ConsoleActions.WriteLine("The bot information has successfully been loaded.");
 					}
 					catch (Exception e)
 					{
-						Messages.ExceptionToConsole(e);
+						ConsoleActions.ExceptionToConsole(e);
 					}
 				}
 				else if (!firstInstance)
 				{
-					Messages.WriteLine("The bot information file could not be found; using default.");
+					ConsoleActions.WriteLine("The bot information file could not be found; using default.");
 				}
 				globalSettings = globalSettings ?? (IGlobalSettings)Activator.CreateInstance(globalSettingType);
 
@@ -352,15 +352,6 @@ namespace Advobot
 					writer.Write(toSave);
 				}
 			}
-
-			public static void ResetSettings(IGlobalSettings globalInfo)
-			{
-				globalInfo.ResetAll();
-				globalInfo.SaveInfo();
-
-				Properties.Settings.Default.Reset();
-				Properties.Settings.Default.Save();
-			}
 		}
 
 		public static class ClientActions
@@ -369,18 +360,18 @@ namespace Advobot
 			{
 				if (botInfo.GotPath && botInfo.GotKey && !botInfo.Loaded)
 				{
-					Messages.WriteLine("Connecting the client...");
+					ConsoleActions.WriteLine("Connecting the client...");
 
 					try
 					{
 						await client.StartAsync();
+						ConsoleActions.WriteLine("Successfully connected the client.");
 					}
 					catch (Exception e)
 					{
-						Messages.ExceptionToConsole(e);
+						ConsoleActions.ExceptionToConsole(e);
 					}
 
-					Messages.WriteLine(String.Format("Successfully started the bot {0} with the ID {1}.", client.CurrentUser.Username, client.CurrentUser.Id));
 					await Task.Delay(-1);
 				}
 			}
@@ -403,9 +394,9 @@ namespace Advobot
 				return new DiscordShardedClient(new DiscordSocketConfig
 				{
 					AlwaysDownloadUsers = botInfo.AlwaysDownloadUsers,
-					MessageCacheSize = botInfo.MessageCacheCount,
+					MessageCacheSize = (int)botInfo.MessageCacheCount,
 					LogLevel = botInfo.LogLevel,
-					TotalShards = botInfo.ShardCount,
+					TotalShards = (int)botInfo.ShardCount,
 				});
 			}
 			public static DiscordSocketClient CreateSocketClient(IGlobalSettings botInfo)
@@ -413,7 +404,7 @@ namespace Advobot
 				return new DiscordSocketClient(new DiscordSocketConfig
 				{
 					AlwaysDownloadUsers = botInfo.AlwaysDownloadUsers,
-					MessageCacheSize = botInfo.MaxUserGatherCount,
+					MessageCacheSize = (int)botInfo.MaxUserGatherCount,
 					LogLevel = botInfo.LogLevel,
 				});
 			}
@@ -782,7 +773,7 @@ namespace Advobot
 
 			public static int GetMaxAmountOfUsersToGather(IGlobalSettings globalSettings, bool bypass)
 			{
-				return bypass ? int.MaxValue : globalSettings.MaxUserGatherCount;
+				return bypass ? int.MaxValue : (int)globalSettings.MaxUserGatherCount;
 			}
 		}
 
@@ -1234,7 +1225,7 @@ namespace Advobot
 				if (muteRole == null)
 				{
 					muteRole = await guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0));
-					guildInfo.SetSetting(SettingOnGuild.MuteRole, new DiscordObjectWithID<IRole>(muteRole));
+					//TODO: guildInfo.SetSetting(SettingOnGuild.MuteRole, new DiscordObjectWithID<IRole>(muteRole));
 				}
 
 				const uint TEXT_PERMS = 0
@@ -2004,27 +1995,24 @@ namespace Advobot
 			public static async Task<string> FormatAllBotSettings(IDiscordClient client, IGlobalSettings botInfo)
 			{
 				var str = "";
-				foreach (var e in Enum.GetValues(typeof(SettingOnBot)).Cast<SettingOnBot>())
+				foreach (var property in botInfo.GetType().GetProperties())
 				{
-					var formatted = await FormatBotSettingInfo(client, botInfo, e);
-					if (!String.IsNullOrWhiteSpace(formatted))
+					//Only get public editable properties
+					if (property.GetGetMethod() != null && property.GetSetMethod() != null)
 					{
-						str += String.Format("**{0}**:\n{1}\n\n", e.EnumName(), formatted);
+						var formatted = await FormatBotSettingInfo(client, botInfo, property);
+						if (!String.IsNullOrWhiteSpace(formatted))
+						{
+							str += String.Format("**{0}**:\n{1}\n\n", property.Name, formatted);
+						}
 					}
 				}
 				return str;
 			}
-			public static async Task<string> FormatBotSettingInfo(IDiscordClient client, IGlobalSettings botInfo, SettingOnBot setting)
+			public static async Task<string> FormatBotSettingInfo(IDiscordClient client, IGlobalSettings botInfo, PropertyInfo property)
 			{
-				var value = botInfo.GetSetting(setting);
-				if (value != null)
-				{
-					return await FormatBotSettingInfo(client, value);
-				}
-				else
-				{
-					return null;
-				}
+				var value = property.GetValue(botInfo);
+				return value != null ? await FormatBotSettingInfo(client, value) : null;
 			}
 			public static async Task<string> FormatBotSettingInfo(IDiscordClient client, object value)
 			{
@@ -2067,19 +2055,23 @@ namespace Advobot
 			public static string FormatAllGuildSettings(SocketGuild guild, IGuildSettings guildInfo)
 			{
 				var str = "";
-				foreach (var e in Enum.GetValues(typeof(SettingOnGuild)).Cast<SettingOnGuild>())
+				foreach (var property in guildInfo.GetType().GetProperties(BindingFlags.Public))
 				{
-					var formatted = FormatGuildSettingInfo(guild as SocketGuild, guildInfo, e);
-					if (!String.IsNullOrWhiteSpace(formatted))
+					//Only get public editable properties
+					if (property.GetGetMethod() != null && property.GetSetMethod() != null)
 					{
-						str += String.Format("**{0}**:\n{1}\n\n", e.EnumName(), formatted);
+						var formatted = FormatGuildSettingInfo(guild as SocketGuild, guildInfo, property);
+						if (!String.IsNullOrWhiteSpace(formatted))
+						{
+							str += String.Format("**{0}**:\n{1}\n\n", property.Name, formatted);
+						}
 					}
 				}
 				return str;
 			}
-			public static string FormatGuildSettingInfo(SocketGuild guild, IGuildSettings guildInfo, SettingOnGuild setting)
+			public static string FormatGuildSettingInfo(SocketGuild guild, IGuildSettings guildInfo, PropertyInfo property)
 			{
-				var value = guildInfo.GetSetting(setting);
+				var value = property.GetValue(guildInfo);
 				if (value != null)
 				{
 					return FormatGuildSettingInfo(guild, value);
@@ -2235,7 +2227,7 @@ namespace Advobot
 				}
 				catch (Exception e)
 				{
-					ExceptionToConsole(e);
+					ConsoleActions.ExceptionToConsole(e);
 					msg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + Formatting.ERROR(e.Message));
 					return null;
 				}
@@ -2336,7 +2328,7 @@ namespace Advobot
 					}
 					catch
 					{
-						WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", msgAmt, guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
+						ConsoleActions.WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", msgAmt, guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
 						break;
 					}
 
@@ -2383,7 +2375,7 @@ namespace Advobot
 				}
 				catch
 				{
-					WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count(), channel.GetGuild().FormatGuild(), channel.FormatChannel()));
+					ConsoleActions.WriteLine(String.Format("Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count(), channel.GetGuild().FormatGuild(), channel.FormatChannel()));
 				}
 			}
 			public static async Task DeleteMessage(IMessage message)
@@ -2397,7 +2389,7 @@ namespace Advobot
 				}
 				catch
 				{
-					WriteLine(String.Format("Unable to delete the message {0} on channel {1}.", message.Id, message.Channel.FormatChannel()));
+					ConsoleActions.WriteLine(String.Format("Unable to delete the message {0} on channel {1}.", message.Id, message.Channel.FormatChannel()));
 				}
 			}
 			public static async Task SendMessageContainingFormattedDeletedMessages(IGuild guild, ITextChannel channel, List<string> inputList)
@@ -2495,14 +2487,19 @@ namespace Advobot
 			{
 				return (await GetMessages(channel, Constants.AMT_OF_DMS_TO_GATHER)).OrderBy(x => x?.CreatedAt).ToList();
 			}
+		}
+
+		public static class ConsoleActions
+		{
+			public static SortedDictionary<string, List<string>> WrittenLines = new SortedDictionary<string, List<string>>();
 
 			public static void WriteLine(string text, [CallerMemberName] string name = "")
 			{
 				var line = String.Format("[{0}] [{1}]: {2}", DateTime.Now.ToString("HH:mm:ss"), name, Formatting.RemoveMarkdownChars(text, true));
 
-				if (!Variables.WrittenLines.TryGetValue(name, out List<string> list))
+				if (!WrittenLines.TryGetValue(name, out List<string> list))
 				{
-					Variables.WrittenLines.Add(name, list = new List<string>());
+					WrittenLines.Add(name, list = new List<string>());
 				}
 				list.Add(line);
 
@@ -2752,7 +2749,7 @@ namespace Advobot
 						var exceptionMessages = new List<string>();
 						foreach (var exception in prevTask.Exception.InnerExceptions)
 						{
-							Messages.ExceptionToConsole(exception);
+							ConsoleActions.ExceptionToConsole(exception);
 							exceptionMessages.Add(exception.Message);
 						}
 						await Messages.SendChannelMessage(context, String.Format("Failed to change the bot icon. Following exceptions occurred:\n{0}.", String.Join("\n", exceptionMessages)));
@@ -3589,22 +3586,23 @@ namespace Advobot
 				}
 			}
 
+			//TODO: put in module
 			public static void StartTimers(IGuildSettingsModule guildSettingsModule)
 			{
 				const long HOUR = 60 * 60 * 1000;
-				var hourTimer = new System.Timers.Timer(HOUR);
+				var hourTimer = new Timer(HOUR);
 				hourTimer.Elapsed += (sender, e) => OnHourEvent(sender, e, guildSettingsModule);
 				hourTimer.Enabled = true;
 
 				const long MINUTE = 60 * 1000;
-				var minuteTimer = new System.Timers.Timer(MINUTE);
+				var minuteTimer = new Timer(MINUTE);
 				minuteTimer.Elapsed += (sender, e) => OnMinuteEvent(sender, e, guildSettingsModule);
 				minuteTimer.Enabled = true;
 
-				const long ONE_FOURTH_SECOND = 250;
-				var oneFourthSecondTimer = new System.Timers.Timer(ONE_FOURTH_SECOND);
-				oneFourthSecondTimer.Elapsed += (sender, e) => OnOneFourthSecondEvent(sender, e, guildSettingsModule);
-				oneFourthSecondTimer.Enabled = true;
+				const long ONE_HALF_SECOND = 500;
+				var oneHalfSecondTimer = new Timer(ONE_HALF_SECOND);
+				oneHalfSecondTimer.Elapsed += (sender, e) => OnOneHalfSecondEvent(sender, e, guildSettingsModule);
+				oneHalfSecondTimer.Enabled = true;
 			}
 
 			private static void OnHourEvent(object source, ElapsedEventArgs e, IGuildSettingsModule guildSettingsModule)
@@ -3661,7 +3659,7 @@ namespace Advobot
 				}
 			}
 
-			private static void OnOneFourthSecondEvent(object source, ElapsedEventArgs e, IGuildSettingsModule guildSettingsModule)
+			private static void OnOneHalfSecondEvent(object source, ElapsedEventArgs e, IGuildSettingsModule guildSettingsModule)
 			{
 				Task.Run(async () => { await DeleteTargettedMessages(); });
 				RemoveActiveCloseHelpAndWords();
@@ -3707,7 +3705,7 @@ namespace Advobot
 				}
 				catch (Exception e)
 				{
-					Messages.ExceptionToConsole(e);
+					ConsoleActions.ExceptionToConsole(e);
 				}
 			}
 			public static void DisconnectBot()
@@ -3715,10 +3713,13 @@ namespace Advobot
 				Environment.Exit(0);
 			}
 
-			private static readonly Regex TWITCH_USERNAME_REGEX = new Regex("^[a-zA-Z0-9_]{4,25}$", RegexOptions.Compiled); //Source: https://www.reddit.com/r/Twitch/comments/32w5b2/username_requirements/cqf8yh0/
 			public static bool MakeSureInputIsValidTwitchAccountName(string input)
 			{
-				return TWITCH_USERNAME_REGEX.IsMatch(input);
+				//In the bot's case if it's a null name then that just means not to show a stream
+				if (String.IsNullOrWhiteSpace(input))
+					return true;
+
+				return new Regex("^[a-zA-Z0-9_]{4,25}$", RegexOptions.Compiled).IsMatch(input); //Source: https://www.reddit.com/r/Twitch/comments/32w5b2/username_requirements/cqf8yh0/
 			}
 		}
 
@@ -3739,7 +3740,7 @@ namespace Advobot
 				}
 				catch (Exception e)
 				{
-					Messages.ExceptionToConsole(e);
+					ConsoleActions.ExceptionToConsole(e);
 				}
 			}
 
