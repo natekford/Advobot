@@ -212,6 +212,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class ChangeChannelPerms : MyModuleBase
 		{
+			//Less overloads by using this enum method instead of sub commands
 			[Command]
 			public async Task Command([VerifyEnum((uint)(ActionType.Allow | ActionType.Inherit | ActionType.Deny))] ActionType actionType,
 									  [VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel,

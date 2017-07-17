@@ -72,34 +72,40 @@ namespace Advobot
 		public sealed class Commands : MyModuleBase
 		{
 			[Command]
-			public async Task Command([Optional] string targetStr)
+			public async Task Command()
 			{
-				await CommandRunner(targetStr);
+				await CommandRunner(false);
+			}
+			[Command]
+			public async Task Command(CommandCategory category)
+			{
+				await CommandRunner(category);
+			}
+			[Command("all")]
+			public async Task CommandAll()
+			{
+				await CommandRunner(true);
 			}
 
-			private async Task CommandRunner(string targetStr)
+			private async Task CommandRunner(bool all)
 			{
-				if (String.IsNullOrWhiteSpace(targetStr))
+				if (all)
+				{
+					var desc = String.Format("`{0}`", String.Join("`, `", Constants.COMMAND_NAMES));
+					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("All Commands", desc));
+				}
+				else
 				{
 					var desc = String.Format("Type `{0}commands [Category]` for commands from that category.\n\n{1}",
 						Constants.BOT_PREFIX,
 						String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))));
 					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("Categories", desc));
 				}
-				else if ("all".CaseInsEquals(targetStr))
-				{
-					var desc = String.Format("`{0}`", String.Join("`, `", Constants.COMMAND_NAMES));
-					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("All Commands", desc));
-				}
-				else if (Enum.TryParse(targetStr, true, out CommandCategory category))
-				{
-					var desc = String.Format("`{0}`", String.Join("`, `", Gets.GetCommands(category)));
-					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed(category.EnumName(), desc));
-				}
-				else
-				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Category does not exist."));
-				}
+			}
+			private async Task CommandRunner(CommandCategory category)
+			{
+				var desc = String.Format("`{0}`", String.Join("`, `", Gets.GetCommands(category)));
+				await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed(category.EnumName(), desc));
 			}
 		}
 
@@ -109,33 +115,38 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class GetID : MyModuleBase
 		{
-			[Command]
-			public async Task Command([VerifyEnum((uint)(Target.Guild | Target.Bot))] Target targetType)
+			[Command("bot")]
+			public async Task CommandBot()
 			{
-				await CommandRunner(targetType, null as ISnowflakeEntity);
+				await CommandRunner(Target.Bot, null);
 			}
-			[Command]
-			public async Task Command([VerifyEnum((uint)Target.Channel)] Target targetType, IGuildChannel target)
+			[Command("guild")]
+			public async Task CommandGuild()
 			{
-				await CommandRunner(targetType, target);
+				await CommandRunner(Target.Guild, null);
 			}
-			[Command]
-			public async Task Command([VerifyEnum((uint)Target.Role)] Target targetType, IRole target)
+			[Command("channel")]
+			public async Task CommandChannel(IGuildChannel target)
 			{
-				await CommandRunner(targetType, target);
+				await CommandRunner(Target.Channel, target);
 			}
-			[Command]
-			public async Task Command([VerifyEnum((uint)Target.User)] Target targetType, IUser target)
+			[Command("role")]
+			public async Task CommandRole(IRole target)
 			{
-				await CommandRunner(targetType, target);
+				await CommandRunner(Target.Role, target);
 			}
-			[Command]
-			public async Task Command([VerifyEnum((uint)Target.Emote)] Target targetType, Emote target)
+			[Command("user")]
+			public async Task CommandUser(IUser target)
 			{
-				await CommandRunner(targetType, target);
+				await CommandRunner(Target.User, target);
+			}
+			[Command("emote")]
+			public async Task CommandEmote(Emote target)
+			{
+				await CommandRunner(Target.Emote, target);
 			}
 
-			private async Task CommandRunner<T>(Target targetType, T target) where T : ISnowflakeEntity
+			private async Task CommandRunner(Target targetType, object target)
 			{
 				switch (targetType)
 				{
@@ -151,22 +162,22 @@ namespace Advobot
 					}
 					case Target.Channel:
 					{
-						await Messages.SendChannelMessage(Context.Channel, String.Format("The channel `{0}` has the ID `{1}`.", (target as IChannel).Name, target.Id));
+						await Messages.SendChannelMessage(Context.Channel, String.Format("The channel `{0}` has the ID `{1}`.", (target as IChannel).Name, (target as IChannel).Id));
 						return;
 					}
 					case Target.Role:
 					{
-						await Messages.SendChannelMessage(Context.Channel, String.Format("The role `{0}` has the ID `{1}`.", (target as IRole).Name, target.Id));
+						await Messages.SendChannelMessage(Context.Channel, String.Format("The role `{0}` has the ID `{1}`.", (target as IRole).Name, (target as IRole).Id));
 						return;
 					}
 					case Target.User:
 					{
-						await Messages.SendChannelMessage(Context.Channel, String.Format("The user `{0}` has the ID `{1}`.", (target as IUser).Username, target.Id));
+						await Messages.SendChannelMessage(Context.Channel, String.Format("The user `{0}` has the ID `{1}`.", (target as IUser).Username, (target as IUser).Id));
 						return;
 					}
 					case Target.Emote:
 					{
-						await Messages.SendChannelMessage(Context.Channel, String.Format("The emote `{0}` has the ID `{1}`.", (target as IEmote).Name, target.Id));
+						await Messages.SendChannelMessage(Context.Channel, String.Format("The emote `{0}` has the ID `{1}`.", (target as Emote).Name, (target as Emote).Id));
 						return;
 					}
 				}
@@ -179,35 +190,40 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class GetInfo : MyModuleBase
 		{
-			[Command]
-			public async Task Command([VerifyEnum((uint)(Target.Guild | Target.Bot))] Target targetType)
+			[Command("bot")]
+			public async Task CommandBot()
 			{
-				await CommandRunner(targetType, null);
+				await CommandRunner(Target.Bot, null);
 			}
-			[Command]
-			public async Task Command([VerifyEnum((uint)Target.Channel)] Target targetType, IGuildChannel target)
+			[Command("guild")]
+			public async Task CommandGuild()
 			{
-				await CommandRunner(targetType, target);
+				await CommandRunner(Target.Guild, null);
 			}
-			[Command]
-			public async Task Command([VerifyEnum((uint)Target.Role)] Target targetType, IRole target)
+			[Command("channel")]
+			public async Task CommandChannel(IGuildChannel target)
 			{
-				await CommandRunner(targetType, target);
+				await CommandRunner(Target.Channel, target);
 			}
-			[Command]
-			public async Task Command([VerifyEnum((uint)Target.User)] Target targetType, IUser target)
+			[Command("role")]
+			public async Task CommandRole(IRole target)
 			{
-				await CommandRunner(targetType, target);
+				await CommandRunner(Target.Role, target);
 			}
-			[Command]
-			public async Task Command([VerifyEnum((uint)Target.Emote)] Target targetType, Emote target)
+			[Command("user")]
+			public async Task CommandUser(IUser target)
 			{
-				await CommandRunner(targetType, target);
+				await CommandRunner(Target.User, target);
 			}
-			[Command]
-			public async Task Command([VerifyEnum((uint)Target.Invite)] Target targetType, IInvite target)
+			[Command("emote")]
+			public async Task CommandEmote(Emote target)
 			{
-				await CommandRunner(targetType, target);
+				await CommandRunner(Target.Emote, target);
+			}
+			[Command("invite")]
+			public async Task CommandInvite(IInvite target)
+			{
+				await CommandRunner(Target.Invite, target);
 			}
 
 			private async Task CommandRunner(Target targetType, object target)
@@ -216,7 +232,7 @@ namespace Advobot
 				{
 					case Target.Guild:
 					{
-						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatGuildInfo(Context.GuildInfo, Context.Guild as SocketGuild));
+						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatGuildInfo(Context.GuildSettings, Context.Guild as SocketGuild));
 						return;
 					}
 					case Target.Bot:
@@ -226,27 +242,27 @@ namespace Advobot
 					}
 					case Target.Channel:
 					{
-						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatChannelInfo(Context.GuildInfo, Context.Guild as SocketGuild, target as SocketChannel));
+						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatChannelInfo(Context.GuildSettings, Context.Guild as SocketGuild, target as SocketChannel));
 						return;
 					}
 					case Target.Role:
 					{
-						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatRoleInfo(Context.GuildInfo, Context.Guild as SocketGuild, target as SocketRole));
+						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatRoleInfo(Context.GuildSettings, Context.Guild as SocketGuild, target as SocketRole));
 						return;
 					}
 					case Target.User:
 					{
-						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatUserInfo(Context.GuildInfo, Context.Guild as SocketGuild, target as SocketGuildUser ?? target as SocketUser));
+						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatUserInfo(Context.GuildSettings, Context.Guild as SocketGuild, target as SocketGuildUser ?? target as SocketUser));
 						return;
 					}
 					case Target.Emote:
 					{
-						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatEmoteInfo(Context.GuildInfo, await Context.Client.GetGuildsAsync(), target as Emote));
+						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatEmoteInfo(Context.GuildSettings, await Context.Client.GetGuildsAsync(), target as Emote));
 						return;
 					}
 					case Target.Invite:
 					{
-						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatInviteInfo(Context.GuildInfo, Context.Guild as SocketGuild, target as IInviteMetadata));
+						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatInviteInfo(Context.GuildSettings, Context.Guild as SocketGuild, target as IInviteMetadata));
 						return;
 					}
 				}
@@ -254,39 +270,39 @@ namespace Advobot
 		}
 
 		[Group("getuserswithreason"), Alias("guwr")]
-		[Usage("[Role|Name|Game|Stream] <\"Other Argument\"> <True|False> <True|False> <True|False>")]
-		[Summary("Gets users with a variable reason. First bool specifies if to only give a count. Second specifies if to search for the other argument exactly. Third specifies if to include nicknames.")]
+		[Usage("[Role|Name|Game|Stream] [True|False] <\"Other Argument\"> <True|False> <True|False>")]
+		[Summary("Gets users with a variable reason. 1st bool specifies if to only give a count. 2nd specifies if to search for the other argument exactly. 3rd specifies if to include nicknames. 2nd/3rd don't apply to roles or streams. 3rd only applies to names.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public sealed class GetUsersWithReason : MyModuleBase
 		{
-			[Command]
-			public async Task Command([VerifyEnum((uint)(Target.Role | Target.Name | Target.Game | Target.Stream))] Target targetType,
-									  [Optional] string otherArg, [Optional] bool count, [Optional] bool exact, [Optional] bool nickname)
+			[Command("role")]
+			public async Task CommandRole(bool count, [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 			{
-				await CommandRunner(targetType, otherArg, count, exact, nickname);
+				await CommandRunner(Target.Role, count, role, false, false);
+			}
+			[Command("name")]
+			public async Task CommandName(bool count, string name, [Optional] bool exact, [Optional] bool nickname)
+			{
+				await CommandRunner(Target.Name, count, name, exact, nickname);
+			}
+			[Command("game")]
+			public async Task CommandGame(bool count, string game, [Optional] bool exact)
+			{
+				await CommandRunner(Target.Game, count, game, exact, false);
+			}
+			[Command("stream")]
+			public async Task CommandString(bool count)
+			{
+				await CommandRunner(Target.Stream, count, null as string, false, false);
 			}
 
-			private async Task CommandRunner(Target targetType, string otherArg, bool count = false, bool exact = false, bool nickname = false)
+			private async Task CommandRunner(Target targetType, bool count, string otherArg, bool exact, bool nickname)
 			{
 				var title = "";
 				var users = (await Context.Guild.GetUsersAsync()).AsEnumerable();
 				switch (targetType)
 				{
-					case Target.Role:
-					{
-						var returnedRole = Roles.GetRole(Context, new[] { ObjectVerification.None }, true, otherArg);
-						if (returnedRole.Reason != FailureReason.NotFailure)
-						{
-							await Messages.HandleObjectGettingErrors(Context, returnedRole);
-							return;
-						}
-						var role = returnedRole.Object;
-
-						title = String.Format("Users With The Role '{0}'", role.Name);
-						users = users.Where(x => x.RoleIds.Contains(role.Id));
-						break;
-					}
 					case Target.Name:
 					{
 						title = String.Format("Users With Names Containing '{0}'", otherArg);
@@ -305,6 +321,27 @@ namespace Advobot
 					{
 						title = "Users Who Are Streaming";
 						users = users.Where(x => x.Game.HasValue && x.Game.Value.StreamType != StreamType.NotStreaming);
+						break;
+					}
+					default:
+					{
+						return;
+					}
+				}
+
+				var desc = count ? String.Format("**Count:** `{0}`", users.Count()) : users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.FormatUser());
+				await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed(title, desc));
+			}
+			private async Task CommandRunner(Target targetType, bool count, IRole role, bool exact, bool nickname)
+			{
+				var title = "";
+				var users = (await Context.Guild.GetUsersAsync()).AsEnumerable();
+				switch (targetType)
+				{
+					case Target.Role:
+					{
+						title = String.Format("Users With The Role '{0}'", role.Name);
+						users = users.Where(x => x.RoleIds.Contains(role.Id));
 						break;
 					}
 					default:
@@ -731,15 +768,15 @@ namespace Advobot
 		public sealed class Test : MyModuleBase
 		{
 			[Command]
-			public async Task Command()
+			public async Task TestCommand()
 			{
 				await CommandRunner();
 			}
 
 			private async Task CommandRunner()
 			{
-				var str = await Formatting.FormatAllBotSettings(Context.Client, Context.GlobalInfo);
-				await Messages.SendChannelMessage(Context, str);
+				//[OverrideTypeReader(typeof(BoolTypeReader))]
+				await Messages.SendChannelMessage(Context, "test");
 			}
 		}
 	}}

@@ -12,7 +12,7 @@ namespace Advobot
 {
 	namespace Logging
 	{
-		public sealed class LogModule : MyModuleBase, ILogModule
+		public sealed class LogModule : ILogModule
 		{
 			public uint TotalUsers { get; private set; } = 0;
 			public uint TotalGuilds { get; private set; } = 0;
@@ -32,15 +32,15 @@ namespace Advobot
 			public BaseLog ServerLog { get; private set; }
 			public BaseLog ModLog { get; private set; }
 
-			public LogModule(IDiscordClient client, IGlobalSettings botInfo, IGuildSettingsModule guildSettingsModule)
+			public LogModule(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule)
 			{
 				if (client is DiscordSocketClient)
 				{
-					CreateLogHolder(client as DiscordSocketClient, botInfo, guildSettingsModule);
+					CreateLogHolder(client as DiscordSocketClient, botSettings, guildSettingsModule);
 				}
 				else if (client is DiscordShardedClient)
 				{
-					CreateLogHolder(client as DiscordShardedClient, botInfo, guildSettingsModule);
+					CreateLogHolder(client as DiscordShardedClient, botSettings, guildSettingsModule);
 				}
 				else
 				{
@@ -48,11 +48,11 @@ namespace Advobot
 				}
 			}
 
-			private void CreateLogHolder(DiscordSocketClient client, IGlobalSettings botInfo, IGuildSettingsModule guildSettingsModule)
+			private void CreateLogHolder(DiscordSocketClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule)
 			{
-				var tempBotLog = new BotLogger(client, botInfo, guildSettingsModule, this);
-				var tempServerLog = new ServerLogger(client, botInfo, guildSettingsModule, this);
-				var tempModLog = new ModLogger(client, botInfo, guildSettingsModule, this);
+				var tempBotLog = new BotLogger(client, botSettings, guildSettingsModule, this);
+				var tempServerLog = new ServerLogger(client, botSettings, guildSettingsModule, this);
+				var tempModLog = new ModLogger(client, botSettings, guildSettingsModule, this);
 
 				client.MessageReceived += (SocketMessage message) => CommandHandler.HandleCommand(message as SocketUserMessage);
 				client.Connected += CommandHandler.LoadInformation;
@@ -73,11 +73,11 @@ namespace Advobot
 				ServerLog = tempServerLog;
 				ModLog = tempModLog;
 			}
-			private void CreateLogHolder(DiscordShardedClient client, IGlobalSettings botInfo, IGuildSettingsModule guildSettingsModule)
+			private void CreateLogHolder(DiscordShardedClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule)
 			{
-				var tempBotLog = new BotLogger(client, botInfo, guildSettingsModule, this);
-				var tempServerLog = new ServerLogger(client, botInfo, guildSettingsModule, this);
-				var tempModLog = new ModLogger(client, botInfo, guildSettingsModule, this);
+				var tempBotLog = new BotLogger(client, botSettings, guildSettingsModule, this);
+				var tempServerLog = new ServerLogger(client, botSettings, guildSettingsModule, this);
+				var tempModLog = new ModLogger(client, botSettings, guildSettingsModule, this);
 
 				client.MessageReceived += (SocketMessage message) => CommandHandler.HandleCommand(message as SocketUserMessage);
 				client.Shards.FirstOrDefault().Connected += CommandHandler.LoadInformation;
@@ -222,16 +222,16 @@ namespace Advobot
 			}
 		}
 
-		public class BaseLog : MyModuleBase
+		public class BaseLog
 		{
 			protected IDiscordClient Client { get; }
-			protected IGlobalSettings BotInfo { get; }
+			protected IBotSettings BotSettings { get; }
 			protected IGuildSettingsModule GuildSettingsModule { get; }
 
-			public BaseLog(IDiscordClient client, IGlobalSettings botInfo, IGuildSettingsModule guildSettingsModule)
+			public BaseLog(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule)
 			{
 				Client = client;
-				BotInfo = botInfo;
+				BotSettings = botSettings;
 				GuildSettingsModule = guildSettingsModule;
 			}
 		}
@@ -240,7 +240,7 @@ namespace Advobot
 		{
 			private readonly ILogModule CurrentLogModule;
 
-			public BotLogger(IDiscordClient client, IGlobalSettings botInfo, IGuildSettingsModule guildSettingsModule, ILogModule currentLogModule) : base(client, botInfo, guildSettingsModule)
+			public BotLogger(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ILogModule currentLogModule) : base(client, botSettings, guildSettingsModule)
 			{
 				CurrentLogModule = currentLogModule;
 			}
@@ -258,7 +258,7 @@ namespace Advobot
 			public async Task OnGuildAvailable(SocketGuild guild)
 			{
 				ConsoleActions.WriteLine(String.Format("{0} is now online on shard {1}.", guild.FormatGuild(), ClientActions.GetShardIdFor(Client, guild)));
-				ConsoleActions.WriteLine(String.Format("Current memory usage is: {0}MB.", Gets.GetMemory(BotInfo.Windows).ToString("0.00")));
+				ConsoleActions.WriteLine(String.Format("Current memory usage is: {0}MB.", Gets.GetMemory(BotSettings.Windows).ToString("0.00")));
 				CurrentLogModule.AddUsers(guild.MemberCount);
 				CurrentLogModule.IncrementGuilds();
 
@@ -341,7 +341,7 @@ namespace Advobot
 		{
 			private readonly ILogModule CurrentLogModule;
 
-			public ServerLogger(IDiscordClient client, IGlobalSettings botInfo, IGuildSettingsModule guildSettingsModule, ILogModule currentLogModule) : base(client, botInfo, guildSettingsModule)
+			public ServerLogger(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ILogModule currentLogModule) : base(client, botSettings, guildSettingsModule)
 			{
 				CurrentLogModule = currentLogModule;
 			}
@@ -350,25 +350,25 @@ namespace Advobot
 			{
 				CurrentLogModule.IncrementUsers();
 
-				if (LogChannels.VerifyServerLoggingAction(BotInfo, GuildSettingsModule, user, LogAction.UserJoined, out VerifiedLoggingAction verified))
+				if (LogChannels.VerifyServerLoggingAction(BotSettings, GuildSettingsModule, user, LogAction.UserJoined, out VerifiedLoggingAction verified))
 				{
 					var guild = verified.Guild;
-					var guildInfo = verified.GuildInfo;
+					var guildSettings = verified.GuildSettings;
 					var serverLog = verified.LoggingChannel;
 
-					if (guildInfo != null)
+					if (guildSettings != null)
 					{
-						await LogChannels.HandleJoiningUsers(guildInfo, user);
+						await LogChannels.HandleJoiningUsers(guildSettings, user);
 					}
 
-					var curInv = await Invites.GetInviteUserJoinedOn(guildInfo, guild);
+					var curInv = await Invites.GetInviteUserJoinedOn(guildSettings, guild);
 					var inviteStr = curInv != null ? String.Format("\n**Invite:** {0}", curInv.Code) : "";
 					var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
 					var ageWarningStr = userAccAge.TotalHours <= 24 ? String.Format("\n**New Account:** {0} hours, {1} minutes old.", (int)userAccAge.TotalHours, (int)userAccAge.Minutes) : "";
 					var botOrUserStr = user.IsBot ? "Bot" : "User";
 
 					//Bans people who join with a given word in their name
-					if (guildInfo.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
+					if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
 					{
 						await Punishments.AutomaticBan(guild, user.Id, "banned name");
 						return;
@@ -376,7 +376,7 @@ namespace Advobot
 					//Welcome message
 					else
 					{
-						await Messages.SendGuildNotification(user, guildInfo.WelcomeMessage);
+						await Messages.SendGuildNotification(user, guildSettings.WelcomeMessage);
 					}
 
 					{
@@ -390,11 +390,11 @@ namespace Advobot
 				}
 				else
 				{
-					var guildInfo = verified.GuildInfo;
-					if (guildInfo == null)
+					var guildSettings = verified.GuildSettings;
+					if (guildSettings == null)
 						return;
 
-					await LogChannels.HandleJoiningUsers(guildInfo, user);
+					await LogChannels.HandleJoiningUsers(guildSettings, user);
 				}
 			}
 
@@ -409,17 +409,17 @@ namespace Advobot
 					return;
 				}
 
-				if (LogChannels.VerifyServerLoggingAction(BotInfo, GuildSettingsModule, user, LogAction.UserLeft, out VerifiedLoggingAction verified))
+				if (LogChannels.VerifyServerLoggingAction(BotSettings, GuildSettingsModule, user, LogAction.UserLeft, out VerifiedLoggingAction verified))
 				{
 					var guild = verified.Guild;
-					var guildInfo = verified.GuildInfo;
+					var guildSettings = verified.GuildSettings;
 					var serverLog = verified.LoggingChannel;
 
 					//Don't log them to the server if they're someone who was just banned for joining with a banned name
-					if (guildInfo.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
+					if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
 						return;
 
-					await Messages.SendGuildNotification(user, guildInfo.GoodbyeMessage);
+					await Messages.SendGuildNotification(user, guildSettings.GoodbyeMessage);
 
 					var lengthStayed = "";
 					if (user.JoinedAt.HasValue)
@@ -440,7 +440,7 @@ namespace Advobot
 
 			public async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
 			{
-				if (beforeUser.Username == null || afterUser.Username == null || BotInfo.Pause)
+				if (beforeUser.Username == null || afterUser.Username == null || BotSettings.Pause)
 					return;
 
 				//Name change
@@ -451,9 +451,9 @@ namespace Advobot
 						if (!(await guild.GetUsersAsync()).Select(x => x.Id).Contains(afterUser.Id))
 							return;
 
-						if (LogChannels.VerifyServerLoggingAction(BotInfo, GuildSettingsModule, guild, LogAction.UserLeft, out VerifiedLoggingAction verified))
+						if (LogChannels.VerifyServerLoggingAction(BotSettings, GuildSettingsModule, guild, LogAction.UserLeft, out VerifiedLoggingAction verified))
 						{
-							var guildInfo = verified.GuildInfo;
+							var guildSettings = verified.GuildSettings;
 							var serverLog = verified.LoggingChannel;
 
 							var embed = Embeds.MakeNewEmbed(null, null, Constants.UEDT);
@@ -479,34 +479,34 @@ namespace Advobot
 					return;
 				}
 
-				if (GuildSettingsModule.TryGetSettings(guild, out IGuildSettings guildInfo))
+				if (GuildSettingsModule.TryGetSettings(guild, out IGuildSettings guildSettings))
 				{
-					await HandleCloseWords(guildInfo, message);
-					await HandleSpamPreventionVoting(guildInfo, guild, message);
+					await HandleCloseWords(guildSettings, message);
+					await HandleSpamPreventionVoting(guildSettings, guild, message);
 
-					if (LogChannels.VerifyMessageShouldBeLogged(guildInfo, message))
+					if (LogChannels.VerifyMessageShouldBeLogged(guildSettings, message))
 					{
-						await HandleChannelSettings(guildInfo, message);
-						await HandleSpamPrevention(guildInfo, guild, message);
-						await HandleSlowmodeOrBannedPhrases(guildInfo, guild, message);
-						await HandleImageLogging(guildInfo, message);
+						await HandleChannelSettings(guildSettings, message);
+						await HandleSpamPrevention(guildSettings, guild, message);
+						await HandleSlowmodeOrBannedPhrases(guildSettings, guild, message);
+						await HandleImageLogging(guildSettings, message);
 					}
 				}
 			}
 
 			public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage afterMessage, ISocketMessageChannel channel)
 			{
-				if (LogChannels.VerifyServerLoggingAction(BotInfo, GuildSettingsModule, channel, LogAction.MessageUpdated, out VerifiedLoggingAction verified))
+				if (LogChannels.VerifyServerLoggingAction(BotSettings, GuildSettingsModule, channel, LogAction.MessageUpdated, out VerifiedLoggingAction verified))
 				{
 					var guild = verified.Guild;
-					var guildInfo = verified.GuildInfo;
+					var guildSettings = verified.GuildSettings;
 					var serverLog = verified.LoggingChannel;
 
 					var beforeMessage = cached.HasValue ? cached.Value : null;
-					if (!LogChannels.VerifyMessageShouldBeLogged(guildInfo, afterMessage))
+					if (!LogChannels.VerifyMessageShouldBeLogged(guildSettings, afterMessage))
 						return;
 
-					await Spam.HandleBannedPhrases(guildInfo, guild, afterMessage);
+					await Spam.HandleBannedPhrases(guildSettings, guild, afterMessage);
 
 					if (serverLog != null)
 					{
@@ -534,13 +534,13 @@ namespace Advobot
 
 						CurrentLogModule.IncrementEdits();
 					}
-					var imageLog = guildInfo.ImageLog?.Object;
+					var imageLog = guildSettings.ImageLog;
 					if (imageLog != null)
 					{
 						//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
 						if (beforeMessage?.Embeds.Count() < afterMessage.Embeds.Count())
 						{
-							await HandleImageLogging(guildInfo, afterMessage);
+							await HandleImageLogging(guildSettings, afterMessage);
 						}
 					}
 				}
@@ -549,30 +549,30 @@ namespace Advobot
 					var guild = verified.Guild;
 					if (guild == null)
 						return;
-					var guildInfo = verified.GuildInfo;
-					if (guildInfo == null)
+					var guildSettings = verified.GuildSettings;
+					if (guildSettings == null)
 						return;
 
 					var beforeMessage = cached.HasValue ? cached.Value : null;
-					if (LogChannels.VerifyMessageShouldBeLogged(guildInfo, afterMessage))
+					if (LogChannels.VerifyMessageShouldBeLogged(guildSettings, afterMessage))
 					{
-						await Spam.HandleBannedPhrases(guildInfo, guild, afterMessage);
+						await Spam.HandleBannedPhrases(guildSettings, guild, afterMessage);
 					}
 				}
 			}
 
 			public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 			{
-				if (LogChannels.VerifyServerLoggingAction(BotInfo, GuildSettingsModule, channel, LogAction.MessageDeleted, out VerifiedLoggingAction verified))
+				if (LogChannels.VerifyServerLoggingAction(BotSettings, GuildSettingsModule, channel, LogAction.MessageDeleted, out VerifiedLoggingAction verified))
 				{
 					var guild = verified.Guild;
-					var guildInfo = verified.GuildInfo;
+					var guildSettings = verified.GuildSettings;
 					var serverLog = verified.LoggingChannel;
 
 					var message = cached.HasValue ? cached.Value : null;
 
 					//Get the list of deleted messages it contains
-					var msgDeletion = guildInfo.MessageDeletion;
+					var msgDeletion = guildSettings.MessageDeletion;
 					lock (msgDeletion)
 					{
 						msgDeletion.AddToList(message);
@@ -625,36 +625,33 @@ namespace Advobot
 
 			private async Task HandlePotentialBotOwner(IMessage message)
 			{
-				if (message.Content.Equals(Properties.Settings.Default.BotKey) && BotInfo.BotOwnerID == 0)
+				if (message.Content.Equals(Properties.Settings.Default.BotKey) && BotSettings.BotOwnerID == 0)
 				{
-					BotInfo.BotOwnerID = message.Author.Id;
+					BotSettings.BotOwnerID = message.Author.Id;
 					await Messages.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
 				}
 			}
 
-			private async Task HandleChannelSettings(IGuildSettings guildInfo, IMessage message)
+			private async Task HandleChannelSettings(IGuildSettings guildSettings, IMessage message)
 			{
 				var channel = message.Channel as ITextChannel;
 				var author = message.Author as IGuildUser;
 				if (channel == null || author == null || author.GuildPermissions.Administrator)
 					return;
 
-				if (guildInfo.ImageOnlyChannels.Contains(channel.Id))
+				if (guildSettings.ImageOnlyChannels.Contains(channel.Id) && !(message.Attachments.Any(x => x.Height != null || x.Width != null) || message.Embeds.Any(x => x.Image != null)))
 				{
-					if (!(message.Attachments.Any(x => x.Height != null || x.Width != null) || message.Embeds.Any(x => x.Image != null)))
-					{
-						await message.DeleteAsync();
-					}
+					await message.DeleteAsync();
 				}
-				if (guildInfo.SanitaryChannels.Contains(channel.Id))
+				if (guildSettings.SanitaryChannels.Contains(channel.Id))
 				{
 					await message.DeleteAsync();
 				}
 			}
 
-			private async Task HandleImageLogging(IGuildSettings guildInfo, IMessage message)
+			private async Task HandleImageLogging(IGuildSettings guildSettings, IMessage message)
 			{
-				var logChannel = guildInfo.ImageLog?.Object;
+				var logChannel = guildSettings.ImageLog;
 				if (logChannel == null || message.Author.Id == Properties.Settings.Default.BotID)
 					return;
 
@@ -668,7 +665,7 @@ namespace Advobot
 				}
 			}
 
-			private async Task HandleCloseWords(IGuildSettings guildInfo, IMessage message)
+			private async Task HandleCloseWords(IGuildSettings guildSettings, IMessage message)
 			{
 				if (int.TryParse(message.Content, out int number) && number > 0 && number < 6)
 				{
@@ -695,31 +692,31 @@ namespace Advobot
 				}
 			}
 
-			private async Task HandleSlowmodeOrBannedPhrases(IGuildSettings guildInfo, SocketGuild guild, IMessage message)
+			private async Task HandleSlowmodeOrBannedPhrases(IGuildSettings guildSettings, SocketGuild guild, IMessage message)
 			{
-				await Spam.HandleSlowmode(guildInfo, message);
-				await Spam.HandleBannedPhrases(guildInfo, guild, message);
+				await Spam.HandleSlowmode(guildSettings, message);
+				await Spam.HandleBannedPhrases(guildSettings, guild, message);
 			}
 
-			private async Task HandleSpamPrevention(IGuildSettings guildInfo, SocketGuild guild, IMessage message)
+			private async Task HandleSpamPrevention(IGuildSettings guildSettings, SocketGuild guild, IMessage message)
 			{
 				if (Users.GetIfUserCanBeModifiedByUser(Users.GetBot(guild), message.Author))
 				{
-					await Spam.HandleSpamPrevention(guildInfo, guild, message.Author as IGuildUser, message);
+					await Spam.HandleSpamPrevention(guildSettings, guild, message.Author as IGuildUser, message);
 				}
 			}
 
-			private async Task HandleSpamPreventionVoting(IGuildSettings guildInfo, SocketGuild guild, IMessage message)
+			private async Task HandleSpamPreventionVoting(IGuildSettings guildSettings, SocketGuild guild, IMessage message)
 			{
 				//TODO: Make this work for all spam types
-				//Get the users primed to be kicked/banned by the spam prevention
-				var users = guildInfo.SpamPreventionUsers.Where(x =>
+				//Get the users primed to be punished by the spam prevention
+				var users = guildSettings.SpamPreventionUsers.Where(x =>
 				{
 					return true
 					&& x.PotentialPunishment
+					&& x.User.Id != message.Author.Id
 					&& message.MentionedUserIds.Contains(x.User.Id)
-					&& !x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id)
-					&& x.User.Id != message.Author.Id;
+					&& !x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id);
 				});
 
 				foreach (var user in users)
@@ -728,7 +725,7 @@ namespace Advobot
 					if (user.UsersWhoHaveAlreadyVoted.Count < user.VotesRequired)
 						return;
 
-					await user.SpamPreventionPunishment(guildInfo);
+					await user.SpamPreventionPunishment(guildSettings);
 
 					//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
 					user.ResetSpamUser();
@@ -740,7 +737,7 @@ namespace Advobot
 		{
 			private ILogModule CurrentLogModule;
 
-			public ModLogger(IDiscordClient client, IGlobalSettings botInfo, IGuildSettingsModule guildSettingsModule, ILogModule currentLogModule) : base(client, botInfo, guildSettingsModule)
+			public ModLogger(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ILogModule currentLogModule) : base(client, botSettings, guildSettingsModule)
 			{
 				CurrentLogModule = currentLogModule;
 			}
@@ -750,9 +747,9 @@ namespace Advobot
 				ConsoleActions.WriteLine(new LoggedCommand(context).ToString());
 				await Messages.DeleteMessage(context.Message);
 
-				if (LogChannels.VerifyMessageShouldBeLogged(context.GuildInfo, context.Message))
+				if (LogChannels.VerifyMessageShouldBeLogged(context.GuildSettings, context.Message))
 				{
-					var modLog = context.GuildInfo.ModLog?.Object;
+					var modLog = context.GuildSettings.ModLog;
 					if (modLog == null)
 						return;
 

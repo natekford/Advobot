@@ -12,16 +12,16 @@ namespace Advobot
 	{
 		private static IServiceProvider Provider;
 		private static CommandService Commands;
-		private static IGlobalSettings BotInfo;
+		private static IBotSettings BotSettings;
+		private static IGuildSettingsModule GuildSettings;
 		private static IDiscordClient Client;
 		private static ILogModule Logging;
-		private static IGuildSettingsModule GuildSettings;
 
 		public static async Task Install(IServiceProvider provider)
 		{
 			Provider = provider;
 			Commands = (CommandService)provider.GetService(typeof(CommandService));
-			BotInfo = (IGlobalSettings)provider.GetService(typeof(IGlobalSettings));
+			BotSettings = (IBotSettings)provider.GetService(typeof(IBotSettings));
 			Client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
 			Logging = (ILogModule)provider.GetService(typeof(ILogModule));
 			GuildSettings = (IGuildSettingsModule)provider.GetService(typeof(IGuildSettingsModule));
@@ -30,32 +30,33 @@ namespace Advobot
 			Commands.AddTypeReader(typeof(IBan), new IBanTypeReader());
 			Commands.AddTypeReader(typeof(Emote), new IEmoteTypeReader());
 			Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
+			Commands.AddTypeReader(typeof(bool), new BoolTypeReader());
 			await Commands.AddModulesAsync(System.Reflection.Assembly.GetEntryAssembly());
 		}
 
 		public static async Task LoadInformation()
 		{
-			await SavingAndLoading.LoadInformation(Client, BotInfo, GuildSettings);
+			await SavingAndLoading.LoadInformation(Client, BotSettings, GuildSettings);
 		}
 
 		public static async Task HandleCommand(SocketUserMessage message)
 		{
-			if (BotInfo.Pause)
+			if (BotSettings.Pause)
 				return;
 
 			var guild = (message?.Channel as SocketTextChannel)?.Guild;
 			if (guild == null)
 				return;
 
-			if (!GuildSettings.TryGetSettings(guild, out IGuildSettings guildInfo))
+			if (!GuildSettings.TryGetSettings(guild, out IGuildSettings guildSettings))
 			{
 				await GuildSettings.AddGuild(guild);
-				guildInfo = GuildSettings.GetSettings(guild);
+				guildSettings = GuildSettings.GetSettings(guild);
 			}
-			if (!TryGetArgPos(message, guildInfo.Prefix, BotInfo.Prefix, out int argPos))
+			if (!TryGetArgPos(message, guildSettings.Prefix, BotSettings.Prefix, out int argPos))
 				return;
 
-			var context = new MyCommandContext(BotInfo, guildInfo, Logging, Client, message);
+			var context = new MyCommandContext(BotSettings, guildSettings, Logging, Client, message);
 			var result = await Commands.ExecuteAsync(context, argPos, Provider);
 
 			if (result.IsSuccess)

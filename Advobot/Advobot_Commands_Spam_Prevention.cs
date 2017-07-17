@@ -49,7 +49,7 @@ namespace Advobot
 				return;
 			}
 
-			var spamPrevention = guildInfo.GetSpamPrevention(spamType);
+			var spamPrevention = guildSettings.GetSpamPrevention(spamType);
 			switch (action)
 			{
 				case ActionType.Setup:
@@ -172,7 +172,7 @@ namespace Advobot
 				}
 				case ActionType.Enable:
 				{
-					var antiRaid = guildInfo.GetRaidPrevention(RaidType.Regular);
+					var antiRaid = guildSettings.GetRaidPrevention(RaidType.Regular);
 					if (antiRaid == null)
 					{
 						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no raid protection to enable."));
@@ -200,7 +200,7 @@ namespace Advobot
 				}
 				case ActionType.Disable:
 				{
-					var antiRaid = guildInfo.GetRaidPrevention(RaidType.Regular);
+					var antiRaid = guildSettings.GetRaidPrevention(RaidType.Regular);
 					if (antiRaid == null)
 					{
 						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no raid protection to disable."));
@@ -298,7 +298,7 @@ namespace Advobot
 				}
 				case ActionType.Enable:
 				{
-					var antiJoin = guildInfo.GetRaidPrevention(RaidType.RapidJoins);
+					var antiJoin = guildSettings.GetRaidPrevention(RaidType.RapidJoins);
 					if (antiJoin == null)
 					{
 						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no rapid join protection to enable."));
@@ -317,7 +317,7 @@ namespace Advobot
 				}
 				case ActionType.Disable:
 				{
-					var antiJoin = guildInfo.GetRaidPrevention(RaidType.RapidJoins);
+					var antiJoin = guildSettings.GetRaidPrevention(RaidType.RapidJoins);
 					if (antiJoin == null)
 					{
 						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no rapid join protection to disable."));

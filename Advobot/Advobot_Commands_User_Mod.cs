@@ -26,7 +26,7 @@ namespace Advobot
 
 			private async Task CommandRunner(IGuildUser user, uint time)
 			{
-				var muteRole = await Roles.GetMuteRole(Context.GuildInfo, user.Guild, user);
+				var muteRole = await Roles.GetMuteRole(Context.GuildSettings, user.Guild, user);
 				if (user.RoleIds.Contains(muteRole.Id))
 				{
 					await Punishments.ManualRoleUnmuteUser(user, muteRole);
@@ -373,9 +373,9 @@ namespace Advobot
 
 			private async Task CommandRunner(int requestCount, IGuildUser user, ITextChannel channel)
 			{
-				var serverLog = Context.GuildInfo.ServerLog?.ID == channel.Id;
-				var modLog = Context.GuildInfo.ModLog?.ID == channel.Id;
-				var imageLog = Context.GuildInfo.ImageLog?.ID == channel.Id;
+				var serverLog = Context.GuildSettings.ServerLog?.Id == channel.Id;
+				var modLog = Context.GuildSettings.ModLog?.Id == channel.Id;
+				var imageLog = Context.GuildSettings.ImageLog?.Id == channel.Id;
 				if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
 				{
 					var DMChannel = await (await Context.Guild.GetOwnerAsync()).GetOrCreateDMChannelAsync();

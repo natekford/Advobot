@@ -144,7 +144,7 @@ namespace Advobot
 			else if (Enum.TryParse(settingStr, true, out SettingOnGuild setting))
 			{
 				var title = setting.EnumName();
-				var desc = Actions.FormatSettingInfo(guild, guildInfo, setting);
+				var desc = Actions.FormatSettingInfo(guild, guildSettings, setting);
 				await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, desc));
 			}
 			else

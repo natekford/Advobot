@@ -11,7 +11,7 @@ namespace Advobot
 	public static class Constants
 	{
 		public const string BOT_VERSION = "0.11.0";
-		public const string API_VERSION = "Discord.Net v1.0.2-build-00795";
+		public const string API_VERSION = "Discord.Net v1.0.2-build-00800";
 		public const string BOT_PREFIX = "&&";
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string IGNORE_ERROR = "Cx";
@@ -34,8 +34,8 @@ namespace Advobot
 		public const string SERVER_FOLDER = "Discord_Servers";
 		public const string SAVING_FILE_EXTENSION = ".json";
 		public const string GENERAL_FILE_EXTENSION = ".txt";
-		public const string GUILD_INFO_LOCATION = "GuildInfo" + SAVING_FILE_EXTENSION;
-		public const string BOT_INFO_LOCATION = "BotInfo" + SAVING_FILE_EXTENSION;
+		public const string GUILD_SETTINGS_LOCATION = "GuildSettings" + SAVING_FILE_EXTENSION;
+		public const string BOT_SETTINGS_LOCATION = "BotSettings" + SAVING_FILE_EXTENSION;
 		public const string UI_INFO_LOCATION = "BotUIInfo" + SAVING_FILE_EXTENSION;
 		public const string BOT_ICON_LOCATION = "BotIcon";
 		public const string GUILD_ICON_LOCATION = "GuildIcon";
@@ -101,21 +101,21 @@ namespace Advobot
 		public const int MAX_FIELD_NAME_LENGTH = 256;
 		public const int MAX_FIELD_VALUE_LENGTH = 1024;
 
-		private static ReadOnlyCollection<string> mVALID_IMAGE_EXTENSIONS;
-		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS => mVALID_IMAGE_EXTENSIONS ?? (mVALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>
+		private static ReadOnlyCollection<string> _VALID_IMAGE_EXTENSIONS;
+		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS => _VALID_IMAGE_EXTENSIONS ?? (_VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>
 		{
 			".jpeg",
 			".jpg",
 			".png",
 		}));
-		private static ReadOnlyCollection<string> mVALID_GIF_EXTENSIONS;
-		public static ReadOnlyCollection<string> VALID_GIF_EXTENTIONS => mVALID_GIF_EXTENSIONS ?? (mVALID_GIF_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>
+		private static ReadOnlyCollection<string> _VALID_GIF_EXTENSIONS;
+		public static ReadOnlyCollection<string> VALID_GIF_EXTENTIONS => _VALID_GIF_EXTENSIONS ?? (_VALID_GIF_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>
 		{
 			".gif",
 			".gifv",
 		}));
-		private static ReadOnlyCollection<string> mVALID_REGION_IDS;
-		public static ReadOnlyCollection<string> VALID_REGION_IDS => mVALID_REGION_IDS ?? (mVALID_REGION_IDS = new ReadOnlyCollection<string>(new List<string>
+		private static ReadOnlyCollection<string> _VALID_REGION_IDS;
+		public static ReadOnlyCollection<string> VALID_REGION_IDS => _VALID_REGION_IDS ?? (_VALID_REGION_IDS = new ReadOnlyCollection<string>(new List<string>
 		{
 			"brazil",
 			"eu-central",
@@ -129,29 +129,29 @@ namespace Advobot
 			"us-south",
 			"us-west",
 		}));
-		private static ReadOnlyCollection<string> mVIP_REGION_IDS;
-		public static ReadOnlyCollection<string> VIP_REGIONIDS => mVIP_REGION_IDS ?? (mVIP_REGION_IDS = new ReadOnlyCollection<string>(new List<string>
+		private static ReadOnlyCollection<string> _VIP_REGION_IDS;
+		public static ReadOnlyCollection<string> VIP_REGIONIDS => _VIP_REGION_IDS ?? (_VIP_REGION_IDS = new ReadOnlyCollection<string>(new List<string>
 		{
 			"vip-amsterdam",
 			"vip-us-east",
 			"vip-us-west",
 		}));
-		private static ReadOnlyCollection<string> mCOMMANDS_UNABLE_TO_BE_TURNED_OFF;
-		public static ReadOnlyCollection<string> COMMANDS_UNABLE_TO_BE_TURNED_OFF => mCOMMANDS_UNABLE_TO_BE_TURNED_OFF ?? (mCOMMANDS_UNABLE_TO_BE_TURNED_OFF = new ReadOnlyCollection<string>(new List<string>
+		private static ReadOnlyCollection<string> _COMMANDS_UNABLE_TO_BE_TURNED_OFF;
+		public static ReadOnlyCollection<string> COMMANDS_UNABLE_TO_BE_TURNED_OFF => _COMMANDS_UNABLE_TO_BE_TURNED_OFF ?? (_COMMANDS_UNABLE_TO_BE_TURNED_OFF = new ReadOnlyCollection<string>(new List<string>
 		{
 			"configurecommands",
 			"help",
 		}));
-		private static ReadOnlyCollection<string> mTEST_PHRASES;
-		public static ReadOnlyCollection<string> TEST_PHRASES => mTEST_PHRASES ?? (mTEST_PHRASES = new ReadOnlyCollection<string>(new List<string>
+		private static ReadOnlyCollection<string> _TEST_PHRASES;
+		public static ReadOnlyCollection<string> TEST_PHRASES => _TEST_PHRASES ?? (_TEST_PHRASES = new ReadOnlyCollection<string>(new List<string>
 		{
 			"Ӽ1(",
 			"Ϯ3|",
 			"⁊a~",
 			"[&r",
 		}));
-		private static ReadOnlyCollection<LogAction> mDEFAULT_LOG_ACTIONS;
-		public static ReadOnlyCollection<LogAction> DEFAULT_LOG_ACTIONS => mDEFAULT_LOG_ACTIONS ?? (mDEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogAction>(new List<LogAction>
+		private static ReadOnlyCollection<LogAction> _DEFAULT_LOG_ACTIONS;
+		public static ReadOnlyCollection<LogAction> DEFAULT_LOG_ACTIONS => _DEFAULT_LOG_ACTIONS ?? (_DEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogAction>(new List<LogAction>
 		{
 			LogAction.UserJoined,
 			LogAction.UserLeft,
@@ -159,18 +159,18 @@ namespace Advobot
 			LogAction.MessageUpdated,
 			LogAction.MessageDeleted,
 		}));
-		private static ReadOnlyCollection<HelpEntry> mHELP_ENTRIES;
-		public static ReadOnlyCollection<HelpEntry> HELP_ENTRIES => mHELP_ENTRIES ?? (mHELP_ENTRIES = new ReadOnlyCollection<HelpEntry>(SavingAndLoading.LoadHelpList()));
-		private static ReadOnlyCollection<string> mCOMMAND_NAMES;
-		public static ReadOnlyCollection<string> COMMAND_NAMES => mCOMMAND_NAMES ?? (mCOMMAND_NAMES = new ReadOnlyCollection<string>(SavingAndLoading.LoadCommandNames(HELP_ENTRIES)));
-		private static ReadOnlyCollection<BotGuildPermission> mGUILD_PERMISSIONS;
-		public static ReadOnlyCollection<BotGuildPermission> GUILD_PERMISSIONS => mGUILD_PERMISSIONS ?? (mGUILD_PERMISSIONS = new ReadOnlyCollection<BotGuildPermission>(SavingAndLoading.LoadGuildPermissions()));
-		private static ReadOnlyCollection<BotChannelPermission> mCHANNEL_PERMISSIONS;
-		public static ReadOnlyCollection<BotChannelPermission> CHANNEL_PERMISSIONS => mCHANNEL_PERMISSIONS ?? (mCHANNEL_PERMISSIONS = new ReadOnlyCollection<BotChannelPermission>(SavingAndLoading.LoadChannelPermissions()));
+		private static ReadOnlyCollection<HelpEntry> _HELP_ENTRIES;
+		public static ReadOnlyCollection<HelpEntry> HELP_ENTRIES => _HELP_ENTRIES ?? (_HELP_ENTRIES = new ReadOnlyCollection<HelpEntry>(SavingAndLoading.LoadHelpList()));
+		private static ReadOnlyCollection<string> _COMMAND_NAMES;
+		public static ReadOnlyCollection<string> COMMAND_NAMES => _COMMAND_NAMES ?? (_COMMAND_NAMES = new ReadOnlyCollection<string>(SavingAndLoading.LoadCommandNames(HELP_ENTRIES)));
+		private static ReadOnlyCollection<BotGuildPermission> _GUILD_PERMISSIONS;
+		public static ReadOnlyCollection<BotGuildPermission> GUILD_PERMISSIONS => _GUILD_PERMISSIONS ?? (_GUILD_PERMISSIONS = new ReadOnlyCollection<BotGuildPermission>(SavingAndLoading.LoadGuildPermissions()));
+		private static ReadOnlyCollection<BotChannelPermission> _CHANNEL_PERMISSIONS;
+		public static ReadOnlyCollection<BotChannelPermission> CHANNEL_PERMISSIONS => _CHANNEL_PERMISSIONS ?? (_CHANNEL_PERMISSIONS = new ReadOnlyCollection<BotChannelPermission>(SavingAndLoading.LoadChannelPermissions()));
 
 		//Because the enum values might change in the future. These are never saved in JSON so these can be modified
-		private static ReadOnlyDictionary<PunishmentType, int> mPUNISHMENT_SEVERITY;
-		public static ReadOnlyDictionary<PunishmentType, int> PUNISHMENT_SEVERITY => mPUNISHMENT_SEVERITY ?? (mPUNISHMENT_SEVERITY = new ReadOnlyDictionary<PunishmentType, int>(new Dictionary<PunishmentType, int>
+		private static ReadOnlyDictionary<PunishmentType, int> _PUNISHMENT_SEVERITY;
+		public static ReadOnlyDictionary<PunishmentType, int> PUNISHMENT_SEVERITY => _PUNISHMENT_SEVERITY ?? (_PUNISHMENT_SEVERITY = new ReadOnlyDictionary<PunishmentType, int>(new Dictionary<PunishmentType, int>
 		{
 			{ PunishmentType.Deafen, 0 },
 			{ PunishmentType.VoiceMute, 100 },
@@ -179,32 +179,25 @@ namespace Advobot
 			{ PunishmentType.KickThenBan, 750 },
 			{ PunishmentType.Ban, 1000 },
 		}));
-		private static ReadOnlyDictionary<string, Color> mCOLORS;
-		public static ReadOnlyDictionary<string, Color> COLORS => mCOLORS ?? (mCOLORS = new ReadOnlyDictionary<string, Color>(Gets.GetColorDictionary()));
+		private static ReadOnlyDictionary<string, Color> _COLORS;
+		public static ReadOnlyDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = new ReadOnlyDictionary<string, Color>(Gets.GetColorDictionary()));
 
 		public static Color BASE { get; } = new Color(255, 100, 000);
 		public static Color JOIN { get; } = new Color(000, 255, 000);
 		public static Color LEAV { get; } = new Color(255, 000, 000);
-		public static Color UNBN { get; } = new Color(000, 153, 000);
-		public static Color BANN { get; } = new Color(153, 000, 000);
 		public static Color UEDT { get; } = new Color(051, 051, 255);
 		public static Color ATCH { get; } = new Color(000, 204, 204);
 		public static Color MEDT { get; } = new Color(000, 000, 255);
 		public static Color MDEL { get; } = new Color(255, 051, 051);
-		public static Color RCRE { get; } = new Color(000, 175, 000);
-		public static Color REDT { get; } = new Color(000, 000, 204);
-		public static Color RDEL { get; } = new Color(175, 000, 000);
-		public static Color CCRE { get; } = new Color(000, 204, 000);
-		public static Color CEDT { get; } = new Color(000, 000, 153);
-		public static Color CDEL { get; } = new Color(204, 000, 000);
 
-		public static Type GUILDS_SETTINGS_TYPE { get; } = typeof(BotGuildInfo);
-		public static Type GLOBAL_SETTINGS_TYPE { get; } = typeof(BotGlobalInfo);
+		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective interfaces)
+		public static Type GUILDS_SETTINGS_TYPE { get; } = typeof(MyGuildSettings);
+		public static Type GLOBAL_SETTINGS_TYPE { get; } = typeof(MyBotSettings);
 	}
 
 	public static class Variables
 	{
-
+		//TODO: invite module? not very important tbh
 		public readonly static List<ListedInvite> InviteList = new List<ListedInvite>();
 
 		//TODO: Put these five lists into a new module

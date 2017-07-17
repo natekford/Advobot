@@ -83,17 +83,17 @@ namespace Advobot
 			{
 				case LogChannelType.Server:
 				{
-					success = guildInfo.SetSetting(SettingOnGuild.ServerLog, new DiscordObjectWithID<ITextChannel>(channel));
+					success = guildSettings.SetSetting(SettingOnGuild.ServerLog, new DiscordObjectWithID<ITextChannel>(channel));
 					break;
 				}
 				case LogChannelType.Mod:
 				{
-					success = guildInfo.SetSetting(SettingOnGuild.ModLog, new DiscordObjectWithID<ITextChannel>(channel));
+					success = guildSettings.SetSetting(SettingOnGuild.ModLog, new DiscordObjectWithID<ITextChannel>(channel));
 					break;
 				}
 				case LogChannelType.Image:
 				{
-					success = guildInfo.SetSetting(SettingOnGuild.ImageLog, new DiscordObjectWithID<ITextChannel>(channel));
+					success = guildSettings.SetSetting(SettingOnGuild.ImageLog, new DiscordObjectWithID<ITextChannel>(channel));
 					break;
 				}
 			}

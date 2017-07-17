@@ -7,10 +7,14 @@ using System;
 using System.Threading.Tasks;
 
 /* First, to get the really shitty part of the bot out of the way:
- * I am too lazy to type out .ConfigureAwait(false) on every await I do and I don't really know what it does so I don't use it.
- * A lot of the things that go into DontWaitForResultOfUnimportantBigFunction make the bot hang, so that's why they use async void. I don't know the correct way to not make them hang.
- * I wasn't aware of the arg parsing of Discord.Net when I first used it, so that's why I have my custom arg parsing.
- * My arg parsing is definitely more inefficient, but since I'm the one writing it I can provide more specific error messages.
+ * 0.	I am too lazy to type out .ConfigureAwait(false) on every await I do and I don't really know what it does so I don't use it.
+ * 
+ * 1.	A lot of guild settings return a readonly collection because that forces whoever is messing with them to reassign instead of just using .add
+ *		This forces the setter to be used, which saves the list, thus keeping any changes made.
+ *		
+ * 2.	I didn't know about Discord.Net's arg parsing until about 7 months into this project. That's why some parts may look like my own custom arg parsing.
+ * 
+ * 3.	ILogModule goes into MyCommandContext to be used in exactly one command. The getinfo bot command.
  */
 namespace Advobot
 {
@@ -30,51 +34,51 @@ namespace Advobot
 				return;
 #endif
 
-			//Things that when not loaded fuck the bot completely
+			//Things that when not loaded fuck the bot completely. These things have to go in this order because I'm a dumdum who made stuff have dependencies.
 			CriticalInformation criticalInfo = SavingAndLoading.LoadCriticalInformation();
-			IGlobalSettings botInfo = SavingAndLoading.CreateBotInfo(Constants.GLOBAL_SETTINGS_TYPE, criticalInfo.Windows, criticalInfo.Console, criticalInfo.FirstInstance);
-			IDiscordClient client = ClientActions.CreateBotClient(botInfo);
+			IBotSettings botSettings = SavingAndLoading.CreateBotSettings(Constants.GLOBAL_SETTINGS_TYPE, criticalInfo.Windows, criticalInfo.Console, criticalInfo.FirstInstance);
 			IGuildSettingsModule guildSettingsModule = new GuildSettingsModule(Constants.GUILDS_SETTINGS_TYPE);
-			ILogModule logModule = new LogModule(client, botInfo, guildSettingsModule);
+			IDiscordClient client = ClientActions.CreateBotClient(botSettings);
+			ILogModule logModule = new LogModule(client, botSettings, guildSettingsModule);
 
-			var provider = ConfigureServices(botInfo, client, guildSettingsModule, logModule);
+			var provider = ConfigureServices(client, botSettings, guildSettingsModule, logModule);
 			await CommandHandler.Install(provider);
 
 			//If not a console application then start the UI
-			if (!botInfo.Console)
+			if (!botSettings.Console)
 			{
-				new System.Windows.Application().Run(new BotWindow(client, botInfo, logModule));
+				new System.Windows.Application().Run(new BotWindow(client, botSettings, logModule));
 			}
 			else
 			{
 				var startup = true;
-				while (!botInfo.GotPath)
+				while (!botSettings.GotPath)
 				{
-					if (SavingAndLoading.ValidatePath((startup ? Properties.Settings.Default.Path : Console.ReadLine()), botInfo.Windows, startup))
+					if (SavingAndLoading.ValidatePath((startup ? Properties.Settings.Default.Path : Console.ReadLine()), botSettings.Windows, startup))
 					{
-						botInfo.SetGotPath();
+						botSettings.SetGotPath();
 					}
 					startup = false;
 				}
 				startup = true;
-				while (!botInfo.GotKey)
+				while (!botSettings.GotKey)
 				{
 					if (await SavingAndLoading.ValidateBotKey(client, (startup ? Properties.Settings.Default.BotKey : Console.ReadLine()), startup))
 					{
-						botInfo.SetGotKey();
+						botSettings.SetGotKey();
 					}
 					startup = false;
 				}
 
-				await ClientActions.MaybeStartBot(client, botInfo);
+				await ClientActions.MaybeStartBot(client, botSettings);
 			}
 		}
 
-		private IServiceProvider ConfigureServices(IGlobalSettings botInfo, IDiscordClient client, IGuildSettingsModule guildSettingsModule, ILogModule logModule)
+		private IServiceProvider ConfigureServices(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ILogModule logModule)
 		{
 			var serviceCollection = new ServiceCollection();
-			serviceCollection.AddSingleton(botInfo);
 			serviceCollection.AddSingleton(client);
+			serviceCollection.AddSingleton(botSettings);
 			serviceCollection.AddSingleton(guildSettingsModule);
 			serviceCollection.AddSingleton(logModule);
 			serviceCollection.AddSingleton(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, }));
