@@ -188,13 +188,13 @@ namespace Advobot
 				await CommandRunner(days, simulate);
 			}
 
-			private static readonly uint[] validDays = { 1, 7, 30 };
+			private static readonly uint[] _Days = { 1, 7, 30 };
 
 			private async Task CommandRunner(uint days, bool simulate)
 			{
-				if (validDays.Contains(days))
+				if (_Days.Contains(days))
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("Invalid days supplied, must be one of the following: `{0}`", String.Join("`, `", validDays))));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("Invalid days supplied, must be one of the following: `{0}`", String.Join("`, `", _Days))));
 					return;
 				}
 
@@ -252,13 +252,13 @@ namespace Advobot
 				await CommandRunner(user, 0, 0, reason);
 			}
 
-			private static readonly uint[] validDays = { 0, 1, 7 };
+			private static readonly uint[] _Days = { 0, 1, 7 };
 
 			private async Task CommandRunner(IUser user, uint time, uint days, string reason)
 			{
-				if (validDays.Contains(days))
+				if (_Days.Contains(days))
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("Invalid days supplied, must be one of the following: `{0}`", String.Join("`, `", validDays))));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("Invalid days supplied, must be one of the following: `{0}`", String.Join("`, `", _Days))));
 					return;
 				}
 

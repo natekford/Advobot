@@ -42,15 +42,15 @@ namespace Advobot
 				await CommandRunner(region);
 			}
 
-			private static readonly string mRegionIDs = String.Join("\n", Constants.VALID_REGION_IDS);
-			private static readonly string mVIPRegionIDs = String.Join("\n", Constants.VIP_REGIONIDS);
-			private static readonly string mAllRegionIDs = mRegionIDs + "\n" + mVIPRegionIDs;
+			private static readonly string _RegionIDs = String.Join("\n", Constants.VALID_REGION_IDS);
+			private static readonly string _VIPRegionIDs = String.Join("\n", Constants.VIP_REGIONIDS);
+			private static readonly string _AllRegionIDs = _RegionIDs + "\n" + _VIPRegionIDs;
 
 			private async Task CommandRunner(string region)
 			{
 				if (String.IsNullOrWhiteSpace(region))
 				{
-					var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? mAllRegionIDs : mRegionIDs;
+					var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegionIDs : _RegionIDs;
 					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("Region IDs", desc));
 				}
 				else if ("current".CaseInsEquals(region))
@@ -83,13 +83,13 @@ namespace Advobot
 				await CommandRunner(time);
 			}
 
-			private static readonly uint[] validAFKTimes = { 60, 300, 900, 1800, 3600 };
+			private static readonly uint[] _AFKTimes = { 60, 300, 900, 1800, 3600 };
 
 			private async Task CommandRunner(uint time)
 			{
-				if (!validAFKTimes.Contains(time))
+				if (!_AFKTimes.Contains(time))
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("Invalid time input, must be one of the following: `{0}`.", String.Join("`, `", validAFKTimes))));
+					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("Invalid time input, must be one of the following: `{0}`.", String.Join("`, `", _AFKTimes))));
 					return;
 				}
 

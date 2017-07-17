@@ -32,11 +32,11 @@ namespace Advobot
 		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
 
 		public const string SERVER_FOLDER = "Discord_Servers";
-		public const string SAVING_FILE_EXTENSION = ".json";
+		public const string SETTING_FILE_EXTENSION = ".json";
 		public const string GENERAL_FILE_EXTENSION = ".txt";
-		public const string GUILD_SETTINGS_LOCATION = "GuildSettings" + SAVING_FILE_EXTENSION;
-		public const string BOT_SETTINGS_LOCATION = "BotSettings" + SAVING_FILE_EXTENSION;
-		public const string UI_INFO_LOCATION = "BotUIInfo" + SAVING_FILE_EXTENSION;
+		public const string GUILD_SETTINGS_LOCATION = "GuildSettings" + SETTING_FILE_EXTENSION;
+		public const string BOT_SETTINGS_LOCATION = "BotSettings" + SETTING_FILE_EXTENSION;
+		public const string UI_INFO_LOCATION = "UISettings" + SETTING_FILE_EXTENSION;
 		public const string BOT_ICON_LOCATION = "BotIcon";
 		public const string GUILD_ICON_LOCATION = "GuildIcon";
 
@@ -51,9 +51,9 @@ namespace Advobot
 		public const string USER_INSTRUCTIONS = "@User|\"Username\"";
 		public const string ROLE_INSTRUCTIONS = "@Role|\"Role Name\"";
 
-		public const uint SECONDS_DEFAULT = 3;
-		public const uint SECONDS_ACTIVE_CLOSE = 5;
-		public const uint TICKS_REGEX_TIMEOUT = 1000000;
+		public const int SECONDS_DEFAULT = 3;
+		public const int SECONDS_ACTIVE_CLOSE = 5;
+		public const int TICKS_REGEX_TIMEOUT = 1000000;
 
 		public const double PERCENT_AVERAGE = .75;
 		public const int MEMBER_LIMIT = 0;

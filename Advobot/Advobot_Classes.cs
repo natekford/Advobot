@@ -7,13 +7,13 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Timers;
 
 namespace Advobot
 {
@@ -21,31 +21,34 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Class)]
 	public class PermissionRequirementAttribute : PreconditionAttribute
 	{
-		private uint mAllFlags;
-		private uint mAnyFlags;
+		private uint _AllFlags;
+		private uint _AnyFlags;
 
 		//This doesn't have default values for the parameters since that makes it harder to potentially provide the wrong permissions
 		public PermissionRequirementAttribute(GuildPermission[] anyOfTheListedPerms, GuildPermission[] allOfTheListedPerms)
 		{
-			mAnyFlags |= (1U << (int)GuildPermission.Administrator);
+			_AnyFlags |= (1U << (int)GuildPermission.Administrator);
 			foreach (var perm in anyOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
 			{
-				mAnyFlags |= (1U << (int)perm);
+				_AnyFlags |= (1U << (int)perm);
 			}
 			foreach (var perm in allOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
 			{
-				mAllFlags |= (1U << (int)perm);
+				_AllFlags |= (1U << (int)perm);
 			}
 		}
 		/* For when/if GuildPermission values get put as bits
 		public PermissionRequirementAttribute(GuildPermission anyOfTheListedPerms, GuildPermission allOfTheListedPerms)
 		{
-			throw new NotImplementedException();
-		}
-		public PermissionRequirementAttribute(uint anyOfTheListedPerms = 0, uint allOfTheListedPerms = 0)
-		{
-			mAnyFlags = anyOfTheListedPerms | (1U << (int)GuildPermission.Administrator);
-			mAllFlags = allOfTheListedPerms;
+			_AnyFlags |= GuildPermission.Administrator;
+			foreach (var perm in anyOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
+			{
+				_AnyFlags |= perm;
+			}
+			foreach (var perm in allOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
+			{
+				_AllFlags |= perm;
+			}
 		}
 		*/
 
@@ -56,10 +59,11 @@ namespace Advobot
 				var cont = context as MyCommandContext;
 				var user = context.User as IGuildUser;
 
-				var userBits = cont.GuildSettings.BotUsers.FirstOrDefault(x => x.UserID == user.Id)?.Permissions ?? 0;
+				var guildBits = user.GuildPermissions.RawValue;
+				var botBits = cont.GuildSettings.BotUsers.FirstOrDefault(x => x.UserID == user.Id)?.Permissions ?? 0;
 
-				var perms = user.GuildPermissions.RawValue | userBits;
-				if ((perms & mAllFlags) == mAllFlags || (perms & mAnyFlags) != 0)
+				var userPerms = guildBits | botBits;
+				if ((userPerms & _AllFlags) == _AllFlags || (userPerms & _AnyFlags) != 0)
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
@@ -69,11 +73,11 @@ namespace Advobot
 
 		public string AllText
 		{
-			get { return String.Join(" & ", Gets.GetPermissionNames(mAllFlags)); }
+			get { return String.Join(" & ", Gets.GetPermissionNames(_AllFlags)); }
 		}
 		public string AnyText
 		{
-			get { return String.Join(" | ", Gets.GetPermissionNames(mAnyFlags)); }
+			get { return String.Join(" | ", Gets.GetPermissionNames(_AnyFlags)); }
 		}
 	}
 
@@ -115,8 +119,11 @@ namespace Advobot
 
 				if (permissions)
 				{
-					var userBits = cont.GuildSettings.BotUsers.FirstOrDefault(x => x.UserID == user.Id)?.Permissions ?? 0;
-					if (((user.GuildPermissions.RawValue | userBits) & PERMISSION_BITS) != 0)
+					var guildBits = user.GuildPermissions.RawValue;
+					var botBits = cont.GuildSettings.BotUsers.FirstOrDefault(x => x.UserID == user.Id)?.Permissions ?? 0;
+
+					var userPerms = guildBits | botBits;
+					if ((userPerms & PERMISSION_BITS) != 0)
 					{
 						return Task.FromResult(PreconditionResult.FromSuccess());
 					}
@@ -248,19 +255,19 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public class VerifyObjectAttribute : ParameterPreconditionAttribute
 	{
-		private readonly bool mIfNullDrawFromContext;
-		private readonly ObjectVerification[] mChecks;
+		private readonly bool _IfNullDrawFromContext;
+		private readonly ObjectVerification[] _Checks;
 
 		public VerifyObjectAttribute(bool ifNullDrawFromContext, params ObjectVerification[] checks)
 		{
-			mIfNullDrawFromContext = ifNullDrawFromContext;
-			mChecks = checks;
+			_IfNullDrawFromContext = ifNullDrawFromContext;
+			_Checks = checks;
 		}
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
-			if (value == null && !mIfNullDrawFromContext)
+			if (value == null && !_IfNullDrawFromContext)
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
@@ -287,25 +294,25 @@ namespace Advobot
 			object obj = null;
 			if (value is ITextChannel)
 			{
-				var returned = Channels.GetChannel(context.Guild, context.User as IGuildUser, mChecks, (value ?? context.Channel) as IGuildChannel);
+				var returned = Channels.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.Channel) as IGuildChannel);
 				failureReason = returned.Reason;
 				obj = returned.Object;
 			}
 			else if (value is IVoiceChannel)
 			{
-				var returned = Channels.GetChannel(context.Guild, context.User as IGuildUser, mChecks, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel);
+				var returned = Channels.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel);
 				failureReason = returned.Reason;
 				obj = returned.Object;
 			}
 			else if (value is IGuildUser)
 			{
-				var returned = Users.GetGuildUser(context.Guild, context.User as IGuildUser, mChecks, (value ?? context.User) as IGuildUser);
+				var returned = Users.GetGuildUser(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.User) as IGuildUser);
 				failureReason = returned.Reason;
 				obj = returned.Object;
 			}
 			else if (value is IRole)
 			{
-				var returned = Roles.GetRole(context.Guild, context.User as IGuildUser, mChecks, value as IRole);
+				var returned = Roles.GetRole(context.Guild, context.User as IGuildUser, _Checks, value as IRole);
 				failureReason = returned.Reason;
 				obj = returned.Object;
 			}
@@ -324,23 +331,23 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public class VerifyEnumAttribute : ParameterPreconditionAttribute
 	{
-		private readonly uint mAllowed;
-		private readonly uint mDisallowed;
+		private readonly uint _Allowed;
+		private readonly uint _Disallowed;
 
 		public VerifyEnumAttribute(uint allowed = 0, uint disallowed = 0)
 		{
-			mAllowed = allowed;
-			mDisallowed = disallowed;
+			_Allowed = allowed;
+			_Disallowed = disallowed;
 		}
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			var enumVal = (uint)value;
-			if (mAllowed != 0 && ((mAllowed & enumVal) == 0))
+			if (_Allowed != 0 && ((_Allowed & enumVal) == 0))
 			{
 				return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command overload.", value)));
 			}
-			else if (mDisallowed != 0 && ((mDisallowed & enumVal) != 0))
+			else if (_Disallowed != 0 && ((_Disallowed & enumVal) != 0))
 			{
 				return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command overload.", value)));
 			}
@@ -354,11 +361,11 @@ namespace Advobot
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public class VerifyStringAttribute : ParameterPreconditionAttribute
 	{
-		private readonly string[] mValidStrings;
+		private readonly string[] _ValidStrings;
 
 		public VerifyStringAttribute(params string[] validStrings)
 		{
-			mValidStrings = validStrings;
+			_ValidStrings = validStrings;
 		}
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
@@ -369,14 +376,14 @@ namespace Advobot
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
 
-			return mValidStrings.CaseInsContains(value.ToString()) ? Task.FromResult(PreconditionResult.FromSuccess()) : Task.FromResult(PreconditionResult.FromError("Invalid string provided."));
+			return _ValidStrings.CaseInsContains(value.ToString()) ? Task.FromResult(PreconditionResult.FromSuccess()) : Task.FromResult(PreconditionResult.FromError("Invalid string provided."));
 		}
 	}
 	
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public class VerifyStringLengthAttribute : ParameterPreconditionAttribute
 	{
-		private readonly ReadOnlyDictionary<Target, Tuple<int, int, string>> mMinsAndMaxesAndErrors = new ReadOnlyDictionary<Target, Tuple<int, int, string>>(new Dictionary<Target, Tuple<int, int, string>>
+		private readonly ReadOnlyDictionary<Target, Tuple<int, int, string>> _MinsAndMaxesAndErrors = new ReadOnlyDictionary<Target, Tuple<int, int, string>>(new Dictionary<Target, Tuple<int, int, string>>
 		{
 			{ Target.Guild, new Tuple<int, int, string>(Constants.MIN_GUILD_NAME_LENGTH, Constants.MAX_GUILD_NAME_LENGTH, "guild name") },
 			{ Target.Channel, new Tuple<int, int, string>(Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "channel name") },
@@ -387,19 +394,19 @@ namespace Advobot
 			{ Target.Stream, new Tuple<int, int, string>(Constants.MIN_STREAM_LENGTH, Constants.MAX_STREAM_LENGTH, "stream name") },
 			{ Target.Topic, new Tuple<int, int, string>(Constants.MIN_TOPIC_LENGTH, Constants.MAX_TOPIC_LENGTH, "channel topic") },
 		});
-		private int mMin;
-		private int mMax;
-		private string mTooShort;
-		private string mTooLong;
+		private int _Min;
+		private int _Max;
+		private string _TooShort;
+		private string _TooLong;
 
 		public VerifyStringLengthAttribute(Target target)
 		{
-			if (mMinsAndMaxesAndErrors.TryGetValue(target, out var minAndMaxAndError))
+			if (_MinsAndMaxesAndErrors.TryGetValue(target, out var minAndMaxAndError))
 			{
-				mMin = minAndMaxAndError.Item1;
-				mMax = minAndMaxAndError.Item2;
-				mTooShort = String.Format("A {0} must be at least `{1}` characters long.", minAndMaxAndError.Item3, mMin);
-				mTooLong = String.Format("A {0} must be at most `{1}` characters long.", minAndMaxAndError.Item3, mMax);
+				_Min = minAndMaxAndError.Item1;
+				_Max = minAndMaxAndError.Item2;
+				_TooShort = String.Format("A {0} must be at least `{1}` characters long.", minAndMaxAndError.Item3, _Min);
+				_TooLong = String.Format("A {0} must be at most `{1}` characters long.", minAndMaxAndError.Item3, _Max);
 			}
 			else
 			{
@@ -418,13 +425,13 @@ namespace Advobot
 			if (value.GetType() == typeof(string))
 			{
 				var str = value.ToString();
-				if (str.Length < mMin)
+				if (str.Length < _Min)
 				{
-					return Task.FromResult(PreconditionResult.FromError(mTooShort));
+					return Task.FromResult(PreconditionResult.FromError(_TooShort));
 				}
-				else if (str.Length > mMax)
+				else if (str.Length > _Max)
 				{
-					return Task.FromResult(PreconditionResult.FromError(mTooLong));
+					return Task.FromResult(PreconditionResult.FromError(_TooLong));
 				}
 				else
 				{
@@ -1026,14 +1033,14 @@ namespace Advobot
 		public event PropertyChangedEventHandler PropertyChanged;
 		public MyGuildSettings()
 		{
-			PropertyChanged += SaveInfo;
+			PropertyChanged += SaveSettings;
 		}
 
 		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
-		public void SaveInfo(object sender, PropertyChangedEventArgs e)
+		private void SaveSettings(object sender, PropertyChangedEventArgs e)
 		{
 			//ConsoleActions.WriteLine(String.Format("Successfully saved: {0}", e.PropertyName));
 			if (Guild != null)
@@ -1271,7 +1278,7 @@ namespace Advobot
 		public event PropertyChangedEventHandler PropertyChanged;
 		public MyBotSettings()
 		{
-			PropertyChanged += SaveInfo;
+			PropertyChanged += SaveSettings;
 		}
 
 		//TODO: put a wait like on message deletion 
@@ -1279,7 +1286,7 @@ namespace Advobot
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
-		private void SaveInfo(object sender, PropertyChangedEventArgs e)
+		private void SaveSettings(object sender, PropertyChangedEventArgs e)
 		{
 			ConsoleActions.WriteLine(String.Format("Successfully saved: {0}", e.PropertyName));
 			SavingAndLoading.OverWriteFile(Gets.GetBaseBotDirectory(Constants.BOT_SETTINGS_LOCATION), SavingAndLoading.Serialize(this));
@@ -1361,18 +1368,18 @@ namespace Advobot
 		[JsonIgnore]
 		public int CategoryValue { get { return (int)Category; } }
 		[JsonIgnore]
-		private HelpEntry mHelpEntry;
+		private HelpEntry _HelpEntry;
 
 		public CommandSwitch(string name, bool value)
 		{
-			mHelpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.Equals(name));
-			if (mHelpEntry == null)
+			_HelpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.Equals(name));
+			if (_HelpEntry == null)
 				return;
 
 			Name = name;
 			Value = value;
-			Category = mHelpEntry.Category;
-			Aliases = mHelpEntry.Aliases;
+			Category = _HelpEntry.Category;
+			Aliases = _HelpEntry.Aliases;
 		}
 
 		public void ToggleEnabled()
@@ -1915,52 +1922,52 @@ namespace Advobot
 		}
 	}
 
-	public class GuildSettingsModule : IGuildSettingsModule
+	public class MyGuildSettingsModule : IGuildSettingsModule
 	{
-		private Dictionary<ulong, IGuildSettings> mGuildSettings = new Dictionary<ulong, IGuildSettings>();
-		private Type mGuildSettingsType;
+		private Dictionary<ulong, IGuildSettings> _GuildSettings = new Dictionary<ulong, IGuildSettings>();
+		private Type _GuildSettingsType;
 
-		public GuildSettingsModule(Type guildSettingsType)
+		public MyGuildSettingsModule(Type guildSettingsType)
 		{
 			if (guildSettingsType == null || !guildSettingsType.GetInterfaces().Contains(typeof(IGuildSettings)))
 			{
 				throw new ArgumentException("Invalid type for guild settings provided.");
 			}
 
-			mGuildSettingsType = guildSettingsType;
+			_GuildSettingsType = guildSettingsType;
 		}
 
 		public async Task AddGuild(IGuild guild)
 		{
-			if (!mGuildSettings.ContainsKey(guild.Id))
+			if (!_GuildSettings.ContainsKey(guild.Id))
 			{
-				mGuildSettings.Add(guild.Id, await CreateGuildSettings(mGuildSettingsType, guild));
+				_GuildSettings.Add(guild.Id, await CreateGuildSettings(_GuildSettingsType, guild));
 			}
 		}
 		public Task RemoveGuild(IGuild guild)
 		{
-			if (mGuildSettings.ContainsKey(guild.Id))
+			if (_GuildSettings.ContainsKey(guild.Id))
 			{
-				mGuildSettings.Remove(guild.Id);
+				_GuildSettings.Remove(guild.Id);
 			}
 			return Task.FromResult(0);
 		}
 		public IGuildSettings GetSettings(IGuild guild)
 		{
-			return mGuildSettings[guild.Id];
+			return _GuildSettings[guild.Id];
 		}
 		public IEnumerable<IGuildSettings> GetAllSettings()
 		{
-			return mGuildSettings.Values;
+			return _GuildSettings.Values;
 		}
 		public bool TryGetSettings(IGuild guild, out IGuildSettings settings)
 		{
-			return mGuildSettings.TryGetValue(guild.Id, out settings);
+			return _GuildSettings.TryGetValue(guild.Id, out settings);
 		}
 
 		private async Task<IGuildSettings> CreateGuildSettings(Type guildSettingsType, IGuild guild)
 		{
-			if (!mGuildSettings.TryGetValue(guild.Id, out IGuildSettings guildSettings))
+			if (!_GuildSettings.TryGetValue(guild.Id, out IGuildSettings guildSettings))
 			{
 				var path = Gets.GetServerFilePath(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
 				if (File.Exists(path))
@@ -2005,6 +2012,121 @@ namespace Advobot
 
 			return guildSettings;
 		}
+	}
+
+	public class MyTimersModule : ITimersModule
+	{
+		const long HOUR = 60 * 60 * 1000;
+		const long MINUTE = 60 * 1000;
+		const long ONE_HALF_SECOND = 500;
+
+		private readonly System.Timers.Timer _HourTimer = new System.Timers.Timer(HOUR);
+		private readonly System.Timers.Timer _MinuteTimer = new System.Timers.Timer(MINUTE);
+		private readonly System.Timers.Timer _OneHalfSecondTimer = new System.Timers.Timer(ONE_HALF_SECOND);
+
+		public MyTimersModule(IGuildSettingsModule guildSettingsModule)
+		{
+			_HourTimer.Elapsed += (sender, e) => OnHourEvent(sender, e, guildSettingsModule);
+			_HourTimer.Enabled = true;
+
+			_MinuteTimer.Elapsed += (sender, e) => OnMinuteEvent(sender, e, guildSettingsModule);
+			_MinuteTimer.Enabled = true;
+
+			_OneHalfSecondTimer.Elapsed += (sender, e) => OnOneHalfSecondEvent(sender, e, guildSettingsModule);
+			_OneHalfSecondTimer.Enabled = true;
+		}
+
+		private static void OnHourEvent(object source, ElapsedEventArgs e, IGuildSettingsModule guildSettingsModule)
+		{
+			ClearPunishedUsersList(guildSettingsModule);
+		}
+		private static void ClearPunishedUsersList(IGuildSettingsModule guildSettingsModule)
+		{
+			foreach (var guildSettings in guildSettingsModule.GetAllSettings())
+			{
+				guildSettings.SpamPreventionUsers.Clear();
+			}
+		}
+
+		private static void OnMinuteEvent(object source, ElapsedEventArgs e, IGuildSettingsModule guildSettingsModule)
+		{
+			Task.Run(async () => { await RemovePunishments(); });
+		}
+		private static async Task RemovePunishments()
+		{
+			foreach (var punishment in Variables.RemovablePunishments.GetOutTimedObjects())
+			{
+				switch (punishment.PunishmentType)
+				{
+					case PunishmentType.Ban:
+					{
+						await punishment.Guild.RemoveBanAsync(punishment.UserID);
+						return;
+					}
+				}
+
+				var guildUser = await punishment.Guild.GetUserAsync(punishment.UserID);
+				if (guildUser == null)
+					return;
+
+				switch (punishment.PunishmentType)
+				{
+					case PunishmentType.Deafen:
+					{
+						await Punishments.AutomaticUndeafenUser(guildUser);
+						return;
+					}
+					case PunishmentType.VoiceMute:
+					{
+						await guildUser.ModifyAsync(x => x.Mute = false);
+						return;
+					}
+					case PunishmentType.RoleMute:
+					{
+						await Roles.TakeRole(guildUser, (punishment as RemovableRoleMute)?.Role);
+						return;
+					}
+				}
+			}
+		}
+
+		private static void OnOneHalfSecondEvent(object source, ElapsedEventArgs e, IGuildSettingsModule guildSettingsModule)
+		{
+			Task.Run(async () => { await DeleteTargettedMessages(); });
+			RemoveActiveCloseHelpAndWords();
+			ResetSlowModeUserMessages();
+		}
+		private static async Task DeleteTargettedMessages()
+		{
+			foreach (var message in Variables.TimedMessages.GetOutTimedObjects())
+			{
+				if (message.Messages.Count() == 1)
+				{
+					await Messages.DeleteMessage(message.Messages.FirstOrDefault());
+				}
+				else
+				{
+					await Messages.DeleteMessages(message.Channel, message.Messages);
+				}
+			}
+		}
+		private static void RemoveActiveCloseHelpAndWords()
+		{
+			Variables.ActiveCloseHelp.GetOutTimedObjects();
+			Variables.ActiveCloseWords.GetOutTimedObjects();
+		}
+		private static void ResetSlowModeUserMessages()
+		{
+			foreach (var slowModeUser in Variables.SlowmodeUsers.GetOutTimedObjects())
+			{
+				slowModeUser.ResetMessagesLeft();
+			}
+		}
+	}
+
+	public class MyInviteListModule
+	{
+
 	}
 
 	public class HelpEntry : INameAndText
@@ -2133,7 +2255,7 @@ namespace Advobot
 	public class MessageDeletion
 	{
 		public CancellationTokenSource CancelToken { get; private set; }
-		private List<IMessage> mMessages = new List<IMessage>();
+		private List<IMessage> _Messages = new List<IMessage>();
 
 		public void SetCancelToken(CancellationTokenSource cancelToken)
 		{
@@ -2141,19 +2263,19 @@ namespace Advobot
 		}
 		public List<IMessage> GetList()
 		{
-			return mMessages.ToList();
+			return _Messages.ToList();
 		}
 		public void SetList(List<IMessage> InList)
 		{
-			mMessages = InList.ToList();
+			_Messages = InList.ToList();
 		}
 		public void AddToList(IMessage Item)
 		{
-			mMessages.Add(Item);
+			_Messages.Add(Item);
 		}
 		public void ClearList()
 		{
-			mMessages.Clear();
+			_Messages.Clear();
 		}
 	}
 
@@ -2284,11 +2406,11 @@ namespace Advobot
 
 	public class RemovablePunishment : Punishment, ITimeInterface
 	{
-		private DateTime mTime;
+		private DateTime _Time;
 
 		public RemovablePunishment(IGuild guild, ulong userID, PunishmentType punishmentType, uint minutes) : base(guild, userID, punishmentType)
 		{
-			mTime = DateTime.UtcNow.AddMinutes(minutes);
+			_Time = DateTime.UtcNow.AddMinutes(minutes);
 		}
 		public RemovablePunishment(IGuild guild, IUser user, PunishmentType punishmentType, uint minutes) : this(guild, user.Id, punishmentType, minutes)
 		{
@@ -2296,7 +2418,7 @@ namespace Advobot
 
 		public DateTime GetTime()
 		{
-			return mTime;
+			return _Time;
 		}
 	}
 
@@ -2346,21 +2468,21 @@ namespace Advobot
 	{
 		public IEnumerable<IMessage> Messages { get; }
 		public IMessageChannel Channel { get; }
-		private DateTime mTime;
+		private DateTime _Time;
 
-		public RemovableMessage(IEnumerable<IMessage> messages, uint seconds)
+		public RemovableMessage(IEnumerable<IMessage> messages, int seconds)
 		{
 			Messages = messages;
 			Channel = messages.FirstOrDefault().Channel;
-			mTime = DateTime.UtcNow.AddSeconds(seconds);
+			_Time = DateTime.UtcNow.AddSeconds(seconds);
 		}
-		public RemovableMessage(IMessage message, uint seconds) : this(new[] { message }, seconds)
+		public RemovableMessage(IMessage message, int seconds) : this(new[] { message }, seconds)
 		{
 		}
 
 		public DateTime GetTime()
 		{
-			return mTime;
+			return _Time;
 		}
 	}
 	#endregion
@@ -2400,18 +2522,18 @@ namespace Advobot
 	{
 		public ulong UserID { get; }
 		public List<CloseWord<T>> List { get; }
-		private DateTime mTime;
+		private DateTime _Time;
 
 		public ActiveCloseWord(ulong userID, IEnumerable<CloseWord<T>> list)
 		{
 			UserID = userID;
 			List = list.ToList();
-			mTime = DateTime.UtcNow.AddMilliseconds(Constants.SECONDS_ACTIVE_CLOSE);
+			_Time = DateTime.UtcNow.AddMilliseconds(Constants.SECONDS_ACTIVE_CLOSE);
 		}
 
 		public DateTime GetTime()
 		{
-			return mTime;
+			return _Time;
 		}
 	}
 
@@ -2485,16 +2607,16 @@ namespace Advobot
 
 	public struct BasicTimeInterface : ITimeInterface
 	{
-		private DateTime mTime;
+		private DateTime _Time;
 
 		public BasicTimeInterface(DateTime time)
 		{
-			mTime = time.ToUniversalTime();
+			_Time = time.ToUniversalTime();
 		}
 
 		public DateTime GetTime()
 		{
-			return mTime;
+			return _Time;
 		}
 	}
 
@@ -2597,6 +2719,11 @@ namespace Advobot
 	{
 		string Name { get; }
 		string Text { get; }
+	}
+
+	public interface ITimersModule
+	{
+
 	}
 
 	public interface IGuildSettingsModule

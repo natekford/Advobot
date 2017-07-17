@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Timers;
 
 
 namespace Advobot
@@ -33,8 +32,6 @@ namespace Advobot
 				}
 
 				await ClientActions.SetGame(client, botSettings);
-
-				Timers.StartTimers(guildSettingsModule);
 
 				ConsoleActions.WriteLine("The current bot prefix is: " + botSettings.Prefix);
 				ConsoleActions.WriteLine(String.Format("Bot took {0:n} milliseconds to load everything.", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - botSettings.StartupTime.Ticks).TotalMilliseconds));
@@ -2345,11 +2342,11 @@ namespace Advobot
 				return (await channel.GetMessagesAsync(++requestCount).Flatten()).ToList();
 			}
 
-			public static async Task MakeAndDeleteSecondaryMessage(ICommandContext context, string secondStr, uint time = Constants.SECONDS_DEFAULT)
+			public static async Task MakeAndDeleteSecondaryMessage(ICommandContext context, string secondStr, int time = Constants.SECONDS_DEFAULT)
 			{
 				await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, secondStr, time);
 			}
-			public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, uint time = Constants.SECONDS_DEFAULT)
+			public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, int time = Constants.SECONDS_DEFAULT)
 			{
 				var secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
 				var messages = new List<IMessage> { secondMsg, message };
@@ -3575,124 +3572,18 @@ namespace Advobot
 
 		public static class Timers
 		{
-			public static void RemoveCommandMessages(List<IMessage> messages, uint time)
+			public static void RemoveCommandMessages(List<IMessage> messages, int time)
 			{
 				lock (Variables.TimedMessages)
 				{
 					Variables.TimedMessages.Add(new RemovableMessage(messages, time));
 				}
 			}
-			public static void RemoveCommandMessage(IMessage message, uint time)
+			public static void RemoveCommandMessage(IMessage message, int time)
 			{
 				lock (Variables.TimedMessages)
 				{
 					Variables.TimedMessages.Add(new RemovableMessage(message, time));
-				}
-			}
-
-			//TODO: put in module
-			public static void StartTimers(IGuildSettingsModule guildSettingsModule)
-			{
-				const long HOUR = 60 * 60 * 1000;
-				var hourTimer = new Timer(HOUR);
-				hourTimer.Elapsed += (sender, e) => OnHourEvent(sender, e, guildSettingsModule);
-				hourTimer.Enabled = true;
-
-				const long MINUTE = 60 * 1000;
-				var minuteTimer = new Timer(MINUTE);
-				minuteTimer.Elapsed += (sender, e) => OnMinuteEvent(sender, e, guildSettingsModule);
-				minuteTimer.Enabled = true;
-
-				const long ONE_HALF_SECOND = 500;
-				var oneHalfSecondTimer = new Timer(ONE_HALF_SECOND);
-				oneHalfSecondTimer.Elapsed += (sender, e) => OnOneHalfSecondEvent(sender, e, guildSettingsModule);
-				oneHalfSecondTimer.Enabled = true;
-			}
-
-			private static void OnHourEvent(object source, ElapsedEventArgs e, IGuildSettingsModule guildSettingsModule)
-			{
-				ClearPunishedUsersList(guildSettingsModule);
-			}
-			private static void ClearPunishedUsersList(IGuildSettingsModule guildSettingsModule)
-			{
-				foreach (var guildSettings in guildSettingsModule.GetAllSettings())
-				{
-					guildSettings.SpamPreventionUsers.Clear();
-				}
-			}
-
-			private static void OnMinuteEvent(object source, ElapsedEventArgs e, IGuildSettingsModule guildSettingsModule)
-			{
-				Task.Run(async () => { await RemovePunishments(); });
-			}
-			private static async Task RemovePunishments()
-			{
-				foreach (var punishment in Variables.RemovablePunishments.GetOutTimedObjects())
-				{
-					switch (punishment.PunishmentType)
-					{
-						case PunishmentType.Ban:
-						{
-							await punishment.Guild.RemoveBanAsync(punishment.UserID);
-							return;
-						}
-					}
-
-					var guildUser = await punishment.Guild.GetUserAsync(punishment.UserID);
-					if (guildUser == null)
-						return;
-
-					switch (punishment.PunishmentType)
-					{
-						case PunishmentType.Deafen:
-						{
-							await Punishments.AutomaticUndeafenUser(guildUser);
-							return;
-						}
-						case PunishmentType.VoiceMute:
-						{
-							await guildUser.ModifyAsync(x => x.Mute = false);
-							return;
-						}
-						case PunishmentType.RoleMute:
-						{
-							await Roles.TakeRole(guildUser, (punishment as RemovableRoleMute)?.Role);
-							return;
-						}
-					}
-				}
-			}
-
-			private static void OnOneHalfSecondEvent(object source, ElapsedEventArgs e, IGuildSettingsModule guildSettingsModule)
-			{
-				Task.Run(async () => { await DeleteTargettedMessages(); });
-				RemoveActiveCloseHelpAndWords();
-				ResetSlowModeUserMessages();
-			}
-			private static async Task DeleteTargettedMessages()
-			{
-				foreach (var message in Variables.TimedMessages.GetOutTimedObjects())
-				{
-					if (message.Messages.Count() == 1)
-					{
-						await Messages.DeleteMessage(message.Messages.FirstOrDefault());
-					}
-					else
-					{
-						await Messages.DeleteMessages(message.Channel, message.Messages);
-					}
-				}
-			}
-			private static void RemoveActiveCloseHelpAndWords()
-			{
-				Variables.ActiveCloseHelp.GetOutTimedObjects();
-				Variables.ActiveCloseWords.GetOutTimedObjects();
-			}
-			private static void ResetSlowModeUserMessages()
-			{
-				foreach (var slowModeUser in Variables.SlowmodeUsers.GetOutTimedObjects())
-				{
-					slowModeUser.ResetMessagesLeft();
 				}
 			}
 		}

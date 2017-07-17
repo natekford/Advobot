@@ -37,11 +37,12 @@ namespace Advobot
 			//Things that when not loaded fuck the bot completely. These things have to go in this order because I'm a dumdum who made stuff have dependencies.
 			CriticalInformation criticalInfo = SavingAndLoading.LoadCriticalInformation();
 			IBotSettings botSettings = SavingAndLoading.CreateBotSettings(Constants.GLOBAL_SETTINGS_TYPE, criticalInfo.Windows, criticalInfo.Console, criticalInfo.FirstInstance);
-			IGuildSettingsModule guildSettingsModule = new GuildSettingsModule(Constants.GUILDS_SETTINGS_TYPE);
+			IGuildSettingsModule guildSettingsModule = new MyGuildSettingsModule(Constants.GUILDS_SETTINGS_TYPE);
+			ITimersModule timersModule = new MyTimersModule(guildSettingsModule);
 			IDiscordClient client = ClientActions.CreateBotClient(botSettings);
 			ILogModule logModule = new LogModule(client, botSettings, guildSettingsModule);
 
-			var provider = ConfigureServices(client, botSettings, guildSettingsModule, logModule);
+			var provider = ConfigureServices(client, botSettings, guildSettingsModule, timersModule, logModule);
 			await CommandHandler.Install(provider);
 
 			//If not a console application then start the UI
@@ -74,12 +75,13 @@ namespace Advobot
 			}
 		}
 
-		private IServiceProvider ConfigureServices(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ILogModule logModule)
+		private IServiceProvider ConfigureServices(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ITimersModule timersModule, ILogModule logModule)
 		{
 			var serviceCollection = new ServiceCollection();
 			serviceCollection.AddSingleton(client);
 			serviceCollection.AddSingleton(botSettings);
 			serviceCollection.AddSingleton(guildSettingsModule);
+			serviceCollection.AddSingleton(timersModule);
 			serviceCollection.AddSingleton(logModule);
 			serviceCollection.AddSingleton(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, }));
 

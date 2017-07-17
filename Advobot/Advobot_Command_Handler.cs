@@ -15,6 +15,7 @@ namespace Advobot
 		private static IBotSettings BotSettings;
 		private static IGuildSettingsModule GuildSettings;
 		private static IDiscordClient Client;
+		private static ITimersModule Timers;
 		private static ILogModule Logging;
 
 		public static async Task Install(IServiceProvider provider)
@@ -22,15 +23,15 @@ namespace Advobot
 			Provider = provider;
 			Commands = (CommandService)provider.GetService(typeof(CommandService));
 			BotSettings = (IBotSettings)provider.GetService(typeof(IBotSettings));
-			Client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
-			Logging = (ILogModule)provider.GetService(typeof(ILogModule));
 			GuildSettings = (IGuildSettingsModule)provider.GetService(typeof(IGuildSettingsModule));
+			Client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
+			Timers = (ITimersModule)provider.GetService(typeof(ITimersModule));
+			Logging = (ILogModule)provider.GetService(typeof(ILogModule));
 
 			Commands.AddTypeReader(typeof(IInvite), new IInviteTypeReader());
 			Commands.AddTypeReader(typeof(IBan), new IBanTypeReader());
 			Commands.AddTypeReader(typeof(Emote), new IEmoteTypeReader());
 			Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
-			Commands.AddTypeReader(typeof(bool), new BoolTypeReader());
 			await Commands.AddModulesAsync(System.Reflection.Assembly.GetEntryAssembly());
 		}
 

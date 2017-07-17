@@ -29,66 +29,66 @@ namespace Advobot
 		private readonly IDiscordClient Client;
 		private readonly IBotSettings BotSettings;
 		private readonly ILogModule LogModule;
-		private readonly BotUIInfo mUIInfo;
+		private readonly UISettings _UISettings;
 
-		private readonly Grid mLayout = new Grid();
-		private readonly ToolTip mToolTip = new ToolTip { Placement = PlacementMode.Relative };
+		private readonly Grid _Layout = new Grid();
+		private readonly ToolTip _ToolTip = new ToolTip { Placement = PlacementMode.Relative };
 
 		#region Input
-		private readonly Grid mInputLayout = new Grid();
+		private readonly Grid _InputLayout = new Grid();
 		//Max height has to be set here as a large number to a) not get in the way and b) not crash when resized small. I don't want to use a RTB for input.
-		private readonly TextBox mInput = new MyTextBox { TextWrapping = TextWrapping.Wrap, MaxLength = 250, MaxLines = 5, MaxHeight = 1000, };
-		private readonly Button mInputButton = new MyButton { Content = "Enter", IsEnabled = false, };
+		private readonly TextBox _Input = new MyTextBox { TextWrapping = TextWrapping.Wrap, MaxLength = 250, MaxLines = 5, MaxHeight = 1000, };
+		private readonly Button _InputButton = new MyButton { Content = "Enter", IsEnabled = false, };
 		#endregion
 
 		#region Output
-		private readonly MenuItem mOutputContextMenuSearch = new MenuItem { Header = "Search For...", };
-		private readonly MenuItem mOutputContextMenuSave = new MenuItem { Header = "Save Output Log", };
-		private readonly MenuItem mOutputContextMenuClear = new MenuItem { Header = "Clear Output Log", };
-		private readonly MyTextBox mOutput = new MyTextBox
+		private readonly MenuItem _OutputContextMenuSearch = new MenuItem { Header = "Search For...", };
+		private readonly MenuItem _OutputContextMenuSave = new MenuItem { Header = "Save Output Log", };
+		private readonly MenuItem _OutputContextMenuClear = new MenuItem { Header = "Clear Output Log", };
+		private readonly MyTextBox _Output = new MyTextBox
 		{
 			VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
 			TextWrapping = TextWrapping.Wrap,
 			IsReadOnly = true,
 		};
 
-		private readonly Grid mOutputSearchLayout = new Grid { Background = UIModification.MakeBrush("#BF000000"), Visibility = Visibility.Collapsed, };
-		private readonly Grid mOutputSearchTextLayout = new Grid();
-		private readonly TextBox mOutputSearchResults = new MyTextBox { VerticalScrollBarVisibility = ScrollBarVisibility.Visible, IsReadOnly = true, };
-		private readonly ComboBox mOutputSearchComboBox = new MyComboBox { IsEditable = true, };
-		private readonly Button mOutputSearchButton = new MyButton { Content = "Search", };
-		private readonly Button mOutputSearchCloseButton = new MyButton { Content = "Close", };
+		private readonly Grid _OutputSearchLayout = new Grid { Background = UIModification.MakeBrush("#BF000000"), Visibility = Visibility.Collapsed, };
+		private readonly Grid _OutputSearchTextLayout = new Grid();
+		private readonly TextBox _OutputSearchResults = new MyTextBox { VerticalScrollBarVisibility = ScrollBarVisibility.Visible, IsReadOnly = true, };
+		private readonly ComboBox _OutputSearchComboBox = new MyComboBox { IsEditable = true, };
+		private readonly Button _OutputSearchButton = new MyButton { Content = "Search", };
+		private readonly Button _OutputSearchCloseButton = new MyButton { Content = "Close", };
 		#endregion
 
 		#region Buttons
-		private readonly Grid mButtonLayout = new Grid();
-		private readonly Button mMainButton = new MyButton { Content = "Main", Tag = MenuType.Main, };
-		private readonly Button mInfoButton = new MyButton { Content = "Info", Tag = MenuType.Info, };
-		private readonly Button mSettingsButton = new MyButton { Content = "Settings", Tag = MenuType.Settings, };
-		private readonly Button mColorsButton = new MyButton { Content = "Colors", Tag = MenuType.Colors, };
-		private readonly Button mDMButton = new MyButton { Content = "DMs", Tag = MenuType.DMs, };
-		private readonly Button mFileButton = new MyButton { Content = "Files", Tag = MenuType.Files, };
-		private MenuType mLastButtonClicked;
+		private readonly Grid _ButtonLayout = new Grid();
+		private readonly Button _MainButton = new MyButton { Content = "Main", Tag = MenuType.Main, };
+		private readonly Button _InfoButton = new MyButton { Content = "Info", Tag = MenuType.Info, };
+		private readonly Button _SettingsButton = new MyButton { Content = "Settings", Tag = MenuType.Settings, };
+		private readonly Button _ColorsButton = new MyButton { Content = "Colors", Tag = MenuType.Colors, };
+		private readonly Button _DMButton = new MyButton { Content = "DMs", Tag = MenuType.DMs, };
+		private readonly Button _FileButton = new MyButton { Content = "Files", Tag = MenuType.Files, };
+		private MenuType _LastButtonClicked;
 		#endregion
 
 		#region Main Menu
-		private readonly Grid mMainMenuLayout = new Grid { Visibility = Visibility.Collapsed, };
-		private readonly RichTextBox mMainMenuOutput = new MyRichTextBox
+		private readonly Grid _MainMenuLayout = new Grid { Visibility = Visibility.Collapsed, };
+		private readonly RichTextBox _MainMenuOutput = new MyRichTextBox
 		{
 			Document = UIModification.MakeMainMenu(),
 			IsReadOnly = true,
 			IsDocumentEnabled = true,
 		};
-		private readonly Button mDisconnectButton = new MyButton { Content = "Disconnect", };
-		private readonly Button mRestartButton = new MyButton { Content = "Restart", };
-		private readonly Button mPauseButton = new MyButton { Content = "Pause",};
+		private readonly Button _DisconnectButton = new MyButton { Content = "Disconnect", };
+		private readonly Button _RestartButton = new MyButton { Content = "Restart", };
+		private readonly Button _PauseButton = new MyButton { Content = "Pause",};
 		#endregion
 
 		#region Settings Menu
-		private readonly Grid mSettingsLayout = new Grid { Visibility = Visibility.Collapsed, };
-		private readonly Button mSettingsSaveButton = new MyButton { Content = "Save Settings" };
+		private readonly Grid _SettingsLayout = new Grid { Visibility = Visibility.Collapsed, };
+		private readonly Button _SettingsSaveButton = new MyButton { Content = "Save Settings" };
 
-		private readonly SettingInMenu mDownloadUsersSetting = new SettingInMenu
+		private readonly SettingInMenu _DownloadUsersSetting = new SettingInMenu
 		{
 			Setting = new Viewbox
 			{
@@ -102,75 +102,75 @@ namespace Advobot
 			},
 			Title = UIModification.MakeTitle("Download Users:", "This automatically puts users in the bots cache. With it off, many commands will not work since I haven't added in a manual way to download users."),
 		};
-		private readonly SettingInMenu mPrefixSetting = new SettingInMenu
+		private readonly SettingInMenu _PrefixSetting = new SettingInMenu
 		{
 			Setting = UIModification.MakeSetting(SettingOnBot.Prefix, 10),
 			Title = UIModification.MakeTitle("Prefix:", "The prefix which is needed to be said before commands."),
 		};
-		private readonly SettingInMenu mBotOwnerSetting = new SettingInMenu
+		private readonly SettingInMenu _BotOwnerSetting = new SettingInMenu
 		{
 			Setting = UIModification.MakeSetting(SettingOnBot.BotOwnerID, 18),
 			Title = UIModification.MakeTitle("Bot Owner:", "The number here is the ID of a user. The bot owner can use some additional commands."),
 		};
-		private readonly SettingInMenu mGameSetting = new SettingInMenu
+		private readonly SettingInMenu _GameSetting = new SettingInMenu
 		{
 			Setting = UIModification.MakeSetting(SettingOnBot.Game, 100),
 			Title = UIModification.MakeTitle("Game:", "Changes what the bot says it's playing."),
 		};
-		private readonly SettingInMenu mStreamSetting = new SettingInMenu
+		private readonly SettingInMenu _StreamSetting = new SettingInMenu
 		{
 			Setting = UIModification.MakeSetting(SettingOnBot.Stream, 50),
 			Title = UIModification.MakeTitle("Stream:", "Can set whatever stream you want as long as it's a valid Twitch.tv stream."),
 		};
-		private readonly SettingInMenu mShardSetting = new SettingInMenu
+		private readonly SettingInMenu _ShardSetting = new SettingInMenu
 		{
 			Setting = UIModification.MakeSetting(SettingOnBot.ShardCount, 3),
 			Title = UIModification.MakeTitle("Shard Count:", "Each shard can hold up to 2500 guilds."),
 		};
-		private readonly SettingInMenu mMessageCacheSetting = new SettingInMenu
+		private readonly SettingInMenu _MessageCacheSetting = new SettingInMenu
 		{
 			Setting = UIModification.MakeSetting(SettingOnBot.MessageCacheCount, 6),
 			Title = UIModification.MakeTitle("Message Cache:", "The amount of messages the bot will hold in its cache."),
 		};
-		private readonly SettingInMenu mUserGatherCountSetting = new SettingInMenu
+		private readonly SettingInMenu _UserGatherCountSetting = new SettingInMenu
 		{
 			Setting = UIModification.MakeSetting(SettingOnBot.MaxUserGatherCount, 5),
 			Title = UIModification.MakeTitle("Max User Gather:", "Limits the amount of users a command can modify at once."),
 		};
-		private readonly SettingInMenu mMessageGatherSizeSetting = new SettingInMenu
+		private readonly SettingInMenu _MessageGatherSizeSetting = new SettingInMenu
 		{
 			Setting = UIModification.MakeSetting(SettingOnBot.MaxMessageGatherSize, 7),
 			Title = UIModification.MakeTitle("Max Msg Gather:", "This is in bytes, which to be very basic is roughly two bytes per character."),
 		};
-		private readonly SettingInMenu mLogLevelComboBox = new SettingInMenu
+		private readonly SettingInMenu _LogLevelComboBox = new SettingInMenu
 		{
 			Setting = new MyComboBox { ItemsSource = UIModification.MakeComboBoxSourceOutOfEnum(typeof(Discord.LogSeverity)), Tag = SettingOnBot.LogLevel, },
 			Title = UIModification.MakeTitle("Log Level:", "Certain events in the Discord library used in this bot have a required log level to be said in the console."),
 		};
-		private readonly SettingInMenu mTrustedUsersAdd = new SettingInMenu
+		private readonly SettingInMenu _TrustedUsersAdd = new SettingInMenu
 		{
 			Setting = new Grid() { Tag = SettingOnBot.TrustedUsers, },
 			Title = UIModification.MakeTitle("Trusted Users:", "Some commands can only be run by the bot owner or user IDs that they have designated as trust worthy."),
 		};
-		private readonly TextBox mTrustedUsersAddBox = UIModification.MakeSetting(SettingOnBot.TrustedUsers, 18);
-		private readonly Button mTrustedUsersAddButton = new MyButton { Content = "+", };
-		private readonly SettingInMenu mTrustedUsersRemove = new SettingInMenu
+		private readonly TextBox _TrustedUsersAddBox = UIModification.MakeSetting(SettingOnBot.TrustedUsers, 18);
+		private readonly Button _TrustedUsersAddButton = new MyButton { Content = "+", };
+		private readonly SettingInMenu _TrustedUsersRemove = new SettingInMenu
 		{
 			Setting = new Grid() { Tag = SettingOnBot.TrustedUsers, },
 			Title = UIModification.MakeTitle("", ""),
 		};
-		private readonly ComboBox mTrustedUsersComboBox = new MyComboBox { Tag = SettingOnBot.TrustedUsers, };
-		private readonly Button mTrustedUsersRemoveButton = new MyButton { Content = "-", };
+		private readonly ComboBox _TrustedUsersComboBox = new MyComboBox { Tag = SettingOnBot.TrustedUsers, };
+		private readonly Button _TrustedUsersRemoveButton = new MyButton { Content = "-", };
 		#endregion
 
 		#region Colors Menu
-		private readonly Grid mColorsLayout = new Grid { Visibility = Visibility.Collapsed, };
-		private readonly Button mColorsSaveButton = new MyButton { Content = "Save Colors", };
+		private readonly Grid _ColorsLayout = new Grid { Visibility = Visibility.Collapsed, };
+		private readonly Button _ColorsSaveButton = new MyButton { Content = "Save Colors", };
 		#endregion
 
 		#region Info Menu
-		private readonly Grid mInfoLayout = new Grid { Visibility = Visibility.Collapsed, };
-		private readonly RichTextBox mInfoOutput = new MyRichTextBox
+		private readonly Grid _InfoLayout = new Grid { Visibility = Visibility.Collapsed, };
+		private readonly RichTextBox _InfoOutput = new MyRichTextBox
 		{
 			BorderThickness = new Thickness(0, 1, 0, 1),
 			IsReadOnly = true,
@@ -179,14 +179,14 @@ namespace Advobot
 		#endregion
 
 		#region Guild Menu
-		private readonly Grid mFileLayout = new Grid { Visibility = Visibility.Collapsed, };
-		private readonly RichTextBox mFileOutput = new MyRichTextBox { IsReadOnly = true, IsDocumentEnabled = true, };
-		private readonly TreeView mFileTreeView = new TreeView();
-		private readonly Button mFileSearchButton = new MyButton { Content = "Search Guilds", };
+		private readonly Grid _FileLayout = new Grid { Visibility = Visibility.Collapsed, };
+		private readonly RichTextBox _FileOutput = new MyRichTextBox { IsReadOnly = true, IsDocumentEnabled = true, };
+		private readonly TreeView _FileTreeView = new TreeView();
+		private readonly Button _FileSearchButton = new MyButton { Content = "Search Guilds", };
 
-		private readonly Grid mSpecificFileLayout = new Grid { Visibility = Visibility.Collapsed, };
-		private readonly MenuItem mSpecificFileContextMenuSave = new MenuItem { Header = "Save File", };
-		private readonly TextEditor mSpecificFileDisplay = new TextEditor
+		private readonly Grid _SpecificFileLayout = new Grid { Visibility = Visibility.Collapsed, };
+		private readonly MenuItem _SpecificFileContextMenuSave = new MenuItem { Header = "Save File", };
+		private readonly TextEditor _SpecificFileDisplay = new TextEditor
 		{
 			Background = null,
 			Foreground = null,
@@ -195,27 +195,27 @@ namespace Advobot
 			WordWrap = true,
 			ShowLineNumbers = true,
 		};
-		private readonly Button mSpecificFileCloseButton = new MyButton { Content = "Close Menu", };
+		private readonly Button _SpecificFileCloseButton = new MyButton { Content = "Close Menu", };
 
-		private readonly Grid mGuildSearchLayout = new Grid { Background = UIModification.MakeBrush("#BF000000"), Visibility = Visibility.Collapsed };
-		private readonly Grid mGuildSearchTextLayout = new Grid();
-		private readonly Viewbox mGuildSearchNameHeader = UIModification.MakeStandardViewBox("Guild Name:");
-		private readonly TextBox mGuildSearchNameInput = new MyTextBox { MaxLength = 100, };
-		private readonly Viewbox mGuildSearchIDHeader = UIModification.MakeStandardViewBox("ID:");
-		private readonly TextBox mGuildSearchIDInput = new MyNumberBox { MaxLength = 18, };
-		private readonly ComboBox mGuildSearchFileComboBox = new MyComboBox { ItemsSource = UIModification.MakeComboBoxSourceOutOfEnum(typeof(FileType)), };
-		private readonly Button mGuildSearchSearchButton = new MyButton { Content = "Search", };
-		private readonly Button mGuildSearchCloseButton = new MyButton { Content = "Close", };
+		private readonly Grid _GuildSearchLayout = new Grid { Background = UIModification.MakeBrush("#BF000000"), Visibility = Visibility.Collapsed };
+		private readonly Grid _GuildSearchTextLayout = new Grid();
+		private readonly Viewbox _GuildSearchNameHeader = UIModification.MakeStandardViewBox("Guild Name:");
+		private readonly TextBox _GuildSearchNameInput = new MyTextBox { MaxLength = 100, };
+		private readonly Viewbox _GuildSearchIDHeader = UIModification.MakeStandardViewBox("ID:");
+		private readonly TextBox _GuildSearchIDInput = new MyNumberBox { MaxLength = 18, };
+		private readonly ComboBox _GuildSearchFileComboBox = new MyComboBox { ItemsSource = UIModification.MakeComboBoxSourceOutOfEnum(typeof(FileType)), };
+		private readonly Button _GuildSearchSearchButton = new MyButton { Content = "Search", };
+		private readonly Button _GuildSearchCloseButton = new MyButton { Content = "Close", };
 		#endregion
 
 		#region DM Menu
-		private readonly Grid mDMLayout = new Grid { Visibility = Visibility.Collapsed, };
-		private readonly RichTextBox mDMOutput = new MyRichTextBox { IsReadOnly = true, IsDocumentEnabled = true, };
-		private readonly TreeView mDMTreeView = new TreeView();
-		private readonly Button mDMSearchButton = new MyButton { Content = "Search DMs", };
+		private readonly Grid _DMLayout = new Grid { Visibility = Visibility.Collapsed, };
+		private readonly RichTextBox _DMOutput = new MyRichTextBox { IsReadOnly = true, IsDocumentEnabled = true, };
+		private readonly TreeView _DMTreeView = new TreeView();
+		private readonly Button _DMSearchButton = new MyButton { Content = "Search DMs", };
 
-		private readonly Grid mSpecificDMLayout = new Grid { Visibility = Visibility.Collapsed, };
-		private readonly TextEditor mSpecificDMDisplay = new TextEditor
+		private readonly Grid _SpecificDMLayout = new Grid { Visibility = Visibility.Collapsed, };
+		private readonly TextEditor _SpecificDMDisplay = new TextEditor
 		{
 			Background = null,
 			Foreground = null,
@@ -225,29 +225,29 @@ namespace Advobot
 			ShowLineNumbers = true,
 			IsReadOnly = true,
 		};
-		private readonly Button mSpecificDMCloseButton = new MyButton { Content = "Close Menu", };
+		private readonly Button _SpecificDMCloseButton = new MyButton { Content = "Close Menu", };
 
-		private readonly Grid mDMSearchLayout = new Grid { Background = UIModification.MakeBrush("#BF000000"), Visibility = Visibility.Collapsed };
-		private readonly Grid mDMSearchTextLayout = new Grid();
-		private readonly Viewbox mDMSearchNameHeader = UIModification.MakeStandardViewBox("Username:");
-		private readonly TextBox mDMSearchNameInput = new MyTextBox { MaxLength = 32, };
-		private readonly Viewbox mDMSearchDiscHeader = UIModification.MakeStandardViewBox("Disc:");
-		private readonly TextBox mDMSearchDiscInput = new MyNumberBox { MaxLength = 4, };
-		private readonly Viewbox mDMSearchIDHeader = UIModification.MakeStandardViewBox("ID:");
-		private readonly TextBox mDMSearchIDInput = new MyNumberBox { MaxLength = 18, };
-		private readonly Button mDMSearchSearchButton = new MyButton { Content = "Search", };
-		private readonly Button mDMSearchCloseButton = new MyButton { Content = "Close", };
+		private readonly Grid _DMSearchLayout = new Grid { Background = UIModification.MakeBrush("#BF000000"), Visibility = Visibility.Collapsed };
+		private readonly Grid _DMSearchTextLayout = new Grid();
+		private readonly Viewbox _DMSearchNameHeader = UIModification.MakeStandardViewBox("Username:");
+		private readonly TextBox _DMSearchNameInput = new MyTextBox { MaxLength = 32, };
+		private readonly Viewbox _DMSearchDiscHeader = UIModification.MakeStandardViewBox("Disc:");
+		private readonly TextBox _DMSearchDiscInput = new MyNumberBox { MaxLength = 4, };
+		private readonly Viewbox _DMSearchIDHeader = UIModification.MakeStandardViewBox("ID:");
+		private readonly TextBox _DMSearchIDInput = new MyNumberBox { MaxLength = 18, };
+		private readonly Button _DMSearchSearchButton = new MyButton { Content = "Search", };
+		private readonly Button _DMSearchCloseButton = new MyButton { Content = "Close", };
 		#endregion
 
 		#region System Info
-		private readonly Grid mSysInfoLayout = new Grid();
-		private readonly TextBox mSysInfoUnder = new MyTextBox { IsReadOnly = true, };
-		private readonly Viewbox mLatency = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
-		private readonly Viewbox mMemory = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
-		private readonly Viewbox mThreads = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
-		private readonly Viewbox mGuilds = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
-		private readonly Viewbox mUsers = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
-		private readonly ToolTip mMemHoverInfo = new ToolTip { Content = "This is not guaranteed to be 100% correct.", };
+		private readonly Grid _SysInfoLayout = new Grid();
+		private readonly TextBox _SysInfoUnder = new MyTextBox { IsReadOnly = true, };
+		private readonly Viewbox _Latency = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
+		private readonly Viewbox _Memory = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
+		private readonly Viewbox _Threads = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
+		private readonly Viewbox _Guilds = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
+		private readonly Viewbox _Users = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
+		private readonly ToolTip _MemHoverInfo = new ToolTip { Content = "This is not guaranteed to be 100% correct.", };
 		#endregion
 
 		public BotWindow(IDiscordClient client, IBotSettings botSettings, ILogModule logModule)
@@ -255,7 +255,7 @@ namespace Advobot
 			Client = client;
 			BotSettings = botSettings;
 			LogModule = logModule;
-			mUIInfo = BotUIInfo.LoadBotUIInfo(BotSettings.Loaded);
+			_UISettings = UISettings.LoadUISettings(BotSettings.Loaded);
 
 			FontFamily = new FontFamily("Courier New");
 			InitializeComponents();
@@ -264,68 +264,68 @@ namespace Advobot
 		private void InitializeComponents()  
 		{
 			//Main layout
-			UIModification.AddRows(mLayout, 100);
-			UIModification.AddCols(mLayout, 4);
+			UIModification.AddRows(_Layout, 100);
+			UIModification.AddCols(_Layout, 4);
 
 			//Output
-			UIModification.AddElement(mLayout, mOutput, 0, 87, 0, 4);
+			UIModification.AddElement(_Layout, _Output, 0, 87, 0, 4);
 
 			//System Info
-			UIModification.AddElement(mLayout, mSysInfoLayout, 87, 3, 0, 3, 0, 5);
-			UIModification.AddElement(mSysInfoLayout, mSysInfoUnder, 0, 1, 0, 5);
-			UIModification.AddElement(mSysInfoLayout, mLatency, 0, 1, 0, 1);
-			UIModification.AddElement(mSysInfoLayout, mMemory, 0, 1, 1, 1);
-			UIModification.AddElement(mSysInfoLayout, mThreads, 0, 1, 2, 1);
-			UIModification.AddElement(mSysInfoLayout, mGuilds, 0, 1, 3, 1);
-			UIModification.AddElement(mSysInfoLayout, mUsers, 0, 1, 4, 1);
+			UIModification.AddElement(_Layout, _SysInfoLayout, 87, 3, 0, 3, 0, 5);
+			UIModification.AddElement(_SysInfoLayout, _SysInfoUnder, 0, 1, 0, 5);
+			UIModification.AddElement(_SysInfoLayout, _Latency, 0, 1, 0, 1);
+			UIModification.AddElement(_SysInfoLayout, _Memory, 0, 1, 1, 1);
+			UIModification.AddElement(_SysInfoLayout, _Threads, 0, 1, 2, 1);
+			UIModification.AddElement(_SysInfoLayout, _Guilds, 0, 1, 3, 1);
+			UIModification.AddElement(_SysInfoLayout, _Users, 0, 1, 4, 1);
 
 			//Input
-			UIModification.AddElement(mLayout, mInputLayout, 90, 10, 0, 3, 1, 10);
-			UIModification.AddElement(mInputLayout, mInput, 0, 1, 0, 9);
-			UIModification.AddElement(mInputLayout, mInputButton, 0, 1, 9, 1);
+			UIModification.AddElement(_Layout, _InputLayout, 90, 10, 0, 3, 1, 10);
+			UIModification.AddElement(_InputLayout, _Input, 0, 1, 0, 9);
+			UIModification.AddElement(_InputLayout, _InputButton, 0, 1, 9, 1);
 
 			//Buttons
-			UIModification.AddElement(mLayout, mButtonLayout, 87, 13, 3, 1, 2, 5);
-			UIModification.AddElement(mButtonLayout, mMainButton, 0, 2, 0, 1);
-			UIModification.AddElement(mButtonLayout, mInfoButton, 0, 2, 1, 1);
-			UIModification.AddElement(mButtonLayout, mSettingsButton, 0, 1, 2, 1);
-			UIModification.AddElement(mButtonLayout, mColorsButton, 1, 1, 2, 1);
-			UIModification.AddElement(mButtonLayout, mDMButton, 0, 2, 3, 1);
-			UIModification.AddElement(mButtonLayout, mFileButton, 0, 2, 4, 1);
+			UIModification.AddElement(_Layout, _ButtonLayout, 87, 13, 3, 1, 2, 5);
+			UIModification.AddElement(_ButtonLayout, _MainButton, 0, 2, 0, 1);
+			UIModification.AddElement(_ButtonLayout, _InfoButton, 0, 2, 1, 1);
+			UIModification.AddElement(_ButtonLayout, _SettingsButton, 0, 1, 2, 1);
+			UIModification.AddElement(_ButtonLayout, _ColorsButton, 1, 1, 2, 1);
+			UIModification.AddElement(_ButtonLayout, _DMButton, 0, 2, 3, 1);
+			UIModification.AddElement(_ButtonLayout, _FileButton, 0, 2, 4, 1);
 
 			//Main menu
-			UIModification.AddElement(mLayout, mMainMenuLayout, 0, 87, 3, 1, 100, 3);
-			UIModification.AddElement(mMainMenuLayout, mMainMenuOutput, 0, 95, 0, 3);
-			UIModification.AddElement(mMainMenuLayout, mPauseButton, 95, 5, 0, 1);
-			UIModification.AddElement(mMainMenuLayout, mRestartButton, 95, 5, 1, 1);
-			UIModification.AddElement(mMainMenuLayout, mDisconnectButton, 95, 5, 2, 1);
+			UIModification.AddElement(_Layout, _MainMenuLayout, 0, 87, 3, 1, 100, 3);
+			UIModification.AddElement(_MainMenuLayout, _MainMenuOutput, 0, 95, 0, 3);
+			UIModification.AddElement(_MainMenuLayout, _PauseButton, 95, 5, 0, 1);
+			UIModification.AddElement(_MainMenuLayout, _RestartButton, 95, 5, 1, 1);
+			UIModification.AddElement(_MainMenuLayout, _DisconnectButton, 95, 5, 2, 1);
 
 			//Settings menu
-			UIModification.AddElement(mLayout, mSettingsLayout, 0, 87, 3, 1, 100, 100);
-			UIModification.AddPlaceHolderTB(mSettingsLayout, 0, 100, 0, 100);
-			UIModification.AddCols((Grid)mTrustedUsersAdd.Setting, 10);
-			UIModification.AddElement((Grid)mTrustedUsersAdd.Setting, mTrustedUsersAddBox, 0, 1, 0, 9);
-			UIModification.AddElement((Grid)mTrustedUsersAdd.Setting, mTrustedUsersAddButton, 0, 1, 9, 1);
-			UIModification.AddCols((Grid)mTrustedUsersRemove.Setting, 10);
-			UIModification.AddElement((Grid)mTrustedUsersRemove.Setting, mTrustedUsersComboBox, 0, 1, 0, 9);
-			UIModification.AddElement((Grid)mTrustedUsersRemove.Setting, mTrustedUsersRemoveButton, 0, 1, 9, 1);
-			UIModification.AddElement(mSettingsLayout, mSettingsSaveButton, 95, 5, 0, 100);
-			var mSettings = new[]
+			UIModification.AddElement(_Layout, _SettingsLayout, 0, 87, 3, 1, 100, 100);
+			UIModification.AddPlaceHolderTB(_SettingsLayout, 0, 100, 0, 100);
+			UIModification.AddCols((Grid)_TrustedUsersAdd.Setting, 10);
+			UIModification.AddElement((Grid)_TrustedUsersAdd.Setting, _TrustedUsersAddBox, 0, 1, 0, 9);
+			UIModification.AddElement((Grid)_TrustedUsersAdd.Setting, _TrustedUsersAddButton, 0, 1, 9, 1);
+			UIModification.AddCols((Grid)_TrustedUsersRemove.Setting, 10);
+			UIModification.AddElement((Grid)_TrustedUsersRemove.Setting, _TrustedUsersComboBox, 0, 1, 0, 9);
+			UIModification.AddElement((Grid)_TrustedUsersRemove.Setting, _TrustedUsersRemoveButton, 0, 1, 9, 1);
+			UIModification.AddElement(_SettingsLayout, _SettingsSaveButton, 95, 5, 0, 100);
+			var _Settings = new[]
 			{
-				mDownloadUsersSetting,
-				mPrefixSetting,
-				mBotOwnerSetting,
-				mGameSetting,
-				mStreamSetting,
-				mShardSetting,
-				mMessageCacheSetting,
-				mUserGatherCountSetting,
-				mMessageGatherSizeSetting,
-				mLogLevelComboBox,
-				mTrustedUsersAdd, 
-				mTrustedUsersRemove,
+				_DownloadUsersSetting,
+				_PrefixSetting,
+				_BotOwnerSetting,
+				_GameSetting,
+				_StreamSetting,
+				_ShardSetting,
+				_MessageCacheSetting,
+				_UserGatherCountSetting,
+				_MessageGatherSizeSetting,
+				_LogLevelComboBox,
+				_TrustedUsersAdd, 
+				_TrustedUsersRemove,
 			};
-			for (int i = 0; i < mSettings.Length; ++i)
+			for (int i = 0; i < _Settings.Length; ++i)
 			{
 				const int TITLE_START_COLUMN = 5;
 				const int TITLE_COLUMN_LENGTH = 35;
@@ -333,86 +333,86 @@ namespace Advobot
 				const int SETTING_COLUMN_LENGTH = 55;
 				const int LENGTH_FOR_SETTINGS = 4;
 
-				UIModification.AddElement(mSettingsLayout, mSettings[i].Title, (i * LENGTH_FOR_SETTINGS), LENGTH_FOR_SETTINGS, TITLE_START_COLUMN, TITLE_COLUMN_LENGTH);
-				UIModification.AddElement(mSettingsLayout, mSettings[i].Setting, (i * LENGTH_FOR_SETTINGS), LENGTH_FOR_SETTINGS, SETTING_START_COLUMN, SETTING_COLUMN_LENGTH);
+				UIModification.AddElement(_SettingsLayout, _Settings[i].Title, (i * LENGTH_FOR_SETTINGS), LENGTH_FOR_SETTINGS, TITLE_START_COLUMN, TITLE_COLUMN_LENGTH);
+				UIModification.AddElement(_SettingsLayout, _Settings[i].Setting, (i * LENGTH_FOR_SETTINGS), LENGTH_FOR_SETTINGS, SETTING_START_COLUMN, SETTING_COLUMN_LENGTH);
 			}
 
 			//Colors menu
-			UIModification.AddElement(mLayout, mColorsLayout, 0, 87, 3, 1, 100, 100);
+			UIModification.AddElement(_Layout, _ColorsLayout, 0, 87, 3, 1, 100, 100);
 
 			//Info menu
-			UIModification.AddElement(mLayout, mInfoLayout, 0, 87, 3, 1, 1, 10);
-			UIModification.AddPlaceHolderTB(mInfoLayout, 0, 1, 0, 10);
-			UIModification.AddElement(mInfoLayout, mInfoOutput, 0, 1, 1, 8);
+			UIModification.AddElement(_Layout, _InfoLayout, 0, 87, 3, 1, 1, 10);
+			UIModification.AddPlaceHolderTB(_InfoLayout, 0, 1, 0, 10);
+			UIModification.AddElement(_InfoLayout, _InfoOutput, 0, 1, 1, 8);
 
 			//File menu
-			UIModification.AddElement(mLayout, mFileLayout, 0, 87, 3, 1, 100, 1);
-			UIModification.AddElement(mFileLayout, mFileOutput, 0, 95, 0, 1);
-			UIModification.AddElement(mFileLayout, mFileSearchButton, 95, 5, 0, 1);
-			UIModification.AddElement(mLayout, mSpecificFileLayout, 0, 100, 0, 4, 100, 4);
-			UIModification.AddElement(mSpecificFileLayout, mSpecificFileDisplay, 0, 100, 0, 3);
-			UIModification.AddElement(mSpecificFileLayout, mSpecificFileCloseButton, 95, 5, 3, 1);
+			UIModification.AddElement(_Layout, _FileLayout, 0, 87, 3, 1, 100, 1);
+			UIModification.AddElement(_FileLayout, _FileOutput, 0, 95, 0, 1);
+			UIModification.AddElement(_FileLayout, _FileSearchButton, 95, 5, 0, 1);
+			UIModification.AddElement(_Layout, _SpecificFileLayout, 0, 100, 0, 4, 100, 4);
+			UIModification.AddElement(_SpecificFileLayout, _SpecificFileDisplay, 0, 100, 0, 3);
+			UIModification.AddElement(_SpecificFileLayout, _SpecificFileCloseButton, 95, 5, 3, 1);
 
 			//DM menu
-			UIModification.AddElement(mLayout, mDMLayout, 0, 87, 3, 1, 100, 1);
-			UIModification.AddElement(mDMLayout, mDMOutput, 0, 95, 0, 1);
-			UIModification.AddElement(mDMLayout, mDMSearchButton, 95, 5, 0, 1);
-			UIModification.AddElement(mLayout, mSpecificDMLayout, 0, 100, 0, 4, 100, 4);
-			UIModification.AddElement(mSpecificDMLayout, mSpecificDMDisplay, 0, 100, 0, 3);
-			UIModification.AddElement(mSpecificDMLayout, mSpecificDMCloseButton, 95, 5, 3, 1);
+			UIModification.AddElement(_Layout, _DMLayout, 0, 87, 3, 1, 100, 1);
+			UIModification.AddElement(_DMLayout, _DMOutput, 0, 95, 0, 1);
+			UIModification.AddElement(_DMLayout, _DMSearchButton, 95, 5, 0, 1);
+			UIModification.AddElement(_Layout, _SpecificDMLayout, 0, 100, 0, 4, 100, 4);
+			UIModification.AddElement(_SpecificDMLayout, _SpecificDMDisplay, 0, 100, 0, 3);
+			UIModification.AddElement(_SpecificDMLayout, _SpecificDMCloseButton, 95, 5, 3, 1);
 
 			//Guild search
-			UIModification.AddElement(mLayout, mGuildSearchLayout, 0, 100, 0, 4, 10, 10);
-			UIModification.AddElement(mGuildSearchLayout, mGuildSearchTextLayout, 3, 4, 3, 4, 100, 100);
-			UIModification.PutInBGWithMouseUpEvent(mGuildSearchLayout, mGuildSearchTextLayout, null, CloseFileSearch);
-			UIModification.AddPlaceHolderTB(mGuildSearchTextLayout, 0, 100, 0, 100);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchNameHeader, 10, 10, 15, 70);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchNameInput, 20, 21, 15, 70);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchIDHeader, 41, 10, 15, 70);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchIDInput, 51, 10, 15, 70);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchFileComboBox, 63, 10, 20, 60);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchSearchButton, 75, 15, 20, 25);
-			UIModification.AddElement(mGuildSearchTextLayout, mGuildSearchCloseButton, 75, 15, 55, 25);
+			UIModification.AddElement(_Layout, _GuildSearchLayout, 0, 100, 0, 4, 10, 10);
+			UIModification.AddElement(_GuildSearchLayout, _GuildSearchTextLayout, 3, 4, 3, 4, 100, 100);
+			UIModification.PutInBGWithMouseUpEvent(_GuildSearchLayout, _GuildSearchTextLayout, null, CloseFileSearch);
+			UIModification.AddPlaceHolderTB(_GuildSearchTextLayout, 0, 100, 0, 100);
+			UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchNameHeader, 10, 10, 15, 70);
+			UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchNameInput, 20, 21, 15, 70);
+			UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchIDHeader, 41, 10, 15, 70);
+			UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchIDInput, 51, 10, 15, 70);
+			UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchFileComboBox, 63, 10, 20, 60);
+			UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchSearchButton, 75, 15, 20, 25);
+			UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchCloseButton, 75, 15, 55, 25);
 
 			//Output search
-			UIModification.AddElement(mLayout, mOutputSearchLayout, 0, 100, 0, 4, 10, 10);
-			UIModification.AddElement(mOutputSearchLayout, mOutputSearchTextLayout, 1, 8, 1, 8, 100, 100);
-			UIModification.PutInBGWithMouseUpEvent(mOutputSearchLayout, mOutputSearchTextLayout, null, CloseOutputSearch);
-			UIModification.AddPlaceHolderTB(mOutputSearchTextLayout, 90, 10, 0, 100);
-			UIModification.AddElement(mOutputSearchTextLayout, mOutputSearchResults, 0, 90, 0, 100);
-			UIModification.AddElement(mOutputSearchTextLayout, mOutputSearchComboBox, 92, 6, 2, 30);
-			UIModification.AddElement(mOutputSearchTextLayout, mOutputSearchButton, 92, 6, 66, 15);
-			UIModification.AddElement(mOutputSearchTextLayout, mOutputSearchCloseButton, 92, 6, 83, 15);
+			UIModification.AddElement(_Layout, _OutputSearchLayout, 0, 100, 0, 4, 10, 10);
+			UIModification.AddElement(_OutputSearchLayout, _OutputSearchTextLayout, 1, 8, 1, 8, 100, 100);
+			UIModification.PutInBGWithMouseUpEvent(_OutputSearchLayout, _OutputSearchTextLayout, null, CloseOutputSearch);
+			UIModification.AddPlaceHolderTB(_OutputSearchTextLayout, 90, 10, 0, 100);
+			UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchResults, 0, 90, 0, 100);
+			UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchComboBox, 92, 6, 2, 30);
+			UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchButton, 92, 6, 66, 15);
+			UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchCloseButton, 92, 6, 83, 15);
 
 			//DM search
-			UIModification.AddElement(mLayout, mDMSearchLayout, 0, 100, 0, 4, 10, 10);
-			UIModification.AddElement(mDMSearchLayout, mDMSearchTextLayout, 3, 4, 3, 4, 72, 100);
-			UIModification.PutInBGWithMouseUpEvent(mDMSearchLayout, mDMSearchTextLayout, null, CloseDMSearch);
-			UIModification.AddPlaceHolderTB(mDMSearchTextLayout, 0, 100, 0, 100);
-			UIModification.AddElement(mDMSearchTextLayout, mDMSearchNameHeader, 10, 10, 15, 50);
-			UIModification.AddElement(mDMSearchTextLayout, mDMSearchNameInput, 20, 10, 15, 50);
-			UIModification.AddElement(mDMSearchTextLayout, mDMSearchDiscHeader, 10, 10, 65, 20);
-			UIModification.AddElement(mDMSearchTextLayout, mDMSearchDiscInput, 20, 10, 65, 20);
-			UIModification.AddElement(mDMSearchTextLayout, mDMSearchIDHeader, 30, 10, 15, 70);
-			UIModification.AddElement(mDMSearchTextLayout, mDMSearchIDInput, 40, 10, 15, 70);
-			UIModification.AddElement(mDMSearchTextLayout, mDMSearchSearchButton, 52, 10, 20, 25);
-			UIModification.AddElement(mDMSearchTextLayout, mDMSearchCloseButton, 52, 10, 55, 25);
+			UIModification.AddElement(_Layout, _DMSearchLayout, 0, 100, 0, 4, 10, 10);
+			UIModification.AddElement(_DMSearchLayout, _DMSearchTextLayout, 3, 4, 3, 4, 72, 100);
+			UIModification.PutInBGWithMouseUpEvent(_DMSearchLayout, _DMSearchTextLayout, null, CloseDMSearch);
+			UIModification.AddPlaceHolderTB(_DMSearchTextLayout, 0, 100, 0, 100);
+			UIModification.AddElement(_DMSearchTextLayout, _DMSearchNameHeader, 10, 10, 15, 50);
+			UIModification.AddElement(_DMSearchTextLayout, _DMSearchNameInput, 20, 10, 15, 50);
+			UIModification.AddElement(_DMSearchTextLayout, _DMSearchDiscHeader, 10, 10, 65, 20);
+			UIModification.AddElement(_DMSearchTextLayout, _DMSearchDiscInput, 20, 10, 65, 20);
+			UIModification.AddElement(_DMSearchTextLayout, _DMSearchIDHeader, 30, 10, 15, 70);
+			UIModification.AddElement(_DMSearchTextLayout, _DMSearchIDInput, 40, 10, 15, 70);
+			UIModification.AddElement(_DMSearchTextLayout, _DMSearchSearchButton, 52, 10, 20, 25);
+			UIModification.AddElement(_DMSearchTextLayout, _DMSearchCloseButton, 52, 10, 55, 25);
 
 			//Font size properties
-			UIModification.SetFontSizeProperties(.275, new UIElement[] { mInput, });
-			UIModification.SetFontSizeProperties(.060, new UIElement[] { mGuildSearchNameInput, mGuildSearchIDInput, mDMSearchNameInput, mDMSearchDiscInput, mDMSearchIDInput });
-			UIModification.SetFontSizeProperties(.035, new UIElement[] { mInfoOutput, });
-			UIModification.SetFontSizeProperties(.022, new UIElement[] { mSpecificFileDisplay, mFileOutput, mOutputSearchComboBox, mDMOutput });
-			UIModification.SetFontSizeProperties(.018, new UIElement[] { mMainMenuOutput, }, mSettings.Select(x => x.Title), mSettings.Select(x => x.Setting));
+			UIModification.SetFontSizeProperties(.275, new UIElement[] { _Input, });
+			UIModification.SetFontSizeProperties(.060, new UIElement[] { _GuildSearchNameInput, _GuildSearchIDInput, _DMSearchNameInput, _DMSearchDiscInput, _DMSearchIDInput });
+			UIModification.SetFontSizeProperties(.035, new UIElement[] { _InfoOutput, });
+			UIModification.SetFontSizeProperties(.022, new UIElement[] { _SpecificFileDisplay, _FileOutput, _OutputSearchComboBox, _DMOutput });
+			UIModification.SetFontSizeProperties(.018, new UIElement[] { _MainMenuOutput, }, _Settings.Select(x => x.Title), _Settings.Select(x => x.Setting));
 
 			//Context menus
-			mOutput.ContextMenu = new ContextMenu
+			_Output.ContextMenu = new ContextMenu
 			{
-				ItemsSource = new[] { mOutputContextMenuSearch, mOutputContextMenuSave, mOutputContextMenuClear },
+				ItemsSource = new[] { _OutputContextMenuSearch, _OutputContextMenuSave, _OutputContextMenuClear },
 			};
-			mSpecificFileDisplay.ContextMenu = new ContextMenu
+			_SpecificFileDisplay.ContextMenu = new ContextMenu
 			{
-				ItemsSource = new[] { mSpecificFileContextMenuSave },
+				ItemsSource = new[] { _SpecificFileContextMenuSave },
 			};
 
 			MakeInputEvents();
@@ -423,14 +423,14 @@ namespace Advobot
 			MakeOtherEvents();
 
 			//Set this panel as the content for this window and run the application
-			this.Content = mLayout;
+			this.Content = _Layout;
 			this.WindowState = WindowState.Maximized;
 		}
 
 		private void RunApplication(object sender, RoutedEventArgs e)
 		{
 			//Make console output show on the output text block and box
-			Console.SetOut(new UITextBoxStreamWriter(mOutput));
+			Console.SetOut(new UITextBoxStreamWriter(_Output));
 
 			Task.Run(async () =>
 			{
@@ -445,25 +445,25 @@ namespace Advobot
 				await ClientActions.MaybeStartBot(Client, BotSettings);
 			});
 
-			mUIInfo.InitializeColors();
-			mUIInfo.ActivateTheme();
-			UIModification.SetColorMode(mLayout);
+			_UISettings.InitializeColors();
+			_UISettings.ActivateTheme();
+			UIModification.SetColorMode(_Layout);
 			UpdateSystemInformation();
 		}
 
 		private void MakeOtherEvents()
 		{
-			mPauseButton.Click += Pause;
-			mRestartButton.Click += Restart;
-			mDisconnectButton.Click += Disconnect;
+			_PauseButton.Click += Pause;
+			_RestartButton.Click += Restart;
+			_DisconnectButton.Click += Disconnect;
 
-			mMemory.MouseEnter += ModifyMemHoverInfo;
-			mMemory.MouseLeave += ModifyMemHoverInfo;
+			_Memory.MouseEnter += ModifyMemHoverInfo;
+			_Memory.MouseLeave += ModifyMemHoverInfo;
 
-			mSettingsSaveButton.Click += SaveSettings;
-			mColorsSaveButton.Click += SaveColors;
-			mTrustedUsersRemoveButton.Click += RemoveTrustedUser;
-			mTrustedUsersAddButton.Click += AddTrustedUser;
+			_SettingsSaveButton.Click += SaveSettings;
+			_ColorsSaveButton.Click += SaveColors;
+			_TrustedUsersRemoveButton.Click += RemoveTrustedUser;
+			_TrustedUsersAddButton.Click += AddTrustedUser;
 		}
 		private void Pause(object sender, RoutedEventArgs e)
 		{
@@ -502,14 +502,14 @@ namespace Advobot
 		}
 		private void ModifyMemHoverInfo(object sender, RoutedEventArgs e)
 		{
-			UIModification.ToggleToolTip(mMemHoverInfo);
+			UIModification.ToggleToolTip(_MemHoverInfo);
 		}
 		private async void SaveSettings(object sender, RoutedEventArgs e)
 		{
 			//Go through each setting and update them
-			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(mSettingsLayout); ++i)
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(_SettingsLayout); ++i)
 			{
-				var ele = VisualTreeHelper.GetChild(mSettingsLayout, i);
+				var ele = VisualTreeHelper.GetChild(_SettingsLayout, i);
 				var setting = (ele as FrameworkElement)?.Tag;
 				if (setting is SettingOnBot)
 				{
@@ -527,9 +527,9 @@ namespace Advobot
 		}
 		private void SaveColors(object sender, RoutedEventArgs e)
 		{
-			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(mColorsLayout); ++i)
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(_ColorsLayout); ++i)
 			{
-				var child = VisualTreeHelper.GetChild(mColorsLayout, i);
+				var child = VisualTreeHelper.GetChild(_ColorsLayout, i);
 				if (child is MyTextBox)
 				{
 					var castedChild = child as MyTextBox;
@@ -559,9 +559,9 @@ namespace Advobot
 						continue;
 					}
 
-					if (!UIModification.CheckIfTwoBrushesAreTheSame(mUIInfo.ColorTargets[target], brush))
+					if (!UIModification.CheckIfTwoBrushesAreTheSame(_UISettings.ColorTargets[target], brush))
 					{
-						mUIInfo.ColorTargets[target] = brush;
+						_UISettings.ColorTargets[target] = brush;
 						castedChild.Text = UIModification.FormatBrush(brush);
 						ConsoleActions.WriteLine(String.Format("Successfully updated the color for {0}.", target.EnumName()));
 					}
@@ -570,22 +570,22 @@ namespace Advobot
 				{
 					var selected = ((ComboBox)child).SelectedItem as MyTextBox;
 					var tag = selected?.Tag as ColorTheme?;
-					if (!tag.HasValue || tag == mUIInfo.Theme)
+					if (!tag.HasValue || tag == _UISettings.Theme)
 						continue;
 
-					mUIInfo.SetTheme((ColorTheme)tag);
+					_UISettings.SetTheme((ColorTheme)tag);
 					ConsoleActions.WriteLine("Successfully updated the theme type.");
 				}
 			}
 
-			mUIInfo.SaveBotUIInfo();
-			mUIInfo.ActivateTheme();
-			UIModification.SetColorMode(mLayout);
+			_UISettings.SaveSettings();
+			_UISettings.ActivateTheme();
+			UIModification.SetColorMode(_Layout);
 		}
 		private async void AddTrustedUser(object sender, RoutedEventArgs e)
 		{
-			var text = mTrustedUsersAddBox.Text;
-			mTrustedUsersAddBox.Text = "";
+			var text = _TrustedUsersAddBox.Text;
+			_TrustedUsersAddBox.Text = "";
 
 			if (String.IsNullOrWhiteSpace(text))
 			{
@@ -593,7 +593,7 @@ namespace Advobot
 			}
 			else if (ulong.TryParse(text, out ulong userID))
 			{
-				var currTBs = mTrustedUsersComboBox.Items.Cast<TextBox>().ToList();
+				var currTBs = _TrustedUsersComboBox.Items.Cast<TextBox>().ToList();
 				if (currTBs.Select(x => (ulong)x.Tag).Contains(userID))
 					return;
 
@@ -604,7 +604,7 @@ namespace Advobot
 				}
 
 				currTBs.Add(tb);
-				mTrustedUsersComboBox.ItemsSource = currTBs;
+				_TrustedUsersComboBox.ItemsSource = currTBs;
 			}
 			else
 			{
@@ -613,46 +613,46 @@ namespace Advobot
 		}
 		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
 		{
-			if (mTrustedUsersComboBox.SelectedItem == null)
+			if (_TrustedUsersComboBox.SelectedItem == null)
 				return;
 
-			var userID = (ulong)((TextBox)mTrustedUsersComboBox.SelectedItem).Tag;
-			var currTBs = mTrustedUsersComboBox.Items.Cast<TextBox>().ToList();
+			var userID = (ulong)((TextBox)_TrustedUsersComboBox.SelectedItem).Tag;
+			var currTBs = _TrustedUsersComboBox.Items.Cast<TextBox>().ToList();
 			if (!currTBs.Select(x => (ulong)x.Tag).Contains(userID))
 				return;
 
 			currTBs.RemoveAll(x => (ulong)x.Tag == userID);
-			mTrustedUsersComboBox.ItemsSource = currTBs;
+			_TrustedUsersComboBox.ItemsSource = currTBs;
 		}
 
 		private void MakeInputEvents()
 		{
-			mInput.KeyUp += AcceptInput;
-			mInputButton.Click += AcceptInput;
+			_Input.KeyUp += AcceptInput;
+			_InputButton.Click += AcceptInput;
 		}
 		private async void AcceptInput(object sender, KeyEventArgs e)
 		{
-			var text = mInput.Text;
+			var text = _Input.Text;
 			if (String.IsNullOrWhiteSpace(text))
 			{
-				mInputButton.IsEnabled = false;
+				_InputButton.IsEnabled = false;
 				return;
 			}
 			else
 			{
 				if (e.Key.Equals(Key.Enter) || e.Key.Equals(Key.Return))
 				{
-					await DoStuffWithInput(UICommandHandler.GatherInput(mInput, mInputButton));
+					await DoStuffWithInput(UICommandHandler.GatherInput(_Input, _InputButton));
 				}
 				else
 				{
-					mInputButton.IsEnabled = true;
+					_InputButton.IsEnabled = true;
 				}
 			}
 		}
 		private async void AcceptInput(object sender, RoutedEventArgs e)
 		{
-			await DoStuffWithInput(UICommandHandler.GatherInput(mInput, mInputButton));
+			await DoStuffWithInput(UICommandHandler.GatherInput(_Input, _InputButton));
 		}
 		private async Task DoStuffWithInput(string input)
 		{
@@ -683,11 +683,11 @@ namespace Advobot
 
 		private void MakeOutputEvents()
 		{
-			mOutputContextMenuSave.Click += SaveOutput;
-			mOutputContextMenuClear.Click += ClearOutput;
-			mOutputContextMenuSearch.Click += OpenOutputSearch;
-			mOutputSearchCloseButton.Click += CloseOutputSearch;
-			mOutputSearchButton.Click += SearchOutput;
+			_OutputContextMenuSave.Click += SaveOutput;
+			_OutputContextMenuClear.Click += ClearOutput;
+			_OutputContextMenuSearch.Click += OpenOutputSearch;
+			_OutputSearchCloseButton.Click += CloseOutputSearch;
+			_OutputSearchButton.Click += SearchOutput;
 		}
 		private void SaveOutput(object sender, RoutedEventArgs e)
 		{
@@ -702,7 +702,7 @@ namespace Advobot
 			//Save the file
 			using (StreamWriter writer = new StreamWriter(path))
 			{
-				writer.Write(mOutput.Text);
+				writer.Write(_Output.Text);
 			}
 
 			//Write to the console telling the user that the console log was successfully saved
@@ -714,59 +714,59 @@ namespace Advobot
 			{
 				case MessageBoxResult.OK:
 				{
-					mOutput.Text = "";
+					_Output.Text = "";
 					return;
 				}
 			}
 		}
 		private void OpenOutputSearch(object sender, RoutedEventArgs e)
 		{
-			mOutputSearchComboBox.ItemsSource = UIModification.MakeComboBoxSourceOutOfStrings(ConsoleActions.WrittenLines.Keys);
-			mOutputSearchLayout.Visibility = Visibility.Visible;
+			_OutputSearchComboBox.ItemsSource = UIModification.MakeComboBoxSourceOutOfStrings(ConsoleActions.WrittenLines.Keys);
+			_OutputSearchLayout.Visibility = Visibility.Visible;
 		}
 		private void CloseOutputSearch(object sender, RoutedEventArgs e)
 		{
-			mOutputSearchComboBox.SelectedItem = null;
-			mOutputSearchResults.Text = null;
-			mOutputSearchLayout.Visibility = Visibility.Collapsed;
+			_OutputSearchComboBox.SelectedItem = null;
+			_OutputSearchResults.Text = null;
+			_OutputSearchLayout.Visibility = Visibility.Collapsed;
 		}
 		private void SearchOutput(object sender, RoutedEventArgs e)
 		{
-			var selectedItem = (TextBox)mOutputSearchComboBox.SelectedItem;
+			var selectedItem = (TextBox)_OutputSearchComboBox.SelectedItem;
 			if (selectedItem != null)
 			{
-				mOutputSearchResults.Text = null;
-				ConsoleActions.WrittenLines[selectedItem.Text].ForEach(x => mOutputSearchResults.AppendText(x + Environment.NewLine));
+				_OutputSearchResults.Text = null;
+				ConsoleActions.WrittenLines[selectedItem.Text].ForEach(x => _OutputSearchResults.AppendText(x + Environment.NewLine));
 			}
 		}
 
 		private void MakeGuildFileEvents()
 		{
-			mFileSearchButton.Click += OpenFileSearch;
-			mGuildSearchSearchButton.Click += SearchForFile;
-			mGuildSearchCloseButton.Click += CloseFileSearch;
-			mSpecificFileCloseButton.Click += CloseSpecificFileLayout;
-			mSpecificFileContextMenuSave.Click += SaveFile;
+			_FileSearchButton.Click += OpenFileSearch;
+			_GuildSearchSearchButton.Click += SearchForFile;
+			_GuildSearchCloseButton.Click += CloseFileSearch;
+			_SpecificFileCloseButton.Click += CloseSpecificFileLayout;
+			_SpecificFileContextMenuSave.Click += SaveFile;
 		}
 		private void OpenFileSearch(object sender, RoutedEventArgs e)
 		{
-			mGuildSearchLayout.Visibility = Visibility.Visible;
+			_GuildSearchLayout.Visibility = Visibility.Visible;
 		}
 		private void CloseFileSearch(object sender, RoutedEventArgs e)
 		{
-			mGuildSearchFileComboBox.SelectedItem = null;
-			mGuildSearchNameInput.Text = "";
-			mGuildSearchIDInput.Text = "";
-			mGuildSearchLayout.Visibility = Visibility.Collapsed;
+			_GuildSearchFileComboBox.SelectedItem = null;
+			_GuildSearchNameInput.Text = "";
+			_GuildSearchIDInput.Text = "";
+			_GuildSearchLayout.Visibility = Visibility.Collapsed;
 		}
 		private void SearchForFile(object sender, RoutedEventArgs e)
 		{
-			var tb = (TextBox)mGuildSearchFileComboBox.SelectedItem;
+			var tb = (TextBox)_GuildSearchFileComboBox.SelectedItem;
 			if (tb == null)
 				return;
 
-			var nameStr = mGuildSearchNameInput.Text;
-			var idStr = mGuildSearchIDInput.Text;
+			var nameStr = _GuildSearchNameInput.Text;
+			var idStr = _GuildSearchIDInput.Text;
 			if (String.IsNullOrWhiteSpace(nameStr) && String.IsNullOrWhiteSpace(idStr))
 				return;
 
@@ -783,7 +783,7 @@ namespace Advobot
 				}
 				else
 				{
-					guild = mFileTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x =>
+					guild = _FileTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x =>
 					{
 						return ((GuildFileInformation)x.Tag).ID == guildID;
 					});
@@ -797,7 +797,7 @@ namespace Advobot
 			}
 			else if (!String.IsNullOrWhiteSpace(nameStr))
 			{
-				var guilds = mFileTreeView.Items.Cast<TreeViewItem>().Where(x =>
+				var guilds = _FileTreeView.Items.Cast<TreeViewItem>().Where(x =>
 				{
 					return ((GuildFileInformation)x.Tag).Name.CaseInsEquals(nameStr);
 				});
@@ -835,9 +835,9 @@ namespace Advobot
 		{
 			if (CheckIfTreeViewItemFileExists((TreeViewItem)sender))
 			{
-				UIModification.SetRowAndSpan(mFileLayout, 0, 100);
-				mSpecificFileLayout.Visibility = Visibility.Visible;
-				mFileSearchButton.Visibility = Visibility.Collapsed;
+				UIModification.SetRowAndSpan(_FileLayout, 0, 100);
+				_SpecificFileLayout.Visibility = Visibility.Visible;
+				_FileSearchButton.Visibility = Visibility.Collapsed;
 			}
 			else
 			{
@@ -852,20 +852,20 @@ namespace Advobot
 			{
 				case MessageBoxResult.OK:
 				{
-					UIModification.SetRowAndSpan(mFileLayout, 0, 87);
-					mSpecificFileDisplay.Tag = null;
-					mSpecificFileLayout.Visibility = Visibility.Collapsed;
-					mFileSearchButton.Visibility = Visibility.Visible;
+					UIModification.SetRowAndSpan(_FileLayout, 0, 87);
+					_SpecificFileDisplay.Tag = null;
+					_SpecificFileLayout.Visibility = Visibility.Collapsed;
+					_FileSearchButton.Visibility = Visibility.Visible;
 					break;
 				}
 			}
 		}
 		private void SaveFile(object sender, RoutedEventArgs e)
 		{
-			var fileLocation = mSpecificFileDisplay.Tag.ToString();
+			var fileLocation = _SpecificFileDisplay.Tag.ToString();
 			if (String.IsNullOrWhiteSpace(fileLocation) || !File.Exists(fileLocation))
 			{
-				UIModification.MakeFollowingToolTip(mLayout, mToolTip, "Unable to gather the path for this file.").Forget();
+				UIModification.MakeFollowingToolTip(_Layout, _ToolTip, "Unable to gather the path for this file.").Forget();
 				return;
 			}
 
@@ -875,12 +875,12 @@ namespace Advobot
 				//Make sure the guild info stays valid
 				try
 				{
-					var throwaway = JsonConvert.DeserializeObject(mSpecificFileDisplay.Text, Constants.GUILDS_SETTINGS_TYPE);
+					var throwaway = JsonConvert.DeserializeObject(_SpecificFileDisplay.Text, Constants.GUILDS_SETTINGS_TYPE);
 				}
 				catch (Exception exc)
 				{
 					ConsoleActions.ExceptionToConsole(exc);
-					UIModification.MakeFollowingToolTip(mLayout, mToolTip, "Failed to save the file.").Forget();
+					UIModification.MakeFollowingToolTip(_Layout, _ToolTip, "Failed to save the file.").Forget();
 					return;
 				}
 			}
@@ -888,34 +888,34 @@ namespace Advobot
 			//Save the file and give a notification
 			using (var writer = new StreamWriter(fileLocation))
 			{
-				writer.WriteLine(mSpecificFileDisplay.Text);
+				writer.WriteLine(_SpecificFileDisplay.Text);
 			}
-			UIModification.MakeFollowingToolTip(mLayout, mToolTip, "Successfully saved the file.").Forget();
+			UIModification.MakeFollowingToolTip(_Layout, _ToolTip, "Successfully saved the file.").Forget();
 		}
 
 		private void MakeDMEvents()
 		{
-			mDMSearchButton.Click += OpenDMSearch;
-			mDMSearchSearchButton.Click += SearchForDM;
-			mDMSearchCloseButton.Click += CloseDMSearch;
-			mSpecificDMCloseButton.Click += CloseSpecificDMLayout;
+			_DMSearchButton.Click += OpenDMSearch;
+			_DMSearchSearchButton.Click += SearchForDM;
+			_DMSearchCloseButton.Click += CloseDMSearch;
+			_SpecificDMCloseButton.Click += CloseSpecificDMLayout;
 		}
 		private void OpenDMSearch(object sender, RoutedEventArgs e)
 		{
-			mDMSearchLayout.Visibility = Visibility.Visible;
+			_DMSearchLayout.Visibility = Visibility.Visible;
 		}
 		private void CloseDMSearch(object sender, RoutedEventArgs e)
 		{
-			mDMSearchNameInput.Text = "";
-			mDMSearchDiscInput.Text = "";
-			mDMSearchIDInput.Text = "";
-			mDMSearchLayout.Visibility = Visibility.Collapsed;
+			_DMSearchNameInput.Text = "";
+			_DMSearchDiscInput.Text = "";
+			_DMSearchIDInput.Text = "";
+			_DMSearchLayout.Visibility = Visibility.Collapsed;
 		}
 		private void SearchForDM(object sender, RoutedEventArgs e)
 		{
-			var nameStr = mDMSearchNameInput.Text;
-			var discStr = mDMSearchDiscInput.Text;
-			var idStr = mDMSearchIDInput.Text;
+			var nameStr = _DMSearchNameInput.Text;
+			var discStr = _DMSearchDiscInput.Text;
+			var idStr = _DMSearchIDInput.Text;
 
 			if (String.IsNullOrWhiteSpace(nameStr) && String.IsNullOrWhiteSpace(idStr))
 				return;
@@ -931,7 +931,7 @@ namespace Advobot
 				}
 				else
 				{
-					DMChannel = mDMTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x =>
+					DMChannel = _DMTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x =>
 					{
 						return ((Discord.IDMChannel)x.Tag)?.Recipient?.Id == userID;
 					});
@@ -945,7 +945,7 @@ namespace Advobot
 			}
 			else if (!String.IsNullOrWhiteSpace(nameStr))
 			{
-				var DMChannels = mDMTreeView.Items.Cast<TreeViewItem>().Where(x =>
+				var DMChannels = _DMTreeView.Items.Cast<TreeViewItem>().Where(x =>
 				{
 					var username = ((Discord.IDMChannel)x.Tag)?.Recipient?.Username;
 					return username.CaseInsEquals(nameStr);
@@ -993,9 +993,9 @@ namespace Advobot
 		{
 			if (await CheckIfTreeViewItemDMExists((TreeViewItem)sender))
 			{
-				UIModification.SetRowAndSpan(mDMLayout, 0, 100);
-				mSpecificDMLayout.Visibility = Visibility.Visible;
-				mDMSearchButton.Visibility = Visibility.Collapsed;
+				UIModification.SetRowAndSpan(_DMLayout, 0, 100);
+				_SpecificDMLayout.Visibility = Visibility.Visible;
+				_DMSearchButton.Visibility = Visibility.Collapsed;
 			}
 			else
 			{
@@ -1004,20 +1004,20 @@ namespace Advobot
 		}
 		private void CloseSpecificDMLayout(object sender, RoutedEventArgs e)
 		{
-			UIModification.SetRowAndSpan(mDMLayout, 0, 87);
-			mSpecificDMDisplay.Tag = null;
-			mSpecificDMLayout.Visibility = Visibility.Collapsed;
-			mDMSearchButton.Visibility = Visibility.Visible;
+			UIModification.SetRowAndSpan(_DMLayout, 0, 87);
+			_SpecificDMDisplay.Tag = null;
+			_SpecificDMLayout.Visibility = Visibility.Collapsed;
+			_DMSearchButton.Visibility = Visibility.Visible;
 		}
 
 		private void MakeMenuEvents()
 		{
-			mMainButton.Click += OpenMenu;
-			mSettingsButton.Click += OpenMenu;
-			mColorsButton.Click += OpenMenu;
-			mInfoButton.Click += OpenMenu;
-			mFileButton.Click += OpenMenu;
-			mDMButton.Click += OpenMenu;
+			_MainButton.Click += OpenMenu;
+			_SettingsButton.Click += OpenMenu;
+			_ColorsButton.Click += OpenMenu;
+			_InfoButton.Click += OpenMenu;
+			_FileButton.Click += OpenMenu;
+			_DMButton.Click += OpenMenu;
 		}
 		private async void OpenMenu(object sender, RoutedEventArgs e)
 		{
@@ -1025,70 +1025,70 @@ namespace Advobot
 				return;
 
 			//Hide everything so stuff doesn't overlap
-			mMainMenuLayout.Visibility = Visibility.Collapsed;
-			mSettingsLayout.Visibility = Visibility.Collapsed;
-			mColorsLayout.Visibility = Visibility.Collapsed;
-			mInfoLayout.Visibility = Visibility.Collapsed;
-			mFileLayout.Visibility = Visibility.Collapsed;
-			mDMLayout.Visibility = Visibility.Collapsed;
+			_MainMenuLayout.Visibility = Visibility.Collapsed;
+			_SettingsLayout.Visibility = Visibility.Collapsed;
+			_ColorsLayout.Visibility = Visibility.Collapsed;
+			_InfoLayout.Visibility = Visibility.Collapsed;
+			_FileLayout.Visibility = Visibility.Collapsed;
+			_DMLayout.Visibility = Visibility.Collapsed;
 
 			//If clicking the same button then resize the output window to the regular size
 			var type = (sender as Button)?.Tag as MenuType? ?? default(MenuType);
-			if (type == mLastButtonClicked)
+			if (type == _LastButtonClicked)
 			{
-				UIModification.SetColAndSpan(mOutput, 0, 4);
-				mLastButtonClicked = default(MenuType);
+				UIModification.SetColAndSpan(_Output, 0, 4);
+				_LastButtonClicked = default(MenuType);
 			}
 			else
 			{
 				//Resize the regular output window and have the menubox appear
-				UIModification.SetColAndSpan(mOutput, 0, 3);
-				mLastButtonClicked = type;
+				UIModification.SetColAndSpan(_Output, 0, 3);
+				_LastButtonClicked = type;
 
 				switch (type)
 				{
 					case MenuType.Main:
 					{
-						mMainMenuLayout.Visibility = Visibility.Visible;
+						_MainMenuLayout.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.Info:
 					{
-						mInfoLayout.Visibility = Visibility.Visible;
+						_InfoLayout.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.Settings:
 					{
 						UpdateSettingsWhenOpened();
-						mSettingsLayout.Visibility = Visibility.Visible;
+						_SettingsLayout.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.Colors:
 					{
-						UIModification.MakeColorDisplayer(mUIInfo, mColorsLayout, mColorsSaveButton, .018);
-						mColorsLayout.Visibility = Visibility.Visible;
+						UIModification.MakeColorDisplayer(_UISettings, _ColorsLayout, _ColorsSaveButton, .018);
+						_ColorsLayout.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.DMs:
 					{
-						var treeView = UIModification.MakeDMTreeView(mDMTreeView, await Client.GetDMChannelsAsync());
+						var treeView = UIModification.MakeDMTreeView(_DMTreeView, await Client.GetDMChannelsAsync());
 						treeView.Items.Cast<TreeViewItem>().ToList().ForEach(x =>
 						{
 							x.MouseDoubleClick += OpenSpecificDMLayout;
 						});
-						mDMOutput.Document = new FlowDocument(new Paragraph(new InlineUIContainer(treeView)));
-						mDMLayout.Visibility = Visibility.Visible;
+						_DMOutput.Document = new FlowDocument(new Paragraph(new InlineUIContainer(treeView)));
+						_DMLayout.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.Files:
 					{
-						var treeView = UIModification.MakeGuildTreeView(mFileTreeView, await Client.GetGuildsAsync());
+						var treeView = UIModification.MakeGuildTreeView(_FileTreeView, await Client.GetGuildsAsync());
 						treeView.Items.Cast<TreeViewItem>().SelectMany(x => x.Items.Cast<TreeViewItem>()).ToList().ForEach(x =>
 						{
 							x.MouseDoubleClick += OpenSpecificFileLayout;
 						});
-						mFileOutput.Document = new FlowDocument(new Paragraph(new InlineUIContainer(treeView)));
-						mFileLayout.Visibility = Visibility.Visible;
+						_FileOutput.Document = new FlowDocument(new Paragraph(new InlineUIContainer(treeView)));
+						_FileLayout.Visibility = Visibility.Visible;
 						return;
 					}
 				}
@@ -1107,72 +1107,72 @@ namespace Advobot
 					userIDs.AddRange((await guild.GetUsersAsync()).Select(x => x.Id));
 				}
 
-				((TextBox)mLatency.Child).Text = String.Format("Latency: {0}ms", ClientActions.GetLatency(Client));
-				((TextBox)mMemory.Child).Text = String.Format("Memory: {0}MB", Gets.GetMemory(BotSettings.Windows).ToString("0.00"));
-				((TextBox)mThreads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
-				((TextBox)mGuilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
-				((TextBox)mUsers.Child).Text = String.Format("Members: {0}", userIDs.Distinct().Count());
-				mInfoOutput.Document = UIModification.MakeInfoMenu(Gets.GetUptime(BotSettings), LogModule.FormatLoggedCommands(), LogModule.FormatLoggedActions());
+				((TextBox)_Latency.Child).Text = String.Format("Latency: {0}ms", ClientActions.GetLatency(Client));
+				((TextBox)_Memory.Child).Text = String.Format("Memory: {0}MB", Gets.GetMemory(BotSettings.Windows).ToString("0.00"));
+				((TextBox)_Threads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
+				((TextBox)_Guilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
+				((TextBox)_Users.Child).Text = String.Format("Members: {0}", userIDs.Distinct().Count());
+				_InfoOutput.Document = UIModification.MakeInfoMenu(Gets.GetUptime(BotSettings), LogModule.FormatLoggedCommands(), LogModule.FormatLoggedActions());
 			};
 			timer.Start();
 		}
 		private async void UpdateSettingsWhenOpened()
 		{
-			((CheckBox)((Viewbox)mDownloadUsersSetting.Setting).Child).IsChecked = BotSettings.AlwaysDownloadUsers;
-			((TextBox)mPrefixSetting.Setting).Text = BotSettings.Prefix;
-			((TextBox)mBotOwnerSetting.Setting).Text = BotSettings.BotOwnerID.ToString();
-			((TextBox)mGameSetting.Setting).Text = BotSettings.Game;
-			((TextBox)mStreamSetting.Setting).Text = BotSettings.Stream;
-			((TextBox)mShardSetting.Setting).Text = BotSettings.ShardCount.ToString();
-			((TextBox)mMessageCacheSetting.Setting).Text = BotSettings.MessageCacheCount.ToString();
-			((TextBox)mUserGatherCountSetting.Setting).Text = BotSettings.MaxUserGatherCount.ToString();
-			((TextBox)mMessageGatherSizeSetting.Setting).Text = BotSettings.MaxMessageGatherSize.ToString();
-			((ComboBox)mLogLevelComboBox.Setting).SelectedItem = ((ComboBox)mLogLevelComboBox.Setting).Items.OfType<TextBox>().FirstOrDefault(x => (LogSeverity)x.Tag == BotSettings.LogLevel);
+			((CheckBox)((Viewbox)_DownloadUsersSetting.Setting).Child).IsChecked = BotSettings.AlwaysDownloadUsers;
+			((TextBox)_PrefixSetting.Setting).Text = BotSettings.Prefix;
+			((TextBox)_BotOwnerSetting.Setting).Text = BotSettings.BotOwnerID.ToString();
+			((TextBox)_GameSetting.Setting).Text = BotSettings.Game;
+			((TextBox)_StreamSetting.Setting).Text = BotSettings.Stream;
+			((TextBox)_ShardSetting.Setting).Text = BotSettings.ShardCount.ToString();
+			((TextBox)_MessageCacheSetting.Setting).Text = BotSettings.MessageCacheCount.ToString();
+			((TextBox)_UserGatherCountSetting.Setting).Text = BotSettings.MaxUserGatherCount.ToString();
+			((TextBox)_MessageGatherSizeSetting.Setting).Text = BotSettings.MaxMessageGatherSize.ToString();
+			((ComboBox)_LogLevelComboBox.Setting).SelectedItem = ((ComboBox)_LogLevelComboBox.Setting).Items.OfType<TextBox>().FirstOrDefault(x => (LogSeverity)x.Tag == BotSettings.LogLevel);
 			var itemsSource = new List<TextBox>();
 			foreach (var trustedUser in BotSettings.TrustedUsers)
 			{
 				itemsSource.Add(UIModification.MakeTextBoxFromUserID(await Client.GetUserAsync(trustedUser)));
 			}
-			mTrustedUsersComboBox.ItemsSource = itemsSource;
+			_TrustedUsersComboBox.ItemsSource = itemsSource;
 		}
 		private bool CheckIfTreeViewItemFileExists(TreeViewItem treeItem)
 		{
 			var fileLocation = ((FileInformation)treeItem.Tag).FileLocation;
-			if (fileLocation == null || fileLocation == ((string)mSpecificFileDisplay.Tag))
+			if (fileLocation == null || fileLocation == ((string)_SpecificFileDisplay.Tag))
 			{
 				return false;
 			}
 
-			mSpecificFileDisplay.Clear();
-			mSpecificFileDisplay.Tag = fileLocation;
+			_SpecificFileDisplay.Clear();
+			_SpecificFileDisplay.Tag = fileLocation;
 			using (var reader = new StreamReader(fileLocation))
 			{
-				mSpecificFileDisplay.AppendText(reader.ReadToEnd());
+				_SpecificFileDisplay.AppendText(reader.ReadToEnd());
 			}
 			return true;
 		}
 		private async Task<bool> CheckIfTreeViewItemDMExists(TreeViewItem treeItem)
 		{
-			var DMChannel = (Discord.IDMChannel)treeItem.Tag;
-			if (DMChannel == null || DMChannel.Id == ((Discord.IDMChannel)mSpecificDMDisplay.Tag)?.Id)
+			var DMChannel = (IDMChannel)treeItem.Tag;
+			if (DMChannel == null || DMChannel.Id == ((IDMChannel)_SpecificDMDisplay.Tag)?.Id)
 			{
 				return false;
 			}
 
-			mSpecificDMDisplay.Clear();
-			mSpecificDMDisplay.Tag = DMChannel;
+			_SpecificDMDisplay.Clear();
+			_SpecificDMDisplay.Tag = DMChannel;
 
 			var messages = Actions.Formatting.FormatDMs(await Messages.GetBotDMs(DMChannel));
 			if (messages.Any())
 			{
 				foreach (var message in messages)
 				{
-					mSpecificDMDisplay.AppendText(String.Format("{0}{1}----------{1}", Actions.Formatting.RemoveMarkdownChars(message, true), Environment.NewLine));
+					_SpecificDMDisplay.AppendText(String.Format("{0}{1}----------{1}", Actions.Formatting.RemoveMarkdownChars(message, true), Environment.NewLine));
 				}
 			}
 			else
 			{
-				mSpecificDMDisplay.AppendText(String.Format("No DMs with this user exist; I am not sure why Discord says some do, but I will close the DMs with this person now."));
+				_SpecificDMDisplay.AppendText(String.Format("No DMs with this user exist; I am not sure why Discord says some do, but I will close the DMs with this person now."));
 				await DMChannel.CloseAsync();
 			}
 			return true;
@@ -1371,7 +1371,7 @@ namespace Advobot
 
 	public class UIModification
 	{
-		private static CancellationTokenSource mToolTipCancellationTokenSource;
+		private static CancellationTokenSource _ToolTipCancellationTokenSource;
 
 		public static void AddRows(Grid grid, int amount)
 		{
@@ -1680,17 +1680,17 @@ namespace Advobot
 				tt.VerticalOffset = point.Y;
 			};
 
-			if (mToolTipCancellationTokenSource != null)
+			if (_ToolTipCancellationTokenSource != null)
 			{
-				mToolTipCancellationTokenSource.Cancel();
+				_ToolTipCancellationTokenSource.Cancel();
 			}
-			mToolTipCancellationTokenSource = new CancellationTokenSource();
+			_ToolTipCancellationTokenSource = new CancellationTokenSource();
 
 			await baseElement.Dispatcher.InvokeAsync(async () =>
 			{
 				try
 				{
-					await Task.Delay(timeInMS, mToolTipCancellationTokenSource.Token);
+					await Task.Delay(timeInMS, _ToolTipCancellationTokenSource.Token);
 				}
 				catch (TaskCanceledException)
 				{
@@ -2015,7 +2015,7 @@ namespace Advobot
 			};
 			return new FlowDocument(paragraph);
 		}
-		public static Grid MakeColorDisplayer(BotUIInfo UIInfo, Grid child, Button button, double fontSizeProperty)
+		public static Grid MakeColorDisplayer(UISettings UISettings, Grid child, Button button, double fontSizeProperty)
 		{
 			child.Children.Clear();
 			AddPlaceHolderTB(child, 0, 100, 0, 100);
@@ -2029,14 +2029,14 @@ namespace Advobot
 				VerticalContentAlignment = VerticalAlignment.Center,
 				ItemsSource = MakeComboBoxSourceOutOfEnum(typeof(ColorTheme)),
 			};
-			themeComboBox.SelectedItem = themeComboBox.Items.Cast<TextBox>().FirstOrDefault(x => (ColorTheme)x.Tag == UIInfo.Theme);
+			themeComboBox.SelectedItem = themeComboBox.Items.Cast<TextBox>().FirstOrDefault(x => (ColorTheme)x.Tag == UISettings.Theme);
 			AddElement(child, themeComboBox, 2, 5, 65, 25);
 
 			var colorResourceKeys = Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>().ToArray();
 			for (int i = 0; i < colorResourceKeys.Length; ++i)
 			{
 				var key = colorResourceKeys[i];
-				var value = FormatBrush(UIInfo.ColorTargets[key]);
+				var value = FormatBrush(UISettings.ColorTargets[key]);
 
 				var title = MakeTitle(String.Format("{0}:", key.EnumName()), "");
 				var setting = new MyTextBox
@@ -2164,22 +2164,22 @@ namespace Advobot
 
 	public class UITextBoxStreamWriter : TextWriter 
 	{
-		private TextBoxBase mOutput;
-		private bool mIgnoreNewLines;
-		private string mCurrentLineText;
+		private TextBoxBase _Output;
+		private bool _IgnoreNewLines;
+		private string _CurrentLineText;
 
 		public UITextBoxStreamWriter(TextBoxBase output)
 		{
-			mOutput = output;
-			mIgnoreNewLines = output is RichTextBox;
+			_Output = output;
+			_IgnoreNewLines = output is RichTextBox;
 		}
 
 		public override void Write(char value)
 		{
 			if (value.Equals('\n'))
 			{
-				Write(mCurrentLineText);
-				mCurrentLineText = null;
+				Write(_CurrentLineText);
+				_CurrentLineText = null;
 			}
 			//Done because crashes program without exception. Could not for the life of me figure out why; something in the .dlls themself.
 			else if (value.Equals('﷽'))
@@ -2188,17 +2188,17 @@ namespace Advobot
 			}
 			else
 			{
-				mCurrentLineText += value;
+				_CurrentLineText += value;
 			}
 		}
 		public override void Write(string value)
 		{
-			if (value == null || (mIgnoreNewLines && value.Equals('\n')))
+			if (value == null || (_IgnoreNewLines && value.Equals('\n')))
 				return;
 
-			mOutput.Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() =>
+			_Output.Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() =>
 			{
-				mOutput.AppendText(value);
+				_Output.AppendText(value);
 			}));
 		}
 		public override Encoding Encoding
@@ -2209,16 +2209,16 @@ namespace Advobot
 
 	public class UIFontResizer : IValueConverter
 	{
-		private double mConvertFactor;
+		private double _ConvertFactor;
 
 		public UIFontResizer(double convertFactor)
 		{
-			mConvertFactor = convertFactor;
+			_ConvertFactor = convertFactor;
 		}
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			var converted = (int)(System.Convert.ToInt16(value) * mConvertFactor);
+			var converted = (int)(System.Convert.ToInt16(value) * _ConvertFactor);
 			return Math.Max(converted, -1);
 		}
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -2298,7 +2298,7 @@ namespace Advobot
 		}
 	}
 
-	public class BotUIInfo
+	public class UISettings
 	{
 		[JsonIgnore]
 		private static readonly Brush LightModeBackground = UIModification.MakeBrush("#FFFFFF");
@@ -2365,7 +2365,7 @@ namespace Advobot
 		[JsonProperty("ColorTargets")]
 		public Dictionary<ColorTarget, Brush> ColorTargets { get; private set; } = new Dictionary<ColorTarget, Brush>();
 
-		public BotUIInfo()
+		public UISettings()
 		{
 			foreach (var target in Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>())
 			{
@@ -2377,7 +2377,7 @@ namespace Advobot
 		{
 			Theme = theme;
 		}
-		public void SaveBotUIInfo()
+		public void SaveSettings()
 		{
 			SavingAndLoading.OverWriteFile(Gets.GetBaseBotDirectory(Constants.UI_INFO_LOCATION), SavingAndLoading.Serialize(this));
 		}
@@ -2463,9 +2463,9 @@ namespace Advobot
 				);
 		}
 
-		public static BotUIInfo LoadBotUIInfo(bool loaded)
+		public static UISettings LoadUISettings(bool loaded)
 		{
-			var uiInfo = new BotUIInfo();
+			var UISettings = new UISettings();
 			var path = Gets.GetBaseBotDirectory(Constants.UI_INFO_LOCATION);
 			if (!File.Exists(path))
 			{
@@ -2473,21 +2473,21 @@ namespace Advobot
 				{
 					ConsoleActions.WriteLine("The bot UI information file does not exist.");
 				}
-				return uiInfo;
+				return UISettings;
 			}
 
 			try
 			{
 				using (var reader = new StreamReader(path))
 				{
-					uiInfo = JsonConvert.DeserializeObject<BotUIInfo>(reader.ReadToEnd());
+					UISettings = JsonConvert.DeserializeObject<UISettings>(reader.ReadToEnd());
 				}
 			}
 			catch (Exception e)
 			{
 				ConsoleActions.ExceptionToConsole(e);
 			}
-			return uiInfo;
+			return UISettings;
 		}
 	}
 
