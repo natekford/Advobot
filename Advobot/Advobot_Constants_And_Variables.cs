@@ -3,8 +3,6 @@ using Discord;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Threading;
-using Discord.WebSocket;
 
 namespace Advobot
 {
@@ -190,7 +188,7 @@ namespace Advobot
 		public static Color MEDT { get; } = new Color(000, 000, 255);
 		public static Color MDEL { get; } = new Color(255, 051, 051);
 
-		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective interfaces)
+		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)
 		public static Type GUILDS_SETTINGS_TYPE { get; } = typeof(MyGuildSettings);
 		public static Type GLOBAL_SETTINGS_TYPE { get; } = typeof(MyBotSettings);
 	}
@@ -200,11 +198,5 @@ namespace Advobot
 		//TODO: invite module? not very important tbh
 		public readonly static List<ListedInvite> InviteList = new List<ListedInvite>();
 
-		//TODO: Put these five lists into a new module
-		public readonly static List<RemovablePunishment> RemovablePunishments = new List<RemovablePunishment>();
-		public readonly static List<RemovableMessage> TimedMessages = new List<RemovableMessage>();
-		public readonly static List<ActiveCloseWord<HelpEntry>> ActiveCloseHelp = new List<ActiveCloseWord<HelpEntry>>();
-		public readonly static List<ActiveCloseWord<Quote>> ActiveCloseWords = new List<ActiveCloseWord<Quote>>();
-		public readonly static List<SlowmodeUser> SlowmodeUsers = new List<SlowmodeUser>();
 	}
 }

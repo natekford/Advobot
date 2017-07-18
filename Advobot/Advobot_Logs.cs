@@ -1,9 +1,9 @@
 ﻿using Advobot.Actions;
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +12,7 @@ namespace Advobot
 {
 	namespace Logging
 	{
-		public sealed class LogModule : ILogModule
+		public sealed class MyLogModule : ILogModule
 		{
 			public uint TotalUsers { get; private set; } = 0;
 			public uint TotalGuilds { get; private set; } = 0;
@@ -28,19 +28,17 @@ namespace Advobot
 			public uint LoggedGifs { get; private set; } = 0;
 			public uint LoggedFiles { get; private set; } = 0;
 
-			public BaseLog BotLog { get; private set; }
-			public BaseLog ServerLog { get; private set; }
-			public BaseLog ModLog { get; private set; }
+			public ILog Log { get; private set; }
 
-			public LogModule(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule)
+			public MyLogModule(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettings, ITimersModule timers)
 			{
 				if (client is DiscordSocketClient)
 				{
-					CreateLogHolder(client as DiscordSocketClient, botSettings, guildSettingsModule);
+					CreateLogHolder(client as DiscordSocketClient, botSettings, guildSettings, timers);
 				}
 				else if (client is DiscordShardedClient)
 				{
-					CreateLogHolder(client as DiscordShardedClient, botSettings, guildSettingsModule);
+					CreateLogHolder(client as DiscordShardedClient, botSettings, guildSettings, timers);
 				}
 				else
 				{
@@ -48,55 +46,37 @@ namespace Advobot
 				}
 			}
 
-			private void CreateLogHolder(DiscordSocketClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule)
+			private void CreateLogHolder(DiscordSocketClient client, IBotSettings botSettings, IGuildSettingsModule guildSettings, ITimersModule timers)
 			{
-				var tempBotLog = new BotLogger(client, botSettings, guildSettingsModule, this);
-				var tempServerLog = new ServerLogger(client, botSettings, guildSettingsModule, this);
-				var tempModLog = new ModLogger(client, botSettings, guildSettingsModule, this);
+				Log = new MyLog(client, botSettings, guildSettings, this, timers);
 
-				client.MessageReceived += (SocketMessage message) => CommandHandler.HandleCommand(message as SocketUserMessage);
-				client.Connected += CommandHandler.LoadInformation;
-
-				client.Log += tempBotLog.Log;
-				client.GuildAvailable += tempBotLog.OnGuildAvailable;
-				client.GuildUnavailable += tempBotLog.OnGuildUnavailable;
-				client.JoinedGuild += tempBotLog.OnJoinedGuild;
-				client.LeftGuild += tempBotLog.OnLeftGuild;
-				client.UserJoined += tempServerLog.OnUserJoined;
-				client.UserLeft += tempServerLog.OnUserLeft;
-				client.UserUpdated += tempServerLog.OnUserUpdated;
-				client.MessageReceived += tempServerLog.OnMessageReceived;
-				client.MessageUpdated += tempServerLog.OnMessageUpdated;
-				client.MessageDeleted += tempServerLog.OnMessageDeleted;
-
-				BotLog = tempBotLog;
-				ServerLog = tempServerLog;
-				ModLog = tempModLog;
+				client.Log += Log.Log;
+				client.GuildAvailable += Log.OnGuildAvailable;
+				client.GuildUnavailable += Log.OnGuildUnavailable;
+				client.JoinedGuild += Log.OnJoinedGuild;
+				client.LeftGuild += Log.OnLeftGuild;
+				client.UserJoined += Log.OnUserJoined;
+				client.UserLeft += Log.OnUserLeft;
+				client.UserUpdated += Log.OnUserUpdated;
+				client.MessageReceived += Log.OnMessageReceived;
+				client.MessageUpdated += Log.OnMessageUpdated;
+				client.MessageDeleted += Log.OnMessageDeleted;
 			}
-			private void CreateLogHolder(DiscordShardedClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule)
+			private void CreateLogHolder(DiscordShardedClient client, IBotSettings botSettings, IGuildSettingsModule guildSettings, ITimersModule timers)
 			{
-				var tempBotLog = new BotLogger(client, botSettings, guildSettingsModule, this);
-				var tempServerLog = new ServerLogger(client, botSettings, guildSettingsModule, this);
-				var tempModLog = new ModLogger(client, botSettings, guildSettingsModule, this);
+				Log = new MyLog(client, botSettings, guildSettings, this, timers);
 
-				client.MessageReceived += (SocketMessage message) => CommandHandler.HandleCommand(message as SocketUserMessage);
-				client.Shards.FirstOrDefault().Connected += CommandHandler.LoadInformation;
-
-				client.Log += tempBotLog.Log;
-				client.GuildAvailable += tempBotLog.OnGuildAvailable;
-				client.GuildUnavailable += tempBotLog.OnGuildUnavailable;
-				client.JoinedGuild += tempBotLog.OnJoinedGuild;
-				client.LeftGuild += tempBotLog.OnLeftGuild;
-				client.UserJoined += tempServerLog.OnUserJoined;
-				client.UserLeft += tempServerLog.OnUserLeft;
-				client.UserUpdated += tempServerLog.OnUserUpdated;
-				client.MessageReceived += tempServerLog.OnMessageReceived;
-				client.MessageUpdated += tempServerLog.OnMessageUpdated;
-				client.MessageDeleted += tempServerLog.OnMessageDeleted;
-
-				BotLog = tempBotLog;
-				ServerLog = tempServerLog;
-				ModLog = tempModLog;
+				client.Log += Log.Log;
+				client.GuildAvailable += Log.OnGuildAvailable;
+				client.GuildUnavailable += Log.OnGuildUnavailable;
+				client.JoinedGuild += Log.OnJoinedGuild;
+				client.LeftGuild += Log.OnLeftGuild;
+				client.UserJoined += Log.OnUserJoined;
+				client.UserLeft += Log.OnUserLeft;
+				client.UserUpdated += Log.OnUserUpdated;
+				client.MessageReceived += Log.OnMessageReceived;
+				client.MessageUpdated += Log.OnMessageUpdated;
+				client.MessageDeleted += Log.OnMessageDeleted;
 			}
 
 			public void AddUsers(int users)
@@ -222,27 +202,21 @@ namespace Advobot
 			}
 		}
 
-		public class BaseLog
+		public sealed class MyLog : ILog
 		{
-			protected IDiscordClient Client { get; }
-			protected IBotSettings BotSettings { get; }
-			protected IGuildSettingsModule GuildSettingsModule { get; }
+			private IDiscordClient Client { get; }
+			private IBotSettings BotSettings { get; }
+			private IGuildSettingsModule GuildSettings { get; }
+			private ILogModule Logging { get; }
+			private ITimersModule Timers { get; }
 
-			public BaseLog(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule)
+			public MyLog(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettings, ILogModule logging, ITimersModule timers)
 			{
 				Client = client;
 				BotSettings = botSettings;
-				GuildSettingsModule = guildSettingsModule;
-			}
-		}
-
-		public sealed class BotLogger : BaseLog
-		{
-			private readonly ILogModule CurrentLogModule;
-
-			public BotLogger(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ILogModule currentLogModule) : base(client, botSettings, guildSettingsModule)
-			{
-				CurrentLogModule = currentLogModule;
+				GuildSettings = guildSettings;
+				Logging = logging;
+				Timers = timers;
 			}
 
 			public Task Log(LogMessage msg)
@@ -254,26 +228,23 @@ namespace Advobot
 
 				return Task.CompletedTask;
 			}
-
 			public async Task OnGuildAvailable(SocketGuild guild)
 			{
 				ConsoleActions.WriteLine(String.Format("{0} is now online on shard {1}.", guild.FormatGuild(), ClientActions.GetShardIdFor(Client, guild)));
 				ConsoleActions.WriteLine(String.Format("Current memory usage is: {0}MB.", Gets.GetMemory(BotSettings.Windows).ToString("0.00")));
-				CurrentLogModule.AddUsers(guild.MemberCount);
-				CurrentLogModule.IncrementGuilds();
+				Logging.AddUsers(guild.MemberCount);
+				Logging.IncrementGuilds();
 
-				await GuildSettingsModule.AddGuild(guild);
+				await GuildSettings.AddGuild(guild);
 			}
-
 			public Task OnGuildUnavailable(SocketGuild guild)
 			{
 				ConsoleActions.WriteLine(String.Format("Guild is now offline {0}.", guild.FormatGuild()));
-				CurrentLogModule.RemoveUsers(guild.MemberCount);
-				CurrentLogModule.DecrementGuilds();
+				Logging.RemoveUsers(guild.MemberCount);
+				Logging.DecrementGuilds();
 
 				return Task.CompletedTask;
 			}
-
 			public async Task OnJoinedGuild(SocketGuild guild)
 			{
 				ConsoleActions.WriteLine(String.Format("Bot has joined {0}.", guild.FormatGuild()));
@@ -325,32 +296,21 @@ namespace Advobot
 
 				return;
 			}
-
 			public Task OnLeftGuild(SocketGuild guild)
 			{
 				ConsoleActions.WriteLine(String.Format("Bot has left {0}.", guild.FormatGuild()));
 
-				CurrentLogModule.RemoveUsers(guild.MemberCount);
-				CurrentLogModule.DecrementGuilds();
+				Logging.RemoveUsers(guild.MemberCount);
+				Logging.DecrementGuilds();
 
 				return Task.CompletedTask;
-			}
-		}
-
-		public sealed class ServerLogger : BaseLog
-		{
-			private readonly ILogModule CurrentLogModule;
-
-			public ServerLogger(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ILogModule currentLogModule) : base(client, botSettings, guildSettingsModule)
-			{
-				CurrentLogModule = currentLogModule;
 			}
 
 			public async Task OnUserJoined(SocketGuildUser user)
 			{
-				CurrentLogModule.IncrementUsers();
+				Logging.IncrementUsers();
 
-				if (LogChannels.VerifyServerLoggingAction(BotSettings, GuildSettingsModule, user, LogAction.UserJoined, out VerifiedLoggingAction verified))
+				if (OtherLogActions.VerifyServerLoggingAction(BotSettings, GuildSettings, user, LogAction.UserJoined, out VerifiedLoggingAction verified))
 				{
 					var guild = verified.Guild;
 					var guildSettings = verified.GuildSettings;
@@ -358,7 +318,7 @@ namespace Advobot
 
 					if (guildSettings != null)
 					{
-						await LogChannels.HandleJoiningUsers(guildSettings, user);
+						await OtherLogActions.HandleJoiningUsers(Timers, guildSettings, user);
 					}
 
 					var curInv = await Invites.GetInviteUserJoinedOn(guildSettings, guild);
@@ -386,7 +346,7 @@ namespace Advobot
 						await Messages.SendEmbedMessage(serverLog, embed);
 					}
 
-					CurrentLogModule.IncrementJoins();
+					Logging.IncrementJoins();
 				}
 				else
 				{
@@ -394,22 +354,21 @@ namespace Advobot
 					if (guildSettings == null)
 						return;
 
-					await LogChannels.HandleJoiningUsers(guildSettings, user);
+					await OtherLogActions.HandleJoiningUsers(Timers, guildSettings, user);
 				}
 			}
-
 			public async Task OnUserLeft(SocketGuildUser user)
 			{
-				CurrentLogModule.DecrementUsers();
+				Logging.DecrementUsers();
 
 				//Check if the bot was the one that left
 				if (user.Id == Properties.Settings.Default.BotID)
 				{
-					await GuildSettingsModule.RemoveGuild(user.Guild);
+					await GuildSettings.RemoveGuild(user.Guild);
 					return;
 				}
 
-				if (LogChannels.VerifyServerLoggingAction(BotSettings, GuildSettingsModule, user, LogAction.UserLeft, out VerifiedLoggingAction verified))
+				if (OtherLogActions.VerifyServerLoggingAction(BotSettings, GuildSettings, user, LogAction.UserLeft, out VerifiedLoggingAction verified))
 				{
 					var guild = verified.Guild;
 					var guildSettings = verified.GuildSettings;
@@ -434,10 +393,9 @@ namespace Advobot
 					Embeds.AddAuthor(embed, user);
 					await Messages.SendEmbedMessage(serverLog, embed);
 
-					CurrentLogModule.IncrementLeaves();
+					Logging.IncrementLeaves();
 				}
 			}
-
 			public async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
 			{
 				if (beforeUser.Username == null || afterUser.Username == null || BotSettings.Pause)
@@ -451,7 +409,7 @@ namespace Advobot
 						if (!(await guild.GetUsersAsync()).Select(x => x.Id).Contains(afterUser.Id))
 							return;
 
-						if (LogChannels.VerifyServerLoggingAction(BotSettings, GuildSettingsModule, guild, LogAction.UserLeft, out VerifiedLoggingAction verified))
+						if (OtherLogActions.VerifyServerLoggingAction(BotSettings, GuildSettings, guild, LogAction.UserLeft, out VerifiedLoggingAction verified))
 						{
 							var guildSettings = verified.GuildSettings;
 							var serverLog = verified.LoggingChannel;
@@ -463,50 +421,48 @@ namespace Advobot
 							Embeds.AddAuthor(embed, afterUser);
 							await Messages.SendEmbedMessage(serverLog, embed);
 
-							CurrentLogModule.IncrementUserChanges();
+							Logging.IncrementUserChanges();
 						}
 					}
 				}
 			}
-
 			public async Task OnMessageReceived(SocketMessage message)
 			{
 				var guild = message.GetGuild() as SocketGuild;
 				if (guild == null)
 				{
 					//Check if the user is trying to become the bot owner by DMing the bot its key
-					await HandlePotentialBotOwner(message);
+					await OnMessageReceivedActions.HandlePotentialBotOwner(BotSettings, message);
 					return;
 				}
 
-				if (GuildSettingsModule.TryGetSettings(guild, out IGuildSettings guildSettings))
+				if (GuildSettings.TryGetSettings(guild, out IGuildSettings guildSettings))
 				{
-					await HandleCloseWords(guildSettings, message);
-					await HandleSpamPreventionVoting(guildSettings, guild, message);
+					await OnMessageReceivedActions.HandleCloseWords(Timers, guildSettings, message);
+					await OnMessageReceivedActions.HandleSpamPreventionVoting(Timers, guildSettings, guild, message);
 
-					if (LogChannels.VerifyMessageShouldBeLogged(guildSettings, message))
+					if (OtherLogActions.VerifyMessageShouldBeLogged(guildSettings, message))
 					{
-						await HandleChannelSettings(guildSettings, message);
-						await HandleSpamPrevention(guildSettings, guild, message);
-						await HandleSlowmodeOrBannedPhrases(guildSettings, guild, message);
-						await HandleImageLogging(guildSettings, message);
+						await OnMessageReceivedActions.HandleChannelSettings(guildSettings, message);
+						await OnMessageReceivedActions.HandleSpamPrevention(Timers, guildSettings, guild, message);
+						await OnMessageReceivedActions.HandleSlowmodeOrBannedPhrases(Timers, guildSettings, guild, message);
+						await OnMessageReceivedActions.HandleImageLogging(Logging, guildSettings, message);
 					}
 				}
 			}
-
 			public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage afterMessage, ISocketMessageChannel channel)
 			{
-				if (LogChannels.VerifyServerLoggingAction(BotSettings, GuildSettingsModule, channel, LogAction.MessageUpdated, out VerifiedLoggingAction verified))
+				if (OtherLogActions.VerifyServerLoggingAction(BotSettings, GuildSettings, channel, LogAction.MessageUpdated, out VerifiedLoggingAction verified))
 				{
 					var guild = verified.Guild;
 					var guildSettings = verified.GuildSettings;
 					var serverLog = verified.LoggingChannel;
 
 					var beforeMessage = cached.HasValue ? cached.Value : null;
-					if (!LogChannels.VerifyMessageShouldBeLogged(guildSettings, afterMessage))
+					if (!OtherLogActions.VerifyMessageShouldBeLogged(guildSettings, afterMessage))
 						return;
 
-					await Spam.HandleBannedPhrases(guildSettings, guild, afterMessage);
+					await Spam.HandleBannedPhrases(Timers, guildSettings, guild, afterMessage);
 
 					if (serverLog != null)
 					{
@@ -532,7 +488,7 @@ namespace Advobot
 						Embeds.AddAuthor(embed, afterMessage.Author);
 						await Messages.SendEmbedMessage(serverLog, embed);
 
-						CurrentLogModule.IncrementEdits();
+						Logging.IncrementEdits();
 					}
 					var imageLog = guildSettings.ImageLog;
 					if (imageLog != null)
@@ -540,7 +496,7 @@ namespace Advobot
 						//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
 						if (beforeMessage?.Embeds.Count() < afterMessage.Embeds.Count())
 						{
-							await HandleImageLogging(guildSettings, afterMessage);
+							await OnMessageReceivedActions.HandleImageLogging(Logging, guildSettings, afterMessage);
 						}
 					}
 				}
@@ -554,16 +510,15 @@ namespace Advobot
 						return;
 
 					var beforeMessage = cached.HasValue ? cached.Value : null;
-					if (LogChannels.VerifyMessageShouldBeLogged(guildSettings, afterMessage))
+					if (OtherLogActions.VerifyMessageShouldBeLogged(guildSettings, afterMessage))
 					{
-						await Spam.HandleBannedPhrases(guildSettings, guild, afterMessage);
+						await Spam.HandleBannedPhrases(Timers, guildSettings, guild, afterMessage);
 					}
 				}
 			}
-
 			public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 			{
-				if (LogChannels.VerifyServerLoggingAction(BotSettings, GuildSettingsModule, channel, LogAction.MessageDeleted, out VerifiedLoggingAction verified))
+				if (OtherLogActions.VerifyServerLoggingAction(BotSettings, GuildSettings, channel, LogAction.MessageDeleted, out VerifiedLoggingAction verified))
 				{
 					var guild = verified.Guild;
 					var guildSettings = verified.GuildSettings;
@@ -587,7 +542,7 @@ namespace Advobot
 					cancelToken = new CancellationTokenSource();
 					msgDeletion.SetCancelToken(cancelToken);
 
-					CurrentLogModule.IncrementDeletes();
+					Logging.IncrementDeletes();
 
 					//Make async so doesn't publish prematurely
 					Task.Run(async () =>
@@ -623,16 +578,36 @@ namespace Advobot
 				return Task.FromResult(0);
 			}
 
-			private async Task HandlePotentialBotOwner(IMessage message)
+			public async Task LogCommand(IMyCommandContext context)
 			{
-				if (message.Content.Equals(Properties.Settings.Default.BotKey) && BotSettings.BotOwnerID == 0)
+				ConsoleActions.WriteLine(new LoggedCommand(context).ToString());
+				await Messages.DeleteMessage(context.Message);
+
+				if (OtherLogActions.VerifyMessageShouldBeLogged(context.GuildSettings, context.Message))
 				{
-					BotSettings.BotOwnerID = message.Author.Id;
+					var modLog = context.GuildSettings.ModLog;
+					if (modLog == null)
+						return;
+
+					var embed = Embeds.MakeNewEmbed(null, context.Message.Content);
+					Embeds.AddFooter(embed, "Mod Log");
+					Embeds.AddAuthor(embed, context.User);
+					await Messages.SendEmbedMessage(modLog, embed);
+				}
+			}
+		}
+
+		public static class OnMessageReceivedActions
+		{
+			public static async Task HandlePotentialBotOwner(IBotSettings botSettings, IMessage message)
+			{
+				if (message.Content.Equals(Properties.Settings.Default.BotKey) && botSettings.BotOwnerID == 0)
+				{
+					botSettings.BotOwnerID = message.Author.Id;
 					await Messages.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
 				}
 			}
-
-			private async Task HandleChannelSettings(IGuildSettings guildSettings, IMessage message)
+			public static async Task HandleChannelSettings(IGuildSettings guildSettings, IMessage message)
 			{
 				var channel = message.Channel as ITextChannel;
 				var author = message.Author as IGuildUser;
@@ -648,8 +623,7 @@ namespace Advobot
 					await message.DeleteAsync();
 				}
 			}
-
-			private async Task HandleImageLogging(IGuildSettings guildSettings, IMessage message)
+			public static async Task HandleImageLogging(ILogModule logging, IGuildSettings guildSettings, IMessage message)
 			{
 				var logChannel = guildSettings.ImageLog;
 				if (logChannel == null || message.Author.Id == Properties.Settings.Default.BotID)
@@ -657,32 +631,32 @@ namespace Advobot
 
 				if (message.Attachments.Any())
 				{
-					await LogChannels.LogImage(CurrentLogModule, logChannel, message, false);
+					await OtherLogActions.LogImage(logging, logChannel, message, false);
 				}
 				if (message.Embeds.Any())
 				{
-					await LogChannels.LogImage(CurrentLogModule, logChannel, message, true);
+					await OtherLogActions.LogImage(logging, logChannel, message, true);
 				}
 			}
-
-			private async Task HandleCloseWords(IGuildSettings guildSettings, IMessage message)
+			public static async Task HandleCloseWords(ITimersModule timers, IGuildSettings guildSettings, IMessage message)
 			{
 				if (int.TryParse(message.Content, out int number) && number > 0 && number < 6)
 				{
 					--number;
-					var closeWordList = Variables.ActiveCloseWords.FirstOrDefault(x => x.UserID == message.Author.Id);
+					var closeWordList = timers.ActiveCloseQuotes.FirstOrDefault(x => x.UserID == message.Author.Id);
 					if (!closeWordList.Equals(default(ActiveCloseWord<Quote>)) && closeWordList.List.Count > number)
 					{
 						var quote = closeWordList.List[number].Word;
-						Variables.ActiveCloseWords.ThreadSafeRemove(closeWordList);
+						timers.ActiveCloseQuotes.ThreadSafeRemove(closeWordList);
+
 						await Messages.SendChannelMessage(message.Channel, quote.Text);
 						await Messages.DeleteMessage(message);
 					}
-					var closeHelpList = Variables.ActiveCloseHelp.FirstOrDefault(x => x.UserID == message.Author.Id);
+					var closeHelpList = timers.ActiveCloseHelp.FirstOrDefault(x => x.UserID == message.Author.Id);
 					if (!closeHelpList.Equals(default(ActiveCloseWord<HelpEntry>)) && closeHelpList.List.Count > number)
 					{
 						var help = closeHelpList.List[number].Word;
-						Variables.ActiveCloseHelp.ThreadSafeRemove(closeHelpList);
+						timers.ActiveCloseHelp.ThreadSafeRemove(closeHelpList);
 
 						var embed = Embeds.MakeNewEmbed(help.Name, help.ToString());
 						Embeds.AddFooter(embed, "Help");
@@ -691,22 +665,19 @@ namespace Advobot
 					}
 				}
 			}
-
-			private async Task HandleSlowmodeOrBannedPhrases(IGuildSettings guildSettings, SocketGuild guild, IMessage message)
+			public static async Task HandleSlowmodeOrBannedPhrases(ITimersModule timers, IGuildSettings guildSettings, SocketGuild guild, IMessage message)
 			{
 				await Spam.HandleSlowmode(guildSettings, message);
-				await Spam.HandleBannedPhrases(guildSettings, guild, message);
+				await Spam.HandleBannedPhrases(timers, guildSettings, guild, message);
 			}
-
-			private async Task HandleSpamPrevention(IGuildSettings guildSettings, SocketGuild guild, IMessage message)
+			public static async Task HandleSpamPrevention(ITimersModule timers, IGuildSettings guildSettings, SocketGuild guild, IMessage message)
 			{
 				if (Users.GetIfUserCanBeModifiedByUser(Users.GetBot(guild), message.Author))
 				{
-					await Spam.HandleSpamPrevention(guildSettings, guild, message.Author as IGuildUser, message);
+					await Spam.HandleSpamPrevention(timers, guildSettings, guild, message.Author as IGuildUser, message);
 				}
 			}
-
-			private async Task HandleSpamPreventionVoting(IGuildSettings guildSettings, SocketGuild guild, IMessage message)
+			public static async Task HandleSpamPreventionVoting(ITimersModule timers, IGuildSettings guildSettings, SocketGuild guild, IMessage message)
 			{
 				//TODO: Make this work for all spam types
 				//Get the users primed to be punished by the spam prevention
@@ -725,7 +696,7 @@ namespace Advobot
 					if (user.UsersWhoHaveAlreadyVoted.Count < user.VotesRequired)
 						return;
 
-					await user.SpamPreventionPunishment(guildSettings);
+					await user.SpamPreventionPunishment(timers, guildSettings);
 
 					//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
 					user.ResetSpamUser();
@@ -733,31 +704,181 @@ namespace Advobot
 			}
 		}
 
-		public sealed class ModLogger : BaseLog
+		public static class OtherLogActions
 		{
-			private ILogModule CurrentLogModule;
-
-			public ModLogger(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ILogModule currentLogModule) : base(client, botSettings, guildSettingsModule)
+			public static async Task LogImage(ILogModule currentLogModule, ITextChannel channel, IMessage message, bool embeds)
 			{
-				CurrentLogModule = currentLogModule;
+				var attachmentURLs = new List<string>();
+				var embedURLs = new List<string>();
+				var videoEmbeds = new List<IEmbed>();
+				if (!embeds && message.Attachments.Any())
+				{
+					//If attachment, the file is hosted on discord which has a concrete URL name for files (cdn.discordapp.com/attachments/.../x.png)
+					attachmentURLs = message.Attachments.Select(x => x.Url).Distinct().ToList();
+				}
+				else if (embeds && message.Embeds.Any())
+				{
+					//If embed this is slightly trickier, but only images/videos can embed (AFAIK)
+					foreach (var embed in message.Embeds)
+					{
+						if (embed.Video == null)
+						{
+							//If no video then it has to be just an image
+							if (!String.IsNullOrEmpty(embed.Thumbnail?.Url))
+							{
+								embedURLs.Add(embed.Thumbnail?.Url);
+							}
+							if (!String.IsNullOrEmpty(embed.Image?.Url))
+							{
+								embedURLs.Add(embed.Image?.Url);
+							}
+						}
+						else
+						{
+							//Add the video URL and the thumbnail URL
+							videoEmbeds.Add(embed);
+						}
+					}
+				}
+				//Attached files
+				foreach (var attachmentURL in attachmentURLs)
+				{
+					//Image attachment
+					if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentURL)))
+					{
+						var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+						var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
+						Embeds.AddFooter(embed, "Attached Image");
+						Embeds.AddAuthor(embed, message.Author, attachmentURL);
+						await Messages.SendEmbedMessage(channel, embed);
+
+						currentLogModule.IncrementImages();
+					}
+					//Gif attachment
+					else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL)))
+					{
+						var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+						var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
+						Embeds.AddFooter(embed, "Attached Gif");
+						Embeds.AddAuthor(embed, message.Author, attachmentURL);
+						await Messages.SendEmbedMessage(channel, embed);
+
+						currentLogModule.IncrementGifs();
+					}
+					//Random file attachment
+					else
+					{
+						var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+						var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
+						Embeds.AddFooter(embed, "Attached File");
+						Embeds.AddAuthor(embed, message.Author, attachmentURL);
+						await Messages.SendEmbedMessage(channel, embed);
+
+						currentLogModule.IncrementFiles();
+					}
+				}
+				//Embedded images
+				foreach (var embedURL in embedURLs.Distinct())
+				{
+					var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+					var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, embedURL);
+					Embeds.AddFooter(embed, "Embedded Image");
+					Embeds.AddAuthor(embed, message.Author, embedURL);
+					await Messages.SendEmbedMessage(channel, embed);
+
+					currentLogModule.IncrementImages();
+				}
+				//Embedded videos/gifs
+				foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First()))
+				{
+					var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+					var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, videoEmbed.Thumbnail?.Url);
+					Embeds.AddFooter(embed, "Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
+					Embeds.AddAuthor(embed, message.Author, videoEmbed.Url);
+					await Messages.SendEmbedMessage(channel, embed);
+
+					currentLogModule.IncrementGifs();
+				}
+			}
+			public static async Task HandleJoiningUsers(ITimersModule timers, IGuildSettings guildSettings, IGuildUser user)
+			{
+				//Slowmode
+				{
+					var smGuild = guildSettings.SlowmodeGuild;
+					if (smGuild != null)
+					{
+						smGuild.Users.ThreadSafeAdd(new SlowmodeUser(user, smGuild.BaseMessages, smGuild.Interval));
+					}
+					var smChannels = guildSettings.SlowmodeChannels;
+					if (smChannels.Any())
+					{
+						smChannels.Where(x => (user.Guild as SocketGuild).TextChannels.Select(y => y.Id).Contains(x.ChannelID)).ToList().ForEach(smChan =>
+						{
+							smChan.Users.ThreadSafeAdd(new SlowmodeUser(user, smChan.BaseMessages, smChan.Interval));
+						});
+					}
+				}
+
+				//Raid Prevention
+				{
+					var antiRaid = guildSettings.RaidPreventionDictionary[RaidType.Regular];
+					if (antiRaid != null && antiRaid.Enabled)
+					{
+						await antiRaid.RaidPreventionPunishment(timers, guildSettings, user);
+					}
+					var antiJoin = guildSettings.RaidPreventionDictionary[RaidType.RapidJoins];
+					if (antiJoin != null && antiJoin.Enabled)
+					{
+						antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
+						if (antiJoin.GetSpamCount() >= antiJoin.RequiredCount)
+						{
+							await antiJoin.RaidPreventionPunishment(timers, guildSettings, user);
+							if (guildSettings.ServerLog != null)
+							{
+								await Messages.SendEmbedMessage(guildSettings.ServerLog, Embeds.MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
+							}
+						}
+					}
+				}
 			}
 
-			public async Task LogCommand(MyCommandContext context)
+			public static bool VerifyLoggingIsEnabledOnThisChannel(IGuildSettings guildSettings, IMessage message)
 			{
-				ConsoleActions.WriteLine(new LoggedCommand(context).ToString());
-				await Messages.DeleteMessage(context.Message);
+				return !guildSettings.IgnoredLogChannels.Contains(message.Channel.Id);
+			}
+			public static bool VerifyMessageShouldBeLogged(IGuildSettings guildSettings, IMessage message)
+			{
+				//Ignore null messages
+				if (message == null)
+					return false;
+				//Ignore webhook messages
+				else if (message.Author.IsWebhook)
+					return false;
+				//Ignore bot messgaes
+				else if (message.Author.IsBot && message.Author.Id != Properties.Settings.Default.BotID)
+					return false;
+				//Ignore commands on channels that shouldn't be logged
+				else if (!VerifyLoggingIsEnabledOnThisChannel(guildSettings, message))
+					return false;
+				return true;
+			}
+			public static bool VerifyServerLoggingAction(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IGuildUser user, LogAction logAction, out VerifiedLoggingAction verifLoggingAction)
+			{
+				return VerifyServerLoggingAction(botSettings, guildSettingsModule, user.Guild, logAction, out verifLoggingAction);
+			}
+			public static bool VerifyServerLoggingAction(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ISocketMessageChannel channel, LogAction logAction, out VerifiedLoggingAction verifLoggingAction)
+			{
+				return VerifyServerLoggingAction(botSettings, guildSettingsModule, channel.GetGuild() as SocketGuild, logAction, out verifLoggingAction) && !verifLoggingAction.GuildSettings.IgnoredLogChannels.Contains(channel.Id);
+			}
+			public static bool VerifyServerLoggingAction(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IGuild guild, LogAction logAction, out VerifiedLoggingAction verifLoggingAction)
+			{
+				verifLoggingAction = new VerifiedLoggingAction(null, null, null);
+				if (botSettings.Pause || !guildSettingsModule.TryGetSettings(guild, out IGuildSettings guildSettings))
+					return false;
 
-				if (LogChannels.VerifyMessageShouldBeLogged(context.GuildSettings, context.Message))
-				{
-					var modLog = context.GuildSettings.ModLog;
-					if (modLog == null)
-						return;
-
-					var embed = Embeds.MakeNewEmbed(null, context.Message.Content);
-					Embeds.AddFooter(embed, "Mod Log");
-					Embeds.AddAuthor(embed, context.User);
-					await Messages.SendEmbedMessage(modLog, embed);
-				}
+				var serverLog = guildSettings.ServerLog;
+				verifLoggingAction = new VerifiedLoggingAction(guild, guildSettings, serverLog);
+				return serverLog != null && guildSettings.LogActions.Contains(logAction);
 			}
 		}
 	}

@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Collections.Specialized;
 
 namespace Advobot
 {
@@ -132,11 +133,11 @@ namespace Advobot
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
-				if (trustedUser && cont.GlobalInfo.TrustedUsers.Contains(user.Id))
+				if (trustedUser && cont.BotSettings.TrustedUsers.Contains(user.Id))
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
-				if (botOwner && cont.GlobalInfo.BotOwnerID == user.Id)
+				if (botOwner && cont.BotSettings.BotOwnerID == user.Id)
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
@@ -159,7 +160,7 @@ namespace Advobot
 				{
 					return PreconditionResult.FromError("This bot will not function without the `Administrator` permission.");
 				}
-				else if (!cont.GlobalInfo.Loaded)
+				else if (!cont.BotSettings.Loaded)
 				{
 					return PreconditionResult.FromError("Wait until the bot is loaded.");
 				}
@@ -617,8 +618,6 @@ namespace Advobot
 	#region Saved Classes
 	public class MyGuildSettings : IGuildSettings, INotifyPropertyChanged
 	{
-		//I wanted to go put all of the settings in a Dictionary<SettingOnGuild, object>
-		//The problem with that was when deserializing I didn't know how to get JSON to deserialize to the correct types.
 		[JsonProperty("BotUsers")]
 		private List<BotImplementedPermissions> _BotUsers = new List<BotImplementedPermissions>();
 		[JsonProperty("SelfAssignableGroups")]
@@ -1281,7 +1280,7 @@ namespace Advobot
 			PropertyChanged += SaveSettings;
 		}
 
-		//TODO: put a wait like on message deletion 
+		//TODO: put a wait like on message deletion
 		private void OnPropertyChanged([CallerMemberName] string propertyName = "")
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -1313,6 +1312,17 @@ namespace Advobot
 		public void SetGotPath()
 		{
 			GotPath = true;
+		}
+	}
+
+	public class TestClass
+	{
+		private ObservableCollection<string> _Collection;
+		public ObservableCollection<string> Collection => _Collection;
+
+		public TestClass(NotifyCollectionChangedEventHandler collectionChanged)
+		{
+			(_Collection ?? (_Collection = new ObservableCollection<string>(new[] { "cat", "dog" }))).CollectionChanged += collectionChanged;
 		}
 	}
 
@@ -1881,10 +1891,10 @@ namespace Advobot
 		{
 			TimeList.Clear();
 		}
-		public async Task RaidPreventionPunishment(IGuildSettings guildSettings, IGuildUser user)
+		public async Task RaidPreventionPunishment(ITimersModule timers, IGuildSettings guildSettings, IGuildUser user)
 		{
 			//TODO: make this not 0
-			await Punishments.AutomaticPunishments(guildSettings, user, PunishmentType, false, 0);
+			await Punishments.AutomaticPunishments(timers, guildSettings, user, PunishmentType, false, 0);
 		}
 
 		public string SettingToString()
@@ -1908,15 +1918,16 @@ namespace Advobot
 	{
 	}
 
-	public class MyCommandContext : CommandContext
+	public class MyCommandContext : CommandContext, IMyCommandContext
 	{
-		public IBotSettings GlobalInfo { get; }
+		public IBotSettings BotSettings { get; }
 		public IGuildSettings GuildSettings { get; }
 		public ILogModule Logging { get; }
+		public ITimersModule Timers { get; }
 
-		public MyCommandContext(IBotSettings globalInfo, IGuildSettings guildSettings, ILogModule logging, IDiscordClient client, IUserMessage msg) : base(client, msg)
+		public MyCommandContext(IBotSettings botSettings, IGuildSettings guildSettings, ILogModule logging, IDiscordClient client, IUserMessage msg) : base(client, msg)
 		{
-			GlobalInfo = globalInfo;
+			BotSettings = botSettings;
 			GuildSettings = guildSettings;
 			Logging = logging;
 		}
@@ -2024,37 +2035,52 @@ namespace Advobot
 		private readonly System.Timers.Timer _MinuteTimer = new System.Timers.Timer(MINUTE);
 		private readonly System.Timers.Timer _OneHalfSecondTimer = new System.Timers.Timer(ONE_HALF_SECOND);
 
-		public MyTimersModule(IGuildSettingsModule guildSettingsModule)
+		private IGuildSettingsModule GuildSettings;
+
+		private List<RemovablePunishment> _RemovablePunishments;
+		private List<RemovableMessage> _RemovableMessages;
+		private List<ActiveCloseWord<HelpEntry>> _ActiveCloseHelp;
+		private List<ActiveCloseWord<Quote>> _ActiveCloseQuotes;
+		private List<SlowmodeUser> _SlowmodeUsers;
+		public List<RemovablePunishment> RemovablePunishments => _RemovablePunishments ?? (_RemovablePunishments = new List<RemovablePunishment>());
+		public List<RemovableMessage> RemovableMessages => _RemovableMessages ?? (_RemovableMessages = new List<RemovableMessage>());
+		public List<ActiveCloseWord<HelpEntry>> ActiveCloseHelp => _ActiveCloseHelp ?? (_ActiveCloseHelp = new List<ActiveCloseWord<HelpEntry>>());
+		public List<ActiveCloseWord<Quote>> ActiveCloseQuotes => _ActiveCloseQuotes ?? (_ActiveCloseQuotes = new List<ActiveCloseWord<Quote>>());
+		public List<SlowmodeUser> SlowmodeUsers => _SlowmodeUsers ?? (_SlowmodeUsers = new List<SlowmodeUser>());
+
+		public MyTimersModule(IGuildSettingsModule guildSettings)
 		{
-			_HourTimer.Elapsed += (sender, e) => OnHourEvent(sender, e, guildSettingsModule);
+			GuildSettings = guildSettings;
+
+			_HourTimer.Elapsed += (sender, e) => OnHourEvent(sender, e);
 			_HourTimer.Enabled = true;
 
-			_MinuteTimer.Elapsed += (sender, e) => OnMinuteEvent(sender, e, guildSettingsModule);
+			_MinuteTimer.Elapsed += (sender, e) => OnMinuteEvent(sender, e);
 			_MinuteTimer.Enabled = true;
 
-			_OneHalfSecondTimer.Elapsed += (sender, e) => OnOneHalfSecondEvent(sender, e, guildSettingsModule);
+			_OneHalfSecondTimer.Elapsed += (sender, e) => OnOneHalfSecondEvent(sender, e);
 			_OneHalfSecondTimer.Enabled = true;
 		}
 
-		private static void OnHourEvent(object source, ElapsedEventArgs e, IGuildSettingsModule guildSettingsModule)
+		private void OnHourEvent(object source, ElapsedEventArgs e)
 		{
-			ClearPunishedUsersList(guildSettingsModule);
+			ClearPunishedUsersList();
 		}
-		private static void ClearPunishedUsersList(IGuildSettingsModule guildSettingsModule)
+		private void ClearPunishedUsersList()
 		{
-			foreach (var guildSettings in guildSettingsModule.GetAllSettings())
+			foreach (var guildSettings in GuildSettings.GetAllSettings())
 			{
 				guildSettings.SpamPreventionUsers.Clear();
 			}
 		}
 
-		private static void OnMinuteEvent(object source, ElapsedEventArgs e, IGuildSettingsModule guildSettingsModule)
+		private void OnMinuteEvent(object source, ElapsedEventArgs e)
 		{
 			Task.Run(async () => { await RemovePunishments(); });
 		}
-		private static async Task RemovePunishments()
+		private async Task RemovePunishments()
 		{
-			foreach (var punishment in Variables.RemovablePunishments.GetOutTimedObjects())
+			foreach (var punishment in RemovablePunishments.GetOutTimedObjects())
 			{
 				switch (punishment.PunishmentType)
 				{
@@ -2090,15 +2116,15 @@ namespace Advobot
 			}
 		}
 
-		private static void OnOneHalfSecondEvent(object source, ElapsedEventArgs e, IGuildSettingsModule guildSettingsModule)
+		private void OnOneHalfSecondEvent(object source, ElapsedEventArgs e)
 		{
 			Task.Run(async () => { await DeleteTargettedMessages(); });
 			RemoveActiveCloseHelpAndWords();
 			ResetSlowModeUserMessages();
 		}
-		private static async Task DeleteTargettedMessages()
+		private async Task DeleteTargettedMessages()
 		{
-			foreach (var message in Variables.TimedMessages.GetOutTimedObjects())
+			foreach (var message in RemovableMessages.GetOutTimedObjects())
 			{
 				if (message.Messages.Count() == 1)
 				{
@@ -2110,14 +2136,14 @@ namespace Advobot
 				}
 			}
 		}
-		private static void RemoveActiveCloseHelpAndWords()
+		private void RemoveActiveCloseHelpAndWords()
 		{
-			Variables.ActiveCloseHelp.GetOutTimedObjects();
-			Variables.ActiveCloseWords.GetOutTimedObjects();
+			ActiveCloseHelp.GetOutTimedObjects();
+			ActiveCloseQuotes.GetOutTimedObjects();
 		}
-		private static void ResetSlowModeUserMessages()
+		private void ResetSlowModeUserMessages()
 		{
-			foreach (var slowModeUser in Variables.SlowmodeUsers.GetOutTimedObjects())
+			foreach (var slowModeUser in SlowmodeUsers.GetOutTimedObjects())
 			{
 				slowModeUser.ResetMessagesLeft();
 			}
@@ -2378,10 +2404,10 @@ namespace Advobot
 		{
 			return SpamLists[spamType].GetCountOfItemsInTimeFrame(spamPrev.TimeInterval) >= spamPrev.RequiredSpamInstances;
 		}
-		public async Task SpamPreventionPunishment(IGuildSettings guildSettings)
+		public async Task SpamPreventionPunishment(ITimersModule timers, IGuildSettings guildSettings)
 		{
 			//TODO: make this not 0
-			await Punishments.AutomaticPunishments(guildSettings, User, Punishment, AlreadyKicked, 0);
+			await Punishments.AutomaticPunishments(timers, guildSettings, User, Punishment, AlreadyKicked, 0);
 		}
 	}
 	#endregion
@@ -2721,9 +2747,21 @@ namespace Advobot
 		string Text { get; }
 	}
 
+	public interface IMyCommandContext : ICommandContext
+	{
+		IBotSettings BotSettings { get; }
+		IGuildSettings GuildSettings { get; }
+		ILogModule Logging { get; }
+		ITimersModule Timers { get; }
+	}
+
 	public interface ITimersModule
 	{
-
+		List<RemovablePunishment> RemovablePunishments { get; }
+		List<RemovableMessage> RemovableMessages { get; }
+		List<ActiveCloseWord<HelpEntry>> ActiveCloseHelp { get; }
+		List<ActiveCloseWord<Quote>> ActiveCloseQuotes { get; }
+		List<SlowmodeUser> SlowmodeUsers { get; }
 	}
 
 	public interface IGuildSettingsModule
@@ -2751,9 +2789,7 @@ namespace Advobot
 		uint LoggedGifs { get; }
 		uint LoggedFiles { get; }
 
-		BaseLog BotLog { get; }
-		BaseLog ServerLog { get; }
-		BaseLog ModLog { get; }
+		ILog Log { get; }
 
 		void AddUsers(int users);
 		void RemoveUsers(int users);
@@ -2775,6 +2811,22 @@ namespace Advobot
 
 		string FormatLoggedCommands();
 		string FormatLoggedActions();
+	}
+
+	public interface ILog
+	{
+		Task Log(LogMessage msg);
+		Task OnGuildAvailable(SocketGuild guild);
+		Task OnGuildUnavailable(SocketGuild guild);
+		Task OnJoinedGuild(SocketGuild guild);
+		Task OnLeftGuild(SocketGuild guild);
+		Task OnUserJoined(SocketGuildUser user);
+		Task OnUserLeft(SocketGuildUser user);
+		Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser);
+		Task OnMessageReceived(SocketMessage message);
+		Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage afterMessage, ISocketMessageChannel channel);
+		Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel);
+		Task LogCommand(IMyCommandContext context);
 	}
 
 	public interface ISetting

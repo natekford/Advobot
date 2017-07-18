@@ -52,8 +52,8 @@ namespace Advobot
 					var closeHelps = CloseWords.GetObjectsWithSimilarNames(Constants.HELP_ENTRIES, command).Distinct();
 					if (closeHelps.Any())
 					{
-						Variables.ActiveCloseHelp.ThreadSafeRemoveAll(x => x.UserID == Context.User.Id);
-						Variables.ActiveCloseHelp.ThreadSafeAdd(new ActiveCloseWord<HelpEntry>(Context.User.Id, closeHelps));
+						Context.Timers.ActiveCloseHelp.ThreadSafeRemoveAll(x => x.UserID == Context.User.Id);
+						Context.Timers.ActiveCloseHelp.ThreadSafeAdd(new ActiveCloseWord<HelpEntry>(Context.User.Id, closeHelps));
 
 						var msg = "Did you mean any of the following:\n" + closeHelps.FormatNumberedList("{0}", x => x.Word.Name);
 						await Messages.MakeAndDeleteSecondaryMessage(Context, msg, Constants.SECONDS_ACTIVE_CLOSE);
@@ -237,7 +237,7 @@ namespace Advobot
 					}
 					case Target.Bot:
 					{
-						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatBotInfo(Context.GlobalInfo, Context.Client, Context.Logging, Context.Guild));
+						await Messages.SendEmbedMessage(Context.Channel, Formatting.FormatBotInfo(Context.BotSettings, Context.Client, Context.Logging, Context.Guild));
 						return;
 					}
 					case Target.Channel:
@@ -544,7 +544,7 @@ namespace Advobot
 				foreach (var msg in (await Messages.GetMessages(channel, Math.Min(num, 1000))).OrderBy(x => x.CreatedAt.Ticks))
 				{
 					var temp = Formatting.RemoveMarkdownChars(Formatting.FormatNonDM(msg), true);
-					if ((charCount += temp.Length) < Context.GlobalInfo.MaxMessageGatherSize)
+					if ((charCount += temp.Length) < Context.BotSettings.MaxMessageGatherSize)
 					{
 						formattedMessages.Add(temp);
 					}
@@ -672,7 +672,7 @@ namespace Advobot
 			{
 				var newMsg = String.Format("From `{0}` in `{1}`:\n```\n{2}```", Context.User.FormatUser(), Context.Guild.FormatGuild(), input.Substring(0, Math.Min(input.Length, 250)));
 
-				var owner = await Users.GetGlobalUser(Context.Client, Context.GlobalInfo.BotOwnerID);
+				var owner = await Users.GetGlobalUser(Context.Client, Context.BotSettings.BotOwnerID);
 				if (owner != null)
 				{
 					var DMChannel = await owner.GetOrCreateDMChannelAsync();
@@ -773,10 +773,20 @@ namespace Advobot
 				await CommandRunner();
 			}
 
+			private event System.Collections.Specialized.NotifyCollectionChangedEventHandler CollectionChanged;
+
 			private async Task CommandRunner()
 			{
-				//[OverrideTypeReader(typeof(BoolTypeReader))]
+				CollectionChanged += SaveSettings;
+				var test = new TestClass(CollectionChanged);
+				var collection = test.Collection;
+				collection.Add("fish");
 				await Messages.SendChannelMessage(Context, "test");
+			}
+
+			private void SaveSettings(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+			{
+				throw new NotImplementedException();
 			}
 		}
 	}}

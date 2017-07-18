@@ -1,10 +1,11 @@
 ﻿using Advobot.Actions;
+using Advobot.Logging;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Logging;
 
 namespace Advobot
 {
@@ -28,6 +29,8 @@ namespace Advobot
 			Timers = (ITimersModule)provider.GetService(typeof(ITimersModule));
 			Logging = (ILogModule)provider.GetService(typeof(ILogModule));
 
+			SetUpCrucialEvents(Client);
+
 			Commands.AddTypeReader(typeof(IInvite), new IInviteTypeReader());
 			Commands.AddTypeReader(typeof(IBan), new IBanTypeReader());
 			Commands.AddTypeReader(typeof(Emote), new IEmoteTypeReader());
@@ -35,9 +38,30 @@ namespace Advobot
 			await Commands.AddModulesAsync(System.Reflection.Assembly.GetEntryAssembly());
 		}
 
-		public static async Task LoadInformation()
+		private static void SetUpCrucialEvents(IDiscordClient client)
 		{
-			await SavingAndLoading.LoadInformation(Client, BotSettings, GuildSettings);
+			if (client is DiscordSocketClient)
+			{
+				var socketClient = client as DiscordSocketClient;
+				socketClient.MessageReceived += (SocketMessage message) => HandleCommand(message as SocketUserMessage);
+				socketClient.Connected += async () =>
+				{
+					await SavingAndLoading.LoadInformation(Client, BotSettings, GuildSettings);
+				};
+			}
+			else if (client is DiscordShardedClient)
+			{
+				var shardedClient = client as DiscordShardedClient;
+				shardedClient.MessageReceived += (SocketMessage message) => HandleCommand(message as SocketUserMessage);
+				shardedClient.Shards.FirstOrDefault().Connected += async () =>
+				{
+					await SavingAndLoading.LoadInformation(Client, BotSettings, GuildSettings);
+				};
+			}
+			else
+			{
+				throw new ArgumentException("Invalid client supplied. Must be DiscordSocketClient or DiscordShardedClient.");
+			}
 		}
 
 		public static async Task HandleCommand(SocketUserMessage message)
@@ -62,7 +86,7 @@ namespace Advobot
 
 			if (result.IsSuccess)
 			{
-				await (Logging.ModLog as ModLogger).LogCommand(context);
+				await (Logging.Log as MyLog).LogCommand(context);
 
 				Logging.IncrementSuccessfulCommands();
 			}
@@ -82,7 +106,7 @@ namespace Advobot
 					}
 					default:
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(message.Channel, message, Formatting.ERROR(result.ErrorReason));
+						await Messages.MakeAndDeleteSecondaryMessage(Timers, message.Channel, message, Formatting.ERROR(result.ErrorReason));
 						break;
 					}
 				}
