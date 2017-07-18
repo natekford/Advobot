@@ -773,20 +773,9 @@ namespace Advobot
 				await CommandRunner();
 			}
 
-			private event System.Collections.Specialized.NotifyCollectionChangedEventHandler CollectionChanged;
-
 			private async Task CommandRunner()
 			{
-				CollectionChanged += SaveSettings;
-				var test = new TestClass(CollectionChanged);
-				var collection = test.Collection;
-				collection.Add("fish");
 				await Messages.SendChannelMessage(Context, "test");
-			}
-
-			private void SaveSettings(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-			{
-				throw new NotImplementedException();
 			}
 		}
 	}}

@@ -42,22 +42,43 @@ namespace Advobot
 				await CommandRunner(region);
 			}
 
-			private static readonly string _RegionIDs = String.Join("\n", Constants.VALID_REGION_IDS);
-			private static readonly string _VIPRegionIDs = String.Join("\n", Constants.VIP_REGIONIDS);
-			private static readonly string _AllRegionIDs = _RegionIDs + "\n" + _VIPRegionIDs;
+			private static readonly string[] _ValidRegionIDs =
+			{
+				"brazil",
+				"eu-central",
+				"eu-west",
+				"hongkong",
+				"russia",
+				"singapore",
+				"sydney",
+				"us-east",
+				"us-central",
+				"us-south",
+				"us-west",
+			};
+			private static readonly string[] _VIPRegionIDs =
+			{
+				"vip-amsterdam",
+				"vip-us-east",
+				"vip-us-west",
+			};
+
+			private static readonly string _BaseRegions = String.Join("\n", _BaseRegions);
+			private static readonly string _VIPRegions = String.Join("\n", _VIPRegionIDs);
+			private static readonly string _AllRegions = _BaseRegions + "\n" + _VIPRegions;
 
 			private async Task CommandRunner(string region)
 			{
 				if (String.IsNullOrWhiteSpace(region))
 				{
-					var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegionIDs : _RegionIDs;
+					var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions;
 					await Messages.SendEmbedMessage(Context.Channel, Embeds.MakeNewEmbed("Region IDs", desc));
 				}
 				else if ("current".CaseInsEquals(region))
 				{
 					await Messages.SendChannelMessage(Context, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
 				}
-				else if (Constants.VALID_REGION_IDS.CaseInsContains(region) || (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && Constants.VIP_REGIONIDS.CaseInsContains(region)))
+				else if (_ValidRegionIDs.CaseInsContains(region) || (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(region)))
 				{
 					var beforeRegion = Context.Guild.VoiceRegionId;
 					await Context.Guild.ModifyAsync(x => x.RegionId = region);

@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Collections.Specialized;
+using System.Reflection;
 
 namespace Advobot
 {
@@ -1011,19 +1012,19 @@ namespace Advobot
 		}
 
 		[JsonIgnore]
-		public List<BannedPhraseUser> BannedPhraseUsers { get; private set; } = new List<BannedPhraseUser>();
+		public List<BannedPhraseUser> BannedPhraseUsers { get; } = new List<BannedPhraseUser>();
 		[JsonIgnore]
-		public List<SpamPreventionUser> SpamPreventionUsers { get; private set; } = new List<SpamPreventionUser>();
+		public List<SpamPreventionUser> SpamPreventionUsers { get; } = new List<SpamPreventionUser>();
 		[JsonIgnore]
-		public List<SlowmodeChannel> SlowmodeChannels { get; private set; } = new List<SlowmodeChannel>();
+		public List<SlowmodeChannel> SlowmodeChannels { get; } = new List<SlowmodeChannel>();
 		[JsonIgnore]
-		public List<BotInvite> Invites { get; private set; } = new List<BotInvite>();
+		public List<BotInvite> Invites { get; } = new List<BotInvite>();
 		[JsonIgnore]
-		public List<string> EvaluatedRegex { get; private set; } = new List<string>();
+		public List<string> EvaluatedRegex { get; } = new List<string>();
 		[JsonIgnore]
-		public SlowmodeGuild SlowmodeGuild { get; private set; } = null;
+		public SlowmodeGuild SlowmodeGuild { get; } = null;
 		[JsonIgnore]
-		public MessageDeletion MessageDeletion { get; private set; } = new MessageDeletion();
+		public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
 		[JsonIgnore]
 		public IGuild Guild { get; private set; } = null;
 		[JsonIgnore]
@@ -1317,12 +1318,26 @@ namespace Advobot
 
 	public class TestClass
 	{
-		private ObservableCollection<string> _Collection;
-		public ObservableCollection<string> Collection => _Collection;
+		public ObservableCollection<string> Collection;
 
 		public TestClass(NotifyCollectionChangedEventHandler collectionChanged)
 		{
-			(_Collection ?? (_Collection = new ObservableCollection<string>(new[] { "cat", "dog" }))).CollectionChanged += collectionChanged;
+			HookAllCollectionsIntoEvent(collectionChanged);
+		}
+		private void HookAllCollectionsIntoEvent(NotifyCollectionChangedEventHandler collectionChanged)
+		{
+			foreach (var field in GetType().GetFields(BindingFlags.Public | BindingFlags.Instance))
+			{
+				if (field.FieldType.GetInterfaces().Contains(typeof(INotifyPropertyChanged)))
+				{
+					if (field.GetValue(this) == null)
+					{
+						field.SetValue(this, Activator.CreateInstance(field.FieldType));
+					}
+
+					(field.GetValue(this) as INotifyCollectionChanged).CollectionChanged += collectionChanged;
+				}
+			}
 		}
 	}
 
@@ -2762,6 +2777,11 @@ namespace Advobot
 		List<ActiveCloseWord<HelpEntry>> ActiveCloseHelp { get; }
 		List<ActiveCloseWord<Quote>> ActiveCloseQuotes { get; }
 		List<SlowmodeUser> SlowmodeUsers { get; }
+	}
+
+	public interface IInviteListModule
+	{
+
 	}
 
 	public interface IGuildSettingsModule

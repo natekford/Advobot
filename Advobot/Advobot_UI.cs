@@ -1354,10 +1354,12 @@ namespace Advobot
 				}
 				case SettingOnBot.TrustedUsers:
 				{
-					var trustedUsers = cb.Items.OfType<TextBox>().Select(x => (ulong)x.Tag).ToList();
-					if (trustedUsers.Count != botSettings.TrustedUsers.Count || botSettings.TrustedUsers.Except(trustedUsers).Any())
+					var updatedTrustedUsers = cb.Items.OfType<TextBox>().Select(x => (ulong)x.Tag).ToList();
+					var removedUsers = botSettings.TrustedUsers.Except(updatedTrustedUsers);
+					var addedUsers = updatedTrustedUsers.Except(botSettings.TrustedUsers);
+					if (removedUsers.Any() || addedUsers.Any())
 					{
-						botSettings.TrustedUsers = trustedUsers;
+						botSettings.TrustedUsers = updatedTrustedUsers;
 					}
 					return true;
 				}
