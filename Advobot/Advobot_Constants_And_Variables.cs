@@ -10,6 +10,7 @@ namespace Advobot
 	{
 		internal const string BOT_VERSION = "0.11.0";
 		internal const string API_VERSION = "Discord.Net v1.0.2-build-00800";
+		internal const string PROGRAM_NAME = "Advobot";
 		internal const string BOT_PREFIX = "&&";
 		internal const string ZERO_LENGTH_CHAR = "\u180E";
 		internal const string IGNORE_ERROR = "Cx";

@@ -5,6 +5,7 @@ using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 /* First, to get the really shitty part of the bot out of the way:
  * 0.	I am too lazy to type out .ConfigureAwait(false) on every await I do and I don't really know what it does so I don't use it.
@@ -30,6 +31,10 @@ namespace Advobot
 {
 	public class Program
 	{
+		//To hide the console
+		[DllImport("kernel32.dll", SetLastError = true)]
+		private static extern int FreeConsole();
+
 		[STAThread]
 		private static void Main()
 		{
@@ -43,10 +48,42 @@ namespace Advobot
 			if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Length > 1)
 				return;
 #endif
+			//Things that when not loaded fuck the bot completely.
+			var criticalInfo = SavingAndLoading.LoadCriticalInformation();
 
-			//Things that when not loaded fuck the bot completely. These things have to go in this order because I'm a dumdum who made stuff have dependencies.
-			CriticalInformation criticalInfo = SavingAndLoading.LoadCriticalInformation();
-			IBotSettings botSettings = SavingAndLoading.CreateBotSettings(Constants.GLOBAL_SETTINGS_TYPE, criticalInfo.Windows, criticalInfo.Console, criticalInfo.FirstInstance);
+			//Only ask if the user wants to launch the UI if on windows and the program is targetting console
+			var console = true;
+			if (criticalInfo.Windows)
+			{
+				if (!criticalInfo.Console)
+				{
+					console = false;
+				}
+				else
+				{
+					ConsoleActions.WriteLine("Would you like to start the program with a GUI? [Y/N]");
+					while (true)
+					{
+						var response = Console.ReadLine();
+						if (response.CaseInsStartsWith("y"))
+						{
+							console = false;
+							break;
+						}
+						else if (response.CaseInsStartsWith("n"))
+						{
+							console = true;
+							break;
+						}
+						else
+						{
+							ConsoleActions.WriteLine("Please enter Y or N.");
+						}
+					}
+				}
+			}
+
+			IBotSettings botSettings = SavingAndLoading.CreateBotSettings(Constants.GLOBAL_SETTINGS_TYPE, criticalInfo.Windows, console, criticalInfo.FirstInstance);
 			IGuildSettingsModule guildSettings = new MyGuildSettingsModule(Constants.GUILDS_SETTINGS_TYPE);
 			ITimersModule timers = new MyTimersModule(guildSettings);
 			IDiscordClient client = ClientActions.CreateBotClient(botSettings);
@@ -56,9 +93,10 @@ namespace Advobot
 			await CommandHandler.Install(provider);
 
 			//If not a console application then start the UI
-			if (!botSettings.Console)
+			if (!console)
 			{
-				new System.Windows.Application().Run(new BotWindow(client, botSettings, logging));
+				FreeConsole();
+				new System.Windows.Application().Run(new BotWindow(provider));
 			}
 			else
 			{
@@ -85,14 +123,14 @@ namespace Advobot
 			}
 		}
 
-		private IServiceProvider ConfigureServices(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ITimersModule timersModule, ILogModule logModule)
+		private IServiceProvider ConfigureServices(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettings, ITimersModule timers, ILogModule logging)
 		{
 			var serviceCollection = new ServiceCollection();
 			serviceCollection.AddSingleton(client);
 			serviceCollection.AddSingleton(botSettings);
-			serviceCollection.AddSingleton(guildSettingsModule);
-			serviceCollection.AddSingleton(timersModule);
-			serviceCollection.AddSingleton(logModule);
+			serviceCollection.AddSingleton(guildSettings);
+			serviceCollection.AddSingleton(timers);
+			serviceCollection.AddSingleton(logging);
 			serviceCollection.AddSingleton(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, }));
 
 			return new DefaultServiceProviderFactory().CreateServiceProvider(serviceCollection);
