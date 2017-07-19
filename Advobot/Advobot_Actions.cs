@@ -3386,6 +3386,14 @@ namespace Advobot
 
 		public static class Misc
 		{
+			public static void ResetSettings()
+			{
+				Properties.Settings.Default.BotKey = null;
+				Properties.Settings.Default.Path = null;
+				Properties.Settings.Default.BotName = null;
+				Properties.Settings.Default.BotID = 0;
+				Properties.Settings.Default.Save();
+			}
 			public static void RestartBot()
 			{
 				try
