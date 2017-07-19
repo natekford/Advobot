@@ -1,6 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Logging;
-using Advobot.UserInterface;
+using Advobot.Graphics.UserInterface;
 using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
