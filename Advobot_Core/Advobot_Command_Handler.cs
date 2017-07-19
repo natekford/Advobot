@@ -35,7 +35,7 @@ namespace Advobot
 			Commands.AddTypeReader(typeof(IBan), new IBanTypeReader());
 			Commands.AddTypeReader(typeof(Emote), new IEmoteTypeReader());
 			Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
-			await Commands.AddModulesAsync(System.Reflection.Assembly.GetEntryAssembly());
+			await Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly()); //Use executing assembly to get all of the commands from Advobot_Core
 		}
 
 		private static void SetUpCrucialEvents(IDiscordClient client)

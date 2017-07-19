@@ -156,9 +156,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Advobot\Advobot.csproj">
+    <ProjectReference Include="..\Advobot_Core\Advobot_Core.csproj">
       <Project>{570fefd6-e50e-4a26-974c-75d9f99004c4}</Project>
-      <Name>Advobot</Name>
+      <Name>Advobot_Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
