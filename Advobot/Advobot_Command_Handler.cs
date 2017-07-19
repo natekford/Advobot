@@ -43,7 +43,7 @@ namespace Advobot
 			if (client is DiscordSocketClient)
 			{
 				var socketClient = client as DiscordSocketClient;
-				socketClient.MessageReceived += (SocketMessage message) => HandleCommand(message as SocketUserMessage);
+				socketClient.MessageReceived += (message) => HandleCommand(message as SocketUserMessage);
 				socketClient.Connected += async () =>
 				{
 					await SavingAndLoading.LoadInformation(Client, BotSettings, GuildSettings);

@@ -23,10 +23,13 @@ using System.Windows.Threading;
 //This entire file *should* be able to be removed from the solution with no adverse effects aside from the single error in Advobot_Program.cs
 namespace Advobot
 {
+	namespace UserInterface
+	{
+
+	}
+	//Probably should split this up into like 10 classes
 	public class BotWindow : Window
 	{
-		private readonly UISettings _UISettings;
-
 		private readonly Grid _Layout = new Grid();
 		private readonly ToolTip _ToolTip = new ToolTip { Placement = PlacementMode.Relative };
 
@@ -253,12 +256,12 @@ namespace Advobot
 			var client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
 			var botSettings = (IBotSettings)provider.GetService(typeof(IBotSettings));
 			var logging = (ILogModule)provider.GetService(typeof(ILogModule));
+			var uiSettings = UISettings.LoadUISettings(botSettings.Loaded);
 
-			_UISettings = UISettings.LoadUISettings(botSettings.Loaded);
-			InitializeComponents(client, botSettings);
-			Loaded += (sender, e) => RunApplication(sender, e, client, botSettings, logging);
+			InitializeComponents(uiSettings, client, botSettings);
+			Loaded += (sender, e) => RunApplication(sender, e, uiSettings, client, botSettings, logging);
 		}
-		private void InitializeComponents(IDiscordClient client, IBotSettings botSettings)  
+		private void InitializeComponents(UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)  
 		{
 			//Main layout
 			UIModification.AddRows(_Layout, 100);
@@ -414,17 +417,17 @@ namespace Advobot
 
 			MakeInputEvents(client, botSettings);
 			MakeOutputEvents();
-			MakeMenuEvents(client, botSettings);
+			MakeMenuEvents(uiSettings, client, botSettings);
 			MakeDMEvents();
 			MakeGuildFileEvents();
-			MakeOtherEvents(client, botSettings);
+			MakeOtherEvents(uiSettings, client, botSettings);
 
 			//Set this panel as the content for this window and run the application
 			this.Content = _Layout;
 			this.WindowState = WindowState.Maximized;
 		}
 
-		private void RunApplication(object sender, RoutedEventArgs e, IDiscordClient client, IBotSettings botSettings, ILogModule logging)
+		private void RunApplication(object sender, RoutedEventArgs e, UISettings uiSettings, IDiscordClient client, IBotSettings botSettings, ILogModule logging)
 		{
 			//Make console output show on the output text block and box
 			Console.SetOut(new UITextBoxStreamWriter(_Output));
@@ -442,13 +445,13 @@ namespace Advobot
 				await ClientActions.MaybeStartBot(client, botSettings);
 			});
 
-			_UISettings.InitializeColors();
-			_UISettings.ActivateTheme();
+			uiSettings.InitializeColors();
+			uiSettings.ActivateTheme();
 			UIModification.SetColorMode(_Layout);
 			UpdateSystemInformation(client, botSettings, logging);
 		}
 
-		private void MakeOtherEvents(IDiscordClient client, IBotSettings botSettings)
+		private void MakeOtherEvents(UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)
 		{
 			_PauseButton.Click += (sender, e) => Pause(sender, e, botSettings);
 			_RestartButton.Click += Restart;
@@ -458,7 +461,7 @@ namespace Advobot
 			_Memory.MouseLeave += ModifyMemHoverInfo;
 
 			_SettingsSaveButton.Click += (sender, e) => SaveSettings(sender, e, client, botSettings);
-			_ColorsSaveButton.Click += SaveColors;
+			_ColorsSaveButton.Click += (sender, e) => SaveColors(sender, e, uiSettings);
 			_TrustedUsersRemoveButton.Click += RemoveTrustedUser;
 			_TrustedUsersAddButton.Click += (sender, e) => AddTrustedUser(sender, e, client);
 		}
@@ -522,7 +525,7 @@ namespace Advobot
 
 			await ClientActions.SetGame(client, botSettings);
 		}
-		private void SaveColors(object sender, RoutedEventArgs e)
+		private void SaveColors(object sender, RoutedEventArgs e, UISettings uiSettings)
 		{
 			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(_ColorsLayout); ++i)
 			{
@@ -556,9 +559,9 @@ namespace Advobot
 						continue;
 					}
 
-					if (!UIModification.CheckIfTwoBrushesAreTheSame(_UISettings.ColorTargets[target], brush))
+					if (!UIModification.CheckIfTwoBrushesAreTheSame(uiSettings.ColorTargets[target], brush))
 					{
-						_UISettings.ColorTargets[target] = brush;
+						uiSettings.ColorTargets[target] = brush;
 						castedChild.Text = UIModification.FormatBrush(brush);
 						ConsoleActions.WriteLine(String.Format("Successfully updated the color for {0}.", target.EnumName()));
 					}
@@ -567,16 +570,16 @@ namespace Advobot
 				{
 					var selected = ((ComboBox)child).SelectedItem as MyTextBox;
 					var tag = selected?.Tag as ColorTheme?;
-					if (!tag.HasValue || tag == _UISettings.Theme)
+					if (!tag.HasValue || tag == uiSettings.Theme)
 						continue;
 
-					_UISettings.SetTheme((ColorTheme)tag);
+					uiSettings.SetTheme((ColorTheme)tag);
 					ConsoleActions.WriteLine("Successfully updated the theme type.");
 				}
 			}
 
-			_UISettings.SaveSettings();
-			_UISettings.ActivateTheme();
+			uiSettings.SaveSettings();
+			uiSettings.ActivateTheme();
 			UIModification.SetColorMode(_Layout);
 		}
 		private async void AddTrustedUser(object sender, RoutedEventArgs e, IDiscordClient client)
@@ -996,16 +999,16 @@ namespace Advobot
 			_DMSearchButton.Visibility = Visibility.Visible;
 		}
 
-		private void MakeMenuEvents(IDiscordClient client, IBotSettings botSettings)
+		private void MakeMenuEvents(UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)
 		{
-			_MainButton.Click += (sender, e) => OpenMenu(sender, e, client, botSettings);
-			_SettingsButton.Click += (sender, e) => OpenMenu(sender, e, client, botSettings);
-			_ColorsButton.Click += (sender, e) => OpenMenu(sender, e, client, botSettings);
-			_InfoButton.Click += (sender, e) => OpenMenu(sender, e, client, botSettings);
-			_FileButton.Click += (sender, e) => OpenMenu(sender, e, client, botSettings);
-			_DMButton.Click += (sender, e) => OpenMenu(sender, e, client, botSettings);
+			_MainButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+			_SettingsButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+			_ColorsButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+			_InfoButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+			_FileButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+			_DMButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
 		}
-		private async void OpenMenu(object sender, RoutedEventArgs e, IDiscordClient client, IBotSettings botSettings)
+		private async void OpenMenu(object sender, RoutedEventArgs e, UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)
 		{
 			if (!botSettings.Loaded)
 				return;
@@ -1051,7 +1054,7 @@ namespace Advobot
 					}
 					case MenuType.Colors:
 					{
-						UIModification.MakeColorDisplayer(_UISettings, _ColorsLayout, _ColorsSaveButton, .018);
+						UIModification.MakeColorDisplayer(uiSettings, _ColorsLayout, _ColorsSaveButton, .018);
 						_ColorsLayout.Visibility = Visibility.Visible;
 						return;
 					}

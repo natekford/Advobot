@@ -18,7 +18,7 @@ namespace Advobot
 		public sealed class GiveRole : MyModuleBase
 		{
 			[Command]
-			public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
+			public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] params IRole[] roles)
 			{
 				await CommandRunner(user, roles);
 			}
@@ -38,7 +38,7 @@ namespace Advobot
 		public sealed class TakeRole : MyModuleBase
 		{
 			[Command]
-			public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
+			public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] params IRole[] roles)
 			{
 				await CommandRunner(user, roles);
 			}
@@ -349,7 +349,7 @@ namespace Advobot
 		public sealed class ChangeRoleName : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, VerifyStringLength(Target.Role)] string name)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder, VerifyStringLength(Target.Role)] string name)
 			{
 				await CommandRunner(role, name);
 			}
@@ -371,7 +371,7 @@ namespace Advobot
 		public sealed class ChangeRoleColor : MyModuleBase
 		{
 			[Command]
-			public async Task Command([Optional, VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Optional] Color color)
+			public async Task Command([Optional, VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Optional] Color color)
 			{
 				await CommandRunner(role, color);
 			}
@@ -398,7 +398,7 @@ namespace Advobot
 		public sealed class ChangeRoleHoist : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role)
 			{
 				await CommandRunner(role);
 			}
@@ -418,7 +418,7 @@ namespace Advobot
 		public sealed class ChangeRoleMentionability : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role)
 			{
 				await CommandRunner(role);
 			}
