@@ -30,7 +30,7 @@ namespace Advobot
 	{
 		namespace UserInterface
 		{
-			//Trying to split this into separate classes is hard.
+			//Probably should split this up into like 10 classes
 			public class BotWindow : Window
 			{
 				private readonly Grid _Layout = new Grid();
@@ -54,13 +54,12 @@ namespace Advobot
 					IsReadOnly = true,
 				};
 
-				private readonly UIOutputSearch _OutputSearchLayout = new UIOutputSearch();
-				//private readonly Grid _OutputSearchLayout = new Grid { Background = UIModification.MakeBrush("#BF000000"), Visibility = Visibility.Collapsed, };
-				//private readonly Grid _OutputSearchTextLayout = new Grid();
-				//private readonly TextBox _OutputSearchResults = new MyTextBox { VerticalScrollBarVisibility = ScrollBarVisibility.Visible, IsReadOnly = true, };
-				//private readonly ComboBox _OutputSearchComboBox = new MyComboBox { IsEditable = true, };
-				//private readonly Button _OutputSearchButton = new MyButton { Content = "Search", };
-				//private readonly Button _OutputSearchCloseButton = new MyButton { Content = "Close", };
+				private readonly Grid _OutputSearchLayout = new Grid { Background = UIModification.MakeBrush("#BF000000"), Visibility = Visibility.Collapsed, };
+				private readonly Grid _OutputSearchTextLayout = new Grid();
+				private readonly TextBox _OutputSearchResults = new MyTextBox { VerticalScrollBarVisibility = ScrollBarVisibility.Visible, IsReadOnly = true, };
+				private readonly ComboBox _OutputSearchComboBox = new MyComboBox { IsEditable = true, };
+				private readonly Button _OutputSearchButton = new MyButton { Content = "Search", };
+				private readonly Button _OutputSearchCloseButton = new MyButton { Content = "Close", };
 				#endregion
 
 				#region Buttons
@@ -183,7 +182,31 @@ namespace Advobot
 				#region Guild Menu
 				private readonly Grid _FileLayout = new Grid { Visibility = Visibility.Collapsed, };
 				private readonly RichTextBox _FileOutput = new MyRichTextBox { IsReadOnly = true, IsDocumentEnabled = true, };
+				private readonly TreeView _FileTreeView = new TreeView();
 				private readonly Button _FileSearchButton = new MyButton { Content = "Search Guilds", };
+
+				private readonly Grid _SpecificFileLayout = new Grid { Visibility = Visibility.Collapsed, };
+				private readonly MenuItem _SpecificFileContextMenuSave = new MenuItem { Header = "Save File", };
+				private readonly TextEditor _SpecificFileDisplay = new TextEditor
+				{
+					Background = null,
+					Foreground = null,
+					BorderBrush = null,
+					VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
+					WordWrap = true,
+					ShowLineNumbers = true,
+				};
+				private readonly Button _SpecificFileCloseButton = new MyButton { Content = "Close Menu", };
+
+				private readonly Grid _GuildSearchLayout = new Grid { Background = UIModification.MakeBrush("#BF000000"), Visibility = Visibility.Collapsed };
+				private readonly Grid _GuildSearchTextLayout = new Grid();
+				private readonly Viewbox _GuildSearchNameHeader = UIModification.MakeStandardViewBox("Guild Name:");
+				private readonly TextBox _GuildSearchNameInput = new MyTextBox { MaxLength = 100, };
+				private readonly Viewbox _GuildSearchIDHeader = UIModification.MakeStandardViewBox("ID:");
+				private readonly TextBox _GuildSearchIDInput = new MyNumberBox { MaxLength = 18, };
+				private readonly ComboBox _GuildSearchFileComboBox = new MyComboBox { ItemsSource = UIModification.MakeComboBoxSourceOutOfEnum(typeof(FileType)), };
+				private readonly Button _GuildSearchSearchButton = new MyButton { Content = "Search", };
+				private readonly Button _GuildSearchCloseButton = new MyButton { Content = "Close", };
 				#endregion
 
 				#region System Info
@@ -196,10 +219,6 @@ namespace Advobot
 				private readonly Viewbox _Users = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
 				private readonly ToolTip _MemHoverInfo = new ToolTip { Content = "This is not guaranteed to be 100% correct.", };
 				#endregion
-
-				private readonly TreeView _GuildSource = new TreeView();
-				private readonly UIGuildSpecific _GuildSpecificLayout = new UIGuildSpecific();
-				private readonly UIGuildSearch _GuildSearchLayout = new UIGuildSearch();
 
 				public BotWindow(IServiceProvider provider)
 				{
@@ -263,19 +282,19 @@ namespace Advobot
 					UIModification.AddElement(_SettingsLayout, _SettingsSaveButton, 95, 5, 0, 100);
 					var _Settings = new[]
 					{
-						_DownloadUsersSetting,
-						_PrefixSetting,
-						_BotOwnerSetting,
-						_GameSetting,
-						_StreamSetting,
-						_ShardSetting,
-						_MessageCacheSetting,
-						_UserGatherCountSetting,
-						_MessageGatherSizeSetting,
-						_LogLevelComboBox,
-						_TrustedUsersAdd,
-						_TrustedUsersRemove,
-					};
+				_DownloadUsersSetting,
+				_PrefixSetting,
+				_BotOwnerSetting,
+				_GameSetting,
+				_StreamSetting,
+				_ShardSetting,
+				_MessageCacheSetting,
+				_UserGatherCountSetting,
+				_MessageGatherSizeSetting,
+				_LogLevelComboBox,
+				_TrustedUsersAdd,
+				_TrustedUsersRemove,
+			};
 					for (int i = 0; i < _Settings.Length; ++i)
 					{
 						const int TITLE_START_COLUMN = 5;
@@ -300,27 +319,48 @@ namespace Advobot
 					UIModification.AddElement(_Layout, _FileLayout, 0, 87, 3, 1, 100, 1);
 					UIModification.AddElement(_FileLayout, _FileOutput, 0, 95, 0, 1);
 					UIModification.AddElement(_FileLayout, _FileSearchButton, 95, 5, 0, 1);
+					UIModification.AddElement(_Layout, _SpecificFileLayout, 0, 100, 0, 4, 100, 4);
+					UIModification.AddElement(_SpecificFileLayout, _SpecificFileDisplay, 0, 100, 0, 3);
+					UIModification.AddElement(_SpecificFileLayout, _SpecificFileCloseButton, 95, 5, 3, 1);
 
-					//edited already
-					UIModification.AddElement(_Layout, _GuildSpecificLayout, 0, 100, 0, 4);
-					UIModification.AddElement(_Layout, _GuildSearchLayout, 0, 100, 0, 4);
-					_GuildSearchLayout.AddSpecificMenu(_GuildSpecificLayout);
-					_GuildSearchLayout.AddTreeViewSource(_GuildSource);
+					//Guild search
+					UIModification.AddElement(_Layout, _GuildSearchLayout, 0, 100, 0, 4, 10, 10);
+					UIModification.AddElement(_GuildSearchLayout, _GuildSearchTextLayout, 3, 4, 3, 4, 100, 100);
+					UIModification.PutInBGWithMouseUpEvent(_GuildSearchLayout, _GuildSearchTextLayout, null, CloseFileSearch);
+					UIModification.AddPlaceHolderTB(_GuildSearchTextLayout, 0, 100, 0, 100);
+					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchNameHeader, 10, 10, 15, 70);
+					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchNameInput, 20, 21, 15, 70);
+					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchIDHeader, 41, 10, 15, 70);
+					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchIDInput, 51, 10, 15, 70);
+					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchFileComboBox, 63, 10, 20, 60);
+					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchSearchButton, 75, 15, 20, 25);
+					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchCloseButton, 75, 15, 55, 25);
 
 					//Output search
-					UIModification.AddElement(_Layout, _OutputSearchLayout, 0, 100, 0, 4);
+					UIModification.AddElement(_Layout, _OutputSearchLayout, 0, 100, 0, 4, 10, 10);
+					UIModification.AddElement(_OutputSearchLayout, _OutputSearchTextLayout, 1, 8, 1, 8, 100, 100);
+					UIModification.PutInBGWithMouseUpEvent(_OutputSearchLayout, _OutputSearchTextLayout, null, CloseOutputSearch);
+					UIModification.AddPlaceHolderTB(_OutputSearchTextLayout, 90, 10, 0, 100);
+					UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchResults, 0, 90, 0, 100);
+					UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchComboBox, 92, 6, 2, 30);
+					UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchButton, 92, 6, 66, 15);
+					UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchCloseButton, 92, 6, 83, 15);
 
 					//Font size properties
 					UIModification.SetFontSizeProperties(.275, new UIElement[] { _Input, });
-					UIModification.SetFontSizeProperties(.060, new UIElement[] { /*_GuildSearchNameInput, _GuildSearchIDInput*/ });
+					UIModification.SetFontSizeProperties(.060, new UIElement[] { _GuildSearchNameInput, _GuildSearchIDInput, });
 					UIModification.SetFontSizeProperties(.035, new UIElement[] { _InfoOutput, });
-					UIModification.SetFontSizeProperties(.022, new UIElement[] { /*_SpecificFileDisplay*/ _FileOutput, });
+					UIModification.SetFontSizeProperties(.022, new UIElement[] { _SpecificFileDisplay, _FileOutput, _OutputSearchComboBox, });
 					UIModification.SetFontSizeProperties(.018, new UIElement[] { _MainMenuOutput, }, _Settings.Select(x => x.Title), _Settings.Select(x => x.Setting));
 
 					//Context menus
 					_Output.ContextMenu = new ContextMenu
 					{
 						ItemsSource = new[] { _OutputContextMenuSearch, _OutputContextMenuSave, _OutputContextMenuClear },
+					};
+					_SpecificFileDisplay.ContextMenu = new ContextMenu
+					{
+						ItemsSource = new[] { _SpecificFileContextMenuSave },
 					};
 
 					MakeInputEvents(client, botSettings);
@@ -333,6 +373,7 @@ namespace Advobot
 					this.Content = _Layout;
 					this.WindowState = WindowState.Maximized;
 				}
+
 				private void RunApplication(object sender, RoutedEventArgs e, UISettings uiSettings, IDiscordClient client, IBotSettings botSettings, ILogModule logging)
 				{
 					//Make console output show on the output text block and box
@@ -591,7 +632,9 @@ namespace Advobot
 				{
 					_OutputContextMenuSave.Click += SaveOutput;
 					_OutputContextMenuClear.Click += ClearOutput;
-					_OutputContextMenuSearch.Click += _OutputSearchLayout.Show;
+					_OutputContextMenuSearch.Click += OpenOutputSearch;
+					_OutputSearchCloseButton.Click += CloseOutputSearch;
+					_OutputSearchButton.Click += SearchOutput;
 				}
 				private void SaveOutput(object sender, RoutedEventArgs e)
 				{
@@ -623,10 +666,178 @@ namespace Advobot
 						}
 					}
 				}
+				private void OpenOutputSearch(object sender, RoutedEventArgs e)
+				{
+					_OutputSearchComboBox.ItemsSource = UIModification.MakeComboBoxSourceOutOfStrings(ConsoleActions.WrittenLines.Keys);
+					_OutputSearchLayout.Visibility = Visibility.Visible;
+				}
+				private void CloseOutputSearch(object sender, RoutedEventArgs e)
+				{
+					_OutputSearchComboBox.SelectedItem = null;
+					_OutputSearchResults.Text = null;
+					_OutputSearchLayout.Visibility = Visibility.Collapsed;
+				}
+				private void SearchOutput(object sender, RoutedEventArgs e)
+				{
+					var selectedItem = (TextBox)_OutputSearchComboBox.SelectedItem;
+					if (selectedItem != null)
+					{
+						_OutputSearchResults.Text = null;
+						ConsoleActions.WrittenLines[selectedItem.Text].ForEach(x => _OutputSearchResults.AppendText(x + Environment.NewLine));
+					}
+				}
 
 				private void MakeGuildFileEvents()
 				{
-					_FileSearchButton.Click += _GuildSearchLayout.Show;
+					_FileSearchButton.Click += OpenFileSearch;
+					_GuildSearchSearchButton.Click += SearchForFile;
+					_GuildSearchCloseButton.Click += CloseFileSearch;
+					_SpecificFileCloseButton.Click += CloseSpecificFileLayout;
+					_SpecificFileContextMenuSave.Click += SaveFile;
+				}
+				private void OpenFileSearch(object sender, RoutedEventArgs e)
+				{
+					_GuildSearchLayout.Visibility = Visibility.Visible;
+				}
+				private void CloseFileSearch(object sender, RoutedEventArgs e)
+				{
+					_GuildSearchFileComboBox.SelectedItem = null;
+					_GuildSearchNameInput.Text = "";
+					_GuildSearchIDInput.Text = "";
+					_GuildSearchLayout.Visibility = Visibility.Collapsed;
+				}
+				private void SearchForFile(object sender, RoutedEventArgs e)
+				{
+					var tb = (TextBox)_GuildSearchFileComboBox.SelectedItem;
+					if (tb == null)
+						return;
+
+					var nameStr = _GuildSearchNameInput.Text;
+					var idStr = _GuildSearchIDInput.Text;
+					if (String.IsNullOrWhiteSpace(nameStr) && String.IsNullOrWhiteSpace(idStr))
+						return;
+
+					var fileType = (FileType)tb.Tag;
+					CloseFileSearch(sender, e);
+
+					TreeViewItem guild = null;
+					if (!String.IsNullOrWhiteSpace(idStr))
+					{
+						if (!ulong.TryParse(idStr, out ulong guildID))
+						{
+							ConsoleActions.WriteLine(String.Format("The ID '{0}' is not a valid number.", idStr));
+							return;
+						}
+						else
+						{
+							guild = _FileTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x =>
+							{
+								return ((GuildFileInformation)x.Tag).ID == guildID;
+							});
+
+							if (guild == null)
+							{
+								ConsoleActions.WriteLine(String.Format("No guild could be found with the ID '{0}'.", guildID));
+								return;
+							}
+						}
+					}
+					else if (!String.IsNullOrWhiteSpace(nameStr))
+					{
+						var guilds = _FileTreeView.Items.Cast<TreeViewItem>().Where(x =>
+						{
+							return ((GuildFileInformation)x.Tag).Name.CaseInsEquals(nameStr);
+						});
+
+						if (guilds.Count() == 0)
+						{
+							ConsoleActions.WriteLine(String.Format("No guild could be found with the name '{0}'.", nameStr));
+							return;
+						}
+						else if (guilds.Count() == 1)
+						{
+							guild = guilds.FirstOrDefault();
+						}
+						else
+						{
+							ConsoleActions.WriteLine("More than one guild has the name '{0}'.", nameStr);
+							return;
+						}
+					}
+
+					if (guild != null)
+					{
+						var item = guild.Items.Cast<TreeViewItem>().FirstOrDefault(x =>
+						{
+							return ((FileInformation)x.Tag).FileType == fileType;
+						});
+
+						if (item != null)
+						{
+							OpenSpecificFileLayout(item, e);
+						}
+					}
+				}
+				private void OpenSpecificFileLayout(object sender, RoutedEventArgs e)
+				{
+					if (CheckIfTreeViewItemFileExists((TreeViewItem)sender))
+					{
+						UIModification.SetRowAndSpan(_FileLayout, 0, 100);
+						_SpecificFileLayout.Visibility = Visibility.Visible;
+						_FileSearchButton.Visibility = Visibility.Collapsed;
+					}
+					else
+					{
+						ConsoleActions.WriteLine("Unable to bring up the file.");
+					}
+				}
+				private void CloseSpecificFileLayout(object sender, RoutedEventArgs e)
+				{
+					var result = MessageBox.Show("Are you sure you want to close the edit window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel);
+
+					switch (result)
+					{
+						case MessageBoxResult.OK:
+						{
+							UIModification.SetRowAndSpan(_FileLayout, 0, 87);
+							_SpecificFileDisplay.Tag = null;
+							_SpecificFileLayout.Visibility = Visibility.Collapsed;
+							_FileSearchButton.Visibility = Visibility.Visible;
+							break;
+						}
+					}
+				}
+				private void SaveFile(object sender, RoutedEventArgs e)
+				{
+					var fileLocation = _SpecificFileDisplay.Tag.ToString();
+					if (String.IsNullOrWhiteSpace(fileLocation) || !File.Exists(fileLocation))
+					{
+						UIModification.MakeFollowingToolTip(_Layout, _ToolTip, "Unable to gather the path for this file.").Forget();
+						return;
+					}
+
+					var fileAndExtension = fileLocation.Substring(fileLocation.LastIndexOf('\\') + 1);
+					if (fileAndExtension.Equals(Constants.GUILD_SETTINGS_LOCATION))
+					{
+						//Make sure the guild info stays valid
+						try
+						{
+							var throwaway = JsonConvert.DeserializeObject(_SpecificFileDisplay.Text, Constants.GUILDS_SETTINGS_TYPE);
+						}
+						catch (Exception exc)
+						{
+							ConsoleActions.ExceptionToConsole(exc);
+							UIModification.MakeFollowingToolTip(_Layout, _ToolTip, "Failed to save the file.").Forget();
+							return;
+						}
+					}
+
+					//Save the file and give a notification
+					using (var writer = new StreamWriter(fileLocation))
+					{
+						writer.WriteLine(_SpecificFileDisplay.Text);
+					}
+					UIModification.MakeFollowingToolTip(_Layout, _ToolTip, "Successfully saved the file.").Forget();
 				}
 
 				private void MakeMenuEvents(UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)
@@ -688,10 +899,10 @@ namespace Advobot
 							}
 							case MenuType.Files:
 							{
-								var treeView = UIModification.MakeGuildTreeView(_GuildSource, await client.GetGuildsAsync());
+								var treeView = UIModification.MakeGuildTreeView(_FileTreeView, await client.GetGuildsAsync());
 								treeView.Items.Cast<TreeViewItem>().SelectMany(x => x.Items.Cast<TreeViewItem>()).ToList().ForEach(x =>
 								{
-									x.MouseDoubleClick += _GuildSpecificLayout.Show;
+									x.MouseDoubleClick += OpenSpecificFileLayout;
 								});
 								_FileOutput.Document = new FlowDocument(new Paragraph(new InlineUIContainer(treeView)));
 								_FileLayout.Visibility = Visibility.Visible;
@@ -740,6 +951,22 @@ namespace Advobot
 						itemsSource.Add(UIModification.MakeTextBoxFromUserID(await client.GetUserAsync(trustedUser)));
 					}
 					_TrustedUsersComboBox.ItemsSource = itemsSource;
+				}
+				private bool CheckIfTreeViewItemFileExists(TreeViewItem treeItem)
+				{
+					var fileLocation = ((FileInformation)treeItem.Tag).FileLocation;
+					if (fileLocation == null || fileLocation == ((string)_SpecificFileDisplay.Tag))
+					{
+						return false;
+					}
+
+					_SpecificFileDisplay.Clear();
+					_SpecificFileDisplay.Tag = fileLocation;
+					using (var reader = new StreamReader(fileLocation))
+					{
+						_SpecificFileDisplay.AppendText(reader.ReadToEnd());
+					}
+					return true;
 				}
 				private bool SaveSetting(object obj, SettingOnBot setting, IBotSettings botSettings)
 				{
@@ -932,312 +1159,6 @@ namespace Advobot
 							return true;
 						}
 					}
-				}
-			}
-
-			internal abstract class SearchMenu : Grid
-			{
-				public SearchMenu(int rows, int columns) : base()
-				{
-					this.Background = UIModification.MakeBrush("#BF000000");
-					this.Visibility = Visibility.Collapsed;
-
-					UIModification.AddRows(this, rows);
-					UIModification.AddCols(this, columns);
-				}
-
-				public abstract void Show(object sender, RoutedEventArgs e);
-				public abstract void Hide(object sender, RoutedEventArgs e);
-				public abstract void DisplayResults(object sender, RoutedEventArgs e);
-			}
-			internal abstract class SpecificObjectMenu : Grid
-			{
-				public SpecificObjectMenu(int rows, int columns) : base()
-				{
-					this.Visibility = Visibility.Collapsed;
-
-					UIModification.AddRows(this, rows);
-					UIModification.AddCols(this, columns);
-				}
-
-				public abstract void Show(object sender, RoutedEventArgs e);
-				public abstract void Hide(object sender, RoutedEventArgs e);
-				public void AttachToParent(Grid parent)
-				{
-					UIModification.AddElement(parent, this, 0, parent.RowDefinitions.Count, 0, parent.ColumnDefinitions.Count);
-				}
-			}
-			internal class UIOutputSearch : SearchMenu
-			{
-				private readonly Grid _OutputSearchTextLayout = new Grid();
-				private readonly TextBox _OutputSearchResults = new MyTextBox { VerticalScrollBarVisibility = ScrollBarVisibility.Visible, IsReadOnly = true, };
-				private readonly ComboBox _OutputSearchComboBox = new MyComboBox { IsEditable = true, };
-				private readonly Button _OutputSearchButton = new MyButton { Content = "Search", };
-				private readonly Button _OutputSearchCloseButton = new MyButton { Content = "Close", };
-
-				public UIOutputSearch() : base(10, 10)
-				{
-					_OutputSearchCloseButton.Click += Hide;
-					_OutputSearchButton.Click += DisplayResults;
-
-					UIModification.AddElement(this, _OutputSearchTextLayout, 1, 8, 1, 8, 100, 100);
-					UIModification.PutInBGWithMouseUpEvent(this, _OutputSearchTextLayout, null, Hide);
-					UIModification.AddPlaceHolderTB(_OutputSearchTextLayout, 90, 10, 0, 100);
-					UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchResults, 0, 90, 0, 100);
-					UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchComboBox, 92, 6, 2, 30);
-					UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchButton, 92, 6, 66, 15);
-					UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchCloseButton, 92, 6, 83, 15);
-
-					UIModification.SetFontSizeProperty(_OutputSearchComboBox, .022);
-				}
-
-				public override void Show(object sender, RoutedEventArgs e)
-				{
-					_OutputSearchComboBox.ItemsSource = UIModification.MakeComboBoxSourceOutOfStrings(ConsoleActions.WrittenLines.Keys);
-					this.Visibility = Visibility.Visible;
-				}
-				public override void Hide(object sender, RoutedEventArgs e)
-				{
-					_OutputSearchComboBox.SelectedItem = null;
-					_OutputSearchResults.Text = null;
-					this.Visibility = Visibility.Collapsed;
-				}
-				public override void DisplayResults(object sender, RoutedEventArgs e)
-				{
-					var selectedItem = (TextBox)_OutputSearchComboBox.SelectedItem;
-					if (selectedItem != null)
-					{
-						_OutputSearchResults.Text = null;
-						ConsoleActions.WrittenLines[selectedItem.Text].ForEach(x => _OutputSearchResults.AppendText(x + Environment.NewLine));
-					}
-				}
-			}
-			internal class UIGuildSearch : SearchMenu
-			{
-				private readonly Grid _GuildSearchTextLayout = new Grid();
-				private readonly Viewbox _GuildSearchNameHeader = UIModification.MakeStandardViewBox("Guild Name:");
-				private readonly TextBox _GuildSearchNameInput = new MyTextBox { MaxLength = 100, };
-				private readonly Viewbox _GuildSearchIDHeader = UIModification.MakeStandardViewBox("ID:");
-				private readonly TextBox _GuildSearchIDInput = new MyNumberBox { MaxLength = 18, };
-				private readonly ComboBox _GuildSearchFileComboBox = new MyComboBox { ItemsSource = UIModification.MakeComboBoxSourceOutOfEnum(typeof(FileType)), };
-				private readonly Button _GuildSearchSearchButton = new MyButton { Content = "Search", };
-				private readonly Button _GuildSearchCloseButton = new MyButton { Content = "Close", };
-
-				private TreeView _GuildSource;
-				private SpecificObjectMenu _GuildSpecific;
-
-				public UIGuildSearch() : base(10, 10)
-				{
-					_GuildSearchCloseButton.Click += Hide;
-					_GuildSearchSearchButton.Click += DisplayResults;
-
-					UIModification.AddElement(this, _GuildSearchTextLayout, 3, 4, 3, 4, 100, 100);
-					UIModification.PutInBGWithMouseUpEvent(this, _GuildSearchTextLayout, null, Hide);
-					UIModification.AddPlaceHolderTB(_GuildSearchTextLayout, 0, 100, 0, 100);
-					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchNameHeader, 10, 10, 15, 70);
-					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchNameInput, 20, 21, 15, 70);
-					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchIDHeader, 41, 10, 15, 70);
-					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchIDInput, 51, 10, 15, 70);
-					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchFileComboBox, 63, 10, 20, 60);
-					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchSearchButton, 75, 15, 20, 25);
-					UIModification.AddElement(_GuildSearchTextLayout, _GuildSearchCloseButton, 75, 15, 55, 25);
-				}
-
-				public void AddTreeViewSource(TreeView source)
-				{
-					_GuildSource = source;
-				}
-				public void AddSpecificMenu(SpecificObjectMenu specific)
-				{
-					_GuildSpecific = specific;
-				}
-
-				public override void Show(object sender, RoutedEventArgs e)
-				{
-					this.Visibility = Visibility.Visible;
-				}
-				public override void Hide(object sender, RoutedEventArgs e)
-				{
-					_GuildSearchFileComboBox.SelectedItem = null;
-					_GuildSearchNameInput.Text = null;
-					_GuildSearchIDInput.Text = null;
-
-					this.Visibility = Visibility.Collapsed;
-				}
-				public override void DisplayResults(object sender, RoutedEventArgs e)
-				{
-					if (_GuildSource == null || _GuildSpecific == null)
-					{
-						throw new ArgumentException("The guild source and guild specific menu must both not be null.");
-					}
-
-					var tb = (TextBox)_GuildSearchFileComboBox.SelectedItem;
-					if (tb == null)
-						return;
-
-					var nameStr = _GuildSearchNameInput.Text;
-					var idStr = _GuildSearchIDInput.Text;
-
-					TreeViewItem guild = null;
-					if (!String.IsNullOrWhiteSpace(idStr))
-					{
-						Hide(sender, e);
-
-						if (!ulong.TryParse(idStr, out ulong guildID))
-						{
-							ConsoleActions.WriteLine(String.Format("The ID '{0}' is not a valid number.", idStr));
-							return;
-						}
-						else
-						{
-							guild = _GuildSource.Items.Cast<TreeViewItem>().FirstOrDefault(x => ((GuildFileInformation)x.Tag).ID == guildID);
-							if (guild == null)
-							{
-								ConsoleActions.WriteLine(String.Format("No guild could be found with the ID '{0}'.", guildID));
-								return;
-							}
-						}
-					}
-					else if (!String.IsNullOrWhiteSpace(nameStr))
-					{
-						Hide(sender, e);
-
-						var guilds = _GuildSource.Items.Cast<TreeViewItem>().Where(x => ((GuildFileInformation)x.Tag).Name.CaseInsEquals(nameStr));
-						if (guilds.Count() == 0)
-						{
-							ConsoleActions.WriteLine(String.Format("No guild could be found with the name '{0}'.", nameStr));
-							return;
-						}
-						else if (guilds.Count() == 1)
-						{
-							guild = guilds.FirstOrDefault();
-						}
-						else
-						{
-							ConsoleActions.WriteLine("More than one guild has the name '{0}'.", nameStr);
-							return;
-						}
-					}
-					else
-					{
-						return;
-					}
-
-					if (guild != null)
-					{
-						var item = guild.Items.Cast<TreeViewItem>().FirstOrDefault(x => ((FileInformation)x.Tag).FileType == (FileType)tb.Tag);
-						if (item != null)
-						{
-							_GuildSpecific.Show(item, e);
-						}
-					}
-				}
-			}
-			internal class UIGuildSpecific : SpecificObjectMenu
-			{
-				private readonly MenuItem _GuildSpecificContextMenuSave = new MenuItem { Header = "Save File", };
-				private readonly TextEditor _GuildSpecificDisplay = new TextEditor
-				{
-					Background = null,
-					Foreground = null,
-					BorderBrush = null,
-					VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
-					WordWrap = true,
-					ShowLineNumbers = true,
-				};
-				private readonly Button _GuildSpecificCloseButton = new MyButton { Content = "Close Menu", };
-				private readonly ToolTip _GuildSpecificToolTip = new ToolTip { Placement = PlacementMode.Relative };
-
-				public UIGuildSpecific() : base(100, 4)
-				{
-					_GuildSpecificCloseButton.Click += Hide;
-					_GuildSpecificContextMenuSave.Click += Save;
-
-					_GuildSpecificDisplay.ContextMenu = new ContextMenu
-					{
-						ItemsSource = new[] { _GuildSpecificContextMenuSave },
-					};
-
-					UIModification.AddElement(this, _GuildSpecificDisplay, 0, 100, 0, 3);
-					UIModification.AddElement(this, _GuildSpecificCloseButton, 95, 5, 3, 1);
-				}
-
-				public override void Show(object sender, RoutedEventArgs e)
-				{
-					if (CheckIfTreeViewItemFileExists((TreeViewItem)sender))
-					{
-						this.Visibility = Visibility.Visible;
-						//_FileSearchButton.Visibility = Visibility.Collapsed;
-					}
-					else
-					{
-						ConsoleActions.WriteLine("Unable to bring up the file.");
-					}
-				}
-				public override void Hide(object sender, RoutedEventArgs e)
-				{
-					var result = MessageBox.Show("Are you sure you want to close the edit window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel);
-
-					switch (result)
-					{
-						case MessageBoxResult.OK:
-						{
-							this.Visibility = Visibility.Collapsed;
-
-							_GuildSpecificDisplay.Tag = null;
-							//_FileSearchButton.Visibility = Visibility.Visible;
-							break;
-						}
-					}
-				}
-				private async void Save(object sender, RoutedEventArgs e)
-				{
-					var fileLocation = _GuildSpecificDisplay.Tag.ToString();
-					if (String.IsNullOrWhiteSpace(fileLocation) || !File.Exists(fileLocation))
-					{
-						await UIModification.MakeFollowingToolTip(this.Parent as Grid, _GuildSpecificToolTip, "Unable to gather the path for this file.");
-						return;
-					}
-
-					var fileAndExtension = fileLocation.Substring(fileLocation.LastIndexOf('\\') + 1);
-					if (fileAndExtension.Equals(Constants.GUILD_SETTINGS_LOCATION))
-					{
-						//Make sure the guild info stays valid
-						try
-						{
-							var throwaway = JsonConvert.DeserializeObject(_GuildSpecificDisplay.Text, Constants.GUILDS_SETTINGS_TYPE);
-						}
-						catch (Exception exc)
-						{
-							ConsoleActions.ExceptionToConsole(exc);
-							await UIModification.MakeFollowingToolTip(this.Parent as Grid, _GuildSpecificToolTip, "Failed to save the file.");
-							return;
-						}
-					}
-
-					//Save the file and give a notification
-					using (var writer = new StreamWriter(fileLocation))
-					{
-						writer.WriteLine(_GuildSpecificDisplay.Text);
-					}
-					await UIModification.MakeFollowingToolTip(this.Parent as Grid, _GuildSpecificToolTip, "Successfully saved the file.");
-				}
-
-				private bool CheckIfTreeViewItemFileExists(TreeViewItem treeItem)
-				{
-					var fileLocation = ((FileInformation)treeItem.Tag).FileLocation;
-					if (fileLocation == null || fileLocation == ((string)_GuildSpecificDisplay.Tag))
-					{
-						return false;
-					}
-
-					_GuildSpecificDisplay.Clear();
-					_GuildSpecificDisplay.Tag = fileLocation;
-					using (var reader = new StreamReader(fileLocation))
-					{
-						_GuildSpecificDisplay.AppendText(reader.ReadToEnd());
-					}
-					return true;
 				}
 			}
 
