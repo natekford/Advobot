@@ -30,7 +30,9 @@ namespace Advobot
 	{
 		namespace UserInterface
 		{
-			//Probably should split this up into like 10 classes
+			//Trying to split this up into separate classes = worse than kicking a wall with toothpicks under your toenail
+			//All I did instead was remove most logic from it into a separate class. Shortened from about 1300 lines to 800.
+			//This UI is really bad, please don't look at it and instead use the console only launcher.
 			public class BotWindow : Window
 			{
 				private readonly Grid _Layout = new Grid();
@@ -282,19 +284,19 @@ namespace Advobot
 					UIModification.AddElement(_SettingsLayout, _SettingsSaveButton, 95, 5, 0, 100);
 					var _Settings = new[]
 					{
-				_DownloadUsersSetting,
-				_PrefixSetting,
-				_BotOwnerSetting,
-				_GameSetting,
-				_StreamSetting,
-				_ShardSetting,
-				_MessageCacheSetting,
-				_UserGatherCountSetting,
-				_MessageGatherSizeSetting,
-				_LogLevelComboBox,
-				_TrustedUsersAdd,
-				_TrustedUsersRemove,
-			};
+						_DownloadUsersSetting,
+						_PrefixSetting,
+						_BotOwnerSetting,
+						_GameSetting,
+						_StreamSetting,
+						_ShardSetting,
+						_MessageCacheSetting,
+						_UserGatherCountSetting,
+						_MessageGatherSizeSetting,
+						_LogLevelComboBox,
+						_TrustedUsersAdd,
+						_TrustedUsersRemove,
+					};
 					for (int i = 0; i < _Settings.Length; ++i)
 					{
 						const int TITLE_START_COLUMN = 5;
@@ -319,6 +321,8 @@ namespace Advobot
 					UIModification.AddElement(_Layout, _FileLayout, 0, 87, 3, 1, 100, 1);
 					UIModification.AddElement(_FileLayout, _FileOutput, 0, 95, 0, 1);
 					UIModification.AddElement(_FileLayout, _FileSearchButton, 95, 5, 0, 1);
+
+					//Specific File
 					UIModification.AddElement(_Layout, _SpecificFileLayout, 0, 100, 0, 4, 100, 4);
 					UIModification.AddElement(_SpecificFileLayout, _SpecificFileDisplay, 0, 100, 0, 3);
 					UIModification.AddElement(_SpecificFileLayout, _SpecificFileCloseButton, 95, 5, 3, 1);
@@ -346,34 +350,21 @@ namespace Advobot
 					UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchButton, 92, 6, 66, 15);
 					UIModification.AddElement(_OutputSearchTextLayout, _OutputSearchCloseButton, 92, 6, 83, 15);
 
-					//Font size properties
 					UIModification.SetFontSizeProperties(.275, new UIElement[] { _Input, });
 					UIModification.SetFontSizeProperties(.060, new UIElement[] { _GuildSearchNameInput, _GuildSearchIDInput, });
 					UIModification.SetFontSizeProperties(.035, new UIElement[] { _InfoOutput, });
 					UIModification.SetFontSizeProperties(.022, new UIElement[] { _SpecificFileDisplay, _FileOutput, _OutputSearchComboBox, });
 					UIModification.SetFontSizeProperties(.018, new UIElement[] { _MainMenuOutput, }, _Settings.Select(x => x.Title), _Settings.Select(x => x.Setting));
 
-					//Context menus
-					_Output.ContextMenu = new ContextMenu
-					{
-						ItemsSource = new[] { _OutputContextMenuSearch, _OutputContextMenuSave, _OutputContextMenuClear },
-					};
-					_SpecificFileDisplay.ContextMenu = new ContextMenu
-					{
-						ItemsSource = new[] { _SpecificFileContextMenuSave },
-					};
+					_Output.ContextMenu = new ContextMenu { ItemsSource = new[] { _OutputContextMenuSearch, _OutputContextMenuSave, _OutputContextMenuClear }, };
+					_SpecificFileDisplay.ContextMenu = new ContextMenu { ItemsSource = new[] { _SpecificFileContextMenuSave }, };
 
-					MakeInputEvents(client, botSettings);
-					MakeOutputEvents();
-					MakeMenuEvents(uiSettings, client, botSettings);
-					MakeGuildFileEvents();
-					MakeOtherEvents(uiSettings, client, botSettings);
+					HookUpEvents(uiSettings, client, botSettings);
 
 					//Set this panel as the content for this window and run the application
 					this.Content = _Layout;
 					this.WindowState = WindowState.Maximized;
 				}
-
 				private void RunApplication(object sender, RoutedEventArgs e, UISettings uiSettings, IDiscordClient client, IBotSettings botSettings, ILogModule logging)
 				{
 					//Make console output show on the output text block and box
@@ -395,35 +386,73 @@ namespace Advobot
 					uiSettings.InitializeColors();
 					uiSettings.ActivateTheme();
 					UIModification.SetColorMode(_Layout);
-					UpdateSystemInformation(client, botSettings, logging);
+
+					var timer = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 500) };
+					timer.Tick += async (s, ea) =>
+					{
+						var guilds = await client.GetGuildsAsync();
+
+						IEnumerable<ulong> userIDs = new List<ulong>();
+						foreach (var guild in guilds)
+						{
+							userIDs = (await guild.GetUsersAsync()).Select(x => x.Id);
+						}
+
+						((TextBox)_Latency.Child).Text = String.Format("Latency: {0}ms", ClientActions.GetLatency(client));
+						((TextBox)_Memory.Child).Text = String.Format("Memory: {0}MB", Gets.GetMemory(botSettings.Windows).ToString("0.00"));
+						((TextBox)_Threads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
+						((TextBox)_Guilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
+						((TextBox)_Users.Child).Text = String.Format("Members: {0}", userIDs.Distinct().Count());
+						_InfoOutput.Document = UIModification.MakeInfoMenu(Gets.GetUptime(botSettings), logging.FormatLoggedCommands(), logging.FormatLoggedActions());
+					};
+					timer.Start();
 				}
 
-				private void MakeOtherEvents(UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)
+				private void HookUpEvents(UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)
 				{
+					//Bot status
 					_PauseButton.Click += (sender, e) => Pause(sender, e, botSettings);
 					_RestartButton.Click += Restart;
 					_DisconnectButton.Click += Disconnect;
 
-					_Memory.MouseEnter += ModifyMemHoverInfo;
-					_Memory.MouseLeave += ModifyMemHoverInfo;
-
+					//Settings
 					_SettingsSaveButton.Click += (sender, e) => SaveSettings(sender, e, client, botSettings);
 					_ColorsSaveButton.Click += (sender, e) => SaveColors(sender, e, uiSettings);
 					_TrustedUsersRemoveButton.Click += RemoveTrustedUser;
 					_TrustedUsersAddButton.Click += (sender, e) => AddTrustedUser(sender, e, client);
+
+					//Input
+					_Input.KeyUp += (sender, e) => AcceptInput(sender, e, client, botSettings);
+					_InputButton.Click += (sender, e) => AcceptInput(sender, e, client, botSettings);
+
+					//Output
+					_OutputContextMenuSave.Click += SaveOutput;
+					_OutputContextMenuClear.Click += ClearOutput;
+					_OutputContextMenuSearch.Click += OpenOutputSearch;
+
+					//Output search
+					_OutputSearchCloseButton.Click += CloseOutputSearch;
+					_OutputSearchButton.Click += SearchOutput;
+
+					//File
+					_FileSearchButton.Click += OpenFileSearch;
+					_GuildSearchSearchButton.Click += SearchForFile;
+					_GuildSearchCloseButton.Click += CloseFileSearch;
+
+					//Specific file
+					_SpecificFileCloseButton.Click += CloseSpecificFileLayout;
+					_SpecificFileContextMenuSave.Click += SaveSpecificFile;
+
+					//Menu
+					_MainButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+					_SettingsButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+					_ColorsButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+					_InfoButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+					_FileButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
 				}
 				private void Pause(object sender, RoutedEventArgs e, IBotSettings botSettings)
 				{
-					if (botSettings.Pause)
-					{
-						ConsoleActions.WriteLine("The bot is now unpaused.");
-						botSettings.TogglePause();
-					}
-					else
-					{
-						ConsoleActions.WriteLine("The bot is now paused.");
-						botSettings.TogglePause();
-					}
+					BotWindowLogic.PauseBot(botSettings);
 				}
 				private void Restart(object sender, RoutedEventArgs e)
 				{
@@ -447,30 +476,10 @@ namespace Advobot
 						}
 					}
 				}
-				private void ModifyMemHoverInfo(object sender, RoutedEventArgs e)
-				{
-					UIModification.ToggleToolTip(_MemHoverInfo);
-				}
+
 				private async void SaveSettings(object sender, RoutedEventArgs e, IDiscordClient client, IBotSettings botSettings)
 				{
-					//Go through each setting and update them
-					for (int i = 0; i < VisualTreeHelper.GetChildrenCount(_SettingsLayout); ++i)
-					{
-						var ele = VisualTreeHelper.GetChild(_SettingsLayout, i);
-						var setting = (ele as FrameworkElement)?.Tag;
-						if (setting is SettingOnBot)
-						{
-							var fuckYouForTellingMeToPatternMatch = setting as SettingOnBot?;
-							var castSetting = (SettingOnBot)fuckYouForTellingMeToPatternMatch;
-
-							if (!SaveSetting(ele, castSetting, botSettings))
-							{
-								ConsoleActions.WriteLine(String.Format("Failed to save: {0}", castSetting.EnumName()));
-							}
-						}
-					}
-
-					await ClientActions.SetGame(client, botSettings);
+					await BotWindowLogic.SaveSettings(_Layout, client, botSettings);
 				}
 				private void SaveColors(object sender, RoutedEventArgs e, UISettings uiSettings)
 				{
@@ -531,52 +540,14 @@ namespace Advobot
 				}
 				private async void AddTrustedUser(object sender, RoutedEventArgs e, IDiscordClient client)
 				{
-					var text = _TrustedUsersAddBox.Text;
-					_TrustedUsersAddBox.Text = "";
-
-					if (String.IsNullOrWhiteSpace(text))
-					{
-						return;
-					}
-					else if (ulong.TryParse(text, out ulong userID))
-					{
-						var currTBs = _TrustedUsersComboBox.Items.Cast<TextBox>().ToList();
-						if (currTBs.Select(x => (ulong)x.Tag).Contains(userID))
-							return;
-
-						var tb = UIModification.MakeTextBoxFromUserID(await client.GetUserAsync(userID));
-						if (tb == null)
-						{
-							return;
-						}
-
-						currTBs.Add(tb);
-						_TrustedUsersComboBox.ItemsSource = currTBs;
-					}
-					else
-					{
-						ConsoleActions.WriteLine(String.Format("The given input '{0}' is not a valid ID.", text));
-					}
+					await BotWindowLogic.AddTrustedUserToComboBox(_TrustedUsersComboBox, client, _TrustedUsersAddBox.Text);
+					_TrustedUsersAddBox.Text = null;
 				}
 				private void RemoveTrustedUser(object sender, RoutedEventArgs e)
 				{
-					if (_TrustedUsersComboBox.SelectedItem == null)
-						return;
-
-					var userID = (ulong)((TextBox)_TrustedUsersComboBox.SelectedItem).Tag;
-					var currTBs = _TrustedUsersComboBox.Items.Cast<TextBox>().ToList();
-					if (!currTBs.Select(x => (ulong)x.Tag).Contains(userID))
-						return;
-
-					currTBs.RemoveAll(x => (ulong)x.Tag == userID);
-					_TrustedUsersComboBox.ItemsSource = currTBs;
+					BotWindowLogic.RemoveTrustedUserFromComboBox(_TrustedUsersComboBox);
 				}
 
-				private void MakeInputEvents(IDiscordClient client, IBotSettings botSettings)
-				{
-					_Input.KeyUp += (sender, e) => AcceptInput(sender, e, client, botSettings);
-					_InputButton.Click += (sender, e) => AcceptInput(sender, e, client, botSettings);
-				}
 				private async void AcceptInput(object sender, KeyEventArgs e, IDiscordClient client, IBotSettings botSettings)
 				{
 					var text = _Input.Text;
@@ -585,75 +556,24 @@ namespace Advobot
 						_InputButton.IsEnabled = false;
 						return;
 					}
+
+					if (e.Key.Equals(Key.Enter) || e.Key.Equals(Key.Return))
+					{
+						await BotWindowLogic.DoStuffWithInput(UICommandHandler.GatherInput(_Input, _InputButton), client, botSettings);
+					}
 					else
 					{
-						if (e.Key.Equals(Key.Enter) || e.Key.Equals(Key.Return))
-						{
-							await DoStuffWithInput(UICommandHandler.GatherInput(_Input, _InputButton), client, botSettings);
-						}
-						else
-						{
-							_InputButton.IsEnabled = true;
-						}
+						_InputButton.IsEnabled = true;
 					}
 				}
 				private async void AcceptInput(object sender, RoutedEventArgs e, IDiscordClient client, IBotSettings botSettings)
 				{
-					await DoStuffWithInput(UICommandHandler.GatherInput(_Input, _InputButton), client, botSettings);
-				}
-				private async Task DoStuffWithInput(string input, IDiscordClient client, IBotSettings botSettings)
-				{
-					//Make sure both the path and key are set
-					if (!botSettings.GotPath || !botSettings.GotKey)
-					{
-						if (!botSettings.GotPath)
-						{
-							if (SavingAndLoading.ValidatePath(input, botSettings.Windows))
-							{
-								botSettings.SetGotPath();
-							}
-						}
-						else if (!botSettings.GotKey)
-						{
-							if (await SavingAndLoading.ValidateBotKey(client, input))
-							{
-								botSettings.SetGotKey();
-							}
-						}
-						await ClientActions.MaybeStartBot(client, botSettings);
-					}
-					else
-					{
-						UICommandHandler.HandleCommand(input, botSettings.Prefix);
-					}
+					await BotWindowLogic.DoStuffWithInput(UICommandHandler.GatherInput(_Input, _InputButton), client, botSettings);
 				}
 
-				private void MakeOutputEvents()
-				{
-					_OutputContextMenuSave.Click += SaveOutput;
-					_OutputContextMenuClear.Click += ClearOutput;
-					_OutputContextMenuSearch.Click += OpenOutputSearch;
-					_OutputSearchCloseButton.Click += CloseOutputSearch;
-					_OutputSearchButton.Click += SearchOutput;
-				}
 				private void SaveOutput(object sender, RoutedEventArgs e)
 				{
-					//Make sure the path is valid
-					var path = Gets.GetBaseBotDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
-					if (path == null)
-					{
-						ConsoleActions.WriteLine("Unable to save the output log.");
-						return;
-					}
-
-					//Save the file
-					using (StreamWriter writer = new StreamWriter(path))
-					{
-						writer.Write(_Output.Text);
-					}
-
-					//Write to the console telling the user that the console log was successfully saved
-					ConsoleActions.WriteLine("Successfully saved the output log.");
+					SayToolTipReason(BotWindowLogic.SaveOutput(_Output));
 				}
 				private void ClearOutput(object sender, RoutedEventArgs e)
 				{
@@ -661,11 +581,12 @@ namespace Advobot
 					{
 						case MessageBoxResult.OK:
 						{
-							_Output.Text = "";
+							_Output.Text = null;
 							return;
 						}
 					}
 				}
+
 				private void OpenOutputSearch(object sender, RoutedEventArgs e)
 				{
 					_OutputSearchComboBox.ItemsSource = UIModification.MakeComboBoxSourceOutOfStrings(ConsoleActions.WrittenLines.Keys);
@@ -687,14 +608,6 @@ namespace Advobot
 					}
 				}
 
-				private void MakeGuildFileEvents()
-				{
-					_FileSearchButton.Click += OpenFileSearch;
-					_GuildSearchSearchButton.Click += SearchForFile;
-					_GuildSearchCloseButton.Click += CloseFileSearch;
-					_SpecificFileCloseButton.Click += CloseSpecificFileLayout;
-					_SpecificFileContextMenuSave.Click += SaveFile;
-				}
 				private void OpenFileSearch(object sender, RoutedEventArgs e)
 				{
 					_GuildSearchLayout.Visibility = Visibility.Visible;
@@ -702,8 +615,8 @@ namespace Advobot
 				private void CloseFileSearch(object sender, RoutedEventArgs e)
 				{
 					_GuildSearchFileComboBox.SelectedItem = null;
-					_GuildSearchNameInput.Text = "";
-					_GuildSearchIDInput.Text = "";
+					_GuildSearchNameInput.Text = null;
+					_GuildSearchIDInput.Text = null;
 					_GuildSearchLayout.Visibility = Visibility.Collapsed;
 				}
 				private void SearchForFile(object sender, RoutedEventArgs e)
@@ -728,27 +641,17 @@ namespace Advobot
 							ConsoleActions.WriteLine(String.Format("The ID '{0}' is not a valid number.", idStr));
 							return;
 						}
-						else
-						{
-							guild = _FileTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x =>
-							{
-								return ((GuildFileInformation)x.Tag).ID == guildID;
-							});
 
-							if (guild == null)
-							{
-								ConsoleActions.WriteLine(String.Format("No guild could be found with the ID '{0}'.", guildID));
-								return;
-							}
+						guild = _FileTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x => ((GuildFileInformation)x.Tag).ID == guildID);
+						if (guild == null)
+						{
+							ConsoleActions.WriteLine(String.Format("No guild could be found with the ID '{0}'.", guildID));
+							return;
 						}
 					}
 					else if (!String.IsNullOrWhiteSpace(nameStr))
 					{
-						var guilds = _FileTreeView.Items.Cast<TreeViewItem>().Where(x =>
-						{
-							return ((GuildFileInformation)x.Tag).Name.CaseInsEquals(nameStr);
-						});
-
+						var guilds = _FileTreeView.Items.Cast<TreeViewItem>().Where(x => ((GuildFileInformation)x.Tag).Name.CaseInsEquals(nameStr));
 						if (guilds.Count() == 0)
 						{
 							ConsoleActions.WriteLine(String.Format("No guild could be found with the name '{0}'.", nameStr));
@@ -767,35 +670,26 @@ namespace Advobot
 
 					if (guild != null)
 					{
-						var item = guild.Items.Cast<TreeViewItem>().FirstOrDefault(x =>
-						{
-							return ((FileInformation)x.Tag).FileType == fileType;
-						});
-
+						var item = guild.Items.Cast<TreeViewItem>().FirstOrDefault(x => ((FileInformation)x.Tag).FileType == fileType);
 						if (item != null)
 						{
 							OpenSpecificFileLayout(item, e);
 						}
 					}
 				}
+
 				private void OpenSpecificFileLayout(object sender, RoutedEventArgs e)
 				{
-					if (CheckIfTreeViewItemFileExists((TreeViewItem)sender))
+					if (BotWindowLogic.AppendTextToTextEditorIfPathExistsAndReturnIfHappened(_SpecificFileDisplay, (TreeViewItem)sender))
 					{
 						UIModification.SetRowAndSpan(_FileLayout, 0, 100);
 						_SpecificFileLayout.Visibility = Visibility.Visible;
 						_FileSearchButton.Visibility = Visibility.Collapsed;
 					}
-					else
-					{
-						ConsoleActions.WriteLine("Unable to bring up the file.");
-					}
 				}
 				private void CloseSpecificFileLayout(object sender, RoutedEventArgs e)
 				{
-					var result = MessageBox.Show("Are you sure you want to close the edit window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel);
-
-					switch (result)
+					switch (MessageBox.Show("Are you sure you want to close the edit window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
 					{
 						case MessageBoxResult.OK:
 						{
@@ -803,51 +697,15 @@ namespace Advobot
 							_SpecificFileDisplay.Tag = null;
 							_SpecificFileLayout.Visibility = Visibility.Collapsed;
 							_FileSearchButton.Visibility = Visibility.Visible;
-							break;
-						}
-					}
-				}
-				private void SaveFile(object sender, RoutedEventArgs e)
-				{
-					var fileLocation = _SpecificFileDisplay.Tag.ToString();
-					if (String.IsNullOrWhiteSpace(fileLocation) || !File.Exists(fileLocation))
-					{
-						UIModification.MakeFollowingToolTip(_Layout, _ToolTip, "Unable to gather the path for this file.").Forget();
-						return;
-					}
-
-					var fileAndExtension = fileLocation.Substring(fileLocation.LastIndexOf('\\') + 1);
-					if (fileAndExtension.Equals(Constants.GUILD_SETTINGS_LOCATION))
-					{
-						//Make sure the guild info stays valid
-						try
-						{
-							var throwaway = JsonConvert.DeserializeObject(_SpecificFileDisplay.Text, Constants.GUILDS_SETTINGS_TYPE);
-						}
-						catch (Exception exc)
-						{
-							ConsoleActions.ExceptionToConsole(exc);
-							UIModification.MakeFollowingToolTip(_Layout, _ToolTip, "Failed to save the file.").Forget();
 							return;
 						}
 					}
-
-					//Save the file and give a notification
-					using (var writer = new StreamWriter(fileLocation))
-					{
-						writer.WriteLine(_SpecificFileDisplay.Text);
-					}
-					UIModification.MakeFollowingToolTip(_Layout, _ToolTip, "Successfully saved the file.").Forget();
 				}
-
-				private void MakeMenuEvents(UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)
+				private void SaveSpecificFile(object sender, RoutedEventArgs e)
 				{
-					_MainButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
-					_SettingsButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
-					_ColorsButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
-					_InfoButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
-					_FileButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+					SayToolTipReason(BotWindowLogic.SaveFile(_SpecificFileDisplay));
 				}
+
 				private async void OpenMenu(object sender, RoutedEventArgs e, UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)
 				{
 					if (!botSettings.Loaded)
@@ -911,28 +769,6 @@ namespace Advobot
 						}
 					}
 				}
-
-				private void UpdateSystemInformation(IDiscordClient client, IBotSettings botSettings, ILogModule logging)
-				{
-					var timer = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 500) };
-					timer.Tick += async (sender, e) =>
-					{
-						var guilds = await client.GetGuildsAsync();
-						var userIDs = new List<ulong>();
-						foreach (var guild in guilds)
-						{
-							userIDs.AddRange((await guild.GetUsersAsync()).Select(x => x.Id));
-						}
-
-						((TextBox)_Latency.Child).Text = String.Format("Latency: {0}ms", ClientActions.GetLatency(client));
-						((TextBox)_Memory.Child).Text = String.Format("Memory: {0}MB", Gets.GetMemory(botSettings.Windows).ToString("0.00"));
-						((TextBox)_Threads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
-						((TextBox)_Guilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
-						((TextBox)_Users.Child).Text = String.Format("Members: {0}", userIDs.Distinct().Count());
-						_InfoOutput.Document = UIModification.MakeInfoMenu(Gets.GetUptime(botSettings), logging.FormatLoggedCommands(), logging.FormatLoggedActions());
-					};
-					timer.Start();
-				}
 				private async void UpdateSettingsWhenOpened(IDiscordClient client, IBotSettings botSettings)
 				{
 					((CheckBox)((Viewbox)_DownloadUsersSetting.Setting).Child).IsChecked = botSettings.AlwaysDownloadUsers;
@@ -952,23 +788,37 @@ namespace Advobot
 					}
 					_TrustedUsersComboBox.ItemsSource = itemsSource;
 				}
-				private bool CheckIfTreeViewItemFileExists(TreeViewItem treeItem)
+
+				private async void SayToolTipReason(ToolTipReason reason)
 				{
-					var fileLocation = ((FileInformation)treeItem.Tag).FileLocation;
-					if (fileLocation == null || fileLocation == ((string)_SpecificFileDisplay.Tag))
+					await UIModification.MakeFollowingToolTip(_Layout, _ToolTip, BotWindowLogic.GetReasonTextFromToolTipReason(reason));
+				}
+			}
+
+			internal class BotWindowLogic
+			{
+				public static async Task SaveSettings(Grid parent, IDiscordClient client, IBotSettings botSettings)
+				{
+					//Go through each setting and update them
+					for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); ++i)
 					{
-						return false;
+						var ele = VisualTreeHelper.GetChild(parent, i);
+						var setting = (ele as FrameworkElement)?.Tag;
+						if (setting is SettingOnBot)
+						{
+							var fuckYouForTellingMeToPatternMatch = setting as SettingOnBot?;
+							var castSetting = (SettingOnBot)fuckYouForTellingMeToPatternMatch;
+
+							if (!SaveSetting(ele, castSetting, botSettings))
+							{
+								ConsoleActions.WriteLine(String.Format("Failed to save: {0}", castSetting.EnumName()));
+							}
+						}
 					}
 
-					_SpecificFileDisplay.Clear();
-					_SpecificFileDisplay.Tag = fileLocation;
-					using (var reader = new StreamReader(fileLocation))
-					{
-						_SpecificFileDisplay.AppendText(reader.ReadToEnd());
-					}
-					return true;
+					await ClientActions.SetGame(client, botSettings);
 				}
-				private bool SaveSetting(object obj, SettingOnBot setting, IBotSettings botSettings)
+				private static bool SaveSetting(object obj, SettingOnBot setting, IBotSettings botSettings)
 				{
 					if (obj is Grid)
 					{
@@ -995,7 +845,7 @@ namespace Advobot
 						return true;
 					}
 				}
-				private bool SaveSetting(Grid g, SettingOnBot setting, IBotSettings botSettings)
+				private static bool SaveSetting(Grid g, SettingOnBot setting, IBotSettings botSettings)
 				{
 					var children = g.Children;
 					foreach (var child in children)
@@ -1004,7 +854,7 @@ namespace Advobot
 					}
 					return true;
 				}
-				private bool SaveSetting(TextBox tb, SettingOnBot setting, IBotSettings botSettings)
+				private static bool SaveSetting(TextBox tb, SettingOnBot setting, IBotSettings botSettings)
 				{
 					var text = tb.Text;
 					switch (setting)
@@ -1107,11 +957,11 @@ namespace Advobot
 						}
 					}
 				}
-				private bool SaveSetting(Viewbox vb, SettingOnBot setting, IBotSettings botSettings)
+				private static bool SaveSetting(Viewbox vb, SettingOnBot setting, IBotSettings botSettings)
 				{
 					return SaveSetting(vb.Child, setting, botSettings);
 				}
-				private bool SaveSetting(CheckBox cb, SettingOnBot setting, IBotSettings botSettings)
+				private static bool SaveSetting(CheckBox cb, SettingOnBot setting, IBotSettings botSettings)
 				{
 					var isChecked = cb.IsChecked.Value;
 					switch (setting)
@@ -1130,7 +980,7 @@ namespace Advobot
 						}
 					}
 				}
-				private bool SaveSetting(ComboBox cb, SettingOnBot setting, IBotSettings botSettings)
+				private static bool SaveSetting(ComboBox cb, SettingOnBot setting, IBotSettings botSettings)
 				{
 					switch (setting)
 					{
@@ -1159,6 +1009,166 @@ namespace Advobot
 							return true;
 						}
 					}
+				}
+
+				public static string GetReasonTextFromToolTipReason(ToolTipReason reason)
+				{
+					switch (reason)
+					{
+						case ToolTipReason.FileSavingFailure:
+						{
+							return "Failed to save the file.";
+						}
+						case ToolTipReason.FileSavingSuccess:
+						{
+							return "Successfully saved the file.";
+						}
+						case ToolTipReason.InvalidFilePath:
+						{
+							return "Unable to gather the path for this file.";
+						}
+						default:
+						{
+							return null;
+						}
+					}
+				}
+				public static ToolTipReason SaveFile(TextEditor tb)
+				{
+					var path = tb.Tag.ToString();
+					if (String.IsNullOrWhiteSpace(path) || !File.Exists(path))
+					{
+						return ToolTipReason.InvalidFilePath;
+					}
+
+					var fileAndExtension = Path.GetFileName(path);
+					if (fileAndExtension.Equals(Constants.GUILD_SETTINGS_LOCATION))
+					{
+						//Make sure the guild info stays valid
+						try
+						{
+							var throwaway = JsonConvert.DeserializeObject(tb.Text, Constants.GUILDS_SETTINGS_TYPE);
+						}
+						catch (Exception exc)
+						{
+							ConsoleActions.ExceptionToConsole(exc);
+							return ToolTipReason.FileSavingFailure;
+						}
+					}
+
+					using (var writer = new StreamWriter(path))
+					{
+						writer.WriteLine(tb.Text);
+					}
+
+					return ToolTipReason.FileSavingSuccess;
+				}
+				public static ToolTipReason SaveOutput(TextBox tb)
+				{
+					var path = Gets.GetBaseBotDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
+					if (String.IsNullOrWhiteSpace(path))
+					{
+						return ToolTipReason.FileSavingFailure;
+					}
+
+					using (StreamWriter writer = new StreamWriter(path))
+					{
+						writer.Write(tb.Text);
+					}
+
+					return ToolTipReason.FileSavingSuccess;
+				}
+
+				public static void PauseBot(IBotSettings botSettings)
+				{
+					if (botSettings.Pause)
+					{
+						ConsoleActions.WriteLine("The bot is now unpaused.");
+						botSettings.TogglePause();
+					}
+					else
+					{
+						ConsoleActions.WriteLine("The bot is now paused.");
+						botSettings.TogglePause();
+					}
+				}
+
+				public static bool AppendTextToTextEditorIfPathExistsAndReturnIfHappened(TextEditor display, TreeViewItem treeItem)
+				{
+					var fileLocation = ((FileInformation)treeItem.Tag).FileLocation;
+					if (fileLocation != null && File.Exists(fileLocation))
+					{
+						display.Clear();
+						display.Tag = fileLocation;
+						using (var reader = new StreamReader(fileLocation))
+						{
+							display.AppendText(reader.ReadToEnd());
+						}
+						return true;
+					}
+					else
+					{
+						ConsoleActions.WriteLine("Unable to bring up the file.");
+						return false;
+					}
+				}
+				public static async Task DoStuffWithInput(string input, IDiscordClient client, IBotSettings botSettings)
+				{
+					//Make sure both the path and key are set
+					if (!botSettings.GotPath || !botSettings.GotKey)
+					{
+						if (!botSettings.GotPath)
+						{
+							if (SavingAndLoading.ValidatePath(input, botSettings.Windows))
+							{
+								botSettings.SetGotPath();
+							}
+						}
+						else if (!botSettings.GotKey)
+						{
+							if (await SavingAndLoading.ValidateBotKey(client, input))
+							{
+								botSettings.SetGotKey();
+							}
+						}
+						await ClientActions.MaybeStartBot(client, botSettings);
+					}
+					else
+					{
+						UICommandHandler.HandleCommand(input, botSettings.Prefix);
+					}
+				}
+
+				public static async Task AddTrustedUserToComboBox(ComboBox cb, IDiscordClient client, string input)
+				{
+					if (String.IsNullOrWhiteSpace(input))
+					{
+						return;
+					}
+					else if (ulong.TryParse(input, out ulong userID))
+					{
+						var currTBs = cb.Items.Cast<TextBox>().ToList();
+						if (currTBs.Any(x => (ulong)x.Tag == userID))
+							return;
+
+						var tb = UIModification.MakeTextBoxFromUserID(await client.GetUserAsync(userID));
+						if (tb != null)
+						{
+							currTBs.Add(tb);
+							cb.ItemsSource = currTBs;
+						}
+					}
+					else
+					{
+						ConsoleActions.WriteLine(String.Format("The given input '{0}' is not a valid ID.", input));
+					}
+				}
+				public static void RemoveTrustedUserFromComboBox(ComboBox cb)
+				{
+					if (cb.SelectedItem == null)
+						return;
+
+					cb.ItemsSource = cb.Items.Cast<TextBox>().Where(x => (ulong)x.Tag != (ulong)((TextBox)cb.SelectedItem).Tag).ToList();
 				}
 			}
 
@@ -1232,11 +1242,19 @@ namespace Advobot
 			[Flags]
 			internal enum MenuType : uint
 			{
-				Main = (1U << 1),
-				Info = (1U << 2),
-				Settings = (1U << 3),
-				Colors = (1U << 4),
-				Files = (1U << 5),
+				Main							= (1U << 0),
+				Info							= (1U << 1),
+				Settings						= (1U << 2),
+				Colors							= (1U << 3),
+				Files							= (1U << 4),
+			}
+
+			[Flags]
+			internal enum ToolTipReason : uint
+			{
+				FileSavingFailure				= (1U << 0),
+				FileSavingSuccess				= (1U << 1),
+				InvalidFilePath					= (1U << 2),
 			}
 		}
 
@@ -1972,6 +1990,7 @@ namespace Advobot
 					{
 						text += "This program really doesn't like that long Arabic character for some reason. Whenever there are a lot of them it crashes the program completely.";
 					}
+
 					ConsoleActions.WriteLine(text);
 
 					tb.Text = "";
@@ -2309,29 +2328,29 @@ namespace Advobot
 			[Flags]
 			internal enum ColorTheme : uint
 			{
-				Classic = (1U << 0),
-				Dark_Mode = (1U << 1),
-				User_Made = (1U << 2),
+				Classic							= (1U << 0),
+				Dark_Mode						= (1U << 1),
+				User_Made						= (1U << 2),
 			}
 
 			[Flags]
 			internal enum ColorTarget : uint
 			{
-				Base_Background = (1U << 0),
-				Base_Foreground = (1U << 1),
-				Base_Border = (1U << 2),
-				Button_Background = (1U << 3),
-				Button_Border = (1U << 4),
-				Button_Disabled_Background = (1U << 5),
-				Button_Disabled_Foreground = (1U << 6),
-				Button_Disabled_Border = (1U << 7),
-				Button_Mouse_Over_Background = (1U << 8),
+				Base_Background					= (1U << 0),
+				Base_Foreground					= (1U << 1),
+				Base_Border						= (1U << 2),
+				Button_Background				= (1U << 3),
+				Button_Border					= (1U << 4),
+				Button_Disabled_Background		= (1U << 5),
+				Button_Disabled_Foreground		= (1U << 6),
+				Button_Disabled_Border			= (1U << 7),
+				Button_Mouse_Over_Background	= (1U << 8),
 			}
 
 			[Flags]
 			internal enum OtherTarget : uint
 			{
-				Button_Style = (1U << 0),
+				Button_Style					= (1U << 0),
 			}
 		}
 	}
