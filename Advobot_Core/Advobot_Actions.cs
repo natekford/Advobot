@@ -3386,6 +3386,14 @@ namespace Advobot
 
 		public static class Misc
 		{
+			public static string GetSavePath()
+			{
+				return Properties.Settings.Default.Path;
+			}
+			public static string GetBotKey()
+			{
+				return Properties.Settings.Default.BotKey;
+			}
 			public static void ResetSettings()
 			{
 				Properties.Settings.Default.BotKey = null;
@@ -3414,7 +3422,7 @@ namespace Advobot
 
 			public static bool MakeSureInputIsValidTwitchAccountName(string input)
 			{
-				//In the bot's case if it's a null name then that just means not to show a stream
+				//In the bot's case if it's a null name then that just means to not show a stream
 				if (String.IsNullOrWhiteSpace(input))
 					return true;
 
@@ -3477,7 +3485,7 @@ namespace Advobot
 				if (user != null)
 				{
 					return String.Format("'{0}#{1}' ({2})",
-						Actions.Formatting.EscapeMarkdown(user.Username, true).CaseInsReplace("discord.gg", Constants.FAKE_DISCORD_LINK),
+						Formatting.EscapeMarkdown(user.Username, true).CaseInsReplace("discord.gg", Constants.FAKE_DISCORD_LINK),
 						user.Discriminator,
 						user.Id);
 				}
@@ -3490,7 +3498,7 @@ namespace Advobot
 			{
 				if (role != null)
 				{
-					return String.Format("'{0}' ({1})", Actions.Formatting.EscapeMarkdown(role.Name, true), role.Id);
+					return String.Format("'{0}' ({1})", Formatting.EscapeMarkdown(role.Name, true), role.Id);
 				}
 				else
 				{
@@ -3501,7 +3509,7 @@ namespace Advobot
 			{
 				if (channel != null)
 				{
-					return String.Format("'{0}' ({1}) ({2})", Actions.Formatting.EscapeMarkdown(channel.Name, true), (channel is IMessageChannel ? "text" : "voice"), channel.Id);
+					return String.Format("'{0}' ({1}) ({2})", Formatting.EscapeMarkdown(channel.Name, true), (channel is IMessageChannel ? "text" : "voice"), channel.Id);
 				}
 				else
 				{
@@ -3512,7 +3520,7 @@ namespace Advobot
 			{
 				if (guild != null)
 				{
-					return String.Format("'{0}' ({1})", Actions.Formatting.EscapeMarkdown(guild.Name, true), guild.Id);
+					return String.Format("'{0}' ({1})", Formatting.EscapeMarkdown(guild.Name, true), guild.Id);
 				}
 				else
 				{

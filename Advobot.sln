@@ -6,12 +6,20 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot_Core", "Advobot_Core\Advobot_Core.csproj", "{570FEFD6-E50E-4A26-974C-75D9F99004C4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E276056E-5A61-45A7-8D86-BE4A4900C1F2}"
+	ProjectSection(SolutionItems) = preProject
+		OTHERREADME.txt = OTHERREADME.txt
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot_UI", "Advobot_UI\Advobot_UI.csproj", "{670C1567-E3CD-43DA-9C1C-99FB253C5A44}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot_Launcher", "Advobot_Launcher\Advobot_Launcher.csproj", "{D54A2DD1-7E4F-4B8E-80AF-9FB981AD0A39}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot_Launcher_UI", "Advobot_Launcher_UI\Advobot_Launcher_UI.csproj", "{D54A2DD1-7E4F-4B8E-80AF-9FB981AD0A39}"
 	ProjectSection(ProjectDependencies) = postProject
 		{670C1567-E3CD-43DA-9C1C-99FB253C5A44} = {670C1567-E3CD-43DA-9C1C-99FB253C5A44}
+		{570FEFD6-E50E-4A26-974C-75D9F99004C4} = {570FEFD6-E50E-4A26-974C-75D9F99004C4}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot_Launcher_Console", "Advobot_Launcher_Console\Advobot_Launcher_Console.csproj", "{C3335293-5A51-4D1C-953F-CDB3DFC30BCD}"
+	ProjectSection(ProjectDependencies) = postProject
 		{570FEFD6-E50E-4A26-974C-75D9F99004C4} = {570FEFD6-E50E-4A26-974C-75D9F99004C4}
 	EndProjectSection
 EndProject
@@ -33,6 +41,10 @@ Global
 		{D54A2DD1-7E4F-4B8E-80AF-9FB981AD0A39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D54A2DD1-7E4F-4B8E-80AF-9FB981AD0A39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D54A2DD1-7E4F-4B8E-80AF-9FB981AD0A39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3335293-5A51-4D1C-953F-CDB3DFC30BCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3335293-5A51-4D1C-953F-CDB3DFC30BCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3335293-5A51-4D1C-953F-CDB3DFC30BCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3335293-5A51-4D1C-953F-CDB3DFC30BCD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
