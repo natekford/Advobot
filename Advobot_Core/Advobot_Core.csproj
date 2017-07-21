@@ -206,26 +206,28 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Advobot_Commands_Role_Mod.cs" />
-    <Compile Include="Advobot_Commands_Ban_Phrases.cs" />
-    <Compile Include="Advobot_Commands_Channel_Mod.cs" />
-    <Compile Include="Advobot_Commands_Global_Settings.cs" />
+    <Compile Include="Advobot_Attributes.cs" />
+    <Compile Include="Advobot_Interfaces.cs" />
+    <Compile Include="Advobot_TypeReaders.cs" />
+    <Compile Include="Commands\Advobot_Commands_Role_Mod.cs" />
+    <Compile Include="Commands\Advobot_Commands_Ban_Phrases.cs" />
+    <Compile Include="Commands\Advobot_Commands_Channel_Mod.cs" />
+    <Compile Include="Commands\Advobot_Commands_Global_Settings.cs" />
     <Compile Include="Advobot_Actions.cs" />
     <Compile Include="Advobot_Classes.cs" />
-    <Compile Include="Advobot_Commands_Guild_Mod.cs" />
-    <Compile Include="Advobot_Commands_Self_Roles.cs" />
-    <Compile Include="Advobot_Commands_User_Mod.cs" />
+    <Compile Include="Commands\Advobot_Commands_Guild_Mod.cs" />
+    <Compile Include="Commands\Advobot_Commands_Self_Roles.cs" />
+    <Compile Include="Commands\Advobot_Commands_User_Mod.cs" />
     <Compile Include="Advobot_Logs.cs" />
-    <Compile Include="Advobot_Constants_And_Variables.cs" />
-    <Compile Include="Advobot_Commands_Miscellaneous.cs" />
+    <Compile Include="Advobot_Constants.cs" />
+    <Compile Include="Commands\Advobot_Commands_Miscellaneous.cs" />
     <Compile Include="Advobot_Command_Handler.cs" />
-    <Compile Include="Advobot_Program.cs" />
-    <Compile Include="Advobot_Commands_Guild_Settings.cs" />
-    <Compile Include="Advobot_Commands_Logs.cs" />
-    <Compile Include="Advobot_Commands_Spam_Prevention.cs" />
-    <Compile Include="Advobot_Commands_Guild_List.cs" />
-    <Compile Include="Advobot_Commands_Nickname_Mod.cs" />
-    <Compile Include="Advobot_Commands_Invite_Mod.cs" />
+    <Compile Include="Commands\Advobot_Commands_Guild_Settings.cs" />
+    <Compile Include="Commands\Advobot_Commands_Logs.cs" />
+    <Compile Include="Commands\Advobot_Commands_Spam_Prevention.cs" />
+    <Compile Include="Commands\Advobot_Commands_Guild_List.cs" />
+    <Compile Include="Commands\Advobot_Commands_Nickname_Mod.cs" />
+    <Compile Include="Commands\Advobot_Commands_Invite_Mod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

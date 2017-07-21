@@ -81,7 +81,7 @@ namespace Advobot
 			if (!TryGetArgPos(message, guildSettings.Prefix, BotSettings.Prefix, out int argPos))
 				return;
 
-			var context = new MyCommandContext(BotSettings, guildSettings, Logging, Client, message);
+			var context = new MyCommandContext(BotSettings, guildSettings, Logging, Timers, Client, message);
 			var result = await Commands.ExecuteAsync(context, argPos, Provider);
 
 			if (result.IsSuccess)
@@ -106,7 +106,7 @@ namespace Advobot
 					}
 					default:
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Timers, message.Channel, message, Formatting.ERROR(result.ErrorReason));
+						await Messages.MakeAndDeleteSecondaryMessage(context, Formatting.ERROR(result.ErrorReason));
 						break;
 					}
 				}

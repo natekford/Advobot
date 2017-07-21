@@ -29,14 +29,14 @@ namespace Advobot
 				var muteRole = await Roles.GetMuteRole(Context.GuildSettings, user.Guild, user);
 				if (user.RoleIds.Contains(muteRole.Id))
 				{
-					await Punishments.ManualRoleUnmuteUser(Context.Timers, user, muteRole);
+					await Punishments.ManualRoleUnmuteUser(user, muteRole, Context.Timers);
 
 					var response = String.Format("Successfully unmuted `{0}`.", user.FormatUser());
 					await Messages.MakeAndDeleteSecondaryMessage(Context, response);
 				}
 				else
 				{
-					await Punishments.RoleMuteUser(Context.Timers, user, muteRole, time);
+					await Punishments.RoleMuteUser(user, muteRole, time, Context.Timers);
 
 					var response = String.Format("Successfully muted `{0}`.", user.FormatUser());
 					if (time != 0)
@@ -65,14 +65,14 @@ namespace Advobot
 			{
 				if (user.IsMuted)
 				{
-					await Punishments.ManualVoiceUnmuteUser(Context.Timers, user);
+					await Punishments.ManualVoiceUnmuteUser(user, Context.Timers);
 
 					var response = String.Format("Successfully unvoicemuted `{0}`.", user.FormatUser());
 					await Messages.MakeAndDeleteSecondaryMessage(Context, response);
 				}
 				else
 				{
-					await Punishments.VoiceMuteUser(Context.Timers, user, time);
+					await Punishments.VoiceMuteUser(user, time, Context.Timers);
 
 					var response = String.Format("Successfully voicemuted `{0}`.", user.FormatUser());
 					if (time != 0)
@@ -101,14 +101,14 @@ namespace Advobot
 			{
 				if (user.IsDeafened)
 				{
-					await Punishments.ManualUndeafenUser(Context.Timers, user);
+					await Punishments.ManualUndeafenUser(user, Context.Timers);
 
 					var response = String.Format("Successfully undeafened `{0}`.", user.FormatUser());
 					await Messages.MakeAndDeleteSecondaryMessage(Context, response);
 				}
 				else
 				{
-					await Punishments.DeafenUser(Context.Timers, user, time);
+					await Punishments.DeafenUser(user, time, Context.Timers);
 
 					var response = String.Format("Successfully deafened `{0}`.", user.FormatUser());
 					if (time != 0)
@@ -262,7 +262,7 @@ namespace Advobot
 					return;
 				}
 
-				await Punishments.ManualBan(Context.Timers, Context, user.Id, (int)days, time, reason);
+				await Punishments.ManualBan(Context, user.Id, (int)days, time, reason, Context.Timers);
 
 				var response = String.Format("Successfully banned `{0}`.", user.FormatUser());
 				if (!String.IsNullOrWhiteSpace(reason))

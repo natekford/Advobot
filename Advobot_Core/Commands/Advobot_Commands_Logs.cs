@@ -56,17 +56,17 @@ namespace Advobot
 				{
 					case LogChannelType.Server:
 					{
-						currID = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog))?.ID ?? 0;
+						currID = ((DiscordObjectWithId<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ServerLog))?.ID ?? 0;
 						break;
 					}
 					case LogChannelType.Mod:
 					{
-						currID = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog))?.ID ?? 0;
+						currID = ((DiscordObjectWithId<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ModLog))?.ID ?? 0;
 						break;
 					}
 					case LogChannelType.Image:
 					{
-						currID = ((DiscordObjectWithID<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ImageLog))?.ID ?? 0;
+						currID = ((DiscordObjectWithId<ITextChannel>)guildInfo.GetSetting(SettingOnGuild.ImageLog))?.ID ?? 0;
 						break;
 					}
 				}
@@ -83,17 +83,17 @@ namespace Advobot
 			{
 				case LogChannelType.Server:
 				{
-					success = guildSettings.SetSetting(SettingOnGuild.ServerLog, new DiscordObjectWithID<ITextChannel>(channel));
+					success = guildSettings.SetSetting(SettingOnGuild.ServerLog, new DiscordObjectWithId<ITextChannel>(channel));
 					break;
 				}
 				case LogChannelType.Mod:
 				{
-					success = guildSettings.SetSetting(SettingOnGuild.ModLog, new DiscordObjectWithID<ITextChannel>(channel));
+					success = guildSettings.SetSetting(SettingOnGuild.ModLog, new DiscordObjectWithId<ITextChannel>(channel));
 					break;
 				}
 				case LogChannelType.Image:
 				{
-					success = guildSettings.SetSetting(SettingOnGuild.ImageLog, new DiscordObjectWithID<ITextChannel>(channel));
+					success = guildSettings.SetSetting(SettingOnGuild.ImageLog, new DiscordObjectWithId<ITextChannel>(channel));
 					break;
 				}
 			}

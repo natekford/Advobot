@@ -19,603 +19,6 @@ using System.Reflection;
 
 namespace Advobot
 {
-	#region Attributes
-	[AttributeUsage(AttributeTargets.Class)]
-	public class PermissionRequirementAttribute : PreconditionAttribute
-	{
-		private uint _AllFlags;
-		private uint _AnyFlags;
-
-		//This doesn't have default values for the parameters since that makes it harder to potentially provide the wrong permissions
-		public PermissionRequirementAttribute(GuildPermission[] anyOfTheListedPerms, GuildPermission[] allOfTheListedPerms)
-		{
-			_AnyFlags |= (1U << (int)GuildPermission.Administrator);
-			foreach (var perm in anyOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
-			{
-				_AnyFlags |= (1U << (int)perm);
-			}
-			foreach (var perm in allOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
-			{
-				_AllFlags |= (1U << (int)perm);
-			}
-		}
-		/* For when/if GuildPermission values get put as bits
-		public PermissionRequirementAttribute(GuildPermission anyOfTheListedPerms, GuildPermission allOfTheListedPerms)
-		{
-			_AnyFlags |= GuildPermission.Administrator;
-			foreach (var perm in anyOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
-			{
-				_AnyFlags |= perm;
-			}
-			foreach (var perm in allOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
-			{
-				_AllFlags |= perm;
-			}
-		}
-		*/
-
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
-		{
-			if (context is MyCommandContext)
-			{
-				var cont = context as MyCommandContext;
-				var user = context.User as IGuildUser;
-
-				var guildBits = user.GuildPermissions.RawValue;
-				var botBits = cont.GuildSettings.BotUsers.FirstOrDefault(x => x.UserID == user.Id)?.Permissions ?? 0;
-
-				var userPerms = guildBits | botBits;
-				if ((userPerms & _AllFlags) == _AllFlags || (userPerms & _AnyFlags) != 0)
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
-			}
-			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
-		}
-
-		public string AllText
-		{
-			get { return String.Join(" & ", Gets.GetPermissionNames(_AllFlags)); }
-		}
-		public string AnyText
-		{
-			get { return String.Join(" | ", Gets.GetPermissionNames(_AnyFlags)); }
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Class)]
-	public class OtherRequirementAttribute : PreconditionAttribute
-	{
-		private const uint PERMISSION_BITS = 0
-			| (1U << (int)GuildPermission.Administrator)
-			| (1U << (int)GuildPermission.BanMembers)
-			| (1U << (int)GuildPermission.DeafenMembers)
-			| (1U << (int)GuildPermission.KickMembers)
-			| (1U << (int)GuildPermission.ManageChannels)
-			| (1U << (int)GuildPermission.ManageEmojis)
-			| (1U << (int)GuildPermission.ManageGuild)
-			| (1U << (int)GuildPermission.ManageMessages)
-			| (1U << (int)GuildPermission.ManageNicknames)
-			| (1U << (int)GuildPermission.ManageRoles)
-			| (1U << (int)GuildPermission.ManageWebhooks)
-			| (1U << (int)GuildPermission.MoveMembers)
-			| (1U << (int)GuildPermission.MuteMembers);
-		public Precondition Requirements { get; }
-
-		public OtherRequirementAttribute(Precondition requirements)
-		{
-			Requirements = requirements;
-		}
-
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
-		{
-			if (context is MyCommandContext)
-			{
-				var cont = context as MyCommandContext;
-				var user = context.User as IGuildUser;
-
-				var permissions = (Requirements & Precondition.UserHasAPerm) != 0;
-				var guildOwner = (Requirements & Precondition.GuildOwner) != 0;
-				var trustedUser = (Requirements & Precondition.TrustedUser) != 0;
-				var botOwner = (Requirements & Precondition.BotOwner) != 0;
-
-				if (permissions)
-				{
-					var guildBits = user.GuildPermissions.RawValue;
-					var botBits = cont.GuildSettings.BotUsers.FirstOrDefault(x => x.UserID == user.Id)?.Permissions ?? 0;
-
-					var userPerms = guildBits | botBits;
-					if ((userPerms & PERMISSION_BITS) != 0)
-					{
-						return Task.FromResult(PreconditionResult.FromSuccess());
-					}
-				}
-				if (guildOwner && cont.Guild.OwnerId == user.Id)
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
-				if (trustedUser && cont.BotSettings.TrustedUsers.Contains(user.Id))
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
-				if (botOwner && cont.BotSettings.BotOwnerID == user.Id)
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
-			}
-			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Class)]
-	public class CommandRequirementsAttribute : PreconditionAttribute
-	{
-		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
-		{
-			if (context is MyCommandContext)
-			{
-				var cont = context as MyCommandContext;
-				var user = context.User as IGuildUser;
-
-				if (!(await cont.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
-				{
-					return PreconditionResult.FromError("This bot will not function without the `Administrator` permission.");
-				}
-				else if (!cont.BotSettings.Loaded)
-				{
-					return PreconditionResult.FromError("Wait until the bot is loaded.");
-				}
-				if (!cont.GuildSettings.Loaded)
-				{
-					return PreconditionResult.FromError("Wait until the guild is loaded.");
-				}
-				else if (cont.GuildSettings.IgnoredCommandChannels.Contains(context.Channel.Id) || !CheckIfCommandIsEnabled(cont, command, user))
-				{
-					return PreconditionResult.FromError(Constants.IGNORE_ERROR);
-				}
-				else
-				{
-					return PreconditionResult.FromSuccess();
-				}
-			}
-			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
-		}
-
-		private bool CheckIfCommandIsEnabled(MyCommandContext context, CommandInfo command, IGuildUser user)
-		{
-			//Use the first alias since that's what group gets set as (could use any alias since GetCommand works for aliases too)
-			//Doing a split since subcommands (in this bot's case) are simply easy to use options on a single command
-			var cmd = Gets.GetCommand(context.GuildSettings, command.Aliases[0].Split(' ')[0]);
-			if (!cmd.ValAsBoolean)
-			{
-				return false;
-			}
-
-			/* If user is set, use user setting
-			 * Else if any roles are set, use the highest role setting
-			 * Else if channel is set, use channel setting
-			 */
-
-			var userOverrides = context.GuildSettings.CommandsDisabledOnUser;
-			var userOverride = userOverrides.FirstOrDefault(x => x.ID == context.User.Id && cmd.Name.CaseInsEquals(x.Name));
-			if (userOverride != null)
-			{
-				return userOverride.Enabled;
-			}
-
-			var roleOverrides = context.GuildSettings.CommandsDisabledOnRole;
-			var roleOverride = roleOverrides.Where(x => user.RoleIds.Contains(x.ID) && cmd.Name.CaseInsEquals(x.Name)).OrderBy(x => context.Guild.GetRole(x.ID).Position).LastOrDefault();
-			if (roleOverride != null)
-			{
-				return roleOverride.Enabled;
-			}
-
-			var channelOverrides = context.GuildSettings.CommandsDisabledOnChannel;
-			var channelOverride = channelOverrides.FirstOrDefault(x => x.ID == context.Channel.Id && cmd.Name.CaseInsEquals(x.Name));
-			if (channelOverride != null)
-			{
-				return channelOverride.Enabled;
-			}
-
-			return true;
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Class)]
-	public class DefaultEnabledAttribute : Attribute
-	{
-		public bool Enabled { get; }
-
-		public DefaultEnabledAttribute(bool enabled)
-		{
-			Enabled = enabled;
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Class)]
-	public class UsageAttribute : Attribute
-	{
-		public string Usage { get; }
-
-		public UsageAttribute(string usage)
-		{
-			Usage = usage;
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Field)]
-	public class DiscordObjectTargetAttribute : Attribute
-	{
-		public Target Target { get; }
-
-		public DiscordObjectTargetAttribute(Target target)
-		{
-			Target = target;
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Parameter)]
-	public class VerifyObjectAttribute : ParameterPreconditionAttribute
-	{
-		private readonly bool _IfNullDrawFromContext;
-		private readonly ObjectVerification[] _Checks;
-
-		public VerifyObjectAttribute(bool ifNullDrawFromContext, params ObjectVerification[] checks)
-		{
-			_IfNullDrawFromContext = ifNullDrawFromContext;
-			_Checks = checks;
-		}
-
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
-		{
-			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
-			if (value == null && !_IfNullDrawFromContext)
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-
-			return Task.FromResult(GetPreconditionResult(context, value));
-		}
-
-		private PreconditionResult GetPreconditionResult(ICommandContext context, System.Collections.IEnumerable list)
-		{
-			foreach (var item in list)
-			{
-				var preconditionResult = GetPreconditionResult(context, item);
-				if (!preconditionResult.IsSuccess)
-				{
-					return preconditionResult;
-				}
-			}
-
-			return PreconditionResult.FromSuccess();
-		}
-		private PreconditionResult GetPreconditionResult(ICommandContext context, object value)
-		{
-			FailureReason failureReason = default(FailureReason);
-			object obj = null;
-			if (value is ITextChannel)
-			{
-				var returned = Channels.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.Channel) as IGuildChannel);
-				failureReason = returned.Reason;
-				obj = returned.Object;
-			}
-			else if (value is IVoiceChannel)
-			{
-				var returned = Channels.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel);
-				failureReason = returned.Reason;
-				obj = returned.Object;
-			}
-			else if (value is IGuildUser)
-			{
-				var returned = Users.GetGuildUser(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.User) as IGuildUser);
-				failureReason = returned.Reason;
-				obj = returned.Object;
-			}
-			else if (value is IRole)
-			{
-				var returned = Roles.GetRole(context.Guild, context.User as IGuildUser, _Checks, value as IRole);
-				failureReason = returned.Reason;
-				obj = returned.Object;
-			}
-
-			if (failureReason != FailureReason.NotFailure)
-			{
-				return PreconditionResult.FromError(Actions.Formatting.FormatErrorString(context.Guild, failureReason, obj));
-			}
-			else
-			{
-				return PreconditionResult.FromSuccess();
-			}
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Parameter)]
-	public class VerifyEnumAttribute : ParameterPreconditionAttribute
-	{
-		private readonly uint _Allowed;
-		private readonly uint _Disallowed;
-
-		public VerifyEnumAttribute(uint allowed = 0, uint disallowed = 0)
-		{
-			_Allowed = allowed;
-			_Disallowed = disallowed;
-		}
-
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
-		{
-			var enumVal = (uint)value;
-			if (_Allowed != 0 && ((_Allowed & enumVal) == 0))
-			{
-				return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command overload.", value)));
-			}
-			else if (_Disallowed != 0 && ((_Disallowed & enumVal) != 0))
-			{
-				return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command overload.", value)));
-			}
-			else
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Parameter)]
-	public class VerifyStringAttribute : ParameterPreconditionAttribute
-	{
-		private readonly string[] _ValidStrings;
-
-		public VerifyStringAttribute(params string[] validStrings)
-		{
-			_ValidStrings = validStrings;
-		}
-
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
-		{
-			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
-			if (value == null)
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-
-			return _ValidStrings.CaseInsContains(value.ToString()) ? Task.FromResult(PreconditionResult.FromSuccess()) : Task.FromResult(PreconditionResult.FromError("Invalid string provided."));
-		}
-	}
-	
-	[AttributeUsage(AttributeTargets.Parameter)]
-	public class VerifyStringLengthAttribute : ParameterPreconditionAttribute
-	{
-		private readonly ReadOnlyDictionary<Target, Tuple<int, int, string>> _MinsAndMaxesAndErrors = new ReadOnlyDictionary<Target, Tuple<int, int, string>>(new Dictionary<Target, Tuple<int, int, string>>
-		{
-			{ Target.Guild, new Tuple<int, int, string>(Constants.MIN_GUILD_NAME_LENGTH, Constants.MAX_GUILD_NAME_LENGTH, "guild name") },
-			{ Target.Channel, new Tuple<int, int, string>(Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "channel name") },
-			{ Target.Role, new Tuple<int, int, string>(Constants.MIN_ROLE_NAME_LENGTH, Constants.MAX_ROLE_NAME_LENGTH, "role name") },
-			{ Target.Name, new Tuple<int, int, string>(Constants.MIN_USERNAME_LENGTH, Constants.MAX_USERNAME_LENGTH, "username") },
-			{ Target.Nickname, new Tuple<int, int, string>(Constants.MIN_NICKNAME_LENGTH, Constants.MAX_NICKNAME_LENGTH, "nickname") },
-			{ Target.Game, new Tuple<int, int, string>(Constants.MIN_GAME_LENGTH, Constants.MAX_GAME_LENGTH, "game") },
-			{ Target.Stream, new Tuple<int, int, string>(Constants.MIN_STREAM_LENGTH, Constants.MAX_STREAM_LENGTH, "stream name") },
-			{ Target.Topic, new Tuple<int, int, string>(Constants.MIN_TOPIC_LENGTH, Constants.MAX_TOPIC_LENGTH, "channel topic") },
-		});
-		private int _Min;
-		private int _Max;
-		private string _TooShort;
-		private string _TooLong;
-
-		public VerifyStringLengthAttribute(Target target)
-		{
-			if (_MinsAndMaxesAndErrors.TryGetValue(target, out var minAndMaxAndError))
-			{
-				_Min = minAndMaxAndError.Item1;
-				_Max = minAndMaxAndError.Item2;
-				_TooShort = String.Format("A {0} must be at least `{1}` characters long.", minAndMaxAndError.Item3, _Min);
-				_TooLong = String.Format("A {0} must be at most `{1}` characters long.", minAndMaxAndError.Item3, _Max);
-			}
-			else
-			{
-				throw new NotSupportedException("Inputted enum doesn't have a min and max or error output.");
-			}
-		}
-
-		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
-		{
-			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
-			if (value == null)
-			{
-				return Task.FromResult(PreconditionResult.FromSuccess());
-			}
-
-			if (value.GetType() == typeof(string))
-			{
-				var str = value.ToString();
-				if (str.Length < _Min)
-				{
-					return Task.FromResult(PreconditionResult.FromError(_TooShort));
-				}
-				else if (str.Length > _Max)
-				{
-					return Task.FromResult(PreconditionResult.FromError(_TooLong));
-				}
-				else
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
-			}
-			else
-			{
-				throw new NotSupportedException(String.Format("{0} only supports strings.", nameof(VerifyStringLengthAttribute)));
-			}
-		}
-	}
-	#endregion
-
-	#region Typereaders
-	public abstract class MyTypeReader : TypeReader
-	{
-		public bool TryParseMyCommandContext(ICommandContext context, out MyCommandContext myContext)
-		{
-			return (myContext = context as MyCommandContext) != null;
-		}
-	}
-
-	public class IInviteTypeReader : MyTypeReader
-	{
-		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
-		{
-			if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
-			{
-				return TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided.");
-			}
-
-			var invites = await myContext.Guild.GetInvitesAsync();
-			var invite = invites.FirstOrDefault(x => x.Code.CaseInsEquals(input));
-			return invite != null ? TypeReaderResult.FromSuccess(invite) : TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching invite.");
-		}
-	}
-
-	public class IBanTypeReader : MyTypeReader
-	{
-		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
-		{
-			if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
-			{
-				return TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided.");
-			}
-
-			IBan ban = null;
-			var bans = await myContext.Guild.GetBansAsync();
-			if (MentionUtils.TryParseUser(input, out ulong userID))
-			{
-				ban = bans.FirstOrDefault(x => x.User.Id == userID);
-			}
-			else if (ulong.TryParse(input, out userID))
-			{
-				ban = bans.FirstOrDefault(x => x.User.Id == userID);
-			}
-			else if (input.Contains('#'))
-			{
-				var usernameAndDiscriminator = input.Split('#');
-				if (usernameAndDiscriminator.Length == 2 && ushort.TryParse(usernameAndDiscriminator[1], out ushort discriminator))
-				{
-					ban = bans.FirstOrDefault(x => x.User.DiscriminatorValue == discriminator && x.User.Username.CaseInsEquals(usernameAndDiscriminator[0]));
-				}
-			}
-
-			if (ban == null)
-			{
-				var matchingUsernames = bans.Where(x => x.User.Username.CaseInsEquals(input));
-
-				if (matchingUsernames.Count() == 1)
-				{
-					ban = matchingUsernames.FirstOrDefault();
-				}
-				else if (matchingUsernames.Count() > 1)
-				{
-					return TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many bans found with the same username.");
-				}
-			}
-
-			return ban != null ? TypeReaderResult.FromSuccess(ban) : TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching ban.");
-		}
-	}
-
-	public class IEmoteTypeReader : MyTypeReader
-	{
-		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
-		{
-			if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
-			{
-				return Task.FromResult(TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided."));
-			}
-
-			IEmote emote = null;
-			if (Emote.TryParse(input, out Emote tempEmote))
-			{
-				emote = tempEmote;
-			}
-			else if (ulong.TryParse(input, out ulong emoteID))
-			{
-				emote = myContext.Guild.Emotes.FirstOrDefault(x => x.Id == emoteID);
-			}
-
-			if (emote == null)
-			{
-				var emotes = myContext.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input));
-				if (emotes.Count() == 1)
-				{
-					emote = emotes.First();
-				}
-				else if (emotes.Count() > 1)
-				{
-					return Task.FromResult(TypeReaderResult.FromError(CommandError.MultipleMatches, "Too many emotes have the provided name."));
-				}
-			}
-
-			return emote != null ? Task.FromResult(TypeReaderResult.FromSuccess(emote)) : Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching emote."));
-		}
-	}
-
-	public class ColorTypeReader : MyTypeReader
-	{
-		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
-		{
-			if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
-			{
-				return Task.FromResult(TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided."));
-			}
-
-			Color? color = null;
-			//By name
-			if (Constants.COLORS.TryGetValue(input, out Color temp))
-			{
-				color = temp;
-			}
-			//By hex
-			else if (uint.TryParse(input.TrimStart(new[] { '&', 'h', '#', '0', 'x' }), System.Globalization.NumberStyles.HexNumber, null, out uint hex))
-			{
-				color = new Color(hex);
-			}
-			//By RGB
-			else if (input.Contains('/'))
-			{
-				var colorRGB = input.Split('/');
-				if (colorRGB.Length == 3)
-				{
-					const byte MAX_VAL = 255;
-					if (byte.TryParse(colorRGB[0], out byte r) && byte.TryParse(colorRGB[1], out byte g) && byte.TryParse(colorRGB[2], out byte b))
-					{
-						color = new Color(Math.Min(r, MAX_VAL), Math.Min(g, MAX_VAL), Math.Min(b, MAX_VAL));
-					}
-				}
-			}
-
-			return color != null ? Task.FromResult(TypeReaderResult.FromSuccess(color)) : Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching color."));
-		}
-	}
-
-	public class BypassUserLimitTypeReader : MyTypeReader
-	{
-		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
-		{
-			return Task.FromResult(TypeReaderResult.FromSuccess(Constants.BYPASS_STRING.CaseInsEquals(input)));
-		}
-	}
-
-	public class BoolTypeReader : MyTypeReader
-	{
-		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
-		{
-			if (bool.TryParse(input, out bool output))
-			{
-				return Task.FromResult(TypeReaderResult.FromSuccess(output));
-			}
-			else
-			{
-				return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Failed to parse a bool."));
-			}
-		}
-	}
-	#endregion
-
 	#region Saved Classes
 	public class MyGuildSettings : IGuildSettings, INotifyPropertyChanged
 	{
@@ -652,13 +55,13 @@ namespace Advobot
 		[JsonProperty("CommandsDisabledOnChannel")]
 		private List<CommandOverride> _CommandsDisabledOnChannel = new List<CommandOverride>();
 		[JsonProperty("ServerLog")]
-		private DiscordObjectWithID<ITextChannel> _ServerLog = new DiscordObjectWithID<ITextChannel>(null);
+		private DiscordObjectWithId<ITextChannel> _ServerLog = new DiscordObjectWithId<ITextChannel>(null);
 		[JsonProperty("ModLog")]
-		private DiscordObjectWithID<ITextChannel> _ModLog = new DiscordObjectWithID<ITextChannel>(null);
+		private DiscordObjectWithId<ITextChannel> _ModLog = new DiscordObjectWithId<ITextChannel>(null);
 		[JsonProperty("ImageLog")]
-		private DiscordObjectWithID<ITextChannel> _ImageLog = new DiscordObjectWithID<ITextChannel>(null);
+		private DiscordObjectWithId<ITextChannel> _ImageLog = new DiscordObjectWithId<ITextChannel>(null);
 		[JsonProperty("MuteRole")]
-		private DiscordObjectWithID<IRole> _MuteRole = new DiscordObjectWithID<IRole>(null);
+		private DiscordObjectWithId<IRole> _MuteRole = new DiscordObjectWithId<IRole>(null);
 		[JsonProperty("MessageSpamPrevention")]
 		private SpamPrevention _MessageSpamPrevention = null;
 		[JsonProperty("LongMessageSpamPrevention")]
@@ -847,40 +250,40 @@ namespace Advobot
 		[JsonIgnore]
 		public ITextChannel ServerLog
 		{
-			get => (_ServerLog ?? (_ServerLog = new DiscordObjectWithID<ITextChannel>(null))).Object;
+			get => (_ServerLog ?? (_ServerLog = new DiscordObjectWithId<ITextChannel>(null))).Object;
 			set
 			{
-				_ServerLog = new DiscordObjectWithID<ITextChannel>(value);
+				_ServerLog = new DiscordObjectWithId<ITextChannel>(value);
 				OnPropertyChanged();
 			}
 		}
 		[JsonIgnore]
 		public ITextChannel ModLog
 		{
-			get => (_ModLog ?? (_ModLog = new DiscordObjectWithID<ITextChannel>(null))).Object;
+			get => (_ModLog ?? (_ModLog = new DiscordObjectWithId<ITextChannel>(null))).Object;
 			set
 			{
-				_ModLog = new DiscordObjectWithID<ITextChannel>(value);
+				_ModLog = new DiscordObjectWithId<ITextChannel>(value);
 				OnPropertyChanged();
 			}
 		}
 		[JsonIgnore]
 		public ITextChannel ImageLog
 		{
-			get => (_ImageLog ?? (_ImageLog = new DiscordObjectWithID<ITextChannel>(null))).Object;
+			get => (_ImageLog ?? (_ImageLog = new DiscordObjectWithId<ITextChannel>(null))).Object;
 			set
 			{
-				_ImageLog = new DiscordObjectWithID<ITextChannel>(value);
+				_ImageLog = new DiscordObjectWithId<ITextChannel>(value);
 				OnPropertyChanged();
 			}
 		}
 		[JsonIgnore]
 		public IRole MuteRole
 		{
-			get => (_MuteRole ?? (_MuteRole = new DiscordObjectWithID<IRole>(null))).Object;
+			get => (_MuteRole ?? (_MuteRole = new DiscordObjectWithId<IRole>(null))).Object;
 			set
 			{
-				_MuteRole = new DiscordObjectWithID<IRole>(value);
+				_MuteRole = new DiscordObjectWithId<IRole>(value);
 				OnPropertyChanged();
 			}
 		}
@@ -1073,7 +476,6 @@ namespace Advobot
 			if (_ListedInvite != null)
 			{
 				_ListedInvite.PostDeserialize(tempGuild);
-				Variables.InviteList.ThreadSafeAdd(_ListedInvite);
 			}
 			if (_WelcomeMessage != null)
 			{
@@ -1107,7 +509,7 @@ namespace Advobot
 		[JsonProperty("UsersIgnoredFromCommands")]
 		private List<ulong> _UsersIgnoredFromCommands = new List<ulong>();
 		[JsonProperty("BotOwnerID")]
-		private ulong _BotOwnerID = 0;
+		private ulong _BotOwnerId = 0;
 		[JsonProperty("ShardCount")]
 		private uint _ShardCount = 1;
 		[JsonProperty("MessageCacheCount")]
@@ -1158,12 +560,12 @@ namespace Advobot
 			}
 		}
 		[JsonIgnore]
-		public ulong BotOwnerID
+		public ulong BotOwnerId
 		{
-			get => _BotOwnerID;
+			get => _BotOwnerId;
 			set
 			{
-				_BotOwnerID = value;
+				_BotOwnerId = value;
 				OnPropertyChanged();
 			}
 		}
@@ -1346,14 +748,14 @@ namespace Advobot
 		[JsonProperty]
 		public string Name { get; }
 		[JsonProperty]
-		public ulong ID { get; }
+		public ulong Id { get; }
 		[JsonProperty]
 		public bool Enabled { get; private set; }
 
 		public CommandOverride(string name, ulong id, bool enabled)
 		{
 			Name = name;
-			ID = id;
+			Id = id;
 			Enabled = enabled;
 		}
 
@@ -1364,7 +766,7 @@ namespace Advobot
 
 		public string SettingToString()
 		{
-			return String.Format("**Command:** `{0}`\n**ID:** `{1}`\n**Enabled:** `{2}`", Name, ID, Enabled);
+			return String.Format("**Command:** `{0}`\n**ID:** `{1}`\n**Enabled:** `{2}`", Name, Id, Enabled);
 		}
 		public string SettingToString(SocketGuild guild)
 		{
@@ -1472,45 +874,45 @@ namespace Advobot
 		[JsonProperty]
 		public PunishmentType Punishment { get; }
 		[JsonProperty]
-		public ulong RoleID { get; }
+		public ulong RoleId { get; }
 		[JsonProperty]
-		public ulong GuildID { get; }
+		public ulong GuildId { get; }
 		[JsonProperty]
 		public uint PunishmentTime { get; }
 		[JsonIgnore]
 		public IRole Role { get; private set; }
 
 		[JsonConstructor]
-		public BannedPhrasePunishment(int number, PunishmentType punishment, ulong guildID = 0, ulong roleID = 0, uint punishmentTime = 0)
+		public BannedPhrasePunishment(int number, PunishmentType punishment, ulong guildId = 0, ulong roleId = 0, uint punishmentTime = 0)
 		{
 			NumberOfRemoves = number;
 			Punishment = punishment;
-			RoleID = roleID;
-			GuildID = guildID;
+			RoleId = roleId;
+			GuildId = guildId;
 			PunishmentTime = punishmentTime;
 		}
-		public BannedPhrasePunishment(int number, PunishmentType punishment, ulong guildID = 0, ulong roleID = 0, uint punishmentTime = 0, IRole role = null) : this(number, punishment, guildID, roleID, punishmentTime)
+		public BannedPhrasePunishment(int number, PunishmentType punishment, ulong guildId = 0, ulong roleId = 0, uint punishmentTime = 0, IRole role = null) : this(number, punishment, guildId, roleId, punishmentTime)
 		{
 			Role = role;
 		}
 
 		public void PostDeserialize(SocketGuild guild)
 		{
-			Role = guild.GetRole(RoleID);
+			Role = guild.GetRole(RoleId);
 		}
 
 		public string SettingToString()
 		{
 			return String.Format("`{0}.` `{1}`{2}",
 				NumberOfRemoves.ToString("00"),
-				RoleID == 0 ? Punishment.EnumName() : RoleID.ToString(),
+				RoleId == 0 ? Punishment.EnumName() : RoleId.ToString(),
 				PunishmentTime == 0 ? "" : " `" + PunishmentTime + " minutes`");
 		}
 		public string SettingToString(SocketGuild guild)
 		{
 			return String.Format("`{0}.` `{1}`{2}",
 				NumberOfRemoves.ToString("00"),
-				RoleID == 0 ? Punishment.EnumName() : guild.GetRole(RoleID).Name,
+				RoleId == 0 ? Punishment.EnumName() : guild.GetRole(RoleId).Name,
 				PunishmentTime == 0 ? "" : " `" + PunishmentTime + " minutes`");
 		}
 	}
@@ -1538,7 +940,7 @@ namespace Advobot
 		}
 		public void RemoveRoles(IEnumerable<ulong> roleIDs)
 		{
-			Roles.RemoveAll(x => roleIDs.Contains(x.RoleID));
+			Roles.RemoveAll(x => roleIDs.Contains(x.RoleId));
 		}
 
 		public string SettingToString()
@@ -1554,24 +956,24 @@ namespace Advobot
 	public class SelfAssignableRole : ISetting
 	{
 		[JsonProperty]
-		public ulong RoleID { get; }
+		public ulong RoleId { get; }
 		[JsonIgnore]
 		public IRole Role { get; private set; }
 
 		[JsonConstructor]
 		public SelfAssignableRole(ulong roleID)
 		{
-			RoleID = roleID;
+			RoleId = roleID;
 		}
 		public SelfAssignableRole(IRole role)
 		{
-			RoleID = role.Id;
+			RoleId = role.Id;
 			Role = role;
 		}
 
 		public void PostDeserialize(SocketGuild guild)
 		{
-			Role = guild.GetRole(RoleID);
+			Role = guild.GetRole(RoleId);
 		}
 
 		public string SettingToString()
@@ -1587,13 +989,13 @@ namespace Advobot
 	public class BotImplementedPermissions : ISetting
 	{
 		[JsonProperty]
-		public ulong UserID { get; }
+		public ulong UserId { get; }
 		[JsonProperty]
 		public ulong Permissions { get; private set; }
 
 		public BotImplementedPermissions(ulong userID, ulong permissions)
 		{
-			UserID = userID;
+			UserId = userID;
 			Permissions = permissions;
 		}
 
@@ -1608,11 +1010,11 @@ namespace Advobot
 
 		public string SettingToString()
 		{
-			return String.Format("**User:** `{0}`\n**Permissions:** `{1}`", UserID, Permissions);
+			return String.Format("**User:** `{0}`\n**Permissions:** `{1}`", UserId, Permissions);
 		}
 		public string SettingToString(SocketGuild guild)
 		{
-			return String.Format("**User:** `{0}`\n**Permissions:** `{1}`", guild.GetUser(UserID).FormatUser(), Permissions);
+			return String.Format("**User:** `{0}`\n**Permissions:** `{1}`", guild.GetUser(UserId).FormatUser(), Permissions);
 		}
 	}
 
@@ -1627,7 +1029,7 @@ namespace Advobot
 		[JsonProperty]
 		public string ThumbURL { get; }
 		[JsonProperty]
-		public ulong ChannelID { get; }
+		public ulong ChannelId { get; }
 		[JsonIgnore]
 		public EmbedBuilder Embed { get; }
 		[JsonIgnore]
@@ -1640,7 +1042,7 @@ namespace Advobot
 			Title = title;
 			Description = description;
 			ThumbURL = thumbURL;
-			ChannelID = channelID;
+			ChannelId = channelID;
 			if (!(String.IsNullOrWhiteSpace(title) && String.IsNullOrWhiteSpace(description) && String.IsNullOrWhiteSpace(thumbURL)))
 			{
 				Embed = Embeds.MakeNewEmbed(title, description, null, null, null, thumbURL);
@@ -1657,7 +1059,7 @@ namespace Advobot
 		}
 		public void PostDeserialize(SocketGuild guild)
 		{
-			Channel = guild.GetTextChannel(ChannelID);
+			Channel = guild.GetTextChannel(ChannelId);
 		}
 
 		public string SettingToString()
@@ -1686,7 +1088,7 @@ namespace Advobot
 		[JsonIgnore]
 		public DateTime LastBumped { get; private set; }
 		[JsonIgnore]
-		public string URL { get; private set; }
+		public string Url { get; private set; }
 		[JsonIgnore]
 		public SocketGuild Guild { get; private set; }
 
@@ -1695,7 +1097,7 @@ namespace Advobot
 		{
 			LastBumped = DateTime.UtcNow;
 			Code = code;
-			URL = String.Concat("https://www.discord.gg/", Code);
+			Url = String.Format("https://www.discord.gg/{0}", Code);
 			Keywords = keywords ?? new string[0];
 		}
 		public ListedInvite(SocketGuild guild, string code, string[] keywords) : this(code, keywords)
@@ -1707,17 +1109,15 @@ namespace Advobot
 		public void UpdateCode(string code)
 		{
 			Code = code;
-			URL = String.Concat("https://www.discord.gg/", Code);
+			Url = String.Format("https://www.discord.gg/{0}", Code);
 		}
 		public void UpdateKeywords(string[] keywords)
 		{
 			Keywords = keywords;
 		}
-		public void Bump()
+		public void UpdateLastBumped()
 		{
 			LastBumped = DateTime.UtcNow;
-			Variables.InviteList.ThreadSafeRemove(this);
-			Variables.InviteList.ThreadSafeAdd(this);
 		}
 		public void PostDeserialize(SocketGuild guild)
 		{
@@ -1769,28 +1169,28 @@ namespace Advobot
 		}
 	}
 
-	public class DiscordObjectWithID<T> : ISetting where T : ISnowflakeEntity
+	public class DiscordObjectWithId<T> : ISetting where T : ISnowflakeEntity
 	{
 		[JsonIgnore]
-		private ReadOnlyDictionary<Type, Func<SocketGuild, ulong, object>> inits = new ReadOnlyDictionary<Type, Func<SocketGuild, ulong, object>>(new Dictionary<Type, Func<SocketGuild, ulong, object>>
+		private readonly ReadOnlyDictionary<Type, Func<SocketGuild, ulong, object>> inits = new ReadOnlyDictionary<Type, Func<SocketGuild, ulong, object>>(new Dictionary<Type, Func<SocketGuild, ulong, object>>
 		{
-			{ typeof(IRole), (SocketGuild guild, ulong ID) => { return guild.GetRole(ID); } },
-			{ typeof(ITextChannel), (SocketGuild guild, ulong ID) => { return guild.GetTextChannel(ID); } },
+			{ typeof(IRole), (guild, id) => guild.GetRole(id) },
+			{ typeof(ITextChannel), (guild, id) => guild.GetTextChannel(id) },
 		});
 		[JsonProperty]
-		public ulong ID { get; }
+		public ulong Id { get; }
 		[JsonIgnore]
 		public T Object { get; private set; }
 
 		[JsonConstructor]
-		public DiscordObjectWithID(ulong id)
+		public DiscordObjectWithId(ulong id)
 		{
-			ID = id;
+			Id = id;
 			Object = default(T);
 		}
-		public DiscordObjectWithID(T obj)
+		public DiscordObjectWithId(T obj)
 		{
-			ID = obj?.Id ?? 0;
+			Id = obj?.Id ?? 0;
 			Object = obj;
 		}
 
@@ -1798,20 +1198,13 @@ namespace Advobot
 		{
 			if (inits.TryGetValue(typeof(T), out var method))
 			{
-				Object = (T)method(guild, ID);
+				Object = (T)method(guild, Id);
 			}
 		}
 
 		public string SettingToString()
 		{
-			if (Object != null)
-			{
-				return Actions.Formatting.FormatObject(Object);
-			}
-			else
-			{
-				return null;
-			}
+			return Object != null ? Actions.Formatting.FormatObject(Object) : null;
 		}
 		public string SettingToString(SocketGuild guild)
 		{
@@ -1906,10 +1299,10 @@ namespace Advobot
 		{
 			TimeList.Clear();
 		}
-		public async Task RaidPreventionPunishment(ITimersModule timers, IGuildSettings guildSettings, IGuildUser user)
+		public async Task RaidPreventionPunishment(IGuildSettings guildSettings, IGuildUser user, ITimersModule timers = null)
 		{
 			//TODO: make this not 0
-			await Punishments.AutomaticPunishments(timers, guildSettings, user, PunishmentType, false, 0);
+			await Punishments.AutomaticPunishments(guildSettings, user, PunishmentType, false, 0, timers);
 		}
 
 		public string SettingToString()
@@ -1940,18 +1333,19 @@ namespace Advobot
 		public ILogModule Logging { get; }
 		public ITimersModule Timers { get; }
 
-		public MyCommandContext(IBotSettings botSettings, IGuildSettings guildSettings, ILogModule logging, IDiscordClient client, IUserMessage msg) : base(client, msg)
+		public MyCommandContext(IBotSettings botSettings, IGuildSettings guildSettings, ILogModule logging, ITimersModule timers, IDiscordClient client, IUserMessage msg) : base(client, msg)
 		{
 			BotSettings = botSettings;
 			GuildSettings = guildSettings;
 			Logging = logging;
+			Timers = timers;
 		}
 	}
 
 	public class MyGuildSettingsModule : IGuildSettingsModule
 	{
-		private Dictionary<ulong, IGuildSettings> _GuildSettings = new Dictionary<ulong, IGuildSettings>();
-		private Type _GuildSettingsType;
+		private readonly Dictionary<ulong, IGuildSettings> _guildSettings = new Dictionary<ulong, IGuildSettings>();
+		private readonly Type _guildSettingsType;
 
 		public MyGuildSettingsModule(Type guildSettingsType)
 		{
@@ -1960,108 +1354,107 @@ namespace Advobot
 				throw new ArgumentException("Invalid type for guild settings provided.");
 			}
 
-			_GuildSettingsType = guildSettingsType;
+			_guildSettingsType = guildSettingsType;
 		}
 
 		public async Task AddGuild(IGuild guild)
 		{
-			if (!_GuildSettings.ContainsKey(guild.Id))
+			if (!_guildSettings.ContainsKey(guild.Id))
 			{
-				_GuildSettings.Add(guild.Id, await CreateGuildSettings(_GuildSettingsType, guild));
+				_guildSettings.Add(guild.Id, await CreateGuildSettings(_guildSettingsType, guild));
 			}
 		}
 		public Task RemoveGuild(IGuild guild)
 		{
-			if (_GuildSettings.ContainsKey(guild.Id))
+			if (_guildSettings.ContainsKey(guild.Id))
 			{
-				_GuildSettings.Remove(guild.Id);
+				_guildSettings.Remove(guild.Id);
 			}
 			return Task.FromResult(0);
 		}
 		public IGuildSettings GetSettings(IGuild guild)
 		{
-			return _GuildSettings[guild.Id];
+			return _guildSettings[guild.Id];
 		}
 		public IEnumerable<IGuildSettings> GetAllSettings()
 		{
-			return _GuildSettings.Values;
+			return _guildSettings.Values;
 		}
 		public bool TryGetSettings(IGuild guild, out IGuildSettings settings)
 		{
-			return _GuildSettings.TryGetValue(guild.Id, out settings);
+			return _guildSettings.TryGetValue(guild.Id, out settings);
 		}
 
 		private async Task<IGuildSettings> CreateGuildSettings(Type guildSettingsType, IGuild guild)
 		{
-			if (!_GuildSettings.TryGetValue(guild.Id, out IGuildSettings guildSettings))
+			if (_guildSettings.TryGetValue(guild.Id, out IGuildSettings guildSettings))
 			{
-				var path = Gets.GetServerFilePath(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
-				if (File.Exists(path))
-				{
-					try
-					{
-						using (var reader = new StreamReader(path))
-						{
-							guildSettings = (IGuildSettings)JsonConvert.DeserializeObject(reader.ReadToEnd(), guildSettingsType);
-						}
-						ConsoleActions.WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
-					}
-					catch (Exception e)
-					{
-						ConsoleActions.ExceptionToConsole(e);
-					}
-				}
-				else
-				{
-					ConsoleActions.WriteLine(String.Format("The guild information file for {0} could not be found; using default.", guild.FormatGuild()));
-				}
-				guildSettings = guildSettings ?? (IGuildSettings)Activator.CreateInstance(guildSettingsType);
-
-				guildSettings.CommandsDisabledOnUser = guildSettings.CommandsDisabledOnUser.Where(x => !String.IsNullOrWhiteSpace(x.Name)).ToList().AsReadOnly();
-				guildSettings.CommandsDisabledOnRole = guildSettings.CommandsDisabledOnRole.Where(x => !String.IsNullOrWhiteSpace(x.Name)).ToList().AsReadOnly();
-				guildSettings.CommandsDisabledOnChannel = guildSettings.CommandsDisabledOnChannel.Where(x => !String.IsNullOrWhiteSpace(x.Name)).ToList().AsReadOnly();
-
-				var tempCommandSwitches = guildSettings.CommandSwitches.Where(x => !String.IsNullOrWhiteSpace(x.Name)).ToList();
-				foreach (var cmd in Constants.HELP_ENTRIES.Where(x => !guildSettings.CommandSwitches.Select(y => y.Name).CaseInsContains(x.Name)))
-				{
-					tempCommandSwitches.Add(new CommandSwitch(cmd.Name, cmd.DefaultEnabled));
-				}
-				guildSettings.CommandSwitches = tempCommandSwitches;
-
-				guildSettings.Invites.AddRange((await Invites.GetInvites(guild)).Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)));
-
-				if (guildSettings is MyGuildSettings)
-				{
-					(guildSettings as MyGuildSettings).PostDeserialize(guild);
-				}
+				return guildSettings;
 			}
 
-			return guildSettings;
+			var path = Gets.GetServerFilePath(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
+			if (File.Exists(path))
+			{
+				try
+				{
+					using (var reader = new StreamReader(path))
+					{
+						guildSettings = (IGuildSettings)JsonConvert.DeserializeObject(reader.ReadToEnd(), guildSettingsType);
+					}
+					ConsoleActions.WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
+				}
+				catch (Exception e)
+				{
+					ConsoleActions.ExceptionToConsole(e);
+				}
+			}
+			else
+			{
+				ConsoleActions.WriteLine(String.Format("The guild information file for {0} could not be found; using default.", guild.FormatGuild()));
+			}
+			guildSettings = guildSettings ?? (IGuildSettings)Activator.CreateInstance(guildSettingsType);
+
+			guildSettings.CommandsDisabledOnUser = guildSettings.CommandsDisabledOnUser.Where(x => !String.IsNullOrWhiteSpace(x.Name)).ToList().AsReadOnly();
+			guildSettings.CommandsDisabledOnRole = guildSettings.CommandsDisabledOnRole.Where(x => !String.IsNullOrWhiteSpace(x.Name)).ToList().AsReadOnly();
+			guildSettings.CommandsDisabledOnChannel = guildSettings.CommandsDisabledOnChannel.Where(x => !String.IsNullOrWhiteSpace(x.Name)).ToList().AsReadOnly();
+
+			var tempCommandSwitches = guildSettings.CommandSwitches.Where(x => !String.IsNullOrWhiteSpace(x.Name)).ToList();
+			foreach (var cmd in Constants.HELP_ENTRIES.Where(x => !guildSettings.CommandSwitches.Select(y => y.Name).CaseInsContains(x.Name)))
+			{
+				tempCommandSwitches.Add(new CommandSwitch(cmd.Name, cmd.DefaultEnabled));
+			}
+			guildSettings.CommandSwitches = tempCommandSwitches;
+
+			guildSettings.Invites.AddRange((await Invites.GetInvites(guild)).Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)));
+
+			var myGuildSettings = guildSettings as MyGuildSettings;
+			if (myGuildSettings == null)
+			{
+				return guildSettings;
+			}
+
+			myGuildSettings.PostDeserialize(guild);
+			return myGuildSettings;
 		}
 	}
 
 	public class MyTimersModule : ITimersModule
 	{
-		const long HOUR = 60 * 60 * 1000;
-		const long MINUTE = 60 * 1000;
-		const long ONE_HALF_SECOND = 500;
+		private const long HOUR = 60 * 60 * 1000;
+		private const long MINUTE = 60 * 1000;
+		private const long ONE_HALF_SECOND = 500;
 
 		private readonly System.Timers.Timer _HourTimer = new System.Timers.Timer(HOUR);
 		private readonly System.Timers.Timer _MinuteTimer = new System.Timers.Timer(MINUTE);
 		private readonly System.Timers.Timer _OneHalfSecondTimer = new System.Timers.Timer(ONE_HALF_SECOND);
 
-		private IGuildSettingsModule GuildSettings;
+		private readonly  IGuildSettingsModule GuildSettings;
 
-		private List<RemovablePunishment> _RemovablePunishments;
-		private List<RemovableMessage> _RemovableMessages;
-		private List<ActiveCloseWord<HelpEntry>> _ActiveCloseHelp;
-		private List<ActiveCloseWord<Quote>> _ActiveCloseQuotes;
-		private List<SlowmodeUser> _SlowmodeUsers;
-		public List<RemovablePunishment> RemovablePunishments => _RemovablePunishments ?? (_RemovablePunishments = new List<RemovablePunishment>());
-		public List<RemovableMessage> RemovableMessages => _RemovableMessages ?? (_RemovableMessages = new List<RemovableMessage>());
-		public List<ActiveCloseWord<HelpEntry>> ActiveCloseHelp => _ActiveCloseHelp ?? (_ActiveCloseHelp = new List<ActiveCloseWord<HelpEntry>>());
-		public List<ActiveCloseWord<Quote>> ActiveCloseQuotes => _ActiveCloseQuotes ?? (_ActiveCloseQuotes = new List<ActiveCloseWord<Quote>>());
-		public List<SlowmodeUser> SlowmodeUsers => _SlowmodeUsers ?? (_SlowmodeUsers = new List<SlowmodeUser>());
+		private readonly List<RemovablePunishment> _RemovablePunishments = new List<RemovablePunishment>();
+		private readonly List<RemovableMessage> _RemovableMessages = new List<RemovableMessage>();
+		private readonly List<ActiveCloseWord<HelpEntry>> _ActiveCloseHelp = new List<ActiveCloseWord<HelpEntry>>();
+		private readonly List<ActiveCloseWord<Quote>> _ActiveCloseQuotes = new List<ActiveCloseWord<Quote>>();
+		private readonly List<SlowmodeUser> _SlowmodeUsers = new List<SlowmodeUser>();
 
 		public MyTimersModule(IGuildSettingsModule guildSettings)
 		{
@@ -2095,18 +1488,18 @@ namespace Advobot
 		}
 		private async Task RemovePunishments()
 		{
-			foreach (var punishment in RemovablePunishments.GetOutTimedObjects())
+			foreach (var punishment in _RemovablePunishments.GetOutTimedObjects())
 			{
 				switch (punishment.PunishmentType)
 				{
 					case PunishmentType.Ban:
 					{
-						await punishment.Guild.RemoveBanAsync(punishment.UserID);
+						await punishment.Guild.RemoveBanAsync(punishment.UserId);
 						return;
 					}
 				}
 
-				var guildUser = await punishment.Guild.GetUserAsync(punishment.UserID);
+				var guildUser = await punishment.Guild.GetUserAsync(punishment.UserId);
 				if (guildUser == null)
 					return;
 
@@ -2139,7 +1532,7 @@ namespace Advobot
 		}
 		private async Task DeleteTargettedMessages()
 		{
-			foreach (var message in RemovableMessages.GetOutTimedObjects())
+			foreach (var message in _RemovableMessages.GetOutTimedObjects())
 			{
 				if (message.Messages.Count() == 1)
 				{
@@ -2153,21 +1546,80 @@ namespace Advobot
 		}
 		private void RemoveActiveCloseHelpAndWords()
 		{
-			ActiveCloseHelp.GetOutTimedObjects();
-			ActiveCloseQuotes.GetOutTimedObjects();
+			_ActiveCloseHelp.GetOutTimedObjects();
+			_ActiveCloseQuotes.GetOutTimedObjects();
 		}
 		private void ResetSlowModeUserMessages()
 		{
-			foreach (var slowModeUser in SlowmodeUsers.GetOutTimedObjects())
+			foreach (var slowModeUser in _SlowmodeUsers.GetOutTimedObjects())
 			{
 				slowModeUser.ResetMessagesLeft();
 			}
 		}
+
+		public void AddRemovablePunishments(params RemovablePunishment[] punishments)
+		{
+			_RemovablePunishments.ThreadSafeAddRange(punishments);
+		}
+		public void AddRemovableMessages(params RemovableMessage[] messages)
+		{
+			_RemovableMessages.ThreadSafeAddRange(messages);
+		}
+		public void AddActiveCloseHelp(params ActiveCloseWord<HelpEntry>[] help)
+		{
+			_ActiveCloseHelp.ThreadSafeAddRange(help);
+		}
+		public void AddActiveCloseQuotes(params ActiveCloseWord<Quote>[] quotes)
+		{
+			_ActiveCloseQuotes.ThreadSafeAddRange(quotes);
+		}
+		public void AddSlowModeUsers(params SlowmodeUser[] users)
+		{
+			_SlowmodeUsers.ThreadSafeAddRange(users);
+		}
+
+		public void RemovePunishments(ulong userId, PunishmentType punishment)
+		{
+			_RemovablePunishments.Where(x => x.UserId == userId && x.PunishmentType == punishment);
+		}
+
+		public ActiveCloseWord<HelpEntry> GetOutActiveCloseHelp(ulong userId)
+		{
+			var help = _ActiveCloseHelp.FirstOrDefault(x => x.UserId == userId);
+			_ActiveCloseHelp.ThreadSafeRemoveAll((x => x.UserId == userId));
+			return help;
+		}
+		public ActiveCloseWord<Quote> GetOutActiveCloseQuote(ulong userId)
+		{
+			var quote = _ActiveCloseQuotes.FirstOrDefault(x => x.UserId == userId);
+			_ActiveCloseQuotes.ThreadSafeRemoveAll(x => x.UserId == userId);
+			return quote;
+		}
 	}
 
-	public class MyInviteListModule
+	public class MyInviteListModule : IInviteListModule
 	{
+		private List<ListedInvite> _ListedInvites;
+		public List<ListedInvite> ListedInvites => _ListedInvites ?? (_ListedInvites = new List<ListedInvite>());
 
+		public void AddInvite(ListedInvite invite)
+		{
+			ListedInvites.ThreadSafeAdd(invite);
+		}
+		public void RemoveInvite(ListedInvite invite)
+		{
+			ListedInvites.ThreadSafeRemove(invite);
+		}
+		public void RemoveInvite(IGuild guild)
+		{
+			ListedInvites.ThreadSafeRemoveAll(x => x.Guild.Id == guild.Id);
+		}
+		public void BumpInvite(ListedInvite invite)
+		{
+			RemoveInvite(invite);
+			AddInvite(invite);
+			invite.UpdateLastBumped();
+		}
 	}
 
 	public class HelpEntry : INameAndText
@@ -2179,15 +1631,15 @@ namespace Advobot
 		public string Text { get; }
 		public CommandCategory Category { get; }
 		public bool DefaultEnabled { get; }
-		private const string placeHolderStr = "N/A";
+		private const string PLACE_HOLDER_STR = "N/A";
 
 		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text, CommandCategory category, bool defaultEnabled)
 		{
-			Name = String.IsNullOrWhiteSpace(name) ? placeHolderStr : name;
-			Aliases = aliases ?? new[] { placeHolderStr };
-			Usage = String.IsNullOrWhiteSpace(usage) ? placeHolderStr : Constants.BOT_PREFIX + usage;
-			BasePerm = String.IsNullOrWhiteSpace(basePerm) ? placeHolderStr : basePerm;
-			Text = String.IsNullOrWhiteSpace(text) ? placeHolderStr : text;
+			Name = String.IsNullOrWhiteSpace(name) ? PLACE_HOLDER_STR : name;
+			Aliases = aliases ?? new[] { PLACE_HOLDER_STR };
+			Usage = String.IsNullOrWhiteSpace(usage) ? PLACE_HOLDER_STR : Constants.BOT_PREFIX + usage;
+			BasePerm = String.IsNullOrWhiteSpace(basePerm) ? PLACE_HOLDER_STR : basePerm;
+			Text = String.IsNullOrWhiteSpace(text) ? PLACE_HOLDER_STR : text;
 			Category = category;
 			DefaultEnabled = defaultEnabled;
 		}
@@ -2204,13 +1656,13 @@ namespace Advobot
 
 	public class BotInvite
 	{
-		public ulong GuildID { get; }
+		public ulong GuildId { get; }
 		public string Code { get; }
 		public int Uses { get; private set; }
 
-		public BotInvite(ulong guildID, string code, int uses)
+		public BotInvite(ulong guildId, string code, int uses)
 		{
-			GuildID = guildID;
+			GuildId = guildId;
 			Code = code;
 			Uses = uses;
 		}
@@ -2342,21 +1794,21 @@ namespace Advobot
 
 	public class SlowmodeChannel
 	{
-		public ulong ChannelID { get; }
+		public ulong ChannelId { get; }
 		public int BaseMessages { get; }
 		public int Interval { get; }
 		public List<SlowmodeUser> Users { get; }
 
-		public SlowmodeChannel(ulong channelID, int baseMessages, int interval)
+		public SlowmodeChannel(ulong channelId, int baseMessages, int interval)
 		{
-			ChannelID = channelID;
+			ChannelId = channelId;
 			BaseMessages = baseMessages;
 			Interval = interval;
 			Users = new List<SlowmodeUser>();
 		}
-		public SlowmodeChannel(ulong channelID, int baseMessages, int interval, List<SlowmodeUser> users)
+		public SlowmodeChannel(ulong channelId, int baseMessages, int interval, List<SlowmodeUser> users)
 		{
-			ChannelID = channelID;
+			ChannelId = channelId;
 			BaseMessages = baseMessages;
 			Interval = interval;
 			Users = users;
@@ -2383,9 +1835,9 @@ namespace Advobot
 			}
 		}
 
-		public void IncreaseVotesToKick(ulong ID)
+		public void IncreaseVotesToKick(ulong Id)
 		{
-			UsersWhoHaveAlreadyVoted.ThreadSafeAdd(ID);
+			UsersWhoHaveAlreadyVoted.ThreadSafeAdd(Id);
 		}
 		public void ChangeVotesRequired(int newVotesRequired)
 		{
@@ -2419,10 +1871,10 @@ namespace Advobot
 		{
 			return SpamLists[spamType].GetCountOfItemsInTimeFrame(spamPrev.TimeInterval) >= spamPrev.RequiredSpamInstances;
 		}
-		public async Task SpamPreventionPunishment(ITimersModule timers, IGuildSettings guildSettings)
+		public async Task SpamPreventionPunishment(IGuildSettings guildSettings, ITimersModule timers = null)
 		{
 			//TODO: make this not 0
-			await Punishments.AutomaticPunishments(timers, guildSettings, User, Punishment, AlreadyKicked, 0);
+			await Punishments.AutomaticPunishments(guildSettings, User, Punishment, AlreadyKicked, 0, timers);
 		}
 	}
 	#endregion
@@ -2431,13 +1883,13 @@ namespace Advobot
 	public class Punishment
 	{
 		public IGuild Guild { get; }
-		public ulong UserID { get; }
+		public ulong UserId { get; }
 		public PunishmentType PunishmentType { get; }
 
 		public Punishment(IGuild guild, ulong userID, PunishmentType punishmentType)
 		{
 			Guild = guild;
-			UserID = userID;
+			UserId = userID;
 			PunishmentType = punishmentType;
 		}
 		public Punishment(IGuild guild, IUser user, PunishmentType punishmentType) : this(guild, user.Id, punishmentType)
@@ -2561,15 +2013,15 @@ namespace Advobot
 
 	public struct ActiveCloseWord<T> : ITimeInterface where T : INameAndText
 	{
-		public ulong UserID { get; }
+		public ulong UserId { get; }
 		public List<CloseWord<T>> List { get; }
 		private DateTime _Time;
 
 		public ActiveCloseWord(ulong userID, IEnumerable<CloseWord<T>> list)
 		{
-			UserID = userID;
+			UserId = userID;
 			List = list.ToList();
-			_Time = DateTime.UtcNow.AddMilliseconds(Constants.SECONDS_ACTIVE_CLOSE);
+			_Time = DateTime.UtcNow.AddSeconds(Constants.SECONDS_ACTIVE_CLOSE);
 		}
 
 		public DateTime GetTime()
@@ -2663,13 +2115,13 @@ namespace Advobot
 
 	public struct GuildFileInformation
 	{
-		public ulong ID { get; }
+		public ulong Id { get; }
 		public string Name { get; }
 		public int MemberCount { get; }
 
 		public GuildFileInformation(ulong id, string name, int memberCount)
 		{
-			ID = id;
+			Id = id;
 			Name = name;
 			MemberCount = memberCount;
 		}
@@ -2741,191 +2193,6 @@ namespace Advobot
 			Console = console;
 			FirstInstance = firstInstance;
 		}
-	}
-	#endregion
-
-	#region Interfaces
-	public interface ITimeInterface
-	{
-		DateTime GetTime();
-	}
-
-	public interface IPermission
-	{
-		string Name { get; }
-		ulong Bit { get; }
-	}
-
-	public interface INameAndText
-	{
-		string Name { get; }
-		string Text { get; }
-	}
-
-	public interface IMyCommandContext : ICommandContext
-	{
-		IBotSettings BotSettings { get; }
-		IGuildSettings GuildSettings { get; }
-		ILogModule Logging { get; }
-		ITimersModule Timers { get; }
-	}
-
-	public interface ITimersModule
-	{
-		List<RemovablePunishment> RemovablePunishments { get; }
-		List<RemovableMessage> RemovableMessages { get; }
-		List<ActiveCloseWord<HelpEntry>> ActiveCloseHelp { get; }
-		List<ActiveCloseWord<Quote>> ActiveCloseQuotes { get; }
-		List<SlowmodeUser> SlowmodeUsers { get; }
-	}
-
-	public interface IInviteListModule
-	{
-
-	}
-
-	public interface IGuildSettingsModule
-	{
-		Task AddGuild(IGuild guild);
-		Task RemoveGuild(IGuild guild);
-		IGuildSettings GetSettings(IGuild guild);
-		IEnumerable<IGuildSettings> GetAllSettings();
-		bool TryGetSettings(IGuild guild, out IGuildSettings settings);
-	}
-
-	public interface ILogModule
-	{
-		uint TotalUsers { get; }
-		uint TotalGuilds { get; }
-		uint SuccessfulCommands { get; }
-		uint FailedCommands { get; }
-		uint LoggedJoins { get; }
-		uint LoggedLeaves { get; }
-		uint LoggedUserChanges { get; }
-		uint LoggedEdits { get; }
-		uint LoggedDeletes { get; }
-		uint LoggedMessages { get; }
-		uint LoggedImages { get; }
-		uint LoggedGifs { get; }
-		uint LoggedFiles { get; }
-
-		ILog Log { get; }
-
-		void AddUsers(int users);
-		void RemoveUsers(int users);
-		void IncrementUsers();
-		void DecrementUsers();
-		void IncrementGuilds();
-		void DecrementGuilds();
-		void IncrementSuccessfulCommands();
-		void IncrementFailedCommands();
-		void IncrementJoins();
-		void IncrementLeaves();
-		void IncrementUserChanges();
-		void IncrementEdits();
-		void IncrementDeletes();
-		void IncrementMessages();
-		void IncrementImages();
-		void IncrementGifs();
-		void IncrementFiles();
-
-		string FormatLoggedCommands();
-		string FormatLoggedActions();
-	}
-
-	public interface ILog
-	{
-		Task Log(LogMessage msg);
-		Task OnGuildAvailable(SocketGuild guild);
-		Task OnGuildUnavailable(SocketGuild guild);
-		Task OnJoinedGuild(SocketGuild guild);
-		Task OnLeftGuild(SocketGuild guild);
-		Task OnUserJoined(SocketGuildUser user);
-		Task OnUserLeft(SocketGuildUser user);
-		Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser);
-		Task OnMessageReceived(SocketMessage message);
-		Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage afterMessage, ISocketMessageChannel channel);
-		Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel);
-		Task LogCommand(IMyCommandContext context);
-	}
-
-	public interface ISetting
-	{
-		string SettingToString();
-		string SettingToString(SocketGuild guild);
-	}
-
-	public interface IBotSettings
-	{
-		IReadOnlyList<ulong> TrustedUsers { get; set; }
-		IReadOnlyList<ulong> UsersUnableToDMOwner { get; set; }
-		IReadOnlyList<ulong> UsersIgnoredFromCommands { get; set; }
-		ulong BotOwnerID { get; set; }
-		uint ShardCount { get; set; }
-		uint MessageCacheCount { get; set; }
-		uint MaxUserGatherCount { get; set; }
-		uint MaxMessageGatherSize { get; set; }
-		string Prefix { get; set; }
-		string Game { get; set; }
-		string Stream { get; set; }
-		bool AlwaysDownloadUsers { get; set; }
-		LogSeverity LogLevel { get; set; }
-
-		bool Windows { get; }
-		bool Console { get; }
-		bool FirstInstanceOfBotStartingUpWithCurrentKey { get; }
-		bool GotPath { get; }
-		bool GotKey { get; }
-		bool Loaded { get; }
-		bool Pause { get; }
-		DateTime StartupTime { get; }
-
-		void TogglePause();
-		void SetLoaded();
-		void SetGotKey();
-		void SetGotPath();
-	}
-
-	public interface IGuildSettings
-	{
-		IReadOnlyList<BotImplementedPermissions> BotUsers { get; set; }
-		IReadOnlyList<SelfAssignableGroup> SelfAssignableGroups { get; set; }
-		IReadOnlyList<Quote> Quotes { get; set; }
-		IReadOnlyList<LogAction> LogActions { get; set; }
-		IReadOnlyList<ulong> IgnoredCommandChannels { get; set; }
-		IReadOnlyList<ulong> IgnoredLogChannels { get; set; }
-		IReadOnlyList<ulong> ImageOnlyChannels { get; set; }
-		IReadOnlyList<ulong> SanitaryChannels { get; set; }
-		IReadOnlyList<BannedPhrase> BannedPhraseStrings { get; set; }
-		IReadOnlyList<BannedPhrase> BannedPhraseRegex { get; set; }
-		IReadOnlyList<BannedPhrase> BannedNamesForJoiningUsers { get; set; }
-		IReadOnlyList<BannedPhrasePunishment> BannedPhrasePunishments { get; set; }
-		IReadOnlyList<CommandSwitch> CommandSwitches { get; set; }
-		IReadOnlyList<CommandOverride> CommandsDisabledOnUser { get; set; }
-		IReadOnlyList<CommandOverride> CommandsDisabledOnRole { get; set; }
-		IReadOnlyList<CommandOverride> CommandsDisabledOnChannel { get; set; }
-		ITextChannel ServerLog { get; set; }
-		ITextChannel ModLog { get; set; }
-		ITextChannel ImageLog { get; set; }
-		IRole MuteRole { get; set; }
-		IReadOnlyDictionary<SpamType, SpamPrevention> SpamPreventionDictionary { get; set; }
-		IReadOnlyDictionary<RaidType, RaidPrevention> RaidPreventionDictionary { get; set; }
-		//TODO: give all of my own custom classes being saved in settings a custom interface
-		GuildNotification WelcomeMessage { get; set; }
-		GuildNotification GoodbyeMessage { get; set; }
-		ListedInvite ListedInvite { get; set; }
-		string Prefix { get; set; }
-		bool VerboseErrors { get; set; }
-
-		List<BannedPhraseUser> BannedPhraseUsers { get; }
-		List<SpamPreventionUser> SpamPreventionUsers { get; }
-		List<SlowmodeChannel> SlowmodeChannels { get; }
-		List<BotInvite> Invites { get; }
-		List<string> EvaluatedRegex { get; }
-		SlowmodeGuild SlowmodeGuild { get; }
-		MessageDeletion MessageDeletion { get; }
-		IGuild Guild { get; }
-		bool Loaded { get; }
 	}
 	#endregion
 

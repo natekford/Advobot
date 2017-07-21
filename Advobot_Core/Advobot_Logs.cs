@@ -438,14 +438,14 @@ namespace Advobot
 
 				if (GuildSettings.TryGetSettings(guild, out IGuildSettings guildSettings))
 				{
-					await OnMessageReceivedActions.HandleCloseWords(Timers, guildSettings, message);
-					await OnMessageReceivedActions.HandleSpamPreventionVoting(Timers, guildSettings, guild, message);
+					await OnMessageReceivedActions.HandleCloseWords(guildSettings, message, Timers);
+					await OnMessageReceivedActions.HandleSpamPreventionVoting(guildSettings, guild, message, Timers);
 
 					if (OtherLogActions.VerifyMessageShouldBeLogged(guildSettings, message))
 					{
 						await OnMessageReceivedActions.HandleChannelSettings(guildSettings, message);
-						await OnMessageReceivedActions.HandleSpamPrevention(Timers, guildSettings, guild, message);
-						await OnMessageReceivedActions.HandleSlowmodeOrBannedPhrases(Timers, guildSettings, guild, message);
+						await OnMessageReceivedActions.HandleSpamPrevention(guildSettings, guild, message, Timers);
+						await OnMessageReceivedActions.HandleSlowmodeOrBannedPhrases(guildSettings, guild, message, Timers);
 						await OnMessageReceivedActions.HandleImageLogging(Logging, guildSettings, message);
 					}
 				}
@@ -601,9 +601,9 @@ namespace Advobot
 		{
 			public static async Task HandlePotentialBotOwner(IBotSettings botSettings, IMessage message)
 			{
-				if (message.Content.Equals(Properties.Settings.Default.BotKey) && botSettings.BotOwnerID == 0)
+				if (message.Content.Equals(Properties.Settings.Default.BotKey) && botSettings.BotOwnerId == 0)
 				{
-					botSettings.BotOwnerID = message.Author.Id;
+					botSettings.BotOwnerId = message.Author.Id;
 					await Messages.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
 				}
 			}
@@ -638,26 +638,21 @@ namespace Advobot
 					await OtherLogActions.LogImage(logging, logChannel, message, true);
 				}
 			}
-			public static async Task HandleCloseWords(ITimersModule timers, IGuildSettings guildSettings, IMessage message)
+			public static async Task HandleCloseWords(IGuildSettings guildSettings, IMessage message, ITimersModule timers = null)
 			{
-				if (int.TryParse(message.Content, out int number) && number > 0 && number < 6)
+				if (timers != null && int.TryParse(message.Content, out int number) && number > 0 && number < 6)
 				{
 					--number;
-					var closeWordList = timers.ActiveCloseQuotes.FirstOrDefault(x => x.UserID == message.Author.Id);
+					var closeWordList = timers.GetOutActiveCloseQuote(message.Author.Id);
 					if (!closeWordList.Equals(default(ActiveCloseWord<Quote>)) && closeWordList.List.Count > number)
 					{
-						var quote = closeWordList.List[number].Word;
-						timers.ActiveCloseQuotes.ThreadSafeRemove(closeWordList);
-
-						await Messages.SendChannelMessage(message.Channel, quote.Text);
+						await Messages.SendChannelMessage(message.Channel, closeWordList.List[number].Word.Text);
 						await Messages.DeleteMessage(message);
 					}
-					var closeHelpList = timers.ActiveCloseHelp.FirstOrDefault(x => x.UserID == message.Author.Id);
+					var closeHelpList = timers.GetOutActiveCloseHelp(message.Author.Id);
 					if (!closeHelpList.Equals(default(ActiveCloseWord<HelpEntry>)) && closeHelpList.List.Count > number)
 					{
 						var help = closeHelpList.List[number].Word;
-						timers.ActiveCloseHelp.ThreadSafeRemove(closeHelpList);
-
 						var embed = Embeds.MakeNewEmbed(help.Name, help.ToString());
 						Embeds.AddFooter(embed, "Help");
 						await Messages.SendEmbedMessage(message.Channel, embed);
@@ -665,19 +660,19 @@ namespace Advobot
 					}
 				}
 			}
-			public static async Task HandleSlowmodeOrBannedPhrases(ITimersModule timers, IGuildSettings guildSettings, SocketGuild guild, IMessage message)
+			public static async Task HandleSlowmodeOrBannedPhrases(IGuildSettings guildSettings, SocketGuild guild, IMessage message, ITimersModule timers = null)
 			{
 				await Spam.HandleSlowmode(guildSettings, message);
 				await Spam.HandleBannedPhrases(timers, guildSettings, guild, message);
 			}
-			public static async Task HandleSpamPrevention(ITimersModule timers, IGuildSettings guildSettings, SocketGuild guild, IMessage message)
+			public static async Task HandleSpamPrevention(IGuildSettings guildSettings, SocketGuild guild, IMessage message, ITimersModule timers  = null)
 			{
 				if (Users.GetIfUserCanBeModifiedByUser(Users.GetBot(guild), message.Author))
 				{
-					await Spam.HandleSpamPrevention(timers, guildSettings, guild, message.Author as IGuildUser, message);
+					await Spam.HandleSpamPrevention(guildSettings, guild, message.Author as IGuildUser, message, timers);
 				}
 			}
-			public static async Task HandleSpamPreventionVoting(ITimersModule timers, IGuildSettings guildSettings, SocketGuild guild, IMessage message)
+			public static async Task HandleSpamPreventionVoting(IGuildSettings guildSettings, SocketGuild guild, IMessage message, ITimersModule timers = null)
 			{
 				//TODO: Make this work for all spam types
 				//Get the users primed to be punished by the spam prevention
@@ -696,7 +691,7 @@ namespace Advobot
 					if (user.UsersWhoHaveAlreadyVoted.Count < user.VotesRequired)
 						return;
 
-					await user.SpamPreventionPunishment(timers, guildSettings);
+					await user.SpamPreventionPunishment(guildSettings, timers);
 
 					//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
 					user.ResetSpamUser();
@@ -812,10 +807,10 @@ namespace Advobot
 					var smChannels = guildSettings.SlowmodeChannels;
 					if (smChannels.Any())
 					{
-						smChannels.Where(x => (user.Guild as SocketGuild).TextChannels.Select(y => y.Id).Contains(x.ChannelID)).ToList().ForEach(smChan =>
+						foreach (var smChannel in smChannels)
 						{
-							smChan.Users.ThreadSafeAdd(new SlowmodeUser(user, smChan.BaseMessages, smChan.Interval));
-						});
+							smChannel.Users.ThreadSafeAdd(new SlowmodeUser(user, smChannel.BaseMessages, smChannel.Interval));
+						}
 					}
 				}
 
@@ -824,7 +819,7 @@ namespace Advobot
 					var antiRaid = guildSettings.RaidPreventionDictionary[RaidType.Regular];
 					if (antiRaid != null && antiRaid.Enabled)
 					{
-						await antiRaid.RaidPreventionPunishment(timers, guildSettings, user);
+						await antiRaid.RaidPreventionPunishment(guildSettings, user, timers);
 					}
 					var antiJoin = guildSettings.RaidPreventionDictionary[RaidType.RapidJoins];
 					if (antiJoin != null && antiJoin.Enabled)
@@ -832,7 +827,7 @@ namespace Advobot
 						antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
 						if (antiJoin.GetSpamCount() >= antiJoin.RequiredCount)
 						{
-							await antiJoin.RaidPreventionPunishment(timers, guildSettings, user);
+							await antiJoin.RaidPreventionPunishment(guildSettings, user, timers);
 							if (guildSettings.ServerLog != null)
 							{
 								await Messages.SendEmbedMessage(guildSettings.ServerLog, Embeds.MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));

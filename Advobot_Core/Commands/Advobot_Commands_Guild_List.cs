@@ -43,7 +43,7 @@ namespace Advobot
 			{
 				case ActionType.Add:
 				{
-					var listedInvite = Variables.InviteList.FirstOrDefault(x => x.GuildID == Context.Guild.Id);
+					var listedInvite = Variables.InviteList.FirstOrDefault(x => x.GuildId == Context.Guild.Id);
 					if (listedInvite != null)
 					{
 						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild is already listed."));
@@ -97,7 +97,7 @@ namespace Advobot
 				}
 				case ActionType.Remove:
 				{
-					var listedInvite = Variables.InviteList.FirstOrDefault(x => x.GuildID == Context.Guild.Id);
+					var listedInvite = Variables.InviteList.FirstOrDefault(x => x.GuildId == Context.Guild.Id);
 					if (listedInvite == null)
 					{
 						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild is not listed."));
@@ -126,7 +126,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public async Task BumpInvite()
 		{
-			var listedInvite = Variables.InviteList.FirstOrDefault(x => x.GuildID == Context.Guild.Id);
+			var listedInvite = Variables.InviteList.FirstOrDefault(x => x.GuildId == Context.Guild.Id);
 			if ((DateTime.UtcNow - listedInvite.LastBumped).TotalHours < 1)
 			{
 				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Last bump is too recent."));

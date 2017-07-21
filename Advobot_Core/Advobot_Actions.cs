@@ -1222,7 +1222,7 @@ namespace Advobot
 				if (muteRole == null)
 				{
 					muteRole = await guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0));
-					//TODO: guildSettings.SetSetting(SettingOnGuild.MuteRole, new DiscordObjectWithID<IRole>(muteRole));
+					//TODO: guildSettings.SetSetting(SettingOnGuild.MuteRole, new DiscordObjectWithId<IRole>(muteRole));
 				}
 
 				const uint TEXT_PERMS = 0
@@ -1404,7 +1404,7 @@ namespace Advobot
 			}
 			public static async Task<IUser> GetBotOwner(IDiscordClient client, IBotSettings botSettings)
 			{
-				return await client.GetUserAsync(botSettings.BotOwnerID);
+				return await client.GetUserAsync(botSettings.BotOwnerId);
 			}
 
 			public static bool GetIfUserCanBeModifiedByUser(IUser currUser, IUser targetUser)
@@ -1608,7 +1608,7 @@ namespace Advobot
 				var ignoredFromCmd = guildSettings.IgnoredCommandChannels.Contains(channel.Id);
 				var imageOnly = guildSettings.ImageOnlyChannels.Contains(channel.Id);
 				var sanitary = guildSettings.SanitaryChannels.Contains(channel.Id);
-				var slowmode = guildSettings.SlowmodeChannels.Any(x => x.ChannelID == channel.Id);
+				var slowmode = guildSettings.SlowmodeChannels.Any(x => x.ChannelId == channel.Id);
 				var serverLog = guildSettings.ServerLog?.Id == channel.Id;
 				var modLog = guildSettings.ModLog?.Id == channel.Id;
 				var imageLog = guildSettings.ImageLog?.Id == channel.Id;
@@ -2342,32 +2342,43 @@ namespace Advobot
 				return (await channel.GetMessagesAsync(++requestCount).Flatten()).ToList();
 			}
 
-			public static async Task MakeAndDeleteSecondaryMessage(IMyCommandContext context, string secondStr, int time = Constants.SECONDS_DEFAULT)
+			public static async Task MakeAndDeleteSecondaryMessage(IMyCommandContext context, string secondStr, int time = -1)
 			{
-				await MakeAndDeleteSecondaryMessage(context.Timers, context.Channel, context.Message, secondStr, time);
+				await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, secondStr, time, context.Timers);
 			}
-			public static async Task MakeAndDeleteSecondaryMessage(ITimersModule timers, IMessageChannel channel, IUserMessage message, string secondStr, int time = Constants.SECONDS_DEFAULT)
+			public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, int time = -1, ITimersModule timers = null)
 			{
 				var secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
 				var messages = new List<IMessage> { secondMsg, message };
 
+				if (time < 0)
+				{
+					time = Constants.SECONDS_DEFAULT;
+				}
+
 				if (message == null)
 				{
-					RemoveCommandMessage(timers, secondMsg, time);
+					RemoveCommandMessage(secondMsg, time, timers);
 				}
 				else
 				{
-					RemoveCommandMessages(timers, messages, time);
+					RemoveCommandMessages(messages, time, timers);
 				}
 			}
 
-			public static void RemoveCommandMessages(ITimersModule timers, IEnumerable<IMessage> messages, int time)
+			public static void RemoveCommandMessages(IEnumerable<IMessage> messages, int time = 0, ITimersModule timers = null)
 			{
-				timers.RemovableMessages.Add(new RemovableMessage(messages, time));
+				if (time > 0 && timers != null)
+				{
+					timers.AddRemovableMessages(new RemovableMessage(messages, time));
+				}
 			}
-			public static void RemoveCommandMessage(ITimersModule timers, IMessage message, int time)
+			public static void RemoveCommandMessage(IMessage message, int time = 0, ITimersModule timers = null)
 			{
-				timers.RemovableMessages.Add(new RemovableMessage(message, time));
+				if (time > 0 && timers != null)
+				{
+					timers.AddRemovableMessages(new RemovableMessage(message, time));
+				}
 			}
 
 			public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages)
@@ -2780,59 +2791,68 @@ namespace Advobot
 
 		public static class Punishments
 		{
-			public static async Task RoleMuteUser(ITimersModule timers, IGuildUser user, IRole role, uint time = 0)
+			public static async Task RoleMuteUser(IGuildUser user, IRole role, uint time = 0, ITimersModule timers = null)
 			{
 				await Roles.GiveRole(user, role);
 
-				if (time > 0)
+				if (time > 0 && timers != null)
 				{
-					timers.RemovablePunishments.ThreadSafeAdd(new RemovableRoleMute(user.Guild, user, time, role));
+					timers.AddRemovablePunishments(new RemovableRoleMute(user.Guild, user, time, role));
 				}
 			}
-			public static async Task VoiceMuteUser(ITimersModule timers, IGuildUser user, uint time = 0)
+			public static async Task VoiceMuteUser(IGuildUser user, uint time = 0, ITimersModule timers = null)
 			{
 				await user.ModifyAsync(x => x.Mute = true);
 
-				if (time > 0)
+				if (time > 0 && timers != null)
 				{
-					timers.RemovablePunishments.ThreadSafeAdd(new RemovableVoiceMute(user.Guild, user, time));
+					timers.AddRemovablePunishments(new RemovableVoiceMute(user.Guild, user, time));
 				}
 			}
-			public static async Task DeafenUser(ITimersModule timers, IGuildUser user, uint time = 0)
+			public static async Task DeafenUser(IGuildUser user, uint time = 0, ITimersModule timers = null)
 			{
 				await user.ModifyAsync(x => x.Deaf = true);
 
-				if (time > 0)
+				if (time > 0 && timers != null)
 				{
-					timers.RemovablePunishments.ThreadSafeAdd(new RemovableDeafen(user.Guild, user, time));
+					timers.AddRemovablePunishments(new RemovableDeafen(user.Guild, user, time));
 				}
 			}
 
-			public static async Task ManualRoleUnmuteUser(ITimersModule timers, IGuildUser user, IRole role)
+			public static async Task ManualRoleUnmuteUser(IGuildUser user, IRole role, ITimersModule timers = null)
 			{
 				await Roles.TakeRole(user, role);
 
-				timers.RemovablePunishments.ThreadSafeRemoveAll(x => x.UserID == user.Id && x.PunishmentType == PunishmentType.RoleMute);
+				if (timers != null)
+				{
+					timers.RemovePunishments(user.Id, PunishmentType.RoleMute);
+				}
 			}
-			public static async Task ManualVoiceUnmuteUser(ITimersModule timers, IGuildUser user)
+			public static async Task ManualVoiceUnmuteUser(IGuildUser user, ITimersModule timers = null)
 			{
 				await user.ModifyAsync(x => x.Mute = false);
 
-				timers.RemovablePunishments.ThreadSafeRemoveAll(x => x.UserID == user.Id && x.PunishmentType == PunishmentType.VoiceMute);
+				if (timers != null)
+				{
+					timers.RemovePunishments(user.Id, PunishmentType.VoiceMute);
+				}
 			}
-			public static async Task ManualUndeafenUser(ITimersModule timers, IGuildUser user)
+			public static async Task ManualUndeafenUser(IGuildUser user, ITimersModule timers = null)
 			{
 				await user.ModifyAsync(x => x.Deaf = false);
 
-				timers.RemovablePunishments.ThreadSafeRemoveAll(x => x.UserID == user.Id && x.PunishmentType == PunishmentType.Deafen);
+				if (timers != null)
+				{
+					timers.RemovePunishments(user.Id, PunishmentType.Deafen);
+				}
 			}
-			public static async Task ManualBan(ITimersModule timers, ICommandContext context, ulong userID, int days = 0, uint time = 0, string reason = null)
+			public static async Task ManualBan(ICommandContext context, ulong userID, int days = 0, uint time = 0, string reason = null, ITimersModule timers = null)
 			{
 				await context.Guild.AddBanAsync(userID, days, Formatting.FormatUserReason(context.User, reason));
 
-				if (time > 0)
+				if (time > 0 && timers != null)
 				{
-					timers.RemovablePunishments.ThreadSafeAdd(new RemovableBan(context.Guild, userID, time));
+					timers.AddRemovablePunishments(new RemovableBan(context.Guild, userID, time));
 				}
 			}
 			public static async Task ManualSoftban(ICommandContext context, ulong userID, string reason = null)
@@ -2871,7 +2891,7 @@ namespace Advobot
 				await user.KickAsync(Formatting.FormatBotReason(reason));
 			}
 
-			public static async Task AutomaticPunishments(ITimersModule timers, IGuildSettings guildSettings, IGuildUser user, PunishmentType punishmentType, bool alreadyKicked = false, uint time = 0, [CallerMemberName] string caller = "")
+			public static async Task AutomaticPunishments(IGuildSettings guildSettings, IGuildUser user, PunishmentType punishmentType, bool alreadyKicked = false, uint time = 0, ITimersModule timers = null, [CallerMemberName] string caller = "")
 			{
 				//TODO: Rework the 4 big punishment things
 				//Basically a consolidation of 4 separate big banning things into one. I still need to rework a lot of this.
@@ -2887,17 +2907,17 @@ namespace Advobot
 					}
 					case PunishmentType.Deafen:
 					{
-						await DeafenUser(timers, user, time);
+						await DeafenUser(user, time, timers);
 						return;
 					}
 					case PunishmentType.VoiceMute:
 					{
-						await VoiceMuteUser(timers, user, time);
+						await VoiceMuteUser(user, time, timers);
 						return;
 					}
 					case PunishmentType.RoleMute:
 					{
-						await RoleMuteUser(timers, user, guildSettings.MuteRole, time);
+						await RoleMuteUser(user, guildSettings.MuteRole, time, timers);
 						return;
 					}
 					case PunishmentType.Kick:
@@ -2915,9 +2935,9 @@ namespace Advobot
 						{
 							await AutomaticBan(guild, user.Id, caller);
 
-							if (time > 0)
+							if (time > 0 && timers != null)
 							{
-								timers.RemovablePunishments.ThreadSafeAdd(new RemovableBan(guild, user, time));
+								timers.AddRemovablePunishments(new RemovableBan(guild, user, time));
 							}
 						}
 						return;
@@ -2926,9 +2946,9 @@ namespace Advobot
 					{
 						await AutomaticBan(guild, user.Id, caller);
 						
-						if (time > 0)
+						if (time > 0 && timers != null)
 						{
-							timers.RemovablePunishments.ThreadSafeAdd(new RemovableBan(guild, user, time));
+							timers.AddRemovablePunishments(new RemovableBan(guild, user, time));
 						}
 						return;
 					}
@@ -2938,7 +2958,7 @@ namespace Advobot
 
 		public static class Spam
 		{
-			public static async Task HandleSpamPrevention(ITimersModule timers, IGuildSettings guildSettings, IGuild guild, IUser author, IMessage msg)
+			public static async Task HandleSpamPrevention(IGuildSettings guildSettings, IGuild guild, IUser author, IMessage msg, ITimersModule timers = null)
 			{
 				var spamUser = guildSettings.SpamPreventionUsers.FirstOrDefault(x => x.User.Id == author.Id);
 				if (spamUser == null)
@@ -3025,7 +3045,7 @@ namespace Advobot
 				if (spam)
 				{
 					var content = String.Format("The user `{0}` needs `{1}` votes to be kicked. Vote by mentioning them.", author.FormatUser(), spamUser.VotesRequired - spamUser.UsersWhoHaveAlreadyVoted.Count);
-					await Messages.MakeAndDeleteSecondaryMessage(timers, msg.Channel, null, content, 10);
+					await Messages.MakeAndDeleteSecondaryMessage(msg.Channel, null, content, 10, timers);
 				}
 			}
 			public static async Task HandleSlowmode(IGuildSettings guildSettings, IMessage message)
@@ -3036,7 +3056,7 @@ namespace Advobot
 					await HandleSlowmodeUser(smGuild.Users.FirstOrDefault(x => x.User.Id == message.Author.Id), message);
 				}
 
-				var smChannel = guildSettings.SlowmodeChannels.FirstOrDefault(x => x.ChannelID == message.Channel.Id);
+				var smChannel = guildSettings.SlowmodeChannels.FirstOrDefault(x => x.ChannelId == message.Channel.Id);
 				if (smChannel != null)
 				{
 					await HandleSlowmodeUser(smChannel.Users.FirstOrDefault(x => x.User.Id == message.Author.Id), message);
@@ -3120,7 +3140,7 @@ namespace Advobot
 					return;
 
 				//TODO: include all automatic punishments in this
-				await Punishments.AutomaticPunishments(timers, guildSettings, user, punishmentType, false, punishment.PunishmentTime);
+				await Punishments.AutomaticPunishments(guildSettings, user, punishmentType, false, punishment.PunishmentTime, timers);
 				switch (punishmentType)
 				{
 					case PunishmentType.Kick:
@@ -3184,7 +3204,7 @@ namespace Advobot
 					smGuild.Users.ThreadSafeAdd(new SlowmodeUser(user, smGuild.BaseMessages, smGuild.Interval));
 				}
 
-				foreach (var smChannel in smChannels.Where(x => (user.Guild as SocketGuild).TextChannels.Select(y => y.Id).Contains(x.ChannelID)))
+				foreach (var smChannel in smChannels.Where(x => (user.Guild as SocketGuild).TextChannels.Select(y => y.Id).Contains(x.ChannelId)))
 				{
 					smChannel.Users.ThreadSafeAdd(new SlowmodeUser(user, smChannel.BaseMessages, smChannel.Interval));
 				}
@@ -3456,6 +3476,13 @@ namespace Advobot
 				lock (list)
 				{
 					list.Add(obj);
+				}
+			}
+			public static void ThreadSafeAddRange<T>(this List<T> list, IEnumerable<T> objs)
+			{
+				lock (list)
+				{
+					list.AddRange(objs);
 				}
 			}
 			public static void ThreadSafeRemove<T>(this List<T> list, T obj)

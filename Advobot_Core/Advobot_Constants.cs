@@ -8,59 +8,13 @@ namespace Advobot
 {
 	public static class Constants
 	{
-		public const string BOT_VERSION = "0.11.0";
-		public const string API_VERSION = "Discord.Net v1.0.2-build-00800";
-		public const string PROGRAM_NAME = "Advobot";
-		public const string BOT_PREFIX = "&&";
+		//Const for attributes/because they're very unlikely to change. 
 		public const string ZERO_LENGTH_CHAR = "\u180E";
-		public const string IGNORE_ERROR = "Cx";
-		public const string DISCORD_INV = "https://discord.gg/MBXypxb"; //Switched from /xd to this invite since no matter what this inv will link to my server and never someone else's server
-		public const string TWITCH_URL = "https://www.twitch.tv/";
-		public const string REPO = "https://github.com/advorange/Advobot";
-		public const string VIP_REGIONS = "VIP_REGIONS";
-		public const string VANITY_URL = "VANITY_URL";
-		public const string INVITE_SPLASH = "INVITE_SPLASH";
-		public const string NO_NN = "NO NICKNAME";
+		public const string BOT_PREFIX = ZERO_LENGTH_CHAR + "PREFIX";
 		public const string FAKE_DISCORD_LINK = "discord" + ZERO_LENGTH_CHAR + ".gg";
 		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
 		public const string FAKE_TTS = "\\" + ZERO_LENGTH_CHAR + "tts";
 		public const string BYPASS_STRING = "Bypass100";
-		public const string MUTE_ROLE_NAME = "Advobot_Mute";
-		public const string CHANNEL_INSTRUCTIONS = "#Channel|\"Channel Name\"";
-		public const string USER_INSTRUCTIONS = "@User|\"Username\"";
-		public const string ROLE_INSTRUCTIONS = "@Role|\"Role Name\"";
-		public const string VOICE_TYPE = "voice";
-		public const string TEXT_TYPE = "text";
-		public const string BASIC_TYPE_USER = "user";
-		public const string BASIC_TYPE_ROLE = "role";
-		public const string BASIC_TYPE_CHANNEL = "channel";
-		public const string BASIC_TYPE_GUILD = "guild";
-		public const string ERROR_MESSAGE = "**ERROR:** ";
-		public const string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
-		public const string SERVER_FOLDER = "Discord_Servers";
-		public const string SETTING_FILE_EXTENSION = ".json";
-		public const string GENERAL_FILE_EXTENSION = ".txt";
-		public const string GUILD_SETTINGS_LOCATION = "GuildSettings" + SETTING_FILE_EXTENSION;
-		public const string BOT_SETTINGS_LOCATION = "BotSettings" + SETTING_FILE_EXTENSION;
-		public const string UI_INFO_LOCATION = "UISettings" + SETTING_FILE_EXTENSION;
-		public const string BOT_ICON_LOCATION = "BotIcon";
-		public const string GUILD_ICON_LOCATION = "GuildIcon";
-
-		public const int SECONDS_DEFAULT = 3;
-		public const int SECONDS_ACTIVE_CLOSE = 5;
-		public const int TICKS_REGEX_TIMEOUT = 1000000;
-		public const int MEMBER_LIMIT = 0;
-		public const int MAX_LENGTH_FOR_REGEX = 100;
-		public const int MAX_LENGTH_FOR_REASON = 512;
-		public const int MAX_SA_GROUPS = 10;
-		public const int MAX_QUOTES = 50;
-		public const int MAX_BANNED_STRINGS = 50;
-		public const int MAX_BANNED_REGEX = 25;
-		public const int MAX_BANNED_NAMES = 25;
-		public const int MAX_ICON_FILE_SIZE = 2500000;
-		public const int MAX_UTF16_VAL_FOR_NAMES = 1000;
-		public const int AMT_OF_DMS_TO_GATHER = 500;
-		public const int VALID_KEY_LENGTH = 59; //This probably shouldn't be hardcoded in tbh
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;
 		public const int VIP_BITRATE = 128;
@@ -92,6 +46,54 @@ namespace Advobot
 		public const int MAX_FIELD_LINES = 5;
 		public const int MAX_FIELD_NAME_LENGTH = 256;
 		public const int MAX_FIELD_VALUE_LENGTH = 1024;
+
+		//Static readonly because they may change and I've heard using const means any assembly referencing it has to be recompiled each time the value gets manually changed.
+		public static readonly string BOT_VERSION = "0.11.0";
+		public static readonly string API_VERSION = "Discord.Net v1.0.2-build-00800";
+		public static readonly string PROGRAM_NAME = "Advobot";
+		public static readonly string IGNORE_ERROR = "Cx";
+		public static readonly string DISCORD_INV = "https://discord.gg/MBXypxb"; //Switched from /xd to this invite since no matter what this inv will link to my server and never someone else's server
+		public static readonly string TWITCH_URL = "https://www.twitch.tv/";
+		public static readonly string REPO = "https://github.com/advorange/Advobot";
+		public static readonly string VIP_REGIONS = "VIP_REGIONS";
+		public static readonly string VANITY_URL = "VANITY_URL";
+		public static readonly string INVITE_SPLASH = "INVITE_SPLASH";
+		public static readonly string NO_NN = "No nickname";
+		public static readonly string MUTE_ROLE_NAME = "Advobot_Mute";
+		public static readonly string CHANNEL_INSTRUCTIONS = "#Channel|\"Channel Name\"";
+		public static readonly string USER_INSTRUCTIONS = "@User|\"Username\"";
+		public static readonly string ROLE_INSTRUCTIONS = "@Role|\"Role Name\"";
+		public static readonly string VOICE_TYPE = "voice";
+		public static readonly string TEXT_TYPE = "text";
+		public static readonly string BASIC_TYPE_USER = "user";
+		public static readonly string BASIC_TYPE_ROLE = "role";
+		public static readonly string BASIC_TYPE_CHANNEL = "channel";
+		public static readonly string BASIC_TYPE_GUILD = "guild";
+		public static readonly string ERROR_MESSAGE = "**ERROR:** ";
+		public static readonly string PATH_ERROR = "The bot does not have a valid path to save to/read from.";
+		public static readonly string SERVER_FOLDER = "Discord_Servers";
+		public static readonly string SETTING_FILE_EXTENSION = ".json";
+		public static readonly string GENERAL_FILE_EXTENSION = ".txt";
+		public static readonly string GUILD_SETTINGS_LOCATION = "GuildSettings" + SETTING_FILE_EXTENSION;
+		public static readonly string BOT_SETTINGS_LOCATION = "BotSettings" + SETTING_FILE_EXTENSION;
+		public static readonly string UI_INFO_LOCATION = "UISettings" + SETTING_FILE_EXTENSION;
+		public static readonly string BOT_ICON_LOCATION = "BotIcon";
+		public static readonly string GUILD_ICON_LOCATION = "GuildIcon";
+		public static readonly int SECONDS_DEFAULT = 3;
+		public static readonly int SECONDS_ACTIVE_CLOSE = 5;
+		public static readonly int TICKS_REGEX_TIMEOUT = 1000000;
+		public static readonly int MEMBER_LIMIT = 0;
+		public static readonly int VALID_KEY_LENGTH = 59; //This probably shouldn't be hardcoded in tbh
+		public static readonly int MAX_LENGTH_FOR_REGEX = 100;
+		public static readonly int MAX_LENGTH_FOR_REASON = 512;
+		public static readonly int MAX_SA_GROUPS = 10;
+		public static readonly int MAX_QUOTES = 50;
+		public static readonly int MAX_BANNED_STRINGS = 50;
+		public static readonly int MAX_BANNED_REGEX = 25;
+		public static readonly int MAX_BANNED_NAMES = 25;
+		public static readonly int MAX_ICON_FILE_SIZE = 2500000;
+		public static readonly int MAX_UTF16_VAL_FOR_NAMES = 1000;
+		public static readonly int AMT_OF_DMS_TO_GATHER = 500;
 
 		private static ReadOnlyCollection<string> _VALID_IMAGE_EXTENSIONS;
 		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS => _VALID_IMAGE_EXTENSIONS ?? (_VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>
@@ -163,12 +165,5 @@ namespace Advobot
 		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)
 		public static Type GUILDS_SETTINGS_TYPE { get; } = typeof(MyGuildSettings);
 		public static Type GLOBAL_SETTINGS_TYPE { get; } = typeof(MyBotSettings);
-	}
-
-	public static class Variables
-	{
-		//TODO: invite module? not very important tbh
-		public readonly static List<ListedInvite> InviteList = new List<ListedInvite>();
-
 	}
 }

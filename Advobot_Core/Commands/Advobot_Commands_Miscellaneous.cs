@@ -52,8 +52,8 @@ namespace Advobot
 					var closeHelps = CloseWords.GetObjectsWithSimilarNames(Constants.HELP_ENTRIES, command).Distinct();
 					if (closeHelps.Any())
 					{
-						Context.Timers.ActiveCloseHelp.ThreadSafeRemoveAll(x => x.UserID == Context.User.Id);
-						Context.Timers.ActiveCloseHelp.ThreadSafeAdd(new ActiveCloseWord<HelpEntry>(Context.User.Id, closeHelps));
+						Context.Timers.GetOutActiveCloseHelp(Context.User.Id);
+						Context.Timers.AddActiveCloseHelp(new ActiveCloseWord<HelpEntry>(Context.User.Id, closeHelps));
 
 						var msg = "Did you mean any of the following:\n" + closeHelps.FormatNumberedList("{0}", x => x.Word.Name);
 						await Messages.MakeAndDeleteSecondaryMessage(Context, msg, Constants.SECONDS_ACTIVE_CLOSE);
@@ -672,7 +672,7 @@ namespace Advobot
 			{
 				var newMsg = String.Format("From `{0}` in `{1}`:\n```\n{2}```", Context.User.FormatUser(), Context.Guild.FormatGuild(), input.Substring(0, Math.Min(input.Length, 250)));
 
-				var owner = await Users.GetGlobalUser(Context.Client, Context.BotSettings.BotOwnerID);
+				var owner = await Users.GetGlobalUser(Context.Client, Context.BotSettings.BotOwnerId);
 				if (owner != null)
 				{
 					var DMChannel = await owner.GetOrCreateDMChannelAsync();
