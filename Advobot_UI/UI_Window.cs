@@ -30,6 +30,11 @@ namespace Advobot
 			//All I did instead was remove most logic from it into a separate class. Shortened from about 1300 lines to 800.
 			public class MyWindow : Window
 			{
+				private readonly IDiscordClient _Client;
+				private readonly IBotSettings _BotSettings;
+				private readonly ILogModule _Logging;
+				private readonly UISettings _UISettings;
+
 				private readonly Grid _Layout = new Grid();
 				private readonly ToolTip _ToolTip = new ToolTip { Placement = PlacementMode.Relative };
 
@@ -220,15 +225,15 @@ namespace Advobot
 				{
 					FontFamily = new FontFamily("Courier New");
 
-					var client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
-					var botSettings = (IBotSettings)provider.GetService(typeof(IBotSettings));
-					var logging = (ILogModule)provider.GetService(typeof(ILogModule));
-					var uiSettings = UISettings.LoadUISettings(botSettings.Loaded);
+					_Client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
+					_BotSettings = (IBotSettings)provider.GetService(typeof(IBotSettings));
+					_Logging = (ILogModule)provider.GetService(typeof(ILogModule));
+					_UISettings = UISettings.LoadUISettings(_BotSettings.Loaded);
 
-					InitializeComponents(uiSettings, client, botSettings);
-					Loaded += (sender, e) => RunApplication(sender, e, uiSettings, client, botSettings, logging);
+					InitializeComponents();
+					Loaded += RunApplication;
 				}
-				private void InitializeComponents(UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)
+				private void InitializeComponents()
 				{
 					//Main layout
 					UIModification.AddRows(_Layout, 100);
@@ -353,38 +358,38 @@ namespace Advobot
 					_Output.ContextMenu = new ContextMenu { ItemsSource = new[] { _OutputContextMenuSearch, _OutputContextMenuSave, _OutputContextMenuClear }, };
 					_SpecificFileDisplay.ContextMenu = new ContextMenu { ItemsSource = new[] { _SpecificFileContextMenuSave }, };
 
-					HookUpEvents(uiSettings, client, botSettings);
+					HookUpEvents();
 
 					//Set this panel as the content for this window and run the application
 					this.Content = _Layout;
 					this.WindowState = WindowState.Maximized;
 				}
-				private void RunApplication(object sender, RoutedEventArgs e, UISettings uiSettings, IDiscordClient client, IBotSettings botSettings, ILogModule logging)
+				private void RunApplication(object sender, RoutedEventArgs e)
 				{
 					//Make console output show on the output text block and box
 					Console.SetOut(new UITextBoxStreamWriter(_Output));
 
 					Task.Run(async () =>
 					{
-						if (SavingAndLoadingActions.ValidatePath(MiscActions.GetSavePath(), botSettings.Windows, true))
+						if (SavingAndLoadingActions.ValidatePath(MiscActions.GetSavePath(), _BotSettings.Windows, true))
 						{
-							botSettings.SetGotPath();
+							_BotSettings.SetGotPath();
 						}
-						if (await SavingAndLoadingActions.ValidateBotKey(client, MiscActions.GetBotKey(), true))
+						if (await SavingAndLoadingActions.ValidateBotKey(_Client, MiscActions.GetBotKey(), true))
 						{
-							botSettings.SetGotKey();
+							_BotSettings.SetGotKey();
 						}
-						await ClientActions.MaybeStartBot(client, botSettings);
+						await ClientActions.MaybeStartBot(_Client, _BotSettings);
 					});
 
-					uiSettings.InitializeColors();
-					uiSettings.ActivateTheme();
+					_UISettings.InitializeColors();
+					_UISettings.ActivateTheme();
 					UIModification.SetColorMode(_Layout);
 
 					var timer = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 500) };
 					timer.Tick += async (s, ea) =>
 					{
-						var guilds = await client.GetGuildsAsync();
+						var guilds = await _Client.GetGuildsAsync();
 
 						IEnumerable<ulong> userIDs = new List<ulong>();
 						foreach (var guild in guilds)
@@ -392,32 +397,32 @@ namespace Advobot
 							userIDs = (await guild.GetUsersAsync()).Select(x => x.Id);
 						}
 
-						((TextBox)_Latency.Child).Text = String.Format("Latency: {0}ms", ClientActions.GetLatency(client));
-						((TextBox)_Memory.Child).Text = String.Format("Memory: {0}MB", GetActions.GetMemory(botSettings.Windows).ToString("0.00"));
+						((TextBox)_Latency.Child).Text = String.Format("Latency: {0}ms", ClientActions.GetLatency(_Client));
+						((TextBox)_Memory.Child).Text = String.Format("Memory: {0}MB", GetActions.GetMemory(_BotSettings.Windows).ToString("0.00"));
 						((TextBox)_Threads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
 						((TextBox)_Guilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
 						((TextBox)_Users.Child).Text = String.Format("Members: {0}", userIDs.Distinct().Count());
-						_InfoOutput.Document = UIModification.MakeInfoMenu(GetActions.GetUptime(botSettings), logging.FormatLoggedCommands(), logging.FormatLoggedActions());
+						_InfoOutput.Document = UIModification.MakeInfoMenu(GetActions.GetUptime(_BotSettings), _Logging.FormatLoggedCommands(), _Logging.FormatLoggedActions());
 					};
 					timer.Start();
 				}
 
-				private void HookUpEvents(UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)
+				private void HookUpEvents()
 				{
 					//Bot status
-					_PauseButton.Click								+= (sender, e) => Pause(sender, e, botSettings);
+					_PauseButton.Click								+= Pause;
 					_RestartButton.Click							+= Restart;
 					_DisconnectButton.Click							+= Disconnect;
 
 					//Settings
-					_SettingsSaveButton.Click						+= (sender, e) => SaveSettings(sender, e, client, botSettings);
-					_ColorsSaveButton.Click							+= (sender, e) => SaveColors(sender, e, uiSettings);
+					_SettingsSaveButton.Click						+= SaveSettings;
+					_ColorsSaveButton.Click							+= SaveColors;
 					_TrustedUsersRemoveButton.Click					+= RemoveTrustedUser;
-					_TrustedUsersAddButton.Click					+= (sender, e) => AddTrustedUser(sender, e, client);
+					_TrustedUsersAddButton.Click					+= AddTrustedUser;
 
 					//Input
-					_Input.KeyUp									+= (sender, e) => AcceptInput(sender, e, client, botSettings);
-					_InputButton.Click								+= (sender, e) => AcceptInput(sender, e, client, botSettings);
+					_Input.KeyUp									+= AcceptInput;
+					_InputButton.Click								+= AcceptInput;
 
 					//Output
 					_OutputContextMenuSave.Click					+= SaveOutput;
@@ -438,15 +443,15 @@ namespace Advobot
 					_SpecificFileContextMenuSave.Click				+= SaveSpecificFile;
 
 					//Menu
-					_MainButton.Click								+= (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
-					_SettingsButton.Click							+= (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
-					_ColorsButton.Click								+= (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
-					_InfoButton.Click								+= (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
-					_FileButton.Click								+= (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+					_MainButton.Click								+= OpenMenu;
+					_SettingsButton.Click							+= OpenMenu;
+					_ColorsButton.Click								+= OpenMenu;
+					_InfoButton.Click								+= OpenMenu;
+					_FileButton.Click								+= OpenMenu;
 				}
-				private void Pause(object sender, RoutedEventArgs e, IBotSettings botSettings)
+				private void Pause(object sender, RoutedEventArgs e)
 				{
-					UIBotWindowLogic.PauseBot(botSettings);
+					UIBotWindowLogic.PauseBot(_BotSettings);
 				}
 				private void Restart(object sender, RoutedEventArgs e)
 				{
@@ -471,11 +476,11 @@ namespace Advobot
 					}
 				}
 
-				private async void SaveSettings(object sender, RoutedEventArgs e, IDiscordClient client, IBotSettings botSettings)
+				private async void SaveSettings(object sender, RoutedEventArgs e)
 				{
-					await UIBotWindowLogic.SaveSettings(_Layout, client, botSettings);
+					await UIBotWindowLogic.SaveSettings(_Layout, _Client, _BotSettings);
 				}
-				private void SaveColors(object sender, RoutedEventArgs e, UISettings uiSettings)
+				private void SaveColors(object sender, RoutedEventArgs e)
 				{
 					for (int i = 0; i < VisualTreeHelper.GetChildrenCount(_ColorsLayout); ++i)
 					{
@@ -509,9 +514,9 @@ namespace Advobot
 								continue;
 							}
 
-							if (!UIModification.CheckIfTwoBrushesAreTheSame(uiSettings.ColorTargets[target], brush))
+							if (!UIModification.CheckIfTwoBrushesAreTheSame(_UISettings.ColorTargets[target], brush))
 							{
-								uiSettings.ColorTargets[target] = brush;
+								_UISettings.ColorTargets[target] = brush;
 								castedChild.Text = UIModification.FormatBrush(brush);
 								ConsoleActions.WriteLine(String.Format("Successfully updated the color for {0}.", target.EnumName()));
 							}
@@ -520,21 +525,21 @@ namespace Advobot
 						{
 							var selected = ((ComboBox)child).SelectedItem as MyTextBox;
 							var tag = selected?.Tag as ColorTheme?;
-							if (!tag.HasValue || tag == uiSettings.Theme)
+							if (!tag.HasValue || tag == _UISettings.Theme)
 								continue;
 
-							uiSettings.SetTheme((ColorTheme)tag);
+							_UISettings.SetTheme((ColorTheme)tag);
 							ConsoleActions.WriteLine("Successfully updated the theme type.");
 						}
 					}
 
-					uiSettings.SaveSettings();
-					uiSettings.ActivateTheme();
+					_UISettings.SaveSettings();
+					_UISettings.ActivateTheme();
 					UIModification.SetColorMode(_Layout);
 				}
-				private async void AddTrustedUser(object sender, RoutedEventArgs e, IDiscordClient client)
+				private async void AddTrustedUser(object sender, RoutedEventArgs e)
 				{
-					await UIBotWindowLogic.AddTrustedUserToComboBox(_TrustedUsersComboBox, client, _TrustedUsersAddBox.Text);
+					await UIBotWindowLogic.AddTrustedUserToComboBox(_TrustedUsersComboBox, _Client, _TrustedUsersAddBox.Text);
 					_TrustedUsersAddBox.Text = null;
 				}
 				private void RemoveTrustedUser(object sender, RoutedEventArgs e)
@@ -542,7 +547,7 @@ namespace Advobot
 					UIBotWindowLogic.RemoveTrustedUserFromComboBox(_TrustedUsersComboBox);
 				}
 
-				private async void AcceptInput(object sender, KeyEventArgs e, IDiscordClient client, IBotSettings botSettings)
+				private async void AcceptInput(object sender, KeyEventArgs e)
 				{
 					var text = _Input.Text;
 					if (String.IsNullOrWhiteSpace(text))
@@ -553,16 +558,16 @@ namespace Advobot
 
 					if (e.Key.Equals(Key.Enter) || e.Key.Equals(Key.Return))
 					{
-						await UIBotWindowLogic.DoStuffWithInput(UICommandHandler.GatherInput(_Input, _InputButton), client, botSettings);
+						await UIBotWindowLogic.DoStuffWithInput(UICommandHandler.GatherInput(_Input, _InputButton), _Client, _BotSettings);
 					}
 					else
 					{
 						_InputButton.IsEnabled = true;
 					}
 				}
-				private async void AcceptInput(object sender, RoutedEventArgs e, IDiscordClient client, IBotSettings botSettings)
+				private async void AcceptInput(object sender, RoutedEventArgs e)
 				{
-					await UIBotWindowLogic.DoStuffWithInput(UICommandHandler.GatherInput(_Input, _InputButton), client, botSettings);
+					await UIBotWindowLogic.DoStuffWithInput(UICommandHandler.GatherInput(_Input, _InputButton), _Client, _BotSettings);
 				}
 
 				private void SaveOutput(object sender, RoutedEventArgs e)
@@ -700,9 +705,9 @@ namespace Advobot
 					SayToolTipReason(UIBotWindowLogic.SaveFile(_SpecificFileDisplay));
 				}
 
-				private async void OpenMenu(object sender, RoutedEventArgs e, UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)
+				private async void OpenMenu(object sender, RoutedEventArgs e)
 				{
-					if (!botSettings.Loaded)
+					if (!_BotSettings.Loaded)
 						return;
 
 					//Hide everything so stuff doesn't overlap
@@ -739,19 +744,19 @@ namespace Advobot
 							}
 							case MenuType.Settings:
 							{
-								UpdateSettingsWhenOpened(client, botSettings);
+								UpdateSettingsWhenOpened();
 								_SettingsLayout.Visibility = Visibility.Visible;
 								return;
 							}
 							case MenuType.Colors:
 							{
-								UIModification.MakeColorDisplayer(uiSettings, _ColorsLayout, _ColorsSaveButton, .018);
+								UIModification.MakeColorDisplayer(_UISettings, _ColorsLayout, _ColorsSaveButton, .018);
 								_ColorsLayout.Visibility = Visibility.Visible;
 								return;
 							}
 							case MenuType.Files:
 							{
-								var treeView = UIModification.MakeGuildTreeView(_FileTreeView, await client.GetGuildsAsync());
+								var treeView = UIModification.MakeGuildTreeView(_FileTreeView, await _Client.GetGuildsAsync());
 								treeView.Items.Cast<TreeViewItem>().SelectMany(x => x.Items.Cast<TreeViewItem>()).ToList().ForEach(x =>
 								{
 									x.MouseDoubleClick += OpenSpecificFileLayout;
@@ -763,22 +768,22 @@ namespace Advobot
 						}
 					}
 				}
-				private async void UpdateSettingsWhenOpened(IDiscordClient client, IBotSettings botSettings)
+				private async void UpdateSettingsWhenOpened()
 				{
-					((CheckBox)((Viewbox)_DownloadUsersSetting.Setting).Child).IsChecked = botSettings.AlwaysDownloadUsers;
-					((TextBox)_PrefixSetting.Setting).Text = botSettings.Prefix;
-					((TextBox)_BotOwnerSetting.Setting).Text = botSettings.BotOwnerId.ToString();
-					((TextBox)_GameSetting.Setting).Text = botSettings.Game;
-					((TextBox)_StreamSetting.Setting).Text = botSettings.Stream;
-					((TextBox)_ShardSetting.Setting).Text = botSettings.ShardCount.ToString();
-					((TextBox)_MessageCacheSetting.Setting).Text = botSettings.MessageCacheCount.ToString();
-					((TextBox)_UserGatherCountSetting.Setting).Text = botSettings.MaxUserGatherCount.ToString();
-					((TextBox)_MessageGatherSizeSetting.Setting).Text = botSettings.MaxMessageGatherSize.ToString();
-					((ComboBox)_LogLevelComboBox.Setting).SelectedItem = ((ComboBox)_LogLevelComboBox.Setting).Items.OfType<TextBox>().FirstOrDefault(x => (LogSeverity)x.Tag == botSettings.LogLevel);
+					((CheckBox)((Viewbox)_DownloadUsersSetting.Setting).Child).IsChecked	= _BotSettings.AlwaysDownloadUsers;
+					((TextBox)_PrefixSetting.Setting).Text									= _BotSettings.Prefix;
+					((TextBox)_BotOwnerSetting.Setting).Text								= _BotSettings.BotOwnerId.ToString();
+					((TextBox)_GameSetting.Setting).Text									= _BotSettings.Game;
+					((TextBox)_StreamSetting.Setting).Text									= _BotSettings.Stream;
+					((TextBox)_ShardSetting.Setting).Text									= _BotSettings.ShardCount.ToString();
+					((TextBox)_MessageCacheSetting.Setting).Text							= _BotSettings.MessageCacheCount.ToString();
+					((TextBox)_UserGatherCountSetting.Setting).Text							= _BotSettings.MaxUserGatherCount.ToString();
+					((TextBox)_MessageGatherSizeSetting.Setting).Text						= _BotSettings.MaxMessageGatherSize.ToString();
+					((ComboBox)_LogLevelComboBox.Setting).SelectedItem						= ((ComboBox)_LogLevelComboBox.Setting).Items.OfType<TextBox>().FirstOrDefault(x => (LogSeverity)x.Tag == _BotSettings.LogLevel);
 					var itemsSource = new List<TextBox>();
-					foreach (var trustedUser in botSettings.TrustedUsers)
+					foreach (var trustedUser in _BotSettings.TrustedUsers)
 					{
-						itemsSource.Add(UIModification.MakeTextBoxFromUserID(await client.GetUserAsync(trustedUser)));
+						itemsSource.Add(UIModification.MakeTextBoxFromUserID(await _Client.GetUserAsync(trustedUser)));
 					}
 					_TrustedUsersComboBox.ItemsSource = itemsSource;
 				}

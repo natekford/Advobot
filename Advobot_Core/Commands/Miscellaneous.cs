@@ -28,17 +28,22 @@ namespace Advobot
 				await CommandRunner(command);
 			}
 
+			private static readonly string _GeneralHelp = String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", Constants.BOT_PREFIX);
+			private static readonly string _BasicSyntax = "`[]` means required.\n`<>` means optional.\n`|` means or.";
+			private static readonly string _MentionSyntax = String.Format("`User` means `{0}`.\n`Role` means `{1}`.\n`Channel` means `{2}`.",
+						Constants.USER_INSTRUCTIONS,
+						Constants.ROLE_INSTRUCTIONS,
+						Constants.CHANNEL_INSTRUCTIONS);
+			private static readonly string _Links = String.Format("[GitHub Repository]({0})\n[Discord Server]({1})", Constants.REPO, Constants.DISCORD_INV);
+
 			private async Task CommandRunner(string command)
 			{
 				if (String.IsNullOrWhiteSpace(command))
 				{
-					var embed = EmbedActions.MakeNewEmbed("General Help", String.Format("Type `{0}commands` for the list of commands.\nType `{0}help [Command]` for help with a command.", Constants.BOT_PREFIX));
-					EmbedActions.AddField(embed, "Basic Syntax", "`[]` means required.\n`<>` means optional.\n`|` means or.");
-					EmbedActions.AddField(embed, "Mention Syntax", String.Format("`User` means `{0}`.\n`Role` means `{1}`.\n`Channel` means `{2}`.",
-						Constants.USER_INSTRUCTIONS,
-						Constants.ROLE_INSTRUCTIONS,
-						Constants.CHANNEL_INSTRUCTIONS));
-					EmbedActions.AddField(embed, "Links", String.Format("[GitHub Repository]({0})\n[Discord Server]({1})", Constants.REPO, Constants.DISCORD_INV));
+					var embed = EmbedActions.MakeNewEmbed("General Help", _GeneralHelp, prefix: GetActions.GetPrefix(Context.BotSettings, Context.GuildSettings));
+					EmbedActions.AddField(embed, "Basic Syntax", _BasicSyntax);
+					EmbedActions.AddField(embed, "Mention Syntax", _MentionSyntax);
+					EmbedActions.AddField(embed, "Links", _Links);
 					EmbedActions.AddFooter(embed, "Help");
 					await MessageActions.SendEmbedMessage(Context.Channel, embed);
 				}
@@ -47,7 +52,7 @@ namespace Advobot
 					var helpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.CaseInsEquals(command) || x.Aliases.CaseInsContains(command));
 					if (helpEntry != null)
 					{
-						var embed = EmbedActions.MakeNewEmbed(helpEntry.Name, helpEntry.ToString());
+						var embed = EmbedActions.MakeNewEmbed(helpEntry.Name, helpEntry.ToString(), prefix: GetActions.GetPrefix(Context.BotSettings, Context.GuildSettings));
 						EmbedActions.AddFooter(embed, "Help");
 						await MessageActions.SendEmbedMessage(Context.Channel, embed);
 						return;

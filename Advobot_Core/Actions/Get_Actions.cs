@@ -30,6 +30,18 @@ namespace Advobot
 				//Double allows most, if not all, number types in. https://stackoverflow.com/a/828963
 				return i == 1 ? "" : "s";
 			}
+			public static string GetPrefix(IBotSettings botSettings, IGuildSettings guildSettings)
+			{
+				var guildPrefix = guildSettings.Prefix;
+				if (!String.IsNullOrWhiteSpace(guildPrefix))
+				{
+					return guildPrefix;
+				}
+				else
+				{
+					return botSettings.Prefix;
+				}
+			}
 
 			public static Dictionary<string, string> GetChannelOverwritePermissions(Overwrite overwrite)
 			{

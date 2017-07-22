@@ -13,31 +13,31 @@ namespace Advobot
 {
 	public class CommandHandler
 	{
-		private static IServiceProvider Provider;
-		private static CommandService Commands;
-		private static IBotSettings BotSettings;
-		private static IGuildSettingsModule GuildSettings;
-		private static IDiscordClient Client;
-		private static ITimersModule Timers;
-		private static ILogModule Logging;
+		private static IServiceProvider _Provider;
+		private static CommandService _Commands;
+		private static IBotSettings _BotSettings;
+		private static IGuildSettingsModule _GuildSettings;
+		private static IDiscordClient _Client;
+		private static ITimersModule _Timers;
+		private static ILogModule _Logging;
 
 		public static async Task Install(IServiceProvider provider)
 		{
-			Provider = provider;
-			Commands = (CommandService)provider.GetService(typeof(CommandService));
-			BotSettings = (IBotSettings)provider.GetService(typeof(IBotSettings));
-			GuildSettings = (IGuildSettingsModule)provider.GetService(typeof(IGuildSettingsModule));
-			Client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
-			Timers = (ITimersModule)provider.GetService(typeof(ITimersModule));
-			Logging = (ILogModule)provider.GetService(typeof(ILogModule));
+			_Provider = provider;
+			_Commands = (CommandService)provider.GetService(typeof(CommandService));
+			_BotSettings = (IBotSettings)provider.GetService(typeof(IBotSettings));
+			_GuildSettings = (IGuildSettingsModule)provider.GetService(typeof(IGuildSettingsModule));
+			_Client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
+			_Timers = (ITimersModule)provider.GetService(typeof(ITimersModule));
+			_Logging = (ILogModule)provider.GetService(typeof(ILogModule));
 
-			SetUpCrucialEvents(Client);
+			SetUpCrucialEvents(_Client);
 
-			Commands.AddTypeReader(typeof(IInvite), new IInviteTypeReader());
-			Commands.AddTypeReader(typeof(IBan), new IBanTypeReader());
-			Commands.AddTypeReader(typeof(Emote), new IEmoteTypeReader());
-			Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
-			await Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly()); //Use executing assembly to get all of the commands from Advobot_Core. Entry and Calling assembly give Advobot_Launcher
+			_Commands.AddTypeReader(typeof(IInvite), new IInviteTypeReader());
+			_Commands.AddTypeReader(typeof(IBan), new IBanTypeReader());
+			_Commands.AddTypeReader(typeof(Emote), new IEmoteTypeReader());
+			_Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
+			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly()); //Use executing assembly to get all of the commands from Advobot_Core. Entry and Calling assembly give Advobot_Launcher
 		}
 
 		private static void SetUpCrucialEvents(IDiscordClient client)
@@ -48,7 +48,7 @@ namespace Advobot
 				socketClient.MessageReceived += (message) => HandleCommand(message as SocketUserMessage);
 				socketClient.Connected += async () =>
 				{
-					await SavingAndLoadingActions.LoadInformation(Client, BotSettings, GuildSettings);
+					await SavingAndLoadingActions.LoadInformation(_Client, _BotSettings, _GuildSettings);
 				};
 			}
 			else if (client is DiscordShardedClient)
@@ -57,7 +57,7 @@ namespace Advobot
 				shardedClient.MessageReceived += (SocketMessage message) => HandleCommand(message as SocketUserMessage);
 				shardedClient.Shards.FirstOrDefault().Connected += async () =>
 				{
-					await SavingAndLoadingActions.LoadInformation(Client, BotSettings, GuildSettings);
+					await SavingAndLoadingActions.LoadInformation(_Client, _BotSettings, _GuildSettings);
 				};
 			}
 			else
@@ -68,28 +68,28 @@ namespace Advobot
 
 		public static async Task HandleCommand(SocketUserMessage message)
 		{
-			if (BotSettings.Pause)
+			if (_BotSettings.Pause)
 				return;
 
 			var guild = (message?.Channel as SocketTextChannel)?.Guild;
 			if (guild == null)
 				return;
 
-			if (!GuildSettings.TryGetSettings(guild, out IGuildSettings guildSettings))
+			if (!_GuildSettings.TryGetSettings(guild, out IGuildSettings guildSettings))
 			{
-				await GuildSettings.AddGuild(guild);
-				guildSettings = GuildSettings.GetSettings(guild);
+				await _GuildSettings.AddGuild(guild);
+				guildSettings = _GuildSettings.GetSettings(guild);
 			}
-			if (!TryGetArgPos(message, guildSettings.Prefix, BotSettings.Prefix, out int argPos))
+			if (!TryGetArgPos(message, guildSettings.Prefix, _BotSettings.Prefix, out int argPos))
 				return;
 
-			var context = new MyCommandContext(BotSettings, guildSettings, Logging, Timers, Client, message);
-			var result = await Commands.ExecuteAsync(context, argPos, Provider);
+			var context = new MyCommandContext(_BotSettings, guildSettings, _Logging, _Timers, _Client, message);
+			var result = await _Commands.ExecuteAsync(context, argPos, _Provider);
 
 			if (result.IsSuccess)
 			{
-				await Logging.Log.LogCommand(context);
-				Logging.IncrementSuccessfulCommands();
+				await _Logging.Log.LogCommand(context);
+				_Logging.IncrementSuccessfulCommands();
 			}
 			else if (!Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
 			{
@@ -112,7 +112,7 @@ namespace Advobot
 					}
 				}
 
-				Logging.IncrementFailedCommands();
+				_Logging.IncrementFailedCommands();
 			}
 		}
 
@@ -128,7 +128,7 @@ namespace Advobot
 			}
 			else
 			{
-				if (message.HasStringPrefix(guildPrefix, ref argPos) || message.HasMentionPrefix(Client.CurrentUser, ref argPos))
+				if (message.HasStringPrefix(guildPrefix, ref argPos) || message.HasMentionPrefix(_Client.CurrentUser, ref argPos))
 				{
 					return true;
 				}

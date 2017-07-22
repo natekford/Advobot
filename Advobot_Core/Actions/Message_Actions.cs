@@ -88,15 +88,19 @@ namespace Advobot
 				}
 
 				//Go send the description/fields that had an error
+				var extra = new List<string>();
 				if (badDesc != null)
 				{
-					await UploadActions.WriteAndUploadTextFile(guild, channel, badDesc, "Description_");
+					extra.Add("Description: " + badDesc);
 				}
-				foreach (var tuple in badFields)
+				foreach (var badField in badFields)
 				{
-					var num = tuple.Item1;
-					var val = tuple.Item2;
-					await UploadActions.WriteAndUploadTextFile(guild, channel, val, String.Format("Field_{0}_", num));
+					extra.Add(String.Format("Field{0}: {1}", badField.Item1, badField.Item2));
+				}
+
+				if (extra.Any())
+				{
+					await UploadActions.WriteAndUploadTextFile(guild, channel, String.Join("\n", extra), "Embed_Text");
 				}
 
 				return msg;
