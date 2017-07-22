@@ -117,7 +117,7 @@ namespace Advobot
 		[Usage("[Bot|Guild|Channel|Role|User|Emote] <\"Other Argument\">")]
 		[Summary("Shows the ID of the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 		[DefaultEnabled(true)]
-		public sealed class GetID : MyModuleBase
+		public sealed class GetId : MyModuleBase
 		{
 			[Command("bot")]
 			public async Task CommandBot()
@@ -589,12 +589,12 @@ namespace Advobot
 				}
 				var title = returnedArgs.GetSpecifiedArg("title");
 				var description = returnedArgs.GetSpecifiedArg("desc");
-				var imageURL = returnedArgs.GetSpecifiedArg("img");
-				var URL = returnedArgs.GetSpecifiedArg("url");
+				var imageUrl = returnedArgs.GetSpecifiedArg("img");
+				var Url = returnedArgs.GetSpecifiedArg("url");
 				var thumbnail = returnedArgs.GetSpecifiedArg("thumb");
 				var authorName = returnedArgs.GetSpecifiedArg("author");
 				var authorIcon = returnedArgs.GetSpecifiedArg("authoricon");
-				var authorURL = returnedArgs.GetSpecifiedArg("authorurl");
+				var authorUrl = returnedArgs.GetSpecifiedArg("authorurl");
 				var footerText = returnedArgs.GetSpecifiedArg("foot");
 				var footerIcon = returnedArgs.GetSpecifiedArg("footicon");
 
@@ -610,8 +610,8 @@ namespace Advobot
 					}
 				}
 
-				var embed = EmbedActions.MakeNewEmbed(title, description, color, imageURL, URL, thumbnail);
-				EmbedActions.AddAuthor(embed, authorName, authorIcon, authorURL);
+				var embed = EmbedActions.MakeNewEmbed(title, description, color, imageUrl, Url, thumbnail);
+				EmbedActions.AddAuthor(embed, authorName, authorIcon, authorUrl);
 				EmbedActions.AddFooter(embed, footerText, footerIcon);
 
 				//Add in the fields and text
