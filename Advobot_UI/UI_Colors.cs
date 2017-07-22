@@ -95,7 +95,7 @@ namespace Advobot
 				}
 				public void SaveSettings()
 				{
-					SavingAndLoading.OverWriteFile(Gets.GetBaseBotDirectory(Constants.UI_INFO_LOCATION), SavingAndLoading.Serialize(this));
+					SavingAndLoadingActions.OverWriteFile(GetActions.GetBaseBotDirectory(Constants.UI_INFO_LOCATION), SavingAndLoadingActions.Serialize(this));
 				}
 				public void InitializeColors()
 				{
@@ -182,7 +182,7 @@ namespace Advobot
 				public static UISettings LoadUISettings(bool loaded)
 				{
 					var UISettings = new UISettings();
-					var path = Gets.GetBaseBotDirectory(Constants.UI_INFO_LOCATION);
+					var path = GetActions.GetBaseBotDirectory(Constants.UI_INFO_LOCATION);
 					if (!File.Exists(path))
 					{
 						if (loaded)

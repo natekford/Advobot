@@ -45,7 +45,7 @@ namespace Advobot
 
 			if (!Enum.TryParse(typeStr, true, out SpamType spamType))
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid spam type supplied."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid spam type supplied."));
 				return;
 			}
 
@@ -79,7 +79,7 @@ namespace Advobot
 					var tf = time < 1 ? 1 : time;
 
 					guildInfo.SetSpamPrevention(spamType, new SpamPrevention(PunishmentType.Role, tf, ms, vt, sp));
-					await Messages.MakeAndDeleteSecondaryMessage(Context,
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context,
 						String.Format("Successfully created and enabled a spam prevention with the requirement of `{0}` messages with a spam amount of `{1}` and requires `{2}` votes.", ms, sp, vt));
 					return;
 				}
@@ -87,36 +87,36 @@ namespace Advobot
 				{
 					if (spamPrevention == null)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild does not have any spam prevention to modify."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild does not have any spam prevention to modify."));
 						return;
 					}
 					else if (spamPrevention.Enabled)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The targetted spam prevention is already enabled."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The targetted spam prevention is already enabled."));
 						return;
 					}
 
 					spamPrevention.Enable();
 					guildInfo.SaveInfo();
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The targetted spam prevention has successfully been enabled."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The targetted spam prevention has successfully been enabled."));
 					return;
 				}
 				case ActionType.Disable:
 				{
 					if (spamPrevention == null)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild does not have any spam prevention to modify."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild does not have any spam prevention to modify."));
 						return;
 					}
 					else if (!spamPrevention.Enabled)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The targetted spam prevention is already disabled."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The targetted spam prevention is already disabled."));
 						return;
 					}
 
 					spamPrevention.Disable();
 					guildInfo.SaveInfo();
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The targetted spam prevention has successfully been disabled."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The targetted spam prevention has successfully been disabled."));
 					return;
 				}
 			}
@@ -160,14 +160,14 @@ namespace Advobot
 					{
 						if (!int.TryParse(countStr, out count))
 						{
-							await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid count supplied."));
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid count supplied."));
 							return;
 						}
 						count = Math.Abs(count);
 					}
 
 					guildInfo.SetRaidPrevention(RaidType.Regular, new RaidPrevention(PunishmentType.Role, -1, count));
-					await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created a raid protection with a user count of `{0}`.", count));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created a raid protection with a user count of `{0}`.", count));
 					break;
 				}
 				case ActionType.Enable:
@@ -175,12 +175,12 @@ namespace Advobot
 					var antiRaid = guildSettings.GetRaidPrevention(RaidType.Regular);
 					if (antiRaid == null)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no raid protection to enable."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no raid protection to enable."));
 						return;
 					}
 					else if (antiRaid.Enabled)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Raid protection is already enabled."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Raid protection is already enabled."));
 						return;
 					}
 					antiRaid.Enable();
@@ -195,7 +195,7 @@ namespace Advobot
 						++m;
 					});
 
-					await Messages.SendChannelMessage(Context, String.Format("Successfully turned on raid prevention.{0}", m > 0 ? String.Format(" Muted `{0}` users.", m) : ""));
+					await MessageActions.SendChannelMessage(Context, String.Format("Successfully turned on raid prevention.{0}", m > 0 ? String.Format(" Muted `{0}` users.", m) : ""));
 					break;
 				}
 				case ActionType.Disable:
@@ -203,12 +203,12 @@ namespace Advobot
 					var antiRaid = guildSettings.GetRaidPrevention(RaidType.Regular);
 					if (antiRaid == null)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no raid protection to disable."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no raid protection to disable."));
 						return;
 					}
 					else if (!antiRaid.Enabled)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Raid protection is already disabled."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Raid protection is already disabled."));
 						return;
 					}
 					antiRaid.Disable();
@@ -232,7 +232,7 @@ namespace Advobot
 					var lft = ttl - unm;
 					var first = unm == 1 ? "user has" : "users have";
 					var desc = String.Format("Successfully turned off raid prevention. `{0}` {1} been unmuted. `{2}` raider{3} left during raid prevention.", unm, first, lft, Actions.GetPlural(lft));
-					await Messages.SendChannelMessage(Context, desc);
+					await MessageActions.SendChannelMessage(Context, desc);
 					break;
 				}
 			}
@@ -275,7 +275,7 @@ namespace Advobot
 					{
 						if (!int.TryParse(countStr, out count))
 						{
-							await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid user count supplied."));
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid user count supplied."));
 							return;
 						}
 						count = Math.Abs(count);
@@ -286,14 +286,14 @@ namespace Advobot
 					{
 						if (!int.TryParse(timeStr, out time))
 						{
-							await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid time supplied."));
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid time supplied."));
 							return;
 						}
 						time = Math.Abs(time);
 					}
 
 					guildInfo.SetRaidPrevention(RaidType.RapidJoins, new RaidPrevention(PunishmentType.Role, time, count));
-					await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created a rapid join protection with a time period of `{0}` and a user count of `{1}`.", time, count));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully created a rapid join protection with a time period of `{0}` and a user count of `{1}`.", time, count));
 					break;
 				}
 				case ActionType.Enable:
@@ -301,18 +301,18 @@ namespace Advobot
 					var antiJoin = guildSettings.GetRaidPrevention(RaidType.RapidJoins);
 					if (antiJoin == null)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no rapid join protection to enable."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no rapid join protection to enable."));
 						return;
 					}
 					else if (antiJoin.Enabled)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Rapid join protection is already enabled."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Rapid join protection is already enabled."));
 						return;
 					}
 
 					antiJoin.Enable();
 					guildInfo.SaveInfo();
-					await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully enabled the rapid join protection on this guild.");
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully enabled the rapid join protection on this guild.");
 					break;
 				}
 				case ActionType.Disable:
@@ -320,18 +320,18 @@ namespace Advobot
 					var antiJoin = guildSettings.GetRaidPrevention(RaidType.RapidJoins);
 					if (antiJoin == null)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no rapid join protection to disable."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no rapid join protection to disable."));
 						return;
 					}
 					else if (!antiJoin.Enabled)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Rapid join protection is already disabled."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Rapid join protection is already disabled."));
 						return;
 					}
 
 					antiJoin.Disable();
 					guildInfo.SaveInfo();
-					await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled the rapid join protection on this guild.");
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled the rapid join protection on this guild.");
 					break;
 				}
 			}

@@ -1,4 +1,8 @@
 ﻿using Advobot.Actions;
+using Advobot.Enums;
+using Advobot.NonSavedClasses;
+using Advobot.SavedClasses;
+using Advobot.Structs;
 using Discord;
 using System;
 using System.Collections.Generic;
@@ -132,13 +136,13 @@ namespace Advobot
 			LogAction.MessageDeleted,
 		}));
 		private static ReadOnlyCollection<HelpEntry> _HELP_ENTRIES;
-		public static ReadOnlyCollection<HelpEntry> HELP_ENTRIES => _HELP_ENTRIES ?? (_HELP_ENTRIES = new ReadOnlyCollection<HelpEntry>(SavingAndLoading.LoadHelpList()));
+		public static ReadOnlyCollection<HelpEntry> HELP_ENTRIES => _HELP_ENTRIES ?? (_HELP_ENTRIES = new ReadOnlyCollection<HelpEntry>(SavingAndLoadingActions.LoadHelpList()));
 		private static ReadOnlyCollection<string> _COMMAND_NAMES;
-		public static ReadOnlyCollection<string> COMMAND_NAMES => _COMMAND_NAMES ?? (_COMMAND_NAMES = new ReadOnlyCollection<string>(SavingAndLoading.LoadCommandNames(HELP_ENTRIES)));
+		public static ReadOnlyCollection<string> COMMAND_NAMES => _COMMAND_NAMES ?? (_COMMAND_NAMES = new ReadOnlyCollection<string>(SavingAndLoadingActions.LoadCommandNames(HELP_ENTRIES)));
 		private static ReadOnlyCollection<BotGuildPermission> _GUILD_PERMISSIONS; //Stuff has to be in this notation because lol static initializers
-		public static ReadOnlyCollection<BotGuildPermission> GUILD_PERMISSIONS => _GUILD_PERMISSIONS ?? (_GUILD_PERMISSIONS = new ReadOnlyCollection<BotGuildPermission>(SavingAndLoading.LoadGuildPermissions()));
+		public static ReadOnlyCollection<BotGuildPermission> GUILD_PERMISSIONS => _GUILD_PERMISSIONS ?? (_GUILD_PERMISSIONS = new ReadOnlyCollection<BotGuildPermission>(SavingAndLoadingActions.LoadGuildPermissions()));
 		private static ReadOnlyCollection<BotChannelPermission> _CHANNEL_PERMISSIONS;
-		public static ReadOnlyCollection<BotChannelPermission> CHANNEL_PERMISSIONS => _CHANNEL_PERMISSIONS ?? (_CHANNEL_PERMISSIONS = new ReadOnlyCollection<BotChannelPermission>(SavingAndLoading.LoadChannelPermissions()));
+		public static ReadOnlyCollection<BotChannelPermission> CHANNEL_PERMISSIONS => _CHANNEL_PERMISSIONS ?? (_CHANNEL_PERMISSIONS = new ReadOnlyCollection<BotChannelPermission>(SavingAndLoadingActions.LoadChannelPermissions()));
 
 		//Because the enum values might change in the future. These are never saved in JSON so these can be modified
 		private static ReadOnlyDictionary<PunishmentType, int> _PUNISHMENT_SEVERITY;
@@ -152,7 +156,7 @@ namespace Advobot
 			{ PunishmentType.Ban, 1000 },
 		}));
 		private static ReadOnlyDictionary<string, Color> _COLORS;
-		public static ReadOnlyDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = new ReadOnlyDictionary<string, Color>(Gets.GetColorDictionary()));
+		public static ReadOnlyDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = new ReadOnlyDictionary<string, Color>(GetActions.GetColorDictionary()));
 
 		public static Color BASE { get; } = new Color(255, 100, 000);
 		public static Color JOIN { get; } = new Color(000, 255, 000);

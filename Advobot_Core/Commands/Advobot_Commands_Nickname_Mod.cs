@@ -1,4 +1,8 @@
 ﻿using Advobot.Actions;
+using Advobot.Attributes;
+using Advobot.Enums;
+using Advobot.NonSavedClasses;
+using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
 using System;
@@ -25,11 +29,11 @@ namespace Advobot
 
 			private async Task CommandRunner(IGuildUser user, string nickname)
 			{
-				await Users.ChangeNickname(user, nickname);
+				await UserActions.ChangeNickname(user, nickname);
 				var response = nickname == null
 					? String.Format("Successfully removed the nickname from `{0}`.", user.FormatUser())
 					: String.Format("Successfully gave `{0}` the nickname `{1}`.", user.FormatUser(), nickname);
-				await Messages.MakeAndDeleteSecondaryMessage(Context, response);
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
 			}
 		}
 
@@ -50,12 +54,13 @@ namespace Advobot
 
 			private async Task CommandRunner(string search, string replace, bool bypass)
 			{
-				var users = (await Users.GetUsersTheBotAndUserCanEdit(Context)).Where(x => false
+				var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
+				var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => false
 					|| (x.Nickname != null && x.Nickname.CaseInsContains(search)) //If nickname is there, check based off of nickname
 					|| (x.Nickname == null && x.Username.CaseInsContains(search)) //If nickname isn't there, check based off of username
-					).ToList().GetUpToAndIncludingMinNum(Gets.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass));
+					).ToList().GetUpToAndIncludingMinNum(userAmt);
 
-				await Users.NicknameManyUsers(Context, users, replace);
+				await UserActions.NicknameManyUsers(Context, users, replace);
 			}
 		}
 
@@ -74,12 +79,13 @@ namespace Advobot
 
 			private async Task CommandRunner(uint upperLimit, string replace, bool bypass)
 			{
-				var users = (await Users.GetUsersTheBotAndUserCanEdit(Context)).Where(x => false
+				var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
+				var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => false
 					|| (x.Nickname != null && !x.Nickname.AllCharactersAreWithinUpperLimit((int)upperLimit)) //If nickname is there, check based off of nickname
 					|| (x.Nickname == null && !x.Username.AllCharactersAreWithinUpperLimit((int)upperLimit)) //If nickname isn't there, check based off of username
-					).ToList().GetUpToAndIncludingMinNum(Gets.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass));
+					).ToList().GetUpToAndIncludingMinNum(userAmt);
 
-				await Users.NicknameManyUsers(Context, users, replace);
+				await UserActions.NicknameManyUsers(Context, users, replace);
 			}
 		}
 
@@ -98,9 +104,10 @@ namespace Advobot
 
 			private async Task CommandRunner(bool bypass)
 			{
-				var users = (await Users.GetUsersTheBotAndUserCanEdit(Context)).Where(x => x.Nickname != null).ToList().GetUpToAndIncludingMinNum(Gets.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass));
+				var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
+				var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => x.Nickname != null).ToList().GetUpToAndIncludingMinNum(userAmt);
 
-				await Users.NicknameManyUsers(Context, users, null);
+				await UserActions.NicknameManyUsers(Context, users, null);
 			}
 		}
 	}

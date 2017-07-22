@@ -32,7 +32,7 @@ namespace Advobot
 					var guild = Variables.Client.GetGuild(guildID);
 					if (guild == null)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid server supplied."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid server supplied."));
 						return;
 					}
 
@@ -43,7 +43,7 @@ namespace Advobot
 					if (Context.Guild == guild)
 						return;
 
-					await Messages.SendChannelMessage(Context, String.Format("Successfully left the server `{0}` with an ID `{1}`.", guild.Name, guild.Id));
+					await MessageActions.SendChannelMessage(Context, String.Format("Successfully left the server `{0}` with an ID `{1}`.", guild.Name, guild.Id));
 				}
 				else if (Context.Guild.Id == guildID)
 				{
@@ -51,7 +51,7 @@ namespace Advobot
 				}
 				else
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Only the bot owner can use this command targetting other guilds."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Only the bot owner can use this command targetting other guilds."));
 					return;
 				}
 			}
@@ -62,7 +62,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid server supplied."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid server supplied."));
 			}
 		}
 
@@ -81,34 +81,34 @@ namespace Advobot
 
 			if (input.Length > 25)
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Please do not try to make a prefix longer than 25 characters."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Please do not try to make a prefix longer than 25 characters."));
 				return;
 			}
 			else if (Actions.CaseInsEquals(input, globalPrefix))
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That prefix is already the global prefix."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That prefix is already the global prefix."));
 				return;
 			}
 			else if (Actions.CaseInsEquals(input, "clear"))
 			{
 				if (guildInfo.SetSetting(SettingOnGuild.Prefix, null))
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild's prefix.");
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild's prefix.");
 				}
 				else
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to clear the guild's prefix."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to clear the guild's prefix."));
 				}
 			}
 			else
 			{
 				if (guildInfo.SetSetting(SettingOnGuild.Prefix, input))
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set this guild's prefix to: `{0}`.", input));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set this guild's prefix to: `{0}`.", input));
 				}
 				else
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Failed to set the guild's prefix."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Failed to set the guild's prefix."));
 				}
 			}
 		}
@@ -124,7 +124,7 @@ namespace Advobot
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Guild Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingOnGuild))))));
+				await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Guild Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingOnGuild))))));
 				return;
 			}
 
@@ -145,11 +145,11 @@ namespace Advobot
 			{
 				var title = setting.EnumName();
 				var desc = Actions.FormatSettingInfo(guild, guildSettings, setting);
-				await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, desc));
 			}
 			else
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid setting."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid setting."));
 			}
 		}
 
@@ -177,12 +177,12 @@ namespace Advobot
 				Variables.Guilds.Remove(guild.Id);
 				await Actions.CreateOrGetGuildInfo(guild);
 
-				await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully reloaded the guild's bot information.");
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully reloaded the guild's bot information.");
 			}
 			else if (Actions.CaseInsEquals(actionStr, "resave"))
 			{
 				guildInfo.SaveInfo();
-				await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully resaved the guild's bot information.");
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully resaved the guild's bot information.");
 			}
 			else if (Actions.CaseInsEquals(actionStr, "reset"))
 			{
@@ -192,7 +192,7 @@ namespace Advobot
 				File.Delete(path);
 
 				await Actions.CreateOrGetGuildInfo(guild);
-				await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully reset the guild's bot information.");
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset the guild's bot information.");
 			}
 		}
 
@@ -244,7 +244,7 @@ namespace Advobot
 				}
 				else
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("No command or category has that name."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("No command or category has that name."));
 					return;
 				}
 			}
@@ -255,7 +255,7 @@ namespace Advobot
 				{
 					if (command != null && command.ValAsBoolean)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This command is already enabled."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This command is already enabled."));
 						return;
 					}
 					break;
@@ -264,7 +264,7 @@ namespace Advobot
 				{
 					if (command != null && !command.ValAsBoolean)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This command is already disabled."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This command is already disabled."));
 						return;
 					}
 					break;
@@ -289,7 +289,7 @@ namespace Advobot
 
 			if (commands.Count < 1)
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Please don't try to edit that command."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Please don't try to edit that command."));
 				return;
 			}
 
@@ -314,7 +314,7 @@ namespace Advobot
 			}
 
 			guildInfo.SaveInfo();
-			await Messages.SendChannelMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(commands.Select(x => x.Name), unableToBeRemoved.Select(x => x.Name), "command", pastTense, presentTense));
+			await MessageActions.SendChannelMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(commands.Select(x => x.Name), unableToBeRemoved.Select(x => x.Name), "command", pastTense, presentTense));
 		}
 
 		[Command("modifyignoredcommandchannels")]
@@ -365,7 +365,7 @@ namespace Advobot
 				var catCmds = Enum.TryParse(cmdStr, true, out CommandCategory cat) ? Variables.HelpList.Where(x => x.Category == cat).ToList() : null;
 				if (cmd == null && catCmds == null)
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("The given input `{0}` is not a valid command or category.", cmdStr));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("The given input `{0}` is not a valid command or category.", cmdStr));
 					return;
 				}
 
@@ -375,7 +375,7 @@ namespace Advobot
 					{
 						if (ignoredCmdsOnChans.Any(x => x.Name == cmd && x.ID == channel.Id))
 						{
-							await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This command is already ignored on this channel."));
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This command is already ignored on this channel."));
 							return;
 						}
 						ignoredCmdsOnChans.Add(new CommandOverride(cmd, channel.Id, false));
@@ -385,11 +385,11 @@ namespace Advobot
 						var amtRemoved = ignoredCmdsOnChans.RemoveAll(x => x.Name == cmd && x.ID == channel.Id);
 						if (amtRemoved == 0)
 						{
-							await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This command is already not ignored on this channel."));
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This command is already not ignored on this channel."));
 							return;
 						}
 					}
-					await Messages.MakeAndDeleteSecondaryMessage(Context,
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context,
 						String.Format("Successfully {0} the command `{1}` in `{2}`.", add ? "disabled" : "enabled", cmd, channel.FormatChannel()));
 				}
 				else if (catCmds != null)
@@ -411,7 +411,7 @@ namespace Advobot
 							ignoredCmdsOnChans.RemoveAll(y => y.Name == cmd && y.ID == channel.Id);
 						});
 					}
-					await Messages.MakeAndDeleteSecondaryMessage(Context,
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context,
 						String.Format("Successfully {0} the category `{1}` in `{2}`.", add ? "disabled" : "enabled", cat.EnumName(), channel.FormatChannel()));
 				}
 
@@ -424,7 +424,7 @@ namespace Advobot
 				{
 					if (ignoredCmdChannels.Contains(channel.Id))
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This channel is already ignored for commands."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This channel is already ignored for commands."));
 						return;
 					}
 					ignoredCmdChannels.Add(channel.Id);
@@ -433,7 +433,7 @@ namespace Advobot
 				{
 					if (!ignoredCmdChannels.Contains(channel.Id))
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This channel is already not ignored for commands."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This channel is already not ignored for commands."));
 						return;
 					}
 					ignoredCmdChannels.Remove(channel.Id);
@@ -451,7 +451,7 @@ namespace Advobot
 				}
 
 				guildInfo.SaveInfo();
-				await Messages.MakeAndDeleteSecondaryMessage(Context, outputStr);
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, outputStr);
 			}
 		}
 
@@ -490,12 +490,12 @@ namespace Advobot
 			{
 				if (action == ActionType.Show)
 				{
-					await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Guild Permissions", String.Format("`{0}`", String.Join("`, `", Variables.GuildPermissions.Select(x => x.Name)))));
+					await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Guild Permissions", String.Format("`{0}`", String.Join("`, `", Variables.GuildPermissions.Select(x => x.Name)))));
 					return;
 				}
 				else
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(Constants.ARGUMENTS_ERROR));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(Constants.ARGUMENTS_ERROR));
 					return;
 				}
 			}
@@ -519,7 +519,7 @@ namespace Advobot
 					{
 						if (botUser == null || botUser.Permissions == 0)
 						{
-							await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That user has no extra permissions from the bot."));
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That user has no extra permissions from the bot."));
 							return;
 						}
 
@@ -527,18 +527,18 @@ namespace Advobot
 						var showPerms = Actions.GetPermissionNames(botUser.Permissions);
 						if (!showPerms.Any())
 						{
-							await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That user has no extra permissions from the bot."));
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That user has no extra permissions from the bot."));
 						}
 						else
 						{
 							var title = String.Format("Permissions for {0}", user.FormatUser());
 							var desc = String.Format("`{0}`", String.Join("`, `", showPerms));
-							await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, desc));
+							await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, desc));
 						}
 					}
 					else
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid option for show."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid option for show."));
 					}
 					return;
 				}
@@ -548,13 +548,13 @@ namespace Advobot
 					{
 						if (botUser == null)
 						{
-							await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That user is not on the bot user list."));
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That user is not on the bot user list."));
 							return;
 						}
 
 						((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).ThreadSafeRemove(botUser);
 						guildInfo.SaveInfo();
-						await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the bot user list.", user.FormatUser()));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the bot user list.", user.FormatUser()));
 						return;
 					}
 					break;
@@ -565,7 +565,7 @@ namespace Advobot
 			var permissions = permStr.Split('/').Select(x => Variables.GuildPermissions.FirstOrDefault(y => Actions.CaseInsEquals(y.Name, x))).Where(x => x.Name != null).ToList();
 			if (!permissions.Any())
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid input for permissions."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid input for permissions."));
 				return;
 			}
 			else if (Context.User.Id != Context.Guild.OwnerId)
@@ -605,7 +605,7 @@ namespace Advobot
 			}
 
 			guildInfo.SaveInfo();
-			await Messages.SendChannelMessage(Context, String.Format("Successfully {0}: `{1}`.", outputStr, String.Join("`, `", permissions.Select(x => x.Name))));
+			await MessageActions.SendChannelMessage(Context, String.Format("Successfully {0}: `{1}`.", outputStr, String.Join("`, `", permissions.Select(x => x.Name))));
 		}
 
 		[Command("modifychannelsettings")]
@@ -645,12 +645,12 @@ namespace Advobot
 					if (imgOnly.Contains(channel.Id))
 					{
 						imgOnly.Remove(channel.Id);
-						await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the channel `{0}` from the image only list."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the channel `{0}` from the image only list."));
 					}
 					else
 					{
 						imgOnly.Add(channel.Id);
-						await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the channel `{0}` to the image only list."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the channel `{0}` to the image only list."));
 					}
 					break;
 				}
@@ -660,12 +660,12 @@ namespace Advobot
 					if (sanitary.Contains(channel.Id))
 					{
 						sanitary.Remove(channel.Id);
-						await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the channel `{0}` from the sanitary list."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the channel `{0}` from the sanitary list."));
 					}
 					else
 					{
 						sanitary.Add(channel.Id);
-						await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the channel `{0}` to the sanitary list."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the channel `{0}` to the sanitary list."));
 					}
 					break;
 				}
@@ -707,20 +707,20 @@ namespace Advobot
 			{
 				if (quotes.Count >= Constants.MAX_QUOTES)
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild already has the max number of quotes, which is 50."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild already has the max number of quotes, which is 50."));
 					return;
 				}
 
 				if (quotes.Any(x => Actions.CaseInsEquals(x.Name, nameStr)))
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("A quote already has that name."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("A quote already has that name."));
 					return;
 				}
 
 				//Make sure there's text
 				if (String.IsNullOrWhiteSpace(textStr))
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Adding a quote requires text."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Adding a quote requires text."));
 					return;
 				}
 
@@ -730,7 +730,7 @@ namespace Advobot
 			{
 				if (!quotes.Any())
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There needs to be at least one quote before you can remove any."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There needs to be at least one quote before you can remove any."));
 					return;
 				}
 
@@ -739,7 +739,7 @@ namespace Advobot
 			}
 
 			guildInfo.SaveInfo();
-			await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following quote: `{1}`.", add ? "added" : "removed", nameStr));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following quote: `{1}`.", add ? "added" : "removed", nameStr));
 		}
 
 		[Command("sayquote")]
@@ -756,11 +756,11 @@ namespace Advobot
 			{
 				if (!quotes.Any())
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There are no quotes."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There are no quotes."));
 				}
 				else
 				{
-					await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("quotes", String.Format("`{0}`", String.Join("`, `", quotes.Select(x => x.Name)))));
+					await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("quotes", String.Format("`{0}`", String.Join("`, `", quotes.Select(x => x.Name)))));
 				}
 				return;
 			}
@@ -768,7 +768,7 @@ namespace Advobot
 			var quote = quotes.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, input));
 			if (quote != null)
 			{
-				await Messages.SendChannelMessage(Context, quote.Text);
+				await MessageActions.SendChannelMessage(Context, quote.Text);
 				return;
 			}
 
@@ -779,11 +779,11 @@ namespace Advobot
 				Variables.ActiveCloseWords.ThreadSafeAdd(new ActiveCloseWord<Quote>(Context.User.Id, closeQuotes));
 
 				var msg = "Did you mean any of the following:\n" + closeQuotes.FormatNumberedList("{0}", x => x.Word.Name);
-				await Messages.MakeAndDeleteSecondaryMessage(Context, msg, Constants.ACTIVE_CLOSE);
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.ACTIVE_CLOSE);
 				return;
 			}
 
-			await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Nonexistent quote."));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Nonexistent quote."));
 		}
 
 		[Command("setguildnotif")]
@@ -817,7 +817,7 @@ namespace Advobot
 			var thumbB = String.IsNullOrWhiteSpace(thumbStr);
 			if (contentB && titleB && descB && thumbB)
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("One of the variables has to be given."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("One of the variables has to be given."));
 				return;
 			}
 
@@ -846,11 +846,11 @@ namespace Advobot
 				{
 					if (guildInfo.SetSetting(SettingOnGuild.WelcomeMessage, guildNotif))
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully set the welcome message.");
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the welcome message.");
 					}
 					else
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to set the welcome message."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to set the welcome message."));
 					}
 					break;
 				}
@@ -858,11 +858,11 @@ namespace Advobot
 				{
 					if (guildInfo.SetSetting(SettingOnGuild.GoodbyeMessage, guildNotif))
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully set the goodbye message.");
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the goodbye message.");
 					}
 					else
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to set the goodbye message."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to set the goodbye message."));
 					}
 					break;
 				}
@@ -881,7 +881,7 @@ namespace Advobot
 
 			if (!Enum.TryParse(input, true, out GuildNotificationType notifType))
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid notification type supplied."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid notification type supplied."));
 				return;
 			}
 
@@ -902,7 +902,7 @@ namespace Advobot
 
 			if (notif == null)
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The notification does not exist."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The notification does not exist."));
 				return;
 			}
 
@@ -920,7 +920,7 @@ namespace Advobot
 			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.GUILD_INFO_LOCATION);
 			if (!File.Exists(path))
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The guild information file does not exist at this time."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The guild information file does not exist at this time."));
 				return;
 			}
 			await Actions.UploadFile(Context.Channel, path);

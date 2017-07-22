@@ -46,7 +46,7 @@ namespace Advobot
 					var listedInvite = Variables.InviteList.FirstOrDefault(x => x.GuildId == Context.Guild.Id);
 					if (listedInvite != null)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild is already listed."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild is already listed."));
 						return;
 					}
 
@@ -56,7 +56,7 @@ namespace Advobot
 					{
 						if (!Context.Guild.Features.CaseInsContains(Constants.VANITY_URL))
 						{
-							await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid invite provided."));
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid invite provided."));
 							return;
 						}
 						else
@@ -64,7 +64,7 @@ namespace Advobot
 							var restInv = await Variables.Client.GetInviteAsync(codeStr);
 							if (restInv.GuildId != Context.Guild.Id)
 							{
-								await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Please don't try to add other guilds."));
+								await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Please don't try to add other guilds."));
 								return;
 							}
 							codeStr = restInv.Code;
@@ -72,7 +72,7 @@ namespace Advobot
 					}
 					else if (invite.MaxAge != null)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Please only give unexpiring invites."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Please only give unexpiring invites."));
 						return;
 					}
 					else
@@ -87,11 +87,11 @@ namespace Advobot
 					if (guildInfo.SetSetting(SettingOnGuild.ListedInvite, listedInv))
 					{
 						var keywordString = keywords != null ? String.Format(" with the keywords `{1}`", String.Join("`, `", keywords)) : "";
-						await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the invite `{0}` to the guild list{1}.", codeStr, keywordString));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the invite `{0}` to the guild list{1}.", codeStr, keywordString));
 					}
 					else
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to save the listed invite."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to save the listed invite."));
 					}
 					break;
 				}
@@ -100,18 +100,18 @@ namespace Advobot
 					var listedInvite = Variables.InviteList.FirstOrDefault(x => x.GuildId == Context.Guild.Id);
 					if (listedInvite == null)
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild is not listed."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild is not listed."));
 						return;
 					}
 					Variables.InviteList.ThreadSafeRemove(listedInvite);
 
 					if (guildInfo.SetSetting(SettingOnGuild.ListedInvite, null))
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the invite on the guild list.");
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the invite on the guild list.");
 					}
 					else
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to remove the listed invite."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to remove the listed invite."));
 					}
 					break;
 				}
@@ -129,12 +129,12 @@ namespace Advobot
 			var listedInvite = Variables.InviteList.FirstOrDefault(x => x.GuildId == Context.Guild.Id);
 			if ((DateTime.UtcNow - listedInvite.LastBumped).TotalHours < 1)
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Last bump is too recent."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Last bump is too recent."));
 				return;
 			}
 
 			listedInvite.Bump();
-			await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully bumped the guild.");
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully bumped the guild.");
 		}
 
 		[Command("getguildlisting")]
@@ -175,7 +175,7 @@ namespace Advobot
 				}
 				else
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Unable to get the bool for the globalemotes argument."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Unable to get the bool for the globalemotes argument."));
 					return;
 				}
 			}
@@ -187,7 +187,7 @@ namespace Advobot
 				}
 				else
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Unable to get the number for the morethan argument."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Unable to get the number for the morethan argument."));
 					return;
 				}
 			}
@@ -199,7 +199,7 @@ namespace Advobot
 				}
 				else
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Unable to get the number for the lessthan argument."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Unable to get the number for the lessthan argument."));
 					return;
 				}
 			}
@@ -211,7 +211,7 @@ namespace Advobot
 
 			if (!matchingInvs.Any())
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("No guild could be found that matches the given specifications."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("No guild could be found that matches the given specifications."));
 				return;
 			}
 			else if (matchingInvs.Count <= 10)
@@ -221,7 +221,7 @@ namespace Advobot
 				{
 					Messages.AddField(embed, x.Guild.Name, String.Format("**URL:** {0}\n**Members:** {1}\n{2}", x.URL, x.Guild.MemberCount, x.HasGlobalEmotes ? "**Has global emotes**" : ""));
 				});
-				await Messages.SendEmbedMessage(Context.Channel, embed);
+				await MessageActions.SendEmbedMessage(Context.Channel, embed);
 			}
 			else if (matchingInvs.Count <= 50)
 			{
@@ -243,7 +243,7 @@ namespace Advobot
 			}
 			else
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("`{0}` results returned. Please narrow your search."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("`{0}` results returned. Please narrow your search."));
 				return;
 			}
 		}

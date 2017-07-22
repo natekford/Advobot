@@ -1,5 +1,7 @@
 ﻿using Advobot.Actions;
-using Advobot.Logging;
+using Advobot.Interfaces;
+using Advobot.NonSavedClasses;
+using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -46,7 +48,7 @@ namespace Advobot
 				socketClient.MessageReceived += (message) => HandleCommand(message as SocketUserMessage);
 				socketClient.Connected += async () =>
 				{
-					await SavingAndLoading.LoadInformation(Client, BotSettings, GuildSettings);
+					await SavingAndLoadingActions.LoadInformation(Client, BotSettings, GuildSettings);
 				};
 			}
 			else if (client is DiscordShardedClient)
@@ -55,7 +57,7 @@ namespace Advobot
 				shardedClient.MessageReceived += (SocketMessage message) => HandleCommand(message as SocketUserMessage);
 				shardedClient.Shards.FirstOrDefault().Connected += async () =>
 				{
-					await SavingAndLoading.LoadInformation(Client, BotSettings, GuildSettings);
+					await SavingAndLoadingActions.LoadInformation(Client, BotSettings, GuildSettings);
 				};
 			}
 			else
@@ -86,8 +88,7 @@ namespace Advobot
 
 			if (result.IsSuccess)
 			{
-				await (Logging.Log as MyLog).LogCommand(context);
-
+				await Logging.Log.LogCommand(context);
 				Logging.IncrementSuccessfulCommands();
 			}
 			else if (!Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
@@ -106,7 +107,7 @@ namespace Advobot
 					}
 					default:
 					{
-						await Messages.MakeAndDeleteSecondaryMessage(context, Formatting.ERROR(result.ErrorReason));
+						await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR(result.ErrorReason));
 						break;
 					}
 				}

@@ -73,7 +73,7 @@ namespace Advobot
 
 				if (currID == channel.Id)
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("The given channel is already the current {0} log.", typeStr)));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("The given channel is already the current {0} log.", typeStr)));
 					return;
 				}
 			}
@@ -102,16 +102,16 @@ namespace Advobot
 			{
 				if (channel != null)
 				{
-					await Messages.SendChannelMessage(Context, String.Format("The {0} log has been set on `{1}`.", typeStr, channel.FormatChannel()));
+					await MessageActions.SendChannelMessage(Context, String.Format("The {0} log has been set on `{1}`.", typeStr, channel.FormatChannel()));
 				}
 				else
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully disabled the {0} log.", typeStr));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully disabled the {0} log.", typeStr));
 				}
 			}
 			else
 			{
-				await Messages.SendChannelMessage(Context, Formatting.ERROR(String.Format("Failed to set the {0} log.", typeStr)));
+				await MessageActions.SendChannelMessage(Context, Formatting.ERROR(String.Format("Failed to set the {0} log.", typeStr)));
 			}
 		}
 
@@ -146,7 +146,7 @@ namespace Advobot
 			var evaluatedChannels = Actions.GetValidEditChannels(Context);
 			if (!evaluatedChannels.HasValue)
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(Constants.CHANNEL_ERROR));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(Constants.CHANNEL_ERROR));
 				return;
 			}
 			var success = evaluatedChannels.Value.Success;
@@ -205,7 +205,7 @@ namespace Advobot
 			}
 
 			guildInfo.SaveInfo();
-			await Messages.MakeAndDeleteSecondaryMessage(Context, output + alreadyActionOutput);
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, output + alreadyActionOutput);
 		}
 
 		[Command("modifylogactions")]
@@ -222,18 +222,18 @@ namespace Advobot
 			//Check if the person wants to only see the types
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				await Messages.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Log Actions", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(LogAction))))));
+				await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Log Actions", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(LogAction))))));
 				return;
 			}
 			else if (Actions.CaseInsEquals(input, "default"))
 			{
 				if (guildInfo.SetSetting(SettingOnGuild.LogActions, Constants.DEFAULT_LOG_ACTIONS.ToList()))
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, "Successfully restored the default log actions.");
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully restored the default log actions.");
 				}
 				else
 				{
-					await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to save the default log actions."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to save the default log actions."));
 				}
 				return;
 			}
@@ -274,7 +274,7 @@ namespace Advobot
 			}
 			if (!newLogActions.Any())
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("No valid log actions were able to be gotten."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("No valid log actions were able to be gotten."));
 				return;
 			}
 
@@ -297,14 +297,14 @@ namespace Advobot
 
 			if (guildInfo.SetSetting(SettingOnGuild.LogActions, logActions.Distinct()))
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
 					responseStr,
 					Actions.GetPlural(newLogActions.Count),
 					String.Join("`, `", newLogActions.Select(x => x.EnumName()))));
 			}
 			else
 			{
-				await Messages.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to save the log actions."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to save the log actions."));
 				return;
 			}
 		}

@@ -53,7 +53,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>blep shibe.ico</ApplicationIcon>
+    <ApplicationIcon>HappyBOYE.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -206,19 +206,41 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Advobot_Attributes.cs" />
-    <Compile Include="Advobot_Interfaces.cs" />
-    <Compile Include="Advobot_TypeReaders.cs" />
+    <Compile Include="Actions\Channel_Actions.cs" />
+    <Compile Include="Actions\Client_Actions.cs" />
+    <Compile Include="Actions\Close_Word_Actions.cs" />
+    <Compile Include="Actions\Console_Actions.cs" />
+    <Compile Include="Actions\Embed_Actions.cs" />
+    <Compile Include="Actions\Emote_Actions.cs" />
+    <Compile Include="Actions\Extended_Methods.cs" />
+    <Compile Include="Actions\Formatting_Actions.cs" />
+    <Compile Include="Actions\Get_Actions.cs" />
+    <Compile Include="Actions\Guild_Actions.cs" />
+    <Compile Include="Actions\Invite_Actions.cs" />
+    <Compile Include="Actions\Message_Actions.cs" />
+    <Compile Include="Actions\Misc_Actions.cs" />
+    <Compile Include="Actions\Punishment_Actions.cs" />
+    <Compile Include="Actions\Role_Actions.cs" />
+    <Compile Include="Actions\Saving_And_Loading_Actions.cs" />
+    <Compile Include="Actions\Spam_Actions.cs" />
+    <Compile Include="Actions\Upload_Actions.cs" />
+    <Compile Include="Actions\User_Actions.cs" />
+    <Compile Include="Timer_Module\Advobot_Removable_Punishments.cs" />
+    <Compile Include="Timer_Module\Advobot_Timers.cs" />
+    <Compile Include="Classes_And_Interfaces\Advobot_Attributes.cs" />
+    <Compile Include="Classes_And_Interfaces\Advobot_Enums.cs" />
+    <Compile Include="Classes_And_Interfaces\Advobot_Interfaces.cs" />
+    <Compile Include="Classes_And_Interfaces\Advobot_TypeReaders.cs" />
+    <Compile Include="Classes_And_Interfaces\Advobot_Structs.cs" />
     <Compile Include="Commands\Advobot_Commands_Role_Mod.cs" />
     <Compile Include="Commands\Advobot_Commands_Ban_Phrases.cs" />
     <Compile Include="Commands\Advobot_Commands_Channel_Mod.cs" />
     <Compile Include="Commands\Advobot_Commands_Global_Settings.cs" />
-    <Compile Include="Advobot_Actions.cs" />
-    <Compile Include="Advobot_Classes.cs" />
+    <Compile Include="Classes_And_Interfaces\Advobot_Classes.cs" />
     <Compile Include="Commands\Advobot_Commands_Guild_Mod.cs" />
     <Compile Include="Commands\Advobot_Commands_Self_Roles.cs" />
     <Compile Include="Commands\Advobot_Commands_User_Mod.cs" />
-    <Compile Include="Advobot_Logs.cs" />
+    <Compile Include="Log_Module\Advobot_Logs.cs" />
     <Compile Include="Advobot_Constants.cs" />
     <Compile Include="Commands\Advobot_Commands_Miscellaneous.cs" />
     <Compile Include="Advobot_Command_Handler.cs" />
@@ -268,7 +290,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="blep shibe.ico" />
+    <Content Include="HappyBOYE.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

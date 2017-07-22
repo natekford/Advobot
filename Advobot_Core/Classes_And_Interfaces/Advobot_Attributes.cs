@@ -1,4 +1,6 @@
 ﻿using Advobot.Actions;
+using Advobot.Enums;
+using Advobot.NonSavedClasses;
 using Discord;
 using Discord.Commands;
 using System;
@@ -66,11 +68,11 @@ namespace Advobot
 
 			public string AllText
 			{
-				get { return String.Join(" & ", Gets.GetPermissionNames(_AllFlags)); }
+				get { return String.Join(" & ", GetActions.GetPermissionNames(_AllFlags)); }
 			}
 			public string AnyText
 			{
-				get { return String.Join(" | ", Gets.GetPermissionNames(_AnyFlags)); }
+				get { return String.Join(" | ", GetActions.GetPermissionNames(_AnyFlags)); }
 			}
 		}
 
@@ -176,7 +178,7 @@ namespace Advobot
 			{
 				//Use the first alias since that's what group gets set as (could use any alias since GetCommand works for aliases too)
 				//Doing a split since subcommands (in this bot's case) are simply easy to use options on a single command
-				var cmd = Gets.GetCommand(context.GuildSettings, command.Aliases[0].Split(' ')[0]);
+				var cmd = GetActions.GetCommand(context.GuildSettings, command.Aliases[0].Split(' ')[0]);
 				if (!cmd.ValAsBoolean)
 				{
 					return false;
@@ -248,31 +250,31 @@ namespace Advobot
 		[AttributeUsage(AttributeTargets.Parameter)]
 		public class VerifyObjectAttribute : ParameterPreconditionAttribute
 		{
-			private readonly bool _IfNullDrawFromContext;
+			private readonly bool _IfNullCheckFromContext;
 			private readonly ObjectVerification[] _Checks;
 
-			public VerifyObjectAttribute(bool ifNullDrawFromContext, params ObjectVerification[] checks)
+			public VerifyObjectAttribute(bool ifNullCheckFromContext, params ObjectVerification[] checks)
 			{
-				_IfNullDrawFromContext = ifNullDrawFromContext;
+				_IfNullCheckFromContext = ifNullCheckFromContext;
 				_Checks = checks;
 			}
 
-			public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
+			public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 			{
 				//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
-				if (value == null && !_IfNullDrawFromContext)
+				if (value == null && !_IfNullCheckFromContext)
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
 
-				return Task.FromResult(GetPreconditionResult(context, value));
+				return Task.FromResult(GetPreconditionResult(context, value, parameter.Type));
 			}
 
-			private PreconditionResult GetPreconditionResult(ICommandContext context, System.Collections.IEnumerable list)
+			private PreconditionResult GetPreconditionResult(ICommandContext context, System.Collections.IEnumerable list, Type type)
 			{
 				foreach (var item in list)
 				{
-					var preconditionResult = GetPreconditionResult(context, item);
+					var preconditionResult = GetPreconditionResult(context, item, item.GetType());
 					if (!preconditionResult.IsSuccess)
 					{
 						return preconditionResult;
@@ -281,38 +283,39 @@ namespace Advobot
 
 				return PreconditionResult.FromSuccess();
 			}
-			private PreconditionResult GetPreconditionResult(ICommandContext context, object value)
+			private PreconditionResult GetPreconditionResult(ICommandContext context, object value, Type type)
 			{
 				FailureReason failureReason = default(FailureReason);
 				object obj = null;
-				if (value is ITextChannel)
+
+				if (type == typeof(ITextChannel))
 				{
-					var returned = Channels.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.Channel) as IGuildChannel);
+					var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.Channel) as IGuildChannel);
 					failureReason = returned.Reason;
 					obj = returned.Object;
 				}
-				else if (value is IVoiceChannel)
+				else if (type == typeof(IVoiceChannel))
 				{
-					var returned = Channels.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel);
+					var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel);
 					failureReason = returned.Reason;
 					obj = returned.Object;
 				}
-				else if (value is IGuildUser)
+				else if (type == typeof(IGuildUser))
 				{
-					var returned = Users.GetGuildUser(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.User) as IGuildUser);
+					var returned = UserActions.GetGuildUser(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.User) as IGuildUser);
 					failureReason = returned.Reason;
 					obj = returned.Object;
 				}
-				else if (value is IRole)
+				else if (type == typeof(IRole))
 				{
-					var returned = Roles.GetRole(context.Guild, context.User as IGuildUser, _Checks, value as IRole);
+					var returned = RoleActions.GetRole(context.Guild, context.User as IGuildUser, _Checks, value as IRole);
 					failureReason = returned.Reason;
 					obj = returned.Object;
 				}
 
 				if (failureReason != FailureReason.NotFailure)
 				{
-					return PreconditionResult.FromError(Actions.Formatting.FormatErrorString(context.Guild, failureReason, obj));
+					return PreconditionResult.FromError(FormattingActions.FormatErrorString(context.Guild, failureReason, obj));
 				}
 				else
 				{

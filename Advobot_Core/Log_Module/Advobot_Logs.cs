@@ -1,4 +1,9 @@
 ﻿using Advobot.Actions;
+using Advobot.Enums;
+using Advobot.Interfaces;
+using Advobot.NonSavedClasses;
+using Advobot.SavedClasses;
+using Advobot.Structs;
 using Discord;
 using Discord.WebSocket;
 using System;
@@ -50,33 +55,33 @@ namespace Advobot
 			{
 				Log = new MyLog(client, botSettings, guildSettings, this, timers);
 
-				client.Log += Log.Log;
-				client.GuildAvailable += Log.OnGuildAvailable;
-				client.GuildUnavailable += Log.OnGuildUnavailable;
-				client.JoinedGuild += Log.OnJoinedGuild;
-				client.LeftGuild += Log.OnLeftGuild;
-				client.UserJoined += Log.OnUserJoined;
-				client.UserLeft += Log.OnUserLeft;
-				client.UserUpdated += Log.OnUserUpdated;
-				client.MessageReceived += Log.OnMessageReceived;
-				client.MessageUpdated += Log.OnMessageUpdated;
-				client.MessageDeleted += Log.OnMessageDeleted;
+				client.Log						+= Log.Log;
+				client.GuildAvailable			+= Log.OnGuildAvailable;
+				client.GuildUnavailable			+= Log.OnGuildUnavailable;
+				client.JoinedGuild				+= Log.OnJoinedGuild;
+				client.LeftGuild				+= Log.OnLeftGuild;
+				client.UserJoined				+= Log.OnUserJoined;
+				client.UserLeft					+= Log.OnUserLeft;
+				client.UserUpdated				+= Log.OnUserUpdated;
+				client.MessageReceived			+= Log.OnMessageReceived;
+				client.MessageUpdated			+= Log.OnMessageUpdated;
+				client.MessageDeleted			+= Log.OnMessageDeleted;
 			}
 			private void CreateLogHolder(DiscordShardedClient client, IBotSettings botSettings, IGuildSettingsModule guildSettings, ITimersModule timers)
 			{
 				Log = new MyLog(client, botSettings, guildSettings, this, timers);
 
-				client.Log += Log.Log;
-				client.GuildAvailable += Log.OnGuildAvailable;
-				client.GuildUnavailable += Log.OnGuildUnavailable;
-				client.JoinedGuild += Log.OnJoinedGuild;
-				client.LeftGuild += Log.OnLeftGuild;
-				client.UserJoined += Log.OnUserJoined;
-				client.UserLeft += Log.OnUserLeft;
-				client.UserUpdated += Log.OnUserUpdated;
-				client.MessageReceived += Log.OnMessageReceived;
-				client.MessageUpdated += Log.OnMessageUpdated;
-				client.MessageDeleted += Log.OnMessageDeleted;
+				client.Log						+= Log.Log;
+				client.GuildAvailable			+= Log.OnGuildAvailable;
+				client.GuildUnavailable			+= Log.OnGuildUnavailable;
+				client.JoinedGuild				+= Log.OnJoinedGuild;
+				client.LeftGuild				+= Log.OnLeftGuild;
+				client.UserJoined				+= Log.OnUserJoined;
+				client.UserLeft					+= Log.OnUserLeft;
+				client.UserUpdated				+= Log.OnUserUpdated;
+				client.MessageReceived			+= Log.OnMessageReceived;
+				client.MessageUpdated			+= Log.OnMessageUpdated;
+				client.MessageDeleted			+= Log.OnMessageDeleted;
 			}
 
 			public void AddUsers(int users)
@@ -163,9 +168,9 @@ namespace Advobot
 				var leftSpacing = maxNumLen;
 				var rightSpacing = maxStrLen + 1;
 
-				var attempted = Formatting.FormatStringsWithLength(aStr, a, rightSpacing, leftSpacing);
-				var successful = Formatting.FormatStringsWithLength(sStr, s, rightSpacing, leftSpacing);
-				var failed = Formatting.FormatStringsWithLength(fStr, f, rightSpacing, leftSpacing);
+				var attempted = FormattingActions.FormatStringsWithLength(aStr, a, rightSpacing, leftSpacing);
+				var successful = FormattingActions.FormatStringsWithLength(sStr, s, rightSpacing, leftSpacing);
+				var failed = FormattingActions.FormatStringsWithLength(fStr, f, rightSpacing, leftSpacing);
 				return String.Join("\n", new[] { attempted, successful, failed });
 			}
 			public string FormatLoggedActions()
@@ -190,14 +195,14 @@ namespace Advobot
 				const string fTitle = "**Files:**";
 				var rightSpacing = new[] { jTitle, lTitle, uTitle, eTitle, dTitle, iTitle, gTitle, fTitle }.Max(x => x.Length) + 1;
 
-				var joins = Formatting.FormatStringsWithLength(jTitle, j, rightSpacing, leftSpacing);
-				var leaves = Formatting.FormatStringsWithLength(lTitle, l, rightSpacing, leftSpacing);
-				var userChanges = Formatting.FormatStringsWithLength(uTitle, u, rightSpacing, leftSpacing);
-				var edits = Formatting.FormatStringsWithLength(eTitle, e, rightSpacing, leftSpacing);
-				var deletes = Formatting.FormatStringsWithLength(dTitle, d, rightSpacing, leftSpacing);
-				var images = Formatting.FormatStringsWithLength(iTitle, i, rightSpacing, leftSpacing);
-				var gifs = Formatting.FormatStringsWithLength(gTitle, g, rightSpacing, leftSpacing);
-				var files = Formatting.FormatStringsWithLength(fTitle, f, rightSpacing, leftSpacing);
+				var joins = FormattingActions.FormatStringsWithLength(jTitle, j, rightSpacing, leftSpacing);
+				var leaves = FormattingActions.FormatStringsWithLength(lTitle, l, rightSpacing, leftSpacing);
+				var userChanges = FormattingActions.FormatStringsWithLength(uTitle, u, rightSpacing, leftSpacing);
+				var edits = FormattingActions.FormatStringsWithLength(eTitle, e, rightSpacing, leftSpacing);
+				var deletes = FormattingActions.FormatStringsWithLength(dTitle, d, rightSpacing, leftSpacing);
+				var images = FormattingActions.FormatStringsWithLength(iTitle, i, rightSpacing, leftSpacing);
+				var gifs = FormattingActions.FormatStringsWithLength(gTitle, g, rightSpacing, leftSpacing);
+				var files = FormattingActions.FormatStringsWithLength(fTitle, f, rightSpacing, leftSpacing);
 				return String.Join("\n", new[] { joins, leaves, userChanges, edits, deletes, images, gifs, files });
 			}
 		}
@@ -219,6 +224,7 @@ namespace Advobot
 				Timers = timers;
 			}
 
+			//Bot
 			public Task Log(LogMessage msg)
 			{
 				if (!String.IsNullOrWhiteSpace(msg.Message))
@@ -231,7 +237,7 @@ namespace Advobot
 			public async Task OnGuildAvailable(SocketGuild guild)
 			{
 				ConsoleActions.WriteLine(String.Format("{0} is now online on shard {1}.", guild.FormatGuild(), ClientActions.GetShardIdFor(Client, guild)));
-				ConsoleActions.WriteLine(String.Format("Current memory usage is: {0}MB.", Gets.GetMemory(BotSettings.Windows).ToString("0.00")));
+				ConsoleActions.WriteLine(String.Format("Current memory usage is: {0}MB.", GetActions.GetMemory(BotSettings.Windows).ToString("0.00")));
 				Logging.AddUsers(guild.MemberCount);
 				Logging.IncrementGuilds();
 
@@ -306,6 +312,7 @@ namespace Advobot
 				return Task.CompletedTask;
 			}
 
+			//Server
 			public async Task OnUserJoined(SocketGuildUser user)
 			{
 				Logging.IncrementUsers();
@@ -321,7 +328,7 @@ namespace Advobot
 						await OtherLogActions.HandleJoiningUsers(Timers, guildSettings, user);
 					}
 
-					var curInv = await Invites.GetInviteUserJoinedOn(guildSettings, guild);
+					var curInv = await InviteActions.GetInviteUserJoinedOn(guildSettings, guild);
 					var inviteStr = curInv != null ? String.Format("\n**Invite:** {0}", curInv.Code) : "";
 					var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
 					var ageWarningStr = userAccAge.TotalHours <= 24 ? String.Format("\n**New Account:** {0} hours, {1} minutes old.", (int)userAccAge.TotalHours, (int)userAccAge.Minutes) : "";
@@ -330,20 +337,20 @@ namespace Advobot
 					//Bans people who join with a given word in their name
 					if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
 					{
-						await Punishments.AutomaticBan(guild, user.Id, "banned name");
+						await PunishmentActions.AutomaticBan(guild, user.Id, "banned name");
 						return;
 					}
 					//Welcome message
 					else
 					{
-						await Messages.SendGuildNotification(user, guildSettings.WelcomeMessage);
+						await MessageActions.SendGuildNotification(user, guildSettings.WelcomeMessage);
 					}
 
 					{
-						var embed = Embeds.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.JOIN);
-						Embeds.AddFooter(embed, String.Format("{0} Joined", botOrUserStr));
-						Embeds.AddAuthor(embed, user);
-						await Messages.SendEmbedMessage(serverLog, embed);
+						var embed = EmbedActions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.JOIN);
+						EmbedActions.AddFooter(embed, String.Format("{0} Joined", botOrUserStr));
+						EmbedActions.AddAuthor(embed, user);
+						await MessageActions.SendEmbedMessage(serverLog, embed);
 					}
 
 					Logging.IncrementJoins();
@@ -378,7 +385,7 @@ namespace Advobot
 					if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
 						return;
 
-					await Messages.SendGuildNotification(user, guildSettings.GoodbyeMessage);
+					await MessageActions.SendGuildNotification(user, guildSettings.GoodbyeMessage);
 
 					var lengthStayed = "";
 					if (user.JoinedAt.HasValue)
@@ -388,10 +395,10 @@ namespace Advobot
 					}
 					var botOrUserStr = user.IsBot ? "Bot" : "User";
 
-					var embed = Embeds.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
-					Embeds.AddFooter(embed, String.Format("{0} Left", botOrUserStr));
-					Embeds.AddAuthor(embed, user);
-					await Messages.SendEmbedMessage(serverLog, embed);
+					var embed = EmbedActions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, lengthStayed), Constants.LEAV);
+					EmbedActions.AddFooter(embed, String.Format("{0} Left", botOrUserStr));
+					EmbedActions.AddAuthor(embed, user);
+					await MessageActions.SendEmbedMessage(serverLog, embed);
 
 					Logging.IncrementLeaves();
 				}
@@ -414,12 +421,12 @@ namespace Advobot
 							var guildSettings = verified.GuildSettings;
 							var serverLog = verified.LoggingChannel;
 
-							var embed = Embeds.MakeNewEmbed(null, null, Constants.UEDT);
-							Embeds.AddFooter(embed, "Name Changed");
-							Embeds.AddField(embed, "Before:", "`" + beforeUser.Username + "`");
-							Embeds.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
-							Embeds.AddAuthor(embed, afterUser);
-							await Messages.SendEmbedMessage(serverLog, embed);
+							var embed = EmbedActions.MakeNewEmbed(null, null, Constants.UEDT);
+							EmbedActions.AddFooter(embed, "Name Changed");
+							EmbedActions.AddField(embed, "Before:", "`" + beforeUser.Username + "`");
+							EmbedActions.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
+							EmbedActions.AddAuthor(embed, afterUser);
+							await MessageActions.SendEmbedMessage(serverLog, embed);
 
 							Logging.IncrementUserChanges();
 						}
@@ -462,12 +469,12 @@ namespace Advobot
 					if (!OtherLogActions.VerifyMessageShouldBeLogged(guildSettings, afterMessage))
 						return;
 
-					await Spam.HandleBannedPhrases(Timers, guildSettings, guild, afterMessage);
+					await SpamActions.HandleBannedPhrases(Timers, guildSettings, guild, afterMessage);
 
 					if (serverLog != null)
 					{
-						var beforeMsgContent = Formatting.RemoveMarkdownChars(beforeMessage?.Content ?? "", true);
-						var afterMsgContent = Formatting.RemoveMarkdownChars(afterMessage.Content, true);
+						var beforeMsgContent = FormattingActions.RemoveMarkdownChars(beforeMessage?.Content ?? "", true);
+						var afterMsgContent = FormattingActions.RemoveMarkdownChars(afterMessage.Content, true);
 						beforeMsgContent = String.IsNullOrWhiteSpace(beforeMsgContent) ? "Empty or unable to be gotten." : beforeMsgContent;
 						afterMsgContent = String.IsNullOrWhiteSpace(afterMsgContent) ? "Empty or unable to be gotten." : afterMsgContent;
 
@@ -481,12 +488,12 @@ namespace Advobot
 							afterMsgContent = afterMsgContent.Length > 667 ? "LONG MESSAGE" : afterMsgContent;
 						}
 
-						var embed = Embeds.MakeNewEmbed(null, null, Constants.MEDT);
-						Embeds.AddFooter(embed, "Message Updated");
-						Embeds.AddField(embed, "Before:", String.Format("`{0}`", beforeMsgContent));
-						Embeds.AddField(embed, "After:", String.Format("`{0}`", afterMsgContent), false);
-						Embeds.AddAuthor(embed, afterMessage.Author);
-						await Messages.SendEmbedMessage(serverLog, embed);
+						var embed = EmbedActions.MakeNewEmbed(null, null, Constants.MEDT);
+						EmbedActions.AddFooter(embed, "Message Updated");
+						EmbedActions.AddField(embed, "Before:", String.Format("`{0}`", beforeMsgContent));
+						EmbedActions.AddField(embed, "After:", String.Format("`{0}`", afterMsgContent), false);
+						EmbedActions.AddAuthor(embed, afterMessage.Author);
+						await MessageActions.SendEmbedMessage(serverLog, embed);
 
 						Logging.IncrementEdits();
 					}
@@ -512,7 +519,7 @@ namespace Advobot
 					var beforeMessage = cached.HasValue ? cached.Value : null;
 					if (OtherLogActions.VerifyMessageShouldBeLogged(guildSettings, afterMessage))
 					{
-						await Spam.HandleBannedPhrases(Timers, guildSettings, guild, afterMessage);
+						await SpamActions.HandleBannedPhrases(Timers, guildSettings, guild, afterMessage);
 					}
 				}
 			}
@@ -570,18 +577,19 @@ namespace Advobot
 						}
 
 						//Put the message content into a list of strings for easy usage
-						var formattedMessages = Formatting.FormatMessages(deletedMessages.OrderBy(x => x?.CreatedAt.Ticks));
-						await Messages.SendMessageContainingFormattedDeletedMessages(guild, serverLog, formattedMessages);
+						var formattedMessages = FormattingActions.FormatMessages(deletedMessages.OrderBy(x => x?.CreatedAt.Ticks));
+						await MessageActions.SendMessageContainingFormattedDeletedMessages(guild, serverLog, formattedMessages);
 					});
 				}
 
 				return Task.FromResult(0);
 			}
 
+			//Mod
 			public async Task LogCommand(IMyCommandContext context)
 			{
 				ConsoleActions.WriteLine(new LoggedCommand(context).ToString());
-				await Messages.DeleteMessage(context.Message);
+				await MessageActions.DeleteMessage(context.Message);
 
 				if (OtherLogActions.VerifyMessageShouldBeLogged(context.GuildSettings, context.Message))
 				{
@@ -589,10 +597,10 @@ namespace Advobot
 					if (modLog == null)
 						return;
 
-					var embed = Embeds.MakeNewEmbed(null, context.Message.Content);
-					Embeds.AddFooter(embed, "Mod Log");
-					Embeds.AddAuthor(embed, context.User);
-					await Messages.SendEmbedMessage(modLog, embed);
+					var embed = EmbedActions.MakeNewEmbed(null, context.Message.Content);
+					EmbedActions.AddFooter(embed, "Mod Log");
+					EmbedActions.AddAuthor(embed, context.User);
+					await MessageActions.SendEmbedMessage(modLog, embed);
 				}
 			}
 		}
@@ -604,7 +612,7 @@ namespace Advobot
 				if (message.Content.Equals(Properties.Settings.Default.BotKey) && botSettings.BotOwnerId == 0)
 				{
 					botSettings.BotOwnerId = message.Author.Id;
-					await Messages.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
+					await MessageActions.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
 				}
 			}
 			public static async Task HandleChannelSettings(IGuildSettings guildSettings, IMessage message)
@@ -646,30 +654,30 @@ namespace Advobot
 					var closeWordList = timers.GetOutActiveCloseQuote(message.Author.Id);
 					if (!closeWordList.Equals(default(ActiveCloseWord<Quote>)) && closeWordList.List.Count > number)
 					{
-						await Messages.SendChannelMessage(message.Channel, closeWordList.List[number].Word.Text);
-						await Messages.DeleteMessage(message);
+						await MessageActions.SendChannelMessage(message.Channel, closeWordList.List[number].Word.Text);
+						await MessageActions.DeleteMessage(message);
 					}
 					var closeHelpList = timers.GetOutActiveCloseHelp(message.Author.Id);
 					if (!closeHelpList.Equals(default(ActiveCloseWord<HelpEntry>)) && closeHelpList.List.Count > number)
 					{
 						var help = closeHelpList.List[number].Word;
-						var embed = Embeds.MakeNewEmbed(help.Name, help.ToString());
-						Embeds.AddFooter(embed, "Help");
-						await Messages.SendEmbedMessage(message.Channel, embed);
-						await Messages.DeleteMessage(message);
+						var embed = EmbedActions.MakeNewEmbed(help.Name, help.ToString());
+						EmbedActions.AddFooter(embed, "Help");
+						await MessageActions.SendEmbedMessage(message.Channel, embed);
+						await MessageActions.DeleteMessage(message);
 					}
 				}
 			}
 			public static async Task HandleSlowmodeOrBannedPhrases(IGuildSettings guildSettings, SocketGuild guild, IMessage message, ITimersModule timers = null)
 			{
-				await Spam.HandleSlowmode(guildSettings, message);
-				await Spam.HandleBannedPhrases(timers, guildSettings, guild, message);
+				await SpamActions.HandleSlowmode(guildSettings, message);
+				await SpamActions.HandleBannedPhrases(timers, guildSettings, guild, message);
 			}
 			public static async Task HandleSpamPrevention(IGuildSettings guildSettings, SocketGuild guild, IMessage message, ITimersModule timers  = null)
 			{
-				if (Users.GetIfUserCanBeModifiedByUser(Users.GetBot(guild), message.Author))
+				if (UserActions.GetIfUserCanBeModifiedByUser(UserActions.GetBot(guild), message.Author))
 				{
-					await Spam.HandleSpamPrevention(guildSettings, guild, message.Author as IGuildUser, message, timers);
+					await SpamActions.HandleSpamPrevention(guildSettings, guild, message.Author as IGuildUser, message, timers);
 				}
 			}
 			public static async Task HandleSpamPreventionVoting(IGuildSettings guildSettings, SocketGuild guild, IMessage message, ITimersModule timers = null)
@@ -742,10 +750,10 @@ namespace Advobot
 					if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentURL)))
 					{
 						var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
-						var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
-						Embeds.AddFooter(embed, "Attached Image");
-						Embeds.AddAuthor(embed, message.Author, attachmentURL);
-						await Messages.SendEmbedMessage(channel, embed);
+						var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
+						EmbedActions.AddFooter(embed, "Attached Image");
+						EmbedActions.AddAuthor(embed, message.Author, attachmentURL);
+						await MessageActions.SendEmbedMessage(channel, embed);
 
 						currentLogModule.IncrementImages();
 					}
@@ -753,10 +761,10 @@ namespace Advobot
 					else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL)))
 					{
 						var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
-						var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
-						Embeds.AddFooter(embed, "Attached Gif");
-						Embeds.AddAuthor(embed, message.Author, attachmentURL);
-						await Messages.SendEmbedMessage(channel, embed);
+						var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
+						EmbedActions.AddFooter(embed, "Attached Gif");
+						EmbedActions.AddAuthor(embed, message.Author, attachmentURL);
+						await MessageActions.SendEmbedMessage(channel, embed);
 
 						currentLogModule.IncrementGifs();
 					}
@@ -764,10 +772,10 @@ namespace Advobot
 					else
 					{
 						var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
-						var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
-						Embeds.AddFooter(embed, "Attached File");
-						Embeds.AddAuthor(embed, message.Author, attachmentURL);
-						await Messages.SendEmbedMessage(channel, embed);
+						var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
+						EmbedActions.AddFooter(embed, "Attached File");
+						EmbedActions.AddAuthor(embed, message.Author, attachmentURL);
+						await MessageActions.SendEmbedMessage(channel, embed);
 
 						currentLogModule.IncrementFiles();
 					}
@@ -776,10 +784,10 @@ namespace Advobot
 				foreach (var embedURL in embedURLs.Distinct())
 				{
 					var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
-					var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, embedURL);
-					Embeds.AddFooter(embed, "Embedded Image");
-					Embeds.AddAuthor(embed, message.Author, embedURL);
-					await Messages.SendEmbedMessage(channel, embed);
+					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, embedURL);
+					EmbedActions.AddFooter(embed, "Embedded Image");
+					EmbedActions.AddAuthor(embed, message.Author, embedURL);
+					await MessageActions.SendEmbedMessage(channel, embed);
 
 					currentLogModule.IncrementImages();
 				}
@@ -787,10 +795,10 @@ namespace Advobot
 				foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First()))
 				{
 					var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
-					var embed = Embeds.MakeNewEmbed(null, desc, Constants.ATCH, videoEmbed.Thumbnail?.Url);
-					Embeds.AddFooter(embed, "Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
-					Embeds.AddAuthor(embed, message.Author, videoEmbed.Url);
-					await Messages.SendEmbedMessage(channel, embed);
+					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, videoEmbed.Thumbnail?.Url);
+					EmbedActions.AddFooter(embed, "Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
+					EmbedActions.AddAuthor(embed, message.Author, videoEmbed.Url);
+					await MessageActions.SendEmbedMessage(channel, embed);
 
 					currentLogModule.IncrementGifs();
 				}
@@ -830,7 +838,7 @@ namespace Advobot
 							await antiJoin.RaidPreventionPunishment(guildSettings, user, timers);
 							if (guildSettings.ServerLog != null)
 							{
-								await Messages.SendEmbedMessage(guildSettings.ServerLog, Embeds.MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
+								await MessageActions.SendEmbedMessage(guildSettings.ServerLog, EmbedActions.MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
 							}
 						}
 					}

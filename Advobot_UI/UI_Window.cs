@@ -1,6 +1,9 @@
 ﻿using Advobot.Actions;
+using Advobot.Enums;
 using Advobot.Graphics.Colors;
 using Advobot.Graphics.HelperFunctions;
+using Advobot.Interfaces;
+using Advobot.Structs;
 using Discord;
 using ICSharpCode.AvalonEdit;
 using System;
@@ -211,7 +214,6 @@ namespace Advobot
 				private readonly Viewbox _Threads = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
 				private readonly Viewbox _Guilds = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
 				private readonly Viewbox _Users = new Viewbox { Child = UIModification.MakeSysInfoBox(), };
-				private readonly ToolTip _MemHoverInfo = new ToolTip { Content = "This is not guaranteed to be 100% correct.", };
 				#endregion
 
 				public MyWindow(IServiceProvider provider)
@@ -364,11 +366,11 @@ namespace Advobot
 
 					Task.Run(async () =>
 					{
-						if (SavingAndLoading.ValidatePath(Misc.GetSavePath(), botSettings.Windows, true))
+						if (SavingAndLoadingActions.ValidatePath(MiscActions.GetSavePath(), botSettings.Windows, true))
 						{
 							botSettings.SetGotPath();
 						}
-						if (await SavingAndLoading.ValidateBotKey(client, Misc.GetBotKey(), true))
+						if (await SavingAndLoadingActions.ValidateBotKey(client, MiscActions.GetBotKey(), true))
 						{
 							botSettings.SetGotKey();
 						}
@@ -391,11 +393,11 @@ namespace Advobot
 						}
 
 						((TextBox)_Latency.Child).Text = String.Format("Latency: {0}ms", ClientActions.GetLatency(client));
-						((TextBox)_Memory.Child).Text = String.Format("Memory: {0}MB", Gets.GetMemory(botSettings.Windows).ToString("0.00"));
+						((TextBox)_Memory.Child).Text = String.Format("Memory: {0}MB", GetActions.GetMemory(botSettings.Windows).ToString("0.00"));
 						((TextBox)_Threads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
 						((TextBox)_Guilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
 						((TextBox)_Users.Child).Text = String.Format("Members: {0}", userIDs.Distinct().Count());
-						_InfoOutput.Document = UIModification.MakeInfoMenu(Gets.GetUptime(botSettings), logging.FormatLoggedCommands(), logging.FormatLoggedActions());
+						_InfoOutput.Document = UIModification.MakeInfoMenu(GetActions.GetUptime(botSettings), logging.FormatLoggedCommands(), logging.FormatLoggedActions());
 					};
 					timer.Start();
 				}
@@ -403,44 +405,44 @@ namespace Advobot
 				private void HookUpEvents(UISettings uiSettings, IDiscordClient client, IBotSettings botSettings)
 				{
 					//Bot status
-					_PauseButton.Click += (sender, e) => Pause(sender, e, botSettings);
-					_RestartButton.Click += Restart;
-					_DisconnectButton.Click += Disconnect;
+					_PauseButton.Click								+= (sender, e) => Pause(sender, e, botSettings);
+					_RestartButton.Click							+= Restart;
+					_DisconnectButton.Click							+= Disconnect;
 
 					//Settings
-					_SettingsSaveButton.Click += (sender, e) => SaveSettings(sender, e, client, botSettings);
-					_ColorsSaveButton.Click += (sender, e) => SaveColors(sender, e, uiSettings);
-					_TrustedUsersRemoveButton.Click += RemoveTrustedUser;
-					_TrustedUsersAddButton.Click += (sender, e) => AddTrustedUser(sender, e, client);
+					_SettingsSaveButton.Click						+= (sender, e) => SaveSettings(sender, e, client, botSettings);
+					_ColorsSaveButton.Click							+= (sender, e) => SaveColors(sender, e, uiSettings);
+					_TrustedUsersRemoveButton.Click					+= RemoveTrustedUser;
+					_TrustedUsersAddButton.Click					+= (sender, e) => AddTrustedUser(sender, e, client);
 
 					//Input
-					_Input.KeyUp += (sender, e) => AcceptInput(sender, e, client, botSettings);
-					_InputButton.Click += (sender, e) => AcceptInput(sender, e, client, botSettings);
+					_Input.KeyUp									+= (sender, e) => AcceptInput(sender, e, client, botSettings);
+					_InputButton.Click								+= (sender, e) => AcceptInput(sender, e, client, botSettings);
 
 					//Output
-					_OutputContextMenuSave.Click += SaveOutput;
-					_OutputContextMenuClear.Click += ClearOutput;
-					_OutputContextMenuSearch.Click += OpenOutputSearch;
+					_OutputContextMenuSave.Click					+= SaveOutput;
+					_OutputContextMenuClear.Click					+= ClearOutput;
+					_OutputContextMenuSearch.Click					+= OpenOutputSearch;
 
 					//Output search
-					_OutputSearchCloseButton.Click += CloseOutputSearch;
-					_OutputSearchButton.Click += SearchOutput;
+					_OutputSearchCloseButton.Click					+= CloseOutputSearch;
+					_OutputSearchButton.Click						+= SearchOutput;
 
 					//File
-					_FileSearchButton.Click += OpenFileSearch;
-					_GuildSearchSearchButton.Click += SearchForFile;
-					_GuildSearchCloseButton.Click += CloseFileSearch;
+					_FileSearchButton.Click							+= OpenFileSearch;
+					_GuildSearchSearchButton.Click					+= SearchForFile;
+					_GuildSearchCloseButton.Click					+= CloseFileSearch;
 
 					//Specific file
-					_SpecificFileCloseButton.Click += CloseSpecificFileLayout;
-					_SpecificFileContextMenuSave.Click += SaveSpecificFile;
+					_SpecificFileCloseButton.Click					+= CloseSpecificFileLayout;
+					_SpecificFileContextMenuSave.Click				+= SaveSpecificFile;
 
 					//Menu
-					_MainButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
-					_SettingsButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
-					_ColorsButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
-					_InfoButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
-					_FileButton.Click += (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+					_MainButton.Click								+= (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+					_SettingsButton.Click							+= (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+					_ColorsButton.Click								+= (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+					_InfoButton.Click								+= (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
+					_FileButton.Click								+= (sender, e) => OpenMenu(sender, e, uiSettings, client, botSettings);
 				}
 				private void Pause(object sender, RoutedEventArgs e, IBotSettings botSettings)
 				{
@@ -452,7 +454,7 @@ namespace Advobot
 					{
 						case MessageBoxResult.OK:
 						{
-							Misc.RestartBot();
+							MiscActions.RestartBot();
 							return;
 						}
 					}
@@ -463,7 +465,7 @@ namespace Advobot
 					{
 						case MessageBoxResult.OK:
 						{
-							Misc.DisconnectBot();
+							MiscActions.DisconnectBot();
 							return;
 						}
 					}
@@ -634,7 +636,7 @@ namespace Advobot
 							return;
 						}
 
-						guild = _FileTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x => ((GuildFileInformation)x.Tag).ID == guildID);
+						guild = _FileTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x => ((GuildFileInformation)x.Tag).Id == guildID);
 						if (guild == null)
 						{
 							ConsoleActions.WriteLine(String.Format("No guild could be found with the ID '{0}'.", guildID));
@@ -765,7 +767,7 @@ namespace Advobot
 				{
 					((CheckBox)((Viewbox)_DownloadUsersSetting.Setting).Child).IsChecked = botSettings.AlwaysDownloadUsers;
 					((TextBox)_PrefixSetting.Setting).Text = botSettings.Prefix;
-					((TextBox)_BotOwnerSetting.Setting).Text = botSettings.BotOwnerID.ToString();
+					((TextBox)_BotOwnerSetting.Setting).Text = botSettings.BotOwnerId.ToString();
 					((TextBox)_GameSetting.Setting).Text = botSettings.Game;
 					((TextBox)_StreamSetting.Setting).Text = botSettings.Stream;
 					((TextBox)_ShardSetting.Setting).Text = botSettings.ShardCount.ToString();

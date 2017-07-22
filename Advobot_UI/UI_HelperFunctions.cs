@@ -1,6 +1,9 @@
 ﻿using Advobot.Actions;
+using Advobot.Enums;
 using Advobot.Graphics.Colors;
 using Advobot.Graphics.UserInterface;
+using Advobot.Interfaces;
+using Advobot.Structs;
 using Discord;
 using ICSharpCode.AvalonEdit;
 using Newtonsoft.Json;
@@ -85,7 +88,7 @@ namespace Advobot
 							{
 								continue;
 							}
-							if (element is MyButton)
+							else if (element is MyButton)
 							{
 								SwitchElementColor((MyButton)element);
 							}
@@ -94,7 +97,6 @@ namespace Advobot
 								SwitchElementColor((Control)element);
 							}
 						}
-						SetColorMode(element);
 					}
 				}
 				public static void SwitchElementColor(Control element)
@@ -128,10 +130,10 @@ namespace Advobot
 						element.SetResourceReference(Control.ForegroundProperty, ColorTarget.Base_Foreground);
 					}
 				}
-				public static void SwitchElementColor(object element) { }
 
 				public static Style MakeButtonStyle(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB, Brush mouseOverBG)
 				{
+					//Yes, this is basically the old XAML of a button put into code.
 					var templateContentPresenter = new FrameworkElementFactory
 					{
 						Type = typeof(ContentPresenter),
@@ -177,42 +179,42 @@ namespace Advobot
 
 					var buttonFocusVisual = new Style();
 					new List<Setter>
-			{
-				new Setter
-				{
-					Property = Control.TemplateProperty,
-					Value = new ControlTemplate
 					{
-						VisualTree = buttonFocusBorder,
-					}
-				},
-			}.ForEach(x => buttonFocusVisual.Setters.Add(x));
+						new Setter
+						{
+							Property = Control.TemplateProperty,
+							Value = new ControlTemplate
+							{
+								VisualTree = buttonFocusBorder,
+							}
+						},
+					}.ForEach(x => buttonFocusVisual.Setters.Add(x));
 
 					//Add in the template
 					var buttonStyle = new Style();
 					new List<Setter>
-			{
-				new Setter
-				{
-					Property = Button.SnapsToDevicePixelsProperty,
-					Value = true,
-				},
-				new Setter
-				{
-					Property = Button.OverridesDefaultStyleProperty,
-					Value = true,
-				},
-				new Setter
-				{
-					Property = Button.FocusVisualStyleProperty,
-					Value = buttonFocusVisual,
-				},
-				new Setter
-				{
-					Property = Button.TemplateProperty,
-					Value = template,
-				},
-			}.ForEach(x => buttonStyle.Setters.Add(x));
+					{
+						new Setter
+						{
+							Property = Button.SnapsToDevicePixelsProperty,
+							Value = true,
+						},
+						new Setter
+						{
+							Property = Button.OverridesDefaultStyleProperty,
+							Value = true,
+						},
+						new Setter
+						{
+							Property = Button.FocusVisualStyleProperty,
+							Value = buttonFocusVisual,
+						},
+						new Setter
+						{
+							Property = Button.TemplateProperty,
+							Value = template,
+						},
+					}.ForEach(x => buttonStyle.Setters.Add(x));
 
 					return buttonStyle;
 				}
@@ -225,14 +227,14 @@ namespace Advobot
 						Value = true,
 					};
 					new List<Setter>
-			{
-				new Setter
-				{
-					TargetName = "Border",
-					Property = Border.BackgroundProperty,
-					Value = mouseOverBG,
-				},
-			}.ForEach(x => isMouseOverTrigger.Setters.Add(x));
+					{
+						new Setter
+						{
+							TargetName = "Border",
+							Property = Border.BackgroundProperty,
+							Value = mouseOverBG,
+						},
+					}.ForEach(x => isMouseOverTrigger.Setters.Add(x));
 
 					var isEnabledTrigger = new Trigger
 					{
@@ -240,25 +242,25 @@ namespace Advobot
 						Value = false,
 					};
 					new List<Setter>
-			{
-				new Setter
-				{
-					TargetName = "Border",
-					Property = Border.BackgroundProperty,
-					Value = disabledBG,
-				},
-				new Setter
-				{
-					TargetName = "Border",
-					Property = Border.BorderBrushProperty,
-					Value = disabledB,
-				},
-				new Setter
-				{
-					Property = Button.ForegroundProperty,
-					Value = disabledFG,
-				},
-			}.ForEach(x => isEnabledTrigger.Setters.Add(x));
+					{
+						new Setter
+						{
+							TargetName = "Border",
+							Property = Border.BackgroundProperty,
+							Value = disabledBG,
+						},
+						new Setter
+						{
+							TargetName = "Border",
+							Property = Border.BorderBrushProperty,
+							Value = disabledB,
+						},
+						new Setter
+						{
+							Property = Button.ForegroundProperty,
+							Value = disabledFG,
+						},
+					}.ForEach(x => isEnabledTrigger.Setters.Add(x));
 
 					return new List<Trigger> { isMouseOverTrigger, isEnabledTrigger };
 				}
@@ -432,9 +434,9 @@ namespace Advobot
 				public static Hyperlink MakeHyperlink(string link, string name)
 				{
 					//Make sure the input is a valid link
-					if (!Uploads.ValidateURL(link))
+					if (!UploadActions.ValidateURL(link))
 					{
-						ConsoleActions.WriteLine(Actions.Formatting.ERROR("Invalid URL."));
+						ConsoleActions.WriteLine(FormattingActions.ERROR("Invalid URL."));
 						return null;
 					}
 					//Create the hyperlink
@@ -539,7 +541,7 @@ namespace Advobot
 				public static TreeView MakeGuildTreeView(TreeView tv, IEnumerable<IGuild> guilds)
 				{
 					//Get the directory
-					var directory = Gets.GetBaseBotDirectory();
+					var directory = GetActions.GetBaseBotDirectory();
 					if (directory == null || !Directory.Exists(directory))
 						return tv;
 
@@ -569,7 +571,7 @@ namespace Advobot
 						var listOfFiles = new List<TreeViewItem>();
 						Directory.GetFiles(guildDir).ToList().ForEach(fileLoc =>
 						{
-							var fileType = Gets.GetFileType(Path.GetFileNameWithoutExtension(fileLoc));
+							var fileType = GetActions.GetFileType(Path.GetFileNameWithoutExtension(fileLoc));
 							if (!fileType.HasValue)
 								return;
 
@@ -666,7 +668,7 @@ namespace Advobot
 					var uptime = String.Format("Uptime: {0}", botUptime);
 					var cmds = String.Format("Logged Commands:\n{0}", formattedLoggedCommands);
 					var logs = String.Format("Logged Actions:\n{0}", formattedLoggedThings);
-					var str = Actions.Formatting.RemoveMarkdownChars(String.Format("{0}\r\r{1}\r\r{2}", uptime, cmds, logs), true);
+					var str = FormattingActions.RemoveMarkdownChars(String.Format("{0}\r\r{1}\r\r{2}", uptime, cmds, logs), true);
 					var paragraph = new Paragraph(new Run(str))
 					{
 						TextAlignment = TextAlignment.Center,
@@ -830,9 +832,9 @@ namespace Advobot
 							{
 								return false;
 							}
-							else if (botSettings.BotOwnerID != id)
+							else if (botSettings.BotOwnerId != id)
 							{
-								botSettings.BotOwnerID = id;
+								botSettings.BotOwnerId = id;
 							}
 							return true;
 						}
@@ -846,7 +848,7 @@ namespace Advobot
 						}
 						case SettingOnBot.Stream:
 						{
-							if (!Misc.MakeSureInputIsValidTwitchAccountName(text))
+							if (!MiscActions.MakeSureInputIsValidTwitchAccountName(text))
 							{
 								return false;
 							}
@@ -1018,7 +1020,7 @@ namespace Advobot
 				}
 				public static ToolTipReason SaveOutput(TextBox tb)
 				{
-					var path = Gets.GetBaseBotDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
+					var path = GetActions.GetBaseBotDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
 					if (String.IsNullOrWhiteSpace(path))
 					{
 						return ToolTipReason.FileSavingFailure;
@@ -1072,14 +1074,14 @@ namespace Advobot
 					{
 						if (!botSettings.GotPath)
 						{
-							if (SavingAndLoading.ValidatePath(input, botSettings.Windows))
+							if (SavingAndLoadingActions.ValidatePath(input, botSettings.Windows))
 							{
 								botSettings.SetGotPath();
 							}
 						}
 						else if (!botSettings.GotKey)
 						{
-							if (await SavingAndLoading.ValidateBotKey(client, input))
+							if (await SavingAndLoadingActions.ValidateBotKey(client, input))
 							{
 								botSettings.SetGotKey();
 							}
@@ -1187,8 +1189,8 @@ namespace Advobot
 					var resetInfo = false;
 					if (resetInfo)
 					{
-						Misc.ResetSettings();
-						Misc.DisconnectBot();
+						MiscActions.ResetSettings();
+						MiscActions.DisconnectBot();
 					}
 #endif
 				}

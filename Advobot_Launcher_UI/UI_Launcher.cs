@@ -1,6 +1,9 @@
 ﻿using Advobot.Actions;
 using Advobot.Graphics.UserInterface;
+using Advobot.Interfaces;
 using Advobot.Logging;
+using Advobot.NonSavedClasses;
+using Advobot.Timers;
 using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,9 +30,9 @@ namespace Advobot
 				return;
 #endif
 				//Things that when not loaded fuck the bot completely.
-				var criticalInfo = SavingAndLoading.LoadCriticalInformation();
+				var criticalInfo = SavingAndLoadingActions.LoadCriticalInformation();
 
-				IBotSettings botSettings = SavingAndLoading.CreateBotSettings(Constants.GLOBAL_SETTINGS_TYPE, criticalInfo.Windows, criticalInfo.Console, criticalInfo.FirstInstance);
+				IBotSettings botSettings = SavingAndLoadingActions.CreateBotSettings(Constants.GLOBAL_SETTINGS_TYPE, criticalInfo.Windows, criticalInfo.Console, criticalInfo.FirstInstance);
 				IGuildSettingsModule guildSettings = new MyGuildSettingsModule(Constants.GUILDS_SETTINGS_TYPE);
 				ITimersModule timers = new MyTimersModule(guildSettings);
 				IDiscordClient client = ClientActions.CreateBotClient(botSettings);

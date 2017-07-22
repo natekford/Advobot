@@ -1,21 +1,14 @@
-﻿using Advobot.Actions;
-using Advobot.Logging;
+﻿using Advobot.Enums;
+using Advobot.NonSavedClasses;
+using Advobot.RemovablePunishments;
+using Advobot.SavedClasses;
+using Advobot.Structs;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
-using System.Collections.Specialized;
-using System.Reflection;
 
 namespace Advobot
 {
