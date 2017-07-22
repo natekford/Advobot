@@ -132,7 +132,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Console_Launcher.cs" />
+    <Compile Include="Launcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
