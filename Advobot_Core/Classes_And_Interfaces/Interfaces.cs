@@ -187,7 +187,6 @@ namespace Advobot
 			IRole MuteRole { get; set; }
 			IReadOnlyDictionary<SpamType, SpamPrevention> SpamPreventionDictionary { get; set; }
 			IReadOnlyDictionary<RaidType, RaidPrevention> RaidPreventionDictionary { get; set; }
-			//TODO: give all of my own custom classes being saved in settings a custom interface
 			GuildNotification WelcomeMessage { get; set; }
 			GuildNotification GoodbyeMessage { get; set; }
 			ListedInvite ListedInvite { get; set; }

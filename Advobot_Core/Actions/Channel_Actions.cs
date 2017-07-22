@@ -209,21 +209,23 @@ namespace Advobot
 					throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
 				}
 			}
-			public static ulong AddChannelPermissions(ulong startBits, params ChannelPermission[] permissions)
+			public static ulong AddChannelPermissionBit(string permissionName, ulong inputValue)
 			{
-				foreach (var permission in permissions)
+				var permission = Constants.CHANNEL_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
+				if (!permission.Equals(default(BotGuildPermission)))
 				{
-					startBits = startBits & ~(1U << (int)permission);
+					inputValue |= permission.Bit;
 				}
-				return startBits;
+				return inputValue;
 			}
-			public static ulong RemoveChannelPermissions(ulong startBits, params ChannelPermission[] permissions)
+			public static ulong RemoveChannelPermissionBit(string permissionName, ulong inputValue)
 			{
-				foreach (var permission in permissions)
+				var permission = Constants.CHANNEL_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
+				if (!permission.Equals(default(BotGuildPermission)))
 				{
-					startBits = startBits | (1U << (int)permission);
+					inputValue &= ~permission.Bit;
 				}
-				return startBits;
+				return inputValue;
 			}
 
 			public static async Task<int> ModifyChannelPosition(IGuildChannel channel, int position, string reason)
@@ -328,8 +330,8 @@ namespace Advobot
 						}
 					}
 
-					var allowBits = RemoveChannelPermissions(GetOverwriteAllowBits(channel, obj), ChannelPermission.ReadMessages);
-					var denyBits = AddChannelPermissions(GetOverwriteDenyBits(channel, obj), ChannelPermission.ReadMessages);
+					var allowBits = RemoveChannelPermissionBit(nameof(ChannelPermission.ReadMessages), GetOverwriteAllowBits(channel, obj));
+					var denyBits = AddChannelPermissionBit(nameof(ChannelPermission.ReadMessages), GetOverwriteDenyBits(channel, obj));
 					await ModifyOverwrite(channel, obj, allowBits, denyBits, reason);
 				}
 

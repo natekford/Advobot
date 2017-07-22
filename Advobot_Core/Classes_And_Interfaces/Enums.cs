@@ -119,13 +119,6 @@ namespace Advobot
 		}
 
 		[Flags]
-		public enum ChannelType : uint
-		{
-			Text							= (1U << 0),
-			Voice							= (1U << 1),
-		}
-
-		[Flags]
 		public enum LogChannelType : uint
 		{
 			Server							= (1U << 0),

@@ -9,7 +9,6 @@ namespace Advobot
 	{
 		public static class EmbedActions
 		{
-			//TODO: Figure out which method calls need to implement the prefix parameter
 			public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null, string URL = null, string thumbnailURL = null, string prefix = Constants.BOT_PREFIX)
 			{
 				//Make the embed builder

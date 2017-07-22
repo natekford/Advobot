@@ -686,7 +686,6 @@ namespace Advobot
 				PropertyChanged += SaveSettings;
 			}
 
-			//TODO: put a wait like on message deletion
 			private void OnPropertyChanged([CallerMemberName] string propertyName = "")
 			{
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

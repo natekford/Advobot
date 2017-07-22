@@ -323,7 +323,6 @@ namespace Advobot
 			}
 			public static async Task HandleArgsGettingErrors(IMyCommandContext context, ReturnedArguments returnedArgs)
 			{
-				//TODO: Remove my own arg parsing.
 				switch (returnedArgs.Reason)
 				{
 					case FailureReason.TooMany:

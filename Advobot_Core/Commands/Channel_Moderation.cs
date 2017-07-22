@@ -23,17 +23,17 @@ namespace Advobot
 		public sealed class CreateChannel : MyModuleBase
 		{
 			[Command]
-			public async Task Command(Discord.ChannelType channelType, [Remainder, VerifyStringLength(Target.Channel)] string name)
+			public async Task Command(ChannelType channelType, [Remainder, VerifyStringLength(Target.Channel)] string name)
 			{
 				await CommandRunner(channelType, name);
 			}
 
-			private async Task CommandRunner(Discord.ChannelType channelType, string name)
+			private async Task CommandRunner(ChannelType channelType, string name)
 			{
 				IGuildChannel channel;
 				switch (channelType)
 				{
-					case Discord.ChannelType.Text:
+					case ChannelType.Text:
 					{
 						if (name.Contains(' '))
 						{
@@ -44,7 +44,7 @@ namespace Advobot
 						channel = await ChannelActions.CreateTextChannel(Context.Guild, name, FormattingActions.FormatUserReason(Context.User));
 						break;
 					}
-					case Discord.ChannelType.Voice:
+					case ChannelType.Voice:
 					{
 						channel = await ChannelActions.CreateVoiceChannel(Context.Guild, name, FormattingActions.FormatUserReason(Context.User));
 						break;
@@ -140,24 +140,24 @@ namespace Advobot
 		public sealed class DisplayChannelPosition : MyModuleBase
 		{
 			[Command]
-			public async Task Command(Discord.ChannelType channelType)
+			public async Task Command(ChannelType channelType)
 			{
 				await CommandRunner(channelType);
 			}
 
-			private async Task CommandRunner(Discord.ChannelType channelType)
+			private async Task CommandRunner(ChannelType channelType)
 			{
 				string title;
 				IEnumerable<IGuildChannel> channels;
 				switch (channelType)
 				{
-					case Discord.ChannelType.Text:
+					case ChannelType.Text:
 					{
 						title = "Text Channel Positions";
 						channels = (await Context.Guild.GetTextChannelsAsync()).Cast<IGuildChannel>();
 						break;
 					}
-					case Discord.ChannelType.Voice:
+					case ChannelType.Voice:
 					{
 						title = "Voice Channel Positions";
 						channels = (await Context.Guild.GetVoiceChannelsAsync()).Cast<IGuildChannel>();
@@ -242,8 +242,7 @@ namespace Advobot
 				ulong changeValue = 0;
 				foreach (var permission in permissions)
 				{
-					//TODO: Change to addchannelpermissionbit
-					changeValue = GuildActions.AddGuildPermissionBit(permission, changeValue);
+					changeValue = ChannelActions.AddChannelPermissionBit(permission, changeValue);
 				}
 
 				var actionStr = "";
@@ -474,6 +473,60 @@ namespace Advobot
 				if (channel is ITextChannel && name.Contains(' '))
 				{
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Spaces are not allowed in text channel names."));
+					return;
+				}
+
+				await ChannelActions.ModifyChannelName(channel, name, FormattingActions.FormatUserReason(Context.User));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the name of `{0}` to `{1}`.", channel.FormatChannel(), name));
+			}
+		}
+
+		[Group("changechannelnamebyposition"), Alias("ccnbp")]
+		[Usage("[Text|Voice] [Number] [Name]")]
+		[Summary("Changes the name of the channel with the given position. This is *extremely* useful for when multiple channels have the same name but you want to edit things")]
+		[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+		[DefaultEnabled(true)]
+		public sealed class ChangeRoleNameByPosition : MyModuleBase
+		{
+			[Command]
+			public async Task Command(ChannelType channelType, uint position, [Remainder, VerifyStringLength(Target.Role)] string name)
+			{
+				await CommandRunner(channelType, position, name);
+			}
+
+			private async Task CommandRunner(ChannelType channelType, uint position, string name)
+			{
+				IEnumerable<IGuildChannel> channels;
+				switch (channelType)
+				{
+					case ChannelType.Text:
+					{
+						channels = await Context.Guild.GetTextChannelsAsync();
+						break;
+					}
+					case ChannelType.Voice:
+					{
+						channels = await Context.Guild.GetVoiceChannelsAsync();
+						break;
+					}
+					default:
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Unable to change channel name by position for that channel type."));
+						return;
+					}
+				}
+
+				var channel = channels.FirstOrDefault(x => x.Position == (int)position);
+				if (channel == null)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("No channel has the given position."));
+					return;
+				}
+
+				var returnedChannel = ChannelActions.GetChannel(Context.Guild, Context.User as IGuildUser, new[] { ObjectVerification.CanBeReordered }, channel);
+				if (returnedChannel.Reason != FailureReason.NotFailure)
+				{
+					await MessageActions.HandleObjectGettingErrors(Context, returnedChannel);
 					return;
 				}
 

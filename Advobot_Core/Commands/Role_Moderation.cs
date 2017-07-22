@@ -346,7 +346,7 @@ namespace Advobot
 
 		[Group("changerolename"), Alias("crn")]
 		[Usage("[Role] [Name]")]
-		[Summary("Changes the name of the role. This is *extremely* useful for when multiple roles have the same name but you want to edit things.")]
+		[Summary("Changes the name of the role.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 		[DefaultEnabled(true)]
 		public sealed class ChangeRoleName : MyModuleBase
@@ -364,7 +364,38 @@ namespace Advobot
 			}
 		}
 
-		//TODO: Role name change by position command
+		[Group("changerolenamebyposition"), Alias("crnbp")]
+		[Usage("[Number] [Name]")]
+		[Summary("Changes the name of the role with the given position. This is *extremely* useful for when multiple roles have the same name but you want to edit things")]
+		[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+		[DefaultEnabled(true)]
+		public sealed class ChangeRoleNameByPosition : MyModuleBase
+		{
+			[Command]
+			public async Task Command(uint position, [Remainder, VerifyStringLength(Target.Role)] string name)
+			{
+				await CommandRunner(position, name);
+			}
+
+			private async Task CommandRunner(uint position, string name)
+			{
+				if (position > UserActions.GetUserPosition(Context.User))
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Your position is less than the role's."));
+					return;
+				}
+
+				var role = Context.Guild.Roles.FirstOrDefault(x => x.Position == (int)position);
+				if (role == null)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("No role has the given position."));
+					return;
+				}
+
+				await RoleActions.ModifyRoleName(role, name, FormattingActions.FormatUserReason(Context.User));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the name of `{0}` to `{1}`.", role.FormatRole(), name));
+			}
+		}
 
 		[Group("changerolecolor"), Alias("crc")]
 		[Usage("<Role> <Hexadecimal|Color Name>")]

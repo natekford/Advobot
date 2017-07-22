@@ -185,7 +185,7 @@ namespace Advobot
 				if (muteRole == null)
 				{
 					muteRole = await guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0));
-					//TODO: guildSettings.SetSetting(SettingOnGuild.MuteRole, new DiscordObjectWithId<IRole>(muteRole));
+					guildSettings.MuteRole = muteRole;
 				}
 
 				const uint TEXT_PERMS = 0
