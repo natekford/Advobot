@@ -382,7 +382,6 @@ namespace Advobot
 						await ClientActions.MaybeStartBot(_Client, _BotSettings);
 					});
 
-					_UISettings.InitializeColors();
 					_UISettings.ActivateTheme();
 					UIModification.SetColorMode(_Layout);
 

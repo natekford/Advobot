@@ -97,6 +97,7 @@ namespace Advobot
 								SwitchElementColor((Control)element);
 							}
 						}
+						SetColorMode(element);
 					}
 				}
 				public static void SwitchElementColor(Control element)
@@ -1171,21 +1172,6 @@ namespace Advobot
 				public static void UITest()
 				{
 #if DEBUG
-					var codeLen = true;
-					if (codeLen)
-					{
-						var totalChars = 0;
-						var totalLines = 0;
-						foreach (var file in Directory.GetFiles(Path.GetFullPath(Path.Combine(System.Reflection.Assembly.GetExecutingAssembly().Location, @"..\..\..\"))))
-						{
-							if (".cs".CaseInsEquals(Path.GetExtension(file)))
-							{
-								totalChars += File.ReadAllText(file).Length;
-								totalLines += File.ReadAllLines(file).Count();
-							}
-						}
-						ConsoleActions.WriteLine(String.Format("Current Totals:{0}\t\t\t Chars: {1}{0}\t\t\t Lines: {2}", Environment.NewLine, totalChars, totalLines));
-					}
 					var resetInfo = false;
 					if (resetInfo)
 					{
