@@ -37,13 +37,13 @@ namespace Advobot
 			{
 				GuildSettings = guildSettings;
 
-				_HourTimer.Elapsed += (sender, e) => OnHourEvent(sender, e);
+				_HourTimer.Elapsed += OnHourEvent;
 				_HourTimer.Enabled = true;
 
-				_MinuteTimer.Elapsed += (sender, e) => OnMinuteEvent(sender, e);
+				_MinuteTimer.Elapsed += OnMinuteEvent;
 				_MinuteTimer.Enabled = true;
 
-				_OneHalfSecondTimer.Elapsed += (sender, e) => OnOneHalfSecondEvent(sender, e);
+				_OneHalfSecondTimer.Elapsed += OnOneHalfSecondEvent;
 				_OneHalfSecondTimer.Enabled = true;
 			}
 
@@ -71,7 +71,7 @@ namespace Advobot
 					{
 						case PunishmentType.Ban:
 						{
-							await punishment.Guild.RemoveBanAsync(punishment.UserId);
+							await PunishmentActions.AutomaticUnbanUser(punishment.Guild, punishment.UserId);
 							return;
 						}
 					}
@@ -89,12 +89,12 @@ namespace Advobot
 						}
 						case PunishmentType.VoiceMute:
 						{
-							await guildUser.ModifyAsync(x => x.Mute = false);
+							await PunishmentActions.AutomaticVoiceUnmuteUser(guildUser);
 							return;
 						}
 						case PunishmentType.RoleMute:
 						{
-							await RoleActions.TakeRole(guildUser, (punishment as RemovableRoleMute)?.Role);
+							await PunishmentActions.AutomaticRoleUnmuteUser(guildUser, (punishment as RemovableRoleMute)?.Role);
 							return;
 						}
 					}
@@ -117,7 +117,7 @@ namespace Advobot
 					}
 					else
 					{
-						await MessageActions.DeleteMessages(message.Channel, message.Messages);
+						await MessageActions.DeleteMessages(message.Channel, message.Messages, FormattingActions.FormatBotReason("automatic message deletion."));
 					}
 				}
 			}

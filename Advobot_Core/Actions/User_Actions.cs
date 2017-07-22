@@ -153,11 +153,11 @@ namespace Advobot
 				return (await context.Guild.GetUsersAsync()).Where(x => GetIfUserCanBeModifiedByUser(context.User, x) && GetIfUserCanBeModifiedByUser(GetBot(context.Guild), x));
 			}
 
-			public static async Task ChangeNickname(IGuildUser user, string newNN)
+			public static async Task ChangeNickname(IGuildUser user, string newNickname, string reason)
 			{
-				await user.ModifyAsync(x => x.Nickname = newNN ?? user.Username);
+				await user.ModifyAsync(x => x.Nickname = newNickname ?? user.Username, new RequestOptions { AuditLogReason = reason });
 			}
-			public static async Task NicknameManyUsers(IMyCommandContext context, List<IGuildUser> users, string replace)
+			public static async Task NicknameManyUsers(IMyCommandContext context, List<IGuildUser> users, string replace, string reason)
 			{
 				var msg = await MessageActions.SendChannelMessage(context, String.Format("Attempting to rename `{0}` people.", users.Count));
 				for (int i = 0; i < users.Count; ++i)
@@ -169,17 +169,17 @@ namespace Advobot
 							(int)((users.Count - i) * 1.2)));
 					}
 
-					await ChangeNickname(users[i], replace);
+					await ChangeNickname(users[i], replace, reason);
 				}
 
 				await MessageActions.DeleteMessage(msg);
 				await MessageActions.MakeAndDeleteSecondaryMessage(context, String.Format("Successfully renamed `{0}` people.", users.Count));
 			}
-			public static async Task MoveUser(IGuildUser user, IVoiceChannel channel)
+			public static async Task MoveUser(IGuildUser user, IVoiceChannel channel, string reason)
 			{
-				await user.ModifyAsync(x => x.Channel = Optional.Create(channel));
+				await user.ModifyAsync(x => x.Channel = Optional.Create(channel), new RequestOptions { AuditLogReason = reason });
 			}
-			public static async Task MoveManyUsers(IMyCommandContext context, List<IGuildUser> users, IVoiceChannel outputChannel)
+			public static async Task MoveManyUsers(IMyCommandContext context, List<IGuildUser> users, IVoiceChannel outputChannel, string reason)
 			{
 				var msg = await MessageActions.SendChannelMessage(context, String.Format("Attempting to move `{0}` people.", users.Count));
 				for (int i = 0; i < users.Count; ++i)
@@ -191,7 +191,7 @@ namespace Advobot
 							(int)((users.Count - i) * 1.2)));
 					}
 
-					await MoveUser(users[i], outputChannel);
+					await MoveUser(users[i], outputChannel, reason);
 				}
 
 				await MessageActions.DeleteMessage(msg);

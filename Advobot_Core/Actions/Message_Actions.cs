@@ -18,6 +18,7 @@ namespace Advobot
 		{
 			public static async Task<IUserMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed, string content = null)
 			{
+				//This method is a clusterfuck.
 				var guild = channel.GetGuild();
 				if (guild == null)
 					return null;
@@ -138,17 +139,17 @@ namespace Advobot
 				return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
 			}
 
-			public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount)
+			public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount, string reason)
 			{
 				var guildChannel = channel as ITextChannel;
 				if (guildChannel == null)
 					return 0;
 
 				var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).Flatten();
-				await DeleteMessages(channel, messages);
+				await DeleteMessages(channel, messages, reason);
 				return messages.Count();
 			}
-			public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount, IUser user)
+			public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount, IUser user, string reason)
 			{
 				var guildChannel = channel as ITextChannel;
 				if (guildChannel == null)
@@ -156,7 +157,7 @@ namespace Advobot
 
 				if (user == null)
 				{
-					return await RemoveMessages(channel, fromMessage, requestCount);
+					return await RemoveMessages(channel, fromMessage, requestCount, reason);
 				}
 
 				var deletedCount = 0;
@@ -182,7 +183,7 @@ namespace Advobot
 					var msgAmt = messages.Count();
 					try
 					{
-						await DeleteMessages(channel, messages);
+						await DeleteMessages(channel, messages, reason);
 						deletedCount += msgAmt;
 					}
 					catch
@@ -243,14 +244,14 @@ namespace Advobot
 				}
 			}
 
-			public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages)
+			public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages, string reason)
 			{
 				if (messages == null || !messages.Any())
 					return;
 
 				try
 				{
-					await channel.DeleteMessagesAsync(messages.Where(x => DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 14).Distinct());
+					await channel.DeleteMessagesAsync(messages.Where(x => DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 14).Distinct(), new RequestOptions { AuditLogReason = reason });
 				}
 				catch
 				{

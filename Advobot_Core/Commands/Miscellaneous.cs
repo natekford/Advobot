@@ -657,9 +657,10 @@ namespace Advobot
 				}
 				else
 				{
-					await role.ModifyAsync(x => x.Mentionable = true);
+					//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
+					await role.ModifyAsync(x => x.Mentionable = true, new RequestOptions { AuditLogReason = FormattingActions.FormatUserReason(Context.User) });
 					await MessageActions.SendChannelMessage(Context, String.Format("From `{0}`, {1}: {2}", Context.User.FormatUser(), role.Mention, text.Substring(0, Math.Min(text.Length, 250))));
-					await role.ModifyAsync(x => x.Mentionable = false);
+					await role.ModifyAsync(x => x.Mentionable = false, new RequestOptions { AuditLogReason = FormattingActions.FormatUserReason(Context.User) });
 				}
 			}
 		}

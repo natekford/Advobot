@@ -1487,7 +1487,7 @@ namespace Advobot
 				Uses = uses;
 			}
 
-			public void IncreaseUses()
+			public void IncrementUses()
 			{
 				++Uses;
 			}

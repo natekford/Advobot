@@ -142,33 +142,33 @@ namespace Advobot
 			CanBeEdited						= (1U << 1),
 
 			[DiscordObjectTarget(Target.User)]
-			CanBeMovedFromChannel			= (1U << 0),
+			CanBeMovedFromChannel			= (1U << 2),
 
 			[DiscordObjectTarget(Target.Channel)]
-			IsVoice							= (1U << 0),
+			IsVoice							= (1U << 3),
 			[DiscordObjectTarget(Target.Channel)]
-			IsText							= (1U << 1),
+			IsText							= (1U << 4),
 			[DiscordObjectTarget(Target.Channel)]
-			CanBeReordered					= (1U << 2),
+			CanBeReordered					= (1U << 5),
 			[DiscordObjectTarget(Target.Channel)]
-			CanModifyPermissions			= (1U << 3),
+			CanModifyPermissions			= (1U << 6),
 			[DiscordObjectTarget(Target.Channel)]
-			CanBeManaged					= (1U << 4),
+			CanBeManaged					= (1U << 7),
 			[DiscordObjectTarget(Target.Channel)]
-			CanMoveUsers					= (1U << 5),
+			CanMoveUsers					= (1U << 8),
 			[DiscordObjectTarget(Target.Channel)]
-			CanDeleteMessages				= (1U << 6),
+			CanDeleteMessages				= (1U << 9),
 			[DiscordObjectTarget(Target.Channel)]
-			CanBeRead						= (1U << 7),
+			CanBeRead						= (1U << 10),
 			[DiscordObjectTarget(Target.Channel)]
-			CanCreateInstantInvite			= (1U << 8),
+			CanCreateInstantInvite			= (1U << 11),
 			[DiscordObjectTarget(Target.Channel)]
-			IsDefault						= (1U << 9),
+			IsDefault						= (1U << 12),
 
 			[DiscordObjectTarget(Target.Role)]
-			IsEveryone						= (1U << 0),
+			IsEveryone						= (1U << 13),
 			[DiscordObjectTarget(Target.Role)]
-			IsManaged						= (1U << 1),
+			IsManaged						= (1U << 14),
 		}
 
 		[Flags]

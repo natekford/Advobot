@@ -29,7 +29,7 @@ namespace Advobot
 
 			private async Task CommandRunner(IGuildUser user, string nickname)
 			{
-				await UserActions.ChangeNickname(user, nickname);
+				await UserActions.ChangeNickname(user, nickname, FormattingActions.FormatUserReason(Context.User));
 				var response = nickname == null
 					? String.Format("Successfully removed the nickname from `{0}`.", user.FormatUser())
 					: String.Format("Successfully gave `{0}` the nickname `{1}`.", user.FormatUser(), nickname);
@@ -60,7 +60,7 @@ namespace Advobot
 					|| (x.Nickname == null && x.Username.CaseInsContains(search)) //If nickname isn't there, check based off of username
 					).ToList().GetUpToAndIncludingMinNum(userAmt);
 
-				await UserActions.NicknameManyUsers(Context, users, replace);
+				await UserActions.NicknameManyUsers(Context, users, replace, FormattingActions.FormatUserReason(Context.User));
 			}
 		}
 
@@ -85,7 +85,7 @@ namespace Advobot
 					|| (x.Nickname == null && !x.Username.AllCharactersAreWithinUpperLimit((int)upperLimit)) //If nickname isn't there, check based off of username
 					).ToList().GetUpToAndIncludingMinNum(userAmt);
 
-				await UserActions.NicknameManyUsers(Context, users, replace);
+				await UserActions.NicknameManyUsers(Context, users, replace, FormattingActions.FormatUserReason(Context.User));
 			}
 		}
 
@@ -107,7 +107,7 @@ namespace Advobot
 				var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
 				var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => x.Nickname != null).ToList().GetUpToAndIncludingMinNum(userAmt);
 
-				await UserActions.NicknameManyUsers(Context, users, null);
+				await UserActions.NicknameManyUsers(Context, users, null, FormattingActions.FormatUserReason(Context.User));
 			}
 		}
 	}

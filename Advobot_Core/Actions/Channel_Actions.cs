@@ -164,74 +164,6 @@ namespace Advobot
 				}
 			}
 
-			public static async Task<int> ModifyChannelPosition(IGuildChannel channel, int position)
-			{
-				if (channel == null)
-					return -1;
-
-				IGuildChannel[] channels;
-				if (channel is ITextChannel)
-				{
-					channels = (await channel.Guild.GetTextChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
-				}
-				else
-				{
-					channels = (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
-				}
-				position = Math.Max(0, Math.Min(position, channels.Length));
-
-				var reorderProperties = new ReorderChannelProperties[channels.Length];
-				for (int i = 0; i < channels.Length; ++i)
-				{
-					if (i > position)
-					{
-						reorderProperties[i] = new ReorderChannelProperties(channels[i - 1].Id, i);
-					}
-					else if (i < position)
-					{
-						reorderProperties[i] = new ReorderChannelProperties(channels[i].Id, i);
-					}
-					else
-					{
-						reorderProperties[i] = new ReorderChannelProperties(channel.Id, i);
-					}
-				}
-
-				await channel.Guild.ReorderChannelsAsync(reorderProperties);
-				return reorderProperties.FirstOrDefault(x => x.Id == channel.Id)?.Position ?? -1;
-			}
-
-			public static async Task ModifyOverwrite(IGuildChannel channel, object obj, ulong allowBits, ulong denyBits)
-			{
-				if (obj is IRole)
-				{
-					await channel.AddPermissionOverwriteAsync(obj as IRole, new OverwritePermissions(allowBits, denyBits));
-				}
-				else if (obj is IUser)
-				{
-					await channel.AddPermissionOverwriteAsync(obj as IUser, new OverwritePermissions(allowBits, denyBits));
-				}
-				else
-				{
-					throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
-				}
-			}
-			public static ulong AddChannelPermissions(ulong startBits, params ChannelPermission[] permissions)
-			{
-				foreach (var permission in permissions)
-				{
-					startBits = startBits & ~(1U << (int)permission);
-				}
-				return startBits;
-			}
-			public static ulong RemoveChannelPermissions(ulong startBits, params ChannelPermission[] permissions)
-			{
-				foreach (var permission in permissions)
-				{
-					startBits = startBits | (1U << (int)permission);
-				}
-				return startBits;
-			}
 			public static OverwritePermissions? GetOverwrite(IGuildChannel channel, object obj)
 			{
 				if (obj is IRole)
@@ -276,6 +208,160 @@ namespace Advobot
 				{
 					throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
 				}
+			}
+			public static ulong AddChannelPermissions(ulong startBits, params ChannelPermission[] permissions)
+			{
+				foreach (var permission in permissions)
+				{
+					startBits = startBits & ~(1U << (int)permission);
+				}
+				return startBits;
+			}
+			public static ulong RemoveChannelPermissions(ulong startBits, params ChannelPermission[] permissions)
+			{
+				foreach (var permission in permissions)
+				{
+					startBits = startBits | (1U << (int)permission);
+				}
+				return startBits;
+			}
+
+			public static async Task<int> ModifyChannelPosition(IGuildChannel channel, int position, string reason)
+			{
+				if (channel == null)
+					return -1;
+
+				IGuildChannel[] channels;
+				if (channel is ITextChannel)
+				{
+					channels = (await channel.Guild.GetTextChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
+				}
+				else
+				{
+					channels = (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
+				}
+				position = Math.Max(0, Math.Min(position, channels.Length));
+
+				var reorderProperties = new ReorderChannelProperties[channels.Length];
+				for (int i = 0; i < channels.Length; ++i)
+				{
+					if (i > position)
+					{
+						reorderProperties[i] = new ReorderChannelProperties(channels[i - 1].Id, i);
+					}
+					else if (i < position)
+					{
+						reorderProperties[i] = new ReorderChannelProperties(channels[i].Id, i);
+					}
+					else
+					{
+						reorderProperties[i] = new ReorderChannelProperties(channel.Id, i);
+					}
+				}
+
+				await channel.Guild.ReorderChannelsAsync(reorderProperties);
+				return reorderProperties.FirstOrDefault(x => x.Id == channel.Id)?.Position ?? -1;
+			}
+			public static async Task ModifyOverwrite(IGuildChannel channel, object obj, ulong allowBits, ulong denyBits, string reason)
+			{
+				if (obj is IRole)
+				{
+					await channel.AddPermissionOverwriteAsync(obj as IRole, new OverwritePermissions(allowBits, denyBits));
+				}
+				else if (obj is IUser)
+				{
+					await channel.AddPermissionOverwriteAsync(obj as IUser, new OverwritePermissions(allowBits, denyBits));
+				}
+				else
+				{
+					throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
+				}
+			}
+			public static async Task ClearOverwrites(IGuild guild, IGuildChannel channel, string reason)
+			{
+				foreach (var overwrite in channel.PermissionOverwrites)
+				{
+					switch (overwrite.TargetType)
+					{
+						case PermissionTarget.Role:
+						{
+							await channel.RemovePermissionOverwriteAsync(guild.GetRole(overwrite.TargetId));
+							break;
+						}
+						case PermissionTarget.User:
+						{
+							await channel.RemovePermissionOverwriteAsync(await guild.GetUserAsync(overwrite.TargetId));
+							break;
+						}
+					}
+				}
+			}
+
+			public static async Task<ITextChannel> CreateTextChannel(IGuild guild, string name, string reason)
+			{
+				return await guild.CreateTextChannelAsync(name, new RequestOptions { AuditLogReason = reason });
+			}
+			public static async Task<IVoiceChannel> CreateVoiceChannel(IGuild guild, string name, string reason)
+			{
+				return await guild.CreateVoiceChannelAsync(name, new RequestOptions { AuditLogReason = reason });
+			}
+			public static async Task SoftDeleteChannel(IGuild guild, ITextChannel channel, string reason)
+			{
+				foreach (var overwrite in channel.PermissionOverwrites)
+				{
+					ISnowflakeEntity obj;
+					switch (overwrite.TargetType)
+					{
+						case PermissionTarget.Role:
+						{
+							obj = guild.GetRole(overwrite.TargetId);
+							break;
+						}
+						case PermissionTarget.User:
+						{
+							obj = await guild.GetUserAsync(overwrite.TargetId);
+							break;
+						}
+						default:
+						{
+							continue;
+						}
+					}
+
+					var allowBits = RemoveChannelPermissions(GetOverwriteAllowBits(channel, obj), ChannelPermission.ReadMessages);
+					var denyBits = AddChannelPermissions(GetOverwriteDenyBits(channel, obj), ChannelPermission.ReadMessages);
+					await ModifyOverwrite(channel, obj, allowBits, denyBits, reason);
+				}
+
+				//Double check the everyone role has the correct perms
+				if (!channel.PermissionOverwrites.Any(x => x.TargetId == guild.EveryoneRole.Id))
+				{
+					await channel.AddPermissionOverwriteAsync(guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny));
+				}
+
+				//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
+				await ModifyChannelPosition(channel, (await guild.GetTextChannelsAsync()).Max(x => x.Position), reason);
+			}
+			public static async Task DeleteChannel(IGuildChannel channel, string reason)
+			{
+				await channel.DeleteAsync(new RequestOptions { AuditLogReason = reason });
+			}
+
+			public static async Task ModifyChannelName(IGuildChannel channel, string name, string reason)
+			{
+				await channel.ModifyAsync(x => x.Name = name, new RequestOptions { AuditLogReason = reason });
+			}
+			public static async Task ModifyChannelTopic(ITextChannel channel, string topic, string reason)
+			{
+				await channel.ModifyAsync(x => x.Topic = topic, new RequestOptions { AuditLogReason = reason });
+			}
+			public static async Task ModifyChannelLimit(IVoiceChannel channel, int limit, string reason)
+			{
+				await channel.ModifyAsync(x => x.UserLimit = limit, new RequestOptions { AuditLogReason = reason });
+			}
+			public static async Task ModifyChannelBitrate(IVoiceChannel channel, int bitrate, string reason)
+			{
+				await channel.ModifyAsync(x => x.Bitrate = bitrate, new RequestOptions { AuditLogReason = reason });
 			}
 		}
 	}

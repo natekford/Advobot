@@ -267,46 +267,55 @@ namespace Advobot
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
 
-				return Task.FromResult(GetPreconditionResult(context, value, parameter.Type));
-			}
-
-			private PreconditionResult GetPreconditionResult(ICommandContext context, System.Collections.IEnumerable list, Type type)
-			{
-				foreach (var item in list)
+				if (value is System.Collections.IEnumerable)
 				{
-					var preconditionResult = GetPreconditionResult(context, item, item.GetType());
-					if (!preconditionResult.IsSuccess)
+					foreach (var item in (value as System.Collections.IEnumerable).Cast<object>())
 					{
-						return preconditionResult;
+						var preconditionResult = GetPreconditionResult(context, item, item.GetType());
+						if (!preconditionResult.IsSuccess)
+						{
+							return Task.FromResult(preconditionResult);
+						}
 					}
 				}
+				else
+				{
+					return Task.FromResult(GetPreconditionResult(context, value, parameter.Type));
+				}
 
-				return PreconditionResult.FromSuccess();
+				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
+
 			private PreconditionResult GetPreconditionResult(ICommandContext context, object value, Type type)
 			{
 				FailureReason failureReason = default(FailureReason);
 				object obj = null;
 
-				if (type == typeof(ITextChannel))
+				if (type == typeof(ITextChannel) || type.GetInterfaces().Contains(typeof(ITextChannel)))
 				{
 					var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.Channel) as IGuildChannel);
 					failureReason = returned.Reason;
 					obj = returned.Object;
 				}
-				else if (type == typeof(IVoiceChannel))
+				else if (type == typeof(IVoiceChannel) || type.GetInterfaces().Contains(typeof(IVoiceChannel)))
 				{
 					var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel);
 					failureReason = returned.Reason;
 					obj = returned.Object;
 				}
-				else if (type == typeof(IGuildUser))
+				else if (type == typeof(IGuildChannel) || type.GetInterfaces().Contains(typeof(IGuildChannel)))
+				{
+					var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, value as IGuildChannel);
+					failureReason = returned.Reason;
+					obj = returned.Object;
+				}
+				else if (type == typeof(IGuildUser) || type.GetInterfaces().Contains(typeof(IGuildUser)))
 				{
 					var returned = UserActions.GetGuildUser(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.User) as IGuildUser);
 					failureReason = returned.Reason;
 					obj = returned.Object;
 				}
-				else if (type == typeof(IRole))
+				else if (type == typeof(IRole) || type.GetInterfaces().Contains(typeof(IRole)))
 				{
 					var returned = RoleActions.GetRole(context.Guild, context.User as IGuildUser, _Checks, value as IRole);
 					failureReason = returned.Reason;

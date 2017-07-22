@@ -50,9 +50,18 @@ namespace Advobot
 				else
 				{
 					//Increment the invite the bot is holding if a curInv was found so as to match with the current invite uses count
-					joinInv.IncreaseUses();
+					joinInv.IncrementUses();
 				}
 				return joinInv;
+			}
+
+			public static async Task<IInviteMetadata> CreateInvite(IGuildChannel channel, int? maxAge, int? maxUses, bool isTemporary, bool isUnique, string reason)
+			{
+				return await channel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, new RequestOptions { AuditLogReason = reason });
+			}
+			public static async Task DeleteInvite(IInvite invite, string reason)
+			{
+				await invite.DeleteAsync(new RequestOptions { AuditLogReason = reason });
 			}
 		}
 	}

@@ -129,7 +129,7 @@ namespace Advobot
 				}
 			}
 
-			public static async Task<int> ModifyRolePosition(IRole role, int position)
+			public static async Task<int> ModifyRolePosition(IRole role, int position, string reason)
 			{
 				if (role == null)
 					return -1;
@@ -154,8 +154,28 @@ namespace Advobot
 					}
 				}
 
-				await role.Guild.ReorderRolesAsync(reorderProperties);
+				await role.Guild.ReorderRolesAsync(reorderProperties, new RequestOptions { AuditLogReason = reason, });
 				return reorderProperties.FirstOrDefault(x => x.Id == role.Id)?.Position ?? -1;
+			}
+			public static async Task ModifyRolePermissions(IRole role, ulong permissions, string reason)
+			{
+				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), new RequestOptions { AuditLogReason = reason, });
+			}
+			public static async Task ModifyRoleName(IRole role, string name, string reason)
+			{
+				await role.ModifyAsync(x => x.Name = name, new RequestOptions { AuditLogReason = reason });
+			}
+			public static async Task ModifyRoleColor(IRole role, Color color, string reason)
+			{
+				await role.ModifyAsync(x => x.Color = color, new RequestOptions { AuditLogReason = reason });
+			}
+			public static async Task ModifyRoleHoist(IRole role, string reason)
+			{
+				await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, new RequestOptions { AuditLogReason = reason });
+			}
+			public static async Task ModifyRoleMentionability(IRole role, string reason)
+			{
+				await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, new RequestOptions { AuditLogReason = reason });
 			}
 
 			public static async Task<IRole> GetMuteRole(IGuildSettings guildSettings, IGuild guild, IGuildUser user)
@@ -204,35 +224,28 @@ namespace Advobot
 				return muteRole;
 			}
 
-			public static async Task GiveRole(IGuildUser user, IRole role)
+			public static async Task<IRole> CreateRole(IGuild guild, string name, string reason)
 			{
-				if (role == null)
-					return;
-				if (user.RoleIds.Contains(role.Id))
-					return;
-				await user.AddRoleAsync(role);
+				return await guild.CreateRoleAsync(name, new GuildPermissions(0), options: new RequestOptions { AuditLogReason = reason, });
 			}
-			public static async Task GiveRoles(IGuildUser user, IEnumerable<IRole> roles)
+			public static async Task DeleteRole(IRole role, string reason)
+			{
+				await role.DeleteAsync(new RequestOptions { AuditLogReason = reason, });
+			}
+
+			public static async Task GiveRoles(IGuildUser user, IEnumerable<IRole> roles, string reason)
 			{
 				if (!roles.Any())
 					return;
 
-				await user.AddRolesAsync(roles);
+				await user.AddRolesAsync(roles, new RequestOptions { AuditLogReason = reason, });
 			}
-			public static async Task TakeRole(IGuildUser user, IRole role)
-			{
-				if (role == null)
-					return;
-				if (!user.RoleIds.Contains(role.Id))
-					return;
-				await user.RemoveRoleAsync(role);
-			}
-			public static async Task TakeRoles(IGuildUser user, IEnumerable<IRole> roles)
+			public static async Task TakeRoles(IGuildUser user, IEnumerable<IRole> roles, string reason)
 			{
 				if (!roles.Any())
 					return;
 
-				await user.RemoveRolesAsync(roles);
+				await user.RemoveRolesAsync(roles, new RequestOptions { AuditLogReason = reason, });
 			}
 		}
 	}

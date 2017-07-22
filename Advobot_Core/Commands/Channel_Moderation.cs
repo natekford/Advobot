@@ -41,12 +41,12 @@ namespace Advobot
 							return;
 						}
 
-						channel = await Context.Guild.CreateTextChannelAsync(name);
+						channel = await ChannelActions.CreateTextChannel(Context.Guild, name, FormattingActions.FormatUserReason(Context.User));
 						break;
 					}
 					case Discord.ChannelType.Voice:
 					{
-						channel = await Context.Guild.CreateVoiceChannelAsync(name);
+						channel = await ChannelActions.CreateVoiceChannel(Context.Guild, name, FormattingActions.FormatUserReason(Context.User));
 						break;
 					}
 					default:
@@ -81,40 +81,7 @@ namespace Advobot
 					return;
 				}
 
-				foreach (var overwrite in channel.PermissionOverwrites)
-				{
-					ISnowflakeEntity obj;
-					switch (overwrite.TargetType)
-					{
-						case PermissionTarget.Role:
-						{
-							obj = Context.Guild.GetRole(overwrite.TargetId);
-							break;
-						}
-						case PermissionTarget.User:
-						{
-							obj = await Context.Guild.GetUserAsync(overwrite.TargetId);
-							break;
-						}
-						default:
-						{
-							continue;
-						}
-					}
-
-					var allowBits = ChannelActions.RemoveChannelPermissions(ChannelActions.GetOverwriteAllowBits(channel, obj), ChannelPermission.ReadMessages);
-					var denyBits = ChannelActions.AddChannelPermissions(ChannelActions.GetOverwriteDenyBits(channel, obj), ChannelPermission.ReadMessages);
-					await ChannelActions.ModifyOverwrite(channel, obj, allowBits, denyBits);
-				}
-
-				//Double check the everyone role has the correct perms
-				if (!channel.PermissionOverwrites.Any(x => x.TargetId == Context.Guild.EveryoneRole.Id))
-				{
-					await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny));
-				}
-
-				//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
-				await ChannelActions.ModifyChannelPosition(channel, (await Context.Guild.GetTextChannelsAsync()).Max(x => x.Position));
+				await ChannelActions.SoftDeleteChannel(Context.Guild, channel, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.SendChannelMessage(Context, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything in this channel.");
 			}
 		}
@@ -140,7 +107,7 @@ namespace Advobot
 					return;
 				}
 
-				await channel.DeleteAsync();
+				await ChannelActions.DeleteChannel(channel, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}`.", channel.FormatChannel()));
 			}
 		}
@@ -160,7 +127,7 @@ namespace Advobot
 
 			private async Task CommandRunner(IGuildChannel channel, uint position)
 			{
-				await ChannelActions.ModifyChannelPosition(channel, (int)position);
+				await ChannelActions.ModifyChannelPosition(channel, (int)position, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.SendChannelMessage(Context, String.Format("Successfully moved `{0}` to position `{1}`.", channel.FormatChannel(), position));
 			}
 		}
@@ -305,7 +272,7 @@ namespace Advobot
 					}
 				}
 
-				await ChannelActions.ModifyOverwrite(channel, discordObject, allowBits, denyBits);
+				await ChannelActions.ModifyOverwrite(channel, discordObject, allowBits, denyBits, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}` on `{3}`.",
 					actionStr,
 					String.Join("`, `", permissions),
@@ -396,13 +363,17 @@ namespace Advobot
 							case PermissionTarget.Role:
 							{
 								var role = Context.Guild.GetRole(overwrite.TargetId);
-								await outputChannel.AddPermissionOverwriteAsync(role, new OverwritePermissions(overwrite.Permissions.AllowValue, overwrite.Permissions.DenyValue));
+								var allowBits = overwrite.Permissions.AllowValue;
+								var denyBits = overwrite.Permissions.DenyValue;
+								await ChannelActions.ModifyOverwrite(outputChannel, role, allowBits, denyBits, FormattingActions.FormatUserReason(Context.User));
 								break;
 							}
 							case PermissionTarget.User:
 							{
 								var user = await Context.Guild.GetUserAsync(overwrite.TargetId);
-								await outputChannel.AddPermissionOverwriteAsync(user, new OverwritePermissions(overwrite.Permissions.AllowValue, overwrite.Permissions.DenyValue));
+								var allowBits = overwrite.Permissions.AllowValue;
+								var denyBits = overwrite.Permissions.DenyValue;
+								await ChannelActions.ModifyOverwrite(outputChannel, user, allowBits, denyBits, FormattingActions.FormatUserReason(Context.User));
 								break;
 							}
 						}
@@ -418,7 +389,7 @@ namespace Advobot
 						return;
 					}
 
-					await ChannelActions.ModifyOverwrite(outputChannel, discordObject, overwrite?.AllowValue ?? 0, overwrite?.DenyValue ?? 0);
+					await ChannelActions.ModifyOverwrite(outputChannel, discordObject, overwrite?.AllowValue ?? 0, overwrite?.DenyValue ?? 0, FormattingActions.FormatUserReason(Context.User));
 				}
 
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully copied `{0}` from `{1}` to `{2}`",
@@ -443,27 +414,12 @@ namespace Advobot
 
 			private async Task CommandRunner(IGuildChannel channel)
 			{
-				foreach (var overwrite in channel.PermissionOverwrites)
-				{
-					switch (overwrite.TargetType)
-					{
-						case PermissionTarget.Role:
-						{
-							await channel.RemovePermissionOverwriteAsync(Context.Guild.GetRole(overwrite.TargetId));
-							break;
-						}
-						case PermissionTarget.User:
-						{
-							await channel.RemovePermissionOverwriteAsync(await Context.Guild.GetUserAsync(overwrite.TargetId));
-							break;
-						}
-					}
-				}
-
+				await ChannelActions.ClearOverwrites(Context.Guild, channel, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all channel permission overwrites from `{0}`.", channel.FormatChannel()));
 			}
 		}
 
+		//TODO: change this to not be the scuffed way
 		[Group("changechannelnsfw"), Alias("cchnsfw")]
 		[Usage("[Channel]")]
 		[Summary("Toggles the NSFW option on a channel.")]
@@ -521,7 +477,7 @@ namespace Advobot
 					return;
 				}
 
-				await channel.ModifyAsync(x => x.Name = name);
+				await ChannelActions.ModifyChannelName(channel, name, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the name of `{0}` to `{1}`.", channel.FormatChannel(), name));
 			}
 		}
@@ -541,7 +497,7 @@ namespace Advobot
 
 			private async Task CommandRunner(ITextChannel channel, string topic)
 			{
-				await channel.ModifyAsync(x => x.Topic = topic);
+				await ChannelActions.ModifyChannelTopic(channel, topic, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the topic in `{0}` from `{1}` to `{2}`.", channel.FormatChannel(), channel.Topic ?? "Nothing", topic ?? "Nothing"));
 			}
 		}
@@ -566,7 +522,7 @@ namespace Advobot
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("The highest a voice channel user limit can be is `{0}`.", Constants.MAX_VOICE_CHANNEL_USER_LIMIT)));
 				}
 
-				await channel.ModifyAsync(x => x.UserLimit = (int)limit);
+				await ChannelActions.ModifyChannelLimit(channel, (int)limit, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}`.", channel.FormatChannel(), limit));
 			}
 		}
@@ -602,7 +558,8 @@ namespace Advobot
 					return;
 				}
 
-				await channel.ModifyAsync(x => x.Bitrate = (int)bitrate * 1000);
+				//Have to multiply by 1000 because in bps and for some reason treats, say, 50 as 50bps and not 50kbps
+				await ChannelActions.ModifyChannelBitrate(channel, (int)bitrate * 1000, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the user limit for `{0}` to `{1}kbps`.", channel.FormatChannel(), bitrate));
 			}
 		}

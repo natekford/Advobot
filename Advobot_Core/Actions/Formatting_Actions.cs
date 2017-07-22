@@ -610,19 +610,9 @@ namespace Advobot
 				}
 			}
 
-			public static string FormatUserReason(IUser user, string reason)
+			public static string FormatUserReason(IUser user)
 			{
-				if (!String.IsNullOrWhiteSpace(reason))
-				{
-					reason = String.Format("Action by {0}. Reason is {1}.", user.FormatUser(), reason.TrimEnd('.'));
-					reason = reason.Substring(0, Math.Min(reason.Length, Constants.MAX_LENGTH_FOR_REASON));
-				}
-				else
-				{
-					reason = String.Format("Action by {0}.", user.FormatUser());
-				}
-
-				return reason;
+				return String.Format("Action by {0}.", user.FormatUser());
 			}
 			public static string FormatBotReason(string reason)
 			{
