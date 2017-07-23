@@ -325,7 +325,7 @@ namespace Advobot
 
 					if (guildSettings != null)
 					{
-						await OtherLogActions.HandleJoiningUsersForSlowmodeAndRaidPrevention(_Timers, guildSettings, user);
+						await OtherLogActions.HandleJoiningUsersForRaidPrevention(_Timers, guildSettings, user);
 					}
 
 					//Bans people who join with a given word in their name
@@ -361,7 +361,7 @@ namespace Advobot
 					if (guildSettings == null)
 						return;
 
-					await OtherLogActions.HandleJoiningUsersForSlowmodeAndRaidPrevention(_Timers, guildSettings, user);
+					await OtherLogActions.HandleJoiningUsersForRaidPrevention(_Timers, guildSettings, user);
 				}
 
 				//Welcome message
@@ -802,23 +802,8 @@ namespace Advobot
 					currentLogModule.IncrementGifs();
 				}
 			}
-			public static async Task HandleJoiningUsersForSlowmodeAndRaidPrevention(ITimersModule timers, IGuildSettings guildSettings, IGuildUser user)
+			public static async Task HandleJoiningUsersForRaidPrevention(ITimersModule timers, IGuildSettings guildSettings, IGuildUser user)
 			{
-				//Slowmode
-				var smGuild = guildSettings.SlowmodeGuild;
-				if (smGuild != null)
-				{
-					smGuild.Users.ThreadSafeAdd(new SlowmodeUser(user, smGuild.BaseMessages, smGuild.Interval));
-				}
-				var smChannels = guildSettings.SlowmodeChannels;
-				if (smChannels.Any())
-				{
-					foreach (var smChannel in smChannels)
-					{
-						smChannel.Users.ThreadSafeAdd(new SlowmodeUser(user, smChannel.BaseMessages, smChannel.Interval));
-					}
-				}
-
 				//Raid Prevention
 				var antiRaid = guildSettings.RaidPreventionDictionary[RaidType.Regular];
 				if (antiRaid != null && antiRaid.Enabled)

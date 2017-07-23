@@ -31,6 +31,12 @@ namespace Advobot
 			string Text { get; }
 		}
 
+		public interface ISetting
+		{
+			string SettingToString();
+			string SettingToString(SocketGuild guild);
+		}
+
 		public interface IMyCommandContext : ICommandContext
 		{
 			IBotSettings BotSettings { get; }
@@ -126,12 +132,6 @@ namespace Advobot
 			Task LogCommand(IMyCommandContext context);
 		}
 
-		public interface ISetting
-		{
-			string SettingToString();
-			string SettingToString(SocketGuild guild);
-		}
-
 		public interface IBotSettings
 		{
 			IReadOnlyList<ulong> TrustedUsers { get; set; }
@@ -190,15 +190,14 @@ namespace Advobot
 			GuildNotification WelcomeMessage { get; set; }
 			GuildNotification GoodbyeMessage { get; set; }
 			ListedInvite ListedInvite { get; set; }
+			Slowmode Slowmode { get; set; }
 			string Prefix { get; set; }
 			bool VerboseErrors { get; set; }
 
 			List<BannedPhraseUser> BannedPhraseUsers { get; }
 			List<SpamPreventionUser> SpamPreventionUsers { get; }
-			List<SlowmodeChannel> SlowmodeChannels { get; }
 			List<BotInvite> Invites { get; }
 			List<string> EvaluatedRegex { get; }
-			SlowmodeGuild SlowmodeGuild { get; }
 			MessageDeletion MessageDeletion { get; }
 			IGuild Guild { get; }
 			bool Loaded { get; }

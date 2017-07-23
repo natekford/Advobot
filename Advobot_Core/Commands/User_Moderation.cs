@@ -2,6 +2,7 @@
 using Advobot.Attributes;
 using Advobot.Enums;
 using Advobot.NonSavedClasses;
+using Advobot.SavedClasses;
 using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
@@ -374,19 +375,54 @@ namespace Advobot
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.JoinNonNullStrings(" ", response, userResp, chanResp) + ".");
 			}
 		}
+
+		[Group("modifyslowmode"), Alias("msm")]
+		[Usage("[Setup] [1 to 5] [1 to 30] [True|False] <Role> ... | [On|Off]")]
+		[Summary("First arg is how many messages can be sent in a timeframe. Second arg is the timeframe. Third arg is guildwide; true means yes, false means no. " +
+			"Fourth are the list of roles that are immune to slowmode.")]
+		[PermissionRequirement(null, null)]
+		[DefaultEnabled(true)]
+		public sealed class ModifySlowmode : MyModuleBase
+		{
+			[Command("on")]
+			public async Task CommandOn()
+			{
+				await CommandRunner(true);
+			}
+			[Command("off")]
+			public async Task CommandOff()
+			{
+				await CommandRunner(false);
+			}
+			[Command("setup")]
+			public async Task CommandSetup(uint messages, uint interval, bool guildWide, [Optional] params IRole[] immuneRoles)
+			{
+				await CommandRunner(messages, interval, guildWide, immuneRoles);
+			}
+
+			private async Task CommandRunner(uint messages, uint interval, bool guildWide, IRole[] immuneRoles)
+			{
+				Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
+			}
+			private async Task CommandRunner(bool enable)
+			{
+				if (enable)
+				{
+					Context.GuildSettings.Slowmode.Enable();
+				}
+				else
+				{
+					Context.GuildSettings.Slowmode.Disable();
+				}
+			}
+		}
 	}
 	/*
 	//User Moderation commands are commands that affect the users of a guild
 	[Name("UserModeration")]
 	public class Advobot_Commands_User_Mod : ModuleBase
 	{
-		[Command("modifyslowmode")]
-		[Alias("msm")]
-		[Usage("<\"Roles:.../.../\"> <Messages:1 to 5> <Time:1 to 30> <Guild:Yes> | [Off] [Guild|Channel|All]")]
-		[Summary("The first argument is the roles that get ignored by slowmode, the second is the amount of messages, and the third is the time period. Default is: none, 1, 5." +
-			"Bots are unaffected by slowmode. Any users who are immune due to roles stay immune even if they lose said role until a new slowmode is started.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(true)]
+
 		public async Task SlowMode([Optional, Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);

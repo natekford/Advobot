@@ -85,6 +85,8 @@ namespace Advobot
 			private GuildNotification _GoodbyeMessage = null;
 			[JsonProperty("ListedInvite")]
 			private ListedInvite _ListedInvite = null;
+			[JsonProperty("Slowmode")]
+			private Slowmode _Slowmode = null;
 			[JsonProperty("Prefix")]
 			private string _Prefix = null;
 			[JsonProperty("VerboseErrors")]
@@ -397,6 +399,16 @@ namespace Advobot
 				}
 			}
 			[JsonIgnore]
+			public Slowmode Slowmode
+			{
+				get => _Slowmode;
+				set
+				{
+					_Slowmode = value;
+					OnPropertyChanged();
+				}
+			}
+			[JsonIgnore]
 			public string Prefix
 			{
 				get => _Prefix;
@@ -422,13 +434,9 @@ namespace Advobot
 			[JsonIgnore]
 			public List<SpamPreventionUser> SpamPreventionUsers { get; } = new List<SpamPreventionUser>();
 			[JsonIgnore]
-			public List<SlowmodeChannel> SlowmodeChannels { get; } = new List<SlowmodeChannel>();
-			[JsonIgnore]
 			public List<BotInvite> Invites { get; } = new List<BotInvite>();
 			[JsonIgnore]
 			public List<string> EvaluatedRegex { get; } = new List<string>();
-			[JsonIgnore]
-			public SlowmodeGuild SlowmodeGuild { get; } = null;
 			[JsonIgnore]
 			public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
 			[JsonIgnore]
@@ -1295,6 +1303,47 @@ namespace Advobot
 				return SettingToString();
 			}
 		}
+
+		public class Slowmode : ISetting
+		{
+			[JsonProperty]
+			public int BaseMessages { get; }
+			[JsonProperty]
+			public int Interval { get; }
+			[JsonProperty]
+			public ulong[] ImmuneRoleIds { get; }
+			[JsonIgnore]
+			public List<SlowmodeUser> Users { get; }
+			[JsonIgnore]
+			public bool Enabled { get; private set; }
+
+			public Slowmode(int baseMessages, int interval, IRole[] immuneRoles)
+			{
+				BaseMessages = baseMessages;
+				Interval = interval;
+				Users = new List<SlowmodeUser>();
+				ImmuneRoleIds = immuneRoles.Select(x => x.Id).Distinct().ToArray();
+				Enabled = false;
+			}
+
+			public void Disable()
+			{
+				Enabled = false;
+			}
+			public void Enable()
+			{
+				Enabled = true;
+			}
+
+			public string SettingToString()
+			{
+				return String.Format("**Base messages:** `{0}`\n**Time interval:** `{1}`\n**Immune Role Ids:** `{2}`", BaseMessages, Interval, String.Join("`, `", ImmuneRoleIds));
+			}
+			public string SettingToString(SocketGuild guild)
+			{
+				return SettingToString();
+			}
+		}
 	}
 
 	namespace NonSavedClasses
@@ -1588,49 +1637,6 @@ namespace Advobot
 			public void ClearList()
 			{
 				_Messages.Clear();
-			}
-		}
-
-		public class SlowmodeGuild
-		{
-			public int BaseMessages { get; }
-			public int Interval { get; }
-			public List<SlowmodeUser> Users { get; }
-
-			public SlowmodeGuild(int baseMessages, int interval)
-			{
-				BaseMessages = baseMessages;
-				Interval = interval;
-				Users = new List<SlowmodeUser>();
-			}
-			public SlowmodeGuild(int baseMessages, int interval, List<SlowmodeUser> users)
-			{
-				BaseMessages = baseMessages;
-				Interval = interval;
-				Users = users;
-			}
-		}
-
-		public class SlowmodeChannel
-		{
-			public ulong ChannelId { get; }
-			public int BaseMessages { get; }
-			public int Interval { get; }
-			public List<SlowmodeUser> Users { get; }
-
-			public SlowmodeChannel(ulong channelId, int baseMessages, int interval)
-			{
-				ChannelId = channelId;
-				BaseMessages = baseMessages;
-				Interval = interval;
-				Users = new List<SlowmodeUser>();
-			}
-			public SlowmodeChannel(ulong channelId, int baseMessages, int interval, List<SlowmodeUser> users)
-			{
-				ChannelId = channelId;
-				BaseMessages = baseMessages;
-				Interval = interval;
-				Users = users;
 			}
 		}
 

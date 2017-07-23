@@ -97,7 +97,6 @@ namespace Advobot
 				var ignoredFromCmd = guildSettings.IgnoredCommandChannels.Contains(channel.Id);
 				var imageOnly = guildSettings.ImageOnlyChannels.Contains(channel.Id);
 				var sanitary = guildSettings.SanitaryChannels.Contains(channel.Id);
-				var slowmode = guildSettings.SlowmodeChannels.Any(x => x.ChannelId == channel.Id);
 				var serverLog = guildSettings.ServerLog?.Id == channel.Id;
 				var modLog = guildSettings.ModLog?.Id == channel.Id;
 				var imageLog = guildSettings.ImageLog?.Id == channel.Id;
@@ -108,11 +107,10 @@ namespace Advobot
 				var ignoredFromCmdStr = String.Format("**Ignored From Commands:** `{0}`", ignoredFromCmd ? "Yes" : "No");
 				var imageOnlyStr = String.Format("**Image Only:** `{0}`", imageOnly ? "Yes" : "No");
 				var sanitaryStr = String.Format("**Sanitary:** `{0}`", sanitary ? "Yes" : "No");
-				var slowmodeStr = String.Format("**Slowmode:** `{0}`", slowmode ? "Yes" : "No");
 				var serverLogStr = String.Format("\n**Serverlog:** `{0}`", serverLog ? "Yes" : "No");
 				var modLogStr = String.Format("**Modlog:** `{0}`", modLog ? "Yes" : "No");
 				var imageLogStr = String.Format("**Imagelog:** `{0}`", imageLog ? "Yes" : "No");
-				var description = String.Join("\n", new[] { ageStr, userCountStr, ignoredFromLogStr, ignoredFromCmdStr, imageOnlyStr, sanitaryStr, slowmodeStr, serverLogStr, modLogStr, imageLogStr });
+				var description = String.Join("\n", new[] { ageStr, userCountStr, ignoredFromLogStr, ignoredFromCmdStr, imageOnlyStr, sanitaryStr, serverLogStr, modLogStr, imageLogStr });
 
 				var embed = EmbedActions.MakeNewEmbed(null, description);
 				EmbedActions.AddAuthor(embed, channel.FormatChannel());

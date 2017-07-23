@@ -109,36 +109,32 @@ namespace Advobot
 			}
 			public static async Task HandleSlowmode(IGuildSettings guildSettings, IMessage message)
 			{
-				var smGuild = guildSettings.SlowmodeGuild;
-				if (smGuild != null)
+				//Don't bother doing stuff on the user if they're immune
+				var slowmode = guildSettings.Slowmode;
+				if (slowmode == null || !slowmode.Enabled || (message.Author as IGuildUser).RoleIds.Intersect(slowmode.ImmuneRoleIds).Any())
 				{
-					await HandleSlowmodeUser(smGuild.Users.FirstOrDefault(x => x.User.Id == message.Author.Id), message);
+					return;
 				}
 
-				var smChannel = guildSettings.SlowmodeChannels.FirstOrDefault(x => x.ChannelId == message.Channel.Id);
-				if (smChannel != null)
+				var user = slowmode.Users.FirstOrDefault(x => x.User.Id == message.Author.Id);
+				if (user == null)
 				{
-					await HandleSlowmodeUser(smChannel.Users.FirstOrDefault(x => x.User.Id == message.Author.Id), message);
+					slowmode.Users.ThreadSafeAdd(user = new SlowmodeUser(message.Author as IGuildUser, slowmode.BaseMessages, slowmode.Interval));
 				}
-			}
-			public static async Task HandleSlowmodeUser(SlowmodeUser user, IMessage message)
-			{
-				if (user != null)
-				{
-					//If the user still has messages left, check if this is the first of their interval. Start a countdown if it is. Else lower by one or delete the message.
-					if (user.CurrentMessagesLeft > 0)
-					{
-						if (user.CurrentMessagesLeft == user.BaseMessages)
-						{
-							user.SetNewTime();
-						}
 
-						user.LowerMessagesLeft();
-					}
-					else
+				//If the user still has messages left, check if this is the first of their interval. Start a countdown if it is. Else lower by one and/or delete the message.
+				if (user.CurrentMessagesLeft > 0)
+				{
+					if (user.CurrentMessagesLeft == user.BaseMessages)
 					{
-						await MessageActions.DeleteMessage(message);
+						user.SetNewTime();
 					}
+
+					user.LowerMessagesLeft();
+				}
+				else
+				{
+					await MessageActions.DeleteMessage(message);
 				}
 			}
 			public static async Task HandleBannedPhrases(ITimersModule timers, IGuildSettings guildSettings, IGuild guild, IMessage message)
@@ -256,16 +252,11 @@ namespace Advobot
 				return Regex.IsMatch(msg, pattern, RegexOptions.IgnoreCase, new TimeSpan(Constants.TICKS_REGEX_TIMEOUT));
 			}
 
-			public static void AddSlowmodeUser(SlowmodeGuild smGuild, List<SlowmodeChannel> smChannels, IGuildUser user)
+			public static void AddSlowmodeUser(Slowmode slowmode, IGuildUser user)
 			{
-				if (smGuild != null)
+				if (slowmode != null)
 				{
-					smGuild.Users.ThreadSafeAdd(new SlowmodeUser(user, smGuild.BaseMessages, smGuild.Interval));
-				}
-
-				foreach (var smChannel in smChannels.Where(x => (user.Guild as SocketGuild).TextChannels.Select(y => y.Id).Contains(x.ChannelId)))
-				{
-					smChannel.Users.ThreadSafeAdd(new SlowmodeUser(user, smChannel.BaseMessages, smChannel.Interval));
+					slowmode.Users.ThreadSafeAdd(new SlowmodeUser(user, slowmode.BaseMessages, slowmode.Interval));
 				}
 			}
 
