@@ -364,28 +364,6 @@ namespace Advobot
 		}
 
 		[AttributeUsage(AttributeTargets.Parameter)]
-		public class VerifyStringAttribute : ParameterPreconditionAttribute
-		{
-			private readonly string[] _ValidStrings;
-
-			public VerifyStringAttribute(params string[] validStrings)
-			{
-				_ValidStrings = validStrings;
-			}
-
-			public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
-			{
-				//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
-				if (value == null)
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
-
-				return _ValidStrings.CaseInsContains(value.ToString()) ? Task.FromResult(PreconditionResult.FromSuccess()) : Task.FromResult(PreconditionResult.FromError("Invalid string provided."));
-			}
-		}
-
-		[AttributeUsage(AttributeTargets.Parameter)]
 		public class VerifyStringLengthAttribute : ParameterPreconditionAttribute
 		{
 			private readonly ReadOnlyDictionary<Target, Tuple<int, int, string>> _MinsAndMaxesAndErrors = new ReadOnlyDictionary<Target, Tuple<int, int, string>>(new Dictionary<Target, Tuple<int, int, string>>

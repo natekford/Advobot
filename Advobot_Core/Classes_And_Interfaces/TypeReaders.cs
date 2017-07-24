@@ -157,6 +157,11 @@ namespace Advobot
 		{
 			public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 			{
+				if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
+				{
+					return Task.FromResult(TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided."));
+				}
+
 				return Task.FromResult(TypeReaderResult.FromSuccess(Constants.BYPASS_STRING.CaseInsEquals(input)));
 			}
 		}
@@ -165,7 +170,11 @@ namespace Advobot
 		{
 			public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 			{
-				if (bool.TryParse(input, out bool output))
+				if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
+				{
+					return Task.FromResult(TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided."));
+				}
+				else if (bool.TryParse(input, out bool output))
 				{
 					return Task.FromResult(TypeReaderResult.FromSuccess(output));
 				}
