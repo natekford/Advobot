@@ -8,13 +8,11 @@ First, to get the really shitty part of the bot out of the way:
 
 3.	ILogModule goes into MyCommandContext to be used in exactly one command. The getinfo bot command.
 
+4.	I use String.Format over string interpolation; fight me.
+
 
 To get some of the better parts out there:
-0.	The bot can easily be switched from sharded to single shard and console to a WPF. Can't easily switch OSes yet though.
-
-1.	The UI is completely optional. If removing it, you only need to remove about five lines from SubMain() then remove the .cs file from the project.
-
-2.	I'm slowly making each module completely optional (aside from IBotSettings and IGuildSettingsModule)
+0.	I'm slowly making each module completely optional (aside from IBotSettings and IGuildSettingsModule)
 	ILogModule can be removed completely and only gives six easy to comment out errors.
 	ITimersModule shouldn't be too hard to code out (just null check a lot of places).
 	IInviteListModule will be easy to replace when I get around to creating it.

@@ -33,8 +33,8 @@ namespace Advobot
 
 		public interface ISetting
 		{
-			string SettingToString();
-			string SettingToString(SocketGuild guild);
+			string ToString();
+			string ToString(SocketGuild guild);
 		}
 
 		public interface IMyCommandContext : ICommandContext
@@ -137,7 +137,6 @@ namespace Advobot
 			IReadOnlyList<ulong> TrustedUsers { get; set; }
 			IReadOnlyList<ulong> UsersUnableToDMOwner { get; set; }
 			IReadOnlyList<ulong> UsersIgnoredFromCommands { get; set; }
-			ulong BotOwnerId { get; set; }
 			uint ShardCount { get; set; }
 			uint MessageCacheCount { get; set; }
 			uint MaxUserGatherCount { get; set; }
@@ -185,7 +184,7 @@ namespace Advobot
 			ITextChannel ModLog { get; set; }
 			ITextChannel ImageLog { get; set; }
 			IRole MuteRole { get; set; }
-			IReadOnlyDictionary<SpamType, SpamPrevention> SpamPreventionDictionary { get; set; }
+			IReadOnlyDictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; set; }
 			IReadOnlyDictionary<RaidType, RaidPrevention> RaidPreventionDictionary { get; set; }
 			GuildNotification WelcomeMessage { get; set; }
 			GuildNotification GoodbyeMessage { get; set; }

@@ -682,7 +682,7 @@ namespace Advobot
 			{
 				var newMsg = String.Format("From `{0}` in `{1}`:\n```\n{2}```", Context.User.FormatUser(), Context.Guild.FormatGuild(), input.Substring(0, Math.Min(input.Length, 250)));
 
-				var owner = await UserActions.GetGlobalUser(Context.Client, Context.BotSettings.BotOwnerId);
+				var owner = await UserActions.GetBotOwner(Context.Client);
 				if (owner != null)
 				{
 					var DMChannel = await owner.GetOrCreateDMChannelAsync();

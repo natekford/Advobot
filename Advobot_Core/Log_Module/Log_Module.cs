@@ -439,13 +439,6 @@ namespace Advobot
 			public async Task OnMessageReceived(SocketMessage message)
 			{
 				var guild = message.GetGuild() as SocketGuild;
-				if (guild == null)
-				{
-					//Check if the user is trying to become the bot owner by DMing the bot its key
-					await OnMessageReceivedActions.HandlePotentialBotOwner(_BotSettings, message);
-					return;
-				}
-
 				if (_GuildSettings.TryGetSettings(guild, out IGuildSettings guildSettings))
 				{
 					await OnMessageReceivedActions.HandleCloseWords(_BotSettings, guildSettings, message, _Timers);
@@ -472,15 +465,7 @@ namespace Advobot
 				var guildSettings = verified.GuildSettings;
 				var serverLog = verified.LoggingChannel;
 
-				IMessage beforeMessage;
-				if (cached.HasValue)
-				{
-					beforeMessage = cached.Value;
-				}
-				else
-				{
-					beforeMessage = await cached.GetOrDownloadAsync();
-				}
+				var beforeMessage = cached.HasValue ? cached.Value : null;
 
 				await SpamActions.HandleBannedPhrases(_Timers, guildSettings, guild, afterMessage);
 
@@ -524,15 +509,7 @@ namespace Advobot
 					var guildSettings = verified.GuildSettings;
 					var serverLog = verified.LoggingChannel;
 
-					IMessage message;
-					if (cached.HasValue)
-					{
-						message = cached.Value;
-					}
-					else
-					{
-						message = await cached.GetOrDownloadAsync();
-					}
+					var message = cached.HasValue ? cached.Value : null;
 
 					//Get the list of deleted messages it contains
 					var msgDeletion = guildSettings.MessageDeletion;
@@ -547,8 +524,7 @@ namespace Advobot
 					{
 						cancelToken.Cancel();
 					}
-					cancelToken = new CancellationTokenSource();
-					msgDeletion.SetCancelToken(cancelToken);
+					msgDeletion.SetCancelToken(cancelToken = new CancellationTokenSource());
 
 					_Logging.IncrementDeletes();
 
@@ -573,7 +549,7 @@ namespace Advobot
 						List<IMessage> deletedMessages;
 						lock (msgDeletion)
 						{
-							deletedMessages = new List<IMessage>(msgDeletion.GetList());
+							deletedMessages = new List<IMessage>(msgDeletion.GetList() ?? new List<IMessage>());
 							msgDeletion.ClearList();
 						}
 
@@ -606,14 +582,6 @@ namespace Advobot
 
 		public static class OnMessageReceivedActions
 		{
-			public static async Task HandlePotentialBotOwner(IBotSettings botSettings, IMessage message)
-			{
-				if (message.Content.Equals(Properties.Settings.Default.BotKey) && botSettings.BotOwnerId == 0)
-				{
-					botSettings.BotOwnerId = message.Author.Id;
-					await MessageActions.SendDMMessage(message.Channel as IDMChannel, "Congratulations, you are now the owner of the bot.");
-				}
-			}
 			public static async Task HandleChannelSettings(IGuildSettings guildSettings, IMessage message)
 			{
 				var channel = message.Channel as ITextChannel;
@@ -840,17 +808,27 @@ namespace Advobot
 			}
 			public static bool VerifyServerLoggingAction(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ISocketMessageChannel channel, LogAction logAction, out VerifiedLoggingAction verifLoggingAction)
 			{
-				return VerifyServerLoggingAction(botSettings, guildSettingsModule, channel.GetGuild() as SocketGuild, logAction, out verifLoggingAction) && !verifLoggingAction.GuildSettings.IgnoredLogChannels.Contains(channel.Id);
+				if (!VerifyServerLoggingAction(botSettings, guildSettingsModule, channel.GetGuild() as SocketGuild, logAction, out verifLoggingAction))
+				{
+					return false;
+				}
+				return !verifLoggingAction.Equals(default(VerifiedLoggingAction)) && !verifLoggingAction.GuildSettings.IgnoredLogChannels.Contains(channel.Id);
 			}
 			public static bool VerifyServerLoggingAction(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IGuild guild, LogAction logAction, out VerifiedLoggingAction verifLoggingAction)
 			{
 				verifLoggingAction = new VerifiedLoggingAction(null, null, null);
 				if (botSettings.Pause || !guildSettingsModule.TryGetSettings(guild, out IGuildSettings guildSettings))
+				{
 					return false;
+				}
 
-				var serverLog = guildSettings.ServerLog;
-				verifLoggingAction = new VerifiedLoggingAction(guild, guildSettings, serverLog);
-				return serverLog != null && guildSettings.LogActions.Contains(logAction);
+				if (guildSettings.ServerLog == null || !guildSettings.LogActions.Contains(logAction))
+				{
+					return false;
+				}
+
+				verifLoggingAction = new VerifiedLoggingAction(guild, guildSettings, guildSettings.ServerLog);
+				return true;
 			}
 		}
 	}

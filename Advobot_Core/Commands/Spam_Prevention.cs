@@ -1,11 +1,86 @@
 ﻿using Advobot.Actions;
+using Advobot.NonSavedClasses;
 using Discord.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Attributes;
+using Advobot.Enums;
 
 namespace Advobot
 {
+	namespace SpamPrevention
+	{
+		[Group("preventspam"), Alias("prs")]
+		[Usage("[Message|LongMessage|Link|Image|Mention|ShowPunishments] <Setup|On|Off> <Punishment> <Message Count> <Spam Amount|Time Interval> <Votes>")]
+		[Summary("Spam prevention allows for some protection against mention spammers. Messages are the amount of messages a user has to send with the given amount of mentions before being considered " +
+			"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The spam users are reset every hour.")]
+		[PermissionRequirement(null, null)]
+		[DefaultEnabled(false)]
+		public sealed class PreventSpam : MyModuleBase
+		{
+			//idk exactly if it's a good idea to be using nested classes. shouldn't be that hard to change them to non nested classes if need be.
+			[Group("showpunishments")]
+			public sealed class ShowPunishments : MyModuleBase
+			{
+				[Command]
+				public async Task Command()
+				{
+					await CommandRunner();
+				}
+
+				private async Task CommandRunner()
+				{
+					var desc = String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(PunishmentType))));
+					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Punishment Types", desc));
+				}
+			}
+
+			[Group("message"), Alias("msg")]
+			public sealed class PreventMessageSpam : MyModuleBase
+			{
+				[Command("on")]
+				public async Task CommandOn()
+				{
+					await SpamActions.ModifySpamPreventionEnabled(Context, SpamType.Message, true);
+				}
+				[Command("off")]
+				public async Task CommandOff()
+				{
+					await SpamActions.ModifySpamPreventionEnabled(Context, SpamType.Message, false);
+				}
+				[Command("setup")]
+				public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
+				{
+					await SpamActions.SetUpSpamPrevention(Context, SpamType.Message, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				}
+			}
+
+			[Group("longmessage"), Alias("lmsg")]
+			public sealed class PreventLongMessageSpam : MyModuleBase
+			{
+
+			}
+
+			[Group("link"), Alias("l")]
+			public sealed class PreventLinkSpam : MyModuleBase
+			{
+
+			}
+
+			[Group("image"), Alias("img")]
+			public sealed class PreventImageSpam : MyModuleBase
+			{
+
+			}
+
+			[Group("mention"), Alias("men")]
+			public sealed class PreventMentionSpam : MyModuleBase
+			{
+
+			}
+		}
+	}
 	/*
 	[Name("SpamPrevention")]
 	public class Advobot_Commands_Spam_Prevention : ModuleBase

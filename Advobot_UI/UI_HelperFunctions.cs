@@ -827,18 +827,6 @@ namespace Advobot
 							}
 							return true;
 						}
-						case SettingOnBot.BotOwnerID:
-						{
-							if (!ulong.TryParse(text, out ulong id))
-							{
-								return false;
-							}
-							else if (botSettings.BotOwnerId != id)
-							{
-								botSettings.BotOwnerId = id;
-							}
-							return true;
-						}
 						case SettingOnBot.Game:
 						{
 							if (botSettings.Game != text)

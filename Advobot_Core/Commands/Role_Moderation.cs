@@ -419,8 +419,8 @@ namespace Advobot
 					return;
 				}
 
-				await RoleActions.ModifyRoleColor(role, color, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the color of `{0}` to `{1}/{2}/{3}`.", role.FormatRole(), color.R, color.G, color.B));
+				await RoleActions.ModifyRoleColor(role, color, FormattingActions.FormatUserReason(Context.User)); //Use .ToString("X6") to get a hex string that's 6 characters long
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the color of `{0}` to `#{1}`.", role.FormatRole(), color.RawValue.ToString("X6")));
 			}
 		}
 

@@ -372,6 +372,11 @@ namespace Advobot
 					}
 				}).SelectMany(x => x).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
 			}
+
+			public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> readOnlyDick)
+			{
+				return readOnlyDick.ToDictionary(nixon => nixon.Key, cheney => cheney.Value);
+			}
 		}
 	}
 }

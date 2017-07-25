@@ -377,7 +377,7 @@ namespace Advobot
 		}
 
 		[Group("modifyslowmode"), Alias("msm")]
-		[Usage("[Setup] [1 to 5] [1 to 30] [True|False] <Role> ... | [On|Off]")]
+		[Usage("[Setup] [1 to 5] [1 to 30] <Role> ... | [On|Off]")]
 		[Summary("First arg is how many messages can be sent in a timeframe. Second arg is the timeframe. Third arg is guildwide; true means yes, false means no. " +
 			"Fourth are the list of roles that are immune to slowmode.")]
 		[PermissionRequirement(null, null)]
@@ -395,173 +395,38 @@ namespace Advobot
 				await CommandRunner(false);
 			}
 			[Command("setup")]
-			public async Task CommandSetup(uint messages, uint interval, bool guildWide, [Optional] params IRole[] immuneRoles)
+			public async Task CommandSetup(uint messages, uint interval, [Optional] params IRole[] immuneRoles)
 			{
-				await CommandRunner(messages, interval, guildWide, immuneRoles);
+				await CommandRunner(messages, interval, immuneRoles);
 			}
 
-			private async Task CommandRunner(uint messages, uint interval, bool guildWide, IRole[] immuneRoles)
-			{
-				Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
-			}
 			private async Task CommandRunner(bool enable)
 			{
+				if (Context.GuildSettings.Slowmode == null)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("There must be a slowmode set up before one can be enabled or disabled."));
+					return;
+				}
+
 				if (enable)
 				{
 					Context.GuildSettings.Slowmode.Enable();
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled slowmode.\n{0}", Context.GuildSettings.Slowmode.ToString()));
 				}
 				else
 				{
 					Context.GuildSettings.Slowmode.Disable();
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled slowmode.");
 				}
+			}
+			private async Task CommandRunner(uint messages, uint interval, IRole[] immuneRoles)
+			{
+				Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully setup slowmode.\n{0}", Context.GuildSettings.Slowmode.ToString()));
 			}
 		}
 	}
 	/*
-	//User Moderation commands are commands that affect the users of a guild
-	[Name("UserModeration")]
-	public class Advobot_Commands_User_Mod : ModuleBase
-	{
-
-		public async Task SlowMode([Optional, Remainder] string input)
-		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 4), new[] { "roles", "messages", "time", "guild" });
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var roleStr = returnedArgs.GetSpecifiedArg("roles");
-			var msgStr = returnedArgs.GetSpecifiedArg("messages");
-			var timeStr = returnedArgs.GetSpecifiedArg("time");
-			var guildStr = returnedArgs.GetSpecifiedArg("guild");
-
-			if (Actions.CaseInsEquals(returnedArgs.Arguments[0], "off"))
-			{
-				var targStr = returnedArgs.Arguments[1];
-				if (returnedArgs.ArgCount != 2)
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(Constants.ARGUMENTS_ERROR));
-				}
-				else if (Actions.CaseInsEquals(targStr, "guild"))
-				{
-					guildInfo.SetSetting(SettingOnGuild.SlowmodeGuild, null, false);
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the guild.");
-				}
-				else if (Actions.CaseInsEquals(targStr, "channel"))
-				{
-					((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels)).ThreadSafeRemoveAll(x => x.ChannelID == Context.Channel.Id);
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the slowmode on the channel.");
-				}
-				else if (Actions.CaseInsEquals(targStr, "all"))
-				{
-					guildInfo.SetSetting(SettingOnGuild.SlowmodeGuild, null, false);
-					((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels)).Clear();
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed all slowmodes on the guild and its channels.");
-				}
-				else
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("With off, the second argument must be either Guild, Channel, or All."));
-				}
-				return;
-			}
-
-			//Check if the target is already in either dictionary
-			var guild = !String.IsNullOrWhiteSpace(guildStr);
-			if (guild)
-			{
-				var smGuild = ((SlowmodeGuild)guildInfo.GetSetting(SettingOnGuild.SlowmodeGuild));
-				if (smGuild != null)
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Guild already is in slowmode.");
-					return;
-				}
-			}
-			else
-			{
-				var smChannel = ((List<SlowmodeChannel>)guildInfo.GetSetting(SettingOnGuild.SlowmodeChannels)).FirstOrDefault(x => x.ChannelID == Context.Channel.Id);
-				if (smChannel != null)
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Channel already is in slowmode.");
-					return;
-				}
-			}
-
-			//Get the roles
-			var roles = new List<IRole>();
-			if (!String.IsNullOrWhiteSpace(roleStr))
-			{
-				roleStr.Split('/').ToList().ForEach(x =>
-				{
-					var returnedRole = Actions.GetRole(Context, new[] { ObjectVerification.None }, false, x);
-					if (returnedRole.Reason == FailureReason.NotFailure)
-					{
-						roles.Add(returnedRole.Object);
-					}
-				});
-			}
-			roles = roles.Distinct().ToList();
-			var roleNames = roles.Select(x => x.Name);
-			var roleIDs = roles.Select(x => x.Id);
-
-			//Get the messages limit
-			var msgsLimit = 1;
-			if (!String.IsNullOrWhiteSpace(msgStr))
-			{
-				if (int.TryParse(msgStr, out msgsLimit))
-				{
-					if (msgsLimit > 5 || msgsLimit < 1)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Message limit must be between 1 and 5 inclusive."));
-						return;
-					}
-				}
-				else
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The input for messages was not a number. Remember: no space after the colon."));
-					return;
-				}
-			}
-
-			//Get the time limit
-			var timeLimit = 5;
-			if (!String.IsNullOrWhiteSpace(timeStr))
-			{
-				if (int.TryParse(timeStr, out timeLimit))
-				{
-					if (timeLimit > 30 || timeLimit < 1)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Time must be between 1 and 10 inclusive."));
-						return;
-					}
-				}
-				else
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The input for time was not a number. Remember: no space after the colon."));
-					return;
-				}
-			}
-
-			var slowmodeUsers = (await Context.Guild.GetUsersAsync()).Where(x => !x.RoleIds.Intersect(roleIDs).Any()).Select(x => new SlowmodeUser(x, msgsLimit, timeLimit)).ToList();
-			if (guild)
-			{
-				guildInfo.SetSetting(SettingOnGuild.SlowmodeGuild, new SlowmodeGuild(msgsLimit, timeLimit, slowmodeUsers), false);
-			}
-			else
-			{
-				guildInfo.SetSetting(SettingOnGuild.SlowmodeChannels, new SlowmodeGuild(msgsLimit, timeLimit, slowmodeUsers), false);
-			}
-
-			//Send a success message
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled slowmode on `{0}` with a message limit of `{1}` and time interval of `{2}` seconds.{3}",
-				guild ? Context.Guild.FormatGuild() : Context.Channel.FormatChannel(),
-				msgsLimit,
-				timeLimit,
-				roleNames.Any() ? String.Format("\nImmune roles: `{0}`.", String.Join("`, `", roleNames)) : ""));
-		}
-
 		//TODO: Split this up into separate commands
 		/*
 		[Command("forallwithrole")]

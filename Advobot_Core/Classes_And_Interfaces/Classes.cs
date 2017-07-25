@@ -66,15 +66,15 @@ namespace Advobot
 			[JsonProperty("MuteRole")]
 			private DiscordObjectWithId<IRole> _MuteRole = new DiscordObjectWithId<IRole>(null);
 			[JsonProperty("MessageSpamPrevention")]
-			private SpamPrevention _MessageSpamPrevention = null;
+			private SpamPreventionInfo _MessageSpamPrevention = null;
 			[JsonProperty("LongMessageSpamPrevention")]
-			private SpamPrevention _LongMessageSpamPrevention = null;
+			private SpamPreventionInfo _LongMessageSpamPrevention = null;
 			[JsonProperty("LinkSpamPrevention")]
-			private SpamPrevention _LinkSpamPrevention = null;
+			private SpamPreventionInfo _LinkSpamPrevention = null;
 			[JsonProperty("ImageSpamPrevention")]
-			private SpamPrevention _ImageSpamPrevention = null;
+			private SpamPreventionInfo _ImageSpamPrevention = null;
 			[JsonProperty("MentionSpamPrevention")]
-			private SpamPrevention _MentionSpamPrevention = null;
+			private SpamPreventionInfo _MentionSpamPrevention = null;
 			[JsonProperty("RaidPrevention")]
 			private RaidPrevention _RaidPrevention = null;
 			[JsonProperty("RapidJoinPrevention")]
@@ -293,16 +293,16 @@ namespace Advobot
 				}
 			}
 			[JsonIgnore]
-			public IReadOnlyDictionary<SpamType, SpamPrevention> SpamPreventionDictionary
+			public IReadOnlyDictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary
 			{
-				get => new ReadOnlyDictionary<SpamType, SpamPrevention>(new Dictionary<SpamType, SpamPrevention>
-			{
-				{ SpamType.Message, _MessageSpamPrevention },
-				{ SpamType.LongMessage, _LongMessageSpamPrevention },
-				{ SpamType.Link, _LinkSpamPrevention },
-				{ SpamType.Image, _ImageSpamPrevention },
-				{ SpamType.Mention, _MentionSpamPrevention },
-			});
+				get => new ReadOnlyDictionary<SpamType, SpamPreventionInfo>(new Dictionary<SpamType, SpamPreventionInfo>
+				{
+					{ SpamType.Message, _MessageSpamPrevention },
+					{ SpamType.LongMessage, _LongMessageSpamPrevention },
+					{ SpamType.Link, _LinkSpamPrevention },
+					{ SpamType.Image, _ImageSpamPrevention },
+					{ SpamType.Mention, _MentionSpamPrevention },
+				});
 				set
 				{
 					foreach (var kvp in value)
@@ -343,10 +343,10 @@ namespace Advobot
 			public IReadOnlyDictionary<RaidType, RaidPrevention> RaidPreventionDictionary
 			{
 				get => new ReadOnlyDictionary<RaidType, RaidPrevention>(new Dictionary<RaidType, RaidPrevention>
-			{
-				{ RaidType.Regular, _RaidPrevention },
-				{ RaidType.RapidJoins, _RapidJoinPrevention },
-			});
+				{
+					{ RaidType.Regular, _RaidPrevention },
+					{ RaidType.RapidJoins, _RapidJoinPrevention },
+				});
 				set
 				{
 					foreach (var kvp in value)
@@ -519,8 +519,6 @@ namespace Advobot
 			private List<ulong> _UsersUnableToDMOwner = new List<ulong>();
 			[JsonProperty("UsersIgnoredFromCommands")]
 			private List<ulong> _UsersIgnoredFromCommands = new List<ulong>();
-			[JsonProperty("BotOwnerID")]
-			private ulong _BotOwnerId = 0;
 			[JsonProperty("ShardCount")]
 			private uint _ShardCount = 1;
 			[JsonProperty("MessageCacheCount")]
@@ -567,16 +565,6 @@ namespace Advobot
 				set
 				{
 					_UsersIgnoredFromCommands = value.ToList();
-					OnPropertyChanged();
-				}
-			}
-			[JsonIgnore]
-			public ulong BotOwnerId
-			{
-				get => _BotOwnerId;
-				set
-				{
-					_BotOwnerId = value;
 					OnPropertyChanged();
 				}
 			}
@@ -749,13 +737,13 @@ namespace Advobot
 				Enabled = !Enabled;
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
 				return String.Format("**Command:** `{0}`\n**ID:** `{1}`\n**Enabled:** `{2}`", Name, Id, Enabled);
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
-				return SettingToString();
+				return ToString();
 			}
 		}
 
@@ -799,13 +787,13 @@ namespace Advobot
 				Value = !Value;
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
 				return String.Format("`{0}` `{1}`", ValAsString.PadRight(3), Name);
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
-				return SettingToString();
+				return ToString();
 			}
 		}
 
@@ -836,19 +824,19 @@ namespace Advobot
 					}
 					default:
 					{
-						Punishment = PunishmentType.Nothing;
+						Punishment = default(PunishmentType);
 						return;
 					}
 				}
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
 				return String.Format("`{0}` `{1}`", Punishment.EnumName().Substring(0, 1), Phrase);
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
-				return SettingToString();
+				return ToString();
 			}
 		}
 
@@ -886,14 +874,14 @@ namespace Advobot
 				Role = guild.GetRole(RoleId);
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
 				return String.Format("`{0}.` `{1}`{2}",
 					NumberOfRemoves.ToString("00"),
 					RoleId == 0 ? Punishment.EnumName() : RoleId.ToString(),
 					PunishmentTime == 0 ? "" : " `" + PunishmentTime + " minutes`");
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
 				return String.Format("`{0}.` `{1}`{2}",
 					NumberOfRemoves.ToString("00"),
@@ -928,13 +916,13 @@ namespace Advobot
 				Roles.RemoveAll(x => roleIDs.Contains(x.RoleId));
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
-				return String.Format("`Group: {0}`\n{1}", Group, String.Join("\n", Roles.Select(x => x.SettingToString())));
+				return String.Format("`Group: {0}`\n{1}", Group, String.Join("\n", Roles.Select(x => x.ToString())));
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
-				return SettingToString();
+				return ToString();
 			}
 		}
 
@@ -961,13 +949,13 @@ namespace Advobot
 				Role = guild.GetRole(RoleId);
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
 				return String.Format("**Role:** `{0}`", Role.FormatRole());
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
-				return SettingToString();
+				return ToString();
 			}
 		}
 
@@ -993,11 +981,11 @@ namespace Advobot
 				Permissions &= ~bit;
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
 				return String.Format("**User:** `{0}`\n**Permissions:** `{1}`", UserId, Permissions);
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
 				return String.Format("**User:** `{0}`\n**Permissions:** `{1}`", guild.GetUser(UserId).FormatUser(), Permissions);
 			}
@@ -1047,7 +1035,7 @@ namespace Advobot
 				Channel = guild.GetTextChannel(ChannelId);
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
 				return String.Format("**Channel:** `{0}`\n**Content:** `{1}`\n**Title:** `{2}`\n**Description:** `{3}`\n**Thumbnail:** `{4}`",
 					Channel.FormatChannel(),
@@ -1056,9 +1044,9 @@ namespace Advobot
 					Description,
 					ThumbURL);
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
-				return SettingToString();
+				return ToString();
 			}
 		}
 
@@ -1110,7 +1098,7 @@ namespace Advobot
 				HasGlobalEmotes = Guild.HasGlobalEmotes();
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
 				if (String.IsNullOrWhiteSpace(Code))
 				{
@@ -1125,9 +1113,9 @@ namespace Advobot
 				}
 				return codeStr + keywordStr;
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
-				return SettingToString();
+				return ToString();
 			}
 		}
 
@@ -1144,13 +1132,13 @@ namespace Advobot
 				Text = text;
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
 				return String.Format("`{0}`", Name);
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
-				return SettingToString();
+				return ToString();
 			}
 		}
 
@@ -1187,58 +1175,58 @@ namespace Advobot
 				}
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
 				return Object != null ? FormattingActions.FormatObject(Object) : null;
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
-				return SettingToString();
+				return ToString();
 			}
 		}
 
-		public class SpamPrevention : ISetting
+		public class SpamPreventionInfo : ISetting
 		{
 			[JsonProperty]
 			public PunishmentType PunishmentType { get; }
 			[JsonProperty]
-			public int TimeInterval { get; }
-			[JsonProperty]
 			public int RequiredSpamInstances { get; }
 			[JsonProperty]
-			public int RequiredSpamPerMessage { get; }
+			public int RequiredSpamPerMessageOrTimeInterval { get; }
 			[JsonProperty]
 			public int VotesForKick { get; }
-			[JsonProperty]
+			[JsonIgnore]
 			public bool Enabled { get; private set; }
 
-			public SpamPrevention(PunishmentType punishmentType, int timeInterval, int requiredSpamInstances, int requiredSpamPerMessage, int votesForKick)
+			public SpamPreventionInfo(PunishmentType punishmentType, int requiredSpamInstances, int requiredSpamPerMessageOrTimeInterval, int votesForKick)
 			{
 				PunishmentType = punishmentType;
-				TimeInterval = timeInterval;
 				RequiredSpamInstances = requiredSpamInstances;
-				RequiredSpamPerMessage = requiredSpamPerMessage;
+				RequiredSpamPerMessageOrTimeInterval = requiredSpamPerMessageOrTimeInterval;
 				VotesForKick = votesForKick;
+				Enabled = false;
+			}
+
+			public void Enable()
+			{
 				Enabled = true;
 			}
-
-			public void ToggleEnabled()
+			public void Disable()
 			{
-				Enabled = !Enabled;
+				Enabled = false;
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
-				return String.Format("**Enabled:** `{0}`\n**Spam Instances:** `{1}`\n**Spam Amount/Time Interval:** `{2}`\n**Votes Needed For Kick:** `{3}`\n**Punishment:** `{4}`",
-					Enabled,
+				return String.Format("**Punishment:** `{0}`\n**Spam Instances:** `{1}`\n**Votes For Punishment:** `{2}`\n**Spam Amt/Time Interval:** `{3}`",
+					PunishmentType.EnumName(),
 					RequiredSpamInstances,
-					RequiredSpamPerMessage,
 					VotesForKick,
-					PunishmentType.EnumName());
+					RequiredSpamPerMessageOrTimeInterval);
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
-				return SettingToString();
+				return ToString();
 			}
 		}
 
@@ -1290,7 +1278,7 @@ namespace Advobot
 				await PunishmentActions.AutomaticPunishments(guildSettings, user, PunishmentType, false, 0, timers);
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
 				return String.Format("**Enabled:** `{0}`\n**Users:** `{1}`\n**Time Interval:** `{2}`\n**Punishment:** `{3}`",
 					Enabled,
@@ -1298,9 +1286,9 @@ namespace Advobot
 					TimeInterval,
 					PunishmentType.EnumName());
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
-				return SettingToString();
+				return ToString();
 			}
 		}
 
@@ -1335,13 +1323,13 @@ namespace Advobot
 				Enabled = true;
 			}
 
-			public string SettingToString()
+			public override string ToString()
 			{
 				return String.Format("**Base messages:** `{0}`\n**Time interval:** `{1}`\n**Immune Role Ids:** `{2}`", BaseMessages, Interval, String.Join("`, `", ImmuneRoleIds));
 			}
-			public string SettingToString(SocketGuild guild)
+			public string ToString(SocketGuild guild)
 			{
-				return SettingToString();
+				return ToString();
 			}
 		}
 	}
@@ -1409,7 +1397,7 @@ namespace Advobot
 			}
 			public bool TryGetSettings(IGuild guild, out IGuildSettings settings)
 			{
-				return _guildSettings.TryGetValue(guild.Id, out settings);
+				return _guildSettings.TryGetValue(guild?.Id ?? 0, out settings);
 			}
 
 			private async Task<IGuildSettings> CreateGuildSettings(Type guildSettingsType, IGuild guild)
@@ -1649,7 +1637,7 @@ namespace Advobot
 			public int VotesRequired { get; private set; } = int.MaxValue;
 			public bool PotentialPunishment { get; private set; } = false;
 			public bool AlreadyKicked { get; private set; } = false;
-			public PunishmentType Punishment { get; private set; } = PunishmentType.Nothing;
+			public PunishmentType Punishment { get; private set; } = default(PunishmentType);
 
 			public SpamPreventionUser(IGuildUser user)
 			{
@@ -1690,11 +1678,11 @@ namespace Advobot
 
 				VotesRequired = int.MaxValue;
 				PotentialPunishment = false;
-				Punishment = PunishmentType.Nothing;
+				Punishment = default(PunishmentType);
 			}
-			public bool CheckIfAllowedToPunish(SpamPrevention spamPrev, SpamType spamType)
+			public bool CheckIfAllowedToPunish(SpamPreventionInfo spamPrev, SpamType spamType)
 			{
-				return SpamLists[spamType].GetCountOfItemsInTimeFrame(spamPrev.TimeInterval) >= spamPrev.RequiredSpamInstances;
+				return SpamLists[spamType].GetCountOfItemsInTimeFrame(spamPrev.RequiredSpamPerMessageOrTimeInterval) >= spamPrev.RequiredSpamInstances;
 			}
 			public async Task SpamPreventionPunishment(IGuildSettings guildSettings, ITimersModule timers = null)
 			{

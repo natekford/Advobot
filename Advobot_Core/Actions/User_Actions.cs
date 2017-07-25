@@ -122,9 +122,9 @@ namespace Advobot
 			{
 				return await client.GetUserAsync(ID);
 			}
-			public static async Task<IUser> GetBotOwner(IDiscordClient client, IBotSettings botSettings)
+			public static async Task<IUser> GetBotOwner(IDiscordClient client)
 			{
-				return await client.GetUserAsync(botSettings.BotOwnerId);
+				return (await client.GetApplicationInfoAsync()).Owner;
 			}
 
 			public static bool GetIfUserCanBeModifiedByUser(IUser currUser, IUser targetUser)

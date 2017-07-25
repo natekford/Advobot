@@ -71,7 +71,6 @@ namespace Advobot
 			SavePath						= -1,
 
 			//Saved in JSON
-			BotOwnerID						= 1,
 			TrustedUsers					= 2,
 			Prefix							= 3,
 			Game							= 4,
@@ -203,13 +202,12 @@ namespace Advobot
 		[Flags]
 		public enum PunishmentType : uint
 		{
-			Nothing							= (1U << 0),
-			Kick							= (1U << 1),
-			Ban								= (1U << 2),
-			Deafen							= (1U << 3),
-			VoiceMute						= (1U << 4),
-			KickThenBan						= (1U << 5),
-			RoleMute						= (1U << 6),
+			Kick							= (1U << 0),
+			Ban								= (1U << 1),
+			Deafen							= (1U << 2),
+			VoiceMute						= (1U << 3),
+			KickThenBan						= (1U << 4),
+			RoleMute						= (1U << 5),
 		}
 
 		[Flags]

@@ -226,6 +226,11 @@ namespace Advobot
 					{
 						throw new InvalidOperationException(classType.Name + " has a command missing the command attribute.");
 					}
+					else if (classType.IsNested)
+					{
+						//Nested commands don't really need to be added since they're added under the class they're nested in
+						continue;
+					}
 
 					var groupAttr = (GroupAttribute)classType.GetCustomAttribute(typeof(GroupAttribute));
 					var name = groupAttr?.Prefix;

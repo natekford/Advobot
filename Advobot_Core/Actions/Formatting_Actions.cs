@@ -569,7 +569,7 @@ namespace Advobot
 			{
 				if (value is ISetting)
 				{
-					return ((ISetting)value).SettingToString();
+					return ((ISetting)value).ToString();
 				}
 				else if (value is ulong)
 				{

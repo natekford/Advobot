@@ -100,7 +100,7 @@ namespace Advobot
 				Requirements = requirements;
 			}
 
-			public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
+			public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 			{
 				if (context is MyCommandContext)
 				{
@@ -120,23 +120,23 @@ namespace Advobot
 						var userPerms = guildBits | botBits;
 						if ((userPerms & PERMISSION_BITS) != 0)
 						{
-							return Task.FromResult(PreconditionResult.FromSuccess());
+							return PreconditionResult.FromSuccess();
 						}
 					}
 					if (guildOwner && cont.Guild.OwnerId == user.Id)
 					{
-						return Task.FromResult(PreconditionResult.FromSuccess());
+						return PreconditionResult.FromSuccess();
 					}
 					if (trustedUser && cont.BotSettings.TrustedUsers.Contains(user.Id))
 					{
-						return Task.FromResult(PreconditionResult.FromSuccess());
+						return PreconditionResult.FromSuccess();
 					}
-					if (botOwner && cont.BotSettings.BotOwnerId == user.Id)
+					if (botOwner && (await UserActions.GetBotOwner(cont.Client)).Id == user.Id)
 					{
-						return Task.FromResult(PreconditionResult.FromSuccess());
+						return PreconditionResult.FromSuccess();
 					}
 				}
-				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
+				return PreconditionResult.FromError(Constants.IGNORE_ERROR);
 			}
 		}
 
@@ -269,8 +269,9 @@ namespace Advobot
 
 				if (value is System.Collections.IEnumerable)
 				{
-					foreach (var item in (value as System.Collections.IEnumerable).Cast<object>())
+					foreach (var item in value as System.Collections.IEnumerable)
 					{
+						//Don't bother trying to go farther if anything is a failure.
 						var preconditionResult = GetPreconditionResult(context, item, item.GetType());
 						if (!preconditionResult.IsSuccess)
 						{

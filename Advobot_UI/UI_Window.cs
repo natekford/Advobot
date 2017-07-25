@@ -110,11 +110,6 @@ namespace Advobot
 					Setting = UIModification.MakeSetting(SettingOnBot.Prefix, 10),
 					Title = UIModification.MakeTitle("Prefix:", "The prefix which is needed to be said before commands."),
 				};
-				private readonly SettingInMenu _BotOwnerSetting = new SettingInMenu
-				{
-					Setting = UIModification.MakeSetting(SettingOnBot.BotOwnerID, 18),
-					Title = UIModification.MakeTitle("Bot Owner:", "The number here is the ID of a user. The bot owner can use some additional commands."),
-				};
 				private readonly SettingInMenu _GameSetting = new SettingInMenu
 				{
 					Setting = UIModification.MakeSetting(SettingOnBot.Game, 100),
@@ -285,7 +280,6 @@ namespace Advobot
 					{
 						_DownloadUsersSetting,
 						_PrefixSetting,
-						_BotOwnerSetting,
 						_GameSetting,
 						_StreamSetting,
 						_ShardSetting,
@@ -771,7 +765,6 @@ namespace Advobot
 				{
 					((CheckBox)((Viewbox)_DownloadUsersSetting.Setting).Child).IsChecked	= _BotSettings.AlwaysDownloadUsers;
 					((TextBox)_PrefixSetting.Setting).Text									= _BotSettings.Prefix;
-					((TextBox)_BotOwnerSetting.Setting).Text								= _BotSettings.BotOwnerId.ToString();
 					((TextBox)_GameSetting.Setting).Text									= _BotSettings.Game;
 					((TextBox)_StreamSetting.Setting).Text									= _BotSettings.Stream;
 					((TextBox)_ShardSetting.Setting).Text									= _BotSettings.ShardCount.ToString();

@@ -69,16 +69,17 @@ namespace Advobot
 					totalChars += field.Name?.Length ?? 0;
 				}
 
+				if (content != null)
+				{
+					content = content.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE);
+					content = content.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE);
+					content = content.CaseInsReplace("\tts", Constants.FAKE_TTS);
+				}
+
+				//Catches length errors and nsfw filter errors if an avatar has nsfw content and filtering is enabled
 				IUserMessage msg;
 				try
 				{
-					if (content != null)
-					{
-						content = content.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE);
-						content = content.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE);
-						content = content.CaseInsReplace("\tts", Constants.FAKE_TTS);
-					}
-
 					msg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content ?? "", false, embed.WithCurrentTimestamp());
 				}
 				catch (Exception e)
