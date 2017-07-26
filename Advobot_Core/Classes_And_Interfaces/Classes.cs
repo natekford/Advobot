@@ -1264,10 +1264,6 @@ namespace Advobot
 			{
 				TimeList.ThreadSafeRemoveAll(x => x.GetTime().Equals(time));
 			}
-			public void ToggleEnabled()
-			{
-				Enabled = !Enabled;
-			}
 			public void Reset()
 			{
 				TimeList.Clear();
@@ -1276,6 +1272,15 @@ namespace Advobot
 			{
 				//TODO: make this not 0
 				await PunishmentActions.AutomaticPunishments(guildSettings, user, PunishmentType, false, 0, timers);
+			}
+
+			public void Enable()
+			{
+				Enabled = true;
+			}
+			public void Disable()
+			{
+				Enabled = false;
 			}
 
 			public override string ToString()

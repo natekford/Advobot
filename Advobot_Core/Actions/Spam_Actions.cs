@@ -457,6 +457,31 @@ namespace Advobot
 
 				await MessageActions.MakeAndDeleteSecondaryMessage(context, String.Format("Successfully set up the spam prevention for `{0}`.\n{1}", spamType.EnumName().ToLower(), newSpamPrev.ToString()));
 			}
+
+			public static async Task ModifyRaidPreventionEnabled(IMyCommandContext context, RaidType raidType, bool enable)
+			{
+				var raidPrev = context.GuildSettings.RaidPreventionDictionary[raidType];
+				if (raidPrev == null)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR("There must be a raid prevention of that type set up before one can be enabled or disabled."));
+					return;
+				}
+
+				if (enable)
+				{
+					raidPrev.Enable();
+					await MessageActions.MakeAndDeleteSecondaryMessage(context, "Successfully enabled the given raid prevention.");
+				}
+				else
+				{
+					raidPrev.Disable();
+					await MessageActions.MakeAndDeleteSecondaryMessage(context, "Successfully disabled the given raid prevention.");
+				}
+			}
+			public static async Task SetUpRaidPrevention(IMyCommandContext context, RaidType raidType, PunishmentType punishType, uint userCount, uint interval)
+			{
+
+			}
 		}
 	}
 }

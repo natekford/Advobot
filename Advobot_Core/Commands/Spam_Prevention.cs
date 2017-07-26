@@ -20,7 +20,7 @@ namespace Advobot
 		public sealed class PreventSpam : MyModuleBase
 		{
 			//idk exactly if it's a good idea to be using nested classes. shouldn't be that hard to change them to non nested classes if need be.
-			[Group("showpunishments")]
+			[Group("showpunishments"), Alias("show punishments")]
 			public sealed class ShowPunishments : MyModuleBase
 			{
 				[Command]
@@ -36,7 +36,7 @@ namespace Advobot
 				}
 			}
 
-			[Group("message"), Alias("msg")]
+			[Group(nameof(SpamType.Message)), Alias("msg")]
 			public sealed class PreventMessageSpam : MyModuleBase
 			{
 				[Command("on")]
@@ -56,28 +56,144 @@ namespace Advobot
 				}
 			}
 
-			[Group("longmessage"), Alias("lmsg")]
+			[Group(nameof(SpamType.LongMessage)), Alias("long message", "lmsg")]
 			public sealed class PreventLongMessageSpam : MyModuleBase
 			{
-
+				[Command("on")]
+				public async Task CommandOn()
+				{
+					await SpamActions.ModifySpamPreventionEnabled(Context, SpamType.LongMessage, true);
+				}
+				[Command("off")]
+				public async Task CommandOff()
+				{
+					await SpamActions.ModifySpamPreventionEnabled(Context, SpamType.LongMessage, false);
+				}
+				[Command("setup")]
+				public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
+				{
+					await SpamActions.SetUpSpamPrevention(Context, SpamType.LongMessage, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				}
 			}
 
-			[Group("link"), Alias("l")]
+			[Group(nameof(SpamType.Link)), Alias("l")]
 			public sealed class PreventLinkSpam : MyModuleBase
 			{
-
+				[Command("on")]
+				public async Task CommandOn()
+				{
+					await SpamActions.ModifySpamPreventionEnabled(Context, SpamType.Link, true);
+				}
+				[Command("off")]
+				public async Task CommandOff()
+				{
+					await SpamActions.ModifySpamPreventionEnabled(Context, SpamType.Link, false);
+				}
+				[Command("setup")]
+				public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
+				{
+					await SpamActions.SetUpSpamPrevention(Context, SpamType.Link, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				}
 			}
 
-			[Group("image"), Alias("img")]
+			[Group(nameof(SpamType.Image)), Alias("img")]
 			public sealed class PreventImageSpam : MyModuleBase
 			{
-
+				[Command("on")]
+				public async Task CommandOn()
+				{
+					await SpamActions.ModifySpamPreventionEnabled(Context, SpamType.Image, true);
+				}
+				[Command("off")]
+				public async Task CommandOff()
+				{
+					await SpamActions.ModifySpamPreventionEnabled(Context, SpamType.Image, false);
+				}
+				[Command("setup")]
+				public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
+				{
+					await SpamActions.SetUpSpamPrevention(Context, SpamType.Image, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				}
 			}
 
-			[Group("mention"), Alias("men")]
+			[Group(nameof(SpamType.Mention)), Alias("men")]
 			public sealed class PreventMentionSpam : MyModuleBase
 			{
+				[Command("on")]
+				public async Task CommandOn()
+				{
+					await SpamActions.ModifySpamPreventionEnabled(Context, SpamType.Mention, true);
+				}
+				[Command("off")]
+				public async Task CommandOff()
+				{
+					await SpamActions.ModifySpamPreventionEnabled(Context, SpamType.Mention, false);
+				}
+				[Command("setup")]
+				public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
+				{
+					await SpamActions.SetUpSpamPrevention(Context, SpamType.Mention, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				}
+			}
+		}
 
+		[Group("preventraid")]
+		[Alias("prr")]
+		[Usage("[Regular|RapidJoin|ShowPunishments] <Setup|On|Off> <Number of Users> <Time Interval>")]
+		[Summary("Any users who joins from now on will get text muted. Once `preventraidspam` is turned off all the users who were muted will be unmuted. " +
+			"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
+		[PermissionRequirement(null, null)]
+		[DefaultEnabled(false)]
+		public sealed class PreventRaid : MyModuleBase
+		{
+			[Group("showpunishments"), Alias("show punishments")]
+			public sealed class ShowPunishments : MyModuleBase
+			{
+				[Command]
+				public async Task Command()
+				{
+					await CommandRunner();
+				}
+
+				private async Task CommandRunner()
+				{
+					var desc = String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(PunishmentType))));
+					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Punishment Types", desc));
+				}
+			}
+
+			[Group(nameof(RaidType.Regular)), Alias("reg")]
+			public sealed class PreventRegularRaid : MyModuleBase
+			{
+				[Command("on")]
+				public async Task CommandOn()
+				{
+				}
+				[Command("off")]
+				public async Task CommandOff()
+				{
+				}
+				[Command("setup")]
+				public async Task CommandSetup(uint numberOfUsers)
+				{
+				}
+			}
+
+			[Group(nameof(RaidType.RapidJoins)), Alias("rapid joins", "joins")]
+			public sealed class PreventRapidJoinsRaid : MyModuleBase
+			{
+				[Command("on")]
+				public async Task CommandOn()
+				{
+				}
+				[Command("off")]
+				public async Task CommandOff()
+				{
+				}
+				[Command("setup")]
+				public async Task CommandSetup(uint numberOfUsers, uint interval)
+				{
+				}
 			}
 		}
 	}
@@ -85,125 +201,8 @@ namespace Advobot
 	[Name("SpamPrevention")]
 	public class Advobot_Commands_Spam_Prevention : ModuleBase
 	{
-		[Command("preventspam")]
-		[Alias("prs")]
-		[Usage("[Message|LongMessage|Link|Image|Mention] [Enable|Disable|Setup] <Messages:Number> <Spam:Number> <Votes:Number> <Timeframe:Number>")]
-		[Summary("Spam prevention allows for some protection against mention spammers. Messages are the amount of messages a user has to send with the given amount of mentions before being considered " + 
-			"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The first punishment is a kick, next is a ban. The spam users are reset every hour.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
-		public async Task PreventMentionSpam([Remainder] string input)
-		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
-			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 5), new[] { "messages", "spam", "votes" });
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var typeStr = returnedArgs.Arguments[0];
-			var actionStr = returnedArgs.Arguments[1];
-			var messageStr = returnedArgs.GetSpecifiedArg("messages");
-			var spamStr = returnedArgs.GetSpecifiedArg("spam");
-			var voteStr = returnedArgs.GetSpecifiedArg("votes");
-			var timeStr = returnedArgs.GetSpecifiedArg("timeframe");
 
-			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Enable, ActionType.Disable, ActionType.Setup });
-			if (returnedType.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedType);
-				return;
-			}
-			var action = returnedType.Object;
-
-			if (!Enum.TryParse(typeStr, true, out SpamType spamType))
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid spam type supplied."));
-				return;
-			}
-
-			var spamPrevention = guildSettings.GetSpamPrevention(spamType);
-			switch (action)
-			{
-				case ActionType.Setup:
-				{
-					//Get the ints
-					if (!int.TryParse(messageStr, out int messages))
-					{
-						messages = 5;
-					}
-					if (!int.TryParse(voteStr, out int votes))
-					{
-						votes = 10;
-					}
-					if (!int.TryParse(spamStr, out int spam))
-					{
-						spam = 3;
-					}
-					if (!int.TryParse(timeStr, out int time))
-					{
-						time = 5;
-					}
-
-					//Give every number a valid input
-					var ms = messages < 1 ? 1 : messages;
-					var vt = votes < 1 ? 1 : votes;
-					var sp = spam < 1 ? 1 : spam;
-					var tf = time < 1 ? 1 : time;
-
-					guildInfo.SetSpamPrevention(spamType, new SpamPrevention(PunishmentType.Role, tf, ms, vt, sp));
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context,
-						String.Format("Successfully created and enabled a spam prevention with the requirement of `{0}` messages with a spam amount of `{1}` and requires `{2}` votes.", ms, sp, vt));
-					return;
-				}
-				case ActionType.Enable:
-				{
-					if (spamPrevention == null)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild does not have any spam prevention to modify."));
-						return;
-					}
-					else if (spamPrevention.Enabled)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The targetted spam prevention is already enabled."));
-						return;
-					}
-
-					spamPrevention.Enable();
-					guildInfo.SaveInfo();
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The targetted spam prevention has successfully been enabled."));
-					return;
-				}
-				case ActionType.Disable:
-				{
-					if (spamPrevention == null)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This guild does not have any spam prevention to modify."));
-						return;
-					}
-					else if (!spamPrevention.Enabled)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The targetted spam prevention is already disabled."));
-						return;
-					}
-
-					spamPrevention.Disable();
-					guildInfo.SaveInfo();
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The targetted spam prevention has successfully been disabled."));
-					return;
-				}
-			}
-		}
-
-		[Command("preventraid")]
-		[Alias("prr")]
-		[Usage("[Enable|Disable|Setup] <Count:Number>")]
-		[Summary("Any users who joins from now on will get text muted. Once `preventraidspam` is turned off all the users who were muted will be unmuted. " +
-			"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
 		public async Task PreventRaidSpam([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
