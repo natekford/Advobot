@@ -19,6 +19,7 @@ namespace Advobot
 			[STAThread]
 			private static void Main()
 			{
+				AppDomain.CurrentDomain.UnhandledException += SavingAndLoadingActions.LogUncaughtException;
 				new UILauncher().SubMain().GetAwaiter().GetResult();
 			}
 

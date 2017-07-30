@@ -365,11 +365,11 @@ namespace Advobot
 
 					Task.Run(async () =>
 					{
-						if (SavingAndLoadingActions.ValidatePath(MiscActions.GetSavePath(), _BotSettings.Windows, true))
+						if (SavingAndLoadingActions.ValidatePath(GetActions.GetSavePath(), _BotSettings.Windows, true))
 						{
 							_BotSettings.SetGotPath();
 						}
-						if (await SavingAndLoadingActions.ValidateBotKey(_Client, MiscActions.GetBotKey(), true))
+						if (await SavingAndLoadingActions.ValidateBotKey(_Client, GetActions.GetBotKey(), true))
 						{
 							_BotSettings.SetGotKey();
 						}

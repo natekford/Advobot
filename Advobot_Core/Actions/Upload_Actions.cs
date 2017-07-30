@@ -21,7 +21,7 @@ namespace Advobot
 					fileName += "_";
 				}
 
-				var file = fileName + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION;
+				var file = fileName + FormattingActions.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION;
 				var path = GetActions.GetServerFilePath(guild.Id, file);
 				if (path == null)
 					return null;

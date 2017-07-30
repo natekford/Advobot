@@ -1,22 +1,5 @@
-﻿using Advobot.Attributes;
-using Advobot.Enums;
-using Advobot.Interfaces;
-using Advobot.NonSavedClasses;
-using Advobot.RemovablePunishments;
-using Advobot.SavedClasses;
-using Advobot.Structs;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿using System;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Advobot
 {
@@ -24,14 +7,6 @@ namespace Advobot
 	{
 		public static class MiscActions
 		{
-			public static string GetSavePath()
-			{
-				return Properties.Settings.Default.Path;
-			}
-			public static string GetBotKey()
-			{
-				return Properties.Settings.Default.BotKey;
-			}
 			public static void ResetSettings()
 			{
 				Properties.Settings.Default.BotKey = null;

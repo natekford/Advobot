@@ -282,6 +282,10 @@ namespace Advobot
 			{
 				return FormatDateTime(dt?.UtcDateTime);
 			}
+			public static string FormatDateTimeForSaving()
+			{
+				return DateTime.UtcNow.ToString("YYYY-MM-dd_HH-mm-ss");
+			}
 
 			public static string FormatGame(IUser user)
 			{

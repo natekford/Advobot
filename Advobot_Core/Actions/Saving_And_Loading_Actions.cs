@@ -355,6 +355,20 @@ namespace Advobot
 					writer.Write(toSave);
 				}
 			}
+			public static void LogUncaughtException(object sender, UnhandledExceptionEventArgs e)
+			{
+				var exception = (Exception)e.ExceptionObject;
+				var newFilePath = Path.Combine(GetActions.GetBaseBotDirectory(), Constants.CRASH_LOG_LOCATION);
+
+				CreateFile(newFilePath);
+
+				//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
+				using (var writer = File.AppendText(newFilePath))
+				{
+					var line = String.Format("{0}: {1}\n", FormattingActions.FormatDateTime(DateTime.UtcNow), exception.ToString());
+					writer.WriteLine(line);
+				}
+			}
 		}
 	}
 }

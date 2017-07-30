@@ -81,6 +81,7 @@ namespace Advobot
 		public static readonly string GUILD_SETTINGS_LOCATION = "GuildSettings" + SETTING_FILE_EXTENSION;
 		public static readonly string BOT_SETTINGS_LOCATION = "BotSettings" + SETTING_FILE_EXTENSION;
 		public static readonly string UI_INFO_LOCATION = "UISettings" + SETTING_FILE_EXTENSION;
+		public static readonly string CRASH_LOG_LOCATION = "CrashLog" + GENERAL_FILE_EXTENSION;
 		public static readonly string BOT_ICON_LOCATION = "BotIcon";
 		public static readonly string GUILD_ICON_LOCATION = "GuildIcon";
 		public static readonly int SECONDS_DEFAULT = 3;

@@ -224,6 +224,17 @@ namespace Advobot
 				}
 			}
 
+			public static string GetSavePath()
+			{
+				//TODO: make this private again
+				//DO NOT SAVE DIRECTLY TO THIS PATH. CALL GETBASEBOTDIRECTORY INSTEAD.
+				return Properties.Settings.Default.Path;
+			}
+			public static string GetBotKey()
+			{
+				return Properties.Settings.Default.BotKey;
+			}
+
 			public static string GetServerFilePath(ulong guildId, string fileName)
 			{
 				//Make sure the bot's directory exists
