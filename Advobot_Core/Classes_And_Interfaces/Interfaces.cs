@@ -185,7 +185,7 @@ namespace Advobot
 			ITextChannel ImageLog { get; set; }
 			IRole MuteRole { get; set; }
 			IReadOnlyDictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; set; }
-			IReadOnlyDictionary<RaidType, RaidPrevention> RaidPreventionDictionary { get; set; }
+			IReadOnlyDictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; set; }
 			GuildNotification WelcomeMessage { get; set; }
 			GuildNotification GoodbyeMessage { get; set; }
 			ListedInvite ListedInvite { get; set; }

@@ -139,7 +139,7 @@ namespace Advobot
 
 		[Group("preventraid")]
 		[Alias("prr")]
-		[Usage("[Regular|RapidJoin|ShowPunishments] <Setup|On|Off> <Number of Users> <Time Interval>")]
+		[Usage("[Regular|RapidJoins|ShowPunishments] <Setup|On|Off> <Punishment> <Number of Users> <Time Interval>")]
 		[Summary("Any users who joins from now on will get text muted. Once `preventraidspam` is turned off all the users who were muted will be unmuted. " +
 			"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
 		[PermissionRequirement(null, null)]
@@ -168,14 +168,17 @@ namespace Advobot
 				[Command("on")]
 				public async Task CommandOn()
 				{
+					await SpamActions.ModifyRaidPreventionEnabled(Context, RaidType.Regular, true);
 				}
 				[Command("off")]
 				public async Task CommandOff()
 				{
+					await SpamActions.ModifyRaidPreventionEnabled(Context, RaidType.Regular, false);
 				}
 				[Command("setup")]
-				public async Task CommandSetup(uint numberOfUsers)
+				public async Task CommandSetup(PunishmentType punishment, uint numberOfUsers)
 				{
+					await SpamActions.SetUpRaidPrevention(Context, RaidType.Regular, punishment, numberOfUsers, 0);
 				}
 			}
 
@@ -185,14 +188,17 @@ namespace Advobot
 				[Command("on")]
 				public async Task CommandOn()
 				{
+					await SpamActions.ModifyRaidPreventionEnabled(Context, RaidType.RapidJoins, true);
 				}
 				[Command("off")]
 				public async Task CommandOff()
 				{
+					await SpamActions.ModifyRaidPreventionEnabled(Context, RaidType.RapidJoins, false);
 				}
 				[Command("setup")]
-				public async Task CommandSetup(uint numberOfUsers, uint interval)
+				public async Task CommandSetup(PunishmentType punishment, uint numberOfUsers, uint interval)
 				{
+					await SpamActions.SetUpRaidPrevention(Context, RaidType.RapidJoins, punishment, numberOfUsers, interval);
 				}
 			}
 		}

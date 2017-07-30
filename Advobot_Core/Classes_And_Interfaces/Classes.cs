@@ -76,9 +76,9 @@ namespace Advobot
 			[JsonProperty("MentionSpamPrevention")]
 			private SpamPreventionInfo _MentionSpamPrevention = null;
 			[JsonProperty("RaidPrevention")]
-			private RaidPrevention _RaidPrevention = null;
+			private RaidPreventionInfo _RaidPrevention = null;
 			[JsonProperty("RapidJoinPrevention")]
-			private RaidPrevention _RapidJoinPrevention = null;
+			private RaidPreventionInfo _RapidJoinPrevention = null;
 			[JsonProperty("WelcomeMessage")]
 			private GuildNotification _WelcomeMessage = null;
 			[JsonProperty("GoodbyeMessage")]
@@ -340,9 +340,9 @@ namespace Advobot
 				}
 			}
 			[JsonIgnore]
-			public IReadOnlyDictionary<RaidType, RaidPrevention> RaidPreventionDictionary
+			public IReadOnlyDictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary
 			{
-				get => new ReadOnlyDictionary<RaidType, RaidPrevention>(new Dictionary<RaidType, RaidPrevention>
+				get => new ReadOnlyDictionary<RaidType, RaidPreventionInfo>(new Dictionary<RaidType, RaidPreventionInfo>
 				{
 					{ RaidType.Regular, _RaidPrevention },
 					{ RaidType.RapidJoins, _RapidJoinPrevention },
@@ -1230,31 +1230,31 @@ namespace Advobot
 			}
 		}
 
-		public class RaidPrevention : ISetting
+		public class RaidPreventionInfo : ISetting
 		{
 			[JsonProperty]
 			public PunishmentType PunishmentType { get; }
 			[JsonProperty]
-			public int TimeInterval { get; }
+			public int Interval { get; }
 			[JsonProperty]
-			public int RequiredCount { get; }
+			public int UserCount { get; }
 			[JsonProperty]
 			public bool Enabled { get; private set; }
 			[JsonIgnore]
 			public List<BasicTimeInterface> TimeList { get; }
 
-			public RaidPrevention(PunishmentType punishmentType, int timeInterval, int requiredCount)
+			public RaidPreventionInfo(PunishmentType punishmentType, int userCount, int interval)
 			{
 				PunishmentType = punishmentType;
-				TimeInterval = timeInterval;
-				RequiredCount = requiredCount;
+				UserCount = userCount;
+				Interval = interval;
 				TimeList = new List<BasicTimeInterface>();
 				Enabled = true;
 			}
 
 			public int GetSpamCount()
 			{
-				return TimeList.GetCountOfItemsInTimeFrame(TimeInterval);
+				return TimeList.GetCountOfItemsInTimeFrame(Interval);
 			}
 			public void Add(DateTime time)
 			{
@@ -1287,8 +1287,8 @@ namespace Advobot
 			{
 				return String.Format("**Enabled:** `{0}`\n**Users:** `{1}`\n**Time Interval:** `{2}`\n**Punishment:** `{3}`",
 					Enabled,
-					RequiredCount,
-					TimeInterval,
+					UserCount,
+					Interval,
 					PunishmentType.EnumName());
 			}
 			public string ToString(SocketGuild guild)

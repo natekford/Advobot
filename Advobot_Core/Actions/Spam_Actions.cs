@@ -395,7 +395,7 @@ namespace Advobot
 
 				if (requiredSpamAmtOrTimeInterval <= SPAM_TIME_AMT_MIN_LIM)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR(String.Format("The vote count must be greater than `{0}`.", VOTE_COUNT_MIN_LIM)));
+					await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR(String.Format("The spam amount or time interval must be greater than `{0}`.", VOTE_COUNT_MIN_LIM)));
 					return;
 				}
 				switch (spamType)
@@ -480,7 +480,17 @@ namespace Advobot
 			}
 			public static async Task SetUpRaidPrevention(IMyCommandContext context, RaidType raidType, PunishmentType punishType, uint userCount, uint interval)
 			{
+				const int MAX_USERS = 25;
+				const int MAX_TIME = 60;
 
+				var newRaidPrev = new RaidPreventionInfo(punishType, (int)userCount, (int)interval);
+
+				//Done for same reason as the spam prevention one
+				var tempDict = context.GuildSettings.RaidPreventionDictionary.ToDictionary();
+				tempDict[raidType] = newRaidPrev;
+				context.GuildSettings.RaidPreventionDictionary = tempDict;
+
+				await MessageActions.MakeAndDeleteSecondaryMessage(context, String.Format("Successfully set up the raid prevention for `{0}`.\n{1}", raidType.EnumName().ToLower(), newRaidPrev.ToString()));
 			}
 		}
 	}
