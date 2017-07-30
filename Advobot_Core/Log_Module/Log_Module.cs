@@ -782,7 +782,7 @@ namespace Advobot
 				if (antiJoin != null && antiJoin.Enabled)
 				{
 					antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
-					if (antiJoin.GetSpamCount() >= antiJoin.RequiredCount)
+					if (antiJoin.GetSpamCount() >= antiJoin.UserCount)
 					{
 						await antiJoin.RaidPreventionPunishment(guildSettings, user, timers);
 						if (guildSettings.ServerLog != null)
