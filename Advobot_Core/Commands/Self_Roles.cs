@@ -6,19 +6,122 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Advobot.Attributes;
+using Advobot.Enums;
+using Advobot.NonSavedClasses;
+using Advobot.SavedClasses;
 
 namespace Advobot
 {
+	namespace SelfRoles
+	{
+		[Group("modifyselfroles"), Alias("msr")]
+		[Usage("[Create|Delete|Add|Remove] <Group Number> <Role/...>")]
+		[Summary("Adds a role to the self assignable list. Roles can be grouped together which means only one role in the group can be self assigned at a time. " + 
+			"Create and Delete modify the entire group. Add and Remove modify a single role in a group.")]
+		[PermissionRequirement(null, null)]
+		[DefaultEnabled(false)]
+		public sealed class ModifySelfRoles : MyModuleBase
+		{
+			[Command("create")]
+			public async Task CommandCreate(uint groupNum)
+			{
+				await CommandRunner(ActionType.Create, groupNum);
+			}
+			[Command("delete")]
+			public async Task CommandDelete(uint groupNum)
+			{
+				await CommandRunner(ActionType.Delete, groupNum);
+			}
+			[Command("add")]
+			public async Task CommandAdd(uint groupNum, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
+			{
+				await CommandRunner(ActionType.Add, groupNum, roles);
+			}
+			[Command("remove")]
+			public async Task CommandRemove(uint groupNum, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
+			{
+				await CommandRunner(ActionType.Remove, groupNum, roles);
+			}
+
+			private async Task CommandRunner(ActionType action, uint groupNum)
+			{
+
+			}
+			private async Task CommandRunner(ActionType action, uint groupNum, IRole[] roles)
+			{
+				var selfAssignableGroups = Context.GuildSettings.SelfAssignableGroups;
+				if (!selfAssignableGroups.Any())
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Before you can edit or delete a group, you need to first create one."));
+					return;
+				}
+
+				var group = selfAssignableGroups.FirstOrDefault(x => x.Group == groupNum);
+				if (group == null)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("A group needs to exist with that position before you can modify it."));
+					return;
+				}
+
+				var rolesAdded = new List<IRole>();
+				var rolesNotAdded = new List<IRole>();
+				var alreadyUsedRoles = selfAssignableGroups.SelectMany(x => x.Roles).Select(x => x.RoleId);
+
+				var addedStr = rolesAdded.Any() ? String.Format("Successfully added the following role(s): `{0}`.", String.Join("`, `", rolesAdded.Select(x => x.FormatRole()))) : null;
+				var notAddedStr = rolesNotAdded.Any() ? String.Format("Failed to add the following role(s): `{0}`.", String.Join("`, `", rolesNotAdded.Select(x => x.FormatRole()))) : null;
+
+				switch (action)
+				{
+					case ActionType.Add:
+					{
+						foreach (var role in roles)
+						{
+							if (!alreadyUsedRoles.Contains(role.Id))
+							{
+								rolesAdded.Add(role);
+							}
+							else
+							{
+								rolesNotAdded.Add(role);
+							}
+						}
+
+						group.AddRoles(rolesAdded.Select(x => new SelfAssignableRole(x)));
+						break;
+					}
+					case ActionType.Remove:
+					{
+						foreach (var role in roles)
+						{
+							if (alreadyUsedRoles.Contains(role.Id))
+							{
+								rolesAdded.Add(role);
+							}
+							else
+							{
+								rolesNotAdded.Add(role);
+							}
+						}
+
+						group.RemoveRoles(rolesAdded.Select(x => x.Id));
+						break;
+					}
+					default:
+					{
+						return;
+					}
+				}
+
+				await MessageActions.SendChannelMessage(Context, FormattingActions.JoinNonNullStrings(" ", addedStr, notAddedStr));
+			}
+		}
+	}
 	/*
 	[Name("SelfRoles")]
 	public class Advobot_Commands_Self_Roles : ModuleBase
 	{
-		[Command("modifyselfroles")]
-		[Alias("msr")]
-		[Usage("[Help] | [Create|Delete] [Group:Number] | [Add|Remove] [Role/...] [Group:Number]")]
-		[Summary("Adds a role to the self assignable list. Roles can be grouped together which means only one role in the group can be self assigned at a time. There is an extra help command too.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
+
 		public async Task ModifySelfAssignableRoles([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
@@ -26,16 +129,7 @@ namespace Advobot
 			//Check if it's extra help wanted
 			if (Actions.CaseInsEquals(input, "help"))
 			{
-				//Make the embed
-				var embed = Messages.MakeNewEmbed("Self Roles Help", "The general group number is 0; roles added here don't conflict. Roles cannot be added to more than one group.");
-				Messages.AddField(embed, "[Create] [Group:Number]", "Creates a group with the given group number.");
-				Messages.AddField(embed, "[Add] [Role/...] [Group:Number]", "Adds the roles to the given group.");
-				Messages.AddField(embed, "[Remove] [Role/...] [Group:Number]", "Removes the roles from the given group.");
-				Messages.AddField(embed, "[Delete] [Group:Number]", "Removes the given group entirely.");
 
-				//Send the embed
-				await MessageActions.SendEmbedMessage(Context.Channel, embed);
-				return;
 			}
 
 			//Break the input into pieces

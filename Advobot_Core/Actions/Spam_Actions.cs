@@ -471,6 +471,16 @@ namespace Advobot
 				{
 					raidPrev.Enable();
 					await MessageActions.MakeAndDeleteSecondaryMessage(context, "Successfully enabled the given raid prevention.");
+
+					if (raidType == RaidType.Regular)
+					{
+						//Mute the newest joining users
+						var users = (await context.Guild.GetUsersAsync()).OrderByDescending(x => x.JoinedAt).ToArray();
+						for (int i = 0; i < new[] { raidPrev.UserCount, users.Length, 25 }.Min(); ++i)
+						{
+							await raidPrev.RaidPreventionPunishment(context.GuildSettings, users[i], context.Timers);
+						}
+					}
 				}
 				else
 				{
@@ -482,6 +492,17 @@ namespace Advobot
 			{
 				const int MAX_USERS = 25;
 				const int MAX_TIME = 60;
+
+				if (userCount > MAX_USERS)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR(String.Format("The user count must be less than or equal to `{0}`.", MAX_USERS)));
+					return;
+				}
+				else if (interval > MAX_TIME)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR(String.Format("The interval must be less than or equal to `{0}`.", MAX_TIME)));
+					return;
+				}
 
 				var newRaidPrev = new RaidPreventionInfo(punishType, (int)userCount, (int)interval);
 

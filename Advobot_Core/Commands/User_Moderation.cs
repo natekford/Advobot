@@ -257,9 +257,14 @@ namespace Advobot
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Invalid days supplied, must be one of the following: `{0}`", String.Join("`, `", _Days))));
 					return;
 				}
+				else if ((await Context.Guild.GetBansAsync()).Select(x => x.User.Id).Contains(user.Id))
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("That user is already banned."));
+					return;
+				}
 
 				await PunishmentActions.ManualBan(Context.Guild, user.Id, FormattingActions.FormatUserReason(Context.User), (int)days, time, Context.Timers);
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully banned `{0}`.", user.FormatUser()));
+				await MessageActions.SendChannelMessage(Context, String.Format("Successfully banned `{0}`.", user.FormatUser()));
 			}
 		}
 
