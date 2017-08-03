@@ -150,12 +150,12 @@ namespace Advobot
 				}
 
 				IBotSettings botSettings = null;
-				var path = GetActions.GetBaseBotDirectory(Constants.BOT_SETTINGS_LOCATION);
-				if (File.Exists(path))
+				var fileInfo = GetActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
+				if (fileInfo.Exists)
 				{
 					try
 					{
-						using (var reader = new StreamReader(path))
+						using (var reader = new StreamReader(fileInfo.FullName))
 						{
 							botSettings = (IBotSettings)JsonConvert.DeserializeObject(reader.ReadToEnd(), globalSettingType);
 						}
@@ -339,33 +339,45 @@ namespace Advobot
 			{
 				return JsonConvert.SerializeObject(obj, Formatting.Indented);
 			}
-			public static void CreateFile(string path)
+			public static void CreateFile(FileInfo fileInfo)
 			{
-				if (!File.Exists(path))
+				if (!fileInfo.Exists)
 				{
-					Directory.CreateDirectory(Path.GetDirectoryName(path));
-					File.Create(path).Close();
+					Directory.CreateDirectory(fileInfo.DirectoryName);
+					fileInfo.Create().Close();
 				}
 			}
-			public static void OverWriteFile(string path, string toSave)
+			public static void OverWriteFile(FileInfo fileInfo, string toSave)
 			{
-				CreateFile(path);
-				using (var writer = new StreamWriter(path))
+				CreateFile(fileInfo);
+				using (var writer = new StreamWriter(fileInfo.FullName))
 				{
 					writer.Write(toSave);
 				}
 			}
+			public static void DeleteFile(FileInfo fileInfo)
+			{
+				try
+				{
+					fileInfo.Delete();
+				}
+				catch (Exception e)
+				{
+					ConsoleActions.ExceptionToConsole(e);
+				}
+			}
+
 			public static void LogUncaughtException(object sender, UnhandledExceptionEventArgs e)
 			{
 				var exception = (Exception)e.ExceptionObject;
-				var newFilePath = Path.Combine(GetActions.GetBaseBotDirectory(), Constants.CRASH_LOG_LOCATION);
+				var crashLogPath = GetActions.GetBaseBotDirectoryFile(Constants.CRASH_LOG_LOCATION);
 
-				CreateFile(newFilePath);
+				CreateFile(crashLogPath);
 
 				//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
-				using (var writer = File.AppendText(newFilePath))
+				var line = String.Format("{0}: {1}\n", FormattingActions.FormatDateTime(DateTime.UtcNow), exception.ToString());
+				using (var writer = File.AppendText(crashLogPath.FullName))
 				{
-					var line = String.Format("{0}: {1}\n", FormattingActions.FormatDateTime(DateTime.UtcNow), exception.ToString());
 					writer.WriteLine(line);
 				}
 			}

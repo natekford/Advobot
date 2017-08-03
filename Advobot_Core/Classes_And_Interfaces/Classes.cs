@@ -23,7 +23,7 @@ namespace Advobot
 {
 	namespace SavedClasses
 	{
-		public class MyGuildSettings : IGuildSettings, INotifyPropertyChanged
+		public class MyGuildSettings : IGuildSettings
 		{
 			[JsonProperty("BotUsers")]
 			private List<BotImplementedPermissions> _BotUsers = new List<BotImplementedPermissions>();
@@ -65,20 +65,10 @@ namespace Advobot
 			private DiscordObjectWithId<ITextChannel> _ImageLog = new DiscordObjectWithId<ITextChannel>(null);
 			[JsonProperty("MuteRole")]
 			private DiscordObjectWithId<IRole> _MuteRole = new DiscordObjectWithId<IRole>(null);
-			[JsonProperty("MessageSpamPrevention")]
-			private SpamPreventionInfo _MessageSpamPrevention = null;
-			[JsonProperty("LongMessageSpamPrevention")]
-			private SpamPreventionInfo _LongMessageSpamPrevention = null;
-			[JsonProperty("LinkSpamPrevention")]
-			private SpamPreventionInfo _LinkSpamPrevention = null;
-			[JsonProperty("ImageSpamPrevention")]
-			private SpamPreventionInfo _ImageSpamPrevention = null;
-			[JsonProperty("MentionSpamPrevention")]
-			private SpamPreventionInfo _MentionSpamPrevention = null;
+			[JsonProperty("SpamPrevention")]
+			private Dictionary<SpamType, SpamPreventionInfo> _SpamPrevention = null;
 			[JsonProperty("RaidPrevention")]
-			private RaidPreventionInfo _RaidPrevention = null;
-			[JsonProperty("RapidJoinPrevention")]
-			private RaidPreventionInfo _RapidJoinPrevention = null;
+			private Dictionary<RaidType, RaidPreventionInfo> _RaidPrevention = null;
 			[JsonProperty("WelcomeMessage")]
 			private GuildNotification _WelcomeMessage = null;
 			[JsonProperty("GoodbyeMessage")]
@@ -93,340 +83,183 @@ namespace Advobot
 			private bool _VerboseErrors = true;
 
 			[JsonIgnore]
-			public IReadOnlyList<BotImplementedPermissions> BotUsers
+			public List<BotImplementedPermissions> BotUsers
 			{
-				get => _BotUsers.AsReadOnly() ?? (_BotUsers = new List<BotImplementedPermissions>()).AsReadOnly();
-				set
-				{
-					_BotUsers = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _BotUsers ?? (_BotUsers = new List<BotImplementedPermissions>());
+				set => _BotUsers = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<SelfAssignableGroup> SelfAssignableGroups
+			public List<SelfAssignableGroup> SelfAssignableGroups
 			{
-				get => _SelfAssignableGroups.AsReadOnly() ?? (_SelfAssignableGroups = new List<SelfAssignableGroup>()).AsReadOnly();
-				set
-				{
-					_SelfAssignableGroups = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _SelfAssignableGroups ?? (_SelfAssignableGroups = new List<SelfAssignableGroup>());
+				set => _SelfAssignableGroups = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<Quote> Quotes
+			public List<Quote> Quotes
 			{
-				get => _Quotes.AsReadOnly() ?? (_Quotes = new List<Quote>()).AsReadOnly();
-				set
-				{
-					_Quotes = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _Quotes ?? (_Quotes = new List<Quote>());
+				set => _Quotes = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<LogAction> LogActions
+			public List<LogAction> LogActions
 			{
-				get => _LogActions.AsReadOnly() ?? (_LogActions = new List<LogAction>()).AsReadOnly();
-				set
-				{
-					_LogActions = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _LogActions ?? (_LogActions = new List<LogAction>());
+				set => _LogActions = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<ulong> IgnoredCommandChannels
+			public List<ulong> IgnoredCommandChannels
 			{
-				get => _IgnoredCommandChannels.AsReadOnly() ?? (_IgnoredCommandChannels = new List<ulong>()).AsReadOnly();
-				set
-				{
-					_IgnoredCommandChannels = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _IgnoredCommandChannels ?? (_IgnoredCommandChannels = new List<ulong>());
+				set => _IgnoredCommandChannels = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<ulong> IgnoredLogChannels
+			public List<ulong> IgnoredLogChannels
 			{
-				get => _IgnoredLogChannels.AsReadOnly() ?? (_IgnoredLogChannels = new List<ulong>()).AsReadOnly();
-				set
-				{
-					_IgnoredLogChannels = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _IgnoredLogChannels ?? (_IgnoredLogChannels = new List<ulong>());
+				set => _IgnoredLogChannels = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<ulong> ImageOnlyChannels
+			public List<ulong> ImageOnlyChannels
 			{
-				get => _ImageOnlyChannels.AsReadOnly() ?? (_ImageOnlyChannels = new List<ulong>()).AsReadOnly();
-				set
-				{
-					_ImageOnlyChannels = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _ImageOnlyChannels ?? (_ImageOnlyChannels = new List<ulong>());
+				set => _ImageOnlyChannels = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<ulong> SanitaryChannels
+			public List<ulong> SanitaryChannels
 			{
-				get => _SanitaryChannels.AsReadOnly() ?? (_SanitaryChannels = new List<ulong>()).AsReadOnly();
-				set
-				{
-					_SanitaryChannels = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _SanitaryChannels ?? (_SanitaryChannels = new List<ulong>());
+				set => _SanitaryChannels = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<BannedPhrase> BannedPhraseStrings
+			public List<BannedPhrase> BannedPhraseStrings
 			{
-				get => _BannedPhraseStrings.AsReadOnly() ?? (_BannedPhraseStrings = new List<BannedPhrase>()).AsReadOnly();
-				set
-				{
-					_BannedPhraseStrings = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _BannedPhraseStrings ?? (_BannedPhraseStrings = new List<BannedPhrase>());
+				set => _BannedPhraseStrings = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<BannedPhrase> BannedPhraseRegex
+			public List<BannedPhrase> BannedPhraseRegex
 			{
-				get => _BannedPhraseRegex.AsReadOnly() ?? (_BannedPhraseRegex = new List<BannedPhrase>()).AsReadOnly();
-				set
-				{
-					_BannedPhraseRegex = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _BannedPhraseRegex ?? (_BannedPhraseRegex = new List<BannedPhrase>());
+				set => _BannedPhraseRegex = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<BannedPhrase> BannedNamesForJoiningUsers
+			public List<BannedPhrase> BannedNamesForJoiningUsers
 			{
-				get => _BannedNamesForJoiningUsers.AsReadOnly() ?? (_BannedNamesForJoiningUsers = new List<BannedPhrase>()).AsReadOnly();
-				set
-				{
-					_BannedNamesForJoiningUsers = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _BannedNamesForJoiningUsers ?? (_BannedNamesForJoiningUsers = new List<BannedPhrase>());
+				set => _BannedNamesForJoiningUsers = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<BannedPhrasePunishment> BannedPhrasePunishments
+			public List<BannedPhrasePunishment> BannedPhrasePunishments
 			{
-				get => _BannedPhrasePunishments.AsReadOnly() ?? (_BannedPhrasePunishments = new List<BannedPhrasePunishment>()).AsReadOnly();
-				set
-				{
-					_BannedPhrasePunishments = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _BannedPhrasePunishments ?? (_BannedPhrasePunishments = new List<BannedPhrasePunishment>());
+				set => _BannedPhrasePunishments = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<CommandSwitch> CommandSwitches
+			public List<CommandSwitch> CommandSwitches
 			{
-				get => _CommandSwitches.AsReadOnly() ?? (_CommandSwitches = new List<CommandSwitch>()).AsReadOnly();
-				set
-				{
-					_CommandSwitches = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _CommandSwitches ?? (_CommandSwitches = new List<CommandSwitch>());
+				set => _CommandSwitches = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<CommandOverride> CommandsDisabledOnUser
+			public List<CommandOverride> CommandsDisabledOnUser
 			{
-				get => _CommandsDisabledOnUser.AsReadOnly() ?? (_CommandsDisabledOnUser = new List<CommandOverride>()).AsReadOnly();
-				set
-				{
-					_CommandsDisabledOnUser = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _CommandsDisabledOnUser ?? (_CommandsDisabledOnUser = new List<CommandOverride>());
+				set => _CommandsDisabledOnUser = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<CommandOverride> CommandsDisabledOnRole
+			public List<CommandOverride> CommandsDisabledOnRole
 			{
-				get => _CommandsDisabledOnRole.AsReadOnly() ?? (_CommandsDisabledOnRole = new List<CommandOverride>()).AsReadOnly();
-				set
-				{
-					_CommandsDisabledOnRole = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _CommandsDisabledOnRole ?? (_CommandsDisabledOnRole = new List<CommandOverride>());
+				set => _CommandsDisabledOnRole = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyList<CommandOverride> CommandsDisabledOnChannel
+			public List<CommandOverride> CommandsDisabledOnChannel
 			{
-				get => _CommandsDisabledOnChannel.AsReadOnly() ?? (_CommandsDisabledOnChannel = new List<CommandOverride>()).AsReadOnly();
-				set
-				{
-					_CommandsDisabledOnChannel = value.ToList();
-					OnPropertyChanged();
-				}
+				get => _CommandsDisabledOnChannel ?? (_CommandsDisabledOnChannel = new List<CommandOverride>());
+				set => _CommandsDisabledOnChannel = value;
 			}
 			[JsonIgnore]
 			public ITextChannel ServerLog
 			{
 				get => (_ServerLog ?? (_ServerLog = new DiscordObjectWithId<ITextChannel>(null))).Object;
-				set
-				{
-					_ServerLog = new DiscordObjectWithId<ITextChannel>(value);
-					OnPropertyChanged();
-				}
+				set => _ServerLog = new DiscordObjectWithId<ITextChannel>(value);
 			}
 			[JsonIgnore]
 			public ITextChannel ModLog
 			{
 				get => (_ModLog ?? (_ModLog = new DiscordObjectWithId<ITextChannel>(null))).Object;
-				set
-				{
-					_ModLog = new DiscordObjectWithId<ITextChannel>(value);
-					OnPropertyChanged();
-				}
+				set => _ModLog = new DiscordObjectWithId<ITextChannel>(value);
 			}
 			[JsonIgnore]
 			public ITextChannel ImageLog
 			{
 				get => (_ImageLog ?? (_ImageLog = new DiscordObjectWithId<ITextChannel>(null))).Object;
-				set
-				{
-					_ImageLog = new DiscordObjectWithId<ITextChannel>(value);
-					OnPropertyChanged();
-				}
+				set => _ImageLog = new DiscordObjectWithId<ITextChannel>(value);
 			}
 			[JsonIgnore]
 			public IRole MuteRole
 			{
 				get => (_MuteRole ?? (_MuteRole = new DiscordObjectWithId<IRole>(null))).Object;
-				set
-				{
-					_MuteRole = new DiscordObjectWithId<IRole>(value);
-					OnPropertyChanged();
-				}
+				set => _MuteRole = new DiscordObjectWithId<IRole>(value);
 			}
 			[JsonIgnore]
-			public IReadOnlyDictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary
+			public Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary
 			{
-				get => new ReadOnlyDictionary<SpamType, SpamPreventionInfo>(new Dictionary<SpamType, SpamPreventionInfo>
+				get => _SpamPrevention ?? (_SpamPrevention = new Dictionary<SpamType, SpamPreventionInfo>
 				{
-					{ SpamType.Message, _MessageSpamPrevention },
-					{ SpamType.LongMessage, _LongMessageSpamPrevention },
-					{ SpamType.Link, _LinkSpamPrevention },
-					{ SpamType.Image, _ImageSpamPrevention },
-					{ SpamType.Mention, _MentionSpamPrevention },
+					{ SpamType.Message, null },
+					{ SpamType.LongMessage, null },
+					{ SpamType.Link, null },
+					{ SpamType.Image, null },
+					{ SpamType.Mention, null },
 				});
-				set
-				{
-					foreach (var kvp in value)
-					{
-						switch (kvp.Key)
-						{
-							case SpamType.Message:
-							{
-								_MessageSpamPrevention = kvp.Value;
-								break;
-							}
-							case SpamType.LongMessage:
-							{
-								_LongMessageSpamPrevention = kvp.Value;
-								break;
-							}
-							case SpamType.Link:
-							{
-								_LinkSpamPrevention = kvp.Value;
-								break;
-							}
-							case SpamType.Image:
-							{
-								_ImageSpamPrevention = kvp.Value;
-								break;
-							}
-							case SpamType.Mention:
-							{
-								_MentionSpamPrevention = kvp.Value;
-								break;
-							}
-						}
-					}
-					OnPropertyChanged();
-				}
+				set => _SpamPrevention = value;
 			}
 			[JsonIgnore]
-			public IReadOnlyDictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary
+			public Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary
 			{
-				get => new ReadOnlyDictionary<RaidType, RaidPreventionInfo>(new Dictionary<RaidType, RaidPreventionInfo>
+				get => _RaidPrevention ?? (_RaidPrevention = new Dictionary<RaidType, RaidPreventionInfo>
 				{
-					{ RaidType.Regular, _RaidPrevention },
-					{ RaidType.RapidJoins, _RapidJoinPrevention },
+					{ RaidType.Regular, null },
+					{ RaidType.RapidJoins, null },
 				});
-				set
-				{
-					foreach (var kvp in value)
-					{
-						switch (kvp.Key)
-						{
-							case RaidType.Regular:
-							{
-								_RaidPrevention = kvp.Value;
-								break;
-							}
-							case RaidType.RapidJoins:
-							{
-								_RapidJoinPrevention = kvp.Value;
-								break;
-							}
-						}
-					}
-					OnPropertyChanged();
-				}
+				set => _RaidPrevention = value;
 			}
 			[JsonIgnore]
 			public GuildNotification WelcomeMessage
 			{
 				get => _WelcomeMessage;
-				set
-				{
-					_WelcomeMessage = value;
-					OnPropertyChanged();
-				}
+				set => _WelcomeMessage = value;
 			}
 			[JsonIgnore]
 			public GuildNotification GoodbyeMessage
 			{
 				get => _GoodbyeMessage;
-				set
-				{
-					_GoodbyeMessage = value;
-					OnPropertyChanged();
-				}
+				set => _GoodbyeMessage = value;
 			}
 			[JsonIgnore]
 			public ListedInvite ListedInvite
 			{
 				get => _ListedInvite;
-				set
-				{
-					_ListedInvite = value;
-					OnPropertyChanged();
-				}
+				set => _ListedInvite = value;
 			}
 			[JsonIgnore]
 			public Slowmode Slowmode
 			{
 				get => _Slowmode;
-				set
-				{
-					_Slowmode = value;
-					OnPropertyChanged();
-				}
+				set => _Slowmode = value;
 			}
 			[JsonIgnore]
 			public string Prefix
 			{
 				get => _Prefix;
-				set
-				{
-					_Prefix = value;
-					OnPropertyChanged();
-				}
+				set => _Prefix = value;
 			}
 			[JsonIgnore]
 			public bool VerboseErrors
 			{
 				get => _VerboseErrors;
-				set
-				{
-					_VerboseErrors = value;
-					OnPropertyChanged();
-				}
+				set => _VerboseErrors = value;
 			}
 
 			[JsonIgnore]
@@ -444,22 +277,11 @@ namespace Advobot
 			[JsonIgnore]
 			public bool Loaded { get; private set; } = false;
 
-			public event PropertyChangedEventHandler PropertyChanged;
-			public MyGuildSettings()
+			public void SaveSettings()
 			{
-				PropertyChanged += SaveSettings;
-			}
-
-			private void OnPropertyChanged([CallerMemberName] string propertyName = "")
-			{
-				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-			}
-			private void SaveSettings(object sender, PropertyChangedEventArgs e)
-			{
-				//ConsoleActions.WriteLine(String.Format("Successfully saved: {0}", e.PropertyName));
 				if (Guild != null)
 				{
-					SavingAndLoadingActions.OverWriteFile(GetActions.GetServerFilePath(Guild.Id, Constants.GUILD_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
+					SavingAndLoadingActions.OverWriteFile(GetActions.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
 				}
 			}
 			public void PostDeserialize(IGuild guild)
@@ -689,7 +511,7 @@ namespace Advobot
 			private void SaveSettings(object sender, PropertyChangedEventArgs e)
 			{
 				ConsoleActions.WriteLine(String.Format("Successfully saved: {0}", e.PropertyName));
-				SavingAndLoadingActions.OverWriteFile(GetActions.GetBaseBotDirectory(Constants.BOT_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
+				SavingAndLoadingActions.OverWriteFile(GetActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
 			}
 			public void PostDeserialize(bool windows, bool console, bool firstInstance)
 			{
@@ -903,10 +725,6 @@ namespace Advobot
 				Group = group;
 			}
 
-			public void AddRole(SelfAssignableRole role)
-			{
-				Roles.Add(role);
-			}
 			public void AddRoles(IEnumerable<SelfAssignableRole> roles)
 			{
 				Roles.AddRange(roles);
@@ -1412,12 +1230,12 @@ namespace Advobot
 					return guildSettings;
 				}
 
-				var path = GetActions.GetServerFilePath(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
-				if (File.Exists(path))
+				var fileInfo = GetActions.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
+				if (fileInfo.Exists)
 				{
 					try
 					{
-						using (var reader = new StreamReader(path))
+						using (var reader = new StreamReader(fileInfo.FullName))
 						{
 							guildSettings = (IGuildSettings)JsonConvert.DeserializeObject(reader.ReadToEnd(), guildSettingsType);
 						}
@@ -1434,27 +1252,19 @@ namespace Advobot
 				}
 				guildSettings = guildSettings ?? (IGuildSettings)Activator.CreateInstance(guildSettingsType);
 
-				guildSettings.CommandsDisabledOnUser = guildSettings.CommandsDisabledOnUser.Where(x => !String.IsNullOrWhiteSpace(x.Name)).ToList().AsReadOnly();
-				guildSettings.CommandsDisabledOnRole = guildSettings.CommandsDisabledOnRole.Where(x => !String.IsNullOrWhiteSpace(x.Name)).ToList().AsReadOnly();
-				guildSettings.CommandsDisabledOnChannel = guildSettings.CommandsDisabledOnChannel.Where(x => !String.IsNullOrWhiteSpace(x.Name)).ToList().AsReadOnly();
-
-				var tempCommandSwitches = guildSettings.CommandSwitches.Where(x => !String.IsNullOrWhiteSpace(x.Name)).ToList();
-				foreach (var cmd in Constants.HELP_ENTRIES.Where(x => !guildSettings.CommandSwitches.Select(y => y.Name).CaseInsContains(x.Name)))
-				{
-					tempCommandSwitches.Add(new CommandSwitch(cmd.Name, cmd.DefaultEnabled));
-				}
-				guildSettings.CommandSwitches = tempCommandSwitches;
-
+				var unsetCmdSwitches = Constants.HELP_ENTRIES.Where(x => !guildSettings.CommandSwitches.Select(y => y.Name).CaseInsContains(x.Name)).Select(x => new CommandSwitch(x.Name, x.DefaultEnabled));
+				guildSettings.CommandSwitches.AddRange(unsetCmdSwitches);
+				guildSettings.CommandsDisabledOnUser.RemoveAll(x => !String.IsNullOrWhiteSpace(x.Name));
+				guildSettings.CommandsDisabledOnRole.RemoveAll(x => !String.IsNullOrWhiteSpace(x.Name));
+				guildSettings.CommandsDisabledOnChannel.RemoveAll(x => !String.IsNullOrWhiteSpace(x.Name));
 				guildSettings.Invites.AddRange((await InviteActions.GetInvites(guild)).Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)));
 
-				var myGuildSettings = guildSettings as MyGuildSettings;
-				if (myGuildSettings == null)
+				if (guildSettings is MyGuildSettings)
 				{
-					return guildSettings;
+					(guildSettings as MyGuildSettings).PostDeserialize(guild);
 				}
 
-				myGuildSettings.PostDeserialize(guild);
-				return myGuildSettings;
+				return guildSettings;
 			}
 		}
 

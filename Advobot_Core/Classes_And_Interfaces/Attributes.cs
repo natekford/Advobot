@@ -250,11 +250,21 @@ namespace Advobot
 		[AttributeUsage(AttributeTargets.Parameter)]
 		public class VerifyObjectAttribute : ParameterPreconditionAttribute
 		{
+			private readonly Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>> _GetResultsDict;
 			private readonly bool _IfNullCheckFromContext;
 			private readonly ObjectVerification[] _Checks;
 
 			public VerifyObjectAttribute(bool ifNullCheckFromContext, params ObjectVerification[] checks)
 			{
+				_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>>
+				{
+					{ typeof(ITextChannel), ITextChannelResult },
+					{ typeof(IVoiceChannel), IVoiceChannelResult },
+					{ typeof(IGuildChannel), IGuildChannelResult },
+					{ typeof(IGuildUser), IGuildUserResult },
+					{ typeof(IUser), IUserResult },
+					{ typeof(IRole), IRoleResult },
+				};
 				_IfNullCheckFromContext = ifNullCheckFromContext;
 				_Checks = checks;
 			}
@@ -289,39 +299,9 @@ namespace Advobot
 
 			private PreconditionResult GetPreconditionResult(ICommandContext context, object value, Type type)
 			{
-				FailureReason failureReason = default(FailureReason);
-				object obj = null;
-
-				if (type == typeof(ITextChannel) || type.GetInterfaces().Contains(typeof(ITextChannel)))
-				{
-					var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.Channel) as IGuildChannel);
-					failureReason = returned.Reason;
-					obj = returned.Object;
-				}
-				else if (type == typeof(IVoiceChannel) || type.GetInterfaces().Contains(typeof(IVoiceChannel)))
-				{
-					var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel);
-					failureReason = returned.Reason;
-					obj = returned.Object;
-				}
-				else if (type == typeof(IGuildChannel) || type.GetInterfaces().Contains(typeof(IGuildChannel)))
-				{
-					var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, value as IGuildChannel);
-					failureReason = returned.Reason;
-					obj = returned.Object;
-				}
-				else if (type == typeof(IGuildUser) || type.GetInterfaces().Contains(typeof(IGuildUser)))
-				{
-					var returned = UserActions.GetGuildUser(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.User) as IGuildUser);
-					failureReason = returned.Reason;
-					obj = returned.Object;
-				}
-				else if (type == typeof(IRole) || type.GetInterfaces().Contains(typeof(IRole)))
-				{
-					var returned = RoleActions.GetRole(context.Guild, context.User as IGuildUser, _Checks, value as IRole);
-					failureReason = returned.Reason;
-					obj = returned.Object;
-				}
+				var result = _GetResultsDict[type](context, value);
+				var failureReason = result.Item1;
+				var obj = result.Item2;
 
 				if (failureReason != FailureReason.NotFailure)
 				{
@@ -331,6 +311,44 @@ namespace Advobot
 				{
 					return PreconditionResult.FromSuccess();
 				}
+			}
+
+			private Tuple<FailureReason, object> ITextChannelResult(ICommandContext context, object value)
+			{
+				var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.Channel) as IGuildChannel);
+				return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
+			}
+			private Tuple<FailureReason, object> IVoiceChannelResult(ICommandContext context, object value)
+			{
+				var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel);
+				return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
+			}
+			private Tuple<FailureReason, object> IGuildChannelResult(ICommandContext context, object value)
+			{
+				var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, value as IGuildChannel);
+				return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
+			}
+			private Tuple<FailureReason, object> IGuildUserResult(ICommandContext context, object value)
+			{
+				var returned = UserActions.GetGuildUser(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.User) as IGuildUser);
+				return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
+			}
+			private Tuple<FailureReason, object> IUserResult(ICommandContext context, object value)
+			{
+				//If user cannot be cast as an IGuildUser then they're not on the guild and thus anything can be used on them
+				if (value as IGuildUser != null)
+				{
+					return IGuildUserResult(context, value);
+				}
+				else
+				{
+					return Tuple.Create(FailureReason.NotFailure, value);
+				}
+			}
+			private Tuple<FailureReason, object> IRoleResult(ICommandContext context, object value)
+			{
+				var returned = RoleActions.GetRole(context.Guild, context.User as IGuildUser, _Checks, value as IRole);
+				return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
 			}
 		}
 
@@ -346,7 +364,7 @@ namespace Advobot
 				_Disallowed = disallowed;
 			}
 
-			public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
+			public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 			{
 				var enumVal = (uint)value;
 				if (_Allowed != 0 && ((_Allowed & enumVal) == 0))
@@ -368,16 +386,16 @@ namespace Advobot
 		public class VerifyStringLengthAttribute : ParameterPreconditionAttribute
 		{
 			private readonly ReadOnlyDictionary<Target, Tuple<int, int, string>> _MinsAndMaxesAndErrors = new ReadOnlyDictionary<Target, Tuple<int, int, string>>(new Dictionary<Target, Tuple<int, int, string>>
-		{
-			{ Target.Guild, new Tuple<int, int, string>(Constants.MIN_GUILD_NAME_LENGTH, Constants.MAX_GUILD_NAME_LENGTH, "guild name") },
-			{ Target.Channel, new Tuple<int, int, string>(Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "channel name") },
-			{ Target.Role, new Tuple<int, int, string>(Constants.MIN_ROLE_NAME_LENGTH, Constants.MAX_ROLE_NAME_LENGTH, "role name") },
-			{ Target.Name, new Tuple<int, int, string>(Constants.MIN_USERNAME_LENGTH, Constants.MAX_USERNAME_LENGTH, "username") },
-			{ Target.Nickname, new Tuple<int, int, string>(Constants.MIN_NICKNAME_LENGTH, Constants.MAX_NICKNAME_LENGTH, "nickname") },
-			{ Target.Game, new Tuple<int, int, string>(Constants.MIN_GAME_LENGTH, Constants.MAX_GAME_LENGTH, "game") },
-			{ Target.Stream, new Tuple<int, int, string>(Constants.MIN_STREAM_LENGTH, Constants.MAX_STREAM_LENGTH, "stream name") },
-			{ Target.Topic, new Tuple<int, int, string>(Constants.MIN_TOPIC_LENGTH, Constants.MAX_TOPIC_LENGTH, "channel topic") },
-		});
+			{
+				{ Target.Guild, new Tuple<int, int, string>(Constants.MIN_GUILD_NAME_LENGTH, Constants.MAX_GUILD_NAME_LENGTH, "guild name") },
+				{ Target.Channel, new Tuple<int, int, string>(Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "channel name") },
+				{ Target.Role, new Tuple<int, int, string>(Constants.MIN_ROLE_NAME_LENGTH, Constants.MAX_ROLE_NAME_LENGTH, "role name") },
+				{ Target.Name, new Tuple<int, int, string>(Constants.MIN_USERNAME_LENGTH, Constants.MAX_USERNAME_LENGTH, "username") },
+				{ Target.Nickname, new Tuple<int, int, string>(Constants.MIN_NICKNAME_LENGTH, Constants.MAX_NICKNAME_LENGTH, "nickname") },
+				{ Target.Game, new Tuple<int, int, string>(Constants.MIN_GAME_LENGTH, Constants.MAX_GAME_LENGTH, "game") },
+				{ Target.Stream, new Tuple<int, int, string>(Constants.MIN_STREAM_LENGTH, Constants.MAX_STREAM_LENGTH, "stream name") },
+				{ Target.Topic, new Tuple<int, int, string>(Constants.MIN_TOPIC_LENGTH, Constants.MAX_TOPIC_LENGTH, "channel topic") },
+			});
 			private int _Min;
 			private int _Max;
 			private string _TooShort;

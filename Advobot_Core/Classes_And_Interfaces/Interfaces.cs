@@ -164,28 +164,28 @@ namespace Advobot
 
 		public interface IGuildSettings
 		{
-			IReadOnlyList<BotImplementedPermissions> BotUsers { get; set; }
-			IReadOnlyList<SelfAssignableGroup> SelfAssignableGroups { get; set; }
-			IReadOnlyList<Quote> Quotes { get; set; }
-			IReadOnlyList<LogAction> LogActions { get; set; }
-			IReadOnlyList<ulong> IgnoredCommandChannels { get; set; }
-			IReadOnlyList<ulong> IgnoredLogChannels { get; set; }
-			IReadOnlyList<ulong> ImageOnlyChannels { get; set; }
-			IReadOnlyList<ulong> SanitaryChannels { get; set; }
-			IReadOnlyList<BannedPhrase> BannedPhraseStrings { get; set; }
-			IReadOnlyList<BannedPhrase> BannedPhraseRegex { get; set; }
-			IReadOnlyList<BannedPhrase> BannedNamesForJoiningUsers { get; set; }
-			IReadOnlyList<BannedPhrasePunishment> BannedPhrasePunishments { get; set; }
-			IReadOnlyList<CommandSwitch> CommandSwitches { get; set; }
-			IReadOnlyList<CommandOverride> CommandsDisabledOnUser { get; set; }
-			IReadOnlyList<CommandOverride> CommandsDisabledOnRole { get; set; }
-			IReadOnlyList<CommandOverride> CommandsDisabledOnChannel { get; set; }
+			List<BotImplementedPermissions> BotUsers { get; set; }
+			List<SelfAssignableGroup> SelfAssignableGroups { get; set; }
+			List<Quote> Quotes { get; set; }
+			List<LogAction> LogActions { get; set; }
+			List<ulong> IgnoredCommandChannels { get; set; }
+			List<ulong> IgnoredLogChannels { get; set; }
+			List<ulong> ImageOnlyChannels { get; set; }
+			List<ulong> SanitaryChannels { get; set; }
+			List<BannedPhrase> BannedPhraseStrings { get; set; }
+			List<BannedPhrase> BannedPhraseRegex { get; set; }
+			List<BannedPhrase> BannedNamesForJoiningUsers { get; set; }
+			List<BannedPhrasePunishment> BannedPhrasePunishments { get; set; }
+			List<CommandSwitch> CommandSwitches { get; set; }
+			List<CommandOverride> CommandsDisabledOnUser { get; set; }
+			List<CommandOverride> CommandsDisabledOnRole { get; set; }
+			List<CommandOverride> CommandsDisabledOnChannel { get; set; }
 			ITextChannel ServerLog { get; set; }
 			ITextChannel ModLog { get; set; }
 			ITextChannel ImageLog { get; set; }
 			IRole MuteRole { get; set; }
-			IReadOnlyDictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; set; }
-			IReadOnlyDictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; set; }
+			Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; set; }
+			Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; set; }
 			GuildNotification WelcomeMessage { get; set; }
 			GuildNotification GoodbyeMessage { get; set; }
 			ListedInvite ListedInvite { get; set; }
@@ -200,6 +200,8 @@ namespace Advobot
 			MessageDeletion MessageDeletion { get; }
 			IGuild Guild { get; }
 			bool Loaded { get; }
+
+			void SaveSettings();
 		}
 	}
 }

@@ -10,6 +10,11 @@ First, to get the really shitty part of the bot out of the way:
 
 4.	I use String.Format over string interpolation; fight me.
 
+5.	Could possibly have forgotten saving IGuildSettings in a spot or two over the past three revisions of that interface.
+	Regular class with only properties and a gross way of saving ->
+	Class with an overuse of reflection and enums with a grosser way of saving ->
+	Finally an interface and having MyGuildSettings save each time a setter is user ->
+	Save as before except removed the setter saving and am using AfterExecute to save after commands edit settings.
 
 To get some of the better parts out there:
 0.	I'm slowly making each module completely optional (aside from IBotSettings and IGuildSettingsModule)

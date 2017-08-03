@@ -2,7 +2,6 @@
 using Advobot.Interfaces;
 using Advobot.RemovablePunishments;
 using Discord;
-using Discord.Commands;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 

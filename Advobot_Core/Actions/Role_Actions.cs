@@ -186,6 +186,7 @@ namespace Advobot
 				{
 					muteRole = await guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0));
 					guildSettings.MuteRole = muteRole;
+					guildSettings.SaveSettings();
 				}
 
 				const uint TEXT_PERMS = 0

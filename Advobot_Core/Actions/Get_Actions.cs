@@ -235,27 +235,25 @@ namespace Advobot
 				return Properties.Settings.Default.BotKey;
 			}
 
-			public static string GetServerFilePath(ulong guildId, string fileName)
+			public static DirectoryInfo GetServerDirectory(ulong guildId)
 			{
-				//Make sure the bot's directory exists
-				var directory = GetBaseBotDirectory();
-				Directory.CreateDirectory(directory);
-
-				//This string will be similar to C:\Users\User\AppData\Roaming\Discord_Servers_... if using appdata. If not then it can be anything;
-				return Path.Combine(directory, guildId.ToString(), fileName);
+				var path = Path.Combine(GetBaseBotDirectory().FullName, guildId.ToString());
+				return Directory.CreateDirectory(path);
 			}
-			public static string GetBaseBotDirectory(string nonGuildFileName = null)
+			public static FileInfo GetServerDirectoryFile(ulong guildId, string fileName)
 			{
-				//Make sure a save path exists
-				var folder = Properties.Settings.Default.Path;
-				if (!Directory.Exists(folder))
-					return null;
-
-				//Get the bot's folder
-				var botFolder = String.Format("{0}_{1}", Constants.SERVER_FOLDER, Properties.Settings.Default.BotID);
-
-				//Send back the directory
-				return String.IsNullOrWhiteSpace(nonGuildFileName) ? Path.Combine(folder, botFolder) : Path.Combine(folder, botFolder, nonGuildFileName);
+				var path = Path.Combine(GetServerDirectory(guildId).FullName, fileName);
+				return new FileInfo(path);
+			}
+			public static DirectoryInfo GetBaseBotDirectory()
+			{
+				var path = Path.Combine(Properties.Settings.Default.Path, String.Format("{0}_{1}", Constants.SERVER_FOLDER, Properties.Settings.Default.BotID));
+				return Directory.CreateDirectory(path);
+			}
+			public static FileInfo GetBaseBotDirectoryFile(string fileName)
+			{
+				var path = Path.Combine(GetBaseBotDirectory().FullName, fileName);
+				return new FileInfo(path);
 			}
 			public static FileType? GetFileType(string file)
 			{

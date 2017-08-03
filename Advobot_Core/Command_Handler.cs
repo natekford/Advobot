@@ -73,7 +73,9 @@ namespace Advobot
 
 			var guild = (message?.Channel as SocketTextChannel)?.Guild;
 			if (guild == null)
+			{
 				return;
+			}
 
 			if (!_GuildSettings.TryGetSettings(guild, out IGuildSettings guildSettings))
 			{
@@ -81,7 +83,9 @@ namespace Advobot
 				guildSettings = _GuildSettings.GetSettings(guild);
 			}
 			if (!TryGetArgPos(message, guildSettings.Prefix, _BotSettings.Prefix, out int argPos))
+			{
 				return;
+			}
 
 			var context = new MyCommandContext(_BotSettings, guildSettings, _Logging, _Timers, _Client, message);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider);
@@ -119,21 +123,14 @@ namespace Advobot
 		private static bool TryGetArgPos(IUserMessage message, string guildPrefix, string globalPrefix, out int argPos)
 		{
 			argPos = -1;
-			if (String.IsNullOrWhiteSpace(guildPrefix))
-			{
-				if (message.HasStringPrefix(globalPrefix, ref argPos))
-				{
-					return true;
-				}
-			}
-			else
-			{
-				if (message.HasStringPrefix(guildPrefix, ref argPos) || message.HasMentionPrefix(_Client.CurrentUser, ref argPos))
-				{
-					return true;
-				}
-			}
-			return false;
+			//Always allow mentioning as a prefix,
+			//only use the global prefix if the guild doesn't have a prefix set,
+			//don't use the global prefix if the guild has a prefix set.
+			return false
+				|| message.HasMentionPrefix(_Client.CurrentUser, ref argPos)
+				|| String.IsNullOrWhiteSpace(guildPrefix)
+				? message.HasStringPrefix(globalPrefix, ref argPos) 
+				: message.HasStringPrefix(guildPrefix, ref argPos);
 		}
 	}
 }

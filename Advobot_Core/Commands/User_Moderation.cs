@@ -248,13 +248,13 @@ namespace Advobot
 				await CommandRunner(user, time, 0);
 			}
 
-			private static readonly uint[] _Days = { 0, 1, 7 };
+			private static readonly uint _MaxDays = 7;
 
 			private async Task CommandRunner(IUser user, uint time, uint days)
 			{
-				if (_Days.Contains(days))
+				if (days > _MaxDays)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Invalid days supplied, must be one of the following: `{0}`", String.Join("`, `", _Days))));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Days must be less than or equal to `{0}`.", _MaxDays)));
 					return;
 				}
 				else if ((await Context.Guild.GetBansAsync()).Select(x => x.User.Id).Contains(user.Id))
@@ -382,7 +382,7 @@ namespace Advobot
 		}
 
 		[Group("modifyslowmode"), Alias("msm")]
-		[Usage("[Setup] [1 to 5] [1 to 30] <Role> ... | [On|Off]")]
+		[Usage("[On|Off|Setup] <1 to 5> <1 to 30> <Role ...>")]
 		[Summary("First arg is how many messages can be sent in a timeframe. Second arg is the timeframe. Third arg is guildwide; true means yes, false means no. " +
 			"Fourth are the list of roles that are immune to slowmode.")]
 		[PermissionRequirement(null, null)]
@@ -428,6 +428,12 @@ namespace Advobot
 			{
 				Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully setup slowmode.\n{0}", Context.GuildSettings.Slowmode.ToString()));
+			}
+
+			protected override void AfterExecute(CommandInfo command)
+			{
+				Context.GuildSettings.SaveSettings();
+				base.AfterExecute(command);
 			}
 		}
 	}

@@ -134,6 +134,12 @@ namespace Advobot
 					await SpamActions.SetUpSpamPrevention(Context, SpamType.Mention, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
 				}
 			}
+
+			protected override void AfterExecute(CommandInfo command)
+			{
+				Context.GuildSettings.SaveSettings();
+				base.AfterExecute(command);
+			}
 		}
 
 		[Group("preventraid")]
@@ -199,6 +205,12 @@ namespace Advobot
 				{
 					await SpamActions.SetUpRaidPrevention(Context, RaidType.RapidJoins, punishment, numberOfUsers, interval);
 				}
+			}
+
+			protected override void AfterExecute(CommandInfo command)
+			{
+				Context.GuildSettings.SaveSettings();
+				base.AfterExecute(command);
 			}
 		}
 	}

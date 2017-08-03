@@ -15,30 +15,23 @@ namespace Advobot
 		{
 			public static async Task<IUserMessage> WriteAndUploadTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string content = null)
 			{
-				//Get the file path
 				if (!fileName.EndsWith("_"))
 				{
 					fileName += "_";
 				}
+				var fullFileName = fileName + FormattingActions.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION;
 
-				var file = fileName + FormattingActions.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION;
-				var path = GetActions.GetServerFilePath(guild.Id, file);
-				if (path == null)
-					return null;
+				var fileInfo = GetActions.GetServerDirectoryFile(guild.Id, fullFileName);
+				SavingAndLoadingActions.OverWriteFile(fileInfo, FormattingActions.RemoveMarkdownChars(text, false));
 
-				using (var writer = new StreamWriter(path))
-				{
-					writer.WriteLine(FormattingActions.RemoveMarkdownChars(text, false));
-				}
+				var msg = await UploadFile(channel, fileInfo, String.IsNullOrWhiteSpace(content) ? "" : String.Format("**{0}:**", content));
 
-				var textOnTop = String.IsNullOrWhiteSpace(content) ? "" : String.Format("**{0}:**", content);
-				var msg = await channel.SendFileAsync(path, textOnTop);
-				File.Delete(path);
+				SavingAndLoadingActions.DeleteFile(fileInfo);
 				return msg;
 			}
-			public static async Task UploadFile(IMessageChannel channel, string path, string text = null)
+			public static async Task<IUserMessage> UploadFile(IMessageChannel channel, FileInfo fileInfo, string text = null)
 			{
-				await channel.SendFileAsync(path, text);
+				return await channel.SendFileAsync(fileInfo.FullName, text);
 			}
 
 			public static async Task SetBotIcon(IMyCommandContext context, string imageURL)
@@ -54,11 +47,11 @@ namespace Advobot
 				if (fileType == null)
 					return;
 
-				var path = GetActions.GetServerFilePath(context.Guild.Id, Constants.BOT_ICON_LOCATION + fileType);
+				var fileInfo = GetActions.GetServerDirectoryFile(context.Guild.Id, Constants.BOT_ICON_LOCATION + fileType);
 				using (var webclient = new WebClient())
 				{
-					webclient.DownloadFileAsync(new Uri(imageURL), path);
-					webclient.DownloadFileCompleted += async (sender, e) => await SetIcon(sender, e, context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(path)), context, path);
+					webclient.DownloadFileAsync(new Uri(imageURL), fileInfo.FullName);
+					webclient.DownloadFileCompleted += async (sender, e) => await SetIcon(sender, e, context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(fileInfo.FullName)), context, fileInfo);
 				}
 			}
 			public static async Task<string> GetFileTypeOrSayErrors(IMyCommandContext context, string imageURL)
@@ -86,7 +79,7 @@ namespace Advobot
 				}
 				return fileType;
 			}
-			public static async Task SetIcon(object sender, System.ComponentModel.AsyncCompletedEventArgs e, Task iconSetter, IMyCommandContext context, string path)
+			public static async Task SetIcon(object sender, System.ComponentModel.AsyncCompletedEventArgs e, Task iconSetter, IMyCommandContext context, FileInfo fileInfo)
 			{
 				await iconSetter.ContinueWith(async prevTask =>
 				{
@@ -105,7 +98,7 @@ namespace Advobot
 						await MessageActions.MakeAndDeleteSecondaryMessage(context, "Successfully changed the bot icon.");
 					}
 
-					File.Delete(path);
+					SavingAndLoadingActions.DeleteFile(fileInfo);
 				});
 			}
 

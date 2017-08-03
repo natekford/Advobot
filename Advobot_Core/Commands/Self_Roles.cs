@@ -47,6 +47,18 @@ namespace Advobot
 			private async Task CommandRunner(ActionType action, uint groupNum)
 			{
 
+
+				switch (action)
+				{
+					case ActionType.Create:
+					{
+						break;
+					}
+					case ActionType.Delete:
+					{
+						break;
+					}
+				}
 			}
 			private async Task CommandRunner(ActionType action, uint groupNum, IRole[] roles)
 			{
@@ -114,6 +126,11 @@ namespace Advobot
 				}
 
 				await MessageActions.SendChannelMessage(Context, FormattingActions.JoinNonNullStrings(" ", addedStr, notAddedStr));
+			}
+
+			protected override void AfterExecute(CommandInfo command)
+			{
+				Context.GuildSettings.SaveSettings();
 			}
 		}
 	}

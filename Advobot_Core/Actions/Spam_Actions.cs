@@ -448,13 +448,8 @@ namespace Advobot
 				}
 				
 				var newSpamPrev = new SpamPreventionInfo(punishType, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
-
-				//I do it this way because I am too lazy to have each of these split up into a separate field/property and too lazy to have an observable dictionary if that exists, since observable collections
-				//are already annoying and I'd rather just use a property changed 'event' in the setter.
-				var tempDict = context.GuildSettings.SpamPreventionDictionary.ToDictionary();
-				tempDict[spamType] = newSpamPrev;
-				context.GuildSettings.SpamPreventionDictionary = tempDict;
-
+				context.GuildSettings.SpamPreventionDictionary[spamType] = newSpamPrev;
+				
 				await MessageActions.MakeAndDeleteSecondaryMessage(context, String.Format("Successfully set up the spam prevention for `{0}`.\n{1}", spamType.EnumName().ToLower(), newSpamPrev.ToString()));
 			}
 
@@ -505,11 +500,7 @@ namespace Advobot
 				}
 
 				var newRaidPrev = new RaidPreventionInfo(punishType, (int)userCount, (int)interval);
-
-				//Done for same reason as the spam prevention one
-				var tempDict = context.GuildSettings.RaidPreventionDictionary.ToDictionary();
-				tempDict[raidType] = newRaidPrev;
-				context.GuildSettings.RaidPreventionDictionary = tempDict;
+				context.GuildSettings.RaidPreventionDictionary[raidType] = newRaidPrev;
 
 				await MessageActions.MakeAndDeleteSecondaryMessage(context, String.Format("Successfully set up the raid prevention for `{0}`.\n{1}", raidType.EnumName().ToLower(), newRaidPrev.ToString()));
 			}

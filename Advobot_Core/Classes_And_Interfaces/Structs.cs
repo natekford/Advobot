@@ -5,6 +5,7 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Advobot
@@ -160,12 +161,12 @@ namespace Advobot
 		public struct FileInformation
 		{
 			public FileType FileType { get; }
-			public string FileLocation { get; }
+			public FileInfo FileInfo { get; }
 
-			public FileInformation(FileType fileType, string fileLocation)
+			public FileInformation(FileType fileType, FileInfo fileInfo)
 			{
 				FileType = fileType;
-				FileLocation = fileLocation;
+				FileInfo = fileInfo;
 			}
 		}
 

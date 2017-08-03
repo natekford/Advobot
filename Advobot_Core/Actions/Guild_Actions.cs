@@ -2,6 +2,7 @@
 using Discord;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Advobot
 {
@@ -62,9 +63,9 @@ namespace Advobot
 			{
 				await guild.ModifyAsync(x => x.VerificationLevel = verifLevel, new RequestOptions { AuditLogReason = reason });
 			}
-			public static async Task ModifyGuildIcon(IGuild guild, string path, string reason)
+			public static async Task ModifyGuildIcon(IGuild guild, FileInfo fileInfo, string reason)
 			{
-				await guild.ModifyAsync(x => x.Icon = new Image(path), new RequestOptions { AuditLogReason = reason });
+				await guild.ModifyAsync(x => x.Icon = new Image(fileInfo.FullName), new RequestOptions { AuditLogReason = reason });
 			}
 		}
 	}

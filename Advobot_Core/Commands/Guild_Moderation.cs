@@ -217,11 +217,11 @@ namespace Advobot
 				if (fileType == null)
 					return;
 
-				var path = GetActions.GetServerFilePath(Context.Guild.Id, Constants.GUILD_ICON_LOCATION + fileType);
+				var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_ICON_LOCATION + fileType);
 				using (var webClient = new System.Net.WebClient())
 				{
-					webClient.DownloadFileAsync(new Uri(imageURL), path);
-					webClient.DownloadFileCompleted += async (sender, e) => await UploadActions.SetIcon(sender, e, GuildActions.ModifyGuildIcon(Context.Guild, path, FormattingActions.FormatUserReason(Context.User)), Context, path);
+					webClient.DownloadFileAsync(new Uri(imageURL), fileInfo.FullName);
+					webClient.DownloadFileCompleted += async (sender, e) => await UploadActions.SetIcon(sender, e, GuildActions.ModifyGuildIcon(Context.Guild, fileInfo, FormattingActions.FormatUserReason(Context.User)), Context, fileInfo);
 				}
 			}
 		}

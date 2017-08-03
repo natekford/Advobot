@@ -542,8 +542,8 @@ namespace Advobot
 				public static TreeView MakeGuildTreeView(TreeView tv, IEnumerable<IGuild> guilds)
 				{
 					//Get the directory
-					var directory = GetActions.GetBaseBotDirectory();
-					if (directory == null || !Directory.Exists(directory))
+					var directoryInfo = GetActions.GetBaseBotDirectory();
+					if (directoryInfo == null || !directoryInfo.Exists)
 						return tv;
 
 					//Remove its parent so it can be added back to something
@@ -556,10 +556,10 @@ namespace Advobot
 					tv.BorderThickness = new Thickness(0);
 					tv.Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background];
 					tv.Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground];
-					tv.ItemsSource = Directory.GetDirectories(directory).Select(guildDir =>
+					tv.ItemsSource = directoryInfo.GetDirectories().Select(guildDir =>
 					{
 						//Separate the ID from the rest of the directory
-						var strID = guildDir.Substring(guildDir.LastIndexOf('\\') + 1);
+						var strID = guildDir.Name;
 						//Make sure the ID is valid
 						if (!ulong.TryParse(strID, out ulong ID))
 							return null;
@@ -570,16 +570,16 @@ namespace Advobot
 
 						//Get all of the files
 						var listOfFiles = new List<TreeViewItem>();
-						Directory.GetFiles(guildDir).ToList().ForEach(fileLoc =>
+						guildDir.GetFiles().ToList().ForEach(fileInfo =>
 						{
-							var fileType = GetActions.GetFileType(Path.GetFileNameWithoutExtension(fileLoc));
+							var fileType = GetActions.GetFileType(Path.GetFileNameWithoutExtension(fileInfo.Name));
 							if (!fileType.HasValue)
 								return;
 
 							var fileItem = new TreeViewItem
 							{
-								Header = Path.GetFileName(fileLoc),
-								Tag = new FileInformation(fileType.Value, fileLoc),
+								Header = fileInfo.Name,
+								Tag = new FileInformation(fileType.Value, fileInfo),
 								Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
 								Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
 							};
@@ -979,14 +979,12 @@ namespace Advobot
 				}
 				public static ToolTipReason SaveFile(TextEditor tb)
 				{
-					var path = tb.Tag.ToString();
-					if (String.IsNullOrWhiteSpace(path) || !File.Exists(path))
+					var fileInfo = ((FileInformation)tb.Tag).FileInfo;
+					if (fileInfo == null || !fileInfo.Exists)
 					{
 						return ToolTipReason.InvalidFilePath;
 					}
-
-					var fileAndExtension = Path.GetFileName(path);
-					if (fileAndExtension.Equals(Constants.GUILD_SETTINGS_LOCATION))
+					else if (fileInfo.Name.Equals(Constants.GUILD_SETTINGS_LOCATION))
 					{
 						//Make sure the guild info stays valid
 						try
@@ -1000,27 +998,28 @@ namespace Advobot
 						}
 					}
 
-					using (var writer = new StreamWriter(path))
+					try
 					{
-						writer.WriteLine(tb.Text);
+						SavingAndLoadingActions.OverWriteFile(fileInfo, tb.Text);
+						return ToolTipReason.FileSavingSuccess;
 					}
-
-					return ToolTipReason.FileSavingSuccess;
-				}
-				public static ToolTipReason SaveOutput(TextBox tb)
-				{
-					var path = GetActions.GetBaseBotDirectory("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
-					if (String.IsNullOrWhiteSpace(path))
+					catch
 					{
 						return ToolTipReason.FileSavingFailure;
 					}
-
-					using (StreamWriter writer = new StreamWriter(path))
+				}
+				public static ToolTipReason SaveOutput(TextBox tb)
+				{
+					var fileInfo = GetActions.GetBaseBotDirectoryFile("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
+					try
 					{
-						writer.Write(tb.Text);
+						SavingAndLoadingActions.OverWriteFile(fileInfo, tb.Text);
+						return ToolTipReason.FileSavingSuccess;
 					}
-
-					return ToolTipReason.FileSavingSuccess;
+					catch
+					{
+						return ToolTipReason.FileSavingFailure;
+					}
 				}
 
 				public static void PauseBot(IBotSettings botSettings)
@@ -1039,12 +1038,12 @@ namespace Advobot
 
 				public static bool AppendTextToTextEditorIfPathExistsAndReturnIfHappened(TextEditor display, TreeViewItem treeItem)
 				{
-					var fileLocation = ((FileInformation)treeItem.Tag).FileLocation;
-					if (fileLocation != null && File.Exists(fileLocation))
+					var fileInfo = ((FileInformation)treeItem.Tag).FileInfo;
+					if (fileInfo != null && fileInfo.Exists)
 					{
 						display.Clear();
-						display.Tag = fileLocation;
-						using (var reader = new StreamReader(fileLocation))
+						display.Tag = fileInfo;
+						using (var reader = new StreamReader(fileInfo.FullName))
 						{
 							display.AppendText(reader.ReadToEnd());
 						}

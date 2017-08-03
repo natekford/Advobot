@@ -93,7 +93,7 @@ namespace Advobot
 				}
 				public void SaveSettings()
 				{
-					SavingAndLoadingActions.OverWriteFile(GetActions.GetBaseBotDirectory(Constants.UI_INFO_LOCATION), SavingAndLoadingActions.Serialize(this));
+					SavingAndLoadingActions.OverWriteFile(GetActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION), SavingAndLoadingActions.Serialize(this));
 				}
 				public void ActivateTheme()
 				{
@@ -164,29 +164,28 @@ namespace Advobot
 
 				public static UISettings LoadUISettings(bool loaded)
 				{
-					var UISettings = new UISettings();
-					var path = GetActions.GetBaseBotDirectory(Constants.UI_INFO_LOCATION);
-					if (!File.Exists(path))
+					UISettings UISettings = null;
+					var fileInfo = GetActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION);
+					if (fileInfo.Exists)
 					{
-						if (loaded)
+						try
 						{
-							ConsoleActions.WriteLine("The bot UI information file does not exist.");
+							using (var reader = new StreamReader(fileInfo.FullName))
+							{
+								UISettings = JsonConvert.DeserializeObject<UISettings>(reader.ReadToEnd());
+							}
+							ConsoleActions.WriteLine("The bot UI information has successfully been loaded.");
 						}
-						return UISettings;
-					}
-
-					try
-					{
-						using (var reader = new StreamReader(path))
+						catch (Exception e)
 						{
-							UISettings = JsonConvert.DeserializeObject<UISettings>(reader.ReadToEnd());
+							ConsoleActions.ExceptionToConsole(e);
 						}
 					}
-					catch (Exception e)
+					else if (loaded)
 					{
-						ConsoleActions.ExceptionToConsole(e);
+						ConsoleActions.WriteLine("The bot UI information file could not be found; using default.");
 					}
-					return UISettings;
+					return UISettings ?? new UISettings();
 				}
 			}
 
