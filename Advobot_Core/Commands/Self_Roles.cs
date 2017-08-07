@@ -46,8 +46,6 @@ namespace Advobot
 
 			private async Task CommandRunner(ActionType action, uint groupNum)
 			{
-
-
 				switch (action)
 				{
 					case ActionType.Create:
@@ -79,9 +77,6 @@ namespace Advobot
 				var rolesAdded = new List<IRole>();
 				var rolesNotAdded = new List<IRole>();
 				var alreadyUsedRoles = selfAssignableGroups.SelectMany(x => x.Roles).Select(x => x.RoleId);
-
-				var addedStr = rolesAdded.Any() ? String.Format("Successfully added the following role(s): `{0}`.", String.Join("`, `", rolesAdded.Select(x => x.FormatRole()))) : null;
-				var notAddedStr = rolesNotAdded.Any() ? String.Format("Failed to add the following role(s): `{0}`.", String.Join("`, `", rolesNotAdded.Select(x => x.FormatRole()))) : null;
 
 				switch (action)
 				{
@@ -125,6 +120,8 @@ namespace Advobot
 					}
 				}
 
+				var addedStr = rolesAdded.Any() ? String.Format("Successfully added the following role(s): `{0}`.", String.Join("`, `", rolesAdded.Select(x => x.FormatRole()))) : null;
+				var notAddedStr = rolesNotAdded.Any() ? String.Format("Failed to add the following role(s): `{0}`.", String.Join("`, `", rolesNotAdded.Select(x => x.FormatRole()))) : null;
 				await MessageActions.SendChannelMessage(Context, FormattingActions.JoinNonNullStrings(" ", addedStr, notAddedStr));
 			}
 

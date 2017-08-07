@@ -19,15 +19,15 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-//This entire file *should* be able to be removed from the solution with no adverse effects aside from the single error in Advobot_Program.cs
 namespace Advobot
 {
 	namespace Graphics
 	{
 		namespace UserInterface
 		{
-			//Trying to split this up into separate classes = worse than kicking a wall with toothpicks under your toenail
-			//All I did instead was remove most logic from it into a separate class. Shortened from about 1300 lines to 800.
+			/// <summary>
+			/// If anyone is reading this: do not use this class. Make your own UI instead.
+			/// </summary>
 			public class MyWindow : Window
 			{
 				private readonly IDiscordClient _Client;

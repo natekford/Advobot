@@ -15,6 +15,10 @@ namespace Advobot
 	{
 		public static class GetActions
 		{
+			/// <summary>
+			/// Returns the public fields in the Discord.Color struct as a name to color dictionary.
+			/// </summary>
+			/// <returns></returns>
 			public static Dictionary<string, Color> GetColorDictionary()
 			{
 				var dict = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase);
@@ -25,11 +29,21 @@ namespace Advobot
 				return dict;
 			}
 
+			/// <summary>
+			/// Returns nothing if equal to 1. Returns "s" if not. Double allows most, if not all, number types in: https://stackoverflow.com/a/828963.
+			/// </summary>
+			/// <param name="i"></param>
+			/// <returns></returns>
 			public static string GetPlural(double i)
 			{
-				//Double allows most, if not all, number types in. https://stackoverflow.com/a/828963
 				return i == 1 ? "" : "s";
 			}
+			/// <summary>
+			/// Returns the guild prefix if one is set. Returns the bot prefix if not.
+			/// </summary>
+			/// <param name="botSettings"></param>
+			/// <param name="guildSettings"></param>
+			/// <returns></returns>
 			public static string GetPrefix(IBotSettings botSettings, IGuildSettings guildSettings)
 			{
 				var guildPrefix = guildSettings.Prefix;
@@ -46,7 +60,7 @@ namespace Advobot
 			public static Dictionary<string, string> GetChannelOverwritePermissions(Overwrite overwrite)
 			{
 				//Create a dictionary to hold the allow/deny/inherit values
-				var channelPerms = new Dictionary<String, String>();
+				var channelPerms = new Dictionary<string, string>();
 
 				//Make a copy of the channel perm list to check off perms as they go by
 				var genericChannelPerms = Constants.CHANNEL_PERMISSIONS.Select(x => x.Name).ToList();
@@ -92,19 +106,32 @@ namespace Advobot
 				var result = new List<string>();
 				for (int i = 0; i < 64; ++i)
 				{
-					ulong bit = 1U << i;
-					if ((flags & bit) != 0)
+					var bit = 1U << i;
+					if ((flags & bit) == 0)
 					{
-						var name = Constants.GUILD_PERMISSIONS.FirstOrDefault(x => x.Bit == bit).Name;
-						if (!String.IsNullOrWhiteSpace(name))
-						{
-							result.Add(name);
-						}
+						continue;
 					}
+
+					var name = Constants.GUILD_PERMISSIONS.FirstOrDefault(x => x.Bit == bit).Name;
+					if (String.IsNullOrWhiteSpace(name))
+					{
+						continue;
+					}
+
+					result.Add(name);
 				}
 				return result;
 			}
 
+			/// <summary>
+			/// Returns a struct holding arguments. Deprecated and should be removed; use Discord.Net's arg parsing instead.
+			/// </summary>
+			/// <param name="context"></param>
+			/// <param name="input"></param>
+			/// <param name="min"></param>
+			/// <param name="max"></param>
+			/// <param name="argsToSearchFor"></param>
+			/// <returns></returns>
 			public static ReturnedArguments GetArgs(ICommandContext context, string input, int min, int max, string[] argsToSearchFor = null)
 			{
 				/* Non specified arguments get left in a list of args going left to right (mentions are not included in this if the bool is true).
@@ -161,7 +188,7 @@ namespace Advobot
 			}
 			public static ReturnedObject<T> GetEnum<T>(string input, IEnumerable<T> validEnums, IEnumerable<T> invalidEnums = null) where T : struct
 			{
-				if (!Enum.TryParse<T>(input, true, out T tempEnum))
+				if (!Enum.TryParse(input, true, out T tempEnum))
 				{
 					return new ReturnedObject<T>(tempEnum, FailureReason.TooFew);
 				}
@@ -177,15 +204,15 @@ namespace Advobot
 			{
 				return guildSettings.CommandSwitches.Where(x => x.Category == category).ToList();
 			}
-			public static CommandSwitch GetCommand(IGuildSettings guildSettings, string input)
+			public static CommandSwitch GetCommand(IGuildSettings guildSettings, string commandNameOrAlias)
 			{
 				return guildSettings.CommandSwitches.FirstOrDefault(x =>
 				{
-					if (x.Name.CaseInsEquals(input))
+					if (x.Name.CaseInsEquals(commandNameOrAlias))
 					{
 						return true;
 					}
-					else if (x.Aliases != null && x.Aliases.CaseInsContains(input))
+					else if (x.Aliases != null && x.Aliases.CaseInsContains(commandNameOrAlias))
 					{
 						return true;
 					}
@@ -200,6 +227,11 @@ namespace Advobot
 				return Constants.HELP_ENTRIES.Where(x => x.Category == category).Select(x => x.Name).ToArray();
 			}
 
+			/// <summary>
+			/// Returns a string with a shortened name for the given Discord object type.
+			/// </summary>
+			/// <param name="type"></param>
+			/// <returns></returns>
 			public static string GetObjectStringBasic(Type type)
 			{
 				if (type.Equals(typeof(IGuildUser)))
@@ -224,10 +256,12 @@ namespace Advobot
 				}
 			}
 
+			/// <summary>
+			/// Returns the user set save path for the bot's folder. Do not save directly to this path; call GetBaseBotDirectory instead.
+			/// </summary>
+			/// <returns></returns>
 			public static string GetSavePath()
 			{
-				//TODO: make this private again
-				//DO NOT SAVE DIRECTLY TO THIS PATH. CALL GETBASEBOTDIRECTORY INSTEAD.
 				return Properties.Settings.Default.Path;
 			}
 			public static string GetBotKey()
@@ -235,21 +269,41 @@ namespace Advobot
 				return Properties.Settings.Default.BotKey;
 			}
 
+			/// <summary>
+			/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\Id
+			/// </summary>
+			/// <param name="guildId"></param>
+			/// <returns></returns>
 			public static DirectoryInfo GetServerDirectory(ulong guildId)
 			{
 				var path = Path.Combine(GetBaseBotDirectory().FullName, guildId.ToString());
 				return Directory.CreateDirectory(path);
 			}
+			/// <summary>
+			/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\Id\File
+			/// </summary>
+			/// <param name="guildId"></param>
+			/// <param name="fileName"></param>
+			/// <returns></returns>
 			public static FileInfo GetServerDirectoryFile(ulong guildId, string fileName)
 			{
 				var path = Path.Combine(GetServerDirectory(guildId).FullName, fileName);
 				return new FileInfo(path);
 			}
+			/// <summary>
+			/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId
+			/// </summary>
+			/// <returns></returns>
 			public static DirectoryInfo GetBaseBotDirectory()
 			{
 				var path = Path.Combine(Properties.Settings.Default.Path, String.Format("{0}_{1}", Constants.SERVER_FOLDER, Properties.Settings.Default.BotID));
 				return Directory.CreateDirectory(path);
 			}
+			/// <summary>
+			/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\File
+			/// </summary>
+			/// <param name="fileName"></param>
+			/// <returns></returns>
 			public static FileInfo GetBaseBotDirectoryFile(string fileName)
 			{
 				var path = Path.Combine(GetBaseBotDirectory().FullName, fileName);
@@ -277,7 +331,6 @@ namespace Advobot
 			}
 			public static string GetVariable(IEnumerable<string> inputArray, string searchTerm)
 			{
-				//Get the item
 				var first = inputArray?.FirstOrDefault(x => x.Substring(0, Math.Max(x.IndexOf(':'), 1)).CaseInsEquals(searchTerm));
 				return first?.Substring(first.IndexOf(':') + 1);
 			}

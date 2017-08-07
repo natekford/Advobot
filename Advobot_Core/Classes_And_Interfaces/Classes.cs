@@ -578,17 +578,17 @@ namespace Advobot
 			[JsonProperty]
 			public bool Value { get; private set; }
 			[JsonIgnore]
-			public string ValAsString { get { return Value ? "ON" : "OFF"; } }
+			public string ValAsString { get => Value ? "ON" : "OFF"; }
 			[JsonIgnore]
-			public int ValAsInteger { get { return Value ? 1 : -1; } }
+			public int ValAsInteger { get => Value ? 1 : -1; }
 			[JsonIgnore]
-			public bool ValAsBoolean { get { return Value; } }
+			public bool ValAsBoolean { get => Value; }
 			[JsonProperty]
 			public CommandCategory Category { get; }
 			[JsonIgnore]
-			public string CategoryName { get { return Category.EnumName(); } }
+			public string CategoryName { get => Category.EnumName(); }
 			[JsonIgnore]
-			public int CategoryValue { get { return (int)Category; } }
+			public int CategoryValue { get => (int)Category; }
 			[JsonIgnore]
 			private HelpEntry _HelpEntry;
 
@@ -596,7 +596,9 @@ namespace Advobot
 			{
 				_HelpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.Equals(name));
 				if (_HelpEntry == null)
-					return;
+				{
+					throw new ArgumentException("Command name does not have a help entry.");
+				}
 
 				Name = name;
 				Value = value;

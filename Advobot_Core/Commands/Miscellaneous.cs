@@ -279,35 +279,39 @@ namespace Advobot
 		}
 
 		[Group("getuserswithreason"), Alias("guwr")]
-		[Usage("[Role|Name|Game|Stream] [True|False] <\"Other Argument\"> <True|False> <True|False>")]
-		[Summary("Gets users with a variable reason. 1st bool specifies if to only give a count. 2nd specifies if to search for the other argument exactly. 3rd specifies if to include nicknames. 2nd/3rd don't apply to roles or streams. 3rd only applies to names.")]
+		[Usage("[Role|Name|Game|Stream] <\"Other Argument\"> <Count> <Nickname> <Exact>")]
+		[Summary("Gets users with a variable reason. Count specifies if to say the count. Nickname specifies if to include nickanmes. Exact specifies if only exact matches count.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public sealed class GetUsersWithReason : MyModuleBase
 		{
 			[Command("role")]
-			public async Task CommandRole(bool count, [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			public async Task CommandRole([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, params string[] additionalSearchOptions)
 			{
-				await CommandRunner(Target.Role, count, role, false, false);
+				await CommandRunner(Target.Role, role, additionalSearchOptions);
 			}
 			[Command("name")]
-			public async Task CommandName(bool count, string name, [Optional] bool exact, [Optional] bool nickname)
+			public async Task CommandName(string name, params string[] additionalSearchOptions)
 			{
-				await CommandRunner(Target.Name, count, name, exact, nickname);
+				await CommandRunner(Target.Name, name, additionalSearchOptions);
 			}
 			[Command("game")]
-			public async Task CommandGame(bool count, string game, [Optional] bool exact)
+			public async Task CommandGame(string game, params string[] additionalSearchOptions)
 			{
-				await CommandRunner(Target.Game, count, game, exact, false);
+				await CommandRunner(Target.Game, game, additionalSearchOptions);
 			}
 			[Command("stream")]
-			public async Task CommandString(bool count)
+			public async Task CommandString(params string[] additionalSearchOptions)
 			{
-				await CommandRunner(Target.Stream, count, null as string, false, false);
+				await CommandRunner(Target.Stream, null as string, additionalSearchOptions);
 			}
 
-			private async Task CommandRunner(Target targetType, bool count, string otherArg, bool exact, bool nickname)
+			private async Task CommandRunner(Target targetType, string otherArg, string[] additionalSearchOptions)
 			{
+				var exact = additionalSearchOptions.Any(x => "exact".CaseInsEquals(x));
+				var nickname = additionalSearchOptions.Any(x => "nickname".CaseInsEquals(x));
+				var count = additionalSearchOptions.Any(x => "count".CaseInsEquals(x));
+
 				var title = "";
 				var users = (await Context.Guild.GetUsersAsync()).AsEnumerable();
 				switch (targetType)
@@ -341,8 +345,10 @@ namespace Advobot
 				var desc = count ? String.Format("**Count:** `{0}`", users.Count()) : users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.FormatUser());
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(title, desc));
 			}
-			private async Task CommandRunner(Target targetType, bool count, IRole role, bool exact, bool nickname)
+			private async Task CommandRunner(Target targetType, IRole role, string[] additionalSearchOptions)
 			{
+				var count = additionalSearchOptions.Any(x => "count".CaseInsEquals(x));
+
 				var title = "";
 				var users = (await Context.Guild.GetUsersAsync()).AsEnumerable();
 				switch (targetType)
@@ -788,9 +794,10 @@ namespace Advobot
 				await MessageActions.SendChannelMessage(Context, "test");
 			}
 
+			/*
 			protected override void AfterExecute(CommandInfo command)
 			{
 				Context.GuildSettings.SaveSettings();
-			}
+			}*/
 		}
 	}}

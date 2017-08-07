@@ -47,7 +47,8 @@ namespace Advobot
 				var startup = true;
 				while (!botSettings.GotPath)
 				{
-					if (SavingAndLoadingActions.ValidatePath((startup ? GetActions.GetSavePath() : Console.ReadLine()), botSettings.Windows, startup))
+					var input = startup ? GetActions.GetSavePath() : Console.ReadLine();
+					if (SavingAndLoadingActions.ValidatePath(input, botSettings.Windows, startup))
 					{
 						botSettings.SetGotPath();
 					}
@@ -56,7 +57,8 @@ namespace Advobot
 				startup = true;
 				while (!botSettings.GotKey)
 				{
-					if (await SavingAndLoadingActions.ValidateBotKey(client, (startup ? GetActions.GetBotKey() : Console.ReadLine()), startup))
+					var input = startup ? GetActions.GetBotKey() : Console.ReadLine();
+					if (await SavingAndLoadingActions.ValidateBotKey(client, input, startup))
 					{
 						botSettings.SetGotKey();
 					}
