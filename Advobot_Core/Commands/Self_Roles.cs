@@ -46,10 +46,21 @@ namespace Advobot
 
 			private async Task CommandRunner(ActionType action, uint groupNum)
 			{
+				var selfAssignableGroups = Context.GuildSettings.SelfAssignableGroups;
 				switch (action)
 				{
 					case ActionType.Create:
 					{
+						if (selfAssignableGroups.Count >= Constants.MAX_SA_GROUPS)
+						{
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("You have too many groups. {0} is the maximum.", Constants.MAX_SA_GROUPS));
+							return;
+						}
+						else if (selfAssignableGroups.Any(x => x.Group == groupNum))
+						{
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("A group already exists with that position."));
+							return;
+						}
 						break;
 					}
 					case ActionType.Delete:
@@ -77,7 +88,6 @@ namespace Advobot
 				var rolesAdded = new List<IRole>();
 				var rolesNotAdded = new List<IRole>();
 				var alreadyUsedRoles = selfAssignableGroups.SelectMany(x => x.Roles).Select(x => x.RoleId);
-
 				switch (action)
 				{
 					case ActionType.Add:

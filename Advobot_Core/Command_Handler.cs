@@ -33,9 +33,9 @@ namespace Advobot
 
 			SetUpCrucialEvents(_Client);
 
-			_Commands.AddTypeReader(typeof(IInvite), new IInviteTypeReader());
-			_Commands.AddTypeReader(typeof(IBan), new IBanTypeReader());
-			_Commands.AddTypeReader(typeof(Emote), new IEmoteTypeReader());
+			_Commands.AddTypeReader(typeof(IInvite), new InviteTypeReader());
+			_Commands.AddTypeReader(typeof(IBan), new BanTypeReader());
+			_Commands.AddTypeReader(typeof(Emote), new EmoteTypeReader());
 			_Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
 			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly()); //Use executing assembly to get all of the commands from Advobot_Core. Entry and Calling assembly give Advobot_Launcher
 		}
@@ -46,19 +46,13 @@ namespace Advobot
 			{
 				var socketClient = client as DiscordSocketClient;
 				socketClient.MessageReceived += (message) => HandleCommand(message as SocketUserMessage);
-				socketClient.Connected += async () =>
-				{
-					await SavingAndLoadingActions.LoadInformation(_Client, _BotSettings, _GuildSettings);
-				};
+				socketClient.Connected += async () => await SavingAndLoadingActions.LoadInformation(_Client, _BotSettings, _GuildSettings);
 			}
 			else if (client is DiscordShardedClient)
 			{
 				var shardedClient = client as DiscordShardedClient;
 				shardedClient.MessageReceived += (SocketMessage message) => HandleCommand(message as SocketUserMessage);
-				shardedClient.Shards.FirstOrDefault().Connected += async () =>
-				{
-					await SavingAndLoadingActions.LoadInformation(_Client, _BotSettings, _GuildSettings);
-				};
+				shardedClient.Shards.FirstOrDefault().Connected += async () => await SavingAndLoadingActions.LoadInformation(_Client, _BotSettings, _GuildSettings);
 			}
 			else
 			{
@@ -69,7 +63,9 @@ namespace Advobot
 		public static async Task HandleCommand(SocketUserMessage message)
 		{
 			if (_BotSettings.Pause)
+			{
 				return;
+			}
 
 			var guild = (message?.Channel as SocketTextChannel)?.Guild;
 			if (guild == null)
@@ -123,14 +119,13 @@ namespace Advobot
 		private static bool TryGetArgPos(IUserMessage message, string guildPrefix, string globalPrefix, out int argPos)
 		{
 			argPos = -1;
-			//Always allow mentioning as a prefix,
-			//only use the global prefix if the guild doesn't have a prefix set,
-			//don't use the global prefix if the guild has a prefix set.
-			return false
-				|| message.HasMentionPrefix(_Client.CurrentUser, ref argPos)
-				|| String.IsNullOrWhiteSpace(guildPrefix)
-				? message.HasStringPrefix(globalPrefix, ref argPos) 
-				: message.HasStringPrefix(guildPrefix, ref argPos);
+			//Always allow mentioning as a prefix.
+			var hasMentionPrefix = message.HasMentionPrefix(_Client.CurrentUser, ref argPos);
+			//Only use the global prefix if the guild doesn't have a prefix set.
+			var hasGlobalPrefix = String.IsNullOrWhiteSpace(guildPrefix) && message.HasStringPrefix(globalPrefix, ref argPos);
+			//Don't use the global prefix if the guild has a prefix set.
+			var hasGuildPrefix = !String.IsNullOrWhiteSpace(guildPrefix) && message.HasStringPrefix(guildPrefix, ref argPos);
+			return hasMentionPrefix || hasGlobalPrefix || hasGuildPrefix;
 		}
 	}
 }

@@ -186,19 +186,6 @@ namespace Advobot
 
 				return new ReturnedArguments(args, specifiedArgs, context.Message);
 			}
-			public static ReturnedObject<T> GetEnum<T>(string input, IEnumerable<T> validEnums, IEnumerable<T> invalidEnums = null) where T : struct
-			{
-				if (!Enum.TryParse(input, true, out T tempEnum))
-				{
-					return new ReturnedObject<T>(tempEnum, FailureReason.TooFew);
-				}
-				else if (!validEnums.Contains(tempEnum) || (invalidEnums != null && invalidEnums.Contains(tempEnum)))
-				{
-					return new ReturnedObject<T>(tempEnum, FailureReason.InvalidEnum);
-				}
-
-				return new ReturnedObject<T>(tempEnum, FailureReason.NotFailure);
-			}
 
 			public static List<CommandSwitch> GetMultipleCommands(IGuildSettings guildSettings, CommandCategory category)
 			{
@@ -222,7 +209,7 @@ namespace Advobot
 					}
 				});
 			}
-			public static string[] GetCommands(CommandCategory category)
+			public static string[] GetCommandNames(CommandCategory category)
 			{
 				return Constants.HELP_ENTRIES.Where(x => x.Category == category).Select(x => x.Name).ToArray();
 			}
@@ -270,7 +257,7 @@ namespace Advobot
 			}
 
 			/// <summary>
-			/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\Id
+			/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId
 			/// </summary>
 			/// <param name="guildId"></param>
 			/// <returns></returns>
@@ -280,7 +267,7 @@ namespace Advobot
 				return Directory.CreateDirectory(path);
 			}
 			/// <summary>
-			/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\Id\File
+			/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId\File
 			/// </summary>
 			/// <param name="guildId"></param>
 			/// <param name="fileName"></param>

@@ -113,7 +113,7 @@ namespace Advobot
 			}
 			private async Task CommandRunner(CommandCategory category)
 			{
-				var desc = String.Format("`{0}`", String.Join("`, `", GetActions.GetCommands(category)));
+				var desc = String.Format("`{0}`", String.Join("`, `", GetActions.GetCommandNames(category)));
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(category.EnumName(), desc));
 			}
 		}

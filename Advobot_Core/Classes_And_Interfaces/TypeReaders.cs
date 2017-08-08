@@ -10,40 +10,21 @@ namespace Advobot
 {
 	namespace TypeReaders
 	{
-		public abstract class MyTypeReader : TypeReader
-		{
-			public bool TryParseMyCommandContext(ICommandContext context, out MyCommandContext myContext)
-			{
-				return (myContext = context as MyCommandContext) != null;
-			}
-		}
-
-		public class IInviteTypeReader : MyTypeReader
+		public class InviteTypeReader : TypeReader
 		{
 			public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 			{
-				if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
-				{
-					return TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided.");
-				}
-
-				var invites = await myContext.Guild.GetInvitesAsync();
-				var invite = invites.FirstOrDefault(x => x.Code.CaseInsEquals(input));
+				var invite = (await context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code.CaseInsEquals(input));
 				return invite != null ? TypeReaderResult.FromSuccess(invite) : TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching invite.");
 			}
 		}
 
-		public class IBanTypeReader : MyTypeReader
+		public class BanTypeReader : TypeReader
 		{
 			public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 			{
-				if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
-				{
-					return TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided.");
-				}
-
 				IBan ban = null;
-				var bans = await myContext.Guild.GetBansAsync();
+				var bans = await context.Guild.GetBansAsync();
 				if (MentionUtils.TryParseUser(input, out ulong userID))
 				{
 					ban = bans.FirstOrDefault(x => x.User.Id == userID);
@@ -79,15 +60,10 @@ namespace Advobot
 			}
 		}
 
-		public class IEmoteTypeReader : MyTypeReader
+		public class EmoteTypeReader : TypeReader
 		{
 			public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 			{
-				if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
-				{
-					return Task.FromResult(TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided."));
-				}
-
 				IEmote emote = null;
 				if (Emote.TryParse(input, out Emote tempEmote))
 				{
@@ -95,12 +71,12 @@ namespace Advobot
 				}
 				else if (ulong.TryParse(input, out ulong emoteID))
 				{
-					emote = myContext.Guild.Emotes.FirstOrDefault(x => x.Id == emoteID);
+					emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == emoteID);
 				}
 
 				if (emote == null)
 				{
-					var emotes = myContext.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input));
+					var emotes = context.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input));
 					if (emotes.Count() == 1)
 					{
 						emote = emotes.First();
@@ -115,22 +91,17 @@ namespace Advobot
 			}
 		}
 
-		public class ColorTypeReader : MyTypeReader
+		public class ColorTypeReader : TypeReader
 		{
 			public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 			{
-				if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
-				{
-					return Task.FromResult(TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided."));
-				}
-
 				Color? color = null;
 				//By name
 				if (Constants.COLORS.TryGetValue(input, out Color temp))
 				{
 					color = temp;
 				}
-				//By hex
+				//By hex (trimming characters that are sometimes at the beginning of hex numbers)
 				else if (uint.TryParse(input.TrimStart(new[] { '&', 'h', '#', '0', 'x' }), System.Globalization.NumberStyles.HexNumber, null, out uint hex))
 				{
 					color = new Color(hex);
@@ -138,14 +109,11 @@ namespace Advobot
 				//By RGB
 				else if (input.Contains('/'))
 				{
+					const byte MAX_VAL = 255;
 					var colorRGB = input.Split('/');
-					if (colorRGB.Length == 3)
+					if (colorRGB.Length == 3 && byte.TryParse(colorRGB[0], out byte r) && byte.TryParse(colorRGB[1], out byte g) && byte.TryParse(colorRGB[2], out byte b))
 					{
-						const byte MAX_VAL = 255;
-						if (byte.TryParse(colorRGB[0], out byte r) && byte.TryParse(colorRGB[1], out byte g) && byte.TryParse(colorRGB[2], out byte b))
-						{
-							color = new Color(Math.Min(r, MAX_VAL), Math.Min(g, MAX_VAL), Math.Min(b, MAX_VAL));
-						}
+						color = new Color(Math.Min(r, MAX_VAL), Math.Min(g, MAX_VAL), Math.Min(b, MAX_VAL));
 					}
 				}
 
@@ -153,35 +121,11 @@ namespace Advobot
 			}
 		}
 
-		public class BypassUserLimitTypeReader : MyTypeReader
+		public class BypassUserLimitTypeReader : TypeReader
 		{
 			public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 			{
-				if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
-				{
-					return Task.FromResult(TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided."));
-				}
-
 				return Task.FromResult(TypeReaderResult.FromSuccess(Constants.BYPASS_STRING.CaseInsEquals(input)));
-			}
-		}
-
-		public class BoolTypeReader : MyTypeReader
-		{
-			public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
-			{
-				if (!TryParseMyCommandContext(context, out MyCommandContext myContext))
-				{
-					return Task.FromResult(TypeReaderResult.FromError(CommandError.Exception, "Invalid context provided."));
-				}
-				else if (bool.TryParse(input, out bool output))
-				{
-					return Task.FromResult(TypeReaderResult.FromSuccess(output));
-				}
-				else
-				{
-					return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Failed to parse a bool."));
-				}
 			}
 		}
 	}
