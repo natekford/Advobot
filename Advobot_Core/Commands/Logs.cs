@@ -1,4 +1,5 @@
 ﻿using Advobot.Actions;
+using Advobot.NonSavedClasses;
 using Discord;
 using Discord.Commands;
 using System;
@@ -6,19 +7,65 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Advobot.Attributes;
+using Advobot.Enums;
 
 namespace Advobot
 {
-	/*
-	[Name("Logs")]
-	public class Advobot_Commands_Logs : ModuleBase
+	namespace Logs
 	{
-		[Command("modifylogchannels")]
-		[Alias("mlc")]
+		[Group("modifylogchannels"), Alias("mlc")]
 		[Usage("[Server|Mod|Image] [Channel|Off]")]
 		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
 		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
+		public sealed class ModifyLogChannels : MyModuleBase
+		{
+			[Group(nameof(LogChannelType.Server)), Alias("s")]
+			public sealed class ModifyServerLog : MySavingModuleBase
+			{
+				[Command]
+				public async Task Command(ITextChannel channel)
+				{
+					ModifyLogChannelsHelperFunctions.SetChannel(Context, LogChannelType.Server, channel);
+				}
+				[Command("off")]
+				public async Task CommandOff()
+				{
+
+				}
+			}
+
+			[Group(nameof(LogChannelType.Mod)), Alias("m")]
+			public sealed class ModifyModLog : MySavingModuleBase
+			{
+
+			}
+
+			[Group(nameof(LogChannelType.Image)), Alias("i")]
+			public sealed class ModifyImageLog : MySavingModuleBase
+			{
+
+			}
+
+			private static class ModifyLogChannelsHelperFunctions
+			{
+				public static void SetChannel(MyCommandContext context, LogChannelType channelType, ITextChannel channel)
+				{
+					//context.GuildSettings
+				}
+				public static void RemoveChannel(MyCommandContext context, LogChannelType channelType)
+				{
+
+				}
+			}
+		}
+	}
+	/*
+	[Name("Logs")]
+	public class Advobot_Commands_Logs : ModuleBase
+	{
+
 		public async Task Serverlog([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);

@@ -793,11 +793,5 @@ namespace Advobot
 			{
 				await MessageActions.SendChannelMessage(Context, "test");
 			}
-
-			/*
-			protected override void AfterExecute(CommandInfo command)
-			{
-				Context.GuildSettings.SaveSettings();
-			}*/
 		}
 	}}

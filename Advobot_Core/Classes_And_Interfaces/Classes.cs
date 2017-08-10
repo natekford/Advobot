@@ -597,7 +597,9 @@ namespace Advobot
 				_HelpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.Equals(name));
 				if (_HelpEntry == null)
 				{
-					throw new ArgumentException("Command name does not have a help entry.");
+					//TODO: uncomment this when all commands have been put back in
+					//throw new ArgumentException("Command name does not have a help entry.");
+					return;
 				}
 
 				Name = name;
@@ -1161,9 +1163,20 @@ namespace Advobot
 
 	namespace NonSavedClasses
 	{
+		public class MySavingModuleBase : MyModuleBase
+		{
+			//Same as MyModuleBase except saves guild settings afterwards.
+			protected override void AfterExecute(CommandInfo command)
+			{
+				Context.GuildSettings.SaveSettings();
+				base.AfterExecute(command);
+			}
+		}
+
 		[CommandRequirements]
 		public class MyModuleBase : ModuleBase<MyCommandContext>
 		{
+			//Shorter way to write ModuleBase<MyCommandContext> and also has every command go through the command requirements attribute first.
 		}
 
 		public class MyCommandContext : CommandContext, IMyCommandContext

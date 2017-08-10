@@ -387,7 +387,7 @@ namespace Advobot
 			"Fourth are the list of roles that are immune to slowmode.")]
 		[PermissionRequirement(null, null)]
 		[DefaultEnabled(true)]
-		public sealed class ModifySlowmode : MyModuleBase
+		public sealed class ModifySlowmode : MySavingModuleBase
 		{
 			[Command("on")]
 			public async Task CommandOn()
@@ -428,12 +428,6 @@ namespace Advobot
 			{
 				Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully setup slowmode.\n{0}", Context.GuildSettings.Slowmode.ToString()));
-			}
-
-			protected override void AfterExecute(CommandInfo command)
-			{
-				Context.GuildSettings.SaveSettings();
-				base.AfterExecute(command);
 			}
 		}
 	}

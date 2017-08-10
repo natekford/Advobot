@@ -772,7 +772,6 @@ namespace Advobot
 			}
 			public static async Task HandleJoiningUsersForRaidPrevention(ITimersModule timers, IGuildSettings guildSettings, IGuildUser user)
 			{
-				//Raid Prevention
 				var antiRaid = guildSettings.RaidPreventionDictionary[RaidType.Regular];
 				if (antiRaid != null && antiRaid.Enabled)
 				{

@@ -36,7 +36,7 @@ namespace Advobot
 			}
 
 			[Group(nameof(SpamType.Message)), Alias("msg")]
-			public sealed class PreventMessageSpam : MyModuleBase
+			public sealed class PreventMessageSpam : MySavingModuleBase
 			{
 				[Command("on")]
 				public async Task CommandOn()
@@ -56,7 +56,7 @@ namespace Advobot
 			}
 
 			[Group(nameof(SpamType.LongMessage)), Alias("long message", "lmsg")]
-			public sealed class PreventLongMessageSpam : MyModuleBase
+			public sealed class PreventLongMessageSpam : MySavingModuleBase
 			{
 				[Command("on")]
 				public async Task CommandOn()
@@ -76,7 +76,7 @@ namespace Advobot
 			}
 
 			[Group(nameof(SpamType.Link)), Alias("l")]
-			public sealed class PreventLinkSpam : MyModuleBase
+			public sealed class PreventLinkSpam : MySavingModuleBase
 			{
 				[Command("on")]
 				public async Task CommandOn()
@@ -96,7 +96,7 @@ namespace Advobot
 			}
 
 			[Group(nameof(SpamType.Image)), Alias("img")]
-			public sealed class PreventImageSpam : MyModuleBase
+			public sealed class PreventImageSpam : MySavingModuleBase
 			{
 				[Command("on")]
 				public async Task CommandOn()
@@ -116,7 +116,7 @@ namespace Advobot
 			}
 
 			[Group(nameof(SpamType.Mention)), Alias("men")]
-			public sealed class PreventMentionSpam : MyModuleBase
+			public sealed class PreventMentionSpam : MySavingModuleBase
 			{
 				[Command("on")]
 				public async Task CommandOn()
@@ -133,12 +133,6 @@ namespace Advobot
 				{
 					await SpamActions.SetUpSpamPrevention(Context, SpamType.Mention, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
 				}
-			}
-
-			protected override void AfterExecute(CommandInfo command)
-			{
-				Context.GuildSettings.SaveSettings();
-				base.AfterExecute(command);
 			}
 		}
 
@@ -168,7 +162,7 @@ namespace Advobot
 			}
 
 			[Group(nameof(RaidType.Regular)), Alias("reg")]
-			public sealed class PreventRegularRaid : MyModuleBase
+			public sealed class PreventRegularRaid : MySavingModuleBase
 			{
 				[Command("on")]
 				public async Task CommandOn()
@@ -188,7 +182,7 @@ namespace Advobot
 			}
 
 			[Group(nameof(RaidType.RapidJoins)), Alias("rapid joins", "joins")]
-			public sealed class PreventRapidJoinsRaid : MyModuleBase
+			public sealed class PreventRapidJoinsRaid : MySavingModuleBase
 			{
 				[Command("on")]
 				public async Task CommandOn()
@@ -205,12 +199,6 @@ namespace Advobot
 				{
 					await SpamActions.SetUpRaidPrevention(Context, RaidType.RapidJoins, punishment, numberOfUsers, interval);
 				}
-			}
-
-			protected override void AfterExecute(CommandInfo command)
-			{
-				Context.GuildSettings.SaveSettings();
-				base.AfterExecute(command);
 			}
 		}
 	}
