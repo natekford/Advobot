@@ -16,7 +16,7 @@ namespace Advobot
 			"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The spam users are reset every hour.")]
 		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
-		public sealed class PreventSpam : MyModuleBase
+		public sealed class PreventSpam : MySavingModuleBase
 		{
 			//idk exactly if it's a good idea to be using nested classes. shouldn't be that hard to change them to non nested classes if need be.
 			[Group("showpunishments"), Alias("show punishments")]
@@ -143,7 +143,7 @@ namespace Advobot
 			"Inputting a number means the last x amount of people (up to 25) who have joined will be muted.")]
 		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
-		public sealed class PreventRaid : MyModuleBase
+		public sealed class PreventRaid : MySavingModuleBase
 		{
 			[Group("showpunishments"), Alias("show punishments")]
 			public sealed class ShowPunishments : MyModuleBase

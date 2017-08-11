@@ -217,6 +217,7 @@
     <Compile Include="Actions\Get_Actions.cs" />
     <Compile Include="Actions\Guild_Actions.cs" />
     <Compile Include="Actions\Invite_Actions.cs" />
+    <Compile Include="Actions\Log_Actions.cs" />
     <Compile Include="Actions\Message_Actions.cs" />
     <Compile Include="Actions\Misc_Actions.cs" />
     <Compile Include="Actions\Punishment_Actions.cs" />
