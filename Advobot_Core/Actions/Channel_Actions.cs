@@ -13,7 +13,7 @@ namespace Advobot
 	{
 		public static class ChannelActions
 		{
-			public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ObjectVerification[] checkingTypes, bool mentions, string input)
+			public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ChannelVerification[] checkingTypes, bool mentions, string input)
 			{
 				IGuildChannel channel = null;
 				if (!String.IsNullOrWhiteSpace(input))
@@ -55,17 +55,16 @@ namespace Advobot
 
 				return GetChannel(context, checkingTypes, channel);
 			}
-			public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ObjectVerification[] checkingTypes, ulong inputID)
+			public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ChannelVerification[] checkingTypes, ulong inputID)
 			{
 				return GetChannel(context, checkingTypes, GetChannel(context.Guild, inputID));
 			}
-			public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ObjectVerification[] checkingTypes, IGuildChannel channel)
+			public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ChannelVerification[] checkingTypes, IGuildChannel channel)
 			{
 				return GetChannel(context.Guild, context.User as IGuildUser, checkingTypes, channel);
 			}
-			public static ReturnedObject<T> GetChannel<T>(IGuild guild, IGuildUser currUser, ObjectVerification[] checkingTypes, T channel) where T : IGuildChannel
+			public static ReturnedObject<T> GetChannel<T>(IGuild guild, IGuildUser currUser, ChannelVerification[] checkingTypes, T channel) where T : IGuildChannel
 			{
-				checkingTypes.AssertEnumsAreAllCorrectTargetType(channel);
 				if (channel == null)
 				{
 					return new ReturnedObject<T>(channel, FailureReason.TooFew);
@@ -85,7 +84,7 @@ namespace Advobot
 
 					switch (type)
 					{
-						case ObjectVerification.IsDefault:
+						case ChannelVerification.IsDefault:
 						{
 							if (channel.Id == guild.DefaultChannelId)
 							{
@@ -93,7 +92,7 @@ namespace Advobot
 							}
 							break;
 						}
-						case ObjectVerification.IsText:
+						case ChannelVerification.IsText:
 						{
 							if (!(channel is ITextChannel))
 							{
@@ -101,7 +100,7 @@ namespace Advobot
 							}
 							break;
 						}
-						case ObjectVerification.IsVoice:
+						case ChannelVerification.IsVoice:
 						{
 							if (!(channel is IVoiceChannel))
 							{
@@ -118,7 +117,7 @@ namespace Advobot
 			{
 				return (guild as SocketGuild).GetChannel(ID);
 			}
-			public static bool GetIfUserCanDoActionOnChannel(IGuildChannel target, IGuildUser user, ObjectVerification type)
+			public static bool GetIfUserCanDoActionOnChannel(IGuildChannel target, IGuildUser user, ChannelVerification type)
 			{
 				if (target == null || user == null)
 					return false;
@@ -129,31 +128,31 @@ namespace Advobot
 				var dontCheckReadPerms = target is IVoiceChannel;
 				switch (type)
 				{
-					case ObjectVerification.CanBeRead:
+					case ChannelVerification.CanBeRead:
 					{
 						return (dontCheckReadPerms || channelPerms.ReadMessages);
 					}
-					case ObjectVerification.CanCreateInstantInvite:
+					case ChannelVerification.CanCreateInstantInvite:
 					{
 						return (dontCheckReadPerms || channelPerms.ReadMessages) && channelPerms.CreateInstantInvite;
 					}
-					case ObjectVerification.CanBeManaged:
+					case ChannelVerification.CanBeManaged:
 					{
 						return (dontCheckReadPerms || channelPerms.ReadMessages) && channelPerms.ManageChannel;
 					}
-					case ObjectVerification.CanModifyPermissions:
+					case ChannelVerification.CanModifyPermissions:
 					{
 						return (dontCheckReadPerms || channelPerms.ReadMessages) && channelPerms.ManageChannel && channelPerms.ManagePermissions;
 					}
-					case ObjectVerification.CanBeReordered:
+					case ChannelVerification.CanBeReordered:
 					{
 						return (dontCheckReadPerms || channelPerms.ReadMessages) && guildPerms.ManageChannels;
 					}
-					case ObjectVerification.CanDeleteMessages:
+					case ChannelVerification.CanDeleteMessages:
 					{
 						return (dontCheckReadPerms || channelPerms.ReadMessages) && channelPerms.ManageMessages;
 					}
-					case ObjectVerification.CanMoveUsers:
+					case ChannelVerification.CanMoveUsers:
 					{
 						return dontCheckReadPerms && channelPerms.MoveMembers;
 					}

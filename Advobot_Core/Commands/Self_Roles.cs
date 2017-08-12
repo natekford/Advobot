@@ -33,12 +33,12 @@ namespace Advobot
 				await CommandRunner(ActionType.Delete, groupNum);
 			}
 			[Command("add"), Alias("a")]
-			public async Task CommandAdd(uint groupNum, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
+			public async Task CommandAdd(uint groupNum, [VerifyRole(false, RoleVerification.CanBeEdited)] params IRole[] roles)
 			{
 				await CommandRunner(ActionType.Add, groupNum, roles);
 			}
 			[Command("remove"), Alias("r")]
-			public async Task CommandRemove(uint groupNum, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
+			public async Task CommandRemove(uint groupNum, [VerifyRole(false, RoleVerification.CanBeEdited)] params IRole[] roles)
 			{
 				await CommandRunner(ActionType.Remove, groupNum, roles);
 			}

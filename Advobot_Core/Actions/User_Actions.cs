@@ -15,7 +15,7 @@ namespace Advobot
 	{
 		public static class UserActions
 		{
-			public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, ObjectVerification[] checkingTypes, bool mentions, string input)
+			public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, UserVerification[] checkingTypes, bool mentions, string input)
 			{
 				IGuildUser user = null;
 				if (!String.IsNullOrWhiteSpace(input))
@@ -57,17 +57,16 @@ namespace Advobot
 
 				return GetGuildUser(context, checkingTypes, user);
 			}
-			public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, ObjectVerification[] checkingTypes, ulong inputID)
+			public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, UserVerification[] checkingTypes, ulong inputID)
 			{
 				return GetGuildUser(context, checkingTypes, GetGuildUser(context.Guild, inputID));
 			}
-			public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, ObjectVerification[] checkingTypes, IGuildUser user)
+			public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, UserVerification[] checkingTypes, IGuildUser user)
 			{
 				return GetGuildUser(context.Guild, context.User as IGuildUser, checkingTypes, user);
 			}
-			public static ReturnedObject<T> GetGuildUser<T>(IGuild guild, IGuildUser currUser, ObjectVerification[] checkingTypes, T user) where T : IGuildUser
+			public static ReturnedObject<T> GetGuildUser<T>(IGuild guild, IGuildUser currUser, UserVerification[] checkingTypes, T user) where T : IGuildUser
 			{
-				checkingTypes.AssertEnumsAreAllCorrectTargetType(user);
 				if (user == null)
 				{
 					return new ReturnedObject<T>(user, FailureReason.TooFew);
@@ -92,18 +91,18 @@ namespace Advobot
 			{
 				return (guild as SocketGuild).GetUser(ID);
 			}
-			public static bool GetIfUserCanDoActionOnUser(IGuildUser currUser, ObjectVerification type, IGuildUser targetUser)
+			public static bool GetIfUserCanDoActionOnUser(IGuildUser currUser, UserVerification type, IGuildUser targetUser)
 			{
 				if (targetUser == null || currUser == null)
 					return false;
 
 				switch (type)
 				{
-					case ObjectVerification.CanBeMovedFromChannel:
+					case UserVerification.CanBeMovedFromChannel:
 					{
-						return ChannelActions.GetIfUserCanDoActionOnChannel(targetUser.VoiceChannel, currUser, ObjectVerification.CanMoveUsers);
+						return ChannelActions.GetIfUserCanDoActionOnChannel(targetUser.VoiceChannel, currUser, ChannelVerification.CanMoveUsers);
 					}
-					case ObjectVerification.CanBeEdited:
+					case UserVerification.CanBeEdited:
 					{
 						return GetIfUserCanBeModifiedByUser(currUser, targetUser);
 					}

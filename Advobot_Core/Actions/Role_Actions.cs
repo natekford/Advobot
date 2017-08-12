@@ -14,7 +14,7 @@ namespace Advobot
 	{
 		public static class RoleActions
 		{
-			public static ReturnedObject<IRole> GetRole(ICommandContext context, ObjectVerification[] checkingTypes, bool mentions, string input)
+			public static ReturnedObject<IRole> GetRole(ICommandContext context, RoleVerification[] checkingTypes, bool mentions, string input)
 			{
 				IRole role = null;
 				if (!String.IsNullOrWhiteSpace(input))
@@ -56,17 +56,16 @@ namespace Advobot
 
 				return GetRole(context, checkingTypes, role);
 			}
-			public static ReturnedObject<IRole> GetRole(ICommandContext context, ObjectVerification[] checkingTypes, ulong inputID)
+			public static ReturnedObject<IRole> GetRole(ICommandContext context, RoleVerification[] checkingTypes, ulong inputID)
 			{
 				return GetRole(context, checkingTypes, GetRole(context.Guild, inputID));
 			}
-			public static ReturnedObject<IRole> GetRole(ICommandContext context, ObjectVerification[] checkingTypes, IRole role)
+			public static ReturnedObject<IRole> GetRole(ICommandContext context, RoleVerification[] checkingTypes, IRole role)
 			{
 				return GetRole(context.Guild, context.User as IGuildUser, checkingTypes, role);
 			}
-			public static ReturnedObject<T> GetRole<T>(IGuild guild, IGuildUser currUser, ObjectVerification[] checkingTypes, T role) where T : IRole
+			public static ReturnedObject<T> GetRole<T>(IGuild guild, IGuildUser currUser, RoleVerification[] checkingTypes, T role) where T : IRole
 			{
-				checkingTypes.AssertEnumsAreAllCorrectTargetType(role);
 				if (role == null)
 				{
 					return new ReturnedObject<T>(role, FailureReason.TooFew);
@@ -86,7 +85,7 @@ namespace Advobot
 
 					switch (type)
 					{
-						case ObjectVerification.IsEveryone:
+						case RoleVerification.IsEveryone:
 						{
 							if (guild.EveryoneRole.Id == role.Id)
 							{
@@ -94,7 +93,7 @@ namespace Advobot
 							}
 							break;
 						}
-						case ObjectVerification.IsManaged:
+						case RoleVerification.IsManaged:
 						{
 							if (role.IsManaged)
 							{
@@ -111,14 +110,14 @@ namespace Advobot
 			{
 				return guild.GetRole(ID);
 			}
-			public static bool GetIfUserCanDoActionOnRole(IRole target, IGuildUser user, ObjectVerification type)
+			public static bool GetIfUserCanDoActionOnRole(IRole target, IGuildUser user, RoleVerification type)
 			{
 				if (target == null || user == null)
 					return false;
 
 				switch (type)
 				{
-					case ObjectVerification.CanBeEdited:
+					case RoleVerification.CanBeEdited:
 					{
 						return target.Position < UserActions.GetUserPosition(user);
 					}
@@ -180,7 +179,7 @@ namespace Advobot
 
 			public static async Task<IRole> GetMuteRole(IGuildSettings guildSettings, IGuild guild, IGuildUser user)
 			{
-				var returnedMuteRole = GetRole(guild, user, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }, guildSettings.MuteRole);
+				var returnedMuteRole = GetRole(guild, user, new[] { RoleVerification.CanBeEdited, RoleVerification.IsManaged }, guildSettings.MuteRole);
 				var muteRole = returnedMuteRole.Object;
 				if (muteRole == null)
 				{

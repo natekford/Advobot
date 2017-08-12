@@ -18,8 +18,7 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public sealed class PreventSpam : MySavingModuleBase
 		{
-			//idk exactly if it's a good idea to be using nested classes. shouldn't be that hard to change them to non nested classes if need be.
-			[Group("showpunishments"), Alias("show punishments")]
+			[Group("showpunishments"), Alias("show punishments", "show")]
 			public sealed class ShowPunishments : MyModuleBase
 			{
 				[Command]

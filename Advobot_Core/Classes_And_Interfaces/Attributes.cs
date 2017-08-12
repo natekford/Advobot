@@ -5,7 +5,6 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,6 +12,9 @@ namespace Advobot
 {
 	namespace Attributes
 	{
+		/// <summary>
+		/// Checks if the user has all of the permissions supplied for allOfTheListedPerms or if the user has any of the permissions supplied for anyOfTheListedPerms.
+		/// </summary>
 		[AttributeUsage(AttributeTargets.Class)]
 		public class PermissionRequirementAttribute : PreconditionAttribute
 		{
@@ -76,6 +78,9 @@ namespace Advobot
 			}
 		}
 
+		/// <summary>
+		/// Checks if a user has any permissions that would generally be needed for a command, if the user is the guild owner, if the user if the bot owner, or if the user is a trusted user.
+		/// </summary>
 		[AttributeUsage(AttributeTargets.Class)]
 		public class OtherRequirementAttribute : PreconditionAttribute
 		{
@@ -140,6 +145,9 @@ namespace Advobot
 			}
 		}
 
+		/// <summary>
+		/// Checks to make sure the bot has admin, the bot is loaded, the guild is loaded, the channel isn't ignored from commands, and the command is enabled for the user.
+		/// </summary>
 		[AttributeUsage(AttributeTargets.Class)]
 		public class CommandRequirementsAttribute : PreconditionAttribute
 		{
@@ -217,7 +225,7 @@ namespace Advobot
 		[AttributeUsage(AttributeTargets.Class)]
 		public class DefaultEnabledAttribute : Attribute
 		{
-			public bool Enabled { get; }
+			public readonly bool Enabled;
 
 			public DefaultEnabledAttribute(bool enabled)
 			{
@@ -228,7 +236,7 @@ namespace Advobot
 		[AttributeUsage(AttributeTargets.Class)]
 		public class UsageAttribute : Attribute
 		{
-			public string Usage { get; }
+			public readonly string Usage;
 
 			public UsageAttribute(string usage)
 			{
@@ -236,38 +244,14 @@ namespace Advobot
 			}
 		}
 
-		[AttributeUsage(AttributeTargets.Field)]
-		public class DiscordObjectTargetAttribute : Attribute
-		{
-			public Target Target { get; }
-
-			public DiscordObjectTargetAttribute(Target target)
-			{
-				Target = target;
-			}
-		}
-
+		/// <summary>
+		/// Verifies the parameter this attribute is targetting fits all of the given conditions. Abstract since _GetResultsDict has to be created by a class inheriting this.
+		/// </summary>
 		[AttributeUsage(AttributeTargets.Parameter)]
-		public class VerifyObjectAttribute : ParameterPreconditionAttribute
+		public abstract class VerifyObjectAttribute : ParameterPreconditionAttribute
 		{
-			private readonly Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>> _GetResultsDict;
-			private readonly bool _IfNullCheckFromContext;
-			private readonly ObjectVerification[] _Checks;
-
-			public VerifyObjectAttribute(bool ifNullCheckFromContext, params ObjectVerification[] checks)
-			{
-				_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>>
-				{
-					{ typeof(ITextChannel), ITextChannelResult },
-					{ typeof(IVoiceChannel), IVoiceChannelResult },
-					{ typeof(IGuildChannel), IGuildChannelResult },
-					{ typeof(IGuildUser), IGuildUserResult },
-					{ typeof(IUser), IUserResult },
-					{ typeof(IRole), IRoleResult },
-				};
-				_IfNullCheckFromContext = ifNullCheckFromContext;
-				_Checks = checks;
-			}
+			protected Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>> _GetResultsDict;
+			protected bool _IfNullCheckFromContext;
 
 			public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 			{
@@ -297,20 +281,35 @@ namespace Advobot
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
 
-			private PreconditionResult GetPreconditionResult(ICommandContext context, object value, Type type)
+			protected virtual PreconditionResult GetPreconditionResult(ICommandContext context, object value, Type type)
 			{
+				//Will provide exceptions if invalid VerifyObject attributes are used on objects. E.G. VerifyChannel used on a role
 				var result = _GetResultsDict[type](context, value);
 				var failureReason = result.Item1;
 				var obj = result.Item2;
 
-				if (failureReason != FailureReason.NotFailure)
+				return (failureReason != FailureReason.NotFailure) ? PreconditionResult.FromError(FormattingActions.FormatErrorString(context.Guild, failureReason, obj)) : PreconditionResult.FromSuccess();
+			}
+		}
+
+		/// <summary>
+		/// Uses ChannelVerification enum to verify certain aspects of a channel. Only works on ITextChannel, IVoiceChannel, and IGuildChannel.
+		/// </summary>
+		[AttributeUsage(AttributeTargets.Parameter)]
+		public class VerifyChannelAttribute : VerifyObjectAttribute
+		{
+			protected ChannelVerification[] _Checks;
+
+			public VerifyChannelAttribute(bool ifNullCheckFromContext, params ChannelVerification[] checks)
+			{
+				_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>>
 				{
-					return PreconditionResult.FromError(FormattingActions.FormatErrorString(context.Guild, failureReason, obj));
-				}
-				else
-				{
-					return PreconditionResult.FromSuccess();
-				}
+					{ typeof(ITextChannel), ITextChannelResult },
+					{ typeof(IVoiceChannel), IVoiceChannelResult },
+					{ typeof(IGuildChannel), IGuildChannelResult },
+				};
+				_IfNullCheckFromContext = ifNullCheckFromContext;
+				_Checks = checks;
 			}
 
 			private Tuple<FailureReason, object> ITextChannelResult(ICommandContext context, object value)
@@ -328,6 +327,27 @@ namespace Advobot
 				var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, value as IGuildChannel);
 				return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
 			}
+		}
+
+		/// <summary>
+		/// Uses UserVerification enum to verify certain aspects of a user. Only works on IGuildUser and IUser.
+		/// </summary>
+		[AttributeUsage(AttributeTargets.Parameter)]
+		public class VerifyUserAttribute : VerifyObjectAttribute
+		{
+			protected UserVerification[] _Checks;
+
+			public VerifyUserAttribute(bool ifNullCheckFromContext, params UserVerification[] checks)
+			{
+				_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>>
+				{
+					{ typeof(IGuildUser), IGuildUserResult },
+					{ typeof(IUser), IUserResult },
+				};
+				_IfNullCheckFromContext = ifNullCheckFromContext;
+				_Checks = checks;
+			}
+
 			private Tuple<FailureReason, object> IGuildUserResult(ICommandContext context, object value)
 			{
 				var returned = UserActions.GetGuildUser(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.User) as IGuildUser);
@@ -336,15 +356,28 @@ namespace Advobot
 			private Tuple<FailureReason, object> IUserResult(ICommandContext context, object value)
 			{
 				//If user cannot be cast as an IGuildUser then they're not on the guild and thus anything can be used on them
-				if (value as IGuildUser != null)
-				{
-					return IGuildUserResult(context, value);
-				}
-				else
-				{
-					return Tuple.Create(FailureReason.NotFailure, value);
-				}
+				return (value as IGuildUser != null) ? IGuildUserResult(context, value) : Tuple.Create(FailureReason.NotFailure, value);
 			}
+		}
+
+		/// <summary>
+		/// Uses RoleVerification enum to verify certain aspects of a role. Only works on IRole.
+		/// </summary>
+		[AttributeUsage(AttributeTargets.Parameter)]
+		public class VerifyRoleAttribute : VerifyObjectAttribute
+		{
+			protected RoleVerification[] _Checks;
+
+			public VerifyRoleAttribute(bool ifNullCheckFromContext, params RoleVerification[] checks)
+			{
+				_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>>
+				{
+					{ typeof(IRole), IRoleResult },
+				};
+				_IfNullCheckFromContext = ifNullCheckFromContext;
+				_Checks = checks;
+			}
+
 			private Tuple<FailureReason, object> IRoleResult(ICommandContext context, object value)
 			{
 				var returned = RoleActions.GetRole(context.Guild, context.User as IGuildUser, _Checks, value as IRole);
@@ -352,50 +385,23 @@ namespace Advobot
 			}
 		}
 
-		[AttributeUsage(AttributeTargets.Parameter)]
-		public class VerifyEnumAttribute : ParameterPreconditionAttribute
-		{
-			private readonly uint _Allowed;
-			private readonly uint _Disallowed;
-
-			public VerifyEnumAttribute(uint allowed = 0, uint disallowed = 0)
-			{
-				_Allowed = allowed;
-				_Disallowed = disallowed;
-			}
-
-			public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
-			{
-				var enumVal = (uint)value;
-				if (_Allowed != 0 && ((_Allowed & enumVal) == 0))
-				{
-					return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command overload.", value)));
-				}
-				else if (_Disallowed != 0 && ((_Disallowed & enumVal) != 0))
-				{
-					return Task.FromResult(PreconditionResult.FromError(String.Format("The option `{0}` is not allowed for the current command overload.", value)));
-				}
-				else
-				{
-					return Task.FromResult(PreconditionResult.FromSuccess());
-				}
-			}
-		}
-
+		/// <summary>
+		/// Certain objects in Discord have minimum and maximum lengths for the names that can be set for them. This attribute verifies those lengths and provides error stating the min/max if under/over.
+		/// </summary>
 		[AttributeUsage(AttributeTargets.Parameter)]
 		public class VerifyStringLengthAttribute : ParameterPreconditionAttribute
 		{
-			private readonly ReadOnlyDictionary<Target, Tuple<int, int, string>> _MinsAndMaxesAndErrors = new ReadOnlyDictionary<Target, Tuple<int, int, string>>(new Dictionary<Target, Tuple<int, int, string>>
+			private static readonly Dictionary<Target, Tuple<int, int, string>> _MinsAndMaxesAndErrors = new Dictionary<Target, Tuple<int, int, string>>
 			{
-				{ Target.Guild, new Tuple<int, int, string>(Constants.MIN_GUILD_NAME_LENGTH, Constants.MAX_GUILD_NAME_LENGTH, "guild name") },
-				{ Target.Channel, new Tuple<int, int, string>(Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "channel name") },
-				{ Target.Role, new Tuple<int, int, string>(Constants.MIN_ROLE_NAME_LENGTH, Constants.MAX_ROLE_NAME_LENGTH, "role name") },
-				{ Target.Name, new Tuple<int, int, string>(Constants.MIN_USERNAME_LENGTH, Constants.MAX_USERNAME_LENGTH, "username") },
-				{ Target.Nickname, new Tuple<int, int, string>(Constants.MIN_NICKNAME_LENGTH, Constants.MAX_NICKNAME_LENGTH, "nickname") },
-				{ Target.Game, new Tuple<int, int, string>(Constants.MIN_GAME_LENGTH, Constants.MAX_GAME_LENGTH, "game") },
-				{ Target.Stream, new Tuple<int, int, string>(Constants.MIN_STREAM_LENGTH, Constants.MAX_STREAM_LENGTH, "stream name") },
-				{ Target.Topic, new Tuple<int, int, string>(Constants.MIN_TOPIC_LENGTH, Constants.MAX_TOPIC_LENGTH, "channel topic") },
-			});
+				{ Target.Guild,		Tuple.Create(Constants.MIN_GUILD_NAME_LENGTH, Constants.MAX_GUILD_NAME_LENGTH, "guild name") },
+				{ Target.Channel,	Tuple.Create(Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "channel name") },
+				{ Target.Role,		Tuple.Create(Constants.MIN_ROLE_NAME_LENGTH, Constants.MAX_ROLE_NAME_LENGTH, "role name") },
+				{ Target.Name,		Tuple.Create(Constants.MIN_USERNAME_LENGTH, Constants.MAX_USERNAME_LENGTH, "username") },
+				{ Target.Nickname,	Tuple.Create(Constants.MIN_NICKNAME_LENGTH, Constants.MAX_NICKNAME_LENGTH, "nickname") },
+				{ Target.Game,		Tuple.Create(Constants.MIN_GAME_LENGTH, Constants.MAX_GAME_LENGTH, "game") },
+				{ Target.Stream,	Tuple.Create(Constants.MIN_STREAM_LENGTH, Constants.MAX_STREAM_LENGTH, "stream name") },
+				{ Target.Topic,		Tuple.Create(Constants.MIN_TOPIC_LENGTH, Constants.MAX_TOPIC_LENGTH, "channel topic") },
+			};
 			private int _Min;
 			private int _Max;
 			private string _TooShort;
@@ -412,11 +418,11 @@ namespace Advobot
 				}
 				else
 				{
-					throw new NotSupportedException("Inputted enum doesn't have a min and max or error output.");
+					throw new NotSupportedException("Supplied enum doesn't have a min and max or error output.");
 				}
 			}
 
-			public override Task<PreconditionResult> CheckPermissions(ICommandContext context, Discord.Commands.ParameterInfo parameter, object value, IServiceProvider services)
+			public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 			{
 				//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
 				if (value == null)

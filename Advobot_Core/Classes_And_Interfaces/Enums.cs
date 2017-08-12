@@ -126,41 +126,37 @@ namespace Advobot
 		}
 
 		[Flags]
-		public enum ObjectVerification : uint
+		public enum UserVerification : uint
 		{
-			[DiscordObjectTarget(0)]
 			None							= (1U << 0),
-			[DiscordObjectTarget(0)]
 			CanBeEdited						= (1U << 1),
-
-			[DiscordObjectTarget(Target.User)]
 			CanBeMovedFromChannel			= (1U << 2),
+		}
 
-			[DiscordObjectTarget(Target.Channel)]
+		[Flags]
+		public enum ChannelVerification : uint
+		{
+			None							= (1U << 0),
+			CanBeEdited						= (1U << 1),
+			IsDefault						= (1U << 2),
 			IsVoice							= (1U << 3),
-			[DiscordObjectTarget(Target.Channel)]
 			IsText							= (1U << 4),
-			[DiscordObjectTarget(Target.Channel)]
 			CanBeReordered					= (1U << 5),
-			[DiscordObjectTarget(Target.Channel)]
 			CanModifyPermissions			= (1U << 6),
-			[DiscordObjectTarget(Target.Channel)]
 			CanBeManaged					= (1U << 7),
-			[DiscordObjectTarget(Target.Channel)]
 			CanMoveUsers					= (1U << 8),
-			[DiscordObjectTarget(Target.Channel)]
 			CanDeleteMessages				= (1U << 9),
-			[DiscordObjectTarget(Target.Channel)]
 			CanBeRead						= (1U << 10),
-			[DiscordObjectTarget(Target.Channel)]
 			CanCreateInstantInvite			= (1U << 11),
-			[DiscordObjectTarget(Target.Channel)]
-			IsDefault						= (1U << 12),
+		}
 
-			[DiscordObjectTarget(Target.Role)]
-			IsEveryone						= (1U << 13),
-			[DiscordObjectTarget(Target.Role)]
-			IsManaged						= (1U << 14),
+		[Flags]
+		public enum RoleVerification : uint
+		{
+			None							= (1U << 0),
+			CanBeEdited						= (1U << 1),
+			IsEveryone						= (1U << 2),
+			IsManaged						= (1U << 3),
 		}
 
 		[Flags]
