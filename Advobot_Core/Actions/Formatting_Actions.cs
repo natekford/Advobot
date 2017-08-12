@@ -367,10 +367,6 @@ namespace Advobot
 					{
 						return "Invalid channel type for the given variable requirement.";
 					}
-					case FailureReason.DefaultChannel:
-					{
-						return "The default channel cannot be modified in that way.";
-					}
 					case FailureReason.EveryoneRole:
 					{
 						return "The everyone role cannot be modified in that way.";

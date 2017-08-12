@@ -247,36 +247,6 @@ namespace Advobot
 				return guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
 			}
 
-			public static void AssertEnumsAreAllCorrectTargetType(this IEnumerable<ObjectVerification> enums, ISnowflakeEntity obj)
-			{
-				Target correctEnumTarget;
-				if (obj is IUser)
-				{
-					correctEnumTarget = Target.User;
-				}
-				else if (obj is IChannel)
-				{
-					correctEnumTarget = Target.Channel;
-				}
-				else if (obj is IRole)
-				{
-					correctEnumTarget = Target.Role;
-				}
-				else
-				{
-					throw new ArgumentException("Provided object is not a user, channel, or role.");
-				}
-
-				foreach (var e in enums)
-				{
-					var eTarget = (uint)((DiscordObjectTargetAttribute)typeof(ObjectVerification).GetField(e.EnumName()).GetCustomAttribute(typeof(DiscordObjectTargetAttribute)))?.Target;
-					if ((eTarget & (uint)correctEnumTarget) != eTarget)
-					{
-						throw new ArgumentException("Invalid object verification enum provided for a " + correctEnumTarget.EnumName());
-					}
-				}
-			}
-
 			public static int GetLineBreaks(this string str)
 			{
 				if (str == null)

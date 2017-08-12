@@ -22,7 +22,7 @@ namespace Advobot
 		public sealed class ChangeNickname : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, VerifyStringLength(Target.Nickname)] string nickname)
+			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, VerifyStringLength(Target.Nickname)] string nickname)
 			{
 				await CommandRunner(user, nickname);
 			}

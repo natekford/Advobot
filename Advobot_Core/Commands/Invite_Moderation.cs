@@ -50,7 +50,7 @@ namespace Advobot
 		public sealed class CreateInvite : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(true, ObjectVerification.CanCreateInstantInvite)] IGuildChannel channel, [Optional] int time, [Optional] int uses, [Optional] bool tempMem)
+			public async Task Command([VerifyChannel(true, ChannelVerification.CanCreateInstantInvite)] IGuildChannel channel, [Optional] int time, [Optional] int uses, [Optional] bool tempMem)
 			{
 				await CommandRunner(channel, time, uses, tempMem);
 			}

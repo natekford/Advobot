@@ -138,7 +138,7 @@ namespace Advobot
 		{
 			None							= (1U << 0),
 			CanBeEdited						= (1U << 1),
-			IsDefault						= (1U << 2),
+			//IsDefault						= (1U << 2), Not needed anymore since default channels removed
 			IsVoice							= (1U << 3),
 			IsText							= (1U << 4),
 			CanBeReordered					= (1U << 5),
@@ -173,7 +173,7 @@ namespace Advobot
 		
 			//Channels
 			ChannelType						= (1U << 6),
-			DefaultChannel					= (1U << 7),
+			//DefaultChannel				= (1U << 7), Not needed anymore since default channels can be deleted/modified fully now
 
 			//Roles
 			EveryoneRole					= (1U << 8),

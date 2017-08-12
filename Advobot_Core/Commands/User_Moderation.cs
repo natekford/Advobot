@@ -132,7 +132,7 @@ namespace Advobot
 		public sealed class MoveUser : MyModuleBase
 		{
 			[Command]
-			public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel channel)
+			public async Task Command(IGuildUser user, [VerifyChannel(false, ChannelVerification.CanMoveUsers)] IVoiceChannel channel)
 			{
 				await CommandRunner(user, channel);
 			}
@@ -164,8 +164,8 @@ namespace Advobot
 		public sealed class MoveUsers : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel inputChannel,
-									  [VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel outputChannel,
+			public async Task Command([VerifyChannel(false, ChannelVerification.CanMoveUsers)] IVoiceChannel inputChannel,
+									  [VerifyChannel(false, ChannelVerification.CanMoveUsers)] IVoiceChannel outputChannel,
 									  [OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
 				await CommandRunner(inputChannel, outputChannel, bypass);
@@ -218,7 +218,7 @@ namespace Advobot
 		public sealed class SoftBan : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user)
+			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user)
 			{
 				await CommandRunner(user);
 			}
@@ -238,12 +238,12 @@ namespace Advobot
 		public sealed class Ban : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user, [Optional] uint time, [Optional] uint days)
+			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, [Optional] uint time, [Optional] uint days)
 			{
 				await CommandRunner(user, time, days);
 			}
 			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user, [Optional] uint time)
+			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, [Optional] uint time)
 			{
 				await CommandRunner(user, time, 0);
 			}
@@ -303,7 +303,7 @@ namespace Advobot
 		public sealed class Kick : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
+			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 			{
 				await CommandRunner(user, reason);
 			}
@@ -350,12 +350,12 @@ namespace Advobot
 		public sealed class RemoveMessages : MyModuleBase
 		{
 			[Command]
-			public async Task Command(uint requestCount, [Optional] IGuildUser user, [Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel)
+			public async Task Command(uint requestCount, [Optional] IGuildUser user, [Optional, VerifyChannel(true, ChannelVerification.CanDeleteMessages)] ITextChannel channel)
 			{
 				await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel);
 			}
 			[Command]
-			public async Task Command(uint requestCount, [Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel, [Optional] IGuildUser user)
+			public async Task Command(uint requestCount, [Optional, VerifyChannel(true, ChannelVerification.CanDeleteMessages)] ITextChannel channel, [Optional] IGuildUser user)
 			{
 				await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel);
 			}

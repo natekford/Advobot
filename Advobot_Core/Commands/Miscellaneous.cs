@@ -286,7 +286,7 @@ namespace Advobot
 		public sealed class GetUsersWithReason : MyModuleBase
 		{
 			[Command("role")]
-			public async Task CommandRole([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, params string[] additionalSearchOptions)
+			public async Task CommandRole([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, params string[] additionalSearchOptions)
 			{
 				await CommandRunner(Target.Role, role, additionalSearchOptions);
 			}
@@ -547,7 +547,7 @@ namespace Advobot
 		public sealed class DownloadMessages : MyModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task Command(int num, [Optional, VerifyObject(true, ObjectVerification.CanBeRead)] ITextChannel channel)
+			public async Task Command(int num, [Optional, VerifyChannel(true, ChannelVerification.CanBeRead)] ITextChannel channel)
 			{
 				await CommandRunner(num, channel ?? Context.Channel as ITextChannel);
 			}
@@ -650,7 +650,7 @@ namespace Advobot
 		public sealed class MentionRole : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder] string text)
+			public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone)] IRole role, [Remainder] string text)
 			{
 				await CommandRunner(role, text);
 			}

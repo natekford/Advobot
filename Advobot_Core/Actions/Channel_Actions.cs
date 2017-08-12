@@ -84,14 +84,6 @@ namespace Advobot
 
 					switch (type)
 					{
-						case ChannelVerification.IsDefault:
-						{
-							if (channel.Id == guild.DefaultChannelId)
-							{
-								return new ReturnedObject<T>(channel, FailureReason.DefaultChannel);
-							}
-							break;
-						}
 						case ChannelVerification.IsText:
 						{
 							if (!(channel is ITextChannel))
