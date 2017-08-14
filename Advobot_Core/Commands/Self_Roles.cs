@@ -14,7 +14,7 @@ namespace Advobot
 {
 	namespace SelfRoles
 	{
-		[Group("modifyselfroles"), Alias("msr")]
+		[Group(nameof(ModifySelfRoles)), Alias("msr")]
 		[Usage("[Create|Delete|Add|Remove] <Group Number> <Role/...>")]
 		[Summary("Adds a role to the self assignable list. Roles can be grouped together which means only one role in the group can be self assigned at a time. " + 
 			"Create and Delete modify the entire group. Add and Remove modify a single role in a group.")]
@@ -107,7 +107,7 @@ namespace Advobot
 
 				var rolesAdded = new List<IRole>();
 				var rolesNotAdded = new List<IRole>();
-				var alreadyUsedRoles = selfAssignableGroups.SelectMany(x => x.Roles).Select(x => x.RoleId);
+				var alreadyUsedRoles = selfAssignableGroups.SelectMany(x => x.Roles.Select(y => y.RoleId));
 				switch (action)
 				{
 					case ActionType.Add:
@@ -155,117 +155,95 @@ namespace Advobot
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.JoinNonNullStrings(" ", addedStr, notAddedStr));
 			}
 		}
-	}
-	/*
 
-		[Command("assignselfrole")]
-		[Alias("asr")]
+		[Group(nameof(AssignSelfRole)), Alias("asr")]
 		[Usage("[Role]")]
 		[Summary("Gives or takes a role depending on if the user has it already. Removes all other roles in the same group unless the group is `0`.")]
 		[DefaultEnabled(false)]
-		public async Task AssignSelfRole([Remainder] string input)
+		public sealed class AssignSelfRole : MyModuleBase
 		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-
-			//Get the role. No edit ability checking in this command due to how that's already been done in the modify command
-			var role = Actions.GetRole(Context, new[] { ObjectVerification.None }, true, input).Object;
-			if (role == null)
+			[Command]
+			public async Task Command(IRole role)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no self assignable role by that name."));
-				return;
+				await CommandRunner(role);
 			}
 
-			//Check if any groups has it
-			var SARole = ((List<SelfAssignableGroup>)guildInfo.GetSetting(SettingOnGuild.SelfAssignableGroups)).SelectMany(x => x.Roles).FirstOrDefault(x => x.RoleID == role.Id);
-			if (SARole == null)
+			private async Task CommandRunner(IRole role)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no self assignable role by that name."));
-				return;
-			}
-
-			var user = Context.User as IGuildUser;
-			if (user.RoleIds.Contains(role.Id))
-			{
-				await user.RemoveRoleAsync(role);
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the role `{0}`.", role.FormatRole()));
-				return;
-			}
-
-			//If a group that has roles conflict, remove all but the wanted role
-			var SAGroup = ((List<SelfAssignableGroup>)guildInfo.GetSetting(SettingOnGuild.SelfAssignableGroups)).FirstOrDefault(x => x?.Group == SARole?.Group);
-			var removedRoles = "";
-			if (SAGroup?.Group != 0)
-			{
-				var otherRoles = SAGroup.Roles.Where(x =>
+				var group = Context.GuildSettings.SelfAssignableGroups.FirstOrDefault(x => x.Roles.Select(y => y.RoleId).Contains(role.Id));
+				if (group == null)
 				{
-					return true
-					&& x != null
-					&& user.RoleIds.Contains(x.RoleID);
-				}).Select(x => x.Role);
-
-				await Actions.TakeRoles(user, otherRoles);
-
-				if (otherRoles.Any())
-				{
-					removedRoles = String.Format(", and removed `{0}`", String.Join("`, `", otherRoles.Select(x => x.FormatRole())));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("There is no self assignable role by that name."));
+					return;
 				}
-			}
 
-			await Actions.GiveRole(user, role);
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave you `{0}`{1}.", role.Name, removedRoles));
+				var user = Context.User as IGuildUser;
+				if (user.RoleIds.Contains(role.Id))
+				{
+					await RoleActions.TakeRoles(user, new[] { role }, FormattingActions.FormatBotReason("self role removal"));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}`.", role.FormatRole()));
+					return;
+				}
+
+				//Remove roles the user already has from the group if they're targetting an exclusivity group
+				var removedRoles = "";
+				if (group.Group != 0)
+				{
+					var otherRoles = group.Roles.Where(x => user.RoleIds.Contains(x?.RoleId ?? 0)).Select(x => x.Role);
+					await RoleActions.TakeRoles(user, otherRoles, FormattingActions.FormatBotReason("self role removal"));
+					if (otherRoles.Any())
+					{
+						removedRoles = String.Format(", and removed `{0}`", String.Join("`, `", otherRoles.Select(x => x.FormatRole())));
+					}
+				}
+
+				await RoleActions.GiveRoles(user, new[] { role }, FormattingActions.FormatBotReason("self role giving"));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave `{0}`{1}.", role.Name, removedRoles));
+			}
 		}
 
-		[Command("displayselfroles")]
-		[Alias("dsr")]
+		[Group(nameof(DisplaySelfRoles)), Alias("dsr")]
 		[Usage("<Number>")]
 		[Summary("Shows the current group numbers that exists on the guild. If a number is input then it shows the roles in that group.")]
 		[DefaultEnabled(false)]
-		public async Task CurrentGroups([Optional, Remainder] string input)
+		public sealed class DisplaySelfRoles : MyModuleBase
 		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-
-			var groupNumber = -1;
-			if (!String.IsNullOrWhiteSpace(input))
+			[Command]
+			public async Task Command()
 			{
-				if (!int.TryParse(input, out groupNumber) || groupNumber < 0)
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid group number supplied."));
-					return;
-				}
+				await CommandRunner(-1);
+			}
+			[Command]
+			public async Task Command(uint groupNum)
+			{
+				await CommandRunner((int)groupNum);
 			}
 
-			var SAGroups = (List<SelfAssignableGroup>)guildInfo.GetSetting(SettingOnGuild.SelfAssignableGroups);
-			if (groupNumber == -1)
+			private async Task CommandRunner(int groupNum)
 			{
-				var groupNumbers = SAGroups.Select(x => x.Group).Distinct().OrderBy(x => x).ToList();
-				if (!groupNumbers.Any())
+				if (groupNum == -1)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There are currently no self assignable role groups on this guild."));
+					var groupNumbers = Context.GuildSettings.SelfAssignableGroups.Select(x => x.Group).OrderBy(x => x);
+					if (!groupNumbers.Any())
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("There are currently no self assignable role groups on this guild."));
+						return;
+					}
+
+					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Self Assignable Role Groups", String.Format("`{0}`", String.Join("`, `", groupNumbers))));
 					return;
 				}
-				await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Self Assignable Role Groups", String.Format("`{0}`", String.Join("`, `", groupNumbers))));
-			}
-			else
-			{
-				var group = SAGroups.FirstOrDefault(x => x.Group == groupNumber);
+
+				var group = Context.GuildSettings.SelfAssignableGroups.FirstOrDefault(x => x.Group == groupNum);
 				if (group == null)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There is no group with that number."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("There is no group with that number."));
 					return;
 				}
 
-				var embed = Messages.MakeNewEmbed(String.Format("Self Roles Group {0}", groupNumber));
-				if (group.Roles.Any())
-				{
-					embed.Description = String.Format("`{0}`", String.Join("`, `", group.Roles.Select(x => x.Role?.Name ?? "null")));
-				}
-				else
-				{
-					embed.Description = "`NOTHING`";
-				}
-				await MessageActions.SendEmbedMessage(Context.Channel, embed);
+				var desc = group.Roles.Any() ? String.Format("`{0}`", String.Join("`, `", group.Roles.Select(x => x.Role?.Name ?? "null"))) : "`Nothing`";
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(String.Format("Self Roles Group {0}", groupNum), desc));
 			}
 		}
 	}
-	*/
 }

@@ -99,6 +99,8 @@ namespace Advobot
 		public static readonly int MAX_ICON_FILE_SIZE = 2500000;
 		public static readonly int MAX_UTF16_VAL_FOR_NAMES = 1000;
 		public static readonly int AMT_OF_DMS_TO_GATHER = 500;
+		public static readonly int MIN_PREFIX_LENGTH = 1;
+		public static readonly int MAX_PREFIX_LENGTH = 10;
 
 		private static ReadOnlyCollection<string> _VALID_IMAGE_EXTENSIONS;
 		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS => _VALID_IMAGE_EXTENSIONS ?? (_VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>

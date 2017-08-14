@@ -581,7 +581,7 @@ namespace Advobot
 
 				private void OpenOutputSearch(object sender, RoutedEventArgs e)
 				{
-					_OutputSearchComboBox.ItemsSource = UIModification.MakeComboBoxSourceOutOfStrings(ConsoleActions.WrittenLines.Keys);
+					_OutputSearchComboBox.ItemsSource = UIModification.MakeComboBoxSourceOutOfStrings(ConsoleActions.GetWrittenLines().Keys);
 					_OutputSearchLayout.Visibility = Visibility.Visible;
 				}
 				private void CloseOutputSearch(object sender, RoutedEventArgs e)
@@ -596,7 +596,7 @@ namespace Advobot
 					if (selectedItem != null)
 					{
 						_OutputSearchResults.Text = null;
-						ConsoleActions.WrittenLines[selectedItem.Text].ForEach(x => _OutputSearchResults.AppendText(x + Environment.NewLine));
+						ConsoleActions.GetWrittenLines()[selectedItem.Text].ForEach(x => _OutputSearchResults.AppendText(x + Environment.NewLine));
 					}
 				}
 

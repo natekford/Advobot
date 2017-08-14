@@ -12,7 +12,7 @@ namespace Advobot
 {
 	namespace GuildModeration
 	{
-		[Group("changeguildname"), Alias("cgn")]
+		[Group(nameof(ChangeGuildName)), Alias("cgn")]
 		[Usage("[Name]")]
 		[Summary("Change the name of the guild to the given name.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
@@ -32,7 +32,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildregion"), Alias("cgr")]
+		[Group(nameof(ChangeGuildRegion)), Alias("cgr")]
 		[Usage("<Current|Region ID>")]
 		[Summary("Shows or changes the guild's server region. Inputting nothing lists all valid region IDs.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
@@ -94,7 +94,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildafktimer"), Alias("cgafkt")]
+		[Group(nameof(ChangeGuildAFKTimer)), Alias("cgafkt")]
 		[Usage("[Number]")]
 		[Summary("Updates the guild's AFK timeout.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
@@ -122,7 +122,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildafkchannel"), Alias("cgafkc")]
+		[Group(nameof(ChangeGuildAFKChannel)), Alias("cgafkc")]
 		[Usage("[Channel]")]
 		[Summary("Updates the guild's AFK channel.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
@@ -142,7 +142,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildmsgnotif"), Alias("cgmn")]
+		[Group(nameof(ChangeGuildMsgNotif)), Alias("cgmn")]
 		[Usage("[AllMessages|MentionsOnly]")]
 		[Summary("Changes the message notifications to either all messages or mentions only.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
@@ -162,7 +162,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildverif"), Alias("cgv")]
+		[Group(nameof(ChangeGuildVerif)), Alias("cgv")]
 		[Usage("[None|Low|Medium|High|Extreme]")]
 		[Summary("Changes the verification level. None is the most lenient (no requirements to type), high is the harshest (10 minutes in the guild before new members can type).")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
@@ -182,7 +182,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildicon"), Alias("cgi")]
+		[Group(nameof(ChangeGuildIcon)), Alias("cgi")]
 		[Usage("<Attached Image|Embedded Image>")]
 		[Summary("Changes the guild's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the guild's icon.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
@@ -226,7 +226,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("createguild"), Alias("cg")]
+		[Group(nameof(CreateGuild)), Alias("cg")]
 		[Usage("[Name]")]
 		[Summary("Creates a guild with the bot as the owner.")]
 		[OtherRequirement(Precondition.BotOwner)]
@@ -251,7 +251,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changeguildowner"), Alias("cgo")]
+		[Group(nameof(ChangeGuildOwner)), Alias("cgo")]
 		[Usage("")]
 		[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
 		[OtherRequirement(Precondition.BotOwner)]
@@ -277,7 +277,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("deleteguild"), Alias("dg")]
+		[Group(nameof(DeleteGuild)), Alias("dg")]
 		[Usage("")]
 		[Summary("If the bot is the current owner of the guild, this command will delete the guild.")]
 		[OtherRequirement(Precondition.BotOwner)]

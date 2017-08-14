@@ -8,70 +8,126 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Advobot.NonSavedClasses;
+using Advobot.Enums;
+using Advobot.Attributes;
 
 namespace Advobot
 {
-	/*
-	//Guild Settings commands are commands that only affect that specific guild
-	[Name("GuildSettings")]
-	public class Advobot_Commands_Guild_Settings : ModuleBase
+	namespace GuildSettings
 	{
-		[Command("leaveguild")]
+		[Group(nameof(LeaveGuild))]
 		[Usage("<Guild ID>")]
 		[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
 		[OtherRequirement(Precondition.GuildOwner | Precondition.BotOwner)]
 		[DefaultEnabled(true)]
-		public async Task GuildLeave([Optional, Remainder] string input)
+		public sealed class LeaveGuild : MyModuleBase
 		{
-			//Get the guild out of an ID
-			if (ulong.TryParse(input, out ulong guildID))
+			[Command]
+			public async Task Command([Optional] ulong guildId)
 			{
-				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
-				if (Context.User.Id == ((ulong)Variables.BotInfo.GetSetting(SettingOnBot.BotOwnerID)))
+				await CommandRunner(guildId);
+			}
+
+			private async Task CommandRunner(ulong guildId)
+			{
+				if (guildId == 0)
 				{
-					var guild = Variables.Client.GetGuild(guildID);
+					await Context.Guild.LeaveAsync();
+					return;
+				}
+
+				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
+				if (Context.User.Id == (await UserActions.GetBotOwner(Context.Client)).Id)
+				{
+					var guild = await GuildActions.GetGuild(Context.Client, guildId);
 					if (guild == null)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid server supplied."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Invalid server supplied."));
 						return;
 					}
 
-					//Leave the server
 					await guild.LeaveAsync();
-
-					//Don't try to send a message if the guild left is the one the message was sent on
-					if (Context.Guild == guild)
-						return;
-
-					await MessageActions.SendChannelMessage(Context, String.Format("Successfully left the server `{0}` with an ID `{1}`.", guild.Name, guild.Id));
+					if (Context.Guild.Id != guildId)
+					{
+						await MessageActions.SendChannelMessage(Context, String.Format("Successfully left the server `{0}` with an ID `{1}`.", guild.Name, guild.Id));
+					}
 				}
-				else if (Context.Guild.Id == guildID)
+				else if (Context.Guild.Id == guildId)
 				{
 					await Context.Guild.LeaveAsync();
 				}
 				else
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Only the bot owner can use this command targetting other guilds."));
-					return;
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Only the bot owner can use this command targetting other guilds."));
 				}
-			}
-			//No input means to leave the current guild
-			else if (input == null)
-			{
-				await Context.Guild.LeaveAsync();
-			}
-			else
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid server supplied."));
 			}
 		}
 
-		[Command("modifyguildprefix")]
-		[Alias("mgdp")]
+		[Group(nameof(ModifyGuildPrefix)), Alias("mgdp")]
 		[Usage("[New Prefix|Clear]")]
-		[Summary("Makes the guild use the given prefix from now on.")]
+		[Summary("Makes the bot use the given prefix in the guild.")]
 		[OtherRequirement(Precondition.GuildOwner)]
 		[DefaultEnabled(false)]
+		public sealed class ModifyGuildPrefix : MySavingModuleBase
+		{
+			[Command]
+			public async Task Command([VerifyStringLength(Target.Prefix)] string newPrefix)
+			{
+				await CommandRunner(false, newPrefix);
+			}
+			[Command("clear")]
+			public async Task Command()
+			{
+				await CommandRunner(true);
+			}
+
+			private async Task CommandRunner(bool clear, string newPrefix = null)
+			{
+				if (clear)
+				{
+					Context.GuildSettings.Prefix = null;
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild's prefix.");
+					return;
+				}
+
+				Context.GuildSettings.Prefix = newPrefix;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set this guild's prefix to: `{0}`.", newPrefix));
+			}
+		}
+
+		[Group(nameof(GetFile)), Alias("gf")]
+		[Usage("")]
+		[Summary("Sends the file containing all the guild's saved bot information.")]
+		[PermissionRequirement(null, null)]
+		[DefaultEnabled(false)]
+		public sealed class GetFile : MyModuleBase
+		{
+			[Command]
+			public async Task Command()
+			{
+				await CommandRunner();
+			}
+
+			private async Task CommandRunner()
+			{
+				var file = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_SETTINGS_LOCATION);
+				if (!file.Exists)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The guild information file does not exist at this time."));
+					return;
+				}
+				await UploadActions.UploadFile(Context.Channel, file);
+			}
+		}
+	}
+	/*
+	//Guild Settings commands are commands that only affect that specific guild
+	[Name("GuildSettings")]
+	public class Advobot_Commands_Guild_Settings : ModuleBase
+	{
+
+
 		public async Task GuildPrefix([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
@@ -907,23 +963,6 @@ namespace Advobot
 			}
 
 			await Actions.SendGuildNotification(null, notif);
-		}
-
-		[Command("getfile")]
-		[Alias("gf")]
-		[Usage("")]
-		[Summary("Sends the file containing all the guild's saved bot information.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
-		public async Task GetFile()
-		{
-			var path = Actions.GetServerFilePath(Context.Guild.Id, Constants.GUILD_INFO_LOCATION);
-			if (!File.Exists(path))
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("The guild information file does not exist at this time."));
-				return;
-			}
-			await Actions.UploadFile(Context.Channel, path);
 		}
 	}
 	*/

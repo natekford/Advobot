@@ -248,6 +248,7 @@ namespace Advobot
 			Delete							= (1U << 10),
 			Clear							= (1U << 11),
 			Current							= (1U << 12),
+			Default							= (1U << 13),
 		}
 
 		[Flags]
@@ -281,6 +282,7 @@ namespace Advobot
 			Game							= (1U << 9),
 			Stream							= (1U << 10),
 			Topic							= (1U << 11),
+			Prefix							= (1U << 12),
 		}
 	}
 }

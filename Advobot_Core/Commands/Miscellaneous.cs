@@ -16,7 +16,7 @@ namespace Advobot
 {
 	namespace Miscellaneous
 	{
-		[Group("help"), Alias("h", "info")]
+		[Group(nameof(Help)), Alias("h", "info")]
 		[Usage("<Command>")]
 		[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. If left blank will print out a link to the documentation of this bot.")]
 		[DefaultEnabled(true)]
@@ -74,7 +74,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("commands"), Alias("cmds")]
+		[Group(nameof(Commands)), Alias("cmds")]
 		[Usage("<Category|All>")]
 		[Summary("Prints out the commands in that category of the command list.")]
 		[DefaultEnabled(true)]
@@ -118,38 +118,38 @@ namespace Advobot
 			}
 		}
 
-		[Group("getid"), Alias("gid")]
+		[Group(nameof(GetId)), Alias("gid")]
 		[Usage("[Bot|Guild|Channel|Role|User|Emote] <\"Other Argument\">")]
 		[Summary("Shows the ID of the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 		[DefaultEnabled(true)]
 		public sealed class GetId : MyModuleBase
 		{
-			[Command("bot")]
+			[Command(nameof(Target.Bot))]
 			public async Task CommandBot()
 			{
 				await CommandRunner(Target.Bot, null);
 			}
-			[Command("guild")]
+			[Command(nameof(Target.Guild))]
 			public async Task CommandGuild()
 			{
 				await CommandRunner(Target.Guild, null);
 			}
-			[Command("channel")]
+			[Command(nameof(Target.Channel))]
 			public async Task CommandChannel(IGuildChannel target)
 			{
 				await CommandRunner(Target.Channel, target);
 			}
-			[Command("role")]
+			[Command(nameof(Target.Role))]
 			public async Task CommandRole(IRole target)
 			{
 				await CommandRunner(Target.Role, target);
 			}
-			[Command("user")]
+			[Command(nameof(Target.User))]
 			public async Task CommandUser(IUser target)
 			{
 				await CommandRunner(Target.User, target);
 			}
-			[Command("emote")]
+			[Command(nameof(Target.Emote))]
 			public async Task CommandEmote(Emote target)
 			{
 				await CommandRunner(Target.Emote, target);
@@ -193,43 +193,43 @@ namespace Advobot
 			}
 		}
 
-		[Group("getinfo"), Alias("ginf")]
+		[Group(nameof(GetInfo)), Alias("ginf")]
 		[Usage("[Bot|Guild|Channel|Role|User|Emote|Invite] <\"Other Argument\">")]
 		[Summary("Shows information about the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 		[DefaultEnabled(true)]
 		public sealed class GetInfo : MyModuleBase
 		{
-			[Command("bot")]
+			[Command(nameof(Target.Bot))]
 			public async Task CommandBot()
 			{
 				await CommandRunner(Target.Bot, null);
 			}
-			[Command("guild")]
+			[Command(nameof(Target.Guild))]
 			public async Task CommandGuild()
 			{
 				await CommandRunner(Target.Guild, null);
 			}
-			[Command("channel")]
+			[Command(nameof(Target.Channel))]
 			public async Task CommandChannel(IGuildChannel target)
 			{
 				await CommandRunner(Target.Channel, target);
 			}
-			[Command("role")]
+			[Command(nameof(Target.Role))]
 			public async Task CommandRole(IRole target)
 			{
 				await CommandRunner(Target.Role, target);
 			}
-			[Command("user")]
+			[Command(nameof(Target.User))]
 			public async Task CommandUser(IUser target)
 			{
 				await CommandRunner(Target.User, target);
 			}
-			[Command("emote")]
+			[Command(nameof(Target.Emote))]
 			public async Task CommandEmote(Emote target)
 			{
 				await CommandRunner(Target.Emote, target);
 			}
-			[Command("invite")]
+			[Command(nameof(Target.Invite))]
 			public async Task CommandInvite(IInvite target)
 			{
 				await CommandRunner(Target.Invite, target);
@@ -278,29 +278,29 @@ namespace Advobot
 			}
 		}
 
-		[Group("getuserswithreason"), Alias("guwr")]
+		[Group(nameof(GetUsersWithReason)), Alias("guwr")]
 		[Usage("[Role|Name|Game|Stream] <\"Other Argument\"> <Count> <Nickname> <Exact>")]
 		[Summary("Gets users with a variable reason. Count specifies if to say the count. Nickname specifies if to include nickanmes. Exact specifies if only exact matches count.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public sealed class GetUsersWithReason : MyModuleBase
 		{
-			[Command("role")]
+			[Command(nameof(Target.Role))]
 			public async Task CommandRole([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, params string[] additionalSearchOptions)
 			{
 				await CommandRunner(Target.Role, role, additionalSearchOptions);
 			}
-			[Command("name")]
+			[Command(nameof(Target.Name))]
 			public async Task CommandName(string name, params string[] additionalSearchOptions)
 			{
 				await CommandRunner(Target.Name, name, additionalSearchOptions);
 			}
-			[Command("game")]
+			[Command(nameof(Target.Game))]
 			public async Task CommandGame(string game, params string[] additionalSearchOptions)
 			{
 				await CommandRunner(Target.Game, game, additionalSearchOptions);
 			}
-			[Command("stream")]
+			[Command(nameof(Target.Stream))]
 			public async Task CommandString(params string[] additionalSearchOptions)
 			{
 				await CommandRunner(Target.Stream, null as string, additionalSearchOptions);
@@ -370,7 +370,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("getuseravatar"), Alias("gua")]
+		[Group(nameof(GetUserAvatar)), Alias("gua")]
 		[Usage("<User> <Number> <Gif|Png|Jpg|Webp>")]
 		[Summary("Shows the URL of the given user's avatar. Can supply a format and size.")]
 		[DefaultEnabled(true)]
@@ -414,7 +414,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("getuserjoinedat"), Alias("gujat")]
+		[Group(nameof(GetUserJoinedAt)), Alias("gujat")]
 		[Usage("[Number]")]
 		[Summary("Shows the user which joined the guild in that position.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
@@ -437,7 +437,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("displayguilds"), Alias("dgs")]
+		[Group(nameof(DisplayGuilds)), Alias("dgs")]
 		[Usage("")]
 		[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 		[OtherRequirement(Precondition.BotOwner)]
@@ -476,7 +476,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("displayuserjoinlist"), Alias("dujl")]
+		[Group(nameof(DisplayUserJoinList)), Alias("dujl")]
 		[Usage("")]
 		[Summary("Lists most of the users who have joined the guild.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
@@ -498,7 +498,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("displayemotes"), Alias("de")]
+		[Group(nameof(DisplayEmotes)), Alias("de")]
 		[Usage("[Global|Guild]")]
 		[Summary("Lists the emotes in the guild. As of right now, there's no way to upload or remove emotes through Discord's API.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
@@ -539,7 +539,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("downloadmessages"), Alias("dlm")]
+		[Group(nameof(DownloadMessages)), Alias("dlm")]
 		[Usage("[Number] <Channel>")]
 		[Summary("Downloads the past x amount of messages. Up to 1000 messages or 500KB worth of formatted text.")]
 		[PermissionRequirement(null, null)]
@@ -576,7 +576,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("makeanembed"), Alias("mae")]
+		[Group(nameof(MakeAnEmbed)), Alias("mae")]
 		[Usage("<\"Title:input\"> <\"Desc:input\"> <Img:url> <Url:url> <Thumb:url> <Color:int/int/int> <\"Author:input\"> <AuthorIcon:url> <AuthorUrl:url> <\"Foot:input\"> <FootIcon:url> " +
 			"<\"Field[1-25]:input\"> <\"FieldText[1-25]:input\"> <FieldInline[1-25]:true|false>")]
 		[Summary("Every single piece is optional. The stuff in quotes *must* be in quotes. URLs need the https:// in front. Fields need *both* Field and FieldText to work.")]
@@ -642,7 +642,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("mentionrole"), Alias("mnr")]
+		[Group(nameof(MentionRole)), Alias("mnr")]
 		[Usage("[Role] [Message]")]
 		[Summary("Mention an unmentionable role with the given message.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
@@ -671,7 +671,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("messagebotowner"), Alias("mbo")]
+		[Group(nameof(MessageBotOwner)), Alias("mbo")]
 		[Usage("[Message]")]
 		[Summary("Sends a message to the bot owner with the given text. Messages will be cut down to 250 characters.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
@@ -701,7 +701,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("getpermnamesfromvalue"), Alias("getperms")]
+		[Group(nameof(GetPermNamesFromValue)), Alias("getperms")]
 		[Usage("[Number]")]
 		[Summary("Lists all the perms that come from the given value.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
@@ -728,7 +728,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("getbotdms"), Alias("gbd")]
+		[Group(nameof(GetBotDMs)), Alias("gbd")]
 		[Usage("<User>")]
 		[Summary("Lists all the people who have sent the bot DMs or shows the DMs with a person if one is specified.")]
 		[OtherRequirement(Precondition.BotOwner)]
@@ -776,7 +776,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("test"), Alias("t")]
+		[Group(nameof(Test)), Alias("t")]
 		[Usage("")]
 		[Summary("Mostly just makes the bot say test.")]
 		[OtherRequirement(Precondition.BotOwner)]

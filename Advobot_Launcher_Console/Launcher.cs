@@ -17,7 +17,6 @@ namespace Advobot
 		{
 			private static void Main()
 			{
-				AppDomain.CurrentDomain.UnhandledException += SavingAndLoadingActions.LogUncaughtException;
 				new ConsoleLauncher().SubMain().GetAwaiter().GetResult();
 			}
 
@@ -25,8 +24,8 @@ namespace Advobot
 			{
 				//Make sure only one instance is running at the same time
 #if RELEASE
-			if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Length > 1)
-				return;
+				if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Length > 1)
+					return;
 #endif
 				//Things that when not loaded fuck the bot completely.
 				var criticalInfo = SavingAndLoadingActions.LoadCriticalInformation();
@@ -37,6 +36,8 @@ namespace Advobot
 				IDiscordClient client = ClientActions.CreateBotClient(botSettings);
 				ILogModule logging = new MyLogModule(client, botSettings, guildSettings, timers);
 				IServiceProvider provider = ConfigureServices(client, botSettings, guildSettings, timers, logging);
+
+				AppDomain.CurrentDomain.UnhandledException += (sender, e) => SavingAndLoadingActions.LogUncaughtException(sender, e, logging);
 
 				await CommandHandler.Install(provider);
 				await StartBot(provider, client, botSettings);

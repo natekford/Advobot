@@ -14,7 +14,7 @@ namespace Advobot
 {
 	namespace NicknameModeration
 	{
-		[Group("changenickname"), Alias("cnn")]
+		[Group(nameof(ChangeNickname)), Alias("cnn")]
 		[Usage("[User] <Nickname>")]
 		[Summary("Gives the user a nickname. Inputting no nickname resets their nickname.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
@@ -37,7 +37,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("replacewordsinnames"), Alias("rwin")]
+		[Group(nameof(ReplaceWordsInNames)), Alias("rwin")]
 		[Usage("[\"Search\"] [\"Replace\"] <" + Constants.BYPASS_STRING + ">")]
 		[Summary("Gives users a new nickname if their nickname or username contains the search phrase. Max is 100 users per use unless the bypass string is said.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
@@ -64,7 +64,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("replacebyutf16"), Alias("rbu")]
+		[Group(nameof(ReplaceByUTF16)), Alias("rbu")]
 		[Usage("[Number] [\"Replace\"] <" + Constants.BYPASS_STRING + ">")]
 		[Summary("Replaces nickname/usernames that contain any characters above the supplied character value in UTF-16. Max is 100 users per use unless the bypass string is said.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
@@ -89,7 +89,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("removeallnicknames"), Alias("rann")]
+		[Group(nameof(RemoveAllNicknames)), Alias("rann")]
 		[Usage("<" + Constants.BYPASS_STRING + ">")]
 		[Summary("Remove all nicknames of users on the guild. Max is 100 users per use unless the bypass string is said.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]

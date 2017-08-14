@@ -16,7 +16,7 @@ namespace Advobot
 {
 	namespace ChannelModeration
 	{
-		[Group("createchannel"), Alias("cch")]
+		[Group(nameof(CreateChannel)), Alias("cch")]
 		[Usage("[Text|Voice] [Name]")]
 		[Summary("Adds a channel to the guild of the given type with the given name. Text channel names cannot contain any spaces.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
@@ -61,7 +61,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("softdeletechannel"), Alias("sdch")]
+		[Group(nameof(SoftDeleteChannel)), Alias("sdch")]
 		[Usage("[Channel]")]
 		[Summary("Makes most roles unable to read the channel and moves it to the bottom of the channel list. Only works for text channels.")]
 		[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
@@ -81,7 +81,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("deletechannel"), Alias("dch")]
+		[Group(nameof(DeleteChannel)), Alias("dch")]
 		[Usage("[Channel]")]
 		[Summary("Deletes the channel.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
@@ -101,7 +101,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changechannelposition"), Alias("cchpo")]
+		[Group(nameof(ChangeChannelPosition)), Alias("cchpo")]
 		[Usage("[Channel] [Number]")]
 		[Summary("If only the channel is input the channel's position will be listed. Position zero is the top most position.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
@@ -121,7 +121,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("displaychannelpositions"), Alias("dchp")]
+		[Group(nameof(DisplayChannelPosition)), Alias("dchp")]
 		[Usage("[Text|Voice]")]
 		[Summary("Lists the positions of each text or voice channel on the guild.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
@@ -164,7 +164,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changechannelperms"), Alias("cchpe")]
+		[Group(nameof(ChangeChannelPerms)), Alias("cchpe")]
 		[Usage("[Show|Allow|Inherit|Deny] <Channel> <Role|User> <Permission/...>")]
 		[Summary("Permissions must be separated by a `/`. Type `" + Constants.BOT_PREFIX + "chp [Show]` to see the available permissions. " +
 			"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel]` to see all permissions on a channel. " +
@@ -173,7 +173,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class ChangeChannelPerms : MyModuleBase
 		{
-			[Group("allow"), Alias("a")]
+			[Group(nameof(ActionType.Allow)), Alias("a")]
 			public sealed class ChangeChannelPermsAllow : MyModuleBase
 			{
 				[Command]
@@ -188,7 +188,7 @@ namespace Advobot
 				}
 			}
 
-			[Group("inherit"), Alias("i")]
+			[Group(nameof(ActionType.Inherit)), Alias("i")]
 			public sealed class ChangeChannelPermsInherit : MyModuleBase
 			{
 				[Command]
@@ -203,7 +203,7 @@ namespace Advobot
 				}
 			}
 
-			[Group("deny"), Alias("d")]
+			[Group(nameof(ActionType.Deny)), Alias("d")]
 			public sealed class ChangeChannelPermsDeny : MyModuleBase
 			{
 				[Command]
@@ -218,7 +218,7 @@ namespace Advobot
 				}
 			}
 
-			[Group("show"), Alias("s")]
+			[Group(nameof(ActionType.Show)), Alias("s")]
 			public sealed class ChangeChannelPermsShow : MyModuleBase
 			{
 				[Command]
@@ -326,7 +326,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("copychannelperms"), Alias("cochp")]
+		[Group(nameof(CopyChannelPerms)), Alias("cochp")]
 		[Usage("[Channel] [Channel] <Role|User>")]
 		[Summary("Copy permissions from one channel to another. Works for a role, a user, or everything. If nothing is specified, copies everything.")]
 		[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
@@ -410,7 +410,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("clearchannelperms"), Alias("clchp")]
+		[Group(nameof(ClearChannelPerms)), Alias("clchp")]
 		[Usage("[Channel]")]
 		[Summary("Removes all permissions set on a channel.")]
 		[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
@@ -431,7 +431,7 @@ namespace Advobot
 		}
 
 		//TODO: change this to not be the scuffed way
-		[Group("changechannelnsfw"), Alias("cchnsfw")]
+		[Group(nameof(ChangeChannelNSFW)), Alias("cchnsfw")]
 		[Usage("[Channel]")]
 		[Summary("Toggles the NSFW option on a channel.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
@@ -467,7 +467,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changechannelname"), Alias("cchn")]
+		[Group(nameof(ChangeChannelName)), Alias("cchn")]
 		[Usage("[Channel] [Name]")]
 		[Summary("Changes the name of the channel.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
@@ -493,15 +493,15 @@ namespace Advobot
 			}
 		}
 
-		[Group("changechannelnamebyposition"), Alias("ccnbp")]
+		[Group(nameof(ChangeChannelNameByPosition)), Alias("ccnbp")]
 		[Usage("[Text|Voice] [Number] [Name]")]
 		[Summary("Changes the name of the channel with the given position. This is *extremely* useful for when multiple channels have the same name but you want to edit things")]
 		[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 		[DefaultEnabled(true)]
-		public sealed class ChangeRoleNameByPosition : MyModuleBase
+		public sealed class ChangeChannelNameByPosition : MyModuleBase
 		{
 			[Command]
-			public async Task Command(ChannelType channelType, uint position, [Remainder, VerifyStringLength(Target.Role)] string name)
+			public async Task Command(ChannelType channelType, uint position, [Remainder, VerifyStringLength(Target.Channel)] string name)
 			{
 				await CommandRunner(channelType, position, name);
 			}
@@ -547,7 +547,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changechanneltopic"), Alias("ccht")]
+		[Group(nameof(ChangeChannelTopic)), Alias("ccht")]
 		[Usage("[Channel] <Topic>")]
 		[Summary("Changes the topic of a channel to whatever is input. Clears the topic if nothing is input")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
@@ -567,7 +567,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changechannellimit"), Alias("cchl")]
+		[Group(nameof(ChangeChannelLimit)), Alias("cchl")]
 		[Usage("[Channel] [Number]")]
 		[Summary("Changes the limit to how many users can be in a voice channel. The limit ranges from 0 (no limit) to 99.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
@@ -592,7 +592,7 @@ namespace Advobot
 			}
 		}
 
-		[Group("changechannelbitrate"), Alias("cchbr")]
+		[Group(nameof(ChangeChannelBitrate)), Alias("cchbr")]
 		[Usage("[Channel] [Number]")]
 		[Summary("Changes the bitrate on a voice channel. Lowest is 8, highest is 96 (unless on a partnered guild, then it goes up to 128), default is 64.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]

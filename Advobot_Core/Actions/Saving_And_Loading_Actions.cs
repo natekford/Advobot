@@ -367,15 +367,24 @@ namespace Advobot
 				}
 			}
 
-			public static void LogUncaughtException(object sender, UnhandledExceptionEventArgs e)
+			public static void LogUncaughtException(object sender, UnhandledExceptionEventArgs e, ILogModule logging)
 			{
 				var exception = (Exception)e.ExceptionObject;
+				var lastRanCommand = logging.RanCommands.LastOrDefault();
+
+				string line;
+				if (lastRanCommand.Equals(default(LoggedCommand)))
+				{
+					line = String.Format("{0}: {1}\n", FormattingActions.FormatDateTime(DateTime.UtcNow), exception.ToString());
+				}
+				else
+				{
+					line = String.Format("{0}: {1}\nLast ran command: {2}\n", FormattingActions.FormatDateTime(DateTime.UtcNow), exception.ToString(), lastRanCommand.ToString());
+				}
+
 				var crashLogPath = GetActions.GetBaseBotDirectoryFile(Constants.CRASH_LOG_LOCATION);
-
 				CreateFile(crashLogPath);
-
 				//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
-				var line = String.Format("{0}: {1}\n", FormattingActions.FormatDateTime(DateTime.UtcNow), exception.ToString());
 				using (var writer = File.AppendText(crashLogPath.FullName))
 				{
 					writer.WriteLine(line);

@@ -78,6 +78,8 @@ namespace Advobot
 
 		public interface ILogModule
 		{
+			List<LoggedCommand> RanCommands { get; }
+
 			uint TotalUsers { get; }
 			uint TotalGuilds { get; }
 			uint SuccessfulCommands { get; }

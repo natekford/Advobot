@@ -14,7 +14,7 @@ namespace Advobot
 {
 	namespace Logs
 	{
-		[Group("modifylogchannels"), Alias("mlc")]
+		[Group(nameof(ModifyLogChannels)), Alias("mlc")]
 		[Usage("[Server|Mod|Image] [Channel|Off]")]
 		[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
 		[PermissionRequirement(null, null)]
@@ -73,8 +73,8 @@ namespace Advobot
 			}
 		}
 
-		[Group("modifyignoredlogchannels"), Alias("milc")]
-		[Usage("[Add|Remove] [Channel]/<Channel>/...")]
+		[Group(nameof(ModifyIgnoredLogChannels)), Alias("milc")]
+		[Usage("[Add|Remove] [Channel] <Channel> ...")]
 		[Summary("Ignores all logging info that would have been gotten from a channel.")]
 		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
@@ -107,14 +107,14 @@ namespace Advobot
 			}
 		}
 
-		[Group("modifylogactions"), Alias("mla")]
-		[Usage("[ShowActions|Default|Enable|Disable] <All|Log Action ...>")]
-		[Summary("The server log will send messages when these events happen. `Default` overrides the current settings.")]
+		[Group(nameof(ModifyLogActions)), Alias("mla")]
+		[Usage("[Show|Default|Enable|Disable] <All|Log Action ...>")]
+		[Summary("The server log will send messages when these events happen. `Default` overrides the current settings. `Show` displays the possible actions.")]
 		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public sealed class ModifyLogActions : MySavingModuleBase
 		{
-			[Group("ShowActions"), Alias("show actions", "show")]
+			[Group(nameof(ActionType.Show)), Alias("show actions", "show")]
 			public sealed class ShowActions : MyModuleBase
 			{
 				[Command]
@@ -130,7 +130,7 @@ namespace Advobot
 				}
 			}
 
-			[Group("default"), Alias("def")]
+			[Group(nameof(ActionType.Default)), Alias("def")]
 			public sealed class Default : MySavingModuleBase
 			{
 				[Command]
@@ -146,7 +146,7 @@ namespace Advobot
 				}
 			}
 
-			[Group("enable"), Alias("e")]
+			[Group(nameof(ActionType.Enable)), Alias("e")]
 			public sealed class Add : MySavingModuleBase
 			{
 				[Command]
@@ -181,7 +181,7 @@ namespace Advobot
 				}
 			}
 
-			[Group("disable"), Alias("d")]
+			[Group(nameof(ActionType.Disable)), Alias("d")]
 			public sealed class Remove : MySavingModuleBase
 			{
 				[Command]
@@ -209,6 +209,7 @@ namespace Advobot
 							logActions = new LogAction[0];
 						}
 
+						//Only remove logactions that are already in there
 						Context.GuildSettings.LogActions.RemoveAll(x => logActions.Contains(x));
 						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully disabled the following log actions: `{0}`.", String.Join("`, `", logActions.Select(x => x.EnumName()))));
 					}
@@ -216,106 +217,4 @@ namespace Advobot
 			}
 		}
 	}
-	/*
-	[Name("Logs")]
-	public class Advobot_Commands_Logs : ModuleBase
-	{
-
-
-		public async Task SwitchLogActions([Optional, Remainder] string input)
-		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-			var logActions = (List<LogAction>)guildInfo.GetSetting(SettingOnGuild.LogActions);
-
-			//Check if the person wants to only see the types
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Log Actions", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(LogAction))))));
-				return;
-			}
-			else if (Actions.CaseInsEquals(input, "default"))
-			{
-				if (guildInfo.SetSetting(SettingOnGuild.LogActions, Constants.DEFAULT_LOG_ACTIONS.ToList()))
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully restored the default log actions.");
-				}
-				else
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to save the default log actions."));
-				}
-				return;
-			}
-
-			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var actionStr = returnedArgs.Arguments[0];
-			var logActStr = returnedArgs.Arguments[1];
-
-			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedType);
-				return;
-			}
-			var action = returnedType.Object;
-
-			//Get all the targetted log actions
-			var newLogActions = new List<LogAction>();
-			if (Actions.CaseInsEquals(logActStr, "all"))
-			{
-				newLogActions = Enum.GetValues(typeof(LogAction)).Cast<LogAction>().ToList();
-			}
-			else
-			{
-				logActStr.Split('/').ToList().ForEach(x =>
-				{
-					if (Enum.TryParse(x, true, out LogAction temp))
-					{
-						newLogActions.Add(temp);
-					}
-				});
-			}
-			if (!newLogActions.Any())
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("No valid log actions were able to be gotten."));
-				return;
-			}
-
-			var responseStr = "";
-			switch (action)
-			{
-				case ActionType.Add:
-				{
-					logActions.AddRange(newLogActions);
-					responseStr = "enabled";
-					break;
-				}
-				case ActionType.Remove:
-				{
-					logActions = logActions.Except(newLogActions).ToList();
-					responseStr = "disabled";
-					break;
-				}
-			}
-
-			if (guildInfo.SetSetting(SettingOnGuild.LogActions, logActions.Distinct()))
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following log action{1}: `{2}`.",
-					responseStr,
-					Actions.GetPlural(newLogActions.Count),
-					String.Join("`, `", newLogActions.Select(x => x.EnumName()))));
-			}
-			else
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to save the log actions."));
-				return;
-			}
-		}
-	}
-	*/
 }

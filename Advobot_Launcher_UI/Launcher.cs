@@ -19,17 +19,19 @@ namespace Advobot
 			[STAThread]
 			private static void Main()
 			{
-				AppDomain.CurrentDomain.UnhandledException += SavingAndLoadingActions.LogUncaughtException;
-				new UILauncher().SubMain().GetAwaiter().GetResult();
+				MainAsync().GetAwaiter().GetResult();
 			}
 
-			private async Task SubMain()
+			private static async Task MainAsync()
 			{
 				//Make sure only one instance is running at the same time
 #if RELEASE
-			if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Length > 1)
-				return;
+				if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Length > 1)
+					return;
 #endif
+				//Only has a reason to call this method in the UI launcher because the console version has no way of displaying them.
+				ConsoleActions.CreateWrittenLines();
+
 				//Things that when not loaded fuck the bot completely.
 				var criticalInfo = SavingAndLoadingActions.LoadCriticalInformation();
 
@@ -40,11 +42,13 @@ namespace Advobot
 				ILogModule logging = new MyLogModule(client, botSettings, guildSettings, timers);
 				IServiceProvider provider = ConfigureServices(client, botSettings, guildSettings, timers, logging);
 
+				AppDomain.CurrentDomain.UnhandledException += (sender, e) => SavingAndLoadingActions.LogUncaughtException(sender, e, logging);
+
 				await CommandHandler.Install(provider);
 				new System.Windows.Application().Run(new MyWindow(provider));
 			}
 
-			private IServiceProvider ConfigureServices(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettings, ITimersModule timers, ILogModule logging)
+			private static IServiceProvider ConfigureServices(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettings, ITimersModule timers, ILogModule logging)
 			{
 				var serviceCollection = new ServiceCollection();
 				serviceCollection.AddSingleton(client);

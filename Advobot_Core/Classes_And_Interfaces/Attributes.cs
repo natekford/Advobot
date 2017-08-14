@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace Advobot
 {
@@ -393,14 +394,15 @@ namespace Advobot
 		{
 			private static readonly Dictionary<Target, Tuple<int, int, string>> _MinsAndMaxesAndErrors = new Dictionary<Target, Tuple<int, int, string>>
 			{
-				{ Target.Guild,		Tuple.Create(Constants.MIN_GUILD_NAME_LENGTH, Constants.MAX_GUILD_NAME_LENGTH, "guild name") },
-				{ Target.Channel,	Tuple.Create(Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "channel name") },
-				{ Target.Role,		Tuple.Create(Constants.MIN_ROLE_NAME_LENGTH, Constants.MAX_ROLE_NAME_LENGTH, "role name") },
-				{ Target.Name,		Tuple.Create(Constants.MIN_USERNAME_LENGTH, Constants.MAX_USERNAME_LENGTH, "username") },
-				{ Target.Nickname,	Tuple.Create(Constants.MIN_NICKNAME_LENGTH, Constants.MAX_NICKNAME_LENGTH, "nickname") },
-				{ Target.Game,		Tuple.Create(Constants.MIN_GAME_LENGTH, Constants.MAX_GAME_LENGTH, "game") },
-				{ Target.Stream,	Tuple.Create(Constants.MIN_STREAM_LENGTH, Constants.MAX_STREAM_LENGTH, "stream name") },
-				{ Target.Topic,		Tuple.Create(Constants.MIN_TOPIC_LENGTH, Constants.MAX_TOPIC_LENGTH, "channel topic") },
+				{ Target.Guild,		Tuple.Create(Constants.MIN_GUILD_NAME_LENGTH,	Constants.MAX_GUILD_NAME_LENGTH,	"guild name") },
+				{ Target.Channel,	Tuple.Create(Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH,	"channel name") },
+				{ Target.Role,		Tuple.Create(Constants.MIN_ROLE_NAME_LENGTH,	Constants.MAX_ROLE_NAME_LENGTH,		"role name") },
+				{ Target.Name,		Tuple.Create(Constants.MIN_USERNAME_LENGTH,		Constants.MAX_USERNAME_LENGTH,		"username") },
+				{ Target.Nickname,	Tuple.Create(Constants.MIN_NICKNAME_LENGTH,		Constants.MAX_NICKNAME_LENGTH,		"nickname") },
+				{ Target.Game,		Tuple.Create(Constants.MIN_GAME_LENGTH,			Constants.MAX_GAME_LENGTH,			"game") },
+				{ Target.Stream,	Tuple.Create(Constants.MIN_STREAM_LENGTH,		Constants.MAX_STREAM_LENGTH,		"stream name") },
+				{ Target.Topic,		Tuple.Create(Constants.MIN_TOPIC_LENGTH,		Constants.MAX_TOPIC_LENGTH,			"channel topic") },
+				{ Target.Prefix,	Tuple.Create(Constants.MIN_PREFIX_LENGTH,		Constants.MAX_PREFIX_LENGTH,		"bot prefix") },
 			};
 			private int _Min;
 			private int _Max;

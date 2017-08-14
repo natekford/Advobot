@@ -19,6 +19,8 @@ namespace Advobot
 	{
 		public sealed class MyLogModule : ILogModule
 		{
+			public List<LoggedCommand> RanCommands { get; } = new List<LoggedCommand>();
+
 			public uint TotalUsers { get; private set; } = 0;
 			public uint TotalGuilds { get; private set; } = 0;
 			public uint SuccessfulCommands { get; private set; } = 0;
@@ -563,7 +565,10 @@ namespace Advobot
 			//Mod
 			public async Task LogCommand(IMyCommandContext context)
 			{
-				ConsoleActions.WriteLine(new LoggedCommand(context).ToString());
+				var loggedCommand = new LoggedCommand(context);
+				_Logging.RanCommands.Add(loggedCommand);
+
+				ConsoleActions.WriteLine(loggedCommand.ToString());
 				await MessageActions.DeleteMessage(context.Message);
 
 				if (OtherLogActions.VerifyMessageShouldBeLogged(context.GuildSettings, context.Message))
