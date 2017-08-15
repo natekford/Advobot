@@ -6,12 +6,61 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot
 {
 	namespace GuildModeration
 	{
+		[Group(nameof(LeaveGuild))]
+		[Usage("<Guild ID>")]
+		[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
+		[OtherRequirement(Precondition.GuildOwner | Precondition.BotOwner)]
+		[DefaultEnabled(true)]
+		public sealed class LeaveGuild : MyModuleBase
+		{
+			[Command]
+			public async Task Command([Optional] ulong guildId)
+			{
+				await CommandRunner(guildId);
+			}
+
+			private async Task CommandRunner(ulong guildId)
+			{
+				if (guildId == 0)
+				{
+					await Context.Guild.LeaveAsync();
+					return;
+				}
+
+				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
+				if (Context.User.Id == (await UserActions.GetBotOwner(Context.Client)).Id)
+				{
+					var guild = await GuildActions.GetGuild(Context.Client, guildId);
+					if (guild == null)
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Invalid server supplied."));
+						return;
+					}
+
+					await guild.LeaveAsync();
+					if (Context.Guild.Id != guildId)
+					{
+						await MessageActions.SendChannelMessage(Context, String.Format("Successfully left the server `{0}` with an ID `{1}`.", guild.Name, guild.Id));
+					}
+				}
+				else if (Context.Guild.Id == guildId)
+				{
+					await Context.Guild.LeaveAsync();
+				}
+				else
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Only the bot owner can use this command targetting other guilds."));
+				}
+			}
+		}
+
 		[Group(nameof(ChangeGuildName)), Alias("cgn")]
 		[Usage("[Name]")]
 		[Summary("Change the name of the guild to the given name.")]

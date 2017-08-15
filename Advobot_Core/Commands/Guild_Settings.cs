@@ -11,59 +11,13 @@ using System.Threading.Tasks;
 using Advobot.NonSavedClasses;
 using Advobot.Enums;
 using Advobot.Attributes;
+using System.Reflection;
+using Advobot.Interfaces;
 
 namespace Advobot
 {
 	namespace GuildSettings
 	{
-		[Group(nameof(LeaveGuild))]
-		[Usage("<Guild ID>")]
-		[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
-		[OtherRequirement(Precondition.GuildOwner | Precondition.BotOwner)]
-		[DefaultEnabled(true)]
-		public sealed class LeaveGuild : MyModuleBase
-		{
-			[Command]
-			public async Task Command([Optional] ulong guildId)
-			{
-				await CommandRunner(guildId);
-			}
-
-			private async Task CommandRunner(ulong guildId)
-			{
-				if (guildId == 0)
-				{
-					await Context.Guild.LeaveAsync();
-					return;
-				}
-
-				//Need bot owner check so only the bot owner can make the bot leave servers they don't own
-				if (Context.User.Id == (await UserActions.GetBotOwner(Context.Client)).Id)
-				{
-					var guild = await GuildActions.GetGuild(Context.Client, guildId);
-					if (guild == null)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Invalid server supplied."));
-						return;
-					}
-
-					await guild.LeaveAsync();
-					if (Context.Guild.Id != guildId)
-					{
-						await MessageActions.SendChannelMessage(Context, String.Format("Successfully left the server `{0}` with an ID `{1}`.", guild.Name, guild.Id));
-					}
-				}
-				else if (Context.Guild.Id == guildId)
-				{
-					await Context.Guild.LeaveAsync();
-				}
-				else
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Only the bot owner can use this command targetting other guilds."));
-				}
-			}
-		}
-
 		[Group(nameof(ModifyGuildPrefix)), Alias("mgdp")]
 		[Usage("[New Prefix|Clear]")]
 		[Summary("Makes the bot use the given prefix in the guild.")]
@@ -93,6 +47,72 @@ namespace Advobot
 
 				Context.GuildSettings.Prefix = newPrefix;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set this guild's prefix to: `{0}`.", newPrefix));
+			}
+		}
+
+		[Group(nameof(DisplayGuildSettings)), Alias("dgds")]
+		[Usage("<All|Setting Name>")]
+		[Summary("Displays guild settings. Inputting nothing gives a list of the setting names.")]
+		[PermissionRequirement(null, null)]
+		[DefaultEnabled(true)]
+		public sealed class DisplayGuildSettings : MyModuleBase
+		{
+			[Command]
+			public async Task Command()
+			{
+				await CommandRunner();
+			}
+			[Command, Priority(0)]
+			public async Task Command(string setting)
+			{
+				await CommandRunner(false, setting);
+			}
+			//Need priority attribute or else it goes into the above overload.
+			[Command("all"), Priority(1)]
+			public async Task CommandAll()
+			{
+				await CommandRunner(true);
+			}
+
+			private async Task CommandRunner()
+			{
+				//Get all properties from IGuildSettings
+				var properties = typeof(IGuildSettings).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+				//Settings are only going to be ones that can be set to. All others are not settings.
+				var settings = properties.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic);
+				var settingNames = settings.Select(x => x.Name);
+
+				var desc = String.Format("`{0}`", String.Join("`, `", settingNames));
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
+			}
+			private async Task CommandRunner(bool all, string setting = null)
+			{
+				if (all)
+				{
+					var text = FormattingActions.FormatAllGuildSettings(Context.Guild, Context.GuildSettings);
+					await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "Guild Settings", "Guild Settings");
+					return;
+				}
+
+				var properties = typeof(IGuildSettings).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+				var settings = properties.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic);
+
+				var currentSetting = settings.FirstOrDefault(x => x.Name.CaseInsEquals(setting));
+				if (currentSetting == null)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Unable to find a setting with the supplied name."));
+					return;
+				}
+
+				var desc = FormattingActions.FormatGuildSettingInfo(Context.Guild as SocketGuild, Context.GuildSettings, currentSetting);
+				if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
+				{
+					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(currentSetting.Name, desc));
+				}
+				else
+				{
+					await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, desc, currentSetting.Name, currentSetting.Name);
+				}
 			}
 		}
 
@@ -126,88 +146,6 @@ namespace Advobot
 	[Name("GuildSettings")]
 	public class Advobot_Commands_Guild_Settings : ModuleBase
 	{
-
-
-		public async Task GuildPrefix([Remainder] string input)
-		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-			var globalPrefix = ((string)Variables.BotInfo.GetSetting(SettingOnBot.Prefix));
-
-			input = input.Trim().Replace("\n", "").Replace("\r", "");
-
-			if (input.Length > 25)
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Please do not try to make a prefix longer than 25 characters."));
-				return;
-			}
-			else if (Actions.CaseInsEquals(input, globalPrefix))
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That prefix is already the global prefix."));
-				return;
-			}
-			else if (Actions.CaseInsEquals(input, "clear"))
-			{
-				if (guildInfo.SetSetting(SettingOnGuild.Prefix, null))
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild's prefix.");
-				}
-				else
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Failed to clear the guild's prefix."));
-				}
-			}
-			else
-			{
-				if (guildInfo.SetSetting(SettingOnGuild.Prefix, input))
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set this guild's prefix to: `{0}`.", input));
-				}
-				else
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Failed to set the guild's prefix."));
-				}
-			}
-		}
-
-		[Command("displayguildsettings")]
-		[Alias("dgds")]
-		[Usage("<All|Setting Name>")]
-		[Summary("Displays guild settings. Inputting nothing gives a list of the setting names.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(true)]
-		public async Task GuildSettings([Optional, Remainder] string input)
-		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Guild Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingOnGuild))))));
-				return;
-			}
-
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 1));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var settingStr = returnedArgs.Arguments[0];
-
-			var guild = Context.Guild as SocketGuild;
-			if (Actions.CaseInsEquals(settingStr, "all"))
-			{
-				await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel, Actions.FormatAllSettings(guild, guildInfo), "Current_Guild_Settings");
-			}
-			else if (Enum.TryParse(settingStr, true, out SettingOnGuild setting))
-			{
-				var title = setting.EnumName();
-				var desc = Actions.FormatSettingInfo(guild, guildSettings, setting);
-				await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, desc));
-			}
-			else
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid setting."));
-			}
-		}
 
 		[Command("modifyguildfile")]
 		[Alias("mgdf")]

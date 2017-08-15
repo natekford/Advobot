@@ -26,7 +26,14 @@ namespace Advobot
 				}
 				if (description != null)
 				{
-					embed.WithDescription(description.Replace(Constants.BOT_PREFIX, prefix));
+					try
+					{
+						embed.WithDescription(description.Replace(Constants.BOT_PREFIX, prefix));
+					}
+					catch (Exception e)
+					{
+						ConsoleActions.ExceptionToConsole(e);
+					}
 				}
 				if (color != null)
 				{

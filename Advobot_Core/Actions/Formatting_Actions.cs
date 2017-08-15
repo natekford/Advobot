@@ -282,9 +282,13 @@ namespace Advobot
 			{
 				return FormatDateTime(dt?.UtcDateTime);
 			}
+			/// <summary>
+			/// Returns the current time in a year, month, day, hour, minute, second format. E.G: 20170815_053645
+			/// </summary>
+			/// <returns></returns>
 			public static string FormatDateTimeForSaving()
 			{
-				return DateTime.UtcNow.ToString("YYYY-MM-dd_HH-mm-ss");
+				return DateTime.UtcNow.ToString("yyyyMMdd_hhmmss");
 			}
 
 			public static string FormatGame(IUser user)
@@ -539,7 +543,7 @@ namespace Advobot
 			public static string FormatAllGuildSettings(IGuild guild, IGuildSettings guildSettings)
 			{
 				var str = "";
-				foreach (var property in guildSettings.GetType().GetProperties(BindingFlags.Public))
+				foreach (var property in guildSettings.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
 				{
 					//Only get public editable properties
 					if (property.GetGetMethod() != null && property.GetSetMethod() != null)
@@ -593,10 +597,21 @@ namespace Advobot
 
 					return ((ulong)value).ToString();
 				}
-				//Because strings are char[] this pointless else if has to be here so it doesn't go into the else if directly below
+				//Because strings are char[] this has to be here so it doesn't go into IEnumerable
 				else if (value is string)
 				{
 					return String.IsNullOrWhiteSpace(value.ToString()) ? "`Nothing`" : String.Format("`{0}`", value.ToString());
+				}
+				//Has to be above IEnumerable too
+				else if (value is System.Collections.IDictionary)
+				{
+					var dict = value as System.Collections.IDictionary;
+					//I can't tell if I'm retarded or working with the dictionary interface is just annoying as fuck
+					var settings = dict.Keys.Cast<object>().Where(x => dict[x] != null).Select(x =>
+					{
+						return String.Format("{0}: {1}", FormatGuildSettingInfo(guild, x), FormatGuildSettingInfo(guild, dict[x]));
+					});
+					return String.Join("\n", settings);
 				}
 				else if (value is System.Collections.IEnumerable)
 				{

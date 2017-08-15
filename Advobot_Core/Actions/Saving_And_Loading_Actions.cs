@@ -385,7 +385,7 @@ namespace Advobot
 				var crashLogPath = GetActions.GetBaseBotDirectoryFile(Constants.CRASH_LOG_LOCATION);
 				CreateFile(crashLogPath);
 				//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
-				using (var writer = File.AppendText(crashLogPath.FullName))
+				using (var writer = crashLogPath.AppendText())
 				{
 					writer.WriteLine(line);
 				}
