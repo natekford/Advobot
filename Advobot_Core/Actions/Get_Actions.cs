@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Advobot
 {
@@ -348,6 +349,16 @@ namespace Advobot
 			public static int GetMaxAmountOfUsersToGather(IBotSettings botSettings, bool bypass)
 			{
 				return bypass ? int.MaxValue : (int)botSettings.MaxUserGatherCount;
+			}
+
+			/// <summary>
+			/// Gets all public properties from IGuildSettings and then returns ones that have a set method.
+			/// </summary>
+			/// <returns></returns>
+			public static IEnumerable<PropertyInfo> GetGuildSettings()
+			{
+				var properties = typeof(IGuildSettings).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+				return properties.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic);
 			}
 		}
 	}

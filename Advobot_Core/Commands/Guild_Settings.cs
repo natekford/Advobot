@@ -76,11 +76,7 @@ namespace Advobot
 
 			private async Task CommandRunner()
 			{
-				//Get all properties from IGuildSettings
-				var properties = typeof(IGuildSettings).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-				//Settings are only going to be ones that can be set to. All others are not settings.
-				var settings = properties.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic);
-				var settingNames = settings.Select(x => x.Name);
+				var settingNames = GetActions.GetGuildSettings().Select(x => x.Name);
 
 				var desc = String.Format("`{0}`", String.Join("`, `", settingNames));
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
@@ -94,10 +90,7 @@ namespace Advobot
 					return;
 				}
 
-				var properties = typeof(IGuildSettings).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-				var settings = properties.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic);
-
-				var currentSetting = settings.FirstOrDefault(x => x.Name.CaseInsEquals(setting));
+				var currentSetting = GetActions.GetGuildSettings().FirstOrDefault(x => x.Name.CaseInsEquals(setting));
 				if (currentSetting == null)
 				{
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Unable to find a setting with the supplied name."));
@@ -114,6 +107,32 @@ namespace Advobot
 					await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, desc, currentSetting.Name, currentSetting.Name);
 				}
 			}
+		}
+
+		[Group(nameof(ModifyGuildFile)), Alias("mgdf")]
+		[Usage("[Reload|Resave|Reset]")]
+		[Summary("Reload, resave, or reset the guild's settings on the bot. (Mainly for debug purposes when the JSON is edited manually)")]
+		[OtherRequirement(Precondition.GuildOwner)]
+		[DefaultEnabled(true)]
+		public sealed class ModifyGuildFile : MyModuleBase
+		{
+			[Command("reload")]
+			public async Task CommandReload()
+			{
+				Context
+			}
+			[Command("remove")]
+			public async Task CommandRemove()
+			{
+
+			}
+			[Command("reset")]
+			public async Task CommandReset()
+			{
+
+			}
+
+
 		}
 
 		[Group(nameof(GetFile)), Alias("gf")]
@@ -147,12 +166,7 @@ namespace Advobot
 	public class Advobot_Commands_Guild_Settings : ModuleBase
 	{
 
-		[Command("modifyguildfile")]
-		[Alias("mgdf")]
-		[Usage("[Reload|Resave|Reset]")]
-		[Summary("Reload, resave, or reset the guild's settings on the bot. (Mainly for debug purposes when the JSON is edited manually)")]
-		[OtherRequirement(Precondition.GuildOwner)]
-		[DefaultEnabled(true)]
+
 		public async Task GuildReload([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
