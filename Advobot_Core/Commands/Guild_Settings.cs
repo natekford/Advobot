@@ -50,6 +50,71 @@ namespace Advobot
 			}
 		}
 
+		[Group(nameof(ModifyCommands)), Alias("modcom", "mcom")]
+		[Usage("[Enable|Disable] [Command Name|Category Name|All]")]
+		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `configurecommands` or `help`.")]
+		[PermissionRequirement(null, null)]
+		[DefaultEnabled(true)]
+		public sealed class ModifyCommands : MySavingModuleBase
+		{
+			[Group(nameof(ActionType.Enable)), Alias("e")]
+			public sealed class Enable : MySavingModuleBase
+			{
+				[Command, Priority(0)]
+				public async Task Command(string commandName)
+				{
+					await CommandRunner(false, commandName);
+				}
+				[Command]
+				public async Task Command(CommandCategory category)
+				{
+					await CommandRunner(category);
+				}
+				[Command("all"), Priority(1)]
+				public async Task CommandAll()
+				{
+					await CommandRunner(true);
+				}
+
+				private async Task CommandRunner(bool all, string commandName = null)
+				{
+
+				}
+				private async Task CommandRunner(CommandCategory category)
+				{
+
+				}
+			}
+			[Group(nameof(ActionType.Disable)), Alias("d")]
+			public sealed class Disable : MySavingModuleBase
+			{
+				[Command, Priority(0)]
+				public async Task Command()
+				{
+					await CommandRunner(false, commandName);
+				}
+				[Command]
+				public async Task Command(CommandCategory category)
+				{
+					await CommandRunner(category);
+				}
+				[Command("all"), Priority(1)]
+				public async Task CommandAll()
+				{
+					await CommandRunner(true);
+				}
+
+				private async Task CommandRunner(bool all, string commandName = null)
+				{
+
+				}
+				private async Task CommandRunner(CommandCategory category)
+				{
+
+				}
+			}
+		}
+
 		[Group(nameof(DisplayGuildSettings)), Alias("dgds")]
 		[Usage("<All|Setting Name>")]
 		[Summary("Displays guild settings. Inputting nothing gives a list of the setting names.")]
@@ -109,32 +174,6 @@ namespace Advobot
 			}
 		}
 
-		[Group(nameof(ModifyGuildFile)), Alias("mgdf")]
-		[Usage("[Reload|Resave|Reset]")]
-		[Summary("Reload, resave, or reset the guild's settings on the bot. (Mainly for debug purposes when the JSON is edited manually)")]
-		[OtherRequirement(Precondition.GuildOwner)]
-		[DefaultEnabled(true)]
-		public sealed class ModifyGuildFile : MyModuleBase
-		{
-			[Command("reload")]
-			public async Task CommandReload()
-			{
-				Context
-			}
-			[Command("remove")]
-			public async Task CommandRemove()
-			{
-
-			}
-			[Command("reset")]
-			public async Task CommandReset()
-			{
-
-			}
-
-
-		}
-
 		[Group(nameof(GetFile)), Alias("gf")]
 		[Usage("")]
 		[Summary("Sends the file containing all the guild's saved bot information.")]
@@ -167,49 +206,6 @@ namespace Advobot
 	{
 
 
-		public async Task GuildReload([Remainder] string input)
-		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 1));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var actionStr = returnedArgs.Arguments[0];
-
-			var guild = Context.Guild;
-			if (Actions.CaseInsEquals(actionStr, "reload"))
-			{
-				Variables.Guilds.Remove(guild.Id);
-				await Actions.CreateOrGetGuildInfo(guild);
-
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully reloaded the guild's bot information.");
-			}
-			else if (Actions.CaseInsEquals(actionStr, "resave"))
-			{
-				guildInfo.SaveInfo();
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully resaved the guild's bot information.");
-			}
-			else if (Actions.CaseInsEquals(actionStr, "reset"))
-			{
-				Variables.Guilds.Remove(guild.Id);
-
-				var path = Actions.GetServerFilePath(guild.Id, Constants.GUILD_INFO_LOCATION);
-				File.Delete(path);
-
-				await Actions.CreateOrGetGuildInfo(guild);
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset the guild's bot information.");
-			}
-		}
-
-		[Command("configurecommands")]
-		[Alias("concom", "cncm")]
-		[Usage("[Enable|Disable] [Command Name|Category Name|All]")]
-		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `configurecommands` or `help`.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(true)]
 		public async Task CommandConfig([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
