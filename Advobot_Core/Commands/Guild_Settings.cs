@@ -52,30 +52,14 @@ namespace Advobot
 				[Command("all"), Priority(1)]
 				public async Task CommandAll()
 				{
-					await CommandRunnerAll();
 				}
 				[Command, Priority(0)]
 				public async Task Command(string commandName)
 				{
-					await CommandRunner(commandName);
 				}
 				[Command]
 				public async Task Command(CommandCategory category)
 				{
-					await CommandRunner(category);
-				}
-
-				private async Task CommandRunnerAll()
-				{
-
-				}
-				private async Task CommandRunner(string commandName)
-				{
-
-				}
-				private async Task CommandRunner(CommandCategory category)
-				{
-
 				}
 			}
 			[Group(nameof(ActionType.Disable)), Alias("d")]
@@ -84,30 +68,14 @@ namespace Advobot
 				[Command("all"), Priority(1)]
 				public async Task CommandAll()
 				{
-					await CommandRunnerAll();
 				}
 				[Command, Priority(0)]
 				public async Task Command(string commandName)
 				{
-					await CommandRunner(commandName);
 				}
 				[Command]
 				public async Task Command(CommandCategory category)
 				{
-					await CommandRunner(category);
-				}
-
-				private async Task CommandRunnerAll()
-				{
-
-				}
-				private async Task CommandRunner(string commandName)
-				{
-
-				}
-				private async Task CommandRunner(CommandCategory category)
-				{
-
 				}
 			}
 		}
@@ -122,25 +90,11 @@ namespace Advobot
 			[Command("all"), Priority(1)]
 			public async Task CommandAll()
 			{
-				await CommandRunnerAll();
-			}
-			[Command, Priority(0)]
-			public async Task Command(string setting)
-			{
-				await CommandRunner(setting);
-			}
-			[Command]
-			public async Task Command()
-			{
-				await CommandRunner();
-			}
-
-			private async Task CommandRunnerAll()
-			{
 				var text = FormattingActions.FormatAllGuildSettings(Context.Guild, Context.GuildSettings);
 				await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "Guild Settings", "Guild Settings");
 			}
-			private async Task CommandRunner(string setting)
+			[Command, Priority(0)]
+			public async Task Command(string setting)
 			{
 				var currentSetting = GetActions.GetGuildSettings().FirstOrDefault(x => x.Name.CaseInsEquals(setting));
 				if (currentSetting == null)
@@ -159,7 +113,8 @@ namespace Advobot
 					await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, desc, currentSetting.Name, currentSetting.Name);
 				}
 			}
-			private async Task CommandRunner()
+			[Command]
+			public async Task Command()
 			{
 				var settingNames = GetActions.GetGuildSettings().Select(x => x.Name);
 
@@ -177,11 +132,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command()
-			{
-				await CommandRunner();
-			}
-
-			private async Task CommandRunner()
 			{
 				var file = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_SETTINGS_LOCATION);
 				if (!file.Exists)

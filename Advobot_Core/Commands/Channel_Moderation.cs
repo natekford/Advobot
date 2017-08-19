@@ -408,7 +408,7 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class ChangeChannelNSFW : MyModuleBase
 		{
-			[Command]
+			[BrokenCommand, Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeManaged)] ITextChannel channel)
 			{
 				const string nsfwPrefix = "nsfw-";

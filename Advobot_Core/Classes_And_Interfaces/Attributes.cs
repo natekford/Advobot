@@ -223,6 +223,19 @@ namespace Advobot
 			}
 		}
 
+		[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+		public class BrokenCommandAttribute : PreconditionAttribute
+		{
+			public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
+			{
+				if (context is MyCommandContext)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(context as MyCommandContext, "This command does not work.");
+				}
+				return PreconditionResult.FromError(Constants.IGNORE_ERROR);
+			}
+		}
+
 		[AttributeUsage(AttributeTargets.Class)]
 		public class DefaultEnabledAttribute : Attribute
 		{
