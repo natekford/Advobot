@@ -146,86 +146,82 @@ namespace Advobot
 		[Group(nameof(ChangeRolePerms)), Alias("crpe")]
 		[Usage("[Show|Allow|Deny] <Role> <Permission/...>")]
 		[Summary("Permissions must be separated by a `/`. Type `" + Constants.BOT_PREFIX + "rp [Show]` to see the available permissions. " +
-			"Type `" + Constants.BOT_PREFIX + "rp [Show] [Role]` to see the permissions of that role.")]
+			"Type `" + Constants.BOT_PREFIX + "rp [Show] [Role]` to see the permissions of that role. If you know the rawvalue of the perms you can say that instead.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 		[DefaultEnabled(true)]
 		public sealed class ChangeRolePerms : MyModuleBase
 		{
-			[Command(nameof(ActionType.Allow))]
-			public async Task CommandAllow([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, [Remainder] string uncutPermissions)
+			[Group(nameof(ActionType.Show)), Alias("s")]
+			public sealed class Show : MyModuleBase
 			{
-				await CommandRunner(ActionType.Allow, role, uncutPermissions);
-			}
-			[Command(nameof(ActionType.Deny))]
-			public async Task CommandDeny([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, [Remainder] string uncutPermissions)
-			{
-				await CommandRunner(ActionType.Deny, role, uncutPermissions);
-			}
-			[Command(nameof(ActionType.Show))]
-			public async Task CommandShow([Optional, VerifyRole(false, RoleVerification.CanBeEdited)] IRole role)
-			{
-				if (role == null)
+				[Command]
+				public async Task Command()
 				{
 					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Guild Permission Types", String.Format("`{0}`", String.Join("`, `", Constants.GUILD_PERMISSIONS.Select(x => x.Name)))));
-					return;
 				}
-
-				var currentRolePerms = Constants.GUILD_PERMISSIONS.Where(x => (role.Permissions.RawValue & x.Bit) != 0).Select(x => x.Name);
-				var permissions = currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(role.Name, String.Format("`{0}`", permissions)));
+				[Command]
+				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role)
+				{
+					var currentRolePerms = Constants.GUILD_PERMISSIONS.Where(x => (role.Permissions.RawValue & x.Bit) != 0).Select(x => x.Name);
+					var permissions = currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission";
+					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(role.Name, String.Format("`{0}`", permissions)));
+				}
 			}
-
-			private async Task CommandRunner(ActionType actionType, IRole role, string uncutPermissions)
+			[Group(nameof(ActionType.Allow)), Alias("a")]
+			public sealed class Allow : MyModuleBase
 			{
-				var permissions = uncutPermissions.Split('/', ' ').Select(x => x.Trim(',')).ToList();
-				var validPerms = permissions.Where(x => Constants.GUILD_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
-				var invalidPerms = permissions.Where(x => !Constants.GUILD_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
-				if (invalidPerms.Any())
+				[Command, Priority(0)]
+				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, [Remainder] string uncutPermissions)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.",
-						GetActions.GetPlural(invalidPerms.Count()),
-						String.Join("`, `", invalidPerms))));
-					return;
-				}
-
-				ulong changeValue = 0;
-				foreach (var permission in permissions)
-				{
-					changeValue = GuildActions.AddGuildPermissionBit(permission, changeValue);
-				}
-
-				//Only modify permissions the user has the ability to
-				changeValue &= (Context.User as IGuildUser).GuildPermissions.RawValue;
-
-				var actionStr = "";
-				var roleBits = role.Permissions.RawValue;
-				switch (actionType)
-				{
-					case ActionType.Allow:
+					if (!GetActions.GetValidGuildPermissionNamesFromInputString(uncutPermissions, out var validPerms, out var invalidPerms))
 					{
-						actionStr = "allowed";
-						roleBits |= changeValue;
-						break;
-					}
-					case ActionType.Deny:
-					{
-						actionStr = "denied";
-						roleBits &= ~changeValue;
-						break;
-					}
-					default:
-					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.",
+							GetActions.GetPlural(invalidPerms.Count()),
+							String.Join("`, `", invalidPerms))));
 						return;
 					}
+
+					var givenPerms = await RoleActions.ModifyRolePermissions(role, ActionType.Allow, validPerms, Context.User as IGuildUser);
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully allowed `{0}` for `{1}`.",
+						givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing",
+						role.FormatRole()));
 				}
+				[Command, Priority(1)]
+				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, uint rawValue)
+				{
+					var givenPerms = await RoleActions.ModifyRolePermissions(role, ActionType.Allow, rawValue, Context.User as IGuildUser);
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully allowed `{0}` for `{1}`.",
+						givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing",
+						role.FormatRole()));
+				}
+			}
+			[Group(nameof(ActionType.Deny)), Alias("d")]
+			public sealed class Deny : MyModuleBase
+			{
+				[Command, Priority(0)]
+				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, [Remainder] string uncutPermissions)
+				{
+					if (!GetActions.GetValidGuildPermissionNamesFromInputString(uncutPermissions, out var validPerms, out var invalidPerms))
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.",
+							GetActions.GetPlural(invalidPerms.Count()),
+							String.Join("`, `", invalidPerms))));
+						return;
+					}
 
-				await RoleActions.ModifyRolePermissions(role, roleBits, FormattingActions.FormatUserReason(Context.User));
-
-				var changedPerms = GetActions.GetPermissionNames(changeValue);
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} `{1}` for `{2}`.",
-					actionStr,
-					changedPerms.Any() ? String.Join("`, `", changedPerms) : "Nothing",
-					role.FormatRole()));
+					var givenPerms = await RoleActions.ModifyRolePermissions(role, ActionType.Deny, validPerms, Context.User as IGuildUser);
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully denied `{0}` for `{1}`.",
+						givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing",
+						role.FormatRole()));
+				}
+				[Command, Priority(1)]
+				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, uint rawValue)
+				{
+					var givenPerms = await RoleActions.ModifyRolePermissions(role, ActionType.Deny, rawValue, Context.User as IGuildUser);
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully denied `{0}` for `{1}`.",
+						givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing",
+						role.FormatRole()));
+				}
 			}
 		}
 
@@ -264,9 +260,9 @@ namespace Advobot
 
 				await RoleActions.ModifyRolePermissions(outputRole, newRoleBits, FormattingActions.FormatUserReason(Context.User));
 
-				var immovablePerms = GetActions.GetPermissionNames(immovableBits);
-				var failedToCopy = GetActions.GetPermissionNames(inputRoleBits & ~copyBits);
-				var newPerms = GetActions.GetPermissionNames(newRoleBits);
+				var immovablePerms = GetActions.GetGuildPermissionNames(immovableBits);
+				var failedToCopy = GetActions.GetGuildPermissionNames(inputRoleBits & ~copyBits);
+				var newPerms = GetActions.GetGuildPermissionNames(newRoleBits);
 				var immovablePermsStr = immovablePerms.Any() ? "Output role had some permissions unable to be removed by you." : null;
 				var failedToCopyStr = failedToCopy.Any() ? "Input role had some permission unable to be copied by you." : null;
 				var newPermsStr = String.Format("`{0}` now has the following permissions: `{1}`.", outputRole.FormatRole(), newPerms.Any() ? String.Join("`, `", newPerms) : "Nothing");
@@ -292,7 +288,7 @@ namespace Advobot
 
 				await RoleActions.ModifyRolePermissions(role, immovableBits, FormattingActions.FormatUserReason(Context.User));
 
-				var immovablePerms = GetActions.GetPermissionNames(immovableBits);
+				var immovablePerms = GetActions.GetGuildPermissionNames(immovableBits);
 				var immovablePermsStr = immovablePerms.Any() ? "Role had some permissions unable to be cleared by you." : null;
 				var newPermsStr = String.Format("`{0}` now has the following permissions: `{1}`.", role.FormatRole(), immovablePerms.Any() ? String.Join("`, `", immovablePerms) : "Nothing");
 

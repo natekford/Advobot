@@ -128,6 +128,44 @@ namespace Advobot
 				}
 			}
 
+			public static async Task<IEnumerable<string>> ModifyRolePermissions(IRole role, ActionType actionType, IEnumerable<string> permissions, IGuildUser user)
+			{
+				ulong changeValue = 0;
+				foreach (var permission in permissions)
+				{
+					changeValue = GuildActions.AddGuildPermissionBit(permission, changeValue);
+				}
+
+				return await ModifyRolePermissions(role, actionType, changeValue, user);
+			}
+			public static async Task<IEnumerable<string>> ModifyRolePermissions(IRole role, ActionType actionType, ulong changeValue, IGuildUser user)
+			{
+				//Only modify permissions the user has the ability to
+				changeValue &= user.GuildPermissions.RawValue;
+
+				var roleBits = role.Permissions.RawValue;
+				switch (actionType)
+				{
+					case ActionType.Allow:
+					{
+						roleBits |= changeValue;
+						break;
+					}
+					case ActionType.Deny:
+					{
+						roleBits &= ~changeValue;
+						break;
+					}
+					default:
+					{
+						throw new ArgumentException("Invalid ActionType provided.");
+					}
+				}
+
+				await ModifyRolePermissions(role, roleBits, FormattingActions.FormatUserReason(user));
+				return GetActions.GetGuildPermissionNames(changeValue);
+			}
+
 			public static async Task<int> ModifyRolePosition(IRole role, int position, string reason)
 			{
 				if (role == null)

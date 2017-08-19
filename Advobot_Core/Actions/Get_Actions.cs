@@ -102,7 +102,7 @@ namespace Advobot
 				}
 				return dictionary;
 			}
-			public static List<string> GetPermissionNames(ulong flags)
+			public static List<string> GetGuildPermissionNames(ulong flags)
 			{
 				var result = new List<string>();
 				for (int i = 0; i < 64; ++i)
@@ -122,6 +122,41 @@ namespace Advobot
 					result.Add(name);
 				}
 				return result;
+			}
+			public static List<string> GetChannelPermissionNames(ulong flags)
+			{
+				var result = new List<string>();
+				for (int i = 0; i < 64; ++i)
+				{
+					var bit = 1U << i;
+					if ((flags & bit) == 0)
+					{
+						continue;
+					}
+
+					var name = Constants.CHANNEL_PERMISSIONS.FirstOrDefault(x => x.Bit == bit).Name;
+					if (String.IsNullOrWhiteSpace(name))
+					{
+						continue;
+					}
+
+					result.Add(name);
+				}
+				return result;
+			}
+			public static bool GetValidGuildPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
+			{
+				var permissions = input.Split('/', ' ').Select(x => x.Trim(',')).ToList();
+				validPerms = permissions.Where(x => Constants.GUILD_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
+				invalidPerms = permissions.Where(x => !Constants.GUILD_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
+				return !invalidPerms.Any();
+			}
+			public static bool GetValidChannelPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
+			{
+				var permissions = input.Split('/', ' ').Select(x => x.Trim(',')).ToList();
+				validPerms = permissions.Where(x => Constants.CHANNEL_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
+				invalidPerms = permissions.Where(x => !Constants.CHANNEL_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
+				return !invalidPerms.Any();
 			}
 
 			/// <summary>

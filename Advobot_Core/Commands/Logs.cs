@@ -101,6 +101,15 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public sealed class ModifyLogActions : MySavingModuleBase
 		{
+			private static readonly LogAction[] _DefaultLogActions = new[] 
+			{
+				LogAction.UserJoined,
+				LogAction.UserLeft,
+				LogAction.MessageReceived,
+				LogAction.MessageUpdated,
+				LogAction.MessageDeleted,
+			};
+
 			[Group(nameof(ActionType.Show)), Alias("s")]
 			public sealed class ShowActions : MyModuleBase
 			{
@@ -118,7 +127,7 @@ namespace Advobot
 				[Command]
 				public async Task Command()
 				{
-					Context.GuildSettings.LogActions = Constants.DEFAULT_LOG_ACTIONS.ToList();
+					Context.GuildSettings.LogActions = _DefaultLogActions.ToList();
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the log actions to the default ones.");
 				}
 			}

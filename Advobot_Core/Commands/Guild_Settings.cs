@@ -13,6 +13,7 @@ using Advobot.Enums;
 using Advobot.Attributes;
 using System.Reflection;
 using Advobot.Interfaces;
+using Advobot.SavedClasses;
 
 namespace Advobot
 {
@@ -41,25 +42,54 @@ namespace Advobot
 
 		[Group(nameof(ModifyCommands)), Alias("modcom", "mcom")]
 		[Usage("[Enable|Disable] [Command Name|Category Name|All]")]
-		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `configurecommands` or `help`.")]
+		[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `" + nameof(ModifyCommands) + "` or `" + nameof(Miscellaneous.Help) + "`.")]
 		[PermissionRequirement(null, null)]
 		[DefaultEnabled(true)]
 		public sealed class ModifyCommands : MySavingModuleBase
 		{
+			private static readonly string[] _CommandsUnableToBeTurnedOff = new[] { nameof(ModifyCommands), nameof(Miscellaneous.Help) };
+
 			[Group(nameof(ActionType.Enable)), Alias("e")]
 			public sealed class Enable : MySavingModuleBase
 			{
 				[Command("all"), Priority(1)]
 				public async Task CommandAll()
 				{
+					//Only grab commands that are already disabled and are able to be changed.
+					var commands = Context.GuildSettings.CommandSwitches.Where(x => !x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name));
+					foreach (var command in commands)
+					{
+						command.ToggleEnabled();
+					}
+					await MessageActions.SendChannelMessage(Context, String.Format("Successfully enabled the following commands: `{0}`.", String.Join("`, `", commands.Select(x => x.Name))));
 				}
 				[Command, Priority(0)]
-				public async Task Command(string commandName)
+				public async Task Command(CommandSwitch command)
 				{
+					if (command.Value)
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("This command is already enabled."));
+						return;
+					}
+					else if (_CommandsUnableToBeTurnedOff.CaseInsContains(command.Name))
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Please don't try to edit that command."));
+						return;
+					}
+
+					command.ToggleEnabled();
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled `{0}`.", command.Name));
 				}
 				[Command]
 				public async Task Command(CommandCategory category)
 				{
+					//Only grab commands that are already disabled and in the same category and are able to be changed.
+					var commands = Context.GuildSettings.CommandSwitches.Where(x => !x.Value && x.Category == category && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name));
+					foreach (var command in commands)
+					{
+						command.ToggleEnabled();
+					}
+					await MessageActions.SendChannelMessage(Context, String.Format("Successfully enabled the following commands: `{0}`.", String.Join("`, `", commands.Select(x => x.Name))));
 				}
 			}
 			[Group(nameof(ActionType.Disable)), Alias("d")]
@@ -68,14 +98,175 @@ namespace Advobot
 				[Command("all"), Priority(1)]
 				public async Task CommandAll()
 				{
+					//Only grab commands that are already enabled and are able to be changed.
+					var commands = Context.GuildSettings.CommandSwitches.Where(x => x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name));
+					foreach (var command in commands)
+					{
+						command.ToggleEnabled();
+					}
+					await MessageActions.SendChannelMessage(Context, String.Format("Successfully disabled the following commands: `{0}`.", String.Join("`, `", commands.Select(x => x.Name))));
 				}
 				[Command, Priority(0)]
-				public async Task Command(string commandName)
+				public async Task Command(CommandSwitch command)
 				{
+					 if (!command.Value)
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("This command is already disabled."));
+						return;
+					}
+					else if (_CommandsUnableToBeTurnedOff.CaseInsContains(command.Name))
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Please don't try to edit that command."));
+						return;
+					}
+
+					command.ToggleEnabled();
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully disabled `{0}`.", command.Name));
 				}
 				[Command]
 				public async Task Command(CommandCategory category)
 				{
+					//Only grab commands that are already enabled and in the same category and are able to be changed.
+					var commands = Context.GuildSettings.CommandSwitches.Where(x => x.Value && x.Category == category && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name));
+					foreach (var command in commands)
+					{
+						command.ToggleEnabled();
+					}
+					await MessageActions.SendChannelMessage(Context, String.Format("Successfully disabled the following commands: `{0}`.", String.Join("`, `", commands.Select(x => x.Name))));
+				}
+			}
+		}
+
+		[Group(nameof(ModifyIgnoredCommandChannels)), Alias("micc")]
+		[Usage("[Add|Remove] [Channel] <Command Name|Category Name>")]
+		[Summary("The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.")]
+		[PermissionRequirement(null, null)]
+		[DefaultEnabled(false)]
+		public sealed class ModifyIgnoredCommandChannels : MySavingModuleBase
+		{
+			private static readonly string[] _CommandsUnableToBeTurnedOff = new[] { nameof(ModifyIgnoredCommandChannels), nameof(Miscellaneous.Help) };
+
+			[Group(nameof(ActionType.Add)), Alias("a")]
+			public sealed class Add : MySavingModuleBase
+			{
+				[Command]
+				public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel)
+				{
+					if (Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` is already ignoring commands.", channel.FormatChannel()));
+						return;
+					}
+
+					Context.GuildSettings.IgnoredCommandChannels.Add(channel.Id);
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added `{0}` to the ignored command channels list.", channel.FormatChannel()));
+				}
+				[Command]
+				public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandSwitch command)
+				{
+					//First remove every command override on that channel for that specific command (so whenever this command is used it forces an update on the status of the list, never have duplicates)
+					Context.GuildSettings.CommandsDisabledOnChannel.RemoveAll(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
+					Context.GuildSettings.CommandsDisabledOnChannel.Add(new CommandOverride(command.Name, channel.Id));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully started ignoring the command `{0}` on `{1}`.", command.Name, channel.FormatChannel()));
+				}
+				[Command]
+				public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
+				{
+					var commands = Context.GuildSettings.CommandSwitches.Where(x => x.Category == category);
+					foreach (var command in commands)
+					{
+						Context.GuildSettings.CommandsDisabledOnChannel.RemoveAll(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
+						Context.GuildSettings.CommandsDisabledOnChannel.Add(new CommandOverride(command.Name, channel.Id));
+					}
+
+					var cmdNames = String.Join("`, `", commands.Select(x => x.Name));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully started ignoring the following commands on `{0}`: `{1}`.", channel.FormatChannel(), cmdNames));
+				}
+			}
+			[Group(nameof(ActionType.Remove)), Alias("r")]
+			public sealed class Remove : MySavingModuleBase
+			{
+				[Command]
+				public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel)
+				{
+					if (!Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` is already allowing commands.", channel.FormatChannel()));
+						return;
+					}
+
+					Context.GuildSettings.IgnoredCommandChannels.RemoveAll(x => x == channel.Id);
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the ignored command channels list.", channel.FormatChannel()));
+				}
+				[Command]
+				public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandSwitch command)
+				{
+					//First remove every command override on that channel for that specific command (so whenever this command is used it forces an update on the status of the list, never have duplicates)
+					Context.GuildSettings.CommandsDisabledOnChannel.RemoveAll(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully stopped ignoring the command `{0}` on `{1}`.", command.Name, channel.FormatChannel()));
+				}
+				[Command]
+				public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
+				{
+					var commands = Context.GuildSettings.CommandSwitches.Where(x => x.Category == category);
+					foreach (var command in commands)
+					{
+						Context.GuildSettings.CommandsDisabledOnChannel.RemoveAll(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
+					}
+
+					var cmdNames = String.Join("`, `", commands.Select(x => x.Name));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully stopped ignoring the following commands on `{0}`: `{1}`.", channel.FormatChannel(), cmdNames));
+				}
+			}
+		}
+
+		[Group(nameof(ModifyBotUsers)), Alias("mbu")]
+		[Usage("[Show|Add|Remove] <User> <Permission/...>")]
+		[Summary("Gives a user permissions in the bot but not on Discord itself. Type `" + Constants.BOT_PREFIX + "mbu [Show]` to see the available permissions. " +
+			"Type `" + Constants.BOT_PREFIX + "mbu [Show] [User]` to see the permissions of that user.")]
+		[PermissionRequirement(null, null)]
+		[DefaultEnabled(false)]
+		public sealed class ModifyBotUsers : MySavingModuleBase
+		{
+			[Group(nameof(ActionType.Show)), Alias("s")]
+			public sealed class Show : MyModuleBase
+			{
+				[Command]
+				public async Task Command()
+				{
+					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Permission Types", String.Format("`{0}`", String.Join("`, `", Constants.GUILD_PERMISSIONS.Select(x => x.Name)))));
+				}
+				[Command]
+				public async Task Command(IUser user)
+				{
+					var botUser = Context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id);
+					if (botUser == null || botUser.Permissions == 0)
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("That user has no extra permissions from the bot."));
+						return;
+					}
+
+					var desc = String.Format("`{0}`", String.Join("`, `", GetActions.GetGuildPermissionNames(botUser.Permissions)));
+					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(String.Format("Permissions for {0}", user.FormatUser()), desc));
+				}
+			}
+			[Group(nameof(ActionType.Add)), Alias("a")]
+			public sealed class Add : MySavingModuleBase
+			{
+				[Command]
+				public async Task Command(IUser user, [Remainder] string uncutPermissions)
+				{
+
+				}
+
+			}
+			[Group(nameof(ActionType.Remove)), Alias("r")]
+			public sealed class Remove : MySavingModuleBase
+			{
+				[Command]
+				public async Task Command(IUser user, [Remainder] string uncutPermissions)
+				{
+
 				}
 			}
 		}
@@ -148,268 +339,6 @@ namespace Advobot
 	[Name("GuildSettings")]
 	public class Advobot_Commands_Guild_Settings : ModuleBase
 	{
-
-
-		public async Task CommandConfig([Remainder] string input)
-		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var actionStr = returnedArgs.Arguments[0];
-			var cmdStr = returnedArgs.Arguments[1];
-
-			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Enable, ActionType.Disable });
-			if (returnedType.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedType);
-				return;
-			}
-			var action = returnedType.Object;
-
-			//Check if all
-			var allBool = false;
-			if (Actions.CaseInsEquals(cmdStr, "all"))
-			{
-				allBool = true;
-			}
-
-			var command = Actions.GetCommand(guildInfo, cmdStr);
-			var commands = new List<CommandSwitch>();
-			if (allBool)
-			{
-				commands = ((List<CommandSwitch>)guildInfo.GetSetting(SettingOnGuild.CommandSwitches));
-			}
-			else if (command == null)
-			{
-				if (Enum.TryParse(cmdStr, true, out CommandCategory cmdCat))
-				{
-					commands = Actions.GetMultipleCommands(guildInfo, cmdCat);
-				}
-				else
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("No command or category has that name."));
-					return;
-				}
-			}
-
-			switch (action)
-			{
-				case ActionType.Enable:
-				{
-					if (command != null && command.ValAsBoolean)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This command is already enabled."));
-						return;
-					}
-					break;
-				}
-				case ActionType.Disable:
-				{
-					if (command != null && !command.ValAsBoolean)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This command is already disabled."));
-						return;
-					}
-					break;
-				}
-			}
-
-			//Add the command to the category list for simpler usage later
-			if (command != null)
-			{
-				commands.Add(command);
-			}
-			//Find the commands that shouldn't be turned off
-			var unableToBeRemoved = new List<CommandSwitch>();
-			commands.ForEach(cmd =>
-			{
-				if (Constants.COMMANDS_UNABLE_TO_BE_TURNED_OFF.CaseInsContains(cmd.Name))
-				{
-					unableToBeRemoved.Add(cmd);
-				}
-			});
-			commands = commands.Except(unableToBeRemoved).ToList();
-
-			if (commands.Count < 1)
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Please don't try to edit that command."));
-				return;
-			}
-
-			var pastTense = "";
-			var presentTense = "";
-			switch (action)
-			{
-				case ActionType.Enable:
-				{
-					commands.ForEach(x => x.Enable());
-					pastTense = "enabled";
-					presentTense = "enable";
-					break;
-				}
-				case ActionType.Disable:
-				{
-					commands.ForEach(x => x.Disable());
-					pastTense = "disabled";
-					presentTense = "disable";
-					break;
-				}
-			}
-
-			guildInfo.SaveInfo();
-			await MessageActions.SendChannelMessage(Context, Actions.FormatResponseMessagesForCmdsOnLotsOfObjects(commands.Select(x => x.Name), unableToBeRemoved.Select(x => x.Name), "command", pastTense, presentTense));
-		}
-
-		[Command("modifyignoredcommandchannels")]
-		[Alias("micc")]
-		[Usage("[Add|Remove] [Channel] <Command Name|Category Name>")]
-		[Summary("The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
-		public async Task CommandIgnore([Remainder] string input)
-		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-
-			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var actionStr = returnedArgs.Arguments[0];
-			var chanStr = returnedArgs.Arguments[1];
-			var cmdStr = returnedArgs.Arguments[2];
-
-			//Get the channel
-			var returnedChannel = Actions.GetChannel(Context, new[] { ObjectVerification.CanModifyPermissions }, true, chanStr);
-			if (returnedChannel.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedChannel);
-				return;
-			}
-			var channel = returnedChannel.Object;
-
-			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedType);
-				return;
-			}
-			var action = returnedType.Object;
-			var add = action == ActionType.Add;
-
-			//Get the lists the bot will use for this command
-			var ignoredCmdChannels = ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.IgnoredCommandChannels));
-			var ignoredCmdsOnChans = ((List<CommandOverride>)guildInfo.GetSetting(SettingOnGuild.CommandsDisabledOnChannel));
-			if (!String.IsNullOrWhiteSpace(cmdStr))
-			{
-				var cmd = Variables.CommandNames.FirstOrDefault(x => Actions.CaseInsEquals(x, cmdStr));
-				var catCmds = Enum.TryParse(cmdStr, true, out CommandCategory cat) ? Variables.HelpList.Where(x => x.Category == cat).ToList() : null;
-				if (cmd == null && catCmds == null)
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("The given input `{0}` is not a valid command or category.", cmdStr));
-					return;
-				}
-
-				if (cmd != null)
-				{
-					if (add)
-					{
-						if (ignoredCmdsOnChans.Any(x => x.Name == cmd && x.ID == channel.Id))
-						{
-							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This command is already ignored on this channel."));
-							return;
-						}
-						ignoredCmdsOnChans.Add(new CommandOverride(cmd, channel.Id, false));
-					}
-					else
-					{
-						var amtRemoved = ignoredCmdsOnChans.RemoveAll(x => x.Name == cmd && x.ID == channel.Id);
-						if (amtRemoved == 0)
-						{
-							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This command is already not ignored on this channel."));
-							return;
-						}
-					}
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context,
-						String.Format("Successfully {0} the command `{1}` in `{2}`.", add ? "disabled" : "enabled", cmd, channel.FormatChannel()));
-				}
-				else if (catCmds != null)
-				{
-					if (add)
-					{
-						catCmds.ForEach(x =>
-						{
-							if (!ignoredCmdsOnChans.Any(y => y.Name == x.Name && y.ID == channel.Id))
-							{
-								ignoredCmdsOnChans.Add(new CommandOverride(x.Name, channel.Id, false));
-							}
-						});
-					}
-					else
-					{
-						catCmds.ForEach(x =>
-						{
-							ignoredCmdsOnChans.RemoveAll(y => y.Name == cmd && y.ID == channel.Id);
-						});
-					}
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context,
-						String.Format("Successfully {0} the category `{1}` in `{2}`.", add ? "disabled" : "enabled", cat.EnumName(), channel.FormatChannel()));
-				}
-
-				guildInfo.SaveInfo();
-			}
-			else
-			{
-				//Add or remove
-				if (add)
-				{
-					if (ignoredCmdChannels.Contains(channel.Id))
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This channel is already ignored for commands."));
-						return;
-					}
-					ignoredCmdChannels.Add(channel.Id);
-				}
-				else
-				{
-					if (!ignoredCmdChannels.Contains(channel.Id))
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("This channel is already not ignored for commands."));
-						return;
-					}
-					ignoredCmdChannels.Remove(channel.Id);
-				}
-				ignoredCmdChannels = ignoredCmdChannels.Distinct().ToList();
-
-				var outputStr = "";
-				if (add)
-				{
-					outputStr = String.Format("Successfully added the channel `{0}` to the command ignore list.", channel.FormatChannel());
-				}
-				else
-				{
-					outputStr = String.Format("Successfully removed the channel `{0}` from the command ignore list.", channel.FormatChannel());
-				}
-
-				guildInfo.SaveInfo();
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, outputStr);
-			}
-		}
-
-		[Command("modifybotusers")]
-		[Alias("mbu")]
-		[Usage("[Show|Add|Remove] [User] [Permission/...]")]
-		[Summary("Gives a user permissions in the bot but not on Discord itself. Type `" + Constants.BOT_PREFIX + "mbu [Show]` to see the available permissions. " +
-			"Type `" + Constants.BOT_PREFIX + "mbu [Show] [User]` to see the permissions of that user.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
 		public async Task BotUsersModify([Optional, Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);

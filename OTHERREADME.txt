@@ -18,3 +18,8 @@ To get some of the better parts out there:
 	ILogModule can be removed completely and only gives six easy to comment out errors.
 	ITimersModule shouldn't be too hard to code out (just null check a lot of places).
 	IInviteListModule will be easy to replace when I get around to creating it.
+
+TODO:
+	Command cooldowns maybe?
+	Scheduled messages.
+	Rules commands.

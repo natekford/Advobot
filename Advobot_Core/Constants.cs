@@ -52,7 +52,7 @@ namespace Advobot
 		public const int MAX_FIELD_VALUE_LENGTH = 1024;
 
 		//Static readonly because they may change and I've heard using const means any assembly referencing it has to be recompiled each time the value gets manually changed.
-		public static readonly string BOT_VERSION = "0.11.0";
+		public static readonly string BOT_VERSION = "0.IDontRemember.73";
 		public static readonly string API_VERSION = "Discord.Net v1.0.2-build-00800";
 		public static readonly string PROGRAM_NAME = "Advobot";
 		public static readonly string IGNORE_ERROR = "Cx";
@@ -115,12 +115,6 @@ namespace Advobot
 			".gif",
 			".gifv",
 		}));
-		private static ReadOnlyCollection<string> _COMMANDS_UNABLE_TO_BE_TURNED_OFF;
-		public static ReadOnlyCollection<string> COMMANDS_UNABLE_TO_BE_TURNED_OFF => _COMMANDS_UNABLE_TO_BE_TURNED_OFF ?? (_COMMANDS_UNABLE_TO_BE_TURNED_OFF = new ReadOnlyCollection<string>(new List<string>
-		{
-			"configurecommands",
-			"help",
-		}));
 		private static ReadOnlyCollection<string> _TEST_PHRASES;
 		public static ReadOnlyCollection<string> TEST_PHRASES => _TEST_PHRASES ?? (_TEST_PHRASES = new ReadOnlyCollection<string>(new List<string>
 		{
@@ -128,15 +122,6 @@ namespace Advobot
 			"Ϯ3|",
 			"⁊a~",
 			"[&r",
-		}));
-		private static ReadOnlyCollection<LogAction> _DEFAULT_LOG_ACTIONS;
-		public static ReadOnlyCollection<LogAction> DEFAULT_LOG_ACTIONS => _DEFAULT_LOG_ACTIONS ?? (_DEFAULT_LOG_ACTIONS = new ReadOnlyCollection<LogAction>(new List<LogAction>
-		{
-			LogAction.UserJoined,
-			LogAction.UserLeft,
-			LogAction.MessageReceived,
-			LogAction.MessageUpdated,
-			LogAction.MessageDeleted,
 		}));
 		private static ReadOnlyCollection<HelpEntry> _HELP_ENTRIES;
 		public static ReadOnlyCollection<HelpEntry> HELP_ENTRIES => _HELP_ENTRIES ?? (_HELP_ENTRIES = new ReadOnlyCollection<HelpEntry>(SavingAndLoadingActions.LoadHelpList()));

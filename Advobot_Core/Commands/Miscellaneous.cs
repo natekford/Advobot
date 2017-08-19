@@ -564,16 +564,29 @@ namespace Advobot
 		}
 
 		[Group(nameof(GetPermNamesFromValue)), Alias("getperms")]
-		[Usage("[Number]")]
+		[Usage("[Guild|Channel] [Number]")]
 		[Summary("Lists all the perms that come from the given value.")]
 		[OtherRequirement(Precondition.UserHasAPerm)]
 		[DefaultEnabled(true)]
 		public sealed class GetPermNamesFromValue : MyModuleBase
 		{
-			[Command]
-			public async Task Command(ulong permNum)
+			[Command(nameof(Target.Guild))]
+			public async Task CommandGuild(ulong permNum)
 			{
-				var perms = GetActions.GetPermissionNames(permNum);
+				var perms = GetActions.GetGuildPermissionNames(permNum);
+				if (!perms.Any())
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The given number holds no permissions."));
+				}
+				else
+				{
+					await MessageActions.SendChannelMessage(Context.Channel, String.Format("The number `{0}` has the following permissions: `{1}`.", permNum, String.Join("`, `", perms)));
+				}
+			}
+			[Command(nameof(Target.Channel))]
+			public async Task CommandChannel(ulong permNum)
+			{
+				var perms = GetActions.GetChannelPermissionNames(permNum);
 				if (!perms.Any())
 				{
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The given number holds no permissions."));

@@ -71,11 +71,11 @@ namespace Advobot
 
 			public string AllText
 			{
-				get { return String.Join(" & ", GetActions.GetPermissionNames(_AllFlags)); }
+				get { return String.Join(" & ", GetActions.GetGuildPermissionNames(_AllFlags)); }
 			}
 			public string AnyText
 			{
-				get { return String.Join(" | ", GetActions.GetPermissionNames(_AnyFlags)); }
+				get { return String.Join(" | ", GetActions.GetGuildPermissionNames(_AnyFlags)); }
 			}
 		}
 
@@ -193,49 +193,48 @@ namespace Advobot
 					return false;
 				}
 
-				/* If user is set, use user setting
-				 * Else if any roles are set, use the highest role setting
-				 * Else if channel is set, use channel setting
-				 */
+				//If any of user/role/channel are set that means they are ignored (unignored things will not be set)
 
 				var userOverrides = context.GuildSettings.CommandsDisabledOnUser;
 				var userOverride = userOverrides.FirstOrDefault(x => x.Id == context.User.Id && cmd.Name.CaseInsEquals(x.Name));
 				if (userOverride != null)
 				{
-					return userOverride.Enabled;
+					return false;
 				}
 
 				var roleOverrides = context.GuildSettings.CommandsDisabledOnRole;
 				var roleOverride = roleOverrides.Where(x => user.RoleIds.Contains(x.Id) && cmd.Name.CaseInsEquals(x.Name)).OrderBy(x => context.Guild.GetRole(x.Id).Position).LastOrDefault();
 				if (roleOverride != null)
 				{
-					return roleOverride.Enabled;
+					return false;
 				}
 
 				var channelOverrides = context.GuildSettings.CommandsDisabledOnChannel;
 				var channelOverride = channelOverrides.FirstOrDefault(x => x.Id == context.Channel.Id && cmd.Name.CaseInsEquals(x.Name));
 				if (channelOverride != null)
 				{
-					return channelOverride.Enabled;
+					return false;
 				}
 
 				return true;
 			}
 		}
 
+		/// <summary>
+		/// Specifies a command is broken. Will provide an error each time a user tries to invoke the command.
+		/// </summary>
 		[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 		public class BrokenCommandAttribute : PreconditionAttribute
 		{
-			public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
+			public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
 			{
-				if (context is MyCommandContext)
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(context as MyCommandContext, "This command does not work.");
-				}
-				return PreconditionResult.FromError(Constants.IGNORE_ERROR);
+				return Task.FromResult(PreconditionResult.FromError("This command does not work."));
 			}
 		}
 
+		/// <summary>
+		/// Specified the default value for whether a command is enabled or not.
+		/// </summary>
 		[AttributeUsage(AttributeTargets.Class)]
 		public class DefaultEnabledAttribute : Attribute
 		{
@@ -247,6 +246,9 @@ namespace Advobot
 			}
 		}
 
+		/// <summary>
+		/// Describes what arguments to invoke the command with.
+		/// </summary>
 		[AttributeUsage(AttributeTargets.Class)]
 		public class UsageAttribute : Attribute
 		{

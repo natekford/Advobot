@@ -544,24 +544,16 @@ namespace Advobot
 			public string Name { get; }
 			[JsonProperty]
 			public ulong Id { get; }
-			[JsonProperty]
-			public bool Enabled { get; private set; }
 
-			public CommandOverride(string name, ulong id, bool enabled)
+			public CommandOverride(string name, ulong id)
 			{
 				Name = name;
 				Id = id;
-				Enabled = enabled;
-			}
-
-			public void ToggleEnabled()
-			{
-				Enabled = !Enabled;
 			}
 
 			public override string ToString()
 			{
-				return String.Format("**Command:** `{0}`\n**ID:** `{1}`\n**Enabled:** `{2}`", Name, Id, Enabled);
+				return String.Format("**Command:** `{0}`\n**ID:** `{1}`", Name, Id);
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -1163,9 +1155,11 @@ namespace Advobot
 
 	namespace NonSavedClasses
 	{
+		/// <summary>
+		/// Same as MyModuleBase except saves guild settings afterwards.
+		/// </summary>
 		public class MySavingModuleBase : MyModuleBase
 		{
-			//Same as MyModuleBase except saves guild settings afterwards.
 			protected override void AfterExecute(CommandInfo command)
 			{
 				Context.GuildSettings.SaveSettings();
@@ -1173,10 +1167,12 @@ namespace Advobot
 			}
 		}
 
+		/// <summary>
+		/// Shorter way to write ModuleBase<MyCommandContext> and also has every command go through the command requirements attribute first.
+		/// </summary>
 		[CommandRequirements]
 		public class MyModuleBase : ModuleBase<MyCommandContext>
 		{
-			//Shorter way to write ModuleBase<MyCommandContext> and also has every command go through the command requirements attribute first.
 		}
 
 		public class MyCommandContext : CommandContext, IMyCommandContext

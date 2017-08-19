@@ -6,6 +6,7 @@ using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Advobot
 {
@@ -153,6 +154,54 @@ namespace Advobot
 						return true;
 					}
 				}
+			}
+
+			public static string GetFormattedPermsFromOverwrite<T>(IGuildChannel channel, T overwriteObj) where T : ISnowflakeEntity
+			{
+				var perms = GetActions.GetFilteredChannelOverwritePermissions(channel.PermissionOverwrites.FirstOrDefault(x => overwriteObj.Id == x.TargetId), channel);
+				var maxLen = perms.Keys.Max(x => x.Length);
+				return String.Join("\n", perms.Select(x => String.Format("{0} {1}", x.Key.PadRight(maxLen), x.Value)));
+			}
+			public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, IEnumerable<string> permissions, IGuildUser user)
+			{
+				//Put all the bit values to change into one
+				ulong changeValue = 0;
+				foreach (var permission in permissions)
+				{
+					changeValue = AddChannelPermissionBit(permission, changeValue);
+				}
+
+				return await ModifyOverwritePermissions(channel, discordObject, actionType, changeValue, user);
+			}
+			public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, ulong changeValue, IGuildUser user)
+			{
+				ulong allowBits = GetOverwriteAllowBits(channel, discordObject);
+				ulong denyBits = GetOverwriteDenyBits(channel, discordObject);
+
+				switch (actionType)
+				{
+					case ActionType.Allow:
+					{
+						allowBits |= changeValue;
+						denyBits &= ~changeValue;
+						break;
+					}
+					case ActionType.Inherit:
+					{
+						allowBits &= ~changeValue;
+						denyBits &= ~changeValue;
+						break;
+					}
+					case ActionType.Deny:
+					{
+						allowBits &= ~changeValue;
+						denyBits |= changeValue;
+						break;
+					}
+				}
+
+				await ModifyOverwrite(channel, discordObject, allowBits, denyBits, FormattingActions.FormatUserReason(user));
+				return GetActions.GetChannelPermissionNames(changeValue);
 			}
 
 			public static OverwritePermissions? GetOverwrite(IGuildChannel channel, object obj)

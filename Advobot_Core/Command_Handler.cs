@@ -1,6 +1,7 @@
 ﻿using Advobot.Actions;
 using Advobot.Interfaces;
 using Advobot.NonSavedClasses;
+using Advobot.SavedClasses;
 using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
@@ -37,6 +38,7 @@ namespace Advobot
 			_Commands.AddTypeReader(typeof(IBan), new BanTypeReader());
 			_Commands.AddTypeReader(typeof(Emote), new EmoteTypeReader());
 			_Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
+			_Commands.AddTypeReader(typeof(CommandSwitch), new CommandSwitchTypeReader());
 			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly()); //Use executing assembly to get all of the commands from Advobot_Core. Entry and Calling assembly give Advobot_Launcher
 		}
 
