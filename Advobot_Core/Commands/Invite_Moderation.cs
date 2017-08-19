@@ -23,11 +23,6 @@ namespace Advobot
 			[Command]
 			public async Task Command()
 			{
-				await CommandRunner();
-			}
-
-			private async Task CommandRunner()
-			{
 				var invites = (await Context.Guild.GetInvitesAsync()).OrderByDescending(x => x.Uses);
 				if (!invites.Any())
 				{
@@ -49,41 +44,29 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class CreateInvite : MyModuleBase
 		{
-			[Command]
-			public async Task Command([VerifyChannel(true, ChannelVerification.CanCreateInstantInvite)] IGuildChannel channel, [Optional] int time, [Optional] int uses, [Optional] bool tempMem)
-			{
-				await CommandRunner(channel, time, uses, tempMem);
-			}
-
 			private static readonly int[] validTimes = { 0, 1800, 3600, 21600, 43200, 86400 };
 			private static readonly int[] validUses = { 0, 1, 5, 10, 25, 50, 100 };
 
-			private async Task CommandRunner(IGuildChannel channel, int? time = 86400, int? uses = null, bool tempMem = false)
+			[Command]
+			public async Task Command([VerifyChannel(true, ChannelVerification.CanCreateInstantInvite)] IGuildChannel channel, [Optional] int time, [Optional] int uses, [Optional] bool tempMem)
 			{
-				if (time.HasValue && !validTimes.Contains(time.Value))
+				if (!validTimes.Contains(time))
 				{
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Invalid time supplied, must be one of the following: `{0}`.", String.Join("`, `", validTimes))));
 					return;
 				}
-				else if (time == 0)
-				{
-					time = 86400;
-				}
-
-				if (uses.HasValue && !validUses.Contains(uses.Value))
+				else if (!validUses.Contains(uses))
 				{
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Invalid uses supplied, must be one of the following: `{0}`", String.Join("`, `", validUses))));
 					return;
 				}
-				else if (uses == 0)
-				{
-					uses = null;
-				}
 
-				var inv = await InviteActions.CreateInvite(channel, time, uses, tempMem, false, FormattingActions.FormatUserReason(Context.User));
+				int? nullableTime = time == 0 ? 86400 : time as int?;
+				int? nullableUses = uses == 0 ? null : uses as int?;
+				var inv = await InviteActions.CreateInvite(channel, nullableTime, nullableUses, tempMem, false, FormattingActions.FormatUserReason(Context.User));
 
-				var timeOutputStr = time.HasValue ? String.Format("It will last for this amount of time: `{0}`.", time) : "It will last until manually revoked.";
-				var usesOutputStr = uses.HasValue ? String.Format("It will last for this amount of uses: `{0}`.", uses) : "It has no usage limit.";
+				var timeOutputStr = nullableTime.HasValue ? String.Format("It will last for this amount of time: `{0}`.", nullableTime) : "It will last until manually revoked.";
+				var usesOutputStr = nullableUses.HasValue ? String.Format("It will last for this amount of uses: `{0}`.", nullableUses) : "It has no usage limit.";
 				var tempOutputStr = tempMem ? "Users will be kicked when they go offline unless they get a role." : "Users will not be kicked when they go offline and do not have a role.";
 				await MessageActions.SendChannelMessage(Context, String.Format("Here is your invite for `{0}`: {1}",
 					channel.FormatChannel(),
@@ -100,11 +83,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command(IInvite invite)
-			{
-				await CommandRunner(invite);
-			}
-
-			private async Task CommandRunner(IInvite invite)
 			{
 				await InviteActions.DeleteInvite(invite, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted the invite `{0}`.", invite.Code));

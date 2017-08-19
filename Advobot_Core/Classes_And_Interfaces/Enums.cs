@@ -249,6 +249,8 @@ namespace Advobot
 			Clear							= (1U << 11),
 			Current							= (1U << 12),
 			Default							= (1U << 13),
+			On								= (1U << 14),
+			Off								= (1U << 15),
 		}
 
 		[Flags]

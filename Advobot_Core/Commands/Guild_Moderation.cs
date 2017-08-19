@@ -23,11 +23,6 @@ namespace Advobot
 			[Command]
 			public async Task Command([Optional] ulong guildId)
 			{
-				await CommandRunner(guildId);
-			}
-
-			private async Task CommandRunner(ulong guildId)
-			{
 				if (guildId == 0)
 				{
 					await Context.Guild.LeaveAsync();
@@ -71,11 +66,6 @@ namespace Advobot
 			[Command]
 			public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
 			{
-				await CommandRunner(name);
-			}
-
-			private async Task CommandRunner(string name)
-			{
 				await GuildActions.ModifyGuildName(Context.Guild, name, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the guild name to `{0}`.", name));
 			}
@@ -88,12 +78,6 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class ChangeGuildRegion : MyModuleBase
 		{
-			[Command]
-			public async Task Command(string region)
-			{
-				await CommandRunner(region);
-			}
-
 			private static readonly string[] _ValidRegionIDs =
 			{
 				"brazil",
@@ -119,27 +103,29 @@ namespace Advobot
 			private static readonly string _VIPRegions = String.Join("\n", _VIPRegionIDs);
 			private static readonly string _AllRegions = _BaseRegions + "\n" + _VIPRegions;
 
-			private async Task CommandRunner(string region)
+			[Command(nameof(ActionType.Current)), Priority(1)]
+			public async Task CommandCurrent()
 			{
-				if (String.IsNullOrWhiteSpace(region))
-				{
-					var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions;
-					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Region IDs", desc));
-				}
-				else if ("current".CaseInsEquals(region))
-				{
-					await MessageActions.SendChannelMessage(Context, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
-				}
-				else if (_ValidRegionIDs.CaseInsContains(region) || (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(region)))
-				{
-					var beforeRegion = Context.Guild.VoiceRegionId;
-					await GuildActions.ModifyGuildRegion(Context.Guild, region, FormattingActions.FormatUserReason(Context.User));
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", beforeRegion, region));
-				}
-				else
+				await MessageActions.SendChannelMessage(Context, String.Format("The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
+			}
+			[Command, Priority(0)]
+			public async Task Command(string region)
+			{
+				if (!(_ValidRegionIDs.CaseInsContains(region) || (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(region))))
 				{
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("No valid region ID was input."));
+					return;
 				}
+
+				var beforeRegion = Context.Guild.VoiceRegionId;
+				await GuildActions.ModifyGuildRegion(Context.Guild, region, FormattingActions.FormatUserReason(Context.User));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the server region of the guild from `{0}` to `{1}`.", beforeRegion, region));
+			}
+			[Command]
+			public async Task Command()
+			{
+				var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions;
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Region IDs", desc));
 			}
 		}
 
@@ -150,15 +136,10 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class ChangeGuildAFKTimer : MyModuleBase
 		{
-			[Command]
-			public async Task Command(uint time)
-			{
-				await CommandRunner(time);
-			}
-
 			private static readonly uint[] _AFKTimes = { 60, 300, 900, 1800, 3600 };
 
-			private async Task CommandRunner(uint time)
+			[Command]
+			public async Task Command(uint time)
 			{
 				if (!_AFKTimes.Contains(time))
 				{
@@ -181,11 +162,6 @@ namespace Advobot
 			[Command]
 			public async Task Command(IVoiceChannel channel)
 			{
-				await CommandRunner(channel);
-			}
-
-			private async Task CommandRunner(IVoiceChannel channel)
-			{
 				await GuildActions.ModifyGuildAFKChannel(Context.Guild, channel, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild's AFK channel to `{0}`.", channel.FormatChannel()));
 			}
@@ -200,11 +176,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command(DefaultMessageNotifications msgNotifs)
-			{
-				await CommandRunner(msgNotifs);
-			}
-
-			private async Task CommandRunner(DefaultMessageNotifications msgNotifs)
 			{
 				await GuildActions.ModifyGuildDefaultMsgNotifications(Context.Guild, msgNotifs, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the default message notification setting to `{0}`.", msgNotifs.EnumName()));
@@ -221,11 +192,6 @@ namespace Advobot
 			[Command]
 			public async Task Command(VerificationLevel verif)
 			{
-				await CommandRunner(verif);
-			}
-
-			private async Task CommandRunner(VerificationLevel verif)
-			{
 				await GuildActions.ModifyGuildVerificationLevel(Context.Guild, verif, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set the guild verification level as `{0}`.", verif.EnumName()));
 			}
@@ -240,11 +206,6 @@ namespace Advobot
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command()
-			{
-				await CommandRunner();
-			}
-
-			private async Task CommandRunner()
 			{
 				var attach = Context.Message.Attachments.Where(x => x.Width != null && x.Height != null).Select(x => x.Url);
 				var embeds = Context.Message.Embeds.Where(x => x.Image.HasValue).Select(x => x.Image?.Url);
@@ -285,11 +246,6 @@ namespace Advobot
 			[Command]
 			public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
 			{
-				await CommandRunner(name);
-			}
-
-			private async Task CommandRunner(string name)
-			{
 				var optimalVoiceRegion = await Context.Client.GetOptimalVoiceRegionAsync();
 				var guild = await Context.Client.CreateGuildAsync(name, optimalVoiceRegion);
 
@@ -309,11 +265,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command()
-			{
-				await CommandRunner();
-			}
-
-			private async Task CommandRunner()
 			{
 				if (Context.Client.CurrentUser.Id == Context.Guild.OwnerId)
 				{
@@ -335,11 +286,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command()
-			{
-				await CommandRunner();
-			}
-
-			private async Task CommandRunner()
 			{
 				if (Context.Client.CurrentUser.Id == Context.Guild.OwnerId)
 				{

@@ -16,39 +16,30 @@ namespace Advobot
 	namespace UserModeration
 	{
 		[Group(nameof(Mute)), Alias("m")]
-		[Usage("[User] <Number>")]
+		[Usage("[User] <Time> <Reason>")]
 		[Summary("Prevents a user from typing and speaking in the guild. Time is in minutes, and if no time is given then the mute will not expire.")]
 		[PermissionRequirement(new[] { GuildPermission.ManageRoles, GuildPermission.ManageMessages }, null)]
 		[DefaultEnabled(true)]
 		public sealed class Mute : MyModuleBase
 		{
 			[Command]
-			public async Task Command(IGuildUser user, [Optional] uint time)
-			{
-				await CommandRunner(user, time);
-			}
-
-			private async Task CommandRunner(IGuildUser user, uint time)
+			public async Task Command(IGuildUser user, [Optional] uint time, [Optional, Remainder] string reason)
 			{
 				var muteRole = await RoleActions.GetMuteRole(Context.GuildSettings, user.Guild, user);
 				if (user.RoleIds.Contains(muteRole.Id))
 				{
-					await PunishmentActions.ManualRoleUnmuteUser(user, muteRole, FormattingActions.FormatUserReason(Context.User), Context.Timers);
-
-					var response = String.Format("Successfully unmuted `{0}`.", user.FormatUser());
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
+					await PunishmentActions.ManualRoleUnmuteUser(user, muteRole, FormattingActions.FormatUserReason(Context.User, reason), Context.Timers);
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unmuted `{0}`.", user.FormatUser()));
+					return;
 				}
-				else
+
+				await PunishmentActions.ManualRoleMuteUser(user, muteRole, FormattingActions.FormatUserReason(Context.User, reason), time, Context.Timers);
+				var response = String.Format("Successfully muted `{0}`.", user.FormatUser());
+				if (time != 0)
 				{
-					await PunishmentActions.ManualRoleMuteUser(user, muteRole, FormattingActions.FormatUserReason(Context.User), time, Context.Timers);
-
-					var response = String.Format("Successfully muted `{0}`.", user.FormatUser());
-					if (time != 0)
-					{
-						response += String.Format("\nThe mute will last for `{0}` minute{1}.", time, GetActions.GetPlural(time));
-					}
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
+					response += String.Format("\nThe mute will last for `{0}` minute{1}.", time, GetActions.GetPlural(time));
 				}
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
 			}
 		}
 
@@ -62,29 +53,20 @@ namespace Advobot
 			[Command]
 			public async Task Command(IGuildUser user, [Optional] uint time)
 			{
-				await CommandRunner(user, time);
-			}
-
-			private async Task CommandRunner(IGuildUser user, uint time)
-			{
 				if (user.IsMuted)
 				{
 					await PunishmentActions.ManualVoiceUnmuteUser(user, FormattingActions.FormatUserReason(Context.User), Context.Timers);
-
-					var response = String.Format("Successfully unvoicemuted `{0}`.", user.FormatUser());
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unvoicemuted `{0}`.", user.FormatUser()));
+					return;
 				}
-				else
+
+				await PunishmentActions.ManualVoiceMuteUser(user, FormattingActions.FormatUserReason(Context.User), time, Context.Timers);
+				var response = String.Format("Successfully voicemuted `{0}`.", user.FormatUser());
+				if (time != 0)
 				{
-					await PunishmentActions.ManualVoiceMuteUser(user, FormattingActions.FormatUserReason(Context.User), time, Context.Timers);
-
-					var response = String.Format("Successfully voicemuted `{0}`.", user.FormatUser());
-					if (time != 0)
-					{
-						response += String.Format("\nThe voicemute will last for `{0}` minute{1}.", time, GetActions.GetPlural(time));
-					}
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
+					response += String.Format("\nThe voicemute will last for `{0}` minute{1}.", time, GetActions.GetPlural(time));
 				}
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
 			}
 		}
 
@@ -98,29 +80,20 @@ namespace Advobot
 			[Command]
 			public async Task Command(IGuildUser user, [Optional] uint time)
 			{
-				await CommandRunner(user, time);
-			}
-
-			private async Task CommandRunner(IGuildUser user, uint time)
-			{
 				if (user.IsDeafened)
 				{
 					await PunishmentActions.ManualUndeafenUser(user, FormattingActions.FormatUserReason(Context.User), Context.Timers);
-
-					var response = String.Format("Successfully undeafened `{0}`.", user.FormatUser());
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully undeafened `{0}`.", user.FormatUser()));
+					return;
 				}
-				else
+
+				await PunishmentActions.ManualDeafenUser(user, FormattingActions.FormatUserReason(Context.User), time, Context.Timers);
+				var response = String.Format("Successfully deafened `{0}`.", user.FormatUser());
+				if (time != 0)
 				{
-					await PunishmentActions.ManualDeafenUser(user, FormattingActions.FormatUserReason(Context.User), time, Context.Timers);
-
-					var response = String.Format("Successfully deafened `{0}`.", user.FormatUser());
-					if (time != 0)
-					{
-						response += String.Format("\nThe deafen will last for `{0}` minute{1}.", time, GetActions.GetPlural(time));
-					}
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
+					response += String.Format("\nThe deafen will last for `{0}` minute{1}.", time, GetActions.GetPlural(time));
 				}
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
 			}
 		}
 
@@ -133,11 +106,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command(IGuildUser user, [VerifyChannel(false, ChannelVerification.CanMoveUsers)] IVoiceChannel channel)
-			{
-				await CommandRunner(user, channel);
-			}
-
-			private async Task CommandRunner(IGuildUser user, IVoiceChannel channel)
 			{
 				if (user.VoiceChannel == null)
 				{
@@ -168,11 +136,6 @@ namespace Advobot
 									  [VerifyChannel(false, ChannelVerification.CanMoveUsers)] IVoiceChannel outputChannel,
 									  [OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				await CommandRunner(inputChannel, outputChannel, bypass);
-			}
-
-			private async Task CommandRunner(IVoiceChannel inputChannel, IVoiceChannel outputChannel, bool bypass)
-			{
 				var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
 				var users = (await inputChannel.GetUsersAsync().Flatten()).ToList().GetUpToAndIncludingMinNum(userAmt);
 
@@ -187,18 +150,13 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class PruneUsers : MyModuleBase
 		{
-			[Command]
-			public async Task Command(uint days, string pruneStr)
-			{
-				await CommandRunner(days, pruneStr);
-			}
-
 			private const string ACTUAL_PRUNE_STRING = "ActualPrune";
 			private static readonly uint[] _Days = { 1, 7, 30 };
 
-			private async Task CommandRunner(uint days, string pruneStr)
+			[Command]
+			public async Task Command(uint days, string pruneStr)
 			{
-				if (_Days.Contains(days))
+				if (!_Days.Contains(days))
 				{
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Invalid days supplied, must be one of the following: `{0}`", String.Join("`, `", _Days))));
 					return;
@@ -218,39 +176,39 @@ namespace Advobot
 		public sealed class SoftBan : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user)
+			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 			{
-				await CommandRunner(user);
-			}
-
-			private async Task CommandRunner(IGuildUser user)
-			{
-				await PunishmentActions.ManualSoftban(Context.Guild, user.Id, FormattingActions.FormatUserReason(Context.User));
+				await PunishmentActions.ManualSoftban(Context.Guild, user.Id, FormattingActions.FormatUserReason(Context.User, reason));
 				await MessageActions.SendChannelMessage(Context, String.Format("Successfully softbanned `{0}`.", user.FormatUser()));
 			}
 		}
 
 		[Group(nameof(Ban)), Alias("b")]
-		[Usage("[User] <Time> <Days>")]
+		[Usage("[User] <Time> <Days> <Reason>")]
 		[Summary("Bans the user from the guild. Days specifies how many days worth of messages to delete. Time specifies how long and is in minutes.")]
 		[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 		[DefaultEnabled(true)]
 		public sealed class Ban : MyModuleBase
 		{
-			[Command]
-			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, [Optional] uint time, [Optional] uint days)
-			{
-				await CommandRunner(user, time, days);
-			}
-			[Command]
-			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, [Optional] uint time)
-			{
-				await CommandRunner(user, time, 0);
-			}
-
 			private static readonly uint _MaxDays = 7;
 
-			private async Task CommandRunner(IUser user, uint time, uint days)
+			[Command, Priority(2)]
+			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, [Optional] uint time, [Optional] uint days, [Optional, Remainder] string reason)
+			{
+				await CommandRunner(user, time, days, reason);
+			}
+			[Command, Priority(1)]
+			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, [Optional] uint time, [Optional, Remainder] string reason)
+			{
+				await CommandRunner(user, time, 0, reason);
+			}
+			[Command, Priority(0)]
+			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, [Optional, Remainder] string reason)
+			{
+				await CommandRunner(user, 0, 0, reason);
+			}
+
+			private async Task CommandRunner(IUser user, uint time, uint days, string reason)
 			{
 				if (days > _MaxDays)
 				{
@@ -263,35 +221,37 @@ namespace Advobot
 					return;
 				}
 
-				await PunishmentActions.ManualBan(Context.Guild, user.Id, FormattingActions.FormatUserReason(Context.User), (int)days, time, Context.Timers);
+				await PunishmentActions.ManualBan(Context.Guild, user.Id, FormattingActions.FormatUserReason(Context.User, reason), (int)days, time, Context.Timers);
 				await MessageActions.SendChannelMessage(Context, String.Format("Successfully banned `{0}`.", user.FormatUser()));
 			}
 		}
 
 		[Group(nameof(Unban)), Alias("ub")]
-		[Usage("<User ID|\"Username#Discriminator\"> <True|False>")]
-		[Summary("Unbans the user from the guild. If the reason argument is true it only says the reason without unbanning.")]
+		[Usage("<UserId|\"Username#Discriminator\"> <Reason>")]
+		[Summary("Unbans the user from the guild.")]
 		[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 		[DefaultEnabled(true)]
 		public sealed class Unban : MyModuleBase
 		{
 			[Command]
-			public async Task Command(IBan ban, [Optional] bool reason)
+			public async Task Command(IBan ban, [Optional, Remainder] string reason)
 			{
-				await CommandRunner(ban, reason);
+				await PunishmentActions.ManualUnbanUser(Context.Guild, ban.User.Id, FormattingActions.FormatUserReason(Context.User, reason));
+				await MessageActions.SendChannelMessage(Context, String.Format("Successfully unbanned `{0}`", ban.User.FormatUser()));
 			}
+		}
 
-			private async Task CommandRunner(IBan ban, bool reason)
+		[Group(nameof(GetBanReason)), Alias("gbr")]
+		[Usage("<UserId|\"Username#Discriminator\"")]
+		[Summary("Lists the given reason for the ban.")]
+		[PermissionRequirement(new[] { GuildPermission.BanMembers}, null)]
+		[DefaultEnabled(true)]
+		public sealed class GetBanReason : MyModuleBase
+		{
+			[Command]
+			public async Task Command(IBan ban)
 			{
-				if (reason)
-				{
-					await MessageActions.SendChannelMessage(Context, String.Format("`{0}`'s ban reason is `{1}`.", ban.User.FormatUser(), ban.Reason ?? "Nothing"));
-				}
-				else
-				{
-					await PunishmentActions.ManualUnbanUser(Context.Guild, ban.User.Id, FormattingActions.FormatUserReason(Context.User));
-					await MessageActions.SendChannelMessage(Context, String.Format("Successfully unbanned `{0}`", ban.User.FormatUser()));
-				}
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Ban reason for " + ban.User.FormatUser(), ban.Reason));
 			}
 		}
 
@@ -305,12 +265,7 @@ namespace Advobot
 			[Command]
 			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 			{
-				await CommandRunner(user, reason);
-			}
-
-			private async Task CommandRunner(IGuildUser user, string reason)
-			{
-				await PunishmentActions.ManualKick(user, FormattingActions.FormatUserReason(Context.User));
+				await PunishmentActions.ManualKick(user, FormattingActions.FormatUserReason(Context.User, reason));
 				await MessageActions.SendChannelMessage(Context, String.Format("Successfully kicked `{0}`.", user.FormatUser()));
 			}
 		}
@@ -324,11 +279,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command()
-			{
-				await CommandRunner();
-			}
-
-			private async Task CommandRunner()
 			{
 				var bans = await Context.Guild.GetBansAsync();
 				if (!bans.Any())
@@ -389,23 +339,8 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class ModifySlowmode : MySavingModuleBase
 		{
-			[Command("on")]
+			[Command(nameof(ActionType.On))]
 			public async Task CommandOn()
-			{
-				await CommandRunner(true);
-			}
-			[Command("off")]
-			public async Task CommandOff()
-			{
-				await CommandRunner(false);
-			}
-			[Command("setup")]
-			public async Task CommandSetup(uint messages, uint interval, [Optional] params IRole[] immuneRoles)
-			{
-				await CommandRunner(messages, interval, immuneRoles);
-			}
-
-			private async Task CommandRunner(bool enable)
 			{
 				if (Context.GuildSettings.Slowmode == null)
 				{
@@ -413,18 +348,23 @@ namespace Advobot
 					return;
 				}
 
-				if (enable)
-				{
-					Context.GuildSettings.Slowmode.Enable();
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled slowmode.\n{0}", Context.GuildSettings.Slowmode.ToString()));
-				}
-				else
-				{
-					Context.GuildSettings.Slowmode.Disable();
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled slowmode.");
-				}
+				Context.GuildSettings.Slowmode.Enable();
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled slowmode.\n{0}", Context.GuildSettings.Slowmode.ToString()));
 			}
-			private async Task CommandRunner(uint messages, uint interval, IRole[] immuneRoles)
+			[Command(nameof(ActionType.Off))]
+			public async Task CommandOff()
+			{
+				if (Context.GuildSettings.Slowmode == null)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("There must be a slowmode set up before one can be enabled or disabled."));
+					return;
+				}
+
+				Context.GuildSettings.Slowmode.Disable();
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled slowmode.");
+			}
+			[Command(nameof(ActionType.Setup))]
+			public async Task CommandSetup(uint messages, uint interval, [Optional] params IRole[] immuneRoles)
 			{
 				Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully setup slowmode.\n{0}", Context.GuildSettings.Slowmode.ToString()));

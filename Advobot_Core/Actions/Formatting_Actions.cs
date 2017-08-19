@@ -623,9 +623,10 @@ namespace Advobot
 				}
 			}
 
-			public static string FormatUserReason(IUser user)
+			public static string FormatUserReason(IUser user, string reason = null)
 			{
-				return String.Format("Action by {0}.", user.FormatUser());
+				var reasonStr = reason == null ? "" : String.Format("Reason: {0}.", reason);
+				return String.Format("Action by {0}.{1}", user.FormatUser(), reasonStr);
 			}
 			public static string FormatBotReason(string reason)
 			{

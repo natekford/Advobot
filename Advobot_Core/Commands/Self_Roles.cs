@@ -22,22 +22,22 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public sealed class ModifySelfRoles : MySavingModuleBase
 		{
-			[Command("create"), Alias("c")]
+			[Command(nameof(ActionType.Create)), Alias("c")]
 			public async Task CommandCreate(uint groupNum)
 			{
 				await CommandRunner(ActionType.Create, groupNum);
 			}
-			[Command("delete"), Alias("d")]
+			[Command(nameof(ActionType.Delete)), Alias("d")]
 			public async Task CommandDelete(uint groupNum)
 			{
 				await CommandRunner(ActionType.Delete, groupNum);
 			}
-			[Command("add"), Alias("a")]
+			[Command(nameof(ActionType.Add)), Alias("a")]
 			public async Task CommandAdd(uint groupNum, [VerifyRole(false, RoleVerification.CanBeEdited)] params IRole[] roles)
 			{
 				await CommandRunner(ActionType.Add, groupNum, roles);
 			}
-			[Command("remove"), Alias("r")]
+			[Command(nameof(ActionType.Remove)), Alias("r")]
 			public async Task CommandRemove(uint groupNum, [VerifyRole(false, RoleVerification.CanBeEdited)] params IRole[] roles)
 			{
 				await CommandRunner(ActionType.Remove, groupNum, roles);
@@ -165,11 +165,6 @@ namespace Advobot
 			[Command]
 			public async Task Command(IRole role)
 			{
-				await CommandRunner(role);
-			}
-
-			private async Task CommandRunner(IRole role)
-			{
 				var group = Context.GuildSettings.SelfAssignableGroups.FirstOrDefault(x => x.Roles.Select(y => y.RoleId).Contains(role.Id));
 				if (group == null)
 				{
@@ -211,29 +206,18 @@ namespace Advobot
 			[Command]
 			public async Task Command()
 			{
-				await CommandRunner(-1);
+				var groupNumbers = Context.GuildSettings.SelfAssignableGroups.Select(x => x.Group).OrderBy(x => x);
+				if (!groupNumbers.Any())
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("There are currently no self assignable role groups on this guild."));
+					return;
+				}
+
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Self Assignable Role Groups", String.Format("`{0}`", String.Join("`, `", groupNumbers))));
 			}
 			[Command]
 			public async Task Command(uint groupNum)
 			{
-				await CommandRunner((int)groupNum);
-			}
-
-			private async Task CommandRunner(int groupNum)
-			{
-				if (groupNum == -1)
-				{
-					var groupNumbers = Context.GuildSettings.SelfAssignableGroups.Select(x => x.Group).OrderBy(x => x);
-					if (!groupNumbers.Any())
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("There are currently no self assignable role groups on this guild."));
-						return;
-					}
-
-					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Self Assignable Role Groups", String.Format("`{0}`", String.Join("`, `", groupNumbers))));
-					return;
-				}
-
 				var group = Context.GuildSettings.SelfAssignableGroups.FirstOrDefault(x => x.Group == groupNum);
 				if (group == null)
 				{

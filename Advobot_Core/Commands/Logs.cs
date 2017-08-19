@@ -31,7 +31,7 @@ namespace Advobot
 				{
 					await LogActions.SetChannel(Context, channelType, channel);
 				}
-				[Command("off")]
+				[Command(nameof(ActionType.Off))]
 				public async Task CommandOff()
 				{
 					await LogActions.RemoveChannel(Context, channelType);
@@ -48,7 +48,7 @@ namespace Advobot
 				{
 					await LogActions.SetChannel(Context, channelType, channel);
 				}
-				[Command("off")]
+				[Command(nameof(ActionType.Off))]
 				public async Task CommandOff()
 				{
 					await LogActions.RemoveChannel(Context, channelType);
@@ -65,7 +65,7 @@ namespace Advobot
 				{
 					await LogActions.SetChannel(Context, channelType, channel);
 				}
-				[Command("off")]
+				[Command(nameof(ActionType.Off))]
 				public async Task CommandOff()
 				{
 					await LogActions.RemoveChannel(Context, channelType);
@@ -80,30 +80,17 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public sealed class ModifyIgnoredLogChannels : MySavingModuleBase
 		{
-			[Command("add")]
+			[Command(nameof(ActionType.Add))]
 			public async Task CommandAdd([VerifyChannel(false, ChannelVerification.CanBeRead, ChannelVerification.CanModifyPermissions)] params ITextChannel[] channels)
 			{
-				await CommandRunner(true, channels);
+				Context.GuildSettings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the following channels: `{0}`.", String.Join("`, `", channels.Select(x => x.FormatChannel()))));
 			}
-			[Command("remove")]
+			[Command(nameof(ActionType.Remove))]
 			public async Task CommandRemove([VerifyChannel(false, ChannelVerification.CanBeRead, ChannelVerification.CanModifyPermissions)] params ITextChannel[] channels)
 			{
-				await CommandRunner(false, channels);
-			}
-
-			private async Task CommandRunner(bool add, ITextChannel[] channels)
-			{
-				var channelIds = channels.Select(x => x.Id);
-				if (add)
-				{
-					Context.GuildSettings.IgnoredLogChannels.AddRange(channelIds);
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully ignored the following channels: `{0}`.", String.Join("`, `", channels.Select(x => x.FormatChannel()))));
-				}
-				else
-				{
-					Context.GuildSettings.IgnoredLogChannels.RemoveAll(x => channelIds.Contains(x));
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unignored the following channels: `{0}`.", String.Join("`, `", channels.Select(x => x.FormatChannel()))));
-				}
+				Context.GuildSettings.IgnoredLogChannels.RemoveAll(x => channels.Select(y => y.Id).Contains(x));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully unignored the following channels: `{0}`.", String.Join("`, `", channels.Select(x => x.FormatChannel()))));
 			}
 		}
 
@@ -114,16 +101,11 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public sealed class ModifyLogActions : MySavingModuleBase
 		{
-			[Group(nameof(ActionType.Show)), Alias("show actions", "show")]
+			[Group(nameof(ActionType.Show)), Alias("s")]
 			public sealed class ShowActions : MyModuleBase
 			{
 				[Command]
 				public async Task Command()
-				{
-					await CommandRunner();
-				}
-
-				private async Task CommandRunner()
 				{
 					var desc = String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(LogAction))));
 					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Log Actions", desc));
@@ -136,11 +118,6 @@ namespace Advobot
 				[Command]
 				public async Task Command()
 				{
-					await CommandRunner();
-				}
-
-				private async Task CommandRunner()
-				{
 					Context.GuildSettings.LogActions = Constants.DEFAULT_LOG_ACTIONS.ToList();
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the log actions to the default ones.");
 				}
@@ -149,70 +126,46 @@ namespace Advobot
 			[Group(nameof(ActionType.Enable)), Alias("e")]
 			public sealed class Add : MySavingModuleBase
 			{
-				[Command]
-				public async Task Command(params LogAction[] logActions)
-				{
-					await CommandRunner(false, logActions);
-				}
 				[Command("all")]
 				public async Task CommandAll()
 				{
-					await CommandRunner(true);
+					Context.GuildSettings.LogActions = Enum.GetValues(typeof(LogAction)).Cast<LogAction>().ToList();
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully enabled every log action.");
 				}
-
-				private async Task CommandRunner(bool all, LogAction[] logActions = null)
+				[Command]
+				public async Task Command(params LogAction[] logActions)
 				{
-					if (all)
+					if (logActions == null)
 					{
-						Context.GuildSettings.LogActions = Enum.GetValues(typeof(LogAction)).Cast<LogAction>().ToList();
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully enabled every log action.");
+						logActions = new LogAction[0];
 					}
-					else
-					{
-						if (logActions == null)
-						{
-							logActions = new LogAction[0];
-						}
 
-						//Add in logActions that aren't already in there
-						Context.GuildSettings.LogActions.AddRange(logActions.Except(Context.GuildSettings.LogActions));
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled the following log actions: `{0}`.", String.Join("`, `", logActions.Select(x => x.EnumName()))));
-					}
+					//Add in logActions that aren't already in there
+					Context.GuildSettings.LogActions.AddRange(logActions.Except(Context.GuildSettings.LogActions));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled the following log actions: `{0}`.", String.Join("`, `", logActions.Select(x => x.EnumName()))));
 				}
 			}
 
 			[Group(nameof(ActionType.Disable)), Alias("d")]
 			public sealed class Remove : MySavingModuleBase
 			{
-				[Command]
-				public async Task Command(params LogAction[] logActions)
-				{
-					await CommandRunner(false, logActions);
-				}
 				[Command("all")]
 				public async Task CommandAll()
 				{
-					await CommandRunner(true);
+					Context.GuildSettings.LogActions = new List<LogAction>();
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled every log action.");
 				}
-
-				private async Task CommandRunner(bool all, LogAction[] logActions = null)
+				[Command]
+				public async Task Command(params LogAction[] logActions)
 				{
-					if (all)
+					if (logActions == null)
 					{
-						Context.GuildSettings.LogActions = new List<LogAction>();
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled every log action.");
+						logActions = new LogAction[0];
 					}
-					else
-					{
-						if (logActions == null)
-						{
-							logActions = new LogAction[0];
-						}
 
-						//Only remove logactions that are already in there
-						Context.GuildSettings.LogActions.RemoveAll(x => logActions.Contains(x));
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully disabled the following log actions: `{0}`.", String.Join("`, `", logActions.Select(x => x.EnumName()))));
-					}
+					//Only remove logactions that are already in there
+					Context.GuildSettings.LogActions.RemoveAll(x => logActions.Contains(x));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully disabled the following log actions: `{0}`.", String.Join("`, `", logActions.Select(x => x.EnumName()))));
 				}
 			}
 		}

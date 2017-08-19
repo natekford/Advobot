@@ -25,26 +25,15 @@ namespace Advobot
 		[DefaultEnabled(false)]
 		public sealed class ModifyGuildPrefix : MySavingModuleBase
 		{
-			[Command]
-			public async Task Command([VerifyStringLength(Target.Prefix)] string newPrefix)
-			{
-				await CommandRunner(false, newPrefix);
-			}
-			[Command("clear")]
+			[Command(nameof(ActionType.Clear)), Priority(1)]
 			public async Task Command()
 			{
-				await CommandRunner(true);
+				Context.GuildSettings.Prefix = null;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild's prefix.");
 			}
-
-			private async Task CommandRunner(bool clear, string newPrefix = null)
+			[Command, Priority(0)]
+			public async Task Command([VerifyStringLength(Target.Prefix)] string newPrefix)
 			{
-				if (clear)
-				{
-					Context.GuildSettings.Prefix = null;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild's prefix.");
-					return;
-				}
-
 				Context.GuildSettings.Prefix = newPrefix;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set this guild's prefix to: `{0}`.", newPrefix));
 			}
@@ -60,23 +49,27 @@ namespace Advobot
 			[Group(nameof(ActionType.Enable)), Alias("e")]
 			public sealed class Enable : MySavingModuleBase
 			{
+				[Command("all"), Priority(1)]
+				public async Task CommandAll()
+				{
+					await CommandRunnerAll();
+				}
 				[Command, Priority(0)]
 				public async Task Command(string commandName)
 				{
-					await CommandRunner(false, commandName);
+					await CommandRunner(commandName);
 				}
 				[Command]
 				public async Task Command(CommandCategory category)
 				{
 					await CommandRunner(category);
 				}
-				[Command("all"), Priority(1)]
-				public async Task CommandAll()
-				{
-					await CommandRunner(true);
-				}
 
-				private async Task CommandRunner(bool all, string commandName = null)
+				private async Task CommandRunnerAll()
+				{
+
+				}
+				private async Task CommandRunner(string commandName)
 				{
 
 				}
@@ -88,23 +81,27 @@ namespace Advobot
 			[Group(nameof(ActionType.Disable)), Alias("d")]
 			public sealed class Disable : MySavingModuleBase
 			{
-				[Command, Priority(0)]
-				public async Task Command()
+				[Command("all"), Priority(1)]
+				public async Task CommandAll()
 				{
-					await CommandRunner(false, commandName);
+					await CommandRunnerAll();
+				}
+				[Command, Priority(0)]
+				public async Task Command(string commandName)
+				{
+					await CommandRunner(commandName);
 				}
 				[Command]
 				public async Task Command(CommandCategory category)
 				{
 					await CommandRunner(category);
 				}
-				[Command("all"), Priority(1)]
-				public async Task CommandAll()
-				{
-					await CommandRunner(true);
-				}
 
-				private async Task CommandRunner(bool all, string commandName = null)
+				private async Task CommandRunnerAll()
+				{
+
+				}
+				private async Task CommandRunner(string commandName)
 				{
 
 				}
@@ -122,39 +119,29 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class DisplayGuildSettings : MyModuleBase
 		{
+			[Command("all"), Priority(1)]
+			public async Task CommandAll()
+			{
+				await CommandRunnerAll();
+			}
+			[Command, Priority(0)]
+			public async Task Command(string setting)
+			{
+				await CommandRunner(setting);
+			}
 			[Command]
 			public async Task Command()
 			{
 				await CommandRunner();
 			}
-			[Command, Priority(0)]
-			public async Task Command(string setting)
-			{
-				await CommandRunner(false, setting);
-			}
-			//Need priority attribute or else it goes into the above overload.
-			[Command("all"), Priority(1)]
-			public async Task CommandAll()
-			{
-				await CommandRunner(true);
-			}
 
-			private async Task CommandRunner()
+			private async Task CommandRunnerAll()
 			{
-				var settingNames = GetActions.GetGuildSettings().Select(x => x.Name);
-
-				var desc = String.Format("`{0}`", String.Join("`, `", settingNames));
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
+				var text = FormattingActions.FormatAllGuildSettings(Context.Guild, Context.GuildSettings);
+				await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "Guild Settings", "Guild Settings");
 			}
-			private async Task CommandRunner(bool all, string setting = null)
+			private async Task CommandRunner(string setting)
 			{
-				if (all)
-				{
-					var text = FormattingActions.FormatAllGuildSettings(Context.Guild, Context.GuildSettings);
-					await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "Guild Settings", "Guild Settings");
-					return;
-				}
-
 				var currentSetting = GetActions.GetGuildSettings().FirstOrDefault(x => x.Name.CaseInsEquals(setting));
 				if (currentSetting == null)
 				{
@@ -171,6 +158,13 @@ namespace Advobot
 				{
 					await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, desc, currentSetting.Name, currentSetting.Name);
 				}
+			}
+			private async Task CommandRunner()
+			{
+				var settingNames = GetActions.GetGuildSettings().Select(x => x.Name);
+
+				var desc = String.Format("`{0}`", String.Join("`, `", settingNames));
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
 			}
 		}
 

@@ -24,11 +24,6 @@ namespace Advobot
 			[Command]
 			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, VerifyStringLength(Target.Nickname)] string nickname)
 			{
-				await CommandRunner(user, nickname);
-			}
-
-			private async Task CommandRunner(IGuildUser user, string nickname)
-			{
 				await UserActions.ChangeNickname(user, nickname, FormattingActions.FormatUserReason(Context.User));
 				var response = nickname == null
 					? String.Format("Successfully removed the nickname from `{0}`.", user.FormatUser())
@@ -48,11 +43,6 @@ namespace Advobot
 			public async Task Command([VerifyStringLength(Target.Nickname)] string search,
 									  [VerifyStringLength(Target.Nickname)] string replace,
 									  [Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-			{
-				await CommandRunner(search, replace, bypass);
-			}
-
-			private async Task CommandRunner(string search, string replace, bool bypass)
 			{
 				var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
 				var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => false
@@ -74,11 +64,6 @@ namespace Advobot
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command(uint upperLimit, [VerifyStringLength(Target.Nickname)] string replace, [Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 			{
-				await CommandRunner(upperLimit, replace, bypass);
-			}
-
-			private async Task CommandRunner(uint upperLimit, string replace, bool bypass)
-			{
 				var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
 				var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => false
 					|| (x.Nickname != null && !x.Nickname.AllCharactersAreWithinUpperLimit((int)upperLimit)) //If nickname is there, check based off of nickname
@@ -98,11 +83,6 @@ namespace Advobot
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
-			{
-				await CommandRunner(bypass);
-			}
-
-			private async Task CommandRunner(bool bypass)
 			{
 				var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
 				var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => x.Nickname != null).ToList().GetUpToAndIncludingMinNum(userAmt);

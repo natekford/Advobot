@@ -26,11 +26,6 @@ namespace Advobot
 			[Command]
 			public async Task Command(ChannelType channelType, [Remainder, VerifyStringLength(Target.Channel)] string name)
 			{
-				await CommandRunner(channelType, name);
-			}
-
-			private async Task CommandRunner(ChannelType channelType, string name)
-			{
 				IGuildChannel channel;
 				switch (channelType)
 				{
@@ -71,11 +66,6 @@ namespace Advobot
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeManaged)] ITextChannel channel)
 			{
-				await CommandRunner(channel);
-			}
-
-			private async Task CommandRunner(ITextChannel channel)
-			{
 				await ChannelActions.SoftDeleteChannel(Context.Guild, channel, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.SendChannelMessage(Context, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything in this channel.");
 			}
@@ -90,11 +80,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeManaged)] IGuildChannel channel)
-			{
-				await CommandRunner(channel);
-			}
-
-			private async Task CommandRunner(IGuildChannel channel)
 			{
 				await ChannelActions.DeleteChannel(channel, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully deleted `{0}`.", channel.FormatChannel()));
@@ -111,11 +96,6 @@ namespace Advobot
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeReordered)] IGuildChannel channel, uint position)
 			{
-				await CommandRunner(channel, position);
-			}
-
-			private async Task CommandRunner(IGuildChannel channel, uint position)
-			{
 				await ChannelActions.ModifyChannelPosition(channel, (int)position, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.SendChannelMessage(Context, String.Format("Successfully moved `{0}` to position `{1}`.", channel.FormatChannel(), position));
 			}
@@ -130,11 +110,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command(ChannelType channelType)
-			{
-				await CommandRunner(channelType);
-			}
-
-			private async Task CommandRunner(ChannelType channelType)
 			{
 				string title;
 				IEnumerable<IGuildChannel> channels;
@@ -420,11 +395,6 @@ namespace Advobot
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel)
 			{
-				await CommandRunner(channel);
-			}
-
-			private async Task CommandRunner(IGuildChannel channel)
-			{
 				await ChannelActions.ClearOverwrites(Context.Guild, channel, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed all channel permission overwrites from `{0}`.", channel.FormatChannel()));
 			}
@@ -440,11 +410,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeManaged)] ITextChannel channel)
-			{
-				await CommandRunner(channel);
-			}
-
-			private async Task CommandRunner(ITextChannel channel)
 			{
 				const string nsfwPrefix = "nsfw-";
 				const int prefixLen = 5;
@@ -477,11 +442,6 @@ namespace Advobot
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeManaged)] IGuildChannel channel, [Remainder, VerifyStringLength(Target.Channel)] string name)
 			{
-				await CommandRunner(channel, name);
-			}
-
-			private async Task CommandRunner(IGuildChannel channel, string name)
-			{
 				if (channel is ITextChannel && name.Contains(' '))
 				{
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Spaces are not allowed in text channel names."));
@@ -502,11 +462,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command(ChannelType channelType, uint position, [Remainder, VerifyStringLength(Target.Channel)] string name)
-			{
-				await CommandRunner(channelType, position, name);
-			}
-
-			private async Task CommandRunner(ChannelType channelType, uint position, string name)
 			{
 				IEnumerable<IGuildChannel> channels;
 				switch (channelType)
@@ -557,11 +512,6 @@ namespace Advobot
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeManaged)] ITextChannel channel, [Optional, Remainder, VerifyStringLength(Target.Topic)] string topic)
 			{
-				await CommandRunner(channel, topic);
-			}
-
-			private async Task CommandRunner(ITextChannel channel, string topic)
-			{
 				await ChannelActions.ModifyChannelTopic(channel, topic, FormattingActions.FormatUserReason(Context.User));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the topic in `{0}` from `{1}` to `{2}`.", channel.FormatChannel(), channel.Topic ?? "Nothing", topic ?? "Nothing"));
 			}
@@ -576,11 +526,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeManaged)] IVoiceChannel channel, uint limit)
-			{
-				await CommandRunner(channel, limit);
-			}
-
-			private async Task CommandRunner(IVoiceChannel channel, uint limit)
 			{
 				if (limit > Constants.MAX_VOICE_CHANNEL_USER_LIMIT)
 				{
@@ -601,11 +546,6 @@ namespace Advobot
 		{
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeManaged)] IVoiceChannel channel, uint bitrate)
-			{
-				await CommandRunner(channel, bitrate);
-			}
-
-			private async Task CommandRunner(IVoiceChannel channel, uint bitrate)
 			{
 				if (bitrate < Constants.MIN_BITRATE)
 				{
