@@ -158,14 +158,7 @@ namespace Advobot
 
 			public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, IEnumerable<string> permissions, IGuildUser user)
 			{
-				//Put all the bit values to change into one
-				ulong changeValue = 0;
-				foreach (var permission in permissions)
-				{
-					changeValue = AddChannelPermissionBit(permission, changeValue);
-				}
-
-				return await ModifyOverwritePermissions(channel, discordObject, actionType, changeValue, user);
+				return await ModifyOverwritePermissions(channel, discordObject, actionType, ConvertChannelPermissionNamesToUlong(permissions), user);
 			}
 			public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, ulong changeValue, IGuildUser user)
 			{
@@ -242,23 +235,27 @@ namespace Advobot
 					throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
 				}
 			}
-			public static ulong AddChannelPermissionBit(string permissionName, ulong inputValue)
+
+			public static ulong ConvertChannelPermissionNamesToUlong(IEnumerable<string> permissionNames)
 			{
-				var permission = Constants.CHANNEL_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
-				if (!permission.Equals(default(BotGuildPermission)))
+				ulong rawValue = 0;
+				foreach (var permissionName in permissionNames)
 				{
-					inputValue |= permission.Bit;
+					var permission = Constants.CHANNEL_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
+					if (!permission.Equals(default(BotGuildPermission)))
+					{
+						rawValue |= permission.Bit;
+					}
 				}
-				return inputValue;
+				return rawValue;
 			}
-			public static ulong RemoveChannelPermissionBit(string permissionName, ulong inputValue)
+			public static ulong AddChannelPermissionBits(IEnumerable<string> permissionNames, ulong inputValue)
 			{
-				var permission = Constants.CHANNEL_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
-				if (!permission.Equals(default(BotGuildPermission)))
-				{
-					inputValue &= ~permission.Bit;
-				}
-				return inputValue;
+				return inputValue | ConvertChannelPermissionNamesToUlong(permissionNames);
+			}
+			public static ulong RemoveChannelPermissionBits(IEnumerable<string> permissionNames, ulong inputValue)
+			{
+				return inputValue & ~ConvertChannelPermissionNamesToUlong(permissionNames);
 			}
 
 			public static async Task<int> ModifyChannelPosition(IGuildChannel channel, int position, string reason)
@@ -363,8 +360,8 @@ namespace Advobot
 						}
 					}
 
-					var allowBits = RemoveChannelPermissionBit(nameof(ChannelPermission.ReadMessages), GetOverwriteAllowBits(channel, obj));
-					var denyBits = AddChannelPermissionBit(nameof(ChannelPermission.ReadMessages), GetOverwriteDenyBits(channel, obj));
+					var allowBits = RemoveChannelPermissionBits(new[] { nameof(ChannelPermission.ReadMessages) }, GetOverwriteAllowBits(channel, obj));
+					var denyBits = AddChannelPermissionBits(new[] { nameof(ChannelPermission.ReadMessages) }, GetOverwriteDenyBits(channel, obj));
 					await ModifyOverwrite(channel, obj, allowBits, denyBits, reason);
 				}
 

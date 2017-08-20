@@ -10,6 +10,43 @@ namespace Advobot
 	{
 		public static class ClientActions
 		{
+			public static async Task MaybeStartBotWithConsole(IDiscordClient client, IBotSettings botSettings)
+			{
+				var startup = true;
+				while (!botSettings.GotPath)
+				{
+					var input = startup ? Properties.Settings.Default.Path : Console.ReadLine();
+					if (SavingAndLoadingActions.ValidatePath(input, botSettings.Windows, startup))
+					{
+						botSettings.SetGotPath();
+					}
+					startup = false;
+				}
+				startup = true;
+				while (!botSettings.GotKey)
+				{
+					var input = startup ? Properties.Settings.Default.BotKey : Console.ReadLine();
+					if (await SavingAndLoadingActions.ValidateBotKey(client, input, startup))
+					{
+						botSettings.SetGotKey();
+					}
+					startup = false;
+				}
+
+				await MaybeStartBot(client, botSettings);
+			}
+			public static async Task MaybeStartBotWithUI(IDiscordClient client, IBotSettings botSettings)
+			{
+				if (SavingAndLoadingActions.ValidatePath(Properties.Settings.Default.Path, botSettings.Windows, true))
+				{
+					botSettings.SetGotPath();
+				}
+				if (await SavingAndLoadingActions.ValidateBotKey(client, Properties.Settings.Default.BotKey, true))
+				{
+					botSettings.SetGotKey();
+				}
+				await MaybeStartBot(client, botSettings);
+			}
 			public static async Task MaybeStartBot(IDiscordClient client, IBotSettings botSettings)
 			{
 				if (botSettings.GotPath && botSettings.GotKey && !botSettings.Loaded)

@@ -130,13 +130,7 @@ namespace Advobot
 
 			public static async Task<IEnumerable<string>> ModifyRolePermissions(IRole role, ActionType actionType, IEnumerable<string> permissions, IGuildUser user)
 			{
-				ulong changeValue = 0;
-				foreach (var permission in permissions)
-				{
-					changeValue = GuildActions.AddGuildPermissionBit(permission, changeValue);
-				}
-
-				return await ModifyRolePermissions(role, actionType, changeValue, user);
+				return await ModifyRolePermissions(role, actionType, GuildActions.ConvertGuildPermissionNamesToUlong(permissions), user);
 			}
 			public static async Task<IEnumerable<string>> ModifyRolePermissions(IRole role, ActionType actionType, ulong changeValue, IGuildUser user)
 			{

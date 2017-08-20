@@ -145,5 +145,49 @@ namespace Advobot
 				return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a command matching the supplied input."));
 			}
 		}
+
+		public class GuildPermissionsTypeReader : TypeReader
+		{
+			public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+			{
+				//Check numbers first
+				if (ulong.TryParse(input, out ulong rawValue))
+				{
+					return Task.FromResult(TypeReaderResult.FromSuccess(rawValue));
+				}
+				//Then check permission names
+				else if (!GetActions.TryGetValidGuildPermissionNamesFromInputString(input, out var validPerms, out var invalidPerms))
+				{
+					var failureStr = FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.", GetActions.GetPlural(invalidPerms.Count()), String.Join("`, `", invalidPerms)));
+					return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, failureStr));
+				}
+				else
+				{
+					return Task.FromResult(TypeReaderResult.FromSuccess(GuildActions.ConvertGuildPermissionNamesToUlong(validPerms)));
+				}
+			}
+		}
+
+		public class ChannelPermissionsTypeReader : TypeReader
+		{
+			public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+			{
+				//Check numbers first
+				if (ulong.TryParse(input, out ulong rawValue))
+				{
+					return Task.FromResult(TypeReaderResult.FromSuccess(rawValue));
+				}
+				//Then check permission names
+				else if (!GetActions.TryGetValidChannelPermissionNamesFromInputString(input, out var validPerms, out var invalidPerms))
+				{
+					var failureStr = FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.", GetActions.GetPlural(invalidPerms.Count()), String.Join("`, `", invalidPerms)));
+					return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, failureStr));
+				}
+				else
+				{
+					return Task.FromResult(TypeReaderResult.FromSuccess(ChannelActions.ConvertChannelPermissionNamesToUlong(validPerms)));
+				}
+			}
+		}
 	}
 }

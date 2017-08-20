@@ -786,13 +786,13 @@ namespace Advobot
 				Permissions = permissions;
 			}
 
-			public void AddPermission(ulong bit)
+			public void AddPermissions(ulong flags)
 			{
-				Permissions |= bit;
+				Permissions |= flags;
 			}
-			public void RemovePermission(ulong bit)
+			public void RemovePermissions(ulong flags)
 			{
-				Permissions &= ~bit;
+				Permissions &= ~flags;
 			}
 
 			public override string ToString()
@@ -1149,6 +1149,31 @@ namespace Advobot
 			public string ToString(SocketGuild guild)
 			{
 				return ToString();
+			}
+		}
+
+		public class PersistentRole : ISetting
+		{
+			[JsonProperty]
+			public ulong UserId { get; }
+			[JsonProperty]
+			public ulong RoleId { get; }
+
+			public PersistentRole(IUser user, IRole role)
+			{
+				UserId = user.Id;
+				RoleId = role.Id;
+			}
+
+			public override string ToString()
+			{
+				return String.Format("**User Id:** `{0}`\n**Role Id:&& `{1}`", UserId, RoleId);
+			}
+			public string ToString(SocketGuild guild)
+			{
+				var user = guild.GetUser(UserId).FormatUser() ?? UserId.ToString();
+				var role = guild.GetRole(RoleId).FormatRole() ?? RoleId.ToString();
+				return String.Format("**User:** `{0}`\n**Role:&& `{1}`", user, role);
 			}
 		}
 	}

@@ -1,8 +1,9 @@
 ﻿using Advobot.Structs;
 using Discord;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace Advobot
 {
@@ -20,23 +21,26 @@ namespace Advobot
 				return await guild.PruneUsersAsync(days, simulate, new RequestOptions { AuditLogReason = reason });
 			}
 
-			public static ulong AddGuildPermissionBit(string permissionName, ulong inputValue)
+			public static ulong ConvertGuildPermissionNamesToUlong(IEnumerable<string> permissionNames)
 			{
-				var permission = Constants.GUILD_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
-				if (!permission.Equals(default(BotGuildPermission)))
+				ulong rawValue = 0;
+				foreach (var permissionName in permissionNames)
 				{
-					inputValue |= permission.Bit;
+					var permission = Constants.GUILD_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
+					if (!permission.Equals(default(BotGuildPermission)))
+					{
+						rawValue |= permission.Bit;
+					}
 				}
-				return inputValue;
+				return rawValue;
 			}
-			public static ulong RemoveGuildPermissionBit(string permissionName, ulong inputValue)
+			public static ulong AddGuildPermissionBits(IEnumerable<string> permissionNames, ulong inputValue)
 			{
-				var permission = Constants.GUILD_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
-				if (!permission.Equals(default(BotGuildPermission)))
-				{
-					inputValue &= ~permission.Bit;
-				}
-				return inputValue;
+				return inputValue | ConvertGuildPermissionNamesToUlong(permissionNames);
+			}
+			public static ulong RemoveGuildPermissionBits(IEnumerable<string> permissionNames, ulong inputValue)
+			{
+				return inputValue & ~ConvertGuildPermissionNamesToUlong(permissionNames);
 			}
 
 			public static async Task ModifyGuildName(IGuild guild, string name, string reason)

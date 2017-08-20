@@ -40,33 +40,7 @@ namespace Advobot
 				AppDomain.CurrentDomain.UnhandledException += (sender, e) => SavingAndLoadingActions.LogUncaughtException(sender, e, logging);
 
 				await CommandHandler.Install(provider);
-				await StartBot(provider, client, botSettings);
-			}
-
-			private async Task StartBot(IServiceProvider provider, IDiscordClient client, IBotSettings botSettings)
-			{
-				var startup = true;
-				while (!botSettings.GotPath)
-				{
-					var input = startup ? GetActions.GetSavePath() : Console.ReadLine();
-					if (SavingAndLoadingActions.ValidatePath(input, botSettings.Windows, startup))
-					{
-						botSettings.SetGotPath();
-					}
-					startup = false;
-				}
-				startup = true;
-				while (!botSettings.GotKey)
-				{
-					var input = startup ? GetActions.GetBotKey() : Console.ReadLine();
-					if (await SavingAndLoadingActions.ValidateBotKey(client, input, startup))
-					{
-						botSettings.SetGotKey();
-					}
-					startup = false;
-				}
-
-				await ClientActions.MaybeStartBot(client, botSettings);
+				await ClientActions.MaybeStartBotWithConsole(client, botSettings);
 			}
 
 			private IServiceProvider ConfigureServices(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettings, ITimersModule timers, ILogModule logging)

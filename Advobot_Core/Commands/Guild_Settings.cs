@@ -1,4 +1,5 @@
 ﻿using Advobot.Actions;
+using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -254,21 +255,48 @@ namespace Advobot
 			public sealed class Add : MySavingModuleBase
 			{
 				[Command]
-				public async Task Command(IUser user, [Remainder] string uncutPermissions)
+				public async Task Command(IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
 				{
+					rawValue |= (Context.User as IGuildUser).GuildPermissions.RawValue;
 
+					var botUser = Context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id) ?? new BotImplementedPermissions(user.Id, rawValue);
+					botUser.AddPermissions(rawValue);
+
+					var givenPerms = String.Join("`, `", GetActions.GetGuildPermissionNames(rawValue));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave `{0}` the following bot permissions: `{1}`.", user.FormatUser(), givenPerms));
 				}
-
 			}
 			[Group(nameof(ActionType.Remove)), Alias("r")]
 			public sealed class Remove : MySavingModuleBase
 			{
 				[Command]
-				public async Task Command(IUser user, [Remainder] string uncutPermissions)
+				public async Task Command(IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
 				{
+					rawValue |= (Context.User as IGuildUser).GuildPermissions.RawValue;
 
+					var botUser = Context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id);
+					if (botUser == null)
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, "That user does not have any bot permissions to remove");
+						return;
+					}
+					botUser.RemovePermissions(rawValue);
+
+					var takenPerms = String.Join("`, `", GetActions.GetGuildPermissionNames(rawValue));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the following bot permissions from `{0}`: `{1}`.", user.FormatUser(), takenPerms));
 				}
 			}
+		}
+
+		[Group(nameof(ModifyPersistentRoles)), Alias("mpr")]
+		[Usage("[Show|Add|Remove] [User] [Role]")]
+		[Summary("Gives a user a role that stays even when they leave and rejoin the server.Type `" + Constants.BOT_PREFIX + "mpr [Show]` to see the which users have persistent roles set up. " +
+			"Type `" + Constants.BOT_PREFIX + "mpr [Show] [User]` to see the persistent roles of that user.")]
+		[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
+		[DefaultEnabled(true)]
+		public sealed class ModifyPersistentRoles : MySavingModuleBase
+		{
+
 		}
 
 		[Group(nameof(DisplayGuildSettings)), Alias("dgds")]
@@ -339,151 +367,6 @@ namespace Advobot
 	[Name("GuildSettings")]
 	public class Advobot_Commands_Guild_Settings : ModuleBase
 	{
-		public async Task BotUsersModify([Optional, Remainder] string input)
-		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-
-			//Split input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 3));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var actionStr = returnedArgs.Arguments[0];
-			var userStr = returnedArgs.Arguments[1];
-			var permStr = returnedArgs.Arguments[2];
-
-			//Check if valid action
-			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Show, ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedType);
-				return;
-			}
-			var action = returnedType.Object;
-
-			if (returnedArgs.ArgCount == 1)
-			{
-				if (action == ActionType.Show)
-				{
-					await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Guild Permissions", String.Format("`{0}`", String.Join("`, `", Variables.GuildPermissions.Select(x => x.Name)))));
-					return;
-				}
-				else
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(Constants.ARGUMENTS_ERROR));
-					return;
-				}
-			}
-
-			//Get the user
-			var returnedUser = Actions.GetGuildUser(Context, new[] { ObjectVerification.CanBeEdited }, true, userStr);
-			if (returnedUser.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedUser);
-				return;
-			}
-			var user = returnedUser.Object;
-
-			//Get the botuser
-			var botUser = ((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).FirstOrDefault(x => x.UserID == user.Id);
-			switch (action)
-			{
-				case ActionType.Show:
-				{
-					if (returnedArgs.ArgCount == 2)
-					{
-						if (botUser == null || botUser.Permissions == 0)
-						{
-							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That user has no extra permissions from the bot."));
-							return;
-						}
-
-						//check if that user has any permissions
-						var showPerms = Actions.GetPermissionNames(botUser.Permissions);
-						if (!showPerms.Any())
-						{
-							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That user has no extra permissions from the bot."));
-						}
-						else
-						{
-							var title = String.Format("Permissions for {0}", user.FormatUser());
-							var desc = String.Format("`{0}`", String.Join("`, `", showPerms));
-							await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, desc));
-						}
-					}
-					else
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid option for show."));
-					}
-					return;
-				}
-				case ActionType.Remove:
-				{
-					if (returnedArgs.ArgCount == 2)
-					{
-						if (botUser == null)
-						{
-							await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("That user is not on the bot user list."));
-							return;
-						}
-
-						((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).ThreadSafeRemove(botUser);
-						guildInfo.SaveInfo();
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the bot user list.", user.FormatUser()));
-						return;
-					}
-					break;
-				}
-			}
-
-			//Get the permissions
-			var permissions = permStr.Split('/').Select(x => Variables.GuildPermissions.FirstOrDefault(y => Actions.CaseInsEquals(y.Name, x))).Where(x => x.Name != null).ToList();
-			if (!permissions.Any())
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid input for permissions."));
-				return;
-			}
-			else if (Context.User.Id != Context.Guild.OwnerId)
-			{
-				permissions.RemoveAll(x => Actions.CaseInsEquals(x.Name, GuildPermission.Administrator.EnumName()));
-			}
-
-			//Modify the user's perms
-			botUser = botUser ?? new BotImplementedPermissions(user.Id, 0, guildInfo);
-			var outputStr = "";
-			switch (action)
-			{
-				case ActionType.Add:
-				{
-					permissions.ForEach(x =>
-					{
-						botUser.AddPermission(x.Bit);
-					});
-					outputStr = String.Format("gave the user `{0}` the following bot permission{1}", user.FormatUser(), Actions.GetPlural(permissions.Count));
-					break;
-				}
-				case ActionType.Remove:
-				{
-					permissions.ForEach(x =>
-					{
-						if (botUser.Permissions == 0)
-							return;
-						botUser.RemovePermission(x.Bit);
-					});
-					outputStr = String.Format("removed the following bot permission{0} from the user `{1}`", Actions.GetPlural(permissions.Count), user.FormatUser());
-					break;
-				}
-			}
-			if (botUser.Permissions == 0)
-			{
-				((List<BotImplementedPermissions>)guildInfo.GetSetting(SettingOnGuild.BotUsers)).ThreadSafeRemoveAll(x => x.UserID == botUser.UserID);
-			}
-
-			guildInfo.SaveInfo();
-			await MessageActions.SendChannelMessage(Context, String.Format("Successfully {0}: `{1}`.", outputStr, String.Join("`, `", permissions.Select(x => x.Name))));
-		}
 
 		[Command("modifychannelsettings")]
 		[Alias("mcs")]

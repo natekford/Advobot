@@ -3,6 +3,7 @@ using Advobot.Attributes;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.NonSavedClasses;
+using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -197,25 +198,15 @@ namespace Advobot
 			{
 				private const ActionType _ActionType = ActionType.Allow;
 
-				[Command, Priority(0)]
-				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IRole role, [Remainder] string uncutPermissions)
+				[Command]
+				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IRole role, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
 				{
-					await CommandRunner(Context, _ActionType, channel, role, uncutPermissions);
+					await CommandRunner(Context, _ActionType, channel, role, rawValue);
 				}
-				[Command, Priority(0)]
-				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user, [Remainder] string uncutPermissions)
+				[Command]
+				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
 				{
-					await CommandRunner(Context, _ActionType, channel, user, uncutPermissions);
-				}
-				[Command, Priority(1)]
-				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IRole role, ulong changeValue)
-				{
-					await CommandRunner(Context, _ActionType, channel, role, changeValue);
-				}
-				[Command, Priority(1)]
-				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user, ulong changeValue)
-				{
-					await CommandRunner(Context, _ActionType, channel, user, changeValue);
+					await CommandRunner(Context, _ActionType, channel, user, rawValue);
 				}
 			}
 			[Group(nameof(ActionType.Inherit)), Alias("i")]
@@ -223,25 +214,15 @@ namespace Advobot
 			{
 				private const ActionType _ActionType = ActionType.Inherit;
 
-				[Command, Priority(0)]
-				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IRole role, [Remainder] string uncutPermissions)
+				[Command]
+				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IRole role, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
 				{
-					await CommandRunner(Context, _ActionType, channel, role, uncutPermissions);
+					await CommandRunner(Context, _ActionType, channel, role, rawValue);
 				}
-				[Command, Priority(0)]
-				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user, [Remainder] string uncutPermissions)
+				[Command]
+				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
 				{
-					await CommandRunner(Context, _ActionType, channel, user, uncutPermissions);
-				}
-				[Command, Priority(1)]
-				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IRole role, ulong changeValue)
-				{
-					await CommandRunner(Context, _ActionType, channel, role, changeValue);
-				}
-				[Command, Priority(1)]
-				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user, ulong changeValue)
-				{
-					await CommandRunner(Context, _ActionType, channel, user, changeValue);
+					await CommandRunner(Context, _ActionType, channel, user, rawValue);
 				}
 			}
 			[Group(nameof(ActionType.Deny)), Alias("d")]
@@ -249,65 +230,18 @@ namespace Advobot
 			{
 				private const ActionType _ActionType = ActionType.Deny;
 
-				[Command, Priority(0)]
-				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IRole role, [Remainder] string uncutPermissions)
+				[Command]
+				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IRole role, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
 				{
-					await CommandRunner(Context, _ActionType, channel, role, uncutPermissions);
+					await CommandRunner(Context, _ActionType, channel, role, rawValue);
 				}
-				[Command, Priority(0)]
-				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user, [Remainder] string uncutPermissions)
+				[Command]
+				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
 				{
-					await CommandRunner(Context, _ActionType, channel, user, uncutPermissions);
-				}
-				[Command, Priority(1)]
-				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IRole role, ulong changeValue)
-				{
-					await CommandRunner(Context, _ActionType, channel, role, changeValue);
-				}
-				[Command, Priority(1)]
-				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user, ulong changeValue)
-				{
-					await CommandRunner(Context, _ActionType, channel, user, changeValue);
+					await CommandRunner(Context, _ActionType, channel, user, rawValue);
 				}
 			}
 
-			private static async Task CommandRunner(IMyCommandContext context, ActionType actionType, IGuildChannel channel, object discordObject, string uncutPermissions)
-			{
-				if (!GetActions.TryGetValidChannelPermissionNamesFromInputString(uncutPermissions, out var validPerms, out var invalidPerms))
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.",
-						GetActions.GetPlural(invalidPerms.Count()),
-						String.Join("`, `", invalidPerms))));
-					return;
-				}
-
-				var actionStr = "";
-				switch (actionType)
-				{
-					case ActionType.Allow:
-					{
-						actionStr = "allowed";
-						break;
-					}
-					case ActionType.Inherit:
-					{
-						actionStr = "inherited";
-						break;
-					}
-					case ActionType.Deny:
-					{
-						actionStr = "denied";
-						break;
-					}
-				}
-
-				var givenPerms = ChannelActions.ModifyOverwritePermissions(channel, discordObject, actionType, validPerms, context.User as IGuildUser);
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, String.Format("Successfully {0} `{1}` for `{2}` on `{3}`.",
-					actionStr,
-					String.Join("`, `", givenPerms),
-					FormattingActions.FormatObject(discordObject),
-					channel.FormatChannel()));
-			}
 			private static async Task CommandRunner(IMyCommandContext context, ActionType actionType, IGuildChannel channel, object discordObject, ulong changeValue)
 			{
 				var actionStr = "";

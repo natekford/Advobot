@@ -2,6 +2,7 @@
 using Advobot.Attributes;
 using Advobot.Enums;
 using Advobot.NonSavedClasses;
+using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
 using System;
@@ -170,24 +171,8 @@ namespace Advobot
 			[Group(nameof(ActionType.Allow)), Alias("a")]
 			public sealed class Allow : MyModuleBase
 			{
-				[Command, Priority(0)]
-				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, [Remainder] string uncutPermissions)
-				{
-					if (!GetActions.TryGetValidGuildPermissionNamesFromInputString(uncutPermissions, out var validPerms, out var invalidPerms))
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.",
-							GetActions.GetPlural(invalidPerms.Count()),
-							String.Join("`, `", invalidPerms))));
-						return;
-					}
-
-					var givenPerms = await RoleActions.ModifyRolePermissions(role, ActionType.Allow, validPerms, Context.User as IGuildUser);
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully allowed `{0}` for `{1}`.",
-						givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing",
-						role.FormatRole()));
-				}
-				[Command, Priority(1)]
-				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, uint rawValue)
+				[Command]
+				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
 				{
 					var givenPerms = await RoleActions.ModifyRolePermissions(role, ActionType.Allow, rawValue, Context.User as IGuildUser);
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully allowed `{0}` for `{1}`.",
@@ -198,24 +183,8 @@ namespace Advobot
 			[Group(nameof(ActionType.Deny)), Alias("d")]
 			public sealed class Deny : MyModuleBase
 			{
-				[Command, Priority(0)]
-				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, [Remainder] string uncutPermissions)
-				{
-					if (!GetActions.TryGetValidGuildPermissionNamesFromInputString(uncutPermissions, out var validPerms, out var invalidPerms))
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.",
-							GetActions.GetPlural(invalidPerms.Count()),
-							String.Join("`, `", invalidPerms))));
-						return;
-					}
-
-					var givenPerms = await RoleActions.ModifyRolePermissions(role, ActionType.Deny, validPerms, Context.User as IGuildUser);
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully denied `{0}` for `{1}`.",
-						givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing",
-						role.FormatRole()));
-				}
-				[Command, Priority(1)]
-				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, uint rawValue)
+				[Command]
+				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
 				{
 					var givenPerms = await RoleActions.ModifyRolePermissions(role, ActionType.Deny, rawValue, Context.User as IGuildUser);
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully denied `{0}` for `{1}`.",

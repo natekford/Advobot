@@ -363,41 +363,31 @@ namespace Advobot
 					//Make console output show on the output text block and box
 					Console.SetOut(new UITextBoxStreamWriter(_Output));
 
-					Task.Run(async () =>
-					{
-						if (SavingAndLoadingActions.ValidatePath(GetActions.GetSavePath(), _BotSettings.Windows, true))
-						{
-							_BotSettings.SetGotPath();
-						}
-						if (await SavingAndLoadingActions.ValidateBotKey(_Client, GetActions.GetBotKey(), true))
-						{
-							_BotSettings.SetGotKey();
-						}
-						await ClientActions.MaybeStartBot(_Client, _BotSettings);
-					});
+					Task.Run(async () => await ClientActions.MaybeStartBotWithUI(_Client, _BotSettings));
 
 					_UISettings.ActivateTheme();
 					UIModification.SetColorMode(_Layout);
 
 					var timer = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 500) };
-					timer.Tick += async (s, ea) =>
-					{
-						var guilds = await _Client.GetGuildsAsync();
-
-						IEnumerable<ulong> userIDs = new List<ulong>();
-						foreach (var guild in guilds)
-						{
-							userIDs = (await guild.GetUsersAsync()).Select(x => x.Id);
-						}
-
-						((TextBox)_Latency.Child).Text = String.Format("Latency: {0}ms", ClientActions.GetLatency(_Client));
-						((TextBox)_Memory.Child).Text = String.Format("Memory: {0}MB", GetActions.GetMemory(_BotSettings.Windows).ToString("0.00"));
-						((TextBox)_Threads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
-						((TextBox)_Guilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
-						((TextBox)_Users.Child).Text = String.Format("Members: {0}", userIDs.Distinct().Count());
-						_InfoOutput.Document = UIModification.MakeInfoMenu(GetActions.GetUptime(_BotSettings), _Logging.FormatLoggedCommands(), _Logging.FormatLoggedActions());
-					};
+					timer.Tick += Timer_Tick;
 					timer.Start();
+				}
+				private async void Timer_Tick(object sender, EventArgs e)
+				{
+					var guilds = await _Client.GetGuildsAsync();
+
+					IEnumerable<ulong> userIDs = new List<ulong>();
+					foreach (var guild in guilds)
+					{
+						userIDs = (await guild.GetUsersAsync()).Select(x => x.Id);
+					}
+
+					((TextBox)_Latency.Child).Text = String.Format("Latency: {0}ms", ClientActions.GetLatency(_Client));
+					((TextBox)_Memory.Child).Text = String.Format("Memory: {0}MB", GetActions.GetMemory(_BotSettings.Windows).ToString("0.00"));
+					((TextBox)_Threads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
+					((TextBox)_Guilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
+					((TextBox)_Users.Child).Text = String.Format("Members: {0}", userIDs.Distinct().Count());
+					_InfoOutput.Document = UIModification.MakeInfoMenu(GetActions.GetUptime(_BotSettings), _Logging.FormatLoggedCommands(), _Logging.FormatLoggedActions());
 				}
 
 				private void HookUpEvents()
