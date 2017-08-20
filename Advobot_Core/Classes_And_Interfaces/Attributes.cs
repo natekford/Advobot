@@ -69,14 +69,8 @@ namespace Advobot
 				return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 			}
 
-			public string AllText
-			{
-				get { return String.Join(" & ", GetActions.GetGuildPermissionNames(_AllFlags)); }
-			}
-			public string AnyText
-			{
-				get { return String.Join(" | ", GetActions.GetGuildPermissionNames(_AnyFlags)); }
-			}
+			public string AllText => String.Join(" & ", GetActions.GetGuildPermissionNames(_AllFlags));
+			public string AnyText => String.Join(" | ", GetActions.GetGuildPermissionNames(_AnyFlags));
 		}
 
 		/// <summary>
@@ -99,7 +93,7 @@ namespace Advobot
 				| (1U << (int)GuildPermission.ManageWebhooks)
 				| (1U << (int)GuildPermission.MoveMembers)
 				| (1U << (int)GuildPermission.MuteMembers);
-			public Precondition Requirements { get; }
+			public readonly Precondition Requirements;
 
 			public OtherRequirementAttribute(Precondition requirements)
 			{
@@ -233,7 +227,7 @@ namespace Advobot
 		}
 
 		/// <summary>
-		/// Specified the default value for whether a command is enabled or not.
+		/// Specifies the default value for whether a command is enabled or not.
 		/// </summary>
 		[AttributeUsage(AttributeTargets.Class)]
 		public class DefaultEnabledAttribute : Attribute

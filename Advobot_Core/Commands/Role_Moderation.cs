@@ -173,7 +173,7 @@ namespace Advobot
 				[Command, Priority(0)]
 				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, [Remainder] string uncutPermissions)
 				{
-					if (!GetActions.GetValidGuildPermissionNamesFromInputString(uncutPermissions, out var validPerms, out var invalidPerms))
+					if (!GetActions.TryGetValidGuildPermissionNamesFromInputString(uncutPermissions, out var validPerms, out var invalidPerms))
 					{
 						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.",
 							GetActions.GetPlural(invalidPerms.Count()),
@@ -201,7 +201,7 @@ namespace Advobot
 				[Command, Priority(0)]
 				public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, [Remainder] string uncutPermissions)
 				{
-					if (!GetActions.GetValidGuildPermissionNamesFromInputString(uncutPermissions, out var validPerms, out var invalidPerms))
+					if (!GetActions.TryGetValidGuildPermissionNamesFromInputString(uncutPermissions, out var validPerms, out var invalidPerms))
 					{
 						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.",
 							GetActions.GetPlural(invalidPerms.Count()),

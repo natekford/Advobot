@@ -58,51 +58,69 @@ namespace Advobot
 				}
 			}
 
+			/// <summary>
+			/// Returns a dictionary of channel permissions and their values (allow, deny, inherit). Non filtered so incorrect channel type permissions will be in it.
+			/// </summary>
+			/// <param name="overwrite"></param>
+			/// <returns></returns>
 			public static Dictionary<string, string> GetChannelOverwritePermissions(Overwrite overwrite)
 			{
-				//Create a dictionary to hold the allow/deny/inherit values
 				var channelPerms = new Dictionary<string, string>();
-
 				//Make a copy of the channel perm list to check off perms as they go by
 				var genericChannelPerms = Constants.CHANNEL_PERMISSIONS.Select(x => x.Name).ToList();
-
 				//Add allow perms to the dictionary and remove them from the checklist
-				overwrite.Permissions.ToAllowList().ForEach(x =>
+				foreach (var perm in overwrite.Permissions.ToAllowList())
 				{
-					channelPerms.Add(x.ToString(), "Allow");
-					genericChannelPerms.Remove(x.ToString());
-				});
-
+					channelPerms.Add(perm.ToString(), nameof(PermValue.Allow));
+					genericChannelPerms.Remove(perm.ToString());
+				}
 				//Add deny perms to the dictionary and remove them from the checklist
-				overwrite.Permissions.ToDenyList().ForEach(x =>
+				foreach (var perm in overwrite.Permissions.ToDenyList())
 				{
-					channelPerms.Add(x.ToString(), "Deny");
-					genericChannelPerms.Remove(x.ToString());
-				});
-
-				//Add the remaining perms as inherit after removing all null values
-				genericChannelPerms.ForEach(x => channelPerms.Add(x, "Inherit"));
+					channelPerms.Add(perm.ToString(), nameof(PermValue.Deny));
+					genericChannelPerms.Remove(perm.ToString());
+				}
+				//Add the remaining perms as inherit
+				genericChannelPerms.ForEach(x => channelPerms.Add(x, nameof(PermValue.Inherit)));
 
 				//Remove these random values that exist for some reason
+				//Not sure these still exist, but leaving this in. TODO: make sure these aren't here?
 				channelPerms.Remove("1");
 				channelPerms.Remove("3");
 
 				return channelPerms;
 			}
+			/// <summary>
+			/// Returns a similar dictionary to <see cref="GetChannelOverwritePermissions"/> except this method has voice permissions filtered out of text channels and vice versa.
+			/// </summary>
+			/// <param name="overwrite"></param>
+			/// <param name="channel"></param>
+			/// <returns></returns>
 			public static Dictionary<string, string> GetFilteredChannelOverwritePermissions(Overwrite overwrite, IGuildChannel channel)
 			{
 				var dictionary = GetChannelOverwritePermissions(overwrite);
 				if (channel is ITextChannel)
 				{
-					Constants.CHANNEL_PERMISSIONS.Where(x => x.Voice).ToList().ForEach(x => dictionary.Remove(x.Name));
+					foreach (var perm in Constants.CHANNEL_PERMISSIONS.Where(x => x.Voice))
+					{
+						dictionary.Remove(perm.Name);
+					}
 				}
 				else
 				{
-					Constants.CHANNEL_PERMISSIONS.Where(x => x.Text).ToList().ForEach(x => dictionary.Remove(x.Name));
+					foreach (var perm in Constants.CHANNEL_PERMISSIONS.Where(x => x.Text))
+					{
+						dictionary.Remove(perm.Name);
+					}
 				}
 				return dictionary;
 			}
-			public static List<string> GetGuildPermissionNames(ulong flags)
+			/// <summary>
+			/// Returns the guild permission bits that are set within the passed in ulong.
+			/// </summary>
+			/// <param name="flags"></param>
+			/// <returns></returns>
+			public static string[] GetGuildPermissionNames(ulong flags)
 			{
 				var result = new List<string>();
 				for (int i = 0; i < 64; ++i)
@@ -121,9 +139,14 @@ namespace Advobot
 
 					result.Add(name);
 				}
-				return result;
+				return result.ToArray();
 			}
-			public static List<string> GetChannelPermissionNames(ulong flags)
+			/// <summary>
+			/// Returns the channel permission bits that are set within the passed in ulong.
+			/// </summary>
+			/// <param name="flags"></param>
+			/// <returns></returns>
+			public static string[] GetChannelPermissionNames(ulong flags)
 			{
 				var result = new List<string>();
 				for (int i = 0; i < 64; ++i)
@@ -142,18 +165,45 @@ namespace Advobot
 
 					result.Add(name);
 				}
-				return result;
+				return result.ToArray();
 			}
-			public static bool GetValidGuildPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
+			/// <summary>
+			/// Returns the channel perms gotten from <see cref="GetFilteredChannelOverwritePermissions"/> formatted with their perm value in front of the perm name.
+			/// </summary>
+			/// <typeparam name="T"></typeparam>
+			/// <param name="channel"></param>
+			/// <param name="overwriteObj"></param>
+			/// <returns></returns>
+			public static string[] GetFormattedPermsFromOverwrite<T>(IGuildChannel channel, T overwriteObj) where T : ISnowflakeEntity
 			{
-				var permissions = input.Split('/', ' ').Select(x => x.Trim(',')).ToList();
+				var perms = GetFilteredChannelOverwritePermissions(channel.PermissionOverwrites.FirstOrDefault(x => overwriteObj.Id == x.TargetId), channel);
+				var maxLen = perms.Keys.Max(x => x.Length);
+				return perms.Select(x => String.Format("{0} {1}", x.Key.PadRight(maxLen), x.Value)).ToArray();
+			}
+			/// <summary>
+			/// Returns a bool indicating whether any invalid perms were passed in. Out values of valid perms and invalid perms.
+			/// </summary>
+			/// <param name="input"></param>
+			/// <param name="validPerms"></param>
+			/// <param name="invalidPerms"></param>
+			/// <returns></returns>
+			public static bool TryGetValidGuildPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
+			{
+				var permissions = input.Split('/', ' ').Select(x => x.Trim(','));
 				validPerms = permissions.Where(x => Constants.GUILD_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
 				invalidPerms = permissions.Where(x => !Constants.GUILD_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
 				return !invalidPerms.Any();
 			}
-			public static bool GetValidChannelPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
+			/// <summary>
+			/// Returns a bool indicating whether any invalid perms were passed in. Out values of valid perms and invalid perms.
+			/// </summary>
+			/// <param name="input"></param>
+			/// <param name="validPerms"></param>
+			/// <param name="invalidPerms"></param>
+			/// <returns></returns>
+			public static bool TryGetValidChannelPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
 			{
-				var permissions = input.Split('/', ' ').Select(x => x.Trim(',')).ToList();
+				var permissions = input.Split('/', ' ').Select(x => x.Trim(','));
 				validPerms = permissions.Where(x => Constants.CHANNEL_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
 				invalidPerms = permissions.Where(x => !Constants.CHANNEL_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
 				return !invalidPerms.Any();
@@ -223,10 +273,22 @@ namespace Advobot
 				return new ReturnedArguments(args, specifiedArgs, context.Message);
 			}
 
-			public static List<CommandSwitch> GetMultipleCommands(IGuildSettings guildSettings, CommandCategory category)
+			/// <summary>
+			/// Returns commands from guildsettings that are in a specific category.
+			/// </summary>
+			/// <param name="guildSettings"></param>
+			/// <param name="category"></param>
+			/// <returns></returns>
+			public static CommandSwitch[] GetMultipleCommands(IGuildSettings guildSettings, CommandCategory category)
 			{
-				return guildSettings.CommandSwitches.Where(x => x.Category == category).ToList();
+				return guildSettings.CommandSwitches.Where(x => x.Category == category).ToArray();
 			}
+			/// <summary>
+			/// Returns a command from guildsettings with the passed in command name/alias.
+			/// </summary>
+			/// <param name="guildSettings"></param>
+			/// <param name="commandNameOrAlias"></param>
+			/// <returns></returns>
 			public static CommandSwitch GetCommand(IGuildSettings guildSettings, string commandNameOrAlias)
 			{
 				return guildSettings.CommandSwitches.FirstOrDefault(x =>
@@ -245,6 +307,11 @@ namespace Advobot
 					}
 				});
 			}
+			/// <summary>
+			/// Returns all names of commands that are in specific category.
+			/// </summary>
+			/// <param name="category"></param>
+			/// <returns></returns>
 			public static string[] GetCommandNames(CommandCategory category)
 			{
 				return Constants.HELP_ENTRIES.Where(x => x.Category == category).Select(x => x.Name).ToArray();
@@ -280,15 +347,22 @@ namespace Advobot
 			}
 
 			/// <summary>
-			/// Returns the user set save path for the bot's folder. Do not save directly to this path; call GetBaseBotDirectory instead.
+			/// Returns the user set save path for the bot's folder. Do not save directly to this path; call <see cref="GetBaseBotDirectory"/> instead.
 			/// </summary>
 			/// <returns></returns>
+			[Obsolete]
 			public static string GetSavePath()
 			{
 				return Properties.Settings.Default.Path;
 			}
+			/// <summary>
+			/// Returns the user set bot key for the bot.
+			/// </summary>
+			/// <returns></returns>
+			[Obsolete]
 			public static string GetBotKey()
 			{
+				//TODO: Replace this with something more secure.
 				return Properties.Settings.Default.BotKey;
 			}
 
@@ -341,6 +415,12 @@ namespace Advobot
 				return null;
 			}
 
+			/// <summary>
+			/// Returns a variable from a list of arguments and removes it from the list of arguments.
+			/// </summary>
+			/// <param name="inputList"></param>
+			/// <param name="searchTerm"></param>
+			/// <returns></returns>
 			public static string GetVariableAndRemove(List<string> inputList, string searchTerm)
 			{
 				var first = inputList?.FirstOrDefault(x => x.Substring(0, Math.Max(x.IndexOf(':'), 1)).CaseInsEquals(searchTerm));
@@ -352,35 +432,58 @@ namespace Advobot
 				}
 				return null;
 			}
+			/// <summary>
+			/// Returns a variable from a list of arguments.
+			/// </summary>
+			/// <param name="inputArray"></param>
+			/// <param name="searchTerm"></param>
+			/// <returns></returns>
 			public static string GetVariable(IEnumerable<string> inputArray, string searchTerm)
 			{
 				var first = inputArray?.FirstOrDefault(x => x.Substring(0, Math.Max(x.IndexOf(':'), 1)).CaseInsEquals(searchTerm));
 				return first?.Substring(first.IndexOf(':') + 1);
 			}
 
+			/// <summary>
+			/// Returns a formatted string displaying the bot's current uptime.
+			/// </summary>
+			/// <param name="botSettings"></param>
+			/// <returns></returns>
 			public static string GetUptime(IBotSettings botSettings)
 			{
 				var span = DateTime.UtcNow.Subtract(botSettings.StartupTime);
 				return String.Format("{0}:{1}:{2}:{3}", span.Days, span.Hours.ToString("00"), span.Minutes.ToString("00"), span.Seconds.ToString("00"));
 			}
+			/// <summary>
+			/// On windows, returns the task manager value. On other systems, returns the WorkingSet64 value.
+			/// </summary>
+			/// <param name="windows"></param>
+			/// <returns></returns>
 			public static double GetMemory(bool windows)
 			{
+				const double _MB = 1024.0 * 1024.0;
+
 				if (windows)
 				{
 					using (var PC = new System.Diagnostics.PerformanceCounter("Process", "Working Set - Private", System.Diagnostics.Process.GetCurrentProcess().ProcessName))
 					{
-						return Convert.ToInt32(PC.NextValue()) / (1024.0 * 1024.0);
+						return (int)PC.NextValue() / _MB;
 					}
 				}
 				else
 				{
 					using (var process = System.Diagnostics.Process.GetCurrentProcess())
 					{
-						return Convert.ToInt32(process.WorkingSet64) / (1024.0 * 1024.0);
+						return (int)process.WorkingSet64 / _MB;
 					}
 				}
 			}
-
+			/// <summary>
+			/// Returns int.MaxValue is bypass is true, otherwise returns whatever botSettings has for MaxUserGatherCount.
+			/// </summary>
+			/// <param name="botSettings"></param>
+			/// <param name="bypass"></param>
+			/// <returns></returns>
 			public static int GetMaxAmountOfUsersToGather(IBotSettings botSettings, bool bypass)
 			{
 				return bypass ? int.MaxValue : (int)botSettings.MaxUserGatherCount;

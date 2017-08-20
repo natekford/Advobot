@@ -176,7 +176,7 @@ namespace Advobot
 						return;
 					}
 
-					var desc = String.Format("Role:** `{1}`\n```{2}```", role.FormatRole(), ChannelActions.GetFormattedPermsFromOverwrite(channel, role));
+					var desc = String.Format("Role:** `{1}`\n```{2}```", role.FormatRole(), GetActions.GetFormattedPermsFromOverwrite(channel, role));
 					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Overwrite On " + channel.FormatChannel(), desc));
 				}
 				[Command]
@@ -188,7 +188,7 @@ namespace Advobot
 						return;
 					}
 
-					var desc = String.Format("User:** `{1}`\n```{2}```", user.FormatUser(), ChannelActions.GetFormattedPermsFromOverwrite(channel, user));
+					var desc = String.Format("User:** `{1}`\n```{2}```", user.FormatUser(), GetActions.GetFormattedPermsFromOverwrite(channel, user));
 					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Overwrite On " + channel.FormatChannel(), desc));
 				}
 			}
@@ -273,7 +273,7 @@ namespace Advobot
 
 			private static async Task CommandRunner(IMyCommandContext context, ActionType actionType, IGuildChannel channel, object discordObject, string uncutPermissions)
 			{
-				if (GetActions.GetValidChannelPermissionNamesFromInputString(uncutPermissions, out var validPerms, out var invalidPerms))
+				if (!GetActions.TryGetValidChannelPermissionNamesFromInputString(uncutPermissions, out var validPerms, out var invalidPerms))
 				{
 					await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.",
 						GetActions.GetPlural(invalidPerms.Count()),
