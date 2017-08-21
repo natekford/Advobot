@@ -60,7 +60,7 @@ namespace Advobot
 			RapidJoinPrevention				= 29,
 			PyramidalRoleSystem				= 30,
 			MuteRole						= 31,
-			SanitaryChannels				= 32,
+			PersistentRoles					= 32,
 			VerboseErrors					= 33,
 			Guild							= 34,
 		}
@@ -108,6 +108,8 @@ namespace Advobot
 			InviteModeration				= (1U << 11),
 			GuildList						= (1U << 12),
 			NicknameModeration				= (1U << 13),
+			Quotes							= (1U << 14),
+			Rules							= (1U << 15),
 		}
 
 		[Flags]
@@ -266,7 +268,6 @@ namespace Advobot
 		public enum ChannelSetting : uint
 		{
 			ImageOnly						= (1U << 0),
-			Sanitary						= (1U << 1),
 		}
 
 		[Flags]

@@ -226,6 +226,7 @@
     <Compile Include="Actions\Spam_Actions.cs" />
     <Compile Include="Actions\Upload_Actions.cs" />
     <Compile Include="Actions\User_Actions.cs" />
+    <Compile Include="Commands\Quotes.cs" />
     <Compile Include="Commands\Rules.cs" />
     <Compile Include="Timer_Module\Removable_Punishments.cs" />
     <Compile Include="Timer_Module\Timers_Module.cs" />

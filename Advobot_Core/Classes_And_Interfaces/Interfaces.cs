@@ -173,7 +173,6 @@ namespace Advobot
 			List<ulong> IgnoredCommandChannels { get; set; }
 			List<ulong> IgnoredLogChannels { get; set; }
 			List<ulong> ImageOnlyChannels { get; set; }
-			List<ulong> SanitaryChannels { get; set; }
 			List<BannedPhrase> BannedPhraseStrings { get; set; }
 			List<BannedPhrase> BannedPhraseRegex { get; set; }
 			List<BannedPhrase> BannedNamesForJoiningUsers { get; set; }
@@ -182,6 +181,7 @@ namespace Advobot
 			List<CommandOverride> CommandsDisabledOnUser { get; set; }
 			List<CommandOverride> CommandsDisabledOnRole { get; set; }
 			List<CommandOverride> CommandsDisabledOnChannel { get; set; }
+			List<PersistentRole> PersistentRoles { get; set; }
 			ITextChannel ServerLog { get; set; }
 			ITextChannel ModLog { get; set; }
 			ITextChannel ImageLog { get; set; }

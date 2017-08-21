@@ -598,10 +598,6 @@ namespace Advobot
 				{
 					await message.DeleteAsync();
 				}
-				if (guildSettings.SanitaryChannels.Contains(channel.Id))
-				{
-					await message.DeleteAsync();
-				}
 			}
 			public static async Task HandleImageLogging(ILogModule logging, IGuildSettings guildSettings, IMessage message)
 			{

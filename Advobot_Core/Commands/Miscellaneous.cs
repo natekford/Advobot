@@ -201,7 +201,7 @@ namespace Advobot
 				await CommandRunner(Target.Game, game, additionalSearchOptions);
 			}
 			[Command(nameof(Target.Stream))]
-			public async Task CommandString(params string[] additionalSearchOptions)
+			public async Task CommandStream(params string[] additionalSearchOptions)
 			{
 				await CommandRunner(Target.Stream, null as string, additionalSearchOptions);
 			}
@@ -271,39 +271,18 @@ namespace Advobot
 		}
 
 		[Group(nameof(GetUserAvatar)), Alias("gua")]
-		[Usage("<User> <Number> <Gif|Png|Jpg|Webp>")]
-		[Summary("Shows the URL of the given user's avatar. Can supply a format and size.")]
+		[Usage("[Gif|Png|Jpg|Webp] <Size> <User>")]
+		[Summary("Shows the URL of the given user's avatar. Must supply a format, can supply a size, and can specify which user.")]
 		[DefaultEnabled(true)]
 		public sealed class GetUserAvatar : MyModuleBase
 		{
-			//TODO: Figure out how to make this not need 6 explicitly typed overloads
-			[Command]
-			public async Task Command([Optional] IUser user, [Optional] ushort size, [Optional] ImageFormat format)
+			[Command, Priority(0)]
+			public async Task Command(ImageFormat format, [Optional] IUser user, [Optional] ushort size)
 			{
 				await CommandRunner(user, size, format);
 			}
-			[Command]
-			public async Task Command([Optional] IUser user, [Optional] ImageFormat format, [Optional] ushort size)
-			{
-				await CommandRunner(user, size, format);
-			}
-			[Command]
-			public async Task Command([Optional] ushort size, [Optional] IUser user, [Optional] ImageFormat format)
-			{
-				await CommandRunner(user, size, format);
-			}
-			[Command]
-			public async Task Command([Optional] ushort size, [Optional] ImageFormat format, [Optional] IUser user)
-			{
-				await CommandRunner(user, size, format);
-			}
-			[Command]
-			public async Task Command([Optional] ImageFormat format, [Optional] IUser user, [Optional] ushort size)
-			{
-				await CommandRunner(user, size, format);
-			}
-			[Command]
-			public async Task Command([Optional] ImageFormat format, [Optional] ushort size, [Optional] IUser user)
+			[Command, Priority(1)]
+			public async Task Command(ImageFormat format, [Optional] ushort size, [Optional] IUser user)
 			{
 				await CommandRunner(user, size, format);
 			}

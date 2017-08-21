@@ -39,8 +39,6 @@ namespace Advobot
 			private List<ulong> _IgnoredLogChannels = new List<ulong>();
 			[JsonProperty("ImageOnlyChannels")]
 			private List<ulong> _ImageOnlyChannels = new List<ulong>();
-			[JsonProperty("SanitaryChannels")]
-			private List<ulong> _SanitaryChannels = new List<ulong>();
 			[JsonProperty("BannedPhraseStrings")]
 			private List<BannedPhrase> _BannedPhraseStrings = new List<BannedPhrase>();
 			[JsonProperty("BannedPhraseRegex")]
@@ -57,6 +55,8 @@ namespace Advobot
 			private List<CommandOverride> _CommandsDisabledOnRole = new List<CommandOverride>();
 			[JsonProperty("CommandsDisabledOnChannel")]
 			private List<CommandOverride> _CommandsDisabledOnChannel = new List<CommandOverride>();
+			[JsonProperty("PersistentRoles")]
+			private List<PersistentRole> _PersistentRoles = new List<PersistentRole>();
 			[JsonProperty("ServerLog")]
 			private DiscordObjectWithId<ITextChannel> _ServerLog = new DiscordObjectWithId<ITextChannel>(null);
 			[JsonProperty("ModLog")]
@@ -125,12 +125,6 @@ namespace Advobot
 				set => _ImageOnlyChannels = value;
 			}
 			[JsonIgnore]
-			public List<ulong> SanitaryChannels
-			{
-				get => _SanitaryChannels ?? (_SanitaryChannels = new List<ulong>());
-				set => _SanitaryChannels = value;
-			}
-			[JsonIgnore]
 			public List<BannedPhrase> BannedPhraseStrings
 			{
 				get => _BannedPhraseStrings ?? (_BannedPhraseStrings = new List<BannedPhrase>());
@@ -177,6 +171,12 @@ namespace Advobot
 			{
 				get => _CommandsDisabledOnChannel ?? (_CommandsDisabledOnChannel = new List<CommandOverride>());
 				set => _CommandsDisabledOnChannel = value;
+			}
+			[JsonIgnore]
+			public List<PersistentRole> PersistentRoles
+			{
+				get => _PersistentRoles ?? (_PersistentRoles = new List<PersistentRole>());
+				set => _PersistentRoles = value;
 			}
 			[JsonIgnore]
 			public ITextChannel ServerLog

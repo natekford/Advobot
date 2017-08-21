@@ -299,6 +299,33 @@ namespace Advobot
 
 		}
 
+		[Group(nameof(ModifyChannelSettings)), Alias("mcs")]
+		[Usage("[ImageOnly] <Channel>")]
+		[Summary("Image only works solely on attachments. No input channel means it applies to the current channel. Using the command on an already targetted channel turns it off.")]
+		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
+		[DefaultEnabled(false)]
+		public sealed class ModifyChannelSettings : MySavingModuleBase
+		{
+			[Group(nameof(ChannelSetting.ImageOnly)), Alias("io")]
+			public sealed class ImageOnly : MySavingModuleBase
+			{
+				[Command]
+				public async Task Command([VerifyChannel(true, ChannelVerification.CanBeEdited)] ITextChannel channel)
+				{
+					if (Context.GuildSettings.ImageOnlyChannels.Contains(channel.Id))
+					{
+						Context.GuildSettings.ImageOnlyChannels.Remove(channel.Id);
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the channel `{0}` from the image only list.", channel.FormatChannel()));
+					}
+					else
+					{
+						Context.GuildSettings.ImageOnlyChannels.Add(channel.Id);
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the channel `{0}` to the image only list.", channel.FormatChannel()));
+					}
+				}
+			}
+		}
+
 		[Group(nameof(DisplayGuildSettings)), Alias("dgds")]
 		[Usage("<All|Setting Name>")]
 		[Summary("Displays guild settings. Inputting nothing gives a list of the setting names.")]
@@ -368,76 +395,7 @@ namespace Advobot
 	public class Advobot_Commands_Guild_Settings : ModuleBase
 	{
 
-		[Command("modifychannelsettings")]
-		[Alias("mcs")]
-		[Usage("[ImageOnly|Sanitary] <Channel>")]
-		[Summary("Image only works solely on attachments. Sanitary means any message sent by someone without admin gets deleted. " +
-			"No input channel means it applies to the current channel. Using the command on an already targetted channel turned it off.")]
-		[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
-		[DefaultEnabled(false)]
-		public async Task ModifyImageOnly([Optional, Remainder] string input)
-		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
 
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var settingStr = returnedArgs.Arguments[0];
-			var chanStr = returnedArgs.Arguments[1];
-
-			var returnedType = Actions.GetEnum(settingStr, new[] { ChannelSetting.ImageOnly, ChannelSetting.Sanitary });
-			if (returnedType.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedType);
-				return;
-			}
-			var type = returnedType.Object;
-
-			var channel = Actions.GetChannel(Context, new[] { ObjectVerification.CanBeManaged, ObjectVerification.CanDeleteMessages, ObjectVerification.IsText }, true, input).Object ?? Context.Channel as ITextChannel;
-			switch (type)
-			{
-				case ChannelSetting.ImageOnly:
-				{
-					var imgOnly = ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.ImageOnlyChannels));
-					if (imgOnly.Contains(channel.Id))
-					{
-						imgOnly.Remove(channel.Id);
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the channel `{0}` from the image only list."));
-					}
-					else
-					{
-						imgOnly.Add(channel.Id);
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the channel `{0}` to the image only list."));
-					}
-					break;
-				}
-				case ChannelSetting.Sanitary:
-				{
-					var sanitary = ((List<ulong>)guildInfo.GetSetting(SettingOnGuild.SanitaryChannels));
-					if (sanitary.Contains(channel.Id))
-					{
-						sanitary.Remove(channel.Id);
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the channel `{0}` from the sanitary list."));
-					}
-					else
-					{
-						sanitary.Add(channel.Id);
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the channel `{0}` to the sanitary list."));
-					}
-					break;
-				}
-			}
-		}
-
-		[Command("modifyquotess")]
-		[Alias("mrem")]
-		[Usage("[Add|Remove] [\"Name\"] <\"Text\">")]
-		[Summary("Adds the given text to a list that can be called through the `sayquote` command.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
 		public async Task ModifyQuotes([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
@@ -500,50 +458,6 @@ namespace Advobot
 
 			guildInfo.SaveInfo();
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the following quote: `{1}`.", add ? "added" : "removed", nameStr));
-		}
-
-		[Command("sayquote")]
-		[Alias("sq")]
-		[Usage("<Name>")]
-		[Summary("Shows the content for the given quote. If nothing is input, then shows the list of the current quotes.")]
-		[OtherRequirement(Precondition.UserHasAPerm)]
-		[DefaultEnabled(false)]
-		public async Task SayQuote([Optional, Remainder] string input)
-		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-			var quotes = ((List<Quote>)guildInfo.GetSetting(SettingOnGuild.Quotes));
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				if (!quotes.Any())
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("There are no quotes."));
-				}
-				else
-				{
-					await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("quotes", String.Format("`{0}`", String.Join("`, `", quotes.Select(x => x.Name)))));
-				}
-				return;
-			}
-
-			var quote = quotes.FirstOrDefault(x => Actions.CaseInsEquals(x.Name, input));
-			if (quote != null)
-			{
-				await MessageActions.SendChannelMessage(Context, quote.Text);
-				return;
-			}
-
-			var closeQuotes = Actions.GetQuotesWithSimilarNames(quotes, input).Distinct();
-			if (closeQuotes.Any())
-			{
-				Variables.ActiveCloseWords.ThreadSafeRemoveAll(x => x.UserID == Context.User.Id);
-				Variables.ActiveCloseWords.ThreadSafeAdd(new ActiveCloseWord<Quote>(Context.User.Id, closeQuotes));
-
-				var msg = "Did you mean any of the following:\n" + closeQuotes.FormatNumberedList("{0}", x => x.Word.Name);
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.ACTIVE_CLOSE);
-				return;
-			}
-
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Nonexistent quote."));
 		}
 
 		[Command("setguildnotif")]

@@ -213,8 +213,8 @@ namespace Advobot
 					var innerMostNameSpace = classType.Namespace.Substring(classType.Namespace.LastIndexOf('.') + 1);
 					if (!Enum.TryParse(innerMostNameSpace, true, out CommandCategory category))
 					{
-#if FALSE
-						Messages.WriteLine(innerMostNameSpace + " is not currently in the CommandCategory enum.");
+#if DEBUG
+						ConsoleActions.WriteLine(innerMostNameSpace + " is not currently in the CommandCategory enum.");
 #endif
 						continue;
 					}
