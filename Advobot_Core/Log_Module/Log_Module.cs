@@ -536,8 +536,8 @@ namespace Advobot
 
 					_Logging.IncrementDeletes();
 
-					//TODO: make sure this is working correctly
-					await Task.Run(async () =>
+					//I don't know why, but this doesn't run correctly when awaited
+					var t = Task.Run(async () =>
 					{
 						try
 						{
