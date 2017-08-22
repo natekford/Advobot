@@ -509,7 +509,7 @@ namespace Advobot
 					_Logging.IncrementEdits();
 				}
 			}
-			public async Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
+			public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 			{
 				if (OtherLogActions.VerifyServerLoggingAction(_BotSettings, _GuildSettings, channel, LogAction.MessageDeleted, out VerifiedLoggingAction verified))
 				{
@@ -566,6 +566,7 @@ namespace Advobot
 						await MessageActions.SendMessageContainingFormattedDeletedMessages(guild, serverLog, formattedMessages);
 					});
 				}
+				return Task.FromResult(0);
 			}
 
 			//Mod
