@@ -347,26 +347,6 @@ namespace Advobot
 			}
 
 			/// <summary>
-			/// Returns the user set save path for the bot's folder. Do not save directly to this path; call <see cref="GetBaseBotDirectory"/> instead.
-			/// </summary>
-			/// <returns></returns>
-			[Obsolete]
-			public static string GetSavePath()
-			{
-				return Properties.Settings.Default.Path;
-			}
-			/// <summary>
-			/// Returns the user set bot key for the bot.
-			/// </summary>
-			/// <returns></returns>
-			[Obsolete]
-			public static string GetBotKey()
-			{
-				//TODO: Replace this with something more secure.
-				return Properties.Settings.Default.BotKey;
-			}
-
-			/// <summary>
 			/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId
 			/// </summary>
 			/// <param name="guildId"></param>

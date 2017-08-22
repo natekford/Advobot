@@ -62,7 +62,8 @@ namespace Advobot
 					{
 						command.ToggleEnabled();
 					}
-					await MessageActions.SendChannelMessage(Context, String.Format("Successfully enabled the following commands: `{0}`.", String.Join("`, `", commands.Select(x => x.Name))));
+					var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
+					await MessageActions.SendChannelMessage(Context, String.Format("Successfully enabled the following commands: `{0}`.", text));
 				}
 				[Command, Priority(0)]
 				public async Task Command(CommandSwitch command)
@@ -105,12 +106,13 @@ namespace Advobot
 					{
 						command.ToggleEnabled();
 					}
-					await MessageActions.SendChannelMessage(Context, String.Format("Successfully disabled the following commands: `{0}`.", String.Join("`, `", commands.Select(x => x.Name))));
+					var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
+					await MessageActions.SendChannelMessage(Context, String.Format("Successfully disabled the following commands: `{0}`.", text));
 				}
 				[Command, Priority(0)]
 				public async Task Command(CommandSwitch command)
 				{
-					 if (!command.Value)
+					if (!command.Value)
 					{
 						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("This command is already disabled."));
 						return;

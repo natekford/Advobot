@@ -59,9 +59,11 @@ namespace Advobot
 
 					var guildBits = user.GuildPermissions.RawValue;
 					var botBits = cont.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
-
 					var userPerms = guildBits | botBits;
-					if ((userPerms & _AllFlags) == _AllFlags || (userPerms & _AnyFlags) != 0)
+
+					var all = (userPerms & _AllFlags) != 0;
+					var any = (userPerms & _AnyFlags) != 0;
+					if (all || any)
 					{
 						return Task.FromResult(PreconditionResult.FromSuccess());
 					}

@@ -367,7 +367,10 @@ namespace Advobot
 				}
 
 				//Welcome message
-				await MessageActions.SendGuildNotification(user, verified.GuildSettings.WelcomeMessage);
+				if (verified.GuildSettings?.WelcomeMessage != null)
+				{
+					await MessageActions.SendGuildNotification(user, verified.GuildSettings.WelcomeMessage);
+				}
 			}
 			public async Task OnUserLeft(SocketGuildUser user)
 			{
@@ -406,7 +409,10 @@ namespace Advobot
 				}
 
 				//Goodbye message
-				await MessageActions.SendGuildNotification(user, verified.GuildSettings.GoodbyeMessage);
+				if (verified.GuildSettings?.GoodbyeMessage != null)
+				{
+					await MessageActions.SendGuildNotification(user, verified.GuildSettings.GoodbyeMessage);
+				}
 			}
 			public async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
 			{

@@ -587,6 +587,21 @@ namespace Advobot
 			[Command]
 			public async Task TestCommand()
 			{
+				//Properties.Settings.Default.BotKey = null;
+				//Properties.Settings.Default.Path = null;
+				//Properties.Settings.Default.Save();
+				ulong userBits = (1U << 15) | (1U << 5);
+				ulong testBit = (1U << 4);
+				ulong testBit2 = (1U << 15);
+				ulong testBit3 = 0;
+
+				ulong a = (userBits & testBit);
+				ulong a2 = (userBits & testBit2);
+				ulong a3 = (userBits & testBit3);
+
+				bool testBool = a != 0;
+				bool testBool2 = a2 != 0;
+				bool testBool3 = a3 != 0;
 				await MessageActions.SendChannelMessage(Context, "test");
 			}
 		}

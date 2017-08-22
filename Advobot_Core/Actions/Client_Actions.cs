@@ -113,9 +113,9 @@ namespace Advobot
 			}
 			public static async Task SetGame(IDiscordClient client, IBotSettings botSettings)
 			{
-				var game = botSettings.Game;
-				var stream = botSettings.Stream;
 				var prefix = botSettings.Prefix;
+				var game = botSettings.Game ?? String.Format("type \"{0}help\" for help.", prefix);
+				var stream = botSettings.Stream;
 
 				var streamType = StreamType.NotStreaming;
 				if (!String.IsNullOrWhiteSpace(stream))
@@ -126,11 +126,11 @@ namespace Advobot
 
 				if (client is DiscordSocketClient)
 				{
-					await (client as DiscordSocketClient).SetGameAsync(game ?? String.Format("type \"{0}help\" for help.", prefix), stream, streamType);
+					await (client as DiscordSocketClient).SetGameAsync(game, stream, streamType);
 				}
 				else if (client is DiscordShardedClient)
 				{
-					await (client as DiscordShardedClient).SetGameAsync(game ?? String.Format("type \"{0}help\" for help.", prefix), stream, streamType);
+					await (client as DiscordShardedClient).SetGameAsync(game, stream, streamType);
 				}
 			}
 			public static int GetShardID(IDiscordClient client)

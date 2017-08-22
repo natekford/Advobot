@@ -4,14 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Advobot.NonSavedClasses;
+using Advobot.Attributes;
 
 namespace Advobot
 {
 	namespace Rules
 	{
+		/*
+		[DefaultEnabled(false)]
 		public sealed class ImportRules : MyModuleBase
 		{
 
-		}
+		}*/
 	}
 }

@@ -200,7 +200,7 @@ namespace Advobot
 			List<BotInvite> Invites { get; }
 			List<string> EvaluatedRegex { get; }
 			MessageDeletion MessageDeletion { get; }
-			IGuild Guild { get; }
+			SocketGuild Guild { get; }
 			bool Loaded { get; }
 
 			void SaveSettings();

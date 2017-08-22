@@ -57,14 +57,6 @@ namespace Advobot
 			private List<CommandOverride> _CommandsDisabledOnChannel = new List<CommandOverride>();
 			[JsonProperty("PersistentRoles")]
 			private List<PersistentRole> _PersistentRoles = new List<PersistentRole>();
-			[JsonProperty("ServerLog")]
-			private DiscordObjectWithId<ITextChannel> _ServerLog = new DiscordObjectWithId<ITextChannel>(null);
-			[JsonProperty("ModLog")]
-			private DiscordObjectWithId<ITextChannel> _ModLog = new DiscordObjectWithId<ITextChannel>(null);
-			[JsonProperty("ImageLog")]
-			private DiscordObjectWithId<ITextChannel> _ImageLog = new DiscordObjectWithId<ITextChannel>(null);
-			[JsonProperty("MuteRole")]
-			private DiscordObjectWithId<IRole> _MuteRole = new DiscordObjectWithId<IRole>(null);
 			[JsonProperty("SpamPrevention")]
 			private Dictionary<SpamType, SpamPreventionInfo> _SpamPrevention = null;
 			[JsonProperty("RaidPrevention")]
@@ -81,6 +73,22 @@ namespace Advobot
 			private string _Prefix = null;
 			[JsonProperty("VerboseErrors")]
 			private bool _VerboseErrors = true;
+			[JsonProperty("ServerLog")]
+			private ulong _ServerLogId = 0;
+			[JsonProperty("ModLog")]
+			private ulong _ModLogId = 0;
+			[JsonProperty("ImageLog")]
+			private ulong _ImageLogId = 0;
+			[JsonProperty("MuteRole")]
+			private ulong _MuteRoleId = 0;
+			[JsonIgnore]
+			private ITextChannel _ServerLog = null;
+			[JsonIgnore]
+			private ITextChannel _ModLog = null;
+			[JsonIgnore]
+			private ITextChannel _ImageLog = null;
+			[JsonIgnore]
+			private IRole _MuteRole = null;
 
 			[JsonIgnore]
 			public List<BotImplementedPermissions> BotUsers
@@ -179,30 +187,6 @@ namespace Advobot
 				set => _PersistentRoles = value;
 			}
 			[JsonIgnore]
-			public ITextChannel ServerLog
-			{
-				get => (_ServerLog ?? (_ServerLog = new DiscordObjectWithId<ITextChannel>(null))).Object;
-				set => _ServerLog = new DiscordObjectWithId<ITextChannel>(value);
-			}
-			[JsonIgnore]
-			public ITextChannel ModLog
-			{
-				get => (_ModLog ?? (_ModLog = new DiscordObjectWithId<ITextChannel>(null))).Object;
-				set => _ModLog = new DiscordObjectWithId<ITextChannel>(value);
-			}
-			[JsonIgnore]
-			public ITextChannel ImageLog
-			{
-				get => (_ImageLog ?? (_ImageLog = new DiscordObjectWithId<ITextChannel>(null))).Object;
-				set => _ImageLog = new DiscordObjectWithId<ITextChannel>(value);
-			}
-			[JsonIgnore]
-			public IRole MuteRole
-			{
-				get => (_MuteRole ?? (_MuteRole = new DiscordObjectWithId<IRole>(null))).Object;
-				set => _MuteRole = new DiscordObjectWithId<IRole>(value);
-			}
-			[JsonIgnore]
 			public Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary
 			{
 				get => _SpamPrevention ?? (_SpamPrevention = new Dictionary<SpamType, SpamPreventionInfo>
@@ -261,6 +245,46 @@ namespace Advobot
 				get => _VerboseErrors;
 				set => _VerboseErrors = value;
 			}
+			[JsonIgnore]
+			public ITextChannel ServerLog
+			{
+				get => _ServerLog ?? (_ServerLog = Guild.GetTextChannel(_ServerLogId));
+				set
+				{
+					_ServerLogId = value?.Id ?? 0;
+					_ServerLog = value;
+				}
+			}
+			[JsonIgnore]
+			public ITextChannel ModLog
+			{
+				get => _ModLog ?? (_ModLog = Guild.GetTextChannel(_ModLogId));
+				set
+				{
+					_ModLogId = value?.Id ?? 0;
+					_ModLog = value;
+				}
+			}
+			[JsonIgnore]
+			public ITextChannel ImageLog
+			{
+				get => _ImageLog ?? (_ImageLog = Guild.GetTextChannel(_ImageLogId));
+				set
+				{
+					_ImageLogId = value?.Id ?? 0;
+					_ImageLog = value;
+				}
+			}
+			[JsonIgnore]
+			public IRole MuteRole
+			{
+				get => _MuteRole ?? (_MuteRole = Guild.GetRole(_MuteRoleId));
+				set
+				{
+					_MuteRoleId = value?.Id ?? 0;
+					_MuteRole = value;
+				}
+			}
 
 			[JsonIgnore]
 			public List<BannedPhraseUser> BannedPhraseUsers { get; } = new List<BannedPhraseUser>();
@@ -273,7 +297,7 @@ namespace Advobot
 			[JsonIgnore]
 			public MessageDeletion MessageDeletion { get; } = new MessageDeletion();
 			[JsonIgnore]
-			public IGuild Guild { get; private set; } = null;
+			public SocketGuild Guild { get; private set; } = null;
 			[JsonIgnore]
 			public bool Loaded { get; private set; } = false;
 
@@ -286,46 +310,28 @@ namespace Advobot
 			}
 			public void PostDeserialize(IGuild guild)
 			{
-				Guild = guild;
-				var tempGuild = guild as SocketGuild;
-
-				if (_ModLog != null)
-				{
-					_ModLog.PostDeserialize(tempGuild);
-				}
-				if (_ServerLog != null)
-				{
-					_ServerLog.PostDeserialize(tempGuild);
-				}
-				if (_ImageLog != null)
-				{
-					_ImageLog.PostDeserialize(tempGuild);
-				}
-				if (_MuteRole != null)
-				{
-					_MuteRole.PostDeserialize(tempGuild);
-				}
+				Guild = guild as SocketGuild;
 
 				if (_ListedInvite != null)
 				{
-					_ListedInvite.PostDeserialize(tempGuild);
+					_ListedInvite.PostDeserialize(Guild);
 				}
 				if (_WelcomeMessage != null)
 				{
-					_WelcomeMessage.PostDeserialize(tempGuild);
+					_WelcomeMessage.PostDeserialize(Guild);
 				}
 				if (_GoodbyeMessage != null)
 				{
-					_GoodbyeMessage.PostDeserialize(tempGuild);
+					_GoodbyeMessage.PostDeserialize(Guild);
 				}
 
 				foreach (var bannedPhrasePunishment in _BannedPhrasePunishments)
 				{
-					bannedPhrasePunishment.PostDeserialize(tempGuild);
+					bannedPhrasePunishment.PostDeserialize(Guild);
 				}
 				foreach (var group in _SelfAssignableGroups)
 				{
-					group.Roles.ForEach(x => x.PostDeserialize(tempGuild));
+					group.Roles.ForEach(x => x.PostDeserialize(Guild));
 					group.Roles.RemoveAll(x => x == null || x.Role == null);
 				}
 
@@ -335,26 +341,28 @@ namespace Advobot
 
 		public class MyBotSettings : IBotSettings, INotifyPropertyChanged
 		{
+			private const string MY_BOT_PREFIX = "&&";
+
 			[JsonProperty("TrustedUsers")]
-			private List<ulong> _TrustedUsers = new List<ulong>();
+			private List<ulong> _TrustedUsers;
 			[JsonProperty("UsersUnableToDMOwner")]
-			private List<ulong> _UsersUnableToDMOwner = new List<ulong>();
+			private List<ulong> _UsersUnableToDMOwner;
 			[JsonProperty("UsersIgnoredFromCommands")]
-			private List<ulong> _UsersIgnoredFromCommands = new List<ulong>();
+			private List<ulong> _UsersIgnoredFromCommands;
 			[JsonProperty("ShardCount")]
-			private uint _ShardCount = 1;
+			private uint _ShardCount;
 			[JsonProperty("MessageCacheCount")]
-			private uint _MessageCacheCount = 1000;
+			private uint _MessageCacheCount;
 			[JsonProperty("MaxUserGatherCount")]
-			private uint _MaxUserGatherCount = 100;
+			private uint _MaxUserGatherCount;
 			[JsonProperty("MaxMessageGatherSize")]
-			private uint _MaxMessageGatherSize = 500000;
+			private uint _MaxMessageGatherSize;
 			[JsonProperty("Prefix")]
-			private string _Prefix = Constants.BOT_PREFIX;
+			private string _Prefix;
 			[JsonProperty("Game")]
-			private string _Game = String.Format("type \"{0}help\" for help.", Constants.BOT_PREFIX);
+			private string _Game;
 			[JsonProperty("Stream")]
-			private string _Stream = null;
+			private string _Stream;
 			[JsonProperty("AlwaysDownloadUsers")]
 			private bool _AlwaysDownloadUsers = true;
 			[JsonProperty("LogLevel")]
@@ -403,7 +411,7 @@ namespace Advobot
 			[JsonIgnore]
 			public uint MessageCacheCount
 			{
-				get => _MessageCacheCount;
+				get => _MessageCacheCount > 0 ? _MessageCacheCount : (_MessageCacheCount = 1000);
 				set
 				{
 					_MessageCacheCount = value;
@@ -413,7 +421,7 @@ namespace Advobot
 			[JsonIgnore]
 			public uint MaxUserGatherCount
 			{
-				get => _MaxUserGatherCount;
+				get => _MaxUserGatherCount > 0 ? _MaxUserGatherCount : (_MaxUserGatherCount = 100);
 				set
 				{
 					_MaxUserGatherCount = value;
@@ -423,7 +431,7 @@ namespace Advobot
 			[JsonIgnore]
 			public uint MaxMessageGatherSize
 			{
-				get => _MaxMessageGatherSize;
+				get => _MaxMessageGatherSize > 0 ? _MaxMessageGatherSize : (_MaxMessageGatherSize = 500000);
 				set
 				{
 					_MaxMessageGatherSize = value;
@@ -433,7 +441,7 @@ namespace Advobot
 			[JsonIgnore]
 			public string Prefix
 			{
-				get => _Prefix ?? (_Prefix = Constants.BOT_PREFIX);
+				get => _Prefix ?? (_Prefix = MY_BOT_PREFIX);
 				set
 				{
 					_Prefix = value;
@@ -443,7 +451,7 @@ namespace Advobot
 			[JsonIgnore]
 			public string Game
 			{
-				get => _Game;
+				get => _Game ?? (_Game = String.Format("type \"{0}help\" for help.", Prefix));
 				set
 				{
 					_Game = value;
@@ -650,7 +658,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("`{0}` `{1}`", Punishment.EnumName().Substring(0, 1), Phrase);
+				return String.Format("`{0}` `{1}`", Punishment == default(PunishmentType) ? "N" : Punishment.EnumName().Substring(0, 1), Phrase);
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -949,49 +957,6 @@ namespace Advobot
 			public override string ToString()
 			{
 				return String.Format("`{0}`", Name);
-			}
-			public string ToString(SocketGuild guild)
-			{
-				return ToString();
-			}
-		}
-
-		public class DiscordObjectWithId<T> : ISetting where T : ISnowflakeEntity
-		{
-			[JsonIgnore]
-			private readonly ReadOnlyDictionary<Type, Func<SocketGuild, ulong, object>> inits = new ReadOnlyDictionary<Type, Func<SocketGuild, ulong, object>>(new Dictionary<Type, Func<SocketGuild, ulong, object>>
-			{
-				{ typeof(IRole), (guild, id) => guild.GetRole(id) },
-				{ typeof(ITextChannel), (guild, id) => guild.GetTextChannel(id) },
-			});
-			[JsonProperty]
-			public ulong Id { get; }
-			[JsonIgnore]
-			public T Object { get; private set; }
-
-			[JsonConstructor]
-			public DiscordObjectWithId(ulong id)
-			{
-				Id = id;
-				Object = default(T);
-			}
-			public DiscordObjectWithId(T obj)
-			{
-				Id = obj?.Id ?? 0;
-				Object = obj;
-			}
-
-			public void PostDeserialize(SocketGuild guild)
-			{
-				if (inits.TryGetValue(typeof(T), out var method))
-				{
-					Object = (T)method(guild, Id);
-				}
-			}
-
-			public override string ToString()
-			{
-				return Object != null ? FormattingActions.FormatObject(Object) : null;
 			}
 			public string ToString(SocketGuild guild)
 			{
