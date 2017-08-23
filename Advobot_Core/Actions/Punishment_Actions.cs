@@ -2,6 +2,7 @@
 using Advobot.Interfaces;
 using Advobot.RemovablePunishments;
 using Discord;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ namespace Advobot
 	{
 		public static class PunishmentActions
 		{
-			public static async Task ManualBan(IGuild guild, ulong userId, string reason, int days = 1, uint time = 0, ITimersModule timers = null)
+			public static async Task<IBan> ManualBan(IGuild guild, ulong userId, string reason, int days = 1, uint time = 0, ITimersModule timers = null)
 			{
 				await guild.AddBanAsync(userId, days, reason);
 
@@ -19,11 +20,15 @@ namespace Advobot
 				{
 					timers.AddRemovablePunishments(new RemovableBan(guild, userId, time));
 				}
+
+				return (await guild.GetBansAsync()).FirstOrDefault(x => x.User.Id == userId);
 			}
-			public static async Task ManualSoftban(IGuild guild, ulong userId, string reason)
+			public static async Task<IBan> ManualSoftban(IGuild guild, ulong userId, string reason)
 			{
 				await guild.AddBanAsync(userId, 7, reason);
+				var ban = (await guild.GetBansAsync()).FirstOrDefault(x => x.User.Id == userId);
 				await guild.RemoveBanAsync(userId);
+				return ban;
 			}
 			public static async Task ManualKick(IGuildUser user, string reason)
 			{

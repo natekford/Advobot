@@ -175,54 +175,69 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class SoftBan : MyModuleBase
 		{
-			[Command]
+			[Command, Priority(1)]
 			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 			{
 				await PunishmentActions.ManualSoftban(Context.Guild, user.Id, FormattingActions.FormatUserReason(Context.User, reason));
 				await MessageActions.SendChannelMessage(Context, String.Format("Successfully softbanned `{0}`.", user.FormatUser()));
 			}
+			[Command, Priority(0)]
+			public async Task Command(ulong userId, [Optional, Remainder] string reason)
+			{
+				var ban = await PunishmentActions.ManualSoftban(Context.Guild, userId, FormattingActions.FormatUserReason(Context.User, reason));
+				await MessageActions.SendChannelMessage(Context, String.Format("Successfully softbanned `{0}`.", ban?.User?.FormatUser() ?? userId.ToString()));
+			}
 		}
 
 		[Group(nameof(Ban)), Alias("b")]
-		[Usage("[User] <Time> <Days> <Reason>")]
+		[Usage("[User] <Time> <Reason>")]
 		[Summary("Bans the user from the guild. Days specifies how many days worth of messages to delete. Time specifies how long and is in minutes.")]
 		[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 		[DefaultEnabled(true)]
 		public sealed class Ban : MyModuleBase
 		{
-			private static readonly uint _MaxDays = 7;
-
+			[Command, Priority(3)]
+			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, uint time, [Optional, Remainder] string reason)
+			{
+				await CommandRunner(user, time, reason);
+			}
 			[Command, Priority(2)]
-			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, [Optional] uint time, [Optional] uint days, [Optional, Remainder] string reason)
-			{
-				await CommandRunner(user, time, days, reason);
-			}
-			[Command, Priority(1)]
-			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, [Optional] uint time, [Optional, Remainder] string reason)
-			{
-				await CommandRunner(user, time, 0, reason);
-			}
-			[Command, Priority(0)]
 			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, [Optional, Remainder] string reason)
 			{
-				await CommandRunner(user, 0, 0, reason);
+				await CommandRunner(user, 0, reason);
+			}
+			[Command, Priority(1)]
+			public async Task Command(ulong userId, uint time, [Optional, Remainder] string reason)
+			{
+				await CommandRunner(userId, time, reason);
+			}
+			[Command, Priority(0)]
+			public async Task Command(ulong userId, [Optional, Remainder] string reason)
+			{
+				await CommandRunner(userId, 0, reason);
 			}
 
-			private async Task CommandRunner(IUser user, uint time, uint days, string reason)
+			private async Task CommandRunner(IUser user, uint time, string reason)
 			{
-				if (days > _MaxDays)
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("Days must be less than or equal to `{0}`.", _MaxDays)));
-					return;
-				}
-				else if ((await Context.Guild.GetBansAsync()).Select(x => x.User.Id).Contains(user.Id))
+				if ((await Context.Guild.GetBansAsync()).Select(x => x.User.Id).Contains(user.Id))
 				{
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("That user is already banned."));
 					return;
 				}
 
-				await PunishmentActions.ManualBan(Context.Guild, user.Id, FormattingActions.FormatUserReason(Context.User, reason), (int)days, time, Context.Timers);
+				await PunishmentActions.ManualBan(Context.Guild, user.Id, FormattingActions.FormatUserReason(Context.User, reason), 1, time, Context.Timers);
 				await MessageActions.SendChannelMessage(Context, String.Format("Successfully banned `{0}`.", user.FormatUser()));
+			}
+			private async Task CommandRunner(ulong userId, uint time, string reason)
+			{
+				if ((await Context.Guild.GetBansAsync()).Select(x => x.User.Id).Contains(userId))
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("That user is already banned."));
+					return;
+				}
+
+				var ban = await PunishmentActions.ManualBan(Context.Guild, userId, FormattingActions.FormatUserReason(Context.User, reason), 1, time, Context.Timers);
+				await MessageActions.SendChannelMessage(Context, String.Format("Successfully banned `{0}`.", ban?.User?.FormatUser() ?? userId.ToString()));
 			}
 		}
 
