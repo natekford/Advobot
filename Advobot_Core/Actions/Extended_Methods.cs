@@ -77,27 +77,27 @@ namespace Advobot
 				var count = 0;
 				var maxLen = list.Count().ToString().Length;
 				//.ToArray() must be used or else String.Format tries to use an overload accepting object as a parameter instead of object[] thus causing an exception
-				return String.Join("\n", list.Select(x => String.Format("`{0}.` ", (++count).ToString().PadLeft(maxLen, '0')) + String.Format(@format, args.Select(y => y(x)).ToArray())));
+				return String.Join("\n", list.Select(x => $"`{(++count).ToString().PadLeft(maxLen, '0')}.` " + String.Format(@format, args.Select(y => y(x)).ToArray())));
 			}
 			public static string FormatUser(this IUser user, ulong? userID = 0)
 			{
 				if (user != null)
 				{
-					return String.Format("'{0}#{1}' ({2})",
+					return $"'{0}#{1}' ({2})",
 						FormattingActions.EscapeMarkdown(user.Username, true).CaseInsReplace("discord.gg", Constants.FAKE_DISCORD_LINK),
 						user.Discriminator,
 						user.Id);
 				}
 				else
 				{
-					return String.Format("Irretrievable User ({0})", userID);
+					return $"Irretrievable User ({0})", userID);
 				}
 			}
 			public static string FormatRole(this IRole role)
 			{
 				if (role != null)
 				{
-					return String.Format("'{0}' ({1})", FormattingActions.EscapeMarkdown(role.Name, true), role.Id);
+					return $"'{0}' ({1})", FormattingActions.EscapeMarkdown(role.Name, true), role.Id);
 				}
 				else
 				{
@@ -108,7 +108,7 @@ namespace Advobot
 			{
 				if (channel != null)
 				{
-					return String.Format("'{0}' ({1}) ({2})", FormattingActions.EscapeMarkdown(channel.Name, true), (channel is IMessageChannel ? "text" : "voice"), channel.Id);
+					return $"'{0}' ({1}) ({2})", FormattingActions.EscapeMarkdown(channel.Name, true), (channel is IMessageChannel ? "text" : "voice"), channel.Id);
 				}
 				else
 				{
@@ -119,11 +119,11 @@ namespace Advobot
 			{
 				if (guild != null)
 				{
-					return String.Format("'{0}' ({1})", FormattingActions.EscapeMarkdown(guild.Name, true), guild.Id);
+					return $"'{0}' ({1})", FormattingActions.EscapeMarkdown(guild.Name, true), guild.Id);
 				}
 				else
 				{
-					return String.Format("Irretrievable Guild ({0})", guildID);
+					return $"Irretrievable Guild ({0})", guildID);
 				}
 			}
 

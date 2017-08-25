@@ -24,7 +24,7 @@ namespace Advobot
 				[Command]
 				public async Task Command()
 				{
-					var desc = String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(PunishmentType))));
+					var desc = $"`{0}`", String.Join("`, `", Enum.GetNames(typeof(PunishmentType))));
 					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Punishment Types", desc));
 				}
 			}
@@ -155,7 +155,7 @@ namespace Advobot
 				[Command]
 				public async Task Command()
 				{
-					var desc = String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(PunishmentType))));
+					var desc = $"`{0}`", String.Join("`, `", Enum.GetNames(typeof(PunishmentType))));
 					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Punishment Types", desc));
 				}
 			}

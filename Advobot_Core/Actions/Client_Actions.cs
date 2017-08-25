@@ -114,7 +114,7 @@ namespace Advobot
 			public static async Task SetGame(IDiscordClient client, IBotSettings botSettings)
 			{
 				var prefix = botSettings.Prefix;
-				var game = botSettings.Game ?? String.Format("type \"{0}help\" for help.", prefix);
+				var game = botSettings.Game ?? $"type \"{prefix}help\" for help.";
 				var stream = botSettings.Stream;
 
 				var streamType = StreamType.NotStreaming;

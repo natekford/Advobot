@@ -86,8 +86,8 @@ namespace Advobot
 
 					if (guildInfo.SetSetting(SettingOnGuild.ListedInvite, listedInv))
 					{
-						var keywordString = keywords != null ? String.Format(" with the keywords `{1}`", String.Join("`, `", keywords)) : "";
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the invite `{0}` to the guild list{1}.", codeStr, keywordString));
+						var keywordString = keywords != null ? $" with the keywords `{1}`", String.Join("`, `", keywords)) : "";
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully added the invite `{0}` to the guild list{1}.", codeStr, keywordString));
 					}
 					else
 					{
@@ -219,7 +219,7 @@ namespace Advobot
 				var embed = Messages.MakeNewEmbed("Guilds");
 				matchingInvs.ForEach(x =>
 				{
-					Messages.AddField(embed, x.Guild.Name, String.Format("**URL:** {0}\n**Members:** {1}\n{2}", x.URL, x.Guild.MemberCount, x.HasGlobalEmotes ? "**Has global emotes**" : ""));
+					Messages.AddField(embed, x.Guild.Name, $"**URL:** {0}\n**Members:** {1}\n{2}", x.URL, x.Guild.MemberCount, x.HasGlobalEmotes ? "**Has global emotes**" : ""));
 				});
 				await MessageActions.SendEmbedMessage(Context.Channel, embed);
 			}
@@ -231,13 +231,13 @@ namespace Advobot
 				var emo = "Global Emotes";
 				var formatted = matchingInvs.Select(x =>
 				{
-					return String.Format("{0}{1}{2}{3}",
+					return $"{0}{1}{2}{3}",
 						x.Guild.Name.Substring(0, Math.Min(x.Guild.Name.Length, guildName.Length)).PadRight(25),
 						x.URL.PadRight(35),
 						x.Guild.MemberCount.ToString().PadRight(memC.Length),
 						x.HasGlobalEmotes ? "  Yes" : "");
 				});
-				var text = String.Format("{0}{1}{2}  {3}\n{4}", guildName, URL, memC, emo, String.Join("\n", formatted));
+				var text = $"{0}{1}{2}  {3}\n{4}", guildName, URL, memC, emo, String.Join("\n", formatted));
 
 				await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "Guilds_");
 			}

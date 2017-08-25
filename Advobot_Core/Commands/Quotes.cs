@@ -33,7 +33,7 @@ namespace Advobot
 			{
 				if (Context.GuildSettings.Quotes.Count >= Constants.MAX_QUOTES)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("You cannot have more than `{0}` quotes at a time.", Constants.MAX_QUOTES)));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"You cannot have more than `{0}` quotes at a time.", Constants.MAX_QUOTES)));
 					return;
 				}
 				else if (Context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
@@ -48,7 +48,7 @@ namespace Advobot
 				}
 
 				Context.GuildSettings.Quotes.Add(new Quote(name, text));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the following quote: `{0}`.", name));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully added the following quote: `{0}`.", name));
 			}
 			[Command(nameof(ActionType.Remove)), Alias("r")]
 			public async Task CommandRemove(string name)
@@ -66,7 +66,7 @@ namespace Advobot
 					return;
 				}
 
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the following quote: `{0}`.", name));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed the following quote: `{0}`.", name));
 			}
 		}
 
@@ -86,7 +86,7 @@ namespace Advobot
 					return;
 				}
 
-				var desc = String.Format("`{0}`", String.Join("`, `", quotes.Select(x => x.Name)));
+				var desc = $"`{0}`", String.Join("`, `", quotes.Select(x => x.Name)));
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Quotes", desc));
 			}
 			[Command]

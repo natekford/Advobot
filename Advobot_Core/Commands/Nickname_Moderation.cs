@@ -26,8 +26,8 @@ namespace Advobot
 			{
 				await UserActions.ChangeNickname(user, nickname, FormattingActions.FormatUserReason(Context.User));
 				var response = nickname == null
-					? String.Format("Successfully removed the nickname from `{0}`.", user.FormatUser())
-					: String.Format("Successfully gave `{0}` the nickname `{1}`.", user.FormatUser(), nickname);
+					? $"Successfully removed the nickname from `{0}`.", user.FormatUser())
+					: $"Successfully gave `{0}` the nickname `{1}`.", user.FormatUser(), nickname);
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
 			}
 		}

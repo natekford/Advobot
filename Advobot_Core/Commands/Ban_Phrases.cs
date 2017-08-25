@@ -37,15 +37,15 @@ namespace Advobot
 			//Check the length of the regex
 			if (regexStr.Length > Constants.MAX_LENGTH_FOR_REGEX)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Please keep the regex under `{0}` characters.", Constants.MAX_LENGTH_FOR_REGEX));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Please keep the regex under `{0}` characters.", Constants.MAX_LENGTH_FOR_REGEX));
 				return;
 			}
 
 			//Make sure the regex is valid
-			var title = String.Format("`{0}`", regexStr);
+			var title = $"`{0}`", regexStr);
 			if (!Actions.TryCreateRegex(regexStr, out Regex regex, out string error))
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, String.Format("**Error:** `{0}`", error)));
+				await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, $"**Error:** `{0}`", error)));
 				return;
 			}
 
@@ -70,13 +70,13 @@ namespace Advobot
 			}
 
 			//Format the description
-			var messageStr = String.Format("The given regex matches the given string: `{0}`.", matchesMessage);
-			var emptyStr = String.Format("The given regex matches empty strings: `{0}`.", matchesEmpty);
-			var spaceStr = String.Format("The given regex matches spaces: `{0}`.", matchesSpace);
-			var newLineStr = String.Format("The given regex matches new lines: `{0}`.", matchesNewLine);
-			var randomStr = String.Format("The given regex matches random strings: `{0}`.", matchesRandom);
-			var everythingStr = String.Format("The given regex matches everything: `{0}`.", matchesEverything);
-			var okStr = String.Format("The given regex is `{0}`.", okToUse ? "GOOD" : "BAD");
+			var messageStr = $"The given regex matches the given string: `{0}`.", matchesMessage);
+			var emptyStr = $"The given regex matches empty strings: `{0}`.", matchesEmpty);
+			var spaceStr = $"The given regex matches spaces: `{0}`.", matchesSpace);
+			var newLineStr = $"The given regex matches new lines: `{0}`.", matchesNewLine);
+			var randomStr = $"The given regex matches random strings: `{0}`.", matchesRandom);
+			var everythingStr = $"The given regex matches everything: `{0}`.", matchesEverything);
+			var okStr = $"The given regex is `{0}`.", okToUse ? "GOOD" : "BAD");
 			var description = String.Join("\n", new[] { messageStr, emptyStr, spaceStr, newLineStr, randomStr, everythingStr, okStr });
 
 			//Send the embed
@@ -123,7 +123,7 @@ namespace Advobot
 					case ActionType.Add:
 					{
 						var count = 1;
-						var description = String.Join("\n", eval.Select(x => String.Format("`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
+						var description = String.Join("\n", eval.Select(x => $"`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
 						description = String.IsNullOrWhiteSpace(description) ? "Nothing" : description;
 						var embed = Messages.MakeNewEmbed("Evaluated Regex", description);
 						await MessageActions.SendEmbedMessage(Context.Channel, embed);
@@ -132,7 +132,7 @@ namespace Advobot
 					case ActionType.Remove:
 					{
 						var count = 1;
-						var description = String.Join("\n", curr.Select(x => String.Format("`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
+						var description = String.Join("\n", curr.Select(x => $"`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
 						description = String.IsNullOrWhiteSpace(description) ? "Nothing" : description;
 						var embed = Messages.MakeNewEmbed("Evaluated Regex", description);
 						await MessageActions.SendEmbedMessage(Context.Channel, embed);
@@ -167,7 +167,7 @@ namespace Advobot
 					}
 					else if (curr.Count >= Constants.MAX_BANNED_REGEX)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned regex at a time.", Constants.MAX_BANNED_REGEX));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"You cannot have more than `{0}` banned regex at a time.", Constants.MAX_BANNED_REGEX));
 						return;
 					}
 
@@ -192,7 +192,7 @@ namespace Advobot
 			}
 
 			guildInfo.SaveInfo();
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the regex `{1}`.", responseStr, regex));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully {0} the regex `{1}`.", responseStr, regex));
 		}
 
 		[Command("modifybannedstrings")]
@@ -230,7 +230,7 @@ namespace Advobot
 				{
 					if (strings.Count >= Constants.MAX_BANNED_STRINGS)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned strings at a time.", Constants.MAX_BANNED_STRINGS));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"You cannot have more than `{0}` banned strings at a time.", Constants.MAX_BANNED_STRINGS));
 						return;
 					}
 					add = true;
@@ -243,7 +243,7 @@ namespace Advobot
 			var successMessage = "";
 			if (success.Any())
 			{
-				successMessage = String.Format("Successfully {0} the following {1} {2} the banned string list: `{3}`",
+				successMessage = $"Successfully {0} the following {1} {2} the banned string list: `{3}`",
 					add ? "added" : "removed",
 					success.Count != 1 ? "phrases" : "phrase",
 					add ? "to" : "from",
@@ -252,7 +252,7 @@ namespace Advobot
 			var failureMessage = "";
 			if (failure.Any())
 			{
-				failureMessage = String.Format("{0}ailed to {1} the following {2} {3} the banned string list: `{4}`",
+				failureMessage = $"{0}ailed to {1} the following {2} {3} the banned string list: `{4}`",
 					String.IsNullOrWhiteSpace(successMessage) ? "F" : "f",
 					add ? "add" : "remove",
 					failure.Count != 1 ? "phrases" : "phrase",
@@ -266,7 +266,7 @@ namespace Advobot
 			}
 
 			guildInfo.SaveInfo();
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
 		}
 
 		[Command("modifypunishmenttype")]
@@ -359,7 +359,7 @@ namespace Advobot
 			phraseStr = bannedPhrase.Phrase.ToString();
 
 			guildInfo.SaveInfo();
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed the punishment type on the banned {0} `{1}` to `{2}`.",
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the punishment type on the banned {0} `{1}` to `{2}`.",
 				(regex ? "regex" : "string"), phraseStr, type.EnumName()));
 		}
 
@@ -508,20 +508,20 @@ namespace Advobot
 			}
 			else if (newPunishment.Punishment == PunishmentType.Kick)
 			{
-				successMsg = String.Format("`{0}` at `{1}`", newPunishment.Punishment.EnumName(), newPunishment.NumberOfRemoves.ToString("00"));
+				successMsg = $"`{0}` at `{1}`", newPunishment.Punishment.EnumName(), newPunishment.NumberOfRemoves.ToString("00"));
 			}
 			else if (newPunishment.Punishment == PunishmentType.Ban)
 			{
-				successMsg = String.Format("`{0}` at `{1}`", newPunishment.Punishment.EnumName(), newPunishment.NumberOfRemoves.ToString("00"));
+				successMsg = $"`{0}` at `{1}`", newPunishment.Punishment.EnumName(), newPunishment.NumberOfRemoves.ToString("00"));
 			}
 			else if (newPunishment.Role != null)
 			{
-				successMsg = String.Format("`{0}` at `{1}`", newPunishment.Role, newPunishment.NumberOfRemoves.ToString("00"));
+				successMsg = $"`{0}` at `{1}`", newPunishment.Role, newPunishment.NumberOfRemoves.ToString("00"));
 			}
-			var timeMsg = newPunishment.PunishmentTime != 0 ? String.Format(", and will last for `{0}` minute(s)", newPunishment.PunishmentTime) : "";
+			var timeMsg = newPunishment.PunishmentTime != 0 ? $", and will last for `{0}` minute(s)", newPunishment.PunishmentTime) : "";
 
 			guildInfo.SaveInfo();
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} the punishment of {1}{2}.", add ? "added" : "removed", successMsg, timeMsg));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully {0} the punishment of {1}{2}.", add ? "added" : "removed", successMsg, timeMsg));
 		}
 
 		[Command("modifybannedphraseuser")]
@@ -573,7 +573,7 @@ namespace Advobot
 					bpUser.ResetRoleCount();
 					bpUser.ResetKickCount();
 					bpUser.ResetBanCount();
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully reset the infractions for `{0}` to 0.", user.FormatUser()));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully reset the infractions for `{0}` to 0.", user.FormatUser()));
 					break;
 				}
 				case ActionType.Current:
@@ -581,7 +581,7 @@ namespace Advobot
 					var roleCount = bpUser?.MessagesForRole ?? 0;
 					var kickCount = bpUser?.MessagesForKick ?? 0;
 					var banCount = bpUser?.MessagesForBan ?? 0;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("The user `{0}` has `{1}R/{2}K/{3}B` infractions.", user.FormatUser(), roleCount, kickCount, banCount));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"The user `{0}` has `{1}R/{2}K/{3}B` infractions.", user.FormatUser(), roleCount, kickCount, banCount));
 					break;
 				}
 			}
@@ -609,12 +609,12 @@ namespace Advobot
 
 			if (phraseStr.Length < Constants.MIN_NICKNAME_LENGTH)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("The banned name must be at least `{0}` characters long.", Constants.MIN_NICKNAME_LENGTH)));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR($"The banned name must be at least `{0}` characters long.", Constants.MIN_NICKNAME_LENGTH)));
 				return;
 			}
 			else if (phraseStr.Length > Constants.MAX_NICKNAME_LENGTH)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR(String.Format("The banned name must be less than or equal to `{0}` characters long.", Constants.MAX_NICKNAME_LENGTH)));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR($"The banned name must be less than or equal to `{0}` characters long.", Constants.MAX_NICKNAME_LENGTH)));
 				return;
 			}
 
@@ -634,7 +634,7 @@ namespace Advobot
 				{
 					if (names.Count >= Constants.MAX_BANNED_NAMES)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("You cannot have more than `{0}` banned names at a time.", Constants.MAX_BANNED_NAMES));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"You cannot have more than `{0}` banned names at a time.", Constants.MAX_BANNED_NAMES));
 						return;
 					}
 					add = true;
@@ -647,7 +647,7 @@ namespace Advobot
 			var successMessage = "";
 			if (success.Any())
 			{
-				successMessage = String.Format("Successfully {0} the following {1} {2} the banned name list: `{3}`",
+				successMessage = $"Successfully {0} the following {1} {2} the banned name list: `{3}`",
 					add ? "added" : "removed",
 					success.Count != 1 ? "phrases" : "phrase",
 					add ? "to" : "from",
@@ -656,7 +656,7 @@ namespace Advobot
 			var failureMessage = "";
 			if (failure.Any())
 			{
-				failureMessage = String.Format("{0}ailed to {1} the following {2} {3} the banned name list: `{4}`",
+				failureMessage = $"{0}ailed to {1} the following {2} {3} the banned name list: `{4}`",
 					String.IsNullOrWhiteSpace(successMessage) ? "F" : "f",
 					add ? "add" : "remove",
 					failure.Count != 1 ? "phrases" : "phrase",
@@ -670,7 +670,7 @@ namespace Advobot
 			}
 
 			guildInfo.SaveInfo();
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
 		}
 	}
 	*/

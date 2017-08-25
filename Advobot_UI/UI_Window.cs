@@ -382,11 +382,11 @@ namespace Advobot
 						userIDs = (await guild.GetUsersAsync()).Select(x => x.Id);
 					}
 
-					((TextBox)_Latency.Child).Text = String.Format("Latency: {0}ms", ClientActions.GetLatency(_Client));
-					((TextBox)_Memory.Child).Text = String.Format("Memory: {0}MB", GetActions.GetMemory(_BotSettings.Windows).ToString("0.00"));
-					((TextBox)_Threads.Child).Text = String.Format("Threads: {0}", Process.GetCurrentProcess().Threads.Count);
-					((TextBox)_Guilds.Child).Text = String.Format("Guilds: {0}", guilds.Count);
-					((TextBox)_Users.Child).Text = String.Format("Members: {0}", userIDs.Distinct().Count());
+					((TextBox)_Latency.Child).Text = $"Latency: {0}ms", ClientActions.GetLatency(_Client));
+					((TextBox)_Memory.Child).Text = $"Memory: {0}MB", GetActions.GetMemory(_BotSettings.Windows).ToString("0.00"));
+					((TextBox)_Threads.Child).Text = $"Threads: {0}", Process.GetCurrentProcess().Threads.Count);
+					((TextBox)_Guilds.Child).Text = $"Guilds: {0}", guilds.Count);
+					((TextBox)_Users.Child).Text = $"Members: {0}", userIDs.Distinct().Count());
 					_InfoOutput.Document = UIModification.MakeInfoMenu(GetActions.GetUptime(_BotSettings), _Logging.FormatLoggedCommands(), _Logging.FormatLoggedActions());
 				}
 
@@ -627,7 +627,7 @@ namespace Advobot
 						guild = _FileTreeView.Items.Cast<TreeViewItem>().FirstOrDefault(x => ((GuildFileInformation)x.Tag).Id == guildID);
 						if (guild == null)
 						{
-							ConsoleActions.WriteLine(String.Format("No guild could be found with the ID '{0}'.", guildID));
+							ConsoleActions.WriteLine($"No guild could be found with the ID '{guildID}'.");
 							return;
 						}
 					}
@@ -636,7 +636,7 @@ namespace Advobot
 						var guilds = _FileTreeView.Items.Cast<TreeViewItem>().Where(x => ((GuildFileInformation)x.Tag).Name.CaseInsEquals(nameStr));
 						if (guilds.Count() == 0)
 						{
-							ConsoleActions.WriteLine(String.Format("No guild could be found with the name '{0}'.", nameStr));
+							ConsoleActions.WriteLine($"No guild could be found with the name '{nameStr}'.");
 							return;
 						}
 						else if (guilds.Count() == 1)
@@ -645,7 +645,7 @@ namespace Advobot
 						}
 						else
 						{
-							ConsoleActions.WriteLine("More than one guild has the name '{0}'.", nameStr);
+							ConsoleActions.WriteLine($"More than one guild has the name '{nameStr}'.");
 							return;
 						}
 					}

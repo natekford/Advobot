@@ -52,7 +52,7 @@ namespace Advobot
 					{
 						if (selfAssignableGroups.Count >= Constants.MAX_SA_GROUPS)
 						{
-							await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("You have too many groups. {0} is the maximum.", Constants.MAX_SA_GROUPS));
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"You have too many groups. {0} is the maximum.", Constants.MAX_SA_GROUPS));
 							return;
 						}
 						else if (selfAssignableGroups.Any(x => x.Group == groupNum))
@@ -68,7 +68,7 @@ namespace Advobot
 					{
 						if (selfAssignableGroups.Count <= 0)
 						{
-							await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("You have too many groups. {0} is the maximum.", Constants.MAX_SA_GROUPS));
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"You have too many groups. {0} is the maximum.", Constants.MAX_SA_GROUPS));
 							return;
 						}
 						else if (!selfAssignableGroups.Any(x => x.Group == groupNum))
@@ -87,7 +87,7 @@ namespace Advobot
 				}
 
 				//What could go wrong by simply doing action.EnumName().ToLower() + "d"? The switch returning on default should mean nothing should end up looking dumb, like "Addd"
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully {0} group `{1}`.", action.EnumName().ToLower() + "d", groupNum));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully {0} group `{1}`.", action.EnumName().ToLower() + "d", groupNum));
 			}
 			private async Task CommandRunner(ActionType action, uint groupNum, IRole[] roles)
 			{
@@ -150,8 +150,8 @@ namespace Advobot
 					}
 				}
 
-				var addedStr = rolesAdded.Any() ? String.Format("Successfully added the following role(s): `{0}`.", String.Join("`, `", rolesAdded.Select(x => x.FormatRole()))) : null;
-				var notAddedStr = rolesNotAdded.Any() ? String.Format("Failed to add the following role(s): `{0}`.", String.Join("`, `", rolesNotAdded.Select(x => x.FormatRole()))) : null;
+				var addedStr = rolesAdded.Any() ? $"Successfully added the following role(s): `{0}`.", String.Join("`, `", rolesAdded.Select(x => x.FormatRole()))) : null;
+				var notAddedStr = rolesNotAdded.Any() ? $"Failed to add the following role(s): `{0}`.", String.Join("`, `", rolesNotAdded.Select(x => x.FormatRole()))) : null;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.JoinNonNullStrings(" ", addedStr, notAddedStr));
 			}
 		}
@@ -176,7 +176,7 @@ namespace Advobot
 				if (user.RoleIds.Contains(role.Id))
 				{
 					await RoleActions.TakeRoles(user, new[] { role }, FormattingActions.FormatBotReason("self role removal"));
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}`.", role.FormatRole()));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed `{0}`.", role.FormatRole()));
 					return;
 				}
 
@@ -188,12 +188,12 @@ namespace Advobot
 					await RoleActions.TakeRoles(user, otherRoles, FormattingActions.FormatBotReason("self role removal"));
 					if (otherRoles.Any())
 					{
-						removedRoles = String.Format(", and removed `{0}`", String.Join("`, `", otherRoles.Select(x => x.FormatRole())));
+						removedRoles = $", and removed `{0}`", String.Join("`, `", otherRoles.Select(x => x.FormatRole())));
 					}
 				}
 
 				await RoleActions.GiveRoles(user, new[] { role }, FormattingActions.FormatBotReason("self role giving"));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave `{0}`{1}.", role.Name, removedRoles));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully gave `{0}`{1}.", role.Name, removedRoles));
 			}
 		}
 
@@ -213,7 +213,7 @@ namespace Advobot
 					return;
 				}
 
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Self Assignable Role Groups", String.Format("`{0}`", String.Join("`, `", groupNumbers))));
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Self Assignable Role Groups", $"`{0}`", String.Join("`, `", groupNumbers))));
 			}
 			[Command]
 			public async Task Command(uint groupNum)
@@ -225,8 +225,8 @@ namespace Advobot
 					return;
 				}
 
-				var desc = group.Roles.Any() ? String.Format("`{0}`", String.Join("`, `", group.Roles.Select(x => x.Role?.Name ?? "null"))) : "`Nothing`";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(String.Format("Self Roles Group {0}", groupNum), desc));
+				var desc = group.Roles.Any() ? $"`{0}`", String.Join("`, `", group.Roles.Select(x => x.Role?.Name ?? "null"))) : "`Nothing`";
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed($"Self Roles Group {0}", groupNum), desc));
 			}
 		}
 	}

@@ -238,8 +238,8 @@ namespace Advobot
 			}
 			public async Task OnGuildAvailable(SocketGuild guild)
 			{
-				ConsoleActions.WriteLine(String.Format("{0} is now online on shard {1}.", guild.FormatGuild(), ClientActions.GetShardIdFor(_Client, guild)));
-				ConsoleActions.WriteLine(String.Format("Current memory usage is: {0}MB.", GetActions.GetMemory(_BotSettings.Windows).ToString("0.00")));
+				ConsoleActions.WriteLine($"{0} is now online on shard {1}.", guild.FormatGuild(), ClientActions.GetShardIdFor(_Client, guild)));
+				ConsoleActions.WriteLine($"Current memory usage is: {0}MB.", GetActions.GetMemory(_BotSettings.Windows).ToString("0.00")));
 				_Logging.AddUsers(guild.MemberCount);
 				_Logging.IncrementGuilds();
 
@@ -247,7 +247,7 @@ namespace Advobot
 			}
 			public Task OnGuildUnavailable(SocketGuild guild)
 			{
-				ConsoleActions.WriteLine(String.Format("Guild is now offline {0}.", guild.FormatGuild()));
+				ConsoleActions.WriteLine($"Guild is now offline {0}.", guild.FormatGuild()));
 				_Logging.RemoveUsers(guild.MemberCount);
 				_Logging.DecrementGuilds();
 
@@ -255,7 +255,7 @@ namespace Advobot
 			}
 			public async Task OnJoinedGuild(SocketGuild guild)
 			{
-				ConsoleActions.WriteLine(String.Format("Bot has joined {0}.", guild.FormatGuild()));
+				ConsoleActions.WriteLine($"Bot has joined {0}.", guild.FormatGuild()));
 
 				//Determine what percentage of bot users to leave at
 				var users = guild.MemberCount;
@@ -293,20 +293,20 @@ namespace Advobot
 				var curMax = shards * 2500;
 				if (guilds + 100 >= curMax)
 				{
-					ConsoleActions.WriteLine(String.Format("The bot currently has {0} out of {1} possible spots for servers filled. Please increase the shard count.", guilds, curMax));
+					ConsoleActions.WriteLine($"The bot currently has {0} out of {1} possible spots for servers filled. Please increase the shard count.", guilds, curMax));
 				}
 				//Leave the guild
 				if (guilds > curMax)
 				{
 					await guild.LeaveAsync();
-					ConsoleActions.WriteLine(String.Format("Left the guild {0} due to having too many guilds on the client and not enough shards.", guild.FormatGuild()));
+					ConsoleActions.WriteLine($"Left the guild {0} due to having too many guilds on the client and not enough shards.", guild.FormatGuild()));
 				}
 
 				return;
 			}
 			public Task OnLeftGuild(SocketGuild guild)
 			{
-				ConsoleActions.WriteLine(String.Format("Bot has left {0}.", guild.FormatGuild()));
+				ConsoleActions.WriteLine($"Bot has left {0}.", guild.FormatGuild()));
 
 				_Logging.RemoveUsers(guild.MemberCount);
 				_Logging.DecrementGuilds();
@@ -341,16 +341,16 @@ namespace Advobot
 					var inviteStr = "";
 					if (curInv != null)
 					{
-						inviteStr = String.Format("\n**Invite:** {0}", curInv.Code);
+						inviteStr = $"\n**Invite:** {0}", curInv.Code);
 					}
 					var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
 					var ageWarningStr = "";
 					if (userAccAge.TotalHours < 24)
 					{
-						ageWarningStr = String.Format("\n**New Account:** {0} hours, {1} minutes old.", (int)userAccAge.TotalHours, userAccAge.Minutes);
+						ageWarningStr = $"\n**New Account:** {0} hours, {1} minutes old.", (int)userAccAge.TotalHours, userAccAge.Minutes);
 					}
 
-					var embed = EmbedActions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.JOIN);
+					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {0}{1}{2}", user.Id, inviteStr, ageWarningStr), Constants.JOIN);
 					EmbedActions.AddFooter(embed, (user.IsBot ? "Bot Joined" : "User Joined"));
 					EmbedActions.AddAuthor(embed, user);
 					await MessageActions.SendEmbedMessage(serverLog, embed);
@@ -397,10 +397,10 @@ namespace Advobot
 					if (user.JoinedAt.HasValue)
 					{
 						var timeStayed = (DateTime.UtcNow - user.JoinedAt.Value.ToUniversalTime());
-						timeStayedStr = String.Format("\n**Stayed for:** {0}:{1:00}:{2:00}:{3:00}", timeStayed.Days, timeStayed.Hours, timeStayed.Minutes, timeStayed.Seconds);
+						timeStayedStr = $"\n**Stayed for:** {0}:{1:00}:{2:00}:{3:00}", timeStayed.Days, timeStayed.Hours, timeStayed.Minutes, timeStayed.Seconds);
 					}
 
-					var embed = EmbedActions.MakeNewEmbed(null, String.Format("**ID:** {0}{1}", user.Id, timeStayedStr), Constants.LEAV);
+					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {0}{1}", user.Id, timeStayedStr), Constants.LEAV);
 					EmbedActions.AddFooter(embed, (user.IsBot ? "Bot Left" : "User Left"));
 					EmbedActions.AddAuthor(embed, user);
 					await MessageActions.SendEmbedMessage(serverLog, embed);
@@ -501,8 +501,8 @@ namespace Advobot
 
 					var embed = EmbedActions.MakeNewEmbed(null, null, Constants.MEDT);
 					EmbedActions.AddFooter(embed, "Message Updated");
-					EmbedActions.AddField(embed, "Before:", String.Format("`{0}`", beforeMsgContent));
-					EmbedActions.AddField(embed, "After:", String.Format("`{0}`", afterMsgContent), false);
+					EmbedActions.AddField(embed, "Before:", $"`{0}`", beforeMsgContent));
+					EmbedActions.AddField(embed, "After:", $"`{0}`", afterMsgContent), false);
 					EmbedActions.AddAuthor(embed, afterMessage.Author);
 					await MessageActions.SendEmbedMessage(serverLog, embed);
 
@@ -724,7 +724,7 @@ namespace Advobot
 					//Image attachment
 					if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentURL)))
 					{
-						var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+						var desc = $"**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
 						var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
 						EmbedActions.AddFooter(embed, "Attached Image");
 						EmbedActions.AddAuthor(embed, message.Author, attachmentURL);
@@ -735,7 +735,7 @@ namespace Advobot
 					//Gif attachment
 					else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL)))
 					{
-						var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+						var desc = $"**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
 						var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
 						EmbedActions.AddFooter(embed, "Attached Gif");
 						EmbedActions.AddAuthor(embed, message.Author, attachmentURL);
@@ -746,7 +746,7 @@ namespace Advobot
 					//Random file attachment
 					else
 					{
-						var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+						var desc = $"**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
 						var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
 						EmbedActions.AddFooter(embed, "Attached File");
 						EmbedActions.AddAuthor(embed, message.Author, attachmentURL);
@@ -758,7 +758,7 @@ namespace Advobot
 				//Embedded images
 				foreach (var embedURL in embedURLs.Distinct())
 				{
-					var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+					var desc = $"**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
 					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, embedURL);
 					EmbedActions.AddFooter(embed, "Embedded Image");
 					EmbedActions.AddAuthor(embed, message.Author, embedURL);
@@ -769,7 +769,7 @@ namespace Advobot
 				//Embedded videos/gifs
 				foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First()))
 				{
-					var desc = String.Format("**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
+					var desc = $"**Channel:** `{0}`\n**Message ID:** `{1}`", message.Channel.FormatChannel(), message.Id);
 					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, videoEmbed.Thumbnail?.Url);
 					EmbedActions.AddFooter(embed, "Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
 					EmbedActions.AddAuthor(embed, message.Author, videoEmbed.Url);
@@ -794,7 +794,7 @@ namespace Advobot
 						await antiJoin.RaidPreventionPunishment(guildSettings, user, timers);
 						if (guildSettings.ServerLog != null)
 						{
-							await MessageActions.SendEmbedMessage(guildSettings.ServerLog, EmbedActions.MakeNewEmbed("Anti Rapid Join Mute", String.Format("**User:** {0}", user.FormatUser())));
+							await MessageActions.SendEmbedMessage(guildSettings.ServerLog, EmbedActions.MakeNewEmbed("Anti Rapid Join Mute", $"**User:** {0}", user.FormatUser())));
 						}
 					}
 				}

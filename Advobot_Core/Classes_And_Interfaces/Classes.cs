@@ -451,7 +451,7 @@ namespace Advobot
 			[JsonIgnore]
 			public string Game
 			{
-				get => _Game ?? (_Game = String.Format("type \"{0}help\" for help.", Prefix));
+				get => _Game ?? (_Game = $"type \"{0}help\" for help.", Prefix));
 				set
 				{
 					_Game = value;
@@ -518,7 +518,7 @@ namespace Advobot
 			}
 			private void SaveSettings(object sender, PropertyChangedEventArgs e)
 			{
-				ConsoleActions.WriteLine(String.Format("Successfully saved: {0}", e.PropertyName));
+				ConsoleActions.WriteLine($"Successfully saved: {0}", e.PropertyName));
 				SavingAndLoadingActions.OverWriteFile(GetActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
 			}
 			public void PostDeserialize(bool windows, bool console, bool firstInstance)
@@ -561,7 +561,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("**Command:** `{0}`\n**ID:** `{1}`", Name, Id);
+				return $"**Command:** `{0}`\n**ID:** `{1}`", Name, Id);
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -615,7 +615,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("`{0}` `{1}`", ValAsString.PadRight(3), Name);
+				return $"`{0}` `{1}`", ValAsString.PadRight(3), Name);
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -658,7 +658,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("`{0}` `{1}`", Punishment == default(PunishmentType) ? "N" : Punishment.EnumName().Substring(0, 1), Phrase);
+				return $"`{0}` `{1}`", Punishment == default(PunishmentType) ? "N" : Punishment.EnumName().Substring(0, 1), Phrase);
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -702,14 +702,14 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("`{0}.` `{1}`{2}",
+				return $"`{0}.` `{1}`{2}",
 					NumberOfRemoves.ToString("00"),
 					RoleId == 0 ? Punishment.EnumName() : RoleId.ToString(),
 					PunishmentTime == 0 ? "" : " `" + PunishmentTime + " minutes`");
 			}
 			public string ToString(SocketGuild guild)
 			{
-				return String.Format("`{0}.` `{1}`{2}",
+				return $"`{0}.` `{1}`{2}",
 					NumberOfRemoves.ToString("00"),
 					RoleId == 0 ? Punishment.EnumName() : guild.GetRole(RoleId).Name,
 					PunishmentTime == 0 ? "" : " `" + PunishmentTime + " minutes`");
@@ -740,7 +740,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("`Group: {0}`\n{1}", Group, String.Join("\n", Roles.Select(x => x.ToString())));
+				return $"`Group: {0}`\n{1}", Group, String.Join("\n", Roles.Select(x => x.ToString())));
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -773,7 +773,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("**Role:** `{0}`", Role.FormatRole());
+				return $"**Role:** `{0}`", Role.FormatRole());
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -805,11 +805,11 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("**User:** `{0}`\n**Permissions:** `{1}`", UserId, Permissions);
+				return $"**User:** `{0}`\n**Permissions:** `{1}`", UserId, Permissions);
 			}
 			public string ToString(SocketGuild guild)
 			{
-				return String.Format("**User:** `{0}`\n**Permissions:** `{1}`", guild.GetUser(UserId).FormatUser(), Permissions);
+				return $"**User:** `{0}`\n**Permissions:** `{1}`", guild.GetUser(UserId).FormatUser(), Permissions);
 			}
 		}
 
@@ -859,7 +859,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("**Channel:** `{0}`\n**Content:** `{1}`\n**Title:** `{2}`\n**Description:** `{3}`\n**Thumbnail:** `{4}`",
+				return $"**Channel:** `{0}`\n**Content:** `{1}`\n**Title:** `{2}`\n**Description:** `{3}`\n**Thumbnail:** `{4}`",
 					Channel.FormatChannel(),
 					Content,
 					Title,
@@ -892,7 +892,7 @@ namespace Advobot
 			{
 				LastBumped = DateTime.UtcNow;
 				Code = code;
-				Url = String.Format("https://www.discord.gg/{0}", Code);
+				Url = $"https://www.discord.gg/{0}", Code);
 				Keywords = keywords ?? new string[0];
 			}
 			public ListedInvite(SocketGuild guild, string code, string[] keywords) : this(code, keywords)
@@ -904,7 +904,7 @@ namespace Advobot
 			public void UpdateCode(string code)
 			{
 				Code = code;
-				Url = String.Format("https://www.discord.gg/{0}", Code);
+				Url = $"https://www.discord.gg/{0}", Code);
 			}
 			public void UpdateKeywords(string[] keywords)
 			{
@@ -927,11 +927,11 @@ namespace Advobot
 					return null;
 				}
 
-				var codeStr = String.Format("**Code:** `{0}`\n", Code);
+				var codeStr = $"**Code:** `{0}`\n", Code);
 				var keywordStr = "";
 				if (Keywords.Any())
 				{
-					keywordStr = String.Format("**Keywords:**\n`{0}`", String.Join("`, `", Keywords));
+					keywordStr = $"**Keywords:**\n`{0}`", String.Join("`, `", Keywords));
 				}
 				return codeStr + keywordStr;
 			}
@@ -956,7 +956,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("`{0}`", Name);
+				return $"`{0}`", Name);
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -997,7 +997,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("**Punishment:** `{0}`\n**Spam Instances:** `{1}`\n**Votes For Punishment:** `{2}`\n**Spam Amt/Time Interval:** `{3}`",
+				return $"**Punishment:** `{0}`\n**Spam Instances:** `{1}`\n**Votes For Punishment:** `{2}`\n**Spam Amt/Time Interval:** `{3}`",
 					PunishmentType.EnumName(),
 					RequiredSpamInstances,
 					VotesForKick,
@@ -1064,7 +1064,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("**Enabled:** `{0}`\n**Users:** `{1}`\n**Time Interval:** `{2}`\n**Punishment:** `{3}`",
+				return $"**Enabled:** `{0}`\n**Users:** `{1}`\n**Time Interval:** `{2}`\n**Punishment:** `{3}`",
 					Enabled,
 					UserCount,
 					Interval,
@@ -1109,7 +1109,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("**Base messages:** `{0}`\n**Time interval:** `{1}`\n**Immune Role Ids:** `{2}`", BaseMessages, Interval, String.Join("`, `", ImmuneRoleIds));
+				return $"**Base messages:** `{0}`\n**Time interval:** `{1}`\n**Immune Role Ids:** `{2}`", BaseMessages, Interval, String.Join("`, `", ImmuneRoleIds));
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -1132,13 +1132,13 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return String.Format("**User Id:** `{0}`\n**Role Id:&& `{1}`", UserId, RoleId);
+				return $"**User Id:** `{0}`\n**Role Id:&& `{1}`", UserId, RoleId);
 			}
 			public string ToString(SocketGuild guild)
 			{
 				var user = guild.GetUser(UserId).FormatUser() ?? UserId.ToString();
 				var role = guild.GetRole(RoleId).FormatRole() ?? RoleId.ToString();
-				return String.Format("**User:** `{0}`\n**Role:&& `{1}`", user, role);
+				return $"**User:** `{0}`\n**Role:&& `{1}`", user, role);
 			}
 		}
 	}
@@ -1240,7 +1240,7 @@ namespace Advobot
 						{
 							guildSettings = (IGuildSettings)JsonConvert.DeserializeObject(reader.ReadToEnd(), guildSettingsType);
 						}
-						ConsoleActions.WriteLine(String.Format("The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
+						ConsoleActions.WriteLine($"The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
 					}
 					catch (Exception e)
 					{
@@ -1249,7 +1249,7 @@ namespace Advobot
 				}
 				else
 				{
-					ConsoleActions.WriteLine(String.Format("The guild information file for {0} could not be found; using default.", guild.FormatGuild()));
+					ConsoleActions.WriteLine($"The guild information file for {0} could not be found; using default.", guild.FormatGuild()));
 				}
 				guildSettings = guildSettings ?? (IGuildSettings)Activator.CreateInstance(guildSettingsType);
 
@@ -1318,10 +1318,10 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				var aliasStr = String.Format("**Aliases:** {0}", String.Join(", ", Aliases));
-				var usageStr = String.Format("**Usage:** {0}", Usage);
-				var permStr = String.Format("\n**Base Permission(s):**\n{0}", BasePerm);
-				var descStr = String.Format("\n**Description:**\n{0}", Text);
+				var aliasStr = $"**Aliases:** {0}", String.Join(", ", Aliases));
+				var usageStr = $"**Usage:** {0}", Usage);
+				var permStr = $"\n**Base Permission(s):**\n{0}", BasePerm);
+				var descStr = $"\n**Description:**\n{0}", Text);
 				return String.Join("\n", new[] { aliasStr, usageStr, permStr, descStr });
 			}
 		}

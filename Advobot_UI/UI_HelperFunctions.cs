@@ -296,7 +296,7 @@ namespace Advobot
 						return "";
 
 					var c = color.Value;
-					return String.Format("#{0}{1}{2}{3}", c.A.ToString("X2"), c.R.ToString("X2"), c.G.ToString("X2"), c.B.ToString("X2"));
+					return $"#{0}{1}{2}{3}", c.A.ToString("X2"), c.R.ToString("X2"), c.G.ToString("X2"), c.B.ToString("X2"));
 				}
 
 				public static void SetFontSizeProperties(double size, params IEnumerable<UIElement>[] elements)
@@ -514,9 +514,10 @@ namespace Advobot
 						return null;
 					}
 
+					var userName = user.Username.AllCharactersAreWithinUpperLimit(Constants.MAX_UTF16_VAL_FOR_NAMES) ? user.Username : "Non-Standard Name";
 					return new MyTextBox
 					{
-						Text = String.Format("'{0}#{1}' ({2})", (user.Username.AllCharactersAreWithinUpperLimit(Constants.MAX_UTF16_VAL_FOR_NAMES) ? user.Username : "Non-Standard Name"), user.Discriminator, user.Id),
+						Text = $"'{userName}#{user.Discriminator}' ({user.Id})",
 						Tag = user.Id,
 						IsReadOnly = true,
 						IsHitTestVisible = false,
@@ -608,51 +609,11 @@ namespace Advobot
 
 					return tv;
 				}
-				public static TreeView MakeDMTreeView(TreeView tv, IEnumerable<IDMChannel> dms)
-				{
-					//Remove its parent so it can be added back to something
-					var parent = tv.Parent;
-					if (parent != null)
-					{
-						(parent as InlineUIContainer).Child = null;
-					}
-
-					tv.BorderThickness = new Thickness(0);
-					tv.Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background];
-					tv.Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground];
-					tv.ItemsSource = dms.Select(x =>
-					{
-						var user = x.Recipient;
-						if (user == null)
-							return null;
-
-						return new TreeViewItem
-						{
-							Header = String.Format("'{0}#{1}' ({2})", (user.Username.AllCharactersAreWithinUpperLimit(Constants.MAX_UTF16_VAL_FOR_NAMES) ? user.Username : "Non-Standard Name"), user.Discriminator, user.Id),
-							Tag = x,
-							Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
-							Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
-						};
-					}).Where(x => x != null);
-
-					if (tv.ItemsSource.Cast<object>().Count() == 0)
-					{
-						var temp = new TreeViewItem
-						{
-							Header = "No DMs",
-							Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
-							Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
-						};
-						tv.ItemsSource = new[] { temp };
-					}
-
-					return tv;
-				}
 				public static FlowDocument MakeMainMenu()
 				{
 					var defs1 = "Latency:\n\tTime it takes for a command to reach the bot.\nMemory:\n\tAmount of RAM the program is using.\n\t(This is wrong most of the time.)";
 					var defs2 = "Threads:\n\tWhere all the actions in the bot happen.\nShards:\n\tHold all the guilds a bot has on its client.\n\tThere is a limit of 2500 guilds per shard.";
-					var vers = String.Format("\nAPI Wrapper Version: {0}\nBot Version: {1}\nGitHub Repository: ", Constants.API_VERSION, Constants.BOT_VERSION);
+					var vers = $"\nAPI Wrapper Version: {0}\nBot Version: {1}\nGitHub Repository: ", Constants.API_VERSION, Constants.BOT_VERSION);
 					var help = "\n\nNeed additional help? Join the Discord server: ";
 					var all = String.Join("\n", defs1, defs2, vers);
 
@@ -666,10 +627,10 @@ namespace Advobot
 				}
 				public static FlowDocument MakeInfoMenu(string botUptime, string formattedLoggedCommands, string formattedLoggedThings)
 				{
-					var uptime = String.Format("Uptime: {0}", botUptime);
-					var cmds = String.Format("Logged Commands:\n{0}", formattedLoggedCommands);
-					var logs = String.Format("Logged Actions:\n{0}", formattedLoggedThings);
-					var str = FormattingActions.RemoveMarkdownChars(String.Format("{0}\r\r{1}\r\r{2}", uptime, cmds, logs), true);
+					var uptime = $"Uptime: {botUptime}";
+					var cmds = $"Logged Commands:\n{formattedLoggedCommands}";
+					var logs = $"Logged Actions:\n{formattedLoggedThings}";
+					var str = FormattingActions.RemoveMarkdownChars($"{uptime}\r\r{cmds}\r\r{logs}", true);
 					var paragraph = new Paragraph(new Run(str))
 					{
 						TextAlignment = TextAlignment.Center,
@@ -699,7 +660,7 @@ namespace Advobot
 						var key = colorResourceKeys[i];
 						var value = FormatBrush(UISettings.ColorTargets[key]);
 
-						var title = MakeTitle(String.Format("{0}:", key.EnumName()), "");
+						var title = MakeTitle($"{key.EnumName()}:", "");
 						var setting = new MyTextBox
 						{
 							VerticalContentAlignment = VerticalAlignment.Center,
@@ -762,7 +723,7 @@ namespace Advobot
 						var settingName = (ele as FrameworkElement)?.Tag;
 						if (settingName is string && !SaveSetting(ele, settingName.ToString(), botSettings))
 						{
-							ConsoleActions.WriteLine(String.Format("Failed to save: {0}", settingName.ToString()));
+							ConsoleActions.WriteLine($"Failed to save: {settingName.ToString()}");
 						}
 					}
 
@@ -1106,7 +1067,7 @@ namespace Advobot
 					}
 					else
 					{
-						ConsoleActions.WriteLine(String.Format("The given input '{0}' is not a valid ID.", input));
+						ConsoleActions.WriteLine($"The given input '{0}' is not a valid ID.", input));
 					}
 				}
 				public static void RemoveTrustedUserFromComboBox(ComboBox cb)

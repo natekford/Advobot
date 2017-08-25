@@ -158,12 +158,12 @@ namespace Advobot
 			}
 			public static async Task NicknameManyUsers(IMyCommandContext context, List<IGuildUser> users, string replace, string reason)
 			{
-				var msg = await MessageActions.SendChannelMessage(context, String.Format("Attempting to rename `{0}` people.", users.Count));
+				var msg = await MessageActions.SendChannelMessage(context, $"Attempting to rename `{0}` people.", users.Count));
 				for (int i = 0; i < users.Count; ++i)
 				{
 					if (i % 10 == 0)
 					{
-						await msg.ModifyAsync(x => x.Content = String.Format("Attempting to rename `{0}` people. ETA on completion: `{1}`.",
+						await msg.ModifyAsync(x => x.Content = $"Attempting to rename `{0}` people. ETA on completion: `{1}`.",
 							users.Count - i,
 							(int)((users.Count - i) * 1.2)));
 					}
@@ -172,7 +172,7 @@ namespace Advobot
 				}
 
 				await MessageActions.DeleteMessage(msg);
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, String.Format("Successfully renamed `{0}` people.", users.Count));
+				await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully renamed `{0}` people.", users.Count));
 			}
 			public static async Task MoveUser(IGuildUser user, IVoiceChannel channel, string reason)
 			{
@@ -180,12 +180,12 @@ namespace Advobot
 			}
 			public static async Task MoveManyUsers(IMyCommandContext context, List<IGuildUser> users, IVoiceChannel outputChannel, string reason)
 			{
-				var msg = await MessageActions.SendChannelMessage(context, String.Format("Attempting to move `{0}` people.", users.Count));
+				var msg = await MessageActions.SendChannelMessage(context, $"Attempting to move `{0}` people.", users.Count));
 				for (int i = 0; i < users.Count; ++i)
 				{
 					if (i % 10 == 0)
 					{
-						await msg.ModifyAsync(x => x.Content = String.Format("Attempting to move `{0}` people. ETA on completion: `{1}`.",
+						await msg.ModifyAsync(x => x.Content = $"Attempting to move `{0}` people. ETA on completion: `{1}`.",
 							users.Count - i,
 							(int)((users.Count - i) * 1.2)));
 					}
@@ -194,7 +194,7 @@ namespace Advobot
 				}
 
 				await MessageActions.DeleteMessage(msg);
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, String.Format("Successfully moved `{0}` people.", users.Count));
+				await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully moved `{0}` people.", users.Count));
 			}
 		}
 	}

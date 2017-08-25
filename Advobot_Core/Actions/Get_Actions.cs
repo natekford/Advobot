@@ -178,7 +178,7 @@ namespace Advobot
 			{
 				var perms = GetFilteredChannelOverwritePermissions(channel.PermissionOverwrites.FirstOrDefault(x => overwriteObj.Id == x.TargetId), channel);
 				var maxLen = perms.Keys.Max(x => x.Length);
-				return perms.Select(x => String.Format("{0} {1}", x.Key.PadRight(maxLen), x.Value)).ToArray();
+				return perms.Select(x => $"{0} {1}", x.Key.PadRight(maxLen), x.Value)).ToArray();
 			}
 			/// <summary>
 			/// Returns a bool indicating whether any invalid perms were passed in. Out values of valid perms and invalid perms.
@@ -373,7 +373,7 @@ namespace Advobot
 			/// <returns></returns>
 			public static DirectoryInfo GetBaseBotDirectory()
 			{
-				var path = Path.Combine(Properties.Settings.Default.Path, String.Format("{0}_{1}", Constants.SERVER_FOLDER, Properties.Settings.Default.BotID));
+				var path = Path.Combine(Properties.Settings.Default.Path, $"{0}_{1}", Constants.SERVER_FOLDER, Properties.Settings.Default.BotID));
 				return Directory.CreateDirectory(path);
 			}
 			/// <summary>
@@ -432,7 +432,7 @@ namespace Advobot
 			public static string GetUptime(IBotSettings botSettings)
 			{
 				var span = DateTime.UtcNow.Subtract(botSettings.StartupTime);
-				return String.Format("{0}:{1}:{2}:{3}", span.Days, span.Hours.ToString("00"), span.Minutes.ToString("00"), span.Seconds.ToString("00"));
+				return $"{0}:{1}:{2}:{3}", span.Days, span.Hours.ToString("00"), span.Minutes.ToString("00"), span.Seconds.ToString("00"));
 			}
 			/// <summary>
 			/// On windows, returns the task manager value. On other systems, returns the WorkingSet64 value.

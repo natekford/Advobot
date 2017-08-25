@@ -158,7 +158,7 @@ namespace Advobot
 				//Then check permission names
 				else if (!GetActions.TryGetValidGuildPermissionNamesFromInputString(input, out var validPerms, out var invalidPerms))
 				{
-					var failureStr = FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.", GetActions.GetPlural(invalidPerms.Count()), String.Join("`, `", invalidPerms)));
+					var failureStr = FormattingActions.ERROR($"Invalid permission{0} provided: `{1}`.", GetActions.GetPlural(invalidPerms.Count()), String.Join("`, `", invalidPerms)));
 					return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, failureStr));
 				}
 				else
@@ -180,7 +180,7 @@ namespace Advobot
 				//Then check permission names
 				else if (!GetActions.TryGetValidChannelPermissionNamesFromInputString(input, out var validPerms, out var invalidPerms))
 				{
-					var failureStr = FormattingActions.ERROR(String.Format("Invalid permission{0} provided: `{1}`.", GetActions.GetPlural(invalidPerms.Count()), String.Join("`, `", invalidPerms)));
+					var failureStr = FormattingActions.ERROR($"Invalid permission{0} provided: `{1}`.", GetActions.GetPlural(invalidPerms.Count()), String.Join("`, `", invalidPerms)));
 					return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, failureStr));
 				}
 				else

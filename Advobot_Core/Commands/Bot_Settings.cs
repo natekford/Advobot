@@ -37,7 +37,7 @@ namespace Advobot
 			public async Task Command([VerifyStringLength(Target.Prefix)] string newPrefix)
 			{
 				Context.GuildSettings.Prefix = newPrefix;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully set this guild's prefix to: `{0}`.", newPrefix));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set this guild's prefix to: `{0}`.", newPrefix));
 			}
 		}
 
@@ -63,7 +63,7 @@ namespace Advobot
 						command.ToggleEnabled();
 					}
 					var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
-					await MessageActions.SendChannelMessage(Context, String.Format("Successfully enabled the following commands: `{0}`.", text));
+					await MessageActions.SendChannelMessage(Context, $"Successfully enabled the following commands: `{0}`.", text));
 				}
 				[Command, Priority(0)]
 				public async Task Command(CommandSwitch command)
@@ -80,7 +80,7 @@ namespace Advobot
 					}
 
 					command.ToggleEnabled();
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully enabled `{0}`.", command.Name));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully enabled `{0}`.", command.Name));
 				}
 				[Command]
 				public async Task Command(CommandCategory category)
@@ -91,7 +91,7 @@ namespace Advobot
 					{
 						command.ToggleEnabled();
 					}
-					await MessageActions.SendChannelMessage(Context, String.Format("Successfully enabled the following commands: `{0}`.", String.Join("`, `", commands.Select(x => x.Name))));
+					await MessageActions.SendChannelMessage(Context, $"Successfully enabled the following commands: `{0}`.", String.Join("`, `", commands.Select(x => x.Name))));
 				}
 			}
 			[Group(nameof(ActionType.Disable)), Alias("d")]
@@ -107,7 +107,7 @@ namespace Advobot
 						command.ToggleEnabled();
 					}
 					var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
-					await MessageActions.SendChannelMessage(Context, String.Format("Successfully disabled the following commands: `{0}`.", text));
+					await MessageActions.SendChannelMessage(Context, $"Successfully disabled the following commands: `{0}`.", text));
 				}
 				[Command, Priority(0)]
 				public async Task Command(CommandSwitch command)
@@ -124,7 +124,7 @@ namespace Advobot
 					}
 
 					command.ToggleEnabled();
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully disabled `{0}`.", command.Name));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully disabled `{0}`.", command.Name));
 				}
 				[Command]
 				public async Task Command(CommandCategory category)
@@ -135,7 +135,7 @@ namespace Advobot
 					{
 						command.ToggleEnabled();
 					}
-					await MessageActions.SendChannelMessage(Context, String.Format("Successfully disabled the following commands: `{0}`.", String.Join("`, `", commands.Select(x => x.Name))));
+					await MessageActions.SendChannelMessage(Context, $"Successfully disabled the following commands: `{0}`.", String.Join("`, `", commands.Select(x => x.Name))));
 				}
 			}
 		}
@@ -157,12 +157,12 @@ namespace Advobot
 				{
 					if (Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` is already ignoring commands.", channel.FormatChannel()));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"`{0}` is already ignoring commands.", channel.FormatChannel()));
 						return;
 					}
 
 					Context.GuildSettings.IgnoredCommandChannels.Add(channel.Id);
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added `{0}` to the ignored command channels list.", channel.FormatChannel()));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully added `{0}` to the ignored command channels list.", channel.FormatChannel()));
 				}
 				[Command]
 				public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandSwitch command)
@@ -170,7 +170,7 @@ namespace Advobot
 					//First remove every command override on that channel for that specific command (so whenever this command is used it forces an update on the status of the list, never have duplicates)
 					Context.GuildSettings.CommandsDisabledOnChannel.RemoveAll(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
 					Context.GuildSettings.CommandsDisabledOnChannel.Add(new CommandOverride(command.Name, channel.Id));
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully started ignoring the command `{0}` on `{1}`.", command.Name, channel.FormatChannel()));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully started ignoring the command `{0}` on `{1}`.", command.Name, channel.FormatChannel()));
 				}
 				[Command]
 				public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
@@ -183,7 +183,7 @@ namespace Advobot
 					}
 
 					var cmdNames = String.Join("`, `", commands.Select(x => x.Name));
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully started ignoring the following commands on `{0}`: `{1}`.", channel.FormatChannel(), cmdNames));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully started ignoring the following commands on `{0}`: `{1}`.", channel.FormatChannel(), cmdNames));
 				}
 			}
 			[Group(nameof(ActionType.Remove)), Alias("r")]
@@ -194,19 +194,19 @@ namespace Advobot
 				{
 					if (!Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("`{0}` is already allowing commands.", channel.FormatChannel()));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"`{0}` is already allowing commands.", channel.FormatChannel()));
 						return;
 					}
 
 					Context.GuildSettings.IgnoredCommandChannels.RemoveAll(x => x == channel.Id);
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed `{0}` from the ignored command channels list.", channel.FormatChannel()));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed `{0}` from the ignored command channels list.", channel.FormatChannel()));
 				}
 				[Command]
 				public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandSwitch command)
 				{
 					//First remove every command override on that channel for that specific command (so whenever this command is used it forces an update on the status of the list, never have duplicates)
 					Context.GuildSettings.CommandsDisabledOnChannel.RemoveAll(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully stopped ignoring the command `{0}` on `{1}`.", command.Name, channel.FormatChannel()));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully stopped ignoring the command `{0}` on `{1}`.", command.Name, channel.FormatChannel()));
 				}
 				[Command]
 				public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
@@ -218,7 +218,7 @@ namespace Advobot
 					}
 
 					var cmdNames = String.Join("`, `", commands.Select(x => x.Name));
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully stopped ignoring the following commands on `{0}`: `{1}`.", channel.FormatChannel(), cmdNames));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully stopped ignoring the following commands on `{0}`: `{1}`.", channel.FormatChannel(), cmdNames));
 				}
 			}
 		}
@@ -237,7 +237,7 @@ namespace Advobot
 				[Command]
 				public async Task Command()
 				{
-					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Permission Types", String.Format("`{0}`", String.Join("`, `", Constants.GUILD_PERMISSIONS.Select(x => x.Name)))));
+					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Permission Types", $"`{0}`", String.Join("`, `", Constants.GUILD_PERMISSIONS.Select(x => x.Name)))));
 				}
 				[Command]
 				public async Task Command(IUser user)
@@ -249,8 +249,8 @@ namespace Advobot
 						return;
 					}
 
-					var desc = String.Format("`{0}`", String.Join("`, `", GetActions.GetGuildPermissionNames(botUser.Permissions)));
-					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(String.Format("Permissions for {0}", user.FormatUser()), desc));
+					var desc = $"`{0}`", String.Join("`, `", GetActions.GetGuildPermissionNames(botUser.Permissions)));
+					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed($"Permissions for {0}", user.FormatUser()), desc));
 				}
 			}
 			[Group(nameof(ActionType.Add)), Alias("a")]
@@ -265,7 +265,7 @@ namespace Advobot
 					botUser.AddPermissions(rawValue);
 
 					var givenPerms = String.Join("`, `", GetActions.GetGuildPermissionNames(rawValue));
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully gave `{0}` the following bot permissions: `{1}`.", user.FormatUser(), givenPerms));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully gave `{0}` the following bot permissions: `{1}`.", user.FormatUser(), givenPerms));
 				}
 			}
 			[Group(nameof(ActionType.Remove)), Alias("r")]
@@ -285,7 +285,7 @@ namespace Advobot
 					botUser.RemovePermissions(rawValue);
 
 					var takenPerms = String.Join("`, `", GetActions.GetGuildPermissionNames(rawValue));
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the following bot permissions from `{0}`: `{1}`.", user.FormatUser(), takenPerms));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed the following bot permissions from `{0}`: `{1}`.", user.FormatUser(), takenPerms));
 				}
 			}
 		}
@@ -317,12 +317,12 @@ namespace Advobot
 					if (Context.GuildSettings.ImageOnlyChannels.Contains(channel.Id))
 					{
 						Context.GuildSettings.ImageOnlyChannels.Remove(channel.Id);
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the channel `{0}` from the image only list.", channel.FormatChannel()));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed the channel `{0}` from the image only list.", channel.FormatChannel()));
 					}
 					else
 					{
 						Context.GuildSettings.ImageOnlyChannels.Add(channel.Id);
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the channel `{0}` to the image only list.", channel.FormatChannel()));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully added the channel `{0}` to the image only list.", channel.FormatChannel()));
 					}
 				}
 			}
@@ -366,7 +366,7 @@ namespace Advobot
 			{
 				var settingNames = GetActions.GetGuildSettings().Select(x => x.Name);
 
-				var desc = String.Format("`{0}`", String.Join("`, `", settingNames));
+				var desc = $"`{0}`", String.Join("`, `", settingNames));
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
 			}
 		}

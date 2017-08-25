@@ -19,36 +19,25 @@ namespace Advobot
 			public static EmbedBuilder FormatUserInfo(IGuildSettings guildSettings, SocketGuild guild, SocketGuildUser user)
 			{
 				var guildUser = user as SocketGuildUser;
-				var roles = guildUser.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone);
-				var channels = new List<string>();
-				guild.TextChannels.OrderBy(x => x.Position).ToList().ForEach(x =>
-				{
-					if (guildUser.GetPermissions(x).ReadMessages)
-					{
-						channels.Add(x.Name);
-					}
-				});
-				guild.VoiceChannels.OrderBy(x => x.Position).ToList().ForEach(x =>
-				{
-					if (guildUser.GetPermissions(x).Connect)
-					{
-						channels.Add(x.Name + " (Voice)");
-					}
-				});
-				var users = guild.Users.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
-				var created = guildUser.CreatedAt.UtcDateTime;
-				var joined = guildUser.JoinedAt.Value.UtcDateTime;
 
-				var IDstr = String.Format("**ID:** `{0}`", guildUser.Id);
-				var nicknameStr = String.Format("**Nickname:** `{0}`", String.IsNullOrWhiteSpace(guildUser.Nickname) ? "NO NICKNAME" : EscapeMarkdown(guildUser.Nickname, true));
-				var createdStr = String.Format("\n**Created:** `{0}`", FormatDateTime(guildUser.CreatedAt.UtcDateTime));
-				var joinedStr = String.Format("**Joined:** `{0}` (`{1}` to join the guild)\n", FormatDateTime(guildUser.JoinedAt.Value.UtcDateTime), users.IndexOf(guildUser) + 1);
-				var gameStr = FormatGame(guildUser);
-				var statusStr = String.Format("**Online status:** `{0}`", guildUser.Status);
-				var description = String.Join("\n", new[] { IDstr, nicknameStr, createdStr, joinedStr, gameStr, statusStr });
+				var roles = guildUser.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone);
+				var channels = guild.TextChannels.Where(x => guildUser.GetPermissions(x).ReadMessages).OrderBy(x => x.Position).Select(x => x.Name).ToList();
+				channels.AddRange(guild.VoiceChannels.Where(x => guildUser.GetPermissions(x).Connect).OrderBy(x => x.Position).Select(x => x.Name + " (Voice)"));
+				var users = guild.Users.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
+
+				var desc = String.Join("\n", new[]
+				{
+					$"**ID:** `{guildUser.Id}`",
+					$"**Nickname:** `{(String.IsNullOrWhiteSpace(guildUser.Nickname) ? "NO NICKNAME" : EscapeMarkdown(guildUser.Nickname, true))}`",
+					FormatDateTimeForCreatedAtMessage(guildUser.CreatedAt),
+					$"**Joined:** `{FormatDateTime(guildUser.JoinedAt.Value.UtcDateTime)}` (`{users.IndexOf(guildUser) + 1}` to join the guild)\n",
+					FormatGame(guildUser),
+					$"**Online status:** `{guildUser.Status}`",
+				});
 
 				var color = roles.OrderBy(x => x.Position).LastOrDefault(x => x.Color.RawValue != 0)?.Color;
-				var embed = EmbedActions.MakeNewEmbed(null, description, color, thumbnailURL: user.GetAvatarUrl());
+				var embed = EmbedActions.MakeNewEmbed(null, desc, color, thumbnailURL: user.GetAvatarUrl());
+
 				if (channels.Count() != 0)
 				{
 					EmbedActions.AddField(embed, "Channels", String.Join(", ", channels));
@@ -59,8 +48,8 @@ namespace Advobot
 				}
 				if (user.VoiceChannel != null)
 				{
-					var desc = String.Format("Server mute: `{0}`\nServer deafen: `{1}`\nSelf mute: `{2}`\nSelf deafen: `{3}`", user.IsMuted, user.IsDeafened, user.IsSelfMuted, user.IsSelfDeafened);
-					EmbedActions.AddField(embed, "Voice Channel: " + user.VoiceChannel.Name, desc);
+					var value = $"Server mute: `{user.IsMuted}`\nServer deafen: `{user.IsDeafened}`\nSelf mute: `{user.IsSelfMuted}`\nSelf deafen: `{user.IsSelfDeafened}`";
+					EmbedActions.AddField(embed, "Voice Channel: " + user.VoiceChannel.Name, value);
 				}
 				EmbedActions.AddAuthor(embed, guildUser);
 				EmbedActions.AddFooter(embed, "User Info");
@@ -68,25 +57,28 @@ namespace Advobot
 			}
 			public static EmbedBuilder FormatUserInfo(IGuildSettings guildSettings, SocketGuild guild, SocketUser user)
 			{
-				var ageStr = String.Format("**Created:** `{0}`\n", FormatDateTime(user.CreatedAt.UtcDateTime));
-				var gameStr = FormatGame(user);
-				var statusStr = String.Format("**Online status:** `{0}`", user.Status);
-				var description = String.Join("\n", new[] { ageStr, gameStr, statusStr });
+				var desc = String.Join("\n", new[]
+				{
+					FormatDateTimeForCreatedAtMessage(user.CreatedAt),
+					FormatGame(user),
+					$"**Online status:** `{user.Status}`",
+				});
 
-				var embed = EmbedActions.MakeNewEmbed(null, description, null, thumbnailURL: user.GetAvatarUrl());
+				var embed = EmbedActions.MakeNewEmbed(null, desc, null, thumbnailURL: user.GetAvatarUrl());
 				EmbedActions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), user.GetAvatarUrl());
 				EmbedActions.AddFooter(embed, "User Info");
 				return embed;
 			}
 			public static EmbedBuilder FormatRoleInfo(IGuildSettings guildSettings, SocketGuild guild, SocketRole role)
 			{
-				var ageStr = String.Format("**Created:** `{0}` (`{1}` days ago)", FormatDateTime(role.CreatedAt.UtcDateTime), DateTime.UtcNow.Subtract(role.CreatedAt.UtcDateTime).Days);
-				var positionStr = String.Format("**Position:** `{0}`", role.Position);
-				var usersStr = String.Format("**User Count:** `{0}`", guild.Users.Where(x => x.Roles.Any(y => y.Id == role.Id)).Count());
-				var description = String.Join("\n", new[] { ageStr, positionStr, usersStr });
+				var desc = String.Join("\n", new[]
+				{
+					FormatDateTimeForCreatedAtMessage(role.CreatedAt),
+					$"**Position:** `{role.Position}`",
+					$"**User Count:** `{guild.Users.Where(x => x.Roles.Any(y => y.Id == role.Id)).Count()}`",
+				});
 
-				var color = role.Color;
-				var embed = EmbedActions.MakeNewEmbed(null, description, color);
+				var embed = EmbedActions.MakeNewEmbed(null, desc, role.Color);
 				EmbedActions.AddAuthor(embed, role.FormatRole());
 				EmbedActions.AddFooter(embed, "Role Info");
 				return embed;
@@ -100,17 +92,19 @@ namespace Advobot
 				var modLog = guildSettings.ModLog?.Id == channel.Id;
 				var imageLog = guildSettings.ImageLog?.Id == channel.Id;
 
-				var ageStr = String.Format("**Created:** `{0}` (`{1}` days ago)", FormatDateTime(channel.CreatedAt.UtcDateTime), DateTime.UtcNow.Subtract(channel.CreatedAt.UtcDateTime).Days);
-				var userCountStr = String.Format("**User Count:** `{0}`", channel.Users.Count);
-				var ignoredFromLogStr = String.Format("\n**Ignored From Log:** `{0}`", ignoredFromLog ? "Yes" : "No");
-				var ignoredFromCmdStr = String.Format("**Ignored From Commands:** `{0}`", ignoredFromCmd ? "Yes" : "No");
-				var imageOnlyStr = String.Format("**Image Only:** `{0}`", imageOnly ? "Yes" : "No");
-				var serverLogStr = String.Format("\n**Serverlog:** `{0}`", serverLog ? "Yes" : "No");
-				var modLogStr = String.Format("**Modlog:** `{0}`", modLog ? "Yes" : "No");
-				var imageLogStr = String.Format("**Imagelog:** `{0}`", imageLog ? "Yes" : "No");
-				var description = String.Join("\n", new[] { ageStr, userCountStr, ignoredFromLogStr, ignoredFromCmdStr, imageOnlyStr, serverLogStr, modLogStr, imageLogStr });
+				var desc = String.Join("\n", new[]
+				{
+					FormatDateTimeForCreatedAtMessage(channel.CreatedAt),
+					$"**User Count:** `{channel.Users.Count}`",
+					$"\n**Ignored From Log:** `{(ignoredFromLog ? "Yes" : "No")}`",
+					$"**Ignored From Commands:** `{(ignoredFromCmd ? "Yes" : "No")}`",
+					$"**Image Only:** `{(imageOnly ? "Yes" : "No")}`",
+					$"\n**Serverlog:** `{(serverLog ? "Yes" : "No")}`",
+					$"**Modlog:** `{(modLog ? "Yes" : "No")}`",
+					$"**Imagelog:** `{(imageLog ? "Yes" : "No")}`",
+				});
 
-				var embed = EmbedActions.MakeNewEmbed(null, description);
+				var embed = EmbedActions.MakeNewEmbed(null, desc);
 				EmbedActions.AddAuthor(embed, channel.FormatChannel());
 				EmbedActions.AddFooter(embed, "Channel Info");
 				return embed;
@@ -126,34 +120,36 @@ namespace Advobot
 				var localECount = guild.Emotes.Where(x => !x.IsManaged).Count();
 				var globalECount = guild.Emotes.Where(x => x.IsManaged).Count();
 
-				var ageStr = String.Format("**Created:** `{0}` (`{1}` days ago)", FormatDateTime(guild.CreatedAt.UtcDateTime), DateTime.UtcNow.Subtract(guild.CreatedAt.UtcDateTime).Days);
-				var ownerStr = String.Format("**Owner:** `{0}`", owner.FormatUser());
-				var regionStr = String.Format("**Region:** `{0}`", guild.VoiceRegionId);
-				var emoteStr = String.Format("**Emotes:** `{0}` (`{1}` local, `{2}` global)\n", localECount + globalECount, localECount, globalECount);
-				var userStr = String.Format("**User Count:** `{0}` (`{1}` online, `{2}` bots)", guild.MemberCount, onlineCount, botCount);
-				var nickStr = String.Format("**Users With Nickname:** `{0}`", nicknameCount);
-				var gameStr = String.Format("**Users Playing Games:** `{0}`", gameCount);
-				var voiceStr = String.Format("**Users In Voice:** `{0}`\n", voiceCount);
-				var roleStr = String.Format("**Role Count:** `{0}`", guild.Roles.Count);
-				var channelStr = String.Format("**Channel Count:** `{0}` (`{1}` text, `{2}` voice)", guild.Channels.Count, guild.TextChannels.Count, guild.VoiceChannels.Count);
-				var afkChanStr = String.Format("**AFK Channel:** `{0}` (`{1}` minute{2})", guild.AFKChannel.FormatChannel(), guild.AFKTimeout / 60, GetActions.GetPlural(guild.AFKTimeout / 60));
-				var description = String.Join("\n", new List<string>() { ageStr, ownerStr, regionStr, emoteStr, userStr, nickStr, gameStr, voiceStr, roleStr, channelStr, afkChanStr });
+				var desc = String.Join("\n", new[]
+				{
+					FormatDateTimeForCreatedAtMessage(guild.CreatedAt),
+					$"**Owner:** `{owner.FormatUser()}`",
+					$"**Region:** `{guild.VoiceRegionId}`",
+					$"**Emotes:** `{localECount + globalECount}` (`{localECount}` local, `{globalECount}` global)\n",
+					$"**User Count:** `{guild.MemberCount}` (`{onlineCount}` online, `{botCount}` bots)",
+					$"**Users With Nickname:** `{nicknameCount}`",
+					$"**Users Playing Games:** `{gameCount}`",
+					$"**Users In Voice:** `{voiceCount}`\n",
+					$"**Role Count:** `{guild.Roles.Count}`",
+					$"**Channel Count:** `{guild.Channels.Count}` (`{guild.TextChannels.Count}` text, `{guild.VoiceChannels.Count}` voice)",
+					$"**AFK Channel:** `{guild.AFKChannel.FormatChannel()}` (`{guild.AFKTimeout / 60}` minute{GetActions.GetPlural(guild.AFKTimeout / 60)})",
+				});
 
 				var color = owner.Roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
-				var embed = EmbedActions.MakeNewEmbed(null, description, color, thumbnailURL: guild.IconUrl);
+				var embed = EmbedActions.MakeNewEmbed(null, desc, color, thumbnailURL: guild.IconUrl);
 				EmbedActions.AddAuthor(embed, guild.FormatGuild());
 				EmbedActions.AddFooter(embed, "Guild Info");
 				return embed;
 			}
 			public static EmbedBuilder FormatEmoteInfo(IGuildSettings guildSettings, IEnumerable<IGuild> guilds, Emote emote)
 			{
-				//Try to find the emoji if global
+				//Try to find the emote if global
 				var guildsWithEmote = guilds.Where(x => x.HasGlobalEmotes());
 
-				var description = String.Format("**ID:** `{0}`\n", emote.Id);
+				var description = $"**ID:** `{emote.Id}`\n";
 				if (guildsWithEmote.Any())
 				{
-					description += String.Format("**From:** `{0}`", String.Join("`, `", guildsWithEmote.Select(x => x.FormatGuild())));
+					description += $"**From:** `{String.Join("`, `", guildsWithEmote.Select(x => x.FormatGuild()))}`";
 				}
 
 				var embed = EmbedActions.MakeNewEmbed(null, description, thumbnailURL: emote.Url);
@@ -163,27 +159,31 @@ namespace Advobot
 			}
 			public static EmbedBuilder FormatInviteInfo(IGuildSettings guildSettings, SocketGuild guild, IInviteMetadata invite)
 			{
-				var inviterStr = String.Format("**Inviter:** `{0}`", invite.Inviter.FormatUser());
-				var channelStr = String.Format("**Channel:** `{0}`", guild.Channels.FirstOrDefault(x => x.Id == invite.ChannelId).FormatChannel());
-				var usesStr = String.Format("**Uses:** `{0}`", invite.Uses);
-				var createdStr = String.Format("**Created At:** `{0}`", FormatDateTime(invite.CreatedAt.UtcDateTime));
-				var description = String.Join("\n", new[] { inviterStr, channelStr, usesStr, createdStr });
+				var desc = String.Join("\n", new[]
+				{
+					$"**Inviter:** `{invite.Inviter.FormatUser()}`",
+					$"**Channel:** `{guild.Channels.FirstOrDefault(x => x.Id == invite.ChannelId).FormatChannel()}`",
+					$"**Uses:** `{invite.Uses}`",
+					FormatDateTimeForCreatedAtMessage(invite.CreatedAt),
+				});
 
-				var embed = EmbedActions.MakeNewEmbed(null, description);
+				var embed = EmbedActions.MakeNewEmbed(null, desc);
 				EmbedActions.AddAuthor(embed, invite.Code);
 				EmbedActions.AddFooter(embed, "Emote Info");
 				return embed;
 			}
 			public static EmbedBuilder FormatBotInfo(IBotSettings globalInfo, IDiscordClient client, ILogModule logModule, IGuild guild)
 			{
-				var online = String.Format("**Online Since:** `{0}`", FormatDateTime(globalInfo.StartupTime));
-				var uptime = String.Format("**Uptime:** `{0}`", GetActions.GetUptime(globalInfo));
-				var guildCount = String.Format("**Guild Count:** `{0}`", logModule.TotalGuilds);
-				var memberCount = String.Format("**Cumulative Member Count:** `{0}`", logModule.TotalUsers);
-				var currShard = String.Format("**Current Shard:** `{0}`", ClientActions.GetShardIdFor(client, guild));
-				var description = String.Join("\n", new[] { online, uptime, guildCount, memberCount, currShard });
+				var desc = String.Join("\n", new[]
+				{
+					$"**Online Since:** `{FormatDateTime(globalInfo.StartupTime)}`",
+					$"**Uptime:** `{GetActions.GetUptime(globalInfo)}`",
+					$"**Guild Count:** `{logModule.TotalGuilds}`",
+					$"**Cumulative Member Count:** `{logModule.TotalUsers}`",
+					$"**Current Shard:** `{ClientActions.GetShardIdFor(client, guild)}`",
+				});
 
-				var embed = EmbedActions.MakeNewEmbed(null, description);
+				var embed = EmbedActions.MakeNewEmbed(null, desc);
 				EmbedActions.AddAuthor(embed, client.CurrentUser);
 				EmbedActions.AddFooter(embed, "Version " + Constants.BOT_VERSION);
 
@@ -193,10 +193,12 @@ namespace Advobot
 				var secondField = logModule.FormatLoggedCommands();
 				EmbedActions.AddField(embed, "Commands", secondField);
 
-				var latency = String.Format("**Latency:** `{0}ms`", ClientActions.GetLatency(client));
-				var memory = String.Format("**Memory Usage:** `{0}MB`", GetActions.GetMemory(globalInfo.Windows).ToString("0.00"));
-				var threads = String.Format("**Thread Count:** `{0}`", System.Diagnostics.Process.GetCurrentProcess().Threads.Count);
-				var thirdField = String.Join("\n", new[] { latency, memory, threads });
+				var thirdField = String.Join("\n", new[]
+				{
+					$"**Latency:** `{ClientActions.GetLatency(client)}ms`",
+					$"**Memory Usage:** `{GetActions.GetMemory(globalInfo.Windows).ToString("0.00")}MB`",
+					$"**Thread Count:** `{System.Diagnostics.Process.GetCurrentProcess().Threads.Count}`",
+				});
 				EmbedActions.AddField(embed, "Technical", thirdField);
 
 				return embed;
@@ -212,7 +214,7 @@ namespace Advobot
 			}
 			public static string FormatNonDM(IMessage message)
 			{
-				return String.Format("`[{0}]` `{1}` **IN** `{2}`\n```\n{3}```",
+				return $"`[{0}]` `{1}` **IN** `{2}`\n```\n{3}```",
 					message.CreatedAt.ToString("HH:mm:ss"),
 					message.Author.FormatUser(),
 					message.Channel.FormatChannel(),
@@ -220,7 +222,7 @@ namespace Advobot
 			}
 			public static string FormatDM(IMessage message)
 			{
-				return String.Format("`[{0}]` `{1}`\n```\n{2}```",
+				return $"`[{0}]` `{1}`\n```\n{2}```",
 					FormatDateTime(message.CreatedAt),
 					message.Author.FormatUser(),
 					RemoveMarkdownChars(FormatMessageContent(message), true));
@@ -234,11 +236,11 @@ namespace Advobot
 					{
 						if (x.Url != null)
 						{
-							return String.Format("{0} URL: {1}", x.Description, x.Url);
+							return $"{x.Description} URL: {x.Url}";
 						}
 						if (x.Image.HasValue)
 						{
-							return String.Format("{0} IURL: {1}", x.Description, x.Image.Value.Url);
+							return $"{x.Description} IURL: {x.Image.Value.Url}";
 						}
 						else
 						{
@@ -249,7 +251,7 @@ namespace Advobot
 					var formattedDescriptions = "";
 					for (int i = 0; i < descriptions.Length; ++i)
 					{
-						formattedDescriptions += String.Format("Embed {0}: {1}", i + 1, descriptions[i]);
+						formattedDescriptions += $"Embed {i + 1}: {descriptions[i]}";
 					}
 
 					content += "\n" + formattedDescriptions;
@@ -270,11 +272,8 @@ namespace Advobot
 				}
 
 				var ndt = dt.Value.ToUniversalTime();
-				return String.Format("{0} {1}, {2} at {3}",
-					System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(ndt.Month),
-					ndt.Day,
-					ndt.Year,
-					ndt.ToLongTimeString());
+				var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(ndt.Month);
+				return $"{monthName} {ndt.Day}, {ndt.Year} at {ndt.ToLongTimeString()}";
 			}
 			public static string FormatDateTime(DateTimeOffset? dt)
 			{
@@ -288,6 +287,10 @@ namespace Advobot
 			{
 				return DateTime.UtcNow.ToString("yyyyMMdd_hhmmss");
 			}
+			public static string FormatDateTimeForCreatedAtMessage(DateTimeOffset? dt)
+			{
+				return $"**Created:** `{FormatDateTime(dt)}` (`{DateTime.UtcNow.Subtract(dt.HasValue ? dt.Value.UtcDateTime : DateTime.UtcNow).Days}` days ago)";
+			}
 
 			public static string FormatGame(IUser user)
 			{
@@ -296,11 +299,11 @@ namespace Advobot
 				{
 					case StreamType.NotStreaming:
 					{
-						return String.Format("**Current Game:** `{0}`", EscapeMarkdown(game?.Name, true));
+						return $"**Current Game:** `{0}`", EscapeMarkdown(game?.Name, true));
 					}
 					case StreamType.Twitch:
 					{
-						return String.Format("**Current Stream:** [{0}]({1})", EscapeMarkdown(game?.Name, true), game?.StreamUrl);
+						return $"**Current Stream:** [{0}]({1})", EscapeMarkdown(game?.Name, true), game?.StreamUrl);
 					}
 					default:
 					{
@@ -351,19 +354,19 @@ namespace Advobot
 				{
 					case FailureReason.TooFew:
 					{
-						return String.Format("Unable to find the {0}.", objType);
+						return $"Unable to find the {0}.", objType);
 					}
 					case FailureReason.UserInability:
 					{
-						return String.Format("You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject(obj));
+						return $"You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject(obj));
 					}
 					case FailureReason.BotInability:
 					{
-						return String.Format("I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject(obj));
+						return $"I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject(obj));
 					}
 					case FailureReason.TooMany:
 					{
-						return String.Format("There are too many {0}s with the same name.", objType);
+						return $"There are too many {0}s with the same name.", objType);
 					}
 					case FailureReason.ChannelType:
 					{
@@ -379,7 +382,7 @@ namespace Advobot
 					}
 					case FailureReason.InvalidEnum:
 					{
-						return String.Format("The option `{0}` is not accepted in this instance.", (obj as Enum).EnumName());
+						return $"The option `{0}` is not accepted in this instance.", (obj as Enum).EnumName());
 					}
 					default:
 					{
@@ -438,18 +441,18 @@ namespace Advobot
 			{
 				var str1 = obj1.ToString();
 				var str2 = obj2.ToString();
-				return String.Format("{0}{1}", str1.PadRight(len - str2.Length), str2);
+				return $"{0}{1}", str1.PadRight(len - str2.Length), str2);
 			}
 			public static string FormatStringsWithLength(object obj1, object obj2, int right, int left)
 			{
 				var str1 = obj1.ToString().PadRight(right);
 				var str2 = obj2.ToString().PadLeft(left);
-				return String.Format("{0}{1}", str1, str2);
+				return $"{0}{1}", str1, str2);
 			}
 
 			public static string FormatAttribute(PermissionRequirementAttribute attr)
 			{
-				return attr != null ? String.Format("[{0}]", JoinNonNullStrings(" | ", attr.AllText, attr.AnyText)) : "N/A";
+				return attr != null ? $"[{0}]", JoinNonNullStrings(" | ", attr.AllText, attr.AnyText)) : "N/A";
 			}
 			public static string FormatAttribute(OtherRequirementAttribute attr)
 			{
@@ -473,7 +476,7 @@ namespace Advobot
 					{
 						text.Add("Bot Owner");
 					}
-					basePerm = String.Format("[{0}]", String.Join(" | ", text));
+					basePerm = $"[{0}]", String.Join(" | ", text));
 				}
 				return basePerm;
 			}
@@ -489,7 +492,7 @@ namespace Advobot
 						var formatted = await FormatBotSettingInfo(client, botSettings, property);
 						if (!String.IsNullOrWhiteSpace(formatted))
 						{
-							str += String.Format("**{0}**:\n{1}\n\n", property.Name, formatted);
+							str += $"**{0}**:\n{1}\n\n", property.Name, formatted);
 						}
 					}
 				}
@@ -507,13 +510,13 @@ namespace Advobot
 					var user = await UserActions.GetGlobalUser(client, (ulong)value);
 					if (user != null)
 					{
-						return String.Format("`{0}`", user.FormatUser());
+						return $"`{0}`", user.FormatUser());
 					}
 
 					var guild = await GuildActions.GetGuild(client, (ulong)value);
 					if (guild != null)
 					{
-						return String.Format("`{0}`", guild.FormatGuild());
+						return $"`{0}`", guild.FormatGuild());
 					}
 
 					return ((ulong)value).ToString();
@@ -521,7 +524,7 @@ namespace Advobot
 				//Because strings are char[] this pointless else if has to be here so it doesn't go into the else if directly below
 				else if (value is string)
 				{
-					return String.IsNullOrWhiteSpace(value.ToString()) ? "`Nothing`" : String.Format("`{0}`", value.ToString());
+					return String.IsNullOrWhiteSpace(value.ToString()) ? "`Nothing`" : $"`{0}`", value.ToString());
 				}
 				else if (value is System.Collections.IEnumerable)
 				{
@@ -534,7 +537,7 @@ namespace Advobot
 				}
 				else
 				{
-					return String.Format("`{0}`", value.ToString());
+					return $"`{0}`", value.ToString());
 				}
 			}
 
@@ -549,7 +552,7 @@ namespace Advobot
 						var formatted = FormatGuildSettingInfo(guild as SocketGuild, guildSettings, property);
 						if (!String.IsNullOrWhiteSpace(formatted))
 						{
-							str += String.Format("**{0}**:\n{1}\n\n", property.Name, formatted);
+							str += $"**{0}**:\n{1}\n\n", property.Name, formatted);
 						}
 					}
 				}
@@ -578,19 +581,19 @@ namespace Advobot
 					var chan = guild.GetChannel((ulong)value);
 					if (chan != null)
 					{
-						return String.Format("`{0}`", chan.FormatChannel());
+						return $"`{chan.FormatChannel()}`";
 					}
 
 					var role = guild.GetRole((ulong)value);
 					if (role != null)
 					{
-						return String.Format("`{0}`", role.FormatRole());
+						return $"`{role.FormatRole()}`";
 					}
 
 					var user = guild.GetUser((ulong)value);
 					if (user != null)
 					{
-						return String.Format("`{0}`", user.FormatUser());
+						return $"`{user.FormatUser()}`";
 					}
 
 					return ((ulong)value).ToString();
@@ -598,7 +601,7 @@ namespace Advobot
 				//Because strings are char[] this has to be here so it doesn't go into IEnumerable
 				else if (value is string)
 				{
-					return String.IsNullOrWhiteSpace(value.ToString()) ? "`Nothing`" : String.Format("`{0}`", value.ToString());
+					return String.IsNullOrWhiteSpace(value.ToString()) ? "`Nothing`" : $"`{value.ToString()}`";
 				}
 				//Has to be above IEnumerable too
 				else if (value is System.Collections.IDictionary)
@@ -607,7 +610,7 @@ namespace Advobot
 					//I can't tell if I'm retarded or working with the dictionary interface is just annoying as fuck
 					var settings = dict.Keys.Cast<object>().Where(x => dict[x] != null).Select(x =>
 					{
-						return String.Format("{0}: {1}", FormatGuildSettingInfo(guild, x), FormatGuildSettingInfo(guild, dict[x]));
+						return $"{FormatGuildSettingInfo(guild, x)}: {FormatGuildSettingInfo(guild, dict[x])}";
 					});
 					return String.Join("\n", settings);
 				}
@@ -617,20 +620,20 @@ namespace Advobot
 				}
 				else
 				{
-					return String.Format("`{0}`", value.ToString());
+					return $"`{value.ToString()}`";
 				}
 			}
 
 			public static string FormatUserReason(IUser user, string reason = null)
 			{
-				var reasonStr = reason == null ? "" : String.Format("Reason: {0}.", reason);
-				return String.Format("Action by {0}.{1}", user.FormatUser(), reasonStr);
+				var reasonStr = reason == null ? "" : $"Reason: {0}.", reason);
+				return $"Action by {0}.{1}", user.FormatUser(), reasonStr);
 			}
 			public static string FormatBotReason(string reason)
 			{
 				if (!String.IsNullOrWhiteSpace(reason))
 				{
-					reason = String.Format("Automated action. User triggered {0}.", reason.TrimEnd('.'));
+					reason = $"Automated action. User triggered {0}.", reason.TrimEnd('.'));
 					reason = reason.Substring(0, Math.Min(reason.Length, Constants.MAX_LENGTH_FOR_REASON));
 				}
 				else

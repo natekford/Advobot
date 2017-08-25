@@ -21,7 +21,7 @@ namespace Advobot
 
 			public static void WriteLine(string text, [CallerMemberName] string name = "")
 			{
-				var line = String.Format("[{0}] [{1}]: {2}", DateTime.Now.ToString("HH:mm:ss"), name, FormattingActions.RemoveMarkdownChars(text, true));
+				var line = $"[{DateTime.Now.ToString("HH:mm:ss")}] [{name}]: {FormattingActions.RemoveMarkdownChars(text, true)}";
 
 				//WrittenLines gets set 
 				if (_WrittenLines != null)
