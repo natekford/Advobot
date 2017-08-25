@@ -247,7 +247,7 @@
     <Compile Include="Constants.cs" />
     <Compile Include="Commands\Miscellaneous.cs" />
     <Compile Include="Command_Handler.cs" />
-    <Compile Include="Commands\Guild_Settings.cs" />
+    <Compile Include="Commands\Bot_Settings.cs" />
     <Compile Include="Commands\Logs.cs" />
     <Compile Include="Commands\Spam_Prevention.cs" />
     <Compile Include="Commands\Guild_List.cs" />

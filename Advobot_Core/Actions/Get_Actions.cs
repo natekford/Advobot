@@ -475,7 +475,20 @@ namespace Advobot
 			/// <returns></returns>
 			public static IEnumerable<PropertyInfo> GetGuildSettings()
 			{
-				var properties = typeof(IGuildSettings).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+				return GetSettings(typeof(IGuildSettings));
+			}
+			/// <summary>
+			/// Gets all public properties from IBotSettings and then returns ones that have a set method. Will not return SavePath and BotKey since those
+			/// are saved via <see cref="Properties.Settings.Default"/>.
+			/// </summary>
+			/// <returns></returns>
+			public static IEnumerable<PropertyInfo> GetBotSettings()
+			{
+				return GetSettings(typeof(IBotSettings));
+			}
+			private static IEnumerable<PropertyInfo> GetSettings(Type settingHolderType)
+			{
+				var properties = settingHolderType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 				return properties.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic);
 			}
 		}

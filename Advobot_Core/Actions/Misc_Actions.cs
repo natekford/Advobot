@@ -7,32 +7,6 @@ namespace Advobot
 	{
 		public static class MiscActions
 		{
-			public static void ResetSettings()
-			{
-				Properties.Settings.Default.BotKey = null;
-				Properties.Settings.Default.Path = null;
-				Properties.Settings.Default.BotName = null;
-				Properties.Settings.Default.BotID = 0;
-				Properties.Settings.Default.Save();
-			}
-			public static void RestartBot()
-			{
-				try
-				{
-					//Create a new instance of the bot and close the old one
-					System.Diagnostics.Process.Start(System.Windows.Application.ResourceAssembly.Location);
-					Environment.Exit(0);
-				}
-				catch (Exception e)
-				{
-					ConsoleActions.ExceptionToConsole(e);
-				}
-			}
-			public static void DisconnectBot()
-			{
-				Environment.Exit(0);
-			}
-
 			public static bool MakeSureInputIsValidTwitchAccountName(string input)
 			{
 				//In the bot's case if it's a null name then that just means to not show a stream

@@ -97,67 +97,67 @@ namespace Advobot
 					{
 						Child = new CheckBox
 						{
-							Tag = SettingOnBot.AlwaysDownloadUsers,
+							Tag = nameof(IBotSettings.AlwaysDownloadUsers),
 						},
 						HorizontalAlignment = HorizontalAlignment.Left,
 						VerticalAlignment = VerticalAlignment.Center,
-						Tag = SettingOnBot.AlwaysDownloadUsers,
+						Tag = nameof(IBotSettings.AlwaysDownloadUsers),
 					},
 					Title = UIModification.MakeTitle("Download Users:", "This automatically puts users in the bots cache. With it off, many commands will not work since I haven't added in a manual way to download users."),
 				};
 				private readonly SettingInMenu _PrefixSetting = new SettingInMenu
 				{
-					Setting = UIModification.MakeSetting(SettingOnBot.Prefix, 10),
+					Setting = UIModification.MakeSetting(nameof(IBotSettings.Prefix), 10),
 					Title = UIModification.MakeTitle("Prefix:", "The prefix which is needed to be said before commands."),
 				};
 				private readonly SettingInMenu _GameSetting = new SettingInMenu
 				{
-					Setting = UIModification.MakeSetting(SettingOnBot.Game, 100),
+					Setting = UIModification.MakeSetting(nameof(IBotSettings.Game), 100),
 					Title = UIModification.MakeTitle("Game:", "Changes what the bot says it's playing."),
 				};
 				private readonly SettingInMenu _StreamSetting = new SettingInMenu
 				{
-					Setting = UIModification.MakeSetting(SettingOnBot.Stream, 50),
+					Setting = UIModification.MakeSetting(nameof(IBotSettings.Stream), 50),
 					Title = UIModification.MakeTitle("Stream:", "Can set whatever stream you want as long as it's a valid Twitch.tv stream."),
 				};
 				private readonly SettingInMenu _ShardSetting = new SettingInMenu
 				{
-					Setting = UIModification.MakeSetting(SettingOnBot.ShardCount, 3),
+					Setting = UIModification.MakeSetting(nameof(IBotSettings.ShardCount), 3),
 					Title = UIModification.MakeTitle("Shard Count:", "Each shard can hold up to 2500 guilds."),
 				};
 				private readonly SettingInMenu _MessageCacheSetting = new SettingInMenu
 				{
-					Setting = UIModification.MakeSetting(SettingOnBot.MessageCacheCount, 6),
+					Setting = UIModification.MakeSetting(nameof(IBotSettings.MessageCacheCount), 6),
 					Title = UIModification.MakeTitle("Message Cache:", "The amount of messages the bot will hold in its cache."),
 				};
 				private readonly SettingInMenu _UserGatherCountSetting = new SettingInMenu
 				{
-					Setting = UIModification.MakeSetting(SettingOnBot.MaxUserGatherCount, 5),
+					Setting = UIModification.MakeSetting(nameof(IBotSettings.MaxUserGatherCount), 5),
 					Title = UIModification.MakeTitle("Max User Gather:", "Limits the amount of users a command can modify at once."),
 				};
 				private readonly SettingInMenu _MessageGatherSizeSetting = new SettingInMenu
 				{
-					Setting = UIModification.MakeSetting(SettingOnBot.MaxMessageGatherSize, 7),
+					Setting = UIModification.MakeSetting(nameof(IBotSettings.MaxMessageGatherSize), 7),
 					Title = UIModification.MakeTitle("Max Msg Gather:", "This is in bytes, which to be very basic is roughly two bytes per character."),
 				};
 				private readonly SettingInMenu _LogLevelComboBox = new SettingInMenu
 				{
-					Setting = new MyComboBox { ItemsSource = UIModification.MakeComboBoxSourceOutOfEnum(typeof(Discord.LogSeverity)), Tag = SettingOnBot.LogLevel, },
+					Setting = new MyComboBox { ItemsSource = UIModification.MakeComboBoxSourceOutOfEnum(typeof(Discord.LogSeverity)), Tag = nameof(IBotSettings.LogLevel), },
 					Title = UIModification.MakeTitle("Log Level:", "Certain events in the Discord library used in this bot have a required log level to be said in the console."),
 				};
 				private readonly SettingInMenu _TrustedUsersAdd = new SettingInMenu
 				{
-					Setting = new Grid() { Tag = SettingOnBot.TrustedUsers, },
+					Setting = new Grid() { Tag = nameof(IBotSettings.TrustedUsers), },
 					Title = UIModification.MakeTitle("Trusted Users:", "Some commands can only be run by the bot owner or user IDs that they have designated as trust worthy."),
 				};
-				private readonly TextBox _TrustedUsersAddBox = UIModification.MakeSetting(SettingOnBot.TrustedUsers, 18);
+				private readonly TextBox _TrustedUsersAddBox = UIModification.MakeSetting(nameof(IBotSettings.TrustedUsers), 18);
 				private readonly Button _TrustedUsersAddButton = new MyButton { Content = "+", };
 				private readonly SettingInMenu _TrustedUsersRemove = new SettingInMenu
 				{
-					Setting = new Grid() { Tag = SettingOnBot.TrustedUsers, },
+					Setting = new Grid() { Tag = nameof(IBotSettings.TrustedUsers), },
 					Title = UIModification.MakeTitle("", ""),
 				};
-				private readonly ComboBox _TrustedUsersComboBox = new MyComboBox { Tag = SettingOnBot.TrustedUsers, };
+				private readonly ComboBox _TrustedUsersComboBox = new MyComboBox { Tag = nameof(IBotSettings.TrustedUsers), };
 				private readonly Button _TrustedUsersRemoveButton = new MyButton { Content = "-", };
 				#endregion
 
@@ -442,7 +442,7 @@ namespace Advobot
 					{
 						case MessageBoxResult.OK:
 						{
-							MiscActions.RestartBot();
+							ClientActions.RestartBot();
 							return;
 						}
 					}
@@ -453,7 +453,7 @@ namespace Advobot
 					{
 						case MessageBoxResult.OK:
 						{
-							MiscActions.DisconnectBot();
+							ClientActions.DisconnectBot();
 							return;
 						}
 					}
@@ -461,7 +461,7 @@ namespace Advobot
 
 				private async void SaveSettings(object sender, RoutedEventArgs e)
 				{
-					await UIBotWindowLogic.SaveSettings(_Layout, _Client, _BotSettings);
+					await UIBotWindowLogic.SaveSettings(_SettingsLayout, _Client, _BotSettings);
 				}
 				private void SaveColors(object sender, RoutedEventArgs e)
 				{
@@ -493,7 +493,7 @@ namespace Advobot
 							}
 							catch
 							{
-								ConsoleActions.WriteLine(String.Format("Invalid color supplied for {0}.", target.EnumName()));
+								ConsoleActions.WriteLine($"Invalid color supplied for {target.EnumName()}.");
 								continue;
 							}
 
@@ -501,7 +501,7 @@ namespace Advobot
 							{
 								_UISettings.ColorTargets[target] = brush;
 								castedChild.Text = UIModification.FormatBrush(brush);
-								ConsoleActions.WriteLine(String.Format("Successfully updated the color for {0}.", target.EnumName()));
+								ConsoleActions.WriteLine($"Successfully updated the color for {target.EnumName()}.");
 							}
 						}
 						else if (child is ComboBox)
@@ -620,7 +620,7 @@ namespace Advobot
 					{
 						if (!ulong.TryParse(idStr, out ulong guildID))
 						{
-							ConsoleActions.WriteLine(String.Format("The ID '{0}' is not a valid number.", idStr));
+							ConsoleActions.WriteLine($"The ID '{idStr}' is not a valid number.");
 							return;
 						}
 

@@ -189,6 +189,32 @@ namespace Advobot
 					return -1;
 				}
 			}
+
+			public static void ResetSettings()
+			{
+				Properties.Settings.Default.BotKey = null;
+				Properties.Settings.Default.Path = null;
+				Properties.Settings.Default.BotName = null;
+				Properties.Settings.Default.BotID = 0;
+				Properties.Settings.Default.Save();
+			}
+			public static void RestartBot()
+			{
+				try
+				{
+					//Create a new instance of the bot and close the old one
+					System.Diagnostics.Process.Start(System.Windows.Application.ResourceAssembly.Location);
+					Environment.Exit(0);
+				}
+				catch (Exception e)
+				{
+					ConsoleActions.ExceptionToConsole(e);
+				}
+			}
+			public static void DisconnectBot()
+			{
+				Environment.Exit(0);
+			}
 		}
 	}
 }

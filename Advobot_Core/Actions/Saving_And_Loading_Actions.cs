@@ -29,7 +29,7 @@ namespace Advobot
 				HandleBotName(client.CurrentUser.Username);
 				if (botSettings.FirstInstanceOfBotStartingUpWithCurrentKey)
 				{
-					MiscActions.RestartBot(); //Restart so the bot can get the correct globalInfo loaded
+					ClientActions.RestartBot(); //Restart so the bot can get the correct globalInfo loaded
 				}
 
 				await ClientActions.SetGame(client, botSettings);
@@ -251,10 +251,9 @@ namespace Advobot
 					var otherReqs = otherReqsAttr == null ? null : FormattingActions.FormatAttribute(otherReqsAttr);
 
 					var defaultEnabledAttr = (DefaultEnabledAttribute)classType.GetCustomAttribute(typeof(DefaultEnabledAttribute));
-					var defaultEnabled = defaultEnabledAttr == null ? false : defaultEnabledAttr.Enabled;
 					if (defaultEnabledAttr == null)
 					{
-						throw new InvalidOperationException("Command does not have a default enabled value set: " + name);
+						throw new InvalidOperationException(name + " does not have a default enabled value set.");
 					}
 
 					var similarCmds = temp.Where(x => x.Name.CaseInsEquals(name) || (x.Aliases != null && aliases != null && x.Aliases.Intersect(aliases, StringComparer.OrdinalIgnoreCase).Any()));
@@ -263,7 +262,7 @@ namespace Advobot
 						throw new ArgumentException(String.Format("The following commands have conflicts: {0} + {1}", String.Join(" + ", similarCmds.Select(x => x.Name)), name));
 					}
 
-					temp.Add(new HelpEntry(name, aliases, usage, FormattingActions.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, category, defaultEnabled));
+					temp.Add(new HelpEntry(name, aliases, usage, FormattingActions.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, category, defaultEnabledAttr.Enabled));
 				}
 				return temp;
 			}

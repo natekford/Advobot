@@ -489,12 +489,12 @@ namespace Advobot
 
 					return tb;
 				}
-				public static TextBox MakeSetting(SettingOnBot setting, int length)
+				public static TextBox MakeSetting(string settingName, int length)
 				{
 					return new MyTextBox
 					{
 						VerticalContentAlignment = VerticalAlignment.Center,
-						Tag = setting,
+						Tag = settingName,
 						MaxLength = length
 					};
 				}
@@ -759,63 +759,62 @@ namespace Advobot
 					for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); ++i)
 					{
 						var ele = VisualTreeHelper.GetChild(parent, i);
-						var setting = (ele as FrameworkElement)?.Tag;
-						if (setting is SettingOnBot)
+						var settingName = (ele as FrameworkElement)?.Tag;
+						if (settingName is string && !SaveSetting(ele, settingName.ToString(), botSettings))
 						{
-							var fuckYouForTellingMeToPatternMatch = setting as SettingOnBot?;
-							var castSetting = (SettingOnBot)fuckYouForTellingMeToPatternMatch;
-
-							if (!SaveSetting(ele, castSetting, botSettings))
-							{
-								ConsoleActions.WriteLine(String.Format("Failed to save: {0}", castSetting.EnumName()));
-							}
+							ConsoleActions.WriteLine(String.Format("Failed to save: {0}", settingName.ToString()));
 						}
 					}
 
 					await ClientActions.SetGame(client, botSettings);
 				}
-				private static bool SaveSetting(object obj, SettingOnBot setting, IBotSettings botSettings)
+				private static bool SaveSetting(object obj, string settingName, IBotSettings botSettings)
 				{
 					if (obj is Grid)
 					{
-						return SaveSetting(obj as Grid, setting, botSettings);
+						return SaveSetting(obj as Grid, settingName, botSettings);
 					}
 					else if (obj is TextBox)
 					{
-						return SaveSetting(obj as TextBox, setting, botSettings);
+						return SaveSetting(obj as TextBox, settingName, botSettings);
 					}
 					else if (obj is Viewbox)
 					{
-						return SaveSetting(obj as Viewbox, setting, botSettings);
+						return SaveSetting(obj as Viewbox, settingName, botSettings);
 					}
 					else if (obj is CheckBox)
 					{
-						return SaveSetting(obj as CheckBox, setting, botSettings);
+						return SaveSetting(obj as CheckBox, settingName, botSettings);
 					}
 					else if (obj is ComboBox)
 					{
-						return SaveSetting(obj as ComboBox, setting, botSettings);
+						return SaveSetting(obj as ComboBox, settingName, botSettings);
 					}
 					else
 					{
-						return true;
+						throw new ArgumentException("Invalid object provided when attempting to save settings.");
 					}
 				}
-				private static bool SaveSetting(Grid g, SettingOnBot setting, IBotSettings botSettings)
+				private static bool SaveSetting(Grid g, string settingName, IBotSettings botSettings)
 				{
 					var children = g.Children;
 					foreach (var child in children)
 					{
-						return SaveSetting(child, setting, botSettings);
+						return SaveSetting(child, settingName, botSettings);
 					}
 					return true;
 				}
-				private static bool SaveSetting(TextBox tb, SettingOnBot setting, IBotSettings botSettings)
+				private static bool SaveSetting(TextBox tb, string settingName, IBotSettings botSettings)
 				{
-					var text = tb.Text;
-					switch (setting)
+					if (tb.IsReadOnly)
 					{
-						case SettingOnBot.Prefix:
+						return true;
+					}
+
+					var text = tb.Text;
+					switch (settingName)
+					{
+						case nameof(IBotSettings.Prefix):
 						{
 							if (String.IsNullOrWhiteSpace(text))
 							{
@@ -827,7 +826,7 @@ namespace Advobot
 							}
 							return true;
 						}
-						case SettingOnBot.Game:
+						case nameof(IBotSettings.Game):
 						{
 							if (botSettings.Game != text)
 							{
@@ -835,7 +834,7 @@ namespace Advobot
 							}
 							return true;
 						}
-						case SettingOnBot.Stream:
+						case nameof(IBotSettings.Stream):
 						{
 							if (!MiscActions.MakeSureInputIsValidTwitchAccountName(text))
 							{
@@ -847,7 +846,7 @@ namespace Advobot
 							}
 							return true;
 						}
-						case SettingOnBot.ShardCount:
+						case nameof(IBotSettings.ShardCount):
 						{
 							if (!uint.TryParse(text, out uint num))
 							{
@@ -859,7 +858,7 @@ namespace Advobot
 							}
 							return true;
 						}
-						case SettingOnBot.MessageCacheCount:
+						case nameof(IBotSettings.MessageCacheCount):
 						{
 							if (!uint.TryParse(text, out uint num))
 							{
@@ -871,7 +870,7 @@ namespace Advobot
 							}
 							return true;
 						}
-						case SettingOnBot.MaxUserGatherCount:
+						case nameof(IBotSettings.MaxUserGatherCount):
 						{
 							if (!uint.TryParse(text, out uint num))
 							{
@@ -883,7 +882,7 @@ namespace Advobot
 							}
 							return true;
 						}
-						case SettingOnBot.MaxMessageGatherSize:
+						case nameof(IBotSettings.MaxMessageGatherSize):
 						{
 							if (!uint.TryParse(text, out uint num))
 							{
@@ -895,22 +894,26 @@ namespace Advobot
 							}
 							return true;
 						}
-						default:
+						case nameof(IBotSettings.TrustedUsers):
 						{
 							return true;
 						}
+						default:
+						{
+							throw new ArgumentException($"Invalid object provided when attempting to save settings for a {tb.GetType().Name}.");
+						}
 					}
 				}
-				private static bool SaveSetting(Viewbox vb, SettingOnBot setting, IBotSettings botSettings)
+				private static bool SaveSetting(Viewbox vb, string settingName, IBotSettings botSettings)
 				{
-					return SaveSetting(vb.Child, setting, botSettings);
+					return SaveSetting(vb.Child, settingName, botSettings);
 				}
-				private static bool SaveSetting(CheckBox cb, SettingOnBot setting, IBotSettings botSettings)
+				private static bool SaveSetting(CheckBox cb, string settingName, IBotSettings botSettings)
 				{
 					var isChecked = cb.IsChecked.Value;
-					switch (setting)
+					switch (settingName)
 					{
-						case SettingOnBot.AlwaysDownloadUsers:
+						case nameof(IBotSettings.AlwaysDownloadUsers):
 						{
 							if (botSettings.AlwaysDownloadUsers != isChecked)
 							{
@@ -920,15 +923,15 @@ namespace Advobot
 						}
 						default:
 						{
-							return true;
+							throw new ArgumentException($"Invalid object provided when attempting to save settings for a {cb.GetType().Name}.");
 						}
 					}
 				}
-				private static bool SaveSetting(ComboBox cb, SettingOnBot setting, IBotSettings botSettings)
+				private static bool SaveSetting(ComboBox cb, string settingName, IBotSettings botSettings)
 				{
-					switch (setting)
+					switch (settingName)
 					{
-						case SettingOnBot.LogLevel:
+						case nameof(IBotSettings.LogLevel):
 						{
 							var selectedLogLevel = (LogSeverity)(cb.SelectedItem as TextBox).Tag;
 							if (botSettings.LogLevel != selectedLogLevel)
@@ -937,7 +940,7 @@ namespace Advobot
 							}
 							return true;
 						}
-						case SettingOnBot.TrustedUsers:
+						case nameof(IBotSettings.TrustedUsers):
 						{
 							var updatedTrustedUsers = cb.Items.OfType<TextBox>().Select(x => (ulong)x.Tag).ToList();
 							var removedUsers = botSettings.TrustedUsers.Except(updatedTrustedUsers);
@@ -950,7 +953,7 @@ namespace Advobot
 						}
 						default:
 						{
-							return true;
+							throw new ArgumentException($"Invalid object provided when attempting to save settings for a {cb.GetType().Name}.");
 						}
 					}
 				}
@@ -1162,8 +1165,8 @@ namespace Advobot
 					var resetInfo = false;
 					if (resetInfo)
 					{
-						MiscActions.ResetSettings();
-						MiscActions.DisconnectBot();
+						ClientActions.ResetSettings();
+						ClientActions.DisconnectBot();
 					}
 #endif
 				}

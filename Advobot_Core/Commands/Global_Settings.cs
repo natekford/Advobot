@@ -5,52 +5,113 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Advobot.Attributes;
+using Advobot.Enums;
+using Advobot.NonSavedClasses;
+using System.Linq;
+using Discord.WebSocket;
 
 namespace Advobot
 {
+	namespace BotSettings
+	{
+		[Group(nameof(ModifyBotSettings)), Alias("mgls")]
+		[Summary("Modify the given setting on the bot. Inputting help as the second argument gives information about what arguments that setting takes.")]
+		[Usage("[Clear|Set] [Setting Name] <New Value>")]
+		[OtherRequirement(Precondition.BotOwner)]
+		[DefaultEnabled(true)]
+		public sealed class ModifyBotSettings : MySavingModuleBase
+		{
+			[Command("set"), Alias("s")]
+			public async Task CommandSet(string commandName)
+			{
+
+			}
+			[Command(nameof(ActionType.Clear)), Alias("c")]
+			public async Task CommandClear(string commandName)
+			{
+
+			}
+		}
+
+		[Group(nameof(DisplayBotSettings)), Alias("dgls")]
+		[Usage("<All|Setting Name>")]
+		[Summary("Displays global settings. Inputting nothing gives a list of the setting names.")]
+		[OtherRequirement(Precondition.BotOwner)]
+		[DefaultEnabled(true)]
+		public sealed class DisplayBotSettings : MyModuleBase
+		{
+			[Command("all"), Priority(1)]
+			public async Task CommandAll()
+			{
+				var text = await FormattingActions.FormatAllBotSettings(Context.Client, Context.BotSettings);
+				await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "Bot Settings", "Bot Settings");
+			}
+			[Command, Priority(0)]
+			public async Task Command(string setting)
+			{
+				var currentSetting = GetActions.GetBotSettings().FirstOrDefault(x => x.Name.CaseInsEquals(setting));
+				if (currentSetting == null)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Unable to find a setting with the supplied name."));
+					return;
+				}
+
+				var desc = await FormattingActions.FormatBotSettingInfo(Context.Client, Context.BotSettings, currentSetting);
+				if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
+				{
+					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(currentSetting.Name, desc));
+				}
+				else
+				{
+					await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, desc, currentSetting.Name, currentSetting.Name);
+				}
+			}
+			[Command]
+			public async Task Command()
+			{
+				var settingNames = GetActions.GetBotSettings().Select(x => x.Name);
+
+				var desc = String.Format("`{0}`", String.Join("`, `", settingNames));
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
+			}
+		}
+
+		[Group(nameof(Disconnect)), Alias("dc", "runescapeservers")]
+		[Usage("")]
+		[Summary("Turns the bot off.")]
+		[OtherRequirement(Precondition.BotOwner)]
+		[DefaultEnabled(true)]
+		public sealed class Disconnect : MyModuleBase
+		{
+			[Command]
+			public Task Command()
+			{
+				ClientActions.DisconnectBot();
+				return Task.FromResult(0);
+			}
+		}
+
+		[Group(nameof(Restart)), Alias("res")]
+		[Usage("")]
+		[Summary("Restarts the bot.")]
+		[OtherRequirement(Precondition.BotOwner)]
+		[DefaultEnabled(true)]
+		public sealed class Restart : MyModuleBase
+		{
+			[Command]
+			public Task Command()
+			{
+				ClientActions.RestartBot();
+				return Task.FromResult(0);
+			}
+		}
+	}
 	/*
 	//Global Settings commands are commands that work on the bot globally
 	[Name("GlobalSettings")]
 	public class Advobot_Commands_Administration : ModuleBase
 	{
-		[Command("displayglobalsettings")]
-		[Alias("dgls")]
-		[Usage("<All|Setting Name>")]
-		[Summary("Displays global settings. Inputting nothing gives a list of the setting names.")]
-		[OtherRequirement(Precondition.BotOwner)]
-		[DefaultEnabled(true)]
-		public async Task CurrentGlobalSettings([Optional, Remainder] string input)
-		{
-			var botInfo = Variables.BotInfo;
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed("Global Settings", String.Format("`{0}`", String.Join("`, `", Enum.GetNames(typeof(SettingOnBot))))));
-				return;
-			}
-
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(0, 1));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var settingStr = returnedArgs.Arguments[0];
-
-			if (Actions.CaseInsEquals(settingStr, "all"))
-			{
-				await Actions.WriteAndUploadTextFile(Context.Guild, Context.Channel, Actions.FormatAllSettings(botInfo), "Current_Global_Settings");
-			}
-			else if (Enum.TryParse(settingStr, true, out SettingOnBot setting))
-			{
-				var title = setting.EnumName();
-				var desc = Actions.FormatSettingInfo(botInfo, setting);
-				await MessageActions.SendEmbedMessage(Context.Channel, Messages.MakeNewEmbed(title, desc));
-			}
-			else
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, Formatting.ERROR("Invalid setting."));
-			}
-		}
 
 		[Command("resetglobalsettings")]
 		[Alias("rgls")]
@@ -75,12 +136,7 @@ namespace Advobot
 			}
 		}
 
-		[Command("modifyglobalsettings")]
-		[Alias("mgls")]
-		[Summary("Modify the given setting on the bot. Inputting help as the second argument gives information about what arguments that setting takes.")]
-		[Usage("[Setting Name] [Help|Clear|New Value]")]
-		[OtherRequirement(Precondition.BotOwner)]
-		[DefaultEnabled(true)]
+
 		public async Task GlobalSettingsModify([Remainder] string input)
 		{
 			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
@@ -376,29 +432,7 @@ namespace Advobot
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully changed my username to `{0}`.", input));
 		}
 
-		[Command("disconnect")]
-		[Alias("dc", "runescapeservers")]
-		[Usage("")]
-		[Summary("Turns the bot off.")]
-		[OtherRequirement(Precondition.BotOwner)]
-		[DefaultEnabled(true)]
-		public Task Disconnect()
-		{
-			Actions.DisconnectBot();
-			return Task.CompletedTask;
-		}
 
-		[Command("restart")]
-		[Alias("res")]
-		[Usage("")]
-		[Summary("Restarts the bot.")]
-		[OtherRequirement(Precondition.BotOwner)]
-		[DefaultEnabled(true)]
-		public Task Restart()
-		{
-			Actions.RestartBot();
-			return Task.CompletedTask;
-		}
 	}
 	*/
 }

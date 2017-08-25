@@ -22,21 +22,51 @@ namespace Advobot
 	namespace Quotes
 	{
 		[Group(nameof(ModifyQuotes)), Alias("mrem")]
-		[Usage("[Add|Remove] [\"Name\"] <\"Text\">")]
+		[Usage("[Add|Remove] [\"Name\"] <Text>")]
 		[Summary("Adds the given text to a list that can be called through the `" + nameof(SayQuote) + "` command.")]
 		[PermissionRequirement(null, null)]
 		[DefaultEnabled(false)]
 		public sealed class ModifyQuotes : MySavingModuleBase
 		{
 			[Command(nameof(ActionType.Add)), Alias("a")]
-			public async Task CommandAdd()
+			public async Task CommandAdd(string name, [Remainder] string text)
 			{
+				if (Context.GuildSettings.Quotes.Count >= Constants.MAX_QUOTES)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(String.Format("You cannot have more than `{0}` quotes at a time.", Constants.MAX_QUOTES)));
+					return;
+				}
+				else if (Context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("A quote already has that name."));
+					return;
+				}
+				else if (String.IsNullOrWhiteSpace(text))
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Adding a quote requires text."));
+					return;
+				}
 
+				Context.GuildSettings.Quotes.Add(new Quote(name, text));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully added the following quote: `{0}`.", name));
 			}
 			[Command(nameof(ActionType.Remove)), Alias("r")]
-			public async Task CommandRemove()
+			public async Task CommandRemove(string name)
 			{
+				if (!Context.GuildSettings.Quotes.Any())
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("There needs to be at least one quote before you can remove any."));
+					return;
+				}
 
+				var removed = Context.GuildSettings.Quotes.RemoveAll(x => x.Name.CaseInsEquals(name));
+				if (removed < 1)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("No quote has that name."));
+					return;
+				}
+
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, String.Format("Successfully removed the following quote: `{0}`.", name));
 			}
 		}
 
