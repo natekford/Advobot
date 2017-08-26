@@ -451,7 +451,7 @@ namespace Advobot
 			[JsonIgnore]
 			public string Game
 			{
-				get => _Game ?? (_Game = $"type \"{0}help\" for help.", Prefix));
+				get => _Game ?? (_Game = $"type \"{Prefix}help\" for help.");
 				set
 				{
 					_Game = value;
@@ -518,7 +518,7 @@ namespace Advobot
 			}
 			private void SaveSettings(object sender, PropertyChangedEventArgs e)
 			{
-				ConsoleActions.WriteLine($"Successfully saved: {0}", e.PropertyName));
+				ConsoleActions.WriteLine($"Successfully saved: {e.PropertyName}");
 				SavingAndLoadingActions.OverWriteFile(GetActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
 			}
 			public void PostDeserialize(bool windows, bool console, bool firstInstance)
@@ -561,7 +561,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"**Command:** `{0}`\n**ID:** `{1}`", Name, Id);
+				return $"**Command:** `{Name}`\n**ID:** `{Id}`";
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -615,7 +615,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"`{0}` `{1}`", ValAsString.PadRight(3), Name);
+				return $"`{ValAsString.PadRight(3)}` `{Name}`";
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -658,7 +658,8 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"`{0}` `{1}`", Punishment == default(PunishmentType) ? "N" : Punishment.EnumName().Substring(0, 1), Phrase);
+				var punishmentChar = Punishment == default(PunishmentType) ? "N" : Punishment.EnumName().Substring(0, 1);
+				return $"`{punishmentChar}` `{Phrase}`";
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -702,17 +703,15 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"`{0}.` `{1}`{2}",
-					NumberOfRemoves.ToString("00"),
-					RoleId == 0 ? Punishment.EnumName() : RoleId.ToString(),
-					PunishmentTime == 0 ? "" : " `" + PunishmentTime + " minutes`");
+				var punishment = RoleId == 0 ? Punishment.EnumName() : RoleId.ToString();
+				var time = PunishmentTime == 0 ? "" : " `" + PunishmentTime + " minutes`";
+				return $"`{NumberOfRemoves.ToString("00")}.` `{punishment}`{time}";
 			}
 			public string ToString(SocketGuild guild)
 			{
-				return $"`{0}.` `{1}`{2}",
-					NumberOfRemoves.ToString("00"),
-					RoleId == 0 ? Punishment.EnumName() : guild.GetRole(RoleId).Name,
-					PunishmentTime == 0 ? "" : " `" + PunishmentTime + " minutes`");
+				var punishment = RoleId == 0 ? Punishment.EnumName() : guild.GetRole(RoleId).Name;
+				var time = PunishmentTime == 0 ? "" : " `" + PunishmentTime + " minutes`";
+				return $"`{NumberOfRemoves.ToString("00")}.` `{punishment}`{time}";
 			}
 		}
 
@@ -740,7 +739,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"`Group: {0}`\n{1}", Group, String.Join("\n", Roles.Select(x => x.ToString())));
+				return $"`Group: {Group}`\n{String.Join("\n", Roles.Select(x => x.ToString()))}";
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -773,7 +772,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"**Role:** `{0}`", Role.FormatRole());
+				return $"**Role:** `{Role.FormatRole()}`";
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -805,11 +804,11 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"**User:** `{0}`\n**Permissions:** `{1}`", UserId, Permissions);
+				return $"**User:** `{UserId}`\n**Permissions:** `{Permissions}`";
 			}
 			public string ToString(SocketGuild guild)
 			{
-				return $"**User:** `{0}`\n**Permissions:** `{1}`", guild.GetUser(UserId).FormatUser(), Permissions);
+				return $"**User:** `{guild.GetUser(UserId).FormatUser()}`\n**Permissions:** `{Permissions}`";
 			}
 		}
 
@@ -859,12 +858,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"**Channel:** `{0}`\n**Content:** `{1}`\n**Title:** `{2}`\n**Description:** `{3}`\n**Thumbnail:** `{4}`",
-					Channel.FormatChannel(),
-					Content,
-					Title,
-					Description,
-					ThumbURL);
+				return $"**Channel:** `{Channel.FormatChannel()}`\n**Content:** `{Content}`\n**Title:** `{Title}`\n**Description:** `{Description}`\n**Thumbnail:** `{ThumbURL}`";
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -892,7 +886,7 @@ namespace Advobot
 			{
 				LastBumped = DateTime.UtcNow;
 				Code = code;
-				Url = $"https://www.discord.gg/{0}", Code);
+				Url = "https://www.discord.gg/" + Code;
 				Keywords = keywords ?? new string[0];
 			}
 			public ListedInvite(SocketGuild guild, string code, string[] keywords) : this(code, keywords)
@@ -904,7 +898,7 @@ namespace Advobot
 			public void UpdateCode(string code)
 			{
 				Code = code;
-				Url = $"https://www.discord.gg/{0}", Code);
+				Url = "https://www.discord.gg/" + Code;
 			}
 			public void UpdateKeywords(string[] keywords)
 			{
@@ -927,11 +921,11 @@ namespace Advobot
 					return null;
 				}
 
-				var codeStr = $"**Code:** `{0}`\n", Code);
+				var codeStr = $"**Code:** `{Code}`\n";
 				var keywordStr = "";
 				if (Keywords.Any())
 				{
-					keywordStr = $"**Keywords:**\n`{0}`", String.Join("`, `", Keywords));
+					keywordStr = $"**Keywords:**\n`{String.Join("`, `", Keywords)}`";
 				}
 				return codeStr + keywordStr;
 			}
@@ -956,7 +950,7 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"`{0}`", Name);
+				return $"`{Name}`";
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -997,11 +991,10 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"**Punishment:** `{0}`\n**Spam Instances:** `{1}`\n**Votes For Punishment:** `{2}`\n**Spam Amt/Time Interval:** `{3}`",
-					PunishmentType.EnumName(),
-					RequiredSpamInstances,
-					VotesForKick,
-					RequiredSpamPerMessageOrTimeInterval);
+				return  $"**Punishment:** `{PunishmentType.EnumName()}`\n" +
+						$"**Spam Instances:** `{RequiredSpamInstances}`\n" +
+						$"**Votes For Punishment:** `{VotesForKick}`\n" +
+						$"**Spam Amt/Time Interval:** `{RequiredSpamPerMessageOrTimeInterval}`";
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -1064,11 +1057,10 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"**Enabled:** `{0}`\n**Users:** `{1}`\n**Time Interval:** `{2}`\n**Punishment:** `{3}`",
-					Enabled,
-					UserCount,
-					Interval,
-					PunishmentType.EnumName());
+				return  $"**Enabled:** `{Enabled}`\n" +
+						$"**Users:** `{UserCount}`\n" +
+						$"**Time Interval:** `{Interval}`\n" +
+						$"**Punishment:** `{PunishmentType.EnumName()}`";
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -1109,7 +1101,9 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"**Base messages:** `{0}`\n**Time interval:** `{1}`\n**Immune Role Ids:** `{2}`", BaseMessages, Interval, String.Join("`, `", ImmuneRoleIds));
+				return  $"**Base messages:** `{BaseMessages}`\n" +
+						$"**Time interval:** `{Interval}`\n" +
+						$"**Immune Role Ids:** `{String.Join("`, `", ImmuneRoleIds)}`";
 			}
 			public string ToString(SocketGuild guild)
 			{
@@ -1132,13 +1126,13 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				return $"**User Id:** `{0}`\n**Role Id:&& `{1}`", UserId, RoleId);
+				return $"**User Id:** `{UserId}`\n**Role Id:&& `{RoleId}`";
 			}
 			public string ToString(SocketGuild guild)
 			{
 				var user = guild.GetUser(UserId).FormatUser() ?? UserId.ToString();
 				var role = guild.GetRole(RoleId).FormatRole() ?? RoleId.ToString();
-				return $"**User:** `{0}`\n**Role:&& `{1}`", user, role);
+				return $"**User:** `{user}`\n**Role:&& `{role}`";
 			}
 		}
 	}
@@ -1240,7 +1234,7 @@ namespace Advobot
 						{
 							guildSettings = (IGuildSettings)JsonConvert.DeserializeObject(reader.ReadToEnd(), guildSettingsType);
 						}
-						ConsoleActions.WriteLine($"The guild information for {0} has successfully been loaded.", guild.FormatGuild()));
+						ConsoleActions.WriteLine($"The guild information for {guild.FormatGuild()} has successfully been loaded.");
 					}
 					catch (Exception e)
 					{
@@ -1249,7 +1243,7 @@ namespace Advobot
 				}
 				else
 				{
-					ConsoleActions.WriteLine($"The guild information file for {0} could not be found; using default.", guild.FormatGuild()));
+					ConsoleActions.WriteLine($"The guild information file for {guild.FormatGuild()} could not be found; using default.");
 				}
 				guildSettings = guildSettings ?? (IGuildSettings)Activator.CreateInstance(guildSettingsType);
 
@@ -1318,10 +1312,10 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				var aliasStr = $"**Aliases:** {0}", String.Join(", ", Aliases));
-				var usageStr = $"**Usage:** {0}", Usage);
-				var permStr = $"\n**Base Permission(s):**\n{0}", BasePerm);
-				var descStr = $"\n**Description:**\n{0}", Text);
+				var aliasStr = $"**Aliases:** {String.Join(", ", Aliases)}";
+				var usageStr = $"**Usage:** {Usage}";
+				var permStr = $"\n**Base Permission(s):**\n{BasePerm}";
+				var descStr = $"\n**Description:**\n{Text}";
 				return String.Join("\n", new[] { aliasStr, usageStr, permStr, descStr });
 			}
 		}

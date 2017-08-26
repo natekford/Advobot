@@ -178,7 +178,7 @@ namespace Advobot
 			{
 				var perms = GetFilteredChannelOverwritePermissions(channel.PermissionOverwrites.FirstOrDefault(x => overwriteObj.Id == x.TargetId), channel);
 				var maxLen = perms.Keys.Max(x => x.Length);
-				return perms.Select(x => $"{0} {1}", x.Key.PadRight(maxLen), x.Value)).ToArray();
+				return perms.Select(x => $"{x.Key.PadRight(maxLen)} {x.Value}").ToArray();
 			}
 			/// <summary>
 			/// Returns a bool indicating whether any invalid perms were passed in. Out values of valid perms and invalid perms.
@@ -373,7 +373,7 @@ namespace Advobot
 			/// <returns></returns>
 			public static DirectoryInfo GetBaseBotDirectory()
 			{
-				var path = Path.Combine(Properties.Settings.Default.Path, $"{0}_{1}", Constants.SERVER_FOLDER, Properties.Settings.Default.BotID));
+				var path = Path.Combine(Properties.Settings.Default.Path, $"{Constants.SERVER_FOLDER}_{Properties.Settings.Default.BotID}");
 				return Directory.CreateDirectory(path);
 			}
 			/// <summary>
@@ -432,30 +432,20 @@ namespace Advobot
 			public static string GetUptime(IBotSettings botSettings)
 			{
 				var span = DateTime.UtcNow.Subtract(botSettings.StartupTime);
-				return $"{0}:{1}:{2}:{3}", span.Days, span.Hours.ToString("00"), span.Minutes.ToString("00"), span.Seconds.ToString("00"));
+				return $"{span.Days}:{span.Hours:00}:{span.Minutes:00}:{span.Seconds:00}";
 			}
 			/// <summary>
 			/// On windows, returns the task manager value. On other systems, returns the WorkingSet64 value.
 			/// </summary>
 			/// <param name="windows"></param>
 			/// <returns></returns>
-			public static double GetMemory(bool windows)
+			public static double GetMemory()
 			{
 				const double _MB = 1024.0 * 1024.0;
 
-				if (windows)
+				using (var process = System.Diagnostics.Process.GetCurrentProcess())
 				{
-					using (var PC = new System.Diagnostics.PerformanceCounter("Process", "Working Set - Private", System.Diagnostics.Process.GetCurrentProcess().ProcessName))
-					{
-						return (int)PC.NextValue() / _MB;
-					}
-				}
-				else
-				{
-					using (var process = System.Diagnostics.Process.GetCurrentProcess())
-					{
-						return (int)process.WorkingSet64 / _MB;
-					}
+					return Convert.ToInt32(process.WorkingSet64) / _MB;
 				}
 			}
 			/// <summary>

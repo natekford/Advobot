@@ -53,7 +53,7 @@ namespace Advobot
 					}
 				}
 
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully created `{0}`.", channel.FormatChannel()));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully created `{channel.FormatChannel()}`.");
 			}
 		}
 
@@ -83,7 +83,7 @@ namespace Advobot
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeManaged)] IGuildChannel channel)
 			{
 				await ChannelActions.DeleteChannel(channel, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted `{0}`.", channel.FormatChannel()));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted `{channel.FormatChannel()}`.");
 			}
 		}
 
@@ -98,7 +98,7 @@ namespace Advobot
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeReordered)] IGuildChannel channel, uint position)
 			{
 				await ChannelActions.ModifyChannelPosition(channel, (int)position, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.SendChannelMessage(Context, $"Successfully moved `{0}` to position `{1}`.", channel.FormatChannel(), position));
+				await MessageActions.SendChannelMessage(Context, $"Successfully moved `{channel.FormatChannel()}` to position `{position}`.");
 			}
 		}
 
@@ -135,7 +135,7 @@ namespace Advobot
 					}
 				}
 
-				var desc = String.Join("\n", channels.OrderBy(x => x.Position).Select(x => $"`{0}.` `{1}`", x.Position.ToString("00"), x.Name)));
+				var desc = String.Join("\n", channels.OrderBy(x => x.Position).Select(x => $"`{x.Position.ToString("00")}.` `{x.Name}`"));
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(title, desc));
 			}
 		}
@@ -155,7 +155,7 @@ namespace Advobot
 				[Command]
 				public async Task Command()
 				{
-					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Channel Permission Types", $"`{0}`", String.Join("`, `", Constants.CHANNEL_PERMISSIONS.Select(x => x.Name)))));
+					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Channel Permission Types", $"`{String.Join("`, `", Constants.CHANNEL_PERMISSIONS.Select(x => x.Name))}`"));
 				}
 				[Command]
 				public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel)
@@ -164,8 +164,8 @@ namespace Advobot
 					var userOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.User).Select(x => ((Context.Guild as SocketGuild).GetUser(x.TargetId)).Username);
 
 					var embed = EmbedActions.MakeNewEmbed(channel.FormatChannel());
-					EmbedActions.AddField(embed, "Role", $"`{0}`", roleOverwrites.Any() ? String.Join("`, `", roleOverwrites) : "None"));
-					EmbedActions.AddField(embed, "User", $"`{0}`", userOverwrites.Any() ? String.Join("`, `", userOverwrites) : "None"));
+					EmbedActions.AddField(embed, "Role", $"`{(roleOverwrites.Any() ? String.Join("`, `", roleOverwrites) : "None")}`");
+					EmbedActions.AddField(embed, "User", $"`{(userOverwrites.Any() ? String.Join("`, `", userOverwrites) : "None")}`");
 					await MessageActions.SendEmbedMessage(Context.Channel, embed);
 				}
 				[Command]
@@ -173,11 +173,11 @@ namespace Advobot
 				{
 					if (!channel.PermissionOverwrites.Any())
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Unable to show permissions for `{0}` on `{1}`.", role.FormatRole(), channel.FormatChannel())));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Unable to show permissions for `{role.FormatRole()}` on `{channel.FormatChannel()}`."));
 						return;
 					}
 
-					var desc = $"Role:** `{1}`\n```{2}```", role.FormatRole(), GetActions.GetFormattedPermsFromOverwrite(channel, role));
+					var desc = $"Role:** `{role.FormatRole()}`\n```{GetActions.GetFormattedPermsFromOverwrite(channel, role)}```";
 					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Overwrite On " + channel.FormatChannel(), desc));
 				}
 				[Command]
@@ -185,11 +185,11 @@ namespace Advobot
 				{
 					if (!channel.PermissionOverwrites.Any())
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Unable to show permissions for `{0}` on `{1}`.", user.FormatUser(), channel.FormatChannel())));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Unable to show permissions for `{user.FormatUser()}` on `{channel.FormatChannel()}`."));
 						return;
 					}
 
-					var desc = $"User:** `{1}`\n```{2}```", user.FormatUser(), GetActions.GetFormattedPermsFromOverwrite(channel, user));
+					var desc = $"User:** `{user.FormatUser()}`\n```{GetActions.GetFormattedPermsFromOverwrite(channel, user)}```";
 					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Overwrite On " + channel.FormatChannel(), desc));
 				}
 			}
@@ -265,11 +265,7 @@ namespace Advobot
 				}
 
 				var givenPerms = ChannelActions.ModifyOverwritePermissions(channel, discordObject, actionType, changeValue, context.User as IGuildUser);
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully {0} `{1}` for `{2}` on `{3}`.",
-					actionStr,
-					String.Join("`, `", givenPerms),
-					FormattingActions.FormatObject(discordObject),
-					channel.FormatChannel()));
+				await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully {actionStr} `{String.Join("`, `", givenPerms)}` for `{FormattingActions.FormatObject(discordObject)}` on `{channel.FormatChannel()}`.");
 			}
 		}
 
@@ -343,17 +339,14 @@ namespace Advobot
 					var overwrite = ChannelActions.GetOverwrite(inputChannel, discordObject);
 					if (!overwrite.HasValue)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"A permission overwrite for {0} does not exist to copy over.", target)));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"A permission overwrite for {target} does not exist to copy over."));
 						return;
 					}
 
 					await ChannelActions.ModifyOverwrite(outputChannel, discordObject, overwrite?.AllowValue ?? 0, overwrite?.DenyValue ?? 0, FormattingActions.FormatUserReason(Context.User));
 				}
 
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully copied `{0}` from `{1}` to `{2}`",
-					target,
-					inputChannel.FormatChannel(),
-					outputChannel.FormatChannel()));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully copied `{target}` from `{inputChannel.FormatChannel()}` to `{outputChannel.FormatChannel()}`");
 			}
 		}
 
@@ -368,7 +361,7 @@ namespace Advobot
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel)
 			{
 				await ChannelActions.ClearOverwrites(Context.Guild, channel, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed all channel permission overwrites from `{0}`.", channel.FormatChannel()));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed all channel permission overwrites from `{channel.FormatChannel()}`.");
 			}
 		}
 
@@ -391,12 +384,12 @@ namespace Advobot
 				if (channel.IsNsfw)
 				{
 					name = name.Substring(prefixLen);
-					response = $"Successfully removed the NSFW prefix from `{0}`.", channel.FormatChannel());
+					response = $"Successfully removed the NSFW prefix from `{channel.FormatChannel()}`.";
 				}
 				else
 				{
 					name = (nsfwPrefix + name).Substring(0, Math.Min(name.Length + prefixLen, Constants.MAX_CHANNEL_NAME_LENGTH));
-					response = $"Successfully added the NSFW prefix to `{0}`.", channel.FormatChannel());
+					response = $"Successfully added the NSFW prefix to `{channel.FormatChannel()}`.";
 				}
 
 				await channel.ModifyAsync(x => x.Name = name);
@@ -421,7 +414,7 @@ namespace Advobot
 				}
 
 				await ChannelActions.ModifyChannelName(channel, name, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the name of `{0}` to `{1}`.", channel.FormatChannel(), name));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the name of `{channel.FormatChannel()}` to `{name}`.");
 			}
 		}
 
@@ -470,7 +463,7 @@ namespace Advobot
 				}
 
 				await ChannelActions.ModifyChannelName(channel, name, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the name of `{0}` to `{1}`.", channel.FormatChannel(), name));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the name of `{channel.FormatChannel()}` to `{name}`.");
 			}
 		}
 
@@ -485,7 +478,7 @@ namespace Advobot
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeManaged)] ITextChannel channel, [Optional, Remainder, VerifyStringLength(Target.Topic)] string topic)
 			{
 				await ChannelActions.ModifyChannelTopic(channel, topic, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the topic in `{0}` from `{1}` to `{2}`.", channel.FormatChannel(), channel.Topic ?? "Nothing", topic ?? "Nothing"));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the topic in `{channel.FormatChannel()}` from `{(channel.Topic ?? "Nothing")}` to `{(topic ?? "Nothing")}`.");
 			}
 		}
 
@@ -501,11 +494,11 @@ namespace Advobot
 			{
 				if (limit > Constants.MAX_VOICE_CHANNEL_USER_LIMIT)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"The highest a voice channel user limit can be is `{0}`.", Constants.MAX_VOICE_CHANNEL_USER_LIMIT)));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"The highest a voice channel user limit can be is `{Constants.MAX_VOICE_CHANNEL_USER_LIMIT}`."));
 				}
 
 				await ChannelActions.ModifyChannelLimit(channel, (int)limit, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the user limit for `{0}` to `{1}`.", channel.FormatChannel(), limit));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the user limit for `{channel.FormatChannel()}` to `{limit}`.");
 			}
 		}
 
@@ -521,23 +514,23 @@ namespace Advobot
 			{
 				if (bitrate < Constants.MIN_BITRATE)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"The bitrate must be above or equal to `{0}`.", Constants.MIN_BITRATE)));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"The bitrate must be above or equal to `{Constants.MIN_BITRATE}`."));
 					return;
 				}
 				else if (!Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && bitrate > Constants.MAX_BITRATE)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"The bitrate must be below or equal to `{0}`.", Constants.MAX_BITRATE)));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"The bitrate must be below or equal to `{Constants.MAX_BITRATE}`."));
 					return;
 				}
 				else if (bitrate > Constants.VIP_BITRATE)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"The bitrate must be below or equal to `{0}`.", Constants.VIP_BITRATE)));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"The bitrate must be below or equal to `{Constants.VIP_BITRATE}`."));
 					return;
 				}
 
 				//Have to multiply by 1000 because in bps and for some reason treats, say, 50 as 50bps and not 50kbps
 				await ChannelActions.ModifyChannelBitrate(channel, (int)bitrate * 1000, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the user limit for `{0}` to `{1}kbps`.", channel.FormatChannel(), bitrate));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the user limit for `{channel.FormatChannel()}` to `{bitrate}kbps`.");
 			}
 		}
 	}

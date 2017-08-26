@@ -382,11 +382,11 @@ namespace Advobot
 						userIDs = (await guild.GetUsersAsync()).Select(x => x.Id);
 					}
 
-					((TextBox)_Latency.Child).Text = $"Latency: {0}ms", ClientActions.GetLatency(_Client));
-					((TextBox)_Memory.Child).Text = $"Memory: {0}MB", GetActions.GetMemory(_BotSettings.Windows).ToString("0.00"));
-					((TextBox)_Threads.Child).Text = $"Threads: {0}", Process.GetCurrentProcess().Threads.Count);
-					((TextBox)_Guilds.Child).Text = $"Guilds: {0}", guilds.Count);
-					((TextBox)_Users.Child).Text = $"Members: {0}", userIDs.Distinct().Count());
+					((TextBox)_Latency.Child).Text = $"Latency: {ClientActions.GetLatency(_Client)}ms";
+					((TextBox)_Memory.Child).Text = $"Memory: {GetActions.GetMemory().ToString("0.00")}MB";
+					((TextBox)_Threads.Child).Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
+					((TextBox)_Guilds.Child).Text = $"Guilds: {guilds.Count}";
+					((TextBox)_Users.Child).Text = $"Members: {userIDs.Distinct().Count()}";
 					_InfoOutput.Document = UIModification.MakeInfoMenu(GetActions.GetUptime(_BotSettings), _Logging.FormatLoggedCommands(), _Logging.FormatLoggedActions());
 				}
 

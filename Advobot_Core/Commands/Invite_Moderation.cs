@@ -52,12 +52,12 @@ namespace Advobot
 			{
 				if (!validTimes.Contains(time))
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Invalid time supplied, must be one of the following: `{0}`.", String.Join("`, `", validTimes))));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Invalid time supplied, must be one of the following: `{String.Join("`, `", validTimes)}`."));
 					return;
 				}
 				else if (!validUses.Contains(uses))
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Invalid uses supplied, must be one of the following: `{0}`", String.Join("`, `", validUses))));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Invalid uses supplied, must be one of the following: `{String.Join("`, `", validUses)}`"));
 					return;
 				}
 
@@ -65,12 +65,10 @@ namespace Advobot
 				int? nullableUses = uses == 0 ? null : uses as int?;
 				var inv = await InviteActions.CreateInvite(channel, nullableTime, nullableUses, tempMem, false, FormattingActions.FormatUserReason(Context.User));
 
-				var timeOutputStr = nullableTime.HasValue ? $"It will last for this amount of time: `{0}`.", nullableTime) : "It will last until manually revoked.";
-				var usesOutputStr = nullableUses.HasValue ? $"It will last for this amount of uses: `{0}`.", nullableUses) : "It has no usage limit.";
+				var timeOutputStr = nullableTime.HasValue ? $"It will last for this amount of time: `{nullableTime}`." : "It will last until manually revoked.";
+				var usesOutputStr = nullableUses.HasValue ? $"It will last for this amount of uses: `{nullableUses}`." : "It has no usage limit.";
 				var tempOutputStr = tempMem ? "Users will be kicked when they go offline unless they get a role." : "Users will not be kicked when they go offline and do not have a role.";
-				await MessageActions.SendChannelMessage(Context, $"Here is your invite for `{0}`: {1}",
-					channel.FormatChannel(),
-					FormattingActions.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usesOutputStr, tempOutputStr)));
+				await MessageActions.SendChannelMessage(Context, $"Here is your invite for `{channel.FormatChannel()}`: {FormattingActions.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usesOutputStr, tempOutputStr)}");
 			}
 		}
 
@@ -85,7 +83,7 @@ namespace Advobot
 			public async Task Command(IInvite invite)
 			{
 				await InviteActions.DeleteInvite(invite, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted the invite `{0}`.", invite.Code));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted the invite `{invite.Code}`.");
 			}
 		}
 
@@ -158,7 +156,7 @@ namespace Advobot
 				{
 					await InviteActions.DeleteInvite(invite, FormattingActions.FormatUserReason(Context.User));
 				}
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted `{0}` instant invites.", invites.Count()));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted `{invites.Count()}` instant invites.");
 			}
 		}
 	}

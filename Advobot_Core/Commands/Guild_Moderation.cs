@@ -42,7 +42,7 @@ namespace Advobot
 					await guild.LeaveAsync();
 					if (Context.Guild.Id != guildId)
 					{
-						await MessageActions.SendChannelMessage(Context, $"Successfully left the server `{0}` with an ID `{1}`.", guild.Name, guild.Id));
+						await MessageActions.SendChannelMessage(Context, $"Successfully left the server `{guild.Name}` with an ID `{guild.Id}`.");
 					}
 				}
 				else if (Context.Guild.Id == guildId)
@@ -67,7 +67,7 @@ namespace Advobot
 			public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
 			{
 				await GuildActions.ModifyGuildName(Context.Guild, name, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the guild name to `{0}`.", name));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the guild name to `{name}`.");
 			}
 		}
 
@@ -106,7 +106,7 @@ namespace Advobot
 			[Command(nameof(ActionType.Current)), Priority(1)]
 			public async Task CommandCurrent()
 			{
-				await MessageActions.SendChannelMessage(Context, $"The guild's current server region is `{0}`.", Context.Guild.VoiceRegionId));
+				await MessageActions.SendChannelMessage(Context, $"The guild's current server region is `{Context.Guild.VoiceRegionId}`.");
 			}
 			[Command, Priority(0)]
 			public async Task Command(string region)
@@ -119,7 +119,7 @@ namespace Advobot
 
 				var beforeRegion = Context.Guild.VoiceRegionId;
 				await GuildActions.ModifyGuildRegion(Context.Guild, region, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the server region of the guild from `{0}` to `{1}`.", beforeRegion, region));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the server region of the guild from `{beforeRegion}` to `{region}`.");
 			}
 			[Command]
 			public async Task Command()
@@ -143,12 +143,12 @@ namespace Advobot
 			{
 				if (!_AFKTimes.Contains(time))
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Invalid time input, must be one of the following: `{0}`.", String.Join("`, `", _AFKTimes))));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Invalid time input, must be one of the following: `{String.Join("`, `", _AFKTimes)}`."));
 					return;
 				}
 
 				await GuildActions.ModifyGuildAFKTime(Context.Guild, (int)time, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild's AFK timeout to `{0}`.", time));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild's AFK timeout to `{time}`.");
 			}
 		}
 
@@ -163,7 +163,7 @@ namespace Advobot
 			public async Task Command(IVoiceChannel channel)
 			{
 				await GuildActions.ModifyGuildAFKChannel(Context.Guild, channel, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild's AFK channel to `{0}`.", channel.FormatChannel()));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild's AFK channel to `{channel.FormatChannel()}`.");
 			}
 		}
 
@@ -178,7 +178,7 @@ namespace Advobot
 			public async Task Command(DefaultMessageNotifications msgNotifs)
 			{
 				await GuildActions.ModifyGuildDefaultMsgNotifications(Context.Guild, msgNotifs, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the default message notification setting to `{0}`.", msgNotifs.EnumName()));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the default message notification setting to `{msgNotifs.EnumName()}`.");
 			}
 		}
 
@@ -193,7 +193,7 @@ namespace Advobot
 			public async Task Command(VerificationLevel verif)
 			{
 				await GuildActions.ModifyGuildVerificationLevel(Context.Guild, verif, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild verification level as `{0}`.", verif.EnumName()));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild verification level as `{verif.EnumName()}`.");
 			}
 		}
 
@@ -269,7 +269,7 @@ namespace Advobot
 				if (Context.Client.CurrentUser.Id == Context.Guild.OwnerId)
 				{
 					await Context.Guild.ModifyAsync(x => x.Owner = new Optional<IUser>(Context.User));
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"{0} is now the owner.", Context.User.Mention));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"{Context.User.Mention} is now the owner.");
 					return;
 				}
 

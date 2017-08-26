@@ -196,7 +196,7 @@ namespace Advobot
 				var thirdField = String.Join("\n", new[]
 				{
 					$"**Latency:** `{ClientActions.GetLatency(client)}ms`",
-					$"**Memory Usage:** `{GetActions.GetMemory(globalInfo.Windows).ToString("0.00")}MB`",
+					$"**Memory Usage:** `{GetActions.GetMemory().ToString("0.00")}MB`",
 					$"**Thread Count:** `{System.Diagnostics.Process.GetCurrentProcess().Threads.Count}`",
 				});
 				EmbedActions.AddField(embed, "Technical", thirdField);
@@ -208,24 +208,13 @@ namespace Advobot
 			{
 				return list.Select(x => FormatNonDM(x)).ToList();
 			}
-			public static List<string> FormatDMs(IEnumerable<IMessage> list)
-			{
-				return list.Select(x => FormatDM(x)).ToList();
-			}
 			public static string FormatNonDM(IMessage message)
 			{
-				return $"`[{0}]` `{1}` **IN** `{2}`\n```\n{3}```",
-					message.CreatedAt.ToString("HH:mm:ss"),
-					message.Author.FormatUser(),
-					message.Channel.FormatChannel(),
-					RemoveMarkdownChars(FormatMessageContent(message), true));
-			}
-			public static string FormatDM(IMessage message)
-			{
-				return $"`[{0}]` `{1}`\n```\n{2}```",
-					FormatDateTime(message.CreatedAt),
-					message.Author.FormatUser(),
-					RemoveMarkdownChars(FormatMessageContent(message), true));
+				var time = message.CreatedAt.ToString("HH:mm:ss");
+				var author = message.Author.FormatUser();
+				var channel = message.Channel.FormatChannel();
+				var text = RemoveMarkdownChars(FormatMessageContent(message), true);
+				return $"`[{time}]` `{author}` **IN** `{channel}`\n```\n{text}```";
 			}
 			public static string FormatMessageContent(IMessage message)
 			{
@@ -299,11 +288,11 @@ namespace Advobot
 				{
 					case StreamType.NotStreaming:
 					{
-						return $"**Current Game:** `{0}`", EscapeMarkdown(game?.Name, true));
+						return $"**Current Game:** `{EscapeMarkdown(game?.Name, true)}`";
 					}
 					case StreamType.Twitch:
 					{
-						return $"**Current Stream:** [{0}]({1})", EscapeMarkdown(game?.Name, true), game?.StreamUrl);
+						return $"**Current Stream:** [{EscapeMarkdown(game?.Name, true)}]({game?.StreamUrl})";
 					}
 					default:
 					{
@@ -354,19 +343,19 @@ namespace Advobot
 				{
 					case FailureReason.TooFew:
 					{
-						return $"Unable to find the {0}.", objType);
+						return $"Unable to find the {objType}.";
 					}
 					case FailureReason.UserInability:
 					{
-						return $"You are unable to make the given changes to the {0}: `{1}`.", objType, FormatObject(obj));
+						return $"You are unable to make the given changes to the {objType}: `{FormatObject(obj)}`.";
 					}
 					case FailureReason.BotInability:
 					{
-						return $"I am unable to make the given changes to the {0}: `{1}`.", objType, FormatObject(obj));
+						return $"I am unable to make the given changes to the {objType}: `{FormatObject(obj)}`.";
 					}
 					case FailureReason.TooMany:
 					{
-						return $"There are too many {0}s with the same name.", objType);
+						return $"There are too many {objType}s with the same name.";
 					}
 					case FailureReason.ChannelType:
 					{
@@ -382,7 +371,7 @@ namespace Advobot
 					}
 					case FailureReason.InvalidEnum:
 					{
-						return $"The option `{0}` is not accepted in this instance.", (obj as Enum).EnumName());
+						return $"The option `{(obj as Enum).EnumName()}` is not accepted in this instance.";
 					}
 					default:
 					{
@@ -441,18 +430,18 @@ namespace Advobot
 			{
 				var str1 = obj1.ToString();
 				var str2 = obj2.ToString();
-				return $"{0}{1}", str1.PadRight(len - str2.Length), str2);
+				return $"{str1.PadRight(len - str2.Length)}{str2}";
 			}
 			public static string FormatStringsWithLength(object obj1, object obj2, int right, int left)
 			{
 				var str1 = obj1.ToString().PadRight(right);
 				var str2 = obj2.ToString().PadLeft(left);
-				return $"{0}{1}", str1, str2);
+				return $"{str1}{str2}";
 			}
 
 			public static string FormatAttribute(PermissionRequirementAttribute attr)
 			{
-				return attr != null ? $"[{0}]", JoinNonNullStrings(" | ", attr.AllText, attr.AnyText)) : "N/A";
+				return attr != null ? $"[{JoinNonNullStrings(" | ", attr.AllText, attr.AnyText)}]" : "N/A";
 			}
 			public static string FormatAttribute(OtherRequirementAttribute attr)
 			{
@@ -476,7 +465,7 @@ namespace Advobot
 					{
 						text.Add("Bot Owner");
 					}
-					basePerm = $"[{0}]", String.Join(" | ", text));
+					basePerm = $"[{String.Join(" | ", text)}]";
 				}
 				return basePerm;
 			}
@@ -492,7 +481,7 @@ namespace Advobot
 						var formatted = await FormatBotSettingInfo(client, botSettings, property);
 						if (!String.IsNullOrWhiteSpace(formatted))
 						{
-							str += $"**{0}**:\n{1}\n\n", property.Name, formatted);
+							str += $"**{property.Name}**:\n{formatted}\n\n";
 						}
 					}
 				}
@@ -510,13 +499,13 @@ namespace Advobot
 					var user = await UserActions.GetGlobalUser(client, (ulong)value);
 					if (user != null)
 					{
-						return $"`{0}`", user.FormatUser());
+						return $"`{user.FormatUser()}`";
 					}
 
 					var guild = await GuildActions.GetGuild(client, (ulong)value);
 					if (guild != null)
 					{
-						return $"`{0}`", guild.FormatGuild());
+						return $"`{guild.FormatGuild()}`";
 					}
 
 					return ((ulong)value).ToString();
@@ -524,7 +513,7 @@ namespace Advobot
 				//Because strings are char[] this pointless else if has to be here so it doesn't go into the else if directly below
 				else if (value is string)
 				{
-					return String.IsNullOrWhiteSpace(value.ToString()) ? "`Nothing`" : $"`{0}`", value.ToString());
+					return String.IsNullOrWhiteSpace(value.ToString()) ? "`Nothing`" : $"`{value.ToString()}`";
 				}
 				else if (value is System.Collections.IEnumerable)
 				{
@@ -537,7 +526,7 @@ namespace Advobot
 				}
 				else
 				{
-					return $"`{0}`", value.ToString());
+					return $"`{value.ToString()}`";
 				}
 			}
 
@@ -552,7 +541,7 @@ namespace Advobot
 						var formatted = FormatGuildSettingInfo(guild as SocketGuild, guildSettings, property);
 						if (!String.IsNullOrWhiteSpace(formatted))
 						{
-							str += $"**{0}**:\n{1}\n\n", property.Name, formatted);
+							str += $"**{property.Name}**:\n{formatted}\n\n";
 						}
 					}
 				}
@@ -626,14 +615,14 @@ namespace Advobot
 
 			public static string FormatUserReason(IUser user, string reason = null)
 			{
-				var reasonStr = reason == null ? "" : $"Reason: {0}.", reason);
-				return $"Action by {0}.{1}", user.FormatUser(), reasonStr);
+				var reasonStr = reason == null ? "" : $" Reason: {reason}.";
+				return $"Action by {user.FormatUser()}.{reasonStr}";
 			}
 			public static string FormatBotReason(string reason)
 			{
 				if (!String.IsNullOrWhiteSpace(reason))
 				{
-					reason = $"Automated action. User triggered {0}.", reason.TrimEnd('.'));
+					reason = $"Automated action. User triggered {reason.TrimEnd('.')}.";
 					reason = reason.Substring(0, Math.Min(reason.Length, Constants.MAX_LENGTH_FOR_REASON));
 				}
 				else

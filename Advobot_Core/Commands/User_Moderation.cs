@@ -29,15 +29,15 @@ namespace Advobot
 				if (user.RoleIds.Contains(muteRole.Id))
 				{
 					await PunishmentActions.ManualRoleUnmuteUser(user, muteRole, FormattingActions.FormatUserReason(Context.User, reason), Context.Timers);
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully unmuted `{0}`.", user.FormatUser()));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully unmuted `{user.FormatUser()}`.");
 					return;
 				}
 
 				await PunishmentActions.ManualRoleMuteUser(user, muteRole, FormattingActions.FormatUserReason(Context.User, reason), time, Context.Timers);
-				var response = $"Successfully muted `{0}`.", user.FormatUser());
+				var response = $"Successfully muted `{user.FormatUser()}`.";
 				if (time != 0)
 				{
-					response += $"\nThe mute will last for `{0}` minute{1}.", time, GetActions.GetPlural(time));
+					response += $"\nThe mute will last for `{time}` minute{GetActions.GetPlural(time)}.";
 				}
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
 			}
@@ -56,15 +56,15 @@ namespace Advobot
 				if (user.IsMuted)
 				{
 					await PunishmentActions.ManualVoiceUnmuteUser(user, FormattingActions.FormatUserReason(Context.User), Context.Timers);
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully unvoicemuted `{0}`.", user.FormatUser()));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully unvoicemuted `{user.FormatUser()}`.");
 					return;
 				}
 
 				await PunishmentActions.ManualVoiceMuteUser(user, FormattingActions.FormatUserReason(Context.User), time, Context.Timers);
-				var response = $"Successfully voicemuted `{0}`.", user.FormatUser());
+				var response = $"Successfully voicemuted `{user.FormatUser()}`.";
 				if (time != 0)
 				{
-					response += $"\nThe voicemute will last for `{0}` minute{1}.", time, GetActions.GetPlural(time));
+					response += $"\nThe voicemute will last for `{time}` minute{GetActions.GetPlural(time)}.";
 				}
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
 			}
@@ -83,15 +83,15 @@ namespace Advobot
 				if (user.IsDeafened)
 				{
 					await PunishmentActions.ManualUndeafenUser(user, FormattingActions.FormatUserReason(Context.User), Context.Timers);
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully undeafened `{0}`.", user.FormatUser()));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully undeafened `{user.FormatUser()}`.");
 					return;
 				}
 
 				await PunishmentActions.ManualDeafenUser(user, FormattingActions.FormatUserReason(Context.User), time, Context.Timers);
-				var response = $"Successfully deafened `{0}`.", user.FormatUser());
+				var response = $"Successfully deafened `{user.FormatUser()}`.";
 				if (time != 0)
 				{
-					response += $"\nThe deafen will last for `{0}` minute{1}.", time, GetActions.GetPlural(time));
+					response += $"\nThe deafen will last for `{time}` minute{GetActions.GetPlural(time)}.";
 				}
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
 			}
@@ -119,7 +119,7 @@ namespace Advobot
 				}
 
 				await UserActions.MoveUser(user, channel, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully moved `{0}` to `{1}`.", user.FormatUser(), channel.FormatChannel()));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully moved `{user.FormatUser()}` to `{channel.FormatChannel()}`.");
 			}
 		}
 
@@ -158,13 +158,13 @@ namespace Advobot
 			{
 				if (!_Days.Contains(days))
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Invalid days supplied, must be one of the following: `{0}`", String.Join("`, `", _Days))));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Invalid days supplied, must be one of the following: `{String.Join("`, `", _Days)}`"));
 					return;
 				}
 
 				var simulate = !ACTUAL_PRUNE_STRING.Equals(pruneStr);
 				var amt = await GuildActions.PruneUsers(Context.Guild, (int)days, simulate, FormattingActions.FormatUserReason(Context.User));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"`{0}` members{1} have been pruned with a prune period of `{2}` days.", amt, (simulate ? " would" : ""), days));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"`{amt}` members{(simulate ? " would" : "")} have been pruned with a prune period of `{days}` days.");
 			}
 		}
 
@@ -179,13 +179,13 @@ namespace Advobot
 			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 			{
 				await PunishmentActions.ManualSoftban(Context.Guild, user.Id, FormattingActions.FormatUserReason(Context.User, reason));
-				await MessageActions.SendChannelMessage(Context, $"Successfully softbanned `{0}`.", user.FormatUser()));
+				await MessageActions.SendChannelMessage(Context, $"Successfully softbanned `{user.FormatUser()}`.");
 			}
 			[Command, Priority(0)]
 			public async Task Command(ulong userId, [Optional, Remainder] string reason)
 			{
 				var ban = await PunishmentActions.ManualSoftban(Context.Guild, userId, FormattingActions.FormatUserReason(Context.User, reason));
-				await MessageActions.SendChannelMessage(Context, $"Successfully softbanned `{0}`.", ban?.User?.FormatUser() ?? userId.ToString()));
+				await MessageActions.SendChannelMessage(Context, $"Successfully softbanned `{ban?.User?.FormatUser() ?? userId.ToString()}`.");
 			}
 		}
 
@@ -226,7 +226,7 @@ namespace Advobot
 				}
 
 				await PunishmentActions.ManualBan(Context.Guild, user.Id, FormattingActions.FormatUserReason(Context.User, reason), 1, time, Context.Timers);
-				await MessageActions.SendChannelMessage(Context, $"Successfully banned `{0}`.", user.FormatUser()));
+				await MessageActions.SendChannelMessage(Context, $"Successfully banned `{user.FormatUser()}`.");
 			}
 			private async Task CommandRunner(ulong userId, uint time, string reason)
 			{
@@ -237,7 +237,7 @@ namespace Advobot
 				}
 
 				var ban = await PunishmentActions.ManualBan(Context.Guild, userId, FormattingActions.FormatUserReason(Context.User, reason), 1, time, Context.Timers);
-				await MessageActions.SendChannelMessage(Context, $"Successfully banned `{0}`.", ban?.User?.FormatUser() ?? userId.ToString()));
+				await MessageActions.SendChannelMessage(Context, $"Successfully banned `{ban?.User?.FormatUser() ?? userId.ToString()}`.");
 			}
 		}
 
@@ -252,7 +252,7 @@ namespace Advobot
 			public async Task Command(IBan ban, [Optional, Remainder] string reason)
 			{
 				await PunishmentActions.ManualUnbanUser(Context.Guild, ban.User.Id, FormattingActions.FormatUserReason(Context.User, reason));
-				await MessageActions.SendChannelMessage(Context, $"Successfully unbanned `{0}`", ban.User.FormatUser()));
+				await MessageActions.SendChannelMessage(Context, $"Successfully unbanned `{ban.User.FormatUser()}`");
 			}
 		}
 
@@ -281,7 +281,7 @@ namespace Advobot
 			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 			{
 				await PunishmentActions.ManualKick(user, FormattingActions.FormatUserReason(Context.User, reason));
-				await MessageActions.SendChannelMessage(Context, $"Successfully kicked `{0}`.", user.FormatUser()));
+				await MessageActions.SendChannelMessage(Context, $"Successfully kicked `{user.FormatUser()}`.");
 			}
 		}
 
@@ -333,15 +333,15 @@ namespace Advobot
 				if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
 				{
 					var DMChannel = await (await Context.Guild.GetOwnerAsync()).GetOrCreateDMChannelAsync();
-					await MessageActions.SendDMMessage(DMChannel, $"`{0}` is trying to delete stuff from a log channel: `{1}`.", Context.User.FormatUser(), channel.FormatChannel()));
+					await MessageActions.SendDMMessage(DMChannel, $"`{Context.User.FormatUser()}` is trying to delete stuff from a log channel: `{channel.FormatChannel()}`.");
 					return;
 				}
 
 				var deletedAmt = await MessageActions.RemoveMessages(channel, Context.Message, requestCount, user, FormattingActions.FormatUserReason(Context.User));
 
-				var response = $"Successfully deleted `{0}` message{1}", deletedAmt, GetActions.GetPlural(deletedAmt));
-				var userResp = user != null ? $" from `{0}`", user.FormatUser()) : null;
-				var chanResp = channel != null ? $" on `{0}`", channel.FormatChannel()) : null;
+				var response = $"Successfully deleted `{deletedAmt}` message{GetActions.GetPlural(deletedAmt)}";
+				var userResp = user != null ? $" from `{user.FormatUser()}`" : null;
+				var chanResp = channel != null ? $" on `{channel.FormatChannel()}`" : null;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.JoinNonNullStrings(" ", response, userResp, chanResp) + ".");
 			}
 		}
@@ -364,7 +364,7 @@ namespace Advobot
 				}
 
 				Context.GuildSettings.Slowmode.Enable();
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully enabled slowmode.\n{0}", Context.GuildSettings.Slowmode.ToString()));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully enabled slowmode.\n{Context.GuildSettings.Slowmode.ToString()}");
 			}
 			[Command(nameof(ActionType.Off))]
 			public async Task CommandOff()
@@ -382,7 +382,7 @@ namespace Advobot
 			public async Task CommandSetup(uint messages, uint interval, [Optional] params IRole[] immuneRoles)
 			{
 				Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully setup slowmode.\n{0}", Context.GuildSettings.Slowmode.ToString()));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully setup slowmode.\n{Context.GuildSettings.Slowmode.ToString()}");
 			}
 		}
 	}

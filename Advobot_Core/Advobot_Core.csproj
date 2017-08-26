@@ -238,7 +238,7 @@
     <Compile Include="Commands\Role_Moderation.cs" />
     <Compile Include="Commands\Ban_Phrases.cs" />
     <Compile Include="Commands\Channel_Moderation.cs" />
-    <Compile Include="Commands\Global_Settings.cs" />
+    <Compile Include="Commands\Bot_Settings.cs" />
     <Compile Include="Classes_And_Interfaces\Classes.cs" />
     <Compile Include="Commands\Guild_Moderation.cs" />
     <Compile Include="Commands\Self_Roles.cs" />
@@ -247,7 +247,7 @@
     <Compile Include="Constants.cs" />
     <Compile Include="Commands\Miscellaneous.cs" />
     <Compile Include="Command_Handler.cs" />
-    <Compile Include="Commands\Bot_Settings.cs" />
+    <Compile Include="Commands\Guild_Settings.cs" />
     <Compile Include="Commands\Logs.cs" />
     <Compile Include="Commands\Spam_Prevention.cs" />
     <Compile Include="Commands\Guild_List.cs" />

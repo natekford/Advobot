@@ -296,7 +296,7 @@ namespace Advobot
 						return "";
 
 					var c = color.Value;
-					return $"#{0}{1}{2}{3}", c.A.ToString("X2"), c.R.ToString("X2"), c.G.ToString("X2"), c.B.ToString("X2"));
+					return $"#{c.A.ToString("X2")}{c.R.ToString("X2")}{c.G.ToString("X2")}{c.B.ToString("X2")}";
 				}
 
 				public static void SetFontSizeProperties(double size, params IEnumerable<UIElement>[] elements)
@@ -613,7 +613,7 @@ namespace Advobot
 				{
 					var defs1 = "Latency:\n\tTime it takes for a command to reach the bot.\nMemory:\n\tAmount of RAM the program is using.\n\t(This is wrong most of the time.)";
 					var defs2 = "Threads:\n\tWhere all the actions in the bot happen.\nShards:\n\tHold all the guilds a bot has on its client.\n\tThere is a limit of 2500 guilds per shard.";
-					var vers = $"\nAPI Wrapper Version: {0}\nBot Version: {1}\nGitHub Repository: ", Constants.API_VERSION, Constants.BOT_VERSION);
+					var vers = $"\nAPI Wrapper Version: {Constants.API_VERSION}\nBot Version: {Constants.BOT_VERSION}\nGitHub Repository: ";
 					var help = "\n\nNeed additional help? Join the Discord server: ";
 					var all = String.Join("\n", defs1, defs2, vers);
 
@@ -1067,7 +1067,7 @@ namespace Advobot
 					}
 					else
 					{
-						ConsoleActions.WriteLine($"The given input '{0}' is not a valid ID.", input));
+						ConsoleActions.WriteLine($"The given input '{input}' is not a valid ID.");
 					}
 				}
 				public static void RemoveTrustedUserFromComboBox(ComboBox cb)

@@ -426,8 +426,8 @@ namespace Advobot
 				{
 					_Min = minAndMaxAndError.Item1;
 					_Max = minAndMaxAndError.Item2;
-					_TooShort = $"A {0} must be at least `{1}` characters long.", minAndMaxAndError.Item3, _Min);
-					_TooLong = $"A {0} must be at most `{1}` characters long.", minAndMaxAndError.Item3, _Max);
+					_TooShort = $"A {minAndMaxAndError.Item3} must be at least `{_Min}` characters long.";
+					_TooLong = $"A {minAndMaxAndError.Item3} must be at most `{_Max}` characters long.";
 				}
 				else
 				{
@@ -461,7 +461,7 @@ namespace Advobot
 				}
 				else
 				{
-					throw new NotSupportedException($"{0} only supports strings.", nameof(VerifyStringLengthAttribute)));
+					throw new NotSupportedException($"{nameof(VerifyStringLengthAttribute)} only supports strings.");
 				}
 			}
 		}

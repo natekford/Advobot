@@ -24,7 +24,7 @@ namespace Advobot
 				var fileInfo = GetActions.GetServerDirectoryFile(guild.Id, fullFileName);
 				SavingAndLoadingActions.OverWriteFile(fileInfo, FormattingActions.RemoveMarkdownChars(text, false));
 
-				var msg = await UploadFile(channel, fileInfo, String.IsNullOrWhiteSpace(content) ? "" : $"**{0}:**", content));
+				var msg = await UploadFile(channel, fileInfo, String.IsNullOrWhiteSpace(content) ? "" : $"**{content}:**");
 
 				SavingAndLoadingActions.DeleteFile(fileInfo);
 				return msg;
@@ -73,7 +73,7 @@ namespace Advobot
 					}
 					else if (ContentLength > Constants.MAX_ICON_FILE_SIZE)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR($"Image is bigger than {0:0.0}MB. Manually upload instead.", (double)Constants.MAX_ICON_FILE_SIZE / 1000000)));
+						await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR($"Image is bigger than {(double)Constants.MAX_ICON_FILE_SIZE / 1000000:0.0}MB. Manually upload instead."));
 						return null;
 					}
 				}
@@ -91,7 +91,7 @@ namespace Advobot
 							ConsoleActions.ExceptionToConsole(exception);
 							exceptionMessages.Add(exception.Message);
 						}
-						await MessageActions.SendChannelMessage(context, $"Failed to change the bot icon. Following exceptions occurred:\n{0}.", String.Join("\n", exceptionMessages)));
+						await MessageActions.SendChannelMessage(context, $"Failed to change the bot icon. Following exceptions occurred:\n{String.Join("\n", exceptionMessages)}.");
 					}
 					else
 					{

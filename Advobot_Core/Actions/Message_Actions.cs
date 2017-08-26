@@ -34,12 +34,12 @@ namespace Advobot
 				if (embed.Description?.Length > Constants.MAX_DESCRIPTION_LENGTH)
 				{
 					badDesc = embed.Description;
-					embed.WithDescription($"The description is over `{0}` characters and will be sent as a text file instead.", Constants.MAX_DESCRIPTION_LENGTH));
+					embed.WithDescription($"The description is over `{Constants.MAX_DESCRIPTION_LENGTH}` characters and will be sent as a text file instead.");
 				}
 				else if (embed.Description.GetLineBreaks() > Constants.MAX_DESCRIPTION_LINES)
 				{
 					badDesc = embed.Description;
-					embed.WithDescription($"The description is over `{0}` lines and will be sent as a text file instead.", Constants.MAX_DESCRIPTION_LINES));
+					embed.WithDescription($"The description is over `{Constants.MAX_DESCRIPTION_LINES}` lines and will be sent as a text file instead.");
 				}
 				totalChars += embed.Description?.Length ?? 0;
 
@@ -53,17 +53,17 @@ namespace Advobot
 					{
 						badFields.Add(new Tuple<int, string>(i, value));
 						field.WithName(i.ToString());
-						field.WithValue($"`{0}` char limit close.", Constants.MAX_EMBED_TOTAL_LENGTH));
+						field.WithValue($"`{Constants.MAX_EMBED_TOTAL_LENGTH}` char limit close.");
 					}
 					else if (value?.Length > Constants.MAX_FIELD_VALUE_LENGTH)
 					{
 						badFields.Add(new Tuple<int, string>(i, value));
-						field.WithValue($"This field is over `{0}` characters and will be sent as a text file instead.", Constants.MAX_FIELD_VALUE_LENGTH));
+						field.WithValue($"This field is over `{Constants.MAX_FIELD_VALUE_LENGTH}` characters and will be sent as a text file instead.");
 					}
 					else if (value.GetLineBreaks() > Constants.MAX_FIELD_LINES)
 					{
 						badFields.Add(new Tuple<int, string>(i, value));
-						field.WithValue($"This field is over `{0}` lines and will be sent as a text file instead.", Constants.MAX_FIELD_LINES));
+						field.WithValue($"This field is over `{Constants.MAX_FIELD_LINES}` lines and will be sent as a text file instead.");
 					}
 					totalChars += value?.Length ?? 0;
 					totalChars += field.Name?.Length ?? 0;
@@ -97,7 +97,7 @@ namespace Advobot
 				}
 				foreach (var badField in badFields)
 				{
-					extra.Add($"Field{0}: {1}", badField.Item1, badField.Item2));
+					extra.Add($"Field{badField.Item1}: {badField.Item2}");
 				}
 
 				if (extra.Any())
@@ -189,7 +189,7 @@ namespace Advobot
 					}
 					catch
 					{
-						ConsoleActions.WriteLine($"Unable to delete {0} messages on the guild {1} on channel {2}.", msgAmt, guildChannel.Guild.FormatGuild(), guildChannel.FormatChannel()));
+						ConsoleActions.WriteLine($"Unable to delete {msgAmt} messages on the guild {guildChannel.Guild.FormatGuild()} on channel {guildChannel.FormatChannel()}.");
 						break;
 					}
 
@@ -256,7 +256,7 @@ namespace Advobot
 				}
 				catch
 				{
-					ConsoleActions.WriteLine($"Unable to delete {0} messages on the guild {1} on channel {2}.", messages.Count(), channel.GetGuild().FormatGuild(), channel.FormatChannel()));
+					ConsoleActions.WriteLine($"Unable to delete {messages.Count()} messages on the guild {channel.GetGuild().FormatGuild()} on channel {channel.FormatChannel()}.");
 				}
 			}
 			public static async Task DeleteMessage(IMessage message)
@@ -270,7 +270,7 @@ namespace Advobot
 				}
 				catch
 				{
-					ConsoleActions.WriteLine($"Unable to delete the message {0} on channel {1}.", message.Id, message.Channel.FormatChannel()));
+					ConsoleActions.WriteLine($"Unable to delete the message {message.Id} on channel {message.Channel.FormatChannel()}.");
 				}
 			}
 			public static async Task SendMessageContainingFormattedDeletedMessages(IGuild guild, ITextChannel channel, List<string> inputList)
@@ -293,7 +293,7 @@ namespace Advobot
 				{
 					var text = FormattingActions.RemoveMarkdownChars(String.Join("\n-----\n", inputList), true);
 					var name = "Deleted_Messages_";
-					var content = $"{0} Deleted Messages", inputList.Count);
+					var content = $"{inputList.Count} Deleted Messages";
 					await UploadActions.WriteAndUploadTextFile(guild, channel, text, name, content);
 				}
 			}

@@ -203,11 +203,11 @@ namespace Advobot
 
 			public override string ToString()
 			{
-				var guild = $"Guild: {0}", Guild);
-				var channel = $"Channel: {0}", Channel);
-				var user = $"User: {0}", User);
-				var time = $"Time: {0}", Time);
-				var text = $"Text: {0}", Text);
+				var guild = $"Guild: {Guild}";
+				var channel = $"Channel: {Channel}";
+				var user = $"User: {User}";
+				var time = $"Time: {Time}";
+				var text = $"Text: {Text}";
 				return String.Join(Environment.NewLine + new string(' ', 25), new[] { guild, channel, user, time, text });
 			}
 		}

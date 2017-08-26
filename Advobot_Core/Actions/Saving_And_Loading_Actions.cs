@@ -35,7 +35,7 @@ namespace Advobot
 				await ClientActions.SetGame(client, botSettings);
 
 				ConsoleActions.WriteLine("The current bot prefix is: " + botSettings.Prefix);
-				ConsoleActions.WriteLine($"Bot took {0:n} milliseconds to load everything.", TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - botSettings.StartupTime.Ticks).TotalMilliseconds));
+				ConsoleActions.WriteLine($"Bot took {TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - botSettings.StartupTime.Ticks).TotalMilliseconds:n} milliseconds to load everything.");
 				botSettings.SetLoaded();
 			}
 			public static void HandleBotID(ulong ID)
@@ -259,7 +259,7 @@ namespace Advobot
 					var similarCmds = temp.Where(x => x.Name.CaseInsEquals(name) || (x.Aliases != null && aliases != null && x.Aliases.Intersect(aliases, StringComparer.OrdinalIgnoreCase).Any()));
 					if (similarCmds.Any())
 					{
-						throw new ArgumentException($"The following commands have conflicts: {0} + {1}", String.Join(" + ", similarCmds.Select(x => x.Name)), name));
+						throw new ArgumentException($"The following commands have conflicts: {String.Join(" + ", similarCmds.Select(x => x.Name))} + {name}");
 					}
 
 					temp.Add(new HelpEntry(name, aliases, usage, FormattingActions.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, category, defaultEnabledAttr.Enabled));
