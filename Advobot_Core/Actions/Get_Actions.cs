@@ -123,7 +123,8 @@ namespace Advobot
 			public static string[] GetGuildPermissionNames(ulong flags)
 			{
 				var result = new List<string>();
-				for (int i = 0; i < 64; ++i)
+				//Using 64 has this return duplicated permissions.
+				for (int i = 0; i < 32; ++i)
 				{
 					var bit = 1U << i;
 					if ((flags & bit) == 0)
@@ -149,7 +150,8 @@ namespace Advobot
 			public static string[] GetChannelPermissionNames(ulong flags)
 			{
 				var result = new List<string>();
-				for (int i = 0; i < 64; ++i)
+				//Using 64 has this return duplicated permissions.
+				for (int i = 0; i < 32; ++i)
 				{
 					var bit = 1U << i;
 					if ((flags & bit) == 0)

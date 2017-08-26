@@ -191,7 +191,7 @@ namespace Advobot
 
 		[Group(nameof(Ban)), Alias("b")]
 		[Usage("[User] <Time> <Reason>")]
-		[Summary("Bans the user from the guild. Days specifies how many days worth of messages to delete. Time specifies how long and is in minutes.")]
+		[Summary("Bans the user from the guild. Time specifies how long and is in minutes.")]
 		[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 		[DefaultEnabled(true)]
 		public sealed class Ban : MyModuleBase
