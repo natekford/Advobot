@@ -431,7 +431,7 @@ namespace Advobot
 				}
 				else
 				{
-					throw new NotSupportedException("Supplied enum doesn't have a min and max or error output.");
+					throw new NotSupportedException($"{target.EnumName()} doesn't have a min and max or error output.");
 				}
 			}
 

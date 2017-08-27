@@ -727,7 +727,7 @@ namespace Advobot
 						}
 					}
 
-					await ClientActions.SetGame(client, botSettings);
+					await ClientActions.UpdateGame(client, botSettings);
 				}
 				private static bool SaveSetting(object obj, string settingName, IBotSettings botSettings)
 				{
@@ -974,7 +974,7 @@ namespace Advobot
 				}
 				public static ToolTipReason SaveOutput(TextBox tb)
 				{
-					var fileInfo = GetActions.GetBaseBotDirectoryFile("Output_Log_" + DateTime.UtcNow.ToString("MM-dd_HH-mm-ss") + Constants.GENERAL_FILE_EXTENSION);
+					var fileInfo = GetActions.GetBaseBotDirectoryFile("Output_Log_" + FormattingActions.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION);
 					try
 					{
 						SavingAndLoadingActions.OverWriteFile(fileInfo, tb.Text);
@@ -1126,7 +1126,7 @@ namespace Advobot
 					var resetInfo = false;
 					if (resetInfo)
 					{
-						ClientActions.ResetSettings();
+						ClientActions.ResetSettingsSavedInPropertiesSettings();
 						ClientActions.DisconnectBot();
 					}
 #endif

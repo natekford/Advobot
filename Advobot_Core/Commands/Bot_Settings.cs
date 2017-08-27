@@ -10,70 +10,122 @@ using Advobot.Enums;
 using Advobot.NonSavedClasses;
 using System.Linq;
 using Discord.WebSocket;
+using Advobot.Interfaces;
+using Advobot.TypeReaders;
+using System.Reflection;
 
 namespace Advobot
 {
 	namespace BotSettings
 	{
 		[Group(nameof(ModifyBotSettings)), Alias("mgls")]
-		[Summary("Modify the given setting on the bot. Inputting help as the second argument gives information about what arguments that setting takes.")]
-		[Usage("[Clear|Set] [Setting Name] <New Value>")]
+		[Usage("[Show|Clear|Set] [Setting Name] <New Value>")]
+		[Summary("Modify the given setting on the bot. Show lists the setting names. Cannot modify settings which are lists through this command.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public sealed class ModifyBotSettings : MySavingModuleBase
 		{
-			[Command("set"), Alias("s")]
-			public async Task CommandSet(string commandName)
+			[Command(nameof(ActionType.Show)), Alias("sh")]
+			public async Task CommandShow()
 			{
+				var desc = $"`{String.Join("`, `", GetActions.GetBotSettingsThatArentIEnumerables().Select(x => x.Name))}`";
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Settings", desc));
+			}
+			[Command("set"), Alias("s")]
+			public async Task CommandSet([OverrideTypeReader(typeof(BotSettingNonIEnumerableTypeReader))] PropertyInfo setting, [Remainder] string newValue)
+			{
+				switch (setting.Name)
+				{
+					case nameof(IBotSettings.ShardCount):
+					{
+						if (!uint.TryParse(newValue, out uint number))
+						{
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Invalid input for a number."));
+							return;
+						}
 
+						var validNum = (await Context.Client.GetGuildsAsync()).Count / 2500 + 1;
+						if (number < validNum)
+						{
+							await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"With the current amount of guilds the client has, the minimum shard number is: `{validNum}`."));
+							return;
+						}
+
+						Context.BotSettings.ShardCount = number;
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the shard amount to `{number}`.");
+						break;
+					}
+					case nameof(IBotSettings.MessageCacheCount):
+					{
+						break;
+					}
+					case nameof(IBotSettings.MaxUserGatherCount):
+					{
+						break;
+					}
+					case nameof(IBotSettings.MaxMessageGatherSize):
+					{
+						break;
+					}
+					case nameof(IBotSettings.Prefix):
+					{
+						break;
+					}
+					case nameof(IBotSettings.Game):
+					{
+						break;
+					}
+					case nameof(IBotSettings.Stream):
+					{
+						break;
+					}
+					case nameof(IBotSettings.AlwaysDownloadUsers):
+					{
+						break;
+					}
+					case nameof(IBotSettings.LogLevel):
+					{
+						break;
+					}
+				}
 			}
 			[Command(nameof(ActionType.Clear)), Alias("c")]
-			public async Task CommandClear(string commandName)
+			public async Task CommandClear([OverrideTypeReader(typeof(BotSettingNonIEnumerableTypeReader))] PropertyInfo setting)
 			{
-
 			}
 		}
 
 		[Group(nameof(DisplayBotSettings)), Alias("dgls")]
-		[Usage("<All|Setting Name>")]
-		[Summary("Displays global settings. Inputting nothing gives a list of the setting names.")]
+		[Usage("[Show|All|Setting Name]")]
+		[Summary("Displays global settings. Show gives a list of the setting names.")]
 		[OtherRequirement(Precondition.BotOwner)]
 		[DefaultEnabled(true)]
 		public sealed class DisplayBotSettings : MyModuleBase
 		{
-			[Command("all"), Priority(1)]
+			[Command(nameof(ActionType.Show)), Alias("s"), Priority(1)]
+			public async Task Command()
+			{
+				var desc = $"`{String.Join("`, `", GetActions.GetBotSettings().Select(x => x.Name))}`";
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
+			}
+			[Command("all"), Alias("a"), Priority(1)]
 			public async Task CommandAll()
 			{
 				var text = await FormattingActions.FormatAllBotSettings(Context.Client, Context.BotSettings);
 				await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "Bot Settings", "Bot Settings");
 			}
 			[Command, Priority(0)]
-			public async Task Command(string setting)
+			public async Task Command([OverrideTypeReader(typeof(BotSettingTypeReader))] PropertyInfo setting)
 			{
-				var currentSetting = GetActions.GetBotSettings().FirstOrDefault(x => x.Name.CaseInsEquals(setting));
-				if (currentSetting == null)
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Unable to find a setting with the supplied name."));
-					return;
-				}
-
-				var desc = await FormattingActions.FormatBotSettingInfo(Context.Client, Context.BotSettings, currentSetting);
+				var desc = await FormattingActions.FormatBotSettingInfo(Context.Client, Context.BotSettings, setting);
 				if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 				{
-					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(currentSetting.Name, desc));
+					await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(setting.Name, desc));
 				}
 				else
 				{
-					await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, desc, currentSetting.Name, currentSetting.Name);
+					await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, desc, setting.Name, setting.Name);
 				}
-			}
-			[Command]
-			public async Task Command()
-			{
-				var settingNames = GetActions.GetBotSettings().Select(x => x.Name);
-
-				var desc = $"`{String.Join("`, `", settingNames)}`";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
 			}
 		}
 

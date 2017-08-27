@@ -391,12 +391,18 @@ namespace Advobot
 		}
 
 		[Group(nameof(DisplayGuildSettings)), Alias("dgds")]
-		[Usage("<All|Setting Name>")]
-		[Summary("Displays guild settings. Inputting nothing gives a list of the setting names.")]
+		[Usage("[Show|All|Setting Name]")]
+		[Summary("Displays guild settings. Show gives a list of the setting names.")]
 		[PermissionRequirement(null, null)]
 		[DefaultEnabled(true)]
 		public sealed class DisplayGuildSettings : MyModuleBase
 		{
+			[Command(nameof(ActionType.Show)), Priority(1)]
+			public async Task Command()
+			{
+				var desc = $"`{String.Join("`, `", GetActions.GetGuildSettings().Select(x => x.Name))}`";
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
+			}
 			[Command("all"), Priority(1)]
 			public async Task CommandAll()
 			{
@@ -422,12 +428,6 @@ namespace Advobot
 				{
 					await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, desc, currentSetting.Name, currentSetting.Name);
 				}
-			}
-			[Command]
-			public async Task Command()
-			{
-				var desc = $"`{String.Join("`, `", GetActions.GetGuildSettings().Select(x => x.Name))}`";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
 			}
 		}
 

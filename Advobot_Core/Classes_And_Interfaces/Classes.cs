@@ -1155,9 +1155,7 @@ namespace Advobot
 		/// Shorter way to write ModuleBase<MyCommandContext> and also has every command go through the command requirements attribute first.
 		/// </summary>
 		[CommandRequirements]
-		public class MyModuleBase : ModuleBase<MyCommandContext>
-		{
-		}
+		public class MyModuleBase : ModuleBase<MyCommandContext> { }
 
 		public class MyCommandContext : CommandContext, IMyCommandContext
 		{

@@ -5,9 +5,7 @@ First, to get the really shitty part of the bot out of the way:
 
 2.	ILogModule goes into MyCommandContext to be used in exactly one command. The getinfo bot command.
 
-3.	I use String.Format over string interpolation.
-
-4.	Could possibly have forgotten saving IGuildSettings in a spot or two over the past three revisions of that interface.
+3.	Could possibly have forgotten saving IGuildSettings in a spot or two over the past three revisions of that interface.
 	Regular class with only properties and a gross way of saving ->
 	Class with an overuse of reflection and enums with a grosser way of saving ->
 	Finally an interface and having MyGuildSettings save each time a setter is user ->
@@ -20,6 +18,8 @@ To get some of the better parts out there:
 	IInviteListModule will be easy to replace when I get around to creating it.
 
 TODO:
-	Command cooldowns maybe?
+	Command cooldowns.
 	Scheduled messages.
 	Rules commands.
+	Rework access modifiers of most methods.
+	Comment methods using the summary thing.

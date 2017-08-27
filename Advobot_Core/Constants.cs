@@ -52,7 +52,7 @@ namespace Advobot
 		public const int MAX_FIELD_VALUE_LENGTH = 1024;
 
 		//Static readonly because they may change and I've heard using const means any assembly referencing it has to be recompiled each time the value gets manually changed.
-		public static readonly string BOT_VERSION = "0.IDontRemember.73";
+		public static readonly string BOT_VERSION = "0.30.0";
 		public static readonly string API_VERSION = "Discord.Net v1.0.2-build-00800";
 		public static readonly string PROGRAM_NAME = "Advobot";
 		public static readonly string IGNORE_ERROR = "Cx";
@@ -88,7 +88,6 @@ namespace Advobot
 		public static readonly int SECONDS_ACTIVE_CLOSE = 5;
 		public static readonly int TICKS_REGEX_TIMEOUT = 1000000;
 		public static readonly int MEMBER_LIMIT = 0;
-		public static readonly int VALID_KEY_LENGTH = 59; //This probably shouldn't be hardcoded in tbh
 		public static readonly int MAX_LENGTH_FOR_REGEX = 100;
 		public static readonly int MAX_LENGTH_FOR_REASON = 512;
 		public static readonly int MAX_SA_GROUPS = 10;

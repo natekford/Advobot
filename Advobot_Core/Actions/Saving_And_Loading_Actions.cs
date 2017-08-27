@@ -32,7 +32,7 @@ namespace Advobot
 					ClientActions.RestartBot(); //Restart so the bot can get the correct globalInfo loaded
 				}
 
-				await ClientActions.SetGame(client, botSettings);
+				await ClientActions.UpdateGame(client, botSettings);
 
 				ConsoleActions.WriteLine("The current bot prefix is: " + botSettings.Prefix);
 				ConsoleActions.WriteLine($"Bot took {TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - botSettings.StartupTime.Ticks).TotalMilliseconds:n} milliseconds to load everything.");
@@ -74,32 +74,20 @@ namespace Advobot
 					return false;
 				}
 
-				if (key.Length > Constants.VALID_KEY_LENGTH)
+				try
 				{
-					ConsoleActions.WriteLine("The given key is too long. Please enter a regular length key:");
-				}
-				else if (key.Length < Constants.VALID_KEY_LENGTH)
-				{
-					ConsoleActions.WriteLine("The given key is too short. Please enter a regular length key:");
-				}
-				else
-				{
-					try
-					{
-						await ClientActions.Login(client, key);
+					await ClientActions.Login(client, key);
 
-						ConsoleActions.WriteLine("Succesfully logged in via the given bot key.");
-						Properties.Settings.Default.BotKey = key;
-						Properties.Settings.Default.Save();
-						return true;
-					}
-					catch (Exception)
-					{
-						ConsoleActions.WriteLine("The given key is invalid. Please enter a valid key:");
-					}
+					ConsoleActions.WriteLine("Succesfully logged in via the given bot key.");
+					Properties.Settings.Default.BotKey = key;
+					Properties.Settings.Default.Save();
+					return true;
 				}
-
-				return false;
+				catch (Exception)
+				{
+					ConsoleActions.WriteLine("The given key is invalid. Please enter a valid key:");
+					return false;
+				}
 			}
 			public static bool ValidatePath(string input, bool windows, bool startup = false)
 			{

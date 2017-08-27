@@ -111,10 +111,10 @@ namespace Advobot
 					await (client as DiscordShardedClient).LoginAsync(TokenType.Bot, key);
 				}
 			}
-			public static async Task SetGame(IDiscordClient client, IBotSettings botSettings)
+			public static async Task UpdateGame(IDiscordClient client, IBotSettings botSettings)
 			{
 				var prefix = botSettings.Prefix;
-				var game = botSettings.Game ?? $"type \"{prefix}help\" for help.";
+				var game = botSettings.Game;
 				var stream = botSettings.Stream;
 
 				var streamType = StreamType.NotStreaming;
@@ -190,7 +190,7 @@ namespace Advobot
 				}
 			}
 
-			public static void ResetSettings()
+			public static void ResetSettingsSavedInPropertiesSettings()
 			{
 				Properties.Settings.Default.BotKey = null;
 				Properties.Settings.Default.Path = null;

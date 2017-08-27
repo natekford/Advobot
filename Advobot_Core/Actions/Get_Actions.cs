@@ -462,7 +462,7 @@ namespace Advobot
 			}
 
 			/// <summary>
-			/// Gets all public properties from IGuildSettings and then returns ones that have a set method.
+			/// Returns all public properties from IGuildSettings that have a set method.
 			/// </summary>
 			/// <returns></returns>
 			public static IEnumerable<PropertyInfo> GetGuildSettings()
@@ -470,7 +470,7 @@ namespace Advobot
 				return GetSettings(typeof(IGuildSettings));
 			}
 			/// <summary>
-			/// Gets all public properties from IBotSettings and then returns ones that have a set method. Will not return SavePath and BotKey since those
+			/// Returns all public properties from IBotSettings that have a set method. Will not return SavePath and BotKey since those
 			/// are saved via <see cref="Properties.Settings.Default"/>.
 			/// </summary>
 			/// <returns></returns>
@@ -478,7 +478,23 @@ namespace Advobot
 			{
 				return GetSettings(typeof(IBotSettings));
 			}
-			private static IEnumerable<PropertyInfo> GetSettings(Type settingHolderType)
+			/// <summary>
+			/// Returns the values of <see cref="GetBotSettings"/> which either are strings or do not implement the generic IEnumerable.
+			/// </summary>
+			/// <returns></returns>
+			public static IEnumerable<PropertyInfo> GetBotSettingsThatArentIEnumerables()
+			{
+				return GetBotSettings().Where(x =>
+				{
+					return x.PropertyType != typeof(string) && !x.PropertyType.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+				});
+			}
+			/// <summary>
+			/// Returns all public properties 
+			/// </summary>
+			/// <param name="settingHolderType"></param>
+			/// <returns></returns>
+			public static IEnumerable<PropertyInfo> GetSettings(Type settingHolderType)
 			{
 				var properties = settingHolderType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 				return properties.Where(x => x.CanWrite && x.GetSetMethod(true).IsPublic);
