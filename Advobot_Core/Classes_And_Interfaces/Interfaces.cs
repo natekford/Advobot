@@ -131,7 +131,6 @@ namespace Advobot
 			Task OnMessageReceived(SocketMessage message);
 			Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage afterMessage, ISocketMessageChannel channel);
 			Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel);
-			Task LogCommand(IMyCommandContext context);
 		}
 
 		public interface IBotSettings

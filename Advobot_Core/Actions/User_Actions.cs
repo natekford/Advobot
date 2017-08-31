@@ -104,7 +104,7 @@ namespace Advobot
 					}
 					case UserVerification.CanBeEdited:
 					{
-						return GetIfUserCanBeModifiedByUser(currUser, targetUser);
+						return targetUser.CanBeModifiedByUser(currUser);
 					}
 					default:
 					{
@@ -126,17 +126,6 @@ namespace Advobot
 				return (await client.GetApplicationInfoAsync()).Owner;
 			}
 
-			public static bool GetIfUserCanBeModifiedByUser(IUser currUser, IUser targetUser)
-			{
-				if (currUser.Id == Properties.Settings.Default.BotID && targetUser.Id == Properties.Settings.Default.BotID)
-				{
-					return true;
-				}
-
-				var bannerPosition = GetUserPosition(currUser);
-				var banneePosition = GetUserPosition(targetUser);
-				return bannerPosition > banneePosition;
-			}
 			public static int GetUserPosition(IUser user)
 			{
 				//Make sure they're a SocketGuildUser
@@ -149,7 +138,7 @@ namespace Advobot
 
 			public static async Task<IEnumerable<IGuildUser>> GetUsersTheBotAndUserCanEdit(ICommandContext context)
 			{
-				return (await context.Guild.GetUsersAsync()).Where(x => GetIfUserCanBeModifiedByUser(context.User, x) && GetIfUserCanBeModifiedByUser(GetBot(context.Guild), x));
+				return (await context.Guild.GetUsersAsync()).Where(x => x.CanBeModifiedByUser(context.User) && x.CanBeModifiedByUser(GetBot(context.Guild)));
 			}
 
 			public static async Task ChangeNickname(IGuildUser user, string newNickname, string reason)

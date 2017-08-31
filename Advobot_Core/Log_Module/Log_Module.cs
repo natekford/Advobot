@@ -11,7 +11,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Advobot.Attributes;
 using System.Threading.Tasks;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Advobot
 {
@@ -209,7 +212,7 @@ namespace Advobot
 			}
 		}
 
-		public sealed class MyLog : ILog
+		internal sealed class MyLog : ILog
 		{
 			private IDiscordClient _Client { get; }
 			private IBotSettings _BotSettings { get; }
@@ -317,64 +320,53 @@ namespace Advobot
 			//Server
 			public async Task OnUserJoined(SocketGuildUser user)
 			{
+				IGuild guild;
+				IGuildSettings guildSettings;
 				_Logging.IncrementUsers();
+				_Logging.IncrementJoins();
 
-				if (OtherLogActions.VerifyServerLoggingAction(_BotSettings, _GuildSettings, user, LogAction.UserJoined, out VerifiedLoggingAction verified))
+				if (!Verification.VerifyBotLogging(_BotSettings, _GuildSettings, user, out var verified))
 				{
-					var guild = verified.Guild;
-					var guildSettings = verified.GuildSettings;
-					var serverLog = verified.LoggingChannel;
-
-					if (guildSettings != null)
-					{
-						await OtherLogActions.HandleJoiningUsersForRaidPrevention(_Timers, guildSettings, user);
-					}
-
-					//Bans people who join with a given word in their name
-					if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
-					{
-						await PunishmentActions.AutomaticBan(guild, user.Id, "banned name");
-						return;
-					}
-
-					var curInv = await InviteActions.GetInviteUserJoinedOn(guildSettings, guild);
-					var inviteStr = "";
-					if (curInv != null)
-					{
-						inviteStr = $"\n**Invite:** {curInv.Code}";
-					}
-					var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
-					var ageWarningStr = "";
-					if (userAccAge.TotalHours < 24)
-					{
-						ageWarningStr = $"\n**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
-					}
-
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{inviteStr}{ageWarningStr}", Constants.JOIN);
-					EmbedActions.AddFooter(embed, (user.IsBot ? "Bot Joined" : "User Joined"));
-					EmbedActions.AddAuthor(embed, user);
-					await MessageActions.SendEmbedMessage(serverLog, embed);
-
-					_Logging.IncrementJoins();
+					return;
 				}
 				else
 				{
-					var guildSettings = verified.GuildSettings;
-					if (guildSettings == null)
-						return;
-
-					await OtherLogActions.HandleJoiningUsersForRaidPrevention(_Timers, guildSettings, user);
+					guild = verified.Guild;
+					guildSettings = verified.GuildSettings;
+					await Other.HandleJoiningUsersForRaidPrevention(_Timers, guildSettings, user);
 				}
 
+				if (!Verification.VerifyLogAction(verified.GuildSettings))
+				{
+					return;
+				}
+
+				//Bans people who join with a given word in their name
+				if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
+				{
+					await PunishmentActions.AutomaticBan(guild, user.Id, "banned name");
+					return;
+				}
+
+				var inviteStr = FormattingActions.FormatUserInviteJoin(guildSettings, guild);
+				var ageWarningStr = FormattingActions.FormatUserAccountAgeWarning(user);
+				var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{inviteStr}{ageWarningStr}", Constants.JOIN);
+				EmbedActions.AddFooter(embed, (user.IsBot ? "Bot Joined" : "User Joined"));
+				EmbedActions.AddAuthor(embed, user);
+				await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
+
 				//Welcome message
-				if (verified.GuildSettings?.WelcomeMessage != null)
+				if (verified.GuildSettings.WelcomeMessage != null)
 				{
 					await MessageActions.SendGuildNotification(user, verified.GuildSettings.WelcomeMessage);
 				}
 			}
 			public async Task OnUserLeft(SocketGuildUser user)
 			{
+				IGuild guild;
+				IGuildSettings guildSettings;
 				_Logging.DecrementUsers();
+				_Logging.IncrementLeaves();
 
 				//Check if the bot was the one that left
 				if (user.Id == Properties.Settings.Default.BotID)
@@ -383,108 +375,104 @@ namespace Advobot
 					return;
 				}
 
-				if (OtherLogActions.VerifyServerLoggingAction(_BotSettings, _GuildSettings, user, LogAction.UserLeft, out VerifiedLoggingAction verified))
-				{
-					var guild = verified.Guild;
-					var guildSettings = verified.GuildSettings;
-					var serverLog = verified.LoggingChannel;
-
+				if (!Verification.VerifyBotLogging(_BotSettings, _GuildSettings, user, out var verified) ||
+					!Verification.VerifyLogAction(verified.GuildSettings) ||
 					//Don't log them to the server if they're someone who was just banned for joining with a banned name
-					if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
-						return;
-
-					var timeStayedStr = "";
-					if (user.JoinedAt.HasValue)
-					{
-						var timeStayed = (DateTime.UtcNow - user.JoinedAt.Value.ToUniversalTime());
-						timeStayedStr = $"\n**Stayed for:** {timeStayed.Days}:{timeStayed.Hours:00}:{timeStayed.Minutes:00}:{timeStayed.Seconds:00}";
-					}
-
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{timeStayedStr}", Constants.LEAV);
-					EmbedActions.AddFooter(embed, (user.IsBot ? "Bot Left" : "User Left"));
-					EmbedActions.AddAuthor(embed, user);
-					await MessageActions.SendEmbedMessage(serverLog, embed);
-
-					_Logging.IncrementLeaves();
+					verified.GuildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
+				{
+					return;
+				}
+				else
+				{
+					guild = verified.Guild;
+					guildSettings = verified.GuildSettings;
 				}
 
+				var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{FormattingActions.FormatUserStayLength(user)}", Constants.LEAV);
+				EmbedActions.AddFooter(embed, (user.IsBot ? "Bot Left" : "User Left"));
+				EmbedActions.AddAuthor(embed, user);
+				await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
+
 				//Goodbye message
-				if (verified.GuildSettings?.GoodbyeMessage != null)
+				if (verified.GuildSettings.GoodbyeMessage != null)
 				{
 					await MessageActions.SendGuildNotification(user, verified.GuildSettings.GoodbyeMessage);
 				}
 			}
 			public async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
 			{
-				if (beforeUser.Username == null || afterUser.Username == null || _BotSettings.Pause)
-					return;
+				_Logging.IncrementUserChanges();
 
-				//Name change
-				if (!beforeUser.Username.CaseInsEquals(afterUser.Username))
+				if (beforeUser.Username == null || afterUser.Username == null || _BotSettings.Pause || beforeUser.Username.CaseInsEquals(afterUser.Username))
 				{
-					foreach (var guild in await _Client.GetGuildsAsync())
+					return;
+				}
+
+				foreach (var guild in (await _Client.GetGuildsAsync()).Where(x => (x as SocketGuild).Users.Select(y => y.Id).Contains(afterUser.Id)))
+				{
+					if (!Verification.VerifyBotLogging(_BotSettings, _GuildSettings, guild, out VerifiedLoggingAction verified) ||
+						!Verification.VerifyLogAction(verified.GuildSettings))
 					{
-						if (!(await guild.GetUsersAsync()).Select(x => x.Id).Contains(afterUser.Id))
-							return;
-
-						if (OtherLogActions.VerifyServerLoggingAction(_BotSettings, _GuildSettings, guild, LogAction.UserLeft, out VerifiedLoggingAction verified))
-						{
-							var guildSettings = verified.GuildSettings;
-							var serverLog = verified.LoggingChannel;
-
-							var embed = EmbedActions.MakeNewEmbed(null, null, Constants.UEDT);
-							EmbedActions.AddFooter(embed, "Name Changed");
-							EmbedActions.AddField(embed, "Before:", "`" + beforeUser.Username + "`");
-							EmbedActions.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
-							EmbedActions.AddAuthor(embed, afterUser);
-							await MessageActions.SendEmbedMessage(serverLog, embed);
-
-							_Logging.IncrementUserChanges();
-						}
+						return;
 					}
+
+					var embed = EmbedActions.MakeNewEmbed(null, null, Constants.UEDT);
+					EmbedActions.AddFooter(embed, "Name Changed");
+					EmbedActions.AddField(embed, "Before:", "`" + beforeUser.Username + "`");
+					EmbedActions.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
+					EmbedActions.AddAuthor(embed, afterUser);
+					await MessageActions.SendEmbedMessage(verified.GuildSettings.ServerLog, embed);
 				}
 			}
 			public async Task OnMessageReceived(SocketMessage message)
 			{
-				var guild = message.GetGuild() as SocketGuild;
-				if (_GuildSettings.TryGetSettings(guild, out IGuildSettings guildSettings))
-				{
-					await OnMessageReceivedActions.HandleCloseWords(_BotSettings, guildSettings, message, _Timers);
-					await OnMessageReceivedActions.HandleSpamPreventionVoting(guildSettings, guild, message, _Timers);
-
-					if (OtherLogActions.VerifyMessageShouldBeLogged(guildSettings, message))
-					{
-						await OnMessageReceivedActions.HandleChannelSettings(guildSettings, message);
-						await OnMessageReceivedActions.HandleSpamPrevention(guildSettings, guild, message, _Timers);
-						await OnMessageReceivedActions.HandleSlowmodeOrBannedPhrases(guildSettings, guild, message, _Timers);
-						await OnMessageReceivedActions.HandleImageLogging(_Logging, guildSettings, message);
-					}
-				}
-			}
-			public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage afterMessage, ISocketMessageChannel channel)
-			{
-				if (!OtherLogActions.VerifyServerLoggingAction(_BotSettings, _GuildSettings, channel, LogAction.MessageUpdated, out VerifiedLoggingAction verified)
-					|| !OtherLogActions.VerifyMessageShouldBeLogged(verified.GuildSettings, afterMessage))
+				IGuild guild;
+				IGuildSettings guildSettings;
+				if (!Verification.VerifyBotLogging(_BotSettings, _GuildSettings, message, out var verified))
 				{
 					return;
 				}
 
-				var guild = verified.Guild;
-				var guildSettings = verified.GuildSettings;
-				var serverLog = verified.LoggingChannel;
+				guild = verified.Guild;
+				guildSettings = verified.GuildSettings;
 
-				var beforeMessage = cached.HasValue ? cached.Value : null;
-
-				await SpamActions.HandleBannedPhrases(_Timers, guildSettings, guild, afterMessage);
-
-				var imageLog = guildSettings.ImageLog;
-				if (imageLog != null && beforeMessage?.Embeds.Count() < afterMessage.Embeds.Count())
+				//Allow closewords to be handled on an unlogged channel, but don't allow anything else.
+				await MessageRecieved.HandleCloseWords(_BotSettings, guildSettings, message, _Timers);
+				if (Verification.VerifyLogAction(verified.GuildSettings))
 				{
-					//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
-					await OnMessageReceivedActions.HandleImageLogging(_Logging, guildSettings, afterMessage);
+					await MessageRecieved.HandleChannelSettings(guildSettings, message);
+					await MessageRecieved.HandleSpamPrevention(guildSettings, guild, message, _Timers);
+					await SpamActions.HandleSlowmode(guildSettings, message);
+					await SpamActions.HandleBannedPhrases(_Timers, guildSettings, guild, message);
+					await MessageRecieved.HandleImageLogging(_Logging, guildSettings.ImageLog, message);
+				}
+			}
+			public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage afterMessage, ISocketMessageChannel channel)
+			{
+				IGuild guild;
+				IGuildSettings guildSettings;
+				_Logging.IncrementEdits();
+
+				if (!Verification.VerifyBotLogging(_BotSettings, _GuildSettings, afterMessage, out var verified) ||
+					!Verification.VerifyLogAction(verified.GuildSettings))
+				{
+					return;
+				}
+				else
+				{
+					guild = verified.Guild;
+					guildSettings = verified.GuildSettings;
 				}
 
-				if (serverLog != null)
+				var beforeMessage = cached.HasValue ? cached.Value : null;
+				await SpamActions.HandleBannedPhrases(_Timers, guildSettings, guild, afterMessage);
+
+				//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
+				if (guildSettings.ImageLog != null && beforeMessage?.Embeds.Count() < afterMessage.Embeds.Count())
+				{
+					await MessageRecieved.HandleImageLogging(_Logging, guildSettings.ImageLog, afterMessage);
+				}
+				if (guildSettings.ServerLog != null)
 				{
 					var beforeMsgContent = String.IsNullOrWhiteSpace(beforeMessage?.Content) ? "Empty or unable to be gotten." : FormattingActions.RemoveMarkdownChars(beforeMessage?.Content, true);
 					var afterMsgContent = String.IsNullOrWhiteSpace(afterMessage.Content) ? "Empty or unable to be gotten." : FormattingActions.RemoveMarkdownChars(afterMessage.Content, true);
@@ -504,159 +492,132 @@ namespace Advobot
 					EmbedActions.AddField(embed, "Before:", $"`{beforeMsgContent}`");
 					EmbedActions.AddField(embed, "After:", $"`{afterMsgContent}`", false);
 					EmbedActions.AddAuthor(embed, afterMessage.Author);
-					await MessageActions.SendEmbedMessage(serverLog, embed);
-
-					_Logging.IncrementEdits();
+					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
 				}
 			}
 			public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 			{
-				if (OtherLogActions.VerifyServerLoggingAction(_BotSettings, _GuildSettings, channel, LogAction.MessageDeleted, out VerifiedLoggingAction verified))
+				IGuild guild;
+				IGuildSettings guildSettings;
+				_Logging.IncrementDeletes();
+
+				if (!Verification.VerifyBotLogging(_BotSettings, _GuildSettings, channel, out var verified) ||
+					!Verification.VerifyLogAction(verified.GuildSettings))
 				{
-					var guild = verified.Guild;
-					var guildSettings = verified.GuildSettings;
-					var serverLog = verified.LoggingChannel;
+					return Task.FromResult(0);
+				}
+				else
+				{
+					guild = verified.Guild;
+					guildSettings = verified.GuildSettings;
+				}
 
-					var message = cached.HasValue ? cached.Value : null;
+				var message = cached.HasValue ? cached.Value : null;
 
-					//Get the list of deleted messages it contains
-					var msgDeletion = guildSettings.MessageDeletion;
+				//Get the list of deleted messages it contains
+				var msgDeletion = guildSettings.MessageDeletion;
+				lock (msgDeletion)
+				{
+					msgDeletion.AddToList(message);
+				}
+
+				//Use a token so the messages do not get sent prematurely
+				var cancelToken = msgDeletion.CancelToken;
+				if (cancelToken != null)
+				{
+					cancelToken.Cancel();
+				}
+				msgDeletion.SetCancelToken(cancelToken = new CancellationTokenSource());
+
+				//I don't know why, but this doesn't run correctly when awaited
+				var t = Task.Run(async () =>
+				{
+					try
+					{
+						await Task.Delay(TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT), cancelToken.Token);
+					}
+					catch (TaskCanceledException)
+					{
+						return;
+					}
+					catch (Exception e)
+					{
+						ConsoleActions.ExceptionToConsole(e);
+						return;
+					}
+
+					//Give the messages to a new list so they can be removed from the old one
+					List<IMessage> deletedMessages;
 					lock (msgDeletion)
 					{
-						msgDeletion.AddToList(message);
+						deletedMessages = new List<IMessage>(msgDeletion.GetList() ?? new List<IMessage>());
+						msgDeletion.ClearList();
 					}
 
-					//Use a token so the messages do not get sent prematurely
-					var cancelToken = msgDeletion.CancelToken;
-					if (cancelToken != null)
-					{
-						cancelToken.Cancel();
-					}
-					msgDeletion.SetCancelToken(cancelToken = new CancellationTokenSource());
-
-					_Logging.IncrementDeletes();
-
-					//I don't know why, but this doesn't run correctly when awaited
-					var t = Task.Run(async () =>
-					{
-						try
-						{
-							await Task.Delay(TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT), cancelToken.Token);
-						}
-						catch (TaskCanceledException)
-						{
-							return;
-						}
-						catch (Exception e)
-						{
-							ConsoleActions.ExceptionToConsole(e);
-							return;
-						}
-
-						//Give the messages to a new list so they can be removed from the old one
-						List<IMessage> deletedMessages;
-						lock (msgDeletion)
-						{
-							deletedMessages = new List<IMessage>(msgDeletion.GetList() ?? new List<IMessage>());
-							msgDeletion.ClearList();
-						}
-
-						//Put the message content into a list of strings for easy usage
-						var formattedMessages = FormattingActions.FormatMessages(deletedMessages.OrderBy(x => x?.CreatedAt.Ticks));
-						await MessageActions.SendMessageContainingFormattedDeletedMessages(guild, serverLog, formattedMessages);
-					});
-				}
+					//Put the message content into a list of strings for easy usage
+					var formattedMessages = FormattingActions.FormatMessages(deletedMessages.OrderBy(x => x?.CreatedAt.Ticks));
+					await MessageActions.SendMessageContainingFormattedDeletedMessages(guild, guildSettings.ServerLog, formattedMessages);
+				});
 				return Task.FromResult(0);
-			}
-
-			//Mod
-			public async Task LogCommand(IMyCommandContext context)
-			{
-				var loggedCommand = new LoggedCommand(context);
-				_Logging.RanCommands.Add(loggedCommand);
-
-				ConsoleActions.WriteLine(loggedCommand.ToString());
-				await MessageActions.DeleteMessage(context.Message);
-
-				if (OtherLogActions.VerifyMessageShouldBeLogged(context.GuildSettings, context.Message))
-				{
-					var modLog = context.GuildSettings.ModLog;
-					if (modLog == null)
-						return;
-
-					var embed = EmbedActions.MakeNewEmbed(null, context.Message.Content);
-					EmbedActions.AddFooter(embed, "Mod Log");
-					EmbedActions.AddAuthor(embed, context.User);
-					await MessageActions.SendEmbedMessage(modLog, embed);
-				}
 			}
 		}
 
-		public static class OnMessageReceivedActions
+		internal static class MessageRecieved
 		{
 			public static async Task HandleChannelSettings(IGuildSettings guildSettings, IMessage message)
 			{
-				var channel = message.Channel as ITextChannel;
 				var author = message.Author as IGuildUser;
-				if (channel == null || author == null || author.GuildPermissions.Administrator)
+				if (author == null || author.GuildPermissions.Administrator)
+				{
 					return;
+				}
 
-				if (guildSettings.ImageOnlyChannels.Contains(channel.Id) && !(message.Attachments.Any(x => x.Height != null || x.Width != null) || message.Embeds.Any(x => x.Image != null)))
+				if (guildSettings.ImageOnlyChannels.Contains(message.Channel.Id)
+					&& !(message.Attachments.Any(x => x.Height != null || x.Width != null) || message.Embeds.Any(x => x.Image != null)))
 				{
 					await message.DeleteAsync();
 				}
 			}
-			public static async Task HandleImageLogging(ILogModule logging, IGuildSettings guildSettings, IMessage message)
+			public static async Task HandleImageLogging(ILogModule logging, ITextChannel logChannel, IMessage message)
 			{
-				var logChannel = guildSettings.ImageLog;
-				if (logChannel == null || message.Author.Id == Properties.Settings.Default.BotID)
-					return;
-
 				if (message.Attachments.Any())
 				{
-					await OtherLogActions.LogImage(logging, logChannel, message, false);
+					await Other.LogImage(logging, logChannel, message, false);
 				}
 				if (message.Embeds.Any())
 				{
-					await OtherLogActions.LogImage(logging, logChannel, message, true);
+					await Other.LogImage(logging, logChannel, message, true);
 				}
 			}
 			public static async Task HandleCloseWords(IBotSettings botSettings, IGuildSettings guildSettings, IMessage message, ITimersModule timers = null)
 			{
-				if (timers != null && int.TryParse(message.Content, out int number) && number > 0 && number < 6)
+				if (timers == null || !int.TryParse(message.Content, out int number) || number < 1 || number > 6)
 				{
-					--number;
-					var closeWordList = timers.GetOutActiveCloseQuote(message.Author.Id);
-					if (!closeWordList.Equals(default(ActiveCloseWord<Quote>)) && closeWordList.List.Count > number)
-					{
-						await MessageActions.SendChannelMessage(message.Channel, closeWordList.List[number].Word.Text);
-						await MessageActions.DeleteMessage(message);
-					}
-					var closeHelpList = timers.GetOutActiveCloseHelp(message.Author.Id);
-					if (!closeHelpList.Equals(default(ActiveCloseWord<HelpEntry>)) && closeHelpList.List.Count > number)
-					{
-						var help = closeHelpList.List[number].Word;
-						var embed = EmbedActions.MakeNewEmbed(help.Name, help.ToString(), prefix: GetActions.GetPrefix(botSettings, guildSettings));
-						EmbedActions.AddFooter(embed, "Help");
-						await MessageActions.SendEmbedMessage(message.Channel, embed);
-						await MessageActions.DeleteMessage(message);
-					}
+					return;
+				}
+
+				--number;
+				var closeWordList = timers.GetOutActiveCloseQuote(message.Author.Id);
+				if (!closeWordList.Equals(default(ActiveCloseWord<Quote>)) && closeWordList.List.Count > number)
+				{
+					await MessageActions.SendChannelMessage(message.Channel, closeWordList.List[number].Word.Text);
+				}
+				var closeHelpList = timers.GetOutActiveCloseHelp(message.Author.Id);
+				if (!closeHelpList.Equals(default(ActiveCloseWord<HelpEntry>)) && closeHelpList.List.Count > number)
+				{
+					var help = closeHelpList.List[number].Word;
+					var embed = EmbedActions.MakeNewEmbed(help.Name, help.ToString(), prefix: GetActions.GetPrefix(botSettings, guildSettings));
+					EmbedActions.AddFooter(embed, "Help");
+					await MessageActions.SendEmbedMessage(message.Channel, embed);
 				}
 			}
-			public static async Task HandleSlowmodeOrBannedPhrases(IGuildSettings guildSettings, SocketGuild guild, IMessage message, ITimersModule timers = null)
+			public static async Task HandleSpamPrevention(IGuildSettings guildSettings, IGuild guild, IMessage message, ITimersModule timers  = null)
 			{
-				await SpamActions.HandleSlowmode(guildSettings, message);
-				await SpamActions.HandleBannedPhrases(timers, guildSettings, guild, message);
-			}
-			public static async Task HandleSpamPrevention(IGuildSettings guildSettings, SocketGuild guild, IMessage message, ITimersModule timers  = null)
-			{
-				if (UserActions.GetIfUserCanBeModifiedByUser(UserActions.GetBot(guild), message.Author))
+				if (message.Author.CanBeModifiedByUser(UserActions.GetBot(guild)))
 				{
 					await SpamActions.HandleSpamPrevention(guildSettings, guild, message.Author as IGuildUser, message, timers);
 				}
-			}
-			public static async Task HandleSpamPreventionVoting(IGuildSettings guildSettings, SocketGuild guild, IMessage message, ITimersModule timers = null)
-			{
+
 				//TODO: Make this work for all spam types
 				//Get the users primed to be punished by the spam prevention
 				var users = guildSettings.SpamPreventionUsers.Where(x =>
@@ -682,7 +643,63 @@ namespace Advobot
 			}
 		}
 
-		public static class OtherLogActions
+		internal static class Verification
+		{
+			private static SortedDictionary<string, LogAction> _ServerLogMethodLogActions = new SortedDictionary<string, LogAction>
+			{
+				{ nameof(MyLog.OnUserJoined), LogAction.UserJoined },
+				{ nameof(MyLog.OnUserLeft), LogAction.UserLeft },
+				{ nameof(MyLog.OnUserUpdated), LogAction.UserUpdated },
+				{ nameof(MyLog.OnMessageReceived), LogAction.MessageReceived },
+				{ nameof(MyLog.OnMessageUpdated), LogAction.MessageUpdated },
+				{ nameof(MyLog.OnMessageDeleted), LogAction.MessageDeleted },
+			};
+
+			public static bool VerifyLogAction(IGuildSettings guildSettings, [CallerMemberName] string callingMethod = null)
+			{
+				return guildSettings.LogActions.Contains(_ServerLogMethodLogActions[callingMethod]);
+			}
+			public static bool VerifyBotLogging(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IMessage message, out VerifiedLoggingAction verifLoggingAction)
+			{
+				return true
+					&& VerifyBotLogging(botSettings, guildSettingsModule, message.Channel.GetGuild(), out verifLoggingAction)
+					//Ignore all webhooks
+					&& message.Author.IsWebhook
+					//Ignore all bots but this bot
+					&& (message.Author.IsBot && message.Author.Id != Properties.Settings.Default.BotID)
+					//Check the channel isn't ignored
+					&& verifLoggingAction.GuildSettings.IgnoredLogChannels.Contains(message.Channel.Id);
+			}
+			public static bool VerifyBotLogging(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IGuildUser user, out VerifiedLoggingAction verifLoggingAction)
+			{
+				return true
+					&& VerifyBotLogging(botSettings, guildSettingsModule, user.Guild, out verifLoggingAction);
+			}
+			public static bool VerifyBotLogging(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IChannel channel, out VerifiedLoggingAction verifLoggingAction)
+			{
+				return true
+					&& VerifyBotLogging(botSettings, guildSettingsModule, channel.GetGuild(), out verifLoggingAction)
+					//Check the channel isn't ignored
+					&& !verifLoggingAction.GuildSettings.IgnoredLogChannels.Contains(channel.Id);
+			}
+			public static bool VerifyBotLogging(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IGuild guild, out VerifiedLoggingAction verifLoggingAction)
+			{
+				if (false
+					//Check if bot's paused
+					|| botSettings.Pause
+					//Check if guild has settings
+					|| !guildSettingsModule.TryGetSettings(guild, out IGuildSettings guildSettings))
+				{
+					verifLoggingAction = default(VerifiedLoggingAction);
+					return false;
+				}
+
+				verifLoggingAction = new VerifiedLoggingAction(guild, guildSettings);
+				return true;
+			}
+		}
+
+		internal static class Other
 		{
 			public static async Task LogImage(ILogModule currentLogModule, ITextChannel channel, IMessage message, bool embeds)
 			{
@@ -798,44 +815,6 @@ namespace Advobot
 						}
 					}
 				}
-			}
-
-			public static bool VerifyLoggingIsEnabledOnThisChannel(IGuildSettings guildSettings, IMessage message)
-			{
-				return !guildSettings.IgnoredLogChannels.Contains(message.Channel.Id);
-			}
-			public static bool VerifyMessageShouldBeLogged(IGuildSettings guildSettings, IMessage message)
-			{
-				//Ignore null messages, webhook messages, bot messages, and commands on channels that shouldn't be logged
-				return !(message == null || message.Author.IsWebhook || (message.Author.IsBot && message.Author.Id != Properties.Settings.Default.BotID) || !VerifyLoggingIsEnabledOnThisChannel(guildSettings, message));
-			}
-			public static bool VerifyServerLoggingAction(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IGuildUser user, LogAction logAction, out VerifiedLoggingAction verifLoggingAction)
-			{
-				return VerifyServerLoggingAction(botSettings, guildSettingsModule, user.Guild, logAction, out verifLoggingAction);
-			}
-			public static bool VerifyServerLoggingAction(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, ISocketMessageChannel channel, LogAction logAction, out VerifiedLoggingAction verifLoggingAction)
-			{
-				if (!VerifyServerLoggingAction(botSettings, guildSettingsModule, channel.GetGuild() as SocketGuild, logAction, out verifLoggingAction))
-				{
-					return false;
-				}
-				return !verifLoggingAction.Equals(default(VerifiedLoggingAction)) && !verifLoggingAction.GuildSettings.IgnoredLogChannels.Contains(channel.Id);
-			}
-			public static bool VerifyServerLoggingAction(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IGuild guild, LogAction logAction, out VerifiedLoggingAction verifLoggingAction)
-			{
-				verifLoggingAction = new VerifiedLoggingAction(null, null, null);
-				if (botSettings.Pause || !guildSettingsModule.TryGetSettings(guild, out IGuildSettings guildSettings))
-				{
-					return false;
-				}
-
-				if (guildSettings.ServerLog == null || !guildSettings.LogActions.Contains(logAction))
-				{
-					return false;
-				}
-
-				verifLoggingAction = new VerifiedLoggingAction(guild, guildSettings, guildSettings.ServerLog);
-				return true;
 			}
 		}
 	}

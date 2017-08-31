@@ -174,13 +174,11 @@ namespace Advobot
 		{
 			public IGuild Guild { get; }
 			public IGuildSettings GuildSettings { get; }
-			public ITextChannel LoggingChannel { get; }
 
-			public VerifiedLoggingAction(IGuild guild, IGuildSettings guildSettings, ITextChannel loggingChannel)
+			public VerifiedLoggingAction(IGuild guild, IGuildSettings guildSettings)
 			{
 				Guild = guild;
 				GuildSettings = guildSettings;
-				LoggingChannel = loggingChannel;
 			}
 		}
 

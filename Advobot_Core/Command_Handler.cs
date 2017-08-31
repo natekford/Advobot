@@ -2,6 +2,7 @@
 using Advobot.Interfaces;
 using Advobot.NonSavedClasses;
 using Advobot.SavedClasses;
+using Advobot.Structs;
 using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
@@ -32,7 +33,23 @@ namespace Advobot
 			_Timers = (ITimersModule)provider.GetService(typeof(ITimersModule));
 			_Logging = (ILogModule)provider.GetService(typeof(ILogModule));
 
-			SetUpCrucialEvents(_Client);
+			_Commands.CommandExecuted += CommandLogger;
+			if (_Client is DiscordSocketClient)
+			{
+				var socketClient = _Client as DiscordSocketClient;
+				socketClient.MessageReceived += (message) => HandleCommand(message as SocketUserMessage);
+				socketClient.Connected += async () => await SavingAndLoadingActions.LoadInformation(_Client, _BotSettings, _GuildSettings);
+			}
+			else if (_Client is DiscordShardedClient)
+			{
+				var shardedClient = _Client as DiscordShardedClient;
+				shardedClient.MessageReceived += (message) => HandleCommand(message as SocketUserMessage);
+				shardedClient.Shards.FirstOrDefault().Connected += async () => await SavingAndLoadingActions.LoadInformation(_Client, _BotSettings, _GuildSettings);
+			}
+			else
+			{
+				throw new ArgumentException($"Invalid client supplied. Must be {nameof(DiscordSocketClient)} or {nameof(DiscordShardedClient)}.");
+			}
 
 			_Commands.AddTypeReader(typeof(IInvite), new InviteTypeReader());
 			_Commands.AddTypeReader(typeof(IBan), new BanTypeReader());
@@ -42,26 +59,6 @@ namespace Advobot
 			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly()); //Use executing assembly to get all of the commands from Advobot_Core. Entry and Calling assembly give Advobot_Launcher
 		}
 
-		private static void SetUpCrucialEvents(IDiscordClient client)
-		{
-			if (client is DiscordSocketClient)
-			{
-				var socketClient = client as DiscordSocketClient;
-				socketClient.MessageReceived += (message) => HandleCommand(message as SocketUserMessage);
-				socketClient.Connected += async () => await SavingAndLoadingActions.LoadInformation(_Client, _BotSettings, _GuildSettings);
-			}
-			else if (client is DiscordShardedClient)
-			{
-				var shardedClient = client as DiscordShardedClient;
-				shardedClient.MessageReceived += (SocketMessage message) => HandleCommand(message as SocketUserMessage);
-				shardedClient.Shards.FirstOrDefault().Connected += async () => await SavingAndLoadingActions.LoadInformation(_Client, _BotSettings, _GuildSettings);
-			}
-			else
-			{
-				throw new ArgumentException("Invalid client supplied. Must be DiscordSocketClient or DiscordShardedClient.");
-			}
-		}
-
 		public static async Task HandleCommand(SocketUserMessage message)
 		{
 			if (_BotSettings.Pause)
@@ -69,12 +66,11 @@ namespace Advobot
 				return;
 			}
 
-			var guild = (message?.Channel as SocketTextChannel)?.Guild;
+			var guild = message.Channel.GetGuild();
 			if (guild == null)
 			{
 				return;
 			}
-
 			if (!_GuildSettings.TryGetSettings(guild, out IGuildSettings guildSettings))
 			{
 				await _GuildSettings.AddGuild(guild);
@@ -85,16 +81,37 @@ namespace Advobot
 				return;
 			}
 
-			var context = new MyCommandContext(_BotSettings, guildSettings, _Logging, _Timers, _Client, message);
-			var result = await _Commands.ExecuteAsync(context, argPos, _Provider);
+			await _Commands.ExecuteAsync(new MyCommandContext(_BotSettings, guildSettings, _Logging, _Timers, _Client, message), argPos, _Provider);
+		}
 
+		private static async Task CommandLogger(CommandInfo commandInfo, ICommandContext context, IResult result)
+		{
+			if (!(context is IMyCommandContext))
+			{
+				throw new ArgumentException($"{context.GetType().Name} is not a valid context type. Must be {nameof(IMyCommandContext)}");
+			}
+
+			var cont = context as IMyCommandContext;
 			if (result.IsSuccess)
 			{
-				await _Logging.Log.LogCommand(context);
+				var loggedCommand = new LoggedCommand(context);
+				_Logging.RanCommands.Add(loggedCommand);
 				_Logging.IncrementSuccessfulCommands();
+
+				ConsoleActions.WriteLine(loggedCommand.ToString());
+				await MessageActions.DeleteMessage(context.Message);
+
+				if (cont.GuildSettings.ModLog != null)
+				{
+					var embed = EmbedActions.MakeNewEmbed(null, context.Message.Content);
+					EmbedActions.AddFooter(embed, "Mod Log");
+					EmbedActions.AddAuthor(embed, context.User);
+					await MessageActions.SendEmbedMessage(cont.GuildSettings.ModLog, embed);
+				}
 			}
 			else if (!Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
 			{
+				_Logging.IncrementFailedCommands();
 				//Ignore commands with the unknown command error because it's annoying
 				switch (result.Error)
 				{
@@ -105,16 +122,14 @@ namespace Advobot
 					case CommandError.Exception:
 					{
 						ConsoleActions.WriteLine(result.ErrorReason);
-						break;
+						goto default;
 					}
 					default:
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR(result.ErrorReason));
+						await MessageActions.MakeAndDeleteSecondaryMessage(cont, FormattingActions.ERROR(result.ErrorReason));
 						break;
 					}
 				}
-
-				_Logging.IncrementFailedCommands();
 			}
 		}
 

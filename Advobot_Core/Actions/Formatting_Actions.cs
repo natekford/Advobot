@@ -281,6 +281,37 @@ namespace Advobot
 				return $"**Created:** `{FormatDateTime(dt)}` (`{DateTime.UtcNow.Subtract(dt.HasValue ? dt.Value.UtcDateTime : DateTime.UtcNow).Days}` days ago)";
 			}
 
+			public static string FormatUserStayLength(IGuildUser user)
+			{
+				var timeStayedStr = "";
+				if (user.JoinedAt.HasValue)
+				{
+					var timeStayed = (DateTime.UtcNow - user.JoinedAt.Value.ToUniversalTime());
+					timeStayedStr = $"\n**Stayed for:** {timeStayed.Days}:{timeStayed.Hours:00}:{timeStayed.Minutes:00}:{timeStayed.Seconds:00}";
+				}
+				return timeStayedStr;
+			}
+			public static async Task<string> FormatUserInviteJoin(IGuildSettings guildSettings, IGuild guild)
+			{
+				var curInv = await InviteActions.GetInviteUserJoinedOn(guildSettings, guild);
+				var inviteStr = "";
+				if (curInv != null)
+				{
+					inviteStr = $"\n**Invite:** {curInv.Code}";
+				}
+				return inviteStr;
+			}
+			public static string FormatUserAccountAgeWarning(IUser user)
+			{
+				var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
+				var ageWarningStr = "";
+				if (userAccAge.TotalHours < 24)
+				{
+					ageWarningStr = $"\n**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
+				}
+				return ageWarningStr;
+			}
+
 			public static string FormatGame(IUser user)
 			{
 				var game = user.Game;

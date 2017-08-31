@@ -80,7 +80,7 @@ namespace Advobot
 				IUserMessage msg;
 				try
 				{
-					msg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content ?? "", false, embed.WithCurrentTimestamp());
+					msg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content ?? "", false, embed.WithCurrentTimestamp().Build());
 				}
 				catch (Exception e)
 				{

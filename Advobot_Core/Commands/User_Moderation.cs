@@ -196,17 +196,17 @@ namespace Advobot
 		[DefaultEnabled(true)]
 		public sealed class Ban : MyModuleBase
 		{
-			[Command, Priority(3)]
+			[Command, Priority(1)]
 			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, uint time, [Optional, Remainder] string reason)
 			{
 				await CommandRunner(user, time, reason);
 			}
-			[Command, Priority(2)]
+			[Command, Priority(1)]
 			public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, [Optional, Remainder] string reason)
 			{
 				await CommandRunner(user, 0, reason);
 			}
-			[Command, Priority(1)]
+			[Command, Priority(0)]
 			public async Task Command(ulong userId, uint time, [Optional, Remainder] string reason)
 			{
 				await CommandRunner(userId, time, reason);
@@ -237,7 +237,7 @@ namespace Advobot
 				}
 
 				var ban = await PunishmentActions.ManualBan(Context.Guild, userId, FormattingActions.FormatUserReason(Context.User, reason), 1, time, Context.Timers);
-				await MessageActions.SendChannelMessage(Context, $"Successfully banned `{ban?.User?.FormatUser() ?? userId.ToString()}`.");
+				await MessageActions.SendChannelMessage(Context, $"Successfully banned `{ban?.User?.FormatUser()}`.");
 			}
 		}
 

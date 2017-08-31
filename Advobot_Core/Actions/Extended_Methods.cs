@@ -223,6 +223,20 @@ namespace Advobot
 				return false;
 			}
 
+			public static bool CanBeModifiedByUser(this IUser targetUser, IUser invokingUser)
+			{
+				//Return true so the bot can change its nickname (will give 403 error when tries to ban itself tho)
+				//Can't just check if the id is the same for both, cause then users would be able to ban themselves :/
+				if (targetUser.Id == Properties.Settings.Default.BotID && invokingUser.Id == Properties.Settings.Default.BotID)
+				{
+					return true;
+				}
+
+				var modifierPosition = UserActions.GetUserPosition(invokingUser);
+				var modifieePosition = UserActions.GetUserPosition(targetUser);
+				return modifierPosition > modifieePosition;
+			}
+
 			public static string EnumName(this Enum e)
 			{
 				return Enum.GetName(e.GetType(), e);

@@ -147,7 +147,7 @@ namespace Advobot
 				//TODO: Rework the 4 big punishment things
 				//Basically a consolidation of 4 separate big banning things into one. I still need to rework a lot of this.
 				var guild = user.Guild;
-				if (!UserActions.GetIfUserCanBeModifiedByUser(UserActions.GetBot(guild), user))
+				if (!user.CanBeModifiedByUser(UserActions.GetBot(guild)))
 					return;
 
 				switch (punishmentType)
