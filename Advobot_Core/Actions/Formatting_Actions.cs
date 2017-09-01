@@ -190,7 +190,12 @@ namespace Advobot
 				var firstField = logModule.FormatLoggedActions();
 				EmbedActions.AddField(embed, "Logged Actions", firstField);
 
-				var secondField = logModule.FormatLoggedCommands();
+				var secondField = String.Join("\n", new[]
+				{
+					$"**Attempted:** `{logModule.AttemptedCommands}`",
+					$"**Successful:** `{logModule.SuccessfulCommands}`",
+					$"**Failed:** `{logModule.FailedCommands}`",
+				});
 				EmbedActions.AddField(embed, "Commands", secondField);
 
 				var thirdField = String.Join("\n", new[]

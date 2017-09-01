@@ -82,6 +82,7 @@ namespace Advobot
 
 			uint TotalUsers { get; }
 			uint TotalGuilds { get; }
+			uint AttemptedCommands { get; }
 			uint SuccessfulCommands { get; }
 			uint FailedCommands { get; }
 			uint LoggedJoins { get; }

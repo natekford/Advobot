@@ -189,7 +189,7 @@ namespace Advobot
 					}
 					catch
 					{
-						ConsoleActions.WriteLine($"Unable to delete {msgAmt} messages on the guild {guildChannel.Guild.FormatGuild()} on channel {guildChannel.FormatChannel()}.");
+						ConsoleActions.WriteLine($"Unable to delete {msgAmt} messages on the guild {guildChannel.Guild.FormatGuild()} on channel {guildChannel.FormatChannel()}.", color: ConsoleColor.Red);
 						break;
 					}
 
@@ -245,7 +245,7 @@ namespace Advobot
 				}
 			}
 
-			public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages, string reason)
+			public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages, string reason = null)
 			{
 				if (messages == null || !messages.Any())
 					return;
@@ -256,7 +256,7 @@ namespace Advobot
 				}
 				catch
 				{
-					ConsoleActions.WriteLine($"Unable to delete {messages.Count()} messages on the guild {channel.GetGuild().FormatGuild()} on channel {channel.FormatChannel()}.");
+					ConsoleActions.WriteLine($"Unable to delete {messages.Count()} messages on the guild {channel.GetGuild().FormatGuild()} on channel {channel.FormatChannel()}.", color: ConsoleColor.Red);
 				}
 			}
 			public static async Task DeleteMessage(IMessage message)
@@ -270,7 +270,7 @@ namespace Advobot
 				}
 				catch
 				{
-					ConsoleActions.WriteLine($"Unable to delete the message {message.Id} on channel {message.Channel.FormatChannel()}.");
+					ConsoleActions.WriteLine($"Unable to delete the message {message.Id} on channel {message.Channel.FormatChannel()}.", color: ConsoleColor.Red);
 				}
 			}
 			public static async Task SendMessageContainingFormattedDeletedMessages(IGuild guild, ITextChannel channel, List<string> inputList)

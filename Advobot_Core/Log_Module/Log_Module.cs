@@ -26,6 +26,7 @@ namespace Advobot
 
 			public uint TotalUsers { get; private set; } = 0;
 			public uint TotalGuilds { get; private set; } = 0;
+			public uint AttemptedCommands { get; private set; } = 0;
 			public uint SuccessfulCommands { get; private set; } = 0;
 			public uint FailedCommands { get; private set; } = 0;
 			public uint LoggedJoins { get; private set; } = 0;
@@ -115,10 +116,12 @@ namespace Advobot
 			}
 			public void IncrementSuccessfulCommands()
 			{
+				++AttemptedCommands;
 				++SuccessfulCommands;
 			}
 			public void IncrementFailedCommands()
 			{
+				++AttemptedCommands;
 				++FailedCommands;
 			}
 			public void IncrementJoins()
@@ -160,7 +163,7 @@ namespace Advobot
 
 			public string FormatLoggedCommands()
 			{
-				var a = SuccessfulCommands + FailedCommands;
+				var a = AttemptedCommands;
 				var s = SuccessfulCommands;
 				var f = FailedCommands;
 				var maxNumLen = new[] { a, s, f }.Max().ToString().Length;

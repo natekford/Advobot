@@ -486,7 +486,7 @@ namespace Advobot
 			{
 				return GetBotSettings().Where(x =>
 				{
-					return x.PropertyType != typeof(string) && !x.PropertyType.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+					return x.PropertyType == typeof(string) || !x.PropertyType.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IEnumerable<>));
 				});
 			}
 			/// <summary>

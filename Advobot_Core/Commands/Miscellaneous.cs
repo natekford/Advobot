@@ -419,10 +419,14 @@ namespace Advobot
 				var count = 0;
 				for (count = 0; count < messages.Length; ++count)
 				{
-					formattedMessagesBuilder.Append(FormattingActions.FormatMessage(messages[count]).RemoveAllMarkdown().RemoveDuplicateNewLines() + "\n-----\n");
-					if (formattedMessagesBuilder.Length >= Context.BotSettings.MaxMessageGatherSize)
+					var text = FormattingActions.FormatMessage(messages[count]).RemoveAllMarkdown().RemoveDuplicateNewLines() + "\n-----\n";
+					if (formattedMessagesBuilder.Length + text.Length >= Context.BotSettings.MaxMessageGatherSize)
 					{
 						break;
+					}
+					else
+					{
+						formattedMessagesBuilder.Append(text);
 					}
 				}
 
