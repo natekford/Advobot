@@ -83,7 +83,7 @@ namespace Advobot
 			{
 				if (user != null)
 				{
-					var userName = FormattingActions.EscapeMarkdown(user.Username, true).CaseInsReplace("discord.gg", Constants.FAKE_DISCORD_LINK);
+					var userName = user.Username.EscapeBackTicks().CaseInsReplace("discord.gg", Constants.FAKE_DISCORD_LINK);
 					return $"'{userName}#{user.Discriminator}' ({user.Id})";
 				}
 				else
@@ -95,7 +95,7 @@ namespace Advobot
 			{
 				if (role != null)
 				{
-					return $"'{FormattingActions.EscapeMarkdown(role.Name, true)}' ({role.Id})";
+					return $"'{role.Name.EscapeBackTicks()}' ({role.Id})";
 				}
 				else
 				{
@@ -106,7 +106,7 @@ namespace Advobot
 			{
 				if (channel != null)
 				{
-					return $"'{FormattingActions.EscapeMarkdown(channel.Name, true)}' ({(channel is IMessageChannel ? "text" : "voice")}) ({channel.Id})";
+					return $"'{channel.Name.EscapeBackTicks()}' ({(channel is IMessageChannel ? "text" : "voice")}) ({channel.Id})";
 				}
 				else
 				{
@@ -117,7 +117,7 @@ namespace Advobot
 			{
 				if (guild != null)
 				{
-					return $"'{FormattingActions.EscapeMarkdown(guild.Name, true)}' ({guild.Id})";
+					return $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})";
 				}
 				else
 				{
@@ -223,6 +223,35 @@ namespace Advobot
 				return false;
 			}
 
+			public static string EscapeAllMarkdown(this string input)
+			{
+				return input.Replace("`", "\\`").Replace("*", "\\*").Replace("_", "\\_");
+			}
+			public static string EscapeBackTicks(this string input)
+			{
+				return input.Replace("`", "\\`");
+			}
+			public static string RemoveAllMarkdown(this string input)
+			{
+				return input.Replace("`", "").Replace("*", "").Replace("_", "");
+			}
+			public static string RemoveDuplicateNewLines(this string input)
+			{
+				while (input.Contains("\n\n"))
+				{
+					input = input.Replace("\n\n", "\n");
+				}
+				return input;
+			}
+			public static string RemoveAllNewLines(this string input)
+			{
+				return input.Replace(Environment.NewLine, "").Replace("\r", "").Replace("\n", "");
+			}
+			public static string EnumName(this Enum e)
+			{
+				return Enum.GetName(e.GetType(), e);
+			}
+
 			public static bool CanBeModifiedByUser(this IUser targetUser, IUser invokingUser)
 			{
 				//Return true so the bot can change its nickname (will give 403 error when tries to ban itself tho)
@@ -236,12 +265,6 @@ namespace Advobot
 				var modifieePosition = UserActions.GetUserPosition(targetUser);
 				return modifierPosition > modifieePosition;
 			}
-
-			public static string EnumName(this Enum e)
-			{
-				return Enum.GetName(e.GetType(), e);
-			}
-
 			public static bool AllCharactersAreWithinUpperLimit(this string str, int upperLimit)
 			{
 				if (String.IsNullOrWhiteSpace(str))

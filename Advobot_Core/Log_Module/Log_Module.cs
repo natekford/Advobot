@@ -474,8 +474,8 @@ namespace Advobot
 				}
 				if (guildSettings.ServerLog != null)
 				{
-					var beforeMsgContent = String.IsNullOrWhiteSpace(beforeMessage?.Content) ? "Empty or unable to be gotten." : FormattingActions.RemoveMarkdownChars(beforeMessage?.Content, true);
-					var afterMsgContent = String.IsNullOrWhiteSpace(afterMessage.Content) ? "Empty or unable to be gotten." : FormattingActions.RemoveMarkdownChars(afterMessage.Content, true);
+					var beforeMsgContent = String.IsNullOrWhiteSpace(beforeMessage?.Content) ? "Empty or unable to be gotten." : beforeMessage?.Content.RemoveAllMarkdown().RemoveDuplicateNewLines();
+					var afterMsgContent = String.IsNullOrWhiteSpace(afterMessage.Content) ? "Empty or unable to be gotten." : afterMessage.Content.RemoveAllMarkdown().RemoveDuplicateNewLines();
 
 					if (beforeMsgContent.Equals(afterMsgContent))
 					{

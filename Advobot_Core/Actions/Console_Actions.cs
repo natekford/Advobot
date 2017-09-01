@@ -19,9 +19,9 @@ namespace Advobot
 				return _WrittenLines;
 			}
 
-			public static void WriteLine(string text, [CallerMemberName] string name = "")
+			public static void WriteLine(string text, [CallerMemberName] string name = "", ConsoleColor color = ConsoleColor.White)
 			{
-				var line = $"[{DateTime.Now.ToString("HH:mm:ss")}] [{name}]: {FormattingActions.RemoveMarkdownChars(text, true)}";
+				var line = $"[{DateTime.Now.ToString("HH:mm:ss")}] [{name}]: {text.RemoveAllMarkdown().RemoveDuplicateNewLines()}";
 
 				//WrittenLines gets set 
 				if (_WrittenLines != null)
@@ -33,11 +33,12 @@ namespace Advobot
 					list.Add(line);
 				}
 
+				Console.ForegroundColor = color;
 				Console.WriteLine(line);
 			}
 			public static void ExceptionToConsole(Exception e, [CallerMemberName] string name = "")
 			{
-				WriteLine("EXCEPTION: " + e, name);
+				WriteLine("EXCEPTION: " + e, name, ConsoleColor.Red);
 			}
 		}
 	}

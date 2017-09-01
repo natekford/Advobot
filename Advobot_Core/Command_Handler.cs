@@ -81,35 +81,11 @@ namespace Advobot
 				return;
 			}
 
-			await _Commands.ExecuteAsync(new MyCommandContext(_BotSettings, guildSettings, _Logging, _Timers, _Client, message), argPos, _Provider);
-		}
+			var context = new MyCommandContext(_BotSettings, guildSettings, _Logging, _Timers, _Client, message);
+			_Logging.RanCommands.Add(new LoggedCommand(context));
 
-		private static async Task CommandLogger(CommandInfo commandInfo, ICommandContext context, IResult result)
-		{
-			if (!(context is IMyCommandContext))
-			{
-				throw new ArgumentException($"{context.GetType().Name} is not a valid context type. Must be {nameof(IMyCommandContext)}");
-			}
-
-			var cont = context as IMyCommandContext;
-			if (result.IsSuccess)
-			{
-				var loggedCommand = new LoggedCommand(context);
-				_Logging.RanCommands.Add(loggedCommand);
-				_Logging.IncrementSuccessfulCommands();
-
-				ConsoleActions.WriteLine(loggedCommand.ToString());
-				await MessageActions.DeleteMessage(context.Message);
-
-				if (cont.GuildSettings.ModLog != null)
-				{
-					var embed = EmbedActions.MakeNewEmbed(null, context.Message.Content);
-					EmbedActions.AddFooter(embed, "Mod Log");
-					EmbedActions.AddAuthor(embed, context.User);
-					await MessageActions.SendEmbedMessage(cont.GuildSettings.ModLog, embed);
-				}
-			}
-			else if (!Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
+			var result = await _Commands.ExecuteAsync(context, argPos, _Provider);
+			if (!String.IsNullOrWhiteSpace(result.ErrorReason) && !Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
 			{
 				_Logging.IncrementFailedCommands();
 				//Ignore commands with the unknown command error because it's annoying
@@ -121,15 +97,35 @@ namespace Advobot
 					}
 					case CommandError.Exception:
 					{
-						ConsoleActions.WriteLine(result.ErrorReason);
+						ConsoleActions.WriteLine(result.ErrorReason, color: ConsoleColor.Red);
 						goto default;
 					}
 					default:
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(cont, FormattingActions.ERROR(result.ErrorReason));
+						await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR(result.ErrorReason));
 						break;
 					}
 				}
+			}
+		}
+
+		public static async Task CommandLogger(CommandInfo commandInfo, ICommandContext context, IResult result)
+		{
+			if (!(context is IMyCommandContext))
+			{
+				throw new ArgumentException($"{context.GetType().Name} is not a valid context type. Must be {nameof(IMyCommandContext)}");
+			}
+
+			_Logging.IncrementSuccessfulCommands();
+			await MessageActions.DeleteMessage(context.Message);
+
+			var modLog = (context as IMyCommandContext)?.GuildSettings?.ModLog;
+			if (modLog != null)
+			{
+				var embed = EmbedActions.MakeNewEmbed(null, context.Message.Content);
+				EmbedActions.AddFooter(embed, "Mod Log");
+				EmbedActions.AddAuthor(embed, context.User);
+				await MessageActions.SendEmbedMessage(modLog, embed);
 			}
 		}
 

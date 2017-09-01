@@ -28,7 +28,7 @@ namespace Advobot
 				var desc = String.Join("\n", new[]
 				{
 					$"**ID:** `{guildUser.Id}`",
-					$"**Nickname:** `{(String.IsNullOrWhiteSpace(guildUser.Nickname) ? "NO NICKNAME" : EscapeMarkdown(guildUser.Nickname, true))}`",
+					$"**Nickname:** `{(String.IsNullOrWhiteSpace(guildUser.Nickname) ? "No nickname" : guildUser.Nickname.EscapeBackTicks())}`",
 					FormatDateTimeForCreatedAtMessage(guildUser.CreatedAt),
 					$"**Joined:** `{FormatDateTime(guildUser.JoinedAt.Value.UtcDateTime)}` (`{users.IndexOf(guildUser) + 1}` to join the guild)\n",
 					FormatGame(guildUser),
@@ -206,14 +206,14 @@ namespace Advobot
 
 			public static List<string> FormatMessages(IEnumerable<IMessage> list)
 			{
-				return list.Select(x => FormatNonDM(x)).ToList();
+				return list.Select(x => FormatMessage(x)).ToList();
 			}
-			public static string FormatNonDM(IMessage message)
+			public static string FormatMessage(IMessage message)
 			{
 				var time = message.CreatedAt.ToString("HH:mm:ss");
 				var author = message.Author.FormatUser();
 				var channel = message.Channel.FormatChannel();
-				var text = RemoveMarkdownChars(FormatMessageContent(message), true);
+				var text = FormatMessageContent(message).RemoveAllMarkdown().RemoveDuplicateNewLines();
 				return $"`[{time}]` `{author}` **IN** `{channel}`\n```\n{text}```";
 			}
 			public static string FormatMessageContent(IMessage message)
@@ -319,11 +319,11 @@ namespace Advobot
 				{
 					case StreamType.NotStreaming:
 					{
-						return $"**Current Game:** `{EscapeMarkdown(game?.Name, true)}`";
+						return $"**Current Game:** `{game?.Name.EscapeBackTicks()}`";
 					}
 					case StreamType.Twitch:
 					{
-						return $"**Current Stream:** [{EscapeMarkdown(game?.Name, true)}]({game?.StreamUrl})";
+						return $"**Current Stream:** [{game?.Name.EscapeBackTicks()}]({game?.StreamUrl})";
 					}
 					default:
 					{
@@ -336,37 +336,6 @@ namespace Advobot
 			{
 				return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
 			}
-
-			public static string EscapeMarkdown(string str, bool onlyAccentGrave)
-			{
-				return onlyAccentGrave ? str.Replace("`", "\\`") : str.Replace("`", "\\`").Replace("*", "\\*").Replace("_", "\\_");
-			}
-			public static string RemoveMarkdownChars(string input, bool replaceNewLines)
-			{
-				if (String.IsNullOrWhiteSpace(input))
-					return "";
-
-				input = new Regex("[*`]", RegexOptions.Compiled).Replace(input, "");
-
-				while (replaceNewLines)
-				{
-					if (input.Contains("\n\n"))
-					{
-						input = input.Replace("\n\n", "\n");
-					}
-					else
-					{
-						break;
-					}
-				}
-
-				return input;
-			}
-			public static string RemoveNewLines(string input)
-			{
-				return input.Replace(Environment.NewLine, "").Replace("\r", "").Replace("\n", "");
-			}
-
 			public static string FormatErrorString(IGuild guild, FailureReason failureReason, object obj)
 			{
 				var objType = FormatObjectType(obj);

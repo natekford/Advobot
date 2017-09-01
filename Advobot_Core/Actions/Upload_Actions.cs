@@ -22,7 +22,7 @@ namespace Advobot
 				var fullFileName = fileName + FormattingActions.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION;
 
 				var fileInfo = GetActions.GetServerDirectoryFile(guild.Id, fullFileName);
-				SavingAndLoadingActions.OverWriteFile(fileInfo, FormattingActions.RemoveMarkdownChars(text, false));
+				SavingAndLoadingActions.OverWriteFile(fileInfo, text.RemoveAllMarkdown());
 
 				var msg = await UploadFile(channel, fileInfo, String.IsNullOrWhiteSpace(content) ? "" : $"**{content}:**");
 

@@ -291,7 +291,7 @@ namespace Advobot
 				}
 				else
 				{
-					var text = FormattingActions.RemoveMarkdownChars(String.Join("\n-----\n", inputList), true);
+					var text = String.Join("\n-----\n", inputList).RemoveAllMarkdown().RemoveDuplicateNewLines();
 					var name = "Deleted_Messages_";
 					var content = $"{inputList.Count} Deleted Messages";
 					await UploadActions.WriteAndUploadTextFile(guild, channel, text, name, content);

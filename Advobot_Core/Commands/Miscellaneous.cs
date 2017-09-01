@@ -413,24 +413,23 @@ namespace Advobot
 			public async Task Command(int num, [Optional, VerifyChannel(true, ChannelVerification.CanBeRead)] ITextChannel channel)
 			{
 				channel = channel ?? Context.Channel as ITextChannel;
+				var messages = (await MessageActions.GetMessages(channel, Math.Min(num, 1000))).OrderBy(x => x.CreatedAt.Ticks).ToArray();
 
-				var charCount = 0;
-				var formattedMessages = new List<string>();
-				foreach (var msg in (await MessageActions.GetMessages(channel, Math.Min(num, 1000))).OrderBy(x => x.CreatedAt.Ticks))
+				var formattedMessagesBuilder = new System.Text.StringBuilder();
+				var count = 0;
+				for (count = 0; count < messages.Length; ++count)
 				{
-					var temp = FormattingActions.RemoveMarkdownChars(FormattingActions.FormatNonDM(msg), true);
-					if ((charCount += temp.Length) > Context.BotSettings.MaxMessageGatherSize)
+					formattedMessagesBuilder.Append(FormattingActions.FormatMessage(messages[count]).RemoveAllMarkdown().RemoveDuplicateNewLines() + "\n-----\n");
+					if (formattedMessagesBuilder.Length >= Context.BotSettings.MaxMessageGatherSize)
 					{
 						break;
 					}
-
-					formattedMessages.Add(temp);
 				}
 
 				await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel,
-					String.Join("\n-----\n", formattedMessages),
+					formattedMessagesBuilder.ToString(),
 					$"{channel.Name}_Messages",
-					$"Successfully got `{formattedMessages.Count}` messages");
+					$"Successfully got `{count}` messages");
 			}
 		}
 

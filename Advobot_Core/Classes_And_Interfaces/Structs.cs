@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Advobot
 {
@@ -197,6 +198,12 @@ namespace Advobot
 				User = context.User.FormatUser();
 				Time = FormattingActions.FormatDateTime(context.Message.CreatedAt);
 				Text = context.Message.Content;
+				Write(nameof(LoggedCommand)); //Can't leave this empty or CallingMemberName get .ctor (constructor)
+			}
+
+			public void Write([CallerMemberName] string callingMethod = null)
+			{
+				ConsoleActions.WriteLine(this.ToString(), callingMethod, ConsoleColor.Green);
 			}
 
 			public override string ToString()
@@ -206,7 +213,7 @@ namespace Advobot
 				var user = $"User: {User}";
 				var time = $"Time: {Time}";
 				var text = $"Text: {Text}";
-				return String.Join(Environment.NewLine + new string(' ', 25), new[] { guild, channel, user, time, text });
+				return String.Join(Environment.NewLine + new string(' ', 28), new[] { guild, channel, user, time, text });
 			}
 		}
 

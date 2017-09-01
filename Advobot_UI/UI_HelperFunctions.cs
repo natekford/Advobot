@@ -630,12 +630,7 @@ namespace Advobot
 					var uptime = $"Uptime: {botUptime}";
 					var cmds = $"Logged Commands:\n{formattedLoggedCommands}";
 					var logs = $"Logged Actions:\n{formattedLoggedThings}";
-					var str = FormattingActions.RemoveMarkdownChars($"{uptime}\r\r{cmds}\r\r{logs}", true);
-					var paragraph = new Paragraph(new Run(str))
-					{
-						TextAlignment = TextAlignment.Center,
-					};
-					return new FlowDocument(paragraph);
+					return new FlowDocument(new Paragraph(new Run(String.Join("\r\r", new[] { uptime, cmds, logs }).RemoveAllMarkdown().RemoveDuplicateNewLines())) { TextAlignment = TextAlignment.Center, });
 				}
 				public static Grid MakeColorDisplayer(UISettings UISettings, Grid child, Button button, double fontSizeProperty)
 				{
