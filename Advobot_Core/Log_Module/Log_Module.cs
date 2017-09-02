@@ -351,7 +351,7 @@ namespace Advobot
 					return;
 				}
 
-				var inviteStr = FormattingActions.FormatUserInviteJoin(guildSettings, guild);
+				var inviteStr = await FormattingActions.FormatUserInviteJoin(guildSettings, guild);
 				var ageWarningStr = FormattingActions.FormatUserAccountAgeWarning(user);
 				var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{inviteStr}{ageWarningStr}", Constants.JOIN);
 				EmbedActions.AddFooter(embed, (user.IsBot ? "Bot Joined" : "User Joined"));
@@ -664,34 +664,25 @@ namespace Advobot
 			}
 			public static bool VerifyBotLogging(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IMessage message, out VerifiedLoggingAction verifLoggingAction)
 			{
-				return true
-					&& VerifyBotLogging(botSettings, guildSettingsModule, message.Channel.GetGuild(), out verifLoggingAction)
-					//Ignore all webhooks
-					&& message.Author.IsWebhook
-					//Ignore all bots but this bot
-					&& (message.Author.IsBot && message.Author.Id != Properties.Settings.Default.BotID)
-					//Check the channel isn't ignored
-					&& verifLoggingAction.GuildSettings.IgnoredLogChannels.Contains(message.Channel.Id);
+				var allOtherLogRequirements = VerifyBotLogging(botSettings, guildSettingsModule, message.Channel.GetGuild(), out verifLoggingAction);
+				var isNotWebhook = !message.Author.IsWebhook;
+				var isNotBot = !message.Author.IsBot || message.Author.Id == Properties.Settings.Default.BotID;
+				var channelShouldBeLogged = !verifLoggingAction.GuildSettings.IgnoredLogChannels.Contains(message.Channel.Id);
+				return allOtherLogRequirements && isNotWebhook && isNotBot && channelShouldBeLogged;
 			}
 			public static bool VerifyBotLogging(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IGuildUser user, out VerifiedLoggingAction verifLoggingAction)
 			{
-				return true
-					&& VerifyBotLogging(botSettings, guildSettingsModule, user.Guild, out verifLoggingAction);
+				return VerifyBotLogging(botSettings, guildSettingsModule, user.Guild, out verifLoggingAction);
 			}
 			public static bool VerifyBotLogging(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IChannel channel, out VerifiedLoggingAction verifLoggingAction)
 			{
-				return true
-					&& VerifyBotLogging(botSettings, guildSettingsModule, channel.GetGuild(), out verifLoggingAction)
-					//Check the channel isn't ignored
-					&& !verifLoggingAction.GuildSettings.IgnoredLogChannels.Contains(channel.Id);
+				var allOtherLogRequirements = VerifyBotLogging(botSettings, guildSettingsModule, channel.GetGuild(), out verifLoggingAction);
+				var channelShouldBeLogged = !verifLoggingAction.GuildSettings.IgnoredLogChannels.Contains(channel.Id);
+				return allOtherLogRequirements && channelShouldBeLogged;
 			}
 			public static bool VerifyBotLogging(IBotSettings botSettings, IGuildSettingsModule guildSettingsModule, IGuild guild, out VerifiedLoggingAction verifLoggingAction)
 			{
-				if (false
-					//Check if bot's paused
-					|| botSettings.Pause
-					//Check if guild has settings
-					|| !guildSettingsModule.TryGetSettings(guild, out IGuildSettings guildSettings))
+				if (botSettings.Pause || !guildSettingsModule.TryGetSettings(guild, out IGuildSettings guildSettings))
 				{
 					verifLoggingAction = default(VerifiedLoggingAction);
 					return false;
