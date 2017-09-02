@@ -25,7 +25,7 @@ namespace Advobot
 			private readonly Timer _MinuteTimer = new Timer(MINUTE);
 			private readonly Timer _OneHalfSecondTimer = new Timer(ONE_HALF_SECOND);
 
-			private readonly IGuildSettingsModule GuildSettings;
+			private readonly IGuildSettingsModule _GuildSettings;
 
 			private readonly List<RemovablePunishment> _RemovablePunishments = new List<RemovablePunishment>();
 			private readonly List<RemovableMessage> _RemovableMessages = new List<RemovableMessage>();
@@ -33,9 +33,9 @@ namespace Advobot
 			private readonly List<ActiveCloseWord<Quote>> _ActiveCloseQuotes = new List<ActiveCloseWord<Quote>>();
 			private readonly List<SlowmodeUser> _SlowmodeUsers = new List<SlowmodeUser>();
 
-			public MyTimersModule(IGuildSettingsModule guildSettings)
+			public MyTimersModule(IServiceProvider provider)
 			{
-				GuildSettings = guildSettings;
+				_GuildSettings = (IGuildSettingsModule)provider.GetService(typeof(IGuildSettingsModule));
 
 				_HourTimer.Elapsed += OnHourEvent;
 				_HourTimer.Enabled = true;
@@ -53,7 +53,7 @@ namespace Advobot
 			}
 			private void ClearPunishedUsersList()
 			{
-				foreach (var guildSettings in GuildSettings.GetAllSettings())
+				foreach (var guildSettings in _GuildSettings.GetAllSettings())
 				{
 					guildSettings.SpamPreventionUsers.Clear();
 				}

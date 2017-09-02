@@ -95,8 +95,6 @@ namespace Advobot
 			uint LoggedGifs { get; }
 			uint LoggedFiles { get; }
 
-			ILog Log { get; }
-
 			void AddUsers(int users);
 			void RemoveUsers(int users);
 			void IncrementUsers();
@@ -117,21 +115,6 @@ namespace Advobot
 
 			string FormatLoggedCommands();
 			string FormatLoggedActions();
-		}
-
-		public interface ILog
-		{
-			Task Log(LogMessage msg);
-			Task OnGuildAvailable(SocketGuild guild);
-			Task OnGuildUnavailable(SocketGuild guild);
-			Task OnJoinedGuild(SocketGuild guild);
-			Task OnLeftGuild(SocketGuild guild);
-			Task OnUserJoined(SocketGuildUser user);
-			Task OnUserLeft(SocketGuildUser user);
-			Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser);
-			Task OnMessageReceived(SocketMessage message);
-			Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage afterMessage, ISocketMessageChannel channel);
-			Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel);
 		}
 
 		public interface IBotSettings

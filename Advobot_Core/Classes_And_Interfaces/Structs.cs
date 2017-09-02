@@ -185,35 +185,59 @@ namespace Advobot
 
 		public struct LoggedCommand
 		{
+			public static readonly string _Joiner = Environment.NewLine + new string (' ', 28);
 			public string Guild { get; }
 			public string Channel { get; }
 			public string User { get; }
 			public string Time { get; }
 			public string Text { get; }
+			public DateTime TimeInitiated { get; }
+			public DateTime TimeCompleted { get; private set; }
+			public string ErrorReason { get; private set; }
+			public ConsoleColor WriteColor;
 
-			public LoggedCommand(ICommandContext context)
+			public LoggedCommand(ICommandContext context, DateTime startTime)
 			{
 				Guild = context.Guild.FormatGuild();
 				Channel = context.Channel.FormatChannel();
 				User = context.User.FormatUser();
 				Time = FormattingActions.FormatDateTime(context.Message.CreatedAt);
 				Text = context.Message.Content;
-				Write(nameof(LoggedCommand)); //Can't leave this empty or CallingMemberName get .ctor (constructor)
+				TimeInitiated = startTime;
+				TimeCompleted = DateTime.UtcNow;
+				ErrorReason = null;
+				WriteColor = ConsoleColor.Green;
 			}
 
-			public void Write([CallerMemberName] string callingMethod = null)
+			public void Errored(string errorReason)
 			{
-				ConsoleActions.WriteLine(this.ToString(), callingMethod, ConsoleColor.Green);
+				ErrorReason = errorReason;
+				WriteColor = ConsoleColor.Red;
+			}
+			public void Finished()
+			{
+				TimeCompleted = DateTime.UtcNow;
+				Write();
+			}
+			public void Write()
+			{
+				ConsoleActions.WriteLine(this.ToString(), nameof(LoggedCommand), WriteColor);
 			}
 
 			public override string ToString()
 			{
-				var guild = $"Guild: {Guild}";
-				var channel = $"Channel: {Channel}";
-				var user = $"User: {User}";
-				var time = $"Time: {Time}";
-				var text = $"Text: {Text}";
-				return String.Join(Environment.NewLine + new string(' ', 28), new[] { guild, channel, user, time, text });
+				var response = new System.Text.StringBuilder();
+				response.Append($"Guild: {Guild}");
+				response.Append($"{_Joiner}Channel: {Channel}");
+				response.Append($"{_Joiner}User: {User}");
+				response.Append($"{_Joiner}Time: {Time}");
+				response.Append($"{_Joiner}Text: {Text}");
+				response.Append($"{_Joiner}Time taken: {(TimeCompleted - TimeInitiated).TotalMilliseconds}ms");
+				if (ErrorReason != null)
+				{
+					response.Append($"{_Joiner}Error: {ErrorReason}");
+				}
+				return response.ToString();
 			}
 		}
 

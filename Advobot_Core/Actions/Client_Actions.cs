@@ -69,16 +69,7 @@ namespace Advobot
 
 			public static IDiscordClient CreateBotClient(IBotSettings botSettings)
 			{
-				IDiscordClient client;
-				if (botSettings.ShardCount > 1)
-				{
-					client = CreateShardedClient(botSettings);
-				}
-				else
-				{
-					client = CreateSocketClient(botSettings);
-				}
-				return client;
+				return botSettings.ShardCount > 1 ? CreateShardedClient(botSettings) : (IDiscordClient)CreateSocketClient(botSettings);
 			}
 			public static DiscordShardedClient CreateShardedClient(IBotSettings botSettings)
 			{

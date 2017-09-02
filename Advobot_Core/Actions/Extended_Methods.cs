@@ -127,14 +127,17 @@ namespace Advobot
 
 			public static bool CaseInsEquals(this string str1, string str2)
 			{
+				//null == null
 				if (str1 == null)
 				{
 					return str2 == null;
 				}
+				//x != null
 				else if (str2 == null)
 				{
 					return false;
 				}
+				//x ?= x
 				else
 				{
 					return str1.Equals(str2, StringComparison.OrdinalIgnoreCase);

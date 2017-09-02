@@ -357,11 +357,6 @@ namespace Advobot
 						{
 							return;
 						}
-						catch (Exception e)
-						{
-							ConsoleActions.ExceptionToConsole(e);
-							return;
-						}
 
 						tt.IsOpen = false;
 					});

@@ -1,12 +1,15 @@
 ﻿using Advobot.Actions;
 using Advobot.Interfaces;
+using Advobot.Logging;
 using Advobot.NonSavedClasses;
 using Advobot.SavedClasses;
 using Advobot.Structs;
+using Advobot.Timers;
 using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,6 +26,16 @@ namespace Advobot
 		private static ITimersModule _Timers;
 		private static ILogModule _Logging;
 
+		public static IServiceProvider ConfigureServices(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettings)
+		{
+			var serviceCollection = new ServiceCollection();
+			serviceCollection.AddSingleton(client);
+			serviceCollection.AddSingleton(botSettings);
+			serviceCollection.AddSingleton(guildSettings);
+			serviceCollection.AddSingleton(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, }));
+
+			return new DefaultServiceProviderFactory().CreateServiceProvider(serviceCollection);
+		}
 		public static async Task Install(IServiceProvider provider)
 		{
 			_Provider = provider;
@@ -30,10 +43,10 @@ namespace Advobot
 			_BotSettings = (IBotSettings)provider.GetService(typeof(IBotSettings));
 			_GuildSettings = (IGuildSettingsModule)provider.GetService(typeof(IGuildSettingsModule));
 			_Client = (IDiscordClient)provider.GetService(typeof(IDiscordClient));
-			_Timers = (ITimersModule)provider.GetService(typeof(ITimersModule));
-			_Logging = (ILogModule)provider.GetService(typeof(ILogModule));
+			_Timers = new MyTimersModule(provider);
+			_Logging = new MyLogModule(provider);
 
-			_Commands.CommandExecuted += CommandLogger;
+			_Commands.CommandExecuted += (commandInfo, context, result) => CommandLogger(commandInfo, context as IMyCommandContext, result);
 			if (_Client is DiscordSocketClient)
 			{
 				var socketClient = _Client as DiscordSocketClient;
@@ -61,6 +74,8 @@ namespace Advobot
 
 		public static async Task HandleCommand(SocketUserMessage message)
 		{
+			var startTime = DateTime.UtcNow;
+
 			if (_BotSettings.Pause)
 			{
 				return;
@@ -82,9 +97,9 @@ namespace Advobot
 			}
 
 			var context = new MyCommandContext(_BotSettings, guildSettings, _Logging, _Timers, _Client, message);
-			_Logging.RanCommands.Add(new LoggedCommand(context));
-
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider);
+
+			var loggedCommand = new LoggedCommand(context, startTime);
 			if (!String.IsNullOrWhiteSpace(result.ErrorReason) && !Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
 			{
 				_Logging.IncrementFailedCommands();
@@ -97,7 +112,7 @@ namespace Advobot
 					}
 					case CommandError.Exception:
 					{
-						ConsoleActions.WriteLine(result.ErrorReason, color: ConsoleColor.Red);
+						loggedCommand.Errored(result.ErrorReason);
 						goto default;
 					}
 					default:
@@ -107,20 +122,22 @@ namespace Advobot
 					}
 				}
 			}
-		}
 
-		public static async Task CommandLogger(CommandInfo commandInfo, ICommandContext context, IResult result)
+			loggedCommand.Finished();
+			_Logging.RanCommands.Add(loggedCommand);
+		}
+		public static async Task CommandLogger(CommandInfo commandInfo, IMyCommandContext context, IResult result)
 		{
-			if (!(context is IMyCommandContext))
+			if (context == null)
 			{
-				throw new ArgumentException($"{context.GetType().Name} is not a valid context type. Must be {nameof(IMyCommandContext)}");
+				throw new ArgumentException("Invalid context provided to the command logger.");
 			}
 
 			_Logging.IncrementSuccessfulCommands();
 			await MessageActions.DeleteMessage(context.Message);
 
-			var modLog = (context as IMyCommandContext)?.GuildSettings?.ModLog;
-			if (modLog != null)
+			var modLog = context.GuildSettings?.ModLog;
+			if (modLog != null && !context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 			{
 				var embed = EmbedActions.MakeNewEmbed(null, context.Message.Content);
 				EmbedActions.AddFooter(embed, "Mod Log");

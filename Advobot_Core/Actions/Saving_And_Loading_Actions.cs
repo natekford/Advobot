@@ -130,12 +130,17 @@ namespace Advobot
 				return false;
 			}
 
-			public static IBotSettings CreateBotSettings(Type globalSettingType, bool windows, bool console, bool firstInstance)
+			public static IBotSettings CreateBotSettings(Type globalSettingType)
 			{
 				if (globalSettingType == null || !globalSettingType.GetInterfaces().Contains(typeof(IBotSettings)))
 				{
 					throw new ArgumentException("Invalid type for global settings provided.");
 				}
+
+				var criticalInfo = LoadCriticalInformation();
+				var windows = criticalInfo.Windows;
+				var console = criticalInfo.Console;
+				var firstInstance = criticalInfo.FirstInstance;
 
 				IBotSettings botSettings = null;
 				var fileInfo = GetActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
@@ -354,27 +359,14 @@ namespace Advobot
 				}
 			}
 
-			public static void LogUncaughtException(object sender, UnhandledExceptionEventArgs e, ILogModule logging)
+			public static void LogUncaughtException(object sender, UnhandledExceptionEventArgs e)
 			{
-				var exception = (Exception)e.ExceptionObject;
-				var lastRanCommand = logging.RanCommands.LastOrDefault();
-
-				string line;
-				if (lastRanCommand.Equals(default(LoggedCommand)))
-				{
-					line = $"{FormattingActions.FormatDateTime(DateTime.UtcNow)}: {exception.ToString()}\n";
-				}
-				else
-				{
-					line = $"{FormattingActions.FormatDateTime(DateTime.UtcNow)}: {exception.ToString()}\nLast ran command: {lastRanCommand.ToString()}\n";
-				}
-
 				var crashLogPath = GetActions.GetBaseBotDirectoryFile(Constants.CRASH_LOG_LOCATION);
 				CreateFile(crashLogPath);
 				//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
 				using (var writer = crashLogPath.AppendText())
 				{
-					writer.WriteLine(line);
+					writer.WriteLine($"{FormattingActions.FormatDateTime(DateTime.UtcNow)}: {e.ExceptionObject.ToString()}\n");
 				}
 			}
 		}
