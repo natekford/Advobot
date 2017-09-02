@@ -314,6 +314,39 @@ namespace Advobot
 			}
 		}
 
+		[Group(nameof(ResetGlobalProperties)), Alias("rgls")]
+		[Usage("")]
+		[Summary("Resets all settings stored in Properties.Settings.Default. (Bot key, bot Id, save path).")]
+		[OtherRequirement(Precondition.BotOwner)]
+		[DefaultEnabled(true)]
+		public sealed class ResetGlobalProperties : MyModuleBase
+		{
+			[Command]
+			public async Task Command()
+			{
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset all properties. Shutting down now...");
+				ClientActions.ResetSettingsSavedInPropertiesSettings();
+				ClientActions.DisconnectBot();
+			}
+		}
+
+		[Group(nameof(ResetBotKey)), Alias("rbk")]
+		[Usage("")]
+		[Summary("Remove's the currently used bot's key so that a different bot can be used instead.")]
+		[OtherRequirement(Precondition.BotOwner)]
+		[DefaultEnabled(true)]
+		public sealed class ResetBotKey : MyModuleBase
+		{
+			[Command]
+			public async Task Command()
+			{
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset the bot key. Shutting down now...");
+				Properties.Settings.Default.BotKey = null;
+				Properties.Settings.Default.Save();
+				ClientActions.DisconnectBot();
+			}
+		}
+
 		[Group(nameof(Disconnect)), Alias("dc", "runescapeservers")]
 		[Usage("")]
 		[Summary("Turns the bot off.")]
@@ -344,59 +377,4 @@ namespace Advobot
 			}
 		}
 	}
-	/*
-	//Global Settings commands are commands that work on the bot globally
-	[Name("GlobalSettings")]
-	public class Advobot_Commands_Administration : ModuleBase
-	{
-
-		[Command("resetglobalsettings")]
-		[Alias("rgls")]
-		[Usage("")]
-		[Summary("Resets all the global settings on the bot.")]
-		[OtherRequirement(Precondition.BotOwner)]
-		[DefaultEnabled(true)]
-		public async Task GlobalSettingsReset([Optional, Remainder] string input)
-		{
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared all settings. Restarting now...");
-			Actions.ResetSettings();
-
-			try
-			{
-				//Restart the application and close the current session
-				System.Diagnostics.Process.Start(System.Windows.Application.ResourceAssembly.Location);
-				Environment.Exit(0);
-			}
-			catch (Exception)
-			{
-				Messages.WriteLine("Bot is unable to restart.");
-			}
-		}
-
-		[Command("stopusingbot")]
-		[Alias("sub")]
-		[Usage("")]
-		[Summary("Remove's the currently used bot's key so that a different bot can be used instead.")]
-		[OtherRequirement(Precondition.BotOwner)]
-		[DefaultEnabled(true)]
-		public async Task StopUsingBot([Optional, Remainder] string input)
-		{
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the bot key. Restarting now...");
-			var settings = Properties.Settings.Default;
-			settings.BotKey = null;
-			settings.Save();
-
-			try
-			{
-				//Restart the application and close the current session
-				System.Diagnostics.Process.Start(System.Windows.Application.ResourceAssembly.Location);
-				Environment.Exit(0);
-			}
-			catch (Exception)
-			{
-				Messages.WriteLine("Bot is unable to restart.");
-			}
-		}
-	}
-	*/
 }

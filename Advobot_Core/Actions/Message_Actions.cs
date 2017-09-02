@@ -213,7 +213,7 @@ namespace Advobot
 			public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IUserMessage message, string secondStr, int time = -1, ITimersModule timers = null)
 			{
 				var secondMsg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
-				var messages = new List<IMessage> { secondMsg, message };
+				var messages = new[] { secondMsg, message };
 
 				if (time < 0)
 				{
@@ -248,7 +248,9 @@ namespace Advobot
 			public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages, string reason = null)
 			{
 				if (messages == null || !messages.Any())
+				{
 					return;
+				}
 
 				try
 				{
@@ -262,7 +264,9 @@ namespace Advobot
 			public static async Task DeleteMessage(IMessage message)
 			{
 				if (message == null || DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalDays >= 14)
+				{
 					return;
+				}
 
 				try
 				{
