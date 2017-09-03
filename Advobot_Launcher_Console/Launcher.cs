@@ -1,36 +1,28 @@
 ﻿using Advobot.Actions;
-using Advobot.NonSavedClasses;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot
+namespace Advobot.Launcher
 {
-	namespace Launcher
+	public class ConsoleLauncher
 	{
-		public class ConsoleLauncher
+		private static void Main()
 		{
-			private static void Main()
-			{
-				new ConsoleLauncher().MainAsync().GetAwaiter().GetResult();
-			}
-
-			private async Task MainAsync()
-			{
-				AppDomain.CurrentDomain.UnhandledException += (sender, e) => SavingAndLoadingActions.LogUncaughtException(sender, e);
-
-				//Make sure only one instance is running at the same time
+			//Make sure only one instance is running at the same time
 #if RELEASE
-				if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Length > 1)
-					return;
-#endif
-				var botSettings = SavingAndLoadingActions.CreateBotSettings(Constants.GLOBAL_SETTINGS_TYPE);
-				var guildSettings = new MyGuildSettingsModule(Constants.GUILDS_SETTINGS_TYPE);
-				var client = ClientActions.CreateBotClient(botSettings);
-				var provider = CommandHandler.ConfigureServices(client, botSettings, guildSettings);
-
-				await CommandHandler.Install(provider);
-				await ClientActions.MaybeStartBotWithConsole(client, botSettings);
+			if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Length > 1)
+			{
+				return;
 			}
+#endif
+			AppDomain.CurrentDomain.UnhandledException += SavingAndLoadingActions.LogUncaughtException;
+			MainAsync(ClientActions.CreateServicesAndServiceProvider()).GetAwaiter().GetResult();
+		}
+
+		private static async Task MainAsync(IServiceProvider provider)
+		{
+			await CommandHandler.Install(provider);
+			await ClientActions.MaybeStartBot(provider.GetService<Discord.IDiscordClient>(), provider.GetService<Interfaces.IBotSettings>());
 		}
 	}
 }

@@ -3,18 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Advobot.NonSavedClasses;
+using Advobot.Classes;
 using Advobot.Attributes;
 
-namespace Advobot
+namespace Advobot.Commands.Rules
 {
-	namespace Rules
+	/*
+	[DefaultEnabled(false)]
+	public sealed class ImportRules : MyModuleBase
 	{
-		/*
-		[DefaultEnabled(false)]
-		public sealed class ImportRules : MyModuleBase
-		{
 
-		}*/
-	}
+	}*/
 }
