@@ -2,7 +2,6 @@
 using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
-using Advobot.Structs;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;

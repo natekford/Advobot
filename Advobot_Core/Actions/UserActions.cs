@@ -1,6 +1,6 @@
-﻿using Advobot.Enums;
+﻿using Advobot.Classes;
+using Advobot.Enums;
 using Advobot.Interfaces;
-using Advobot.Structs;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;

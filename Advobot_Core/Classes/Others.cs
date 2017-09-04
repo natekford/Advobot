@@ -1,4 +1,5 @@
 ﻿using Advobot.Actions;
+using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
 using Discord.WebSocket;
@@ -88,6 +89,66 @@ namespace Advobot.Classes
 		public void ClearList()
 		{
 			_Messages.Clear();
+		}
+	}
+
+	/// <summary>
+	/// Basically a tuple of a FailureReason and a different object.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	public struct ReturnedObject<T>
+	{
+		public T Object { get; }
+		public FailureReason Reason { get; }
+
+		public ReturnedObject(T obj, FailureReason reason)
+		{
+			Object = obj;
+			Reason = reason;
+		}
+	}
+
+	/// <summary>
+	/// Holds a <see cref="DateTime"/> object and implements <see cref="ITimeInterface"/> so certain methods can restrict generics easier.
+	/// </summary>
+	public struct BasicTimeInterface : ITimeInterface
+	{
+		private DateTime _Time;
+
+		public BasicTimeInterface(DateTime time)
+		{
+			_Time = time.ToUniversalTime();
+		}
+
+		public DateTime GetTime()
+		{
+			return _Time;
+		}
+	}
+
+	/// <summary>
+	/// Basically a tuple for three bools which represent critical information.
+	/// </summary>
+	public struct CriticalInformation
+	{
+		/// <summary>
+		/// True if the system is windows, false otherwise.
+		/// </summary>
+		public bool Windows { get; }
+		/// <summary>
+		/// True if the program is in console mode, false otherwise.
+		/// </summary>
+		public bool Console { get; }
+		/// <summary>
+		/// True if the bot Id held in <see cref="Properties.Settings.Path"/> does not match the current bot's Id.
+		/// </summary>
+		public bool FirstInstance { get; }
+
+		public CriticalInformation(bool windows, bool console, bool firstInstance)
+		{
+			Windows = windows;
+			Console = console;
+			FirstInstance = firstInstance;
 		}
 	}
 }

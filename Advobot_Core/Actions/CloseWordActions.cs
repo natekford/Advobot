@@ -1,5 +1,5 @@
 ﻿using Advobot.Interfaces;
-using Advobot.Structs;
+using Advobot.Classes;
 using System;
 using System.Collections.Generic;
 using System.Linq;

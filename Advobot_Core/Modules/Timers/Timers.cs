@@ -2,7 +2,6 @@
 using Advobot.Classes;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using Advobot.Structs;
 using System;
 using System.Collections.Generic;
 using System.Linq;

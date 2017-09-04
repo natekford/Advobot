@@ -180,7 +180,7 @@ namespace Advobot.Attributes
 			//Use the first alias since that's what group gets set as (could use any alias since GetCommand works for aliases too)
 			//Doing a split since subcommands (in this bot's case) are simply easy to use options on a single command
 			var cmd = GetActions.GetCommand(context.GuildSettings, command.Aliases[0].Split(' ')[0]);
-			if (!cmd.ValAsBoolean)
+			if (!cmd.Value)
 			{
 				return false;
 			}

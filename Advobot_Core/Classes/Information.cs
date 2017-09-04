@@ -3,6 +3,8 @@ using Advobot.Interfaces;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Advobot.Classes
 {
@@ -58,6 +60,45 @@ namespace Advobot.Classes
 			var permStr = $"\n**Base Permission(s):**\n{BasePerm}";
 			var descStr = $"\n**Description:**\n{Text}";
 			return String.Join("\n", new[] { aliasStr, usageStr, permStr, descStr });
+		}
+	}
+
+	/// <summary>
+	/// Container of close words which is intended to be removed after <see cref="GetTime()"/> returns a time less than the current time.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	public struct ActiveCloseWord<T> : ITimeInterface where T : INameAndText
+	{
+		public ulong UserId { get; }
+		public List<CloseWord<T>> List { get; }
+		private DateTime _Time;
+
+		public ActiveCloseWord(ulong userID, IEnumerable<CloseWord<T>> list)
+		{
+			UserId = userID;
+			List = list.ToList();
+			_Time = DateTime.UtcNow.AddSeconds(Constants.SECONDS_ACTIVE_CLOSE);
+		}
+
+		public DateTime GetTime()
+		{
+			return _Time;
+		}
+	}
+
+	/// <summary>
+	/// Holds an object which has a name and text and its closeness.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	public struct CloseWord<T> where T : INameAndText
+	{
+		public T Word { get; }
+		public int Closeness { get; }
+
+		public CloseWord(T word, int closeness)
+		{
+			Word = word;
+			Closeness = closeness;
 		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿using Advobot.Structs;
+﻿using Advobot.Classes;
 using Discord;
 using System.Collections.Generic;
 using System.IO;

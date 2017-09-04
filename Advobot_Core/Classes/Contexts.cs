@@ -6,7 +6,7 @@ using Discord.Commands;
 namespace Advobot.Classes
 {
 	/// <summary>
-	/// Same as MyModuleBase except saves guild settings afterwards.
+	/// Same as <see cref="MyModuleBase"/> except saves guild settings afterwards.
 	/// </summary>
 	public class MySavingModuleBase : MyModuleBase
 	{
@@ -18,11 +18,14 @@ namespace Advobot.Classes
 	}
 
 	/// <summary>
-	/// Shorter way to write ModuleBase<MyCommandContext> and also has every command go through the command requirements attribute first.
+	/// Shorter way to write ModuleBase<MyCommandContext> and also has every command go through the <see cref="CommandRequirementsAttribute"/> first.
 	/// </summary>
 	[CommandRequirements]
 	public class MyModuleBase : ModuleBase<MyCommandContext> { }
 
+	/// <summary>
+	/// A <see cref="CommandContext"/> which contains <see cref="IBotSettings"/>, <see cref="IGuildSettings"/>, <see cref="ILogModule"/>, and <see cref="ITimersModule"/>.
+	/// </summary>
 	public class MyCommandContext : CommandContext, IMyCommandContext
 	{
 		public IBotSettings BotSettings { get; }

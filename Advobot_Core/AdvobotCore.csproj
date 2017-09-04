@@ -206,11 +206,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Banned_Phrases.cs" />
-    <Compile Include="Classes\CommandsAndPermissions.cs" />
+    <Compile Include="Classes\BannedPhrases.cs" />
+    <Compile Include="Classes\Commands.cs" />
     <Compile Include="Classes\Contexts.cs" />
-    <Compile Include="Classes\INameAndText.cs" />
+    <Compile Include="Classes\Information.cs" />
     <Compile Include="Classes\Invites.cs" />
+    <Compile Include="Classes\Permissions.cs" />
     <Compile Include="Classes\Roles.cs" />
     <Compile Include="Classes\Settings.cs" />
     <Compile Include="Classes\Slowmode.cs" />
@@ -265,8 +266,7 @@
     <Compile Include="Enums\Enums.cs" />
     <Compile Include="Interfaces\Basic_Interfaces.cs" />
     <Compile Include="TypeReaders\AdvobotEntitiesTypeReaders.cs" />
-    <Compile Include="Structs\Structs.cs" />
-    <Compile Include="Classes\Miscellaneous.cs" />
+    <Compile Include="Classes\Others.cs" />
     <Compile Include="Modules\Log\Log.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="CommandHandler.cs" />

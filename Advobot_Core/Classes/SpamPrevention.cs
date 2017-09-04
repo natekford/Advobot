@@ -1,7 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using Advobot.Structs;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;

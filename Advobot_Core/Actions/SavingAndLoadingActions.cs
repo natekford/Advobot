@@ -3,7 +3,6 @@ using Advobot.Classes;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Advobot.Modules.GuildSettings;
-using Advobot.Structs;
 using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;

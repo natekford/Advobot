@@ -1,5 +1,4 @@
-﻿using Advobot.Actions;
-using Advobot.Enums;
+﻿using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
 using Discord.WebSocket;
@@ -7,6 +6,9 @@ using Newtonsoft.Json;
 
 namespace Advobot.Classes
 {
+	/// <summary>
+	/// Holds a phrase and punishment.
+	/// </summary>
 	public class BannedPhrase : ISetting
 	{
 		[JsonProperty]
@@ -51,6 +53,9 @@ namespace Advobot.Classes
 		}
 	}
 
+	/// <summary>
+	/// Holds a variety of information which allows a punishment to be given for <see cref="BannedPhrase"/>.
+	/// </summary>
 	public class BannedPhrasePunishment : ISetting
 	{
 		[JsonProperty]
@@ -60,22 +65,19 @@ namespace Advobot.Classes
 		[JsonProperty]
 		public ulong RoleId { get; }
 		[JsonProperty]
-		public ulong GuildId { get; }
-		[JsonProperty]
 		public uint PunishmentTime { get; }
 		[JsonIgnore]
 		public IRole Role { get; private set; }
 
 		[JsonConstructor]
-		public BannedPhrasePunishment(int number, PunishmentType punishment, ulong guildId = 0, ulong roleId = 0, uint punishmentTime = 0)
+		public BannedPhrasePunishment(int number, PunishmentType punishment, ulong roleId = 0, uint punishmentTime = 0)
 		{
 			NumberOfRemoves = number;
 			Punishment = punishment;
 			RoleId = roleId;
-			GuildId = guildId;
 			PunishmentTime = punishmentTime;
 		}
-		public BannedPhrasePunishment(int number, PunishmentType punishment, ulong guildId = 0, ulong roleId = 0, uint punishmentTime = 0, IRole role = null) : this(number, punishment, guildId, roleId, punishmentTime)
+		public BannedPhrasePunishment(int number, PunishmentType punishment, ulong roleId = 0, uint punishmentTime = 0, IRole role = null) : this(number, punishment, roleId, punishmentTime)
 		{
 			Role = role;
 		}
@@ -99,6 +101,9 @@ namespace Advobot.Classes
 		}
 	}
 
+	/// <summary>
+	/// Holds a user and the counts of which punishments they should get.
+	/// </summary>
 	public class BannedPhraseUser
 	{
 		public IGuildUser User { get; }

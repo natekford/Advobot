@@ -1,5 +1,5 @@
 ﻿using Advobot.Enums;
-using Advobot.Structs;
+using Advobot.Classes;
 using Discord;
 using Discord.Commands;
 using System;

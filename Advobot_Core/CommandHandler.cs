@@ -1,7 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Classes;
 using Advobot.Interfaces;
-using Advobot.Structs;
 using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
