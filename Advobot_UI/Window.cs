@@ -1,10 +1,7 @@
 ﻿using Advobot.Actions;
 using Advobot.Enums;
 using Advobot.Graphics.Colors;
-using Advobot.Graphics.HelperActions;
-using Advobot.Graphics.HelperClasses;
 using Advobot.Interfaces;
-using Advobot.Structs;
 using Discord;
 using ICSharpCode.AvalonEdit;
 using System;
@@ -20,7 +17,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace Advobot.Graphics.UserInterface
+namespace Advobot.Graphics
 {
 	/// <summary>
 	/// If anyone is reading this: do not use this class. Make your own UI instead.

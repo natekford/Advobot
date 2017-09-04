@@ -50,12 +50,12 @@ namespace Advobot.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public ulong BotID {
+        public ulong BotId {
             get {
-                return ((ulong)(this["BotID"]));
+                return ((ulong)(this["BotId"]));
             }
             set {
-                this["BotID"] = value;
+                this["BotId"] = value;
             }
         }
         

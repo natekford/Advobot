@@ -259,6 +259,7 @@
     <Compile Include="Modules\InviteList\InviteList.cs" />
     <Compile Include="Modules\Log\HelperActions.cs" />
     <Compile Include="Classes\RemovablePunishments.cs" />
+    <Compile Include="Modules\Log\Structs.cs" />
     <Compile Include="Modules\Timers\Timers.cs" />
     <Compile Include="Attributes\Attributes.cs" />
     <Compile Include="Enums\Enums.cs" />

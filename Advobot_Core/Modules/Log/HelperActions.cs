@@ -58,7 +58,7 @@ namespace Advobot.Modules.Log
 		{
 			var allOtherLogRequirements = VerifyBotLogging(botSettings, guildSettingsModule, message.Channel.GetGuild(), out verifLoggingAction);
 			var isNotWebhook = !message.Author.IsWebhook;
-			var isNotBot = !message.Author.IsBot || message.Author.Id == Properties.Settings.Default.BotID;
+			var isNotBot = !message.Author.IsBot || message.Author.Id == Properties.Settings.Default.BotId;
 			var channelShouldBeLogged = !verifLoggingAction.GuildSettings.IgnoredLogChannels.Contains(message.Channel.Id);
 			return allOtherLogRequirements && isNotWebhook && isNotBot && channelShouldBeLogged;
 		}

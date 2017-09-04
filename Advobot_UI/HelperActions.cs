@@ -1,9 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Graphics.Colors;
-using Advobot.Graphics.HelperClasses;
-using Advobot.Graphics.UserInterface;
 using Advobot.Interfaces;
-using Advobot.Structs;
 using Discord;
 using ICSharpCode.AvalonEdit;
 using Newtonsoft.Json;
@@ -20,7 +17,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace Advobot.Graphics.HelperActions
+namespace Advobot.Graphics
 {
 	internal class UIModification
 	{

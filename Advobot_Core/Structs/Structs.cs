@@ -102,50 +102,9 @@ namespace Advobot.Structs
 		}
 	}
 
-	public struct ReturnedArguments
-	{
-		public List<string> Arguments { get; }
-		public int ArgCount { get; }
-		public Dictionary<string, string> SpecifiedArguments { get; }
-		public List<ulong> MentionedUsers { get; }
-		public List<ulong> MentionedRoles { get; }
-		public List<ulong> MentionedChannels { get; }
-		public FailureReason Reason { get; }
-
-		public ReturnedArguments(List<string> args, FailureReason reason)
-		{
-			Arguments = args;
-			ArgCount = args.Where(x => !String.IsNullOrWhiteSpace(x)).Count();
-			SpecifiedArguments = null;
-			MentionedUsers = null;
-			MentionedRoles = null;
-			MentionedChannels = null;
-			Reason = reason;
-		}
-		public ReturnedArguments(List<string> args, Dictionary<string, string> specifiedArgs, IMessage message)
-		{
-			Arguments = args;
-			ArgCount = args.Where(x => !String.IsNullOrWhiteSpace(x)).Count();
-			SpecifiedArguments = specifiedArgs;
-			MentionedUsers = message.MentionedUserIds.ToList();
-			MentionedRoles = message.MentionedRoleIds.ToList();
-			MentionedChannels = message.MentionedChannelIds.ToList();
-			Reason = FailureReason.NotFailure;
-		}
-
-		public string GetSpecifiedArg(string input)
-		{
-			if (SpecifiedArguments.TryGetValue(input, out string value))
-			{
-				return value;
-			}
-			else
-			{
-				return null;
-			}
-		}
-	}
-
+	/// <summary>
+	/// Holds a <see cref="DateTime"/> object and implements <see cref="ITimeInterface"/> so certain methods can restrict generics easier.
+	/// </summary>
 	public struct BasicTimeInterface : ITimeInterface
 	{
 		private DateTime _Time;
@@ -161,47 +120,12 @@ namespace Advobot.Structs
 		}
 	}
 
-	public struct GuildFileInformation
-	{
-		public ulong Id { get; }
-		public string Name { get; }
-		public int MemberCount { get; }
-
-		public GuildFileInformation(ulong id, string name, int memberCount)
-		{
-			Id = id;
-			Name = name;
-			MemberCount = memberCount;
-		}
-	}
-
-	public struct FileInformation
-	{
-		public FileType FileType { get; }
-		public FileInfo FileInfo { get; }
-
-		public FileInformation(FileType fileType, FileInfo fileInfo)
-		{
-			FileType = fileType;
-			FileInfo = fileInfo;
-		}
-	}
-
-	public struct VerifiedLoggingAction
-	{
-		public IGuild Guild { get; }
-		public IGuildSettings GuildSettings { get; }
-
-		public VerifiedLoggingAction(IGuild guild, IGuildSettings guildSettings)
-		{
-			Guild = guild;
-			GuildSettings = guildSettings;
-		}
-	}
-
+	/// <summary>
+	/// Holds information about a command. 
+	/// </summary>
 	public struct LoggedCommand
 	{
-		public static readonly string _Joiner = Environment.NewLine + new string (' ', 28);
+		private static readonly string _Joiner = Environment.NewLine + new string (' ', 28);
 		public string Guild { get; }
 		public string Channel { get; }
 		public string User { get; }
@@ -257,10 +181,22 @@ namespace Advobot.Structs
 		}
 	}
 
+	/// <summary>
+	/// Basically a tuple for three bools which represent critical information.
+	/// </summary>
 	public struct CriticalInformation
 	{
+		/// <summary>
+		/// True if the system is windows, false otherwise.
+		/// </summary>
 		public bool Windows { get; }
+		/// <summary>
+		/// True if the program is in console mode, false otherwise.
+		/// </summary>
 		public bool Console { get; }
+		/// <summary>
+		/// True if the bot Id held in <see cref="Properties.Settings.Path"/> does not match the current bot's Id.
+		/// </summary>
 		public bool FirstInstance { get; }
 
 		public CriticalInformation(bool windows, bool console, bool firstInstance)

@@ -373,7 +373,7 @@ namespace Advobot.Modules.Log
 			this.IncrementLeaves();
 
 			//Check if the bot was the one that left
-			if (user.Id == Properties.Settings.Default.BotID)
+			if (user.Id == Properties.Settings.Default.BotId)
 			{
 				return;
 			}

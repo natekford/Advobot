@@ -435,6 +435,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
+	/*
 	[Group(nameof(MakeAnEmbed)), Alias("mae")]
 	[Usage("<\"Title:input\"> <\"Desc:input\"> <Img:url> <Url:url> <Thumb:url> <Color:int/int/int> <\"Author:input\"> <AuthorIcon:url> <AuthorUrl:url> <\"Foot:input\"> <FootIcon:url> " +
 		"<\"Field[1-25]:input\"> <\"FieldText[1-25]:input\"> <FieldInline[1-25]:true|false>")]
@@ -494,7 +495,7 @@ namespace Advobot.Commands.Miscellaneous
 
 			await MessageActions.SendEmbedMessage(Context.Channel, embed);
 		}
-	}
+	}*/
 
 	[Group(nameof(MentionRole)), Alias("mnr")]
 	[Usage("[Role] [Message]")]

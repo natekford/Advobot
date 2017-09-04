@@ -245,7 +245,7 @@ namespace Advobot
 		{
 			//Return true so the bot can change its nickname (will give 403 error when tries to ban itself tho)
 			//Can't just check if the id is the same for both, cause then users would be able to ban themselves :/
-			if (targetUser.Id == Properties.Settings.Default.BotID && invokingUser.Id == Properties.Settings.Default.BotID)
+			if (targetUser.Id == Properties.Settings.Default.BotId && invokingUser.Id == Properties.Settings.Default.BotId)
 			{
 				return true;
 			}

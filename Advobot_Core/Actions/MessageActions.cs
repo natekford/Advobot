@@ -302,7 +302,9 @@ namespace Advobot.Actions
 		public static async Task SendGuildNotification(IUser user, GuildNotification notification)
 		{
 			if (notification == null)
+			{
 				return;
+			}
 
 			var content = notification.Content;
 			content = content.CaseInsReplace("{UserMention}", user != null ? user.Mention : "Invalid User");
@@ -322,51 +324,6 @@ namespace Advobot.Actions
 		public static async Task HandleObjectGettingErrors<T>(IMyCommandContext context, ReturnedObject<T> returnedObject)
 		{
 			await MakeAndDeleteSecondaryMessage(context, FormattingActions.FormatErrorString(context.Guild, returnedObject.Reason, returnedObject.Object));
-		}
-		public static async Task HandleArgsGettingErrors(IMyCommandContext context, ReturnedArguments returnedArgs)
-		{
-			switch (returnedArgs.Reason)
-			{
-				case FailureReason.TooMany:
-				{
-					await MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR("Too many arguments."));
-					return;
-				}
-				case FailureReason.TooFew:
-				{
-					await MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR("Too few arguments."));
-					return;
-				}
-				/*
-				case FailureReason.MissingCriticalArgs:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR("Missing critical arguments."));
-					return;
-				}
-				case FailureReason.MaxLessThanMin:
-				{
-					await MakeAndDeleteSecondaryMessage(context, ERROR("NOT USER ERROR: Max less than min."));
-					return;
-				}*/
-			}
-		}
-
-		public static async Task<Dictionary<IUser, IMessageChannel>> GetAllBotDMs(IDiscordClient client)
-		{
-			var dict = new Dictionary<IUser, IMessageChannel>();
-			foreach (var channel in await client.GetDMChannelsAsync())
-			{
-				var recep = channel.Recipient;
-				if (recep != null)
-				{
-					dict.Add(recep, channel);
-				}
-			}
-			return dict;
-		}
-		public static async Task<List<IMessage>> GetBotDMs(IDMChannel channel)
-		{
-			return (await GetMessages(channel, Constants.AMT_OF_DMS_TO_GATHER)).OrderBy(x => x?.CreatedAt).ToList();
 		}
 	}
 }

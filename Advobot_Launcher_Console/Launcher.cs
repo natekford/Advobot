@@ -4,12 +4,15 @@ using System.Threading.Tasks;
 
 namespace Advobot.Launcher
 {
-	public class ConsoleLauncher
+	/// <summary>
+	/// Starting point for Advobot.
+	/// </summary>
+	class ConsoleLauncher
 	{
 		private static void Main()
 		{
-			//Make sure only one instance is running at the same time
 #if RELEASE
+			//Make sure only one instance is running at the same time
 			if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Length > 1)
 			{
 				return;

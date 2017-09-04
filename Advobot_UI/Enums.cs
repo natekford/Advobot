@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Advobot.Graphics.UserInterface
+namespace Advobot.Graphics
 {
 	[Flags]
 	internal enum MenuType : uint

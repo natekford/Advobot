@@ -40,7 +40,7 @@ namespace Advobot.Actions
 		}
 		public static void HandleBotID(ulong ID)
 		{
-			Properties.Settings.Default.BotID = ID;
+			Properties.Settings.Default.BotId = ID;
 			Properties.Settings.Default.Save();
 		}
 		public static void HandleBotName(string name)
@@ -143,7 +143,7 @@ namespace Advobot.Actions
 
 		public static CriticalInformation LoadCriticalInformation()
 		{
-			HandleBotID(Properties.Settings.Default.BotID);
+			HandleBotID(Properties.Settings.Default.BotId);
 
 			bool windows;
 			{
@@ -162,7 +162,7 @@ namespace Advobot.Actions
 					console = false;
 				}
 			}
-			bool firstInstance = Properties.Settings.Default.BotID == 0;
+			bool firstInstance = Properties.Settings.Default.BotId == 0;
 
 			return new CriticalInformation(windows, console, firstInstance);
 		}

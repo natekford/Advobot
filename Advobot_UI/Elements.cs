@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace Advobot.Graphics.UserInterface
+namespace Advobot.Graphics
 {
 	internal class MyRichTextBox : RichTextBox
 	{

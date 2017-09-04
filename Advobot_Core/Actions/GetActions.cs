@@ -210,70 +210,6 @@ namespace Advobot.Actions
 		}
 
 		/// <summary>
-		/// Returns a struct holding arguments. Deprecated and should be removed; use Discord.Net's arg parsing instead.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="input"></param>
-		/// <param name="min"></param>
-		/// <param name="max"></param>
-		/// <param name="argsToSearchFor"></param>
-		/// <returns></returns>
-		public static ReturnedArguments GetArgs(ICommandContext context, string input, int min, int max, string[] argsToSearchFor = null)
-		{
-			/* Non specified arguments get left in a list of args going left to right (mentions are not included in this if the bool is true).
-				* Specified arguments get left in a dictionary.
-				*/
-
-			if (input == null)
-			{
-				var list = new List<string>();
-				for (int i = 0; i < max; ++i)
-				{
-					list.Add(null);
-				}
-				if (min == 0)
-				{
-					return new ReturnedArguments(list, FailureReason.NotFailure);
-				}
-				else
-				{
-					return new ReturnedArguments(list, FailureReason.TooFew);
-				}
-			}
-
-			var args = input.SplitByCharExceptInQuotes(' ').ToList();
-			if (args.Count < min)
-			{
-				return new ReturnedArguments(args, FailureReason.TooFew);
-			}
-			else if (args.Count > max)
-			{
-				return new ReturnedArguments(args, FailureReason.TooMany);
-			}
-
-			//Finding the wanted arguments
-			var specifiedArgs = new Dictionary<string, string>();
-			if (argsToSearchFor != null)
-			{
-				foreach (var searchArg in argsToSearchFor)
-				{
-					var arg = GetVariableAndRemove(args, searchArg);
-					if (arg != null)
-					{
-						specifiedArgs.Add(searchArg, arg);
-					}
-				}
-			}
-
-			for (int i = args.Count; i < max; ++i)
-			{
-				args.Add(null);
-			}
-
-			return new ReturnedArguments(args, specifiedArgs, context.Message);
-		}
-
-		/// <summary>
 		/// Returns commands from guildsettings that are in a specific category.
 		/// </summary>
 		/// <param name="guildSettings"></param>
@@ -373,7 +309,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static DirectoryInfo GetBaseBotDirectory()
 		{
-			var path = Path.Combine(Properties.Settings.Default.Path, $"{Constants.SERVER_FOLDER}_{Properties.Settings.Default.BotID}");
+			var path = Path.Combine(Properties.Settings.Default.Path, $"{Constants.SERVER_FOLDER}_{Properties.Settings.Default.BotId}");
 			return Directory.CreateDirectory(path);
 		}
 		/// <summary>

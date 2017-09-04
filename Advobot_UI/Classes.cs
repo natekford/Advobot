@@ -7,7 +7,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Threading;
 
-namespace Advobot.Graphics.HelperClasses
+namespace Advobot.Graphics
 {
 	internal class UITextBoxStreamWriter : TextWriter
 	{
