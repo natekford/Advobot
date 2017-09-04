@@ -27,7 +27,7 @@ namespace Advobot.Actions
 				var permission = Constants.GUILD_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
 				if (!permission.Equals(default(BotGuildPermission)))
 				{
-					rawValue |= permission.Bit;
+					rawValue |= permission.Value;
 				}
 			}
 			return rawValue;

@@ -1,5 +1,4 @@
-﻿using Advobot.Actions;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using System;
 using System.Linq;
@@ -7,8 +6,18 @@ using System.Threading.Tasks;
 
 namespace Advobot.TypeReaders
 {
+	/// <summary>
+	/// Attemps to find an <see cref="IInvite"/> on a guild.
+	/// </summary>
 	public class InviteTypeReader : TypeReader
 	{
+		/// <summary>
+		/// Checks for any invites matching the input code.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="input"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
 		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
 			var invite = (await context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code.CaseInsEquals(input));
@@ -16,8 +25,18 @@ namespace Advobot.TypeReaders
 		}
 	}
 
+	/// <summary>
+	/// Attemps to find an <see cref="IBan"/> on a guild.
+	/// </summary>
 	public class BanTypeReader : TypeReader
 	{
+		/// <summary>
+		/// Checks for any bans matching the input. Input is tested as a user Id, username and discriminator, and finally solely the username.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="input"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
 		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
 			IBan ban = null;
@@ -42,7 +61,6 @@ namespace Advobot.TypeReaders
 			if (ban == null)
 			{
 				var matchingUsernames = bans.Where(x => x.User.Username.CaseInsEquals(input));
-
 				if (matchingUsernames.Count() == 1)
 				{
 					ban = matchingUsernames.FirstOrDefault();
@@ -57,8 +75,18 @@ namespace Advobot.TypeReaders
 		}
 	}
 
+	/// <summary>
+	/// Attempts to find an <see cref="Emote"/> on a guild.
+	/// </summary>
 	public class EmoteTypeReader : TypeReader
 	{
+		/// <summary>
+		/// Checks for any emotes matching the input. Input is tested as an emote Id, then emote name.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="input"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
 			IEmote emote = null;
@@ -88,8 +116,18 @@ namespace Advobot.TypeReaders
 		}
 	}
 
+	/// <summary>
+	/// Attemps to create a <see cref="Color"/>.
+	/// </summary>
 	public class ColorTypeReader : TypeReader
 	{
+		/// <summary>
+		/// Input is tested as a color name, then hex, then RBG separated by back slashes.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="input"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
 			Color? color = null;

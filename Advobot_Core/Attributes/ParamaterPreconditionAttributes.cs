@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 namespace Advobot.Attributes
 {
 	/// <summary>
-	/// Verifies the parameter this attribute is targetting fits all of the given conditions. Abstract since _GetResultsDict has to be created by a class inheriting this.
+	/// Verifies the parameter this attribute is targetting fits all of the given conditions. Abstract since <see cref="_GetResultsDict"/> has to be created by a class inheriting this.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter)]
-	public abstract class VerifyObjectAttribute : ParameterPreconditionAttribute
+	internal abstract class VerifyObjectAttribute : ParameterPreconditionAttribute
 	{
 		protected Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>> _GetResultsDict;
 		protected bool _IfNullCheckFromContext;
@@ -57,21 +57,22 @@ namespace Advobot.Attributes
 	}
 
 	/// <summary>
-	/// Uses ChannelVerification enum to verify certain aspects of a channel. Only works on ITextChannel, IVoiceChannel, and IGuildChannel.
+	/// Uses <see cref="ChannelVerification"/> to verify certain aspects of a channel. Only works on <see cref="ITextChannel"/>, 
+	/// <see cref="IVoiceChannel"/>, and <see cref="IGuildChannel"/>.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter)]
-	public class VerifyChannelAttribute : VerifyObjectAttribute
+	internal class VerifyChannelAttribute : VerifyObjectAttribute
 	{
 		protected ChannelVerification[] _Checks;
 
 		public VerifyChannelAttribute(bool ifNullCheckFromContext, params ChannelVerification[] checks)
 		{
 			_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>>
-				{
-					{ typeof(ITextChannel), ITextChannelResult },
-					{ typeof(IVoiceChannel), IVoiceChannelResult },
-					{ typeof(IGuildChannel), IGuildChannelResult },
-				};
+			{
+				{ typeof(ITextChannel), ITextChannelResult },
+				{ typeof(IVoiceChannel), IVoiceChannelResult },
+				{ typeof(IGuildChannel), IGuildChannelResult },
+			};
 			_IfNullCheckFromContext = ifNullCheckFromContext;
 			_Checks = checks;
 		}
@@ -94,20 +95,20 @@ namespace Advobot.Attributes
 	}
 
 	/// <summary>
-	/// Uses UserVerification enum to verify certain aspects of a user. Only works on IGuildUser and IUser.
+	/// Uses <see cref="UserVerification"/> to verify certain aspects of a user. Only works on <see cref="IGuildUser"/> and <see cref="IUser"/>.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter)]
-	public class VerifyUserAttribute : VerifyObjectAttribute
+	internal class VerifyUserAttribute : VerifyObjectAttribute
 	{
 		protected UserVerification[] _Checks;
 
 		public VerifyUserAttribute(bool ifNullCheckFromContext, params UserVerification[] checks)
 		{
 			_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>>
-				{
-					{ typeof(IGuildUser), IGuildUserResult },
-					{ typeof(IUser), IUserResult },
-				};
+			{
+				{ typeof(IGuildUser), IGuildUserResult },
+				{ typeof(IUser), IUserResult },
+			};
 			_IfNullCheckFromContext = ifNullCheckFromContext;
 			_Checks = checks;
 		}
@@ -125,19 +126,19 @@ namespace Advobot.Attributes
 	}
 
 	/// <summary>
-	/// Uses RoleVerification enum to verify certain aspects of a role. Only works on IRole.
+	/// Uses <see cref="RoleVerification"/> to verify certain aspects of a role. Only works on <see cref="IRole"/>.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter)]
-	public class VerifyRoleAttribute : VerifyObjectAttribute
+	internal class VerifyRoleAttribute : VerifyObjectAttribute
 	{
 		protected RoleVerification[] _Checks;
 
 		public VerifyRoleAttribute(bool ifNullCheckFromContext, params RoleVerification[] checks)
 		{
 			_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>>
-				{
-					{ typeof(IRole), IRoleResult },
-				};
+			{
+				{ typeof(IRole), IRoleResult },
+			};
 			_IfNullCheckFromContext = ifNullCheckFromContext;
 			_Checks = checks;
 		}
@@ -150,28 +151,33 @@ namespace Advobot.Attributes
 	}
 
 	/// <summary>
-	/// Certain objects in Discord have minimum and maximum lengths for the names that can be set for them. This attribute verifies those lengths and provides error stating the min/max if under/over.
+	/// Certain objects in Discord have minimum and maximum lengths for the names that can be set for them. This attribute verifies those lengths and provides errors stating the min/max if under/over.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public class VerifyStringLengthAttribute : ParameterPreconditionAttribute
 	{
 		private static readonly Dictionary<Target, Tuple<int, int, string>> _MinsAndMaxesAndErrors = new Dictionary<Target, Tuple<int, int, string>>
-			{
-				{ Target.Guild,     Tuple.Create(Constants.MIN_GUILD_NAME_LENGTH,   Constants.MAX_GUILD_NAME_LENGTH,    "guild name") },
-				{ Target.Channel,   Tuple.Create(Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH,  "channel name") },
-				{ Target.Role,      Tuple.Create(Constants.MIN_ROLE_NAME_LENGTH,    Constants.MAX_ROLE_NAME_LENGTH,     "role name") },
-				{ Target.Name,      Tuple.Create(Constants.MIN_USERNAME_LENGTH,     Constants.MAX_USERNAME_LENGTH,      "username") },
-				{ Target.Nickname,  Tuple.Create(Constants.MIN_NICKNAME_LENGTH,     Constants.MAX_NICKNAME_LENGTH,      "nickname") },
-				{ Target.Game,      Tuple.Create(Constants.MIN_GAME_LENGTH,         Constants.MAX_GAME_LENGTH,          "game") },
-				{ Target.Stream,    Tuple.Create(Constants.MIN_STREAM_LENGTH,       Constants.MAX_STREAM_LENGTH,        "stream name") },
-				{ Target.Topic,     Tuple.Create(Constants.MIN_TOPIC_LENGTH,        Constants.MAX_TOPIC_LENGTH,         "channel topic") },
-				{ Target.Prefix,    Tuple.Create(Constants.MIN_PREFIX_LENGTH,       Constants.MAX_PREFIX_LENGTH,        "bot prefix") },
-			};
+		{
+			{ Target.Guild,     Tuple.Create(Constants.MIN_GUILD_NAME_LENGTH,   Constants.MAX_GUILD_NAME_LENGTH,    "guild name") },
+			{ Target.Channel,   Tuple.Create(Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH,  "channel name") },
+			{ Target.Role,      Tuple.Create(Constants.MIN_ROLE_NAME_LENGTH,    Constants.MAX_ROLE_NAME_LENGTH,     "role name") },
+			{ Target.Name,      Tuple.Create(Constants.MIN_USERNAME_LENGTH,     Constants.MAX_USERNAME_LENGTH,      "username") },
+			{ Target.Nickname,  Tuple.Create(Constants.MIN_NICKNAME_LENGTH,     Constants.MAX_NICKNAME_LENGTH,      "nickname") },
+			{ Target.Game,      Tuple.Create(Constants.MIN_GAME_LENGTH,         Constants.MAX_GAME_LENGTH,          "game") },
+			{ Target.Stream,    Tuple.Create(Constants.MIN_STREAM_LENGTH,       Constants.MAX_STREAM_LENGTH,        "stream name") },
+			{ Target.Topic,     Tuple.Create(Constants.MIN_TOPIC_LENGTH,        Constants.MAX_TOPIC_LENGTH,         "channel topic") },
+			{ Target.Prefix,    Tuple.Create(Constants.MIN_PREFIX_LENGTH,       Constants.MAX_PREFIX_LENGTH,        "bot prefix") },
+		};
 		private int _Min;
 		private int _Max;
 		private string _TooShort;
 		private string _TooLong;
 
+		/// <summary>
+		/// Sets the values by looking up <paramref name="target"/> in a dictionary.
+		/// </summary>
+		/// <param name="target"></param>
+		/// <exception cref="NotSupportedException">Only supports some of the values in <see cref="Target"></see>/></exception>
 		public VerifyStringLengthAttribute(Target target)
 		{
 			if (_MinsAndMaxesAndErrors.TryGetValue(target, out var minAndMaxAndError))
@@ -187,6 +193,15 @@ namespace Advobot.Attributes
 			}
 		}
 
+		/// <summary>
+		/// Checks against the min and max.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="parameter"></param>
+		/// <param name="value"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		/// <exception cref="NotSupportedException">This class only works on strings.</exception>
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
 		{
 			//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null

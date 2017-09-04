@@ -51,8 +51,8 @@ namespace Advobot
 		public const int MAX_FIELD_VALUE_LENGTH = 1024;
 
 		//Static readonly because they may change and I've heard using const means any assembly referencing it has to be recompiled each time the value gets manually changed.
-		public static readonly string BOT_VERSION = "0.30.0";
-		public static readonly string API_VERSION = "Discord.Net v1.0.2-build-00800";
+		public static readonly string BOT_VERSION = "0.31.0";
+		public static readonly string API_VERSION = "Discord.Net v2.0.0-alpha-build-00823";
 		public static readonly string PROGRAM_NAME = "Advobot";
 		public static readonly string IGNORE_ERROR = "Cx";
 		public static readonly string DISCORD_INV = "https://discord.gg/MBXypxb"; //Switched from /xd to this invite since no matter what this inv will link to my server and never someone else's server
@@ -153,7 +153,7 @@ namespace Advobot
 		public static Color MDEL { get; } = new Color(255, 051, 051);
 
 		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)
-		public static Type GUILDS_SETTINGS_TYPE { get; } = typeof(MyGuildSettings);
-		public static Type GLOBAL_SETTINGS_TYPE { get; } = typeof(MyBotSettings);
+		public static Type GUILDS_SETTINGS_TYPE { get; } = typeof(MyGuildSettings); //IGuildSettings
+		public static Type GLOBAL_SETTINGS_TYPE { get; } = typeof(MyBotSettings); //IBotSettings
 	}
 }

@@ -8,15 +8,26 @@ using System.Threading.Tasks;
 
 namespace Advobot.TypeReaders
 {
-	public abstract class SettingTypeReader : TypeReader
+	/// <summary>
+	/// Utilizes derived classes' names to determine which settings to get.
+	/// </summary>
+	internal abstract class SettingTypeReader : TypeReader
 	{
 		private static Dictionary<string, Dictionary<string, PropertyInfo>> _Settings = new Dictionary<string, Dictionary<string, PropertyInfo>>
-			{
-				{ nameof(GuildSettingTypeReader), GetActions.GetGuildSettings().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
-				{ nameof(BotSettingTypeReader), GetActions.GetBotSettings().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
-				{ nameof(BotSettingNonIEnumerableTypeReader), GetActions.GetBotSettingsThatArentIEnumerables().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
-			};
+		{
+			{ nameof(GuildSettingTypeReader), GetActions.GetGuildSettings().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
+			{ nameof(BotSettingTypeReader), GetActions.GetBotSettings().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
+			{ nameof(BotSettingNonIEnumerableTypeReader), GetActions.GetBotSettingsThatArentIEnumerables().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
+		};
 
+		/// <summary>
+		/// Tries to get which settings to use based off of class name, then tries to get the settings via setting name.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="input"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException">If a class name isn't in the settings dictionary.</exception>
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
 			if (!_Settings.TryGetValue(GetType().Name, out var dict))
@@ -31,9 +42,9 @@ namespace Advobot.TypeReaders
 		}
 	}
 
-	public class GuildSettingTypeReader : SettingTypeReader { }
+	internal class GuildSettingTypeReader : SettingTypeReader { }
 
-	public class BotSettingTypeReader : SettingTypeReader { }
+	internal class BotSettingTypeReader : SettingTypeReader { }
 
-	public class BotSettingNonIEnumerableTypeReader : SettingTypeReader { }
+	internal class BotSettingNonIEnumerableTypeReader : SettingTypeReader { }
 }

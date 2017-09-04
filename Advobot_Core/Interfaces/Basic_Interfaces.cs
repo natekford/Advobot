@@ -11,7 +11,7 @@ namespace Advobot.Interfaces
 	public interface IPermission
 	{
 		string Name { get; }
-		ulong Bit { get; }
+		ulong Value { get; }
 	}
 
 	public interface INameAndText

@@ -6,8 +6,18 @@ using System.Threading.Tasks;
 
 namespace Advobot.TypeReaders
 {
+	/// <summary>
+	/// Attempts to get a ulong representing guild permissions.
+	/// </summary>
 	public class GuildPermissionsTypeReader : TypeReader
 	{
+		/// <summary>
+		/// Checks for valid ulong first, then checks permission names.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="input"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
 			//Check numbers first
@@ -28,8 +38,18 @@ namespace Advobot.TypeReaders
 		}
 	}
 
+	/// <summary>
+	/// Attempts to get a ulong representing channel permissions.
+	/// </summary>
 	public class ChannelPermissionsTypeReader : TypeReader
 	{
+		/// <summary>
+		/// Checks for valid ulong first, then checks permission names.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="input"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
 			//Check numbers first

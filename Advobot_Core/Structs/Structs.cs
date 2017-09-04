@@ -11,22 +11,28 @@ using System.Runtime.CompilerServices;
 
 namespace Advobot.Structs
 {
+	/// <summary>
+	/// Holds a guild permission name and value.
+	/// </summary>
 	public struct BotGuildPermission : IPermission
 	{
 		public string Name { get; }
-		public ulong Bit { get; }
+		public ulong Value { get; }
 
 		public BotGuildPermission(string name, int position)
 		{
 			Name = name;
-			Bit = (1U << position);
+			Value = (1U << position);
 		}
 	}
 
+	/// <summary>
+	/// Holds a channel permission name and value. Also holds booleans describing whether or not the permissions is on text/voice/both channels.
+	/// </summary>
 	public struct BotChannelPermission : IPermission
 	{
 		public string Name { get; }
-		public ulong Bit { get; }
+		public ulong Value { get; }
 		public bool General { get; }
 		public bool Text { get; }
 		public bool Voice { get; }
@@ -34,13 +40,17 @@ namespace Advobot.Structs
 		public BotChannelPermission(string name, int position, bool gen = false, bool text = false, bool voice = false)
 		{
 			Name = name;
-			Bit = (1U << position);
+			Value = (1U << position);
 			General = gen;
 			Text = text;
 			Voice = voice;
 		}
 	}
 
+	/// <summary>
+	/// Container of close words which is intended to be removed after <see cref="GetTime()"/> returns a time less than the current time.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public struct ActiveCloseWord<T> : ITimeInterface where T : INameAndText
 	{
 		public ulong UserId { get; }
@@ -60,6 +70,10 @@ namespace Advobot.Structs
 		}
 	}
 
+	/// <summary>
+	/// Holds an object which has a name and text and its closeness.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public struct CloseWord<T> where T : INameAndText
 	{
 		public T Word { get; }
@@ -72,6 +86,10 @@ namespace Advobot.Structs
 		}
 	}
 
+	/// <summary>
+	/// Basically a tuple of a FailureReason and a different object.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
 	public struct ReturnedObject<T>
 	{
 		public T Object { get; }

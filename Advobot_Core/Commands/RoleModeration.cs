@@ -161,7 +161,7 @@ namespace Advobot.Commands.RoleModeration
 			[Command]
 			public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role)
 			{
-				var currentRolePerms = Constants.GUILD_PERMISSIONS.Where(x => (role.Permissions.RawValue & x.Bit) != 0).Select(x => x.Name);
+				var currentRolePerms = Constants.GUILD_PERMISSIONS.Where(x => (role.Permissions.RawValue & x.Value) != 0).Select(x => x.Name);
 				var permissions = currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission";
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(role.Name, $"`{permissions}`"));
 			}

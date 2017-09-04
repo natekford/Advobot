@@ -124,13 +124,13 @@ namespace Advobot.Actions
 			//Using 64 has this return duplicated permissions.
 			for (int i = 0; i < 32; ++i)
 			{
-				var bit = 1U << i;
-				if ((flags & bit) == 0)
+				ulong value = 1U << i;
+				if ((flags & value) == 0)
 				{
 					continue;
 				}
 
-				var name = Constants.GUILD_PERMISSIONS.FirstOrDefault(x => x.Bit == bit).Name;
+				var name = Constants.GUILD_PERMISSIONS.FirstOrDefault(x => x.Value == value).Name;
 				if (String.IsNullOrWhiteSpace(name))
 				{
 					continue;
@@ -151,13 +151,13 @@ namespace Advobot.Actions
 			//Using 64 has this return duplicated permissions.
 			for (int i = 0; i < 32; ++i)
 			{
-				var bit = 1U << i;
-				if ((flags & bit) == 0)
+				ulong value = 1U << i;
+				if ((flags & value) == 0)
 				{
 					continue;
 				}
 
-				var name = Constants.CHANNEL_PERMISSIONS.FirstOrDefault(x => x.Bit == bit).Name;
+				var name = Constants.CHANNEL_PERMISSIONS.FirstOrDefault(x => x.Value == value).Name;
 				if (String.IsNullOrWhiteSpace(name))
 				{
 					continue;
@@ -181,12 +181,12 @@ namespace Advobot.Actions
 			return perms.Select(x => $"{x.Key.PadRight(maxLen)} {x.Value}").ToArray();
 		}
 		/// <summary>
-		/// Returns a bool indicating whether any invalid perms were passed in. Out values of valid perms and invalid perms.
+		/// Returns a bool indicating true if all perms are valid. Out values of valid perms and invalid perms.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <param name="validPerms"></param>
 		/// <param name="invalidPerms"></param>
-		/// <returns></returns>
+		/// <returns>Boolean representing true if all permissions are valid, false if any are invalid.</returns>
 		public static bool TryGetValidGuildPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
 		{
 			var permissions = input.Split('/', ' ').Select(x => x.Trim(','));
@@ -195,12 +195,12 @@ namespace Advobot.Actions
 			return !invalidPerms.Any();
 		}
 		/// <summary>
-		/// Returns a bool indicating whether any invalid perms were passed in. Out values of valid perms and invalid perms.
+		/// Returns a bool indicating true if all perms are valid. Out values of valid perms and invalid perms.
 		/// </summary>
 		/// <param name="input"></param>
 		/// <param name="validPerms"></param>
 		/// <param name="invalidPerms"></param>
-		/// <returns></returns>
+		/// <returns>Boolean representing true if all permissions are valid, false if any are invalid.</returns>
 		public static bool TryGetValidChannelPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
 		{
 			var permissions = input.Split('/', ' ').Select(x => x.Trim(','));
