@@ -8,7 +8,7 @@ namespace Advobot.Actions
 {
 	public static class CloseWordActions
 	{
-		public static List<CloseWord<T>> GetObjectsWithSimilarNames<T>(IEnumerable<T> suppliedObjects, string input) where T : INameAndText
+		public static List<CloseWord<T>> GetObjectsWithSimilarNames<T>(IEnumerable<T> suppliedObjects, string input) where T : IDescription
 		{
 			var closeWords = new List<CloseWord<T>>();
 			foreach (var word in suppliedObjects)
@@ -42,8 +42,8 @@ namespace Advobot.Actions
 		public static int FindCloseName(string source, string target, int threshold = 10)
 		{
 			/* Damerau Levenshtein Distance: https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
-				* Copied verbatim from: https://stackoverflow.com/a/9454016 
-				*/
+			 * Copied verbatim from: https://stackoverflow.com/a/9454016 
+			 */
 			int length1 = source.Length;
 			int length2 = target.Length;
 

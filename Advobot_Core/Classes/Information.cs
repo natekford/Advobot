@@ -8,17 +8,20 @@ using System.Linq;
 
 namespace Advobot.Classes
 {
-	public class Quote : ISetting, INameAndText
+	/// <summary>
+	/// Holds a name and description.
+	/// </summary>
+	public class Quote : ISetting, IDescription
 	{
 		[JsonProperty]
 		public string Name { get; }
 		[JsonProperty]
-		public string Text { get; }
+		public string Description { get; }
 
-		public Quote(string name, string text)
+		public Quote(string name, string description)
 		{
 			Name = name;
-			Text = text;
+			Description = description;
 		}
 
 		public override string ToString()
@@ -31,24 +34,27 @@ namespace Advobot.Classes
 		}
 	}
 
-	public class HelpEntry : INameAndText
+	/// <summary>
+	/// Holds information about a command, such as its name, aliases, usage, base permissions, description, category, and default enabled value.
+	/// </summary>
+	public class HelpEntry : IDescription
 	{
+		private const string PLACE_HOLDER_STR = "N/A";
 		public string Name { get; }
 		public string[] Aliases { get; }
 		public string Usage { get; }
 		public string BasePerm { get; }
-		public string Text { get; }
+		public string Description { get; }
 		public CommandCategory Category { get; }
 		public bool DefaultEnabled { get; }
-		private const string PLACE_HOLDER_STR = "N/A";
 
-		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string text, CommandCategory category, bool defaultEnabled)
+		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string description, CommandCategory category, bool defaultEnabled)
 		{
 			Name = String.IsNullOrWhiteSpace(name) ? PLACE_HOLDER_STR : name;
 			Aliases = aliases ?? new[] { PLACE_HOLDER_STR };
 			Usage = String.IsNullOrWhiteSpace(usage) ? PLACE_HOLDER_STR : Constants.BOT_PREFIX + usage;
 			BasePerm = String.IsNullOrWhiteSpace(basePerm) ? PLACE_HOLDER_STR : basePerm;
-			Text = String.IsNullOrWhiteSpace(text) ? PLACE_HOLDER_STR : text;
+			Description = String.IsNullOrWhiteSpace(description) ? PLACE_HOLDER_STR : description;
 			Category = category;
 			DefaultEnabled = defaultEnabled;
 		}
@@ -58,16 +64,16 @@ namespace Advobot.Classes
 			var aliasStr = $"**Aliases:** {String.Join(", ", Aliases)}";
 			var usageStr = $"**Usage:** {Usage}";
 			var permStr = $"\n**Base Permission(s):**\n{BasePerm}";
-			var descStr = $"\n**Description:**\n{Text}";
+			var descStr = $"\n**Description:**\n{Description}";
 			return String.Join("\n", new[] { aliasStr, usageStr, permStr, descStr });
 		}
 	}
 
 	/// <summary>
-	/// Container of close words which is intended to be removed after <see cref="GetTime()"/> returns a time less than the current time.
+	/// Container of close words which is intended to be removed after <see cref="GetTime()"/> returns a value less than the current time.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public struct ActiveCloseWord<T> : ITimeInterface where T : INameAndText
+	public struct ActiveCloseWord<T> : ITimeInterface where T : IDescription
 	{
 		public ulong UserId { get; }
 		public List<CloseWord<T>> List { get; }
@@ -90,7 +96,7 @@ namespace Advobot.Classes
 	/// Holds an object which has a name and text and its closeness.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public struct CloseWord<T> where T : INameAndText
+	public struct CloseWord<T> where T : IDescription
 	{
 		public T Word { get; }
 		public int Closeness { get; }

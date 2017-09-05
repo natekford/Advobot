@@ -7,33 +7,22 @@ using System.Linq;
 
 namespace Advobot.Classes
 {
-	public class Punishment
+	/// <summary>
+	/// Punishments that will be removed after <see cref="GetTime"/> is less than <see cref="DateTime.UtcNow"/>.
+	/// </summary>
+	public class RemovablePunishment : ITimeInterface
 	{
+		public PunishmentType PunishmentType { get; }
 		public IGuild Guild { get; }
 		public ulong UserId { get; }
-		public PunishmentType PunishmentType { get; }
 
-		public Punishment(IGuild guild, ulong userID, PunishmentType punishmentType)
-		{
-			Guild = guild;
-			UserId = userID;
-			PunishmentType = punishmentType;
-		}
-		public Punishment(IGuild guild, IUser user, PunishmentType punishmentType) : this(guild, user.Id, punishmentType)
-		{
-		}
-	}
-
-	public class RemovablePunishment : Punishment, ITimeInterface
-	{
 		private DateTime _Time;
 
-		public RemovablePunishment(IGuild guild, ulong userID, PunishmentType punishmentType, uint minutes) : base(guild, userID, punishmentType)
+		public RemovablePunishment(PunishmentType punishmentType, IGuild guild, ulong userId, uint minutes)
 		{
+			Guild = guild;
+			UserId = userId;
 			_Time = DateTime.UtcNow.AddMinutes(minutes);
-		}
-		public RemovablePunishment(IGuild guild, IUser user, PunishmentType punishmentType, uint minutes) : this(guild, user.Id, punishmentType, minutes)
-		{
 		}
 
 		public DateTime GetTime()
@@ -42,62 +31,57 @@ namespace Advobot.Classes
 		}
 	}
 
+	/// <summary>
+	/// A removable punishment which includes the role to remove once the time is up.
+	/// </summary>
 	public class RemovableRoleMute : RemovablePunishment
 	{
 		public IRole Role { get; }
 
-		public RemovableRoleMute(IGuild guild, ulong userID, uint minutes, IRole role) : base(guild, userID, PunishmentType.RoleMute, minutes)
+		public RemovableRoleMute(IGuild guild, ulong userId, uint minutes, IRole role) : base(PunishmentType.RoleMute, guild, userId, minutes)
 		{
-		}
-		public RemovableRoleMute(IGuild guild, IUser user, uint minutes, IRole role) : this(guild, user.Id, minutes, role)
-		{
+			Role = role;
 		}
 	}
 
+	/// <summary>
+	/// A removable punishment which indicates the user will be unvoice-muted once the time is up.
+	/// </summary>
 	public class RemovableVoiceMute : RemovablePunishment
 	{
-		public RemovableVoiceMute(IGuild guild, ulong userID, uint minutes) : base(guild, userID, PunishmentType.VoiceMute, minutes)
-		{
-		}
-		public RemovableVoiceMute(IGuild guild, IUser user, uint minutes) : this(guild, user.Id, minutes)
-		{
-		}
+		public RemovableVoiceMute(IGuild guild, ulong userID, uint minutes) : base(PunishmentType.VoiceMute, guild, userID, minutes) { }
 	}
 
+	/// <summary>
+	/// A removable punishment which indicates the user will be undeafened once the time is up.
+	/// </summary>
 	public class RemovableDeafen : RemovablePunishment
 	{
-		public RemovableDeafen(IGuild guild, ulong userID, uint minutes) : base(guild, userID, PunishmentType.Deafen, minutes)
-		{
-		}
-		public RemovableDeafen(IGuild guild, IUser user, uint minutes) : this(guild, user.Id, minutes)
-		{
-		}
+		public RemovableDeafen(IGuild guild, ulong userID, uint minutes) : base(PunishmentType.Deafen, guild, userID, minutes) { }
 	}
 
+	/// <summary>
+	/// A removable punishment which indicates the user will be unbanned once the time is up.
+	/// </summary>
 	public class RemovableBan : RemovablePunishment
 	{
-		public RemovableBan(IGuild guild, ulong userID, uint minutes) : base(guild, userID, PunishmentType.Ban, minutes)
-		{
-		}
-		public RemovableBan(IGuild guild, IUser user, uint minutes) : this(guild, user.Id, minutes)
-		{
-		}
+		public RemovableBan(IGuild guild, ulong userID, uint minutes) : base(PunishmentType.Ban, guild, userID, minutes) { }
 	}
 
+	/// <summary>
+	/// Messages that will get deleted after <see cref="GetTime"/> is less than <see cref="DateTime.UtcNow"/>.
+	/// </summary>
 	public class RemovableMessage : ITimeInterface
 	{
 		public IEnumerable<IMessage> Messages { get; }
 		public IMessageChannel Channel { get; }
 		private DateTime _Time;
 
-		public RemovableMessage(IEnumerable<IMessage> messages, int seconds)
+		public RemovableMessage(int seconds, params IMessage[] messages)
 		{
 			Messages = messages;
 			Channel = messages.FirstOrDefault().Channel;
 			_Time = DateTime.UtcNow.AddSeconds(seconds);
-		}
-		public RemovableMessage(IMessage message, int seconds) : this(new[] { message }, seconds)
-		{
 		}
 
 		public DateTime GetTime()

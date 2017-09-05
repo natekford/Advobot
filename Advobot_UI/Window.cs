@@ -547,9 +547,9 @@ namespace Advobot.Graphics
 			await UIBotWindowLogic.DoStuffWithInput(UICommandHandler.GatherInput(_Input, _InputButton), _Client, _BotSettings);
 		}
 
-		private void SaveOutput(object sender, RoutedEventArgs e)
+		private async void SaveOutput(object sender, RoutedEventArgs e)
 		{
-			SayToolTipReason(UIBotWindowLogic.SaveOutput(_Output));
+			await SayToolTipReason(UIBotWindowLogic.SaveOutput(_Output));
 		}
 		private void ClearOutput(object sender, RoutedEventArgs e)
 		{
@@ -656,7 +656,7 @@ namespace Advobot.Graphics
 
 		private void OpenSpecificFileLayout(object sender, RoutedEventArgs e)
 		{
-			if (UIBotWindowLogic.AppendTextToTextEditorIfPathExistsAndReturnIfHappened(_SpecificFileDisplay, (TreeViewItem)sender))
+			if (UIBotWindowLogic.AppendTextToTextEditorIfPathExists(_SpecificFileDisplay, (TreeViewItem)sender))
 			{
 				UIModification.SetRowAndSpan(_FileLayout, 0, 100);
 				_SpecificFileLayout.Visibility = Visibility.Visible;
@@ -677,9 +677,9 @@ namespace Advobot.Graphics
 				}
 			}
 		}
-		private void SaveSpecificFile(object sender, RoutedEventArgs e)
+		private async void SaveSpecificFile(object sender, RoutedEventArgs e)
 		{
-			SayToolTipReason(UIBotWindowLogic.SaveFile(_SpecificFileDisplay));
+			await SayToolTipReason(UIBotWindowLogic.SaveFile(_SpecificFileDisplay));
 		}
 
 		private async void OpenMenu(object sender, RoutedEventArgs e)
@@ -764,7 +764,7 @@ namespace Advobot.Graphics
 			_TrustedUsersComboBox.ItemsSource = itemsSource;
 		}
 
-		private async void SayToolTipReason(ToolTipReason reason)
+		private async Task SayToolTipReason(ToolTipReason reason)
 		{
 			await UIModification.MakeFollowingToolTip(_Layout, _ToolTip, UIBotWindowLogic.GetReasonTextFromToolTipReason(reason));
 		}

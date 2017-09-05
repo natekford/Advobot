@@ -320,14 +320,6 @@ namespace Advobot.Actions
 			var path = Path.Combine(GetBaseBotDirectory().FullName, fileName);
 			return new FileInfo(path);
 		}
-		public static FileType? GetFileType(string file)
-		{
-			if (Enum.TryParse(file, true, out FileType type))
-			{
-				return type;
-			}
-			return null;
-		}
 
 		/// <summary>
 		/// Returns a variable from a list of arguments and removes it from the list of arguments.

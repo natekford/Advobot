@@ -36,14 +36,14 @@ namespace Advobot.Actions
 				//If there's only one, then use that as the current inv. If there's more than one then there's no way to know what invite it was on
 				if (guild.Features.CaseInsContains(Constants.VANITY_URL) && (!newInvs.Any() || newInvs.All(x => x.Uses == 0)))
 				{
-					joinInv = new BotInvite(guild.Id, "Vanity URL", 0);
+					joinInv = new BotInvite("Vanity URL", 0);
 				}
 				else if (newInvs.Count() == 1)
 				{
 					var newInv = newInvs.First();
-					joinInv = new BotInvite(newInv.GuildId, newInv.Code, newInv.Uses);
+					joinInv = new BotInvite(newInv.Code, newInv.Uses);
 				}
-				guildSettings.Invites.AddRange(newInvs.Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)));
+				guildSettings.Invites.AddRange(newInvs.Select(x => new BotInvite(x.Code, x.Uses)));
 			}
 			else
 			{

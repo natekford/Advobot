@@ -1,5 +1,4 @@
-﻿using Advobot.Actions;
-using Advobot.Interfaces;
+﻿using Advobot.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -9,6 +8,9 @@ using System.Linq;
 
 namespace Advobot.Classes
 {
+	/// <summary>
+	/// Groups <see cref="SelfAssignableRole"/> together.
+	/// </summary>
 	public class SelfAssignableGroup : ISetting
 	{
 		[JsonProperty]
@@ -41,6 +43,9 @@ namespace Advobot.Classes
 		}
 	}
 
+	/// <summary>
+	/// Roles which users can assign to themselves via <see cref="Commands.SelfRoles.AssignSelfRole"/>.
+	/// </summary>
 	public class SelfAssignableRole : ISetting
 	{
 		[JsonProperty]
@@ -74,6 +79,9 @@ namespace Advobot.Classes
 		}
 	}
 
+	/// <summary>
+	/// Roles which are given back to users when they rejoin a guild.
+	/// </summary>
 	public class PersistentRole : ISetting
 	{
 		[JsonProperty]
@@ -98,5 +106,4 @@ namespace Advobot.Classes
 			return $"**User:** `{user}`\n**Role:&& `{role}`";
 		}
 	}
-
 }

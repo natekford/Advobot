@@ -370,31 +370,18 @@ namespace Advobot.Commands.Miscellaneous
 	[DefaultEnabled(true)]
 	public sealed class DisplayEmotes : MyModuleBase
 	{
-		[Command]
-		public async Task Command(EmoteType target)
+		[Command("global")]
+		public async Task CommandGlobal()
 		{
-			IEnumerable<GuildEmote> emotes;
-			switch (target)
-			{
-				case EmoteType.Global:
-				{
-					emotes = Context.Guild.Emotes.Where(x => x.IsManaged);
-					break;
-				}
-				case EmoteType.Guild:
-				{
-					emotes = Context.Guild.Emotes.Where(x => !x.IsManaged);
-					break;
-				}
-				default:
-				{
-					return;
-				}
-			}
-
-			var desc = emotes.Any()
-				? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name)
-				: $"This guild has no `{target.EnumName()}` emotes.";
+			var emotes = Context.Guild.Emotes.Where(x => x.IsManaged);
+			var desc = emotes.Any() ? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name) : $"This guild has no global emotes.";
+			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Emotes", desc));
+		}
+		[Command("guild")]
+		public async Task CommandGuild()
+		{
+			var emotes = Context.Guild.Emotes.Where(x => !x.IsManaged);
+			var desc = emotes.Any() ? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name) : $"This guild has no guild emotes.";
 			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Emotes", desc));
 		}
 	}

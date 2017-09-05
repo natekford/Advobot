@@ -1,18 +1,22 @@
-﻿using Advobot.Actions;
-using Advobot.Interfaces;
+﻿using Advobot.Interfaces;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Advobot.Classes
 {
+	/// <summary>
+	/// Lists an invite for use in <see cref="IInviteListModule"/>.
+	/// </summary>
 	public class ListedInvite : ISetting
 	{
 		[JsonProperty]
 		public string Code { get; private set; }
 		[JsonProperty]
-		public string[] Keywords { get; private set; }
+		public ReadOnlyCollection<string> Keywords { get; private set; }
 		[JsonProperty]
 		public bool HasGlobalEmotes { get; private set; }
 		[JsonIgnore]
@@ -23,32 +27,49 @@ namespace Advobot.Classes
 		public SocketGuild Guild { get; private set; }
 
 		[JsonConstructor]
-		public ListedInvite(string code, string[] keywords)
+		public ListedInvite(string code, IEnumerable<string> keywords)
 		{
 			LastBumped = DateTime.UtcNow;
 			Code = code;
 			Url = "https://www.discord.gg/" + Code;
-			Keywords = keywords ?? new string[0];
+			Keywords = (keywords ?? Enumerable.Empty<string>()).ToList().AsReadOnly();
 		}
-		public ListedInvite(SocketGuild guild, string code, string[] keywords) : this(code, keywords)
+		public ListedInvite(SocketGuild guild, string code, IEnumerable<string> keywords) : this(code, keywords)
 		{
 			Guild = guild;
 			HasGlobalEmotes = Guild.HasGlobalEmotes();
+			Keywords = (keywords ?? Enumerable.Empty<string>()).ToList().AsReadOnly();
 		}
 
+		/// <summary>
+		/// Sets <see cref="Code"/> to <paramref name="code"/> and updates <see cref="Url"/> to have the new code.
+		/// </summary>
+		/// <param name="code"></param>
 		public void UpdateCode(string code)
 		{
 			Code = code;
 			Url = "https://www.discord.gg/" + Code;
 		}
-		public void UpdateKeywords(string[] keywords)
+		/// <summary>
+		/// Sets <see cref="Keywords"/> to <paramref name="keywords"/>.
+		/// </summary>
+		/// <param name="keywords"></param>
+		public void UpdateKeywords(IEnumerable<string> keywords)
 		{
-			Keywords = keywords;
+			Keywords = keywords.ToList().AsReadOnly();
 		}
+		/// <summary>
+		/// Sets <see cref="LastBumped"/> to <see cref="DateTime.UtcNow"/> and checks for global emotes.
+		/// </summary>
 		public void UpdateLastBumped()
 		{
 			LastBumped = DateTime.UtcNow;
+			HasGlobalEmotes = Guild.HasGlobalEmotes();
 		}
+		/// <summary>
+		/// Sets the <see cref="Guild"/> property and checks for global emotes.
+		/// </summary>
+		/// <param name="guild"></param>
 		public void PostDeserialize(SocketGuild guild)
 		{
 			Guild = guild;
@@ -61,14 +82,7 @@ namespace Advobot.Classes
 			{
 				return null;
 			}
-
-			var codeStr = $"**Code:** `{Code}`\n";
-			var keywordStr = "";
-			if (Keywords.Any())
-			{
-				keywordStr = $"**Keywords:**\n`{String.Join("`, `", Keywords)}`";
-			}
-			return codeStr + keywordStr;
+			return $"**Code:** `{Code}`\n" + (Keywords.Any() ? $"**Keywords:**\n`{String.Join("`, `", Keywords)}`" : "");
 		}
 		public string ToString(SocketGuild guild)
 		{
@@ -76,16 +90,16 @@ namespace Advobot.Classes
 		}
 	}
 
-
+	/// <summary>
+	/// Holds the code and uses of an invite. Used in <see cref="InviteActions.GetInviteUserJoinedOn(IGuildSettings, Discord.IGuild)"/>.
+	/// </summary>
 	public class BotInvite
 	{
-		public ulong GuildId { get; }
 		public string Code { get; }
 		public int Uses { get; private set; }
 
-		public BotInvite(ulong guildId, string code, int uses)
+		public BotInvite(string code, int uses)
 		{
-			GuildId = guildId;
 			Code = code;
 			Uses = uses;
 		}

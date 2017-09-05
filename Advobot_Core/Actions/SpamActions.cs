@@ -48,14 +48,6 @@ namespace Advobot.Actions
 			return Regex.IsMatch(msg, pattern, RegexOptions.IgnoreCase, new TimeSpan(Constants.TICKS_REGEX_TIMEOUT));
 		}
 
-		public static void AddSlowmodeUser(Slowmode slowmode, IGuildUser user)
-		{
-			if (slowmode != null)
-			{
-				slowmode.Users.ThreadSafeAdd(new SlowmodeUser(user, slowmode.BaseMessages, slowmode.Interval));
-			}
-		}
-
 		public static void HandleBannedPhraseModification(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
 		{
 			if (add)

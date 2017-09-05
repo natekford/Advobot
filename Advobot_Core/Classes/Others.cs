@@ -11,6 +11,9 @@ using System.Threading;
 
 namespace Advobot.Classes
 {
+	/// <summary>
+	/// Notification that gets sent whenever certain events happen depending on what <see cref="GuildNotificationType"/> is linked to this notification.
+	/// </summary>
 	public class GuildNotification : ISetting
 	{
 		[JsonProperty]
@@ -20,7 +23,7 @@ namespace Advobot.Classes
 		[JsonProperty]
 		public string Description { get; }
 		[JsonProperty]
-		public string ThumbURL { get; }
+		public string ThumbUrl { get; }
 		[JsonProperty]
 		public ulong ChannelId { get; }
 		[JsonIgnore]
@@ -29,16 +32,16 @@ namespace Advobot.Classes
 		public ITextChannel Channel { get; private set; }
 
 		[JsonConstructor]
-		public GuildNotification(string content, string title, string description, string thumbURL, ulong channelID)
+		public GuildNotification(string content, string title, string description, string thumbUrl, ulong channelID)
 		{
 			Content = content;
 			Title = title;
 			Description = description;
-			ThumbURL = thumbURL;
+			ThumbUrl = thumbUrl;
 			ChannelId = channelID;
-			if (!(String.IsNullOrWhiteSpace(title) && String.IsNullOrWhiteSpace(description) && String.IsNullOrWhiteSpace(thumbURL)))
+			if (!(String.IsNullOrWhiteSpace(title) && String.IsNullOrWhiteSpace(description) && String.IsNullOrWhiteSpace(thumbUrl)))
 			{
-				Embed = EmbedActions.MakeNewEmbed(title, description, null, null, null, thumbURL);
+				Embed = EmbedActions.MakeNewEmbed(title, description, null, null, null, thumbUrl);
 			}
 		}
 		public GuildNotification(string content, string title, string description, string thumbURL, ITextChannel channel) : this(content, title, description, thumbURL, channel.Id)
@@ -50,6 +53,10 @@ namespace Advobot.Classes
 		{
 			Channel = channel;
 		}
+		/// <summary>
+		/// Sets <see cref="Channel"/> to whichever text channel on <paramref name="guild"/> has the Id <see cref="ChannelId"/>.
+		/// </summary>
+		/// <param name="guild"></param>
 		public void PostDeserialize(SocketGuild guild)
 		{
 			Channel = guild.GetTextChannel(ChannelId);
@@ -57,7 +64,7 @@ namespace Advobot.Classes
 
 		public override string ToString()
 		{
-			return $"**Channel:** `{Channel.FormatChannel()}`\n**Content:** `{Content}`\n**Title:** `{Title}`\n**Description:** `{Description}`\n**Thumbnail:** `{ThumbURL}`";
+			return $"**Channel:** `{Channel.FormatChannel()}`\n**Content:** `{Content}`\n**Title:** `{Title}`\n**Description:** `{Description}`\n**Thumbnail:** `{ThumbUrl}`";
 		}
 		public string ToString(SocketGuild guild)
 		{
@@ -65,6 +72,9 @@ namespace Advobot.Classes
 		}
 	}
 
+	/// <summary>
+	/// Handles deleted message collection for <see cref="Modules.Log.MyLogModule.OnMessageDeleted(Cacheable{IMessage, ulong}, ISocketMessageChannel)"/>.
+	/// </summary>
 	public class MessageDeletion
 	{
 		public CancellationTokenSource CancelToken { get; private set; }
@@ -80,7 +90,7 @@ namespace Advobot.Classes
 		}
 		public void SetList(List<IMessage> InList)
 		{
-			_Messages = InList.ToList();
+			_Messages = InList;
 		}
 		public void AddToList(IMessage Item)
 		{

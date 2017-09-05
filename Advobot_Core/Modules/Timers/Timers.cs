@@ -26,7 +26,6 @@ namespace Advobot.Modules.Timers
 		private readonly List<RemovableMessage> _RemovableMessages = new List<RemovableMessage>();
 		private readonly List<ActiveCloseWord<HelpEntry>> _ActiveCloseHelp = new List<ActiveCloseWord<HelpEntry>>();
 		private readonly List<ActiveCloseWord<Quote>> _ActiveCloseQuotes = new List<ActiveCloseWord<Quote>>();
-		private readonly List<SlowmodeUser> _SlowmodeUsers = new List<SlowmodeUser>();
 
 		public MyTimersModule(IGuildSettingsModule guildSettings)
 		{
@@ -123,9 +122,9 @@ namespace Advobot.Modules.Timers
 		}
 		private void ResetSlowModeUserMessages()
 		{
-			foreach (var slowModeUser in _SlowmodeUsers.GetOutTimedObjects())
+			foreach (var slowmode in _GuildSettings.GetAllSettings().Where(x => x.Slowmode != null && x.Slowmode.Enabled).Select(x => x.Slowmode))
 			{
-				slowModeUser.ResetMessagesLeft();
+				slowmode.ResetUsers();
 			}
 		}
 
@@ -144,10 +143,6 @@ namespace Advobot.Modules.Timers
 		public void AddActiveCloseQuotes(params ActiveCloseWord<Quote>[] quotes)
 		{
 			_ActiveCloseQuotes.ThreadSafeAddRange(quotes);
-		}
-		public void AddSlowModeUsers(params SlowmodeUser[] users)
-		{
-			_SlowmodeUsers.ThreadSafeAddRange(users);
 		}
 
 		public void RemovePunishments(ulong userId, PunishmentType punishment)
@@ -178,7 +173,6 @@ namespace Advobot.Modules.Timers
 			_RemovableMessages.Clear();
 			_ActiveCloseHelp.Clear();
 			_ActiveCloseQuotes.Clear();
-			_SlowmodeUsers.Clear();
 		}
 	}
 }

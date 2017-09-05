@@ -90,7 +90,7 @@ namespace Advobot.Commands.Quotes
 			var quote = quotes.FirstOrDefault(x => x.Name.CaseInsEquals(name));
 			if (quote != null)
 			{
-				await MessageActions.SendChannelMessage(Context, quote.Text);
+				await MessageActions.SendChannelMessage(Context, quote.Description);
 				return;
 			}
 

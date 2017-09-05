@@ -1,8 +1,10 @@
-﻿using Advobot.Enums;
-using System.IO;
+﻿using System.IO;
 
 namespace Advobot.Graphics
 {
+	/// <summary>
+	/// Holds information about a guild in order to list them in the file menu.
+	/// </summary>
 	internal struct GuildFileInformation
 	{
 		public ulong Id { get; }
@@ -17,6 +19,9 @@ namespace Advobot.Graphics
 		}
 	}
 
+	/// <summary>
+	/// Used in the file menu to list the information about a file.
+	/// </summary>
 	internal struct FileInformation
 	{
 		public FileType FileType { get; }

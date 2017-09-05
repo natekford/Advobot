@@ -22,6 +22,10 @@ namespace Advobot.Classes
 			ChangePunishment(punishment);
 		}
 
+		/// <summary>
+		/// Sets <see cref="Punishment"/> to <paramref name="punishment"/>.
+		/// </summary>
+		/// <param name="punishment"></param>
 		public void ChangePunishment(PunishmentType punishment)
 		{
 			switch (punishment)
@@ -82,6 +86,10 @@ namespace Advobot.Classes
 			Role = role;
 		}
 
+		/// <summary>
+		/// Sets <see cref="Role"/> to whatever role on the guild has <see cref="RoleId"/> as its Id.
+		/// </summary>
+		/// <param name="guild"></param>
 		public void PostDeserialize(SocketGuild guild)
 		{
 			Role = guild.GetRole(RoleId);
@@ -116,7 +124,7 @@ namespace Advobot.Classes
 			User = user;
 		}
 
-		public void IncreaseRoleCount()
+		public void IncrementRoleCount()
 		{
 			++MessagesForRole;
 		}
@@ -124,7 +132,7 @@ namespace Advobot.Classes
 		{
 			MessagesForRole = 0;
 		}
-		public void IncreaseKickCount()
+		public void IncrementKickCount()
 		{
 			++MessagesForKick;
 		}
@@ -132,7 +140,7 @@ namespace Advobot.Classes
 		{
 			MessagesForKick = 0;
 		}
-		public void IncreaseBanCount()
+		public void IncrementBanCount()
 		{
 			++MessagesForBan;
 		}

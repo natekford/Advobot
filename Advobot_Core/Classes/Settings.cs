@@ -12,6 +12,9 @@ using System.Runtime.CompilerServices;
 
 namespace Advobot.Classes
 {
+	/// <summary>
+	/// Holds settings for a guild. Settings are only saved by calling <see cref="SaveSettings"/>.
+	/// </summary>
 	public class MyGuildSettings : IGuildSettings
 	{
 		[JsonProperty("WelcomeMessage")]
@@ -179,23 +182,23 @@ namespace Advobot.Classes
 		public Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary
 		{
 			get => _SpamPrevention ?? (_SpamPrevention = new Dictionary<SpamType, SpamPreventionInfo>
-				{
-					{ SpamType.Message, null },
-					{ SpamType.LongMessage, null },
-					{ SpamType.Link, null },
-					{ SpamType.Image, null },
-					{ SpamType.Mention, null },
-				});
+			{
+				{ SpamType.Message, null },
+				{ SpamType.LongMessage, null },
+				{ SpamType.Link, null },
+				{ SpamType.Image, null },
+				{ SpamType.Mention, null },
+			});
 			set => _SpamPrevention = value;
 		}
 		[JsonIgnore]
 		public Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary
 		{
 			get => _RaidPrevention ?? (_RaidPrevention = new Dictionary<RaidType, RaidPreventionInfo>
-				{
-					{ RaidType.Regular, null },
-					{ RaidType.RapidJoins, null },
-				});
+			{
+				{ RaidType.Regular, null },
+				{ RaidType.RapidJoins, null },
+			});
 			set => _RaidPrevention = value;
 		}
 		[JsonIgnore]
@@ -328,6 +331,9 @@ namespace Advobot.Classes
 		}
 	}
 
+	/// <summary>
+	/// Holds settings for the bot. Settings are saved through property setters or calling <see cref="SaveSettings()"/>.
+	/// </summary>
 	public class MyBotSettings : IBotSettings, INotifyPropertyChanged
 	{
 		private const string MY_BOT_PREFIX = "&&";
@@ -508,6 +514,10 @@ namespace Advobot.Classes
 		private void SaveSettings(object sender, PropertyChangedEventArgs e)
 		{
 			ConsoleActions.WriteLine($"Successfully saved: {e.PropertyName}");
+			SaveSettings();
+		}
+		public void SaveSettings()
+		{
 			SavingAndLoadingActions.OverWriteFile(GetActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
 		}
 		public void PostDeserialize(bool windows, bool console, bool firstInstance)

@@ -6,9 +6,13 @@ using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace Advobot.Classes
 {
+	/// <summary>
+	/// A setting on a guild that states that the command is off for whatever Discord entity has that Id.
+	/// </summary>
 	public class CommandOverride : ISetting
 	{
 		[JsonProperty]
@@ -32,12 +36,15 @@ namespace Advobot.Classes
 		}
 	}
 
+	/// <summary>
+	/// A setting on guilds that states whether a command is on or off.
+	/// </summary>
 	public class CommandSwitch : ISetting
 	{
 		[JsonProperty]
 		public string Name { get; }
 		[JsonIgnore]
-		public string[] Aliases { get; }
+		public ReadOnlyCollection<string> Aliases { get; }
 		[JsonProperty]
 		public bool Value { get; private set; }
 		[JsonProperty]
@@ -63,9 +70,12 @@ namespace Advobot.Classes
 			Name = name;
 			Value = value;
 			Category = helpEntry.Category;
-			Aliases = helpEntry.Aliases;
+			Aliases = helpEntry.Aliases.ToList().AsReadOnly();
 		}
 
+		/// <summary>
+		/// Sets <see cref="Value"/> to its opposite.
+		/// </summary>
 		public void ToggleEnabled()
 		{
 			Value = !Value;
@@ -110,16 +120,26 @@ namespace Advobot.Classes
 			WriteColor = ConsoleColor.Green;
 		}
 
+		/// <summary>
+		/// Sets <see cref="ErrorReason"/> to <paramref name="errorReason"/> and changes <see cref="WriteColor"/> to <see cref="ConsoleColor.Red"/>.
+		/// </summary>
+		/// <param name="errorReason"></param>
 		public void Errored(string errorReason)
 		{
 			ErrorReason = errorReason;
 			WriteColor = ConsoleColor.Red;
 		}
+		/// <summary>
+		/// Sets <see cref="TimeCompleted"/> to <see cref="DateTime.UtcNow"/> and write the logged command to the console.
+		/// </summary>
 		public void Finished()
 		{
 			TimeCompleted = DateTime.UtcNow;
 			Write();
 		}
+		/// <summary>
+		/// Writes this to the console in whatever color <see cref="WriteColor"/> is.
+		/// </summary>
 		public void Write()
 		{
 			ConsoleActions.WriteLine(this.ToString(), nameof(LoggedCommand), WriteColor);

@@ -529,7 +529,9 @@ namespace Advobot.Graphics
 			//Get the directory
 			var directoryInfo = GetActions.GetBaseBotDirectory();
 			if (directoryInfo == null || !directoryInfo.Exists)
+			{
 				return tv;
+			}
 
 			//Remove its parent so it can be added back to something
 			var parent = tv.Parent;
@@ -543,52 +545,51 @@ namespace Advobot.Graphics
 			tv.Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground];
 			tv.ItemsSource = directoryInfo.GetDirectories().Select(guildDir =>
 			{
-				//Separate the ID from the rest of the directory
-				var strID = guildDir.Name;
 				//Make sure the ID is valid
-				if (!ulong.TryParse(strID, out ulong ID))
+				if (!ulong.TryParse(guildDir.Name, out ulong Id))
+				{
 					return null;
-
-				var guild = guilds.FirstOrDefault(x => x.Id == ID);
+				}
+				//Make sure a guild has that Id
+				var guild = guilds.FirstOrDefault(x => x.Id == Id);
 				if (guild == null)
+				{
 					return null;
+				}
 
 				//Get all of the files
-				var listOfFiles = new List<TreeViewItem>();
-				guildDir.GetFiles().ToList().ForEach(fileInfo =>
+				var listOfFiles = guildDir.GetFiles().Select(fileInfo =>
 				{
-					var fileType = GetActions.GetFileType(Path.GetFileNameWithoutExtension(fileInfo.Name));
+					var fileType = UIBotWindowLogic.GetFileType(Path.GetFileNameWithoutExtension(fileInfo.Name));
 					if (!fileType.HasValue)
-						return;
+					{
+						return null;
+					}
 
-					var fileItem = new TreeViewItem
+					return new TreeViewItem
 					{
 						Header = fileInfo.Name,
 						Tag = new FileInformation(fileType.Value, fileInfo),
 						Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
 						Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
 					};
-					listOfFiles.Add(fileItem);
-				});
+				}).Where(x => x != null);
 
 				//If no items then don't bother adding in the guild to the treeview
 				if (!listOfFiles.Any())
+				{
 					return null;
+				}
 
 				//Create the guild item
-				var guildItem = new TreeViewItem
+				return new TreeViewItem
 				{
 					Header = guild.FormatGuild(),
-					Tag = new GuildFileInformation(ID, guild.Name, (guild as Discord.WebSocket.SocketGuild).MemberCount),
+					Tag = new GuildFileInformation(Id, guild.Name, (guild as Discord.WebSocket.SocketGuild).MemberCount),
 					Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
 					Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
+					ItemsSource = listOfFiles,
 				};
-				listOfFiles.ForEach(x =>
-				{
-					guildItem.Items.Add(x);
-				});
-
-				return guildItem;
 			}).Where(x => x != null).OrderByDescending(x => ((GuildFileInformation)x.Tag).MemberCount);
 
 			return tv;
@@ -598,13 +599,11 @@ namespace Advobot.Graphics
 			var defs1 = "Latency:\n\tTime it takes for a command to reach the bot.\nMemory:\n\tAmount of RAM the program is using.\n\t(This is wrong most of the time.)";
 			var defs2 = "Threads:\n\tWhere all the actions in the bot happen.\nShards:\n\tHold all the guilds a bot has on its client.\n\tThere is a limit of 2500 guilds per shard.";
 			var vers = $"\nAPI Wrapper Version: {Constants.API_VERSION}\nBot Version: {Constants.BOT_VERSION}\nGitHub Repository: ";
-			var help = "\n\nNeed additional help? Join the Discord server: ";
-			var all = String.Join("\n", defs1, defs2, vers);
 
 			var temp = new Paragraph();
-			temp.Inlines.Add(new Run(all));
+			temp.Inlines.Add(new Run(String.Join("\n", defs1, defs2, vers)));
 			temp.Inlines.Add(MakeHyperlink(Constants.REPO, "Advobot"));
-			temp.Inlines.Add(new Run(help));
+			temp.Inlines.Add(new Run("\n\nNeed additional help? Join the Discord server: "));
 			temp.Inlines.Add(MakeHyperlink(Constants.DISCORD_INV, "Here"));
 
 			return new FlowDocument(temp);
@@ -693,6 +692,13 @@ namespace Advobot.Graphics
 
 	internal class UIBotWindowLogic
 	{
+		private static Dictionary<ToolTipReason, string> _ToolTipReasons = new Dictionary<ToolTipReason, string>
+		{
+			{ ToolTipReason.FileSavingFailure, "Failed to save the file." },
+			{ ToolTipReason.FileSavingSuccess, "Successfully saved the file." },
+			{ ToolTipReason.InvalidFilePath, "Unable to gather the path for this file." },
+		};
+
 		public static async Task SaveSettings(Grid parent, IDiscordClient client, IBotSettings botSettings)
 		{
 			//Go through each setting and update them
@@ -900,25 +906,7 @@ namespace Advobot.Graphics
 
 		public static string GetReasonTextFromToolTipReason(ToolTipReason reason)
 		{
-			switch (reason)
-			{
-				case ToolTipReason.FileSavingFailure:
-				{
-					return "Failed to save the file.";
-				}
-				case ToolTipReason.FileSavingSuccess:
-				{
-					return "Successfully saved the file.";
-				}
-				case ToolTipReason.InvalidFilePath:
-				{
-					return "Unable to gather the path for this file.";
-				}
-				default:
-				{
-					return null;
-				}
-			}
+			return _ToolTipReasons[reason];
 		}
 		public static ToolTipReason SaveFile(TextEditor tb)
 		{
@@ -965,6 +953,11 @@ namespace Advobot.Graphics
 			}
 		}
 
+		public static FileType? GetFileType(string file)
+		{
+			return Enum.TryParse(file, true, out FileType type) ? type as FileType? : null;
+		}
+
 		public static void PauseBot(IBotSettings botSettings)
 		{
 			if (botSettings.Pause)
@@ -979,7 +972,7 @@ namespace Advobot.Graphics
 			}
 		}
 
-		public static bool AppendTextToTextEditorIfPathExistsAndReturnIfHappened(TextEditor display, TreeViewItem treeItem)
+		public static bool AppendTextToTextEditorIfPathExists(TextEditor display, TreeViewItem treeItem)
 		{
 			var fileInfo = ((FileInformation)treeItem.Tag).FileInfo;
 			if (fileInfo != null && fileInfo.Exists)

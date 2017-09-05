@@ -38,7 +38,7 @@ namespace Advobot.Actions
 
 			if (time > 0 && timers != null)
 			{
-				timers.AddRemovablePunishments(new RemovableRoleMute(user.Guild, user, time, role));
+				timers.AddRemovablePunishments(new RemovableRoleMute(user.Guild, user.Id, time, role));
 			}
 		}
 		public static async Task ManualVoiceMuteUser(IGuildUser user, string reason, uint time = 0, ITimersModule timers = null)
@@ -47,7 +47,7 @@ namespace Advobot.Actions
 
 			if (time > 0 && timers != null)
 			{
-				timers.AddRemovablePunishments(new RemovableVoiceMute(user.Guild, user, time));
+				timers.AddRemovablePunishments(new RemovableVoiceMute(user.Guild, user.Id, time));
 			}
 		}
 		public static async Task ManualDeafenUser(IGuildUser user, string reason, uint time = 0, ITimersModule timers = null)
@@ -56,7 +56,7 @@ namespace Advobot.Actions
 
 			if (time > 0 && timers != null)
 			{
-				timers.AddRemovablePunishments(new RemovableDeafen(user.Guild, user, time));
+				timers.AddRemovablePunishments(new RemovableDeafen(user.Guild, user.Id, time));
 			}
 		}
 
@@ -155,7 +155,7 @@ namespace Advobot.Actions
 					await AutomaticDeafenUser(user);
 					if (time > 0 && timers != null)
 					{
-						timers.AddRemovablePunishments(new RemovableDeafen(guild, user, time));
+						timers.AddRemovablePunishments(new RemovableDeafen(guild, user.Id, time));
 					}
 					return;
 				}
@@ -164,7 +164,7 @@ namespace Advobot.Actions
 					await AutomaticVoiceMuteUser(user);
 					if (time > 0 && timers != null)
 					{
-						timers.AddRemovablePunishments(new RemovableVoiceMute(guild, user, time));
+						timers.AddRemovablePunishments(new RemovableVoiceMute(guild, user.Id, time));
 					}
 					return;
 				}
@@ -173,7 +173,7 @@ namespace Advobot.Actions
 					await AutomaticRoleMuteUser(user, guildSettings.MuteRole);
 					if (time > 0 && timers != null)
 					{
-						timers.AddRemovablePunishments(new RemovableRoleMute(guild, user, time, guildSettings.MuteRole));
+						timers.AddRemovablePunishments(new RemovableRoleMute(guild, user.Id, time, guildSettings.MuteRole));
 					}
 					return;
 				}
@@ -193,7 +193,7 @@ namespace Advobot.Actions
 						await AutomaticBan(guild, user.Id, caller);
 						if (time > 0 && timers != null)
 						{
-							timers.AddRemovablePunishments(new RemovableBan(guild, user, time));
+							timers.AddRemovablePunishments(new RemovableBan(guild, user.Id, time));
 						}
 					}
 					return;
@@ -203,7 +203,7 @@ namespace Advobot.Actions
 					await AutomaticBan(guild, user.Id, caller);
 					if (time > 0 && timers != null)
 					{
-						timers.AddRemovablePunishments(new RemovableBan(guild, user, time));
+						timers.AddRemovablePunishments(new RemovableBan(guild, user.Id, time));
 					}
 					return;
 				}

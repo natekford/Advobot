@@ -7,6 +7,9 @@ using System.Collections.Generic;
 
 namespace Advobot.Interfaces
 {
+	/// <summary>
+	/// Holds bot settings and some readonly information.
+	/// </summary>
 	public interface IBotSettings
 	{
 		IReadOnlyList<ulong> TrustedUsers { get; set; }
@@ -35,8 +38,12 @@ namespace Advobot.Interfaces
 		void SetLoaded();
 		void SetGotKey();
 		void SetGotPath();
+		void SaveSettings();
 	}
 
+	/// <summary>
+	/// Holds guild settings and some readonly information.
+	/// </summary>
 	public interface IGuildSettings
 	{
 		List<BotImplementedPermissions> BotUsers { get; set; }
@@ -79,6 +86,9 @@ namespace Advobot.Interfaces
 		void SaveSettings();
 	}
 
+	/// <summary>
+	/// Formatting for a class defined as a setting.
+	/// </summary>
 	public interface ISetting
 	{
 		string ToString();

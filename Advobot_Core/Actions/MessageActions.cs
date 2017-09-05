@@ -230,14 +230,14 @@ namespace Advobot.Actions
 		{
 			if (time > 0 && timers != null)
 			{
-				timers.AddRemovableMessages(new RemovableMessage(messages, time));
+				timers.AddRemovableMessages(new RemovableMessage(time, messages.ToArray()));
 			}
 		}
 		public static void RemoveCommandMessage(IMessage message, int time = 0, ITimersModule timers = null)
 		{
 			if (time > 0 && timers != null)
 			{
-				timers.AddRemovableMessages(new RemovableMessage(message, time));
+				timers.AddRemovableMessages(new RemovableMessage(time, message));
 			}
 		}
 

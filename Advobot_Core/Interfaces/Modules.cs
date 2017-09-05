@@ -6,18 +6,24 @@ using System.Threading.Tasks;
 
 namespace Advobot.Interfaces
 {
+	/// <summary>
+	/// Abstraction for a timers module. Handles timed punishments, close words, and slowmode.
+	/// </summary>
 	public interface ITimersModule
 	{
 		void AddRemovablePunishments(params RemovablePunishment[] punishments);
 		void AddRemovableMessages(params RemovableMessage[] messages);
 		void AddActiveCloseHelp(params ActiveCloseWord<HelpEntry>[] help);
 		void AddActiveCloseQuotes(params ActiveCloseWord<Quote>[] quotes);
-		void AddSlowModeUsers(params SlowmodeUser[] users);
 		void RemovePunishments(ulong id, PunishmentType punishment);
+
 		ActiveCloseWord<HelpEntry> GetOutActiveCloseHelp(ulong id);
 		ActiveCloseWord<Quote> GetOutActiveCloseQuote(ulong id);
 	}
 
+	/// <summary>
+	/// Abstraction for an invite list module. Handles a list of server invites.
+	/// </summary>
 	public interface IInviteListModule
 	{
 		List<ListedInvite> ListedInvites { get; }
@@ -28,6 +34,9 @@ namespace Advobot.Interfaces
 		void RemoveInvite(IGuild guild);
 	}
 
+	/// <summary>
+	/// Abstraction for a guild settings module. Handles containing guild settings and adding/removing them.
+	/// </summary>
 	public interface IGuildSettingsModule
 	{
 		Task AddGuild(IGuild guild);
@@ -38,6 +47,9 @@ namespace Advobot.Interfaces
 		bool ContainsGuild(ulong guildId);
 	}
 
+	/// <summary>
+	/// Abstraction for a log module. Handles counts of actions, and which commands have been ran. 
+	/// </summary>
 	public interface ILogModule
 	{
 		List<LoggedCommand> RanCommands { get; }

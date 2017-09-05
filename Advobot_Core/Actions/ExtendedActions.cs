@@ -303,9 +303,11 @@ namespace Advobot
 		public static List<T> GetOutTimedObjects<T>(this List<T> inputList) where T : ITimeInterface
 		{
 			if (inputList == null)
+			{
 				return null;
+			}
 
-			var eligibleToBeGotten = inputList.Where(x => x.GetTime() <= DateTime.UtcNow).ToList();
+			var eligibleToBeGotten = inputList.Where(x => x.GetTime() < DateTime.UtcNow).ToList();
 			inputList.ThreadSafeRemoveAll(x => eligibleToBeGotten.Contains(x));
 			return eligibleToBeGotten;
 		}

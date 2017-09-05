@@ -1,24 +1,35 @@
 ﻿using System;
 
+//I know enums don't need "= x," but I like it.
 namespace Advobot.Enums
 {
-	//I know enums don't need "= x," but I like it.
-	public enum LogAction
+	/// <summary>
+	/// Allows certain guild events to be logged when these are in <see cref="Interfaces.IGuildSettings.LogActions"/>.
+	/// </summary>
+	[Flags]
+	public enum LogAction : uint
 	{
-		UserJoined						= 0,
-		UserLeft						= 1,
-		UserUpdated						= 2,
-		MessageReceived					= 3,
-		MessageUpdated					= 4,
-		MessageDeleted					= 5,
+		UserJoined						= (1U << 0),
+		UserLeft						= (1U << 1),
+		UserUpdated						= (1U << 2),
+		MessageReceived					= (1U << 3),
+		MessageUpdated					= (1U << 4),
+		MessageDeleted					= (1U << 5),
 	}
 
-	public enum GuildNotificationType
+	/// <summary>
+	/// Specifies which type of notification a guild notification should be.
+	/// </summary>
+	[Flags]
+	public enum GuildNotificationType : uint
 	{
-		Welcome							= 1,
-		Goodbye							= 2,
+		Welcome							= (1U << 0),
+		Goodbye							= (1U << 1),
 	}
 
+	/// <summary>
+	/// Specifies which category a command is in.
+	/// </summary>
 	[Flags]
 	public enum CommandCategory : uint
 	{
@@ -40,13 +51,9 @@ namespace Advobot.Enums
 		Rules							= (1U << 15),
 	}
 
-	[Flags]
-	public enum EmoteType : uint
-	{
-		Global							= (1U << 0),
-		Guild							= (1U << 1),
-	}
-
+	/// <summary>
+	/// Specifies which log channel to modify.
+	/// </summary>
 	[Flags]
 	public enum LogChannelType : uint
 	{
@@ -55,6 +62,9 @@ namespace Advobot.Enums
 		Image							= (1U << 2),
 	}
 
+	/// <summary>
+	/// For use in <see cref="Attributes.VerifyUserAttribute"/> to determine what to check.
+	/// </summary>
 	[Flags]
 	public enum UserVerification : uint
 	{
@@ -63,6 +73,9 @@ namespace Advobot.Enums
 		CanBeMovedFromChannel			= (1U << 2),
 	}
 
+	/// <summary>
+	/// For use in <see cref="Attributes.VerifyChannelAttribute"/> to determine what to check.
+	/// </summary>
 	[Flags]
 	public enum ChannelVerification : uint
 	{
@@ -80,6 +93,9 @@ namespace Advobot.Enums
 		CanCreateInstantInvite			= (1U << 11),
 	}
 
+	/// <summary>
+	/// For us in <see cref="Attributes.VerifyRoleAttribute"/> to determine what to check.
+	/// </summary>
 	[Flags]
 	public enum RoleVerification : uint
 	{
@@ -89,6 +105,10 @@ namespace Advobot.Enums
 		IsManaged						= (1U << 3),
 	}
 
+	/// <summary>
+	/// Results from various checks on Discord entities.
+	/// To be used in order to get a formatted error reason from <see cref="Actions.FormattingActions.FormatErrorString(Discord.IGuild, FailureReason, object)"/>.
+	/// </summary>
 	[Flags]
 	public enum FailureReason : uint
 	{
@@ -119,12 +139,9 @@ namespace Advobot.Enums
 		NoUsernameOrID					= (1U << 14),
 	}
 
-	[Flags]
-	public enum FileType : uint
-	{
-		GuildSettings					= (1U << 0),
-	}
-
+	/// <summary>
+	/// Specify what punishment should be given.
+	/// </summary>
 	[Flags]
 	public enum PunishmentType : uint
 	{
@@ -136,15 +153,9 @@ namespace Advobot.Enums
 		RoleMute						= (1U << 5),
 	}
 
-	[Flags]
-	public enum DeleteInvAction : uint
-	{
-		User							= (1U << 0),
-		Channel							= (1U << 1),
-		Uses							= (1U << 2),
-		Expiry							= (1U << 3),
-	}
-
+	/// <summary>
+	/// Specifies what spam prevention to modify/set up.
+	/// </summary>
 	[Flags]
 	public enum SpamType : uint
 	{
@@ -155,6 +166,9 @@ namespace Advobot.Enums
 		Mention							= (1U << 4),
 	}
 
+	/// <summary>
+	/// Specifies what raid prevention to modify/set up.
+	/// </summary>
 	[Flags]
 	public enum RaidType : uint
 	{
@@ -162,6 +176,9 @@ namespace Advobot.Enums
 		RapidJoins						= (1U << 1),
 	}
 
+	/// <summary>
+	/// Specifies what action to do.
+	/// </summary>
 	[Flags]
 	public enum ActionType : uint
 	{
@@ -183,6 +200,9 @@ namespace Advobot.Enums
 		Off								= (1U << 15),
 	}
 
+	/// <summary>
+	/// Used in <see cref="Attributes.OtherRequirementAttribute"/> to perform various checks.
+	/// </summary>
 	[Flags]
 	public enum Precondition : uint
 	{
@@ -192,12 +212,18 @@ namespace Advobot.Enums
 		BotOwner						= (1U << 3),
 	}
 
+	/// <summary>
+	/// Specifies what external settings to use on a channel.
+	/// </summary>
 	[Flags]
 	public enum ChannelSetting : uint
 	{
 		ImageOnly						= (1U << 0),
 	}
 
+	/// <summary>
+	/// Specifies what to target with a command. Discord entities, names, prefix, etc.
+	/// </summary>
 	[Flags]
 	public enum Target : uint
 	{

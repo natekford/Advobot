@@ -120,9 +120,9 @@ namespace Advobot.Modules.Log
 		};
 		private static Dictionary<PunishmentType, Func<BannedPhraseUser, int>> _BannedPhrasePunishmentFuncs = new Dictionary<PunishmentType, Func<BannedPhraseUser, int>>
 		{
-			{ PunishmentType.RoleMute, (user) => { user.IncreaseRoleCount(); return user.MessagesForRole; } },
-			{ PunishmentType.Kick, (user) => { user.IncreaseKickCount(); return user.MessagesForKick; } },
-			{ PunishmentType.Ban, (user) => { user.IncreaseBanCount(); return user.MessagesForBan; } },
+			{ PunishmentType.RoleMute, (user) => { user.IncrementRoleCount(); return user.MessagesForRole; } },
+			{ PunishmentType.Kick, (user) => { user.IncrementKickCount(); return user.MessagesForKick; } },
+			{ PunishmentType.Ban, (user) => { user.IncrementBanCount(); return user.MessagesForBan; } },
 		};
 		private static Dictionary<PunishmentType, Action<BannedPhraseUser>> _BannedPhraseResets = new Dictionary<PunishmentType, Action<BannedPhraseUser>>
 		{
@@ -188,7 +188,7 @@ namespace Advobot.Modules.Log
 			var closeWordList = timers.GetOutActiveCloseQuote(message.Author.Id);
 			if (!closeWordList.Equals(default(ActiveCloseWord<Quote>)) && closeWordList.List.Count > number)
 			{
-				await MessageActions.SendChannelMessage(message.Channel, closeWordList.List[number].Word.Text);
+				await MessageActions.SendChannelMessage(message.Channel, closeWordList.List[number].Word.Description);
 			}
 			var closeHelpList = timers.GetOutActiveCloseHelp(message.Author.Id);
 			if (!closeHelpList.Equals(default(ActiveCloseWord<HelpEntry>)) && closeHelpList.List.Count > number)
@@ -285,31 +285,13 @@ namespace Advobot.Modules.Log
 		{
 			//Don't bother doing stuff on the user if they're immune
 			var slowmode = guildSettings.Slowmode;
-			if (slowmode == null || !slowmode.Enabled || (message.Author as IGuildUser).RoleIds.Intersect(slowmode.ImmuneRoleIds).Any())
+			var user = message.Author as IGuildUser;
+			if (slowmode == null || !slowmode.Enabled || user.RoleIds.Intersect(slowmode.ImmuneRoleIds).Any())
 			{
 				return;
 			}
 
-			var user = slowmode.Users.FirstOrDefault(x => x.User.Id == message.Author.Id);
-			if (user == null)
-			{
-				slowmode.Users.ThreadSafeAdd(user = new SlowmodeUser(message.Author as IGuildUser, slowmode.BaseMessages, slowmode.Interval));
-			}
-
-			//If the user still has messages left, check if this is the first of their interval. Start a countdown if it is. Else lower by one and/or delete the message.
-			if (user.CurrentMessagesLeft > 0)
-			{
-				if (user.CurrentMessagesLeft == user.BaseMessages)
-				{
-					user.SetNewTime();
-				}
-
-				user.LowerMessagesLeft();
-			}
-			else
-			{
-				await MessageActions.DeleteMessage(message);
-			}
+			await slowmode.HandleMessage(message, user);
 		}
 		public static async Task HandleBannedPhrases(ITimersModule timers, IGuildSettings guildSettings, IGuild guild, IMessage message)
 		{

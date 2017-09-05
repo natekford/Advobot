@@ -4,6 +4,9 @@ using Newtonsoft.Json;
 
 namespace Advobot.Classes
 {
+	/// <summary>
+	/// Extra permissions within the bot given to a user on a guild.
+	/// </summary>
 	public class BotImplementedPermissions : ISetting
 	{
 		[JsonProperty]

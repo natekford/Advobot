@@ -85,7 +85,7 @@ namespace Advobot.Modules.GuildSettings
 			guildSettings.CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			guildSettings.CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			guildSettings.CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			guildSettings.Invites.AddRange((await InviteActions.GetInvites(guild)).Select(x => new BotInvite(x.GuildId, x.Code, x.Uses)));
+			guildSettings.Invites.AddRange((await InviteActions.GetInvites(guild)).Select(x => new BotInvite(x.Code, x.Uses)));
 
 			if (guildSettings is MyGuildSettings)
 			{
