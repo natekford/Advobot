@@ -436,15 +436,26 @@ namespace Advobot.Modules.Log
 		{
 			if (HelperFunctions.DisallowBots(message) && HelperFunctions.VerifyBotLogging(_BotSettings, _GuildSettings, message, out var verified))
 			{
+				var guildSettings = verified.GuildSettings;
+
 				//Allow closewords to be handled on an unlogged channel, but don't allow anything else.
-				await HelperFunctions.HandleCloseWords(_BotSettings, verified.GuildSettings, message, _Timers);
-				if (HelperFunctions.VerifyLogAction(verified.GuildSettings))
+				await HelperFunctions.HandleCloseWords(_BotSettings, guildSettings, message, _Timers);
+				if (HelperFunctions.VerifyLogAction(guildSettings))
 				{
-					await HelperFunctions.HandleChannelSettings(verified.GuildSettings, message);
-					await HelperFunctions.HandleSpamPrevention(verified.GuildSettings, verified.Guild, message, _Timers);
-					await HelperFunctions.HandleSlowmode(verified.GuildSettings, message);
-					await HelperFunctions.HandleBannedPhrases(_Timers, verified.GuildSettings, verified.Guild, message);
-					await HelperFunctions.HandleImageLogging(this, verified.GuildSettings.ImageLog, message);
+					var user = message.Author as IGuildUser;
+
+					await HelperFunctions.HandleChannelSettings(guildSettings, message);
+					await HelperFunctions.HandleSpamPrevention(guildSettings, verified.Guild, message, _Timers);
+
+					//Don't bother doing stuff on the user if they're immune
+					var slowmode = guildSettings.Slowmode;
+					if (slowmode != null && slowmode.Enabled && !user.RoleIds.Intersect(slowmode.ImmuneRoleIds).Any())
+					{
+						await slowmode.HandleMessage(message, user);
+					}
+
+					await HelperFunctions.HandleBannedPhrases(_Timers, guildSettings, message);
+					await HelperFunctions.HandleImageLogging(this, guildSettings.ImageLog, message);
 				}
 			}
 		}

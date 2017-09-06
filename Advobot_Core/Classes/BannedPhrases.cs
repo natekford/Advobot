@@ -1,8 +1,13 @@
-﻿using Advobot.Enums;
+﻿using Advobot.Actions;
+using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Advobot.Classes
 {
@@ -11,6 +16,21 @@ namespace Advobot.Classes
 	/// </summary>
 	public class BannedPhrase : ISetting
 	{
+		[JsonIgnore]
+		private static Dictionary<PunishmentType, Func<BannedPhraseUser, int>> _BannedPhrasePunishmentFuncs = new Dictionary<PunishmentType, Func<BannedPhraseUser, int>>
+		{
+			{ PunishmentType.RoleMute, (user) => { user.IncrementRoleCount(); return user.MessagesForRole; } },
+			{ PunishmentType.Kick, (user) => { user.IncrementKickCount(); return user.MessagesForKick; } },
+			{ PunishmentType.Ban, (user) => { user.IncrementBanCount(); return user.MessagesForBan; } },
+		};
+		[JsonIgnore]
+		private static Dictionary<PunishmentType, Action<BannedPhraseUser>> _BannedPhraseResets = new Dictionary<PunishmentType, Action<BannedPhraseUser>>
+		{
+			{ PunishmentType.RoleMute, (user) => user.ResetRoleCount() },
+			{ PunishmentType.Kick, (user) => user.ResetKickCount() },
+			{ PunishmentType.Ban, (user) => user.ResetBanCount() },
+		};
+
 		[JsonProperty]
 		public string Phrase { get; }
 		[JsonProperty]
@@ -44,6 +64,38 @@ namespace Advobot.Classes
 					return;
 				}
 			}
+		}
+
+		/// <summary>
+		/// Deletes the message then checks if the user should be punished.
+		/// </summary>
+		/// <param name="guildSettings"></param>
+		/// <param name="message"></param>
+		/// <param name="timers"></param>
+		/// <returns></returns>
+		public async Task HandleBannedPhrasePunishment(IGuildSettings guildSettings, IMessage message, ITimersModule timers = null)
+		{
+			await MessageActions.DeleteMessage(message);
+
+			var user = guildSettings.BannedPhraseUsers.FirstOrDefault(x => x.User.Id == message.Author.Id);
+			if (user == null)
+			{
+				guildSettings.BannedPhraseUsers.Add(user = new BannedPhraseUser(message.Author as IGuildUser));
+			}
+
+			//Update the count
+			var count = _BannedPhrasePunishmentFuncs[Punishment](user);
+			var punishment = guildSettings.BannedPhrasePunishments.FirstOrDefault(x => x.Punishment == Punishment && x.NumberOfRemoves == count);
+			if (punishment == null)
+			{
+				return;
+			}
+
+			//TODO: include all automatic punishments in this
+			await PunishmentActions.AutomaticPunishments(guildSettings, user.User, Punishment, false, punishment.PunishmentTime, timers);
+
+			//Reset the user's number of removes for that given type.
+			_BannedPhraseResets[Punishment](user);
 		}
 
 		public override string ToString()

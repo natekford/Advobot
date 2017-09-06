@@ -118,18 +118,6 @@ namespace Advobot.Modules.Log
 			{ SpamType.Image, (message) => message.Attachments.Where(x => x.Height != null || x.Width != null).Count() + message.Embeds.Where(x => x.Image != null || x.Video != null).Count() },
 			{ SpamType.Mention, (message) => message.MentionedUserIds.Distinct().Count() },
 		};
-		private static Dictionary<PunishmentType, Func<BannedPhraseUser, int>> _BannedPhrasePunishmentFuncs = new Dictionary<PunishmentType, Func<BannedPhraseUser, int>>
-		{
-			{ PunishmentType.RoleMute, (user) => { user.IncrementRoleCount(); return user.MessagesForRole; } },
-			{ PunishmentType.Kick, (user) => { user.IncrementKickCount(); return user.MessagesForKick; } },
-			{ PunishmentType.Ban, (user) => { user.IncrementBanCount(); return user.MessagesForBan; } },
-		};
-		private static Dictionary<PunishmentType, Action<BannedPhraseUser>> _BannedPhraseResets = new Dictionary<PunishmentType, Action<BannedPhraseUser>>
-		{
-			{ PunishmentType.RoleMute, (user) => user.ResetRoleCount() },
-			{ PunishmentType.Kick, (user) => user.ResetKickCount() },
-			{ PunishmentType.Ban, (user) => user.ResetBanCount() },
-		};
 
 		/// <summary>
 		/// Handles settings on channels, such as: image only mode.
@@ -281,19 +269,7 @@ namespace Advobot.Modules.Log
 				user.ResetSpamUser();
 			}
 		}
-		public static async Task HandleSlowmode(IGuildSettings guildSettings, IMessage message)
-		{
-			//Don't bother doing stuff on the user if they're immune
-			var slowmode = guildSettings.Slowmode;
-			var user = message.Author as IGuildUser;
-			if (slowmode == null || !slowmode.Enabled || user.RoleIds.Intersect(slowmode.ImmuneRoleIds).Any())
-			{
-				return;
-			}
-
-			await slowmode.HandleMessage(message, user);
-		}
-		public static async Task HandleBannedPhrases(ITimersModule timers, IGuildSettings guildSettings, IGuild guild, IMessage message)
+		public static async Task HandleBannedPhrases(ITimersModule timers, IGuildSettings guildSettings, IMessage message)
 		{
 			//Ignore admins and messages older than an hour. (Accidentally deleted something important once due to not having these checks in place, but this should stop most accidental deletions)
 			if ((message.Author as IGuildUser).GuildPermissions.Administrator || (int)DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalHours > 0)
@@ -304,36 +280,16 @@ namespace Advobot.Modules.Log
 			var str = guildSettings.BannedPhraseStrings.FirstOrDefault(x => message.Content.CaseInsContains(x.Phrase));
 			if (str != null)
 			{
-				await HandleBannedPhrasePunishments(timers, guildSettings, guild, message, str);
+				await str.HandleBannedPhrasePunishment(guildSettings, message, timers);
 				return;
 			}
 
-			var regex = guildSettings.BannedPhraseRegex.FirstOrDefault(x => SpamActions.CheckIfRegMatch(message.Content, x.Phrase));
+			var regex = guildSettings.BannedPhraseRegex.FirstOrDefault(x => RegexActions.CheckIfRegexMatch(message.Content, x.Phrase));
 			if (regex != null)
 			{
-				await HandleBannedPhrasePunishments(timers, guildSettings, guild, message, regex);
+				await regex.HandleBannedPhrasePunishment(guildSettings, message, timers);
 				return;
 			}
-		}
-		public static async Task HandleBannedPhrasePunishments(ITimersModule timers, IGuildSettings guildSettings, IGuild guild, IMessage message, BannedPhrase phrase)
-		{
-			await MessageActions.DeleteMessage(message);
-
-			var user = guildSettings.BannedPhraseUsers.FirstOrDefault(x => x.User.Id == message.Author.Id);
-			if (user == null)
-			{
-				guildSettings.BannedPhraseUsers.Add(user = new BannedPhraseUser(message.Author as IGuildUser));
-			}
-
-			//Get the banned phrases punishments from the guild
-			if (!SpamActions.TryGetPunishment(guildSettings, phrase.Punishment, _BannedPhrasePunishmentFuncs[phrase.Punishment](user), out BannedPhrasePunishment punishment))
-			{
-				return;
-			}
-
-			//TODO: include all automatic punishments in this
-			await PunishmentActions.AutomaticPunishments(guildSettings, user.User, phrase.Punishment, false, punishment.PunishmentTime, timers);
-			_BannedPhraseResets[phrase.Punishment](user);
 		}
 		#endregion
 

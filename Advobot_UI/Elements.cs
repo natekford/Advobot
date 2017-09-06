@@ -42,6 +42,7 @@ namespace Advobot.Graphics
 	}
 	internal class MyNumberBox : MyTextBox
 	{
+		private static System.Text.RegularExpressions.Regex _NumberRegex = new System.Text.RegularExpressions.Regex(@"[^\d]", System.Text.RegularExpressions.RegexOptions.Compiled);
 		public MyNumberBox()
 		{
 			this.PreviewTextInput += MakeSureKeyIsNumber;
@@ -60,7 +61,7 @@ namespace Advobot.Graphics
 			}
 
 			var textBeingPasted = e.SourceDataObject.GetData(DataFormats.UnicodeText).ToString();
-			var onlyNums = System.Text.RegularExpressions.Regex.Replace(textBeingPasted, @"[^\d]", "", System.Text.RegularExpressions.RegexOptions.Compiled);
+			var onlyNums = _NumberRegex.Replace(textBeingPasted, "");
 			this.Text = onlyNums.Substring(0, Math.Min(this.MaxLength, onlyNums.Length));
 			e.CancelCommand();
 		}

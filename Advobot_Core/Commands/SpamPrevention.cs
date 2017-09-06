@@ -35,17 +35,17 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.On))]
 			public async Task CommandOn()
 			{
-				await SpamActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
+				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
 			}
 			[Command(nameof(ActionType.Off))]
 			public async Task CommandOff()
 			{
-				await SpamActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
+				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
 			}
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 			{
-				await SpamActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
 			}
 		}
 
@@ -57,17 +57,17 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.On))]
 			public async Task CommandOn()
 			{
-				await SpamActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
+				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
 			}
 			[Command(nameof(ActionType.Off))]
 			public async Task CommandOff()
 			{
-				await SpamActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
+				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
 			}
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 			{
-				await SpamActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
 			}
 		}
 
@@ -79,17 +79,17 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.On))]
 			public async Task CommandOn()
 			{
-				await SpamActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
+				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
 			}
 			[Command(nameof(ActionType.Off))]
 			public async Task CommandOff()
 			{
-				await SpamActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
+				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
 			}
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 			{
-				await SpamActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
 			}
 		}
 
@@ -101,17 +101,17 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.On))]
 			public async Task CommandOn()
 			{
-				await SpamActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
+				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
 			}
 			[Command(nameof(ActionType.Off))]
 			public async Task CommandOff()
 			{
-				await SpamActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
+				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
 			}
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 			{
-				await SpamActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
 			}
 		}
 
@@ -123,17 +123,17 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.On))]
 			public async Task CommandOn()
 			{
-				await SpamActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
+				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
 			}
 			[Command(nameof(ActionType.Off))]
 			public async Task CommandOff()
 			{
-				await SpamActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
+				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
 			}
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 			{
-				await SpamActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
 			}
 		}
 	}
@@ -166,17 +166,17 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.On))]
 			public async Task CommandOn()
 			{
-				await SpamActions.ModifyRaidPreventionEnabled(Context, _RaidType, true);
+				await SpamPreventionActions.ModifyRaidPreventionEnabled(Context, _RaidType, true);
 			}
 			[Command(nameof(ActionType.Off))]
 			public async Task CommandOff()
 			{
-				await SpamActions.ModifyRaidPreventionEnabled(Context, _RaidType, false);
+				await SpamPreventionActions.ModifyRaidPreventionEnabled(Context, _RaidType, false);
 			}
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint numberOfUsers)
 			{
-				await SpamActions.SetUpRaidPrevention(Context, _RaidType, punishment, numberOfUsers, 0);
+				await SpamPreventionActions.SetUpRaidPrevention(Context, _RaidType, punishment, numberOfUsers, 0);
 			}
 		}
 
@@ -188,17 +188,17 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.On))]
 			public async Task CommandOn()
 			{
-				await SpamActions.ModifyRaidPreventionEnabled(Context, _RaidType, true);
+				await SpamPreventionActions.ModifyRaidPreventionEnabled(Context, _RaidType, true);
 			}
 			[Command(nameof(ActionType.Off))]
 			public async Task CommandOff()
 			{
-				await SpamActions.ModifyRaidPreventionEnabled(Context, _RaidType, false);
+				await SpamPreventionActions.ModifyRaidPreventionEnabled(Context, _RaidType, false);
 			}
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint numberOfUsers, uint interval)
 			{
-				await SpamActions.SetUpRaidPrevention(Context, _RaidType, punishment, numberOfUsers, interval);
+				await SpamPreventionActions.SetUpRaidPrevention(Context, _RaidType, punishment, numberOfUsers, interval);
 			}
 		}
 	}

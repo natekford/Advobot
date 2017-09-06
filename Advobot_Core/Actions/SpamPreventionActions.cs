@@ -1,133 +1,13 @@
 ﻿using Advobot.Classes;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using Discord;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Advobot.Actions
 {
-	public static class SpamActions
+	public static class SpamPreventionActions
 	{
-		public static bool TryGetPunishment(IGuildSettings guildSettings, PunishmentType type, int msgs, out BannedPhrasePunishment punishment)
-		{
-			punishment = guildSettings.BannedPhrasePunishments.FirstOrDefault(x => x.Punishment == type && x.NumberOfRemoves == msgs);
-			return punishment != null;
-		}
-		public static bool TryGetBannedRegex(IGuildSettings guildSettings, string searchPhrase, out BannedPhrase bannedRegex)
-		{
-			bannedRegex = guildSettings.BannedPhraseRegex.FirstOrDefault(x => x.Phrase.CaseInsEquals(searchPhrase));
-			return bannedRegex != null;
-		}
-		public static bool TryGetBannedString(IGuildSettings guildSettings, string searchPhrase, out BannedPhrase bannedString)
-		{
-			bannedString = guildSettings.BannedPhraseStrings.FirstOrDefault(x => x.Phrase.CaseInsEquals(searchPhrase));
-			return bannedString != null;
-		}
-		public static bool TryCreateRegex(string input, out Regex regexOutput, out string stringOutput)
-		{
-			regexOutput = null;
-			stringOutput = null;
-			try
-			{
-				regexOutput = new Regex(input);
-				return true;
-			}
-			catch (Exception e)
-			{
-				stringOutput = e.Message;
-				return false;
-			}
-		}
-
-		public static bool CheckIfRegMatch(string msg, string pattern)
-		{
-			return Regex.IsMatch(msg, pattern, RegexOptions.IgnoreCase, new TimeSpan(Constants.TICKS_REGEX_TIMEOUT));
-		}
-
-		public static void HandleBannedPhraseModification(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
-		{
-			if (add)
-			{
-				AddBannedPhrases(bannedPhrases, inputPhrases, out success, out failure);
-			}
-			else
-			{
-				RemoveBannedPhrases(bannedPhrases, inputPhrases, out success, out failure);
-			}
-		}
-		public static void AddBannedPhrases(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, out List<string> success, out List<string> failure)
-		{
-			success = new List<string>();
-			failure = new List<string>();
-
-			//Don't add duplicate words
-			foreach (var str in inputPhrases)
-			{
-				if (!bannedPhrases.Any(x => x.Phrase.CaseInsEquals(str)))
-				{
-					success.Add(str);
-					bannedPhrases.Add(new BannedPhrase(str, default(PunishmentType)));
-				}
-				else
-				{
-					failure.Add(str);
-				}
-			}
-		}
-		public static void RemoveBannedPhrases(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, out List<string> success, out List<string> failure)
-		{
-			success = new List<string>();
-			failure = new List<string>();
-
-			var positions = new List<int>();
-			foreach (var potentialPosition in inputPhrases)
-			{
-				if (int.TryParse(potentialPosition, out int temp) && temp < bannedPhrases.Count)
-				{
-					positions.Add(temp);
-				}
-			}
-
-			//Removing by phrase
-			if (!positions.Any())
-			{
-				foreach (var str in inputPhrases)
-				{
-					var temp = bannedPhrases.FirstOrDefault(x => x.Phrase.Equals(str));
-					if (temp != null)
-					{
-						success.Add(str);
-						bannedPhrases.Remove(temp);
-					}
-					else
-					{
-						failure.Add(str);
-					}
-				}
-			}
-			//Removing by index
-			else
-			{
-				//Put them in descending order so as to not delete low values before high ones
-				foreach (var position in positions.OrderByDescending(x => x))
-				{
-					if (bannedPhrases.Count - 1 <= position)
-					{
-						success.Add(bannedPhrases[position]?.Phrase ?? "null");
-						bannedPhrases.RemoveAt(position);
-					}
-					else
-					{
-						failure.Add("String at position " + position);
-					}
-				}
-			}
-		}
-
 		public static async Task ModifySpamPreventionEnabled(IMyCommandContext context, SpamType spamType, bool enable)
 		{
 			var spamPrev = context.GuildSettings.SpamPreventionDictionary[spamType];
@@ -234,10 +114,10 @@ namespace Advobot.Actions
 					break;
 				}
 			}
-				
+
 			var newSpamPrev = new SpamPreventionInfo(punishType, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
 			context.GuildSettings.SpamPreventionDictionary[spamType] = newSpamPrev;
-				
+
 			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully set up the spam prevention for `{spamType.EnumName().ToLower()}`.\n{newSpamPrev.ToString()}");
 		}
 

@@ -206,6 +206,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions\RegexActions.cs" />
+    <Compile Include="Actions\SpamPreventionActions.cs" />
     <Compile Include="Classes\BannedPhrases.cs" />
     <Compile Include="Classes\Commands.cs" />
     <Compile Include="Classes\Contexts.cs" />
@@ -228,11 +230,10 @@
     <Compile Include="Actions\InviteActions.cs" />
     <Compile Include="Actions\LogActions.cs" />
     <Compile Include="Actions\MessageActions.cs" />
-    <Compile Include="Actions\MiscActions.cs" />
     <Compile Include="Actions\PunishmentActions.cs" />
     <Compile Include="Actions\RoleActions.cs" />
     <Compile Include="Actions\SavingAndLoadingActions.cs" />
-    <Compile Include="Actions\SpamActions.cs" />
+    <Compile Include="Actions\BannedPhraseActions.cs" />
     <Compile Include="Actions\UploadActions.cs" />
     <Compile Include="Actions\UserActions.cs" />
     <Compile Include="Attributes\ParamaterPreconditionAttributes.cs" />

@@ -117,7 +117,7 @@ namespace Advobot.Commands.BotSettings
 						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Stream names cannot be longer than `{Constants.MAX_STREAM_LENGTH}` characters."));
 						return;
 					}
-					else if (!MiscActions.MakeSureInputIsValidTwitchAccountName(newValue))
+					else if (!RegexActions.CheckIfInputIsAValidTwitchName(newValue))
 					{
 						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"`{newValue}` is not a valid Twitch stream name."));
 						return;
