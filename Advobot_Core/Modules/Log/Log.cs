@@ -471,7 +471,7 @@ namespace Advobot.Modules.Log
 			if (HelperFunctions.DisallowBots(message) && HelperFunctions.VerifyBotLogging(_BotSettings, _GuildSettings, message, out var verified) && HelperFunctions.VerifyLogAction(verified.GuildSettings))
 			{
 				this.IncrementEdits();
-				await HelperFunctions.HandleBannedPhrases(_Timers, verified.GuildSettings, verified.Guild, message);
+				await HelperFunctions.HandleBannedPhrases(_Timers, verified.GuildSettings, message);
 
 				//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
 				var beforeMessage = cached.HasValue ? cached.Value : null;

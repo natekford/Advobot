@@ -311,6 +311,20 @@ namespace Advobot
 			inputList.ThreadSafeRemoveAll(x => eligibleToBeGotten.Contains(x));
 			return eligibleToBeGotten;
 		}
+		public static Dictionary<TKey, TValue> GetOutTimedObjects<TKey, TValue>(this Dictionary<TKey, TValue> inputDict) where TValue : ITimeInterface
+		{
+			if (inputDict == null)
+			{
+				return null;
+			}
+
+			var elligibleToBeGotten = inputDict.Where(x => x.Value.GetTime() < DateTime.UtcNow).ToList();
+			foreach (var value in elligibleToBeGotten)
+			{
+				inputDict.Remove(value.Key);
+			}
+			return elligibleToBeGotten.ToDictionary(x => x.Key, x => x.Value);
+		}
 		public static int GetCountOfItemsInTimeFrame<T>(this List<T> timeList, int timeFrame = 0) where T : ITimeInterface
 		{
 			lock (timeList)

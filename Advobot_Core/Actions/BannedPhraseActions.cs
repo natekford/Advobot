@@ -2,32 +2,90 @@
 using Advobot.Enums;
 using System.Collections.Generic;
 using System.Linq;
+using Advobot.Interfaces;
 
 namespace Advobot.Actions
 {
 	public static class BannedPhraseActions
 	{
-		public static void HandleBannedPhraseModification(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
+		/// <summary>
+		/// Modifies <see cref="IGuildSettings.BannedPhraseStrings"/>. If <paramref name="add"/> is true then <paramref name="inputPhrases"/> get added,
+		/// otherwise they get removed.
+		/// </summary>
+		/// <param name="guildSettings"></param>
+		/// <param name="inputPhrases"></param>
+		/// <param name="add"></param>
+		/// <param name="success"></param>
+		/// <param name="failure"></param>
+		public static void ModifyBannedStrings(IGuildSettings guildSettings, IEnumerable<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
+		{
+			if (add)
+			{
+				AddBannedPhrases(guildSettings.BannedPhraseStrings, inputPhrases, out success, out failure);
+			}
+			else
+			{
+				RemoveBannedPhrases(guildSettings.BannedPhraseStrings, inputPhrases, out success, out failure);
+			}
+		}
+		/// <summary>
+		/// Modifies <see cref="IGuildSettings.BannedPhraseRegex"/>. If <paramref name="add"/> is true then <paramref name="inputPhrases"/> get added,
+		/// otherwise they get removed.
+		/// </summary>
+		/// <param name="inputPhrases"></param>
+		/// <param name="add"></param>
+		/// <param name="guildSettings"></param>
+		/// <param name="success"></param>
+		/// <param name="failure"></param>
+		public static void ModifyBannedRegex(IEnumerable<string> inputPhrases, bool add, IGuildSettings guildSettings, out List<string> success, out List<string> failure)
+		{
+			if (add)
+			{
+				AddBannedPhrases(guildSettings.BannedPhraseRegex, inputPhrases, out success, out failure);
+			}
+			else
+			{
+				RemoveBannedPhrases(guildSettings.BannedPhraseRegex, inputPhrases, out success, out failure);
+			}
+		}
+
+		/// <summary>
+		/// Adds nonduplicate strings to the list of banned phrases.
+		/// </summary>
+		/// <param name="bannedPhrases"></param>
+		/// <param name="inputPhrases"></param>
+		/// <param name="success"></param>
+		/// <param name="failure"></param>
+		private static void AddBannedPhrases(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, out List<string> success, out List<string> failure)
 		{
 			success = new List<string>();
 			failure = new List<string>();
-			if (add)
+
+			foreach (var str in inputPhrases)
 			{
 				//Don't add duplicate words
-				foreach (var str in inputPhrases)
+				if (!bannedPhrases.Any(x => x.Phrase.CaseInsEquals(str)))
 				{
-					if (!bannedPhrases.Any(x => x.Phrase.CaseInsEquals(str)))
-					{
-						success.Add(str);
-						bannedPhrases.Add(new BannedPhrase(str, default(PunishmentType)));
-					}
-					else
-					{
-						failure.Add(str);
-					}
+					success.Add(str);
+					bannedPhrases.Add(new BannedPhrase(str, default(PunishmentType)));
 				}
-				return;
+				else
+				{
+					failure.Add(str);
+				}
 			}
+		}
+		/// <summary>
+		/// Removes banned phrases by position or matching text.
+		/// </summary>
+		/// <param name="bannedPhrases"></param>
+		/// <param name="inputPhrases"></param>
+		/// <param name="success"></param>
+		/// <param name="failure"></param>
+		private static void RemoveBannedPhrases(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, out List<string> success, out List<string> failure)
+		{
+			success = new List<string>();
+			failure = new List<string>();
 
 			var positions = new List<int>();
 			foreach (var potentialPosition in inputPhrases)
@@ -38,7 +96,7 @@ namespace Advobot.Actions
 				}
 			}
 
-			//Removing by position
+			//Removing by index
 			if (positions.Any())
 			{
 				//Put them in descending order so as to not delete low values before high ones
@@ -57,7 +115,7 @@ namespace Advobot.Actions
 				return;
 			}
 
-			//Removing by index
+			//Removing by text matching
 			foreach (var str in inputPhrases)
 			{
 				var temp = bannedPhrases.FirstOrDefault(x => x.Phrase.Equals(str));
