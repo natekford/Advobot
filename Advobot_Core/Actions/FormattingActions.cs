@@ -360,10 +360,6 @@ namespace Advobot.Actions
 				{
 					return $"There are too many {objType}s with the same name.";
 				}
-				case FailureReason.ChannelType:
-				{
-					return "Invalid channel type for the given variable requirement.";
-				}
 				case FailureReason.EveryoneRole:
 				{
 					return "The everyone role cannot be modified in that way.";

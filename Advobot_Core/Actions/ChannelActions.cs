@@ -1,8 +1,7 @@
-﻿using Advobot.Enums;
-using Advobot.Classes;
+﻿using Advobot.Classes;
+using Advobot.Enums;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,153 +11,35 @@ namespace Advobot.Actions
 {
 	public static class ChannelActions
 	{
-		public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ChannelVerification[] checkingTypes, bool mentions, string input)
+		public static ReturnedObject<IGuildChannel> VerifyChannelMeetsRequirements(ICommandContext context, IGuildChannel target, ChannelVerification[] checkingTypes)
 		{
-			IGuildChannel channel = null;
-			if (!String.IsNullOrWhiteSpace(input))
+			if (target == null)
 			{
-				if (ulong.TryParse(input, out ulong channelID))
-				{
-					channel = GetChannel(context.Guild, channelID);
-				}
-				else if (MentionUtils.TryParseChannel(input, out channelID))
-				{
-					channel = GetChannel(context.Guild, channelID);
-				}
-				else
-				{
-					var channels = (context.Guild as SocketGuild).Channels.Where(x => x.Name.CaseInsEquals(input));
-					if (channels.Count() == 1)
-					{
-						channel = channels.First();
-					}
-					else if (channels.Count() > 1)
-					{
-						return new ReturnedObject<IGuildChannel>(channel, FailureReason.TooMany);
-					}
-				}
+				return new ReturnedObject<IGuildChannel>(target, FailureReason.TooFew);
 			}
 
-			if (channel == null && mentions)
-			{
-				var channelMentions = context.Message.MentionedChannelIds;
-				if (channelMentions.Count() == 1)
-				{
-					channel = GetChannel(context.Guild, channelMentions.First());
-				}
-				else if (channelMentions.Count() > 1)
-				{
-					return new ReturnedObject<IGuildChannel>(channel, FailureReason.TooMany);
-				}
-			}
-
-			return GetChannel(context, checkingTypes, channel);
-		}
-		public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ChannelVerification[] checkingTypes, ulong inputID)
-		{
-			return GetChannel(context, checkingTypes, GetChannel(context.Guild, inputID));
-		}
-		public static ReturnedObject<IGuildChannel> GetChannel(ICommandContext context, ChannelVerification[] checkingTypes, IGuildChannel channel)
-		{
-			return GetChannel(context.Guild, context.User as IGuildUser, checkingTypes, channel);
-		}
-		public static ReturnedObject<T> GetChannel<T>(IGuild guild, IGuildUser currUser, ChannelVerification[] checkingTypes, T channel) where T : IGuildChannel
-		{
-			if (channel == null)
-			{
-				return new ReturnedObject<T>(channel, FailureReason.TooFew);
-			}
-
-			var bot = UserActions.GetBot(guild);
+			var invokingUser = context.User as IGuildUser;
+			var bot = UserActions.GetBot(context.Guild);
 			foreach (var type in checkingTypes)
 			{
-				if (!GetIfUserCanDoActionOnChannel(channel, currUser, type))
+				if (!invokingUser.GetIfUserCanDoActionOnChannel(target, type))
 				{
-					return new ReturnedObject<T>(channel, FailureReason.UserInability);
+					return new ReturnedObject<IGuildChannel>(target, FailureReason.UserInability);
 				}
-				else if (!GetIfUserCanDoActionOnChannel(channel, bot, type))
+				else if (!bot.GetIfUserCanDoActionOnChannel(target, type))
 				{
-					return new ReturnedObject<T>(channel, FailureReason.BotInability);
-				}
-
-				switch (type)
-				{
-					case ChannelVerification.IsText:
-					{
-						if (!(channel is ITextChannel))
-						{
-							return new ReturnedObject<T>(channel, FailureReason.ChannelType);
-						}
-						break;
-					}
-					case ChannelVerification.IsVoice:
-					{
-						if (!(channel is IVoiceChannel))
-						{
-							return new ReturnedObject<T>(channel, FailureReason.ChannelType);
-						}
-						break;
-					}
+					return new ReturnedObject<IGuildChannel>(target, FailureReason.BotInability);
 				}
 			}
 
-			return new ReturnedObject<T>(channel, FailureReason.NotFailure);
-		}
-		public static IGuildChannel GetChannel(IGuild guild, ulong ID)
-		{
-			return (guild as SocketGuild).GetChannel(ID);
-		}
-		public static bool GetIfUserCanDoActionOnChannel(IGuildChannel target, IGuildUser user, ChannelVerification type)
-		{
-			if (target == null || user == null)
-				return false;
-
-			var channelPerms = user.GetPermissions(target);
-			var guildPerms = user.GuildPermissions;
-
-			var dontCheckReadPerms = target is IVoiceChannel;
-			switch (type)
-			{
-				case ChannelVerification.CanBeRead:
-				{
-					return (dontCheckReadPerms || channelPerms.ReadMessages);
-				}
-				case ChannelVerification.CanCreateInstantInvite:
-				{
-					return (dontCheckReadPerms || channelPerms.ReadMessages) && channelPerms.CreateInstantInvite;
-				}
-				case ChannelVerification.CanBeManaged:
-				{
-					return (dontCheckReadPerms || channelPerms.ReadMessages) && channelPerms.ManageChannel;
-				}
-				case ChannelVerification.CanModifyPermissions:
-				{
-					return (dontCheckReadPerms || channelPerms.ReadMessages) && channelPerms.ManageChannel && channelPerms.ManagePermissions;
-				}
-				case ChannelVerification.CanBeReordered:
-				{
-					return (dontCheckReadPerms || channelPerms.ReadMessages) && guildPerms.ManageChannels;
-				}
-				case ChannelVerification.CanDeleteMessages:
-				{
-					return (dontCheckReadPerms || channelPerms.ReadMessages) && channelPerms.ManageMessages;
-				}
-				case ChannelVerification.CanMoveUsers:
-				{
-					return dontCheckReadPerms && channelPerms.MoveMembers;
-				}
-				default:
-				{
-					return true;
-				}
-			}
+			return new ReturnedObject<IGuildChannel>(target, FailureReason.NotFailure);
 		}
 
-		public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, IEnumerable<string> permissions, IGuildUser user)
+		public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, IEnumerable<string> permissions, IGuildUser invokingUser)
 		{
-			return await ModifyOverwritePermissions(channel, discordObject, actionType, ConvertChannelPermissionNamesToUlong(permissions), user);
+			return await ModifyOverwritePermissions(channel, discordObject, actionType, ConvertChannelPermissionNamesToUlong(permissions), invokingUser);
 		}
-		public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, ulong changeValue, IGuildUser user)
+		public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, ulong changeValue, IGuildUser invokingUser)
 		{
 			var allowBits = GetOverwriteAllowBits(channel, discordObject);
 			var denyBits = GetOverwriteDenyBits(channel, discordObject);
@@ -184,7 +65,7 @@ namespace Advobot.Actions
 				}
 			}
 
-			await ModifyOverwrite(channel, discordObject, allowBits, denyBits, FormattingActions.FormatUserReason(user));
+			await ModifyOverwrite(channel, discordObject, allowBits, denyBits, FormattingActions.FormatUserReason(invokingUser));
 			return GetActions.GetChannelPermissionNames(changeValue);
 		}
 
@@ -205,33 +86,11 @@ namespace Advobot.Actions
 		}
 		public static ulong GetOverwriteAllowBits(IGuildChannel channel, object obj)
 		{
-			if (obj is IRole)
-			{
-				return channel.GetPermissionOverwrite(obj as IRole)?.AllowValue ?? 0;
-			}
-			else if (obj is IUser)
-			{
-				return channel.GetPermissionOverwrite(obj as IUser)?.AllowValue ?? 0;
-			}
-			else
-			{
-				throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
-			}
+			return GetOverwrite(channel, obj)?.AllowValue ?? 0;
 		}
 		public static ulong GetOverwriteDenyBits(IGuildChannel channel, object obj)
 		{
-			if (obj is IRole)
-			{
-				return channel.GetPermissionOverwrite(obj as IRole)?.DenyValue ?? 0;
-			}
-			else if (obj is IUser)
-			{
-				return channel.GetPermissionOverwrite(obj as IUser)?.DenyValue ?? 0;
-			}
-			else
-			{
-				throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
-			}
+			return GetOverwrite(channel, obj)?.DenyValue ?? 0;
 		}
 
 		public static ulong ConvertChannelPermissionNamesToUlong(IEnumerable<string> permissionNames)
@@ -259,17 +118,13 @@ namespace Advobot.Actions
 		public static async Task<int> ModifyChannelPosition(IGuildChannel channel, int position, string reason)
 		{
 			if (channel == null)
+			{
 				return -1;
+			}
 
-			IGuildChannel[] channels;
-			if (channel is ITextChannel)
-			{
-				channels = (await channel.Guild.GetTextChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
-			}
-			else
-			{
-				channels = (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
-			}
+			var channels = channel is ITextChannel
+				? (await channel.Guild.GetTextChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray()
+				: (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
 			position = Math.Max(0, Math.Min(position, channels.Length));
 
 			var reorderProperties = new ReorderChannelProperties[channels.Length];
@@ -307,21 +162,26 @@ namespace Advobot.Actions
 				throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
 			}
 		}
+		/// <summary>
+		/// Removes every channel overwrite on the specified channel.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public static async Task ClearOverwrites(IGuildChannel channel, string reason)
 		{
-			var guild = channel.Guild;
 			foreach (var overwrite in channel.PermissionOverwrites)
 			{
 				switch (overwrite.TargetType)
 				{
 					case PermissionTarget.Role:
 					{
-						await channel.RemovePermissionOverwriteAsync(guild.GetRole(overwrite.TargetId));
+						await channel.RemovePermissionOverwriteAsync(channel.Guild.GetRole(overwrite.TargetId));
 						break;
 					}
 					case PermissionTarget.User:
 					{
-						await channel.RemovePermissionOverwriteAsync(await guild.GetUserAsync(overwrite.TargetId));
+						await channel.RemovePermissionOverwriteAsync(await channel.Guild.GetUserAsync(overwrite.TargetId));
 						break;
 					}
 				}

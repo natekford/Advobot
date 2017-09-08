@@ -1,4 +1,5 @@
 ﻿using Advobot.Actions;
+using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
 using System;
@@ -332,7 +333,9 @@ namespace Advobot
 				//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
 				var listLength = timeList.Count;
 				if (timeFrame <= 0 || listLength < 2)
+				{
 					return listLength;
+				}
 
 				//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
 				var count = 0;
@@ -344,7 +347,9 @@ namespace Advobot
 						{
 							//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
 							if ((int)timeList[j].GetTime().Subtract(timeList[j - 1].GetTime()).TotalSeconds > timeFrame)
+							{
 								i = j;
+							}
 							break;
 						}
 					}
@@ -367,8 +372,10 @@ namespace Advobot
 
 		public static string[] SplitByCharExceptInQuotes(this string inputString, char inputChar)
 		{
-			if (String.IsNullOrWhiteSpace(inputString))
+			if (inputString == null)
+			{
 				return null;
+			}
 
 			return inputString.Split('"').Select((element, index) =>
 			{
@@ -391,6 +398,77 @@ namespace Advobot
 		public static T GetService<T>(this IServiceProvider provider)
 		{
 			return (T)provider.GetService(typeof(T));
+		}
+
+		public static bool GetIfUserCanDoActionOnUser(this IGuildUser invokingUser, IGuildUser targetUser, UserVerification type)
+		{
+			if (targetUser == null || invokingUser == null)
+			{
+				return false;
+			}
+
+			switch (type)
+			{
+				case UserVerification.CanBeMovedFromChannel:
+				{
+					return invokingUser.GetIfUserCanDoActionOnChannel(targetUser.VoiceChannel, ChannelVerification.CanMoveUsers);
+				}
+				case UserVerification.CanBeEdited:
+				{
+					return targetUser.CanBeModifiedByUser(invokingUser);
+				}
+				default:
+				{
+					return true;
+				}
+			}
+		}
+		public static bool GetIfUserCanDoActionOnChannel(this IGuildUser invokingUser, IGuildChannel target, ChannelVerification type)
+		{
+			if (target == null || invokingUser == null)
+			{
+				return false;
+			}
+
+			var channelPerms = invokingUser.GetPermissions(target);
+			var guildPerms = invokingUser.GuildPermissions;
+
+			//TODO: Make sure this works when the enums are updated.
+			switch (type)
+			{
+				case ChannelVerification.CanBeRead:
+				{
+					return channelPerms.ReadMessages;
+				}
+				case ChannelVerification.CanCreateInstantInvite:
+				{
+					return channelPerms.ReadMessages && channelPerms.CreateInstantInvite;
+				}
+				case ChannelVerification.CanBeManaged:
+				{
+					return channelPerms.ReadMessages && channelPerms.ManageChannel;
+				}
+				case ChannelVerification.CanModifyPermissions:
+				{
+					return channelPerms.ReadMessages && channelPerms.ManageChannel && channelPerms.ManagePermissions;
+				}
+				case ChannelVerification.CanBeReordered:
+				{
+					return channelPerms.ReadMessages && guildPerms.ManageChannels;
+				}
+				case ChannelVerification.CanDeleteMessages:
+				{
+					return channelPerms.ReadMessages && channelPerms.ManageMessages;
+				}
+				case ChannelVerification.CanMoveUsers:
+				{
+					return channelPerms.MoveMembers;
+				}
+				default:
+				{
+					return true;
+				}
+			}
 		}
 	}
 }

@@ -453,7 +453,7 @@ namespace Advobot.Commands.ChannelModeration
 				return;
 			}
 
-			var returnedChannel = ChannelActions.GetChannel(Context.Guild, Context.User as IGuildUser, new[] { ChannelVerification.CanBeReordered }, channel);
+			var returnedChannel = ChannelActions.VerifyChannelMeetsRequirements(Context, channel, new[] { ChannelVerification.CanBeReordered });
 			if (returnedChannel.Reason != FailureReason.NotFailure)
 			{
 				await MessageActions.HandleObjectGettingErrors(Context, returnedChannel);

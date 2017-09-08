@@ -13,102 +13,32 @@ namespace Advobot.Actions
 {
 	public static class UserActions
 	{
-		public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, UserVerification[] checkingTypes, bool mentions, string input)
+		public static ReturnedObject<IGuildUser> VerifyUserMeetsRequirements(ICommandContext context, IGuildUser target, UserVerification[] checkingTypes)
 		{
-			IGuildUser user = null;
-			if (!String.IsNullOrWhiteSpace(input))
+			if (target == null)
 			{
-				if (ulong.TryParse(input, out ulong userID))
-				{
-					user = GetGuildUser(context.Guild, userID);
-				}
-				else if (MentionUtils.TryParseUser(input, out userID))
-				{
-					user = GetGuildUser(context.Guild, userID);
-				}
-				else
-				{
-					var users = (context.Guild as SocketGuild).Users.Where(x => x.Username.CaseInsEquals(input));
-					if (users.Count() == 1)
-					{
-						user = users.First();
-					}
-					else if (users.Count() > 1)
-					{
-						return new ReturnedObject<IGuildUser>(user, FailureReason.TooMany);
-					}
-				}
+				return new ReturnedObject<IGuildUser>(target, FailureReason.TooFew);
 			}
 
-			if (user == null && mentions)
-			{
-				var userMentions = context.Message.MentionedUserIds;
-				if (userMentions.Count() == 1)
-				{
-					user = GetGuildUser(context.Guild, userMentions.First());
-				}
-				else if (userMentions.Count() > 1)
-				{
-					return new ReturnedObject<IGuildUser>(user, FailureReason.TooMany);
-				}
-			}
-
-			return GetGuildUser(context, checkingTypes, user);
-		}
-		public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, UserVerification[] checkingTypes, ulong inputID)
-		{
-			return GetGuildUser(context, checkingTypes, GetGuildUser(context.Guild, inputID));
-		}
-		public static ReturnedObject<IGuildUser> GetGuildUser(ICommandContext context, UserVerification[] checkingTypes, IGuildUser user)
-		{
-			return GetGuildUser(context.Guild, context.User as IGuildUser, checkingTypes, user);
-		}
-		public static ReturnedObject<T> GetGuildUser<T>(IGuild guild, IGuildUser currUser, UserVerification[] checkingTypes, T user) where T : IGuildUser
-		{
-			if (user == null)
-			{
-				return new ReturnedObject<T>(user, FailureReason.TooFew);
-			}
-
-			var bot = GetBot(guild);
+			var invokingUser = context.User as IGuildUser;
+			var bot = GetBot(context.Guild);
 			foreach (var type in checkingTypes)
 			{
-				if (!GetIfUserCanDoActionOnUser(currUser, type, user))
+				if (!invokingUser.GetIfUserCanDoActionOnUser(target, type))
 				{
-					return new ReturnedObject<T>(user, FailureReason.UserInability);
+					return new ReturnedObject<IGuildUser>(target, FailureReason.UserInability);
 				}
-				else if (!GetIfUserCanDoActionOnUser(bot, type, user))
+				else if (!bot.GetIfUserCanDoActionOnUser(target, type))
 				{
-					return new ReturnedObject<T>(user, FailureReason.BotInability);
+					return new ReturnedObject<IGuildUser>(target, FailureReason.BotInability);
 				}
 			}
 
-			return new ReturnedObject<T>(user, FailureReason.NotFailure);
+			return new ReturnedObject<IGuildUser>(target, FailureReason.NotFailure);
 		}
 		public static IGuildUser GetGuildUser(IGuild guild, ulong ID)
 		{
 			return (guild as SocketGuild).GetUser(ID);
-		}
-		public static bool GetIfUserCanDoActionOnUser(IGuildUser currUser, UserVerification type, IGuildUser targetUser)
-		{
-			if (targetUser == null || currUser == null)
-				return false;
-
-			switch (type)
-			{
-				case UserVerification.CanBeMovedFromChannel:
-				{
-					return ChannelActions.GetIfUserCanDoActionOnChannel(targetUser.VoiceChannel, currUser, ChannelVerification.CanMoveUsers);
-				}
-				case UserVerification.CanBeEdited:
-				{
-					return targetUser.CanBeModifiedByUser(currUser);
-				}
-				default:
-				{
-					return true;
-				}
-			}
 		}
 
 		public static IGuildUser GetBot(IGuild guild)

@@ -79,17 +79,17 @@ namespace Advobot.Attributes
 
 		private Tuple<FailureReason, object> ITextChannelResult(ICommandContext context, object value)
 		{
-			var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.Channel) as IGuildChannel);
+			var returned = ChannelActions.VerifyChannelMeetsRequirements(context, (value ?? context.Channel) as IGuildChannel, _Checks);
 			return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
 		}
 		private Tuple<FailureReason, object> IVoiceChannelResult(ICommandContext context, object value)
 		{
-			var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel);
+			var returned = ChannelActions.VerifyChannelMeetsRequirements(context, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel, _Checks);
 			return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
 		}
 		private Tuple<FailureReason, object> IGuildChannelResult(ICommandContext context, object value)
 		{
-			var returned = ChannelActions.GetChannel(context.Guild, context.User as IGuildUser, _Checks, value as IGuildChannel);
+			var returned = ChannelActions.VerifyChannelMeetsRequirements(context, value as IGuildChannel, _Checks);
 			return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
 		}
 	}
@@ -115,7 +115,7 @@ namespace Advobot.Attributes
 
 		private Tuple<FailureReason, object> IGuildUserResult(ICommandContext context, object value)
 		{
-			var returned = UserActions.GetGuildUser(context.Guild, context.User as IGuildUser, _Checks, (value ?? context.User) as IGuildUser);
+			var returned = UserActions.VerifyUserMeetsRequirements(context, (value ?? context.User) as IGuildUser, _Checks);
 			return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
 		}
 		private Tuple<FailureReason, object> IUserResult(ICommandContext context, object value)

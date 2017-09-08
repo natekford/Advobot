@@ -82,8 +82,8 @@ namespace Advobot.Enums
 		None							= (1U << 0),
 		CanBeEdited						= (1U << 1),
 		//IsDefault						= (1U << 2), Not needed anymore since default channels removed
-		IsVoice							= (1U << 3),
-		IsText							= (1U << 4),
+		//IsVoice						= (1U << 3), Not needed anymore since using Discord.Net arg parsing.
+		//IsText						= (1U << 4), Not needed anymore for same reason as above.
 		CanBeReordered					= (1U << 5),
 		CanModifyPermissions			= (1U << 6),
 		CanBeManaged					= (1U << 7),
@@ -122,7 +122,7 @@ namespace Advobot.Enums
 		BotInability					= (1U << 5),
 		
 		//Channels
-		ChannelType						= (1U << 6),
+		//ChannelType					= (1U << 6), Not needed anymore since using Discord.Net arg parsing.
 		//DefaultChannel				= (1U << 7), Not needed anymore since default channels can be deleted/modified fully now
 
 		//Roles
