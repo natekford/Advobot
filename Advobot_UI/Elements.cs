@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Text.RegularExpressions;
 
 namespace Advobot.Graphics
 {
@@ -14,6 +15,7 @@ namespace Advobot.Graphics
 			this.BorderBrush = null;
 		}
 	}
+
 	internal class MyTextBox : TextBox
 	{
 		public MyTextBox()
@@ -24,6 +26,7 @@ namespace Advobot.Graphics
 			this.TextWrapping = TextWrapping.Wrap;
 		}
 	}
+
 	internal class MyButton : Button
 	{
 		public MyButton()
@@ -33,6 +36,7 @@ namespace Advobot.Graphics
 			this.BorderBrush = null;
 		}
 	}
+
 	internal class MyComboBox : ComboBox
 	{
 		public MyComboBox()
@@ -40,9 +44,11 @@ namespace Advobot.Graphics
 			this.VerticalContentAlignment = VerticalAlignment.Center;
 		}
 	}
+
 	internal class MyNumberBox : MyTextBox
 	{
-		private static System.Text.RegularExpressions.Regex _NumberRegex = new System.Text.RegularExpressions.Regex(@"[^\d]", System.Text.RegularExpressions.RegexOptions.Compiled);
+		private static Regex _NumberRegex = new Regex(@"[^\d]", RegexOptions.Compiled);
+
 		public MyNumberBox()
 		{
 			this.PreviewTextInput += MakeSureKeyIsNumber;

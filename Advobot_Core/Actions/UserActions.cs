@@ -109,5 +109,89 @@ namespace Advobot.Actions
 			await MessageActions.DeleteMessage(msg);
 			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully moved `{users.Count}` people.");
 		}
+
+		public static bool CanBeModifiedByUser(this IUser targetUser, IUser invokingUser)
+		{
+			//Return true so the bot can change its nickname (will give 403 error when tries to ban itself tho)
+			//Can't just check if the id is the same for both, cause then users would be able to ban themselves :/
+			if (targetUser.Id == Properties.Settings.Default.BotId && invokingUser.Id == Properties.Settings.Default.BotId)
+			{
+				return true;
+			}
+
+			var modifierPosition = UserActions.GetUserPosition(invokingUser);
+			var modifieePosition = UserActions.GetUserPosition(targetUser);
+			return modifierPosition > modifieePosition;
+		}
+		public static bool GetIfUserCanDoActionOnUser(this IGuildUser invokingUser, IGuildUser targetUser, UserVerification type)
+		{
+			if (targetUser == null || invokingUser == null)
+			{
+				return false;
+			}
+
+			switch (type)
+			{
+				case UserVerification.CanBeMovedFromChannel:
+				{
+					return invokingUser.GetIfUserCanDoActionOnChannel(targetUser.VoiceChannel, ChannelVerification.CanMoveUsers);
+				}
+				case UserVerification.CanBeEdited:
+				{
+					return targetUser.CanBeModifiedByUser(invokingUser);
+				}
+				default:
+				{
+					return true;
+				}
+			}
+		}
+		public static bool GetIfUserCanDoActionOnChannel(this IGuildUser invokingUser, IGuildChannel target, ChannelVerification type)
+		{
+			if (target == null || invokingUser == null)
+			{
+				return false;
+			}
+
+			var channelPerms = invokingUser.GetPermissions(target);
+			var guildPerms = invokingUser.GuildPermissions;
+
+			//TODO: Make sure this works when the enums are updated.
+			switch (type)
+			{
+				case ChannelVerification.CanBeRead:
+				{
+					return channelPerms.ReadMessages;
+				}
+				case ChannelVerification.CanCreateInstantInvite:
+				{
+					return channelPerms.ReadMessages && channelPerms.CreateInstantInvite;
+				}
+				case ChannelVerification.CanBeManaged:
+				{
+					return channelPerms.ReadMessages && channelPerms.ManageChannel;
+				}
+				case ChannelVerification.CanModifyPermissions:
+				{
+					return channelPerms.ReadMessages && channelPerms.ManageChannel && channelPerms.ManagePermissions;
+				}
+				case ChannelVerification.CanBeReordered:
+				{
+					return channelPerms.ReadMessages && guildPerms.ManageChannels;
+				}
+				case ChannelVerification.CanDeleteMessages:
+				{
+					return channelPerms.ReadMessages && channelPerms.ManageMessages;
+				}
+				case ChannelVerification.CanMoveUsers:
+				{
+					return channelPerms.MoveMembers;
+				}
+				default:
+				{
+					return true;
+				}
+			}
+		}
 	}
 }

@@ -41,8 +41,8 @@ namespace Advobot.Actions
 		}
 		public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, ulong changeValue, IGuildUser invokingUser)
 		{
-			var allowBits = GetOverwriteAllowBits(channel, discordObject);
-			var denyBits = GetOverwriteDenyBits(channel, discordObject);
+			var allowBits = channel.GetPermissionOverwriteAllowValue(discordObject);
+			var denyBits = channel.GetPermissionOverwriteDenyValue(discordObject);
 			switch (actionType)
 			{
 				case ActionType.Allow:
@@ -69,7 +69,13 @@ namespace Advobot.Actions
 			return GetActions.GetChannelPermissionNames(changeValue);
 		}
 
-		public static OverwritePermissions? GetOverwrite(IGuildChannel channel, object obj)
+		/// <summary>
+		/// Gets the permission overwrite for a specific role or user, or null if one does not exist.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		public static OverwritePermissions? GetPermissionOverwrite(this IGuildChannel channel, object obj)
 		{
 			if (obj is IRole)
 			{
@@ -81,16 +87,28 @@ namespace Advobot.Actions
 			}
 			else
 			{
-				throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
+				return null;
 			}
 		}
-		public static ulong GetOverwriteAllowBits(IGuildChannel channel, object obj)
+		/// <summary>
+		/// Gets the permission overwrite allow value for a role or user.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		public static ulong GetPermissionOverwriteAllowValue(this IGuildChannel channel, object obj)
 		{
-			return GetOverwrite(channel, obj)?.AllowValue ?? 0;
+			return channel.GetPermissionOverwrite(obj)?.AllowValue ?? 0;
 		}
-		public static ulong GetOverwriteDenyBits(IGuildChannel channel, object obj)
+		/// <summary>
+		/// Gets the permision overwrite deny value for a role or user.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		public static ulong GetPermissionOverwriteDenyValue(this IGuildChannel channel, object obj)
 		{
-			return GetOverwrite(channel, obj)?.DenyValue ?? 0;
+			return channel.GetPermissionOverwrite(obj)?.DenyValue ?? 0;
 		}
 
 		public static ulong ConvertChannelPermissionNamesToUlong(IEnumerable<string> permissionNames)
@@ -240,8 +258,8 @@ namespace Advobot.Actions
 					}
 				}
 
-				var allowBits = RemoveChannelPermissionBits(new[] { nameof(ChannelPermission.ReadMessages) }, GetOverwriteAllowBits(channel, obj));
-				var denyBits = AddChannelPermissionBits(new[] { nameof(ChannelPermission.ReadMessages) }, GetOverwriteDenyBits(channel, obj));
+				var allowBits = RemoveChannelPermissionBits(new[] { nameof(ChannelPermission.ReadMessages) }, overwrite.Permissions.AllowValue);
+				var denyBits = AddChannelPermissionBits(new[] { nameof(ChannelPermission.ReadMessages) }, overwrite.Permissions.DenyValue);
 				await ModifyOverwrite(channel, obj, allowBits, denyBits, reason);
 			}
 
@@ -272,7 +290,7 @@ namespace Advobot.Actions
 		/// <param name="name">The new name.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyChannelName(IGuildChannel channel, string name, string reason)
+		public static async Task ModifyNameAsync(this IGuildChannel channel, string name, string reason)
 		{
 			await channel.ModifyAsync(x => x.Name = name, new RequestOptions { AuditLogReason = reason });
 		}
@@ -283,7 +301,7 @@ namespace Advobot.Actions
 		/// <param name="topic">The new topic.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyChannelTopic(ITextChannel channel, string topic, string reason)
+		public static async Task ModifyTopicAsync(this ITextChannel channel, string topic, string reason)
 		{
 			await channel.ModifyAsync(x => x.Topic = topic, new RequestOptions { AuditLogReason = reason });
 		}
@@ -294,7 +312,7 @@ namespace Advobot.Actions
 		/// <param name="limit">The new limit.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyChannelLimit(IVoiceChannel channel, int limit, string reason)
+		public static async Task ModifyLimitAsync(this IVoiceChannel channel, int limit, string reason)
 		{
 			await channel.ModifyAsync(x => x.UserLimit = limit, new RequestOptions { AuditLogReason = reason });
 		}
@@ -305,7 +323,7 @@ namespace Advobot.Actions
 		/// <param name="bitrate">The new bitrate.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyChannelBitrate(IVoiceChannel channel, int bitrate, string reason)
+		public static async Task ModifyBitrateAsync(this IVoiceChannel channel, int bitrate, string reason)
 		{
 			await channel.ModifyAsync(x => x.Bitrate = bitrate, new RequestOptions { AuditLogReason = reason });
 		}

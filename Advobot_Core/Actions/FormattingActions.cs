@@ -501,7 +501,7 @@ namespace Advobot.Actions
 					return $"`{user.FormatUser()}`";
 				}
 
-				var guild = await GuildActions.GetGuild(client, (ulong)value);
+				var guild = await client.GetGuildAsync((ulong)value);
 				if (guild != null)
 				{
 					return $"`{guild.FormatGuild()}`";
@@ -635,6 +635,59 @@ namespace Advobot.Actions
 		public static string JoinNonNullStrings(string joining, params string[] toJoin)
 		{
 			return String.Join(joining, toJoin.Where(x => !String.IsNullOrWhiteSpace(x)));
+		}
+
+		public static string FormatNumberedList<T>(this IEnumerable<T> list, string format, params Func<T, object>[] args)
+		{
+			var count = 0;
+			var maxLen = list.Count().ToString().Length;
+			//.ToArray() must be used or else String.Format tries to use an overload accepting object as a parameter instead of object[] thus causing an exception
+			return String.Join("\n", list.Select(x => $"`{(++count).ToString().PadLeft(maxLen, '0')}.` " + String.Format(@format, args.Select(y => y(x)).ToArray())));
+		}
+		public static string FormatUser(this IUser user, ulong? userId = 0)
+		{
+			if (user != null)
+			{
+				var userName = user.Username.EscapeBackTicks().CaseInsReplace("discord.gg", Constants.FAKE_DISCORD_LINK);
+				return $"'{userName}#{user.Discriminator}' ({user.Id})";
+			}
+			else
+			{
+				return $"Irretrievable User ({userId})";
+			}
+		}
+		public static string FormatRole(this IRole role)
+		{
+			if (role != null)
+			{
+				return $"'{role.Name.EscapeBackTicks()}' ({role.Id})";
+			}
+			else
+			{
+				return "Irretrievable Role";
+			}
+		}
+		public static string FormatChannel(this IChannel channel)
+		{
+			if (channel != null)
+			{
+				return $"'{channel.Name.EscapeBackTicks()}' ({(channel is IMessageChannel ? "text" : "voice")}) ({channel.Id})";
+			}
+			else
+			{
+				return "Irretrievable Channel";
+			}
+		}
+		public static string FormatGuild(this IGuild guild, ulong? guildId = 0)
+		{
+			if (guild != null)
+			{
+				return $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})";
+			}
+			else
+			{
+				return $"Irretrievable Guild ({guildId})";
+			}
 		}
 	}
 }

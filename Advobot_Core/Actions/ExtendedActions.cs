@@ -11,25 +11,6 @@ namespace Advobot
 {
 	public static class ExtendedActions
 	{
-		public static async Task ForEachAsync<T>(this List<T> list, Func<T, Task> func)
-		{
-			foreach (var value in list)
-			{
-				await func(value);
-			}
-		}
-		public static async void Forget(this Task task)
-		{
-			try
-			{
-				await task.ConfigureAwait(false);
-			}
-			catch (Exception e)
-			{
-				ConsoleActions.ExceptionToConsole(e);
-			}
-		}
-
 		public static void ThreadSafeAdd<T>(this List<T> list, T obj)
 		{
 			lock (list)
@@ -56,59 +37,6 @@ namespace Advobot
 			lock (list)
 			{
 				list.RemoveAll(match);
-			}
-		}
-
-		public static string FormatNumberedList<T>(this IEnumerable<T> list, string format, params Func<T, object>[] args)
-		{
-			var count = 0;
-			var maxLen = list.Count().ToString().Length;
-			//.ToArray() must be used or else String.Format tries to use an overload accepting object as a parameter instead of object[] thus causing an exception
-			return String.Join("\n", list.Select(x => $"`{(++count).ToString().PadLeft(maxLen, '0')}.` " + String.Format(@format, args.Select(y => y(x)).ToArray())));
-		}
-		public static string FormatUser(this IUser user, ulong? userId = 0)
-		{
-			if (user != null)
-			{
-				var userName = user.Username.EscapeBackTicks().CaseInsReplace("discord.gg", Constants.FAKE_DISCORD_LINK);
-				return $"'{userName}#{user.Discriminator}' ({user.Id})";
-			}
-			else
-			{
-				return $"Irretrievable User ({userId})";
-			}
-		}
-		public static string FormatRole(this IRole role)
-		{
-			if (role != null)
-			{
-				return $"'{role.Name.EscapeBackTicks()}' ({role.Id})";
-			}
-			else
-			{
-				return "Irretrievable Role";
-			}
-		}
-		public static string FormatChannel(this IChannel channel)
-		{
-			if (channel != null)
-			{
-				return $"'{channel.Name.EscapeBackTicks()}' ({(channel is IMessageChannel ? "text" : "voice")}) ({channel.Id})";
-			}
-			else
-			{
-				return "Irretrievable Channel";
-			}
-		}
-		public static string FormatGuild(this IGuild guild, ulong? guildId = 0)
-		{
-			if (guild != null)
-			{
-				return $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})";
-			}
-			else
-			{
-				return $"Irretrievable Guild ({guildId})";
 			}
 		}
 
@@ -242,19 +170,6 @@ namespace Advobot
 			return Enum.GetName(e.GetType(), e);
 		}
 
-		public static bool CanBeModifiedByUser(this IUser targetUser, IUser invokingUser)
-		{
-			//Return true so the bot can change its nickname (will give 403 error when tries to ban itself tho)
-			//Can't just check if the id is the same for both, cause then users would be able to ban themselves :/
-			if (targetUser.Id == Properties.Settings.Default.BotId && invokingUser.Id == Properties.Settings.Default.BotId)
-			{
-				return true;
-			}
-
-			var modifierPosition = UserActions.GetUserPosition(invokingUser);
-			var modifieePosition = UserActions.GetUserPosition(targetUser);
-			return modifierPosition > modifieePosition;
-		}
 		public static bool AllCharactersAreWithinUpperLimit(this string str, int upperLimit)
 		{
 			if (String.IsNullOrWhiteSpace(str))
@@ -267,34 +182,12 @@ namespace Advobot
 			}
 			return true;
 		}
-		public static bool HasGlobalEmotes(this IGuild guild)
-		{
-			return guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
-		}
-
 		public static int GetLineBreaks(this string str)
 		{
 			if (str == null)
 				return 0;
 
 			return str.Count(x => x == '\r' || x == '\n');
-		}
-
-		public static IGuild GetGuild(this IMessage message)
-		{
-			return (message?.Channel as IGuildChannel)?.Guild;
-		}
-		public static IGuild GetGuild(this IUser user)
-		{
-			return (user as IGuildUser)?.Guild;
-		}
-		public static IGuild GetGuild(this IChannel channel)
-		{
-			return (channel as IGuildChannel)?.Guild;
-		}
-		public static IGuild GetGuild(this IRole role)
-		{
-			return role?.Guild;
 		}
 
 		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
@@ -390,85 +283,9 @@ namespace Advobot
 			}).SelectMany(x => x).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
 		}
 
-		public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> readOnlyDick)
-		{
-			return readOnlyDick.ToDictionary(nixon => nixon.Key, cheney => cheney.Value);
-		}
-
 		public static T GetService<T>(this IServiceProvider provider)
 		{
 			return (T)provider.GetService(typeof(T));
-		}
-
-		public static bool GetIfUserCanDoActionOnUser(this IGuildUser invokingUser, IGuildUser targetUser, UserVerification type)
-		{
-			if (targetUser == null || invokingUser == null)
-			{
-				return false;
-			}
-
-			switch (type)
-			{
-				case UserVerification.CanBeMovedFromChannel:
-				{
-					return invokingUser.GetIfUserCanDoActionOnChannel(targetUser.VoiceChannel, ChannelVerification.CanMoveUsers);
-				}
-				case UserVerification.CanBeEdited:
-				{
-					return targetUser.CanBeModifiedByUser(invokingUser);
-				}
-				default:
-				{
-					return true;
-				}
-			}
-		}
-		public static bool GetIfUserCanDoActionOnChannel(this IGuildUser invokingUser, IGuildChannel target, ChannelVerification type)
-		{
-			if (target == null || invokingUser == null)
-			{
-				return false;
-			}
-
-			var channelPerms = invokingUser.GetPermissions(target);
-			var guildPerms = invokingUser.GuildPermissions;
-
-			//TODO: Make sure this works when the enums are updated.
-			switch (type)
-			{
-				case ChannelVerification.CanBeRead:
-				{
-					return channelPerms.ReadMessages;
-				}
-				case ChannelVerification.CanCreateInstantInvite:
-				{
-					return channelPerms.ReadMessages && channelPerms.CreateInstantInvite;
-				}
-				case ChannelVerification.CanBeManaged:
-				{
-					return channelPerms.ReadMessages && channelPerms.ManageChannel;
-				}
-				case ChannelVerification.CanModifyPermissions:
-				{
-					return channelPerms.ReadMessages && channelPerms.ManageChannel && channelPerms.ManagePermissions;
-				}
-				case ChannelVerification.CanBeReordered:
-				{
-					return channelPerms.ReadMessages && guildPerms.ManageChannels;
-				}
-				case ChannelVerification.CanDeleteMessages:
-				{
-					return channelPerms.ReadMessages && channelPerms.ManageMessages;
-				}
-				case ChannelVerification.CanMoveUsers:
-				{
-					return channelPerms.MoveMembers;
-				}
-				default:
-				{
-					return true;
-				}
-			}
 		}
 	}
 }

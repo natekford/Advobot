@@ -334,7 +334,7 @@ namespace Advobot.Commands.ChannelModeration
 			else
 			{
 				target = FormattingActions.FormatObject(discordObject);
-				var overwrite = ChannelActions.GetOverwrite(inputChannel, discordObject);
+				var overwrite = inputChannel.GetPermissionOverwrite(discordObject);
 				if (!overwrite.HasValue)
 				{
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"A permission overwrite for {target} does not exist to copy over."));
@@ -411,7 +411,7 @@ namespace Advobot.Commands.ChannelModeration
 				return;
 			}
 
-			await ChannelActions.ModifyChannelName(channel, name, FormattingActions.FormatUserReason(Context.User));
+			await channel.ModifyNameAsync(name, FormattingActions.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the name of `{channel.FormatChannel()}` to `{name}`.");
 		}
 	}
@@ -460,7 +460,7 @@ namespace Advobot.Commands.ChannelModeration
 				return;
 			}
 
-			await ChannelActions.ModifyChannelName(channel, name, FormattingActions.FormatUserReason(Context.User));
+			await channel.ModifyNameAsync(name, FormattingActions.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the name of `{channel.FormatChannel()}` to `{name}`.");
 		}
 	}
@@ -475,7 +475,7 @@ namespace Advobot.Commands.ChannelModeration
 		[Command]
 		public async Task Command([VerifyChannel(false, ChannelVerification.CanBeManaged)] ITextChannel channel, [Optional, Remainder, VerifyStringLength(Target.Topic)] string topic)
 		{
-			await ChannelActions.ModifyChannelTopic(channel, topic, FormattingActions.FormatUserReason(Context.User));
+			await channel.ModifyTopicAsync(topic, FormattingActions.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the topic in `{channel.FormatChannel()}` from `{(channel.Topic ?? "Nothing")}` to `{(topic ?? "Nothing")}`.");
 		}
 	}
@@ -495,7 +495,7 @@ namespace Advobot.Commands.ChannelModeration
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"The highest a voice channel user limit can be is `{Constants.MAX_VOICE_CHANNEL_USER_LIMIT}`."));
 			}
 
-			await ChannelActions.ModifyChannelLimit(channel, (int)limit, FormattingActions.FormatUserReason(Context.User));
+			await channel.ModifyLimitAsync((int)limit, FormattingActions.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the user limit for `{channel.FormatChannel()}` to `{limit}`.");
 		}
 	}
@@ -527,7 +527,7 @@ namespace Advobot.Commands.ChannelModeration
 			}
 
 			//Have to multiply by 1000 because in bps and for some reason treats, say, 50 as 50bps and not 50kbps
-			await ChannelActions.ModifyChannelBitrate(channel, (int)bitrate * 1000, FormattingActions.FormatUserReason(Context.User));
+			await channel.ModifyBitrateAsync((int)bitrate * 1000, FormattingActions.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the user limit for `{channel.FormatChannel()}` to `{bitrate}kbps`.");
 		}
 	}

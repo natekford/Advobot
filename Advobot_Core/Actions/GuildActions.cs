@@ -9,9 +9,25 @@ namespace Advobot.Actions
 {
 	public static class GuildActions
 	{
-		public static async Task<IGuild> GetGuild(IDiscordClient client, ulong id)
+		public static bool HasGlobalEmotes(this IGuild guild)
 		{
-			return await client.GetGuildAsync(id);
+			return guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
+		}
+		public static IGuild GetGuild(this IMessage message)
+		{
+			return (message?.Channel as IGuildChannel)?.Guild;
+		}
+		public static IGuild GetGuild(this IUser user)
+		{
+			return (user as IGuildUser)?.Guild;
+		}
+		public static IGuild GetGuild(this IChannel channel)
+		{
+			return (channel as IGuildChannel)?.Guild;
+		}
+		public static IGuild GetGuild(this IRole role)
+		{
+			return role?.Guild;
 		}
 
 		public static async Task<int> PruneUsers(IGuild guild, int days, bool simulate, string reason)
