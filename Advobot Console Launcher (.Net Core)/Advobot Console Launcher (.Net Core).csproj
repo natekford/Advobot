@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="2.0.0-alpha-build-00824" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Advobot Core (.Net Standard)\Advobot Core (.Net Standard).csproj" />
+  </ItemGroup>
+
+</Project>
