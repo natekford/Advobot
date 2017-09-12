@@ -17,40 +17,35 @@ namespace Advobot.Actions
 		/// Tries to start the bot by making sure a save path and bot key are provided and the bot is not already running.
 		/// </summary>
 		/// <param name="client">The client to start.</param>
-		/// <param name="botSettings">The settings to use in the client.</param>
 		/// <returns></returns>
-		public static async Task MaybeStartConsole(IDiscordClient client, IBotSettings botSettings)
+		public static async Task ConnectClient(IDiscordClient client)
 		{
-			if (botSettings.Loaded)
+			switch (client.ConnectionState)
 			{
-				return;
-			}
-
-			//Get the bot key
-			var startup = true;
-			while (true)
-			{
-				var input = startup ? null : Console.ReadLine();
-				if (await Config.ValidateBotKey(client, input, startup))
+				case ConnectionState.Connecting:
+				case ConnectionState.Connected:
+				case ConnectionState.Disconnecting:
 				{
-					break;
+					return;
 				}
-				startup = false;
-			}
+				case ConnectionState.Disconnected:
+				{
+					ConsoleActions.WriteLine("Connecting the client...");
 
-			ConsoleActions.WriteLine("Connecting the client...");
+					try
+					{
+						await client.StartAsync();
+						ConsoleActions.WriteLine("Successfully connected the client.");
+					}
+					catch (Exception e)
+					{
+						ConsoleActions.ExceptionToConsole(e);
+					}
 
-			try
-			{
-				await client.StartAsync();
-				ConsoleActions.WriteLine("Successfully connected the client.");
+					await Task.Delay(-1);
+					return;
+				}
 			}
-			catch (Exception e)
-			{
-				ConsoleActions.ExceptionToConsole(e);
-			}
-
-			await Task.Delay(-1);
 		}
 
 		/// <summary>

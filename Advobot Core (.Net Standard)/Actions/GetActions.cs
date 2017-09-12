@@ -4,6 +4,7 @@ using Advobot.Interfaces;
 using Discord;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -351,16 +352,6 @@ namespace Advobot.Actions
 		}
 
 		/// <summary>
-		/// Returns a formatted string displaying the bot's current uptime.
-		/// </summary>
-		/// <param name="botSettings"></param>
-		/// <returns></returns>
-		public static string GetUptime(IBotSettings botSettings)
-		{
-			var span = DateTime.UtcNow.Subtract(botSettings.StartupTime);
-			return $"{span.Days}:{span.Hours:00}:{span.Minutes:00}:{span.Seconds:00}";
-		}
-		/// <summary>
 		/// On windows, returns the task manager value. On other systems, returns the WorkingSet64 value.
 		/// </summary>
 		/// <param name="windows"></param>
@@ -369,7 +360,7 @@ namespace Advobot.Actions
 		{
 			const double _MB = 1024.0 * 1024.0;
 
-			using (var process = System.Diagnostics.Process.GetCurrentProcess())
+			using (var process = Process.GetCurrentProcess())
 			{
 				return Convert.ToInt32(process.WorkingSet64) / _MB;
 			}

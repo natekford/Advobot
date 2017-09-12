@@ -493,8 +493,6 @@ namespace Advobot.Classes
 		public bool Loaded { get; private set; }
 		[JsonIgnore]
 		public bool Pause { get; private set; }
-		[JsonIgnore]
-		public DateTime StartupTime { get; } = DateTime.UtcNow;
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		public MyBotSettings()

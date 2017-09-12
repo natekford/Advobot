@@ -5,9 +5,9 @@ using Discord;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Advobot.Actions
@@ -34,7 +34,7 @@ namespace Advobot.Actions
 			});
 
 			var color = roles.OrderBy(x => x.Position).LastOrDefault(x => x.Color.RawValue != 0)?.Color;
-			var embed = EmbedActions.MakeNewEmbed(null, desc, color, thumbnailURL: user.GetAvatarUrl());
+			var embed = EmbedActions.MakeNewEmbed(null, desc, color, thumbnailUrl: user.GetAvatarUrl());
 
 			if (channels.Count() != 0)
 			{
@@ -62,7 +62,7 @@ namespace Advobot.Actions
 				$"**Online status:** `{user.Status}`",
 			});
 
-			var embed = EmbedActions.MakeNewEmbed(null, desc, null, thumbnailURL: user.GetAvatarUrl());
+			var embed = EmbedActions.MakeNewEmbed(null, desc, null, thumbnailUrl: user.GetAvatarUrl());
 			EmbedActions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), user.GetAvatarUrl());
 			EmbedActions.AddFooter(embed, "User Info");
 			return embed;
@@ -134,7 +134,7 @@ namespace Advobot.Actions
 			});
 
 			var color = owner.Roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
-			var embed = EmbedActions.MakeNewEmbed(null, desc, color, thumbnailURL: guild.IconUrl);
+			var embed = EmbedActions.MakeNewEmbed(null, desc, color, thumbnailUrl: guild.IconUrl);
 			EmbedActions.AddAuthor(embed, guild.FormatGuild());
 			EmbedActions.AddFooter(embed, "Guild Info");
 			return embed;
@@ -150,7 +150,7 @@ namespace Advobot.Actions
 				description += $"**From:** `{String.Join("`, `", guildsWithEmote.Select(x => x.FormatGuild()))}`";
 			}
 
-			var embed = EmbedActions.MakeNewEmbed(null, description, thumbnailURL: emote.Url);
+			var embed = EmbedActions.MakeNewEmbed(null, description, thumbnailUrl: emote.Url);
 			EmbedActions.AddAuthor(embed, emote.Name);
 			EmbedActions.AddFooter(embed, "Emoji Info");
 			return embed;
@@ -174,8 +174,8 @@ namespace Advobot.Actions
 		{
 			var desc = String.Join("\n", new[]
 			{
-				$"**Online Since:** `{FormatDateTime(globalInfo.StartupTime)}`",
-				$"**Uptime:** `{GetActions.GetUptime(globalInfo)}`",
+				$"**Online Since:** `{FormatDateTime(Process.GetCurrentProcess().StartTime)}`",
+				$"**Uptime:** `{FormatUptime()}`",
 				$"**Guild Count:** `{logModule.TotalGuilds}`",
 				$"**Cumulative Member Count:** `{logModule.TotalUsers}`",
 				$"**Current Shard:** `{ClientActions.GetShardIdFor(client, guild)}`",
@@ -256,6 +256,16 @@ namespace Advobot.Actions
 			return content;
 		}
 
+		/// <summary>
+		/// Returns a formatted string displaying the bot's current uptime.
+		/// </summary>
+		/// <param name="botSettings"></param>
+		/// <returns></returns>
+		public static string FormatUptime()
+		{
+			var span = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime);
+			return $"{span.Days}:{span.Hours:00}:{span.Minutes:00}:{span.Seconds:00}";
+		}
 		public static string FormatDateTime(DateTime? dt)
 		{
 			if (!dt.HasValue)

@@ -6,6 +6,7 @@ namespace Advobot.Actions
 {
 	public static class ConsoleActions
 	{
+		private static object _MessageLock = new object();
 		private static SortedDictionary<string, List<string>> _WrittenLines;
 
 		public static void CreateWrittenLines()
@@ -17,22 +18,24 @@ namespace Advobot.Actions
 			return _WrittenLines;
 		}
 
-		public static void WriteLine(string text, [CallerMemberName] string name = "", ConsoleColor color = ConsoleColor.White)
+		public static void WriteLine(string text, [CallerMemberName] string name = "", ConsoleColor color = ConsoleColor.Gray)
 		{
 			var line = $"[{DateTime.Now.ToString("HH:mm:ss")}] [{name}]: {text.RemoveAllMarkdown().RemoveDuplicateNewLines()}";
 
-			//WrittenLines gets set 
-			if (_WrittenLines != null)
+			lock (_MessageLock)
 			{
-				if (!_WrittenLines.TryGetValue(name, out List<string> list))
+				if (_WrittenLines != null)
 				{
-					_WrittenLines.Add(name, list = new List<string>());
+					if (!_WrittenLines.TryGetValue(name, out List<string> list))
+					{
+						_WrittenLines.Add(name, list = new List<string>());
+					}
+					list.Add(line);
 				}
-				list.Add(line);
-			}
 
-			Console.ForegroundColor = color;
-			Console.WriteLine(line);
+				Console.ForegroundColor = color;
+				Console.WriteLine(line);
+			}
 		}
 		public static void ExceptionToConsole(Exception e, [CallerMemberName] string name = "")
 		{

@@ -8,6 +8,7 @@ using Discord.Commands;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -28,13 +29,14 @@ namespace Advobot.Actions
 			{
 				Config.Configuration[ConfigKeys.Bot_Id] = client.CurrentUser.Id.ToString();
 				Config.Save();
-				ClientActions.DisconnectBot(); //Restart so the bot can get the correct botInfo loaded
+				ConsoleActions.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
+				ClientActions.DisconnectBot();
 			}
 
 			await ClientActions.UpdateGame(client, botSettings);
 
 			ConsoleActions.WriteLine("The current bot prefix is: " + botSettings.Prefix);
-			ConsoleActions.WriteLine($"Bot took {TimeSpan.FromTicks(DateTime.UtcNow.ToUniversalTime().Ticks - botSettings.StartupTime.Ticks).TotalMilliseconds:n} milliseconds to load everything.");
+			ConsoleActions.WriteLine($"Bot took {DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds:n} milliseconds to load everything.");
 			botSettings.SetLoaded();
 		}
 

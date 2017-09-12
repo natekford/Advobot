@@ -102,8 +102,10 @@ namespace Advobot.Actions
 
 		public static bool ValidateURL(string input)
 		{
-			if (input == null)
+			if (String.IsNullOrWhiteSpace(input))
+			{
 				return false;
+			}
 
 			return Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 		}

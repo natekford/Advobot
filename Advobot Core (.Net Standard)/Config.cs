@@ -13,8 +13,11 @@ namespace Advobot
 	/// </summary>
 	public static class Config
 	{
+		/// <summary>
+		/// The path to save the config file to. Does not save any other files here.
+		/// </summary>
 		[JsonIgnore]
-		private static string _SavePath;
+		private static string _SavePath = CeateSavePath();
 		[JsonProperty("Config")]
 		public static ConfigDict Configuration = LoadConfigDictionary();
 
@@ -105,17 +108,26 @@ namespace Advobot
 			}
 		}
 
+		/// <summary>
+		/// Creates a path similar to C:/Users/User/Appdata/Local/Advobot/Advobot1.config.
+		/// </summary>
+		/// <returns></returns>
+		private static string CeateSavePath()
+		{
+			//Start by grabbing the executing assembly location then cutting out everything but the file name
+			var currentName = Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetExecutingAssembly().Location);
+			//Count how many exist with that name so they can be saved as Advobot1, Advobot2, etc.
+			var count = System.Diagnostics.Process.GetProcessesByName(System.Diagnostics.Process.GetCurrentProcess().ProcessName).Length;
+			//Add the config file into the local application data folder under Advobot
+			var configFileName = currentName + count.ToString() + ".config";
+			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Advobot", configFileName);
+		}
+		/// <summary>
+		/// Attempts to load the configuration from <see cref="_SavePath"/> otherwise uses the default initialization for <see cref="ConfigDict"/>.
+		/// </summary>
+		/// <returns></returns>
 		private static ConfigDict LoadConfigDictionary()
 		{
-			//Get the current name and count of processes running with that name and find out how many are running to allow multiple different configs if there are multiple bots running
-			var currentName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-			var count = System.Diagnostics.Process.GetProcessesByName(currentName).Length;
-			_SavePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Advobot", currentName + count.ToString() + ".config");
-			/* Should look like this:
-			 * C:/Users/User/Appdata/Local/Advobot/Advobot1.config
-			 * C:/Users/User/Appdata/Local/Advobot/Advobot2.config //If a second process gets started
-			 */
-
 			ConfigDict tempDict = null;
 			if (File.Exists(_SavePath))
 			{
@@ -140,7 +152,7 @@ namespace Advobot
 	}
 
 	/// <summary>
-	/// 
+	/// Creates a dictionary which only holds the values for <see cref="ConfigKeys"/> to be modified.
 	/// </summary>
 	public class ConfigDict
 	{

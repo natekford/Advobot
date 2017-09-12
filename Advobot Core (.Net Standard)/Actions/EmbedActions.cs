@@ -7,15 +7,13 @@ namespace Advobot.Actions
 {
 	public static class EmbedActions
 	{
-		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageURL = null, string URL = null, string thumbnailURL = null, string prefix = Constants.BOT_PREFIX)
+		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageUrl = null, string url = null, string thumbnailUrl = null, string prefix = Constants.BOT_PREFIX)
 		{
-			//Make the embed builder
-			var embed = new EmbedBuilder().WithColor(Constants.BASE);
+			imageUrl = UploadActions.ValidateURL(imageUrl) ? imageUrl : null;
+			url = UploadActions.ValidateURL(url) ? url : null;
+			thumbnailUrl = UploadActions.ValidateURL(thumbnailUrl) ? thumbnailUrl : null;
 
-			//Validate the URLs
-			imageURL = UploadActions.ValidateURL(imageURL) ? imageURL : null;
-			URL = UploadActions.ValidateURL(URL) ? URL : null;
-			thumbnailURL = UploadActions.ValidateURL(thumbnailURL) ? thumbnailURL : null;
+			var embed = new EmbedBuilder().WithColor(Constants.BASE);
 
 			//Add in the properties
 			if (title != null)
@@ -37,85 +35,78 @@ namespace Advobot.Actions
 			{
 				embed.WithColor(color.Value);
 			}
-			if (imageURL != null)
+			if (imageUrl != null)
 			{
-				embed.WithImageUrl(imageURL);
+				embed.WithImageUrl(imageUrl);
 			}
-			if (URL != null)
+			if (url != null)
 			{
-				embed.WithUrl(URL);
+				embed.WithUrl(url);
 			}
-			if (thumbnailURL != null)
+			if (thumbnailUrl != null)
 			{
-				embed.WithThumbnailUrl(thumbnailURL);
+				embed.WithThumbnailUrl(thumbnailUrl);
 			}
 
 			return embed;
 		}
-		public static void AddAuthor(EmbedBuilder embed, string name = null, string iconURL = null, string URL = null)
+		public static EmbedBuilder AddAuthor(EmbedBuilder embed, string name = null, string iconUrl = null, string url = null)
 		{
-			//Create the author builder
-			var author = new EmbedAuthorBuilder();
-
-			//Verify the URLs
-			iconURL = UploadActions.ValidateURL(iconURL) ? iconURL : null;
-			URL = UploadActions.ValidateURL(URL) ? URL : null;
-
-			//Add in the properties
-			if (name != null)
+			iconUrl = UploadActions.ValidateURL(iconUrl) ? iconUrl : null;
+			url = UploadActions.ValidateURL(url) ? url : null;
+			embed.WithAuthor(x =>
 			{
-				author.WithName(name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length)));
-			}
-			if (iconURL != null)
-			{
-				author.WithIconUrl(iconURL);
-			}
-			if (URL != null)
-			{
-				author.WithUrl(URL);
-			}
-
-			embed.WithAuthor(author);
+				if (name != null)
+				{
+					x.Name = name.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, name.Length));
+				}
+				if (iconUrl != null)
+				{
+					x.IconUrl = iconUrl;
+				}
+				if (url != null)
+				{
+					x.Url = url;
+				}
+			});
+			return embed;
 		}
-		public static void AddAuthor(EmbedBuilder embed, IUser user, string URL = null)
+		public static EmbedBuilder AddAuthor(EmbedBuilder embed, IUser user, string URL = null)
 		{
-			AddAuthor(embed, user.Username, user.GetAvatarUrl(), URL ?? user.GetAvatarUrl());
+			return AddAuthor(embed, user.Username, user.GetAvatarUrl(), URL ?? user.GetAvatarUrl());
 		}
-		public static void AddFooter(EmbedBuilder embed, [CallerMemberName] string text = null, string iconURL = null)
+		public static EmbedBuilder AddFooter(EmbedBuilder embed, [CallerMemberName] string text = null, string iconUrl = null)
 		{
-			//Make the footer builder
-			var footer = new EmbedFooterBuilder();
-
-			//Verify the URL
-			iconURL = UploadActions.ValidateURL(iconURL) ? iconURL : null;
-
-			//Add in the properties
-			if (text != null)
+			iconUrl = UploadActions.ValidateURL(iconUrl) ? iconUrl : null;
+			embed.WithFooter(x =>
 			{
-				footer.WithText(text.Substring(0, Math.Min(Constants.MAX_FOOTER_LENGTH, text.Length)));
-			}
-			if (iconURL != null)
-			{
-				footer.WithIconUrl(iconURL);
-			}
-
-			embed.WithFooter(footer);
+				if (text != null)
+				{
+					x.Text = text.Substring(0, Math.Min(Constants.MAX_FOOTER_LENGTH, text.Length));
+				}
+				if (iconUrl != null)
+				{
+					x.IconUrl = iconUrl;
+				}
+			});
+			return embed;
 		}
-		public static void AddField(EmbedBuilder embed, string name, string value, bool isInline = true, string prefix = Constants.BOT_PREFIX)
+		public static EmbedBuilder AddField(EmbedBuilder embed, string name, string value, bool isInline = true, string prefix = Constants.BOT_PREFIX)
 		{
 			if (embed.Build().Fields.Count() >= Constants.MAX_FIELDS)
-				return;
+			{
+				return embed;
+			}
 
-			//Get the name and value
 			name = String.IsNullOrWhiteSpace(name) ? "Placeholder" : name.Substring(0, Math.Min(Constants.MAX_FIELD_NAME_LENGTH, name.Length));
 			value = String.IsNullOrWhiteSpace(name) ? "Placeholder" : value.Replace(Constants.BOT_PREFIX, prefix).Substring(0, Math.Min(Constants.MAX_FIELD_VALUE_LENGTH, value.Length));
-
 			embed.AddField(x =>
 			{
 				x.Name = name;
 				x.Value = value;
 				x.IsInline = isInline;
 			});
+			return embed;
 		}
 	}
 }

@@ -13,4 +13,8 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.4.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="..\Advobot Core %2528.Net Standard%2529\NewFolder\" />
+  </ItemGroup>
+
 </Project>

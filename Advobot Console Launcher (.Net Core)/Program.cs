@@ -19,21 +19,27 @@ namespace Advobot.Launcher
 
 		private static async Task MainAsync()
 		{
+			var test = Console.ForegroundColor;
 			//Get the save path
-			var startup = true;
-			while (true)
+			var savePath = true;
+			while (!Config.ValidatePath((savePath ? null : Console.ReadLine()), savePath))
 			{
-				var input = startup ? null : Console.ReadLine();
-				if (Config.ValidatePath(input, startup))
-				{
-					break;
-				}
-				startup = false;
+				savePath = false;
 			}
 
 			var provider = ClientActions.CreateServicesAndServiceProvider();
 			await CommandHandler.Install(provider);
-			await ClientActions.MaybeStartConsole(provider.GetService<IDiscordClient>(), provider.GetService<IBotSettings>());
+
+			var client = provider.GetService<IDiscordClient>();
+
+			//Get the bot key
+			var botKey = true;
+			while (!await Config.ValidateBotKey(client, (botKey ? null : Console.ReadLine()), botKey))
+			{
+				botKey = false;
+			}
+
+			await ClientActions.ConnectClient(client);
 		}
 	}
 }

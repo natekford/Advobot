@@ -26,8 +26,6 @@ namespace Advobot.Interfaces
 		bool AlwaysDownloadUsers { get; set; }
 		LogSeverity LogLevel { get; set; }
 
-		DateTime StartupTime { get; }
-
 		bool IsWindows { get; }
 		bool IsConsole { get; }
 		bool Loaded { get; }
