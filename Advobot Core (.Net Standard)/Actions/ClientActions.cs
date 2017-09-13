@@ -1,12 +1,9 @@
-﻿using Advobot.Classes;
-using Advobot.Interfaces;
-using Advobot.Modules.Log;
-using Advobot.Modules.Timers;
+﻿using Advobot.Interfaces;
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Advobot.Actions
@@ -46,58 +43,6 @@ namespace Advobot.Actions
 					return;
 				}
 			}
-		}
-
-		/// <summary>
-		/// Creates services the bot uses. Such as <see cref="IBotSettings"/>, <see cref="IGuildSettingsModule"/>, <see cref="IDiscordClient"/>,
-		/// <see cref="ITimersModule"/>, and <see cref="ILogModule"/>.
-		/// </summary>
-		/// <returns>The service provider which holds all the services.</returns>
-		public static IServiceProvider CreateServicesAndServiceProvider()
-		{
-			IBotSettings botSettings = SavingAndLoadingActions.CreateBotSettings(Constants.GLOBAL_SETTINGS_TYPE);
-			IGuildSettingsModule guildSettings = SavingAndLoadingActions.CreateGuildSettingsModule(Constants.GUILDS_SETTINGS_TYPE);
-			IDiscordClient client = CreateBotClient(botSettings);
-			ITimersModule timers = new MyTimersModule(guildSettings);
-			ILogModule logging = new MyLogModule(client, botSettings, guildSettings, timers);
-
-			var serviceCollection = new ServiceCollection()
-				.AddSingleton(botSettings)
-				.AddSingleton(guildSettings)
-				.AddSingleton(client)
-				.AddSingleton(timers)
-				.AddSingleton(logging)
-				.AddSingleton(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, }));
-
-			return new DefaultServiceProviderFactory().CreateServiceProvider(serviceCollection);
-		}
-		/// <summary>
-		/// Returns <see cref="DiscordSocketClient"/> if shard count in <paramref name="botSettings"/> is 1. Else returns <see cref="DiscordShardedClient"/>.
-		/// </summary>
-		/// <param name="botSettings">The settings to initialize the client with.</param>
-		/// <returns>A discord client.</returns>
-		public static IDiscordClient CreateBotClient(IBotSettings botSettings)
-		{
-			return botSettings.ShardCount > 1 ? CreateShardedClient(botSettings) : (IDiscordClient)CreateSocketClient(botSettings);
-		}
-		private static DiscordShardedClient CreateShardedClient(IBotSettings botSettings)
-		{
-			return new DiscordShardedClient(new DiscordSocketConfig
-			{
-				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
-				MessageCacheSize = (int)botSettings.MessageCacheCount,
-				LogLevel = botSettings.LogLevel,
-				TotalShards = (int)botSettings.ShardCount,
-			});
-		}
-		private static DiscordSocketClient CreateSocketClient(IBotSettings botSettings)
-		{
-			return new DiscordSocketClient(new DiscordSocketConfig
-			{
-				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
-				MessageCacheSize = (int)botSettings.MaxUserGatherCount,
-				LogLevel = botSettings.LogLevel,
-			});
 		}
 
 		/// <summary>
@@ -227,6 +172,23 @@ namespace Advobot.Actions
 			}
 		}
 
+		/// <summary>
+		/// Creates a new bot that uses the same console. The bot that starts is created using <see cref="Process.Start"/> and specifying the filename as dotnet and the arguments as the location of the dll.
+		/// <para>
+		/// The old bot is then killed
+		/// </para>
+		/// </summary>
+		public static void RestartBot()
+		{
+			//For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
+			Process.Start(new ProcessStartInfo
+			{
+				FileName = "dotnet",
+				Arguments = $@"""{Assembly.GetEntryAssembly().Location}""",
+			});
+			ConsoleActions.WriteLine("Restarted the bot." + Environment.NewLine);
+			Process.GetCurrentProcess().Kill();
+		}
 		/// <summary>
 		/// Exits the current application.
 		/// </summary>

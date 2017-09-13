@@ -360,7 +360,6 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	/*
 	[Group(nameof(Restart)), Alias("res")]
 	[Usage("")]
 	[Summary("Restarts the bot.")]
@@ -374,5 +373,5 @@ namespace Advobot.Commands.BotSettings
 			ClientActions.RestartBot();
 			return Task.FromResult(0);
 		}
-	}*/
+	}
 }

@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Advobot.Classes
 {
@@ -301,9 +302,17 @@ namespace Advobot.Classes
 				SavingAndLoadingActions.OverWriteFile(GetActions.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
 			}
 		}
-		public void PostDeserialize(IGuild guild)
+		public async Task<IGuildSettings> PostDeserialize(IGuild guild)
 		{
 			Guild = guild as SocketGuild;
+
+			var unsetCmdSwitches = Constants.HELP_ENTRIES.Where(x => !CommandSwitches.Select(y => y.Name).CaseInsContains(x.Name)).Select(x => new CommandSwitch(x.Name, x.DefaultEnabled));
+			CommandSwitches.AddRange(unsetCmdSwitches);
+			CommandSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			Invites.AddRange((await InviteActions.GetInvites(guild)).Select(x => new BotInvite(x.Code, x.Uses)));
 
 			if (_ListedInvite != null)
 			{
@@ -329,6 +338,8 @@ namespace Advobot.Classes
 			}
 
 			Loaded = true;
+
+			return this;
 		}
 	}
 

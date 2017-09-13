@@ -2,7 +2,6 @@
 using Advobot.Classes;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using Advobot.Modules.GuildSettings;
 using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
@@ -30,56 +29,14 @@ namespace Advobot.Actions
 				Config.Configuration[ConfigKeys.Bot_Id] = client.CurrentUser.Id.ToString();
 				Config.Save();
 				ConsoleActions.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
-				ClientActions.DisconnectBot();
+				ClientActions.RestartBot();
 			}
 
 			await ClientActions.UpdateGame(client, botSettings);
 
 			ConsoleActions.WriteLine("The current bot prefix is: " + botSettings.Prefix);
-			ConsoleActions.WriteLine($"Bot took {DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime).TotalMilliseconds:n} milliseconds to load everything.");
+			ConsoleActions.WriteLine($"Bot took {DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds:n} milliseconds to load everything.");
 			botSettings.SetLoaded();
-		}
-
-		public static IBotSettings CreateBotSettings(Type botSettingsType)
-		{
-			if (botSettingsType == null || !botSettingsType.GetInterfaces().Contains(typeof(IBotSettings)))
-			{
-				throw new ArgumentException("Invalid type for global settings provided.");
-			}
-
-			IBotSettings botSettings = null;
-			var fileInfo = GetActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
-			if (fileInfo.Exists)
-			{
-				try
-				{
-					using (var reader = new StreamReader(fileInfo.FullName))
-					{
-						botSettings = (IBotSettings)JsonConvert.DeserializeObject(reader.ReadToEnd(), botSettingsType);
-					}
-					ConsoleActions.WriteLine("The bot information has successfully been loaded.");
-				}
-				catch (Exception e)
-				{
-					ConsoleActions.ExceptionToConsole(e);
-				}
-			}
-			else
-			{
-				ConsoleActions.WriteLine("The bot information file could not be found; using default.");
-			}
-			botSettings = botSettings ?? (IBotSettings)Activator.CreateInstance(botSettingsType);
-
-			return botSettings;
-		}
-		public static IGuildSettingsModule CreateGuildSettingsModule(Type guildSettingType)
-		{
-			if (guildSettingType == null || !guildSettingType.GetInterfaces().Contains(typeof(IGuildSettings)))
-			{
-				throw new ArgumentException("Invalid type for guild settings provided.");
-			}
-
-			return new MyGuildSettingsModule(guildSettingType);
 		}
 
 		public static List<HelpEntry> LoadHelpList()

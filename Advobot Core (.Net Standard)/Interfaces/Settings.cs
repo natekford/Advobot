@@ -80,6 +80,7 @@ namespace Advobot.Interfaces
 		bool Loaded { get; }
 
 		void SaveSettings();
+		Task<IGuildSettings> PostDeserialize(IGuild guild);
 	}
 
 	/// <summary>
