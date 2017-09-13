@@ -40,7 +40,7 @@ namespace Advobot
 			_Commands.AddTypeReader(typeof(CommandSwitch), new CommandSwitchTypeReader());
 
 			//Commands
-			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly()); //Use executing assembly to get all of the commands from Advobot_Core. Entry and Calling assembly give Advobot_Launcher
+			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly()); //Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
 
 			//Events
 			_Commands.CommandExecuted += (commandInfo, context, result) => CommandLogger(commandInfo, context as IMyCommandContext, result);

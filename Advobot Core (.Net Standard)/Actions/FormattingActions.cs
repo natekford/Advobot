@@ -200,7 +200,7 @@ namespace Advobot.Actions
 			{
 				$"**Latency:** `{ClientActions.GetLatency(client)}ms`",
 				$"**Memory Usage:** `{GetActions.GetMemory().ToString("0.00")}MB`",
-				$"**Thread Count:** `{System.Diagnostics.Process.GetCurrentProcess().Threads.Count}`",
+				$"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`",
 			});
 			EmbedActions.AddField(embed, "Technical", thirdField);
 
@@ -263,7 +263,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static string FormatUptime()
 		{
-			var span = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime);
+			var span = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime());
 			return $"{span.Days}:{span.Hours:00}:{span.Minutes:00}:{span.Seconds:00}";
 		}
 		public static string FormatDateTime(DateTime? dt)
