@@ -140,9 +140,10 @@ namespace Advobot.Commands.ChannelModeration
 
 	[Group(nameof(ChangeChannelPerms)), Alias("cchpe")]
 	[Usage("[Show|Allow|Inherit|Deny] <Channel> <Role|User> <Permission/...>")]
-	[Summary("Permissions must be separated by a `/`. Type `" + Constants.BOT_PREFIX + "chp [Show]` to see the available permissions. " +
-		"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel]` to see all permissions on a channel. " +
-		"Type `" + Constants.BOT_PREFIX + "chp [Show] [Channel] [Role|User]` to see permissions a role/user has on a channel.")]
+	[Summary("Permissions must be separated by a `/` or their rawvalue can be said instead" +
+		"Type `" + nameof(ChangeChannelPerms) + " [Show]` to see the available permissions. " +
+		"Type `" + nameof(ChangeChannelPerms) + " [Show] [Channel]` to see all permissions on a channel. " +
+		"Type `" + nameof(ChangeChannelPerms) + " [Show] [Channel] [Role|User]` to see permissions a role/user has on a channel.")]
 	[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 	[DefaultEnabled(true)]
 	public sealed class ChangeChannelPerms : MyModuleBase
@@ -161,9 +162,9 @@ namespace Advobot.Commands.ChannelModeration
 				var roleOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.Role).Select(x => Context.Guild.GetRole(x.TargetId).Name);
 				var userOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.User).Select(x => ((Context.Guild as SocketGuild).GetUser(x.TargetId)).Username);
 
-				var embed = EmbedActions.MakeNewEmbed(channel.FormatChannel());
-				EmbedActions.AddField(embed, "Role", $"`{(roleOverwrites.Any() ? String.Join("`, `", roleOverwrites) : "None")}`");
-				EmbedActions.AddField(embed, "User", $"`{(userOverwrites.Any() ? String.Join("`, `", userOverwrites) : "None")}`");
+				var embed = EmbedActions.MakeNewEmbed(channel.FormatChannel())
+					.MyAddField("Role", $"`{(roleOverwrites.Any() ? String.Join("`, `", roleOverwrites) : "None")}`")
+					.MyAddField("User", $"`{(userOverwrites.Any() ? String.Join("`, `", userOverwrites) : "None")}`");
 				await MessageActions.SendEmbedMessage(Context.Channel, embed);
 			}
 			[Command]

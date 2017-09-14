@@ -144,8 +144,9 @@ namespace Advobot.Commands.RoleModeration
 
 	[Group(nameof(ChangeRolePerms)), Alias("crpe")]
 	[Usage("[Show|Allow|Deny] <Role> <Permission/...>")]
-	[Summary("Permissions must be separated by a `/`. Type `" + Constants.BOT_PREFIX + "rp [Show]` to see the available permissions. " +
-		"Type `" + Constants.BOT_PREFIX + "rp [Show] [Role]` to see the permissions of that role. If you know the rawvalue of the perms you can say that instead.")]
+	[Summary("Permissions must be separated by a `/` or their rawvalue can be said instead. " +
+		"Type `" + nameof(ChangeRolePerms) + " [Show]` to see the available permissions. " +
+		"Type `" + nameof(ChangeRolePerms) + " [Show] [Role]` to see the permissions of that role.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ChangeRolePerms : MyModuleBase

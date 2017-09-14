@@ -147,13 +147,13 @@ namespace Advobot.Classes
 
 		public override string ToString()
 		{
-			var response = new System.Text.StringBuilder();
-			response.Append($"Guild: {Guild}");
-			response.Append($"{_Joiner}Channel: {Channel}");
-			response.Append($"{_Joiner}User: {User}");
-			response.Append($"{_Joiner}Time: {Time}");
-			response.Append($"{_Joiner}Text: {Text}");
-			response.Append($"{_Joiner}Time taken: {(TimeCompleted - TimeInitiated).TotalMilliseconds}ms");
+			var response = new System.Text.StringBuilder()
+				.Append($"Guild: {Guild}")
+				.Append($"{_Joiner}Channel: {Channel}")
+				.Append($"{_Joiner}User: {User}")
+				.Append($"{_Joiner}Time: {Time}")
+				.Append($"{_Joiner}Text: {Text}")
+				.Append($"{_Joiner}Time taken: {(TimeCompleted - TimeInitiated).TotalMilliseconds}ms");
 			if (ErrorReason != null)
 			{
 				response.Append($"{_Joiner}Error: {ErrorReason}");

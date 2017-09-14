@@ -32,7 +32,7 @@ namespace Advobot.Actions
 				badDesc = embed.Description;
 				embed.WithDescription($"The description is over `{Constants.MAX_DESCRIPTION_LENGTH}` characters and will be sent as a text file instead.");
 			}
-			else if (embed.Description.GetLineBreaks() > Constants.MAX_DESCRIPTION_LINES)
+			else if (embed.Description.CountLineBreaks() > Constants.MAX_DESCRIPTION_LINES)
 			{
 				badDesc = embed.Description;
 				embed.WithDescription($"The description is over `{Constants.MAX_DESCRIPTION_LINES}` lines and will be sent as a text file instead.");
@@ -56,7 +56,7 @@ namespace Advobot.Actions
 					badFields.Add(new Tuple<int, string>(i, value));
 					field.WithValue($"This field is over `{Constants.MAX_FIELD_VALUE_LENGTH}` characters and will be sent as a text file instead.");
 				}
-				else if (value.GetLineBreaks() > Constants.MAX_FIELD_LINES)
+				else if (value.CountLineBreaks() > Constants.MAX_FIELD_LINES)
 				{
 					badFields.Add(new Tuple<int, string>(i, value));
 					field.WithValue($"This field is over `{Constants.MAX_FIELD_LINES}` lines and will be sent as a text file instead.");
@@ -285,8 +285,8 @@ namespace Advobot.Actions
 
 			if (inputList.Count <= 5 && characterCount < Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
-				var embed = EmbedActions.MakeNewEmbed("Deleted Messages", String.Join("\n", inputList), Constants.MDEL);
-				EmbedActions.AddFooter(embed, "Deleted Messages");
+				var embed = EmbedActions.MakeNewEmbed("Deleted Messages", String.Join("\n", inputList), Constants.MDEL)
+					.MyAddFooter("Deleted Messages");
 				await SendEmbedMessage(channel, embed);
 			}
 			else

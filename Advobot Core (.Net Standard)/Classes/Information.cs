@@ -52,7 +52,7 @@ namespace Advobot.Classes
 		{
 			Name = String.IsNullOrWhiteSpace(name) ? PLACE_HOLDER_STR : name;
 			Aliases = aliases ?? new[] { PLACE_HOLDER_STR };
-			Usage = String.IsNullOrWhiteSpace(usage) ? PLACE_HOLDER_STR : Constants.BOT_PREFIX + usage;
+			Usage = String.IsNullOrWhiteSpace(usage) ? PLACE_HOLDER_STR : Constants.PLACEHOLDER_PREFIX + usage;
 			BasePerm = String.IsNullOrWhiteSpace(basePerm) ? PLACE_HOLDER_STR : basePerm;
 			Description = String.IsNullOrWhiteSpace(description) ? PLACE_HOLDER_STR : description;
 			Category = category;

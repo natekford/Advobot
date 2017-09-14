@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Advobot.Actions
@@ -16,195 +17,167 @@ namespace Advobot.Actions
 	{
 		public static EmbedBuilder FormatUserInfo(IGuildSettings guildSettings, SocketGuild guild, SocketGuildUser user)
 		{
-			var guildUser = user as SocketGuildUser;
-
-			var roles = guildUser.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone);
-			var channels = guild.TextChannels.Where(x => guildUser.GetPermissions(x).ReadMessages).OrderBy(x => x.Position).Select(x => x.Name).ToList();
-			channels.AddRange(guild.VoiceChannels.Where(x => guildUser.GetPermissions(x).Connect).OrderBy(x => x.Position).Select(x => x.Name + " (Voice)"));
+			var textChannels = guild.TextChannels.Where(x => user.GetPermissions(x).ReadMessages).OrderBy(x => x.Position).Select(x => x.Name);
+			var voiceChannels = guild.VoiceChannels.Where(x => user.GetPermissions(x).Connect).OrderBy(x => x.Position).Select(x => x.Name + " (Voice)");
+			var channels = textChannels.Concat(voiceChannels);
 			var users = guild.Users.Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
+			var roles = user.Roles.OrderBy(x => x.Position).Where(x => !x.IsEveryone);
 
-			var desc = String.Join("\n", new[]
-			{
-				$"**ID:** `{guildUser.Id}`",
-				$"**Nickname:** `{(String.IsNullOrWhiteSpace(guildUser.Nickname) ? "No nickname" : guildUser.Nickname.EscapeBackTicks())}`",
-				FormatDateTimeForCreatedAtMessage(guildUser.CreatedAt),
-				$"**Joined:** `{FormatDateTime(guildUser.JoinedAt.Value.UtcDateTime)}` (`{users.IndexOf(guildUser) + 1}` to join the guild)\n",
-				FormatGame(guildUser),
-				$"**Online status:** `{guildUser.Status}`",
-			});
+			var desc = new StringBuilder()
+				.AppendLine($"**ID:** `{user.Id}`")
+				.AppendLine($"**Nickname:** `{(String.IsNullOrWhiteSpace(user.Nickname) ? "No nickname" : user.Nickname.EscapeBackTicks())}`")
+				.AppendLine(FormatDateTimeForCreatedAtMessage(user.CreatedAt))
+				.AppendLine($"**Joined:** `{FormatDateTime(user.JoinedAt.Value.UtcDateTime)}` (`{users.IndexOf(user) + 1}` to join the guild)\n")
+				.AppendLine(FormatGame(user))
+				.AppendLine($"**Online status:** `{user.Status}`");
 
 			var color = roles.OrderBy(x => x.Position).LastOrDefault(x => x.Color.RawValue != 0)?.Color;
-			var embed = EmbedActions.MakeNewEmbed(null, desc, color, thumbnailUrl: user.GetAvatarUrl());
+			var embed = EmbedActions.MakeNewEmbed(null, desc.ToString(), color, thumbnailUrl: user.GetAvatarUrl())
+					.MyAddAuthor(user)
+					.MyAddFooter("User Info");
 
 			if (channels.Count() != 0)
 			{
-				EmbedActions.AddField(embed, "Channels", String.Join(", ", channels));
+				embed.AddField("Channels", String.Join(", ", channels));
 			}
 			if (roles.Count() != 0)
 			{
-				EmbedActions.AddField(embed, "Roles", String.Join(", ", roles.Select(x => x.Name)));
+				embed.AddField("Roles", String.Join(", ", roles.Select(x => x.Name)));
 			}
 			if (user.VoiceChannel != null)
 			{
-				var value = $"Server mute: `{user.IsMuted}`\nServer deafen: `{user.IsDeafened}`\nSelf mute: `{user.IsSelfMuted}`\nSelf deafen: `{user.IsSelfDeafened}`";
-				EmbedActions.AddField(embed, "Voice Channel: " + user.VoiceChannel.Name, value);
+				var value = new StringBuilder()
+					.AppendLine($"Server mute: `{user.IsMuted}`")
+					.AppendLine($"Server deafen: `{user.IsDeafened}`")
+					.AppendLine($"Self mute: `{user.IsSelfMuted}`")
+					.AppendLine($"Self deafen: `{user.IsSelfDeafened}`");
+				embed.MyAddField("Voice Channel: " + user.VoiceChannel.Name, value.ToString());
 			}
-			EmbedActions.AddAuthor(embed, guildUser);
-			EmbedActions.AddFooter(embed, "User Info");
 			return embed;
 		}
 		public static EmbedBuilder FormatUserInfo(IGuildSettings guildSettings, SocketGuild guild, SocketUser user)
 		{
-			var desc = String.Join("\n", new[]
-			{
-				FormatDateTimeForCreatedAtMessage(user.CreatedAt),
-				FormatGame(user),
-				$"**Online status:** `{user.Status}`",
-			});
+			var desc = new StringBuilder()
+				.AppendLine(FormatDateTimeForCreatedAtMessage(user.CreatedAt))
+				.AppendLine(FormatGame(user))
+				.AppendLine($"**Online status:** `{user.Status}`");
 
-			var embed = EmbedActions.MakeNewEmbed(null, desc, null, thumbnailUrl: user.GetAvatarUrl());
-			EmbedActions.AddAuthor(embed, user.FormatUser(), user.GetAvatarUrl(), user.GetAvatarUrl());
-			EmbedActions.AddFooter(embed, "User Info");
-			return embed;
+			return EmbedActions.MakeNewEmbed(null, desc.ToString(), null, thumbnailUrl: user.GetAvatarUrl())
+				.MyAddAuthor(user)
+				.MyAddFooter("User Info");
 		}
 		public static EmbedBuilder FormatRoleInfo(IGuildSettings guildSettings, SocketGuild guild, SocketRole role)
 		{
-			var desc = String.Join("\n", new[]
-			{
-				FormatDateTimeForCreatedAtMessage(role.CreatedAt),
-				$"**Position:** `{role.Position}`",
-				$"**User Count:** `{guild.Users.Where(x => x.Roles.Any(y => y.Id == role.Id)).Count()}`",
-			});
+			var desc = new StringBuilder()
+				.AppendLine(FormatDateTimeForCreatedAtMessage(role.CreatedAt))
+				.AppendLine($"**Position:** `{role.Position}`")
+				.AppendLine($"**User Count:** `{guild.Users.Where(x => x.Roles.Any(y => y.Id == role.Id)).Count()}`");
 
-			var embed = EmbedActions.MakeNewEmbed(null, desc, role.Color);
-			EmbedActions.AddAuthor(embed, role.FormatRole());
-			EmbedActions.AddFooter(embed, "Role Info");
-			return embed;
+			return EmbedActions.MakeNewEmbed(null, desc.ToString(), role.Color)
+				.MyAddAuthor(role.FormatRole())
+				.MyAddFooter("Role Info");
 		}
 		public static EmbedBuilder FormatChannelInfo(IGuildSettings guildSettings, SocketGuild guild, SocketChannel channel)
 		{
-			var ignoredFromLog = guildSettings.IgnoredLogChannels.Contains(channel.Id);
-			var ignoredFromCmd = guildSettings.IgnoredCommandChannels.Contains(channel.Id);
-			var imageOnly = guildSettings.ImageOnlyChannels.Contains(channel.Id);
-			var serverLog = guildSettings.ServerLog?.Id == channel.Id;
-			var modLog = guildSettings.ModLog?.Id == channel.Id;
-			var imageLog = guildSettings.ImageLog?.Id == channel.Id;
+			var ignoredFromLog	= guildSettings.IgnoredLogChannels.Contains(channel.Id);
+			var ignoredFromCmd	= guildSettings.IgnoredCommandChannels.Contains(channel.Id);
+			var imageOnly		= guildSettings.ImageOnlyChannels.Contains(channel.Id);
+			var serverLog		= guildSettings.ServerLog?.Id == channel.Id;
+			var modLog			= guildSettings.ModLog?.Id == channel.Id;
+			var imageLog		= guildSettings.ImageLog?.Id == channel.Id;
 
-			var desc = String.Join("\n", new[]
-			{
-				FormatDateTimeForCreatedAtMessage(channel.CreatedAt),
-				$"**User Count:** `{channel.Users.Count}`",
-				$"\n**Ignored From Log:** `{(ignoredFromLog ? "Yes" : "No")}`",
-				$"**Ignored From Commands:** `{(ignoredFromCmd ? "Yes" : "No")}`",
-				$"**Image Only:** `{(imageOnly ? "Yes" : "No")}`",
-				$"\n**Serverlog:** `{(serverLog ? "Yes" : "No")}`",
-				$"**Modlog:** `{(modLog ? "Yes" : "No")}`",
-				$"**Imagelog:** `{(imageLog ? "Yes" : "No")}`",
-			});
+			var desc = new StringBuilder()
+				.AppendLine(FormatDateTimeForCreatedAtMessage(channel.CreatedAt))
+				.AppendLine($"**User Count:** `{channel.Users.Count}`\n")
+				.AppendLine($"\n**Ignored From Log:** `{(ignoredFromLog ? "Yes" : "No")}`")
+				.AppendLine($"**Ignored From Commands:** `{(ignoredFromCmd ? "Yes" : "No")}`")
+				.AppendLine($"**Image Only:** `{(imageOnly ? "Yes" : "No")}`")
+				.AppendLine($"\n**Serverlog:** `{(serverLog ? "Yes" : "No")}`")
+				.AppendLine($"**Modlog:** `{(modLog ? "Yes" : "No")}`")
+				.AppendLine($"**Imagelog:** `{(imageLog ? "Yes" : "No")}`");
 
-			var embed = EmbedActions.MakeNewEmbed(null, desc);
-			EmbedActions.AddAuthor(embed, channel.FormatChannel());
-			EmbedActions.AddFooter(embed, "Channel Info");
-			return embed;
+			return EmbedActions.MakeNewEmbed(null, desc.ToString())
+				.MyAddAuthor(channel.FormatChannel())
+				.MyAddFooter("Channel Info");
 		}
 		public static EmbedBuilder FormatGuildInfo(IGuildSettings guildSettings, SocketGuild guild)
 		{
-			var owner = guild.Owner;
-			var onlineCount = guild.Users.Where(x => x.Status != UserStatus.Offline).Count();
-			var nicknameCount = guild.Users.Where(x => x.Nickname != null).Count();
-			var gameCount = guild.Users.Where(x => x.Game.HasValue).Count();
-			var botCount = guild.Users.Where(x => x.IsBot).Count();
-			var voiceCount = guild.Users.Where(x => x.VoiceChannel != null).Count();
-			var localECount = guild.Emotes.Where(x => !x.IsManaged).Count();
-			var globalECount = guild.Emotes.Where(x => x.IsManaged).Count();
+			var owner			= guild.Owner;
+			var onlineCount		= guild.Users.Where(x => x.Status != UserStatus.Offline).Count();
+			var nicknameCount	= guild.Users.Where(x => x.Nickname != null).Count();
+			var gameCount		= guild.Users.Where(x => x.Game.HasValue).Count();
+			var botCount		= guild.Users.Where(x => x.IsBot).Count();
+			var voiceCount		= guild.Users.Where(x => x.VoiceChannel != null).Count();
+			var localECount		= guild.Emotes.Where(x => !x.IsManaged).Count();
+			var globalECount	= guild.Emotes.Where(x => x.IsManaged).Count();
 
-			var desc = String.Join("\n", new[]
-			{
-				FormatDateTimeForCreatedAtMessage(guild.CreatedAt),
-				$"**Owner:** `{owner.FormatUser()}`",
-				$"**Region:** `{guild.VoiceRegionId}`",
-				$"**Emotes:** `{localECount + globalECount}` (`{localECount}` local, `{globalECount}` global)\n",
-				$"**User Count:** `{guild.MemberCount}` (`{onlineCount}` online, `{botCount}` bots)",
-				$"**Users With Nickname:** `{nicknameCount}`",
-				$"**Users Playing Games:** `{gameCount}`",
-				$"**Users In Voice:** `{voiceCount}`\n",
-				$"**Role Count:** `{guild.Roles.Count}`",
-				$"**Channel Count:** `{guild.Channels.Count}` (`{guild.TextChannels.Count}` text, `{guild.VoiceChannels.Count}` voice)",
-				$"**AFK Channel:** `{guild.AFKChannel.FormatChannel()}` (`{guild.AFKTimeout / 60}` minute{GetActions.GetPlural(guild.AFKTimeout / 60)})",
-			});
+			var desc = new StringBuilder()
+				.AppendLine(FormatDateTimeForCreatedAtMessage(guild.CreatedAt))
+				.AppendLine($"**Owner:** `{owner.FormatUser()}`")
+				.AppendLine($"**Region:** `{guild.VoiceRegionId}`")
+				.AppendLine($"**Emotes:** `{localECount + globalECount}` (`{localECount}` local, `{globalECount}` global)\n")
+				.AppendLine($"**User Count:** `{guild.MemberCount}` (`{onlineCount}` online, `{botCount}` bots)")
+				.AppendLine($"**Users With Nickname:** `{nicknameCount}`")
+				.AppendLine($"**Users Playing Games:** `{gameCount}`")
+				.AppendLine($"**Users In Voice:** `{voiceCount}`\n")
+				.AppendLine($"**Role Count:** `{guild.Roles.Count}`")
+				.AppendLine($"**Channel Count:** `{guild.Channels.Count}` (`{guild.TextChannels.Count}` text, `{guild.VoiceChannels.Count}` voice)")
+				.AppendLine($"**AFK Channel:** `{guild.AFKChannel.FormatChannel()}` (`{guild.AFKTimeout / 60}` minute{GetActions.GetPlural(guild.AFKTimeout / 60)})");
 
 			var color = owner.Roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
-			var embed = EmbedActions.MakeNewEmbed(null, desc, color, thumbnailUrl: guild.IconUrl);
-			EmbedActions.AddAuthor(embed, guild.FormatGuild());
-			EmbedActions.AddFooter(embed, "Guild Info");
-			return embed;
+			return EmbedActions.MakeNewEmbed(null, desc.ToString(), color, thumbnailUrl: guild.IconUrl)
+				.MyAddAuthor(guild.FormatGuild())
+				.MyAddFooter("Guild Info");
 		}
 		public static EmbedBuilder FormatEmoteInfo(IGuildSettings guildSettings, IEnumerable<IGuild> guilds, Emote emote)
 		{
-			//Try to find the emote if global
-			var guildsWithEmote = guilds.Where(x => x.HasGlobalEmotes());
+			var desc = new StringBuilder()
+				.AppendLine($"**ID:** `{emote.Id}`");
 
-			var description = $"**ID:** `{emote.Id}`\n";
-			if (guildsWithEmote.Any())
-			{
-				description += $"**From:** `{String.Join("`, `", guildsWithEmote.Select(x => x.FormatGuild()))}`";
-			}
-
-			var embed = EmbedActions.MakeNewEmbed(null, description, thumbnailUrl: emote.Url);
-			EmbedActions.AddAuthor(embed, emote.Name);
-			EmbedActions.AddFooter(embed, "Emoji Info");
-			return embed;
+			return EmbedActions.MakeNewEmbed(null, desc.ToString(), thumbnailUrl: emote.Url)
+				.MyAddAuthor(emote.Name)
+				.MyAddFooter("Emoji Info");
 		}
 		public static EmbedBuilder FormatInviteInfo(IGuildSettings guildSettings, SocketGuild guild, IInviteMetadata invite)
 		{
-			var desc = String.Join("\n", new[]
-			{
-				$"**Inviter:** `{invite.Inviter.FormatUser()}`",
-				$"**Channel:** `{guild.Channels.FirstOrDefault(x => x.Id == invite.ChannelId).FormatChannel()}`",
-				$"**Uses:** `{invite.Uses}`",
-				FormatDateTimeForCreatedAtMessage(invite.CreatedAt),
-			});
+			var desc = new StringBuilder()
+				.AppendLine($"**Inviter:** `{invite.Inviter.FormatUser()}`")
+				.AppendLine($"**Channel:** `{invite.Channel.FormatChannel()}`")
+				.AppendLine($"**Uses:** `{invite.Uses}`")
+				.AppendLine(FormatDateTimeForCreatedAtMessage(invite.CreatedAt));
 
-			var embed = EmbedActions.MakeNewEmbed(null, desc);
-			EmbedActions.AddAuthor(embed, invite.Code);
-			EmbedActions.AddFooter(embed, "Emote Info");
-			return embed;
+			return EmbedActions.MakeNewEmbed(null, desc.ToString())
+				.MyAddAuthor(invite.Code)
+				.MyAddFooter("Emote Info");
 		}
 		public static EmbedBuilder FormatBotInfo(IBotSettings globalInfo, IDiscordClient client, ILogModule logModule, IGuild guild)
 		{
-			var desc = String.Join("\n", new[]
-			{
-				$"**Online Since:** `{FormatDateTime(Process.GetCurrentProcess().StartTime)}`",
-				$"**Uptime:** `{FormatUptime()}`",
-				$"**Guild Count:** `{logModule.TotalGuilds}`",
-				$"**Cumulative Member Count:** `{logModule.TotalUsers}`",
-				$"**Current Shard:** `{ClientActions.GetShardIdFor(client, guild)}`",
-			});
+			var desc = new StringBuilder()
+				.AppendLine($"**Online Since:** `{FormatDateTime(Process.GetCurrentProcess().StartTime)}`")
+				.AppendLine($"**Uptime:** `{FormatUptime()}`")
+				.AppendLine($"**Guild Count:** `{logModule.TotalGuilds}`")
+				.AppendLine($"**Cumulative Member Count:** `{logModule.TotalUsers}`")
+				.AppendLine($"**Current Shard:** `{ClientActions.GetShardIdFor(client, guild)}`");
 
-			var embed = EmbedActions.MakeNewEmbed(null, desc);
-			EmbedActions.AddAuthor(embed, client.CurrentUser);
-			EmbedActions.AddFooter(embed, "Version " + Constants.BOT_VERSION);
+			var firstField = new StringBuilder()
+				.AppendLine(logModule.FormatLoggedActions());
 
-			var firstField = logModule.FormatLoggedActions();
-			EmbedActions.AddField(embed, "Logged Actions", firstField);
+			var secondField = new StringBuilder()
+				.AppendLine($"**Attempted:** `{logModule.AttemptedCommands}`")
+				.AppendLine($"**Successful:** `{logModule.SuccessfulCommands}`")
+				.AppendLine($"**Failed:** `{logModule.FailedCommands}`");
 
-			var secondField = String.Join("\n", new[]
-			{
-				$"**Attempted:** `{logModule.AttemptedCommands}`",
-				$"**Successful:** `{logModule.SuccessfulCommands}`",
-				$"**Failed:** `{logModule.FailedCommands}`",
-			});
-			EmbedActions.AddField(embed, "Commands", secondField);
+			var thirdField = new StringBuilder()
+				.AppendLine($"**Latency:** `{ClientActions.GetLatency(client)}ms`")
+				.AppendLine($"**Memory Usage:** `{GetActions.GetMemory().ToString("0.00")}MB`")
+				.AppendLine($"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`");
 
-			var thirdField = String.Join("\n", new[]
-			{
-				$"**Latency:** `{ClientActions.GetLatency(client)}ms`",
-				$"**Memory Usage:** `{GetActions.GetMemory().ToString("0.00")}MB`",
-				$"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`",
-			});
-			EmbedActions.AddField(embed, "Technical", thirdField);
-
-			return embed;
+			return EmbedActions.MakeNewEmbed(null, desc.ToString())
+				.MyAddAuthor(client.CurrentUser)
+				.MyAddFooter("Version " + Constants.BOT_VERSION)
+				.MyAddField("Logged Actions", firstField.ToString())
+				.MyAddField("Commands", secondField.ToString())
+				.MyAddField("Technical", thirdField.ToString());
 		}
 
 		public static List<string> FormatMessages(IEnumerable<IMessage> list)

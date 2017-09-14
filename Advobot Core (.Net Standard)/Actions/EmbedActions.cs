@@ -7,15 +7,25 @@ namespace Advobot.Actions
 {
 	public static class EmbedActions
 	{
-		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageUrl = null, string url = null, string thumbnailUrl = null, string prefix = Constants.BOT_PREFIX)
+		/// <summary>
+		/// Create a new <see cref="EmbedBuilder"/> with the given parameters. Verifies Urls exist and cuts things to appropriate lengths.
+		/// </summary>
+		/// <param name="title"></param>
+		/// <param name="description"></param>
+		/// <param name="color"></param>
+		/// <param name="imageUrl"></param>
+		/// <param name="url"></param>
+		/// <param name="thumbnailUrl"></param>
+		/// <param name="prefix"></param>
+		/// <returns></returns>
+		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageUrl = null,
+			string url = null, string thumbnailUrl = null)
 		{
 			imageUrl = UploadActions.ValidateURL(imageUrl) ? imageUrl : null;
 			url = UploadActions.ValidateURL(url) ? url : null;
 			thumbnailUrl = UploadActions.ValidateURL(thumbnailUrl) ? thumbnailUrl : null;
 
 			var embed = new EmbedBuilder().WithColor(Constants.BASE);
-
-			//Add in the properties
 			if (title != null)
 			{
 				embed.WithTitle(title.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, title.Length)));
@@ -24,7 +34,7 @@ namespace Advobot.Actions
 			{
 				try
 				{
-					embed.WithDescription(description.Replace(Constants.BOT_PREFIX, prefix));
+					embed.WithDescription(description);
 				}
 				catch (Exception e)
 				{
@@ -50,11 +60,20 @@ namespace Advobot.Actions
 
 			return embed;
 		}
-		public static EmbedBuilder AddAuthor(EmbedBuilder embed, string name = null, string iconUrl = null, string url = null)
+		/// <summary>
+		/// Adds an author to the embed. Verifies Urls exist and cuts things to appropriate length.
+		/// </summary>
+		/// <param name="embed"></param>
+		/// <param name="name"></param>
+		/// <param name="iconUrl"></param>
+		/// <param name="url"></param>
+		/// <returns></returns>
+		public static EmbedBuilder MyAddAuthor(this EmbedBuilder embed, string name = null, string iconUrl = null, string url = null)
 		{
 			iconUrl = UploadActions.ValidateURL(iconUrl) ? iconUrl : null;
 			url = UploadActions.ValidateURL(url) ? url : null;
-			embed.WithAuthor(x =>
+
+			return embed.WithAuthor(x =>
 			{
 				if (name != null)
 				{
@@ -69,16 +88,30 @@ namespace Advobot.Actions
 					x.Url = url;
 				}
 			});
-			return embed;
 		}
-		public static EmbedBuilder AddAuthor(EmbedBuilder embed, IUser user, string URL = null)
+		/// <summary>
+		/// Does the same thing as <see cref="MyAddAuthor(EmbedBuilder, string, string, string)"/> except uses username and avatar Url.
+		/// </summary>
+		/// <param name="embed"></param>
+		/// <param name="user"></param>
+		/// <param name="URL"></param>
+		/// <returns></returns>
+		public static EmbedBuilder MyAddAuthor(this EmbedBuilder embed, IUser user, string URL = null)
 		{
-			return AddAuthor(embed, user.Username, user.GetAvatarUrl(), URL ?? user.GetAvatarUrl());
+			return embed.MyAddAuthor(user.Username, user.GetAvatarUrl(), URL ?? user.GetAvatarUrl());
 		}
-		public static EmbedBuilder AddFooter(EmbedBuilder embed, [CallerMemberName] string text = null, string iconUrl = null)
+		/// <summary>
+		/// Adds a footer to the embed. Verifies the Url exists and cuts the text to the appropriate length.
+		/// </summary>
+		/// <param name="embed"></param>
+		/// <param name="text"></param>
+		/// <param name="iconUrl"></param>
+		/// <returns></returns>
+		public static EmbedBuilder MyAddFooter(this EmbedBuilder embed, [CallerMemberName] string text = null, string iconUrl = null)
 		{
 			iconUrl = UploadActions.ValidateURL(iconUrl) ? iconUrl : null;
-			embed.WithFooter(x =>
+
+			return embed.WithFooter(x =>
 			{
 				if (text != null)
 				{
@@ -89,9 +122,17 @@ namespace Advobot.Actions
 					x.IconUrl = iconUrl;
 				}
 			});
-			return embed;
 		}
-		public static EmbedBuilder AddField(EmbedBuilder embed, string name, string value, bool isInline = true, string prefix = Constants.BOT_PREFIX)
+		/// <summary>
+		/// Adds a field to the embed. Cuts the name and value to the appropriate length.
+		/// </summary>
+		/// <param name="embed"></param>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		/// <param name="isInline"></param>
+		/// <param name="prefix"></param>
+		/// <returns></returns>
+		public static EmbedBuilder MyAddField(this EmbedBuilder embed, string name, string value, bool isInline = true)
 		{
 			if (embed.Build().Fields.Count() >= Constants.MAX_FIELDS)
 			{
@@ -99,14 +140,13 @@ namespace Advobot.Actions
 			}
 
 			name = String.IsNullOrWhiteSpace(name) ? "Placeholder" : name.Substring(0, Math.Min(Constants.MAX_FIELD_NAME_LENGTH, name.Length));
-			value = String.IsNullOrWhiteSpace(name) ? "Placeholder" : value.Replace(Constants.BOT_PREFIX, prefix).Substring(0, Math.Min(Constants.MAX_FIELD_VALUE_LENGTH, value.Length));
-			embed.AddField(x =>
+			value = String.IsNullOrWhiteSpace(name) ? "Placeholder" : value.Substring(0, Math.Min(Constants.MAX_FIELD_VALUE_LENGTH, value.Length));
+			return embed.AddField(x =>
 			{
 				x.Name = name;
 				x.Value = value;
 				x.IsInline = isInline;
 			});
-			return embed;
 		}
 	}
 }

@@ -349,9 +349,9 @@ namespace Advobot.Modules.Log
 				{
 					var inviteStr = await FormattingActions.FormatUserInviteJoin(verified.GuildSettings, verified.Guild);
 					var ageWarningStr = FormattingActions.FormatUserAccountAgeWarning(user);
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{inviteStr}{ageWarningStr}", Constants.JOIN);
-					EmbedActions.AddFooter(embed, (user.IsBot ? "Bot Joined" : "User Joined"));
-					EmbedActions.AddAuthor(embed, user);
+					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{inviteStr}{ageWarningStr}", Constants.JOIN)
+						.MyAddAuthor(user)
+						.MyAddFooter(user.IsBot ? "Bot Joined" : "User Joined");
 					await MessageActions.SendEmbedMessage(verified.GuildSettings.ServerLog, embed);
 				}
 
@@ -387,9 +387,9 @@ namespace Advobot.Modules.Log
 				}
 				else if (HelperFunctions.VerifyLogAction(verified.GuildSettings))
 				{
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{FormattingActions.FormatUserStayLength(user)}", Constants.LEAV);
-					EmbedActions.AddFooter(embed, (user.IsBot ? "Bot Left" : "User Left"));
-					EmbedActions.AddAuthor(embed, user);
+					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{FormattingActions.FormatUserStayLength(user)}", Constants.LEAV)
+						.MyAddAuthor(user)
+						.MyAddFooter(user.IsBot ? "Bot Left" : "User Left");
 					await MessageActions.SendEmbedMessage(verified.GuildSettings.ServerLog, embed);
 				}
 
@@ -418,11 +418,11 @@ namespace Advobot.Modules.Log
 				if (HelperFunctions.VerifyBotLogging(_BotSettings, _GuildSettings, guild, out VerifiedLoggingAction verified) && HelperFunctions.VerifyLogAction(verified.GuildSettings))
 				{
 					this.IncrementUserChanges();
-					var embed = EmbedActions.MakeNewEmbed(null, null, Constants.UEDT);
-					EmbedActions.AddFooter(embed, "Name Changed");
-					EmbedActions.AddField(embed, "Before:", "`" + beforeUser.Username + "`");
-					EmbedActions.AddField(embed, "After:", "`" + afterUser.Username + "`", false);
-					EmbedActions.AddAuthor(embed, afterUser);
+					var embed = EmbedActions.MakeNewEmbed(null, null, Constants.UEDT)
+						.MyAddAuthor(afterUser)
+						.MyAddField("Before:", "`" + beforeUser.Username + "`")
+						.MyAddField("After:", "`" + afterUser.Username + "`", false)
+						.MyAddFooter("Name Changed");
 					await MessageActions.SendEmbedMessage(verified.GuildSettings.ServerLog, embed);
 				}
 			}
@@ -493,11 +493,11 @@ namespace Advobot.Modules.Log
 						afterMsgContent = afterMsgContent.Length > 667 ? "Long message" : afterMsgContent;
 					}
 
-					var embed = EmbedActions.MakeNewEmbed(null, null, Constants.MEDT);
-					EmbedActions.AddFooter(embed, "Message Updated");
-					EmbedActions.AddField(embed, "Before:", $"`{beforeMsgContent}`");
-					EmbedActions.AddField(embed, "After:", $"`{afterMsgContent}`", false);
-					EmbedActions.AddAuthor(embed, message.Author);
+					var embed = EmbedActions.MakeNewEmbed(null, null, Constants.MEDT)
+						.MyAddAuthor(message.Author)
+						.MyAddField("Before:", $"`{beforeMsgContent}`")
+						.MyAddField("After:", $"`{afterMsgContent}`", false)
+						.MyAddFooter("Message Updated");
 					await MessageActions.SendEmbedMessage(verified.GuildSettings.ServerLog, embed);
 				}
 			}

@@ -79,7 +79,7 @@ namespace Advobot.Classes
 
 		public int GetSpamCount()
 		{
-			return TimeList.GetCountOfItemsInTimeFrame(Interval);
+			return TimeList.CountItemsInTimeFrame(Interval);
 		}
 		public void Add(DateTime time)
 		{
@@ -175,7 +175,7 @@ namespace Advobot.Classes
 		}
 		public bool CheckIfAllowedToPunish(SpamPreventionInfo spamPrev, SpamType spamType)
 		{
-			return SpamLists[spamType].GetCountOfItemsInTimeFrame(spamPrev.RequiredSpamPerMessageOrTimeInterval) >= spamPrev.RequiredSpamInstances;
+			return SpamLists[spamType].CountItemsInTimeFrame(spamPrev.RequiredSpamPerMessageOrTimeInterval) >= spamPrev.RequiredSpamInstances;
 		}
 		public async Task SpamPreventionPunishment(IGuildSettings guildSettings, ITimersModule timers = null)
 		{

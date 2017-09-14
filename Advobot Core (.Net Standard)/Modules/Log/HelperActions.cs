@@ -182,8 +182,8 @@ namespace Advobot.Modules.Log
 			if (!closeHelpList.Equals(default(ActiveCloseWord<HelpEntry>)) && closeHelpList.List.Count > number)
 			{
 				var help = closeHelpList.List[number].Word;
-				var embed = EmbedActions.MakeNewEmbed(help.Name, help.ToString(), prefix: GetActions.GetPrefix(botSettings, guildSettings));
-				EmbedActions.AddFooter(embed, "Help");
+				var embed = EmbedActions.MakeNewEmbed(help.Name, help.ToString())
+					.MyAddFooter("Help");
 				await MessageActions.SendEmbedMessage(message.Channel, embed);
 			}
 		}
@@ -334,9 +334,9 @@ namespace Advobot.Modules.Log
 				if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentURL)))
 				{
 					var desc = $"**Channel:** `{message.Channel.FormatChannel()}`\n**Message Id:** `{message.Id}`";
-					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
-					EmbedActions.AddFooter(embed, "Attached Image");
-					EmbedActions.AddAuthor(embed, message.Author, attachmentURL);
+					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL)
+						.MyAddAuthor(message.Author, attachmentURL)
+						.MyAddFooter("Attached Image");
 					await MessageActions.SendEmbedMessage(channel, embed);
 
 					currentLogModule.IncrementImages();
@@ -345,9 +345,9 @@ namespace Advobot.Modules.Log
 				else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL)))
 				{
 					var desc = $"**Channel:** `{message.Channel.FormatChannel()}`\n**Message Id:** `{message.Id}`";
-					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
-					EmbedActions.AddFooter(embed, "Attached Gif");
-					EmbedActions.AddAuthor(embed, message.Author, attachmentURL);
+					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL)
+						.MyAddAuthor(message.Author, attachmentURL)
+						.MyAddFooter("Attached Gif");
 					await MessageActions.SendEmbedMessage(channel, embed);
 
 					currentLogModule.IncrementGifs();
@@ -356,9 +356,9 @@ namespace Advobot.Modules.Log
 				else
 				{
 					var desc = $"**Channel:** `{message.Channel.FormatChannel()}`\n**Message Id:** `{message.Id}`";
-					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL);
-					EmbedActions.AddFooter(embed, "Attached File");
-					EmbedActions.AddAuthor(embed, message.Author, attachmentURL);
+					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL)
+						.MyAddAuthor(message.Author, attachmentURL)
+						.MyAddFooter("Attached File");
 					await MessageActions.SendEmbedMessage(channel, embed);
 
 					currentLogModule.IncrementFiles();
@@ -368,9 +368,9 @@ namespace Advobot.Modules.Log
 			foreach (var embedURL in embedURLs.Distinct())
 			{
 				var desc = $"**Channel:** `{message.Channel.FormatChannel()}`\n**Message Id:** `{message.Id}`";
-				var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, embedURL);
-				EmbedActions.AddFooter(embed, "Embedded Image");
-				EmbedActions.AddAuthor(embed, message.Author, embedURL);
+				var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, embedURL)
+					.MyAddAuthor(message.Author, embedURL)
+					.MyAddFooter("Embedded Image");
 				await MessageActions.SendEmbedMessage(channel, embed);
 
 				currentLogModule.IncrementImages();
@@ -379,9 +379,9 @@ namespace Advobot.Modules.Log
 			foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First()))
 			{
 				var desc = $"**Channel:** `{message.Channel.FormatChannel()}`\n**Message Id:** `{message.Id}`";
-				var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, videoEmbed.Thumbnail?.Url);
-				EmbedActions.AddFooter(embed, "Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
-				EmbedActions.AddAuthor(embed, message.Author, videoEmbed.Url);
+				var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, videoEmbed.Thumbnail?.Url)
+					.MyAddAuthor(message.Author, videoEmbed.Url)
+					.MyAddFooter("Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
 				await MessageActions.SendEmbedMessage(channel, embed);
 
 				currentLogModule.IncrementGifs();

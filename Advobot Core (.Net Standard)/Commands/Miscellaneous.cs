@@ -19,7 +19,9 @@ namespace Advobot.Commands.Miscellaneous
 	[DefaultEnabled(true)]
 	public sealed class Help : MyModuleBase
 	{
-		private static readonly string _GeneralHelp = $"Type `{Constants.BOT_PREFIX}commands` for the list of commands.\nType `{Constants.BOT_PREFIX}help [Command]` for help with a command.";
+		private static readonly string _Commands = $"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)}` for the list of commands.\n";
+		private static readonly string _Help = $"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Help)} [Command]` for help with a command.";
+		private static readonly string _GeneralHelp = _Commands + _Help;
 		private static readonly string _BasicSyntax = "`[]` means required.\n`<>` means optional.\n`|` means or.";
 		private static readonly string _MentionSyntax = $"`User` means `{Constants.USER_INSTRUCTIONS}`.\n`Role` means `{Constants.ROLE_INSTRUCTIONS}`.\n`Channel` means `{Constants.CHANNEL_INSTRUCTIONS}`.";
 		private static readonly string _Links = $"[GitHub Repository]({Constants.REPO})\n[Discord Server]({Constants.DISCORD_INV})";
@@ -29,11 +31,11 @@ namespace Advobot.Commands.Miscellaneous
 		{
 			if (String.IsNullOrWhiteSpace(command))
 			{
-				var embed = EmbedActions.MakeNewEmbed("General Help", _GeneralHelp, prefix: GetActions.GetPrefix(Context.BotSettings, Context.GuildSettings));
-				EmbedActions.AddField(embed, "Basic Syntax", _BasicSyntax);
-				EmbedActions.AddField(embed, "Mention Syntax", _MentionSyntax);
-				EmbedActions.AddField(embed, "Links", _Links);
-				EmbedActions.AddFooter(embed, "Help");
+				var embed = EmbedActions.MakeNewEmbed("General Help", _GeneralHelp)
+					.MyAddField("Basic Syntax", _BasicSyntax)
+					.MyAddField("Mention Syntax", _MentionSyntax)
+					.MyAddField("Links", _Links)
+					.MyAddFooter("Help");
 				await MessageActions.SendEmbedMessage(Context.Channel, embed);
 			}
 			else
@@ -41,8 +43,8 @@ namespace Advobot.Commands.Miscellaneous
 				var helpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.CaseInsEquals(command) || x.Aliases.CaseInsContains(command));
 				if (helpEntry != null)
 				{
-					var embed = EmbedActions.MakeNewEmbed(helpEntry.Name, helpEntry.ToString(), prefix: GetActions.GetPrefix(Context.BotSettings, Context.GuildSettings));
-					EmbedActions.AddFooter(embed, "Help");
+					var embed = EmbedActions.MakeNewEmbed(helpEntry.Name, helpEntry.ToString())
+						.MyAddFooter("Help");
 					await MessageActions.SendEmbedMessage(Context.Channel, embed);
 					return;
 				}
@@ -69,6 +71,10 @@ namespace Advobot.Commands.Miscellaneous
 	[DefaultEnabled(true)]
 	public sealed class Commands : MyModuleBase
 	{
+		private static readonly string _Command = $"Type `{Constants.PLACEHOLDER_PREFIX}commands [Category]` for commands from that category.\n\n";
+		private static readonly string _Categories = $"`{String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))}`";
+		private static readonly string _CommandCategories = _Command + _Categories;
+
 		[Command("all")]
 		public async Task CommandAll()
 		{
@@ -84,8 +90,7 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task Command()
 		{
-			var desc = $"Type `{Constants.BOT_PREFIX}commands [Category]` for commands from that category.\n\n`{String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Categories", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Categories", _CommandCategories));
 		}
 	}
 
@@ -326,7 +331,7 @@ namespace Advobot.Commands.Miscellaneous
 				var embed = EmbedActions.MakeNewEmbed("Guilds");
 				foreach (var guild in guilds)
 				{
-					EmbedActions.AddField(embed, guild.FormatGuild(), $"**Owner:** `{(await guild.GetOwnerAsync()).FormatUser()}`");
+					embed.MyAddField(guild.FormatGuild(), $"**Owner:** `{(await guild.GetOwnerAsync()).FormatUser()}`");
 				}
 
 				await MessageActions.SendEmbedMessage(Context.Channel, embed);

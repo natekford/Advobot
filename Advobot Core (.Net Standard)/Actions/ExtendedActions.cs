@@ -1,16 +1,22 @@
-﻿using Advobot.Actions;
-using Advobot.Enums;
-using Advobot.Interfaces;
-using Discord;
+﻿using Advobot.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Advobot
 {
 	public static class ExtendedActions
 	{
+		private static readonly Regex _RemoveDuplicateSpaces = new Regex(@"[\r\n]+", RegexOptions.Compiled);
+
+		/// <summary>
+		/// Locks the list then adds the object.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="list"></param>
+		/// <param name="obj"></param>
 		public static void ThreadSafeAdd<T>(this List<T> list, T obj)
 		{
 			lock (list)
@@ -18,6 +24,26 @@ namespace Advobot
 				list.Add(obj);
 			}
 		}
+		/// <summary>
+		/// Locks the input list then concats the second list to it.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="list"></param>
+		/// <param name="objs"></param>
+		/// <returns></returns>
+		public static IEnumerable<T> ThreadSafeConcat<T>(this List<T> list, IEnumerable<T> objs)
+		{
+			lock (list)
+			{
+				return list.Concat(objs);
+			}
+		}
+		/// <summary>
+		/// Locks the input list then adds the second list to it.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="list"></param>
+		/// <param name="objs"></param>
 		public static void ThreadSafeAddRange<T>(this List<T> list, IEnumerable<T> objs)
 		{
 			lock (list)
@@ -25,21 +51,41 @@ namespace Advobot
 				list.AddRange(objs);
 			}
 		}
-		public static void ThreadSafeRemove<T>(this List<T> list, T obj)
+		/// <summary>
+		/// Locks the list then removes the object from the list.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="list"></param>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		public static bool ThreadSafeRemove<T>(this List<T> list, T obj)
 		{
 			lock (list)
 			{
-				list.Remove(obj);
+				return list.Remove(obj);
 			}
 		}
-		public static void ThreadSafeRemoveAll<T>(this List<T> list, Predicate<T> match)
+		/// <summary>
+		/// Locks the list then removes all objects which match the predicate.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="list"></param>
+		/// <param name="match"></param>
+		/// <returns></returns>
+		public static int ThreadSafeRemoveAll<T>(this List<T> list, Predicate<T> match)
 		{
 			lock (list)
 			{
-				list.RemoveAll(match);
+				return list.RemoveAll(match);
 			}
 		}
 
+		/// <summary>
+		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to check if two strings are the same.
+		/// </summary>
+		/// <param name="str1"></param>
+		/// <param name="str2"></param>
+		/// <returns></returns>
 		public static bool CaseInsEquals(this string str1, string str2)
 		{
 			//null == null
@@ -58,6 +104,12 @@ namespace Advobot
 				return str1.Equals(str2, StringComparison.OrdinalIgnoreCase);
 			}
 		}
+		/// <summary>
+		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to check if a string contains a search string.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="search"></param>
+		/// <returns></returns>
 		public static bool CaseInsContains(this string source, string search)
 		{
 			if (source == null || search == null)
@@ -69,6 +121,13 @@ namespace Advobot
 				return source.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
 			}
 		}
+		/// <summary>
+		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to return the index of a search string.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="search"></param>
+		/// <param name="position"></param>
+		/// <returns></returns>
 		public static bool CaseInsIndexOf(this string source, string search, out int position)
 		{
 			position = -1;
@@ -81,6 +140,12 @@ namespace Advobot
 				return (position = source.IndexOf(search, StringComparison.OrdinalIgnoreCase)) >= 0;
 			}
 		}
+		/// <summary>
+		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to check if a string ends with a search string.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="search"></param>
+		/// <returns></returns>
 		public static bool CaseInsStartsWith(this string source, string search)
 		{
 			if (source == null || search == null)
@@ -92,6 +157,12 @@ namespace Advobot
 				return source.StartsWith(search, StringComparison.OrdinalIgnoreCase);
 			}
 		}
+		/// <summary>
+		/// Utilizes <see cref="StringComparison.OrdinalIgnoreCase"/> to check if a string ends with a search string.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="search"></param>
+		/// <returns></returns>
 		public static bool CaseInsEndsWith(this string source, string search)
 		{
 			if (source == null || search == null)
@@ -103,10 +174,16 @@ namespace Advobot
 				return source.EndsWith(search, StringComparison.OrdinalIgnoreCase);
 			}
 		}
+		/// <summary>
+		/// Returns the string with the oldValue replaced with the newValue case insensitively.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="oldValue"></param>
+		/// <param name="newValue"></param>
+		/// <returns></returns>
 		public static string CaseInsReplace(this string source, string oldValue, string newValue)
 		{
-			System.Text.StringBuilder sb = new System.Text.StringBuilder();
-
+			var sb = new StringBuilder();
 			var previousIndex = 0;
 			var index = source.IndexOf(oldValue, StringComparison.OrdinalIgnoreCase);
 			while (index != -1)
@@ -118,20 +195,31 @@ namespace Advobot
 				previousIndex = index;
 				index = source.IndexOf(oldValue, index, StringComparison.OrdinalIgnoreCase);
 			}
-			sb.Append(source.Substring(previousIndex));
-
-			return sb.ToString();
+			return sb.Append(source.Substring(previousIndex)).ToString();
 		}
+		/// <summary>
+		/// Utilizes <see cref="CaseInsEquals(string, string)"/> to check if every string is the same.
+		/// </summary>
+		/// <param name="enumerable"></param>
+		/// <returns></returns>
 		public static bool CaseInsEverythingSame(this IEnumerable<string> enumerable)
 		{
 			var array = enumerable.ToArray();
 			for (int i = 1; i < array.Length; ++i)
 			{
 				if (!array[i - 1].CaseInsEquals(array[i]))
+				{
 					return false;
+				}
 			}
 			return true;
 		}
+		/// <summary>
+		/// Utilizes <see cref="StringComparer.OrdinalIgnoreCase"/> to see if the search string is in the enumerable.
+		/// </summary>
+		/// <param name="enumerable"></param>
+		/// <param name="search"></param>
+		/// <returns></returns>
 		public static bool CaseInsContains(this IEnumerable<string> enumerable, string search)
 		{
 			if (enumerable.Any())
@@ -141,53 +229,87 @@ namespace Advobot
 			return false;
 		}
 
+		/// <summary>
+		/// Returns the input string with `, *, and _, escaped.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
 		public static string EscapeAllMarkdown(this string input)
 		{
 			return input.Replace("`", "\\`").Replace("*", "\\*").Replace("_", "\\_");
 		}
+		/// <summary>
+		/// Returns the input string with ` escaped.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
 		public static string EscapeBackTicks(this string input)
 		{
 			return input.Replace("`", "\\`");
 		}
+		/// <summary>
+		/// Returns the input string without `, *, and _.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
 		public static string RemoveAllMarkdown(this string input)
 		{
 			return input.Replace("`", "").Replace("*", "").Replace("_", "");
 		}
+		/// <summary>
+		/// Returns the input string with no duplicate new lines.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
 		public static string RemoveDuplicateNewLines(this string input)
 		{
-			while (input.Contains("\n\n"))
-			{
-				input = input.Replace("\n\n", "\n");
-			}
-			return input;
+			return _RemoveDuplicateSpaces.Replace(input, "\n");
 		}
+		/// <summary>
+		/// Returns the input string with no new lines.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
 		public static string RemoveAllNewLines(this string input)
 		{
-			return input.Replace(Environment.NewLine, "").Replace("\r", "").Replace("\n", "");
+			return input.Replace("\r", "").Replace("\n", "");
 		}
+
+		/// <summary>
+		/// Returns the enum's name as a string.
+		/// </summary>
+		/// <param name="e"></param>
+		/// <returns></returns>
 		public static string EnumName(this Enum e)
 		{
 			return Enum.GetName(e.GetType(), e);
 		}
 
+		/// <summary>
+		/// Verifies all characters in the string have a value of a less than the upperlimit.
+		/// </summary>
+		/// <param name="str"></param>
+		/// <param name="upperLimit"></param>
+		/// <returns></returns>
 		public static bool AllCharactersAreWithinUpperLimit(this string str, int upperLimit)
 		{
-			if (String.IsNullOrWhiteSpace(str))
-				return false;
-
-			foreach (var c in str)
+			foreach (var c in str ?? String.Empty)
 			{
 				if (c > upperLimit)
+				{
 					return false;
+				}
 			}
 			return true;
 		}
-		public static int GetLineBreaks(this string str)
+		/// <summary>
+		/// Returns the count of characters equal to \r or \n.
+		/// </summary>
+		/// <param name="str"></param>
+		/// <returns></returns>
+		public static int CountLineBreaks(this string str)
 		{
-			if (str == null)
-				return 0;
-
-			return str.Count(x => x == '\r' || x == '\n');
+			return str?.Count(x => x == '\r' || x == '\n') ?? 0;
 		}
 
 		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
@@ -219,7 +341,7 @@ namespace Advobot
 			}
 			return elligibleToBeGotten.ToDictionary(x => x.Key, x => x.Value);
 		}
-		public static int GetCountOfItemsInTimeFrame<T>(this List<T> timeList, int timeFrame = 0) where T : ITimeInterface
+		public static int CountItemsInTimeFrame<T>(this List<T> timeList, int timeFrame = 0) where T : ITimeInterface
 		{
 			lock (timeList)
 			{
@@ -236,15 +358,16 @@ namespace Advobot
 				{
 					for (int j = i + 1; j < listLength; ++j)
 					{
-						if ((int)timeList[j].GetTime().Subtract(timeList[i].GetTime()).TotalSeconds >= timeFrame)
+						if ((int)timeList[j].GetTime().Subtract(timeList[i].GetTime()).TotalSeconds < timeFrame)
 						{
-							//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
-							if ((int)timeList[j].GetTime().Subtract(timeList[j - 1].GetTime()).TotalSeconds > timeFrame)
-							{
-								i = j;
-							}
-							break;
+							continue;
 						}
+						//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
+						else if ((int)timeList[j].GetTime().Subtract(timeList[j - 1].GetTime()).TotalSeconds > timeFrame)
+						{
+							i = j;
+						}
+						break;
 					}
 				}
 
@@ -252,11 +375,13 @@ namespace Advobot
 				var nowTime = DateTime.UtcNow;
 				for (int i = listLength - 1; i >= 0; --i)
 				{
-					if ((int)nowTime.Subtract(timeList[i].GetTime()).TotalSeconds > timeFrame + 1)
+					if ((int)nowTime.Subtract(timeList[i].GetTime()).TotalSeconds < timeFrame + 1)
 					{
-						timeList.RemoveRange(0, i + 1);
-						break;
+						continue;
 					}
+
+					timeList.RemoveRange(0, i + 1);
+					break;
 				}
 
 				return count;
@@ -283,6 +408,12 @@ namespace Advobot
 			}).SelectMany(x => x).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
 		}
 
+		/// <summary>
+		/// Returns the service from the provider with the supplied type.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="provider"></param>
+		/// <returns></returns>
 		public static T GetService<T>(this IServiceProvider provider)
 		{
 			return (T)provider.GetService(typeof(T));

@@ -129,9 +129,9 @@ namespace Advobot
 			var modLog = context.GuildSettings?.ModLog;
 			if (modLog != null && !context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 			{
-				var embed = EmbedActions.MakeNewEmbed(null, context.Message.Content);
-				EmbedActions.AddFooter(embed, "Mod Log");
-				EmbedActions.AddAuthor(embed, context.User);
+				var embed = EmbedActions.MakeNewEmbed(null, context.Message.Content)
+					.MyAddAuthor(context.User)
+					.MyAddFooter("Mod Log");
 				await MessageActions.SendEmbedMessage(modLog, embed);
 			}
 		}

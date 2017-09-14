@@ -35,7 +35,8 @@ namespace Advobot.Commands.GuildSettings
 
 	[Group(nameof(ModifyCommands)), Alias("modcom", "mcom")]
 	[Usage("[Enable|Disable] [Command Name|Category Name|All]")]
-	[Summary("Turns a command on or off. Can turn all commands in a category on or off too. Cannot turn off `" + nameof(ModifyCommands) + "` or `" + nameof(Miscellaneous.Help) + "`.")]
+	[Summary("Turns a command on or off. Can turn all commands in a category on or off too. " +
+		"Cannot turn off `" + nameof(ModifyCommands) + "` or `" + nameof(Miscellaneous.Help) + "`.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyCommands : MySavingModuleBase
@@ -217,8 +218,9 @@ namespace Advobot.Commands.GuildSettings
 
 	[Group(nameof(ModifyBotUsers)), Alias("mbu")]
 	[Usage("[Show|Add|Remove] <User> <Permission/...>")]
-	[Summary("Gives a user permissions in the bot but not on Discord itself. Type `" + Constants.BOT_PREFIX + "mbu [Show]` to see the available permissions. " +
-		"Type `" + Constants.BOT_PREFIX + "mbu [Show] [User]` to see the permissions of that user.")]
+	[Summary("Gives a user permissions in the bot but not on Discord itself. " +
+		"Type `" + nameof(ModifyBotUsers) + " [Show]` to see the available permissions. " +
+		"Type `" + nameof(ModifyBotUsers) + " [Show] [User]` to see the permissions of that user.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
 	public sealed class ModifyBotUsers : MySavingModuleBase
@@ -284,8 +286,9 @@ namespace Advobot.Commands.GuildSettings
 
 	[Group(nameof(ModifyPersistentRoles)), Alias("mpr")]
 	[Usage("[Show|Add|Remove] [User] [Role]")]
-	[Summary("Gives a user a role that stays even when they leave and rejoin the server.Type `" + Constants.BOT_PREFIX + "mpr [Show]` to see the which users have persistent roles set up. " +
-		"Type `" + Constants.BOT_PREFIX + "mpr [Show] [User]` to see the persistent roles of that user.")]
+	[Summary("Gives a user a role that stays even when they leave and rejoin the server." +
+		"Type `" + nameof(ModifyPersistentRoles) + " [Show]` to see the which users have persistent roles set up. " +
+		"Type `" + nameof(ModifyPersistentRoles) + " [Show] [User]` to see the persistent roles of that user.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyPersistentRoles : MySavingModuleBase
