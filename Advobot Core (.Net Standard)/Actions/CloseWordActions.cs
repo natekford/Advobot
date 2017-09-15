@@ -15,7 +15,9 @@ namespace Advobot.Actions
 			{
 				var closeness = FindCloseName(word.Name, input);
 				if (closeness > 3)
+				{
 					continue;
+				}
 
 				closeWords.Add(new CloseWord<T>(word, closeness));
 				if (closeWords.Count > 5)

@@ -14,7 +14,7 @@ namespace Advobot.Attributes
 	[AttributeUsage(AttributeTargets.Parameter)]
 	internal abstract class VerifyObjectAttribute : ParameterPreconditionAttribute
 	{
-		protected Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>> _GetResultsDict;
+		protected Dictionary<Type, Func<ICommandContext, object, FailureReason>> _GetResultsDict;
 		protected bool _IfNullCheckFromContext;
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
@@ -49,10 +49,7 @@ namespace Advobot.Attributes
 		{
 			//Will provide exceptions if invalid VerifyObject attributes are used on objects. E.G. VerifyChannel used on a role
 			var result = _GetResultsDict[type](context, value);
-			var failureReason = result.Item1;
-			var obj = result.Item2;
-
-			return (failureReason != FailureReason.NotFailure) ? PreconditionResult.FromError(FormattingActions.FormatErrorString(context.Guild, failureReason, obj)) : PreconditionResult.FromSuccess();
+			return (result != FailureReason.NotFailure) ? PreconditionResult.FromError(FormattingActions.FormatErrorString(context.Guild, result, value)) : PreconditionResult.FromSuccess();
 		}
 	}
 
@@ -67,7 +64,7 @@ namespace Advobot.Attributes
 
 		public VerifyChannelAttribute(bool ifNullCheckFromContext, params ChannelVerification[] checks)
 		{
-			_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>>
+			_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, FailureReason>>
 			{
 				{ typeof(ITextChannel), ITextChannelResult },
 				{ typeof(IVoiceChannel), IVoiceChannelResult },
@@ -77,20 +74,17 @@ namespace Advobot.Attributes
 			_Checks = checks;
 		}
 
-		private Tuple<FailureReason, object> ITextChannelResult(ICommandContext context, object value)
+		private FailureReason ITextChannelResult(ICommandContext context, object value)
 		{
-			var returned = ChannelActions.VerifyChannelMeetsRequirements(context, (value ?? context.Channel) as IGuildChannel, _Checks);
-			return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
+			return ChannelActions.VerifyChannelMeetsRequirements(context, (value ?? context.Channel) as IGuildChannel, _Checks);
 		}
-		private Tuple<FailureReason, object> IVoiceChannelResult(ICommandContext context, object value)
+		private FailureReason IVoiceChannelResult(ICommandContext context, object value)
 		{
-			var returned = ChannelActions.VerifyChannelMeetsRequirements(context, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel, _Checks);
-			return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
+			return ChannelActions.VerifyChannelMeetsRequirements(context, (value ?? (context.User as IGuildUser).VoiceChannel) as IGuildChannel, _Checks);
 		}
-		private Tuple<FailureReason, object> IGuildChannelResult(ICommandContext context, object value)
+		private FailureReason IGuildChannelResult(ICommandContext context, object value)
 		{
-			var returned = ChannelActions.VerifyChannelMeetsRequirements(context, value as IGuildChannel, _Checks);
-			return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
+			return ChannelActions.VerifyChannelMeetsRequirements(context, value as IGuildChannel, _Checks);
 		}
 	}
 
@@ -104,7 +98,7 @@ namespace Advobot.Attributes
 
 		public VerifyUserAttribute(bool ifNullCheckFromContext, params UserVerification[] checks)
 		{
-			_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>>
+			_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, FailureReason>>
 			{
 				{ typeof(IGuildUser), IGuildUserResult },
 				{ typeof(IUser), IUserResult },
@@ -113,15 +107,14 @@ namespace Advobot.Attributes
 			_Checks = checks;
 		}
 
-		private Tuple<FailureReason, object> IGuildUserResult(ICommandContext context, object value)
+		private FailureReason IGuildUserResult(ICommandContext context, object value)
 		{
-			var returned = UserActions.VerifyUserMeetsRequirements(context, (value ?? context.User) as IGuildUser, _Checks);
-			return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
+			return UserActions.VerifyUserMeetsRequirements(context, (value ?? context.User) as IGuildUser, _Checks);
 		}
-		private Tuple<FailureReason, object> IUserResult(ICommandContext context, object value)
+		private FailureReason IUserResult(ICommandContext context, object value)
 		{
 			//If user cannot be cast as an IGuildUser then they're not on the guild and thus anything can be used on them
-			return (value as IGuildUser != null) ? IGuildUserResult(context, value) : Tuple.Create(FailureReason.NotFailure, value);
+			return (value as IGuildUser != null) ? IGuildUserResult(context, value) : FailureReason.NotFailure;
 		}
 	}
 
@@ -135,7 +128,7 @@ namespace Advobot.Attributes
 
 		public VerifyRoleAttribute(bool ifNullCheckFromContext, params RoleVerification[] checks)
 		{
-			_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, Tuple<FailureReason, object>>>
+			_GetResultsDict = new Dictionary<Type, Func<ICommandContext, object, FailureReason>>
 			{
 				{ typeof(IRole), IRoleResult },
 			};
@@ -143,10 +136,9 @@ namespace Advobot.Attributes
 			_Checks = checks;
 		}
 
-		private Tuple<FailureReason, object> IRoleResult(ICommandContext context, object value)
+		private FailureReason IRoleResult(ICommandContext context, object value)
 		{
-			var returned = RoleActions.GetRole(context.Guild, context.User as IGuildUser, _Checks, value as IRole);
-			return Tuple.Create<FailureReason, object>(returned.Reason, returned.Object);
+			return RoleActions.VerifyRoleMeetsRequirements(context, _Checks, value as IRole);
 		}
 	}
 

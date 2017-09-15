@@ -141,6 +141,7 @@ namespace Advobot.Actions
 
 			name = String.IsNullOrWhiteSpace(name) ? "Placeholder" : name.Substring(0, Math.Min(Constants.MAX_FIELD_NAME_LENGTH, name.Length));
 			value = String.IsNullOrWhiteSpace(name) ? "Placeholder" : value.Substring(0, Math.Min(Constants.MAX_FIELD_VALUE_LENGTH, value.Length));
+
 			return embed.AddField(x =>
 			{
 				x.Name = name;

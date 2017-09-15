@@ -124,13 +124,13 @@ namespace Advobot
 			"[&r",
 		}));
 		private static ReadOnlyCollection<HelpEntry> _HELP_ENTRIES;
-		public static ReadOnlyCollection<HelpEntry> HELP_ENTRIES => _HELP_ENTRIES ?? (_HELP_ENTRIES = new ReadOnlyCollection<HelpEntry>(SavingAndLoadingActions.LoadHelpList()));
+		public static ReadOnlyCollection<HelpEntry> HELP_ENTRIES => _HELP_ENTRIES ?? (_HELP_ENTRIES = new ReadOnlyCollection<HelpEntry>(GetActions.GetHelpList()));
 		private static ReadOnlyCollection<string> _COMMAND_NAMES;
-		public static ReadOnlyCollection<string> COMMAND_NAMES => _COMMAND_NAMES ?? (_COMMAND_NAMES = new ReadOnlyCollection<string>(SavingAndLoadingActions.LoadCommandNames(HELP_ENTRIES)));
+		public static ReadOnlyCollection<string> COMMAND_NAMES => _COMMAND_NAMES ?? (_COMMAND_NAMES = new ReadOnlyCollection<string>(GetActions.GetCommandNames()));
 		private static ReadOnlyCollection<BotGuildPermission> _GUILD_PERMISSIONS; //Stuff has to be in this notation because lol static initializers
-		public static ReadOnlyCollection<BotGuildPermission> GUILD_PERMISSIONS => _GUILD_PERMISSIONS ?? (_GUILD_PERMISSIONS = new ReadOnlyCollection<BotGuildPermission>(SavingAndLoadingActions.LoadGuildPermissions()));
+		public static ReadOnlyCollection<BotGuildPermission> GUILD_PERMISSIONS => _GUILD_PERMISSIONS ?? (_GUILD_PERMISSIONS = new ReadOnlyCollection<BotGuildPermission>(GetActions.GetGuildPermissions()));
 		private static ReadOnlyCollection<BotChannelPermission> _CHANNEL_PERMISSIONS;
-		public static ReadOnlyCollection<BotChannelPermission> CHANNEL_PERMISSIONS => _CHANNEL_PERMISSIONS ?? (_CHANNEL_PERMISSIONS = new ReadOnlyCollection<BotChannelPermission>(SavingAndLoadingActions.LoadChannelPermissions()));
+		public static ReadOnlyCollection<BotChannelPermission> CHANNEL_PERMISSIONS => _CHANNEL_PERMISSIONS ?? (_CHANNEL_PERMISSIONS = new ReadOnlyCollection<BotChannelPermission>(GetActions.GetChannelPermissions()));
 
 		//Because the enum values might change in the future. These are never saved in JSON so these can be modified
 		private static ReadOnlyDictionary<PunishmentType, int> _PUNISHMENT_SEVERITY;

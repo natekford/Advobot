@@ -14,16 +14,22 @@ namespace Advobot.Actions
 		/// <param name="regexOutput"></param>
 		/// <param name="stringOutput"></param>
 		/// <returns></returns>
-		public static bool TryCreateRegex(string input, out Regex regexOutput, out string errorOutput)
+		public static bool TryCreateRegex(string pattern, out Regex regexOutput, out string errorOutput)
 		{
 			regexOutput = null;
 			errorOutput = null;
+			if (pattern == null)
+			{
+				errorOutput = "The pattern cannot be null.";
+				return false;
+			}
+
 			try
 			{
-				regexOutput = new Regex(input);
+				regexOutput = new Regex(pattern);
 				return true;
 			}
-			catch (Exception e)
+			catch (ArgumentException e)
 			{
 				errorOutput = e.Message;
 				return false;

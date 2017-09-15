@@ -50,11 +50,11 @@ namespace Advobot.Modules.Log
 
 			if (_Client is DiscordSocketClient)
 			{
-				CreateLogHolder(_Client as DiscordSocketClient);
+				HookUpEvents(_Client as DiscordSocketClient);
 			}
 			else if (_Client is DiscordShardedClient)
 			{
-				CreateLogHolder(_Client as DiscordShardedClient);
+				HookUpEvents(_Client as DiscordShardedClient);
 			}
 			else
 			{
@@ -62,7 +62,7 @@ namespace Advobot.Modules.Log
 			}
 		}
 
-		private void CreateLogHolder(DiscordSocketClient client)
+		private void HookUpEvents(DiscordSocketClient client)
 		{
 			client.Log						+= OnLogMessageSent;
 			client.GuildAvailable			+= OnGuildAvailable;
@@ -76,7 +76,7 @@ namespace Advobot.Modules.Log
 			client.MessageUpdated			+= OnMessageUpdated;
 			client.MessageDeleted			+= OnMessageDeleted;
 		}
-		private void CreateLogHolder(DiscordShardedClient client)
+		private void HookUpEvents(DiscordShardedClient client)
 		{
 			client.Log						+= OnLogMessageSent;
 			client.GuildAvailable			+= OnGuildAvailable;

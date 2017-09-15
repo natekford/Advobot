@@ -286,7 +286,7 @@ namespace Advobot.Commands.RoleModeration
 		[Command]
 		public async Task Command(uint position, [Remainder, VerifyStringLength(Target.Role)] string name)
 		{
-			if (position > UserActions.GetUserPosition(Context.User))
+			if (position > Context.User.GetPosition())
 			{
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Your position is less than the role's."));
 				return;

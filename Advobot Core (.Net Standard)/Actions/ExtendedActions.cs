@@ -3,14 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace Advobot
 {
 	public static class ExtendedActions
 	{
-		private static readonly Regex _RemoveDuplicateSpaces = new Regex(@"[\r\n]+", RegexOptions.Compiled);
-
 		/// <summary>
 		/// Locks the list then adds the object.
 		/// </summary>
@@ -227,52 +224,6 @@ namespace Advobot
 				return enumerable.Contains(search, StringComparer.OrdinalIgnoreCase);
 			}
 			return false;
-		}
-
-		/// <summary>
-		/// Returns the input string with `, *, and _, escaped.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public static string EscapeAllMarkdown(this string input)
-		{
-			return input.Replace("`", "\\`").Replace("*", "\\*").Replace("_", "\\_");
-		}
-		/// <summary>
-		/// Returns the input string with ` escaped.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public static string EscapeBackTicks(this string input)
-		{
-			return input.Replace("`", "\\`");
-		}
-		/// <summary>
-		/// Returns the input string without `, *, and _.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public static string RemoveAllMarkdown(this string input)
-		{
-			return input.Replace("`", "").Replace("*", "").Replace("_", "");
-		}
-		/// <summary>
-		/// Returns the input string with no duplicate new lines.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public static string RemoveDuplicateNewLines(this string input)
-		{
-			return _RemoveDuplicateSpaces.Replace(input, "\n");
-		}
-		/// <summary>
-		/// Returns the input string with no new lines.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public static string RemoveAllNewLines(this string input)
-		{
-			return input.Replace("\r", "").Replace("\n", "");
 		}
 
 		/// <summary>

@@ -44,22 +44,22 @@ namespace Advobot.Actions
 				}
 			}
 		}
-
 		/// <summary>
 		/// Attempts to login with the given key.
 		/// </summary>
 		/// <param name="client"></param>
 		/// <param name="key"></param>
 		/// <returns></returns>
+		/// <exception cref="InvalidCastException"></exception>
 		public static async Task Login(IDiscordClient client, string key)
 		{
 			if (client is DiscordSocketClient)
 			{
-				await (client as DiscordSocketClient).LoginAsync(TokenType.Bot, key);
+				await ((DiscordSocketClient)client).LoginAsync(TokenType.Bot, key);
 			}
-			else if (client is DiscordShardedClient)
+			else
 			{
-				await (client as DiscordShardedClient).LoginAsync(TokenType.Bot, key);
+				await ((DiscordShardedClient)client).LoginAsync(TokenType.Bot, key);
 			}
 		}
 
@@ -69,6 +69,7 @@ namespace Advobot.Actions
 		/// <param name="client">The client to update.</param>
 		/// <param name="botSettings">The information to update with.</param>
 		/// <returns></returns>
+		/// <exception cref="InvalidCastException"></exception>
 		public static async Task UpdateGame(IDiscordClient client, IBotSettings botSettings)
 		{
 			var prefix = botSettings.Prefix;
@@ -84,11 +85,11 @@ namespace Advobot.Actions
 
 			if (client is DiscordSocketClient)
 			{
-				await (client as DiscordSocketClient).SetGameAsync(game, stream, streamType);
+				await ((DiscordSocketClient)client).SetGameAsync(game, stream, streamType);
 			}
-			else if (client is DiscordShardedClient)
+			else
 			{
-				await (client as DiscordShardedClient).SetGameAsync(game, stream, streamType);
+				await ((DiscordShardedClient)client).SetGameAsync(game, stream, streamType);
 			}
 		}
 		/// <summary>
@@ -100,7 +101,7 @@ namespace Advobot.Actions
 		{
 			if (client is DiscordSocketClient)
 			{
-				return (client as DiscordSocketClient).ShardId;
+				return ((DiscordSocketClient)client).ShardId;
 			}
 			else
 			{
@@ -112,20 +113,16 @@ namespace Advobot.Actions
 		/// </summary>
 		/// <param name="client">The client to get the latency for.</param>
 		/// <returns>Int representing the client's latency.</returns>
-		/// <exception cref="ArgumentException">/></exception>
+		/// <exception cref="InvalidCastException">/></exception>
 		public static int GetLatency(IDiscordClient client)
 		{
 			if (client is DiscordSocketClient)
 			{
-				return (client as DiscordSocketClient).Latency;
-			}
-			else if (client is DiscordShardedClient)
-			{
-				return (client as DiscordShardedClient).Latency;
+				return ((DiscordSocketClient)client).Latency;
 			}
 			else
 			{
-				throw new ArgumentException($"{client.GetType().Name} is not a valid client type.");
+				return ((DiscordShardedClient)client).Latency;
 			}
 		}
 		/// <summary>
@@ -133,20 +130,16 @@ namespace Advobot.Actions
 		/// </summary>
 		/// <param name="client">The client to get the shard count for.</param>
 		/// <returns>Int representing the client's shard count.</returns>
-		/// <exception cref="ArgumentException">/></exception>
+		/// <exception cref="InvalidCastException">/></exception>
 		public static int GetShardCount(IDiscordClient client)
 		{
 			if (client is DiscordSocketClient)
 			{
 				return 1;
 			}
-			else if (client is DiscordShardedClient)
-			{
-				return (client as DiscordShardedClient).Shards.Count;
-			}
 			else
 			{
-				throw new ArgumentException($"{client.GetType().Name} is not a valid client type.");
+				return ((DiscordShardedClient)client).Shards.Count;
 			}
 		}
 		/// <summary>
@@ -155,20 +148,16 @@ namespace Advobot.Actions
 		/// <param name="client">The client hosting the guild</param>
 		/// <param name="guild">The guild to search for.</param>
 		/// <returns></returns>
-		/// <exception cref="ArgumentException"></exception>
+		/// <exception cref="InvalidCastException"></exception>
 		public static int GetShardIdFor(IDiscordClient client, IGuild guild)
 		{
 			if (client is DiscordSocketClient)
 			{
-				return (client as DiscordSocketClient).ShardId;
-			}
-			else if (client is DiscordShardedClient)
-			{
-				return (client as DiscordShardedClient).GetShardIdFor(guild);
+				return ((DiscordSocketClient)client).ShardId;
 			}
 			else
 			{
-				throw new ArgumentException($"{client.GetType().Name} is not a valid client type.");
+				return ((DiscordShardedClient)client).GetShardIdFor(guild);
 			}
 		}
 

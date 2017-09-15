@@ -22,7 +22,7 @@ namespace Advobot.Commands.UserModeration
 		[Command]
 		public async Task Command(IGuildUser user, [Optional] uint time, [Optional, Remainder] string reason)
 		{
-			var muteRole = await RoleActions.GetMuteRole(Context.GuildSettings, user.Guild, user);
+			var muteRole = await RoleActions.GetMuteRole(Context, Context.GuildSettings);
 			if (user.RoleIds.Contains(muteRole.Id))
 			{
 				await PunishmentActions.ManualRoleUnmuteUser(user, muteRole, FormattingActions.FormatUserReason(Context.User, reason), Context.Timers);

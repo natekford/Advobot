@@ -13,55 +13,37 @@ namespace Advobot.Actions
 {
 	public static class UserActions
 	{
-		public static ReturnedObject<IGuildUser> VerifyUserMeetsRequirements(ICommandContext context, IGuildUser target, UserVerification[] checkingTypes)
+		public static FailureReason VerifyUserMeetsRequirements(ICommandContext context, IGuildUser target, UserVerification[] checkingTypes)
 		{
 			if (target == null)
 			{
-				return new ReturnedObject<IGuildUser>(target, FailureReason.TooFew);
+				return FailureReason.TooFew;
 			}
 
 			var invokingUser = context.User as IGuildUser;
 			var bot = GetBot(context.Guild);
 			foreach (var type in checkingTypes)
 			{
-				if (!invokingUser.GetIfUserCanDoActionOnUser(target, type))
+				if (!invokingUser.GetIfCanDoActionOnUser(target, type))
 				{
-					return new ReturnedObject<IGuildUser>(target, FailureReason.UserInability);
+					return FailureReason.UserInability;
 				}
-				else if (!bot.GetIfUserCanDoActionOnUser(target, type))
+				else if (!bot.GetIfCanDoActionOnUser(target, type))
 				{
-					return new ReturnedObject<IGuildUser>(target, FailureReason.BotInability);
+					return FailureReason.BotInability;
 				}
 			}
 
-			return new ReturnedObject<IGuildUser>(target, FailureReason.NotFailure);
-		}
-		public static IGuildUser GetGuildUser(IGuild guild, ulong ID)
-		{
-			return (guild as SocketGuild).GetUser(ID);
+			return FailureReason.NotFailure;
 		}
 
 		public static IGuildUser GetBot(IGuild guild)
 		{
 			return (guild as SocketGuild).CurrentUser;
 		}
-		public static async Task<IUser> GetGlobalUser(IDiscordClient client, ulong ID)
-		{
-			return await client.GetUserAsync(ID);
-		}
 		public static async Task<IUser> GetBotOwner(IDiscordClient client)
 		{
 			return (await client.GetApplicationInfoAsync()).Owner;
-		}
-
-		public static int GetUserPosition(IUser user)
-		{
-			//Make sure they're a SocketGuildUser
-			var tempUser = user as SocketGuildUser;
-			if (user == null)
-				return -1;
-
-			return tempUser.Hierarchy;
 		}
 
 		public static async Task<IEnumerable<IGuildUser>> GetUsersTheBotAndUserCanEdit(ICommandContext context)
@@ -69,7 +51,7 @@ namespace Advobot.Actions
 			return (await context.Guild.GetUsersAsync()).Where(x => x.CanBeModifiedByUser(context.User) && x.CanBeModifiedByUser(GetBot(context.Guild)));
 		}
 
-		public static async Task ChangeNickname(IGuildUser user, string newNickname, string reason)
+		public static async Task ChangeNickname(this IGuildUser user, string newNickname, string reason)
 		{
 			await user.ModifyAsync(x => x.Nickname = newNickname ?? user.Username, new RequestOptions { AuditLogReason = reason });
 		}
@@ -89,7 +71,7 @@ namespace Advobot.Actions
 			await MessageActions.DeleteMessage(msg);
 			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully renamed `{users.Count}` people.");
 		}
-		public static async Task MoveUser(IGuildUser user, IVoiceChannel channel, string reason)
+		public static async Task MoveUser(this IGuildUser user, IVoiceChannel channel, string reason)
 		{
 			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), new RequestOptions { AuditLogReason = reason });
 		}
@@ -110,19 +92,30 @@ namespace Advobot.Actions
 			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully moved `{users.Count}` people.");
 		}
 
+		public static int GetPosition(this IUser user)
+		{
+			//Make sure they're a SocketGuildUser
+			var tempUser = user as SocketGuildUser;
+			if (user == null)
+			{
+				return -1;
+			}
+
+			return tempUser.Hierarchy;
+		}
 		public static bool CanBeModifiedByUser(this IUser targetUser, IUser invokingUser)
 		{
 			//Allow users to do stuff on themselves.
-			if (targetUser.Id == invokingUser.Id)
+			if (targetUser.Id == invokingUser.Id && invokingUser.Id.ToString() == Config.Configuration[ConfigKeys.Bot_Id])
 			{
 				return true;
 			}
 
-			var modifierPosition = GetUserPosition(invokingUser);
-			var modifieePosition = GetUserPosition(targetUser);
+			var modifierPosition = invokingUser.GetPosition();
+			var modifieePosition = targetUser.GetPosition();
 			return modifierPosition > modifieePosition;
 		}
-		public static bool GetIfUserCanDoActionOnUser(this IGuildUser invokingUser, IGuildUser targetUser, UserVerification type)
+		public static bool GetIfCanDoActionOnUser(this IGuildUser invokingUser, IGuildUser targetUser, UserVerification type)
 		{
 			if (targetUser == null || invokingUser == null)
 			{
@@ -133,7 +126,7 @@ namespace Advobot.Actions
 			{
 				case UserVerification.CanBeMovedFromChannel:
 				{
-					return invokingUser.GetIfUserCanDoActionOnChannel(targetUser.VoiceChannel, ChannelVerification.CanMoveUsers);
+					return invokingUser.GetIfCanDoActionOnChannel(targetUser.VoiceChannel, ChannelVerification.CanMoveUsers);
 				}
 				case UserVerification.CanBeEdited:
 				{
@@ -145,7 +138,7 @@ namespace Advobot.Actions
 				}
 			}
 		}
-		public static bool GetIfUserCanDoActionOnChannel(this IGuildUser invokingUser, IGuildChannel target, ChannelVerification type)
+		public static bool GetIfCanDoActionOnChannel(this IGuildUser invokingUser, IGuildChannel target, ChannelVerification type)
 		{
 			if (target == null || invokingUser == null)
 			{
@@ -185,6 +178,25 @@ namespace Advobot.Actions
 				case ChannelVerification.CanMoveUsers:
 				{
 					return channelPerms.MoveMembers;
+				}
+				default:
+				{
+					return true;
+				}
+			}
+		}
+		public static bool GetIfUserCanDoActionOnRole(this IGuildUser invokingUser, IRole target, RoleVerification type)
+		{
+			if (target == null || invokingUser == null)
+			{
+				return false;
+			}
+
+			switch (type)
+			{
+				case RoleVerification.CanBeEdited:
+				{
+					return target.Position < invokingUser.GetPosition();
 				}
 				default:
 				{

@@ -9,12 +9,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Advobot.Actions
 {
 	public static class FormattingActions
 	{
+		private static readonly Regex _RemoveDuplicateSpaces = new Regex(@"[\r\n]+", RegexOptions.Compiled);
+
 		public static EmbedBuilder FormatUserInfo(IGuildSettings guildSettings, SocketGuild guild, SocketGuildUser user)
 		{
 			var textChannels = guild.TextChannels.Where(x => user.GetPermissions(x).ReadMessages).OrderBy(x => x.Position).Select(x => x.Name);
@@ -33,8 +36,8 @@ namespace Advobot.Actions
 
 			var color = roles.OrderBy(x => x.Position).LastOrDefault(x => x.Color.RawValue != 0)?.Color;
 			var embed = EmbedActions.MakeNewEmbed(null, desc.ToString(), color, thumbnailUrl: user.GetAvatarUrl())
-					.MyAddAuthor(user)
-					.MyAddFooter("User Info");
+				.MyAddAuthor(user)
+				.MyAddFooter("User Info");
 
 			if (channels.Count() != 0)
 			{
@@ -264,7 +267,7 @@ namespace Advobot.Actions
 		}
 		public static string FormatDateTimeForCreatedAtMessage(DateTimeOffset? dt)
 		{
-			return $"**Created:** `{FormatDateTime(dt)}` (`{DateTime.UtcNow.Subtract(dt.HasValue ? dt.Value.UtcDateTime : DateTime.UtcNow).Days}` days ago)";
+			return $"**Created:** `{FormatDateTime(dt)}` (`{DateTime.UtcNow.Subtract(dt.HasValue ? dt.Value.UtcDateTime : DateTime.UtcNow).TotalDays}` days ago)";
 		}
 
 		public static string FormatUserStayLength(IGuildUser user)
@@ -478,7 +481,7 @@ namespace Advobot.Actions
 		{
 			if (value is ulong)
 			{
-				var user = await UserActions.GetGlobalUser(client, (ulong)value);
+				var user = await client.GetUserAsync((ulong)value);
 				if (user != null)
 				{
 					return $"`{user.FormatUser()}`";
@@ -671,6 +674,52 @@ namespace Advobot.Actions
 			{
 				return $"Irretrievable Guild ({guildId})";
 			}
+		}
+
+		/// <summary>
+		/// Returns the input string with `, *, and _, escaped.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public static string EscapeAllMarkdown(this string input)
+		{
+			return input.Replace("`", "\\`").Replace("*", "\\*").Replace("_", "\\_");
+		}
+		/// <summary>
+		/// Returns the input string with ` escaped.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public static string EscapeBackTicks(this string input)
+		{
+			return input.Replace("`", "\\`");
+		}
+		/// <summary>
+		/// Returns the input string without `, *, and _.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public static string RemoveAllMarkdown(this string input)
+		{
+			return input.Replace("`", "").Replace("*", "").Replace("_", "");
+		}
+		/// <summary>
+		/// Returns the input string with no duplicate new lines.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public static string RemoveDuplicateNewLines(this string input)
+		{
+			return _RemoveDuplicateSpaces.Replace(input, "\n");
+		}
+		/// <summary>
+		/// Returns the input string with no new lines.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public static string RemoveAllNewLines(this string input)
+		{
+			return input.Replace("\r", "").Replace("\n", "");
 		}
 	}
 }

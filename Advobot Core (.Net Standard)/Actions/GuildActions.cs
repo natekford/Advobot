@@ -48,14 +48,6 @@ namespace Advobot.Actions
 			}
 			return rawValue;
 		}
-		public static ulong AddGuildPermissionBits(IEnumerable<string> permissionNames, ulong inputValue)
-		{
-			return inputValue | ConvertGuildPermissionNamesToUlong(permissionNames);
-		}
-		public static ulong RemoveGuildPermissionBits(IEnumerable<string> permissionNames, ulong inputValue)
-		{
-			return inputValue & ~ConvertGuildPermissionNamesToUlong(permissionNames);
-		}
 
 		public static async Task ModifyGuildName(IGuild guild, string name, string reason)
 		{

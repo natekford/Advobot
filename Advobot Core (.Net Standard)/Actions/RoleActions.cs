@@ -12,82 +12,33 @@ namespace Advobot.Actions
 {
 	public static class RoleActions
 	{
-		public static ReturnedObject<IRole> GetRole(ICommandContext context, RoleVerification[] checkingTypes, bool mentions, string input)
-		{
-			IRole role = null;
-			if (!String.IsNullOrWhiteSpace(input))
-			{
-				if (ulong.TryParse(input, out ulong roleID))
-				{
-					role = GetRole(context.Guild, roleID);
-				}
-				else if (MentionUtils.TryParseRole(input, out roleID))
-				{
-					role = GetRole(context.Guild, roleID);
-				}
-				else
-				{
-					var roles = context.Guild.Roles.Where(x => x.Name.CaseInsEquals(input));
-					if (roles.Count() == 1)
-					{
-						role = roles.First();
-					}
-					else if (roles.Count() > 1)
-					{
-						return new ReturnedObject<IRole>(role, FailureReason.TooMany);
-					}
-				}
-			}
-
-			if (role == null && mentions)
-			{
-				var roleMentions = context.Message.MentionedRoleIds;
-				if (roleMentions.Count() == 1)
-				{
-					role = GetRole(context.Guild, roleMentions.First());
-				}
-				else if (roleMentions.Count() > 1)
-				{
-					return new ReturnedObject<IRole>(role, FailureReason.TooMany);
-				}
-			}
-
-			return GetRole(context, checkingTypes, role);
-		}
-		public static ReturnedObject<IRole> GetRole(ICommandContext context, RoleVerification[] checkingTypes, ulong inputID)
-		{
-			return GetRole(context, checkingTypes, GetRole(context.Guild, inputID));
-		}
-		public static ReturnedObject<IRole> GetRole(ICommandContext context, RoleVerification[] checkingTypes, IRole role)
-		{
-			return GetRole(context.Guild, context.User as IGuildUser, checkingTypes, role);
-		}
-		public static ReturnedObject<T> GetRole<T>(IGuild guild, IGuildUser currUser, RoleVerification[] checkingTypes, T role) where T : IRole
+		public static FailureReason VerifyRoleMeetsRequirements<T>(ICommandContext context, RoleVerification[] checkingTypes, T role) where T : IRole
 		{
 			if (role == null)
 			{
-				return new ReturnedObject<T>(role, FailureReason.TooFew);
+				return FailureReason.TooFew;
 			}
 
-			var bot = UserActions.GetBot(guild);
+			var invokingUser = context.User as IGuildUser;
+			var bot = UserActions.GetBot(context.Guild);
 			foreach (var type in checkingTypes)
 			{
-				if (!GetIfUserCanDoActionOnRole(role, currUser, type))
+				if (!invokingUser.GetIfUserCanDoActionOnRole(role, type))
 				{
-					return new ReturnedObject<T>(role, FailureReason.UserInability);
+					return FailureReason.UserInability;
 				}
-				else if (!GetIfUserCanDoActionOnRole(role, bot, type))
+				else if (!bot.GetIfUserCanDoActionOnRole(role, type))
 				{
-					return new ReturnedObject<T>(role, FailureReason.BotInability);
+					return FailureReason.BotInability;
 				}
 
 				switch (type)
 				{
 					case RoleVerification.IsEveryone:
 					{
-						if (guild.EveryoneRole.Id == role.Id)
+						if (context.Guild.EveryoneRole.Id == role.Id)
 						{
-							return new ReturnedObject<T>(role, FailureReason.EveryoneRole);
+							return FailureReason.EveryoneRole;
 						}
 						break;
 					}
@@ -95,41 +46,16 @@ namespace Advobot.Actions
 					{
 						if (role.IsManaged)
 						{
-							return new ReturnedObject<T>(role, FailureReason.ManagedRole);
+							return FailureReason.ManagedRole;
 						}
 						break;
 					}
 				}
 			}
 
-			return new ReturnedObject<T>(role, FailureReason.NotFailure);
-		}
-		public static IRole GetRole(IGuild guild, ulong ID)
-		{
-			return guild.GetRole(ID);
-		}
-		public static bool GetIfUserCanDoActionOnRole(IRole target, IGuildUser user, RoleVerification type)
-		{
-			if (target == null || user == null)
-				return false;
-
-			switch (type)
-			{
-				case RoleVerification.CanBeEdited:
-				{
-					return target.Position < UserActions.GetUserPosition(user);
-				}
-				default:
-				{
-					return true;
-				}
-			}
+			return FailureReason.NotFailure;
 		}
 
-		public static async Task<IEnumerable<string>> ModifyRolePermissions(IRole role, ActionType actionType, IEnumerable<string> permissions, IGuildUser user)
-		{
-			return await ModifyRolePermissions(role, actionType, GuildActions.ConvertGuildPermissionNamesToUlong(permissions), user);
-		}
 		public static async Task<IEnumerable<string>> ModifyRolePermissions(IRole role, ActionType actionType, ulong changeValue, IGuildUser user)
 		{
 			//Only modify permissions the user has the ability to
@@ -161,9 +87,11 @@ namespace Advobot.Actions
 		public static async Task<int> ModifyRolePosition(IRole role, int position, string reason)
 		{
 			if (role == null)
+			{
 				return -1;
+			}
 
-			var roles = role.Guild.Roles.Where(x => x.Id != role.Id && x.Position < UserActions.GetUserPosition(UserActions.GetBot(role.Guild))).OrderBy(x => x.Position).ToArray();
+			var roles = role.Guild.Roles.Where(x => x.Id != role.Id && x.Position < UserActions.GetBot(role.Guild).GetPosition()).OrderBy(x => x.Position).ToArray();
 			position = Math.Max(1, Math.Min(position, roles.Length));
 
 			var reorderProperties = new ReorderRoleProperties[roles.Length + 1];
@@ -207,13 +135,13 @@ namespace Advobot.Actions
 			await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, new RequestOptions { AuditLogReason = reason });
 		}
 
-		public static async Task<IRole> GetMuteRole(IGuildSettings guildSettings, IGuild guild, IGuildUser user)
+		public static async Task<IRole> GetMuteRole(ICommandContext context, IGuildSettings guildSettings)
 		{
-			var returnedMuteRole = GetRole(guild, user, new[] { RoleVerification.CanBeEdited, RoleVerification.IsManaged }, guildSettings.MuteRole);
-			var muteRole = returnedMuteRole.Object;
-			if (muteRole == null)
+			var muteRole = guildSettings.MuteRole;
+			var result = VerifyRoleMeetsRequirements(context, new[] { RoleVerification.CanBeEdited, RoleVerification.IsManaged }, muteRole);
+			if (result != FailureReason.NotFailure)
 			{
-				muteRole = await guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0));
+				muteRole = await context.Guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0));
 				guildSettings.MuteRole = muteRole;
 				guildSettings.SaveSettings();
 			}
@@ -226,7 +154,7 @@ namespace Advobot.Actions
 				| (1U << (int)ChannelPermission.SendMessages)
 				| (1U << (int)ChannelPermission.ManageMessages)
 				| (1U << (int)ChannelPermission.AddReactions);
-			foreach (var textChannel in await guild.GetTextChannelsAsync())
+			foreach (var textChannel in await context.Guild.GetTextChannelsAsync())
 			{
 				if (textChannel.GetPermissionOverwrite(muteRole) == null)
 				{
@@ -243,7 +171,7 @@ namespace Advobot.Actions
 				| (1U << (int)ChannelPermission.MuteMembers)
 				| (1U << (int)ChannelPermission.DeafenMembers)
 				| (1U << (int)ChannelPermission.MoveMembers);
-			foreach (var voiceChannel in await guild.GetVoiceChannelsAsync())
+			foreach (var voiceChannel in await context.Guild.GetVoiceChannelsAsync())
 			{
 				if (voiceChannel.GetPermissionOverwrite(muteRole) == null)
 				{
@@ -253,7 +181,6 @@ namespace Advobot.Actions
 
 			return muteRole;
 		}
-
 		public static async Task<IRole> CreateRole(IGuild guild, string name, string reason)
 		{
 			return await guild.CreateRoleAsync(name, new GuildPermissions(0), options: new RequestOptions { AuditLogReason = reason, });

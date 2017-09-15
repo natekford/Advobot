@@ -320,9 +320,9 @@ namespace Advobot.Actions
 			}
 		}
 
-		public static async Task HandleObjectGettingErrors<T>(IMyCommandContext context, ReturnedObject<T> returnedObject)
+		public static async Task HandleObjectGettingErrors(IMyCommandContext context, FailureReason reason, object obj)
 		{
-			await MakeAndDeleteSecondaryMessage(context, FormattingActions.FormatErrorString(context.Guild, returnedObject.Reason, returnedObject.Object));
+			await MakeAndDeleteSecondaryMessage(context, FormattingActions.FormatErrorString(context.Guild, reason, obj));
 		}
 	}
 }

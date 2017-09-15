@@ -103,22 +103,6 @@ namespace Advobot.Classes
 	}
 
 	/// <summary>
-	/// Basically a tuple of a FailureReason and a different object.
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public struct ReturnedObject<T>
-	{
-		public T Object { get; }
-		public FailureReason Reason { get; }
-
-		public ReturnedObject(T obj, FailureReason reason)
-		{
-			Object = obj;
-			Reason = reason;
-		}
-	}
-
-	/// <summary>
 	/// Holds a <see cref="DateTime"/> object and implements <see cref="ITimeInterface"/> so certain methods can restrict generics easier.
 	/// </summary>
 	public struct BasicTimeInterface : ITimeInterface

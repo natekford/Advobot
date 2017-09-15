@@ -11,62 +11,35 @@ namespace Advobot.Actions
 {
 	public static class ChannelActions
 	{
-		public static ReturnedObject<IGuildChannel> VerifyChannelMeetsRequirements(ICommandContext context, IGuildChannel target, ChannelVerification[] checkingTypes)
+		/// <summary>
+		/// Verifies that the 
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="target"></param>
+		/// <param name="checkingTypes"></param>
+		/// <returns></returns>
+		public static FailureReason VerifyChannelMeetsRequirements(ICommandContext context, IGuildChannel target, ChannelVerification[] checkingTypes)
 		{
 			if (target == null)
 			{
-				return new ReturnedObject<IGuildChannel>(target, FailureReason.TooFew);
+				return FailureReason.TooFew;
 			}
 
 			var invokingUser = context.User as IGuildUser;
 			var bot = UserActions.GetBot(context.Guild);
 			foreach (var type in checkingTypes)
 			{
-				if (!invokingUser.GetIfUserCanDoActionOnChannel(target, type))
+				if (!invokingUser.GetIfCanDoActionOnChannel(target, type))
 				{
-					return new ReturnedObject<IGuildChannel>(target, FailureReason.UserInability);
+					return FailureReason.UserInability;
 				}
-				else if (!bot.GetIfUserCanDoActionOnChannel(target, type))
+				else if (!bot.GetIfCanDoActionOnChannel(target, type))
 				{
-					return new ReturnedObject<IGuildChannel>(target, FailureReason.BotInability);
-				}
-			}
-
-			return new ReturnedObject<IGuildChannel>(target, FailureReason.NotFailure);
-		}
-
-		public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, IEnumerable<string> permissions, IGuildUser invokingUser)
-		{
-			return await ModifyOverwritePermissions(channel, discordObject, actionType, ConvertChannelPermissionNamesToUlong(permissions), invokingUser);
-		}
-		public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, ulong changeValue, IGuildUser invokingUser)
-		{
-			var allowBits = channel.GetPermissionOverwriteAllowValue(discordObject);
-			var denyBits = channel.GetPermissionOverwriteDenyValue(discordObject);
-			switch (actionType)
-			{
-				case ActionType.Allow:
-				{
-					allowBits |= changeValue;
-					denyBits &= ~changeValue;
-					break;
-				}
-				case ActionType.Inherit:
-				{
-					allowBits &= ~changeValue;
-					denyBits &= ~changeValue;
-					break;
-				}
-				case ActionType.Deny:
-				{
-					allowBits &= ~changeValue;
-					denyBits |= changeValue;
-					break;
+					return FailureReason.BotInability;
 				}
 			}
 
-			await ModifyOverwrite(channel, discordObject, allowBits, denyBits, FormattingActions.FormatUserReason(invokingUser));
-			return GetActions.GetChannelPermissionNames(changeValue);
+			return FailureReason.NotFailure;
 		}
 
 		/// <summary>
@@ -110,70 +83,62 @@ namespace Advobot.Actions
 		{
 			return channel.GetPermissionOverwrite(obj)?.DenyValue ?? 0;
 		}
-
-		public static ulong ConvertChannelPermissionNamesToUlong(IEnumerable<string> permissionNames)
+		/// <summary>
+		/// Based off of the <paramref name="actionType"/> passed in will allow, inherit, or deny the given values for the <paramref name="discordObject"/> on the channel.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="discordObject"></param>
+		/// <param name="actionType"></param>
+		/// <param name="changeValue"></param>
+		/// <param name="invokingUser"></param>
+		/// <returns></returns>
+		public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, ulong changeValue, IGuildUser invokingUser)
 		{
-			ulong rawValue = 0;
-			foreach (var permissionName in permissionNames)
+			var allowBits = channel.GetPermissionOverwriteAllowValue(discordObject);
+			var denyBits = channel.GetPermissionOverwriteDenyValue(discordObject);
+			switch (actionType)
 			{
-				var permission = Constants.CHANNEL_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
-				if (!permission.Equals(default(BotGuildPermission)))
+				case ActionType.Allow:
 				{
-					rawValue |= permission.Value;
+					allowBits |= changeValue;
+					denyBits &= ~changeValue;
+					break;
 				}
-			}
-			return rawValue;
-		}
-		public static ulong AddChannelPermissionBits(IEnumerable<string> permissionNames, ulong inputValue)
-		{
-			return inputValue | ConvertChannelPermissionNamesToUlong(permissionNames);
-		}
-		public static ulong RemoveChannelPermissionBits(IEnumerable<string> permissionNames, ulong inputValue)
-		{
-			return inputValue & ~ConvertChannelPermissionNamesToUlong(permissionNames);
-		}
-
-		public static async Task<int> ModifyChannelPosition(IGuildChannel channel, int position, string reason)
-		{
-			if (channel == null)
-			{
-				return -1;
-			}
-
-			var channels = channel is ITextChannel
-				? (await channel.Guild.GetTextChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray()
-				: (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
-			position = Math.Max(0, Math.Min(position, channels.Length));
-
-			var reorderProperties = new ReorderChannelProperties[channels.Length];
-			for (int i = 0; i < channels.Length; ++i)
-			{
-				if (i > position)
+				case ActionType.Inherit:
 				{
-					reorderProperties[i] = new ReorderChannelProperties(channels[i - 1].Id, i);
+					allowBits &= ~changeValue;
+					denyBits &= ~changeValue;
+					break;
 				}
-				else if (i < position)
+				case ActionType.Deny:
 				{
-					reorderProperties[i] = new ReorderChannelProperties(channels[i].Id, i);
-				}
-				else
-				{
-					reorderProperties[i] = new ReorderChannelProperties(channel.Id, i);
+					allowBits &= ~changeValue;
+					denyBits |= changeValue;
+					break;
 				}
 			}
 
-			await channel.Guild.ReorderChannelsAsync(reorderProperties);
-			return reorderProperties.FirstOrDefault(x => x.Id == channel.Id)?.Position ?? -1;
+			await ModifyOverwrite(channel, discordObject, allowBits, denyBits, FormattingActions.FormatUserReason(invokingUser));
+			return GetActions.GetChannelPermissionNames(changeValue);
 		}
-		public static async Task ModifyOverwrite(IGuildChannel channel, object obj, ulong allowBits, ulong denyBits, string reason)
+		/// <summary>
+		/// Sets the overwrite on a channel for the given <paramref name="discordObject"/>.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="discordObject"></param>
+		/// <param name="allowBits"></param>
+		/// <param name="denyBits"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public static async Task ModifyOverwrite(IGuildChannel channel, object discordObject, ulong allowBits, ulong denyBits, string reason)
 		{
-			if (obj is IRole)
+			if (discordObject is IRole)
 			{
-				await channel.AddPermissionOverwriteAsync(obj as IRole, new OverwritePermissions(allowBits, denyBits));
+				await channel.AddPermissionOverwriteAsync(discordObject as IRole, new OverwritePermissions(allowBits, denyBits));
 			}
-			else if (obj is IUser)
+			else if (discordObject is IUser)
 			{
-				await channel.AddPermissionOverwriteAsync(obj as IUser, new OverwritePermissions(allowBits, denyBits));
+				await channel.AddPermissionOverwriteAsync(discordObject as IUser, new OverwritePermissions(allowBits, denyBits));
 			}
 			else
 			{
@@ -204,6 +169,25 @@ namespace Advobot.Actions
 					}
 				}
 			}
+		}
+
+		/// <summary>
+		/// Looks up the values in <see cref="Constants.CHANNEL_PERMISSIONS"/> with the given names then returns all of them ORed together.
+		/// </summary>
+		/// <param name="permissionNames"></param>
+		/// <returns></returns>
+		public static ulong ConvertChannelPermissionNamesToUlong(IEnumerable<string> permissionNames)
+		{
+			var rawValue = 0UL;
+			foreach (var permissionName in permissionNames)
+			{
+				var permission = Constants.CHANNEL_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
+				if (!permission.Equals(default(BotGuildPermission)))
+				{
+					rawValue |= permission.Value;
+				}
+			}
+			return rawValue;
 		}
 
 		/// <summary>
@@ -258,8 +242,9 @@ namespace Advobot.Actions
 					}
 				}
 
-				var allowBits = RemoveChannelPermissionBits(new[] { nameof(ChannelPermission.ReadMessages) }, overwrite.Permissions.AllowValue);
-				var denyBits = AddChannelPermissionBits(new[] { nameof(ChannelPermission.ReadMessages) }, overwrite.Permissions.DenyValue);
+				var readMessages = ConvertChannelPermissionNamesToUlong(new[] { nameof(ChannelPermission.ReadMessages) });
+				var allowBits = overwrite.Permissions.AllowValue & ~readMessages;
+				var denyBits = overwrite.Permissions.DenyValue | readMessages;
 				await ModifyOverwrite(channel, obj, allowBits, denyBits, reason);
 			}
 
@@ -270,7 +255,7 @@ namespace Advobot.Actions
 			}
 
 			//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
-			await ModifyChannelPosition(channel, (await guild.GetTextChannelsAsync()).Max(x => x.Position), reason);
+			await channel.ModifyPositionAsync((await guild.GetTextChannelsAsync()).Max(x => x.Position), reason);
 		}
 		/// <summary>
 		/// Deletes a channel.
@@ -283,6 +268,45 @@ namespace Advobot.Actions
 			await channel.DeleteAsync(new RequestOptions { AuditLogReason = reason });
 		}
 
+		/// <summary>
+		/// Modifies a channel's position.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="position"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public static async Task<int> ModifyPositionAsync(this IGuildChannel channel, int position, string reason)
+		{
+			if (channel == null)
+			{
+				return -1;
+			}
+
+			var channels = channel is ITextChannel
+				? (await channel.Guild.GetTextChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray()
+				: (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
+			position = Math.Max(0, Math.Min(position, channels.Length));
+
+			var reorderProperties = new ReorderChannelProperties[channels.Length];
+			for (int i = 0; i < channels.Length; ++i)
+			{
+				if (i > position)
+				{
+					reorderProperties[i] = new ReorderChannelProperties(channels[i - 1].Id, i);
+				}
+				else if (i < position)
+				{
+					reorderProperties[i] = new ReorderChannelProperties(channels[i].Id, i);
+				}
+				else
+				{
+					reorderProperties[i] = new ReorderChannelProperties(channel.Id, i);
+				}
+			}
+
+			await channel.Guild.ReorderChannelsAsync(reorderProperties);
+			return reorderProperties.FirstOrDefault(x => x.Id == channel.Id)?.Position ?? -1;
+		}
 		/// <summary>
 		/// Modifies a channel's name.
 		/// </summary>

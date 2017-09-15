@@ -442,7 +442,7 @@ namespace Advobot.Commands.GuildSettings
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The guild information file does not exist at this time."));
 				return;
 			}
-			await UploadActions.UploadFile(Context.Channel, file);
+			await Context.Channel.SendFileAsync(file.FullName);
 		}
 	}
 }

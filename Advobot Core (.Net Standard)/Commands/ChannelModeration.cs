@@ -95,7 +95,7 @@ namespace Advobot.Commands.ChannelModeration
 		[Command]
 		public async Task Command([VerifyChannel(false, ChannelVerification.CanBeReordered)] IGuildChannel channel, uint position)
 		{
-			await ChannelActions.ModifyChannelPosition(channel, (int)position, FormattingActions.FormatUserReason(Context.User));
+			await channel.ModifyPositionAsync((int)position, FormattingActions.FormatUserReason(Context.User));
 			await MessageActions.SendChannelMessage(Context, $"Successfully moved `{channel.FormatChannel()}` to position `{position}`.");
 		}
 	}
@@ -454,10 +454,10 @@ namespace Advobot.Commands.ChannelModeration
 				return;
 			}
 
-			var returnedChannel = ChannelActions.VerifyChannelMeetsRequirements(Context, channel, new[] { ChannelVerification.CanBeReordered });
-			if (returnedChannel.Reason != FailureReason.NotFailure)
+			var result = ChannelActions.VerifyChannelMeetsRequirements(Context, channel, new[] { ChannelVerification.CanBeReordered });
+			if (result != FailureReason.NotFailure)
 			{
-				await MessageActions.HandleObjectGettingErrors(Context, returnedChannel);
+				await MessageActions.HandleObjectGettingErrors(Context, result, channel);
 				return;
 			}
 
