@@ -173,12 +173,12 @@ namespace Advobot.Commands.Miscellaneous
 		[Command(nameof(Target.Emote))]
 		public async Task CommandEmote(Emote target)
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatEmoteInfo(Context.GuildSettings, await Context.Client.GetGuildsAsync(), target as Emote));
+			await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatEmoteInfo(Context.GuildSettings, target));
 		}
 		[Command(nameof(Target.Invite))]
 		public async Task CommandInvite(IInvite target)
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatInviteInfo(Context.GuildSettings, Context.Guild as SocketGuild, target as IInviteMetadata));
+			await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatInviteInfo(Context.GuildSettings, target as IInviteMetadata));
 		}
 	}
 
@@ -311,7 +311,8 @@ namespace Advobot.Commands.Miscellaneous
 
 			var newPos = Math.Max(1, Math.Min(position, users.Length));
 			var user = users[newPos - 1];
-			await MessageActions.SendChannelMessage(Context, $"`{user.FormatUser()}` is `#{newPos}` to join the guild on `{FormattingActions.FormatDateTime(user.JoinedAt)}`.");
+			var timeStr = FormattingActions.FormatDateTime(user.JoinedAt.Value.UtcDateTime);
+			await MessageActions.SendChannelMessage(Context, $"`{user.FormatUser()}` is `#{newPos}` to join the guild on `{timeStr}`.");
 		}
 	}
 
@@ -363,7 +364,7 @@ namespace Advobot.Commands.Miscellaneous
 		{
 			var users = (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToArray();
 
-			var text = users.FormatNumberedList("`{0}` joined on `{1}`", x => x.FormatUser(), x => FormattingActions.FormatDateTime(x.JoinedAt));
+			var text = users.FormatNumberedList("`{0}` joined on `{1}`", x => x.FormatUser(), x => FormattingActions.FormatDateTime(x.JoinedAt.Value.UtcDateTime));
 			await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "User_Joins_");
 		}
 	}

@@ -112,7 +112,7 @@ namespace Advobot.Classes
 			Guild = context.Guild.FormatGuild();
 			Channel = context.Channel.FormatChannel();
 			User = context.User.FormatUser();
-			Time = FormattingActions.FormatDateTime(context.Message.CreatedAt);
+			Time = FormattingActions.FormatDateTime(context.Message.CreatedAt.UtcDateTime);
 			Text = context.Message.Content;
 			TimeInitiated = startTime;
 			TimeCompleted = DateTime.UtcNow;

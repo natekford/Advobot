@@ -8,6 +8,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.GuildSettings
@@ -329,7 +330,7 @@ namespace Advobot.Commands.GuildSettings
 		[Command(nameof(GuildNotificationType.Welcome)), Alias("w")]
 		public async Task CommandWelcome([VerifyChannel(true, ChannelVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] string input)
 		{
-			var inputArgs = input.SplitByCharExceptInQuotes(' ').ToList();
+			var inputArgs = input.SplitExceptInQuotes().ToList();
 			var content = GetActions.GetVariableAndRemove(inputArgs, "content");
 			var title = GetActions.GetVariableAndRemove(inputArgs, "title");
 			var desc = GetActions.GetVariableAndRemove(inputArgs, "desc");
@@ -341,7 +342,7 @@ namespace Advobot.Commands.GuildSettings
 		[Command(nameof(GuildNotificationType.Goodbye)), Alias("g")]
 		public async Task CommandGoodbye([VerifyChannel(true, ChannelVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] string input)
 		{
-			var inputArgs = input.SplitByCharExceptInQuotes(' ').ToList();
+			var inputArgs = input.SplitExceptInQuotes().ToList();
 			var content = GetActions.GetVariableAndRemove(inputArgs, "content");
 			var title = GetActions.GetVariableAndRemove(inputArgs, "title");
 			var desc = GetActions.GetVariableAndRemove(inputArgs, "desc");
@@ -405,23 +406,16 @@ namespace Advobot.Commands.GuildSettings
 			await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "Guild Settings", "Guild Settings");
 		}
 		[Command, Priority(0)]
-		public async Task Command(string setting)
+		public async Task Command([OverrideTypeReader(typeof(GuildSettingTypeReader))] PropertyInfo setting)
 		{
-			var currentSetting = GetActions.GetGuildSettings().FirstOrDefault(x => x.Name.CaseInsEquals(setting));
-			if (currentSetting == null)
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Unable to find a setting with the supplied name."));
-				return;
-			}
-
-			var desc = FormattingActions.FormatGuildSettingInfo(Context.Guild as SocketGuild, Context.GuildSettings, currentSetting);
+			var desc = FormattingActions.FormatGuildSetting(Context.Guild as SocketGuild, setting.GetValue(Context.GuildSettings));
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(currentSetting.Name, desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(setting.Name, desc));
 			}
 			else
 			{
-				await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, desc, currentSetting.Name, currentSetting.Name);
+				await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, desc, setting.Name, setting.Name);
 			}
 		}
 	}

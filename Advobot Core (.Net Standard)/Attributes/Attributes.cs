@@ -28,5 +28,10 @@ namespace Advobot.Attributes
 		{
 			Usage = usage;
 		}
+
+		public string ToString(string name)
+		{
+			return name + " " + Usage;
+		}
 	}
 }

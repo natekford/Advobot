@@ -69,6 +69,11 @@ namespace Advobot.Attributes
 
 		public string AllText => String.Join(" & ", GetActions.GetGuildPermissionNames(_AllFlags));
 		public string AnyText => String.Join(" | ", GetActions.GetGuildPermissionNames(_AnyFlags));
+
+		public override string ToString()
+		{
+			return $"[{FormattingActions.JoinNonNullStrings(" | ", AllText, AnyText)}]";
+		}
 	}
 
 	/// <summary>
@@ -135,6 +140,28 @@ namespace Advobot.Attributes
 				}
 			}
 			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
+		}
+
+		public override string ToString()
+		{
+			var text = new System.Collections.Generic.List<string>();
+			if ((Requirements & Precondition.UserHasAPerm) != 0)
+			{
+				text.Add("Administrator | Any perm ending with 'Members' | Any perm starting with 'Manage'");
+			}
+			if ((Requirements & Precondition.GuildOwner) != 0)
+			{
+				text.Add("Guild Owner");
+			}
+			if ((Requirements & Precondition.TrustedUser) != 0)
+			{
+				text.Add("Trusted User");
+			}
+			if ((Requirements & Precondition.BotOwner) != 0)
+			{
+				text.Add("Bot Owner");
+			}
+			return $"[{String.Join(" | ", text)}]";
 		}
 	}
 

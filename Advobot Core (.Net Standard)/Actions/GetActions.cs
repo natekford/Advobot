@@ -59,25 +59,14 @@ namespace Advobot.Actions
 					continue;
 				}
 
-				var groupAttr = (GroupAttribute)classType.GetCustomAttribute(typeof(GroupAttribute));
-				var name = groupAttr?.Prefix;
+				var name = classType.GetCustomAttribute<GroupAttribute>()?.Prefix;
+				var aliases = classType.GetCustomAttribute<AliasAttribute>()?.Aliases;
+				var summary = classType.GetCustomAttribute<SummaryAttribute>()?.Text;
+				var usage = classType.GetCustomAttribute<UsageAttribute>()?.ToString(name);
+				var permReqs = classType.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString();
+				var otherReqs = classType.GetCustomAttribute<OtherRequirementAttribute>()?.ToString();
 
-				var aliasAttr = (AliasAttribute)classType.GetCustomAttribute(typeof(AliasAttribute));
-				var aliases = aliasAttr?.Aliases;
-
-				var summaryAttr = (SummaryAttribute)classType.GetCustomAttribute(typeof(SummaryAttribute));
-				var summary = summaryAttr?.Text;
-
-				var usageAttr = (UsageAttribute)classType.GetCustomAttribute(typeof(UsageAttribute));
-				var usage = usageAttr == null ? null : name + " " + usageAttr.Usage;
-
-				var permReqsAttr = (PermissionRequirementAttribute)classType.GetCustomAttribute(typeof(PermissionRequirementAttribute));
-				var permReqs = permReqsAttr == null ? null : FormattingActions.FormatAttribute(permReqsAttr);
-
-				var otherReqsAttr = (OtherRequirementAttribute)classType.GetCustomAttribute(typeof(OtherRequirementAttribute));
-				var otherReqs = otherReqsAttr == null ? null : FormattingActions.FormatAttribute(otherReqsAttr);
-
-				var defaultEnabledAttr = (DefaultEnabledAttribute)classType.GetCustomAttribute(typeof(DefaultEnabledAttribute));
+				var defaultEnabledAttr = classType.GetCustomAttribute<DefaultEnabledAttribute>();
 				if (defaultEnabledAttr == null)
 				{
 					throw new InvalidOperationException(name + " does not have a default enabled value set.");

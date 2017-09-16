@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Advobot
@@ -235,6 +236,31 @@ namespace Advobot
 		{
 			return Enum.GetName(e.GetType(), e);
 		}
+		/// <summary>
+		/// Splits the input at spaces unless the space is inside a quote.
+		/// </summary>
+		/// <param name="inputString"></param>
+		/// <param name="inputChar"></param>
+		/// <returns></returns>
+		public static string[] SplitExceptInQuotes(this string inputString)
+		{
+			if (inputString == null)
+			{
+				return null;
+			}
+
+			return inputString.Split('"').Select((element, index) =>
+			{
+				if (index % 2 == 0)
+				{
+					return element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+				}
+				else
+				{
+					return new[] { element };
+				}
+			}).SelectMany(x => x).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
+		}
 
 		/// <summary>
 		/// Verifies all characters in the string have a value of a less than the upperlimit.
@@ -263,10 +289,23 @@ namespace Advobot
 			return str?.Count(x => x == '\r' || x == '\n') ?? 0;
 		}
 
+		/// <summary>
+		/// Takes a variable number of integers and cuts the list the smallest one (including the list's length).
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="list"></param>
+		/// <param name="x"></param>
+		/// <returns></returns>
 		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
 		{
 			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
 		}
+		/// <summary>
+		/// Removes <see cref="ITimeInterface"/> objects where their time is below <see cref="DateTime.UtcNow"/>.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="inputList"></param>
+		/// <returns></returns>
 		public static List<T> GetOutTimedObjects<T>(this List<T> inputList) where T : ITimeInterface
 		{
 			if (inputList == null)
@@ -278,6 +317,13 @@ namespace Advobot
 			inputList.ThreadSafeRemoveAll(x => eligibleToBeGotten.Contains(x));
 			return eligibleToBeGotten;
 		}
+		/// <summary>
+		/// Removes <see cref="ITimeInterface"/> key value pairs where their time is below <see cref="DateTime.UtcNow"/>.
+		/// </summary>
+		/// <typeparam name="TKey"></typeparam>
+		/// <typeparam name="TValue"></typeparam>
+		/// <param name="inputDict"></param>
+		/// <returns></returns>
 		public static Dictionary<TKey, TValue> GetOutTimedObjects<TKey, TValue>(this Dictionary<TKey, TValue> inputDict) where TValue : ITimeInterface
 		{
 			if (inputDict == null)
@@ -292,6 +338,13 @@ namespace Advobot
 			}
 			return elligibleToBeGotten.ToDictionary(x => x.Key, x => x.Value);
 		}
+		/// <summary>
+		/// Counts how many times something that implements <see cref="ITimeInterface"/> has occurred within a given timeframe.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="timeList"></param>
+		/// <param name="timeFrame"></param>
+		/// <returns></returns>
 		public static int CountItemsInTimeFrame<T>(this List<T> timeList, int timeFrame = 0) where T : ITimeInterface
 		{
 			lock (timeList)
@@ -339,26 +392,6 @@ namespace Advobot
 			}
 		}
 
-		public static string[] SplitByCharExceptInQuotes(this string inputString, char inputChar)
-		{
-			if (inputString == null)
-			{
-				return null;
-			}
-
-			return inputString.Split('"').Select((element, index) =>
-			{
-				if (index % 2 == 0)
-				{
-					return element.Split(new[] { inputChar }, StringSplitOptions.RemoveEmptyEntries);
-				}
-				else
-				{
-					return new[] { element };
-				}
-			}).SelectMany(x => x).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
-		}
-
 		/// <summary>
 		/// Returns the service from the provider with the supplied type.
 		/// </summary>
@@ -368,6 +401,16 @@ namespace Advobot
 		public static T GetService<T>(this IServiceProvider provider)
 		{
 			return (T)provider.GetService(typeof(T));
+		}
+		/// <summary>
+		/// Returns the attribute from the class type with the supplied type.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="classType"></param>
+		/// <returns></returns>
+		public static T GetCustomAttribute<T>(this Type classType) where T : Attribute
+		{
+			return (T)classType.GetCustomAttribute(typeof(T));
 		}
 	}
 }

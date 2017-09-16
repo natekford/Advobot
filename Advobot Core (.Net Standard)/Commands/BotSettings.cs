@@ -243,7 +243,7 @@ namespace Advobot.Commands.BotSettings
 		[Command, Priority(0)]
 		public async Task Command([OverrideTypeReader(typeof(BotSettingTypeReader))] PropertyInfo setting)
 		{
-			var desc = await FormattingActions.FormatBotSettingInfo(Context.Client, Context.BotSettings, setting);
+			var desc = await FormattingActions.FormatBotSetting(Context.Client, setting.GetValue(Context.BotSettings));
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 			{
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(setting.Name, desc));
