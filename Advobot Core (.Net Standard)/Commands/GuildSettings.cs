@@ -320,7 +320,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(ModifyGuildNotifs)), Alias("mgn")]
+	[Group(nameof(ModifyGuildNotifs)), Alias("mgnt")]
 	[Usage("[Welcome|Goodbye] [Channel] <\"Content:string\"> <\"Title:string\"> <\"Desc:string\"> <\"Thumb:string\">")]
 	[Summary("The bot send a message to the given channel when the self explantory event happens. `{User}` will be replaced with the formatted user.  `{UserMention}` will be replaced with a mention of the joining user.")]
 	[PermissionRequirement(null, null)]

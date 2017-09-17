@@ -94,7 +94,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Holds information about a command. 
 	/// </summary>
-	public struct LoggedCommand
+	public class LoggedCommand
 	{
 		private static readonly string _Joiner = Environment.NewLine + new string(' ', 28);
 		public string Guild { get; }

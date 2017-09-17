@@ -8,6 +8,7 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -283,7 +284,7 @@ namespace Advobot.Commands.BotSettings
 			var attach = Context.Message.Attachments.Where(x => x.Width != null && x.Height != null).Select(x => x.Url);
 			var embeds = Context.Message.Embeds.Where(x => x.Image.HasValue).Select(x => x.Image?.Url);
 			var validImages = attach.Concat(embeds);
-			if (validImages.Count() == 0)
+			if (!validImages.Any())
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image());
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the bot's icon.");
@@ -295,16 +296,23 @@ namespace Advobot.Commands.BotSettings
 				return;
 			}
 
-			var imageURL = validImages.First();
-			var fileType = await UploadActions.GetFileTypeOrSayErrors(Context, imageURL);
-			if (fileType == null)
+			var imageUrl = validImages.First();
+			if (!UploadActions.TryGetFileType(Context, imageUrl, out string fileType, out string errorReason))
+			{
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(errorReason));
 				return;
+			}
 
 			var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.BOT_ICON_LOCATION + fileType);
-			using (var webClient = new System.Net.WebClient())
+			using (var webClient = new WebClient())
 			{
-				webClient.DownloadFileAsync(new Uri(imageURL), fileInfo.FullName);
-				webClient.DownloadFileCompleted += async (sender, e) => await UploadActions.SetIcon(sender, e, Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(fileInfo.FullName)), Context, fileInfo);
+				webClient.DownloadFileAsync(new Uri(imageUrl), fileInfo.FullName);
+				webClient.DownloadFileCompleted += async (sender, e) =>
+				{
+					await ClientActions.ModifyBotIcon(Context.Client, fileInfo);
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully changed the bot's icon.");
+					SavingAndLoadingActions.DeleteFile(fileInfo);
+				};
 			}
 		}
 	}

@@ -54,12 +54,12 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ChangeGuildName)), Alias("cgn")]
+	[Group(nameof(ModifyGuildName)), Alias("mgn")]
 	[Usage("[Name]")]
 	[Summary("Change the name of the guild to the given name.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeGuildName : MyModuleBase
+	public sealed class ModifyGuildName : MyModuleBase
 	{
 		[Command]
 		public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
@@ -69,12 +69,12 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ChangeGuildRegion)), Alias("cgr")]
+	[Group(nameof(ModifyGuildRegion)), Alias("mgr")]
 	[Usage("<Current|Region ID>")]
 	[Summary("Shows or changes the guild's server region. Inputting nothing lists all valid region IDs.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeGuildRegion : MyModuleBase
+	public sealed class ModifyGuildRegion : MyModuleBase
 	{
 		private static readonly string[] _ValidRegionIDs =
 		{
@@ -127,12 +127,12 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ChangeGuildAFKTimer)), Alias("cgafkt")]
+	[Group(nameof(ModifyGuildAFKTimer)), Alias("mgafkt")]
 	[Usage("[Number]")]
 	[Summary("Updates the guild's AFK timeout.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeGuildAFKTimer : MyModuleBase
+	public sealed class ModifyGuildAFKTimer : MyModuleBase
 	{
 		private static readonly uint[] _AFKTimes = { 60, 300, 900, 1800, 3600 };
 
@@ -150,12 +150,12 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ChangeGuildAFKChannel)), Alias("cgafkc")]
+	[Group(nameof(ModifyGuildAFKChannel)), Alias("mgafkc")]
 	[Usage("[Channel]")]
 	[Summary("Updates the guild's AFK channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeGuildAFKChannel : MyModuleBase
+	public sealed class ModifyGuildAFKChannel : MyModuleBase
 	{
 		[Command]
 		public async Task Command(IVoiceChannel channel)
@@ -165,12 +165,12 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ChangeGuildMsgNotif)), Alias("cgmn")]
+	[Group(nameof(ModifyGuildMsgNotif)), Alias("mgmn")]
 	[Usage("[AllMessages|MentionsOnly]")]
 	[Summary("Changes the message notifications to either all messages or mentions only.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeGuildMsgNotif : MyModuleBase
+	public sealed class ModifyGuildMsgNotif : MyModuleBase
 	{
 		[Command]
 		public async Task Command(DefaultMessageNotifications msgNotifs)
@@ -180,12 +180,12 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ChangeGuildVerif)), Alias("cgv")]
+	[Group(nameof(ModifyGuildVerif)), Alias("mgv")]
 	[Usage("[None|Low|Medium|High|Extreme]")]
 	[Summary("Changes the verification level. None is the most lenient (no requirements to type), high is the harshest (10 minutes in the guild before new members can type).")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeGuildVerif : MyModuleBase
+	public sealed class ModifyGuildVerif : MyModuleBase
 	{
 		[Command]
 		public async Task Command(VerificationLevel verif)
@@ -195,20 +195,20 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ChangeGuildIcon)), Alias("cgi")]
+	[Group(nameof(ModifyGuildIcon)), Alias("mgi")]
 	[Usage("<Attached Image|Embedded Image>")]
 	[Summary("Changes the guild's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the guild's icon.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeGuildIcon : MyModuleBase
+	public sealed class ModifyGuildIcon : MyModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command()
+		public async Task Command([Optional] string input)
 		{
 			var attach = Context.Message.Attachments.Where(x => x.Width != null && x.Height != null).Select(x => x.Url);
 			var embeds = Context.Message.Embeds.Where(x => x.Image.HasValue).Select(x => x.Image?.Url);
 			var validImages = attach.Concat(embeds);
-			if (validImages.Count() == 0)
+			if (!validImages.Any())
 			{
 				await Context.Guild.ModifyAsync(x => x.Icon = new Image());
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the guild's icon.");
@@ -220,16 +220,23 @@ namespace Advobot.Commands.GuildModeration
 				return;
 			}
 
-			var imageURL = validImages.First();
-			var fileType = await UploadActions.GetFileTypeOrSayErrors(Context, imageURL);
-			if (fileType == null)
+			var imageUrl = validImages.First();
+			if (!UploadActions.TryGetFileType(Context, imageUrl, out string fileType, out string errorReason))
+			{
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(errorReason));
 				return;
+			}
 
 			var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_ICON_LOCATION + fileType);
 			using (var webClient = new System.Net.WebClient())
 			{
-				webClient.DownloadFileAsync(new Uri(imageURL), fileInfo.FullName);
-				webClient.DownloadFileCompleted += async (sender, e) => await UploadActions.SetIcon(sender, e, GuildActions.ModifyGuildIcon(Context.Guild, fileInfo, FormattingActions.FormatUserReason(Context.User)), Context, fileInfo);
+				webClient.DownloadFileAsync(new Uri(imageUrl), fileInfo.FullName);
+				webClient.DownloadFileCompleted += async (sender, e) =>
+				{
+					await GuildActions.ModifyGuildIcon(Context.Guild, fileInfo, FormattingActions.FormatUserReason(Context.User));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully changed the guild's icon.");
+					SavingAndLoadingActions.DeleteFile(fileInfo);
+				};
 			}
 		}
 	}
@@ -254,12 +261,12 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ChangeGuildOwner)), Alias("cgo")]
+	[Group(nameof(SwapGuildOwner)), Alias("sgo")]
 	[Usage("")]
 	[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeGuildOwner : MyModuleBase
+	public sealed class SwapGuildOwner : MyModuleBase
 	{
 		[Command]
 		public async Task Command()

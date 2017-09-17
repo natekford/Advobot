@@ -75,7 +75,10 @@ namespace Advobot.Actions
 		}
 		public static async Task ModifyGuildIcon(IGuild guild, FileInfo fileInfo, string reason)
 		{
-			await guild.ModifyAsync(x => x.Icon = new Image(fileInfo.FullName), new RequestOptions { AuditLogReason = reason });
+			using (var stream = new StreamReader(fileInfo.FullName))
+			{
+				await guild.ModifyAsync(x => x.Icon = new Image(stream.BaseStream), new RequestOptions { AuditLogReason = reason });
+			}
 		}
 	}
 }

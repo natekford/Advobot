@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Advobot.Actions
 {
@@ -92,6 +93,20 @@ namespace Advobot.Actions
 				await ((DiscordShardedClient)client).SetGameAsync(game, stream, streamType);
 			}
 		}
+		/// <summary>
+		/// Updates the bot's icon to the given image.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="fileInfo"></param>
+		/// <returns></returns>
+		public static async Task ModifyBotIcon(IDiscordClient client, FileInfo fileInfo)
+		{
+			using (var stream = new StreamReader(fileInfo.FullName))
+			{
+				await client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream.BaseStream));
+			}
+		}
+
 		/// <summary>
 		/// Returns the shard Id for a <see cref="DiscordSocketClient"/> else returns -1.
 		/// </summary>

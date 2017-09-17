@@ -29,53 +29,33 @@ namespace Advobot.Actions
 			return msg;
 		}
 
-		public static async Task<string> GetFileTypeOrSayErrors(IMyCommandContext context, string imageURL)
+		public static bool TryGetFileType(IMyCommandContext context, string imageUrl, out string fileType, out string errorReason)
 		{
-			string fileType;
-			var req = WebRequest.Create(imageURL);
+			fileType = "";
+			errorReason = "";
+
+			var req = WebRequest.Create(imageUrl);
 			req.Method = WebRequestMethods.Http.Head;
 			using (var resp = req.GetResponse())
 			{
 				if (!Constants.VALID_IMAGE_EXTENSIONS.Contains(fileType = "." + resp.Headers.Get("Content-Type").Split('/').Last()))
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR("Image must be a png or jpg."));
+					errorReason = "Image must be a png or jpg.";
 				}
 				else if (!int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR("Unable to get the image's file size."));
+					errorReason = "Unable to get the image's file size.";
 				}
 				else if (ContentLength > Constants.MAX_ICON_FILE_SIZE)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR($"Image is bigger than {(double)Constants.MAX_ICON_FILE_SIZE / 1000000:0.0}MB. Manually upload instead."));
+					errorReason = $"Image is bigger than {(double)Constants.MAX_ICON_FILE_SIZE / 1000000:0.0}MB. Manually upload instead.";
 				}
 				else
 				{
-					return fileType;
+					return true;
 				}
 			}
-			return null;
-		}
-		public static async Task SetIcon(object sender, System.ComponentModel.AsyncCompletedEventArgs e, Task iconSetter, IMyCommandContext context, FileInfo fileInfo)
-		{
-			await iconSetter.ContinueWith(async prevTask =>
-			{
-				if (prevTask?.Exception?.InnerExceptions?.Any() ?? false)
-				{
-					var exceptionMessages = new List<string>();
-					foreach (var exception in prevTask.Exception.InnerExceptions)
-					{
-						ConsoleActions.ExceptionToConsole(exception);
-						exceptionMessages.Add(exception.Message);
-					}
-					await MessageActions.SendChannelMessage(context, $"Failed to change the bot icon. Following exceptions occurred:\n{String.Join("\n", exceptionMessages)}.");
-				}
-				else
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(context, "Successfully changed the bot icon.");
-				}
-
-				SavingAndLoadingActions.DeleteFile(fileInfo);
-			});
+			return false;
 		}
 
 		public static bool ValidateURL(string input)

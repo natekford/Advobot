@@ -238,55 +238,6 @@ namespace Advobot.Actions
 				.MyAddFooter("Version " + Constants.BOT_VERSION);
 		}
 
-		public static List<string> FormatMessages(IEnumerable<IMessage> list)
-		{
-			return list.Select(x => FormatMessage(x)).ToList();
-		}
-		public static string FormatMessage(IMessage message)
-		{
-			var time = message.CreatedAt.ToString("HH:mm:ss");
-			var author = message.Author.FormatUser();
-			var channel = message.Channel.FormatChannel();
-			var text = FormatMessageContent(message).RemoveAllMarkdown().RemoveDuplicateNewLines();
-			return $"`[{time}]` `{author}` **IN** `{channel}`\n```\n{text}```";
-		}
-		public static string FormatMessageContent(IMessage message)
-		{
-			var sb = new StringBuilder().AppendLineFeed(String.IsNullOrEmpty(message.Content) ? "Empty message content" : message.Content);
-
-			if (message.Embeds.Any())
-			{
-				var descriptions = message.Embeds.Where(x => x.Description != null || x.Url != null || x.Image.HasValue).Select(x =>
-				{
-					if (x.Url != null)
-					{
-						return $"{x.Description} URL: {x.Url}";
-					}
-					if (x.Image.HasValue)
-					{
-						return $"{x.Description} IURL: {x.Image.Value.Url}";
-					}
-					else
-					{
-						return x.Description;
-					}
-				}).ToArray();
-
-				var formattedDescriptions = "";
-				for (int i = 0; i < descriptions.Length; ++i)
-				{
-					formattedDescriptions += $"Embed {i + 1}: {descriptions[i]}";
-				}
-
-				sb.AppendLineFeed(formattedDescriptions);
-			}
-			if (message.Attachments.Any())
-			{
-				sb.Append(" + " + String.Join(" + ", message.Attachments.Select(x => x.Filename)));
-			}
-			return sb.ToString();
-		}
-
 		/// <summary>
 		/// Returns a formatted string displaying the bot's current uptime.
 		/// </summary>
@@ -590,16 +541,16 @@ namespace Advobot.Actions
 
 		public static string FormatGame(IUser user)
 		{
-			var game = user.Game;
-			switch (game?.StreamType)
+			var game = user.Game.Value;
+			switch (game.StreamType)
 			{
 				case StreamType.NotStreaming:
 				{
-					return $"**Current Game:** `{game?.Name.EscapeBackTicks()}`";
+					return $"**Current Game:** `{game.Name.EscapeBackTicks()}`";
 				}
 				case StreamType.Twitch:
 				{
-					return $"**Current Stream:** [{game?.Name.EscapeBackTicks()}]({game?.StreamUrl})";
+					return $"**Current Stream:** [{game.Name.EscapeBackTicks()}]({game.StreamUrl})";
 				}
 				default:
 				{
@@ -609,28 +560,26 @@ namespace Advobot.Actions
 		}
 		public static string FormatUserStayLength(IGuildUser user)
 		{
-			var timeStayedStr = "";
 			if (user.JoinedAt.HasValue)
 			{
 				var timeStayed = (DateTime.UtcNow - user.JoinedAt.Value.ToUniversalTime());
-				timeStayedStr = $"\n**Stayed for:** {timeStayed.Days}:{timeStayed.Hours:00}:{timeStayed.Minutes:00}:{timeStayed.Seconds:00}";
+				return $"\n**Stayed for:** {timeStayed.Days}:{timeStayed.Hours:00}:{timeStayed.Minutes:00}:{timeStayed.Seconds:00}";
 			}
-			return timeStayedStr;
+			return "";
 		}
 		public static async Task<string> FormatUserInviteJoin(IGuildSettings guildSettings, IGuild guild)
 		{
 			var curInv = await InviteActions.GetInviteUserJoinedOn(guildSettings, guild);
-			return curInv == null ? "" : $"\n**Invite:** {curInv.Code}";
+			return curInv != null ? $"\n**Invite:** {curInv.Code}" : "";
 		}
 		public static string FormatUserAccountAgeWarning(IUser user)
 		{
 			var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
-			var ageWarningStr = "";
 			if (userAccAge.TotalHours < 24)
 			{
-				ageWarningStr = $"\n**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
+				return $"\n**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
 			}
-			return ageWarningStr;
+			return "";
 		}
 
 		public static string FormatUser(this IUser user)
@@ -677,6 +626,44 @@ namespace Advobot.Actions
 			{
 				return "Irretrievable Guild";
 			}
+		}
+		public static string FormatMessage(this IMessage message)
+		{
+			var time = message.CreatedAt.ToString("HH:mm:ss");
+			var author = message.Author.FormatUser();
+			var channel = message.Channel.FormatChannel();
+			var text = FormatMessageContent(message).RemoveAllMarkdown().RemoveDuplicateNewLines();
+			return $"`[{time}]` `{author}` **IN** `{channel}`\n```\n{text}```";
+		}
+		public static string FormatMessageContent(IMessage message)
+		{
+			var sb = new StringBuilder((String.IsNullOrEmpty(message.Content) ? "Empty message content" : message.Content) + "\n");
+
+			if (message.Embeds.Any())
+			{
+				var validEmbeds = message.Embeds.Where(x => x.Description != null || x.Url != null || x.Image.HasValue);
+				var formattedDescriptions = validEmbeds.Select((x, index) =>
+				{
+					var tempSb = new StringBuilder($"Embed {index + 1}: {x.Description ?? "No description"}");
+					if (x.Url != null)
+					{
+						tempSb.Append($" URL: {x.Url}");
+					}
+					if (x.Image.HasValue)
+					{
+						tempSb.Append($" IURL: {x.Image.Value.Url}");
+					}
+					return tempSb.ToString();
+				});
+
+				sb.AppendLineFeed(String.Join("\n", formattedDescriptions));
+			}
+			if (message.Attachments.Any())
+			{
+				sb.Append(" + " + String.Join(" + ", message.Attachments.Select(x => x.Filename)));
+			}
+
+			return sb.ToString();
 		}
 
 		/// <summary>

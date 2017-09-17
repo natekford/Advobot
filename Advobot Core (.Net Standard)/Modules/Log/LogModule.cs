@@ -553,7 +553,7 @@ namespace Advobot.Modules.Log
 					}
 
 					//Put the message content into a list of strings for easy usage
-					var formattedMessages = FormattingActions.FormatMessages(deletedMessages.OrderBy(x => x?.CreatedAt.Ticks));
+					var formattedMessages = deletedMessages.OrderBy(x => x?.CreatedAt.Ticks).Select(x => x.FormatMessage());
 					await MessageActions.SendMessageContainingFormattedDeletedMessages(verified.Guild, verified.GuildSettings.ServerLog, formattedMessages);
 				});
 			}

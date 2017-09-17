@@ -273,7 +273,7 @@ namespace Advobot.Actions
 				ConsoleActions.WriteLine($"Unable to delete the message {message.Id} on channel {message.Channel.FormatChannel()}.", color: ConsoleColor.Red);
 			}
 		}
-		public static async Task SendMessageContainingFormattedDeletedMessages(IGuild guild, ITextChannel channel, List<string> inputList)
+		public static async Task SendMessageContainingFormattedDeletedMessages(IGuild guild, ITextChannel channel, IEnumerable<string> inputList)
 		{
 			if (!inputList.Any())
 			{
@@ -281,9 +281,9 @@ namespace Advobot.Actions
 			}
 
 			var characterCount = 0;
-			inputList.ForEach(x => characterCount += (x.Length + 100));
+			inputList.ToList().ForEach(x => characterCount += (x.Length + 100));
 
-			if (inputList.Count <= 5 && characterCount < Constants.MAX_MESSAGE_LENGTH_LONG)
+			if (inputList.Count() <= 5 && characterCount < Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
 				var embed = EmbedActions.MakeNewEmbed("Deleted Messages", String.Join("\n", inputList), Constants.MDEL)
 					.MyAddFooter("Deleted Messages");
@@ -293,7 +293,7 @@ namespace Advobot.Actions
 			{
 				var text = String.Join("\n-----\n", inputList).RemoveAllMarkdown().RemoveDuplicateNewLines();
 				var name = "Deleted_Messages_";
-				var content = $"{inputList.Count} Deleted Messages";
+				var content = $"{inputList.Count()} Deleted Messages";
 				await UploadActions.WriteAndUploadTextFile(guild, channel, text, name, content);
 			}
 		}
