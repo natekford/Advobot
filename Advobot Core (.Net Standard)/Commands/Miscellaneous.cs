@@ -2,6 +2,7 @@
 using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Permissions;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -548,7 +549,7 @@ namespace Advobot.Commands.Miscellaneous
 		[Command(nameof(Target.Guild))]
 		public async Task CommandGuild(ulong permNum)
 		{
-			var perms = GetActions.GetGuildPermissionNames(permNum);
+			var perms = GuildPerms.ConvertValueToNames(permNum);
 			if (!perms.Any())
 			{
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The given number holds no permissions."));
@@ -561,7 +562,7 @@ namespace Advobot.Commands.Miscellaneous
 		[Command(nameof(Target.Channel))]
 		public async Task CommandChannel(ulong permNum)
 		{
-			var perms = GetActions.GetChannelPermissionNames(permNum);
+			var perms = ChannelPerms.ConvertValueToNames(permNum);
 			if (!perms.Any())
 			{
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The given number holds no permissions."));

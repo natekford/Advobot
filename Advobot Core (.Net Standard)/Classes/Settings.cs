@@ -1,6 +1,7 @@
 ﻿using Advobot.Actions;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Advobot.Permissions;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -295,6 +296,44 @@ namespace Advobot.Classes
 		[JsonIgnore]
 		public bool Loaded { get; private set; } = false;
 
+		/// <summary>
+		/// Returns commands from guildsettings that are in a specific category.
+		/// </summary>
+		/// <param name="guildSettings"></param>
+		/// <param name="category"></param>
+		/// <returns></returns>
+		public CommandSwitch[] GetCommands(CommandCategory category)
+		{
+			return CommandSwitches.Where(x => x.Category == category).ToArray();
+		}
+		/// <summary>
+		/// Returns a command from guildsettings with the passed in command name/alias.
+		/// </summary>
+		/// <param name="guildSettings"></param>
+		/// <param name="commandNameOrAlias"></param>
+		/// <returns></returns>
+		public CommandSwitch GetCommand(string commandNameOrAlias)
+		{
+			return CommandSwitches.FirstOrDefault(x =>
+			{
+				if (x.Name.CaseInsEquals(commandNameOrAlias))
+				{
+					return true;
+				}
+				else if (x.Aliases != null && x.Aliases.CaseInsContains(commandNameOrAlias))
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			});
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public void SaveSettings()
 		{
 			if (Guild != null)
@@ -302,12 +341,19 @@ namespace Advobot.Classes
 				SavingAndLoadingActions.OverWriteFile(GetActions.GetServerDirectoryFile(Guild.Id, Constants.GUILD_SETTINGS_LOCATION), SavingAndLoadingActions.Serialize(this));
 			}
 		}
+		/// <summary>
+		/// Removes some potential null values and sets channels/roles for some settings.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <returns></returns>
 		public async Task<IGuildSettings> PostDeserialize(IGuild guild)
 		{
 			Guild = guild as SocketGuild;
 
-			var unsetCmdSwitches = Constants.HELP_ENTRIES.Where(x => !CommandSwitches.Select(y => y.Name).CaseInsContains(x.Name)).Select(x => new CommandSwitch(x.Name, x.DefaultEnabled));
-			CommandSwitches.AddRange(unsetCmdSwitches);
+			CommandSwitches.AddRange(Constants.HELP_ENTRIES.Where(x =>
+			{
+				return !CommandSwitches.Select(y => y.Name).CaseInsContains(x.Name);
+			}).Select(x => new CommandSwitch(x.Name, x.DefaultEnabled)));
 			CommandSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
@@ -338,7 +384,6 @@ namespace Advobot.Classes
 			}
 
 			Loaded = true;
-
 			return this;
 		}
 	}

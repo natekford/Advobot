@@ -334,7 +334,7 @@ namespace Advobot.Modules.Log
 				if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentURL)))
 				{
 					var desc = $"**Channel:** `{message.Channel.FormatChannel()}`\n**Message Id:** `{message.Id}`";
-					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL)
+					var embed = EmbedActions.MakeNewEmbed(null, desc, Colors.ATCH, attachmentURL)
 						.MyAddAuthor(message.Author, attachmentURL)
 						.MyAddFooter("Attached Image");
 					await MessageActions.SendEmbedMessage(channel, embed);
@@ -345,7 +345,7 @@ namespace Advobot.Modules.Log
 				else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL)))
 				{
 					var desc = $"**Channel:** `{message.Channel.FormatChannel()}`\n**Message Id:** `{message.Id}`";
-					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL)
+					var embed = EmbedActions.MakeNewEmbed(null, desc, Colors.ATCH, attachmentURL)
 						.MyAddAuthor(message.Author, attachmentURL)
 						.MyAddFooter("Attached Gif");
 					await MessageActions.SendEmbedMessage(channel, embed);
@@ -356,7 +356,7 @@ namespace Advobot.Modules.Log
 				else
 				{
 					var desc = $"**Channel:** `{message.Channel.FormatChannel()}`\n**Message Id:** `{message.Id}`";
-					var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, attachmentURL)
+					var embed = EmbedActions.MakeNewEmbed(null, desc, Colors.ATCH, attachmentURL)
 						.MyAddAuthor(message.Author, attachmentURL)
 						.MyAddFooter("Attached File");
 					await MessageActions.SendEmbedMessage(channel, embed);
@@ -368,7 +368,7 @@ namespace Advobot.Modules.Log
 			foreach (var embedURL in embedURLs.Distinct())
 			{
 				var desc = $"**Channel:** `{message.Channel.FormatChannel()}`\n**Message Id:** `{message.Id}`";
-				var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, embedURL)
+				var embed = EmbedActions.MakeNewEmbed(null, desc, Colors.ATCH, embedURL)
 					.MyAddAuthor(message.Author, embedURL)
 					.MyAddFooter("Embedded Image");
 				await MessageActions.SendEmbedMessage(channel, embed);
@@ -379,7 +379,7 @@ namespace Advobot.Modules.Log
 			foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First()))
 			{
 				var desc = $"**Channel:** `{message.Channel.FormatChannel()}`\n**Message Id:** `{message.Id}`";
-				var embed = EmbedActions.MakeNewEmbed(null, desc, Constants.ATCH, videoEmbed.Thumbnail?.Url)
+				var embed = EmbedActions.MakeNewEmbed(null, desc, Colors.ATCH, videoEmbed.Thumbnail?.Url)
 					.MyAddAuthor(message.Author, videoEmbed.Url)
 					.MyAddFooter("Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
 				await MessageActions.SendEmbedMessage(channel, embed);

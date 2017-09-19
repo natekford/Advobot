@@ -115,22 +115,10 @@ namespace Advobot
 			".gif",
 			".gifv",
 		}));
-		private static ReadOnlyCollection<string> _TEST_PHRASES;
-		public static ReadOnlyCollection<string> TEST_PHRASES => _TEST_PHRASES ?? (_TEST_PHRASES = new ReadOnlyCollection<string>(new List<string>
-		{
-			"Ӽ1(",
-			"Ϯ3|",
-			"⁊a~",
-			"[&r",
-		}));
 		private static ReadOnlyCollection<HelpEntry> _HELP_ENTRIES;
 		public static ReadOnlyCollection<HelpEntry> HELP_ENTRIES => _HELP_ENTRIES ?? (_HELP_ENTRIES = new ReadOnlyCollection<HelpEntry>(GetActions.GetHelpList()));
 		private static ReadOnlyCollection<string> _COMMAND_NAMES;
 		public static ReadOnlyCollection<string> COMMAND_NAMES => _COMMAND_NAMES ?? (_COMMAND_NAMES = new ReadOnlyCollection<string>(GetActions.GetCommandNames()));
-		private static ReadOnlyCollection<BotGuildPermission> _GUILD_PERMISSIONS; //Stuff has to be in this notation because lol static initializers
-		public static ReadOnlyCollection<BotGuildPermission> GUILD_PERMISSIONS => _GUILD_PERMISSIONS ?? (_GUILD_PERMISSIONS = new ReadOnlyCollection<BotGuildPermission>(GetActions.GetGuildPermissions()));
-		private static ReadOnlyCollection<BotChannelPermission> _CHANNEL_PERMISSIONS;
-		public static ReadOnlyCollection<BotChannelPermission> CHANNEL_PERMISSIONS => _CHANNEL_PERMISSIONS ?? (_CHANNEL_PERMISSIONS = new ReadOnlyCollection<BotChannelPermission>(GetActions.GetChannelPermissions()));
 
 		//Because the enum values might change in the future. These are never saved in JSON so these can be modified
 		private static ReadOnlyDictionary<PunishmentType, int> _PUNISHMENT_SEVERITY;
@@ -143,6 +131,14 @@ namespace Advobot
 			{ PunishmentType.KickThenBan, 750 },
 			{ PunishmentType.Ban, 1000 },
 		}));
+
+		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)
+		public static Type GUILD_SETTINGS_TYPE { get; } = typeof(MyGuildSettings); //IGuildSettings
+		public static Type BOT_SETTINGS_TYPE { get; } = typeof(MyBotSettings); //IBotSettings
+	}
+
+	public static class Colors
+	{
 		private static ReadOnlyDictionary<string, Color> _COLORS;
 		public static ReadOnlyDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = new ReadOnlyDictionary<string, Color>(GetActions.GetColorDictionary()));
 
@@ -153,9 +149,5 @@ namespace Advobot
 		public static Color ATCH { get; } = new Color(000, 204, 204);
 		public static Color MEDT { get; } = new Color(000, 000, 255);
 		public static Color MDEL { get; } = new Color(255, 051, 051);
-
-		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)
-		public static Type GUILD_SETTINGS_TYPE { get; } = typeof(MyGuildSettings); //IGuildSettings
-		public static Type BOT_SETTINGS_TYPE { get; } = typeof(MyBotSettings); //IBotSettings
 	}
 }

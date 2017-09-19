@@ -132,7 +132,7 @@ namespace Advobot.TypeReaders
 		{
 			Color? color = null;
 			//By name
-			if (Constants.COLORS.TryGetValue(input, out Color temp))
+			if (Colors.COLORS.TryGetValue(input, out Color temp))
 			{
 				color = temp;
 			}

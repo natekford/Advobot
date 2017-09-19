@@ -6,6 +6,7 @@ using Discord.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Advobot.Permissions;
 
 namespace Advobot.Attributes
 {
@@ -67,8 +68,8 @@ namespace Advobot.Attributes
 			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 		}
 
-		public string AllText => String.Join(" & ", GetActions.GetGuildPermissionNames(_AllFlags));
-		public string AnyText => String.Join(" | ", GetActions.GetGuildPermissionNames(_AnyFlags));
+		public string AllText => String.Join(" & ", GuildPerms.ConvertValueToNames(_AllFlags));
+		public string AnyText => String.Join(" | ", GuildPerms.ConvertValueToNames(_AnyFlags));
 
 		public override string ToString()
 		{
@@ -206,7 +207,7 @@ namespace Advobot.Attributes
 		{
 			//Use the first alias since that's what group gets set as (could use any alias since GetCommand works for aliases too)
 			//Doing a split since subcommands (in this bot's case) are simply easy to use options on a single command
-			var cmd = GetActions.GetCommand(context.GuildSettings, command.Aliases[0].Split(' ')[0]);
+			var cmd = context.GuildSettings.GetCommand(command.Aliases[0].Split(' ')[0]);
 			if (!cmd.Value)
 			{
 				return false;

@@ -43,28 +43,21 @@ namespace Advobot.Classes
 	{
 		[JsonProperty]
 		public string Name { get; }
-		[JsonIgnore]
-		public ReadOnlyCollection<string> Aliases { get; }
 		[JsonProperty]
 		public bool Value { get; private set; }
-		[JsonProperty]
+		[JsonIgnore]
+		public ReadOnlyCollection<string> Aliases { get; }
+		[JsonIgnore]
 		public CommandCategory Category { get; }
-
 		[JsonIgnore]
 		public string ValueAsString { get => Value ? "ON" : "OFF"; }
-		[JsonIgnore]
-		public string CategoryName { get => Category.EnumName(); }
-		[JsonIgnore]
-		public int CategoryValue { get => (int)Category; }
 
 		public CommandSwitch(string name, bool value)
 		{
 			var helpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.Equals(name));
 			if (helpEntry == null)
 			{
-				//TODO: uncomment this when all commands have been put back in
-				//throw new ArgumentException("Command name does not have a help entry.");
-				return;
+				throw new ArgumentException($"{name} does not have a help entry.");
 			}
 
 			Name = name;

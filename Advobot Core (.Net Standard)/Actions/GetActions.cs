@@ -2,6 +2,7 @@
 using Advobot.Classes;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Advobot.Permissions;
 using Discord;
 using Discord.Commands;
 using System;
@@ -21,29 +22,27 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static Dictionary<string, Color> GetColorDictionary()
 		{
-			var dict = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase);
-			foreach (var color in typeof(Color).GetFields().Where(x => x.IsPublic))
-			{
-				dict.Add(color.Name, (Color)color.GetValue(new Color()));
-			}
-			return dict;
+			return typeof(Color).GetFields().Where(x => x.IsPublic).ToDictionary(
+				x => x.Name, 
+				x => (Color)x.GetValue(new Color()), 
+				StringComparer.OrdinalIgnoreCase);
 		}
 		/// <summary>
 		/// Returns a list of every command's help entry.
 		/// </summary>
 		/// <returns></returns>
-		public static List<HelpEntry> GetHelpList()
+		public static IList<HelpEntry> GetHelpList()
 		{
 			var temp = new List<HelpEntry>();
-			foreach (var classType in Assembly.GetCallingAssembly().GetTypes().Where(x => x.IsSubclassOf(typeof(MyModuleBase))))
+
+			var types = Assembly.GetExecutingAssembly().GetTypes();
+			var cmds = types.Where(x => x.IsSubclassOf(typeof(MyModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null);
+			foreach (var classType in cmds)
 			{
 				var innerMostNameSpace = classType.Namespace.Substring(classType.Namespace.LastIndexOf('.') + 1);
 				if (!Enum.TryParse(innerMostNameSpace, true, out CommandCategory category))
 				{
-#if DEBUG
-					ConsoleActions.WriteLine(innerMostNameSpace + " is not currently in the CommandCategory enum.");
-#endif
-					continue;
+					throw new InvalidOperationException(innerMostNameSpace + " is not currently in the CommandCategory enum.");
 				}
 				else if (classType.IsNotPublic)
 				{
@@ -85,82 +84,19 @@ namespace Advobot.Actions
 		/// <summary>
 		/// Returns a list of every command's name.
 		/// </summary>
-		/// <param name="helpEntries"></param>
 		/// <returns></returns>
-		public static List<string> GetCommandNames()
+		public static IList<string> GetCommandNames()
 		{
 			return Constants.HELP_ENTRIES.Select(x => x.Name).ToList();
 		}
 		/// <summary>
-		/// Returns a list of every guild permission.
+		/// Returns all names of commands that are in specific category.
 		/// </summary>
+		/// <param name="category"></param>
 		/// <returns></returns>
-		public static List<BotGuildPermission> GetGuildPermissions()
+		public static string[] GetCommandNames(CommandCategory category)
 		{
-			var temp = new List<BotGuildPermission>();
-			for (int i = 0; i < 64; ++i)
-			{
-				var name = Enum.GetName(typeof(GuildPermission), i);
-				if (name == null)
-					continue;
-
-				temp.Add(new BotGuildPermission(name, i));
-			}
-			return temp;
-		}
-		/// <summary>
-		/// Returns a list of every channel permission.
-		/// </summary>
-		/// <returns></returns>
-		public static List<BotChannelPermission> GetChannelPermissions()
-		{
-			const ulong GENERAL_BITS = 0
-				| (1U << (int)ChannelPermission.CreateInstantInvite)
-				| (1U << (int)ChannelPermission.ManageChannel)
-				| (1U << (int)ChannelPermission.ManagePermissions)
-				| (1U << (int)ChannelPermission.ManageWebhooks);
-
-			const ulong TEXT_BITS = 0
-				| (1U << (int)ChannelPermission.ReadMessages)
-				| (1U << (int)ChannelPermission.SendMessages)
-				| (1U << (int)ChannelPermission.SendTTSMessages)
-				| (1U << (int)ChannelPermission.ManageMessages)
-				| (1U << (int)ChannelPermission.EmbedLinks)
-				| (1U << (int)ChannelPermission.AttachFiles)
-				| (1U << (int)ChannelPermission.ReadMessageHistory)
-				| (1U << (int)ChannelPermission.MentionEveryone)
-				| (1U << (int)ChannelPermission.UseExternalEmojis)
-				| (1U << (int)ChannelPermission.AddReactions);
-
-			const ulong VOICE_BITS = 0
-				| (1U << (int)ChannelPermission.Connect)
-				| (1U << (int)ChannelPermission.Speak)
-				| (1U << (int)ChannelPermission.MuteMembers)
-				| (1U << (int)ChannelPermission.DeafenMembers)
-				| (1U << (int)ChannelPermission.MoveMembers)
-				| (1U << (int)ChannelPermission.UseVAD);
-
-			var temp = new List<BotChannelPermission>();
-			for (int i = 0; i < 64; ++i)
-			{
-				var name = Enum.GetName(typeof(ChannelPermission), i);
-				if (name == null)
-					continue;
-
-				if ((GENERAL_BITS & (1U << i)) != 0)
-				{
-					temp.Add(new BotChannelPermission(name, i, gen: true));
-				}
-				if ((TEXT_BITS & (1U << i)) != 0)
-				{
-					temp.Add(new BotChannelPermission(name, i, text: true));
-				}
-				if ((VOICE_BITS & (1U << i)) != 0)
-				{
-					temp.Add(new BotChannelPermission(name, i, voice: true));
-				}
-			}
-			return temp;
+			return Constants.HELP_ENTRIES.Where(x => x.Category == category).Select(x => x.Name).ToArray();
 		}
 
 		/// <summary>
@@ -198,30 +134,22 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static Dictionary<string, string> GetChannelOverwritePermissions(Overwrite overwrite)
 		{
-			var channelPerms = new Dictionary<string, string>();
-			//Make a copy of the channel perm list to check off perms as they go by
-			var genericChannelPerms = Constants.CHANNEL_PERMISSIONS.Select(x => x.Name).ToList();
-			//Add allow perms to the dictionary and remove them from the checklist
-			foreach (var perm in overwrite.Permissions.ToAllowList())
+			//Select the name as the key, then select the permvalue for its value
+			return ChannelPerms.Permissions.ToDictionary(x => x.Name, x =>
 			{
-				channelPerms.Add(perm.ToString(), nameof(PermValue.Allow));
-				genericChannelPerms.Remove(perm.ToString());
-			}
-			//Add deny perms to the dictionary and remove them from the checklist
-			foreach (var perm in overwrite.Permissions.ToDenyList())
-			{
-				channelPerms.Add(perm.ToString(), nameof(PermValue.Deny));
-				genericChannelPerms.Remove(perm.ToString());
-			}
-			//Add the remaining perms as inherit
-			genericChannelPerms.ForEach(x => channelPerms.Add(x, nameof(PermValue.Inherit)));
-
-			//Remove these random values that exist for some reason
-			//Not sure these still exist, but leaving this in. TODO: make sure these aren't here?
-			channelPerms.Remove("1");
-			channelPerms.Remove("3");
-
-			return channelPerms;
+				if ((overwrite.Permissions.AllowValue & x.Value) != 0)
+				{
+					return nameof(PermValue.Allow);
+				}
+				else if ((overwrite.Permissions.DenyValue & x.Value) != 0)
+				{
+					return nameof(PermValue.Deny);
+				}
+				else
+				{
+					return nameof(PermValue.Inherit);
+				}
+			});
 		}
 		/// <summary>
 		/// Returns a similar dictionary to <see cref="GetChannelOverwritePermissions"/> except this method has voice permissions filtered out of text channels and vice versa.
@@ -234,73 +162,19 @@ namespace Advobot.Actions
 			var dictionary = GetChannelOverwritePermissions(overwrite);
 			if (channel is ITextChannel)
 			{
-				foreach (var perm in Constants.CHANNEL_PERMISSIONS.Where(x => x.Voice))
+				foreach (var perm in ChannelPerms.Permissions.Where(x => x.Voice))
 				{
 					dictionary.Remove(perm.Name);
 				}
 			}
 			else
 			{
-				foreach (var perm in Constants.CHANNEL_PERMISSIONS.Where(x => x.Text))
+				foreach (var perm in ChannelPerms.Permissions.Where(x => x.Text))
 				{
 					dictionary.Remove(perm.Name);
 				}
 			}
 			return dictionary;
-		}
-		/// <summary>
-		/// Returns the guild permission bits that are set within the passed in ulong.
-		/// </summary>
-		/// <param name="flags"></param>
-		/// <returns></returns>
-		public static string[] GetGuildPermissionNames(ulong flags)
-		{
-			var result = new List<string>();
-			//Using 64 has this return duplicated permissions.
-			for (int i = 0; i < 32; ++i)
-			{
-				ulong value = 1U << i;
-				if ((flags & value) == 0)
-				{
-					continue;
-				}
-
-				var name = Constants.GUILD_PERMISSIONS.FirstOrDefault(x => x.Value == value).Name;
-				if (String.IsNullOrWhiteSpace(name))
-				{
-					continue;
-				}
-
-				result.Add(name);
-			}
-			return result.ToArray();
-		}
-		/// <summary>
-		/// Returns the channel permission bits that are set within the passed in ulong.
-		/// </summary>
-		/// <param name="flags"></param>
-		/// <returns></returns>
-		public static string[] GetChannelPermissionNames(ulong flags)
-		{
-			var result = new List<string>();
-			//Using 64 has this return duplicated permissions.
-			for (int i = 0; i < 32; ++i)
-			{
-				ulong value = 1U << i;
-				if ((flags & value) == 0)
-				{
-					continue;
-				}
-
-				var name = Constants.CHANNEL_PERMISSIONS.FirstOrDefault(x => x.Value == value).Name;
-				if (String.IsNullOrWhiteSpace(name))
-				{
-					continue;
-				}
-
-				result.Add(name);
-			}
-			return result.ToArray();
 		}
 		/// <summary>
 		/// Returns the channel perms gotten from <see cref="GetFilteredChannelOverwritePermissions"/> formatted with their perm value in front of the perm name.
@@ -314,78 +188,6 @@ namespace Advobot.Actions
 			var perms = GetFilteredChannelOverwritePermissions(channel.PermissionOverwrites.FirstOrDefault(x => overwriteObj.Id == x.TargetId), channel);
 			var maxLen = perms.Keys.Max(x => x.Length);
 			return perms.Select(x => $"{x.Key.PadRight(maxLen)} {x.Value}").ToArray();
-		}
-		/// <summary>
-		/// Returns a bool indicating true if all perms are valid. Out values of valid perms and invalid perms.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <param name="validPerms"></param>
-		/// <param name="invalidPerms"></param>
-		/// <returns>Boolean representing true if all permissions are valid, false if any are invalid.</returns>
-		public static bool TryGetValidGuildPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
-		{
-			var permissions = input.Split('/', ' ').Select(x => x.Trim(','));
-			validPerms = permissions.Where(x => Constants.GUILD_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
-			invalidPerms = permissions.Where(x => !Constants.GUILD_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
-			return !invalidPerms.Any();
-		}
-		/// <summary>
-		/// Returns a bool indicating true if all perms are valid. Out values of valid perms and invalid perms.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <param name="validPerms"></param>
-		/// <param name="invalidPerms"></param>
-		/// <returns>Boolean representing true if all permissions are valid, false if any are invalid.</returns>
-		public static bool TryGetValidChannelPermissionNamesFromInputString(string input, out IEnumerable<string> validPerms, out IEnumerable<string> invalidPerms)
-		{
-			var permissions = input.Split('/', ' ').Select(x => x.Trim(','));
-			validPerms = permissions.Where(x => Constants.CHANNEL_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
-			invalidPerms = permissions.Where(x => !Constants.CHANNEL_PERMISSIONS.Select(y => y.Name).CaseInsContains(x));
-			return !invalidPerms.Any();
-		}
-
-		/// <summary>
-		/// Returns commands from guildsettings that are in a specific category.
-		/// </summary>
-		/// <param name="guildSettings"></param>
-		/// <param name="category"></param>
-		/// <returns></returns>
-		public static CommandSwitch[] GetMultipleCommands(IGuildSettings guildSettings, CommandCategory category)
-		{
-			return guildSettings.CommandSwitches.Where(x => x.Category == category).ToArray();
-		}
-		/// <summary>
-		/// Returns a command from guildsettings with the passed in command name/alias.
-		/// </summary>
-		/// <param name="guildSettings"></param>
-		/// <param name="commandNameOrAlias"></param>
-		/// <returns></returns>
-		public static CommandSwitch GetCommand(IGuildSettings guildSettings, string commandNameOrAlias)
-		{
-			return guildSettings.CommandSwitches.FirstOrDefault(x =>
-			{
-				if (x.Name.CaseInsEquals(commandNameOrAlias))
-				{
-					return true;
-				}
-				else if (x.Aliases != null && x.Aliases.CaseInsContains(commandNameOrAlias))
-				{
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			});
-		}
-		/// <summary>
-		/// Returns all names of commands that are in specific category.
-		/// </summary>
-		/// <param name="category"></param>
-		/// <returns></returns>
-		public static string[] GetCommandNames(CommandCategory category)
-		{
-			return Constants.HELP_ENTRIES.Where(x => x.Category == category).Select(x => x.Name).ToArray();
 		}
 
 		/// <summary>

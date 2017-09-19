@@ -3,6 +3,7 @@ using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Advobot.Permissions;
 using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
@@ -154,7 +155,8 @@ namespace Advobot.Commands.ChannelModeration
 			[Command]
 			public async Task Command()
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Channel Permission Types", $"`{String.Join("`, `", Constants.CHANNEL_PERMISSIONS.Select(x => x.Name))}`"));
+				var desc = $"`{String.Join("`, `", ChannelPerms.Permissions.Select(x => x.Name))}`";
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Channel Permission Types", desc));
 			}
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel)

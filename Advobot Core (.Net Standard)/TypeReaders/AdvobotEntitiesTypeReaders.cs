@@ -33,7 +33,7 @@ namespace Advobot.TypeReaders
 		{
 			if (context is MyCommandContext)
 			{
-				var command = GetActions.GetCommand((context as MyCommandContext).GuildSettings, input);
+				var command = (context as MyCommandContext).GuildSettings.GetCommand(input);
 				if (command != null)
 				{
 					return Task.FromResult(TypeReaderResult.FromSuccess(command));

@@ -349,7 +349,7 @@ namespace Advobot.Modules.Log
 				{
 					var inviteStr = await FormattingActions.FormatUserInviteJoin(verified.GuildSettings, verified.Guild);
 					var ageWarningStr = FormattingActions.FormatUserAccountAgeWarning(user);
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{inviteStr}{ageWarningStr}", Constants.JOIN)
+					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{inviteStr}{ageWarningStr}", Colors.JOIN)
 						.MyAddAuthor(user)
 						.MyAddFooter(user.IsBot ? "Bot Joined" : "User Joined");
 					await MessageActions.SendEmbedMessage(verified.GuildSettings.ServerLog, embed);
@@ -387,7 +387,7 @@ namespace Advobot.Modules.Log
 				}
 				else if (HelperFunctions.VerifyLogAction(verified.GuildSettings))
 				{
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{FormattingActions.FormatUserStayLength(user)}", Constants.LEAV)
+					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{FormattingActions.FormatUserStayLength(user)}", Colors.LEAV)
 						.MyAddAuthor(user)
 						.MyAddFooter(user.IsBot ? "Bot Left" : "User Left");
 					await MessageActions.SendEmbedMessage(verified.GuildSettings.ServerLog, embed);
@@ -418,7 +418,7 @@ namespace Advobot.Modules.Log
 				if (HelperFunctions.VerifyBotLogging(_BotSettings, _GuildSettings, guild, out VerifiedLoggingAction verified) && HelperFunctions.VerifyLogAction(verified.GuildSettings))
 				{
 					this.IncrementUserChanges();
-					var embed = EmbedActions.MakeNewEmbed(null, null, Constants.UEDT)
+					var embed = EmbedActions.MakeNewEmbed(null, null, Colors.UEDT)
 						.MyAddAuthor(afterUser)
 						.MyAddField("Before:", "`" + beforeUser.Username + "`")
 						.MyAddField("After:", "`" + afterUser.Username + "`", false)
@@ -493,7 +493,7 @@ namespace Advobot.Modules.Log
 						afterMsgContent = afterMsgContent.Length > 667 ? "Long message" : afterMsgContent;
 					}
 
-					var embed = EmbedActions.MakeNewEmbed(null, null, Constants.MEDT)
+					var embed = EmbedActions.MakeNewEmbed(null, null, Colors.MEDT)
 						.MyAddAuthor(message.Author)
 						.MyAddField("Before:", $"`{beforeMsgContent}`")
 						.MyAddField("After:", $"`{afterMsgContent}`", false)

@@ -285,7 +285,7 @@ namespace Advobot.Actions
 
 			if (inputList.Count() <= 5 && characterCount < Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
-				var embed = EmbedActions.MakeNewEmbed("Deleted Messages", String.Join("\n", inputList), Constants.MDEL)
+				var embed = EmbedActions.MakeNewEmbed("Deleted Messages", String.Join("\n", inputList), Colors.MDEL)
 					.MyAddFooter("Deleted Messages");
 				await SendEmbedMessage(channel, embed);
 			}

@@ -25,7 +25,7 @@ namespace Advobot.Actions
 			url = UploadActions.ValidateURL(url) ? url : null;
 			thumbnailUrl = UploadActions.ValidateURL(thumbnailUrl) ? thumbnailUrl : null;
 
-			var embed = new EmbedBuilder().WithColor(Constants.BASE);
+			var embed = new EmbedBuilder().WithColor(Colors.BASE);
 			if (title != null)
 			{
 				embed.WithTitle(title.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, title.Length)));

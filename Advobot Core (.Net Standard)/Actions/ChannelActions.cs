@@ -1,5 +1,5 @@
-﻿using Advobot.Classes;
-using Advobot.Enums;
+﻿using Advobot.Enums;
+using Advobot.Permissions;
 using Discord;
 using Discord.Commands;
 using System;
@@ -119,7 +119,7 @@ namespace Advobot.Actions
 			}
 
 			await ModifyOverwrite(channel, discordObject, allowBits, denyBits, FormattingActions.FormatUserReason(invokingUser));
-			return GetActions.GetChannelPermissionNames(changeValue);
+			return ChannelPerms.ConvertValueToNames(changeValue);
 		}
 		/// <summary>
 		/// Sets the overwrite on a channel for the given <paramref name="discordObject"/>.
@@ -169,25 +169,6 @@ namespace Advobot.Actions
 					}
 				}
 			}
-		}
-
-		/// <summary>
-		/// Looks up the values in <see cref="Constants.CHANNEL_PERMISSIONS"/> with the given names then returns all of them ORed together.
-		/// </summary>
-		/// <param name="permissionNames"></param>
-		/// <returns></returns>
-		public static ulong ConvertChannelPermissionNamesToUlong(IEnumerable<string> permissionNames)
-		{
-			var rawValue = 0UL;
-			foreach (var permissionName in permissionNames)
-			{
-				var permission = Constants.CHANNEL_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
-				if (!permission.Equals(default(BotGuildPermission)))
-				{
-					rawValue |= permission.Value;
-				}
-			}
-			return rawValue;
 		}
 
 		/// <summary>
@@ -242,7 +223,7 @@ namespace Advobot.Actions
 					}
 				}
 
-				var readMessages = ConvertChannelPermissionNamesToUlong(new[] { nameof(ChannelPermission.ReadMessages) });
+				var readMessages = ChannelPerms.ConvertToValue(new[] { nameof(ChannelPermission.ReadMessages) });
 				var allowBits = overwrite.Permissions.AllowValue & ~readMessages;
 				var denyBits = overwrite.Permissions.DenyValue | readMessages;
 				await ModifyOverwrite(channel, obj, allowBits, denyBits, reason);

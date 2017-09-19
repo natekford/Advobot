@@ -2,6 +2,7 @@
 using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Permissions;
 using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
@@ -157,12 +158,13 @@ namespace Advobot.Commands.RoleModeration
 			[Command]
 			public async Task Command()
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Guild Permission Types", $"`{String.Join("`, `", Constants.GUILD_PERMISSIONS.Select(x => x.Name))}`"));
+				var desc = $"`{String.Join("`, `", GuildPerms.Permissions.Select(x => x.Name))}`";
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Guild Permission Types", desc));
 			}
 			[Command]
 			public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role)
 			{
-				var currentRolePerms = Constants.GUILD_PERMISSIONS.Where(x => (role.Permissions.RawValue & x.Value) != 0).Select(x => x.Name);
+				var currentRolePerms = GuildPerms.ConvertValueToNames(role.Permissions.RawValue);
 				var permissions = currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission";
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(role.Name, $"`{permissions}`"));
 			}
@@ -224,9 +226,9 @@ namespace Advobot.Commands.RoleModeration
 
 			await RoleActions.ModifyRolePermissions(outputRole, newRoleBits, FormattingActions.FormatUserReason(Context.User));
 
-			var immovablePerms = GetActions.GetGuildPermissionNames(immovableBits);
-			var failedToCopy = GetActions.GetGuildPermissionNames(inputRoleBits & ~copyBits);
-			var newPerms = GetActions.GetGuildPermissionNames(newRoleBits);
+			var immovablePerms = GuildPerms.ConvertValueToNames(immovableBits);
+			var failedToCopy = GuildPerms.ConvertValueToNames(inputRoleBits & ~copyBits);
+			var newPerms = GuildPerms.ConvertValueToNames(newRoleBits);
 			var immovablePermsStr = immovablePerms.Any() ? "Output role had some permissions unable to be removed by you." : null;
 			var failedToCopyStr = failedToCopy.Any() ? "Input role had some permission unable to be copied by you." : null;
 			var newPermsStr = $"`{outputRole.FormatRole()}` now has the following permissions: `{(newPerms.Any() ? String.Join("`, `", newPerms) : "Nothing")}`.";
@@ -252,7 +254,7 @@ namespace Advobot.Commands.RoleModeration
 
 			await RoleActions.ModifyRolePermissions(role, immovableBits, FormattingActions.FormatUserReason(Context.User));
 
-			var immovablePerms = GetActions.GetGuildPermissionNames(immovableBits);
+			var immovablePerms = GuildPerms.ConvertValueToNames(immovableBits);
 			var immovablePermsStr = immovablePerms.Any() ? "Role had some permissions unable to be cleared by you." : null;
 			var newPermsStr = $"`{role.FormatRole()}` now has the following permissions: `{(immovablePerms.Any() ? String.Join("`, `", immovablePerms) : "Nothing")}`.";
 
@@ -316,7 +318,7 @@ namespace Advobot.Commands.RoleModeration
 		{
 			if (role == null)
 			{
-				var desc = $"`{String.Join("`, `", Constants.COLORS.Keys)}`";
+				var desc = $"`{String.Join("`, `", Colors.COLORS.Keys)}`";
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Colors", desc));
 				return;
 			}

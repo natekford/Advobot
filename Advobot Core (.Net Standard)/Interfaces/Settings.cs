@@ -1,8 +1,8 @@
 ﻿using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Permissions;
 using Discord;
 using Discord.WebSocket;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -76,8 +76,10 @@ namespace Advobot.Interfaces
 		List<string> EvaluatedRegex { get; }
 		MessageDeletion MessageDeletion { get; }
 		SocketGuild Guild { get; }
-
 		bool Loaded { get; }
+
+		CommandSwitch[] GetCommands(CommandCategory category);
+		CommandSwitch GetCommand(string name);
 
 		void SaveSettings();
 		Task<IGuildSettings> PostDeserialize(IGuild guild);

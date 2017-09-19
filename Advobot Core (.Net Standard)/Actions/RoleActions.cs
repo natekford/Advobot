@@ -1,6 +1,6 @@
 ﻿using Advobot.Enums;
 using Advobot.Interfaces;
-using Advobot.Classes;
+using Advobot.Permissions;
 using Discord;
 using Discord.Commands;
 using System;
@@ -81,7 +81,7 @@ namespace Advobot.Actions
 			}
 
 			await ModifyRolePermissions(role, roleBits, FormattingActions.FormatUserReason(user));
-			return GetActions.GetGuildPermissionNames(changeValue);
+			return GuildPerms.ConvertValueToNames(changeValue);
 		}
 
 		public static async Task<int> ModifyRolePosition(IRole role, int position, string reason)

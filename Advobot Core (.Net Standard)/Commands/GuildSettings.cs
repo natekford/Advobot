@@ -10,6 +10,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Advobot.Permissions;
 
 namespace Advobot.Commands.GuildSettings
 {
@@ -80,7 +81,7 @@ namespace Advobot.Commands.GuildSettings
 			public async Task Command(CommandCategory category)
 			{
 				//Only grab commands that are already disabled and in the same category and are able to be changed.
-				var commands = Context.GuildSettings.CommandSwitches.Where(x => !x.Value && x.Category == category && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name));
+				var commands = Context.GuildSettings.GetCommands(category).Where(x => !x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name));
 				foreach (var command in commands)
 				{
 					command.ToggleEnabled();
@@ -124,7 +125,7 @@ namespace Advobot.Commands.GuildSettings
 			public async Task Command(CommandCategory category)
 			{
 				//Only grab commands that are already enabled and in the same category and are able to be changed.
-				var commands = Context.GuildSettings.CommandSwitches.Where(x => x.Value && x.Category == category && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name));
+				var commands = Context.GuildSettings.GetCommands(category).Where(x => x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name));
 				foreach (var command in commands)
 				{
 					command.ToggleEnabled();
@@ -169,7 +170,7 @@ namespace Advobot.Commands.GuildSettings
 			[Command]
 			public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
 			{
-				var commands = Context.GuildSettings.CommandSwitches.Where(x => x.Category == category);
+				var commands = Context.GuildSettings.GetCommands(category);
 				foreach (var command in commands)
 				{
 					Context.GuildSettings.CommandsDisabledOnChannel.RemoveAll(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
@@ -205,7 +206,7 @@ namespace Advobot.Commands.GuildSettings
 			[Command]
 			public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
 			{
-				var commands = Context.GuildSettings.CommandSwitches.Where(x => x.Category == category);
+				var commands = Context.GuildSettings.GetCommands(category);
 				foreach (var command in commands)
 				{
 					Context.GuildSettings.CommandsDisabledOnChannel.RemoveAll(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
@@ -232,7 +233,8 @@ namespace Advobot.Commands.GuildSettings
 			[Command]
 			public async Task Command()
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Permission Types", $"`{String.Join("`, `", Constants.GUILD_PERMISSIONS.Select(x => x.Name))}`"));
+				var desc = $"`{String.Join("`, `", GuildPerms.Permissions.Select(x => x.Name))}`";
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Permission Types", desc));
 			}
 			[Command]
 			public async Task Command(IUser user)
@@ -244,7 +246,7 @@ namespace Advobot.Commands.GuildSettings
 					return;
 				}
 
-				var desc = $"`{String.Join("`, `", GetActions.GetGuildPermissionNames(botUser.Permissions))}`";
+				var desc = $"`{String.Join("`, `", GuildPerms.ConvertValueToNames(botUser.Permissions))}`";
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed($"Permissions for {user.FormatUser()}", desc));
 			}
 		}
@@ -259,7 +261,7 @@ namespace Advobot.Commands.GuildSettings
 				var botUser = Context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id) ?? new BotImplementedPermissions(user.Id, rawValue);
 				botUser.AddPermissions(rawValue);
 
-				var givenPerms = String.Join("`, `", GetActions.GetGuildPermissionNames(rawValue));
+				var givenPerms = String.Join("`, `", GuildPerms.ConvertValueToNames(rawValue));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully gave `{user.FormatUser()}` the following bot permissions: `{givenPerms}`.");
 			}
 		}
@@ -279,7 +281,7 @@ namespace Advobot.Commands.GuildSettings
 				}
 				botUser.RemovePermissions(rawValue);
 
-				var takenPerms = String.Join("`, `", GetActions.GetGuildPermissionNames(rawValue));
+				var takenPerms = String.Join("`, `", GuildPerms.ConvertValueToNames(rawValue));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed the following bot permissions from `{user.FormatUser()}`: `{takenPerms}`.");
 			}
 		}

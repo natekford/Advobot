@@ -35,20 +35,6 @@ namespace Advobot.Actions
 			return await guild.PruneUsersAsync(days, simulate, new RequestOptions { AuditLogReason = reason });
 		}
 
-		public static ulong ConvertGuildPermissionNamesToUlong(IEnumerable<string> permissionNames)
-		{
-			ulong rawValue = 0;
-			foreach (var permissionName in permissionNames)
-			{
-				var permission = Constants.GUILD_PERMISSIONS.FirstOrDefault(x => x.Name.CaseInsEquals(permissionName));
-				if (!permission.Equals(default(BotGuildPermission)))
-				{
-					rawValue |= permission.Value;
-				}
-			}
-			return rawValue;
-		}
-
 		public static async Task ModifyGuildName(IGuild guild, string name, string reason)
 		{
 			await guild.ModifyAsync(x => x.Name = name, new RequestOptions { AuditLogReason = reason });
