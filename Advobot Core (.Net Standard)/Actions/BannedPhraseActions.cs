@@ -9,47 +9,6 @@ namespace Advobot.Actions
 	public static class BannedPhraseActions
 	{
 		/// <summary>
-		/// Modifies <see cref="IGuildSettings.BannedPhraseStrings"/>. If <paramref name="add"/> is true then <paramref name="inputPhrases"/> get added,
-		/// otherwise they get removed.
-		/// </summary>
-		/// <param name="guildSettings"></param>
-		/// <param name="inputPhrases"></param>
-		/// <param name="add"></param>
-		/// <param name="success"></param>
-		/// <param name="failure"></param>
-		public static void ModifyBannedStrings(IGuildSettings guildSettings, IEnumerable<string> inputPhrases, bool add, out List<string> success, out List<string> failure)
-		{
-			if (add)
-			{
-				AddBannedPhrases(guildSettings.BannedPhraseStrings, inputPhrases, out success, out failure);
-			}
-			else
-			{
-				RemoveBannedPhrases(guildSettings.BannedPhraseStrings, inputPhrases, out success, out failure);
-			}
-		}
-		/// <summary>
-		/// Modifies <see cref="IGuildSettings.BannedPhraseRegex"/>. If <paramref name="add"/> is true then <paramref name="inputPhrases"/> get added,
-		/// otherwise they get removed.
-		/// </summary>
-		/// <param name="inputPhrases"></param>
-		/// <param name="add"></param>
-		/// <param name="guildSettings"></param>
-		/// <param name="success"></param>
-		/// <param name="failure"></param>
-		public static void ModifyBannedRegex(IEnumerable<string> inputPhrases, bool add, IGuildSettings guildSettings, out List<string> success, out List<string> failure)
-		{
-			if (add)
-			{
-				AddBannedPhrases(guildSettings.BannedPhraseRegex, inputPhrases, out success, out failure);
-			}
-			else
-			{
-				RemoveBannedPhrases(guildSettings.BannedPhraseRegex, inputPhrases, out success, out failure);
-			}
-		}
-
-		/// <summary>
 		/// Adds nonduplicate strings to the list of banned phrases.
 		/// </summary>
 		/// <param name="bannedPhrases"></param>

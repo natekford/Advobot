@@ -8,6 +8,13 @@ namespace Advobot.Actions
 {
 	public static class LogActions
 	{
+		/// <summary>
+		/// Changes the log channel of the passed in type in guild settings to be the passed in channel.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="channelType"></param>
+		/// <param name="channel"></param>
+		/// <returns></returns>
 		public static async Task SetChannel(MyCommandContext context, LogChannelType channelType, ITextChannel channel)
 		{
 			switch (channelType)
@@ -53,6 +60,12 @@ namespace Advobot.Actions
 
 			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully set the {channelType.EnumName().ToLower()} log as `{channel.FormatChannel()}`.");
 		}
+		/// <summary>
+		/// Removes the log channel of the passed in type from the guild settings.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="channelType"></param>
+		/// <returns></returns>
 		public static async Task RemoveChannel(MyCommandContext context, LogChannelType channelType)
 		{
 			switch (channelType)

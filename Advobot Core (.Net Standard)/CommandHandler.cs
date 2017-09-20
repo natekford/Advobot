@@ -44,15 +44,13 @@ namespace Advobot
 
 			//Events
 			_Commands.CommandExecuted += (commandInfo, context, result) => CommandLogger(commandInfo, context as IMyCommandContext, result);
-			if (_Client is DiscordSocketClient)
+			if (_Client is DiscordSocketClient socketClient)
 			{
-				var socketClient = _Client as DiscordSocketClient;
 				socketClient.MessageReceived += (message) => HandleCommand(message as SocketUserMessage);
 				socketClient.Connected += async () => await SavingAndLoadingActions.DoStartupActions(_Client, _BotSettings);
 			}
-			else if (_Client is DiscordShardedClient)
+			else if (_Client is DiscordShardedClient shardedClient)
 			{
-				var shardedClient = _Client as DiscordShardedClient;
 				shardedClient.MessageReceived += (message) => HandleCommand(message as SocketUserMessage);
 				shardedClient.Shards.FirstOrDefault().Connected += async () => await SavingAndLoadingActions.DoStartupActions(_Client, _BotSettings);
 			}

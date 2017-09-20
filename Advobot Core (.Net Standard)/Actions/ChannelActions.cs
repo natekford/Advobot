@@ -3,7 +3,6 @@ using Advobot.Permissions;
 using Discord;
 using Discord.Commands;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,7 +11,7 @@ namespace Advobot.Actions
 	public static class ChannelActions
 	{
 		/// <summary>
-		/// Verifies that the 
+		/// Verifies that the channel can be edited in specific ways.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="target"></param>
@@ -40,135 +39,6 @@ namespace Advobot.Actions
 			}
 
 			return FailureReason.NotFailure;
-		}
-
-		/// <summary>
-		/// Gets the permission overwrite for a specific role or user, or null if one does not exist.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		public static OverwritePermissions? GetPermissionOverwrite(this IGuildChannel channel, object obj)
-		{
-			if (obj is IRole)
-			{
-				return channel.GetPermissionOverwrite(obj as IRole);
-			}
-			else if (obj is IUser)
-			{
-				return channel.GetPermissionOverwrite(obj as IUser);
-			}
-			else
-			{
-				return null;
-			}
-		}
-		/// <summary>
-		/// Gets the permission overwrite allow value for a role or user.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		public static ulong GetPermissionOverwriteAllowValue(this IGuildChannel channel, object obj)
-		{
-			return channel.GetPermissionOverwrite(obj)?.AllowValue ?? 0;
-		}
-		/// <summary>
-		/// Gets the permision overwrite deny value for a role or user.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		public static ulong GetPermissionOverwriteDenyValue(this IGuildChannel channel, object obj)
-		{
-			return channel.GetPermissionOverwrite(obj)?.DenyValue ?? 0;
-		}
-		/// <summary>
-		/// Based off of the <paramref name="actionType"/> passed in will allow, inherit, or deny the given values for the <paramref name="discordObject"/> on the channel.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="discordObject"></param>
-		/// <param name="actionType"></param>
-		/// <param name="changeValue"></param>
-		/// <param name="invokingUser"></param>
-		/// <returns></returns>
-		public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object discordObject, ActionType actionType, ulong changeValue, IGuildUser invokingUser)
-		{
-			var allowBits = channel.GetPermissionOverwriteAllowValue(discordObject);
-			var denyBits = channel.GetPermissionOverwriteDenyValue(discordObject);
-			switch (actionType)
-			{
-				case ActionType.Allow:
-				{
-					allowBits |= changeValue;
-					denyBits &= ~changeValue;
-					break;
-				}
-				case ActionType.Inherit:
-				{
-					allowBits &= ~changeValue;
-					denyBits &= ~changeValue;
-					break;
-				}
-				case ActionType.Deny:
-				{
-					allowBits &= ~changeValue;
-					denyBits |= changeValue;
-					break;
-				}
-			}
-
-			await ModifyOverwrite(channel, discordObject, allowBits, denyBits, FormattingActions.FormatUserReason(invokingUser));
-			return ChannelPerms.ConvertValueToNames(changeValue);
-		}
-		/// <summary>
-		/// Sets the overwrite on a channel for the given <paramref name="discordObject"/>.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="discordObject"></param>
-		/// <param name="allowBits"></param>
-		/// <param name="denyBits"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ModifyOverwrite(IGuildChannel channel, object discordObject, ulong allowBits, ulong denyBits, string reason)
-		{
-			if (discordObject is IRole)
-			{
-				await channel.AddPermissionOverwriteAsync(discordObject as IRole, new OverwritePermissions(allowBits, denyBits));
-			}
-			else if (discordObject is IUser)
-			{
-				await channel.AddPermissionOverwriteAsync(discordObject as IUser, new OverwritePermissions(allowBits, denyBits));
-			}
-			else
-			{
-				throw new ArgumentException("Invalid object passed in. Must either be a role or a user.");
-			}
-		}
-		/// <summary>
-		/// Removes every channel overwrite on the specified channel.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static async Task ClearOverwrites(IGuildChannel channel, string reason)
-		{
-			foreach (var overwrite in channel.PermissionOverwrites)
-			{
-				switch (overwrite.TargetType)
-				{
-					case PermissionTarget.Role:
-					{
-						await channel.RemovePermissionOverwriteAsync(channel.Guild.GetRole(overwrite.TargetId));
-						break;
-					}
-					case PermissionTarget.User:
-					{
-						await channel.RemovePermissionOverwriteAsync(await channel.Guild.GetUserAsync(overwrite.TargetId));
-						break;
-					}
-				}
-			}
 		}
 
 		/// <summary>
@@ -226,7 +96,7 @@ namespace Advobot.Actions
 				var readMessages = ChannelPerms.ConvertToValue(new[] { nameof(ChannelPermission.ReadMessages) });
 				var allowBits = overwrite.Permissions.AllowValue & ~readMessages;
 				var denyBits = overwrite.Permissions.DenyValue | readMessages;
-				await ModifyOverwrite(channel, obj, allowBits, denyBits, reason);
+				await OverwriteActions.ModifyOverwrite(channel, obj, allowBits, denyBits, reason);
 			}
 
 			//Double check the everyone role has the correct perms

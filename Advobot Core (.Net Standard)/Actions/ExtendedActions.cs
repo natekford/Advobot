@@ -226,6 +226,23 @@ namespace Advobot
 			}
 			return false;
 		}
+		/// <summary>
+		/// Verifies all characters in the string have a value of a less than the upperlimit.
+		/// </summary>
+		/// <param name="str"></param>
+		/// <param name="upperLimit"></param>
+		/// <returns></returns>
+		public static bool AllCharactersAreWithinUpperLimit(this string str, int upperLimit)
+		{
+			foreach (var c in str ?? String.Empty)
+			{
+				if (c > upperLimit)
+				{
+					return false;
+				}
+			}
+			return true;
+		}
 
 		/// <summary>
 		/// Returns the enum's name as a string.
@@ -263,23 +280,6 @@ namespace Advobot
 		}
 
 		/// <summary>
-		/// Verifies all characters in the string have a value of a less than the upperlimit.
-		/// </summary>
-		/// <param name="str"></param>
-		/// <param name="upperLimit"></param>
-		/// <returns></returns>
-		public static bool AllCharactersAreWithinUpperLimit(this string str, int upperLimit)
-		{
-			foreach (var c in str ?? String.Empty)
-			{
-				if (c > upperLimit)
-				{
-					return false;
-				}
-			}
-			return true;
-		}
-		/// <summary>
 		/// Returns the count of characters equal to \r or \n.
 		/// </summary>
 		/// <param name="str"></param>
@@ -287,56 +287,6 @@ namespace Advobot
 		public static int CountLineBreaks(this string str)
 		{
 			return str?.Count(x => x == '\r' || x == '\n') ?? 0;
-		}
-
-		/// <summary>
-		/// Takes a variable number of integers and cuts the list the smallest one (including the list's length).
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="list"></param>
-		/// <param name="x"></param>
-		/// <returns></returns>
-		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
-		{
-			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
-		}
-		/// <summary>
-		/// Removes <see cref="ITimeInterface"/> objects where their time is below <see cref="DateTime.UtcNow"/>.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="inputList"></param>
-		/// <returns></returns>
-		public static List<T> GetOutTimedObjects<T>(this List<T> inputList) where T : ITimeInterface
-		{
-			if (inputList == null)
-			{
-				return null;
-			}
-
-			var eligibleToBeGotten = inputList.Where(x => x.GetTime() < DateTime.UtcNow).ToList();
-			inputList.ThreadSafeRemoveAll(x => eligibleToBeGotten.Contains(x));
-			return eligibleToBeGotten;
-		}
-		/// <summary>
-		/// Removes <see cref="ITimeInterface"/> key value pairs where their time is below <see cref="DateTime.UtcNow"/>.
-		/// </summary>
-		/// <typeparam name="TKey"></typeparam>
-		/// <typeparam name="TValue"></typeparam>
-		/// <param name="inputDict"></param>
-		/// <returns></returns>
-		public static Dictionary<TKey, TValue> GetOutTimedObjects<TKey, TValue>(this Dictionary<TKey, TValue> inputDict) where TValue : ITimeInterface
-		{
-			if (inputDict == null)
-			{
-				return null;
-			}
-
-			var elligibleToBeGotten = inputDict.Where(x => x.Value.GetTime() < DateTime.UtcNow).ToList();
-			foreach (var value in elligibleToBeGotten)
-			{
-				inputDict.Remove(value.Key);
-			}
-			return elligibleToBeGotten.ToDictionary(x => x.Key, x => x.Value);
 		}
 		/// <summary>
 		/// Counts how many times something that implements <see cref="ITimeInterface"/> has occurred within a given timeframe.
@@ -390,6 +340,59 @@ namespace Advobot
 
 				return count;
 			}
+		}
+
+		/// <summary>
+		/// Takes a variable number of integers and cuts the list the smallest one (including the list's length).
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="list"></param>
+		/// <param name="x"></param>
+		/// <returns></returns>
+		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
+		{
+			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
+		}
+		/// <summary>
+		/// Removes <see cref="ITimeInterface"/> objects where their time is below <see cref="DateTime.UtcNow"/>.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="inputList"></param>
+		/// <returns></returns>
+		public static List<T> GetOutTimedObjects<T>(this List<T> inputList) where T : ITimeInterface
+		{
+			if (inputList == null)
+			{
+				return null;
+			}
+
+			var eligibleToBeGotten = inputList.Where(x => x.GetTime() < DateTime.UtcNow).ToList();
+			foreach (var obj in eligibleToBeGotten)
+			{
+				inputList.ThreadSafeRemove(obj);
+			}
+			return eligibleToBeGotten;
+		}
+		/// <summary>
+		/// Removes <see cref="ITimeInterface"/> key value pairs where their time is below <see cref="DateTime.UtcNow"/>.
+		/// </summary>
+		/// <typeparam name="TKey"></typeparam>
+		/// <typeparam name="TValue"></typeparam>
+		/// <param name="inputDict"></param>
+		/// <returns></returns>
+		public static Dictionary<TKey, TValue> GetOutTimedObjects<TKey, TValue>(this Dictionary<TKey, TValue> inputDict) where TValue : ITimeInterface
+		{
+			if (inputDict == null)
+			{
+				return null;
+			}
+
+			var elligibleToBeGotten = inputDict.Where(x => x.Value.GetTime() < DateTime.UtcNow).ToList();
+			foreach (var value in elligibleToBeGotten)
+			{
+				inputDict.Remove(value.Key);
+			}
+			return elligibleToBeGotten.ToDictionary(x => x.Key, x => x.Value);
 		}
 
 		/// <summary>

@@ -51,16 +51,20 @@ namespace Advobot.Actions
 		/// <param name="client"></param>
 		/// <param name="key"></param>
 		/// <returns></returns>
-		/// <exception cref="InvalidCastException"></exception>
+		/// <exception cref="ArgumentException"></exception>
 		public static async Task LoginAsync(IDiscordClient client, string key)
 		{
-			if (client is DiscordSocketClient)
+			if (client is DiscordSocketClient socketClient)
 			{
-				await ((DiscordSocketClient)client).LoginAsync(TokenType.Bot, key);
+				await socketClient.LoginAsync(TokenType.Bot, key);
+			}
+			else if (client is DiscordShardedClient shardedClient)
+			{
+				await shardedClient.LoginAsync(TokenType.Bot, key);
 			}
 			else
 			{
-				await ((DiscordShardedClient)client).LoginAsync(TokenType.Bot, key);
+				throw new ArgumentException("Invalid client provided.");
 			}
 		}
 		/// <summary>
@@ -68,15 +72,20 @@ namespace Advobot.Actions
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
 		public static int GetShardId(IDiscordClient client)
 		{
-			if (client is DiscordSocketClient)
+			if (client is DiscordSocketClient socketClient)
 			{
-				return ((DiscordSocketClient)client).ShardId;
+				return socketClient.ShardId;
+			}
+			else if (client is DiscordShardedClient shardedClient)
+			{
+				return -1;
 			}
 			else
 			{
-				return -1;
+				throw new ArgumentException("Invalid client provided.");
 			}
 		}
 		/// <summary>
@@ -84,16 +93,20 @@ namespace Advobot.Actions
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
-		/// <exception cref="InvalidCastException">/></exception>
+		/// <exception cref="ArgumentException">/></exception>
 		public static int GetLatency(IDiscordClient client)
 		{
-			if (client is DiscordSocketClient)
+			if (client is DiscordSocketClient socketClient)
 			{
-				return ((DiscordSocketClient)client).Latency;
+				return socketClient.Latency;
+			}
+			else if (client is DiscordShardedClient shardedClient)
+			{
+				return shardedClient.Latency;
 			}
 			else
 			{
-				return ((DiscordShardedClient)client).Latency;
+				throw new ArgumentException("Invalid client provided.");
 			}
 		}
 		/// <summary>
@@ -101,16 +114,20 @@ namespace Advobot.Actions
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
-		/// <exception cref="InvalidCastException"></exception>
+		/// <exception cref="ArgumentException"></exception>
 		public static int GetShardCount(IDiscordClient client)
 		{
-			if (client is DiscordSocketClient)
+			if (client is DiscordSocketClient socketClient)
 			{
 				return 1;
 			}
+			else if (client is DiscordShardedClient shardedClient)
+			{
+				return shardedClient.Shards.Count;
+			}
 			else
 			{
-				return ((DiscordShardedClient)client).Shards.Count;
+				throw new ArgumentException("Invalid client provided.");
 			}
 		}
 		/// <summary>
@@ -119,16 +136,20 @@ namespace Advobot.Actions
 		/// <param name="client"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		/// <exception cref="InvalidCastException"></exception>
+		/// <exception cref="ArgumentException"></exception>
 		public static int GetShardIdFor(IDiscordClient client, IGuild guild)
 		{
-			if (client is DiscordSocketClient)
+			if (client is DiscordSocketClient socketClient)
 			{
-				return ((DiscordSocketClient)client).ShardId;
+				return socketClient.ShardId;
+			}
+			else if (client is DiscordShardedClient shardedClient)
+			{
+				return shardedClient.GetShardIdFor(guild);
 			}
 			else
 			{
-				return ((DiscordShardedClient)client).GetShardIdFor(guild);
+				throw new ArgumentException("Invalid client provided.");
 			}
 		}
 
@@ -138,7 +159,7 @@ namespace Advobot.Actions
 		/// <param name="client">The client to update.</param>
 		/// <param name="botSettings">The information to update with.</param>
 		/// <returns></returns>
-		/// <exception cref="InvalidCastException"></exception>
+		/// <exception cref="ArgumentException"></exception>
 		public static async Task UpdateGameAsync(IDiscordClient client, IBotSettings botSettings)
 		{
 			var prefix = botSettings.Prefix;
@@ -152,13 +173,17 @@ namespace Advobot.Actions
 				streamType = StreamType.Twitch;
 			}
 
-			if (client is DiscordSocketClient)
+			if (client is DiscordSocketClient socketClient)
 			{
-				await ((DiscordSocketClient)client).SetGameAsync(game, stream, streamType);
+				await socketClient.SetGameAsync(game, stream, streamType);
+			}
+			else if (client is DiscordShardedClient shardedClient)
+			{
+				await shardedClient.SetGameAsync(game, stream, streamType);
 			}
 			else
 			{
-				await ((DiscordShardedClient)client).SetGameAsync(game, stream, streamType);
+				throw new ArgumentException("Invalid client provided.");
 			}
 		}
 		/// <summary>

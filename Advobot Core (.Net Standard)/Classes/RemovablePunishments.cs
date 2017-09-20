@@ -25,10 +25,7 @@ namespace Advobot.Classes
 			_Time = DateTime.UtcNow.AddMinutes(minutes);
 		}
 
-		public DateTime GetTime()
-		{
-			return _Time;
-		}
+		public DateTime GetTime() => _Time;
 	}
 
 	/// <summary>
@@ -84,9 +81,6 @@ namespace Advobot.Classes
 			_Time = DateTime.UtcNow.AddSeconds(seconds);
 		}
 
-		public DateTime GetTime()
-		{
-			return _Time;
-		}
+		public DateTime GetTime() => _Time;
 	}
 }

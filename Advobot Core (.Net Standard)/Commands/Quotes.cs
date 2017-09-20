@@ -94,13 +94,13 @@ namespace Advobot.Commands.Quotes
 				return;
 			}
 
-			var closeQuotes = CloseWordActions.GetObjectsWithSimilarNames(quotes, name);
-			if (closeQuotes.Any())
+			var closeQuotes = new CloseWords<Quote>(Context.User.Id, quotes, name);
+			if (closeQuotes.List.Any())
 			{
 				Context.Timers.GetOutActiveCloseQuote(Context.User.Id);
-				Context.Timers.AddActiveCloseQuotes(new ActiveCloseWord<Quote>(Context.User.Id, closeQuotes));
+				Context.Timers.AddActiveCloseQuotes(closeQuotes);
 
-				var msg = "Did you mean any of the following:\n" + closeQuotes.FormatNumberedList("{0}", x => x.Word.Name);
+				var msg = "Did you mean any of the following:\n" + closeQuotes.List.FormatNumberedList("{0}", x => x.Word.Name);
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.SECONDS_ACTIVE_CLOSE);
 				return;
 			}

@@ -71,7 +71,7 @@ namespace Advobot.Actions
 			//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
 			using (var writer = crashLogPath.AppendText())
 			{
-				writer.WriteLine($"{FormattingActions.FormatDateTime(DateTime.UtcNow)}: {e.ExceptionObject.ToString()}\n");
+				writer.WriteLine($"{FormattingActions.FormatReadableDateTime(DateTime.UtcNow)}: {e.ExceptionObject.ToString()}\n");
 			}
 		}
 	}

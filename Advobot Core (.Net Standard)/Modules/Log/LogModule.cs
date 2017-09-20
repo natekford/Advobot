@@ -6,6 +6,7 @@ using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,13 +49,13 @@ namespace Advobot.Modules.Log
 			_GuildSettings = guildSettings;
 			_Timers = timers;
 
-			if (_Client is DiscordSocketClient)
+			if (_Client is DiscordSocketClient socketClient)
 			{
-				HookUpEvents(_Client as DiscordSocketClient);
+				HookUpEvents(socketClient);
 			}
-			else if (_Client is DiscordShardedClient)
+			else if (_Client is DiscordShardedClient shardedClient)
 			{
-				HookUpEvents(_Client as DiscordShardedClient);
+				HookUpEvents(shardedClient);
 			}
 			else
 			{
@@ -167,20 +168,18 @@ namespace Advobot.Modules.Log
 			var a = AttemptedCommands;
 			var s = SuccessfulCommands;
 			var f = FailedCommands;
-			var maxNumLen = new[] { a, s, f }.Max().ToString().Length;
+			var leftSpacing = new[] { a, s, f }.Max().ToString().Length;
 
-			var aStr = "**Attempted:**";
-			var sStr = "**Successful:**";
-			var fStr = "**Failed:**";
-			var maxStrLen = new[] { aStr, sStr, fStr }.Max(x => x.Length);
+			const string aTitle = "**Attempted:**";
+			const string sTitle = "**Successful:**";
+			const string fTitle = "**Failed:**";
+			var rightSpacing = new[] { aTitle, sTitle, fTitle }.Max(x => x.Length) + 1;
 
-			var leftSpacing = maxNumLen;
-			var rightSpacing = maxStrLen + 1;
-
-			var attempted = FormattingActions.FormatStringsWithLength(aStr, a, rightSpacing, leftSpacing);
-			var successful = FormattingActions.FormatStringsWithLength(sStr, s, rightSpacing, leftSpacing);
-			var failed = FormattingActions.FormatStringsWithLength(fStr, f, rightSpacing, leftSpacing);
-			return String.Join("\n", new[] { attempted, successful, failed });
+			return new StringBuilder()
+				.AppendLineFeed(FormattingActions.FormatStringsWithLength(aTitle, a, rightSpacing, leftSpacing))
+				.AppendLineFeed(FormattingActions.FormatStringsWithLength(sTitle, s, rightSpacing, leftSpacing))
+				.AppendLineFeed(FormattingActions.FormatStringsWithLength(fTitle, f, rightSpacing, leftSpacing))
+				.ToString();
 		}
 		public string FormatLoggedActions()
 		{
@@ -204,15 +203,16 @@ namespace Advobot.Modules.Log
 			const string fTitle = "**Files:**";
 			var rightSpacing = new[] { jTitle, lTitle, uTitle, eTitle, dTitle, iTitle, gTitle, fTitle }.Max(x => x.Length) + 1;
 
-			var joins = FormattingActions.FormatStringsWithLength(jTitle, j, rightSpacing, leftSpacing);
-			var leaves = FormattingActions.FormatStringsWithLength(lTitle, l, rightSpacing, leftSpacing);
-			var userChanges = FormattingActions.FormatStringsWithLength(uTitle, u, rightSpacing, leftSpacing);
-			var edits = FormattingActions.FormatStringsWithLength(eTitle, e, rightSpacing, leftSpacing);
-			var deletes = FormattingActions.FormatStringsWithLength(dTitle, d, rightSpacing, leftSpacing);
-			var images = FormattingActions.FormatStringsWithLength(iTitle, i, rightSpacing, leftSpacing);
-			var gifs = FormattingActions.FormatStringsWithLength(gTitle, g, rightSpacing, leftSpacing);
-			var files = FormattingActions.FormatStringsWithLength(fTitle, f, rightSpacing, leftSpacing);
-			return String.Join("\n", new[] { joins, leaves, userChanges, edits, deletes, images, gifs, files });
+			return new StringBuilder()
+				.AppendLineFeed(FormattingActions.FormatStringsWithLength(jTitle, j, rightSpacing, leftSpacing))
+				.AppendLineFeed(FormattingActions.FormatStringsWithLength(lTitle, l, rightSpacing, leftSpacing))
+				.AppendLineFeed(FormattingActions.FormatStringsWithLength(uTitle, u, rightSpacing, leftSpacing))
+				.AppendLineFeed(FormattingActions.FormatStringsWithLength(eTitle, e, rightSpacing, leftSpacing))
+				.AppendLineFeed(FormattingActions.FormatStringsWithLength(dTitle, d, rightSpacing, leftSpacing))
+				.AppendLineFeed(FormattingActions.FormatStringsWithLength(iTitle, i, rightSpacing, leftSpacing))
+				.AppendLineFeed(FormattingActions.FormatStringsWithLength(gTitle, g, rightSpacing, leftSpacing))
+				.AppendLineFeed(FormattingActions.FormatStringsWithLength(fTitle, f, rightSpacing, leftSpacing))
+				.ToString();
 		}
 
 		#region Bot
@@ -347,9 +347,9 @@ namespace Advobot.Modules.Log
 				await HelperFunctions.HandleJoiningUsersForRaidPrevention(_Timers, verified.GuildSettings, user);
 				if (HelperFunctions.VerifyLogAction(verified.GuildSettings))
 				{
-					var inviteStr = await FormattingActions.FormatUserInviteJoin(verified.GuildSettings, verified.Guild);
-					var ageWarningStr = FormattingActions.FormatUserAccountAgeWarning(user);
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{inviteStr}{ageWarningStr}", Colors.JOIN)
+					var inviteStr = await FormattingActions.FormatInviteJoin(verified.GuildSettings, user);
+					var ageWarningStr = FormattingActions.FormatAccountAgeWarning(user);
+					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}\n{inviteStr}\n{ageWarningStr}", Colors.JOIN)
 						.MyAddAuthor(user)
 						.MyAddFooter(user.IsBot ? "Bot Joined" : "User Joined");
 					await MessageActions.SendEmbedMessage(verified.GuildSettings.ServerLog, embed);
@@ -387,7 +387,7 @@ namespace Advobot.Modules.Log
 				}
 				else if (HelperFunctions.VerifyLogAction(verified.GuildSettings))
 				{
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}{FormattingActions.FormatUserStayLength(user)}", Colors.LEAV)
+					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}\n{FormattingActions.FormatStayLength(user)}", Colors.LEAV)
 						.MyAddAuthor(user)
 						.MyAddFooter(user.IsBot ? "Bot Left" : "User Left");
 					await MessageActions.SendEmbedMessage(verified.GuildSettings.ServerLog, embed);

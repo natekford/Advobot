@@ -50,13 +50,13 @@ namespace Advobot.Commands.Miscellaneous
 					return;
 				}
 
-				var closeHelps = CloseWordActions.GetObjectsWithSimilarNames(Constants.HELP_ENTRIES, command).Distinct();
-				if (closeHelps.Any())
+				var closeHelps = new CloseWords<HelpEntry>(Context.User.Id, Constants.HELP_ENTRIES, command);
+				if (closeHelps.List.Any())
 				{
 					Context.Timers.GetOutActiveCloseHelp(Context.User.Id);
-					Context.Timers.AddActiveCloseHelp(new ActiveCloseWord<HelpEntry>(Context.User.Id, closeHelps));
+					Context.Timers.AddActiveCloseHelp(closeHelps);
 
-					var msg = "Did you mean any of the following:\n" + closeHelps.FormatNumberedList("{0}", x => x.Word.Name);
+					var msg = "Did you mean any of the following:\n" + closeHelps.List.FormatNumberedList("{0}", x => x.Word.Name);
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.SECONDS_ACTIVE_CLOSE);
 					return;
 				}
@@ -162,13 +162,13 @@ namespace Advobot.Commands.Miscellaneous
 		[Command(nameof(Target.User))]
 		public async Task CommandUser(IUser target)
 		{
-			if (target is IGuildUser)
+			if (target is SocketGuildUser socketGuildUser)
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatUserInfo(Context.GuildSettings, Context.Guild as SocketGuild, target as SocketGuildUser));
+				await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatUserInfo(Context.GuildSettings, Context.Guild as SocketGuild, socketGuildUser));
 			}
-			else
+			else if (target is SocketUser socketUser)
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatUserInfo(Context.GuildSettings, Context.Guild as SocketGuild, target as SocketUser));
+				await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatUserInfo(Context.GuildSettings, Context.Guild as SocketGuild, socketUser));
 			}
 		}
 		[Command(nameof(Target.Emote))]
@@ -312,7 +312,7 @@ namespace Advobot.Commands.Miscellaneous
 
 			var newPos = Math.Max(1, Math.Min(position, users.Length));
 			var user = users[newPos - 1];
-			var timeStr = FormattingActions.FormatDateTime(user.JoinedAt.Value.UtcDateTime);
+			var timeStr = FormattingActions.FormatReadableDateTime(user.JoinedAt.Value.UtcDateTime);
 			await MessageActions.SendChannelMessage(Context, $"`{user.FormatUser()}` is `#{newPos}` to join the guild on `{timeStr}`.");
 		}
 	}
@@ -365,7 +365,7 @@ namespace Advobot.Commands.Miscellaneous
 		{
 			var users = (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToArray();
 
-			var text = users.FormatNumberedList("`{0}` joined on `{1}`", x => x.FormatUser(), x => FormattingActions.FormatDateTime(x.JoinedAt.Value.UtcDateTime));
+			var text = users.FormatNumberedList("`{0}` joined on `{1}`", x => x.FormatUser(), x => FormattingActions.FormatReadableDateTime(x.JoinedAt.Value.UtcDateTime));
 			await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "User_Joins_");
 		}
 	}

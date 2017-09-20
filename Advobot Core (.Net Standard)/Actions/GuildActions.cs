@@ -1,6 +1,4 @@
-﻿using Advobot.Classes;
-using Discord;
-using System.Collections.Generic;
+﻿using Discord;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;

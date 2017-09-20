@@ -25,9 +25,9 @@ namespace Advobot.Attributes
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
 
-			if (value is System.Collections.IEnumerable)
+			if (value is System.Collections.IEnumerable tempIEnumerable)
 			{
-				foreach (var item in value as System.Collections.IEnumerable)
+				foreach (var item in tempIEnumerable)
 				{
 					//Don't bother trying to go farther if anything is a failure.
 					var preconditionResult = GetPreconditionResult(context, item, item.GetType());

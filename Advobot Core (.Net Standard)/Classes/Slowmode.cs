@@ -125,10 +125,7 @@ namespace Advobot.Classes
 				_Time = DateTime.UtcNow.AddSeconds(interval);
 			}
 
-			public DateTime GetTime()
-			{
-				return _Time;
-			}
+			public DateTime GetTime() => _Time;
 		}
 	}
 }

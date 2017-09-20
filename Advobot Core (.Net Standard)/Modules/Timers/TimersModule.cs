@@ -24,8 +24,8 @@ namespace Advobot.Modules.Timers
 
 		private readonly List<RemovablePunishment> _RemovablePunishments = new List<RemovablePunishment>();
 		private readonly List<RemovableMessage> _RemovableMessages = new List<RemovableMessage>();
-		private readonly List<ActiveCloseWord<HelpEntry>> _ActiveCloseHelp = new List<ActiveCloseWord<HelpEntry>>();
-		private readonly List<ActiveCloseWord<Quote>> _ActiveCloseQuotes = new List<ActiveCloseWord<Quote>>();
+		private readonly List<CloseWords<HelpEntry>> _ActiveCloseHelp = new List<CloseWords<HelpEntry>>();
+		private readonly List<CloseWords<Quote>> _ActiveCloseQuotes = new List<CloseWords<Quote>>();
 
 		public MyTimersModule(IGuildSettingsModule guildSettings)
 		{
@@ -136,11 +136,11 @@ namespace Advobot.Modules.Timers
 		{
 			_RemovableMessages.ThreadSafeAddRange(messages);
 		}
-		public void AddActiveCloseHelp(params ActiveCloseWord<HelpEntry>[] help)
+		public void AddActiveCloseHelp(params CloseWords<HelpEntry>[] help)
 		{
 			_ActiveCloseHelp.ThreadSafeAddRange(help);
 		}
-		public void AddActiveCloseQuotes(params ActiveCloseWord<Quote>[] quotes)
+		public void AddActiveCloseQuotes(params CloseWords<Quote>[] quotes)
 		{
 			_ActiveCloseQuotes.ThreadSafeAddRange(quotes);
 		}
@@ -150,13 +150,13 @@ namespace Advobot.Modules.Timers
 			_RemovablePunishments.Where(x => x.UserId == userId && x.PunishmentType == punishment);
 		}
 
-		public ActiveCloseWord<HelpEntry> GetOutActiveCloseHelp(ulong userId)
+		public CloseWords<HelpEntry> GetOutActiveCloseHelp(ulong userId)
 		{
 			var help = _ActiveCloseHelp.FirstOrDefault(x => x.UserId == userId);
 			_ActiveCloseHelp.ThreadSafeRemoveAll((x => x.UserId == userId));
 			return help;
 		}
-		public ActiveCloseWord<Quote> GetOutActiveCloseQuote(ulong userId)
+		public CloseWords<Quote> GetOutActiveCloseQuote(ulong userId)
 		{
 			var quote = _ActiveCloseQuotes.FirstOrDefault(x => x.UserId == userId);
 			_ActiveCloseQuotes.ThreadSafeRemoveAll(x => x.UserId == userId);

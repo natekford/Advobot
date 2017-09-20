@@ -49,13 +49,11 @@ namespace Advobot.Attributes
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			if (context is MyCommandContext)
+			if (context is MyCommandContext myContext)
 			{
-				var cont = context as MyCommandContext;
 				var user = context.User as IGuildUser;
-
 				var guildBits = user.GuildPermissions.RawValue;
-				var botBits = cont.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
+				var botBits = myContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
 				var userPerms = guildBits | botBits;
 
 				var all = _AllFlags != 0 && (userPerms & _AllFlags) == _AllFlags;
@@ -106,11 +104,9 @@ namespace Advobot.Attributes
 
 		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			if (context is MyCommandContext)
+			if (context is MyCommandContext myContext)
 			{
-				var cont = context as MyCommandContext;
 				var user = context.User as IGuildUser;
-
 				var permissions = (Requirements & Precondition.UserHasAPerm) != 0;
 				var guildOwner = (Requirements & Precondition.GuildOwner) != 0;
 				var trustedUser = (Requirements & Precondition.TrustedUser) != 0;
@@ -119,7 +115,7 @@ namespace Advobot.Attributes
 				if (permissions)
 				{
 					var guildBits = user.GuildPermissions.RawValue;
-					var botBits = cont.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
+					var botBits = myContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
 
 					var userPerms = guildBits | botBits;
 					if ((userPerms & PERMISSION_BITS) != 0)
@@ -127,15 +123,15 @@ namespace Advobot.Attributes
 						return PreconditionResult.FromSuccess();
 					}
 				}
-				if (guildOwner && cont.Guild.OwnerId == user.Id)
+				if (guildOwner && myContext.Guild.OwnerId == user.Id)
 				{
 					return PreconditionResult.FromSuccess();
 				}
-				if (trustedUser && cont.BotSettings.TrustedUsers.Contains(user.Id))
+				if (trustedUser && myContext.BotSettings.TrustedUsers.Contains(user.Id))
 				{
 					return PreconditionResult.FromSuccess();
 				}
-				if (botOwner && (await UserActions.GetBotOwner(cont.Client)).Id == user.Id)
+				if (botOwner && (await UserActions.GetBotOwner(myContext.Client)).Id == user.Id)
 				{
 					return PreconditionResult.FromSuccess();
 				}
@@ -174,24 +170,23 @@ namespace Advobot.Attributes
 	{
 		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			if (context is MyCommandContext)
+			if (context is MyCommandContext myContext)
 			{
-				var cont = context as MyCommandContext;
 				var user = context.User as IGuildUser;
 
-				if (!(await cont.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
+				if (!(await myContext.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
 				{
 					return PreconditionResult.FromError($"This bot will not function without the `{nameof(GuildPermission.Administrator)}` permission.");
 				}
-				else if (!cont.BotSettings.Loaded)
+				else if (!myContext.BotSettings.Loaded)
 				{
 					return PreconditionResult.FromError("Wait until the bot is loaded.");
 				}
-				if (!cont.GuildSettings.Loaded)
+				if (!myContext.GuildSettings.Loaded)
 				{
 					return PreconditionResult.FromError("Wait until the guild is loaded.");
 				}
-				else if (cont.GuildSettings.IgnoredCommandChannels.Contains(context.Channel.Id) || !CheckIfCommandIsEnabled(cont, command, user))
+				else if (myContext.GuildSettings.IgnoredCommandChannels.Contains(context.Channel.Id) || !CheckIfCommandIsEnabled(myContext, command, user))
 				{
 					return PreconditionResult.FromError(Constants.IGNORE_ERROR);
 				}

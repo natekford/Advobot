@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Actions
 {
+	//TODO: Break this class up into smaller classes
 	public static class FormattingActions
 	{
 		private static readonly Regex _RemoveDuplicateSpaces = new Regex(@"[\r\n]+", RegexOptions.Compiled);
@@ -37,7 +38,7 @@ namespace Advobot.Actions
 				.AppendLineFeed($"**ID:** `{user.Id}`")
 				.AppendLineFeed($"**Nickname:** `{(String.IsNullOrWhiteSpace(user.Nickname) ? "No nickname" : user.Nickname.EscapeBackTicks())}`")
 				.AppendLineFeed(FormatDateTimeForCreatedAtMessage(user.CreatedAt.UtcDateTime))
-				.AppendLineFeed($"**Joined:** `{FormatDateTime(user.JoinedAt.Value.UtcDateTime)}` (`{users.IndexOf(user) + 1}` to join the guild)\n")
+				.AppendLineFeed($"**Joined:** `{FormatReadableDateTime(user.JoinedAt.Value.UtcDateTime)}` (`{users.IndexOf(user) + 1}` to join the guild)\n")
 				.AppendLineFeed(FormatGame(user))
 				.AppendLineFeed($"**Online status:** `{user.Status}`");
 
@@ -211,7 +212,7 @@ namespace Advobot.Actions
 		public static EmbedBuilder FormatBotInfo(IBotSettings globalInfo, IDiscordClient client, ILogModule logModule, IGuild guild)
 		{
 			var desc = new StringBuilder()
-				.AppendLineFeed($"**Online Since:** `{FormatDateTime(Process.GetCurrentProcess().StartTime)}`")
+				.AppendLineFeed($"**Online Since:** `{FormatReadableDateTime(Process.GetCurrentProcess().StartTime)}`")
 				.AppendLineFeed($"**Uptime:** `{FormatUptime()}`")
 				.AppendLineFeed($"**Guild Count:** `{logModule.TotalGuilds}`")
 				.AppendLineFeed($"**Cumulative Member Count:** `{logModule.TotalUsers}`")
@@ -248,12 +249,6 @@ namespace Advobot.Actions
 			var span = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime());
 			return $"{span.Days}:{span.Hours:00}:{span.Minutes:00}:{span.Seconds:00}";
 		}
-		public static string FormatDateTime(DateTime dt)
-		{
-			var ndt = dt.ToUniversalTime();
-			var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(ndt.Month);
-			return $"{monthName} {ndt.Day}, {ndt.Year} at {ndt.ToLongTimeString()}";
-		}
 		/// <summary>
 		/// Returns the current time in a year, month, day, hour, minute, second format. E.G: 20170815_053645
 		/// </summary>
@@ -262,18 +257,67 @@ namespace Advobot.Actions
 		{
 			return DateTime.UtcNow.ToString("yyyyMMdd_hhmmss");
 		}
+		/// <summary>
+		/// Returns the passed in time as a human readable time.
+		/// </summary>
+		/// <param name="dt"></param>
+		/// <returns></returns>
+		public static string FormatReadableDateTime(DateTime dt)
+		{
+			var ndt = dt.ToUniversalTime();
+			var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(ndt.Month);
+			return $"{monthName} {ndt.Day}, {ndt.Year} at {ndt.ToLongTimeString()}";
+		}
+		/// <summary>
+		/// Returns the passed in time as a human readable time and says how many days ago it was.
+		/// </summary>
+		/// <param name="dt"></param>
+		/// <returns></returns>
 		public static string FormatDateTimeForCreatedAtMessage(DateTime? dt)
 		{
-			return $"**Created:** `{FormatDateTime(dt ?? DateTime.UtcNow)}` (`{DateTime.UtcNow.Subtract(dt ?? DateTime.UtcNow).TotalDays}` days ago)";
+			return $"**Created:** `{FormatReadableDateTime(dt ?? DateTime.UtcNow)}` (`{DateTime.UtcNow.Subtract(dt ?? DateTime.UtcNow).TotalDays}` days ago)";
 		}
 
+		/// <summary>
+		/// Returns a string with a zero length character and the error message added to the front of the input.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
 		public static string ERROR(string message)
 		{
 			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
 		}
+		/// <summary>
+		/// Returns a string indicating why modifying something involving the passed in object failed.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="failureReason"></param>
+		/// <param name="obj"></param>
+		/// <returns></returns>
 		public static string FormatErrorString(IGuild guild, FailureReason failureReason, object obj)
 		{
-			var objType = FormatObjectType(obj);
+			string objType;
+			if (obj is IUser)
+			{
+				objType = "user";
+			}
+			else if (obj is IChannel)
+			{
+				objType = "channel";
+			}
+			else if (obj is IRole)
+			{
+				objType = "role";
+			}
+			else if (obj is IGuild)
+			{
+				objType = "guild";
+			}
+			else
+			{
+				objType = obj.GetType().Name;
+			}
+
 			switch (failureReason)
 			{
 				case FailureReason.TooFew:
@@ -310,66 +354,69 @@ namespace Advobot.Actions
 				}
 			}
 		}
-		public static string FormatObjectType(object obj)
-		{
-			if (obj is IUser)
-			{
-				return Constants.BASIC_TYPE_USER;
-			}
-			else if (obj is IChannel)
-			{
-				return Constants.BASIC_TYPE_CHANNEL;
-			}
-			else if (obj is IRole)
-			{
-				return Constants.BASIC_TYPE_ROLE;
-			}
-			else if (obj is IGuild)
-			{
-				return Constants.BASIC_TYPE_GUILD;
-			}
-			else
-			{
-				return "Error fetching type";
-			}
-		}
+		/// <summary>
+		/// Returns a string that better describes the object than its ToString() method.
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <returns></returns>
 		public static string FormatObject(object obj)
 		{
-			if (obj is IUser)
+			if (obj is IUser user)
 			{
-				return (obj as IUser).FormatUser();
+				return user.FormatUser();
 			}
-			else if (obj is IChannel)
+			else if (obj is IChannel channel)
 			{
-				return (obj as IChannel).FormatChannel();
+				return channel.FormatChannel();
 			}
-			else if (obj is IRole)
+			else if (obj is IRole role)
 			{
-				return (obj as IRole).FormatRole();
+				return role.FormatRole();
 			}
-			else if (obj is IGuild)
+			else if (obj is IGuild guild)
 			{
-				return (obj as IGuild).FormatGuild();
+				return guild.FormatGuild();
 			}
 			else
 			{
-				return "Error formatting object";
+				return obj.ToString();
 			}
 		}
 
+		/// <summary>
+		/// Returns a string with the given number of spaces minus the length of the second object padded onto the right side of the first object.
+		/// </summary>
+		/// <param name="obj1"></param>
+		/// <param name="obj2"></param>
+		/// <param name="len"></param>
+		/// <returns></returns>
 		public static string FormatStringsWithLength(object obj1, object obj2, int len)
 		{
 			var str1 = obj1.ToString();
 			var str2 = obj2.ToString();
-			return $"{str1.PadRight(len - str2.Length)}{str2}";
+			return $"{str1.PadRight(Math.Min(len - str2.Length, 0))}{str2}";
 		}
+		/// <summary>
+		/// Returns the first object padded right with the right argument and the second string padded left with the left argument.
+		/// </summary>
+		/// <param name="obj1"></param>
+		/// <param name="obj2"></param>
+		/// <param name="right"></param>
+		/// <param name="left"></param>
+		/// <returns></returns>
 		public static string FormatStringsWithLength(object obj1, object obj2, int right, int left)
 		{
-			var str1 = obj1.ToString().PadRight(right);
-			var str2 = obj2.ToString().PadLeft(left);
+			var str1 = obj1.ToString().PadRight(Math.Min(right, 0));
+			var str2 = obj2.ToString().PadLeft(Math.Min(left, 0));
 			return $"{str1}{str2}";
 		}
 
+		/// <summary>
+		/// Returns a string of all the bot's settings in human readable format.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="botSettings"></param>
+		/// <returns></returns>
 		public static async Task<string> FormatAllBotSettings(IDiscordClient client, IBotSettings botSettings)
 		{
 			var sb = new StringBuilder();
@@ -393,6 +440,12 @@ namespace Advobot.Actions
 			}
 			return sb.ToString();
 		}
+		/// <summary>
+		/// Returns a string of a bot setting in human readable format.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
 		public static async Task<string> FormatBotSetting(IDiscordClient client, object value)
 		{
 			if (value == null)
@@ -429,6 +482,12 @@ namespace Advobot.Actions
 				return $"`{value.ToString()}`";
 			}
 		}
+		/// <summary>
+		/// Returns a string of all the guild's settings in human readable format.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="guildSettings"></param>
+		/// <returns></returns>
 		public static string FormatAllGuildSettings(IGuild guild, IGuildSettings guildSettings)
 		{
 			var sb = new StringBuilder();
@@ -452,6 +511,12 @@ namespace Advobot.Actions
 			}
 			return sb.ToString();
 		}
+		/// <summary>
+		/// Returns a string of a guild setting in human readable format.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
 		public static string FormatGuildSetting(SocketGuild guild, object value)
 		{
 			if (value == null)
@@ -492,7 +557,8 @@ namespace Advobot.Actions
 			//Has to be above IEnumerable too
 			else if (value is IDictionary tempIDictionary)
 			{
-				return String.Join("\n", tempIDictionary.Keys.Cast<object>().Where(x => tempIDictionary[x] != null).Select(x =>
+				var validKeys = tempIDictionary.Keys.Cast<object>().Where(x => tempIDictionary[x] != null);
+				return String.Join("\n", validKeys.Select(x =>
 				{
 					return $"{FormatGuildSetting(guild, x)}: {FormatGuildSetting(guild, tempIDictionary[x])}";
 				}));
@@ -507,11 +573,21 @@ namespace Advobot.Actions
 			}
 		}
 
+		/// <summary>
+		/// Returns a string saying who did an action with the bot and possibly why they did it.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public static string FormatUserReason(IUser user, string reason = null)
 		{
-			var reasonStr = reason == null ? "" : $" Reason: {reason}.";
-			return $"Action by {user.FormatUser()}.{reasonStr}";
+			return $"Action by {user.FormatUser()}.{(reason == null ? "" : $" Reason: {reason.TrimEnd('.')}.")}";
 		}
+		/// <summary>
+		/// Returns a string saying the bot did an action and possibly why it did it.
+		/// </summary>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public static string FormatBotReason(string reason)
 		{
 			if (!String.IsNullOrWhiteSpace(reason))
@@ -527,10 +603,24 @@ namespace Advobot.Actions
 			return reason;
 		}
 
+		/// <summary>
+		/// Joins all strings which are not null with the given string.
+		/// </summary>
+		/// <param name="joining"></param>
+		/// <param name="toJoin"></param>
+		/// <returns></returns>
 		public static string JoinNonNullStrings(string joining, params string[] toJoin)
 		{
 			return String.Join(joining, toJoin.Where(x => !String.IsNullOrWhiteSpace(x)));
 		}
+		/// <summary>
+		/// Returns a string which is a numbered list of the passed in objects.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="list"></param>
+		/// <param name="format"></param>
+		/// <param name="args"></param>
+		/// <returns></returns>
 		public static string FormatNumberedList<T>(this IEnumerable<T> list, string format, params Func<T, object>[] args)
 		{
 			var count = 0;
@@ -539,6 +629,11 @@ namespace Advobot.Actions
 			return String.Join("\n", list.Select(x => $"`{(++count).ToString().PadLeft(maxLen, '0')}.` " + String.Format(@format, args.Select(y => y(x)).ToArray())));
 		}
 
+		/// <summary>
+		/// Returns the game's name or stream name/url.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
 		public static string FormatGame(IUser user)
 		{
 			var game = user.Game.Value;
@@ -558,30 +653,51 @@ namespace Advobot.Actions
 				}
 			}
 		}
-		public static string FormatUserStayLength(IGuildUser user)
+		/// <summary>
+		/// Returns a string which is a human readable stay time.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public static string FormatStayLength(IGuildUser user)
 		{
 			if (user.JoinedAt.HasValue)
 			{
 				var timeStayed = (DateTime.UtcNow - user.JoinedAt.Value.ToUniversalTime());
-				return $"\n**Stayed for:** {timeStayed.Days}:{timeStayed.Hours:00}:{timeStayed.Minutes:00}:{timeStayed.Seconds:00}";
+				return $"**Stayed for:** {timeStayed.Days}:{timeStayed.Hours:00}:{timeStayed.Minutes:00}:{timeStayed.Seconds:00}";
 			}
 			return "";
 		}
-		public static async Task<string> FormatUserInviteJoin(IGuildSettings guildSettings, IGuild guild)
+		/// <summary>
+		/// Returns a string detailing which invite a user joined on.
+		/// </summary>
+		/// <param name="guildSettings"></param>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public static async Task<string> FormatInviteJoin(IGuildSettings guildSettings, IGuildUser user)
 		{
-			var curInv = await InviteActions.GetInviteUserJoinedOn(guildSettings, guild);
-			return curInv != null ? $"\n**Invite:** {curInv.Code}" : "";
+			var curInv = await InviteActions.GetInviteUserJoinedOn(guildSettings, user);
+			return curInv != null ? $"**Invite:** {curInv.Code}" : "";
 		}
-		public static string FormatUserAccountAgeWarning(IUser user)
+		/// <summary>
+		/// Returns a string which warns about young accounts.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public static string FormatAccountAgeWarning(IUser user)
 		{
 			var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
 			if (userAccAge.TotalHours < 24)
 			{
-				return $"\n**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
+				return $"**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
 			}
 			return "";
 		}
 
+		/// <summary>
+		/// Returns a string with the user's name, discriminator, and id.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
 		public static string FormatUser(this IUser user)
 		{
 			if (user != null)
@@ -594,6 +710,11 @@ namespace Advobot.Actions
 				return "Irretrievable User";
 			}
 		}
+		/// <summary>
+		/// Returns a string with the role's name and id.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <returns></returns>
 		public static string FormatRole(this IRole role)
 		{
 			if (role != null)
@@ -605,6 +726,11 @@ namespace Advobot.Actions
 				return "Irretrievable Role";
 			}
 		}
+		/// <summary>
+		/// Returns a string with the channel's name and id.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <returns></returns>
 		public static string FormatChannel(this IChannel channel)
 		{
 			if (channel != null)
@@ -616,6 +742,11 @@ namespace Advobot.Actions
 				return "Irretrievable Channel";
 			}
 		}
+		/// <summary>
+		/// Returns a string with the guild's name and id.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <returns></returns>
 		public static string FormatGuild(this IGuild guild)
 		{
 			if (guild != null)
@@ -627,6 +758,11 @@ namespace Advobot.Actions
 				return "Irretrievable Guild";
 			}
 		}
+		/// <summary>
+		/// Returns a string of a message's content/embeds, what time it was sent at, the author, and the channel.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
 		public static string FormatMessage(this IMessage message)
 		{
 			var time = message.CreatedAt.ToString("HH:mm:ss");
@@ -635,6 +771,11 @@ namespace Advobot.Actions
 			var text = FormatMessageContent(message).RemoveAllMarkdown().RemoveDuplicateNewLines();
 			return $"`[{time}]` `{author}` **IN** `{channel}`\n```\n{text}```";
 		}
+		/// <summary>
+		/// Returns a string containing the message's content and then most aspects of the embeds in their messages.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
 		public static string FormatMessageContent(IMessage message)
 		{
 			var sb = new StringBuilder((String.IsNullOrEmpty(message.Content) ? "Empty message content" : message.Content) + "\n");

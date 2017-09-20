@@ -114,10 +114,7 @@ namespace Advobot.Classes
 			_Time = time.ToUniversalTime();
 		}
 
-		public DateTime GetTime()
-		{
-			return _Time;
-		}
+		public DateTime GetTime() => _Time;
 	}
 
 	/// <summary>

@@ -31,9 +31,9 @@ namespace Advobot.TypeReaders
 	{
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
-			if (context is MyCommandContext)
+			if (context is MyCommandContext myContext)
 			{
-				var command = (context as MyCommandContext).GuildSettings.GetCommand(input);
+				var command = myContext.GuildSettings.GetCommand(input);
 				if (command != null)
 				{
 					return Task.FromResult(TypeReaderResult.FromSuccess(command));

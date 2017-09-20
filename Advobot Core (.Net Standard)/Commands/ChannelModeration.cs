@@ -178,7 +178,7 @@ namespace Advobot.Commands.ChannelModeration
 					return;
 				}
 
-				var desc = $"Role:** `{role.FormatRole()}`\n```{GetActions.GetFormattedPermsFromOverwrite(channel, role)}```";
+				var desc = $"Role:** `{role.FormatRole()}`\n```{OverwriteActions.GetFormattedPermsFromOverwrite(channel, role)}```";
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Overwrite On " + channel.FormatChannel(), desc));
 			}
 			[Command]
@@ -190,7 +190,7 @@ namespace Advobot.Commands.ChannelModeration
 					return;
 				}
 
-				var desc = $"User:** `{user.FormatUser()}`\n```{GetActions.GetFormattedPermsFromOverwrite(channel, user)}```";
+				var desc = $"User:** `{user.FormatUser()}`\n```{OverwriteActions.GetFormattedPermsFromOverwrite(channel, user)}```";
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Overwrite On " + channel.FormatChannel(), desc));
 			}
 		}
@@ -265,7 +265,7 @@ namespace Advobot.Commands.ChannelModeration
 				}
 			}
 
-			var givenPerms = ChannelActions.ModifyOverwritePermissions(channel, discordObject, actionType, changeValue, context.User as IGuildUser);
+			var givenPerms = OverwriteActions.ModifyOverwritePermissions(channel, discordObject, actionType, changeValue, context.User as IGuildUser);
 			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully {actionStr} `{String.Join("`, `", givenPerms)}` for `{FormattingActions.FormatObject(discordObject)}` on `{channel.FormatChannel()}`.");
 		}
 	}
@@ -320,7 +320,7 @@ namespace Advobot.Commands.ChannelModeration
 							var role = Context.Guild.GetRole(overwrite.TargetId);
 							var allowBits = overwrite.Permissions.AllowValue;
 							var denyBits = overwrite.Permissions.DenyValue;
-							await ChannelActions.ModifyOverwrite(outputChannel, role, allowBits, denyBits, FormattingActions.FormatUserReason(Context.User));
+							await OverwriteActions.ModifyOverwrite(outputChannel, role, allowBits, denyBits, FormattingActions.FormatUserReason(Context.User));
 							break;
 						}
 						case PermissionTarget.User:
@@ -328,7 +328,7 @@ namespace Advobot.Commands.ChannelModeration
 							var user = await Context.Guild.GetUserAsync(overwrite.TargetId);
 							var allowBits = overwrite.Permissions.AllowValue;
 							var denyBits = overwrite.Permissions.DenyValue;
-							await ChannelActions.ModifyOverwrite(outputChannel, user, allowBits, denyBits, FormattingActions.FormatUserReason(Context.User));
+							await OverwriteActions.ModifyOverwrite(outputChannel, user, allowBits, denyBits, FormattingActions.FormatUserReason(Context.User));
 							break;
 						}
 					}
@@ -344,7 +344,7 @@ namespace Advobot.Commands.ChannelModeration
 					return;
 				}
 
-				await ChannelActions.ModifyOverwrite(outputChannel, discordObject, overwrite?.AllowValue ?? 0, overwrite?.DenyValue ?? 0, FormattingActions.FormatUserReason(Context.User));
+				await OverwriteActions.ModifyOverwrite(outputChannel, discordObject, overwrite?.AllowValue ?? 0, overwrite?.DenyValue ?? 0, FormattingActions.FormatUserReason(Context.User));
 			}
 
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully copied `{target}` from `{inputChannel.FormatChannel()}` to `{outputChannel.FormatChannel()}`");
@@ -361,7 +361,7 @@ namespace Advobot.Commands.ChannelModeration
 		[Command]
 		public async Task Command([VerifyChannel(false, ChannelVerification.CanModifyPermissions)] IGuildChannel channel)
 		{
-			await ChannelActions.ClearOverwrites(channel, FormattingActions.FormatUserReason(Context.User));
+			await OverwriteActions.ClearOverwrites(channel, FormattingActions.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed all channel permission overwrites from `{channel.FormatChannel()}`.");
 		}
 	}

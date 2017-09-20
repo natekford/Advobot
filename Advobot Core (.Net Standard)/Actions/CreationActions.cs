@@ -23,7 +23,7 @@ namespace Advobot.Actions
 		public static IServiceProvider CreateServicesAndServiceProvider()
 		{
 			IBotSettings botSettings					= CreateBotSettings();
-			IDiscordClient client						= CreateBotClient(botSettings);
+			IDiscordClient client						= CreateDiscordClient(botSettings);
 			IGuildSettingsModule guildSettings			= new MyGuildSettingsModule();
 			ITimersModule timers						= new MyTimersModule(guildSettings);
 			ILogModule logging							= new MyLogModule(client, botSettings, guildSettings, timers);
@@ -37,36 +37,33 @@ namespace Advobot.Actions
 				.AddSingleton(logging)
 				.AddSingleton(commandService));
 		}
-
 		/// <summary>
 		/// Returns <see cref="DiscordSocketClient"/> if shard count in <paramref name="botSettings"/> is 1. Else returns <see cref="DiscordShardedClient"/>.
 		/// </summary>
 		/// <param name="botSettings">The settings to initialize the client with.</param>
 		/// <returns>A discord client.</returns>
-		public static IDiscordClient CreateBotClient(IBotSettings botSettings)
+		public static IDiscordClient CreateDiscordClient(IBotSettings botSettings)
 		{
-			return botSettings.ShardCount > 1 ? CreateShardedClient(botSettings) : (IDiscordClient)CreateSocketClient(botSettings);
-		}
-		private static DiscordShardedClient CreateShardedClient(IBotSettings botSettings)
-		{
-			return new DiscordShardedClient(new DiscordSocketConfig
+			if (botSettings.ShardCount > 1)
 			{
-				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
-				MessageCacheSize = (int)botSettings.MessageCacheCount,
-				LogLevel = botSettings.LogLevel,
-				TotalShards = (int)botSettings.ShardCount,
-			});
-		}
-		private static DiscordSocketClient CreateSocketClient(IBotSettings botSettings)
-		{
-			return new DiscordSocketClient(new DiscordSocketConfig
+				return new DiscordShardedClient(new DiscordSocketConfig
+				{
+					AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
+					MessageCacheSize = (int)botSettings.MessageCacheCount,
+					LogLevel = botSettings.LogLevel,
+					TotalShards = (int)botSettings.ShardCount,
+				});
+			}
+			else
 			{
-				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
-				MessageCacheSize = (int)botSettings.MaxUserGatherCount,
-				LogLevel = botSettings.LogLevel,
-			});
+				return new DiscordSocketClient(new DiscordSocketConfig
+				{
+					AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
+					MessageCacheSize = (int)botSettings.MaxUserGatherCount,
+					LogLevel = botSettings.LogLevel,
+				});
+			}
 		}
-
 		/// <summary>
 		/// Creates settings that the bot uses.
 		/// </summary>

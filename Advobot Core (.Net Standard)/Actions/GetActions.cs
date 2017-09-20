@@ -128,69 +128,6 @@ namespace Advobot.Actions
 		}
 
 		/// <summary>
-		/// Returns a dictionary of channel permissions and their values (allow, deny, inherit). Non filtered so incorrect channel type permissions will be in it.
-		/// </summary>
-		/// <param name="overwrite"></param>
-		/// <returns></returns>
-		public static Dictionary<string, string> GetChannelOverwritePermissions(Overwrite overwrite)
-		{
-			//Select the name as the key, then select the permvalue for its value
-			return ChannelPerms.Permissions.ToDictionary(x => x.Name, x =>
-			{
-				if ((overwrite.Permissions.AllowValue & x.Value) != 0)
-				{
-					return nameof(PermValue.Allow);
-				}
-				else if ((overwrite.Permissions.DenyValue & x.Value) != 0)
-				{
-					return nameof(PermValue.Deny);
-				}
-				else
-				{
-					return nameof(PermValue.Inherit);
-				}
-			});
-		}
-		/// <summary>
-		/// Returns a similar dictionary to <see cref="GetChannelOverwritePermissions"/> except this method has voice permissions filtered out of text channels and vice versa.
-		/// </summary>
-		/// <param name="overwrite"></param>
-		/// <param name="channel"></param>
-		/// <returns></returns>
-		public static Dictionary<string, string> GetFilteredChannelOverwritePermissions(Overwrite overwrite, IGuildChannel channel)
-		{
-			var dictionary = GetChannelOverwritePermissions(overwrite);
-			if (channel is ITextChannel)
-			{
-				foreach (var perm in ChannelPerms.Permissions.Where(x => x.Voice))
-				{
-					dictionary.Remove(perm.Name);
-				}
-			}
-			else
-			{
-				foreach (var perm in ChannelPerms.Permissions.Where(x => x.Text))
-				{
-					dictionary.Remove(perm.Name);
-				}
-			}
-			return dictionary;
-		}
-		/// <summary>
-		/// Returns the channel perms gotten from <see cref="GetFilteredChannelOverwritePermissions"/> formatted with their perm value in front of the perm name.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="channel"></param>
-		/// <param name="overwriteObj"></param>
-		/// <returns></returns>
-		public static string[] GetFormattedPermsFromOverwrite<T>(IGuildChannel channel, T overwriteObj) where T : ISnowflakeEntity
-		{
-			var perms = GetFilteredChannelOverwritePermissions(channel.PermissionOverwrites.FirstOrDefault(x => overwriteObj.Id == x.TargetId), channel);
-			var maxLen = perms.Keys.Max(x => x.Length);
-			return perms.Select(x => $"{x.Key.PadRight(maxLen)} {x.Value}").ToArray();
-		}
-
-		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId
 		/// </summary>
 		/// <param name="guildId"></param>

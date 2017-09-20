@@ -173,15 +173,15 @@ namespace Advobot.Modules.Log
 			}
 
 			--number;
-			var closeWordList = timers.GetOutActiveCloseQuote(message.Author.Id);
-			if (!closeWordList.Equals(default(ActiveCloseWord<Quote>)) && closeWordList.List.Count > number)
+			var quotes = timers.GetOutActiveCloseQuote(message.Author.Id);
+			if (quotes != null && quotes.List.Count > number)
 			{
-				await MessageActions.SendChannelMessage(message.Channel, closeWordList.List[number].Word.Description);
+				await MessageActions.SendChannelMessage(message.Channel, quotes.List.ElementAt(number).Word.Description);
 			}
-			var closeHelpList = timers.GetOutActiveCloseHelp(message.Author.Id);
-			if (!closeHelpList.Equals(default(ActiveCloseWord<HelpEntry>)) && closeHelpList.List.Count > number)
+			var helpEntries = timers.GetOutActiveCloseHelp(message.Author.Id);
+			if (helpEntries != null && helpEntries.List.Count > number)
 			{
-				var help = closeHelpList.List[number].Word;
+				var help = helpEntries.List.ElementAt(number).Word;
 				var embed = EmbedActions.MakeNewEmbed(help.Name, help.ToString())
 					.MyAddFooter("Help");
 				await MessageActions.SendEmbedMessage(message.Channel, embed);
