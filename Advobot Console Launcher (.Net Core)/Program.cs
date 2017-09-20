@@ -37,7 +37,7 @@ namespace Advobot.Launcher
 				botKey = false;
 			}
 
-			await ClientActions.ConnectClient(client);
+			await ClientActions.StartAsync(client);
 		}
 	}
 }

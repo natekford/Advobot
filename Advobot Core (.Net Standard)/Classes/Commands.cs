@@ -57,7 +57,8 @@ namespace Advobot.Classes
 			var helpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.Equals(name));
 			if (helpEntry == null)
 			{
-				throw new ArgumentException($"{name} does not have a help entry.");
+				Category = default(CommandCategory);
+				return;
 			}
 
 			Name = name;

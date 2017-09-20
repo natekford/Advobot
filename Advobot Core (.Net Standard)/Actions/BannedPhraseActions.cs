@@ -118,11 +118,9 @@ namespace Advobot.Actions
 			//Removing by text matching
 			foreach (var str in inputPhrases)
 			{
-				var temp = bannedPhrases.FirstOrDefault(x => x.Phrase.Equals(str));
-				if (temp != null)
+				if (bannedPhrases.Remove(bannedPhrases.FirstOrDefault(x => x.Phrase.Equals(str))))
 				{
 					success.Add(str);
-					bannedPhrases.Remove(temp);
 				}
 				else
 				{

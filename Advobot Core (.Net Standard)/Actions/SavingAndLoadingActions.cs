@@ -25,7 +25,7 @@ namespace Advobot.Actions
 				ClientActions.RestartBot();
 			}
 
-			await ClientActions.UpdateGame(client, botSettings);
+			await ClientActions.UpdateGameAsync(client, botSettings);
 
 			ConsoleActions.WriteLine("The current bot prefix is: " + botSettings.Prefix);
 			ConsoleActions.WriteLine($"Bot took {DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds:n} milliseconds to load everything.");

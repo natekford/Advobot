@@ -350,11 +350,11 @@ namespace Advobot.Classes
 		{
 			Guild = guild as SocketGuild;
 
-			CommandSwitches.AddRange(Constants.HELP_ENTRIES.Where(x =>
-			{
-				return !CommandSwitches.Select(y => y.Name).CaseInsContains(x.Name);
-			}).Select(x => new CommandSwitch(x.Name, x.DefaultEnabled)));
-			CommandSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
+			//Add in the default values for commands that aren't set
+			var unsetCmds = Constants.HELP_ENTRIES.Where(x => !CommandSwitches.Select(y => y.Name).CaseInsContains(x.Name));
+			CommandSwitches.AddRange(unsetCmds.Select(x => new CommandSwitch(x.Name, x.DefaultEnabled)));
+			//Remove all that have no name/aren't commands anymore
+			CommandSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name) || !Constants.COMMAND_NAMES.CaseInsContains(x.Name));
 			CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));

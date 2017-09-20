@@ -14,9 +14,9 @@ namespace Advobot.Actions
 		/// <summary>
 		/// Tries to start the bot by making sure a save path and bot key are provided and the bot is not already running.
 		/// </summary>
-		/// <param name="client">The client to start.</param>
+		/// <param name="client"></param>
 		/// <returns></returns>
-		public static async Task ConnectClient(IDiscordClient client)
+		public static async Task StartAsync(IDiscordClient client)
 		{
 			switch (client.ConnectionState)
 			{
@@ -52,7 +52,7 @@ namespace Advobot.Actions
 		/// <param name="key"></param>
 		/// <returns></returns>
 		/// <exception cref="InvalidCastException"></exception>
-		public static async Task Login(IDiscordClient client, string key)
+		public static async Task LoginAsync(IDiscordClient client, string key)
 		{
 			if (client is DiscordSocketClient)
 			{
@@ -63,6 +63,74 @@ namespace Advobot.Actions
 				await ((DiscordShardedClient)client).LoginAsync(TokenType.Bot, key);
 			}
 		}
+		/// <summary>
+		/// Returns the shard id for a <see cref="DiscordSocketClient"/> else returns -1.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <returns></returns>
+		public static int GetShardId(IDiscordClient client)
+		{
+			if (client is DiscordSocketClient)
+			{
+				return ((DiscordSocketClient)client).ShardId;
+			}
+			else
+			{
+				return -1;
+			}
+		}
+		/// <summary>
+		/// Returns the latency for a client.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <returns></returns>
+		/// <exception cref="InvalidCastException">/></exception>
+		public static int GetLatency(IDiscordClient client)
+		{
+			if (client is DiscordSocketClient)
+			{
+				return ((DiscordSocketClient)client).Latency;
+			}
+			else
+			{
+				return ((DiscordShardedClient)client).Latency;
+			}
+		}
+		/// <summary>
+		/// Returns the shard count of a client.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <returns></returns>
+		/// <exception cref="InvalidCastException"></exception>
+		public static int GetShardCount(IDiscordClient client)
+		{
+			if (client is DiscordSocketClient)
+			{
+				return 1;
+			}
+			else
+			{
+				return ((DiscordShardedClient)client).Shards.Count;
+			}
+		}
+		/// <summary>
+		/// Returns the shard id for a guild is on.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="guild"></param>
+		/// <returns></returns>
+		/// <exception cref="InvalidCastException"></exception>
+		public static int GetShardIdFor(IDiscordClient client, IGuild guild)
+		{
+			if (client is DiscordSocketClient)
+			{
+				return ((DiscordSocketClient)client).ShardId;
+			}
+			else
+			{
+				return ((DiscordShardedClient)client).GetShardIdFor(guild);
+			}
+		}
 
 		/// <summary>
 		/// Updates a given client's stream and game using settings from the <paramref name="botSettings"/> parameter.
@@ -71,7 +139,7 @@ namespace Advobot.Actions
 		/// <param name="botSettings">The information to update with.</param>
 		/// <returns></returns>
 		/// <exception cref="InvalidCastException"></exception>
-		public static async Task UpdateGame(IDiscordClient client, IBotSettings botSettings)
+		public static async Task UpdateGameAsync(IDiscordClient client, IBotSettings botSettings)
 		{
 			var prefix = botSettings.Prefix;
 			var game = botSettings.Game;
@@ -99,7 +167,7 @@ namespace Advobot.Actions
 		/// <param name="client"></param>
 		/// <param name="fileInfo"></param>
 		/// <returns></returns>
-		public static async Task ModifyBotIcon(IDiscordClient client, FileInfo fileInfo)
+		public static async Task ModifyBotIconAsync(IDiscordClient client, FileInfo fileInfo)
 		{
 			using (var stream = new StreamReader(fileInfo.FullName))
 			{
@@ -108,76 +176,7 @@ namespace Advobot.Actions
 		}
 
 		/// <summary>
-		/// Returns the shard Id for a <see cref="DiscordSocketClient"/> else returns -1.
-		/// </summary>
-		/// <param name="client">The client to get the shard from.</param>
-		/// <returns>Int representing the shard Id.</returns>
-		public static int GetShardId(IDiscordClient client)
-		{
-			if (client is DiscordSocketClient)
-			{
-				return ((DiscordSocketClient)client).ShardId;
-			}
-			else
-			{
-				return -1;
-			}
-		}
-		/// <summary>
-		/// Returns the latency for a <see cref="DiscordSocketClient"/> or <see cref="DiscordShardedClient"/> else throws an exception.
-		/// </summary>
-		/// <param name="client">The client to get the latency for.</param>
-		/// <returns>Int representing the client's latency.</returns>
-		/// <exception cref="InvalidCastException">/></exception>
-		public static int GetLatency(IDiscordClient client)
-		{
-			if (client is DiscordSocketClient)
-			{
-				return ((DiscordSocketClient)client).Latency;
-			}
-			else
-			{
-				return ((DiscordShardedClient)client).Latency;
-			}
-		}
-		/// <summary>
-		/// Returns the shard count <see cref="DiscordSocketClient"/> or <see cref="DiscordShardedClient"/> else throws an exception.
-		/// </summary>
-		/// <param name="client">The client to get the shard count for.</param>
-		/// <returns>Int representing the client's shard count.</returns>
-		/// <exception cref="InvalidCastException">/></exception>
-		public static int GetShardCount(IDiscordClient client)
-		{
-			if (client is DiscordSocketClient)
-			{
-				return 1;
-			}
-			else
-			{
-				return ((DiscordShardedClient)client).Shards.Count;
-			}
-		}
-		/// <summary>
-		/// Returns the shard Id for a specified guild.
-		/// </summary>
-		/// <param name="client">The client hosting the guild</param>
-		/// <param name="guild">The guild to search for.</param>
-		/// <returns></returns>
-		/// <exception cref="InvalidCastException"></exception>
-		public static int GetShardIdFor(IDiscordClient client, IGuild guild)
-		{
-			if (client is DiscordSocketClient)
-			{
-				return ((DiscordSocketClient)client).ShardId;
-			}
-			else
-			{
-				return ((DiscordShardedClient)client).GetShardIdFor(guild);
-			}
-		}
-
-		/// <summary>
-		/// Creates a new bot that uses the same console. The bot that starts is created using <see cref="Process.Start"/> and specifying the filename as dotnet and the arguments as the location of the dll.
+		/// Creates a new bot that uses the same console. The bot that starts is created using <see cref="Process.Start"/> and specifying the filename as dotnet and the arguments as the location of the .dll.
 		/// <para>
 		/// The old bot is then killed
 		/// </para>

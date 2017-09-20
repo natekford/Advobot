@@ -309,7 +309,7 @@ namespace Advobot.Commands.BotSettings
 				webClient.DownloadFileAsync(new Uri(imageUrl), fileInfo.FullName);
 				webClient.DownloadFileCompleted += async (sender, e) =>
 				{
-					await ClientActions.ModifyBotIcon(Context.Client, fileInfo);
+					await ClientActions.ModifyBotIconAsync(Context.Client, fileInfo);
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully changed the bot's icon.");
 					SavingAndLoadingActions.DeleteFile(fileInfo);
 				};

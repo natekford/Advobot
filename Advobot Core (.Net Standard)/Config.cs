@@ -77,7 +77,7 @@ namespace Advobot
 				{
 					try
 					{
-						await ClientActions.Login(client, key);
+						await ClientActions.LoginAsync(client, key);
 						return true;
 					}
 					catch (Exception)
@@ -94,7 +94,7 @@ namespace Advobot
 
 			try
 			{
-				await ClientActions.Login(client, key);
+				await ClientActions.LoginAsync(client, key);
 
 				ConsoleActions.WriteLine("Succesfully logged in via the given bot key.");
 				Configuration[ConfigKeys.Bot_Key] = key;
