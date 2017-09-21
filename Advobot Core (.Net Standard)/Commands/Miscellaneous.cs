@@ -20,16 +20,25 @@ namespace Advobot.Commands.Miscellaneous
 	[DefaultEnabled(true)]
 	public sealed class Help : MyModuleBase
 	{
-		private static readonly string _Commands = $"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)}` for the list of commands.\n";
-		private static readonly string _Help = $"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Help)} [Command]` for help with a command.";
-		private static readonly string _GeneralHelp = _Commands + _Help;
-		private static readonly string _BasicSyntax = "`[]` means required.\n`<>` means optional.\n`|` means or.";
-		private static readonly string _MentionSyntax = $"`User` means `{Constants.USER_INSTRUCTIONS}`.\n`Role` means `{Constants.ROLE_INSTRUCTIONS}`.\n`Channel` means `{Constants.CHANNEL_INSTRUCTIONS}`.";
-		private static readonly string _Links = $"[GitHub Repository]({Constants.REPO})\n[Discord Server]({Constants.DISCORD_INV})";
+		private static readonly string _GeneralHelp =
+			$"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)}` for the list of commands.\n" +
+			$"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Help)} [Command]` for help with a command.";
+		private static readonly string _BasicSyntax =
+			"`[]` means required.\n" +
+			"`<>` means optional.\n" +
+			"`|` means or.";
+		private static readonly string _MentionSyntax =
+			"`User` means `@User|\"Username\"`.\n" +
+			"`Role` means `@Role|\"Role Name\"`.\n" +
+			"`Channel` means `#Channel|\"Channel Name\"`.";
+		private static readonly string _Links =
+			$"[GitHub Repository]({Constants.REPO})\n" +
+			$"[Discord Server]({Constants.DISCORD_INV})";
 
 		[Command]
 		public async Task Command([Optional] string command)
 		{
+			var temp = DateTime.UtcNow.Subtract(DateTime.UtcNow);
 			if (String.IsNullOrWhiteSpace(command))
 			{
 				var embed = EmbedActions.MakeNewEmbed("General Help", _GeneralHelp)
@@ -225,14 +234,14 @@ namespace Advobot.Commands.Miscellaneous
 				{
 					title = $"Users With Names Containing '{otherArg}'";
 					users = users.Where(x => exact ? x.Username.CaseInsEquals(otherArg) || (nickname && x.Nickname.CaseInsEquals(otherArg))
-													: x.Username.CaseInsContains(otherArg) || (nickname && x.Nickname.CaseInsContains(otherArg)));
+												   : x.Username.CaseInsContains(otherArg) || (nickname && x.Nickname.CaseInsContains(otherArg)));
 					break;
 				}
 				case Target.Game:
 				{
 					title = $"Users With Games Containing '{otherArg}'";
 					users = users.Where(x => exact ? x.Game.HasValue && x.Game.Value.Name.CaseInsEquals(otherArg)
-													: x.Game.HasValue && x.Game.Value.Name.CaseInsContains(otherArg));
+												   : x.Game.HasValue && x.Game.Value.Name.CaseInsContains(otherArg));
 					break;
 				}
 				case Target.Stream:
@@ -308,12 +317,12 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task Command(uint position)
 		{
-			var users = (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToArray();
-
+			var users = await GuildActions.GetUsersAndOrderByJoin(Context.Guild);
 			var newPos = Math.Max(1, Math.Min(position, users.Length));
 			var user = users[newPos - 1];
-			var timeStr = FormattingActions.FormatReadableDateTime(user.JoinedAt.Value.UtcDateTime);
-			await MessageActions.SendChannelMessage(Context, $"`{user.FormatUser()}` is `#{newPos}` to join the guild on `{timeStr}`.");
+			var time = FormattingActions.FormatReadableDateTime(user.JoinedAt.Value.UtcDateTime);
+			var text = $"`{user.FormatUser()}` is `#{newPos}` to join the guild on `{time}`.";
+			await MessageActions.SendChannelMessage(Context.Channel, text);
 		}
 	}
 
@@ -363,10 +372,9 @@ namespace Advobot.Commands.Miscellaneous
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
 		{
-			var users = (await Context.Guild.GetUsersAsync()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToArray();
-
+			var users = await GuildActions.GetUsersAndOrderByJoin(Context.Guild);
 			var text = users.FormatNumberedList("`{0}` joined on `{1}`", x => x.FormatUser(), x => FormattingActions.FormatReadableDateTime(x.JoinedAt.Value.UtcDateTime));
-			await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "User_Joins_");
+			await MessageActions.SendTextFile(Context.Guild, Context.Channel, text, "User_Joins_");
 		}
 	}
 
@@ -410,18 +418,18 @@ namespace Advobot.Commands.Miscellaneous
 			var count = 0;
 			for (count = 0; count < messages.Length; ++count)
 			{
-				var text = FormattingActions.FormatMessage(messages[count]).RemoveAllMarkdown().RemoveDuplicateNewLines() + "\n-----\n";
+				var text = FormattingActions.FormatMessage(messages[count]).RemoveAllMarkdown().RemoveDuplicateNewLines();
 				if (formattedMessagesBuilder.Length + text.Length >= Context.BotSettings.MaxMessageGatherSize)
 				{
 					break;
 				}
 				else
 				{
-					formattedMessagesBuilder.Append(text);
+					formattedMessagesBuilder.AppendLineFeed(text);
 				}
 			}
 
-			await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel,
+			await MessageActions.SendTextFile(Context.Guild, Context.Channel,
 				formattedMessagesBuilder.ToString(),
 				$"{channel.Name}_Messages",
 				$"Successfully got `{count}` messages");
@@ -506,9 +514,10 @@ namespace Advobot.Commands.Miscellaneous
 			}
 			else
 			{
+				var cutText = $"From `{Context.User.FormatUser()}`, {role.Mention}: {text.Substring(0, Math.Min(text.Length, 250))}";
 				//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
 				await role.ModifyAsync(x => x.Mentionable = true, new RequestOptions { AuditLogReason = FormattingActions.FormatUserReason(Context.User) });
-				await MessageActions.SendChannelMessage(Context, $"From `{Context.User.FormatUser()}`, {role.Mention}: {text.Substring(0, Math.Min(text.Length, 250))}");
+				await MessageActions.SendChannelMessage(Context.Channel, cutText);
 				await role.ModifyAsync(x => x.Mentionable = false, new RequestOptions { AuditLogReason = FormattingActions.FormatUserReason(Context.User) });
 			}
 		}
@@ -530,7 +539,7 @@ namespace Advobot.Commands.Miscellaneous
 			if (owner != null)
 			{
 				var DMChannel = await owner.GetOrCreateDMChannelAsync();
-				await MessageActions.SendDMMessage(DMChannel, newMsg);
+				await MessageActions.SendChannelMessage(DMChannel, newMsg);
 			}
 			else
 			{
@@ -584,7 +593,7 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task TestCommand()
 		{
-			await MessageActions.SendChannelMessage(Context, "test");
+			await MessageActions.SendChannelMessage(Context.Channel, "test");
 		}
 	}
 }

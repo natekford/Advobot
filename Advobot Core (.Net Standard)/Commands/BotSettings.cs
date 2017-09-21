@@ -239,7 +239,7 @@ namespace Advobot.Commands.BotSettings
 		public async Task CommandAll()
 		{
 			var text = await FormattingActions.FormatAllBotSettings(Context.Client, Context.BotSettings);
-			await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "Bot Settings", "Bot Settings");
+			await MessageActions.SendTextFile(Context.Guild, Context.Channel, text, "Bot Settings", "Bot Settings");
 		}
 		[Command, Priority(0)]
 		public async Task Command([OverrideTypeReader(typeof(BotSettingTypeReader))] PropertyInfo setting)
@@ -251,7 +251,7 @@ namespace Advobot.Commands.BotSettings
 			}
 			else
 			{
-				await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, desc, setting.Name, setting.Name);
+				await MessageActions.SendTextFile(Context.Guild, Context.Channel, desc, setting.Name, setting.Name);
 			}
 		}
 	}
@@ -297,7 +297,7 @@ namespace Advobot.Commands.BotSettings
 			}
 
 			var imageUrl = validImages.First();
-			if (!UploadActions.TryGetFileType(Context, imageUrl, out string fileType, out string errorReason))
+			if (!GetActions.TryGetFileType(Context, imageUrl, out string fileType, out string errorReason))
 			{
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(errorReason));
 				return;

@@ -26,12 +26,24 @@ namespace Advobot.Commands.Logs
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeRead, ChannelVerification.CanModifyPermissions)] ITextChannel channel)
 			{
-				await LogActions.SetChannel(Context, channelType, channel);
+				if (Context.GuildSettings.SetLogChannel(channelType, channel))
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the {channelType.EnumName().ToLower()} log as `{channel.FormatChannel()}`.");
+					return;
+				}
+
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"That channel is already the current {channelType.EnumName().ToLower()} log.");
 			}
 			[Command(nameof(ActionType.Off))]
 			public async Task CommandOff()
 			{
-				await LogActions.RemoveChannel(Context, channelType);
+				if (Context.GuildSettings.RemoveLogChannel(channelType))
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed the {channelType.EnumName().ToLower()} log.");
+					return;
+				}
+
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"The {channelType.EnumName().ToLower()} log is already off.");
 			}
 		}
 
@@ -43,12 +55,24 @@ namespace Advobot.Commands.Logs
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeRead, ChannelVerification.CanModifyPermissions)] ITextChannel channel)
 			{
-				await LogActions.SetChannel(Context, channelType, channel);
+				if (Context.GuildSettings.SetLogChannel(channelType, channel))
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the {channelType.EnumName().ToLower()} log as `{channel.FormatChannel()}`.");
+					return;
+				}
+
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"That channel is already the current {channelType.EnumName().ToLower()} log.");
 			}
 			[Command(nameof(ActionType.Off))]
 			public async Task CommandOff()
 			{
-				await LogActions.RemoveChannel(Context, channelType);
+				if (Context.GuildSettings.RemoveLogChannel(channelType))
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed the {channelType.EnumName().ToLower()} log.");
+					return;
+				}
+
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"The {channelType.EnumName().ToLower()} log is already off.");
 			}
 		}
 
@@ -60,12 +84,24 @@ namespace Advobot.Commands.Logs
 			[Command]
 			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeRead, ChannelVerification.CanModifyPermissions)] ITextChannel channel)
 			{
-				await LogActions.SetChannel(Context, channelType, channel);
+				if (Context.GuildSettings.SetLogChannel(channelType, channel))
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the {channelType.EnumName().ToLower()} log as `{channel.FormatChannel()}`.");
+					return;
+				}
+
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"That channel is already the current {channelType.EnumName().ToLower()} log.");
 			}
 			[Command(nameof(ActionType.Off))]
 			public async Task CommandOff()
 			{
-				await LogActions.RemoveChannel(Context, channelType);
+				if (Context.GuildSettings.RemoveLogChannel(channelType))
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed the {channelType.EnumName().ToLower()} log.");
+					return;
+				}
+
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"The {channelType.EnumName().ToLower()} log is already off.");
 			}
 		}
 	}

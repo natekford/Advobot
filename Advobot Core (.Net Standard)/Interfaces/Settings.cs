@@ -80,6 +80,8 @@ namespace Advobot.Interfaces
 
 		CommandSwitch[] GetCommands(CommandCategory category);
 		CommandSwitch GetCommand(string name);
+		bool SetLogChannel(LogChannelType type, ITextChannel channel);
+		bool RemoveLogChannel(LogChannelType type);
 
 		void SaveSettings();
 		Task<IGuildSettings> PostDeserialize(IGuild guild);

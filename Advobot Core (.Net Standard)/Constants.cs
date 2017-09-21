@@ -13,6 +13,8 @@ namespace Advobot
 		//Const for attributes/because they're very unlikely to change. 
 		public const string ZERO_LENGTH_CHAR = "\u180E";
 		public const string PLACEHOLDER_PREFIX = ZERO_LENGTH_CHAR + "%PREFIX%";
+		public const string USER_MENTION = "%USERMENTION%";
+		public const string USER_STRING = "%USER%";
 		public const string FAKE_DISCORD_LINK = "discord" + ZERO_LENGTH_CHAR + ".gg";
 		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
 		public const string FAKE_TTS = "\\" + ZERO_LENGTH_CHAR + "tts";
@@ -61,9 +63,6 @@ namespace Advobot
 		public static readonly string VANITY_URL = "VANITY_URL";
 		public static readonly string INVITE_SPLASH = "INVITE_SPLASH";
 		public static readonly string MUTE_ROLE_NAME = "Advobot_Mute";
-		public static readonly string CHANNEL_INSTRUCTIONS = "#Channel|\"Channel Name\"";
-		public static readonly string USER_INSTRUCTIONS = "@User|\"Username\"";
-		public static readonly string ROLE_INSTRUCTIONS = "@Role|\"Role Name\"";
 		public static readonly string ERROR_MESSAGE = "**ERROR:** ";
 		public static readonly string SERVER_FOLDER = "Discord_Servers";
 		public static readonly string SETTING_FILE_EXTENSION = ".json";

@@ -83,7 +83,6 @@ namespace Advobot.Actions
 			await ModifyRolePermissions(role, roleBits, FormattingActions.FormatUserReason(user));
 			return GuildPerms.ConvertValueToNames(changeValue);
 		}
-
 		public static async Task<int> ModifyRolePosition(IRole role, int position, string reason)
 		{
 			if (role == null)
@@ -192,16 +191,10 @@ namespace Advobot.Actions
 
 		public static async Task GiveRoles(IGuildUser user, IEnumerable<IRole> roles, string reason)
 		{
-			if (!roles.Any())
-				return;
-
 			await user.AddRolesAsync(roles, new RequestOptions { AuditLogReason = reason, });
 		}
 		public static async Task TakeRoles(IGuildUser user, IEnumerable<IRole> roles, string reason)
 		{
-			if (!roles.Any())
-				return;
-
 			await user.RemoveRolesAsync(roles, new RequestOptions { AuditLogReason = reason, });
 		}
 	}

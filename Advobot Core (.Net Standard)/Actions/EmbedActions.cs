@@ -21,9 +21,9 @@ namespace Advobot.Actions
 		public static EmbedBuilder MakeNewEmbed(string title = null, string description = null, Color? color = null, string imageUrl = null,
 			string url = null, string thumbnailUrl = null)
 		{
-			imageUrl = UploadActions.ValidateURL(imageUrl) ? imageUrl : null;
-			url = UploadActions.ValidateURL(url) ? url : null;
-			thumbnailUrl = UploadActions.ValidateURL(thumbnailUrl) ? thumbnailUrl : null;
+			imageUrl = GetActions.GetIfStringIsValidUrl(imageUrl) ? imageUrl : null;
+			url = GetActions.GetIfStringIsValidUrl(url) ? url : null;
+			thumbnailUrl = GetActions.GetIfStringIsValidUrl(thumbnailUrl) ? thumbnailUrl : null;
 
 			var embed = new EmbedBuilder().WithColor(Colors.BASE);
 			if (title != null)
@@ -70,8 +70,8 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static EmbedBuilder MyAddAuthor(this EmbedBuilder embed, string name = null, string iconUrl = null, string url = null)
 		{
-			iconUrl = UploadActions.ValidateURL(iconUrl) ? iconUrl : null;
-			url = UploadActions.ValidateURL(url) ? url : null;
+			iconUrl = GetActions.GetIfStringIsValidUrl(iconUrl) ? iconUrl : null;
+			url = GetActions.GetIfStringIsValidUrl(url) ? url : null;
 
 			return embed.WithAuthor(x =>
 			{
@@ -109,7 +109,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static EmbedBuilder MyAddFooter(this EmbedBuilder embed, [CallerMemberName] string text = null, string iconUrl = null)
 		{
-			iconUrl = UploadActions.ValidateURL(iconUrl) ? iconUrl : null;
+			iconUrl = GetActions.GetIfStringIsValidUrl(iconUrl) ? iconUrl : null;
 
 			return embed.WithFooter(x =>
 			{

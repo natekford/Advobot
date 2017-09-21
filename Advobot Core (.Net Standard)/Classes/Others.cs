@@ -1,5 +1,4 @@
 ﻿using Advobot.Actions;
-using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
 using Discord.WebSocket;
@@ -8,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Advobot.Classes
 {
@@ -49,9 +49,34 @@ namespace Advobot.Classes
 			Channel = channel;
 		}
 
+		/// <summary>
+		/// Changes the channel the notification gets sent to.
+		/// </summary>
+		/// <param name="channel"></param>
 		public void ChangeChannel(ITextChannel channel)
 		{
 			Channel = channel;
+		}
+		/// <summary>
+		/// Sends the notification to the channel.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public async Task Send(IUser user)
+		{
+			var content = Content
+				.CaseInsReplace(Constants.USER_MENTION, user != null ? user.Mention : "Invalid User")
+				.CaseInsReplace(Constants.USER_STRING, user != null ? user.FormatUser() : "Invalid User");
+			//Put a zero length character in between invite links for names so the invite links will no longer embed
+
+			if (Embed != null)
+			{
+				await MessageActions.SendEmbedMessage(Channel, Embed, content);
+			}
+			else
+			{
+				await MessageActions.SendChannelMessage(Channel, content);
+			}
 		}
 		/// <summary>
 		/// Sets <see cref="Channel"/> to whichever text channel on <paramref name="guild"/> has the Id <see cref="ChannelId"/>.

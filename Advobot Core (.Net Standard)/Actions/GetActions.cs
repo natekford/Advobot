@@ -2,7 +2,6 @@
 using Advobot.Classes;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using Advobot.Permissions;
 using Discord;
 using Discord.Commands;
 using System;
@@ -10,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 
 namespace Advobot.Actions
@@ -195,6 +195,58 @@ namespace Advobot.Actions
 		{
 			var first = inputArray?.FirstOrDefault(x => x.Substring(0, Math.Max(x.IndexOf(':'), 1)).CaseInsEquals(searchTerm));
 			return first?.Substring(first.IndexOf(':') + 1);
+		}
+
+		/// <summary>
+		/// Returns true if a valid file type was gotten and the image is smaller than 2.5MB.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="imageUrl"></param>
+		/// <param name="fileType"></param>
+		/// <param name="errorReason"></param>
+		/// <returns></returns>
+		public static bool TryGetFileType(IMyCommandContext context, string imageUrl, out string fileType, out string errorReason)
+		{
+			fileType = null;
+			errorReason = null;
+
+			var req = WebRequest.Create(imageUrl);
+			req.Method = WebRequestMethods.Http.Head;
+			using (var resp = req.GetResponse())
+			{
+				if (!Constants.VALID_IMAGE_EXTENSIONS.Contains(fileType = "." + resp.Headers.Get("Content-Type").Split('/').Last()))
+				{
+					errorReason = "Image must be a png or jpg.";
+				}
+				else if (!int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
+				{
+					errorReason = "Unable to get the image's file size.";
+				}
+				else if (ContentLength > Constants.MAX_ICON_FILE_SIZE)
+				{
+					var maxSize = (double)Constants.MAX_ICON_FILE_SIZE / 1000 * 1000;
+					errorReason = $"Image is bigger than {maxSize:0.0}MB. Manually upload instead.";
+				}
+				else
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+		/// <summary>
+		/// Returns true if the passed in string is a valid Url.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public static bool GetIfStringIsValidUrl(string input)
+		{
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				return false;
+			}
+
+			return Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
 		}
 
 		/// <summary>

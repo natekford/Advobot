@@ -358,7 +358,7 @@ namespace Advobot.Modules.Log
 				//Welcome message
 				if (verified.GuildSettings.WelcomeMessage != null)
 				{
-					await MessageActions.SendGuildNotification(user, verified.GuildSettings.WelcomeMessage);
+					await verified.GuildSettings.WelcomeMessage.Send(user);
 				}
 			}
 		}
@@ -396,7 +396,7 @@ namespace Advobot.Modules.Log
 				//Goodbye message
 				if (verified.GuildSettings.GoodbyeMessage != null)
 				{
-					await MessageActions.SendGuildNotification(user, verified.GuildSettings.GoodbyeMessage);
+					await verified.GuildSettings.GoodbyeMessage.Send(user);
 				}
 			}
 		}

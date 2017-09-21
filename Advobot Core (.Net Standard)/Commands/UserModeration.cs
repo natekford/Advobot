@@ -176,13 +176,13 @@ namespace Advobot.Commands.UserModeration
 		public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 		{
 			await PunishmentActions.ManualSoftban(Context.Guild, user.Id, FormattingActions.FormatUserReason(Context.User, reason));
-			await MessageActions.SendChannelMessage(Context, $"Successfully softbanned `{user.FormatUser()}`.");
+			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully softbanned `{user.FormatUser()}`.");
 		}
 		[Command, Priority(0)]
 		public async Task Command(ulong userId, [Optional, Remainder] string reason)
 		{
 			var ban = await PunishmentActions.ManualSoftban(Context.Guild, userId, FormattingActions.FormatUserReason(Context.User, reason));
-			await MessageActions.SendChannelMessage(Context, $"Successfully softbanned `{ban?.User?.FormatUser() ?? userId.ToString()}`.");
+			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully softbanned `{ban?.User?.FormatUser() ?? userId.ToString()}`.");
 		}
 	}
 
@@ -223,7 +223,7 @@ namespace Advobot.Commands.UserModeration
 			}
 
 			await PunishmentActions.ManualBan(Context.Guild, user.Id, FormattingActions.FormatUserReason(Context.User, reason), 1, time, Context.Timers);
-			await MessageActions.SendChannelMessage(Context, $"Successfully banned `{user.FormatUser()}`.");
+			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully banned `{user.FormatUser()}`.");
 		}
 		private async Task CommandRunner(ulong userId, uint time, string reason)
 		{
@@ -234,7 +234,7 @@ namespace Advobot.Commands.UserModeration
 			}
 
 			var ban = await PunishmentActions.ManualBan(Context.Guild, userId, FormattingActions.FormatUserReason(Context.User, reason), 1, time, Context.Timers);
-			await MessageActions.SendChannelMessage(Context, $"Successfully banned `{ban?.User?.FormatUser()}`.");
+			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully banned `{ban?.User?.FormatUser()}`.");
 		}
 	}
 
@@ -249,7 +249,7 @@ namespace Advobot.Commands.UserModeration
 		public async Task Command(IBan ban, [Optional, Remainder] string reason)
 		{
 			await PunishmentActions.ManualUnbanUser(Context.Guild, ban.User.Id, FormattingActions.FormatUserReason(Context.User, reason));
-			await MessageActions.SendChannelMessage(Context, $"Successfully unbanned `{ban.User.FormatUser()}`");
+			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully unbanned `{ban.User.FormatUser()}`");
 		}
 	}
 
@@ -278,7 +278,7 @@ namespace Advobot.Commands.UserModeration
 		public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 		{
 			await PunishmentActions.ManualKick(user, FormattingActions.FormatUserReason(Context.User, reason));
-			await MessageActions.SendChannelMessage(Context, $"Successfully kicked `{user.FormatUser()}`.");
+			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully kicked `{user.FormatUser()}`.");
 		}
 	}
 
@@ -295,7 +295,7 @@ namespace Advobot.Commands.UserModeration
 			var bans = await Context.Guild.GetBansAsync();
 			if (!bans.Any())
 			{
-				await MessageActions.SendChannelMessage(Context, "This guild has no bans.");
+				await MessageActions.SendChannelMessage(Context.Channel, "This guild has no bans.");
 				return;
 			}
 
@@ -330,7 +330,7 @@ namespace Advobot.Commands.UserModeration
 			if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
 			{
 				var DMChannel = await (await Context.Guild.GetOwnerAsync()).GetOrCreateDMChannelAsync();
-				await MessageActions.SendDMMessage(DMChannel, $"`{Context.User.FormatUser()}` is trying to delete stuff from a log channel: `{channel.FormatChannel()}`.");
+				await MessageActions.SendChannelMessage(DMChannel, $"`{Context.User.FormatUser()}` is trying to delete stuff from a log channel: `{channel.FormatChannel()}`.");
 				return;
 			}
 

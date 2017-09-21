@@ -67,7 +67,7 @@ namespace Advobot.Commands.ChannelModeration
 		public async Task Command([VerifyChannel(false, ChannelVerification.CanBeManaged)] ITextChannel channel)
 		{
 			await ChannelActions.SoftDeleteChannel(channel, FormattingActions.FormatUserReason(Context.User));
-			await MessageActions.SendChannelMessage(Context, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything in this channel.");
+			await MessageActions.SendChannelMessage(channel, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything in this channel.");
 		}
 	}
 
@@ -97,7 +97,7 @@ namespace Advobot.Commands.ChannelModeration
 		public async Task Command([VerifyChannel(false, ChannelVerification.CanBeReordered)] IGuildChannel channel, uint position)
 		{
 			await channel.ModifyPositionAsync((int)position, FormattingActions.FormatUserReason(Context.User));
-			await MessageActions.SendChannelMessage(Context, $"Successfully moved `{channel.FormatChannel()}` to position `{position}`.");
+			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully moved `{channel.FormatChannel()}` to position `{position}`.");
 		}
 	}
 
@@ -459,7 +459,7 @@ namespace Advobot.Commands.ChannelModeration
 			var result = ChannelActions.VerifyChannelMeetsRequirements(Context, channel, new[] { ChannelVerification.CanBeReordered });
 			if (result != FailureReason.NotFailure)
 			{
-				await MessageActions.HandleObjectGettingErrors(Context, result, channel);
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.FormatErrorString(Context.Guild, result, channel));
 				return;
 			}
 

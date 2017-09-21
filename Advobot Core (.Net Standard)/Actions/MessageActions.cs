@@ -1,205 +1,164 @@
 ﻿using Advobot.Classes;
-using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
-using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Advobot.Actions
 {
 	public static class MessageActions
 	{
+		private static bool CheckIfValidDescription(EmbedBuilder embed, int charCount, out string badDescription, out string error)
+		{
+			if (charCount > Constants.MAX_EMBED_TOTAL_LENGTH - 1250)
+			{
+				badDescription = embed.Description;
+				error = $"`{Constants.MAX_EMBED_TOTAL_LENGTH}` char limit close.";
+			}
+			else if (embed.Description?.Length > Constants.MAX_DESCRIPTION_LENGTH)
+			{
+				badDescription = embed.Description;
+				error = $"Over `{Constants.MAX_DESCRIPTION_LENGTH}` chars.";
+			}
+			else if (embed.Description.CountLineBreaks() > Constants.MAX_DESCRIPTION_LINES)
+			{
+				badDescription = embed.Description;
+				error = $"Over `{Constants.MAX_DESCRIPTION_LINES}` lines.";
+			}
+			else
+			{
+				badDescription = null;
+				error = null;
+			}
+
+			return error == null;
+		}
+		private static bool CheckIfValidField(EmbedFieldBuilder field, int charCount, out string badValue, out string error)
+		{
+			var value = field.Value.ToString();
+			if (charCount > Constants.MAX_EMBED_TOTAL_LENGTH - 1500)
+			{
+				badValue = value;
+				error = $"`{Constants.MAX_EMBED_TOTAL_LENGTH}` char limit close.";
+			}
+			else if (value?.Length > Constants.MAX_FIELD_VALUE_LENGTH)
+			{
+				badValue = value;
+				error = $"Over `{Constants.MAX_FIELD_VALUE_LENGTH}` chars.";
+			}
+			else if (value.CountLineBreaks() > Constants.MAX_FIELD_LINES)
+			{
+				badValue = value;
+				error = $"Over `{Constants.MAX_FIELD_LINES}` lines.";
+			}
+			else
+			{
+				badValue = null;
+				error = null;
+			}
+
+			return error == null;
+		}
+		private static string FormatMessageContentForSending(IGuild guild, string content)
+		{
+			return content
+				.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE)
+				.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE)
+				.CaseInsReplace("\tts", Constants.FAKE_TTS);
+		}
+
 		public static async Task<IUserMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed, string content = null)
 		{
 			//This method is a clusterfuck.
 			var guild = channel.GetGuild();
 			if (guild == null)
+			{
 				return null;
+			}
 
 			//Embeds have a global limit of 6000 characters
-			var totalChars = 0
-				+ embed?.Author?.Name?.Length
-				+ embed?.Title?.Length
-				+ embed?.Footer?.Text?.Length;
+			var charCount = 0
+				+ embed.Author?.Name?.Length
+				+ embed.Title?.Length
+				+ embed.Footer?.Text?.Length ?? 0;
+
+			//For overflow text
+			var overflowText = new StringBuilder();
 
 			//Descriptions can only be 2048 characters max and mobile can only show up to 20 line breaks
-			string badDesc = null;
-			if (embed.Description?.Length > Constants.MAX_DESCRIPTION_LENGTH)
+			if (!CheckIfValidDescription(embed, charCount, out string badDescription, out string error))
 			{
-				badDesc = embed.Description;
-				embed.WithDescription($"The description is over `{Constants.MAX_DESCRIPTION_LENGTH}` characters and will be sent as a text file instead.");
+				embed.WithDescription(error);
+				overflowText.AppendLineFeed($"Description: {badDescription}");
 			}
-			else if (embed.Description.CountLineBreaks() > Constants.MAX_DESCRIPTION_LINES)
-			{
-				badDesc = embed.Description;
-				embed.WithDescription($"The description is over `{Constants.MAX_DESCRIPTION_LINES}` lines and will be sent as a text file instead.");
-			}
-			totalChars += embed.Description?.Length ?? 0;
+			charCount += embed.Description?.Length ?? 0;
 
-			//Embeds can only be 1024 characters max and mobile can only show up to 5 line breaks
-			var badFields = new List<Tuple<int, string>>();
+			//Fields can only be 1024 characters max and mobile can only show up to 5 line breaks
 			for (int i = 0; i < embed.Fields.Count; ++i)
 			{
 				var field = embed.Fields[i];
-				var value = field.Value.ToString();
-				if (totalChars > Constants.MAX_EMBED_TOTAL_LENGTH - 1500)
+				if (!CheckIfValidField(field, charCount, out string badValue, out string fieldError))
 				{
-					badFields.Add(new Tuple<int, string>(i, value));
-					field.WithName(i.ToString());
-					field.WithValue($"`{Constants.MAX_EMBED_TOTAL_LENGTH}` char limit close.");
+					field.WithName($"Field {i}");
+					field.WithValue(fieldError);
+					overflowText.AppendLineFeed($"Field {i}: {badValue}");
 				}
-				else if (value?.Length > Constants.MAX_FIELD_VALUE_LENGTH)
-				{
-					badFields.Add(new Tuple<int, string>(i, value));
-					field.WithValue($"This field is over `{Constants.MAX_FIELD_VALUE_LENGTH}` characters and will be sent as a text file instead.");
-				}
-				else if (value.CountLineBreaks() > Constants.MAX_FIELD_LINES)
-				{
-					badFields.Add(new Tuple<int, string>(i, value));
-					field.WithValue($"This field is over `{Constants.MAX_FIELD_LINES}` lines and will be sent as a text file instead.");
-				}
-				totalChars += value?.Length ?? 0;
-				totalChars += field.Name?.Length ?? 0;
-			}
 
-			if (content != null)
-			{
-				content = content.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE);
-				content = content.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE);
-				content = content.CaseInsReplace("\tts", Constants.FAKE_TTS);
+				charCount += field.Value?.ToString()?.Length ?? 0;
+				charCount += field.Name?.Length ?? 0;
 			}
 
 			//Catches length errors and nsfw filter errors if an avatar has nsfw content and filtering is enabled
-			IUserMessage msg;
+			IUserMessage message;
 			try
 			{
-				msg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content ?? "", false, embed.WithCurrentTimestamp().Build());
+				message = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content ?? "", embed: embed.WithCurrentTimestamp().Build());
 			}
 			catch (Exception e)
 			{
 				ConsoleActions.ExceptionToConsole(e);
-				msg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + FormattingActions.ERROR(e.Message));
-				return null;
+				message = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + FormattingActions.ERROR(e.Message));
 			}
 
-			//Go send the description/fields that had an error
-			var extra = new List<string>();
-			if (badDesc != null)
-			{
-				extra.Add("Description: " + badDesc);
-			}
-			foreach (var badField in badFields)
-			{
-				extra.Add($"Field{badField.Item1}: {badField.Item2}");
-			}
-
-			if (extra.Any())
-			{
-				await UploadActions.WriteAndUploadTextFile(guild, channel, String.Join("\n", extra), "Embed_Text");
-			}
-
-			return msg;
-		}
-		public static async Task<IUserMessage> SendChannelMessage(ICommandContext context, string content)
-		{
-			return await SendChannelMessage(context.Channel, content);
+			//Upload the overflow
+			await SendTextFile(guild, channel, overflowText.ToString(), "Embed_");
+			return message;
 		}
 		public static async Task<IUserMessage> SendChannelMessage(IMessageChannel channel, string content)
 		{
-			var guild = (channel as ITextChannel)?.Guild;
+			const string LONG = "The response is a long message and was sent as a text file instead";
+
+			var guild = channel.GetGuild();
 			if (guild == null)
+			{
 				return null;
-
-			content = content.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE);
-			content = content.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE);
-			content = content.CaseInsReplace("\tts", Constants.FAKE_TTS);
-
-			IUserMessage msg = null;
-			if (content.Length >= Constants.MAX_MESSAGE_LENGTH_LONG)
-			{
-				msg = await UploadActions.WriteAndUploadTextFile(guild, channel, content, "Long_Message_", "The response is a long message and was sent as a text file instead");
 			}
-			else
+
+			content = FormatMessageContentForSending(guild, content);
+
+			return content.Length < Constants.MAX_MESSAGE_LENGTH_LONG
+				? await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content)
+				: await SendTextFile(guild, channel, content, "Long_Message_", LONG);
+		}
+		public static async Task<IUserMessage> SendTextFile(IGuild guild, IMessageChannel channel, string text, string fileName, string content = null)
+		{
+			if (!fileName.EndsWith("_"))
 			{
-				msg = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content);
+				fileName += "_";
 			}
+			var fullFileName = fileName + FormattingActions.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION;
+			var fileInfo = GetActions.GetServerDirectoryFile(guild.Id, fullFileName);
+
+			//Create
+			SavingAndLoadingActions.OverWriteFile(fileInfo, text.RemoveAllMarkdown());
+			//Upload
+			var msg = await channel.SendFileAsync(fileInfo.FullName, String.IsNullOrWhiteSpace(content) ? "" : $"**{content}:**");
+			//Delete
+			SavingAndLoadingActions.DeleteFile(fileInfo);
 			return msg;
-		}
-		public static async Task<IUserMessage> SendDMMessage(IDMChannel channel, string message)
-		{
-			if (channel == null)
-				return null;
-
-			return await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + message);
-		}
-
-		public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount, string reason)
-		{
-			var guildChannel = channel as ITextChannel;
-			if (guildChannel == null)
-				return 0;
-
-			var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).Flatten();
-			await DeleteMessages(channel, messages, reason);
-			return messages.Count();
-		}
-		public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount, IUser user, string reason)
-		{
-			var guildChannel = channel as ITextChannel;
-			if (guildChannel == null)
-				return 0;
-
-			if (user == null)
-			{
-				return await RemoveMessages(channel, fromMessage, requestCount, reason);
-			}
-
-			var deletedCount = 0;
-			while (requestCount > 0)
-			{
-				//Get the current messages and ones that aren't null
-				var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).Flatten();
-				if (!messages.Any())
-					break;
-
-				//Set the from message as the last of the currently grabbed ones
-				fromMessage = messages.Last();
-
-				//Check for messages of the targetted user
-				messages = messages.Where(x => x.Author.Id == user.Id);
-				if (!messages.Any())
-					break;
-
-				var gatheredForUserAmt = messages.Count();
-				messages = messages.ToList().GetUpToAndIncludingMinNum(requestCount, gatheredForUserAmt, 100);
-
-				//Delete them in a try catch due to potential errors
-				var msgAmt = messages.Count();
-				try
-				{
-					await DeleteMessages(channel, messages, reason);
-					deletedCount += msgAmt;
-				}
-				catch
-				{
-					ConsoleActions.WriteLine($"Unable to delete {msgAmt} messages on the guild {guildChannel.Guild.FormatGuild()} on channel {guildChannel.FormatChannel()}.", color: ConsoleColor.Red);
-					break;
-				}
-
-				//Leave if the message count gathered implies that enough user messages have been deleted 
-				if (msgAmt < gatheredForUserAmt)
-					break;
-
-				requestCount -= msgAmt;
-			}
-			return deletedCount;
-		}
-		public static async Task<List<IMessage>> GetMessages(IMessageChannel channel, int requestCount)
-		{
-			return (await channel.GetMessagesAsync(++requestCount).Flatten()).ToList();
 		}
 
 		public static async Task MakeAndDeleteSecondaryMessage(IMyCommandContext context, string secondStr, int time = -1)
@@ -225,7 +184,6 @@ namespace Advobot.Actions
 				RemoveCommandMessages(messages, time, timers);
 			}
 		}
-
 		public static void RemoveCommandMessages(IEnumerable<IMessage> messages, int time = 0, ITimersModule timers = null)
 		{
 			if (time > 0 && timers != null)
@@ -241,6 +199,81 @@ namespace Advobot.Actions
 			}
 		}
 
+		public static async Task<List<IMessage>> GetMessages(IMessageChannel channel, int requestCount)
+		{
+			return (await channel.GetMessagesAsync(++requestCount).Flatten()).ToList();
+		}
+		public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount, string reason)
+		{
+			var guildChannel = channel as ITextChannel;
+			if (guildChannel == null)
+			{
+				return 0;
+			}
+
+			var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).Flatten();
+			await DeleteMessages(channel, messages, reason);
+			return messages.Count();
+		}
+		public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount, IUser user, string reason)
+		{
+			var guildChannel = channel as ITextChannel;
+			if (guildChannel == null)
+			{
+				return 0;
+			}
+
+			if (user == null)
+			{
+				return await RemoveMessages(channel, fromMessage, requestCount, reason);
+			}
+
+			var deletedCount = 0;
+			while (requestCount > 0)
+			{
+				//Get the current messages and ones that aren't null
+				var messages = await channel.GetMessagesAsync(fromMessage, Direction.Before, 100).Flatten();
+				if (!messages.Any())
+				{
+					break;
+				}
+
+				//Set the from message as the last of the currently grabbed ones
+				fromMessage = messages.Last();
+
+				//Check for messages of the targetted user
+				messages = messages.Where(x => x.Author.Id == user.Id);
+				if (!messages.Any())
+				{
+					break;
+				}
+
+				var gatheredForUserAmt = messages.Count();
+				messages = messages.ToList().GetUpToAndIncludingMinNum(requestCount, gatheredForUserAmt, 100);
+
+				//Delete them in a try catch due to potential errors
+				var msgAmt = messages.Count();
+				try
+				{
+					await DeleteMessages(channel, messages, reason);
+					deletedCount += msgAmt;
+				}
+				catch
+				{
+					ConsoleActions.WriteLine($"Unable to delete {msgAmt} messages on the guild {guildChannel.Guild.FormatGuild()} on channel {guildChannel.FormatChannel()}.", color: ConsoleColor.Red);
+					break;
+				}
+
+				//Leave if the message count gathered implies that enough user messages have been deleted 
+				if (msgAmt < gatheredForUserAmt)
+				{
+					break;
+				}
+
+				requestCount -= msgAmt;
+			}
+			return deletedCount;
+		}
 		public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages, string reason = null)
 		{
 			if (messages == null || !messages.Any())
@@ -280,49 +313,19 @@ namespace Advobot.Actions
 				return;
 			}
 
-			var characterCount = 0;
-			inputList.ToList().ForEach(x => characterCount += (x.Length + 100));
-
-			if (inputList.Count() <= 5 && characterCount < Constants.MAX_MESSAGE_LENGTH_LONG)
+			var text = String.Join("\n", inputList).RemoveDuplicateNewLines();
+			if (inputList.Count() <= 5 && text.Length < Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
-				var embed = EmbedActions.MakeNewEmbed("Deleted Messages", String.Join("\n", inputList), Colors.MDEL)
+				var embed = EmbedActions.MakeNewEmbed("Deleted Messages", text, Colors.MDEL)
 					.MyAddFooter("Deleted Messages");
 				await SendEmbedMessage(channel, embed);
 			}
 			else
 			{
-				var text = String.Join("\n-----\n", inputList).RemoveAllMarkdown().RemoveDuplicateNewLines();
 				var name = "Deleted_Messages_";
 				var content = $"{inputList.Count()} Deleted Messages";
-				await UploadActions.WriteAndUploadTextFile(guild, channel, text, name, content);
+				await SendTextFile(guild, channel, text.RemoveAllMarkdown(), name, content);
 			}
-		}
-
-		public static async Task SendGuildNotification(IUser user, GuildNotification notification)
-		{
-			if (notification == null)
-			{
-				return;
-			}
-
-			var content = notification.Content;
-			content = content.CaseInsReplace("{UserMention}", user != null ? user.Mention : "Invalid User");
-			content = content.CaseInsReplace("{User}", user != null ? user.FormatUser() : "Invalid User");
-			//Put a zero length character in between invite links for names so the invite links will no longer embed
-
-			if (notification.Embed != null)
-			{
-				await SendEmbedMessage(notification.Channel, notification.Embed, content);
-			}
-			else
-			{
-				await SendChannelMessage(notification.Channel, content);
-			}
-		}
-
-		public static async Task HandleObjectGettingErrors(IMyCommandContext context, FailureReason reason, object obj)
-		{
-			await MakeAndDeleteSecondaryMessage(context, FormattingActions.FormatErrorString(context.Guild, reason, obj));
 		}
 	}
 }

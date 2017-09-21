@@ -58,7 +58,7 @@ namespace Advobot.Commands.GuildSettings
 					command.ToggleEnabled();
 				}
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
-				await MessageActions.SendChannelMessage(Context, $"Successfully enabled the following commands: `{text}`.");
+				await MessageActions.SendChannelMessage(Context.Channel, $"Successfully enabled the following commands: `{text}`.");
 			}
 			[Command, Priority(0)]
 			public async Task Command(CommandSwitch command)
@@ -86,7 +86,8 @@ namespace Advobot.Commands.GuildSettings
 				{
 					command.ToggleEnabled();
 				}
-				await MessageActions.SendChannelMessage(Context, $"Successfully enabled the following commands: `{String.Join("`, `", commands.Select(x => x.Name))}`.");
+				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
+				await MessageActions.SendChannelMessage(Context.Channel, $"Successfully enabled the following commands: `{text}`.");
 			}
 		}
 		[Group(nameof(ActionType.Disable)), Alias("d")]
@@ -102,7 +103,7 @@ namespace Advobot.Commands.GuildSettings
 					command.ToggleEnabled();
 				}
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
-				await MessageActions.SendChannelMessage(Context, $"Successfully disabled the following commands: `{text}`.");
+				await MessageActions.SendChannelMessage(Context.Channel, $"Successfully disabled the following commands: `{text}`.");
 			}
 			[Command, Priority(0)]
 			public async Task Command(CommandSwitch command)
@@ -130,7 +131,8 @@ namespace Advobot.Commands.GuildSettings
 				{
 					command.ToggleEnabled();
 				}
-				await MessageActions.SendChannelMessage(Context, $"Successfully disabled the following commands: `{String.Join("`, `", commands.Select(x => x.Name))}`.");
+				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
+				await MessageActions.SendChannelMessage(Context.Channel, $"Successfully disabled the following commands: `{text}`.");
 			}
 		}
 	}
@@ -324,7 +326,9 @@ namespace Advobot.Commands.GuildSettings
 
 	[Group(nameof(ModifyGuildNotifs)), Alias("mgnt")]
 	[Usage("[Welcome|Goodbye] [Channel] <\"Content:string\"> <\"Title:string\"> <\"Desc:string\"> <\"Thumb:string\">")]
-	[Summary("The bot send a message to the given channel when the self explantory event happens. `{User}` will be replaced with the formatted user.  `{UserMention}` will be replaced with a mention of the joining user.")]
+	[Summary("The bot send a message to the given channel when the self explantory event happens. " +
+		"`" + Constants.USER_MENTION + "` will be replaced with the formatted user. " +
+		"`" + Constants.USER_STRING + "` will be replaced with a mention of the joining user.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
 	public sealed class ModifyGuildNotifs : MySavingModuleBase
@@ -372,7 +376,7 @@ namespace Advobot.Commands.GuildSettings
 				return;
 			}
 
-			await MessageActions.SendGuildNotification(null, notif);
+			await notif.Send(null);
 		}
 		[Command(nameof(GuildNotificationType.Goodbye)), Alias("g")]
 		public async Task CommandGoodbye()
@@ -384,7 +388,7 @@ namespace Advobot.Commands.GuildSettings
 				return;
 			}
 
-			await MessageActions.SendGuildNotification(null, notif);
+			await notif.Send(null);
 		}
 	}
 
@@ -405,7 +409,7 @@ namespace Advobot.Commands.GuildSettings
 		public async Task CommandAll()
 		{
 			var text = FormattingActions.FormatAllGuildSettings(Context.Guild, Context.GuildSettings);
-			await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, text, "Guild Settings", "Guild Settings");
+			await MessageActions.SendTextFile(Context.Guild, Context.Channel, text, "Guild Settings", "Guild Settings");
 		}
 		[Command, Priority(0)]
 		public async Task Command([OverrideTypeReader(typeof(GuildSettingTypeReader))] PropertyInfo setting)
@@ -417,7 +421,7 @@ namespace Advobot.Commands.GuildSettings
 			}
 			else
 			{
-				await UploadActions.WriteAndUploadTextFile(Context.Guild, Context.Channel, desc, setting.Name, setting.Name);
+				await MessageActions.SendTextFile(Context.Guild, Context.Channel, desc, setting.Name, setting.Name);
 			}
 		}
 	}

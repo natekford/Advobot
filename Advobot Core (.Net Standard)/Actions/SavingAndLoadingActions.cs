@@ -44,12 +44,12 @@ namespace Advobot.Actions
 				fileInfo.Create().Close();
 			}
 		}
-		public static void OverWriteFile(FileInfo fileInfo, string toSave)
+		public static void OverWriteFile(FileInfo fileInfo, string text)
 		{
 			CreateFile(fileInfo);
 			using (var writer = new StreamWriter(fileInfo.FullName))
 			{
-				writer.Write(toSave);
+				writer.Write(text);
 			}
 		}
 		public static void DeleteFile(FileInfo fileInfo)

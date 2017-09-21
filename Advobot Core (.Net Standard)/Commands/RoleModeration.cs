@@ -109,7 +109,7 @@ namespace Advobot.Commands.RoleModeration
 			var newPos = await RoleActions.ModifyRolePosition(role, (int)position, FormattingActions.FormatUserReason(Context.User));
 			if (newPos != -1)
 			{
-				await MessageActions.SendChannelMessage(Context, $"Successfully gave `{role.FormatRole()}` the position `{newPos}`.");
+				await MessageActions.SendChannelMessage(Context.Channel, $"Successfully gave `{role.FormatRole()}` the position `{newPos}`.");
 			}
 			else
 			{
@@ -234,7 +234,7 @@ namespace Advobot.Commands.RoleModeration
 			var newPermsStr = $"`{outputRole.FormatRole()}` now has the following permissions: `{(newPerms.Any() ? String.Join("`, `", newPerms) : "Nothing")}`.";
 
 			var response = FormattingActions.JoinNonNullStrings(" ", immovablePermsStr, failedToCopyStr, newPermsStr);
-			await MessageActions.SendChannelMessage(Context, response);
+			await MessageActions.SendChannelMessage(Context.Channel, response);
 		}
 	}
 

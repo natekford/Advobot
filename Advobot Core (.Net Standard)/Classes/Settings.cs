@@ -330,9 +330,99 @@ namespace Advobot.Classes
 				}
 			});
 		}
+		/// <summary>
+		/// Sets the specified log type channel to the passed in channel.
+		/// </summary>
+		/// <param name="logChannelType"></param>
+		/// <param name="channel"></param>
+		public bool SetLogChannel(LogChannelType logChannelType, ITextChannel channel)
+		{
+			switch (logChannelType)
+			{
+				case LogChannelType.Server:
+				{
+					if (_ServerLogId == channel.Id)
+					{
+						return false;
+					}
+
+					ServerLog = channel;
+					return true;
+				}
+				case LogChannelType.Mod:
+				{
+					if (_ModLogId == channel.Id)
+					{
+						return false;
+					}
+
+					ModLog = channel;
+					return true;
+				}
+				case LogChannelType.Image:
+				{
+					if (_ImageLogId == channel.Id)
+					{
+						return false;
+					}
+
+					ImageLog = channel;
+					return true;
+				}
+				default:
+				{
+					throw new ArgumentException("Invalid channel type supplied.");
+				}
+			}
+		}
+		/// <summary>
+		/// Removes the specified log type's channel.
+		/// </summary>
+		/// <param name="logChannelType"></param>
+		public bool RemoveLogChannel(LogChannelType logChannelType)
+		{
+			switch (logChannelType)
+			{
+				case LogChannelType.Server:
+				{
+					if (_ServerLogId == 0)
+					{
+						return false;
+					}
+
+					ServerLog = null;
+					return true;
+				}
+				case LogChannelType.Mod:
+				{
+					if (_ModLogId == 0)
+					{
+						return false;
+					}
+
+					ModLog = null;
+					return true;
+				}
+				case LogChannelType.Image:
+				{
+					if (_ImageLogId == 0)
+					{
+						return false;
+					}
+
+					ImageLog = null;
+					return true;
+				}
+				default:
+				{
+					throw new ArgumentException("Invalid channel type supplied.");
+				}
+			}
+
+		}
 
 		/// <summary>
-		/// 
+		/// Saves the settings to a JSON file.
 		/// </summary>
 		public void SaveSettings()
 		{

@@ -1,10 +1,8 @@
-﻿using Advobot.Classes;
-using Advobot.Enums;
+﻿using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -57,7 +55,7 @@ namespace Advobot.Actions
 		}
 		public static async Task NicknameManyUsers(IMyCommandContext context, List<IGuildUser> users, string replace, string reason)
 		{
-			var msg = await MessageActions.SendChannelMessage(context, $"Attempting to rename `{users.Count}` people.");
+			var msg = await MessageActions.SendChannelMessage(context.Channel, $"Attempting to rename `{users.Count}` people.");
 			for (int i = 0; i < users.Count; ++i)
 			{
 				if (i % 10 == 0)
@@ -77,7 +75,7 @@ namespace Advobot.Actions
 		}
 		public static async Task MoveManyUsers(IMyCommandContext context, List<IGuildUser> users, IVoiceChannel outputChannel, string reason)
 		{
-			var msg = await MessageActions.SendChannelMessage(context, $"Attempting to move `{users.Count}` people.");
+			var msg = await MessageActions.SendChannelMessage(context.Channel, $"Attempting to move `{users.Count}` people.");
 			for (int i = 0; i < users.Count; ++i)
 			{
 				if (i % 10 == 0)
@@ -94,14 +92,11 @@ namespace Advobot.Actions
 
 		public static int GetPosition(this IUser user)
 		{
-			//Make sure they're a SocketGuildUser
-			var tempUser = user as SocketGuildUser;
-			if (user == null)
+			if (user is SocketGuildUser socketGuildUser)
 			{
-				return -1;
+				return socketGuildUser.Hierarchy;
 			}
-
-			return tempUser.Hierarchy;
+			return -1;
 		}
 		public static bool CanBeModifiedByUser(this IUser targetUser, IUser invokingUser)
 		{

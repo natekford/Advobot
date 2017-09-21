@@ -139,14 +139,16 @@ namespace Advobot.Actions
 			await ManualUndeafenUser(user, FormattingActions.FormatBotReason("automatic undeafen."));
 		}
 
-		public static async Task AutomaticPunishments(IGuildSettings guildSettings, IGuildUser user, PunishmentType punishmentType, bool alreadyKicked = false,
-														uint time = 0, ITimersModule timers = null, [CallerMemberName] string caller = "")
+		public static async Task AutomaticPunishments(IGuildSettings guildSettings, IGuildUser user, PunishmentType punishmentType,
+			bool alreadyKicked = false, uint time = 0, ITimersModule timers = null, [CallerMemberName] string caller = "")
 		{
 			//TODO: Rework the 4 big punishment things
 			//Basically a consolidation of 4 separate big banning things into one. I still need to rework a lot of this.
 			var guild = user.Guild;
 			if (!user.CanBeModifiedByUser(UserActions.GetBot(guild)))
+			{
 				return;
+			}
 
 			switch (punishmentType)
 			{
