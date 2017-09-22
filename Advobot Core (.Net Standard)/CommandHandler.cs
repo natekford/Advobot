@@ -43,7 +43,6 @@ namespace Advobot
 			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly()); //Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
 
 			//Events
-			_Commands.CommandExecuted += (commandInfo, context, result) => CommandLogger(commandInfo, context as IMyCommandContext, result);
 			if (_Client is DiscordSocketClient socketClient)
 			{
 				socketClient.MessageReceived += (message) => HandleCommand(message as SocketUserMessage);
@@ -62,87 +61,60 @@ namespace Advobot
 
 		private static async Task HandleCommand(SocketUserMessage message)
 		{
-			var startTime = DateTime.UtcNow;
-
+			var loggedCommand = new LoggedCommand();
 			if (_BotSettings.Pause)
 			{
 				return;
 			}
 
-			var guild = message.Channel.GetGuild();
-			if (guild == null)
-			{
-				return;
-			}
-			if (!_GuildSettings.TryGetSettings(guild.Id, out IGuildSettings guildSettings))
-			{
-				await _GuildSettings.AddGuild(guild);
-				guildSettings = _GuildSettings.GetSettings(guild.Id);
-			}
-			if (!TryGetArgPos(message, guildSettings.Prefix, _BotSettings.Prefix, out int argPos))
+			var guildSettings = await _GuildSettings.GetOrCreateSettings(message.Channel.GetGuild());
+			if (guildSettings == null || !TryGetArgPos(message, GetActions.GetPrefix(_BotSettings, guildSettings), out int argPos))
 			{
 				return;
 			}
 
-			var context = new MyCommandContext(_BotSettings, guildSettings, _Logging, _Timers, _Client, message);
+			var context = new MyCommandContext(_Provider, _Client, guildSettings, message);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider);
-
-			var loggedCommand = new LoggedCommand(context, startTime);
-			if (!String.IsNullOrWhiteSpace(result.ErrorReason) && !Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
-			{
-				_Logging.IncrementFailedCommands();
-				//Ignore commands with the unknown command error because it's annoying
-				switch (result.Error)
-				{
-					case CommandError.UnknownCommand:
-					{
-						return;
-					}
-					case CommandError.Exception:
-					{
-						loggedCommand.Errored(result.ErrorReason);
-						goto default;
-					}
-					default:
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR(result.ErrorReason));
-						break;
-					}
-				}
-			}
-
-			loggedCommand.Finished();
-			_Logging.RanCommands.Add(loggedCommand);
+			await CommandLogger(loggedCommand, context, result);
 		}
-		private static async Task CommandLogger(CommandInfo commandInfo, IMyCommandContext context, IResult result)
+		//TODO: put this back into the CommandService.CommandExecute event once it stops firing twice.
+		private static async Task CommandLogger(LoggedCommand loggedCommand, IMyCommandContext context, IResult result)
 		{
-			if (context == null)
+			//Success
+			if (result.IsSuccess)
 			{
-				throw new ArgumentException("Invalid context provided to the command logger.");
-			}
+				_Logging.IncrementSuccessfulCommands();
+				await MessageActions.DeleteMessage(context.Message);
 
-			_Logging.IncrementSuccessfulCommands();
-			await MessageActions.DeleteMessage(context.Message);
+				var guildSettings = context.GuildSettings;
+				if (guildSettings.ModLog == null && !guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
+				{
+					return;
+				}
 
-			var modLog = context.GuildSettings?.ModLog;
-			if (modLog != null && !context.GuildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
-			{
 				var embed = EmbedActions.MakeNewEmbed(null, context.Message.Content)
 					.MyAddAuthor(context.User)
 					.MyAddFooter("Mod Log");
-				await MessageActions.SendEmbedMessage(modLog, embed);
+				await MessageActions.SendEmbedMessage(guildSettings.ModLog, embed);
 			}
+			//Failure in a valid fail way
+			else if (GetActions.TryGetErrorReason(result, out string errorReason))
+			{
+				_Logging.IncrementFailedCommands();
+				await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR(errorReason));
+			}
+			//Failure in a way that doesn't need to get logged (unknown command, etc)
+			else
+			{
+				return;
+			}
+
+			loggedCommand.FinalizeAndWrite(context, result, _Logging);
 		}
-		private static bool TryGetArgPos(IUserMessage message, string guildPrefix, string globalPrefix, out int argPos)
+		private static bool TryGetArgPos(IUserMessage message, string prefix, out int argPos)
 		{
 			argPos = -1;
-			//Always allow mentioning as a prefix.
-			var hasMentionPrefix = message.HasMentionPrefix(_Client.CurrentUser, ref argPos);
-			//Only use the global prefix if the guild doesn't have a prefix set.
-			var hasGlobalPrefix = String.IsNullOrWhiteSpace(guildPrefix) && message.HasStringPrefix(globalPrefix, ref argPos);
-			//Don't use the global prefix if the guild has a prefix set.
-			var hasGuildPrefix = !String.IsNullOrWhiteSpace(guildPrefix) && message.HasStringPrefix(guildPrefix, ref argPos);
-			return hasMentionPrefix || hasGlobalPrefix || hasGuildPrefix;
+			return message.HasMentionPrefix(_Client.CurrentUser, ref argPos) || message.HasStringPrefix(prefix, ref argPos);
 		}
 	}
 }

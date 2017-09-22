@@ -2,6 +2,7 @@
 using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
+using System;
 
 namespace Advobot.Classes
 {
@@ -33,12 +34,12 @@ namespace Advobot.Classes
 		public ILogModule Logging { get; }
 		public ITimersModule Timers { get; }
 
-		public MyCommandContext(IBotSettings botSettings, IGuildSettings guildSettings, ILogModule logging, ITimersModule timers, IDiscordClient client, IUserMessage msg) : base(client, msg)
+		public MyCommandContext(IServiceProvider provider, IDiscordClient client, IGuildSettings guildSettings, IUserMessage msg) : base(client, msg)
 		{
-			BotSettings = botSettings;
+			BotSettings = provider.GetService<IBotSettings>();
+			Logging = provider.GetService<ILogModule>();
+			Timers = provider.GetService<ITimersModule>();
 			GuildSettings = guildSettings;
-			Logging = logging;
-			Timers = timers;
 		}
 	}
 }

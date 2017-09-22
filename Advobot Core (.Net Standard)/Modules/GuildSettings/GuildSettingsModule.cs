@@ -1,7 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Interfaces;
 using Discord;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,15 +10,6 @@ namespace Advobot.Modules.GuildSettings
 	{
 		private readonly Dictionary<ulong, IGuildSettings> _GuildSettings = new Dictionary<ulong, IGuildSettings>();
 
-		public async Task AddGuild(IGuild guild)
-		{
-			if (_GuildSettings.TryGetValue(guild.Id, out IGuildSettings guildSettings))
-			{
-				return;
-			}
-
-			_GuildSettings.Add(guild.Id, await CreationActions.CreateGuildSettings(guild));
-		}
 		public Task RemoveGuild(ulong guildId)
 		{
 			if (_GuildSettings.ContainsKey(guildId))
@@ -28,9 +18,18 @@ namespace Advobot.Modules.GuildSettings
 			}
 			return Task.FromResult(0);
 		}
-		public IGuildSettings GetSettings(ulong guildId)
+		public async Task<IGuildSettings> GetOrCreateSettings(IGuild guild)
 		{
-			return _GuildSettings[guildId];
+			if (guild == null)
+			{
+				return null;
+			}
+
+			if (!_GuildSettings.TryGetValue(guild.Id, out var settings))
+			{
+				_GuildSettings.Add(guild.Id, settings = await CreationActions.CreateGuildSettings(guild));
+			}
+			return settings;
 		}
 		public IEnumerable<IGuildSettings> GetAllSettings()
 		{

@@ -10,9 +10,11 @@ namespace Advobot.Actions
 {
 	public static class SavingAndLoadingActions
 	{
+		private static bool _Loaded = false;
+
 		public static async Task DoStartupActions(IDiscordClient client, IBotSettings botSettings)
 		{
-			if (botSettings.Loaded)
+			if (_Loaded)
 			{
 				return;
 			}
@@ -29,7 +31,7 @@ namespace Advobot.Actions
 
 			ConsoleActions.WriteLine("The current bot prefix is: " + botSettings.Prefix);
 			ConsoleActions.WriteLine($"Bot took {DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds:n} milliseconds to load everything.");
-			botSettings.SetLoaded();
+			_Loaded = true;
 		}
 
 		public static string Serialize(object obj)

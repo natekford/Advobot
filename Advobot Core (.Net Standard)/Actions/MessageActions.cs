@@ -124,7 +124,10 @@ namespace Advobot.Actions
 			}
 
 			//Upload the overflow
-			await SendTextFile(guild, channel, overflowText.ToString(), "Embed_");
+			if (overflowText.Length != 0)
+			{
+				await SendTextFile(guild, channel, overflowText.ToString(), "Embed_");
+			}
 			return message;
 		}
 		public static async Task<IUserMessage> SendChannelMessage(IMessageChannel channel, string content)
@@ -276,11 +279,6 @@ namespace Advobot.Actions
 		}
 		public static async Task DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages, string reason = null)
 		{
-			if (messages == null || !messages.Any())
-			{
-				return;
-			}
-
 			try
 			{
 				await channel.DeleteMessagesAsync(messages.Where(x => DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 14).Distinct(), new RequestOptions { AuditLogReason = reason });
@@ -292,11 +290,6 @@ namespace Advobot.Actions
 		}
 		public static async Task DeleteMessage(IMessage message)
 		{
-			if (message == null || DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalDays >= 14)
-			{
-				return;
-			}
-
 			try
 			{
 				await message.DeleteAsync();

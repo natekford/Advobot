@@ -15,7 +15,7 @@ namespace Advobot.Actions
 		/// <param name="inputPhrases"></param>
 		/// <param name="success"></param>
 		/// <param name="failure"></param>
-		private static void AddBannedPhrases(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, out List<string> success, out List<string> failure)
+		public static void AddBannedPhrases(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, out List<string> success, out List<string> failure)
 		{
 			success = new List<string>();
 			failure = new List<string>();
@@ -41,7 +41,7 @@ namespace Advobot.Actions
 		/// <param name="inputPhrases"></param>
 		/// <param name="success"></param>
 		/// <param name="failure"></param>
-		private static void RemoveBannedPhrases(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, out List<string> success, out List<string> failure)
+		public static void RemoveBannedPhrases(List<BannedPhrase> bannedPhrases, IEnumerable<string> inputPhrases, out List<string> success, out List<string> failure)
 		{
 			success = new List<string>();
 			failure = new List<string>();

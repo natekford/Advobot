@@ -4,43 +4,17 @@ using Advobot.Permissions;
 using Discord;
 using Discord.WebSocket;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Advobot.Interfaces
 {
 	/// <summary>
-	/// Holds bot settings and some readonly information.
-	/// </summary>
-	public interface IBotSettings
-	{
-		IReadOnlyList<ulong> TrustedUsers { get; set; }
-		IReadOnlyList<ulong> UsersUnableToDMOwner { get; set; }
-		IReadOnlyList<ulong> UsersIgnoredFromCommands { get; set; }
-		uint ShardCount { get; set; }
-		uint MessageCacheCount { get; set; }
-		uint MaxUserGatherCount { get; set; }
-		uint MaxMessageGatherSize { get; set; }
-		string Prefix { get; set; }
-		string Game { get; set; }
-		string Stream { get; set; }
-		bool AlwaysDownloadUsers { get; set; }
-		LogSeverity LogLevel { get; set; }
-
-		bool IsWindows { get; }
-		bool IsConsole { get; }
-		bool Loaded { get; }
-		bool Pause { get; }
-
-		void SaveSettings();
-		void TogglePause();
-		void SetLoaded();
-	}
-
-	/// <summary>
 	/// Holds guild settings and some readonly information.
 	/// </summary>
 	public interface IGuildSettings
 	{
+		//Saved settings
 		List<BotImplementedPermissions> BotUsers { get; set; }
 		List<SelfAssignableGroup> SelfAssignableGroups { get; set; }
 		List<Quote> Quotes { get; set; }
@@ -70,6 +44,7 @@ namespace Advobot.Interfaces
 		string Prefix { get; set; }
 		bool VerboseErrors { get; set; }
 
+		//Non-saved settings
 		List<BannedPhraseUser> BannedPhraseUsers { get; }
 		List<SpamPreventionUser> SpamPreventionUsers { get; }
 		List<BotInvite> Invites { get; }
@@ -78,21 +53,53 @@ namespace Advobot.Interfaces
 		SocketGuild Guild { get; }
 		bool Loaded { get; }
 
+		/// <summary>
+		/// Returns commands from guildsettings that are in a specific category.
+		/// </summary>
+		/// <param name="guildSettings"></param>
+		/// <param name="category"></param>
+		/// <returns></returns>
 		CommandSwitch[] GetCommands(CommandCategory category);
+		/// <summary>
+		/// Returns a command from guildsettings with the passed in command name/alias.
+		/// </summary>
+		/// <param name="guildSettings"></param>
+		/// <param name="commandNameOrAlias"></param>
+		/// <returns></returns>
 		CommandSwitch GetCommand(string name);
+		/// <summary>
+		/// Sets the specified log type channel to the passed in channel.
+		/// </summary>
+		/// <param name="logChannelType"></param>
+		/// <param name="channel"></param>
 		bool SetLogChannel(LogChannelType type, ITextChannel channel);
+		/// <summary>
+		/// Removes the specified log type's channel.
+		/// </summary>
+		/// <param name="logChannelType"></param>
 		bool RemoveLogChannel(LogChannelType type);
 
+		/// <summary>
+		/// Saves the settings to a JSON file.
+		/// </summary>
 		void SaveSettings();
+		/// <summary>
+		/// Removes some potential null values and sets channels/roles for some settings.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <returns></returns>
 		Task<IGuildSettings> PostDeserialize(IGuild guild);
-	}
 
-	/// <summary>
-	/// Formatting for a class defined as a setting.
-	/// </summary>
-	public interface ISetting
-	{
+		/// <summary>
+		/// Returns a string of all the guild's settings in human readable format.
+		/// </summary>
+		/// <returns></returns>
 		string ToString();
-		string ToString(SocketGuild guild);
+		/// <summary>
+		/// Returns a string of a guild setting in human readable format.
+		/// </summary>
+		/// <param name="property"></param>
+		/// <returns></returns>
+		string ToString(PropertyInfo property);
 	}
 }

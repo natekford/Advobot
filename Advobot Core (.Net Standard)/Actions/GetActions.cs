@@ -6,6 +6,7 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -20,18 +21,18 @@ namespace Advobot.Actions
 		/// Returns the public fields in the Discord.Color struct as a name to color dictionary.
 		/// </summary>
 		/// <returns></returns>
-		public static Dictionary<string, Color> GetColorDictionary()
+		public static ReadOnlyDictionary<string, Color> GetColorDictionary()
 		{
-			return typeof(Color).GetFields().Where(x => x.IsPublic).ToDictionary(
+			return new ReadOnlyDictionary<string, Color>(typeof(Color).GetFields().Where(x => x.IsPublic).ToDictionary(
 				x => x.Name, 
 				x => (Color)x.GetValue(new Color()), 
-				StringComparer.OrdinalIgnoreCase);
+				StringComparer.OrdinalIgnoreCase));
 		}
 		/// <summary>
 		/// Returns a list of every command's help entry.
 		/// </summary>
 		/// <returns></returns>
-		public static IList<HelpEntry> GetHelpList()
+		public static ReadOnlyCollection<HelpEntry> GetHelpList()
 		{
 			var temp = new List<HelpEntry>();
 
@@ -79,15 +80,15 @@ namespace Advobot.Actions
 
 				temp.Add(new HelpEntry(name, aliases, usage, FormattingActions.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, category, defaultEnabledAttr.Enabled));
 			}
-			return temp;
+			return temp.AsReadOnly();
 		}
 		/// <summary>
 		/// Returns a list of every command's name.
 		/// </summary>
 		/// <returns></returns>
-		public static IList<string> GetCommandNames()
+		public static ReadOnlyCollection<string> GetCommandNames()
 		{
-			return Constants.HELP_ENTRIES.Select(x => x.Name).ToList();
+			return Constants.HELP_ENTRIES.Select(x => x.Name).ToList().AsReadOnly();
 		}
 		/// <summary>
 		/// Returns all names of commands that are in specific category.
@@ -116,15 +117,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static string GetPrefix(IBotSettings botSettings, IGuildSettings guildSettings)
 		{
-			var guildPrefix = guildSettings.Prefix;
-			if (!String.IsNullOrWhiteSpace(guildPrefix))
-			{
-				return guildPrefix;
-			}
-			else
-			{
-				return botSettings.Prefix;
-			}
+			return String.IsNullOrWhiteSpace(guildSettings.Prefix) ? botSettings.Prefix : guildSettings.Prefix;
 		}
 
 		/// <summary>
@@ -198,6 +191,34 @@ namespace Advobot.Actions
 		}
 
 		/// <summary>
+		/// Returns true if there is a valid error reason. Returns false if the command executed without errors.
+		/// </summary>
+		/// <param name="result"></param>
+		/// <param name="errorReason"></param>
+		/// <returns></returns>
+		public static bool TryGetErrorReason(IResult result, out string errorReason)
+		{
+			errorReason = result.ErrorReason;
+			if (result.IsSuccess || Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
+			{
+				return false;
+			}
+
+			switch (result.Error)
+			{
+				case null:
+				//Ignore commands with the unknown command error because it's annoying
+				case CommandError.UnknownCommand:
+				{
+					return false;
+				}
+				default:
+				{
+					return true;
+				}
+			}
+		}
+		/// <summary>
 		/// Returns true if a valid file type was gotten and the image is smaller than 2.5MB.
 		/// </summary>
 		/// <param name="context"></param>
@@ -250,9 +271,8 @@ namespace Advobot.Actions
 		}
 
 		/// <summary>
-		/// On windows, returns the task manager value. On other systems, returns the WorkingSet64 value.
+		/// Returns the <see cref="Process.WorkingSet64"/> value divided by a MB.
 		/// </summary>
-		/// <param name="windows"></param>
 		/// <returns></returns>
 		public static double GetMemory()
 		{

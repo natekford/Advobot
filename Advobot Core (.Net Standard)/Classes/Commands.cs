@@ -5,8 +5,9 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
-using System.Linq;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Advobot.Classes
 {
@@ -91,44 +92,55 @@ namespace Advobot.Classes
 	public class LoggedCommand
 	{
 		private static readonly string _Joiner = Environment.NewLine + new string(' ', 28);
-		public string Guild { get; }
-		public string Channel { get; }
-		public string User { get; }
-		public string Time { get; }
-		public string Text { get; }
-		public DateTime TimeInitiated { get; }
-		public DateTime TimeCompleted { get; private set; }
-		public string ErrorReason { get; private set; }
-		public ConsoleColor WriteColor;
 
-		public LoggedCommand(ICommandContext context, DateTime startTime)
+		public string Guild { get; private set; }
+		public string Channel { get; private set; }
+		public string User { get; private set; }
+		public string Time { get; private set; }
+		public string Text { get; private set; }
+		public string ErrorReason { get; private set; }
+		public ConsoleColor WriteColor { get; private set; } = ConsoleColor.Green;
+		private Stopwatch Stopwatch;
+
+		public LoggedCommand()
+		{
+			Stopwatch = new Stopwatch();
+			Stopwatch.Start();
+		}
+
+		/// <summary>
+		/// Updates the logged command with who did what and other information.
+		/// </summary>
+		/// <param name="context"></param>
+		public void SetContext(ICommandContext context)
 		{
 			Guild = context.Guild.FormatGuild();
 			Channel = context.Channel.FormatChannel();
 			User = context.User.FormatUser();
 			Time = FormattingActions.FormatReadableDateTime(context.Message.CreatedAt.UtcDateTime);
 			Text = context.Message.Content;
-			TimeInitiated = startTime;
-			TimeCompleted = DateTime.UtcNow;
-			ErrorReason = null;
-			WriteColor = ConsoleColor.Green;
-		}
-
-		/// <summary>
-		/// Sets <see cref="ErrorReason"/> to <paramref name="errorReason"/> and changes <see cref="WriteColor"/> to <see cref="ConsoleColor.Red"/>.
-		/// </summary>
-		/// <param name="errorReason"></param>
-		public void Errored(string errorReason)
-		{
-			ErrorReason = errorReason;
-			WriteColor = ConsoleColor.Red;
 		}
 		/// <summary>
-		/// Sets <see cref="TimeCompleted"/> to <see cref="DateTime.UtcNow"/> and write the logged command to the console.
+		/// Attempts to get an error reason if the <paramref name="result"/> has <see cref="IResult.IsSuccess"/> false.
 		/// </summary>
-		public void Finished()
+		/// <param name="result"></param>
+		public void SetError(IResult result)
 		{
-			TimeCompleted = DateTime.UtcNow;
+			if (GetActions.TryGetErrorReason(result, out string errorReason))
+			{
+				ErrorReason = errorReason;
+				WriteColor = ConsoleColor.Red;
+			}
+		}
+		/// <summary>
+		/// Sets <see cref="TimeCompleted"/> to <see cref="DateTime.UtcNow"/> and writes the logged command to the console.
+		/// </summary>
+		public void FinalizeAndWrite(ICommandContext context, IResult result, ILogModule logModule)
+		{
+			SetContext(context);
+			SetError(result);
+			logModule.RanCommands.Add(this);
+			Stopwatch.Stop();
 			Write();
 		}
 		/// <summary>
@@ -147,7 +159,7 @@ namespace Advobot.Classes
 				.Append($"{_Joiner}User: {User}")
 				.Append($"{_Joiner}Time: {Time}")
 				.Append($"{_Joiner}Text: {Text}")
-				.Append($"{_Joiner}Time taken: {(TimeCompleted - TimeInitiated).TotalMilliseconds}ms");
+				.Append($"{_Joiner}Time taken: {Stopwatch.ElapsedMilliseconds}ms");
 			if (ErrorReason != null)
 			{
 				response.Append($"{_Joiner}Error: {ErrorReason}");

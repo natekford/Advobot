@@ -53,7 +53,7 @@ namespace Advobot
 
 		//Static readonly because they may change and I've heard using const means any assembly referencing it has to be recompiled each time the value gets manually changed.
 		public static readonly string BOT_VERSION = "0.31.0";
-		public static readonly string API_VERSION = "Discord.Net v2.0.0-alpha-build-00823";
+		public static readonly string API_VERSION = "Discord.Net v2.0.0-alpha-build-00828";
 		public static readonly string PROGRAM_NAME = "Advobot";
 		public static readonly string IGNORE_ERROR = "Cx";
 		public static readonly string DISCORD_INV = "https://discord.gg/MBXypxb"; //Switched from /xd to this invite since no matter what this inv will link to my server and never someone else's server
@@ -90,34 +90,34 @@ namespace Advobot
 		public static readonly int MIN_PREFIX_LENGTH = 1;
 		public static readonly int MAX_PREFIX_LENGTH = 10;
 
-		private static ReadOnlyCollection<string> _VALID_IMAGE_EXTENSIONS;
-		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS => _VALID_IMAGE_EXTENSIONS ?? (_VALID_IMAGE_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>
+		private static ReadOnlyCollection<string> _IMG;
+		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS => _IMG ?? (_IMG = new ReadOnlyCollection<string>(new List<string>
 		{
 			".jpeg",
 			".jpg",
 			".png",
 		}));
-		private static ReadOnlyCollection<string> _VALID_GIF_EXTENSIONS;
-		public static ReadOnlyCollection<string> VALID_GIF_EXTENTIONS => _VALID_GIF_EXTENSIONS ?? (_VALID_GIF_EXTENSIONS = new ReadOnlyCollection<string>(new List<string>
+		private static ReadOnlyCollection<string> _GIF;
+		public static ReadOnlyCollection<string> VALID_GIF_EXTENTIONS => _GIF ?? (_GIF = new ReadOnlyCollection<string>(new List<string>
 		{
 			".gif",
 			".gifv",
 		}));
-		private static ReadOnlyCollection<HelpEntry> _HELP_ENTRIES;
-		public static ReadOnlyCollection<HelpEntry> HELP_ENTRIES => _HELP_ENTRIES ?? (_HELP_ENTRIES = new ReadOnlyCollection<HelpEntry>(GetActions.GetHelpList()));
-		private static ReadOnlyCollection<string> _COMMAND_NAMES;
-		public static ReadOnlyCollection<string> COMMAND_NAMES => _COMMAND_NAMES ?? (_COMMAND_NAMES = new ReadOnlyCollection<string>(GetActions.GetCommandNames()));
+		private static ReadOnlyCollection<HelpEntry> _HELP;
+		public static ReadOnlyCollection<HelpEntry> HELP_ENTRIES => _HELP ?? (_HELP = GetActions.GetHelpList());
+		private static ReadOnlyCollection<string> _CMD;
+		public static ReadOnlyCollection<string> COMMAND_NAMES => _CMD ?? (_CMD = GetActions.GetCommandNames());
 
 		//Because the enum values might change in the future. These are never saved in JSON so these can be modified
-		private static ReadOnlyDictionary<PunishmentType, int> _PUNISHMENT_SEVERITY;
-		public static ReadOnlyDictionary<PunishmentType, int> PUNISHMENT_SEVERITY => _PUNISHMENT_SEVERITY ?? (_PUNISHMENT_SEVERITY = new ReadOnlyDictionary<PunishmentType, int>(new Dictionary<PunishmentType, int>
+		private static ReadOnlyDictionary<PunishmentType, int> _P_SEV;
+		public static ReadOnlyDictionary<PunishmentType, int> PUNISHMENT_SEVERITY => _P_SEV ?? (_P_SEV = new ReadOnlyDictionary<PunishmentType, int>(new Dictionary<PunishmentType, int>
 		{
-			{ PunishmentType.Deafen, 0 },
-			{ PunishmentType.VoiceMute, 100 },
-			{ PunishmentType.RoleMute, 250 },
-			{ PunishmentType.Kick, 500 },
-			{ PunishmentType.KickThenBan, 750 },
-			{ PunishmentType.Ban, 1000 },
+			{ PunishmentType.Deafen,		0 },
+			{ PunishmentType.VoiceMute,		100 },
+			{ PunishmentType.RoleMute,		250 },
+			{ PunishmentType.Kick,			500 },
+			{ PunishmentType.KickThenBan,	750 },
+			{ PunishmentType.Ban,			1000 },
 		}));
 
 		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)
@@ -128,7 +128,7 @@ namespace Advobot
 	public static class Colors
 	{
 		private static ReadOnlyDictionary<string, Color> _COLORS;
-		public static ReadOnlyDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = new ReadOnlyDictionary<string, Color>(GetActions.GetColorDictionary()));
+		public static ReadOnlyDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = GetActions.GetColorDictionary());
 
 		public static Color BASE { get; } = new Color(255, 100, 000);
 		public static Color JOIN { get; } = new Color(000, 255, 000);

@@ -101,7 +101,7 @@ namespace Advobot.Classes
 		/// <summary>
 		/// Holds information for a user in relation to slowmode.
 		/// </summary>
-		private class SlowmodeUserInformation : ITimeInterface
+		private class SlowmodeUserInformation : IHasTime
 		{
 			public int CurrentMessagesLeft { get; private set; }
 			private DateTime _Time;

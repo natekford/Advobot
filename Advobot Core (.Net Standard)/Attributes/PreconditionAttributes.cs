@@ -178,11 +178,7 @@ namespace Advobot.Attributes
 				{
 					return PreconditionResult.FromError($"This bot will not function without the `{nameof(GuildPermission.Administrator)}` permission.");
 				}
-				else if (!myContext.BotSettings.Loaded)
-				{
-					return PreconditionResult.FromError("Wait until the bot is loaded.");
-				}
-				if (!myContext.GuildSettings.Loaded)
+				else if (!myContext.GuildSettings.Loaded)
 				{
 					return PreconditionResult.FromError("Wait until the guild is loaded.");
 				}

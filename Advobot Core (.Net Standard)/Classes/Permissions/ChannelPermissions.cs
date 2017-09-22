@@ -1,5 +1,4 @@
-﻿using Advobot.Interfaces;
-using Discord;
+﻿using Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ namespace Advobot.Permissions
 	/// <summary>
 	/// Holds a channel permission name and value. Also holds booleans describing whether or not the permissions is on text/voice/both channels.
 	/// </summary>
-	public struct ChannelPerm : IPermission
+	public struct ChannelPerm
 	{
 		public string Name { get; }
 		public ulong Value { get; }

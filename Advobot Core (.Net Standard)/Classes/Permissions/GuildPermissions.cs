@@ -1,5 +1,4 @@
-﻿using Advobot.Interfaces;
-using Discord;
+﻿using Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ namespace Advobot.Permissions
 	/// <summary>
 	/// Holds a guild permission name and value.
 	/// </summary>
-	public struct GuildPerm : IPermission
+	public struct GuildPerm
 	{
 		public string Name { get; }
 		public ulong Value { get; }

@@ -173,7 +173,7 @@ namespace Advobot
 	}
 
 	/// <summary>
-	/// 
+	/// Keys to be used in <see cref="ConfigDict"/>.
 	/// </summary>
 	public enum ConfigKeys : uint
 	{

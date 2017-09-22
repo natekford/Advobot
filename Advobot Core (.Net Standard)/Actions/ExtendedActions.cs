@@ -289,13 +289,13 @@ namespace Advobot
 			return str?.Count(x => x == '\r' || x == '\n') ?? 0;
 		}
 		/// <summary>
-		/// Counts how many times something that implements <see cref="ITimeInterface"/> has occurred within a given timeframe.
+		/// Counts how many times something that implements <see cref="ITime"/> has occurred within a given timeframe.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="timeList"></param>
 		/// <param name="timeFrame"></param>
 		/// <returns></returns>
-		public static int CountItemsInTimeFrame<T>(this List<T> timeList, int timeFrame = 0) where T : ITimeInterface
+		public static int CountItemsInTimeFrame<T>(this List<T> timeList, int timeFrame = 0) where T : IHasTime
 		{
 			lock (timeList)
 			{
@@ -354,12 +354,12 @@ namespace Advobot
 			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
 		}
 		/// <summary>
-		/// Removes <see cref="ITimeInterface"/> objects where their time is below <see cref="DateTime.UtcNow"/>.
+		/// Removes <see cref="ITime"/> objects where their time is below <see cref="DateTime.UtcNow"/>.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="inputList"></param>
 		/// <returns></returns>
-		public static List<T> GetOutTimedObjects<T>(this List<T> inputList) where T : ITimeInterface
+		public static List<T> GetOutTimedObjects<T>(this List<T> inputList) where T : IHasTime
 		{
 			if (inputList == null)
 			{
@@ -374,13 +374,13 @@ namespace Advobot
 			return eligibleToBeGotten;
 		}
 		/// <summary>
-		/// Removes <see cref="ITimeInterface"/> key value pairs where their time is below <see cref="DateTime.UtcNow"/>.
+		/// Removes <see cref="ITime"/> key value pairs where their time is below <see cref="DateTime.UtcNow"/>.
 		/// </summary>
 		/// <typeparam name="TKey"></typeparam>
 		/// <typeparam name="TValue"></typeparam>
 		/// <param name="inputDict"></param>
 		/// <returns></returns>
-		public static Dictionary<TKey, TValue> GetOutTimedObjects<TKey, TValue>(this Dictionary<TKey, TValue> inputDict) where TValue : ITimeInterface
+		public static Dictionary<TKey, TValue> GetOutTimedObjects<TKey, TValue>(this Dictionary<TKey, TValue> inputDict) where TValue : IHasTime
 		{
 			if (inputDict == null)
 			{

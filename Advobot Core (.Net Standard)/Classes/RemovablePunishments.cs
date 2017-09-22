@@ -10,7 +10,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Punishments that will be removed after <see cref="GetTime"/> is less than <see cref="DateTime.UtcNow"/>.
 	/// </summary>
-	public class RemovablePunishment : ITimeInterface
+	public class RemovablePunishment : IHasTime
 	{
 		public PunishmentType PunishmentType { get; }
 		public IGuild Guild { get; }
@@ -68,7 +68,7 @@ namespace Advobot.Classes
 	/// <summary>
 	/// Messages that will get deleted after <see cref="GetTime"/> is less than <see cref="DateTime.UtcNow"/>.
 	/// </summary>
-	public class RemovableMessage : ITimeInterface
+	public class RemovableMessage : IHasTime
 	{
 		public IEnumerable<IMessage> Messages { get; }
 		public IMessageChannel Channel { get; }

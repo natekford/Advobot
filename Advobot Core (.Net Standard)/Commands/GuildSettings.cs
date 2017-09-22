@@ -408,13 +408,13 @@ namespace Advobot.Commands.GuildSettings
 		[Command("all"), Priority(1)]
 		public async Task CommandAll()
 		{
-			var text = FormattingActions.FormatAllGuildSettings(Context.Guild, Context.GuildSettings);
-			await MessageActions.SendTextFile(Context.Guild, Context.Channel, text, "Guild Settings", "Guild Settings");
+			var text = Context.GuildSettings.ToString();
+			await MessageActions.SendTextFile(Context.Guild, Context.Channel, text, "Guild_Settings", "Guild Settings");
 		}
 		[Command, Priority(0)]
 		public async Task Command([OverrideTypeReader(typeof(GuildSettingTypeReader))] PropertyInfo setting)
 		{
-			var desc = FormattingActions.FormatGuildSetting(Context.Guild as SocketGuild, setting.GetValue(Context.GuildSettings));
+			var desc = Context.GuildSettings.ToString(setting);
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 			{
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(setting.Name, desc));

@@ -128,9 +128,9 @@ namespace Advobot.Classes
 	}
 
 	/// <summary>
-	/// Holds a <see cref="DateTime"/> object and implements <see cref="ITimeInterface"/> so certain methods can restrict generics easier.
+	/// Holds a <see cref="DateTime"/> object and implements <see cref="ITime"/> so certain methods can restrict generics easier.
 	/// </summary>
-	public struct BasicTimeInterface : ITimeInterface
+	public struct BasicTimeInterface : IHasTime
 	{
 		private DateTime _Time;
 

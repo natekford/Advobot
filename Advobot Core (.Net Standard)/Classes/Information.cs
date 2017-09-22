@@ -73,7 +73,7 @@ namespace Advobot.Classes
 	/// Container of close words which is intended to be removed after <see cref="GetTime()"/> returns a value less than the current time.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class CloseWords<T> : ITimeInterface where T : IDescription
+	public class CloseWords<T> : IHasTime where T : IDescription
 	{
 		public ulong UserId { get; }
 		public IReadOnlyCollection<CloseWord> List { get; }

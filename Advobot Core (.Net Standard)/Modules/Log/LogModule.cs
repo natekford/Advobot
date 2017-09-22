@@ -243,7 +243,7 @@ namespace Advobot.Modules.Log
 			{
 				this.AddUsers(guild.MemberCount);
 				this.IncrementGuilds();
-				await _GuildSettings.AddGuild(guild);
+				await _GuildSettings.GetOrCreateSettings(guild);
 			}
 		}
 		/// <summary>

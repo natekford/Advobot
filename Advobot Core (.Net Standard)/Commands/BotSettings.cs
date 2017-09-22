@@ -238,13 +238,13 @@ namespace Advobot.Commands.BotSettings
 		[Command("all"), Alias("a"), Priority(1)]
 		public async Task CommandAll()
 		{
-			var text = await FormattingActions.FormatAllBotSettings(Context.Client, Context.BotSettings);
+			var text = await Context.BotSettings.ToString(Context.Client);
 			await MessageActions.SendTextFile(Context.Guild, Context.Channel, text, "Bot Settings", "Bot Settings");
 		}
 		[Command, Priority(0)]
 		public async Task Command([OverrideTypeReader(typeof(BotSettingTypeReader))] PropertyInfo setting)
 		{
-			var desc = await FormattingActions.FormatBotSetting(Context.Client, setting.GetValue(Context.BotSettings));
+			var desc = await Context.BotSettings.ToString(Context.Client, setting);
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 			{
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(setting.Name, desc));
