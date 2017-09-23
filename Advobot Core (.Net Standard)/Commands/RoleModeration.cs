@@ -2,6 +2,7 @@
 using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Formatting;
 using Advobot.Permissions;
 using Advobot.TypeReaders;
 using Discord;
@@ -23,7 +24,7 @@ namespace Advobot.Commands.RoleModeration
 		[Command]
 		public async Task Command(IGuildUser user, [VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone, RoleVerification.IsManaged)] params IRole[] roles)
 		{
-			await RoleActions.GiveRoles(user, roles, FormattingActions.FormatUserReason(Context.User));
+			await RoleActions.GiveRoles(user, roles, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully gave `{String.Join("`, `", roles.Select(x => x.FormatRole()))}` to `{user.FormatUser()}`.");
 		}
 	}
@@ -38,7 +39,7 @@ namespace Advobot.Commands.RoleModeration
 		[Command]
 		public async Task Command(IGuildUser user, [VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone, RoleVerification.IsManaged)] params IRole[] roles)
 		{
-			await RoleActions.TakeRoles(user, roles, FormattingActions.FormatUserReason(Context.User));
+			await RoleActions.TakeRoles(user, roles, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully took `{String.Join("`, `", roles.Select(x => x.FormatRole()))}` from `{user.FormatUser()}`.");
 		}
 	}
@@ -53,7 +54,7 @@ namespace Advobot.Commands.RoleModeration
 		[Command]
 		public async Task Command([VerifyStringLength(Target.Role)] string name)
 		{
-			await RoleActions.CreateRole(Context.Guild, name, FormattingActions.FormatUserReason(Context.User));
+			await RoleActions.CreateRole(Context.Guild, name, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully created the role `{name}`.");
 		}
 	}
@@ -73,10 +74,10 @@ namespace Advobot.Commands.RoleModeration
 			var color = role.Color;
 			var position = role.Position;
 
-			await RoleActions.DeleteRole(role, FormattingActions.FormatUserReason(Context.User));
+			await RoleActions.DeleteRole(role, GeneralFormatting.FormatUserReason(Context.User));
 			var newRole = await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), color);
 
-			await RoleActions.ModifyRolePosition(newRole, position, FormattingActions.FormatUserReason(Context.User));
+			await RoleActions.ModifyRolePosition(newRole, position, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed all permissions from the role `{role.Name}` and removed the role from all users on the guild.");
 		}
 	}
@@ -91,7 +92,7 @@ namespace Advobot.Commands.RoleModeration
 		[Command]
 		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone, RoleVerification.IsManaged)] IRole role)
 		{
-			await RoleActions.DeleteRole(role, FormattingActions.FormatUserReason(Context.User));
+			await RoleActions.DeleteRole(role, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted `{role.FormatRole()}`.");
 		}
 	}
@@ -106,7 +107,7 @@ namespace Advobot.Commands.RoleModeration
 		[Command]
 		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone)] IRole role, uint position)
 		{
-			var newPos = await RoleActions.ModifyRolePosition(role, (int)position, FormattingActions.FormatUserReason(Context.User));
+			var newPos = await RoleActions.ModifyRolePosition(role, (int)position, GeneralFormatting.FormatUserReason(Context.User));
 			if (newPos != -1)
 			{
 				await MessageActions.SendChannelMessage(Context.Channel, $"Successfully gave `{role.FormatRole()}` the position `{newPos}`.");
@@ -224,7 +225,7 @@ namespace Advobot.Commands.RoleModeration
 				*/
 			var newRoleBits = immovableBits | copyBits;
 
-			await RoleActions.ModifyRolePermissions(outputRole, newRoleBits, FormattingActions.FormatUserReason(Context.User));
+			await RoleActions.ModifyRolePermissions(outputRole, newRoleBits, GeneralFormatting.FormatUserReason(Context.User));
 
 			var immovablePerms = GuildPerms.ConvertValueToNames(immovableBits);
 			var failedToCopy = GuildPerms.ConvertValueToNames(inputRoleBits & ~copyBits);
@@ -233,7 +234,7 @@ namespace Advobot.Commands.RoleModeration
 			var failedToCopyStr = failedToCopy.Any() ? "Input role had some permission unable to be copied by you." : null;
 			var newPermsStr = $"`{outputRole.FormatRole()}` now has the following permissions: `{(newPerms.Any() ? String.Join("`, `", newPerms) : "Nothing")}`.";
 
-			var response = FormattingActions.JoinNonNullStrings(" ", immovablePermsStr, failedToCopyStr, newPermsStr);
+			var response = GeneralFormatting.JoinNonNullStrings(" ", immovablePermsStr, failedToCopyStr, newPermsStr);
 			await MessageActions.SendChannelMessage(Context.Channel, response);
 		}
 	}
@@ -252,13 +253,13 @@ namespace Advobot.Commands.RoleModeration
 			var roleBits = role.Permissions.RawValue;
 			var immovableBits = roleBits & ~userBits;
 
-			await RoleActions.ModifyRolePermissions(role, immovableBits, FormattingActions.FormatUserReason(Context.User));
+			await RoleActions.ModifyRolePermissions(role, immovableBits, GeneralFormatting.FormatUserReason(Context.User));
 
 			var immovablePerms = GuildPerms.ConvertValueToNames(immovableBits);
 			var immovablePermsStr = immovablePerms.Any() ? "Role had some permissions unable to be cleared by you." : null;
 			var newPermsStr = $"`{role.FormatRole()}` now has the following permissions: `{(immovablePerms.Any() ? String.Join("`, `", immovablePerms) : "Nothing")}`.";
 
-			var response = FormattingActions.JoinNonNullStrings(" ", immovablePermsStr, newPermsStr);
+			var response = GeneralFormatting.JoinNonNullStrings(" ", immovablePermsStr, newPermsStr);
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
 		}
 	}
@@ -273,7 +274,7 @@ namespace Advobot.Commands.RoleModeration
 		[Command]
 		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone)] IRole role, [Remainder, VerifyStringLength(Target.Role)] string name)
 		{
-			await RoleActions.ModifyRoleName(role, name, FormattingActions.FormatUserReason(Context.User));
+			await RoleActions.ModifyRoleName(role, name, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.");
 		}
 	}
@@ -290,18 +291,18 @@ namespace Advobot.Commands.RoleModeration
 		{
 			if (position > Context.User.GetPosition())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Your position is less than the role's."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Your position is less than the role's."));
 				return;
 			}
 
 			var role = Context.Guild.Roles.FirstOrDefault(x => x.Position == (int)position);
 			if (role == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("No role has the given position."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("No role has the given position."));
 				return;
 			}
 
-			await RoleActions.ModifyRoleName(role, name, FormattingActions.FormatUserReason(Context.User));
+			await RoleActions.ModifyRoleName(role, name, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.");
 		}
 	}
@@ -323,7 +324,7 @@ namespace Advobot.Commands.RoleModeration
 				return;
 			}
 
-			await RoleActions.ModifyRoleColor(role, color, FormattingActions.FormatUserReason(Context.User)); //Use .ToString("X6") to get a hex string that's 6 characters long
+			await RoleActions.ModifyRoleColor(role, color, GeneralFormatting.FormatUserReason(Context.User)); //Use .ToString("X6") to get a hex string that's 6 characters long
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the color of `{role.FormatRole()}` to `#{color.RawValue.ToString("X6")}`.");
 		}
 	}
@@ -338,7 +339,7 @@ namespace Advobot.Commands.RoleModeration
 		[Command]
 		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone)] IRole role)
 		{
-			await RoleActions.ModifyRoleHoist(role, FormattingActions.FormatUserReason(Context.User));
+			await RoleActions.ModifyRoleHoist(role, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully {(role.IsHoisted ? "dehoisted" : "hoisted")} `{role.FormatRole()}`.");
 		}
 	}
@@ -353,7 +354,7 @@ namespace Advobot.Commands.RoleModeration
 		[Command]
 		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone)] IRole role)
 		{
-			await RoleActions.ModifyRoleMentionability(role, FormattingActions.FormatUserReason(Context.User));
+			await RoleActions.ModifyRoleMentionability(role, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully made `{role.FormatRole()}` {(role.IsMentionable ? "unmentionable" : "mentionable")}.");
 		}
 	}

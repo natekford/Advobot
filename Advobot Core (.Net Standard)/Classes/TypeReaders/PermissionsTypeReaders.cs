@@ -1,4 +1,5 @@
 ﻿using Advobot.Actions;
+using Advobot.Formatting;
 using Advobot.Permissions;
 using Discord.Commands;
 using System;
@@ -29,7 +30,7 @@ namespace Advobot.TypeReaders
 			//Then check permission names
 			else if (!GuildPerms.TryGetValidGuildPermissionNamesFromInputString(input, out var validPerms, out var invalidPerms))
 			{
-				var failureStr = FormattingActions.ERROR($"Invalid permission{GetActions.GetPlural(invalidPerms.Count())} provided: `{String.Join("`, `", invalidPerms)}`.");
+				var failureStr = GeneralFormatting.ERROR($"Invalid permission{GetActions.GetPlural(invalidPerms.Count())} provided: `{String.Join("`, `", invalidPerms)}`.");
 				return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, failureStr));
 			}
 			else
@@ -61,7 +62,7 @@ namespace Advobot.TypeReaders
 			//Then check permission names
 			else if (!ChannelPerms.TryGetValidChannelPermissionNamesFromInputString(input, out var validPerms, out var invalidPerms))
 			{
-				var failureStr = FormattingActions.ERROR($"Invalid permission{GetActions.GetPlural(invalidPerms.Count())} provided: `{String.Join("`, `", invalidPerms)}`.");
+				var failureStr = GeneralFormatting.ERROR($"Invalid permission{GetActions.GetPlural(invalidPerms.Count())} provided: `{String.Join("`, `", invalidPerms)}`.");
 				return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, failureStr));
 			}
 			else

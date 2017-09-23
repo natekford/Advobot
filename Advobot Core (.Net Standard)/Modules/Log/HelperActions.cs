@@ -1,6 +1,7 @@
 ﻿using Advobot.Actions;
 using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Formatting;
 using Advobot.Interfaces;
 using Discord;
 using System;

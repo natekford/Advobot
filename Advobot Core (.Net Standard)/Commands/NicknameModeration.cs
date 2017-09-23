@@ -2,6 +2,7 @@
 using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Formatting;
 using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
@@ -21,7 +22,7 @@ namespace Advobot.Commands.NicknameModeration
 		[Command]
 		public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, VerifyStringLength(Target.Nickname)] string nickname)
 		{
-			await UserActions.ChangeNickname(user, nickname, FormattingActions.FormatUserReason(Context.User));
+			await UserActions.ChangeNickname(user, nickname, GeneralFormatting.FormatUserReason(Context.User));
 			var response = nickname == null
 				? $"Successfully removed the nickname from `{user.FormatUser()}`."
 				: $"Successfully gave `{user.FormatUser()}` the nickname `{nickname}`.";
@@ -47,7 +48,7 @@ namespace Advobot.Commands.NicknameModeration
 				|| (x.Nickname == null && x.Username.CaseInsContains(search)) //If nickname isn't there, check based off of username
 				).ToList().GetUpToAndIncludingMinNum(userAmt);
 
-			await UserActions.NicknameManyUsers(Context, users, replace, FormattingActions.FormatUserReason(Context.User));
+			await UserActions.NicknameManyUsers(Context, users, replace, GeneralFormatting.FormatUserReason(Context.User));
 		}
 	}
 
@@ -67,7 +68,7 @@ namespace Advobot.Commands.NicknameModeration
 				|| (x.Nickname == null && !x.Username.AllCharactersAreWithinUpperLimit((int)upperLimit)) //If nickname isn't there, check based off of username
 				).ToList().GetUpToAndIncludingMinNum(userAmt);
 
-			await UserActions.NicknameManyUsers(Context, users, replace, FormattingActions.FormatUserReason(Context.User));
+			await UserActions.NicknameManyUsers(Context, users, replace, GeneralFormatting.FormatUserReason(Context.User));
 		}
 	}
 
@@ -84,7 +85,7 @@ namespace Advobot.Commands.NicknameModeration
 			var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
 			var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => x.Nickname != null).ToList().GetUpToAndIncludingMinNum(userAmt);
 
-			await UserActions.NicknameManyUsers(Context, users, null, FormattingActions.FormatUserReason(Context.User));
+			await UserActions.NicknameManyUsers(Context, users, null, GeneralFormatting.FormatUserReason(Context.User));
 		}
 	}
 }

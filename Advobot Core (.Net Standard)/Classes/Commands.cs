@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Enums;
+using Advobot.Formatting;
 using Advobot.Interfaces;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -117,7 +118,7 @@ namespace Advobot.Classes
 			Guild = context.Guild.FormatGuild();
 			Channel = context.Channel.FormatChannel();
 			User = context.User.FormatUser();
-			Time = FormattingActions.FormatReadableDateTime(context.Message.CreatedAt.UtcDateTime);
+			Time = TimeFormatting.FormatReadableDateTime(context.Message.CreatedAt.UtcDateTime);
 			Text = context.Message.Content;
 		}
 		/// <summary>

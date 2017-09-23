@@ -1,12 +1,13 @@
 ﻿using Advobot.Actions;
 using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Formatting;
+using Advobot.Permissions;
 using Discord;
 using Discord.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Advobot.Permissions;
 
 namespace Advobot.Attributes
 {
@@ -71,7 +72,7 @@ namespace Advobot.Attributes
 
 		public override string ToString()
 		{
-			return $"[{FormattingActions.JoinNonNullStrings(" | ", AllText, AnyText)}]";
+			return $"[{GeneralFormatting.JoinNonNullStrings(" | ", AllText, AnyText)}]";
 		}
 	}
 

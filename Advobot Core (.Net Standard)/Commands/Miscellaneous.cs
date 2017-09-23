@@ -2,6 +2,7 @@
 using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Formatting;
 using Advobot.Permissions;
 using Discord;
 using Discord.Commands;
@@ -70,7 +71,7 @@ namespace Advobot.Commands.Miscellaneous
 					return;
 				}
 
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Nonexistent command."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Nonexistent command."));
 			}
 		}
 	}
@@ -151,44 +152,44 @@ namespace Advobot.Commands.Miscellaneous
 		[Command(nameof(Target.Bot))]
 		public async Task CommandBot()
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatBotInfo(Context.BotSettings, Context.Client, Context.Logging, Context.Guild));
+			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatBotInfo(Context.BotSettings, Context.Client, Context.Logging, Context.Guild));
 		}
 		[Command(nameof(Target.Guild))]
 		public async Task CommandGuild()
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatGuildInfo(Context.GuildSettings, Context.Guild as SocketGuild));
+			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatGuildInfo(Context.Guild as SocketGuild));
 		}
 		[Command(nameof(Target.Channel))]
 		public async Task CommandChannel(IGuildChannel target)
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatChannelInfo(Context.GuildSettings, Context.Guild as SocketGuild, target as SocketChannel));
+			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatChannelInfo(Context.GuildSettings, Context.Guild as SocketGuild, target as SocketChannel));
 		}
 		[Command(nameof(Target.Role))]
 		public async Task CommandRole(IRole target)
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatRoleInfo(Context.GuildSettings, Context.Guild as SocketGuild, target as SocketRole));
+			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatRoleInfo(Context.Guild as SocketGuild, target as SocketRole));
 		}
 		[Command(nameof(Target.User))]
 		public async Task CommandUser(IUser target)
 		{
 			if (target is SocketGuildUser socketGuildUser)
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatUserInfo(Context.GuildSettings, Context.Guild as SocketGuild, socketGuildUser));
+				await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatUserInfo(Context.Guild as SocketGuild, socketGuildUser));
 			}
 			else if (target is SocketUser socketUser)
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatUserInfo(Context.GuildSettings, Context.Guild as SocketGuild, socketUser));
+				await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatUserInfo(Context.Guild as SocketGuild, socketUser));
 			}
 		}
 		[Command(nameof(Target.Emote))]
 		public async Task CommandEmote(Emote target)
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatEmoteInfo(Context.GuildSettings, target));
+			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatEmoteInfo(target));
 		}
 		[Command(nameof(Target.Invite))]
 		public async Task CommandInvite(IInvite target)
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, FormattingActions.FormatInviteInfo(Context.GuildSettings, target as IInviteMetadata));
+			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatInviteInfo(target as IInviteMetadata));
 		}
 	}
 
@@ -320,7 +321,7 @@ namespace Advobot.Commands.Miscellaneous
 			var users = await GuildActions.GetUsersAndOrderByJoin(Context.Guild);
 			var newPos = Math.Max(1, Math.Min(position, users.Length));
 			var user = users[newPos - 1];
-			var time = FormattingActions.FormatReadableDateTime(user.JoinedAt.Value.UtcDateTime);
+			var time = TimeFormatting.FormatReadableDateTime(user.JoinedAt.Value.UtcDateTime);
 			var text = $"`{user.FormatUser()}` is `#{newPos}` to join the guild on `{time}`.";
 			await MessageActions.SendChannelMessage(Context.Channel, text);
 		}
@@ -373,7 +374,7 @@ namespace Advobot.Commands.Miscellaneous
 		public async Task Command()
 		{
 			var users = await GuildActions.GetUsersAndOrderByJoin(Context.Guild);
-			var text = users.FormatNumberedList("`{0}` joined on `{1}`", x => x.FormatUser(), x => FormattingActions.FormatReadableDateTime(x.JoinedAt.Value.UtcDateTime));
+			var text = users.FormatNumberedList("`{0}` joined on `{1}`", x => x.FormatUser(), x => TimeFormatting.FormatReadableDateTime(x.JoinedAt.Value.UtcDateTime));
 			await MessageActions.SendTextFile(Context.Guild, Context.Channel, text, "User_Joins_");
 		}
 	}
@@ -418,7 +419,7 @@ namespace Advobot.Commands.Miscellaneous
 			var count = 0;
 			for (count = 0; count < messages.Length; ++count)
 			{
-				var text = FormattingActions.FormatMessage(messages[count]).RemoveAllMarkdown().RemoveDuplicateNewLines();
+				var text = messages[count].FormatMessage().RemoveAllMarkdown().RemoveDuplicateNewLines();
 				if (formattedMessagesBuilder.Length + text.Length >= Context.BotSettings.MaxMessageGatherSize)
 				{
 					break;
@@ -510,15 +511,15 @@ namespace Advobot.Commands.Miscellaneous
 		{
 			if (role.IsMentionable)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("You can already mention this role."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("You can already mention this role."));
 			}
 			else
 			{
 				var cutText = $"From `{Context.User.FormatUser()}`, {role.Mention}: {text.Substring(0, Math.Min(text.Length, 250))}";
 				//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
-				await role.ModifyAsync(x => x.Mentionable = true, new RequestOptions { AuditLogReason = FormattingActions.FormatUserReason(Context.User) });
+				await role.ModifyAsync(x => x.Mentionable = true, new RequestOptions { AuditLogReason = GeneralFormatting.FormatUserReason(Context.User) });
 				await MessageActions.SendChannelMessage(Context.Channel, cutText);
-				await role.ModifyAsync(x => x.Mentionable = false, new RequestOptions { AuditLogReason = FormattingActions.FormatUserReason(Context.User) });
+				await role.ModifyAsync(x => x.Mentionable = false, new RequestOptions { AuditLogReason = GeneralFormatting.FormatUserReason(Context.User) });
 			}
 		}
 	}
@@ -543,7 +544,7 @@ namespace Advobot.Commands.Miscellaneous
 			}
 			else
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The owner is unable to be gotten."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The owner is unable to be gotten."));
 			}
 		}
 	}
@@ -561,7 +562,7 @@ namespace Advobot.Commands.Miscellaneous
 			var perms = GuildPerms.ConvertValueToNames(permNum);
 			if (!perms.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The given number holds no permissions."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The given number holds no permissions."));
 			}
 			else
 			{
@@ -574,7 +575,7 @@ namespace Advobot.Commands.Miscellaneous
 			var perms = ChannelPerms.ConvertValueToNames(permNum);
 			if (!perms.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The given number holds no permissions."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The given number holds no permissions."));
 			}
 			else
 			{

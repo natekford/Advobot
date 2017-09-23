@@ -2,15 +2,15 @@
 using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Formatting;
+using Advobot.Permissions;
 using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Advobot.Permissions;
 
 namespace Advobot.Commands.GuildSettings
 {
@@ -65,12 +65,12 @@ namespace Advobot.Commands.GuildSettings
 			{
 				if (command.Value)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("This command is already enabled."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("This command is already enabled."));
 					return;
 				}
 				else if (_CommandsUnableToBeTurnedOff.CaseInsContains(command.Name))
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Please don't try to edit that command."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Please don't try to edit that command."));
 					return;
 				}
 
@@ -110,12 +110,12 @@ namespace Advobot.Commands.GuildSettings
 			{
 				if (!command.Value)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("This command is already disabled."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("This command is already disabled."));
 					return;
 				}
 				else if (_CommandsUnableToBeTurnedOff.CaseInsContains(command.Name))
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Please don't try to edit that command."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Please don't try to edit that command."));
 					return;
 				}
 
@@ -244,7 +244,7 @@ namespace Advobot.Commands.GuildSettings
 				var botUser = Context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id);
 				if (botUser == null || botUser.Permissions == 0)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("That user has no extra permissions from the bot."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("That user has no extra permissions from the bot."));
 					return;
 				}
 
@@ -372,7 +372,7 @@ namespace Advobot.Commands.GuildSettings
 			var notif = Context.GuildSettings.WelcomeMessage;
 			if (notif == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The welcome notification does not exist."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The welcome notification does not exist."));
 				return;
 			}
 
@@ -384,7 +384,7 @@ namespace Advobot.Commands.GuildSettings
 			var notif = Context.GuildSettings.GoodbyeMessage;
 			if (notif == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The goodbye notification does not exist."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The goodbye notification does not exist."));
 				return;
 			}
 
@@ -439,7 +439,7 @@ namespace Advobot.Commands.GuildSettings
 			var file = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_SETTINGS_LOCATION);
 			if (!file.Exists)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The guild information file does not exist at this time."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The guild information file does not exist at this time."));
 				return;
 			}
 			await Context.Channel.SendFileAsync(file.FullName);

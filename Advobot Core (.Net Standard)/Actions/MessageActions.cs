@@ -1,4 +1,5 @@
 ﻿using Advobot.Classes;
+using Advobot.Formatting;
 using Advobot.Interfaces;
 using Discord;
 using System;
@@ -120,7 +121,7 @@ namespace Advobot.Actions
 			catch (Exception e)
 			{
 				ConsoleActions.ExceptionToConsole(e);
-				message = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + FormattingActions.ERROR(e.Message));
+				message = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + GeneralFormatting.ERROR(e.Message));
 			}
 
 			//Upload the overflow
@@ -152,7 +153,7 @@ namespace Advobot.Actions
 			{
 				fileName += "_";
 			}
-			var fullFileName = fileName + FormattingActions.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION;
+			var fullFileName = fileName + TimeFormatting.FormatDateTimeForSaving() + Constants.GENERAL_FILE_EXTENSION;
 			var fileInfo = GetActions.GetServerDirectoryFile(guild.Id, fullFileName);
 
 			//Create

@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Enums;
+using Advobot.Formatting;
 using Discord;
 using Discord.Commands;
 using System;
@@ -49,7 +50,7 @@ namespace Advobot.Attributes
 		{
 			//Will provide exceptions if invalid VerifyObject attributes are used on objects. E.G. VerifyChannel used on a role
 			var result = _GetResultsDict[type](context, value);
-			return (result != FailureReason.NotFailure) ? PreconditionResult.FromError(FormattingActions.FormatErrorString(context.Guild, result, value)) : PreconditionResult.FromSuccess();
+			return (result != FailureReason.NotFailure) ? PreconditionResult.FromError(GeneralFormatting.FormatErrorString(context.Guild, result, value)) : PreconditionResult.FromSuccess();
 		}
 	}
 

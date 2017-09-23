@@ -1,4 +1,5 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Formatting;
+using Advobot.Interfaces;
 using Advobot.Modules.GuildSettings;
 using Advobot.Modules.Log;
 using Advobot.Modules.Timers;

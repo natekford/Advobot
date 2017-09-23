@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Classes;
+using Advobot.Formatting;
 using Advobot.Interfaces;
 using Advobot.TypeReaders;
 using Discord;
@@ -101,7 +102,7 @@ namespace Advobot
 			else if (GetActions.TryGetErrorReason(result, out string errorReason))
 			{
 				_Logging.IncrementFailedCommands();
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, FormattingActions.ERROR(errorReason));
+				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR(errorReason));
 			}
 			//Failure in a way that doesn't need to get logged (unknown command, etc)
 			else

@@ -1,4 +1,5 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Formatting;
+using Advobot.Interfaces;
 using Discord;
 using Newtonsoft.Json;
 using System;
@@ -36,7 +37,7 @@ namespace Advobot.Actions
 
 		public static string Serialize(object obj)
 		{
-			return JsonConvert.SerializeObject(obj, Formatting.Indented, new Newtonsoft.Json.Converters.StringEnumConverter());
+			return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, new Newtonsoft.Json.Converters.StringEnumConverter());
 		}
 		public static void CreateFile(FileInfo fileInfo)
 		{
@@ -73,7 +74,7 @@ namespace Advobot.Actions
 			//Use File.AppendText instead of new StreamWriter so the text doesn't get overwritten.
 			using (var writer = crashLogPath.AppendText())
 			{
-				writer.WriteLine($"{FormattingActions.FormatReadableDateTime(DateTime.UtcNow)}: {e.ExceptionObject.ToString()}\n");
+				writer.WriteLine($"{TimeFormatting.FormatReadableDateTime(DateTime.UtcNow)}: {e.ExceptionObject.ToString()}\n");
 			}
 		}
 	}

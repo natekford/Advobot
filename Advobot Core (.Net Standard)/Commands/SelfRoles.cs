@@ -2,6 +2,7 @@
 using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Formatting;
 using Discord;
 using Discord.Commands;
 using System;
@@ -54,7 +55,7 @@ namespace Advobot.Commands.SelfRoles
 					}
 					else if (selfAssignableGroups.Any(x => x.Group == groupNum))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("A group already exists with that position."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("A group already exists with that position."));
 						return;
 					}
 
@@ -70,7 +71,7 @@ namespace Advobot.Commands.SelfRoles
 					}
 					else if (!selfAssignableGroups.Any(x => x.Group == groupNum))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("A group needs to exist with that position before it can be deleted."));
+						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("A group needs to exist with that position before it can be deleted."));
 						return;
 					}
 
@@ -91,14 +92,14 @@ namespace Advobot.Commands.SelfRoles
 			var selfAssignableGroups = Context.GuildSettings.SelfAssignableGroups;
 			if (!selfAssignableGroups.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Before you can edit or delete a group, you need to first create one."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Before you can edit or delete a group, you need to first create one."));
 				return;
 			}
 
 			var group = selfAssignableGroups.FirstOrDefault(x => x.Group == groupNum);
 			if (group == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("A group needs to exist with that position before you can modify it."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("A group needs to exist with that position before you can modify it."));
 				return;
 			}
 
@@ -149,7 +150,7 @@ namespace Advobot.Commands.SelfRoles
 
 			var addedStr = rolesAdded.Any() ? $"Successfully added the following role(s): `{String.Join("`, `", rolesAdded.Select(x => x.FormatRole()))}`." : null;
 			var notAddedStr = rolesNotAdded.Any() ? $"Failed to add the following role(s): `{String.Join("`, `", rolesNotAdded.Select(x => x.FormatRole()))}`." : null;
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.JoinNonNullStrings(" ", addedStr, notAddedStr));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.JoinNonNullStrings(" ", addedStr, notAddedStr));
 		}
 	}
 
@@ -165,14 +166,14 @@ namespace Advobot.Commands.SelfRoles
 			var group = Context.GuildSettings.SelfAssignableGroups.FirstOrDefault(x => x.Roles.Select(y => y.RoleId).Contains(role.Id));
 			if (group == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("There is no self assignable role by that name."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("There is no self assignable role by that name."));
 				return;
 			}
 
 			var user = Context.User as IGuildUser;
 			if (user.RoleIds.Contains(role.Id))
 			{
-				await RoleActions.TakeRoles(user, new[] { role }, FormattingActions.FormatBotReason("self role removal"));
+				await RoleActions.TakeRoles(user, new[] { role }, GeneralFormatting.FormatBotReason("self role removal"));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed `{role.FormatRole()}`.");
 				return;
 			}
@@ -182,14 +183,14 @@ namespace Advobot.Commands.SelfRoles
 			if (group.Group != 0)
 			{
 				var otherRoles = group.Roles.Where(x => user.RoleIds.Contains(x?.RoleId ?? 0)).Select(x => x.Role);
-				await RoleActions.TakeRoles(user, otherRoles, FormattingActions.FormatBotReason("self role removal"));
+				await RoleActions.TakeRoles(user, otherRoles, GeneralFormatting.FormatBotReason("self role removal"));
 				if (otherRoles.Any())
 				{
 					removedRoles = $", and removed `{String.Join("`, `", otherRoles.Select(x => x.FormatRole()))}`";
 				}
 			}
 
-			await RoleActions.GiveRoles(user, new[] { role }, FormattingActions.FormatBotReason("self role giving"));
+			await RoleActions.GiveRoles(user, new[] { role }, GeneralFormatting.FormatBotReason("self role giving"));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully gave `{role.Name}`{removedRoles}.");
 		}
 	}
@@ -206,7 +207,7 @@ namespace Advobot.Commands.SelfRoles
 			var groupNumbers = Context.GuildSettings.SelfAssignableGroups.Select(x => x.Group).OrderBy(x => x);
 			if (!groupNumbers.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("There are currently no self assignable role groups on this guild."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("There are currently no self assignable role groups on this guild."));
 				return;
 			}
 
@@ -218,7 +219,7 @@ namespace Advobot.Commands.SelfRoles
 			var group = Context.GuildSettings.SelfAssignableGroups.FirstOrDefault(x => x.Group == groupNum);
 			if (group == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("There is no group with that number."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("There is no group with that number."));
 				return;
 			}
 

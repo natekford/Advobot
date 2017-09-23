@@ -1,6 +1,7 @@
 ﻿using Advobot.Actions;
-using Advobot.Interfaces;
 using Advobot.Classes;
+using Advobot.Formatting;
+using Advobot.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using System;
@@ -176,9 +177,9 @@ namespace Advobot.Modules.Log
 			var rightSpacing = new[] { aTitle, sTitle, fTitle }.Max(x => x.Length) + 1;
 
 			return new StringBuilder()
-				.AppendLineFeed(FormattingActions.FormatStringsWithLength(aTitle, a, rightSpacing, leftSpacing))
-				.AppendLineFeed(FormattingActions.FormatStringsWithLength(sTitle, s, rightSpacing, leftSpacing))
-				.AppendLineFeed(FormattingActions.FormatStringsWithLength(fTitle, f, rightSpacing, leftSpacing))
+				.AppendLineFeed(GeneralFormatting.FormatStringsWithLength(aTitle, a, rightSpacing, leftSpacing))
+				.AppendLineFeed(GeneralFormatting.FormatStringsWithLength(sTitle, s, rightSpacing, leftSpacing))
+				.AppendLineFeed(GeneralFormatting.FormatStringsWithLength(fTitle, f, rightSpacing, leftSpacing))
 				.ToString();
 		}
 		public string FormatLoggedActions()
@@ -204,14 +205,14 @@ namespace Advobot.Modules.Log
 			var rightSpacing = new[] { jTitle, lTitle, uTitle, eTitle, dTitle, iTitle, gTitle, fTitle }.Max(x => x.Length) + 1;
 
 			return new StringBuilder()
-				.AppendLineFeed(FormattingActions.FormatStringsWithLength(jTitle, j, rightSpacing, leftSpacing))
-				.AppendLineFeed(FormattingActions.FormatStringsWithLength(lTitle, l, rightSpacing, leftSpacing))
-				.AppendLineFeed(FormattingActions.FormatStringsWithLength(uTitle, u, rightSpacing, leftSpacing))
-				.AppendLineFeed(FormattingActions.FormatStringsWithLength(eTitle, e, rightSpacing, leftSpacing))
-				.AppendLineFeed(FormattingActions.FormatStringsWithLength(dTitle, d, rightSpacing, leftSpacing))
-				.AppendLineFeed(FormattingActions.FormatStringsWithLength(iTitle, i, rightSpacing, leftSpacing))
-				.AppendLineFeed(FormattingActions.FormatStringsWithLength(gTitle, g, rightSpacing, leftSpacing))
-				.AppendLineFeed(FormattingActions.FormatStringsWithLength(fTitle, f, rightSpacing, leftSpacing))
+				.AppendLineFeed(GeneralFormatting.FormatStringsWithLength(jTitle, j, rightSpacing, leftSpacing))
+				.AppendLineFeed(GeneralFormatting.FormatStringsWithLength(lTitle, l, rightSpacing, leftSpacing))
+				.AppendLineFeed(GeneralFormatting.FormatStringsWithLength(uTitle, u, rightSpacing, leftSpacing))
+				.AppendLineFeed(GeneralFormatting.FormatStringsWithLength(eTitle, e, rightSpacing, leftSpacing))
+				.AppendLineFeed(GeneralFormatting.FormatStringsWithLength(dTitle, d, rightSpacing, leftSpacing))
+				.AppendLineFeed(GeneralFormatting.FormatStringsWithLength(iTitle, i, rightSpacing, leftSpacing))
+				.AppendLineFeed(GeneralFormatting.FormatStringsWithLength(gTitle, g, rightSpacing, leftSpacing))
+				.AppendLineFeed(GeneralFormatting.FormatStringsWithLength(fTitle, f, rightSpacing, leftSpacing))
 				.ToString();
 		}
 
@@ -347,8 +348,8 @@ namespace Advobot.Modules.Log
 				await HelperFunctions.HandleJoiningUsersForRaidPrevention(_Timers, verified.GuildSettings, user);
 				if (HelperFunctions.VerifyLogAction(verified.GuildSettings))
 				{
-					var inviteStr = await FormattingActions.FormatInviteJoin(verified.GuildSettings, user);
-					var ageWarningStr = FormattingActions.FormatAccountAgeWarning(user);
+					var inviteStr = await DiscordObjectFormatting.FormatInviteJoin(verified.GuildSettings, user);
+					var ageWarningStr = DiscordObjectFormatting.FormatAccountAgeWarning(user);
 					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}\n{inviteStr}\n{ageWarningStr}", Colors.JOIN)
 						.MyAddAuthor(user)
 						.MyAddFooter(user.IsBot ? "Bot Joined" : "User Joined");
@@ -387,7 +388,7 @@ namespace Advobot.Modules.Log
 				}
 				else if (HelperFunctions.VerifyLogAction(verified.GuildSettings))
 				{
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}\n{FormattingActions.FormatStayLength(user)}", Colors.LEAV)
+					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}\n{DiscordObjectFormatting.FormatStayLength(user)}", Colors.LEAV)
 						.MyAddAuthor(user)
 						.MyAddFooter(user.IsBot ? "Bot Left" : "User Left");
 					await MessageActions.SendEmbedMessage(verified.GuildSettings.ServerLog, embed);

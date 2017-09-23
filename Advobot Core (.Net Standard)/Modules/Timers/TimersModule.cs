@@ -1,6 +1,7 @@
 ﻿using Advobot.Actions;
 using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Formatting;
 using Advobot.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -111,7 +112,7 @@ namespace Advobot.Modules.Timers
 				}
 				else
 				{
-					await MessageActions.DeleteMessages(message.Channel, message.Messages, FormattingActions.FormatBotReason("automatic message deletion."));
+					await MessageActions.DeleteMessages(message.Channel, message.Messages, GeneralFormatting.FormatBotReason("automatic message deletion."));
 				}
 			}
 		}

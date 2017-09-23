@@ -2,6 +2,7 @@
 using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Formatting;
 using Discord;
 using Discord.Commands;
 using System;
@@ -24,7 +25,7 @@ namespace Advobot.Commands.InviteModeration
 			var invites = (await Context.Guild.GetInvitesAsync()).OrderByDescending(x => x.Uses);
 			if (!invites.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("This guild has no invites."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("This guild has no invites."));
 				return;
 			}
 
@@ -50,23 +51,23 @@ namespace Advobot.Commands.InviteModeration
 		{
 			if (!validTimes.Contains(time))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Invalid time supplied, must be one of the following: `{String.Join("`, `", validTimes)}`."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"Invalid time supplied, must be one of the following: `{String.Join("`, `", validTimes)}`."));
 				return;
 			}
 			else if (!validUses.Contains(uses))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Invalid uses supplied, must be one of the following: `{String.Join("`, `", validUses)}`"));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"Invalid uses supplied, must be one of the following: `{String.Join("`, `", validUses)}`"));
 				return;
 			}
 
 			int? nullableTime = time == 0 ? 86400 : time as int?;
 			int? nullableUses = uses == 0 ? null : uses as int?;
-			var inv = await InviteActions.CreateInvite(channel, nullableTime, nullableUses, tempMem, false, FormattingActions.FormatUserReason(Context.User));
+			var inv = await InviteActions.CreateInvite(channel, nullableTime, nullableUses, tempMem, false, GeneralFormatting.FormatUserReason(Context.User));
 
 			var timeOutputStr = nullableTime.HasValue ? $"It will last for this amount of time: `{nullableTime}`." : "It will last until manually revoked.";
 			var usesOutputStr = nullableUses.HasValue ? $"It will last for this amount of uses: `{nullableUses}`." : "It has no usage limit.";
 			var tempOutputStr = tempMem ? "Users will be kicked when they go offline unless they get a role." : "Users will not be kicked when they go offline and do not have a role.";
-			await MessageActions.SendChannelMessage(Context.Channel, $"Here is your invite for `{channel.FormatChannel()}`: {FormattingActions.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usesOutputStr, tempOutputStr)}");
+			await MessageActions.SendChannelMessage(Context.Channel, $"Here is your invite for `{channel.FormatChannel()}`: {GeneralFormatting.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usesOutputStr, tempOutputStr)}");
 		}
 	}
 
@@ -80,7 +81,7 @@ namespace Advobot.Commands.InviteModeration
 		[Command]
 		public async Task Command(IInvite invite)
 		{
-			await InviteActions.DeleteInvite(invite, FormattingActions.FormatUserReason(Context.User));
+			await InviteActions.DeleteInvite(invite, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted the invite `{invite.Code}`.");
 		}
 	}
@@ -119,7 +120,7 @@ namespace Advobot.Commands.InviteModeration
 			var invites = (await Context.Guild.GetInvitesAsync()).AsEnumerable();
 			if (!invites.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("This guild has no invites."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("This guild has no invites."));
 				return;
 			}
 
@@ -146,13 +147,13 @@ namespace Advobot.Commands.InviteModeration
 
 			if (!invites.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("No invites satisfied the given conditions."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("No invites satisfied the given conditions."));
 				return;
 			}
 				
 			foreach (var invite in invites)
 			{
-				await InviteActions.DeleteInvite(invite, FormattingActions.FormatUserReason(Context.User));
+				await InviteActions.DeleteInvite(invite, GeneralFormatting.FormatUserReason(Context.User));
 			}
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted `{invites.Count()}` instant invites.");
 		}

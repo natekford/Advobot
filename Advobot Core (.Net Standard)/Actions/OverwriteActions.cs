@@ -1,10 +1,11 @@
 ﻿using Advobot.Enums;
+using Advobot.Formatting;
 using Advobot.Permissions;
 using Discord;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Advobot.Actions
 {
@@ -87,7 +88,7 @@ namespace Advobot.Actions
 				}
 			}
 
-			await ModifyOverwrite(channel, obj, allowBits, denyBits, FormattingActions.FormatUserReason(invokingUser));
+			await ModifyOverwrite(channel, obj, allowBits, denyBits, GeneralFormatting.FormatUserReason(invokingUser));
 			return ChannelPerms.ConvertValueToNames(changeValue);
 		}
 		/// <summary>

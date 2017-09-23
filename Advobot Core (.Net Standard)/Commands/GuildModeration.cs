@@ -2,6 +2,7 @@
 using Advobot.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Formatting;
 using Discord;
 using Discord.Commands;
 using System;
@@ -33,7 +34,7 @@ namespace Advobot.Commands.GuildModeration
 				var guild = await Context.Client.GetGuildAsync(guildId);
 				if (guild == null)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Invalid server supplied."));
+					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Invalid server supplied."));
 					return;
 				}
 
@@ -49,7 +50,7 @@ namespace Advobot.Commands.GuildModeration
 			}
 			else
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Only the bot owner can use this command targetting other guilds."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Only the bot owner can use this command targetting other guilds."));
 			}
 		}
 	}
@@ -64,7 +65,7 @@ namespace Advobot.Commands.GuildModeration
 		[Command]
 		public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
 		{
-			await GuildActions.ModifyGuildName(Context.Guild, name, FormattingActions.FormatUserReason(Context.User));
+			await GuildActions.ModifyGuildName(Context.Guild, name, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the guild name to `{name}`.");
 		}
 	}
@@ -111,12 +112,12 @@ namespace Advobot.Commands.GuildModeration
 		{
 			if (!(_ValidRegionIDs.CaseInsContains(region) || (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(region))))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("No valid region ID was input."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("No valid region ID was input."));
 				return;
 			}
 
 			var beforeRegion = Context.Guild.VoiceRegionId;
-			await GuildActions.ModifyGuildRegion(Context.Guild, region, FormattingActions.FormatUserReason(Context.User));
+			await GuildActions.ModifyGuildRegion(Context.Guild, region, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the server region of the guild from `{beforeRegion}` to `{region}`.");
 		}
 		[Command]
@@ -141,11 +142,11 @@ namespace Advobot.Commands.GuildModeration
 		{
 			if (!_AFKTimes.Contains(time))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR($"Invalid time input, must be one of the following: `{String.Join("`, `", _AFKTimes)}`."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"Invalid time input, must be one of the following: `{String.Join("`, `", _AFKTimes)}`."));
 				return;
 			}
 
-			await GuildActions.ModifyGuildAFKTime(Context.Guild, (int)time, FormattingActions.FormatUserReason(Context.User));
+			await GuildActions.ModifyGuildAFKTime(Context.Guild, (int)time, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild's AFK timeout to `{time}`.");
 		}
 	}
@@ -160,7 +161,7 @@ namespace Advobot.Commands.GuildModeration
 		[Command]
 		public async Task Command(IVoiceChannel channel)
 		{
-			await GuildActions.ModifyGuildAFKChannel(Context.Guild, channel, FormattingActions.FormatUserReason(Context.User));
+			await GuildActions.ModifyGuildAFKChannel(Context.Guild, channel, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild's AFK channel to `{channel.FormatChannel()}`.");
 		}
 	}
@@ -175,7 +176,7 @@ namespace Advobot.Commands.GuildModeration
 		[Command]
 		public async Task Command(DefaultMessageNotifications msgNotifs)
 		{
-			await GuildActions.ModifyGuildDefaultMsgNotifications(Context.Guild, msgNotifs, FormattingActions.FormatUserReason(Context.User));
+			await GuildActions.ModifyGuildDefaultMsgNotifications(Context.Guild, msgNotifs, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the default message notification setting to `{msgNotifs.EnumName()}`.");
 		}
 	}
@@ -190,7 +191,7 @@ namespace Advobot.Commands.GuildModeration
 		[Command]
 		public async Task Command(VerificationLevel verif)
 		{
-			await GuildActions.ModifyGuildVerificationLevel(Context.Guild, verif, FormattingActions.FormatUserReason(Context.User));
+			await GuildActions.ModifyGuildVerificationLevel(Context.Guild, verif, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild verification level as `{verif.EnumName()}`.");
 		}
 	}
@@ -216,14 +217,14 @@ namespace Advobot.Commands.GuildModeration
 			}
 			else if (validImages.Count() > 1)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("Too many attached or embedded images."));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Too many attached or embedded images."));
 				return;
 			}
 
 			var imageUrl = validImages.First();
 			if (!GetActions.TryGetFileType(Context, imageUrl, out string fileType, out string errorReason))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR(errorReason));
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR(errorReason));
 				return;
 			}
 
@@ -233,7 +234,7 @@ namespace Advobot.Commands.GuildModeration
 				webClient.DownloadFileAsync(new Uri(imageUrl), fileInfo.FullName);
 				webClient.DownloadFileCompleted += async (sender, e) =>
 				{
-					await GuildActions.ModifyGuildIcon(Context.Guild, fileInfo, FormattingActions.FormatUserReason(Context.User));
+					await GuildActions.ModifyGuildIcon(Context.Guild, fileInfo, GeneralFormatting.FormatUserReason(Context.User));
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully changed the guild's icon.");
 					SavingAndLoadingActions.DeleteFile(fileInfo);
 				};
@@ -278,7 +279,7 @@ namespace Advobot.Commands.GuildModeration
 				return;
 			}
 
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The bot is not the owner of the guild."));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The bot is not the owner of the guild."));
 		}
 	}
 
@@ -298,7 +299,7 @@ namespace Advobot.Commands.GuildModeration
 				return;
 			}
 
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, FormattingActions.ERROR("The bot is not the owner of the guild and thus cannot delete it."));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The bot is not the owner of the guild and thus cannot delete it."));
 		}
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using Advobot.Classes;
 using Advobot.Enums;
+using Advobot.Formatting;
 using Advobot.Interfaces;
 using Discord;
 using System.Linq;
@@ -99,44 +100,44 @@ namespace Advobot.Actions
 
 		public static async Task AutomaticBan(IGuild guild, ulong userId, [CallerMemberName] string reason = null)
 		{
-			await ManualBan(guild, userId, FormattingActions.FormatBotReason(reason));
+			await ManualBan(guild, userId, GeneralFormatting.FormatBotReason(reason));
 		}
 		public static async Task AutomaticSoftban(IGuild guild, ulong userId, [CallerMemberName] string reason = null)
 		{
-			await ManualSoftban(guild, userId, FormattingActions.FormatBotReason(reason));
+			await ManualSoftban(guild, userId, GeneralFormatting.FormatBotReason(reason));
 		}
 		public static async Task AutomaticKick(IGuildUser user, [CallerMemberName] string reason = null)
 		{
-			await ManualKick(user, FormattingActions.FormatBotReason(reason));
+			await ManualKick(user, GeneralFormatting.FormatBotReason(reason));
 		}
 		public static async Task AutomaticRoleMuteUser(IGuildUser user, IRole role, [CallerMemberName] string reason = null)
 		{
-			await ManualRoleMuteUser(user, role, FormattingActions.FormatBotReason(reason));
+			await ManualRoleMuteUser(user, role, GeneralFormatting.FormatBotReason(reason));
 		}
 		public static async Task AutomaticVoiceMuteUser(IGuildUser user, [CallerMemberName] string reason = null)
 		{
-			await ManualVoiceMuteUser(user, FormattingActions.FormatBotReason(reason));
+			await ManualVoiceMuteUser(user, GeneralFormatting.FormatBotReason(reason));
 		}
 		public static async Task AutomaticDeafenUser(IGuildUser user, [CallerMemberName] string reason = null)
 		{
-			await ManualDeafenUser(user, FormattingActions.FormatBotReason(reason));
+			await ManualDeafenUser(user, GeneralFormatting.FormatBotReason(reason));
 		}
 
 		public static async Task AutomaticUnbanUser(IGuild guild, ulong userId)
 		{
-			await ManualUnbanUser(guild, userId, FormattingActions.FormatBotReason("automatic unban."));
+			await ManualUnbanUser(guild, userId, GeneralFormatting.FormatBotReason("automatic unban."));
 		}
 		public static async Task AutomaticRoleUnmuteUser(IGuildUser user, IRole role)
 		{
-			await ManualRoleUnmuteUser(user, role, FormattingActions.FormatBotReason("automatic role unmute."));
+			await ManualRoleUnmuteUser(user, role, GeneralFormatting.FormatBotReason("automatic role unmute."));
 		}
 		public static async Task AutomaticVoiceUnmuteUser(IGuildUser user)
 		{
-			await ManualVoiceUnmuteUser(user, FormattingActions.FormatBotReason("automatic voice unmute."));
+			await ManualVoiceUnmuteUser(user, GeneralFormatting.FormatBotReason("automatic voice unmute."));
 		}
 		public static async Task AutomaticUndeafenUser(IGuildUser user)
 		{
-			await ManualUndeafenUser(user, FormattingActions.FormatBotReason("automatic undeafen."));
+			await ManualUndeafenUser(user, GeneralFormatting.FormatBotReason("automatic undeafen."));
 		}
 
 		public static async Task AutomaticPunishments(IGuildSettings guildSettings, IGuildUser user, PunishmentType punishmentType,
