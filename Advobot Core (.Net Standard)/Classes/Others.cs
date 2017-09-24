@@ -76,7 +76,7 @@ namespace Advobot.Classes
 			}
 			else
 			{
-				await MessageActions.SendChannelMessage(Channel, content);
+				await MessageActions.SendMessage(Channel, content);
 			}
 		}
 		/// <summary>

@@ -41,7 +41,7 @@ namespace Advobot.Commands.GuildModeration
 				await guild.LeaveAsync();
 				if (Context.Guild.Id != guildId)
 				{
-					await MessageActions.SendChannelMessage(Context.Channel, $"Successfully left the server `{guild.Name}` with an ID `{guild.Id}`.");
+					await MessageActions.SendMessage(Context.Channel, $"Successfully left the server `{guild.Name}` with an ID `{guild.Id}`.");
 				}
 			}
 			else if (Context.Guild.Id == guildId)
@@ -105,7 +105,7 @@ namespace Advobot.Commands.GuildModeration
 		[Command(nameof(ActionType.Current)), Priority(1)]
 		public async Task CommandCurrent()
 		{
-			await MessageActions.SendChannelMessage(Context.Channel, $"The guild's current server region is `{Context.Guild.VoiceRegionId}`.");
+			await MessageActions.SendMessage(Context.Channel, $"The guild's current server region is `{Context.Guild.VoiceRegionId}`.");
 		}
 		[Command, Priority(0)]
 		public async Task Command(string region)
@@ -258,7 +258,7 @@ namespace Advobot.Commands.GuildModeration
 			var defaultChannel = await guild.GetDefaultChannelAsync();
 			var invite = await defaultChannel.CreateInviteAsync();
 			var DMChannel = await Context.User.GetOrCreateDMChannelAsync();
-			await MessageActions.SendChannelMessage(DMChannel, invite.Url);
+			await MessageActions.SendMessage(DMChannel, invite.Url);
 		}
 	}
 

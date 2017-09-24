@@ -59,7 +59,7 @@ namespace Advobot.Actions
 		}
 		public static async Task NicknameManyUsers(IMyCommandContext context, List<IGuildUser> users, string replace, string reason)
 		{
-			var msg = await MessageActions.SendChannelMessage(context.Channel, $"Attempting to rename `{users.Count}` people.");
+			var msg = await MessageActions.SendMessage(context.Channel, $"Attempting to rename `{users.Count}` people.");
 			for (int i = 0; i < users.Count; ++i)
 			{
 				if (i % 10 == 0)
@@ -79,7 +79,7 @@ namespace Advobot.Actions
 		}
 		public static async Task MoveManyUsers(IMyCommandContext context, List<IGuildUser> users, IVoiceChannel outputChannel, string reason)
 		{
-			var msg = await MessageActions.SendChannelMessage(context.Channel, $"Attempting to move `{users.Count}` people.");
+			var msg = await MessageActions.SendMessage(context.Channel, $"Attempting to move `{users.Count}` people.");
 			for (int i = 0; i < users.Count; ++i)
 			{
 				if (i % 10 == 0)

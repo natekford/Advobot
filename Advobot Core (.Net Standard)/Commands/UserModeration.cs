@@ -177,13 +177,13 @@ namespace Advobot.Commands.UserModeration
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 		{
 			await PunishmentActions.ManualSoftban(Context.Guild, user.Id, GeneralFormatting.FormatUserReason(Context.User, reason));
-			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully softbanned `{user.FormatUser()}`.");
+			await MessageActions.SendMessage(Context.Channel, $"Successfully softbanned `{user.FormatUser()}`.");
 		}
 		[Command, Priority(0)]
 		public async Task Command(ulong userId, [Optional, Remainder] string reason)
 		{
 			var ban = await PunishmentActions.ManualSoftban(Context.Guild, userId, GeneralFormatting.FormatUserReason(Context.User, reason));
-			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully softbanned `{ban?.User?.FormatUser() ?? userId.ToString()}`.");
+			await MessageActions.SendMessage(Context.Channel, $"Successfully softbanned `{ban?.User?.FormatUser() ?? userId.ToString()}`.");
 		}
 	}
 
@@ -224,7 +224,7 @@ namespace Advobot.Commands.UserModeration
 			}
 
 			await PunishmentActions.ManualBan(Context.Guild, user.Id, GeneralFormatting.FormatUserReason(Context.User, reason), 1, time, Context.Timers);
-			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully banned `{user.FormatUser()}`.");
+			await MessageActions.SendMessage(Context.Channel, $"Successfully banned `{user.FormatUser()}`.");
 		}
 		private async Task CommandRunner(ulong userId, uint time, string reason)
 		{
@@ -235,7 +235,7 @@ namespace Advobot.Commands.UserModeration
 			}
 
 			var ban = await PunishmentActions.ManualBan(Context.Guild, userId, GeneralFormatting.FormatUserReason(Context.User, reason), 1, time, Context.Timers);
-			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully banned `{ban?.User?.FormatUser()}`.");
+			await MessageActions.SendMessage(Context.Channel, $"Successfully banned `{ban?.User?.FormatUser()}`.");
 		}
 	}
 
@@ -250,7 +250,7 @@ namespace Advobot.Commands.UserModeration
 		public async Task Command(IBan ban, [Optional, Remainder] string reason)
 		{
 			await PunishmentActions.ManualUnbanUser(Context.Guild, ban.User.Id, GeneralFormatting.FormatUserReason(Context.User, reason));
-			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully unbanned `{ban.User.FormatUser()}`");
+			await MessageActions.SendMessage(Context.Channel, $"Successfully unbanned `{ban.User.FormatUser()}`");
 		}
 	}
 
@@ -279,7 +279,7 @@ namespace Advobot.Commands.UserModeration
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 		{
 			await PunishmentActions.ManualKick(user, GeneralFormatting.FormatUserReason(Context.User, reason));
-			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully kicked `{user.FormatUser()}`.");
+			await MessageActions.SendMessage(Context.Channel, $"Successfully kicked `{user.FormatUser()}`.");
 		}
 	}
 
@@ -296,7 +296,7 @@ namespace Advobot.Commands.UserModeration
 			var bans = await Context.Guild.GetBansAsync();
 			if (!bans.Any())
 			{
-				await MessageActions.SendChannelMessage(Context.Channel, "This guild has no bans.");
+				await MessageActions.SendMessage(Context.Channel, "This guild has no bans.");
 				return;
 			}
 
@@ -331,11 +331,26 @@ namespace Advobot.Commands.UserModeration
 			if (Context.User.Id != Context.Guild.OwnerId && (serverLog || modLog || imageLog))
 			{
 				var DMChannel = await (await Context.Guild.GetOwnerAsync()).GetOrCreateDMChannelAsync();
-				await MessageActions.SendChannelMessage(DMChannel, $"`{Context.User.FormatUser()}` is trying to delete stuff from a log channel: `{channel.FormatChannel()}`.");
+				await MessageActions.SendMessage(DMChannel, $"`{Context.User.FormatUser()}` is trying to delete stuff from a log channel: `{channel.FormatChannel()}`.");
 				return;
 			}
 
-			var deletedAmt = await MessageActions.RemoveMessages(channel, Context.Message, requestCount, user, GeneralFormatting.FormatUserReason(Context.User));
+			//If not the context channel then get the first message in that channel
+			var messageToStartAt = Context.Message.Channel.Id == channel.Id
+				? Context.Message
+				: (await channel.GetMessagesAsync(1).Flatten()).FirstOrDefault();
+
+			//If there is a non null user then delete messages specifically from that user
+			var deletedAmt = user == null
+				? await MessageActions.RemoveMessages(channel, messageToStartAt, requestCount, GeneralFormatting.FormatUserReason(Context.User))
+				: await MessageActions.RemoveMessagesFromUser(channel, messageToStartAt, requestCount, user, GeneralFormatting.FormatUserReason(Context.User));
+
+			//If the context channel isn't the targetted channel then delete the start message and increase by one to account for it not being targetted.
+			if (Context.Message.Channel.Id != channel.Id)
+			{
+				await MessageActions.DeleteMessage(messageToStartAt);
+				deletedAmt++;
+			}
 
 			var response = $"Successfully deleted `{deletedAmt}` message{GetActions.GetPlural(deletedAmt)}";
 			var userResp = user != null ? $" from `{user.FormatUser()}`" : null;
@@ -506,7 +521,7 @@ namespace Advobot.Commands.UserModeration
 				}
 			}
 
-			var msg = await MessageActions.SendChannelMessage(Context, $"Attempted to edit `{0}` user{1}.", userCount, Actions.GetPlural(userCount))) as IUserMessage;
+			var msg = await MessageActions.SendMessage(Context, $"Attempted to edit `{0}` user{1}.", userCount, Actions.GetPlural(userCount))) as IUserMessage;
 			var typing = Context.Channel.EnterTypingState();
 			var count = 0;
 
@@ -532,7 +547,7 @@ namespace Advobot.Commands.UserModeration
 							await Actions.GiveRole(user, outputRole);
 						}
 
-						await MessageActions.SendChannelMessage(Context, $"Successfully gave the role `{0}` to `{1}` users.", outputRole.FormatRole(), count));
+						await MessageActions.SendMessage(Context, $"Successfully gave the role `{0}` to `{1}` users.", outputRole.FormatRole(), count));
 						break;
 					}
 					case FAWRType.Take_Role:
@@ -553,7 +568,7 @@ namespace Advobot.Commands.UserModeration
 							await Actions.TakeRole(user, outputRole);
 						}
 
-						await MessageActions.SendChannelMessage(Context, $"Successfully took the role `{0}` from `{1}` users.", outputRole.FormatRole(), count));
+						await MessageActions.SendMessage(Context, $"Successfully took the role `{0}` from `{1}` users.", outputRole.FormatRole(), count));
 						break;
 					}
 				}

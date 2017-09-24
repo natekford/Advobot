@@ -114,32 +114,32 @@ namespace Advobot.Commands.Miscellaneous
 		[Command(nameof(Target.Bot))]
 		public async Task CommandBot()
 		{
-			await MessageActions.SendChannelMessage(Context.Channel, $"The bot has the ID `{Context.Client.CurrentUser.Id}`.");
+			await MessageActions.SendMessage(Context.Channel, $"The bot has the ID `{Context.Client.CurrentUser.Id}`.");
 		}
 		[Command(nameof(Target.Guild))]
 		public async Task CommandGuild()
 		{
-			await MessageActions.SendChannelMessage(Context.Channel, $"The guild has the ID `{Context.Guild.Id}`.");
+			await MessageActions.SendMessage(Context.Channel, $"The guild has the ID `{Context.Guild.Id}`.");
 		}
 		[Command(nameof(Target.Channel))]
 		public async Task CommandChannel(IGuildChannel target)
 		{
-			await MessageActions.SendChannelMessage(Context.Channel, $"The channel `{target.Name}` has the ID `{target.Id}`.");
+			await MessageActions.SendMessage(Context.Channel, $"The channel `{target.Name}` has the ID `{target.Id}`.");
 		}
 		[Command(nameof(Target.Role))]
 		public async Task CommandRole(IRole target)
 		{
-			await MessageActions.SendChannelMessage(Context.Channel, $"The role `{target.Name}` has the ID `{target.Id}`.");
+			await MessageActions.SendMessage(Context.Channel, $"The role `{target.Name}` has the ID `{target.Id}`.");
 		}
 		[Command(nameof(Target.User))]
 		public async Task CommandUser(IUser target)
 		{
-			await MessageActions.SendChannelMessage(Context.Channel, $"The user `{target.Username}` has the ID `{target.Id}`.");
+			await MessageActions.SendMessage(Context.Channel, $"The user `{target.Username}` has the ID `{target.Id}`.");
 		}
 		[Command(nameof(Target.Emote))]
 		public async Task CommandEmote(Emote target)
 		{
-			await MessageActions.SendChannelMessage(Context.Channel, $"The emote `{target.Name}` has the ID `{target.Id}`.");
+			await MessageActions.SendMessage(Context.Channel, $"The emote `{target.Name}` has the ID `{target.Id}`.");
 		}
 	}
 
@@ -323,7 +323,7 @@ namespace Advobot.Commands.Miscellaneous
 			var user = users[newPos - 1];
 			var time = TimeFormatting.FormatReadableDateTime(user.JoinedAt.Value.UtcDateTime);
 			var text = $"`{user.FormatUser()}` is `#{newPos}` to join the guild on `{time}`.";
-			await MessageActions.SendChannelMessage(Context.Channel, text);
+			await MessageActions.SendMessage(Context.Channel, text);
 		}
 	}
 
@@ -375,7 +375,7 @@ namespace Advobot.Commands.Miscellaneous
 		{
 			var users = await GuildActions.GetUsersAndOrderByJoin(Context.Guild);
 			var text = users.FormatNumberedList("`{0}` joined on `{1}`", x => x.FormatUser(), x => TimeFormatting.FormatReadableDateTime(x.JoinedAt.Value.UtcDateTime));
-			await MessageActions.SendTextFile(Context.Guild, Context.Channel, text, "User_Joins_");
+			await MessageActions.SendTextFile(Context.Channel, text, "User_Joins_");
 		}
 	}
 
@@ -430,7 +430,7 @@ namespace Advobot.Commands.Miscellaneous
 				}
 			}
 
-			await MessageActions.SendTextFile(Context.Guild, Context.Channel,
+			await MessageActions.SendTextFile(Context.Channel,
 				formattedMessagesBuilder.ToString(),
 				$"{channel.Name}_Messages",
 				$"Successfully got `{count}` messages");
@@ -518,7 +518,7 @@ namespace Advobot.Commands.Miscellaneous
 				var cutText = $"From `{Context.User.FormatUser()}`, {role.Mention}: {text.Substring(0, Math.Min(text.Length, 250))}";
 				//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
 				await role.ModifyAsync(x => x.Mentionable = true, new RequestOptions { AuditLogReason = GeneralFormatting.FormatUserReason(Context.User) });
-				await MessageActions.SendChannelMessage(Context.Channel, cutText);
+				await MessageActions.SendMessage(Context.Channel, cutText);
 				await role.ModifyAsync(x => x.Mentionable = false, new RequestOptions { AuditLogReason = GeneralFormatting.FormatUserReason(Context.User) });
 			}
 		}
@@ -540,7 +540,7 @@ namespace Advobot.Commands.Miscellaneous
 			if (owner != null)
 			{
 				var DMChannel = await owner.GetOrCreateDMChannelAsync();
-				await MessageActions.SendChannelMessage(DMChannel, newMsg);
+				await MessageActions.SendMessage(DMChannel, newMsg);
 			}
 			else
 			{
@@ -566,7 +566,7 @@ namespace Advobot.Commands.Miscellaneous
 			}
 			else
 			{
-				await MessageActions.SendChannelMessage(Context.Channel, $"The number `{permNum}` has the following permissions: `{String.Join("`, `", perms)}`.");
+				await MessageActions.SendMessage(Context.Channel, $"The number `{permNum}` has the following permissions: `{String.Join("`, `", perms)}`.");
 			}
 		}
 		[Command(nameof(Target.Channel))]
@@ -579,7 +579,7 @@ namespace Advobot.Commands.Miscellaneous
 			}
 			else
 			{
-				await MessageActions.SendChannelMessage(Context.Channel, $"The number `{permNum}` has the following permissions: `{String.Join("`, `", perms)}`.");
+				await MessageActions.SendMessage(Context.Channel, $"The number `{permNum}` has the following permissions: `{String.Join("`, `", perms)}`.");
 			}
 		}
 	}
@@ -594,7 +594,7 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task TestCommand()
 		{
-			await MessageActions.SendChannelMessage(Context.Channel, "test");
+			await MessageActions.SendMessage(Context.Channel, "test");
 		}
 	}
 }

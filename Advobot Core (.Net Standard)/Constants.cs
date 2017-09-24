@@ -18,6 +18,7 @@ namespace Advobot
 		public const string USER_STRING = "%USER%";
 		public const string FAKE_DISCORD_LINK = "discord" + ZERO_LENGTH_CHAR + ".gg";
 		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
+		public const string FAKE_HERE = "@" + ZERO_LENGTH_CHAR + "here";
 		public const string FAKE_TTS = "\\" + ZERO_LENGTH_CHAR + "tts";
 		public const string BYPASS_STRING = "Bypass100";
 		public const int MIN_BITRATE = 8;

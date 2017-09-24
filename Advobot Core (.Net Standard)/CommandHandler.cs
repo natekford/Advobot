@@ -88,21 +88,19 @@ namespace Advobot
 				await MessageActions.DeleteMessage(context.Message);
 
 				var guildSettings = context.GuildSettings;
-				if (guildSettings.ModLog == null && !guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
+				if (guildSettings.ModLog != null && guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
-					return;
+					var embed = EmbedActions.MakeNewEmbed(null, context.Message.Content)
+						.MyAddAuthor(context.User)
+						.MyAddFooter("Mod Log");
+					await MessageActions.SendEmbedMessage(guildSettings.ModLog, embed);
 				}
-
-				var embed = EmbedActions.MakeNewEmbed(null, context.Message.Content)
-					.MyAddAuthor(context.User)
-					.MyAddFooter("Mod Log");
-				await MessageActions.SendEmbedMessage(guildSettings.ModLog, embed);
 			}
 			//Failure in a valid fail way
-			else if (GetActions.TryGetErrorReason(result, out string errorReason))
+			else if (loggedCommand.ErrorReason != null)
 			{
 				_Logging.IncrementFailedCommands();
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR(errorReason));
+				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR(loggedCommand.ErrorReason));
 			}
 			//Failure in a way that doesn't need to get logged (unknown command, etc)
 			else

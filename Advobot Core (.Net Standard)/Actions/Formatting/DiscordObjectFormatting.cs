@@ -115,6 +115,21 @@ namespace Advobot.Actions.Formatting
 			var text = message.FormatMessageContent().RemoveAllMarkdown().RemoveDuplicateNewLines();
 			return $"`[{time}]` `{author}` **IN** `{channel}`\n```\n{text}```";
 		}
+		/// <summary>
+		/// Replaces everyone/here mentions with a non pinging version and removes \tts.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="content"></param>
+		/// <returns></returns>
+		public static string FormatMessageContentForNotBeingAnnoying(IGuild guild, string content)
+		{
+			//Everyone and Here have the same role.
+			return content
+				.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE)
+				.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE)
+				.CaseInsReplace("@here", Constants.FAKE_HERE)
+				.CaseInsReplace("\tts", Constants.FAKE_TTS);
+		}
 
 		/// <summary>
 		/// Returns a string containing the message's content and then most aspects of the embeds in their messages.

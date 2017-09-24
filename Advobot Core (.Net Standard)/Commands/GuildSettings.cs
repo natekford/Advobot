@@ -58,7 +58,7 @@ namespace Advobot.Commands.GuildSettings
 					command.ToggleEnabled();
 				}
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
-				await MessageActions.SendChannelMessage(Context.Channel, $"Successfully enabled the following commands: `{text}`.");
+				await MessageActions.SendMessage(Context.Channel, $"Successfully enabled the following commands: `{text}`.");
 			}
 			[Command, Priority(0)]
 			public async Task Command(CommandSwitch command)
@@ -87,7 +87,7 @@ namespace Advobot.Commands.GuildSettings
 					command.ToggleEnabled();
 				}
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
-				await MessageActions.SendChannelMessage(Context.Channel, $"Successfully enabled the following commands: `{text}`.");
+				await MessageActions.SendMessage(Context.Channel, $"Successfully enabled the following commands: `{text}`.");
 			}
 		}
 		[Group(nameof(ActionType.Disable)), Alias("d")]
@@ -103,7 +103,7 @@ namespace Advobot.Commands.GuildSettings
 					command.ToggleEnabled();
 				}
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
-				await MessageActions.SendChannelMessage(Context.Channel, $"Successfully disabled the following commands: `{text}`.");
+				await MessageActions.SendMessage(Context.Channel, $"Successfully disabled the following commands: `{text}`.");
 			}
 			[Command, Priority(0)]
 			public async Task Command(CommandSwitch command)
@@ -132,7 +132,7 @@ namespace Advobot.Commands.GuildSettings
 					command.ToggleEnabled();
 				}
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
-				await MessageActions.SendChannelMessage(Context.Channel, $"Successfully disabled the following commands: `{text}`.");
+				await MessageActions.SendMessage(Context.Channel, $"Successfully disabled the following commands: `{text}`.");
 			}
 		}
 	}
@@ -409,7 +409,7 @@ namespace Advobot.Commands.GuildSettings
 		public async Task CommandAll()
 		{
 			var text = Context.GuildSettings.ToString();
-			await MessageActions.SendTextFile(Context.Guild, Context.Channel, text, "Guild_Settings", "Guild Settings");
+			await MessageActions.SendTextFile(Context.Channel, text, "Guild_Settings", "Guild Settings");
 		}
 		[Command, Priority(0)]
 		public async Task Command([OverrideTypeReader(typeof(GuildSettingTypeReader))] PropertyInfo setting)
@@ -421,7 +421,7 @@ namespace Advobot.Commands.GuildSettings
 			}
 			else
 			{
-				await MessageActions.SendTextFile(Context.Guild, Context.Channel, desc, setting.Name, setting.Name);
+				await MessageActions.SendTextFile(Context.Channel, desc, setting.Name, setting.Name);
 			}
 		}
 	}

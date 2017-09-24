@@ -177,7 +177,7 @@ namespace Advobot.Modules.Log
 			var quotes = timers.GetOutActiveCloseQuote(message.Author.Id);
 			if (quotes != null && quotes.List.Count > number)
 			{
-				await MessageActions.SendChannelMessage(message.Channel, quotes.List.ElementAt(number).Word.Description);
+				await MessageActions.SendMessage(message.Channel, quotes.List.ElementAt(number).Word.Description);
 			}
 			var helpEntries = timers.GetOutActiveCloseHelp(message.Author.Id);
 			if (helpEntries != null && helpEntries.List.Count > number)

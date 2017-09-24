@@ -36,16 +36,15 @@ namespace Advobot.Classes.Attributes
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
 
-				var intefaces = parameter.Type.GetInterfaces();
-				if (intefaces.Any(x => x == typeof(ITextChannel)))
+				if (typeof(ITextChannel).IsAssignableFrom(parameter.Type))
 				{
 					value = context.Channel as ITextChannel;
 				}
-				else if (intefaces.Any(x => x == typeof(IVoiceChannel)))
+				else if (typeof(IVoiceChannel).IsAssignableFrom(parameter.Type))
 				{
 					value = (context.User as IGuildUser).VoiceChannel;
 				}
-				else if (intefaces.Any(x => x == typeof(IGuildUser)))
+				else if (typeof(IGuildUser).IsAssignableFrom(parameter.Type))
 				{
 					value = context.User as IGuildUser;
 				}

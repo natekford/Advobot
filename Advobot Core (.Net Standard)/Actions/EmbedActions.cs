@@ -149,5 +149,73 @@ namespace Advobot.Actions
 				x.IsInline = isInline;
 			});
 		}
+
+		/// <summary>
+		/// Returns true if there are no issues with the description. Checks against various length limits.
+		/// </summary>
+		/// <param name="embed"></param>
+		/// <param name="charCount"></param>
+		/// <param name="badDescription"></param>
+		/// <param name="error"></param>
+		/// <returns></returns>
+		public static bool CheckIfValidDescription(EmbedBuilder embed, int charCount, out string badDescription, out string error)
+		{
+			if (charCount > Constants.MAX_EMBED_TOTAL_LENGTH - 1250)
+			{
+				badDescription = embed.Description;
+				error = $"`{Constants.MAX_EMBED_TOTAL_LENGTH}` char limit close.";
+			}
+			else if (embed.Description?.Length > Constants.MAX_DESCRIPTION_LENGTH)
+			{
+				badDescription = embed.Description;
+				error = $"Over `{Constants.MAX_DESCRIPTION_LENGTH}` chars.";
+			}
+			else if (embed.Description.CountLineBreaks() > Constants.MAX_DESCRIPTION_LINES)
+			{
+				badDescription = embed.Description;
+				error = $"Over `{Constants.MAX_DESCRIPTION_LINES}` lines.";
+			}
+			else
+			{
+				badDescription = null;
+				error = null;
+			}
+
+			return error == null;
+		}
+		/// <summary>
+		/// Returns true if there are no issues with the field. Checks against various length limits.
+		/// </summary>
+		/// <param name="field"></param>
+		/// <param name="charCount"></param>
+		/// <param name="badValue"></param>
+		/// <param name="error"></param>
+		/// <returns></returns>
+		public static bool CheckIfValidField(EmbedFieldBuilder field, int charCount, out string badValue, out string error)
+		{
+			var value = field.Value.ToString();
+			if (charCount > Constants.MAX_EMBED_TOTAL_LENGTH - 1500)
+			{
+				badValue = value;
+				error = $"`{Constants.MAX_EMBED_TOTAL_LENGTH}` char limit close.";
+			}
+			else if (value?.Length > Constants.MAX_FIELD_VALUE_LENGTH)
+			{
+				badValue = value;
+				error = $"Over `{Constants.MAX_FIELD_VALUE_LENGTH}` chars.";
+			}
+			else if (value.CountLineBreaks() > Constants.MAX_FIELD_LINES)
+			{
+				badValue = value;
+				error = $"Over `{Constants.MAX_FIELD_LINES}` lines.";
+			}
+			else
+			{
+				badValue = null;
+				error = null;
+			}
+
+			return error == null;
+		}
 	}
 }

@@ -240,7 +240,7 @@ namespace Advobot.Commands.BotSettings
 		public async Task CommandAll()
 		{
 			var text = await Context.BotSettings.ToString(Context.Client);
-			await MessageActions.SendTextFile(Context.Guild, Context.Channel, text, "Bot Settings", "Bot Settings");
+			await MessageActions.SendTextFile(Context.Channel, text, "Bot Settings", "Bot Settings");
 		}
 		[Command, Priority(0)]
 		public async Task Command([OverrideTypeReader(typeof(BotSettingTypeReader))] PropertyInfo setting)
@@ -252,7 +252,7 @@ namespace Advobot.Commands.BotSettings
 			}
 			else
 			{
-				await MessageActions.SendTextFile(Context.Guild, Context.Channel, desc, setting.Name, setting.Name);
+				await MessageActions.SendTextFile(Context.Channel, desc, setting.Name, setting.Name);
 			}
 		}
 	}
