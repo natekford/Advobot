@@ -1,7 +1,7 @@
-﻿using Advobot.Enums;
-using Advobot.Formatting;
+﻿using Advobot.Actions.Formatting;
+using Advobot.Classes.Permissions;
+using Advobot.Enums;
 using Advobot.Interfaces;
-using Advobot.Permissions;
 using Discord;
 using Discord.Commands;
 using System;
@@ -13,48 +13,62 @@ namespace Advobot.Actions
 {
 	public static class RoleActions
 	{
-		public static FailureReason VerifyRoleMeetsRequirements<T>(ICommandContext context, RoleVerification[] checkingTypes, T role) where T : IRole
+		public static bool VerifyRoleMeetsRequirements(ICommandContext context, IRole target, ObjectVerification[] checks, out CommandError? error, out string errorReason)
 		{
-			if (role == null)
+			if (target == null)
 			{
-				return FailureReason.TooFew;
+				error = CommandError.ObjectNotFound;
+				errorReason = "Unable to find a matching role.";
+				return false;
 			}
 
 			var invokingUser = context.User as IGuildUser;
 			var bot = UserActions.GetBot(context.Guild);
-			foreach (var type in checkingTypes)
+			foreach (var check in checks)
 			{
-				if (!invokingUser.GetIfUserCanDoActionOnRole(role, type))
+				if (!invokingUser.GetIfUserCanDoActionOnRole(target, check))
 				{
-					return FailureReason.UserInability;
+					error = CommandError.UnmetPrecondition;
+					errorReason = $"You are unable to make the given changes to the role: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.";
+					return false;
 				}
-				else if (!bot.GetIfUserCanDoActionOnRole(role, type))
+				else if (!bot.GetIfUserCanDoActionOnRole(target, check))
 				{
-					return FailureReason.BotInability;
+					error = CommandError.UnmetPrecondition;
+					errorReason = $"I am unable to make the given changes to the role: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.";
+					return false;
 				}
 
-				switch (type)
+				switch (check)
 				{
-					case RoleVerification.IsEveryone:
+					case ObjectVerification.IsEveryone:
 					{
-						if (context.Guild.EveryoneRole.Id == role.Id)
+						if (context.Guild.EveryoneRole.Id != target.Id)
 						{
-							return FailureReason.EveryoneRole;
+							break;
 						}
-						break;
+
+						error = CommandError.UnmetPrecondition;
+						errorReason = "The everyone role cannot be modified in that way.";
+						return false;
 					}
-					case RoleVerification.IsManaged:
+					case ObjectVerification.IsManaged:
 					{
-						if (role.IsManaged)
+						if (!target.IsManaged)
 						{
-							return FailureReason.ManagedRole;
+							break;
 						}
-						break;
+
+						error = CommandError.UnmetPrecondition;
+						errorReason = "Managed roles cannot be modified in that way.";
+						return false;
 					}
 				}
 			}
 
-			return FailureReason.NotFailure;
+			error = null;
+			errorReason = null;
+			return true;
 		}
 
 		public static async Task<IEnumerable<string>> ModifyRolePermissions(IRole role, ActionType actionType, ulong changeValue, IGuildUser user)
@@ -138,8 +152,7 @@ namespace Advobot.Actions
 		public static async Task<IRole> GetMuteRole(ICommandContext context, IGuildSettings guildSettings)
 		{
 			var muteRole = guildSettings.MuteRole;
-			var result = VerifyRoleMeetsRequirements(context, new[] { RoleVerification.CanBeEdited, RoleVerification.IsManaged }, muteRole);
-			if (result != FailureReason.NotFailure)
+			if (!VerifyRoleMeetsRequirements(context, muteRole, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }, out var error, out var errorReason))
 			{
 				muteRole = await context.Guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0));
 				guildSettings.MuteRole = muteRole;

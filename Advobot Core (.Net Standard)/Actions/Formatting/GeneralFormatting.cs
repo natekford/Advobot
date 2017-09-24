@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Advobot.Formatting
+namespace Advobot.Actions.Formatting
 {
 	public static class GeneralFormatting
 	{
@@ -20,73 +20,6 @@ namespace Advobot.Formatting
 		public static string ERROR(string message)
 		{
 			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
-		}
-		/// <summary>
-		/// Returns a string indicating why modifying something involving the passed in object failed.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="failureReason"></param>
-		/// <param name="obj"></param>
-		/// <returns></returns>
-		public static string FormatErrorString(IGuild guild, FailureReason failureReason, object obj)
-		{
-			string objType;
-			if (obj is IUser)
-			{
-				objType = "user";
-			}
-			else if (obj is IChannel)
-			{
-				objType = "channel";
-			}
-			else if (obj is IRole)
-			{
-				objType = "role";
-			}
-			else if (obj is IGuild)
-			{
-				objType = "guild";
-			}
-			else
-			{
-				objType = obj.GetType().Name;
-			}
-
-			switch (failureReason)
-			{
-				case FailureReason.TooFew:
-				{
-					return $"Unable to find the {objType}.";
-				}
-				case FailureReason.UserInability:
-				{
-					return $"You are unable to make the given changes to the {objType}: `{DiscordObjectFormatting.FormatDiscordObject(obj)}`.";
-				}
-				case FailureReason.BotInability:
-				{
-					return $"I am unable to make the given changes to the {objType}: `{DiscordObjectFormatting.FormatDiscordObject(obj)}`.";
-				}
-				case FailureReason.TooMany:
-				{
-					return $"There are too many {objType}s with the same name.";
-				}
-				case FailureReason.EveryoneRole:
-				{
-					return "The everyone role cannot be modified in that way.";
-				}
-				case FailureReason.ManagedRole:
-				{
-					return "Managed roles cannot be modified in that way.";
-				}
-				case FailureReason.InvalidEnum:
-				{
-					return $"The option `{(obj as Enum).EnumName()}` is not accepted in this instance.";
-				}
-				default:
-				{
-					return "This shouldn't be seen. - Advobot";
-				}
-			}
 		}
 		/// <summary>
 		/// Returns a string saying who did an action with the bot and possibly why they did it.

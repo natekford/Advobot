@@ -1,9 +1,9 @@
-﻿using Advobot.Formatting;
+﻿using Advobot.Actions.Formatting;
 using Advobot.Interfaces;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace Advobot.Permissions
+namespace Advobot.Classes.Permissions
 {
 	/// <summary>
 	/// Extra permissions within the bot given to a user on a guild.

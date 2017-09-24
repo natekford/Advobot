@@ -1,6 +1,6 @@
 ﻿using Advobot.Actions;
-using Advobot.Attributes;
 using Advobot.Classes;
+using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Discord.Commands;
 using System;

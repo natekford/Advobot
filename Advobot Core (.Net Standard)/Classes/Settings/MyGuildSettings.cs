@@ -1,8 +1,8 @@
 ﻿using Advobot.Actions;
+using Advobot.Actions.Formatting;
+using Advobot.Classes.Permissions;
 using Advobot.Enums;
-using Advobot.Formatting;
 using Advobot.Interfaces;
-using Advobot.Permissions;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -14,7 +14,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes
+namespace Advobot.Classes.Settings
 {
 	/// <summary>
 	/// Holds settings for a guild. Settings are only saved by calling <see cref="SaveSettings"/>.

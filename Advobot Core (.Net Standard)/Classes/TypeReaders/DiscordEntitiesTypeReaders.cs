@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.TypeReaders
+namespace Advobot.Classes.TypeReaders
 {
 	/// <summary>
 	/// Attemps to find an <see cref="IInvite"/> on a guild.

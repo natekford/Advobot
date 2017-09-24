@@ -63,27 +63,23 @@ namespace Advobot.Enums
 	}
 
 	/// <summary>
-	/// For use in <see cref="Attributes.VerifyUserAttribute"/> to determine what to check.
+	/// For use in <see cref="Attributes.VerifyObjectAttribute"/> inheriting classes to determine what to check.
 	/// </summary>
 	[Flags]
-	public enum UserVerification : uint
+	public enum ObjectVerification : uint
 	{
+		//Generic
 		None							= (1U << 0),
 		CanBeEdited						= (1U << 1),
-		CanBeMovedFromChannel			= (1U << 2),
-	}
 
-	/// <summary>
-	/// For use in <see cref="Attributes.VerifyChannelAttribute"/> to determine what to check.
-	/// </summary>
-	[Flags]
-	public enum ChannelVerification : uint
-	{
-		None							= (1U << 0),
-		CanBeEdited						= (1U << 1),
-		//IsDefault						= (1U << 2), Not needed anymore since default channels removed
-		//IsVoice						= (1U << 3), Not needed anymore since using Discord.Net arg parsing.
-		//IsText						= (1U << 4), Not needed anymore for same reason as above.
+		//User
+		CanBeMovedFromChannel			= (1U << 2),
+
+		//Role
+		IsEveryone						= (1U << 2),
+		IsManaged						= (1U << 3),
+
+		//Channel
 		CanBeReordered					= (1U << 5),
 		CanModifyPermissions			= (1U << 6),
 		CanBeManaged					= (1U << 7),
@@ -91,52 +87,6 @@ namespace Advobot.Enums
 		CanDeleteMessages				= (1U << 9),
 		CanBeRead						= (1U << 10),
 		CanCreateInstantInvite			= (1U << 11),
-	}
-
-	/// <summary>
-	/// For us in <see cref="Attributes.VerifyRoleAttribute"/> to determine what to check.
-	/// </summary>
-	[Flags]
-	public enum RoleVerification : uint
-	{
-		None							= (1U << 0),
-		CanBeEdited						= (1U << 1),
-		IsEveryone						= (1U << 2),
-		IsManaged						= (1U << 3),
-	}
-
-	/// <summary>
-	/// Results from various checks on Discord entities.
-	/// To be used in order to get a formatted error reason from <see cref="Actions.FormattingActions.FormatErrorString(Discord.IGuild, FailureReason, object)"/>.
-	/// </summary>
-	[Flags]
-	public enum FailureReason : uint
-	{
-		//Generic
-		NotFailure						= (1U << 1),
-		TooFew							= (1U << 2),
-		TooMany							= (1U << 3),
-
-		//User
-		UserInability					= (1U << 4),
-		BotInability					= (1U << 5),
-		
-		//Channels
-		//ChannelType					= (1U << 6), Not needed anymore since using Discord.Net arg parsing.
-		//DefaultChannel				= (1U << 7), Not needed anymore since default channels can be deleted/modified fully now
-
-		//Roles
-		EveryoneRole					= (1U << 8),
-		ManagedRole						= (1U << 9),
-
-		//Enums
-		InvalidEnum						= (1U << 10),
-
-		//Bans
-		NoBans							= (1U << 11),
-		InvalidDiscriminator			= (1U << 12),
-		InvalidID						= (1U << 13),
-		NoUsernameOrID					= (1U << 14),
 	}
 
 	/// <summary>

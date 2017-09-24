@@ -1,5 +1,5 @@
-﻿using Advobot.Classes;
-using Advobot.Formatting;
+﻿using Advobot.Actions.Formatting;
+using Advobot.Classes;
 using Advobot.Interfaces;
 using Discord;
 using System;

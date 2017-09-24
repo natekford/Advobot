@@ -1,6 +1,6 @@
-﻿using Advobot.Enums;
-using Advobot.Formatting;
-using Advobot.Permissions;
+﻿using Advobot.Actions.Formatting;
+using Advobot.Classes.Permissions;
+using Advobot.Enums;
 using Discord;
 using System;
 using System.Collections.Generic;

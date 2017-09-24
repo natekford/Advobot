@@ -5,9 +5,8 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Advobot.Actions;
 
-namespace Advobot.Formatting
+namespace Advobot.Actions.Formatting
 {
 	public static class InfoFormatting
 	{

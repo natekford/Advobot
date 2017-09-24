@@ -1,9 +1,9 @@
 ﻿using Advobot.Actions;
-using Advobot.Attributes;
+using Advobot.Actions.Formatting;
 using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Classes.Permissions;
 using Advobot.Enums;
-using Advobot.Formatting;
-using Advobot.Permissions;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -201,7 +201,7 @@ namespace Advobot.Commands.Miscellaneous
 	public sealed class GetUsersWithReason : MyModuleBase
 	{
 		[Command(nameof(Target.Role))]
-		public async Task CommandRole([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, params string[] additionalSearchOptions)
+		public async Task CommandRole([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, params string[] additionalSearchOptions)
 		{
 			await CommandRunner(Target.Role, role, additionalSearchOptions);
 		}
@@ -410,7 +410,7 @@ namespace Advobot.Commands.Miscellaneous
 	public sealed class DownloadMessages : MyModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command(int num, [Optional, VerifyChannel(true, ChannelVerification.CanBeRead)] ITextChannel channel)
+		public async Task Command(int num, [Optional, VerifyObject(true, ObjectVerification.CanBeRead)] ITextChannel channel)
 		{
 			channel = channel ?? Context.Channel as ITextChannel;
 			var messages = (await MessageActions.GetMessages(channel, Math.Min(num, 1000))).OrderBy(x => x.CreatedAt.Ticks).ToArray();
@@ -507,7 +507,7 @@ namespace Advobot.Commands.Miscellaneous
 	public sealed class MentionRole : MyModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone)] IRole role, [Remainder] string text)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder] string text)
 		{
 			if (role.IsMentionable)
 			{

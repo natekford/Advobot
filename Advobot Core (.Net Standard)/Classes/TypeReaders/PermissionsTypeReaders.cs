@@ -1,12 +1,12 @@
 ﻿using Advobot.Actions;
-using Advobot.Formatting;
-using Advobot.Permissions;
+using Advobot.Classes.Permissions;
+using Advobot.Actions.Formatting;
 using Discord.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.TypeReaders
+namespace Advobot.Classes.TypeReaders
 {
 	/// <summary>
 	/// Attempts to get a ulong representing guild permissions.

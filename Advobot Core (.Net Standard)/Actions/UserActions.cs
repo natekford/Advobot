@@ -1,4 +1,5 @@
-﻿using Advobot.Enums;
+﻿using Advobot.Actions.Formatting;
+using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
@@ -11,28 +12,36 @@ namespace Advobot.Actions
 {
 	public static class UserActions
 	{
-		public static FailureReason VerifyUserMeetsRequirements(ICommandContext context, IGuildUser target, UserVerification[] checkingTypes)
+		public static bool VerifyUserMeetsRequirements(ICommandContext context, IGuildUser target, ObjectVerification[] checks, out CommandError? error, out string errorReason)
 		{
 			if (target == null)
 			{
-				return FailureReason.TooFew;
+				error = CommandError.ObjectNotFound;
+				errorReason = "Unable to find a matching user.";
+				return false;
 			}
 
 			var invokingUser = context.User as IGuildUser;
 			var bot = GetBot(context.Guild);
-			foreach (var type in checkingTypes)
+			foreach (var check in checks)
 			{
-				if (!invokingUser.GetIfCanDoActionOnUser(target, type))
+				if (!invokingUser.GetIfCanDoActionOnUser(target, check))
 				{
-					return FailureReason.UserInability;
+					error = CommandError.UnmetPrecondition;
+					errorReason = $"You are unable to make the given changes to the user: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.";
+					return false;
 				}
-				else if (!bot.GetIfCanDoActionOnUser(target, type))
+				else if (!bot.GetIfCanDoActionOnUser(target, check))
 				{
-					return FailureReason.BotInability;
+					error = CommandError.UnmetPrecondition;
+					errorReason = $"I am unable to make the given changes to the user: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.";
+					return false;
 				}
 			}
 
-			return FailureReason.NotFailure;
+			error = null;
+			errorReason = null;
+			return true;
 		}
 
 		public static IGuildUser GetBot(IGuild guild)
@@ -110,7 +119,7 @@ namespace Advobot.Actions
 			var modifieePosition = targetUser.GetPosition();
 			return modifierPosition > modifieePosition;
 		}
-		public static bool GetIfCanDoActionOnUser(this IGuildUser invokingUser, IGuildUser targetUser, UserVerification type)
+		public static bool GetIfCanDoActionOnUser(this IGuildUser invokingUser, IGuildUser targetUser, ObjectVerification type)
 		{
 			if (targetUser == null || invokingUser == null)
 			{
@@ -119,11 +128,11 @@ namespace Advobot.Actions
 
 			switch (type)
 			{
-				case UserVerification.CanBeMovedFromChannel:
+				case ObjectVerification.CanBeMovedFromChannel:
 				{
-					return invokingUser.GetIfCanDoActionOnChannel(targetUser.VoiceChannel, ChannelVerification.CanMoveUsers);
+					return invokingUser.GetIfCanDoActionOnChannel(targetUser.VoiceChannel, ObjectVerification.CanMoveUsers);
 				}
-				case UserVerification.CanBeEdited:
+				case ObjectVerification.CanBeEdited:
 				{
 					return targetUser.CanBeModifiedByUser(invokingUser);
 				}
@@ -133,7 +142,7 @@ namespace Advobot.Actions
 				}
 			}
 		}
-		public static bool GetIfCanDoActionOnChannel(this IGuildUser invokingUser, IGuildChannel target, ChannelVerification type)
+		public static bool GetIfCanDoActionOnChannel(this IGuildUser invokingUser, IGuildChannel target, ObjectVerification type)
 		{
 			if (target == null || invokingUser == null)
 			{
@@ -146,31 +155,31 @@ namespace Advobot.Actions
 			//TODO: Make sure this works when the enums are updated.
 			switch (type)
 			{
-				case ChannelVerification.CanBeRead:
+				case ObjectVerification.CanBeRead:
 				{
 					return channelPerms.ReadMessages;
 				}
-				case ChannelVerification.CanCreateInstantInvite:
+				case ObjectVerification.CanCreateInstantInvite:
 				{
 					return channelPerms.ReadMessages && channelPerms.CreateInstantInvite;
 				}
-				case ChannelVerification.CanBeManaged:
+				case ObjectVerification.CanBeManaged:
 				{
 					return channelPerms.ReadMessages && channelPerms.ManageChannel;
 				}
-				case ChannelVerification.CanModifyPermissions:
+				case ObjectVerification.CanModifyPermissions:
 				{
 					return channelPerms.ReadMessages && channelPerms.ManageChannel && channelPerms.ManagePermissions;
 				}
-				case ChannelVerification.CanBeReordered:
+				case ObjectVerification.CanBeReordered:
 				{
 					return channelPerms.ReadMessages && guildPerms.ManageChannels;
 				}
-				case ChannelVerification.CanDeleteMessages:
+				case ObjectVerification.CanDeleteMessages:
 				{
 					return channelPerms.ReadMessages && channelPerms.ManageMessages;
 				}
-				case ChannelVerification.CanMoveUsers:
+				case ObjectVerification.CanMoveUsers:
 				{
 					return channelPerms.MoveMembers;
 				}
@@ -180,7 +189,7 @@ namespace Advobot.Actions
 				}
 			}
 		}
-		public static bool GetIfUserCanDoActionOnRole(this IGuildUser invokingUser, IRole target, RoleVerification type)
+		public static bool GetIfUserCanDoActionOnRole(this IGuildUser invokingUser, IRole target, ObjectVerification type)
 		{
 			if (target == null || invokingUser == null)
 			{
@@ -189,7 +198,7 @@ namespace Advobot.Actions
 
 			switch (type)
 			{
-				case RoleVerification.CanBeEdited:
+				case ObjectVerification.CanBeEdited:
 				{
 					return target.Position < invokingUser.GetPosition();
 				}

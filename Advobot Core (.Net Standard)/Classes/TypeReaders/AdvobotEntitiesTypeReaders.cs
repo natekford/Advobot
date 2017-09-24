@@ -1,10 +1,8 @@
-﻿using Advobot.Actions;
-using Advobot.Classes;
-using Discord.Commands;
+﻿using Discord.Commands;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.TypeReaders
+namespace Advobot.Classes.TypeReaders
 {
 	/// <summary>
 	/// Attempts to see if the input matches <see cref="Constants.BYPASS_STRING"/>.

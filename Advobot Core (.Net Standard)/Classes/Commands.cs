@@ -1,6 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Enums;
-using Advobot.Formatting;
+using Advobot.Actions.Formatting;
 using Advobot.Interfaces;
 using Discord.Commands;
 using Discord.WebSocket;

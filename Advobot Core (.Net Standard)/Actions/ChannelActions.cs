@@ -1,5 +1,6 @@
-﻿using Advobot.Enums;
-using Advobot.Permissions;
+﻿using Advobot.Actions.Formatting;
+using Advobot.Classes.Permissions;
+using Advobot.Enums;
 using Discord;
 using Discord.Commands;
 using System;
@@ -17,28 +18,36 @@ namespace Advobot.Actions
 		/// <param name="target"></param>
 		/// <param name="checkingTypes"></param>
 		/// <returns></returns>
-		public static FailureReason VerifyChannelMeetsRequirements(ICommandContext context, IGuildChannel target, ChannelVerification[] checkingTypes)
+		public static bool VerifyChannelMeetsRequirements(ICommandContext context, IGuildChannel target, ObjectVerification[] checks, out CommandError? error, out string errorReason)
 		{
 			if (target == null)
 			{
-				return FailureReason.TooFew;
+				error = CommandError.ObjectNotFound;
+				errorReason = "Unable to find a matching channel.";
+				return false;
 			}
 
 			var invokingUser = context.User as IGuildUser;
 			var bot = UserActions.GetBot(context.Guild);
-			foreach (var type in checkingTypes)
+			foreach (var check in checks)
 			{
-				if (!invokingUser.GetIfCanDoActionOnChannel(target, type))
+				if (!invokingUser.GetIfCanDoActionOnChannel(target, check))
 				{
-					return FailureReason.UserInability;
+					error = CommandError.UnmetPrecondition;
+					errorReason = $"You are unable to make the given changes to the channel: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.";
+					return false;
 				}
-				else if (!bot.GetIfCanDoActionOnChannel(target, type))
+				else if (!bot.GetIfCanDoActionOnChannel(target, check))
 				{
-					return FailureReason.BotInability;
+					error = CommandError.UnmetPrecondition;
+					errorReason = $"I am unable to make the given changes to the channel: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.";
+					return false;
 				}
 			}
 
-			return FailureReason.NotFailure;
+			error = null;
+			errorReason = null;
+			return true;
 		}
 
 		/// <summary>

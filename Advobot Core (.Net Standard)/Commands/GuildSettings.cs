@@ -1,10 +1,10 @@
 ﻿using Advobot.Actions;
-using Advobot.Attributes;
+using Advobot.Actions.Formatting;
 using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Classes.Permissions;
+using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
-using Advobot.Formatting;
-using Advobot.Permissions;
-using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
 using System;
@@ -150,7 +150,7 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Add : MySavingModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel)
 			{
 				if (Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
@@ -162,7 +162,7 @@ namespace Advobot.Commands.GuildSettings
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully added `{channel.FormatChannel()}` to the ignored command channels list.");
 			}
 			[Command]
-			public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandSwitch command)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandSwitch command)
 			{
 				//First remove every command override on that channel for that specific command (so whenever this command is used it forces an update on the status of the list, never have duplicates)
 				Context.GuildSettings.CommandsDisabledOnChannel.RemoveAll(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
@@ -170,7 +170,7 @@ namespace Advobot.Commands.GuildSettings
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully started ignoring the command `{command.Name}` on `{channel.FormatChannel()}`.");
 			}
 			[Command]
-			public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
 			{
 				var commands = Context.GuildSettings.GetCommands(category);
 				foreach (var command in commands)
@@ -187,7 +187,7 @@ namespace Advobot.Commands.GuildSettings
 		public sealed class Remove : MySavingModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel)
 			{
 				if (!Context.GuildSettings.IgnoredCommandChannels.Contains(channel.Id))
 				{
@@ -199,14 +199,14 @@ namespace Advobot.Commands.GuildSettings
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed `{channel.FormatChannel()}` from the ignored command channels list.");
 			}
 			[Command]
-			public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandSwitch command)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandSwitch command)
 			{
 				//First remove every command override on that channel for that specific command (so whenever this command is used it forces an update on the status of the list, never have duplicates)
 				Context.GuildSettings.CommandsDisabledOnChannel.RemoveAll(x => x.Id == channel.Id && x.Name.CaseInsEquals(command.Name));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully stopped ignoring the command `{command.Name}` on `{channel.FormatChannel()}`.");
 			}
 			[Command]
-			public async Task Command([VerifyChannel(true, ChannelVerification.CanBeRead, ChannelVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
+			public async Task Command([VerifyObject(true, ObjectVerification.CanBeRead, ObjectVerification.CanBeEdited)] ITextChannel channel, CommandCategory category)
 			{
 				var commands = Context.GuildSettings.GetCommands(category);
 				foreach (var command in commands)
@@ -309,7 +309,7 @@ namespace Advobot.Commands.GuildSettings
 	public sealed class ModifyChannelSettings : MySavingModuleBase
 	{
 		[Command(nameof(ChannelSetting.ImageOnly)), Alias("io")]
-		public async Task CommandImageOnly([VerifyChannel(true, ChannelVerification.CanBeEdited)] ITextChannel channel)
+		public async Task CommandImageOnly([VerifyObject(true, ObjectVerification.CanBeEdited)] ITextChannel channel)
 		{
 			if (Context.GuildSettings.ImageOnlyChannels.Contains(channel.Id))
 			{
@@ -334,7 +334,7 @@ namespace Advobot.Commands.GuildSettings
 	public sealed class ModifyGuildNotifs : MySavingModuleBase
 	{
 		[Command(nameof(GuildNotificationType.Welcome)), Alias("w")]
-		public async Task CommandWelcome([VerifyChannel(true, ChannelVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] string input)
+		public async Task CommandWelcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] string input)
 		{
 			var inputArgs = input.SplitExceptInQuotes().ToList();
 			var content = GetActions.GetVariableAndRemove(inputArgs, "content");
@@ -346,7 +346,7 @@ namespace Advobot.Commands.GuildSettings
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the welcome message.");
 		}
 		[Command(nameof(GuildNotificationType.Goodbye)), Alias("g")]
-		public async Task CommandGoodbye([VerifyChannel(true, ChannelVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] string input)
+		public async Task CommandGoodbye([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] string input)
 		{
 			var inputArgs = input.SplitExceptInQuotes().ToList();
 			var content = GetActions.GetVariableAndRemove(inputArgs, "content");

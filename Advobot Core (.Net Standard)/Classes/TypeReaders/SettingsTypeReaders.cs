@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Advobot.TypeReaders
+namespace Advobot.Classes.TypeReaders
 {
 	/// <summary>
 	/// Utilizes derived classes' names to determine which settings to get.

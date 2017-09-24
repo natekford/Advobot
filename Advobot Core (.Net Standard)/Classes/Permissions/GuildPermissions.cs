@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Permissions
+namespace Advobot.Classes.Permissions
 {
 	/// <summary>
 	/// Holds a guild permission name and value.

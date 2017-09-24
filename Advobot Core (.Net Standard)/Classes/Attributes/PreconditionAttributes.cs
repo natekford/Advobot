@@ -1,15 +1,16 @@
 ﻿using Advobot.Actions;
-using Advobot.Classes;
+using Advobot.Classes.Permissions;
 using Advobot.Enums;
-using Advobot.Formatting;
-using Advobot.Permissions;
+using Advobot.Actions.Formatting;
+using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Attributes
+namespace Advobot.Classes.Attributes
 {
 	/// <summary>
 	/// Checks if the user has all of the permissions supplied for allOfTheListedPerms or if the user has any of the permissions supplied for anyOfTheListedPerms.
@@ -142,7 +143,7 @@ namespace Advobot.Attributes
 
 		public override string ToString()
 		{
-			var text = new System.Collections.Generic.List<string>();
+			var text = new List<string>();
 			if ((Requirements & Precondition.UserHasAPerm) != 0)
 			{
 				text.Add("Administrator | Any perm ending with 'Members' | Any perm starting with 'Manage'");
@@ -195,7 +196,7 @@ namespace Advobot.Attributes
 			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
 		}
 
-		private bool CheckIfCommandIsEnabled(MyCommandContext context, CommandInfo command, IGuildUser user)
+		private bool CheckIfCommandIsEnabled(IMyCommandContext context, CommandInfo command, IGuildUser user)
 		{
 			//Use the first alias since that's what group gets set as (could use any alias since GetCommand works for aliases too)
 			//Doing a split since subcommands (in this bot's case) are simply easy to use options on a single command
@@ -240,7 +241,7 @@ namespace Advobot.Attributes
 	{
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			return Task.FromResult(PreconditionResult.FromError("This command does not work."));
+			return Task.FromResult(PreconditionResult.FromError("This command is currently disabled."));
 		}
 	}
 }

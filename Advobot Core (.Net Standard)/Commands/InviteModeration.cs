@@ -1,8 +1,8 @@
 ﻿using Advobot.Actions;
-using Advobot.Attributes;
+using Advobot.Classes.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
-using Advobot.Formatting;
+using Advobot.Actions.Formatting;
 using Discord;
 using Discord.Commands;
 using System;
@@ -47,7 +47,7 @@ namespace Advobot.Commands.InviteModeration
 		private static readonly int[] validUses = { 0, 1, 5, 10, 25, 50, 100 };
 
 		[Command]
-		public async Task Command([VerifyChannel(true, ChannelVerification.CanCreateInstantInvite)] IGuildChannel channel, [Optional] int time, [Optional] int uses, [Optional] bool tempMem)
+		public async Task Command([VerifyObject(true, ObjectVerification.CanCreateInstantInvite)] IGuildChannel channel, [Optional] int time, [Optional] int uses, [Optional] bool tempMem)
 		{
 			if (!validTimes.Contains(time))
 			{

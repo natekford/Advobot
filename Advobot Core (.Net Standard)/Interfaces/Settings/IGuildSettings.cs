@@ -1,6 +1,6 @@
 ﻿using Advobot.Classes;
+using Advobot.Classes.Permissions;
 using Advobot.Enums;
-using Advobot.Permissions;
 using Discord;
 using Discord.WebSocket;
 using System.Collections.Generic;

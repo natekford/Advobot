@@ -1,8 +1,8 @@
 ﻿using Advobot.Actions;
-using Advobot.Attributes;
+using Advobot.Classes.Attributes;
 using Advobot.Classes;
 using Advobot.Enums;
-using Advobot.Formatting;
+using Advobot.Actions.Formatting;
 using Discord;
 using Discord.Commands;
 using System;
@@ -25,7 +25,7 @@ namespace Advobot.Commands.Logs
 			private const LogChannelType channelType = LogChannelType.Server;
 
 			[Command]
-			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeRead, ChannelVerification.CanModifyPermissions)] ITextChannel channel)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] ITextChannel channel)
 			{
 				if (Context.GuildSettings.SetLogChannel(channelType, channel))
 				{
@@ -54,7 +54,7 @@ namespace Advobot.Commands.Logs
 			private const LogChannelType channelType = LogChannelType.Mod;
 
 			[Command]
-			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeRead, ChannelVerification.CanModifyPermissions)] ITextChannel channel)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] ITextChannel channel)
 			{
 				if (Context.GuildSettings.SetLogChannel(channelType, channel))
 				{
@@ -83,7 +83,7 @@ namespace Advobot.Commands.Logs
 			private const LogChannelType channelType = LogChannelType.Image;
 
 			[Command]
-			public async Task Command([VerifyChannel(false, ChannelVerification.CanBeRead, ChannelVerification.CanModifyPermissions)] ITextChannel channel)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] ITextChannel channel)
 			{
 				if (Context.GuildSettings.SetLogChannel(channelType, channel))
 				{
@@ -115,13 +115,13 @@ namespace Advobot.Commands.Logs
 	public sealed class ModifyIgnoredLogChannels : MySavingModuleBase
 	{
 		[Command(nameof(ActionType.Add))]
-		public async Task CommandAdd([VerifyChannel(false, ChannelVerification.CanBeRead, ChannelVerification.CanModifyPermissions)] params ITextChannel[] channels)
+		public async Task CommandAdd([VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] params ITextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully ignored the following channels: `{String.Join("`, `", channels.Select(x => x.FormatChannel()))}`.");
 		}
 		[Command(nameof(ActionType.Remove))]
-		public async Task CommandRemove([VerifyChannel(false, ChannelVerification.CanBeRead, ChannelVerification.CanModifyPermissions)] params ITextChannel[] channels)
+		public async Task CommandRemove([VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] params ITextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.RemoveAll(x => channels.Select(y => y.Id).Contains(x));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully unignored the following channels: `{String.Join("`, `", channels.Select(x => x.FormatChannel()))}`.");

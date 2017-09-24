@@ -1,10 +1,10 @@
 ﻿using Advobot.Actions;
-using Advobot.Attributes;
+using Advobot.Actions.Formatting;
 using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Classes.Permissions;
+using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
-using Advobot.Formatting;
-using Advobot.Permissions;
-using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
 using System;
@@ -22,7 +22,7 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class GiveRole : MyModuleBase
 	{
 		[Command]
-		public async Task Command(IGuildUser user, [VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone, RoleVerification.IsManaged)] params IRole[] roles)
+		public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] params IRole[] roles)
 		{
 			await RoleActions.GiveRoles(user, roles, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully gave `{String.Join("`, `", roles.Select(x => x.FormatRole()))}` to `{user.FormatUser()}`.");
@@ -37,7 +37,7 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class TakeRole : MyModuleBase
 	{
 		[Command]
-		public async Task Command(IGuildUser user, [VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone, RoleVerification.IsManaged)] params IRole[] roles)
+		public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] params IRole[] roles)
 		{
 			await RoleActions.TakeRoles(user, roles, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully took `{String.Join("`, `", roles.Select(x => x.FormatRole()))}` from `{user.FormatUser()}`.");
@@ -67,7 +67,7 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class SoftDeleteRole : MyModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone, RoleVerification.IsManaged)] IRole role)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole role)
 		{
 			//Get the properties of the role before it's deleted
 			var name = role.Name;
@@ -90,7 +90,7 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class DeleteRole : MyModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone, RoleVerification.IsManaged)] IRole role)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole role)
 		{
 			await RoleActions.DeleteRole(role, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted `{role.FormatRole()}`.");
@@ -105,7 +105,7 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class ChangeRolePosition : MyModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone)] IRole role, uint position)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, uint position)
 		{
 			var newPos = await RoleActions.ModifyRolePosition(role, (int)position, GeneralFormatting.FormatUserReason(Context.User));
 			if (newPos != -1)
@@ -163,7 +163,7 @@ namespace Advobot.Commands.RoleModeration
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Guild Permission Types", desc));
 			}
 			[Command]
-			public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 			{
 				var currentRolePerms = GuildPerms.ConvertValueToNames(role.Permissions.RawValue);
 				var permissions = currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission";
@@ -174,7 +174,7 @@ namespace Advobot.Commands.RoleModeration
 		public sealed class Allow : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
 			{
 				var givenPerms = await RoleActions.ModifyRolePermissions(role, ActionType.Allow, rawValue, Context.User as IGuildUser);
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully allowed `{(givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing")}` for `{role.FormatRole()}`.");
@@ -184,7 +184,7 @@ namespace Advobot.Commands.RoleModeration
 		public sealed class Deny : MyModuleBase
 		{
 			[Command]
-			public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
 			{
 				var givenPerms = await RoleActions.ModifyRolePermissions(role, ActionType.Deny, rawValue, Context.User as IGuildUser);
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully denied `{(givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing")}` for `{role.FormatRole()}`.");
@@ -200,8 +200,8 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class CopyRolePerms : MyModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole inputRole,
-									[VerifyRole(false, RoleVerification.CanBeEdited)] IRole outputRole)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole inputRole,
+								  [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole outputRole)
 		{
 			var userBits = (Context.User as IGuildUser).GuildPermissions.RawValue;
 			var inputRoleBits = inputRole.Permissions.RawValue;
@@ -247,7 +247,7 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class ClearRolePerms : MyModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited)] IRole role)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 		{
 			var userBits = (Context.User as IGuildUser).GuildPermissions.RawValue;
 			var roleBits = role.Permissions.RawValue;
@@ -272,7 +272,7 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class ChangeRoleName : MyModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone)] IRole role, [Remainder, VerifyStringLength(Target.Role)] string name)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder, VerifyStringLength(Target.Role)] string name)
 		{
 			await RoleActions.ModifyRoleName(role, name, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.");
@@ -315,7 +315,7 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class ChangeRoleColor : MyModuleBase
 	{
 		[Command]
-		public async Task Command([Optional, VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone)] IRole role, [Optional] Color color)
+		public async Task Command([Optional, VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Optional] Color color)
 		{
 			if (role == null)
 			{
@@ -337,7 +337,7 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class ChangeRoleHoist : MyModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone)] IRole role)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role)
 		{
 			await RoleActions.ModifyRoleHoist(role, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully {(role.IsHoisted ? "dehoisted" : "hoisted")} `{role.FormatRole()}`.");
@@ -352,7 +352,7 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class ChangeRoleMentionability : MyModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyRole(false, RoleVerification.CanBeEdited, RoleVerification.IsEveryone)] IRole role)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role)
 		{
 			await RoleActions.ModifyRoleMentionability(role, GeneralFormatting.FormatUserReason(Context.User));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully made `{role.FormatRole()}` {(role.IsMentionable ? "unmentionable" : "mentionable")}.");

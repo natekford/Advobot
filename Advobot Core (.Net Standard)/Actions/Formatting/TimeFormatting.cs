@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Advobot.Formatting
+namespace Advobot.Actions.Formatting
 {
 	public static class TimeFormatting
 	{

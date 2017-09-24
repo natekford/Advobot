@@ -1,9 +1,9 @@
 ﻿using Advobot.Actions;
-using Advobot.Attributes;
+using Advobot.Actions.Formatting;
 using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
-using Advobot.Formatting;
-using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace Advobot.Commands.NicknameModeration
 	public sealed class ChangeNickname : MyModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, VerifyStringLength(Target.Nickname)] string nickname)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, VerifyStringLength(Target.Nickname)] string nickname)
 		{
 			await UserActions.ChangeNickname(user, nickname, GeneralFormatting.FormatUserReason(Context.User));
 			var response = nickname == null

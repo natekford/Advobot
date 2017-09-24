@@ -1,9 +1,9 @@
 ﻿using Advobot.Actions;
-using Advobot.Attributes;
+using Advobot.Actions.Formatting;
 using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
-using Advobot.Formatting;
-using Advobot.TypeReaders;
 using Discord;
 using Discord.Commands;
 using System;
@@ -103,7 +103,7 @@ namespace Advobot.Commands.UserModeration
 	public sealed class MoveUser : MyModuleBase
 	{
 		[Command]
-		public async Task Command(IGuildUser user, [VerifyChannel(false, ChannelVerification.CanMoveUsers)] IVoiceChannel channel)
+		public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel channel)
 		{
 			if (user.VoiceChannel == null)
 			{
@@ -130,9 +130,9 @@ namespace Advobot.Commands.UserModeration
 	public sealed class MoveUsers : MyModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command([VerifyChannel(false, ChannelVerification.CanMoveUsers)] IVoiceChannel inputChannel,
-									[VerifyChannel(false, ChannelVerification.CanMoveUsers)] IVoiceChannel outputChannel,
-									[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel inputChannel,
+								  [VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel outputChannel,
+								  [OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
 			var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
 			var users = (await inputChannel.GetUsersAsync().Flatten()).ToList().GetUpToAndIncludingMinNum(userAmt);
@@ -174,7 +174,7 @@ namespace Advobot.Commands.UserModeration
 	public sealed class SoftBan : MyModuleBase
 	{
 		[Command, Priority(1)]
-		public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 		{
 			await PunishmentActions.ManualSoftban(Context.Guild, user.Id, GeneralFormatting.FormatUserReason(Context.User, reason));
 			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully softbanned `{user.FormatUser()}`.");
@@ -195,12 +195,12 @@ namespace Advobot.Commands.UserModeration
 	public sealed class Ban : MyModuleBase
 	{
 		[Command, Priority(1)]
-		public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, uint time, [Optional, Remainder] string reason)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user, uint time, [Optional, Remainder] string reason)
 		{
 			await CommandRunner(user, time, reason);
 		}
 		[Command, Priority(1)]
-		public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IUser user, [Optional, Remainder] string reason)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user, [Optional, Remainder] string reason)
 		{
 			await CommandRunner(user, 0, reason);
 		}
@@ -276,7 +276,7 @@ namespace Advobot.Commands.UserModeration
 	public sealed class Kick : MyModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyUser(false, UserVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 		{
 			await PunishmentActions.ManualKick(user, GeneralFormatting.FormatUserReason(Context.User, reason));
 			await MessageActions.SendChannelMessage(Context.Channel, $"Successfully kicked `{user.FormatUser()}`.");
@@ -313,12 +313,12 @@ namespace Advobot.Commands.UserModeration
 	public sealed class RemoveMessages : MyModuleBase
 	{
 		[Command]
-		public async Task Command(uint requestCount, [Optional] IGuildUser user, [Optional, VerifyChannel(true, ChannelVerification.CanDeleteMessages)] ITextChannel channel)
+		public async Task Command(uint requestCount, [Optional] IGuildUser user, [Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel)
 		{
 			await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel);
 		}
 		[Command]
-		public async Task Command(uint requestCount, [Optional, VerifyChannel(true, ChannelVerification.CanDeleteMessages)] ITextChannel channel, [Optional] IGuildUser user)
+		public async Task Command(uint requestCount, [Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel, [Optional] IGuildUser user)
 		{
 			await CommandRunner((int)requestCount, user, channel ?? Context.Channel as ITextChannel);
 		}

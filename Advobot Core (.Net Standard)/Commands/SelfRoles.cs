@@ -1,8 +1,8 @@
 ﻿using Advobot.Actions;
-using Advobot.Attributes;
+using Advobot.Actions.Formatting;
 using Advobot.Classes;
+using Advobot.Classes.Attributes;
 using Advobot.Enums;
-using Advobot.Formatting;
 using Discord;
 using Discord.Commands;
 using System;
@@ -31,12 +31,12 @@ namespace Advobot.Commands.SelfRoles
 			await CommandRunner(ActionType.Delete, groupNum);
 		}
 		[Command(nameof(ActionType.Add)), Alias("a")]
-		public async Task CommandAdd(uint groupNum, [VerifyRole(false, RoleVerification.CanBeEdited)] params IRole[] roles)
+		public async Task CommandAdd(uint groupNum, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
 		{
 			await CommandRunner(ActionType.Add, groupNum, roles);
 		}
 		[Command(nameof(ActionType.Remove)), Alias("r")]
-		public async Task CommandRemove(uint groupNum, [VerifyRole(false, RoleVerification.CanBeEdited)] params IRole[] roles)
+		public async Task CommandRemove(uint groupNum, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
 		{
 			await CommandRunner(ActionType.Remove, groupNum, roles);
 		}

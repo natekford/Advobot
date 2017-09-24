@@ -1,6 +1,6 @@
 ﻿using Advobot.Classes;
 using Advobot.Enums;
-using Advobot.Formatting;
+using Advobot.Actions.Formatting;
 using Advobot.Interfaces;
 using System.Linq;
 using System.Threading.Tasks;
