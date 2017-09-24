@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions.Formatting;
 using Advobot.Classes.Permissions;
+using Advobot.Classes.Results;
 using Advobot.Enums;
 using Discord;
 using Discord.Commands;
@@ -18,13 +19,11 @@ namespace Advobot.Actions
 		/// <param name="target"></param>
 		/// <param name="checkingTypes"></param>
 		/// <returns></returns>
-		public static bool VerifyChannelMeetsRequirements(ICommandContext context, IGuildChannel target, ObjectVerification[] checks, out CommandError? error, out string errorReason)
+		public static VerifiedObjectResult VerifyChannelMeetsRequirements(ICommandContext context, IGuildChannel target, ObjectVerification[] checks)
 		{
 			if (target == null)
 			{
-				error = CommandError.ObjectNotFound;
-				errorReason = "Unable to find a matching channel.";
-				return false;
+				return new VerifiedObjectResult(target, CommandError.ObjectNotFound, "Unable to find a matching channel.");
 			}
 
 			var invokingUser = context.User as IGuildUser;
@@ -33,21 +32,17 @@ namespace Advobot.Actions
 			{
 				if (!invokingUser.GetIfCanDoActionOnChannel(target, check))
 				{
-					error = CommandError.UnmetPrecondition;
-					errorReason = $"You are unable to make the given changes to the channel: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.";
-					return false;
+					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
+						$"You are unable to make the given changes to the channel: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
 				}
 				else if (!bot.GetIfCanDoActionOnChannel(target, check))
 				{
-					error = CommandError.UnmetPrecondition;
-					errorReason = $"I am unable to make the given changes to the channel: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.";
-					return false;
+					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
+						$"I am unable to make the given changes to the channel: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
 				}
 			}
 
-			error = null;
-			errorReason = null;
-			return true;
+			return new VerifiedObjectResult(target, null, null);
 		}
 
 		/// <summary>

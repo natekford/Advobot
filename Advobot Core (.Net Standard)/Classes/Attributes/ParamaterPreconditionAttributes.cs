@@ -1,4 +1,5 @@
-﻿using Advobot.Classes.Results;
+﻿using Advobot.Actions;
+using Advobot.Classes.Results;
 using Advobot.Enums;
 using Discord;
 using Discord.Commands;
@@ -72,7 +73,24 @@ namespace Advobot.Classes.Attributes
 
 		private PreconditionResult GetPreconditionResult(ICommandContext context, object value)
 		{
-			var result = new VerifiedObjectResult(context, value, _Checks);
+			var result = default(VerifiedObjectResult);
+			if (value is IGuildChannel guildChannel)
+			{
+				result = ChannelActions.VerifyChannelMeetsRequirements(context, guildChannel, _Checks);
+			}
+			else if (value is IGuildUser guildUser)
+			{
+				result = UserActions.VerifyUserMeetsRequirements(context, guildUser, _Checks);
+			}
+			else if (value is IRole role)
+			{
+				result = RoleActions.VerifyRoleMeetsRequirements(context, role, _Checks);
+			}
+			else
+			{
+				result = new VerifiedObjectResult(value, CommandError.Exception, $"Please notify Advorange of this failure: {nameof(GetPreconditionResult)}");
+			}
+
 			return result.IsSuccess ? PreconditionResult.FromSuccess() : PreconditionResult.FromError(result);
 		}
 	}

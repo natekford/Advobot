@@ -1,4 +1,5 @@
 ﻿using Advobot.Actions.Formatting;
+using Advobot.Classes.Results;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
@@ -12,13 +13,11 @@ namespace Advobot.Actions
 {
 	public static class UserActions
 	{
-		public static bool VerifyUserMeetsRequirements(ICommandContext context, IGuildUser target, ObjectVerification[] checks, out CommandError? error, out string errorReason)
+		public static VerifiedObjectResult VerifyUserMeetsRequirements(ICommandContext context, IGuildUser target, ObjectVerification[] checks)
 		{
 			if (target == null)
 			{
-				error = CommandError.ObjectNotFound;
-				errorReason = "Unable to find a matching user.";
-				return false;
+				return new VerifiedObjectResult(target, CommandError.ObjectNotFound, "Unable to find a matching user.");
 			}
 
 			var invokingUser = context.User as IGuildUser;
@@ -27,21 +26,17 @@ namespace Advobot.Actions
 			{
 				if (!invokingUser.GetIfCanDoActionOnUser(target, check))
 				{
-					error = CommandError.UnmetPrecondition;
-					errorReason = $"You are unable to make the given changes to the user: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.";
-					return false;
+					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
+						$"You are unable to make the given changes to the user: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
 				}
 				else if (!bot.GetIfCanDoActionOnUser(target, check))
 				{
-					error = CommandError.UnmetPrecondition;
-					errorReason = $"I am unable to make the given changes to the user: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.";
-					return false;
+					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
+						$"I am unable to make the given changes to the user: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
 				}
 			}
 
-			error = null;
-			errorReason = null;
-			return true;
+			return new VerifiedObjectResult(target, null, null);
 		}
 
 		public static IGuildUser GetBot(IGuild guild)
