@@ -328,12 +328,12 @@ namespace Advobot.Commands.BotSettings
 		[Command]
 		public async Task Command()
 		{
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset all properties. Shutting down now...");
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset all properties. Restarting now...");
 			Config.Configuration[ConfigKeys.Save_Path] = null;
 			Config.Configuration[ConfigKeys.Bot_Key] = null;
 			Config.Configuration[ConfigKeys.Bot_Id] = null;
 			Config.Save();
-			ClientActions.DisconnectBot();
+			ClientActions.RestartBot();
 		}
 	}
 
@@ -350,7 +350,7 @@ namespace Advobot.Commands.BotSettings
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset the bot key. Shutting down now...");
 			Config.Configuration[ConfigKeys.Bot_Key] = null;
 			Config.Save();
-			ClientActions.DisconnectBot();
+			ClientActions.RestartBot();
 		}
 	}
 
@@ -362,10 +362,9 @@ namespace Advobot.Commands.BotSettings
 	public sealed class Disconnect : MyModuleBase
 	{
 		[Command]
-		public Task Command()
+		public async Task Command()
 		{
-			ClientActions.DisconnectBot();
-			return Task.FromResult(0);
+			await ClientActions.DisconnectBot(Context.Client);
 		}
 	}
 

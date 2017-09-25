@@ -257,8 +257,7 @@ namespace Advobot.Commands.GuildModeration
 
 			var defaultChannel = await guild.GetDefaultChannelAsync();
 			var invite = await defaultChannel.CreateInviteAsync();
-			var DMChannel = await Context.User.GetOrCreateDMChannelAsync();
-			await MessageActions.SendMessage(DMChannel, invite.Url);
+			await Context.User.SendMessageAsync(invite.Url);
 		}
 	}
 
@@ -299,7 +298,7 @@ namespace Advobot.Commands.GuildModeration
 				return;
 			}
 
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The bot is not the owner of the guild and thus cannot delete it."));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The bot is not the owner of the guild."));
 		}
 	}
 }

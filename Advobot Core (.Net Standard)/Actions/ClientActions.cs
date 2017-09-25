@@ -220,8 +220,22 @@ namespace Advobot.Actions
 		/// <summary>
 		/// Exits the current application.
 		/// </summary>
-		public static void DisconnectBot()
+		public static async Task DisconnectBot(IDiscordClient client)
 		{
+			if (client is DiscordSocketClient socketClient)
+			{
+				await socketClient.SetStatusAsync(UserStatus.Invisible);
+			}
+			else if (client is DiscordShardedClient shardedClient)
+			{
+				await shardedClient.SetStatusAsync(UserStatus.Invisible);
+			}
+
+			//I think it doesn't really matter if this isn't awaited.
+			//What is the worst that could happen when the client is being killed anyways.
+			#pragma warning disable
+			client.StopAsync();
+			#pragma warning restore
 			Environment.Exit(0);
 		}
 	}

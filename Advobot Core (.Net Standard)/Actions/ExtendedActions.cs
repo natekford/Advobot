@@ -396,16 +396,6 @@ namespace Advobot
 		}
 
 		/// <summary>
-		/// Returns the service from the provider with the supplied type.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="provider"></param>
-		/// <returns></returns>
-		public static T GetService<T>(this IServiceProvider provider)
-		{
-			return (T)provider.GetService(typeof(T));
-		}
-		/// <summary>
 		/// Returns the attribute from the class type with the supplied type.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>

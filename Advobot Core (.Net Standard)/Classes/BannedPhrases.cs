@@ -92,7 +92,7 @@ namespace Advobot.Classes
 			}
 
 			//TODO: include all automatic punishments in this
-			await PunishmentActions.AutomaticPunishments(guildSettings, user.User, Punishment, false, punishment.PunishmentTime, timers);
+			await Punishments.AutomaticPunishments(Punishment, user.User, punishment.Role, false, punishment.PunishmentTime);
 
 			//Reset the user's number of removes for that given type.
 			_BannedPhraseResets[Punishment](user);

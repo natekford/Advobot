@@ -264,7 +264,7 @@ namespace Advobot.Modules.Log
 					return;
 				}
 
-				await user.SpamPreventionPunishment(guildSettings, timers);
+				await user.SpamPreventionPunishment(guildSettings);
 
 				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
 				user.ResetSpamUser();
@@ -393,7 +393,7 @@ namespace Advobot.Modules.Log
 			var antiRaid = guildSettings.RaidPreventionDictionary[RaidType.Regular];
 			if (antiRaid != null && antiRaid.Enabled)
 			{
-				await antiRaid.RaidPreventionPunishment(guildSettings, user, timers);
+				await antiRaid.RaidPreventionPunishment(guildSettings, user);
 			}
 			var antiJoin = guildSettings.RaidPreventionDictionary[RaidType.RapidJoins];
 			if (antiJoin != null && antiJoin.Enabled)
@@ -404,7 +404,7 @@ namespace Advobot.Modules.Log
 					return;
 				}
 
-				await antiJoin.RaidPreventionPunishment(guildSettings, user, timers);
+				await antiJoin.RaidPreventionPunishment(guildSettings, user);
 				if (guildSettings.ServerLog == null)
 				{
 					return;

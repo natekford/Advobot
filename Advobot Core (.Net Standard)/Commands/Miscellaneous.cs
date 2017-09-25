@@ -539,8 +539,7 @@ namespace Advobot.Commands.Miscellaneous
 			var owner = await UserActions.GetBotOwner(Context.Client);
 			if (owner != null)
 			{
-				var DMChannel = await owner.GetOrCreateDMChannelAsync();
-				await MessageActions.SendMessage(DMChannel, newMsg);
+				await owner.SendMessageAsync(newMsg);
 			}
 			else
 			{

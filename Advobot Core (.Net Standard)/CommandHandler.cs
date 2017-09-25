@@ -6,6 +6,7 @@ using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,7 +23,14 @@ namespace Advobot
 		private static ITimersModule _Timers;
 		private static ILogModule _Logging;
 
-		public static async Task Install(IServiceProvider provider)
+		/// <summary>
+		/// Sets variables from the provider, adds in the typereaders, adds in the modules,
+		/// sets up the events so that commands will work, installs the provider into the
+		/// punishments class, and returns the client.
+		/// </summary>
+		/// <param name="provider"></param>
+		/// <returns></returns>
+		public static async Task<IDiscordClient> Install(IServiceProvider provider)
 		{
 			//Member variables
 			_Provider = provider;
@@ -58,6 +66,9 @@ namespace Advobot
 			{
 				throw new ArgumentException($"Invalid client supplied. Must be {nameof(DiscordSocketClient)} or {nameof(DiscordShardedClient)}.");
 			}
+
+			Punishments.Install(provider);
+			return _Client;
 		}
 
 		private static async Task HandleCommand(SocketUserMessage message)

@@ -142,7 +142,7 @@ namespace Advobot.Actions
 					var users = (await GuildActions.GetUsersAndOrderByJoin(context.Guild)).Reverse().ToArray();
 					for (int i = 0; i < new[] { raidPrev.UserCount, users.Length, 25 }.Min(); ++i)
 					{
-						await raidPrev.RaidPreventionPunishment(context.GuildSettings, users[i], context.Timers);
+						await raidPrev.RaidPreventionPunishment(context.GuildSettings, users[i]);
 					}
 				}
 			}

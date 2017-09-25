@@ -93,10 +93,10 @@ namespace Advobot.Classes
 		{
 			TimeList.Clear();
 		}
-		public async Task RaidPreventionPunishment(IGuildSettings guildSettings, IGuildUser user, ITimersModule timers = null)
+		public async Task RaidPreventionPunishment(IGuildSettings guildSettings, IGuildUser user)
 		{
 			//TODO: make this not 0
-			await PunishmentActions.AutomaticPunishments(guildSettings, user, PunishmentType, false, 0, timers);
+			await Punishments.AutomaticPunishments(PunishmentType, user, guildSettings.MuteRole, false, 0);
 		}
 
 		public void Enable()
@@ -177,10 +177,10 @@ namespace Advobot.Classes
 		{
 			return SpamLists[spamType].CountItemsInTimeFrame(spamPrev.RequiredSpamPerMessageOrTimeInterval) >= spamPrev.RequiredSpamInstances;
 		}
-		public async Task SpamPreventionPunishment(IGuildSettings guildSettings, ITimersModule timers = null)
+		public async Task SpamPreventionPunishment(IGuildSettings guildSettings)
 		{
 			//TODO: make this not 0
-			await PunishmentActions.AutomaticPunishments(guildSettings, User, Punishment, AlreadyKicked, 0, timers);
+			await Punishments.AutomaticPunishments(Punishment, User, guildSettings.MuteRole, AlreadyKicked, 0);
 		}
 	}
 }

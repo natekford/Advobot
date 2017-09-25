@@ -2,6 +2,7 @@
 using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Advobot.Classes

@@ -66,30 +66,32 @@ namespace Advobot.Modules.Timers
 				{
 					case PunishmentType.Ban:
 					{
-						await PunishmentActions.AutomaticUnbanUser(punishment.Guild, punishment.UserId);
+						await Punishments.Unban(punishment.Guild, punishment.UserId, GeneralFormatting.FormatBotReason("automatic unban."));
 						return;
 					}
 				}
 
 				var guildUser = await punishment.Guild.GetUserAsync(punishment.UserId);
 				if (guildUser == null)
+				{
 					return;
+				}
 
 				switch (punishment.PunishmentType)
 				{
 					case PunishmentType.Deafen:
 					{
-						await PunishmentActions.AutomaticUndeafenUser(guildUser);
+						await Punishments.Undeafen(guildUser, GeneralFormatting.FormatBotReason("automatic undeafen."));
 						return;
 					}
 					case PunishmentType.VoiceMute:
 					{
-						await PunishmentActions.AutomaticVoiceUnmuteUser(guildUser);
+						await Punishments.VoiceUnmute(guildUser, GeneralFormatting.FormatBotReason("automatic voice unmute."));
 						return;
 					}
 					case PunishmentType.RoleMute:
 					{
-						await PunishmentActions.AutomaticRoleUnmuteUser(guildUser, (punishment as RemovableRoleMute)?.Role);
+						await Punishments.RoleUnmute(guildUser, punishment.Role, GeneralFormatting.FormatBotReason("automatic role unmute."));
 						return;
 					}
 				}

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Advobot.Enums;
 
 namespace Advobot.Modules.Log
 {
@@ -341,7 +342,7 @@ namespace Advobot.Modules.Log
 				//Bans people who join with a given word in their name
 				if (verified.GuildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
 				{
-					await PunishmentActions.AutomaticBan(verified.Guild, user.Id, "banned name");
+					await Punishments.AutomaticPunishments(PunishmentType.Ban, user, reason: "banned name");
 					return;
 				}
 

@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions;
 using Discord;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
@@ -25,10 +26,7 @@ namespace Advobot.Launcher
 				savePath = false;
 			}
 
-			var provider = CreationActions.CreateServicesAndServiceProvider();
-			await CommandHandler.Install(provider);
-
-			var client = provider.GetService<IDiscordClient>();
+			var client = await CommandHandler.Install(CreationActions.CreateServicesAndServiceProvider());
 
 			//Get the bot key
 			var botKey = true;

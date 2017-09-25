@@ -12,57 +12,26 @@ namespace Advobot.Classes
 	/// </summary>
 	public class RemovablePunishment : IHasTime
 	{
-		public PunishmentType PunishmentType { get; }
-		public IGuild Guild { get; }
-		public ulong UserId { get; }
-
+		public readonly PunishmentType PunishmentType;
+		public readonly IGuild Guild;
+		public readonly ulong UserId;
+		public readonly IRole Role;
 		private DateTime _Time;
 
 		public RemovablePunishment(PunishmentType punishmentType, IGuild guild, ulong userId, uint minutes)
 		{
+			PunishmentType = punishmentType;
 			Guild = guild;
 			UserId = userId;
 			_Time = DateTime.UtcNow.AddMinutes(minutes);
 		}
-
-		public DateTime GetTime() => _Time;
-	}
-
-	/// <summary>
-	/// A removable punishment which includes the role to remove once the time is up.
-	/// </summary>
-	public class RemovableRoleMute : RemovablePunishment
-	{
-		public IRole Role { get; }
-
-		public RemovableRoleMute(IGuild guild, ulong userId, uint minutes, IRole role) : base(PunishmentType.RoleMute, guild, userId, minutes)
+		public RemovablePunishment(PunishmentType punishmentType, IGuild guild, IRole role, ulong userId, uint minutes)
+			: this(punishmentType, guild, userId, minutes)
 		{
 			Role = role;
 		}
-	}
 
-	/// <summary>
-	/// A removable punishment which indicates the user will be unvoice-muted once the time is up.
-	/// </summary>
-	public class RemovableVoiceMute : RemovablePunishment
-	{
-		public RemovableVoiceMute(IGuild guild, ulong userID, uint minutes) : base(PunishmentType.VoiceMute, guild, userID, minutes) { }
-	}
-
-	/// <summary>
-	/// A removable punishment which indicates the user will be undeafened once the time is up.
-	/// </summary>
-	public class RemovableDeafen : RemovablePunishment
-	{
-		public RemovableDeafen(IGuild guild, ulong userID, uint minutes) : base(PunishmentType.Deafen, guild, userID, minutes) { }
-	}
-
-	/// <summary>
-	/// A removable punishment which indicates the user will be unbanned once the time is up.
-	/// </summary>
-	public class RemovableBan : RemovablePunishment
-	{
-		public RemovableBan(IGuild guild, ulong userID, uint minutes) : base(PunishmentType.Ban, guild, userID, minutes) { }
+		public DateTime GetTime() => _Time;
 	}
 
 	/// <summary>
