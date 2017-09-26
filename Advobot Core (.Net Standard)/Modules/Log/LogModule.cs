@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Advobot.Enums;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Modules.Log
 {
@@ -22,76 +23,66 @@ namespace Advobot.Modules.Log
 	/// </remarks>
 	public sealed class MyLogModule : ILogModule
 	{
-		private IDiscordClient _Client { get; }
-		private IBotSettings _BotSettings { get; }
+		private IDiscordClient _Client				{ get; }
+		private IBotSettings _BotSettings			{ get; }
 		private IGuildSettingsModule _GuildSettings { get; }
-		private ITimersModule _Timers { get; }
+		private ITimersModule _Timers				{ get; }
 
-		public List<LoggedCommand> RanCommands { get; } = new List<LoggedCommand>();
+		public List<LoggedCommand> RanCommands		{ get; } = new List<LoggedCommand>();
+		public uint TotalUsers						{ get; private set; } = 0;
+		public uint TotalGuilds						{ get; private set; } = 0;
+		public uint AttemptedCommands				{ get; private set; } = 0;
+		public uint SuccessfulCommands				{ get; private set; } = 0;
+		public uint FailedCommands					{ get; private set; } = 0;
+		public uint LoggedJoins						{ get; private set; } = 0;
+		public uint LoggedLeaves					{ get; private set; } = 0;
+		public uint LoggedUserChanges				{ get; private set; } = 0;
+		public uint LoggedEdits						{ get; private set; } = 0;
+		public uint LoggedDeletes					{ get; private set; } = 0;
+		public uint LoggedMessages					{ get; private set; } = 0;
+		public uint LoggedImages					{ get; private set; } = 0;
+		public uint LoggedGifs						{ get; private set; } = 0;
+		public uint LoggedFiles						{ get; private set; } = 0;
 
-		public uint TotalUsers { get; private set; } = 0;
-		public uint TotalGuilds { get; private set; } = 0;
-		public uint AttemptedCommands { get; private set; } = 0;
-		public uint SuccessfulCommands { get; private set; } = 0;
-		public uint FailedCommands { get; private set; } = 0;
-		public uint LoggedJoins { get; private set; } = 0;
-		public uint LoggedLeaves { get; private set; } = 0;
-		public uint LoggedUserChanges { get; private set; } = 0;
-		public uint LoggedEdits { get; private set; } = 0;
-		public uint LoggedDeletes { get; private set; } = 0;
-		public uint LoggedMessages { get; private set; } = 0;
-		public uint LoggedImages { get; private set; } = 0;
-		public uint LoggedGifs { get; private set; } = 0;
-		public uint LoggedFiles { get; private set; } = 0;
-
-		public MyLogModule(IDiscordClient client, IBotSettings botSettings, IGuildSettingsModule guildSettings, ITimersModule timers)
+		public MyLogModule(IServiceProvider provider)
 		{
-			_Client = client;
-			_BotSettings = botSettings;
-			_GuildSettings = guildSettings;
-			_Timers = timers;
+			_Client = provider.GetService<IDiscordClient>();
+			_BotSettings = provider.GetService<IBotSettings>();
+			_GuildSettings = provider.GetService<IGuildSettingsModule>();
+			_Timers = provider.GetService<ITimersModule>();
 
 			if (_Client is DiscordSocketClient socketClient)
 			{
-				HookUpEvents(socketClient);
+				socketClient.Log						+= OnLogMessageSent;
+				socketClient.GuildAvailable				+= OnGuildAvailable;
+				socketClient.GuildUnavailable			+= OnGuildUnavailable;
+				socketClient.JoinedGuild				+= OnJoinedGuild;
+				socketClient.LeftGuild					+= OnLeftGuild;
+				socketClient.UserJoined					+= OnUserJoined;
+				socketClient.UserLeft					+= OnUserLeft;
+				socketClient.UserUpdated				+= OnUserUpdated;
+				socketClient.MessageReceived			+= OnMessageReceived;
+				socketClient.MessageUpdated				+= OnMessageUpdated;
+				socketClient.MessageDeleted				+= OnMessageDeleted;
 			}
 			else if (_Client is DiscordShardedClient shardedClient)
 			{
-				HookUpEvents(shardedClient);
+				shardedClient.Log						+= OnLogMessageSent;
+				shardedClient.GuildAvailable			+= OnGuildAvailable;
+				shardedClient.GuildUnavailable			+= OnGuildUnavailable;
+				shardedClient.JoinedGuild				+= OnJoinedGuild;
+				shardedClient.LeftGuild					+= OnLeftGuild;
+				shardedClient.UserJoined				+= OnUserJoined;
+				shardedClient.UserLeft					+= OnUserLeft;
+				shardedClient.UserUpdated				+= OnUserUpdated;
+				shardedClient.MessageReceived			+= OnMessageReceived;
+				shardedClient.MessageUpdated			+= OnMessageUpdated;
+				shardedClient.MessageDeleted			+= OnMessageDeleted;
 			}
 			else
 			{
 				throw new ArgumentException("Invalid client provided. Must be either a DiscordSocketClient or a DiscordShardedClient.");
 			}
-		}
-
-		private void HookUpEvents(DiscordSocketClient client)
-		{
-			client.Log						+= OnLogMessageSent;
-			client.GuildAvailable			+= OnGuildAvailable;
-			client.GuildUnavailable			+= OnGuildUnavailable;
-			client.JoinedGuild				+= OnJoinedGuild;
-			client.LeftGuild				+= OnLeftGuild;
-			client.UserJoined				+= OnUserJoined;
-			client.UserLeft					+= OnUserLeft;
-			client.UserUpdated				+= OnUserUpdated;
-			client.MessageReceived			+= OnMessageReceived;
-			client.MessageUpdated			+= OnMessageUpdated;
-			client.MessageDeleted			+= OnMessageDeleted;
-		}
-		private void HookUpEvents(DiscordShardedClient client)
-		{
-			client.Log						+= OnLogMessageSent;
-			client.GuildAvailable			+= OnGuildAvailable;
-			client.GuildUnavailable			+= OnGuildUnavailable;
-			client.JoinedGuild				+= OnJoinedGuild;
-			client.LeftGuild				+= OnLeftGuild;
-			client.UserJoined				+= OnUserJoined;
-			client.UserLeft					+= OnUserLeft;
-			client.UserUpdated				+= OnUserUpdated;
-			client.MessageReceived			+= OnMessageReceived;
-			client.MessageUpdated			+= OnMessageUpdated;
-			client.MessageDeleted			+= OnMessageDeleted;
 		}
 
 		public void AddUsers(int users)
@@ -436,27 +427,20 @@ namespace Advobot.Modules.Log
 		/// <returns></returns>
 		internal async Task OnMessageReceived(SocketMessage message)
 		{
-			if (HelperFunctions.DisallowBots(message) && HelperFunctions.VerifyBotLogging(_BotSettings, _GuildSettings, message, out var verified))
+			if (HelperFunctions.DisallowBots(message) &&
+				HelperFunctions.VerifyBotLogging(_BotSettings, _GuildSettings, message, out var verified))
 			{
+				var user = message.Author as IGuildUser;
 				var guildSettings = verified.GuildSettings;
 
 				//Allow closewords to be handled on an unlogged channel, but don't allow anything else.
 				await HelperFunctions.HandleCloseWords(_BotSettings, guildSettings, message, _Timers);
 				if (HelperFunctions.VerifyLogAction(guildSettings))
 				{
-					var user = message.Author as IGuildUser;
-
-					await HelperFunctions.HandleChannelSettings(guildSettings, message);
-					await HelperFunctions.HandleSpamPrevention(guildSettings, verified.Guild, message, _Timers);
-
-					//Don't bother doing stuff on the user if they're immune
-					var slowmode = guildSettings.Slowmode;
-					if (slowmode != null && slowmode.Enabled && !user.RoleIds.Intersect(slowmode.ImmuneRoleIds).Any())
-					{
-						await slowmode.HandleMessage(message, user);
-					}
-
-					await HelperFunctions.HandleBannedPhrases(_Timers, guildSettings, message);
+					await HelperFunctions.HandleChannelSettings(guildSettings, message, user);
+					await HelperFunctions.HandleSpamPrevention(guildSettings, message, user, _Timers);
+					await HelperFunctions.HandleSlowmode(guildSettings, message, user);
+					await HelperFunctions.HandleBannedPhrases(guildSettings, message, user, _Timers);
 					await HelperFunctions.HandleImageLogging(this, guildSettings.ImageLog, message);
 				}
 			}
@@ -470,10 +454,14 @@ namespace Advobot.Modules.Log
 		/// <returns></returns>
 		internal async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
 		{
-			if (HelperFunctions.DisallowBots(message) && HelperFunctions.VerifyBotLogging(_BotSettings, _GuildSettings, message, out var verified) && HelperFunctions.VerifyLogAction(verified.GuildSettings))
+			if (HelperFunctions.DisallowBots(message) &&
+				HelperFunctions.VerifyBotLogging(_BotSettings, _GuildSettings, message, out var verified) &&
+				HelperFunctions.VerifyLogAction(verified.GuildSettings))
 			{
 				this.IncrementEdits();
-				await HelperFunctions.HandleBannedPhrases(_Timers, verified.GuildSettings, message);
+
+				var user = message.Author as IGuildUser;
+				await HelperFunctions.HandleBannedPhrases(verified.GuildSettings, message, user, _Timers);
 
 				//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
 				var beforeMessage = cached.HasValue ? cached.Value : null;

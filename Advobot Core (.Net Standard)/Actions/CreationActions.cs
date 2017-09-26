@@ -23,20 +23,13 @@ namespace Advobot.Actions
 		/// <returns>The service provider which holds all the services.</returns>
 		public static IServiceProvider CreateServicesAndServiceProvider()
 		{
-			IBotSettings botSettings					= CreateBotSettings();
-			IDiscordClient client						= CreateDiscordClient(botSettings);
-			IGuildSettingsModule guildSettings			= new MyGuildSettingsModule();
-			ITimersModule timers						= new MyTimersModule(guildSettings);
-			ILogModule logging							= new MyLogModule(client, botSettings, guildSettings, timers);
-			CommandService commandService				= new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, });
-
 			return new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
-				.AddSingleton(botSettings)
-				.AddSingleton(guildSettings)
-				.AddSingleton(client)
-				.AddSingleton(timers)
-				.AddSingleton(logging)
-				.AddSingleton(commandService));
+				.AddSingleton<IBotSettings>			(CreateBotSettings())
+				.AddSingleton<IDiscordClient>		(x => CreateDiscordClient(x.GetRequiredService<IBotSettings>()))
+				.AddSingleton<IGuildSettingsModule>	(x => new MyGuildSettingsModule(x))
+				.AddSingleton<ITimersModule>		(x => new MyTimersModule(x))
+				.AddSingleton<ILogModule>			(x => new MyLogModule(x))
+				.AddSingleton<CommandService>		(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, })));
 		}
 		/// <summary>
 		/// Returns <see cref="DiscordSocketClient"/> if shard count in <paramref name="botSettings"/> is 1. Else returns <see cref="DiscordShardedClient"/>.

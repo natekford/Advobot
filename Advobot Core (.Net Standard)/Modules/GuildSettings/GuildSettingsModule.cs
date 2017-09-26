@@ -1,6 +1,7 @@
 ﻿using Advobot.Actions;
 using Advobot.Interfaces;
 using Discord;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -9,6 +10,11 @@ namespace Advobot.Modules.GuildSettings
 	public sealed class MyGuildSettingsModule : IGuildSettingsModule
 	{
 		private readonly Dictionary<ulong, IGuildSettings> _GuildSettings = new Dictionary<ulong, IGuildSettings>();
+
+		public MyGuildSettingsModule(IServiceProvider provider)
+		{
+
+		}
 
 		public Task RemoveGuild(ulong guildId)
 		{

@@ -111,13 +111,14 @@ namespace Advobot.Modules.Log
 
 		#region Message Received
 		//I could use switches for these but I think they make the methods look way too long and harder to read
-		private static Dictionary<SpamType, Func<IMessage, int>> _GetSpamNumberFuncs = new Dictionary<SpamType, Func<IMessage, int>>
+		private static Dictionary<SpamType, Func<IMessage, int?>> _GetSpamNumberFuncs = new Dictionary<SpamType, Func<IMessage, int?>>
 		{
-			{ SpamType.Message, (message) => int.MaxValue },
-			{ SpamType.LongMessage, (message) => message.Content?.Length ?? 0 },
-			{ SpamType.Link, (message) => message.Content?.Split(' ')?.Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) ?? 0 },
-			{ SpamType.Image, (message) => message.Attachments.Where(x => x.Height != null || x.Width != null).Count() + message.Embeds.Where(x => x.Image != null || x.Video != null).Count() },
-			{ SpamType.Mention, (message) => message.MentionedUserIds.Distinct().Count() },
+			{ SpamType.Message,		(message) => int.MaxValue },
+			{ SpamType.LongMessage,	(message) => message.Content?.Length },
+			{ SpamType.Link,		(message) => message.Content?.Split(' ')?.Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) },
+			{ SpamType.Image,		(message) => message.Attachments.Where(x => x.Height != null || x.Width != null).Count() +
+												 message.Embeds.Where(x => x.Image != null || x.Video != null).Count() },
+			{ SpamType.Mention,		(message) => message.MentionedUserIds.Distinct().Count() },
 		};
 
 		/// <summary>
@@ -126,10 +127,9 @@ namespace Advobot.Modules.Log
 		/// <param name="guildSettings"></param>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		public static async Task HandleChannelSettings(IGuildSettings guildSettings, IMessage message)
+		public static async Task HandleChannelSettings(IGuildSettings guildSettings, IMessage message, IGuildUser user)
 		{
-			var author = message.Author as IGuildUser;
-			if (author == null || author.GuildPermissions.Administrator)
+			if (user == null || user.GuildPermissions.Administrator)
 			{
 				return;
 			}
@@ -149,13 +149,21 @@ namespace Advobot.Modules.Log
 		/// <returns></returns>
 		public static async Task HandleImageLogging(ILogModule logging, ITextChannel logChannel, IMessage message)
 		{
-			if (message.Attachments.Any())
+			await LogImage(logging, logChannel, message);
+		}
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="settings"></param>
+		/// <param name=""></param>
+		/// <returns></returns>
+		public static async Task HandleSlowmode(IGuildSettings guildSettings, IMessage message, IGuildUser user)
+		{
+			//Don't bother doing stuff on the user if they're immune
+			var slowmode = guildSettings.Slowmode;
+			if (slowmode?.Enabled ?? false && !user.RoleIds.Intersect(slowmode.ImmuneRoleIds).Any())
 			{
-				await LogImage(logging, logChannel, message, false);
-			}
-			if (message.Embeds.Any())
-			{
-				await LogImage(logging, logChannel, message, true);
+				await slowmode.HandleMessage(message, user);
 			}
 		}
 		/// <summary>
@@ -197,12 +205,12 @@ namespace Advobot.Modules.Log
 		/// <param name="message"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public static async Task HandleSpamPrevention(IGuildSettings guildSettings, IGuild guild, IMessage message, ITimersModule timers = null)
+		public static async Task HandleSpamPrevention(IGuildSettings guildSettings, IMessage message, IGuildUser user, ITimersModule timers = null)
 		{
 			//TODO: Make sure this works
-			if (message.Author.CanBeModifiedByUser(UserActions.GetBot(guild)))
+			if (user.CanBeModifiedByUser(UserActions.GetBot(guildSettings.Guild)))
 			{
-				var spamUser = guildSettings.SpamPreventionUsers.FirstOrDefault(x => x.User.Id == message.Author.Id);
+				var spamUser = guildSettings.SpamPreventionUsers.FirstOrDefault(x => x.User.Id == user.Id);
 				if (spamUser == null)
 				{
 					guildSettings.SpamPreventionUsers.ThreadSafeAdd(spamUser = new SpamPreventionUser(message.Author as IGuildUser));
@@ -219,7 +227,8 @@ namespace Advobot.Modules.Log
 
 					//Ticks should be small enough that this will not allow duplicates of the same message, but can still allow rapidly spammed messages
 					var userSpamList = spamUser.SpamLists[spamType];
-					if (_GetSpamNumberFuncs[spamType](message) >= spamPrev.RequiredSpamPerMessageOrTimeInterval && !userSpamList.Any(x => x.GetTime().Ticks == message.CreatedAt.UtcTicks))
+					if ((_GetSpamNumberFuncs[spamType](message) ?? 0) >= spamPrev.RequiredSpamPerMessageOrTimeInterval &&
+						!userSpamList.Any(x => x.GetTime().Ticks == message.CreatedAt.UtcTicks))
 					{
 						userSpamList.ThreadSafeAdd(new BasicTimeInterface(message.CreatedAt.UtcDateTime));
 					}
@@ -256,24 +265,24 @@ namespace Advobot.Modules.Log
 				&& message.MentionedUserIds.Contains(x.User.Id)
 				&& !x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id));
 
-			foreach (var user in users)
+			foreach (var u in users)
 			{
-				user.IncreaseVotesToKick(message.Author.Id);
-				if (user.UsersWhoHaveAlreadyVoted.Count < user.VotesRequired)
+				u.IncreaseVotesToKick(message.Author.Id);
+				if (u.UsersWhoHaveAlreadyVoted.Count < u.VotesRequired)
 				{
 					return;
 				}
 
-				await user.SpamPreventionPunishment(guildSettings);
+				await u.SpamPreventionPunishment(guildSettings);
 
 				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
-				user.ResetSpamUser();
+				u.ResetSpamUser();
 			}
 		}
-		public static async Task HandleBannedPhrases(ITimersModule timers, IGuildSettings guildSettings, IMessage message)
+		public static async Task HandleBannedPhrases(IGuildSettings guildSettings, IMessage message, IGuildUser user, ITimersModule timers = null)
 		{
 			//Ignore admins and messages older than an hour. (Accidentally deleted something important once due to not having these checks in place, but this should stop most accidental deletions)
-			if ((message.Author as IGuildUser).GuildPermissions.Administrator || (int)DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalHours > 0)
+			if (user.GuildPermissions.Administrator || (int)DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalHours > 0)
 			{
 				return;
 			}
@@ -294,40 +303,33 @@ namespace Advobot.Modules.Log
 		}
 		#endregion
 
-		public static async Task LogImage(ILogModule currentLogModule, ITextChannel channel, IMessage message, bool embeds)
+		public static async Task LogImage(ILogModule currentLogModule, ITextChannel channel, IMessage message)
 		{
-			var attachmentURLs = new List<string>();
+			var attachmentURLs = message.Attachments.Select(x => x.Url).Distinct();
+
 			var embedURLs = new List<string>();
 			var videoEmbeds = new List<IEmbed>();
-			if (!embeds && message.Attachments.Any())
+			foreach (var embed in message.Embeds)
 			{
-				//If attachment, the file is hosted on discord which has a concrete URL name for files (cdn.discordapp.com/attachments/.../x.png)
-				attachmentURLs = message.Attachments.Select(x => x.Url).Distinct().ToList();
-			}
-			else if (embeds && message.Embeds.Any())
-			{
-				//If embed this is slightly trickier, but only images/videos can embed (AFAIK)
-				foreach (var embed in message.Embeds)
+				if (embed.Video == null)
 				{
-					if (embed.Video == null)
+					//If no video then it has to be just an image
+					if (!String.IsNullOrEmpty(embed.Thumbnail?.Url))
 					{
-						//If no video then it has to be just an image
-						if (!String.IsNullOrEmpty(embed.Thumbnail?.Url))
-						{
-							embedURLs.Add(embed.Thumbnail?.Url);
-						}
-						if (!String.IsNullOrEmpty(embed.Image?.Url))
-						{
-							embedURLs.Add(embed.Image?.Url);
-						}
+						embedURLs.Add(embed.Thumbnail?.Url);
 					}
-					else
+					if (!String.IsNullOrEmpty(embed.Image?.Url))
 					{
-						//Add the video URL and the thumbnail URL
-						videoEmbeds.Add(embed);
+						embedURLs.Add(embed.Image?.Url);
 					}
 				}
+				else
+				{
+					//Add the video URL and the thumbnail URL
+					videoEmbeds.Add(embed);
+				}
 			}
+
 			//Attached files
 			foreach (var attachmentURL in attachmentURLs)
 			{

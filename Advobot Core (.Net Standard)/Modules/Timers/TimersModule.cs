@@ -3,6 +3,7 @@ using Advobot.Actions.Formatting;
 using Advobot.Classes;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,9 +29,9 @@ namespace Advobot.Modules.Timers
 		private readonly List<CloseWords<HelpEntry>> _ActiveCloseHelp = new List<CloseWords<HelpEntry>>();
 		private readonly List<CloseWords<Quote>> _ActiveCloseQuotes = new List<CloseWords<Quote>>();
 
-		public MyTimersModule(IGuildSettingsModule guildSettings)
+		public MyTimersModule(IServiceProvider provider)
 		{
-			_GuildSettings = guildSettings;
+			_GuildSettings = provider.GetService<IGuildSettingsModule>();
 
 			_HourTimer.Elapsed += OnHourEvent;
 			_HourTimer.Enabled = true;
