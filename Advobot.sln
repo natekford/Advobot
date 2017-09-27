@@ -8,11 +8,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		LICENSE.txt = LICENSE.txt
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot Console Launcher (.Net Core)", "Advobot Console Launcher (.Net Core)\Advobot Console Launcher (.Net Core).csproj", "{8C84976D-92F8-43D8-BB29-B97ECAF5DB41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot Console Launcher (.Net Core)", "src\Advobot Console Launcher (.Net Core)\Advobot Console Launcher (.Net Core).csproj", "{8C84976D-92F8-43D8-BB29-B97ECAF5DB41}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot Core (.Net Standard)", "Advobot Core (.Net Standard)\Advobot Core (.Net Standard).csproj", "{8C3632B5-6172-4D77-9044-345A64C205A0}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{FB568E4F-9950-4F68-9719-E5A9958F6FC7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot Core (.Net Standard)", "src\Advobot Core (.Net Standard)\Advobot Core (.Net Standard).csproj", "{8C3632B5-6172-4D77-9044-345A64C205A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,10 +29,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{8C84976D-92F8-43D8-BB29-B97ECAF5DB41} = {FB568E4F-9950-4F68-9719-E5A9958F6FC7}
-		{8C3632B5-6172-4D77-9044-345A64C205A0} = {FB568E4F-9950-4F68-9719-E5A9958F6FC7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4DFA053C-9378-4F41-B1C1-6DE68D9CF75D}
