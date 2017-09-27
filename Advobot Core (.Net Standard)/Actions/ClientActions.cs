@@ -12,7 +12,7 @@ namespace Advobot.Actions
 	public static class ClientActions
 	{
 		/// <summary>
-		/// Tries to start the bot by making sure a save path and bot key are provided and the bot is not already running.
+		/// Tries to start the bot.
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>

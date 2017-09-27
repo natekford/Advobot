@@ -18,12 +18,12 @@ namespace Advobot.Modules.Log
 		#region Verification
 		private static SortedDictionary<string, LogAction> _ServerLogMethodLogActions = new SortedDictionary<string, LogAction>
 		{
-			{ nameof(MyLogModule.OnUserJoined), LogAction.UserJoined },
-			{ nameof(MyLogModule.OnUserLeft), LogAction.UserLeft },
-			{ nameof(MyLogModule.OnUserUpdated), LogAction.UserUpdated },
-			{ nameof(MyLogModule.OnMessageReceived), LogAction.MessageReceived },
-			{ nameof(MyLogModule.OnMessageUpdated), LogAction.MessageUpdated },
-			{ nameof(MyLogModule.OnMessageDeleted), LogAction.MessageDeleted },
+			{ nameof(Logging.OnUserJoined), LogAction.UserJoined },
+			{ nameof(Logging.OnUserLeft), LogAction.UserLeft },
+			{ nameof(Logging.OnUserUpdated), LogAction.UserUpdated },
+			{ nameof(Logging.OnMessageReceived), LogAction.MessageReceived },
+			{ nameof(Logging.OnMessageUpdated), LogAction.MessageUpdated },
+			{ nameof(Logging.OnMessageDeleted), LogAction.MessageDeleted },
 		};
 
 		/// <summary>

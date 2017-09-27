@@ -12,7 +12,7 @@ using System.Timers;
 
 namespace Advobot.Modules.Timers
 {
-	public sealed class MyTimersModule : ITimersModule, IDisposable
+	public sealed class Timers : ITimersModule, IDisposable
 	{
 		private const long HOUR = 60 * 60 * 1000;
 		private const long MINUTE = 60 * 1000;
@@ -29,7 +29,7 @@ namespace Advobot.Modules.Timers
 		private readonly List<CloseWords<HelpEntry>> _ActiveCloseHelp = new List<CloseWords<HelpEntry>>();
 		private readonly List<CloseWords<Quote>> _ActiveCloseQuotes = new List<CloseWords<Quote>>();
 
-		public MyTimersModule(IServiceProvider provider)
+		public Timers(IServiceProvider provider)
 		{
 			_GuildSettings = provider.GetService<IGuildSettingsModule>();
 

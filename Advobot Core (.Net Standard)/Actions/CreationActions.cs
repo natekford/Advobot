@@ -1,4 +1,6 @@
 ﻿using Advobot.Actions.Formatting;
+using Advobot.Classes;
+using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Advobot.Modules.GuildSettings;
 using Advobot.Modules.Log;
@@ -7,7 +9,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -21,49 +22,62 @@ namespace Advobot.Actions
 		/// <see cref="ITimersModule"/>, and <see cref="ILogModule"/>.
 		/// </summary>
 		/// <returns>The service provider which holds all the services.</returns>
-		public static IServiceProvider CreateServicesAndServiceProvider()
+		public static async Task<IServiceProvider> CreateServicesAndServiceProvider()
 		{
-			return new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
+			var provider = new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
+				.AddSingleton<CommandService>		(await CreateCommandService())
 				.AddSingleton<IBotSettings>			(CreateBotSettings())
 				.AddSingleton<IDiscordClient>		(x => CreateDiscordClient(x.GetRequiredService<IBotSettings>()))
-				.AddSingleton<IGuildSettingsModule>	(x => new MyGuildSettingsModule(x))
-				.AddSingleton<ITimersModule>		(x => new MyTimersModule(x))
-				.AddSingleton<ILogModule>			(x => new MyLogModule(x))
-				.AddSingleton<CommandService>		(new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, })));
+				.AddSingleton<IGuildSettingsModule>	(x => new GuildSettingsHolder(x))
+				.AddSingleton<ITimersModule>		(x => new Timers(x))
+				.AddSingleton<ILogModule>			(x => new Logging(x)));
+
+			CommandHandler.Install(provider);
+			Punishments.Install(provider);
+
+			return provider;
 		}
 		/// <summary>
 		/// Returns <see cref="DiscordSocketClient"/> if shard count in <paramref name="botSettings"/> is 1. Else returns <see cref="DiscordShardedClient"/>.
 		/// </summary>
 		/// <param name="botSettings">The settings to initialize the client with.</param>
 		/// <returns>A discord client.</returns>
-		public static IDiscordClient CreateDiscordClient(IBotSettings botSettings)
+		internal static IDiscordClient CreateDiscordClient(IBotSettings botSettings)
 		{
-			if (botSettings.ShardCount > 1)
+			var config = new DiscordSocketConfig
 			{
-				return new DiscordShardedClient(new DiscordSocketConfig
-				{
-					AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
-					MessageCacheSize = (int)botSettings.MessageCacheCount,
-					LogLevel = botSettings.LogLevel,
-					TotalShards = (int)botSettings.ShardCount,
-				});
-			}
-			else
-			{
-				return new DiscordSocketClient(new DiscordSocketConfig
-				{
-					AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
-					MessageCacheSize = (int)botSettings.MaxUserGatherCount,
-					LogLevel = botSettings.LogLevel,
-				});
-			}
+				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
+				MessageCacheSize = (int)botSettings.MessageCacheCount,
+				LogLevel = botSettings.LogLevel,
+				TotalShards = (int)botSettings.ShardCount,
+			};
+			return botSettings.ShardCount > 1 ? new DiscordShardedClient(config) : (IDiscordClient)new DiscordSocketClient(config);
+		}
+		/// <summary>
+		/// Creates the <see cref="CommandService"/> for the bot. Add in typereaders and modules.
+		/// </summary>
+		/// <returns></returns>
+		internal static async Task<CommandService> CreateCommandService()
+		{
+			var commandService = new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, });
+
+			commandService.AddTypeReader(typeof(IInvite), new InviteTypeReader());
+			commandService.AddTypeReader(typeof(IBan), new BanTypeReader());
+			commandService.AddTypeReader(typeof(Emote), new EmoteTypeReader());
+			commandService.AddTypeReader(typeof(Color), new ColorTypeReader());
+			commandService.AddTypeReader(typeof(CommandSwitch), new CommandSwitchTypeReader());
+
+			//Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
+			await commandService.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly());
+
+			return commandService;
 		}
 		/// <summary>
 		/// Creates settings that the bot uses.
 		/// </summary>
 		/// <param name="botSettingsType"></param>
 		/// <returns></returns>
-		public static IBotSettings CreateBotSettings()
+		internal static IBotSettings CreateBotSettings()
 		{
 			IBotSettings botSettings = null;
 			var fileInfo = GetActions.GetBaseBotDirectoryFile(Constants.BOT_SETTINGS_LOCATION);
@@ -73,7 +87,7 @@ namespace Advobot.Actions
 				{
 					using (var reader = new StreamReader(fileInfo.FullName))
 					{
-						botSettings = (IBotSettings)JsonConvert.DeserializeObject(reader.ReadToEnd(), Constants.BOT_SETTINGS_TYPE);
+						botSettings = SavingAndLoadingActions.Deserialize<IBotSettings>(reader.ReadToEnd(), Constants.BOT_SETTINGS_TYPE);
 					}
 					ConsoleActions.WriteLine("The bot information has successfully been loaded.");
 				}
@@ -94,7 +108,7 @@ namespace Advobot.Actions
 		/// <param name="guildSettingsType"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static async Task<IGuildSettings> CreateGuildSettings(IGuild guild)
+		internal static async Task<IGuildSettings> CreateGuildSettings(IGuild guild)
 		{
 			IGuildSettings guildSettings = null;
 			var fileInfo = GetActions.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOCATION);
@@ -104,7 +118,7 @@ namespace Advobot.Actions
 				{
 					using (var reader = new StreamReader(fileInfo.FullName))
 					{
-						guildSettings = (IGuildSettings)JsonConvert.DeserializeObject(reader.ReadToEnd(), Constants.GUILD_SETTINGS_TYPE);
+						guildSettings = SavingAndLoadingActions.Deserialize<IGuildSettings>(reader.ReadToEnd(), Constants.GUILD_SETTINGS_TYPE);
 					}
 					ConsoleActions.WriteLine($"The guild information for {guild.FormatGuild()} has successfully been loaded.");
 				}

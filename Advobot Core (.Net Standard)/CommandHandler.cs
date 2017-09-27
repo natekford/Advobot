@@ -1,19 +1,19 @@
 ﻿using Advobot.Actions;
 using Advobot.Actions.Formatting;
 using Advobot.Classes;
-using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Advobot
 {
-	public class CommandHandler
+	internal class CommandHandler
 	{
 		private static IServiceProvider _Provider;
 		private static CommandService _Commands;
@@ -22,75 +22,105 @@ namespace Advobot
 		private static IDiscordClient _Client;
 		private static ITimersModule _Timers;
 		private static ILogModule _Logging;
+		private static bool _Loaded;
 
 		/// <summary>
-		/// Sets variables from the provider, adds in the typereaders, adds in the modules,
-		/// sets up the events so that commands will work, installs the provider into the
-		/// punishments class, and returns the client.
+		/// Sets variables and some events up.
 		/// </summary>
 		/// <param name="provider"></param>
-		/// <returns></returns>
-		public static async Task<IDiscordClient> Install(IServiceProvider provider)
+		internal static void Install(IServiceProvider provider)
 		{
-			//Member variables
-			_Provider = provider;
-			_Commands = provider.GetService<CommandService>();
-			_BotSettings = provider.GetService<IBotSettings>();
-			_GuildSettings = provider.GetService<IGuildSettingsModule>();
-			_Client = provider.GetService<IDiscordClient>();
-			_Timers = provider.GetService<ITimersModule>();
-			_Logging = provider.GetService<ILogModule>();
+			_Provider		= provider;
+			_Commands		= provider.GetService<CommandService>();
+			_BotSettings	= provider.GetService<IBotSettings>();
+			_GuildSettings	= provider.GetService<IGuildSettingsModule>();
+			_Client			= provider.GetService<IDiscordClient>();
+			_Timers			= provider.GetService<ITimersModule>();
+			_Logging		= provider.GetService<ILogModule>();
 
-			//Type readers
-			_Commands.AddTypeReader(typeof(IInvite), new InviteTypeReader());
-			_Commands.AddTypeReader(typeof(IBan), new BanTypeReader());
-			_Commands.AddTypeReader(typeof(Emote), new EmoteTypeReader());
-			_Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
-			_Commands.AddTypeReader(typeof(CommandSwitch), new CommandSwitchTypeReader());
-
-			//Commands
-			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly()); //Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
-
-			//Events
 			if (_Client is DiscordSocketClient socketClient)
 			{
-				socketClient.MessageReceived += (message) => HandleCommand(message as SocketUserMessage);
-				socketClient.Connected += async () => await SavingAndLoadingActions.DoStartupActions(_Client, _BotSettings);
+				socketClient.MessageReceived += HandleCommand;
+				socketClient.Connected += OnConnected;
 			}
 			else if (_Client is DiscordShardedClient shardedClient)
 			{
-				shardedClient.MessageReceived += (message) => HandleCommand(message as SocketUserMessage);
-				shardedClient.Shards.FirstOrDefault().Connected += async () => await SavingAndLoadingActions.DoStartupActions(_Client, _BotSettings);
+				shardedClient.MessageReceived += HandleCommand;
+				shardedClient.Shards.Last().Connected += OnConnected;
 			}
 			else
 			{
 				throw new ArgumentException($"Invalid client supplied. Must be {nameof(DiscordSocketClient)} or {nameof(DiscordShardedClient)}.");
 			}
-
-			Punishments.Install(provider);
-			return _Client;
 		}
 
-		private static async Task HandleCommand(SocketUserMessage message)
+		/// <summary>
+		/// Says some start up messages, updates the game, and restarts the bot if this is the first instance of the bot starting up.
+		/// </summary>
+		/// <returns></returns>
+		private static async Task OnConnected()
 		{
-			var loggedCommand = new LoggedCommand();
-			if (_BotSettings.Pause)
+			if (_Loaded)
 			{
 				return;
 			}
 
-			var guildSettings = await _GuildSettings.GetOrCreateSettings(message.Channel.GetGuild());
-			if (guildSettings == null || !TryGetArgPos(message, GetActions.GetPrefix(_BotSettings, guildSettings), out int argPos))
+			if (Config.Configuration[ConfigKeys.Bot_Id] != _Client.CurrentUser.Id.ToString())
 			{
-				return;
+				Config.Configuration[ConfigKeys.Bot_Id] = _Client.CurrentUser.Id.ToString();
+				Config.Save();
+				ConsoleActions.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
+				ClientActions.RestartBot();
 			}
 
-			var context = new MyCommandContext(_Provider, _Client, guildSettings, message);
-			var result = await _Commands.ExecuteAsync(context, argPos, _Provider);
-			await CommandLogger(loggedCommand, context, result);
+			await ClientActions.UpdateGameAsync(_Client, _BotSettings);
+
+			ConsoleActions.WriteLine("The current bot prefix is: " + _BotSettings.Prefix);
+			ConsoleActions.WriteLine($"Bot took {DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds:n} milliseconds to start up.");
+			_Loaded = true;
 		}
-		//TODO: put this back into the CommandService.CommandExecute event once it stops firing twice.
-		private static async Task CommandLogger(LoggedCommand loggedCommand, IMyCommandContext context, IResult result)
+
+		/// <summary>
+		/// Attempts to find a matching command and fire it.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		private static async Task HandleCommand(SocketMessage message)
+		{
+			//Bot isn't paused and the message isn't a system message
+			var loggedCommand = new LoggedCommand();
+			if (_BotSettings.Pause || !(message is SocketUserMessage userMessage))
+			{
+				return;
+			}
+
+			//Guild settings
+			var guildSettings = await _GuildSettings.GetOrCreateSettings(message.Channel.GetGuild());
+			if (guildSettings == null)
+			{
+				return;
+			}
+
+			//Prefix
+			var argPos = -1;
+			if (!userMessage.HasMentionPrefix(_Client.CurrentUser, ref argPos)
+				&& !userMessage.HasStringPrefix(GetActions.GetPrefix(_BotSettings, guildSettings), ref argPos))
+			{
+				return;
+			}
+
+			var context = new MyCommandContext(_Provider, _Client, guildSettings, userMessage);
+			var result = await _Commands.ExecuteAsync(context, argPos, _Provider);
+			await LogCommand(loggedCommand, context, result);
+		}
+		/// <summary>
+		/// Prints the status of the command to the console.
+		/// </summary>
+		/// <param name="loggedCommand"></param>
+		/// <param name="context"></param>
+		/// <param name="result"></param>
+		/// <returns></returns>
+		private static async Task LogCommand(LoggedCommand loggedCommand, IMyCommandContext context, IResult result)
 		{
 			//Success
 			if (result.IsSuccess)
@@ -120,11 +150,6 @@ namespace Advobot
 			}
 
 			loggedCommand.FinalizeAndWrite(context, result, _Logging);
-		}
-		private static bool TryGetArgPos(IUserMessage message, string prefix, out int argPos)
-		{
-			argPos = -1;
-			return message.HasMentionPrefix(_Client.CurrentUser, ref argPos) || message.HasStringPrefix(prefix, ref argPos);
 		}
 	}
 }

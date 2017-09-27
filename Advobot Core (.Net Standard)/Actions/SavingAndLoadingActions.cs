@@ -1,44 +1,22 @@
 ﻿using Advobot.Actions.Formatting;
-using Advobot.Interfaces;
-using Discord;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace Advobot.Actions
 {
 	public static class SavingAndLoadingActions
 	{
-		private static bool _Loaded = false;
-
-		public static async Task DoStartupActions(IDiscordClient client, IBotSettings botSettings)
-		{
-			if (_Loaded)
-			{
-				return;
-			}
-
-			if (Config.Configuration[ConfigKeys.Bot_Id] != client.CurrentUser.Id.ToString())
-			{
-				Config.Configuration[ConfigKeys.Bot_Id] = client.CurrentUser.Id.ToString();
-				Config.Save();
-				ConsoleActions.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
-				ClientActions.RestartBot();
-			}
-
-			await ClientActions.UpdateGameAsync(client, botSettings);
-
-			ConsoleActions.WriteLine("The current bot prefix is: " + botSettings.Prefix);
-			ConsoleActions.WriteLine($"Bot took {DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds:n} milliseconds to load everything.");
-			_Loaded = true;
-		}
-
 		public static string Serialize(object obj)
 		{
-			return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, new Newtonsoft.Json.Converters.StringEnumConverter());
+			return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, new StringEnumConverter());
 		}
+		public static T Deserialize<T>(string value, Type type)
+		{
+			return (T)JsonConvert.DeserializeObject(value, type, new StringEnumConverter());
+		}
+
 		public static void CreateFile(FileInfo fileInfo)
 		{
 			if (!fileInfo.Exists)

@@ -21,7 +21,7 @@ namespace Advobot.Modules.Log
 	/// <remarks>
 	/// This is probably the second worst part of the bot, right behind the UI. Slightly ahead of saving settings though.
 	/// </remarks>
-	public sealed class MyLogModule : ILogModule
+	public sealed class Logging : ILogModule
 	{
 		private IDiscordClient _Client				{ get; }
 		private IBotSettings _BotSettings			{ get; }
@@ -44,12 +44,12 @@ namespace Advobot.Modules.Log
 		public uint LoggedGifs						{ get; private set; } = 0;
 		public uint LoggedFiles						{ get; private set; } = 0;
 
-		public MyLogModule(IServiceProvider provider)
+		public Logging(IServiceProvider provider)
 		{
-			_Client = provider.GetService<IDiscordClient>();
-			_BotSettings = provider.GetService<IBotSettings>();
-			_GuildSettings = provider.GetService<IGuildSettingsModule>();
-			_Timers = provider.GetService<ITimersModule>();
+			_Client			= provider.GetService<IDiscordClient>();
+			_BotSettings	= provider.GetService<IBotSettings>();
+			_GuildSettings	= provider.GetService<IGuildSettingsModule>();
+			_Timers			= provider.GetService<ITimersModule>();
 
 			if (_Client is DiscordSocketClient socketClient)
 			{

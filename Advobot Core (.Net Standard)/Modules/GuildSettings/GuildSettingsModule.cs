@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Advobot.Modules.GuildSettings
 {
-	public sealed class MyGuildSettingsModule : IGuildSettingsModule
+	public sealed class GuildSettingsHolder : IGuildSettingsModule
 	{
 		private readonly Dictionary<ulong, IGuildSettings> _GuildSettings = new Dictionary<ulong, IGuildSettings>();
 
-		public MyGuildSettingsModule(IServiceProvider provider)
+		public GuildSettingsHolder(IServiceProvider provider)
 		{
 
 		}
