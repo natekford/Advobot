@@ -125,7 +125,7 @@ namespace Advobot
 			//Success
 			if (result.IsSuccess)
 			{
-				_Logging.IncrementSuccessfulCommands();
+				_Logging.SuccessfulCommands.Increment();
 				await MessageActions.DeleteMessage(context.Message);
 
 				var guildSettings = context.GuildSettings;
@@ -140,7 +140,7 @@ namespace Advobot
 			//Failure in a valid fail way
 			else if (loggedCommand.ErrorReason != null)
 			{
-				_Logging.IncrementFailedCommands();
+				_Logging.FailedCommands.Increment();
 				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR(loggedCommand.ErrorReason));
 			}
 			//Failure in a way that doesn't need to get logged (unknown command, etc)

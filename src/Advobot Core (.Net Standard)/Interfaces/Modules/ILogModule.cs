@@ -8,42 +8,44 @@ namespace Advobot.Interfaces
 	/// </summary>
 	public interface ILogModule
 	{
-		List<LoggedCommand> RanCommands { get; }
+		List<LoggedCommand> RanCommands	{ get; }
+		LogCounter TotalUsers			{ get; }
+		LogCounter TotalGuilds			{ get; }
+		LogCounter AttemptedCommands	{ get; }
+		LogCounter SuccessfulCommands	{ get; }
+		LogCounter FailedCommands		{ get; }
+		LogCounter UserJoins			{ get; }
+		LogCounter UserLeaves			{ get; }
+		LogCounter UserChanges			{ get; }
+		LogCounter MessageEdits			{ get; }
+		LogCounter MessageDeletes		{ get; }
+		LogCounter Messages				{ get; }
+		LogCounter Images				{ get; }
+		LogCounter Gifs					{ get; }
+		LogCounter Files				{ get; }
 
-		uint TotalUsers { get; }
-		uint TotalGuilds { get; }
-		uint AttemptedCommands { get; }
-		uint SuccessfulCommands { get; }
-		uint FailedCommands { get; }
-		uint LoggedJoins { get; }
-		uint LoggedLeaves { get; }
-		uint LoggedUserChanges { get; }
-		uint LoggedEdits { get; }
-		uint LoggedDeletes { get; }
-		uint LoggedMessages { get; }
-		uint LoggedImages { get; }
-		uint LoggedGifs { get; }
-		uint LoggedFiles { get; }
-
-		void AddUsers(int users);
-		void RemoveUsers(int users);
-		void IncrementUsers();
-		void DecrementUsers();
-		void IncrementGuilds();
-		void DecrementGuilds();
-		void IncrementSuccessfulCommands();
-		void IncrementFailedCommands();
-		void IncrementJoins();
-		void IncrementLeaves();
-		void IncrementUserChanges();
-		void IncrementEdits();
-		void IncrementDeletes();
-		void IncrementMessages();
-		void IncrementImages();
-		void IncrementGifs();
-		void IncrementFiles();
+		IBotLogger BotLogger			{ get; }
+		IGuildLogger GuildLogger		{ get; }
+		IUserLogger UserLogger			{ get; }
+		IMessageLogger MessageLogger	{ get; }
 
 		string FormatLoggedCommands();
 		string FormatLoggedActions();
+	}
+
+	public interface IBotLogger
+	{
+	}
+
+	public interface IGuildLogger
+	{
+	}
+
+	public interface IUserLogger
+	{
+	}
+
+	public interface IMessageLogger
+	{
 	}
 }

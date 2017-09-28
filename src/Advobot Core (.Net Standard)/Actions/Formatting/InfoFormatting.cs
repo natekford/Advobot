@@ -212,10 +212,7 @@ namespace Advobot.Actions.Formatting
 			var firstField = new StringBuilder()
 				.AppendLineFeed(logModule.FormatLoggedActions());
 
-			var secondField = new StringBuilder()
-				.AppendLineFeed($"**Attempted:** `{logModule.AttemptedCommands}`")
-				.AppendLineFeed($"**Successful:** `{logModule.SuccessfulCommands}`")
-				.AppendLineFeed($"**Failed:** `{logModule.FailedCommands}`");
+			var secondField = logModule.FormatLoggedCommands();
 
 			var thirdField = new StringBuilder()
 				.AppendLineFeed($"**Latency:** `{ClientActions.GetLatency(client)}ms`")
