@@ -30,16 +30,16 @@ namespace Advobot.Classes
 	/// </summary>
 	public class MyCommandContext : CommandContext, IMyCommandContext
 	{
-		public IBotSettings BotSettings { get; }
-		public IGuildSettings GuildSettings { get; }
-		public ILogModule Logging { get; }
-		public ITimersModule Timers { get; }
+		private IServiceProvider _Provider;
 
-		public MyCommandContext(IServiceProvider provider, IDiscordClient client, IGuildSettings guildSettings, IUserMessage msg) : base(client, msg)
+		public IBotSettings BotSettings	=> _Provider.GetService<IBotSettings>();
+		public ILogModule Logging		=> _Provider.GetService<ILogModule>();
+		public ITimersModule Timers		=> _Provider.GetService<ITimersModule>();
+		public IGuildSettings GuildSettings { get; }
+
+		public MyCommandContext(IServiceProvider provider, IGuildSettings guildSettings, IDiscordClient client, IUserMessage msg) : base(client, msg)
 		{
-			BotSettings = provider.GetService<IBotSettings>();
-			Logging = provider.GetService<ILogModule>();
-			Timers = provider.GetService<ITimersModule>();
+			_Provider = provider;
 			GuildSettings = guildSettings;
 		}
 	}

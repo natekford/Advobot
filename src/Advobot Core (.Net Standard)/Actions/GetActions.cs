@@ -148,7 +148,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static DirectoryInfo GetBaseBotDirectory()
 		{
-			var path = Path.Combine(Config.Configuration[ConfigKeys.Save_Path], $"{Constants.SERVER_FOLDER}_{Config.Configuration[ConfigKeys.Bot_Id]}");
+			var path = Path.Combine(Config.Configuration[Config.ConfigKeys.Save_Path], $"{Constants.SERVER_FOLDER}_{Config.Configuration[Config.ConfigKeys.Bot_Id]}");
 			return Directory.CreateDirectory(path);
 		}
 		/// <summary>

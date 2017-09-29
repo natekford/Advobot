@@ -350,14 +350,8 @@ namespace Advobot.Commands.Miscellaneous
 			}
 			else
 			{
-				//This may be one of the most retarded work arounds I have ever done.
-				var tempTupleList = new List<Tuple<IGuild, IGuildUser>>();
-				foreach (var guild in guilds)
-				{
-					tempTupleList.Add(Tuple.Create(guild, await guild.GetOwnerAsync()));
-				}
-
-				var desc = tempTupleList.FormatNumberedList("`{0}` Owner: `{1}`", x => x.Item1.FormatGuild(), x => x.Item2.FormatUser());
+				var guildsAndOwners = await Task.WhenAll(guilds.Select(async x => (Guild: x, Owner: await x.GetOwnerAsync())));
+				var desc = guildsAndOwners.FormatNumberedList("`{0}` Owner: `{1}`", x => x.Guild.FormatGuild(), x => x.Owner.FormatUser());
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Guilds", desc));
 			}
 		}

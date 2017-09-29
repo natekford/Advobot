@@ -26,7 +26,7 @@ namespace Advobot.Actions
 				if (!bannedPhrases.Any(x => x.Phrase.CaseInsEquals(str)))
 				{
 					success.Add(str);
-					bannedPhrases.Add(new BannedPhrase(str, default(PunishmentType)));
+					bannedPhrases.Add(new BannedPhrase(str, default));
 				}
 				else
 				{

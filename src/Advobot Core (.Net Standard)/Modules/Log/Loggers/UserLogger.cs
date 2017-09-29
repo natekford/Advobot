@@ -2,6 +2,7 @@
 using Advobot.Actions.Formatting;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Discord;
 using Discord.WebSocket;
 using System;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace Advobot.Modules.Log
 			_Logging.TotalUsers.Increment();
 			_Logging.UserJoins.Increment();
 
-			if (Logging.VerifyBotLogging(_BotSettings, _GuildSettings, user, out var guildSettings))
+			if (VerifyBotLogging(user, out var guildSettings))
 			{
 				//Bans people who join with a given word in their name
 				if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
@@ -51,9 +52,7 @@ namespace Advobot.Modules.Log
 					await Punishments.AutomaticPunishments(PunishmentType.Ban, user, reason: "banned name");
 					return;
 				}
-
-				await HelperFunctions.HandleJoiningUsersForRaidPrevention(_Timers, guildSettings, user);
-				if (Logging.VerifyLogAction(guildSettings, LogAction.UserJoined))
+				else if (VerifyLogAction(guildSettings, LogAction.UserJoined))
 				{
 					var inviteStr = await DiscordObjectFormatting.FormatInviteJoin(guildSettings, user);
 					var ageWarningStr = DiscordObjectFormatting.FormatAccountAgeWarning(user);
@@ -62,6 +61,8 @@ namespace Advobot.Modules.Log
 						.MyAddFooter(user.IsBot ? "Bot Joined" : "User Joined");
 					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
 				}
+
+				await HandleJoiningUsersForRaidPrevention(guildSettings, user);
 
 				//Welcome message
 				if (guildSettings.WelcomeMessage != null)
@@ -81,19 +82,19 @@ namespace Advobot.Modules.Log
 			_Logging.UserLeaves.Increment();
 
 			//Check if the bot was the one that left
-			if (user.Id.ToString() == Config.Configuration[ConfigKeys.Bot_Id])
+			if (user.Id.ToString() == Config.Configuration[Config.ConfigKeys.Bot_Id])
 			{
 				return;
 			}
 
-			if (Logging.VerifyBotLogging(_BotSettings, _GuildSettings, user, out var guildSettings))
+			if (VerifyBotLogging(user, out var guildSettings))
 			{
 				//Don't log them to the server if they're someone who was just banned for joining with a banned name
 				if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
 				{
 					return;
 				}
-				else if (Logging.VerifyLogAction(guildSettings, LogAction.UserLeft))
+				else if (VerifyLogAction(guildSettings, LogAction.UserLeft))
 				{
 					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}\n{DiscordObjectFormatting.FormatStayLength(user)}", Colors.LEAV)
 						.MyAddAuthor(user)
@@ -123,8 +124,8 @@ namespace Advobot.Modules.Log
 
 			foreach (var guild in (await _Client.GetGuildsAsync()).Where(x => (x as SocketGuild).Users.Select(y => y.Id).Contains(afterUser.Id)))
 			{
-				if (Logging.VerifyBotLogging(_BotSettings, _GuildSettings, guild, out var guildSettings) &&
-					Logging.VerifyLogAction(guildSettings, LogAction.UserUpdated))
+				if (VerifyBotLogging(guild, out var guildSettings) &&
+					VerifyLogAction(guildSettings, LogAction.UserUpdated))
 				{
 					_Logging.UserChanges.Increment();
 					var embed = EmbedActions.MakeNewEmbed(null, null, Colors.UEDT)
@@ -134,6 +135,32 @@ namespace Advobot.Modules.Log
 						.MyAddFooter("Name Changed");
 					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
 				}
+			}
+		}
+
+		internal async Task HandleJoiningUsersForRaidPrevention(IGuildSettings guildSettings, IGuildUser user)
+		{
+			var antiRaid = guildSettings.RaidPreventionDictionary[RaidType.Regular];
+			if (antiRaid != null && antiRaid.Enabled)
+			{
+				await antiRaid.RaidPreventionPunishment(guildSettings, user);
+			}
+			var antiJoin = guildSettings.RaidPreventionDictionary[RaidType.RapidJoins];
+			if (antiJoin != null && antiJoin.Enabled)
+			{
+				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
+				if (antiJoin.GetSpamCount() < antiJoin.UserCount)
+				{
+					return;
+				}
+
+				await antiJoin.RaidPreventionPunishment(guildSettings, user);
+				if (guildSettings.ServerLog == null)
+				{
+					return;
+				}
+
+				await MessageActions.SendEmbedMessage(guildSettings.ServerLog, EmbedActions.MakeNewEmbed("Anti Rapid Join Mute", $"**User:** {user.FormatUser()}"));
 			}
 		}
 	}

@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions.Formatting;
 using Advobot.Classes;
+using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Advobot.Modules.GuildSettings;
@@ -22,20 +23,15 @@ namespace Advobot.Actions
 		/// <see cref="ITimersModule"/>, and <see cref="ILogModule"/>.
 		/// </summary>
 		/// <returns>The service provider which holds all the services.</returns>
-		public static async Task<IServiceProvider> CreateServicesAndServiceProvider()
+		public static IServiceProvider CreateServicesAndServiceProvider()
 		{
-			var provider = new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
-				.AddSingleton<CommandService>		(await CreateCommandService())
+			return new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
+				.AddSingleton<CommandService>		(CreateCommandService())
 				.AddSingleton<IBotSettings>			(CreateBotSettings())
 				.AddSingleton<IDiscordClient>		(x => CreateDiscordClient(x.GetRequiredService<IBotSettings>()))
 				.AddSingleton<IGuildSettingsModule>	(x => new GuildSettingsHolder(x))
 				.AddSingleton<ITimersModule>		(x => new Timers(x))
 				.AddSingleton<ILogModule>			(x => new Logging(x)));
-
-			CommandHandler.Install(provider);
-			Punishments.Install(provider);
-
-			return provider;
 		}
 		/// <summary>
 		/// Returns <see cref="DiscordSocketClient"/> if shard count in <paramref name="botSettings"/> is 1. Else returns <see cref="DiscordShardedClient"/>.
@@ -57,7 +53,7 @@ namespace Advobot.Actions
 		/// Creates the <see cref="CommandService"/> for the bot. Add in typereaders and modules.
 		/// </summary>
 		/// <returns></returns>
-		internal static async Task<CommandService> CreateCommandService()
+		internal static CommandService CreateCommandService()
 		{
 			var commandService = new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, });
 
@@ -66,9 +62,6 @@ namespace Advobot.Actions
 			commandService.AddTypeReader(typeof(Emote), new EmoteTypeReader());
 			commandService.AddTypeReader(typeof(Color), new ColorTypeReader());
 			commandService.AddTypeReader(typeof(CommandSwitch), new CommandSwitchTypeReader());
-
-			//Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
-			await commandService.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly());
 
 			return commandService;
 		}

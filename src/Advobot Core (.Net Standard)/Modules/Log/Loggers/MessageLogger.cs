@@ -55,15 +55,15 @@ namespace Advobot.Modules.Log
 		/// <returns></returns>
 		internal async Task OnMessageReceived(SocketMessage message)
 		{
-			if (Logging.DisallowBots(message) &&
-				Logging.VerifyBotLogging(_BotSettings, _GuildSettings, message, out var guildSettings))
+			if (DisallowBots(message) &&
+				VerifyBotLogging(message, out var guildSettings))
 			{
-				var user = message.Author as IGuildUser;
-
 				//Allow closewords to be handled on an unlogged channel, but don't allow anything else.
 				await HandleCloseWords(guildSettings, message);
-				if (Logging.VerifyLogAction(guildSettings, LogAction.MessageReceived))
+
+				if (VerifyLogAction(guildSettings, LogAction.MessageReceived))
 				{
+					var user = message.Author as IGuildUser;
 					await HandleChannelSettings(guildSettings, message, user);
 					await HandleSpamPrevention(guildSettings, message, user);
 					await HandleSlowmode(guildSettings, message, user);
@@ -81,16 +81,17 @@ namespace Advobot.Modules.Log
 		/// <returns></returns>
 		internal async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
 		{
-			if (Logging.DisallowBots(message) &&
-				Logging.VerifyBotLogging(_BotSettings, _GuildSettings, message, out var guildSettings) &&
-				Logging.VerifyLogAction(guildSettings, LogAction.MessageUpdated))
+			if (DisallowBots(message) &&
+				VerifyBotLogging(message, out var guildSettings) &&
+				VerifyLogAction(guildSettings, LogAction.MessageUpdated))
 			{
 				_Logging.MessageEdits.Increment();
 
 				var user = message.Author as IGuildUser;
 				await HandleBannedPhrases(guildSettings, message, user);
 
-				//If the before message is not specified always take that as it should be logged. If the embed counts are greater take that as logging too.
+				//If the before message is not specified always take that as it should be logged.
+				//If the embed counts are greater take that as logging too.
 				var beforeMessage = cached.HasValue ? cached.Value : null;
 				if (guildSettings.ImageLog != null && beforeMessage?.Embeds.Count() < message.Embeds.Count())
 				{
@@ -98,22 +99,17 @@ namespace Advobot.Modules.Log
 				}
 				if (guildSettings.ServerLog != null)
 				{
-					var beforeMsgContent = String.IsNullOrWhiteSpace(beforeMessage?.Content) ? "Empty or unable to be gotten." : beforeMessage?.Content.RemoveAllMarkdown().RemoveDuplicateNewLines();
-					var afterMsgContent = String.IsNullOrWhiteSpace(message.Content) ? "Empty or unable to be gotten." : message.Content.RemoveAllMarkdown().RemoveDuplicateNewLines();
+					var beforeMsgContent = (beforeMessage?.Content ?? "Unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
+					var afterMsgContent = (message.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
 					if (beforeMsgContent.Equals(afterMsgContent))
 					{
 						return;
 					}
-					else if (beforeMsgContent.Length + afterMsgContent.Length > Constants.MAX_MESSAGE_LENGTH_LONG)
-					{
-						beforeMsgContent = beforeMsgContent.Length > 667 ? "Long message" : beforeMsgContent;
-						afterMsgContent = afterMsgContent.Length > 667 ? "Long message" : afterMsgContent;
-					}
 
 					var embed = EmbedActions.MakeNewEmbed(null, null, Colors.MEDT)
 						.MyAddAuthor(message.Author)
-						.MyAddField("Before:", $"`{beforeMsgContent}`")
-						.MyAddField("After:", $"`{afterMsgContent}`", false)
+						.MyAddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
+						.MyAddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)
 						.MyAddFooter("Message Updated");
 					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
 				}
@@ -130,9 +126,9 @@ namespace Advobot.Modules.Log
 		{
 			//Ignore uncached messages since not much can be done with them
 			var message = cached.HasValue ? cached.Value : null;
-			if (message != null &&
-				Logging.VerifyBotLogging(_BotSettings, _GuildSettings, channel, out var guildSettings) &&
-				Logging.VerifyLogAction(guildSettings, LogAction.MessageDeleted))
+			if (DisallowBots(message) &&
+				VerifyBotLogging(channel, out var guildSettings) &&
+				VerifyLogAction(guildSettings, LogAction.MessageDeleted))
 			{
 				_Logging.MessageDeletes.Increment();
 

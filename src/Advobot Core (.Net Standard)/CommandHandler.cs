@@ -2,6 +2,9 @@
 using Advobot.Actions.Formatting;
 using Advobot.Classes;
 using Advobot.Interfaces;
+using Advobot.Modules.GuildSettings;
+using Advobot.Modules.Log;
+using Advobot.Modules.Timers;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -13,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Advobot
 {
-	internal class CommandHandler
+	public class CommandHandler
 	{
 		private static IServiceProvider _Provider;
 		private static CommandService _Commands;
@@ -28,15 +31,18 @@ namespace Advobot
 		/// Sets variables and some events up.
 		/// </summary>
 		/// <param name="provider"></param>
-		internal static void Install(IServiceProvider provider)
+		public static async Task<IDiscordClient> Install(IServiceProvider provider)
 		{
 			_Provider		= provider;
-			_Commands		= provider.GetService<CommandService>();
-			_BotSettings	= provider.GetService<IBotSettings>();
-			_GuildSettings	= provider.GetService<IGuildSettingsModule>();
-			_Client			= provider.GetService<IDiscordClient>();
-			_Timers			= provider.GetService<ITimersModule>();
-			_Logging		= provider.GetService<ILogModule>();
+			_Commands		= _Provider.GetService<CommandService>();
+			_BotSettings	= _Provider.GetService<IBotSettings>();
+			_GuildSettings	= _Provider.GetService<IGuildSettingsModule>();
+			_Client			= _Provider.GetService<IDiscordClient>();
+			_Timers			= _Provider.GetService<ITimersModule>();
+			_Logging		= _Provider.GetService<ILogModule>();
+
+			//Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
+			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly());
 
 			if (_Client is DiscordSocketClient socketClient)
 			{
@@ -52,6 +58,10 @@ namespace Advobot
 			{
 				throw new ArgumentException($"Invalid client supplied. Must be {nameof(DiscordSocketClient)} or {nameof(DiscordShardedClient)}.");
 			}
+
+			Punishments.Install(provider);
+
+			return _Client;
 		}
 
 		/// <summary>
@@ -65,9 +75,9 @@ namespace Advobot
 				return;
 			}
 
-			if (Config.Configuration[ConfigKeys.Bot_Id] != _Client.CurrentUser.Id.ToString())
+			if (Config.Configuration[Config.ConfigKeys.Bot_Id] != _Client.CurrentUser.Id.ToString())
 			{
-				Config.Configuration[ConfigKeys.Bot_Id] = _Client.CurrentUser.Id.ToString();
+				Config.Configuration[Config.ConfigKeys.Bot_Id] = _Client.CurrentUser.Id.ToString();
 				Config.Save();
 				ConsoleActions.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
 				ClientActions.RestartBot();
@@ -109,7 +119,7 @@ namespace Advobot
 				return;
 			}
 
-			var context = new MyCommandContext(_Provider, _Client, guildSettings, userMessage);
+			var context = new MyCommandContext(_Provider, guildSettings, _Client, userMessage);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider);
 			await LogCommand(loggedCommand, context, result);
 		}

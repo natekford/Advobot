@@ -72,7 +72,7 @@ namespace Advobot.Classes.Attributes
 
 		private PreconditionResult GetPreconditionResult(ICommandContext context, object value)
 		{
-			var result = default(VerifiedObjectResult);
+			VerifiedObjectResult result = default;
 			if (value is IGuildChannel guildChannel)
 			{
 				result = ChannelActions.VerifyChannelMeetsRequirements(context, guildChannel, _Checks);
@@ -100,17 +100,17 @@ namespace Advobot.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter)]
 	internal sealed class VerifyStringLengthAttribute : ParameterPreconditionAttribute
 	{
-		private static readonly Dictionary<Target, Tuple<int, int, string>> _MinsAndMaxesAndErrors = new Dictionary<Target, Tuple<int, int, string>>
+		private static readonly Dictionary<Target, (int Min, int Max, string Name)> _MinsAndMaxesAndErrors = new Dictionary<Target, (int, int, string)>
 		{
-			{ Target.Guild,     Tuple.Create(Constants.MIN_GUILD_NAME_LENGTH,   Constants.MAX_GUILD_NAME_LENGTH,    "guild name") },
-			{ Target.Channel,   Tuple.Create(Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH,  "channel name") },
-			{ Target.Role,      Tuple.Create(Constants.MIN_ROLE_NAME_LENGTH,    Constants.MAX_ROLE_NAME_LENGTH,     "role name") },
-			{ Target.Name,      Tuple.Create(Constants.MIN_USERNAME_LENGTH,     Constants.MAX_USERNAME_LENGTH,      "username") },
-			{ Target.Nickname,  Tuple.Create(Constants.MIN_NICKNAME_LENGTH,     Constants.MAX_NICKNAME_LENGTH,      "nickname") },
-			{ Target.Game,      Tuple.Create(Constants.MIN_GAME_LENGTH,         Constants.MAX_GAME_LENGTH,          "game") },
-			{ Target.Stream,    Tuple.Create(Constants.MIN_STREAM_LENGTH,       Constants.MAX_STREAM_LENGTH,        "stream name") },
-			{ Target.Topic,     Tuple.Create(Constants.MIN_TOPIC_LENGTH,        Constants.MAX_TOPIC_LENGTH,         "channel topic") },
-			{ Target.Prefix,    Tuple.Create(Constants.MIN_PREFIX_LENGTH,       Constants.MAX_PREFIX_LENGTH,        "bot prefix") },
+			{ Target.Guild,     (Constants.MIN_GUILD_NAME_LENGTH,	Constants.MAX_GUILD_NAME_LENGTH,	"guild name") },
+			{ Target.Channel,   (Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH,  "channel name") },
+			{ Target.Role,      (Constants.MIN_ROLE_NAME_LENGTH,    Constants.MAX_ROLE_NAME_LENGTH,     "role name") },
+			{ Target.Name,      (Constants.MIN_USERNAME_LENGTH,     Constants.MAX_USERNAME_LENGTH,      "username") },
+			{ Target.Nickname,  (Constants.MIN_NICKNAME_LENGTH,     Constants.MAX_NICKNAME_LENGTH,      "nickname") },
+			{ Target.Game,      (Constants.MIN_GAME_LENGTH,         Constants.MAX_GAME_LENGTH,          "game") },
+			{ Target.Stream,    (Constants.MIN_STREAM_LENGTH,       Constants.MAX_STREAM_LENGTH,        "stream name") },
+			{ Target.Topic,     (Constants.MIN_TOPIC_LENGTH,        Constants.MAX_TOPIC_LENGTH,         "channel topic") },
+			{ Target.Prefix,    (Constants.MIN_PREFIX_LENGTH,       Constants.MAX_PREFIX_LENGTH,        "bot prefix") },
 		};
 		private int _Min;
 		private int _Max;
@@ -126,10 +126,8 @@ namespace Advobot.Classes.Attributes
 		{
 			if (_MinsAndMaxesAndErrors.TryGetValue(target, out var minAndMaxAndError))
 			{
-				_Min = minAndMaxAndError.Item1;
-				_Max = minAndMaxAndError.Item2;
-				_TooShort = $"A {minAndMaxAndError.Item3} must be at least `{_Min}` characters long.";
-				_TooLong = $"A {minAndMaxAndError.Item3} must be at most `{_Max}` characters long.";
+				_TooShort = $"A {minAndMaxAndError.Name} must be at least `{(_Min = minAndMaxAndError.Min)}` characters long.";
+				_TooLong = $"A {minAndMaxAndError.Name} must be at most `{(_Max = minAndMaxAndError.Max)}` characters long.";
 			}
 			else
 			{

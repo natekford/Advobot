@@ -3,7 +3,9 @@ using Discord;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Advobot
@@ -36,7 +38,6 @@ namespace Advobot
 			{
 				if (!String.IsNullOrWhiteSpace(path) && Directory.Exists(path))
 				{
-					Configuration[ConfigKeys.Save_Path] = path;
 					return true;
 				}
 
@@ -83,12 +84,11 @@ namespace Advobot
 					catch (Exception)
 					{
 						ConsoleActions.WriteLine("The given key is no longer valid. Please enter a new valid key:");
+						return false;
 					}
 				}
-				else
-				{
-					ConsoleActions.WriteLine("Please enter the bot's key:");
-				}
+
+				ConsoleActions.WriteLine("Please enter the bot's key:");
 				return false;
 			}
 
@@ -115,9 +115,9 @@ namespace Advobot
 		private static string CeateSavePath()
 		{
 			//Start by grabbing the executing assembly location then cutting out everything but the file name
-			var currentName = Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetExecutingAssembly().Location);
+			var currentName = Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location);
 			//Count how many exist with that name so they can be saved as Advobot1, Advobot2, etc.
-			var count = System.Diagnostics.Process.GetProcessesByName(System.Diagnostics.Process.GetCurrentProcess().ProcessName).Length;
+			var count = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length;
 			//Add the config file into the local application data folder under Advobot
 			var configFileName = currentName + count.ToString() + ".config";
 			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Advobot", configFileName);
@@ -135,7 +135,7 @@ namespace Advobot
 				{
 					using (var reader = new StreamReader(_SavePath))
 					{
-						tempDict = JsonConvert.DeserializeObject<ConfigDict>(reader.ReadToEnd());
+						tempDict = SavingAndLoadingActions.Deserialize<ConfigDict>(reader.ReadToEnd(), typeof(ConfigDict));
 					}
 				}
 				catch (Exception e)
@@ -145,40 +145,43 @@ namespace Advobot
 			}
 			return tempDict ?? new ConfigDict();
 		}
+		/// <summary>
+		/// Writes the current <see cref="ConfigDict"/> to file.
+		/// </summary>
 		public static void Save()
 		{
 			SavingAndLoadingActions.OverWriteFile(new FileInfo(_SavePath), SavingAndLoadingActions.Serialize(Configuration));
 		}
-	}
 
-	/// <summary>
-	/// Creates a dictionary which only holds the values for <see cref="ConfigKeys"/> to be modified.
-	/// </summary>
-	public class ConfigDict
-	{
-		[JsonProperty("Config")]
-		private Dictionary<ConfigKeys, string> _ConfigDict = new Dictionary<ConfigKeys, string>
+		/// <summary>
+		/// Creates a dictionary which only holds the values for <see cref="ConfigKeys"/> to be modified.
+		/// </summary>
+		public class ConfigDict
 		{
-			{ ConfigKeys.Save_Path, null },
-			{ ConfigKeys.Bot_Key, null },
-			{ ConfigKeys.Bot_Id, "0" },
-		};
+			[JsonProperty("Config")]
+			private Dictionary<ConfigKeys, string> _ConfigDict = new Dictionary<ConfigKeys, string>
+			{
+				{ ConfigKeys.Save_Path, null },
+				{ ConfigKeys.Bot_Key,	null },
+				{ ConfigKeys.Bot_Id,	"0" },
+			};
 
-		[JsonIgnore]
-		public string this[ConfigKeys key]
-		{
-			get => _ConfigDict[key];
-			set => _ConfigDict[key] = value;
+			[JsonIgnore]
+			public string this[ConfigKeys key]
+			{
+				get => _ConfigDict[key];
+				set => _ConfigDict[key] = value;
+			}
 		}
-	}
 
-	/// <summary>
-	/// Keys to be used in <see cref="ConfigDict"/>.
-	/// </summary>
-	public enum ConfigKeys : uint
-	{
-		Save_Path			= (1U << 0),
-		Bot_Key				= (1U << 1),
-		Bot_Id				= (1U << 2),
+		/// <summary>
+		/// Keys to be used in <see cref="ConfigDict"/>.
+		/// </summary>
+		public enum ConfigKeys : uint
+		{
+			Save_Path			= (1U << 0),
+			Bot_Key				= (1U << 1),
+			Bot_Id				= (1U << 2),
+		}
 	}
 }

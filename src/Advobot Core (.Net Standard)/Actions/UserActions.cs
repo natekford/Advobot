@@ -105,7 +105,7 @@ namespace Advobot.Actions
 		public static bool CanBeModifiedByUser(this IUser targetUser, IUser invokingUser)
 		{
 			//Allow users to do stuff on themselves.
-			if (targetUser.Id == invokingUser.Id && invokingUser.Id.ToString() == Config.Configuration[ConfigKeys.Bot_Id])
+			if (targetUser.Id == invokingUser.Id && invokingUser.Id.ToString() == Config.Configuration[Config.ConfigKeys.Bot_Id])
 			{
 				return true;
 			}
