@@ -1,6 +1,7 @@
 ﻿using Advobot.Actions;
 using Advobot.Actions.Formatting;
 using Advobot.Classes;
+using Advobot.Classes.Punishments;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,29 +10,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Collections.Concurrent;
 
 namespace Advobot.Modules.Timers
 {
+	//I have absolutely no idea if this class works as intended under stress.
 	public sealed class Timers : ITimersModule, IDisposable
 	{
-		private const long HOUR = 60 * 60 * 1000;
-		private const long MINUTE = 60 * 1000;
-		private const long ONE_HALF_SECOND = 500;
+		private const long HOUR						= 60 * 60 * 1000;
+		private const long MINUTE					= 60 * 1000;
+		private const long ONE_HALF_SECOND			= 500;
 
-		private readonly Timer _HourTimer = new Timer(HOUR);
-		private readonly Timer _MinuteTimer = new Timer(MINUTE);
-		private readonly Timer _OneHalfSecondTimer = new Timer(ONE_HALF_SECOND);
+		private readonly Timer _HourTimer			= new Timer(HOUR);
+		private readonly Timer _MinuteTimer			= new Timer(MINUTE);
+		private readonly Timer _OneHalfSecondTimer	= new Timer(ONE_HALF_SECOND);
+
+		private readonly ConcurrentDictionary<ulong, List<RemovablePunishment>> _RemovablePunishments	= new ConcurrentDictionary<ulong, List<RemovablePunishment>>();
+		private readonly ConcurrentDictionary<ulong, List<RemovableMessage>> _RemovableMessages			= new ConcurrentDictionary<ulong, List<RemovableMessage>>();
+		private readonly ConcurrentDictionary<ulong, List<CloseWords<HelpEntry>>> _ActiveCloseHelp		= new ConcurrentDictionary<ulong, List<CloseWords<HelpEntry>>>();
+		private readonly ConcurrentDictionary<ulong, List<CloseWords<Quote>>> _ActiveCloseQuotes		= new ConcurrentDictionary<ulong, List<CloseWords<Quote>>>();
 
 		private readonly IGuildSettingsModule _GuildSettings;
-
-		private readonly List<RemovablePunishment> _RemovablePunishments = new List<RemovablePunishment>();
-		private readonly List<RemovableMessage> _RemovableMessages = new List<RemovableMessage>();
-		private readonly List<CloseWords<HelpEntry>> _ActiveCloseHelp = new List<CloseWords<HelpEntry>>();
-		private readonly List<CloseWords<Quote>> _ActiveCloseQuotes = new List<CloseWords<Quote>>();
+		private readonly PunishmentRemover _PunishmentRemover;
 
 		public Timers(IServiceProvider provider)
 		{
 			_GuildSettings = provider.GetService<IGuildSettingsModule>();
+			_PunishmentRemover = new PunishmentRemover(this);
 
 			_HourTimer.Elapsed += OnHourEvent;
 			_HourTimer.Enabled = true;
@@ -45,7 +50,7 @@ namespace Advobot.Modules.Timers
 
 		private void OnHourEvent(object source, ElapsedEventArgs e)
 		{
-			ClearPunishedUsersList();
+			Task.Run(() => ClearPunishedUsersList());
 		}
 		private void ClearPunishedUsersList()
 		{
@@ -61,13 +66,14 @@ namespace Advobot.Modules.Timers
 		}
 		private async Task RemovePunishments()
 		{
-			foreach (var punishment in _RemovablePunishments.GetOutTimedObjects())
+			foreach (var punishment in GetOutTimedObjects(_RemovablePunishments))
 			{
+				var reason = GeneralFormatting.FormatBotReason($"automatic un{punishment.PunishmentType.EnumName().FormatTitle()}");
 				switch (punishment.PunishmentType)
 				{
 					case PunishmentType.Ban:
 					{
-						await Punishments.Unban(punishment.Guild, punishment.UserId, GeneralFormatting.FormatBotReason("automatic unban."));
+						await _PunishmentRemover.UnbanAsync(punishment.Guild, punishment.UserId, reason);
 						return;
 					}
 				}
@@ -82,17 +88,17 @@ namespace Advobot.Modules.Timers
 				{
 					case PunishmentType.Deafen:
 					{
-						await Punishments.Undeafen(guildUser, GeneralFormatting.FormatBotReason("automatic undeafen."));
+						await _PunishmentRemover.UndeafenAsync(guildUser, reason);
 						return;
 					}
 					case PunishmentType.VoiceMute:
 					{
-						await Punishments.VoiceUnmute(guildUser, GeneralFormatting.FormatBotReason("automatic voice unmute."));
+						await _PunishmentRemover.VoiceUnmuteAsync(guildUser, reason);
 						return;
 					}
 					case PunishmentType.RoleMute:
 					{
-						await Punishments.RoleUnmute(guildUser, punishment.Role, GeneralFormatting.FormatBotReason("automatic role unmute."));
+						await _PunishmentRemover.RoleUnmuteAsync(guildUser, punishment.Role, reason);
 						return;
 					}
 				}
@@ -102,12 +108,12 @@ namespace Advobot.Modules.Timers
 		private void OnOneHalfSecondEvent(object source, ElapsedEventArgs e)
 		{
 			Task.Run(async () => { await DeleteTargettedMessages(); });
-			RemoveActiveCloseHelpAndWords();
-			ResetSlowModeUserMessages();
+			Task.Run(() => RemoveActiveCloseHelpAndWords());
+			Task.Run(() => ResetSlowModeUserMessages());
 		}
 		private async Task DeleteTargettedMessages()
 		{
-			foreach (var message in _RemovableMessages.GetOutTimedObjects())
+			foreach (var message in GetOutTimedObjects(_RemovableMessages))
 			{
 				if (message.Messages.Count() == 1)
 				{
@@ -121,8 +127,8 @@ namespace Advobot.Modules.Timers
 		}
 		private void RemoveActiveCloseHelpAndWords()
 		{
-			_ActiveCloseHelp.GetOutTimedObjects();
-			_ActiveCloseQuotes.GetOutTimedObjects();
+			RemoveTimedObjects(_ActiveCloseHelp);
+			RemoveTimedObjects(_ActiveCloseQuotes);
 		}
 		private void ResetSlowModeUserMessages()
 		{
@@ -134,37 +140,89 @@ namespace Advobot.Modules.Timers
 
 		public void AddRemovablePunishments(params RemovablePunishment[] punishments)
 		{
-			_RemovablePunishments.ThreadSafeAddRange(punishments);
+			foreach (var group in punishments.GroupBy(x => x.UserId))
+			{
+				AddObjects(_RemovablePunishments, group.Key, group);
+			}
 		}
 		public void AddRemovableMessages(params RemovableMessage[] messages)
 		{
-			_RemovableMessages.ThreadSafeAddRange(messages);
+			foreach (var group in messages.GroupBy(x => x.Channel.Id))
+			{
+				AddObjects(_RemovableMessages, group.Key, group);
+			}
 		}
-		public void AddActiveCloseHelp(params CloseWords<HelpEntry>[] help)
+		public void AddActiveCloseHelp(params CloseWords<HelpEntry>[] helpEntries)
 		{
-			_ActiveCloseHelp.ThreadSafeAddRange(help);
+			foreach (var group in helpEntries.GroupBy(x => x.UserId))
+			{
+				AddObjects(_ActiveCloseHelp, group.Key, group);
+			}
 		}
 		public void AddActiveCloseQuotes(params CloseWords<Quote>[] quotes)
 		{
-			_ActiveCloseQuotes.ThreadSafeAddRange(quotes);
+			foreach (var group in quotes.GroupBy(x => x.UserId))
+			{
+				AddObjects(_ActiveCloseQuotes, group.Key, group);
+			}
 		}
 
-		public void RemovePunishments(ulong userId, PunishmentType punishment)
+		public int RemovePunishments(ulong userId, PunishmentType punishment)
 		{
-			_RemovablePunishments.Where(x => x.UserId == userId && x.PunishmentType == punishment);
-		}
+			if (!_RemovablePunishments.TryGetValue(userId, out var value))
+			{
+				return 0;
+			}
 
+			lock (value)
+			{
+				return value.RemoveAll(x => x.PunishmentType == punishment);
+			}
+		}
 		public CloseWords<HelpEntry> GetOutActiveCloseHelp(ulong userId)
 		{
-			var help = _ActiveCloseHelp.FirstOrDefault(x => x.UserId == userId);
-			_ActiveCloseHelp.ThreadSafeRemoveAll((x => x.UserId == userId));
-			return help;
+			return _ActiveCloseHelp.TryRemove(userId, out var removed) ? removed?.FirstOrDefault() : null;
 		}
 		public CloseWords<Quote> GetOutActiveCloseQuote(ulong userId)
 		{
-			var quote = _ActiveCloseQuotes.FirstOrDefault(x => x.UserId == userId);
-			_ActiveCloseQuotes.ThreadSafeRemoveAll(x => x.UserId == userId);
-			return quote;
+			return _ActiveCloseQuotes.TryRemove(userId, out var removed) ? removed?.FirstOrDefault() : null;
+		}
+
+		private void AddObjects<T>(ConcurrentDictionary<ulong, List<T>> concDic, ulong key, IEnumerable<T> addVal)
+		{
+			//I don't know if this is fully thread safe.
+			if (!concDic.TryGetValue(key, out var value))
+			{
+				value = new List<T>();
+				concDic.AddOrUpdate(key, value, (oldKey, oldVal) => value);
+			}
+
+			lock (value)
+			{
+				value.AddRange(addVal);
+			}
+		}
+		private IEnumerable<T> GetOutTimedObjects<T>(ConcurrentDictionary<ulong, List<T>> concDic) where T : IHasTime
+		{
+			//I don't know exactly what the yield syntax does but I think it's applicable here.
+			foreach (var list in concDic.Values)
+			{
+				foreach (var obj in list.Where(x => x.GetTime() < DateTime.UtcNow).ToList())
+				{
+					list.Remove(obj);
+					yield return obj;
+				}
+			}
+		}
+		private void RemoveTimedObjects<T>(ConcurrentDictionary<ulong, List<T>> concDic) where T : IHasTime
+		{
+			foreach (var list in concDic.Values)
+			{
+				foreach (var obj in list.Where(x => x.GetTime() < DateTime.UtcNow).ToList())
+				{
+					list.Remove(obj);
+				}
+			}
 		}
 
 		public void Dispose()

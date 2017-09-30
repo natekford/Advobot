@@ -1,4 +1,5 @@
 ﻿using Advobot.Actions;
+using Advobot.Classes.Punishments;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
@@ -96,7 +97,8 @@ namespace Advobot.Classes
 		public async Task RaidPreventionPunishment(IGuildSettings guildSettings, IGuildUser user)
 		{
 			//TODO: make this not 0
-			await Punishments.AutomaticPunishments(PunishmentType, user, guildSettings.MuteRole, false, 0);
+			var giver = new AutomaticPunishmentGiver(0, null);
+			await giver.AutomaticallyPunishAsync(PunishmentType, user, guildSettings.MuteRole);
 		}
 
 		public void Enable()
@@ -123,14 +125,13 @@ namespace Advobot.Classes
 
 	public class SpamPreventionUser
 	{
-		public IGuildUser User { get; }
-		public List<ulong> UsersWhoHaveAlreadyVoted { get; } = new List<ulong>();
-		public Dictionary<SpamType, List<BasicTimeInterface>> SpamLists { get; } = new Dictionary<SpamType, List<BasicTimeInterface>>();
+		public readonly IGuildUser User;
+		public readonly List<ulong> UsersWhoHaveAlreadyVoted = new List<ulong>();
+		public readonly Dictionary<SpamType, List<BasicTimeInterface>> SpamLists = new Dictionary<SpamType, List<BasicTimeInterface>>();
 
 		public int VotesRequired { get; private set; } = int.MaxValue;
 		public bool PotentialPunishment { get; private set; } = false;
-		public bool AlreadyKicked { get; private set; } = false;
-		public PunishmentType Punishment { get; private set; } = default(PunishmentType);
+		public PunishmentType Punishment { get; private set; } = default;
 
 		public SpamPreventionUser(IGuildUser user)
 		{
@@ -171,7 +172,7 @@ namespace Advobot.Classes
 
 			VotesRequired = int.MaxValue;
 			PotentialPunishment = false;
-			Punishment = default(PunishmentType);
+			Punishment = default;
 		}
 		public bool CheckIfAllowedToPunish(SpamPreventionInfo spamPrev, SpamType spamType)
 		{
@@ -180,7 +181,8 @@ namespace Advobot.Classes
 		public async Task SpamPreventionPunishment(IGuildSettings guildSettings)
 		{
 			//TODO: make this not 0
-			await Punishments.AutomaticPunishments(Punishment, User, guildSettings.MuteRole, AlreadyKicked, 0);
+			var giver = new AutomaticPunishmentGiver(0, null);
+			await giver.AutomaticallyPunishAsync(Punishment, User, guildSettings.MuteRole);
 		}
 	}
 }

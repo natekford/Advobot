@@ -126,7 +126,7 @@ namespace Advobot.Modules.Log
 		{
 			//Ignore uncached messages since not much can be done with them
 			var message = cached.HasValue ? cached.Value : null;
-			if (DisallowBots(message) &&
+			if (message != null &&
 				VerifyBotLogging(channel, out var guildSettings) &&
 				VerifyLogAction(guildSettings, LogAction.MessageDeleted))
 			{

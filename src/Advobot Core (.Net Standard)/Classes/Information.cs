@@ -232,22 +232,8 @@ namespace Advobot.Classes
 
 		public LogCounter([CallerMemberName] string title = "")
 		{
-			Title = FormatTitle(title);
+			Title = title.FormatTitle();
 			Count = 0;
-		}
-
-		private string FormatTitle(string title)
-		{
-			var sb = new StringBuilder();
-			foreach (var c in title)
-			{
-				if (Char.IsUpper(c))
-				{
-					sb.Append(' ');
-				}
-				sb.Append(c);
-			}
-			return sb.ToString();
 		}
 
 		public void Add(int count)

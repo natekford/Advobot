@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Actions.Formatting;
+using Advobot.Classes.Punishments;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
@@ -49,7 +50,8 @@ namespace Advobot.Modules.Log
 				//Bans people who join with a given word in their name
 				if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
 				{
-					await Punishments.AutomaticPunishments(PunishmentType.Ban, user, reason: "banned name");
+					var giver = new AutomaticPunishmentGiver(0, _Timers);
+					await giver.AutomaticallyPunishAsync(PunishmentType.Ban, user, null, GeneralFormatting.FormatBotReason("banned name"));
 					return;
 				}
 				else if (VerifyLogAction(guildSettings, LogAction.UserJoined))

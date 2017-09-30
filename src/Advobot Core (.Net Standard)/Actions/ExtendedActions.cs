@@ -353,47 +353,6 @@ namespace Advobot
 		{
 			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
 		}
-		/// <summary>
-		/// Removes <see cref="ITime"/> objects where their time is below <see cref="DateTime.UtcNow"/>.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="inputList"></param>
-		/// <returns></returns>
-		public static List<T> GetOutTimedObjects<T>(this List<T> inputList) where T : IHasTime
-		{
-			if (inputList == null)
-			{
-				return null;
-			}
-
-			var eligibleToBeGotten = inputList.Where(x => x.GetTime() < DateTime.UtcNow).ToList();
-			foreach (var obj in eligibleToBeGotten)
-			{
-				inputList.ThreadSafeRemove(obj);
-			}
-			return eligibleToBeGotten;
-		}
-		/// <summary>
-		/// Removes <see cref="ITime"/> key value pairs where their time is below <see cref="DateTime.UtcNow"/>.
-		/// </summary>
-		/// <typeparam name="TKey"></typeparam>
-		/// <typeparam name="TValue"></typeparam>
-		/// <param name="inputDict"></param>
-		/// <returns></returns>
-		public static Dictionary<TKey, TValue> GetOutTimedObjects<TKey, TValue>(this Dictionary<TKey, TValue> inputDict) where TValue : IHasTime
-		{
-			if (inputDict == null)
-			{
-				return null;
-			}
-
-			var elligibleToBeGotten = inputDict.Where(x => x.Value.GetTime() < DateTime.UtcNow).ToList();
-			foreach (var value in elligibleToBeGotten)
-			{
-				inputDict.Remove(value.Key);
-			}
-			return elligibleToBeGotten.ToDictionary(x => x.Key, x => x.Value);
-		}
 
 		/// <summary>
 		/// Returns the attribute from the class type with the supplied type.

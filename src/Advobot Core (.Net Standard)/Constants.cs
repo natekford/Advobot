@@ -118,7 +118,7 @@ namespace Advobot
 			{ PunishmentType.VoiceMute,		100 },
 			{ PunishmentType.RoleMute,		250 },
 			{ PunishmentType.Kick,			500 },
-			{ PunishmentType.KickThenBan,	750 },
+			{ PunishmentType.Softban,		750 },
 			{ PunishmentType.Ban,			1000 },
 		}));
 

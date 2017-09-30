@@ -1,4 +1,5 @@
 ﻿using Advobot.Actions;
+using Advobot.Classes.Punishments;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
@@ -52,7 +53,6 @@ namespace Advobot.Classes
 			{
 				case PunishmentType.RoleMute:
 				case PunishmentType.Kick:
-				case PunishmentType.KickThenBan:
 				case PunishmentType.Ban:
 				{
 					Punishment = punishment;
@@ -60,7 +60,7 @@ namespace Advobot.Classes
 				}
 				default:
 				{
-					Punishment = default(PunishmentType);
+					Punishment = default;
 					return;
 				}
 			}
@@ -92,7 +92,8 @@ namespace Advobot.Classes
 			}
 
 			//TODO: include all automatic punishments in this
-			await Punishments.AutomaticPunishments(Punishment, user.User, punishment.Role, false, punishment.PunishmentTime);
+			var giver = new AutomaticPunishmentGiver(punishment.PunishmentTime, timers);
+			await giver.AutomaticallyPunishAsync(Punishment, user.User, punishment.Role);
 
 			//Reset the user's number of removes for that given type.
 			_BannedPhraseResets[Punishment](user);
@@ -100,7 +101,7 @@ namespace Advobot.Classes
 
 		public override string ToString()
 		{
-			var punishmentChar = Punishment == default(PunishmentType) ? "N" : Punishment.EnumName().Substring(0, 1);
+			var punishmentChar = Punishment == default ? "N" : Punishment.EnumName().Substring(0, 1);
 			return $"`{punishmentChar}` `{Phrase}`";
 		}
 		public string ToString(SocketGuild guild)

@@ -59,8 +59,6 @@ namespace Advobot
 				throw new ArgumentException($"Invalid client supplied. Must be {nameof(DiscordSocketClient)} or {nameof(DiscordShardedClient)}.");
 			}
 
-			Punishments.Install(provider);
-
 			return _Client;
 		}
 

@@ -151,6 +151,25 @@ namespace Advobot.Actions.Formatting
 		}
 
 		/// <summary>
+		/// Adds in spaces between each capital letter.
+		/// </summary>
+		/// <param name="title"></param>
+		/// <returns></returns>
+		public static string FormatTitle(this string title)
+		{
+			var sb = new StringBuilder();
+			foreach (var c in title)
+			{
+				if (Char.IsUpper(c))
+				{
+					sb.Append(' ');
+				}
+				sb.Append(c);
+			}
+			return sb.ToString();
+		}
+
+		/// <summary>
 		/// Only appends a \n after the value. On Windows <see cref="StringBuilder.AppendLine(string)"/> appends \r\n (which isn't
 		/// necessarily wanted).
 		/// </summary>

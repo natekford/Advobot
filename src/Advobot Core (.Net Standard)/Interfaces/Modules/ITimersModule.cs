@@ -12,7 +12,7 @@ namespace Advobot.Interfaces
 		void AddRemovableMessages(params RemovableMessage[] messages);
 		void AddActiveCloseHelp(params CloseWords<HelpEntry>[] help);
 		void AddActiveCloseQuotes(params CloseWords<Quote>[] quotes);
-		void RemovePunishments(ulong id, PunishmentType punishment);
+		int RemovePunishments(ulong id, PunishmentType punishment);
 
 		CloseWords<HelpEntry> GetOutActiveCloseHelp(ulong id);
 		CloseWords<Quote> GetOutActiveCloseQuote(ulong id);

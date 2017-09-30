@@ -99,7 +99,7 @@ namespace Advobot.Enums
 		Ban								= (1U << 1),
 		Deafen							= (1U << 2),
 		VoiceMute						= (1U << 3),
-		KickThenBan						= (1U << 4),
+		Softban							= (1U << 4),
 		RoleMute						= (1U << 5),
 	}
 

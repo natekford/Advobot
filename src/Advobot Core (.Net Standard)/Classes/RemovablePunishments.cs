@@ -18,14 +18,14 @@ namespace Advobot.Classes
 		public readonly IRole Role;
 		private DateTime _Time;
 
-		public RemovablePunishment(PunishmentType punishmentType, IGuild guild, ulong userId, uint minutes)
+		public RemovablePunishment(PunishmentType punishmentType, IGuild guild, ulong userId, int minutes)
 		{
 			PunishmentType = punishmentType;
 			Guild = guild;
 			UserId = userId;
 			_Time = DateTime.UtcNow.AddMinutes(minutes);
 		}
-		public RemovablePunishment(PunishmentType punishmentType, IGuild guild, IRole role, ulong userId, uint minutes)
+		public RemovablePunishment(PunishmentType punishmentType, IGuild guild, IRole role, ulong userId, int minutes)
 			: this(punishmentType, guild, userId, minutes)
 		{
 			Role = role;

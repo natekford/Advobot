@@ -81,7 +81,7 @@ namespace Advobot.Classes
 		/// </summary>
 		public void ResetUsers()
 		{
-			foreach (var user in Users.Select(x => x.Value).ToList().GetOutTimedObjects())
+			foreach (var user in Users.Select(x => x.Value).Where(x => x.GetTime() < DateTime.UtcNow))
 			{
 				user.ResetMessagesLeft(BaseMessages);
 			}
