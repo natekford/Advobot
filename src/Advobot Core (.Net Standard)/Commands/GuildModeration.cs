@@ -65,7 +65,7 @@ namespace Advobot.Commands.GuildModeration
 		[Command]
 		public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
 		{
-			await GuildActions.ModifyGuildName(Context.Guild, name, GeneralFormatting.FormatUserReason(Context.User));
+			await GuildActions.ModifyGuildName(Context.Guild, name, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the guild name to `{name}`.");
 		}
 	}
@@ -117,7 +117,7 @@ namespace Advobot.Commands.GuildModeration
 			}
 
 			var beforeRegion = Context.Guild.VoiceRegionId;
-			await GuildActions.ModifyGuildRegion(Context.Guild, region, GeneralFormatting.FormatUserReason(Context.User));
+			await GuildActions.ModifyGuildRegion(Context.Guild, region, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the server region of the guild from `{beforeRegion}` to `{region}`.");
 		}
 		[Command]
@@ -146,7 +146,7 @@ namespace Advobot.Commands.GuildModeration
 				return;
 			}
 
-			await GuildActions.ModifyGuildAFKTime(Context.Guild, (int)time, GeneralFormatting.FormatUserReason(Context.User));
+			await GuildActions.ModifyGuildAFKTime(Context.Guild, (int)time, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild's AFK timeout to `{time}`.");
 		}
 	}
@@ -161,7 +161,7 @@ namespace Advobot.Commands.GuildModeration
 		[Command]
 		public async Task Command(IVoiceChannel channel)
 		{
-			await GuildActions.ModifyGuildAFKChannel(Context.Guild, channel, GeneralFormatting.FormatUserReason(Context.User));
+			await GuildActions.ModifyGuildAFKChannel(Context.Guild, channel, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild's AFK channel to `{channel.FormatChannel()}`.");
 		}
 	}
@@ -176,7 +176,7 @@ namespace Advobot.Commands.GuildModeration
 		[Command]
 		public async Task Command(DefaultMessageNotifications msgNotifs)
 		{
-			await GuildActions.ModifyGuildDefaultMsgNotifications(Context.Guild, msgNotifs, GeneralFormatting.FormatUserReason(Context.User));
+			await GuildActions.ModifyGuildDefaultMsgNotifications(Context.Guild, msgNotifs, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the default message notification setting to `{msgNotifs.EnumName()}`.");
 		}
 	}
@@ -191,7 +191,7 @@ namespace Advobot.Commands.GuildModeration
 		[Command]
 		public async Task Command(VerificationLevel verif)
 		{
-			await GuildActions.ModifyGuildVerificationLevel(Context.Guild, verif, GeneralFormatting.FormatUserReason(Context.User));
+			await GuildActions.ModifyGuildVerificationLevel(Context.Guild, verif, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild verification level as `{verif.EnumName()}`.");
 		}
 	}
@@ -234,7 +234,7 @@ namespace Advobot.Commands.GuildModeration
 				webClient.DownloadFileAsync(new Uri(imageUrl), fileInfo.FullName);
 				webClient.DownloadFileCompleted += async (sender, e) =>
 				{
-					await GuildActions.ModifyGuildIcon(Context.Guild, fileInfo, GeneralFormatting.FormatUserReason(Context.User));
+					await GuildActions.ModifyGuildIcon(Context.Guild, fileInfo, new ModerationReason(Context.User, null));
 					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully changed the guild's icon.");
 					SavingAndLoadingActions.DeleteFile(fileInfo);
 				};

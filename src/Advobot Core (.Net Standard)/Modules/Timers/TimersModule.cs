@@ -19,16 +19,16 @@ namespace Advobot.Modules.Timers
 	{
 		private const long HOUR						= 60 * 60 * 1000;
 		private const long MINUTE					= 60 * 1000;
-		private const long ONE_HALF_SECOND			= 500;
+		private const long ONE_HALF_SECOND			= 1000 / 2;
 
 		private readonly Timer _HourTimer			= new Timer(HOUR);
 		private readonly Timer _MinuteTimer			= new Timer(MINUTE);
 		private readonly Timer _OneHalfSecondTimer	= new Timer(ONE_HALF_SECOND);
 
-		private readonly ConcurrentDictionary<ulong, List<RemovablePunishment>> _RemovablePunishments	= new ConcurrentDictionary<ulong, List<RemovablePunishment>>();
-		private readonly ConcurrentDictionary<ulong, List<RemovableMessage>> _RemovableMessages			= new ConcurrentDictionary<ulong, List<RemovableMessage>>();
-		private readonly ConcurrentDictionary<ulong, List<CloseWords<HelpEntry>>> _ActiveCloseHelp		= new ConcurrentDictionary<ulong, List<CloseWords<HelpEntry>>>();
-		private readonly ConcurrentDictionary<ulong, List<CloseWords<Quote>>> _ActiveCloseQuotes		= new ConcurrentDictionary<ulong, List<CloseWords<Quote>>>();
+		private readonly ConcurrentDictionary<ulong, List<RemovablePunishment>>		_RemovablePunishments	= new ConcurrentDictionary<ulong, List<RemovablePunishment>>();
+		private readonly ConcurrentDictionary<ulong, List<RemovableMessage>>		_RemovableMessages		= new ConcurrentDictionary<ulong, List<RemovableMessage>>();
+		private readonly ConcurrentDictionary<ulong, List<CloseWords<HelpEntry>>>	_ActiveCloseHelp		= new ConcurrentDictionary<ulong, List<CloseWords<HelpEntry>>>();
+		private readonly ConcurrentDictionary<ulong, List<CloseWords<Quote>>>		_ActiveCloseQuotes		= new ConcurrentDictionary<ulong, List<CloseWords<Quote>>>();
 
 		private readonly IGuildSettingsModule _GuildSettings;
 		private readonly PunishmentRemover _PunishmentRemover;
@@ -68,38 +68,40 @@ namespace Advobot.Modules.Timers
 		{
 			foreach (var punishment in GetOutTimedObjects(_RemovablePunishments))
 			{
-				var reason = GeneralFormatting.FormatBotReason($"automatic un{punishment.PunishmentType.EnumName().FormatTitle()}");
-				switch (punishment.PunishmentType)
+				var punishmentType = punishment.PunishmentType;
+				var reason = new AutomaticModerationReason($"automatic un{punishmentType.EnumName().FormatTitle().Replace(' ', '-')}");
+
+				switch (punishmentType)
 				{
 					case PunishmentType.Ban:
 					{
 						await _PunishmentRemover.UnbanAsync(punishment.Guild, punishment.UserId, reason);
-						return;
+						continue;
 					}
 				}
 
 				var guildUser = await punishment.Guild.GetUserAsync(punishment.UserId);
 				if (guildUser == null)
 				{
-					return;
+					continue;
 				}
 
-				switch (punishment.PunishmentType)
+				switch (punishmentType)
 				{
 					case PunishmentType.Deafen:
 					{
 						await _PunishmentRemover.UndeafenAsync(guildUser, reason);
-						return;
+						continue;
 					}
 					case PunishmentType.VoiceMute:
 					{
-						await _PunishmentRemover.VoiceUnmuteAsync(guildUser, reason);
-						return;
+						await _PunishmentRemover.UnvoicemuteAsync(guildUser, reason);
+						continue;
 					}
 					case PunishmentType.RoleMute:
 					{
-						await _PunishmentRemover.RoleUnmuteAsync(guildUser, punishment.Role, reason);
-						return;
+						await _PunishmentRemover.UnrolemuteAsync(guildUser, punishment.Role, reason);
+						continue;
 					}
 				}
 			}
@@ -113,15 +115,29 @@ namespace Advobot.Modules.Timers
 		}
 		private async Task DeleteTargettedMessages()
 		{
+			//Done this way so all the messages in the same channel can be grouped together and deleted at once
+			var tempDict = new Dictionary<ulong, List<RemovableMessage>>();
 			foreach (var message in GetOutTimedObjects(_RemovableMessages))
 			{
-				if (message.Messages.Count() == 1)
+				if (!tempDict.TryGetValue(message.Channel.Id, out var value))
 				{
-					await MessageActions.DeleteMessage(message.Messages.FirstOrDefault());
+					tempDict.Add(message.Channel.Id, value = new List<RemovableMessage>());
+				}
+
+				value.Add(message);
+			}
+
+			foreach (var kvp in tempDict)
+			{
+				var messages = kvp.Value.SelectMany(x => x.Messages);
+				if (messages.Count() == 1)
+				{
+					await MessageActions.DeleteMessage(messages.Single());
 				}
 				else
 				{
-					await MessageActions.DeleteMessages(message.Channel, message.Messages, GeneralFormatting.FormatBotReason("automatic message deletion."));
+					var channel = kvp.Value.First().Channel;
+					await MessageActions.DeleteMessages(channel, messages, new AutomaticModerationReason("automatic message deletion."));
 				}
 			}
 		}
@@ -132,7 +148,7 @@ namespace Advobot.Modules.Timers
 		}
 		private void ResetSlowModeUserMessages()
 		{
-			foreach (var slowmode in _GuildSettings.GetAllSettings().Where(x => x.Slowmode != null && x.Slowmode.Enabled).Select(x => x.Slowmode))
+			foreach (var slowmode in _GuildSettings.GetAllSettings().Where(x => x.Slowmode?.Enabled ?? false).Select(x => x.Slowmode))
 			{
 				slowmode.ResetUsers();
 			}
@@ -188,6 +204,13 @@ namespace Advobot.Modules.Timers
 			return _ActiveCloseQuotes.TryRemove(userId, out var removed) ? removed?.FirstOrDefault() : null;
 		}
 
+		/// <summary>
+		/// Adds objects to a list in what should be a thread safe manner.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="concDic"></param>
+		/// <param name="key"></param>
+		/// <param name="addVal"></param>
 		private void AddObjects<T>(ConcurrentDictionary<ulong, List<T>> concDic, ulong key, IEnumerable<T> addVal)
 		{
 			//I don't know if this is fully thread safe.
@@ -202,25 +225,36 @@ namespace Advobot.Modules.Timers
 				value.AddRange(addVal);
 			}
 		}
+		/// <summary>
+		/// Remove old entries then do something with them.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="concDic"></param>
+		/// <returns></returns>
 		private IEnumerable<T> GetOutTimedObjects<T>(ConcurrentDictionary<ulong, List<T>> concDic) where T : IHasTime
 		{
-			//I don't know exactly what the yield syntax does but I think it's applicable here.
-			foreach (var list in concDic.Values)
+			foreach (var dictValueList in concDic.Values)
 			{
-				foreach (var obj in list.Where(x => x.GetTime() < DateTime.UtcNow).ToList())
+				foreach (var obj in new List<T>(dictValueList.Where(x => x.GetTime() < DateTime.UtcNow)))
 				{
-					list.Remove(obj);
+					dictValueList.Remove(obj);
+					//I don't know exactly what the yield syntax does but I think it's applicable here.
 					yield return obj;
 				}
 			}
 		}
+		/// <summary>
+		/// Remove old entries completely.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="concDic"></param>
 		private void RemoveTimedObjects<T>(ConcurrentDictionary<ulong, List<T>> concDic) where T : IHasTime
 		{
-			foreach (var list in concDic.Values)
+			foreach (var dictValueList in concDic.Values)
 			{
-				foreach (var obj in list.Where(x => x.GetTime() < DateTime.UtcNow).ToList())
+				foreach (var obj in new List<T>(dictValueList.Where(x => x.GetTime() < DateTime.UtcNow)))
 				{
-					list.Remove(obj);
+					dictValueList.Remove(obj);
 				}
 			}
 		}

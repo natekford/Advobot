@@ -38,12 +38,12 @@ namespace Advobot.Commands.ChannelModeration
 						return;
 					}
 
-					channel = await ChannelActions.CreateTextChannel(Context.Guild, name, GeneralFormatting.FormatUserReason(Context.User));
+					channel = await ChannelActions.CreateTextChannel(Context.Guild, name, new ModerationReason(Context.User, null));
 					break;
 				}
 				case ChannelType.Voice:
 				{
-					channel = await ChannelActions.CreateVoiceChannel(Context.Guild, name, GeneralFormatting.FormatUserReason(Context.User));
+					channel = await ChannelActions.CreateVoiceChannel(Context.Guild, name, new ModerationReason(Context.User, null));
 					break;
 				}
 				default:
@@ -67,7 +67,7 @@ namespace Advobot.Commands.ChannelModeration
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] ITextChannel channel)
 		{
-			await ChannelActions.SoftDeleteChannel(channel, GeneralFormatting.FormatUserReason(Context.User));
+			await ChannelActions.SoftDeleteChannel(channel, new ModerationReason(Context.User, null));
 			await MessageActions.SendMessage(channel, "Successfully softdeleted this channel. Only admins and the owner will be able to read anything in this channel.");
 		}
 	}
@@ -82,7 +82,7 @@ namespace Advobot.Commands.ChannelModeration
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel)
 		{
-			await ChannelActions.DeleteChannel(channel, GeneralFormatting.FormatUserReason(Context.User));
+			await ChannelActions.DeleteChannel(channel, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted `{channel.FormatChannel()}`.");
 		}
 	}
@@ -97,7 +97,7 @@ namespace Advobot.Commands.ChannelModeration
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeReordered)] IGuildChannel channel, uint position)
 		{
-			await channel.ModifyPositionAsync((int)position, GeneralFormatting.FormatUserReason(Context.User));
+			await channel.ModifyPositionAsync((int)position, new ModerationReason(Context.User, null));
 			await MessageActions.SendMessage(Context.Channel, $"Successfully moved `{channel.FormatChannel()}` to position `{position}`.");
 		}
 	}
@@ -195,79 +195,44 @@ namespace Advobot.Commands.ChannelModeration
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Overwrite On " + channel.FormatChannel(), desc));
 			}
 		}
-		[Group(nameof(ActionType.Allow)), Alias("a")]
-		public sealed class ChangeChannelPermsAllow : MyModuleBase
+		[Command]
+		public async Task Command(PermValue action, [VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
+			IRole role, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
 		{
-			private const ActionType _ActionType = ActionType.Allow;
-
-			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel, IRole role, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
-			{
-				await CommandRunner(Context, _ActionType, channel, role, rawValue);
-			}
-			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
-			{
-				await CommandRunner(Context, _ActionType, channel, user, rawValue);
-			}
+			await CommandRunner(action, channel, role, rawValue);
 		}
-		[Group(nameof(ActionType.Inherit)), Alias("i")]
-		public sealed class ChangeChannelPermsInherit : MyModuleBase
+		[Command]
+		public async Task Command(PermValue action, [VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
+			IGuildUser user, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
 		{
-			private const ActionType _ActionType = ActionType.Inherit;
-
-			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel, IRole role, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
-			{
-				await CommandRunner(Context, _ActionType, channel, role, rawValue);
-			}
-			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
-			{
-				await CommandRunner(Context, _ActionType, channel, user, rawValue);
-			}
-		}
-		[Group(nameof(ActionType.Deny)), Alias("d")]
-		public sealed class ChangeChannelPermsDeny : MyModuleBase
-		{
-			private const ActionType _ActionType = ActionType.Deny;
-
-			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel, IRole role, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
-			{
-				await CommandRunner(Context, _ActionType, channel, role, rawValue);
-			}
-			[Command]
-			public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user, [Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
-			{
-				await CommandRunner(Context, _ActionType, channel, user, rawValue);
-			}
+			await CommandRunner(action, channel, user, rawValue);
 		}
 
-		private static async Task CommandRunner(IMyCommandContext context, ActionType actionType, IGuildChannel channel, object discordObject, ulong changeValue)
+		private async Task CommandRunner(PermValue action, IGuildChannel channel, object discordObject, ulong changeValue)
 		{
 			var actionStr = "";
-			switch (actionType)
+			switch (action)
 			{
-				case ActionType.Allow:
+				case PermValue.Allow:
 				{
 					actionStr = "allowed";
 					break;
 				}
-				case ActionType.Inherit:
+				case PermValue.Inherit:
 				{
 					actionStr = "inherited";
 					break;
 				}
-				case ActionType.Deny:
+				case PermValue.Deny:
 				{
 					actionStr = "denied";
 					break;
 				}
 			}
 
-			var givenPerms = OverwriteActions.ModifyOverwritePermissions(channel, discordObject, actionType, changeValue, context.User as IGuildUser);
-			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully {actionStr} `{String.Join("`, `", givenPerms)}` for `{DiscordObjectFormatting.FormatDiscordObject(discordObject)}` on `{channel.FormatChannel()}`.");
+			var givenPerms = OverwriteActions.ModifyOverwritePermissions(action, channel, discordObject, changeValue, Context.User as IGuildUser);
+			var response = $"Successfully {actionStr} `{String.Join("`, `", givenPerms)}` for `{DiscordObjectFormatting.FormatDiscordObject(discordObject)}` on `{channel.FormatChannel()}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
 		}
 	}
 
@@ -321,7 +286,7 @@ namespace Advobot.Commands.ChannelModeration
 							var role = Context.Guild.GetRole(overwrite.TargetId);
 							var allowBits = overwrite.Permissions.AllowValue;
 							var denyBits = overwrite.Permissions.DenyValue;
-							await OverwriteActions.ModifyOverwrite(outputChannel, role, allowBits, denyBits, GeneralFormatting.FormatUserReason(Context.User));
+							await OverwriteActions.ModifyOverwrite(outputChannel, role, allowBits, denyBits, new ModerationReason(Context.User, null));
 							break;
 						}
 						case PermissionTarget.User:
@@ -329,7 +294,7 @@ namespace Advobot.Commands.ChannelModeration
 							var user = await Context.Guild.GetUserAsync(overwrite.TargetId);
 							var allowBits = overwrite.Permissions.AllowValue;
 							var denyBits = overwrite.Permissions.DenyValue;
-							await OverwriteActions.ModifyOverwrite(outputChannel, user, allowBits, denyBits, GeneralFormatting.FormatUserReason(Context.User));
+							await OverwriteActions.ModifyOverwrite(outputChannel, user, allowBits, denyBits, new ModerationReason(Context.User, null));
 							break;
 						}
 					}
@@ -345,7 +310,7 @@ namespace Advobot.Commands.ChannelModeration
 					return;
 				}
 
-				await OverwriteActions.ModifyOverwrite(outputChannel, discordObject, overwrite?.AllowValue ?? 0, overwrite?.DenyValue ?? 0, GeneralFormatting.FormatUserReason(Context.User));
+				await OverwriteActions.ModifyOverwrite(outputChannel, discordObject, overwrite?.AllowValue ?? 0, overwrite?.DenyValue ?? 0, new ModerationReason(Context.User, null));
 			}
 
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully copied `{target}` from `{inputChannel.FormatChannel()}` to `{outputChannel.FormatChannel()}`");
@@ -362,7 +327,7 @@ namespace Advobot.Commands.ChannelModeration
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel)
 		{
-			await OverwriteActions.ClearOverwrites(channel, GeneralFormatting.FormatUserReason(Context.User));
+			await OverwriteActions.ClearOverwrites(channel, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed all channel permission overwrites from `{channel.FormatChannel()}`.");
 		}
 	}
@@ -407,7 +372,7 @@ namespace Advobot.Commands.ChannelModeration
 				return;
 			}
 
-			await channel.ModifyNameAsync(name, GeneralFormatting.FormatUserReason(Context.User));
+			await channel.ModifyNameAsync(name, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the name of `{channel.FormatChannel()}` to `{name}`.");
 		}
 	}
@@ -422,7 +387,7 @@ namespace Advobot.Commands.ChannelModeration
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] ITextChannel channel, [Optional, Remainder, VerifyStringLength(Target.Topic)] string topic)
 		{
-			await channel.ModifyTopicAsync(topic, GeneralFormatting.FormatUserReason(Context.User));
+			await channel.ModifyTopicAsync(topic, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the topic in `{channel.FormatChannel()}` from `{(channel.Topic ?? "Nothing")}` to `{(topic ?? "Nothing")}`.");
 		}
 	}
@@ -442,7 +407,7 @@ namespace Advobot.Commands.ChannelModeration
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"The highest a voice channel user limit can be is `{Constants.MAX_VOICE_CHANNEL_USER_LIMIT}`."));
 			}
 
-			await channel.ModifyLimitAsync((int)limit, GeneralFormatting.FormatUserReason(Context.User));
+			await channel.ModifyLimitAsync((int)limit, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the user limit for `{channel.FormatChannel()}` to `{limit}`.");
 		}
 	}
@@ -474,7 +439,7 @@ namespace Advobot.Commands.ChannelModeration
 			}
 
 			//Have to multiply by 1000 because in bps and for some reason treats, say, 50 as 50bps and not 50kbps
-			await channel.ModifyBitrateAsync((int)bitrate * 1000, GeneralFormatting.FormatUserReason(Context.User));
+			await channel.ModifyBitrateAsync((int)bitrate * 1000, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the user limit for `{channel.FormatChannel()}` to `{bitrate}kbps`.");
 		}
 	}

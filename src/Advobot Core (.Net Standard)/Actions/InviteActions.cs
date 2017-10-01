@@ -87,9 +87,10 @@ namespace Advobot.Actions
 		/// <param name="isUnique"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<IInviteMetadata> CreateInvite(IGuildChannel channel, int? maxAge, int? maxUses, bool isTemporary, bool isUnique, string reason)
+		public static async Task<IInviteMetadata> CreateInvite(IGuildChannel channel, int? maxAge, int? maxUses, bool isTemporary,
+			bool isUnique, ModerationReason reason)
 		{
-			return await channel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, new RequestOptions { AuditLogReason = reason });
+			return await channel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, reason.CreateRequestOptions());
 		}
 		/// <summary>
 		/// Deletes the invite.
@@ -97,9 +98,9 @@ namespace Advobot.Actions
 		/// <param name="invite"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task DeleteInvite(IInvite invite, string reason)
+		public static async Task DeleteInvite(IInvite invite, ModerationReason reason)
 		{
-			await invite.DeleteAsync(new RequestOptions { AuditLogReason = reason });
+			await invite.DeleteAsync(reason.CreateRequestOptions());
 		}
 	}
 }

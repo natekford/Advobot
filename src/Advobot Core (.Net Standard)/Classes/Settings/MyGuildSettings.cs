@@ -435,10 +435,6 @@ namespace Advobot.Classes.Settings
 				_GoodbyeMessage.PostDeserialize(Guild);
 			}
 
-			foreach (var bannedPhrasePunishment in _BannedPhrasePunishments)
-			{
-				bannedPhrasePunishment.PostDeserialize(Guild);
-			}
 			foreach (var group in _SelfAssignableGroups)
 			{
 				group.Roles.ForEach(x => x.PostDeserialize(Guild));

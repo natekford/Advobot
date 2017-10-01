@@ -28,13 +28,13 @@ namespace Advobot.Commands.UserModeration
 			if (user.RoleIds.Contains(muteRole.Id))
 			{
 				var remover = new PunishmentRemover(Context.Timers);
-				await remover.RoleUnmuteAsync(user, muteRole, GeneralFormatting.FormatUserReason(Context.User, reason));
+				await remover.UnrolemuteAsync(user, muteRole, new ModerationReason(Context.User, reason));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, remover.ToString());
 				return;
 			}
 
 			var giver = new PunishmentGiver(time, Context.Timers);
-			await giver.RoleMuteAsync(user, muteRole, GeneralFormatting.FormatUserReason(Context.User, reason));
+			await giver.RoleMuteAsync(user, muteRole, new ModerationReason(Context.User, reason));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, giver.ToString());
 		}
 	}
@@ -52,13 +52,13 @@ namespace Advobot.Commands.UserModeration
 			if (user.IsMuted)
 			{
 				var remover = new PunishmentRemover(Context.Timers);
-				await remover.VoiceUnmuteAsync(user, GeneralFormatting.FormatUserReason(Context.User));
+				await remover.UnvoicemuteAsync(user, new ModerationReason(Context.User, null));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, remover.ToString());
 				return;
 			}
 
 			var giver = new PunishmentGiver(time, Context.Timers);
-			await giver.VoiceMuteAsync(user, GeneralFormatting.FormatUserReason(Context.User));
+			await giver.VoiceMuteAsync(user, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, giver.ToString());
 		}
 	}
@@ -76,13 +76,13 @@ namespace Advobot.Commands.UserModeration
 			if (user.IsDeafened)
 			{
 				var remover = new PunishmentRemover(Context.Timers);
-				await remover.UndeafenAsync(user, GeneralFormatting.FormatUserReason(Context.User));
+				await remover.UndeafenAsync(user, new ModerationReason(Context.User, null));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, remover.ToString());
 				return;
 			}
 
 			var giver = new PunishmentGiver(time, Context.Timers);
-			await giver.DeafenAsync(user, GeneralFormatting.FormatUserReason(Context.User));
+			await giver.DeafenAsync(user, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, giver.ToString());
 		}
 	}
@@ -108,7 +108,7 @@ namespace Advobot.Commands.UserModeration
 				return;
 			}
 
-			await UserActions.MoveUser(user, channel, GeneralFormatting.FormatUserReason(Context.User));
+			await UserActions.MoveUser(user, channel, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully moved `{user.FormatUser()}` to `{channel.FormatChannel()}`.");
 		}
 	}
@@ -129,7 +129,7 @@ namespace Advobot.Commands.UserModeration
 			var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
 			var users = (await inputChannel.GetUsersAsync().Flatten()).ToList().GetUpToAndIncludingMinNum(userAmt);
 
-			await UserActions.MoveManyUsers(Context, users, outputChannel, GeneralFormatting.FormatUserReason(Context.User));
+			await UserActions.MoveManyUsers(Context, users, outputChannel, new ModerationReason(Context.User, null));
 		}
 	}
 
@@ -153,7 +153,7 @@ namespace Advobot.Commands.UserModeration
 			}
 
 			var simulate = !ACTUAL_PRUNE_STRING.Equals(pruneStr);
-			var amt = await GuildActions.PruneUsers(Context.Guild, (int)days, simulate, GeneralFormatting.FormatUserReason(Context.User));
+			var amt = await GuildActions.PruneUsers(Context.Guild, (int)days, simulate, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"`{amt}` members{(simulate ? " would" : "")} have been pruned with a prune period of `{days}` days.");
 		}
 	}
@@ -179,7 +179,7 @@ namespace Advobot.Commands.UserModeration
 		private async Task CommandRunner(ulong userId, string reason)
 		{
 			var giver = new PunishmentGiver(0, Context.Timers);
-			await giver.SoftbanAsync(Context.Guild, userId, GeneralFormatting.FormatUserReason(Context.User, reason));
+			await giver.SoftbanAsync(Context.Guild, userId, new ModerationReason(Context.User, reason));
 			await MessageActions.SendMessage(Context.Channel, giver.ToString());
 		}
 	}
@@ -221,7 +221,7 @@ namespace Advobot.Commands.UserModeration
 			}
 
 			var giver = new PunishmentGiver(time, Context.Timers);
-			await giver.BanAsync(Context.Guild, userId, GeneralFormatting.FormatUserReason(Context.User, reason), 1);
+			await giver.BanAsync(Context.Guild, userId, new ModerationReason(Context.User, reason), 1);
 			await MessageActions.SendMessage(Context.Channel, giver.ToString());
 		}
 	}
@@ -237,7 +237,7 @@ namespace Advobot.Commands.UserModeration
 		public async Task Command(IBan ban, [Optional, Remainder] string reason)
 		{
 			var remover = new PunishmentRemover(Context.Timers);
-			await remover.UnbanAsync(Context.Guild, ban.User.Id, GeneralFormatting.FormatUserReason(Context.User, reason));
+			await remover.UnbanAsync(Context.Guild, ban.User.Id, new ModerationReason(Context.User, reason));
 			await MessageActions.SendMessage(Context.Channel, remover.ToString());
 		}
 	}
@@ -267,7 +267,7 @@ namespace Advobot.Commands.UserModeration
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
 		{
 			var giver = new PunishmentGiver(0, Context.Timers);
-			await giver.KickAsync(user, GeneralFormatting.FormatUserReason(Context.User, reason));
+			await giver.KickAsync(user, new ModerationReason(Context.User, reason));
 			await MessageActions.SendMessage(Context.Channel, giver.ToString());
 		}
 	}
@@ -331,8 +331,8 @@ namespace Advobot.Commands.UserModeration
 
 			//If there is a non null user then delete messages specifically from that user
 			var deletedAmt = user == null
-				? await MessageActions.RemoveMessages(channel, messageToStartAt, requestCount, GeneralFormatting.FormatUserReason(Context.User))
-				: await MessageActions.RemoveMessagesFromUser(channel, messageToStartAt, requestCount, user, GeneralFormatting.FormatUserReason(Context.User));
+				? await MessageActions.RemoveMessages(channel, messageToStartAt, requestCount, new ModerationReason(Context.User, null))
+				: await MessageActions.RemoveMessagesFromUser(channel, messageToStartAt, requestCount, user, new ModerationReason(Context.User, null));
 
 			//If the context channel isn't the targetted channel then delete the start message and increase by one to account for it not being targetted.
 			if (Context.Message.Channel.Id != channel.Id)

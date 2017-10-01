@@ -17,21 +17,6 @@ namespace Advobot.Classes
 	/// </summary>
 	public class BannedPhrase : ISetting
 	{
-		[JsonIgnore]
-		private static Dictionary<PunishmentType, Func<BannedPhraseUser, int>> _BannedPhrasePunishmentFuncs = new Dictionary<PunishmentType, Func<BannedPhraseUser, int>>
-		{
-			{ PunishmentType.RoleMute, (user) => { user.IncrementRoleCount(); return user.MessagesForRole; } },
-			{ PunishmentType.Kick, (user) => { user.IncrementKickCount(); return user.MessagesForKick; } },
-			{ PunishmentType.Ban, (user) => { user.IncrementBanCount(); return user.MessagesForBan; } },
-		};
-		[JsonIgnore]
-		private static Dictionary<PunishmentType, Action<BannedPhraseUser>> _BannedPhraseResets = new Dictionary<PunishmentType, Action<BannedPhraseUser>>
-		{
-			{ PunishmentType.RoleMute, (user) => user.ResetRoleCount() },
-			{ PunishmentType.Kick, (user) => user.ResetKickCount() },
-			{ PunishmentType.Ban, (user) => user.ResetBanCount() },
-		};
-
 		[JsonProperty]
 		public string Phrase { get; }
 		[JsonProperty]
@@ -49,21 +34,7 @@ namespace Advobot.Classes
 		/// <param name="punishment"></param>
 		public void ChangePunishment(PunishmentType punishment)
 		{
-			switch (punishment)
-			{
-				case PunishmentType.RoleMute:
-				case PunishmentType.Kick:
-				case PunishmentType.Ban:
-				{
-					Punishment = punishment;
-					return;
-				}
-				default:
-				{
-					Punishment = default;
-					return;
-				}
-			}
+			Punishment = punishment;
 		}
 
 		/// <summary>
@@ -77,26 +48,28 @@ namespace Advobot.Classes
 		{
 			await MessageActions.DeleteMessage(message);
 
-			var user = guildSettings.BannedPhraseUsers.FirstOrDefault(x => x.User.Id == message.Author.Id);
+			var users = guildSettings.BannedPhraseUsers;
+			var user = users.SingleOrDefault(x => x.User.Id == message.Author.Id);
 			if (user == null)
 			{
 				guildSettings.BannedPhraseUsers.Add(user = new BannedPhraseUser(message.Author as IGuildUser));
 			}
 
 			//Update the count
-			var count = _BannedPhrasePunishmentFuncs[Punishment](user);
-			var punishment = guildSettings.BannedPhrasePunishments.FirstOrDefault(x => x.Punishment == Punishment && x.NumberOfRemoves == count);
+			var count = user.IncrementValue(Punishment);
+
+			var punishments = guildSettings.BannedPhrasePunishments;
+			var punishment = punishments.SingleOrDefault(x => x.Punishment == Punishment && x.NumberOfRemoves == count);
 			if (punishment == null)
 			{
 				return;
 			}
 
-			//TODO: include all automatic punishments in this
 			var giver = new AutomaticPunishmentGiver(punishment.PunishmentTime, timers);
-			await giver.AutomaticallyPunishAsync(Punishment, user.User, punishment.Role);
+			await giver.AutomaticallyPunishAsync(Punishment, user.User, punishment.GetRole(guildSettings.Guild));
 
 			//Reset the user's number of removes for that given type.
-			_BannedPhraseResets[Punishment](user);
+			user.ResetValue(Punishment);
 		}
 
 		public override string ToString()
@@ -120,13 +93,12 @@ namespace Advobot.Classes
 		[JsonProperty]
 		public PunishmentType Punishment { get; }
 		[JsonProperty]
-		public ulong RoleId { get; }
-		[JsonProperty]
 		public uint PunishmentTime { get; }
+		[JsonProperty]
+		private ulong RoleId;
 		[JsonIgnore]
-		public IRole Role { get; private set; }
+		private IRole Role;
 
-		[JsonConstructor]
 		public BannedPhrasePunishment(int number, PunishmentType punishment, ulong roleId = 0, uint punishmentTime = 0)
 		{
 			NumberOfRemoves = number;
@@ -134,18 +106,15 @@ namespace Advobot.Classes
 			RoleId = roleId;
 			PunishmentTime = punishmentTime;
 		}
-		public BannedPhrasePunishment(int number, PunishmentType punishment, ulong roleId = 0, uint punishmentTime = 0, IRole role = null) : this(number, punishment, roleId, punishmentTime)
-		{
-			Role = role;
-		}
 
 		/// <summary>
-		/// Sets <see cref="Role"/> to whatever role on the guild has <see cref="RoleId"/> as its Id.
+		/// Gets the role if one exists.
 		/// </summary>
 		/// <param name="guild"></param>
-		public void PostDeserialize(SocketGuild guild)
+		/// <returns></returns>
+		public IRole GetRole(SocketGuild guild)
 		{
-			Role = guild.GetRole(RoleId);
+			return Role ?? (Role = guild.GetRole(RoleId));
 		}
 
 		public override string ToString()
@@ -168,38 +137,28 @@ namespace Advobot.Classes
 	public class BannedPhraseUser
 	{
 		public IGuildUser User { get; }
-		public int MessagesForRole { get; private set; }
-		public int MessagesForKick { get; private set; }
-		public int MessagesForBan { get; private set; }
+		private Dictionary<PunishmentType, int> _PunishmentVals = new Dictionary<PunishmentType, int>();
 
 		public BannedPhraseUser(IGuildUser user)
 		{
 			User = user;
+			foreach (var type in Enum.GetValues(typeof(PunishmentType)).Cast<PunishmentType>())
+			{
+				_PunishmentVals.Add(type, 0);
+			}
 		}
 
-		public void IncrementRoleCount()
+		public int IncrementValue(PunishmentType value)
 		{
-			++MessagesForRole;
+			return ++_PunishmentVals[value];
 		}
-		public void ResetRoleCount()
+		public int GetValue(PunishmentType value)
 		{
-			MessagesForRole = 0;
+			return _PunishmentVals[value];
 		}
-		public void IncrementKickCount()
+		public void ResetValue(PunishmentType value)
 		{
-			++MessagesForKick;
-		}
-		public void ResetKickCount()
-		{
-			MessagesForKick = 0;
-		}
-		public void IncrementBanCount()
-		{
-			++MessagesForBan;
-		}
-		public void ResetBanCount()
-		{
-			MessagesForBan = 0;
+			_PunishmentVals[value] = 0;
 		}
 	}
 }

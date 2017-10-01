@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions.Formatting;
 using Advobot.Classes;
+using Advobot.Classes.Punishments;
 using Advobot.Interfaces;
 using Discord;
 using System;
@@ -211,7 +212,7 @@ namespace Advobot.Actions
 		/// <param name="requestCount"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount, string reason)
+		public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount, ModerationReason reason)
 		{
 			return await DeleteMessages(channel, await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).Flatten(), reason);
 		}
@@ -224,7 +225,7 @@ namespace Advobot.Actions
 		/// <param name="user"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> RemoveMessagesFromUser(IMessageChannel channel, IMessage fromMessage, int requestCount, IUser user, string reason)
+		public static async Task<int> RemoveMessagesFromUser(IMessageChannel channel, IMessage fromMessage, int requestCount, IUser user, ModerationReason reason)
 		{
 			var deletedCount = 0;
 			while (requestCount > 0)
@@ -263,18 +264,18 @@ namespace Advobot.Actions
 		/// <param name="messages"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages, string reason = null)
+		public static async Task<int> DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages, ModerationReason reason)
 		{
 			//13.95 for some buffer in case
-			var youngMessages = messages.Where(x => DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 13.95);
+			var youngMessages = messages.Where(x => x != null && DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 13.95);
 			try
 			{
-				await channel.DeleteMessagesAsync(youngMessages, new RequestOptions { AuditLogReason = reason });
+				await channel.DeleteMessagesAsync(youngMessages, reason.CreateRequestOptions());
 				return youngMessages.Count();
 			}
 			catch
 			{
-				ConsoleActions.WriteLine($"Unable to delete {messages.Count()} messages on the guild {channel.GetGuild().FormatGuild()} on channel {channel.FormatChannel()}.", color: ConsoleColor.Red);
+				ConsoleActions.WriteLine($"Unable to delete {youngMessages.Count()} messages on the guild {channel.GetGuild().FormatGuild()} on channel {channel.FormatChannel()}.", color: ConsoleColor.Red);
 				return 0;
 			}
 		}
@@ -285,6 +286,11 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task<int> DeleteMessage(IMessage message)
 		{
+			if (message == null || DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalDays > 13.95)
+			{
+				return 0;
+			}
+
 			try
 			{
 				await message.DeleteAsync();

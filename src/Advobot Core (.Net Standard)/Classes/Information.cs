@@ -1,6 +1,7 @@
 ﻿using Advobot.Actions.Formatting;
 using Advobot.Enums;
 using Advobot.Interfaces;
+using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
@@ -78,7 +79,7 @@ namespace Advobot.Classes
 	/// <typeparam name="T"></typeparam>
 	public class CloseWords<T> : IHasTime where T : IDescription
 	{
-		public ulong UserId { get; }
+		public ulong UserId	{ get; }
 		public IReadOnlyCollection<CloseWord> List { get; }
 		private DateTime _Time;
 
@@ -227,8 +228,8 @@ namespace Advobot.Classes
 	/// </summary>
 	public class LogCounter
 	{
-		public string Title		{ get; private set; }
-		public int Count		{ get; private set; }
+		public string Title	{ get; private set; }
+		public int Count { get; private set; }
 
 		public LogCounter([CallerMemberName] string title = "")
 		{
@@ -289,6 +290,54 @@ namespace Advobot.Classes
 		public override string ToString()
 		{
 			return $"**{Title}:** {Count}";
+		}
+	}
+	
+	/// <summary>
+	/// Explains why the bot is doing something.
+	/// </summary>
+	public class AutomaticModerationReason : ModerationReason
+	{
+		public AutomaticModerationReason(string reason) : base(null, reason)
+		{
+			User = null;
+			Reason = reason == null ? "not specified" : reason.TrimEnd('.');
+			HasReason = !String.IsNullOrWhiteSpace(reason);
+			IsAutomatic = true;
+		}
+
+		public override string ToString()
+		{
+			return $"Automatic action. Trigger: {Reason}.";
+		}
+	}
+
+	/// <summary>
+	/// Explains why a mod is doing something.
+	/// </summary>
+	public class ModerationReason
+	{
+		public IUser User { get; protected set; }
+		public string Reason { get; protected set; }
+		public bool HasReason { get; protected set; }
+		public bool IsAutomatic { get; protected set; }
+
+		public ModerationReason(IUser user, string reason)
+		{
+			User = user;
+			Reason = reason == null ? "not specified" : reason.TrimEnd('.');
+			HasReason = !String.IsNullOrWhiteSpace(reason);
+			IsAutomatic = false;
+		}
+
+		public RequestOptions CreateRequestOptions()
+		{
+			return new RequestOptions { AuditLogReason = this.ToString(), };
+		}
+
+		public override string ToString()
+		{
+			return $"Action by {User.FormatUser()}. Reason: {Reason}.";
 		}
 	}
 }

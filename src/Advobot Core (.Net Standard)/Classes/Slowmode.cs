@@ -51,15 +51,15 @@ namespace Advobot.Classes
 		/// <param name="message"></param>
 		/// <param name="author"></param>
 		/// <returns></returns>
-		public async Task HandleMessage(IMessage message, IGuildUser author)
+		public async Task HandleMessage(IMessage message)
 		{
-			if (!Users.TryGetValue(author.Id, out var info))
+			SlowmodeUserInformation info;
+			lock (Users)
 			{
-				lock (Users)
+				if (!Users.TryGetValue(message.Author.Id, out info))
 				{
-					Users.Add(author.Id, new SlowmodeUserInformation(BaseMessages, Interval));
+					Users.Add(message.Author.Id, info = new SlowmodeUserInformation(BaseMessages, Interval));
 				}
-				info = Users[author.Id];
 			}
 
 			if (info.CurrentMessagesLeft > 0)
@@ -81,7 +81,8 @@ namespace Advobot.Classes
 		/// </summary>
 		public void ResetUsers()
 		{
-			foreach (var user in Users.Select(x => x.Value).Where(x => x.GetTime() < DateTime.UtcNow))
+			var usersToBeReset = Users.Select(x => x.Value).Where(x => x.GetTime() < DateTime.UtcNow);
+			foreach (var user in usersToBeReset)
 			{
 				user.ResetMessagesLeft(BaseMessages);
 			}
@@ -90,8 +91,8 @@ namespace Advobot.Classes
 		public override string ToString()
 		{
 			return $"**Base messages:** `{BaseMessages}`\n" +
-					$"**Time interval:** `{Interval}`\n" +
-					$"**Immune Role Ids:** `{String.Join("`, `", ImmuneRoleIds)}`";
+				   $"**Time interval:** `{Interval}`\n" +
+				   $"**Immune Role Ids:** `{String.Join("`, `", ImmuneRoleIds)}`";
 		}
 		public string ToString(SocketGuild guild)
 		{

@@ -1,4 +1,5 @@
 ﻿using Advobot.Actions.Formatting;
+using Advobot.Classes;
 using Advobot.Classes.Results;
 using Advobot.Enums;
 using Advobot.Interfaces;
@@ -53,11 +54,11 @@ namespace Advobot.Actions
 			return (await context.Guild.GetUsersAsync()).Where(x => x.CanBeModifiedByUser(context.User) && x.CanBeModifiedByUser(GetBot(context.Guild)));
 		}
 
-		public static async Task ChangeNickname(this IGuildUser user, string newNickname, string reason)
+		public static async Task ChangeNickname(this IGuildUser user, string newNickname, ModerationReason reason)
 		{
-			await user.ModifyAsync(x => x.Nickname = newNickname ?? user.Username, new RequestOptions { AuditLogReason = reason });
+			await user.ModifyAsync(x => x.Nickname = newNickname ?? user.Username, reason.CreateRequestOptions());
 		}
-		public static async Task NicknameManyUsers(IMyCommandContext context, List<IGuildUser> users, string replace, string reason)
+		public static async Task NicknameManyUsers(IMyCommandContext context, List<IGuildUser> users, string replace, ModerationReason reason)
 		{
 			var msg = await MessageActions.SendMessage(context.Channel, $"Attempting to rename `{users.Count}` people.");
 			for (int i = 0; i < users.Count; ++i)
@@ -73,11 +74,11 @@ namespace Advobot.Actions
 			await MessageActions.DeleteMessage(msg);
 			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully renamed `{users.Count}` people.");
 		}
-		public static async Task MoveUser(this IGuildUser user, IVoiceChannel channel, string reason)
+		public static async Task MoveUser(this IGuildUser user, IVoiceChannel channel, ModerationReason reason)
 		{
-			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), new RequestOptions { AuditLogReason = reason });
+			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), reason.CreateRequestOptions());
 		}
-		public static async Task MoveManyUsers(IMyCommandContext context, List<IGuildUser> users, IVoiceChannel outputChannel, string reason)
+		public static async Task MoveManyUsers(IMyCommandContext context, List<IGuildUser> users, IVoiceChannel outputChannel, ModerationReason reason)
 		{
 			var msg = await MessageActions.SendMessage(context.Channel, $"Attempting to move `{users.Count}` people.");
 			for (int i = 0; i < users.Count; ++i)

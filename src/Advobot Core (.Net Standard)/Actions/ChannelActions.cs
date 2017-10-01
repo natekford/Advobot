@@ -1,4 +1,5 @@
 ﻿using Advobot.Actions.Formatting;
+using Advobot.Classes;
 using Advobot.Classes.Permissions;
 using Advobot.Classes.Results;
 using Advobot.Enums;
@@ -52,9 +53,9 @@ namespace Advobot.Actions
 		/// <param name="name">The name to use for the channel.</param>
 		/// <param name="reason">The reason for creation to say in the audit log.</param>
 		/// <returns>The newly created text channel.</returns>
-		public static async Task<ITextChannel> CreateTextChannel(IGuild guild, string name, string reason)
+		public static async Task<ITextChannel> CreateTextChannel(IGuild guild, string name, ModerationReason reason)
 		{
-			return await guild.CreateTextChannelAsync(name, new RequestOptions { AuditLogReason = reason });
+			return await guild.CreateTextChannelAsync(name, reason.CreateRequestOptions());
 		}
 		/// <summary>
 		/// Creates a voice channel with the given name.
@@ -63,9 +64,9 @@ namespace Advobot.Actions
 		/// <param name="name">The name to use for the channel.</param>
 		/// <param name="reason">The reason for creation to say in the audit log.</param>
 		/// <returns>The newly created voice channel</returns>
-		public static async Task<IVoiceChannel> CreateVoiceChannel(IGuild guild, string name, string reason)
+		public static async Task<IVoiceChannel> CreateVoiceChannel(IGuild guild, string name, ModerationReason reason)
 		{
-			return await guild.CreateVoiceChannelAsync(name, new RequestOptions { AuditLogReason = reason });
+			return await guild.CreateVoiceChannelAsync(name, reason.CreateRequestOptions());
 		}
 		/// <summary>
 		/// Modifies a channel so only admins can read it and puts the channel to the bottom of the channel list.
@@ -73,7 +74,7 @@ namespace Advobot.Actions
 		/// <param name="channel">The channel to softdelete.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task SoftDeleteChannel(ITextChannel channel, string reason)
+		public static async Task SoftDeleteChannel(ITextChannel channel, ModerationReason reason)
 		{
 			var guild = channel.Guild;
 			foreach (var overwrite in channel.PermissionOverwrites)
@@ -118,9 +119,9 @@ namespace Advobot.Actions
 		/// <param name="channel">The channel to delete.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task DeleteChannel(IGuildChannel channel, string reason)
+		public static async Task DeleteChannel(IGuildChannel channel, ModerationReason reason)
 		{
-			await channel.DeleteAsync(new RequestOptions { AuditLogReason = reason });
+			await channel.DeleteAsync(reason.CreateRequestOptions());
 		}
 
 		/// <summary>
@@ -130,7 +131,7 @@ namespace Advobot.Actions
 		/// <param name="position"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> ModifyPositionAsync(this IGuildChannel channel, int position, string reason)
+		public static async Task<int> ModifyPositionAsync(this IGuildChannel channel, int position, ModerationReason reason)
 		{
 			if (channel == null)
 			{
@@ -169,9 +170,9 @@ namespace Advobot.Actions
 		/// <param name="name">The new name.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyNameAsync(this IGuildChannel channel, string name, string reason)
+		public static async Task ModifyNameAsync(this IGuildChannel channel, string name, ModerationReason reason)
 		{
-			await channel.ModifyAsync(x => x.Name = name, new RequestOptions { AuditLogReason = reason });
+			await channel.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions());
 		}
 		/// <summary>
 		/// Modifies a text channel's topic.
@@ -180,9 +181,9 @@ namespace Advobot.Actions
 		/// <param name="topic">The new topic.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyTopicAsync(this ITextChannel channel, string topic, string reason)
+		public static async Task ModifyTopicAsync(this ITextChannel channel, string topic, ModerationReason reason)
 		{
-			await channel.ModifyAsync(x => x.Topic = topic, new RequestOptions { AuditLogReason = reason });
+			await channel.ModifyAsync(x => x.Topic = topic, reason.CreateRequestOptions());
 		}
 		/// <summary>
 		/// Modifies a voice channel's limit.
@@ -191,9 +192,9 @@ namespace Advobot.Actions
 		/// <param name="limit">The new limit.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyLimitAsync(this IVoiceChannel channel, int limit, string reason)
+		public static async Task ModifyLimitAsync(this IVoiceChannel channel, int limit, ModerationReason reason)
 		{
-			await channel.ModifyAsync(x => x.UserLimit = limit, new RequestOptions { AuditLogReason = reason });
+			await channel.ModifyAsync(x => x.UserLimit = limit, reason.CreateRequestOptions());
 		}
 		/// <summary>
 		/// Modifies a voice channel's bitrate.
@@ -202,9 +203,9 @@ namespace Advobot.Actions
 		/// <param name="bitrate">The new bitrate.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyBitrateAsync(this IVoiceChannel channel, int bitrate, string reason)
+		public static async Task ModifyBitrateAsync(this IVoiceChannel channel, int bitrate, ModerationReason reason)
 		{
-			await channel.ModifyAsync(x => x.Bitrate = bitrate, new RequestOptions { AuditLogReason = reason });
+			await channel.ModifyAsync(x => x.Bitrate = bitrate, reason.CreateRequestOptions());
 		}
 	}
 }

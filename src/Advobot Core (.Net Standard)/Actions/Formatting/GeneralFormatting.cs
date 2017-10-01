@@ -21,35 +21,6 @@ namespace Advobot.Actions.Formatting
 		{
 			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
 		}
-		/// <summary>
-		/// Returns a string saying who did an action with the bot and possibly why they did it.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static string FormatUserReason(IUser user, string reason = null)
-		{
-			return $"Action by {user.FormatUser()}.{(reason == null ? "" : $" Reason: {reason.TrimEnd('.')}.")}";
-		}
-		/// <summary>
-		/// Returns a string saying the bot did an action and possibly why it did it.
-		/// </summary>
-		/// <param name="reason"></param>
-		/// <returns></returns>
-		public static string FormatBotReason(string reason)
-		{
-			if (!String.IsNullOrWhiteSpace(reason))
-			{
-				reason = $"Automated action. User triggered {reason.TrimEnd('.')}.";
-				reason = reason.Substring(0, Math.Min(reason.Length, Constants.MAX_LENGTH_FOR_REASON));
-			}
-			else
-			{
-				reason = "Automated action. User triggered something.";
-			}
-
-			return reason;
-		}
 
 		/// <summary>
 		/// Returns a string with the given number of spaces minus the length of the second object padded onto the right side of the first object.

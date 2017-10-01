@@ -282,7 +282,7 @@ namespace Advobot.Modules.Log
 			var slowmode = guildSettings.Slowmode;
 			if (slowmode?.Enabled ?? false && !user.RoleIds.Intersect(slowmode.ImmuneRoleIds).Any())
 			{
-				await slowmode.HandleMessage(message, user);
+				await slowmode.HandleMessage(message);
 			}
 		}
 		/// <summary>

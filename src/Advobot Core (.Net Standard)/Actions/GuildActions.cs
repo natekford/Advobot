@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using Advobot.Classes;
+using Discord;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -71,9 +72,9 @@ namespace Advobot.Actions
 		/// <param name="simulate"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> PruneUsers(IGuild guild, int days, bool simulate, string reason)
+		public static async Task<int> PruneUsers(IGuild guild, int days, bool simulate, ModerationReason reason)
 		{
-			return await guild.PruneUsersAsync(days, simulate, new RequestOptions { AuditLogReason = reason });
+			return await guild.PruneUsersAsync(days, simulate, reason.CreateRequestOptions());
 		}
 
 		/// <summary>
@@ -83,9 +84,9 @@ namespace Advobot.Actions
 		/// <param name="name"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildName(IGuild guild, string name, string reason)
+		public static async Task ModifyGuildName(IGuild guild, string name, ModerationReason reason)
 		{
-			await guild.ModifyAsync(x => x.Name = name, new RequestOptions { AuditLogReason = reason });
+			await guild.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions());
 		}
 		/// <summary>
 		/// Changes the guild's region and says the supplied reason in the audit log.
@@ -94,9 +95,9 @@ namespace Advobot.Actions
 		/// <param name="region"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildRegion(IGuild guild, string region, string reason)
+		public static async Task ModifyGuildRegion(IGuild guild, string region, ModerationReason reason)
 		{
-			await guild.ModifyAsync(x => x.RegionId = region, new RequestOptions { AuditLogReason = reason });
+			await guild.ModifyAsync(x => x.RegionId = region, reason.CreateRequestOptions());
 		}
 		/// <summary>
 		/// Changes the guild's afk time and says the supplied reason in the audit log.
@@ -105,9 +106,9 @@ namespace Advobot.Actions
 		/// <param name="time"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildAFKTime(IGuild guild, int time, string reason)
+		public static async Task ModifyGuildAFKTime(IGuild guild, int time, ModerationReason reason)
 		{
-			await guild.ModifyAsync(x => x.AfkTimeout = time, new RequestOptions { AuditLogReason = reason });
+			await guild.ModifyAsync(x => x.AfkTimeout = time, reason.CreateRequestOptions());
 		}
 		/// <summary>
 		/// Changes the guild's afk channel and says the supplied reason in the audit log.
@@ -116,9 +117,9 @@ namespace Advobot.Actions
 		/// <param name="channel"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildAFKChannel(IGuild guild, IVoiceChannel channel, string reason)
+		public static async Task ModifyGuildAFKChannel(IGuild guild, IVoiceChannel channel, ModerationReason reason)
 		{
-			await guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), new RequestOptions { AuditLogReason = reason });
+			await guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), reason.CreateRequestOptions());
 		}
 		/// <summary>
 		/// Changes the guild's default message notification value and says the supplied reason in the audit log.
@@ -127,9 +128,9 @@ namespace Advobot.Actions
 		/// <param name="msgNotifs"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildDefaultMsgNotifications(IGuild guild, DefaultMessageNotifications msgNotifs, string reason)
+		public static async Task ModifyGuildDefaultMsgNotifications(IGuild guild, DefaultMessageNotifications msgNotifs, ModerationReason reason)
 		{
-			await guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, new RequestOptions { AuditLogReason = reason });
+			await guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, reason.CreateRequestOptions());
 		}
 		/// <summary>
 		/// Changes the guild's verification level and says the supplied reason in the audit log.
@@ -138,9 +139,9 @@ namespace Advobot.Actions
 		/// <param name="verifLevel"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildVerificationLevel(IGuild guild, VerificationLevel verifLevel, string reason)
+		public static async Task ModifyGuildVerificationLevel(IGuild guild, VerificationLevel verifLevel, ModerationReason reason)
 		{
-			await guild.ModifyAsync(x => x.VerificationLevel = verifLevel, new RequestOptions { AuditLogReason = reason });
+			await guild.ModifyAsync(x => x.VerificationLevel = verifLevel, reason.CreateRequestOptions());
 		}
 		/// <summary>
 		/// Changes the guild's icon and says the supplied reason in the audit log.
@@ -149,11 +150,11 @@ namespace Advobot.Actions
 		/// <param name="fileInfo"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildIcon(IGuild guild, FileInfo fileInfo, string reason)
+		public static async Task ModifyGuildIcon(IGuild guild, FileInfo fileInfo, ModerationReason reason)
 		{
 			using (var stream = new StreamReader(fileInfo.FullName))
 			{
-				await guild.ModifyAsync(x => x.Icon = new Image(stream.BaseStream), new RequestOptions { AuditLogReason = reason });
+				await guild.ModifyAsync(x => x.Icon = new Image(stream.BaseStream), reason.CreateRequestOptions());
 			}
 		}
 	}

@@ -51,7 +51,7 @@ namespace Advobot.Modules.Log
 				if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
 				{
 					var giver = new AutomaticPunishmentGiver(0, _Timers);
-					await giver.AutomaticallyPunishAsync(PunishmentType.Ban, user, null, GeneralFormatting.FormatBotReason("banned name"));
+					await giver.AutomaticallyPunishAsync(PunishmentType.Ban, user, null, "banned name");
 					return;
 				}
 				else if (VerifyLogAction(guildSettings, LogAction.UserJoined))

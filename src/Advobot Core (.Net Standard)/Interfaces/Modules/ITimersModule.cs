@@ -1,4 +1,5 @@
 ﻿using Advobot.Classes;
+using Advobot.Classes.Punishments;
 using Advobot.Enums;
 
 namespace Advobot.Interfaces

@@ -173,7 +173,7 @@ namespace Advobot.Commands.SelfRoles
 			var user = Context.User as IGuildUser;
 			if (user.RoleIds.Contains(role.Id))
 			{
-				await RoleActions.TakeRoles(user, new[] { role }, GeneralFormatting.FormatBotReason("self role removal"));
+				await RoleActions.TakeRoles(user, new[] { role }, new AutomaticModerationReason("self role removal"));
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed `{role.FormatRole()}`.");
 				return;
 			}
@@ -183,14 +183,14 @@ namespace Advobot.Commands.SelfRoles
 			if (group.Group != 0)
 			{
 				var otherRoles = group.Roles.Where(x => user.RoleIds.Contains(x?.RoleId ?? 0)).Select(x => x.Role);
-				await RoleActions.TakeRoles(user, otherRoles, GeneralFormatting.FormatBotReason("self role removal"));
+				await RoleActions.TakeRoles(user, otherRoles, new AutomaticModerationReason("self role removal"));
 				if (otherRoles.Any())
 				{
 					removedRoles = $", and removed `{String.Join("`, `", otherRoles.Select(x => x.FormatRole()))}`";
 				}
 			}
 
-			await RoleActions.GiveRoles(user, new[] { role }, GeneralFormatting.FormatBotReason("self role giving"));
+			await RoleActions.GiveRoles(user, new[] { role }, new AutomaticModerationReason("self role giving"));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully gave `{role.Name}`{removedRoles}.");
 		}
 	}

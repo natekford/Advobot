@@ -13,11 +13,12 @@ namespace Advobot.Classes.Punishments
 {
 	public class PunishmentGiver : PunishmentHandlerBase
 	{
-		public int Time				{ get; }
+		public int Time	{ get; }
 		public ITimersModule Timers { get; }
-		public bool IsValid			{ get; }
+		public bool IsValid { get; }
 
 		private List<string> _Actions = new List<string>();
+		private List<ModerationReason> _Reasons = new List<ModerationReason>();
 
 		public PunishmentGiver(uint time, ITimersModule timers) : this((int)time, timers) { }
 		public PunishmentGiver(int time, ITimersModule timers)
@@ -27,49 +28,54 @@ namespace Advobot.Classes.Punishments
 			IsValid = time > 0 && timers != null;
 		}
 
-		public async Task BanAsync(IGuild guild, ulong userId, string reason, int days = 1)
+		public async Task BanAsync(IGuild guild, ulong userId, ModerationReason reason, int days = 1)
 		{
-			await guild.AddBanAsync(userId, days, reason);
-			var ban = (await guild.GetBansAsync()).FirstOrDefault(x => x.User.Id == userId);
-			FollowupActions(guild, ban.User, PunishmentType.Ban);
+			await guild.AddBanAsync(userId, days, null, reason.CreateRequestOptions());
+			var ban = (await guild.GetBansAsync()).Single(x => x.User.Id == userId);
+			FollowupActions(PunishmentType.Ban, guild, ban.User, reason);
 		}
-		public async Task SoftbanAsync(IGuild guild, ulong userId, string reason)
+		public async Task SoftbanAsync(IGuild guild, ulong userId, ModerationReason reason)
 		{
-			await guild.AddBanAsync(userId, 7, reason);
-			var ban = (await guild.GetBansAsync()).FirstOrDefault(x => x.User.Id == userId);
-			await guild.RemoveBanAsync(userId);
-			FollowupActions(guild, ban.User, PunishmentType.Softban);
+			await guild.AddBanAsync(userId, 1, null, reason.CreateRequestOptions());
+			var ban = (await guild.GetBansAsync()).Single(x => x.User.Id == userId);
+			await guild.RemoveBanAsync(userId, reason.CreateRequestOptions());
+			FollowupActions(PunishmentType.Softban, guild, ban.User, reason);
 		}
-		public async Task KickAsync(IGuildUser user, string reason)
+		public async Task KickAsync(IGuildUser user, ModerationReason reason)
 		{
-			await user.KickAsync(reason);
-			FollowupActions(user.Guild, user, PunishmentType.Kick);
+			await user.KickAsync(null, reason.CreateRequestOptions());
+			FollowupActions(PunishmentType.Kick, user.Guild, user, reason);
 		}
-		public async Task RoleMuteAsync(IGuildUser user, IRole role, string reason)
+		public async Task RoleMuteAsync(IGuildUser user, IRole role, ModerationReason reason)
 		{
 			await RoleActions.GiveRoles(user, new[] { role }, reason);
-			FollowupActions(user.Guild, user, PunishmentType.RoleMute);
+			FollowupActions(PunishmentType.RoleMute, user.Guild, user, reason);
 		}
-		public async Task VoiceMuteAsync(IGuildUser user, string reason)
+		public async Task VoiceMuteAsync(IGuildUser user, ModerationReason reason)
 		{
-			await user.ModifyAsync(x => x.Mute = true, new RequestOptions { AuditLogReason = reason });
-			FollowupActions(user.Guild, user, PunishmentType.VoiceMute);
+			await user.ModifyAsync(x => x.Mute = true, reason.CreateRequestOptions());
+			FollowupActions(PunishmentType.VoiceMute, user.Guild, user, reason);
 		}
-		public async Task DeafenAsync(IGuildUser user, string reason)
+		public async Task DeafenAsync(IGuildUser user, ModerationReason reason)
 		{
-			await user.ModifyAsync(x => x.Deaf = true, new RequestOptions { AuditLogReason = reason });
-			FollowupActions(user.Guild, user, PunishmentType.Deafen);
+			await user.ModifyAsync(x => x.Deaf = true, reason.CreateRequestOptions());
+			FollowupActions(PunishmentType.Deafen, user.Guild, user, reason);
 		}
 
-		private void FollowupActions(IGuild guild, IUser user, PunishmentType punishmentType)
+		private void FollowupActions(PunishmentType punishmentType, IGuild guild, IUser user, ModerationReason reason)
 		{
-			var sb = new StringBuilder($"Successfully {_Given[punishmentType]} {user.FormatUser()}");
+			var sb = new StringBuilder($"Successfully {_Given[punishmentType]} {user.FormatUser()}. ");
 			if (IsValid)
 			{
 				Timers.AddRemovablePunishments(new RemovablePunishment(PunishmentType.Ban, guild, user.Id, Time));
-				sb.Append($"and they will be {_Removal[punishmentType]} in {Time} minutes.");
+				sb.Append($"They will be {_Removal[punishmentType]} in {Time} minutes. ");
 			}
-			_Actions.Add(sb.Append(".").ToString());
+			if (reason.HasReason)
+			{
+				sb.Append($"The provided reason is `{reason.Reason.EscapeBackTicks()}`. ");
+			}
+			_Reasons.Add(reason);
+			_Actions.Add(sb.ToString());
 		}
 
 		public override string ToString()

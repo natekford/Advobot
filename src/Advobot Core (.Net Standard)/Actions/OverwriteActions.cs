@@ -1,6 +1,5 @@
-﻿using Advobot.Actions.Formatting;
+﻿using Advobot.Classes;
 using Advobot.Classes.Permissions;
-using Advobot.Enums;
 using Discord;
 using System;
 using System.Collections.Generic;
@@ -62,25 +61,26 @@ namespace Advobot.Actions
 		/// <param name="changeValue"></param>
 		/// <param name="invokingUser"></param>
 		/// <returns></returns>
-		public static async Task<IEnumerable<string>> ModifyOverwritePermissions(IGuildChannel channel, object obj, ActionType actionType, ulong changeValue, IGuildUser invokingUser)
+		public static async Task<IEnumerable<string>> ModifyOverwritePermissions(PermValue action, IGuildChannel channel,
+			object obj, ulong changeValue, IGuildUser invokingUser)
 		{
 			var allowBits = channel.GetPermissionOverwriteAllowValue(obj);
 			var denyBits = channel.GetPermissionOverwriteDenyValue(obj);
-			switch (actionType)
+			switch (action)
 			{
-				case ActionType.Allow:
+				case PermValue.Allow:
 				{
 					allowBits |= changeValue;
 					denyBits &= ~changeValue;
 					break;
 				}
-				case ActionType.Inherit:
+				case PermValue.Inherit:
 				{
 					allowBits &= ~changeValue;
 					denyBits &= ~changeValue;
 					break;
 				}
-				case ActionType.Deny:
+				case PermValue.Deny:
 				{
 					allowBits &= ~changeValue;
 					denyBits |= changeValue;
@@ -88,7 +88,7 @@ namespace Advobot.Actions
 				}
 			}
 
-			await ModifyOverwrite(channel, obj, allowBits, denyBits, GeneralFormatting.FormatUserReason(invokingUser));
+			await ModifyOverwrite(channel, obj, allowBits, denyBits, new ModerationReason(invokingUser, null));
 			return ChannelPerms.ConvertValueToNames(changeValue);
 		}
 		/// <summary>
@@ -101,15 +101,16 @@ namespace Advobot.Actions
 		/// <param name="reason"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static async Task ModifyOverwrite(IGuildChannel channel, object obj, ulong allowBits, ulong denyBits, string reason)
+		public static async Task ModifyOverwrite(IGuildChannel channel, object obj, ulong allowBits, ulong denyBits, ModerationReason reason)
 		{
+			var permissions = new OverwritePermissions(allowBits, denyBits);
 			if (obj is IRole role)
 			{
-				await channel.AddPermissionOverwriteAsync(role, new OverwritePermissions(allowBits, denyBits));
+				await channel.AddPermissionOverwriteAsync(role, permissions, reason.CreateRequestOptions());
 			}
 			else if (obj is IUser user)
 			{
-				await channel.AddPermissionOverwriteAsync(user, new OverwritePermissions(allowBits, denyBits));
+				await channel.AddPermissionOverwriteAsync(user, permissions, reason.CreateRequestOptions());
 			}
 			else
 			{
@@ -122,7 +123,7 @@ namespace Advobot.Actions
 		/// <param name="channel"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ClearOverwrites(IGuildChannel channel, string reason)
+		public static async Task ClearOverwrites(IGuildChannel channel, ModerationReason reason)
 		{
 			foreach (var overwrite in channel.PermissionOverwrites)
 			{
@@ -130,12 +131,14 @@ namespace Advobot.Actions
 				{
 					case PermissionTarget.Role:
 					{
-						await channel.RemovePermissionOverwriteAsync(channel.Guild.GetRole(overwrite.TargetId));
+						var role = channel.Guild.GetRole(overwrite.TargetId);
+						await channel.RemovePermissionOverwriteAsync(role, reason.CreateRequestOptions());
 						break;
 					}
 					case PermissionTarget.User:
 					{
-						await channel.RemovePermissionOverwriteAsync(await channel.Guild.GetUserAsync(overwrite.TargetId));
+						var user = await channel.Guild.GetUserAsync(overwrite.TargetId);
+						await channel.RemovePermissionOverwriteAsync(user, reason.CreateRequestOptions());
 						break;
 					}
 				}
