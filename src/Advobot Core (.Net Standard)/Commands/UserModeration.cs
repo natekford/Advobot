@@ -99,12 +99,12 @@ namespace Advobot.Commands.UserModeration
 		{
 			if (user.VoiceChannel == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("User is not in a voice channel."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("User is not in a voice channel."));
 				return;
 			}
 			else if (user.VoiceChannel == channel)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("User is already in that channel."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("User is already in that channel."));
 				return;
 			}
 
@@ -148,7 +148,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			if (!_Days.Contains(days))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"Invalid days supplied, must be one of the following: `{String.Join("`, `", _Days)}`"));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason($"Invalid days supplied, must be one of the following: `{String.Join("`, `", _Days)}`"));
 				return;
 			}
 
@@ -216,7 +216,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			if ((await Context.Guild.GetBansAsync()).Select(x => x.User.Id).Contains(userId))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("That user is already banned."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("That user is already banned."));
 				return;
 			}
 
@@ -361,7 +361,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			if (Context.GuildSettings.Slowmode == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("There must be a slowmode set up before one can be enabled or disabled."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There must be a slowmode set up before one can be enabled or disabled."));
 				return;
 			}
 
@@ -373,7 +373,7 @@ namespace Advobot.Commands.UserModeration
 		{
 			if (Context.GuildSettings.Slowmode == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("There must be a slowmode set up before one can be enabled or disabled."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There must be a slowmode set up before one can be enabled or disabled."));
 				return;
 			}
 

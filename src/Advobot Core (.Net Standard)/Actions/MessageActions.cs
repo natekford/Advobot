@@ -90,7 +90,7 @@ namespace Advobot.Actions
 			catch (Exception e)
 			{
 				ConsoleActions.ExceptionToConsole(e);
-				message = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + GeneralFormatting.ERROR(e.Message));
+				message = await SendMessage(channel, new ErrorReason(e.Message).ToString());
 			}
 
 			//Upload the overflow
@@ -192,6 +192,22 @@ namespace Advobot.Actions
 			{
 				timers.AddRemovableMessages(new RemovableMessage(time, new[] { message, secondMessage }));
 			}
+		}
+		/// <summary>
+		/// If the guild has verbose errors enabled then this acts just like <see cref="MakeAndDeleteSecondaryMessage(IMessageChannel, IMessage, string, int, ITimersModule)"/>.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="reason"></param>
+		/// <param name="time"></param>
+		/// <returns></returns>
+		public static async Task SendErrorMessage(IMyCommandContext context, ErrorReason reason, int time = -1)
+		{
+			if (!context.GuildSettings.VerboseErrors)
+			{
+				return;
+			}
+
+			await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, reason.ToString(), time, context.Timers);
 		}
 
 		/// <summary>

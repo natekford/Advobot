@@ -192,34 +192,6 @@ namespace Advobot.Actions
 		}
 
 		/// <summary>
-		/// Returns true if there is a valid error reason. Returns false if the command executed without errors.
-		/// </summary>
-		/// <param name="result"></param>
-		/// <param name="errorReason"></param>
-		/// <returns></returns>
-		public static bool TryGetErrorReason(IResult result, out string errorReason)
-		{
-			errorReason = result.ErrorReason;
-			if (result.IsSuccess || Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
-			{
-				return false;
-			}
-
-			switch (result.Error)
-			{
-				case null:
-				//Ignore commands with the unknown command error because it's annoying
-				case CommandError.UnknownCommand:
-				{
-					return false;
-				}
-				default:
-				{
-					return true;
-				}
-			}
-		}
-		/// <summary>
 		/// Returns true if a valid file type was gotten and the image is smaller than 2.5MB.
 		/// </summary>
 		/// <param name="context"></param>

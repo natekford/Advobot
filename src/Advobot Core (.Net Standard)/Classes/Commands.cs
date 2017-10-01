@@ -59,7 +59,7 @@ namespace Advobot.Classes
 			var helpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.Equals(name));
 			if (helpEntry == null)
 			{
-				Category = default(CommandCategory);
+				Category = default;
 				return;
 			}
 
@@ -127,22 +127,20 @@ namespace Advobot.Classes
 		/// <param name="result"></param>
 		public void SetError(IResult result)
 		{
-			if (GetActions.TryGetErrorReason(result, out string errorReason))
+			if (TryGetErrorReason(result, out string errorReason))
 			{
 				ErrorReason = errorReason;
 				WriteColor = ConsoleColor.Red;
 			}
 		}
 		/// <summary>
-		/// Sets <see cref="TimeCompleted"/> to <see cref="DateTime.UtcNow"/> and writes the logged command to the console.
+		/// Sets <see cref="TimeCompleted"/> to <see cref="DateTime.UtcNow"/>.
 		/// </summary>
-		public void FinalizeAndWrite(ICommandContext context, IResult result, ILogModule logModule)
+		public void Finalize(ICommandContext context, IResult result)
 		{
 			SetContext(context);
 			SetError(result);
-			logModule.RanCommands.Add(this);
 			Stopwatch.Stop();
-			Write();
 		}
 		/// <summary>
 		/// Writes this to the console in whatever color <see cref="WriteColor"/> is.
@@ -150,6 +148,34 @@ namespace Advobot.Classes
 		public void Write()
 		{
 			ConsoleActions.WriteLine(this.ToString(), nameof(LoggedCommand), WriteColor);
+		}
+		/// <summary>
+		/// Returns true if there is a valid error reason. Returns false if the command executed without errors.
+		/// </summary>
+		/// <param name="result"></param>
+		/// <param name="errorReason"></param>
+		/// <returns></returns>
+		private bool TryGetErrorReason(IResult result, out string errorReason)
+		{
+			errorReason = result.ErrorReason;
+			if (result.IsSuccess || Constants.IGNORE_ERROR.CaseInsEquals(result.ErrorReason))
+			{
+				return false;
+			}
+
+			switch (result.Error)
+			{
+				case null:
+				//Ignore commands with the unknown command error because it's annoying
+				case CommandError.UnknownCommand:
+				{
+					return false;
+				}
+				default:
+				{
+					return true;
+				}
+			}
 		}
 
 		public override string ToString()

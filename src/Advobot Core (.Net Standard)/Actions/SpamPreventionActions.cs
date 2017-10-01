@@ -14,7 +14,7 @@ namespace Advobot.Actions
 			var spamPrev = context.GuildSettings.SpamPreventionDictionary[spamType];
 			if (spamPrev == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR("There must be a spam prevention of that type set up before one can be enabled or disabled."));
+				await MessageActions.SendErrorMessage(context, new ErrorReason("There must be a spam prevention of that type set up before one can be enabled or disabled."));
 				return;
 			}
 
@@ -42,29 +42,29 @@ namespace Advobot.Actions
 
 			if (messageCount <= MSG_COUNT_MIN_LIM)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR($"The message count must be greater than `{MSG_COUNT_MIN_LIM}`."));
+				await MessageActions.SendErrorMessage(context, new ErrorReason($"The message count must be greater than `{MSG_COUNT_MIN_LIM}`."));
 				return;
 			}
 			else if (messageCount > MSG_COUNT_MAX_LIM)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR($"The message count must be less than `{MSG_COUNT_MAX_LIM}`."));
+				await MessageActions.SendErrorMessage(context, new ErrorReason($"The message count must be less than `{MSG_COUNT_MAX_LIM}`."));
 				return;
 			}
 
 			if (votes <= VOTE_COUNT_MIN_LIM)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR($"The vote count must be greater than `{VOTE_COUNT_MIN_LIM}`."));
+				await MessageActions.SendErrorMessage(context, new ErrorReason($"The vote count must be greater than `{VOTE_COUNT_MIN_LIM}`."));
 				return;
 			}
 			else if (votes > VOTE_COUNT_MAX_LIM)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR($"The vote count must be less than `{VOTE_COUNT_MAX_LIM}`."));
+				await MessageActions.SendErrorMessage(context, new ErrorReason($"The vote count must be less than `{VOTE_COUNT_MAX_LIM}`."));
 				return;
 			}
 
 			if (requiredSpamAmtOrTimeInterval <= SPAM_TIME_AMT_MIN_LIM)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR($"The spam amount or time interval must be greater than `{VOTE_COUNT_MIN_LIM}`."));
+				await MessageActions.SendErrorMessage(context, new ErrorReason($"The spam amount or time interval must be greater than `{VOTE_COUNT_MIN_LIM}`."));
 				return;
 			}
 			switch (spamType)
@@ -73,7 +73,7 @@ namespace Advobot.Actions
 				{
 					if (requiredSpamAmtOrTimeInterval > TIME_INTERVAL_MAX_LIM)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR($"The time interval must be less than `{VOTE_COUNT_MAX_LIM}`."));
+						await MessageActions.SendErrorMessage(context, new ErrorReason($"The time interval must be less than `{VOTE_COUNT_MAX_LIM}`."));
 						return;
 					}
 					break;
@@ -82,7 +82,7 @@ namespace Advobot.Actions
 				{
 					if (requiredSpamAmtOrTimeInterval > LONG_MESSAGE_MAX_LIM)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR($"The message length must be less than `{LONG_MESSAGE_MAX_LIM}`."));
+						await MessageActions.SendErrorMessage(context, new ErrorReason($"The message length must be less than `{LONG_MESSAGE_MAX_LIM}`."));
 						return;
 					}
 					break;
@@ -91,7 +91,7 @@ namespace Advobot.Actions
 				{
 					if (requiredSpamAmtOrTimeInterval > OTHERS_MAX_LIM)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR($"The link count must be less than `{OTHERS_MAX_LIM}`."));
+						await MessageActions.SendErrorMessage(context, new ErrorReason($"The link count must be less than `{OTHERS_MAX_LIM}`."));
 						return;
 					}
 					break;
@@ -100,7 +100,7 @@ namespace Advobot.Actions
 				{
 					if (requiredSpamAmtOrTimeInterval > TIME_INTERVAL_MAX_LIM)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR($"The time interval must be less than `{VOTE_COUNT_MAX_LIM}`."));
+						await MessageActions.SendErrorMessage(context, new ErrorReason($"The time interval must be less than `{VOTE_COUNT_MAX_LIM}`."));
 						return;
 					}
 					break;
@@ -109,7 +109,7 @@ namespace Advobot.Actions
 				{
 					if (requiredSpamAmtOrTimeInterval > OTHERS_MAX_LIM)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR($"The mention count must be less than `{OTHERS_MAX_LIM}`."));
+						await MessageActions.SendErrorMessage(context, new ErrorReason($"The mention count must be less than `{OTHERS_MAX_LIM}`."));
 						return;
 					}
 					break;
@@ -127,7 +127,7 @@ namespace Advobot.Actions
 			var raidPrev = context.GuildSettings.RaidPreventionDictionary[raidType];
 			if (raidPrev == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR("There must be a raid prevention of that type set up before one can be enabled or disabled."));
+				await MessageActions.SendErrorMessage(context, new ErrorReason("There must be a raid prevention of that type set up before one can be enabled or disabled."));
 				return;
 			}
 
@@ -159,12 +159,12 @@ namespace Advobot.Actions
 
 			if (userCount > MAX_USERS)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR($"The user count must be less than or equal to `{MAX_USERS}`."));
+				await MessageActions.SendErrorMessage(context, new ErrorReason($"The user count must be less than or equal to `{MAX_USERS}`."));
 				return;
 			}
 			else if (interval > MAX_TIME)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR($"The interval must be less than or equal to `{MAX_TIME}`."));
+				await MessageActions.SendErrorMessage(context, new ErrorReason($"The interval must be less than or equal to `{MAX_TIME}`."));
 				return;
 			}
 

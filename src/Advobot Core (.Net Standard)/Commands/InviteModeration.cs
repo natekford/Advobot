@@ -25,7 +25,7 @@ namespace Advobot.Commands.InviteModeration
 			var invites = (await Context.Guild.GetInvitesAsync()).OrderByDescending(x => x.Uses);
 			if (!invites.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("This guild has no invites."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("This guild has no invites."));
 				return;
 			}
 
@@ -51,12 +51,12 @@ namespace Advobot.Commands.InviteModeration
 		{
 			if (!validTimes.Contains(time))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"Invalid time supplied, must be one of the following: `{String.Join("`, `", validTimes)}`."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason($"Invalid time supplied, must be one of the following: `{String.Join("`, `", validTimes)}`."));
 				return;
 			}
 			else if (!validUses.Contains(uses))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"Invalid uses supplied, must be one of the following: `{String.Join("`, `", validUses)}`"));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason($"Invalid uses supplied, must be one of the following: `{String.Join("`, `", validUses)}`"));
 				return;
 			}
 
@@ -120,7 +120,7 @@ namespace Advobot.Commands.InviteModeration
 			var invites = (await Context.Guild.GetInvitesAsync()).AsEnumerable();
 			if (!invites.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("This guild has no invites."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("This guild has no invites."));
 				return;
 			}
 
@@ -147,7 +147,7 @@ namespace Advobot.Commands.InviteModeration
 
 			if (!invites.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("No invites satisfied the given conditions."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("No invites satisfied the given conditions."));
 				return;
 			}
 				

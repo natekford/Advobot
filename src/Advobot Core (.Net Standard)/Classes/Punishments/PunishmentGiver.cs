@@ -18,7 +18,6 @@ namespace Advobot.Classes.Punishments
 		public bool IsValid { get; }
 
 		private List<string> _Actions = new List<string>();
-		private List<ModerationReason> _Reasons = new List<ModerationReason>();
 
 		public PunishmentGiver(uint time, ITimersModule timers) : this((int)time, timers) { }
 		public PunishmentGiver(int time, ITimersModule timers)
@@ -74,7 +73,6 @@ namespace Advobot.Classes.Punishments
 			{
 				sb.Append($"The provided reason is `{reason.Reason.EscapeBackTicks()}`. ");
 			}
-			_Reasons.Add(reason);
 			_Actions.Add(sb.ToString());
 		}
 

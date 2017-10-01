@@ -34,7 +34,7 @@ namespace Advobot.Commands.GuildModeration
 				var guild = await Context.Client.GetGuildAsync(guildId);
 				if (guild == null)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Invalid server supplied."));
+					await MessageActions.SendErrorMessage(Context, new ErrorReason("Invalid server supplied."));
 					return;
 				}
 
@@ -50,7 +50,7 @@ namespace Advobot.Commands.GuildModeration
 			}
 			else
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Only the bot owner can use this command targetting other guilds."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("Only the bot owner can use this command targetting other guilds."));
 			}
 		}
 	}
@@ -112,7 +112,7 @@ namespace Advobot.Commands.GuildModeration
 		{
 			if (!(_ValidRegionIDs.CaseInsContains(region) || (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(region))))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("No valid region ID was input."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("No valid region ID was input."));
 				return;
 			}
 
@@ -142,7 +142,7 @@ namespace Advobot.Commands.GuildModeration
 		{
 			if (!_AFKTimes.Contains(time))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"Invalid time input, must be one of the following: `{String.Join("`, `", _AFKTimes)}`."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason($"Invalid time input, must be one of the following: `{String.Join("`, `", _AFKTimes)}`."));
 				return;
 			}
 
@@ -217,14 +217,14 @@ namespace Advobot.Commands.GuildModeration
 			}
 			else if (validImages.Count() > 1)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Too many attached or embedded images."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("Too many attached or embedded images."));
 				return;
 			}
 
 			var imageUrl = validImages.First();
 			if (!GetActions.TryGetFileType(Context, imageUrl, out string fileType, out string errorReason))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR(errorReason));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason(errorReason));
 				return;
 			}
 
@@ -278,7 +278,7 @@ namespace Advobot.Commands.GuildModeration
 				return;
 			}
 
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The bot is not the owner of the guild."));
+			await MessageActions.SendErrorMessage(Context, new ErrorReason("The bot is not the owner of the guild."));
 		}
 	}
 
@@ -298,7 +298,7 @@ namespace Advobot.Commands.GuildModeration
 				return;
 			}
 
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The bot is not the owner of the guild."));
+			await MessageActions.SendErrorMessage(Context, new ErrorReason("The bot is not the owner of the guild."));
 		}
 	}
 }

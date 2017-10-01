@@ -291,14 +291,14 @@ namespace Advobot.Commands.RoleModeration
 		{
 			if (position > Context.User.GetPosition())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Your position is less than the role's."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("Your position is less than the role's."));
 				return;
 			}
 
 			var role = Context.Guild.Roles.FirstOrDefault(x => x.Position == (int)position);
 			if (role == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("No role has the given position."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("No role has the given position."));
 				return;
 			}
 

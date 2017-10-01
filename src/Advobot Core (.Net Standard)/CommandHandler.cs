@@ -130,6 +130,8 @@ namespace Advobot
 		/// <returns></returns>
 		private static async Task LogCommand(LoggedCommand loggedCommand, IMyCommandContext context, IResult result)
 		{
+			loggedCommand.Finalize(context, result);
+
 			//Success
 			if (result.IsSuccess)
 			{
@@ -149,7 +151,7 @@ namespace Advobot
 			else if (loggedCommand.ErrorReason != null)
 			{
 				_Logging.FailedCommands.Increment();
-				await MessageActions.MakeAndDeleteSecondaryMessage(context, GeneralFormatting.ERROR(loggedCommand.ErrorReason));
+				await MessageActions.SendErrorMessage(context, new ErrorReason(loggedCommand.ErrorReason));
 			}
 			//Failure in a way that doesn't need to get logged (unknown command, etc)
 			else
@@ -157,7 +159,8 @@ namespace Advobot
 				return;
 			}
 
-			loggedCommand.FinalizeAndWrite(context, result, _Logging);
+			loggedCommand.Write();
+			_Logging.RanCommands.Add(loggedCommand);
 		}
 	}
 }

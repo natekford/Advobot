@@ -34,7 +34,7 @@ namespace Advobot.Commands.ChannelModeration
 				{
 					if (name.Contains(' '))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("No spaces are allowed in a text channel name."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason("No spaces are allowed in a text channel name."));
 						return;
 					}
 
@@ -48,7 +48,7 @@ namespace Advobot.Commands.ChannelModeration
 				}
 				default:
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Unable to create a channel of that type."));
+					await MessageActions.SendErrorMessage(Context, new ErrorReason("Unable to create a channel of that type."));
 					return;
 				}
 			}
@@ -130,7 +130,7 @@ namespace Advobot.Commands.ChannelModeration
 				}
 				default:
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Unable to show the positions for that channel type."));
+					await MessageActions.SendErrorMessage(Context, new ErrorReason("Unable to show the positions for that channel type."));
 					return;
 				}
 			}
@@ -175,7 +175,7 @@ namespace Advobot.Commands.ChannelModeration
 			{
 				if (!channel.PermissionOverwrites.Any())
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"Unable to show permissions for `{role.FormatRole()}` on `{channel.FormatChannel()}`."));
+					await MessageActions.SendErrorMessage(Context, new ErrorReason($"Unable to show permissions for `{role.FormatRole()}` on `{channel.FormatChannel()}`."));
 					return;
 				}
 
@@ -187,7 +187,7 @@ namespace Advobot.Commands.ChannelModeration
 			{
 				if (!channel.PermissionOverwrites.Any())
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"Unable to show permissions for `{user.FormatUser()}` on `{channel.FormatChannel()}`."));
+					await MessageActions.SendErrorMessage(Context, new ErrorReason($"Unable to show permissions for `{user.FormatUser()}` on `{channel.FormatChannel()}`."));
 					return;
 				}
 
@@ -269,7 +269,7 @@ namespace Advobot.Commands.ChannelModeration
 			//Make sure channels are the same type
 			if (inputChannel.GetType() != outputChannel.GetType())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Channels must be the same type."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("Channels must be the same type."));
 				return;
 			}
 
@@ -306,7 +306,7 @@ namespace Advobot.Commands.ChannelModeration
 				var overwrite = inputChannel.GetPermissionOverwrite(discordObject);
 				if (!overwrite.HasValue)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"A permission overwrite for {target} does not exist to copy over."));
+					await MessageActions.SendErrorMessage(Context, new ErrorReason($"A permission overwrite for {target} does not exist to copy over."));
 					return;
 				}
 
@@ -368,7 +368,7 @@ namespace Advobot.Commands.ChannelModeration
 		{
 			if (channel is ITextChannel && name.Contains(' '))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Spaces are not allowed in text channel names."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("Spaces are not allowed in text channel names."));
 				return;
 			}
 
@@ -404,7 +404,7 @@ namespace Advobot.Commands.ChannelModeration
 		{
 			if (limit > Constants.MAX_VOICE_CHANNEL_USER_LIMIT)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"The highest a voice channel user limit can be is `{Constants.MAX_VOICE_CHANNEL_USER_LIMIT}`."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason($"The highest a voice channel user limit can be is `{Constants.MAX_VOICE_CHANNEL_USER_LIMIT}`."));
 			}
 
 			await channel.ModifyLimitAsync((int)limit, new ModerationReason(Context.User, null));
@@ -424,17 +424,17 @@ namespace Advobot.Commands.ChannelModeration
 		{
 			if (bitrate < Constants.MIN_BITRATE)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"The bitrate must be above or equal to `{Constants.MIN_BITRATE}`."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason($"The bitrate must be above or equal to `{Constants.MIN_BITRATE}`."));
 				return;
 			}
 			else if (!Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && bitrate > Constants.MAX_BITRATE)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"The bitrate must be below or equal to `{Constants.MAX_BITRATE}`."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason($"The bitrate must be below or equal to `{Constants.MAX_BITRATE}`."));
 				return;
 			}
 			else if (bitrate > Constants.VIP_BITRATE)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"The bitrate must be below or equal to `{Constants.VIP_BITRATE}`."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason($"The bitrate must be below or equal to `{Constants.VIP_BITRATE}`."));
 				return;
 			}
 

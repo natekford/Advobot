@@ -65,7 +65,6 @@ namespace Advobot
 		public static readonly string VANITY_URL = "VANITY_URL";
 		public static readonly string INVITE_SPLASH = "INVITE_SPLASH";
 		public static readonly string MUTE_ROLE_NAME = "Advobot_Mute";
-		public static readonly string ERROR_MESSAGE = "**ERROR:** ";
 		public static readonly string SERVER_FOLDER = "Discord_Servers";
 		public static readonly string SETTING_FILE_EXTENSION = ".json";
 		public static readonly string GENERAL_FILE_EXTENSION = ".txt";

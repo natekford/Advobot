@@ -17,7 +17,6 @@ namespace Advobot.Classes.Punishments
 		public bool IsValid { get; }
 
 		private List<string> _Actions = new List<string>();
-		private List<ModerationReason> _Reasons = new List<ModerationReason>();
 
 		public PunishmentRemover(ITimersModule timers)
 		{
@@ -58,7 +57,6 @@ namespace Advobot.Classes.Punishments
 			{
 				sb.Append($"The provided reason is `{reason.Reason.EscapeBackTicks()}`. ");
 			}
-			_Reasons.Add(reason);
 			_Actions.Add(sb.ToString());
 		}
 

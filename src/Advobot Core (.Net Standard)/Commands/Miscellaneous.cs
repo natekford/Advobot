@@ -71,7 +71,7 @@ namespace Advobot.Commands.Miscellaneous
 					return;
 				}
 
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Nonexistent command."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("Nonexistent command."));
 			}
 		}
 	}
@@ -505,7 +505,7 @@ namespace Advobot.Commands.Miscellaneous
 		{
 			if (role.IsMentionable)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("You can already mention this role."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("You can already mention this role."));
 			}
 			else
 			{
@@ -537,7 +537,7 @@ namespace Advobot.Commands.Miscellaneous
 			}
 			else
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The owner is unable to be gotten."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("The owner is unable to be gotten."));
 			}
 		}
 	}
@@ -555,7 +555,7 @@ namespace Advobot.Commands.Miscellaneous
 			var perms = GuildPerms.ConvertValueToNames(permNum);
 			if (!perms.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The given number holds no permissions."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("The given number holds no permissions."));
 			}
 			else
 			{
@@ -568,7 +568,7 @@ namespace Advobot.Commands.Miscellaneous
 			var perms = ChannelPerms.ConvertValueToNames(permNum);
 			if (!perms.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The given number holds no permissions."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("The given number holds no permissions."));
 			}
 			else
 			{

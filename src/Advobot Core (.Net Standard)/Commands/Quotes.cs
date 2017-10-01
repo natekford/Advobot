@@ -22,17 +22,17 @@ namespace Advobot.Commands.Quotes
 		{
 			if (Context.GuildSettings.Quotes.Count >= Constants.MAX_QUOTES)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"You cannot have more than `{Constants.MAX_QUOTES}` quotes at a time."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason($"You cannot have more than `{Constants.MAX_QUOTES}` quotes at a time."));
 				return;
 			}
 			else if (Context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("A quote already has that name."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("A quote already has that name."));
 				return;
 			}
 			else if (String.IsNullOrWhiteSpace(text))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Adding a quote requires text."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("Adding a quote requires text."));
 				return;
 			}
 
@@ -44,14 +44,14 @@ namespace Advobot.Commands.Quotes
 		{
 			if (!Context.GuildSettings.Quotes.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("There needs to be at least one quote before you can remove any."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There needs to be at least one quote before you can remove any."));
 				return;
 			}
 
 			var removed = Context.GuildSettings.Quotes.RemoveAll(x => x.Name.CaseInsEquals(name));
 			if (removed < 1)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("No quote has that name."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("No quote has that name."));
 				return;
 			}
 
@@ -71,7 +71,7 @@ namespace Advobot.Commands.Quotes
 			var quotes = Context.GuildSettings.Quotes;
 			if (!quotes.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("There are no quotes."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There are no quotes."));
 				return;
 			}
 
@@ -84,7 +84,7 @@ namespace Advobot.Commands.Quotes
 			var quotes = Context.GuildSettings.Quotes;
 			if (!quotes.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("There are no quotes."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There are no quotes."));
 				return;
 			}
 
@@ -106,7 +106,7 @@ namespace Advobot.Commands.Quotes
 				return;
 			}
 
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Nonexistent quote."));
+			await MessageActions.SendErrorMessage(Context, new ErrorReason("Nonexistent quote."));
 		}
 	}
 }

@@ -13,16 +13,6 @@ namespace Advobot.Actions.Formatting
 		private static readonly Regex _RemoveDuplicateSpaces = new Regex(@"[\r\n]+", RegexOptions.Compiled);
 
 		/// <summary>
-		/// Returns a string with a zero length character and the error message added to the front of the input.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		public static string ERROR(string message)
-		{
-			return Constants.ZERO_LENGTH_CHAR + Constants.ERROR_MESSAGE + message;
-		}
-
-		/// <summary>
 		/// Returns a string with the given number of spaces minus the length of the second object padded onto the right side of the first object.
 		/// </summary>
 		/// <param name="obj1"></param>

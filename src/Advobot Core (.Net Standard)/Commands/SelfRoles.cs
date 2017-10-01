@@ -50,12 +50,12 @@ namespace Advobot.Commands.SelfRoles
 				{
 					if (selfAssignableGroups.Count >= Constants.MAX_SA_GROUPS)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"You have too many groups. {Constants.MAX_SA_GROUPS} is the maximum.");
+						await MessageActions.SendErrorMessage(Context, new ErrorReason($"You have too many groups. {Constants.MAX_SA_GROUPS} is the maximum."));
 						return;
 					}
 					else if (selfAssignableGroups.Any(x => x.Group == groupNum))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("A group already exists with that position."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason("A group already exists with that position."));
 						return;
 					}
 
@@ -66,12 +66,12 @@ namespace Advobot.Commands.SelfRoles
 				{
 					if (selfAssignableGroups.Count <= 0)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"You have too many groups. {Constants.MAX_SA_GROUPS} is the maximum.");
+						await MessageActions.SendErrorMessage(Context, new ErrorReason($"You have too many groups. {Constants.MAX_SA_GROUPS} is the maximum."));
 						return;
 					}
 					else if (!selfAssignableGroups.Any(x => x.Group == groupNum))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("A group needs to exist with that position before it can be deleted."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason("A group needs to exist with that position before it can be deleted."));
 						return;
 					}
 
@@ -92,14 +92,14 @@ namespace Advobot.Commands.SelfRoles
 			var selfAssignableGroups = Context.GuildSettings.SelfAssignableGroups;
 			if (!selfAssignableGroups.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Before you can edit or delete a group, you need to first create one."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("Before you can edit or delete a group, you need to first create one."));
 				return;
 			}
 
 			var group = selfAssignableGroups.FirstOrDefault(x => x.Group == groupNum);
 			if (group == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("A group needs to exist with that position before you can modify it."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("A group needs to exist with that position before you can modify it."));
 				return;
 			}
 
@@ -166,7 +166,7 @@ namespace Advobot.Commands.SelfRoles
 			var group = Context.GuildSettings.SelfAssignableGroups.FirstOrDefault(x => x.Roles.Select(y => y.RoleId).Contains(role.Id));
 			if (group == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("There is no self assignable role by that name."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There is no self assignable role by that name."));
 				return;
 			}
 
@@ -207,7 +207,7 @@ namespace Advobot.Commands.SelfRoles
 			var groupNumbers = Context.GuildSettings.SelfAssignableGroups.Select(x => x.Group).OrderBy(x => x);
 			if (!groupNumbers.Any())
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("There are currently no self assignable role groups on this guild."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There are currently no self assignable role groups on this guild."));
 				return;
 			}
 
@@ -219,7 +219,7 @@ namespace Advobot.Commands.SelfRoles
 			var group = Context.GuildSettings.SelfAssignableGroups.FirstOrDefault(x => x.Group == groupNum);
 			if (group == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("There is no group with that number."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There is no group with that number."));
 				return;
 			}
 

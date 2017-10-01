@@ -65,12 +65,12 @@ namespace Advobot.Commands.GuildSettings
 			{
 				if (command.Value)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("This command is already enabled."));
+					await MessageActions.SendErrorMessage(Context, new ErrorReason("This command is already enabled."));
 					return;
 				}
 				else if (_CommandsUnableToBeTurnedOff.CaseInsContains(command.Name))
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Please don't try to edit that command."));
+					await MessageActions.SendErrorMessage(Context, new ErrorReason("Please don't try to edit that command."));
 					return;
 				}
 
@@ -110,12 +110,12 @@ namespace Advobot.Commands.GuildSettings
 			{
 				if (!command.Value)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("This command is already disabled."));
+					await MessageActions.SendErrorMessage(Context, new ErrorReason("This command is already disabled."));
 					return;
 				}
 				else if (_CommandsUnableToBeTurnedOff.CaseInsContains(command.Name))
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Please don't try to edit that command."));
+					await MessageActions.SendErrorMessage(Context, new ErrorReason("Please don't try to edit that command."));
 					return;
 				}
 
@@ -244,7 +244,7 @@ namespace Advobot.Commands.GuildSettings
 				var botUser = Context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id);
 				if (botUser == null || botUser.Permissions == 0)
 				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("That user has no extra permissions from the bot."));
+					await MessageActions.SendErrorMessage(Context, new ErrorReason("That user has no extra permissions from the bot."));
 					return;
 				}
 
@@ -372,7 +372,7 @@ namespace Advobot.Commands.GuildSettings
 			var notif = Context.GuildSettings.WelcomeMessage;
 			if (notif == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The welcome notification does not exist."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("The welcome notification does not exist."));
 				return;
 			}
 
@@ -384,7 +384,7 @@ namespace Advobot.Commands.GuildSettings
 			var notif = Context.GuildSettings.GoodbyeMessage;
 			if (notif == null)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The goodbye notification does not exist."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("The goodbye notification does not exist."));
 				return;
 			}
 
@@ -439,7 +439,7 @@ namespace Advobot.Commands.GuildSettings
 			var file = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_SETTINGS_LOCATION);
 			if (!file.Exists)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The guild information file does not exist at this time."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("The guild information file does not exist at this time."));
 				return;
 			}
 			await Context.Channel.SendFileAsync(file.FullName);

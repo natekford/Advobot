@@ -37,14 +37,14 @@ namespace Advobot.Commands.BotSettings
 				{
 					if (!uint.TryParse(newValue, out uint number))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Invalid number input."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason("Invalid number input."));
 						return;
 					}
 
 					var validNum = (await Context.Client.GetGuildsAsync()).Count / 2500 + 1;
 					if (number < validNum)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"With the current amount of guilds the client has, the minimum shard number is: `{validNum}`."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason($"With the current amount of guilds the client has, the minimum shard number is: `{validNum}`."));
 						return;
 					}
 
@@ -56,7 +56,7 @@ namespace Advobot.Commands.BotSettings
 				{
 					if (!uint.TryParse(newValue, out uint number))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Invalid number input."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason("Invalid number input."));
 						return;
 					}
 
@@ -68,7 +68,7 @@ namespace Advobot.Commands.BotSettings
 				{
 					if (!uint.TryParse(newValue, out uint number))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Invalid number input."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason("Invalid number input."));
 						return;
 					}
 
@@ -80,7 +80,7 @@ namespace Advobot.Commands.BotSettings
 				{
 					if (!uint.TryParse(newValue, out uint number))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Invalid number input."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason("Invalid number input."));
 						return;
 					}
 
@@ -92,7 +92,7 @@ namespace Advobot.Commands.BotSettings
 				{
 					if (newValue.Length > Constants.MAX_PREFIX_LENGTH)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"Prefix cannot be longer than `{Constants.MAX_PREFIX_LENGTH}` characters."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason($"Prefix cannot be longer than `{Constants.MAX_PREFIX_LENGTH}` characters."));
 						return;
 					}
 
@@ -104,7 +104,7 @@ namespace Advobot.Commands.BotSettings
 				{
 					if (newValue.Length > Constants.MAX_GAME_LENGTH)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"Game name cannot be longer than `{Constants.MAX_GAME_LENGTH}` characters or else it doesn't show to other people."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason($"Game name cannot be longer than `{Constants.MAX_GAME_LENGTH}` characters or else it doesn't show to other people."));
 						return;
 					}
 
@@ -116,12 +116,12 @@ namespace Advobot.Commands.BotSettings
 				{
 					if (newValue.Length > Constants.MAX_STREAM_LENGTH)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"Stream names cannot be longer than `{Constants.MAX_STREAM_LENGTH}` characters."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason($"Stream names cannot be longer than `{Constants.MAX_STREAM_LENGTH}` characters."));
 						return;
 					}
 					else if (!RegexActions.CheckIfInputIsAValidTwitchName(newValue))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"`{newValue}` is not a valid Twitch stream name."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason($"`{newValue}` is not a valid Twitch stream name."));
 						return;
 					}
 
@@ -133,7 +133,7 @@ namespace Advobot.Commands.BotSettings
 				{
 					if (!bool.TryParse(newValue, out bool alwaysDLUsers))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("The input for always download users has to be a boolean."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason("The input for always download users has to be a boolean."));
 						return;
 					}
 
@@ -145,7 +145,7 @@ namespace Advobot.Commands.BotSettings
 				{
 					if (!Enum.TryParse(newValue, true, out LogSeverity logLevel))
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR($"The input for log level has to be one of the following: `{String.Join("`, `", Enum.GetNames(typeof(LogSeverity)))}`."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason($"The input for log level has to be one of the following: `{String.Join("`, `", Enum.GetNames(typeof(LogSeverity)))}`."));
 						return;
 					}
 
@@ -293,14 +293,14 @@ namespace Advobot.Commands.BotSettings
 			}
 			else if (validImages.Count() > 1)
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR("Too many attached or embedded images."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("Too many attached or embedded images."));
 				return;
 			}
 
 			var imageUrl = validImages.First();
 			if (!GetActions.TryGetFileType(Context, imageUrl, out string fileType, out string errorReason))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.ERROR(errorReason));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason(errorReason));
 				return;
 			}
 
