@@ -19,7 +19,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Prevents a user from typing and speaking in the guild. Time is in minutes, and if no time is given then the mute will not expire.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles, GuildPermission.ManageMessages }, null)]
 	[DefaultEnabled(true)]
-	public sealed class Mute : MyModuleBase
+	public sealed class Mute : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IGuildUser user, [Optional] uint time, [Optional, Remainder] string reason)
@@ -44,7 +44,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Prevents a user from speaking. Time is in minutes, and if no time is given then the mute will not expire.")]
 	[PermissionRequirement(new[] { GuildPermission.MuteMembers }, null)]
 	[DefaultEnabled(true)]
-	public sealed class VoiceMute : MyModuleBase
+	public sealed class VoiceMute : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IGuildUser user, [Optional] uint time)
@@ -68,7 +68,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Prevents a user from hearing. Time is in minutes, and if no time is given then the mute will not expire.")]
 	[PermissionRequirement(new[] { GuildPermission.DeafenMembers }, null)]
 	[DefaultEnabled(true)]
-	public sealed class Deafen : MyModuleBase
+	public sealed class Deafen : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IGuildUser user, [Optional] uint time)
@@ -92,7 +92,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Moves the user to the given voice channel.")]
 	[PermissionRequirement(new[] { GuildPermission.MoveMembers }, null)]
 	[DefaultEnabled(true)]
-	public sealed class MoveUser : MyModuleBase
+	public sealed class MoveUser : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel channel)
@@ -119,7 +119,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Moves all users from one channel to another. Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.MoveMembers }, null)]
 	[DefaultEnabled(true)]
-	public sealed class MoveUsers : MyModuleBase
+	public sealed class MoveUsers : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel inputChannel,
@@ -138,7 +138,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Removes users who have no roles and have not been seen in the given amount of days. If the optional argument is not typed exactly, then the bot will only give a number of how many people will be kicked.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
-	public sealed class PruneUsers : MyModuleBase
+	public sealed class PruneUsers : AdvobotModuleBase
 	{
 		private const string ACTUAL_PRUNE_STRING = "ActualPrune";
 		private static readonly uint[] _Days = { 1, 7, 30 };
@@ -163,7 +163,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Bans then unbans a user, which removes all recent messages from them.")]
 	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 	[DefaultEnabled(true)]
-	public sealed class SoftBan : MyModuleBase
+	public sealed class SoftBan : AdvobotModuleBase
 	{
 		[Command, Priority(1)]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
@@ -189,7 +189,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Bans the user from the guild. Time specifies how long and is in minutes.")]
 	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 	[DefaultEnabled(true)]
-	public sealed class Ban : MyModuleBase
+	public sealed class Ban : AdvobotModuleBase
 	{
 		[Command, Priority(1)]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user, uint time, [Optional, Remainder] string reason)
@@ -231,7 +231,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Unbans the user from the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 	[DefaultEnabled(true)]
-	public sealed class Unban : MyModuleBase
+	public sealed class Unban : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IBan ban, [Optional, Remainder] string reason)
@@ -247,7 +247,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Lists the given reason for the ban.")]
 	[PermissionRequirement(new[] { GuildPermission.BanMembers}, null)]
 	[DefaultEnabled(true)]
-	public sealed class GetBanReason : MyModuleBase
+	public sealed class GetBanReason : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IBan ban)
@@ -261,7 +261,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Kicks the user from the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.KickMembers }, null)]
 	[DefaultEnabled(true)]
-	public sealed class Kick : MyModuleBase
+	public sealed class Kick : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, Remainder] string reason)
@@ -277,7 +277,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Displays all the bans on the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayCurrentBanList : MyModuleBase
+	public sealed class DisplayCurrentBanList : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -299,7 +299,7 @@ namespace Advobot.Commands.UserModeration
 	[Summary("Removes the provided number of messages from either the user, the channel, both, or, if neither is input, the current channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageMessages }, null)]
 	[DefaultEnabled(true)]
-	public sealed class RemoveMessages : MyModuleBase
+	public sealed class RemoveMessages : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(uint requestCount, [Optional] IGuildUser user, [Optional, VerifyObject(true, ObjectVerification.CanDeleteMessages)] ITextChannel channel)
@@ -354,7 +354,7 @@ namespace Advobot.Commands.UserModeration
 		"Fourth are the list of roles that are immune to slowmode.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifySlowmode : MySavingModuleBase
+	public sealed class ModifySlowmode : SavingModuleBase
 	{
 		[Command(nameof(ActionType.On))]
 		public async Task CommandOn()

@@ -10,7 +10,7 @@ namespace Advobot.Commands.Rules
 {
 	/*
 	[DefaultEnabled(false)]
-	public sealed class ImportRules : MyModuleBase
+	public sealed class ImportRules : AdvobotModuleBase
 	{
 
 	}*/

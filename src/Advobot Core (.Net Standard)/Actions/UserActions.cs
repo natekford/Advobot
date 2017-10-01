@@ -58,7 +58,7 @@ namespace Advobot.Actions
 		{
 			await user.ModifyAsync(x => x.Nickname = newNickname ?? user.Username, reason.CreateRequestOptions());
 		}
-		public static async Task NicknameManyUsers(IMyCommandContext context, List<IGuildUser> users, string replace, ModerationReason reason)
+		public static async Task NicknameManyUsers(IAdvobotCommandContext context, List<IGuildUser> users, string replace, ModerationReason reason)
 		{
 			var msg = await MessageActions.SendMessage(context.Channel, $"Attempting to rename `{users.Count}` people.");
 			for (int i = 0; i < users.Count; ++i)
@@ -78,7 +78,7 @@ namespace Advobot.Actions
 		{
 			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), reason.CreateRequestOptions());
 		}
-		public static async Task MoveManyUsers(IMyCommandContext context, List<IGuildUser> users, IVoiceChannel outputChannel, ModerationReason reason)
+		public static async Task MoveManyUsers(IAdvobotCommandContext context, List<IGuildUser> users, IVoiceChannel outputChannel, ModerationReason reason)
 		{
 			var msg = await MessageActions.SendMessage(context.Channel, $"Attempting to move `{users.Count}` people.");
 			for (int i = 0; i < users.Count; ++i)

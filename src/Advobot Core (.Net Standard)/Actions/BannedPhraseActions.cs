@@ -1,8 +1,6 @@
-﻿using Advobot.Classes;
-using Advobot.Enums;
+﻿using Advobot.Classes.BannedPhrases;
 using System.Collections.Generic;
 using System.Linq;
-using Advobot.Interfaces;
 
 namespace Advobot.Actions
 {

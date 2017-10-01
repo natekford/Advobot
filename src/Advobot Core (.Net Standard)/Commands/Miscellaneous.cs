@@ -19,7 +19,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Usage("<Command>")]
 	[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. If left blank will print out a link to the documentation of this bot.")]
 	[DefaultEnabled(true)]
-	public sealed class Help : MyModuleBase
+	public sealed class Help : AdvobotModuleBase
 	{
 		private static readonly string _GeneralHelp =
 			$"Type `{Constants.PLACEHOLDER_PREFIX}{nameof(Commands)}` for the list of commands.\n" +
@@ -80,7 +80,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Usage("<Category|All>")]
 	[Summary("Prints out the commands in that category of the command list.")]
 	[DefaultEnabled(true)]
-	public sealed class Commands : MyModuleBase
+	public sealed class Commands : AdvobotModuleBase
 	{
 		private static readonly string _Command = $"Type `{Constants.PLACEHOLDER_PREFIX}commands [Category]` for commands from that category.\n\n";
 		private static readonly string _Categories = $"`{String.Join("`, `", Enum.GetNames(typeof(CommandCategory)))}`";
@@ -109,7 +109,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Usage("[Bot|Guild|Channel|Role|User|Emote] <\"Other Argument\">")]
 	[Summary("Shows the ID of the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 	[DefaultEnabled(true)]
-	public sealed class GetId : MyModuleBase
+	public sealed class GetId : AdvobotModuleBase
 	{
 		[Command(nameof(Target.Bot))]
 		public async Task CommandBot()
@@ -147,7 +147,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Usage("[Bot|Guild|Channel|Role|User|Emote|Invite] <\"Other Argument\">")]
 	[Summary("Shows information about the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 	[DefaultEnabled(true)]
-	public sealed class GetInfo : MyModuleBase
+	public sealed class GetInfo : AdvobotModuleBase
 	{
 		[Command(nameof(Target.Bot))]
 		public async Task CommandBot()
@@ -198,7 +198,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Gets users with a variable reason. Count specifies if to say the count. Nickname specifies if to include nickanmes. Exact specifies if only exact matches count.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
-	public sealed class GetUsersWithReason : MyModuleBase
+	public sealed class GetUsersWithReason : AdvobotModuleBase
 	{
 		[Command(nameof(Target.Role))]
 		public async Task CommandRole([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, params string[] additionalSearchOptions)
@@ -289,7 +289,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Usage("[Gif|Png|Jpg|Webp] <Size> <User>")]
 	[Summary("Shows the URL of the given user's avatar. Must supply a format, can supply a size, and can specify which user.")]
 	[DefaultEnabled(true)]
-	public sealed class GetUserAvatar : MyModuleBase
+	public sealed class GetUserAvatar : AdvobotModuleBase
 	{
 		[Command, Priority(0)]
 		public async Task Command(ImageFormat format, [Optional] IUser user, [Optional] ushort size)
@@ -313,7 +313,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Shows the user which joined the guild in that position.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
-	public sealed class GetUserJoinedAt : MyModuleBase
+	public sealed class GetUserJoinedAt : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(uint position)
@@ -332,7 +332,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayGuilds : MyModuleBase
+	public sealed class DisplayGuilds : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
@@ -362,7 +362,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Lists most of the users who have joined the guild.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayUserJoinList : MyModuleBase
+	public sealed class DisplayUserJoinList : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
@@ -378,7 +378,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Lists the emotes in the guild. As of right now, there's no way to upload or remove emotes through Discord's API.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayEmotes : MyModuleBase
+	public sealed class DisplayEmotes : AdvobotModuleBase
 	{
 		[Command("global")]
 		public async Task CommandGlobal()
@@ -401,7 +401,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Downloads the past x amount of messages. Up to 1000 messages or 500KB worth of formatted text.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
-	public sealed class DownloadMessages : MyModuleBase
+	public sealed class DownloadMessages : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(int num, [Optional, VerifyObject(true, ObjectVerification.CanBeRead)] ITextChannel channel)
@@ -438,7 +438,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Every single piece is optional. The stuff in quotes *must* be in quotes. URLs need the https:// in front. Fields need *both* Field and FieldText to work.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
-	public sealed class MakeAnEmbed : MyModuleBase
+	public sealed class MakeAnEmbed : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Remainder] string input)
@@ -498,7 +498,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Mention an unmentionable role with the given message.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
-	public sealed class MentionRole : MyModuleBase
+	public sealed class MentionRole : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder] string text)
@@ -523,7 +523,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Sends a message to the bot owner with the given text. Messages will be cut down to 250 characters.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(false)]
-	public sealed class MessageBotOwner : MyModuleBase
+	public sealed class MessageBotOwner : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([Remainder] string input)
@@ -547,7 +547,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Lists all the perms that come from the given value.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
-	public sealed class GetPermNamesFromValue : MyModuleBase
+	public sealed class GetPermNamesFromValue : AdvobotModuleBase
 	{
 		[Command(nameof(Target.Guild))]
 		public async Task CommandGuild(ulong permNum)
@@ -582,7 +582,7 @@ namespace Advobot.Commands.Miscellaneous
 	[Summary("Mostly just makes the bot say test.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class Test : MyModuleBase
+	public sealed class Test : AdvobotModuleBase
 	{
 		[Command]
 		public async Task TestCommand()

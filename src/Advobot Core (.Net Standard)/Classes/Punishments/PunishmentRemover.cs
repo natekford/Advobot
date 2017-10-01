@@ -11,14 +11,14 @@ using System.Threading.Tasks;
 
 namespace Advobot.Classes.Punishments
 {
-	public class PunishmentRemover : PunishmentHandlerBase
+	public class PunishmentRemover : PunishmentBase
 	{
-		public ITimersModule Timers { get; }
+		public ITimersService Timers { get; }
 		public bool IsValid { get; }
 
 		private List<string> _Actions = new List<string>();
 
-		public PunishmentRemover(ITimersModule timers)
+		public PunishmentRemover(ITimersService timers)
 		{
 			Timers = timers;
 			IsValid = timers != null;

@@ -1,0 +1,58 @@
+﻿using Advobot.Enums;
+using Advobot.Interfaces;
+using Discord.WebSocket;
+using Newtonsoft.Json;
+using System.Collections.ObjectModel;
+using System.Linq;
+
+namespace Advobot.Classes
+{
+	/// <summary>
+	/// A setting on guilds that states whether a command is on or off.
+	/// </summary>
+	public class CommandSwitch : ISetting
+	{
+		[JsonProperty]
+		public string Name { get; }
+		[JsonProperty]
+		public bool Value { get; private set; }
+		[JsonIgnore]
+		public ReadOnlyCollection<string> Aliases { get; }
+		[JsonIgnore]
+		public CommandCategory Category { get; }
+		[JsonIgnore]
+		public string ValueAsString { get => Value ? "ON" : "OFF"; }
+
+		public CommandSwitch(string name, bool value)
+		{
+			var helpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.Equals(name));
+			if (helpEntry == null)
+			{
+				Category = default;
+				return;
+			}
+
+			Name = name;
+			Value = value;
+			Category = helpEntry.Category;
+			Aliases = helpEntry.Aliases.ToList().AsReadOnly();
+		}
+
+		/// <summary>
+		/// Sets <see cref="Value"/> to its opposite.
+		/// </summary>
+		public void ToggleEnabled()
+		{
+			Value = !Value;
+		}
+
+		public override string ToString()
+		{
+			return $"`{ValueAsString.PadRight(3)}` `{Name}`";
+		}
+		public string ToString(SocketGuild guild)
+		{
+			return ToString();
+		}
+	}
+}

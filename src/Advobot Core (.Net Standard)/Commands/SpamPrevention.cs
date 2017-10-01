@@ -14,10 +14,10 @@ namespace Advobot.Commands.SpamPrevention
 		"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The spam users are reset every hour. `Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class PreventSpam : MySavingModuleBase
+	public sealed class PreventSpam : SavingModuleBase
 	{
 		[Group(nameof(ActionType.Show)), Alias("s")]
-		public sealed class ShowPunishments : MyModuleBase
+		public sealed class ShowPunishments : AdvobotModuleBase
 		{
 			[Command]
 			public async Task Command()
@@ -28,7 +28,7 @@ namespace Advobot.Commands.SpamPrevention
 		}
 
 		[Group(nameof(SpamType.Message)), Alias("msg")]
-		public sealed class PreventMessageSpam : MySavingModuleBase
+		public sealed class PreventMessageSpam : SavingModuleBase
 		{
 			private const SpamType _SpamType = SpamType.Message;
 
@@ -50,7 +50,7 @@ namespace Advobot.Commands.SpamPrevention
 		}
 
 		[Group(nameof(SpamType.LongMessage)), Alias("long message", "lmsg")]
-		public sealed class PreventLongMessageSpam : MySavingModuleBase
+		public sealed class PreventLongMessageSpam : SavingModuleBase
 		{
 			private const SpamType _SpamType = SpamType.LongMessage;
 
@@ -72,7 +72,7 @@ namespace Advobot.Commands.SpamPrevention
 		}
 
 		[Group(nameof(SpamType.Link)), Alias("l")]
-		public sealed class PreventLinkSpam : MySavingModuleBase
+		public sealed class PreventLinkSpam : SavingModuleBase
 		{
 			private const SpamType _SpamType = SpamType.Link;
 
@@ -94,7 +94,7 @@ namespace Advobot.Commands.SpamPrevention
 		}
 
 		[Group(nameof(SpamType.Image)), Alias("img")]
-		public sealed class PreventImageSpam : MySavingModuleBase
+		public sealed class PreventImageSpam : SavingModuleBase
 		{
 			private const SpamType _SpamType = SpamType.Image;
 
@@ -116,7 +116,7 @@ namespace Advobot.Commands.SpamPrevention
 		}
 
 		[Group(nameof(SpamType.Mention)), Alias("men")]
-		public sealed class PreventMentionSpam : MySavingModuleBase
+		public sealed class PreventMentionSpam : SavingModuleBase
 		{
 			private const SpamType _SpamType = SpamType.Mention;
 
@@ -145,10 +145,10 @@ namespace Advobot.Commands.SpamPrevention
 		"Inputting a number means the last x amount of people (up to 25) who have joined will be muted. `Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class PreventRaid : MySavingModuleBase
+	public sealed class PreventRaid : SavingModuleBase
 	{
 		[Group(nameof(ActionType.Show)), Alias("s")]
-		public sealed class ShowPunishments : MyModuleBase
+		public sealed class ShowPunishments : AdvobotModuleBase
 		{
 			[Command]
 			public async Task Command()
@@ -159,7 +159,7 @@ namespace Advobot.Commands.SpamPrevention
 		}
 
 		[Group(nameof(RaidType.Regular)), Alias("reg")]
-		public sealed class PreventRegularRaid : MySavingModuleBase
+		public sealed class PreventRegularRaid : SavingModuleBase
 		{
 			private const RaidType _RaidType = RaidType.Regular;
 
@@ -181,7 +181,7 @@ namespace Advobot.Commands.SpamPrevention
 		}
 
 		[Group(nameof(RaidType.RapidJoins)), Alias("rapid joins", "joins")]
-		public sealed class PreventRapidJoinsRaid : MySavingModuleBase
+		public sealed class PreventRapidJoinsRaid : SavingModuleBase
 		{
 			private const RaidType _RaidType = RaidType.RapidJoins;
 

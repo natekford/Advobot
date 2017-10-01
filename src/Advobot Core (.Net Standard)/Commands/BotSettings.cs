@@ -20,7 +20,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Modify the given setting on the bot. Show lists the setting names. Clear resets a setting back to default. Cannot modify settings which are lists through this command.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotSettings : MySavingModuleBase
+	public sealed class ModifyBotSettings : SavingModuleBase
 	{
 		[Command(nameof(ActionType.Show)), Alias("sh")]
 		public async Task CommandShow()
@@ -29,7 +29,7 @@ namespace Advobot.Commands.BotSettings
 			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Settings", desc));
 		}
 		[Command("set"), Alias("s")]
-		public async Task CommandSet([OverrideTypeReader(typeof(BotSettingNonIEnumerableTypeReader))] PropertyInfo setting, [Remainder] string newValue)
+		public async Task CommandSet([OverrideTypeReader(typeof(SettingTypeReader.BotSettingNonIEnumerableTypeReader))] PropertyInfo setting, [Remainder] string newValue)
 		{
 			switch (setting.Name)
 			{
@@ -161,7 +161,7 @@ namespace Advobot.Commands.BotSettings
 			}
 		}
 		[Command(nameof(ActionType.Clear)), Alias("c")]
-		public async Task CommandClear([OverrideTypeReader(typeof(BotSettingNonIEnumerableTypeReader))] PropertyInfo setting)
+		public async Task CommandClear([OverrideTypeReader(typeof(SettingTypeReader.BotSettingNonIEnumerableTypeReader))] PropertyInfo setting)
 		{
 			switch (setting.Name)
 			{
@@ -228,7 +228,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Displays global settings. Show gives a list of the setting names.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayBotSettings : MyModuleBase
+	public sealed class DisplayBotSettings : AdvobotModuleBase
 	{
 		[Command(nameof(ActionType.Show)), Alias("s"), Priority(1)]
 		public async Task Command()
@@ -243,7 +243,7 @@ namespace Advobot.Commands.BotSettings
 			await MessageActions.SendTextFile(Context.Channel, text, "Bot Settings", "Bot Settings");
 		}
 		[Command, Priority(0)]
-		public async Task Command([OverrideTypeReader(typeof(BotSettingTypeReader))] PropertyInfo setting)
+		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.BotSettingTypeReader))] PropertyInfo setting)
 		{
 			var desc = await Context.BotSettings.ToString(Context.Client, setting);
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
@@ -262,7 +262,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Changes the bot's name to the given name.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotName : MyModuleBase
+	public sealed class ModifyBotName : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([Remainder, VerifyStringLength(Target.Name)] string newName)
@@ -277,7 +277,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Changes the bot's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the bot's icon.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyBotIcon : MyModuleBase
+	public sealed class ModifyBotIcon : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
@@ -323,7 +323,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Resets bot key, bot Id, save path.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ResetGlobalProperties : MyModuleBase
+	public sealed class ResetGlobalProperties : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -342,7 +342,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Remove's the currently used bot's key so that a different bot can be used instead.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ResetBotKey : MyModuleBase
+	public sealed class ResetBotKey : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -359,7 +359,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Turns the bot off.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class Disconnect : MyModuleBase
+	public sealed class Disconnect : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -373,7 +373,7 @@ namespace Advobot.Commands.BotSettings
 	[Summary("Restarts the bot.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class Restart : MyModuleBase
+	public sealed class Restart : AdvobotModuleBase
 	{
 		[Command]
 		public Task Command()

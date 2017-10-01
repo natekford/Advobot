@@ -21,10 +21,10 @@ namespace Advobot
 		private static IServiceProvider _Provider;
 		private static CommandService _Commands;
 		private static IBotSettings _BotSettings;
-		private static IGuildSettingsModule _GuildSettings;
+		private static IGuildSettingsService _GuildSettings;
 		private static IDiscordClient _Client;
-		private static ITimersModule _Timers;
-		private static ILogModule _Logging;
+		private static ITimersService _Timers;
+		private static ILogService _Logging;
 		private static bool _Loaded;
 
 		/// <summary>
@@ -36,10 +36,10 @@ namespace Advobot
 			_Provider		= provider;
 			_Commands		= _Provider.GetService<CommandService>();
 			_BotSettings	= _Provider.GetService<IBotSettings>();
-			_GuildSettings	= _Provider.GetService<IGuildSettingsModule>();
+			_GuildSettings	= _Provider.GetService<IGuildSettingsService>();
 			_Client			= _Provider.GetService<IDiscordClient>();
-			_Timers			= _Provider.GetService<ITimersModule>();
-			_Logging		= _Provider.GetService<ILogModule>();
+			_Timers			= _Provider.GetService<ITimersService>();
+			_Logging		= _Provider.GetService<ILogService>();
 
 			//Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
 			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly());
@@ -117,7 +117,7 @@ namespace Advobot
 				return;
 			}
 
-			var context = new MyCommandContext(_Provider, guildSettings, _Client, userMessage);
+			var context = new AdvobotCommandContext(_Provider, guildSettings, _Client, userMessage);
 			var result = await _Commands.ExecuteAsync(context, argPos, _Provider);
 			await LogCommand(loggedCommand, context, result);
 		}
@@ -128,7 +128,7 @@ namespace Advobot
 		/// <param name="context"></param>
 		/// <param name="result"></param>
 		/// <returns></returns>
-		private static async Task LogCommand(LoggedCommand loggedCommand, IMyCommandContext context, IResult result)
+		private static async Task LogCommand(LoggedCommand loggedCommand, IAdvobotCommandContext context, IResult result)
 		{
 			loggedCommand.Finalize(context, result);
 

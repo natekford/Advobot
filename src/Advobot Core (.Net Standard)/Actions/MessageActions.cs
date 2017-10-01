@@ -167,7 +167,7 @@ namespace Advobot.Actions
 		/// <param name="secondStr"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task MakeAndDeleteSecondaryMessage(IMyCommandContext context, string secondStr, int time = -1)
+		public static async Task MakeAndDeleteSecondaryMessage(IAdvobotCommandContext context, string secondStr, int time = -1)
 		{
 			await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, secondStr, time, context.Timers);
 		}
@@ -180,7 +180,7 @@ namespace Advobot.Actions
 		/// <param name="time"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IMessage message, string secondStr, int time = -1, ITimersModule timers = null)
+		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IMessage message, string secondStr, int time = -1, ITimersService timers = null)
 		{
 			if (time < 0)
 			{
@@ -194,13 +194,13 @@ namespace Advobot.Actions
 			}
 		}
 		/// <summary>
-		/// If the guild has verbose errors enabled then this acts just like <see cref="MakeAndDeleteSecondaryMessage(IMessageChannel, IMessage, string, int, ITimersModule)"/>.
+		/// If the guild has verbose errors enabled then this acts just like <see cref="MakeAndDeleteSecondaryMessage(IMessageChannel, IMessage, string, int, ITimersService)"/>.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="reason"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task SendErrorMessage(IMyCommandContext context, ErrorReason reason, int time = -1)
+		public static async Task SendErrorMessage(IAdvobotCommandContext context, ErrorReason reason, int time = -1)
 		{
 			if (!context.GuildSettings.VerboseErrors)
 			{

@@ -29,14 +29,14 @@ namespace Advobot.Actions
 		/// <param name="guildSettings"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public static async Task<BotInvite> GetInviteUserJoinedOn(IGuildSettings guildSettings, IGuildUser user)
+		public static async Task<CachedInvite> GetInviteUserJoinedOn(IGuildSettings guildSettings, IGuildUser user)
 		{
-			BotInvite joinInv = null;
+			CachedInvite joinInv = null;
 
 			//Bots join by being invited by admin, not through invites.
 			if (user.IsBot)
 			{
-				return new BotInvite("Invited by admin", 0);
+				return new CachedInvite("Invited by admin", 0);
 			}
 
 			var currentInvites = await GetInvites(user.Guild);
@@ -63,16 +63,16 @@ namespace Advobot.Actions
 				{
 					if (user.Guild.Features.CaseInsContains(Constants.VANITY_URL))
 					{
-						joinInv = new BotInvite("Vanity URL", 0);
+						joinInv = new CachedInvite("Vanity URL", 0);
 					}
 				}
 				//If one then assume it's the new one
 				else if (newInvs.Count() == 1)
 				{
-					joinInv = new BotInvite(newInvs.First().Code, newInvs.First().Uses);
+					joinInv = new CachedInvite(newInvs.First().Code, newInvs.First().Uses);
 				}
 				//No way to tell if more than one
-				guildSettings.Invites.AddRange(newInvs.Select(x => new BotInvite(x.Code, x.Uses)));
+				guildSettings.Invites.AddRange(newInvs.Select(x => new CachedInvite(x.Code, x.Uses)));
 			}
 			return joinInv;
 		}

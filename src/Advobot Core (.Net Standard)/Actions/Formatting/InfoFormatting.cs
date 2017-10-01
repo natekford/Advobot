@@ -200,7 +200,7 @@ namespace Advobot.Actions.Formatting
 		/// <param name="logModule"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static EmbedBuilder FormatBotInfo(IBotSettings globalInfo, IDiscordClient client, ILogModule logModule, IGuild guild)
+		public static EmbedBuilder FormatBotInfo(IBotSettings globalInfo, IDiscordClient client, ILogService logModule, IGuild guild)
 		{
 			var desc = new StringBuilder()
 				.AppendLineFeed($"**Online Since:** `{TimeFormatting.FormatReadableDateTime(Process.GetCurrentProcess().StartTime)}`")

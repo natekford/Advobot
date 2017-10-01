@@ -19,8 +19,8 @@ namespace Advobot.Actions
 	public static class CreationActions
 	{
 		/// <summary>
-		/// Creates services the bot uses. Such as <see cref="IBotSettings"/>, <see cref="IGuildSettingsModule"/>, <see cref="IDiscordClient"/>,
-		/// <see cref="ITimersModule"/>, and <see cref="ILogModule"/>.
+		/// Creates services the bot uses. Such as <see cref="IBotSettings"/>, <see cref="IGuildSettingsService"/>, <see cref="IDiscordClient"/>,
+		/// <see cref="ITimersService"/>, and <see cref="ILogService"/>.
 		/// </summary>
 		/// <returns>The service provider which holds all the services.</returns>
 		public static IServiceProvider CreateServicesAndServiceProvider()
@@ -29,9 +29,9 @@ namespace Advobot.Actions
 				.AddSingleton<CommandService>		(CreateCommandService())
 				.AddSingleton<IBotSettings>			(CreateBotSettings())
 				.AddSingleton<IDiscordClient>		(x => CreateDiscordClient(x.GetRequiredService<IBotSettings>()))
-				.AddSingleton<IGuildSettingsModule>	(x => new GuildSettingsHolder(x))
-				.AddSingleton<ITimersModule>		(x => new Timers(x))
-				.AddSingleton<ILogModule>			(x => new Logging(x)));
+				.AddSingleton<IGuildSettingsService>(x => new GuildSettingsHolder(x))
+				.AddSingleton<ITimersService>		(x => new Timers(x))
+				.AddSingleton<ILogService>			(x => new Log(x)));
 		}
 		/// <summary>
 		/// Returns <see cref="DiscordSocketClient"/> if shard count in <paramref name="botSettings"/> is 1. Else returns <see cref="DiscordShardedClient"/>.

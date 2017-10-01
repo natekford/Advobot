@@ -11,16 +11,16 @@ using System.Threading.Tasks;
 
 namespace Advobot.Classes.Punishments
 {
-	public class PunishmentGiver : PunishmentHandlerBase
+	public class PunishmentGiver : PunishmentBase
 	{
 		public int Time	{ get; }
-		public ITimersModule Timers { get; }
+		public ITimersService Timers { get; }
 		public bool IsValid { get; }
 
 		private List<string> _Actions = new List<string>();
 
-		public PunishmentGiver(uint time, ITimersModule timers) : this((int)time, timers) { }
-		public PunishmentGiver(int time, ITimersModule timers)
+		public PunishmentGiver(uint time, ITimersService timers) : this((int)time, timers) { }
+		public PunishmentGiver(int time, ITimersService timers)
 		{
 			Time = time;
 			Timers = timers;

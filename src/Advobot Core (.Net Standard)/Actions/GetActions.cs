@@ -38,7 +38,7 @@ namespace Advobot.Actions
 			var temp = new List<HelpEntry>();
 
 			var types = Assembly.GetExecutingAssembly().GetTypes();
-			var cmds = types.Where(x => x.IsSubclassOf(typeof(MyModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null);
+			var cmds = types.Where(x => x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null);
 			foreach (var classType in cmds)
 			{
 				var innerMostNameSpace = classType.Namespace.Substring(classType.Namespace.LastIndexOf('.') + 1);
@@ -199,7 +199,7 @@ namespace Advobot.Actions
 		/// <param name="fileType"></param>
 		/// <param name="errorReason"></param>
 		/// <returns></returns>
-		public static bool TryGetFileType(IMyCommandContext context, string imageUrl, out string fileType, out string errorReason)
+		public static bool TryGetFileType(IAdvobotCommandContext context, string imageUrl, out string fileType, out string errorReason)
 		{
 			fileType = null;
 			errorReason = null;

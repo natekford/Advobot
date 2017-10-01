@@ -17,7 +17,7 @@ namespace Advobot.Commands.GuildModeration
 	[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
 	[OtherRequirement(Precondition.GuildOwner | Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class LeaveGuild : MyModuleBase
+	public sealed class LeaveGuild : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([Optional] ulong guildId)
@@ -60,7 +60,7 @@ namespace Advobot.Commands.GuildModeration
 	[Summary("Change the name of the guild to the given name.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildName : MyModuleBase
+	public sealed class ModifyGuildName : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
@@ -75,7 +75,7 @@ namespace Advobot.Commands.GuildModeration
 	[Summary("Shows or changes the guild's server region. Inputting nothing lists all valid region IDs.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildRegion : MyModuleBase
+	public sealed class ModifyGuildRegion : AdvobotModuleBase
 	{
 		private static readonly string[] _ValidRegionIDs =
 		{
@@ -133,7 +133,7 @@ namespace Advobot.Commands.GuildModeration
 	[Summary("Updates the guild's AFK timeout.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildAFKTimer : MyModuleBase
+	public sealed class ModifyGuildAFKTimer : AdvobotModuleBase
 	{
 		private static readonly uint[] _AFKTimes = { 60, 300, 900, 1800, 3600 };
 
@@ -156,7 +156,7 @@ namespace Advobot.Commands.GuildModeration
 	[Summary("Updates the guild's AFK channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildAFKChannel : MyModuleBase
+	public sealed class ModifyGuildAFKChannel : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IVoiceChannel channel)
@@ -171,7 +171,7 @@ namespace Advobot.Commands.GuildModeration
 	[Summary("Changes the message notifications to either all messages or mentions only.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildMsgNotif : MyModuleBase
+	public sealed class ModifyGuildMsgNotif : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(DefaultMessageNotifications msgNotifs)
@@ -186,7 +186,7 @@ namespace Advobot.Commands.GuildModeration
 	[Summary("Changes the verification level. None is the most lenient (no requirements to type), high is the harshest (10 minutes in the guild before new members can type).")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildVerif : MyModuleBase
+	public sealed class ModifyGuildVerif : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(VerificationLevel verif)
@@ -201,7 +201,7 @@ namespace Advobot.Commands.GuildModeration
 	[Summary("Changes the guild's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the guild's icon.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ModifyGuildIcon : MyModuleBase
+	public sealed class ModifyGuildIcon : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Optional] string input)
@@ -247,7 +247,7 @@ namespace Advobot.Commands.GuildModeration
 	[Summary("Creates a guild with the bot as the owner.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class CreateGuild : MyModuleBase
+	public sealed class CreateGuild : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([Remainder, VerifyStringLength(Target.Guild)] string name)
@@ -266,7 +266,7 @@ namespace Advobot.Commands.GuildModeration
 	[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class SwapGuildOwner : MyModuleBase
+	public sealed class SwapGuildOwner : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -287,7 +287,7 @@ namespace Advobot.Commands.GuildModeration
 	[Summary("If the bot is the current owner of the guild, this command will delete the guild.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class DeleteGuild : MyModuleBase
+	public sealed class DeleteGuild : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()

@@ -122,8 +122,8 @@ namespace Advobot
 		}));
 
 		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)
-		public static Type GUILD_SETTINGS_TYPE { get; } = typeof(MyGuildSettings); //IGuildSettings
-		public static Type BOT_SETTINGS_TYPE { get; } = typeof(MyBotSettings); //IBotSettings
+		public static Type GUILD_SETTINGS_TYPE { get; } = typeof(GuildSettings); //IGuildSettings
+		public static Type BOT_SETTINGS_TYPE { get; } = typeof(BotSettings); //IBotSettings
 	}
 
 	public static class Colors

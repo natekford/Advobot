@@ -17,10 +17,10 @@ namespace Advobot.Commands.Logs
 	[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyLogChannels : MySavingModuleBase
+	public sealed class ModifyLogChannels : SavingModuleBase
 	{
 		[Group(nameof(LogChannelType.Server)), Alias("s")]
-		public sealed class ModifyServerLog : MySavingModuleBase
+		public sealed class ModifyServerLog : SavingModuleBase
 		{
 			private const LogChannelType channelType = LogChannelType.Server;
 
@@ -49,7 +49,7 @@ namespace Advobot.Commands.Logs
 		}
 
 		[Group(nameof(LogChannelType.Mod)), Alias("m")]
-		public sealed class ModifyModLog : MySavingModuleBase
+		public sealed class ModifyModLog : SavingModuleBase
 		{
 			private const LogChannelType channelType = LogChannelType.Mod;
 
@@ -78,7 +78,7 @@ namespace Advobot.Commands.Logs
 		}
 
 		[Group(nameof(LogChannelType.Image)), Alias("i")]
-		public sealed class ModifyImageLog : MySavingModuleBase
+		public sealed class ModifyImageLog : SavingModuleBase
 		{
 			private const LogChannelType channelType = LogChannelType.Image;
 
@@ -112,7 +112,7 @@ namespace Advobot.Commands.Logs
 	[Summary("Ignores all logging info that would have been gotten from a channel.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyIgnoredLogChannels : MySavingModuleBase
+	public sealed class ModifyIgnoredLogChannels : SavingModuleBase
 	{
 		[Command(nameof(ActionType.Add))]
 		public async Task CommandAdd([VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] params ITextChannel[] channels)
@@ -133,7 +133,7 @@ namespace Advobot.Commands.Logs
 	[Summary("The server log will send messages when these events happen. `Default` overrides the current settings. `Show` displays the possible actions.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
-	public sealed class ModifyLogActions : MySavingModuleBase
+	public sealed class ModifyLogActions : SavingModuleBase
 	{
 		private static readonly LogAction[] _DefaultLogActions = new[] 
 		{
@@ -145,7 +145,7 @@ namespace Advobot.Commands.Logs
 		};
 
 		[Group(nameof(ActionType.Show)), Alias("s")]
-		public sealed class ShowActions : MyModuleBase
+		public sealed class ShowActions : AdvobotModuleBase
 		{
 			[Command]
 			public async Task Command()
@@ -156,7 +156,7 @@ namespace Advobot.Commands.Logs
 		}
 
 		[Group(nameof(ActionType.Default)), Alias("def")]
-		public sealed class Default : MySavingModuleBase
+		public sealed class Default : SavingModuleBase
 		{
 			[Command]
 			public async Task Command()
@@ -167,7 +167,7 @@ namespace Advobot.Commands.Logs
 		}
 
 		[Group(nameof(ActionType.Enable)), Alias("e")]
-		public sealed class Add : MySavingModuleBase
+		public sealed class Add : SavingModuleBase
 		{
 			[Command("all")]
 			public async Task CommandAll()
@@ -190,7 +190,7 @@ namespace Advobot.Commands.Logs
 		}
 
 		[Group(nameof(ActionType.Disable)), Alias("d")]
-		public sealed class Remove : MySavingModuleBase
+		public sealed class Remove : SavingModuleBase
 		{
 			[Command("all")]
 			public async Task CommandAll()

@@ -19,7 +19,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Gives the role(s) to the user (assuming the person using the command and bot both have the ability to give that role).")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class GiveRole : MyModuleBase
+	public sealed class GiveRole : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] params IRole[] roles)
@@ -34,7 +34,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Takes the role(s) from the user (assuming the person using the command and bot both have the ability to take that role).")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class TakeRole : MyModuleBase
+	public sealed class TakeRole : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] params IRole[] roles)
@@ -49,7 +49,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Adds a role to the guild with the chosen name.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class CreateRole : MyModuleBase
+	public sealed class CreateRole : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyStringLength(Target.Role)] string name)
@@ -64,7 +64,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Removes all permissions from a role (and all channels the role had permissions on) and removes the role from everyone. Leaves the name and color behind.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class SoftDeleteRole : MyModuleBase
+	public sealed class SoftDeleteRole : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole role)
@@ -87,7 +87,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Deletes the role.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DeleteRole : MyModuleBase
+	public sealed class DeleteRole : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole role)
@@ -102,7 +102,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("If only a role is input its position will be listed, else moves the role to the given position. " + Constants.FAKE_EVERYONE + " is the first position and starts at zero.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeRolePosition : MyModuleBase
+	public sealed class ChangeRolePosition : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, uint position)
@@ -124,7 +124,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Lists the positions of each role on the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayRolePositions : MyModuleBase
+	public sealed class DisplayRolePositions : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -151,10 +151,10 @@ namespace Advobot.Commands.RoleModeration
 		"Type `" + nameof(ChangeRolePerms) + " [Show] [Role]` to see the permissions of that role.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeRolePerms : MyModuleBase
+	public sealed class ChangeRolePerms : AdvobotModuleBase
 	{
 		[Group(nameof(ActionType.Show)), Alias("s")]
-		public sealed class Show : MyModuleBase
+		public sealed class Show : AdvobotModuleBase
 		{
 			[Command]
 			public async Task Command()
@@ -171,7 +171,7 @@ namespace Advobot.Commands.RoleModeration
 			}
 		}
 		[Group(nameof(ActionType.Allow)), Alias("a")]
-		public sealed class Allow : MyModuleBase
+		public sealed class Allow : AdvobotModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
@@ -181,7 +181,7 @@ namespace Advobot.Commands.RoleModeration
 			}
 		}
 		[Group(nameof(ActionType.Deny)), Alias("d")]
-		public sealed class Deny : MyModuleBase
+		public sealed class Deny : AdvobotModuleBase
 		{
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
@@ -197,7 +197,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Copies the permissions from the first role to the second role. Will not copy roles that the user does not have access to. Will not overwrite roles that are above the user's top role.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class CopyRolePerms : MyModuleBase
+	public sealed class CopyRolePerms : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole inputRole,
@@ -244,7 +244,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Removes all permissions from a role.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ClearRolePerms : MyModuleBase
+	public sealed class ClearRolePerms : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
@@ -269,7 +269,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Changes the name of the role.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeRoleName : MyModuleBase
+	public sealed class ChangeRoleName : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder, VerifyStringLength(Target.Role)] string name)
@@ -284,7 +284,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Changes the name of the role with the given position. This is *extremely* useful for when multiple roles have the same name but you want to edit things")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeRoleNameByPosition : MyModuleBase
+	public sealed class ChangeRoleNameByPosition : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(uint position, [Remainder, VerifyStringLength(Target.Role)] string name)
@@ -312,7 +312,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Changes the role's color. Color must be valid hexadecimal or the name of a default role color. Inputting nothing displays the colors.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeRoleColor : MyModuleBase
+	public sealed class ChangeRoleColor : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([Optional, VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Optional] Color color)
@@ -334,7 +334,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Displays a role separately from others on the user list. Saying the command again remove it from being hoisted.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeRoleHoist : MyModuleBase
+	public sealed class ChangeRoleHoist : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role)
@@ -349,7 +349,7 @@ namespace Advobot.Commands.RoleModeration
 	[Summary("Allows the role to be mentioned. Saying the command again removes its ability to be mentioned.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
-	public sealed class ChangeRoleMentionability : MyModuleBase
+	public sealed class ChangeRoleMentionability : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role)

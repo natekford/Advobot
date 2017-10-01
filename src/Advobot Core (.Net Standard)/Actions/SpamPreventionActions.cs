@@ -1,6 +1,6 @@
 ﻿using Advobot.Classes;
+using Advobot.Classes.SpamPrevention;
 using Advobot.Enums;
-using Advobot.Actions.Formatting;
 using Advobot.Interfaces;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +9,7 @@ namespace Advobot.Actions
 {
 	public static class SpamPreventionActions
 	{
-		public static async Task ModifySpamPreventionEnabled(IMyCommandContext context, SpamType spamType, bool enable)
+		public static async Task ModifySpamPreventionEnabled(IAdvobotCommandContext context, SpamType spamType, bool enable)
 		{
 			var spamPrev = context.GuildSettings.SpamPreventionDictionary[spamType];
 			if (spamPrev == null)
@@ -29,7 +29,7 @@ namespace Advobot.Actions
 				await MessageActions.MakeAndDeleteSecondaryMessage(context, "Successfully disabled the given spam prevention.");
 			}
 		}
-		public static async Task SetUpSpamPrevention(IMyCommandContext context, SpamType spamType, PunishmentType punishType, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
+		public static async Task SetUpSpamPrevention(IAdvobotCommandContext context, SpamType spamType, PunishmentType punishType, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 		{
 			const int MSG_COUNT_MIN_LIM = 0;
 			const int MSG_COUNT_MAX_LIM = 25;
@@ -122,7 +122,7 @@ namespace Advobot.Actions
 			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully set up the spam prevention for `{spamType.EnumName().ToLower()}`.\n{newSpamPrev.ToString()}");
 		}
 
-		public static async Task ModifyRaidPreventionEnabled(IMyCommandContext context, RaidType raidType, bool enable)
+		public static async Task ModifyRaidPreventionEnabled(IAdvobotCommandContext context, RaidType raidType, bool enable)
 		{
 			var raidPrev = context.GuildSettings.RaidPreventionDictionary[raidType];
 			if (raidPrev == null)
@@ -152,7 +152,7 @@ namespace Advobot.Actions
 				await MessageActions.MakeAndDeleteSecondaryMessage(context, "Successfully disabled the given raid prevention.");
 			}
 		}
-		public static async Task SetUpRaidPrevention(IMyCommandContext context, RaidType raidType, PunishmentType punishType, uint userCount, uint interval)
+		public static async Task SetUpRaidPrevention(IAdvobotCommandContext context, RaidType raidType, PunishmentType punishType, uint userCount, uint interval)
 		{
 			const int MAX_USERS = 25;
 			const int MAX_TIME = 60;

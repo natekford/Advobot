@@ -17,7 +17,7 @@ namespace Advobot.Commands.InviteModeration
 	[Summary("Gives a list of all the instant invites on the guild.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
-	public sealed class DisplayInvites : MyModuleBase
+	public sealed class DisplayInvites : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -41,7 +41,7 @@ namespace Advobot.Commands.InviteModeration
 	[Summary("Creates an invite on the given channel. No time specifies to not expire. No uses has no usage limit. Temp membership means when the user goes offline they get kicked.")]
 	[PermissionRequirement(new[] { GuildPermission.CreateInstantInvite }, null)]
 	[DefaultEnabled(true)]
-	public sealed class CreateInvite : MyModuleBase
+	public sealed class CreateInvite : AdvobotModuleBase
 	{
 		private static readonly int[] validTimes = { 0, 1800, 3600, 21600, 43200, 86400 };
 		private static readonly int[] validUses = { 0, 1, 5, 10, 25, 50, 100 };
@@ -76,7 +76,7 @@ namespace Advobot.Commands.InviteModeration
 	[Summary("Deletes the invite with the given code.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DeleteInvite : MyModuleBase
+	public sealed class DeleteInvite : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command(IInvite invite)
@@ -91,7 +91,7 @@ namespace Advobot.Commands.InviteModeration
 	[Summary("Deletes all invites satisfying the given condition of either user, creation channel, use limit, or if it expires or not.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
-	public sealed class DeleteMultipleInvites : MyModuleBase
+	public sealed class DeleteMultipleInvites : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command(IGuildUser user)
