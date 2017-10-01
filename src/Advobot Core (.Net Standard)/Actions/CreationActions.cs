@@ -1,11 +1,10 @@
 ﻿using Advobot.Actions.Formatting;
 using Advobot.Classes;
-using Advobot.Classes.Settings;
 using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
-using Advobot.Modules.GuildSettings;
-using Advobot.Modules.Log;
-using Advobot.Modules.Timers;
+using Advobot.Services.GuildSettings;
+using Advobot.Services.Log;
+using Advobot.Services.Timers;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;

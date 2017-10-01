@@ -6,7 +6,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Modules.Log
+namespace Advobot.Services.Log.Loggers
 {
 	internal class GuildLogger : Logger, IGuildLogger
 	{

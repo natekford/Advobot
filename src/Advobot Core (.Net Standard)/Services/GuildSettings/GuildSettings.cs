@@ -2,14 +2,15 @@
 using Advobot.Interfaces;
 using Discord;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Advobot.Modules.GuildSettings
+namespace Advobot.Services.GuildSettings
 {
 	public sealed class GuildSettingsHolder : IGuildSettingsService
 	{
-		private readonly Dictionary<ulong, IGuildSettings> _GuildSettings = new Dictionary<ulong, IGuildSettings>();
+		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
 
 		public GuildSettingsHolder(IServiceProvider provider)
 		{
@@ -18,9 +19,9 @@ namespace Advobot.Modules.GuildSettings
 
 		public Task RemoveGuild(ulong guildId)
 		{
-			if (_GuildSettings.ContainsKey(guildId))
+			if (_GuildSettings.ContainsKey(guildId) && !_GuildSettings.TryRemove(guildId, out var value))
 			{
-				_GuildSettings.Remove(guildId);
+				ConsoleActions.WriteLine($"Failed to remove {guildId} from the guild settings holder.", color: ConsoleColor.Red);
 			}
 			return Task.FromResult(0);
 		}
@@ -31,9 +32,10 @@ namespace Advobot.Modules.GuildSettings
 				return null;
 			}
 
-			if (!_GuildSettings.TryGetValue(guild.Id, out var settings))
+			if (!_GuildSettings.TryGetValue(guild.Id, out var settings) &&
+				!_GuildSettings.TryAdd(guild.Id, settings = await CreationActions.CreateGuildSettings(guild)))
 			{
-				_GuildSettings.Add(guild.Id, settings = await CreationActions.CreateGuildSettings(guild));
+				ConsoleActions.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", color: ConsoleColor.Red);
 			}
 			return settings;
 		}

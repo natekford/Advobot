@@ -228,7 +228,7 @@ namespace Advobot.Actions
 		/// <param name="requestCount"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> RemoveMessages(IMessageChannel channel, IMessage fromMessage, int requestCount, ModerationReason reason)
+		public static async Task<int> RemoveMessages(ITextChannel channel, IMessage fromMessage, int requestCount, ModerationReason reason)
 		{
 			return await DeleteMessages(channel, await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).Flatten(), reason);
 		}
@@ -241,7 +241,7 @@ namespace Advobot.Actions
 		/// <param name="user"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> RemoveMessagesFromUser(IMessageChannel channel, IMessage fromMessage, int requestCount, IUser user, ModerationReason reason)
+		public static async Task<int> RemoveMessagesFromUser(ITextChannel channel, IMessage fromMessage, int requestCount, IUser user, ModerationReason reason)
 		{
 			var deletedCount = 0;
 			while (requestCount > 0)
@@ -280,7 +280,7 @@ namespace Advobot.Actions
 		/// <param name="messages"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessages(IMessageChannel channel, IEnumerable<IMessage> messages, ModerationReason reason)
+		public static async Task<int> DeleteMessages(ITextChannel channel, IEnumerable<IMessage> messages, ModerationReason reason)
 		{
 			//13.95 for some buffer in case
 			var youngMessages = messages.Where(x => x != null && DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 13.95);

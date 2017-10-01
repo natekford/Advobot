@@ -3,7 +3,7 @@ using Advobot.Interfaces;
 using Discord;
 using System.Collections.Generic;
 
-namespace Advobot.Modules.InviteList
+namespace Advobot.Services.InviteList
 {
 	public sealed class InviteList : IInviteListService
 	{

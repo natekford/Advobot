@@ -109,37 +109,7 @@ namespace Advobot.Actions.Formatting
 		/// <returns></returns>
 		public static string FormatMessage(this IMessage message)
 		{
-			var time = message.CreatedAt.ToString("HH:mm:ss");
-			var author = message.Author.FormatUser();
-			var channel = message.Channel.FormatChannel();
-			var text = message.FormatMessageContent().RemoveAllMarkdown().RemoveDuplicateNewLines();
-			return $"`[{time}]` `{author}` **IN** `{channel}`\n```\n{text}```";
-		}
-		/// <summary>
-		/// Replaces everyone/here mentions with a non pinging version and removes \tts.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="content"></param>
-		/// <returns></returns>
-		public static string FormatMessageContentForNotBeingAnnoying(IGuild guild, string content)
-		{
-			//Everyone and Here have the same role.
-			return content
-				.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE)
-				.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE)
-				.CaseInsReplace("@here", Constants.FAKE_HERE)
-				.CaseInsReplace("\tts", Constants.FAKE_TTS);
-		}
-
-		/// <summary>
-		/// Returns a string containing the message's content and then most aspects of the embeds in their messages.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		public static string FormatMessageContent(this IMessage message)
-		{
-			var sb = new StringBuilder((String.IsNullOrEmpty(message.Content) ? "Empty message content" : message.Content) + "\n");
-
+			var messageContent = new StringBuilder((String.IsNullOrEmpty(message.Content) ? "Empty message content" : message.Content) + "\n");
 			if (message.Embeds.Any())
 			{
 				var validEmbeds = message.Embeds.Where(x => x.Description != null || x.Url != null || x.Image.HasValue);
@@ -157,14 +127,33 @@ namespace Advobot.Actions.Formatting
 					return tempSb.ToString();
 				});
 
-				sb.AppendLineFeed(String.Join("\n", formattedDescriptions));
+				messageContent.AppendLineFeed(String.Join("\n", formattedDescriptions));
 			}
 			if (message.Attachments.Any())
 			{
-				sb.Append(" + " + String.Join(" + ", message.Attachments.Select(x => x.Filename)));
+				messageContent.Append(" + " + String.Join(" + ", message.Attachments.Select(x => x.Filename)));
 			}
 
-			return sb.ToString();
+			var time = message.CreatedAt.ToString("HH:mm:ss");
+			var author = message.Author.FormatUser();
+			var channel = message.Channel.FormatChannel();
+			var text = messageContent.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();
+			return $"`[{time}]` `{author}` **IN** `{channel}`\n```\n{text}```";
+		}
+		/// <summary>
+		/// Replaces everyone/here mentions with a non pinging version and removes \tts.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="content"></param>
+		/// <returns></returns>
+		public static string FormatMessageContentForNotBeingAnnoying(IGuild guild, string content)
+		{
+			//Everyone and Here have the same role.
+			return content
+				.CaseInsReplace(guild.EveryoneRole.Mention, Constants.FAKE_EVERYONE)
+				.CaseInsReplace("@everyone", Constants.FAKE_EVERYONE)
+				.CaseInsReplace("@here", Constants.FAKE_HERE)
+				.CaseInsReplace("\tts", Constants.FAKE_TTS);
 		}
 		/// <summary>
 		/// Returns the game's name or stream name/url.
@@ -173,61 +162,21 @@ namespace Advobot.Actions.Formatting
 		/// <returns></returns>
 		public static string FormatGame(IUser user)
 		{
-			var game = user.Game.Value;
-			switch (game.StreamType)
+			switch (user.Game?.StreamType)
 			{
 				case StreamType.NotStreaming:
 				{
-					return $"**Current Game:** `{game.Name.EscapeBackTicks()}`";
+					return $"**Current Game:** `{user.Game?.Name.EscapeBackTicks()}`";
 				}
 				case StreamType.Twitch:
 				{
-					return $"**Current Stream:** [{game.Name.EscapeBackTicks()}]({game.StreamUrl})";
+					return $"**Current Stream:** [{user.Game?.Name.EscapeBackTicks()}]({user.Game?.StreamUrl})";
 				}
 				default:
 				{
 					return "**Current Game:** `N/A`";
 				}
 			}
-		}
-		/// <summary>
-		/// Returns a string which is a human readable stay time.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <returns></returns>
-		public static string FormatStayLength(IGuildUser user)
-		{
-			if (user.JoinedAt.HasValue)
-			{
-				var timeStayed = (DateTime.UtcNow - user.JoinedAt.Value.ToUniversalTime());
-				return $"**Stayed for:** {timeStayed.Days}:{timeStayed.Hours:00}:{timeStayed.Minutes:00}:{timeStayed.Seconds:00}";
-			}
-			return "";
-		}
-		/// <summary>
-		/// Returns a string detailing which invite a user joined on.
-		/// </summary>
-		/// <param name="guildSettings"></param>
-		/// <param name="user"></param>
-		/// <returns></returns>
-		public static async Task<string> FormatInviteJoin(IGuildSettings guildSettings, IGuildUser user)
-		{
-			var curInv = await InviteActions.GetInviteUserJoinedOn(guildSettings, user);
-			return curInv != null ? $"**Invite:** {curInv.Code}" : "";
-		}
-		/// <summary>
-		/// Returns a string which warns about young accounts.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <returns></returns>
-		public static string FormatAccountAgeWarning(IUser user)
-		{
-			var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
-			if (userAccAge.TotalHours < 24)
-			{
-				return $"**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
-			}
-			return "";
 		}
 	}
 }

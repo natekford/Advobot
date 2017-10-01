@@ -13,18 +13,17 @@ namespace Advobot.Classes.Punishments
 {
 	public class PunishmentGiver : PunishmentBase
 	{
-		public int Time	{ get; }
-		public ITimersService Timers { get; }
-		public bool IsValid { get; }
-
+		private int _Time;
+		private bool _HasValidTimers;
+		private ITimersService _Timers;
 		private List<string> _Actions = new List<string>();
 
 		public PunishmentGiver(uint time, ITimersService timers) : this((int)time, timers) { }
 		public PunishmentGiver(int time, ITimersService timers)
 		{
-			Time = time;
-			Timers = timers;
-			IsValid = time > 0 && timers != null;
+			_Time = time;
+			_Timers = timers;
+			_HasValidTimers = time > 0 && timers != null;
 		}
 
 		public async Task BanAsync(IGuild guild, ulong userId, ModerationReason reason, int days = 1)
@@ -64,10 +63,10 @@ namespace Advobot.Classes.Punishments
 		private void FollowupActions(PunishmentType punishmentType, IGuild guild, IUser user, ModerationReason reason)
 		{
 			var sb = new StringBuilder($"Successfully {_Given[punishmentType]} {user.FormatUser()}. ");
-			if (IsValid)
+			if (_HasValidTimers)
 			{
-				Timers.AddRemovablePunishments(new RemovablePunishment(PunishmentType.Ban, guild, user.Id, Time));
-				sb.Append($"They will be {_Removal[punishmentType]} in {Time} minutes. ");
+				_Timers.AddRemovablePunishments(new RemovablePunishment(PunishmentType.Ban, guild, user.Id, _Time));
+				sb.Append($"They will be {_Removal[punishmentType]} in {_Time} minutes. ");
 			}
 			if (reason.HasReason)
 			{

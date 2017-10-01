@@ -13,15 +13,14 @@ namespace Advobot.Classes.Punishments
 {
 	public class PunishmentRemover : PunishmentBase
 	{
-		public ITimersService Timers { get; }
-		public bool IsValid { get; }
-
+		private bool _HasValidTimers;
+		private ITimersService _Timers;
 		private List<string> _Actions = new List<string>();
 
 		public PunishmentRemover(ITimersService timers)
 		{
-			Timers = timers;
-			IsValid = timers != null;
+			_Timers = timers;
+			_HasValidTimers = timers != null;
 		}
 
 		public async Task UnbanAsync(IGuild guild, ulong userId, ModerationReason reason)
@@ -49,7 +48,7 @@ namespace Advobot.Classes.Punishments
 		private void FollowupActions(PunishmentType punishmentType, IUser user, ModerationReason reason)
 		{
 			var sb = new StringBuilder($"Successfully {_Removal[punishmentType]} {user.FormatUser()}. ");
-			if (IsValid && Timers.RemovePunishments(user.Id, punishmentType) > 0)
+			if (_HasValidTimers && _Timers.RemovePunishments(user.Id, punishmentType) > 0)
 			{
 				sb.Append($"Removed all timed {punishmentType.EnumName().FormatTitle().ToLower()} punishments on them. ");
 			}

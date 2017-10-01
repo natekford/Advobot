@@ -12,23 +12,19 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Collections.Concurrent;
 
-namespace Advobot.Modules.Timers
+namespace Advobot.Services.Timers
 {
 	//I have absolutely no idea if this class works as intended under stress.
-	public sealed class Timers : ITimersService, IDisposable
+	public sealed class Timers : ITimersService
 	{
-		private const long HOUR						= 60 * 60 * 1000;
-		private const long MINUTE					= 60 * 1000;
-		private const long ONE_HALF_SECOND			= 1000 / 2;
+		private readonly Timer _HourTimer = new Timer(60 * 60 * 1000);
+		private readonly Timer _MinuteTimer	= new Timer(60 * 1000);
+		private readonly Timer _HalfSecondTimer	= new Timer(1000 / 2);
 
-		private readonly Timer _HourTimer			= new Timer(HOUR);
-		private readonly Timer _MinuteTimer			= new Timer(MINUTE);
-		private readonly Timer _OneHalfSecondTimer	= new Timer(ONE_HALF_SECOND);
-
-		private readonly ConcurrentDictionary<ulong, List<RemovablePunishment>>		_RemovablePunishments	= new ConcurrentDictionary<ulong, List<RemovablePunishment>>();
-		private readonly ConcurrentDictionary<ulong, List<RemovableMessage>>		_RemovableMessages		= new ConcurrentDictionary<ulong, List<RemovableMessage>>();
-		private readonly ConcurrentDictionary<ulong, List<CloseWords<HelpEntry>>>	_ActiveCloseHelp		= new ConcurrentDictionary<ulong, List<CloseWords<HelpEntry>>>();
-		private readonly ConcurrentDictionary<ulong, List<CloseWords<Quote>>>		_ActiveCloseQuotes		= new ConcurrentDictionary<ulong, List<CloseWords<Quote>>>();
+		private readonly ConcurrentDictionary<ulong, List<RemovablePunishment>>	_RemovablePunishments = new ConcurrentDictionary<ulong, List<RemovablePunishment>>();
+		private readonly ConcurrentDictionary<ulong, List<RemovableMessage>> _RemovableMessages = new ConcurrentDictionary<ulong, List<RemovableMessage>>();
+		private readonly ConcurrentDictionary<ulong, List<CloseWords<HelpEntry>>> _ActiveCloseHelp = new ConcurrentDictionary<ulong, List<CloseWords<HelpEntry>>>();
+		private readonly ConcurrentDictionary<ulong, List<CloseWords<Quote>>> _ActiveCloseQuotes = new ConcurrentDictionary<ulong, List<CloseWords<Quote>>>();
 
 		private readonly IGuildSettingsService _GuildSettings;
 		private readonly PunishmentRemover _PunishmentRemover;
@@ -44,8 +40,8 @@ namespace Advobot.Modules.Timers
 			_MinuteTimer.Elapsed += OnMinuteEvent;
 			_MinuteTimer.Enabled = true;
 
-			_OneHalfSecondTimer.Elapsed += OnOneHalfSecondEvent;
-			_OneHalfSecondTimer.Enabled = true;
+			_HalfSecondTimer.Elapsed += OnOneHalfSecondEvent;
+			_HalfSecondTimer.Enabled = true;
 		}
 
 		private void OnHourEvent(object source, ElapsedEventArgs e)
@@ -257,18 +253,6 @@ namespace Advobot.Modules.Timers
 					dictValueList.Remove(obj);
 				}
 			}
-		}
-
-		public void Dispose()
-		{
-			_HourTimer.Dispose();
-			_MinuteTimer.Dispose();
-			_OneHalfSecondTimer.Dispose();
-
-			_RemovablePunishments.Clear();
-			_RemovableMessages.Clear();
-			_ActiveCloseHelp.Clear();
-			_ActiveCloseQuotes.Clear();
 		}
 	}
 }

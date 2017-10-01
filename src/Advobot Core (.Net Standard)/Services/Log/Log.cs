@@ -1,9 +1,10 @@
 ﻿using Advobot.Classes;
 using Advobot.Interfaces;
+using Advobot.Services.Log.Loggers;
 using System;
 using System.Collections.Generic;
 
-namespace Advobot.Modules.Log
+namespace Advobot.Services.Log
 {
 	/// <summary>
 	/// Logs certain events.

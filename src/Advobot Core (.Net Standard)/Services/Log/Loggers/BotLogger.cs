@@ -5,7 +5,7 @@ using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Modules.Log
+namespace Advobot.Services.Log.Loggers
 {
 	internal class BotLogger : Logger, IBotLogger
 	{

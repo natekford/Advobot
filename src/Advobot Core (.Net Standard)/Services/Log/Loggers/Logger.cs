@@ -5,7 +5,7 @@ using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace Advobot.Modules.Log
+namespace Advobot.Services.Log.Loggers
 {
 	public abstract class Logger
 	{

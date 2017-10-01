@@ -9,7 +9,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Modules.Log
+namespace Advobot.Services.Log.Loggers
 {
 	internal class UserLogger : Logger, IUserLogger
 	{
@@ -56,9 +56,21 @@ namespace Advobot.Modules.Log
 				}
 				else if (VerifyLogAction(guildSettings, LogAction.UserJoined))
 				{
-					var inviteStr = await DiscordObjectFormatting.FormatInviteJoin(guildSettings, user);
-					var ageWarningStr = DiscordObjectFormatting.FormatAccountAgeWarning(user);
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}\n{inviteStr}\n{ageWarningStr}", Colors.JOIN)
+					var invite = "";
+					var inviteUserJoinedOn = await InviteActions.GetInviteUserJoinedOn(guildSettings, user);
+					if (inviteUserJoinedOn != null)
+					{
+						invite = $"**Invite:** {inviteUserJoinedOn.Code}";
+					}
+
+					var ageWarning = ""; 
+					var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
+					if (userAccAge.TotalHours < 24)
+					{
+						ageWarning = $"**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
+					}
+
+					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}\n{invite}\n{ageWarning}", Colors.JOIN)
 						.MyAddAuthor(user)
 						.MyAddFooter(user.IsBot ? "Bot Joined" : "User Joined");
 					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
@@ -98,7 +110,14 @@ namespace Advobot.Modules.Log
 				}
 				else if (VerifyLogAction(guildSettings, LogAction.UserLeft))
 				{
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}\n{DiscordObjectFormatting.FormatStayLength(user)}", Colors.LEAV)
+					var userStayLength = "";
+					if (user.JoinedAt.HasValue)
+					{
+						var timeStayed = (DateTime.UtcNow - user.JoinedAt.Value.ToUniversalTime());
+						userStayLength = $"**Stayed for:** {timeStayed.Days}:{timeStayed.Hours:00}:{timeStayed.Minutes:00}:{timeStayed.Seconds:00}";
+					}
+
+					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}\n{userStayLength}", Colors.LEAV)
 						.MyAddAuthor(user)
 						.MyAddFooter(user.IsBot ? "Bot Left" : "User Left");
 					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);

@@ -40,13 +40,13 @@ namespace Advobot.Classes.Punishments
 	public class RemovableMessage : IHasTime
 	{
 		public IEnumerable<IMessage> Messages { get; }
-		public IMessageChannel Channel { get; }
+		public ITextChannel Channel { get; }
 		private DateTime _Time;
 
 		public RemovableMessage(int seconds, params IMessage[] messages)
 		{
 			Messages = messages;
-			Channel = messages.FirstOrDefault().Channel;
+			Channel = messages.FirstOrDefault().Channel as ITextChannel;
 			_Time = DateTime.UtcNow.AddSeconds(seconds);
 		}
 

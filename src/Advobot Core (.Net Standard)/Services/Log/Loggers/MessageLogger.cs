@@ -13,7 +13,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Advobot.Modules.Log
+namespace Advobot.Services.Log.Loggers
 {
 	internal class MessageLogger : Logger, IMessageLogger
 	{
