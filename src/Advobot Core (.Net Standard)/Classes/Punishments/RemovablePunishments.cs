@@ -10,23 +10,23 @@ namespace Advobot.Classes.Punishments
 	/// <summary>
 	/// Punishments that will be removed after <see cref="GetTime"/> is less than <see cref="DateTime.UtcNow"/>.
 	/// </summary>
-	public class RemovablePunishment : IHasTime
+	public struct RemovablePunishment : IHasTime
 	{
 		public readonly PunishmentType PunishmentType;
 		public readonly IGuild Guild;
-		public readonly ulong UserId;
 		public readonly IRole Role;
-		private DateTime _Time;
+		public readonly ulong UserId;
+		private readonly DateTime _Time;
 
-		public RemovablePunishment(PunishmentType punishmentType, IGuild guild, ulong userId, int minutes)
+		public RemovablePunishment(PunishmentType punishment, IGuild guild, ulong userId, int minutes)
 		{
-			PunishmentType = punishmentType;
+			PunishmentType = punishment;
 			Guild = guild;
+			Role = null;
 			UserId = userId;
 			_Time = DateTime.UtcNow.AddMinutes(minutes);
 		}
-		public RemovablePunishment(PunishmentType punishmentType, IGuild guild, IRole role, ulong userId, int minutes)
-			: this(punishmentType, guild, userId, minutes)
+		public RemovablePunishment(PunishmentType punishment, IGuild guild, IRole role, ulong userId, int minutes) : this(punishment, guild, userId, minutes)
 		{
 			Role = role;
 		}
@@ -37,15 +37,15 @@ namespace Advobot.Classes.Punishments
 	/// <summary>
 	/// Messages that will get deleted after <see cref="GetTime"/> is less than <see cref="DateTime.UtcNow"/>.
 	/// </summary>
-	public class RemovableMessage : IHasTime
+	public struct RemovableMessage : IHasTime
 	{
-		public IEnumerable<IMessage> Messages { get; }
-		public ITextChannel Channel { get; }
-		private DateTime _Time;
+		public readonly IReadOnlyCollection<IMessage> Messages;
+		public readonly ITextChannel Channel;
+		private readonly DateTime _Time;
 
 		public RemovableMessage(int seconds, params IMessage[] messages)
 		{
-			Messages = messages;
+			Messages = messages.ToList().AsReadOnly();
 			Channel = messages.FirstOrDefault().Channel as ITextChannel;
 			_Time = DateTime.UtcNow.AddSeconds(seconds);
 		}
