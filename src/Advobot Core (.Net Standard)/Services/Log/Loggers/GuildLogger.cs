@@ -16,17 +16,17 @@ namespace Advobot.Services.Log.Loggers
 		{
 			if (_Client is DiscordSocketClient socketClient)
 			{
-				socketClient.GuildAvailable		+= OnGuildAvailable;
-				socketClient.GuildUnavailable	+= OnGuildUnavailable;
-				socketClient.JoinedGuild		+= OnJoinedGuild;
-				socketClient.LeftGuild			+= OnLeftGuild;
+				socketClient.GuildAvailable += OnGuildAvailable;
+				socketClient.GuildUnavailable += OnGuildUnavailable;
+				socketClient.JoinedGuild += OnJoinedGuild;
+				socketClient.LeftGuild += OnLeftGuild;
 			}
 			else if (_Client is DiscordShardedClient shardedClient)
 			{
-				shardedClient.GuildAvailable	+= OnGuildAvailable;
-				shardedClient.GuildUnavailable	+= OnGuildUnavailable;
-				shardedClient.JoinedGuild		+= OnJoinedGuild;
-				shardedClient.LeftGuild			+= OnLeftGuild;
+				shardedClient.GuildAvailable += OnGuildAvailable;
+				shardedClient.GuildUnavailable += OnGuildUnavailable;
+				shardedClient.JoinedGuild += OnJoinedGuild;
+				shardedClient.LeftGuild += OnLeftGuild;
 			}
 			else
 			{

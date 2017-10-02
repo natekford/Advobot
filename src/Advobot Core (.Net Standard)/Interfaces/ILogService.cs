@@ -8,26 +8,26 @@ namespace Advobot.Interfaces
 	/// </summary>
 	public interface ILogService
 	{
-		List<LoggedCommand> RanCommands	{ get; }
-		LogCounter TotalUsers			{ get; }
-		LogCounter TotalGuilds			{ get; }
-		LogCounter AttemptedCommands	{ get; }
-		LogCounter SuccessfulCommands	{ get; }
-		LogCounter FailedCommands		{ get; }
-		LogCounter UserJoins			{ get; }
-		LogCounter UserLeaves			{ get; }
-		LogCounter UserChanges			{ get; }
-		LogCounter MessageEdits			{ get; }
-		LogCounter MessageDeletes		{ get; }
-		LogCounter Messages				{ get; }
-		LogCounter Images				{ get; }
-		LogCounter Gifs					{ get; }
-		LogCounter Files				{ get; }
+		List<LoggedCommand> RanCommands { get; }
+		LogCounter TotalUsers { get; }
+		LogCounter TotalGuilds { get; }
+		LogCounter AttemptedCommands { get; }
+		LogCounter SuccessfulCommands { get; }
+		LogCounter FailedCommands { get; }
+		LogCounter UserJoins { get; }
+		LogCounter UserLeaves { get; }
+		LogCounter UserChanges { get; }
+		LogCounter MessageEdits { get; }
+		LogCounter MessageDeletes { get; }
+		LogCounter Messages { get; }
+		LogCounter Images { get; }
+		LogCounter Gifs { get; }
+		LogCounter Files { get; }
 
-		IBotLogger BotLogger			{ get; }
-		IGuildLogger GuildLogger		{ get; }
-		IUserLogger UserLogger			{ get; }
-		IMessageLogger MessageLogger	{ get; }
+		IBotLogger BotLogger { get; }
+		IGuildLogger GuildLogger { get; }
+		IUserLogger UserLogger { get; }
+		IMessageLogger MessageLogger { get; }
 
 		string FormatLoggedCommands();
 		string FormatLoggedActions();

@@ -14,15 +14,15 @@ namespace Advobot.Classes.Attributes
 	{
 		private static readonly Dictionary<Target, (int Min, int Max, string Name)> _MinsAndMaxesAndErrors = new Dictionary<Target, (int, int, string)>
 		{
-			{ Target.Guild,     (Constants.MIN_GUILD_NAME_LENGTH,	Constants.MAX_GUILD_NAME_LENGTH,	"guild name") },
-			{ Target.Channel,   (Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH,  "channel name") },
-			{ Target.Role,      (Constants.MIN_ROLE_NAME_LENGTH,    Constants.MAX_ROLE_NAME_LENGTH,     "role name") },
-			{ Target.Name,      (Constants.MIN_USERNAME_LENGTH,     Constants.MAX_USERNAME_LENGTH,      "username") },
-			{ Target.Nickname,  (Constants.MIN_NICKNAME_LENGTH,     Constants.MAX_NICKNAME_LENGTH,      "nickname") },
-			{ Target.Game,      (Constants.MIN_GAME_LENGTH,         Constants.MAX_GAME_LENGTH,          "game") },
-			{ Target.Stream,    (Constants.MIN_STREAM_LENGTH,       Constants.MAX_STREAM_LENGTH,        "stream name") },
-			{ Target.Topic,     (Constants.MIN_TOPIC_LENGTH,        Constants.MAX_TOPIC_LENGTH,         "channel topic") },
-			{ Target.Prefix,    (Constants.MIN_PREFIX_LENGTH,       Constants.MAX_PREFIX_LENGTH,        "bot prefix") },
+			{ Target.Guild, (Constants.MIN_GUILD_NAME_LENGTH, Constants.MAX_GUILD_NAME_LENGTH, "guild name") },
+			{ Target.Channel, (Constants.MIN_CHANNEL_NAME_LENGTH, Constants.MAX_CHANNEL_NAME_LENGTH, "channel name") },
+			{ Target.Role, (Constants.MIN_ROLE_NAME_LENGTH, Constants.MAX_ROLE_NAME_LENGTH, "role name") },
+			{ Target.Name, (Constants.MIN_USERNAME_LENGTH, Constants.MAX_USERNAME_LENGTH, "username") },
+			{ Target.Nickname, (Constants.MIN_NICKNAME_LENGTH, Constants.MAX_NICKNAME_LENGTH, "nickname") },
+			{ Target.Game, (Constants.MIN_GAME_LENGTH, Constants.MAX_GAME_LENGTH, "game") },
+			{ Target.Stream, (Constants.MIN_STREAM_LENGTH, Constants.MAX_STREAM_LENGTH, "stream name") },
+			{ Target.Topic, (Constants.MIN_TOPIC_LENGTH, Constants.MAX_TOPIC_LENGTH, "channel topic") },
+			{ Target.Prefix, (Constants.MIN_PREFIX_LENGTH, Constants.MAX_PREFIX_LENGTH, "bot prefix") },
 		};
 		private int _Min;
 		private int _Max;

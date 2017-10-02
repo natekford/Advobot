@@ -29,13 +29,13 @@ namespace Advobot
 		/// <param name="provider"></param>
 		public static async Task<IDiscordClient> Install(IServiceProvider provider)
 		{
-			_Provider		= provider;
-			_Commands		= _Provider.GetService<CommandService>();
-			_BotSettings	= _Provider.GetService<IBotSettings>();
-			_GuildSettings	= _Provider.GetService<IGuildSettingsService>();
-			_Client			= _Provider.GetService<IDiscordClient>();
-			_Timers			= _Provider.GetService<ITimersService>();
-			_Logging		= _Provider.GetService<ILogService>();
+			_Provider = provider;
+			_Commands = _Provider.GetService<CommandService>();
+			_BotSettings = _Provider.GetService<IBotSettings>();
+			_GuildSettings = _Provider.GetService<IGuildSettingsService>();
+			_Client = _Provider.GetService<IDiscordClient>();
+			_Timers = _Provider.GetService<ITimersService>();
+			_Logging = _Provider.GetService<ILogService>();
 
 			//Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
 			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly());

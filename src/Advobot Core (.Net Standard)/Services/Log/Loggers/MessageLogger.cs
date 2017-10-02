@@ -22,8 +22,7 @@ namespace Advobot.Services.Log.Loggers
 			{ SpamType.Message,     (message) => int.MaxValue },
 			{ SpamType.LongMessage, (message) => message.Content?.Length },
 			{ SpamType.Link,        (message) => message.Content?.Split(' ')?.Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) },
-			{ SpamType.Image,       (message) => message.Attachments.Where(x => x.Height != null || x.Width != null).Count() +
-												 message.Embeds.Where(x => x.Image != null || x.Video != null).Count() },
+			{ SpamType.Image,       (message) => message.Attachments.Where(x => x.Height != null || x.Width != null).Count() + message.Embeds.Where(x => x.Image != null || x.Video != null).Count() },
 			{ SpamType.Mention,     (message) => message.MentionedUserIds.Distinct().Count() },
 		};
 
@@ -33,15 +32,15 @@ namespace Advobot.Services.Log.Loggers
 		{
 			if (_Client is DiscordSocketClient socketClient)
 			{
-				socketClient.MessageReceived	+= OnMessageReceived;
-				socketClient.MessageUpdated		+= OnMessageUpdated;
-				socketClient.MessageDeleted		+= OnMessageDeleted;
+				socketClient.MessageReceived += OnMessageReceived;
+				socketClient.MessageUpdated += OnMessageUpdated;
+				socketClient.MessageDeleted += OnMessageDeleted;
 			}
 			else if (_Client is DiscordShardedClient shardedClient)
 			{
-				shardedClient.MessageReceived	+= OnMessageReceived;
-				shardedClient.MessageUpdated	+= OnMessageUpdated;
-				shardedClient.MessageDeleted	+= OnMessageDeleted;
+				shardedClient.MessageReceived += OnMessageReceived;
+				shardedClient.MessageUpdated += OnMessageUpdated;
+				shardedClient.MessageDeleted += OnMessageDeleted;
 			}
 			else
 			{

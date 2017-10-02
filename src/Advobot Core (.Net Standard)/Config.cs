@@ -162,8 +162,8 @@ namespace Advobot
 			private Dictionary<ConfigKeys, string> _ConfigDict = new Dictionary<ConfigKeys, string>
 			{
 				{ ConfigKeys.Save_Path, null },
-				{ ConfigKeys.Bot_Key,	null },
-				{ ConfigKeys.Bot_Id,	"0" },
+				{ ConfigKeys.Bot_Key, null },
+				{ ConfigKeys.Bot_Id, "0" },
 			};
 
 			[JsonIgnore]
@@ -179,9 +179,9 @@ namespace Advobot
 		/// </summary>
 		public enum ConfigKeys : uint
 		{
-			Save_Path			= (1U << 0),
-			Bot_Key				= (1U << 1),
-			Bot_Id				= (1U << 2),
+			Save_Path = (1U << 0),
+			Bot_Key   = (1U << 1),
+			Bot_Id    = (1U << 2),
 		}
 	}
 }

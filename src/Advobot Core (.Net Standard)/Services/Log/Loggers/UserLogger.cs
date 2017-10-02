@@ -19,15 +19,15 @@ namespace Advobot.Services.Log.Loggers
 		{
 			if (_Client is DiscordSocketClient socketClient)
 			{
-				socketClient.UserJoined		+= OnUserJoined;
-				socketClient.UserLeft		+= OnUserLeft;
-				socketClient.UserUpdated	+= OnUserUpdated;
+				socketClient.UserJoined += OnUserJoined;
+				socketClient.UserLeft += OnUserLeft;
+				socketClient.UserUpdated += OnUserUpdated;
 			}
 			else if (_Client is DiscordShardedClient shardedClient)
 			{
-				shardedClient.UserJoined	+= OnUserJoined;
-				shardedClient.UserLeft		+= OnUserLeft;
-				shardedClient.UserUpdated	+= OnUserUpdated;
+				shardedClient.UserJoined += OnUserJoined;
+				shardedClient.UserLeft += OnUserLeft;
+				shardedClient.UserUpdated += OnUserUpdated;
 			}
 			else
 			{

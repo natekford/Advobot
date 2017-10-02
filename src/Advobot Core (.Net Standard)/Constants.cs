@@ -113,12 +113,12 @@ namespace Advobot
 		private static ReadOnlyDictionary<PunishmentType, int> _P_SEV;
 		public static ReadOnlyDictionary<PunishmentType, int> PUNISHMENT_SEVERITY => _P_SEV ?? (_P_SEV = new ReadOnlyDictionary<PunishmentType, int>(new Dictionary<PunishmentType, int>
 		{
-			{ PunishmentType.Deafen,		0 },
-			{ PunishmentType.VoiceMute,		100 },
-			{ PunishmentType.RoleMute,		250 },
-			{ PunishmentType.Kick,			500 },
-			{ PunishmentType.Softban,		750 },
-			{ PunishmentType.Ban,			1000 },
+			{ PunishmentType.Deafen, 0 },
+			{ PunishmentType.VoiceMute, 100 },
+			{ PunishmentType.RoleMute, 250 },
+			{ PunishmentType.Kick, 500 },
+			{ PunishmentType.Softban, 750 },
+			{ PunishmentType.Ban, 1000 },
 		}));
 
 		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)

@@ -206,23 +206,8 @@ namespace Advobot.Commands.RoleModeration
 			var userBits = (Context.User as IGuildUser).GuildPermissions.RawValue;
 			var inputRoleBits = inputRole.Permissions.RawValue;
 			var outputRoleBits = outputRole.Permissions.RawValue;
-			/* Keep perms on the ouput which the user is unable to edit. E.G:
-				* Role:			1001	1001
-				* User:			0001 -> 1110
-				* Immovable:		1000	1000
-				*/
 			var immovableBits = outputRoleBits & ~userBits;
-			/* Only add in perms the user can edit. E.G:
-				* Role:			1111
-				* User:			0001
-				* Copyable:		0001
-				*/
 			var copyBits = inputRoleBits & userBits;
-			/* Keep immovable bits and add in copyable bits. E.G:
-				* Immovable:		1000
-				* Copyable:		0001
-				* Output:			1001
-				*/
 			var newRoleBits = immovableBits | copyBits;
 
 			await RoleActions.ModifyRolePermissions(outputRole, newRoleBits, new ModerationReason(Context.User, null));

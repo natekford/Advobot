@@ -18,10 +18,10 @@ namespace Advobot.Services.Timers
 	public sealed class Timers : ITimersService
 	{
 		private readonly Timer _HourTimer = new Timer(60 * 60 * 1000);
-		private readonly Timer _MinuteTimer	= new Timer(60 * 1000);
-		private readonly Timer _HalfSecondTimer	= new Timer(1000 / 2);
+		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
+		private readonly Timer _HalfSecondTimer = new Timer(1000 / 2);
 
-		private readonly ConcurrentDictionary<KeyForDict, RemovablePunishment>	_RemovablePunishments = new ConcurrentDictionary<KeyForDict, RemovablePunishment>();
+		private readonly ConcurrentDictionary<KeyForDict, RemovablePunishment> _RemovablePunishments = new ConcurrentDictionary<KeyForDict, RemovablePunishment>();
 		private readonly ConcurrentDictionary<KeyForDict, RemovableMessage> _RemovableMessages = new ConcurrentDictionary<KeyForDict, RemovableMessage>();
 		private readonly ConcurrentDictionary<KeyForDict, CloseWords<HelpEntry>> _ActiveCloseHelp = new ConcurrentDictionary<KeyForDict, CloseWords<HelpEntry>>();
 		private readonly ConcurrentDictionary<KeyForDict, CloseWords<Quote>> _ActiveCloseQuotes = new ConcurrentDictionary<KeyForDict, CloseWords<Quote>>();
