@@ -186,8 +186,7 @@ namespace Advobot.Services.Timers
 				return null;
 			}
 
-			Remove(_ActiveCloseHelp, kvp.Key);
-			return kvp.Value;
+			return Remove(_ActiveCloseHelp, kvp.Key);
 		}
 		public CloseWords<Quote> GetOutActiveCloseQuote(ulong userId)
 		{
@@ -198,8 +197,7 @@ namespace Advobot.Services.Timers
 				return null;
 			}
 
-			Remove(_ActiveCloseHelp, kvp.Key);
-			return kvp.Value;
+			return Remove(_ActiveCloseQuotes, kvp.Key);
 		}
 
 		/// <summary>
@@ -245,7 +243,7 @@ namespace Advobot.Services.Timers
 		/// <param name="value"></param>
 		private void Add<T>(ConcurrentDictionary<KeyForDict, T> concDic, KeyForDict key, T value) where T : IHasTime
 		{
-			//Don't allow a null value to be set
+			//Don't allow a null/default value to be set
 			if (EqualityComparer<T>.Default.Equals(value, default))
 			{
 				return;
@@ -265,8 +263,7 @@ namespace Advobot.Services.Timers
 		/// <returns></returns>
 		private T Remove<T>(ConcurrentDictionary<KeyForDict, T> concDic, KeyForDict key) where T : IHasTime
 		{
-			//I have absolutely no idea how, but when testing help entries a default key would somehow always enter.
-			//It seemed to happen as _Timers was accessed. It was not being called by any method.
+			//Don't allow null/default keys to be used
 			if (EqualityComparer<KeyForDict>.Default.Equals(key, default))
 			{
 				return default;
