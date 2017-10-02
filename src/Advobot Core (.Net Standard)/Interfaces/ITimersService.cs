@@ -9,12 +9,12 @@ namespace Advobot.Interfaces
 	/// </summary>
 	public interface ITimersService
 	{
-		void AddRemovablePunishments(params RemovablePunishment[] punishments);
-		void AddRemovableMessages(params RemovableMessage[] messages);
-		void AddActiveCloseHelp(params CloseWords<HelpEntry>[] help);
-		void AddActiveCloseQuotes(params CloseWords<Quote>[] quotes);
-		int RemovePunishments(ulong id, PunishmentType punishment);
+		void AddRemovablePunishment(RemovablePunishment punishment);
+		void AddRemovableMessage(RemovableMessage message);
+		void AddActiveCloseHelp(CloseWords<HelpEntry> help);
+		void AddActiveCloseQuote(CloseWords<Quote> quote);
 
+		int RemovePunishments(ulong id, PunishmentType punishment);
 		CloseWords<HelpEntry> GetOutActiveCloseHelp(ulong id);
 		CloseWords<Quote> GetOutActiveCloseQuote(ulong id);
 	}

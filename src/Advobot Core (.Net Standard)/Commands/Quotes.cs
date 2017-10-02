@@ -98,8 +98,7 @@ namespace Advobot.Commands.Quotes
 			var closeQuotes = new CloseWords<Quote>(Context.User.Id, quotes, name);
 			if (closeQuotes.List.Any())
 			{
-				Context.Timers.GetOutActiveCloseQuote(Context.User.Id);
-				Context.Timers.AddActiveCloseQuotes(closeQuotes);
+				Context.Timers.AddActiveCloseQuote(closeQuotes);
 
 				var msg = "Did you mean any of the following:\n" + closeQuotes.List.FormatNumberedList("{0}", x => x.Word.Name);
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.SECONDS_ACTIVE_CLOSE);

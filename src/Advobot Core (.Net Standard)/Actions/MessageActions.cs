@@ -190,7 +190,7 @@ namespace Advobot.Actions
 			var secondMessage = await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + secondStr);
 			if (time > 0 && timers != null)
 			{
-				timers.AddRemovableMessages(new RemovableMessage(time, new[] { message, secondMessage }));
+				timers.AddRemovableMessage(new RemovableMessage(time, new[] { message, secondMessage }));
 			}
 		}
 		/// <summary>

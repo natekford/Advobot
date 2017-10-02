@@ -21,10 +21,10 @@ namespace Advobot.Services.Timers
 		private readonly Timer _MinuteTimer	= new Timer(60 * 1000);
 		private readonly Timer _HalfSecondTimer	= new Timer(1000 / 2);
 
-		private readonly ConcurrentDictionary<ulong, List<RemovablePunishment>>	_RemovablePunishments = new ConcurrentDictionary<ulong, List<RemovablePunishment>>();
-		private readonly ConcurrentDictionary<ulong, List<RemovableMessage>> _RemovableMessages = new ConcurrentDictionary<ulong, List<RemovableMessage>>();
-		private readonly ConcurrentDictionary<ulong, List<CloseWords<HelpEntry>>> _ActiveCloseHelp = new ConcurrentDictionary<ulong, List<CloseWords<HelpEntry>>>();
-		private readonly ConcurrentDictionary<ulong, List<CloseWords<Quote>>> _ActiveCloseQuotes = new ConcurrentDictionary<ulong, List<CloseWords<Quote>>>();
+		private readonly ConcurrentDictionary<KeyForDict, RemovablePunishment>	_RemovablePunishments = new ConcurrentDictionary<KeyForDict, RemovablePunishment>();
+		private readonly ConcurrentDictionary<KeyForDict, RemovableMessage> _RemovableMessages = new ConcurrentDictionary<KeyForDict, RemovableMessage>();
+		private readonly ConcurrentDictionary<KeyForDict, CloseWords<HelpEntry>> _ActiveCloseHelp = new ConcurrentDictionary<KeyForDict, CloseWords<HelpEntry>>();
+		private readonly ConcurrentDictionary<KeyForDict, CloseWords<Quote>> _ActiveCloseQuotes = new ConcurrentDictionary<KeyForDict, CloseWords<Quote>>();
 
 		private readonly IGuildSettingsService _GuildSettings;
 		private readonly PunishmentRemover _PunishmentRemover;
@@ -111,28 +111,16 @@ namespace Advobot.Services.Timers
 		}
 		private async Task DeleteTargettedMessages()
 		{
-			//Done this way so all the messages in the same channel can be grouped together and deleted at once
-			var tempDict = new Dictionary<ulong, List<RemovableMessage>>();
-			foreach (var message in GetOutTimedObjects(_RemovableMessages))
+			foreach (var group in GetOutTimedObjects(_RemovableMessages).GroupBy(x => x.Channel.Id))
 			{
-				if (!tempDict.TryGetValue(message.Channel.Id, out var value))
-				{
-					tempDict.Add(message.Channel.Id, value = new List<RemovableMessage>());
-				}
-
-				value.Add(message);
-			}
-
-			foreach (var kvp in tempDict)
-			{
-				var messages = kvp.Value.SelectMany(x => x.Messages);
+				var messages = group.SelectMany(x => x.Messages);
 				if (messages.Count() == 1)
 				{
 					await MessageActions.DeleteMessage(messages.Single());
 				}
 				else
 				{
-					var channel = kvp.Value.First().Channel;
+					var channel = group.First().Channel;
 					await MessageActions.DeleteMessages(channel, messages, new AutomaticModerationReason("automatic message deletion."));
 				}
 			}
@@ -150,92 +138,84 @@ namespace Advobot.Services.Timers
 			}
 		}
 
-		public void AddRemovablePunishments(params RemovablePunishment[] punishments)
+		public void AddRemovablePunishment(RemovablePunishment punishment)
 		{
-			foreach (var group in punishments.GroupBy(x => x.UserId))
-			{
-				AddObjects(_RemovablePunishments, group.Key, group);
-			}
+			Add(_RemovablePunishments, new KeyForDict(punishment.UserId, punishment.GetTime().Ticks), punishment);
 		}
-		public void AddRemovableMessages(params RemovableMessage[] messages)
+		public void AddRemovableMessage(RemovableMessage message)
 		{
-			foreach (var group in messages.GroupBy(x => x.Channel.Id))
-			{
-				AddObjects(_RemovableMessages, group.Key, group);
-			}
+			Add(_RemovableMessages, new KeyForDict(message.Channel.Id, message.GetTime().Ticks), message);
 		}
-		public void AddActiveCloseHelp(params CloseWords<HelpEntry>[] helpEntries)
+		public void AddActiveCloseHelp(CloseWords<HelpEntry> helpEntry)
 		{
-			foreach (var group in helpEntries.GroupBy(x => x.UserId))
+			//Remove all older ones; only one can be active at a given time.
+			foreach (var kvp in _ActiveCloseHelp.Where(x => x.Key.Id == helpEntry.UserId))
 			{
-				AddObjects(_ActiveCloseHelp, group.Key, group);
+				Remove(_ActiveCloseHelp, kvp.Key);
 			}
+
+			Add(_ActiveCloseHelp, new KeyForDict(helpEntry.UserId, helpEntry.GetTime().Ticks), helpEntry);
 		}
-		public void AddActiveCloseQuotes(params CloseWords<Quote>[] quotes)
+		public void AddActiveCloseQuote(CloseWords<Quote> quote)
 		{
-			foreach (var group in quotes.GroupBy(x => x.UserId))
+			///Remove all older ones; only one can be active at a given time.
+			foreach (var kvp in _ActiveCloseQuotes.Where(x => x.Key.Id == quote.UserId))
 			{
-				AddObjects(_ActiveCloseQuotes, group.Key, group);
+				Remove(_ActiveCloseQuotes, kvp.Key);
 			}
+
+			Add(_ActiveCloseQuotes, new KeyForDict(quote.UserId, quote.GetTime().Ticks), quote);
 		}
 
 		public int RemovePunishments(ulong userId, PunishmentType punishment)
 		{
-			if (!_RemovablePunishments.TryGetValue(userId, out var value))
+			//Has to be made into a new list otherwise the concurrent modification also effects it.
+			var punishments = _RemovablePunishments.Where(x => x.Key.Id == userId && x.Value.PunishmentType == punishment).ToList();
+			foreach (var kvp in punishments)
 			{
-				return 0;
+				Remove(_RemovablePunishments, kvp.Key);
 			}
-
-			lock (value)
-			{
-				return value.RemoveAll(x => x.PunishmentType == punishment);
-			}
+			return punishments.Count();
 		}
 		public CloseWords<HelpEntry> GetOutActiveCloseHelp(ulong userId)
 		{
-			return _ActiveCloseHelp.TryRemove(userId, out var removed) ? removed?.FirstOrDefault() : null;
+			//Should only ever have one for each user at a time.
+			var kvp = _ActiveCloseHelp.SingleOrDefault(x => x.Key.Id == userId);
+			if (kvp.Equals(default))
+			{
+				return null;
+			}
+
+			Remove(_ActiveCloseHelp, kvp.Key);
+			return kvp.Value;
 		}
 		public CloseWords<Quote> GetOutActiveCloseQuote(ulong userId)
 		{
-			return _ActiveCloseQuotes.TryRemove(userId, out var removed) ? removed?.FirstOrDefault() : null;
-		}
-
-		/// <summary>
-		/// Adds objects to a list in what should be a thread safe manner.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="concDic"></param>
-		/// <param name="key"></param>
-		/// <param name="addVal"></param>
-		private void AddObjects<T>(ConcurrentDictionary<ulong, List<T>> concDic, ulong key, IEnumerable<T> addVal)
-		{
-			//I don't know if this is fully thread safe.
-			if (!concDic.TryGetValue(key, out var value))
+			//Should only ever have one for each user at a time.
+			var kvp = _ActiveCloseQuotes.SingleOrDefault(x => x.Key.Id == userId);
+			if (kvp.Equals(default))
 			{
-				value = new List<T>();
-				concDic.AddOrUpdate(key, value, (oldKey, oldVal) => value);
+				return null;
 			}
 
-			lock (value)
-			{
-				value.AddRange(addVal);
-			}
+			Remove(_ActiveCloseHelp, kvp.Key);
+			return kvp.Value;
 		}
+
 		/// <summary>
 		/// Remove old entries then do something with them.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="concDic"></param>
 		/// <returns></returns>
-		private IEnumerable<T> GetOutTimedObjects<T>(ConcurrentDictionary<ulong, List<T>> concDic) where T : IHasTime
+		private IEnumerable<T> GetOutTimedObjects<T>(ConcurrentDictionary<KeyForDict, T> concDic) where T : IHasTime
 		{
-			foreach (var dictValueList in concDic.Values)
+			var currentTicks = DateTime.UtcNow.Ticks;
+			foreach (var kvp in concDic)
 			{
-				foreach (var obj in new List<T>(dictValueList.Where(x => x.GetTime() < DateTime.UtcNow)))
+				if (kvp.Key.Ticks < currentTicks)
 				{
-					dictValueList.Remove(obj);
-					//I don't know exactly what the yield syntax does but I think it's applicable here.
-					yield return obj;
+					yield return Remove(concDic, kvp.Key);
 				}
 			}
 		}
@@ -244,14 +224,87 @@ namespace Advobot.Services.Timers
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="concDic"></param>
-		private void RemoveTimedObjects<T>(ConcurrentDictionary<ulong, List<T>> concDic) where T : IHasTime
+		private void RemoveTimedObjects<T>(ConcurrentDictionary<KeyForDict, T> concDic) where T : IHasTime
 		{
-			foreach (var dictValueList in concDic.Values)
+			var currentTicks = DateTime.UtcNow.Ticks;
+			foreach (var kvp in concDic)
 			{
-				foreach (var obj in new List<T>(dictValueList.Where(x => x.GetTime() < DateTime.UtcNow)))
+				if (kvp.Key.Ticks < currentTicks)
 				{
-					dictValueList.Remove(obj);
+					Remove(concDic, kvp.Key);
 				}
+			}
+		}
+		/// <summary>
+		/// Adds <paramref name="value"/> to <paramref name="concDic"/> with the given <paramref name="key"/> unless <paramref name="value"/>
+		/// is the default value of its type.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="concDic"></param>
+		/// <param name="key"></param>
+		/// <param name="value"></param>
+		private void Add<T>(ConcurrentDictionary<KeyForDict, T> concDic, KeyForDict key, T value) where T : IHasTime
+		{
+			//Don't allow a null value to be set
+			if (EqualityComparer<T>.Default.Equals(value, default))
+			{
+				return;
+			}
+
+			if (!concDic.TryAdd(key, value))
+			{
+				ConsoleActions.WriteLine($"Failed to add the object at {key} in {GetDictionaryTValueName(concDic)}.", color: ConsoleColor.Red);
+			}
+		}
+		/// <summary>
+		/// Removes whatever value in <paramref name="concDic"/> has the key <paramref name="key"/>.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="concDic"></param>
+		/// <param name="key"></param>
+		/// <returns></returns>
+		private T Remove<T>(ConcurrentDictionary<KeyForDict, T> concDic, KeyForDict key) where T : IHasTime
+		{
+			//I have absolutely no idea how, but when testing help entries a default key would somehow always enter.
+			//It seemed to happen as _Timers was accessed. It was not being called by any method.
+			if (EqualityComparer<KeyForDict>.Default.Equals(key, default))
+			{
+				return default;
+			}
+
+			if (!concDic.TryRemove(key, out var value))
+			{
+				ConsoleActions.WriteLine($"Failed to remove the object at {key} in {GetDictionaryTValueName(concDic)}.", color: ConsoleColor.Red);
+			}
+			return value;
+		}
+		/// <summary>
+		/// Returns a readable name of the <paramref name="concDic"/> TValue.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="concDic"></param>
+		/// <returns></returns>
+		private string GetDictionaryTValueName<T>(ConcurrentDictionary<KeyForDict, T> concDic)
+		{
+			var tValue = typeof(T);
+			var tName = tValue.Name.Trim('1'); //Has `1 at the end of its name
+			return (tValue.IsGenericType ? tName + tValue.GetGenericArguments()[0].Name : tName);
+		}
+
+		private struct KeyForDict
+		{
+			public readonly ulong Id;
+			public readonly long Ticks;
+
+			public KeyForDict(ulong id, long ticks)
+			{
+				Id = id;
+				Ticks = ticks;
+			}
+
+			public override string ToString()
+			{
+				return $"{Id}:{Ticks}";
 			}
 		}
 	}

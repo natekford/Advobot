@@ -65,7 +65,7 @@ namespace Advobot.Classes.Punishments
 			var sb = new StringBuilder($"Successfully {_Given[punishmentType]} {user.FormatUser()}. ");
 			if (_HasValidTimers)
 			{
-				_Timers.AddRemovablePunishments(new RemovablePunishment(PunishmentType.Ban, guild, user.Id, _Time));
+				_Timers.AddRemovablePunishment(new RemovablePunishment(PunishmentType.Ban, guild, user.Id, _Time));
 				sb.Append($"They will be {_Removal[punishmentType]} in {_Time} minutes. ");
 			}
 			if (reason.HasReason)

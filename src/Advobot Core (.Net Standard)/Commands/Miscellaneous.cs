@@ -63,7 +63,6 @@ namespace Advobot.Commands.Miscellaneous
 				var closeHelps = new CloseWords<HelpEntry>(Context.User.Id, Constants.HELP_ENTRIES, command);
 				if (closeHelps.List.Any())
 				{
-					Context.Timers.GetOutActiveCloseHelp(Context.User.Id);
 					Context.Timers.AddActiveCloseHelp(closeHelps);
 
 					var msg = "Did you mean any of the following:\n" + closeHelps.List.FormatNumberedList("{0}", x => x.Word.Name);

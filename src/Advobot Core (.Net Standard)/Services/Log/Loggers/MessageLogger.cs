@@ -300,20 +300,28 @@ namespace Advobot.Services.Log.Loggers
 			{
 				return;
 			}
-
 			--number;
+
 			var quotes = _Timers.GetOutActiveCloseQuote(message.Author.Id);
-			if (quotes != null && quotes.List.Count > number)
+			var validQuote = quotes != null && quotes.List.Count > number;
+			var helpEntries = _Timers.GetOutActiveCloseHelp(message.Author.Id);
+			var validHelpEntry = helpEntries != null && helpEntries.List.Count > number;
+
+			if (validQuote)
 			{
 				await MessageActions.SendMessage(message.Channel, quotes.List.ElementAt(number).Word.Description);
 			}
-			var helpEntries = _Timers.GetOutActiveCloseHelp(message.Author.Id);
-			if (helpEntries != null && helpEntries.List.Count > number)
+			if (validHelpEntry)
 			{
 				var help = helpEntries.List.ElementAt(number).Word;
 				var embed = EmbedActions.MakeNewEmbed(help.Name, help.ToString())
 					.MyAddFooter("Help");
 				await MessageActions.SendEmbedMessage(message.Channel, embed);
+			}
+
+			if (validQuote || validHelpEntry)
+			{
+				await MessageActions.DeleteMessage(message);
 			}
 		}
 		/// <summary>
