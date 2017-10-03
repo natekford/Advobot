@@ -48,7 +48,6 @@ namespace Advobot.Interfaces
 
 		//Non-saved settings
 		List<BannedPhraseUser> BannedPhraseUsers { get; }
-		List<SpamPreventionUser> SpamPreventionUsers { get; }
 		List<CachedInvite> Invites { get; }
 		List<string> EvaluatedRegex { get; }
 		MessageDeletion MessageDeletion { get; }

@@ -1,6 +1,9 @@
 ﻿using Advobot.Classes;
 using Advobot.Classes.Punishments;
+using Advobot.Classes.SpamPrevention;
 using Advobot.Enums;
+using Discord;
+using System.Collections.Generic;
 
 namespace Advobot.Interfaces
 {
@@ -13,9 +16,13 @@ namespace Advobot.Interfaces
 		void AddRemovableMessage(RemovableMessage message);
 		void AddActiveCloseHelp(CloseWords<HelpEntry> help);
 		void AddActiveCloseQuote(CloseWords<Quote> quote);
+		void AddSpamPreventionUser(SpamPreventionUser user);
 
 		int RemovePunishments(ulong id, PunishmentType punishment);
-		CloseWords<HelpEntry> GetOutActiveCloseHelp(ulong id);
-		CloseWords<Quote> GetOutActiveCloseQuote(ulong id);
+		CloseWords<HelpEntry> GetOutActiveCloseHelp(IUser user);
+		CloseWords<Quote> GetOutActiveCloseQuote(IUser user);
+
+		SpamPreventionUser GetSpamPreventionUser(IGuildUser user);
+		IEnumerable<SpamPreventionUser> GetSpamPreventionUsers(IGuild guild);
 	}
 }

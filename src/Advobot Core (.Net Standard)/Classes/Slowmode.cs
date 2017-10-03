@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Classes
 {
+	//TODO: put this into the timers service.
 	/// <summary>
 	/// Limits the amount of messages users are allowed to send in a given time interval. Initially created with <see cref="Enabled"/> set to false.
 	/// </summary>

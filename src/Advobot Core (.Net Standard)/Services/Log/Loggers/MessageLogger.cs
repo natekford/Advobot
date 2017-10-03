@@ -301,9 +301,9 @@ namespace Advobot.Services.Log.Loggers
 			}
 			--number;
 
-			var quotes = _Timers.GetOutActiveCloseQuote(message.Author.Id);
+			var quotes = _Timers.GetOutActiveCloseQuote(message.Author);
 			var validQuote = quotes != null && quotes.List.Count > number;
-			var helpEntries = _Timers.GetOutActiveCloseHelp(message.Author.Id);
+			var helpEntries = _Timers.GetOutActiveCloseHelp(message.Author);
 			var validHelpEntry = helpEntries != null && helpEntries.List.Count > number;
 
 			if (validQuote)
@@ -335,12 +335,12 @@ namespace Advobot.Services.Log.Loggers
 		private async Task HandleSpamPrevention(IGuildSettings guildSettings, IMessage message, IGuildUser user)
 		{
 			//TODO: Make sure this works
-			if (user.CanBeModifiedByUser(UserActions.GetBot(guildSettings.Guild)))
+			if (user.CanBeModifiedByUser(UserActions.GetBot(user.Guild)))
 			{
-				var spamUser = guildSettings.SpamPreventionUsers.FirstOrDefault(x => x.User.Id == user.Id);
+				var spamUser = _Timers.GetSpamPreventionUser(user);
 				if (spamUser == null)
 				{
-					guildSettings.SpamPreventionUsers.ThreadSafeAdd(spamUser = new SpamPreventionUser(user));
+					_Timers.AddSpamPreventionUser(spamUser = new SpamPreventionUser(user));
 				}
 
 				var spam = false;
@@ -386,7 +386,7 @@ namespace Advobot.Services.Log.Loggers
 			}
 
 			//Get the users who are able to be punished by the spam prevention
-			var users = guildSettings.SpamPreventionUsers.Where(x => true
+			var users = _Timers.GetSpamPreventionUsers(user.Guild).Where(x => true
 				&& x.PotentialPunishment
 				&& x.User.Id != message.Author.Id
 				&& message.MentionedUserIds.Contains(x.User.Id)
