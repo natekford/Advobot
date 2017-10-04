@@ -1,4 +1,5 @@
 ﻿using Advobot.Actions;
+using Advobot.Classes.UserInformation;
 using Discord;
 
 namespace Advobot.Services.Timers
@@ -23,6 +24,7 @@ namespace Advobot.Services.Timers
 			GuildId = user.Guild.Id;
 			UserId = user.Id;
 		}
+		public UserKey(UserInfo info) : this(info.User as IGuildUser, info.GetTime().Ticks) { }
 
 		public override string ToString()
 		{

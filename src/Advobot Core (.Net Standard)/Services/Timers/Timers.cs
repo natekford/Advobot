@@ -63,7 +63,6 @@ namespace Advobot.Services.Timers
 			{
 				var punishmentType = punishment.PunishmentType;
 				var reason = new AutomaticModerationReason($"automatic un{punishmentType.EnumName().FormatTitle().Replace(' ', '-')}");
-
 				switch (punishmentType)
 				{
 					case PunishmentType.Ban:
@@ -129,7 +128,7 @@ namespace Advobot.Services.Timers
 		//Adds
 		public void AddRemovablePunishment(RemovablePunishment punishment)
 		{
-			Add(_RemovablePunishments, new UserKey(punishment.User as IGuildUser, punishment.GetTime().Ticks), punishment);
+			Add(_RemovablePunishments, new UserKey(punishment), punishment);
 		}
 		public void AddRemovableMessage(RemovableMessage message)
 		{
@@ -142,8 +141,7 @@ namespace Advobot.Services.Timers
 			{
 				Remove(_ActiveCloseHelp, kvp.Key);
 			}
-
-			Add(_ActiveCloseHelp, new UserKey(helpEntry.User as IGuildUser, helpEntry.GetTime().Ticks), helpEntry);
+			Add(_ActiveCloseHelp, new UserKey(helpEntry), helpEntry);
 		}
 		public void AddActiveCloseQuote(CloseWords<Quote> quote)
 		{
@@ -152,62 +150,46 @@ namespace Advobot.Services.Timers
 			{
 				Remove(_ActiveCloseQuotes, kvp.Key);
 			}
-
-			Add(_ActiveCloseQuotes, new UserKey(quote.User as IGuildUser, quote.GetTime().Ticks), quote);
+			Add(_ActiveCloseQuotes, new UserKey(quote), quote);
 		}
 		public void AddSpamPreventionUser(SpamPreventionUserInformation user)
 		{
-			Add(_SpamPreventionUsers, new UserKey(user.User as IGuildUser, user.GetTime().Ticks), user);
+			Add(_SpamPreventionUsers, new UserKey(user), user);
 		}
 		public void AddSlowmodeUser(SlowmodeUserInformation user)
 		{
-			Add(_SlowmodeUsers, new UserKey(user.User as IGuildUser, user.GetTime().Ticks), user);
+			Add(_SlowmodeUsers, new UserKey(user), user);
 		}
 
 		//Removes
 		public int RemovePunishments(ulong userId, PunishmentType punishment)
 		{
 			//Has to be made into a new list otherwise the concurrent modification also effects it.
-			var punishments = _RemovablePunishments.Where(x => x.Key.UserId == userId && x.Value.PunishmentType == punishment).ToList();
-			foreach (var kvp in punishments)
+			var kvps = _RemovablePunishments.Where(x => x.Key.UserId == userId && x.Value.PunishmentType == punishment).ToList();
+			foreach (var kvp in kvps)
 			{
 				Remove(_RemovablePunishments, kvp.Key);
 			}
-			return punishments.Count();
+			return kvps.Count();
 		}
 		public CloseWords<HelpEntry> GetOutActiveCloseHelp(IUser user)
 		{
 			//Should only ever have one for each user at a time.
 			var kvp = _ActiveCloseHelp.SingleOrDefault(x => x.Key.UserId == user.Id);
-			if (kvp.Equals(default))
-			{
-				return null;
-			}
-
-			return Remove(_ActiveCloseHelp, kvp.Key);
+			return kvp.Equals(default) ? null : Remove(_ActiveCloseHelp, kvp.Key);
 		}
 		public CloseWords<Quote> GetOutActiveCloseQuote(IUser user)
 		{
 			//Should only ever have one for each user at a time.
 			var kvp = _ActiveCloseQuotes.SingleOrDefault(x => x.Key.UserId == user.Id);
-			if (kvp.Equals(default))
-			{
-				return null;
-			}
-
-			return Remove(_ActiveCloseQuotes, kvp.Key);
+			return kvp.Equals(default) ? null : Remove(_ActiveCloseQuotes, kvp.Key);
 		}
 
 		//Gets
 		public SpamPreventionUserInformation GetSpamPreventionUser(IGuildUser user)
 		{
 			var kvp = _SpamPreventionUsers.SingleOrDefault(x => x.Key.GuildId == user.Guild.Id && x.Key.UserId == user.Id);
-			if (kvp.Equals(default))
-			{
-				return null;
-			}
-
-			return kvp.Value;
+			return kvp.Equals(default) ? null : kvp.Value;
 		}
 		public IEnumerable<SpamPreventionUserInformation> GetSpamPreventionUsers(IGuild guild)
 		{
@@ -216,12 +198,7 @@ namespace Advobot.Services.Timers
 		public SlowmodeUserInformation GetSlowmodeUser(IGuildUser user)
 		{
 			var kvp = _SlowmodeUsers.SingleOrDefault(x => x.Key.GuildId == user.Guild.Id && x.Key.UserId == user.Id);
-			if (kvp.Equals(default))
-			{
-				return null;
-			}
-
-			return kvp.Value;
+			return kvp.Equals(default) ? null : kvp.Value;
 		}
 
 		/// <summary>
@@ -271,12 +248,7 @@ namespace Advobot.Services.Timers
 		private void Add<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic, TKey key, TValue value)
 		{
 			//Don't allow a null/default value to be set
-			if (EqualityComparer<TValue>.Default.Equals(value, default))
-			{
-				return;
-			}
-
-			if (!concDic.TryAdd(key, value))
+			if (!EqualityComparer<TValue>.Default.Equals(value, default) && !concDic.TryAdd(key, value))
 			{
 				ConsoleActions.WriteLine($"Failed to add the object at {key} in {GetDictionaryTValueName(concDic)}.", color: ConsoleColor.Red);
 			}
@@ -292,12 +264,8 @@ namespace Advobot.Services.Timers
 		private TValue Remove<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic, TKey key)
 		{
 			//Don't allow null/default keys to be used
-			if (EqualityComparer<TKey>.Default.Equals(key, default))
-			{
-				return default;
-			}
-
-			if (!concDic.TryRemove(key, out var value))
+			TValue value = default;
+			if (!EqualityComparer<TKey>.Default.Equals(key, default) && !concDic.TryRemove(key, out value))
 			{
 				ConsoleActions.WriteLine($"Failed to remove the object at {key} in {GetDictionaryTValueName(concDic)}.", color: ConsoleColor.Red);
 			}
@@ -312,9 +280,8 @@ namespace Advobot.Services.Timers
 		/// <returns></returns>
 		private string GetDictionaryTValueName<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic)
 		{
-			var tValue = typeof(TValue);
-			var tName = tValue.Name.Trim('1'); //Has `1 at the end of its name
-			return (tValue.IsGenericType ? tName + tValue.GetGenericArguments()[0].Name : tName);
+			var tName = typeof(TValue).Name.Trim('1'); //Has `1 at the end of its name
+			return (typeof(TValue).IsGenericType ? tName + typeof(TValue).GetGenericArguments()[0].Name : tName);
 		}
 	}
 }
