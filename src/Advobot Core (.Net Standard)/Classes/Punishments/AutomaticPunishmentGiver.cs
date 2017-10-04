@@ -13,10 +13,12 @@ namespace Advobot.Classes.Punishments
 		internal AutomaticPunishmentGiver(uint time, ITimersService timers) : base(time, timers) { }
 		internal AutomaticPunishmentGiver(int time, ITimersService timers) : base(time, timers) { }
 
+		internal async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IUser user, IRole role, [CallerMemberName] string reason = "")
+			=> await AutomaticallyPunishAsync(punishmentType, user as IGuildUser, role, reason);
 		internal async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IGuildUser user, IRole role, [CallerMemberName] string reason = "")
 		{
 			//TODO: Rework the 4 big punishment things
-			var guild = user.Guild;
+			var guild = user.GetGuild();
 			var bot = UserActions.GetBot(guild);
 			if (!user.CanBeModifiedByUser(bot))
 			{

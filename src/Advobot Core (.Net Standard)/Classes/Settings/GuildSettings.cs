@@ -3,6 +3,7 @@ using Advobot.Actions.Formatting;
 using Advobot.Classes.BannedPhrases;
 using Advobot.Classes.Permissions;
 using Advobot.Classes.SpamPrevention;
+using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
@@ -285,9 +286,7 @@ namespace Advobot.Classes.Settings
 		}
 
 		[JsonIgnore]
-		public List<BannedPhraseUser> BannedPhraseUsers { get; } = new List<BannedPhraseUser>();
-		[JsonIgnore]
-		public List<SpamPreventionUser> SpamPreventionUsers { get; } = new List<SpamPreventionUser>();
+		public List<BannedPhraseUserInformation> BannedPhraseUsers { get; } = new List<BannedPhraseUserInformation>();
 		[JsonIgnore]
 		public List<CachedInvite> Invites { get; } = new List<CachedInvite>();
 		[JsonIgnore]

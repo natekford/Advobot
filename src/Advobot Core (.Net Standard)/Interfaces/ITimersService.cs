@@ -1,6 +1,6 @@
 ﻿using Advobot.Classes;
 using Advobot.Classes.Punishments;
-using Advobot.Classes.SpamPrevention;
+using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Discord;
 using System.Collections.Generic;
@@ -16,13 +16,15 @@ namespace Advobot.Interfaces
 		void AddRemovableMessage(RemovableMessage message);
 		void AddActiveCloseHelp(CloseWords<HelpEntry> help);
 		void AddActiveCloseQuote(CloseWords<Quote> quote);
-		void AddSpamPreventionUser(SpamPreventionUser user);
+		void AddSpamPreventionUser(SpamPreventionUserInformation user);
+		void AddSlowmodeUser(SlowmodeUserInformation user);
 
 		int RemovePunishments(ulong id, PunishmentType punishment);
 		CloseWords<HelpEntry> GetOutActiveCloseHelp(IUser user);
 		CloseWords<Quote> GetOutActiveCloseQuote(IUser user);
 
-		SpamPreventionUser GetSpamPreventionUser(IGuildUser user);
-		IEnumerable<SpamPreventionUser> GetSpamPreventionUsers(IGuild guild);
+		SpamPreventionUserInformation GetSpamPreventionUser(IGuildUser user);
+		IEnumerable<SpamPreventionUserInformation> GetSpamPreventionUsers(IGuild guild);
+		SlowmodeUserInformation GetSlowmodeUser(IGuildUser user);
 	}
 }

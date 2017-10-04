@@ -2,39 +2,36 @@
 using Advobot.Actions.Formatting;
 using Advobot.Classes;
 using Advobot.Classes.Punishments;
+using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
+using Discord;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
-using System.Collections.Concurrent;
-using Advobot.Classes.SpamPrevention;
-using Discord;
 
 namespace Advobot.Services.Timers
 {
 	//I have absolutely no idea if this class works as intended under stress.
 	public sealed class Timers : ITimersService
 	{
+		private readonly PunishmentRemover _PunishmentRemover;
 		private readonly Timer _HourTimer = new Timer(60 * 60 * 1000);
 		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
 		private readonly Timer _HalfSecondTimer = new Timer(1000 / 2);
 
-		private readonly ConcurrentDictionary<TimeKey, RemovablePunishment> _RemovablePunishments = new ConcurrentDictionary<TimeKey, RemovablePunishment>();
-		private readonly ConcurrentDictionary<TimeKey, RemovableMessage> _RemovableMessages = new ConcurrentDictionary<TimeKey, RemovableMessage>();
-		private readonly ConcurrentDictionary<TimeKey, CloseWords<HelpEntry>> _ActiveCloseHelp = new ConcurrentDictionary<TimeKey, CloseWords<HelpEntry>>();
-		private readonly ConcurrentDictionary<TimeKey, CloseWords<Quote>> _ActiveCloseQuotes = new ConcurrentDictionary<TimeKey, CloseWords<Quote>>();
-		private readonly ConcurrentDictionary<UserKey, SpamPreventionUser> _SpamPreventionUsers = new ConcurrentDictionary<UserKey, SpamPreventionUser>();
-
-		private readonly IGuildSettingsService _GuildSettings;
-		private readonly PunishmentRemover _PunishmentRemover;
+		private readonly ConcurrentDictionary<UserKey, RemovablePunishment> _RemovablePunishments = new ConcurrentDictionary<UserKey, RemovablePunishment>();
+		private readonly ConcurrentDictionary<ChannelKey, RemovableMessage> _RemovableMessages = new ConcurrentDictionary<ChannelKey, RemovableMessage>();
+		private readonly ConcurrentDictionary<UserKey, CloseWords<HelpEntry>> _ActiveCloseHelp = new ConcurrentDictionary<UserKey, CloseWords<HelpEntry>>();
+		private readonly ConcurrentDictionary<UserKey, CloseWords<Quote>> _ActiveCloseQuotes = new ConcurrentDictionary<UserKey, CloseWords<Quote>>();
+		private readonly ConcurrentDictionary<UserKey, SpamPreventionUserInformation> _SpamPreventionUsers = new ConcurrentDictionary<UserKey, SpamPreventionUserInformation>();
+		private readonly ConcurrentDictionary<UserKey, SlowmodeUserInformation> _SlowmodeUsers = new ConcurrentDictionary<UserKey, SlowmodeUserInformation>();
 
 		public Timers(IServiceProvider provider)
 		{
-			_GuildSettings = provider.GetService<IGuildSettingsService>();
 			_PunishmentRemover = new PunishmentRemover(this);
 
 			_HourTimer.Elapsed += OnHourEvent;
@@ -71,32 +68,22 @@ namespace Advobot.Services.Timers
 				{
 					case PunishmentType.Ban:
 					{
-						await _PunishmentRemover.UnbanAsync(punishment.Guild, punishment.UserId, reason);
+						await _PunishmentRemover.UnbanAsync(punishment.Guild, punishment.User.Id, reason);
 						continue;
 					}
-				}
-
-				var guildUser = await punishment.Guild.GetUserAsync(punishment.UserId);
-				if (guildUser == null)
-				{
-					continue;
-				}
-
-				switch (punishmentType)
-				{
 					case PunishmentType.Deafen:
 					{
-						await _PunishmentRemover.UndeafenAsync(guildUser, reason);
+						await _PunishmentRemover.UndeafenAsync(punishment.User as IGuildUser, reason);
 						continue;
 					}
 					case PunishmentType.VoiceMute:
 					{
-						await _PunishmentRemover.UnvoicemuteAsync(guildUser, reason);
+						await _PunishmentRemover.UnvoicemuteAsync(punishment.User as IGuildUser, reason);
 						continue;
 					}
 					case PunishmentType.RoleMute:
 					{
-						await _PunishmentRemover.UnrolemuteAsync(guildUser, punishment.Role, reason);
+						await _PunishmentRemover.UnrolemuteAsync(punishment.User as IGuildUser, punishment.Role, reason);
 						continue;
 					}
 				}
@@ -106,8 +93,9 @@ namespace Advobot.Services.Timers
 		private void OnOneHalfSecondEvent(object source, ElapsedEventArgs e)
 		{
 			Task.Run(async () => { await DeleteTargettedMessages(); });
-			Task.Run(() => RemoveActiveCloseHelpAndWords());
-			Task.Run(() => ResetSlowModeUserMessages());
+			Task.Run(() => RemoveActiveCloseHelp());
+			Task.Run(() => RemoveActiveCloseQuotes());
+			Task.Run(() => RemoveSlowmodeUsers());
 		}
 		private async Task DeleteTargettedMessages()
 		{
@@ -125,58 +113,62 @@ namespace Advobot.Services.Timers
 				}
 			}
 		}
-		private void RemoveActiveCloseHelpAndWords()
+		private void RemoveActiveCloseHelp()
 		{
 			RemoveTimedObjects(_ActiveCloseHelp);
+		}
+		private void RemoveActiveCloseQuotes()
+		{
 			RemoveTimedObjects(_ActiveCloseQuotes);
 		}
-		private void ResetSlowModeUserMessages()
+		private void RemoveSlowmodeUsers()
 		{
-			foreach (var slowmode in _GuildSettings.GetAllSettings().Where(x => x.Slowmode?.Enabled ?? false).Select(x => x.Slowmode))
-			{
-				slowmode.ResetUsers();
-			}
+			RemoveTimedObjects(_SlowmodeUsers);
 		}
 
 		//Adds
 		public void AddRemovablePunishment(RemovablePunishment punishment)
 		{
-			Add(_RemovablePunishments, new TimeKey(punishment.UserId, punishment.GetTime().Ticks), punishment);
+			Add(_RemovablePunishments, new UserKey(punishment.User as IGuildUser, punishment.GetTime().Ticks), punishment);
 		}
 		public void AddRemovableMessage(RemovableMessage message)
 		{
-			Add(_RemovableMessages, new TimeKey(message.Channel.Id, message.GetTime().Ticks), message);
+			Add(_RemovableMessages, new ChannelKey(message.Channel, message.GetTime().Ticks), message);
 		}
 		public void AddActiveCloseHelp(CloseWords<HelpEntry> helpEntry)
 		{
 			//Remove all older ones; only one can be active at a given time.
-			foreach (var kvp in _ActiveCloseHelp.Where(x => x.Key.Id == helpEntry.UserId))
+			foreach (var kvp in _ActiveCloseHelp.Where(x => x.Key.UserId == helpEntry.User.Id))
 			{
 				Remove(_ActiveCloseHelp, kvp.Key);
 			}
 
-			Add(_ActiveCloseHelp, new TimeKey(helpEntry.UserId, helpEntry.GetTime().Ticks), helpEntry);
+			Add(_ActiveCloseHelp, new UserKey(helpEntry.User as IGuildUser, helpEntry.GetTime().Ticks), helpEntry);
 		}
 		public void AddActiveCloseQuote(CloseWords<Quote> quote)
 		{
 			///Remove all older ones; only one can be active at a given time.
-			foreach (var kvp in _ActiveCloseQuotes.Where(x => x.Key.Id == quote.UserId))
+			foreach (var kvp in _ActiveCloseQuotes.Where(x => x.Key.UserId == quote.User.Id))
 			{
 				Remove(_ActiveCloseQuotes, kvp.Key);
 			}
 
-			Add(_ActiveCloseQuotes, new TimeKey(quote.UserId, quote.GetTime().Ticks), quote);
+			Add(_ActiveCloseQuotes, new UserKey(quote.User as IGuildUser, quote.GetTime().Ticks), quote);
 		}
-		public void AddSpamPreventionUser(SpamPreventionUser user)
+		public void AddSpamPreventionUser(SpamPreventionUserInformation user)
 		{
-			Add(_SpamPreventionUsers, new UserKey(user.User.GuildId, user.User.Id), user);
+			Add(_SpamPreventionUsers, new UserKey(user.User as IGuildUser, user.GetTime().Ticks), user);
+		}
+		public void AddSlowmodeUser(SlowmodeUserInformation user)
+		{
+			Add(_SlowmodeUsers, new UserKey(user.User as IGuildUser, user.GetTime().Ticks), user);
 		}
 
 		//Removes
 		public int RemovePunishments(ulong userId, PunishmentType punishment)
 		{
 			//Has to be made into a new list otherwise the concurrent modification also effects it.
-			var punishments = _RemovablePunishments.Where(x => x.Key.Id == userId && x.Value.PunishmentType == punishment).ToList();
+			var punishments = _RemovablePunishments.Where(x => x.Key.UserId == userId && x.Value.PunishmentType == punishment).ToList();
 			foreach (var kvp in punishments)
 			{
 				Remove(_RemovablePunishments, kvp.Key);
@@ -186,7 +178,7 @@ namespace Advobot.Services.Timers
 		public CloseWords<HelpEntry> GetOutActiveCloseHelp(IUser user)
 		{
 			//Should only ever have one for each user at a time.
-			var kvp = _ActiveCloseHelp.SingleOrDefault(x => x.Key.Id == user.Id);
+			var kvp = _ActiveCloseHelp.SingleOrDefault(x => x.Key.UserId == user.Id);
 			if (kvp.Equals(default))
 			{
 				return null;
@@ -197,7 +189,7 @@ namespace Advobot.Services.Timers
 		public CloseWords<Quote> GetOutActiveCloseQuote(IUser user)
 		{
 			//Should only ever have one for each user at a time.
-			var kvp = _ActiveCloseQuotes.SingleOrDefault(x => x.Key.Id == user.Id);
+			var kvp = _ActiveCloseQuotes.SingleOrDefault(x => x.Key.UserId == user.Id);
 			if (kvp.Equals(default))
 			{
 				return null;
@@ -207,7 +199,7 @@ namespace Advobot.Services.Timers
 		}
 
 		//Gets
-		public SpamPreventionUser GetSpamPreventionUser(IGuildUser user)
+		public SpamPreventionUserInformation GetSpamPreventionUser(IGuildUser user)
 		{
 			var kvp = _SpamPreventionUsers.SingleOrDefault(x => x.Key.GuildId == user.Guild.Id && x.Key.UserId == user.Id);
 			if (kvp.Equals(default))
@@ -217,18 +209,29 @@ namespace Advobot.Services.Timers
 
 			return kvp.Value;
 		}
-		public IEnumerable<SpamPreventionUser> GetSpamPreventionUsers(IGuild guild)
+		public IEnumerable<SpamPreventionUserInformation> GetSpamPreventionUsers(IGuild guild)
 		{
-			return new List<SpamPreventionUser>(_SpamPreventionUsers.Where(x => x.Key.GuildId == guild.Id).Select(x => x.Value));
+			return new List<SpamPreventionUserInformation>(_SpamPreventionUsers.Where(x => x.Key.GuildId == guild.Id).Select(x => x.Value));
+		}
+		public SlowmodeUserInformation GetSlowmodeUser(IGuildUser user)
+		{
+			var kvp = _SlowmodeUsers.SingleOrDefault(x => x.Key.GuildId == user.Guild.Id && x.Key.UserId == user.Id);
+			if (kvp.Equals(default))
+			{
+				return null;
+			}
+
+			return kvp.Value;
 		}
 
 		/// <summary>
 		/// Remove old entries then do something with them.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
+		/// <typeparam name="TKey"></typeparam>
+		/// <typeparam name="TValue"></typeparam>
 		/// <param name="concDic"></param>
 		/// <returns></returns>
-		private IEnumerable<T> GetOutTimedObjects<T>(ConcurrentDictionary<TimeKey, T> concDic) where T : IHasTime
+		private IEnumerable<TValue> GetOutTimedObjects<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic) where TKey : DictKey where TValue : IHasTime
 		{
 			var currentTicks = DateTime.UtcNow.Ticks;
 			foreach (var kvp in concDic)
@@ -242,9 +245,10 @@ namespace Advobot.Services.Timers
 		/// <summary>
 		/// Remove old entries completely.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
+		/// <typeparam name="TKey"></typeparam>
+		/// <typeparam name="TValue"></typeparam>
 		/// <param name="concDic"></param>
-		private void RemoveTimedObjects<T>(ConcurrentDictionary<TimeKey, T> concDic) where T : IHasTime
+		private void RemoveTimedObjects<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic) where TKey : DictKey where TValue : IHasTime
 		{
 			var currentTicks = DateTime.UtcNow.Ticks;
 			foreach (var kvp in concDic)
@@ -259,7 +263,8 @@ namespace Advobot.Services.Timers
 		/// Adds <paramref name="value"/> to <paramref name="concDic"/> with the given <paramref name="key"/> unless <paramref name="value"/>
 		/// is the default value of its type.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
+		/// <typeparam name="TKey"></typeparam>
+		/// <typeparam name="TValue"></typeparam>
 		/// <param name="concDic"></param>
 		/// <param name="key"></param>
 		/// <param name="value"></param>
@@ -279,7 +284,8 @@ namespace Advobot.Services.Timers
 		/// <summary>
 		/// Removes whatever value in <paramref name="concDic"/> has the key <paramref name="key"/>.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
+		/// <typeparam name="TKey"></typeparam>
+		/// <typeparam name="TValue"></typeparam>
 		/// <param name="concDic"></param>
 		/// <param name="key"></param>
 		/// <returns></returns>
@@ -300,7 +306,8 @@ namespace Advobot.Services.Timers
 		/// <summary>
 		/// Returns a readable name of the <paramref name="concDic"/> TValue.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
+		/// <typeparam name="TKey"></typeparam>
+		/// <typeparam name="TValue"></typeparam>
 		/// <param name="concDic"></param>
 		/// <returns></returns>
 		private string GetDictionaryTValueName<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic)
@@ -308,52 +315,6 @@ namespace Advobot.Services.Timers
 			var tValue = typeof(TValue);
 			var tName = tValue.Name.Trim('1'); //Has `1 at the end of its name
 			return (tValue.IsGenericType ? tName + tValue.GetGenericArguments()[0].Name : tName);
-		}
-
-		private struct TimeKey
-		{
-			/// <summary>
-			/// An identifying key. Can be a channel id, a user id, etc.
-			/// </summary>
-			public readonly ulong Id;
-			/// <summary>
-			/// The time at which to remove the entry.
-			/// </summary>
-			public readonly long Ticks;
-
-			public TimeKey(ulong id, long ticks)
-			{
-				Id = id;
-				Ticks = ticks;
-			}
-
-			public override string ToString()
-			{
-				return $"{Id}:{Ticks}";
-			}
-		}
-
-		private struct UserKey
-		{
-			/// <summary>
-			/// The guild a user belongs to.
-			/// </summary>
-			public readonly ulong GuildId;
-			/// <summary>
-			/// The user's id.
-			/// </summary>
-			public readonly ulong UserId;
-
-			public UserKey(ulong guildId, ulong userId)
-			{
-				GuildId = guildId;
-				UserId = userId;
-			}
-
-			public override string ToString()
-			{
-				return $"{GuildId}:{UserId}";
-			}
 		}
 	}
 }

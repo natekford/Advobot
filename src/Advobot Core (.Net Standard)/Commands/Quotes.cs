@@ -95,7 +95,7 @@ namespace Advobot.Commands.Quotes
 				return;
 			}
 
-			var closeQuotes = new CloseWords<Quote>(Context.User.Id, quotes, name);
+			var closeQuotes = new CloseWords<Quote>(Context.User, quotes, name);
 			if (closeQuotes.List.Any())
 			{
 				Context.Timers.AddActiveCloseQuote(closeQuotes);

@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Classes.Punishments;
+using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
@@ -50,7 +51,7 @@ namespace Advobot.Classes.BannedPhrases
 			var user = users.SingleOrDefault(x => x.User.Id == message.Author.Id);
 			if (user == null)
 			{
-				guildSettings.BannedPhraseUsers.Add(user = new BannedPhraseUser(message.Author as IGuildUser));
+				guildSettings.BannedPhraseUsers.Add(user = new BannedPhraseUserInformation(message.Author as IGuildUser));
 			}
 
 			//Update the count

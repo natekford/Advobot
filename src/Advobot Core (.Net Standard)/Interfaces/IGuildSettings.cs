@@ -2,6 +2,7 @@
 using Advobot.Classes.BannedPhrases;
 using Advobot.Classes.Permissions;
 using Advobot.Classes.SpamPrevention;
+using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Discord;
 using Discord.WebSocket;
@@ -47,7 +48,7 @@ namespace Advobot.Interfaces
 		bool VerboseErrors { get; set; }
 
 		//Non-saved settings
-		List<BannedPhraseUser> BannedPhraseUsers { get; }
+		List<BannedPhraseUserInformation> BannedPhraseUsers { get; }
 		List<CachedInvite> Invites { get; }
 		List<string> EvaluatedRegex { get; }
 		MessageDeletion MessageDeletion { get; }

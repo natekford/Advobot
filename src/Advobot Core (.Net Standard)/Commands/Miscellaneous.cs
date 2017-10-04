@@ -60,7 +60,7 @@ namespace Advobot.Commands.Miscellaneous
 					return;
 				}
 
-				var closeHelps = new CloseWords<HelpEntry>(Context.User.Id, Constants.HELP_ENTRIES, command);
+				var closeHelps = new CloseWords<HelpEntry>(Context.User, Constants.HELP_ENTRIES, command);
 				if (closeHelps.List.Any())
 				{
 					Context.Timers.AddActiveCloseHelp(closeHelps);

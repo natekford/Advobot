@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Advobot.Classes.UserInformation;
+using Discord;
 
 namespace Advobot.Classes
 {
@@ -9,15 +11,12 @@ namespace Advobot.Classes
 	/// Container of close words which is intended to be removed after <see cref="GetTime()"/> returns a value less than the current time.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class CloseWords<T> : IHasTime where T : IDescription
+	public class CloseWords<T> : UserInfo where T : IDescription
 	{
-		public ulong UserId { get; }
 		public IReadOnlyCollection<CloseWord> List { get; }
-		private DateTime _Time;
 
-		public CloseWords(ulong userID, IEnumerable<T> suppliedObjects, string input)
+		public CloseWords(IUser user, IEnumerable<T> suppliedObjects, string input) : base(user)
 		{
-			UserId = userID;
 			List = GetObjectsWithSimilarNames(suppliedObjects, input);
 			_Time = DateTime.UtcNow.AddSeconds(Constants.SECONDS_ACTIVE_CLOSE);
 		}
@@ -135,8 +134,6 @@ namespace Advobot.Classes
 			arg1 = arg2;
 			arg2 = temp;
 		}
-
-		public DateTime GetTime() => _Time;
 
 		/// <summary>
 		/// Holds an object which has a name and text and its closeness.

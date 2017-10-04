@@ -4,19 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Classes.BannedPhrases
+namespace Advobot.Classes.UserInformation
 {
 	/// <summary>
 	/// Holds a user and the counts of which punishments they should get.
 	/// </summary>
-	public class BannedPhraseUser
+	public class BannedPhraseUserInformation : UserInfo
 	{
-		public IGuildUser User { get; }
 		private Dictionary<PunishmentType, int> _PunishmentVals = new Dictionary<PunishmentType, int>();
 
-		public BannedPhraseUser(IGuildUser user)
+		public BannedPhraseUserInformation(IGuildUser user) : base(user)
 		{
-			User = user;
 			foreach (var type in Enum.GetValues(typeof(PunishmentType)).Cast<PunishmentType>())
 			{
 				_PunishmentVals.Add(type, 0);
@@ -28,13 +26,13 @@ namespace Advobot.Classes.BannedPhrases
 			get => _PunishmentVals[value];
 		}
 
-		public int IncrementValue(PunishmentType value)
-		{
-			return ++_PunishmentVals[value];
-		}
 		public int GetValue(PunishmentType value)
 		{
 			return _PunishmentVals[value];
+		}
+		public int IncrementValue(PunishmentType value)
+		{
+			return ++_PunishmentVals[value];
 		}
 		public void ResetValue(PunishmentType value)
 		{

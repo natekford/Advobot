@@ -2,6 +2,7 @@
 using Advobot.Actions.Formatting;
 using Advobot.Classes;
 using Advobot.Classes.SpamPrevention;
+using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
@@ -280,9 +281,29 @@ namespace Advobot.Services.Log.Loggers
 		{
 			//Don't bother doing stuff on the user if they're immune
 			var slowmode = guildSettings.Slowmode;
-			if (slowmode?.Enabled ?? false && !user.RoleIds.Intersect(slowmode.ImmuneRoleIds).Any())
+			if (slowmode == null || !slowmode.Enabled || user.RoleIds.Intersect(slowmode.ImmuneRoleIds).Any())
 			{
-				await slowmode.HandleMessage(message);
+				return;
+			}
+
+			var info = _Timers.GetSlowmodeUser(message.Author as IGuildUser);
+			if (info == null)
+			{
+				_Timers.AddSlowmodeUser(info = new SlowmodeUserInformation(user, slowmode.BaseMessages, slowmode.Interval));
+			}
+
+			if (info.CurrentMessagesLeft > 0)
+			{
+				if (info.CurrentMessagesLeft == slowmode.BaseMessages)
+				{
+					info.UpdateTime(slowmode.Interval);
+				}
+
+				info.DecrementMessages();
+			}
+			else
+			{
+				await MessageActions.DeleteMessage(message);
 			}
 		}
 		/// <summary>
@@ -340,7 +361,7 @@ namespace Advobot.Services.Log.Loggers
 				var spamUser = _Timers.GetSpamPreventionUser(user);
 				if (spamUser == null)
 				{
-					_Timers.AddSpamPreventionUser(spamUser = new SpamPreventionUser(user));
+					_Timers.AddSpamPreventionUser(spamUser = new SpamPreventionUserInformation(user));
 				}
 
 				var spam = false;
@@ -400,7 +421,7 @@ namespace Advobot.Services.Log.Loggers
 					return;
 				}
 
-				await u.SpamPreventionPunishment(guildSettings);
+				await u.Punish(guildSettings);
 
 				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
 				u.ResetSpamUser();
