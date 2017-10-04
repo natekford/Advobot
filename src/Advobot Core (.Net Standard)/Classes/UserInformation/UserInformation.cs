@@ -6,10 +6,10 @@ namespace Advobot.Classes.UserInformation
 {
 	public abstract class UserInfo : IHasTime
 	{
-		public readonly IUser User;
+		public readonly IGuildUser User;
 		protected DateTime _Time;
 
-		public UserInfo(IUser user)
+		public UserInfo(IGuildUser user)
 		{
 			User = user;
 		}

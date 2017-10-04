@@ -7,7 +7,7 @@ namespace Advobot.Classes.UserInformation
 	{
 		public int CurrentMessagesLeft { get; private set; }
 
-		public SlowmodeUserInformation(IUser user, int baseMessages, int interval) : base(user)
+		public SlowmodeUserInformation(IGuildUser user, int baseMessages, int interval) : base(user)
 		{
 			CurrentMessagesLeft = baseMessages;
 			_Time = DateTime.UtcNow.AddSeconds(interval);

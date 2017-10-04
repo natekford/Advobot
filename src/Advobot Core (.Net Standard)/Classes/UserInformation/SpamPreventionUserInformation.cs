@@ -20,7 +20,7 @@ namespace Advobot.Classes.UserInformation
 		public bool PotentialPunishment { get; private set; } = false;
 		public PunishmentType Punishment { get; private set; } = default;
 
-		public SpamPreventionUserInformation(IUser user) : base(user)
+		public SpamPreventionUserInformation(IGuildUser user) : base(user)
 		{
 			foreach (var spamType in Enum.GetValues(typeof(SpamType)).Cast<SpamType>())
 			{

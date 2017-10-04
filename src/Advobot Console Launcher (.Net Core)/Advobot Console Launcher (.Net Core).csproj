@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.0.0-alpha-build-00834" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-alpha-build-00838" />
   </ItemGroup>
 
   <ItemGroup>

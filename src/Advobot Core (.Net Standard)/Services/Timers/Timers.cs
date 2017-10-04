@@ -128,7 +128,7 @@ namespace Advobot.Services.Timers
 		//Adds
 		public void AddRemovablePunishment(RemovablePunishment punishment)
 		{
-			Add(_RemovablePunishments, new UserKey(punishment), punishment);
+			Add(_RemovablePunishments, new UserKey(punishment.Guild, punishment.User, punishment.GetTime().Ticks), punishment);
 		}
 		public void AddRemovableMessage(RemovableMessage message)
 		{

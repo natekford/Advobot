@@ -15,7 +15,7 @@ namespace Advobot.Classes
 	{
 		public IReadOnlyCollection<CloseWord> List { get; }
 
-		public CloseWords(IUser user, IEnumerable<T> suppliedObjects, string input) : base(user)
+		public CloseWords(IGuildUser user, IEnumerable<T> suppliedObjects, string input) : base(user)
 		{
 			List = GetObjectsWithSimilarNames(suppliedObjects, input);
 			_Time = DateTime.UtcNow.AddSeconds(Constants.SECONDS_ACTIVE_CLOSE);

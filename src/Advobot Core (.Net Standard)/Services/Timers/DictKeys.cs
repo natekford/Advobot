@@ -24,7 +24,12 @@ namespace Advobot.Services.Timers
 			GuildId = user.Guild.Id;
 			UserId = user.Id;
 		}
-		public UserKey(UserInfo info) : this(info.User as IGuildUser, info.GetTime().Ticks) { }
+		public UserKey(IGuild guild, IUser user, long ticks) : base(ticks)
+		{
+			GuildId = guild.Id;
+			UserId = user.Id;
+		}
+		public UserKey(UserInfo info) : this(info.User, info.GetTime().Ticks) { }
 
 		public override string ToString()
 		{

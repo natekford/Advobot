@@ -7,6 +7,7 @@ using Discord.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord;
 
 namespace Advobot.Commands.Quotes
 {
@@ -95,7 +96,7 @@ namespace Advobot.Commands.Quotes
 				return;
 			}
 
-			var closeQuotes = new CloseWords<Quote>(Context.User, quotes, name);
+			var closeQuotes = new CloseWords<Quote>(Context.User as IGuildUser, quotes, name);
 			if (closeQuotes.List.Any())
 			{
 				Context.Timers.AddActiveCloseQuote(closeQuotes);
