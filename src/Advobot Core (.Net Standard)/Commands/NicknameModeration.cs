@@ -39,16 +39,13 @@ namespace Advobot.Commands.NicknameModeration
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([VerifyStringLength(Target.Nickname)] string search,
-									[VerifyStringLength(Target.Nickname)] string replace,
-									[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+			[VerifyStringLength(Target.Nickname)] string replace,
+			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
 			var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => false
-				|| (x.Nickname != null && x.Nickname.CaseInsContains(search)) //If nickname is there, check based off of nickname
-				|| (x.Nickname == null && x.Username.CaseInsContains(search)) //If nickname isn't there, check based off of username
-				).ToList().GetUpToAndIncludingMinNum(userAmt);
-
-			await UserActions.NicknameManyUsers(Context, users, replace, new ModerationReason(Context.User, null));
+				|| (x.Nickname != null && x.Nickname.CaseInsContains(search))
+				|| (x.Nickname == null && x.Username.CaseInsContains(search)));
+			await new MultiUserAction(Context, users, bypass).NicknameManyUsers(replace, new ModerationReason(Context.User, null));
 		}
 	}
 
@@ -60,15 +57,14 @@ namespace Advobot.Commands.NicknameModeration
 	public sealed class ReplaceByUTF16 : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command(uint upperLimit, [VerifyStringLength(Target.Nickname)] string replace, [Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+		public async Task Command(uint upperLimit,
+			[VerifyStringLength(Target.Nickname)] string replace,
+			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
 			var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => false
-				|| (x.Nickname != null && !x.Nickname.AllCharactersAreWithinUpperLimit((int)upperLimit)) //If nickname is there, check based off of nickname
-				|| (x.Nickname == null && !x.Username.AllCharactersAreWithinUpperLimit((int)upperLimit)) //If nickname isn't there, check based off of username
-				).ToList().GetUpToAndIncludingMinNum(userAmt);
-
-			await UserActions.NicknameManyUsers(Context, users, replace, new ModerationReason(Context.User, null));
+				|| (x.Nickname != null && !x.Nickname.AllCharactersAreWithinUpperLimit((int)upperLimit))
+				|| (x.Nickname == null && !x.Username.AllCharactersAreWithinUpperLimit((int)upperLimit)));
+			await new MultiUserAction(Context, users, bypass).NicknameManyUsers(replace, new ModerationReason(Context.User, null));
 		}
 	}
 
@@ -82,10 +78,8 @@ namespace Advobot.Commands.NicknameModeration
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
-			var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => x.Nickname != null).ToList().GetUpToAndIncludingMinNum(userAmt);
-
-			await UserActions.NicknameManyUsers(Context, users, null, new ModerationReason(Context.User, null));
+			var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => x.Nickname != null);
+			await new MultiUserAction(Context, users, bypass).NicknameManyUsers(null, new ModerationReason(Context.User, null));
 		}
 	}
 }

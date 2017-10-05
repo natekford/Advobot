@@ -33,6 +33,7 @@ namespace Advobot.Actions
 		/// Returns a list of every command's help entry.
 		/// </summary>
 		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
 		public static ReadOnlyCollection<HelpEntry> GetHelpList()
 		{
 			var temp = new List<HelpEntry>();
@@ -44,15 +45,7 @@ namespace Advobot.Actions
 				var innerMostNameSpace = classType.Namespace.Substring(classType.Namespace.LastIndexOf('.') + 1);
 				if (!Enum.TryParse(innerMostNameSpace, true, out CommandCategory category))
 				{
-					throw new InvalidOperationException(innerMostNameSpace + " is not currently in the CommandCategory enum.");
-				}
-				else if (classType.IsNotPublic)
-				{
-					throw new InvalidOperationException(classType.Name + " is not public and commands will not execute from it.");
-				}
-				else if (classType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public).Any(x => x.GetCustomAttribute(typeof(CommandAttribute)) == null))
-				{
-					throw new InvalidOperationException(classType.Name + " has a command missing the command attribute.");
+					throw new ArgumentException(innerMostNameSpace + " is not currently in the CommandCategory enum.");
 				}
 				else if (classType.IsNested)
 				{
@@ -66,20 +59,52 @@ namespace Advobot.Actions
 				var usage = classType.GetCustomAttribute<UsageAttribute>()?.ToString(name);
 				var permReqs = classType.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString();
 				var otherReqs = classType.GetCustomAttribute<OtherRequirementAttribute>()?.ToString();
+				var defaultEnabled = classType.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
 
-				var defaultEnabledAttr = classType.GetCustomAttribute<DefaultEnabledAttribute>();
-				if (defaultEnabledAttr == null)
-				{
-					throw new InvalidOperationException(name + " does not have a default enabled value set.");
-				}
-
+#if DEBUG
+				//These are basically only here so I won't forget something. Without them the bot should work fine, but may have tiny bugs.
 				var similarCmds = temp.Where(x => x.Name.CaseInsEquals(name) || (x.Aliases != null && aliases != null && x.Aliases.Intersect(aliases, StringComparer.OrdinalIgnoreCase).Any()));
-				if (similarCmds.Any())
+				//Making sure a default enabled value is set.
+				if (classType.GetCustomAttribute<DefaultEnabledAttribute>() == null)
+				{
+					throw new ArgumentException(name + " does not have a default enabled value set.");
+				}
+				//Make sure no commands have the same name
+				else if (similarCmds.Any())
 				{
 					throw new ArgumentException($"The following commands have conflicts: {String.Join(" + ", similarCmds.Select(x => x.Name))} + {name}");
 				}
+				//Make sure is public so commands will work
+				else if (classType.IsNotPublic)
+				{
+					throw new ArgumentException(classType.Name + " is not public and commands will not execute from it.");
+				}
+				//Make sure every command is marked as a command
+				else if (classType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public)
+					.Any(x => x.GetCustomAttribute<CommandAttribute>() == null))
+				{
+					throw new ArgumentException(classType.Name + " has a command missing the command attribute.");
+				}
+				//Make sure no aliases inside the command will conflict
+				var nestedAliases = classType.GetNestedTypes(BindingFlags.Instance | BindingFlags.Public)
+					.Select(x => x.GetCustomAttribute<AliasAttribute>()?.Aliases).Where(x => x != null);
+				var methodAliases = classType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+					.Select(x => x.GetCustomAttribute<AliasAttribute>()?.Aliases).Where(x => x != null);
+				var both = nestedAliases.Concat(methodAliases).ToArray();
+				for (int i = 0; i < both.Count(); ++i)
+				{
+					for (int j = i + 1; j < both.Count(); ++j)
+					{
+						var intersected = both[i].Intersect(both[j]);
+						if (intersected.Any())
+						{
+							throw new ArgumentException($"The following aliases in {name} have conflicts: {String.Join(" + ", intersected)}");
+						}
+					}
+				}
+#endif
 
-				temp.Add(new HelpEntry(name, aliases, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, category, defaultEnabledAttr.Enabled));
+				temp.Add(new HelpEntry(name, aliases, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, category, defaultEnabled));
 			}
 			return temp.AsReadOnly();
 		}

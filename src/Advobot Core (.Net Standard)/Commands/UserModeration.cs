@@ -123,13 +123,11 @@ namespace Advobot.Commands.UserModeration
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel inputChannel,
-								  [VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel outputChannel,
-								  [OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+			[VerifyObject(false, ObjectVerification.CanMoveUsers)] IVoiceChannel outputChannel,
+			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var userAmt = GetActions.GetMaxAmountOfUsersToGather(Context.BotSettings, bypass);
-			var users = (await inputChannel.GetUsersAsync().Flatten()).ToList().GetUpToAndIncludingMinNum(userAmt);
-
-			await UserActions.MoveManyUsers(Context, users, outputChannel, new ModerationReason(Context.User, null));
+			var users = await inputChannel.GetUsersAsync().Flatten();
+			await new MultiUserAction(Context, users, bypass).MoveManyUsers(outputChannel, new ModerationReason(Context.User, null));
 		}
 	}
 
@@ -385,6 +383,37 @@ namespace Advobot.Commands.UserModeration
 		{
 			Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully setup slowmode.\n{Context.GuildSettings.Slowmode.ToString()}");
+		}
+	}
+
+	[Group(nameof(ForAllWithRole)), Alias("fawr")]
+	[Usage("[GiveRole|TakeRole|GiveNickname|TakeNickname] [Role] <Role|\"Nickname\"> <" + Constants.BYPASS_STRING + ">")]
+	[Summary("All actions but `TakeNickame` require the output role/nickname. Max is 100 users per use unless the bypass string is said.")]
+	[PermissionRequirement(null, null)]
+	[DefaultEnabled(true)]
+	public sealed class ForAllWithRole : AdvobotModuleBase
+	{
+		[Command(nameof(GiveRole)), Alias("gr")]
+		public async Task GiveRole(IRole targetRole, 
+			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole givenRole,
+			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+		{
+			if (targetRole.Id == givenRole.Id)
+			{
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("Cannot give the role being gathered."));
+				return;
+			}
+
+			var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => x.RoleIds.Contains(targetRole.Id));
+			await new MultiUserAction(Context, users, bypass).GiveRoleToManyUsers(givenRole, new ModerationReason(Context.User, null));
+		}
+		[Command(nameof(TakeRole)), Alias("tr")]
+		public async Task TakeRole(IRole targetRole,
+			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole takenRole,
+			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+		{
+			var users = (await UserActions.GetUsersTheBotAndUserCanEdit(Context)).Where(x => x.RoleIds.Contains(targetRole.Id));
+			await new MultiUserAction(Context, users, bypass).TakeRoleFromManyUsers(takenRole, new ModerationReason(Context.User, null));
 		}
 	}
 	/*

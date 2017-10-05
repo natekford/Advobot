@@ -233,14 +233,14 @@ namespace Advobot.Commands.Miscellaneous
 				case Target.Name:
 				{
 					title = $"Users With Names Containing '{otherArg}'";
-					users = users.Where(x => exact ? x.Username.CaseInsEquals(otherArg) || (nickname && x.Nickname.CaseInsEquals(otherArg))
+					users = users.Where(x => exact ? x.Username.CaseInsEquals(otherArg) || (nickname && x.Nickname.CaseInsEquals(otherArg)) 
 												   : x.Username.CaseInsContains(otherArg) || (nickname && x.Nickname.CaseInsContains(otherArg)));
 					break;
 				}
 				case Target.Game:
 				{
 					title = $"Users With Games Containing '{otherArg}'";
-					users = users.Where(x => exact ? x.Game.HasValue && x.Game.Value.Name.CaseInsEquals(otherArg)
+					users = users.Where(x => exact ? x.Game.HasValue && x.Game.Value.Name.CaseInsEquals(otherArg) 
 												   : x.Game.HasValue && x.Game.Value.Name.CaseInsContains(otherArg));
 					break;
 				}
@@ -583,7 +583,12 @@ namespace Advobot.Commands.Miscellaneous
 	[DefaultEnabled(true)]
 	public sealed class Test : AdvobotModuleBase
 	{
-		[Command]
+		[Command, AcronymAlias(typeof(Test), "SoftBan")]
+		public async Task TestCommand2()
+		{
+			await MessageActions.SendMessage(Context.Channel, "test2");
+		}
+		[Command, AcronymAlias(typeof(Test), "SoftBan")]
 		public async Task TestCommand()
 		{
 			await MessageActions.SendMessage(Context.Channel, "test");

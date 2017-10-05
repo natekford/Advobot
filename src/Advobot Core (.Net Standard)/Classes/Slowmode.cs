@@ -45,8 +45,8 @@ namespace Advobot.Classes
 		public override string ToString()
 		{
 			return $"**Base messages:** `{BaseMessages}`\n" +
-				   $"**Time interval:** `{Interval}`\n" +
-				   $"**Immune Role Ids:** `{String.Join("`, `", ImmuneRoleIds)}`";
+					$"**Time interval:** `{Interval}`\n" +
+					$"**Immune Role Ids:** `{String.Join("`, `", ImmuneRoleIds)}`";
 		}
 		public string ToString(SocketGuild guild)
 		{

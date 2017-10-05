@@ -245,21 +245,21 @@ namespace Advobot.Commands.ChannelModeration
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
-								  [VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel,
-								  IRole role)
+			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel,
+			IRole role)
 		{
 			await CommandRunner(inputChannel, outputChannel, role);
 		}
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
-								  [VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel,
-								  IGuildUser user)
+			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel,
+			IGuildUser user)
 		{
 			await CommandRunner(inputChannel, outputChannel, user);
 		}
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel inputChannel,
-								  [VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel)
+			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel outputChannel)
 		{
 			await CommandRunner(inputChannel, outputChannel, null);
 		}
@@ -362,7 +362,6 @@ namespace Advobot.Commands.ChannelModeration
 	[DefaultEnabled(true)]
 	public sealed class ChangeChannelName : AdvobotModuleBase
 	{
-		//TODO: typereader for positions
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel, [Remainder, VerifyStringLength(Target.Channel)] string name)
 		{

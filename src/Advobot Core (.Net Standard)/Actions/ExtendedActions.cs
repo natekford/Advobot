@@ -353,16 +353,5 @@ namespace Advobot
 		{
 			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
 		}
-
-		/// <summary>
-		/// Returns the attribute from the class type with the supplied type.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="classType"></param>
-		/// <returns></returns>
-		public static T GetCustomAttribute<T>(this Type classType) where T : Attribute
-		{
-			return (T)classType.GetCustomAttribute(typeof(T));
-		}
 	}
 }

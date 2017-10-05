@@ -58,41 +58,9 @@ namespace Advobot.Actions
 		{
 			await user.ModifyAsync(x => x.Nickname = newNickname ?? user.Username, reason.CreateRequestOptions());
 		}
-		public static async Task NicknameManyUsers(IAdvobotCommandContext context, List<IGuildUser> users, string replace, ModerationReason reason)
-		{
-			var msg = await MessageActions.SendMessage(context.Channel, $"Attempting to rename `{users.Count}` people.");
-			for (int i = 0; i < users.Count; ++i)
-			{
-				if (i % 10 == 0)
-				{
-					await msg.ModifyAsync(x => x.Content = $"Attempting to rename `{users.Count - i}` people. ETA on completion: `{(int)((users.Count - i) * 1.2)}`.");
-				}
-
-				await ChangeNickname(users[i], replace, reason);
-			}
-
-			await MessageActions.DeleteMessage(msg);
-			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully renamed `{users.Count}` people.");
-		}
 		public static async Task MoveUser(this IGuildUser user, IVoiceChannel channel, ModerationReason reason)
 		{
 			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), reason.CreateRequestOptions());
-		}
-		public static async Task MoveManyUsers(IAdvobotCommandContext context, List<IGuildUser> users, IVoiceChannel outputChannel, ModerationReason reason)
-		{
-			var msg = await MessageActions.SendMessage(context.Channel, $"Attempting to move `{users.Count}` people.");
-			for (int i = 0; i < users.Count; ++i)
-			{
-				if (i % 10 == 0)
-				{
-					await msg.ModifyAsync(x => x.Content = $"Attempting to move `{users.Count - i}` people. ETA on completion: `{(int)((users.Count - i) * 1.2)}`.");
-				}
-
-				await MoveUser(users[i], outputChannel, reason);
-			}
-
-			await MessageActions.DeleteMessage(msg);
-			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully moved `{users.Count}` people.");
 		}
 
 		public static int GetPosition(this IUser user)

@@ -201,7 +201,7 @@ namespace Advobot.Commands.RoleModeration
 	{
 		[Command]
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole inputRole,
-								  [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole outputRole)
+			[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole outputRole)
 		{
 			var userBits = (Context.User as IGuildUser).GuildPermissions.RawValue;
 			var inputRoleBits = inputRole.Permissions.RawValue;
