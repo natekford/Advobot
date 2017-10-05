@@ -29,7 +29,8 @@ namespace Advobot.Actions
 				await MessageActions.MakeAndDeleteSecondaryMessage(context, "Successfully disabled the given spam prevention.");
 			}
 		}
-		public static async Task SetUpSpamPrevention(IAdvobotCommandContext context, SpamType spamType, PunishmentType punishType, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
+		public static async Task SetUpSpamPrevention(IAdvobotCommandContext context, SpamType spamType, PunishmentType punishType,
+			int messageCount, int requiredSpamAmtOrTimeInterval, int votes)
 		{
 			const int MSG_COUNT_MIN_LIM = 0;
 			const int MSG_COUNT_MAX_LIM = 25;
@@ -116,7 +117,7 @@ namespace Advobot.Actions
 				}
 			}
 
-			var newSpamPrev = new SpamPreventionInfo(punishType, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
+			var newSpamPrev = new SpamPreventionInfo(punishType, messageCount, requiredSpamAmtOrTimeInterval, votes);
 			context.GuildSettings.SpamPreventionDictionary[spamType] = newSpamPrev;
 
 			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully set up the spam prevention for `{spamType.EnumName().ToLower()}`.\n{newSpamPrev.ToString()}");
@@ -152,7 +153,8 @@ namespace Advobot.Actions
 				await MessageActions.MakeAndDeleteSecondaryMessage(context, "Successfully disabled the given raid prevention.");
 			}
 		}
-		public static async Task SetUpRaidPrevention(IAdvobotCommandContext context, RaidType raidType, PunishmentType punishType, uint userCount, uint interval)
+		public static async Task SetUpRaidPrevention(IAdvobotCommandContext context, RaidType raidType, PunishmentType punishType,
+			int userCount, int interval)
 		{
 			const int MAX_USERS = 25;
 			const int MAX_TIME = 60;
@@ -168,7 +170,7 @@ namespace Advobot.Actions
 				return;
 			}
 
-			var newRaidPrev = new RaidPreventionInfo(punishType, (int)userCount, (int)interval);
+			var newRaidPrev = new RaidPreventionInfo(punishType, userCount, interval);
 			context.GuildSettings.RaidPreventionDictionary[raidType] = newRaidPrev;
 
 			await MessageActions.MakeAndDeleteSecondaryMessage(context, $"Successfully set up the raid prevention for `{raidType.EnumName().ToLower()}`.\n{newRaidPrev.ToString()}");

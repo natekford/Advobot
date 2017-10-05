@@ -14,10 +14,10 @@ namespace Advobot.Interfaces
 		IReadOnlyList<ulong> TrustedUsers { get; set; }
 		IReadOnlyList<ulong> UsersUnableToDMOwner { get; set; }
 		IReadOnlyList<ulong> UsersIgnoredFromCommands { get; set; }
-		uint ShardCount { get; set; }
-		uint MessageCacheCount { get; set; }
-		uint MaxUserGatherCount { get; set; }
-		uint MaxMessageGatherSize { get; set; }
+		int ShardCount { get; set; }
+		int MessageCacheCount { get; set; }
+		int MaxUserGatherCount { get; set; }
+		int MaxMessageGatherSize { get; set; }
 		string Prefix { get; set; }
 		string Game { get; set; }
 		string Stream { get; set; }

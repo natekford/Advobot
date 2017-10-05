@@ -365,7 +365,7 @@ namespace Advobot.Services.Log.Loggers
 				}
 
 				var spam = false;
-				foreach (var spamType in Enum.GetValues(typeof(SpamType)).Cast<SpamType>())
+				foreach (SpamType spamType in Enum.GetValues(typeof(SpamType)))
 				{
 					var spamPrev = guildSettings.SpamPreventionDictionary[spamType];
 					if (spamPrev == null || !spamPrev.Enabled)

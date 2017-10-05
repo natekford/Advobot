@@ -45,7 +45,7 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 			{
-				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
 			}
 		}
 
@@ -67,7 +67,7 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 			{
-				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
 			}
 		}
 
@@ -89,7 +89,7 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 			{
-				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
 			}
 		}
 
@@ -111,7 +111,7 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 			{
-				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
 			}
 		}
 
@@ -133,7 +133,7 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 			{
-				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, messageCount, requiredSpamAmtOrTimeInterval, votes);
+				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
 			}
 		}
 	}
@@ -176,7 +176,7 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint numberOfUsers)
 			{
-				await SpamPreventionActions.SetUpRaidPrevention(Context, _RaidType, punishment, numberOfUsers, 0);
+				await SpamPreventionActions.SetUpRaidPrevention(Context, _RaidType, punishment, (int)numberOfUsers, 0);
 			}
 		}
 
@@ -198,7 +198,7 @@ namespace Advobot.Commands.SpamPrevention
 			[Command(nameof(ActionType.Setup))]
 			public async Task CommandSetup(PunishmentType punishment, uint numberOfUsers, uint interval)
 			{
-				await SpamPreventionActions.SetUpRaidPrevention(Context, _RaidType, punishment, numberOfUsers, interval);
+				await SpamPreventionActions.SetUpRaidPrevention(Context, _RaidType, punishment, (int)numberOfUsers, (int)interval);
 			}
 		}
 	}

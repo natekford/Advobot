@@ -18,7 +18,6 @@ namespace Advobot.Classes.Punishments
 		private ITimersService _Timers;
 		private List<string> _Actions = new List<string>();
 
-		public PunishmentGiver(uint time, ITimersService timers) : this((int)time, timers) { }
 		public PunishmentGiver(int time, ITimersService timers)
 		{
 			_Time = time;

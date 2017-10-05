@@ -29,13 +29,13 @@ namespace Advobot.Classes.Settings
 		[JsonProperty("UsersIgnoredFromCommands")]
 		private List<ulong> _UsersIgnoredFromCommands;
 		[JsonProperty("ShardCount")]
-		private uint _ShardCount;
+		private int _ShardCount;
 		[JsonProperty("MessageCacheCount")]
-		private uint _MessageCacheCount;
+		private int _MessageCacheCount;
 		[JsonProperty("MaxUserGatherCount")]
-		private uint _MaxUserGatherCount;
+		private int _MaxUserGatherCount;
 		[JsonProperty("MaxMessageGatherSize")]
-		private uint _MaxMessageGatherSize;
+		private int _MaxMessageGatherSize;
 		[JsonProperty("Prefix")]
 		private string _Prefix;
 		[JsonProperty("Game")]
@@ -78,7 +78,7 @@ namespace Advobot.Classes.Settings
 			}
 		}
 		[JsonIgnore]
-		public uint ShardCount
+		public int ShardCount
 		{
 			get => _ShardCount > 1 ? _ShardCount : (_ShardCount = 1);
 			set
@@ -88,7 +88,7 @@ namespace Advobot.Classes.Settings
 			}
 		}
 		[JsonIgnore]
-		public uint MessageCacheCount
+		public int MessageCacheCount
 		{
 			get => _MessageCacheCount > 0 ? _MessageCacheCount : (_MessageCacheCount = 1000);
 			set
@@ -98,7 +98,7 @@ namespace Advobot.Classes.Settings
 			}
 		}
 		[JsonIgnore]
-		public uint MaxUserGatherCount
+		public int MaxUserGatherCount
 		{
 			get => _MaxUserGatherCount > 0 ? _MaxUserGatherCount : (_MaxUserGatherCount = 100);
 			set
@@ -108,7 +108,7 @@ namespace Advobot.Classes.Settings
 			}
 		}
 		[JsonIgnore]
-		public uint MaxMessageGatherSize
+		public int MaxMessageGatherSize
 		{
 			get => _MaxMessageGatherSize > 0 ? _MaxMessageGatherSize : (_MaxMessageGatherSize = 500000);
 			set

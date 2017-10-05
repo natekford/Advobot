@@ -4,10 +4,10 @@ using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
 
 namespace Advobot.Classes.UserInformation
 {
@@ -22,7 +22,7 @@ namespace Advobot.Classes.UserInformation
 
 		public SpamPreventionUserInformation(IGuildUser user) : base(user)
 		{
-			foreach (var spamType in Enum.GetValues(typeof(SpamType)).Cast<SpamType>())
+			foreach (SpamType spamType in Enum.GetValues(typeof(SpamType)))
 			{
 				SpamLists.Add(spamType, new List<BasicTimeInterface>());
 			}
@@ -54,9 +54,9 @@ namespace Advobot.Classes.UserInformation
 		public void ResetSpamUser()
 		{
 			UsersWhoHaveAlreadyVoted = new ConcurrentBag<ulong>();
-			foreach (var spamList in SpamLists.Values)
+			foreach (var kvp in SpamLists)
 			{
-				spamList.Clear();
+				kvp.Value.Clear();
 			}
 
 			VotesRequired = int.MaxValue;

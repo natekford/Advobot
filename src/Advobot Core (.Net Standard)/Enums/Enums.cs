@@ -148,6 +148,7 @@ namespace Advobot.Enums
 		Default = (1U << 13),
 		On      = (1U << 14),
 		Off     = (1U << 15),
+		Set		= (1U << 16),
 	}
 
 	/// <summary>

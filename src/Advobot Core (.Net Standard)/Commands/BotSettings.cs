@@ -28,197 +28,133 @@ namespace Advobot.Commands.BotSettings
 			var desc = $"`{String.Join("`, `", GetActions.GetBotSettingsThatArentIEnumerables().Select(x => x.Name))}`";
 			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Settings", desc));
 		}
-		[Command("set"), Alias("s")]
-		public async Task CommandSet([OverrideTypeReader(typeof(SettingTypeReader.BotSettingNonIEnumerableTypeReader))] PropertyInfo setting, [Remainder] string newValue)
+		[Group(nameof(ActionType.Set)), Alias("s")]
+		public sealed class Set : SavingModuleBase
 		{
-			switch (setting.Name)
+			[Command(nameof(IBotSettings.ShardCount))]
+			public async Task CommandShardCount(uint shardCount)
 			{
-				case nameof(IBotSettings.ShardCount):
+				var validNum = (await Context.Client.GetGuildsAsync()).Count / 2500 + 1;
+				if (shardCount < validNum)
 				{
-					if (!uint.TryParse(newValue, out uint number))
-					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason("Invalid number input."));
-						return;
-					}
-
-					var validNum = (await Context.Client.GetGuildsAsync()).Count / 2500 + 1;
-					if (number < validNum)
-					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason($"With the current amount of guilds the client has, the minimum shard number is: `{validNum}`."));
-						return;
-					}
-
-					Context.BotSettings.ShardCount = number;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the shard amount to `{number}`.");
-					break;
-				}
-				case nameof(IBotSettings.MessageCacheCount):
-				{
-					if (!uint.TryParse(newValue, out uint number))
-					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason("Invalid number input."));
-						return;
-					}
-
-					Context.BotSettings.MessageCacheCount = number;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the message cache count to `{number}`.");
-					break;
-				}
-				case nameof(IBotSettings.MaxUserGatherCount):
-				{
-					if (!uint.TryParse(newValue, out uint number))
-					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason("Invalid number input."));
-						return;
-					}
-
-					Context.BotSettings.MaxUserGatherCount = number;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max user gather count to `{number}`.");
-					break;
-				}
-				case nameof(IBotSettings.MaxMessageGatherSize):
-				{
-					if (!uint.TryParse(newValue, out uint number))
-					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason("Invalid number input."));
-						return;
-					}
-
-					Context.BotSettings.MaxMessageGatherSize = number;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max message gather size to `{number}`.");
-					break;
-				}
-				case nameof(IBotSettings.Prefix):
-				{
-					if (newValue.Length > Constants.MAX_PREFIX_LENGTH)
-					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason($"Prefix cannot be longer than `{Constants.MAX_PREFIX_LENGTH}` characters."));
-						return;
-					}
-
-					Context.BotSettings.Prefix = newValue;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the prefix to `{newValue}`.");
-					break;
-				}
-				case nameof(IBotSettings.Game):
-				{
-					if (newValue.Length > Constants.MAX_GAME_LENGTH)
-					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason($"Game name cannot be longer than `{Constants.MAX_GAME_LENGTH}` characters or else it doesn't show to other people."));
-						return;
-					}
-
-					Context.BotSettings.Game = newValue;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{newValue}`.");
-					break;
-				}
-				case nameof(IBotSettings.Stream):
-				{
-					if (newValue.Length > Constants.MAX_STREAM_LENGTH)
-					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason($"Stream names cannot be longer than `{Constants.MAX_STREAM_LENGTH}` characters."));
-						return;
-					}
-					else if (!RegexActions.CheckIfInputIsAValidTwitchName(newValue))
-					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason($"`{newValue}` is not a valid Twitch stream name."));
-						return;
-					}
-
-					Context.BotSettings.Game = newValue;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{newValue}`.");
-					break;
-				}
-				case nameof(IBotSettings.AlwaysDownloadUsers):
-				{
-					if (!bool.TryParse(newValue, out bool alwaysDLUsers))
-					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason("The input for always download users has to be a boolean."));
-						return;
-					}
-
-					Context.BotSettings.AlwaysDownloadUsers = alwaysDLUsers;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set always download users to `{alwaysDLUsers}`.");
-					break;
-				}
-				case nameof(IBotSettings.LogLevel):
-				{
-					if (!Enum.TryParse(newValue, true, out LogSeverity logLevel))
-					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason($"The input for log level has to be one of the following: `{String.Join("`, `", Enum.GetNames(typeof(LogSeverity)))}`."));
-						return;
-					}
-
-					Context.BotSettings.LogLevel = logLevel;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the log level to `{logLevel.EnumName()}`.");
-					break;
-				}
-				default:
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"The setting `{setting.Name}` cannot be set through this command.");
+					await MessageActions.SendErrorMessage(Context, new ErrorReason($"With the current amount of guilds the client has, the minimum shard number is: `{validNum}`."));
 					return;
 				}
+
+				Context.BotSettings.ShardCount = (int)shardCount;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the shard amount to `{Context.BotSettings.ShardCount}`.");
+			}
+			[Command(nameof(IBotSettings.MessageCacheCount))]
+			public async Task CommandMessagecacheCount(uint cacheCount)
+			{
+				Context.BotSettings.MessageCacheCount = (int)cacheCount;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the message cache count to `{Context.BotSettings.MessageCacheCount}`.");
+			}
+			[Command(nameof(IBotSettings.MaxUserGatherCount))]
+			public async Task CommandMaxUserGatherCount(uint userGatherCount)
+			{
+				Context.BotSettings.MaxUserGatherCount = (int)userGatherCount;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max user gather count to `{Context.BotSettings.MaxUserGatherCount}`.");
+			}
+			[Command(nameof(IBotSettings.MaxMessageGatherSize))]
+			public async Task CommandMaxMessageGatherSize(uint messageGatherSize)
+			{
+				Context.BotSettings.MaxMessageGatherSize = (int)messageGatherSize;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max message gather size to `{Context.BotSettings.MaxMessageGatherSize}`.");
+			}
+			[Command(nameof(IBotSettings.Prefix))]
+			public async Task CommandPrefix([VerifyStringLength(Target.Prefix)] string prefix)
+			{
+				Context.BotSettings.Prefix = prefix;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the prefix to `{Context.BotSettings.Prefix}`.");
+			}
+			[Command(nameof(IBotSettings.Game))]
+			public async Task CommandGame([VerifyStringLength(Target.Game)] string game)
+			{
+				Context.BotSettings.Game = game;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Game}`.");
+			}
+			[Command(nameof(IBotSettings.Stream))]
+			public async Task CommandStream([VerifyStringLength(Target.Stream)] string stream)
+			{
+				if (!RegexActions.CheckIfInputIsAValidTwitchName(stream))
+				{
+					await MessageActions.SendErrorMessage(Context, new ErrorReason($"`{stream}` is not a valid Twitch stream name."));
+					return;
+				}
+
+				Context.BotSettings.Stream = stream;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Stream}`.");
+			}
+			[Command(nameof(IBotSettings.AlwaysDownloadUsers))]
+			public async Task CommandAlwaysDownloadUsers(bool downloadUsers)
+			{
+				Context.BotSettings.AlwaysDownloadUsers = downloadUsers;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set always download users to `{Context.BotSettings.AlwaysDownloadUsers}`.");
+			}
+			[Command(nameof(IBotSettings.LogLevel))]
+			public async Task CommandLogLevel(LogSeverity logLevel)
+			{
+				Context.BotSettings.LogLevel = logLevel;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the log level to `{Context.BotSettings.LogLevel.EnumName()}`.");
 			}
 		}
-		[Command(nameof(ActionType.Clear)), Alias("c")]
-		public async Task CommandClear([OverrideTypeReader(typeof(SettingTypeReader.BotSettingNonIEnumerableTypeReader))] PropertyInfo setting)
+		[Group(nameof(ActionType.Clear)), Alias("c")]
+		public sealed class Clear : SavingModuleBase
 		{
-			switch (setting.Name)
+			[Command(nameof(IBotSettings.ShardCount))]
+			public async Task CommandShardCount()
 			{
-				//Some of these need to be accessed before their default value actually gets set (cause the getter does some checking, like if messagecachecount > 1 _Messagecachecount = x)
-				case nameof(IBotSettings.MessageCacheCount):
-				{
-					Context.BotSettings.MessageCacheCount = 0;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the message cache count to `{Context.BotSettings.MessageCacheCount}`.");
-					break;
-				}
-				case nameof(IBotSettings.MaxUserGatherCount):
-				{
-					Context.BotSettings.MaxUserGatherCount = 0;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max user gather count to `{Context.BotSettings.MaxUserGatherCount}`.");
-					break;
-				}
-				case nameof(IBotSettings.MaxMessageGatherSize):
-				{
-					Context.BotSettings.MaxMessageGatherSize = 0;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max message gather size to `{Context.BotSettings.MaxMessageGatherSize}`.");
-					break;
-				}
-				case nameof(IBotSettings.Prefix):
-				{
-					Context.BotSettings.Prefix = null;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the prefix to `{Context.BotSettings.Prefix}`.");
-					break;
-				}
-				case nameof(IBotSettings.Game):
-				{
-					Context.BotSettings.Game = null;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Game}`.");
-					break;
-				}
-				case nameof(IBotSettings.Stream):
-				{
-					Context.BotSettings.Game = null;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `Nothing`.");
-					break;
-				}
-				case nameof(IBotSettings.AlwaysDownloadUsers):
-				{
-					Context.BotSettings.AlwaysDownloadUsers = true;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set always download users to `{Context.BotSettings.AlwaysDownloadUsers}`.");
-					break;
-				}
-				case nameof(IBotSettings.LogLevel):
-				{
-					Context.BotSettings.LogLevel = LogSeverity.Warning;
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the log level to `{Context.BotSettings.LogLevel.EnumName()}`.");
-					break;
-				}
-				default:
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"The setting `{setting.Name}` cannot be cleared through this command.");
-					return;
-				}
+				Context.BotSettings.ShardCount = (await Context.Client.GetGuildsAsync()).Count / 2500 + 1;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the shard amount to `{Context.BotSettings.ShardCount}`.");
+			}
+			[Command(nameof(IBotSettings.MessageCacheCount))]
+			public async Task CommandMessagecacheCount()
+			{
+				Context.BotSettings.MessageCacheCount = -1;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the message cache count to `{Context.BotSettings.MessageCacheCount}`.");
+			}
+			[Command(nameof(IBotSettings.MaxUserGatherCount))]
+			public async Task CommandMaxUserGatherCount()
+			{
+				Context.BotSettings.MaxUserGatherCount = -1;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max user gather count to `{Context.BotSettings.MaxUserGatherCount}`.");
+			}
+			[Command(nameof(IBotSettings.MaxMessageGatherSize))]
+			public async Task CommandMaxMessageGatherSize()
+			{
+				Context.BotSettings.MaxMessageGatherSize = -1;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max message gather size to `{Context.BotSettings.MaxMessageGatherSize}`.");
+			}
+			[Command(nameof(IBotSettings.Prefix))]
+			public async Task CommandPrefix()
+			{
+				Context.BotSettings.Prefix = null;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the prefix to `{Context.BotSettings.Prefix}`.");
+			}
+			[Command(nameof(IBotSettings.Game))]
+			public async Task CommandGame()
+			{
+				Context.BotSettings.Game = null;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Game}`.");
+			}
+			[Command(nameof(IBotSettings.Stream))]
+			public async Task CommandStream()
+			{
+				Context.BotSettings.Stream = null;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Stream}`.");
+			}
+			[Command(nameof(IBotSettings.AlwaysDownloadUsers))]
+			public async Task CommandAlwaysDownloadUsers()
+			{
+				Context.BotSettings.AlwaysDownloadUsers = true;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set always download users to `{Context.BotSettings.AlwaysDownloadUsers}`.");
+			}
+			[Command(nameof(IBotSettings.LogLevel))]
+			public async Task CommandLogLevel()
+			{
+				Context.BotSettings.LogLevel = LogSeverity.Warning;
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the log level to `{Context.BotSettings.LogLevel.EnumName()}`.");
 			}
 		}
 	}

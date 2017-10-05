@@ -10,7 +10,6 @@ namespace Advobot.Classes.Punishments
 {
 	internal sealed class AutomaticPunishmentGiver : PunishmentGiver
 	{
-		internal AutomaticPunishmentGiver(uint time, ITimersService timers) : base(time, timers) { }
 		internal AutomaticPunishmentGiver(int time, ITimersService timers) : base(time, timers) { }
 
 		internal async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IUser user, IRole role, [CallerMemberName] string reason = "")

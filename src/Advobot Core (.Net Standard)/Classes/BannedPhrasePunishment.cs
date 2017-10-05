@@ -12,20 +12,20 @@ namespace Advobot.Classes.BannedPhrases
 	public class BannedPhrasePunishment : ISetting
 	{
 		[JsonProperty]
-		public int NumberOfRemoves { get; }
-		[JsonProperty]
 		public PunishmentType Punishment { get; }
 		[JsonProperty]
-		public uint PunishmentTime { get; }
+		public int NumberOfRemoves { get; }
+		[JsonProperty]
+		public int PunishmentTime { get; }
 		[JsonProperty]
 		private ulong RoleId;
 		[JsonIgnore]
 		private IRole Role;
 
-		public BannedPhrasePunishment(int number, PunishmentType punishment, ulong roleId = 0, uint punishmentTime = 0)
+		public BannedPhrasePunishment(PunishmentType punishment, int numberOfRemoves, int punishmentTime, ulong roleId = 0)
 		{
-			NumberOfRemoves = number;
 			Punishment = punishment;
+			NumberOfRemoves = numberOfRemoves;
 			RoleId = roleId;
 			PunishmentTime = punishmentTime;
 		}

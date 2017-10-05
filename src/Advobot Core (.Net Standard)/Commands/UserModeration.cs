@@ -33,7 +33,7 @@ namespace Advobot.Commands.UserModeration
 				return;
 			}
 
-			var giver = new PunishmentGiver(time, Context.Timers);
+			var giver = new PunishmentGiver((int)time, Context.Timers);
 			await giver.RoleMuteAsync(user, muteRole, new ModerationReason(Context.User, reason));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, giver.ToString());
 		}
@@ -57,7 +57,7 @@ namespace Advobot.Commands.UserModeration
 				return;
 			}
 
-			var giver = new PunishmentGiver(time, Context.Timers);
+			var giver = new PunishmentGiver((int)time, Context.Timers);
 			await giver.VoiceMuteAsync(user, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, giver.ToString());
 		}
@@ -81,7 +81,7 @@ namespace Advobot.Commands.UserModeration
 				return;
 			}
 
-			var giver = new PunishmentGiver(time, Context.Timers);
+			var giver = new PunishmentGiver((int)time, Context.Timers);
 			await giver.DeafenAsync(user, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, giver.ToString());
 		}
@@ -220,7 +220,7 @@ namespace Advobot.Commands.UserModeration
 				return;
 			}
 
-			var giver = new PunishmentGiver(time, Context.Timers);
+			var giver = new PunishmentGiver((int)time, Context.Timers);
 			await giver.BanAsync(Context.Guild, userId, new ModerationReason(Context.User, reason), 1);
 			await MessageActions.SendMessage(Context.Channel, giver.ToString());
 		}

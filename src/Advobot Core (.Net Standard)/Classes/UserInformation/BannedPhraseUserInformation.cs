@@ -15,7 +15,7 @@ namespace Advobot.Classes.UserInformation
 
 		public BannedPhraseUserInformation(IGuildUser user) : base(user)
 		{
-			foreach (var type in Enum.GetValues(typeof(PunishmentType)).Cast<PunishmentType>())
+			foreach (PunishmentType type in Enum.GetValues(typeof(PunishmentType)))
 			{
 				_PunishmentVals.Add(type, 0);
 			}
