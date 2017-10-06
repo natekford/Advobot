@@ -61,20 +61,20 @@ namespace Advobot.Actions
 			return new VerifiedObjectResult(target, null, null);
 		}
 
-		public static async Task<IEnumerable<string>> ModifyRolePermissions(IRole role, ActionType actionType, ulong changeValue, IGuildUser user)
+		public static async Task<IEnumerable<string>> ModifyRolePermissions(IRole role, PermValue permValue, ulong changeValue, IGuildUser user)
 		{
 			//Only modify permissions the user has the ability to
 			changeValue &= user.GuildPermissions.RawValue;
 
 			var roleBits = role.Permissions.RawValue;
-			switch (actionType)
+			switch (permValue)
 			{
-				case ActionType.Allow:
+				case PermValue.Allow:
 				{
 					roleBits |= changeValue;
 					break;
 				}
-				case ActionType.Deny:
+				case PermValue.Deny:
 				{
 					roleBits &= ~changeValue;
 					break;

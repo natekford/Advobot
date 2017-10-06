@@ -7,7 +7,6 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -22,19 +21,19 @@ namespace Advobot.Actions
 		/// Returns the public fields in the Discord.Color struct as a name to color dictionary.
 		/// </summary>
 		/// <returns></returns>
-		public static ReadOnlyDictionary<string, Color> GetColorDictionary()
+		public static Dictionary<string, Color> GetColorDictionary()
 		{
-			return new ReadOnlyDictionary<string, Color>(typeof(Color).GetFields().Where(x => x.IsPublic).ToDictionary(
+			return typeof(Color).GetFields().Where(x => x.IsPublic).ToDictionary(
 				x => x.Name, 
 				x => (Color)x.GetValue(new Color()), 
-				StringComparer.OrdinalIgnoreCase));
+				StringComparer.OrdinalIgnoreCase);
 		}
 		/// <summary>
 		/// Returns a list of every command's help entry.
 		/// </summary>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static ReadOnlyCollection<HelpEntry> GetHelpList()
+		public static HelpEntry[] GetHelpList()
 		{
 			var temp = new List<HelpEntry>();
 
@@ -106,15 +105,15 @@ namespace Advobot.Actions
 
 				temp.Add(new HelpEntry(name, aliases, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, category, defaultEnabled));
 			}
-			return temp.AsReadOnly();
+			return temp.ToArray();
 		}
 		/// <summary>
 		/// Returns a list of every command's name.
 		/// </summary>
 		/// <returns></returns>
-		public static ReadOnlyCollection<string> GetCommandNames()
+		public static string[] GetCommandNames()
 		{
-			return Constants.HELP_ENTRIES.Select(x => x.Name).ToList().AsReadOnly();
+			return Constants.HELP_ENTRIES.Select(x => x.Name).ToArray();
 		}
 		/// <summary>
 		/// Returns all names of commands that are in specific category.

@@ -347,15 +347,15 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	[Group(nameof(ModifySlowmode)), Alias("msm")]
-	[Usage("[On|Off|Setup] <1 to 5> <1 to 30> <Role ...>")]
+	[Usage("[Enable|Disable|Setup] <1 to 5> <1 to 30> <Role ...>")]
 	[Summary("First arg is how many messages can be sent in a timeframe. Second arg is the timeframe. Third arg is guildwide; true means yes, false means no. " +
 		"Fourth are the list of roles that are immune to slowmode.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifySlowmode : SavingModuleBase
 	{
-		[Command(nameof(ActionType.On))]
-		public async Task CommandOn()
+		[Command(nameof(ActionType.Enable))]
+		public async Task CommandEnable()
 		{
 			if (Context.GuildSettings.Slowmode == null)
 			{
@@ -366,7 +366,7 @@ namespace Advobot.Commands.UserModeration
 			Context.GuildSettings.Slowmode.Enable();
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully enabled slowmode.\n{Context.GuildSettings.Slowmode.ToString()}");
 		}
-		[Command(nameof(ActionType.Off))]
+		[Command(nameof(ActionType.Disable))]
 		public async Task CommandOff()
 		{
 			if (Context.GuildSettings.Slowmode == null)

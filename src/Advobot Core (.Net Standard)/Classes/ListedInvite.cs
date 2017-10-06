@@ -17,7 +17,7 @@ namespace Advobot.Classes
 		[JsonProperty]
 		public string Code { get; private set; }
 		[JsonProperty]
-		public ReadOnlyCollection<string> Keywords { get; private set; }
+		public IReadOnlyCollection<string> Keywords { get; private set; }
 		[JsonProperty]
 		public bool HasGlobalEmotes { get; private set; }
 		[JsonIgnore]
@@ -33,13 +33,13 @@ namespace Advobot.Classes
 			LastBumped = DateTime.UtcNow;
 			Code = code;
 			Url = "https://www.discord.gg/" + Code;
-			Keywords = (keywords ?? Enumerable.Empty<string>()).ToList().AsReadOnly();
+			Keywords = (keywords ?? Enumerable.Empty<string>()).ToList();
 		}
 		public ListedInvite(SocketGuild guild, string code, IEnumerable<string> keywords) : this(code, keywords)
 		{
 			Guild = guild;
 			HasGlobalEmotes = Guild.HasGlobalEmotes();
-			Keywords = (keywords ?? Enumerable.Empty<string>()).ToList().AsReadOnly();
+			Keywords = (keywords ?? Enumerable.Empty<string>()).ToList();
 		}
 
 		/// <summary>

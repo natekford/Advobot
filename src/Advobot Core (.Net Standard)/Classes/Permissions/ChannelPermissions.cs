@@ -1,6 +1,7 @@
 ﻿using Discord;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Advobot.Classes.Permissions
@@ -55,7 +56,7 @@ namespace Advobot.Classes.Permissions
 			| (1U << (int)ChannelPermission.MoveMembers)
 			| (1U << (int)ChannelPermission.UseVAD);
 
-		public static IReadOnlyCollection<ChannelPerm> Permissions = CreateChannelPermList();
+		public static ImmutableList<ChannelPerm> Permissions = ImmutableList.Create(CreateChannelPermList());
 
 		/// <summary>
 		/// Returns the first <see cref="ChannelPerm"/> to have the given name. (Case insensitive)
@@ -161,7 +162,7 @@ namespace Advobot.Classes.Permissions
 			return !invalidPerms.Any();
 		}
 
-		private static IReadOnlyCollection<ChannelPerm> CreateChannelPermList()
+		private static ChannelPerm[] CreateChannelPermList()
 		{
 			var temp = new List<ChannelPerm>();
 			for (int i = 0; i < 64; ++i)
@@ -185,7 +186,7 @@ namespace Advobot.Classes.Permissions
 					temp.Add(new ChannelPerm(name, i, voice: true));
 				}
 			}
-			return temp.AsReadOnly();
+			return temp.ToArray();
 		}
 	}
 }

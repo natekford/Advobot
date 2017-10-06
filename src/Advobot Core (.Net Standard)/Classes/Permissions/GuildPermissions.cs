@@ -1,6 +1,7 @@
 ﻿using Discord;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Advobot.Classes.Permissions
@@ -25,7 +26,7 @@ namespace Advobot.Classes.Permissions
 	/// </summary>
 	public static class GuildPerms
 	{
-		public static IReadOnlyCollection<GuildPerm> Permissions = CreateGuildPermList();
+		public static ImmutableList<GuildPerm> Permissions = ImmutableList.Create(CreateGuildPermList());
 
 		/// <summary>
 		/// Returns the first <see cref="GuildPerm"/> to have the given name. (Case insensitive)
@@ -131,7 +132,7 @@ namespace Advobot.Classes.Permissions
 			return !invalidPerms.Any();
 		}
 
-		private static IReadOnlyCollection<GuildPerm> CreateGuildPermList()
+		private static GuildPerm[] CreateGuildPermList()
 		{
 			var temp = new List<GuildPerm>();
 			for (int i = 0; i < 64; ++i)
@@ -144,7 +145,7 @@ namespace Advobot.Classes.Permissions
 
 				temp.Add(new GuildPerm(name, i));
 			}
-			return temp.AsReadOnly();
+			return temp.ToArray();
 		}
 	}
 }

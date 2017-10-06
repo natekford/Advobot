@@ -21,7 +21,7 @@ namespace Advobot.Classes
 			_Time = DateTime.UtcNow.AddSeconds(Constants.SECONDS_ACTIVE_CLOSE);
 		}
 
-		private static IReadOnlyCollection<CloseWord> GetObjectsWithSimilarNames(IEnumerable<T> suppliedObjects, string input)
+		private static List<CloseWord> GetObjectsWithSimilarNames(IEnumerable<T> suppliedObjects, string input)
 		{
 			var closeWords = new List<CloseWord>();
 			//First loop around to find words that are similar
@@ -54,7 +54,7 @@ namespace Advobot.Classes
 				}
 			}
 
-			return closeWords.AsReadOnly();
+			return closeWords;
 		}
 		private static int FindCloseName(string source, string target, int threshold = 10)
 		{

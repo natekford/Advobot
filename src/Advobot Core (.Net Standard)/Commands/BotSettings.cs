@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 namespace Advobot.Commands.BotSettings
 {
 	[Group(nameof(ModifyBotSettings)), Alias("mbs")]
-	[Usage("[Show|Clear|Set] [Setting Name] <New Value>")]
+	[Usage("[Show|Clear|Modify] [Setting Name] <New Value>")]
 	[Summary("Modify the given setting on the bot. Show lists the setting names. Clear resets a setting back to default. Cannot modify settings which are lists through this command.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -28,8 +28,8 @@ namespace Advobot.Commands.BotSettings
 			var desc = $"`{String.Join("`, `", GetActions.GetBotSettingsThatArentIEnumerables().Select(x => x.Name))}`";
 			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Settings", desc));
 		}
-		[Group(nameof(ActionType.Set)), Alias("s")]
-		public sealed class Set : SavingModuleBase
+		[Group(nameof(ActionType.Modify)), Alias("m")]
+		public sealed class Modify : SavingModuleBase
 		{
 			[Command(nameof(IBotSettings.ShardCount))]
 			public async Task CommandShardCount(uint shardCount)

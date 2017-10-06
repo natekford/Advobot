@@ -2,7 +2,7 @@
 using Advobot.Interfaces;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System.Collections.ObjectModel;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Advobot.Classes
@@ -17,7 +17,7 @@ namespace Advobot.Classes
 		[JsonProperty]
 		public bool Value { get; private set; }
 		[JsonIgnore]
-		public ReadOnlyCollection<string> Aliases { get; }
+		public ImmutableList<string> Aliases { get; }
 		[JsonIgnore]
 		public CommandCategory Category { get; }
 		[JsonIgnore]
@@ -35,7 +35,7 @@ namespace Advobot.Classes
 			Name = name;
 			Value = value;
 			Category = helpEntry.Category;
-			Aliases = helpEntry.Aliases.ToList().AsReadOnly();
+			Aliases = helpEntry.Aliases.ToImmutableList();
 		}
 
 		/// <summary>

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace Advobot.Commands.Logs
 {
 	[Group(nameof(ModifyLogChannels)), Alias("mlc")]
-	[Usage("[Server|Mod|Image] [Channel|Off]")]
+	[Usage("[Server|Mod|Image] [Channel|Disable]")]
 	[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -35,8 +35,8 @@ namespace Advobot.Commands.Logs
 
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"That channel is already the current {channelType.EnumName().ToLower()} log.");
 			}
-			[Command(nameof(ActionType.Off))]
-			public async Task CommandOff()
+			[Command(nameof(ActionType.Disable))]
+			public async Task CommandDisable()
 			{
 				if (Context.GuildSettings.RemoveLogChannel(channelType))
 				{
@@ -64,8 +64,8 @@ namespace Advobot.Commands.Logs
 
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"That channel is already the current {channelType.EnumName().ToLower()} log.");
 			}
-			[Command(nameof(ActionType.Off))]
-			public async Task CommandOff()
+			[Command(nameof(ActionType.Disable))]
+			public async Task CommandDisable()
 			{
 				if (Context.GuildSettings.RemoveLogChannel(channelType))
 				{
@@ -93,8 +93,8 @@ namespace Advobot.Commands.Logs
 
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"That channel is already the current {channelType.EnumName().ToLower()} log.");
 			}
-			[Command(nameof(ActionType.Off))]
-			public async Task CommandOff()
+			[Command(nameof(ActionType.Disable))]
+			public async Task CommandDisable()
 			{
 				if (Context.GuildSettings.RemoveLogChannel(channelType))
 				{

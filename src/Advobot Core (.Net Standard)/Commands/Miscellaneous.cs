@@ -583,12 +583,7 @@ namespace Advobot.Commands.Miscellaneous
 	[DefaultEnabled(true)]
 	public sealed class Test : AdvobotModuleBase
 	{
-		[Command, AcronymAlias(typeof(Test), "SoftBan")]
-		public async Task TestCommand2()
-		{
-			await MessageActions.SendMessage(Context.Channel, "test2");
-		}
-		[Command, AcronymAlias(typeof(Test), "SoftBan")]
+		[Command]
 		public async Task TestCommand()
 		{
 			await MessageActions.SendMessage(Context.Channel, "test");

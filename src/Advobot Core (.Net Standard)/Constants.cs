@@ -6,6 +6,7 @@ using Discord;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Immutable;
 
 namespace Advobot
 {
@@ -91,27 +92,27 @@ namespace Advobot
 		public static readonly int MIN_PREFIX_LENGTH = 1;
 		public static readonly int MAX_PREFIX_LENGTH = 10;
 
-		private static ReadOnlyCollection<string> _IMG;
-		public static ReadOnlyCollection<string> VALID_IMAGE_EXTENSIONS => _IMG ?? (_IMG = new ReadOnlyCollection<string>(new List<string>
+		private static ImmutableList<string> _IMG;
+		public static ImmutableList<string> VALID_IMAGE_EXTENSIONS => _IMG ?? (_IMG = ImmutableList.Create(new[]
 		{
 			".jpeg",
 			".jpg",
 			".png",
 		}));
-		private static ReadOnlyCollection<string> _GIF;
-		public static ReadOnlyCollection<string> VALID_GIF_EXTENTIONS => _GIF ?? (_GIF = new ReadOnlyCollection<string>(new List<string>
+		private static ImmutableList<string> _GIF;
+		public static ImmutableList<string> VALID_GIF_EXTENTIONS => _GIF ?? (_GIF = ImmutableList.Create(new[]
 		{
 			".gif",
 			".gifv",
 		}));
-		private static ReadOnlyCollection<HelpEntry> _HELP;
-		public static ReadOnlyCollection<HelpEntry> HELP_ENTRIES => _HELP ?? (_HELP = GetActions.GetHelpList());
-		private static ReadOnlyCollection<string> _CMD;
-		public static ReadOnlyCollection<string> COMMAND_NAMES => _CMD ?? (_CMD = GetActions.GetCommandNames());
+		private static ImmutableList<HelpEntry> _HELP;
+		public static ImmutableList<HelpEntry> HELP_ENTRIES => _HELP ?? (_HELP = ImmutableList.Create(GetActions.GetHelpList()));
+		private static ImmutableList<string> _CMD;
+		public static ImmutableList<string> COMMAND_NAMES => _CMD ?? (_CMD = ImmutableList.Create(GetActions.GetCommandNames()));
 
 		//Because the enum values might change in the future. These are never saved in JSON so these can be modified
-		private static ReadOnlyDictionary<PunishmentType, int> _P_SEV;
-		public static ReadOnlyDictionary<PunishmentType, int> PUNISHMENT_SEVERITY => _P_SEV ?? (_P_SEV = new ReadOnlyDictionary<PunishmentType, int>(new Dictionary<PunishmentType, int>
+		private static ImmutableDictionary<PunishmentType, int> _P_SEV;
+		public static ImmutableDictionary<PunishmentType, int> PUNISHMENT_SEVERITY => _P_SEV ?? (_P_SEV = new Dictionary<PunishmentType, int>
 		{
 			{ PunishmentType.Deafen, 0 },
 			{ PunishmentType.VoiceMute, 100 },
@@ -119,7 +120,7 @@ namespace Advobot
 			{ PunishmentType.Kick, 500 },
 			{ PunishmentType.Softban, 750 },
 			{ PunishmentType.Ban, 1000 },
-		}));
+		}.ToImmutableDictionary());
 
 		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)
 		public static Type GUILD_SETTINGS_TYPE { get; } = typeof(GuildSettings); //IGuildSettings
@@ -128,8 +129,8 @@ namespace Advobot
 
 	public static class Colors
 	{
-		private static ReadOnlyDictionary<string, Color> _COLORS;
-		public static ReadOnlyDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = GetActions.GetColorDictionary());
+		private static ImmutableDictionary<string, Color> _COLORS;
+		public static ImmutableDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = GetActions.GetColorDictionary().ToImmutableDictionary());
 
 		public static Color BASE { get; } = new Color(255, 100, 000);
 		public static Color JOIN { get; } = new Color(000, 255, 000);

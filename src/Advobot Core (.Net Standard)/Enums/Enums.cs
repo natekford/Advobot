@@ -132,23 +132,18 @@ namespace Advobot.Enums
 	[Flags]
 	public enum ActionType : uint
 	{
-		Show    = (1U << 0),
-		Allow   = (1U << 1),
-		Inherit = (1U << 2),
-		Deny    = (1U << 3),
-		Enable  = (1U << 4),
-		Disable = (1U << 5),
-		Setup   = (1U << 6),
-		Create  = (1U << 7),
-		Add     = (1U << 8),
+		Add     = (1U << 0),
+		Clear   = (1U << 1),
+		Create  = (1U << 2),
+		Current = (1U << 3),
+		Default = (1U << 4),
+		Delete  = (1U << 5),
+		Disable = (1U << 6),
+		Enable  = (1U << 7),
+		Modify  = (1U << 8),
 		Remove  = (1U << 9),
-		Delete  = (1U << 10),
-		Clear   = (1U << 11),
-		Current = (1U << 12),
-		Default = (1U << 13),
-		On      = (1U << 14),
-		Off     = (1U << 15),
-		Set		= (1U << 16),
+		Show    = (1U << 10),
+		Setup   = (1U << 11),
 	}
 
 	/// <summary>

@@ -32,13 +32,13 @@ namespace Advobot.Commands.SpamPrevention
 		{
 			private const SpamType _SpamType = SpamType.Message;
 
-			[Command(nameof(ActionType.On))]
-			public async Task CommandOn()
+			[Command(nameof(ActionType.Enable))]
+			public async Task CommandEnable()
 			{
 				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
 			}
-			[Command(nameof(ActionType.Off))]
-			public async Task CommandOff()
+			[Command(nameof(ActionType.Disable))]
+			public async Task CommandDisable()
 			{
 				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
 			}
@@ -54,13 +54,13 @@ namespace Advobot.Commands.SpamPrevention
 		{
 			private const SpamType _SpamType = SpamType.LongMessage;
 
-			[Command(nameof(ActionType.On))]
-			public async Task CommandOn()
+			[Command(nameof(ActionType.Enable))]
+			public async Task CommandEnable()
 			{
 				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
 			}
-			[Command(nameof(ActionType.Off))]
-			public async Task CommandOff()
+			[Command(nameof(ActionType.Disable))]
+			public async Task CommandDisable()
 			{
 				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
 			}
@@ -76,13 +76,13 @@ namespace Advobot.Commands.SpamPrevention
 		{
 			private const SpamType _SpamType = SpamType.Link;
 
-			[Command(nameof(ActionType.On))]
-			public async Task CommandOn()
+			[Command(nameof(ActionType.Enable))]
+			public async Task CommandEnable()
 			{
 				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
 			}
-			[Command(nameof(ActionType.Off))]
-			public async Task CommandOff()
+			[Command(nameof(ActionType.Disable))]
+			public async Task CommandDisable()
 			{
 				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
 			}
@@ -98,13 +98,13 @@ namespace Advobot.Commands.SpamPrevention
 		{
 			private const SpamType _SpamType = SpamType.Image;
 
-			[Command(nameof(ActionType.On))]
-			public async Task CommandOn()
+			[Command(nameof(ActionType.Enable))]
+			public async Task CommandEnable()
 			{
 				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
 			}
-			[Command(nameof(ActionType.Off))]
-			public async Task CommandOff()
+			[Command(nameof(ActionType.Disable))]
+			public async Task CommandDisable()
 			{
 				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
 			}
@@ -120,13 +120,13 @@ namespace Advobot.Commands.SpamPrevention
 		{
 			private const SpamType _SpamType = SpamType.Mention;
 
-			[Command(nameof(ActionType.On))]
-			public async Task CommandOn()
+			[Command(nameof(ActionType.Enable))]
+			public async Task CommandEnable()
 			{
 				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
 			}
-			[Command(nameof(ActionType.Off))]
-			public async Task CommandOff()
+			[Command(nameof(ActionType.Disable))]
+			public async Task CommandDisable()
 			{
 				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
 			}
@@ -140,7 +140,7 @@ namespace Advobot.Commands.SpamPrevention
 
 	[Group(nameof(PreventRaid))]
 	[Alias("prr")]
-	[Usage("[Regular|RapidJoins|Show] <Setup|On|Off> <Punishment> <Number of Users> <Time Interval>")]
+	[Usage("[Regular|RapidJoins|Show] <Setup|Enable|Disable> <Punishment> <Number of Users> <Time Interval>")]
 	[Summary("Any users who joins from now on will get text muted. Once `preventraidspam` is turned off all the users who were muted will be unmuted. " +
 		"Inputting a number means the last x amount of people (up to 25) who have joined will be muted. `Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]
@@ -157,19 +157,18 @@ namespace Advobot.Commands.SpamPrevention
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Punishment Types", desc));
 			}
 		}
-
 		[Group(nameof(RaidType.Regular)), Alias("reg")]
 		public sealed class PreventRegularRaid : SavingModuleBase
 		{
 			private const RaidType _RaidType = RaidType.Regular;
 
-			[Command(nameof(ActionType.On))]
-			public async Task CommandOn()
+			[Command(nameof(ActionType.Enable))]
+			public async Task CommandEnable()
 			{
 				await SpamPreventionActions.ModifyRaidPreventionEnabled(Context, _RaidType, true);
 			}
-			[Command(nameof(ActionType.Off))]
-			public async Task CommandOff()
+			[Command(nameof(ActionType.Disable))]
+			public async Task CommandDisable()
 			{
 				await SpamPreventionActions.ModifyRaidPreventionEnabled(Context, _RaidType, false);
 			}
@@ -179,19 +178,18 @@ namespace Advobot.Commands.SpamPrevention
 				await SpamPreventionActions.SetUpRaidPrevention(Context, _RaidType, punishment, (int)numberOfUsers, 0);
 			}
 		}
-
 		[Group(nameof(RaidType.RapidJoins)), Alias("rapid joins", "joins")]
 		public sealed class PreventRapidJoinsRaid : SavingModuleBase
 		{
 			private const RaidType _RaidType = RaidType.RapidJoins;
 
-			[Command(nameof(ActionType.On))]
+			[Command(nameof(ActionType.Enable))]
 			public async Task CommandOn()
 			{
 				await SpamPreventionActions.ModifyRaidPreventionEnabled(Context, _RaidType, true);
 			}
-			[Command(nameof(ActionType.Off))]
-			public async Task CommandOff()
+			[Command(nameof(ActionType.Disable))]
+			public async Task CommandDisable()
 			{
 				await SpamPreventionActions.ModifyRaidPreventionEnabled(Context, _RaidType, false);
 			}
