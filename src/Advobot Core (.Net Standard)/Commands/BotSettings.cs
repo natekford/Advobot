@@ -22,13 +22,13 @@ namespace Advobot.Commands.BotSettings
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotSettings : SavingModuleBase
 	{
-		[Command(nameof(ActionType.Show)), Alias("sh")]
-		public async Task CommandShow()
+		[Command(nameof(ActionType.Show)), ShortAlias(nameof(ActionType.Show))]
+		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", GetActions.GetBotSettingsThatArentIEnumerables().Select(x => x.Name))}`";
 			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Settings", desc));
 		}
-		[Group(nameof(ActionType.Modify)), Alias("m")]
+		[Group(nameof(ActionType.Modify)), ShortAlias(nameof(ActionType.Modify))]
 		public sealed class Modify : SavingModuleBase
 		{
 			[Command(nameof(IBotSettings.ShardCount))]

@@ -414,10 +414,10 @@ namespace Advobot.Classes.Settings
 			Guild = guild as SocketGuild;
 
 			//Add in the default values for commands that aren't set
-			var unsetCmds = Constants.HELP_ENTRIES.Where(x => !CommandSwitches.Select(y => y.Name).CaseInsContains(x.Name));
+			var unsetCmds = Constants.HELP_ENTRIES.GetUnsetCommands(CommandSwitches.Select(x => x.Name));
 			CommandSwitches.AddRange(unsetCmds.Select(x => new CommandSwitch(x.Name, x.DefaultEnabled)));
 			//Remove all that have no name/aren't commands anymore
-			CommandSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name) || !Constants.COMMAND_NAMES.CaseInsContains(x.Name));
+			CommandSwitches.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name) || Constants.HELP_ENTRIES[x.Name] == null);
 			CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));

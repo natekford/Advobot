@@ -51,7 +51,7 @@ namespace Advobot.Commands.Miscellaneous
 			}
 			else
 			{
-				var helpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.CaseInsEquals(command) || x.Aliases.CaseInsContains(command));
+				var helpEntry = Constants.HELP_ENTRIES[command];
 				if (helpEntry != null)
 				{
 					var embed = EmbedActions.MakeNewEmbed(helpEntry.Name, helpEntry.ToString())
@@ -60,7 +60,7 @@ namespace Advobot.Commands.Miscellaneous
 					return;
 				}
 
-				var closeHelps = new CloseWords<HelpEntry>(Context.User as IGuildUser, Constants.HELP_ENTRIES, command);
+				var closeHelps = new CloseWords<HelpEntry>(Context.User as IGuildUser, Constants.HELP_ENTRIES.GetHelpEntries(), command);
 				if (closeHelps.List.Any())
 				{
 					Context.Timers.AddActiveCloseHelp(closeHelps);
@@ -88,7 +88,7 @@ namespace Advobot.Commands.Miscellaneous
 		[Command("all")]
 		public async Task CommandAll()
 		{
-			var desc = $"`{String.Join("`, `", Constants.COMMAND_NAMES)}`";
+			var desc = $"`{String.Join("`, `", Constants.HELP_ENTRIES.GetCommandNames())}`";
 			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("All Commands", desc));
 		}
 		[Command]

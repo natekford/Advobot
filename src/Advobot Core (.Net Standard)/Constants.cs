@@ -105,10 +105,8 @@ namespace Advobot
 			".gif",
 			".gifv",
 		}));
-		private static ImmutableList<HelpEntry> _HELP;
-		public static ImmutableList<HelpEntry> HELP_ENTRIES => _HELP ?? (_HELP = ImmutableList.Create(GetActions.GetHelpList()));
-		private static ImmutableList<string> _CMD;
-		public static ImmutableList<string> COMMAND_NAMES => _CMD ?? (_CMD = ImmutableList.Create(GetActions.GetCommandNames()));
+		private static HelpEntryHolder _HELP;
+		public static HelpEntryHolder HELP_ENTRIES => _HELP ?? (_HELP = new HelpEntryHolder());
 
 		//Because the enum values might change in the future. These are never saved in JSON so these can be modified
 		private static ImmutableDictionary<PunishmentType, int> _P_SEV;

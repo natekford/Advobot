@@ -25,7 +25,7 @@ namespace Advobot.Classes
 
 		public CommandSwitch(string name, bool value)
 		{
-			var helpEntry = Constants.HELP_ENTRIES.FirstOrDefault(x => x.Name.Equals(name));
+			var helpEntry = Constants.HELP_ENTRIES[name];
 			if (helpEntry == null)
 			{
 				Category = default;

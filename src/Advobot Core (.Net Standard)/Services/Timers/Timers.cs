@@ -10,6 +10,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -34,28 +35,31 @@ namespace Advobot.Services.Timers
 		{
 			_PunishmentRemover = new PunishmentRemover(this);
 
-			_HourTimer.Elapsed += OnHourEvent;
+			_HourTimer.Elapsed += (sender, e) =>
+			{
+				Task.Run(() => ClearSpamPreventionUsers());
+			};
 			_HourTimer.Enabled = true;
 
-			_MinuteTimer.Elapsed += OnMinuteEvent;
+			_MinuteTimer.Elapsed += (sender, e) =>
+			{
+				Task.Run(async () => await RemovePunishments());
+			};
 			_MinuteTimer.Enabled = true;
 
-			_HalfSecondTimer.Elapsed += OnOneHalfSecondEvent;
+			_HalfSecondTimer.Elapsed += (sender, e) =>
+			{
+				Task.Run(async () => await DeleteTargettedMessages());
+				Task.Run(() => RemoveActiveCloseHelp());
+				Task.Run(() => RemoveActiveCloseQuotes());
+				Task.Run(() => RemoveSlowmodeUsers());
+			};
 			_HalfSecondTimer.Enabled = true;
 		}
 
-		private void OnHourEvent(object source, ElapsedEventArgs e)
-		{
-			Task.Run(() => ClearSpamPreventionUsers());
-		}
 		private void ClearSpamPreventionUsers()
 		{
 			_SpamPreventionUsers.Clear();
-		}
-
-		private void OnMinuteEvent(object source, ElapsedEventArgs e)
-		{
-			Task.Run(async () => { await RemovePunishments(); });
 		}
 		private async Task RemovePunishments()
 		{
@@ -72,7 +76,7 @@ namespace Advobot.Services.Timers
 					}
 					case PunishmentType.Deafen:
 					{
-						await _PunishmentRemover.UndeafenAsync(punishment.User as IGuildUser, reason);
+						await _PunishmentRemover.UndeafenAsync(punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id), reason);
 						continue;
 					}
 					case PunishmentType.VoiceMute:
@@ -87,14 +91,6 @@ namespace Advobot.Services.Timers
 					}
 				}
 			}
-		}
-
-		private void OnOneHalfSecondEvent(object source, ElapsedEventArgs e)
-		{
-			Task.Run(async () => { await DeleteTargettedMessages(); });
-			Task.Run(() => RemoveActiveCloseHelp());
-			Task.Run(() => RemoveActiveCloseQuotes());
-			Task.Run(() => RemoveSlowmodeUsers());
 		}
 		private async Task DeleteTargettedMessages()
 		{
@@ -125,7 +121,6 @@ namespace Advobot.Services.Timers
 			RemoveTimedObjects(_SlowmodeUsers);
 		}
 
-		//Adds
 		public void AddRemovablePunishment(RemovablePunishment punishment)
 		{
 			Add(_RemovablePunishments, new UserKey(punishment.Guild, punishment.User, punishment.GetTime().Ticks), punishment);
@@ -161,7 +156,6 @@ namespace Advobot.Services.Timers
 			Add(_SlowmodeUsers, new UserKey(user), user);
 		}
 
-		//Removes
 		public int RemovePunishments(ulong userId, PunishmentType punishment)
 		{
 			//Has to be made into a new list otherwise the concurrent modification also effects it.
@@ -172,6 +166,7 @@ namespace Advobot.Services.Timers
 			}
 			return kvps.Count();
 		}
+
 		public CloseWords<HelpEntry> GetOutActiveCloseHelp(IUser user)
 		{
 			//Should only ever have one for each user at a time.
@@ -184,8 +179,6 @@ namespace Advobot.Services.Timers
 			var kvp = _ActiveCloseQuotes.SingleOrDefault(x => x.Key.UserId == user.Id);
 			return kvp.Equals(default) ? null : Remove(_ActiveCloseQuotes, kvp.Key);
 		}
-
-		//Gets
 		public SpamPreventionUserInformation GetSpamPreventionUser(IGuildUser user)
 		{
 			var kvp = _SpamPreventionUsers.SingleOrDefault(x => x.Key.GuildId == user.Guild.Id && x.Key.UserId == user.Id);
@@ -238,19 +231,18 @@ namespace Advobot.Services.Timers
 		}
 		/// <summary>
 		/// Adds <paramref name="value"/> to <paramref name="concDic"/> with the given <paramref name="key"/> unless <paramref name="value"/>
-		/// is the default value of its type.
+		/// or <paramref name="key"/> are the default values of their type.
 		/// </summary>
 		/// <typeparam name="TKey"></typeparam>
 		/// <typeparam name="TValue"></typeparam>
 		/// <param name="concDic"></param>
 		/// <param name="key"></param>
 		/// <param name="value"></param>
-		private void Add<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic, TKey key, TValue value)
+		private void Add<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic, TKey key, TValue value, [CallerMemberName] string caller = "")
 		{
-			//Don't allow a null/default value to be set
-			if (!EqualityComparer<TValue>.Default.Equals(value, default) && !concDic.TryAdd(key, value))
+			if (EqualityComparer<TKey>.Default.Equals(key, default) || EqualityComparer<TValue>.Default.Equals(value, default) || !concDic.TryAdd(key, value))
 			{
-				ConsoleActions.WriteLine($"Failed to add the object at {key} in {GetDictionaryTValueName(concDic)}.", color: ConsoleColor.Red);
+				ConsoleActions.WriteLine($"Failed to add the object at {key} in {caller}.", color: ConsoleColor.Red);
 			}
 		}
 		/// <summary>
@@ -261,27 +253,14 @@ namespace Advobot.Services.Timers
 		/// <param name="concDic"></param>
 		/// <param name="key"></param>
 		/// <returns></returns>
-		private TValue Remove<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic, TKey key)
+		private TValue Remove<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic, TKey key, [CallerMemberName] string caller = "")
 		{
-			//Don't allow null/default keys to be used
 			TValue value = default;
-			if (!EqualityComparer<TKey>.Default.Equals(key, default) && !concDic.TryRemove(key, out value))
+			if (EqualityComparer<TKey>.Default.Equals(key, default) || !concDic.TryRemove(key, out value))
 			{
-				ConsoleActions.WriteLine($"Failed to remove the object at {key} in {GetDictionaryTValueName(concDic)}.", color: ConsoleColor.Red);
+				ConsoleActions.WriteLine($"Failed to remove the object at {key} in {caller}.", color: ConsoleColor.Red);
 			}
 			return value;
-		}
-		/// <summary>
-		/// Returns a readable name of the <paramref name="concDic"/> TValue.
-		/// </summary>
-		/// <typeparam name="TKey"></typeparam>
-		/// <typeparam name="TValue"></typeparam>
-		/// <param name="concDic"></param>
-		/// <returns></returns>
-		private string GetDictionaryTValueName<TKey, TValue>(ConcurrentDictionary<TKey, TValue> concDic)
-		{
-			var tName = typeof(TValue).Name.Trim('1'); //Has `1 at the end of its name
-			return (typeof(TValue).IsGenericType ? tName + typeof(TValue).GetGenericArguments()[0].Name : tName);
 		}
 	}
 }
