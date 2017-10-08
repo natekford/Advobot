@@ -2,7 +2,6 @@
 using Advobot.Classes;
 using Advobot.Classes.Results;
 using Advobot.Enums;
-using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -14,7 +13,7 @@ namespace Advobot.Actions
 {
 	public static class UserActions
 	{
-		public static VerifiedObjectResult VerifyUserMeetsRequirements(ICommandContext context, IGuildUser target, ObjectVerification[] checks)
+		public static VerifiedObjectResult VerifyUserMeetsRequirements(ICommandContext context, IGuildUser target, params ObjectVerification[] checks)
 		{
 			if (target == null)
 			{

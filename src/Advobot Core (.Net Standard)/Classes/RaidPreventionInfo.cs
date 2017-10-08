@@ -26,7 +26,7 @@ namespace Advobot.Classes.SpamPrevention
 		[JsonIgnore]
 		public List<BasicTimeInterface> TimeList { get; }
 
-		public RaidPreventionInfo(PunishmentType punishmentType, int userCount, int interval)
+		private RaidPreventionInfo(PunishmentType punishmentType, int userCount, int interval)
 		{
 			PunishmentType = punishmentType;
 			UserCount = userCount;
@@ -53,7 +53,6 @@ namespace Advobot.Classes.SpamPrevention
 		}
 		public async Task RaidPreventionPunishment(IGuildSettings guildSettings, IGuildUser user)
 		{
-			//TODO: make this not 0
 			var giver = new AutomaticPunishmentGiver(0, null);
 			await giver.AutomaticallyPunishAsync(PunishmentType, user, guildSettings.MuteRole);
 		}

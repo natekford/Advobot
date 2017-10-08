@@ -171,15 +171,15 @@ namespace Advobot.Commands.RoleModeration
 			}
 		}
 		[Command(nameof(Allow)), ShortAlias(nameof(Allow))]
-		public async Task Allow([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
+		public async Task Allow([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 		{
-			var givenPerms = await RoleActions.ModifyRolePermissions(role, PermValue.Allow, rawValue, Context.User as IGuildUser);
+			var givenPerms = await RoleActions.ModifyRolePermissions(role, PermValue.Allow, permissions, Context.User as IGuildUser);
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully allowed `{(givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing")}` for `{role.FormatRole()}`.");
 		}
 		[Command(nameof(Deny)), ShortAlias(nameof(Deny))]
-		public async Task Deny([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
+		public async Task Deny([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 		{
-			var givenPerms = await RoleActions.ModifyRolePermissions(role, PermValue.Deny, rawValue, Context.User as IGuildUser);
+			var givenPerms = await RoleActions.ModifyRolePermissions(role, PermValue.Deny, permissions, Context.User as IGuildUser);
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully denied `{(givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing")}` for `{role.FormatRole()}`.");
 		}
 	}

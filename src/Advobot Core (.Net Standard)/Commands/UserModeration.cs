@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 namespace Advobot.Commands.UserModeration
 {
 	[Group(nameof(Mute)), TopLevelShortAlias(nameof(Mute))]
-	[Usage("[User] <Time> <Reason>")]
 	[Summary("Prevents a user from typing and speaking in the guild. Time is in minutes, and if no time is given then the mute will not expire.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles, GuildPermission.ManageMessages }, null)]
 	[DefaultEnabled(true)]
@@ -40,7 +39,6 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	[Group(nameof(VoiceMute)), TopLevelShortAlias(nameof(VoiceMute))]
-	[Usage("[User] <Time")]
 	[Summary("Prevents a user from speaking. Time is in minutes, and if no time is given then the mute will not expire.")]
 	[PermissionRequirement(new[] { GuildPermission.MuteMembers }, null)]
 	[DefaultEnabled(true)]
@@ -64,7 +62,6 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	[Group(nameof(Deafen)), TopLevelShortAlias(nameof(Deafen))]
-	[Usage("[User] <Time>")]
 	[Summary("Prevents a user from hearing. Time is in minutes, and if no time is given then the mute will not expire.")]
 	[PermissionRequirement(new[] { GuildPermission.DeafenMembers }, null)]
 	[DefaultEnabled(true)]
@@ -88,7 +85,6 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	[Group(nameof(MoveUser)), TopLevelShortAlias(nameof(MoveUser))]
-	[Usage("[User] [Channel]")]
 	[Summary("Moves the user to the given voice channel.")]
 	[PermissionRequirement(new[] { GuildPermission.MoveMembers }, null)]
 	[DefaultEnabled(true)]
@@ -189,25 +185,15 @@ namespace Advobot.Commands.UserModeration
 	[DefaultEnabled(true)]
 	public sealed class Ban : AdvobotModuleBase
 	{
-		[Command, Priority(1)]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user, uint time, [Optional, Remainder] string reason)
+		[Command]
+		public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong user, uint time, [Optional, Remainder] string reason)
 		{
-			await CommandRunner(user.Id, time, reason);
+			await CommandRunner(user, time, reason);
 		}
-		[Command, Priority(1)]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user, [Optional, Remainder] string reason)
+		[Command]
+		public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong user, [Optional, Remainder] string reason)
 		{
-			await CommandRunner(user.Id, 0, reason);
-		}
-		[Command, Priority(0)]
-		public async Task Command(ulong userId, uint time, [Optional, Remainder] string reason)
-		{
-			await CommandRunner(userId, time, reason);
-		}
-		[Command, Priority(0)]
-		public async Task Command(ulong userId, [Optional, Remainder] string reason)
-		{
-			await CommandRunner(userId, 0, reason);
+			await CommandRunner(user, 0, reason);
 		}
 
 		private async Task CommandRunner(ulong userId, uint time, string reason)

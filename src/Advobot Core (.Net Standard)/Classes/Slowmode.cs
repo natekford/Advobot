@@ -1,16 +1,12 @@
-﻿using Advobot.Actions;
-using Advobot.Interfaces;
+﻿using Advobot.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Advobot.Classes
 {
-	//TODO: put this into the timers service.
 	/// <summary>
 	/// Limits the amount of messages users are allowed to send in a given time interval. Initially created with <see cref="Enabled"/> set to false.
 	/// </summary>

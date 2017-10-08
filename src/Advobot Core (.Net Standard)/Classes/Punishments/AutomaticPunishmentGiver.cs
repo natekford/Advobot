@@ -1,5 +1,4 @@
 ﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
@@ -16,7 +15,6 @@ namespace Advobot.Classes.Punishments
 			=> await AutomaticallyPunishAsync(punishmentType, user as IGuildUser, role, reason);
 		internal async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IGuildUser user, IRole role, [CallerMemberName] string reason = "")
 		{
-			//TODO: Rework the 4 big punishment things
 			var guild = user.GetGuild();
 			var bot = UserActions.GetBot(guild);
 			if (!user.CanBeModifiedByUser(bot))

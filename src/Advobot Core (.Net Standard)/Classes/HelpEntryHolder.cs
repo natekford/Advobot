@@ -39,7 +39,7 @@ namespace Advobot.Classes
 				var name = classType.GetCustomAttribute<GroupAttribute>()?.Prefix;
 				var aliases = classType.GetCustomAttribute<AliasAttribute>()?.Aliases;
 				var summary = classType.GetCustomAttribute<SummaryAttribute>()?.Text;
-				var usage = classType.GetCustomAttribute<UsageAttribute>()?.ToString(name);
+				var usage = new Usage(classType).Text;
 				var permReqs = classType.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString();
 				var otherReqs = classType.GetCustomAttribute<OtherRequirementAttribute>()?.ToString();
 				var defaultEnabled = classType.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
