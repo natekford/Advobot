@@ -8,11 +8,12 @@ using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.SelfRoles
 {
-	[Group(nameof(ModifySelfRoles)), Alias("msr")]
+	[Group(nameof(ModifySelfRoles)), TopLevelShortAlias(nameof(ModifySelfRoles))]
 	[Usage("[Create|Delete|Add|Remove] <Group Number> <Role/...>")]
 	[Summary("Adds a role to the self assignable list. Roles can be grouped together which means only one role in the group can be self assigned at a time. " + 
 		"Create and Delete modify the entire group. Add and Remove modify a single role in a group.")]
@@ -20,33 +21,33 @@ namespace Advobot.Commands.SelfRoles
 	[DefaultEnabled(false)]
 	public sealed class ModifySelfRoles : SavingModuleBase
 	{
-		[Command(nameof(ActionType.Create)), Alias("c")]
-		public async Task CommandCreate(uint groupNum)
+		[Command(nameof(Create)), ShortAlias(nameof(Create))]
+		public async Task Create(uint groupNum)
 		{
-			await CommandRunner(ActionType.Create, groupNum);
+			await CommandRunner(groupNum);
 		}
-		[Command(nameof(ActionType.Delete)), Alias("d")]
-		public async Task CommandDelete(uint groupNum)
+		[Command(nameof(Delete)), ShortAlias(nameof(Delete))]
+		public async Task Delete(uint groupNum)
 		{
-			await CommandRunner(ActionType.Delete, groupNum);
+			await CommandRunner(groupNum);
 		}
-		[Command(nameof(ActionType.Add)), Alias("a")]
-		public async Task CommandAdd(uint groupNum, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
+		[Command(nameof(Add)), ShortAlias(nameof(Add))]
+		public async Task Add(uint groupNum, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
 		{
-			await CommandRunner(ActionType.Add, groupNum, roles);
+			await CommandRunner(groupNum, roles);
 		}
-		[Command(nameof(ActionType.Remove)), Alias("r")]
-		public async Task CommandRemove(uint groupNum, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
+		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+		public async Task Remove(uint groupNum, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
 		{
-			await CommandRunner(ActionType.Remove, groupNum, roles);
+			await CommandRunner(groupNum, roles);
 		}
 
-		private async Task CommandRunner(ActionType action, uint groupNum)
+		private async Task CommandRunner(uint groupNum, [CallerMemberName] string caller = "")
 		{
 			var selfAssignableGroups = Context.GuildSettings.SelfAssignableGroups;
-			switch (action)
+			switch (caller)
 			{
-				case ActionType.Create:
+				case nameof(Create):
 				{
 					if (selfAssignableGroups.Count >= Constants.MAX_SA_GROUPS)
 					{
@@ -62,11 +63,11 @@ namespace Advobot.Commands.SelfRoles
 					selfAssignableGroups.Add(new SelfAssignableGroup((int)groupNum));
 					break;
 				}
-				case ActionType.Delete:
+				case nameof(Delete):
 				{
 					if (selfAssignableGroups.Count <= 0)
 					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason($"You have too many groups. {Constants.MAX_SA_GROUPS} is the maximum."));
+						await MessageActions.SendErrorMessage(Context, new ErrorReason("There are no groups to delete."));
 						return;
 					}
 					else if (!selfAssignableGroups.Any(x => x.Group == groupNum))
@@ -84,15 +85,15 @@ namespace Advobot.Commands.SelfRoles
 				}
 			}
 
-			//What could go wrong by simply doing action.EnumName().ToLower() + "d"? The switch returning on default should mean nothing should end up looking dumb, like "Addd"
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully {action.EnumName().ToLower() + "d"} group `{groupNum}`.");
+			var actionName = caller.ToLower() + "d";
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully {actionName} group `{groupNum}`.");
 		}
-		private async Task CommandRunner(ActionType action, uint groupNum, IRole[] roles)
+		private async Task CommandRunner(uint groupNum, IRole[] roles, [CallerMemberName] string caller = "")
 		{
 			var selfAssignableGroups = Context.GuildSettings.SelfAssignableGroups;
 			if (!selfAssignableGroups.Any())
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("Before you can edit or delete a group, you need to first create one."));
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There are no groups to edit."));
 				return;
 			}
 
@@ -103,43 +104,41 @@ namespace Advobot.Commands.SelfRoles
 				return;
 			}
 
-			var rolesAdded = new List<IRole>();
-			var rolesNotAdded = new List<IRole>();
+			var rolesModified = new List<IRole>();
+			var rolesNotModified = new List<IRole>();
 			var alreadyUsedRoles = selfAssignableGroups.SelectMany(x => x.Roles.Select(y => y.RoleId));
-			switch (action)
+			switch (caller)
 			{
-				case ActionType.Add:
+				case nameof(Add):
 				{
 					foreach (var role in roles)
 					{
 						if (!alreadyUsedRoles.Contains(role.Id))
 						{
-							rolesAdded.Add(role);
+							rolesModified.Add(role);
 						}
 						else
 						{
-							rolesNotAdded.Add(role);
+							rolesNotModified.Add(role);
 						}
 					}
-
-					group.AddRoles(rolesAdded.Select(x => new SelfAssignableRole(x)));
+					group.AddRoles(rolesModified.Select(x => new SelfAssignableRole(x)));
 					break;
 				}
-				case ActionType.Remove:
+				case nameof(Remove):
 				{
 					foreach (var role in roles)
 					{
 						if (alreadyUsedRoles.Contains(role.Id))
 						{
-							rolesAdded.Add(role);
+							rolesModified.Add(role);
 						}
 						else
 						{
-							rolesNotAdded.Add(role);
+							rolesNotModified.Add(role);
 						}
 					}
-
-					group.RemoveRoles(rolesAdded.Select(x => x.Id));
+					group.RemoveRoles(rolesModified.Select(x => x.Id));
 					break;
 				}
 				default:
@@ -148,13 +147,14 @@ namespace Advobot.Commands.SelfRoles
 				}
 			}
 
-			var addedStr = rolesAdded.Any() ? $"Successfully added the following role(s): `{String.Join("`, `", rolesAdded.Select(x => x.FormatRole()))}`." : null;
-			var notAddedStr = rolesNotAdded.Any() ? $"Failed to add the following role(s): `{String.Join("`, `", rolesNotAdded.Select(x => x.FormatRole()))}`." : null;
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.JoinNonNullStrings(" ", addedStr, notAddedStr));
+			var actionName = caller.ToLower() + "d";
+			var modified = rolesModified.Any() ? $"Successfully {actionName} the following role(s): `{String.Join("`, `", rolesModified.Select(x => x.FormatRole()))}`." : null;
+			var notModified = rolesNotModified.Any() ? $"Failed to {actionName} the following role(s): `{String.Join("`, `", rolesNotModified.Select(x => x.FormatRole()))}`." : null;
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, GeneralFormatting.JoinNonNullStrings(" ", modified, notModified));
 		}
 	}
 
-	[Group(nameof(AssignSelfRole)), Alias("asr")]
+	[Group(nameof(AssignSelfRole)), TopLevelShortAlias(nameof(AssignSelfRole))]
 	[Usage("[Role]")]
 	[Summary("Gives or takes a role depending on if the user has it already. Removes all other roles in the same group unless the group is `0`.")]
 	[DefaultEnabled(false)]
@@ -183,9 +183,9 @@ namespace Advobot.Commands.SelfRoles
 			if (group.Group != 0)
 			{
 				var otherRoles = group.Roles.Where(x => user.RoleIds.Contains(x?.RoleId ?? 0)).Select(x => x.Role);
-				await RoleActions.TakeRoles(user, otherRoles, new AutomaticModerationReason("self role removal"));
 				if (otherRoles.Any())
 				{
+					await RoleActions.TakeRoles(user, otherRoles, new AutomaticModerationReason("self role removal"));
 					removedRoles = $", and removed `{String.Join("`, `", otherRoles.Select(x => x.FormatRole()))}`";
 				}
 			}
@@ -195,7 +195,7 @@ namespace Advobot.Commands.SelfRoles
 		}
 	}
 
-	[Group(nameof(DisplaySelfRoles)), Alias("dsr")]
+	[Group(nameof(DisplaySelfRoles)), TopLevelShortAlias(nameof(DisplaySelfRoles))]
 	[Usage("<Number>")]
 	[Summary("Shows the current group numbers that exists on the guild. If a number is input then it shows the roles in that group.")]
 	[DefaultEnabled(false)]

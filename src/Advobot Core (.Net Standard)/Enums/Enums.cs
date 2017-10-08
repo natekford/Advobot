@@ -127,26 +127,6 @@ namespace Advobot.Enums
 	}
 
 	/// <summary>
-	/// Specifies what action to do.
-	/// </summary>
-	[Flags]
-	public enum ActionType : uint
-	{
-		Add     = (1U << 0),
-		Clear   = (1U << 1),
-		Create  = (1U << 2),
-		Current = (1U << 3),
-		Default = (1U << 4),
-		Delete  = (1U << 5),
-		Disable = (1U << 6),
-		Enable  = (1U << 7),
-		Modify  = (1U << 8),
-		Remove  = (1U << 9),
-		Show    = (1U << 10),
-		Setup   = (1U << 11),
-	}
-
-	/// <summary>
 	/// Used in <see cref="Attributes.OtherRequirementAttribute"/> to perform various checks.
 	/// </summary>
 	[Flags]

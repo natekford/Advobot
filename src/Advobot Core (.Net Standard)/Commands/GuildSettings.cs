@@ -14,20 +14,20 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.GuildSettings
 {
-	[Group(nameof(ModifyGuildPrefix)), Alias("mgdp")]
+	[Group(nameof(ModifyGuildPrefix)), TopLevelShortAlias(nameof(ModifyGuildPrefix))]
 	[Usage("[New Prefix|Clear]")]
 	[Summary("Makes the bot use the given prefix in the guild.")]
 	[OtherRequirement(Precondition.GuildOwner)]
 	[DefaultEnabled(false)]
 	public sealed class ModifyGuildPrefix : SavingModuleBase
 	{
-		[Command(nameof(ActionType.Clear)), Priority(1)]
-		public async Task Command()
+		[Command(nameof(Clear)), Priority(1)]
+		public async Task Clear()
 		{
 			Context.GuildSettings.Prefix = null;
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully cleared the guild's prefix.");
 		}
-		[Command, Priority(0)]
+		[Command]
 		public async Task Command([VerifyStringLength(Target.Prefix)] string newPrefix)
 		{
 			Context.GuildSettings.Prefix = newPrefix;
@@ -35,7 +35,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(ModifyCommands)), Alias("modcom", "mcom")]
+	[Group(nameof(ModifyCommands)), TopLevelShortAlias(nameof(ModifyCommands))]
 	[Usage("[Enable|Disable] [Command Name|Category Name|All]")]
 	[Summary("Turns a command on or off. Can turn all commands in a category on or off too. " +
 		"Cannot turn off `" + nameof(ModifyCommands) + "` or `" + nameof(Miscellaneous.Help) + "`.")]
@@ -45,11 +45,11 @@ namespace Advobot.Commands.GuildSettings
 	{
 		private static readonly string[] _CommandsUnableToBeTurnedOff = new[] { nameof(ModifyCommands), nameof(Miscellaneous.Help) };
 
-		[Group(nameof(ActionType.Enable)), Alias("e")]
+		[Group(nameof(Enable)), ShortAlias(nameof(Enable))]
 		public sealed class Enable : SavingModuleBase
 		{
-			[Command("all"), Priority(1)]
-			public async Task CommandAll()
+			[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
+			public async Task All()
 			{
 				//Only grab commands that are already disabled and are able to be changed.
 				var commands = Context.GuildSettings.CommandSwitches.Where(x => !x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name)).ToArray();
@@ -60,7 +60,7 @@ namespace Advobot.Commands.GuildSettings
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
 				await MessageActions.SendMessage(Context.Channel, $"Successfully enabled the following commands: `{text}`.");
 			}
-			[Command, Priority(0)]
+			[Command]
 			public async Task Command(CommandSwitch command)
 			{
 				if (command.Value)
@@ -90,11 +90,11 @@ namespace Advobot.Commands.GuildSettings
 				await MessageActions.SendMessage(Context.Channel, $"Successfully enabled the following commands: `{text}`.");
 			}
 		}
-		[Group(nameof(ActionType.Disable)), Alias("d")]
+		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
 		public sealed class Disable : SavingModuleBase
 		{
-			[Command("all"), Priority(1)]
-			public async Task CommandAll()
+			[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
+			public async Task All()
 			{
 				//Only grab commands that are already enabled and are able to be changed.
 				var commands = Context.GuildSettings.CommandSwitches.Where(x => x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name)).ToArray();
@@ -105,7 +105,7 @@ namespace Advobot.Commands.GuildSettings
 				var text = commands.Any() ? String.Join("`, `", commands.Select(x => x.Name)) : "None";
 				await MessageActions.SendMessage(Context.Channel, $"Successfully disabled the following commands: `{text}`.");
 			}
-			[Command, Priority(0)]
+			[Command]
 			public async Task Command(CommandSwitch command)
 			{
 				if (!command.Value)
@@ -137,7 +137,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(ModifyIgnoredCommandChannels)), Alias("micc")]
+	[Group(nameof(ModifyIgnoredCommandChannels)), TopLevelShortAlias(nameof(ModifyIgnoredCommandChannels))]
 	[Usage("[Add|Remove] [Channel] <Command Name|Category Name>")]
 	[Summary("The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.")]
 	[PermissionRequirement(null, null)]
@@ -146,7 +146,7 @@ namespace Advobot.Commands.GuildSettings
 	{
 		private static readonly string[] _CommandsUnableToBeTurnedOff = new[] { nameof(ModifyIgnoredCommandChannels), nameof(Miscellaneous.Help) };
 
-		[Group(nameof(ActionType.Add)), Alias("a")]
+		[Group(nameof(Add)), ShortAlias(nameof(Add))]
 		public sealed class Add : SavingModuleBase
 		{
 			[Command]
@@ -183,7 +183,7 @@ namespace Advobot.Commands.GuildSettings
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully started ignoring the following commands on `{channel.FormatChannel()}`: `{cmdNames}`.");
 			}
 		}
-		[Group(nameof(ActionType.Remove)), Alias("r")]
+		[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public sealed class Remove : SavingModuleBase
 		{
 			[Command]
@@ -220,7 +220,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(ModifyBotUsers)), Alias("mbu")]
+	[Group(nameof(ModifyBotUsers)), TopLevelShortAlias(nameof(ModifyBotUsers))]
 	[Usage("[Show|Add|Remove] <User> <Permission/...>")]
 	[Summary("Gives a user permissions in the bot but not on Discord itself. " +
 		"Type `" + nameof(ModifyBotUsers) + " [Show]` to see the available permissions. " +
@@ -229,7 +229,7 @@ namespace Advobot.Commands.GuildSettings
 	[DefaultEnabled(false)]
 	public sealed class ModifyBotUsers : SavingModuleBase
 	{
-		[Group(nameof(ActionType.Show)), Alias("s")]
+		[Group(nameof(Show)), ShortAlias(nameof(Show))]
 		public sealed class Show : AdvobotModuleBase
 		{
 			[Command]
@@ -252,7 +252,7 @@ namespace Advobot.Commands.GuildSettings
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed($"Permissions for {user.FormatUser()}", desc));
 			}
 		}
-		[Group(nameof(ActionType.Add)), Alias("a")]
+		[Group(nameof(Add)), ShortAlias(nameof(Add))]
 		public sealed class Add : SavingModuleBase
 		{
 			[Command]
@@ -267,7 +267,7 @@ namespace Advobot.Commands.GuildSettings
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully gave `{user.FormatUser()}` the following bot permissions: `{givenPerms}`.");
 			}
 		}
-		[Group(nameof(ActionType.Remove)), Alias("r")]
+		[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public sealed class Remove : SavingModuleBase
 		{
 			[Command]
@@ -289,7 +289,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(ModifyPersistentRoles)), Alias("mpr")]
+	[Group(nameof(ModifyPersistentRoles)), TopLevelShortAlias(nameof(ModifyPersistentRoles))]
 	[Usage("[Show|Add|Remove] [User] [Role]")]
 	[Summary("Gives a user a role that stays even when they leave and rejoin the server." +
 		"Type `" + nameof(ModifyPersistentRoles) + " [Show]` to see the which users have persistent roles set up. " +
@@ -301,15 +301,15 @@ namespace Advobot.Commands.GuildSettings
 
 	}
 
-	[Group(nameof(ModifyChannelSettings)), Alias("mcs")]
+	[Group(nameof(ModifyChannelSettings)), TopLevelShortAlias(nameof(ModifyChannelSettings))]
 	[Usage("[ImageOnly] <Channel>")]
 	[Summary("Image only works solely on attachments. No input channel means it applies to the current channel. Using the command on an already targetted channel turns it off.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(false)]
 	public sealed class ModifyChannelSettings : SavingModuleBase
 	{
-		[Command(nameof(ChannelSetting.ImageOnly)), Alias("io")]
-		public async Task CommandImageOnly([VerifyObject(true, ObjectVerification.CanBeEdited)] ITextChannel channel)
+		[Command(nameof(ImageOnly)), ShortAlias(nameof(ImageOnly))]
+		public async Task ImageOnly([VerifyObject(true, ObjectVerification.CanBeEdited)] ITextChannel channel)
 		{
 			if (Context.GuildSettings.ImageOnlyChannels.Contains(channel.Id))
 			{
@@ -324,7 +324,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(ModifyGuildNotifs)), Alias("mgnt")]
+	[Group(nameof(ModifyGuildNotifs)), TopLevelShortAlias(nameof(ModifyGuildNotifs))]
 	[Usage("[Welcome|Goodbye] [Channel] <\"Content:string\"> <\"Title:string\"> <\"Desc:string\"> <\"Thumb:string\">")]
 	[Summary("The bot send a message to the given channel when the self explantory event happens. " +
 		"`" + Constants.USER_MENTION + "` will be replaced with the formatted user. " +
@@ -333,8 +333,8 @@ namespace Advobot.Commands.GuildSettings
 	[DefaultEnabled(false)]
 	public sealed class ModifyGuildNotifs : SavingModuleBase
 	{
-		[Command(nameof(GuildNotificationType.Welcome)), Alias("w")]
-		public async Task CommandWelcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] string input)
+		[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
+		public async Task Welcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] string input)
 		{
 			var inputArgs = input.SplitExceptInQuotes().ToList();
 			var content = GetActions.GetVariableAndRemove(inputArgs, "content");
@@ -345,8 +345,8 @@ namespace Advobot.Commands.GuildSettings
 			Context.GuildSettings.WelcomeMessage = new GuildNotification(content, title, desc, thumb, channel.Id);
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the welcome message.");
 		}
-		[Command(nameof(GuildNotificationType.Goodbye)), Alias("g")]
-		public async Task CommandGoodbye([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] string input)
+		[Command(nameof(Goodbye)), ShortAlias(nameof(Goodbye))]
+		public async Task Goodbye([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] string input)
 		{
 			var inputArgs = input.SplitExceptInQuotes().ToList();
 			var content = GetActions.GetVariableAndRemove(inputArgs, "content");
@@ -359,15 +359,15 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(TestGuildNotifs)), Alias("tgn")]
+	[Group(nameof(TestGuildNotifs)), TopLevelShortAlias(nameof(TestGuildNotifs))]
 	[Usage("[Welcome|Goodbye]")]
 	[Summary("Sends the given guild notification in order to test it.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
 	public sealed class TestGuildNotifs : AdvobotModuleBase
 	{
-		[Command(nameof(GuildNotificationType.Welcome)), Alias("w")]
-		public async Task CommandWelcome()
+		[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
+		public async Task Welcome()
 		{
 			var notif = Context.GuildSettings.WelcomeMessage;
 			if (notif == null)
@@ -378,8 +378,8 @@ namespace Advobot.Commands.GuildSettings
 
 			await notif.Send(null);
 		}
-		[Command(nameof(GuildNotificationType.Goodbye)), Alias("g")]
-		public async Task CommandGoodbye()
+		[Command(nameof(Goodbye)), ShortAlias(nameof(Goodbye))]
+		public async Task Goodbye()
 		{
 			var notif = Context.GuildSettings.GoodbyeMessage;
 			if (notif == null)
@@ -392,26 +392,26 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(DisplayGuildSettings)), Alias("dgds")]
+	[Group(nameof(DisplayGuildSettings)), TopLevelShortAlias(nameof(DisplayGuildSettings))]
 	[Usage("[Show|All|Setting Name]")]
 	[Summary("Displays guild settings. Show gives a list of the setting names.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayGuildSettings : AdvobotModuleBase
 	{
-		[Command(nameof(ActionType.Show)), Priority(1)]
-		public async Task Command()
+		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
+		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", GetActions.GetGuildSettings().Select(x => x.Name))}`";
 			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
 		}
-		[Command("all"), Priority(1)]
-		public async Task CommandAll()
+		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
+		public async Task All()
 		{
 			var text = Context.GuildSettings.ToString();
 			await MessageActions.SendTextFile(Context.Channel, text, "Guild_Settings", "Guild Settings");
 		}
-		[Command, Priority(0)]
+		[Command]
 		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.GuildSettingTypeReader))] PropertyInfo setting)
 		{
 			var desc = Context.GuildSettings.ToString(setting);
@@ -426,7 +426,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(GetFile)), Alias("gf")]
+	[Group(nameof(GetFile)), TopLevelShortAlias(nameof(GetFile))]
 	[Usage("")]
 	[Summary("Sends the file containing all the guild's saved bot information.")]
 	[PermissionRequirement(null, null)]

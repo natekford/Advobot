@@ -1,203 +1,130 @@
 ﻿using Advobot.Actions;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.SpamPrevention;
 using Advobot.Enums;
 using Discord.Commands;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.SpamPrevention
 {
-	[Group(nameof(PreventSpam)), Alias("prs")]
-	[Usage("[Message|LongMessage|Link|Image|Mention|Show] <Setup|On|Off> <Punishment> <Message Count> <Spam Amount|Time Interval> <Votes>")]
+	[Group(nameof(PreventSpam)), TopLevelShortAlias(nameof(PreventSpam))]
+	[Usage("[Show|Create|Enable|Disable] <Message|LongMessage|Link|Image|Mention> <Punishment> <Message Count> <Spam Amount|Time Interval> <Votes>")]
 	[Summary("Spam prevention allows for some protection against mention spammers. Messages are the amount of messages a user has to send with the given amount of mentions before being considered " +
 		"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The spam users are reset every hour. `Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
 	public sealed class PreventSpam : SavingModuleBase
 	{
-		[Group(nameof(ActionType.Show)), Alias("s")]
-		public sealed class ShowPunishments : AdvobotModuleBase
+		[Command(nameof(Show)), ShortAlias(nameof(Show))]
+		public async Task Show()
 		{
-			[Command]
-			public async Task Command()
-			{
-				var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Punishment Types", desc));
-			}
+			var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`";
+			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Punishment Types", desc));
 		}
-
-		[Group(nameof(SpamType.Message)), Alias("msg")]
-		public sealed class PreventMessageSpam : SavingModuleBase
+		[Command(nameof(Create)), ShortAlias(nameof(Create))]
+		public async Task Create(SpamType spamType, PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 		{
-			private const SpamType _SpamType = SpamType.Message;
+			if (!SpamPreventionInfo.TryCreateSpamPreventionInfo(spamType, punishment, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes, out var spamPrevention, out var errorReason))
+			{
+				await MessageActions.SendErrorMessage(Context, errorReason);
+				return;
+			}
 
-			[Command(nameof(ActionType.Enable))]
-			public async Task CommandEnable()
-			{
-				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
-			}
-			[Command(nameof(ActionType.Disable))]
-			public async Task CommandDisable()
-			{
-				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
-			}
-			[Command(nameof(ActionType.Setup))]
-			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
-			{
-				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
-			}
+			Context.GuildSettings.SpamPreventionDictionary[spamType] = spamPrevention;
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set up the spam prevention for `{spamType.EnumName().ToLower()}`.\n{spamPrevention.ToString()}");
 		}
-
-		[Group(nameof(SpamType.LongMessage)), Alias("long message", "lmsg")]
-		public sealed class PreventLongMessageSpam : SavingModuleBase
+		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
+		public async Task Enable(SpamType spamType)
 		{
-			private const SpamType _SpamType = SpamType.LongMessage;
+			var spamPrev = Context.GuildSettings.SpamPreventionDictionary[spamType];
+			if (spamPrev == null)
+			{
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There must be a spam prevention of that type set up before one can be enabled or disabled."));
+				return;
+			}
 
-			[Command(nameof(ActionType.Enable))]
-			public async Task CommandEnable()
-			{
-				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
-			}
-			[Command(nameof(ActionType.Disable))]
-			public async Task CommandDisable()
-			{
-				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
-			}
-			[Command(nameof(ActionType.Setup))]
-			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
-			{
-				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
-			}
+			spamPrev.Enable();
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully enabled the given spam prevention.");
 		}
-
-		[Group(nameof(SpamType.Link)), Alias("l")]
-		public sealed class PreventLinkSpam : SavingModuleBase
+		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
+		public async Task Disable(SpamType spamType)
 		{
-			private const SpamType _SpamType = SpamType.Link;
+			var spamPrev = Context.GuildSettings.SpamPreventionDictionary[spamType];
+			if (spamPrev == null)
+			{
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There must be a spam prevention of that type set up before one can be enabled or disabled."));
+				return;
+			}
 
-			[Command(nameof(ActionType.Enable))]
-			public async Task CommandEnable()
-			{
-				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
-			}
-			[Command(nameof(ActionType.Disable))]
-			public async Task CommandDisable()
-			{
-				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
-			}
-			[Command(nameof(ActionType.Setup))]
-			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
-			{
-				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
-			}
-		}
-
-		[Group(nameof(SpamType.Image)), Alias("img")]
-		public sealed class PreventImageSpam : SavingModuleBase
-		{
-			private const SpamType _SpamType = SpamType.Image;
-
-			[Command(nameof(ActionType.Enable))]
-			public async Task CommandEnable()
-			{
-				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
-			}
-			[Command(nameof(ActionType.Disable))]
-			public async Task CommandDisable()
-			{
-				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
-			}
-			[Command(nameof(ActionType.Setup))]
-			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
-			{
-				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
-			}
-		}
-
-		[Group(nameof(SpamType.Mention)), Alias("men")]
-		public sealed class PreventMentionSpam : SavingModuleBase
-		{
-			private const SpamType _SpamType = SpamType.Mention;
-
-			[Command(nameof(ActionType.Enable))]
-			public async Task CommandEnable()
-			{
-				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, true);
-			}
-			[Command(nameof(ActionType.Disable))]
-			public async Task CommandDisable()
-			{
-				await SpamPreventionActions.ModifySpamPreventionEnabled(Context, _SpamType, false);
-			}
-			[Command(nameof(ActionType.Setup))]
-			public async Task CommandSetup(PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
-			{
-				await SpamPreventionActions.SetUpSpamPrevention(Context, _SpamType, punishment, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes);
-			}
+			spamPrev.Disable();
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled the given spam prevention.");
 		}
 	}
 
-	[Group(nameof(PreventRaid))]
-	[Alias("prr")]
-	[Usage("[Regular|RapidJoins|Show] <Setup|Enable|Disable> <Punishment> <Number of Users> <Time Interval>")]
+	[Group(nameof(PreventRaid)), TopLevelShortAlias(nameof(PreventRaid))]
+	[Usage("[Show|Create|Enable|Disable] <Regular|RapidJoins> <Punishment> <Number of Users> <Time Interval>")]
 	[Summary("Any users who joins from now on will get text muted. Once `preventraidspam` is turned off all the users who were muted will be unmuted. " +
 		"Inputting a number means the last x amount of people (up to 25) who have joined will be muted. `Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
 	public sealed class PreventRaid : SavingModuleBase
 	{
-		[Group(nameof(ActionType.Show)), Alias("s")]
-		public sealed class ShowPunishments : AdvobotModuleBase
+		[Command(nameof(Show)), ShortAlias(nameof(Show))]
+		public async Task Show()
 		{
-			[Command]
-			public async Task Command()
-			{
-				var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Punishment Types", desc));
-			}
+			var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`";
+			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Punishment Types", desc));
 		}
-		[Group(nameof(RaidType.Regular)), Alias("reg")]
-		public sealed class PreventRegularRaid : SavingModuleBase
+		[Command(nameof(Create)), ShortAlias(nameof(Create))]
+		public async Task Create(RaidType raidType, PunishmentType punishment, uint userCount, uint interval)
 		{
-			private const RaidType _RaidType = RaidType.Regular;
+			if (!RaidPreventionInfo.TryCreateRaidPreventionInfo(raidType, punishment, (int)userCount, (int)interval, out var raidPrevention, out var errorReason))
+			{
+				await MessageActions.SendErrorMessage(Context, errorReason);
+				return;
+			}
 
-			[Command(nameof(ActionType.Enable))]
-			public async Task CommandEnable()
-			{
-				await SpamPreventionActions.ModifyRaidPreventionEnabled(Context, _RaidType, true);
-			}
-			[Command(nameof(ActionType.Disable))]
-			public async Task CommandDisable()
-			{
-				await SpamPreventionActions.ModifyRaidPreventionEnabled(Context, _RaidType, false);
-			}
-			[Command(nameof(ActionType.Setup))]
-			public async Task CommandSetup(PunishmentType punishment, uint numberOfUsers)
-			{
-				await SpamPreventionActions.SetUpRaidPrevention(Context, _RaidType, punishment, (int)numberOfUsers, 0);
-			}
+			Context.GuildSettings.RaidPreventionDictionary[raidType] = raidPrevention;
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set up the raid prevention for `{raidType.EnumName().ToLower()}`.\n{raidPrevention.ToString()}");
 		}
-		[Group(nameof(RaidType.RapidJoins)), Alias("rapid joins", "joins")]
-		public sealed class PreventRapidJoinsRaid : SavingModuleBase
+		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
+		public async Task Enable(RaidType raidType)
 		{
-			private const RaidType _RaidType = RaidType.RapidJoins;
+			var raidPrev = Context.GuildSettings.RaidPreventionDictionary[raidType];
+			if (raidPrev == null)
+			{
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There must be a raid prevention of that type set up before one can be enabled or disabled."));
+				return;
+			}
 
-			[Command(nameof(ActionType.Enable))]
-			public async Task CommandOn()
+			raidPrev.Enable();
+			if (raidType == RaidType.Regular)
 			{
-				await SpamPreventionActions.ModifyRaidPreventionEnabled(Context, _RaidType, true);
+				//Mute the newest joining users
+				var users = (await GuildActions.GetUsersAndOrderByJoin(Context.Guild)).Reverse().ToArray();
+				for (int i = 0; i < new[] { raidPrev.UserCount, users.Length, 25 }.Min(); ++i)
+				{
+					await raidPrev.RaidPreventionPunishment(Context.GuildSettings, users[i]);
+				}
 			}
-			[Command(nameof(ActionType.Disable))]
-			public async Task CommandDisable()
+
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully enabled the given raid prevention.");
+		}
+		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
+		public async Task Disable(RaidType raidType)
+		{
+			var raidPrev = Context.GuildSettings.RaidPreventionDictionary[raidType];
+			if (raidPrev == null)
 			{
-				await SpamPreventionActions.ModifyRaidPreventionEnabled(Context, _RaidType, false);
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("There must be a raid prevention of that type set up before one can be enabled or disabled."));
+				return;
 			}
-			[Command(nameof(ActionType.Setup))]
-			public async Task CommandSetup(PunishmentType punishment, uint numberOfUsers, uint interval)
-			{
-				await SpamPreventionActions.SetUpRaidPrevention(Context, _RaidType, punishment, (int)numberOfUsers, (int)interval);
-			}
+
+			raidPrev.Disable();
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled the given raid prevention.");
 		}
 	}
 }

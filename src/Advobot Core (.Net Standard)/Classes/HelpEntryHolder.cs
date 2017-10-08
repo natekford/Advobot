@@ -31,6 +31,7 @@ namespace Advobot.Classes
 				{
 #if DEBUG
 					AssertAllAliasesAreDifferent(classType);
+					AssertShortAliasAttribute(classType, false);
 #endif
 					continue;
 				}
@@ -51,6 +52,7 @@ namespace Advobot.Classes
 				AssertClassIsPublic(classType);
 				AssertAllCommandsHaveCommandAttribute(classType);
 				AssertAllAliasesAreDifferent(classType);
+				AssertShortAliasAttribute(classType, true);
 #endif
 
 				temp.Add(new HelpEntry(name, aliases, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, category, defaultEnabled));
@@ -105,6 +107,17 @@ namespace Advobot.Classes
 						throw new ArgumentException($"The following aliases in {classType.Name} have conflicts: {String.Join(" + ", intersected)}");
 					}
 				}
+			}
+		}
+		private void AssertShortAliasAttribute(Type classType, bool topLevel)
+		{
+			if (topLevel && classType.GetCustomAttribute<TopLevelShortAliasAttribute>() == null)
+			{
+				throw new ArgumentException($"The class {classType.Name} needs to have the {nameof(TopLevelShortAliasAttribute)} attribute.");
+			}
+			else if (!topLevel && classType.GetCustomAttribute<TopLevelShortAliasAttribute>() != null)
+			{
+				throw new ArgumentException($"The nested class {classType.Name} needs to not have the {nameof(TopLevelShortAliasAttribute)} attribute.");
 			}
 		}
 

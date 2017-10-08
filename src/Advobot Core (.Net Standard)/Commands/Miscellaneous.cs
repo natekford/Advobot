@@ -8,14 +8,13 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.Miscellaneous
 {
-	[Group(nameof(Help)), Alias("h", "info")]
+	[Group(nameof(Help)), TopLevelShortAlias(nameof(Help))]
 	[Usage("<Command>")]
 	[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. If left blank will print out a link to the documentation of this bot.")]
 	[DefaultEnabled(true)]
@@ -75,7 +74,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(Commands)), Alias("cmds")]
+	[Group(nameof(Commands)), TopLevelShortAlias(nameof(Commands))]
 	[Usage("<Category|All>")]
 	[Summary("Prints out the commands in that category of the command list.")]
 	[DefaultEnabled(true)]
@@ -104,7 +103,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(GetId)), Alias("gid")]
+	[Group(nameof(GetId)), TopLevelShortAlias(nameof(GetId))]
 	[Usage("[Bot|Guild|Channel|Role|User|Emote] <\"Other Argument\">")]
 	[Summary("Shows the ID of the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 	[DefaultEnabled(true)]
@@ -142,7 +141,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(GetInfo)), Alias("ginf")]
+	[Group(nameof(GetInfo)), TopLevelShortAlias(nameof(GetInfo))]
 	[Usage("[Bot|Guild|Channel|Role|User|Emote|Invite] <\"Other Argument\">")]
 	[Summary("Shows information about the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 	[DefaultEnabled(true)]
@@ -192,7 +191,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(GetUsersWithReason)), Alias("guwr")]
+	[Group(nameof(GetUsersWithReason)), TopLevelShortAlias(nameof(GetUsersWithReason))]
 	[Usage("[Role|Name|Game|Stream] <\"Other Argument\"> <Count> <Nickname> <Exact>")]
 	[Summary("Gets users with a variable reason. Count specifies if to say the count. Nickname specifies if to include nickanmes. Exact specifies if only exact matches count.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
@@ -284,7 +283,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(GetUserAvatar)), Alias("gua")]
+	[Group(nameof(GetUserAvatar)), TopLevelShortAlias(nameof(GetUserAvatar))]
 	[Usage("[Gif|Png|Jpg|Webp] <Size> <User>")]
 	[Summary("Shows the URL of the given user's avatar. Must supply a format, can supply a size, and can specify which user.")]
 	[DefaultEnabled(true)]
@@ -307,7 +306,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(GetUserJoinedAt)), Alias("gujat")]
+	[Group(nameof(GetUserJoinedAt)), TopLevelShortAlias(nameof(GetUserJoinedAt))]
 	[Usage("[Number]")]
 	[Summary("Shows the user which joined the guild in that position.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
@@ -326,7 +325,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(DisplayGuilds)), Alias("dgs")]
+	[Group(nameof(DisplayGuilds)), TopLevelShortAlias(nameof(DisplayGuilds))]
 	[Usage("")]
 	[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 	[OtherRequirement(Precondition.BotOwner)]
@@ -356,7 +355,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(DisplayUserJoinList)), Alias("dujl")]
+	[Group(nameof(DisplayUserJoinList)), TopLevelShortAlias(nameof(DisplayUserJoinList))]
 	[Usage("")]
 	[Summary("Lists most of the users who have joined the guild.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
@@ -372,7 +371,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(DisplayEmotes)), Alias("de")]
+	[Group(nameof(DisplayEmotes)), TopLevelShortAlias(nameof(DisplayEmotes))]
 	[Usage("[Global|Guild]")]
 	[Summary("Lists the emotes in the guild. As of right now, there's no way to upload or remove emotes through Discord's API.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
@@ -395,7 +394,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(DownloadMessages)), Alias("dlm")]
+	[Group(nameof(DownloadMessages)), TopLevelShortAlias(nameof(DownloadMessages))]
 	[Usage("[Number] <Channel>")]
 	[Summary("Downloads the past x amount of messages. Up to 1000 messages or 500KB worth of formatted text.")]
 	[PermissionRequirement(null, null)]
@@ -492,7 +491,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}*/
 
-	[Group(nameof(MentionRole)), Alias("mnr")]
+	[Group(nameof(MentionRole)), TopLevelShortAlias(nameof(MentionRole))]
 	[Usage("[Role] [Message]")]
 	[Summary("Mention an unmentionable role with the given message.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
@@ -517,7 +516,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(MessageBotOwner)), Alias("mbo")]
+	[Group(nameof(MessageBotOwner)), TopLevelShortAlias(nameof(MessageBotOwner))]
 	[Usage("[Message]")]
 	[Summary("Sends a message to the bot owner with the given text. Messages will be cut down to 250 characters.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
@@ -541,7 +540,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(GetPermNamesFromValue)), Alias("getperms")]
+	[Group(nameof(GetPermNamesFromValue)), TopLevelShortAlias(nameof(GetPermNamesFromValue))]
 	[Usage("[Guild|Channel] [Number]")]
 	[Summary("Lists all the perms that come from the given value.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
@@ -576,7 +575,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(Test)), Alias("t")]
+	[Group(nameof(Test)), TopLevelShortAlias(nameof(Test))]
 	[Usage("")]
 	[Summary("Mostly just makes the bot say test.")]
 	[OtherRequirement(Precondition.BotOwner)]

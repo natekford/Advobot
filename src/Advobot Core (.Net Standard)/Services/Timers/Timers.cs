@@ -76,17 +76,20 @@ namespace Advobot.Services.Timers
 					}
 					case PunishmentType.Deafen:
 					{
-						await _PunishmentRemover.UndeafenAsync(punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id), reason);
+						var user = punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id);
+						await _PunishmentRemover.UndeafenAsync(user, reason);
 						continue;
 					}
 					case PunishmentType.VoiceMute:
 					{
-						await _PunishmentRemover.UnvoicemuteAsync(punishment.User as IGuildUser, reason);
+						var user = punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id);
+						await _PunishmentRemover.UnvoicemuteAsync(user, reason);
 						continue;
 					}
 					case PunishmentType.RoleMute:
 					{
-						await _PunishmentRemover.UnrolemuteAsync(punishment.User as IGuildUser, punishment.Role, reason);
+						var user = punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id);
+						await _PunishmentRemover.UnrolemuteAsync(user, punishment.Role, reason);
 						continue;
 					}
 				}

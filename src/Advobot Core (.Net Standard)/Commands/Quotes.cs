@@ -1,25 +1,24 @@
 ﻿using Advobot.Actions;
-using Advobot.Classes.Attributes;
-using Advobot.Classes;
-using Advobot.Enums;
 using Advobot.Actions.Formatting;
+using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Discord;
 using Discord.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Discord;
 
 namespace Advobot.Commands.Quotes
 {
-	[Group(nameof(ModifyQuotes)), Alias("mrem")]
+	[Group(nameof(ModifyQuotes)), TopLevelShortAlias(nameof(ModifyQuotes))]
 	[Usage("[Add|Remove] [\"Name\"] <Text>")]
 	[Summary("Adds the given text to a list that can be called through the `" + nameof(SayQuote) + "` command.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
 	public sealed class ModifyQuotes : SavingModuleBase
 	{
-		[Command(nameof(ActionType.Add)), Alias("a")]
-		public async Task CommandAdd(string name, [Remainder] string text)
+		[Command(nameof(Add)), ShortAlias(nameof(Add))]
+		public async Task Add(string name, [Remainder] string text)
 		{
 			if (Context.GuildSettings.Quotes.Count >= Constants.MAX_QUOTES)
 			{
@@ -40,8 +39,8 @@ namespace Advobot.Commands.Quotes
 			Context.GuildSettings.Quotes.Add(new Quote(name, text));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully added the following quote: `{name}`.");
 		}
-		[Command(nameof(ActionType.Remove)), Alias("r")]
-		public async Task CommandRemove(string name)
+		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+		public async Task Remove(string name)
 		{
 			if (!Context.GuildSettings.Quotes.Any())
 			{
@@ -60,7 +59,7 @@ namespace Advobot.Commands.Quotes
 		}
 	}
 
-	[Group(nameof(SayQuote)), Alias("sq")]
+	[Group(nameof(SayQuote)), TopLevelShortAlias(nameof(SayQuote))]
 	[Usage("<Name>")]
 	[Summary("Shows the content for the given quote. If nothing is input, then shows the list of the current quotes.")]
 	[DefaultEnabled(false)]

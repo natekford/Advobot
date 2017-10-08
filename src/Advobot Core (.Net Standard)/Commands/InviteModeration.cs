@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.InviteModeration
 {
-	[Group(nameof(DisplayInvites)), Alias("dinvs")]
+	[Group(nameof(DisplayInvites)), TopLevelShortAlias(nameof(DisplayInvites))]
 	[Usage("")]
 	[Summary("Gives a list of all the instant invites on the guild.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
@@ -36,7 +36,7 @@ namespace Advobot.Commands.InviteModeration
 		}
 	}
 
-	[Group(nameof(CreateInvite)), Alias("cinv")]
+	[Group(nameof(CreateInvite)), TopLevelShortAlias(nameof(CreateInvite))]
 	[Usage("[Channel] <1800|3600|21600|43200|86400> <1|5|10|25|50|100> <True|False>")]
 	[Summary("Creates an invite on the given channel. No time specifies to not expire. No uses has no usage limit. Temp membership means when the user goes offline they get kicked.")]
 	[PermissionRequirement(new[] { GuildPermission.CreateInstantInvite }, null)]
@@ -71,7 +71,7 @@ namespace Advobot.Commands.InviteModeration
 		}
 	}
 
-	[Group(nameof(DeleteInvite)), Alias("dinv")]
+	[Group(nameof(DeleteInvite)), TopLevelShortAlias(nameof(DeleteInvite))]
 	[Usage("[Invite Code]")]
 	[Summary("Deletes the invite with the given code.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
@@ -86,7 +86,7 @@ namespace Advobot.Commands.InviteModeration
 		}
 	}
 
-	[Group(nameof(DeleteMultipleInvites)), Alias("dminv")]
+	[Group(nameof(DeleteMultipleInvites)), TopLevelShortAlias(nameof(DeleteMultipleInvites))]
 	[Usage("[User|Channel|Number|True|False]")]
 	[Summary("Deletes all invites satisfying the given condition of either user, creation channel, use limit, or if it expires or not.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]

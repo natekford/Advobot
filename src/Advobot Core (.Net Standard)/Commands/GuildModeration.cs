@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.GuildModeration
 {
-	[Group(nameof(LeaveGuild))]
+	[Group(nameof(LeaveGuild)), TopLevelShortAlias(nameof(LeaveGuild))]
 	[Usage("<Guild ID>")]
 	[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
 	[OtherRequirement(Precondition.GuildOwner | Precondition.BotOwner)]
@@ -55,7 +55,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildName)), Alias("mgn")]
+	[Group(nameof(ModifyGuildName)), TopLevelShortAlias(nameof(ModifyGuildName))]
 	[Usage("[Name]")]
 	[Summary("Change the name of the guild to the given name.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
@@ -70,8 +70,8 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildRegion)), Alias("mgr")]
-	[Usage("<Current|Region ID>")]
+	[Group(nameof(ModifyGuildRegion)), TopLevelShortAlias(nameof(ModifyGuildRegion))]
+	[Usage("[Show|Current|Region ID]")]
 	[Summary("Shows or changes the guild's server region. Inputting nothing lists all valid region IDs.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
@@ -102,8 +102,14 @@ namespace Advobot.Commands.GuildModeration
 		private static readonly string _VIPRegions = String.Join("\n", _VIPRegionIDs);
 		private static readonly string _AllRegions = _BaseRegions + "\n" + _VIPRegions;
 
-		[Command(nameof(ActionType.Current)), Priority(1)]
-		public async Task CommandCurrent()
+		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
+		public async Task Show()
+		{
+			var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions;
+			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Region IDs", desc));
+		}
+		[Command(nameof(Current)), ShortAlias(nameof(Current)), Priority(1)]
+		public async Task Current()
 		{
 			await MessageActions.SendMessage(Context.Channel, $"The guild's current server region is `{Context.Guild.VoiceRegionId}`.");
 		}
@@ -120,15 +126,9 @@ namespace Advobot.Commands.GuildModeration
 			await GuildActions.ModifyGuildRegion(Context.Guild, region, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the server region of the guild from `{beforeRegion}` to `{region}`.");
 		}
-		[Command]
-		public async Task Command()
-		{
-			var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions;
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Region IDs", desc));
-		}
 	}
 
-	[Group(nameof(ModifyGuildAFKTimer)), Alias("mgafkt")]
+	[Group(nameof(ModifyGuildAFKTimer)), TopLevelShortAlias(nameof(ModifyGuildAFKTimer))]
 	[Usage("[Number]")]
 	[Summary("Updates the guild's AFK timeout.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
@@ -151,7 +151,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildAFKChannel)), Alias("mgafkc")]
+	[Group(nameof(ModifyGuildAFKChannel)), TopLevelShortAlias(nameof(ModifyGuildAFKChannel))]
 	[Usage("[Channel]")]
 	[Summary("Updates the guild's AFK channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
@@ -166,7 +166,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildMsgNotif)), Alias("mgmn")]
+	[Group(nameof(ModifyGuildMsgNotif)), TopLevelShortAlias(nameof(ModifyGuildMsgNotif))]
 	[Usage("[AllMessages|MentionsOnly]")]
 	[Summary("Changes the message notifications to either all messages or mentions only.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
@@ -181,9 +181,9 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildVerif)), Alias("mgv")]
+	[Group(nameof(ModifyGuildVerif)), TopLevelShortAlias(nameof(ModifyGuildVerif))]
 	[Usage("[None|Low|Medium|High|Extreme]")]
-	[Summary("Changes the verification level. None is the most lenient (no requirements to type), high is the harshest (10 minutes in the guild before new members can type).")]
+	[Summary("Changes the verification level. None is the most lenient (no requirements to type), extreme is the harshest (phone verification).")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildVerif : AdvobotModuleBase
@@ -196,7 +196,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildIcon)), Alias("mgi")]
+	[Group(nameof(ModifyGuildIcon)), TopLevelShortAlias(nameof(ModifyGuildIcon))]
 	[Usage("<Attached Image|Embedded Image>")]
 	[Summary("Changes the guild's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the guild's icon.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
@@ -242,7 +242,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(CreateGuild)), Alias("cg")]
+	[Group(nameof(CreateGuild)), TopLevelShortAlias(nameof(CreateGuild))]
 	[Usage("[Name]")]
 	[Summary("Creates a guild with the bot as the owner.")]
 	[OtherRequirement(Precondition.BotOwner)]
@@ -261,7 +261,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(SwapGuildOwner)), Alias("sgo")]
+	[Group(nameof(SwapGuildOwner)), TopLevelShortAlias(nameof(SwapGuildOwner))]
 	[Usage("")]
 	[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
 	[OtherRequirement(Precondition.BotOwner)]
@@ -282,7 +282,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(DeleteGuild)), Alias("dg")]
+	[Group(nameof(DeleteGuild)), TopLevelShortAlias(nameof(DeleteGuild))]
 	[Usage("")]
 	[Summary("If the bot is the current owner of the guild, this command will delete the guild.")]
 	[OtherRequirement(Precondition.BotOwner)]

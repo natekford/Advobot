@@ -12,6 +12,9 @@ namespace Advobot.Classes.SpamPrevention
 {
 	public class RaidPreventionInfo : ISetting
 	{
+		private const int MAX_USERS = 25;
+		private const int MAX_TIME = 60;
+
 		[JsonProperty]
 		public PunishmentType PunishmentType { get; }
 		[JsonProperty]
@@ -53,6 +56,31 @@ namespace Advobot.Classes.SpamPrevention
 			//TODO: make this not 0
 			var giver = new AutomaticPunishmentGiver(0, null);
 			await giver.AutomaticallyPunishAsync(PunishmentType, user, guildSettings.MuteRole);
+		}
+
+		public static bool TryCreateRaidPreventionInfo(RaidType raidType,
+			PunishmentType punishmentType,
+			int userCount,
+			int interval,
+			out RaidPreventionInfo raidPrevention,
+			out ErrorReason errorReason)
+		{
+			raidPrevention = default;
+			errorReason = default;
+
+			if (userCount > MAX_USERS)
+			{
+				errorReason = new ErrorReason($"The user count must be less than or equal to `{MAX_USERS}`.");
+				return false;
+			}
+			else if (interval > MAX_TIME)
+			{
+				errorReason = new ErrorReason($"The interval must be less than or equal to `{MAX_TIME}`.");
+				return false;
+			}
+
+			raidPrevention = new RaidPreventionInfo(punishmentType, userCount, interval);
+			return true;
 		}
 
 		public void Enable()

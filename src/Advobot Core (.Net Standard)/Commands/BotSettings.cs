@@ -15,23 +15,23 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.BotSettings
 {
-	[Group(nameof(ModifyBotSettings)), Alias("mbs")]
-	[Usage("[Show|Clear|Modify] [Setting Name] <New Value>")]
+	[Group(nameof(ModifyBotSettings)), TopLevelShortAlias(nameof(ModifyBotSettings))]
+	[Usage("[Show|Modify|Clear] [Setting Name] <New Value>")]
 	[Summary("Modify the given setting on the bot. Show lists the setting names. Clear resets a setting back to default. Cannot modify settings which are lists through this command.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotSettings : SavingModuleBase
 	{
-		[Command(nameof(ActionType.Show)), ShortAlias(nameof(ActionType.Show))]
+		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", GetActions.GetBotSettingsThatArentIEnumerables().Select(x => x.Name))}`";
 			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Settings", desc));
 		}
-		[Group(nameof(ActionType.Modify)), ShortAlias(nameof(ActionType.Modify))]
+		[Group(nameof(Modify)), ShortAlias(nameof(Modify))]
 		public sealed class Modify : SavingModuleBase
 		{
-			[Command(nameof(IBotSettings.ShardCount))]
+			[Command(nameof(IBotSettings.ShardCount)), ShortAlias(nameof(IBotSettings.ShardCount))]
 			public async Task CommandShardCount(uint shardCount)
 			{
 				var validNum = (await Context.Client.GetGuildsAsync()).Count / 2500 + 1;
@@ -44,37 +44,37 @@ namespace Advobot.Commands.BotSettings
 				Context.BotSettings.ShardCount = (int)shardCount;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the shard amount to `{Context.BotSettings.ShardCount}`.");
 			}
-			[Command(nameof(IBotSettings.MessageCacheCount))]
+			[Command(nameof(IBotSettings.MessageCacheCount)), ShortAlias(nameof(IBotSettings.MessageCacheCount))]
 			public async Task CommandMessagecacheCount(uint cacheCount)
 			{
 				Context.BotSettings.MessageCacheCount = (int)cacheCount;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the message cache count to `{Context.BotSettings.MessageCacheCount}`.");
 			}
-			[Command(nameof(IBotSettings.MaxUserGatherCount))]
+			[Command(nameof(IBotSettings.MaxUserGatherCount)), ShortAlias(nameof(IBotSettings.MaxUserGatherCount))]
 			public async Task CommandMaxUserGatherCount(uint userGatherCount)
 			{
 				Context.BotSettings.MaxUserGatherCount = (int)userGatherCount;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max user gather count to `{Context.BotSettings.MaxUserGatherCount}`.");
 			}
-			[Command(nameof(IBotSettings.MaxMessageGatherSize))]
+			[Command(nameof(IBotSettings.MaxMessageGatherSize)), ShortAlias(nameof(IBotSettings.MaxMessageGatherSize))]
 			public async Task CommandMaxMessageGatherSize(uint messageGatherSize)
 			{
 				Context.BotSettings.MaxMessageGatherSize = (int)messageGatherSize;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max message gather size to `{Context.BotSettings.MaxMessageGatherSize}`.");
 			}
-			[Command(nameof(IBotSettings.Prefix))]
+			[Command(nameof(IBotSettings.Prefix)), ShortAlias(nameof(IBotSettings.Prefix))]
 			public async Task CommandPrefix([VerifyStringLength(Target.Prefix)] string prefix)
 			{
 				Context.BotSettings.Prefix = prefix;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the prefix to `{Context.BotSettings.Prefix}`.");
 			}
-			[Command(nameof(IBotSettings.Game))]
+			[Command(nameof(IBotSettings.Game)), ShortAlias(nameof(IBotSettings.Game))]
 			public async Task CommandGame([VerifyStringLength(Target.Game)] string game)
 			{
 				Context.BotSettings.Game = game;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Game}`.");
 			}
-			[Command(nameof(IBotSettings.Stream))]
+			[Command(nameof(IBotSettings.Stream)), ShortAlias(nameof(IBotSettings.Stream))]
 			public async Task CommandStream([VerifyStringLength(Target.Stream)] string stream)
 			{
 				if (!RegexActions.CheckIfInputIsAValidTwitchName(stream))
@@ -86,71 +86,71 @@ namespace Advobot.Commands.BotSettings
 				Context.BotSettings.Stream = stream;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Stream}`.");
 			}
-			[Command(nameof(IBotSettings.AlwaysDownloadUsers))]
+			[Command(nameof(IBotSettings.AlwaysDownloadUsers)), ShortAlias(nameof(IBotSettings.AlwaysDownloadUsers))]
 			public async Task CommandAlwaysDownloadUsers(bool downloadUsers)
 			{
 				Context.BotSettings.AlwaysDownloadUsers = downloadUsers;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set always download users to `{Context.BotSettings.AlwaysDownloadUsers}`.");
 			}
-			[Command(nameof(IBotSettings.LogLevel))]
+			[Command(nameof(IBotSettings.LogLevel)), ShortAlias(nameof(IBotSettings.LogLevel))]
 			public async Task CommandLogLevel(LogSeverity logLevel)
 			{
 				Context.BotSettings.LogLevel = logLevel;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the log level to `{Context.BotSettings.LogLevel.EnumName()}`.");
 			}
 		}
-		[Group(nameof(ActionType.Clear)), Alias("c")]
+		[Group(nameof(Clear)), ShortAlias(nameof(Clear))]
 		public sealed class Clear : SavingModuleBase
 		{
-			[Command(nameof(IBotSettings.ShardCount))]
+			[Command(nameof(IBotSettings.ShardCount)), ShortAlias(nameof(IBotSettings.ShardCount))]
 			public async Task CommandShardCount()
 			{
 				Context.BotSettings.ShardCount = (await Context.Client.GetGuildsAsync()).Count / 2500 + 1;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the shard amount to `{Context.BotSettings.ShardCount}`.");
 			}
-			[Command(nameof(IBotSettings.MessageCacheCount))]
+			[Command(nameof(IBotSettings.MessageCacheCount)), ShortAlias(nameof(IBotSettings.MessageCacheCount))]
 			public async Task CommandMessagecacheCount()
 			{
 				Context.BotSettings.MessageCacheCount = -1;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the message cache count to `{Context.BotSettings.MessageCacheCount}`.");
 			}
-			[Command(nameof(IBotSettings.MaxUserGatherCount))]
+			[Command(nameof(IBotSettings.MaxUserGatherCount)), ShortAlias(nameof(IBotSettings.MaxUserGatherCount))]
 			public async Task CommandMaxUserGatherCount()
 			{
 				Context.BotSettings.MaxUserGatherCount = -1;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max user gather count to `{Context.BotSettings.MaxUserGatherCount}`.");
 			}
-			[Command(nameof(IBotSettings.MaxMessageGatherSize))]
+			[Command(nameof(IBotSettings.MaxMessageGatherSize)), ShortAlias(nameof(IBotSettings.MaxMessageGatherSize))]
 			public async Task CommandMaxMessageGatherSize()
 			{
 				Context.BotSettings.MaxMessageGatherSize = -1;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max message gather size to `{Context.BotSettings.MaxMessageGatherSize}`.");
 			}
-			[Command(nameof(IBotSettings.Prefix))]
+			[Command(nameof(IBotSettings.Prefix)), ShortAlias(nameof(IBotSettings.Prefix))]
 			public async Task CommandPrefix()
 			{
 				Context.BotSettings.Prefix = null;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the prefix to `{Context.BotSettings.Prefix}`.");
 			}
-			[Command(nameof(IBotSettings.Game))]
+			[Command(nameof(IBotSettings.Game)), ShortAlias(nameof(IBotSettings.Game))]
 			public async Task CommandGame()
 			{
 				Context.BotSettings.Game = null;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Game}`.");
 			}
-			[Command(nameof(IBotSettings.Stream))]
+			[Command(nameof(IBotSettings.Stream)), ShortAlias(nameof(IBotSettings.Stream))]
 			public async Task CommandStream()
 			{
 				Context.BotSettings.Stream = null;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Stream}`.");
 			}
-			[Command(nameof(IBotSettings.AlwaysDownloadUsers))]
+			[Command(nameof(IBotSettings.AlwaysDownloadUsers)), ShortAlias(nameof(IBotSettings.AlwaysDownloadUsers))]
 			public async Task CommandAlwaysDownloadUsers()
 			{
 				Context.BotSettings.AlwaysDownloadUsers = true;
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set always download users to `{Context.BotSettings.AlwaysDownloadUsers}`.");
 			}
-			[Command(nameof(IBotSettings.LogLevel))]
+			[Command(nameof(IBotSettings.LogLevel)), ShortAlias(nameof(IBotSettings.LogLevel))]
 			public async Task CommandLogLevel()
 			{
 				Context.BotSettings.LogLevel = LogSeverity.Warning;
@@ -159,21 +159,21 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(DisplayBotSettings)), Alias("dgls")]
+	[Group(nameof(DisplayBotSettings)), TopLevelShortAlias(nameof(DisplayBotSettings))]
 	[Usage("[Show|All|Setting Name]")]
 	[Summary("Displays global settings. Show gives a list of the setting names.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayBotSettings : AdvobotModuleBase
 	{
-		[Command(nameof(ActionType.Show)), Alias("s"), Priority(1)]
-		public async Task Command()
+		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
+		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", GetActions.GetBotSettings().Select(x => x.Name))}`";
 			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
 		}
-		[Command("all"), Alias("a"), Priority(1)]
-		public async Task CommandAll()
+		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
+		public async Task All()
 		{
 			var text = await Context.BotSettings.ToString(Context.Client);
 			await MessageActions.SendTextFile(Context.Channel, text, "Bot Settings", "Bot Settings");
@@ -193,7 +193,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(ModifyBotName)), Alias("mbn")]
+	[Group(nameof(ModifyBotName)), TopLevelShortAlias(nameof(ModifyBotName))]
 	[Usage("[New Name]")]
 	[Summary("Changes the bot's name to the given name.")]
 	[OtherRequirement(Precondition.BotOwner)]
@@ -208,7 +208,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(ModifyBotIcon)), Alias("mbi")]
+	[Group(nameof(ModifyBotIcon)), TopLevelShortAlias(nameof(ModifyBotIcon))]
 	[Usage("<Attached Image|Embedded Image>")]
 	[Summary("Changes the bot's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the bot's icon.")]
 	[OtherRequirement(Precondition.BotOwner)]
@@ -254,12 +254,12 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(ResetGlobalProperties)), Alias("rgls")]
+	[Group(nameof(ResetBotConfig)), TopLevelShortAlias(nameof(ResetBotConfig))]
 	[Usage("")]
 	[Summary("Resets bot key, bot Id, save path.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class ResetGlobalProperties : AdvobotModuleBase
+	public sealed class ResetBotConfig : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -273,7 +273,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(ResetBotKey)), Alias("rbk")]
+	[Group(nameof(ResetBotKey)), TopLevelShortAlias(nameof(ResetBotKey))]
 	[Usage("")]
 	[Summary("Remove's the currently used bot's key so that a different bot can be used instead.")]
 	[OtherRequirement(Precondition.BotOwner)]
@@ -290,12 +290,12 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(Disconnect)), Alias("dc", "runescapeservers")]
+	[Group(nameof(DisconnectBot)), TopLevelShortAlias(nameof(DisconnectBot), "runescapeservers")]
 	[Usage("")]
 	[Summary("Turns the bot off.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class Disconnect : AdvobotModuleBase
+	public sealed class DisconnectBot : AdvobotModuleBase
 	{
 		[Command]
 		public async Task Command()
@@ -304,12 +304,12 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(Restart)), Alias("res")]
+	[Group(nameof(RestartBot)), TopLevelShortAlias(nameof(RestartBot))]
 	[Usage("")]
 	[Summary("Restarts the bot.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
-	public sealed class Restart : AdvobotModuleBase
+	public sealed class RestartBot : AdvobotModuleBase
 	{
 		[Command]
 		public Task Command()
