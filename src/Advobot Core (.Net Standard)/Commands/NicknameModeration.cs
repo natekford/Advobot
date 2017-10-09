@@ -31,7 +31,7 @@ namespace Advobot.Commands.NicknameModeration
 	}
 
 	[Group(nameof(ReplaceWordsInNames)), TopLevelShortAlias(nameof(ReplaceWordsInNames))]
-	[Usage("[\"Search\"] [\"Replace\"] <" + Constants.BYPASS_STRING + ">")]
+	[Usage("[\"Search\"] [\"Replace\"] <" + BypassUserLimitTypeReader.BYPASS_STRING + ">")]
 	[Summary("Gives users a new nickname if their nickname or username contains the search phrase. Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
@@ -50,7 +50,7 @@ namespace Advobot.Commands.NicknameModeration
 	}
 
 	[Group(nameof(ReplaceByUTF16)), TopLevelShortAlias(nameof(ReplaceByUTF16))]
-	[Usage("[Number] [\"Replace\"] <" + Constants.BYPASS_STRING + ">")]
+	[Usage("[Number] [\"Replace\"] <" + BypassUserLimitTypeReader.BYPASS_STRING + ">")]
 	[Summary("Replaces nickname/usernames that contain any characters above the supplied character value in UTF-16. Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
@@ -69,7 +69,7 @@ namespace Advobot.Commands.NicknameModeration
 	}
 
 	[Group(nameof(RemoveAllNickNames)), TopLevelShortAlias(nameof(RemoveAllNickNames))]
-	[Usage("<" + Constants.BYPASS_STRING + ">")]
+	[Usage("<" + BypassUserLimitTypeReader.BYPASS_STRING + ">")]
 	[Summary("Remove all nicknames of users on the guild. Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]

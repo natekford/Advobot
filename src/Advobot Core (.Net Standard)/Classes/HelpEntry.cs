@@ -1,6 +1,8 @@
 ﻿using Advobot.Enums;
 using Advobot.Interfaces;
 using System;
+using System.Text;
+using Advobot.Actions.Formatting;
 
 namespace Advobot.Classes
 {
@@ -31,11 +33,13 @@ namespace Advobot.Classes
 
 		public override string ToString()
 		{
-			var aliasStr = $"**Aliases:** {String.Join(", ", Aliases)}";
-			var usageStr = $"**Usage:** {Usage}";
-			var permStr = $"\n**Base Permission(s):**\n{BasePerm}";
-			var descStr = $"\n**Description:**\n{Description}";
-			return String.Join("\n", new[] { aliasStr, usageStr, permStr, descStr });
+			return new StringBuilder()
+				.AppendLineFeed($"**Aliases:** {String.Join(", ", Aliases)}")
+				.AppendLineFeed($"**Usage:** {Usage}")
+				.AppendLineFeed($"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}")
+				.AppendLineFeed($"\n**Base Permission(s):**\n{BasePerm}")
+				.AppendLineFeed($"\n**Description:**\n{Description}")
+				.ToString();
 		}
 	}
 }

@@ -131,14 +131,9 @@ namespace Advobot.Commands.RoleModeration
 		{
 			var desc = String.Join("\n", Context.Guild.Roles.OrderByDescending(x => x.Position).Select(x =>
 			{
-				if (x.Id == Context.Guild.EveryoneRole.Id)
-				{
-					return $"`{x.Position.ToString("00")}.` {Constants.FAKE_EVERYONE}";
-				}
-				else
-				{
-					return $"`{x.Position.ToString("00")}.` {x.Name}";
-				}
+				return x.Id == Context.Guild.EveryoneRole.Id
+					? $"`{x.Position.ToString("00")}.` {Constants.FAKE_EVERYONE}"
+					: $"`{x.Position.ToString("00")}.` {x.Name}";
 			}));
 			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Role Positions", desc));
 		}

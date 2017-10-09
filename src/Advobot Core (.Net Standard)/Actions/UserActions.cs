@@ -13,7 +13,7 @@ namespace Advobot.Actions
 {
 	public static class UserActions
 	{
-		public static VerifiedObjectResult VerifyUserMeetsRequirements(ICommandContext context, IGuildUser target, params ObjectVerification[] checks)
+		public static VerifiedObjectResult VerifyUserMeetsRequirements(ICommandContext context, IGuildUser target, IEnumerable<ObjectVerification> checks)
 		{
 			if (target == null)
 			{

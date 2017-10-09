@@ -15,7 +15,7 @@ namespace Advobot.Actions
 {
 	public static class RoleActions
 	{
-		public static VerifiedObjectResult VerifyRoleMeetsRequirements(ICommandContext context, IRole target, params ObjectVerification[] checks)
+		public static VerifiedObjectResult VerifyRoleMeetsRequirements(ICommandContext context, IRole target, IEnumerable<ObjectVerification> checks)
 		{
 			if (target == null)
 			{

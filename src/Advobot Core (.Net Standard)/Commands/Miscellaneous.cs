@@ -15,8 +15,7 @@ using System.Threading.Tasks;
 namespace Advobot.Commands.Miscellaneous
 {
 	[Group(nameof(Help)), TopLevelShortAlias(nameof(Help))]
-	[Usage("<Command>")]
-	[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. If left blank will print out a link to the documentation of this bot.")]
+	[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. If left blank will provide general help.")]
 	[DefaultEnabled(true)]
 	public sealed class Help : AdvobotModuleBase
 	{
@@ -36,10 +35,9 @@ namespace Advobot.Commands.Miscellaneous
 			$"[Discord Server]({Constants.DISCORD_INV})";
 
 		[Command]
-		public async Task Command([Optional] string command)
+		public async Task Command([Optional] string commandName)
 		{
-			var temp = DateTime.UtcNow.Subtract(DateTime.UtcNow);
-			if (String.IsNullOrWhiteSpace(command))
+			if (String.IsNullOrWhiteSpace(commandName))
 			{
 				var embed = EmbedActions.MakeNewEmbed("General Help", _GeneralHelp)
 					.MyAddField("Basic Syntax", _BasicSyntax)
@@ -47,36 +45,35 @@ namespace Advobot.Commands.Miscellaneous
 					.MyAddField("Links", _Links)
 					.MyAddFooter("Help");
 				await MessageActions.SendEmbedMessage(Context.Channel, embed);
+				return;
 			}
-			else
+
+			var helpEntry = Constants.HELP_ENTRIES[commandName];
+			if (helpEntry != null)
 			{
-				var helpEntry = Constants.HELP_ENTRIES[command];
-				if (helpEntry != null)
-				{
-					var embed = EmbedActions.MakeNewEmbed(helpEntry.Name, helpEntry.ToString())
-						.MyAddFooter("Help");
-					await MessageActions.SendEmbedMessage(Context.Channel, embed);
-					return;
-				}
-
-				var closeHelps = new CloseWords<HelpEntry>(Context.User as IGuildUser, Constants.HELP_ENTRIES.GetHelpEntries(), command);
-				if (closeHelps.List.Any())
-				{
-					Context.Timers.AddActiveCloseHelp(closeHelps);
-
-					var msg = "Did you mean any of the following:\n" + closeHelps.List.FormatNumberedList("{0}", x => x.Word.Name);
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.SECONDS_ACTIVE_CLOSE);
-					return;
-				}
-
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("Nonexistent command."));
+				var embed = EmbedActions.MakeNewEmbed(helpEntry.Name, helpEntry.ToString())
+					.MyAddFooter("Help");
+				await MessageActions.SendEmbedMessage(Context.Channel, embed);
+				return;
 			}
+
+			var closeHelps = new CloseWords<HelpEntry>(Context.User as IGuildUser, Constants.HELP_ENTRIES.GetHelpEntries(), commandName);
+			if (closeHelps.List.Any())
+			{
+				Context.Timers.AddActiveCloseHelp(closeHelps);
+
+				var msg = "Did you mean any of the following:\n" + closeHelps.List.FormatNumberedList("{0}", x => x.Word.Name);
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.SECONDS_ACTIVE_CLOSE);
+				return;
+			}
+
+			await MessageActions.SendErrorMessage(Context, new ErrorReason("Nonexistent command."));
 		}
 	}
 
 	[Group(nameof(Commands)), TopLevelShortAlias(nameof(Commands))]
 	[Usage("<Category|All>")]
-	[Summary("Prints out the commands in that category of the command list.")]
+	[Summary("Prints out the commands in that category of the command list. Inputting nothing will list the command categories.")]
 	[DefaultEnabled(true)]
 	public sealed class Commands : AdvobotModuleBase
 	{
@@ -193,54 +190,63 @@ namespace Advobot.Commands.Miscellaneous
 
 	[Group(nameof(GetUsersWithReason)), TopLevelShortAlias(nameof(GetUsersWithReason))]
 	[Usage("[Role|Name|Game|Stream] <\"Other Argument\"> <Count> <Nickname> <Exact>")]
-	[Summary("Gets users with a variable reason. Count specifies if to say the count. Nickname specifies if to include nickanmes. Exact specifies if only exact matches count.")]
+	[Summary("Gets users with a variable reason. `Count` specifies if to say the count. `Nickname` specifies if to include nickanmes. `Exact` specifies if only exact matches apply.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
 	public sealed class GetUsersWithReason : AdvobotModuleBase
 	{
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
-		public async Task Role([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, params string[] additionalSearchOptions)
+		public async Task Role(IRole role, params SearchOptions[] additionalSearchOptions)
 		{
 			await CommandRunner(Target.Role, role, additionalSearchOptions);
 		}
 		[Command(nameof(Name)), ShortAlias(nameof(Name))]
-		public async Task Name(string name, params string[] additionalSearchOptions)
+		public async Task Name(string name, params SearchOptions[] additionalSearchOptions)
 		{
 			await CommandRunner(Target.Name, name, additionalSearchOptions);
 		}
 		[Command(nameof(Game)), ShortAlias(nameof(Game))]
-		public async Task Game(string game, params string[] additionalSearchOptions)
+		public async Task Game(string game, params SearchOptions[] additionalSearchOptions)
 		{
 			await CommandRunner(Target.Game, game, additionalSearchOptions);
 		}
 		[Command(nameof(Stream)), ShortAlias(nameof(Stream))]
-		public async Task Stream(params string[] additionalSearchOptions)
+		public async Task Stream(params SearchOptions[] additionalSearchOptions)
 		{
 			await CommandRunner(Target.Stream, null as string, additionalSearchOptions);
 		}
 
-		private async Task CommandRunner(Target targetType, string otherArg, string[] additionalSearchOptions)
+		private async Task CommandRunner(Target targetType, object obj, SearchOptions[] additionalSearchOptions)
 		{
-			var exact = additionalSearchOptions.Any(x => "exact".CaseInsEquals(x));
-			var nickname = additionalSearchOptions.Any(x => "nickname".CaseInsEquals(x));
-			var count = additionalSearchOptions.Any(x => "count".CaseInsEquals(x));
+			var count = additionalSearchOptions.Contains(SearchOptions.Count);
+			var nickname = additionalSearchOptions.Contains(SearchOptions.Nickname);
+			var exact = additionalSearchOptions.Contains(SearchOptions.Exact);
 
 			var title = "";
 			var users = (await Context.Guild.GetUsersAsync()).AsEnumerable();
 			switch (targetType)
 			{
+				case Target.Role:
+				{
+					var role = obj as IRole;
+					title = $"Users With The Role '{role.Name}'";
+					users = users.Where(x => x.RoleIds.Contains(role.Id));
+					break;
+				}
 				case Target.Name:
 				{
-					title = $"Users With Names Containing '{otherArg}'";
-					users = users.Where(x => exact ? x.Username.CaseInsEquals(otherArg) || (nickname && x.Nickname.CaseInsEquals(otherArg)) 
-												   : x.Username.CaseInsContains(otherArg) || (nickname && x.Nickname.CaseInsContains(otherArg)));
+					var str = obj.ToString();
+					title = $"Users With Names Containing '{obj}'";
+					users = users.Where(x => exact ? x.Username.CaseInsEquals(str) || (nickname && x.Nickname.CaseInsEquals(str)) 
+												   : x.Username.CaseInsContains(str) || (nickname && x.Nickname.CaseInsContains(str)));
 					break;
 				}
 				case Target.Game:
 				{
-					title = $"Users With Games Containing '{otherArg}'";
-					users = users.Where(x => exact ? x.Game.HasValue && x.Game.Value.Name.CaseInsEquals(otherArg) 
-												   : x.Game.HasValue && x.Game.Value.Name.CaseInsContains(otherArg));
+					var str = obj.ToString();
+					title = $"Users With Games Containing '{obj}'";
+					users = users.Where(x => exact ? x.Game.HasValue && x.Game.Value.Name.CaseInsEquals(str) 
+												   : x.Game.HasValue && x.Game.Value.Name.CaseInsContains(str));
 					break;
 				}
 				case Target.Stream:
@@ -258,28 +264,12 @@ namespace Advobot.Commands.Miscellaneous
 			var desc = count ? $"**Count:** `{users.Count()}`" : users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.FormatUser());
 			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(title, desc));
 		}
-		private async Task CommandRunner(Target targetType, IRole role, string[] additionalSearchOptions)
+
+		public enum SearchOptions : uint
 		{
-			var count = additionalSearchOptions.Any(x => "count".CaseInsEquals(x));
-
-			var title = "";
-			var users = (await Context.Guild.GetUsersAsync()).AsEnumerable();
-			switch (targetType)
-			{
-				case Target.Role:
-				{
-					title = $"Users With The Role '{role.Name}'";
-					users = users.Where(x => x.RoleIds.Contains(role.Id));
-					break;
-				}
-				default:
-				{
-					return;
-				}
-			}
-
-			var desc = count ? $"**Count:** `{users.Count()}`" : users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.FormatUser());
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(title, desc));
+			Count    = (1U << 0),
+			Nickname = (1U << 1),
+			Exact    = (1U << 2),
 		}
 	}
 

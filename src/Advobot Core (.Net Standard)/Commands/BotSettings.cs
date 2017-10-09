@@ -22,12 +22,6 @@ namespace Advobot.Commands.BotSettings
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotSettings : SavingModuleBase
 	{
-		[Command(nameof(Show)), ShortAlias(nameof(Show))]
-		public async Task Show()
-		{
-			var desc = $"`{String.Join("`, `", GetActions.GetBotSettingsThatArentIEnumerables().Select(x => x.Name))}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Settings", desc));
-		}
 		[Group(nameof(Modify)), ShortAlias(nameof(Modify))]
 		public sealed class Modify : SavingModuleBase
 		{
@@ -179,16 +173,16 @@ namespace Advobot.Commands.BotSettings
 			await MessageActions.SendTextFile(Context.Channel, text, "Bot Settings", "Bot Settings");
 		}
 		[Command, Priority(0)]
-		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.BotSettingTypeReader))] PropertyInfo setting)
+		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.BotSettingTypeReader))] PropertyInfo settingName)
 		{
-			var desc = await Context.BotSettings.ToString(Context.Client, setting);
+			var desc = await Context.BotSettings.ToString(Context.Client, settingName);
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(setting.Name, desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(settingName.Name, desc));
 			}
 			else
 			{
-				await MessageActions.SendTextFile(Context.Channel, desc, setting.Name, setting.Name);
+				await MessageActions.SendTextFile(Context.Channel, desc, settingName.Name, settingName.Name);
 			}
 		}
 	}

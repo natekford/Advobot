@@ -5,6 +5,7 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Collections;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 namespace Advobot.Classes.Attributes
@@ -15,13 +16,13 @@ namespace Advobot.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter)]
 	internal sealed class VerifyObjectAttribute : ParameterPreconditionAttribute
 	{
-		private bool _IfNullCheckFromContext;
-		private ObjectVerification[] _Checks;
+		public readonly bool IfNullCheckFromContext;
+		public readonly ImmutableList<ObjectVerification> Checks;
 
 		public VerifyObjectAttribute(bool ifNullCheckFromContext, params ObjectVerification[] checks)
 		{
-			_IfNullCheckFromContext = ifNullCheckFromContext;
-			_Checks = checks;
+			IfNullCheckFromContext = ifNullCheckFromContext;
+			Checks = checks.ToImmutableList();
 		}
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
@@ -29,7 +30,7 @@ namespace Advobot.Classes.Attributes
 			if (value == null)
 			{
 				//Getting to this point means the OptionalAttribute has already been checked, so it's ok to just return success on null
-				if (!_IfNullCheckFromContext)
+				if (!IfNullCheckFromContext)
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
@@ -73,15 +74,15 @@ namespace Advobot.Classes.Attributes
 			VerifiedObjectResult result = default;
 			if (value is IGuildChannel guildChannel)
 			{
-				result = ChannelActions.VerifyChannelMeetsRequirements(context, guildChannel, _Checks);
+				result = ChannelActions.VerifyChannelMeetsRequirements(context, guildChannel, Checks);
 			}
 			else if (value is IGuildUser guildUser)
 			{
-				result = UserActions.VerifyUserMeetsRequirements(context, guildUser, _Checks);
+				result = UserActions.VerifyUserMeetsRequirements(context, guildUser, Checks);
 			}
 			else if (value is IRole role)
 			{
-				result = RoleActions.VerifyRoleMeetsRequirements(context, role, _Checks);
+				result = RoleActions.VerifyRoleMeetsRequirements(context, role, Checks);
 			}
 			else
 			{

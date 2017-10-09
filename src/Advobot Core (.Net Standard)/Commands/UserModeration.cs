@@ -111,7 +111,7 @@ namespace Advobot.Commands.UserModeration
 
 	//TODO: put in cancel tokens for the commands that user bypass strings in case people need to cancel
 	[Group(nameof(MoveUsers)), TopLevelShortAlias(nameof(MoveUsers))]
-	[Usage("[Channel] [Channel] <" + Constants.BYPASS_STRING + ">")]
+	[Usage("[Channel] [Channel] <" + BypassUserLimitTypeReader.BYPASS_STRING + ">")]
 	[Summary("Moves all users from one channel to another. Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.MoveMembers }, null)]
 	[DefaultEnabled(true)]
@@ -128,27 +128,17 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	[Group(nameof(PruneUsers)), TopLevelShortAlias(nameof(PruneUsers))]
-	[Usage("[1|7|30] <" + ACTUAL_PRUNE_STRING + ">")]
+	[Usage("[1|7|30] <" + PruneTypeReader.PRUNE_STRING + ">")]
 	[Summary("Removes users who have no roles and have not been seen in the given amount of days. If the optional argument is not typed exactly, then the bot will only give a number of how many people will be kicked.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
 	public sealed class PruneUsers : AdvobotModuleBase
 	{
-		private const string ACTUAL_PRUNE_STRING = "ActualPrune";
-		private static readonly uint[] _Days = { 1, 7, 30 };
-
 		[Command]
-		public async Task Command(uint days, string pruneStr)
+		public async Task Command([VerifyNumber(1, 7, 30)] uint days, [Optional, OverrideTypeReader(typeof(PruneTypeReader))] bool simulate)
 		{
-			if (!_Days.Contains(days))
-			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason($"Invalid days supplied, must be one of the following: `{String.Join("`, `", _Days)}`"));
-				return;
-			}
-
-			var simulate = !ACTUAL_PRUNE_STRING.Equals(pruneStr);
-			var amt = await GuildActions.PruneUsers(Context.Guild, (int)days, simulate, new ModerationReason(Context.User, null));
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"`{amt}` members{(simulate ? " would" : "")} have been pruned with a prune period of `{days}` days.");
+			var amt = await GuildActions.PruneUsers(Context.Guild, (int)days, !simulate, new ModerationReason(Context.User, null));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"`{amt}` members{(!simulate ? " would" : "")} have been pruned with a prune period of `{days}` days.");
 		}
 	}
 
@@ -186,7 +176,7 @@ namespace Advobot.Commands.UserModeration
 	public sealed class Ban : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong user, uint time, [Optional, Remainder] string reason)
+		public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong user, [Optional] uint time, [Optional, Remainder] string reason)
 		{
 			await CommandRunner(user, time, reason);
 		}
@@ -373,7 +363,7 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	[Group(nameof(ForAllWithRole)), TopLevelShortAlias(nameof(ForAllWithRole))]
-	[Usage("[GiveRole|TakeRole|GiveNickname|TakeNickname] [Role] <Role|\"Nickname\"> <" + Constants.BYPASS_STRING + ">")]
+	[Usage("[GiveRole|TakeRole|GiveNickname|TakeNickname] [Role] <Role|\"Nickname\"> <" + BypassUserLimitTypeReader.BYPASS_STRING + ">")]
 	[Summary("All actions but `TakeNickame` require the output role/nickname. Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]

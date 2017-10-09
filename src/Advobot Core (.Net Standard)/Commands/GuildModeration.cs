@@ -135,17 +135,9 @@ namespace Advobot.Commands.GuildModeration
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildAFKTimer : AdvobotModuleBase
 	{
-		private static readonly uint[] _AFKTimes = { 60, 300, 900, 1800, 3600 };
-
 		[Command]
-		public async Task Command(uint time)
+		public async Task Command([VerifyNumber(60, 300, 900, 1800, 3600)] uint time)
 		{
-			if (!_AFKTimes.Contains(time))
-			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason($"Invalid time input, must be one of the following: `{String.Join("`, `", _AFKTimes)}`."));
-				return;
-			}
-
 			await GuildActions.ModifyGuildAFKTime(Context.Guild, (int)time, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the guild's AFK timeout to `{time}`.");
 		}

@@ -17,7 +17,6 @@ namespace Advobot.Classes.TypeReaders
 		{
 			{ nameof(GuildSettingTypeReader), GetActions.GetGuildSettings().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
 			{ nameof(BotSettingTypeReader), GetActions.GetBotSettings().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
-			{ nameof(BotSettingNonIEnumerableTypeReader), GetActions.GetBotSettingsThatArentIEnumerables().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase) },
 		};
 
 		/// <summary>
@@ -44,7 +43,5 @@ namespace Advobot.Classes.TypeReaders
 		internal class GuildSettingTypeReader : SettingTypeReader { }
 
 		internal class BotSettingTypeReader : SettingTypeReader { }
-
-		internal class BotSettingNonIEnumerableTypeReader : SettingTypeReader { }
 	}
 }

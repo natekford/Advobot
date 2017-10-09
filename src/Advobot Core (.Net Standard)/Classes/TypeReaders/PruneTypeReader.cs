@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 namespace Advobot.Classes.TypeReaders
 {
 	/// <summary>
-	/// Attempts to see if the input matches <see cref="BYPASS_STRING"/>.
+	/// Attempts to see if the input matches <see cref="PRUNE_STRING"/>.
 	/// </summary>
-	internal class BypassUserLimitTypeReader : TypeReader
+	internal class PruneTypeReader : TypeReader
 	{
-		internal const string BYPASS_STRING = "Bypass100";
+		internal const string PRUNE_STRING = "ActualPrune";
 
 		/// <summary>
-		/// Returns true if the input is equal to <see cref="BYPASS_STRING"/>.
+		/// Returns true if the input is equal to <see cref="PRUNE_STRING"/>.
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="input"></param>
@@ -20,7 +20,7 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
-			return Task.FromResult(TypeReaderResult.FromSuccess(BYPASS_STRING.CaseInsEquals(input)));
+			return Task.FromResult(TypeReaderResult.FromSuccess(PRUNE_STRING.CaseInsEquals(input)));
 		}
 	}
 }

@@ -43,23 +43,12 @@ namespace Advobot.Commands.InviteModeration
 	[DefaultEnabled(true)]
 	public sealed class CreateInvite : AdvobotModuleBase
 	{
-		private static readonly int[] validTimes = { 0, 1800, 3600, 21600, 43200, 86400 };
-		private static readonly int[] validUses = { 0, 1, 5, 10, 25, 50, 100 };
-
 		[Command]
-		public async Task Command([VerifyObject(true, ObjectVerification.CanCreateInstantInvite)] IGuildChannel channel, [Optional] int time, [Optional] int uses, [Optional] bool tempMem)
+		public async Task Command([VerifyObject(true, ObjectVerification.CanCreateInstantInvite)] IGuildChannel channel,
+			[Optional, VerifyNumber(0, 1800, 3600, 21600, 43200, 86400)] int time,
+			[Optional, VerifyNumber(0, 1, 5, 10, 25, 50, 100)] int uses,
+			[Optional] bool tempMem)
 		{
-			if (!validTimes.Contains(time))
-			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason($"Invalid time supplied, must be one of the following: `{String.Join("`, `", validTimes)}`."));
-				return;
-			}
-			else if (!validUses.Contains(uses))
-			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason($"Invalid uses supplied, must be one of the following: `{String.Join("`, `", validUses)}`"));
-				return;
-			}
-
 			int? nullableTime = time == 0 ? 86400 : time as int?;
 			int? nullableUses = uses == 0 ? null : uses as int?;
 			var inv = await InviteActions.CreateInvite(channel, nullableTime, nullableUses, tempMem, false, new ModerationReason(Context.User, null));

@@ -28,7 +28,7 @@ namespace Advobot.Classes.TypeReaders
 				return TypeReaderResult.FromSuccess(id);
 			}
 
-			var result = UserActions.VerifyUserMeetsRequirements(context, user, ObjectVerification.CanBeEdited);
+			var result = UserActions.VerifyUserMeetsRequirements(context, user, new[] { ObjectVerification.CanBeEdited });
 			if (!result.IsSuccess)
 			{
 				return TypeReaderResult.FromSuccess(id);

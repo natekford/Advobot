@@ -24,10 +24,11 @@ namespace Advobot.Classes.Attributes
 			{ Target.Topic, (Constants.MIN_TOPIC_LENGTH, Constants.MAX_TOPIC_LENGTH, "channel topic") },
 			{ Target.Prefix, (Constants.MIN_PREFIX_LENGTH, Constants.MAX_PREFIX_LENGTH, "bot prefix") },
 		};
-		private int _Min;
-		private int _Max;
-		private string _TooShort;
-		private string _TooLong;
+
+		public readonly int Min;
+		public readonly int Max;
+		public readonly string TooShort;
+		public readonly string TooLong;
 
 		/// <summary>
 		/// Sets the values by looking up <paramref name="target"/> in a dictionary.
@@ -38,8 +39,8 @@ namespace Advobot.Classes.Attributes
 		{
 			if (_MinsAndMaxesAndErrors.TryGetValue(target, out var minAndMaxAndError))
 			{
-				_TooShort = $"A {minAndMaxAndError.Name} must be at least `{(_Min = minAndMaxAndError.Min)}` characters long.";
-				_TooLong = $"A {minAndMaxAndError.Name} must be at most `{(_Max = minAndMaxAndError.Max)}` characters long.";
+				TooShort = $"A {minAndMaxAndError.Name} must be at least `{(Min = minAndMaxAndError.Min)}` characters long.";
+				TooLong = $"A {minAndMaxAndError.Name} must be at most `{(Max = minAndMaxAndError.Max)}` characters long.";
 			}
 			else
 			{
@@ -63,17 +64,15 @@ namespace Advobot.Classes.Attributes
 			{
 				return Task.FromResult(PreconditionResult.FromSuccess());
 			}
-
-			if (value.GetType() == typeof(string))
+			else if (value is string str)
 			{
-				var str = value.ToString();
-				if (str.Length < _Min)
+				if (str.Length < Min)
 				{
-					return Task.FromResult(PreconditionResult.FromError(_TooShort));
+					return Task.FromResult(PreconditionResult.FromError(TooShort));
 				}
-				else if (str.Length > _Max)
+				else if (str.Length > Max)
 				{
-					return Task.FromResult(PreconditionResult.FromError(_TooLong));
+					return Task.FromResult(PreconditionResult.FromError(TooLong));
 				}
 				else
 				{
@@ -84,6 +83,11 @@ namespace Advobot.Classes.Attributes
 			{
 				throw new NotSupportedException($"{nameof(VerifyStringLengthAttribute)} only supports strings.");
 			}
+		}
+
+		public override string ToString()
+		{
+			return $"({Min} to {Max} chars)";
 		}
 	}
 }

@@ -5,7 +5,6 @@ using Advobot.Enums;
 using Discord;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Immutable;
 
 namespace Advobot
@@ -21,7 +20,6 @@ namespace Advobot
 		public const string FAKE_EVERYONE = "@" + ZERO_LENGTH_CHAR + "everyone";
 		public const string FAKE_HERE = "@" + ZERO_LENGTH_CHAR + "here";
 		public const string FAKE_TTS = "\\" + ZERO_LENGTH_CHAR + "tts";
-		public const string BYPASS_STRING = "Bypass100";
 		public const int MIN_BITRATE = 8;
 		public const int MAX_BITRATE = 96;
 		public const int VIP_BITRATE = 128;
@@ -31,9 +29,9 @@ namespace Advobot
 		public const int MAX_STREAM_LENGTH = 25; //Source: https://www.reddit.com/r/Twitch/comments/32w5b2/username_requirements/cqf8yh0/
 		public const int MIN_STREAM_LENGTH = 4;
 		public const int MAX_GAME_LENGTH = 128; //Yes, I know it CAN go past that, but it won't show for others.
-		public const int MIN_GAME_LENGTH = -1;
+		public const int MIN_GAME_LENGTH = 0;
 		public const int MAX_TOPIC_LENGTH = 1024;
-		public const int MIN_TOPIC_LENGTH = -1;
+		public const int MIN_TOPIC_LENGTH = 0;
 		public const int MAX_GUILD_NAME_LENGTH = 100;
 		public const int MIN_GUILD_NAME_LENGTH = 2;
 		public const int MAX_CHANNEL_NAME_LENGTH = 100;
@@ -56,7 +54,7 @@ namespace Advobot
 
 		//Static readonly because they may change and I've heard using const means any assembly referencing it has to be recompiled each time the value gets manually changed.
 		public static readonly string BOT_VERSION = "0.31.0";
-		public static readonly string API_VERSION = "Discord.Net v2.0.0-alpha-build-00828";
+		public static readonly string API_VERSION = "Discord.Net v2.0.0-alpha-build-00838";
 		public static readonly string PROGRAM_NAME = "Advobot";
 		public static readonly string IGNORE_ERROR = "Cx";
 		public static readonly string DISCORD_INV = "https://discord.gg/MBXypxb"; //Switched from /xd to this invite since no matter what this inv will link to my server and never someone else's server

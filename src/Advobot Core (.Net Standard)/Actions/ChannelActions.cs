@@ -6,6 +6,7 @@ using Advobot.Enums;
 using Discord;
 using Discord.Commands;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -20,7 +21,7 @@ namespace Advobot.Actions
 		/// <param name="target"></param>
 		/// <param name="checkingTypes"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult VerifyChannelMeetsRequirements(ICommandContext context, IGuildChannel target, params ObjectVerification[] checks)
+		public static VerifiedObjectResult VerifyChannelMeetsRequirements(ICommandContext context, IGuildChannel target, IEnumerable<ObjectVerification> checks)
 		{
 			if (target == null)
 			{

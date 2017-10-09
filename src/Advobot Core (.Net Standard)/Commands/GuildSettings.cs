@@ -412,16 +412,16 @@ namespace Advobot.Commands.GuildSettings
 			await MessageActions.SendTextFile(Context.Channel, text, "Guild_Settings", "Guild Settings");
 		}
 		[Command]
-		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.GuildSettingTypeReader))] PropertyInfo setting)
+		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.GuildSettingTypeReader))] PropertyInfo settingName)
 		{
-			var desc = Context.GuildSettings.ToString(setting);
+			var desc = Context.GuildSettings.ToString(settingName);
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(setting.Name, desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(settingName.Name, desc));
 			}
 			else
 			{
-				await MessageActions.SendTextFile(Context.Channel, desc, setting.Name, setting.Name);
+				await MessageActions.SendTextFile(Context.Channel, desc, settingName.Name, settingName.Name);
 			}
 		}
 	}

@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions.Formatting;
 using Advobot.Classes.Attributes;
+using Advobot.Classes.UsageGeneration;
 using Advobot.Enums;
 using Discord.Commands;
 using System;
@@ -39,7 +40,7 @@ namespace Advobot.Classes
 				var name = classType.GetCustomAttribute<GroupAttribute>()?.Prefix;
 				var aliases = classType.GetCustomAttribute<AliasAttribute>()?.Aliases;
 				var summary = classType.GetCustomAttribute<SummaryAttribute>()?.Text;
-				var usage = new Usage(classType).Text;
+				var usage = new UsageGenerator(classType).Text;
 				var permReqs = classType.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString();
 				var otherReqs = classType.GetCustomAttribute<OtherRequirementAttribute>()?.ToString();
 				var defaultEnabled = classType.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
