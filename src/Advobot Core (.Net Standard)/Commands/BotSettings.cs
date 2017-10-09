@@ -1,5 +1,4 @@
 ﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
 using Advobot.Classes;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.TypeReaders;
@@ -11,12 +10,12 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.BotSettings
 {
 	[Group(nameof(ModifyBotSettings)), TopLevelShortAlias(nameof(ModifyBotSettings))]
-	[Usage("[Show|Modify|Clear] [Setting Name] <New Value>")]
 	[Summary("Modify the given setting on the bot. Show lists the setting names. Clear resets a setting back to default. Cannot modify settings which are lists through this command.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -154,7 +153,6 @@ namespace Advobot.Commands.BotSettings
 	}
 
 	[Group(nameof(DisplayBotSettings)), TopLevelShortAlias(nameof(DisplayBotSettings))]
-	[Usage("[Show|All|Setting Name]")]
 	[Summary("Displays global settings. Show gives a list of the setting names.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -188,7 +186,6 @@ namespace Advobot.Commands.BotSettings
 	}
 
 	[Group(nameof(ModifyBotName)), TopLevelShortAlias(nameof(ModifyBotName))]
-	[Usage("[New Name]")]
 	[Summary("Changes the bot's name to the given name.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -203,41 +200,25 @@ namespace Advobot.Commands.BotSettings
 	}
 
 	[Group(nameof(ModifyBotIcon)), TopLevelShortAlias(nameof(ModifyBotIcon))]
-	[Usage("<Attached Image|Embedded Image>")]
 	[Summary("Changes the bot's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the bot's icon.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotIcon : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command()
+		public async Task Command([Optional] ImageUrl imageUrl)
 		{
-			var attach = Context.Message.Attachments.Where(x => x.Width != null && x.Height != null).Select(x => x.Url);
-			var embeds = Context.Message.Embeds.Where(x => x.Image.HasValue).Select(x => x.Image?.Url);
-			var validImages = attach.Concat(embeds);
-			if (!validImages.Any())
+			if (imageUrl?.Url == null)
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image());
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the bot's icon.");
 				return;
 			}
-			else if (validImages.Count() > 1)
-			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("Too many attached or embedded images."));
-				return;
-			}
 
-			var imageUrl = validImages.First();
-			if (!GetActions.TryGetFileType(Context, imageUrl, out string fileType, out string errorReason))
-			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason(errorReason));
-				return;
-			}
-
-			var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.BOT_ICON_LOCATION + fileType);
+			var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_ICON_LOCATION + imageUrl.FileType);
 			using (var webClient = new WebClient())
 			{
-				webClient.DownloadFileAsync(new Uri(imageUrl), fileInfo.FullName);
+				webClient.DownloadFileAsync(new Uri(imageUrl.Url), fileInfo.FullName);
 				webClient.DownloadFileCompleted += async (sender, e) =>
 				{
 					await ClientActions.ModifyBotIconAsync(Context.Client, fileInfo);
@@ -249,7 +230,6 @@ namespace Advobot.Commands.BotSettings
 	}
 
 	[Group(nameof(ResetBotConfig)), TopLevelShortAlias(nameof(ResetBotConfig))]
-	[Usage("")]
 	[Summary("Resets bot key, bot Id, save path.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -268,7 +248,6 @@ namespace Advobot.Commands.BotSettings
 	}
 
 	[Group(nameof(ResetBotKey)), TopLevelShortAlias(nameof(ResetBotKey))]
-	[Usage("")]
 	[Summary("Remove's the currently used bot's key so that a different bot can be used instead.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -285,7 +264,6 @@ namespace Advobot.Commands.BotSettings
 	}
 
 	[Group(nameof(DisconnectBot)), TopLevelShortAlias(nameof(DisconnectBot), "runescapeservers")]
-	[Usage("")]
 	[Summary("Turns the bot off.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -299,7 +277,6 @@ namespace Advobot.Commands.BotSettings
 	}
 
 	[Group(nameof(RestartBot)), TopLevelShortAlias(nameof(RestartBot))]
-	[Usage("")]
 	[Summary("Restarts the bot.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]

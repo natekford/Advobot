@@ -11,22 +11,26 @@ namespace Advobot.Classes
 	/// </summary>
 	public class HelpEntry : IDescription
 	{
-		private const string PLACE_HOLDER_STR = "N/A";
 		public string Name { get; }
-		public string[] Aliases { get; }
 		public string Usage { get; }
 		public string BasePerm { get; }
 		public string Description { get; }
+		public string[] Aliases { get; }
 		public CommandCategory Category { get; }
 		public bool DefaultEnabled { get; }
 
-		public HelpEntry(string name, string[] aliases, string usage, string basePerm, string description, CommandCategory category, bool defaultEnabled)
+		public HelpEntry(string name, string usage, string basePerm, string description, string[] aliases, CommandCategory category, bool defaultEnabled)
 		{
-			Name = String.IsNullOrWhiteSpace(name) ? PLACE_HOLDER_STR : name;
-			Aliases = aliases ?? new[] { PLACE_HOLDER_STR };
-			Usage = String.IsNullOrWhiteSpace(usage) ? PLACE_HOLDER_STR : Constants.PLACEHOLDER_PREFIX + " " + usage;
-			BasePerm = String.IsNullOrWhiteSpace(basePerm) ? PLACE_HOLDER_STR : basePerm;
-			Description = String.IsNullOrWhiteSpace(description) ? PLACE_HOLDER_STR : description;
+			if (String.IsNullOrWhiteSpace(name))
+			{
+				throw new ArgumentException("Invalid name.");
+			}
+
+			Name = name;
+			Usage = usage ?? "";
+			BasePerm = String.IsNullOrWhiteSpace(basePerm) ? "N/A" : basePerm;
+			Description = String.IsNullOrWhiteSpace(description) ? "N/A" : description;
+			Aliases = aliases ?? new[] { "" };
 			Category = category;
 			DefaultEnabled = defaultEnabled;
 		}
@@ -35,7 +39,7 @@ namespace Advobot.Classes
 		{
 			return new StringBuilder()
 				.AppendLineFeed($"**Aliases:** {String.Join(", ", Aliases)}")
-				.AppendLineFeed($"**Usage:** {Usage}")
+				.AppendLineFeed($"**Usage:** {Constants.PLACEHOLDER_PREFIX}{Name} {Usage}")
 				.AppendLineFeed($"**Enabled By Default:** {(DefaultEnabled ? "Yes" : "No")}")
 				.AppendLineFeed($"\n**Base Permission(s):**\n{BasePerm}")
 				.AppendLineFeed($"\n**Description:**\n{Description}")

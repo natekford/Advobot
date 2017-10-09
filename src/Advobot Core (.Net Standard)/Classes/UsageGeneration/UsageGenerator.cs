@@ -51,51 +51,61 @@ namespace Advobot.Classes.UsageGeneration
 				throw new ArgumentException("Only use this method on a non nested class.");
 			}
 
-			GetAllNestedClassesAndMethods(0, classType, _Classes, _Methods, _Params);
-
-			//Remove duplicates
-			_Classes = _Classes.GroupBy(x => x.Name).Select(x => x.First()).ToList();
-			_Methods = _Methods.GroupBy(x => x.Name).Select(x => x.First()).ToList();
-			_Params = _Params.GroupBy(x => x.Name).Select(x => x.First()).ToList();
-
 			var sb = new StringBuilder();
-			for (int i = 0; i <= GetMaxDeepness(_Classes, _Methods, _Params); ++i)
+			GetAllNestedClassesAndMethods(classType, _Classes, _Methods, _Params);
+			RemoveDuplicateClasses(ref _Classes);
+			RemoveDuplicateMethods(ref _Methods);
+			RemoveDuplicateParameters(ref _Params);
+
+			//Don't include classes because they will always be 1 behind deepest methods at minimum.
+			var maximumUpperBounds = GetMaximumUpperBounds(_Methods, _Params); //Highest of the two highs
+			var minimumUpperBounds = GetMinimumUpperBounds(_Methods, _Params); //Lowest of the two highs
+			for (int i = 0; i <= maximumUpperBounds; ++i)
 			{
 				var thisIterClasses = _Classes.Where(x => x.Deepness == i);
 				var thisIterMethods = _Methods.Where(x => x.Deepness == i);
 				var thisIterParams = _Params.Where(x => x.Deepness == i);
 
 				var optional = false;
-				if (i >= GetMinimumUpperBounds(_Classes, _Methods, _Params))
+				if (i >= minimumUpperBounds)
 				{
-					//Optional methods are when they have no name, or when they don't go deep enough
-					//Optional parameters are easy to know. They just have the optional attribute.
-					var m = (_Methods.Any() && !_Methods.Any(x => x.Deepness >= i)) ||
-							(thisIterMethods.Any(x => x.Name == null) && !thisIterMethods.All(x => x.Name == null));
+					//Any methods from before this iteration with no arguments means that anything after is optional
+					var m = _Methods.Where(x => x.Deepness <= i - minimumUpperBounds).Any(x => x.NoArgs);
+					//Any parameters marked with the optional attr are optional.
 					var p = thisIterParams.Any() && thisIterParams.All(x => x.Optional);
-					optional = m || p;
+					optional =  m || p;
 				}
 
-				StartArgument(sb, optional);
-				AddOptions(sb, thisIterClasses);
-				AddOptions(sb, thisIterMethods);
-				AddOptions(sb, thisIterParams);
-				CloseArgument(sb, optional);
+				if (thisIterClasses.Any() || thisIterMethods.Any(x => x.Name != null) || thisIterParams.Any())
+				{
+					StartArgument(sb, optional);
+					AddOptions(sb, thisIterClasses);
+					AddOptions(sb, thisIterMethods);
+					AddOptions(sb, thisIterParams);
+					CloseArgument(sb, optional);
+				}
 			}
 
 			Text = sb.ToString().Trim();
 		}
 
-		private void GetAllNestedClassesAndMethods(int deepness, Type classType, List<ClassDetails> classes, List<MethodDetails> methods, List<ParameterDetails> parameters)
+		private void GetAllNestedClassesAndMethods(Type classType, List<ClassDetails> classes, List<MethodDetails> methods, List<ParameterDetails> parameters, int deepness = 0)
 		{
 			foreach (var method in GetCommands(classType))
 			{
 				var m = new MethodDetails(deepness, method);
-				methods.Add(m);
+				var p = method.GetParameters();
+
+				//If the name isn't null the method has to be added since it's necessary to invoke a command
+				//If the name is null, check if it has any arguments.
+				//If none then it has to be added here to specify no further text is needed (it's optional)
+				//If there are some then they get added in as parameter details (it's not optional)
+				if (m.Name != null || (m.Name == null && !p.Any()))
+				{
+					methods.Add(m);
+				}
 
 				var weNeedToGoDeeper = m.Name != null ? 1 : 0;
-
-				var p = method.GetParameters();
 				for (int i = 0; i < p.Length; ++i)
 				{
 					parameters.Add(new ParameterDetails(weNeedToGoDeeper + deepness + i, p[i]));
@@ -104,8 +114,8 @@ namespace Advobot.Classes.UsageGeneration
 
 			foreach (var type in GetNestedCommandClasses(classType))
 			{
-				GetAllNestedClassesAndMethods(deepness + 1, type, classes, methods, parameters);
 				classes.Add(new ClassDetails(deepness, type));
+				GetAllNestedClassesAndMethods(type, classes, methods, parameters, deepness + 1);
 			}
 		}
 		private IEnumerable<Type> GetNestedCommandClasses(Type classType)
@@ -119,23 +129,46 @@ namespace Advobot.Classes.UsageGeneration
 				.Where(x => x.GetCustomAttribute<CommandAttribute>() != null);
 		}
 
-		private int GetMaxDeepness(IEnumerable<ClassDetails> classes, IEnumerable<MethodDetails> methods, IEnumerable<ParameterDetails> parameters)
+		private void RemoveDuplicateClasses(ref List<ClassDetails> classes)
+		{
+			classes = classes.GroupBy(x => x.Name).Select(x => x.First()).ToList();
+		}
+		private void RemoveDuplicateMethods(ref List<MethodDetails> methods)
+		{
+			var tempList = new List<MethodDetails>();
+			foreach (var method in methods)
+			{
+				var matchingNameAndDeepness = tempList.SingleOrDefault(x => x.Name == method.Name && x.Deepness == method.Deepness);
+				if (matchingNameAndDeepness != null && !matchingNameAndDeepness.NoArgs)
+				{
+					tempList.Remove(matchingNameAndDeepness);
+					tempList.Add(method);
+				}
+				else if (!tempList.Any(x => x.Name == method.Name))
+				{
+					tempList.Add(method);
+				}
+			}
+			methods = tempList;
+		}
+		private void RemoveDuplicateParameters(ref List<ParameterDetails> parameters)
+		{
+			parameters = parameters.GroupBy(x => x.Name).Select(x => x.First()).ToList();
+		}
+
+		private int GetMaximumUpperBounds(IEnumerable<MethodDetails> methods, IEnumerable<ParameterDetails> parameters)
 		{
 			return new[]
 			{
 				methods.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
-				//Don't include classes because they will always be 1 behind deepest methods at minimum.
-				//classes.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
 				parameters.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
 			}.Max();
 		}
-		private int GetMinimumUpperBounds(IEnumerable<ClassDetails> classes, IEnumerable<MethodDetails> methods, IEnumerable<ParameterDetails> parameters)
+		private int GetMinimumUpperBounds(IEnumerable<MethodDetails> methods, IEnumerable<ParameterDetails> parameters)
 		{
 			return new[]
 			{
 				methods.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
-				//Don't include classes because they will always be 1 behind deepest methods at minimum.
-				//classes.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
 				parameters.DefaultIfEmpty().Max(x => x?.Deepness ?? 0),
 			}.Min();
 		}

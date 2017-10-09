@@ -54,15 +54,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		internal static CommandService CreateCommandService()
 		{
-			var commandService = new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, });
-
-			commandService.AddTypeReader(typeof(IInvite), new InviteTypeReader());
-			commandService.AddTypeReader(typeof(IBan), new BanTypeReader());
-			commandService.AddTypeReader(typeof(Emote), new EmoteTypeReader());
-			commandService.AddTypeReader(typeof(Color), new ColorTypeReader());
-			commandService.AddTypeReader(typeof(CommandSwitch), new CommandSwitchTypeReader());
-
-			return commandService;
+			return new CommandService(new CommandServiceConfig { CaseSensitiveCommands = false, ThrowOnError = false, });
 		}
 		/// <summary>
 		/// Creates settings that the bot uses.

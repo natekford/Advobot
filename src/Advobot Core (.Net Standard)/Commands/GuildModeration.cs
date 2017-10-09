@@ -9,6 +9,8 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Advobot.Classes.TypeReaders;
+using System.Net;
 
 namespace Advobot.Commands.GuildModeration
 {
@@ -114,17 +116,17 @@ namespace Advobot.Commands.GuildModeration
 			await MessageActions.SendMessage(Context.Channel, $"The guild's current server region is `{Context.Guild.VoiceRegionId}`.");
 		}
 		[Command, Priority(0)]
-		public async Task Command(string region)
+		public async Task Command(string regionId)
 		{
-			if (!(_ValidRegionIDs.CaseInsContains(region) || (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(region))))
+			if (!(_ValidRegionIDs.CaseInsContains(regionId) || (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(regionId))))
 			{
 				await MessageActions.SendErrorMessage(Context, new ErrorReason("No valid region ID was input."));
 				return;
 			}
 
 			var beforeRegion = Context.Guild.VoiceRegionId;
-			await GuildActions.ModifyGuildRegion(Context.Guild, region, new ModerationReason(Context.User, null));
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the server region of the guild from `{beforeRegion}` to `{region}`.");
+			await GuildActions.ModifyGuildRegion(Context.Guild, regionId, new ModerationReason(Context.User, null));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed the server region of the guild from `{beforeRegion}` to `{regionId}`.");
 		}
 	}
 
@@ -196,34 +198,19 @@ namespace Advobot.Commands.GuildModeration
 	public sealed class ModifyGuildIcon : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command([Optional] string input)
+		public async Task Command([Optional] ImageUrl imageUrl)
 		{
-			var attach = Context.Message.Attachments.Where(x => x.Width != null && x.Height != null).Select(x => x.Url);
-			var embeds = Context.Message.Embeds.Where(x => x.Image.HasValue).Select(x => x.Image?.Url);
-			var validImages = attach.Concat(embeds);
-			if (!validImages.Any())
+			if (imageUrl?.Url == null)
 			{
 				await Context.Guild.ModifyAsync(x => x.Icon = new Image());
 				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the guild's icon.");
 				return;
 			}
-			else if (validImages.Count() > 1)
-			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("Too many attached or embedded images."));
-				return;
-			}
 
-			var imageUrl = validImages.First();
-			if (!GetActions.TryGetFileType(Context, imageUrl, out string fileType, out string errorReason))
+			var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_ICON_LOCATION + imageUrl.FileType);
+			using (var webClient = new WebClient())
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason(errorReason));
-				return;
-			}
-
-			var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_ICON_LOCATION + fileType);
-			using (var webClient = new System.Net.WebClient())
-			{
-				webClient.DownloadFileAsync(new Uri(imageUrl), fileInfo.FullName);
+				webClient.DownloadFileAsync(new Uri(imageUrl.Url), fileInfo.FullName);
 				webClient.DownloadFileCompleted += async (sender, e) =>
 				{
 					await GuildActions.ModifyGuildIcon(Context.Guild, fileInfo, new ModerationReason(Context.User, null));

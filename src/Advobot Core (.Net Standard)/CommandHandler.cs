@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Classes;
+using Advobot.Classes.TypeReaders;
 using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
@@ -36,6 +37,13 @@ namespace Advobot
 			_Client = _Provider.GetService<IDiscordClient>();
 			_Timers = _Provider.GetService<ITimersService>();
 			_Logging = _Provider.GetService<ILogService>();
+
+			_Commands.AddTypeReader(typeof(IInvite), new InviteTypeReader());
+			_Commands.AddTypeReader(typeof(IBan), new BanTypeReader());
+			_Commands.AddTypeReader(typeof(Emote), new EmoteTypeReader());
+			_Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
+			_Commands.AddTypeReader(typeof(CommandSwitch), new CommandSwitchTypeReader());
+			_Commands.AddTypeReader(typeof(ImageUrl), new ImageUrlTypeReader());
 
 			//Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
 			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly());

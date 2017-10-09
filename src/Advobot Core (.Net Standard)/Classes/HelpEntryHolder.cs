@@ -56,7 +56,7 @@ namespace Advobot.Classes
 				AssertShortAliasAttribute(classType, true);
 #endif
 
-				temp.Add(new HelpEntry(name, aliases, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, category, defaultEnabled));
+				temp.Add(new HelpEntry(name, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, aliases, category, defaultEnabled));
 			}
 			_Source = temp.ToImmutableList();
 		}

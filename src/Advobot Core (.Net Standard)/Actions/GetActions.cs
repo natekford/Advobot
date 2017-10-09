@@ -136,7 +136,7 @@ namespace Advobot.Actions
 		/// <param name="fileType"></param>
 		/// <param name="errorReason"></param>
 		/// <returns></returns>
-		public static bool TryGetFileType(IAdvobotCommandContext context, string imageUrl, out string fileType, out string errorReason)
+		public static bool TryGetFileType(string imageUrl, out string fileType, out ErrorReason errorReason)
 		{
 			fileType = null;
 			errorReason = null;
@@ -147,16 +147,16 @@ namespace Advobot.Actions
 			{
 				if (!Constants.VALID_IMAGE_EXTENSIONS.Contains(fileType = "." + resp.Headers.Get("Content-Type").Split('/').Last()))
 				{
-					errorReason = "Image must be a png or jpg.";
+					errorReason = new ErrorReason("Image must be a png or jpg.");
 				}
 				else if (!int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
 				{
-					errorReason = "Unable to get the image's file size.";
+					errorReason = new ErrorReason("Unable to get the image's file size.");
 				}
 				else if (ContentLength > Constants.MAX_ICON_FILE_SIZE)
 				{
 					var maxSize = (double)Constants.MAX_ICON_FILE_SIZE / 1000 * 1000;
-					errorReason = $"Image is bigger than {maxSize:0.0}MB. Manually upload instead.";
+					errorReason = new ErrorReason($"Image is bigger than {maxSize:0.0}MB. Manually upload instead.");
 				}
 				else
 				{

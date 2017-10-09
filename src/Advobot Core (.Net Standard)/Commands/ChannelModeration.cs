@@ -23,35 +23,22 @@ namespace Advobot.Commands.ChannelModeration
 	[DefaultEnabled(true)]
 	public sealed class CreateChannel : AdvobotModuleBase
 	{
-		[Command]
-		public async Task Command(ChannelType channelType, [Remainder, VerifyStringLength(Target.Channel)] string name)
+		[Command(nameof(Text)), ShortAlias(nameof(Text))]
+		public async Task Text([Remainder, VerifyStringLength(Target.Channel)] string name)
 		{
-			IGuildChannel channel;
-			switch (channelType)
+			if (name.Contains(' '))
 			{
-				case ChannelType.Text:
-				{
-					if (name.Contains(' '))
-					{
-						await MessageActions.SendErrorMessage(Context, new ErrorReason("No spaces are allowed in a text channel name."));
-						return;
-					}
-
-					channel = await ChannelActions.CreateTextChannel(Context.Guild, name, new ModerationReason(Context.User, null));
-					break;
-				}
-				case ChannelType.Voice:
-				{
-					channel = await ChannelActions.CreateVoiceChannel(Context.Guild, name, new ModerationReason(Context.User, null));
-					break;
-				}
-				default:
-				{
-					await MessageActions.SendErrorMessage(Context, new ErrorReason("Unable to create a channel of that type."));
-					return;
-				}
+				await MessageActions.SendErrorMessage(Context, new ErrorReason("No spaces are allowed in a text channel name."));
+				return;
 			}
 
+			var channel = await ChannelActions.CreateTextChannel(Context.Guild, name, new ModerationReason(Context.User, null));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully created `{channel.FormatChannel()}`.");
+		}
+		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
+		public async Task Voice([Remainder, VerifyStringLength(Target.Channel)] string name)
+		{
+			var channel = await ChannelActions.CreateVoiceChannel(Context.Guild, name, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully created `{channel.FormatChannel()}`.");
 		}
 	}
