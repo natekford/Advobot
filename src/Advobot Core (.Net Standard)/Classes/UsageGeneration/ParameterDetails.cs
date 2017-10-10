@@ -33,28 +33,44 @@ namespace Advobot.Classes.UsageGeneration
 		private static Dictionary<Type, string> _NameSwitcher = new Dictionary<Type, string>
 		{
 			{ typeof(BypassUserLimitTypeReader), BypassUserLimitTypeReader.BYPASS_STRING },
+			{ typeof(BanTypeReader), "UserId|Username#Discriminator" },
+			{ typeof(ColorTypeReader), "Hexadecimal|R/G/B|Name" },
+			{ typeof(EmoteTypeReader), "EmoteId|Name" },
 			{ typeof(PruneTypeReader), PruneTypeReader.PRUNE_STRING },
 		};
 
-		public int Deepness { get; }
-		public string Name { get; }
-		public string Text { get; }
-		public bool Optional { get; }
+		public int Deepness { get; private set; }
+		public string Name { get; private set; }
+		public string Text { get; private set; }
+		public bool IsOptional { get; private set; }
+		public bool IsParams { get; private set; }
+		public bool IsRemainder { get; private set; }
+		public int Occurences { get; private set; }
 
-		public Type Type { get; }
-		public string TypeName { get; }
+		public Type Type { get; private set; }
+		public string TypeName { get; private set; }
 
 		public ParameterDetails(int deepness, System.Reflection.ParameterInfo parameter)
 		{
-			var optionalAttr = parameter.GetCustomAttribute<OptionalAttribute>();
-			var overrideTypeReaderAttr = parameter.GetCustomAttribute<OverrideTypeReaderAttribute>();
-			var verifyNumberAttr = parameter.GetCustomAttribute<VerifyNumberAttribute>();
-			var verifyStringLengthAttr = parameter.GetCustomAttribute<VerifyStringLengthAttribute>();
-
 			Deepness = deepness;
 			Name = CapitalizeFirstLetter(parameter.Name);
-			Optional = optionalAttr != null;
+			IsOptional = parameter.GetCustomAttribute<OptionalAttribute>() != null;
+			IsParams = parameter.GetCustomAttribute<ParamArrayAttribute>() != null;
+			IsRemainder = parameter.GetCustomAttribute<RemainderAttribute>() != null;
+			Occurences = 1;
 
+			SetType(parameter);
+			SetText(parameter);
+
+			if (Type == typeof(CustomArguments) && !IsRemainder && parameter.GetCustomAttribute<VerifyCustomArgumentsAttribute>() != null)
+			{
+				throw new ArgumentException($"{Type.Name} requires {nameof(RemainderAttribute)} and {nameof(VerifyCustomArgumentsAttribute)}.");
+			}
+		}
+
+		private void SetType(System.Reflection.ParameterInfo parameter)
+		{
+			var overrideTypeReaderAttr = parameter.GetCustomAttribute<OverrideTypeReaderAttribute>();
 			var typeReader = overrideTypeReaderAttr?.TypeReader;
 			if (typeReader != null)
 			{
@@ -78,20 +94,34 @@ namespace Advobot.Classes.UsageGeneration
 				Type = parameter.ParameterType;
 				TypeName = Type.Name;
 			}
-
+		}
+		private void SetText(System.Reflection.ParameterInfo parameter)
+		{
+			var verifyNumberAttr = parameter.GetCustomAttribute<VerifyNumberAttribute>();
 			if (verifyNumberAttr != null)
 			{
-				Text = $" {verifyNumberAttr.ToString()}";
+				Text += $" {verifyNumberAttr.ToString()}";
 			}
-			else if (verifyStringLengthAttr != null)
+			var verifyStringLengthAttr = parameter.GetCustomAttribute<VerifyStringLengthAttribute>();
+			if (verifyStringLengthAttr != null)
 			{
-				Text = $" {verifyStringLengthAttr.ToString()}";
+				Text += $" {verifyStringLengthAttr.ToString()}";
+			}
+			var verifyCustomArgumentsAttributeAttr = parameter.GetCustomAttribute<VerifyCustomArgumentsAttribute>();
+			if (verifyCustomArgumentsAttributeAttr != null)
+			{
+				Text += $" {verifyCustomArgumentsAttributeAttr.ToString()}";
 			}
 		}
 
 		private string CapitalizeFirstLetter(string n)
 		{
 			return n[0].ToString().ToUpper() + n.Substring(1, n.Length - 1);
+		}
+
+		public void IncrementOccurences()
+		{
+			++Occurences;
 		}
 
 		public override string ToString()

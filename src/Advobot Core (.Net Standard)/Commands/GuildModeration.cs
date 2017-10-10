@@ -1,21 +1,18 @@
 ﻿using Advobot.Actions;
-using Advobot.Classes.Attributes;
-using Advobot.Classes;
-using Advobot.Enums;
 using Advobot.Actions.Formatting;
+using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Enums;
 using Discord;
 using Discord.Commands;
 using System;
-using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Advobot.Classes.TypeReaders;
-using System.Net;
 
 namespace Advobot.Commands.GuildModeration
 {
-	[Group(nameof(LeaveGuild)), TopLevelShortAlias(nameof(LeaveGuild))]
-	[Usage("<Guild ID>")]
+	[Group(nameof(LeaveGuild)), TopLevelShortAlias(typeof(LeaveGuild))]
 	[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
 	[OtherRequirement(Precondition.GuildOwner | Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -57,8 +54,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildName)), TopLevelShortAlias(nameof(ModifyGuildName))]
-	[Usage("[Name]")]
+	[Group(nameof(ModifyGuildName)), TopLevelShortAlias(typeof(ModifyGuildName))]
 	[Summary("Change the name of the guild to the given name.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
@@ -72,8 +68,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildRegion)), TopLevelShortAlias(nameof(ModifyGuildRegion))]
-	[Usage("[Show|Current|Region ID]")]
+	[Group(nameof(ModifyGuildRegion)), TopLevelShortAlias(typeof(ModifyGuildRegion))]
 	[Summary("Shows or changes the guild's server region. Inputting nothing lists all valid region IDs.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
@@ -130,8 +125,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildAFKTimer)), TopLevelShortAlias(nameof(ModifyGuildAFKTimer))]
-	[Usage("[Number]")]
+	[Group(nameof(ModifyGuildAFKTimer)), TopLevelShortAlias(typeof(ModifyGuildAFKTimer))]
 	[Summary("Updates the guild's AFK timeout.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
@@ -145,8 +139,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildAFKChannel)), TopLevelShortAlias(nameof(ModifyGuildAFKChannel))]
-	[Usage("[Channel]")]
+	[Group(nameof(ModifyGuildAFKChannel)), TopLevelShortAlias(typeof(ModifyGuildAFKChannel))]
 	[Summary("Updates the guild's AFK channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
@@ -160,8 +153,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildMsgNotif)), TopLevelShortAlias(nameof(ModifyGuildMsgNotif))]
-	[Usage("[AllMessages|MentionsOnly]")]
+	[Group(nameof(ModifyGuildMsgNotif)), TopLevelShortAlias(typeof(ModifyGuildMsgNotif))]
 	[Summary("Changes the message notifications to either all messages or mentions only.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
@@ -175,8 +167,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildVerif)), TopLevelShortAlias(nameof(ModifyGuildVerif))]
-	[Usage("[None|Low|Medium|High|Extreme]")]
+	[Group(nameof(ModifyGuildVerif)), TopLevelShortAlias(typeof(ModifyGuildVerif))]
 	[Summary("Changes the verification level. None is the most lenient (no requirements to type), extreme is the harshest (phone verification).")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
@@ -190,8 +181,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(ModifyGuildIcon)), TopLevelShortAlias(nameof(ModifyGuildIcon))]
-	[Usage("<Attached Image|Embedded Image>")]
+	[Group(nameof(ModifyGuildIcon)), TopLevelShortAlias(typeof(ModifyGuildIcon))]
 	[Summary("Changes the guild's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the guild's icon.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
@@ -221,8 +211,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(CreateGuild)), TopLevelShortAlias(nameof(CreateGuild))]
-	[Usage("[Name]")]
+	[Group(nameof(CreateGuild)), TopLevelShortAlias(typeof(CreateGuild))]
 	[Summary("Creates a guild with the bot as the owner.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -240,8 +229,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(SwapGuildOwner)), TopLevelShortAlias(nameof(SwapGuildOwner))]
-	[Usage("")]
+	[Group(nameof(SwapGuildOwner)), TopLevelShortAlias(typeof(SwapGuildOwner))]
 	[Summary("If the bot is the current owner of the guild, this command will give you owner.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -261,8 +249,7 @@ namespace Advobot.Commands.GuildModeration
 		}
 	}
 
-	[Group(nameof(DeleteGuild)), TopLevelShortAlias(nameof(DeleteGuild))]
-	[Usage("")]
+	[Group(nameof(DeleteGuild)), TopLevelShortAlias(typeof(DeleteGuild))]
 	[Summary("If the bot is the current owner of the guild, this command will delete the guild.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]

@@ -10,8 +10,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.SpamPrevention
 {
-	[Group(nameof(PreventSpam)), TopLevelShortAlias(nameof(PreventSpam))]
-	[Usage("[Show|Create|Enable|Disable] <Message|LongMessage|Link|Image|Mention> <Punishment> <Message Count> <Spam Amount|Time Interval> <Votes>")]
+	[Group(nameof(PreventSpam)), TopLevelShortAlias(typeof(PreventSpam))]
 	[Summary("Spam prevention allows for some protection against mention spammers. Messages are the amount of messages a user has to send with the given amount of mentions before being considered " +
 		"as potential spam. Votes is the amount of users that have to agree with the potential punishment. The spam users are reset every hour. `Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]
@@ -64,8 +63,7 @@ namespace Advobot.Commands.SpamPrevention
 		}
 	}
 
-	[Group(nameof(PreventRaid)), TopLevelShortAlias(nameof(PreventRaid))]
-	[Usage("[Show|Create|Enable|Disable] <Regular|RapidJoins> <Punishment> <Number of Users> <Time Interval>")]
+	[Group(nameof(PreventRaid)), TopLevelShortAlias(typeof(PreventRaid))]
 	[Summary("Any users who joins from now on will get text muted. Once `preventraidspam` is turned off all the users who were muted will be unmuted. " +
 		"Inputting a number means the last x amount of people (up to 25) who have joined will be muted. `Show` lists all of the available punishments.")]
 	[PermissionRequirement(null, null)]

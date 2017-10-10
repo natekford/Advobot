@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.BotSettings
 {
-	[Group(nameof(ModifyBotSettings)), TopLevelShortAlias(nameof(ModifyBotSettings))]
+	[Group(nameof(ModifyBotSettings)), TopLevelShortAlias(typeof(ModifyBotSettings))]
 	[Summary("Modify the given setting on the bot. Show lists the setting names. Clear resets a setting back to default. Cannot modify settings which are lists through this command.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -152,7 +152,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(DisplayBotSettings)), TopLevelShortAlias(nameof(DisplayBotSettings))]
+	[Group(nameof(DisplayBotSettings)), TopLevelShortAlias(typeof(DisplayBotSettings))]
 	[Summary("Displays global settings. Show gives a list of the setting names.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -185,7 +185,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(ModifyBotName)), TopLevelShortAlias(nameof(ModifyBotName))]
+	[Group(nameof(ModifyBotName)), TopLevelShortAlias(typeof(ModifyBotName))]
 	[Summary("Changes the bot's name to the given name.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -199,7 +199,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(ModifyBotIcon)), TopLevelShortAlias(nameof(ModifyBotIcon))]
+	[Group(nameof(ModifyBotIcon)), TopLevelShortAlias(typeof(ModifyBotIcon))]
 	[Summary("Changes the bot's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the bot's icon.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -229,7 +229,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(ResetBotConfig)), TopLevelShortAlias(nameof(ResetBotConfig))]
+	[Group(nameof(ResetBotConfig)), TopLevelShortAlias(typeof(ResetBotConfig))]
 	[Summary("Resets bot key, bot Id, save path.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -247,7 +247,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(ResetBotKey)), TopLevelShortAlias(nameof(ResetBotKey))]
+	[Group(nameof(ResetBotKey)), TopLevelShortAlias(typeof(ResetBotKey))]
 	[Summary("Remove's the currently used bot's key so that a different bot can be used instead.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -263,7 +263,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(DisconnectBot)), TopLevelShortAlias(nameof(DisconnectBot), "runescapeservers")]
+	[Group(nameof(DisconnectBot)), TopLevelShortAlias(typeof(DisconnectBot), "runescapeservers")]
 	[Summary("Turns the bot off.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -276,7 +276,7 @@ namespace Advobot.Commands.BotSettings
 		}
 	}
 
-	[Group(nameof(RestartBot)), TopLevelShortAlias(nameof(RestartBot))]
+	[Group(nameof(RestartBot)), TopLevelShortAlias(typeof(RestartBot))]
 	[Summary("Restarts the bot.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]

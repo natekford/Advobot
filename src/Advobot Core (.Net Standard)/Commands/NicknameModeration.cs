@@ -12,8 +12,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.NicknameModeration
 {
-	[Group(nameof(ModifyNickName)), TopLevelShortAlias(nameof(ModifyNickName))]
-	[Usage("[User] <Nickname>")]
+	[Group(nameof(ModifyNickName)), TopLevelShortAlias(typeof(ModifyNickName))]
 	[Summary("Gives the user a nickname. Inputting no nickname resets their nickname.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
@@ -30,8 +29,7 @@ namespace Advobot.Commands.NicknameModeration
 		}
 	}
 
-	[Group(nameof(ReplaceWordsInNames)), TopLevelShortAlias(nameof(ReplaceWordsInNames))]
-	[Usage("[\"Search\"] [\"Replace\"] <" + BypassUserLimitTypeReader.BYPASS_STRING + ">")]
+	[Group(nameof(ReplaceWordsInNames)), TopLevelShortAlias(typeof(ReplaceWordsInNames))]
 	[Summary("Gives users a new nickname if their nickname or username contains the search phrase. Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
@@ -49,8 +47,7 @@ namespace Advobot.Commands.NicknameModeration
 		}
 	}
 
-	[Group(nameof(ReplaceByUTF16)), TopLevelShortAlias(nameof(ReplaceByUTF16))]
-	[Usage("[Number] [\"Replace\"] <" + BypassUserLimitTypeReader.BYPASS_STRING + ">")]
+	[Group(nameof(ReplaceByUTF16)), TopLevelShortAlias(typeof(ReplaceByUTF16))]
 	[Summary("Replaces nickname/usernames that contain any characters above the supplied character value in UTF-16. Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
@@ -68,8 +65,7 @@ namespace Advobot.Commands.NicknameModeration
 		}
 	}
 
-	[Group(nameof(RemoveAllNickNames)), TopLevelShortAlias(nameof(RemoveAllNickNames))]
-	[Usage("<" + BypassUserLimitTypeReader.BYPASS_STRING + ">")]
+	[Group(nameof(RemoveAllNickNames)), TopLevelShortAlias(typeof(RemoveAllNickNames))]
 	[Summary("Remove all nicknames of users on the guild. Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]

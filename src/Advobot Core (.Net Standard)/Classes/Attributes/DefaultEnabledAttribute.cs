@@ -15,23 +15,4 @@ namespace Advobot.Classes.Attributes
 			Enabled = enabled;
 		}
 	}
-
-	/// <summary>
-	/// Describes what arguments to invoke the command with.
-	/// </summary>
-	[AttributeUsage(AttributeTargets.Class)]
-	public class UsageAttribute : Attribute
-	{
-		public readonly string Usage;
-
-		public UsageAttribute(string usage)
-		{
-			Usage = usage;
-		}
-
-		public string ToString(string name)
-		{
-			return name + " " + Usage;
-		}
-	}
 }

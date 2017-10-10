@@ -16,8 +16,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.ChannelModeration
 {
-	[Group(nameof(CreateChannel)), TopLevelShortAlias(nameof(CreateChannel))]
-	[Usage("[Text|Voice] [Name]")]
+	[Group(nameof(CreateChannel)), TopLevelShortAlias(typeof(CreateChannel))]
 	[Summary("Adds a channel to the guild of the given type with the given name. Text channel names cannot contain any spaces.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -43,8 +42,7 @@ namespace Advobot.Commands.ChannelModeration
 		}
 	}
 
-	[Group(nameof(SoftDeleteChannel)), TopLevelShortAlias(nameof(SoftDeleteChannel))]
-	[Usage("[Channel]")]
+	[Group(nameof(SoftDeleteChannel)), TopLevelShortAlias(typeof(SoftDeleteChannel))]
 	[Summary("Makes most roles unable to read the channel and moves it to the bottom of the channel list. Only works for text channels.")]
 	[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 	[DefaultEnabled(true)]
@@ -58,8 +56,7 @@ namespace Advobot.Commands.ChannelModeration
 		}
 	}
 
-	[Group(nameof(DeleteChannel)), TopLevelShortAlias(nameof(DeleteChannel))]
-	[Usage("[Channel]")]
+	[Group(nameof(DeleteChannel)), TopLevelShortAlias(typeof(DeleteChannel))]
 	[Summary("Deletes the channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -73,8 +70,7 @@ namespace Advobot.Commands.ChannelModeration
 		}
 	}
 
-	[Group(nameof(ModifyChannelPosition)), TopLevelShortAlias(nameof(ModifyChannelPosition))]
-	[Usage("[Channel] [Number]")]
+	[Group(nameof(ModifyChannelPosition)), TopLevelShortAlias(typeof(ModifyChannelPosition))]
 	[Summary("If only the channel is input the channel's position will be listed. Position zero is the top most position.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -88,46 +84,29 @@ namespace Advobot.Commands.ChannelModeration
 		}
 	}
 
-	[Group(nameof(DisplayChannelPosition)), TopLevelShortAlias(nameof(DisplayChannelPosition))]
-	[Usage("[Text|Voice]")]
+	[Group(nameof(DisplayChannelPosition)), TopLevelShortAlias(typeof(DisplayChannelPosition))]
 	[Summary("Lists the positions of each text or voice channel on the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayChannelPosition : AdvobotModuleBase
 	{
-		[Command]
-		public async Task Command(ChannelType channelType)
+		[Command(nameof(Text)), ShortAlias(nameof(Text))]
+		public async Task Text(ChannelType channelType)
 		{
-			string title;
-			IEnumerable<IGuildChannel> channels;
-			switch (channelType)
-			{
-				case ChannelType.Text:
-				{
-					title = "Text Channel Positions";
-					channels = (await Context.Guild.GetTextChannelsAsync()).Cast<IGuildChannel>();
-					break;
-				}
-				case ChannelType.Voice:
-				{
-					title = "Voice Channel Positions";
-					channels = (await Context.Guild.GetVoiceChannelsAsync()).Cast<IGuildChannel>();
-					break;
-				}
-				default:
-				{
-					await MessageActions.SendErrorMessage(Context, new ErrorReason("Unable to show the positions for that channel type."));
-					return;
-				}
-			}
-
+			var channels = await Context.Guild.GetTextChannelsAsync();
 			var desc = String.Join("\n", channels.OrderBy(x => x.Position).Select(x => $"`{x.Position.ToString("00")}.` `{x.Name}`"));
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(title, desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Text Channel Positions", desc));
+		}
+		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
+		public async Task Voice()
+		{
+			var channels = await Context.Guild.GetVoiceChannelsAsync();
+			var desc = String.Join("\n", channels.OrderBy(x => x.Position).Select(x => $"`{x.Position.ToString("00")}.` `{x.Name}`"));
+			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Voice Channel Positions", desc));
 		}
 	}
 
-	[Group(nameof(ModifyChannelPerms)), TopLevelShortAlias(nameof(ModifyChannelPerms))]
-	[Usage("[Show|Allow|Inherit|Deny] <Channel> <Role|User> <Permission/...>")]
+	[Group(nameof(ModifyChannelPerms)), TopLevelShortAlias(typeof(ModifyChannelPerms))]
 	[Summary("Permissions must be separated by a `/` or their rawvalue can be said instead" +
 		"Type `" + nameof(ModifyChannelPerms) + " [Show]` to see the available permissions. " +
 		"Type `" + nameof(ModifyChannelPerms) + " [Show] [Channel]` to see all permissions on a channel. " +
@@ -185,20 +164,20 @@ namespace Advobot.Commands.ChannelModeration
 		public async Task Command(PermValue action,
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
 			IRole role,
-			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
+			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong permissions)
 		{
-			await CommandRunner(action, channel, role, rawValue);
+			await CommandRunner(action, channel, role, permissions);
 		}
 		[Command]
 		public async Task Command(PermValue action,
 			[VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel,
 			IGuildUser user,
-			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong rawValue)
+			[Remainder, OverrideTypeReader(typeof(ChannelPermissionsTypeReader))] ulong permissions)
 		{
-			await CommandRunner(action, channel, user, rawValue);
+			await CommandRunner(action, channel, user, permissions);
 		}
 
-		private async Task CommandRunner(PermValue action, IGuildChannel channel, object discordObject, ulong changeValue)
+		private async Task CommandRunner(PermValue action, IGuildChannel channel, object discordObject, ulong permissions)
 		{
 			var actionStr = "";
 			switch (action)
@@ -220,14 +199,13 @@ namespace Advobot.Commands.ChannelModeration
 				}
 			}
 
-			var givenPerms = OverwriteActions.ModifyOverwritePermissions(action, channel, discordObject, changeValue, Context.User as IGuildUser);
+			var givenPerms = OverwriteActions.ModifyOverwritePermissions(action, channel, discordObject, permissions, Context.User as IGuildUser);
 			var response = $"Successfully {actionStr} `{String.Join("`, `", givenPerms)}` for `{DiscordObjectFormatting.FormatDiscordObject(discordObject)}` on `{channel.FormatChannel()}`.";
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, response);
 		}
 	}
 
-	[Group(nameof(CopyChannelPerms)), TopLevelShortAlias(nameof(CopyChannelPerms))]
-	[Usage("[Channel] [Channel] <Role|User>")]
+	[Group(nameof(CopyChannelPerms)), TopLevelShortAlias(typeof(CopyChannelPerms))]
 	[Summary("Copy permissions from one channel to another. Works for a role, a user, or everything. If nothing is specified, copies everything.")]
 	[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 	[DefaultEnabled(true)]
@@ -307,8 +285,7 @@ namespace Advobot.Commands.ChannelModeration
 		}
 	}
 
-	[Group(nameof(ClearChannelPerms)), TopLevelShortAlias(nameof(ClearChannelPerms))]
-	[Usage("[Channel]")]
+	[Group(nameof(ClearChannelPerms)), TopLevelShortAlias(typeof(ClearChannelPerms))]
 	[Summary("Removes all permissions set on a channel.")]
 	[PermissionRequirement(null, new[] { GuildPermission.ManageChannels, GuildPermission.ManageRoles })]
 	[DefaultEnabled(true)]
@@ -322,8 +299,7 @@ namespace Advobot.Commands.ChannelModeration
 		}
 	}
 
-	[Group(nameof(ModifyChannelNSFW)), TopLevelShortAlias(nameof(ModifyChannelNSFW))]
-	[Usage("[Channel]")]
+	[Group(nameof(ModifyChannelNSFW)), TopLevelShortAlias(typeof(ModifyChannelNSFW))]
 	[Summary("Toggles the NSFW option on a channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -345,8 +321,7 @@ namespace Advobot.Commands.ChannelModeration
 		}
 	}
 
-	[Group(nameof(ModifyChannelName)), TopLevelShortAlias(nameof(ModifyChannelName))]
-	[Usage("[Channel] [Name]")]
+	[Group(nameof(ModifyChannelName)), TopLevelShortAlias(typeof(ModifyChannelName))]
 	[Summary("Changes the name of the channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -366,8 +341,7 @@ namespace Advobot.Commands.ChannelModeration
 		}
 	}
 
-	[Group(nameof(ModifyChannelTopic)), TopLevelShortAlias(nameof(ModifyChannelTopic))]
-	[Usage("[Channel] <Topic>")]
+	[Group(nameof(ModifyChannelTopic)), TopLevelShortAlias(typeof(ModifyChannelTopic))]
 	[Summary("Changes the topic of a channel to whatever is input. Clears the topic if nothing is input")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -381,8 +355,7 @@ namespace Advobot.Commands.ChannelModeration
 		}
 	}
 
-	[Group(nameof(ModifyChannelLimit)), TopLevelShortAlias(nameof(ModifyChannelLimit))]
-	[Usage("[Channel] [Number]")]
+	[Group(nameof(ModifyChannelLimit)), TopLevelShortAlias(typeof(ModifyChannelLimit))]
 	[Summary("Changes the limit to how many users can be in a voice channel. The limit ranges from 0 (no limit) to 99.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
@@ -401,8 +374,7 @@ namespace Advobot.Commands.ChannelModeration
 		}
 	}
 
-	[Group(nameof(ModifyChannelBitRate)), TopLevelShortAlias(nameof(ModifyChannelBitRate))]
-	[Usage("[Channel] [Number]")]
+	[Group(nameof(ModifyChannelBitRate)), TopLevelShortAlias(typeof(ModifyChannelBitRate))]
 	[Summary("Changes the bitrate on a voice channel. Lowest is 8, highest is 96 (unless on a partnered guild, then it goes up to 128), default is 64.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]

@@ -9,13 +9,15 @@ namespace Advobot.Classes.UsageGeneration
 	{
 		public int Deepness { get; }
 		public string Name { get; }
-		public bool NoArgs { get; }
+		public bool HasNoArgs { get; }
+		public int ArgCount { get; }
 
 		public MethodDetails(int deepness, MethodInfo method)
 		{
 			Deepness = deepness;
 			Name = method.GetCustomAttribute<CommandAttribute>()?.Text;
-			NoArgs = !method.GetParameters().Any();
+			ArgCount = method.GetParameters().Count();
+			HasNoArgs = ArgCount == 0;
 		}
 
 		public override string ToString()

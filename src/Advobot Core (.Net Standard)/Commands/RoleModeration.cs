@@ -14,8 +14,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.RoleModeration
 {
-	[Group(nameof(GiveRole)), TopLevelShortAlias(nameof(GiveRole))]
-	[Usage("[User] [Role] <Role> ...")]
+	[Group(nameof(GiveRole)), TopLevelShortAlias(typeof(GiveRole))]
 	[Summary("Gives the role(s) to the user (assuming the person using the command and bot both have the ability to give that role).")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
@@ -29,8 +28,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}
 
-	[Group(nameof(TakeRole)), TopLevelShortAlias(nameof(TakeRole))]
-	[Usage("[User] [Role] <Role> ...")]
+	[Group(nameof(TakeRole)), TopLevelShortAlias(typeof(TakeRole))]
 	[Summary("Takes the role(s) from the user (assuming the person using the command and bot both have the ability to take that role).")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
@@ -44,8 +42,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}
 
-	[Group(nameof(CreateRole)), TopLevelShortAlias(nameof(CreateRole))]
-	[Usage("[Name]")]
+	[Group(nameof(CreateRole)), TopLevelShortAlias(typeof(CreateRole))]
 	[Summary("Adds a role to the guild with the chosen name.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
@@ -59,8 +56,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}
 
-	[Group(nameof(SoftDeleteRole)), TopLevelShortAlias(nameof(SoftDeleteRole))]
-	[Usage("[Role]")]
+	[Group(nameof(SoftDeleteRole)), TopLevelShortAlias(typeof(SoftDeleteRole))]
 	[Summary("Removes all permissions from a role (and all channels the role had permissions on) and removes the role from everyone. Leaves the name and color behind.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
@@ -82,8 +78,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}
 
-	[Group(nameof(DeleteRole)), TopLevelShortAlias(nameof(DeleteRole))]
-	[Usage("[Role]")]
+	[Group(nameof(DeleteRole)), TopLevelShortAlias(typeof(DeleteRole))]
 	[Summary("Deletes the role.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
@@ -97,8 +92,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}
 
-	[Group(nameof(ModifyRolePosition)), TopLevelShortAlias(nameof(ModifyRolePosition))]
-	[Usage("[Role] <Position>")]
+	[Group(nameof(ModifyRolePosition)), TopLevelShortAlias(typeof(ModifyRolePosition))]
 	[Summary("If only a role is input its position will be listed, else moves the role to the given position. " + Constants.FAKE_EVERYONE + " is the first position and starts at zero.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
@@ -119,8 +113,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}
 
-	[Group(nameof(DisplayRolePositions)), TopLevelShortAlias(nameof(DisplayRolePositions))]
-	[Usage("")]
+	[Group(nameof(DisplayRolePositions)), TopLevelShortAlias(typeof(DisplayRolePositions))]
 	[Summary("Lists the positions of each role on the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
@@ -139,8 +132,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}
 
-	[Group(nameof(ModifyRolePerms)), TopLevelShortAlias(nameof(ModifyRolePerms))]
-	[Usage("[Show|Allow|Deny] <Role> <Permission/...>")]
+	[Group(nameof(ModifyRolePerms)), TopLevelShortAlias(typeof(ModifyRolePerms))]
 	[Summary("Permissions must be separated by a `/` or their rawvalue can be said instead. " +
 		"Type `" + nameof(ModifyRolePerms) + " [Show]` to see the available permissions. " +
 		"Type `" + nameof(ModifyRolePerms) + " [Show] [Role]` to see the permissions of that role.")]
@@ -179,8 +171,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}
 
-	[Group(nameof(CopyRolePerms)), TopLevelShortAlias(nameof(CopyRolePerms))]
-	[Usage("[Role] [Role]")]
+	[Group(nameof(CopyRolePerms)), TopLevelShortAlias(typeof(CopyRolePerms))]
 	[Summary("Copies the permissions from the first role to the second role. Will not copy roles that the user does not have access to. Will not overwrite roles that are above the user's top role.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
@@ -211,8 +202,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}
 
-	[Group(nameof(ClearRolePerms)), TopLevelShortAlias(nameof(ClearRolePerms))]
-	[Usage("[Role]")]
+	[Group(nameof(ClearRolePerms)), TopLevelShortAlias(typeof(ClearRolePerms))]
 	[Summary("Removes all permissions from a role.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
@@ -236,8 +226,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}
 
-	[Group(nameof(ModifyRoleName)), TopLevelShortAlias(nameof(ModifyRoleName))]
-	[Usage("[Role] [Name]")]
+	[Group(nameof(ModifyRoleName)), TopLevelShortAlias(typeof(ModifyRoleName))]
 	[Summary("Changes the name of the role.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
@@ -280,8 +269,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}*/
 
-	[Group(nameof(ModifyRoleColor)), TopLevelShortAlias(nameof(ModifyRoleColor))]
-	[Usage("<Role> <Hexadecimal|Color Name>")]
+	[Group(nameof(ModifyRoleColor)), TopLevelShortAlias(typeof(ModifyRoleColor))]
 	[Summary("Changes the role's color. Color must be valid hexadecimal or the name of a default role color. Inputting nothing displays the colors.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
@@ -302,8 +290,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}
 
-	[Group(nameof(ModifyRoleHoist)), TopLevelShortAlias(nameof(ModifyRoleHoist))]
-	[Usage("[Role]")]
+	[Group(nameof(ModifyRoleHoist)), TopLevelShortAlias(typeof(ModifyRoleHoist))]
 	[Summary("Displays a role separately from others on the user list. Saying the command again remove it from being hoisted.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
@@ -317,8 +304,7 @@ namespace Advobot.Commands.RoleModeration
 		}
 	}
 
-	[Group(nameof(ModifyRoleMentionability)), TopLevelShortAlias(nameof(ModifyRoleMentionability))]
-	[Usage("[Role]")]
+	[Group(nameof(ModifyRoleMentionability)), TopLevelShortAlias(typeof(ModifyRoleMentionability))]
 	[Summary("Allows the role to be mentioned. Saying the command again removes its ability to be mentioned.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]

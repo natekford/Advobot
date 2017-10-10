@@ -44,6 +44,7 @@ namespace Advobot
 			_Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
 			_Commands.AddTypeReader(typeof(CommandSwitch), new CommandSwitchTypeReader());
 			_Commands.AddTypeReader(typeof(ImageUrl), new ImageUrlTypeReader());
+			_Commands.AddTypeReader(typeof(CustomArguments), new CustomArgumentsTypeReader());
 
 			//Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
 			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly());

@@ -6,12 +6,12 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.Quotes
 {
-	[Group(nameof(ModifyQuotes)), TopLevelShortAlias(nameof(ModifyQuotes))]
-	[Usage("[Add|Remove] [\"Name\"] <Text>")]
+	[Group(nameof(ModifyQuotes)), TopLevelShortAlias(typeof(ModifyQuotes))]
 	[Summary("Adds the given text to a list that can be called through the `" + nameof(SayQuote) + "` command.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -59,14 +59,13 @@ namespace Advobot.Commands.Quotes
 		}
 	}
 
-	[Group(nameof(SayQuote)), TopLevelShortAlias(nameof(SayQuote))]
-	[Usage("<Name>")]
+	[Group(nameof(SayQuote)), TopLevelShortAlias(typeof(SayQuote))]
 	[Summary("Shows the content for the given quote. If nothing is input, then shows the list of the current quotes.")]
 	[DefaultEnabled(false)]
 	public sealed class SayQuote : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command()
+		public async Task Command([Optional, Remainder] string name)
 		{
 			var quotes = Context.GuildSettings.Quotes;
 			if (!quotes.Any())
@@ -74,17 +73,10 @@ namespace Advobot.Commands.Quotes
 				await MessageActions.SendErrorMessage(Context, new ErrorReason("There are no quotes."));
 				return;
 			}
-
-			var desc = $"`{String.Join("`, `", quotes.Select(x => x.Name))}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Quotes", desc));
-		}
-		[Command]
-		public async Task Command([Remainder] string name)
-		{
-			var quotes = Context.GuildSettings.Quotes;
-			if (!quotes.Any())
+			else if (name == null)
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("There are no quotes."));
+				var desc = $"`{String.Join("`, `", quotes.Select(x => x.Name))}`";
+				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Quotes", desc));
 				return;
 			}
 

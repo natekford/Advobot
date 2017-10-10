@@ -13,8 +13,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.SelfRoles
 {
-	[Group(nameof(ModifySelfRoles)), TopLevelShortAlias(nameof(ModifySelfRoles))]
-	[Usage("[Create|Delete|Add|Remove] <Group Number> <Role/...>")]
+	[Group(nameof(ModifySelfRoles)), TopLevelShortAlias(typeof(ModifySelfRoles))]
 	[Summary("Adds a role to the self assignable list. Roles can be grouped together which means only one role in the group can be self assigned at a time. " + 
 		"Create and Delete modify the entire group. Add and Remove modify a single role in a group.")]
 	[PermissionRequirement(null, null)]
@@ -22,24 +21,24 @@ namespace Advobot.Commands.SelfRoles
 	public sealed class ModifySelfRoles : SavingModuleBase
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
-		public async Task Create(uint groupNum)
+		public async Task Create(uint groupNumber)
 		{
-			await CommandRunner(groupNum);
+			await CommandRunner(groupNumber);
 		}
 		[Command(nameof(Delete)), ShortAlias(nameof(Delete))]
-		public async Task Delete(uint groupNum)
+		public async Task Delete(uint groupNumber)
 		{
-			await CommandRunner(groupNum);
+			await CommandRunner(groupNumber);
 		}
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add(uint groupNum, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
+		public async Task Add(uint groupNumber, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
 		{
-			await CommandRunner(groupNum, roles);
+			await CommandRunner(groupNumber, roles);
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public async Task Remove(uint groupNum, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
+		public async Task Remove(uint groupNumber, [VerifyObject(false, ObjectVerification.CanBeEdited)] params IRole[] roles)
 		{
-			await CommandRunner(groupNum, roles);
+			await CommandRunner(groupNumber, roles);
 		}
 
 		private async Task CommandRunner(uint groupNum, [CallerMemberName] string caller = "")
@@ -154,8 +153,7 @@ namespace Advobot.Commands.SelfRoles
 		}
 	}
 
-	[Group(nameof(AssignSelfRole)), TopLevelShortAlias(nameof(AssignSelfRole))]
-	[Usage("[Role]")]
+	[Group(nameof(AssignSelfRole)), TopLevelShortAlias(typeof(AssignSelfRole))]
 	[Summary("Gives or takes a role depending on if the user has it already. Removes all other roles in the same group unless the group is `0`.")]
 	[DefaultEnabled(false)]
 	public sealed class AssignSelfRole : AdvobotModuleBase
@@ -195,8 +193,7 @@ namespace Advobot.Commands.SelfRoles
 		}
 	}
 
-	[Group(nameof(DisplaySelfRoles)), TopLevelShortAlias(nameof(DisplaySelfRoles))]
-	[Usage("<Number>")]
+	[Group(nameof(DisplaySelfRoles)), TopLevelShortAlias(typeof(DisplaySelfRoles))]
 	[Summary("Shows the current group numbers that exists on the guild. If a number is input then it shows the roles in that group.")]
 	[DefaultEnabled(false)]
 	public sealed class DisplaySelfRoles : AdvobotModuleBase

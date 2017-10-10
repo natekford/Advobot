@@ -174,13 +174,13 @@ namespace Advobot.Services.Timers
 		{
 			//Should only ever have one for each user at a time.
 			var kvp = _ActiveCloseHelp.SingleOrDefault(x => x.Key.UserId == user.Id);
-			return kvp.Equals(default) ? null : Remove(_ActiveCloseHelp, kvp.Key);
+			return kvp.Key == null ? null : Remove(_ActiveCloseHelp, kvp.Key);
 		}
 		public CloseWords<Quote> GetOutActiveCloseQuote(IUser user)
 		{
 			//Should only ever have one for each user at a time.
 			var kvp = _ActiveCloseQuotes.SingleOrDefault(x => x.Key.UserId == user.Id);
-			return kvp.Equals(default) ? null : Remove(_ActiveCloseQuotes, kvp.Key);
+			return kvp.Key == null ? null : Remove(_ActiveCloseQuotes, kvp.Key);
 		}
 		public SpamPreventionUserInformation GetSpamPreventionUser(IGuildUser user)
 		{

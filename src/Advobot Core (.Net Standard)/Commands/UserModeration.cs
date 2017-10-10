@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.UserModeration
 {
-	[Group(nameof(Mute)), TopLevelShortAlias(nameof(Mute))]
+	[Group(nameof(Mute)), TopLevelShortAlias(typeof(Mute))]
 	[Summary("Prevents a user from typing and speaking in the guild. Time is in minutes, and if no time is given then the mute will not expire.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles, GuildPermission.ManageMessages }, null)]
 	[DefaultEnabled(true)]
@@ -38,7 +38,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(VoiceMute)), TopLevelShortAlias(nameof(VoiceMute))]
+	[Group(nameof(VoiceMute)), TopLevelShortAlias(typeof(VoiceMute))]
 	[Summary("Prevents a user from speaking. Time is in minutes, and if no time is given then the mute will not expire.")]
 	[PermissionRequirement(new[] { GuildPermission.MuteMembers }, null)]
 	[DefaultEnabled(true)]
@@ -61,7 +61,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(Deafen)), TopLevelShortAlias(nameof(Deafen))]
+	[Group(nameof(Deafen)), TopLevelShortAlias(typeof(Deafen))]
 	[Summary("Prevents a user from hearing. Time is in minutes, and if no time is given then the mute will not expire.")]
 	[PermissionRequirement(new[] { GuildPermission.DeafenMembers }, null)]
 	[DefaultEnabled(true)]
@@ -84,7 +84,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(MoveUser)), TopLevelShortAlias(nameof(MoveUser))]
+	[Group(nameof(MoveUser)), TopLevelShortAlias(typeof(MoveUser))]
 	[Summary("Moves the user to the given voice channel.")]
 	[PermissionRequirement(new[] { GuildPermission.MoveMembers }, null)]
 	[DefaultEnabled(true)]
@@ -110,8 +110,7 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	//TODO: put in cancel tokens for the commands that user bypass strings in case people need to cancel
-	[Group(nameof(MoveUsers)), TopLevelShortAlias(nameof(MoveUsers))]
-	[Usage("[Channel] [Channel] <" + BypassUserLimitTypeReader.BYPASS_STRING + ">")]
+	[Group(nameof(MoveUsers)), TopLevelShortAlias(typeof(MoveUsers))]
 	[Summary("Moves all users from one channel to another. Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.MoveMembers }, null)]
 	[DefaultEnabled(true)]
@@ -127,8 +126,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(PruneUsers)), TopLevelShortAlias(nameof(PruneUsers))]
-	[Usage("[1|7|30] <" + PruneTypeReader.PRUNE_STRING + ">")]
+	[Group(nameof(PruneUsers)), TopLevelShortAlias(typeof(PruneUsers))]
 	[Summary("Removes users who have no roles and have not been seen in the given amount of days. If the optional argument is not typed exactly, then the bot will only give a number of how many people will be kicked.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
@@ -142,8 +140,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(SoftBan)), TopLevelShortAlias(nameof(SoftBan))]
-	[Usage("[User]")]
+	[Group(nameof(SoftBan)), TopLevelShortAlias(typeof(SoftBan))]
 	[Summary("Bans then unbans a user, which removes all recent messages from them.")]
 	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 	[DefaultEnabled(true)]
@@ -168,8 +165,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(Ban)), TopLevelShortAlias(nameof(Ban))]
-	[Usage("[User] <Time> <Reason>")]
+	[Group(nameof(Ban)), TopLevelShortAlias(typeof(Ban))]
 	[Summary("Bans the user from the guild. Time specifies how long and is in minutes.")]
 	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 	[DefaultEnabled(true)]
@@ -200,8 +196,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(Unban)), TopLevelShortAlias(nameof(Unban))]
-	[Usage("<UserId|\"Username#Discriminator\"> <Reason>")]
+	[Group(nameof(Unban)), TopLevelShortAlias(typeof(Unban))]
 	[Summary("Unbans the user from the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 	[DefaultEnabled(true)]
@@ -216,8 +211,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(GetBanReason)), TopLevelShortAlias(nameof(GetBanReason))]
-	[Usage("<UserId|\"Username#Discriminator\"")]
+	[Group(nameof(GetBanReason)), TopLevelShortAlias(typeof(GetBanReason))]
 	[Summary("Lists the given reason for the ban.")]
 	[PermissionRequirement(new[] { GuildPermission.BanMembers}, null)]
 	[DefaultEnabled(true)]
@@ -230,8 +224,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(Kick)), TopLevelShortAlias(nameof(Kick))]
-	[Usage("[User] <Reason>")]
+	[Group(nameof(Kick)), TopLevelShortAlias(typeof(Kick))]
 	[Summary("Kicks the user from the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.KickMembers }, null)]
 	[DefaultEnabled(true)]
@@ -246,8 +239,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(DisplayCurrentBanList)), TopLevelShortAlias(nameof(DisplayCurrentBanList))]
-	[Usage("")]
+	[Group(nameof(DisplayCurrentBanList)), TopLevelShortAlias(typeof(DisplayCurrentBanList))]
 	[Summary("Displays all the bans on the guild.")]
 	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 	[DefaultEnabled(true)]
@@ -268,8 +260,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(RemoveMessages)), TopLevelShortAlias(nameof(RemoveMessages))]
-	[Usage("[Number] <User> <Channel>")]
+	[Group(nameof(RemoveMessages)), TopLevelShortAlias(typeof(RemoveMessages))]
 	[Summary("Removes the provided number of messages from either the user, the channel, both, or, if neither is input, the current channel.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageMessages }, null)]
 	[DefaultEnabled(true)]
@@ -322,8 +313,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(ModifySlowmode)), TopLevelShortAlias(nameof(ModifySlowmode))]
-	[Usage("[Create|Enable|Disable] <1 to 5> <1 to 30> <Role ...>")]
+	[Group(nameof(ModifySlowmode)), TopLevelShortAlias(typeof(ModifySlowmode))]
 	[Summary("First arg is how many messages can be sent in a timeframe. Second arg is the timeframe. Third arg is guildwide; true means yes, false means no. " +
 		"Fourth are the list of roles that are immune to slowmode.")]
 	[PermissionRequirement(null, null)]
@@ -331,7 +321,7 @@ namespace Advobot.Commands.UserModeration
 	public sealed class ModifySlowmode : SavingModuleBase
 	{
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
-		public async Task Create(uint messages, uint interval, [Optional] params IRole[] immuneRoles)
+		public async Task Create([VerifyNumber(true, 1, 5)] uint messages, [VerifyNumber(true, 1, 30)] uint interval, [Optional] params IRole[] immuneRoles)
 		{
 			Context.GuildSettings.Slowmode = new Slowmode((int)messages, (int)interval, immuneRoles);
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully setup slowmode.\n{Context.GuildSettings.Slowmode.ToString()}");
@@ -362,8 +352,7 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	[Group(nameof(ForAllWithRole)), TopLevelShortAlias(nameof(ForAllWithRole))]
-	[Usage("[GiveRole|TakeRole|GiveNickname|TakeNickname] [Role] <Role|\"Nickname\"> <" + BypassUserLimitTypeReader.BYPASS_STRING + ">")]
+	[Group(nameof(ForAllWithRole)), TopLevelShortAlias(typeof(ForAllWithRole))]
 	[Summary("All actions but `TakeNickame` require the output role/nickname. Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]

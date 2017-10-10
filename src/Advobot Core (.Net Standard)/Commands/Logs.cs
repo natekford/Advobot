@@ -12,8 +12,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.Logs
 {
-	[Group(nameof(ModifyLogChannels)), TopLevelShortAlias(nameof(ModifyLogChannels))]
-	[Usage("[Enable|Disable] [Server|Mod|Image] <Channel>")]
+	[Group(nameof(ModifyLogChannels)), TopLevelShortAlias(typeof(ModifyLogChannels))]
 	[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -43,8 +42,7 @@ namespace Advobot.Commands.Logs
 		}
 	}
 
-	[Group(nameof(ModifyIgnoredLogChannels)), TopLevelShortAlias(nameof(ModifyIgnoredLogChannels))]
-	[Usage("[Add|Remove] [Channel] <Channel> ...")]
+	[Group(nameof(ModifyIgnoredLogChannels)), TopLevelShortAlias(typeof(ModifyIgnoredLogChannels))]
 	[Summary("Ignores all logging info that would have been gotten from a channel.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -64,8 +62,7 @@ namespace Advobot.Commands.Logs
 		}
 	}
 
-	[Group(nameof(ModifyLogActions)), TopLevelShortAlias(nameof(ModifyLogActions))]
-	[Usage("[Show|Reset|Enable|Disable] <All|Log Action ...>")]
+	[Group(nameof(ModifyLogActions)), TopLevelShortAlias(typeof(ModifyLogActions))]
 	[Summary("The server log will send messages when these events happen. `Default` overrides the current settings. `Show` displays the possible actions.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]

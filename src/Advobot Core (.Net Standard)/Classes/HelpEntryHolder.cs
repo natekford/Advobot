@@ -32,7 +32,6 @@ namespace Advobot.Classes
 				{
 #if DEBUG
 					AssertAllAliasesAreDifferent(classType);
-					AssertShortAliasAttribute(classType, false);
 #endif
 					continue;
 				}
@@ -53,7 +52,7 @@ namespace Advobot.Classes
 				AssertClassIsPublic(classType);
 				AssertAllCommandsHaveCommandAttribute(classType);
 				AssertAllAliasesAreDifferent(classType);
-				AssertShortAliasAttribute(classType, true);
+				AssertShortAliasAttribute(classType);
 #endif
 
 				temp.Add(new HelpEntry(name, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, aliases, category, defaultEnabled));
@@ -85,7 +84,7 @@ namespace Advobot.Classes
 		}
 		private void AssertAllCommandsHaveCommandAttribute(Type classType)
 		{
-			var methods = classType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public);
+			var methods = classType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public);
 			if (methods.Any(x => x.GetCustomAttribute<CommandAttribute>() == null))
 			{
 				throw new ArgumentException($"{classType.Name} has a command missing the command attribute.");
@@ -110,15 +109,11 @@ namespace Advobot.Classes
 				}
 			}
 		}
-		private void AssertShortAliasAttribute(Type classType, bool topLevel)
+		private void AssertShortAliasAttribute(Type classType)
 		{
-			if (topLevel && classType.GetCustomAttribute<TopLevelShortAliasAttribute>() == null)
+			if (classType.GetCustomAttribute<TopLevelShortAliasAttribute>() == null)
 			{
 				throw new ArgumentException($"The class {classType.Name} needs to have the {nameof(TopLevelShortAliasAttribute)} attribute.");
-			}
-			else if (!topLevel && classType.GetCustomAttribute<TopLevelShortAliasAttribute>() != null)
-			{
-				throw new ArgumentException($"The nested class {classType.Name} needs to not have the {nameof(TopLevelShortAliasAttribute)} attribute.");
 			}
 		}
 

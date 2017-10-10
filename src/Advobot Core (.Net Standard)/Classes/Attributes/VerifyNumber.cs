@@ -1,6 +1,8 @@
 ﻿using Discord.Commands;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Advobot.Classes.Attributes
@@ -13,13 +15,23 @@ namespace Advobot.Classes.Attributes
 	{
 		public readonly ImmutableList<int> ValidNumbers;
 
-		/// <summary>
-		/// Sets the valid numbers.
-		/// </summary>
-		/// <param name="numbers"></param>
 		public VerifyNumberAttribute(params int[] numbers)
 		{
-			ValidNumbers = numbers.ToImmutableList();
+			if (numbers.Length > 10)
+			{
+				throw new ArgumentException($"Don't input more than 10 numbers in a {nameof(VerifyNumberAttribute)}.");
+			}
+
+			ValidNumbers = numbers.OrderBy(x => x).ToImmutableList();
+		}
+		public VerifyNumberAttribute(bool soDiffOverloads, int start, int end)
+		{
+			if (!soDiffOverloads)
+			{
+				throw new ArgumentException($"Make the bool in a {nameof(VerifyNumberAttribute)} true instead of false.");
+			}
+
+			ValidNumbers = Enumerable.Range(start, end - start).ToImmutableList();
 		}
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
@@ -44,7 +56,16 @@ namespace Advobot.Classes.Attributes
 
 		public override string ToString()
 		{
-			return $"({String.Join(", ", ValidNumbers)})";
+			if (ValidNumbers.Count <= 10)
+			{
+				return $"({String.Join(", ", ValidNumbers)})";
+			}
+			else
+			{
+				var first = ValidNumbers.First();
+				var last = ValidNumbers.Last();
+				return $"({first} to {last})";
+			}
 		}
 	}
 }

@@ -14,8 +14,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.GuildSettings
 {
-	[Group(nameof(ModifyGuildPrefix)), TopLevelShortAlias(nameof(ModifyGuildPrefix))]
-	[Usage("[New Prefix|Clear]")]
+	[Group(nameof(ModifyGuildPrefix)), TopLevelShortAlias(typeof(ModifyGuildPrefix))]
 	[Summary("Makes the bot use the given prefix in the guild.")]
 	[OtherRequirement(Precondition.GuildOwner)]
 	[DefaultEnabled(false)]
@@ -35,8 +34,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(ModifyCommands)), TopLevelShortAlias(nameof(ModifyCommands))]
-	[Usage("[Enable|Disable] [Command Name|Category Name|All]")]
+	[Group(nameof(ModifyCommands)), TopLevelShortAlias(typeof(ModifyCommands))]
 	[Summary("Turns a command on or off. Can turn all commands in a category on or off too. " +
 		"Cannot turn off `" + nameof(ModifyCommands) + "` or `" + nameof(Miscellaneous.Help) + "`.")]
 	[PermissionRequirement(null, null)]
@@ -137,8 +135,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(ModifyIgnoredCommandChannels)), TopLevelShortAlias(nameof(ModifyIgnoredCommandChannels))]
-	[Usage("[Add|Remove] [Channel] <Command Name|Category Name>")]
+	[Group(nameof(ModifyIgnoredCommandChannels)), TopLevelShortAlias(typeof(ModifyIgnoredCommandChannels))]
 	[Summary("The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -220,8 +217,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(ModifyBotUsers)), TopLevelShortAlias(nameof(ModifyBotUsers))]
-	[Usage("[Show|Add|Remove] <User> <Permission/...>")]
+	[Group(nameof(ModifyBotUsers)), TopLevelShortAlias(typeof(ModifyBotUsers))]
 	[Summary("Gives a user permissions in the bot but not on Discord itself. " +
 		"Type `" + nameof(ModifyBotUsers) + " [Show]` to see the available permissions. " +
 		"Type `" + nameof(ModifyBotUsers) + " [Show] [User]` to see the permissions of that user.")]
@@ -252,45 +248,37 @@ namespace Advobot.Commands.GuildSettings
 				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed($"Permissions for {user.FormatUser()}", desc));
 			}
 		}
-		[Group(nameof(Add)), ShortAlias(nameof(Add))]
-		public sealed class Add : SavingModuleBase
+		[Command(nameof(Add)), ShortAlias(nameof(Add))]
+		public async Task Add(IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 		{
-			[Command]
-			public async Task Command(IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
-			{
-				rawValue |= (Context.User as IGuildUser).GuildPermissions.RawValue;
+			permissions |= (Context.User as IGuildUser).GuildPermissions.RawValue;
 
-				var botUser = Context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id) ?? new BotImplementedPermissions(user.Id, rawValue);
-				botUser.AddPermissions(rawValue);
+			var botUser = Context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id) ?? new BotImplementedPermissions(user.Id, permissions);
+			botUser.AddPermissions(permissions);
 
-				var givenPerms = String.Join("`, `", GuildPerms.ConvertValueToNames(rawValue));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully gave `{user.FormatUser()}` the following bot permissions: `{givenPerms}`.");
-			}
+			var givenPerms = String.Join("`, `", GuildPerms.ConvertValueToNames(permissions));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully gave `{user.FormatUser()}` the following bot permissions: `{givenPerms}`.");
 		}
-		[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public sealed class Remove : SavingModuleBase
+		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+		public async Task Remove(IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 		{
-			[Command]
-			public async Task Command(IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong rawValue)
+			permissions |= (Context.User as IGuildUser).GuildPermissions.RawValue;
+
+			var botUser = Context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id);
+			if (botUser == null)
 			{
-				rawValue |= (Context.User as IGuildUser).GuildPermissions.RawValue;
-
-				var botUser = Context.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id);
-				if (botUser == null)
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "That user does not have any bot permissions to remove");
-					return;
-				}
-				botUser.RemovePermissions(rawValue);
-
-				var takenPerms = String.Join("`, `", GuildPerms.ConvertValueToNames(rawValue));
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed the following bot permissions from `{user.FormatUser()}`: `{takenPerms}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "That user does not have any bot permissions to remove");
+				return;
 			}
+			botUser.RemovePermissions(permissions);
+
+			var takenPerms = String.Join("`, `", GuildPerms.ConvertValueToNames(permissions));
+			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed the following bot permissions from `{user.FormatUser()}`: `{takenPerms}`.");
 		}
 	}
 
-	[Group(nameof(ModifyPersistentRoles)), TopLevelShortAlias(nameof(ModifyPersistentRoles))]
-	[Usage("[Show|Add|Remove] [User] [Role]")]
+	//TODO: implement
+	[Group(nameof(ModifyPersistentRoles)), TopLevelShortAlias(typeof(ModifyPersistentRoles))]
 	[Summary("Gives a user a role that stays even when they leave and rejoin the server." +
 		"Type `" + nameof(ModifyPersistentRoles) + " [Show]` to see the which users have persistent roles set up. " +
 		"Type `" + nameof(ModifyPersistentRoles) + " [Show] [User]` to see the persistent roles of that user.")]
@@ -298,11 +286,33 @@ namespace Advobot.Commands.GuildSettings
 	[DefaultEnabled(true)]
 	public sealed class ModifyPersistentRoles : SavingModuleBase
 	{
+		[Group(nameof(Show)), ShortAlias(nameof(Show))]
+		public sealed class Show : AdvobotModuleBase
+		{
+			[Command]
+			public async Task Command()
+			{
 
+			}
+			[Command]
+			public async Task Command(IUser user)
+			{
+
+			}
+		}
+		[Command(nameof(Add)), ShortAlias(nameof(Add))]
+		public async Task Add(IUser user, [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+		{
+			
+		}
+		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+		public async Task Remove(IUser user, [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+		{
+			
+		}
 	}
 
-	[Group(nameof(ModifyChannelSettings)), TopLevelShortAlias(nameof(ModifyChannelSettings))]
-	[Usage("[ImageOnly] <Channel>")]
+	[Group(nameof(ModifyChannelSettings)), TopLevelShortAlias(typeof(ModifyChannelSettings))]
 	[Summary("Image only works solely on attachments. No input channel means it applies to the current channel. Using the command on an already targetted channel turns it off.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(false)]
@@ -324,8 +334,8 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(ModifyGuildNotifs)), TopLevelShortAlias(nameof(ModifyGuildNotifs))]
-	[Usage("[Welcome|Goodbye] [Channel] <\"Content:string\"> <\"Title:string\"> <\"Desc:string\"> <\"Thumb:string\">")]
+	//TODO: make sure this prints out correctly
+	[Group(nameof(ModifyGuildNotifs)), TopLevelShortAlias(typeof(ModifyGuildNotifs))]
 	[Summary("The bot send a message to the given channel when the self explantory event happens. " +
 		"`" + Constants.USER_MENTION + "` will be replaced with the formatted user. " +
 		"`" + Constants.USER_STRING + "` will be replaced with a mention of the joining user.")]
@@ -333,34 +343,28 @@ namespace Advobot.Commands.GuildSettings
 	[DefaultEnabled(false)]
 	public sealed class ModifyGuildNotifs : SavingModuleBase
 	{
-		[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
-		public async Task Welcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] string input)
-		{
-			var inputArgs = input.SplitExceptInQuotes().ToList();
-			var content = GetActions.GetVariableAndRemove(inputArgs, "content");
-			var title = GetActions.GetVariableAndRemove(inputArgs, "title");
-			var desc = GetActions.GetVariableAndRemove(inputArgs, "desc");
-			var thumb = GetActions.GetVariableAndRemove(inputArgs, "thumb");
+		private const string CONTENT = "content";
+		private const string TITLE = "title";
+		private const string DESC = "desc";
+		private const string THUMB = "thumb";
 
-			Context.GuildSettings.WelcomeMessage = new GuildNotification(content, title, desc, thumb, channel.Id);
+		[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
+		public async Task Welcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel,
+			[Remainder, VerifyCustomArgumentsAttribute(CONTENT, TITLE, DESC, THUMB)] CustomArguments arguments)
+		{
+			Context.GuildSettings.WelcomeMessage = new GuildNotification(arguments[CONTENT], arguments[TITLE], arguments[DESC], arguments[THUMB], channel);
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the welcome message.");
 		}
 		[Command(nameof(Goodbye)), ShortAlias(nameof(Goodbye))]
-		public async Task Goodbye([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] string input)
+		public async Task Goodbye([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel,
+			[Remainder, VerifyCustomArgumentsAttribute(CONTENT, TITLE, DESC, THUMB)] CustomArguments arguments)
 		{
-			var inputArgs = input.SplitExceptInQuotes().ToList();
-			var content = GetActions.GetVariableAndRemove(inputArgs, "content");
-			var title = GetActions.GetVariableAndRemove(inputArgs, "title");
-			var desc = GetActions.GetVariableAndRemove(inputArgs, "desc");
-			var thumb = GetActions.GetVariableAndRemove(inputArgs, "thumb");
-
-			Context.GuildSettings.GoodbyeMessage = new GuildNotification(content, title, desc, thumb, channel.Id);
+			Context.GuildSettings.GoodbyeMessage = new GuildNotification(arguments[CONTENT], arguments[TITLE], arguments[DESC], arguments[THUMB], channel);
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the goodbye message.");
 		}
 	}
 
-	[Group(nameof(TestGuildNotifs)), TopLevelShortAlias(nameof(TestGuildNotifs))]
-	[Usage("[Welcome|Goodbye]")]
+	[Group(nameof(TestGuildNotifs)), TopLevelShortAlias(typeof(TestGuildNotifs))]
 	[Summary("Sends the given guild notification in order to test it.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
@@ -392,8 +396,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(DisplayGuildSettings)), TopLevelShortAlias(nameof(DisplayGuildSettings))]
-	[Usage("[Show|All|Setting Name]")]
+	[Group(nameof(DisplayGuildSettings)), TopLevelShortAlias(typeof(DisplayGuildSettings))]
 	[Summary("Displays guild settings. Show gives a list of the setting names.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
@@ -426,8 +429,7 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	[Group(nameof(GetFile)), TopLevelShortAlias(nameof(GetFile))]
-	[Usage("")]
+	[Group(nameof(GetFile)), TopLevelShortAlias(typeof(GetFile))]
 	[Summary("Sends the file containing all the guild's saved bot information.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]

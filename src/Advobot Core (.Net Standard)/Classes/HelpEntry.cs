@@ -30,7 +30,7 @@ namespace Advobot.Classes
 			Usage = usage ?? "";
 			BasePerm = String.IsNullOrWhiteSpace(basePerm) ? "N/A" : basePerm;
 			Description = String.IsNullOrWhiteSpace(description) ? "N/A" : description;
-			Aliases = aliases ?? new[] { "" };
+			Aliases = aliases ?? new[] { "N/A" };
 			Category = category;
 			DefaultEnabled = defaultEnabled;
 		}

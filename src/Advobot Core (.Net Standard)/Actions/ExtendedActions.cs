@@ -253,31 +253,6 @@ namespace Advobot
 		{
 			return Enum.GetName(e.GetType(), e);
 		}
-		/// <summary>
-		/// Splits the input at spaces unless the space is inside a quote.
-		/// </summary>
-		/// <param name="inputString"></param>
-		/// <param name="inputChar"></param>
-		/// <returns></returns>
-		public static string[] SplitExceptInQuotes(this string inputString)
-		{
-			if (inputString == null)
-			{
-				return null;
-			}
-
-			return inputString.Split('"').Select((element, index) =>
-			{
-				if (index % 2 == 0)
-				{
-					return element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-				}
-				else
-				{
-					return new[] { element };
-				}
-			}).SelectMany(x => x).Where(x => !String.IsNullOrWhiteSpace(x)).ToArray();
-		}
 
 		/// <summary>
 		/// Returns the count of characters equal to \r or \n.

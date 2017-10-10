@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Commands.Miscellaneous
 {
-	[Group(nameof(Help)), TopLevelShortAlias(nameof(Help))]
+	[Group(nameof(Help)), TopLevelShortAlias(typeof(Help))]
 	[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. If left blank will provide general help.")]
 	[DefaultEnabled(true)]
 	public sealed class Help : AdvobotModuleBase
@@ -71,8 +71,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(Commands)), TopLevelShortAlias(nameof(Commands))]
-	[Usage("<Category|All>")]
+	[Group(nameof(Commands)), TopLevelShortAlias(typeof(Commands))]
 	[Summary("Prints out the commands in that category of the command list. Inputting nothing will list the command categories.")]
 	[DefaultEnabled(true)]
 	public sealed class Commands : AdvobotModuleBase
@@ -100,8 +99,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(GetId)), TopLevelShortAlias(nameof(GetId))]
-	[Usage("[Bot|Guild|Channel|Role|User|Emote] <\"Other Argument\">")]
+	[Group(nameof(GetId)), TopLevelShortAlias(typeof(GetId))]
 	[Summary("Shows the ID of the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 	[DefaultEnabled(true)]
 	public sealed class GetId : AdvobotModuleBase
@@ -117,29 +115,28 @@ namespace Advobot.Commands.Miscellaneous
 			await MessageActions.SendMessage(Context.Channel, $"The guild has the ID `{Context.Guild.Id}`.");
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
-		public async Task Channel(IGuildChannel target)
+		public async Task Channel(IGuildChannel channel)
 		{
-			await MessageActions.SendMessage(Context.Channel, $"The channel `{target.Name}` has the ID `{target.Id}`.");
+			await MessageActions.SendMessage(Context.Channel, $"The channel `{channel.Name}` has the ID `{channel.Id}`.");
 		}
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
-		public async Task Role(IRole target)
+		public async Task Role(IRole role)
 		{
-			await MessageActions.SendMessage(Context.Channel, $"The role `{target.Name}` has the ID `{target.Id}`.");
+			await MessageActions.SendMessage(Context.Channel, $"The role `{role.Name}` has the ID `{role.Id}`.");
 		}
 		[Command(nameof(User)), ShortAlias(nameof(User))]
-		public async Task User(IUser target)
+		public async Task User(IUser user)
 		{
-			await MessageActions.SendMessage(Context.Channel, $"The user `{target.Username}` has the ID `{target.Id}`.");
+			await MessageActions.SendMessage(Context.Channel, $"The user `{user.Username}` has the ID `{user.Id}`.");
 		}
 		[Command(nameof(Emote)), ShortAlias(nameof(Emote))]
-		public async Task Emote(Emote target)
+		public async Task Emote(Emote emote)
 		{
-			await MessageActions.SendMessage(Context.Channel, $"The emote `{target.Name}` has the ID `{target.Id}`.");
+			await MessageActions.SendMessage(Context.Channel, $"The emote `{emote.Name}` has the ID `{emote.Id}`.");
 		}
 	}
 
-	[Group(nameof(GetInfo)), TopLevelShortAlias(nameof(GetInfo))]
-	[Usage("[Bot|Guild|Channel|Role|User|Emote|Invite] <\"Other Argument\">")]
+	[Group(nameof(GetInfo)), TopLevelShortAlias(typeof(GetInfo))]
 	[Summary("Shows information about the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 	[DefaultEnabled(true)]
 	public sealed class GetInfo : AdvobotModuleBase
@@ -155,41 +152,40 @@ namespace Advobot.Commands.Miscellaneous
 			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatGuildInfo(Context.Guild as SocketGuild));
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
-		public async Task Channel(IGuildChannel target)
+		public async Task Channel(IGuildChannel channel)
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatChannelInfo(Context.GuildSettings, Context.Guild as SocketGuild, target as SocketChannel));
+			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatChannelInfo(Context.GuildSettings, Context.Guild as SocketGuild, channel as SocketChannel));
 		}
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
-		public async Task Role(IRole target)
+		public async Task Role(IRole role)
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatRoleInfo(Context.Guild as SocketGuild, target as SocketRole));
+			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatRoleInfo(Context.Guild as SocketGuild, role as SocketRole));
 		}
 		[Command(nameof(User)), ShortAlias(nameof(User))]
-		public async Task User(IUser target)
+		public async Task User(IUser user)
 		{
-			if (target is SocketGuildUser socketGuildUser)
+			if (user is SocketGuildUser socketGuildUser)
 			{
 				await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatUserInfo(Context.Guild as SocketGuild, socketGuildUser));
 			}
-			else if (target is SocketUser socketUser)
+			else if (user is SocketUser socketUser)
 			{
 				await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatUserInfo(Context.Guild as SocketGuild, socketUser));
 			}
 		}
 		[Command(nameof(Emote)), ShortAlias(nameof(Emote))]
-		public async Task Emote(Emote target)
+		public async Task Emote(Emote emote)
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatEmoteInfo(target));
+			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatEmoteInfo(emote));
 		}
 		[Command(nameof(Invite)), ShortAlias(nameof(Invite))]
-		public async Task Invite(IInvite target)
+		public async Task Invite(IInvite invite)
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatInviteInfo(target as IInviteMetadata));
+			await MessageActions.SendEmbedMessage(Context.Channel, InfoFormatting.FormatInviteInfo(invite as IInviteMetadata));
 		}
 	}
 
-	[Group(nameof(GetUsersWithReason)), TopLevelShortAlias(nameof(GetUsersWithReason))]
-	[Usage("[Role|Name|Game|Stream] <\"Other Argument\"> <Count> <Nickname> <Exact>")]
+	[Group(nameof(GetUsersWithReason)), TopLevelShortAlias(typeof(GetUsersWithReason))]
 	[Summary("Gets users with a variable reason. `Count` specifies if to say the count. `Nickname` specifies if to include nickanmes. `Exact` specifies if only exact matches apply.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
@@ -273,8 +269,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(GetUserAvatar)), TopLevelShortAlias(nameof(GetUserAvatar))]
-	[Usage("[Gif|Png|Jpg|Webp] <Size> <User>")]
+	[Group(nameof(GetUserAvatar)), TopLevelShortAlias(typeof(GetUserAvatar))]
 	[Summary("Shows the URL of the given user's avatar. Must supply a format, can supply a size, and can specify which user.")]
 	[DefaultEnabled(true)]
 	public sealed class GetUserAvatar : AdvobotModuleBase
@@ -296,8 +291,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(GetUserJoinedAt)), TopLevelShortAlias(nameof(GetUserJoinedAt))]
-	[Usage("[Number]")]
+	[Group(nameof(GetUserJoinedAt)), TopLevelShortAlias(typeof(GetUserJoinedAt))]
 	[Summary("Shows the user which joined the guild in that position.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
@@ -315,8 +309,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(DisplayGuilds)), TopLevelShortAlias(nameof(DisplayGuilds))]
-	[Usage("")]
+	[Group(nameof(DisplayGuilds)), TopLevelShortAlias(typeof(DisplayGuilds))]
 	[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
@@ -345,8 +338,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(DisplayUserJoinList)), TopLevelShortAlias(nameof(DisplayUserJoinList))]
-	[Usage("")]
+	[Group(nameof(DisplayUserJoinList)), TopLevelShortAlias(typeof(DisplayUserJoinList))]
 	[Summary("Lists most of the users who have joined the guild.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
@@ -361,8 +353,7 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(DisplayEmotes)), TopLevelShortAlias(nameof(DisplayEmotes))]
-	[Usage("[Managed|Guild]")]
+	[Group(nameof(DisplayEmotes)), TopLevelShortAlias(typeof(DisplayEmotes))]
 	[Summary("Lists the emotes in the guild. As of right now, there's no way to upload or remove emotes through Discord's API.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
@@ -384,18 +375,17 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(DownloadMessages)), TopLevelShortAlias(nameof(DownloadMessages))]
-	[Usage("[Number] <Channel>")]
+	[Group(nameof(DownloadMessages)), TopLevelShortAlias(typeof(DownloadMessages))]
 	[Summary("Downloads the past x amount of messages. Up to 1000 messages or 500KB worth of formatted text.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
 	public sealed class DownloadMessages : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command(int num, [Optional, VerifyObject(true, ObjectVerification.CanBeRead)] ITextChannel channel)
+		public async Task Command(int number, [Optional, VerifyObject(true, ObjectVerification.CanBeRead)] ITextChannel channel)
 		{
 			channel = channel ?? Context.Channel as ITextChannel;
-			var messages = (await MessageActions.GetMessages(channel, Math.Min(num, 1000))).OrderBy(x => x.CreatedAt.Ticks).ToArray();
+			var messages = (await MessageActions.GetMessages(channel, Math.Min(number, 1000))).OrderBy(x => x.CreatedAt.Ticks).ToArray();
 
 			var formattedMessagesBuilder = new System.Text.StringBuilder();
 			var count = 0;
@@ -481,15 +471,14 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}*/
 
-	[Group(nameof(MentionRole)), TopLevelShortAlias(nameof(MentionRole))]
-	[Usage("[Role] [Message]")]
+	[Group(nameof(MentionRole)), TopLevelShortAlias(typeof(MentionRole))]
 	[Summary("Mention an unmentionable role with the given message.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
 	public sealed class MentionRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder] string text)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder] string message)
 		{
 			if (role.IsMentionable)
 			{
@@ -497,7 +486,7 @@ namespace Advobot.Commands.Miscellaneous
 			}
 			else
 			{
-				var cutText = $"From `{Context.User.FormatUser()}`, {role.Mention}: {text.Substring(0, Math.Min(text.Length, 250))}";
+				var cutText = $"From `{Context.User.FormatUser()}`, {role.Mention}: {message.Substring(0, Math.Min(message.Length, 250))}";
 				//I don't think I can pass this through to RoleActions.ModifyRoleMentionability because the context won't update in time for this to work correctly
 				await role.ModifyAsync(x => x.Mentionable = true, new ModerationReason(Context.User, null).CreateRequestOptions());
 				await MessageActions.SendMessage(Context.Channel, cutText);
@@ -506,17 +495,16 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(MessageBotOwner)), TopLevelShortAlias(nameof(MessageBotOwner))]
-	[Usage("[Message]")]
+	[Group(nameof(MessageBotOwner)), TopLevelShortAlias(typeof(MessageBotOwner))]
 	[Summary("Sends a message to the bot owner with the given text. Messages will be cut down to 250 characters.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(false)]
 	public sealed class MessageBotOwner : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([Remainder] string input)
+		public async Task Command([Remainder] string message)
 		{
-			var newMsg = $"From `{Context.User.FormatUser()}` in `{Context.Guild.FormatGuild()}`:\n```\n{input.Substring(0, Math.Min(input.Length, 250))}```";
+			var newMsg = $"From `{Context.User.FormatUser()}` in `{Context.Guild.FormatGuild()}`:\n```\n{message.Substring(0, Math.Min(message.Length, 250))}```";
 
 			var owner = await UserActions.GetBotOwner(Context.Client);
 			if (owner != null)
@@ -530,43 +518,41 @@ namespace Advobot.Commands.Miscellaneous
 		}
 	}
 
-	[Group(nameof(GetPermNamesFromValue)), TopLevelShortAlias(nameof(GetPermNamesFromValue))]
-	[Usage("[Guild|Channel] [Number]")]
+	[Group(nameof(GetPermNamesFromValue)), TopLevelShortAlias(typeof(GetPermNamesFromValue))]
 	[Summary("Lists all the perms that come from the given value.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
 	public sealed class GetPermNamesFromValue : AdvobotModuleBase
 	{
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
-		public async Task Guild(ulong permNum)
+		public async Task Guild(ulong number)
 		{
-			var perms = GuildPerms.ConvertValueToNames(permNum);
+			var perms = GuildPerms.ConvertValueToNames(number);
 			if (!perms.Any())
 			{
 				await MessageActions.SendErrorMessage(Context, new ErrorReason("The given number holds no permissions."));
 			}
 			else
 			{
-				await MessageActions.SendMessage(Context.Channel, $"The number `{permNum}` has the following permissions: `{String.Join("`, `", perms)}`.");
+				await MessageActions.SendMessage(Context.Channel, $"The number `{number}` has the following permissions: `{String.Join("`, `", perms)}`.");
 			}
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
-		public async Task Channel(ulong permNum)
+		public async Task Channel(ulong number)
 		{
-			var perms = ChannelPerms.ConvertValueToNames(permNum);
+			var perms = ChannelPerms.ConvertValueToNames(number);
 			if (!perms.Any())
 			{
 				await MessageActions.SendErrorMessage(Context, new ErrorReason("The given number holds no permissions."));
 			}
 			else
 			{
-				await MessageActions.SendMessage(Context.Channel, $"The number `{permNum}` has the following permissions: `{String.Join("`, `", perms)}`.");
+				await MessageActions.SendMessage(Context.Channel, $"The number `{number}` has the following permissions: `{String.Join("`, `", perms)}`.");
 			}
 		}
 	}
 
-	[Group(nameof(Test)), TopLevelShortAlias(nameof(Test))]
-	[Usage("")]
+	[Group(nameof(Test)), TopLevelShortAlias(typeof(Test))]
 	[Summary("Mostly just makes the bot say test.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
