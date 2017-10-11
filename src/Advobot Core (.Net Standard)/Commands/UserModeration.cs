@@ -220,7 +220,7 @@ namespace Advobot.Commands.UserModeration
 		[Command]
 		public async Task Command(IBan ban)
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Ban reason for " + ban.User.FormatUser(), ban.Reason));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Ban reason for " + ban.User.FormatUser(), ban.Reason));
 		}
 	}
 
@@ -256,7 +256,7 @@ namespace Advobot.Commands.UserModeration
 			}
 
 			var desc = bans.FormatNumberedList("`{0}`", x => x.User.FormatUser());
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Current Bans", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Current Bans", desc));
 		}
 	}
 

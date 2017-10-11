@@ -21,9 +21,21 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
+			var color = GetColor(input);
+			return color != null
+				? Task.FromResult(TypeReaderResult.FromSuccess(color))
+				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching color."));
+		}
+
+		public static Color? GetColor(string input)
+		{
 			Color? color = null;
+			if (input == null)
+			{
+				return color;
+			}
 			//By name
-			if (Colors.COLORS.TryGetValue(input, out Color temp))
+			else if (Colors.COLORS.TryGetValue(input, out Color temp))
 			{
 				color = temp;
 			}
@@ -45,10 +57,7 @@ namespace Advobot.Classes.TypeReaders
 					color = new Color(Math.Min(r, MAX_VAL), Math.Min(g, MAX_VAL), Math.Min(b, MAX_VAL));
 				}
 			}
-
-			return color != null
-				? Task.FromResult(TypeReaderResult.FromSuccess(color))
-				: Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching color."));
+			return color;
 		}
 	}
 }

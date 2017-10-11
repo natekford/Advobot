@@ -232,7 +232,7 @@ namespace Advobot.Commands.GuildSettings
 			public async Task Command()
 			{
 				var desc = $"`{String.Join("`, `", GuildPerms.Permissions.Select(x => x.Name))}`";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Bot Permission Types", desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Bot Permission Types", desc));
 			}
 			[Command]
 			public async Task Command(IUser user)
@@ -245,7 +245,7 @@ namespace Advobot.Commands.GuildSettings
 				}
 
 				var desc = $"`{String.Join("`, `", GuildPerms.ConvertValueToNames(botUser.Permissions))}`";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed($"Permissions for {user.FormatUser()}", desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed($"Permissions for {user.FormatUser()}", desc));
 			}
 		}
 		[Command(nameof(Add)), ShortAlias(nameof(Add))]
@@ -343,23 +343,16 @@ namespace Advobot.Commands.GuildSettings
 	[DefaultEnabled(false)]
 	public sealed class ModifyGuildNotifs : SavingModuleBase
 	{
-		private const string CONTENT = "content";
-		private const string TITLE = "title";
-		private const string DESC = "desc";
-		private const string THUMB = "thumb";
-
 		[Command(nameof(Welcome)), ShortAlias(nameof(Welcome))]
-		public async Task Welcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel,
-			[Remainder, VerifyCustomArgumentsAttribute(CONTENT, TITLE, DESC, THUMB)] CustomArguments arguments)
+		public async Task Welcome([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] CustomArguments<GuildNotification> arguments)
 		{
-			Context.GuildSettings.WelcomeMessage = new GuildNotification(arguments[CONTENT], arguments[TITLE], arguments[DESC], arguments[THUMB], channel);
+			Context.GuildSettings.WelcomeMessage = arguments.CreateObject(channel);
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the welcome message.");
 		}
 		[Command(nameof(Goodbye)), ShortAlias(nameof(Goodbye))]
-		public async Task Goodbye([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel,
-			[Remainder, VerifyCustomArgumentsAttribute(CONTENT, TITLE, DESC, THUMB)] CustomArguments arguments)
+		public async Task Goodbye([VerifyObject(true, ObjectVerification.CanModifyPermissions)] ITextChannel channel, [Remainder] CustomArguments<GuildNotification> arguments)
 		{
-			Context.GuildSettings.GoodbyeMessage = new GuildNotification(arguments[CONTENT], arguments[TITLE], arguments[DESC], arguments[THUMB], channel);
+			Context.GuildSettings.GoodbyeMessage = arguments.CreateObject(channel);
 			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully set the goodbye message.");
 		}
 	}
@@ -406,7 +399,7 @@ namespace Advobot.Commands.GuildSettings
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", GetActions.GetGuildSettings().Select(x => x.Name))}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Setting Names", desc));
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
@@ -420,7 +413,7 @@ namespace Advobot.Commands.GuildSettings
 			var desc = Context.GuildSettings.ToString(settingName);
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(settingName.Name, desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed(settingName.Name, desc));
 			}
 			else
 			{

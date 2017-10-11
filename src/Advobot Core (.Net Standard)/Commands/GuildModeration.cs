@@ -103,7 +103,7 @@ namespace Advobot.Commands.GuildModeration
 		public async Task Show()
 		{
 			var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions;
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Region IDs", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Region IDs", desc));
 		}
 		[Command(nameof(Current)), ShortAlias(nameof(Current)), Priority(1)]
 		public async Task Current()
@@ -200,7 +200,7 @@ namespace Advobot.Commands.GuildModeration
 			var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_ICON_LOCATION + imageUrl.FileType);
 			using (var webClient = new WebClient())
 			{
-				webClient.DownloadFileAsync(new Uri(imageUrl.Url), fileInfo.FullName);
+				webClient.DownloadFileAsync(imageUrl.Url, fileInfo.FullName);
 				webClient.DownloadFileCompleted += async (sender, e) =>
 				{
 					await GuildActions.ModifyGuildIcon(Context.Guild, fileInfo, new ModerationReason(Context.User, null));

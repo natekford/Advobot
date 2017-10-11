@@ -61,11 +61,6 @@ namespace Advobot.Classes.UsageGeneration
 
 			SetType(parameter);
 			SetText(parameter);
-
-			if (Type == typeof(CustomArguments) && !IsRemainder && parameter.GetCustomAttribute<VerifyCustomArgumentsAttribute>() != null)
-			{
-				throw new ArgumentException($"{Type.Name} requires {nameof(RemainderAttribute)} and {nameof(VerifyCustomArgumentsAttribute)}.");
-			}
 		}
 
 		private void SetType(System.Reflection.ParameterInfo parameter)
@@ -94,6 +89,7 @@ namespace Advobot.Classes.UsageGeneration
 				Type = parameter.ParameterType;
 				TypeName = Type.Name;
 			}
+			TypeName = TypeName.TrimEnd('`', '1');
 		}
 		private void SetText(System.Reflection.ParameterInfo parameter)
 		{
@@ -107,10 +103,16 @@ namespace Advobot.Classes.UsageGeneration
 			{
 				Text += $" {verifyStringLengthAttr.ToString()}";
 			}
-			var verifyCustomArgumentsAttributeAttr = parameter.GetCustomAttribute<VerifyCustomArgumentsAttribute>();
-			if (verifyCustomArgumentsAttributeAttr != null)
+			if (Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(CustomArguments<>))
 			{
-				Text += $" {verifyCustomArgumentsAttributeAttr.ToString()}";
+				if (!IsRemainder)
+				{
+					throw new ArgumentException($"{Type.Name} requires {nameof(RemainderAttribute)}.");
+				}
+
+				var result = Type.GetProperty(nameof(CustomArguments<object>.ArgNames)).GetValue(null);
+				var argNames = ((IEnumerable)result).Cast<string>().Select(x => CapitalizeFirstLetter(x));
+				Text += $" ({String.Join("|", argNames)})";
 			}
 		}
 
@@ -119,6 +121,10 @@ namespace Advobot.Classes.UsageGeneration
 			return n[0].ToString().ToUpper() + n.Substring(1, n.Length - 1);
 		}
 
+		public void SetDeepness(int deepness)
+		{
+			Deepness = deepness;
+		}
 		public void IncrementOccurences()
 		{
 			++Occurences;
@@ -131,7 +137,7 @@ namespace Advobot.Classes.UsageGeneration
 				var names = Enum.GetNames(Type);
 				if (names.Length <= 5)
 				{
-					return $"{TypeName}: {String.Join("|", names)}";
+					return $"{TypeName}: {String.Join("|", names)}{Text}";
 				}
 			}
 			return $"{TypeName}: {Name}{Text}";

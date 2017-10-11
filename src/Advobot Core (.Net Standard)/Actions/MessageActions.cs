@@ -41,7 +41,7 @@ namespace Advobot.Actions
 		/// <param name="embed"></param>
 		/// <param name="content"></param>
 		/// <returns></returns>
-		public static async Task<IUserMessage> SendEmbedMessage(IMessageChannel channel, EmbedBuilder embed, string content = null)
+		public static async Task<IUserMessage> SendEmbedMessage(IMessageChannel channel, MyEmbed embed, string content = null)
 		{
 			var guild = channel.GetGuild();
 			if (guild == null)
@@ -59,7 +59,7 @@ namespace Advobot.Actions
 			var overflowText = new StringBuilder();
 
 			//Descriptions can only be 2048 characters max and mobile can only show up to 20 line breaks
-			if (!EmbedActions.CheckIfValidDescription(embed, charCount, out string badDescription, out string error))
+			if (!embed.CheckIfValidDescription(charCount, out string badDescription, out string error))
 			{
 				embed.WithDescription(error);
 				overflowText.AppendLineFeed($"Description: {badDescription}");
@@ -70,7 +70,7 @@ namespace Advobot.Actions
 			for (int i = 0; i < embed.Fields.Count; ++i)
 			{
 				var field = embed.Fields[i];
-				if (!EmbedActions.CheckIfValidField(field, charCount, out string badValue, out string fieldError))
+				if (!embed.CheckIfValidField(field, charCount, out string badValue, out string fieldError))
 				{
 					field.WithName($"Field {i}");
 					field.WithValue(fieldError);
@@ -148,8 +148,8 @@ namespace Advobot.Actions
 			var text = String.Join("\n", inputList).RemoveDuplicateNewLines();
 			if (inputList.Count() <= 5 && text.Length < Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
-				var embed = EmbedActions.MakeNewEmbed("Deleted Messages", text, Colors.MDEL)
-					.MyAddFooter("Deleted Messages");
+				var embed = new MyEmbed("Deleted Messages", text, Colors.MDEL)
+					.AddFooter("Deleted Messages");
 				return await SendEmbedMessage(channel, embed);
 			}
 			else

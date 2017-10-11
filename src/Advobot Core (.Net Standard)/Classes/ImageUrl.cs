@@ -1,13 +1,15 @@
-﻿namespace Advobot.Classes
+﻿using System;
+
+namespace Advobot.Classes
 {
 	public class ImageUrl
 	{
-		public string Url { get; }
+		public Uri Url { get; }
 		public string FileType { get; }
 
 		public ImageUrl(string url, string fileType)
 		{
-			Url = url;
+			Url = new Uri(url);
 			FileType = fileType;
 		}
 	}

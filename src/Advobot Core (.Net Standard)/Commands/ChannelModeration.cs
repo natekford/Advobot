@@ -95,14 +95,14 @@ namespace Advobot.Commands.ChannelModeration
 		{
 			var channels = await Context.Guild.GetTextChannelsAsync();
 			var desc = String.Join("\n", channels.OrderBy(x => x.Position).Select(x => $"`{x.Position.ToString("00")}.` `{x.Name}`"));
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Text Channel Positions", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Text Channel Positions", desc));
 		}
 		[Command(nameof(Voice)), ShortAlias(nameof(Voice))]
 		public async Task Voice()
 		{
 			var channels = await Context.Guild.GetVoiceChannelsAsync();
 			var desc = String.Join("\n", channels.OrderBy(x => x.Position).Select(x => $"`{x.Position.ToString("00")}.` `{x.Name}`"));
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Voice Channel Positions", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Voice Channel Positions", desc));
 		}
 	}
 
@@ -122,7 +122,7 @@ namespace Advobot.Commands.ChannelModeration
 			public async Task Command()
 			{
 				var desc = $"`{String.Join("`, `", ChannelPerms.Permissions.Select(x => x.Name))}`";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Channel Permission Types", desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Channel Permission Types", desc));
 			}
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel)
@@ -130,9 +130,9 @@ namespace Advobot.Commands.ChannelModeration
 				var roleOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.Role).Select(x => Context.Guild.GetRole(x.TargetId).Name);
 				var userOverwrites = channel.PermissionOverwrites.Where(x => x.TargetType == PermissionTarget.User).Select(x => ((Context.Guild as SocketGuild).GetUser(x.TargetId)).Username);
 
-				var embed = EmbedActions.MakeNewEmbed(channel.FormatChannel())
-					.MyAddField("Role", $"`{(roleOverwrites.Any() ? String.Join("`, `", roleOverwrites) : "None")}`")
-					.MyAddField("User", $"`{(userOverwrites.Any() ? String.Join("`, `", userOverwrites) : "None")}`");
+				var embed = new MyEmbed(channel.FormatChannel())
+					.AddField("Role", $"`{(roleOverwrites.Any() ? String.Join("`, `", roleOverwrites) : "None")}`")
+					.AddField("User", $"`{(userOverwrites.Any() ? String.Join("`, `", userOverwrites) : "None")}`");
 				await MessageActions.SendEmbedMessage(Context.Channel, embed);
 			}
 			[Command]
@@ -145,7 +145,7 @@ namespace Advobot.Commands.ChannelModeration
 				}
 
 				var desc = $"Role:** `{role.FormatRole()}`\n```{OverwriteActions.GetFormattedPermsFromOverwrite(channel, role)}```";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Overwrite On " + channel.FormatChannel(), desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Overwrite On " + channel.FormatChannel(), desc));
 			}
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanModifyPermissions)] IGuildChannel channel, IGuildUser user)
@@ -157,7 +157,7 @@ namespace Advobot.Commands.ChannelModeration
 				}
 
 				var desc = $"User:** `{user.FormatUser()}`\n```{OverwriteActions.GetFormattedPermsFromOverwrite(channel, user)}```";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Overwrite On " + channel.FormatChannel(), desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Overwrite On " + channel.FormatChannel(), desc));
 			}
 		}
 		[Command]

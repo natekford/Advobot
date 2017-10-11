@@ -162,7 +162,7 @@ namespace Advobot.Commands.BotSettings
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", GetActions.GetBotSettings().Select(x => x.Name))}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Setting Names", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Setting Names", desc));
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
@@ -176,7 +176,7 @@ namespace Advobot.Commands.BotSettings
 			var desc = await Context.BotSettings.ToString(Context.Client, settingName);
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(settingName.Name, desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed(settingName.Name, desc));
 			}
 			else
 			{
@@ -218,7 +218,7 @@ namespace Advobot.Commands.BotSettings
 			var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_ICON_LOCATION + imageUrl.FileType);
 			using (var webClient = new WebClient())
 			{
-				webClient.DownloadFileAsync(new Uri(imageUrl.Url), fileInfo.FullName);
+				webClient.DownloadFileAsync(imageUrl.Url, fileInfo.FullName);
 				webClient.DownloadFileCompleted += async (sender, e) =>
 				{
 					await ClientActions.ModifyBotIconAsync(Context.Client, fileInfo);

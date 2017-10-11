@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Actions.Formatting;
+using Advobot.Classes;
 using Advobot.Classes.Punishments;
 using Advobot.Enums;
 using Advobot.Interfaces;
@@ -70,9 +71,9 @@ namespace Advobot.Services.Log.Loggers
 						ageWarning = $"**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
 					}
 
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}\n{invite}\n{ageWarning}", Colors.JOIN)
-						.MyAddAuthor(user)
-						.MyAddFooter(user.IsBot ? "Bot Joined" : "User Joined");
+					var embed = new MyEmbed(null, $"**ID:** {user.Id}\n{invite}\n{ageWarning}", Colors.JOIN)
+						.AddAuthor(user)
+						.AddFooter(user.IsBot ? "Bot Joined" : "User Joined");
 					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
 				}
 
@@ -117,9 +118,9 @@ namespace Advobot.Services.Log.Loggers
 						userStayLength = $"**Stayed for:** {timeStayed.Days}:{timeStayed.Hours:00}:{timeStayed.Minutes:00}:{timeStayed.Seconds:00}";
 					}
 
-					var embed = EmbedActions.MakeNewEmbed(null, $"**ID:** {user.Id}\n{userStayLength}", Colors.LEAV)
-						.MyAddAuthor(user)
-						.MyAddFooter(user.IsBot ? "Bot Left" : "User Left");
+					var embed = new MyEmbed(null, $"**ID:** {user.Id}\n{userStayLength}", Colors.LEAV)
+						.AddAuthor(user)
+						.AddFooter(user.IsBot ? "Bot Left" : "User Left");
 					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
 				}
 
@@ -149,11 +150,11 @@ namespace Advobot.Services.Log.Loggers
 					VerifyLogAction(guildSettings, LogAction.UserUpdated))
 				{
 					_Logging.UserChanges.Increment();
-					var embed = EmbedActions.MakeNewEmbed(null, null, Colors.UEDT)
-						.MyAddAuthor(afterUser)
-						.MyAddField("Before:", "`" + beforeUser.Username + "`")
-						.MyAddField("After:", "`" + afterUser.Username + "`", false)
-						.MyAddFooter("Name Changed");
+					var embed = new MyEmbed(null, null, Colors.UEDT)
+						.AddAuthor(afterUser)
+						.AddField("Before:", "`" + beforeUser.Username + "`")
+						.AddField("After:", "`" + afterUser.Username + "`", false)
+						.AddFooter("Name Changed");
 					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
 				}
 			}
@@ -181,7 +182,7 @@ namespace Advobot.Services.Log.Loggers
 					return;
 				}
 
-				await MessageActions.SendEmbedMessage(guildSettings.ServerLog, EmbedActions.MakeNewEmbed("Anti Rapid Join Mute", $"**User:** {user.FormatUser()}"));
+				await MessageActions.SendEmbedMessage(guildSettings.ServerLog, new MyEmbed("Anti Rapid Join Mute", $"**User:** {user.FormatUser()}"));
 			}
 		}
 	}

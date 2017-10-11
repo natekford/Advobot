@@ -7,7 +7,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Returns custom arguments.
 	/// </summary>
-	public class CustomArgumentsTypeReader : TypeReader 
+	public class CustomArgumentsTypeReader<T> : TypeReader where T : class
 	{
 		/// <summary>
 		/// Creates custom arguments from the given input.
@@ -18,7 +18,7 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
-			return Task.FromResult(TypeReaderResult.FromSuccess(new CustomArguments(input)));
+			return Task.FromResult(TypeReaderResult.FromSuccess(new CustomArguments<T>(input)));
 		}
 	}
 }

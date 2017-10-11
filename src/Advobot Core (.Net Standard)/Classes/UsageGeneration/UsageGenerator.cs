@@ -56,8 +56,6 @@ namespace Advobot.Classes.UsageGeneration
 			RemoveDuplicateMethods(ref _Methods);
 			RemoveDuplicateParameters(ref _Params);
 
-			//TODO: implement params checking
-
 			//Don't include classes because they will always be 1 behind deepest methods at minimum.
 			var maximumUpperBounds = GetMaximumUpperBounds(_Methods, _Params); //Highest of the two highs
 			var minimumUpperBounds = GetMinimumUpperBounds(_Methods, _Params); //Lowest of the two highs
@@ -169,6 +167,12 @@ namespace Advobot.Classes.UsageGeneration
 		}
 		private void RemoveDuplicateParameters(ref List<ParameterDetails> parameters)
 		{
+			var deepest = parameters.Where(x => !x.IsRemainder).DefaultIfEmpty().Max(x => x?.Deepness ?? 0);
+			foreach (var parameter in parameters.Where(x => x.IsRemainder))
+			{
+				parameter.SetDeepness(deepest + 1);
+			}
+
 			var tempList = new List<ParameterDetails>();
 			foreach (var parameter in parameters)
 			{

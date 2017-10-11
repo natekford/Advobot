@@ -1,4 +1,5 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Classes;
+using Advobot.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using System;
@@ -17,7 +18,7 @@ namespace Advobot.Actions.Formatting
 		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public static EmbedBuilder FormatUserInfo(SocketGuild guild, SocketGuildUser user)
+		public static MyEmbed FormatUserInfo(SocketGuild guild, SocketGuildUser user)
 		{
 			var textChannels = guild.TextChannels.Where(x => user.GetPermissions(x).ReadMessages).OrderBy(x => x.Position).Select(x => x.Name);
 			var voiceChannels = guild.VoiceChannels.Where(x => user.GetPermissions(x).Connect).OrderBy(x => x.Position).Select(x => x.Name + " (Voice)");
@@ -34,9 +35,9 @@ namespace Advobot.Actions.Formatting
 				.AppendLineFeed($"**Online status:** `{user.Status}`");
 
 			var color = roles.OrderBy(x => x.Position).LastOrDefault(x => x.Color.RawValue != 0)?.Color;
-			var embed = EmbedActions.MakeNewEmbed(null, desc.ToString(), color, thumbnailUrl: user.GetAvatarUrl())
-				.MyAddAuthor(user)
-				.MyAddFooter("User Info");
+			var embed = new MyEmbed(null, desc.ToString(), color, thumbnailUrl: user.GetAvatarUrl())
+				.AddAuthor(user)
+				.AddFooter("User Info");
 
 			if (channels.Count() != 0)
 			{
@@ -53,7 +54,7 @@ namespace Advobot.Actions.Formatting
 					.AppendLineFeed($"Server deafen: `{user.IsDeafened}`")
 					.AppendLineFeed($"Self mute: `{user.IsSelfMuted}`")
 					.AppendLineFeed($"Self deafen: `{user.IsSelfDeafened}`");
-				embed.MyAddField("Voice Channel: " + user.VoiceChannel.Name, value.ToString());
+				embed.AddField("Voice Channel: " + user.VoiceChannel.Name, value.ToString());
 			}
 			return embed;
 		}
@@ -64,16 +65,16 @@ namespace Advobot.Actions.Formatting
 		/// <param name="guild"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public static EmbedBuilder FormatUserInfo(SocketGuild guild, SocketUser user)
+		public static MyEmbed FormatUserInfo(SocketGuild guild, SocketUser user)
 		{
 			var desc = new StringBuilder()
 				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(user.CreatedAt.UtcDateTime))
 				.AppendLineFeed(DiscordObjectFormatting.FormatGame(user))
 				.AppendLineFeed($"**Online status:** `{user.Status}`");
 
-			return EmbedActions.MakeNewEmbed(null, desc.ToString(), null, thumbnailUrl: user.GetAvatarUrl())
-				.MyAddAuthor(user)
-				.MyAddFooter("User Info");
+			return new MyEmbed(null, desc.ToString(), null, thumbnailUrl: user.GetAvatarUrl())
+				.AddAuthor(user)
+				.AddFooter("User Info");
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedBuilder"/> containing information about a role.
@@ -82,16 +83,16 @@ namespace Advobot.Actions.Formatting
 		/// <param name="guild"></param>
 		/// <param name="role"></param>
 		/// <returns></returns>
-		public static EmbedBuilder FormatRoleInfo(SocketGuild guild, SocketRole role)
+		public static MyEmbed FormatRoleInfo(SocketGuild guild, SocketRole role)
 		{
 			var desc = new StringBuilder()
 				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(role.CreatedAt.UtcDateTime))
 				.AppendLineFeed($"**Position:** `{role.Position}`")
 				.AppendLineFeed($"**User Count:** `{guild.Users.Where(x => x.Roles.Any(y => y.Id == role.Id)).Count()}`");
 
-			return EmbedActions.MakeNewEmbed(null, desc.ToString(), role.Color)
-				.MyAddAuthor(role.FormatRole())
-				.MyAddFooter("Role Info");
+			return new MyEmbed(null, desc.ToString(), role.Color)
+				.AddAuthor(role.FormatRole())
+				.AddFooter("Role Info");
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedBuilder"/> containing information about a channel.
@@ -100,7 +101,7 @@ namespace Advobot.Actions.Formatting
 		/// <param name="guild"></param>
 		/// <param name="channel"></param>
 		/// <returns></returns>
-		public static EmbedBuilder FormatChannelInfo(IGuildSettings guildSettings, SocketGuild guild, SocketChannel channel)
+		public static MyEmbed FormatChannelInfo(IGuildSettings guildSettings, SocketGuild guild, SocketChannel channel)
 		{
 			var ignoredFromLog = guildSettings.IgnoredLogChannels.Contains(channel.Id);
 			var ignoredFromCmd = guildSettings.IgnoredCommandChannels.Contains(channel.Id);
@@ -119,9 +120,9 @@ namespace Advobot.Actions.Formatting
 				.AppendLineFeed($"**Modlog:** `{(modLog ? "Yes" : "No")}`")
 				.AppendLineFeed($"**Imagelog:** `{(imageLog ? "Yes" : "No")}`");
 
-			return EmbedActions.MakeNewEmbed(null, desc.ToString())
-				.MyAddAuthor(channel.FormatChannel())
-				.MyAddFooter("Channel Info");
+			return new MyEmbed(null, desc.ToString())
+				.AddAuthor(channel.FormatChannel())
+				.AddFooter("Channel Info");
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedBuilder"/> containing information about a guild.
@@ -129,7 +130,7 @@ namespace Advobot.Actions.Formatting
 		/// <param name="guildSettings"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static EmbedBuilder FormatGuildInfo(SocketGuild guild)
+		public static MyEmbed FormatGuildInfo(SocketGuild guild)
 		{
 			var owner = guild.Owner;
 			var onlineCount = guild.Users.Where(x => x.Status != UserStatus.Offline).Count();
@@ -154,9 +155,9 @@ namespace Advobot.Actions.Formatting
 				.AppendLineFeed($"**AFK Channel:** `{guild.AFKChannel.FormatChannel()}` (`{guild.AFKTimeout / 60}` minute{GetActions.GetPlural(guild.AFKTimeout / 60)})");
 
 			var color = owner.Roles.FirstOrDefault(x => x.Color.RawValue != 0)?.Color;
-			return EmbedActions.MakeNewEmbed(null, desc.ToString(), color, thumbnailUrl: guild.IconUrl)
-				.MyAddAuthor(guild.FormatGuild())
-				.MyAddFooter("Guild Info");
+			return new MyEmbed(null, desc.ToString(), color, thumbnailUrl: guild.IconUrl)
+				.AddAuthor(guild.FormatGuild())
+				.AddFooter("Guild Info");
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedBuilder"/> containing information about an emote.
@@ -164,14 +165,14 @@ namespace Advobot.Actions.Formatting
 		/// <param name="guildSettings"></param>
 		/// <param name="emote"></param>
 		/// <returns></returns>
-		public static EmbedBuilder FormatEmoteInfo(Emote emote)
+		public static MyEmbed FormatEmoteInfo(Emote emote)
 		{
 			var desc = new StringBuilder()
 				.AppendLineFeed($"**ID:** `{emote.Id}`");
 
-			return EmbedActions.MakeNewEmbed(null, desc.ToString(), thumbnailUrl: emote.Url)
-				.MyAddAuthor(emote.Name)
-				.MyAddFooter("Emoji Info");
+			return new MyEmbed(null, desc.ToString(), thumbnailUrl: emote.Url)
+				.AddAuthor(emote.Name)
+				.AddFooter("Emoji Info");
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedBuilder"/> containing information about an invite.
@@ -180,7 +181,7 @@ namespace Advobot.Actions.Formatting
 		/// <param name="guild"></param>
 		/// <param name="invite"></param>
 		/// <returns></returns>
-		public static EmbedBuilder FormatInviteInfo(IInviteMetadata invite)
+		public static MyEmbed FormatInviteInfo(IInviteMetadata invite)
 		{
 			var desc = new StringBuilder()
 				.AppendLineFeed(TimeFormatting.FormatDateTimeForCreatedAtMessage(invite.CreatedAt.UtcDateTime))
@@ -188,9 +189,9 @@ namespace Advobot.Actions.Formatting
 				.AppendLineFeed($"**Channel:** `{invite.Channel.FormatChannel()}`")
 				.AppendLineFeed($"**Uses:** `{invite.Uses}`");
 
-			return EmbedActions.MakeNewEmbed(null, desc.ToString())
-				.MyAddAuthor(invite.Code)
-				.MyAddFooter("Emote Info");
+			return new MyEmbed(null, desc.ToString())
+				.AddAuthor(invite.Code)
+				.AddFooter("Emote Info");
 		}
 		/// <summary>
 		/// Returns a new <see cref="EmbedBuilder"/> containing information about the bot.
@@ -200,7 +201,7 @@ namespace Advobot.Actions.Formatting
 		/// <param name="logModule"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static EmbedBuilder FormatBotInfo(IBotSettings globalInfo, IDiscordClient client, ILogService logModule, IGuild guild)
+		public static MyEmbed FormatBotInfo(IBotSettings globalInfo, IDiscordClient client, ILogService logModule, IGuild guild)
 		{
 			var desc = new StringBuilder()
 				.AppendLineFeed($"**Online Since:** `{TimeFormatting.FormatReadableDateTime(Process.GetCurrentProcess().StartTime)}`")
@@ -219,12 +220,12 @@ namespace Advobot.Actions.Formatting
 				.AppendLineFeed($"**Memory Usage:** `{GetActions.GetMemory().ToString("0.00")}MB`")
 				.AppendLineFeed($"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`");
 
-			return EmbedActions.MakeNewEmbed(null, desc.ToString())
-				.MyAddAuthor(client.CurrentUser)
-				.MyAddField("Logged Actions", firstField.ToString())
-				.MyAddField("Commands", secondField.ToString())
-				.MyAddField("Technical", thirdField.ToString())
-				.MyAddFooter("Version " + Constants.BOT_VERSION);
+			return new MyEmbed(null, desc.ToString())
+				.AddAuthor(client.CurrentUser)
+				.AddField("Logged Actions", firstField.ToString())
+				.AddField("Commands", secondField.ToString())
+				.AddField("Technical", thirdField.ToString())
+				.AddFooter("Version " + Constants.BOT_VERSION);
 		}
 	}
 }

@@ -107,11 +107,11 @@ namespace Advobot.Services.Log.Loggers
 						return;
 					}
 
-					var embed = EmbedActions.MakeNewEmbed(null, null, Colors.MEDT)
-						.MyAddAuthor(message.Author)
-						.MyAddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
-						.MyAddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)
-						.MyAddFooter("Message Updated");
+					var embed = new MyEmbed(null, null, Colors.MEDT)
+						.AddAuthor(message.Author)
+						.AddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
+						.AddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)
+						.AddFooter("Message Updated");
 					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
 				}
 			}
@@ -231,42 +231,42 @@ namespace Advobot.Services.Log.Loggers
 				if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentURL))) //Image
 				{
 					_Logging.Images.Increment();
-					var embed = EmbedActions.MakeNewEmbed(null, desc, Colors.ATCH, attachmentURL)
-						.MyAddAuthor(message.Author, attachmentURL)
-						.MyAddFooter("Attached Image");
+					var embed = new MyEmbed(null, desc, Colors.ATCH, attachmentURL)
+						.AddAuthor(message.Author, attachmentURL)
+						.AddFooter("Attached Image");
 					await MessageActions.SendEmbedMessage(guildSettings.ImageLog, embed);
 				}
 				else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL))) //Gif
 				{
 					_Logging.Gifs.Increment();
-					var embed = EmbedActions.MakeNewEmbed(null, desc, Colors.ATCH, attachmentURL)
-						.MyAddAuthor(message.Author, attachmentURL)
-						.MyAddFooter("Attached Gif");
+					var embed = new MyEmbed(null, desc, Colors.ATCH, attachmentURL)
+						.AddAuthor(message.Author, attachmentURL)
+						.AddFooter("Attached Gif");
 					await MessageActions.SendEmbedMessage(guildSettings.ImageLog, embed);
 				}
 				else //Random file
 				{
 					_Logging.Files.Increment();
-					var embed = EmbedActions.MakeNewEmbed(null, desc, Colors.ATCH, attachmentURL)
-						.MyAddAuthor(message.Author, attachmentURL)
-						.MyAddFooter("Attached File");
+					var embed = new MyEmbed(null, desc, Colors.ATCH, attachmentURL)
+						.AddAuthor(message.Author, attachmentURL)
+						.AddFooter("Attached File");
 					await MessageActions.SendEmbedMessage(guildSettings.ImageLog, embed);
 				}
 			}
 			foreach (var embedURL in embedURLs.Distinct()) //Images
 			{
 				_Logging.Images.Increment();
-				var embed = EmbedActions.MakeNewEmbed(null, desc, Colors.ATCH, embedURL)
-					.MyAddAuthor(message.Author, embedURL)
-					.MyAddFooter("Embedded Image");
+				var embed = new MyEmbed(null, desc, Colors.ATCH, embedURL)
+					.AddAuthor(message.Author, embedURL)
+					.AddFooter("Embedded Image");
 				await MessageActions.SendEmbedMessage(guildSettings.ImageLog, embed);
 			}
 			foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First())) //Videos/Gifs
 			{
 				_Logging.Gifs.Increment();
-				var embed = EmbedActions.MakeNewEmbed(null, desc, Colors.ATCH, videoEmbed.Thumbnail?.Url)
-					.MyAddAuthor(message.Author, videoEmbed.Url)
-					.MyAddFooter("Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
+				var embed = new MyEmbed(null, desc, Colors.ATCH, videoEmbed.Thumbnail?.Url)
+					.AddAuthor(message.Author, videoEmbed.Url)
+					.AddFooter("Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
 				await MessageActions.SendEmbedMessage(guildSettings.ImageLog, embed);
 			}
 		}
@@ -334,8 +334,8 @@ namespace Advobot.Services.Log.Loggers
 			if (validHelpEntry)
 			{
 				var help = helpEntries.List.ElementAt(number).Word;
-				var embed = EmbedActions.MakeNewEmbed(help.Name, help.ToString())
-					.MyAddFooter("Help");
+				var embed = new MyEmbed(help.Name, help.ToString())
+					.AddFooter("Help");
 				await MessageActions.SendEmbedMessage(message.Channel, embed);
 			}
 

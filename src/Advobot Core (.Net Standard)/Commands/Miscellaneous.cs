@@ -39,11 +39,11 @@ namespace Advobot.Commands.Miscellaneous
 		{
 			if (String.IsNullOrWhiteSpace(commandName))
 			{
-				var embed = EmbedActions.MakeNewEmbed("General Help", _GeneralHelp)
-					.MyAddField("Basic Syntax", _BasicSyntax)
-					.MyAddField("Mention Syntax", _MentionSyntax)
-					.MyAddField("Links", _Links)
-					.MyAddFooter("Help");
+				var embed = new MyEmbed("General Help", _GeneralHelp)
+					.AddField("Basic Syntax", _BasicSyntax)
+					.AddField("Mention Syntax", _MentionSyntax)
+					.AddField("Links", _Links)
+					.AddFooter("Help");
 				await MessageActions.SendEmbedMessage(Context.Channel, embed);
 				return;
 			}
@@ -51,8 +51,8 @@ namespace Advobot.Commands.Miscellaneous
 			var helpEntry = Constants.HELP_ENTRIES[commandName];
 			if (helpEntry != null)
 			{
-				var embed = EmbedActions.MakeNewEmbed(helpEntry.Name, helpEntry.ToString())
-					.MyAddFooter("Help");
+				var embed = new MyEmbed(helpEntry.Name, helpEntry.ToString())
+					.AddFooter("Help");
 				await MessageActions.SendEmbedMessage(Context.Channel, embed);
 				return;
 			}
@@ -84,18 +84,18 @@ namespace Advobot.Commands.Miscellaneous
 		public async Task All()
 		{
 			var desc = $"`{String.Join("`, `", Constants.HELP_ENTRIES.GetCommandNames())}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("All Commands", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("All Commands", desc));
 		}
 		[Command]
 		public async Task Command(CommandCategory category)
 		{
 			var desc = $"`{String.Join("`, `", GetActions.GetCommandNames(category))}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(category.EnumName(), desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed(category.EnumName(), desc));
 		}
 		[Command]
 		public async Task Command()
 		{
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Categories", _CommandCategories));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Categories", _CommandCategories));
 		}
 	}
 
@@ -258,7 +258,7 @@ namespace Advobot.Commands.Miscellaneous
 			}
 
 			var desc = count ? $"**Count:** `{users.Count()}`" : users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.FormatUser());
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(title, desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed(title, desc));
 		}
 
 		public enum SearchOptions : uint
@@ -321,10 +321,10 @@ namespace Advobot.Commands.Miscellaneous
 			var guilds = await Context.Client.GetGuildsAsync();
 			if (guilds.Count() <= 10)
 			{
-				var embed = EmbedActions.MakeNewEmbed("Guilds");
+				var embed = new MyEmbed("Guilds");
 				foreach (var guild in guilds)
 				{
-					embed.MyAddField(guild.FormatGuild(), $"**Owner:** `{(await guild.GetOwnerAsync()).FormatUser()}`");
+					embed.AddField(guild.FormatGuild(), $"**Owner:** `{(await guild.GetOwnerAsync()).FormatUser()}`");
 				}
 
 				await MessageActions.SendEmbedMessage(Context.Channel, embed);
@@ -333,7 +333,7 @@ namespace Advobot.Commands.Miscellaneous
 			{
 				var guildsAndOwners = await Task.WhenAll(guilds.Select(async x => (Guild: x, Owner: await x.GetOwnerAsync())));
 				var desc = guildsAndOwners.FormatNumberedList("`{0}` Owner: `{1}`", x => x.Guild.FormatGuild(), x => x.Owner.FormatUser());
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Guilds", desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Guilds", desc));
 			}
 		}
 	}
@@ -364,14 +364,14 @@ namespace Advobot.Commands.Miscellaneous
 		{
 			var emotes = Context.Guild.Emotes.Where(x => x.IsManaged);
 			var desc = emotes.Any() ? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name) : $"This guild has no global emotes.";
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Emotes", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Emotes", desc));
 		}
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild()
 		{
 			var emotes = Context.Guild.Emotes.Where(x => !x.IsManaged);
 			var desc = emotes.Any() ? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name) : $"This guild has no guild emotes.";
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Emotes", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Emotes", desc));
 		}
 	}
 
@@ -406,6 +406,21 @@ namespace Advobot.Commands.Miscellaneous
 				formattedMessagesBuilder.ToString(),
 				$"{channel.Name}_Messages",
 				$"Successfully got `{count}` messages");
+		}
+	}
+
+	[Group(nameof(MakeAnEmbed)), TopLevelShortAlias(typeof(MakeAnEmbed))]
+	[Summary("Makes an embed with the given arguments. Urls need http:// in front of them. Doesn't support fields because those are extra work to do. " +
+		"FieldInfo can have up to 25 arguments supplied. Each must be formatted like the following: `" + CustomEmbed.FORMAT + "`.")]
+	[OtherRequirement(Precondition.UserHasAPerm)]
+	[DefaultEnabled(true)]
+	public sealed class MakeAnEmbed : AdvobotModuleBase
+	{
+		[Command]
+		public async Task Command([Remainder] CustomArguments<CustomEmbed> arguments)
+		{
+			var embed = arguments.CreateObject().Embed;
+			await MessageActions.SendEmbedMessage(Context.Channel, embed);
 		}
 	}
 
@@ -450,7 +465,7 @@ namespace Advobot.Commands.Miscellaneous
 				}
 			}
 
-			var embed = EmbedActions.MakeNewEmbed(title, description, color, imageUrl, Url, thumbnail);
+			var embed = new MyEmbed(title, description, color, imageUrl, Url, thumbnail);
 			EmbedActions.AddAuthor(embed, authorName, authorIcon, authorUrl);
 			EmbedActions.AddFooter(embed, footerText, footerIcon);
 
@@ -558,22 +573,8 @@ namespace Advobot.Commands.Miscellaneous
 	[DefaultEnabled(true)]
 	public sealed class Test : AdvobotModuleBase
 	{
-		[Group("a")]
-		public sealed class A : AdvobotModuleBase
-		{
-			[Command]
-			public async Task CommandA()
-			{
-				await MessageActions.SendMessage(Context.Channel, "test");
-			}
-		}
 		[Command]
-		public async Task TestCommand(int cat)
-		{
-			await MessageActions.SendMessage(Context.Channel, "test");
-		}
-		[Command("B")]
-		public async Task B(int dog)
+		public async Task Command()
 		{
 			await MessageActions.SendMessage(Context.Channel, "test");
 		}

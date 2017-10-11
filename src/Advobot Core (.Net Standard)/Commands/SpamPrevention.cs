@@ -21,7 +21,7 @@ namespace Advobot.Commands.SpamPrevention
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Punishment Types", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Punishment Types", desc));
 		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(SpamType spamType, PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
@@ -74,7 +74,7 @@ namespace Advobot.Commands.SpamPrevention
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Punishment Types", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Punishment Types", desc));
 		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(RaidType raidType, PunishmentType punishment, uint userCount, uint interval)

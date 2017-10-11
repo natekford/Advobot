@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Advobot.Classes;
+using System.Net;
 
 namespace Advobot.Classes.TypeReaders
 {
@@ -22,6 +23,8 @@ namespace Advobot.Classes.TypeReaders
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
 			var url = input;
+			string fileType;
+
 			if (url != null)
 			{
 				if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
@@ -49,9 +52,28 @@ namespace Advobot.Classes.TypeReaders
 				}
 			}
 
-			return GetActions.TryGetFileType(url, out string fileType, out ErrorReason errorReason)
-				? Task.FromResult(TypeReaderResult.FromSuccess(new ImageUrl(url, fileType)))
-				: Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, errorReason.Reason));
+			var req = WebRequest.Create(url);
+			req.Method = WebRequestMethods.Http.Head;
+			using (var resp = req.GetResponse())
+			{
+				if (!Constants.VALID_IMAGE_EXTENSIONS.Contains(fileType = "." + resp.Headers.Get("Content-Type").Split('/').Last()))
+				{
+					return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Image must be a png or jpg."));
+				}
+				else if (!int.TryParse(resp.Headers.Get("Content-Length"), out int ContentLength))
+				{
+					return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Unable to get the image's file size."));
+				}
+				else if (ContentLength > Constants.MAX_ICON_FILE_SIZE)
+				{
+					var maxSize = (double)Constants.MAX_ICON_FILE_SIZE / 1000 * 1000;
+					return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, $"Image is bigger than {maxSize:0.0}MB. Manually upload instead."));
+				}
+				else
+				{
+					return Task.FromResult(TypeReaderResult.FromSuccess(new ImageUrl(url, fileType)));
+				}
+			}
 		}
 	}
 }

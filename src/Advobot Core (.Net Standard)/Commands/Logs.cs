@@ -81,7 +81,7 @@ namespace Advobot.Commands.Logs
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(LogAction)))}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Log Actions", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Log Actions", desc));
 		}
 		[Command(nameof(Reset)), ShortAlias(nameof(Reset))]
 		public async Task Reset()

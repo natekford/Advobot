@@ -9,7 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using Advobot.Classes.Attributes;
 
 namespace Advobot
 {
@@ -38,16 +40,10 @@ namespace Advobot
 			_Timers = _Provider.GetService<ITimersService>();
 			_Logging = _Provider.GetService<ILogService>();
 
-			_Commands.AddTypeReader(typeof(IInvite), new InviteTypeReader());
-			_Commands.AddTypeReader(typeof(IBan), new BanTypeReader());
-			_Commands.AddTypeReader(typeof(Emote), new EmoteTypeReader());
-			_Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
-			_Commands.AddTypeReader(typeof(CommandSwitch), new CommandSwitchTypeReader());
-			_Commands.AddTypeReader(typeof(ImageUrl), new ImageUrlTypeReader());
-			_Commands.AddTypeReader(typeof(CustomArguments), new CustomArgumentsTypeReader());
+			AddTypeReaders();
 
 			//Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
-			await _Commands.AddModulesAsync(System.Reflection.Assembly.GetExecutingAssembly());
+			await _Commands.AddModulesAsync(Assembly.GetExecutingAssembly());
 
 			if (_Client is DiscordSocketClient socketClient)
 			{
@@ -65,6 +61,26 @@ namespace Advobot
 			}
 
 			return _Client;
+		}
+		private static void AddTypeReaders()
+		{
+			_Commands.AddTypeReader(typeof(IInvite), new InviteTypeReader());
+			_Commands.AddTypeReader(typeof(IBan), new BanTypeReader());
+			_Commands.AddTypeReader(typeof(Emote), new EmoteTypeReader());
+			_Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
+			_Commands.AddTypeReader(typeof(CommandSwitch), new CommandSwitchTypeReader());
+			_Commands.AddTypeReader(typeof(ImageUrl), new ImageUrlTypeReader());
+
+			//Add in all custom argument typereaders
+			var customArgumentsClasses = Assembly.GetExecutingAssembly().GetTypes()
+				.Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+				.Any(c => c.GetCustomAttribute<CustomArgumentConstructorAttribute>() != null));
+			foreach (var c in customArgumentsClasses)
+			{
+				var t = typeof(CustomArguments<>).MakeGenericType(c);
+				var tr = (TypeReader)Activator.CreateInstance(typeof(CustomArgumentsTypeReader<>).MakeGenericType(c));
+				_Commands.AddTypeReader(t, tr);
+			}
 		}
 
 		/// <summary>
@@ -144,11 +160,11 @@ namespace Advobot
 				await MessageActions.DeleteMessage(context.Message);
 
 				var guildSettings = context.GuildSettings;
-				if (guildSettings.ModLog != null && guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
+				if (guildSettings.ModLog != null && !guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
-					var embed = EmbedActions.MakeNewEmbed(null, context.Message.Content)
-						.MyAddAuthor(context.User)
-						.MyAddFooter("Mod Log");
+					var embed = new MyEmbed(null, context.Message.Content)
+						.AddAuthor(context.User)
+						.AddFooter("Mod Log");
 					await MessageActions.SendEmbedMessage(guildSettings.ModLog, embed);
 				}
 			}

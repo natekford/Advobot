@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Actions.Formatting;
+using Advobot.Classes.Attributes;
 using Advobot.Interfaces;
 using Discord;
 using Discord.WebSocket;
@@ -25,12 +26,17 @@ namespace Advobot.Classes
 		[JsonProperty]
 		public ulong ChannelId { get; }
 		[JsonIgnore]
-		public EmbedBuilder Embed { get; }
+		public MyEmbed Embed { get; }
 		[JsonIgnore]
 		public ITextChannel Channel { get; private set; }
 
 		[JsonConstructor]
-		public GuildNotification(string content, string title, string description, string thumbUrl, ulong channelID)
+		internal GuildNotification(
+			string content,
+			string title,
+			string description,
+			string thumbUrl,
+			ulong channelID)
 		{
 			Content = content;
 			Title = title;
@@ -39,10 +45,16 @@ namespace Advobot.Classes
 			ChannelId = channelID;
 			if (!(String.IsNullOrWhiteSpace(title) && String.IsNullOrWhiteSpace(description) && String.IsNullOrWhiteSpace(thumbUrl)))
 			{
-				Embed = EmbedActions.MakeNewEmbed(title, description, null, null, null, thumbUrl);
+				Embed = new MyEmbed(title, description, null, null, null, thumbUrl);
 			}
 		}
-		public GuildNotification(string content, string title, string description, string thumbURL, ITextChannel channel) : this(content, title, description, thumbURL, channel.Id)
+		[CustomArgumentConstructor]
+		public GuildNotification(
+			[CustomArgument] string content,
+			[CustomArgument] string title,
+			[CustomArgument] string description,
+			[CustomArgument] string thumbURL,
+			ITextChannel channel) : this(content, title, description, thumbURL, channel.Id)
 		{
 			Channel = channel;
 		}

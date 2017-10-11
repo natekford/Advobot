@@ -128,7 +128,7 @@ namespace Advobot.Commands.RoleModeration
 					? $"`{x.Position.ToString("00")}.` {Constants.FAKE_EVERYONE}"
 					: $"`{x.Position.ToString("00")}.` {x.Name}";
 			}));
-			await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Role Positions", desc));
+			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Role Positions", desc));
 		}
 	}
 
@@ -147,14 +147,14 @@ namespace Advobot.Commands.RoleModeration
 			public async Task Command()
 			{
 				var desc = $"`{String.Join("`, `", GuildPerms.Permissions.Select(x => x.Name))}`";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Guild Permission Types", desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Guild Permission Types", desc));
 			}
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 			{
 				var currentRolePerms = GuildPerms.ConvertValueToNames(role.Permissions.RawValue);
 				var permissions = currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed(role.Name, $"`{permissions}`"));
+				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed(role.Name, $"`{permissions}`"));
 			}
 		}
 		[Command(nameof(Allow)), ShortAlias(nameof(Allow))]
@@ -281,7 +281,7 @@ namespace Advobot.Commands.RoleModeration
 			if (role == null)
 			{
 				var desc = $"`{String.Join("`, `", Colors.COLORS.Keys)}`";
-				await MessageActions.SendEmbedMessage(Context.Channel, EmbedActions.MakeNewEmbed("Colors", desc));
+				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Colors", desc));
 				return;
 			}
 
