@@ -62,9 +62,9 @@ namespace Advobot.Classes.UsageGeneration
 			for (int i = 0; i <= maximumUpperBounds; ++i)
 			{
 				//t = thisIteration
-				var tClasses = _Classes.Where(x => x.Deepness == i);
-				var tMethods = _Methods.Where(x => x.Deepness == i);
-				var tParams = _Params.Where(x => x.Deepness == i);
+				var tClasses = _Classes.Where(x => x.Deepness == i).ToList();
+				var tMethods = _Methods.Where(x => x.Deepness == i).ToList();
+				var tParams = _Params.Where(x => x.Deepness == i).ToList();
 
 				var optional = false;
 				if (i >= minimumUpperBounds)
@@ -100,6 +100,8 @@ namespace Advobot.Classes.UsageGeneration
 
 				if (tClasses.Any() || tMethods.Any(x => x.Name != null) || tParams.Any())
 				{
+					tClasses.RemoveAll(c => tMethods.Any(m => m.Name.CaseInsEquals(c.Name)));
+
 					StartArgument(sb, optional);
 					AddOptions(sb, tClasses);
 					AddOptions(sb, tMethods);
@@ -144,23 +146,39 @@ namespace Advobot.Classes.UsageGeneration
 				.Where(x => x.GetCustomAttribute<CommandAttribute>() != null);
 		}
 
-		private void RemoveDuplicateMethods(ref List<MethodDetails> methods)
+		private void RemoveDuplicateClasses(ref List<ClassDetails> classes)
 		{
-			var tempList = new List<MethodDetails>();
-			foreach (var method in methods)
+			var tempList = new List<ClassDetails>();
+			foreach (var c in classes)
 			{
 				//Don't allow duplicate methods with the same name and deepness
 				//Different deepnesses are find though, because they help affect things being marked
 				//as optional while they won't be printed out usually because they have a null name
-				var matchingNameAndDeepness = tempList.SingleOrDefault(x => x.Name == method.Name && x.Deepness == method.Deepness);
+				var matchingNameAndDeepness = tempList.SingleOrDefault(x => x.Name == c.Name && x.Deepness == c.Deepness);
 				if (matchingNameAndDeepness == null)
 				{
-					tempList.Add(method);
+					tempList.Add(c);
 				}
-				else if (matchingNameAndDeepness != null && matchingNameAndDeepness.ArgCount > method.ArgCount)
+			}
+			classes = tempList;
+		}
+		private void RemoveDuplicateMethods(ref List<MethodDetails> methods)
+		{
+			var tempList = new List<MethodDetails>();
+			foreach (var m in methods)
+			{
+				//Don't allow duplicate methods with the same name and deepness
+				//Different deepnesses are find though, because they help affect things being marked
+				//as optional while they won't be printed out usually because they have a null name
+				var matchingNameAndDeepness = tempList.SingleOrDefault(x => x.Name == m.Name && x.Deepness == m.Deepness);
+				if (matchingNameAndDeepness == null)
+				{
+					tempList.Add(m);
+				}
+				else if (matchingNameAndDeepness != null && matchingNameAndDeepness.ArgCount > m.ArgCount)
 				{
 					tempList.Remove(matchingNameAndDeepness);
-					tempList.Add(method);
+					tempList.Add(m);
 				}
 			}
 			methods = tempList;
@@ -168,22 +186,22 @@ namespace Advobot.Classes.UsageGeneration
 		private void RemoveDuplicateParameters(ref List<ParameterDetails> parameters)
 		{
 			var deepest = parameters.Where(x => !x.IsRemainder).DefaultIfEmpty().Max(x => x?.Deepness ?? 0);
-			foreach (var parameter in parameters.Where(x => x.IsRemainder))
+			foreach (var p in parameters.Where(x => x.IsRemainder))
 			{
-				parameter.SetDeepness(deepest + 1);
+				p.SetDeepness(deepest + 1);
 			}
 
 			var tempList = new List<ParameterDetails>();
-			foreach (var parameter in parameters)
+			foreach (var p in parameters)
 			{
-				var matchingNameAndDeepness = tempList.SingleOrDefault(x => x.Name == parameter.Name && x.Deepness == parameter.Deepness);
-				if (matchingNameAndDeepness != null)
+				var matchingNameAndDeepness = tempList.SingleOrDefault(x => x.Name == p.Name && x.Deepness == p.Deepness);
+				if (matchingNameAndDeepness == null)
 				{
-					matchingNameAndDeepness.IncrementOccurences();
+					tempList.Add(p);
 				}
 				else
 				{
-					tempList.Add(parameter);
+					matchingNameAndDeepness.IncrementOccurences();
 				}
 			}
 			parameters = tempList;

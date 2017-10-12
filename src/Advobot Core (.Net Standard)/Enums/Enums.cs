@@ -166,5 +166,6 @@ namespace Advobot.Enums
 		Stream   = (1U << 10),
 		Topic    = (1U << 11),
 		Prefix   = (1U << 12),
+		Regex    = (1U << 13),
 	}
 }

@@ -23,6 +23,7 @@ namespace Advobot.Classes.Attributes
 			{ Target.Stream, (Constants.MIN_STREAM_LENGTH, Constants.MAX_STREAM_LENGTH, "stream name") },
 			{ Target.Topic, (Constants.MIN_TOPIC_LENGTH, Constants.MAX_TOPIC_LENGTH, "channel topic") },
 			{ Target.Prefix, (Constants.MIN_PREFIX_LENGTH, Constants.MAX_PREFIX_LENGTH, "bot prefix") },
+			{ Target.Regex, (Constants.MIN_REGEX_LENGTH, Constants.MAX_REGEX_LENGTH, "regex") },
 		};
 
 		public readonly int Min;

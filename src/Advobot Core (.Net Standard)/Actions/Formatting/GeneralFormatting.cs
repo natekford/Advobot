@@ -50,7 +50,7 @@ namespace Advobot.Actions.Formatting
 			return String.Join(joining, toJoin.Where(x => !String.IsNullOrWhiteSpace(x)));
 		}
 		/// <summary>
-		/// Returns a string which is a numbered list of the passed in objects.
+		/// Returns a string which is a numbered list of the passed in objects. The format is for the passed in arguments; the counter is added by default.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="list"></param>
@@ -59,10 +59,9 @@ namespace Advobot.Actions.Formatting
 		/// <returns></returns>
 		public static string FormatNumberedList<T>(this IEnumerable<T> list, string format, params Func<T, object>[] args)
 		{
-			var count = 0;
 			var maxLen = list.Count().ToString().Length;
 			//.ToArray() must be used or else String.Format tries to use an overload accepting object as a parameter instead of object[] thus causing an exception
-			return String.Join("\n", list.Select(x => $"`{(++count).ToString().PadLeft(maxLen, '0')}.` " + String.Format(@format, args.Select(y => y(x)).ToArray())));
+			return String.Join("\n", list.Select((x, index) => $"`{(index + 1).ToString().PadLeft(maxLen, '0')}.` {String.Format(@format, args.Select(f => f(x)).ToArray())}"));
 		}
 
 		/// <summary>

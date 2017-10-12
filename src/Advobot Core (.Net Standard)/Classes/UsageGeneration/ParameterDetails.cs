@@ -135,7 +135,7 @@ namespace Advobot.Classes.UsageGeneration
 			if (Type.IsEnum)
 			{
 				var names = Enum.GetNames(Type);
-				if (names.Length <= 5)
+				if (names.Length <= 7)
 				{
 					return $"{TypeName}: {String.Join("|", names)}{Text}";
 				}

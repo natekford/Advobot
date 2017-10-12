@@ -1,280 +1,293 @@
 ﻿using Advobot.Actions;
+using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Enums;
 using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Advobot.Actions.Formatting;
+using Advobot.Classes.BannedPhrases;
 
 namespace Advobot.Commands.BanPhrases
 {
-	/*
-	[Name("BanPhrases")]
-	public class Advobot_Commands_Ban_Phrases : ModuleBase
+	[Group(nameof(EvaluateBannedRegex)), TopLevelShortAlias(typeof(EvaluateBannedRegex))]
+	[Summary("Evaluates a regex (case is ignored). The regex are also restricted to a 1,000,000 tick timeout. " +
+		"Once a regex receives a good score then it can be used within the bot as a banned phrase.")]
+	[PermissionRequirement(null, null)]
+	[DefaultEnabled(false)]
+	public sealed class EvaluateBannedRegex : AdvobotModuleBase
 	{
-		[Command("evaluatebannedregex")]
-		[Alias("ebr")]
-		[Usage("[\"Regex\"] [\"Test Message\"]")]
-		[Summary("Evaluates a regex (case is ignored). The regex are also restricted to a 1,000,000 tick timeout. Once a regex receives a good score then it can be used within the bot as a banned phrase.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
-		public async Task BanRegexEvaluate([Remainder] string input)
+		[Command]
+		public async Task Command([VerifyStringLength(Target.Regex)] string regex, [Remainder] string testPhrase)
 		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-
-			//Get the arguments
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
+			if (!RegexActions.TryCreateRegex(regex, out Regex reg, out ErrorReason error))
 			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var regexStr = returnedArgs.Arguments[0];
-			var msgStr = returnedArgs.Arguments[1];
-
-			//Check the length of the regex
-			if (regexStr.Length > Constants.MAX_LENGTH_FOR_REGEX)
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Please keep the regex under `{0}` characters.", Constants.MAX_LENGTH_FOR_REGEX));
+				await MessageActions.SendErrorMessageAsync(Context, error);
 				return;
 			}
 
-			//Make sure the regex is valid
-			var title = $"`{0}`", regexStr);
-			if (!Actions.TryCreateRegex(regexStr, out Regex regex, out string error))
+			//Test to make sure it doesn't match stuff it shouldn't
+			var matchesMessage = RegexActions.CheckIfRegexMatch(testPhrase, regex);
+			var matchesEmpty = RegexActions.CheckIfRegexMatch("", regex);
+			var matchesSpace = RegexActions.CheckIfRegexMatch(" ", regex);
+			var matchesNewLine = RegexActions.CheckIfRegexMatch(Environment.NewLine, regex);
+			var randomMatchCount = 0;
+			for (int i = 0; i < 10; ++i)
 			{
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, Messages.MakeNewEmbed(title, $"**Error:** `{0}`", error)));
-				return;
+				var r = new Random();
+				var p = new StringBuilder();
+				for (int j = 0; j < r.Next(1, 100); ++j)
+				{
+					p.Append((char)r.Next(1, 10000));
+				}
+				if (RegexActions.CheckIfRegexMatch(p.ToString(), regex))
+				{
+					++randomMatchCount;
+				}
 			}
-
-			//Test to see what it affects
-			var matchesMessage = Actions.CheckIfRegMatch(msgStr, regexStr);
-			var matchesEmpty = Actions.CheckIfRegMatch("", regexStr);
-			var matchesSpace = Actions.CheckIfRegMatch(" ", regexStr);
-			var matchesNewLine = Actions.CheckIfRegMatch(Environment.NewLine, regexStr);
-			var matchesRandom = Constants.TEST_PHRASES.Any(x => Actions.CheckIfRegMatch(x, regexStr));
-			var matchesEverything = matchesMessage && matchesEmpty && matchesSpace && matchesNewLine && matchesRandom;
-			var okToUse = matchesMessage && !(matchesEmpty || matchesSpace || matchesNewLine || matchesRandom || matchesEverything);
+			var matchesRandom = randomMatchCount > 5;
+			var okToUse = matchesMessage && !(matchesEmpty || matchesSpace || matchesNewLine || matchesRandom);
 
 			//If the regex is ok then add it to the evaluated list
 			if (okToUse)
 			{
-				var eval = ((List<string>)guildInfo.GetSetting(SettingOnGuild.EvaluatedRegex));
+				var eval = Context.GuildSettings.EvaluatedRegex;
 				if (eval.Count >= 5)
 				{
 					eval.RemoveAt(0);
 				}
-				eval.Add(regexStr);
+				eval.Add(regex);
 			}
 
-			//Format the description
-			var messageStr = $"The given regex matches the given string: `{0}`.", matchesMessage);
-			var emptyStr = $"The given regex matches empty strings: `{0}`.", matchesEmpty);
-			var spaceStr = $"The given regex matches spaces: `{0}`.", matchesSpace);
-			var newLineStr = $"The given regex matches new lines: `{0}`.", matchesNewLine);
-			var randomStr = $"The given regex matches random strings: `{0}`.", matchesRandom);
-			var everythingStr = $"The given regex matches everything: `{0}`.", matchesEverything);
-			var okStr = $"The given regex is `{0}`.", okToUse ? "GOOD" : "BAD");
-			var description = String.Join("\n", new[] { messageStr, emptyStr, spaceStr, newLineStr, randomStr, everythingStr, okStr });
-
-			//Send the embed
-			var embed = Messages.MakeNewEmbed(title, description);
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, embed);
+			var desc = new StringBuilder()
+				.AppendLineFeed($"The given regex matches the given string: `{matchesMessage}`.")
+				.AppendLineFeed($"The given regex matches empty strings: `{matchesEmpty}`.")
+				.AppendLineFeed($"The given regex matches spaces: `{matchesSpace}`.")
+				.AppendLineFeed($"The given regex matches new lines: `{matchesNewLine}`.")
+				.AppendLineFeed($"The given regex matches random strings: `{matchesRandom}`.")
+				.AppendLineFeed($"The given regex is `{(okToUse ? "GOOD" : "BAD")}`.");
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed(regex, desc.ToString()));
 		}
+	}
 
-		[Command("modifybannedregex")]
-		[Alias("mbr")]
-		[Usage("[Add|Remove] <Number>")]
-		[Summary("Adds/removes the picked regex to/from the ban list. If no number is input it lists the possible regex.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
-		public async Task BanRegexModify([Optional, Remainder] string input)
+	[Group(nameof(ModifyBannedPhrases)), TopLevelShortAlias(typeof(ModifyBannedPhrases))]
+	[Summary("Banned regex and strings delete messages if they are detected in them. Banned names ban users if they join and they have them in their name.")]
+	[PermissionRequirement(null, null)]
+	[DefaultEnabled(false)]
+	public sealed class ModifyBannedPhrases : SavingModuleBase
+	{
+		[Group(nameof(Regex)), ShortAlias(nameof(Regex))]
+		public sealed class Regex : SavingModuleBase
 		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-
-			//Split the input
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(1, 2));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
+			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			public async Task Add([Optional] uint position)
 			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var actionStr = returnedArgs.Arguments[0];
-			var numStr = returnedArgs.Arguments[1];
-
-			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedType);
-				return;
-			}
-			var action = returnedType.Object;
-
-			var eval = ((List<string>)guildInfo.GetSetting(SettingOnGuild.EvaluatedRegex));
-			var curr = (List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseRegex);
-
-			//Check if the users wants to see all the valid regex
-			if (String.IsNullOrWhiteSpace(numStr))
-			{
-				switch (action)
+				if (position == default)
 				{
-					case ActionType.Add:
-					{
-						var count = 1;
-						var description = String.Join("\n", eval.Select(x => $"`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
-						description = String.IsNullOrWhiteSpace(description) ? "Nothing" : description;
-						var embed = Messages.MakeNewEmbed("Evaluated Regex", description);
-						await MessageActions.SendEmbedMessageAsync(Context.Channel, embed);
-						return;
-					}
-					case ActionType.Remove:
-					{
-						var count = 1;
-						var description = String.Join("\n", curr.Select(x => $"`{0}.` `{1}`", count++.ToString("00"), x.ToString())).ToList());
-						description = String.IsNullOrWhiteSpace(description) ? "Nothing" : description;
-						var embed = Messages.MakeNewEmbed("Evaluated Regex", description);
-						await MessageActions.SendEmbedMessageAsync(Context.Channel, embed);
-						return;
-					}
-				}
-			}
-
-			//Check if number
-			if (!int.TryParse(numStr, out int position))
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("Invalid input for number."));
-				return;
-			}
-			position -= 1;
-			if (position < 0)
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("The number must be greater than or equal to 1."));
-				return;
-			}
-
-			var regex = "";
-			var responseStr = "";
-			switch (action)
-			{
-				case ActionType.Add:
-				{
-					if (position >= eval.Count)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("Invalid position to add."));
-						return;
-					}
-					else if (curr.Count >= Constants.MAX_BANNED_REGEX)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"You cannot have more than `{0}` banned regex at a time.", Constants.MAX_BANNED_REGEX));
-						return;
-					}
-
-					regex = eval[position];
-					curr.Add(new BannedPhrase(regex, PunishmentType.Nothing));
-					responseStr = "added";
-					break;
-				}
-				case ActionType.Remove:
-				{
-					if (position >= curr.Count)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("Invalid position to remove."));
-						return;
-					}
-
-					regex = curr[position].Phrase;
-					curr.RemoveAt(position);
-					responseStr = "removed";
+					var desc = Context.GuildSettings.EvaluatedRegex.FormatNumberedList("`{0}`", x => x);
+					await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Evaluated Regex", desc));
 					return;
 				}
-			}
-
-			guildInfo.SaveInfo();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully {0} the regex `{1}`.", responseStr, regex));
-		}
-
-		[Command("modifybannedstrings")]
-		[Alias("mbs")]
-		[Usage("[Add] [\"Phrase/...\"] | [Remove] [\"Phrase/...\"|Position:Number/...]")]
-		[Summary("Adds/removes the given string to/from the ban list.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
-		public async Task BanPhrasesModify([Remainder] string input)
-		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 2), new[] { "position" });
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var actionStr = returnedArgs.Arguments[0];
-			var phraseStr = returnedArgs.Arguments[1];
-
-			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedType);
-				return;
-			}
-			var action = returnedType.Object;
-
-			var add = false;
-			var strings = ((List<BannedPhrase>)guildInfo.GetSetting(SettingOnGuild.BannedPhraseStrings));
-			switch (action)
-			{
-				case ActionType.Add:
+				else if (position > Context.GuildSettings.EvaluatedRegex.Count)
 				{
-					if (strings.Count >= Constants.MAX_BANNED_STRINGS)
+					await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Invalid position to add at."));
+					return;
+				}
+				else if (Context.GuildSettings.BannedPhraseRegex.Count >= Constants.MAX_BANNED_REGEX)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"You cannot have more than `{Constants.MAX_BANNED_REGEX}` banned regex at a time.");
+					return;
+				}
+
+				--position;
+				var regex = Context.GuildSettings.EvaluatedRegex[(int)position];
+				Context.GuildSettings.BannedPhraseRegex.Add(new BannedPhrase(regex));
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added the regex `{regex}`.");
+			}
+			[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+			public async Task Remove([Optional] uint position)
+			{
+				if (position == default)
+				{
+					var desc = Context.GuildSettings.BannedPhraseRegex.FormatNumberedList("`{0}`", x => x.Phrase);
+					await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Banned Regex", desc));
+					return;
+				}
+				else if (position > Context.GuildSettings.BannedPhraseRegex.Count)
+				{
+					await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Invalid position to remove at."));
+					return;
+				}
+
+				--position;
+				var regex = Context.GuildSettings.BannedPhraseRegex[(int)position].Phrase;
+				Context.GuildSettings.BannedPhraseRegex.RemoveAt((int)position);
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed the regex `{regex}`.");
+			}
+		}
+		[Group(nameof(Strings)), ShortAlias(nameof(Strings))]
+		public sealed class Strings : SavingModuleBase
+		{
+			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			public async Task Add(string text)
+			{
+				if (Context.GuildSettings.BannedPhraseStrings.Count >= Constants.MAX_BANNED_STRINGS)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"You cannot have more than `{Constants.MAX_BANNED_STRINGS}` banned strings at a time.");
+					return;
+				}
+
+				Context.GuildSettings.BannedPhraseStrings.Add(new BannedPhrase(text));
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed the string `{text}`.");
+			}
+			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
+			public sealed class Remove : SavingModuleBase
+			{
+				[Command]
+				public async Task Command(string text)
+				{
+					var phrase = Context.GuildSettings.BannedPhraseStrings.SingleOrDefault(x => x.Phrase.CaseInsEquals(text));
+					if (phrase == null)
 					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"You cannot have more than `{0}` banned strings at a time.", Constants.MAX_BANNED_STRINGS));
+						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"No banned strings match the text `{text}`.");
 						return;
 					}
-					add = true;
-					break;
+
+					Context.GuildSettings.BannedPhraseStrings.Remove(phrase);
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed the string `{phrase.Phrase}`.");
+				}
+				[Command]
+				public async Task Command([Optional] uint position)
+				{
+					if (position == default)
+					{
+						var desc = Context.GuildSettings.BannedPhraseStrings.FormatNumberedList("`{0}`", x => x.Phrase);
+						await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Banned Strings", desc));
+						return;
+					}
+					else if (position > Context.GuildSettings.BannedPhraseStrings.Count)
+					{
+						await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Invalid position to remove at."));
+						return;
+					}
+
+					--position;
+					var phrase = Context.GuildSettings.BannedPhraseStrings[(int)position].Phrase;
+					Context.GuildSettings.BannedPhraseStrings.RemoveAt((int)position);
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed the string `{phrase}`.");
 				}
 			}
-
-			Actions.HandleBannedPhraseModification(strings, Actions.SplitByCharExceptInQuotes(phraseStr, '/'), add, out List<string> success, out List<string> failure);
-
-			var successMessage = "";
-			if (success.Any())
-			{
-				successMessage = $"Successfully {0} the following {1} {2} the banned string list: `{3}`",
-					add ? "added" : "removed",
-					success.Count != 1 ? "phrases" : "phrase",
-					add ? "to" : "from",
-					String.Join("`, `", success));
-			}
-			var failureMessage = "";
-			if (failure.Any())
-			{
-				failureMessage = $"{0}ailed to {1} the following {2} {3} the banned string list: `{4}`",
-					String.IsNullOrWhiteSpace(successMessage) ? "F" : "f",
-					add ? "add" : "remove",
-					failure.Count != 1 ? "phrases" : "phrase",
-					add ? "to" : "from",
-					String.Join("`, `", failure));
-			}
-			var eitherEmpty = "";
-			if (!(String.IsNullOrWhiteSpace(successMessage) || String.IsNullOrWhiteSpace(failureMessage)))
-			{
-				eitherEmpty = ", and ";
-			}
-
-			guildInfo.SaveInfo();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
 		}
+		[Group(nameof(Names)), ShortAlias(nameof(Names))]
+		public sealed class Names : SavingModuleBase
+		{
+			[Command(nameof(Add)), ShortAlias(nameof(Add))]
+			public async Task Add(string text)
+			{
+				if (Context.GuildSettings.BannedNamesForJoiningUsers.Count >= Constants.MAX_BANNED_STRINGS)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"You cannot have more than `{Constants.MAX_BANNED_STRINGS}` banned strings at a time.");
+					return;
+				}
 
-		[Command("modifypunishmenttype")]
-		[Alias("mpt")]
-		[Usage("[\"Phrase\"|Position:Number] [Nothing|Role|Kick|Ban] <Regex>")]
-		[Summary("Changes the punishment type of the input string or regex to the given type.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
+				Context.GuildSettings.BannedPhraseStrings.Add(new BannedPhrase(text));
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed the string `{text}`.");
+			}
+			[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
+			public sealed class Remove : SavingModuleBase
+			{
+				[Command]
+				public async Task Command(string text)
+				{
+					var phrase = Context.GuildSettings.BannedPhraseStrings.SingleOrDefault(x => x.Phrase.CaseInsEquals(text));
+					if (phrase == null)
+					{
+						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"No banned strings match the text `{text}`.");
+						return;
+					}
+
+					Context.GuildSettings.BannedPhraseStrings.Remove(phrase);
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed the string `{phrase.Phrase}`.");
+				}
+				[Command]
+				public async Task Command([Optional] uint position)
+				{
+					if (position == default)
+					{
+						var desc = Context.GuildSettings.BannedPhraseStrings.FormatNumberedList("`{0}`", x => x.Phrase);
+						await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Banned Strings", desc));
+						return;
+					}
+					else if (position > Context.GuildSettings.BannedPhraseStrings.Count)
+					{
+						await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Invalid position to remove at."));
+						return;
+					}
+
+					--position;
+					var phrase = Context.GuildSettings.BannedPhraseStrings[(int)position].Phrase;
+					Context.GuildSettings.BannedPhraseStrings.RemoveAt((int)position);
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed the string `{phrase}`.");
+				}
+			}
+		}
+	}
+
+	[Group(nameof(ModifyPunishmentType)), TopLevelShortAlias(typeof(ModifyPunishmentType))]
+	//[Usage("[\"Phrase\"|Position:Number] [Nothing|Role|Kick|Ban] <Regex>")]
+	[Summary("Changes the punishment type of the input string or regex to the given type.")]
+	[PermissionRequirement(null, null)]
+	[DefaultEnabled(false)]
+	public sealed class ModifyPunishmentType : SavingModuleBase
+	{
+
+	}
+
+	[Group(nameof(ModifyBannedPhrasePunishments)), TopLevelShortAlias(typeof(ModifyBannedPhrasePunishments))]
+	//[Usage("[Add] [Position:Number] [\"Punishment:Role Name|Kick|Ban\"] <Time:Number> | [Remove] [Position:Number]")]
+	[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to the total of its type. Time is in minutes and only applies to roles.")]
+	[PermissionRequirement(null, null)]
+	[DefaultEnabled(false)]
+	public sealed class ModifyBannedPhrasePunishments : SavingModuleBase
+	{
+		[Group(nameof(Add)), ShortAlias(nameof(Add))]
+		public sealed class Add : SavingModuleBase
+		{
+			[Command]
+			public async Task Command(uint position, PunishmentType punishment, [Optional] uint time)
+			{
+
+			}
+			[Command]
+			public async Task Command(uint position, [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole muteRole, [Optional] uint time)
+			{
+
+			}
+		}
+		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+		public async Task Remove(uint position)
+		{
+
+		}
+	}
+
+	[Group(nameof(ModifyBannedPhraseUser)), TopLevelShortAlias(typeof(ModifyBannedPhraseUser))]
+	//[Usage("[User] [Current|Clear]")]
+	[Summary("Shows or removes all infraction points a user has on the guild.")]
+	[PermissionRequirement(null, null)]
+	[DefaultEnabled(false)]
+	public sealed class ModifyBannedPhraseUser : AdvobotModuleBase
+	{
+
+	}
+
+	/*
 		public async Task BanPhrasesChangeType([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
@@ -363,12 +376,6 @@ namespace Advobot.Commands.BanPhrases
 				(regex ? "regex" : "string"), phraseStr, type.EnumName()));
 		}
 
-		[Command("modifybannedphrasespunishment")]
-		[Alias("mbpp")]
-		[Usage("[Add] [Position:Number] [\"Punishment:Role Name|Kick|Ban\"] <Time:Number> | [Remove] [Position:Number]")]
-		[Summary("Sets a punishment for when a user reaches a specified number of banned phrases said. Each message removed adds one to the total of its type. Time is in minutes and only applies to roles.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
 		public async Task BanPhrasesPunishModify([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
@@ -524,12 +531,6 @@ namespace Advobot.Commands.BanPhrases
 			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully {0} the punishment of {1}{2}.", add ? "added" : "removed", successMsg, timeMsg));
 		}
 
-		[Command("modifybannedphraseuser")]
-		[Alias("mbpu")]
-		[Usage("[User] [Current|Clear]")]
-		[Summary("Shows or removes all infraction points a user has on the guild.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
 		public async Task BanPhrasesUser([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
@@ -588,12 +589,6 @@ namespace Advobot.Commands.BanPhrases
 		}
 
 		//Reason you can't add/remove more than one at a time like modifybannedstrings is because too effort to put in
-		[Command("modifybannednames")]
-		[Alias("mbn")]
-		[Usage("[Add|Remove] [\"Phrase\"]")]
-		[Summary("If a user joins with the given phrase in their name, the bot will automatically ban them.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
 		public async Task ModifyBannedWordsForJoiningUsers([Remainder] string input)
 		{
 			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
@@ -672,6 +667,5 @@ namespace Advobot.Commands.BanPhrases
 			guildInfo.SaveInfo();
 			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"{0}{1}{2}.", successMessage, eitherEmpty, failureMessage));
 		}
-	}
-	*/
+		*/
 }

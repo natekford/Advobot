@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Advobot.Classes;
+using System;
 using System.Text.RegularExpressions;
 
 namespace Advobot.Actions
@@ -14,13 +15,13 @@ namespace Advobot.Actions
 		/// <param name="regexOutput"></param>
 		/// <param name="stringOutput"></param>
 		/// <returns></returns>
-		public static bool TryCreateRegex(string pattern, out Regex regexOutput, out string errorOutput)
+		public static bool TryCreateRegex(string pattern, out Regex regexOutput, out ErrorReason errorReason)
 		{
 			regexOutput = null;
-			errorOutput = null;
+			errorReason = null;
 			if (pattern == null)
 			{
-				errorOutput = "The pattern cannot be null.";
+				errorReason = new ErrorReason("The pattern cannot be null.");
 				return false;
 			}
 
@@ -31,7 +32,7 @@ namespace Advobot.Actions
 			}
 			catch (ArgumentException e)
 			{
-				errorOutput = e.Message;
+				errorReason = new ErrorReason(e.Message);
 				return false;
 			}
 		}

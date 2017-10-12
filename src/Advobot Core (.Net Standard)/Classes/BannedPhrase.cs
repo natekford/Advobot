@@ -21,7 +21,7 @@ namespace Advobot.Classes.BannedPhrases
 		[JsonProperty]
 		public PunishmentType Punishment { get; private set; }
 
-		public BannedPhrase(string phrase, PunishmentType punishment)
+		public BannedPhrase(string phrase, PunishmentType punishment = default)
 		{
 			Phrase = phrase;
 			ChangePunishment(punishment);
@@ -47,18 +47,14 @@ namespace Advobot.Classes.BannedPhrases
 		{
 			await MessageActions.DeleteMessageAsync(message);
 
-			var users = guildSettings.BannedPhraseUsers;
-			var user = users.SingleOrDefault(x => x.User.Id == message.Author.Id);
+			var user = guildSettings.BannedPhraseUsers.SingleOrDefault(x => x.User.Id == message.Author.Id);
 			if (user == null)
 			{
 				guildSettings.BannedPhraseUsers.Add(user = new BannedPhraseUserInformation(message.Author as IGuildUser));
 			}
 
-			//Update the count
 			var count = user.IncrementValue(Punishment);
-
-			var punishments = guildSettings.BannedPhrasePunishments;
-			var punishment = punishments.SingleOrDefault(x => x.Punishment == Punishment && x.NumberOfRemoves == count);
+			var punishment = guildSettings.BannedPhrasePunishments.SingleOrDefault(x => x.Punishment == Punishment && x.NumberOfRemoves == count);
 			if (punishment == null)
 			{
 				return;
@@ -66,8 +62,6 @@ namespace Advobot.Classes.BannedPhrases
 
 			var giver = new AutomaticPunishmentGiver(punishment.PunishmentTime, timers);
 			await giver.AutomaticallyPunishAsync(Punishment, user.User, punishment.GetRole(guildSettings.Guild));
-
-			//Reset the user's number of removes for that given type.
 			user.ResetValue(Punishment);
 		}
 

@@ -54,25 +54,30 @@ namespace Advobot.Classes
 			ArgNames.ForEach(x => _Args.Add(x, null));
 
 			//Split except when in quotes
-			var unseperatedArgs = input.Split('"').Select((element, index) =>
+			var args = input.Split('"')
+			.Select((x, index) =>
 			{
 				return index % 2 == 0
-					? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-					: new[] { element };
-			}).SelectMany(x => x).Where(x => !String.IsNullOrWhiteSpace(x));
+					? x.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+					: new[] { x };
+			}).SelectMany(x => x)
+			.Select(x =>
+			{
+				var split = x?.Split(new[] { ':' }, 2);
+				return split.Length == 2 ? (Key: split[0], Value: split[1]) : (Key: null, Value: null);
+			}).Where(x => x.Key != null && x.Value != null);
 
 			//If the _Args dictionary has the first half of the split, set it to the second half
 			//Otherwise don't do anything with it since it's not important
-			foreach (var arg in unseperatedArgs)
+			foreach (var arg in args)
 			{
-				var split = arg.Split(new[] { ':' }, 2);
-				if (split.Length == 2 && _HasParams && _ParamsName.CaseInsEquals(split[0]) && _ParamArgs.Count() < _ParamsLength)
+				if (_HasParams && _ParamsName.CaseInsEquals(arg.Key) && _ParamArgs.Count() < _ParamsLength)
 				{
-					_ParamArgs.Add(split[1]);
+					_ParamArgs.Add(arg.Value);
 				}
-				else if (split.Length == 2 && _Args.ContainsKey(split[0]))
+				else if (_Args.ContainsKey(arg.Key))
 				{
-					_Args[split[0]] = split[1];
+					_Args[arg.Key] = arg.Value;
 				}
 			}
 		}

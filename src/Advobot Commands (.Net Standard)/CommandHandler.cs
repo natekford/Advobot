@@ -44,7 +44,7 @@ namespace Advobot.Commands
 			AddTypeReaders();
 
 			//Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
-			await _Commands.AddModulesAsync(CommandAssembly.COMMAND_ASSEMBLY);
+			await _Commands.AddModulesAsync(Assembly.GetExecutingAssembly());
 
 			if (_Client is DiscordSocketClient socketClient)
 			{

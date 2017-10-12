@@ -71,8 +71,12 @@ namespace Advobot
 		public static int SECONDS_ACTIVE_CLOSE => 5;
 		public static int TICKS_REGEX_TIMEOUT => 1000000;
 		public static int MEMBER_LIMIT => 0;
-		public static int MAX_LENGTH_FOR_REGEX => 100;
-		public static int MAX_LENGTH_FOR_REASON => 512;
+		public static int MIN_REGEX_LENGTH => 1;
+		public static int MAX_REGEX_LENGTH => 100;
+		public static int MIN_REASON_LENGTH => 0;
+		public static int MAX_REASON_LENGTH => 512;
+		public static int MIN_PREFIX_LENGTH => 1;
+		public static int MAX_PREFIX_LENGTH => 10;
 		public static int MAX_SA_GROUPS => 10;
 		public static int MAX_QUOTES => 50;
 		public static int MAX_BANNED_STRINGS => 50;
@@ -81,8 +85,6 @@ namespace Advobot
 		public static int MAX_ICON_FILE_SIZE => 2500000;
 		public static int MAX_UTF16_VAL_FOR_NAMES => 1000;
 		public static int AMT_OF_DMS_TO_GATHER => 500;
-		public static int MIN_PREFIX_LENGTH => 1;
-		public static int MAX_PREFIX_LENGTH => 10;
 
 		private static ImmutableList<string> _IMG;
 		public static ImmutableList<string> VALID_IMAGE_EXTENSIONS => _IMG ?? (_IMG = ImmutableList.Create(new[]
