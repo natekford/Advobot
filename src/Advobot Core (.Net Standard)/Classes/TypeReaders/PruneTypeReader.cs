@@ -7,7 +7,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to see if the input matches <see cref="PRUNE_STRING"/>.
 	/// </summary>
-	internal class PruneTypeReader : TypeReader
+	public sealed class PruneTypeReader : TypeReader
 	{
 		internal const string PRUNE_STRING = "ActualPrune";
 

@@ -12,10 +12,7 @@ namespace Advobot.Services.GuildSettings
 	{
 		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
 
-		public GuildSettingsHolder(IServiceProvider provider)
-		{
-
-		}
+		public GuildSettingsHolder(IServiceProvider provider) { }
 
 		public Task RemoveGuild(ulong guildId)
 		{
@@ -33,7 +30,7 @@ namespace Advobot.Services.GuildSettings
 			}
 
 			if (!_GuildSettings.TryGetValue(guild.Id, out var settings) &&
-				!_GuildSettings.TryAdd(guild.Id, settings = await CreationActions.CreateGuildSettings(guild)))
+				!_GuildSettings.TryAdd(guild.Id, settings = await CreationActions.CreateGuildSettingsAsync(guild)))
 			{
 				ConsoleActions.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", color: ConsoleColor.Red);
 			}

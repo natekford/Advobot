@@ -11,7 +11,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Utilizes derived classes' names to determine which settings to get.
 	/// </summary>
-	internal abstract class SettingTypeReader : TypeReader
+	public abstract class SettingTypeReader : TypeReader
 	{
 		private static Dictionary<string, Dictionary<string, PropertyInfo>> _Settings = new Dictionary<string, Dictionary<string, PropertyInfo>>
 		{
@@ -40,8 +40,8 @@ namespace Advobot.Classes.TypeReaders
 			return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, $"`{input}` is not a valid setting for this command."));
 		}
 
-		internal class GuildSettingTypeReader : SettingTypeReader { }
+		public sealed class GuildSettingTypeReader : SettingTypeReader { }
 
-		internal class BotSettingTypeReader : SettingTypeReader { }
+		public sealed class BotSettingTypeReader : SettingTypeReader { }
 	}
 }

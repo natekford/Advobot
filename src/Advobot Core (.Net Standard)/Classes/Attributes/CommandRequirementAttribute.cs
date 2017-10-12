@@ -1,4 +1,5 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Actions;
+using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
 using System;
@@ -13,30 +14,30 @@ namespace Advobot.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Class)]
 	public class CommandRequirementAttribute : PreconditionAttribute
 	{
-		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
+		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
 			if (context is AdvobotCommandContext myContext)
 			{
 				var user = context.User as IGuildUser;
 
-				if (!(await myContext.Guild.GetCurrentUserAsync()).GuildPermissions.Administrator)
+				if (!UserActions.GetBot(myContext.Guild).GuildPermissions.Administrator)
 				{
-					return PreconditionResult.FromError($"This bot will not function without the `{nameof(GuildPermission.Administrator)}` permission.");
+					return Task.FromResult(PreconditionResult.FromError($"This bot will not function without the `{nameof(GuildPermission.Administrator)}` permission."));
 				}
 				else if (!myContext.GuildSettings.Loaded)
 				{
-					return PreconditionResult.FromError("Wait until the guild is loaded.");
+					return Task.FromResult(PreconditionResult.FromError("Wait until the guild is loaded."));
 				}
 				else if (myContext.GuildSettings.IgnoredCommandChannels.Contains(context.Channel.Id) || !CheckIfCommandIsEnabled(myContext, command, user))
 				{
-					return PreconditionResult.FromError(Constants.IGNORE_ERROR);
+					return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 				}
 				else
 				{
-					return PreconditionResult.FromSuccess();
+					return Task.FromResult(PreconditionResult.FromSuccess());
 				}
 			}
-			return PreconditionResult.FromError(Constants.IGNORE_ERROR);
+			return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 		}
 
 		private bool CheckIfCommandIsEnabled(IAdvobotCommandContext context, CommandInfo command, IGuildUser user)

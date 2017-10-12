@@ -12,34 +12,12 @@ namespace Advobot.Services.Log.Loggers
 	{
 		internal GuildLogger(ILogService logging, IServiceProvider provider) : base(logging, provider) { }
 
-		protected override void HookUpEvents()
-		{
-			if (_Client is DiscordSocketClient socketClient)
-			{
-				socketClient.GuildAvailable += OnGuildAvailable;
-				socketClient.GuildUnavailable += OnGuildUnavailable;
-				socketClient.JoinedGuild += OnJoinedGuild;
-				socketClient.LeftGuild += OnLeftGuild;
-			}
-			else if (_Client is DiscordShardedClient shardedClient)
-			{
-				shardedClient.GuildAvailable += OnGuildAvailable;
-				shardedClient.GuildUnavailable += OnGuildUnavailable;
-				shardedClient.JoinedGuild += OnJoinedGuild;
-				shardedClient.LeftGuild += OnLeftGuild;
-			}
-			else
-			{
-				throw new ArgumentException($"Invalid client provided. Must be either a {nameof(DiscordSocketClient)} or a {nameof(DiscordShardedClient)}.");
-			}
-		}
-
 		/// <summary>
 		/// Writes to the console telling that the guild is online. If the guild's settings are not loaded, creates them.
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		internal async Task OnGuildAvailable(SocketGuild guild)
+		public async Task OnGuildAvailable(SocketGuild guild)
 		{
 			ConsoleActions.WriteLine($"{guild.FormatGuild()} is now online on shard {ClientActions.GetShardIdFor(_Client, guild)}.");
 			ConsoleActions.WriteLine($"Current memory usage is: {GetActions.GetMemory().ToString("0.00")}MB.");
@@ -56,7 +34,7 @@ namespace Advobot.Services.Log.Loggers
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		internal Task OnGuildUnavailable(SocketGuild guild)
+		public Task OnGuildUnavailable(SocketGuild guild)
 		{
 			ConsoleActions.WriteLine($"Guild is now offline {guild.FormatGuild()}.");
 			return Task.CompletedTask;
@@ -66,7 +44,7 @@ namespace Advobot.Services.Log.Loggers
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		internal async Task OnJoinedGuild(SocketGuild guild)
+		public async Task OnJoinedGuild(SocketGuild guild)
 		{
 			ConsoleActions.WriteLine($"Bot has joined {guild.FormatGuild()}.");
 
@@ -118,7 +96,7 @@ namespace Advobot.Services.Log.Loggers
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		internal async Task OnLeftGuild(SocketGuild guild)
+		public async Task OnLeftGuild(SocketGuild guild)
 		{
 			ConsoleActions.WriteLine($"Bot has left {guild.FormatGuild()}.");
 

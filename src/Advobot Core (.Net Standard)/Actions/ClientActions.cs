@@ -220,7 +220,7 @@ namespace Advobot.Actions
 		/// <summary>
 		/// Exits the current application.
 		/// </summary>
-		public static async Task DisconnectBot(IDiscordClient client)
+		public static async Task DisconnectBotAsync(IDiscordClient client)
 		{
 			if (client is DiscordSocketClient socketClient)
 			{

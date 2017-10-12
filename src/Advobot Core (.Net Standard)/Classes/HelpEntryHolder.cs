@@ -1,4 +1,5 @@
-﻿using Advobot.Actions.Formatting;
+﻿using Advobot.Actions;
+using Advobot.Actions.Formatting;
 using Advobot.Classes.Attributes;
 using Advobot.Classes.UsageGeneration;
 using Advobot.Enums;
@@ -17,42 +18,48 @@ namespace Advobot.Classes
 
 		public HelpEntryHolder()
 		{
-			var temp = new List<HelpEntry>();
-			var types = Assembly.GetExecutingAssembly().GetTypes();
-			var cmds = types.Where(x => x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null);
-			foreach (var classType in cmds)
+			var types = CommandAssembly.COMMAND_ASSEMBLY.GetTypes().Where(x => x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null);
+			if (!types.Any())
 			{
-				var innerMostNameSpace = classType.Namespace.Substring(classType.Namespace.LastIndexOf('.') + 1);
+				ConsoleActions.WriteLine($"The assembly {CommandAssembly.COMMAND_ASSEMBLY.GetName().Name} has no commands. Press any key to close the program.");
+				Console.ReadKey();
+				throw new TypeLoadException($"The assembly {CommandAssembly.COMMAND_ASSEMBLY.GetName().Name} has no commands.");
+			}
+
+			var temp = new List<HelpEntry>();
+			foreach (var t in types)
+			{
+				var innerMostNameSpace = t.Namespace.Substring(t.Namespace.LastIndexOf('.') + 1);
 				if (!Enum.TryParse(innerMostNameSpace, true, out CommandCategory category))
 				{
 					throw new ArgumentException($"{innerMostNameSpace} is not currently in the CommandCategory enum.");
 				}
 				//Nested commands don't need to be added since they're added under the class they're nested in
-				else if (classType.IsNested)
+				else if (t.IsNested)
 				{
 #if DEBUG
-					AssertAllAliasesAreDifferent(classType);
+					AssertAllAliasesAreDifferent(t);
 #endif
 					continue;
 				}
 
-				var name = classType.GetCustomAttribute<GroupAttribute>()?.Prefix;
-				var aliases = classType.GetCustomAttribute<AliasAttribute>()?.Aliases;
-				var summary = classType.GetCustomAttribute<SummaryAttribute>()?.Text;
-				var usage = new UsageGenerator(classType).Text;
-				var permReqs = classType.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString();
-				var otherReqs = classType.GetCustomAttribute<OtherRequirementAttribute>()?.ToString();
-				var defaultEnabled = classType.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
+				var name = t.GetCustomAttribute<GroupAttribute>()?.Prefix;
+				var aliases = t.GetCustomAttribute<AliasAttribute>()?.Aliases;
+				var summary = t.GetCustomAttribute<SummaryAttribute>()?.Text;
+				var usage = new UsageGenerator(t).Text;
+				var permReqs = t.GetCustomAttribute<PermissionRequirementAttribute>()?.ToString();
+				var otherReqs = t.GetCustomAttribute<OtherRequirementAttribute>()?.ToString();
+				var defaultEnabled = t.GetCustomAttribute<DefaultEnabledAttribute>()?.Enabled ?? false;
 
 #if DEBUG
 				//These are basically only here so I won't forget something.
 				//Without them the bot should work fine, but may have tiny bugs.
 				AssertNoDuplicateCommandNamesOrAliases(temp, name, aliases);
-				AssertDefaultValueEnabledAttributeExists(classType);
-				AssertClassIsPublic(classType);
-				AssertAllCommandsHaveCommandAttribute(classType);
-				AssertAllAliasesAreDifferent(classType);
-				AssertShortAliasAttribute(classType);
+				AssertDefaultValueEnabledAttributeExists(t);
+				AssertClassIsPublic(t);
+				AssertAllCommandsHaveCommandAttribute(t);
+				AssertAllAliasesAreDifferent(t);
+				AssertShortAliasAttribute(t);
 #endif
 
 				temp.Add(new HelpEntry(name, usage, GeneralFormatting.JoinNonNullStrings(" | ", new[] { permReqs, otherReqs }), summary, aliases, category, defaultEnabled));

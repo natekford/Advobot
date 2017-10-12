@@ -13,7 +13,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Advobot.Classes.Attributes;
 
-namespace Advobot
+[assembly: CommandAssembly]
+namespace Advobot.Commands
 {
 	public class CommandHandler
 	{
@@ -43,7 +44,7 @@ namespace Advobot
 			AddTypeReaders();
 
 			//Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
-			await _Commands.AddModulesAsync(Assembly.GetExecutingAssembly());
+			await _Commands.AddModulesAsync(CommandAssembly.COMMAND_ASSEMBLY);
 
 			if (_Client is DiscordSocketClient socketClient)
 			{
@@ -72,7 +73,7 @@ namespace Advobot
 			_Commands.AddTypeReader(typeof(ImageUrl), new ImageUrlTypeReader());
 
 			//Add in all custom argument typereaders
-			var customArgumentsClasses = Assembly.GetExecutingAssembly().GetTypes()
+			var customArgumentsClasses = Assembly.GetAssembly(typeof(CustomArguments<>)).GetTypes()
 				.Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
 				.Any(c => c.GetCustomAttribute<CustomArgumentConstructorAttribute>() != null));
 			foreach (var c in customArgumentsClasses)
@@ -157,7 +158,7 @@ namespace Advobot
 			if (result.IsSuccess)
 			{
 				_Logging.SuccessfulCommands.Increment();
-				await MessageActions.DeleteMessage(context.Message);
+				await MessageActions.DeleteMessageAsync(context.Message);
 
 				var guildSettings = context.GuildSettings;
 				if (guildSettings.ModLog != null && !guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
@@ -165,14 +166,14 @@ namespace Advobot
 					var embed = new MyEmbed(null, context.Message.Content)
 						.AddAuthor(context.User)
 						.AddFooter("Mod Log");
-					await MessageActions.SendEmbedMessage(guildSettings.ModLog, embed);
+					await MessageActions.SendEmbedMessageAsync(guildSettings.ModLog, embed);
 				}
 			}
 			//Failure in a valid fail way
 			else if (loggedCommand.ErrorReason != null)
 			{
 				_Logging.FailedCommands.Increment();
-				await MessageActions.SendErrorMessage(context, new ErrorReason(loggedCommand.ErrorReason));
+				await MessageActions.SendErrorMessageAsync(context, new ErrorReason(loggedCommand.ErrorReason));
 			}
 			//Failure in a way that doesn't need to get logged (unknown command, etc)
 			else

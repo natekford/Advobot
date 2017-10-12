@@ -22,40 +22,40 @@ namespace Advobot.Commands.Quotes
 		{
 			if (Context.GuildSettings.Quotes.Count >= Constants.MAX_QUOTES)
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason($"You cannot have more than `{Constants.MAX_QUOTES}` quotes at a time."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"You cannot have more than `{Constants.MAX_QUOTES}` quotes at a time."));
 				return;
 			}
 			else if (Context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("A quote already has that name."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("A quote already has that name."));
 				return;
 			}
 			else if (String.IsNullOrWhiteSpace(text))
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("Adding a quote requires text."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Adding a quote requires text."));
 				return;
 			}
 
 			Context.GuildSettings.Quotes.Add(new Quote(name, text));
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully added the following quote: `{name}`.");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added the following quote: `{name}`.");
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove(string name)
 		{
 			if (!Context.GuildSettings.Quotes.Any())
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("There needs to be at least one quote before you can remove any."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("There needs to be at least one quote before you can remove any."));
 				return;
 			}
 
 			var removed = Context.GuildSettings.Quotes.RemoveAll(x => x.Name.CaseInsEquals(name));
 			if (removed < 1)
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("No quote has that name."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("No quote has that name."));
 				return;
 			}
 
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully removed the following quote: `{name}`.");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed the following quote: `{name}`.");
 		}
 	}
 
@@ -70,20 +70,20 @@ namespace Advobot.Commands.Quotes
 			var quotes = Context.GuildSettings.Quotes;
 			if (!quotes.Any())
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("There are no quotes."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("There are no quotes."));
 				return;
 			}
 			else if (name == null)
 			{
 				var desc = $"`{String.Join("`, `", quotes.Select(x => x.Name))}`";
-				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Quotes", desc));
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Quotes", desc));
 				return;
 			}
 
 			var quote = quotes.FirstOrDefault(x => x.Name.CaseInsEquals(name));
 			if (quote != null)
 			{
-				await MessageActions.SendMessage(Context.Channel, quote.Description);
+				await MessageActions.SendMessageAsync(Context.Channel, quote.Description);
 				return;
 			}
 
@@ -93,11 +93,11 @@ namespace Advobot.Commands.Quotes
 				Context.Timers.AddActiveCloseQuote(closeQuotes);
 
 				var msg = "Did you mean any of the following:\n" + closeQuotes.List.FormatNumberedList("{0}", x => x.Word.Name);
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, msg, Constants.SECONDS_ACTIVE_CLOSE);
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, msg, Constants.SECONDS_ACTIVE_CLOSE);
 				return;
 			}
 
-			await MessageActions.SendErrorMessage(Context, new ErrorReason("Nonexistent quote."));
+			await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Nonexistent quote."));
 		}
 	}
 }

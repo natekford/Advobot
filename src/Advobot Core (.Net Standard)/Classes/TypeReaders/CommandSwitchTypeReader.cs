@@ -7,7 +7,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to find a <see cref="CommandSwitch"/> in the current guild settings.
 	/// </summary>
-	internal class CommandSwitchTypeReader : TypeReader
+	public sealed class CommandSwitchTypeReader : TypeReader
 	{
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{

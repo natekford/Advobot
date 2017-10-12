@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,7 +9,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to find an <see cref="Emote"/> on a guild.
 	/// </summary>
-	public class EmoteTypeReader : TypeReader
+	public sealed class EmoteTypeReader : TypeReader
 	{
 		/// <summary>
 		/// Checks for any emotes matching the input. Input is tested as an emote Id, then emote name.

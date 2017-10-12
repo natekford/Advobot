@@ -19,7 +19,7 @@ namespace Advobot.Actions
 		/// <param name="channel"></param>
 		/// <param name="content"></param>
 		/// <returns></returns>
-		public static async Task<IUserMessage> SendMessage(IMessageChannel channel, string content)
+		public static async Task<IUserMessage> SendMessageAsync(IMessageChannel channel, string content)
 		{
 			const string LONG = "The response is a long message and was sent as a text file instead";
 
@@ -32,7 +32,7 @@ namespace Advobot.Actions
 			content = DiscordObjectFormatting.FormatMessageContentForNotBeingAnnoying(guild, content);
 			return content.Length < Constants.MAX_MESSAGE_LENGTH_LONG
 				? await channel.SendMessageAsync(Constants.ZERO_LENGTH_CHAR + content)
-				: await SendTextFile(channel, content, "Long_Message_", LONG);
+				: await SendTextFileAsync(channel, content, "Long_Message_", LONG);
 		}
 		/// <summary>
 		/// Sends a message to the given channel with the given content and embed.
@@ -41,7 +41,7 @@ namespace Advobot.Actions
 		/// <param name="embed"></param>
 		/// <param name="content"></param>
 		/// <returns></returns>
-		public static async Task<IUserMessage> SendEmbedMessage(IMessageChannel channel, MyEmbed embed, string content = null)
+		public static async Task<IUserMessage> SendEmbedMessageAsync(IMessageChannel channel, MyEmbed embed, string content = null)
 		{
 			var guild = channel.GetGuild();
 			if (guild == null)
@@ -90,13 +90,13 @@ namespace Advobot.Actions
 			catch (Exception e)
 			{
 				ConsoleActions.ExceptionToConsole(e);
-				message = await SendMessage(channel, new ErrorReason(e.Message).ToString());
+				message = await SendMessageAsync(channel, new ErrorReason(e.Message).ToString());
 			}
 
 			//Upload the overflow
 			if (overflowText.Length != 0)
 			{
-				await SendTextFile(channel as ITextChannel, overflowText.ToString(), "Embed_");
+				await SendTextFileAsync(channel as ITextChannel, overflowText.ToString(), "Embed_");
 			}
 			return message;
 		}
@@ -108,7 +108,7 @@ namespace Advobot.Actions
 		/// <param name="fileName"></param>
 		/// <param name="content"></param>
 		/// <returns></returns>
-		public static async Task<IUserMessage> SendTextFile(IMessageChannel channel, string text, string fileName, string content = null)
+		public static async Task<IUserMessage> SendTextFileAsync(IMessageChannel channel, string text, string fileName, string content = null)
 		{
 			var guild = channel.GetGuild();
 			if (guild == null)
@@ -137,7 +137,7 @@ namespace Advobot.Actions
 		/// <param name="channel"></param>
 		/// <param name="inputList"></param>
 		/// <returns></returns>
-		public static async Task<IUserMessage> SendMessageContainingFormattedDeletedMessages(IMessageChannel channel, IEnumerable<string> inputList)
+		public static async Task<IUserMessage> SendMessageContainingFormattedDeletedMessagesAsync(IMessageChannel channel, IEnumerable<string> inputList)
 		{
 			var guild = channel.GetGuild();
 			if (guild == null)
@@ -150,13 +150,13 @@ namespace Advobot.Actions
 			{
 				var embed = new MyEmbed("Deleted Messages", text, Colors.MDEL)
 					.AddFooter("Deleted Messages");
-				return await SendEmbedMessage(channel, embed);
+				return await SendEmbedMessageAsync(channel, embed);
 			}
 			else
 			{
 				var name = "Deleted_Messages_";
 				var content = $"{inputList.Count()} Deleted Messages";
-				return await SendTextFile(channel, text.RemoveAllMarkdown(), name, content);
+				return await SendTextFileAsync(channel, text.RemoveAllMarkdown(), name, content);
 			}
 		}
 
@@ -167,9 +167,9 @@ namespace Advobot.Actions
 		/// <param name="secondStr"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task MakeAndDeleteSecondaryMessage(IAdvobotCommandContext context, string secondStr, int time = -1)
+		public static async Task MakeAndDeleteSecondaryMessageAsync(IAdvobotCommandContext context, string secondStr, int time = -1)
 		{
-			await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, secondStr, time, context.Timers);
+			await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, secondStr, time, context.Timers);
 		}
 		/// <summary>
 		/// Waits a few seconds then deletes the newly created message and the given message.
@@ -180,7 +180,7 @@ namespace Advobot.Actions
 		/// <param name="time"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public static async Task MakeAndDeleteSecondaryMessage(IMessageChannel channel, IMessage message, string secondStr, int time = -1, ITimersService timers = null)
+		public static async Task MakeAndDeleteSecondaryMessageAsync(IMessageChannel channel, IMessage message, string secondStr, int time = -1, ITimersService timers = null)
 		{
 			if (time < 0)
 			{
@@ -200,14 +200,14 @@ namespace Advobot.Actions
 		/// <param name="reason"></param>
 		/// <param name="time"></param>
 		/// <returns></returns>
-		public static async Task SendErrorMessage(IAdvobotCommandContext context, ErrorReason reason, int time = -1)
+		public static async Task SendErrorMessageAsync(IAdvobotCommandContext context, ErrorReason reason, int time = -1)
 		{
 			if (!context.GuildSettings.VerboseErrors)
 			{
 				return;
 			}
 
-			await MakeAndDeleteSecondaryMessage(context.Channel, context.Message, reason.ToString(), time, context.Timers);
+			await MakeAndDeleteSecondaryMessageAsync(context.Channel, context.Message, reason.ToString(), time, context.Timers);
 		}
 
 		/// <summary>
@@ -216,7 +216,7 @@ namespace Advobot.Actions
 		/// <param name="channel"></param>
 		/// <param name="requestCount"></param>
 		/// <returns></returns>
-		public static async Task<List<IMessage>> GetMessages(IMessageChannel channel, int requestCount)
+		public static async Task<List<IMessage>> GetMessagesAsync(IMessageChannel channel, int requestCount)
 		{
 			return (await channel.GetMessagesAsync(requestCount).Flatten()).ToList();
 		}
@@ -228,9 +228,9 @@ namespace Advobot.Actions
 		/// <param name="requestCount"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> RemoveMessages(ITextChannel channel, IMessage fromMessage, int requestCount, ModerationReason reason)
+		public static async Task<int> RemoveMessagesAsync(ITextChannel channel, IMessage fromMessage, int requestCount, ModerationReason reason)
 		{
-			return await DeleteMessages(channel, await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).Flatten(), reason);
+			return await DeleteMessagesAsync(channel, await channel.GetMessagesAsync(fromMessage, Direction.Before, requestCount).Flatten(), reason);
 		}
 		/// <summary>
 		/// Removes the given count of messages from a channel and a specific user.
@@ -241,7 +241,7 @@ namespace Advobot.Actions
 		/// <param name="user"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> RemoveMessagesFromUser(ITextChannel channel, IMessage fromMessage, int requestCount, IUser user, ModerationReason reason)
+		public static async Task<int> RemoveMessagesFromUserAsync(ITextChannel channel, IMessage fromMessage, int requestCount, IUser user, ModerationReason reason)
 		{
 			var deletedCount = 0;
 			while (requestCount > 0)
@@ -261,7 +261,7 @@ namespace Advobot.Actions
 				}
 
 				var cutUserMessages = userMessages.ToList().GetUpToAndIncludingMinNum(requestCount, 100);
-				deletedCount += await DeleteMessages(channel, cutUserMessages, reason);
+				deletedCount += await DeleteMessagesAsync(channel, cutUserMessages, reason);
 
 				//Leave if the message count gathered implies that enough user messages have been deleted 
 				if (cutUserMessages.Count() < userMessages.Count())
@@ -280,7 +280,7 @@ namespace Advobot.Actions
 		/// <param name="messages"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessages(ITextChannel channel, IEnumerable<IMessage> messages, ModerationReason reason)
+		public static async Task<int> DeleteMessagesAsync(ITextChannel channel, IEnumerable<IMessage> messages, ModerationReason reason)
 		{
 			//13.95 for some buffer in case
 			var youngMessages = messages.Where(x => x != null && DateTime.UtcNow.Subtract(x.CreatedAt.UtcDateTime).TotalDays < 13.95);
@@ -300,7 +300,7 @@ namespace Advobot.Actions
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		public static async Task<int> DeleteMessage(IMessage message)
+		public static async Task<int> DeleteMessageAsync(IMessage message)
 		{
 			if (message == null || DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalDays > 13.95)
 			{

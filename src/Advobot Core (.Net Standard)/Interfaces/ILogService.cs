@@ -1,5 +1,8 @@
 ﻿using Advobot.Classes;
+using Discord;
+using Discord.WebSocket;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Advobot.Interfaces
 {
@@ -35,17 +38,28 @@ namespace Advobot.Interfaces
 
 	public interface IBotLogger
 	{
+		Task OnLogMessageSent(LogMessage message);
 	}
 
 	public interface IGuildLogger
 	{
+		Task OnGuildAvailable(SocketGuild guild);
+		Task OnGuildUnavailable(SocketGuild guild);
+		Task OnJoinedGuild(SocketGuild guild);
+		Task OnLeftGuild(SocketGuild guild);
 	}
 
 	public interface IUserLogger
 	{
+		Task OnUserJoined(SocketGuildUser user);
+		Task OnUserLeft(SocketGuildUser user);
+		Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser);
 	}
 
 	public interface IMessageLogger
 	{
+		Task OnMessageReceived(SocketMessage message);
+		Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel);
+		Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel);
 	}
 }

@@ -38,21 +38,12 @@ namespace Advobot.Classes
 					}
 					else if (p.GetCustomAttribute<ParamArrayAttribute>() != null)
 					{
-						var split = p.Name.Split(new[] { '_' }, 2);
-						if (split.Length != 2 || !int.TryParse(split[1], out _ParamsLength))
-						{
-							throw new ArgumentException($"When marking a params parameter with {nameof(CustomArgumentAttribute)}" +
-								$"it must be in the format NAME_x where x is the length of allowed args.");
-						}
-
 						_HasParams = true;
-						_ParamsName = split[0];
-						argNames.Add(_ParamsName);
+						_ParamsLength = p.GetCustomAttribute<CustomArgumentAttribute>().Length;
+						_ParamsName = p.Name;
 					}
-					else
-					{
-						argNames.Add(p.Name);
-					}
+
+					argNames.Add(p.Name);
 				}
 			}
 			ArgNames = argNames.ToImmutableList();
@@ -89,21 +80,28 @@ namespace Advobot.Classes
 		public T CreateObject(params object[] additionalArgs)
 		{
 			var additionalArgCounter = 0;
-			var parameters = _Constructor.GetParameters().Select(x =>
+			var parameters = _Constructor.GetParameters().Select(p =>
 			{
-				var t = x.ParameterType;
+				var t = p.ParameterType.IsArray ? p.ParameterType.GetElementType() : p.ParameterType;
 				//Check params first otherwise will go into the middle else if
-				if (x.GetCustomAttribute<ParamArrayAttribute>() != null)
+				if (p.GetCustomAttribute<ParamArrayAttribute>() != null)
 				{
-					return _ParamArgs.ToArray();
+					//Convert all from string to whatever type they need to be
+					var temp = new List<object>();
+					foreach (var arg in _ParamArgs)
+					{
+						temp.Add(Convert.ChangeType(arg, t, CultureInfo.InvariantCulture));
+					}
+					return temp.ToArray();
 				}
 				//Checking against the attribute again in case arguments have duplicate names
-				else if (x.GetCustomAttribute<CustomArgumentAttribute>() != null && _Args.TryGetValue(x.Name, out string value))
+				else if (p.GetCustomAttribute<CustomArgumentAttribute>() != null && _Args.TryGetValue(p.Name, out string value))
 				{
 					return Convert.ChangeType(value, t, CultureInfo.InvariantCulture);
 				}
 				else if (additionalArgCounter < additionalArgs.Length)
 				{
+					//Increment the counter but also subtract 1 to get the current counter
 					return additionalArgs[++additionalArgCounter - 1];
 				}
 

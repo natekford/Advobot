@@ -14,7 +14,7 @@ namespace Advobot.Classes.Attributes
 	/// Verifies the parameter this attribute is targetting fits all of the given conditions. Abstract since <see cref="_GetResultsDict"/> has to be created by a class inheriting this.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter)]
-	internal sealed class VerifyObjectAttribute : ParameterPreconditionAttribute
+	public sealed class VerifyObjectAttribute : ParameterPreconditionAttribute
 	{
 		public readonly bool IfNullCheckFromContext;
 		public readonly ImmutableList<ObjectVerification> Checks;

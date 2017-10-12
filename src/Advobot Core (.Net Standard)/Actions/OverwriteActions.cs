@@ -61,7 +61,7 @@ namespace Advobot.Actions
 		/// <param name="changeValue"></param>
 		/// <param name="invokingUser"></param>
 		/// <returns></returns>
-		public static async Task<IEnumerable<string>> ModifyOverwritePermissions(PermValue action, IGuildChannel channel,
+		public static async Task<IEnumerable<string>> ModifyOverwritePermissionsAsync(PermValue action, IGuildChannel channel,
 			object obj, ulong changeValue, IGuildUser invokingUser)
 		{
 			var allowBits = channel.GetPermissionOverwriteAllowValue(obj);
@@ -88,7 +88,7 @@ namespace Advobot.Actions
 				}
 			}
 
-			await ModifyOverwrite(channel, obj, allowBits, denyBits, new ModerationReason(invokingUser, null));
+			await ModifyOverwriteAsync(channel, obj, allowBits, denyBits, new ModerationReason(invokingUser, null));
 			return ChannelPerms.ConvertValueToNames(changeValue);
 		}
 		/// <summary>
@@ -101,7 +101,7 @@ namespace Advobot.Actions
 		/// <param name="reason"></param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException"></exception>
-		public static async Task ModifyOverwrite(IGuildChannel channel, object obj, ulong allowBits, ulong denyBits, ModerationReason reason)
+		public static async Task ModifyOverwriteAsync(IGuildChannel channel, object obj, ulong allowBits, ulong denyBits, ModerationReason reason)
 		{
 			var permissions = new OverwritePermissions(allowBits, denyBits);
 			if (obj is IRole role)
@@ -123,7 +123,7 @@ namespace Advobot.Actions
 		/// <param name="channel"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ClearOverwrites(IGuildChannel channel, ModerationReason reason)
+		public static async Task ClearOverwritesAsync(IGuildChannel channel, ModerationReason reason)
 		{
 			foreach (var overwrite in channel.PermissionOverwrites)
 			{

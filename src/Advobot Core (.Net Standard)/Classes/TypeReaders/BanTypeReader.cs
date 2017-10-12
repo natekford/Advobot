@@ -9,7 +9,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attemps to find an <see cref="IBan"/> on a guild.
 	/// </summary>
-	public class BanTypeReader : TypeReader
+	public sealed class BanTypeReader : TypeReader
 	{
 		/// <summary>
 		/// Checks for any bans matching the input. Input is tested as a user Id, username and discriminator, and finally solely the username.

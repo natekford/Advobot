@@ -54,7 +54,7 @@ namespace Advobot.Actions
 		/// <param name="name">The name to use for the channel.</param>
 		/// <param name="reason">The reason for creation to say in the audit log.</param>
 		/// <returns>The newly created text channel.</returns>
-		public static async Task<ITextChannel> CreateTextChannel(IGuild guild, string name, ModerationReason reason)
+		public static async Task<ITextChannel> CreateTextChannelAsync(IGuild guild, string name, ModerationReason reason)
 		{
 			return await guild.CreateTextChannelAsync(name, reason.CreateRequestOptions());
 		}
@@ -65,7 +65,7 @@ namespace Advobot.Actions
 		/// <param name="name">The name to use for the channel.</param>
 		/// <param name="reason">The reason for creation to say in the audit log.</param>
 		/// <returns>The newly created voice channel</returns>
-		public static async Task<IVoiceChannel> CreateVoiceChannel(IGuild guild, string name, ModerationReason reason)
+		public static async Task<IVoiceChannel> CreateVoiceChannelAsync(IGuild guild, string name, ModerationReason reason)
 		{
 			return await guild.CreateVoiceChannelAsync(name, reason.CreateRequestOptions());
 		}
@@ -75,7 +75,7 @@ namespace Advobot.Actions
 		/// <param name="channel">The channel to softdelete.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task SoftDeleteChannel(ITextChannel channel, ModerationReason reason)
+		public static async Task SoftDeleteChannelAsync(ITextChannel channel, ModerationReason reason)
 		{
 			var guild = channel.Guild;
 			foreach (var overwrite in channel.PermissionOverwrites)
@@ -102,7 +102,7 @@ namespace Advobot.Actions
 				var readMessages = ChannelPerms.ConvertToValue(new[] { nameof(ChannelPermission.ReadMessages) });
 				var allowBits = overwrite.Permissions.AllowValue & ~readMessages;
 				var denyBits = overwrite.Permissions.DenyValue | readMessages;
-				await OverwriteActions.ModifyOverwrite(channel, obj, allowBits, denyBits, reason);
+				await OverwriteActions.ModifyOverwriteAsync(channel, obj, allowBits, denyBits, reason);
 			}
 
 			//Double check the everyone role has the correct perms
@@ -120,7 +120,7 @@ namespace Advobot.Actions
 		/// <param name="channel">The channel to delete.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task DeleteChannel(IGuildChannel channel, ModerationReason reason)
+		public static async Task DeleteChannelAsync(IGuildChannel channel, ModerationReason reason)
 		{
 			await channel.DeleteAsync(reason.CreateRequestOptions());
 		}

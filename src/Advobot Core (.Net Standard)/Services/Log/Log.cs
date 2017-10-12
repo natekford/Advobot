@@ -1,6 +1,9 @@
 ﻿using Advobot.Classes;
 using Advobot.Interfaces;
 using Advobot.Services.Log.Loggers;
+using Discord;
+using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 
@@ -51,6 +54,45 @@ namespace Advobot.Services.Log
 			GuildLogger = new GuildLogger(this, provider);
 			UserLogger = new UserLogger(this, provider);
 			MessageLogger = new MessageLogger(this, provider);
+
+			HookUpEvents(provider);
+		}
+
+		private void HookUpEvents(IServiceProvider provider)
+		{
+			var client = provider.GetService<IDiscordClient>();
+			if (client is DiscordSocketClient socketClient)
+			{
+				socketClient.Log += BotLogger.OnLogMessageSent;
+				socketClient.GuildAvailable += GuildLogger.OnGuildAvailable;
+				socketClient.GuildUnavailable += GuildLogger.OnGuildUnavailable;
+				socketClient.JoinedGuild += GuildLogger.OnJoinedGuild;
+				socketClient.LeftGuild += GuildLogger.OnLeftGuild;
+				socketClient.UserJoined += UserLogger.OnUserJoined;
+				socketClient.UserLeft += UserLogger.OnUserLeft;
+				socketClient.UserUpdated += UserLogger.OnUserUpdated;
+				socketClient.MessageReceived += MessageLogger.OnMessageReceived;
+				socketClient.MessageUpdated += MessageLogger.OnMessageUpdated;
+				socketClient.MessageDeleted += MessageLogger.OnMessageDeleted;
+			}
+			else if (client is DiscordShardedClient shardedClient)
+			{
+				shardedClient.Log += BotLogger.OnLogMessageSent;
+				shardedClient.GuildAvailable += GuildLogger.OnGuildAvailable;
+				shardedClient.GuildUnavailable += GuildLogger.OnGuildUnavailable;
+				shardedClient.JoinedGuild += GuildLogger.OnJoinedGuild;
+				shardedClient.LeftGuild += GuildLogger.OnLeftGuild;
+				shardedClient.UserJoined += UserLogger.OnUserJoined;
+				shardedClient.UserLeft += UserLogger.OnUserLeft;
+				shardedClient.UserUpdated += UserLogger.OnUserUpdated;
+				shardedClient.MessageReceived += MessageLogger.OnMessageReceived;
+				shardedClient.MessageUpdated += MessageLogger.OnMessageUpdated;
+				shardedClient.MessageDeleted += MessageLogger.OnMessageDeleted;
+			}
+			else
+			{
+				throw new ArgumentException("Invalid client supplied.");
+			}
 		}
 
 		public string FormatLoggedCommands()

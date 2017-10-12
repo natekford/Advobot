@@ -22,14 +22,7 @@ namespace Advobot.Services.Log.Loggers
 			_BotSettings = provider.GetService<IBotSettings>();
 			_GuildSettings = provider.GetService<IGuildSettingsService>();
 			_Timers = provider.GetService<ITimersService>();
-
-			HookUpEvents();
 		}
-
-		/// <summary>
-		/// Called in the constructor of the abstract method.
-		/// </summary>
-		protected abstract void HookUpEvents();
 
 		/// <summary>
 		/// Returns false if the message author is a webhook or a bot or is null.

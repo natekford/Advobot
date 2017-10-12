@@ -10,7 +10,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attemps to create a <see cref="Color"/>.
 	/// </summary>
-	public class ColorTypeReader : TypeReader
+	public sealed class ColorTypeReader : TypeReader
 	{
 		/// <summary>
 		/// Input is tested as a color name, then hex, then RBG separated by back slashes.

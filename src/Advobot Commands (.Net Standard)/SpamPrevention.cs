@@ -21,19 +21,19 @@ namespace Advobot.Commands.SpamPrevention
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Punishment Types", desc));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Punishment Types", desc));
 		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(SpamType spamType, PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
 		{
 			if (!SpamPreventionInfo.TryCreateSpamPreventionInfo(spamType, punishment, (int)messageCount, (int)requiredSpamAmtOrTimeInterval, (int)votes, out var spamPrevention, out var errorReason))
 			{
-				await MessageActions.SendErrorMessage(Context, errorReason);
+				await MessageActions.SendErrorMessageAsync(Context, errorReason);
 				return;
 			}
 
 			Context.GuildSettings.SpamPreventionDictionary[spamType] = spamPrevention;
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set up the spam prevention for `{spamType.EnumName().ToLower()}`.\n{spamPrevention.ToString()}");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set up the spam prevention for `{spamType.EnumName().ToLower()}`.\n{spamPrevention.ToString()}");
 		}
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
 		public async Task Enable(SpamType spamType)
@@ -41,12 +41,12 @@ namespace Advobot.Commands.SpamPrevention
 			var spamPrev = Context.GuildSettings.SpamPreventionDictionary[spamType];
 			if (spamPrev == null)
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("There must be a spam prevention of that type set up before one can be enabled or disabled."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("There must be a spam prevention of that type set up before one can be enabled or disabled."));
 				return;
 			}
 
 			spamPrev.Enable();
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully enabled the given spam prevention.");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully enabled the given spam prevention.");
 		}
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
 		public async Task Disable(SpamType spamType)
@@ -54,12 +54,12 @@ namespace Advobot.Commands.SpamPrevention
 			var spamPrev = Context.GuildSettings.SpamPreventionDictionary[spamType];
 			if (spamPrev == null)
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("There must be a spam prevention of that type set up before one can be enabled or disabled."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("There must be a spam prevention of that type set up before one can be enabled or disabled."));
 				return;
 			}
 
 			spamPrev.Disable();
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled the given spam prevention.");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully disabled the given spam prevention.");
 		}
 	}
 
@@ -74,19 +74,19 @@ namespace Advobot.Commands.SpamPrevention
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Punishment Types", desc));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Punishment Types", desc));
 		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(RaidType raidType, PunishmentType punishment, uint userCount, uint interval)
 		{
 			if (!RaidPreventionInfo.TryCreateRaidPreventionInfo(raidType, punishment, (int)userCount, (int)interval, out var raidPrevention, out var errorReason))
 			{
-				await MessageActions.SendErrorMessage(Context, errorReason);
+				await MessageActions.SendErrorMessageAsync(Context, errorReason);
 				return;
 			}
 
 			Context.GuildSettings.RaidPreventionDictionary[raidType] = raidPrevention;
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set up the raid prevention for `{raidType.EnumName().ToLower()}`.\n{raidPrevention.ToString()}");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set up the raid prevention for `{raidType.EnumName().ToLower()}`.\n{raidPrevention.ToString()}");
 		}
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
 		public async Task Enable(RaidType raidType)
@@ -94,7 +94,7 @@ namespace Advobot.Commands.SpamPrevention
 			var raidPrev = Context.GuildSettings.RaidPreventionDictionary[raidType];
 			if (raidPrev == null)
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("There must be a raid prevention of that type set up before one can be enabled or disabled."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("There must be a raid prevention of that type set up before one can be enabled or disabled."));
 				return;
 			}
 
@@ -102,14 +102,14 @@ namespace Advobot.Commands.SpamPrevention
 			if (raidType == RaidType.Regular)
 			{
 				//Mute the newest joining users
-				var users = (await GuildActions.GetUsersAndOrderByJoin(Context.Guild)).Reverse().ToArray();
+				var users = (await GuildActions.GetUsersAndOrderByJoinAsync(Context.Guild)).Reverse().ToArray();
 				for (int i = 0; i < new[] { raidPrev.UserCount, users.Length, 25 }.Min(); ++i)
 				{
-					await raidPrev.RaidPreventionPunishment(Context.GuildSettings, users[i]);
+					await raidPrev.PunishAsync(Context.GuildSettings, users[i]);
 				}
 			}
 
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully enabled the given raid prevention.");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully enabled the given raid prevention.");
 		}
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
 		public async Task Disable(RaidType raidType)
@@ -117,12 +117,12 @@ namespace Advobot.Commands.SpamPrevention
 			var raidPrev = Context.GuildSettings.RaidPreventionDictionary[raidType];
 			if (raidPrev == null)
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("There must be a raid prevention of that type set up before one can be enabled or disabled."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("There must be a raid prevention of that type set up before one can be enabled or disabled."));
 				return;
 			}
 
 			raidPrev.Disable();
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully disabled the given raid prevention.");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully disabled the given raid prevention.");
 		}
 	}
 }

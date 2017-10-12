@@ -10,7 +10,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to get a ulong representing channel permissions.
 	/// </summary>
-	public class ChannelPermissionsTypeReader : TypeReader
+	public sealed  class ChannelPermissionsTypeReader : TypeReader
 	{
 		/// <summary>
 		/// Checks for valid ulong first, then checks permission names.

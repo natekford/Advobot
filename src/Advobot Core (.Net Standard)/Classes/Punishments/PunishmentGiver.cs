@@ -45,7 +45,7 @@ namespace Advobot.Classes.Punishments
 		}
 		public async Task RoleMuteAsync(IGuildUser user, IRole role, ModerationReason reason)
 		{
-			await RoleActions.GiveRoles(user, new[] { role }, reason);
+			await RoleActions.GiveRolesAsync(user, new[] { role }, reason);
 			FollowupActions(PunishmentType.RoleMute, user.Guild, user, reason);
 		}
 		public async Task VoiceMuteAsync(IGuildUser user, ModerationReason reason)

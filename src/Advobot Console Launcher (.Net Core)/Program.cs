@@ -1,6 +1,5 @@
 ﻿using Advobot.Actions;
-using Discord;
-using Microsoft.Extensions.DependencyInjection;
+using Advobot.Commands;
 using System;
 using System.Threading.Tasks;
 

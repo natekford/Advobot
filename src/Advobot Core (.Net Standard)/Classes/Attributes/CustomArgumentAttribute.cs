@@ -8,6 +8,18 @@ namespace Advobot.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public class CustomArgumentAttribute : Attribute
 	{
-		public CustomArgumentAttribute() { }
+		/// <summary>
+		/// Specifies the acceptable amount of objects in the params array.
+		/// </summary>
+		public readonly int Length;
+
+		/// <summary>
+		/// <paramref name="length"/>is used for params arguments.
+		/// </summary>
+		/// <param name="length"></param>
+		public CustomArgumentAttribute(int length = 0)
+		{
+			Length = length;
+		}
 	}
 }

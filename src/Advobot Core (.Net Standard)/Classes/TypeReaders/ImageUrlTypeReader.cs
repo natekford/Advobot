@@ -1,17 +1,15 @@
-﻿using Advobot.Actions;
-using Discord.Commands;
+﻿using Discord.Commands;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
-using Advobot.Classes;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace Advobot.Classes.TypeReaders
 {
 	/// <summary>
 	/// Attempts to find a Url for an image.
 	/// </summary>
-	public class ImageUrlTypeReader : TypeReader 
+	public sealed class ImageUrlTypeReader : TypeReader 
 	{
 		/// <summary>
 		/// Checks if the input is a valid Url, otherwise checks attached images and embedded images.

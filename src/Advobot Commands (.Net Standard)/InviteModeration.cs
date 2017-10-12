@@ -24,14 +24,14 @@ namespace Advobot.Commands.InviteModeration
 			var invites = (await Context.Guild.GetInvitesAsync()).OrderByDescending(x => x.Uses);
 			if (!invites.Any())
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("This guild has no invites."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild has no invites."));
 				return;
 			}
 
 			var lenForCode = invites.Max(x => x.Code.Length);
 			var lenForUses = invites.Max(x => x.Uses).ToString().Length;
 			var desc = String.Join("\n", invites.FormatNumberedList("`{0}` `{1}` `{2}`", x => x.Code.PadRight(lenForCode), x => x.Uses.ToString().PadRight(lenForUses), x => x.Inviter.FormatUser()));
-			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Instant Invite List", desc));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Instant Invite List", desc));
 		}
 	}
 
@@ -49,12 +49,12 @@ namespace Advobot.Commands.InviteModeration
 		{
 			int? nullableTime = time == 0 ? 86400 : time as int?;
 			int? nullableUses = uses == 0 ? null : uses as int?;
-			var inv = await InviteActions.CreateInvite(channel, nullableTime, nullableUses, tempMem, false, new ModerationReason(Context.User, null));
+			var inv = await InviteActions.CreateInviteAsync(channel, nullableTime, nullableUses, tempMem, false, new ModerationReason(Context.User, null));
 
 			var timeOutputStr = nullableTime.HasValue ? $"It will last for this amount of time: `{nullableTime}`." : "It will last until manually revoked.";
 			var usesOutputStr = nullableUses.HasValue ? $"It will last for this amount of uses: `{nullableUses}`." : "It has no usage limit.";
 			var tempOutputStr = tempMem ? "Users will be kicked when they go offline unless they get a role." : "Users will not be kicked when they go offline and do not have a role.";
-			await MessageActions.SendMessage(Context.Channel, $"Here is your invite for `{channel.FormatChannel()}`: {GeneralFormatting.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usesOutputStr, tempOutputStr)}");
+			await MessageActions.SendMessageAsync(Context.Channel, $"Here is your invite for `{channel.FormatChannel()}`: {GeneralFormatting.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usesOutputStr, tempOutputStr)}");
 		}
 	}
 
@@ -67,8 +67,8 @@ namespace Advobot.Commands.InviteModeration
 		[Command]
 		public async Task Command(IInvite invite)
 		{
-			await InviteActions.DeleteInvite(invite, new ModerationReason(Context.User, null));
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted the invite `{invite.Code}`.");
+			await InviteActions.DeleteInviteAsync(invite, new ModerationReason(Context.User, null));
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted the invite `{invite.Code}`.");
 		}
 	}
 
@@ -106,7 +106,7 @@ namespace Advobot.Commands.InviteModeration
 			var invites = (await Context.Guild.GetInvitesAsync()).AsEnumerable();
 			if (!invites.Any())
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("This guild has no invites."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild has no invites."));
 				return;
 			}
 
@@ -133,15 +133,15 @@ namespace Advobot.Commands.InviteModeration
 
 			if (!invites.Any())
 			{
-				await MessageActions.SendErrorMessage(Context, new ErrorReason("No invites satisfied the given conditions."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("No invites satisfied the given conditions."));
 				return;
 			}
 				
 			foreach (var invite in invites)
 			{
-				await InviteActions.DeleteInvite(invite, new ModerationReason(Context.User, null));
+				await InviteActions.DeleteInviteAsync(invite, new ModerationReason(Context.User, null));
 			}
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully deleted `{invites.Count()}` instant invites.");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted `{invites.Count()}` instant invites.");
 		}
 	}
 }

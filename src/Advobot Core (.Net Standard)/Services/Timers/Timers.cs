@@ -43,13 +43,13 @@ namespace Advobot.Services.Timers
 
 			_MinuteTimer.Elapsed += (sender, e) =>
 			{
-				Task.Run(async () => await RemovePunishments());
+				Task.Run(async () => await RemovePunishmentsAsync());
 			};
 			_MinuteTimer.Enabled = true;
 
 			_HalfSecondTimer.Elapsed += (sender, e) =>
 			{
-				Task.Run(async () => await DeleteTargettedMessages());
+				Task.Run(async () => await DeleteTargettedMessagesAsync());
 				Task.Run(() => RemoveActiveCloseHelp());
 				Task.Run(() => RemoveActiveCloseQuotes());
 				Task.Run(() => RemoveSlowmodeUsers());
@@ -61,7 +61,7 @@ namespace Advobot.Services.Timers
 		{
 			_SpamPreventionUsers.Clear();
 		}
-		private async Task RemovePunishments()
+		private async Task RemovePunishmentsAsync()
 		{
 			foreach (var punishment in GetOutTimedObjects(_RemovablePunishments))
 			{
@@ -95,19 +95,19 @@ namespace Advobot.Services.Timers
 				}
 			}
 		}
-		private async Task DeleteTargettedMessages()
+		private async Task DeleteTargettedMessagesAsync()
 		{
 			foreach (var group in GetOutTimedObjects(_RemovableMessages).GroupBy(x => x.Channel.Id))
 			{
 				var messages = group.SelectMany(x => x.Messages);
 				if (messages.Count() == 1)
 				{
-					await MessageActions.DeleteMessage(messages.Single());
+					await MessageActions.DeleteMessageAsync(messages.Single());
 				}
 				else
 				{
 					var channel = group.First().Channel;
-					await MessageActions.DeleteMessages(channel, messages, new AutomaticModerationReason("automatic message deletion."));
+					await MessageActions.DeleteMessagesAsync(channel, messages, new AutomaticModerationReason("automatic message deletion."));
 				}
 			}
 		}

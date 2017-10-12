@@ -8,7 +8,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attemps to find an <see cref="IInvite"/> on a guild.
 	/// </summary>
-	public class InviteTypeReader : TypeReader
+	public sealed class InviteTypeReader : TypeReader
 	{
 		/// <summary>
 		/// Checks for any invites matching the input code.

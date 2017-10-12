@@ -30,66 +30,66 @@ namespace Advobot.Commands.BotSettings
 				var validNum = (await Context.Client.GetGuildsAsync()).Count / 2500 + 1;
 				if (shardCount < validNum)
 				{
-					await MessageActions.SendErrorMessage(Context, new ErrorReason($"With the current amount of guilds the client has, the minimum shard number is: `{validNum}`."));
+					await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"With the current amount of guilds the client has, the minimum shard number is: `{validNum}`."));
 					return;
 				}
 
 				Context.BotSettings.ShardCount = (int)shardCount;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the shard amount to `{Context.BotSettings.ShardCount}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the shard amount to `{Context.BotSettings.ShardCount}`.");
 			}
 			[Command(nameof(IBotSettings.MessageCacheCount)), ShortAlias(nameof(IBotSettings.MessageCacheCount))]
 			public async Task CommandMessagecacheCount(uint cacheCount)
 			{
 				Context.BotSettings.MessageCacheCount = (int)cacheCount;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the message cache count to `{Context.BotSettings.MessageCacheCount}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the message cache count to `{Context.BotSettings.MessageCacheCount}`.");
 			}
 			[Command(nameof(IBotSettings.MaxUserGatherCount)), ShortAlias(nameof(IBotSettings.MaxUserGatherCount))]
 			public async Task CommandMaxUserGatherCount(uint userGatherCount)
 			{
 				Context.BotSettings.MaxUserGatherCount = (int)userGatherCount;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max user gather count to `{Context.BotSettings.MaxUserGatherCount}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the max user gather count to `{Context.BotSettings.MaxUserGatherCount}`.");
 			}
 			[Command(nameof(IBotSettings.MaxMessageGatherSize)), ShortAlias(nameof(IBotSettings.MaxMessageGatherSize))]
 			public async Task CommandMaxMessageGatherSize(uint messageGatherSize)
 			{
 				Context.BotSettings.MaxMessageGatherSize = (int)messageGatherSize;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max message gather size to `{Context.BotSettings.MaxMessageGatherSize}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the max message gather size to `{Context.BotSettings.MaxMessageGatherSize}`.");
 			}
 			[Command(nameof(IBotSettings.Prefix)), ShortAlias(nameof(IBotSettings.Prefix))]
 			public async Task CommandPrefix([VerifyStringLength(Target.Prefix)] string prefix)
 			{
 				Context.BotSettings.Prefix = prefix;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the prefix to `{Context.BotSettings.Prefix}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the prefix to `{Context.BotSettings.Prefix}`.");
 			}
 			[Command(nameof(IBotSettings.Game)), ShortAlias(nameof(IBotSettings.Game))]
 			public async Task CommandGame([VerifyStringLength(Target.Game)] string game)
 			{
 				Context.BotSettings.Game = game;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Game}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the game to `{Context.BotSettings.Game}`.");
 			}
 			[Command(nameof(IBotSettings.Stream)), ShortAlias(nameof(IBotSettings.Stream))]
 			public async Task CommandStream([VerifyStringLength(Target.Stream)] string stream)
 			{
 				if (!RegexActions.CheckIfInputIsAValidTwitchName(stream))
 				{
-					await MessageActions.SendErrorMessage(Context, new ErrorReason($"`{stream}` is not a valid Twitch stream name."));
+					await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"`{stream}` is not a valid Twitch stream name."));
 					return;
 				}
 
 				Context.BotSettings.Stream = stream;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Stream}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the game to `{Context.BotSettings.Stream}`.");
 			}
 			[Command(nameof(IBotSettings.AlwaysDownloadUsers)), ShortAlias(nameof(IBotSettings.AlwaysDownloadUsers))]
 			public async Task CommandAlwaysDownloadUsers(bool downloadUsers)
 			{
 				Context.BotSettings.AlwaysDownloadUsers = downloadUsers;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set always download users to `{Context.BotSettings.AlwaysDownloadUsers}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set always download users to `{Context.BotSettings.AlwaysDownloadUsers}`.");
 			}
 			[Command(nameof(IBotSettings.LogLevel)), ShortAlias(nameof(IBotSettings.LogLevel))]
 			public async Task CommandLogLevel(LogSeverity logLevel)
 			{
 				Context.BotSettings.LogLevel = logLevel;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the log level to `{Context.BotSettings.LogLevel.EnumName()}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the log level to `{Context.BotSettings.LogLevel.EnumName()}`.");
 			}
 		}
 		[Group(nameof(Clear)), ShortAlias(nameof(Clear))]
@@ -99,55 +99,55 @@ namespace Advobot.Commands.BotSettings
 			public async Task CommandShardCount()
 			{
 				Context.BotSettings.ShardCount = (await Context.Client.GetGuildsAsync()).Count / 2500 + 1;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the shard amount to `{Context.BotSettings.ShardCount}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the shard amount to `{Context.BotSettings.ShardCount}`.");
 			}
 			[Command(nameof(IBotSettings.MessageCacheCount)), ShortAlias(nameof(IBotSettings.MessageCacheCount))]
 			public async Task CommandMessagecacheCount()
 			{
 				Context.BotSettings.MessageCacheCount = -1;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the message cache count to `{Context.BotSettings.MessageCacheCount}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the message cache count to `{Context.BotSettings.MessageCacheCount}`.");
 			}
 			[Command(nameof(IBotSettings.MaxUserGatherCount)), ShortAlias(nameof(IBotSettings.MaxUserGatherCount))]
 			public async Task CommandMaxUserGatherCount()
 			{
 				Context.BotSettings.MaxUserGatherCount = -1;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max user gather count to `{Context.BotSettings.MaxUserGatherCount}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the max user gather count to `{Context.BotSettings.MaxUserGatherCount}`.");
 			}
 			[Command(nameof(IBotSettings.MaxMessageGatherSize)), ShortAlias(nameof(IBotSettings.MaxMessageGatherSize))]
 			public async Task CommandMaxMessageGatherSize()
 			{
 				Context.BotSettings.MaxMessageGatherSize = -1;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the max message gather size to `{Context.BotSettings.MaxMessageGatherSize}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the max message gather size to `{Context.BotSettings.MaxMessageGatherSize}`.");
 			}
 			[Command(nameof(IBotSettings.Prefix)), ShortAlias(nameof(IBotSettings.Prefix))]
 			public async Task CommandPrefix()
 			{
 				Context.BotSettings.Prefix = null;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the prefix to `{Context.BotSettings.Prefix}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the prefix to `{Context.BotSettings.Prefix}`.");
 			}
 			[Command(nameof(IBotSettings.Game)), ShortAlias(nameof(IBotSettings.Game))]
 			public async Task CommandGame()
 			{
 				Context.BotSettings.Game = null;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Game}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the game to `{Context.BotSettings.Game}`.");
 			}
 			[Command(nameof(IBotSettings.Stream)), ShortAlias(nameof(IBotSettings.Stream))]
 			public async Task CommandStream()
 			{
 				Context.BotSettings.Stream = null;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the game to `{Context.BotSettings.Stream}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the game to `{Context.BotSettings.Stream}`.");
 			}
 			[Command(nameof(IBotSettings.AlwaysDownloadUsers)), ShortAlias(nameof(IBotSettings.AlwaysDownloadUsers))]
 			public async Task CommandAlwaysDownloadUsers()
 			{
 				Context.BotSettings.AlwaysDownloadUsers = true;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set always download users to `{Context.BotSettings.AlwaysDownloadUsers}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set always download users to `{Context.BotSettings.AlwaysDownloadUsers}`.");
 			}
 			[Command(nameof(IBotSettings.LogLevel)), ShortAlias(nameof(IBotSettings.LogLevel))]
 			public async Task CommandLogLevel()
 			{
 				Context.BotSettings.LogLevel = LogSeverity.Warning;
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully set the log level to `{Context.BotSettings.LogLevel.EnumName()}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the log level to `{Context.BotSettings.LogLevel.EnumName()}`.");
 			}
 		}
 	}
@@ -162,25 +162,25 @@ namespace Advobot.Commands.BotSettings
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", GetActions.GetBotSettings().Select(x => x.Name))}`";
-			await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed("Setting Names", desc));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Setting Names", desc));
 		}
 		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
 		public async Task All()
 		{
-			var text = await Context.BotSettings.ToString(Context.Client);
-			await MessageActions.SendTextFile(Context.Channel, text, "Bot Settings", "Bot Settings");
+			var text = await Context.BotSettings.Format(Context.Client);
+			await MessageActions.SendTextFileAsync(Context.Channel, text, "Bot Settings", "Bot Settings");
 		}
 		[Command, Priority(0)]
 		public async Task Command([OverrideTypeReader(typeof(SettingTypeReader.BotSettingTypeReader))] PropertyInfo settingName)
 		{
-			var desc = await Context.BotSettings.ToString(Context.Client, settingName);
+			var desc = await Context.BotSettings.Format(Context.Client, settingName);
 			if (desc.Length <= Constants.MAX_DESCRIPTION_LENGTH)
 			{
-				await MessageActions.SendEmbedMessage(Context.Channel, new MyEmbed(settingName.Name, desc));
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed(settingName.Name, desc));
 			}
 			else
 			{
-				await MessageActions.SendTextFile(Context.Channel, desc, settingName.Name, settingName.Name);
+				await MessageActions.SendTextFileAsync(Context.Channel, desc, settingName.Name, settingName.Name);
 			}
 		}
 	}
@@ -195,7 +195,7 @@ namespace Advobot.Commands.BotSettings
 		public async Task Command([Remainder, VerifyStringLength(Target.Name)] string newName)
 		{
 			await Context.Client.CurrentUser.ModifyAsync(x => x.Username = newName);
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, $"Successfully changed my username to `{newName}`.");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed my username to `{newName}`.");
 		}
 	}
 
@@ -211,7 +211,7 @@ namespace Advobot.Commands.BotSettings
 			if (imageUrl?.Url == null)
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image());
-				await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully removed the bot's icon.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the bot's icon.");
 				return;
 			}
 
@@ -222,7 +222,7 @@ namespace Advobot.Commands.BotSettings
 				webClient.DownloadFileCompleted += async (sender, e) =>
 				{
 					await ClientActions.ModifyBotIconAsync(Context.Client, fileInfo);
-					await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully changed the bot's icon.");
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully changed the bot's icon.");
 					SavingAndLoadingActions.DeleteFile(fileInfo);
 				};
 			}
@@ -238,7 +238,7 @@ namespace Advobot.Commands.BotSettings
 		[Command]
 		public async Task Command()
 		{
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset all properties. Restarting now...");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully reset all properties. Restarting now...");
 			Config.Configuration[Config.ConfigKeys.Save_Path] = null;
 			Config.Configuration[Config.ConfigKeys.Bot_Key] = null;
 			Config.Configuration[Config.ConfigKeys.Bot_Id] = null;
@@ -256,7 +256,7 @@ namespace Advobot.Commands.BotSettings
 		[Command]
 		public async Task Command()
 		{
-			await MessageActions.MakeAndDeleteSecondaryMessage(Context, "Successfully reset the bot key. Shutting down now...");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully reset the bot key. Shutting down now...");
 			Config.Configuration[Config.ConfigKeys.Bot_Key] = null;
 			Config.Save();
 			ClientActions.RestartBot();
@@ -272,7 +272,7 @@ namespace Advobot.Commands.BotSettings
 		[Command]
 		public async Task Command()
 		{
-			await ClientActions.DisconnectBot(Context.Client);
+			await ClientActions.DisconnectBotAsync(Context.Client);
 		}
 	}
 

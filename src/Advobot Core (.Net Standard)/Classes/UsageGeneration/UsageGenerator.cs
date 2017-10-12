@@ -26,12 +26,12 @@ namespace Advobot.Classes.UsageGeneration
 		 *			}
 		 *		}
 		 *		[Command("b")]
-		 *		public async Task B(string text, uint dog)
+		 *		public async Task BAsync(string text, uint dog)
 		 *		{
 		 *			...
 		 *		}
 		 *		[Command()]
-		 *		public async Task C(int cat)
+		 *		public async Task CAsync(int cat)
 		 *		{
 		 *			...
 		 *		}

@@ -11,32 +11,16 @@ namespace Advobot.Services.Log.Loggers
 	{
 		internal BotLogger(ILogService logging, IServiceProvider provider) : base(logging, provider) { }
 
-		protected override void HookUpEvents()
-		{
-			if (_Client is DiscordSocketClient socketClient)
-			{
-				socketClient.Log += OnLogMessageSent;
-			}
-			else if (_Client is DiscordShardedClient shardedClient)
-			{
-				shardedClient.Log += OnLogMessageSent;
-			}
-			else
-			{
-				throw new ArgumentException($"Invalid client provided. Must be either a {nameof(DiscordSocketClient)} or a {nameof(DiscordShardedClient)}.");
-			}
-		}
-
 		/// <summary>
 		/// Logs system messages from the Discord .Net library.
 		/// </summary>
 		/// <param name="msg"></param>
 		/// <returns></returns>
-		internal Task OnLogMessageSent(LogMessage msg)
+		public Task OnLogMessageSent(LogMessage message)
 		{
-			if (!String.IsNullOrWhiteSpace(msg.Message))
+			if (!String.IsNullOrWhiteSpace(message.Message))
 			{
-				ConsoleActions.WriteLine(msg.Message, msg.Source);
+				ConsoleActions.WriteLine(message.Message, message.Source);
 			}
 			return Task.CompletedTask;
 		}

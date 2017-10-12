@@ -16,32 +16,12 @@ namespace Advobot.Services.Log.Loggers
 	{
 		internal UserLogger(ILogService logging, IServiceProvider provider) : base(logging, provider) { }
 
-		protected override void HookUpEvents()
-		{
-			if (_Client is DiscordSocketClient socketClient)
-			{
-				socketClient.UserJoined += OnUserJoined;
-				socketClient.UserLeft += OnUserLeft;
-				socketClient.UserUpdated += OnUserUpdated;
-			}
-			else if (_Client is DiscordShardedClient shardedClient)
-			{
-				shardedClient.UserJoined += OnUserJoined;
-				shardedClient.UserLeft += OnUserLeft;
-				shardedClient.UserUpdated += OnUserUpdated;
-			}
-			else
-			{
-				throw new ArgumentException($"Invalid client provided. Must be either a {nameof(DiscordSocketClient)} or a {nameof(DiscordShardedClient)}.");
-			}
-		}
-
 		/// <summary>
 		/// Checks for banned names and raid prevention, logs their join to the server log, or says the welcome message.
 		/// </summary>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		internal async Task OnUserJoined(SocketGuildUser user)
+		public async Task OnUserJoined(SocketGuildUser user)
 		{
 			_Logging.TotalUsers.Increment();
 			_Logging.UserJoins.Increment();
@@ -58,7 +38,7 @@ namespace Advobot.Services.Log.Loggers
 				else if (VerifyLogAction(guildSettings, LogAction.UserJoined))
 				{
 					var invite = "";
-					var inviteUserJoinedOn = await InviteActions.GetInviteUserJoinedOn(guildSettings, user);
+					var inviteUserJoinedOn = await InviteActions.GetInviteUserJoinedOnAsync(guildSettings, user);
 					if (inviteUserJoinedOn != null)
 					{
 						invite = $"**Invite:** {inviteUserJoinedOn.Code}";
@@ -74,15 +54,15 @@ namespace Advobot.Services.Log.Loggers
 					var embed = new MyEmbed(null, $"**ID:** {user.Id}\n{invite}\n{ageWarning}", Colors.JOIN)
 						.AddAuthor(user)
 						.AddFooter(user.IsBot ? "Bot Joined" : "User Joined");
-					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
+					await MessageActions.SendEmbedMessageAsync(guildSettings.ServerLog, embed);
 				}
 
-				await HandleJoiningUsersForRaidPrevention(guildSettings, user);
+				await HandleJoiningUsersForRaidPreventionAsync(guildSettings, user);
 
 				//Welcome message
 				if (guildSettings.WelcomeMessage != null)
 				{
-					await guildSettings.WelcomeMessage.Send(user);
+					await guildSettings.WelcomeMessage.SendAsync(user);
 				}
 			}
 		}
@@ -91,7 +71,7 @@ namespace Advobot.Services.Log.Loggers
 		/// </summary>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		internal async Task OnUserLeft(SocketGuildUser user)
+		public async Task OnUserLeft(SocketGuildUser user)
 		{
 			_Logging.TotalUsers.Decrement();
 			_Logging.UserLeaves.Increment();
@@ -121,13 +101,13 @@ namespace Advobot.Services.Log.Loggers
 					var embed = new MyEmbed(null, $"**ID:** {user.Id}\n{userStayLength}", Colors.LEAV)
 						.AddAuthor(user)
 						.AddFooter(user.IsBot ? "Bot Left" : "User Left");
-					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
+					await MessageActions.SendEmbedMessageAsync(guildSettings.ServerLog, embed);
 				}
 
 				//Goodbye message
 				if (guildSettings.GoodbyeMessage != null)
 				{
-					await guildSettings.GoodbyeMessage.Send(user);
+					await guildSettings.GoodbyeMessage.SendAsync(user);
 				}
 			}
 		}
@@ -137,7 +117,7 @@ namespace Advobot.Services.Log.Loggers
 		/// <param name="beforeUser"></param>
 		/// <param name="afterUser"></param>
 		/// <returns></returns>
-		internal async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
+		public async Task OnUserUpdated(SocketUser beforeUser, SocketUser afterUser)
 		{
 			if (_BotSettings.Pause || beforeUser.Username.CaseInsEquals(afterUser.Username))
 			{
@@ -155,17 +135,17 @@ namespace Advobot.Services.Log.Loggers
 						.AddField("Before:", "`" + beforeUser.Username + "`")
 						.AddField("After:", "`" + afterUser.Username + "`", false)
 						.AddFooter("Name Changed");
-					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
+					await MessageActions.SendEmbedMessageAsync(guildSettings.ServerLog, embed);
 				}
 			}
 		}
 
-		internal async Task HandleJoiningUsersForRaidPrevention(IGuildSettings guildSettings, IGuildUser user)
+		internal async Task HandleJoiningUsersForRaidPreventionAsync(IGuildSettings guildSettings, IGuildUser user)
 		{
 			var antiRaid = guildSettings.RaidPreventionDictionary[RaidType.Regular];
 			if (antiRaid != null && antiRaid.Enabled)
 			{
-				await antiRaid.RaidPreventionPunishment(guildSettings, user);
+				await antiRaid.PunishAsync(guildSettings, user);
 			}
 			var antiJoin = guildSettings.RaidPreventionDictionary[RaidType.RapidJoins];
 			if (antiJoin != null && antiJoin.Enabled)
@@ -176,13 +156,13 @@ namespace Advobot.Services.Log.Loggers
 					return;
 				}
 
-				await antiJoin.RaidPreventionPunishment(guildSettings, user);
+				await antiJoin.PunishAsync(guildSettings, user);
 				if (guildSettings.ServerLog == null)
 				{
 					return;
 				}
 
-				await MessageActions.SendEmbedMessage(guildSettings.ServerLog, new MyEmbed("Anti Rapid Join Mute", $"**User:** {user.FormatUser()}"));
+				await MessageActions.SendEmbedMessageAsync(guildSettings.ServerLog, new MyEmbed("Anti Rapid Join Mute", $"**User:** {user.FormatUser()}"));
 			}
 		}
 	}

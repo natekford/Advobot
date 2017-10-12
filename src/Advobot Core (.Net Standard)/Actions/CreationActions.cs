@@ -25,12 +25,12 @@ namespace Advobot.Actions
 		public static IServiceProvider CreateServicesAndServiceProvider()
 		{
 			return new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
-				.AddSingleton<CommandService> (CreateCommandService())
-				.AddSingleton<IBotSettings> (CreateBotSettings())
-				.AddSingleton<IDiscordClient> (x => CreateDiscordClient(x.GetRequiredService<IBotSettings>()))
+				.AddSingleton<CommandService>(CreateCommandService())
+				.AddSingleton<IBotSettings>(CreateBotSettings())
+				.AddSingleton<IDiscordClient>(x => CreateDiscordClient(x.GetRequiredService<IBotSettings>()))
 				.AddSingleton<IGuildSettingsService>(x => new GuildSettingsHolder(x))
-				.AddSingleton<ITimersService> (x => new Timers(x))
-				.AddSingleton<ILogService> (x => new Log(x)));
+				.AddSingleton<ITimersService>(x => new Timers(x))
+				.AddSingleton<ILogService>(x => new Log(x)));
 		}
 		/// <summary>
 		/// Returns <see cref="DiscordSocketClient"/> if shard count in <paramref name="botSettings"/> is 1. Else returns <see cref="DiscordShardedClient"/>.
@@ -92,7 +92,7 @@ namespace Advobot.Actions
 		/// <param name="guildSettingsType"></param>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		internal static async Task<IGuildSettings> CreateGuildSettings(IGuild guild)
+		internal static async Task<IGuildSettings> CreateGuildSettingsAsync(IGuild guild)
 		{
 			IGuildSettings guildSettings = null;
 			var fileInfo = GetActions.GetServerDirectoryFile(guild.Id, Constants.GUILD_SETTINGS_LOCATION);

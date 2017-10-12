@@ -51,7 +51,7 @@ namespace Advobot.Classes.SpamPrevention
 		{
 			TimeList.Clear();
 		}
-		public async Task RaidPreventionPunishment(IGuildSettings guildSettings, IGuildUser user)
+		public async Task PunishAsync(IGuildSettings guildSettings, IGuildUser user)
 		{
 			var giver = new AutomaticPunishmentGiver(0, null);
 			await giver.AutomaticallyPunishAsync(PunishmentType, user, guildSettings.MuteRole);

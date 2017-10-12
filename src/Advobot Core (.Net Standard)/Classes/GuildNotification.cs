@@ -15,6 +15,9 @@ namespace Advobot.Classes
 	/// </summary>
 	public class GuildNotification : ISetting
 	{
+		public const string USER_MENTION = "%USERMENTION%";
+		public const string USER_STRING = "%USER%";
+
 		[JsonProperty]
 		public string Content { get; }
 		[JsonProperty]
@@ -72,20 +75,20 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public async Task Send(IUser user)
+		public async Task SendAsync(IUser user)
 		{
 			var content = Content
-				.CaseInsReplace(Constants.USER_MENTION, user != null ? user.Mention : "Invalid User")
-				.CaseInsReplace(Constants.USER_STRING, user != null ? user.FormatUser() : "Invalid User");
+				.CaseInsReplace(USER_MENTION, user != null ? user.Mention : "Invalid User")
+				.CaseInsReplace(USER_STRING, user != null ? user.FormatUser() : "Invalid User");
 			//Put a zero length character in between invite links for names so the invite links will no longer embed
 
 			if (Embed != null)
 			{
-				await MessageActions.SendEmbedMessage(Channel, Embed, content);
+				await MessageActions.SendEmbedMessageAsync(Channel, Embed, content);
 			}
 			else
 			{
-				await MessageActions.SendMessage(Channel, content);
+				await MessageActions.SendMessageAsync(Channel, content);
 			}
 		}
 		/// <summary>

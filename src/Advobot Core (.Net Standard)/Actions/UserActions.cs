@@ -43,21 +43,21 @@ namespace Advobot.Actions
 		{
 			return (guild as SocketGuild).CurrentUser;
 		}
-		public static async Task<IUser> GetBotOwner(IDiscordClient client)
+		public static async Task<IUser> GetBotOwnerAsync(IDiscordClient client)
 		{
 			return (await client.GetApplicationInfoAsync()).Owner;
 		}
 
-		public static async Task<IEnumerable<IGuildUser>> GetUsersTheBotAndUserCanEdit(ICommandContext context)
+		public static async Task<IEnumerable<IGuildUser>> GetUsersTheBotAndUserCanEditAsync(ICommandContext context)
 		{
 			return (await context.Guild.GetUsersAsync()).Where(x => x.CanBeModifiedByUser(context.User) && x.CanBeModifiedByUser(GetBot(context.Guild)));
 		}
 
-		public static async Task ChangeNickname(this IGuildUser user, string newNickname, ModerationReason reason)
+		public static async Task ChangeNicknameAsync(this IGuildUser user, string newNickname, ModerationReason reason)
 		{
 			await user.ModifyAsync(x => x.Nickname = newNickname ?? user.Username, reason.CreateRequestOptions());
 		}
-		public static async Task MoveUser(this IGuildUser user, IVoiceChannel channel, ModerationReason reason)
+		public static async Task MoveUserAsync(this IGuildUser user, IVoiceChannel channel, ModerationReason reason)
 		{
 			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), reason.CreateRequestOptions());
 		}

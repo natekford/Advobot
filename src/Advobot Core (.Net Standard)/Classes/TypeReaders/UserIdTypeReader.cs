@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Advobot.Classes.TypeReaders
 {
-	public class UserIdTypeReader : TypeReader
+	/// <summary>
+	/// Attempts to get a user id.
+	/// </summary>
+	public sealed class UserIdTypeReader : TypeReader
 	{
 		/// <summary>
 		/// Checks for a valid user first, then checks for a ulong.

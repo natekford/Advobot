@@ -10,7 +10,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to get a ulong representing guild permissions.
 	/// </summary>
-	public class GuildPermissionsTypeReader : TypeReader
+	public sealed class GuildPermissionsTypeReader : TypeReader
 	{
 		/// <summary>
 		/// Checks for valid ulong first, then checks permission names.

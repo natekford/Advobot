@@ -41,13 +41,13 @@ namespace Advobot.Interfaces
 		/// </summary>
 		/// <param name="client"></param>
 		/// <returns></returns>
-		Task<string> ToString(IDiscordClient client);
+		Task<string> Format(IDiscordClient client);
 		/// <summary>
 		/// Returns a string of a bot setting in human readable format.
 		/// </summary>
 		/// <param name="client"></param>
 		/// <param name="property"></param>
 		/// <returns></returns>
-		Task<string> ToString(IDiscordClient client, PropertyInfo property);
+		Task<string> Format(IDiscordClient client, PropertyInfo property);
 	}
 }

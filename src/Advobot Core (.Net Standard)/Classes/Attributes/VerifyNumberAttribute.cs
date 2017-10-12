@@ -1,6 +1,5 @@
 ﻿using Discord.Commands;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,7 +10,7 @@ namespace Advobot.Classes.Attributes
 	/// Makes sure the passed in number is in the supplied list.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter)]
-	internal sealed class VerifyNumberAttribute : ParameterPreconditionAttribute
+	public sealed class VerifyNumberAttribute : ParameterPreconditionAttribute
 	{
 		public readonly ImmutableList<int> ValidNumbers;
 

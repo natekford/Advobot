@@ -60,7 +60,7 @@ namespace Advobot.Actions
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static async Task<IGuildUser[]> GetUsersAndOrderByJoin(IGuild guild)
+		public static async Task<IGuildUser[]> GetUsersAndOrderByJoinAsync(IGuild guild)
 		{
 			return (await guild.GetUsersAsync()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToArray();
 		}
@@ -72,7 +72,7 @@ namespace Advobot.Actions
 		/// <param name="simulate"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> PruneUsers(IGuild guild, int days, bool simulate, ModerationReason reason)
+		public static async Task<int> PruneUsersAsync(IGuild guild, int days, bool simulate, ModerationReason reason)
 		{
 			return await guild.PruneUsersAsync(days, simulate, reason.CreateRequestOptions());
 		}
@@ -84,7 +84,7 @@ namespace Advobot.Actions
 		/// <param name="name"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildName(IGuild guild, string name, ModerationReason reason)
+		public static async Task ModifyGuildNameAsync(IGuild guild, string name, ModerationReason reason)
 		{
 			await guild.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions());
 		}
@@ -95,7 +95,7 @@ namespace Advobot.Actions
 		/// <param name="region"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildRegion(IGuild guild, string region, ModerationReason reason)
+		public static async Task ModifyGuildRegionAsync(IGuild guild, string region, ModerationReason reason)
 		{
 			await guild.ModifyAsync(x => x.RegionId = region, reason.CreateRequestOptions());
 		}
@@ -106,7 +106,7 @@ namespace Advobot.Actions
 		/// <param name="time"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildAFKTime(IGuild guild, int time, ModerationReason reason)
+		public static async Task ModifyGuildAFKTimeAsync(IGuild guild, int time, ModerationReason reason)
 		{
 			await guild.ModifyAsync(x => x.AfkTimeout = time, reason.CreateRequestOptions());
 		}
@@ -117,7 +117,7 @@ namespace Advobot.Actions
 		/// <param name="channel"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildAFKChannel(IGuild guild, IVoiceChannel channel, ModerationReason reason)
+		public static async Task ModifyGuildAFKChannelAsync(IGuild guild, IVoiceChannel channel, ModerationReason reason)
 		{
 			await guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), reason.CreateRequestOptions());
 		}
@@ -128,7 +128,7 @@ namespace Advobot.Actions
 		/// <param name="msgNotifs"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildDefaultMsgNotifications(IGuild guild, DefaultMessageNotifications msgNotifs, ModerationReason reason)
+		public static async Task ModifyGuildDefaultMsgNotificationsAsync(IGuild guild, DefaultMessageNotifications msgNotifs, ModerationReason reason)
 		{
 			await guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, reason.CreateRequestOptions());
 		}
@@ -139,7 +139,7 @@ namespace Advobot.Actions
 		/// <param name="verifLevel"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildVerificationLevel(IGuild guild, VerificationLevel verifLevel, ModerationReason reason)
+		public static async Task ModifyGuildVerificationLevelAsync(IGuild guild, VerificationLevel verifLevel, ModerationReason reason)
 		{
 			await guild.ModifyAsync(x => x.VerificationLevel = verifLevel, reason.CreateRequestOptions());
 		}
@@ -150,7 +150,7 @@ namespace Advobot.Actions
 		/// <param name="fileInfo"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task ModifyGuildIcon(IGuild guild, FileInfo fileInfo, ModerationReason reason)
+		public static async Task ModifyGuildIconAsync(IGuild guild, FileInfo fileInfo, ModerationReason reason)
 		{
 			using (var stream = new StreamReader(fileInfo.FullName))
 			{

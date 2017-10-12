@@ -96,12 +96,12 @@ namespace Advobot.Interfaces
 		/// Returns a string of all the guild's settings in human readable format.
 		/// </summary>
 		/// <returns></returns>
-		string ToString();
+		string Format();
 		/// <summary>
 		/// Returns a string of a guild setting in human readable format.
 		/// </summary>
 		/// <param name="property"></param>
 		/// <returns></returns>
-		string ToString(PropertyInfo property);
+		string Format(PropertyInfo property);
 	}
 }

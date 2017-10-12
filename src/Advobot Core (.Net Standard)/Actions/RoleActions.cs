@@ -61,7 +61,7 @@ namespace Advobot.Actions
 			return new VerifiedObjectResult(target, null, null);
 		}
 
-		public static async Task<IEnumerable<string>> ModifyRolePermissions(IRole role, PermValue permValue, ulong changeValue, IGuildUser user)
+		public static async Task<IEnumerable<string>> ModifyRolePermissionsAsync(IRole role, PermValue permValue, ulong changeValue, IGuildUser user)
 		{
 			//Only modify permissions the user has the ability to
 			changeValue &= user.GuildPermissions.RawValue;
@@ -85,10 +85,10 @@ namespace Advobot.Actions
 				}
 			}
 
-			await ModifyRolePermissions(role, roleBits, new ModerationReason(user, null));
+			await ModifyRolePermissionsAsync(role, roleBits, new ModerationReason(user, null));
 			return GuildPerms.ConvertValueToNames(changeValue);
 		}
-		public static async Task<int> ModifyRolePosition(IRole role, int position, ModerationReason reason)
+		public static async Task<int> ModifyRolePositionAsync(IRole role, int position, ModerationReason reason)
 		{
 			if (role == null)
 			{
@@ -118,28 +118,28 @@ namespace Advobot.Actions
 			await role.Guild.ReorderRolesAsync(reorderProperties, reason.CreateRequestOptions());
 			return reorderProperties.FirstOrDefault(x => x.Id == role.Id)?.Position ?? -1;
 		}
-		public static async Task ModifyRolePermissions(IRole role, ulong permissions, ModerationReason reason)
+		public static async Task ModifyRolePermissionsAsync(IRole role, ulong permissions, ModerationReason reason)
 		{
 			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), reason.CreateRequestOptions());
 		}
-		public static async Task ModifyRoleName(IRole role, string name, ModerationReason reason)
+		public static async Task ModifyRoleNameAsync(IRole role, string name, ModerationReason reason)
 		{
 			await role.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions());
 		}
-		public static async Task ModifyRoleColor(IRole role, Color color, ModerationReason reason)
+		public static async Task ModifyRoleColorAsync(IRole role, Color color, ModerationReason reason)
 		{
 			await role.ModifyAsync(x => x.Color = color, reason.CreateRequestOptions());
 		}
-		public static async Task ModifyRoleHoist(IRole role, ModerationReason reason)
+		public static async Task ModifyRoleHoistAsync(IRole role, ModerationReason reason)
 		{
 			await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, reason.CreateRequestOptions());
 		}
-		public static async Task ModifyRoleMentionability(IRole role, ModerationReason reason)
+		public static async Task ModifyRoleMentionabilityAsync(IRole role, ModerationReason reason)
 		{
 			await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, reason.CreateRequestOptions());
 		}
 
-		public static async Task<IRole> GetMuteRole(ICommandContext context, IGuildSettings guildSettings)
+		public static async Task<IRole> GetMuteRoleAsync(ICommandContext context, IGuildSettings guildSettings)
 		{
 			var muteRole = guildSettings.MuteRole;
 			if (!VerifyRoleMeetsRequirements(context, muteRole, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }).IsSuccess)
@@ -184,20 +184,20 @@ namespace Advobot.Actions
 
 			return muteRole;
 		}
-		public static async Task<IRole> CreateRole(IGuild guild, string name, ModerationReason reason)
+		public static async Task<IRole> CreateRoleAsync(IGuild guild, string name, ModerationReason reason)
 		{
 			return await guild.CreateRoleAsync(name, new GuildPermissions(0), options: reason.CreateRequestOptions());
 		}
-		public static async Task DeleteRole(IRole role, ModerationReason reason)
+		public static async Task DeleteRoleAsync(IRole role, ModerationReason reason)
 		{
 			await role.DeleteAsync(reason.CreateRequestOptions());
 		}
 
-		public static async Task GiveRoles(IGuildUser user, IEnumerable<IRole> roles, ModerationReason reason)
+		public static async Task GiveRolesAsync(IGuildUser user, IEnumerable<IRole> roles, ModerationReason reason)
 		{
 			await user.AddRolesAsync(roles, reason.CreateRequestOptions());
 		}
-		public static async Task TakeRoles(IGuildUser user, IEnumerable<IRole> roles, ModerationReason reason)
+		public static async Task TakeRolesAsync(IGuildUser user, IEnumerable<IRole> roles, ModerationReason reason)
 		{
 			await user.RemoveRolesAsync(roles, reason.CreateRequestOptions());
 		}

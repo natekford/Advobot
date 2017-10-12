@@ -14,7 +14,7 @@ namespace Advobot.Actions
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static async Task<IReadOnlyCollection<IInviteMetadata>> GetInvites(IGuild guild)
+		public static async Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(IGuild guild)
 		{
 			if (!(await guild.GetCurrentUserAsync()).GuildPermissions.ManageGuild)
 			{
@@ -29,7 +29,7 @@ namespace Advobot.Actions
 		/// <param name="guildSettings"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public static async Task<CachedInvite> GetInviteUserJoinedOn(IGuildSettings guildSettings, IGuildUser user)
+		public static async Task<CachedInvite> GetInviteUserJoinedOnAsync(IGuildSettings guildSettings, IGuildUser user)
 		{
 			CachedInvite joinInv = null;
 
@@ -39,7 +39,7 @@ namespace Advobot.Actions
 				return new CachedInvite("Invited by admin", 0);
 			}
 
-			var currentInvites = await GetInvites(user.Guild);
+			var currentInvites = await GetInvitesAsync(user.Guild);
 			var cachedInvites = guildSettings.Invites;
 			if (!currentInvites.Any())
 			{
@@ -87,7 +87,7 @@ namespace Advobot.Actions
 		/// <param name="isUnique"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<IInviteMetadata> CreateInvite(IGuildChannel channel, int? maxAge, int? maxUses, bool isTemporary,
+		public static async Task<IInviteMetadata> CreateInviteAsync(IGuildChannel channel, int? maxAge, int? maxUses, bool isTemporary,
 			bool isUnique, ModerationReason reason)
 		{
 			return await channel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, reason.CreateRequestOptions());
@@ -98,7 +98,7 @@ namespace Advobot.Actions
 		/// <param name="invite"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task DeleteInvite(IInvite invite, ModerationReason reason)
+		public static async Task DeleteInviteAsync(IInvite invite, ModerationReason reason)
 		{
 			await invite.DeleteAsync(reason.CreateRequestOptions());
 		}

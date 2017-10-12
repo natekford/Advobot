@@ -6,6 +6,7 @@ using Discord;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,6 +14,17 @@ namespace Advobot.Classes.UserInformation
 {
 	public class SpamPreventionUserInformation : UserInfo
 	{
+		//Because the enum values might change in the future. These are never saved in JSON so these can be modified
+		private static ImmutableDictionary<PunishmentType, int> _PunishmentSeverity = new Dictionary<PunishmentType, int>
+		{
+			{ PunishmentType.Deafen, 0 },
+			{ PunishmentType.VoiceMute, 100 },
+			{ PunishmentType.RoleMute, 250 },
+			{ PunishmentType.Kick, 500 },
+			{ PunishmentType.Softban, 750 },
+			{ PunishmentType.Ban, 1000 },
+		}.ToImmutableDictionary();
+
 		public ConcurrentBag<ulong> UsersWhoHaveAlreadyVoted = new ConcurrentBag<ulong>();
 		public Dictionary<SpamType, List<BasicTimeInterface>> SpamLists = new Dictionary<SpamType, List<BasicTimeInterface>>();
 
@@ -45,7 +57,7 @@ namespace Advobot.Classes.UserInformation
 		}
 		public void ChangePunishmentType(PunishmentType newPunishment)
 		{
-			if (Constants.PUNISHMENT_SEVERITY[newPunishment] > Constants.PUNISHMENT_SEVERITY[Punishment])
+			if (_PunishmentSeverity[newPunishment] > _PunishmentSeverity[Punishment])
 			{
 				Punishment = newPunishment;
 			}
@@ -67,7 +79,7 @@ namespace Advobot.Classes.UserInformation
 		{
 			return SpamLists[spamType].CountItemsInTimeFrame(spamPrev.RequiredSpamPerMessageOrTimeInterval) >= spamPrev.RequiredSpamInstances;
 		}
-		public async Task Punish(IGuildSettings guildSettings)
+		public async Task PunishAsync(IGuildSettings guildSettings)
 		{
 			var giver = new AutomaticPunishmentGiver(0, null);
 			await giver.AutomaticallyPunishAsync(Punishment, User, guildSettings.MuteRole);

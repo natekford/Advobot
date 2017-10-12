@@ -29,47 +29,27 @@ namespace Advobot.Services.Log.Loggers
 
 		internal MessageLogger(ILogService logging, IServiceProvider provider) : base(logging, provider) { }
 
-		protected override void HookUpEvents()
-		{
-			if (_Client is DiscordSocketClient socketClient)
-			{
-				socketClient.MessageReceived += OnMessageReceived;
-				socketClient.MessageUpdated += OnMessageUpdated;
-				socketClient.MessageDeleted += OnMessageDeleted;
-			}
-			else if (_Client is DiscordShardedClient shardedClient)
-			{
-				shardedClient.MessageReceived += OnMessageReceived;
-				shardedClient.MessageUpdated += OnMessageUpdated;
-				shardedClient.MessageDeleted += OnMessageDeleted;
-			}
-			else
-			{
-				throw new ArgumentException($"Invalid client provided. Must be either a {nameof(DiscordSocketClient)} or a {nameof(DiscordShardedClient)}.");
-			}
-		}
-
 		/// <summary>
 		/// Handles close quotes/help entries, image only channels, spam prevention, slowmode, banned phrases, and image logging.
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		internal async Task OnMessageReceived(SocketMessage message)
+		public async Task OnMessageReceived(SocketMessage message)
 		{
 			if (DisallowBots(message) &&
 				VerifyBotLogging(message, out var guildSettings))
 			{
 				//Allow closewords to be handled on an unlogged channel, but don't allow anything else.
-				await HandleCloseWords(guildSettings, message);
+				await HandleCloseWordsAsync(guildSettings, message);
 
 				if (VerifyLogAction(guildSettings, LogAction.MessageReceived))
 				{
 					var user = message.Author as IGuildUser;
-					await HandleChannelSettings(guildSettings, message, user);
-					await HandleSpamPrevention(guildSettings, message, user);
-					await HandleSlowmode(guildSettings, message, user);
-					await HandleBannedPhrases(guildSettings, message, user);
-					await HandleImageLogging(guildSettings, message);
+					await HandleChannelSettingsAsync(guildSettings, message, user);
+					await HandleSpamPreventionAsync(guildSettings, message, user);
+					await HandleSlowmodeAsync(guildSettings, message, user);
+					await HandleBannedPhrasesAsync(guildSettings, message, user);
+					await HandleImageLoggingAsync(guildSettings, message);
 				}
 			}
 		}
@@ -80,7 +60,7 @@ namespace Advobot.Services.Log.Loggers
 		/// <param name="message"></param>
 		/// <param name="channel"></param>
 		/// <returns></returns>
-		internal async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
+		public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
 		{
 			if (DisallowBots(message) &&
 				VerifyBotLogging(message, out var guildSettings) &&
@@ -89,14 +69,14 @@ namespace Advobot.Services.Log.Loggers
 				_Logging.MessageEdits.Increment();
 
 				var user = message.Author as IGuildUser;
-				await HandleBannedPhrases(guildSettings, message, user);
+				await HandleBannedPhrasesAsync(guildSettings, message, user);
 
 				//If the before message is not specified always take that as it should be logged.
 				//If the embed counts are greater take that as logging too.
 				var beforeMessage = cached.HasValue ? cached.Value : null;
 				if (guildSettings.ImageLog != null && beforeMessage?.Embeds.Count() < message.Embeds.Count())
 				{
-					await HandleImageLogging(guildSettings, message);
+					await HandleImageLoggingAsync(guildSettings, message);
 				}
 				if (guildSettings.ServerLog != null)
 				{
@@ -112,7 +92,7 @@ namespace Advobot.Services.Log.Loggers
 						.AddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
 						.AddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)
 						.AddFooter("Message Updated");
-					await MessageActions.SendEmbedMessage(guildSettings.ServerLog, embed);
+					await MessageActions.SendEmbedMessageAsync(guildSettings.ServerLog, embed);
 				}
 			}
 		}
@@ -123,7 +103,7 @@ namespace Advobot.Services.Log.Loggers
 		/// <param name="channel"></param>
 		/// <returns></returns>
 		/// <remarks>Very buggy command. Will not work when async. Task.Run in it will not work when awaited.</remarks>
-		internal Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
+		public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
 			//Ignore uncached messages since not much can be done with them
 			var message = cached.HasValue ? cached.Value : null;
@@ -170,7 +150,7 @@ namespace Advobot.Services.Log.Loggers
 
 					//Put the message content into a list of strings for easy usage
 					var formattedMessages = deletedMessages.OrderBy(x => x?.CreatedAt.Ticks).Select(x => x.FormatMessage());
-					await MessageActions.SendMessageContainingFormattedDeletedMessages(guildSettings.ServerLog, formattedMessages);
+					await MessageActions.SendMessageContainingFormattedDeletedMessagesAsync(guildSettings.ServerLog, formattedMessages);
 				});
 			}
 			return Task.FromResult(0);
@@ -182,7 +162,7 @@ namespace Advobot.Services.Log.Loggers
 		/// <param name="guildSettings"></param>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		private async Task HandleChannelSettings(IGuildSettings guildSettings, IMessage message, IGuildUser user)
+		private async Task HandleChannelSettingsAsync(IGuildSettings guildSettings, IMessage message, IGuildUser user)
 		{
 			if (user != null &&
 				!user.GuildPermissions.Administrator && 
@@ -198,7 +178,7 @@ namespace Advobot.Services.Log.Loggers
 		/// <param name="logChannel"></param>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		private async Task HandleImageLogging(IGuildSettings guildSettings, IMessage message)
+		private async Task HandleImageLoggingAsync(IGuildSettings guildSettings, IMessage message)
 		{
 			var attachmentURLs = message.Attachments.Select(x => x.Url).Distinct();
 			var embedURLs = new List<string>();
@@ -234,7 +214,7 @@ namespace Advobot.Services.Log.Loggers
 					var embed = new MyEmbed(null, desc, Colors.ATCH, attachmentURL)
 						.AddAuthor(message.Author, attachmentURL)
 						.AddFooter("Attached Image");
-					await MessageActions.SendEmbedMessage(guildSettings.ImageLog, embed);
+					await MessageActions.SendEmbedMessageAsync(guildSettings.ImageLog, embed);
 				}
 				else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL))) //Gif
 				{
@@ -242,7 +222,7 @@ namespace Advobot.Services.Log.Loggers
 					var embed = new MyEmbed(null, desc, Colors.ATCH, attachmentURL)
 						.AddAuthor(message.Author, attachmentURL)
 						.AddFooter("Attached Gif");
-					await MessageActions.SendEmbedMessage(guildSettings.ImageLog, embed);
+					await MessageActions.SendEmbedMessageAsync(guildSettings.ImageLog, embed);
 				}
 				else //Random file
 				{
@@ -250,7 +230,7 @@ namespace Advobot.Services.Log.Loggers
 					var embed = new MyEmbed(null, desc, Colors.ATCH, attachmentURL)
 						.AddAuthor(message.Author, attachmentURL)
 						.AddFooter("Attached File");
-					await MessageActions.SendEmbedMessage(guildSettings.ImageLog, embed);
+					await MessageActions.SendEmbedMessageAsync(guildSettings.ImageLog, embed);
 				}
 			}
 			foreach (var embedURL in embedURLs.Distinct()) //Images
@@ -259,7 +239,7 @@ namespace Advobot.Services.Log.Loggers
 				var embed = new MyEmbed(null, desc, Colors.ATCH, embedURL)
 					.AddAuthor(message.Author, embedURL)
 					.AddFooter("Embedded Image");
-				await MessageActions.SendEmbedMessage(guildSettings.ImageLog, embed);
+				await MessageActions.SendEmbedMessageAsync(guildSettings.ImageLog, embed);
 			}
 			foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First())) //Videos/Gifs
 			{
@@ -267,7 +247,7 @@ namespace Advobot.Services.Log.Loggers
 				var embed = new MyEmbed(null, desc, Colors.ATCH, videoEmbed.Thumbnail?.Url)
 					.AddAuthor(message.Author, videoEmbed.Url)
 					.AddFooter("Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
-				await MessageActions.SendEmbedMessage(guildSettings.ImageLog, embed);
+				await MessageActions.SendEmbedMessageAsync(guildSettings.ImageLog, embed);
 			}
 		}
 		/// <summary>
@@ -277,7 +257,7 @@ namespace Advobot.Services.Log.Loggers
 		/// <param name="message"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		private async Task HandleSlowmode(IGuildSettings guildSettings, IMessage message, IGuildUser user)
+		private async Task HandleSlowmodeAsync(IGuildSettings guildSettings, IMessage message, IGuildUser user)
 		{
 			//Don't bother doing stuff on the user if they're immune
 			var slowmode = guildSettings.Slowmode;
@@ -303,7 +283,7 @@ namespace Advobot.Services.Log.Loggers
 			}
 			else
 			{
-				await MessageActions.DeleteMessage(message);
+				await MessageActions.DeleteMessageAsync(message);
 			}
 		}
 		/// <summary>
@@ -314,7 +294,7 @@ namespace Advobot.Services.Log.Loggers
 		/// <param name="message"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		private async Task HandleCloseWords(IGuildSettings guildSettings, IMessage message)
+		private async Task HandleCloseWordsAsync(IGuildSettings guildSettings, IMessage message)
 		{
 			if (_Timers == null || !int.TryParse(message.Content, out int number) || number < 1 || number > 6)
 			{
@@ -329,19 +309,19 @@ namespace Advobot.Services.Log.Loggers
 
 			if (validQuote)
 			{
-				await MessageActions.SendMessage(message.Channel, quotes.List.ElementAt(number).Word.Description);
+				await MessageActions.SendMessageAsync(message.Channel, quotes.List.ElementAt(number).Word.Description);
 			}
 			if (validHelpEntry)
 			{
 				var help = helpEntries.List.ElementAt(number).Word;
 				var embed = new MyEmbed(help.Name, help.ToString())
 					.AddFooter("Help");
-				await MessageActions.SendEmbedMessage(message.Channel, embed);
+				await MessageActions.SendEmbedMessageAsync(message.Channel, embed);
 			}
 
 			if (validQuote || validHelpEntry)
 			{
-				await MessageActions.DeleteMessage(message);
+				await MessageActions.DeleteMessageAsync(message);
 			}
 		}
 		/// <summary>
@@ -353,7 +333,7 @@ namespace Advobot.Services.Log.Loggers
 		/// <param name="message"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		private async Task HandleSpamPrevention(IGuildSettings guildSettings, IMessage message, IGuildUser user)
+		private async Task HandleSpamPreventionAsync(IGuildSettings guildSettings, IMessage message, IGuildUser user)
 		{
 			//TODO: Make sure this works
 			if (user.CanBeModifiedByUser(UserActions.GetBot(user.Guild)))
@@ -387,7 +367,7 @@ namespace Advobot.Services.Log.Loggers
 					}
 
 					//Make sure they have the lowest vote count required to kick and the most severe punishment type
-					await MessageActions.DeleteMessage(message);
+					await MessageActions.DeleteMessageAsync(message);
 					spamUser.ChangeVotesRequired(spamPrev.VotesForKick);
 					spamUser.ChangePunishmentType(spamPrev.PunishmentType);
 					spamUser.EnablePunishable();
@@ -397,7 +377,7 @@ namespace Advobot.Services.Log.Loggers
 				if (spam)
 				{
 					var content = $"The user `{message.Author.FormatUser()}` needs `{spamUser.VotesRequired - spamUser.UsersWhoHaveAlreadyVoted.Count}` votes to be kicked. Vote by mentioning them.";
-					await MessageActions.MakeAndDeleteSecondaryMessage(message.Channel, null, content, 10, _Timers);
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(message.Channel, null, content, 10, _Timers);
 				}
 			}
 
@@ -421,7 +401,7 @@ namespace Advobot.Services.Log.Loggers
 					return;
 				}
 
-				await u.Punish(guildSettings);
+				await u.PunishAsync(guildSettings);
 
 				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
 				u.ResetSpamUser();
@@ -434,7 +414,7 @@ namespace Advobot.Services.Log.Loggers
 		/// <param name="message"></param>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		private async Task HandleBannedPhrases(IGuildSettings guildSettings, IMessage message, IGuildUser user)
+		private async Task HandleBannedPhrasesAsync(IGuildSettings guildSettings, IMessage message, IGuildUser user)
 		{
 			//Ignore admins and messages older than an hour. (Accidentally deleted something important once due to not having these checks in place, but this should stop most accidental deletions)
 			if (user.GuildPermissions.Administrator || (int)DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalHours > 0)
@@ -445,14 +425,14 @@ namespace Advobot.Services.Log.Loggers
 			var str = guildSettings.BannedPhraseStrings.FirstOrDefault(x => message.Content.CaseInsContains(x.Phrase));
 			if (str != null)
 			{
-				await str.HandleBannedPhrasePunishment(guildSettings, message, _Timers);
+				await str.PunishAsync(guildSettings, message, _Timers);
 				return;
 			}
 
 			var regex = guildSettings.BannedPhraseRegex.FirstOrDefault(x => RegexActions.CheckIfRegexMatch(message.Content, x.Phrase));
 			if (regex != null)
 			{
-				await regex.HandleBannedPhrasePunishment(guildSettings, message, _Timers);
+				await regex.PunishAsync(guildSettings, message, _Timers);
 				return;
 			}
 		}

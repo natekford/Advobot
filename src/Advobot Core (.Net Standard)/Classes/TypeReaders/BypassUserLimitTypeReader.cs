@@ -7,7 +7,7 @@ namespace Advobot.Classes.TypeReaders
 	/// <summary>
 	/// Attempts to see if the input matches <see cref="BYPASS_STRING"/>.
 	/// </summary>
-	internal class BypassUserLimitTypeReader : TypeReader
+	public sealed class BypassUserLimitTypeReader : TypeReader
 	{
 		internal const string BYPASS_STRING = "Bypass100";
 

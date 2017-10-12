@@ -421,7 +421,7 @@ namespace Advobot.Classes.Settings
 			CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			Invites.AddRange((await InviteActions.GetInvites(guild)).Select(x => new CachedInvite(x.Code, x.Uses)));
+			Invites.AddRange((await InviteActions.GetInvitesAsync(guild)).Select(x => new CachedInvite(x.Code, x.Uses)));
 
 			if (_ListedInvite != null)
 			{
@@ -446,7 +446,7 @@ namespace Advobot.Classes.Settings
 			return this;
 		}
 
-		public override string ToString()
+		public string Format()
 		{
 			var sb = new StringBuilder();
 			foreach (var property in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -457,7 +457,7 @@ namespace Advobot.Classes.Settings
 					continue;
 				}
 
-				var formatted = ToString(property);
+				var formatted = Format(property);
 				if (String.IsNullOrWhiteSpace(formatted))
 				{
 					continue;
@@ -469,7 +469,7 @@ namespace Advobot.Classes.Settings
 			}
 			return sb.ToString();
 		}
-		public string ToString(PropertyInfo property)
+		public string Format(PropertyInfo property)
 		{
 			return FormatObject(property.GetValue(this));
 		}

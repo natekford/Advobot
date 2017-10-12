@@ -25,26 +25,26 @@ namespace Advobot.Classes
 			}
 		}
 
-		public async Task TakeRoleFromManyUsers(IRole role, ModerationReason reason)
+		public async Task TakeRoleFromManyUsersAsync(IRole role, ModerationReason reason)
 		{
-			await DoAction(Action.GiveRole, role, $"take the role `{role.FormatRole()}` from", $"took the role `{role.FormatRole()} from", reason);
+			await DoActionAsync(Action.GiveRole, role, $"take the role `{role.FormatRole()}` from", $"took the role `{role.FormatRole()} from", reason);
 		}
-		public async Task GiveRoleToManyUsers(IRole role, ModerationReason reason)
+		public async Task GiveRoleToManyUsersAsync(IRole role, ModerationReason reason)
 		{
-			await DoAction(Action.GiveRole, role, $"give the role `{role.FormatRole()}` to", $"gave the role `{role.FormatRole()} to", reason);
+			await DoActionAsync(Action.GiveRole, role, $"give the role `{role.FormatRole()}` to", $"gave the role `{role.FormatRole()} to", reason);
 		}
-		public async Task NicknameManyUsers(string replace, ModerationReason reason)
+		public async Task NicknameManyUsersAsync(string replace, ModerationReason reason)
 		{
-			await DoAction(Action.Nickname, replace, "nickname", "nicknamed", reason);
+			await DoActionAsync(Action.Nickname, replace, "nickname", "nicknamed", reason);
 		}
-		public async Task MoveManyUsers(IVoiceChannel outputChannel, ModerationReason reason)
+		public async Task MoveManyUsersAsync(IVoiceChannel outputChannel, ModerationReason reason)
 		{
-			await DoAction(Action.Move, outputChannel, "move", "moved", reason);
+			await DoActionAsync(Action.Move, outputChannel, "move", "moved", reason);
 		}
 
-		private async Task DoAction(Action action, object obj, string presentTense, string pastTense, ModerationReason reason)
+		private async Task DoActionAsync(Action action, object obj, string presentTense, string pastTense, ModerationReason reason)
 		{
-			var msg = await MessageActions.SendMessage(_Context.Channel, $"Attempting to {presentTense} `{_Users.Count}` users.");
+			var msg = await MessageActions.SendMessageAsync(_Context.Channel, $"Attempting to {presentTense} `{_Users.Count}` users.");
 			for (int i = 0; i < _Users.Count; ++i)
 			{
 				if (i % 10 == 0)
@@ -58,29 +58,29 @@ namespace Advobot.Classes
 				{
 					case Action.GiveRole:
 					{
-						await RoleActions.GiveRoles(_Users[i], new[] { obj as IRole }, reason);
+						await RoleActions.GiveRolesAsync(_Users[i], new[] { obj as IRole }, reason);
 						continue;
 					}
 					case Action.TakeRole:
 					{
-						await RoleActions.TakeRoles(_Users[i], new[] { obj as IRole }, reason);
+						await RoleActions.TakeRolesAsync(_Users[i], new[] { obj as IRole }, reason);
 						continue;
 					}
 					case Action.Nickname:
 					{
-						await UserActions.ChangeNickname(_Users[i], obj as string, reason);
+						await UserActions.ChangeNicknameAsync(_Users[i], obj as string, reason);
 						continue;
 					}
 					case Action.Move:
 					{
-						await UserActions.MoveUser(_Users[i], obj as IVoiceChannel, reason);
+						await UserActions.MoveUserAsync(_Users[i], obj as IVoiceChannel, reason);
 						continue;
 					}
 				}
 			}
 
-			await MessageActions.DeleteMessage(msg);
-			await MessageActions.MakeAndDeleteSecondaryMessage(_Context, $"Successfully {pastTense} `{_Users.Count}` users.");
+			await MessageActions.DeleteMessageAsync(msg);
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(_Context, $"Successfully {pastTense} `{_Users.Count}` users.");
 		}
 
 		private enum Action

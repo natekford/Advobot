@@ -29,17 +29,17 @@ namespace Advobot.Classes
 			[CustomArgument] string authorUrl,
 			[CustomArgument] string footer,
 			[CustomArgument] string footerIconUrl,
-			[CustomArgument] params string[] fieldInfo_25)
+			[CustomArgument(25)] params string[] fieldInfo)
 		{
 			Embed = new MyEmbed(title, description, ColorTypeReader.GetColor(color), imageUrl, url, thumbUrl)
 				.AddAuthor(authorName, authorIconUrl, authorUrl)
 				.AddFooter(footer, footerIconUrl);
 
 			//Fields are done is a very gross way
-			foreach (var fieldInfo in fieldInfo_25)
+			foreach (var f in fieldInfo)
 			{
 				//Split at max three since there are three parts to each field. Name, text, and inline.
-				var split = fieldInfo.Split(new[] { _SplitChar }, 3);
+				var split = f.Split(new[] { _SplitChar }, 3);
 				if (split.Length < 2)
 				{
 					continue;
