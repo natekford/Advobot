@@ -53,6 +53,7 @@ namespace Advobot.Classes.UsageGeneration
 
 			var sb = new StringBuilder();
 			GetAllNestedClassesAndMethods(classType, _Classes, _Methods, _Params);
+			RemoveDuplicateClasses(ref _Classes);
 			RemoveDuplicateMethods(ref _Methods);
 			RemoveDuplicateParameters(ref _Params);
 
@@ -185,11 +186,15 @@ namespace Advobot.Classes.UsageGeneration
 		}
 		private void RemoveDuplicateParameters(ref List<ParameterDetails> parameters)
 		{
+			/* Do remainder parameters need to have their deepness changed?
+			//If there are any remainders they have the same effective
+			//deepeness as the deepest non remainder since they're basically infinite
 			var deepest = parameters.Where(x => !x.IsRemainder).DefaultIfEmpty().Max(x => x?.Deepness ?? 0);
 			foreach (var p in parameters.Where(x => x.IsRemainder))
 			{
-				p.SetDeepness(deepest + 1);
+				p.SetDeepness(Math.Min(p.Deepness, deepest));
 			}
+			*/
 
 			var tempList = new List<ParameterDetails>();
 			foreach (var p in parameters)

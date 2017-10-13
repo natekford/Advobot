@@ -13,6 +13,7 @@ namespace Advobot.Classes.Attributes
 	public sealed class VerifyNumberAttribute : ParameterPreconditionAttribute
 	{
 		public readonly ImmutableList<int> ValidNumbers;
+		public readonly bool Range;
 
 		public VerifyNumberAttribute(params int[] numbers)
 		{
@@ -22,6 +23,7 @@ namespace Advobot.Classes.Attributes
 			}
 
 			ValidNumbers = numbers.OrderBy(x => x).ToImmutableList();
+			Range = false;
 		}
 		public VerifyNumberAttribute(bool soDiffOverloads, int start, int end)
 		{
@@ -31,6 +33,7 @@ namespace Advobot.Classes.Attributes
 			}
 
 			ValidNumbers = Enumerable.Range(start, end - start).ToImmutableList();
+			Range = true;
 		}
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
@@ -55,7 +58,7 @@ namespace Advobot.Classes.Attributes
 
 		public override string ToString()
 		{
-			if (ValidNumbers.Count <= 10)
+			if (!Range)
 			{
 				return $"({String.Join(", ", ValidNumbers)})";
 			}

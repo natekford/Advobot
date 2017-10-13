@@ -13,7 +13,8 @@ using System.Threading.Tasks;
 namespace Advobot.Commands.GuildModeration
 {
 	[Group(nameof(LeaveGuild)), TopLevelShortAlias(typeof(LeaveGuild))]
-	[Summary("Makes the bot leave the guild. Settings and preferences will be preserved.")]
+	[Summary("Makes the bot leave the guild. " +
+		"Settings and preferences will be preserved.")]
 	[OtherRequirement(Precondition.GuildOwner | Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	public sealed class LeaveGuild : AdvobotModuleBase
@@ -69,7 +70,7 @@ namespace Advobot.Commands.GuildModeration
 	}
 
 	[Group(nameof(ModifyGuildRegion)), TopLevelShortAlias(typeof(ModifyGuildRegion))]
-	[Summary("Shows or changes the guild's server region. Inputting nothing lists all valid region IDs.")]
+	[Summary("Shows or changes the guild's server region.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildRegion : AdvobotModuleBase
@@ -168,7 +169,8 @@ namespace Advobot.Commands.GuildModeration
 	}
 
 	[Group(nameof(ModifyGuildVerif)), TopLevelShortAlias(typeof(ModifyGuildVerif))]
-	[Summary("Changes the verification level. None is the most lenient (no requirements to type), extreme is the harshest (phone verification).")]
+	[Summary("Changes the verification level. " +
+		"None is the most lenient (no requirements to type), extreme is the harshest (phone verification).")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildVerif : AdvobotModuleBase
@@ -182,15 +184,23 @@ namespace Advobot.Commands.GuildModeration
 	}
 
 	[Group(nameof(ModifyGuildIcon)), TopLevelShortAlias(typeof(ModifyGuildIcon))]
-	[Summary("Changes the guild's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the guild's icon.")]
+	[Summary("Changes the guild's icon to the given image. " +
+		"The image must be smaller than 2.5MB. " +
+		"Inputting nothing removes the guild's icon.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageGuild }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyGuildIcon : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command([Optional] ImageUrl imageUrl)
+		public async Task Command([Optional, Remainder] string url)
 		{
-			if (imageUrl?.Url == null)
+			var imageUrl = new ImageUrl(Context, url);
+			if (imageUrl.HasErrors)
+			{
+				await MessageActions.SendErrorMessageAsync(Context, imageUrl.ErrorReason);
+				return;
+			}
+			else if (imageUrl.Url == null)
 			{
 				await Context.Guild.ModifyAsync(x => x.Icon = new Image());
 				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the guild's icon.");

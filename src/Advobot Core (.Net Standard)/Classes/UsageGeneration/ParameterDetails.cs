@@ -23,7 +23,6 @@ namespace Advobot.Classes.UsageGeneration
 			{ typeof(CommandSwitchTypeReader), typeof(CommandSwitch) },
 			{ typeof(EmoteTypeReader), typeof(IEmote) },
 			{ typeof(GuildPermissionsTypeReader), typeof(GuildPermissions) },
-			{ typeof(ImageUrlTypeReader), typeof(string) },
 			{ typeof(InviteTypeReader), typeof(IInvite) },
 			{ typeof(PruneTypeReader), typeof(string) },
 			{ typeof(SettingTypeReader.GuildSettingTypeReader), typeof(string) },

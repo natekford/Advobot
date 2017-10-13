@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Enums;
+using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
 using System;
@@ -38,7 +39,7 @@ namespace Advobot.Classes.Attributes
 
 		public override async Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			if (context is AdvobotCommandContext myContext)
+			if (context is IAdvobotCommandContext advobotCommandContext)
 			{
 				var user = context.User as IGuildUser;
 				var permissions = (Requirements & Precondition.UserHasAPerm) != 0;
@@ -49,7 +50,7 @@ namespace Advobot.Classes.Attributes
 				if (permissions)
 				{
 					var guildBits = user.GuildPermissions.RawValue;
-					var botBits = myContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
+					var botBits = advobotCommandContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
 
 					var userPerms = guildBits | botBits;
 					if ((userPerms & PERMISSION_BITS) != 0)
@@ -57,15 +58,15 @@ namespace Advobot.Classes.Attributes
 						return PreconditionResult.FromSuccess();
 					}
 				}
-				if (guildOwner && myContext.Guild.OwnerId == user.Id)
+				if (guildOwner && advobotCommandContext.Guild.OwnerId == user.Id)
 				{
 					return PreconditionResult.FromSuccess();
 				}
-				if (trustedUser && myContext.BotSettings.TrustedUsers.Contains(user.Id))
+				if (trustedUser && advobotCommandContext.BotSettings.TrustedUsers.Contains(user.Id))
 				{
 					return PreconditionResult.FromSuccess();
 				}
-				if (botOwner && (await UserActions.GetBotOwnerAsync(myContext.Client)).Id == user.Id)
+				if (botOwner && (await UserActions.GetBotOwnerAsync(advobotCommandContext.Client)).Id == user.Id)
 				{
 					return PreconditionResult.FromSuccess();
 				}

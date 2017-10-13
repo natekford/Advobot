@@ -16,7 +16,9 @@ using System.Threading.Tasks;
 namespace Advobot.Commands.BotSettings
 {
 	[Group(nameof(ModifyBotSettings)), TopLevelShortAlias(typeof(ModifyBotSettings))]
-	[Summary("Modify the given setting on the bot. Show lists the setting names. Clear resets a setting back to default. Cannot modify settings which are lists through this command.")]
+	[Summary("Modify the given setting on the bot. Show lists the setting names. " +
+		"Clear resets a setting back to default. " +
+		"Cannot modify settings through this command if they are lists.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotSettings : SavingModuleBase
@@ -153,18 +155,19 @@ namespace Advobot.Commands.BotSettings
 	}
 
 	[Group(nameof(DisplayBotSettings)), TopLevelShortAlias(typeof(DisplayBotSettings))]
-	[Summary("Displays global settings. Show gives a list of the setting names.")]
+	[Summary("Displays global settings. " +
+		"Show gives a list of the setting names.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayBotSettings : AdvobotModuleBase
 	{
-		[Command(nameof(Show)), ShortAlias(nameof(Show)), Priority(1)]
+		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", GetActions.GetBotSettings().Select(x => x.Name))}`";
 			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Setting Names", desc));
 		}
-		[Command(nameof(All)), ShortAlias(nameof(All)), Priority(1)]
+		[Command(nameof(All)), ShortAlias(nameof(All))]
 		public async Task All()
 		{
 			var text = await Context.BotSettings.Format(Context.Client);
@@ -200,22 +203,30 @@ namespace Advobot.Commands.BotSettings
 	}
 
 	[Group(nameof(ModifyBotIcon)), TopLevelShortAlias(typeof(ModifyBotIcon))]
-	[Summary("Changes the bot's icon to the given image. The image must be smaller than 2.5MB. Inputting nothing removes the bot's icon.")]
+	[Summary("Changes the bot's icon to the given image. " +
+		"The image must be smaller than 2.5MB. " +
+		"Inputting nothing removes the bot's icon.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyBotIcon : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command([Optional] ImageUrl imageUrl)
+		public async Task Command([Optional, Remainder] string url)
 		{
-			if (imageUrl?.Url == null)
+			var imageUrl = new ImageUrl(Context, url);
+			if (imageUrl.HasErrors)
+			{
+				await MessageActions.SendErrorMessageAsync(Context, imageUrl.ErrorReason);
+				return;
+			}
+			else if (imageUrl.Url == null)
 			{
 				await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image());
 				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the bot's icon.");
 				return;
 			}
 
-			var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_ICON_LOCATION + imageUrl.FileType);
+			var fileInfo = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.BOT_ICON_LOCATION + imageUrl.FileType);
 			using (var webClient = new WebClient())
 			{
 				webClient.DownloadFileAsync(imageUrl.Url, fileInfo.FullName);
@@ -230,7 +241,7 @@ namespace Advobot.Commands.BotSettings
 	}
 
 	[Group(nameof(ResetBotConfig)), TopLevelShortAlias(typeof(ResetBotConfig))]
-	[Summary("Resets bot key, bot Id, save path.")]
+	[Summary("Resets bot key, bot id, save path.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	public sealed class ResetBotConfig : AdvobotModuleBase
@@ -248,7 +259,7 @@ namespace Advobot.Commands.BotSettings
 	}
 
 	[Group(nameof(ResetBotKey)), TopLevelShortAlias(typeof(ResetBotKey))]
-	[Summary("Remove's the currently used bot's key so that a different bot can be used instead.")]
+	[Summary("Removes the currently used bot's key so that a different bot can be used instead.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	public sealed class ResetBotKey : AdvobotModuleBase

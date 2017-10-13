@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions.Formatting;
 using Advobot.Classes.Permissions;
+using Advobot.Interfaces;
 using Discord;
 using Discord.Commands;
 using System;
@@ -47,11 +48,11 @@ namespace Advobot.Classes.Attributes
 
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
 		{
-			if (context is AdvobotCommandContext myContext)
+			if (context is IAdvobotCommandContext advobotCommandContext)
 			{
 				var user = context.User as IGuildUser;
 				var guildBits = user.GuildPermissions.RawValue;
-				var botBits = myContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
+				var botBits = advobotCommandContext.GuildSettings.BotUsers.FirstOrDefault(x => x.UserId == user.Id)?.Permissions ?? 0;
 				var userPerms = guildBits | botBits;
 
 				var all = _AllFlags != 0 && (userPerms & _AllFlags) == _AllFlags;

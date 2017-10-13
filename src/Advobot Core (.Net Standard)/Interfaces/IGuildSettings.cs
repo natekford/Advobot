@@ -27,7 +27,7 @@ namespace Advobot.Interfaces
 		List<ulong> ImageOnlyChannels { get; set; }
 		List<BannedPhrase> BannedPhraseStrings { get; set; }
 		List<BannedPhrase> BannedPhraseRegex { get; set; }
-		List<BannedPhrase> BannedNamesForJoiningUsers { get; set; }
+		List<BannedPhrase> BannedPhraseNames { get; set; }
 		List<BannedPhrasePunishment> BannedPhrasePunishments { get; set; }
 		List<CommandSwitch> CommandSwitches { get; set; }
 		List<CommandOverride> CommandsDisabledOnUser { get; set; }

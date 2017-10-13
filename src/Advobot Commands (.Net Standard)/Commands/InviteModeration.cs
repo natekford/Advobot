@@ -1,8 +1,8 @@
 ﻿using Advobot.Actions;
-using Advobot.Classes.Attributes;
-using Advobot.Classes;
-using Advobot.Enums;
 using Advobot.Actions.Formatting;
+using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Enums;
 using Discord;
 using Discord.Commands;
 using System;
@@ -36,7 +36,10 @@ namespace Advobot.Commands.InviteModeration
 	}
 
 	[Group(nameof(CreateInvite)), TopLevelShortAlias(typeof(CreateInvite))]
-	[Summary("Creates an invite on the given channel. No time specifies to not expire. No uses has no usage limit. Temp membership means when the user goes offline they get kicked.")]
+	[Summary("Creates an invite on the given channel. " +
+		"No time specifies to not expire. " +
+		"No uses has no usage limit. " +
+		"Temp membership means when the user goes offline they get kicked.")]
 	[PermissionRequirement(new[] { GuildPermission.CreateInstantInvite }, null)]
 	[DefaultEnabled(true)]
 	public sealed class CreateInvite : AdvobotModuleBase
@@ -72,71 +75,24 @@ namespace Advobot.Commands.InviteModeration
 		}
 	}
 
-	//TODO: convert to customarguments class usage
 	[Group(nameof(DeleteMultipleInvites)), TopLevelShortAlias(typeof(DeleteMultipleInvites))]
-	[Summary("Deletes all invites satisfying the given condition of either user, creation channel, use limit, or if it expires or not.")]
+	[Summary("Deletes all invites satisfying the given conditions. " +
+		"CountTarget parameters are either `Equal`, `Below`, or `Above`. " +
+		"IsTemporary, NeverExpires, and NoMaxUses are either `True`, or `False`.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(true)]
 	public sealed class DeleteMultipleInvites : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public async Task Command(IGuildUser user)
+		public async Task Command([Remainder] CustomArguments<MultipleInviteGatherer> gatherer)
 		{
-			await CommandRunner(user: user);
-		}
-		[Command(RunMode = RunMode.Async)]
-		public async Task Command(IGuildChannel channel)
-		{
-			await CommandRunner(channel: channel);
-		}
-		[Command(RunMode = RunMode.Async)]
-		public async Task Command(uint uses)
-		{
-			await CommandRunner(uses: uses);
-		}
-		[Command(RunMode = RunMode.Async)]
-		public async Task Command(bool expiry)
-		{
-			await CommandRunner(expiry: expiry);
-		}
-
-		//TODO: Put more options in this and other stuff
-		private async Task CommandRunner(IGuildUser user = null, IGuildChannel channel = null, uint? uses = null, bool? expiry = null)
-		{
-			var invites = (await Context.Guild.GetInvitesAsync()).AsEnumerable();
-			if (!invites.Any())
-			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild has no invites."));
-				return;
-			}
-
-			if (user != null)
-			{
-				invites = invites.Where(x => x.Inviter.Id == user.Id);
-			}
-			else if (channel != null)
-			{
-				invites = invites.Where(x => x.ChannelId == channel.Id);
-			}
-			else if (uses != null)
-			{
-				invites = invites.Where(x => x.MaxUses == uses);
-			}
-			else if (expiry != null)
-			{
-				invites = invites.Where(x => expiry.Value ? x.MaxAge != null : x.MaxAge == null);
-			}
-			else
-			{
-				return;
-			}
-
+			var invites = gatherer.CreateObject().GatherInvites(await Context.Guild.GetInvitesAsync());
 			if (!invites.Any())
 			{
 				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("No invites satisfied the given conditions."));
 				return;
 			}
-				
+
 			foreach (var invite in invites)
 			{
 				await InviteActions.DeleteInviteAsync(invite, new ModerationReason(Context.User, null));

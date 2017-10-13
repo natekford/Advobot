@@ -136,7 +136,8 @@ namespace Advobot.Commands.GuildSettings
 	}
 
 	[Group(nameof(ModifyIgnoredCommandChannels)), TopLevelShortAlias(typeof(ModifyIgnoredCommandChannels))]
-	[Summary("The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.")]
+	[Summary("The bot will ignore commands said on these channels. " +
+		"If a command is input then the bot will instead ignore only that command on the given channel.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
 	public sealed class ModifyIgnoredCommandChannels : SavingModuleBase
@@ -279,7 +280,7 @@ namespace Advobot.Commands.GuildSettings
 
 	//TODO: implement
 	[Group(nameof(ModifyPersistentRoles)), TopLevelShortAlias(typeof(ModifyPersistentRoles))]
-	[Summary("Gives a user a role that stays even when they leave and rejoin the server." +
+	[Summary("Gives a user a role that stays even when they leave and rejoin the server. " +
 		"Type `" + nameof(ModifyPersistentRoles) + " [Show]` to see the which users have persistent roles set up. " +
 		"Type `" + nameof(ModifyPersistentRoles) + " [Show] [User]` to see the persistent roles of that user.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
@@ -313,7 +314,8 @@ namespace Advobot.Commands.GuildSettings
 	}
 
 	[Group(nameof(ModifyChannelSettings)), TopLevelShortAlias(typeof(ModifyChannelSettings))]
-	[Summary("Image only works solely on attachments. No input channel means it applies to the current channel. Using the command on an already targetted channel turns it off.")]
+	[Summary("Image only works solely on attachments. " +
+		"Using the command on an already targetted channel turns it off.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageChannels }, null)]
 	[DefaultEnabled(false)]
 	public sealed class ModifyChannelSettings : SavingModuleBase
@@ -334,7 +336,6 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	//TODO: make sure this prints out correctly
 	[Group(nameof(ModifyGuildNotifs)), TopLevelShortAlias(typeof(ModifyGuildNotifs))]
 	[Summary("The bot send a message to the given channel when the self explantory event happens. " +
 		"`" + GuildNotification.USER_MENTION + "` will be replaced with the formatted user. " +
@@ -390,7 +391,7 @@ namespace Advobot.Commands.GuildSettings
 	}
 
 	[Group(nameof(DisplayGuildSettings)), TopLevelShortAlias(typeof(DisplayGuildSettings))]
-	[Summary("Displays guild settings. Show gives a list of the setting names.")]
+	[Summary("Displays guild settings.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayGuildSettings : AdvobotModuleBase
@@ -423,7 +424,7 @@ namespace Advobot.Commands.GuildSettings
 	}
 
 	[Group(nameof(GetFile)), TopLevelShortAlias(typeof(GetFile))]
-	[Summary("Sends the file containing all the guild's saved bot information.")]
+	[Summary("Sends the file containing all the guild's settings.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
 	public sealed class GetFile : AdvobotModuleBase
@@ -434,7 +435,7 @@ namespace Advobot.Commands.GuildSettings
 			var file = GetActions.GetServerDirectoryFile(Context.Guild.Id, Constants.GUILD_SETTINGS_LOCATION);
 			if (!file.Exists)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("The guild information file does not exist at this time."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("The guild settings file does not exist."));
 				return;
 			}
 			await Context.Channel.SendFileAsync(file.FullName);

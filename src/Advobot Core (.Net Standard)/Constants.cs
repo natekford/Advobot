@@ -82,6 +82,7 @@ namespace Advobot
 		public static int MAX_BANNED_STRINGS => 50;
 		public static int MAX_BANNED_REGEX => 25;
 		public static int MAX_BANNED_NAMES => 25;
+		public static int MAX_BANNED_PUNISHMENTS => 10;
 		public static int MAX_ICON_FILE_SIZE => 2500000;
 		public static int MAX_UTF16_VAL_FOR_NAMES => 1000;
 		public static int AMT_OF_DMS_TO_GATHER => 500;

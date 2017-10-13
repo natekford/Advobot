@@ -3,7 +3,7 @@
 namespace Advobot.Interfaces
 {
 	/// <summary>
-	/// Abstraction for <see cref="Classes.MyCommandContext"/>.
+	/// Abstraction for <see cref="Classes.AdvobotCommandContext"/>.
 	/// </summary>
 	public interface IAdvobotCommandContext : ICommandContext
 	{

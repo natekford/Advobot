@@ -42,8 +42,8 @@ namespace Advobot.Classes.Settings
 		private List<BannedPhrase> _BannedPhraseStrings = new List<BannedPhrase>();
 		[JsonProperty("BannedPhraseRegex")]
 		private List<BannedPhrase> _BannedPhraseRegex = new List<BannedPhrase>();
-		[JsonProperty("BannedNamesForJoiningUsers")]
-		private List<BannedPhrase> _BannedNamesForJoiningUsers = new List<BannedPhrase>();
+		[JsonProperty("BannedPhraseNames")]
+		private List<BannedPhrase> _BannedPhraseNames = new List<BannedPhrase>();
 		[JsonProperty("BannedPhrasePunishments")]
 		private List<BannedPhrasePunishment> _BannedPhrasePunishments = new List<BannedPhrasePunishment>();
 		[JsonProperty("CommandsDisabledOnUser")]
@@ -144,10 +144,10 @@ namespace Advobot.Classes.Settings
 			set => _BannedPhraseRegex = value;
 		}
 		[JsonIgnore]
-		public List<BannedPhrase> BannedNamesForJoiningUsers
+		public List<BannedPhrase> BannedPhraseNames
 		{
-			get => _BannedNamesForJoiningUsers ?? (_BannedNamesForJoiningUsers = new List<BannedPhrase>());
-			set => _BannedNamesForJoiningUsers = value;
+			get => _BannedPhraseNames ?? (_BannedPhraseNames = new List<BannedPhrase>());
+			set => _BannedPhraseNames = value;
 		}
 		[JsonIgnore]
 		public List<BannedPhrasePunishment> BannedPhrasePunishments

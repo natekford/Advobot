@@ -20,14 +20,22 @@ namespace Advobot.Classes.BannedPhrases
 		[JsonProperty]
 		private ulong RoleId;
 		[JsonIgnore]
-		private IRole Role;
+		private IRole _Role;
 
-		public BannedPhrasePunishment(PunishmentType punishment, int numberOfRemoves, int punishmentTime, ulong roleId = 0)
+		public BannedPhrasePunishment(PunishmentType punishment, int numberOfRemoves, int punishmentTime)
 		{
 			Punishment = punishment;
 			NumberOfRemoves = numberOfRemoves;
-			RoleId = roleId;
 			PunishmentTime = punishmentTime;
+			RoleId = 0;
+		}
+		public BannedPhrasePunishment(IRole role, int numberOfRemobes, int punishmentTime)
+		{
+			Punishment = PunishmentType.RoleMute;
+			NumberOfRemoves = numberOfRemobes;
+			PunishmentTime = punishmentTime;
+			RoleId = role.Id;
+			_Role = role;
 		}
 
 		/// <summary>
@@ -37,20 +45,20 @@ namespace Advobot.Classes.BannedPhrases
 		/// <returns></returns>
 		public IRole GetRole(SocketGuild guild)
 		{
-			return Role ?? (Role = guild.GetRole(RoleId));
+			return _Role ?? (_Role = guild.GetRole(RoleId));
 		}
 
 		public override string ToString()
 		{
 			var punishment = RoleId == 0 ? Punishment.EnumName() : RoleId.ToString();
-			var time = PunishmentTime == 0 ? "" : " `" + PunishmentTime + " minutes`";
-			return $"`{NumberOfRemoves.ToString("00")}.` `{punishment}`{time}";
+			var time = PunishmentTime == 0 ? "" : $" `{PunishmentTime} minutes`";
+			return $"`{NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
 		}
 		public string ToString(SocketGuild guild)
 		{
-			var punishment = RoleId == 0 ? Punishment.EnumName() : guild.GetRole(RoleId).Name;
-			var time = PunishmentTime == 0 ? "" : " `" + PunishmentTime + " minutes`";
-			return $"`{NumberOfRemoves.ToString("00")}.` `{punishment}`{time}";
+			var punishment = RoleId == 0 ? Punishment.EnumName() : GetRole(guild).Name;
+			var time = PunishmentTime == 0 ? "" : $" `{PunishmentTime} minutes`";
+			return $"`{NumberOfRemoves.ToString("00")}:` `{punishment}`{time}";
 		}
 	}
 }

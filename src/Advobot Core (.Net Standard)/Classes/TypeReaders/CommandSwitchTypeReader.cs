@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Advobot.Interfaces;
+using Discord.Commands;
 using System;
 using System.Threading.Tasks;
 
@@ -11,9 +12,9 @@ namespace Advobot.Classes.TypeReaders
 	{
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
-			if (context is AdvobotCommandContext myContext)
+			if (context is IAdvobotCommandContext advobotCommandContext)
 			{
-				var command = myContext.GuildSettings.GetCommand(input);
+				var command = advobotCommandContext.GuildSettings.GetCommand(input);
 				if (command != null)
 				{
 					return Task.FromResult(TypeReaderResult.FromSuccess(command));

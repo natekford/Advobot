@@ -70,7 +70,6 @@ namespace Advobot.Commands
 			_Commands.AddTypeReader(typeof(Emote), new EmoteTypeReader());
 			_Commands.AddTypeReader(typeof(Color), new ColorTypeReader());
 			_Commands.AddTypeReader(typeof(CommandSwitch), new CommandSwitchTypeReader());
-			_Commands.AddTypeReader(typeof(ImageUrl), new ImageUrlTypeReader());
 
 			//Add in all custom argument typereaders
 			var customArgumentsClasses = Assembly.GetAssembly(typeof(CustomArguments<>)).GetTypes()

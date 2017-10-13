@@ -29,7 +29,7 @@ namespace Advobot.Services.Log.Loggers
 			if (VerifyBotLogging(user, out var guildSettings))
 			{
 				//Bans people who join with a given word in their name
-				if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
+				if (guildSettings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase)))
 				{
 					var giver = new AutomaticPunishmentGiver(0, _Timers);
 					await giver.AutomaticallyPunishAsync(PunishmentType.Ban, user, null, "banned name");
@@ -85,7 +85,7 @@ namespace Advobot.Services.Log.Loggers
 			if (VerifyBotLogging(user, out var guildSettings))
 			{
 				//Don't log them to the server if they're someone who was just banned for joining with a banned name
-				if (guildSettings.BannedNamesForJoiningUsers.Any(x => user.Username.CaseInsContains(x.Phrase)))
+				if (guildSettings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase)))
 				{
 					return;
 				}

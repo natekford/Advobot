@@ -7,7 +7,6 @@ using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
 using Discord;
 using Discord.Commands;
-using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -15,7 +14,8 @@ using System.Threading.Tasks;
 namespace Advobot.Commands.UserModeration
 {
 	[Group(nameof(Mute)), TopLevelShortAlias(typeof(Mute))]
-	[Summary("Prevents a user from typing and speaking in the guild. Time is in minutes, and if no time is given then the mute will not expire.")]
+	[Summary("Prevents a user from typing and speaking in the guild. " +
+		"Time is in minutes, and if no time is given then the mute will not expire.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles, GuildPermission.ManageMessages }, null)]
 	[DefaultEnabled(true)]
 	public sealed class Mute : AdvobotModuleBase
@@ -39,7 +39,8 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	[Group(nameof(VoiceMute)), TopLevelShortAlias(typeof(VoiceMute))]
-	[Summary("Prevents a user from speaking. Time is in minutes, and if no time is given then the mute will not expire.")]
+	[Summary("Prevents a user from speaking. " +
+		"Time is in minutes, and if no time is given then the mute will not expire.")]
 	[PermissionRequirement(new[] { GuildPermission.MuteMembers }, null)]
 	[DefaultEnabled(true)]
 	public sealed class VoiceMute : AdvobotModuleBase
@@ -62,7 +63,8 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	[Group(nameof(Deafen)), TopLevelShortAlias(typeof(Deafen))]
-	[Summary("Prevents a user from hearing. Time is in minutes, and if no time is given then the mute will not expire.")]
+	[Summary("Prevents a user from hearing. " +
+		"Time is in minutes, and if no time is given then the mute will not expire.")]
 	[PermissionRequirement(new[] { GuildPermission.DeafenMembers }, null)]
 	[DefaultEnabled(true)]
 	public sealed class Deafen : AdvobotModuleBase
@@ -111,7 +113,8 @@ namespace Advobot.Commands.UserModeration
 
 	//TODO: put in cancel tokens for the commands that user bypass strings in case people need to cancel
 	[Group(nameof(MoveUsers)), TopLevelShortAlias(typeof(MoveUsers))]
-	[Summary("Moves all users from one channel to another. Max is 100 users per use unless the bypass string is said.")]
+	[Summary("Moves all users from one channel to another. " +
+		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.MoveMembers }, null)]
 	[DefaultEnabled(true)]
 	public sealed class MoveUsers : AdvobotModuleBase
@@ -127,7 +130,8 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	[Group(nameof(PruneUsers)), TopLevelShortAlias(typeof(PruneUsers))]
-	[Summary("Removes users who have no roles and have not been seen in the given amount of days. If the optional argument is not typed exactly, then the bot will only give a number of how many people will be kicked.")]
+	[Summary("Removes users who have no roles and have not been seen in the given amount of days. " +
+		"If the optional argument is not typed exactly, then the bot will only give a number of how many people will be kicked.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
 	public sealed class PruneUsers : AdvobotModuleBase
@@ -166,7 +170,8 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	[Group(nameof(Ban)), TopLevelShortAlias(typeof(Ban))]
-	[Summary("Bans the user from the guild. Time specifies how long and is in minutes.")]
+	[Summary("Bans the user from the guild. " +
+		"Time specifies how long and is in minutes.")]
 	[PermissionRequirement(new[] { GuildPermission.BanMembers }, null)]
 	[DefaultEnabled(true)]
 	public sealed class Ban : AdvobotModuleBase
@@ -314,7 +319,9 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	[Group(nameof(ModifySlowmode)), TopLevelShortAlias(typeof(ModifySlowmode))]
-	[Summary("First arg is how many messages can be sent in a timeframe. Second arg is the timeframe. Third arg is guildwide; true means yes, false means no. " +
+	[Summary("First arg is how many messages can be sent in a timeframe. " +
+		"Second arg is the timeframe. " +
+		"Third arg is guildwide; true means yes, false means no. " +
 		"Fourth are the list of roles that are immune to slowmode.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
@@ -353,7 +360,8 @@ namespace Advobot.Commands.UserModeration
 	}
 
 	[Group(nameof(ForAllWithRole)), TopLevelShortAlias(typeof(ForAllWithRole))]
-	[Summary("All actions but `TakeNickame` require the output role/nickname. Max is 100 users per use unless the bypass string is said.")]
+	[Summary("All actions but `TakeNickame` require the output role/nickname. " +
+		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
 	public sealed class ForAllWithRole : AdvobotModuleBase

@@ -16,19 +16,19 @@ namespace Advobot.Classes.Attributes
 	{
 		public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
 		{
-			if (context is AdvobotCommandContext myContext)
+			if (context is IAdvobotCommandContext advobotCommandContext)
 			{
 				var user = context.User as IGuildUser;
 
-				if (!UserActions.GetBot(myContext.Guild).GuildPermissions.Administrator)
+				if (!UserActions.GetBot(advobotCommandContext.Guild).GuildPermissions.Administrator)
 				{
 					return Task.FromResult(PreconditionResult.FromError($"This bot will not function without the `{nameof(GuildPermission.Administrator)}` permission."));
 				}
-				else if (!myContext.GuildSettings.Loaded)
+				else if (!advobotCommandContext.GuildSettings.Loaded)
 				{
 					return Task.FromResult(PreconditionResult.FromError("Wait until the guild is loaded."));
 				}
-				else if (myContext.GuildSettings.IgnoredCommandChannels.Contains(context.Channel.Id) || !CheckIfCommandIsEnabled(myContext, command, user))
+				else if (advobotCommandContext.GuildSettings.IgnoredCommandChannels.Contains(context.Channel.Id) || !CheckIfCommandIsEnabled(advobotCommandContext, command, user))
 				{
 					return Task.FromResult(PreconditionResult.FromError(Constants.IGNORE_ERROR));
 				}

@@ -75,7 +75,7 @@ namespace Advobot.Actions
 		/// <param name="channel">The channel to softdelete.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task SoftDeleteChannelAsync(ITextChannel channel, ModerationReason reason)
+		public static async Task SoftDeleteChannelAsync(IGuildChannel channel, ModerationReason reason)
 		{
 			var guild = channel.Guild;
 			foreach (var overwrite in channel.PermissionOverwrites)

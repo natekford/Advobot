@@ -38,5 +38,10 @@ namespace Advobot.Classes.UserInformation
 		{
 			_PunishmentVals[value] = 0;
 		}
+
+		public override string ToString()
+		{
+			return String.Join("/", _PunishmentVals.Select(x => $"{x.Value}{x.Key.EnumName()[0]}"));
+		}
 	}
 }
