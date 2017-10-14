@@ -114,8 +114,6 @@ namespace Advobot.Actions
 
 			var channelPerms = invokingUser.GetPermissions(target);
 			var guildPerms = invokingUser.GuildPermissions;
-
-			//TODO: Make sure this works when the enums are updated.
 			switch (type)
 			{
 				case ObjectVerification.CanBeRead:

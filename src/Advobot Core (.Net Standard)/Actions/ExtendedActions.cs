@@ -1,5 +1,6 @@
 ﻿using Advobot.Interfaces;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -267,54 +268,59 @@ namespace Advobot
 		/// Counts how many times something that implements <see cref="ITime"/> has occurred within a given timeframe.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="timeList"></param>
+		/// <param name="queue"></param>
 		/// <param name="timeFrame"></param>
 		/// <returns></returns>
-		public static int CountItemsInTimeFrame<T>(this List<T> timeList, int timeFrame = 0) where T : IHasTime
+		public static int CountItemsInTimeFrame<T>(this ConcurrentQueue<T> queue, int timeFrame = 0) where T : IHasTime
 		{
-			lock (timeList)
+			var timeList = new List<T>(queue);
+			//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
+			var listLength = timeList.Count;
+			if (timeFrame <= 0 || listLength < 2)
 			{
-				//No timeFrame given means that it's a spam prevention that doesn't check against time, like longmessage or mentions
-				var listLength = timeList.Count;
-				if (timeFrame <= 0 || listLength < 2)
-				{
-					return listLength;
-				}
+				return listLength;
+			}
 
-				//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
-				var count = 0;
-				for (int i = 0; i < listLength; ++i)
+			//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
+			var count = 0;
+			for (int i = 0; i < listLength; ++i)
+			{
+				for (int j = i + 1; j < listLength; ++j)
 				{
-					for (int j = i + 1; j < listLength; ++j)
-					{
-						if ((int)timeList[j].GetTime().Subtract(timeList[i].GetTime()).TotalSeconds < timeFrame)
-						{
-							continue;
-						}
-						//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
-						else if ((int)timeList[j].GetTime().Subtract(timeList[j - 1].GetTime()).TotalSeconds > timeFrame)
-						{
-							i = j;
-						}
-						break;
-					}
-				}
-
-				//Remove all that are older than the given timeframe (with an added 1 second margin)
-				var nowTime = DateTime.UtcNow;
-				for (int i = listLength - 1; i >= 0; --i)
-				{
-					if ((int)nowTime.Subtract(timeList[i].GetTime()).TotalSeconds < timeFrame + 1)
+					if ((int)(timeList[j].GetTime() - timeList[i].GetTime()).TotalSeconds < timeFrame)
 					{
 						continue;
 					}
-
-					timeList.RemoveRange(0, i + 1);
+					//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
+					else if ((int)(timeList[j].GetTime() - timeList[j - 1].GetTime()).TotalSeconds > timeFrame)
+					{
+						i = j;
+					}
 					break;
 				}
-
-				return count;
 			}
+
+			//Remove all that are older than the given timeframe (with an added 1 second margin)
+			//Do this because if they're too old then they cannot affect any spam prevention
+			//that relies on a timeframe
+			var nowTime = DateTime.UtcNow;
+			for (int i = listLength - 1; i >= 0; --i)
+			{
+				if ((int)(nowTime - timeList[i].GetTime()).TotalSeconds < timeFrame + 1)
+				{
+					//Make sure the queue and the list are looking at the same object
+					if (queue.TryPeek(out var peekResult) && peekResult.GetTime() == timeList[i].GetTime())
+					{
+						queue.TryDequeue(out var dequeueResult);
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			return count;
 		}
 
 		/// <summary>

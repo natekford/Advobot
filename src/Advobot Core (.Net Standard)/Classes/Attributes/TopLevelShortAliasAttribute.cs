@@ -14,7 +14,6 @@ namespace Advobot.Classes.Attributes
 	{
 		private static List<InitialismHolder> _AlreadyUsedInUpperMostClasses = new List<InitialismHolder>();
 
-		//TODO: make require type instead of name since type provides name and other useful? info
 		public TopLevelShortAliasAttribute(Type classType, params string[] otherAliases) : base(Shorten(classType, otherAliases)) { }
 
 		private static string[] Shorten(Type classType, string[] otherAliases)

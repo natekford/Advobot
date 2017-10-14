@@ -21,13 +21,13 @@ namespace Advobot.Classes
 		{
 			return _Messages.ToList();
 		}
-		public void SetList(List<IMessage> InList)
+		public void SetList(List<IMessage> newList)
 		{
-			_Messages = InList;
+			_Messages = newList;
 		}
-		public void AddToList(IMessage Item)
+		public void AddToList(IMessage item)
 		{
-			_Messages.Add(Item);
+			_Messages.Add(item);
 		}
 		public void ClearList()
 		{

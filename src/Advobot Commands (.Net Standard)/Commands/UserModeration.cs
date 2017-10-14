@@ -111,7 +111,6 @@ namespace Advobot.Commands.UserModeration
 		}
 	}
 
-	//TODO: put in cancel tokens for the commands that user bypass strings in case people need to cancel
 	[Group(nameof(MoveUsers)), TopLevelShortAlias(typeof(MoveUsers))]
 	[Summary("Moves all users from one channel to another. " +
 		"Max is 100 users per use unless the bypass string is said.")]
@@ -388,184 +387,20 @@ namespace Advobot.Commands.UserModeration
 			var users = (await UserActions.GetUsersTheBotAndUserCanEditAsync(Context)).Where(x => x.RoleIds.Contains(targetRole.Id));
 			await new MultiUserAction(Context, users, bypass).TakeRoleFromManyUsersAsync(takenRole, new ModerationReason(Context.User, null));
 		}
-	}
-	/*
-		//TODO: Split this up into separate commands
-		/*
-		[Command("forallwithrole")]
-		[Alias("fawr")]
-		[Usage("[Give_Role|GR|Take_Role|TR|Give_Nickname|GNN|Take_Nickname|TNN] [\"Role\"] <\"Role\"|\"Nickname\"> <" + Constants.BYPASS_STRING + ">")]
-		[Summary("Max is 100 users per use unless the bypass string is said. All actions but `Take_Nickame` require the output role/nickname.")]
-		[PermissionRequirement]
-		[DefaultEnabled(true)]
-		public async Task ForAllWithRole([Remainder] string input)
+		[Command(nameof(GiveNickname)), ShortAlias(nameof(GiveNickname))]
+		public async Task GiveNickname([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole targetRole,
+			[VerifyStringLength(Target.Nickname)] string nickname,
+			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			//Split arguments
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 4));
-			if (returnedArgs.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
-				return;
-			}
-			var actionStr = returnedArgs.Arguments[0];
-			var inputStr = returnedArgs.Arguments[1];
-			var outputStr = returnedArgs.Arguments[2];
-
-			if (!Enum.TryParse(actionStr, true, out FAWRType action))
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR(Constants.ACTION_ERROR));
-				return;
-			}
-			action = Actions.ClarifyFAWRType(action);
-
-			if (action != FAWRType.Take_Nickname)
-			{
-				if (returnedArgs.ArgCount < 3)
-				{
-					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR(Constants.ARGUMENTS_ERROR));
-					return;
-				}
-			}
-
-			//Input role
-			var returnedInputRole = Actions.GetRole(Context, new[] { RoleCheck.None }, false, inputStr);
-			if (returnedInputRole.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedInputRole);
-				return;
-			}
-			var inputRole = returnedInputRole.Object;
-
-			switch (action)
-			{
-				case FAWRType.Give_Role:
-				{
-					if (Actions.CaseInsEquals(inputStr, outputStr))
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("Cannot give the same role that is being gathered."));
-						return;
-					}
-					break;
-				}
-				case FAWRType.Give_Nickname:
-				{
-					if (outputStr.Length > Constants.MAX_NICKNAME_LENGTH)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR($"Nicknames cannot be longer than `{0}` charaters.", Constants.MAX_NICKNAME_LENGTH)));
-						return;
-					}
-					else if (outputStr.Length < Constants.MIN_NICKNAME_LENGTH)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR($"Nicknames cannot be less than `{0}` characters.", Constants.MIN_NICKNAME_LENGTH)));
-						return;
-					}
-					break;
-				}
-			}
-
-			//Get the amount of users allowed
-			var len = Actions.GetMaxNumOfUsersToGather(Context, returnedArgs.Arguments);
-			var users = (await Actions.GetUsersTheBotAndUserCanEdit(Context, (x => x.RoleIds.Contains(inputRole.Id)))).GetUpToAndIncludingMinNum(len);
-			var userCount = users.Count;
-			if (userCount == 0)
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("Unable to find any users with the input role that could be modified."));
-				return;
-			}
-
-			//Nickname stuff
-			switch (action)
-			{
-				case FAWRType.Give_Nickname:
-				{
-					Actions.RenicknameALotOfPeople(Context, users, outputStr).Forget();
-					return;
-				}
-				case FAWRType.Take_Nickname:
-				{
-					Actions.RenicknameALotOfPeople(Context, users, null).Forget();
-					return;
-				}
-			}
-
-			//Output role
-			var returnedOutputRole = Actions.GetRole(Context, new[] { RoleCheck.CanBeEdited, RoleCheck.IsEveryone }, false, outputStr);
-			if (returnedOutputRole.Reason != FailureReason.NotFailure)
-			{
-				await Actions.HandleObjectGettingErrors(Context, returnedOutputRole);
-				return;
-			}
-			var outputRole = returnedOutputRole.Object;
-
-			//Make sure the users trying to give role to don't have it and trying to take from do have it.
-			switch (action)
-			{
-				case FAWRType.Give_Role:
-				{
-					users = users.Where(x => !x.RoleIds.Contains(outputRole.Id)).ToList();
-					break;
-				}
-				case FAWRType.Take_Role:
-				{
-					users = users.Where(x => x.RoleIds.Contains(outputRole.Id)).ToList();
-					break;
-				}
-			}
-
-			var msg = await MessageActions.SendMessageAsync(Context, $"Attempted to edit `{0}` user{1}.", userCount, Actions.GetPlural(userCount))) as IUserMessage;
-			var typing = Context.Channel.EnterTypingState();
-			var count = 0;
-
-			Task.Run(async () =>
-			{
-				switch (action)
-				{
-					case FAWRType.Give_Role:
-					{
-						foreach (var user in users)
-						{
-							++count;
-							if (count % 10 == 0)
-							{
-								await msg.ModifyAsync(x => x.Content = $"ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
-								if (Context.Guild.GetRole(outputRole.Id) == null)
-								{
-									await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("The output role has been deleted."));
-									return;
-								}
-							}
-
-							await Actions.GiveRole(user, outputRole);
-						}
-
-						await MessageActions.SendMessageAsync(Context, $"Successfully gave the role `{0}` to `{1}` users.", outputRole.FormatRole(), count));
-						break;
-					}
-					case FAWRType.Take_Role:
-					{
-						foreach (var user in users)
-						{
-							++count;
-							if (count % 10 == 0)
-							{
-								await msg.ModifyAsync(x => x.Content = $"ETA on completion: `{0}` seconds.", (int)((userCount - count) * 1.2)));
-								if (Context.Guild.GetRole(outputRole.Id) == null)
-								{
-									await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("The output role has been deleted."));
-									return;
-								}
-							}
-
-							await Actions.TakeRole(user, outputRole);
-						}
-
-						await MessageActions.SendMessageAsync(Context, $"Successfully took the role `{0}` from `{1}` users.", outputRole.FormatRole(), count));
-						break;
-					}
-				}
-				typing.Dispose();
-				await msg.DeleteAsync();
-			}).Forget();
+			var users = (await UserActions.GetUsersTheBotAndUserCanEditAsync(Context)).Where(x => x.RoleIds.Contains(targetRole.Id));
+			await new MultiUserAction(Context, users, bypass).NicknameManyUsersAsync(nickname, new ModerationReason(Context.User, null));
 		}
-	}*/
+		[Command(nameof(TakeNickname)), ShortAlias(nameof(TakeNickname))]
+		public async Task TakeNickname([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole targetRole,
+			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
+		{
+			var users = (await UserActions.GetUsersTheBotAndUserCanEditAsync(Context)).Where(x => x.RoleIds.Contains(targetRole.Id));
+			await new MultiUserAction(Context, users, bypass).NicknameManyUsersAsync(null, new ModerationReason(Context.User, null));
+		}
+	}
 }

@@ -5,7 +5,7 @@ using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 namespace Advobot.Classes.SpamPrevention
@@ -24,14 +24,14 @@ namespace Advobot.Classes.SpamPrevention
 		[JsonProperty]
 		public bool Enabled { get; private set; }
 		[JsonIgnore]
-		public List<BasicTimeInterface> TimeList { get; }
+		public ConcurrentQueue<BasicTimeInterface> TimeList { get; }
 
 		private RaidPreventionInfo(PunishmentType punishmentType, int userCount, int interval)
 		{
 			PunishmentType = punishmentType;
 			UserCount = userCount;
 			Interval = interval;
-			TimeList = new List<BasicTimeInterface>();
+			TimeList = new ConcurrentQueue<BasicTimeInterface>();
 			Enabled = true;
 		}
 
@@ -41,15 +41,14 @@ namespace Advobot.Classes.SpamPrevention
 		}
 		public void Add(DateTime time)
 		{
-			TimeList.ThreadSafeAdd(new BasicTimeInterface(time));
-		}
-		public void Remove(DateTime time)
-		{
-			TimeList.ThreadSafeRemoveAll(x => x.GetTime().Equals(time));
+			TimeList.Enqueue(new BasicTimeInterface(time));
 		}
 		public void Reset()
 		{
-			TimeList.Clear();
+			while (!TimeList.IsEmpty)
+			{
+				TimeList.TryDequeue(out var dequeueResult);
+			}
 		}
 		public async Task PunishAsync(IGuildSettings guildSettings, IGuildUser user)
 		{

@@ -334,7 +334,6 @@ namespace Advobot.Services.Log.Loggers
 		/// <returns></returns>
 		private async Task HandleSpamPreventionAsync(IGuildSettings guildSettings, IMessage message, IGuildUser user)
 		{
-			//TODO: Make sure this works
 			if (user.CanBeModifiedByUser(UserActions.GetBot(user.Guild)))
 			{
 				var spamUser = _Timers.GetSpamPreventionUser(user);
@@ -357,7 +356,7 @@ namespace Advobot.Services.Log.Loggers
 					if ((_GetSpamNumberFuncs[spamType](message) ?? 0) >= spamPrev.RequiredSpamPerMessageOrTimeInterval &&
 						!userSpamList.Any(x => x.GetTime().Ticks == message.CreatedAt.UtcTicks))
 					{
-						userSpamList.ThreadSafeAdd(new BasicTimeInterface(message.CreatedAt.UtcDateTime));
+						userSpamList.Enqueue(new BasicTimeInterface(message.CreatedAt.UtcDateTime));
 					}
 
 					if (!spamUser.CheckIfAllowedToPunish(spamPrev, spamType))

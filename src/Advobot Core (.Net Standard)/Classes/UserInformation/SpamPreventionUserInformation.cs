@@ -26,7 +26,7 @@ namespace Advobot.Classes.UserInformation
 		}.ToImmutableDictionary();
 
 		public ConcurrentBag<ulong> UsersWhoHaveAlreadyVoted = new ConcurrentBag<ulong>();
-		public Dictionary<SpamType, List<BasicTimeInterface>> SpamLists = new Dictionary<SpamType, List<BasicTimeInterface>>();
+		public ConcurrentDictionary<SpamType, ConcurrentQueue<BasicTimeInterface>> SpamLists = new ConcurrentDictionary<SpamType, ConcurrentQueue<BasicTimeInterface>>();
 
 		public int VotesRequired { get; private set; } = int.MaxValue;
 		public bool PotentialPunishment { get; private set; } = false;
@@ -36,7 +36,7 @@ namespace Advobot.Classes.UserInformation
 		{
 			foreach (SpamType spamType in Enum.GetValues(typeof(SpamType)))
 			{
-				SpamLists.Add(spamType, new List<BasicTimeInterface>());
+				SpamLists.TryAdd(spamType, new ConcurrentQueue<BasicTimeInterface>());
 			}
 		}
 
@@ -68,7 +68,10 @@ namespace Advobot.Classes.UserInformation
 			UsersWhoHaveAlreadyVoted = new ConcurrentBag<ulong>();
 			foreach (var kvp in SpamLists)
 			{
-				kvp.Value.Clear();
+				while (!kvp.Value.IsEmpty)
+				{
+					kvp.Value.TryDequeue(out var dequeueResult);
+				}
 			}
 
 			VotesRequired = int.MaxValue;
