@@ -16,9 +16,9 @@ namespace Advobot.Classes
 		[JsonProperty]
 		public ulong RoleId { get; }
 
-		public PersistentRole(IUser user, IRole role)
+		public PersistentRole(ulong userId, IRole role)
 		{
-			UserId = user.Id;
+			UserId = userId;
 			RoleId = role.Id;
 		}
 
@@ -30,7 +30,7 @@ namespace Advobot.Classes
 		{
 			var user = guild.GetUser(UserId).FormatUser() ?? UserId.ToString();
 			var role = guild.GetRole(RoleId).FormatRole() ?? RoleId.ToString();
-			return $"**User:** `{user}`\n**Role:&& `{role}`";
+			return $"**User:** `{user}`\n**Role:** `{role}`";
 		}
 	}
 }

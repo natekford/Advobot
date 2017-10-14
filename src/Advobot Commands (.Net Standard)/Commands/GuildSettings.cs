@@ -7,6 +7,7 @@ using Advobot.Classes.TypeReaders;
 using Advobot.Enums;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -278,7 +279,6 @@ namespace Advobot.Commands.GuildSettings
 		}
 	}
 
-	//TODO: implement
 	[Group(nameof(ModifyPersistentRoles)), TopLevelShortAlias(typeof(ModifyPersistentRoles))]
 	[Summary("Gives a user a role that stays even when they leave and rejoin the server. " +
 		"Type `" + nameof(ModifyPersistentRoles) + " [Show]` to see the which users have persistent roles set up. " +
@@ -293,23 +293,91 @@ namespace Advobot.Commands.GuildSettings
 			[Command]
 			public async Task Command()
 			{
+				var roles = Context.GuildSettings.PersistentRoles;
+				if (!roles.Any())
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"The guild does not have any persistent roles.");
+					return;
+				}
 
+				var desc = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild));
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Persistent Roles", desc));
 			}
 			[Command]
 			public async Task Command(IUser user)
 			{
+				var roles = Context.GuildSettings.PersistentRoles.Where(x => x.UserId == user.Id);
+				if (!roles.Any())
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"The user `{user.FormatUser()}` does not have any persistent roles.");
+					return;
+				}
 
+				var desc = roles.FormatNumberedList("{0}", x => x.ToString(Context.Guild as SocketGuild));
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Persistent Roles", desc));
 			}
 		}
-		[Command(nameof(Add)), ShortAlias(nameof(Add))]
-		public async Task Add(IUser user, [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+		[Group(nameof(Add)), ShortAlias(nameof(Add))]
+		public sealed class Add : SavingModuleBase
 		{
-			
+			[Command, Priority(1)]
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user,
+				[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			{
+				await CommandRunner(user.Id, role);
+			}
+			[Command]
+			public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong userId,
+				[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			{
+				await CommandRunner(userId, role);
+			}
+
+			private async Task CommandRunner(ulong userId, IRole role)
+			{
+				var match = Context.GuildSettings.PersistentRoles.SingleOrDefault(x => x.UserId == userId && x.RoleId == role.Id);
+				if (match == null)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context,
+						$"A persistent role already exists for the user id {userId} with the role {role.FormatRole()}.");
+					return;
+				}
+
+				Context.GuildSettings.PersistentRoles.Add(new PersistentRole(userId, role));
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context,
+					$"Successfully added a persistent role for the user id {userId} with the role {role.FormatRole()}.");
+			}
 		}
-		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
-		public async Task Remove(IUser user, [VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+		[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
+		public sealed class Remove : SavingModuleBase
 		{
-			
+			[Command, Priority(1)]
+			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IUser user,
+				[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			{
+				await CommandRunner(user.Id, role);
+			}
+			[Command]
+			public async Task Command([OverrideTypeReader(typeof(UserIdTypeReader))] ulong userId,
+				[VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
+			{
+				await CommandRunner(userId, role);
+			}
+
+			private async Task CommandRunner(ulong userId, IRole role)
+			{
+				var match = Context.GuildSettings.PersistentRoles.SingleOrDefault(x => x.UserId == userId && x.RoleId == role.Id);
+				if (match == null)
+				{
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context,
+						$"No persistent role exists for the user id {userId} with the role {role.FormatRole()}.");
+					return;
+				}
+
+				Context.GuildSettings.PersistentRoles.Remove(match);
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context,
+					$"Successfully removed the persistent role for the user id {userId} with the role {role.FormatRole()}.");
+			}
 		}
 	}
 
