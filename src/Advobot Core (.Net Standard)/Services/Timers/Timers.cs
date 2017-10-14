@@ -17,7 +17,7 @@ using System.Timers;
 namespace Advobot.Services.Timers
 {
 	//I have absolutely no idea if this class works as intended under stress.
-	public sealed class Timers : ITimersService
+	internal sealed class Timers : ITimersService
 	{
 		private readonly PunishmentRemover _PunishmentRemover;
 		private readonly Timer _HourTimer = new Timer(60 * 60 * 1000);

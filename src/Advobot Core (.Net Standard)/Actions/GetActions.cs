@@ -18,17 +18,6 @@ namespace Advobot.Actions
 	public static class GetActions
 	{
 		/// <summary>
-		/// Returns the public fields in the Discord.Color struct as a name to color dictionary.
-		/// </summary>
-		/// <returns></returns>
-		public static Dictionary<string, Color> GetColorDictionary()
-		{
-			return typeof(Color).GetFields().Where(x => x.IsPublic).ToDictionary(
-				x => x.Name, 
-				x => (Color)x.GetValue(new Color()), 
-				StringComparer.OrdinalIgnoreCase);
-		}
-		/// <summary>
 		/// Returns all names of commands that are in specific category.
 		/// </summary>
 		/// <param name="category"></param>

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Services.Log.Loggers
 {
-	internal class GuildLogger : Logger, IGuildLogger
+	internal sealed class GuildLogger : Logger, IGuildLogger
 	{
 		internal GuildLogger(ILogService logging, IServiceProvider provider) : base(logging, provider) { }
 

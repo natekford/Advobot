@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Advobot.Services.InviteList
 {
-	public sealed class InviteList : IInviteListService
+	internal sealed class InviteList : IInviteListService
 	{
 		private List<ListedInvite> _ListedInvites;
 		public List<ListedInvite> ListedInvites => _ListedInvites ?? (_ListedInvites = new List<ListedInvite>());

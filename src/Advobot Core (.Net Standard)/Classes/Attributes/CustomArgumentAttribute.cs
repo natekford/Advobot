@@ -3,7 +3,7 @@
 namespace Advobot.Classes.Attributes
 {
 	/// <summary>
-	/// Only use on primitive non nullable types.
+	/// Only use on primitives (nullable allowed) or enums.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter)]
 	public class CustomArgumentAttribute : Attribute

@@ -1,13 +1,12 @@
 ﻿using Advobot.Actions;
 using Advobot.Interfaces;
 using Discord;
-using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
 
 namespace Advobot.Services.Log.Loggers
 {
-	internal class BotLogger : Logger, IBotLogger
+	internal sealed class BotLogger : Logger, IBotLogger
 	{
 		internal BotLogger(ILogService logging, IServiceProvider provider) : base(logging, provider) { }
 

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Services.GuildSettings
 {
-	public sealed class GuildSettingsHolder : IGuildSettingsService
+	internal sealed class GuildSettingsHolder : IGuildSettingsService
 	{
 		private readonly ConcurrentDictionary<ulong, IGuildSettings> _GuildSettings = new ConcurrentDictionary<ulong, IGuildSettings>();
 

@@ -70,8 +70,7 @@ namespace Advobot.Classes
 					_ParamsName = p.Name;
 				}
 
-				//Let params name fall down to here so that it can be shown when 
-				//ArgNames gets accessed by UsageGenerator
+				//Let params name fall down to here so that it can be shown when ArgNames gets accessed by UsageGenerator
 				argNames.Add(p.Name);
 			}
 			ArgNames = argNames.ToImmutableList();

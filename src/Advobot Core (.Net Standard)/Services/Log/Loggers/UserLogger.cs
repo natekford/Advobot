@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Services.Log.Loggers
 {
-	internal class UserLogger : Logger, IUserLogger
+	internal sealed class UserLogger : Logger, IUserLogger
 	{
 		internal UserLogger(ILogService logging, IServiceProvider provider) : base(logging, provider) { }
 

@@ -1,7 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Actions.Formatting;
 using Advobot.Classes;
-using Advobot.Classes.SpamPrevention;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
@@ -16,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Advobot.Services.Log.Loggers
 {
-	internal class MessageLogger : Logger, IMessageLogger
+	internal sealed class MessageLogger : Logger, IMessageLogger
 	{
 		private static Dictionary<SpamType, Func<IMessage, int?>> _GetSpamNumberFuncs = new Dictionary<SpamType, Func<IMessage, int?>>
 		{

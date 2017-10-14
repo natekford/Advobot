@@ -9,7 +9,7 @@ namespace Advobot
 	public static class CommandAssembly
 	{
 		private static Assembly _CMD_ASSEMBLY;
-		public static Assembly COMMAND_ASSEMBLY { get; } = _CMD_ASSEMBLY ?? (_CMD_ASSEMBLY = GetCommandAssembly());
+		public static Assembly COMMAND_ASSEMBLY => _CMD_ASSEMBLY ?? (_CMD_ASSEMBLY = GetCommandAssembly());
 
 		private static Assembly GetCommandAssembly()
 		{
