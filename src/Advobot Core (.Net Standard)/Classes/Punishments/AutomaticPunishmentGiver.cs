@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace Advobot.Classes.Punishments
 {
-	internal sealed class AutomaticPunishmentGiver : PunishmentGiver
+	public class AutomaticPunishmentGiver : PunishmentGiver
 	{
-		internal AutomaticPunishmentGiver(int time, ITimersService timers) : base(time, timers) { }
+		public AutomaticPunishmentGiver(int time, ITimersService timers) : base(time, timers) { }
 
-		internal async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IUser user, IRole role, [CallerMemberName] string reason = "")
+		public virtual async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IUser user, IRole role, [CallerMemberName] string reason = "")
 			=> await AutomaticallyPunishAsync(punishmentType, user as IGuildUser, role, reason);
-		internal async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IGuildUser user, IRole role, [CallerMemberName] string reason = "")
+		public virtual async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IGuildUser user, IRole role, [CallerMemberName] string reason = "")
 		{
 			var guild = user.GetGuild();
 			var bot = UserActions.GetBot(guild);

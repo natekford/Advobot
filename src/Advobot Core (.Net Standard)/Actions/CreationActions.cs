@@ -42,9 +42,9 @@ namespace Advobot.Actions
 			var config = new DiscordSocketConfig
 			{
 				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
-				MessageCacheSize = (int)botSettings.MessageCacheCount,
+				MessageCacheSize = botSettings.MessageCacheCount,
 				LogLevel = botSettings.LogLevel,
-				TotalShards = (int)botSettings.ShardCount,
+				TotalShards = botSettings.ShardCount,
 			};
 			return botSettings.ShardCount > 1 ? new DiscordShardedClient(config) : (IDiscordClient)new DiscordSocketClient(config);
 		}

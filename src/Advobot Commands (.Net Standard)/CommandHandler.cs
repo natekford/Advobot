@@ -41,30 +41,6 @@ namespace Advobot.Commands
 			_Timers = _Provider.GetService<ITimersService>();
 			_Logging = _Provider.GetService<ILogService>();
 
-			AddTypeReaders();
-
-			//Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
-			await _Commands.AddModulesAsync(Assembly.GetExecutingAssembly());
-
-			if (_Client is DiscordSocketClient socketClient)
-			{
-				socketClient.MessageReceived += HandleCommand;
-				socketClient.Connected += OnConnected;
-			}
-			else if (_Client is DiscordShardedClient shardedClient)
-			{
-				shardedClient.MessageReceived += HandleCommand;
-				shardedClient.Shards.Last().Connected += OnConnected;
-			}
-			else
-			{
-				throw new ArgumentException($"Invalid client supplied. Must be {nameof(DiscordSocketClient)} or {nameof(DiscordShardedClient)}.");
-			}
-
-			return _Client;
-		}
-		private static void AddTypeReaders()
-		{
 			_Commands.AddTypeReader(typeof(IInvite), new InviteTypeReader());
 			_Commands.AddTypeReader(typeof(IBan), new BanTypeReader());
 			_Commands.AddTypeReader(typeof(Emote), new EmoteTypeReader());
@@ -81,34 +57,73 @@ namespace Advobot.Commands
 				var tr = (TypeReader)Activator.CreateInstance(typeof(CustomArgumentsTypeReader<>).MakeGenericType(c));
 				_Commands.AddTypeReader(t, tr);
 			}
+
+			//Use executing assembly to get all of the commands from the core. Entry and Calling assembly give the launcher
+			await _Commands.AddModulesAsync(Assembly.GetExecutingAssembly());
+
+			if (_Client is DiscordSocketClient socketClient)
+			{
+				socketClient.Connected += OnConnected;
+				socketClient.UserJoined += OnUserJoined;
+				socketClient.UserLeft += OnUserLeft;
+				socketClient.MessageReceived += OnMessageReceived;
+				socketClient.MessageReceived += HandleCommand;
+			}
+			else if (_Client is DiscordShardedClient shardedClient)
+			{
+				shardedClient.Shards.Last().Connected += OnConnected;
+				shardedClient.UserJoined += OnUserJoined;
+				shardedClient.UserLeft += OnUserLeft;
+				shardedClient.MessageReceived += OnMessageReceived;
+				shardedClient.MessageReceived += HandleCommand;
+			}
+			else
+			{
+				throw new ArgumentException($"Invalid client supplied. Must be {nameof(DiscordSocketClient)} or {nameof(DiscordShardedClient)}.");
+			}
+
+			return _Client;
 		}
 
 		/// <summary>
-		/// Says some start up messages, updates the game, and restarts the bot if this is the first instance of the bot starting up.
+		/// Fires the <see cref="EventActions.OnConnected(IDiscordClient, IBotSettings)"/> method.
 		/// </summary>
 		/// <returns></returns>
 		private static async Task OnConnected()
 		{
-			if (_Loaded)
+			if (!_Loaded)
 			{
-				return;
+				await EventActions.OnConnected(_Client, _BotSettings);
+				_Loaded = true;
 			}
-
-			if (Config.Configuration[Config.ConfigKeys.Bot_Id] != _Client.CurrentUser.Id.ToString())
-			{
-				Config.Configuration[Config.ConfigKeys.Bot_Id] = _Client.CurrentUser.Id.ToString();
-				Config.Save();
-				ConsoleActions.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
-				ClientActions.RestartBot();
-			}
-
-			await ClientActions.UpdateGameAsync(_Client, _BotSettings);
-
-			ConsoleActions.WriteLine("The current bot prefix is: " + _BotSettings.Prefix);
-			ConsoleActions.WriteLine($"Bot took {DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds:n} milliseconds to start up.");
-			_Loaded = true;
 		}
-
+		/// <summary>
+		/// Fires the <see cref="EventActions.OnUserJoined(SocketGuildUser, IGuildSettings, ITimersService)"/> method.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		private static async Task OnUserJoined(SocketGuildUser user)
+		{
+			await EventActions.OnUserJoined(user, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers);
+		}
+		/// <summary>
+		/// Fires the <see cref="EventActions.OnUserLeft(SocketGuildUser, IGuildSettings, ITimersService)"/> method.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		private static async Task OnUserLeft(SocketGuildUser user)
+		{
+			await EventActions.OnUserLeft(user, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers);
+		}
+		/// <summary>
+		/// Fires the <see cref="EventActions.OnMessageReceived(SocketMessage, ITimersService)"/> method.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		private static async Task OnMessageReceived(SocketMessage message)
+		{
+			await EventActions.OnMessageReceived(message, _Timers);
+		}
 		/// <summary>
 		/// Attempts to find a matching command and fire it.
 		/// </summary>

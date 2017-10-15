@@ -17,15 +17,6 @@ namespace Advobot.Services.Log.Loggers
 {
 	internal sealed class MessageLogger : Logger, IMessageLogger
 	{
-		private static Dictionary<SpamType, Func<IMessage, int?>> _GetSpamNumberFuncs = new Dictionary<SpamType, Func<IMessage, int?>>
-		{
-			{ SpamType.Message,     (message) => int.MaxValue },
-			{ SpamType.LongMessage, (message) => message.Content?.Length },
-			{ SpamType.Link,        (message) => message.Content?.Split(' ')?.Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) },
-			{ SpamType.Image,       (message) => message.Attachments.Where(x => x.Height != null || x.Width != null).Count() + message.Embeds.Where(x => x.Image != null || x.Video != null).Count() },
-			{ SpamType.Mention,     (message) => message.MentionedUserIds.Distinct().Count() },
-		};
-
 		internal MessageLogger(ILogService logging, IServiceProvider provider) : base(logging, provider) { }
 
 		/// <summary>
@@ -35,22 +26,18 @@ namespace Advobot.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnMessageReceived(SocketMessage message)
 		{
-			if (DisallowBots(message) &&
-				VerifyBotLogging(message, out var guildSettings))
+			var logInstanceInfo = new LogInstanceInformation(_BotSettings, _GuildSettings, message, LogAction.MessageReceived);
+			if (!logInstanceInfo.IsValidToLog)
 			{
-				//Allow closewords to be handled on an unlogged channel, but don't allow anything else.
-				await HandleCloseWordsAsync(guildSettings, message);
-
-				if (VerifyLogAction(guildSettings, LogAction.MessageReceived))
-				{
-					var user = message.Author as IGuildUser;
-					await HandleChannelSettingsAsync(guildSettings, message, user);
-					await HandleSpamPreventionAsync(guildSettings, message, user);
-					await HandleSlowmodeAsync(guildSettings, message, user);
-					await HandleBannedPhrasesAsync(guildSettings, message, user);
-					await HandleImageLoggingAsync(guildSettings, message);
-				}
+				return;
 			}
+
+			var handler = new MessageHandler(logInstanceInfo, _Timers, _Logging);
+			await handler.HandleBannedPhrasesAsync();
+			await handler.HandleChannelSettingsAsync();
+			await handler.HandleImageLoggingAsync();
+			await handler.HandleSlowmodeAsync();
+			await handler.HandleSpamPreventionAsync();
 		}
 		/// <summary>
 		/// Logs the before and after message. Handles banned phrases on the after message.
@@ -61,38 +48,39 @@ namespace Advobot.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
 		{
-			if (DisallowBots(message) &&
-				VerifyBotLogging(message, out var guildSettings) &&
-				VerifyLogAction(guildSettings, LogAction.MessageUpdated))
+			_Logging.MessageEdits.Increment();
+
+			var logInstanceInfo = new LogInstanceInformation(_BotSettings, _GuildSettings, message, LogAction.MessageUpdated);
+			if (!logInstanceInfo.IsValidToLog)
 			{
-				_Logging.MessageEdits.Increment();
+				return;
+			}
 
-				var user = message.Author as IGuildUser;
-				await HandleBannedPhrasesAsync(guildSettings, message, user);
+			var handler = new MessageHandler(logInstanceInfo, _Timers, _Logging);
+			await handler.HandleBannedPhrasesAsync();
 
-				//If the before message is not specified always take that as it should be logged.
-				//If the embed counts are greater take that as logging too.
-				var beforeMessage = cached.HasValue ? cached.Value : null;
-				if (guildSettings.ImageLog != null && beforeMessage?.Embeds.Count() < message.Embeds.Count())
+			//If the before message is not specified always take that as it should be logged.
+			//If the embed counts are greater take that as logging too.
+			var beforeMessage = cached.HasValue ? cached.Value : null;
+			if (beforeMessage?.Embeds.Count() < message.Embeds.Count())
+			{
+				await handler.HandleImageLoggingAsync();
+			}
+			if (logInstanceInfo.HasServerLog)
+			{
+				var beforeMsgContent = (beforeMessage?.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
+				var afterMsgContent = (message.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
+				if (beforeMsgContent.Equals(afterMsgContent))
 				{
-					await HandleImageLoggingAsync(guildSettings, message);
+					return;
 				}
-				if (guildSettings.ServerLog != null)
-				{
-					var beforeMsgContent = (beforeMessage?.Content ?? "Unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
-					var afterMsgContent = (message.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
-					if (beforeMsgContent.Equals(afterMsgContent))
-					{
-						return;
-					}
 
-					var embed = new MyEmbed(null, null, Colors.MEDT)
-						.AddAuthor(message.Author)
-						.AddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
-						.AddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)
-						.AddFooter("Message Updated");
-					await MessageActions.SendEmbedMessageAsync(guildSettings.ServerLog, embed);
-				}
+				var embed = new MyEmbed(null, null, Colors.MEDT)
+					.AddAuthor(message.Author)
+					.AddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
+					.AddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)
+					.AddFooter("Message Updated");
+				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed);
 			}
 		}
 		/// <summary>
@@ -104,335 +92,63 @@ namespace Advobot.Services.Log.Loggers
 		/// <remarks>Very buggy command. Will not work when async. Task.Run in it will not work when awaited.</remarks>
 		public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
+			_Logging.MessageDeletes.Increment();
+
 			//Ignore uncached messages since not much can be done with them
 			var message = cached.HasValue ? cached.Value : null;
-			if (message != null &&
-				VerifyBotLogging(channel, out var guildSettings) &&
-				VerifyLogAction(guildSettings, LogAction.MessageDeleted))
+			if (message == null)
 			{
-				_Logging.MessageDeletes.Increment();
+				return Task.FromResult(0);
+			}
 
-				//Get the list of deleted messages it contains
-				var msgDeletion = guildSettings.MessageDeletion;
-				lock (msgDeletion)
+			var logInstanceInfo = new LogInstanceInformation(_BotSettings, _GuildSettings, message, LogAction.MessageUpdated);
+			if (!logInstanceInfo.IsValidToLog || !logInstanceInfo.HasServerLog)
+			{
+				return Task.FromResult(0);
+			}
+			
+			//Get the list of deleted messages it contains
+			var msgDeletion = logInstanceInfo.GuildSettings.MessageDeletion;
+			lock (msgDeletion)
+			{
+				msgDeletion.AddToList(message);
+			}
+
+			//Use a token so the messages do not get sent prematurely
+			var cancelToken = msgDeletion.CancelToken;
+			if (cancelToken != null)
+			{
+				cancelToken.Cancel();
+			}
+			msgDeletion.SetCancelToken(cancelToken = new CancellationTokenSource());
+
+			//I don't know why, but this doesn't run correctly when awaited and 
+			//it also doesn't work correctly when this method is made async. (sends messages one by one)
+			Task.Run(async () =>
+			{
+				try
 				{
-					msgDeletion.AddToList(message);
+					await Task.Delay(TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT), cancelToken.Token);
 				}
-
-				//Use a token so the messages do not get sent prematurely
-				var cancelToken = msgDeletion.CancelToken;
-				if (cancelToken != null)
-				{
-					cancelToken.Cancel();
-				}
-				msgDeletion.SetCancelToken(cancelToken = new CancellationTokenSource());
-
-				//I don't know why, but this doesn't run correctly when awaited and it also doesn't work correctly when this method is made async. (sends messages one by one)
-				Task.Run(async () =>
-				{
-					try
-					{
-						await Task.Delay(TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT), cancelToken.Token);
-					}
-					catch (Exception)
-					{
-						return;
-					}
-
-					//Give the messages to a new list so they can be removed from the old one
-					List<IMessage> deletedMessages;
-					lock (msgDeletion)
-					{
-						deletedMessages = new List<IMessage>(msgDeletion.GetList() ?? new List<IMessage>());
-						msgDeletion.ClearList();
-					}
-
-					//Put the message content into a list of strings for easy usage
-					var formattedMessages = deletedMessages.OrderBy(x => x?.CreatedAt.Ticks).Select(x => x.FormatMessage());
-					await MessageActions.SendMessageContainingFormattedDeletedMessagesAsync(guildSettings.ServerLog, formattedMessages);
-				});
-			}
-			return Task.FromResult(0);
-		}
-
-		/// <summary>
-		/// Handles settings on channels, such as: image only mode.
-		/// </summary>
-		/// <param name="guildSettings"></param>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		private async Task HandleChannelSettingsAsync(IGuildSettings guildSettings, IMessage message, IGuildUser user)
-		{
-			if (user != null &&
-				!user.GuildPermissions.Administrator && 
-				guildSettings.ImageOnlyChannels.Contains(message.Channel.Id) &&
-				!(message.Attachments.Any(x => x.Height != null || x.Width != null) || message.Embeds.Any(x => x.Image != null)))
-			{
-				await message.DeleteAsync();
-			}
-		}
-		/// <summary>
-		/// Logs the image to the image log if set.
-		/// </summary>
-		/// <param name="logChannel"></param>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		private async Task HandleImageLoggingAsync(IGuildSettings guildSettings, IMessage message)
-		{
-			var attachmentURLs = message.Attachments.Select(x => x.Url).Distinct();
-			var embedURLs = new List<string>();
-			var videoEmbeds = new List<IEmbed>();
-
-			foreach (var embed in message.Embeds)
-			{
-				if (embed.Video == null)
-				{
-					//If no video then it has to be just an image
-					if (!String.IsNullOrEmpty(embed.Thumbnail?.Url))
-					{
-						embedURLs.Add(embed.Thumbnail?.Url);
-					}
-					if (!String.IsNullOrEmpty(embed.Image?.Url))
-					{
-						embedURLs.Add(embed.Image?.Url);
-					}
-				}
-				else
-				{
-					//Add the video URL and the thumbnail URL
-					videoEmbeds.Add(embed);
-				}
-			}
-
-			var desc = $"**Channel:** `{message.Channel.FormatChannel()}`\n**Message Id:** `{message.Id}`";
-			foreach (var attachmentURL in attachmentURLs) //Attachments
-			{
-				if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentURL))) //Image
-				{
-					_Logging.Images.Increment();
-					var embed = new MyEmbed(null, desc, Colors.ATCH, attachmentURL)
-						.AddAuthor(message.Author, attachmentURL)
-						.AddFooter("Attached Image");
-					await MessageActions.SendEmbedMessageAsync(guildSettings.ImageLog, embed);
-				}
-				else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL))) //Gif
-				{
-					_Logging.Gifs.Increment();
-					var embed = new MyEmbed(null, desc, Colors.ATCH, attachmentURL)
-						.AddAuthor(message.Author, attachmentURL)
-						.AddFooter("Attached Gif");
-					await MessageActions.SendEmbedMessageAsync(guildSettings.ImageLog, embed);
-				}
-				else //Random file
-				{
-					_Logging.Files.Increment();
-					var embed = new MyEmbed(null, desc, Colors.ATCH, attachmentURL)
-						.AddAuthor(message.Author, attachmentURL)
-						.AddFooter("Attached File");
-					await MessageActions.SendEmbedMessageAsync(guildSettings.ImageLog, embed);
-				}
-			}
-			foreach (var embedURL in embedURLs.Distinct()) //Images
-			{
-				_Logging.Images.Increment();
-				var embed = new MyEmbed(null, desc, Colors.ATCH, embedURL)
-					.AddAuthor(message.Author, embedURL)
-					.AddFooter("Embedded Image");
-				await MessageActions.SendEmbedMessageAsync(guildSettings.ImageLog, embed);
-			}
-			foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First())) //Videos/Gifs
-			{
-				_Logging.Gifs.Increment();
-				var embed = new MyEmbed(null, desc, Colors.ATCH, videoEmbed.Thumbnail?.Url)
-					.AddAuthor(message.Author, videoEmbed.Url)
-					.AddFooter("Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
-				await MessageActions.SendEmbedMessageAsync(guildSettings.ImageLog, embed);
-			}
-		}
-		/// <summary>
-		/// Checks the message against the slowmode.
-		/// </summary>
-		/// <param name="guildSettings"></param>
-		/// <param name="message"></param>
-		/// <param name="user"></param>
-		/// <returns></returns>
-		private async Task HandleSlowmodeAsync(IGuildSettings guildSettings, IMessage message, IGuildUser user)
-		{
-			//Don't bother doing stuff on the user if they're immune
-			var slowmode = guildSettings.Slowmode;
-			if (slowmode == null || !slowmode.Enabled || user.RoleIds.Intersect(slowmode.ImmuneRoleIds).Any())
-			{
-				return;
-			}
-
-			var info = _Timers.GetSlowmodeUser(message.Author as IGuildUser);
-			if (info == null)
-			{
-				_Timers.AddSlowmodeUser(info = new SlowmodeUserInformation(user, slowmode.BaseMessages, slowmode.Interval));
-			}
-
-			if (info.CurrentMessagesLeft > 0)
-			{
-				if (info.CurrentMessagesLeft == slowmode.BaseMessages)
-				{
-					info.UpdateTime(slowmode.Interval);
-				}
-
-				info.DecrementMessages();
-			}
-			else
-			{
-				await MessageActions.DeleteMessageAsync(message);
-			}
-		}
-		/// <summary>
-		/// Allows users to say numbers and get a help entry/quote if they are quick enough.
-		/// </summary>
-		/// <param name="botSettings"></param>
-		/// <param name="guildSettings"></param>
-		/// <param name="message"></param>
-		/// <param name="timers"></param>
-		/// <returns></returns>
-		private async Task HandleCloseWordsAsync(IGuildSettings guildSettings, IMessage message)
-		{
-			if (_Timers == null || !int.TryParse(message.Content, out int number) || number < 1 || number > 6)
-			{
-				return;
-			}
-			--number;
-
-			var quotes = _Timers.GetOutActiveCloseQuote(message.Author);
-			var validQuote = quotes != null && quotes.List.Count > number;
-			var helpEntries = _Timers.GetOutActiveCloseHelp(message.Author);
-			var validHelpEntry = helpEntries != null && helpEntries.List.Count > number;
-
-			if (validQuote)
-			{
-				await MessageActions.SendMessageAsync(message.Channel, quotes.List.ElementAt(number).Word.Description);
-			}
-			if (validHelpEntry)
-			{
-				var help = helpEntries.List.ElementAt(number).Word;
-				var embed = new MyEmbed(help.Name, help.ToString())
-					.AddFooter("Help");
-				await MessageActions.SendEmbedMessageAsync(message.Channel, embed);
-			}
-
-			if (validQuote || validHelpEntry)
-			{
-				await MessageActions.DeleteMessageAsync(message);
-			}
-		}
-		/// <summary>
-		/// If the <paramref name="message"/> author can be modified by the bot then their message is checked for any spam matches.
-		/// Then checks if there are any user mentions in thier message for voting on user kicks.
-		/// </summary>
-		/// <param name="guildSettings"></param>
-		/// <param name="guild"></param>
-		/// <param name="message"></param>
-		/// <param name="timers"></param>
-		/// <returns></returns>
-		private async Task HandleSpamPreventionAsync(IGuildSettings guildSettings, IMessage message, IGuildUser user)
-		{
-			if (user.CanBeModifiedByUser(UserActions.GetBot(user.Guild)))
-			{
-				var spamUser = _Timers.GetSpamPreventionUser(user);
-				if (spamUser == null)
-				{
-					_Timers.AddSpamPreventionUser(spamUser = new SpamPreventionUserInformation(user));
-				}
-
-				var spam = false;
-				foreach (SpamType spamType in Enum.GetValues(typeof(SpamType)))
-				{
-					var spamPrev = guildSettings.SpamPreventionDictionary[spamType];
-					if (spamPrev == null || !spamPrev.Enabled)
-					{
-						continue;
-					}
-
-					//Ticks should be small enough that this will not allow duplicates of the same message, but can still allow rapidly spammed messages
-					var userSpamList = spamUser.SpamLists[spamType];
-					if ((_GetSpamNumberFuncs[spamType](message) ?? 0) >= spamPrev.RequiredSpamPerMessageOrTimeInterval &&
-						!userSpamList.Any(x => x.GetTime().Ticks == message.CreatedAt.UtcTicks))
-					{
-						userSpamList.Enqueue(new BasicTimeInterface(message.CreatedAt.UtcDateTime));
-					}
-
-					if (!spamUser.CheckIfAllowedToPunish(spamPrev, spamType))
-					{
-						continue;
-					}
-
-					//Make sure they have the lowest vote count required to kick and the most severe punishment type
-					await MessageActions.DeleteMessageAsync(message);
-					spamUser.ChangeVotesRequired(spamPrev.VotesForKick);
-					spamUser.ChangePunishmentType(spamPrev.PunishmentType);
-					spamUser.EnablePunishable();
-					spam = true;
-				}
-
-				if (spam)
-				{
-					var content = $"The user `{message.Author.FormatUser()}` needs `{spamUser.VotesRequired - spamUser.UsersWhoHaveAlreadyVoted.Count}` votes to be kicked. Vote by mentioning them.";
-					await MessageActions.MakeAndDeleteSecondaryMessageAsync(message.Channel, null, content, 10, _Timers);
-				}
-			}
-
-			if (!message.MentionedUserIds.Any())
-			{
-				return;
-			}
-
-			//Get the users who are able to be punished by the spam prevention
-			var users = _Timers.GetSpamPreventionUsers(user.Guild).Where(x => true
-				&& x.PotentialPunishment
-				&& x.User.Id != message.Author.Id
-				&& message.MentionedUserIds.Contains(x.User.Id)
-				&& !x.UsersWhoHaveAlreadyVoted.Contains(message.Author.Id));
-
-			foreach (var u in users)
-			{
-				u.IncreaseVotesToKick(message.Author.Id);
-				if (u.UsersWhoHaveAlreadyVoted.Count < u.VotesRequired)
+				catch (Exception)
 				{
 					return;
 				}
 
-				await u.PunishAsync(guildSettings);
+				//Give the messages to a new list so they can be removed from the old one
+				List<IMessage> deletedMessages;
+				lock (msgDeletion)
+				{
+					deletedMessages = new List<IMessage>(msgDeletion.GetList() ?? new List<IMessage>());
+					msgDeletion.ClearList();
+				}
 
-				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
-				u.ResetSpamUser();
-			}
-		}
-		/// <summary>
-		/// Makes sure a message doesn't have any banned phrases.
-		/// </summary>
-		/// <param name="guildSettings"></param>
-		/// <param name="message"></param>
-		/// <param name="user"></param>
-		/// <returns></returns>
-		private async Task HandleBannedPhrasesAsync(IGuildSettings guildSettings, IMessage message, IGuildUser user)
-		{
-			//Ignore admins and messages older than an hour. (Accidentally deleted something important once due to not having these checks in place, but this should stop most accidental deletions)
-			if (user.GuildPermissions.Administrator || (int)DateTime.UtcNow.Subtract(message.CreatedAt.UtcDateTime).TotalHours > 0)
-			{
-				return;
-			}
+				//Put the message content into a list of strings for easy usage
+				var formattedMessages = deletedMessages.OrderBy(x => x?.CreatedAt.Ticks).Select(x => x.FormatMessage());
+				await MessageActions.SendMessageContainingFormattedDeletedMessagesAsync(logInstanceInfo.GuildSettings.ServerLog, formattedMessages);
+			});
 
-			var str = guildSettings.BannedPhraseStrings.FirstOrDefault(x => message.Content.CaseInsContains(x.Phrase));
-			if (str != null)
-			{
-				await str.PunishAsync(guildSettings, message, _Timers);
-				return;
-			}
-
-			var regex = guildSettings.BannedPhraseRegex.FirstOrDefault(x => RegexActions.CheckIfRegexMatch(message.Content, x.Phrase));
-			if (regex != null)
-			{
-				await regex.PunishAsync(guildSettings, message, _Timers);
-				return;
-			}
+			return Task.FromResult(0);
 		}
 	}
 }

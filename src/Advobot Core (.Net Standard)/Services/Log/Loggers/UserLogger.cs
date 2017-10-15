@@ -26,44 +26,32 @@ namespace Advobot.Services.Log.Loggers
 			_Logging.TotalUsers.Increment();
 			_Logging.UserJoins.Increment();
 
-			if (VerifyBotLogging(user, out var guildSettings))
+			var logInstanceInfo = new LogInstanceInformation(_BotSettings, _GuildSettings, user, LogAction.UserJoined);
+			if (!logInstanceInfo.IsValidToLog || logInstanceInfo.GuildSettings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase)))
 			{
-				//Bans people who join with a given word in their name
-				if (guildSettings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase)))
-				{
-					var giver = new AutomaticPunishmentGiver(0, _Timers);
-					await giver.AutomaticallyPunishAsync(PunishmentType.Ban, user, null, "banned name");
-					return;
-				}
-				else if (VerifyLogAction(guildSettings, LogAction.UserJoined))
-				{
-					var invite = "";
-					var inviteUserJoinedOn = await InviteActions.GetInviteUserJoinedOnAsync(guildSettings, user);
-					if (inviteUserJoinedOn != null)
-					{
-						invite = $"**Invite:** {inviteUserJoinedOn.Code}";
-					}
+				return;
+			}
 
-					var ageWarning = ""; 
-					var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
-					if (userAccAge.TotalHours < 24)
-					{
-						ageWarning = $"**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
-					}
-
-					var embed = new MyEmbed(null, $"**ID:** {user.Id}\n{invite}\n{ageWarning}", Colors.JOIN)
-						.AddAuthor(user)
-						.AddFooter(user.IsBot ? "Bot Joined" : "User Joined");
-					await MessageActions.SendEmbedMessageAsync(guildSettings.ServerLog, embed);
+			if (logInstanceInfo.HasServerLog)
+			{
+				var invite = "";
+				var inviteUserJoinedOn = await InviteActions.GetInviteUserJoinedOnAsync(logInstanceInfo.GuildSettings, user);
+				if (inviteUserJoinedOn != null)
+				{
+					invite = $"**Invite:** {inviteUserJoinedOn.Code}";
 				}
 
-				await HandleJoiningUsersForRaidPreventionAsync(guildSettings, user);
-
-				//Welcome message
-				if (guildSettings.WelcomeMessage != null)
+				var ageWarning = "";
+				var userAccAge = (DateTime.UtcNow - user.CreatedAt.ToUniversalTime());
+				if (userAccAge.TotalHours < 24)
 				{
-					await guildSettings.WelcomeMessage.SendAsync(user);
+					ageWarning = $"**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
 				}
+
+				var embed = new MyEmbed(null, $"**ID:** {user.Id}\n{invite}\n{ageWarning}", Colors.JOIN)
+					.AddAuthor(user)
+					.AddFooter(user.IsBot ? "Bot Joined" : "User Joined");
+				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed);
 			}
 		}
 		/// <summary>
@@ -76,39 +64,25 @@ namespace Advobot.Services.Log.Loggers
 			_Logging.TotalUsers.Decrement();
 			_Logging.UserLeaves.Increment();
 
-			//Check if the bot was the one that left
-			if (user.Id.ToString() == Config.Configuration[Config.ConfigKeys.Bot_Id])
+			var logInstanceInfo = new LogInstanceInformation(_BotSettings, _GuildSettings, user, LogAction.UserLeft);
+			if (!logInstanceInfo.IsValidToLog || logInstanceInfo.GuildSettings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase)))
 			{
 				return;
 			}
 
-			if (VerifyBotLogging(user, out var guildSettings))
+			if (logInstanceInfo.HasServerLog)
 			{
-				//Don't log them to the server if they're someone who was just banned for joining with a banned name
-				if (guildSettings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase)))
+				var userStayLength = "";
+				if (user.JoinedAt.HasValue)
 				{
-					return;
-				}
-				else if (VerifyLogAction(guildSettings, LogAction.UserLeft))
-				{
-					var userStayLength = "";
-					if (user.JoinedAt.HasValue)
-					{
-						var timeStayed = (DateTime.UtcNow - user.JoinedAt.Value.ToUniversalTime());
-						userStayLength = $"**Stayed for:** {timeStayed.Days}:{timeStayed.Hours:00}:{timeStayed.Minutes:00}:{timeStayed.Seconds:00}";
-					}
-
-					var embed = new MyEmbed(null, $"**ID:** {user.Id}\n{userStayLength}", Colors.LEAV)
-						.AddAuthor(user)
-						.AddFooter(user.IsBot ? "Bot Left" : "User Left");
-					await MessageActions.SendEmbedMessageAsync(guildSettings.ServerLog, embed);
+					var t = (DateTime.UtcNow - user.JoinedAt.Value.ToUniversalTime());
+					userStayLength = $"**Stayed for:** {t.Days}:{t.Hours:00}:{t.Minutes:00}:{t.Seconds:00}";
 				}
 
-				//Goodbye message
-				if (guildSettings.GoodbyeMessage != null)
-				{
-					await guildSettings.GoodbyeMessage.SendAsync(user);
-				}
+				var embed = new MyEmbed(null, $"**ID:** {user.Id}\n{userStayLength}", Colors.LEAV)
+					.AddAuthor(user)
+					.AddFooter(user.IsBot ? "Bot Left" : "User Left");
+				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed);
 			}
 		}
 		/// <summary>
@@ -126,43 +100,23 @@ namespace Advobot.Services.Log.Loggers
 
 			foreach (var guild in (await _Client.GetGuildsAsync()).Where(x => (x as SocketGuild).Users.Select(y => y.Id).Contains(afterUser.Id)))
 			{
-				if (VerifyBotLogging(guild, out var guildSettings) &&
-					VerifyLogAction(guildSettings, LogAction.UserUpdated))
+				_Logging.UserChanges.Increment();
+
+				var logInstanceInfo = new LogInstanceInformation(_BotSettings, _GuildSettings, guild, LogAction.UserUpdated);
+				if (!logInstanceInfo.IsValidToLog)
 				{
-					_Logging.UserChanges.Increment();
+					continue;
+				}
+
+				if (logInstanceInfo.HasServerLog)
+				{
 					var embed = new MyEmbed(null, null, Colors.UEDT)
 						.AddAuthor(afterUser)
 						.AddField("Before:", "`" + beforeUser.Username + "`")
 						.AddField("After:", "`" + afterUser.Username + "`", false)
 						.AddFooter("Name Changed");
-					await MessageActions.SendEmbedMessageAsync(guildSettings.ServerLog, embed);
+					await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed);
 				}
-			}
-		}
-
-		internal async Task HandleJoiningUsersForRaidPreventionAsync(IGuildSettings guildSettings, IGuildUser user)
-		{
-			var antiRaid = guildSettings.RaidPreventionDictionary[RaidType.Regular];
-			if (antiRaid != null && antiRaid.Enabled)
-			{
-				await antiRaid.PunishAsync(guildSettings, user);
-			}
-			var antiJoin = guildSettings.RaidPreventionDictionary[RaidType.RapidJoins];
-			if (antiJoin != null && antiJoin.Enabled)
-			{
-				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
-				if (antiJoin.GetSpamCount() < antiJoin.UserCount)
-				{
-					return;
-				}
-
-				await antiJoin.PunishAsync(guildSettings, user);
-				if (guildSettings.ServerLog == null)
-				{
-					return;
-				}
-
-				await MessageActions.SendEmbedMessageAsync(guildSettings.ServerLog, new MyEmbed("Anti Rapid Join Mute", $"**User:** {user.FormatUser()}"));
 			}
 		}
 	}
