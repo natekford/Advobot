@@ -233,41 +233,20 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class ModifyRoleName : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, [Remainder, VerifyStringLength(Target.Role)] string name)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role,
+			[Remainder, VerifyStringLength(Target.Role)] string name)
+		{
+			await RoleActions.ModifyRoleNameAsync(role, name, new ModerationReason(Context.User, null));
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.");
+		}
+		[Command(nameof(Position)), ShortAlias(nameof(Position))]
+		public async Task Position([OverrideTypeReader(typeof(ObjectByPositionTypeReader<IRole>)), VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role,
+			[Remainder, VerifyStringLength(Target.Role)] string name)
 		{
 			await RoleActions.ModifyRoleNameAsync(role, name, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.");
 		}
 	}
-
-	/*
-	[Group(nameof(ChangeRoleNameByPosition)), Alias("crnbp")]
-	[Usage("[Number] [Name]")]
-	[Summary("Changes the name of the role with the given position. This is *extremely* useful for when multiple roles have the same name but you want to edit things")]
-	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
-	[DefaultEnabled(true)]
-	public sealed class ChangeRoleNameByPosition : AdvobotModuleBase
-	{
-		[Command]
-		public async Task Command(uint position, [Remainder, VerifyStringLength(Target.Role)] string name)
-		{
-			if (position > Context.User.GetPosition())
-			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Your position is less than the role's."));
-				return;
-			}
-
-			var role = Context.Guild.Roles.FirstOrDefault(x => x.Position == (int)position);
-			if (role == null)
-			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("No role has the given position."));
-				return;
-			}
-
-			await RoleActions.ModifyRoleName(role, name, new ModerationReason(Context.User, null));
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.");
-		}
-	}*/
 
 	[Group(nameof(ModifyRoleColor)), TopLevelShortAlias(typeof(ModifyRoleColor))]
 	[Summary("Changes the role's color. Color must be valid hexadecimal or the name of a default role color. Inputting nothing displays the colors.")]

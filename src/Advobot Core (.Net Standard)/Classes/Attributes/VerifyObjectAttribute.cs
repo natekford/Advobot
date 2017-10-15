@@ -49,6 +49,12 @@ namespace Advobot.Classes.Attributes
 				}
 			}
 
+			return Task.FromResult(GetPreconditionResult(context, value));
+		}
+
+		private PreconditionResult GetPreconditionResult(ICommandContext context, object value)
+		{
+			VerifiedObjectResult result = default;
 			if (value is IEnumerable enumerable)
 			{
 				foreach (var item in enumerable)
@@ -57,22 +63,13 @@ namespace Advobot.Classes.Attributes
 					//Don't bother testing more if anything is a failure.
 					if (!preconditionResult.IsSuccess)
 					{
-						return Task.FromResult(preconditionResult);
+						return preconditionResult;
 					}
 				}
+				//If nothing failed then it gets to this point, so return success
+				result = new VerifiedObjectResult(value, null, null);
 			}
-			else
-			{
-				return Task.FromResult(GetPreconditionResult(context, value));
-			}
-
-			return Task.FromResult(PreconditionResult.FromSuccess());
-		}
-
-		private PreconditionResult GetPreconditionResult(ICommandContext context, object value)
-		{
-			VerifiedObjectResult result = default;
-			if (value is IGuildChannel guildChannel)
+			else if (value is IGuildChannel guildChannel)
 			{
 				result = ChannelActions.VerifyChannelMeetsRequirements(context, guildChannel, Checks);
 			}

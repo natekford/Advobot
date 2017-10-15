@@ -336,7 +336,21 @@ namespace Advobot.Commands.ChannelModeration
 	public sealed class ModifyChannelName : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel, [Remainder, VerifyStringLength(Target.Channel)] string name)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel,
+			[Remainder, VerifyStringLength(Target.Channel)] string name)
+		{
+			if (channel is ITextChannel && name.Contains(' '))
+			{
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Spaces are not allowed in text channel names."));
+				return;
+			}
+
+			await channel.ModifyNameAsync(name, new ModerationReason(Context.User, null));
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the name of `{channel.FormatChannel()}` to `{name}`.");
+		}
+		[Command(nameof(Position)), ShortAlias(nameof(Position))]
+		public async Task Position([OverrideTypeReader(typeof(ObjectByPositionTypeReader<IGuildChannel>)), VerifyObject(false, ObjectVerification.CanBeManaged)] IGuildChannel channel,
+			[Remainder, VerifyStringLength(Target.Role)] string name)
 		{
 			if (channel is ITextChannel && name.Contains(' '))
 			{
