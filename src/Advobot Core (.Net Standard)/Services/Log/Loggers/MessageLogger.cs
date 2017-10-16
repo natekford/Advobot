@@ -75,7 +75,7 @@ namespace Advobot.Services.Log.Loggers
 					return;
 				}
 
-				var embed = new MyEmbed(null, null, Colors.MEDT)
+				var embed = new AdvobotEmbed(null, null, Colors.MEDT)
 					.AddAuthor(message.Author)
 					.AddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
 					.AddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)

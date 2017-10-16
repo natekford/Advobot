@@ -3,6 +3,9 @@ using System;
 
 namespace Advobot.Classes.UserInformation
 {
+	/// <summary>
+	/// Holds how many messages a user has left and when to reset them.
+	/// </summary>
 	public class SlowmodeUserInformation : UserInfo
 	{
 		public int CurrentMessagesLeft { get; private set; }

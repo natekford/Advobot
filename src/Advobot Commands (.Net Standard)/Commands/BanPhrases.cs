@@ -74,7 +74,7 @@ namespace Advobot.Commands.BanPhrases
 				.AppendLineFeed($"The given regex matches new lines: `{matchesNewLine}`.")
 				.AppendLineFeed($"The given regex matches random strings: `{matchesRandom}`.")
 				.AppendLineFeed($"The given regex is `{(okToUse ? "GOOD" : "BAD")}`.");
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed(regex, desc.ToString()));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(regex, desc.ToString()));
 		}
 	}
 
@@ -99,7 +99,7 @@ namespace Advobot.Commands.BanPhrases
 				if (position == default)
 				{
 					var desc = Context.GuildSettings.EvaluatedRegex.FormatNumberedList("`{0}`", x => x);
-					await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Evaluated Regex", desc));
+					await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Evaluated Regex", desc));
 					return;
 				}
 				else if (position > Context.GuildSettings.EvaluatedRegex.Count)
@@ -193,7 +193,7 @@ namespace Advobot.Commands.BanPhrases
 		private static async Task Show<T>(IAdvobotCommandContext context, List<T> list, string type) where T : BannedPhrase
 		{
 			var desc = list.FormatNumberedList("`{0}`", x => x.Phrase);
-			await MessageActions.SendEmbedMessageAsync(context.Channel, new MyEmbed($"Banned {type}", desc));
+			await MessageActions.SendEmbedMessageAsync(context.Channel, new AdvobotEmbed($"Banned {type}", desc));
 			return;
 		}
 		private static async Task Add<T>(IAdvobotCommandContext context, List<T> list, string text, string type, int max) where T : BannedPhrase
@@ -283,7 +283,7 @@ namespace Advobot.Commands.BanPhrases
 		private static async Task Show<T>(IAdvobotCommandContext context, List<T> list, string type) where T : BannedPhrase
 		{
 			var desc = list.FormatNumberedList("`{0}`", x => x.ToString());
-			await MessageActions.SendEmbedMessageAsync(context.Channel, new MyEmbed($"Banned {type} Punishments", desc));
+			await MessageActions.SendEmbedMessageAsync(context.Channel, new AdvobotEmbed($"Banned {type} Punishments", desc));
 		}
 		private static async Task Modify<T>(IAdvobotCommandContext context, List<T> list, string text, string type, PunishmentType punishment) where T : BannedPhrase
 		{
@@ -324,7 +324,7 @@ namespace Advobot.Commands.BanPhrases
 		public async Task Show()
 		{
 			var desc = Context.GuildSettings.BannedPhrasePunishments.FormatNumberedList("`{0}`", x => x.ToString());
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed($"Banned Phrase Punishments", desc));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed($"Banned Phrase Punishments", desc));
 		}
 		[Group(nameof(Add)), ShortAlias(nameof(Add))]
 		public sealed class Add : SavingModuleBase

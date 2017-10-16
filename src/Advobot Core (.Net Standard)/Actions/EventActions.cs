@@ -12,9 +12,6 @@ using System.Threading.Tasks;
 
 namespace Advobot.Actions
 {
-	/// <summary>
-	/// Events that should fire no matter what log actions and other log settings are chosen.
-	/// </summary>
 	public static class EventActions
 	{
 		/// <summary>
@@ -40,7 +37,7 @@ namespace Advobot.Actions
 			ConsoleActions.WriteLine($"Bot took {startTime:n} milliseconds to start up.");
 		}
 		/// <summary>
-		/// Checks banned names, antiraid, and welcome messages.
+		/// Checks banned names, antiraid, persistent roles, and welcome messages.
 		/// </summary>
 		/// <param name="user"></param>
 		/// <param name="settings"></param>
@@ -74,6 +71,13 @@ namespace Advobot.Actions
 				{
 					await antiJoin.PunishAsync(settings, user);
 				}
+			}
+
+			//Persistent roles
+			var roles = settings.PersistentRoles.Where(x => x.UserId == user.Id).Select(x => x.GetRole(user.Guild)).Where(x => x != null);
+			if (roles.Any())
+			{
+				await RoleActions.GiveRolesAsync(user, roles, new AutomaticModerationReason("persistent roles"));
 			}
 
 			//Welcome message
@@ -127,7 +131,7 @@ namespace Advobot.Actions
 				if (validHelpEntry)
 				{
 					var help = helpEntries.List.ElementAt(number).Word;
-					var embed = new MyEmbed(help.Name, help.ToString())
+					var embed = new AdvobotEmbed(help.Name, help.ToString())
 						.AddFooter("Help");
 					await MessageActions.SendEmbedMessageAsync(message.Channel, embed);
 				}

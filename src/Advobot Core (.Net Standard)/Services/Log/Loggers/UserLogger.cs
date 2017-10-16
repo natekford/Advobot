@@ -48,7 +48,7 @@ namespace Advobot.Services.Log.Loggers
 					ageWarning = $"**New Account:** {(int)userAccAge.TotalHours} hours, {userAccAge.Minutes} minutes old.";
 				}
 
-				var embed = new MyEmbed(null, $"**ID:** {user.Id}\n{invite}\n{ageWarning}", Colors.JOIN)
+				var embed = new AdvobotEmbed(null, $"**ID:** {user.Id}\n{invite}\n{ageWarning}", Colors.JOIN)
 					.AddAuthor(user)
 					.AddFooter(user.IsBot ? "Bot Joined" : "User Joined");
 				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed);
@@ -79,7 +79,7 @@ namespace Advobot.Services.Log.Loggers
 					userStayLength = $"**Stayed for:** {t.Days}:{t.Hours:00}:{t.Minutes:00}:{t.Seconds:00}";
 				}
 
-				var embed = new MyEmbed(null, $"**ID:** {user.Id}\n{userStayLength}", Colors.LEAV)
+				var embed = new AdvobotEmbed(null, $"**ID:** {user.Id}\n{userStayLength}", Colors.LEAV)
 					.AddAuthor(user)
 					.AddFooter(user.IsBot ? "Bot Left" : "User Left");
 				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed);
@@ -110,7 +110,7 @@ namespace Advobot.Services.Log.Loggers
 
 				if (logInstanceInfo.HasServerLog)
 				{
-					var embed = new MyEmbed(null, null, Colors.UEDT)
+					var embed = new AdvobotEmbed(null, null, Colors.UEDT)
 						.AddAuthor(afterUser)
 						.AddField("Before:", "`" + beforeUser.Username + "`")
 						.AddField("After:", "`" + afterUser.Username + "`", false)

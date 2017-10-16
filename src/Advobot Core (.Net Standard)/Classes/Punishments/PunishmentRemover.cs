@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Classes.Punishments
 {
+	/// <summary>
+	/// Removes a punishment from a user.
+	/// </summary>
 	public class PunishmentRemover : PunishmentBase
 	{
 		private bool _HasValidTimers;

@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Classes.Punishments
 {
+	/// <summary>
+	/// Gives a punishment to a user.
+	/// </summary>
 	public class PunishmentGiver : PunishmentBase
 	{
 		private int _Time;

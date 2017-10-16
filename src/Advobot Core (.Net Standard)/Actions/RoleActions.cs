@@ -15,7 +15,14 @@ namespace Advobot.Actions
 {
 	public static class RoleActions
 	{
-		public static VerifiedObjectResult VerifyRoleMeetsRequirements(ICommandContext context, IRole target, IEnumerable<ObjectVerification> checks)
+		/// <summary>
+		/// Verifies that the role can be edited in specific ways.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="target"></param>
+		/// <param name="checks"></param>
+		/// <returns></returns>
+		public static VerifiedObjectResult VerifyRoleMeetsRequirements(this IRole target, ICommandContext context, IEnumerable<ObjectVerification> checks)
 		{
 			if (target == null)
 			{
@@ -23,15 +30,15 @@ namespace Advobot.Actions
 			}
 
 			var invokingUser = context.User as IGuildUser;
-			var bot = UserActions.GetBot(context.Guild);
+			var bot = context.Guild.GetBot();
 			foreach (var check in checks)
 			{
-				if (!invokingUser.GetIfUserCanDoActionOnRole(target, check))
+				if (!UserActions.GetIfUserCanDoActionOnRole(invokingUser, target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"You are unable to make the given changes to the role: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
 				}
-				else if (!bot.GetIfUserCanDoActionOnRole(target, check))
+				else if (!UserActions.GetIfUserCanDoActionOnRole(bot, target, check))
 				{
 					return new VerifiedObjectResult(target, CommandError.UnmetPrecondition,
 						$"I am unable to make the given changes to the role: `{DiscordObjectFormatting.FormatDiscordObject(target)}`.");
@@ -61,88 +68,17 @@ namespace Advobot.Actions
 			return new VerifiedObjectResult(target, null, null);
 		}
 
-		public static async Task<IEnumerable<string>> ModifyRolePermissionsAsync(IRole role, PermValue permValue, ulong changeValue, IGuildUser user)
-		{
-			//Only modify permissions the user has the ability to
-			changeValue &= user.GuildPermissions.RawValue;
-
-			var roleBits = role.Permissions.RawValue;
-			switch (permValue)
-			{
-				case PermValue.Allow:
-				{
-					roleBits |= changeValue;
-					break;
-				}
-				case PermValue.Deny:
-				{
-					roleBits &= ~changeValue;
-					break;
-				}
-				default:
-				{
-					throw new ArgumentException("Invalid ActionType provided.");
-				}
-			}
-
-			await ModifyRolePermissionsAsync(role, roleBits, new ModerationReason(user, null));
-			return GuildPerms.ConvertValueToNames(changeValue);
-		}
-		public static async Task<int> ModifyRolePositionAsync(IRole role, int position, ModerationReason reason)
-		{
-			if (role == null)
-			{
-				return -1;
-			}
-
-			var roles = role.Guild.Roles.Where(x => x.Id != role.Id && x.Position < UserActions.GetBot(role.Guild).GetPosition()).OrderBy(x => x.Position).ToArray();
-			position = Math.Max(1, Math.Min(position, roles.Length));
-
-			var reorderProperties = new ReorderRoleProperties[roles.Length + 1];
-			for (int i = 0; i < reorderProperties.Length; ++i)
-			{
-				if (i > position)
-				{
-					reorderProperties[i] = new ReorderRoleProperties(roles[i - 1].Id, i);
-				}
-				else if (i < position)
-				{
-					reorderProperties[i] = new ReorderRoleProperties(roles[i].Id, i);
-				}
-				else
-				{
-					reorderProperties[i] = new ReorderRoleProperties(role.Id, i);
-				}
-			}
-
-			await role.Guild.ReorderRolesAsync(reorderProperties, reason.CreateRequestOptions());
-			return reorderProperties.FirstOrDefault(x => x.Id == role.Id)?.Position ?? -1;
-		}
-		public static async Task ModifyRolePermissionsAsync(IRole role, ulong permissions, ModerationReason reason)
-		{
-			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), reason.CreateRequestOptions());
-		}
-		public static async Task ModifyRoleNameAsync(IRole role, string name, ModerationReason reason)
-		{
-			await role.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions());
-		}
-		public static async Task ModifyRoleColorAsync(IRole role, Color color, ModerationReason reason)
-		{
-			await role.ModifyAsync(x => x.Color = color, reason.CreateRequestOptions());
-		}
-		public static async Task ModifyRoleHoistAsync(IRole role, ModerationReason reason)
-		{
-			await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, reason.CreateRequestOptions());
-		}
-		public static async Task ModifyRoleMentionabilityAsync(IRole role, ModerationReason reason)
-		{
-			await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, reason.CreateRequestOptions());
-		}
-
+		/// <summary>
+		/// Makes sure the guild has a mute role, if not creates one. Also updates all the permisions on the channels so the mute
+		/// role remains effective.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="guildSettings"></param>
+		/// <returns></returns>
 		public static async Task<IRole> GetMuteRoleAsync(ICommandContext context, IGuildSettings guildSettings)
 		{
 			var muteRole = guildSettings.MuteRole;
-			if (!VerifyRoleMeetsRequirements(context, muteRole, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }).IsSuccess)
+			if (!VerifyRoleMeetsRequirements(muteRole, context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }).IsSuccess)
 			{
 				muteRole = await context.Guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0));
 				guildSettings.MuteRole = muteRole;
@@ -184,22 +120,173 @@ namespace Advobot.Actions
 
 			return muteRole;
 		}
+		/// <summary>
+		/// Creates a role then says the supplied reason in the audit log.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="name"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public static async Task<IRole> CreateRoleAsync(IGuild guild, string name, ModerationReason reason)
 		{
 			return await guild.CreateRoleAsync(name, new GuildPermissions(0), options: reason.CreateRequestOptions());
 		}
+		/// <summary>
+		/// Deletes a a role then says the supplied reason in the audit log.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public static async Task DeleteRoleAsync(IRole role, ModerationReason reason)
 		{
 			await role.DeleteAsync(reason.CreateRequestOptions());
 		}
 
+		/// <summary>
+		/// Gives the roles to a user.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="roles"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public static async Task GiveRolesAsync(IGuildUser user, IEnumerable<IRole> roles, ModerationReason reason)
 		{
 			await user.AddRolesAsync(roles, reason.CreateRequestOptions());
 		}
+		/// <summary>
+		/// Removes the roles from a user.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="roles"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
 		public static async Task TakeRolesAsync(IGuildUser user, IEnumerable<IRole> roles, ModerationReason reason)
 		{
 			await user.RemoveRolesAsync(roles, reason.CreateRequestOptions());
+		}
+
+		/// <summary>
+		/// Changes the role's permissions by allowing or denying the supplied change value from them.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <param name="permValue"></param>
+		/// <param name="changeValue"></param>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public static async Task<IEnumerable<string>> ModifyRolePermissionsAsync(IRole role, PermValue permValue, ulong changeValue, IGuildUser user)
+		{
+			var roleBits = role.Permissions.RawValue;
+			switch (permValue)
+			{
+				//Only modify permissions the user has the ability to
+				case PermValue.Allow:
+				{
+					roleBits |= (changeValue & user.GuildPermissions.RawValue);
+					break;
+				}
+				case PermValue.Deny:
+				{
+					roleBits &= ~(changeValue & user.GuildPermissions.RawValue);
+					break;
+				}
+				default:
+				{
+					throw new ArgumentException("Invalid ActionType provided.");
+				}
+			}
+
+			await ModifyRolePermissionsAsync(role, roleBits, new ModerationReason(user, null));
+			return GuildPerms.ConvertValueToNames(changeValue);
+		}
+		/// <summary>
+		/// Changes the role's position and says the supplied reason in the audit log.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <param name="position"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public static async Task<int> ModifyRolePositionAsync(IRole role, int position, ModerationReason reason)
+		{
+			if (role == null)
+			{
+				return -1;
+			}
+
+			var roles = role.Guild.Roles.Where(x => x.Id != role.Id && x.Position < role.Guild.GetBot().GetPosition()).OrderBy(x => x.Position).ToArray();
+			position = Math.Max(1, Math.Min(position, roles.Length));
+
+			var reorderProperties = new ReorderRoleProperties[roles.Length + 1];
+			for (int i = 0; i < reorderProperties.Length; ++i)
+			{
+				if (i > position)
+				{
+					reorderProperties[i] = new ReorderRoleProperties(roles[i - 1].Id, i);
+				}
+				else if (i < position)
+				{
+					reorderProperties[i] = new ReorderRoleProperties(roles[i].Id, i);
+				}
+				else
+				{
+					reorderProperties[i] = new ReorderRoleProperties(role.Id, i);
+				}
+			}
+
+			await role.Guild.ReorderRolesAsync(reorderProperties, reason.CreateRequestOptions());
+			return reorderProperties.FirstOrDefault(x => x.Id == role.Id)?.Position ?? -1;
+		}
+		/// <summary>
+		/// Changes the role's permissions and says the supplied reason in the audit log.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <param name="permissions"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public static async Task ModifyRolePermissionsAsync(IRole role, ulong permissions, ModerationReason reason)
+		{
+			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), reason.CreateRequestOptions());
+		}
+		/// <summary>
+		/// Changes the role's name and says the supplied reason in the audit log.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <param name="name"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public static async Task ModifyRoleNameAsync(IRole role, string name, ModerationReason reason)
+		{
+			await role.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions());
+		}
+		/// <summary>
+		/// Changes the role's color and says the supplied reason in the audit log.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <param name="color"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public static async Task ModifyRoleColorAsync(IRole role, Color color, ModerationReason reason)
+		{
+			await role.ModifyAsync(x => x.Color = color, reason.CreateRequestOptions());
+		}
+		/// <summary>
+		/// Changes the role's hoist status and says the supplied reason in the audit log.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public static async Task ModifyRoleHoistAsync(IRole role, ModerationReason reason)
+		{
+			await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, reason.CreateRequestOptions());
+		}
+		/// <summary>
+		/// Changes the role's mentionability and says the the supplied reason in the audit log.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <param name="reason"></param>
+		/// <returns></returns>
+		public static async Task ModifyRoleMentionabilityAsync(IRole role, ModerationReason reason)
+		{
+			await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, reason.CreateRequestOptions());
 		}
 	}
 }

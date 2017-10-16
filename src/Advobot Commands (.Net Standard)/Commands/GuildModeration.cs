@@ -29,7 +29,7 @@ namespace Advobot.Commands.GuildModeration
 			}
 
 			//Need bot owner check so only the bot owner can make the bot leave servers they don't own
-			if (Context.User.Id == (await UserActions.GetBotOwnerAsync(Context.Client)).Id)
+			if (Context.User.Id == (await ClientActions.GetBotOwnerAsync(Context.Client)).Id)
 			{
 				var guild = await Context.Client.GetGuildAsync(guildId);
 				if (guild == null)
@@ -104,7 +104,7 @@ namespace Advobot.Commands.GuildModeration
 		public async Task Show()
 		{
 			var desc = Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) ? _AllRegions : _BaseRegions;
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Region IDs", desc));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Region IDs", desc));
 		}
 		[Command(nameof(Current)), ShortAlias(nameof(Current)), Priority(1)]
 		public async Task Current()

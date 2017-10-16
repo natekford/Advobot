@@ -8,15 +8,10 @@ namespace Advobot.Actions
 {
 	public static class SavingAndLoadingActions
 	{
-		public static string Serialize(object obj)
-		{
-			return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, new StringEnumConverter());
-		}
-		public static T Deserialize<T>(string value, Type type)
-		{
-			return (T)JsonConvert.DeserializeObject(value, type, new StringEnumConverter());
-		}
-
+		/// <summary>
+		/// Creates a file if it does not already exist.
+		/// </summary>
+		/// <param name="fileInfo"></param>
 		public static void CreateFile(FileInfo fileInfo)
 		{
 			if (!fileInfo.Exists)
@@ -25,6 +20,11 @@ namespace Advobot.Actions
 				fileInfo.Create().Close();
 			}
 		}
+		/// <summary>
+		/// Creates a file if it does not already exist, then writes over it.
+		/// </summary>
+		/// <param name="fileInfo"></param>
+		/// <param name="text"></param>
 		public static void OverWriteFile(FileInfo fileInfo, string text)
 		{
 			CreateFile(fileInfo);
@@ -33,6 +33,10 @@ namespace Advobot.Actions
 				writer.Write(text);
 			}
 		}
+		/// <summary>
+		/// Attempts to delete the supplied file.
+		/// </summary>
+		/// <param name="fileInfo"></param>
 		public static void DeleteFile(FileInfo fileInfo)
 		{
 			try
@@ -45,6 +49,32 @@ namespace Advobot.Actions
 			}
 		}
 
+		/// <summary>
+		/// Converts the object to JSON.
+		/// </summary>
+		/// <param name="obj"></param>
+		/// <returns></returns>
+		public static string Serialize(object obj)
+		{
+			return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented, new StringEnumConverter());
+		}
+		/// <summary>
+		/// Creates an object of type <typeparamref name="T"/> with the supplied string and type.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="value"></param>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public static T Deserialize<T>(string value, Type type)
+		{
+			return (T)JsonConvert.DeserializeObject(value, type, new StringEnumConverter());
+		}
+
+		/// <summary>
+		/// Writes an uncaught exception to a log file.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
 		public static void LogUncaughtException(object sender, UnhandledExceptionEventArgs e)
 		{
 			var crashLogPath = GetActions.GetBaseBotDirectoryFile(Constants.CRASH_LOG_LOCATION);

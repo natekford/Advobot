@@ -26,7 +26,6 @@ namespace Advobot.Actions
 		{
 			return Constants.HELP_ENTRIES[category].Select(x => x.Name).ToArray();
 		}
-
 		/// <summary>
 		/// Returns nothing if equal to 1. Returns "s" if not. Double allows most, if not all, number types in: https://stackoverflow.com/a/828963.
 		/// </summary>
@@ -45,6 +44,41 @@ namespace Advobot.Actions
 		public static string GetPrefix(IBotSettings botSettings, IGuildSettings guildSettings)
 		{
 			return String.IsNullOrWhiteSpace(guildSettings.Prefix) ? botSettings.Prefix : guildSettings.Prefix;
+		}
+		/// <summary>
+		/// Returns true if the passed in string is a valid Url.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public static bool GetIfStringIsValidUrl(string input)
+		{
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				return false;
+			}
+
+			return Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+		}
+		/// <summary>
+		/// Returns the <see cref="Process.WorkingSet64"/> value divided by a MB.
+		/// </summary>
+		/// <returns></returns>
+		public static double GetMemory()
+		{
+			using (var process = Process.GetCurrentProcess())
+			{
+				return process.WorkingSet64 / (1024.0 * 1024.0);
+			}
+		}
+		/// <summary>
+		/// Returns int.MaxValue is bypass is true, otherwise returns whatever botSettings has for MaxUserGatherCount.
+		/// </summary>
+		/// <param name="botSettings"></param>
+		/// <param name="bypass"></param>
+		/// <returns></returns>
+		public static int GetMaxAmountOfUsersToGather(IBotSettings botSettings, bool bypass)
+		{
+			return bypass ? int.MaxValue : botSettings.MaxUserGatherCount;
 		}
 
 		/// <summary>
@@ -86,45 +120,6 @@ namespace Advobot.Actions
 		{
 			var path = Path.Combine(GetBaseBotDirectory().FullName, fileName);
 			return new FileInfo(path);
-		}
-
-		/// <summary>
-		/// Returns true if the passed in string is a valid Url.
-		/// </summary>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		public static bool GetIfStringIsValidUrl(string input)
-		{
-			if (String.IsNullOrWhiteSpace(input))
-			{
-				return false;
-			}
-
-			return Uri.TryCreate(input, UriKind.Absolute, out Uri uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-		}
-
-		/// <summary>
-		/// Returns the <see cref="Process.WorkingSet64"/> value divided by a MB.
-		/// </summary>
-		/// <returns></returns>
-		public static double GetMemory()
-		{
-			const double _MB = 1024.0 * 1024.0;
-
-			using (var process = Process.GetCurrentProcess())
-			{
-				return Convert.ToInt32(process.WorkingSet64) / _MB;
-			}
-		}
-		/// <summary>
-		/// Returns int.MaxValue is bypass is true, otherwise returns whatever botSettings has for MaxUserGatherCount.
-		/// </summary>
-		/// <param name="botSettings"></param>
-		/// <param name="bypass"></param>
-		/// <returns></returns>
-		public static int GetMaxAmountOfUsersToGather(IBotSettings botSettings, bool bypass)
-		{
-			return bypass ? int.MaxValue : (int)botSettings.MaxUserGatherCount;
 		}
 
 		/// <summary>

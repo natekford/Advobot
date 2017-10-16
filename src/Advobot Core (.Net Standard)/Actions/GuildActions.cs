@@ -1,5 +1,7 @@
 ﻿using Advobot.Classes;
 using Discord;
+using Discord.WebSocket;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -44,7 +46,35 @@ namespace Advobot.Actions
 		{
 			return role?.Guild;
 		}
-
+		/// <summary>
+		/// Returns the bot's guild user.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <returns></returns>
+		public static IGuildUser GetBot(this IGuild guild)
+		{
+			return (guild as SocketGuild).CurrentUser;
+		}
+		/// <summary>
+		/// Returns every user that has a non null join time in order from least to greatest.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <returns></returns>
+		public static async Task<IReadOnlyCollection<IGuildUser>> GetUsersAndOrderByJoinAsync(this IGuild guild)
+		{
+			return (await guild.GetUsersAsync()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
+		}
+		/// <summary>
+		/// Returns every user that can be modified by both <paramref name="invokingUser"/> and the bot.
+		/// </summary>
+		/// <param name="guild"></param>
+		/// <param name="invokingUser"></param>
+		/// <returns></returns>
+		public static async Task<IReadOnlyCollection<IGuildUser>> GetUsersTheBotAndUserCanEditAsync(this IGuild guild, IUser invokingUser)
+		{
+			var bot = guild.GetBot();
+			return (await guild.GetUsersAsync()).Where(x => invokingUser.GetIfCanModifyUser(x) && bot.GetIfCanModifyUser(x)).ToList();
+		}
 		/// <summary>
 		/// Returns true if the guild has any global emotes.
 		/// </summary>
@@ -55,15 +85,6 @@ namespace Advobot.Actions
 			return guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
 		}
 
-		/// <summary>
-		/// Returns every user that has a non null join time in order from least to greatest.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <returns></returns>
-		public static async Task<IGuildUser[]> GetUsersAndOrderByJoinAsync(IGuild guild)
-		{
-			return (await guild.GetUsersAsync()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToArray();
-		}
 		/// <summary>
 		/// Prunes users who haven't been active in a certain amount of days and says the supplied reason in the audit log.
 		/// </summary>
@@ -76,7 +97,6 @@ namespace Advobot.Actions
 		{
 			return await guild.PruneUsersAsync(days, simulate, reason.CreateRequestOptions());
 		}
-
 		/// <summary>
 		/// Changes the guild's name and says the supplied reason in the audit log.
 		/// </summary>

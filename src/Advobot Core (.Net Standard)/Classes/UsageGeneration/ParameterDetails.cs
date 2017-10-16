@@ -12,6 +12,9 @@ using System.Runtime.InteropServices;
 
 namespace Advobot.Classes.UsageGeneration
 {
+	/// <summary>
+	/// Information about a parameter to be used in <see cref="UsageGenerator"/>.
+	/// </summary>
 	internal class ParameterDetails : IArgument
 	{
 		private static Dictionary<Type, Type> _TypeSwitcher = new Dictionary<Type, Type>
@@ -66,29 +69,41 @@ namespace Advobot.Classes.UsageGeneration
 		{
 			var overrideTypeReaderAttr = parameter.GetCustomAttribute<OverrideTypeReaderAttribute>();
 			var typeReader = overrideTypeReaderAttr?.TypeReader;
+			var pType = parameter.ParameterType;
+
 			if (typeReader != null)
 			{
 				if (_TypeSwitcher.TryGetValue(typeReader, out var value))
 				{
 					Type = value;
-					TypeName = Type.Name;
 				}
+				else if (typeReader.IsGenericType)
+				{
+					Type = typeReader.GetGenericArguments()[0];
+				}
+
 				if (_NameSwitcher.TryGetValue(typeReader, out var name))
 				{
 					Name = name;
 				}
 			}
-			else if (parameter.ParameterType != typeof(string) && parameter.ParameterType.GetInterfaces().Contains(typeof(IEnumerable)))
+			else if (pType != typeof(string) && pType.GetInterfaces().Contains(typeof(IEnumerable)))
 			{
-				Type = parameter.ParameterType.GetElementType();
+				Type = pType.GetElementType();
 				TypeName = $"List of {Type.Name}";
 			}
+			/* Not sure if needed right now
+			else if (pType.IsGenericType)
+			{
+				Type = pType.GetGenericArguments()[0];
+				TypeName = Type.Name;
+			}*/
 			else
 			{
-				Type = parameter.ParameterType;
-				TypeName = Type.Name;
+				Type = pType;
 			}
-			TypeName = TypeName.TrimEnd('`', '1');
+
+			TypeName = (TypeName ?? Type.Name).TrimEnd('`', '1');
 		}
 		private void SetText(System.Reflection.ParameterInfo parameter)
 		{

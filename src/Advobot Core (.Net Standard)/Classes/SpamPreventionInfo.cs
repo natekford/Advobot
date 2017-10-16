@@ -5,6 +5,9 @@ using Newtonsoft.Json;
 
 namespace Advobot.Classes.SpamPrevention
 {
+	/// <summary>
+	/// Holds information about spam prevention, such as how much is considered spam, required spam instances, and votes to kick.
+	/// </summary>
 	public class SpamPreventionInfo : ISetting
 	{
 		private const int MSG_COUNT_MIN_LIM = 0;

@@ -10,6 +10,13 @@ namespace Advobot.Classes.TypeReaders
 	/// </summary>
 	public sealed class CommandSwitchTypeReader : TypeReader
 	{
+		/// <summary>
+		/// Finds a command with the supplied name.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="input"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
 		public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
 			if (context is IAdvobotCommandContext advobotCommandContext)

@@ -5,6 +5,9 @@ using System.Net;
 
 namespace Advobot.Classes
 {
+	/// <summary>
+	/// Makes sure a url is a valid url and a valid image.
+	/// </summary>
 	public class ImageUrl
 	{
 		public Uri Url { get; private set; }

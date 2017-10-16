@@ -12,6 +12,9 @@ using System.Reflection;
 
 namespace Advobot.Classes
 {
+	/// <summary>
+	/// Creates a help entry for every command and then allows those to be accessed.
+	/// </summary>
 	public class HelpEntryHolder
 	{
 		private readonly ImmutableList<HelpEntry> _Source;

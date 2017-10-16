@@ -1,7 +1,7 @@
 ﻿namespace Advobot.Classes
 {
 	/// <summary>
-	/// Holds the code and uses of an invite. Used in <see cref="InviteActions.GetInviteUserJoinedOn(IGuildSettings, Discord.IGuild)"/>.
+	/// Holds the code and uses of an invite. Used in <see cref="Actions.InviteActions.GetInviteUserJoinedOnAsync(Interfaces.IGuildSettings, Discord.IGuildUser)"/>.
 	/// </summary>
 	public class CachedInvite
 	{

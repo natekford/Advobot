@@ -128,7 +128,7 @@ namespace Advobot.Commands.RoleModeration
 					? $"`{x.Position.ToString("00")}.` {Constants.FAKE_EVERYONE}"
 					: $"`{x.Position.ToString("00")}.` {x.Name}";
 			}));
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Role Positions", desc));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Role Positions", desc));
 		}
 	}
 
@@ -147,14 +147,14 @@ namespace Advobot.Commands.RoleModeration
 			public async Task Command()
 			{
 				var desc = $"`{String.Join("`, `", GuildPerms.Permissions.Select(x => x.Name))}`";
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Guild Permission Types", desc));
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Guild Permission Types", desc));
 			}
 			[Command]
 			public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role)
 			{
 				var currentRolePerms = GuildPerms.ConvertValueToNames(role.Permissions.RawValue);
 				var permissions = currentRolePerms.Any() ? String.Join("`, `", currentRolePerms) : "No permission";
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed(role.Name, $"`{permissions}`"));
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(role.Name, $"`{permissions}`"));
 			}
 		}
 		[Command(nameof(Allow)), ShortAlias(nameof(Allow))]
@@ -239,8 +239,8 @@ namespace Advobot.Commands.RoleModeration
 			await RoleActions.ModifyRoleNameAsync(role, name, new ModerationReason(Context.User, null));
 			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.");
 		}
-		[Command(nameof(Position)), ShortAlias(nameof(Position))]
-		public async Task Position([OverrideTypeReader(typeof(ObjectByPositionTypeReader<IRole>)), VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role,
+		[Command]
+		public async Task CommandByPosition([OverrideTypeReader(typeof(ObjectByPositionTypeReader<IRole>)), VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role,
 			[Remainder, VerifyStringLength(Target.Role)] string name)
 		{
 			await RoleActions.ModifyRoleNameAsync(role, name, new ModerationReason(Context.User, null));
@@ -260,7 +260,7 @@ namespace Advobot.Commands.RoleModeration
 			if (role == null)
 			{
 				var desc = $"`{String.Join("`, `", Colors.COLORS.Keys)}`";
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Colors", desc));
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Colors", desc));
 				return;
 			}
 

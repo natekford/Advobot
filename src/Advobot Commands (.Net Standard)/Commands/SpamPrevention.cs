@@ -21,7 +21,7 @@ namespace Advobot.Commands.SpamPrevention
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Punishment Types", desc));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Punishment Types", desc));
 		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(SpamType spamType, PunishmentType punishment, uint messageCount, uint requiredSpamAmtOrTimeInterval, uint votes)
@@ -74,7 +74,7 @@ namespace Advobot.Commands.SpamPrevention
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", Enum.GetNames(typeof(PunishmentType)))}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Punishment Types", desc));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Punishment Types", desc));
 		}
 		[Command(nameof(Create)), ShortAlias(nameof(Create))]
 		public async Task Create(RaidType raidType, PunishmentType punishment, uint userCount, uint interval)
@@ -102,7 +102,7 @@ namespace Advobot.Commands.SpamPrevention
 			if (raidType == RaidType.Regular)
 			{
 				//Mute the newest joining users
-				var users = (await GuildActions.GetUsersAndOrderByJoinAsync(Context.Guild)).Reverse().ToArray();
+				var users = (await Context.Guild.GetUsersAndOrderByJoinAsync()).Reverse().ToArray();
 				for (int i = 0; i < new[] { raidPrev.UserCount, users.Length, 25 }.Min(); ++i)
 				{
 					await raidPrev.PunishAsync(Context.GuildSettings, users[i]);

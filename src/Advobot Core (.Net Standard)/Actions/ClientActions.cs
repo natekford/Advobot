@@ -67,6 +67,16 @@ namespace Advobot.Actions
 				throw new ArgumentException("Invalid client provided.");
 			}
 		}
+
+		/// <summary>
+		/// Returns the user who owns the bot.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <returns></returns>
+		public static async Task<IUser> GetBotOwnerAsync(IDiscordClient client)
+		{
+			return (await client.GetApplicationInfoAsync()).Owner;
+		}
 		/// <summary>
 		/// Returns the shard id for a <see cref="DiscordSocketClient"/> else returns -1.
 		/// </summary>
@@ -214,7 +224,7 @@ namespace Advobot.Actions
 				FileName = "dotnet",
 				Arguments = $@"""{Assembly.GetEntryAssembly().Location}""",
 			});
-			ConsoleActions.WriteLine("Restarted the bot." + Environment.NewLine);
+			ConsoleActions.WriteLine($"Restarted the bot.{Environment.NewLine}");
 			Process.GetCurrentProcess().Kill();
 		}
 		/// <summary>
@@ -231,6 +241,7 @@ namespace Advobot.Actions
 				await shardedClient.SetStatusAsync(UserStatus.Invisible);
 			}
 
+			//When this gets awaited the client hangs
 			//I think it doesn't really matter if this isn't awaited.
 			//What is the worst that could happen when the client is being killed anyways.
 			#pragma warning disable

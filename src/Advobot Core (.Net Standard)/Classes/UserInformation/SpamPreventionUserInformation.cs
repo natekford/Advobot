@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Classes.UserInformation
 {
+	/// <summary>
+	/// Keeps track how much spam this user has said, how many people need to vote, who has voted, and what punishment to give.
+	/// </summary>
 	public class SpamPreventionUserInformation : UserInfo
 	{
 		//Because the enum values might change in the future. These are never saved in JSON so these can be modified

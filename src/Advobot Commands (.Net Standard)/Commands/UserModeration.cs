@@ -224,7 +224,7 @@ namespace Advobot.Commands.UserModeration
 		[Command]
 		public async Task Command(IBan ban)
 		{
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Ban reason for " + ban.User.FormatUser(), ban.Reason));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Ban reason for " + ban.User.FormatUser(), ban.Reason));
 		}
 	}
 
@@ -260,7 +260,7 @@ namespace Advobot.Commands.UserModeration
 			}
 
 			var desc = bans.FormatNumberedList("`{0}`", x => x.User.FormatUser());
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new MyEmbed("Current Bans", desc));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Current Bans", desc));
 		}
 	}
 
@@ -376,7 +376,7 @@ namespace Advobot.Commands.UserModeration
 				return;
 			}
 
-			var users = (await UserActions.GetUsersTheBotAndUserCanEditAsync(Context)).Where(x => x.RoleIds.Contains(targetRole.Id));
+			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User)).Where(x => x.RoleIds.Contains(targetRole.Id));
 			await new MultiUserAction(Context, users, bypass).GiveRoleToManyUsersAsync(givenRole, new ModerationReason(Context.User, null));
 		}
 		[Command(nameof(TakeRole)), ShortAlias(nameof(TakeRole))]
@@ -384,7 +384,7 @@ namespace Advobot.Commands.UserModeration
 			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] IRole takenRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await UserActions.GetUsersTheBotAndUserCanEditAsync(Context)).Where(x => x.RoleIds.Contains(targetRole.Id));
+			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User)).Where(x => x.RoleIds.Contains(targetRole.Id));
 			await new MultiUserAction(Context, users, bypass).TakeRoleFromManyUsersAsync(takenRole, new ModerationReason(Context.User, null));
 		}
 		[Command(nameof(GiveNickname)), ShortAlias(nameof(GiveNickname))]
@@ -392,14 +392,14 @@ namespace Advobot.Commands.UserModeration
 			[VerifyStringLength(Target.Nickname)] string nickname,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await UserActions.GetUsersTheBotAndUserCanEditAsync(Context)).Where(x => x.RoleIds.Contains(targetRole.Id));
+			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User)).Where(x => x.RoleIds.Contains(targetRole.Id));
 			await new MultiUserAction(Context, users, bypass).NicknameManyUsersAsync(nickname, new ModerationReason(Context.User, null));
 		}
 		[Command(nameof(TakeNickname)), ShortAlias(nameof(TakeNickname))]
 		public async Task TakeNickname([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole targetRole,
 			[Optional, OverrideTypeReader(typeof(BypassUserLimitTypeReader))] bool bypass)
 		{
-			var users = (await UserActions.GetUsersTheBotAndUserCanEditAsync(Context)).Where(x => x.RoleIds.Contains(targetRole.Id));
+			var users = (await Context.Guild.GetUsersTheBotAndUserCanEditAsync(Context.User)).Where(x => x.RoleIds.Contains(targetRole.Id));
 			await new MultiUserAction(Context, users, bypass).NicknameManyUsersAsync(null, new ModerationReason(Context.User, null));
 		}
 	}

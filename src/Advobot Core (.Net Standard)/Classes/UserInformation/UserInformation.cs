@@ -4,6 +4,9 @@ using System;
 
 namespace Advobot.Classes.UserInformation
 {
+	/// <summary>
+	/// Holds a user and a time.
+	/// </summary>
 	public abstract class UserInfo : IHasTime
 	{
 		public readonly IGuildUser User;

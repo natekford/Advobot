@@ -20,7 +20,7 @@ namespace Advobot.Classes.Attributes
 			{
 				var user = context.User as IGuildUser;
 
-				if (!UserActions.GetBot(advobotCommandContext.Guild).GuildPermissions.Administrator)
+				if (!advobotCommandContext.Guild.GetBot().GuildPermissions.Administrator)
 				{
 					return Task.FromResult(PreconditionResult.FromError($"This bot will not function without the `{nameof(GuildPermission.Administrator)}` permission."));
 				}

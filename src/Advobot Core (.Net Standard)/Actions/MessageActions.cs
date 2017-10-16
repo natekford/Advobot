@@ -41,7 +41,7 @@ namespace Advobot.Actions
 		/// <param name="embed"></param>
 		/// <param name="content"></param>
 		/// <returns></returns>
-		public static async Task<IUserMessage> SendEmbedMessageAsync(IMessageChannel channel, MyEmbed embed, string content = null)
+		public static async Task<IUserMessage> SendEmbedMessageAsync(IMessageChannel channel, AdvobotEmbed embed, string content = null)
 		{
 			var guild = channel.GetGuild();
 			if (guild == null)
@@ -148,7 +148,7 @@ namespace Advobot.Actions
 			var text = String.Join("\n", inputList).RemoveDuplicateNewLines();
 			if (inputList.Count() <= 5 && text.Length < Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
-				var embed = new MyEmbed("Deleted Messages", text, Colors.MDEL)
+				var embed = new AdvobotEmbed("Deleted Messages", text, Colors.MDEL)
 					.AddFooter("Deleted Messages");
 				return await SendEmbedMessageAsync(channel, embed);
 			}
@@ -159,7 +159,6 @@ namespace Advobot.Actions
 				return await SendTextFileAsync(channel, text.RemoveAllMarkdown(), name, content);
 			}
 		}
-
 		/// <summary>
 		/// Waits a few seconds then deletes the newly created message and the context message.
 		/// </summary>

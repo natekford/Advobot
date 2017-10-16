@@ -177,7 +177,7 @@ namespace Advobot.Commands
 				var guildSettings = context.GuildSettings;
 				if (guildSettings.ModLog != null && !guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
 				{
-					var embed = new MyEmbed(null, context.Message.Content)
+					var embed = new AdvobotEmbed(null, context.Message.Content)
 						.AddAuthor(context.User)
 						.AddFooter("Mod Log");
 					await MessageActions.SendEmbedMessageAsync(guildSettings.ModLog, embed);

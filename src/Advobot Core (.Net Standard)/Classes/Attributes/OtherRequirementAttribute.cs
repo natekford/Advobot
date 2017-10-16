@@ -66,7 +66,7 @@ namespace Advobot.Classes.Attributes
 				{
 					return PreconditionResult.FromSuccess();
 				}
-				if (botOwner && (await UserActions.GetBotOwnerAsync(advobotCommandContext.Client)).Id == user.Id)
+				if (botOwner && (await ClientActions.GetBotOwnerAsync(advobotCommandContext.Client)).Id == user.Id)
 				{
 					return PreconditionResult.FromSuccess();
 				}

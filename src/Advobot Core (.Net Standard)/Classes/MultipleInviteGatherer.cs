@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace Advobot.Classes
 {
+	/// <summary>
+	/// Sets the search terms for invites and can gather invites matching those terms.
+	/// </summary>
 	public class MultipleInviteGatherer
 	{
 		private ulong? _UserId;

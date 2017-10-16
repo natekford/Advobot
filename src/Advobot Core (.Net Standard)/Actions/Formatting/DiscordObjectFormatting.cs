@@ -131,7 +131,7 @@ namespace Advobot.Actions.Formatting
 			}
 			if (message.Attachments.Any())
 			{
-				messageContent.Append(" + " + String.Join(" + ", message.Attachments.Select(x => x.Filename)));
+				messageContent.Append($" + {String.Join(" + ", message.Attachments.Select(x => x.Filename))}");
 			}
 
 			var time = message.CreatedAt.ToString("HH:mm:ss");

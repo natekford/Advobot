@@ -7,27 +7,6 @@ using System.Linq;
 namespace Advobot.Classes.Permissions
 {
 	/// <summary>
-	/// Holds a channel permission name and value. Also holds booleans describing whether or not the permissions is on text/voice/both channels.
-	/// </summary>
-	public struct ChannelPerm
-	{
-		public string Name { get; }
-		public ulong Value { get; }
-		public bool General { get; }
-		public bool Text { get; }
-		public bool Voice { get; }
-
-		public ChannelPerm(string name, int position, bool gen = false, bool text = false, bool voice = false)
-		{
-			Name = name;
-			Value = (1U << position);
-			General = gen;
-			Text = text;
-			Voice = voice;
-		}
-	}
-
-	/// <summary>
 	/// Helper class for channel permissions.
 	/// </summary>
 	public static class ChannelPerms
@@ -187,6 +166,27 @@ namespace Advobot.Classes.Permissions
 				}
 			}
 			return temp.ToArray();
+		}
+
+		/// <summary>
+		/// Holds a channel permission name and value. Also holds booleans describing whether or not the permissions is on text/voice/both channels.
+		/// </summary>
+		public struct ChannelPerm
+		{
+			public string Name { get; }
+			public ulong Value { get; }
+			public bool General { get; }
+			public bool Text { get; }
+			public bool Voice { get; }
+
+			public ChannelPerm(string name, int position, bool gen = false, bool text = false, bool voice = false)
+			{
+				Name = name;
+				Value = (1U << position);
+				General = gen;
+				Text = text;
+				Voice = voice;
+			}
 		}
 	}
 }

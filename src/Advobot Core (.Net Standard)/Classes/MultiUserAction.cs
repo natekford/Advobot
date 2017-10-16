@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Classes
 {
+	/// <summary>
+	/// Does an action on all the input users until either no more users remain or the cancel token has been canceled.
+	/// </summary>
 	public class MultiUserAction
 	{
 		private static ConcurrentDictionary<ulong, CancellationTokenSource> _CancelTokens = new ConcurrentDictionary<ulong, CancellationTokenSource>();

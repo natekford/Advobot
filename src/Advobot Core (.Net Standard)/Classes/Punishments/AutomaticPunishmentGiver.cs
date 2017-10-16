@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Classes.Punishments
 {
+	/// <summary>
+	/// Automatically gives a punishment to a user.
+	/// </summary>
 	public class AutomaticPunishmentGiver : PunishmentGiver
 	{
 		public AutomaticPunishmentGiver(int time, ITimersService timers) : base(time, timers) { }
@@ -16,8 +19,8 @@ namespace Advobot.Classes.Punishments
 		public virtual async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IGuildUser user, IRole role, [CallerMemberName] string reason = "")
 		{
 			var guild = user.GetGuild();
-			var bot = UserActions.GetBot(guild);
-			if (!user.CanBeModifiedByUser(bot))
+			var bot = guild.GetBot();
+			if (!bot.GetIfCanModifyUser(user))
 			{
 				return;
 			}

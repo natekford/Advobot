@@ -21,7 +21,7 @@ namespace Advobot.Actions
 		/// <param name="target"></param>
 		/// <param name="checkingTypes"></param>
 		/// <returns></returns>
-		public static VerifiedObjectResult VerifyChannelMeetsRequirements(ICommandContext context, IGuildChannel target, IEnumerable<ObjectVerification> checks)
+		public static VerifiedObjectResult VerifyChannelMeetsRequirements(this IGuildChannel target, ICommandContext context, IEnumerable<ObjectVerification> checks)
 		{
 			if (target == null)
 			{
@@ -29,7 +29,7 @@ namespace Advobot.Actions
 			}
 
 			var invokingUser = context.User as IGuildUser;
-			var bot = UserActions.GetBot(context.Guild);
+			var bot = context.Guild.GetBot();
 			foreach (var check in checks)
 			{
 				if (!invokingUser.GetIfCanDoActionOnChannel(target, check))
@@ -112,7 +112,7 @@ namespace Advobot.Actions
 			}
 
 			//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
-			await channel.ModifyPositionAsync((await guild.GetTextChannelsAsync()).Max(x => x.Position), reason);
+			await ChannelActions.ModifyPositionAsync(channel, (await guild.GetTextChannelsAsync()).Max(x => x.Position), reason);
 		}
 		/// <summary>
 		/// Deletes a channel.
@@ -132,7 +132,7 @@ namespace Advobot.Actions
 		/// <param name="position"></param>
 		/// <param name="reason"></param>
 		/// <returns></returns>
-		public static async Task<int> ModifyPositionAsync(this IGuildChannel channel, int position, ModerationReason reason)
+		public static async Task<int> ModifyPositionAsync(IGuildChannel channel, int position, ModerationReason reason)
 		{
 			if (channel == null)
 			{
@@ -171,7 +171,7 @@ namespace Advobot.Actions
 		/// <param name="name">The new name.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyNameAsync(this IGuildChannel channel, string name, ModerationReason reason)
+		public static async Task ModifyNameAsync(IGuildChannel channel, string name, ModerationReason reason)
 		{
 			await channel.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions());
 		}
@@ -182,7 +182,7 @@ namespace Advobot.Actions
 		/// <param name="topic">The new topic.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyTopicAsync(this ITextChannel channel, string topic, ModerationReason reason)
+		public static async Task ModifyTopicAsync(ITextChannel channel, string topic, ModerationReason reason)
 		{
 			await channel.ModifyAsync(x => x.Topic = topic, reason.CreateRequestOptions());
 		}
@@ -193,7 +193,7 @@ namespace Advobot.Actions
 		/// <param name="limit">The new limit.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyLimitAsync(this IVoiceChannel channel, int limit, ModerationReason reason)
+		public static async Task ModifyLimitAsync(IVoiceChannel channel, int limit, ModerationReason reason)
 		{
 			await channel.ModifyAsync(x => x.UserLimit = limit, reason.CreateRequestOptions());
 		}
@@ -204,7 +204,7 @@ namespace Advobot.Actions
 		/// <param name="bitrate">The new bitrate.</param>
 		/// <param name="reason">The reason to say in the audit log.</param>
 		/// <returns></returns>
-		public static async Task ModifyBitrateAsync(this IVoiceChannel channel, int bitrate, ModerationReason reason)
+		public static async Task ModifyBitrateAsync(IVoiceChannel channel, int bitrate, ModerationReason reason)
 		{
 			await channel.ModifyAsync(x => x.Bitrate = bitrate, reason.CreateRequestOptions());
 		}

@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace Advobot.Classes.SpamPrevention
 {
+	/// <summary>
+	/// Holds information about raid prevention such as how long the interval is, and how many users to target.
+	/// </summary>
 	public class RaidPreventionInfo : ISetting
 	{
 		private const int MAX_USERS = 25;

@@ -7,21 +7,6 @@ using System.Linq;
 namespace Advobot.Classes.Permissions
 {
 	/// <summary>
-	/// Holds a guild permission name and value.
-	/// </summary>
-	public struct GuildPerm
-	{
-		public string Name { get; }
-		public ulong Value { get; }
-
-		public GuildPerm(string name, int position)
-		{
-			Name = name;
-			Value = (1U << position);
-		}
-	}
-
-	/// <summary>
 	/// Helper class for guild permissions.
 	/// </summary>
 	public static class GuildPerms
@@ -146,6 +131,21 @@ namespace Advobot.Classes.Permissions
 				temp.Add(new GuildPerm(name, i));
 			}
 			return temp.ToArray();
+		}
+
+		/// <summary>
+		/// Holds a guild permission name and value.
+		/// </summary>
+		public struct GuildPerm
+		{
+			public string Name { get; }
+			public ulong Value { get; }
+
+			public GuildPerm(string name, int position)
+			{
+				Name = name;
+				Value = (1U << position);
+			}
 		}
 	}
 }

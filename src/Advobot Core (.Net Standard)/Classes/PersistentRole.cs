@@ -15,11 +15,18 @@ namespace Advobot.Classes
 		public ulong UserId { get; }
 		[JsonProperty]
 		public ulong RoleId { get; }
+		[JsonIgnore]
+		private IRole _Role;
 
 		public PersistentRole(ulong userId, IRole role)
 		{
 			UserId = userId;
 			RoleId = role.Id;
+		}
+
+		public IRole GetRole(SocketGuild guild)
+		{
+			return _Role ?? (_Role = guild.GetRole(RoleId));
 		}
 
 		public override string ToString()

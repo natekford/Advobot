@@ -52,6 +52,7 @@ namespace Advobot.Actions
 		{
 			return channel.GetPermissionOverwrite(obj)?.DenyValue ?? 0;
 		}
+
 		/// <summary>
 		/// Based off of the <paramref name="actionType"/> passed in will allow, inherit, or deny the given values for the <paramref name="discordObject"/> on the channel.
 		/// </summary>
@@ -203,7 +204,8 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static string[] GetFormattedPermsFromOverwrite<T>(IGuildChannel channel, T overwriteObj) where T : ISnowflakeEntity
 		{
-			var perms = GetFilteredChannelOverwritePermissions(channel.PermissionOverwrites.FirstOrDefault(x => overwriteObj.Id == x.TargetId), channel);
+			var obj = channel.PermissionOverwrites.FirstOrDefault(x => x.TargetId == overwriteObj.Id);
+			var perms = GetFilteredChannelOverwritePermissions(obj, channel);
 			var maxLen = perms.Keys.Max(x => x.Length);
 			return perms.Select(x => $"{x.Key.PadRight(maxLen)} {x.Value}").ToArray();
 		}

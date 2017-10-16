@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 namespace Advobot.Classes
 {
+	/// <summary>
+	/// Allows a user to make an embed through the use of <see cref="CustomArguments{T}"/>.
+	/// </summary>
 	public class CustomEmbed
 	{
 		public const string FIELD_NAME = "FieldName";
@@ -14,7 +17,7 @@ namespace Advobot.Classes
 		private static char _SplitChar = SPLIT_CHAR[0];
 		public const string FORMAT = FIELD_NAME + ":Name" + SPLIT_CHAR + FIELD_TEXT + ":Text" + SPLIT_CHAR + FIELD_INLINE + ":True|False";
 
-		public MyEmbed Embed { get; }
+		public AdvobotEmbed Embed { get; }
 
 		[CustomArgumentConstructor]
 		public CustomEmbed(
@@ -31,7 +34,7 @@ namespace Advobot.Classes
 			[CustomArgument] string footerIconUrl,
 			[CustomArgument(25)] params string[] fieldInfo)
 		{
-			Embed = new MyEmbed(title, description, ColorTypeReader.GetColor(color), imageUrl, url, thumbUrl)
+			Embed = new AdvobotEmbed(title, description, ColorTypeReader.GetColor(color), imageUrl, url, thumbUrl)
 				.AddAuthor(authorName, authorIconUrl, authorUrl)
 				.AddFooter(footer, footerIconUrl);
 

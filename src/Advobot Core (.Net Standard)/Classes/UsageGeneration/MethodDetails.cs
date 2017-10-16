@@ -5,6 +5,9 @@ using System.Reflection;
 
 namespace Advobot.Classes.UsageGeneration
 {
+	/// <summary>
+	/// Information about a method to be used in <see cref="UsageGenerator"/>.
+	/// </summary>
 	internal class MethodDetails : IArgument
 	{
 		public int Deepness { get; }

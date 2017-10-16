@@ -1,10 +1,13 @@
 ﻿using Advobot.Enums;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 
 namespace Advobot.Classes.Punishments
 {
+	/// <summary>
+	/// Base for classes like <see cref="PunishmentGiver"/> and <see cref="PunishmentRemover"/>. Holds the past tense words for removing
+	/// and giving <see cref="PunishmentType"/> values.
+	/// </summary>
 	public abstract class PunishmentBase
 	{
 		protected static ImmutableDictionary<PunishmentType, string> _Given = new Dictionary<PunishmentType, string>

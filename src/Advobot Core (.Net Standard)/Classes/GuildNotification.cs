@@ -29,7 +29,7 @@ namespace Advobot.Classes
 		[JsonProperty]
 		public ulong ChannelId { get; }
 		[JsonIgnore]
-		public MyEmbed Embed { get; }
+		public AdvobotEmbed Embed { get; }
 		[JsonIgnore]
 		public ITextChannel Channel { get; private set; }
 
@@ -48,7 +48,7 @@ namespace Advobot.Classes
 			ChannelId = channelID;
 			if (!(String.IsNullOrWhiteSpace(title) && String.IsNullOrWhiteSpace(description) && String.IsNullOrWhiteSpace(thumbUrl)))
 			{
-				Embed = new MyEmbed(title, description, null, null, null, thumbUrl);
+				Embed = new AdvobotEmbed(title, description, null, null, null, thumbUrl);
 			}
 		}
 		[CustomArgumentConstructor]
