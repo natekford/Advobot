@@ -1,32 +1,33 @@
 ﻿using Advobot.Classes;
 using Advobot.Interfaces;
 using Discord;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Advobot.Services.InviteList
 {
 	internal sealed class InviteList : IInviteListService
 	{
-		private List<ListedInvite> _ListedInvites;
-		public List<ListedInvite> ListedInvites => _ListedInvites ?? (_ListedInvites = new List<ListedInvite>());
+		private ConcurrentDictionary<ulong, ListedInvite> _Invites = new ConcurrentDictionary<ulong, ListedInvite>();
 
-		public void AddInvite(ListedInvite invite)
+		public bool AddInvite(ListedInvite invite)
 		{
-			ListedInvites.ThreadSafeAdd(invite);
+			return _Invites.TryAdd(invite.Guild.Id, invite);
 		}
-		public void RemoveInvite(ListedInvite invite)
+		public bool RemoveInvite(IGuild guild)
 		{
-			ListedInvites.ThreadSafeRemove(invite);
+			return _Invites.TryRemove(guild.Id, out var invite);
 		}
-		public void RemoveInvite(IGuild guild)
+		public IReadOnlyCollection<ListedInvite> GetInvites()
 		{
-			ListedInvites.ThreadSafeRemoveAll(x => x.Guild.Id == guild.Id);
+			return _Invites.Values.OrderByDescending(x => x.LastBumped).ToList().AsReadOnly();
 		}
-		public void BumpInvite(ListedInvite invite)
+		public IReadOnlyCollection<ListedInvite> GetInvites(params string[] keywords)
 		{
-			RemoveInvite(invite);
-			AddInvite(invite);
-			invite.UpdateLastBumped();
+			return _Invites.Values.Where(x => x.Keywords.Intersect(keywords, StringComparer.OrdinalIgnoreCase).Any())
+				.OrderByDescending(x => x.LastBumped).ToList().AsReadOnly();
 		}
 	}
 }

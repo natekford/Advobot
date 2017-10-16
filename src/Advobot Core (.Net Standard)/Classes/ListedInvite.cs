@@ -1,5 +1,6 @@
 ﻿using Advobot.Actions;
 using Advobot.Interfaces;
+using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
@@ -28,18 +29,17 @@ namespace Advobot.Classes
 		public SocketGuild Guild { get; private set; }
 
 		[JsonConstructor]
-		public ListedInvite(string code, IEnumerable<string> keywords)
+		public ListedInvite(IInvite invite, IEnumerable<string> keywords)
 		{
 			LastBumped = DateTime.UtcNow;
-			Code = code;
+			Code = invite.Code;
 			Url = "https://www.discord.gg/" + Code;
 			Keywords = (keywords ?? Enumerable.Empty<string>()).ToList();
 		}
-		public ListedInvite(SocketGuild guild, string code, IEnumerable<string> keywords) : this(code, keywords)
+		public ListedInvite(SocketGuild guild, IInvite invite, IEnumerable<string> keywords) : this(invite, keywords)
 		{
 			Guild = guild;
 			HasGlobalEmotes = Guild.HasGlobalEmotes();
-			Keywords = (keywords ?? Enumerable.Empty<string>()).ToList();
 		}
 
 		/// <summary>
@@ -83,7 +83,7 @@ namespace Advobot.Classes
 			{
 				return null;
 			}
-			return $"**Code:** `{Code}`\n{(Keywords.Any() ? $"**Keywords:**\n`{String.Join("`, `", Keywords)}`" : "")}";
+			return $"**Code:** `{Code}`{(Keywords.Any() ? $"\n**Keywords:** `{String.Join("`, `", Keywords)}`" : "")}";
 		}
 		public string ToString(SocketGuild guild)
 		{

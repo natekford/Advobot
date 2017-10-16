@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,7 +20,16 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
-			var invite = (await context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code.CaseInsEquals(input));
+			IInvite invite = (await context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code.CaseInsEquals(input));
+			if (invite == null)
+			{
+				//Test if vanity url
+				var testInv = await context.Client.GetInviteAsync(input);
+				if (testInv.GuildId == context.Guild.Id)
+				{
+					invite = testInv;
+				}
+			}
 			return invite != null
 				? TypeReaderResult.FromSuccess(invite)
 				: TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a matching invite.");

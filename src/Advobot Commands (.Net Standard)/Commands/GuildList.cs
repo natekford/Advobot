@@ -1,122 +1,68 @@
 ﻿using Advobot.Actions;
+using Advobot.Classes;
+using Advobot.Classes.Attributes;
+using Advobot.Enums;
+using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.GuildList
 {
-	/*
-	[Name("GuildList")]
-	public class Advobot_Commands_Guild_List : ModuleBase
+	[Group(nameof(ModifyGuildListing)), TopLevelShortAlias(typeof(ModifyGuildListing))]
+	[Summary("Adds or removes a guild from the public guild list.")]
+	[PermissionRequirement(null, null)]
+	[DefaultEnabled(false)]
+	public sealed class ModifyGuildListing : SavingModuleBase
 	{
-		[Command("modifyguildlisting")]
-		[Alias("mgl")]
-		[Usage("[Add|Remove] [Code] <\"Keywords:Keywords/...>\"")]
-		[Summary("Adds a guild to the guild list.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
-		public async Task AddInvite([Remainder] string input)
+		[Command(nameof(Add)), ShortAlias(nameof(Add))]
+		public async Task Add(IInvite invite, [Optional] params string[] keywords)
 		{
-			var guildInfo = await Actions.CreateOrGetGuildInfo(Context.Guild);
-
-			var returnedArgs = Actions.GetArgs(Context, input, new ArgNumbers(2, 3), new[] { "keywords" });
-			if (returnedArgs.Reason != FailureReason.NotFailure)
+			if (Context.GuildSettings.ListedInvite != null)
 			{
-				await Actions.HandleArgsGettingErrors(Context, returnedArgs);
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild is already listed."));
 				return;
 			}
-			var actionStr = returnedArgs.Arguments[0];
-			var codeStr = returnedArgs.Arguments[1];
-			var keywordStr = returnedArgs.GetSpecifiedArg("keywords");
-
-			var returnedType = Actions.GetEnum(actionStr, new[] { ActionType.Add, ActionType.Remove });
-			if (returnedType.Reason != FailureReason.NotFailure)
+			else if (invite is IInviteMetadata metadata && metadata.MaxAge != null)
 			{
-				await Actions.HandleObjectGettingErrors(Context, returnedType);
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Don't provide invites that won't expire."));
 				return;
 			}
-			var action = returnedType.Object;
 
-			switch (action)
-			{
-				case ActionType.Add:
-				{
-					var listedInvite = Variables.InviteList.FirstOrDefault(x => x.GuildId == Context.Guild.Id);
-					if (listedInvite != null)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("This guild is already listed."));
-						return;
-					}
-
-					//Make sure the guild has that code
-					var invite = (await Context.Guild.GetInvitesAsync()).FirstOrDefault(x => Actions.CaseInsEquals(x.Code, codeStr));
-					if (invite == null)
-					{
-						if (!Context.Guild.Features.CaseInsContains(Constants.VANITY_URL))
-						{
-							await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("Invalid invite provided."));
-							return;
-						}
-						else
-						{
-							var restInv = await Variables.Client.GetInviteAsync(codeStr);
-							if (restInv.GuildId != Context.Guild.Id)
-							{
-								await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("Please don't try to add other guilds."));
-								return;
-							}
-							codeStr = restInv.Code;
-						}
-					}
-					else if (invite.MaxAge != null)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("Please only give unexpiring invites."));
-						return;
-					}
-					else
-					{
-						codeStr = invite.Code;
-					}
-
-					var keywords = keywordStr?.Split('/');
-					var listedInv = new ListedInvite(Context.Guild.Id, codeStr, keywords);
-					Variables.InviteList.ThreadSafeAdd(listedInv);
-
-					if (guildInfo.SetSetting(SettingOnGuild.ListedInvite, listedInv))
-					{
-						var keywordString = keywords != null ? $" with the keywords `{1}`", String.Join("`, `", keywords)) : "";
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added the invite `{0}` to the guild list{1}.", codeStr, keywordString));
-					}
-					else
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("Failed to save the listed invite."));
-					}
-					break;
-				}
-				case ActionType.Remove:
-				{
-					var listedInvite = Variables.InviteList.FirstOrDefault(x => x.GuildId == Context.Guild.Id);
-					if (listedInvite == null)
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("This guild is not listed."));
-						return;
-					}
-					Variables.InviteList.ThreadSafeRemove(listedInvite);
-
-					if (guildInfo.SetSetting(SettingOnGuild.ListedInvite, null))
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the invite on the guild list.");
-					}
-					else
-					{
-						await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, Formatting.ERROR("Failed to remove the listed invite."));
-					}
-					break;
-				}
-			}
+			Context.GuildSettings.ListedInvite = new ListedInvite(invite, keywords);
+			var resp = $"Successfully set the listed invite to the following:\n{Context.GuildSettings.ListedInvite}.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp);
 		}
+		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
+		public async Task Remove()
+		{
+			if (Context.GuildSettings.ListedInvite == null)
+			{
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild is already unlisted."));
+				return;
+			}
+
+			Context.GuildSettings.ListedInvite = null;
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the listed invite.");
+		}
+	}
+
+	[Group(nameof(BumpGuildListing)), TopLevelShortAlias(typeof(BumpGuildListing))]
+	[Summary("Bumps the invite on the guild.")]
+	[OtherRequirement(Precondition.UserHasAPerm)]
+	[DefaultEnabled(false)]
+	public sealed class BumpGuildListing : AdvobotModuleBase
+	{
+		[Command]
+		public async Task Command()
+		{
+			//Context.
+		}
+	}
+	/*
 
 		[Command("bumpguildlisting")]
 		[Alias("bump")]
