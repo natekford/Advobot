@@ -168,4 +168,37 @@ namespace Advobot.Enums
 		Prefix   = (1U << 12),
 		Regex    = (1U << 13),
 	}
+
+	/// <summary>
+	/// Indicates whether when searching for a number to look at numbers exactly equal, below, or above.
+	/// </summary>
+	[Flags]
+	public enum CountTarget : uint
+	{
+		Equal = (1U << 0),
+		Below = (1U << 1),
+		Above = (1U << 2),
+	}
+
+	/// <summary>
+	/// Keys to be used in <see cref="Config.ConfigDict"/>.
+	/// </summary>
+	[Flags]
+	public enum ConfigKeys : uint
+	{
+		SavePath = (1U << 0),
+		BotKey   = (1U << 1),
+		BotId    = (1U << 2),
+	}
+
+	/// <summary>
+	/// Options to search for a user with.
+	/// </summary>
+	[Flags]
+	public enum SearchOptions : uint
+	{
+		Count    = (1U << 0),
+		Nickname = (1U << 1),
+		Exact    = (1U << 2),
+	}
 }

@@ -260,13 +260,6 @@ namespace Advobot.Commands.Miscellaneous
 			var desc = count ? $"**Count:** `{users.Count()}`" : users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.FormatUser());
 			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(title, desc));
 		}
-
-		public enum SearchOptions : uint
-		{
-			Count    = (1U << 0),
-			Nickname = (1U << 1),
-			Exact    = (1U << 2),
-		}
 	}
 
 	[Group(nameof(GetUserAvatar)), TopLevelShortAlias(typeof(GetUserAvatar))]

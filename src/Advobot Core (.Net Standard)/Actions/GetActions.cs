@@ -80,6 +80,37 @@ namespace Advobot.Actions
 		{
 			return bypass ? int.MaxValue : botSettings.MaxUserGatherCount;
 		}
+		/// <summary>
+		/// Returns objects where the function does not return null and is either equal to, less than, or greater than a specified number.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="objects"></param>
+		/// <param name="target"></param>
+		/// <param name="count"></param>
+		/// <param name="f"></param>
+		/// <returns></returns>
+		public static IEnumerable<T> GetObjectsInListBasedOffOfCount<T>(IEnumerable<T> objects, CountTarget target, uint? count, Func<T, int?> f)
+		{
+			switch (target)
+			{
+				case CountTarget.Equal:
+				{
+					objects = objects.Where(x => f(x) != null && f(x) == count);
+					break;
+				}
+				case CountTarget.Below:
+				{
+					objects = objects.Where(x => f(x) != null && f(x) < count);
+					break;
+				}
+				case CountTarget.Above:
+				{
+					objects = objects.Where(x => f(x) != null && f(x) > count);
+					break;
+				}
+			}
+			return objects;
+		}
 
 		/// <summary>
 		/// Assuming the save path is C:\Users\User\AppData\Roaming, returns C:\Users\User\AppData\Roaming\Discord_Servers_BotId\ServerId
@@ -108,7 +139,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static DirectoryInfo GetBaseBotDirectory()
 		{
-			var path = Path.Combine(Config.Configuration[Config.ConfigKeys.Save_Path], $"{Constants.SERVER_FOLDER}_{Config.Configuration[Config.ConfigKeys.Bot_Id]}");
+			var path = Path.Combine(Config.Configuration[ConfigKeys.SavePath], $"{Constants.SERVER_FOLDER}_{Config.Configuration[ConfigKeys.BotId]}");
 			return Directory.CreateDirectory(path);
 		}
 		/// <summary>

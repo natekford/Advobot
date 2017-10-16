@@ -49,7 +49,8 @@ namespace Advobot.Classes
 			var argNames = new List<string>();
 			foreach (var p in _Constructor.GetParameters())
 			{
-				if (p.GetCustomAttribute<CustomArgumentAttribute>() == null)
+				var customArgumentAttr = p.GetCustomAttribute<CustomArgumentAttribute>();
+				if (customArgumentAttr == null)
 				{
 					continue;
 				}
@@ -66,7 +67,7 @@ namespace Advobot.Classes
 				else if (p.GetCustomAttribute<ParamArrayAttribute>() != null)
 				{
 					_HasParams = true;
-					_ParamsLength = p.GetCustomAttribute<CustomArgumentAttribute>().Length;
+					_ParamsLength = customArgumentAttr.Length > 0 ? customArgumentAttr.Length : int.MaxValue;
 					_ParamsName = p.Name;
 				}
 

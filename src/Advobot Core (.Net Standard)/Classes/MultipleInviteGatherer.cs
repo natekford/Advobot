@@ -1,4 +1,6 @@
-﻿using Advobot.Classes.Attributes;
+﻿using Advobot.Actions;
+using Advobot.Classes.Attributes;
+using Advobot.Enums;
 using Discord;
 using System;
 using System.Collections.Generic;
@@ -64,12 +66,12 @@ namespace Advobot.Classes
 			}
 			if (_Uses != null)
 			{
-				invites = CountTargetAction(invites, _UsesCountTarget, _Uses, x => x.Uses);
+				invites = GetActions.GetObjectsInListBasedOffOfCount(invites, _UsesCountTarget, _Uses, x => x.Uses);
 				wentIntoAny = true;
 			}
 			if (_Age != null)
 			{
-				invites = CountTargetAction(invites, _AgeCountTarget, _Age, x => x.MaxAge);
+				invites = GetActions.GetObjectsInListBasedOffOfCount(invites, _AgeCountTarget, _Age, x => x.MaxAge);
 				wentIntoAny = true;
 			}
 			if (_IsTemporary)
@@ -89,45 +91,5 @@ namespace Advobot.Classes
 			}
 			return wentIntoAny ? Enumerable.Empty<IInviteMetadata>() : invites;
 		}
-		/// <summary>
-		/// Keeps invites based off of if <paramref name="f"/> is equal, above, or below to a passed in number. Will not affect null values.
-		/// </summary>
-		/// <param name="invites"></param>
-		/// <param name="target"></param>
-		/// <param name="count"></param>
-		/// <param name="f"></param>
-		/// <returns></returns>
-		private IEnumerable<IInviteMetadata> CountTargetAction(IEnumerable<IInviteMetadata> invites,
-			CountTarget target,
-			uint? count,
-			Func<IInviteMetadata, int?> f)
-		{
-			switch (target)
-			{
-				case CountTarget.Equal:
-				{
-					invites = invites.Where(x => f(x) != null && f(x) == count);
-					break;
-				}
-				case CountTarget.Below:
-				{
-					invites = invites.Where(x => f(x) != null && f(x) < count);
-					break;
-				}
-				case CountTarget.Above:
-				{
-					invites = invites.Where(x => f(x) != null && f(x) > count);
-					break;
-				}
-			}
-			return invites;
-		}
-	}
-
-	public enum CountTarget
-	{
-		Equal = 0,
-		Below = 1,
-		Above = 2,
 	}
 }

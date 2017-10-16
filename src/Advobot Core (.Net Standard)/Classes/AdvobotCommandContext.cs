@@ -16,6 +16,7 @@ namespace Advobot.Classes
 		public IBotSettings BotSettings => _Provider.GetService<IBotSettings>();
 		public ILogService Logging => _Provider.GetService<ILogService>();
 		public ITimersService Timers => _Provider.GetService<ITimersService>();
+		public IInviteListService InviteList => _Provider.GetService<IInviteListService>();
 		public IGuildSettings GuildSettings { get; }
 
 		public AdvobotCommandContext(IServiceProvider provider, IGuildSettings guildSettings, IDiscordClient client, IUserMessage msg) : base(client, msg)

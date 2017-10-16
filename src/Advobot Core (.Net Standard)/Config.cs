@@ -1,4 +1,5 @@
 ﻿using Advobot.Actions;
+using Advobot.Enums;
 using Discord;
 using Newtonsoft.Json;
 using System;
@@ -32,7 +33,7 @@ namespace Advobot
 		/// <returns></returns>
 		public static bool ValidatePath(string input, bool startup)
 		{
-			var path = input ?? Configuration[ConfigKeys.Save_Path];
+			var path = input ?? Configuration[ConfigKeys.SavePath];
 
 			if (startup)
 			{
@@ -53,7 +54,7 @@ namespace Advobot
 			if (Directory.Exists(path))
 			{
 				ConsoleActions.WriteLine("Successfully set the save path as " + path);
-				Configuration[ConfigKeys.Save_Path] = path;
+				Configuration[ConfigKeys.SavePath] = path;
 				Save();
 				return true;
 			}
@@ -70,7 +71,7 @@ namespace Advobot
 		/// <returns>A boolean signifying whether the login was successful or not.</returns>
 		public static async Task<bool> ValidateBotKey(IDiscordClient client, string input, bool startup)
 		{
-			var key = input ?? Configuration[ConfigKeys.Bot_Key];
+			var key = input ?? Configuration[ConfigKeys.BotKey];
 
 			if (startup)
 			{
@@ -97,7 +98,7 @@ namespace Advobot
 				await ClientActions.LoginAsync(client, key);
 
 				ConsoleActions.WriteLine("Succesfully logged in via the given bot key.");
-				Configuration[ConfigKeys.Bot_Key] = key;
+				Configuration[ConfigKeys.BotKey] = key;
 				Save();
 				return true;
 			}
@@ -161,9 +162,9 @@ namespace Advobot
 			[JsonProperty("Config")]
 			private Dictionary<ConfigKeys, string> _ConfigDict = new Dictionary<ConfigKeys, string>
 			{
-				{ ConfigKeys.Save_Path, null },
-				{ ConfigKeys.Bot_Key, null },
-				{ ConfigKeys.Bot_Id, "0" },
+				{ ConfigKeys.SavePath, null },
+				{ ConfigKeys.BotKey, null },
+				{ ConfigKeys.BotId, "0" },
 			};
 
 			[JsonIgnore]
@@ -172,16 +173,6 @@ namespace Advobot
 				get => _ConfigDict[key];
 				set => _ConfigDict[key] = value;
 			}
-		}
-
-		/// <summary>
-		/// Keys to be used in <see cref="ConfigDict"/>.
-		/// </summary>
-		public enum ConfigKeys : uint
-		{
-			Save_Path = (1U << 0),
-			Bot_Key   = (1U << 1),
-			Bot_Id    = (1U << 2),
 		}
 	}
 }
