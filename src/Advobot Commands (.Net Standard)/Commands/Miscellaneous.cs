@@ -10,6 +10,7 @@ using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Advobot.Commands.Miscellaneous

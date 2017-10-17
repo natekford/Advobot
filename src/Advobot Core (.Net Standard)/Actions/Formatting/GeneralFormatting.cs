@@ -136,7 +136,7 @@ namespace Advobot.Actions.Formatting
 		/// <param name="sb"></param>
 		/// <param name="text"></param>
 		/// <returns></returns>
-		public static StringBuilder AppendLineFeed(this StringBuilder sb, string value)
+		public static StringBuilder AppendLineFeed(this StringBuilder sb, string value = "")
 		{
 			return sb.Append(value + "\n");
 		}

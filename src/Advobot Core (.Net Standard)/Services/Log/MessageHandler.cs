@@ -208,7 +208,8 @@ namespace Advobot.Services.Log
 
 					//Ticks should be small enough that this will not allow duplicates of the same message, but can still allow rapidly spammed messages
 					var userSpamList = spamUser.SpamLists[spamType];
-					if ((_GetSpamNumberFuncs[spamType](_LogInstance.Message) ?? 0) >= spamPrev.RequiredSpamPerMessageOrTimeInterval &&
+					var spamAmount = _GetSpamNumberFuncs[spamType](_LogInstance.Message) ?? 0;
+					if (spamAmount >= spamPrev.RequiredSpamPerMessageOrTimeInterval &&
 						!userSpamList.Any(x => x.GetTime().Ticks == _LogInstance.Message.CreatedAt.UtcTicks))
 					{
 						userSpamList.Enqueue(new BasicTimeInterface(_LogInstance.Message.CreatedAt.UtcDateTime));
@@ -220,7 +221,6 @@ namespace Advobot.Services.Log
 					}
 
 					//Make sure they have the lowest vote count required to kick and the most severe punishment type
-					await MessageActions.DeleteMessageAsync(_LogInstance.Message);
 					spamUser.ChangeVotesRequired(spamPrev.VotesForKick);
 					spamUser.ChangePunishmentType(spamPrev.PunishmentType);
 					spamUser.EnablePunishable();
@@ -232,6 +232,7 @@ namespace Advobot.Services.Log
 					var votesReq = spamUser.VotesRequired - spamUser.UsersWhoHaveAlreadyVoted.Count;
 					var content = $"The user `{_LogInstance.User.FormatUser()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
 					await MessageActions.MakeAndDeleteSecondaryMessageAsync(_LogInstance.Channel as ITextChannel, null, content, 10, _Timers);
+					await MessageActions.DeleteMessageAsync(_LogInstance.Message);
 				}
 			}
 

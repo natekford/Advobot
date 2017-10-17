@@ -68,7 +68,7 @@ namespace Advobot.Services.Log
 		}
 		private bool GetIfValid()
 		{
-			var always = IsLoggedAction && HasGuildSettings;
+			var always = !IsPaused && IsLoggedAction && HasGuildSettings;
 			switch (Action)
 			{
 				case LogAction.UserJoined:

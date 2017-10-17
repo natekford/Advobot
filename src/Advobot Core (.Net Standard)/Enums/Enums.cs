@@ -201,4 +201,40 @@ namespace Advobot.Enums
 		Nickname = (1U << 1),
 		Exact    = (1U << 2),
 	}
+
+	/// <summary>
+	/// The main rule format options for <see cref="Advobot.Classes.Rules.RuleFormatter"/>.
+	/// </summary>
+	[Flags]
+	public enum RuleFormat : uint
+	{
+		Numbers = (1U << 0),
+		Dashes  = (1U << 1),
+		Bullets = (1U << 2),
+		Bold    = (1U << 3),
+	}
+
+	/// <summary>
+	/// Markdown format options for <see cref="Advobot.Classes.Rules.RuleFormatter"/>.
+	/// </summary>
+	[Flags]
+	public enum MarkDownFormat : uint
+	{
+		Bold    = (1U << 0),
+		Italics = (1U << 1),
+		Code    = (1U << 2),
+	}
+
+	/// <summary>
+	/// Additional format options for <see cref="Advobot.Classes.Rules.RuleFormatter"/>.
+	/// </summary>
+	[Flags]
+	public enum AdditionalFormatOptions : uint
+	{
+		ExtraSpaces             = (1U << 0),
+		PeriodsAfterNumbers     = (1U << 1),
+		NumbersSameLength       = (1U << 2),
+		ExtraLines              = (1U << 3),
+		ParanthesesAfterNumbers = (1U << 4),
+	}
 }
