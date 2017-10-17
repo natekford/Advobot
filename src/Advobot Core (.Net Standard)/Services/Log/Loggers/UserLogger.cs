@@ -26,8 +26,8 @@ namespace Advobot.Services.Log.Loggers
 			_Logging.TotalUsers.Increment();
 			_Logging.UserJoins.Increment();
 
-			var logInstanceInfo = new LogInstanceInformation(_BotSettings, _GuildSettings, user, LogAction.UserJoined);
-			if (!logInstanceInfo.IsValidToLog || logInstanceInfo.GuildSettings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase)))
+			var logInstanceInfo = new LogInstance(_BotSettings, _GuildSettings, user, LogAction.UserJoined);
+			if (!logInstanceInfo.IsValid || logInstanceInfo.GuildSettings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase)))
 			{
 				return;
 			}
@@ -64,8 +64,8 @@ namespace Advobot.Services.Log.Loggers
 			_Logging.TotalUsers.Decrement();
 			_Logging.UserLeaves.Increment();
 
-			var logInstanceInfo = new LogInstanceInformation(_BotSettings, _GuildSettings, user, LogAction.UserLeft);
-			if (!logInstanceInfo.IsValidToLog || logInstanceInfo.GuildSettings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase)))
+			var logInstanceInfo = new LogInstance(_BotSettings, _GuildSettings, user, LogAction.UserLeft);
+			if (!logInstanceInfo.IsValid || logInstanceInfo.GuildSettings.BannedPhraseNames.Any(x => user.Username.CaseInsContains(x.Phrase)))
 			{
 				return;
 			}
@@ -102,8 +102,8 @@ namespace Advobot.Services.Log.Loggers
 			{
 				_Logging.UserChanges.Increment();
 
-				var logInstanceInfo = new LogInstanceInformation(_BotSettings, _GuildSettings, guild, LogAction.UserUpdated);
-				if (!logInstanceInfo.IsValidToLog)
+				var logInstanceInfo = new LogInstance(_BotSettings, _GuildSettings, guild, LogAction.UserUpdated);
+				if (!logInstanceInfo.IsValid)
 				{
 					continue;
 				}

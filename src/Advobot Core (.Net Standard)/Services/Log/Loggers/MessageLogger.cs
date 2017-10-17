@@ -1,14 +1,12 @@
 ﻿using Advobot.Actions;
 using Advobot.Actions.Formatting;
 using Advobot.Classes;
-using Advobot.Classes.UserInformation;
 using Advobot.Enums;
 using Advobot.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,8 +24,8 @@ namespace Advobot.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnMessageReceived(SocketMessage message)
 		{
-			var logInstanceInfo = new LogInstanceInformation(_BotSettings, _GuildSettings, message, LogAction.MessageReceived);
-			if (!logInstanceInfo.IsValidToLog)
+			var logInstanceInfo = new LogInstance(_BotSettings, _GuildSettings, message, LogAction.MessageReceived);
+			if (!logInstanceInfo.IsValid)
 			{
 				return;
 			}
@@ -50,8 +48,8 @@ namespace Advobot.Services.Log.Loggers
 		{
 			_Logging.MessageEdits.Increment();
 
-			var logInstanceInfo = new LogInstanceInformation(_BotSettings, _GuildSettings, message, LogAction.MessageUpdated);
-			if (!logInstanceInfo.IsValidToLog)
+			var logInstanceInfo = new LogInstance(_BotSettings, _GuildSettings, message, LogAction.MessageUpdated);
+			if (!logInstanceInfo.IsValid)
 			{
 				return;
 			}
@@ -101,8 +99,8 @@ namespace Advobot.Services.Log.Loggers
 				return Task.FromResult(0);
 			}
 
-			var logInstanceInfo = new LogInstanceInformation(_BotSettings, _GuildSettings, message, LogAction.MessageUpdated);
-			if (!logInstanceInfo.IsValidToLog || !logInstanceInfo.HasServerLog)
+			var logInstanceInfo = new LogInstance(_BotSettings, _GuildSettings, message, LogAction.MessageUpdated);
+			if (!logInstanceInfo.IsValid || !logInstanceInfo.HasServerLog)
 			{
 				return Task.FromResult(0);
 			}
