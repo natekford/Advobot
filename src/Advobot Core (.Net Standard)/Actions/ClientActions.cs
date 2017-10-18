@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.IO;
+using Discord.Commands;
 
 namespace Advobot.Actions
 {

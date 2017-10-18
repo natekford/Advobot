@@ -14,7 +14,7 @@ namespace Advobot.Classes
 		[JsonProperty]
 		public ulong RoleId { get; }
 		[JsonIgnore]
-		public IRole Role { get; private set; }
+		private IRole _Role;
 
 		[JsonConstructor]
 		public SelfAssignableRole(ulong roleID)
@@ -24,17 +24,17 @@ namespace Advobot.Classes
 		public SelfAssignableRole(IRole role)
 		{
 			RoleId = role.Id;
-			Role = role;
+			_Role = role;
 		}
 
-		public void PostDeserialize(SocketGuild guild)
+		public IRole GetRole(SocketGuild guild)
 		{
-			Role = guild.GetRole(RoleId);
+			return _Role ?? (_Role = guild.GetRole(RoleId));
 		}
 
 		public override string ToString()
 		{
-			return $"**Role:** `{Role.FormatRole()}`";
+			return $"**Role:** `{_Role?.FormatRole() ?? ""}`";
 		}
 		public string ToString(SocketGuild guild)
 		{

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Advobot.Classes.Rules
 {
-	public class Rules : ISetting
+	public class RuleHolder : ISetting
 	{
 		public IReadOnlyList<RuleCategory> Categories => _Categories.Values.ToList().AsReadOnly();
 		private Dictionary<int, RuleCategory> _Categories = new Dictionary<int, RuleCategory>();

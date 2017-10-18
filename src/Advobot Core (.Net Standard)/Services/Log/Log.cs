@@ -60,7 +60,7 @@ namespace Advobot.Services.Log
 
 		private void HookUpEvents(IServiceProvider provider)
 		{
-			var client = provider.GetService<IDiscordClient>();
+			var client = provider.GetRequiredService<IDiscordClient>();
 			if (client is DiscordSocketClient socketClient)
 			{
 				socketClient.Log += BotLogger.OnLogMessageSent;

@@ -5,6 +5,7 @@ using Advobot.Classes.Attributes;
 using Advobot.Enums;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -180,7 +181,7 @@ namespace Advobot.Commands.SelfRoles
 			var removedRoles = "";
 			if (group.Group != 0)
 			{
-				var otherRoles = group.Roles.Where(x => user.RoleIds.Contains(x?.RoleId ?? 0)).Select(x => x.Role);
+				var otherRoles = group.Roles.Where(x => user.RoleIds.Contains(x?.RoleId ?? 0)).Select(x => x.GetRole(Context.Guild as SocketGuild));
 				if (otherRoles.Any())
 				{
 					await RoleActions.TakeRolesAsync(user, otherRoles, new AutomaticModerationReason("self role removal"));
@@ -220,7 +221,7 @@ namespace Advobot.Commands.SelfRoles
 				return;
 			}
 
-			var desc = group.Roles.Any() ? $"`{String.Join("`, `", group.Roles.Select(x => x.Role?.Name ?? "null"))}`" : "`Nothing`";
+			var desc = group.Roles.Any() ? $"`{String.Join("`, `", group.Roles.Select(x => x.GetRole(Context.Guild as SocketGuild)?.Name ?? "null"))}`" : "`Nothing`";
 			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed($"Self Roles Group {groupNum}", desc));
 		}
 	}

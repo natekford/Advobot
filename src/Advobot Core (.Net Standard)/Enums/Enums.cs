@@ -229,12 +229,10 @@ namespace Advobot.Enums
 	/// Additional format options for <see cref="Advobot.Classes.Rules.RuleFormatter"/>.
 	/// </summary>
 	[Flags]
-	public enum AdditionalFormatOptions : uint
+	public enum FormatOptions : uint
 	{
 		ExtraSpaces             = (1U << 0),
-		PeriodsAfterNumbers     = (1U << 1),
-		NumbersSameLength       = (1U << 2),
-		ExtraLines              = (1U << 3),
-		ParanthesesAfterNumbers = (1U << 4),
+		NumbersSameLength       = (1U << 1),
+		ExtraLines              = (1U << 2),
 	}
 }

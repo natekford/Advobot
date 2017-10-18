@@ -8,6 +8,8 @@ using System.Text;
 
 namespace Advobot.Classes.Rules
 {
+	//TODO: finish rule implementation
+	//TODO: create command taht lets users print out all the values of an enum
 	public class RuleFormatter
 	{
 		private Dictionary<RuleFormat, MarkDownFormat> _DefaultTitleFormats = new Dictionary<RuleFormat, MarkDownFormat>
@@ -38,22 +40,20 @@ namespace Advobot.Classes.Rules
 			[CustomArgument] RuleFormat format = default,
 			[CustomArgument] MarkDownFormat titleFormat = default,
 			[CustomArgument] MarkDownFormat ruleFormat = default,
-			[CustomArgument(10)] params AdditionalFormatOptions[] moreOptions)
+			[CustomArgument] char charAfterNumbers = '.',
+			[CustomArgument(10)] params FormatOptions[] formatOptions)
 		{
 			_Format = format;
-			_ExtraSpaces = moreOptions.Contains(AdditionalFormatOptions.ExtraSpaces);
-			_NumbersSameLength = moreOptions.Contains(AdditionalFormatOptions.NumbersSameLength);
-			_ExtraLines = moreOptions.Contains(AdditionalFormatOptions.ExtraLines);
+			_TitleFormat = titleFormat;
+			_RuleFormat = ruleFormat;
+			_CharAfterNumbers = charAfterNumbers;
 
-			_CharAfterNumbers = moreOptions.Contains(AdditionalFormatOptions.PeriodsAfterNumbers)
-				? '.'
-				: _CharAfterNumbers;
-			_CharAfterNumbers = moreOptions.Contains(AdditionalFormatOptions.ParanthesesAfterNumbers)
-				? ')'
-				: _CharAfterNumbers;
+			_ExtraSpaces = formatOptions.Contains(FormatOptions.ExtraSpaces);
+			_NumbersSameLength = formatOptions.Contains(FormatOptions.NumbersSameLength);
+			_ExtraLines = formatOptions.Contains(FormatOptions.ExtraLines);
 		}
 
-		public string FormatRules(Rules rules)
+		public string FormatRules(RuleHolder rules)
 		{
 			var sb = new StringBuilder();
 			var categories = rules.Categories;
@@ -102,7 +102,8 @@ namespace Advobot.Classes.Rules
 				}
 				default:
 				{
-					return name;
+					n = name;
+					break;
 				}
 			}
 
@@ -133,7 +134,8 @@ namespace Advobot.Classes.Rules
 				}
 				default:
 				{
-					return rule;
+					r = rule;
+					break;
 				}
 			}
 

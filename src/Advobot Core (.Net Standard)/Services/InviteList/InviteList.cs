@@ -12,6 +12,8 @@ namespace Advobot.Services.InviteList
 	{
 		private ConcurrentDictionary<ulong, ListedInvite> _Invites = new ConcurrentDictionary<ulong, ListedInvite>();
 
+		public InviteList(IServiceProvider provider) { }
+
 		public bool AddInvite(ListedInvite invite)
 		{
 			return _Invites.TryAdd(invite.Guild.Id, invite);

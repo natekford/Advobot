@@ -201,7 +201,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task SendErrorMessageAsync(IAdvobotCommandContext context, ErrorReason reason, int time = -1)
 		{
-			if (!context.GuildSettings.VerboseErrors)
+			if (context.GuildSettings.NonVerboseErrors)
 			{
 				return;
 			}

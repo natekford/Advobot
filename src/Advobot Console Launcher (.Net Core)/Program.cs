@@ -21,7 +21,8 @@ namespace Advobot.Launcher
 				savePath = false;
 			}
 
-			var client = await CommandHandler.Install(CreationActions.CreateServicesAndServiceProvider());
+			var provider = await CreationActions.CreateServiceProvider();
+			var client = CommandHandler.Install(provider);
 
 			//Get the bot key
 			var botKey = true;

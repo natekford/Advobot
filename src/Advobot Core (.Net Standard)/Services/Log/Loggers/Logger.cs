@@ -18,10 +18,10 @@ namespace Advobot.Services.Log.Loggers
 		public Logger(ILogService logging, IServiceProvider provider)
 		{
 			_Logging = logging;
-			_Client = provider.GetService<IDiscordClient>();
-			_BotSettings = provider.GetService<IBotSettings>();
-			_GuildSettings = provider.GetService<IGuildSettingsService>();
-			_Timers = provider.GetService<ITimersService>();
+			_Client = provider.GetRequiredService<IDiscordClient>();
+			_BotSettings = provider.GetRequiredService<IBotSettings>();
+			_GuildSettings = provider.GetRequiredService<IGuildSettingsService>();
+			_Timers = provider.GetRequiredService<ITimersService>();
 		}
 	}
 }

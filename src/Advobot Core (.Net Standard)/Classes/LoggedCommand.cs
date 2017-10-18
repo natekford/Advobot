@@ -1,9 +1,11 @@
 ﻿using Advobot.Actions;
 using Advobot.Actions.Formatting;
+using Advobot.Interfaces;
 using Discord.Commands;
 using System;
 using System.Diagnostics;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Advobot.Classes
 {
@@ -96,6 +98,45 @@ namespace Advobot.Classes
 					return true;
 				}
 			}
+		}
+		/// <summary>
+		/// Writes the results of the command to the console and log channel.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="result"></param>
+		/// <param name="logging"></param>
+		/// <returns></returns>
+		public async Task LogCommand(IAdvobotCommandContext context, IResult result, ILogService logging)
+		{
+			Finalize(context, result);
+			if (result.IsSuccess)
+			{
+				logging.SuccessfulCommands.Increment();
+				await MessageActions.DeleteMessageAsync(context.Message);
+
+				var guildSettings = context.GuildSettings;
+				if (guildSettings.ModLog != null && !guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
+				{
+					var embed = new AdvobotEmbed(null, context.Message.Content)
+						.AddAuthor(context.User)
+						.AddFooter("Mod Log");
+					await MessageActions.SendEmbedMessageAsync(guildSettings.ModLog, embed);
+				}
+			}
+			//Failure in a valid fail way
+			else if (ErrorReason != null)
+			{
+				logging.FailedCommands.Increment();
+				await MessageActions.SendErrorMessageAsync(context, new ErrorReason(ErrorReason));
+			}
+			//Failure in a way that doesn't need to get logged (unknown command, etc)
+			else
+			{
+				return;
+			}
+
+			Write();
+			logging.RanCommands.Add(this);
 		}
 
 		public override string ToString()

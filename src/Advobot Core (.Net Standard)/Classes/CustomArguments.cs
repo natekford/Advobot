@@ -182,9 +182,7 @@ namespace Advobot.Classes
 			//If invalid then return default
 			else if (t.IsEnum)
 			{
-				return Enum.IsDefined(t, value)
-					? Enum.Parse(t, value, true)
-					: Activator.CreateInstance(type);
+				return ConvertEnum(type, value);
 			}
 			//If a type in the tryparses dictionary then return the tryparse's value
 			else if(_TryParses.TryGetValue(t, out var f))
@@ -203,6 +201,32 @@ namespace Advobot.Classes
 					return Activator.CreateInstance(type);
 				}
 			}
+		}
+		/// <summary>
+		/// Converts a string to an enum value.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		private object ConvertEnum(Type type, string value)
+		{
+			if (type.GetCustomAttribute<FlagsAttribute>() == null)
+			{
+				return Enum.IsDefined(type, value)
+					? Enum.Parse(type, value, true)
+					: Activator.CreateInstance(type);
+			}
+
+			//Allow people to 'OR' things together (kind of)
+			var e = (uint)Activator.CreateInstance(type);
+			foreach (var s in value.Split('|'))
+			{
+				if (Enum.IsDefined(type, s))
+				{
+					e |= (uint)Enum.Parse(type, s, true);
+				}
+			}
+			return Enum.ToObject(type, e);
 		}
 	}
 }

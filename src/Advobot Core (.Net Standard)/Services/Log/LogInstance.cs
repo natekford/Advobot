@@ -17,12 +17,12 @@ namespace Advobot.Services.Log
 		public bool HasGuildSettings { get; private set; }
 		public bool HasServerLog { get; private set; }
 		public bool HasImageLog { get; private set; }
-		private bool IsFromThisBot;
-		private bool IsFromOtherBot;
-		private bool IsFromWebhook;
-		private bool IsOnIgnoredChannel;
-		private bool IsLoggedAction;
-		private bool IsPaused;
+		private bool _IsFromThisBot;
+		private bool _IsFromOtherBot;
+		private bool _IsFromWebhook;
+		private bool _IsOnIgnoredChannel;
+		private bool _IsLoggedAction;
+		private bool _IsPaused;
 
 		public LogInstance(IBotSettings botSettings, IGuildSettingsService guildSettings, IMessage message, LogAction action)
 		{
@@ -32,7 +32,7 @@ namespace Advobot.Services.Log
 			Channel = message.Channel as IGuildChannel;
 			Guild = User?.Guild;
 			HasGuildSettings = guildSettings.TryGetSettings(Guild?.Id ?? 0, out GuildSettings);
-			SetBools();
+			SetBools(botSettings);
 		}
 		public LogInstance(IBotSettings botSettings, IGuildSettingsService guildSettings, IGuildUser user, LogAction action)
 		{
@@ -42,7 +42,7 @@ namespace Advobot.Services.Log
 			Channel = null;
 			Guild = User?.Guild;
 			HasGuildSettings = guildSettings.TryGetSettings(Guild?.Id ?? 0, out GuildSettings);
-			SetBools();
+			SetBools(botSettings);
 		}
 		public LogInstance(IBotSettings botSettings, IGuildSettingsService guildSettings, IGuild guild, LogAction action)
 		{
@@ -52,40 +52,41 @@ namespace Advobot.Services.Log
 			Channel = null;
 			Guild = guild;
 			HasGuildSettings = guildSettings.TryGetSettings(Guild?.Id ?? 0, out GuildSettings);
-			SetBools();
+			SetBools(botSettings);
 		}
 
-		private void SetBools()
+		private void SetBools(IBotSettings botSettings)
 		{
 			HasServerLog = GuildSettings?.ServerLog != null;
 			HasImageLog = GuildSettings?.ImageLog != null;
-			IsFromThisBot = (User?.Id ?? 0).ToString() == Config.Configuration[ConfigKeys.BotId];
-			IsFromOtherBot = !IsFromThisBot && (User?.IsBot ?? false);
-			IsFromWebhook = User?.IsWebhook ?? false;
-			IsOnIgnoredChannel = GuildSettings != null && GuildSettings.IgnoredLogChannels.Contains(Channel?.Id ?? 0);
-			IsLoggedAction = GuildSettings != null && GuildSettings.LogActions.Contains(Action);
+			_IsFromThisBot = (User?.Id ?? 0).ToString() == Config.Configuration[ConfigKeys.BotId];
+			_IsFromOtherBot = !_IsFromThisBot && (User?.IsBot ?? false);
+			_IsFromWebhook = User?.IsWebhook ?? false;
+			_IsOnIgnoredChannel = GuildSettings != null && GuildSettings.IgnoredLogChannels.Contains(Channel?.Id ?? 0);
+			_IsLoggedAction = GuildSettings != null && GuildSettings.LogActions.Contains(Action);
+			_IsPaused = botSettings.Pause;
 			IsValid = GetIfValid();
 		}
 		private bool GetIfValid()
 		{
-			var always = !IsPaused && IsLoggedAction && HasGuildSettings;
+			var always = !_IsPaused && _IsLoggedAction && HasGuildSettings;
 			switch (Action)
 			{
 				case LogAction.UserJoined:
 				case LogAction.UserLeft:
 				case LogAction.UserUpdated:
 				{
-					return !IsFromThisBot && always;
+					return !_IsFromThisBot && always;
 				}
 				case LogAction.MessageReceived:
 				case LogAction.MessageUpdated:
 				{
-					return !IsFromThisBot && !IsFromOtherBot && !IsFromWebhook && !IsOnIgnoredChannel && always;
+					return !_IsFromThisBot && !_IsFromOtherBot && !_IsFromWebhook && !_IsOnIgnoredChannel && always;
 				}
 				case LogAction.MessageDeleted:
 				default:
 				{
-					return !IsOnIgnoredChannel && always;
+					return !_IsOnIgnoredChannel && always;
 				}
 			}
 		}

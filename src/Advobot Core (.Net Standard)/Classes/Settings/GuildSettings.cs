@@ -16,6 +16,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Advobot.Classes.Rules;
 
 namespace Advobot.Classes.Settings
 {
@@ -24,71 +25,184 @@ namespace Advobot.Classes.Settings
 	/// </summary>
 	public class GuildSettings : IGuildSettings
 	{
-		[JsonProperty("BotUsers")]
-		private List<BotImplementedPermissions> _BotUsers = new List<BotImplementedPermissions>();
-		[JsonProperty("SelfAssignableGroups")]
-		private List<SelfAssignableGroup> _SelfAssignableGroups = new List<SelfAssignableGroup>();
-		[JsonProperty("Quotes")]
-		private List<Quote> _Quotes = new List<Quote>();
-		[JsonProperty("LogActions")]
-		private List<LogAction> _LogActions = new List<LogAction>();
-		[JsonProperty("IgnoredCommandChannels")]
-		private List<ulong> _IgnoredCommandChannels = new List<ulong>();
-		[JsonProperty("IgnoredLogChannels")]
-		private List<ulong> _IgnoredLogChannels = new List<ulong>();
-		[JsonProperty("ImageOnlyChannels")]
-		private List<ulong> _ImageOnlyChannels = new List<ulong>();
-		[JsonProperty("BannedPhraseStrings")]
-		private List<BannedPhrase> _BannedPhraseStrings = new List<BannedPhrase>();
-		[JsonProperty("BannedPhraseRegex")]
-		private List<BannedPhrase> _BannedPhraseRegex = new List<BannedPhrase>();
-		[JsonProperty("BannedPhraseNames")]
-		private List<BannedPhrase> _BannedPhraseNames = new List<BannedPhrase>();
-		[JsonProperty("BannedPhrasePunishments")]
-		private List<BannedPhrasePunishment> _BannedPhrasePunishments = new List<BannedPhrasePunishment>();
-		[JsonProperty("CommandsDisabledOnUser")]
-		private List<CommandOverride> _CommandsDisabledOnUser = new List<CommandOverride>();
-		[JsonProperty("CommandsDisabledOnRole")]
-		private List<CommandOverride> _CommandsDisabledOnRole = new List<CommandOverride>();
-		[JsonProperty("CommandsDisabledOnChannel")]
-		private List<CommandOverride> _CommandsDisabledOnChannel = new List<CommandOverride>();
-		[JsonProperty("PersistentRoles")]
-		private List<PersistentRole> _PersistentRoles = new List<PersistentRole>();
-		[JsonProperty("CommandSwitches")]
-		private List<CommandSwitch> _CommandSwitches = new List<CommandSwitch>();
-		[JsonProperty("SpamPrevention")]
-		private Dictionary<SpamType, SpamPreventionInfo> _SpamPrevention = null;
-		[JsonProperty("RaidPrevention")]
-		private Dictionary<RaidType, RaidPreventionInfo> _RaidPrevention = null;
 		[JsonProperty("WelcomeMessage")]
-		private GuildNotification _WelcomeMessage = null;
+		private GuildNotification _WelcomeMessage;
 		[JsonProperty("GoodbyeMessage")]
-		private GuildNotification _GoodbyeMessage = null;
+		private GuildNotification _GoodbyeMessage;
 		[JsonProperty("ListedInvite")]
-		private ListedInvite _ListedInvite = null;
+		private ListedInvite _ListedInvite;
 		[JsonProperty("Slowmode")]
-		private Slowmode _Slowmode = null;
+		private Slowmode _Slowmode;
+		[JsonProperty("Rules")]
+		private RuleHolder _Rules;
 		[JsonProperty("Prefix")]
-		private string _Prefix = null;
-		[JsonProperty("VerboseErrors")]
-		private bool _VerboseErrors = true;
+		private string _Prefix;
+		[JsonProperty("NonVerboseErrors")]
+		private bool _NonVerboseErrors;
 		[JsonProperty("ServerLog")]
-		private ulong _ServerLogId = 0;
+		private ulong _ServerLogId;
 		[JsonProperty("ModLog")]
-		private ulong _ModLogId = 0;
+		private ulong _ModLogId;
 		[JsonProperty("ImageLog")]
-		private ulong _ImageLogId = 0;
+		private ulong _ImageLogId;
 		[JsonProperty("MuteRole")]
-		private ulong _MuteRoleId = 0;
+		private ulong _MuteRoleId;
 		[JsonIgnore]
-		private ITextChannel _ServerLog = null;
+		private ITextChannel _ServerLog;
 		[JsonIgnore]
-		private ITextChannel _ModLog = null;
+		private ITextChannel _ModLog;
 		[JsonIgnore]
-		private ITextChannel _ImageLog = null;
+		private ITextChannel _ImageLog;
 		[JsonIgnore]
-		private IRole _MuteRole = null;
+		private IRole _MuteRole;
+		[JsonProperty("SpamPrevention")]
+		private Dictionary<SpamType, SpamPreventionInfo> _SpamPrevention;
+		[JsonProperty("RaidPrevention")]
+		private Dictionary<RaidType, RaidPreventionInfo> _RaidPrevention;
+		[JsonProperty("PersistentRoles")]
+		private List<PersistentRole> _PersistentRoles;
+		[JsonProperty("BotUsers")]
+		private List<BotImplementedPermissions> _BotUsers;
+		[JsonProperty("SelfAssignableGroups")]
+		private List<SelfAssignableGroup> _SelfAssignableGroups;
+		[JsonProperty("Quotes")]
+		private List<Quote> _Quotes;
+		[JsonProperty("LogActions")]
+		private List<LogAction> _LogActions;
+		[JsonProperty("IgnoredCommandChannels")]
+		private List<ulong> _IgnoredCommandChannels;
+		[JsonProperty("IgnoredLogChannels")]
+		private List<ulong> _IgnoredLogChannels;
+		[JsonProperty("ImageOnlyChannels")]
+		private List<ulong> _ImageOnlyChannels;
+		[JsonProperty("BannedPhraseStrings")]
+		private List<BannedPhrase> _BannedPhraseStrings;
+		[JsonProperty("BannedPhraseRegex")]
+		private List<BannedPhrase> _BannedPhraseRegex;
+		[JsonProperty("BannedPhraseNames")]
+		private List<BannedPhrase> _BannedPhraseNames;
+		[JsonProperty("BannedPhrasePunishments")]
+		private List<BannedPhrasePunishment> _BannedPhrasePunishments;
+		[JsonProperty("CommandsDisabledOnUser")]
+		private List<CommandOverride> _CommandsDisabledOnUser;
+		[JsonProperty("CommandsDisabledOnRole")]
+		private List<CommandOverride> _CommandsDisabledOnRole;
+		[JsonProperty("CommandsDisabledOnChannel")]
+		private List<CommandOverride> _CommandsDisabledOnChannel;
+		[JsonProperty("CommandSwitches")]
+		private List<CommandSwitch> _CommandSwitches;
 
+		[JsonIgnore]
+		public GuildNotification WelcomeMessage
+		{
+			get => _WelcomeMessage;
+			set => _WelcomeMessage = value;
+		}
+		[JsonIgnore]
+		public GuildNotification GoodbyeMessage
+		{
+			get => _GoodbyeMessage;
+			set => _GoodbyeMessage = value;
+		}
+		[JsonIgnore]
+		public ListedInvite ListedInvite
+		{
+			get => _ListedInvite;
+			set => _ListedInvite = value;
+		}
+		[JsonIgnore]
+		public Slowmode Slowmode
+		{
+			get => _Slowmode;
+			set => _Slowmode = value;
+		}
+		[JsonIgnore]
+		public RuleHolder Rules
+		{
+			get => _Rules ?? (_Rules = new RuleHolder());
+			set => _Rules = value;
+		}
+		[JsonIgnore]
+		public string Prefix
+		{
+			get => _Prefix;
+			set => _Prefix = value;
+		}
+		[JsonIgnore]
+		public bool NonVerboseErrors
+		{
+			get => _NonVerboseErrors;
+			set => _NonVerboseErrors = value;
+		}
+		[JsonIgnore]
+		public ITextChannel ServerLog
+		{
+			get => _ServerLog ?? (_ServerLog = Guild.GetTextChannel(_ServerLogId));
+			set
+			{
+				_ServerLogId = value?.Id ?? 0;
+				_ServerLog = value;
+			}
+		}
+		[JsonIgnore]
+		public ITextChannel ModLog
+		{
+			get => _ModLog ?? (_ModLog = Guild.GetTextChannel(_ModLogId));
+			set
+			{
+				_ModLogId = value?.Id ?? 0;
+				_ModLog = value;
+			}
+		}
+		[JsonIgnore]
+		public ITextChannel ImageLog
+		{
+			get => _ImageLog ?? (_ImageLog = Guild.GetTextChannel(_ImageLogId));
+			set
+			{
+				_ImageLogId = value?.Id ?? 0;
+				_ImageLog = value;
+			}
+		}
+		[JsonIgnore]
+		public IRole MuteRole
+		{
+			get => _MuteRole ?? (_MuteRole = Guild.GetRole(_MuteRoleId));
+			set
+			{
+				_MuteRoleId = value?.Id ?? 0;
+				_MuteRole = value;
+			}
+		}
+		[JsonIgnore]
+		public Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary
+		{
+			get => _SpamPrevention ?? (_SpamPrevention = new Dictionary<SpamType, SpamPreventionInfo>
+			{
+				{ SpamType.Message, null },
+				{ SpamType.LongMessage, null },
+				{ SpamType.Link, null },
+				{ SpamType.Image, null },
+				{ SpamType.Mention, null },
+			});
+			set => _SpamPrevention = value;
+		}
+		[JsonIgnore]
+		public Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary
+		{
+			get => _RaidPrevention ?? (_RaidPrevention = new Dictionary<RaidType, RaidPreventionInfo>
+			{
+				{ RaidType.Regular, null },
+				{ RaidType.RapidJoins, null },
+			});
+			set => _RaidPrevention = value;
+		}
+		[JsonIgnore]
+		public List<PersistentRole> PersistentRoles
+		{
+			get => _PersistentRoles ?? (_PersistentRoles = new List<PersistentRole>());
+			set => _PersistentRoles = value;
+		}
 		[JsonIgnore]
 		public List<BotImplementedPermissions> BotUsers
 		{
@@ -156,12 +270,6 @@ namespace Advobot.Classes.Settings
 			set => _BannedPhrasePunishments = value;
 		}
 		[JsonIgnore]
-		public List<CommandSwitch> CommandSwitches
-		{
-			get => _CommandSwitches ?? (_CommandSwitches = new List<CommandSwitch>());
-			set => _CommandSwitches = value;
-		}
-		[JsonIgnore]
 		public List<CommandOverride> CommandsDisabledOnUser
 		{
 			get => _CommandsDisabledOnUser ?? (_CommandsDisabledOnUser = new List<CommandOverride>());
@@ -180,109 +288,10 @@ namespace Advobot.Classes.Settings
 			set => _CommandsDisabledOnChannel = value;
 		}
 		[JsonIgnore]
-		public List<PersistentRole> PersistentRoles
+		public List<CommandSwitch> CommandSwitches
 		{
-			get => _PersistentRoles ?? (_PersistentRoles = new List<PersistentRole>());
-			set => _PersistentRoles = value;
-		}
-		[JsonIgnore]
-		public Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary
-		{
-			get => _SpamPrevention ?? (_SpamPrevention = new Dictionary<SpamType, SpamPreventionInfo>
-			{
-				{ SpamType.Message, null },
-				{ SpamType.LongMessage, null },
-				{ SpamType.Link, null },
-				{ SpamType.Image, null },
-				{ SpamType.Mention, null },
-			});
-			set => _SpamPrevention = value;
-		}
-		[JsonIgnore]
-		public Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary
-		{
-			get => _RaidPrevention ?? (_RaidPrevention = new Dictionary<RaidType, RaidPreventionInfo>
-			{
-				{ RaidType.Regular, null },
-				{ RaidType.RapidJoins, null },
-			});
-			set => _RaidPrevention = value;
-		}
-		[JsonIgnore]
-		public GuildNotification WelcomeMessage
-		{
-			get => _WelcomeMessage;
-			set => _WelcomeMessage = value;
-		}
-		[JsonIgnore]
-		public GuildNotification GoodbyeMessage
-		{
-			get => _GoodbyeMessage;
-			set => _GoodbyeMessage = value;
-		}
-		[JsonIgnore]
-		public ListedInvite ListedInvite
-		{
-			get => _ListedInvite;
-			set => _ListedInvite = value;
-		}
-		[JsonIgnore]
-		public Slowmode Slowmode
-		{
-			get => _Slowmode;
-			set => _Slowmode = value;
-		}
-		[JsonIgnore]
-		public string Prefix
-		{
-			get => _Prefix;
-			set => _Prefix = value;
-		}
-		[JsonIgnore]
-		public bool VerboseErrors
-		{
-			get => _VerboseErrors;
-			set => _VerboseErrors = value;
-		}
-		[JsonIgnore]
-		public ITextChannel ServerLog
-		{
-			get => _ServerLog ?? (_ServerLog = Guild.GetTextChannel(_ServerLogId));
-			set
-			{
-				_ServerLogId = value?.Id ?? 0;
-				_ServerLog = value;
-			}
-		}
-		[JsonIgnore]
-		public ITextChannel ModLog
-		{
-			get => _ModLog ?? (_ModLog = Guild.GetTextChannel(_ModLogId));
-			set
-			{
-				_ModLogId = value?.Id ?? 0;
-				_ModLog = value;
-			}
-		}
-		[JsonIgnore]
-		public ITextChannel ImageLog
-		{
-			get => _ImageLog ?? (_ImageLog = Guild.GetTextChannel(_ImageLogId));
-			set
-			{
-				_ImageLogId = value?.Id ?? 0;
-				_ImageLog = value;
-			}
-		}
-		[JsonIgnore]
-		public IRole MuteRole
-		{
-			get => _MuteRole ?? (_MuteRole = Guild.GetRole(_MuteRoleId));
-			set
-			{
-				_MuteRoleId = value?.Id ?? 0;
-				_MuteRole = value;
-			}
+			get => _CommandSwitches ?? (_CommandSwitches = new List<CommandSwitch>());
+			set => _CommandSwitches = value;
 		}
 
 		[JsonIgnore]
@@ -435,11 +444,16 @@ namespace Advobot.Classes.Settings
 			{
 				_GoodbyeMessage.PostDeserialize(Guild);
 			}
-
-			foreach (var group in _SelfAssignableGroups)
+			if (_SelfAssignableGroups != null)
 			{
-				group.Roles.ForEach(x => x.PostDeserialize(Guild));
-				group.Roles.RemoveAll(x => x == null || x.Role == null);
+				foreach (var group in _SelfAssignableGroups)
+				{
+					group.Roles.RemoveAll(x => x == null || x.GetRole(Guild) == null);
+				}
+			}
+			if (_PersistentRoles != null)
+			{
+				_PersistentRoles.RemoveAll(x => x.GetRole(Guild) == null);
 			}
 
 			Loaded = true;

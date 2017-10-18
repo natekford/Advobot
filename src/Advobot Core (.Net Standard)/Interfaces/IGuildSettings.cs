@@ -1,6 +1,7 @@
 ﻿using Advobot.Classes;
 using Advobot.Classes.BannedPhrases;
 using Advobot.Classes.Permissions;
+using Advobot.Classes.Rules;
 using Advobot.Classes.SpamPrevention;
 using Advobot.Classes.UserInformation;
 using Advobot.Enums;
@@ -18,6 +19,20 @@ namespace Advobot.Interfaces
 	public interface IGuildSettings
 	{
 		//Saved settings
+		GuildNotification WelcomeMessage { get; set; }
+		GuildNotification GoodbyeMessage { get; set; }
+		ListedInvite ListedInvite { get; set; }
+		Slowmode Slowmode { get; set; }
+		RuleHolder Rules { get; set; }
+		string Prefix { get; set; }
+		bool NonVerboseErrors { get; set; }
+		ITextChannel ServerLog { get; set; }
+		ITextChannel ModLog { get; set; }
+		ITextChannel ImageLog { get; set; }
+		IRole MuteRole { get; set; }
+		Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; set; }
+		Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; set; }
+		List<PersistentRole> PersistentRoles { get; set; }
 		List<BotImplementedPermissions> BotUsers { get; set; }
 		List<SelfAssignableGroup> SelfAssignableGroups { get; set; }
 		List<Quote> Quotes { get; set; }
@@ -33,19 +48,6 @@ namespace Advobot.Interfaces
 		List<CommandOverride> CommandsDisabledOnUser { get; set; }
 		List<CommandOverride> CommandsDisabledOnRole { get; set; }
 		List<CommandOverride> CommandsDisabledOnChannel { get; set; }
-		List<PersistentRole> PersistentRoles { get; set; }
-		ITextChannel ServerLog { get; set; }
-		ITextChannel ModLog { get; set; }
-		ITextChannel ImageLog { get; set; }
-		IRole MuteRole { get; set; }
-		Dictionary<SpamType, SpamPreventionInfo> SpamPreventionDictionary { get; set; }
-		Dictionary<RaidType, RaidPreventionInfo> RaidPreventionDictionary { get; set; }
-		GuildNotification WelcomeMessage { get; set; }
-		GuildNotification GoodbyeMessage { get; set; }
-		ListedInvite ListedInvite { get; set; }
-		Slowmode Slowmode { get; set; }
-		string Prefix { get; set; }
-		bool VerboseErrors { get; set; }
 
 		//Non-saved settings
 		List<BannedPhraseUserInformation> BannedPhraseUsers { get; }
