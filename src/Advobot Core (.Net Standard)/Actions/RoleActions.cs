@@ -80,7 +80,7 @@ namespace Advobot.Actions
 			var muteRole = guildSettings.MuteRole;
 			if (!VerifyRoleMeetsRequirements(muteRole, context, new[] { ObjectVerification.CanBeEdited, ObjectVerification.IsManaged }).IsSuccess)
 			{
-				muteRole = await context.Guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0));
+				muteRole = await context.Guild.CreateRoleAsync(Constants.MUTE_ROLE_NAME, new GuildPermissions(0)).CAF();
 				guildSettings.MuteRole = muteRole;
 				guildSettings.SaveSettings();
 			}
@@ -93,11 +93,11 @@ namespace Advobot.Actions
 				| (1U << (int)ChannelPermission.SendMessages)
 				| (1U << (int)ChannelPermission.ManageMessages)
 				| (1U << (int)ChannelPermission.AddReactions);
-			foreach (var textChannel in await context.Guild.GetTextChannelsAsync())
+			foreach (var textChannel in await context.Guild.GetTextChannelsAsync().CAF())
 			{
 				if (textChannel.GetPermissionOverwrite(muteRole) == null)
 				{
-					await textChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, TEXT_PERMS));
+					await textChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, TEXT_PERMS)).CAF();
 				}
 			}
 
@@ -110,11 +110,11 @@ namespace Advobot.Actions
 				| (1U << (int)ChannelPermission.MuteMembers)
 				| (1U << (int)ChannelPermission.DeafenMembers)
 				| (1U << (int)ChannelPermission.MoveMembers);
-			foreach (var voiceChannel in await context.Guild.GetVoiceChannelsAsync())
+			foreach (var voiceChannel in await context.Guild.GetVoiceChannelsAsync().CAF())
 			{
 				if (voiceChannel.GetPermissionOverwrite(muteRole) == null)
 				{
-					await voiceChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, VOICE_PERMS));
+					await voiceChannel.AddPermissionOverwriteAsync(muteRole, new OverwritePermissions(0, VOICE_PERMS)).CAF();
 				}
 			}
 
@@ -129,7 +129,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task<IRole> CreateRoleAsync(IGuild guild, string name, ModerationReason reason)
 		{
-			return await guild.CreateRoleAsync(name, new GuildPermissions(0), options: reason.CreateRequestOptions());
+			return await guild.CreateRoleAsync(name, new GuildPermissions(0), options: reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Deletes a a role then says the supplied reason in the audit log.
@@ -139,7 +139,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task DeleteRoleAsync(IRole role, ModerationReason reason)
 		{
-			await role.DeleteAsync(reason.CreateRequestOptions());
+			await role.DeleteAsync(reason.CreateRequestOptions()).CAF();
 		}
 
 		/// <summary>
@@ -151,7 +151,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task GiveRolesAsync(IGuildUser user, IEnumerable<IRole> roles, ModerationReason reason)
 		{
-			await user.AddRolesAsync(roles, reason.CreateRequestOptions());
+			await user.AddRolesAsync(roles, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Removes the roles from a user.
@@ -162,7 +162,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task TakeRolesAsync(IGuildUser user, IEnumerable<IRole> roles, ModerationReason reason)
 		{
-			await user.RemoveRolesAsync(roles, reason.CreateRequestOptions());
+			await user.RemoveRolesAsync(roles, reason.CreateRequestOptions()).CAF();
 		}
 
 		/// <summary>
@@ -195,7 +195,7 @@ namespace Advobot.Actions
 				}
 			}
 
-			await ModifyRolePermissionsAsync(role, roleBits, new ModerationReason(user, null));
+			await ModifyRolePermissionsAsync(role, roleBits, new ModerationReason(user, null)).CAF();
 			return GuildPerms.ConvertValueToNames(changeValue);
 		}
 		/// <summary>
@@ -232,7 +232,7 @@ namespace Advobot.Actions
 				}
 			}
 
-			await role.Guild.ReorderRolesAsync(reorderProperties, reason.CreateRequestOptions());
+			await role.Guild.ReorderRolesAsync(reorderProperties, reason.CreateRequestOptions()).CAF();
 			return reorderProperties.FirstOrDefault(x => x.Id == role.Id)?.Position ?? -1;
 		}
 		/// <summary>
@@ -244,7 +244,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyRolePermissionsAsync(IRole role, ulong permissions, ModerationReason reason)
 		{
-			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), reason.CreateRequestOptions());
+			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Changes the role's name and says the supplied reason in the audit log.
@@ -255,7 +255,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyRoleNameAsync(IRole role, string name, ModerationReason reason)
 		{
-			await role.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions());
+			await role.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Changes the role's color and says the supplied reason in the audit log.
@@ -266,7 +266,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyRoleColorAsync(IRole role, Color color, ModerationReason reason)
 		{
-			await role.ModifyAsync(x => x.Color = color, reason.CreateRequestOptions());
+			await role.ModifyAsync(x => x.Color = color, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Changes the role's hoist status and says the supplied reason in the audit log.
@@ -276,7 +276,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyRoleHoistAsync(IRole role, ModerationReason reason)
 		{
-			await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, reason.CreateRequestOptions());
+			await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Changes the role's mentionability and says the the supplied reason in the audit log.
@@ -286,7 +286,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyRoleMentionabilityAsync(IRole role, ModerationReason reason)
 		{
-			await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, reason.CreateRequestOptions());
+			await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, reason.CreateRequestOptions()).CAF();
 		}
 	}
 }

@@ -26,7 +26,7 @@ namespace Advobot.Services.Log.Loggers
 			{
 				_Logging.TotalUsers.Add(guild.MemberCount);
 				_Logging.TotalGuilds.Increment();
-				await _GuildSettings.GetOrCreateSettings(guild);
+				await _GuildSettings.GetOrCreateSettings(guild).CAF();
 			}
 		}
 		/// <summary>
@@ -75,15 +75,15 @@ namespace Advobot.Services.Log.Loggers
 			//Leave if too many bots
 			if ((double)guild.Users.Count(x => x.IsBot) / users > percentage)
 			{
-				await guild.LeaveAsync();
+				await guild.LeaveAsync().CAF();
 			}
 
 			//Warn if at the maximum else leave
-			var guilds = (await _Client.GetGuildsAsync()).Count;
+			var guilds = (await _Client.GetGuildsAsync().CAF()).Count;
 			var curMax = ClientActions.GetShardCount(_Client) * 2500;
 			if (guilds > curMax)
 			{
-				await guild.LeaveAsync();
+				await guild.LeaveAsync().CAF();
 				ConsoleActions.WriteLine($"Left the guild {guild.FormatGuild()} due to having too many guilds on the client and not enough shards.");
 			}
 			else if (guilds + 100 >= curMax)
@@ -102,7 +102,7 @@ namespace Advobot.Services.Log.Loggers
 
 			_Logging.TotalUsers.Remove(guild.MemberCount);
 			_Logging.TotalGuilds.Decrement();
-			await _GuildSettings.RemoveGuild(guild.Id);
+			await _GuildSettings.RemoveGuild(guild.Id).CAF();
 		}
 	}
 }

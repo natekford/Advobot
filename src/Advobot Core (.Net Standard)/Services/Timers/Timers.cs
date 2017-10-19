@@ -43,13 +43,13 @@ namespace Advobot.Services.Timers
 
 			_MinuteTimer.Elapsed += (sender, e) =>
 			{
-				Task.Run(async () => await RemovePunishmentsAsync());
+				Task.Run(async () => await RemovePunishmentsAsync().CAF());
 			};
 			_MinuteTimer.Enabled = true;
 
 			_HalfSecondTimer.Elapsed += (sender, e) =>
 			{
-				Task.Run(async () => await DeleteTargettedMessagesAsync());
+				Task.Run(async () => await DeleteTargettedMessagesAsync().CAF());
 				Task.Run(() => RemoveActiveCloseHelp());
 				Task.Run(() => RemoveActiveCloseQuotes());
 				Task.Run(() => RemoveSlowmodeUsers());
@@ -71,25 +71,25 @@ namespace Advobot.Services.Timers
 				{
 					case PunishmentType.Ban:
 					{
-						await _PunishmentRemover.UnbanAsync(punishment.Guild, punishment.User.Id, reason);
+						await _PunishmentRemover.UnbanAsync(punishment.Guild, punishment.User.Id, reason).CAF();
 						continue;
 					}
 					case PunishmentType.Deafen:
 					{
-						var user = punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id);
-						await _PunishmentRemover.UndeafenAsync(user, reason);
+						var user = punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id).CAF();
+						await _PunishmentRemover.UndeafenAsync(user, reason).CAF();
 						continue;
 					}
 					case PunishmentType.VoiceMute:
 					{
-						var user = punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id);
-						await _PunishmentRemover.UnvoicemuteAsync(user, reason);
+						var user = punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id).CAF();
+						await _PunishmentRemover.UnvoicemuteAsync(user, reason).CAF();
 						continue;
 					}
 					case PunishmentType.RoleMute:
 					{
-						var user = punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id);
-						await _PunishmentRemover.UnrolemuteAsync(user, punishment.Role, reason);
+						var user = punishment.User as IGuildUser ?? await punishment.Guild.GetUserAsync(punishment.User.Id).CAF();
+						await _PunishmentRemover.UnrolemuteAsync(user, punishment.Role, reason).CAF();
 						continue;
 					}
 				}
@@ -99,15 +99,16 @@ namespace Advobot.Services.Timers
 		{
 			foreach (var group in GetOutTimedObjects(_RemovableMessages).GroupBy(x => x.Channel.Id))
 			{
+				var reason = new AutomaticModerationReason("automatic message deletion.");
 				var messages = group.SelectMany(x => x.Messages);
 				if (messages.Count() == 1)
 				{
-					await MessageActions.DeleteMessageAsync(messages.Single());
+					await MessageActions.DeleteMessageAsync(messages.Single(), reason).CAF();
 				}
 				else
 				{
 					var channel = group.First().Channel;
-					await MessageActions.DeleteMessagesAsync(channel, messages, new AutomaticModerationReason("automatic message deletion."));
+					await MessageActions.DeleteMessagesAsync(channel, messages, reason).CAF();
 				}
 			}
 		}

@@ -25,7 +25,7 @@ namespace Advobot.Classes.TypeReaders
 				return TypeReaderResult.FromError(CommandError.ParseFailed, "Invalid user id provided.");
 			}
 
-			var user = await context.Guild.GetUserAsync(id);
+			var user = await context.Guild.GetUserAsync(id).CAF();
 			if (user == null)
 			{
 				return TypeReaderResult.FromSuccess(id);

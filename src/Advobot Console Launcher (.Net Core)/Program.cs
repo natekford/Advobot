@@ -21,17 +21,17 @@ namespace Advobot.Launcher
 				savePath = false;
 			}
 
-			var provider = await CreationActions.CreateServiceProvider();
+			var provider = await CreationActions.CreateServiceProvider().CAF();
 			var client = CommandHandler.Install(provider);
 
 			//Get the bot key
 			var botKey = true;
-			while (!await Config.ValidateBotKey(client, (botKey ? null : Console.ReadLine()), botKey))
+			while (!await Config.ValidateBotKey(client, (botKey ? null : Console.ReadLine()), botKey).CAF())
 			{
 				botKey = false;
 			}
 
-			await ClientActions.StartAsync(client);
+			await ClientActions.StartAsync(client).CAF();
 		}
 	}
 }

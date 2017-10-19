@@ -84,11 +84,11 @@ namespace Advobot.Classes
 
 			if (Embed != null)
 			{
-				await MessageActions.SendEmbedMessageAsync(Channel, Embed, content);
+				await MessageActions.SendEmbedMessageAsync(Channel, Embed, content).CAF();
 			}
 			else
 			{
-				await MessageActions.SendMessageAsync(Channel, content);
+				await MessageActions.SendMessageAsync(Channel, content).CAF();
 			}
 		}
 		/// <summary>

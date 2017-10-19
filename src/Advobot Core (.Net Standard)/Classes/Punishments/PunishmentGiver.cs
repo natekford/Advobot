@@ -30,35 +30,35 @@ namespace Advobot.Classes.Punishments
 
 		public async Task BanAsync(IGuild guild, ulong userId, ModerationReason reason, int days = 1)
 		{
-			await guild.AddBanAsync(userId, days, null, reason.CreateRequestOptions());
-			var ban = (await guild.GetBansAsync()).Single(x => x.User.Id == userId);
+			await guild.AddBanAsync(userId, days, null, reason.CreateRequestOptions()).CAF();
+			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
 			FollowupActions(PunishmentType.Ban, guild, ban.User, reason);
 		}
 		public async Task SoftbanAsync(IGuild guild, ulong userId, ModerationReason reason)
 		{
-			await guild.AddBanAsync(userId, 1, null, reason.CreateRequestOptions());
-			var ban = (await guild.GetBansAsync()).Single(x => x.User.Id == userId);
-			await guild.RemoveBanAsync(userId, reason.CreateRequestOptions());
+			await guild.AddBanAsync(userId, 1, null, reason.CreateRequestOptions()).CAF();
+			var ban = (await guild.GetBansAsync().CAF()).Single(x => x.User.Id == userId);
+			await guild.RemoveBanAsync(userId, reason.CreateRequestOptions()).CAF();
 			FollowupActions(PunishmentType.Softban, guild, ban.User, reason);
 		}
 		public async Task KickAsync(IGuildUser user, ModerationReason reason)
 		{
-			await user.KickAsync(null, reason.CreateRequestOptions());
+			await user.KickAsync(null, reason.CreateRequestOptions()).CAF();
 			FollowupActions(PunishmentType.Kick, user.Guild, user, reason);
 		}
 		public async Task RoleMuteAsync(IGuildUser user, IRole role, ModerationReason reason)
 		{
-			await RoleActions.GiveRolesAsync(user, new[] { role }, reason);
+			await RoleActions.GiveRolesAsync(user, new[] { role }, reason).CAF();
 			FollowupActions(PunishmentType.RoleMute, user.Guild, user, reason);
 		}
 		public async Task VoiceMuteAsync(IGuildUser user, ModerationReason reason)
 		{
-			await user.ModifyAsync(x => x.Mute = true, reason.CreateRequestOptions());
+			await user.ModifyAsync(x => x.Mute = true, reason.CreateRequestOptions()).CAF();
 			FollowupActions(PunishmentType.VoiceMute, user.Guild, user, reason);
 		}
 		public async Task DeafenAsync(IGuildUser user, ModerationReason reason)
 		{
-			await user.ModifyAsync(x => x.Deaf = true, reason.CreateRequestOptions());
+			await user.ModifyAsync(x => x.Deaf = true, reason.CreateRequestOptions()).CAF();
 			FollowupActions(PunishmentType.Deafen, user.Guild, user, reason);
 		}
 

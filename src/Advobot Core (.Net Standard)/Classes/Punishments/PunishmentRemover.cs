@@ -28,23 +28,23 @@ namespace Advobot.Classes.Punishments
 
 		public async Task UnbanAsync(IGuild guild, ulong userId, ModerationReason reason)
 		{
-			var ban = (await guild.GetBansAsync()).SingleOrDefault(x => x.User.Id == userId);
-			await guild.RemoveBanAsync(userId, reason.CreateRequestOptions());
+			var ban = (await guild.GetBansAsync().CAF()).SingleOrDefault(x => x.User.Id == userId);
+			await guild.RemoveBanAsync(userId, reason.CreateRequestOptions()).CAF();
 			FollowupActions(PunishmentType.Ban, ban.User, reason);
 		}
 		public async Task UnrolemuteAsync(IGuildUser user, IRole role, ModerationReason reason)
 		{
-			await RoleActions.TakeRolesAsync(user, new[] { role }, reason);
+			await RoleActions.TakeRolesAsync(user, new[] { role }, reason).CAF();
 			FollowupActions(PunishmentType.RoleMute, user, reason);
 		}
 		public async Task UnvoicemuteAsync(IGuildUser user, ModerationReason reason)
 		{
-			await user.ModifyAsync(x => x.Mute = false, reason.CreateRequestOptions());
+			await user.ModifyAsync(x => x.Mute = false, reason.CreateRequestOptions()).CAF();
 			FollowupActions(PunishmentType.VoiceMute, user, reason);
 		}
 		public async Task UndeafenAsync(IGuildUser user, ModerationReason reason)
 		{
-			await user.ModifyAsync(x => x.Deaf = false, reason.CreateRequestOptions());
+			await user.ModifyAsync(x => x.Deaf = false, reason.CreateRequestOptions()).CAF();
 			FollowupActions(PunishmentType.Deafen, user, reason);
 		}
 

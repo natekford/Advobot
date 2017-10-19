@@ -66,21 +66,21 @@ namespace Advobot.Commands
 		{
 			if (!_Loaded)
 			{
-				await EventActions.OnConnected(_Client, _BotSettings);
+				await EventActions.OnConnected(_Client, _BotSettings).CAF();
 				_Loaded = true;
 			}
 		}
 		private static async Task OnUserJoined(SocketGuildUser user)
 		{
-			await EventActions.OnUserJoined(user, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers);
+			await EventActions.OnUserJoined(user, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
 		}
 		private static async Task OnUserLeft(SocketGuildUser user)
 		{
-			await EventActions.OnUserLeft(user, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers);
+			await EventActions.OnUserLeft(user, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
 		}
 		private static async Task OnMessageReceived(SocketMessage message)
 		{
-			await EventActions.OnMessageReceived(message, _Timers);
+			await EventActions.OnMessageReceived(message, _Timers).CAF();
 		}
 
 		private static async Task HandleCommand(SocketMessage message)
@@ -93,7 +93,7 @@ namespace Advobot.Commands
 			}
 
 			//Guild settings
-			var guildSettings = await _GuildSettings.GetOrCreateSettings(message.Channel.GetGuild());
+			var guildSettings = await _GuildSettings.GetOrCreateSettings(message.Channel.GetGuild()).CAF();
 			if (guildSettings == null)
 			{
 				return;
@@ -109,8 +109,8 @@ namespace Advobot.Commands
 			}
 
 			var context = new AdvobotCommandContext(_Provider, guildSettings, _Client, userMessage);
-			var result = await _Commands.ExecuteAsync(context, argPos, _Provider);
-			await loggedCommand.LogCommand(context, result, _Logging);
+			var result = await _Commands.ExecuteAsync(context, argPos, _Provider).CAF();
+			await loggedCommand.LogCommand(context, result, _Logging).CAF();
 		}
 	}
 }

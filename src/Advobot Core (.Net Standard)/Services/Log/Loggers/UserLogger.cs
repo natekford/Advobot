@@ -35,7 +35,7 @@ namespace Advobot.Services.Log.Loggers
 			if (logInstanceInfo.HasServerLog)
 			{
 				var invite = "";
-				var inviteUserJoinedOn = await InviteActions.GetInviteUserJoinedOnAsync(logInstanceInfo.GuildSettings, user);
+				var inviteUserJoinedOn = await InviteActions.GetInviteUserJoinedOnAsync(logInstanceInfo.GuildSettings, user).CAF();
 				if (inviteUserJoinedOn != null)
 				{
 					invite = $"**Invite:** {inviteUserJoinedOn.Code}";
@@ -51,7 +51,7 @@ namespace Advobot.Services.Log.Loggers
 				var embed = new AdvobotEmbed(null, $"**ID:** {user.Id}\n{invite}\n{ageWarning}", Colors.JOIN)
 					.AddAuthor(user)
 					.AddFooter(user.IsBot ? "Bot Joined" : "User Joined");
-				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed);
+				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
 			}
 		}
 		/// <summary>
@@ -82,7 +82,7 @@ namespace Advobot.Services.Log.Loggers
 				var embed = new AdvobotEmbed(null, $"**ID:** {user.Id}\n{userStayLength}", Colors.LEAV)
 					.AddAuthor(user)
 					.AddFooter(user.IsBot ? "Bot Left" : "User Left");
-				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed);
+				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
 			}
 		}
 		/// <summary>
@@ -98,7 +98,9 @@ namespace Advobot.Services.Log.Loggers
 				return;
 			}
 
-			foreach (var guild in (await _Client.GetGuildsAsync()).Where(x => (x as SocketGuild).Users.Select(y => y.Id).Contains(afterUser.Id)))
+			var guilds = await _Client.GetGuildsAsync().CAF();
+			var guildsContainingUser = guilds.Where(x => (x as SocketGuild).Users.Select(y => y.Id).Contains(afterUser.Id));
+			foreach (var guild in guildsContainingUser)
 			{
 				_Logging.UserChanges.Increment();
 
@@ -115,7 +117,7 @@ namespace Advobot.Services.Log.Loggers
 						.AddField("Before:", "`" + beforeUser.Username + "`")
 						.AddField("After:", "`" + afterUser.Username + "`", false)
 						.AddFooter("Name Changed");
-					await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed);
+					await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
 				}
 			}
 		}

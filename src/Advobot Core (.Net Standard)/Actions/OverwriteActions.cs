@@ -89,7 +89,7 @@ namespace Advobot.Actions
 				}
 			}
 
-			await ModifyOverwriteAsync(channel, obj, allowBits, denyBits, new ModerationReason(invokingUser, null));
+			await ModifyOverwriteAsync(channel, obj, allowBits, denyBits, new ModerationReason(invokingUser, null)).CAF();
 			return ChannelPerms.ConvertValueToNames(changeValue);
 		}
 		/// <summary>
@@ -107,11 +107,11 @@ namespace Advobot.Actions
 			var permissions = new OverwritePermissions(allowBits, denyBits);
 			if (obj is IRole role)
 			{
-				await channel.AddPermissionOverwriteAsync(role, permissions, reason.CreateRequestOptions());
+				await channel.AddPermissionOverwriteAsync(role, permissions, reason.CreateRequestOptions()).CAF();
 			}
 			else if (obj is IUser user)
 			{
-				await channel.AddPermissionOverwriteAsync(user, permissions, reason.CreateRequestOptions());
+				await channel.AddPermissionOverwriteAsync(user, permissions, reason.CreateRequestOptions()).CAF();
 			}
 			else
 			{
@@ -133,13 +133,13 @@ namespace Advobot.Actions
 					case PermissionTarget.Role:
 					{
 						var role = channel.Guild.GetRole(overwrite.TargetId);
-						await channel.RemovePermissionOverwriteAsync(role, reason.CreateRequestOptions());
+						await channel.RemovePermissionOverwriteAsync(role, reason.CreateRequestOptions()).CAF();
 						break;
 					}
 					case PermissionTarget.User:
 					{
-						var user = await channel.Guild.GetUserAsync(overwrite.TargetId);
-						await channel.RemovePermissionOverwriteAsync(user, reason.CreateRequestOptions());
+						var user = await channel.Guild.GetUserAsync(overwrite.TargetId).CAF();
+						await channel.RemovePermissionOverwriteAsync(user, reason.CreateRequestOptions()).CAF();
 						break;
 					}
 				}

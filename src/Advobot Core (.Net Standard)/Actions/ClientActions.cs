@@ -33,7 +33,7 @@ namespace Advobot.Actions
 
 					try
 					{
-						await client.StartAsync();
+						await client.StartAsync().CAF();
 						ConsoleActions.WriteLine("Successfully connected the client.");
 					}
 					catch (Exception e)
@@ -41,7 +41,7 @@ namespace Advobot.Actions
 						ConsoleActions.ExceptionToConsole(e);
 					}
 
-					await Task.Delay(-1);
+					await Task.Delay(-1).CAF();
 					return;
 				}
 			}
@@ -57,11 +57,11 @@ namespace Advobot.Actions
 		{
 			if (client is DiscordSocketClient socketClient)
 			{
-				await socketClient.LoginAsync(TokenType.Bot, key);
+				await socketClient.LoginAsync(TokenType.Bot, key).CAF();
 			}
 			else if (client is DiscordShardedClient shardedClient)
 			{
-				await shardedClient.LoginAsync(TokenType.Bot, key);
+				await shardedClient.LoginAsync(TokenType.Bot, key).CAF();
 			}
 			else
 			{
@@ -76,7 +76,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task<IUser> GetBotOwnerAsync(IDiscordClient client)
 		{
-			return (await client.GetApplicationInfoAsync()).Owner;
+			return (await client.GetApplicationInfoAsync().CAF()).Owner;
 		}
 		/// <summary>
 		/// Returns the shard id for a <see cref="DiscordSocketClient"/> else returns -1.
@@ -186,11 +186,11 @@ namespace Advobot.Actions
 
 			if (client is DiscordSocketClient socketClient)
 			{
-				await socketClient.SetGameAsync(game, stream, streamType);
+				await socketClient.SetGameAsync(game, stream, streamType).CAF();
 			}
 			else if (client is DiscordShardedClient shardedClient)
 			{
-				await shardedClient.SetGameAsync(game, stream, streamType);
+				await shardedClient.SetGameAsync(game, stream, streamType).CAF();
 			}
 			else
 			{
@@ -207,7 +207,7 @@ namespace Advobot.Actions
 		{
 			using (var stream = new StreamReader(fileInfo.FullName))
 			{
-				await client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream.BaseStream));
+				await client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(stream.BaseStream)).CAF();
 			}
 		}
 
@@ -235,18 +235,17 @@ namespace Advobot.Actions
 		{
 			if (client is DiscordSocketClient socketClient)
 			{
-				await socketClient.SetStatusAsync(UserStatus.Invisible);
+				await socketClient.SetStatusAsync(UserStatus.Invisible).CAF();
 			}
 			else if (client is DiscordShardedClient shardedClient)
 			{
-				await shardedClient.SetStatusAsync(UserStatus.Invisible);
+				await shardedClient.SetStatusAsync(UserStatus.Invisible).CAF();
 			}
 
 			//When this gets awaited the client hangs
-			//I think it doesn't really matter if this isn't awaited.
-			//What is the worst that could happen when the client is being killed anyways.
+			//I think it doesn't really matter if this isn't awaited before the bot is being killed
 			#pragma warning disable
-			client.StopAsync();
+			client.StopAsync().CAF();
 			#pragma warning restore
 			Environment.Exit(0);
 		}

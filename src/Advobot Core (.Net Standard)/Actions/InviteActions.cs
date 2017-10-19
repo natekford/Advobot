@@ -16,12 +16,12 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(IGuild guild)
 		{
-			if (!(await guild.GetCurrentUserAsync()).GuildPermissions.ManageGuild)
+			if (!guild.GetBot().GuildPermissions.ManageGuild)
 			{
 				return new List<IInviteMetadata>();
 			}
 
-			return await guild.GetInvitesAsync();
+			return await guild.GetInvitesAsync().CAF();
 		}
 		/// <summary>
 		/// Tries to find the invite a user joined on.
@@ -39,7 +39,7 @@ namespace Advobot.Actions
 				return new CachedInvite("Invited by admin", 0);
 			}
 
-			var currentInvites = await GetInvitesAsync(user.Guild);
+			var currentInvites = await GetInvitesAsync(user.Guild).CAF();
 			var cachedInvites = guildSettings.Invites;
 			if (!currentInvites.Any())
 			{
@@ -90,7 +90,7 @@ namespace Advobot.Actions
 		public static async Task<IInviteMetadata> CreateInviteAsync(IGuildChannel channel, int? maxAge, int? maxUses, bool isTemporary,
 			bool isUnique, ModerationReason reason)
 		{
-			return await channel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, reason.CreateRequestOptions());
+			return await channel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Deletes the invite.
@@ -100,7 +100,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task DeleteInviteAsync(IInvite invite, ModerationReason reason)
 		{
-			await invite.DeleteAsync(reason.CreateRequestOptions());
+			await invite.DeleteAsync(reason.CreateRequestOptions()).CAF();
 		}
 	}
 }

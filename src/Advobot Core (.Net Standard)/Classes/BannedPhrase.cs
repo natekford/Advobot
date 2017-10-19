@@ -45,7 +45,7 @@ namespace Advobot.Classes.BannedPhrases
 		/// <returns></returns>
 		public async Task PunishAsync(IGuildSettings guildSettings, IMessage message, ITimersService timers = null)
 		{
-			await MessageActions.DeleteMessageAsync(message);
+			await MessageActions.DeleteMessageAsync(message, new AutomaticModerationReason("banned phrase")).CAF();
 
 			var user = guildSettings.BannedPhraseUsers.SingleOrDefault(x => x.User.Id == message.Author.Id);
 			if (user == null)
@@ -61,7 +61,7 @@ namespace Advobot.Classes.BannedPhrases
 			}
 
 			var giver = new AutomaticPunishmentGiver(punishment.PunishmentTime, timers);
-			await giver.AutomaticallyPunishAsync(Punishment, user.User, punishment.GetRole(guildSettings.Guild));
+			await giver.AutomaticallyPunishAsync(Punishment, user.User, punishment.GetRole(guildSettings.Guild)).CAF();
 			user.ResetValue(Punishment);
 		}
 

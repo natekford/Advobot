@@ -205,7 +205,7 @@ namespace Advobot.Classes.Settings
 					continue;
 				}
 
-				var formatted = await Format(client, property);
+				var formatted = await Format(client, property).CAF();
 				if (String.IsNullOrWhiteSpace(formatted))
 				{
 					continue;
@@ -219,7 +219,7 @@ namespace Advobot.Classes.Settings
 		}
 		public async Task<string> Format(IDiscordClient client, PropertyInfo property)
 		{
-			return await FormatObjectAsync(client, property.GetValue(this));
+			return await FormatObjectAsync(client, property.GetValue(this)).CAF();
 		}
 		private async Task<string> FormatObjectAsync(IDiscordClient client, object value)
 		{
@@ -229,13 +229,13 @@ namespace Advobot.Classes.Settings
 			}
 			else if (value is ulong tempUlong)
 			{
-				var user = await client.GetUserAsync(tempUlong);
+				var user = await client.GetUserAsync(tempUlong).CAF();
 				if (user != null)
 				{
 					return $"`{user.FormatUser()}`";
 				}
 
-				var guild = await client.GetGuildAsync(tempUlong);
+				var guild = await client.GetGuildAsync(tempUlong).CAF();
 				if (guild != null)
 				{
 					return $"`{guild.FormatGuild()}`";
@@ -250,7 +250,7 @@ namespace Advobot.Classes.Settings
 			}
 			else if (value is IEnumerable tempIEnumerable)
 			{
-				var text = await Task.WhenAll(tempIEnumerable.Cast<object>().Select(async x => await FormatObjectAsync(client, x)));
+				var text = await Task.WhenAll(tempIEnumerable.Cast<object>().Select(async x => await FormatObjectAsync(client, x).CAF()));
 				return String.Join("\n", text);
 			}
 			else

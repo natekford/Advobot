@@ -20,11 +20,11 @@ namespace Advobot.Classes.TypeReaders
 		/// <returns></returns>
 		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
-			IInvite invite = (await context.Guild.GetInvitesAsync()).FirstOrDefault(x => x.Code.CaseInsEquals(input));
+			IInvite invite = (await context.Guild.GetInvitesAsync().CAF()).FirstOrDefault(x => x.Code.CaseInsEquals(input));
 			if (invite == null)
 			{
 				//Test if vanity url
-				var testInv = await context.Client.GetInviteAsync(input);
+				var testInv = await context.Client.GetInviteAsync(input).CAF();
 				if (testInv.GuildId == context.Guild.Id)
 				{
 					invite = testInv;

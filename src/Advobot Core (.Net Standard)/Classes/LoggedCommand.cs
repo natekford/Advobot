@@ -112,7 +112,7 @@ namespace Advobot.Classes
 			if (result.IsSuccess)
 			{
 				logging.SuccessfulCommands.Increment();
-				await MessageActions.DeleteMessageAsync(context.Message);
+				await MessageActions.DeleteMessageAsync(context.Message, new AutomaticModerationReason("logged command")).CAF();
 
 				var guildSettings = context.GuildSettings;
 				if (guildSettings.ModLog != null && !guildSettings.IgnoredLogChannels.Contains(context.Channel.Id))
@@ -120,14 +120,14 @@ namespace Advobot.Classes
 					var embed = new AdvobotEmbed(null, context.Message.Content)
 						.AddAuthor(context.User)
 						.AddFooter("Mod Log");
-					await MessageActions.SendEmbedMessageAsync(guildSettings.ModLog, embed);
+					await MessageActions.SendEmbedMessageAsync(guildSettings.ModLog, embed).CAF();
 				}
 			}
 			//Failure in a valid fail way
 			else if (ErrorReason != null)
 			{
 				logging.FailedCommands.Increment();
-				await MessageActions.SendErrorMessageAsync(context, new ErrorReason(ErrorReason));
+				await MessageActions.SendErrorMessageAsync(context, new ErrorReason(ErrorReason)).CAF();
 			}
 			//Failure in a way that doesn't need to get logged (unknown command, etc)
 			else

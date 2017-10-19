@@ -55,7 +55,7 @@ namespace Advobot.Services.Log
 				&& !_LogInstance.Message.Attachments.Any(x => x.Height != null || x.Width != null)
 				&& !_LogInstance.Message.Embeds.Any(x => x.Image != null))
 			{
-				await _LogInstance.Message.DeleteAsync();
+				await _LogInstance.Message.DeleteAsync().CAF();
 			}
 		}
 		/// <summary>
@@ -103,7 +103,7 @@ namespace Advobot.Services.Log
 					var embed = new AdvobotEmbed(null, desc, Colors.ATCH, attachmentURL)
 						.AddAuthor(_LogInstance.User, attachmentURL)
 						.AddFooter("Attached Image");
-					await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed);
+					await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
 				}
 				else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL))) //Gif
 				{
@@ -111,7 +111,7 @@ namespace Advobot.Services.Log
 					var embed = new AdvobotEmbed(null, desc, Colors.ATCH, attachmentURL)
 						.AddAuthor(_LogInstance.User, attachmentURL)
 						.AddFooter("Attached Gif");
-					await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed);
+					await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
 				}
 				else //Random file
 				{
@@ -119,7 +119,7 @@ namespace Advobot.Services.Log
 					var embed = new AdvobotEmbed(null, desc, Colors.ATCH, attachmentURL)
 						.AddAuthor(_LogInstance.User, attachmentURL)
 						.AddFooter("Attached File");
-					await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed);
+					await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
 				}
 			}
 			foreach (var embedURL in embedURLs.Distinct()) //Images
@@ -128,7 +128,7 @@ namespace Advobot.Services.Log
 				var embed = new AdvobotEmbed(null, desc, Colors.ATCH, embedURL)
 					.AddAuthor(_LogInstance.User, embedURL)
 					.AddFooter("Embedded Image");
-				await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed);
+				await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
 			}
 			foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First())) //Videos/Gifs
 			{
@@ -136,7 +136,7 @@ namespace Advobot.Services.Log
 				var embed = new AdvobotEmbed(null, desc, Colors.ATCH, videoEmbed.Thumbnail?.Url)
 					.AddAuthor(_LogInstance.User, videoEmbed.Url)
 					.AddFooter("Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
-				await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed);
+				await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
 			}
 		}
 		/// <summary>
@@ -174,7 +174,7 @@ namespace Advobot.Services.Log
 			}
 			else
 			{
-				await MessageActions.DeleteMessageAsync(_LogInstance.Message);
+				await MessageActions.DeleteMessageAsync(_LogInstance.Message, new AutomaticModerationReason("slowmode")).CAF();
 			}
 		}
 		/// <summary>
@@ -231,8 +231,9 @@ namespace Advobot.Services.Log
 				{
 					var votesReq = spamUser.VotesRequired - spamUser.UsersWhoHaveAlreadyVoted.Count;
 					var content = $"The user `{_LogInstance.User.FormatUser()}` needs `{votesReq}` votes to be kicked. Vote by mentioning them.";
-					await MessageActions.MakeAndDeleteSecondaryMessageAsync(_LogInstance.Channel as ITextChannel, null, content, 10, _Timers);
-					await MessageActions.DeleteMessageAsync(_LogInstance.Message);
+					var channel = _LogInstance.Channel as ITextChannel;
+					await MessageActions.MakeAndDeleteSecondaryMessageAsync(channel, null, content, 10, _Timers).CAF();
+					await MessageActions.DeleteMessageAsync(_LogInstance.Message, new AutomaticModerationReason("spam prevention")).CAF();
 				}
 			}
 
@@ -256,7 +257,7 @@ namespace Advobot.Services.Log
 					return;
 				}
 
-				await u.PunishAsync(_LogInstance.GuildSettings);
+				await u.PunishAsync(_LogInstance.GuildSettings).CAF();
 
 				//Reset their current spam count and the people who have already voted on them so they don't get destroyed instantly if they join back
 				u.ResetSpamUser();
@@ -281,17 +282,19 @@ namespace Advobot.Services.Log
 				return;
 			}
 
-			var str = _LogInstance.GuildSettings.BannedPhraseStrings.FirstOrDefault(x => _LogInstance.Message.Content.CaseInsContains(x.Phrase));
+			var str = _LogInstance.GuildSettings.BannedPhraseStrings.FirstOrDefault(x =>
+				_LogInstance.Message.Content.CaseInsContains(x.Phrase));
 			if (str != null)
 			{
-				await str.PunishAsync(_LogInstance.GuildSettings, _LogInstance.Message, _Timers);
+				await str.PunishAsync(_LogInstance.GuildSettings, _LogInstance.Message, _Timers).CAF();
 				return;
 			}
 
-			var regex = _LogInstance.GuildSettings.BannedPhraseRegex.FirstOrDefault(x => RegexActions.CheckIfRegexMatch(_LogInstance.Message.Content, x.Phrase));
+			var regex = _LogInstance.GuildSettings.BannedPhraseRegex.FirstOrDefault(x =>
+				RegexActions.CheckIfRegexMatch(_LogInstance.Message.Content, x.Phrase));
 			if (regex != null)
 			{
-				await regex.PunishAsync(_LogInstance.GuildSettings, _LogInstance.Message, _Timers);
+				await regex.PunishAsync(_LogInstance.GuildSettings, _LogInstance.Message, _Timers).CAF();
 				return;
 			}
 		}

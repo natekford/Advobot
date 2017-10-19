@@ -62,7 +62,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task<IReadOnlyCollection<IGuildUser>> GetUsersAndOrderByJoinAsync(this IGuild guild)
 		{
-			return (await guild.GetUsersAsync()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
+			return (await guild.GetUsersAsync().CAF()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
 		}
 		/// <summary>
 		/// Returns every user that can be modified by both <paramref name="invokingUser"/> and the bot.
@@ -73,7 +73,7 @@ namespace Advobot.Actions
 		public static async Task<IReadOnlyCollection<IGuildUser>> GetUsersTheBotAndUserCanEditAsync(this IGuild guild, IUser invokingUser)
 		{
 			var bot = guild.GetBot();
-			return (await guild.GetUsersAsync()).Where(x => invokingUser.GetIfCanModifyUser(x) && bot.GetIfCanModifyUser(x)).ToList();
+			return (await guild.GetUsersAsync().CAF()).Where(x => invokingUser.GetIfCanModifyUser(x) && bot.GetIfCanModifyUser(x)).ToList();
 		}
 		/// <summary>
 		/// Returns true if the guild has any global emotes.
@@ -95,7 +95,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task<int> PruneUsersAsync(IGuild guild, int days, bool simulate, ModerationReason reason)
 		{
-			return await guild.PruneUsersAsync(days, simulate, reason.CreateRequestOptions());
+			return await guild.PruneUsersAsync(days, simulate, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Changes the guild's name and says the supplied reason in the audit log.
@@ -106,7 +106,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyGuildNameAsync(IGuild guild, string name, ModerationReason reason)
 		{
-			await guild.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions());
+			await guild.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Changes the guild's region and says the supplied reason in the audit log.
@@ -117,7 +117,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyGuildRegionAsync(IGuild guild, string region, ModerationReason reason)
 		{
-			await guild.ModifyAsync(x => x.RegionId = region, reason.CreateRequestOptions());
+			await guild.ModifyAsync(x => x.RegionId = region, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Changes the guild's afk time and says the supplied reason in the audit log.
@@ -128,7 +128,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyGuildAFKTimeAsync(IGuild guild, int time, ModerationReason reason)
 		{
-			await guild.ModifyAsync(x => x.AfkTimeout = time, reason.CreateRequestOptions());
+			await guild.ModifyAsync(x => x.AfkTimeout = time, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Changes the guild's afk channel and says the supplied reason in the audit log.
@@ -139,7 +139,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyGuildAFKChannelAsync(IGuild guild, IVoiceChannel channel, ModerationReason reason)
 		{
-			await guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), reason.CreateRequestOptions());
+			await guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Changes the guild's default message notification value and says the supplied reason in the audit log.
@@ -150,7 +150,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyGuildDefaultMsgNotificationsAsync(IGuild guild, DefaultMessageNotifications msgNotifs, ModerationReason reason)
 		{
-			await guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, reason.CreateRequestOptions());
+			await guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Changes the guild's verification level and says the supplied reason in the audit log.
@@ -161,7 +161,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyGuildVerificationLevelAsync(IGuild guild, VerificationLevel verifLevel, ModerationReason reason)
 		{
-			await guild.ModifyAsync(x => x.VerificationLevel = verifLevel, reason.CreateRequestOptions());
+			await guild.ModifyAsync(x => x.VerificationLevel = verifLevel, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Changes the guild's icon and says the supplied reason in the audit log.
@@ -174,7 +174,7 @@ namespace Advobot.Actions
 		{
 			using (var stream = new StreamReader(fileInfo.FullName))
 			{
-				await guild.ModifyAsync(x => x.Icon = new Image(stream.BaseStream), reason.CreateRequestOptions());
+				await guild.ModifyAsync(x => x.Icon = new Image(stream.BaseStream), reason.CreateRequestOptions()).CAF();
 			}
 		}
 	}

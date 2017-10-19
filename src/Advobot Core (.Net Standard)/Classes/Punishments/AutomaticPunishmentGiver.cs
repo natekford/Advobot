@@ -15,7 +15,7 @@ namespace Advobot.Classes.Punishments
 		public AutomaticPunishmentGiver(int time, ITimersService timers) : base(time, timers) { }
 
 		public virtual async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IUser user, IRole role, [CallerMemberName] string reason = "")
-			=> await AutomaticallyPunishAsync(punishmentType, user as IGuildUser, role, reason);
+			=> await AutomaticallyPunishAsync(punishmentType, user as IGuildUser, role, reason).CAF();
 		public virtual async Task AutomaticallyPunishAsync(PunishmentType punishmentType, IGuildUser user, IRole role, [CallerMemberName] string reason = "")
 		{
 			var guild = user.GetGuild();
@@ -30,32 +30,32 @@ namespace Advobot.Classes.Punishments
 			{
 				case PunishmentType.Kick:
 				{
-					await KickAsync(user, autoModReason);
+					await KickAsync(user, autoModReason).CAF();
 					return;
 				}
 				case PunishmentType.Ban:
 				{
-					await BanAsync(guild, user.Id, autoModReason);
+					await BanAsync(guild, user.Id, autoModReason).CAF();
 					return;
 				}
 				case PunishmentType.Deafen:
 				{
-					await DeafenAsync(user, autoModReason);
+					await DeafenAsync(user, autoModReason).CAF();
 					return;
 				}
 				case PunishmentType.VoiceMute:
 				{
-					await VoiceMuteAsync(user, autoModReason);
+					await VoiceMuteAsync(user, autoModReason).CAF();
 					return;
 				}
 				case PunishmentType.Softban:
 				{
-					await SoftbanAsync(guild, user.Id, autoModReason);
+					await SoftbanAsync(guild, user.Id, autoModReason).CAF();
 					return;
 				}
 				case PunishmentType.RoleMute:
 				{
-					await RoleMuteAsync(user, role, autoModReason);
+					await RoleMuteAsync(user, role, autoModReason).CAF();
 					return;
 				}
 			}

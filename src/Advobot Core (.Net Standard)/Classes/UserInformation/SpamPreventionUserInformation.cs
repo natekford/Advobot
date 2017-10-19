@@ -88,7 +88,7 @@ namespace Advobot.Classes.UserInformation
 		public async Task PunishAsync(IGuildSettings guildSettings)
 		{
 			var giver = new AutomaticPunishmentGiver(0, null);
-			await giver.AutomaticallyPunishAsync(Punishment, User, guildSettings.MuteRole);
+			await giver.AutomaticallyPunishAsync(Punishment, User, guildSettings.MuteRole).CAF();
 		}
 	}
 }

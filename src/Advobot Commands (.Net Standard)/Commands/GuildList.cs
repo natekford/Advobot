@@ -23,30 +23,30 @@ namespace Advobot.Commands.GuildList
 		{
 			if (Context.GuildSettings.ListedInvite != null)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild is already listed."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild is already listed.")).CAF();
 				return;
 			}
 			else if (invite is IInviteMetadata metadata && metadata.MaxAge != null)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Don't provide invites that expire."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Don't provide invites that expire.")).CAF();
 				return;
 			}
 
 			Context.GuildSettings.ListedInvite = new ListedInvite(invite, keywords);
 			var resp = $"Successfully set the listed invite to the following:\n{Context.GuildSettings.ListedInvite}.";
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp);
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove()
 		{
 			if (Context.GuildSettings.ListedInvite == null)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild is already unlisted."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild is already unlisted.")).CAF();
 				return;
 			}
 
 			Context.GuildSettings.ListedInvite = null;
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the listed invite.");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully removed the listed invite.").CAF();
 		}
 	}
 
@@ -61,17 +61,17 @@ namespace Advobot.Commands.GuildList
 		{
 			if (Context.GuildSettings.ListedInvite == null)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("There is no invite to bump."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("There is no invite to bump.")).CAF();
 				return;
 			}
 			else if ((DateTime.UtcNow - Context.GuildSettings.ListedInvite.LastBumped).TotalHours < 1)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Last bump is too recent."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Last bump is too recent.")).CAF();
 				return;
 			}
 
 			Context.GuildSettings.ListedInvite.UpdateLastBumped();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully bumped the invite.");
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully bumped the invite.").CAF();
 		}
 	}
 
@@ -91,7 +91,7 @@ namespace Advobot.Commands.GuildList
 			var invites = gatherer.CreateObject().GatherInvites(Context.InviteList);
 			if (!invites.Any())
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("No guild could be found that matches the given specifications."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("No guild could be found that matches the given specifications.")).CAF();
 				return;
 			}
 			else if (invites.Count() <= 5)
@@ -101,7 +101,7 @@ namespace Advobot.Commands.GuildList
 				{
 					embed.AddField(x.Guild.Name, $"**URL:** {x.Url}\n**Members:** {x.Guild.MemberCount}\n{(x.HasGlobalEmotes ? "**Has global emotes**" : "")}");
 				});
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed);
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			else if (invites.Count() <= 15)
 			{
@@ -114,11 +114,11 @@ namespace Advobot.Commands.GuildList
 					return $"{n}{u}{m}{e}";
 				});
 				var text = $"{_GHeader}{_UHeader}{_MHeader}{_EHeader}\n{String.Join("\n", formatted)}";
-				await MessageActions.SendTextFileAsync(Context.Channel, text, "Guilds_");
+				await MessageActions.SendTextFileAsync(Context.Channel, text, "Guilds_").CAF();
 			}
 			else
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"`{invites.Count()}` results returned. Please narrow your search."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"`{invites.Count()}` results returned. Please narrow your search.")).CAF();
 				return;
 			}
 		}

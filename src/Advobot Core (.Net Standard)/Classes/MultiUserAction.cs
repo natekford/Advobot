@@ -43,30 +43,31 @@ namespace Advobot.Classes
 		{
 			var presentTense = $"take the role `{role.FormatRole()}` from";
 			var pastTense = $"took the role `{role.FormatRole()} from";
-			await DoActionAsync(Action.GiveRole, role, presentTense, pastTense, reason);
+			await DoActionAsync(Action.GiveRole, role, presentTense, pastTense, reason).CAF();
 		}
 		public async Task GiveRoleToManyUsersAsync(IRole role, ModerationReason reason)
 		{
 			var presentTense = $"give the role `{role.FormatRole()}` to";
 			var pastTense = $"gave the role `{role.FormatRole()} to";
-			await DoActionAsync(Action.GiveRole, role, presentTense, pastTense, reason);
+			await DoActionAsync(Action.GiveRole, role, presentTense, pastTense, reason).CAF();
 		}
 		public async Task NicknameManyUsersAsync(string replace, ModerationReason reason)
 		{
 			var presentTense = "nickname";
 			var pastTense = "nicknamed";
-			await DoActionAsync(Action.Nickname, replace, presentTense, pastTense, reason);
+			await DoActionAsync(Action.Nickname, replace, presentTense, pastTense, reason).CAF();
 		}
 		public async Task MoveManyUsersAsync(IVoiceChannel outputChannel, ModerationReason reason)
 		{
 			var presentTense = "move";
 			var pastTense = "moved";
-			await DoActionAsync(Action.Move, outputChannel, presentTense, pastTense, reason);
+			await DoActionAsync(Action.Move, outputChannel, presentTense, pastTense, reason).CAF();
 		}
 
 		private async Task DoActionAsync(Action action, object obj, string presentTense, string pastTense, ModerationReason reason)
 		{
-			var msg = await MessageActions.SendMessageAsync(_Context.Channel, $"Attempting to {presentTense} `{_Users.Count}` users.");
+			var text = $"Attempting to {presentTense} `{_Users.Count}` users.";
+			var msg = await MessageActions.SendMessageAsync(_Context.Channel, text).CAF();
 
 			var successCount = 0;
 			for (int i = 0; i < _Users.Count; ++i)
@@ -79,7 +80,8 @@ namespace Advobot.Classes
 				{
 					var amtLeft = _Users.Count - i;
 					var time = (int)(amtLeft * 1.2);
-					await msg.ModifyAsync(x => x.Content = $"Attempting to {presentTense} `{amtLeft}` people. ETA on completion: `{time}`.");
+					var newText = $"Attempting to {presentTense} `{amtLeft}` people. ETA on completion: `{time}`.";
+					await msg.ModifyAsync(x => x.Content = newText).CAF();
 				}
 
 				++successCount;
@@ -87,29 +89,30 @@ namespace Advobot.Classes
 				{
 					case Action.GiveRole:
 					{
-						await RoleActions.GiveRolesAsync(_Users[i], new[] { obj as IRole }, reason);
+						await RoleActions.GiveRolesAsync(_Users[i], new[] { obj as IRole }, reason).CAF();
 						continue;
 					}
 					case Action.TakeRole:
 					{
-						await RoleActions.TakeRolesAsync(_Users[i], new[] { obj as IRole }, reason);
+						await RoleActions.TakeRolesAsync(_Users[i], new[] { obj as IRole }, reason).CAF();
 						continue;
 					}
 					case Action.Nickname:
 					{
-						await UserActions.ChangeNicknameAsync(_Users[i], obj as string, reason);
+						await UserActions.ChangeNicknameAsync(_Users[i], obj as string, reason).CAF();
 						continue;
 					}
 					case Action.Move:
 					{
-						await UserActions.MoveUserAsync(_Users[i], obj as IVoiceChannel, reason);
+						await UserActions.MoveUserAsync(_Users[i], obj as IVoiceChannel, reason).CAF();
 						continue;
 					}
 				}
 			}
 
-			await MessageActions.DeleteMessageAsync(msg);
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(_Context, $"Successfully {pastTense} `{successCount}` users.");
+			await MessageActions.DeleteMessageAsync(msg, new AutomaticModerationReason("multi user action")).CAF();
+			var response = $"Successfully {pastTense} `{successCount}` users.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(_Context, response).CAF();
 		}
 
 		private enum Action

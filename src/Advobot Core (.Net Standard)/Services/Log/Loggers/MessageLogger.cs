@@ -31,11 +31,11 @@ namespace Advobot.Services.Log.Loggers
 			}
 
 			var handler = new MessageHandler(logInstanceInfo, _Timers, _Logging);
-			await handler.HandleBannedPhrasesAsync();
-			await handler.HandleChannelSettingsAsync();
-			await handler.HandleImageLoggingAsync();
-			await handler.HandleSlowmodeAsync();
-			await handler.HandleSpamPreventionAsync();
+			await handler.HandleBannedPhrasesAsync().CAF();
+			await handler.HandleChannelSettingsAsync().CAF();
+			await handler.HandleImageLoggingAsync().CAF();
+			await handler.HandleSlowmodeAsync().CAF();
+			await handler.HandleSpamPreventionAsync().CAF();
 		}
 		/// <summary>
 		/// Logs the before and after message. Handles banned phrases on the after message.
@@ -55,14 +55,14 @@ namespace Advobot.Services.Log.Loggers
 			}
 
 			var handler = new MessageHandler(logInstanceInfo, _Timers, _Logging);
-			await handler.HandleBannedPhrasesAsync();
+			await handler.HandleBannedPhrasesAsync().CAF();
 
 			//If the before message is not specified always take that as it should be logged.
 			//If the embed counts are greater take that as logging too.
 			var beforeMessage = cached.HasValue ? cached.Value : null;
 			if (beforeMessage?.Embeds.Count() < message.Embeds.Count())
 			{
-				await handler.HandleImageLoggingAsync();
+				await handler.HandleImageLoggingAsync().CAF();
 			}
 			if (logInstanceInfo.HasServerLog)
 			{
@@ -78,7 +78,7 @@ namespace Advobot.Services.Log.Loggers
 					.AddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
 					.AddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)
 					.AddFooter("Message Updated");
-				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed);
+				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
 			}
 		}
 		/// <summary>
@@ -87,7 +87,6 @@ namespace Advobot.Services.Log.Loggers
 		/// <param name="cached"></param>
 		/// <param name="channel"></param>
 		/// <returns></returns>
-		/// <remarks>Very buggy command. Will not work when async. Task.Run in it will not work when awaited.</remarks>
 		public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
 			_Logging.MessageDeletes.Increment();
@@ -120,13 +119,13 @@ namespace Advobot.Services.Log.Loggers
 			}
 			msgDeletion.SetCancelToken(cancelToken = new CancellationTokenSource());
 
-			//I don't know why, but this doesn't run correctly when awaited and 
-			//it also doesn't work correctly when this method is made async. (sends messages one by one)
+			//I don't know why, but this doesn't run correctly when awaited
+			//It also doesn't work correctly when this method is made async. (sends messages one by one)
 			Task.Run(async () =>
 			{
 				try
 				{
-					await Task.Delay(TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT), cancelToken.Token);
+					await Task.Delay(TimeSpan.FromSeconds(Constants.SECONDS_DEFAULT), cancelToken.Token).CAF();
 				}
 				catch (Exception)
 				{
@@ -143,7 +142,8 @@ namespace Advobot.Services.Log.Loggers
 
 				//Put the message content into a list of strings for easy usage
 				var formattedMessages = deletedMessages.OrderBy(x => x?.CreatedAt.Ticks).Select(x => x.FormatMessage());
-				await MessageActions.SendMessageContainingFormattedDeletedMessagesAsync(logInstanceInfo.GuildSettings.ServerLog, formattedMessages);
+				var serverLog = logInstanceInfo.GuildSettings.ServerLog;
+				await MessageActions.SendMessageContainingFormattedDeletedMessagesAsync(serverLog, formattedMessages).CAF();
 			});
 
 			return Task.FromResult(0);

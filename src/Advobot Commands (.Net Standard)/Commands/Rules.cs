@@ -30,7 +30,7 @@ namespace Advobot.Commands.Rules
 				var category = new RuleCategory(name);
 				var pos = Context.GuildSettings.Rules.Categories.Count + 1;
 				Context.GuildSettings.Rules.AddOrUpdateCategory(pos, category);
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created a category at `{pos}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created a category at `{pos}`.").CAF();
 			}
 			[Command]
 			public async Task Command(RuleCategory category, string rule)
@@ -46,7 +46,7 @@ namespace Advobot.Commands.Rules
 			{
 				var oldName = category.Name;
 				category.ChangeName(newName);
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the category `{oldName}` to `{newName}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the category `{oldName}` to `{newName}`.").CAF();
 			}
 			[Command]
 			public async Task Command(RuleCategory category, int rulePosition, string newRule)
@@ -63,7 +63,7 @@ namespace Advobot.Commands.Rules
 				var category = new RuleCategory(name);
 				var pos = Context.GuildSettings.Rules.Categories.Count + 1;
 				Context.GuildSettings.Rules.AddOrUpdateCategory(pos, category);
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created a category at `{pos}`.");
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created a category at `{pos}`.").CAF();
 			}
 			[Command]
 			public async Task Command(RuleCategory category, string rule)
@@ -83,19 +83,19 @@ namespace Advobot.Commands.Rules
 		public async Task Command(RuleCategory category, [Remainder] CustomArguments<RuleFormatter> formatter)
 		{
 			var text = formatter.CreateObject().FormatRuleCategory(category);
-			await MessageActions.SendMessageAsync(Context.Channel, text);
+			await MessageActions.SendMessageAsync(Context.Channel, text).CAF();
 		}
 		[Command]
 		public async Task Command([Remainder] CustomArguments<RuleFormatter> formatter)
 		{
 			if (Context.GuildSettings.Rules.Categories.Count == 0)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild has no rules set up."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("This guild has no rules set up.")).CAF();
 				return;
 			}
 
 			var text = formatter.CreateObject().FormatRules(Context.GuildSettings.Rules);
-			await MessageActions.SendMessageAsync(Context.Channel, text);
+			await MessageActions.SendMessageAsync(Context.Channel, text).CAF();
 		}
 	}
 }

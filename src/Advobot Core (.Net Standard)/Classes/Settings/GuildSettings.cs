@@ -430,7 +430,7 @@ namespace Advobot.Classes.Settings
 			CommandsDisabledOnUser.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnRole.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
 			CommandsDisabledOnChannel.RemoveAll(x => String.IsNullOrWhiteSpace(x.Name));
-			Invites.AddRange((await InviteActions.GetInvitesAsync(guild)).Select(x => new CachedInvite(x.Code, x.Uses)));
+			Invites.AddRange((await InviteActions.GetInvitesAsync(guild).CAF()).Select(x => new CachedInvite(x.Code, x.Uses)));
 
 			if (_ListedInvite != null)
 			{

@@ -30,7 +30,7 @@ namespace Advobot.Services.GuildSettings
 			}
 
 			if (!_GuildSettings.TryGetValue(guild.Id, out var settings) &&
-				!_GuildSettings.TryAdd(guild.Id, settings = await CreationActions.CreateGuildSettingsAsync(guild)))
+				!_GuildSettings.TryAdd(guild.Id, settings = await CreationActions.CreateGuildSettingsAsync(guild).CAF()))
 			{
 				ConsoleActions.WriteLine($"Failed to add {guild.Id} to the guild settings holder.", color: ConsoleColor.Red);
 			}

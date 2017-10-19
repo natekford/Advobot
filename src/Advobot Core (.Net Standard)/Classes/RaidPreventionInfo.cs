@@ -56,7 +56,7 @@ namespace Advobot.Classes.SpamPrevention
 		public async Task PunishAsync(IGuildSettings guildSettings, IGuildUser user)
 		{
 			var giver = new AutomaticPunishmentGiver(0, null);
-			await giver.AutomaticallyPunishAsync(PunishmentType, user, guildSettings.MuteRole);
+			await giver.AutomaticallyPunishAsync(PunishmentType, user, guildSettings.MuteRole).CAF();
 		}
 
 		public static bool TryCreateRaidPreventionInfo(RaidType raidType,

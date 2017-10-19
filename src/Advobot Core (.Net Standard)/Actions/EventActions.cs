@@ -30,7 +30,7 @@ namespace Advobot.Actions
 				ClientActions.RestartBot();
 			}
 
-			await ClientActions.UpdateGameAsync(client, botSettings);
+			await ClientActions.UpdateGameAsync(client, botSettings).CAF();
 
 			ConsoleActions.WriteLine($"The current bot prefix is: {botSettings.Prefix}");
 			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
@@ -54,14 +54,14 @@ namespace Advobot.Actions
 			if (settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(user.Username)))
 			{
 				var giver = new AutomaticPunishmentGiver(0, timers);
-				await giver.AutomaticallyPunishAsync(PunishmentType.Ban, user, null, "banned name");
+				await giver.AutomaticallyPunishAsync(PunishmentType.Ban, user, null, "banned name").CAF();
 			}
 
 			//Antiraid
 			var antiRaid = settings.RaidPreventionDictionary[RaidType.Regular];
 			if (antiRaid != null && antiRaid.Enabled)
 			{
-				await antiRaid.PunishAsync(settings, user);
+				await antiRaid.PunishAsync(settings, user).CAF();
 			}
 			var antiJoin = settings.RaidPreventionDictionary[RaidType.RapidJoins];
 			if (antiJoin != null && antiJoin.Enabled)
@@ -69,7 +69,7 @@ namespace Advobot.Actions
 				antiJoin.Add(user.JoinedAt.Value.UtcDateTime);
 				if (antiJoin.GetSpamCount() >= antiJoin.UserCount)
 				{
-					await antiJoin.PunishAsync(settings, user);
+					await antiJoin.PunishAsync(settings, user).CAF();
 				}
 			}
 
@@ -77,13 +77,13 @@ namespace Advobot.Actions
 			var roles = settings.PersistentRoles.Where(x => x.UserId == user.Id).Select(x => x.GetRole(user.Guild)).Where(x => x != null);
 			if (roles.Any())
 			{
-				await RoleActions.GiveRolesAsync(user, roles, new AutomaticModerationReason("persistent roles"));
+				await RoleActions.GiveRolesAsync(user, roles, new AutomaticModerationReason("persistent roles")).CAF();
 			}
 
 			//Welcome message
 			if (settings.WelcomeMessage != null)
 			{
-				await settings.WelcomeMessage.SendAsync(user);
+				await settings.WelcomeMessage.SendAsync(user).CAF();
 			}
 		}
 		/// <summary>
@@ -104,7 +104,7 @@ namespace Advobot.Actions
 			//Goodbye message
 			if (settings.GoodbyeMessage != null)
 			{
-				await settings.GoodbyeMessage.SendAsync(user);
+				await settings.GoodbyeMessage.SendAsync(user).CAF();
 			}
 		}
 		/// <summary>
@@ -126,19 +126,19 @@ namespace Advobot.Actions
 
 				if (validQuote)
 				{
-					await MessageActions.SendMessageAsync(message.Channel, quotes.List.ElementAt(number).Word.Description);
+					await MessageActions.SendMessageAsync(message.Channel, quotes.List.ElementAt(number).Word.Description).CAF();
 				}
 				if (validHelpEntry)
 				{
 					var help = helpEntries.List.ElementAt(number).Word;
 					var embed = new AdvobotEmbed(help.Name, help.ToString())
 						.AddFooter("Help");
-					await MessageActions.SendEmbedMessageAsync(message.Channel, embed);
+					await MessageActions.SendEmbedMessageAsync(message.Channel, embed).CAF();
 				}
 
 				if (validQuote || validHelpEntry)
 				{
-					await MessageActions.DeleteMessageAsync(message);
+					await MessageActions.DeleteMessageAsync(message, new AutomaticModerationReason("help entry or quote")).CAF();
 				}
 			}
 		}

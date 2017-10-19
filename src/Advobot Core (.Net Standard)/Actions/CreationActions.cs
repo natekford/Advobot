@@ -30,7 +30,7 @@ namespace Advobot.Actions
 		public static async Task<IServiceProvider> CreateServiceProvider()
 		{
 			//I have no idea if I am providing services correctly, but it works.
-			var commandService = await CreateCommandService();
+			var commandService = await CreateCommandService().CAF();
 			var botSettings = CreateBotSettings();
 			var client = CreateDiscordClient(botSettings);
 			return new DefaultServiceProviderFactory().CreateServiceProvider(new ServiceCollection()
@@ -84,7 +84,7 @@ namespace Advobot.Actions
 			}
 
 			//Add in commands
-			await cmds.AddModulesAsync(CommandAssembly.COMMAND_ASSEMBLY);
+			await cmds.AddModulesAsync(CommandAssembly.COMMAND_ASSEMBLY).CAF();
 
 			return cmds;
 		}
@@ -147,7 +147,7 @@ namespace Advobot.Actions
 			{
 				ConsoleActions.WriteLine($"The guild information file for {guild.FormatGuild()} could not be found; using default.");
 			}
-			return await (guildSettings ?? (IGuildSettings)Activator.CreateInstance(Constants.GUILD_SETTINGS_TYPE)).PostDeserialize(guild);
+			return await (guildSettings ?? (IGuildSettings)Activator.CreateInstance(Constants.GUILD_SETTINGS_TYPE)).PostDeserialize(guild).CAF();
 		}
 	}
 }

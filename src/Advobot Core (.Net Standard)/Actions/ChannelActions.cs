@@ -56,7 +56,7 @@ namespace Advobot.Actions
 		/// <returns>The newly created text channel.</returns>
 		public static async Task<ITextChannel> CreateTextChannelAsync(IGuild guild, string name, ModerationReason reason)
 		{
-			return await guild.CreateTextChannelAsync(name, reason.CreateRequestOptions());
+			return await guild.CreateTextChannelAsync(name, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Creates a voice channel with the given name.
@@ -67,7 +67,7 @@ namespace Advobot.Actions
 		/// <returns>The newly created voice channel</returns>
 		public static async Task<IVoiceChannel> CreateVoiceChannelAsync(IGuild guild, string name, ModerationReason reason)
 		{
-			return await guild.CreateVoiceChannelAsync(name, reason.CreateRequestOptions());
+			return await guild.CreateVoiceChannelAsync(name, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Modifies a channel so only admins can read it and puts the channel to the bottom of the channel list.
@@ -90,7 +90,7 @@ namespace Advobot.Actions
 					}
 					case PermissionTarget.User:
 					{
-						obj = await guild.GetUserAsync(overwrite.TargetId);
+						obj = await guild.GetUserAsync(overwrite.TargetId).CAF();
 						break;
 					}
 					default:
@@ -102,17 +102,17 @@ namespace Advobot.Actions
 				var readMessages = ChannelPerms.ConvertToValue(new[] { nameof(ChannelPermission.ReadMessages) });
 				var allowBits = overwrite.Permissions.AllowValue & ~readMessages;
 				var denyBits = overwrite.Permissions.DenyValue | readMessages;
-				await OverwriteActions.ModifyOverwriteAsync(channel, obj, allowBits, denyBits, reason);
+				await OverwriteActions.ModifyOverwriteAsync(channel, obj, allowBits, denyBits, reason).CAF();
 			}
 
 			//Double check the everyone role has the correct perms
 			if (!channel.PermissionOverwrites.Any(x => x.TargetId == guild.EveryoneRole.Id))
 			{
-				await channel.AddPermissionOverwriteAsync(guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny));
+				await channel.AddPermissionOverwriteAsync(guild.EveryoneRole, new OverwritePermissions(readMessages: PermValue.Deny)).CAF();
 			}
 
 			//Determine the highest position (kind of backwards, the lower the closer to the top, the higher the closer to the bottom)
-			await ChannelActions.ModifyPositionAsync(channel, (await guild.GetTextChannelsAsync()).Max(x => x.Position), reason);
+			await ModifyPositionAsync(channel, (await guild.GetTextChannelsAsync()).Max(x => x.Position), reason).CAF();
 		}
 		/// <summary>
 		/// Deletes a channel.
@@ -122,7 +122,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task DeleteChannelAsync(IGuildChannel channel, ModerationReason reason)
 		{
-			await channel.DeleteAsync(reason.CreateRequestOptions());
+			await channel.DeleteAsync(reason.CreateRequestOptions()).CAF();
 		}
 
 		/// <summary>
@@ -140,8 +140,8 @@ namespace Advobot.Actions
 			}
 
 			var channels = channel is ITextChannel
-				? (await channel.Guild.GetTextChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray()
-				: (await channel.Guild.GetVoiceChannelsAsync()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
+				? (await channel.Guild.GetTextChannelsAsync().CAF()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray()
+				: (await channel.Guild.GetVoiceChannelsAsync().CAF()).Where(x => x.Id != channel.Id).OrderBy(x => x.Position).Cast<IGuildChannel>().ToArray();
 			position = Math.Max(0, Math.Min(position, channels.Length));
 
 			var reorderProperties = new ReorderChannelProperties[channels.Length];
@@ -161,7 +161,7 @@ namespace Advobot.Actions
 				}
 			}
 
-			await channel.Guild.ReorderChannelsAsync(reorderProperties);
+			await channel.Guild.ReorderChannelsAsync(reorderProperties).CAF();
 			return reorderProperties.FirstOrDefault(x => x.Id == channel.Id)?.Position ?? -1;
 		}
 		/// <summary>
@@ -173,7 +173,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyNameAsync(IGuildChannel channel, string name, ModerationReason reason)
 		{
-			await channel.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions());
+			await channel.ModifyAsync(x => x.Name = name, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Modifies a text channel's topic.
@@ -184,7 +184,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyTopicAsync(ITextChannel channel, string topic, ModerationReason reason)
 		{
-			await channel.ModifyAsync(x => x.Topic = topic, reason.CreateRequestOptions());
+			await channel.ModifyAsync(x => x.Topic = topic, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Modifies a voice channel's limit.
@@ -195,7 +195,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyLimitAsync(IVoiceChannel channel, int limit, ModerationReason reason)
 		{
-			await channel.ModifyAsync(x => x.UserLimit = limit, reason.CreateRequestOptions());
+			await channel.ModifyAsync(x => x.UserLimit = limit, reason.CreateRequestOptions()).CAF();
 		}
 		/// <summary>
 		/// Modifies a voice channel's bitrate.
@@ -206,7 +206,7 @@ namespace Advobot.Actions
 		/// <returns></returns>
 		public static async Task ModifyBitrateAsync(IVoiceChannel channel, int bitrate, ModerationReason reason)
 		{
-			await channel.ModifyAsync(x => x.Bitrate = bitrate, reason.CreateRequestOptions());
+			await channel.ModifyAsync(x => x.Bitrate = bitrate, reason.CreateRequestOptions()).CAF();
 		}
 	}
 }

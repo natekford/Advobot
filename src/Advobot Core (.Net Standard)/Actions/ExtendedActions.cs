@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Advobot
 {
@@ -333,6 +334,15 @@ namespace Advobot
 		public static List<T> GetUpToAndIncludingMinNum<T>(this List<T> list, params int[] x)
 		{
 			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
+		}
+
+		public static async Task<T> CAF<T>(this Task<T> task)
+		{
+			return await task.ConfigureAwait(false);
+		}
+		public static async Task CAF(this Task task)
+		{
+		await task.ConfigureAwait(false);
 		}
 	}
 }

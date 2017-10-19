@@ -21,7 +21,7 @@ namespace Advobot.Classes.TypeReaders
 		public override async Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
 		{
 			IBan ban = null;
-			var bans = await context.Guild.GetBansAsync();
+			var bans = await context.Guild.GetBansAsync().CAF();
 			if (MentionUtils.TryParseUser(input, out ulong userID))
 			{
 				ban = bans.FirstOrDefault(x => x.User.Id == userID);
