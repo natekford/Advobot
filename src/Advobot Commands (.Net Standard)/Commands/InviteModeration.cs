@@ -30,7 +30,10 @@ namespace Advobot.Commands.InviteModeration
 
 			var lenForCode = invites.Max(x => x.Code.Length);
 			var lenForUses = invites.Max(x => x.Uses).ToString().Length;
-			var desc = String.Join("\n", invites.FormatNumberedList("`{0}` `{1}` `{2}`", x => x.Code.PadRight(lenForCode), x => x.Uses.ToString().PadRight(lenForUses), x => x.Inviter.FormatUser()));
+			var desc = String.Join("\n", invites.FormatNumberedList("`{0}` `{1}` `{2}`",
+				x => x.Code.PadRight(lenForCode),
+				x => x.Uses.ToString().PadRight(lenForUses),
+				x => x.Inviter.FormatUser()));
 			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Instant Invite List", desc)).CAF();
 		}
 	}
@@ -50,14 +53,22 @@ namespace Advobot.Commands.InviteModeration
 			[Optional, VerifyNumber(0, 1, 5, 10, 25, 50, 100)] int uses,
 			[Optional] bool tempMem)
 		{
-			int? nullableTime = time == 0 ? 86400 : time as int?;
-			int? nullableUses = uses == 0 ? null : uses as int?;
+			var nullableTime = time != 0 ? time as int? : 86400;
+			var nullableUses = uses != 0 ? uses as int? : null;
 			var inv = await InviteActions.CreateInviteAsync(channel, nullableTime, nullableUses, tempMem, false, new ModerationReason(Context.User, null)).CAF();
 
-			var timeOutputStr = nullableTime.HasValue ? $"It will last for this amount of time: `{nullableTime}`." : "It will last until manually revoked.";
-			var usesOutputStr = nullableUses.HasValue ? $"It will last for this amount of uses: `{nullableUses}`." : "It has no usage limit.";
-			var tempOutputStr = tempMem ? "Users will be kicked when they go offline unless they get a role." : "Users will not be kicked when they go offline and do not have a role.";
-			await MessageActions.SendMessageAsync(Context.Channel, $"Here is your invite for `{channel.FormatChannel()}`: {GeneralFormatting.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usesOutputStr, tempOutputStr)}").CAF();
+			var timeOutputStr = nullableTime.HasValue
+				? $"It will last for this amount of time: `{nullableTime}`." 
+				: "It will last until manually revoked.";
+			var usesOutputStr = nullableUses.HasValue 
+				? $"It will last for this amount of uses: `{nullableUses}`." 
+				: "It has no usage limit.";
+			var tempOutputStr = tempMem 
+				? "Users will be kicked when they go offline unless they get a role." 
+				: "Users will not be kicked when they go offline and do not have a role.";
+			var joined = GeneralFormatting.JoinNonNullStrings("\n", inv.Url, timeOutputStr, usesOutputStr, tempOutputStr);
+			var resp = $"Here is your invite for `{channel.FormatChannel()}`: {joined}";
+			await MessageActions.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 	}
 
@@ -97,7 +108,9 @@ namespace Advobot.Commands.InviteModeration
 			{
 				await InviteActions.DeleteInviteAsync(invite, new ModerationReason(Context.User, null)).CAF();
 			}
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully deleted `{invites.Count()}` instant invites.").CAF();
+
+			var resp = $"Successfully deleted `{invites.Count()}` instant invites.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 }

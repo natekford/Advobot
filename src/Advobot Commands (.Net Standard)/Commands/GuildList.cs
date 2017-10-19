@@ -91,7 +91,8 @@ namespace Advobot.Commands.GuildList
 			var invites = gatherer.CreateObject().GatherInvites(Context.InviteList);
 			if (!invites.Any())
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("No guild could be found that matches the given specifications.")).CAF();
+				var error = new ErrorReason("No guild could be found that matches the given specifications.");
+				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 			else if (invites.Count() <= 5)
@@ -99,7 +100,9 @@ namespace Advobot.Commands.GuildList
 				var embed = new AdvobotEmbed("Guilds");
 				invites.ToList().ForEach(x =>
 				{
-					embed.AddField(x.Guild.Name, $"**URL:** {x.Url}\n**Members:** {x.Guild.MemberCount}\n{(x.HasGlobalEmotes ? "**Has global emotes**" : "")}");
+					var e = x.HasGlobalEmotes ? "**Has global emotes**" : "";
+					var text = $"**URL:** {x.Url}\n**Members:** {x.Guild.MemberCount}\n{e}";
+					embed.AddField(x.Guild.Name, text);
 				});
 				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
@@ -118,7 +121,8 @@ namespace Advobot.Commands.GuildList
 			}
 			else
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"`{invites.Count()}` results returned. Please narrow your search.")).CAF();
+				var resp = $"`{invites.Count()}` results returned. Please narrow your search.";
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 				return;
 			}
 		}

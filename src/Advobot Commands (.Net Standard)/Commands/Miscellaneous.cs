@@ -16,7 +16,8 @@ using System.Threading.Tasks;
 namespace Advobot.Commands.Miscellaneous
 {
 	[Group(nameof(Help)), TopLevelShortAlias(typeof(Help))]
-	[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. If left blank will provide general help.")]
+	[Summary("Prints out the aliases of the command, the usage of the command, and the description of the command. " +
+		"If left blank will provide general help.")]
 	[DefaultEnabled(true)]
 	public sealed class Help : AdvobotModuleBase
 	{
@@ -73,7 +74,8 @@ namespace Advobot.Commands.Miscellaneous
 	}
 
 	[Group(nameof(Commands)), TopLevelShortAlias(typeof(Commands))]
-	[Summary("Prints out the commands in that category of the command list. Inputting nothing will list the command categories.")]
+	[Summary("Prints out the commands in that category of the command list. " +
+		"Inputting nothing will list the command categories.")]
 	[DefaultEnabled(true)]
 	public sealed class Commands : AdvobotModuleBase
 	{
@@ -101,7 +103,8 @@ namespace Advobot.Commands.Miscellaneous
 	}
 
 	[Group(nameof(GetId)), TopLevelShortAlias(typeof(GetId))]
-	[Summary("Shows the ID of the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
+	[Summary("Shows the ID of the given object. " +
+		"Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 	[DefaultEnabled(true)]
 	public sealed class GetId : AdvobotModuleBase
 	{
@@ -138,56 +141,68 @@ namespace Advobot.Commands.Miscellaneous
 	}
 
 	[Group(nameof(GetInfo)), TopLevelShortAlias(typeof(GetInfo))]
-	[Summary("Shows information about the given object. Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
+	[Summary("Shows information about the given object. " +
+		"Channels, roles, users, and emojis need to be supplied for the command to work if targetting those.")]
 	[DefaultEnabled(true)]
 	public sealed class GetInfo : AdvobotModuleBase
 	{
 		[Command(nameof(Bot)), ShortAlias(nameof(Bot))]
 		public async Task Bot()
 		{
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, InfoFormatting.FormatBotInfo(Context.BotSettings, Context.Client, Context.Logging, Context.Guild)).CAF();
+			var embed = InfoFormatting.FormatBotInfo(Context.BotSettings, Context.Client, Context.Logging, Context.Guild);
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild()
 		{
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, InfoFormatting.FormatGuildInfo(Context.Guild as SocketGuild)).CAF();
+			var embed = InfoFormatting.FormatGuildInfo(Context.Guild as SocketGuild);
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
 		public async Task Channel(IGuildChannel channel)
 		{
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, InfoFormatting.FormatChannelInfo(Context.GuildSettings, Context.Guild as SocketGuild, channel as SocketChannel)).CAF();
+			var embed = InfoFormatting.FormatChannelInfo(Context.GuildSettings, Context.Guild as SocketGuild, channel as SocketChannel);
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Role)), ShortAlias(nameof(Role))]
 		public async Task Role(IRole role)
 		{
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, InfoFormatting.FormatRoleInfo(Context.Guild as SocketGuild, role as SocketRole)).CAF();
+			var embed = InfoFormatting.FormatRoleInfo(Context.Guild as SocketGuild, role as SocketRole);
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(User)), ShortAlias(nameof(User))]
 		public async Task User(IUser user)
 		{
 			if (user is SocketGuildUser socketGuildUser)
 			{
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, InfoFormatting.FormatUserInfo(Context.Guild as SocketGuild, socketGuildUser)).CAF();
+				var embed = InfoFormatting.FormatUserInfo(Context.Guild as SocketGuild, socketGuildUser);
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 			else if (user is SocketUser socketUser)
 			{
-				await MessageActions.SendEmbedMessageAsync(Context.Channel, InfoFormatting.FormatUserInfo(Context.Guild as SocketGuild, socketUser)).CAF();
+				var embed = InfoFormatting.FormatUserInfo(Context.Guild as SocketGuild, socketUser);
+				await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 			}
 		}
 		[Command(nameof(Emote)), ShortAlias(nameof(Emote))]
 		public async Task Emote(Emote emote)
 		{
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, InfoFormatting.FormatEmoteInfo(emote)).CAF();
+			var embed = InfoFormatting.FormatEmoteInfo(emote);
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 		[Command(nameof(Invite)), ShortAlias(nameof(Invite))]
 		public async Task Invite(IInvite invite)
 		{
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, InfoFormatting.FormatInviteInfo(invite as IInviteMetadata)).CAF();
+			var embed = InfoFormatting.FormatInviteInfo(invite as IInviteMetadata);
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, embed).CAF();
 		}
 	}
 
 	[Group(nameof(GetUsersWithReason)), TopLevelShortAlias(typeof(GetUsersWithReason))]
-	[Summary("Gets users with a variable reason. `Count` specifies if to say the count. `Nickname` specifies if to include nickanmes. `Exact` specifies if only exact matches apply.")]
+	[Summary("Gets users with a variable reason. " +
+		"`Count` specifies if to say the count. " +
+		"`Nickname` specifies if to include nickanmes. " +
+		"`Exact` specifies if only exact matches apply.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
 	public sealed class GetUsersWithReason : AdvobotModuleBase
@@ -258,7 +273,9 @@ namespace Advobot.Commands.Miscellaneous
 				}
 			}
 
-			var desc = count ? $"**Count:** `{users.Count()}`" : users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.FormatUser());
+			var desc = count
+				? $"**Count:** `{users.Count()}`"
+				: users.OrderBy(x => x.JoinedAt).FormatNumberedList("`{0}`", x => x.FormatUser());
 			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(title, desc)).CAF();
 		}
 	}
@@ -342,13 +359,15 @@ namespace Advobot.Commands.Miscellaneous
 		public async Task Command()
 		{
 			var users = await Context.Guild.GetUsersAndOrderByJoinAsync().CAF();
-			var text = users.FormatNumberedList("`{0}` joined on `{1}`", x => x.FormatUser(), x => TimeFormatting.FormatReadableDateTime(x.JoinedAt.Value.UtcDateTime));
+			var text = users.FormatNumberedList("`{0}` joined on `{1}`",
+				x => x.FormatUser(),
+				x => TimeFormatting.FormatReadableDateTime(x.JoinedAt.Value.UtcDateTime));
 			await MessageActions.SendTextFileAsync(Context.Channel, text, "User_Joins_").CAF();
 		}
 	}
 
 	[Group(nameof(DisplayEmotes)), TopLevelShortAlias(typeof(DisplayEmotes))]
-	[Summary("Lists the emotes in the guild. As of right now, there's no way to upload or remove emotes through Discord's API.")]
+	[Summary("Lists the emotes in the guild.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayEmotes : AdvobotModuleBase
@@ -357,20 +376,25 @@ namespace Advobot.Commands.Miscellaneous
 		public async Task Managed()
 		{
 			var emotes = Context.Guild.Emotes.Where(x => x.IsManaged);
-			var desc = emotes.Any() ? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name) : $"This guild has no global emotes.";
+			var desc = emotes.Any()
+				? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name)
+				: $"This guild has no global emotes.";
 			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Emotes", desc)).CAF();
 		}
 		[Command(nameof(Guild)), ShortAlias(nameof(Guild))]
 		public async Task Guild()
 		{
 			var emotes = Context.Guild.Emotes.Where(x => !x.IsManaged);
-			var desc = emotes.Any() ? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name) : $"This guild has no guild emotes.";
+			var desc = emotes.Any()
+				? emotes.FormatNumberedList("<:{0}:{1}> `{2}`", x => x.Name, x => x.Id, x => x.Name)
+				: $"This guild has no guild emotes.";
 			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Emotes", desc)).CAF();
 		}
 	}
 
 	[Group(nameof(DownloadMessages)), TopLevelShortAlias(typeof(DownloadMessages))]
-	[Summary("Downloads the past x amount of messages. Up to 1000 messages or 500KB worth of formatted text.")]
+	[Summary("Downloads the past x amount of messages. " +
+		"Up to 1000 messages or 500KB worth of formatted text.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(true)]
 	public sealed class DownloadMessages : AdvobotModuleBase
@@ -379,30 +403,32 @@ namespace Advobot.Commands.Miscellaneous
 		public async Task Command(int number, [Optional, VerifyObject(true, ObjectVerification.CanBeRead)] ITextChannel channel)
 		{
 			channel = channel ?? Context.Channel as ITextChannel;
-			var messages = (await MessageActions.GetMessagesAsync(channel, Math.Min(number, 1000)).CAF()).OrderBy(x => x.CreatedAt.Ticks).ToArray();
+			var messages = await MessageActions.GetMessagesAsync(channel, Math.Min(number, 1000)).CAF();
+			var m = messages.OrderBy(x => x.CreatedAt.Ticks).ToArray();
 
 			var formattedMessagesBuilder = new System.Text.StringBuilder();
 			var count = 0;
-			for (count = 0; count < messages.Length; ++count)
+			for (count = 0; count < m.Length; ++count)
 			{
-				var text = messages[count].FormatMessage().RemoveAllMarkdown().RemoveDuplicateNewLines();
-				if (formattedMessagesBuilder.Length + text.Length >= Context.BotSettings.MaxMessageGatherSize)
-				{
-					break;
-				}
-				else
+				var text = m[count].FormatMessage().RemoveAllMarkdown().RemoveDuplicateNewLines();
+				if (formattedMessagesBuilder.Length + text.Length < Context.BotSettings.MaxMessageGatherSize)
 				{
 					formattedMessagesBuilder.AppendLineFeed(text);
+					continue;
 				}
+				break;
 			}
 
-			await MessageActions.SendTextFileAsync(Context.Channel, formattedMessagesBuilder.ToString(), $"{channel.Name}_Messages", $"Successfully got `{count}` messages").CAF();
+			var fileName = $"{channel.Name}_Messages";
+			var content = $"Successfully got `{count}` messages";
+			await MessageActions.SendTextFileAsync(Context.Channel, formattedMessagesBuilder.ToString(), fileName, content).CAF();
 		}
 	}
 
 	[Group(nameof(MakeAnEmbed)), TopLevelShortAlias(typeof(MakeAnEmbed))]
-	[Summary("Makes an embed with the given arguments. Urls need http:// in front of them. Doesn't support fields because those are extra work to do. " +
-		"FieldInfo can have up to 25 arguments supplied. Each must be formatted like the following: `" + CustomEmbed.FORMAT + "`.")]
+	[Summary("Makes an embed with the given arguments. Urls need http:// in front of them. " +
+		"FieldInfo can have up to 25 arguments supplied. " +
+		"Each must be formatted like the following: `" + CustomEmbed.FORMAT + "`.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(true)]
 	public sealed class MakeAnEmbed : AdvobotModuleBase
@@ -440,7 +466,8 @@ namespace Advobot.Commands.Miscellaneous
 	}
 
 	[Group(nameof(MessageBotOwner)), TopLevelShortAlias(typeof(MessageBotOwner))]
-	[Summary("Sends a message to the bot owner with the given text. Messages will be cut down to 250 characters.")]
+	[Summary("Sends a message to the bot owner with the given text. " +
+		"Messages will be cut down to 250 characters.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(false)]
 	public sealed class MessageBotOwner : AdvobotModuleBase
@@ -448,7 +475,8 @@ namespace Advobot.Commands.Miscellaneous
 		[Command]
 		public async Task Command([Remainder] string message)
 		{
-			var newMsg = $"From `{Context.User.FormatUser()}` in `{Context.Guild.FormatGuild()}`:\n```\n{message.Substring(0, Math.Min(message.Length, 250))}```";
+			var cut = message.Substring(0, Math.Min(message.Length, 250));
+			var newMsg = $"From `{Context.User.FormatUser()}` in `{Context.Guild.FormatGuild()}`:\n```\n{cut}```";
 
 			var owner = await ClientActions.GetBotOwnerAsync(Context.Client).CAF();
 			if (owner != null)
@@ -478,7 +506,8 @@ namespace Advobot.Commands.Miscellaneous
 			}
 			else
 			{
-				await MessageActions.SendMessageAsync(Context.Channel, $"The number `{number}` has the following permissions: `{String.Join("`, `", perms)}`.").CAF();
+				var resp = $"The number `{number}` has the following guild permissions: `{String.Join("`, `", perms)}`.";
+				await MessageActions.SendMessageAsync(Context.Channel, resp).CAF();
 			}
 		}
 		[Command(nameof(Channel)), ShortAlias(nameof(Channel))]
@@ -491,7 +520,8 @@ namespace Advobot.Commands.Miscellaneous
 			}
 			else
 			{
-				await MessageActions.SendMessageAsync(Context.Channel, $"The number `{number}` has the following permissions: `{String.Join("`, `", perms)}`.").CAF();
+				var resp = $"The number `{number}` has the following channel permissions: `{String.Join("`, `", perms)}`.";
+				await MessageActions.SendMessageAsync(Context.Channel, resp).CAF();
 			}
 		}
 	}

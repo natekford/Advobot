@@ -46,7 +46,8 @@ namespace Advobot.Commands.Rules
 			{
 				var oldName = category.Name;
 				category.ChangeName(newName);
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the category `{oldName}` to `{newName}`.").CAF();
+				var resp = $"Successfully changed the category `{oldName}` to `{newName}`.";
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
 			public async Task Command(RuleCategory category, int rulePosition, string newRule)

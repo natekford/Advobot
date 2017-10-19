@@ -22,14 +22,12 @@ namespace Advobot.Commands.GuildModeration
 		[Command]
 		public async Task Command([Optional] ulong guildId)
 		{
-			if (guildId == 0)
+			if (Context.Guild.Id == guildId || guildId == 0)
 			{
 				await Context.Guild.LeaveAsync().CAF();
-				return;
 			}
-
 			//Need bot owner check so only the bot owner can make the bot leave servers they don't own
-			if (Context.User.Id == (await ClientActions.GetBotOwnerAsync(Context.Client).CAF()).Id)
+			else if (Context.User.Id == (await ClientActions.GetBotOwnerAsync(Context.Client).CAF()).Id)
 			{
 				var guild = await Context.Client.GetGuildAsync(guildId).CAF();
 				if (guild == null)
@@ -41,16 +39,14 @@ namespace Advobot.Commands.GuildModeration
 				await guild.LeaveAsync().CAF();
 				if (Context.Guild.Id != guildId)
 				{
-					await MessageActions.SendMessageAsync(Context.Channel, $"Successfully left the server `{guild.Name}` with an ID `{guild.Id}`.").CAF();
+					var resp = $"Successfully left the server `{guild.Name}` with an ID `{guild.Id}`.";
+					await MessageActions.SendMessageAsync(Context.Channel, resp).CAF();
 				}
-			}
-			else if (Context.Guild.Id == guildId)
-			{
-				await Context.Guild.LeaveAsync().CAF();
 			}
 			else
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("Only the bot owner can use this command targetting other guilds.")).CAF();
+				var error = new ErrorReason("Only the bot owner can use this command targetting other guilds.");
+				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
 			}
 		}
 	}
@@ -109,12 +105,15 @@ namespace Advobot.Commands.GuildModeration
 		[Command(nameof(Current)), ShortAlias(nameof(Current)), Priority(1)]
 		public async Task Current()
 		{
-			await MessageActions.SendMessageAsync(Context.Channel, $"The guild's current server region is `{Context.Guild.VoiceRegionId}`.").CAF();
+			var resp = $"The guild's current server region is `{Context.Guild.VoiceRegionId}`.";
+			await MessageActions.SendMessageAsync(Context.Channel, resp).CAF();
 		}
 		[Command, Priority(0)]
 		public async Task Command(string regionId)
 		{
-			if (!(_ValidRegionIDs.CaseInsContains(regionId) || (Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(regionId))))
+			if (true
+				&& !_ValidRegionIDs.CaseInsContains(regionId) 
+				&& !(Context.Guild.Features.CaseInsContains(Constants.VIP_REGIONS) && _VIPRegionIDs.CaseInsContains(regionId)))
 			{
 				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("No valid region ID was input.")).CAF();
 				return;
@@ -122,7 +121,8 @@ namespace Advobot.Commands.GuildModeration
 
 			var beforeRegion = Context.Guild.VoiceRegionId;
 			await GuildActions.ModifyGuildRegionAsync(Context.Guild, regionId, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the server region of the guild from `{beforeRegion}` to `{regionId}`.").CAF();
+			var resp = $"Successfully changed the server region of the guild from `{beforeRegion}` to `{regionId}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -136,7 +136,8 @@ namespace Advobot.Commands.GuildModeration
 		public async Task Command([VerifyNumber(60, 300, 900, 1800, 3600)] uint time)
 		{
 			await GuildActions.ModifyGuildAFKTimeAsync(Context.Guild, (int)time, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the guild's AFK timeout to `{time}`.").CAF();
+			var resp = $"Successfully set the guild's AFK timeout to `{time}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -150,7 +151,8 @@ namespace Advobot.Commands.GuildModeration
 		public async Task Command(IVoiceChannel channel)
 		{
 			await GuildActions.ModifyGuildAFKChannelAsync(Context.Guild, channel, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the guild's AFK channel to `{channel.FormatChannel()}`.").CAF();
+			var resp = $"Successfully set the guild's AFK channel to `{channel.FormatChannel()}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -164,7 +166,8 @@ namespace Advobot.Commands.GuildModeration
 		public async Task Command(DefaultMessageNotifications msgNotifs)
 		{
 			await GuildActions.ModifyGuildDefaultMsgNotificationsAsync(Context.Guild, msgNotifs, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the default message notification setting to `{msgNotifs.EnumName()}`.").CAF();
+			var resp = $"Successfully changed the default message notification setting to `{msgNotifs.EnumName()}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -179,7 +182,8 @@ namespace Advobot.Commands.GuildModeration
 		public async Task Command(VerificationLevel verif)
 		{
 			await GuildActions.ModifyGuildVerificationLevelAsync(Context.Guild, verif, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the guild verification level as `{verif.EnumName()}`.").CAF();
+			var resp = $"Successfully set the guild verification level as `{verif.EnumName()}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 

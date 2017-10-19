@@ -336,10 +336,21 @@ namespace Advobot
 			return list.GetRange(0, Math.Max(0, Math.Min(list.Count, x.Min())));
 		}
 
+		/// <summary>
+		/// Short way to write <see cref="Task.ConfigureAwait(bool)"/> with false.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="task"></param>
+		/// <returns></returns>
 		public static async Task<T> CAF<T>(this Task<T> task)
 		{
 			return await task.ConfigureAwait(false);
 		}
+		/// <summary>
+		/// Short way to write <see cref="Task.ConfigureAwait(bool)"/> with false.
+		/// </summary>
+		/// <param name="task"></param>
+		/// <returns></returns>
 		public static async Task CAF(this Task task)
 		{
 		await task.ConfigureAwait(false);

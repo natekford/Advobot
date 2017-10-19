@@ -13,13 +13,15 @@ using System.Threading.Tasks;
 namespace Advobot.Commands.NicknameModeration
 {
 	[Group(nameof(ModifyNickName)), TopLevelShortAlias(typeof(ModifyNickName))]
-	[Summary("Gives the user a nickname. Inputting no nickname resets their nickname.")]
+	[Summary("Gives the user a nickname. " +
+		"Inputting no nickname resets their nickname.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyNickName : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user, [Optional, VerifyStringLength(Target.Nickname)] string nickname)
+		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited)] IGuildUser user,
+			[Optional, VerifyStringLength(Target.Nickname)] string nickname)
 		{
 			await UserActions.ChangeNicknameAsync(user, nickname, new ModerationReason(Context.User, null)).CAF();
 			var response = nickname == null
@@ -30,7 +32,8 @@ namespace Advobot.Commands.NicknameModeration
 	}
 
 	[Group(nameof(ReplaceWordsInNames)), TopLevelShortAlias(typeof(ReplaceWordsInNames))]
-	[Summary("Gives users a new nickname if their nickname or username contains the search phrase. Max is 100 users per use unless the bypass string is said.")]
+	[Summary("Gives users a new nickname if their nickname or username contains the search phrase. " +
+		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ReplaceWordsInNames : AdvobotModuleBase
@@ -48,7 +51,8 @@ namespace Advobot.Commands.NicknameModeration
 	}
 
 	[Group(nameof(ReplaceByUTF16)), TopLevelShortAlias(typeof(ReplaceByUTF16))]
-	[Summary("Replaces nickname/usernames that contain any characters above the supplied character value in UTF-16. Max is 100 users per use unless the bypass string is said.")]
+	[Summary("Replaces nickname/usernames that contain any characters above the supplied character value in UTF-16. " +
+		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ReplaceByUTF16 : AdvobotModuleBase
@@ -66,7 +70,8 @@ namespace Advobot.Commands.NicknameModeration
 	}
 
 	[Group(nameof(RemoveAllNickNames)), TopLevelShortAlias(typeof(RemoveAllNickNames))]
-	[Summary("Remove all nicknames of users on the guild. Max is 100 users per use unless the bypass string is said.")]
+	[Summary("Remove all nicknames of users on the guild. " +
+		"Max is 100 users per use unless the bypass string is said.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageNicknames }, null)]
 	[DefaultEnabled(true)]
 	public sealed class RemoveAllNickNames : AdvobotModuleBase

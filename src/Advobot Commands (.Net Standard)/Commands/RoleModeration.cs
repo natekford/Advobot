@@ -21,10 +21,12 @@ namespace Advobot.Commands.RoleModeration
 	public sealed class GiveRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] params IRole[] roles)
+		public async Task Command(IGuildUser user,
+			[VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] params IRole[] roles)
 		{
 			await RoleActions.GiveRolesAsync(user, roles, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully gave `{String.Join("`, `", roles.Select(x => x.FormatRole()))}` to `{user.FormatUser()}`.").CAF();
+			var resp = $"Successfully gave `{String.Join("`, `", roles.Select(x => x.FormatRole()))}` to `{user.FormatUser()}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -38,7 +40,8 @@ namespace Advobot.Commands.RoleModeration
 		public async Task Command(IGuildUser user, [VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone, ObjectVerification.IsManaged)] params IRole[] roles)
 		{
 			await RoleActions.TakeRolesAsync(user, roles, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully took `{String.Join("`, `", roles.Select(x => x.FormatRole()))}` from `{user.FormatUser()}`.").CAF();
+			var resp = $"Successfully took `{String.Join("`, `", roles.Select(x => x.FormatRole()))}` from `{user.FormatUser()}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -57,7 +60,8 @@ namespace Advobot.Commands.RoleModeration
 	}
 
 	[Group(nameof(SoftDeleteRole)), TopLevelShortAlias(typeof(SoftDeleteRole))]
-	[Summary("Removes all permissions from a role (and all channels the role had permissions on) and removes the role from everyone. Leaves the name and color behind.")]
+	[Summary("Removes all permissions from a role (and all channels the role had permissions on) and removes the role from everyone. " +
+		"Leaves the name and color behind.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
 	public sealed class SoftDeleteRole : AdvobotModuleBase
@@ -74,7 +78,7 @@ namespace Advobot.Commands.RoleModeration
 			var newRole = await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), color).CAF();
 
 			await RoleActions.ModifyRolePositionAsync(newRole, position, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed all permissions from the role `{role.Name}` and removed the role from all users on the guild.").CAF();
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully softdeleted `{role.Name}`.").CAF();
 		}
 	}
 
@@ -93,7 +97,8 @@ namespace Advobot.Commands.RoleModeration
 	}
 
 	[Group(nameof(ModifyRolePosition)), TopLevelShortAlias(typeof(ModifyRolePosition))]
-	[Summary("If only a role is input its position will be listed, else moves the role to the given position. " + Constants.FAKE_EVERYONE + " is the first position and starts at zero.")]
+	[Summary("If only a role is input its position will be listed, else moves the role to the given position. " +
+		Constants.FAKE_EVERYONE + " is the first position and starts at zero.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyRolePosition : AdvobotModuleBase
@@ -102,14 +107,14 @@ namespace Advobot.Commands.RoleModeration
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role, uint position)
 		{
 			var newPos = await RoleActions.ModifyRolePositionAsync(role, (int)position, new ModerationReason(Context.User, null)).CAF();
-			if (newPos != -1)
+			if (newPos == -1)
 			{
-				await MessageActions.SendMessageAsync(Context.Channel, $"Successfully gave `{role.FormatRole()}` the position `{newPos}`.").CAF();
+				var error = new ErrorReason($"Failed to give `{role.FormatRole()}` the position `{position}`.");
+				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
+				return;
 			}
-			else
-			{
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Failed to give `{role.FormatRole()}` the position `{position}`.").CAF();
-			}
+
+			await MessageActions.SendMessageAsync(Context.Channel, $"Successfully gave `{role.FormatRole()}` the position `{newPos}`.").CAF();
 		}
 	}
 
@@ -161,18 +166,22 @@ namespace Advobot.Commands.RoleModeration
 		public async Task Allow([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 		{
 			var givenPerms = await RoleActions.ModifyRolePermissionsAsync(role, PermValue.Allow, permissions, Context.User as IGuildUser).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully allowed `{(givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing")}` for `{role.FormatRole()}`.").CAF();
+			var resp = $"Successfully allowed `{(givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing")}` for `{role.FormatRole()}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Deny)), ShortAlias(nameof(Deny))]
 		public async Task Deny([VerifyObject(false, ObjectVerification.CanBeEdited)] IRole role, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
 		{
 			var givenPerms = await RoleActions.ModifyRolePermissionsAsync(role, PermValue.Deny, permissions, Context.User as IGuildUser).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully denied `{(givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing")}` for `{role.FormatRole()}`.").CAF();
+			var resp = $"Successfully denied `{(givenPerms.Any() ? String.Join("`, `", givenPerms) : "Nothing")}` for `{role.FormatRole()}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
 	[Group(nameof(CopyRolePerms)), TopLevelShortAlias(typeof(CopyRolePerms))]
-	[Summary("Copies the permissions from the first role to the second role. Will not copy roles that the user does not have access to. Will not overwrite roles that are above the user's top role.")]
+	[Summary("Copies the permissions from the first role to the second role. " +
+		"Will not copy roles that the user does not have access to. " +
+		"Will not overwrite roles that are above the user's top role.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
 	public sealed class CopyRolePerms : AdvobotModuleBase
@@ -237,19 +246,23 @@ namespace Advobot.Commands.RoleModeration
 			[Remainder, VerifyStringLength(Target.Role)] string name)
 		{
 			await RoleActions.ModifyRoleNameAsync(role, name, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.").CAF();
+			var resp = $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command]
 		public async Task CommandByPosition([OverrideTypeReader(typeof(ObjectByPositionTypeReader<IRole>)), VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role,
 			[Remainder, VerifyStringLength(Target.Role)] string name)
 		{
 			await RoleActions.ModifyRoleNameAsync(role, name, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.").CAF();
+			var resp = $"Successfully changed the name of `{role.FormatRole()}` to `{name}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
 	[Group(nameof(ModifyRoleColor)), TopLevelShortAlias(typeof(ModifyRoleColor))]
-	[Summary("Changes the role's color. Color must be valid hexadecimal or the name of a default role color. Inputting nothing displays the colors.")]
+	[Summary("Changes the role's color. " +
+		"Color must be valid hexadecimal or the name of a default role color. " +
+		"Inputting nothing displays the colors.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyRoleColor : AdvobotModuleBase
@@ -264,13 +277,15 @@ namespace Advobot.Commands.RoleModeration
 				return;
 			}
 
-			await RoleActions.ModifyRoleColorAsync(role, color, new ModerationReason(Context.User, null)).CAF(); //Use .ToString("X6") to get a hex string that's 6 characters long
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully changed the color of `{role.FormatRole()}` to `#{color.RawValue.ToString("X6")}`.").CAF();
+			await RoleActions.ModifyRoleColorAsync(role, color, new ModerationReason(Context.User, null)).CAF();
+			var resp = $"Successfully changed the color of `{role.FormatRole()}` to `#{color.RawValue.ToString("X6")}`."; //X6 to get hex
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
 	[Group(nameof(ModifyRoleHoist)), TopLevelShortAlias(typeof(ModifyRoleHoist))]
-	[Summary("Displays a role separately from others on the user list. Saying the command again remove it from being hoisted.")]
+	[Summary("Displays a role separately from others on the user list. " +
+		"Saying the command again remove it from being hoisted.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyRoleHoist : AdvobotModuleBase
@@ -279,12 +294,14 @@ namespace Advobot.Commands.RoleModeration
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role)
 		{
 			await RoleActions.ModifyRoleHoistAsync(role, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully {(role.IsHoisted ? "dehoisted" : "hoisted")} `{role.FormatRole()}`.").CAF();
+			var resp = $"Successfully {(role.IsHoisted ? "dehoisted" : "hoisted")} `{role.FormatRole()}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
 	[Group(nameof(ModifyRoleMentionability)), TopLevelShortAlias(typeof(ModifyRoleMentionability))]
-	[Summary("Allows the role to be mentioned. Saying the command again removes its ability to be mentioned.")]
+	[Summary("Allows the role to be mentioned. " +
+		"Saying the command again removes its ability to be mentioned.")]
 	[PermissionRequirement(new[] { GuildPermission.ManageRoles }, null)]
 	[DefaultEnabled(true)]
 	public sealed class ModifyRoleMentionability : AdvobotModuleBase
@@ -293,7 +310,8 @@ namespace Advobot.Commands.RoleModeration
 		public async Task Command([VerifyObject(false, ObjectVerification.CanBeEdited, ObjectVerification.IsEveryone)] IRole role)
 		{
 			await RoleActions.ModifyRoleMentionabilityAsync(role, new ModerationReason(Context.User, null)).CAF();
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully made `{role.FormatRole()}` {(role.IsMentionable ? "unmentionable" : "mentionable")}.").CAF();
+			var resp = $"Successfully made `{role.FormatRole()}` {(role.IsMentionable ? "unmentionable" : "mentionable")}.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 }

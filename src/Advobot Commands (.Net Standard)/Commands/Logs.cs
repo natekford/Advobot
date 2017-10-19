@@ -13,32 +13,38 @@ using System.Threading.Tasks;
 namespace Advobot.Commands.Logs
 {
 	[Group(nameof(ModifyLogChannels)), TopLevelShortAlias(typeof(ModifyLogChannels))]
-	[Summary("Puts the serverlog on the specified channel. Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
+	[Summary("Puts the serverlog on the specified channel. " +
+		"Serverlog is a log of users joining/leaving, editing messages, and deleting messages.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
 	public sealed class ModifyLogChannels : SavingModuleBase
 	{
 		[Command(nameof(Enable)), ShortAlias(nameof(Enable))]
-		public async Task Enable(LogChannelType logChannelType, [VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] ITextChannel channel)
+		public async Task Enable(LogChannelType logChannelType,
+			[VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] ITextChannel channel)
 		{
-			if (Context.GuildSettings.SetLogChannel(logChannelType, channel))
+			if (!Context.GuildSettings.SetLogChannel(logChannelType, channel))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully set the {logChannelType.EnumName().ToLower()} log as `{channel.FormatChannel()}`.").CAF();
+				var error = new ErrorReason($"That channel is already the current {logChannelType.EnumName().ToLower()} log.");
+				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"That channel is already the current {logChannelType.EnumName().ToLower()} log.").CAF();
+			var resp = $"Successfully set the {logChannelType.EnumName().ToLower()} log as `{channel.FormatChannel()}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Disable)), ShortAlias(nameof(Disable))]
 		public async Task Disable(LogChannelType logChannelType)
 		{
-			if (Context.GuildSettings.RemoveLogChannel(logChannelType))
+			if (!Context.GuildSettings.RemoveLogChannel(logChannelType))
 			{
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully removed the {logChannelType.EnumName().ToLower()} log.").CAF();
+				var error = new ErrorReason($"The {logChannelType.EnumName().ToLower()} log is already off.");
+				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"The {logChannelType.EnumName().ToLower()} log is already off.").CAF();
+			var resp = $"Successfully removed the {logChannelType.EnumName().ToLower()} log.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
@@ -52,18 +58,22 @@ namespace Advobot.Commands.Logs
 		public async Task Add([VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] params ITextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.AddRange(channels.Select(x => x.Id));
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully ignored the following channels: `{String.Join("`, `", channels.Select(x => x.FormatChannel()))}`.").CAF();
+			var resp = $"Successfully ignored the following channels: `{String.Join("`, `", channels.Select(x => x.FormatChannel()))}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 		[Command(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public async Task Remove([VerifyObject(false, ObjectVerification.CanBeRead, ObjectVerification.CanModifyPermissions)] params ITextChannel[] channels)
 		{
 			Context.GuildSettings.IgnoredLogChannels.RemoveAll(x => channels.Select(y => y.Id).Contains(x));
-			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully unignored the following channels: `{String.Join("`, `", channels.Select(x => x.FormatChannel()))}`.").CAF();
+			var resp = $"Successfully unignored the following channels: `{String.Join("`, `", channels.Select(x => x.FormatChannel()))}`.";
+			await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 		}
 	}
 
 	[Group(nameof(ModifyLogActions)), TopLevelShortAlias(typeof(ModifyLogActions))]
-	[Summary("The server log will send messages when these events happen. `Default` overrides the current settings. `Show` displays the possible actions.")]
+	[Summary("The server log will send messages when these events happen. " +
+		"`Default` overrides the current settings. " +
+		"`Show` displays the possible actions.")]
 	[PermissionRequirement(null, null)]
 	[DefaultEnabled(false)]
 	public sealed class ModifyLogActions : SavingModuleBase
@@ -108,7 +118,8 @@ namespace Advobot.Commands.Logs
 
 				//Add in logActions that aren't already in there
 				Context.GuildSettings.LogActions.AddRange(logActions.Except(Context.GuildSettings.LogActions));
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully enabled the following log actions: `{String.Join("`, `", logActions.Select(x => x.EnumName()))}`.").CAF();
+				var resp = $"Successfully enabled the following log actions: `{String.Join("`, `", logActions.Select(x => x.EnumName()))}`.";
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
 		[Group(nameof(Disable)), ShortAlias(nameof(Disable))]
@@ -130,7 +141,8 @@ namespace Advobot.Commands.Logs
 
 				//Only remove logactions that are already in there
 				Context.GuildSettings.LogActions.RemoveAll(x => logActions.Contains(x));
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully disabled the following log actions: `{String.Join("`, `", logActions.Select(x => x.EnumName()))}`.").CAF();
+				var resp = $"Successfully disabled the following log actions: `{String.Join("`, `", logActions.Select(x => x.EnumName()))}`.";
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 		}
 	}

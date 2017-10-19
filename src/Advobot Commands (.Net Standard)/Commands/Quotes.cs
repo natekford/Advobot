@@ -22,7 +22,8 @@ namespace Advobot.Commands.Quotes
 		{
 			if (Context.GuildSettings.Quotes.Count >= Constants.MAX_QUOTES)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"You cannot have more than `{Constants.MAX_QUOTES}` quotes at a time.")).CAF();
+				var error = new ErrorReason($"You cannot have more than `{Constants.MAX_QUOTES}` quotes at a time.");
+				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 			else if (Context.GuildSettings.Quotes.Any(x => x.Name.CaseInsEquals(name)))
@@ -44,7 +45,8 @@ namespace Advobot.Commands.Quotes
 		{
 			if (!Context.GuildSettings.Quotes.Any())
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason("There needs to be at least one quote before you can remove any.")).CAF();
+				var error = new ErrorReason("There needs to be at least one quote before you can remove any.");
+				await MessageActions.SendErrorMessageAsync(Context, error).CAF();
 				return;
 			}
 
@@ -60,7 +62,8 @@ namespace Advobot.Commands.Quotes
 	}
 
 	[Group(nameof(SayQuote)), TopLevelShortAlias(typeof(SayQuote))]
-	[Summary("Shows the content for the given quote. If nothing is input, then shows the list of the current quotes.")]
+	[Summary("Shows the content for the given quote. " +
+		"If nothing is input, then shows the list of the current quotes.")]
 	[DefaultEnabled(false)]
 	public sealed class SayQuote : AdvobotModuleBase
 	{
