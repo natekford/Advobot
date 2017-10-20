@@ -12,28 +12,28 @@ namespace Advobot.Classes.Permissions
 	public static class ChannelPerms
 	{
 		private const ulong GENERAL_BITS = 0
-			| (1U << (int)ChannelPermission.CreateInstantInvite)
-			| (1U << (int)ChannelPermission.ManageChannel)
-			| (1U << (int)ChannelPermission.ManagePermissions)
-			| (1U << (int)ChannelPermission.ManageWebhooks);
+			| (1UL << (int)ChannelPermission.CreateInstantInvite)
+			| (1UL << (int)ChannelPermission.ManageChannel)
+			| (1UL << (int)ChannelPermission.ManagePermissions)
+			| (1UL << (int)ChannelPermission.ManageWebhooks);
 		private const ulong TEXT_BITS = 0
-			| (1U << (int)ChannelPermission.ReadMessages)
-			| (1U << (int)ChannelPermission.SendMessages)
-			| (1U << (int)ChannelPermission.SendTTSMessages)
-			| (1U << (int)ChannelPermission.ManageMessages)
-			| (1U << (int)ChannelPermission.EmbedLinks)
-			| (1U << (int)ChannelPermission.AttachFiles)
-			| (1U << (int)ChannelPermission.ReadMessageHistory)
-			| (1U << (int)ChannelPermission.MentionEveryone)
-			| (1U << (int)ChannelPermission.UseExternalEmojis)
-			| (1U << (int)ChannelPermission.AddReactions);
+			| (1UL << (int)ChannelPermission.ReadMessages)
+			| (1UL << (int)ChannelPermission.SendMessages)
+			| (1UL << (int)ChannelPermission.SendTTSMessages)
+			| (1UL << (int)ChannelPermission.ManageMessages)
+			| (1UL << (int)ChannelPermission.EmbedLinks)
+			| (1UL << (int)ChannelPermission.AttachFiles)
+			| (1UL << (int)ChannelPermission.ReadMessageHistory)
+			| (1UL << (int)ChannelPermission.MentionEveryone)
+			| (1UL << (int)ChannelPermission.UseExternalEmojis)
+			| (1UL << (int)ChannelPermission.AddReactions);
 		private const ulong VOICE_BITS = 0
-			| (1U << (int)ChannelPermission.Connect)
-			| (1U << (int)ChannelPermission.Speak)
-			| (1U << (int)ChannelPermission.MuteMembers)
-			| (1U << (int)ChannelPermission.DeafenMembers)
-			| (1U << (int)ChannelPermission.MoveMembers)
-			| (1U << (int)ChannelPermission.UseVAD);
+			| (1UL << (int)ChannelPermission.Connect)
+			| (1UL << (int)ChannelPermission.Speak)
+			| (1UL << (int)ChannelPermission.MuteMembers)
+			| (1UL << (int)ChannelPermission.DeafenMembers)
+			| (1UL << (int)ChannelPermission.MoveMembers)
+			| (1UL << (int)ChannelPermission.UseVAD);
 
 		public static ImmutableList<ChannelPerm> Permissions = ImmutableList.Create(CreateChannelPermList());
 
@@ -71,7 +71,7 @@ namespace Advobot.Classes.Permissions
 		/// <returns></returns>
 		public static ChannelPerm GetByBit(int bit)
 		{
-			return Permissions.FirstOrDefault(x => x.Value == (1U << bit));
+			return Permissions.FirstOrDefault(x => x.Value == (1UL << bit));
 		}
 
 		/// <summary>
@@ -152,15 +152,15 @@ namespace Advobot.Classes.Permissions
 					continue;
 				}
 
-				if ((GENERAL_BITS & (1U << i)) != 0)
+				if ((GENERAL_BITS & (1UL << i)) != 0)
 				{
 					temp.Add(new ChannelPerm(name, i, gen: true));
 				}
-				if ((TEXT_BITS & (1U << i)) != 0)
+				if ((TEXT_BITS & (1UL << i)) != 0)
 				{
 					temp.Add(new ChannelPerm(name, i, text: true));
 				}
-				if ((VOICE_BITS & (1U << i)) != 0)
+				if ((VOICE_BITS & (1UL << i)) != 0)
 				{
 					temp.Add(new ChannelPerm(name, i, voice: true));
 				}
@@ -182,7 +182,7 @@ namespace Advobot.Classes.Permissions
 			public ChannelPerm(string name, int position, bool gen = false, bool text = false, bool voice = false)
 			{
 				Name = name;
-				Value = (1U << position);
+				Value = (1UL << position);
 				General = gen;
 				Text = text;
 				Voice = voice;

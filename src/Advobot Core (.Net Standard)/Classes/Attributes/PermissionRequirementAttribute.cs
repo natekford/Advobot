@@ -15,20 +15,20 @@ namespace Advobot.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Class)]
 	public class PermissionRequirementAttribute : PreconditionAttribute
 	{
-		private uint _AllFlags;
-		private uint _AnyFlags;
+		private ulong _AllFlags;
+		private ulong _AnyFlags;
 
 		//This doesn't have default values for the parameters since that makes it harder to potentially provide the wrong permissions
 		public PermissionRequirementAttribute(GuildPermission[] anyOfTheListedPerms, GuildPermission[] allOfTheListedPerms)
 		{
-			_AnyFlags |= (1U << (int)GuildPermission.Administrator);
+			_AnyFlags |= (1UL << (int)GuildPermission.Administrator);
 			foreach (var perm in anyOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
 			{
-				_AnyFlags |= (1U << (int)perm);
+				_AnyFlags |= (1UL << (int)perm);
 			}
 			foreach (var perm in allOfTheListedPerms ?? Enumerable.Empty<GuildPermission>())
 			{
-				_AllFlags |= (1U << (int)perm);
+				_AllFlags |= (1UL << (int)perm);
 			}
 		}
 		/* For when/if GuildPermission values get put as bits

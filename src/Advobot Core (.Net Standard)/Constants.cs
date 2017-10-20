@@ -77,6 +77,12 @@ namespace Advobot
 		public static int MAX_REASON_LENGTH => 512;
 		public static int MIN_PREFIX_LENGTH => 1;
 		public static int MAX_PREFIX_LENGTH => 10;
+		public static int MIN_RULE_CATEGORY_LENGTH => 1;
+		public static int MAX_RULE_CATEGORY_LENGTH => 250;
+		public static int MIN_RULE_LENGTH => 1;
+		public static int MAX_RULE_LENGTH => 150;
+		public static int MAX_CATEGORIES => 20;
+		public static int MAX_RULES_PER_CATEGORY => 20;
 		public static int MAX_SA_GROUPS => 10;
 		public static int MAX_QUOTES => 50;
 		public static int MAX_BANNED_STRINGS => 50;

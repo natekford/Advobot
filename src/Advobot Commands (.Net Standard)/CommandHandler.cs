@@ -38,6 +38,8 @@ namespace Advobot.Commands
 			_Timers = _Provider.GetRequiredService<ITimersService>();
 			_Logging = _Provider.GetRequiredService<ILogService>();
 
+			Miscellaneous.GetEnumNames.SetEnums(_Commands);
+
 			if (_Client is DiscordSocketClient socketClient)
 			{
 				socketClient.Connected += OnConnected;

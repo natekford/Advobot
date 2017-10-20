@@ -25,24 +25,39 @@ namespace Advobot.Commands.Rules
 		public sealed class Add : SavingModuleBase
 		{
 			[Command]
-			public async Task Command(string name)
+			public async Task Command([VerifyStringLength(Target.RuleCategory)] string name)
 			{
-				var category = new RuleCategory(name);
+				if (Context.GuildSettings.Rules.Categories.Select(x => x.Name).CaseInsContains(name))
+				{
+					var error = new ErrorReason($"The category `{name}` already exists.");
+					await MessageActions.SendErrorMessageAsync(Context, error);
+					return;
+				}
+
 				var pos = Context.GuildSettings.Rules.Categories.Count + 1;
-				Context.GuildSettings.Rules.AddOrUpdateCategory(pos, category);
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created a category at `{pos}`.").CAF();
+				Context.GuildSettings.Rules.AddOrUpdateCategory(pos, new RuleCategory(name));
+				var resp = $"Successfully created the category `{name}` at `{pos}`.";
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			public async Task Command(RuleCategory category, string rule)
+			public async Task Command(RuleCategory category, [VerifyStringLength(Target.Rule)] string rule)
 			{
+				if (Context.GuildSettings.Rules.Categories.SelectMany(x => x.Rules).CaseInsContains(rule))
+				{
+					var error = new ErrorReason($"The supplied rule already exists.");
+					await MessageActions.SendErrorMessageAsync(Context, error);
+					return;
+				}
 
+				category.AddRule(rule);
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added a rule in `{category.Name}`.");
 			}
 		}
 		[Group(nameof(Update)), ShortAlias(nameof(Update))]
 		public sealed class Update : SavingModuleBase
 		{
 			[Command]
-			public async Task Command(RuleCategory category, string newName)
+			public async Task Command(RuleCategory category, [VerifyStringLength(Target.RuleCategory)] string newName)
 			{
 				var oldName = category.Name;
 				category.ChangeName(newName);
@@ -50,26 +65,29 @@ namespace Advobot.Commands.Rules
 				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			public async Task Command(RuleCategory category, int rulePosition, string newRule)
+			public async Task Command(RuleCategory category, uint position, [VerifyStringLength(Target.Rule)] string newRule)
 			{
-
+				category.UpdateRule((int)position - 1, newRule);
+				var resp = $"Successfully updated the rule at position `{position}` in `{category.Name}`.";
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp);
 			}
 		}
 		[Group(nameof(Remove)), ShortAlias(nameof(Remove))]
 		public sealed class Remove : SavingModuleBase
 		{
 			[Command]
-			public async Task Command(string name)
+			public async Task Command(RuleCategory category)
 			{
-				var category = new RuleCategory(name);
-				var pos = Context.GuildSettings.Rules.Categories.Count + 1;
-				Context.GuildSettings.Rules.AddOrUpdateCategory(pos, category);
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully created a category at `{pos}`.").CAF();
+				Context.GuildSettings.Rules.RemoveCategory(category);
+				var resp = $"Successfully removed the category `{category.Name}`.";
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
-			public async Task Command(RuleCategory category, string rule)
+			public async Task Command(RuleCategory category, uint position)
 			{
-
+				category.RemoveRule((int)position - 1);
+				var resp = $"Successfully removed the rule at position `{position}` in `{category.Name}`.";
+				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp);
 			}
 		}
 	}

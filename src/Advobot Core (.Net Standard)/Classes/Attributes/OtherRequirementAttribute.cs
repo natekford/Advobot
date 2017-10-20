@@ -16,20 +16,20 @@ namespace Advobot.Classes.Attributes
 	[AttributeUsage(AttributeTargets.Class)]
 	public class OtherRequirementAttribute : PreconditionAttribute
 	{
-		private const uint PERMISSION_BITS = 0
-			| (1U << (int)GuildPermission.Administrator)
-			| (1U << (int)GuildPermission.BanMembers)
-			| (1U << (int)GuildPermission.DeafenMembers)
-			| (1U << (int)GuildPermission.KickMembers)
-			| (1U << (int)GuildPermission.ManageChannels)
-			| (1U << (int)GuildPermission.ManageEmojis)
-			| (1U << (int)GuildPermission.ManageGuild)
-			| (1U << (int)GuildPermission.ManageMessages)
-			| (1U << (int)GuildPermission.ManageNicknames)
-			| (1U << (int)GuildPermission.ManageRoles)
-			| (1U << (int)GuildPermission.ManageWebhooks)
-			| (1U << (int)GuildPermission.MoveMembers)
-			| (1U << (int)GuildPermission.MuteMembers);
+		private const ulong PERMISSION_BITS = 0
+			| (1UL << (int)GuildPermission.Administrator)
+			| (1UL << (int)GuildPermission.BanMembers)
+			| (1UL << (int)GuildPermission.DeafenMembers)
+			| (1UL << (int)GuildPermission.KickMembers)
+			| (1UL << (int)GuildPermission.ManageChannels)
+			| (1UL << (int)GuildPermission.ManageEmojis)
+			| (1UL << (int)GuildPermission.ManageGuild)
+			| (1UL << (int)GuildPermission.ManageMessages)
+			| (1UL << (int)GuildPermission.ManageNicknames)
+			| (1UL << (int)GuildPermission.ManageRoles)
+			| (1UL << (int)GuildPermission.ManageWebhooks)
+			| (1UL << (int)GuildPermission.MoveMembers)
+			| (1UL << (int)GuildPermission.MuteMembers);
 		public readonly Precondition Requirements;
 
 		public OtherRequirementAttribute(Precondition requirements)

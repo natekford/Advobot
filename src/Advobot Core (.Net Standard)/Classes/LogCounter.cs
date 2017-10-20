@@ -48,7 +48,7 @@ namespace Advobot.Classes
 		{
 			if (haveEqualSpacing)
 			{
-				var leftSpacing = input.Max().ToString().Length;
+				var leftSpacing = input.Max(x => x.Count).GetLengthOfNumber();
 				var rightSpacing = input.Select(x => x.Title.Length).Max() + 1;
 
 				var sb = new StringBuilder();

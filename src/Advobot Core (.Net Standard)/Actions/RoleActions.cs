@@ -85,14 +85,14 @@ namespace Advobot.Actions
 				guildSettings.SaveSettings();
 			}
 
-			const uint TEXT_PERMS = 0
-				| (1U << (int)ChannelPermission.CreateInstantInvite)
-				| (1U << (int)ChannelPermission.ManageChannel)
-				| (1U << (int)ChannelPermission.ManagePermissions)
-				| (1U << (int)ChannelPermission.ManageWebhooks)
-				| (1U << (int)ChannelPermission.SendMessages)
-				| (1U << (int)ChannelPermission.ManageMessages)
-				| (1U << (int)ChannelPermission.AddReactions);
+			const ulong TEXT_PERMS = 0
+				| (1UL << (int)ChannelPermission.CreateInstantInvite)
+				| (1UL << (int)ChannelPermission.ManageChannel)
+				| (1UL << (int)ChannelPermission.ManagePermissions)
+				| (1UL << (int)ChannelPermission.ManageWebhooks)
+				| (1UL << (int)ChannelPermission.SendMessages)
+				| (1UL << (int)ChannelPermission.ManageMessages)
+				| (1UL << (int)ChannelPermission.AddReactions);
 			foreach (var textChannel in await context.Guild.GetTextChannelsAsync().CAF())
 			{
 				if (textChannel.GetPermissionOverwrite(muteRole) == null)
@@ -101,15 +101,15 @@ namespace Advobot.Actions
 				}
 			}
 
-			const uint VOICE_PERMS = 0
-				| (1U << (int)ChannelPermission.CreateInstantInvite)
-				| (1U << (int)ChannelPermission.ManageChannel)
-				| (1U << (int)ChannelPermission.ManagePermissions)
-				| (1U << (int)ChannelPermission.ManageWebhooks)
-				| (1U << (int)ChannelPermission.Speak)
-				| (1U << (int)ChannelPermission.MuteMembers)
-				| (1U << (int)ChannelPermission.DeafenMembers)
-				| (1U << (int)ChannelPermission.MoveMembers);
+			const ulong VOICE_PERMS = 0
+				| (1UL << (int)ChannelPermission.CreateInstantInvite)
+				| (1UL << (int)ChannelPermission.ManageChannel)
+				| (1UL << (int)ChannelPermission.ManagePermissions)
+				| (1UL << (int)ChannelPermission.ManageWebhooks)
+				| (1UL << (int)ChannelPermission.Speak)
+				| (1UL << (int)ChannelPermission.MuteMembers)
+				| (1UL << (int)ChannelPermission.DeafenMembers)
+				| (1UL << (int)ChannelPermission.MoveMembers);
 			foreach (var voiceChannel in await context.Guild.GetVoiceChannelsAsync().CAF())
 			{
 				if (voiceChannel.GetPermissionOverwrite(muteRole) == null)

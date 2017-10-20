@@ -29,6 +29,14 @@ namespace Advobot.Classes.Rules
 			}
 			return false;
 		}
+		public bool RemoveCategory(RuleCategory category)
+		{
+			if (_Categories.ContainsValue(category))
+			{
+				return _Categories.Remove(_Categories.SingleOrDefault(x => x.Value == category).Key);
+			}
+			return false;
+		}
 
 		public override string ToString()
 		{

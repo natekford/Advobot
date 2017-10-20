@@ -8,6 +8,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -523,6 +524,44 @@ namespace Advobot.Commands.Miscellaneous
 				var resp = $"The number `{number}` has the following channel permissions: `{String.Join("`, `", perms)}`.";
 				await MessageActions.SendMessageAsync(Context.Channel, resp).CAF();
 			}
+		}
+	}
+
+	[Group(nameof(GetEnumNames)), TopLevelShortAlias(typeof(GetEnumNames))]
+	[Summary("Prints out all the options of an enum.")]
+	[OtherRequirement(Precondition.UserHasAPerm)]
+	[DefaultEnabled(true)]
+	public sealed class GetEnumNames : AdvobotModuleBase
+	{
+		private static IEnumerable<Type> _Enums;
+
+		[Command(nameof(Show)), ShortAlias(nameof(Show))]
+		public async Task Show()
+		{
+			var desc = $"`{String.Join("`, `", _Enums.Select(x => x.Name))}`";
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Enums", desc));
+		}
+		[Command]
+		public async Task Command(string enumName)
+		{
+			var matchingNames = _Enums.Where(x => x.Name.CaseInsEquals(enumName));
+			if (!matchingNames.Any())
+			{
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"No enum has the name `{enumName}`."));
+			}
+			else if (matchingNames.Count() > 1)
+			{
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"Too many enums have the name `{enumName}`."));
+			}
+
+			var e = matchingNames.Single();
+			var desc = $"`{String.Join("`, `", Enum.GetNames(e))}`";
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(e.Name, desc));
+		}
+
+		public static void SetEnums(CommandService cs)
+		{
+			_Enums = cs.Commands.SelectMany(x => x.Parameters).Select(x => x.Type).Where(x => x.IsEnum).Distinct();
 		}
 	}
 

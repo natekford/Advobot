@@ -3,7 +3,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -314,14 +313,21 @@ namespace Advobot
 					{
 						queue.TryDequeue(out var dequeueResult);
 					}
+					continue;
 				}
-				else
-				{
-					break;
-				}
+				break;
 			}
 
 			return count;
+		}
+		/// <summary>
+		/// Returns the length of a number.
+		/// </summary>
+		/// <param name="num"></param>
+		/// <returns></returns>
+		public static int GetLengthOfNumber(this int num)
+		{
+			return num == 0 ? 1 : (int)Math.Log10(Math.Abs(num)) + 1;
 		}
 
 		/// <summary>
@@ -337,7 +343,7 @@ namespace Advobot
 		}
 
 		/// <summary>
-		/// Short way to write <see cref="Task.ConfigureAwait(bool)"/> with false.
+		/// Short way to write <see cref="Task.ConfigureAwait(false)"/>.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="task"></param>
@@ -347,13 +353,13 @@ namespace Advobot
 			return await task.ConfigureAwait(false);
 		}
 		/// <summary>
-		/// Short way to write <see cref="Task.ConfigureAwait(bool)"/> with false.
+		/// Short way to write <see cref="Task.ConfigureAwait(false)"/>.
 		/// </summary>
 		/// <param name="task"></param>
 		/// <returns></returns>
 		public static async Task CAF(this Task task)
 		{
-		await task.ConfigureAwait(false);
+			await task.ConfigureAwait(false);
 		}
 	}
 }

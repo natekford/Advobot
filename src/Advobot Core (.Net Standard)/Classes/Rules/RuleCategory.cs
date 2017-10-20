@@ -30,6 +30,13 @@ namespace Advobot.Classes.Rules
 				_Rules.RemoveAt(index);
 			}
 		}
+		public void UpdateRule(int index, string rule)
+		{
+			if (index >= 0 && index < Rules.Count)
+			{
+				_Rules[index] = rule;
+			}
+		}
 
 		public override string ToString()
 		{

@@ -47,7 +47,7 @@ namespace Advobot.Classes.Permissions
 		/// <returns></returns>
 		public static GuildPerm GetByBit(int bit)
 		{
-			return Permissions.FirstOrDefault(x => x.Value == (1U << bit));
+			return Permissions.FirstOrDefault(x => x.Value == (1UL << bit));
 		}
 
 		/// <summary>
@@ -144,7 +144,7 @@ namespace Advobot.Classes.Permissions
 			public GuildPerm(string name, int position)
 			{
 				Name = name;
-				Value = (1U << position);
+				Value = (1UL << position);
 			}
 		}
 	}
