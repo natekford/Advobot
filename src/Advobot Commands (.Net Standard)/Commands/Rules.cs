@@ -35,21 +35,21 @@ namespace Advobot.Commands.Rules
 				}
 
 				var pos = Context.GuildSettings.Rules.Categories.Count + 1;
-				Context.GuildSettings.Rules.AddOrUpdateCategory(pos, new RuleCategory(name));
+				Context.GuildSettings.Rules.AddCategory(new RuleCategory(name));
 				var resp = $"Successfully created the category `{name}` at `{pos}`.";
 				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
 			}
 			[Command]
 			public async Task Command(RuleCategory category, [VerifyStringLength(Target.Rule)] string rule)
 			{
-				if (Context.GuildSettings.Rules.Categories.SelectMany(x => x.Rules).CaseInsContains(rule))
+				if (Context.GuildSettings.Rules.Categories.SelectMany(x => x.Rules).Select(x => x.Text).CaseInsContains(rule))
 				{
 					var error = new ErrorReason($"The supplied rule already exists.");
 					await MessageActions.SendErrorMessageAsync(Context, error);
 					return;
 				}
 
-				category.AddRule(rule);
+				category.AddRule(new Rule(rule));
 				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, $"Successfully added a rule in `{category.Name}`.");
 			}
 		}
@@ -67,7 +67,7 @@ namespace Advobot.Commands.Rules
 			[Command]
 			public async Task Command(RuleCategory category, uint position, [VerifyStringLength(Target.Rule)] string newRule)
 			{
-				category.UpdateRule((int)position - 1, newRule);
+				category.ChangeRule((int)position - 1, newRule);
 				var resp = $"Successfully updated the rule at position `{position}` in `{category.Name}`.";
 				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, resp);
 			}
@@ -101,8 +101,10 @@ namespace Advobot.Commands.Rules
 		[Command]
 		public async Task Command(RuleCategory category, [Remainder] CustomArguments<RuleFormatter> formatter)
 		{
-			var text = formatter.CreateObject().FormatRuleCategory(category);
-			await MessageActions.SendMessageAsync(Context.Channel, text).CAF();
+			var obj = formatter.CreateObject();
+			var index = Array.IndexOf(Context.GuildSettings.Rules.Categories.ToArray(), category);
+			obj.SetCategory(category, index);
+			await obj.SendAsync(Context.Channel).CAF();
 		}
 		[Command]
 		public async Task Command([Remainder] CustomArguments<RuleFormatter> formatter)
@@ -113,8 +115,9 @@ namespace Advobot.Commands.Rules
 				return;
 			}
 
-			var text = formatter.CreateObject().FormatRules(Context.GuildSettings.Rules);
-			await MessageActions.SendMessageAsync(Context.Channel, text).CAF();
+			var obj = formatter.CreateObject();
+			obj.SetRulesAndCategories(Context.GuildSettings.Rules);
+			await obj.SendAsync(Context.Channel).CAF();
 		}
 	}
 }

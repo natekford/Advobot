@@ -5,6 +5,7 @@ using Advobot.Enums;
 using Discord;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,8 +30,10 @@ namespace Advobot.Classes.Rules
 			{ RuleFormat.Bold, MarkDownFormat.Bold },
 		};
 
-		public StringBuilder RuleBuilder;
-		public List<StringBuilder> CategoryBuilders;
+		private string _Rules;
+		public string Rules => _Rules;
+		private List<string> _Categories = new List<string>();
+		public ImmutableList<string> Categories => _Categories.ToImmutableList();
 			 
 		private RuleFormat _Format;
 		private MarkDownFormat _TitleFormat;
@@ -48,9 +51,6 @@ namespace Advobot.Classes.Rules
 			[CustomArgument] char charAfterNumbers = '.',
 			[CustomArgument(10)] params FormatOptions[] formatOptions)
 		{
-			RuleBuilder = new StringBuilder();
-			CategoryBuilders = new List<StringBuilder>();
-
 			_Format = format;
 			_TitleFormat = titleFormat;
 			_RuleFormat = ruleFormat;
@@ -61,36 +61,17 @@ namespace Advobot.Classes.Rules
 			_ExtraLines = formatOptions.Contains(FormatOptions.ExtraLines);
 		}
 
-		public StringBuilder FormatRules(RuleHolder rules)
+		public void SetRulesAndCategories(RuleHolder rules)
 		{
-			var categories = rules.Categories;
-			for (int c = 0; c < categories.Count; ++c)
-			{
-				CategoryBuilders.Add(FormatRuleCategory(c, categories[c]));
-			}
-			foreach (var category in CategoryBuilders)
-			{
-				RuleBuilder.AppendLineFeed(category.ToString());
-			}
-			return RuleBuilder;
+			_Rules = rules.ToString(this);
+			_Categories.AddRange(rules.Categories.Select((x, index) => x.ToString(this, index)));
 		}
-		public StringBuilder FormatRuleCategory(int index, RuleCategory category)
+		public void SetCategory(RuleCategory category, int index)
 		{
-			var sb = new StringBuilder();
-			sb.AppendLineFeed(FormatName(index, category.Name));
+			_Categories.Add(category.ToString(this, index));
+		}
 
-			var rules = category.Rules;
-			for (int r = 0; r < rules.Count; ++r)
-			{
-				if (_ExtraLines)
-				{
-					sb.AppendLineFeed();
-				}
-				sb.AppendLineFeed(FormatRule(r, rules[r], rules.Count));
-			}
-			return sb;
-		}
-		private string FormatName(int index, string name)
+		public string FormatName(RuleCategory category, int index)
 		{
 			var n = "";
 			switch (_Format)
@@ -99,24 +80,27 @@ namespace Advobot.Classes.Rules
 				case RuleFormat.Bullets:
 				case RuleFormat.Bold:
 				{
-					n = $"{name.FormatTitle()}";
+					n = $"{category.Name.FormatTitle()}";
 					break;
 				}
 				case RuleFormat.Dashes:
 				{
-					n = $"{index + 1} - {name.FormatTitle()}";
+					n = $"{index + 1} - {category.Name.FormatTitle()}";
 					break;
 				}
 				default:
 				{
-					n = name;
+					n = category.Name.FormatTitle();
 					break;
 				}
 			}
 
+			n = _ExtraLines
+				? $"{n}\n"
+				: $"{n}";
 			return AddFormattingOptions(_TitleFormat == default ? _DefaultTitleFormats[_Format] : _TitleFormat, n);
 		}
-		private string FormatRule(int index, string rule, int totalRuleCountInCategory)
+		public string FormatRule(Rule rule, int index, int rulesInCategory)
 		{
 			var r = "";
 			switch (_Format)
@@ -125,7 +109,7 @@ namespace Advobot.Classes.Rules
 				case RuleFormat.Bold:
 				{
 					r = _NumbersSameLength
-						? $"`{(index + 1).ToString().PadLeft(totalRuleCountInCategory.GetLengthOfNumber(), '0')}"
+						? $"`{(index + 1).ToString().PadLeft(rulesInCategory.GetLengthOfNumber(), '0')}"
 						: $"`{index + 1}`";
 					break;
 				}
@@ -141,7 +125,7 @@ namespace Advobot.Classes.Rules
 				}
 				default:
 				{
-					r = rule;
+					r = "";
 					break;
 				}
 			}
@@ -149,9 +133,12 @@ namespace Advobot.Classes.Rules
 			r = _CharAfterNumbers != default
 				? AddCharAfterNumbers(r, _CharAfterNumbers)
 				: r;
+			r = _ExtraLines
+				? $"{r}\n"
+				: $"{r}";
 			r = _ExtraSpaces
-				? $"{r} {rule}"
-				: $"{r}{rule}";
+				? $"{r} {rule.Text}"
+				: $"{r}{rule.Text}";
 			return AddFormattingOptions(_RuleFormat == default ? _DefaultRuleFormats[_Format] : _TitleFormat, r);
 		}
 
@@ -210,22 +197,28 @@ namespace Advobot.Classes.Rules
 		public async Task<IReadOnlyList<IUserMessage>> SendAsync(IMessageChannel channel)
 		{
 			var messages = new List<IUserMessage>();
-			if (RuleBuilder.Length <= 2000)
+			//If all of the rules can be sent in one message, do that.
+			if (_Rules != null && _Rules.Length <= 2000)
 			{
-				messages.Add(await MessageActions.SendMessageAsync(channel, RuleBuilder.ToString()));
+				messages.Add(await MessageActions.SendMessageAsync(channel, _Rules));
 				return messages.AsReadOnly();
 			}
 
-			foreach (var category in CategoryBuilders)
+			//If not, go by category
+			foreach (var category in _Categories)
 			{
-				if (category.Length <= 2000)
+				if (category == null)
 				{
-					messages.Add(await MessageActions.SendMessageAsync(channel, category.ToString()));
+					continue;
+				}
+				else if (category.Length <= 2000)
+				{
+					messages.Add(await MessageActions.SendMessageAsync(channel, category));
 					continue;
 				}
 
 				var sb = new StringBuilder();
-				foreach (var part in category.ToString().Split('\n'))
+				foreach (var part in category.Split('\n'))
 				{
 					if (sb.Length + part.Length <= 2000)
 					{

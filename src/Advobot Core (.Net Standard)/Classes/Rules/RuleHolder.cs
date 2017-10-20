@@ -1,46 +1,53 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Actions.Formatting;
+using Advobot.Interfaces;
 using Discord.WebSocket;
 using System.Collections.Generic;
-using System.Linq;
+using System.Text;
 
 namespace Advobot.Classes.Rules
 {
 	public class RuleHolder : ISetting
 	{
-		public IReadOnlyList<RuleCategory> Categories => _Categories.Values.ToList().AsReadOnly();
-		private Dictionary<int, RuleCategory> _Categories = new Dictionary<int, RuleCategory>();
+		public IReadOnlyList<RuleCategory> Categories => _Categories.AsReadOnly();
+		private List<RuleCategory> _Categories = new List<RuleCategory>();
 
-		public void AddOrUpdateCategory(int pos, RuleCategory category)
+		public void AddCategory(RuleCategory category)
 		{
-			if (_Categories.ContainsKey(pos))
-			{
-				_Categories[pos] = category;
-			}
-			else
-			{
-				_Categories.Add(pos, category);
-			}
+			_Categories.Add(category);
 		}
-		public bool RemoveCategory(int pos)
+		public bool RemoveCategory(int index)
 		{
-			if (_Categories.ContainsKey(pos))
+			if (index >= 0 && index < _Categories.Count)
 			{
-				return _Categories.Remove(pos);
+				_Categories.RemoveAt(index);
+				return true;
 			}
 			return false;
 		}
 		public bool RemoveCategory(RuleCategory category)
 		{
-			if (_Categories.ContainsValue(category))
+			return _Categories.Remove(category);
+		}
+		public void ChangeCategory(int index, RuleCategory category)
+		{
+			if (index >= 0 && index < _Categories.Count)
 			{
-				return _Categories.Remove(_Categories.SingleOrDefault(x => x.Value == category).Key);
+				_Categories[index] = category;
 			}
-			return false;
 		}
 
 		public override string ToString()
 		{
-			return new RuleFormatter().FormatRules(this);
+			return ToString(new RuleFormatter()).ToString();
+		}
+		public string ToString(RuleFormatter formatter)
+		{
+			var sb = new StringBuilder();
+			for (int c = 0; c < _Categories.Count; ++c)
+			{
+				sb.AppendLineFeed(_Categories[c].ToString(formatter, c));
+			}
+			return sb.ToString();
 		}
 		public string ToString(SocketGuild guild)
 		{
