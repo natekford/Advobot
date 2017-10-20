@@ -1,7 +1,7 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Classes.Attributes;
-using Advobot.Enums;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Enums;
 using Discord;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Rules
+namespace Advobot.Core.Classes.Rules
 {
 	//TODO: finish rule implementation
 	public class RuleFormatter

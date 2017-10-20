@@ -1,8 +1,8 @@
-﻿using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 
-namespace Advobot.Services.Log
+namespace Advobot.Core.Services.Log
 {
 	internal sealed class LogInstance
 	{

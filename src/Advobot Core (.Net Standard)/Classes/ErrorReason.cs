@@ -1,4 +1,4 @@
-﻿namespace Advobot.Classes
+﻿namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Wrapper for an error reason.

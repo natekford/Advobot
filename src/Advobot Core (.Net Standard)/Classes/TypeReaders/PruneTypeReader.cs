@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.Core.Classes.TypeReaders
 {
 	/// <summary>
 	/// Attempts to see if the input matches <see cref="PRUNE_STRING"/>.

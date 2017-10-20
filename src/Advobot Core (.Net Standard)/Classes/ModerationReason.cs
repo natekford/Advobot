@@ -1,7 +1,7 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -13,7 +13,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Explains why the bot is doing something.

@@ -1,10 +1,10 @@
-﻿using Advobot.Enums;
+﻿using Advobot.Core.Enums;
 using Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Classes.UserInformation
+namespace Advobot.Core.Classes.UserInformation
 {
 	/// <summary>
 	/// Holds a user and the counts of which punishments they should get.

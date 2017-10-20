@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Core.Classes.Attributes
 {
 	/// <summary>
 	/// Makes sure the passed in number is in the supplied list.

@@ -1,8 +1,8 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Holds a name and description.

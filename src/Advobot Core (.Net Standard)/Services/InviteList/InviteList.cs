@@ -1,12 +1,12 @@
-﻿using Advobot.Classes;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Classes;
+using Advobot.Core.Interfaces;
 using Discord;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Services.InviteList
+namespace Advobot.Core.Services.InviteList
 {
 	internal sealed class InviteList : IInviteListService
 	{

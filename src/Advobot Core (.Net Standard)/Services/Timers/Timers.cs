@@ -1,10 +1,10 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Classes;
-using Advobot.Classes.Punishments;
-using Advobot.Classes.UserInformation;
-using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes;
+using Advobot.Core.Classes.Punishments;
+using Advobot.Core.Classes.UserInformation;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using System;
 using System.Collections.Concurrent;
@@ -14,7 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace Advobot.Services.Timers
+namespace Advobot.Core.Services.Timers
 {
 	//I have absolutely no idea if this class works as intended under stress.
 	internal sealed class Timers : ITimersService

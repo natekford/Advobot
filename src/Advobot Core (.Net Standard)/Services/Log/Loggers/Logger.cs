@@ -1,11 +1,11 @@
-﻿using Advobot.Actions;
-using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace Advobot.Services.Log.Loggers
+namespace Advobot.Core.Services.Log.Loggers
 {
 	public abstract class Logger
 	{

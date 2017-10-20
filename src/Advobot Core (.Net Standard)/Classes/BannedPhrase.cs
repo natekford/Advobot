@@ -1,15 +1,15 @@
-﻿using Advobot.Actions;
-using Advobot.Classes.Punishments;
-using Advobot.Classes.UserInformation;
-using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Classes.Punishments;
+using Advobot.Core.Classes.UserInformation;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.BannedPhrases
+namespace Advobot.Core.Classes.BannedPhrases
 {
 	/// <summary>
 	/// Holds a phrase and punishment.

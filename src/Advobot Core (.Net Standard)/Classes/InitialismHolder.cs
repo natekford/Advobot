@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Creates an initialism out of the passed in name. Keeps track of the parts and original.

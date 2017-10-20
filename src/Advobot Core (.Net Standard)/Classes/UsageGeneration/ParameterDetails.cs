@@ -1,6 +1,6 @@
-﻿using Advobot.Classes.Attributes;
-using Advobot.Classes.TypeReaders;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.TypeReaders;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.Commands;
 using System;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace Advobot.Classes.UsageGeneration
+namespace Advobot.Core.Classes.UsageGeneration
 {
 	/// <summary>
 	/// Information about a parameter to be used in <see cref="UsageGenerator"/>.

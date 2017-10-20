@@ -1,8 +1,8 @@
-﻿using Advobot.Actions;
-using Advobot.Classes.Attributes;
-using Advobot.Classes;
-using Advobot.Enums;
-using Advobot.Actions.Formatting;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes;
+using Advobot.Core.Enums;
+using Advobot.Core.Actions.Formatting;
 using Discord;
 using Discord.Commands;
 using System;

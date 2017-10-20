@@ -1,8 +1,8 @@
-﻿using Advobot.Classes;
+﻿using Advobot.Core.Classes;
 using Discord;
 using System.Collections.Generic;
 
-namespace Advobot.Interfaces
+namespace Advobot.Core.Interfaces
 {
 	/// <summary>
 	/// Abstraction for an invite list module. Handles a list of server invites.

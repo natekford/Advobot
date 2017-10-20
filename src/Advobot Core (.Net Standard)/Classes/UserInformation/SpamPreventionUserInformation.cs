@@ -1,7 +1,7 @@
-﻿using Advobot.Classes.Punishments;
-using Advobot.Classes.SpamPrevention;
-using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Classes.Punishments;
+using Advobot.Core.Classes.SpamPrevention;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using System;
 using System.Collections.Concurrent;
@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.UserInformation
+namespace Advobot.Core.Classes.UserInformation
 {
 	/// <summary>
 	/// Keeps track how much spam this user has said, how many people need to vote, who has voted, and what punishment to give.

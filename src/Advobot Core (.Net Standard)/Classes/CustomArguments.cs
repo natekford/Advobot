@@ -1,4 +1,4 @@
-﻿using Advobot.Classes.Attributes;
+﻿using Advobot.Core.Classes.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Allows named arguments to be used via an overly complex system of attributes and reflection.

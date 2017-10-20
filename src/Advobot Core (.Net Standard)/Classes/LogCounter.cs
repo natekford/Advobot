@@ -1,9 +1,9 @@
-﻿using Advobot.Actions.Formatting;
+﻿using Advobot.Core.Actions.Formatting;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Used in logging. Holds the name of what is being logged and the count.

@@ -1,6 +1,6 @@
 ﻿using Discord.Commands;
 
-namespace Advobot.Classes.Results
+namespace Advobot.Core.Classes.Results
 {
 	/// <summary>
 	/// Result telling whether or not the object passed the verification it was tried for.

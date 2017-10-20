@@ -1,11 +1,11 @@
-﻿using Advobot.Actions;
-using Advobot.Classes.Permissions;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Classes.Permissions;
 using Discord.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.Core.Classes.TypeReaders
 {
 	/// <summary>
 	/// Attempts to get a ulong representing channel permissions.

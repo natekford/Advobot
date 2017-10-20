@@ -1,10 +1,10 @@
-﻿using Advobot.Actions;
+﻿using Advobot.Core.Actions;
 using Discord;
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Mostly functionally identical to <see cref="EmbedBuilder"/> except this implementation prioritizes this implementation's methods.

@@ -1,10 +1,10 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Classes;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.Punishments;
-using Advobot.Classes.TypeReaders;
-using Advobot.Enums;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.Punishments;
+using Advobot.Core.Classes.TypeReaders;
+using Advobot.Core.Enums;
 using Discord;
 using Discord.Commands;
 using System.Linq;

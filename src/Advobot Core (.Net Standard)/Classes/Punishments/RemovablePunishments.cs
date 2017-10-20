@@ -1,11 +1,11 @@
-﻿using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Classes.Punishments
+namespace Advobot.Core.Classes.Punishments
 {
 	/// <summary>
 	/// Punishments that will be removed after <see cref="GetTime"/> is less than <see cref="DateTime.UtcNow"/>.

@@ -1,11 +1,11 @@
-﻿using Advobot.Classes;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Classes;
+using Advobot.Core.Interfaces;
 using Discord;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Actions
+namespace Advobot.Core.Actions
 {
 	public static class InviteActions
 	{

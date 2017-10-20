@@ -1,8 +1,8 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Classes;
-using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using System;
@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Advobot.Services.Log.Loggers
+namespace Advobot.Core.Services.Log.Loggers
 {
 	internal sealed class MessageLogger : Logger, IMessageLogger
 	{

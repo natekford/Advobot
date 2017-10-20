@@ -1,7 +1,7 @@
 ﻿using System;
 
 //I know enums don't need "= x," but I like it.
-namespace Advobot.Enums
+namespace Advobot.Core.Enums
 {
 	/// <summary>
 	/// Allows certain guild events to be logged when these are in <see cref="Interfaces.IGuildSettings.LogActions"/>.

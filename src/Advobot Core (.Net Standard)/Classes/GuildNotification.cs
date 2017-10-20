@@ -1,14 +1,14 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Classes.Attributes;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Notification that gets sent whenever certain events happen depending on what <see cref="GuildNotificationType"/> is linked to this notification.

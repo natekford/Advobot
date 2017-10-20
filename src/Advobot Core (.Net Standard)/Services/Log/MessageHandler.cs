@@ -1,9 +1,9 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Classes;
-using Advobot.Classes.UserInformation;
-using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes;
+using Advobot.Core.Classes.UserInformation;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Services.Log
+namespace Advobot.Core.Services.Log
 {
 	internal sealed class MessageHandler
 	{

@@ -1,8 +1,8 @@
-﻿using Advobot.Classes;
+﻿using Advobot.Core.Classes;
 using System;
 using System.Text.RegularExpressions;
 
-namespace Advobot.Actions
+namespace Advobot.Core.Actions
 {
 	public static class RegexActions
 	{

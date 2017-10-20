@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Advobot.Classes;
-using Advobot.Classes.Attributes;
-using Advobot.Interfaces;
+using Advobot.Core.Classes;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Interfaces;
 using Discord.WebSocket;
-using Advobot.Actions.Formatting;
+using Advobot.Core.Actions.Formatting;
 using Discord.Commands;
-using Advobot.Enums;
-using Advobot.Classes.Rules;
-using Advobot.Actions;
+using Advobot.Core.Enums;
+using Advobot.Core.Classes.Rules;
+using Advobot.Core.Actions;
 
 namespace Advobot.Commands.Rules
 {

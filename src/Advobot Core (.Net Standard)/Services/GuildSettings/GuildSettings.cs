@@ -1,12 +1,12 @@
-﻿using Advobot.Actions;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Interfaces;
 using Discord;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Advobot.Services.GuildSettings
+namespace Advobot.Core.Services.GuildSettings
 {
 	internal sealed class GuildSettingsHolder : IGuildSettingsService
 	{

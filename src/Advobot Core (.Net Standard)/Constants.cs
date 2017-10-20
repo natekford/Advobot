@@ -1,5 +1,5 @@
-﻿using Advobot.Classes;
-using Advobot.Classes.Settings;
+﻿using Advobot.Core.Classes;
+using Advobot.Core.Classes.Settings;
 using System;
 using System.Collections.Immutable;
 

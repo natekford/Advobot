@@ -1,4 +1,4 @@
-﻿namespace Advobot.Interfaces
+﻿namespace Advobot.Core.Interfaces
 {
 	public interface IArgument
 	{

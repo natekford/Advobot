@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Advobot.Interfaces
+namespace Advobot.Core.Interfaces
 {
 	/// <summary>
 	/// Abstraction for a guild settings module. Handles containing guild settings and adding/removing them.

@@ -1,8 +1,8 @@
-﻿using Advobot.Enums;
+﻿using Advobot.Core.Enums;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Advobot.Classes.Punishments
+namespace Advobot.Core.Classes.Punishments
 {
 	/// <summary>
 	/// Base for classes like <see cref="PunishmentGiver"/> and <see cref="PunishmentRemover"/>. Holds the past tense words for removing

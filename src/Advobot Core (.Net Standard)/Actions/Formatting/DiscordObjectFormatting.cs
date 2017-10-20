@@ -1,11 +1,9 @@
-﻿using Advobot.Interfaces;
-using Discord;
+﻿using Discord;
 using System;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace Advobot.Actions.Formatting
+namespace Advobot.Core.Actions.Formatting
 {
 	public static class DiscordObjectFormatting
     {

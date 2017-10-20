@@ -1,8 +1,8 @@
-﻿using Advobot.Actions;
-using Advobot.Classes.UserInformation;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Classes.UserInformation;
 using Discord;
 
-namespace Advobot.Services.Timers
+namespace Advobot.Core.Services.Timers
 {
 	public class DictKey
 	{

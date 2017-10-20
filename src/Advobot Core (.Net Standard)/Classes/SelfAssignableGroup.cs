@@ -1,11 +1,11 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Groups <see cref="SelfAssignableRole"/> together.

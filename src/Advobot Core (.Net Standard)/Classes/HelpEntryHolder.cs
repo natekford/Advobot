@@ -1,8 +1,8 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.UsageGeneration;
-using Advobot.Enums;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.UsageGeneration;
+using Advobot.Core.Enums;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Creates a help entry for every command and then allows those to be accessed.

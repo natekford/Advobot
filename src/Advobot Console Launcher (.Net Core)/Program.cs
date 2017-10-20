@@ -1,9 +1,9 @@
-﻿using Advobot.Actions;
+﻿using Advobot.Core.Actions;
 using Advobot.Commands;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Launcher
+namespace Advobot.ConsoleLauncher
 {
 	/// <summary>
 	/// Starting point for Advobot.

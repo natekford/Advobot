@@ -1,10 +1,10 @@
-﻿using Advobot.Actions;
-using Advobot.Enums;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Enums;
 using Discord.Commands;
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.Core.Classes.TypeReaders
 {
 	/// <summary>
 	/// Attempts to get a user id.

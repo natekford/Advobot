@@ -1,13 +1,13 @@
-﻿using Advobot.Actions.Formatting;
-using Advobot.Classes;
-using Advobot.Classes.Attributes;
-using Advobot.Classes.Rules;
-using Advobot.Classes.TypeReaders;
-using Advobot.Interfaces;
-using Advobot.Services.GuildSettings;
-using Advobot.Services.InviteList;
-using Advobot.Services.Log;
-using Advobot.Services.Timers;
+﻿using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.Rules;
+using Advobot.Core.Classes.TypeReaders;
+using Advobot.Core.Interfaces;
+using Advobot.Core.Services.GuildSettings;
+using Advobot.Core.Services.InviteList;
+using Advobot.Core.Services.Log;
+using Advobot.Core.Services.Timers;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -18,7 +18,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Advobot.Actions
+namespace Advobot.Core.Actions
 {
 	public static class CreationActions
 	{

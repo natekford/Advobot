@@ -1,7 +1,7 @@
-﻿using Advobot.Actions;
-using Advobot.Classes;
-using Advobot.Classes.Attributes;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Classes;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;

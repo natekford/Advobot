@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Core.Classes.Attributes
 {
 	/// <summary>
 	/// Only use on primitives (nullable allowed) or enums.

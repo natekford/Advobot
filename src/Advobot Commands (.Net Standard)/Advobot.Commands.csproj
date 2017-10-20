@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Advobot Core (.Net Standard)\Advobot Core (.Net Standard).csproj" />
+    <ProjectReference Include="..\Advobot Core (.Net Standard)\Advobot.Core.csproj" />
   </ItemGroup>
 
 </Project>

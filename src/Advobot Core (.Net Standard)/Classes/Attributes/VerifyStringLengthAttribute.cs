@@ -1,10 +1,10 @@
-﻿using Advobot.Enums;
+﻿using Advobot.Core.Enums;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Core.Classes.Attributes
 {
 	/// <summary>
 	/// Certain objects in Discord have minimum and maximum lengths for the names that can be set for them. This attribute verifies those lengths and provides errors stating the min/max if under/over.

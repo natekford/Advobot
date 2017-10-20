@@ -1,11 +1,11 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Limits the amount of messages users are allowed to send in a given time interval. Initially created with <see cref="Enabled"/> set to false.

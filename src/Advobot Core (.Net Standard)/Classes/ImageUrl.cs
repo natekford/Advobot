@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.Net;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Makes sure a url is a valid url and a valid image.

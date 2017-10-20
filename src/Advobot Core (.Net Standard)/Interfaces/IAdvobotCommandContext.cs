@@ -1,6 +1,6 @@
 ﻿using Discord.Commands;
 
-namespace Advobot.Interfaces
+namespace Advobot.Core.Interfaces
 {
 	/// <summary>
 	/// Abstraction for <see cref="Classes.AdvobotCommandContext"/>.

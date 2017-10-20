@@ -1,6 +1,6 @@
 ﻿using Discord.Commands;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Same as <see cref="AdvobotModuleBase"/> except saves guild settings afterwards.

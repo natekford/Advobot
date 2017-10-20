@@ -1,11 +1,11 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Advobot.Classes.UserInformation;
+using Advobot.Core.Classes.UserInformation;
 using Discord;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Container of close words which is intended to be removed after <see cref="GetTime()"/> returns a value less than the current time.

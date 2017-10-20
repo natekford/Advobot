@@ -1,10 +1,10 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// A <see cref="CommandContext"/> which contains <see cref="IBotSettings"/>, <see cref="IGuildSettings"/>, <see cref="ILogService"/>, and <see cref="ITimersService"/>.

@@ -1,7 +1,7 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using System;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Holds a <see cref="DateTime"/> object and implements <see cref="ITime"/> so certain methods can restrict generics easier.

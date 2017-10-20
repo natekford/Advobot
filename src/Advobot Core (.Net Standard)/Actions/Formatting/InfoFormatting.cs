@@ -1,5 +1,5 @@
-﻿using Advobot.Classes;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Classes;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using System;
@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace Advobot.Actions.Formatting
+namespace Advobot.Core.Actions.Formatting
 {
 	public static class InfoFormatting
 	{

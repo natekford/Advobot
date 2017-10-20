@@ -1,6 +1,6 @@
-﻿using Advobot.Classes.Punishments;
-using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Classes.Punishments;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -8,7 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.SpamPrevention
+namespace Advobot.Core.Classes.SpamPrevention
 {
 	/// <summary>
 	/// Holds information about raid prevention such as how long the interval is, and how many users to target.

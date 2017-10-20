@@ -1,5 +1,5 @@
-﻿using Advobot.Actions.Formatting;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Interfaces;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace Advobot.Classes.UsageGeneration
+namespace Advobot.Core.Classes.UsageGeneration
 {
 	/// <summary>
 	/// Uses reflection to generate a string which explains how to use a command.

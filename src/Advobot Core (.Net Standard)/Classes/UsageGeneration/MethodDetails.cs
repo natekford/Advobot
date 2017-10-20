@@ -1,9 +1,9 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Discord.Commands;
 using System.Linq;
 using System.Reflection;
 
-namespace Advobot.Classes.UsageGeneration
+namespace Advobot.Core.Classes.UsageGeneration
 {
 	/// <summary>
 	/// Information about a method to be used in <see cref="UsageGenerator"/>.

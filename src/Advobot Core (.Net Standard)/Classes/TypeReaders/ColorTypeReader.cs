@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.Core.Classes.TypeReaders
 {
 	/// <summary>
 	/// Attemps to create a <see cref="Color"/>.

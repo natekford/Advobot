@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Core.Classes.Attributes
 {
 	/// <summary>
 	/// Specifies a command is broken. Will provide an error each time a user tries to invoke the command.

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Advobot.Interfaces
+namespace Advobot.Core.Interfaces
 {
 	/// <summary>
 	/// Holds bot settings and some readonly information.

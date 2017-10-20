@@ -1,6 +1,6 @@
-﻿using Advobot.Actions;
-using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.Commands;
 using System;
@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Core.Classes.Attributes
 {
 	/// <summary>
 	/// Checks if a user has any permissions that would generally be needed for a command, if the user is the guild owner, if the user if the bot owner, or if the user is a trusted user.

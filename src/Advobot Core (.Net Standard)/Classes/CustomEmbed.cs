@@ -1,9 +1,9 @@
-﻿using Advobot.Classes.Attributes;
-using Advobot.Classes.TypeReaders;
+﻿using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.TypeReaders;
 using System;
 using System.Collections.Generic;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Allows a user to make an embed through the use of <see cref="CustomArguments{T}"/>.

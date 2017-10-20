@@ -1,7 +1,7 @@
 ﻿using Discord;
 using System;
 
-namespace Advobot.Classes.UserInformation
+namespace Advobot.Core.Classes.UserInformation
 {
 	/// <summary>
 	/// Holds how many messages a user has left and when to reset them.

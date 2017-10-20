@@ -1,10 +1,10 @@
-﻿using Advobot.Actions.Formatting;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Interfaces;
 using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Advobot.Classes.Rules
+namespace Advobot.Core.Classes.Rules
 {
 	public class RuleHolder : ISetting
 	{

@@ -1,12 +1,12 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Interfaces;
 using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Services.Log.Loggers
+namespace Advobot.Core.Services.Log.Loggers
 {
 	internal sealed class GuildLogger : Logger, IGuildLogger
 	{

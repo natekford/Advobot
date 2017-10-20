@@ -1,7 +1,7 @@
-﻿using Advobot.Actions.Formatting;
-using Advobot.Classes;
-using Advobot.Classes.Punishments;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes;
+using Advobot.Core.Classes.Punishments;
+using Advobot.Core.Interfaces;
 using Discord;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Actions
+namespace Advobot.Core.Actions
 {
 	public static class MessageActions
 	{

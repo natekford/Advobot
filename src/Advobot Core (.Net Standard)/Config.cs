@@ -1,5 +1,5 @@
-﻿using Advobot.Actions;
-using Advobot.Enums;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Enums;
 using Discord;
 using Newtonsoft.Json;
 using System;

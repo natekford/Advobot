@@ -1,11 +1,11 @@
-﻿using Advobot.Classes;
-using Advobot.Classes.Punishments;
-using Advobot.Classes.UserInformation;
-using Advobot.Enums;
+﻿using Advobot.Core.Classes;
+using Advobot.Core.Classes.Punishments;
+using Advobot.Core.Classes.UserInformation;
+using Advobot.Core.Enums;
 using Discord;
 using System.Collections.Generic;
 
-namespace Advobot.Interfaces
+namespace Advobot.Core.Interfaces
 {
 	/// <summary>
 	/// Abstraction for a timers module. Handles timed punishments, close words, and slowmode.

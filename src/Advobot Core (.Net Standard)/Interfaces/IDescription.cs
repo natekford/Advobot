@@ -1,4 +1,4 @@
-﻿namespace Advobot.Interfaces
+﻿namespace Advobot.Core.Interfaces
 {
 	/// <summary>
 	/// Signifies the object has a name and description.

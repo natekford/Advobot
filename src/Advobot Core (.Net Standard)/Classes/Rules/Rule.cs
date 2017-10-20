@@ -1,7 +1,7 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Discord.WebSocket;
 
-namespace Advobot.Classes.Rules
+namespace Advobot.Core.Classes.Rules
 {
 	public class Rule : ISetting
 	{

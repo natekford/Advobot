@@ -1,10 +1,10 @@
-﻿using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using System;
 using System.Text;
-using Advobot.Actions.Formatting;
+using Advobot.Core.Actions.Formatting;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Holds information about a command, such as its name, aliases, usage, base permissions, description, category, and default enabled value.

@@ -1,12 +1,12 @@
-﻿using Advobot.Classes;
-using Advobot.Classes.Permissions;
+﻿using Advobot.Core.Classes;
+using Advobot.Core.Classes.Permissions;
 using Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Actions
+namespace Advobot.Core.Actions
 {
 	public static class OverwriteActions
     {

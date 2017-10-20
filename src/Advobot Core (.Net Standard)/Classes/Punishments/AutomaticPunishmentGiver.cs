@@ -1,11 +1,11 @@
-﻿using Advobot.Actions;
-using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Punishments
+namespace Advobot.Core.Classes.Punishments
 {
 	/// <summary>
 	/// Automatically gives a punishment to a user.

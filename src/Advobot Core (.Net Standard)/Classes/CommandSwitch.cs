@@ -1,11 +1,11 @@
-﻿using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// A setting on guilds that states whether a command is on or off.

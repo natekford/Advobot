@@ -1,5 +1,5 @@
-﻿using Advobot.Actions;
-using Advobot.Classes.Attributes;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Classes.Attributes;
 using System;
 using System.Linq;
 using System.Reflection;

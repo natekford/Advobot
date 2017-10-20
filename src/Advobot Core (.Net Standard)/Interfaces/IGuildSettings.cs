@@ -1,17 +1,17 @@
-﻿using Advobot.Classes;
-using Advobot.Classes.BannedPhrases;
-using Advobot.Classes.Permissions;
-using Advobot.Classes.Rules;
-using Advobot.Classes.SpamPrevention;
-using Advobot.Classes.UserInformation;
-using Advobot.Enums;
+﻿using Advobot.Core.Classes;
+using Advobot.Core.Classes.BannedPhrases;
+using Advobot.Core.Classes.Permissions;
+using Advobot.Core.Classes.Rules;
+using Advobot.Core.Classes.SpamPrevention;
+using Advobot.Core.Classes.UserInformation;
+using Advobot.Core.Enums;
 using Discord;
 using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Advobot.Interfaces
+namespace Advobot.Core.Interfaces
 {
 	/// <summary>
 	/// Holds guild settings and some readonly information.

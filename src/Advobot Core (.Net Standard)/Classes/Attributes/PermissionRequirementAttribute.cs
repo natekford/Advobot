@@ -1,13 +1,13 @@
-﻿using Advobot.Actions.Formatting;
-using Advobot.Classes.Permissions;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes.Permissions;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Core.Classes.Attributes
 {
 	/// <summary>
 	/// Checks if the user has all of the permissions supplied for allOfTheListedPerms or if the user has any of the permissions supplied for anyOfTheListedPerms.

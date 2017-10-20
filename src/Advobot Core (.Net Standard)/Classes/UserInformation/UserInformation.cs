@@ -1,8 +1,8 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Discord;
 using System;
 
-namespace Advobot.Classes.UserInformation
+namespace Advobot.Core.Classes.UserInformation
 {
 	/// <summary>
 	/// Holds a user and a time.

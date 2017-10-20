@@ -1,7 +1,7 @@
-﻿using Advobot.Actions.Formatting;
-using Advobot.Classes;
-using Advobot.Classes.Results;
-using Advobot.Enums;
+﻿using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes;
+using Advobot.Core.Classes.Results;
+using Advobot.Core.Enums;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Advobot.Actions
+namespace Advobot.Core.Actions
 {
 	public static class UserActions
 	{

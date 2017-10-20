@@ -1,13 +1,13 @@
-﻿using Advobot.Classes;
-using Advobot.Interfaces;
-using Advobot.Services.Log.Loggers;
+﻿using Advobot.Core.Classes;
+using Advobot.Core.Interfaces;
+using Advobot.Core.Services.Log.Loggers;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 
-namespace Advobot.Services.Log
+namespace Advobot.Core.Services.Log
 {
 	/// <summary>
 	/// Logs certain events.

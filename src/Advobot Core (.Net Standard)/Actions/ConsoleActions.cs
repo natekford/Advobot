@@ -1,9 +1,9 @@
-﻿using Advobot.Actions.Formatting;
+﻿using Advobot.Core.Actions.Formatting;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Advobot.Actions
+namespace Advobot.Core.Actions
 {
 	public static class ConsoleActions
 	{

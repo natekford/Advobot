@@ -1,6 +1,6 @@
 ﻿using Discord.WebSocket;
 
-namespace Advobot.Interfaces
+namespace Advobot.Core.Interfaces
 {
 	/// <summary>
 	/// Formatting for a class defined as a setting.

@@ -1,6 +1,6 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Interfaces;
 using Discord;
 using System;
 using System.Collections.Concurrent;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Does an action on all the input users until either no more users remain or the cancel token has been canceled.

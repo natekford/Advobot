@@ -1,7 +1,7 @@
-﻿using Advobot.Classes.Attributes;
+﻿using Advobot.Core.Classes.Attributes;
 using Discord.Commands;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Shorter way to write ModuleBase<AdvobotCommandContext> and also has every command go through the <see cref="CommandRequirementAttribute"/> first.

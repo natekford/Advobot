@@ -1,7 +1,7 @@
 ﻿using Discord.Commands;
 using System;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Core.Classes.Attributes
 {
 	/// <summary>
 	/// Shortens an alias down to an initialism. 

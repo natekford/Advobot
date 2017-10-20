@@ -1,6 +1,6 @@
-﻿using Advobot.Actions;
-using Advobot.Classes.Results;
-using Advobot.Enums;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Classes.Results;
+using Advobot.Core.Enums;
 using Discord;
 using Discord.Commands;
 using System;
@@ -8,7 +8,7 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Attributes
+namespace Advobot.Core.Classes.Attributes
 {
 	/// <summary>
 	/// Verifies the parameter this attribute is targetting fits all of the given conditions. Abstract since <see cref="_GetResultsDict"/> has to be created by a class inheriting this.

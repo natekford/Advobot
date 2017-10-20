@@ -1,4 +1,4 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

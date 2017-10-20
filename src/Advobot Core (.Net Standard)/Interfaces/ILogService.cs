@@ -1,10 +1,10 @@
-﻿using Advobot.Classes;
+﻿using Advobot.Core.Classes;
 using Discord;
 using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Advobot.Interfaces
+namespace Advobot.Core.Interfaces
 {
 	/// <summary>
 	/// Abstraction for a log module. Handles counts of actions, and which commands have been ran. 

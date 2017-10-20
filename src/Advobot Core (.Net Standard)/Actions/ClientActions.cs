@@ -1,4 +1,4 @@
-﻿using Advobot.Interfaces;
+﻿using Advobot.Core.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using System;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.IO;
 using Discord.Commands;
 
-namespace Advobot.Actions
+namespace Advobot.Core.Actions
 {
 	public static class ClientActions
 	{

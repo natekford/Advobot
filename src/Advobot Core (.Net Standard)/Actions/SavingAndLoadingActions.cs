@@ -1,10 +1,10 @@
-﻿using Advobot.Actions.Formatting;
+﻿using Advobot.Core.Actions.Formatting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
 using System.IO;
 
-namespace Advobot.Actions
+namespace Advobot.Core.Actions
 {
 	public static class SavingAndLoadingActions
 	{

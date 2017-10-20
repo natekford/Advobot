@@ -1,13 +1,13 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Interfaces;
 using Discord.Commands;
 using System;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Holds information about a command. 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Advobot.Classes.Permissions
+namespace Advobot.Core.Classes.Permissions
 {
 	/// <summary>
 	/// Helper class for channel permissions.

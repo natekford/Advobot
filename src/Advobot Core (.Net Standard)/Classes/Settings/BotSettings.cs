@@ -1,6 +1,6 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Interfaces;
 using Discord;
 using Newtonsoft.Json;
 using System;
@@ -13,7 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Core.Classes.Settings
 {
 	/// <summary>
 	/// Holds settings for the bot. Settings are saved through property setters or calling <see cref="SaveSettings()"/>.

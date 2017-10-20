@@ -1,4 +1,4 @@
-﻿using Advobot.Actions;
+﻿using Advobot.Core.Actions;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Advobot.Classes.TypeReaders
+namespace Advobot.Core.Classes.TypeReaders
 {
 	/// <summary>
 	/// Utilizes derived classes' names to determine which settings to get.

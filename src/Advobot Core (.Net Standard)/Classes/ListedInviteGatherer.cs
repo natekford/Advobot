@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Advobot.Classes.Attributes;
-using Advobot.Enums;
-using Advobot.Services.InviteList;
-using Advobot.Interfaces;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Enums;
+using Advobot.Core.Services.InviteList;
+using Advobot.Core.Interfaces;
 using System.Linq;
-using Advobot.Actions;
+using Advobot.Core.Actions;
 
-namespace Advobot.Classes
+namespace Advobot.Core.Classes
 {
 	public class ListedInviteGatherer
 	{

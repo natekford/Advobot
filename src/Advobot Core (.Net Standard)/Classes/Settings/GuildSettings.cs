@@ -1,11 +1,11 @@
-﻿using Advobot.Actions;
-using Advobot.Actions.Formatting;
-using Advobot.Classes.BannedPhrases;
-using Advobot.Classes.Permissions;
-using Advobot.Classes.SpamPrevention;
-using Advobot.Classes.UserInformation;
-using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes.BannedPhrases;
+using Advobot.Core.Classes.Permissions;
+using Advobot.Core.Classes.SpamPrevention;
+using Advobot.Core.Classes.UserInformation;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
@@ -16,9 +16,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Advobot.Classes.Rules;
+using Advobot.Core.Classes.Rules;
 
-namespace Advobot.Classes.Settings
+namespace Advobot.Core.Classes.Settings
 {
 	/// <summary>
 	/// Holds settings for a guild. Settings are only saved by calling <see cref="SaveSettings"/>.

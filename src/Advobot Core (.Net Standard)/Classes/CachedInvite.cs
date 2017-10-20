@@ -1,4 +1,4 @@
-﻿namespace Advobot.Classes
+﻿namespace Advobot.Core.Classes
 {
 	/// <summary>
 	/// Holds the code and uses of an invite. Used in <see cref="Actions.InviteActions.GetInviteUserJoinedOnAsync(Interfaces.IGuildSettings, Discord.IGuildUser)"/>.

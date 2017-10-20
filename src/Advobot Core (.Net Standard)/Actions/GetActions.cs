@@ -1,8 +1,8 @@
-﻿using Advobot.Actions.Formatting;
-using Advobot.Classes;
-using Advobot.Classes.Attributes;
-using Advobot.Enums;
-using Advobot.Interfaces;
+﻿using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes;
+using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Enums;
+using Advobot.Core.Interfaces;
 using Discord;
 using Discord.Commands;
 using System;
@@ -13,7 +13,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 
-namespace Advobot.Actions
+namespace Advobot.Core.Actions
 {
 	public static class GetActions
 	{
