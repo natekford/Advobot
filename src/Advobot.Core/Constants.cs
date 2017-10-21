@@ -2,6 +2,7 @@
 using Advobot.Core.Classes.Settings;
 using System;
 using System.Collections.Immutable;
+using System.Reflection;
 
 namespace Advobot
 {
@@ -47,7 +48,8 @@ namespace Advobot
 		public const int MAX_FIELD_VALUE_LENGTH = 1024;
 
 		//Static because they may change and I've heard using const means any assembly referencing it has to be recompiled each time the value gets manually changed.
-		public static string BOT_VERSION => "0.31.0";
+		//Look at AssemblyVersion.tt if you want to change Major/Minor or if you want to know why it's not updating
+		public static string BOT_VERSION => Assembly.GetAssembly(typeof(Constants)).GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
 		public static string API_VERSION => "Discord.Net v2.0.0-alpha-build-00838";
 		public static string PROGRAM_NAME => "Advobot";
 		public static string IGNORE_ERROR => "Cx";

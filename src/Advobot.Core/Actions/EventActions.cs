@@ -32,7 +32,8 @@ namespace Advobot.Core.Actions
 
 			await ClientActions.UpdateGameAsync(client, botSettings).CAF();
 
-			ConsoleActions.WriteLine($"The current bot prefix is: {botSettings.Prefix}");
+			ConsoleActions.WriteLine($"Current version: {Constants.BOT_VERSION}");
+			ConsoleActions.WriteLine($"Current bot prefix is: {botSettings.Prefix}");
 			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
 			ConsoleActions.WriteLine($"Bot took {startTime:n} milliseconds to start up.");
 		}

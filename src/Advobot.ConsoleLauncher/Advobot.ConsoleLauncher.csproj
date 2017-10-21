@@ -29,8 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Advobot Commands (.Net Standard)\Advobot.Commands.csproj" />
-    <ProjectReference Include="..\Advobot Core (.Net Standard)\Advobot.Core.csproj" />
+    <ProjectReference Include="..\Advobot.Commands\Advobot.Commands.csproj" />
+    <ProjectReference Include="..\Advobot.Core\Advobot.Core.csproj" />
   </ItemGroup>
 
 </Project>
