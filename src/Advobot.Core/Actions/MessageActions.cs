@@ -74,7 +74,7 @@ namespace Advobot.Core.Actions
 				{
 					field.WithName($"Field {i}");
 					field.WithValue(fieldError);
-					overflowText.AppendLineFeed($"Field {i}: {badValue}");
+					overflowText.AppendLineFeed($"Field {i}:\n{badValue}");
 				}
 
 				charCount += field.Value?.ToString()?.Length ?? 0;

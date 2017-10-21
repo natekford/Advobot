@@ -1,10 +1,12 @@
 ﻿using Advobot.Core.Interfaces;
 using Discord.WebSocket;
+using Newtonsoft.Json;
 
 namespace Advobot.Core.Classes.Rules
 {
 	public class Rule : ISetting
 	{
+		[JsonProperty]
 		public string Text { get; private set; }
 
 		public Rule(string text)

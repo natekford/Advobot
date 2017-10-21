@@ -15,7 +15,7 @@ namespace Advobot.Core.Classes
 
 		public LogCounter([CallerMemberName] string title = "")
 		{
-			Title = title.FormatTitle();
+			Title = title.FormatTitle().Trim();
 			Count = 0;
 		}
 
@@ -44,26 +44,29 @@ namespace Advobot.Core.Classes
 		/// <param name="haveEqualSpacing"></param>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		public static string FormatMultiple(bool haveEqualSpacing, params LogCounter[] input)
+		public static string FormatMultiple(bool haveEqualSpacing, params LogCounter[] counters)
 		{
+			var titlesAndCount = counters.Select(x => (Title: $"**{x.Title}**:", Count: $"`{x.Count}`"));
+
 			if (haveEqualSpacing)
 			{
-				var leftSpacing = input.Max(x => x.Count).GetLengthOfNumber();
-				var rightSpacing = input.Select(x => x.Title.Length).Max() + 1;
+				var rightSpacing = titlesAndCount.Select(x => x.Title.Length).DefaultIfEmpty(0).Max();
+				var leftSpacing = titlesAndCount.Select(x => x.Count.Length).DefaultIfEmpty(0).Max();
 
 				var sb = new StringBuilder();
-				foreach (var count in input)
+				foreach (var tc in titlesAndCount)
 				{
-					sb.AppendLineFeed(GeneralFormatting.FormatStringsWithLength(count.Title, count.Count, rightSpacing, leftSpacing));
+					var str = GeneralFormatting.FormatStringsWithLength(tc.Title, tc.Count, rightSpacing, leftSpacing);
+					sb.AppendLineFeed(str);
 				}
 				return sb.ToString();
 			}
 			else
 			{
 				var sb = new StringBuilder();
-				foreach (var count in input)
+				foreach (var tc in titlesAndCount)
 				{
-					sb.AppendLineFeed(count.ToString());
+					sb.AppendLineFeed($"{tc.Title} {tc.Count}");
 				}
 				return sb.ToString();
 			}

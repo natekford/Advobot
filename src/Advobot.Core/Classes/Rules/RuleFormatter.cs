@@ -17,6 +17,7 @@ namespace Advobot.Core.Classes.Rules
 	{
 		private static Dictionary<RuleFormat, MarkDownFormat> _DefaultTitleFormats = new Dictionary<RuleFormat, MarkDownFormat>
 		{
+			{ default, MarkDownFormat.Bold },
 			{ RuleFormat.Numbers, MarkDownFormat.Bold },
 			{ RuleFormat.Dashes, MarkDownFormat.Code },
 			{ RuleFormat.Bullets, MarkDownFormat.Bold },
@@ -24,6 +25,7 @@ namespace Advobot.Core.Classes.Rules
 		};
 		private static Dictionary<RuleFormat, MarkDownFormat> _DefaultRuleFormats = new Dictionary<RuleFormat, MarkDownFormat>
 		{
+			{ default, default },
 			{ RuleFormat.Numbers, default },
 			{ RuleFormat.Dashes, default },
 			{ RuleFormat.Bullets, default },
@@ -38,7 +40,6 @@ namespace Advobot.Core.Classes.Rules
 		private RuleFormat _Format;
 		private MarkDownFormat _TitleFormat;
 		private MarkDownFormat _RuleFormat;
-		private bool _ExtraSpaces;
 		private bool _NumbersSameLength;
 		private bool _ExtraLines;
 		private char _CharAfterNumbers;
@@ -51,12 +52,11 @@ namespace Advobot.Core.Classes.Rules
 			[CustomArgument] char charAfterNumbers = '.',
 			[CustomArgument(10)] params FormatOptions[] formatOptions)
 		{
-			_Format = format;
+			_Format = format == default ? RuleFormat.Numbers : format;
 			_TitleFormat = titleFormat;
 			_RuleFormat = ruleFormat;
 			_CharAfterNumbers = charAfterNumbers;
 
-			_ExtraSpaces = formatOptions.Contains(FormatOptions.ExtraSpaces);
 			_NumbersSameLength = formatOptions.Contains(FormatOptions.NumbersSameLength);
 			_ExtraLines = formatOptions.Contains(FormatOptions.ExtraLines);
 		}
@@ -98,6 +98,7 @@ namespace Advobot.Core.Classes.Rules
 			n = _ExtraLines
 				? $"{n}\n"
 				: $"{n}";
+			n = n.Trim(' ');
 			return AddFormattingOptions(_TitleFormat == default ? _DefaultTitleFormats[_Format] : _TitleFormat, n);
 		}
 		public string FormatRule(Rule rule, int index, int rulesInCategory)
@@ -130,16 +131,15 @@ namespace Advobot.Core.Classes.Rules
 				}
 			}
 
+			r = $"{r}{rule.Text}";
 			r = _CharAfterNumbers != default
 				? AddCharAfterNumbers(r, _CharAfterNumbers)
 				: r;
 			r = _ExtraLines
 				? $"{r}\n"
 				: $"{r}";
-			r = _ExtraSpaces
-				? $"{r} {rule.Text}"
-				: $"{r}{rule.Text}";
-			return AddFormattingOptions(_RuleFormat == default ? _DefaultRuleFormats[_Format] : _TitleFormat, r);
+			r = r.Trim(' ');
+			return AddFormattingOptions(_RuleFormat == default ? _DefaultRuleFormats[_Format] : _RuleFormat, r);
 		}
 
 		private string AddCharAfterNumbers(string text, char charToAdd)
@@ -161,15 +161,14 @@ namespace Advobot.Core.Classes.Rules
 		}
 		private string AddFormattingOptions(MarkDownFormat formattingOptions, string text)
 		{
-			var t = text.EscapeAllMarkdown();
 			foreach (MarkDownFormat md in Enum.GetValues(typeof(MarkDownFormat)))
 			{
 				if ((formattingOptions & md) != 0)
 				{
-					t = AddMarkDown(md, t);
+					text = AddMarkDown(md, text);
 				}
 			}
-			return t;
+			return text;
 		}
 		private string AddMarkDown(MarkDownFormat md, string text)
 		{

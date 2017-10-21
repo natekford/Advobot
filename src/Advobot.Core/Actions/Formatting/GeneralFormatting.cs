@@ -35,8 +35,8 @@ namespace Advobot.Core.Actions.Formatting
 		/// <returns></returns>
 		public static string FormatStringsWithLength(object obj1, object obj2, int right, int left)
 		{
-			var str1 = obj1.ToString().PadRight(Math.Min(right, 0));
-			var str2 = obj2.ToString().PadLeft(Math.Min(left, 0));
+			var str1 = obj1.ToString().PadRight(Math.Max(right, 0));
+			var str2 = obj2.ToString().PadLeft(Math.Max(left, 0));
 			return $"{str1}{str2}";
 		}
 		/// <summary>

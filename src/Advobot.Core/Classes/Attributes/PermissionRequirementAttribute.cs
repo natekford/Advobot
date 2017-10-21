@@ -56,7 +56,7 @@ namespace Advobot.Core.Classes.Attributes
 				var userPerms = guildBits | botBits;
 
 				var all = _AllFlags != 0 && (userPerms & _AllFlags) == _AllFlags;
-				var any = userPerms != 0 && (userPerms & _AnyFlags) == userPerms;
+				var any = userPerms != 0 && _AnyFlags != 0 && (userPerms & _AnyFlags) != 0;
 				if (all || any)
 				{
 					return Task.FromResult(PreconditionResult.FromSuccess());

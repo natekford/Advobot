@@ -1,4 +1,5 @@
-﻿using Advobot.Core.Classes.Attributes;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Classes.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -140,7 +141,12 @@ namespace Advobot.Core.Classes
 				{
 					//Convert all from string to whatever type they need to be
 					//NEEDS TO BE AN ARRAY SINCE PARAMS IS AN ARRAY!
-					return _ParamArgs.Select(x => ConvertValue(t, x)).ToArray();
+					var convertedArgs = _ParamArgs.Select(x => ConvertValue(t, x)).ToArray();
+					return convertedArgs.Any()
+						? convertedArgs
+						//Have to use this method otherwise create instance throws exception
+						//because this will send object[] instead of T[]
+						: Array.CreateInstance(t, 0);
 				}
 				//Checking against the attribute again in case arguments have duplicate names
 				else if (p.GetCustomAttribute<CustomArgumentAttribute>() != null && _Args.TryGetValue(p.Name, out var arg))
@@ -161,7 +167,15 @@ namespace Advobot.Core.Classes
 				return t.IsValueType ? Activator.CreateInstance(t) : null;
 			}).ToArray();
 
-			return (T)Activator.CreateInstance(typeof(T), parameters);
+			try
+			{
+				return (T)Activator.CreateInstance(typeof(T), parameters);
+			}
+			catch (MissingMethodException e)
+			{
+				ConsoleActions.ExceptionToConsole(e);
+				return (T)Activator.CreateInstance(typeof(T));
+			}
 		}
 		/// <summary>
 		/// Converts the string into the given <paramref name="type"/>.

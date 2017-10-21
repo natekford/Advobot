@@ -32,8 +32,9 @@ namespace Advobot.Core.Interfaces
 		IUserLogger UserLogger { get; }
 		IMessageLogger MessageLogger { get; }
 
-		string FormatLoggedCommands();
-		string FormatLoggedActions();
+		string FormatLoggedCommands(bool equalSpacing);
+		string FormatLoggedUserActions(bool equalSpacing);
+		string FormatLoggedMessageActions(bool equalSpacing);
 	}
 
 	public interface IBotLogger

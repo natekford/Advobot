@@ -56,7 +56,7 @@ namespace Advobot.Commands.GuildSettings
 				var commands = Context.GuildSettings.CommandSwitches.Where(x =>
 				{
 					return !x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name);
-				});
+				}).ToArray();
 				foreach (var command in commands)
 				{
 					command.ToggleEnabled();
@@ -88,7 +88,7 @@ namespace Advobot.Commands.GuildSettings
 				var commands = Context.GuildSettings.GetCommands(category).Where(x =>
 				{
 					return !x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name);
-				});
+				}).ToArray();
 				foreach (var command in commands)
 				{
 					command.ToggleEnabled();
@@ -107,7 +107,7 @@ namespace Advobot.Commands.GuildSettings
 				var commands = Context.GuildSettings.CommandSwitches.Where(x =>
 				{
 					return x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name);
-				});
+				}).ToArray();
 				foreach (var command in commands)
 				{
 					command.ToggleEnabled();
@@ -139,7 +139,7 @@ namespace Advobot.Commands.GuildSettings
 				var commands = Context.GuildSettings.GetCommands(category).Where(x =>
 				{
 					return x.Value && !_CommandsUnableToBeTurnedOff.CaseInsContains(x.Name);
-				});
+				}).ToArray();
 				foreach (var command in commands)
 				{
 					command.ToggleEnabled();

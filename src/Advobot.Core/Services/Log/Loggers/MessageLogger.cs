@@ -46,8 +46,6 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public async Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
 		{
-			_Logging.MessageEdits.Increment();
-
 			var logInstanceInfo = new LogInstance(_BotSettings, _GuildSettings, message, LogAction.MessageUpdated);
 			if (!logInstanceInfo.IsValid)
 			{
@@ -59,26 +57,35 @@ namespace Advobot.Core.Services.Log.Loggers
 
 			//If the before message is not specified always take that as it should be logged.
 			//If the embed counts are greater take that as logging too.
+			var edited = false;
 			var beforeMessage = cached.HasValue ? cached.Value : null;
-			if (beforeMessage?.Embeds.Count() < message.Embeds.Count())
+			if (logInstanceInfo.HasImageLog)
 			{
-				await handler.HandleImageLoggingAsync().CAF();
+				if (beforeMessage?.Embeds.Count() < message.Embeds.Count())
+				{
+					await handler.HandleImageLoggingAsync().CAF();
+					edited = true;
+				}
 			}
 			if (logInstanceInfo.HasServerLog)
 			{
 				var beforeMsgContent = (beforeMessage?.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
 				var afterMsgContent = (message.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
-				if (beforeMsgContent.Equals(afterMsgContent))
+				if (!beforeMsgContent.Equals(afterMsgContent))
 				{
-					return;
+					var embed = new AdvobotEmbed(null, null, Colors.MEDT)
+						.AddAuthor(message.Author)
+						.AddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
+						.AddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)
+						.AddFooter("Message Updated");
+					await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
+					edited = true;
 				}
+			}
 
-				var embed = new AdvobotEmbed(null, null, Colors.MEDT)
-					.AddAuthor(message.Author)
-					.AddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
-					.AddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)
-					.AddFooter("Message Updated");
-				await MessageActions.SendEmbedMessageAsync(logInstanceInfo.GuildSettings.ServerLog, embed).CAF();
+			if (edited)
+			{
+				_Logging.MessageEdits.Increment();
 			}
 		}
 		/// <summary>
@@ -89,8 +96,6 @@ namespace Advobot.Core.Services.Log.Loggers
 		/// <returns></returns>
 		public Task OnMessageDeleted(Cacheable<IMessage, ulong> cached, ISocketMessageChannel channel)
 		{
-			_Logging.MessageDeletes.Increment();
-
 			//Ignore uncached messages since not much can be done with them
 			var message = cached.HasValue ? cached.Value : null;
 			if (message == null)
@@ -109,6 +114,7 @@ namespace Advobot.Core.Services.Log.Loggers
 			lock (msgDeletion)
 			{
 				msgDeletion.AddToList(message);
+				_Logging.MessageDeletes.Increment();
 			}
 
 			//Use a token so the messages do not get sent prematurely

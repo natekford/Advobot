@@ -204,27 +204,22 @@ namespace Advobot.Core.Actions.Formatting
 		public static AdvobotEmbed FormatBotInfo(IBotSettings globalInfo, IDiscordClient client, ILogService logModule, IGuild guild)
 		{
 			var desc = new StringBuilder()
-				.AppendLineFeed($"**Online Since:** `{TimeFormatting.FormatReadableDateTime(Process.GetCurrentProcess().StartTime)}`")
-				.AppendLineFeed($"**Uptime:** `{TimeFormatting.FormatUptime()}`")
-				.AppendLineFeed($"**Guild Count:** `{logModule.TotalGuilds}`")
-				.AppendLineFeed($"**Cumulative Member Count:** `{logModule.TotalUsers}`")
-				.AppendLineFeed($"**Current Shard:** `{ClientActions.GetShardIdFor(client, guild)}`");
-
-			var firstField = new StringBuilder()
-				.AppendLineFeed(logModule.FormatLoggedActions());
-
-			var secondField = logModule.FormatLoggedCommands();
-
-			var thirdField = new StringBuilder()
+				.AppendLineFeed($"**Online Since:** `{TimeFormatting.FormatReadableDateTime(Process.GetCurrentProcess().StartTime)}` (`{TimeFormatting.FormatUptime()}`)")
+				.AppendLineFeed($"**Guild/User Count:** `{logModule.TotalGuilds.Count}`/`{logModule.TotalUsers.Count}`")
+				.AppendLineFeed($"**Current Shard:** `{ClientActions.GetShardIdFor(client, guild)}`")
 				.AppendLineFeed($"**Latency:** `{ClientActions.GetLatency(client)}ms`")
 				.AppendLineFeed($"**Memory Usage:** `{GetActions.GetMemory().ToString("0.00")}MB`")
 				.AppendLineFeed($"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`");
 
+			var firstField = logModule.FormatLoggedUserActions(false).Trim('\n', '\r');
+			var secondField = logModule.FormatLoggedMessageActions(false).Trim('\n', '\r');
+			var thirdField = logModule.FormatLoggedCommands(false).Trim('\n', '\r');
+
 			return new AdvobotEmbed(null, desc.ToString())
 				.AddAuthor(client.CurrentUser)
-				.AddField("Logged Actions", firstField.ToString())
-				.AddField("Commands", secondField.ToString())
-				.AddField("Technical", thirdField.ToString())
+				.AddField("Users", firstField)
+				.AddField("Messages", secondField)
+				.AddField("Commands", thirdField)
 				.AddFooter($"Version {Constants.BOT_VERSION}");
 		}
 	}

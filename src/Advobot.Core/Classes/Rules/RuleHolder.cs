@@ -1,6 +1,7 @@
 ﻿using Advobot.Core.Actions.Formatting;
 using Advobot.Core.Interfaces;
 using Discord.WebSocket;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,8 +9,10 @@ namespace Advobot.Core.Classes.Rules
 {
 	public class RuleHolder : ISetting
 	{
-		public IReadOnlyList<RuleCategory> Categories => _Categories.AsReadOnly();
+		[JsonProperty("Categories")]
 		private List<RuleCategory> _Categories = new List<RuleCategory>();
+		[JsonIgnore]
+		public IReadOnlyList<RuleCategory> Categories => _Categories.AsReadOnly();
 
 		public void AddCategory(RuleCategory category)
 		{

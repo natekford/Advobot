@@ -9,7 +9,9 @@ using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -322,7 +324,7 @@ namespace Advobot.Commands.Miscellaneous
 	}
 
 	[Group(nameof(DisplayGuilds)), TopLevelShortAlias(typeof(DisplayGuilds))]
-	[Summary("Lists the name, ID, owner, and owner's ID of every guild the bot is on.")]
+	[Summary("Lists the name, id, and owner of every guild the bot is on.")]
 	[OtherRequirement(Precondition.BotOwner)]
 	[DefaultEnabled(true)]
 	public sealed class DisplayGuilds : AdvobotModuleBase
@@ -533,7 +535,7 @@ namespace Advobot.Commands.Miscellaneous
 	[DefaultEnabled(true)]
 	public sealed class GetEnumNames : AdvobotModuleBase
 	{
-		private static IEnumerable<Type> _Enums;
+		private static ImmutableList<Type> _Enums = SetEnums();
 
 		[Command(nameof(Show)), ShortAlias(nameof(Show))]
 		public async Task Show()
@@ -548,10 +550,12 @@ namespace Advobot.Commands.Miscellaneous
 			if (!matchingNames.Any())
 			{
 				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"No enum has the name `{enumName}`."));
+				return;
 			}
 			else if (matchingNames.Count() > 1)
 			{
 				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"Too many enums have the name `{enumName}`."));
+				return;
 			}
 
 			var e = matchingNames.Single();
@@ -559,9 +563,11 @@ namespace Advobot.Commands.Miscellaneous
 			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(e.Name, desc));
 		}
 
-		public static void SetEnums(CommandService cs)
+		public static ImmutableList<Type> SetEnums()
 		{
-			_Enums = cs.Commands.SelectMany(x => x.Parameters).Select(x => x.Type).Where(x => x.IsEnum).Distinct();
+			var discEnums = Assembly.GetAssembly(typeof(CommandService)).GetTypes().Where(x => x.IsEnum);
+			var advoEnums = Assembly.GetAssembly(typeof(AdvobotModuleBase)).GetTypes().Where(x => x.IsEnum);
+			return discEnums.Concat(advoEnums).Distinct().Where(x => x.Name != null).ToImmutableList();
 		}
 	}
 

@@ -233,8 +233,7 @@ namespace Advobot.Core.Enums
 	[Flags]
 	public enum FormatOptions : uint
 	{
-		ExtraSpaces             = (1U << 0),
-		NumbersSameLength       = (1U << 1),
-		ExtraLines              = (1U << 2),
+		NumbersSameLength       = (1U << 0),
+		ExtraLines              = (1U << 1),
 	}
 }
