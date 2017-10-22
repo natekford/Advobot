@@ -84,7 +84,7 @@ namespace Advobot.Core.Actions
 			}
 
 			//Add in commands
-			await cmds.AddModulesAsync(CommandAssembly.COMMAND_ASSEMBLY).CAF();
+			await cmds.AddModulesAsync(Constants.COMMAND_ASSEMBLY).CAF();
 
 			return cmds;
 		}

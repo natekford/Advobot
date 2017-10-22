@@ -220,7 +220,7 @@ namespace Advobot.Core.Actions.Formatting
 				.AddField("Users", firstField)
 				.AddField("Messages", secondField)
 				.AddField("Commands", thirdField)
-				.AddFooter($"Version {Constants.BOT_VERSION}");
+				.AddFooter($"Versions [Bot: {Version.VersionNumber}] [API: {Constants.API_VERSION}]");
 		}
 	}
 }

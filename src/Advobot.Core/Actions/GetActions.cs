@@ -7,6 +7,7 @@ using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,39 @@ namespace Advobot.Core.Actions
 {
 	public static class GetActions
 	{
+		/// <summary>
+		/// Returns the assembly in the appdomain which is marked with <see cref="CommandAssemblyAttribute"/.>
+		/// </summary>
+		/// <returns></returns>
+		public static Assembly GetCommandAssembly()
+		{
+			var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetCustomAttribute<CommandAssemblyAttribute>() != null);
+			if (!assemblies.Any())
+			{
+				ConsoleActions.WriteLine($"Unable to find any command assemblies. Press any key to close the program.");
+				Console.ReadKey();
+				throw new DllNotFoundException("Unable to find any command assemblies.");
+			}
+			else if (assemblies.Count() > 1)
+			{
+				ConsoleActions.WriteLine("Too many command assemblies found. Press any key to close the program.");
+				Console.ReadKey();
+				throw new InvalidOperationException("Too many command assemblies found.");
+			}
+
+			return assemblies.Single();
+		}
+		/// <summary>
+		/// Returns the fields in <see cref="Color"/> so colors can be gotten easily through name.
+		/// </summary>
+		/// <returns></returns>
+		public static ImmutableDictionary<string, Color> GetColorDictionary()
+		{
+			return typeof(Color).GetFields(BindingFlags.Public | BindingFlags.Static).ToDictionary(
+				x => x.Name,
+				x => (Color)x.GetValue(new Color()),
+				StringComparer.OrdinalIgnoreCase).ToImmutableDictionary();
+		}
 		/// <summary>
 		/// Returns all names of commands that are in specific category.
 		/// </summary>
@@ -35,6 +69,13 @@ namespace Advobot.Core.Actions
 		{
 			return i == 1 ? "" : "s";
 		}
+		/// <summary>
+		/// Returns the guild's prefix if one is set. Returns the bot prefix if not.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <returns></returns>
+		public static string GetPrefix(IAdvobotCommandContext context)
+			=> GetPrefix(context.BotSettings, context.GuildSettings);
 		/// <summary>
 		/// Returns the guild prefix if one is set. Returns the bot prefix if not.
 		/// </summary>
@@ -139,7 +180,7 @@ namespace Advobot.Core.Actions
 		/// <returns></returns>
 		public static DirectoryInfo GetBaseBotDirectory()
 		{
-			var path = Path.Combine(Config.Configuration[ConfigKeys.SavePath], $"{Constants.SERVER_FOLDER}_{Config.Configuration[ConfigKeys.BotId]}");
+			var path = Path.Combine(Config.Configuration[ConfigKey.SavePath], $"{Constants.SERVER_FOLDER}_{Config.Configuration[ConfigKey.BotId]}");
 			return Directory.CreateDirectory(path);
 		}
 		/// <summary>

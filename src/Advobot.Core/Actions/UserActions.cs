@@ -67,7 +67,7 @@ namespace Advobot.Core.Actions
 		/// <returns></returns>
 		public static bool GetIfCanModifyUser(this IUser invokingUser, IUser target)
 		{
-			if (target.Id == invokingUser.Id && invokingUser.Id.ToString() == Config.Configuration[ConfigKeys.BotId])
+			if (target.Id == invokingUser.Id && invokingUser.Id.ToString() == Config.Configuration[ConfigKey.BotId])
 			{
 				return true;
 			}

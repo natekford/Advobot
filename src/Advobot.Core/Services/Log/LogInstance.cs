@@ -59,7 +59,7 @@ namespace Advobot.Core.Services.Log
 		{
 			HasServerLog = GuildSettings?.ServerLog != null;
 			HasImageLog = GuildSettings?.ImageLog != null;
-			_IsFromThisBot = (User?.Id ?? 0).ToString() == Config.Configuration[ConfigKeys.BotId];
+			_IsFromThisBot = (User?.Id ?? 0).ToString() == Config.Configuration[ConfigKey.BotId];
 			_IsFromOtherBot = !_IsFromThisBot && (User?.IsBot ?? false);
 			_IsFromWebhook = User?.IsWebhook ?? false;
 			_IsOnIgnoredChannel = GuildSettings != null && GuildSettings.IgnoredLogChannels.Contains(Channel?.Id ?? 0);

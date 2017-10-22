@@ -5,10 +5,20 @@
 // the next time this code is regenerated.
 
 using System.Reflection;
+using Advobot.Core;
 
-[assembly: System.Reflection.AssemblyVersionAttribute("<#= HelpClass.CreateVersion() #>")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("<#= HelpClass.CreateVersion() #>")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("<#= HelpClass.CreateVersion() #>")]
+[assembly: AssemblyVersion(Version.VersionNumber)]
+[assembly: AssemblyFileVersion(Version.VersionNumber)]
+[assembly: AssemblyInformationalVersion(Version.VersionNumber)]
+
+namespace Advobot.Core
+{
+	internal static class Version
+	{
+		//To make sure every attribute has the same version number.
+		public const string VersionNumber = "<#= HelpClass.CreateVersion() #>";
+	}
+}
 <#+
 public static class HelpClass
 {

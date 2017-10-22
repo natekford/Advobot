@@ -146,7 +146,7 @@ namespace Advobot.Core.Actions
 			var text = String.Join("\n", inputList).RemoveDuplicateNewLines();
 			if (inputList.Count() <= 5 && text.Length < Constants.MAX_MESSAGE_LENGTH_LONG)
 			{
-				var embed = new AdvobotEmbed("Deleted Messages", text, Colors.MDEL)
+				var embed = new AdvobotEmbed("Deleted Messages", text, Constants.MDEL)
 					.AddFooter("Deleted Messages");
 				return await SendEmbedMessageAsync(channel, embed).CAF();
 			}

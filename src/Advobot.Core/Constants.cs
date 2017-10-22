@@ -1,5 +1,7 @@
-﻿using Advobot.Core.Classes;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Classes;
 using Advobot.Core.Classes.Settings;
+using Discord;
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
@@ -48,9 +50,7 @@ namespace Advobot
 		public const int MAX_FIELD_VALUE_LENGTH = 1024;
 
 		//Static because they may change and I've heard using const means any assembly referencing it has to be recompiled each time the value gets manually changed.
-		//Look at AssemblyVersion.tt if you want to change Major/Minor or if you want to know why it's not updating
-		public static string BOT_VERSION => Assembly.GetAssembly(typeof(Constants)).GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-		public static string API_VERSION => "Discord.Net v2.0.0-alpha-build-00838";
+		public static string API_VERSION => Assembly.GetAssembly(typeof(Discord.IDiscordClient)).GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
 		public static string PROGRAM_NAME => "Advobot";
 		public static string IGNORE_ERROR => "Cx";
 		public static string DISCORD_INV => "https://discord.gg/MBXypxb"; //Switched from /xd to this invite since no matter what this inv will link to my server and never someone else's server
@@ -110,6 +110,19 @@ namespace Advobot
 		}));
 		private static HelpEntryHolder _HELP;
 		public static HelpEntryHolder HELP_ENTRIES => _HELP ?? (_HELP = new HelpEntryHolder());
+		private static Assembly _CMD_ASSEMBLY;
+		public static Assembly COMMAND_ASSEMBLY => _CMD_ASSEMBLY ?? (_CMD_ASSEMBLY = GetActions.GetCommandAssembly());
+		private static ImmutableDictionary<string, Color> _COLORS;
+		public static ImmutableDictionary<string, Color> COLORS => _COLORS ?? (_COLORS = GetActions.GetColorDictionary());
+
+		//Colors for logging embeds
+		public static Color BASE => new Color(255, 100, 000);
+		public static Color JOIN => new Color(000, 255, 000);
+		public static Color LEAV => new Color(255, 000, 000);
+		public static Color UEDT => new Color(051, 051, 255);
+		public static Color ATCH => new Color(000, 204, 204);
+		public static Color MEDT => new Color(000, 000, 255);
+		public static Color MDEL => new Color(255, 051, 051);
 
 		//Redefine these to whatever type you want for guild settings and global settings (they must inherit their respective setting interfaces)
 		public static Type GUILD_SETTINGS_TYPE { get; } = typeof(GuildSettings); //IGuildSettings

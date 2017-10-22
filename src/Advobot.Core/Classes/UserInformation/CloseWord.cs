@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Advobot.Core.Classes.UserInformation;
 using Discord;
+using System.Collections.Immutable;
 
 namespace Advobot.Core.Classes
 {
@@ -13,11 +14,11 @@ namespace Advobot.Core.Classes
 	/// <typeparam name="T"></typeparam>
 	public class CloseWords<T> : UserInfo where T : IDescription
 	{
-		public IReadOnlyCollection<CloseWord> List { get; }
+		public ImmutableList<CloseWord> List { get; }
 
 		public CloseWords(IGuildUser user, IEnumerable<T> suppliedObjects, string input) : base(user)
 		{
-			List = GetObjectsWithSimilarNames(suppliedObjects, input);
+			List = GetObjectsWithSimilarNames(suppliedObjects, input).ToImmutableList();
 			_Time = DateTime.UtcNow.AddSeconds(Constants.SECONDS_ACTIVE_CLOSE);
 		}
 

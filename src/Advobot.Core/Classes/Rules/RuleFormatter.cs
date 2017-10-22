@@ -50,15 +50,15 @@ namespace Advobot.Core.Classes.Rules
 			[CustomArgument] MarkDownFormat titleFormat = default,
 			[CustomArgument] MarkDownFormat ruleFormat = default,
 			[CustomArgument] char charAfterNumbers = '.',
-			[CustomArgument(10)] params FormatOptions[] formatOptions)
+			[CustomArgument(10)] params RuleFormatOption[] formatOptions)
 		{
 			_Format = format == default ? RuleFormat.Numbers : format;
 			_TitleFormat = titleFormat;
 			_RuleFormat = ruleFormat;
 			_CharAfterNumbers = charAfterNumbers;
 
-			_NumbersSameLength = formatOptions.Contains(FormatOptions.NumbersSameLength);
-			_ExtraLines = formatOptions.Contains(FormatOptions.ExtraLines);
+			_NumbersSameLength = formatOptions.Contains(RuleFormatOption.NumbersSameLength);
+			_ExtraLines = formatOptions.Contains(RuleFormatOption.ExtraLines);
 		}
 
 		public void SetRulesAndCategories(RuleHolder rules)

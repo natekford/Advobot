@@ -63,7 +63,7 @@ namespace Advobot.Core.Classes
 				//Only allow primitives, enums, and string
 				if (!t.IsPrimitive && !t.IsEnum && t != typeof(string))
 				{
-					throw new ArgumentException($"Do not use {nameof(CustomArgumentAttribute)} on non primitive or enum arguments.");
+					throw new ArgumentException($"Do not use {nameof(CustomArgumentAttribute)} on anything other than primitives, enums, and strings.");
 				}
 				else if (p.GetCustomAttribute<ParamArrayAttribute>() != null)
 				{
@@ -142,11 +142,9 @@ namespace Advobot.Core.Classes
 					//Convert all from string to whatever type they need to be
 					//NEEDS TO BE AN ARRAY SINCE PARAMS IS AN ARRAY!
 					var convertedArgs = _ParamArgs.Select(x => ConvertValue(t, x)).ToArray();
-					return convertedArgs.Any()
-						? convertedArgs
-						//Have to use this method otherwise create instance throws exception
-						//because this will send object[] instead of T[]
-						: Array.CreateInstance(t, 0);
+					//Have to use this method otherwise create instance throws exception
+					//because this will send object[] instead of T[] when empty
+					return convertedArgs.Any() ? convertedArgs : Array.CreateInstance(t, 0);
 				}
 				//Checking against the attribute again in case arguments have duplicate names
 				else if (p.GetCustomAttribute<CustomArgumentAttribute>() != null && _Args.TryGetValue(p.Name, out var arg))

@@ -100,7 +100,7 @@ namespace Advobot.Core.Services.Log
 				if (Constants.VALID_IMAGE_EXTENSIONS.CaseInsContains(Path.GetExtension(attachmentURL))) //Image
 				{
 					_Logging.Images.Increment();
-					var embed = new AdvobotEmbed(null, desc, Colors.ATCH, attachmentURL)
+					var embed = new AdvobotEmbed(null, desc, Constants.ATCH, attachmentURL)
 						.AddAuthor(_LogInstance.User, attachmentURL)
 						.AddFooter("Attached Image");
 					await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
@@ -108,7 +108,7 @@ namespace Advobot.Core.Services.Log
 				else if (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(attachmentURL))) //Gif
 				{
 					_Logging.Gifs.Increment();
-					var embed = new AdvobotEmbed(null, desc, Colors.ATCH, attachmentURL)
+					var embed = new AdvobotEmbed(null, desc, Constants.ATCH, attachmentURL)
 						.AddAuthor(_LogInstance.User, attachmentURL)
 						.AddFooter("Attached Gif");
 					await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
@@ -116,7 +116,7 @@ namespace Advobot.Core.Services.Log
 				else //Random file
 				{
 					_Logging.Files.Increment();
-					var embed = new AdvobotEmbed(null, desc, Colors.ATCH, attachmentURL)
+					var embed = new AdvobotEmbed(null, desc, Constants.ATCH, attachmentURL)
 						.AddAuthor(_LogInstance.User, attachmentURL)
 						.AddFooter("Attached File");
 					await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
@@ -125,7 +125,7 @@ namespace Advobot.Core.Services.Log
 			foreach (var embedURL in embedURLs.Distinct()) //Images
 			{
 				_Logging.Images.Increment();
-				var embed = new AdvobotEmbed(null, desc, Colors.ATCH, embedURL)
+				var embed = new AdvobotEmbed(null, desc, Constants.ATCH, embedURL)
 					.AddAuthor(_LogInstance.User, embedURL)
 					.AddFooter("Embedded Image");
 				await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();
@@ -133,7 +133,7 @@ namespace Advobot.Core.Services.Log
 			foreach (var videoEmbed in videoEmbeds.GroupBy(x => x.Url).Select(x => x.First())) //Videos/Gifs
 			{
 				_Logging.Gifs.Increment();
-				var embed = new AdvobotEmbed(null, desc, Colors.ATCH, videoEmbed.Thumbnail?.Url)
+				var embed = new AdvobotEmbed(null, desc, Constants.ATCH, videoEmbed.Thumbnail?.Url)
 					.AddAuthor(_LogInstance.User, videoEmbed.Url)
 					.AddFooter("Embedded " + (Constants.VALID_GIF_EXTENTIONS.CaseInsContains(Path.GetExtension(videoEmbed.Thumbnail?.Url)) ? "Gif" : "Video"));
 				await MessageActions.SendEmbedMessageAsync(_LogInstance.GuildSettings.ImageLog, embed).CAF();

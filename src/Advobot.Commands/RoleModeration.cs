@@ -272,7 +272,7 @@ namespace Advobot.Commands.RoleModeration
 		{
 			if (role == null)
 			{
-				var desc = $"`{String.Join("`, `", Colors.COLORS.Keys)}`";
+				var desc = $"`{String.Join("`, `", Constants.COLORS.Keys)}`";
 				await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Colors", desc)).CAF();
 				return;
 			}

@@ -93,7 +93,7 @@ namespace Advobot.Commands.Rules
 	[Summary("Prints out the rules with given formatting options. " +
 		"`Format` uses the `" + nameof(RuleFormat) + "` enum. " +
 		"`TitleFormat` and `RuleFormat` use the `" + nameof(MarkDownFormat) + "` enum. " +
-		"`FormatOptions` use the `" + nameof(FormatOptions) + "` enum.")]
+		"`FormatOptions` use the `" + nameof(RuleFormatOption) + "` enum.")]
 	[OtherRequirement(Precondition.UserHasAPerm)]
 	[DefaultEnabled(false)]
 	public sealed class PrintOutRules : AdvobotModuleBase

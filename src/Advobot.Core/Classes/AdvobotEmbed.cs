@@ -18,7 +18,7 @@ namespace Advobot.Core.Classes
 			url = GetActions.GetIfStringIsValidUrl(url) ? url : null;
 			thumbnailUrl = GetActions.GetIfStringIsValidUrl(thumbnailUrl) ? thumbnailUrl : null;
 
-			this.WithColor(Colors.BASE);
+			this.WithColor(Constants.BASE);
 			if (title != null)
 			{
 				this.WithTitle(title.Substring(0, Math.Min(Constants.MAX_TITLE_LENGTH, title.Length)));

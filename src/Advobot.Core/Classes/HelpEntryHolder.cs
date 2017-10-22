@@ -21,12 +21,12 @@ namespace Advobot.Core.Classes
 
 		public HelpEntryHolder()
 		{
-			var types = CommandAssembly.COMMAND_ASSEMBLY.GetTypes().Where(x => x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null);
+			var types = Constants.COMMAND_ASSEMBLY.GetTypes().Where(x => x.IsSubclassOf(typeof(AdvobotModuleBase)) && x.GetCustomAttribute<GroupAttribute>() != null);
 			if (!types.Any())
 			{
-				ConsoleActions.WriteLine($"The assembly {CommandAssembly.COMMAND_ASSEMBLY.GetName().Name} has no commands. Press any key to close the program.");
+				ConsoleActions.WriteLine($"The assembly {Constants.COMMAND_ASSEMBLY.GetName().Name} has no commands. Press any key to close the program.");
 				Console.ReadKey();
-				throw new TypeLoadException($"The assembly {CommandAssembly.COMMAND_ASSEMBLY.GetName().Name} has no commands.");
+				throw new TypeLoadException($"The assembly {Constants.COMMAND_ASSEMBLY.GetName().Name} has no commands.");
 			}
 
 			var temp = new List<HelpEntry>();

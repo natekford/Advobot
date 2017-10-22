@@ -2,7 +2,17 @@
 // the next time this code is regenerated.
 
 using System.Reflection;
+using Advobot.Core;
 
-[assembly: System.Reflection.AssemblyVersionAttribute("1.1.6503.16976")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("1.1.6503.16976")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.1.6503.16976")]
+[assembly: AssemblyVersion(Version.VersionNumber)]
+[assembly: AssemblyFileVersion(Version.VersionNumber)]
+[assembly: AssemblyInformationalVersion(Version.VersionNumber)]
+
+namespace Advobot.Core
+{
+	internal static class Version
+	{
+		//To make sure every attribute has the same version number.
+		public const string VersionNumber = "1.1.6504.6901";
+	}
+}

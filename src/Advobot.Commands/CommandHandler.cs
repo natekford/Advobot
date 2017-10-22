@@ -11,9 +11,12 @@ using System.Linq;
 using System.Threading.Tasks;
 
 [assembly: CommandAssembly]
+//Something has to be referenced in this assembly so that the attribute
+//gets picked up and can then be used to get the commands out of this
+//assembly, so that's why the commandhandler is in here and not in core.
 namespace Advobot.Commands
 {
-	public class CommandHandler
+	public static class CommandHandler
 	{
 		private static IServiceProvider _Provider;
 		private static CommandService _Commands;
@@ -30,6 +33,11 @@ namespace Advobot.Commands
 		/// <param name="provider"></param>
 		public static IDiscordClient Install(IServiceProvider provider)
 		{
+			if (_Loaded)
+			{
+				return _Client;
+			}
+
 			_Provider = provider;
 			_Commands = _Provider.GetRequiredService<CommandService>();
 			_BotSettings = _Provider.GetRequiredService<IBotSettings>();
@@ -72,15 +80,15 @@ namespace Advobot.Commands
 		}
 		private static async Task OnUserJoined(SocketGuildUser user)
 		{
-			await EventActions.OnUserJoined(user, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
+			await EventActions.OnUserJoined(user, _BotSettings, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
 		}
 		private static async Task OnUserLeft(SocketGuildUser user)
 		{
-			await EventActions.OnUserLeft(user, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
+			await EventActions.OnUserLeft(user, _BotSettings, await _GuildSettings.GetOrCreateSettings(user.Guild), _Timers).CAF();
 		}
 		private static async Task OnMessageReceived(SocketMessage message)
 		{
-			await EventActions.OnMessageReceived(message, _Timers).CAF();
+			await EventActions.OnMessageReceived(message, _BotSettings, await _GuildSettings.GetOrCreateSettings(message.GetGuild()), _Timers).CAF();
 		}
 
 		private static async Task HandleCommand(SocketMessage message)
@@ -114,3 +122,4 @@ namespace Advobot.Commands
 		}
 	}
 }
+

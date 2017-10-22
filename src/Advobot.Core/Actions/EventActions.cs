@@ -22,9 +22,9 @@ namespace Advobot.Core.Actions
 		/// <returns></returns>
 		public static async Task OnConnected(IDiscordClient client, IBotSettings botSettings)
 		{
-			if (Config.Configuration[ConfigKeys.BotId] != client.CurrentUser.Id.ToString())
+			if (Config.Configuration[ConfigKey.BotId] != client.CurrentUser.Id.ToString())
 			{
-				Config.Configuration[ConfigKeys.BotId] = client.CurrentUser.Id.ToString();
+				Config.Configuration[ConfigKey.BotId] = client.CurrentUser.Id.ToString();
 				Config.Save();
 				ConsoleActions.WriteLine("The bot needs to be restarted in order for the config to be loaded correctly.");
 				ClientActions.RestartBot();
@@ -32,7 +32,7 @@ namespace Advobot.Core.Actions
 
 			await ClientActions.UpdateGameAsync(client, botSettings).CAF();
 
-			ConsoleActions.WriteLine($"Current version: {Constants.BOT_VERSION}");
+			ConsoleActions.WriteLine($"Current version: {Version.VersionNumber}");
 			ConsoleActions.WriteLine($"Current bot prefix is: {botSettings.Prefix}");
 			var startTime = DateTime.UtcNow.Subtract(Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalMilliseconds;
 			ConsoleActions.WriteLine($"Bot took {startTime:n} milliseconds to start up.");
@@ -44,7 +44,7 @@ namespace Advobot.Core.Actions
 		/// <param name="settings"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public static async Task OnUserJoined(SocketGuildUser user, IGuildSettings settings, ITimersService timers)
+		public static async Task OnUserJoined(SocketGuildUser user, IBotSettings botSettings, IGuildSettings settings, ITimersService timers)
 		{
 			if (settings == null)
 			{
@@ -94,10 +94,10 @@ namespace Advobot.Core.Actions
 		/// <param name="settings"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public static async Task OnUserLeft(SocketGuildUser user, IGuildSettings settings, ITimersService timers)
+		public static async Task OnUserLeft(SocketGuildUser user, IBotSettings botSettings, IGuildSettings settings, ITimersService timers)
 		{
 			//Check if the bot was the one that left
-			if (settings == null || user.Id.ToString() == Config.Configuration[ConfigKeys.BotId])
+			if (settings == null || user.Id.ToString() == Config.Configuration[ConfigKey.BotId])
 			{
 				return;
 			}
@@ -114,7 +114,7 @@ namespace Advobot.Core.Actions
 		/// <param name="message"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public static async Task OnMessageReceived(SocketMessage message, ITimersService timers)
+		public static async Task OnMessageReceived(SocketMessage message, IBotSettings botSettings, IGuildSettings settings, ITimersService timers)
 		{
 			if (timers != null && int.TryParse(message.Content, out int number) && number > 0 && number < 7)
 			{
@@ -132,7 +132,9 @@ namespace Advobot.Core.Actions
 				if (validHelpEntry)
 				{
 					var help = helpEntries.List.ElementAt(number).Word;
-					var embed = new AdvobotEmbed(help.Name, help.ToString())
+					var prefix = GetActions.GetPrefix(botSettings, settings);
+					var desc = help.ToString().Replace(Constants.PLACEHOLDER_PREFIX, prefix);
+					var embed = new AdvobotEmbed(help.Name, desc)
 						.AddFooter("Help");
 					await MessageActions.SendEmbedMessageAsync(message.Channel, embed).CAF();
 				}

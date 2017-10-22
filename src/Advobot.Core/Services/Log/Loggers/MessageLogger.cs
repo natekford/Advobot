@@ -73,7 +73,7 @@ namespace Advobot.Core.Services.Log.Loggers
 				var afterMsgContent = (message.Content ?? "Empty or unable to be gotten.").RemoveAllMarkdown().RemoveDuplicateNewLines();
 				if (!beforeMsgContent.Equals(afterMsgContent))
 				{
-					var embed = new AdvobotEmbed(null, null, Colors.MEDT)
+					var embed = new AdvobotEmbed(null, null, Constants.MEDT)
 						.AddAuthor(message.Author)
 						.AddField("Before:", $"`{(beforeMsgContent.Length > 750 ? "Long message" : beforeMsgContent)}`")
 						.AddField("After:", $"`{(afterMsgContent.Length > 750 ? "Long message" : afterMsgContent)}`", false)

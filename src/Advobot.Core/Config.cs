@@ -33,7 +33,7 @@ namespace Advobot
 		/// <returns></returns>
 		public static bool ValidatePath(string input, bool startup)
 		{
-			var path = input ?? Configuration[ConfigKeys.SavePath];
+			var path = input ?? Configuration[ConfigKey.SavePath];
 
 			if (startup)
 			{
@@ -54,7 +54,7 @@ namespace Advobot
 			if (Directory.Exists(path))
 			{
 				ConsoleActions.WriteLine("Successfully set the save path as " + path);
-				Configuration[ConfigKeys.SavePath] = path;
+				Configuration[ConfigKey.SavePath] = path;
 				Save();
 				return true;
 			}
@@ -71,7 +71,7 @@ namespace Advobot
 		/// <returns>A boolean signifying whether the login was successful or not.</returns>
 		public static async Task<bool> ValidateBotKey(IDiscordClient client, string input, bool startup)
 		{
-			var key = input ?? Configuration[ConfigKeys.BotKey];
+			var key = input ?? Configuration[ConfigKey.BotKey];
 
 			if (startup)
 			{
@@ -98,7 +98,7 @@ namespace Advobot
 				await ClientActions.LoginAsync(client, key).CAF();
 
 				ConsoleActions.WriteLine("Succesfully logged in via the given bot key.");
-				Configuration[ConfigKeys.BotKey] = key;
+				Configuration[ConfigKey.BotKey] = key;
 				Save();
 				return true;
 			}
@@ -160,15 +160,15 @@ namespace Advobot
 		public class ConfigDict
 		{
 			[JsonProperty("Config")]
-			private Dictionary<ConfigKeys, string> _ConfigDict = new Dictionary<ConfigKeys, string>
+			private Dictionary<ConfigKey, string> _ConfigDict = new Dictionary<ConfigKey, string>
 			{
-				{ ConfigKeys.SavePath, null },
-				{ ConfigKeys.BotKey, null },
-				{ ConfigKeys.BotId, "0" },
+				{ ConfigKey.SavePath, null },
+				{ ConfigKey.BotKey, null },
+				{ ConfigKey.BotId, "0" },
 			};
 
 			[JsonIgnore]
-			public string this[ConfigKeys key]
+			public string this[ConfigKey key]
 			{
 				get => _ConfigDict[key];
 				set => _ConfigDict[key] = value;
