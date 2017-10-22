@@ -1,12 +1,10 @@
 ﻿using Advobot.Core.Actions;
-using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Enums;
-using Advobot.UILauncher.Properties;
-using Advobot.Core.Services.Log;
 using Discord;
 using ICSharpCode.AvalonEdit;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,8 +17,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Microsoft.Extensions.DependencyInjection;
-using Advobot.Core.Actions.Formatting;
 
 namespace Advobot.UILauncher.Classes
 {
