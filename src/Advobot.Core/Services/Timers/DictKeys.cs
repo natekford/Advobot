@@ -4,7 +4,7 @@ using Discord;
 
 namespace Advobot.Core.Services.Timers
 {
-	public class DictKey
+	internal class DictKey
 	{
 		public readonly long Ticks;
 
@@ -14,7 +14,7 @@ namespace Advobot.Core.Services.Timers
 		}
 	}
 
-	public class UserKey : DictKey
+	internal sealed class UserKey : DictKey
 	{
 		public readonly ulong GuildId;
 		public readonly ulong UserId;
@@ -37,7 +37,7 @@ namespace Advobot.Core.Services.Timers
 		}
 	}
 
-	public class ChannelKey : DictKey
+	internal sealed class ChannelKey : DictKey
 	{
 		public readonly ulong GuildId;
 		public readonly ulong ChannelId;

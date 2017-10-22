@@ -51,8 +51,8 @@ namespace Advobot.Core.Services.Timers
 			_HalfSecondTimer.Elapsed += (sender, e) =>
 			{
 				Task.Run(async () => await DeleteTargettedMessagesAsync().CAF());
-				Task.Run(() => RemoveActiveCloseHelp());
-				Task.Run(() => RemoveActiveCloseQuotes());
+				Task.Run(async () => await RemoveActiveCloseHelp().CAF());
+				Task.Run(async () => await RemoveActiveCloseQuotes().CAF());
 				Task.Run(() => RemoveSlowmodeUsers());
 			};
 			_HalfSecondTimer.Enabled = true;
