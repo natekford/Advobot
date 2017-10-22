@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <GenerateAssemblyVersion>false</GenerateAssemblyVersion>
+    <GenerateAssemblyFileVersion>false</GenerateAssemblyFileVersion>
+	<GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Advorange</Authors>
+    <Company>Advorange</Company>
+    <Product>Advobot Core</Product>
+    <Description>The core of Advobot. Classes, interfaces, and actions.</Description>
+    <Copyright>Copyright © 2017</Copyright>
+    <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
+    <NeutralLanguage>English</NeutralLanguage>
+    <Version>1.0.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <ShouldCreateLogs>True</ShouldCreateLogs>
+    <AdvancedSettingsExpanded>True</AdvancedSettingsExpanded>
+    <UpdateAssemblyVersion>True</UpdateAssemblyVersion>
+    <UpdateAssemblyFileVersion>True</UpdateAssemblyFileVersion>
+    <UpdateAssemblyInfoVersion>True</UpdateAssemblyInfoVersion>
+    <AssemblyFileVersionSettings>DayStamp.DayStamp.DeltaDayStamp.DayStamp</AssemblyFileVersionSettings>
+    <AssemblyInfoVersionSettings>DayStamp.DayStamp.DeltaDayStamp.DayStamp</AssemblyInfoVersionSettings>
+    <AssemblyVersionSettings>DayStamp.DayStamp.DeltaDayStamp.DayStamp</AssemblyVersionSettings>
+    <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="2.0.0-alpha-build-00839" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="AssemblyVersion.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AssemblyVersion.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="AssemblyVersion.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <OutputFileName>AssemblyVersion.cs</OutputFileName>  
+      <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+</Project>

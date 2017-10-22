@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Advorange</Authors>
+    <Company>Advorange</Company>
+    <Product>Advobot Commands</Product>
+    <Description>The commands that Advobot uses.</Description>
+    <Copyright>Copyright © 2017</Copyright>
+    <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
+    <NeutralLanguage>English</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="2.0.0-alpha-build-00839" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Advobot.Core\Advobot.Core.csproj" />
+  </ItemGroup>
+
+</Project>

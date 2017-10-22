@@ -1,27 +1,23 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.12
+VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvobotCore", "Advobot_Core\AdvobotCore.csproj", "{570FEFD6-E50E-4A26-974C-75D9F99004C4}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E276056E-5A61-45A7-8D86-BE4A4900C1F2}"
 	ProjectSection(SolutionItems) = preProject
-		OTHERREADME.txt = OTHERREADME.txt
+		LICENSE.txt = LICENSE.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvobotUI", "Advobot_UI\AdvobotUI.csproj", "{670C1567-E3CD-43DA-9C1C-99FB253C5A44}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.ConsoleLauncher", "src\Advobot.ConsoleLauncher\Advobot.ConsoleLauncher.csproj", "{8C84976D-92F8-43D8-BB29-B97ECAF5DB41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvobotLauncherUI", "Advobot_Launcher_UI\AdvobotLauncherUI.csproj", "{D54A2DD1-7E4F-4B8E-80AF-9FB981AD0A39}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Core", "src\Advobot.Core\Advobot.Core.csproj", "{8C3632B5-6172-4D77-9044-345A64C205A0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Commands", "src\Advobot.Commands\Advobot.Commands.csproj", "{E4D6F259-4E58-460A-8572-8E04859D2AEB}"
 	ProjectSection(ProjectDependencies) = postProject
-		{670C1567-E3CD-43DA-9C1C-99FB253C5A44} = {670C1567-E3CD-43DA-9C1C-99FB253C5A44}
-		{570FEFD6-E50E-4A26-974C-75D9F99004C4} = {570FEFD6-E50E-4A26-974C-75D9F99004C4}
+		{8C3632B5-6172-4D77-9044-345A64C205A0} = {8C3632B5-6172-4D77-9044-345A64C205A0}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvobotLauncherConsole", "Advobot_Launcher_Console\AdvobotLauncherConsole.csproj", "{C3335293-5A51-4D1C-953F-CDB3DFC30BCD}"
-	ProjectSection(ProjectDependencies) = postProject
-		{570FEFD6-E50E-4A26-974C-75D9F99004C4} = {570FEFD6-E50E-4A26-974C-75D9F99004C4}
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot.UILauncher", "src\Advobot.UILauncher\Advobot.UILauncher.csproj", "{42791BB8-DC59-411A-A401-A5CCD47B98E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,24 +25,34 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{570FEFD6-E50E-4A26-974C-75D9F99004C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{570FEFD6-E50E-4A26-974C-75D9F99004C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{570FEFD6-E50E-4A26-974C-75D9F99004C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{570FEFD6-E50E-4A26-974C-75D9F99004C4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{670C1567-E3CD-43DA-9C1C-99FB253C5A44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{670C1567-E3CD-43DA-9C1C-99FB253C5A44}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{670C1567-E3CD-43DA-9C1C-99FB253C5A44}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{670C1567-E3CD-43DA-9C1C-99FB253C5A44}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D54A2DD1-7E4F-4B8E-80AF-9FB981AD0A39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D54A2DD1-7E4F-4B8E-80AF-9FB981AD0A39}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D54A2DD1-7E4F-4B8E-80AF-9FB981AD0A39}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D54A2DD1-7E4F-4B8E-80AF-9FB981AD0A39}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C3335293-5A51-4D1C-953F-CDB3DFC30BCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C3335293-5A51-4D1C-953F-CDB3DFC30BCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C3335293-5A51-4D1C-953F-CDB3DFC30BCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C3335293-5A51-4D1C-953F-CDB3DFC30BCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C84976D-92F8-43D8-BB29-B97ECAF5DB41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C84976D-92F8-43D8-BB29-B97ECAF5DB41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C84976D-92F8-43D8-BB29-B97ECAF5DB41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C84976D-92F8-43D8-BB29-B97ECAF5DB41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C3632B5-6172-4D77-9044-345A64C205A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C3632B5-6172-4D77-9044-345A64C205A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C3632B5-6172-4D77-9044-345A64C205A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C3632B5-6172-4D77-9044-345A64C205A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4D6F259-4E58-460A-8572-8E04859D2AEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4D6F259-4E58-460A-8572-8E04859D2AEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4D6F259-4E58-460A-8572-8E04859D2AEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4D6F259-4E58-460A-8572-8E04859D2AEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42791BB8-DC59-411A-A401-A5CCD47B98E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42791BB8-DC59-411A-A401-A5CCD47B98E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42791BB8-DC59-411A-A401-A5CCD47B98E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42791BB8-DC59-411A-A401-A5CCD47B98E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		BuildVersion_BuildVersioningStyle = None.None.Increment.None
+		BuildVersion_UseUniversalClock = True
+		BuildVersion_UseGlobalSettings = False
+		BuildVersion_AssemblyInfoFilename = src\Advobot.Core\obj\Debug\netstandard2.0\Advobot.Core.AssemblyInfo.cs
+		BuildVersion_StartDate = 2000/1/1
+		BuildVersion_UpdateFileVersion = True
+		BuildVersion_UpdateAssemblyVersion = True
+		SolutionGuid = {4DFA053C-9378-4F41-B1C1-6DE68D9CF75D}
 	EndGlobalSection
 EndGlobal
