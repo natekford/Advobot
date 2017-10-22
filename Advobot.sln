@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Commands", "src\Adv
 		{8C3632B5-6172-4D77-9044-345A64C205A0} = {8C3632B5-6172-4D77-9044-345A64C205A0}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot.UILauncher", "Advobot.UILauncher\Advobot.UILauncher.csproj", "{42791BB8-DC59-411A-A401-A5CCD47B98E1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot.UILauncher", "src\Advobot.UILauncher\Advobot.UILauncher.csproj", "{42791BB8-DC59-411A-A401-A5CCD47B98E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
