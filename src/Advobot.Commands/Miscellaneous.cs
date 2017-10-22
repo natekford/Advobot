@@ -2,6 +2,7 @@
 using Advobot.Core.Actions.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.CloseWords;
 using Advobot.Core.Enums;
 using Discord;
 using Discord.Commands;
@@ -56,13 +57,12 @@ namespace Advobot.Commands.Miscellaneous
 				return;
 			}
 
-			var closeHelps = new CloseWords<HelpEntry>(Context.User as IGuildUser, Constants.HELP_ENTRIES.GetHelpEntries(), commandName);
+			var closeHelps = new CloseHelpEntries(Constants.HELP_ENTRIES.GetHelpEntries(), commandName);
 			if (closeHelps.List.Any())
 			{
-				Context.Timers.AddActiveCloseHelp(closeHelps);
-
-				var msg = "Did you mean any of the following:\n" + closeHelps.List.FormatNumberedList("{0}", x => x.Word.Name);
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, msg, Constants.SECONDS_ACTIVE_CLOSE).CAF();
+				var text = $"Did you mean any of the following:\n{closeHelps.List.FormatNumberedList("{0}", x => x.Word.Name)}";
+				var msg = await MessageActions.SendMessageAsync(Context.Channel, text).CAF();
+				await Context.Timers.AddActiveCloseHelp(Context.User as IGuildUser, msg, closeHelps).CAF();
 				return;
 			}
 

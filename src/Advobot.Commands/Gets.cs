@@ -225,8 +225,8 @@ namespace Advobot.Commands.Gets
 		[Command]
 		public async Task Command(uint position)
 		{
-			var users = (await Context.Guild.GetUsersAndOrderByJoinAsync().CAF()).ToArray();
-			var newPos = Math.Max(1, Math.Min(position, users.Length));
+			var users = await Context.Guild.GetUsersAndOrderByJoinAsync().CAF();
+			var newPos = Math.Max(1, Math.Min((int)position, users.Count));
 			var user = users[newPos - 1];
 			var time = TimeFormatting.FormatReadableDateTime(user.JoinedAt.Value.UtcDateTime);
 			var text = $"`{user.FormatUser()}` is `#{newPos}` to join the guild on `{time}`.";
@@ -387,7 +387,7 @@ namespace Advobot.Commands.Gets
 		public async Task Show()
 		{
 			var desc = $"`{String.Join("`, `", _Enums.Select(x => x.Name))}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Enums", desc));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed("Enums", desc)).CAF();
 		}
 		[Command]
 		public async Task Command(string enumName)
@@ -395,18 +395,18 @@ namespace Advobot.Commands.Gets
 			var matchingNames = _Enums.Where(x => x.Name.CaseInsEquals(enumName));
 			if (!matchingNames.Any())
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"No enum has the name `{enumName}`."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"No enum has the name `{enumName}`.")).CAF();
 				return;
 			}
 			else if (matchingNames.Count() > 1)
 			{
-				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"Too many enums have the name `{enumName}`."));
+				await MessageActions.SendErrorMessageAsync(Context, new ErrorReason($"Too many enums have the name `{enumName}`.")).CAF();
 				return;
 			}
 
 			var e = matchingNames.Single();
 			var desc = $"`{String.Join("`, `", Enum.GetNames(e))}`";
-			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(e.Name, desc));
+			await MessageActions.SendEmbedMessageAsync(Context.Channel, new AdvobotEmbed(e.Name, desc)).CAF();
 		}
 
 		public static ImmutableList<Type> SetEnums()

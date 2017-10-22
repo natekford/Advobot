@@ -14,14 +14,14 @@ namespace Advobot.Core.Actions
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static async Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(IGuild guild)
+		public static async Task<IReadOnlyList<IInviteMetadata>> GetInvitesAsync(IGuild guild)
 		{
 			if (!guild.GetBot().GuildPermissions.ManageGuild)
 			{
 				return new List<IInviteMetadata>();
 			}
 
-			return await guild.GetInvitesAsync().CAF();
+			return (await guild.GetInvitesAsync().CAF()).ToList().AsReadOnly();
 		}
 		/// <summary>
 		/// Tries to find the invite a user joined on.

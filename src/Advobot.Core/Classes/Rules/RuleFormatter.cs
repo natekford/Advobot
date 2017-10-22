@@ -199,7 +199,7 @@ namespace Advobot.Core.Classes.Rules
 			//If all of the rules can be sent in one message, do that.
 			if (_Rules != null && _Rules.Length <= 2000)
 			{
-				messages.Add(await MessageActions.SendMessageAsync(channel, _Rules));
+				messages.Add(await MessageActions.SendMessageAsync(channel, _Rules).CAF());
 				return messages.AsReadOnly();
 			}
 
@@ -212,7 +212,7 @@ namespace Advobot.Core.Classes.Rules
 				}
 				else if (category.Length <= 2000)
 				{
-					messages.Add(await MessageActions.SendMessageAsync(channel, category));
+					messages.Add(await MessageActions.SendMessageAsync(channel, category).CAF());
 					continue;
 				}
 
@@ -221,14 +221,14 @@ namespace Advobot.Core.Classes.Rules
 				{
 					if (sb.Length + part.Length <= 2000)
 					{
-						messages.Add(await MessageActions.SendMessageAsync(channel, sb.ToString()));
+						messages.Add(await MessageActions.SendMessageAsync(channel, sb.ToString()).CAF());
 						sb.Clear();
 					}
 					sb.Append(part);
 				}
 				if (sb.Length > 0)
 				{
-					messages.Add(await MessageActions.SendMessageAsync(channel, sb.ToString()));
+					messages.Add(await MessageActions.SendMessageAsync(channel, sb.ToString()).CAF());
 				}
 			}
 			return messages.AsReadOnly();

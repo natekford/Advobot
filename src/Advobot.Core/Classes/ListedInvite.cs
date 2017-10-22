@@ -5,7 +5,6 @@ using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Advobot.Core.Classes
@@ -18,7 +17,7 @@ namespace Advobot.Core.Classes
 		[JsonProperty]
 		public string Code { get; private set; }
 		[JsonProperty]
-		public IReadOnlyCollection<string> Keywords { get; private set; }
+		public IReadOnlyList<string> Keywords { get; private set; }
 		[JsonProperty]
 		public bool HasGlobalEmotes { get; private set; }
 		[JsonIgnore]

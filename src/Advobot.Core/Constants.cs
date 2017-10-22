@@ -50,7 +50,8 @@ namespace Advobot
 		public const int MAX_FIELD_VALUE_LENGTH = 1024;
 
 		//Static because they may change and I've heard using const means any assembly referencing it has to be recompiled each time the value gets manually changed.
-		public static string API_VERSION => Assembly.GetAssembly(typeof(Discord.IDiscordClient)).GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+		//Regex for checking any awaits are non ConfigureAwait(false): ^(?!.*CAF\(\)).*await.*$
+		public static string API_VERSION => Assembly.GetAssembly(typeof(IDiscordClient)).GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
 		public static string PROGRAM_NAME => "Advobot";
 		public static string IGNORE_ERROR => "Cx";
 		public static string DISCORD_INV => "https://discord.gg/MBXypxb"; //Switched from /xd to this invite since no matter what this inv will link to my server and never someone else's server

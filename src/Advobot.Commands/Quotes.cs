@@ -2,6 +2,7 @@
 using Advobot.Core.Actions.Formatting;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
+using Advobot.Core.Classes.CloseWords;
 using Discord;
 using Discord.Commands;
 using System;
@@ -90,13 +91,12 @@ namespace Advobot.Commands.Quotes
 				return;
 			}
 
-			var closeQuotes = new CloseWords<Quote>(Context.User as IGuildUser, quotes, name);
+			var closeQuotes = new CloseQuotes(quotes, name);
 			if (closeQuotes.List.Any())
 			{
-				Context.Timers.AddActiveCloseQuote(closeQuotes);
-
-				var msg = "Did you mean any of the following:\n" + closeQuotes.List.FormatNumberedList("{0}", x => x.Word.Name);
-				await MessageActions.MakeAndDeleteSecondaryMessageAsync(Context, msg, Constants.SECONDS_ACTIVE_CLOSE).CAF();
+				var text = $"Did you mean any of the following:\n{closeQuotes.List.FormatNumberedList("{0}", x => x.Word.Name)}";
+				var msg = await MessageActions.SendMessageAsync(Context.Channel, text).CAF();
+				await Context.Timers.AddActiveCloseQuote(Context.User as IGuildUser, msg, closeQuotes).CAF();
 				return;
 			}
 

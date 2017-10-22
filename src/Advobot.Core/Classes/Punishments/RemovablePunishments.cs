@@ -39,7 +39,7 @@ namespace Advobot.Core.Classes.Punishments
 	/// </summary>
 	public class RemovableMessage : IHasTime
 	{
-		public readonly IReadOnlyCollection<IMessage> Messages;
+		public readonly IReadOnlyList<IMessage> Messages;
 		public readonly ITextChannel Channel;
 		private readonly DateTime _Time;
 

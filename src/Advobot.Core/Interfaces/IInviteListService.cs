@@ -11,7 +11,7 @@ namespace Advobot.Core.Interfaces
 	{
 		bool AddInvite(ListedInvite invite);
 		bool RemoveInvite(IGuild guild);
-		IReadOnlyCollection<ListedInvite> GetInvites();
-		IReadOnlyCollection<ListedInvite> GetInvites(params string[] keywords);
+		IReadOnlyList<ListedInvite> GetInvites();
+		IReadOnlyList<ListedInvite> GetInvites(params string[] keywords);
 	}
 }

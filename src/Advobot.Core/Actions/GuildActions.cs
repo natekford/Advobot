@@ -60,9 +60,10 @@ namespace Advobot.Core.Actions
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static async Task<IReadOnlyCollection<IGuildUser>> GetUsersAndOrderByJoinAsync(this IGuild guild)
+		public static async Task<IReadOnlyList<IGuildUser>> GetUsersAndOrderByJoinAsync(this IGuild guild)
 		{
-			return (await guild.GetUsersAsync().CAF()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks).ToList();
+			var users = (await guild.GetUsersAsync().CAF()).Where(x => x.JoinedAt != null).OrderBy(x => x.JoinedAt.Value.Ticks);
+			return users.ToList().AsReadOnly();
 		}
 		/// <summary>
 		/// Returns every user that can be modified by both <paramref name="invokingUser"/> and the bot.
@@ -70,10 +71,11 @@ namespace Advobot.Core.Actions
 		/// <param name="guild"></param>
 		/// <param name="invokingUser"></param>
 		/// <returns></returns>
-		public static async Task<IReadOnlyCollection<IGuildUser>> GetUsersTheBotAndUserCanEditAsync(this IGuild guild, IUser invokingUser)
+		public static async Task<IReadOnlyList<IGuildUser>> GetUsersTheBotAndUserCanEditAsync(this IGuild guild, IUser invokingUser)
 		{
 			var bot = guild.GetBot();
-			return (await guild.GetUsersAsync().CAF()).Where(x => invokingUser.GetIfCanModifyUser(x) && bot.GetIfCanModifyUser(x)).ToList();
+			var users = (await guild.GetUsersAsync().CAF()).Where(x => invokingUser.GetIfCanModifyUser(x) && bot.GetIfCanModifyUser(x));
+			return users.ToList().AsReadOnly();
 		}
 		/// <summary>
 		/// Returns true if the guild has any global emotes.

@@ -7,12 +7,11 @@ using Advobot.Core;
 [assembly: AssemblyVersion(Version.VersionNumber)]
 [assembly: AssemblyFileVersion(Version.VersionNumber)]
 [assembly: AssemblyInformationalVersion(Version.VersionNumber)]
-
 namespace Advobot.Core
 {
 	internal static class Version
 	{
 		//To make sure every attribute has the same version number.
-		public const string VersionNumber = "1.1.6504.6901";
+		public const string VersionNumber = "1.2.6504.10570";
 	}
 }

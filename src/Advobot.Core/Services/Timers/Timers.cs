@@ -1,6 +1,7 @@
 ﻿using Advobot.Core.Actions;
 using Advobot.Core.Actions.Formatting;
 using Advobot.Core.Classes;
+using Advobot.Core.Classes.CloseWords;
 using Advobot.Core.Classes.Punishments;
 using Advobot.Core.Classes.UserInformation;
 using Advobot.Core.Enums;
@@ -26,8 +27,8 @@ namespace Advobot.Core.Services.Timers
 
 		private readonly ConcurrentDictionary<UserKey, RemovablePunishment> _RemovablePunishments = new ConcurrentDictionary<UserKey, RemovablePunishment>();
 		private readonly ConcurrentDictionary<ChannelKey, RemovableMessage> _RemovableMessages = new ConcurrentDictionary<ChannelKey, RemovableMessage>();
-		private readonly ConcurrentDictionary<UserKey, CloseWords<HelpEntry>> _ActiveCloseHelp = new ConcurrentDictionary<UserKey, CloseWords<HelpEntry>>();
-		private readonly ConcurrentDictionary<UserKey, CloseWords<Quote>> _ActiveCloseQuotes = new ConcurrentDictionary<UserKey, CloseWords<Quote>>();
+		private readonly ConcurrentDictionary<UserKey, CloseWordsWrapper<HelpEntry>> _ActiveCloseHelp = new ConcurrentDictionary<UserKey, CloseWordsWrapper<HelpEntry>>();
+		private readonly ConcurrentDictionary<UserKey, CloseWordsWrapper<Quote>> _ActiveCloseQuotes = new ConcurrentDictionary<UserKey, CloseWordsWrapper<Quote>>();
 		private readonly ConcurrentDictionary<UserKey, SpamPreventionUserInformation> _SpamPreventionUsers = new ConcurrentDictionary<UserKey, SpamPreventionUserInformation>();
 		private readonly ConcurrentDictionary<UserKey, SlowmodeUserInformation> _SlowmodeUsers = new ConcurrentDictionary<UserKey, SlowmodeUserInformation>();
 
@@ -112,13 +113,19 @@ namespace Advobot.Core.Services.Timers
 				}
 			}
 		}
-		private void RemoveActiveCloseHelp()
+		private async Task RemoveActiveCloseHelp()
 		{
-			RemoveTimedObjects(_ActiveCloseHelp);
+			foreach (var helpEntries in GetOutTimedObjects(_ActiveCloseHelp))
+			{
+				await MessageActions.DeleteMessageAsync(helpEntries.Message, new AutomaticModerationReason("removing active close help")).CAF();
+			}
 		}
-		private void RemoveActiveCloseQuotes()
+		private async Task RemoveActiveCloseQuotes()
 		{
-			RemoveTimedObjects(_ActiveCloseQuotes);
+			foreach (var quotes in GetOutTimedObjects(_ActiveCloseQuotes))
+			{
+				await MessageActions.DeleteMessageAsync(quotes.Message, new AutomaticModerationReason("removing active close quotes")).CAF();
+			}
 		}
 		private void RemoveSlowmodeUsers()
 		{
@@ -133,23 +140,23 @@ namespace Advobot.Core.Services.Timers
 		{
 			Add(_RemovableMessages, new ChannelKey(message.Channel, message.GetTime().Ticks), message);
 		}
-		public void AddActiveCloseHelp(CloseWords<HelpEntry> helpEntry)
+		public async Task AddActiveCloseHelp(IGuildUser user, IUserMessage msg, CloseWords<HelpEntry> helpEntries)
 		{
 			//Remove all older ones; only one can be active at a given time.
-			foreach (var kvp in _ActiveCloseHelp.Where(x => x.Key.UserId == helpEntry.User.Id))
+			foreach (var kvp in _ActiveCloseHelp.Where(x => x.Key.UserId == user.Id))
 			{
-				Remove(_ActiveCloseHelp, kvp.Key);
+				await MessageActions.DeleteMessageAsync(Remove(_ActiveCloseHelp, kvp.Key).Message, new AutomaticModerationReason("removing active close help")).CAF();
 			}
-			Add(_ActiveCloseHelp, new UserKey(helpEntry), helpEntry);
+			Add(_ActiveCloseHelp, new UserKey(user, helpEntries.GetTime().Ticks), new CloseWordsWrapper<HelpEntry>(helpEntries, msg));
 		}
-		public void AddActiveCloseQuote(CloseWords<Quote> quote)
+		public async Task AddActiveCloseQuote(IGuildUser user, IUserMessage msg, CloseWords<Quote> quotes)
 		{
 			///Remove all older ones; only one can be active at a given time.
-			foreach (var kvp in _ActiveCloseQuotes.Where(x => x.Key.UserId == quote.User.Id))
+			foreach (var kvp in _ActiveCloseQuotes.Where(x => x.Key.UserId == user.Id))
 			{
-				Remove(_ActiveCloseQuotes, kvp.Key);
+				await MessageActions.DeleteMessageAsync(Remove(_ActiveCloseQuotes, kvp.Key).Message, new AutomaticModerationReason("removing active close quotes")).CAF();
 			}
-			Add(_ActiveCloseQuotes, new UserKey(quote), quote);
+			Add(_ActiveCloseQuotes, new UserKey(user, quotes.GetTime().Ticks), new CloseWordsWrapper<Quote>(quotes, msg));
 		}
 		public void AddSpamPreventionUser(SpamPreventionUserInformation user)
 		{
@@ -171,17 +178,29 @@ namespace Advobot.Core.Services.Timers
 			return kvps.Count();
 		}
 
-		public CloseWords<HelpEntry> GetOutActiveCloseHelp(IUser user)
+		public async Task<CloseWords<HelpEntry>> GetOutActiveCloseHelp(IUser user)
 		{
 			//Should only ever have one for each user at a time.
 			var kvp = _ActiveCloseHelp.SingleOrDefault(x => x.Key.UserId == user.Id);
-			return kvp.Key == null ? null : Remove(_ActiveCloseHelp, kvp.Key);
+			if (kvp.Key != null)
+			{
+				var value = Remove(_ActiveCloseHelp, kvp.Key);
+				await MessageActions.DeleteMessageAsync(value.Message, new AutomaticModerationReason("removing active close help")).CAF();
+				return value.CloseWords;
+			}
+			return null;
 		}
-		public CloseWords<Quote> GetOutActiveCloseQuote(IUser user)
+		public async Task<CloseWords<Quote>> GetOutActiveCloseQuote(IUser user)
 		{
 			//Should only ever have one for each user at a time.
 			var kvp = _ActiveCloseQuotes.SingleOrDefault(x => x.Key.UserId == user.Id);
-			return kvp.Key == null ? null : Remove(_ActiveCloseQuotes, kvp.Key);
+			if (kvp.Key != null)
+			{
+				var value = Remove(_ActiveCloseQuotes, kvp.Key);
+				await MessageActions.DeleteMessageAsync(value.Message, new AutomaticModerationReason("removing active close quotes")).CAF();
+				return value.CloseWords;
+			}
+			return null;
 		}
 		public SpamPreventionUserInformation GetSpamPreventionUser(IGuildUser user)
 		{

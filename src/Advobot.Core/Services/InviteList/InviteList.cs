@@ -22,11 +22,11 @@ namespace Advobot.Core.Services.InviteList
 		{
 			return _Invites.TryRemove(guild.Id, out var invite);
 		}
-		public IReadOnlyCollection<ListedInvite> GetInvites()
+		public IReadOnlyList<ListedInvite> GetInvites()
 		{
 			return _Invites.Values.OrderByDescending(x => x.LastBumped).ToList().AsReadOnly();
 		}
-		public IReadOnlyCollection<ListedInvite> GetInvites(params string[] keywords)
+		public IReadOnlyList<ListedInvite> GetInvites(params string[] keywords)
 		{
 			return _Invites.Values.Where(x => x.Keywords.Intersect(keywords, StringComparer.OrdinalIgnoreCase).Any())
 				.OrderByDescending(x => x.LastBumped).ToList().AsReadOnly();
