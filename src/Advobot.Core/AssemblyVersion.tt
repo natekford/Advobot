@@ -28,7 +28,7 @@ public static class HelpClass
 		DateTime Now = DateTime.UtcNow;
 
 		int Major    = 2;
-		int Minor    = 0;
+		int Minor    = 1;
 		int Build    = (int)(Now - new DateTime(2000, 1, 1)).TotalDays;
 		int Revision = (int)((Now - new DateTime(Now.Year, Now.Month, Now.Day, 0, 0, 0)).TotalSeconds / 2);
 
