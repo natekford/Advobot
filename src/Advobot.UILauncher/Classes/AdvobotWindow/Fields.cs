@@ -157,6 +157,7 @@ namespace Advobot.UILauncher.Classes.AdvobotWindow
 			},
 			Title = AdvobotTextBox.CreateTitleBox("Download Users:", "This automatically puts users in the bots cache. With it off, many commands will not work since I haven't added in a manual way to download users."),
 		};
+
 		private readonly SettingInMenu _PrefixSetting = new SettingInMenu
 		{
 			Setting = AdvobotTextBox.CreateSettingBox(nameof(IBotSettings.Prefix), 10),
@@ -192,6 +193,7 @@ namespace Advobot.UILauncher.Classes.AdvobotWindow
 			Setting = AdvobotTextBox.CreateSettingBox(nameof(IBotSettings.MaxMessageGatherSize), 7),
 			Title = AdvobotTextBox.CreateTitleBox("Max Msg Gather:", "This is in bytes, which to be very basic is roughly two bytes per character."),
 		};
+
 		private readonly SettingInMenu _LogLevelComboBox = new SettingInMenu
 		{
 			Setting = AdvobotComboBox.CreateEnumComboBox<LogSeverity>(nameof(IBotSettings.LogLevel)),

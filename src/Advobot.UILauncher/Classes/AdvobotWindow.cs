@@ -93,19 +93,5 @@ namespace Advobot.UILauncher.Classes.AdvobotWindow
 				_StartUp = false;
 			}
 		}
-
-		private async Task UpdateSettingsWhenOpened()
-		{
-			((CheckBox)((Viewbox)_DownloadUsersSetting.Setting).Child).IsChecked = _BotSettings.AlwaysDownloadUsers;
-			((TextBox)_PrefixSetting.Setting).Text = _BotSettings.Prefix;
-			((TextBox)_GameSetting.Setting).Text = _BotSettings.Game;
-			((TextBox)_StreamSetting.Setting).Text = _BotSettings.Stream;
-			((TextBox)_ShardSetting.Setting).Text = _BotSettings.ShardCount.ToString();
-			((TextBox)_MessageCacheSetting.Setting).Text = _BotSettings.MessageCacheCount.ToString();
-			((TextBox)_UserGatherCountSetting.Setting).Text = _BotSettings.MaxUserGatherCount.ToString();
-			((TextBox)_MessageGatherSizeSetting.Setting).Text = _BotSettings.MaxMessageGatherSize.ToString();
-			((ComboBox)_LogLevelComboBox.Setting).SelectedItem = ((ComboBox)_LogLevelComboBox.Setting).Items.OfType<TextBox>().FirstOrDefault(x => (LogSeverity)x.Tag == _BotSettings.LogLevel);
-			_TrustedUsersComboBox.ItemsSource = await Task.WhenAll(_BotSettings.TrustedUsers.Select(async x => AdvobotTextBox.CreateUserBox(await _Client.GetUserAsync(x))));
-		}
 	}
 }

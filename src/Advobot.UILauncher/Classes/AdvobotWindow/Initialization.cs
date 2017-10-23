@@ -184,11 +184,12 @@ namespace Advobot.UILauncher.Classes.AdvobotWindow
 			_SpecificFileContextMenuSave.Click += SaveSpecificFile;
 
 			//Menu
+			/*
 			_MainButton.Click += OpenMenu;
 			_SettingsButton.Click += OpenMenu;
 			_ColorsButton.Click += OpenMenu;
 			_InfoButton.Click += OpenMenu;
-			_FileButton.Click += OpenMenu;
+			_FileButton.Click += OpenMenu;*/
 		}
 	}
 }

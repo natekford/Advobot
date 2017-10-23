@@ -1,6 +1,8 @@
 ﻿using Advobot.UILauncher.Interfaces;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -25,6 +27,16 @@ namespace Advobot.UILauncher.Classes
 				_FRV = value;
 			}
 		}
+		private Type _SET;
+		public Type SourceEnumType
+		{
+			get => _SET;
+			set
+			{
+				this.ItemsSource = CreateItemsSourceOutOfEnum(value);
+				_SET = value;
+			}
+		}
 
 		public AdvobotComboBox()
 		{
@@ -47,6 +59,27 @@ namespace Advobot.UILauncher.Classes
 				yield return new AdvobotTextBox
 				{
 					Text = Enum.GetName(typeof(T), e),
+					Tag = e,
+					IsReadOnly = true,
+					IsHitTestVisible = false,
+					BorderThickness = new Thickness(0),
+					Background = Brushes.Transparent,
+					Foreground = Brushes.Black,
+				};
+			}
+		}
+		public static IEnumerable<TextBox> CreateItemsSourceOutOfEnum(Type enumType)
+		{
+			if (!enumType.IsEnum)
+			{
+				yield break;
+			}
+
+			foreach (var e in Enum.GetValues(enumType))
+			{
+				yield return new AdvobotTextBox
+				{
+					Text = Enum.GetName(enumType, e),
 					Tag = e,
 					IsReadOnly = true,
 					IsHitTestVisible = false,

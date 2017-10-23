@@ -1,14 +1,33 @@
 ﻿using Advobot.UILauncher.Actions;
+using Advobot.UILauncher.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes
 {
-	internal class AdvobotButton : Button
+	internal class AdvobotButton : Button, IFontResizeValue
 	{
+		private double _FRV;
+		public double FontResizeValue
+		{
+			get => _FRV;
+			set
+			{
+				//TODO: make this into a static method on some class and then have it grab the highest grid
+				(this as Control).SetBinding(Control.FontSizeProperty, new Binding
+				{
+					Path = new PropertyPath("ActualHeight"),
+					RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
+					Converter = new FontResizer(value),
+				});
+				_FRV = value;
+			}
+		}
+
 		public AdvobotButton()
 		{
 			this.Background = null;
