@@ -1,4 +1,9 @@
-﻿using System.Windows.Controls;
+﻿using Advobot.UILauncher.Actions;
+using System;
+using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes
 {
@@ -9,6 +14,145 @@ namespace Advobot.UILauncher.Classes
 			this.Background = null;
 			this.Foreground = null;
 			this.BorderBrush = null;
+		}
+
+		public static AdvobotButton CreateButtonFromEnum<T>(T val) where T : struct, IConvertible, IComparable, IFormattable
+		{
+			return new AdvobotButton { Content = Enum.GetName(typeof(T), val), Tag = val, };
+		}
+
+		public static Style MakeButtonStyle(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB, Brush mouseOverBG)
+		{
+			//Yes, this is basically the old XAML of a button put into code.
+			var templateContentPresenter = new FrameworkElementFactory
+			{
+				Type = typeof(ContentPresenter),
+			};
+			templateContentPresenter.SetValue(ContentPresenter.MarginProperty, new Thickness(2));
+			templateContentPresenter.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+			templateContentPresenter.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
+			templateContentPresenter.SetValue(ContentPresenter.RecognizesAccessKeyProperty, true);
+
+			var templateBorder = new FrameworkElementFactory
+			{
+				Type = typeof(Border),
+				Name = "Border",
+			};
+			templateBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1));
+			templateBorder.SetValue(Border.BackgroundProperty, regBG);
+			templateBorder.SetValue(Border.BorderBrushProperty, regB);
+			templateBorder.AppendChild(templateContentPresenter);
+
+			//Create the template
+			var template = new ControlTemplate
+			{
+				TargetType = typeof(Button),
+				VisualTree = templateBorder,
+			};
+			//Add in the triggers
+			MakeButtonTriggers(regBG, regFG, regB, disabledBG, disabledFG, disabledB, mouseOverBG).ForEach(x => template.Triggers.Add(x));
+
+			var buttonFocusRectangle = new FrameworkElementFactory
+			{
+				Type = typeof(System.Windows.Shapes.Rectangle),
+			};
+			buttonFocusRectangle.SetValue(System.Windows.Shapes.Shape.MarginProperty, new Thickness(2));
+			buttonFocusRectangle.SetValue(System.Windows.Shapes.Shape.StrokeThicknessProperty, 1.0);
+			buttonFocusRectangle.SetValue(System.Windows.Shapes.Shape.StrokeProperty, UIModification.MakeBrush("#60000000"));
+			buttonFocusRectangle.SetValue(System.Windows.Shapes.Shape.StrokeDashArrayProperty, new DoubleCollection { 1.0, 2.0 });
+
+			var buttonFocusBorder = new FrameworkElementFactory
+			{
+				Type = typeof(Border),
+			};
+			buttonFocusBorder.AppendChild(buttonFocusRectangle);
+
+			var buttonFocusVisual = new Style();
+			new List<Setter>
+			{
+				new Setter
+				{
+					Property = Control.TemplateProperty,
+					Value = new ControlTemplate
+					{
+						VisualTree = buttonFocusBorder,
+					}
+				},
+			}.ForEach(x => buttonFocusVisual.Setters.Add(x));
+
+			//Add in the template
+			var buttonStyle = new Style();
+			new List<Setter>
+			{
+				new Setter
+				{
+					Property = Button.SnapsToDevicePixelsProperty,
+					Value = true,
+				},
+				new Setter
+				{
+					Property = Button.OverridesDefaultStyleProperty,
+					Value = true,
+				},
+				new Setter
+				{
+					Property = Button.FocusVisualStyleProperty,
+					Value = buttonFocusVisual,
+				},
+				new Setter
+				{
+					Property = Button.TemplateProperty,
+					Value = template,
+				},
+			}.ForEach(x => buttonStyle.Setters.Add(x));
+
+			return buttonStyle;
+		}
+		public static List<Trigger> MakeButtonTriggers(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB, Brush mouseOverBG)
+		{
+			//This used to have 5 triggers until I realized how useless a lot of them were.
+			var isMouseOverTrigger = new Trigger
+			{
+				Property = Button.IsMouseOverProperty,
+				Value = true,
+			};
+			new List<Setter>
+			{
+				new Setter
+				{
+					TargetName = "Border",
+					Property = Border.BackgroundProperty,
+					Value = mouseOverBG,
+				},
+			}.ForEach(x => isMouseOverTrigger.Setters.Add(x));
+
+			var isEnabledTrigger = new Trigger
+			{
+				Property = Button.IsEnabledProperty,
+				Value = false,
+			};
+			new List<Setter>
+			{
+				new Setter
+				{
+					TargetName = "Border",
+					Property = Border.BackgroundProperty,
+					Value = disabledBG,
+				},
+				new Setter
+				{
+					TargetName = "Border",
+					Property = Border.BorderBrushProperty,
+					Value = disabledB,
+				},
+				new Setter
+				{
+					Property = Button.ForegroundProperty,
+					Value = disabledFG,
+				},
+			}.ForEach(x => isEnabledTrigger.Setters.Add(x));
+
+			return new List<Trigger> { isMouseOverTrigger, isEnabledTrigger };
 		}
 	}
 }

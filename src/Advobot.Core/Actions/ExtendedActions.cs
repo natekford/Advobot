@@ -233,8 +233,9 @@ namespace Advobot
 		/// <param name="str"></param>
 		/// <param name="upperLimit"></param>
 		/// <returns></returns>
-		public static bool AllCharactersAreWithinUpperLimit(this string str, int upperLimit)
+		public static bool AllCharactersAreWithinUpperLimit(this string str, int upperLimit = -1)
 		{
+			upperLimit = upperLimit < 0 ? Constants.MAX_UTF16_VAL_FOR_NAMES : upperLimit;
 			foreach (var c in str ?? String.Empty)
 			{
 				if (c > upperLimit)

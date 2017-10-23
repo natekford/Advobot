@@ -1,5 +1,5 @@
 ﻿using Advobot.Core.Actions;
-using Advobot.UILauncher.Classes;
+using Advobot.UILauncher.Classes.AdvobotWindow;
 using System;
 using System.Windows;
 

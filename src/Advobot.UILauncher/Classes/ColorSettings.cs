@@ -8,10 +8,11 @@ using System.Windows;
 using System.Windows.Media;
 using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Enums;
+using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Classes
 {
-	internal class UISettings
+	internal class ColorSettings
 	{
 		[JsonIgnore]
 		private static Brush _LightModeBackground = UIModification.MakeBrush("#FFFFFF");
@@ -32,7 +33,8 @@ namespace Advobot.UILauncher.Classes
 		[JsonIgnore]
 		private static Brush _LightModeButtonMouseOver = UIModification.MakeBrush("#BEE6FD");
 		[JsonIgnore]
-		private static Style _LightModeButtonStyle = UIModification.MakeButtonStyle(
+		private static Style _LightModeButtonStyle = AdvobotButton.MakeButtonStyle
+		(
 			_LightModeButtonBackground,
 			_LightModeForeground,
 			_LightModeButtonBorder,
@@ -40,7 +42,7 @@ namespace Advobot.UILauncher.Classes
 			_LightModeButtonDisabledForeground,
 			_LightModeButtonDisabledBorder,
 			_LightModeButtonMouseOver
-			);
+		);
 
 		[JsonIgnore]
 		private static Brush _DarkModeBackground = UIModification.MakeBrush("#1C1C1C");
@@ -61,7 +63,8 @@ namespace Advobot.UILauncher.Classes
 		[JsonIgnore]
 		private static Brush _DarkModeButtonMouseOver = UIModification.MakeBrush("#303333");
 		[JsonIgnore]
-		private static Style _DarkModeButtonStyle = UIModification.MakeButtonStyle(
+		private static Style _DarkModeButtonStyle = AdvobotButton.MakeButtonStyle
+		(
 			_DarkModeButtonBackground,
 			_DarkModeForeground,
 			_DarkModeButtonBorder,
@@ -69,14 +72,14 @@ namespace Advobot.UILauncher.Classes
 			_DarkModeButtonDisabledForeground,
 			_DarkModeButtonDisabledBorder,
 			_DarkModeButtonMouseOver
-			);
+		);
 
 		[JsonProperty("Theme")]
 		public ColorTheme Theme { get; private set; } = ColorTheme.Classic;
 		[JsonProperty("ColorTargets")]
 		public Dictionary<ColorTarget, Brush> ColorTargets { get; private set; } = new Dictionary<ColorTarget, Brush>();
 
-		public UISettings()
+		public ColorSettings()
 		{
 			foreach (var target in Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>())
 			{
@@ -88,80 +91,104 @@ namespace Advobot.UILauncher.Classes
 		{
 			Theme = theme;
 		}
-		public void SaveSettings()
-		{
-			SavingAndLoadingActions.OverWriteFile(GetActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION), SavingAndLoadingActions.Serialize(this));
-		}
 		public void ActivateTheme()
 		{
+			var res = Application.Current.Resources;
 			switch (Theme)
 			{
 				case ColorTheme.Classic:
 				{
-					ActivateClassic();
+					res[ColorTarget.Base_Background] = _LightModeBackground;
+					res[ColorTarget.Base_Foreground] = _LightModeForeground;
+					res[ColorTarget.Base_Border] = _LightModeBorder;
+					res[ColorTarget.Button_Background] = _LightModeButtonBackground;
+					res[ColorTarget.Button_Border] = _LightModeButtonBorder;
+					res[ColorTarget.Button_Disabled_Background] = _LightModeButtonDisabledBackground;
+					res[ColorTarget.Button_Disabled_Foreground] = _LightModeButtonDisabledForeground;
+					res[ColorTarget.Button_Disabled_Border] = _LightModeButtonDisabledBorder;
+					res[ColorTarget.Button_Mouse_Over_Background] = _LightModeButtonMouseOver;
+					res[OtherTarget.Button_Style] = _LightModeButtonStyle;
 					return;
 				}
 				case ColorTheme.Dark_Mode:
 				{
-					ActivateDarkMode();
+					res[ColorTarget.Base_Background] = _DarkModeBackground;
+					res[ColorTarget.Base_Foreground] = _DarkModeForeground;
+					res[ColorTarget.Base_Border] = _DarkModeBorder;
+					res[ColorTarget.Button_Background] = _DarkModeButtonBackground;
+					res[ColorTarget.Button_Border] = _DarkModeButtonBorder;
+					res[ColorTarget.Button_Disabled_Background] = _DarkModeButtonDisabledBackground;
+					res[ColorTarget.Button_Disabled_Foreground] = _DarkModeButtonDisabledForeground;
+					res[ColorTarget.Button_Disabled_Border] = _DarkModeButtonDisabledBorder;
+					res[ColorTarget.Button_Mouse_Over_Background] = _DarkModeButtonMouseOver;
+					res[OtherTarget.Button_Style] = _DarkModeButtonStyle;
 					return;
 				}
 				case ColorTheme.User_Made:
 				{
-					ActivateUserMade();
+					foreach (var kvp in ColorTargets)
+					{
+						res[kvp.Key] = kvp.Value;
+					}
+					res[OtherTarget.Button_Style] = AdvobotButton.MakeButtonStyle
+					(
+						(Brush)res[ColorTarget.Base_Background],
+						(Brush)res[ColorTarget.Base_Foreground],
+						(Brush)res[ColorTarget.Base_Border],
+						(Brush)res[ColorTarget.Button_Disabled_Background],
+						(Brush)res[ColorTarget.Button_Disabled_Foreground],
+						(Brush)res[ColorTarget.Button_Disabled_Border],
+						(Brush)res[ColorTarget.Button_Mouse_Over_Background]
+					);
 					return;
 				}
 			}
 		}
-		private void ActivateClassic()
+
+		public static void SwitchElementColorOfChildren(DependencyObject parent)
 		{
-			var res = Application.Current.Resources;
-			res[ColorTarget.Base_Background] = _LightModeBackground;
-			res[ColorTarget.Base_Foreground] = _LightModeForeground;
-			res[ColorTarget.Base_Border] = _LightModeBorder;
-			res[ColorTarget.Button_Background] = _LightModeButtonBackground;
-			res[ColorTarget.Button_Border] = _LightModeButtonBorder;
-			res[ColorTarget.Button_Disabled_Background] = _LightModeButtonDisabledBackground;
-			res[ColorTarget.Button_Disabled_Foreground] = _LightModeButtonDisabledForeground;
-			res[ColorTarget.Button_Disabled_Border] = _LightModeButtonDisabledBorder;
-			res[ColorTarget.Button_Mouse_Over_Background] = _LightModeButtonMouseOver;
-			res[OtherTarget.Button_Style] = _LightModeButtonStyle;
-		}
-		private void ActivateDarkMode()
-		{
-			var res = Application.Current.Resources;
-			res[ColorTarget.Base_Background] = _DarkModeBackground;
-			res[ColorTarget.Base_Foreground] = _DarkModeForeground;
-			res[ColorTarget.Base_Border] = _DarkModeBorder;
-			res[ColorTarget.Button_Background] = _DarkModeButtonBackground;
-			res[ColorTarget.Button_Border] = _DarkModeButtonBorder;
-			res[ColorTarget.Button_Disabled_Background] = _DarkModeButtonDisabledBackground;
-			res[ColorTarget.Button_Disabled_Foreground] = _DarkModeButtonDisabledForeground;
-			res[ColorTarget.Button_Disabled_Border] = _DarkModeButtonDisabledBorder;
-			res[ColorTarget.Button_Mouse_Over_Background] = _DarkModeButtonMouseOver;
-			res[OtherTarget.Button_Style] = _DarkModeButtonStyle;
-		}
-		private void ActivateUserMade()
-		{
-			var res = Application.Current.Resources;
-			foreach (var kvp in ColorTargets)
+			foreach (var child in parent.GetChildren())
 			{
-				res[kvp.Key] = kvp.Value;
+				if (child is Grid grid)
+				{
+					SwitchElementColorOfChildren(grid);
+				}
+				else if (child is AdvobotButton button)
+				{
+					if (button.Style == null)
+					{
+						button.SetResourceReference(Button.StyleProperty, OtherTarget.Button_Style);
+					}
+					if (button.Foreground == null)
+					{
+						button.SetResourceReference(Button.ForegroundProperty, ColorTarget.Base_Foreground);
+					}
+				}
+				else if (child is Control control)
+				{
+					if (control.Background == null)
+					{
+						control.SetResourceReference(Control.BackgroundProperty, ColorTarget.Base_Background);
+					}
+					if (control.Foreground == null)
+					{
+						control.SetResourceReference(Control.ForegroundProperty, ColorTarget.Base_Foreground);
+					}
+					if (control.BorderBrush == null)
+					{
+						control.SetResourceReference(Control.BorderBrushProperty, ColorTarget.Base_Border);
+					}
+				}
 			}
-			res[OtherTarget.Button_Style] = UIModification.MakeButtonStyle(
-				(Brush)res[ColorTarget.Base_Background],
-				(Brush)res[ColorTarget.Base_Foreground],
-				(Brush)res[ColorTarget.Base_Border],
-				(Brush)res[ColorTarget.Button_Disabled_Background],
-				(Brush)res[ColorTarget.Button_Disabled_Foreground],
-				(Brush)res[ColorTarget.Button_Disabled_Border],
-				(Brush)res[ColorTarget.Button_Mouse_Over_Background]
-				);
 		}
 
-		public static UISettings LoadUISettings(bool loaded)
+		public void SaveSettings()
 		{
-			UISettings UISettings = null;
+			SavingAndLoadingActions.OverWriteFile(GetActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION), SavingAndLoadingActions.Serialize(this));
+		}
+		public static ColorSettings LoadUISettings(bool loaded)
+		{
+			ColorSettings UISettings = null;
 			var fileInfo = GetActions.GetBaseBotDirectoryFile(Constants.UI_INFO_LOCATION);
 			if (fileInfo.Exists)
 			{
@@ -169,7 +196,7 @@ namespace Advobot.UILauncher.Classes
 				{
 					using (var reader = new StreamReader(fileInfo.FullName))
 					{
-						UISettings = JsonConvert.DeserializeObject<UISettings>(reader.ReadToEnd());
+						UISettings = JsonConvert.DeserializeObject<ColorSettings>(reader.ReadToEnd());
 					}
 					ConsoleActions.WriteLine("The bot UI information has successfully been loaded.");
 				}
@@ -182,7 +209,7 @@ namespace Advobot.UILauncher.Classes
 			{
 				ConsoleActions.WriteLine("The bot UI information file could not be found; using default.");
 			}
-			return UISettings ?? new UISettings();
+			return UISettings ?? new ColorSettings();
 		}
 	}
 }

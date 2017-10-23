@@ -21,6 +21,8 @@ using System.Reflection;
 using Advobot.Core.Actions.Formatting;
 using System.Text;
 using Advobot.Core.Classes;
+using System.Windows.Input;
+using Discord.WebSocket;
 
 namespace Advobot.UILauncher.Actions
 {
@@ -71,194 +73,6 @@ namespace Advobot.UILauncher.Actions
 			AddElement(parent, new AdvobotTextBox { IsReadOnly = true, }, rowStart, rowLength, columnStart, columnLength);
 		}
 
-		public static void SetColorMode(DependencyObject parent)
-		{
-			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); ++i)
-			{
-				var element = VisualTreeHelper.GetChild(parent, i) as DependencyObject;
-				if (element is Control)
-				{
-					if (element is CheckBox || element is ComboBox)
-					{
-						continue;
-					}
-					else if (element is AdvobotButton)
-					{
-						SwitchElementColor((AdvobotButton)element);
-					}
-					else
-					{
-						SwitchElementColor((Control)element);
-					}
-				}
-				SetColorMode(element);
-			}
-		}
-		public static void SwitchElementColor(Control element)
-		{
-			var eleBackground = element.Background as SolidColorBrush;
-			if (eleBackground == null)
-			{
-				element.SetResourceReference(Control.BackgroundProperty, ColorTarget.Base_Background);
-			}
-			var eleForeground = element.Foreground as SolidColorBrush;
-			if (eleForeground == null)
-			{
-				element.SetResourceReference(Control.ForegroundProperty, ColorTarget.Base_Foreground);
-			}
-			var eleBorder = element.BorderBrush as SolidColorBrush;
-			if (eleBorder == null)
-			{
-				element.SetResourceReference(Control.BorderBrushProperty, ColorTarget.Base_Border);
-			}
-		}
-		public static void SwitchElementColor(AdvobotButton element)
-		{
-			var style = element.Style;
-			if (style == null)
-			{
-				element.SetResourceReference(Button.StyleProperty, OtherTarget.Button_Style);
-			}
-			var eleForeground = element.Foreground as SolidColorBrush;
-			if (eleForeground == null)
-			{
-				element.SetResourceReference(Control.ForegroundProperty, ColorTarget.Base_Foreground);
-			}
-		}
-
-		public static Style MakeButtonStyle(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB, Brush mouseOverBG)
-		{
-			//Yes, this is basically the old XAML of a button put into code.
-			var templateContentPresenter = new FrameworkElementFactory
-			{
-				Type = typeof(ContentPresenter),
-			};
-			templateContentPresenter.SetValue(ContentPresenter.MarginProperty, new Thickness(2));
-			templateContentPresenter.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Center);
-			templateContentPresenter.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
-			templateContentPresenter.SetValue(ContentPresenter.RecognizesAccessKeyProperty, true);
-
-			var templateBorder = new FrameworkElementFactory
-			{
-				Type = typeof(Border),
-				Name = "Border",
-			};
-			templateBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1));
-			templateBorder.SetValue(Border.BackgroundProperty, regBG);
-			templateBorder.SetValue(Border.BorderBrushProperty, regB);
-			templateBorder.AppendChild(templateContentPresenter);
-
-			//Create the template
-			var template = new ControlTemplate
-			{
-				TargetType = typeof(Button),
-				VisualTree = templateBorder,
-			};
-			//Add in the triggers
-			MakeButtonTriggers(regBG, regFG, regB, disabledBG, disabledFG, disabledB, mouseOverBG).ForEach(x => template.Triggers.Add(x));
-
-			var buttonFocusRectangle = new FrameworkElementFactory
-			{
-				Type = typeof(System.Windows.Shapes.Rectangle),
-			};
-			buttonFocusRectangle.SetValue(System.Windows.Shapes.Shape.MarginProperty, new Thickness(2));
-			buttonFocusRectangle.SetValue(System.Windows.Shapes.Shape.StrokeThicknessProperty, 1.0);
-			buttonFocusRectangle.SetValue(System.Windows.Shapes.Shape.StrokeProperty, UIModification.MakeBrush("#60000000"));
-			buttonFocusRectangle.SetValue(System.Windows.Shapes.Shape.StrokeDashArrayProperty, new DoubleCollection { 1.0, 2.0 });
-
-			var buttonFocusBorder = new FrameworkElementFactory
-			{
-				Type = typeof(Border),
-			};
-			buttonFocusBorder.AppendChild(buttonFocusRectangle);
-
-			var buttonFocusVisual = new Style();
-			new List<Setter>
-		{
-			new Setter
-			{
-				Property = Control.TemplateProperty,
-				Value = new ControlTemplate
-				{
-					VisualTree = buttonFocusBorder,
-				}
-			},
-		}.ForEach(x => buttonFocusVisual.Setters.Add(x));
-
-			//Add in the template
-			var buttonStyle = new Style();
-			new List<Setter>
-		{
-			new Setter
-			{
-				Property = Button.SnapsToDevicePixelsProperty,
-				Value = true,
-			},
-			new Setter
-			{
-				Property = Button.OverridesDefaultStyleProperty,
-				Value = true,
-			},
-			new Setter
-			{
-				Property = Button.FocusVisualStyleProperty,
-				Value = buttonFocusVisual,
-			},
-			new Setter
-			{
-				Property = Button.TemplateProperty,
-				Value = template,
-			},
-		}.ForEach(x => buttonStyle.Setters.Add(x));
-
-			return buttonStyle;
-		}
-		public static List<Trigger> MakeButtonTriggers(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB, Brush mouseOverBG)
-		{
-			//This used to have 5 triggers until I realized how useless a lot of them were.
-			var isMouseOverTrigger = new Trigger
-			{
-				Property = Button.IsMouseOverProperty,
-				Value = true,
-			};
-			new List<Setter>
-		{
-			new Setter
-			{
-				TargetName = "Border",
-				Property = Border.BackgroundProperty,
-				Value = mouseOverBG,
-			},
-		}.ForEach(x => isMouseOverTrigger.Setters.Add(x));
-
-			var isEnabledTrigger = new Trigger
-			{
-				Property = Button.IsEnabledProperty,
-				Value = false,
-			};
-			new List<Setter>
-		{
-			new Setter
-			{
-				TargetName = "Border",
-				Property = Border.BackgroundProperty,
-				Value = disabledBG,
-			},
-			new Setter
-			{
-				TargetName = "Border",
-				Property = Border.BorderBrushProperty,
-				Value = disabledB,
-			},
-			new Setter
-			{
-				Property = Button.ForegroundProperty,
-				Value = disabledFG,
-			},
-		}.ForEach(x => isEnabledTrigger.Setters.Add(x));
-
-			return new List<Trigger> { isMouseOverTrigger, isEnabledTrigger };
-		}
 		public static Brush MakeBrush(string color)
 		{
 			return (SolidColorBrush)new BrushConverter().ConvertFrom(color);
@@ -291,33 +105,6 @@ namespace Advobot.UILauncher.Actions
 
 			var c = color.Value;
 			return $"#{c.A.ToString("X2")}{c.R.ToString("X2")}{c.G.ToString("X2")}{c.B.ToString("X2")}";
-		}
-
-		public static void SetFontSizeProperties(double size, params IEnumerable<UIElement>[] elements)
-		{
-			foreach (var ele in elements.SelectMany(x => x))
-			{
-				SetFontSizeProperty(ele, size);
-			}
-		}
-		public static void SetFontSizeProperty(UIElement element, double size)
-		{
-			if (element is Control)
-			{
-				(element as Control).SetBinding(Control.FontSizeProperty, new Binding
-				{
-					Path = new PropertyPath("ActualHeight"),
-					RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
-					Converter = new FontResizer(size),
-				});
-			}
-			else if (element is Grid)
-			{
-				foreach (var child in (element as Grid).Children.OfType<Control>())
-				{
-					SetFontSizeProperty(child, size);
-				}
-			}
 		}
 
 		public static void ToggleToolTip(ToolTip ttip)
@@ -406,16 +193,16 @@ namespace Advobot.UILauncher.Actions
 		{
 			PutInBGWithMouseUpEvent(parent, child, brush);
 		}
-		public static void PutInBGWithMouseUpEvent(Grid parent, UIElement child, Brush brush = null, RoutedEventHandler action = null)
+		public static void PutInBGWithMouseUpEvent(Grid parent, UIElement child, Brush brush = null, MouseButtonEventHandler handler = null)
 		{
 			//Because setting the entire layout with the MouseUp event meant the empty combobox when clicked would trigger it even when IsHitTestVisible = True. No idea why, but this is the workaround.
 			var BGPoints = FigureOutWhereToPutBG(parent, child);
-			for (int i = 0; i < BGPoints.GetLength(0); ++i)
+			for (int i = 0; i < BGPoints[0].Length; ++i)
 			{
 				var temp = new Grid { Background = brush ?? Brushes.Transparent, SnapsToDevicePixels = true, };
-				if (action != null)
+				if (handler != null)
 				{
-					temp.MouseUp += (sender, e) => action(sender, e);
+					temp.MouseUp += handler;
 				}
 				AddElement(parent, temp, BGPoints[i][0], BGPoints[i][1], BGPoints[i][2], BGPoints[i][3]);
 			}
@@ -443,78 +230,6 @@ namespace Advobot.UILauncher.Actions
 			};
 			return hyperlink;
 		}
-		public static TextBox MakeTitle(string text, string summary)
-		{
-			ToolTip tt = null;
-			if (!String.IsNullOrWhiteSpace(summary))
-			{
-				tt = new ToolTip
-				{
-					Content = summary,
-				};
-			}
-
-			var tb = new AdvobotTextBox
-			{
-				Text = text,
-				IsReadOnly = true,
-				BorderThickness = new Thickness(0),
-				VerticalAlignment = VerticalAlignment.Center,
-				HorizontalAlignment = HorizontalAlignment.Left,
-				TextWrapping = TextWrapping.WrapWithOverflow,
-			};
-
-			if (tt != null)
-			{
-				tb.MouseEnter += (sender, e) =>
-				{
-					ToggleToolTip(tt);
-				};
-				tb.MouseLeave += (sender, e) =>
-				{
-					ToggleToolTip(tt);
-				};
-			}
-
-			return tb;
-		}
-		public static TextBox MakeSetting(string settingName, int length)
-		{
-			return new AdvobotTextBox
-			{
-				VerticalContentAlignment = VerticalAlignment.Center,
-				Tag = settingName,
-				MaxLength = length
-			};
-		}
-		public static TextBox MakeSysInfoBox()
-		{
-			return new AdvobotTextBox
-			{
-				IsReadOnly = true,
-				BorderThickness = new Thickness(0, .5, 0, .5),
-				Background = null,
-			};
-		}
-		public static TextBox MakeTextBoxFromUserID(IUser user)
-		{
-			if (user == null)
-			{
-				return null;
-			}
-
-			var userName = user.Username.AllCharactersAreWithinUpperLimit(Constants.MAX_UTF16_VAL_FOR_NAMES) ? user.Username : "Non-Standard Name";
-			return new AdvobotTextBox
-			{
-				Text = $"'{userName}#{user.Discriminator}' ({user.Id})",
-				Tag = user.Id,
-				IsReadOnly = true,
-				IsHitTestVisible = false,
-				BorderThickness = new Thickness(0),
-				Background = Brushes.Transparent,
-				Foreground = Brushes.Black,
-			};
-		}
 		public static Viewbox MakeStandardViewBox(string text)
 		{
 			return new Viewbox
@@ -531,71 +246,51 @@ namespace Advobot.UILauncher.Actions
 		}
 		public static TreeView MakeGuildTreeView(TreeView tv, IEnumerable<IGuild> guilds)
 		{
-			//Get the directory
 			var directoryInfo = GetActions.GetBaseBotDirectory();
 			if (directoryInfo == null || !directoryInfo.Exists)
 			{
 				return tv;
 			}
-
-			//Remove its parent so it can be added back to something
-			var parent = tv.Parent;
-			if (parent != null)
+			//Remove this treeview from its parent if it has one
+			else if (tv.Parent != null && tv.Parent is InlineUIContainer parent)
 			{
-				(parent as InlineUIContainer).Child = null;
+				parent.Child = null;
 			}
 
 			tv.BorderThickness = new Thickness(0);
 			tv.Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background];
 			tv.Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground];
-			tv.ItemsSource = directoryInfo.GetDirectories().Select(guildDir =>
+			tv.ItemsSource = directoryInfo.GetDirectories().Select(dir =>
 			{
-				//Make sure the ID is valid
-				if (!ulong.TryParse(guildDir.Name, out ulong Id))
-				{
-					return null;
-				}
-				//Make sure a guild has that Id
-				var guild = guilds.FirstOrDefault(x => x.Id == Id);
-				if (guild == null)
+				//Make sure the id leads to a valid non null guild
+				if (!ulong.TryParse(dir.Name, out ulong Id) || !(guilds.FirstOrDefault(x => x.Id == Id) is SocketGuild guild))
 				{
 					return null;
 				}
 
-				//Get all of the files
-				var listOfFiles = guildDir.GetFiles().Select(fileInfo =>
+				var items = dir.GetFiles().Select(file =>
 				{
-					var fileType = UIBotWindowLogic.GetFileType(Path.GetFileNameWithoutExtension(fileInfo.Name));
-					if (!fileType.HasValue)
+					var fileType = UIBotWindowLogic.GetFileType(Path.GetFileNameWithoutExtension(file.Name));
+					return fileType == default ? null : new TreeViewItem
 					{
-						return null;
-					}
-
-					return new TreeViewItem
-					{
-						Header = fileInfo.Name,
-						Tag = new FileInformation(fileType.Value, fileInfo),
+						Header = file.Name,
+						Tag = new FileInformation(fileType, file),
 						Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
 						Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
 					};
 				}).Where(x => x != null);
 
-				//If no items then don't bother adding in the guild to the treeview
-				if (!listOfFiles.Any())
-				{
-					return null;
-				}
-
-				//Create the guild item
-				return new TreeViewItem
+				return !items.Any() ? null : new TreeViewItem
 				{
 					Header = guild.FormatGuild(),
-					Tag = new GuildFileInformation(Id, guild.Name, (guild as Discord.WebSocket.SocketGuild).MemberCount),
+					Tag = new GuildFileInformation(guild.Id, guild.Name, guild.MemberCount),
 					Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
 					Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
-					ItemsSource = listOfFiles,
+					ItemsSource = items,
 				};
-			}).Where(x => x != null).OrderByDescending(x => ((GuildFileInformation)x.Tag).MemberCount);
+			})
+			.Where(x => x != null)
+			.OrderByDescending(x => x.Tag is GuildFileInformation gfi ? gfi.MemberCount : 0);
 
 			return tv;
 		}
@@ -631,78 +326,64 @@ namespace Advobot.UILauncher.Actions
 				.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();
 			return new FlowDocument(new Paragraph(new Run(text)) { TextAlignment = TextAlignment.Center, });
 		}
-		public static Grid MakeColorDisplayer(UISettings UISettings, Grid child, Button button, double fontSizeProperty)
+		public static Grid MakeColorDisplayer(ColorSettings UISettings, Grid g, Button b, double fontResize)
 		{
-			child.Children.Clear();
-			AddPlaceHolderTB(child, 0, 100, 0, 100);
+			g.Children.Clear();
 
-			var themeTitle = MakeTitle("Themes:", "");
-			SetFontSizeProperty(themeTitle, fontSizeProperty);
-			AddElement(child, themeTitle, 2, 5, 10, 55);
+			var title = AdvobotTextBox.CreateTitleBox("Themes:", "");
+			title.FontResizeValue = fontResize;
+			var combo = AdvobotComboBox.CreateEnumComboBox<ColorTheme>(null);
+			combo.SelectedItem = combo.Items.OfType<TextBox>().FirstOrDefault(x => x?.Tag is ColorTheme t && t == UISettings.Theme);
 
-			var themeComboBox = new AdvobotComboBox
+			var c = 0;
+			foreach (ColorTarget e in Enum.GetValues(typeof(ColorTarget)))
 			{
-				VerticalContentAlignment = VerticalAlignment.Center,
-				ItemsSource = MakeComboBoxSourceOutOfEnum(typeof(ColorTheme)),
-			};
-			themeComboBox.SelectedItem = themeComboBox.Items.Cast<TextBox>().FirstOrDefault(x => (ColorTheme)x.Tag == UISettings.Theme);
-			AddElement(child, themeComboBox, 2, 5, 65, 25);
+				var name = AdvobotTextBox.CreateTitleBox($"{e.EnumName().Remove('_')}:", "");
+				name.FontResizeValue = fontResize;
 
-			var colorResourceKeys = Enum.GetValues(typeof(ColorTarget)).Cast<ColorTarget>().ToArray();
-			for (int i = 0; i < colorResourceKeys.Length; ++i)
-			{
-				var key = colorResourceKeys[i];
-				var value = FormatBrush(UISettings.ColorTargets[key]);
-
-				var title = MakeTitle($"{key.EnumName()}:", "");
-				var setting = new AdvobotTextBox
+				var set = new AdvobotTextBox
 				{
 					VerticalContentAlignment = VerticalAlignment.Center,
-					Tag = key,
+					Tag = e,
 					MaxLength = 10,
-					Text = value,
+					Text = FormatBrush(UISettings.ColorTargets[e]),
+					FontResizeValue = fontResize,
 				};
-				AddElement(child, title, i * 5 + 7, 5, 10, 55);
-				AddElement(child, setting, i * 5 + 7, 5, 65, 25);
-				SetFontSizeProperties(fontSizeProperty, new[] { title, setting });
+
+				AddElement(g, name, c * 5 + 7, 5, 10, 55);
+				AddElement(g, set, c * 5 + 7, 5, 65, 25);
+				++c;
 			}
 
-			AddElement(child, button, 95, 5, 0, 100);
-			SetColorMode(child);
+			AddPlaceHolderTB(g, 0, 100, 0, 100);
+			AddElement(g, title, 2, 5, 10, 55);
+			AddElement(g, combo, 2, 5, 65, 25);
+			AddElement(g, b, 95, 5, 0, 100);
 
-			return child;
+			ColorSettings.SwitchElementColorOfChildren(g);
+
+			return g;
 		}
-		public static IEnumerable<TextBox> MakeComboBoxSourceOutOfEnum(Type type)
+
+		public static bool AppendTextToTextEditorIfPathExists(TextEditor display, TreeViewItem treeItem)
 		{
-			return Enum.GetValues(type).Cast<object>().Select(x =>
+			if (treeItem.Tag is FileInformation fi)
 			{
-				return new AdvobotTextBox
+				var fileInfo = fi.FileInfo;
+				if (fileInfo != null && fileInfo.Exists)
 				{
-					Text = Enum.GetName(type, x),
-					Tag = x,
-					IsReadOnly = true,
-					IsHitTestVisible = false,
-					BorderThickness = new Thickness(0),
-					Background = Brushes.Transparent,
-					Foreground = Brushes.Black,
-				};
-			});
-		}
-		public static IEnumerable<TextBox> MakeComboBoxSourceOutOfStrings(IEnumerable<string> strings)
-		{
-			return strings.Select(x =>
-			{
-				return new AdvobotTextBox
-				{
-					Text = x,
-					Tag = x,
-					IsReadOnly = true,
-					IsHitTestVisible = false,
-					BorderThickness = new Thickness(0),
-					Background = Brushes.Transparent,
-					Foreground = Brushes.Black,
-				};
-			});
+					display.Clear();
+					display.Tag = fileInfo;
+					using (var reader = new StreamReader(fileInfo.FullName))
+					{
+						display.AppendText(reader.ReadToEnd());
+					}
+					return true;
+				}
+			}
+
+			ConsoleActions.WriteLine("Unable to bring up the file.");
+			return false;
 		}
 	}
 }

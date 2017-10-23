@@ -1,11 +1,12 @@
 ﻿using Advobot.UILauncher.Interfaces;
+using ICSharpCode.AvalonEdit;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
 namespace Advobot.UILauncher.Classes
 {
-	internal class AdvobotRichTextBox : RichTextBox, IFontResizeValue
+	public class AdvobotTextEditor : TextEditor, IFontResizeValue
 	{
 		private double _FRV;
 		public double FontResizeValue
@@ -21,13 +22,6 @@ namespace Advobot.UILauncher.Classes
 				});
 				_FRV = value;
 			}
-		}
-
-		public AdvobotRichTextBox()
-		{
-			this.Background = null;
-			this.Foreground = null;
-			this.BorderBrush = null;
 		}
 	}
 }

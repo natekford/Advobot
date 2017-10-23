@@ -231,21 +231,19 @@ namespace Advobot.Core.Actions
 		/// <summary>
 		/// Exits the current application.
 		/// </summary>
-		public static async Task DisconnectBotAsync(IDiscordClient client)
+		public static void DisconnectBot(IDiscordClient client)
 		{
+			//When this gets awaited the client hangs
+			#pragma warning disable
 			if (client is DiscordSocketClient socketClient)
 			{
-				await socketClient.SetStatusAsync(UserStatus.Invisible).CAF();
+				socketClient.SetStatusAsync(UserStatus.Invisible);
 			}
 			else if (client is DiscordShardedClient shardedClient)
 			{
-				await shardedClient.SetStatusAsync(UserStatus.Invisible).CAF();
+				shardedClient.SetStatusAsync(UserStatus.Invisible);
 			}
-
-			//When this gets awaited the client hangs
-			//I think it doesn't really matter if this isn't awaited before the bot is being killed
-			#pragma warning disable
-			client.StopAsync().CAF();
+			client.StopAsync();
 			#pragma warning restore
 			Environment.Exit(0);
 		}

@@ -172,25 +172,33 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions\CommandHandler.cs" />
     <Compile Include="Actions\EntityModification.cs" />
     <Compile Include="Actions\Logic.cs" />
+    <Compile Include="Actions\SettingModification.cs" />
     <Compile Include="Classes\AdvobotButton.cs" />
     <Compile Include="Classes\AdvobotComboBox.cs" />
     <Compile Include="Classes\AdvobotNumberBox.cs" />
     <Compile Include="Classes\AdvobotRichTextBox.cs" />
     <Compile Include="Classes\AdvobotTextBox.cs" />
+    <Compile Include="Classes\AdvobotTextEditor.cs" />
     <Compile Include="Classes\AdvobotWindow.cs" />
+    <Compile Include="Classes\AdvobotWindow\Events.cs" />
+    <Compile Include="Classes\AdvobotWindow\Fields.cs" />
+    <Compile Include="Classes\AdvobotWindow\Initialization.cs" />
     <Compile Include="Classes\BrushTargetAndValue.cs" />
     <Compile Include="Classes\FileInformation.cs" />
     <Compile Include="Classes\FontResizer.cs" />
     <Compile Include="Classes\GuildInformation.cs" />
+    <Compile Include="Classes\SettingInMenu.cs" />
     <Compile Include="Classes\TextBoxStreamWriter.cs" />
-    <Compile Include="Classes\UISettings.cs" />
+    <Compile Include="Classes\ColorSettings.cs" />
     <Compile Include="Enums\ColorTarget.cs" />
     <Compile Include="Enums\ColorTheme.cs" />
     <Compile Include="Enums\FileType.cs" />
     <Compile Include="Enums\MenuType.cs" />
     <Compile Include="Enums\OtherTarget.cs" />
+    <Compile Include="Interfaces\IFontResizeValue.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

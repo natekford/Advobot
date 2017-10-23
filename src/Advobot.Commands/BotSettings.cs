@@ -303,9 +303,10 @@ namespace Advobot.Commands.BotSettings
 	public sealed class DisconnectBot : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command()
+		public Task Command()
 		{
-			await ClientActions.DisconnectBotAsync(Context.Client).CAF();
+			ClientActions.DisconnectBot(Context.Client);
+			return Task.FromResult(0);
 		}
 	}
 
