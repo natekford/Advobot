@@ -308,8 +308,8 @@ namespace Advobot.UILauncher.Actions
 			}
 
 			tv.BorderThickness = new Thickness(0);
-			tv.Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background];
-			tv.Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground];
+			tv.Background = (Brush)Application.Current.Resources[ColorTarget.BaseBackground];
+			tv.Foreground = (Brush)Application.Current.Resources[ColorTarget.BaseForeground];
 			tv.ItemsSource = directoryInfo.GetDirectories().Select(dir =>
 			{
 				//Make sure the id leads to a valid non null guild
@@ -325,8 +325,8 @@ namespace Advobot.UILauncher.Actions
 					{
 						Header = file.Name,
 						Tag = new FileInformation(fileType, file),
-						Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
-						Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
+						Background = (Brush)Application.Current.Resources[ColorTarget.BaseBackground],
+						Foreground = (Brush)Application.Current.Resources[ColorTarget.BaseForeground],
 					};
 				}).Where(x => x != null);
 
@@ -334,8 +334,8 @@ namespace Advobot.UILauncher.Actions
 				{
 					Header = guild.FormatGuild(),
 					Tag = new GuildFileInformation(guild.Id, guild.Name, guild.MemberCount),
-					Background = (Brush)Application.Current.Resources[ColorTarget.Base_Background],
-					Foreground = (Brush)Application.Current.Resources[ColorTarget.Base_Foreground],
+					Background = (Brush)Application.Current.Resources[ColorTarget.BaseBackground],
+					Foreground = (Brush)Application.Current.Resources[ColorTarget.BaseForeground],
 					ItemsSource = items,
 				};
 			})

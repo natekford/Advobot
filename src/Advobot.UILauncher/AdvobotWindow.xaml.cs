@@ -19,6 +19,9 @@ using Advobot.Core.Interfaces;
 using Discord;
 using System.Windows.Navigation;
 using System.Diagnostics;
+using Advobot.Core;
+using Advobot.Core.Actions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.UILauncher
 {
@@ -31,23 +34,24 @@ namespace Advobot.UILauncher
 		private IBotSettings _BotSettings;
 		private ILogService _Logging;
 		private ColorSettings _UISettings;
-		private readonly DispatcherTimer _UpdateTimer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 0, 500) };
+		private DispatcherTimer _Timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 0, 500) };
+
+		private MenuType _LastButtonClicked;
 
 		public AdvobotWindow()
 		{
-			FontFamily = new FontFamily("Courier New");
 			InitializeComponent();
 
-			//Console.SetOut(new TextBoxStreamWriter(_Output));
-
+			Console.SetOut(new TextBoxStreamWriter(this.Output));
 			new ColorSettings().ActivateTheme();
-			ColorSettings.SwitchElementColorOfChildren(this.Content as FrameworkElement);
-
-			//Loaded += AttemptToLogin;
-			//_UpdateTimer.Tick += UpdateMenus;
+			ColorSettings.SwitchElementColorOfChildren(this.Content as DependencyObject);
 		}
 
-		private MenuType _LastButtonClicked;
+		private async void AttemptToLogIn(object sender, RoutedEventArgs e)
+		{
+			await HandleInput(null);
+			await HandleInput(null);
+		}
 		private async void OpenMenu(object sender, RoutedEventArgs e)
 		{
 			if (!(sender is Button button))
@@ -137,6 +141,136 @@ namespace Advobot.UILauncher
 		{
 			Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
 			e.Handled = true;
+		}
+		private void Disconnect(object sender, RoutedEventArgs e)
+		{
+			switch (MessageBox.Show("Are you sure you want to disconnect the bot?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
+			{
+				case MessageBoxResult.OK:
+				{
+					ClientActions.DisconnectBot(_Client);
+					return;
+				}
+			}
+		}
+		private void Restart(object sender, RoutedEventArgs e)
+		{
+			switch (MessageBox.Show("Are you sure you want to restart the bot?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
+			{
+				case MessageBoxResult.OK:
+				{
+					ClientActions.RestartBot();
+					return;
+				}
+			}
+		}
+		private void Pause(object sender, RoutedEventArgs e)
+		{
+			if (_BotSettings.Pause)
+			{
+				ConsoleActions.WriteLine("The bot is now unpaused.");
+				_BotSettings.TogglePause();
+			}
+			else
+			{
+				ConsoleActions.WriteLine("The bot is now paused.");
+				_BotSettings.TogglePause();
+			}
+		}
+		private async void AcceptInput(object sender, KeyEventArgs e)
+		{
+			var text = this.InputBox.Text;
+			if (String.IsNullOrWhiteSpace(text))
+			{
+				this.InputButton.IsEnabled = false;
+				return;
+			}
+
+			if (e.Key.Equals(Key.Enter) || e.Key.Equals(Key.Return))
+			{
+				await HandleInput(UICommandHandler.GatherInput(this.InputBox, this.InputButton));
+			}
+			else
+			{
+				this.InputButton.IsEnabled = true;
+			}
+		}
+		private async void AcceptInput(object sender, RoutedEventArgs e)
+		{
+			await HandleInput(UICommandHandler.GatherInput(this.InputBox, this.InputButton));
+		}
+		private async void UpdateMenus(object sender, EventArgs e)
+		{
+			var guilds = await _Client.GetGuildsAsync();
+			var users = await Task.WhenAll(guilds.Select(async g => await g.GetUsersAsync()));
+
+			this.Latency.Text = $"Latency: {ClientActions.GetLatency(_Client)}ms";
+			this.Memory.Text = $"Memory: {GetActions.GetMemory().ToString("0.00")}MB";
+			this.ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
+			this.GuildCount.Text = $"Guilds: {guilds.Count}";
+			this.UserCount.Text = $"Members: {users.SelectMany(x => x).Select(x => x.Id).Distinct().Count()}";
+			this.InfoOutput.Document = UIModification.MakeInfoMenu(_Logging);
+		}
+
+		//TODO: Fix this entire terrible method
+		private static bool _StartUp = true;
+		private static bool _GotPath;
+		private static bool _GotKey;
+		private async Task HandleInput(string input)
+		{
+			if (!_GotPath)
+			{
+				var provider = await UIBotWindowLogic.GetPath(input, _StartUp);
+				if (provider != null)
+				{
+					_StartUp = true;
+					_GotPath = true;
+					_Client = provider.GetService<IDiscordClient>();
+					_BotSettings = provider.GetService<IBotSettings>();
+					_Logging = provider.GetService<ILogService>();
+					_UISettings = ColorSettings.LoadUISettings(_StartUp);
+
+					_UISettings.ActivateTheme();
+					ColorSettings.SwitchElementColorOfChildren(this.Content as DependencyObject);
+				}
+				else
+				{
+					_StartUp = false;
+				}
+			}
+			else if (!_GotKey)
+			{
+				if (await Config.ValidateBotKey(_Client, input, _StartUp))
+				{
+					_StartUp = true;
+					_GotKey = true;
+				}
+				else
+				{
+					_StartUp = false;
+				}
+			}
+
+			if (!_GotKey && _StartUp)
+			{
+				if (await Config.ValidateBotKey(_Client, null, _StartUp))
+				{
+					_StartUp = true;
+					_GotKey = true;
+				}
+				else
+				{
+					_StartUp = false;
+				}
+			}
+
+			if (_GotPath && _GotKey && _StartUp)
+			{
+				_Timer.Tick += UpdateMenus;
+				_Timer.Start();
+				await ClientActions.StartAsync(_Client);
+				_StartUp = false;
+			}
 		}
 	}
 }

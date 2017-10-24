@@ -1,4 +1,5 @@
 ﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
 using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Interfaces;
 using Discord;

@@ -111,6 +111,7 @@
     <Compile Include="Classes\AdvobotRun.cs" />
     <Compile Include="Classes\AdvobotTextBox.cs" />
     <Compile Include="Classes\AdvobotTextEditor.cs" />
+    <Compile Include="Classes\AdvobotTitleBox.cs" />
     <Compile Include="Classes\AdvobotWindow.cs" />
     <Compile Include="Classes\AdvobotWindow\Events.cs" />
     <Compile Include="Classes\AdvobotWindow\Fields.cs" />
@@ -130,6 +131,8 @@
     <Compile Include="Enums\OtherTarget.cs" />
     <Compile Include="Classes\Extensions\NameOfExtension.cs" />
     <Compile Include="Interfaces\IFontResizeValue.cs" />
+    <Compile Include="Interfaces\ISummary.cs" />
+    <Compile Include="Interfaces\ITitle.cs" />
     <Compile Include="Interfaces\IUnescapedText.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">

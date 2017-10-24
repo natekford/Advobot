@@ -99,29 +99,29 @@ namespace Advobot.UILauncher.Classes
 			{
 				case ColorTheme.Classic:
 				{
-					res[ColorTarget.Base_Background] = _LightModeBackground;
-					res[ColorTarget.Base_Foreground] = _LightModeForeground;
-					res[ColorTarget.Base_Border] = _LightModeBorder;
-					res[ColorTarget.Button_Background] = _LightModeButtonBackground;
-					res[ColorTarget.Button_Border] = _LightModeButtonBorder;
-					res[ColorTarget.Button_Disabled_Background] = _LightModeButtonDisabledBackground;
-					res[ColorTarget.Button_Disabled_Foreground] = _LightModeButtonDisabledForeground;
-					res[ColorTarget.Button_Disabled_Border] = _LightModeButtonDisabledBorder;
-					res[ColorTarget.Button_Mouse_Over_Background] = _LightModeButtonMouseOver;
+					res[ColorTarget.BaseBackground] = _LightModeBackground;
+					res[ColorTarget.BaseForeground] = _LightModeForeground;
+					res[ColorTarget.BaseBorder] = _LightModeBorder;
+					res[ColorTarget.ButtonBackground] = _LightModeButtonBackground;
+					res[ColorTarget.ButtonBorder] = _LightModeButtonBorder;
+					res[ColorTarget.ButtonDisabledBackground] = _LightModeButtonDisabledBackground;
+					res[ColorTarget.ButtonDisabledForeground] = _LightModeButtonDisabledForeground;
+					res[ColorTarget.ButtonDisabledBorder] = _LightModeButtonDisabledBorder;
+					res[ColorTarget.ButtonMouseOverBackground] = _LightModeButtonMouseOver;
 					res[OtherTarget.Button_Style] = _LightModeButtonStyle;
 					return;
 				}
 				case ColorTheme.Dark_Mode:
 				{
-					res[ColorTarget.Base_Background] = _DarkModeBackground;
-					res[ColorTarget.Base_Foreground] = _DarkModeForeground;
-					res[ColorTarget.Base_Border] = _DarkModeBorder;
-					res[ColorTarget.Button_Background] = _DarkModeButtonBackground;
-					res[ColorTarget.Button_Border] = _DarkModeButtonBorder;
-					res[ColorTarget.Button_Disabled_Background] = _DarkModeButtonDisabledBackground;
-					res[ColorTarget.Button_Disabled_Foreground] = _DarkModeButtonDisabledForeground;
-					res[ColorTarget.Button_Disabled_Border] = _DarkModeButtonDisabledBorder;
-					res[ColorTarget.Button_Mouse_Over_Background] = _DarkModeButtonMouseOver;
+					res[ColorTarget.BaseBackground] = _DarkModeBackground;
+					res[ColorTarget.BaseForeground] = _DarkModeForeground;
+					res[ColorTarget.BaseBorder] = _DarkModeBorder;
+					res[ColorTarget.ButtonBackground] = _DarkModeButtonBackground;
+					res[ColorTarget.ButtonBorder] = _DarkModeButtonBorder;
+					res[ColorTarget.ButtonDisabledBackground] = _DarkModeButtonDisabledBackground;
+					res[ColorTarget.ButtonDisabledForeground] = _DarkModeButtonDisabledForeground;
+					res[ColorTarget.ButtonDisabledBorder] = _DarkModeButtonDisabledBorder;
+					res[ColorTarget.ButtonMouseOverBackground] = _DarkModeButtonMouseOver;
 					res[OtherTarget.Button_Style] = _DarkModeButtonStyle;
 					return;
 				}
@@ -133,13 +133,13 @@ namespace Advobot.UILauncher.Classes
 					}
 					res[OtherTarget.Button_Style] = AdvobotButton.MakeButtonStyle
 					(
-						(Brush)res[ColorTarget.Base_Background],
-						(Brush)res[ColorTarget.Base_Foreground],
-						(Brush)res[ColorTarget.Base_Border],
-						(Brush)res[ColorTarget.Button_Disabled_Background],
-						(Brush)res[ColorTarget.Button_Disabled_Foreground],
-						(Brush)res[ColorTarget.Button_Disabled_Border],
-						(Brush)res[ColorTarget.Button_Mouse_Over_Background]
+						(Brush)res[ColorTarget.BaseBackground],
+						(Brush)res[ColorTarget.BaseForeground],
+						(Brush)res[ColorTarget.BaseBorder],
+						(Brush)res[ColorTarget.ButtonDisabledBackground],
+						(Brush)res[ColorTarget.ButtonDisabledForeground],
+						(Brush)res[ColorTarget.ButtonDisabledBorder],
+						(Brush)res[ColorTarget.ButtonMouseOverBackground]
 					);
 					return;
 				}
@@ -162,22 +162,22 @@ namespace Advobot.UILauncher.Classes
 					}
 					if (button.Foreground == null)
 					{
-						button.SetResourceReference(Button.ForegroundProperty, ColorTarget.Base_Foreground);
+						button.SetResourceReference(Button.ForegroundProperty, ColorTarget.BaseForeground);
 					}
 				}
 				else if (child is Control control)
 				{
 					if (control.Background == null)
 					{
-						control.SetResourceReference(Control.BackgroundProperty, ColorTarget.Base_Background);
+						control.SetResourceReference(Control.BackgroundProperty, ColorTarget.BaseBackground);
 					}
 					if (control.Foreground == null)
 					{
-						control.SetResourceReference(Control.ForegroundProperty, ColorTarget.Base_Foreground);
+						control.SetResourceReference(Control.ForegroundProperty, ColorTarget.BaseForeground);
 					}
 					if (control.BorderBrush == null)
 					{
-						control.SetResourceReference(Control.BorderBrushProperty, ColorTarget.Base_Border);
+						control.SetResourceReference(Control.BorderBrushProperty, ColorTarget.BaseBorder);
 					}
 				}
 			}

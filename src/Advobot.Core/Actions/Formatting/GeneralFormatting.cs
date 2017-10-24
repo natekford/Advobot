@@ -118,9 +118,10 @@ namespace Advobot.Core.Actions.Formatting
 		public static string FormatTitle(this string title)
 		{
 			var sb = new StringBuilder();
-			foreach (var c in title)
+			for (int i = 0; i < title.Length; ++i)
 			{
-				if (Char.IsUpper(c))
+				var c = title[i];
+				if (Char.IsUpper(c) && (i == 0 || !Char.IsWhiteSpace(title[i - 1])))
 				{
 					sb.Append(' ');
 				}
