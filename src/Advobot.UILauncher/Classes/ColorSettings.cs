@@ -9,6 +9,7 @@ using System.Windows.Media;
 using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Enums;
 using System.Windows.Controls;
+using Advobot.Core;
 
 namespace Advobot.UILauncher.Classes
 {

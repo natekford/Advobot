@@ -17,13 +17,7 @@ namespace Advobot.UILauncher.Classes
 			get => _FRV;
 			set
 			{
-				//TODO: make this into a static method on some class and then have it grab the highest grid
-				(this as Control).SetBinding(Control.FontSizeProperty, new Binding
-				{
-					Path = new PropertyPath("ActualHeight"),
-					RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
-					Converter = new FontResizer(value),
-				});
+				UIModification.SetFontResizeProperty(this, value);
 				_FRV = value;
 			}
 		}

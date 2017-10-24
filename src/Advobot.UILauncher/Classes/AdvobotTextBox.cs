@@ -1,10 +1,10 @@
-﻿using Advobot.UILauncher.Actions;
+﻿using Advobot.Core.Actions;
+using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Interfaces;
 using Discord;
 using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes
@@ -17,12 +17,7 @@ namespace Advobot.UILauncher.Classes
 			get => _FRV;
 			set
 			{
-				(this as Control).SetBinding(Control.FontSizeProperty, new Binding
-				{
-					Path = new PropertyPath("ActualHeight"),
-					RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
-					Converter = new FontResizer(value),
-				});
+				UIModification.SetFontResizeProperty(this, value);
 				_FRV = value;
 			}
 		}

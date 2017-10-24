@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Advobot
+namespace Advobot.Core.Actions
 {
 	public static class ExtendedActions
 	{

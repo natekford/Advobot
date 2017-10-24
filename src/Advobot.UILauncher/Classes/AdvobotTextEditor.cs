@@ -1,4 +1,5 @@
-﻿using Advobot.UILauncher.Interfaces;
+﻿using Advobot.UILauncher.Actions;
+using Advobot.UILauncher.Interfaces;
 using ICSharpCode.AvalonEdit;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,12 +15,7 @@ namespace Advobot.UILauncher.Classes
 			get => _FRV;
 			set
 			{
-				(this as Control).SetBinding(Control.FontSizeProperty, new Binding
-				{
-					Path = new PropertyPath("ActualHeight"),
-					RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), 1),
-					Converter = new FontResizer(value),
-				});
+				UIModification.SetFontResizeProperty(this, value);
 				_FRV = value;
 			}
 		}

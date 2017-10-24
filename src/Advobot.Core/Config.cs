@@ -9,7 +9,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Advobot
+namespace Advobot.Core
 {
 	/// <summary>
 	/// Low level configuration that is necessary for the bot to run. Holds the bot key, bot id, and save path.

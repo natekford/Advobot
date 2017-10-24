@@ -1,6 +1,6 @@
 ﻿namespace Advobot.UILauncher.Interfaces
 {
-	public interface IFontResizeValue
+	internal interface IFontResizeValue
 	{
 		double FontResizeValue { get; set; }
 	}

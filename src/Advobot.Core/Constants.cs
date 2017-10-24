@@ -6,7 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Reflection;
 
-namespace Advobot
+namespace Advobot.Core
 {
 	public static class Constants
 	{
@@ -51,6 +51,7 @@ namespace Advobot
 
 		//Static because they may change and I've heard using const means any assembly referencing it has to be recompiled each time the value gets manually changed.
 		//Regex for checking any awaits are non ConfigureAwait(false): ^(?!.*CAF\(\)).*await.*$
+		public static string BOT_VERSION => Core.Version.VersionNumber;
 		public static string API_VERSION => Assembly.GetAssembly(typeof(IDiscordClient)).GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
 		public static string PROGRAM_NAME => "Advobot";
 		public static string IGNORE_ERROR => "Cx";

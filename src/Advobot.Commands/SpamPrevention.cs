@@ -1,4 +1,5 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core;
+using Advobot.Core.Actions;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
 using Advobot.Core.Classes.SpamPrevention;

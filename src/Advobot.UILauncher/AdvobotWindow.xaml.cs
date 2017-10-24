@@ -17,6 +17,8 @@ using Advobot.UILauncher.Actions;
 using System.Windows.Threading;
 using Advobot.Core.Interfaces;
 using Discord;
+using System.Windows.Navigation;
+using System.Diagnostics;
 
 namespace Advobot.UILauncher
 {
@@ -53,72 +55,67 @@ namespace Advobot.UILauncher
 				return;
 			}
 
-			var parent = this.Content as FrameworkElement;
-			var children = parent.GetChildren();
-
-			var output       = (AdvobotTextEditor)parent.FindName("Output");
-			var mainMenu     = (Grid)children.SingleOrDefault(x => x?.Tag is MenuType m && m == MenuType.Main);
-			var infoMenu     = (Grid)children.SingleOrDefault(x => x?.Tag is MenuType m && m == MenuType.Info);
-			var settingsMenu = (Grid)children.SingleOrDefault(x => x?.Tag is MenuType m && m == MenuType.Settings);
-			var colorsMenu   = (Grid)children.SingleOrDefault(x => x?.Tag is MenuType m && m == MenuType.Colors);
-			var fileMenu     = (Grid)children.SingleOrDefault(x => x?.Tag is MenuType m && m == MenuType.Files);
-
 			//Hide everything so stuff doesn't overlap
-			mainMenu.Visibility = Visibility.Collapsed;
-			settingsMenu.Visibility = Visibility.Collapsed;
-			colorsMenu.Visibility = Visibility.Collapsed;
-			infoMenu.Visibility = Visibility.Collapsed;
-			fileMenu.Visibility = Visibility.Collapsed;
+			this.MainMenu.Visibility = Visibility.Collapsed;
+			this.SettingsMenu.Visibility = Visibility.Collapsed;
+			this.ColorsMenu.Visibility = Visibility.Collapsed;
+			this.InfoMenu.Visibility = Visibility.Collapsed;
+			this.FilesMenu.Visibility = Visibility.Collapsed;
 
-			var currentColumn = Grid.GetColumn(output);
-			var currentColumnSpan = Grid.GetColumnSpan(output);
+			var currentColumn = Grid.GetColumn(this.Output);
+			var currentColumnSpan = Grid.GetColumnSpan(this.Output);
 
 			//If clicking the same button then resize the output window to the regular size
 			var type = button.Tag as MenuType? ?? default;
 			if (type == _LastButtonClicked)
 			{
-				UIModification.SetColAndSpan(output, currentColumn, currentColumnSpan + 1);
+				UIModification.SetColAndSpan(this.Output, currentColumn, currentColumnSpan + 1);
 				_LastButtonClicked = default;
 			}
 			else
 			{
 				//Resize the regular output window and have the menubox appear
-				UIModification.SetColAndSpan(output, currentColumn, currentColumnSpan - 1);
+				UIModification.SetColAndSpan(this.Output, currentColumn, currentColumnSpan - 1);
 				_LastButtonClicked = type;
 
 				switch (type)
 				{
 					case MenuType.Main:
 					{
-						mainMenu.Visibility = Visibility.Visible;
+						this.MainMenu.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.Info:
 					{
-						infoMenu.Visibility = Visibility.Visible;
+						this.InfoMenu.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.Settings:
 					{
-						/*
-						((CheckBox)((Viewbox)_DownloadUsersSetting.Setting).Child).IsChecked = _BotSettings.AlwaysDownloadUsers;
-						((TextBox)_PrefixSetting.Setting).Text = _BotSettings.Prefix;
-						((TextBox)_GameSetting.Setting).Text = _BotSettings.Game;
-						((TextBox)_StreamSetting.Setting).Text = _BotSettings.Stream;
-						((TextBox)_ShardSetting.Setting).Text = _BotSettings.ShardCount.ToString();
-						((TextBox)_MessageCacheSetting.Setting).Text = _BotSettings.MessageCacheCount.ToString();
-						((TextBox)_UserGatherCountSetting.Setting).Text = _BotSettings.MaxUserGatherCount.ToString();
-						((TextBox)_MessageGatherSizeSetting.Setting).Text = _BotSettings.MaxMessageGatherSize.ToString();
-						((ComboBox)_LogLevelComboBox.Setting).SelectedItem = ((ComboBox)_LogLevelComboBox.Setting).Items.OfType<TextBox>().FirstOrDefault(x => (LogSeverity)x.Tag == _BotSettings.LogLevel);
-						_TrustedUsersComboBox.ItemsSource = await Task.WhenAll(_BotSettings.TrustedUsers.Select(async x => AdvobotTextBox.CreateUserBox(await _Client.GetUserAsync(x))));*/
-						settingsMenu.Visibility = Visibility.Visible;
+						var llSelected = this.LogLevel.Items.OfType<TextBox>()
+							.SingleOrDefault(x => x?.Tag is LogSeverity ls && ls == _BotSettings.LogLevel);
+						var tuSource = await Task.WhenAll(_BotSettings.TrustedUsers
+							.Select(async x => AdvobotTextBox.CreateUserBox(await _Client.GetUserAsync(x))));
+
+						this.AlwaysDownloadUsers.IsChecked = _BotSettings.AlwaysDownloadUsers;
+						this.Prefix.Text = _BotSettings.Prefix;
+						this.Game.Text = _BotSettings.Game;
+						this.Stream.Text = _BotSettings.Stream;
+						this.ShardCount.Text = _BotSettings.ShardCount.ToString();
+						this.MessageCache.Text = _BotSettings.MessageCacheCount.ToString();
+						this.UserCount.Text = _BotSettings.MaxUserGatherCount.ToString();
+						this.MessageGather.Text = _BotSettings.MaxMessageGatherSize.ToString();
+						this.LogLevel.SelectedItem = llSelected;
+						this.TrustedUsers.ItemsSource = tuSource;
+						
+						this.SettingsMenu.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.Colors:
 					{
 						/*
 						UIModification.MakeColorDisplayer(_UISettings, _ColorsLayout, _ColorsSaveButton, .018);*/
-						colorsMenu.Visibility = Visibility.Visible;
+						this.ColorsMenu.Visibility = Visibility.Visible;
 						return;
 					}
 					case MenuType.Files:
@@ -130,11 +127,16 @@ namespace Advobot.UILauncher
 							item.MouseDoubleClick += OpenSpecificFileLayout;
 						}
 						_FileOutput.Document = new FlowDocument(new Paragraph(new InlineUIContainer(treeView)));*/
-						fileMenu.Visibility = Visibility.Visible;
+						this.FilesMenu.Visibility = Visibility.Visible;
 						return;
 					}
 				}
 			}
+		}
+		private void OpenHyperLink(object sender, RequestNavigateEventArgs e)
+		{
+			Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
+			e.Handled = true;
 		}
 	}
 }

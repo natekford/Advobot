@@ -23,6 +23,8 @@ using System.Text;
 using Advobot.Core.Classes;
 using System.Windows.Input;
 using Discord.WebSocket;
+using Advobot.UILauncher.Interfaces;
+using Advobot.Core;
 
 namespace Advobot.UILauncher.Actions
 {
@@ -206,6 +208,54 @@ namespace Advobot.UILauncher.Actions
 				}
 				AddElement(parent, temp, BGPoints[i][0], BGPoints[i][1], BGPoints[i][2], BGPoints[i][3]);
 			}
+		}
+
+		public static void SetFontResizeProperty(Control control, double size)
+		{
+			if (!GetTopMostParent(control, out Grid parent, out int ancestorLevel))
+			{
+				throw new ArgumentException($"{control.Name} must be inside a grid if {nameof(IFontResizeValue.FontResizeValue)} is set.");
+			}
+
+			control.SetBinding(Control.FontSizeProperty, new Binding
+			{
+				Path = new PropertyPath("ActualHeight"),
+				RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), ancestorLevel),
+				Converter = new FontResizer(size),
+			});
+		}
+		/// <summary>
+		/// Returns true if the supplied type is any parent of the supplied element.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="element"></param>
+		/// <param name="parent"></param>
+		/// <param name="ancestorLevel"></param>
+		/// <returns></returns>
+		public static bool GetTopMostParent<T>(FrameworkElement element, out T parent, out int ancestorLevel) where T : FrameworkElement
+		{
+			parent = default;
+			ancestorLevel = 0;
+
+			var currLevel = 0;
+			while (element.Parent != null)
+			{
+				++currLevel;
+				if (element.Parent is T tParent)
+				{
+					parent = tParent;
+					ancestorLevel = currLevel;
+				}
+
+				if (!(element.Parent is FrameworkElement p))
+				{
+					//If grid is in weird object then just use the inside grid and
+					//don't bother going higher
+					break;
+				}
+				element = p;
+			}
+			return ancestorLevel > 0;
 		}
 
 		public static Hyperlink MakeHyperlink(string link, string name)

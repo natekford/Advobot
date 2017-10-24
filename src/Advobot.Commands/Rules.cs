@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Advobot.Core;
+using Advobot.Core.Actions;
 using Advobot.Core.Classes;
 using Advobot.Core.Classes.Attributes;
-using Advobot.Core.Interfaces;
-using Discord.WebSocket;
-using Advobot.Core.Actions.Formatting;
-using Discord.Commands;
-using Advobot.Core.Enums;
 using Advobot.Core.Classes.Rules;
-using Advobot.Core.Actions;
+using Advobot.Core.Enums;
+using Discord.Commands;
+using System;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Advobot.Commands.Rules
 {

@@ -3,12 +3,11 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Markup;
 
-namespace Advobot.UILauncher
+namespace Advobot.UILauncher.Classes.Extensions
 {
 	[ContentProperty(nameof(Member))]
 	public class NameOfExtension : MarkupExtension
 	{
-		//Test
 		//Copied verbatim from https://stackoverflow.com/a/45760586
 		public Type Type { get; set; }
 		public string Member { get; set; }

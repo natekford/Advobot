@@ -1,4 +1,5 @@
-﻿using Advobot.Core.Actions;
+﻿using Advobot.Core;
+using Advobot.Core.Actions;
 using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Actions
