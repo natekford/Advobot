@@ -30,8 +30,6 @@ namespace Advobot.UILauncher.Actions
 {
 	internal class UIModification
 	{
-		private static CancellationTokenSource _ToolTipCancellationTokenSource;
-
 		public static void AddRows(Grid grid, int amount)
 		{
 			for (int i = 0; i < amount; ++i)
@@ -75,9 +73,37 @@ namespace Advobot.UILauncher.Actions
 			AddElement(parent, new AdvobotTextBox { IsReadOnly = true, }, rowStart, rowLength, columnStart, columnLength);
 		}
 
-		public static Brush MakeBrush(string color)
+		public static bool TryMakeBrush(string input, out SolidColorBrush brush)
 		{
-			return (SolidColorBrush)new BrushConverter().ConvertFrom(color);
+			var split = input.Split('/');
+			if (split.Length == 3 && byte.TryParse(split[0], out var r) && byte.TryParse(split[1], out var g) && byte.TryParse(split[2], out var b))
+			{
+				r = Math.Min(r, (byte)255);
+				g = Math.Min(g, (byte)255);
+				b = Math.Min(b, (byte)255);
+				brush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, r, g, b));
+			}
+			else
+			{
+				if (!input.StartsWith("#"))
+				{
+					input = "#" + input;
+				}
+				try
+				{
+					brush = (SolidColorBrush)new BrushConverter().ConvertFrom(input);
+				}
+				catch
+				{
+					brush = null;
+					return false;
+				}
+			}
+			return true;
+		}
+		public static Brush MakeBrush(string input)
+		{
+			return (SolidColorBrush)new BrushConverter().ConvertFrom(input);
 		}
 		public static bool CheckIfTwoBrushesAreTheSame(Brush b1, Brush b2)
 		{
@@ -99,50 +125,10 @@ namespace Advobot.UILauncher.Actions
 			var b = color1.B == color2.B;
 			return a && r && g && b;
 		}
-		public static string FormatBrush(Brush b)
-		{
-			var color = ((SolidColorBrush)b)?.Color;
-			if (!color.HasValue)
-				return "";
-
-			var c = color.Value;
-			return $"#{c.A.ToString("X2")}{c.R.ToString("X2")}{c.G.ToString("X2")}{c.B.ToString("X2")}";
-		}
 
 		public static void ToggleToolTip(ToolTip ttip)
 		{
 			ttip.IsOpen = !ttip.IsOpen;
-		}
-		public static async Task MakeFollowingToolTip(UIElement baseElement, ToolTip tt, string text, int timeInMS = 2500)
-		{
-			tt.Content = text ?? "Blank.";
-			tt.IsOpen = true;
-			baseElement.MouseMove += (sender, e) =>
-			{
-				var point = System.Windows.Forms.Control.MousePosition;
-				tt.HorizontalOffset = point.X;
-				tt.VerticalOffset = point.Y;
-			};
-
-			if (_ToolTipCancellationTokenSource != null)
-			{
-				_ToolTipCancellationTokenSource.Cancel();
-			}
-			_ToolTipCancellationTokenSource = new CancellationTokenSource();
-
-			await baseElement.Dispatcher.InvokeAsync(async () =>
-			{
-				try
-				{
-					await Task.Delay(timeInMS, _ToolTipCancellationTokenSource.Token);
-				}
-				catch (TaskCanceledException)
-				{
-					return;
-				}
-
-				tt.IsOpen = false;
-			});
 		}
 
 		public static int[][] FigureOutWhereToPutBG(Grid parent, UIElement child)
@@ -221,7 +207,7 @@ namespace Advobot.UILauncher.Actions
 			{
 				Path = new PropertyPath("ActualHeight"),
 				RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), ancestorLevel),
-				Converter = new FontResizer(size),
+				Converter = new Classes.FontSizeConverter(size),
 			});
 		}
 		/// <summary>
@@ -258,42 +244,6 @@ namespace Advobot.UILauncher.Actions
 			return ancestorLevel > 0;
 		}
 
-		public static Hyperlink MakeHyperlink(string link, string name)
-		{
-			//Make sure the input is a valid link
-			if (!GetActions.GetIfStringIsValidUrl(link))
-			{
-				ConsoleActions.WriteLine(new ErrorReason("Invalid URL.").ToString());
-				return null;
-			}
-			//Create the hyperlink
-			var hyperlink = new Hyperlink(new Run(name))
-			{
-				NavigateUri = new Uri(link),
-				IsEnabled = true,
-			};
-			//Make it work when clicked
-			hyperlink.RequestNavigate += (sender, e) =>
-			{
-				Process.Start(e.Uri.ToString());
-				e.Handled = true;
-			};
-			return hyperlink;
-		}
-		public static Viewbox MakeStandardViewBox(string text)
-		{
-			return new Viewbox
-			{
-				Child = new AdvobotTextBox
-				{
-					Text = text,
-					VerticalAlignment = VerticalAlignment.Bottom,
-					IsReadOnly = true,
-					BorderThickness = new Thickness(0)
-				},
-				HorizontalAlignment = HorizontalAlignment.Left
-			};
-		}
 		public static TreeView MakeGuildTreeView(TreeView tv, IEnumerable<IGuild> guilds)
 		{
 			var directoryInfo = GetActions.GetBaseBotDirectory();
@@ -343,76 +293,6 @@ namespace Advobot.UILauncher.Actions
 			.OrderByDescending(x => x.Tag is GuildFileInformation gfi ? gfi.MemberCount : 0);
 
 			return tv;
-		}
-		public static FlowDocument MakeMainMenu()
-		{
-			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-			var coreAssembly = assemblies.FirstOrDefault(x => x.GetTypes().Contains(typeof(IAdvobotCommandContext)));
-			var coreAssemblyVersion = coreAssembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-			var text =
-				"Latency:\n\tTime it takes for a command to reach the bot.\n" +
-				"Memory:\n\tAmount of RAM the program is using.\n\t(This is wrong most of the time.)\n" +
-				"Threads:\n\tWhere all the actions in the bot happen.\n" +
-				"Shards:\n\tHold all the guilds a bot has on its client.\n\tThere is a limit of 2500 guilds per shard.\n\n" +
-				$"API Wrapper Version: {Constants.API_VERSION}\n" +
-				$"Bot Version: {coreAssemblyVersion}\n" +
-				$"GitHub Repository: ";
-
-			var temp = new Paragraph();
-			temp.Inlines.Add(new Run(text));
-			temp.Inlines.Add(MakeHyperlink(Constants.REPO, "Advobot"));
-			temp.Inlines.Add(new Run("\n\nNeed additional help? Join the Discord server: "));
-			temp.Inlines.Add(MakeHyperlink(Constants.DISCORD_INV, "Here"));
-
-			return new FlowDocument(temp);
-		}
-		public static FlowDocument MakeInfoMenu(ILogService logService)
-		{
-			var text = new StringBuilder()
-				.AppendLine($"Uptime: {TimeFormatting.FormatUptime()}")
-				.AppendLine($"Logged Commands:\n{logService.FormatLoggedCommands(true)}")
-				.AppendLine($"Logged User Actions:\n{logService.FormatLoggedUserActions(true)}")
-				.AppendLine($"Logged Message Actions:\n{logService.FormatLoggedMessageActions(true)}")
-				.ToString().RemoveAllMarkdown().RemoveDuplicateNewLines();
-			return new FlowDocument(new Paragraph(new Run(text)) { TextAlignment = TextAlignment.Center, });
-		}
-		public static Grid MakeColorDisplayer(ColorSettings UISettings, Grid g, Button b, double fontResize)
-		{
-			g.Children.Clear();
-
-			var title = AdvobotTextBox.CreateTitleBox("Themes:", "");
-			title.FontResizeValue = fontResize;
-			var combo = AdvobotComboBox.CreateEnumComboBox<ColorTheme>(null);
-			combo.SelectedItem = combo.Items.OfType<TextBox>().FirstOrDefault(x => x?.Tag is ColorTheme t && t == UISettings.Theme);
-
-			var c = 0;
-			foreach (ColorTarget e in Enum.GetValues(typeof(ColorTarget)))
-			{
-				var name = AdvobotTextBox.CreateTitleBox($"{e.EnumName().Remove('_')}:", "");
-				name.FontResizeValue = fontResize;
-
-				var set = new AdvobotTextBox
-				{
-					VerticalContentAlignment = VerticalAlignment.Center,
-					Tag = e,
-					MaxLength = 10,
-					Text = FormatBrush(UISettings.ColorTargets[e]),
-					FontResizeValue = fontResize,
-				};
-
-				AddElement(g, name, c * 5 + 7, 5, 10, 55);
-				AddElement(g, set, c * 5 + 7, 5, 65, 25);
-				++c;
-			}
-
-			AddPlaceHolderTB(g, 0, 100, 0, 100);
-			AddElement(g, title, 2, 5, 10, 55);
-			AddElement(g, combo, 2, 5, 65, 25);
-			AddElement(g, b, 95, 5, 0, 100);
-
-			ColorSettings.SwitchElementColorOfChildren(g);
-
-			return g;
 		}
 
 		public static bool AppendTextToTextEditorIfPathExists(TextEditor display, TreeViewItem treeItem)

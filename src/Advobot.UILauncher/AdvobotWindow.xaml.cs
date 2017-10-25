@@ -22,6 +22,10 @@ using System.Diagnostics;
 using Advobot.Core;
 using Advobot.Core.Actions;
 using Microsoft.Extensions.DependencyInjection;
+using Advobot.UILauncher.Classes.Converters;
+using Advobot.Core.Actions.Formatting;
+using Advobot.Core.Classes;
+using System.Threading;
 
 namespace Advobot.UILauncher
 {
@@ -33,9 +37,11 @@ namespace Advobot.UILauncher
 		private IDiscordClient _Client;
 		private IBotSettings _BotSettings;
 		private ILogService _Logging;
-		private ColorSettings _UISettings;
-		private DispatcherTimer _Timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 0, 500) };
+		private ColorSettings _ColorSettings = new ColorSettings();
 
+		private DispatcherTimer _Timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 0, 500) };
+		private ToolTip _ToolTip = new ToolTip();
+		private CancellationTokenSource _ToolTipCancellationTokenSource;
 		private MenuType _LastButtonClicked;
 
 		public AdvobotWindow()
@@ -43,8 +49,7 @@ namespace Advobot.UILauncher
 			InitializeComponent();
 
 			Console.SetOut(new TextBoxStreamWriter(this.Output));
-			new ColorSettings().ActivateTheme();
-			ColorSettings.SwitchElementColorOfChildren(this.Content as DependencyObject);
+			ColorSettings.SwitchElementColorOfChildren(this.Layout);
 		}
 
 		private async void AttemptToLogIn(object sender, RoutedEventArgs e)
@@ -107,7 +112,7 @@ namespace Advobot.UILauncher
 						this.Stream.Text = _BotSettings.Stream;
 						this.ShardCount.Text = _BotSettings.ShardCount.ToString();
 						this.MessageCache.Text = _BotSettings.MessageCacheCount.ToString();
-						this.UserCount.Text = _BotSettings.MaxUserGatherCount.ToString();
+						this.UserGather.Text = _BotSettings.MaxUserGatherCount.ToString();
 						this.MessageGather.Text = _BotSettings.MaxMessageGatherSize.ToString();
 						this.LogLevel.SelectedItem = llSelected;
 						this.TrustedUsers.ItemsSource = tuSource;
@@ -117,8 +122,20 @@ namespace Advobot.UILauncher
 					}
 					case MenuType.Colors:
 					{
-						/*
-						UIModification.MakeColorDisplayer(_UISettings, _ColorsLayout, _ColorsSaveButton, .018);*/
+						var tcbSelected = this.ThemesComboBox.Items.OfType<TextBox>()
+							.SingleOrDefault(x => x?.Tag is ColorTheme t && t == _ColorSettings.Theme);
+
+						this.BaseBackground.Text = _ColorSettings[ColorTarget.BaseBackground]?.ToString() ?? "";
+						this.BaseForeground.Text = _ColorSettings[ColorTarget.BaseForeground]?.ToString() ?? "";
+						this.BaseBorder.Text = _ColorSettings[ColorTarget.BaseBorder]?.ToString() ?? "";
+						this.ButtonBackground.Text = _ColorSettings[ColorTarget.ButtonBackground]?.ToString() ?? "";
+						this.ButtonBorder.Text = _ColorSettings[ColorTarget.ButtonBorder]?.ToString() ?? "";
+						this.ButtonDisabledBackground.Text = _ColorSettings[ColorTarget.ButtonDisabledBackground]?.ToString() ?? "";
+						this.ButtonDisabledForeground.Text = _ColorSettings[ColorTarget.ButtonDisabledForeground]?.ToString() ?? "";
+						this.ButtonDisabledBorder.Text = _ColorSettings[ColorTarget.ButtonDisabledBorder]?.ToString() ?? "";
+						this.ButtonMouseOverBackground.Text = _ColorSettings[ColorTarget.ButtonMouseOverBackground]?.ToString() ?? "";
+						this.ThemesComboBox.SelectedItem = tcbSelected;
+
 						this.ColorsMenu.Visibility = Visibility.Visible;
 						return;
 					}
@@ -199,17 +216,90 @@ namespace Advobot.UILauncher
 		{
 			await HandleInput(UICommandHandler.GatherInput(this.InputBox, this.InputButton));
 		}
-		private async void UpdateMenus(object sender, EventArgs e)
+		private void UpdateApplicationInfo(object sender, EventArgs e)
 		{
-			var guilds = await _Client.GetGuildsAsync();
-			var users = await Task.WhenAll(guilds.Select(async g => await g.GetUsersAsync()));
-
+			this.Uptime.Text = $"Uptime: {TimeFormatting.FormatUptime()}";
 			this.Latency.Text = $"Latency: {ClientActions.GetLatency(_Client)}ms";
 			this.Memory.Text = $"Memory: {GetActions.GetMemory().ToString("0.00")}MB";
 			this.ThreadCount.Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
-			this.GuildCount.Text = $"Guilds: {guilds.Count}";
-			this.UserCount.Text = $"Members: {users.SelectMany(x => x).Select(x => x.Id).Distinct().Count()}";
-			this.InfoOutput.Document = UIModification.MakeInfoMenu(_Logging);
+		}
+		private async void SaveOutput(object sender, RoutedEventArgs e)
+		{
+			await MakeFollowingToolTip(UIBotWindowLogic.SaveOutput(this.Output).GetReason());
+		}
+		private void ClearOutput(object sender, RoutedEventArgs e)
+		{
+			switch (MessageBox.Show("Are you sure you want to clear the output window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
+			{
+				case MessageBoxResult.OK:
+				{
+					this.Output.Text = null;
+					return;
+				}
+			}
+		}
+		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
+		{
+			if (this.TrustedUsers.SelectedItem != null)
+			{
+				this.TrustedUsers.ItemsSource = this.TrustedUsers.ItemsSource.OfType<TextBox>()
+					.Except(new[] { this.TrustedUsers.SelectedItem }).Where(x => x != null);
+			}
+		}
+		private async void AddTrustedUser(object sender, RoutedEventArgs e)
+		{
+			var input = this.TrustedUsersBox.Text;
+			if (!ulong.TryParse(input, out ulong userId))
+			{
+				ConsoleActions.WriteLine($"The given input '{input}' is not a valid ID.");
+			}
+			else if (this.TrustedUsers.Items.OfType<TextBox>().Any(x => x?.Tag is ulong id && id == userId))
+			{
+				return;
+			}
+
+			var tb = AdvobotTextBox.CreateUserBox(await _Client.GetUserAsync(userId));
+			if (tb != null)
+			{
+				this.TrustedUsers.ItemsSource = this.TrustedUsers.ItemsSource.OfType<TextBox>()
+					.Concat(new[] { tb }).Where(x => x != null);
+			}
+
+			this.TrustedUsersBox.Text = null;
+		}
+		private void SaveColors(object sender, RoutedEventArgs e)
+		{
+			foreach (var child in this.ColorsMenu.GetChildren())
+			{
+				if (child is AdvobotTextBox tb && tb.Tag is ColorTarget target)
+				{
+					var childText = tb.Text;
+					if (String.IsNullOrWhiteSpace(childText))
+					{
+						continue;
+					}
+					if (!UIModification.TryMakeBrush(childText, out var brush))
+					{
+						ConsoleActions.WriteLine($"Invalid color supplied for {target.EnumName()}.");
+						continue;
+					}
+
+					tb.Text = (_ColorSettings[target] = brush).ToString();
+					ConsoleActions.WriteLine($"Successfully updated the color for {target.EnumName()}.");
+				}
+				else if (child is ComboBox cb && cb.SelectedItem is AdvobotTextBox tb2 && tb2.Tag is ColorTheme theme)
+				{
+					_ColorSettings.Theme = theme;
+					ConsoleActions.WriteLine("Successfully updated the theme type.");
+				}
+			}
+
+			_ColorSettings.SaveSettings();
+			ColorSettings.SwitchElementColorOfChildren(this.Layout);
+		}
+		private async void SaveSettings(object sender, RoutedEventArgs e)
+		{
+			await SettingModification.SaveSettings(this.SettingsMenu, _Client, _BotSettings);
 		}
 
 		//TODO: Fix this entire terrible method
@@ -228,9 +318,8 @@ namespace Advobot.UILauncher
 					_Client = provider.GetService<IDiscordClient>();
 					_BotSettings = provider.GetService<IBotSettings>();
 					_Logging = provider.GetService<ILogService>();
-					_UISettings = ColorSettings.LoadUISettings(_StartUp);
 
-					_UISettings.ActivateTheme();
+					_ColorSettings = ColorSettings.LoadUISettings(_StartUp);
 					ColorSettings.SwitchElementColorOfChildren(this.Content as DependencyObject);
 				}
 				else
@@ -266,11 +355,70 @@ namespace Advobot.UILauncher
 
 			if (_GotPath && _GotKey && _StartUp)
 			{
-				_Timer.Tick += UpdateMenus;
+				_Timer.Tick += UpdateApplicationInfo;
 				_Timer.Start();
-				await ClientActions.StartAsync(_Client);
 				_StartUp = false;
+				SetBindings();
+				await ClientActions.StartAsync(_Client);
 			}
+		}
+		public async Task MakeFollowingToolTip(string text, int timeInMS = 2500)
+		{
+			_ToolTip.Content = text ?? "Blank";
+			_ToolTip.IsOpen = true;
+			this.Layout.MouseMove += (sender, e) =>
+			{
+				var point = System.Windows.Forms.Control.MousePosition;
+				_ToolTip.HorizontalOffset = point.X;
+				_ToolTip.VerticalOffset = point.Y;
+			};
+
+			if (_ToolTipCancellationTokenSource != null)
+			{
+				_ToolTipCancellationTokenSource.Cancel();
+			}
+			_ToolTipCancellationTokenSource = new CancellationTokenSource();
+
+			await this.Layout.Dispatcher.InvokeAsync(async () =>
+			{
+				try
+				{
+					await Task.Delay(timeInMS, _ToolTipCancellationTokenSource.Token);
+				}
+				catch (TaskCanceledException)
+				{
+					return;
+				}
+
+				_ToolTip.IsOpen = false;
+			});
+		}
+
+		private void SetBindings()
+		{
+			SetCommandCountBinding(this.Guilds, _Logging.TotalGuilds);
+			SetCommandCountBinding(this.Users, _Logging.TotalUsers);
+			SetCommandCountBinding(this.AttemptedCommands, _Logging.AttemptedCommands);
+			SetCommandCountBinding(this.SuccessfulCommands, _Logging.SuccessfulCommands);
+			SetCommandCountBinding(this.FailedCommands, _Logging.FailedCommands);
+			SetCommandCountBinding(this.UserJoins, _Logging.UserJoins);
+			SetCommandCountBinding(this.UserLeaves, _Logging.UserLeaves);
+			SetCommandCountBinding(this.UserChanges, _Logging.UserChanges);
+			SetCommandCountBinding(this.MessageEdits, _Logging.MessageEdits);
+			SetCommandCountBinding(this.MessageDeletes, _Logging.MessageDeletes);
+			SetCommandCountBinding(this.Images, _Logging.Images);
+			SetCommandCountBinding(this.Gifs, _Logging.Gifs);
+			SetCommandCountBinding(this.Files, _Logging.Files);
+		}
+		private void SetCommandCountBinding(TextBox tb, LogCounter source)
+		{
+			tb.SetBinding(TextBox.TextProperty, new Binding
+			{
+				Path = new PropertyPath(nameof(LogCounter.Count)),
+				Source = source,
+				Mode = BindingMode.OneWay,
+				UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
+			});
 		}
 	}
 }

@@ -4,11 +4,11 @@ using System.Windows.Data;
 
 namespace Advobot.UILauncher.Classes
 {
-	internal class FontResizer : IValueConverter
+	internal class FontSizeConverter : IValueConverter
 	{
 		private double _ConvertFactor;
 
-		public FontResizer(double convertFactor)
+		public FontSizeConverter(double convertFactor)
 		{
 			_ConvertFactor = convertFactor;
 		}

@@ -11,15 +11,15 @@ namespace Advobot.UILauncher.Classes
 
 		public AdvobotNumberBox()
 		{
-			this.PreviewTextInput += MakeSureKeyIsNumber;
-			DataObject.AddPastingHandler(this, MakeSurePasteIsNumbers);
+			this.PreviewTextInput += Validate;
+			DataObject.AddPastingHandler(this, Validate);
 		}
 
-		private void MakeSureKeyIsNumber(object sender, TextCompositionEventArgs e)
+		private void Validate(object sender, TextCompositionEventArgs e)
 		{
 			e.Handled = !char.IsDigit(e.Text, e.Text.Length - 1);
 		}
-		private void MakeSurePasteIsNumbers(object sender, DataObjectPastingEventArgs e)
+		private void Validate(object sender, DataObjectPastingEventArgs e)
 		{
 			if (!e.SourceDataObject.GetDataPresent(DataFormats.UnicodeText, true))
 			{

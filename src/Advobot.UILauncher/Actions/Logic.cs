@@ -108,11 +108,11 @@ namespace Advobot.UILauncher.Actions
 			return await Config.ValidateBotKey(client, key, startup);
 		}
 
-		public static IEnumerable<FrameworkElement> GetChildren(this DependencyObject parent)
+		public static IEnumerable<DependencyObject> GetChildren(this DependencyObject parent)
 		{
 			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); ++i)
 			{
-				yield return (FrameworkElement)VisualTreeHelper.GetChild(parent, i);
+				yield return VisualTreeHelper.GetChild(parent, i);
 			}
 		}
 	}

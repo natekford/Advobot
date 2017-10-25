@@ -46,13 +46,13 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {4DFA053C-9378-4F41-B1C1-6DE68D9CF75D}
-		BuildVersion_UpdateAssemblyVersion = True
-		BuildVersion_UpdateFileVersion = True
-		BuildVersion_StartDate = 2000/1/1
-		BuildVersion_AssemblyInfoFilename = src\Advobot.Core\obj\Debug\netstandard2.0\Advobot.Core.AssemblyInfo.cs
-		BuildVersion_UseGlobalSettings = False
-		BuildVersion_UseUniversalClock = True
 		BuildVersion_BuildVersioningStyle = None.None.Increment.None
+		BuildVersion_UseUniversalClock = True
+		BuildVersion_UseGlobalSettings = False
+		BuildVersion_AssemblyInfoFilename = src\Advobot.Core\obj\Debug\netstandard2.0\Advobot.Core.AssemblyInfo.cs
+		BuildVersion_StartDate = 2000/1/1
+		BuildVersion_UpdateFileVersion = True
+		BuildVersion_UpdateAssemblyVersion = True
+		SolutionGuid = {4DFA053C-9378-4F41-B1C1-6DE68D9CF75D}
 	EndGlobalSection
 EndGlobal

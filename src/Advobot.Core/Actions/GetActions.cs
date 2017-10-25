@@ -108,7 +108,8 @@ namespace Advobot.Core.Actions
 		{
 			using (var process = Process.GetCurrentProcess())
 			{
-				return process.WorkingSet64 / (1024.0 * 1024.0);
+				process.Refresh();
+				return process.PrivateMemorySize64 / (1024.0 * 1024.0);
 			}
 		}
 		/// <summary>

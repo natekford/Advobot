@@ -106,21 +106,20 @@
     </Compile>
     <Compile Include="Classes\AdvobotButton.cs" />
     <Compile Include="Classes\AdvobotComboBox.cs" />
+    <Compile Include="Classes\AdvobotGrid.cs" />
     <Compile Include="Classes\AdvobotNumberBox.cs" />
     <Compile Include="Classes\AdvobotRichTextBox.cs" />
     <Compile Include="Classes\AdvobotRun.cs" />
     <Compile Include="Classes\AdvobotTextBox.cs" />
     <Compile Include="Classes\AdvobotTextEditor.cs" />
     <Compile Include="Classes\AdvobotTitleBox.cs" />
-    <Compile Include="Classes\AdvobotWindow.cs" />
     <Compile Include="Classes\AdvobotWindow\Events.cs" />
     <Compile Include="Classes\AdvobotWindow\Fields.cs" />
     <Compile Include="Classes\AdvobotWindow\Initialization.cs" />
     <Compile Include="Classes\BrushTargetAndValue.cs" />
     <Compile Include="Classes\FileInformation.cs" />
-    <Compile Include="Classes\FontResizer.cs" />
+    <Compile Include="Classes\Converters\FontSizeConverter.cs" />
     <Compile Include="Classes\GuildInformation.cs" />
-    <Compile Include="Classes\SettingInMenu.cs" />
     <Compile Include="Classes\Converters\NavigateUriConverter.cs" />
     <Compile Include="Classes\TextBoxStreamWriter.cs" />
     <Compile Include="Classes\ColorSettings.cs" />
@@ -132,7 +131,6 @@
     <Compile Include="Classes\Extensions\NameOfExtension.cs" />
     <Compile Include="Interfaces\IFontResizeValue.cs" />
     <Compile Include="Interfaces\ISummary.cs" />
-    <Compile Include="Interfaces\ITitle.cs" />
     <Compile Include="Interfaces\IUnescapedText.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">

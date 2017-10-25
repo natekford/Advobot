@@ -6,7 +6,7 @@ namespace Advobot.UILauncher.Enums
 	internal enum ColorTheme : uint
 	{
 		Classic = (1U << 0),
-		Dark_Mode = (1U << 1),
-		User_Made = (1U << 2),
+		DarkMode = (1U << 1),
+		UserMade = (1U << 2),
 	}
 }

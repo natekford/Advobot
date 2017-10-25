@@ -6,6 +6,7 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Advobot.Core.Services.Log
 {
@@ -95,18 +96,17 @@ namespace Advobot.Core.Services.Log
 			}
 		}
 
-		public string FormatLoggedCommands(bool equalSpacing)
+		public string FormatLoggedCommands(bool withMarkDown, bool equalSpacing)
 		{
-			return LogCounter.FormatMultiple(equalSpacing, _LoggedCommands);
+			return LogCounter.FormatMultiple(withMarkDown, equalSpacing, _LoggedCommands);
 		}
-		public string FormatLoggedUserActions(bool equalSpacing)
+		public string FormatLoggedUserActions(bool withMarkDown, bool equalSpacing)
 		{
-			return LogCounter.FormatMultiple(equalSpacing, _LoggedUserActions);
+			return LogCounter.FormatMultiple(withMarkDown, equalSpacing, _LoggedUserActions);
 		}
-		public string FormatLoggedMessageActions(bool equalSpacing)
+		public string FormatLoggedMessageActions(bool withMarkDown, bool equalSpacing)
 		{
-			return LogCounter.FormatMultiple(equalSpacing, _LoggedMessageActions) +
-				LogCounter.FormatMultiple(equalSpacing, _LoggedAttachments);
+			return LogCounter.FormatMultiple(withMarkDown, equalSpacing, _LoggedMessageActions.Concat(_LoggedAttachments).ToArray());
 		}
 	}
 }

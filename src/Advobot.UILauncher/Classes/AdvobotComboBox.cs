@@ -1,12 +1,9 @@
 ﻿using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Interfaces;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes
@@ -39,17 +36,13 @@ namespace Advobot.UILauncher.Classes
 			this.VerticalContentAlignment = VerticalAlignment.Center;
 		}
 
-		public static AdvobotComboBox CreateEnumComboBox<T>(string tag) where T : struct, IConvertible, IComparable, IFormattable
-		{
-			return new AdvobotComboBox { ItemsSource = CreateItemsSourceOutOfEnum<T>(), Tag = tag, };
-		}
-		public static AdvobotComboBox CreateStringComboBox(string tag, params string[] strings)
-		{
-			return new AdvobotComboBox { ItemsSource = CreateComboBoxSourceOutOfStrings(strings), Tag = tag, };
-		}
-
 		public static IEnumerable<TextBox> CreateItemsSourceOutOfEnum<T>() where T : struct, IConvertible, IComparable, IFormattable
 		{
+			if (!typeof(T).IsEnum)
+			{
+				throw new ArgumentException($"{typeof(T).Name} must be an enum.");
+			}
+
 			foreach (T e in Enum.GetValues(typeof(T)))
 			{
 				yield return new AdvobotTextBox
@@ -68,7 +61,7 @@ namespace Advobot.UILauncher.Classes
 		{
 			if (!enumType.IsEnum)
 			{
-				yield break;
+				throw new ArgumentException($"{nameof(enumType)} must be an enum.");
 			}
 
 			foreach (var e in Enum.GetValues(enumType))

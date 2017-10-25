@@ -1,5 +1,4 @@
 ﻿using Advobot.Core.Actions;
-using Advobot.Core.Actions.Formatting;
 using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Interfaces;
 using Discord;
@@ -31,45 +30,6 @@ namespace Advobot.UILauncher.Classes
 			this.TextWrapping = TextWrapping.Wrap;
 		}
 
-		public static AdvobotTextBox CreateTitleBox(string text, string summary)
-		{
-			var tb = new AdvobotTextBox
-			{
-				Text = text,
-				IsReadOnly = true,
-				BorderThickness = new Thickness(0),
-				VerticalAlignment = VerticalAlignment.Center,
-				HorizontalAlignment = HorizontalAlignment.Left,
-				TextWrapping = TextWrapping.WrapWithOverflow,
-			};
-
-			if (!String.IsNullOrWhiteSpace(summary))
-			{
-				var tt = new ToolTip { Content = summary, };
-				tb.MouseEnter += (sender, e) => UIModification.ToggleToolTip(tt);
-				tb.MouseLeave += (sender, e) => UIModification.ToggleToolTip(tt);
-			}
-
-			return tb;
-		}
-		public static AdvobotTextBox CreateSettingBox(string settingName, int length)
-		{
-			return new AdvobotTextBox
-			{
-				VerticalContentAlignment = VerticalAlignment.Center,
-				Tag = settingName,
-				MaxLength = length
-			};
-		}
-		public static AdvobotTextBox CreateSystemInfoBox()
-		{
-			return new AdvobotTextBox
-			{
-				IsReadOnly = true,
-				BorderThickness = new Thickness(0, .5, 0, .5),
-				Background = null,
-			};
-		}
 		public static AdvobotTextBox CreateUserBox(IUser user)
 		{
 			return user == null ? null : new AdvobotTextBox

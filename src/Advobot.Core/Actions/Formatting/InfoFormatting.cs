@@ -211,9 +211,9 @@ namespace Advobot.Core.Actions.Formatting
 				.AppendLineFeed($"**Memory Usage:** `{GetActions.GetMemory().ToString("0.00")}MB`")
 				.AppendLineFeed($"**Thread Count:** `{Process.GetCurrentProcess().Threads.Count}`");
 
-			var firstField = logModule.FormatLoggedUserActions(false).Trim('\n', '\r');
-			var secondField = logModule.FormatLoggedMessageActions(false).Trim('\n', '\r');
-			var thirdField = logModule.FormatLoggedCommands(false).Trim('\n', '\r');
+			var firstField = logModule.FormatLoggedUserActions(true, false).Trim('\n', '\r');
+			var secondField = logModule.FormatLoggedMessageActions(true, false).Trim('\n', '\r');
+			var thirdField = logModule.FormatLoggedCommands(true, false).Trim('\n', '\r');
 
 			return new AdvobotEmbed(null, desc.ToString())
 				.AddAuthor(client.CurrentUser)

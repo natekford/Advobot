@@ -1,10 +1,8 @@
 ﻿using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Media;
 
 namespace Advobot.UILauncher.Classes
@@ -29,11 +27,6 @@ namespace Advobot.UILauncher.Classes
 			this.BorderBrush = null;
 		}
 
-		public static AdvobotButton CreateButtonFromEnum<T>(T val) where T : struct, IConvertible, IComparable, IFormattable
-		{
-			return new AdvobotButton { Content = Enum.GetName(typeof(T), val), Tag = val, };
-		}
-
 		public static Style MakeButtonStyle(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB, Brush mouseOverBG)
 		{
 			//Yes, this is basically the old XAML of a button put into code.
@@ -49,7 +42,7 @@ namespace Advobot.UILauncher.Classes
 			var templateBorder = new FrameworkElementFactory
 			{
 				Type = typeof(Border),
-				Name = "Border",
+				Name = nameof(Border),
 			};
 			templateBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1));
 			templateBorder.SetValue(Border.BackgroundProperty, regBG);
@@ -62,8 +55,54 @@ namespace Advobot.UILauncher.Classes
 				TargetType = typeof(Button),
 				VisualTree = templateBorder,
 			};
+
 			//Add in the triggers
-			MakeButtonTriggers(regBG, regFG, regB, disabledBG, disabledFG, disabledB, mouseOverBG).ForEach(x => template.Triggers.Add(x));
+			var isMouseOverTrigger = new Trigger
+			{
+				Property = Button.IsMouseOverProperty,
+				Value = true,
+			};
+			new List<Setter>
+			{
+				new Setter
+				{
+					TargetName = nameof(Border),
+					Property = Border.BackgroundProperty,
+					Value = mouseOverBG,
+				},
+			}.ForEach(x => isMouseOverTrigger.Setters.Add(x));
+
+			var isEnabledTrigger = new Trigger
+			{
+				Property = Button.IsEnabledProperty,
+				Value = false,
+			};
+			new List<Setter>
+			{
+				new Setter
+				{
+					TargetName = nameof(Border),
+					Property = Border.BackgroundProperty,
+					Value = disabledBG,
+				},
+				new Setter
+				{
+					TargetName = nameof(Border),
+					Property = Border.BorderBrushProperty,
+					Value = disabledB,
+				},
+				new Setter
+				{
+					Property = Button.ForegroundProperty,
+					Value = disabledFG,
+				},
+			}.ForEach(x => isEnabledTrigger.Setters.Add(x));
+
+			new List<Trigger>
+			{
+				isMouseOverTrigger,
+				isEnabledTrigger,
+			}.ForEach(x => template.Triggers.Add(x));
 
 			var buttonFocusRectangle = new FrameworkElementFactory
 			{
@@ -120,52 +159,6 @@ namespace Advobot.UILauncher.Classes
 			}.ForEach(x => buttonStyle.Setters.Add(x));
 
 			return buttonStyle;
-		}
-		public static List<Trigger> MakeButtonTriggers(Brush regBG, Brush regFG, Brush regB, Brush disabledBG, Brush disabledFG, Brush disabledB, Brush mouseOverBG)
-		{
-			//This used to have 5 triggers until I realized how useless a lot of them were.
-			var isMouseOverTrigger = new Trigger
-			{
-				Property = Button.IsMouseOverProperty,
-				Value = true,
-			};
-			new List<Setter>
-			{
-				new Setter
-				{
-					TargetName = "Border",
-					Property = Border.BackgroundProperty,
-					Value = mouseOverBG,
-				},
-			}.ForEach(x => isMouseOverTrigger.Setters.Add(x));
-
-			var isEnabledTrigger = new Trigger
-			{
-				Property = Button.IsEnabledProperty,
-				Value = false,
-			};
-			new List<Setter>
-			{
-				new Setter
-				{
-					TargetName = "Border",
-					Property = Border.BackgroundProperty,
-					Value = disabledBG,
-				},
-				new Setter
-				{
-					TargetName = "Border",
-					Property = Border.BorderBrushProperty,
-					Value = disabledB,
-				},
-				new Setter
-				{
-					Property = Button.ForegroundProperty,
-					Value = disabledFG,
-				},
-			}.ForEach(x => isEnabledTrigger.Setters.Add(x));
-
-			return new List<Trigger> { isMouseOverTrigger, isEnabledTrigger };
 		}
 	}
 }

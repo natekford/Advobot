@@ -23,145 +23,6 @@ namespace Advobot.UILauncher.Classes.AdvobotWindow
 {
 	public partial class AdvobotWindow : Window
 	{
-		private async void AttemptToLogin(object sender, RoutedEventArgs e)
-		{
-			await HandleInput(null);
-			await HandleInput(null);
-		}
-		private async void UpdateMenus(object sender, EventArgs e)
-		{
-			var guilds = await _Client.GetGuildsAsync();
-			var users = await Task.WhenAll(guilds.Select(async g => await g.GetUsersAsync()));
-
-			((TextBox)_Latency.Child).Text = $"Latency: {ClientActions.GetLatency(_Client)}ms";
-			((TextBox)_Memory.Child).Text = $"Memory: {GetActions.GetMemory().ToString("0.00")}MB";
-			((TextBox)_Threads.Child).Text = $"Threads: {Process.GetCurrentProcess().Threads.Count}";
-			((TextBox)_Guilds.Child).Text = $"Guilds: {guilds.Count}";
-			((TextBox)_Users.Child).Text = $"Members: {users.SelectMany(x => x).Select(x => x.Id).Distinct().Count()}";
-			_InfoOutput.Document = UIModification.MakeInfoMenu(_Logging);
-		}
-		private void Pause(object sender, RoutedEventArgs e)
-		{
-			UIBotWindowLogic.PauseBot(_BotSettings);
-		}
-		private void Restart(object sender, RoutedEventArgs e)
-		{
-			switch (MessageBox.Show("Are you sure you want to restart the bot?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
-			{
-				case MessageBoxResult.OK:
-				{
-					ClientActions.RestartBot();
-					return;
-				}
-			}
-		}
-		private void Disconnect(object sender, RoutedEventArgs e)
-		{
-			switch (MessageBox.Show("Are you sure you want to disconnect the bot?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
-			{
-				case MessageBoxResult.OK:
-				{
-					ClientActions.DisconnectBot(_Client);
-					return;
-				}
-			}
-		}
-
-		private async void SaveSettings(object sender, RoutedEventArgs e)
-		{
-			await SettingModification.SaveSettings(_SettingsLayout, _Client, _BotSettings);
-		}
-		private void SaveColors(object sender, RoutedEventArgs e)
-		{
-			foreach (var child in _ColorsLayout.GetChildren())
-			{
-				if (child is AdvobotTextBox tb && tb.Tag is ColorTarget target)
-				{
-					var childText = tb.Text;
-					if (String.IsNullOrWhiteSpace(childText))
-					{
-						continue;
-					}
-					else if (!childText.StartsWith("#"))
-					{
-						childText = "#" + childText;
-					}
-
-					Brush brush = null;
-					try
-					{
-						brush = UIModification.MakeBrush(childText);
-					}
-					catch
-					{
-						ConsoleActions.WriteLine($"Invalid color supplied for {target.EnumName()}.");
-						continue;
-					}
-
-					_UISettings.ColorTargets[target] = brush;
-					tb.Text = UIModification.FormatBrush(brush);
-					ConsoleActions.WriteLine($"Successfully updated the color for {target.EnumName()}.");
-				}
-				else if (child is ComboBox cb && cb.SelectedItem is AdvobotTextBox tb2 && tb2.Tag is ColorTheme theme)
-				{
-					_UISettings.SetTheme(theme);
-					ConsoleActions.WriteLine("Successfully updated the theme type.");
-				}
-			}
-
-			_UISettings.SaveSettings();
-			_UISettings.ActivateTheme();
-			ColorSettings.SwitchElementColorOfChildren(_Layout);
-		}
-		private async void AddTrustedUser(object sender, RoutedEventArgs e)
-		{
-			await SettingModification.AddTrustedUserToComboBox(_TrustedUsersComboBox, _Client, _TrustedUsersAddBox.Text);
-			_TrustedUsersAddBox.Text = null;
-		}
-		private void RemoveTrustedUser(object sender, RoutedEventArgs e)
-		{
-			SettingModification.RemoveTrustedUserFromComboBox(_TrustedUsersComboBox);
-		}
-
-		private async void AcceptInput(object sender, KeyEventArgs e)
-		{
-			var text = _Input.Text;
-			if (String.IsNullOrWhiteSpace(text))
-			{
-				_InputButton.IsEnabled = false;
-				return;
-			}
-
-			if (e.Key.Equals(Key.Enter) || e.Key.Equals(Key.Return))
-			{
-				await HandleInput(UICommandHandler.GatherInput(_Input, _InputButton));
-			}
-			else
-			{
-				_InputButton.IsEnabled = true;
-			}
-		}
-		private async void AcceptInput(object sender, RoutedEventArgs e)
-		{
-			await HandleInput(UICommandHandler.GatherInput(_Input, _InputButton));
-		}
-
-		private async void SaveOutput(object sender, RoutedEventArgs e)
-		{
-			await UIModification.MakeFollowingToolTip(_Layout, _ToolTip, UIBotWindowLogic.SaveOutput(_Output).GetReason());
-		}
-		private void ClearOutput(object sender, RoutedEventArgs e)
-		{
-			switch (MessageBox.Show("Are you sure you want to clear the output window?", Constants.PROGRAM_NAME, MessageBoxButton.OKCancel))
-			{
-				case MessageBoxResult.OK:
-				{
-					_Output.Text = null;
-					return;
-				}
-			}
-		}
-
 		private void OpenOutputSearch(object sender, RoutedEventArgs e)
 		{
 			_OutputSearchComboBox.ItemsSource = AdvobotComboBox.CreateComboBoxSourceOutOfStrings(ConsoleActions.GetWrittenLines().Keys.ToArray());
@@ -276,9 +137,10 @@ namespace Advobot.UILauncher.Classes.AdvobotWindow
 				}
 			}
 		}
+		/*
 		private async void SaveSpecificFile(object sender, RoutedEventArgs e)
 		{
 			await UIModification.MakeFollowingToolTip(_Layout, _ToolTip, UIBotWindowLogic.SaveFile(_SpecificFileDisplay).GetReason());
-		}
+		}*/
 	}
 }

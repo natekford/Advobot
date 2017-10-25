@@ -1,17 +1,14 @@
-﻿using Advobot.Core.Actions.Formatting;
+﻿using Advobot.Core.Actions;
+using Advobot.Core.Actions.Formatting;
 using Advobot.UILauncher.Actions;
-using Advobot.UILauncher.Interfaces;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace Advobot.UILauncher.Classes
 {
-	internal class AdvobotTitleBox : AdvobotTextBox, ITitle
+	internal class AdvobotTitleBox : AdvobotTextBox
 	{
-		public string Title
-		{
-			set => base.Text = value.FormatTitle();
-		}
 		private string _S;
 		public string Summary
 		{
@@ -30,8 +27,16 @@ namespace Advobot.UILauncher.Classes
 			this.IsReadOnly = true;
 			this.BorderThickness = new Thickness(0);
 			this.VerticalAlignment = VerticalAlignment.Center;
+			this.VerticalContentAlignment = VerticalAlignment.Center;
 			this.HorizontalAlignment = HorizontalAlignment.Left;
 			this.TextWrapping = TextWrapping.WrapWithOverflow;
+		}
+		protected override void OnInitialized(EventArgs e)
+		{
+			this.Text = String.IsNullOrWhiteSpace(this.Text)
+				? this.Name.FormatTitle().CaseInsReplace("title", "").Trim() + ":"
+				: this.Text;
+			base.OnInitialized(e);
 		}
 	}
 }

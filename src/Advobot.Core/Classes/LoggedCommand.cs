@@ -14,7 +14,7 @@ namespace Advobot.Core.Classes
 	/// </summary>
 	public class LoggedCommand
 	{
-		private static readonly string _Joiner = Environment.NewLine + new string(' ', 28);
+		private static readonly string _Joiner = "\n" + new string(' ', 28);
 
 		public string Guild { get; private set; }
 		public string Channel { get; private set; }
@@ -137,6 +137,7 @@ namespace Advobot.Core.Classes
 
 			Write();
 			logging.RanCommands.Add(this);
+			logging.AttemptedCommands.Increment();
 		}
 
 		public override string ToString()

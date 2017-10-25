@@ -10,7 +10,6 @@ namespace Advobot.UILauncher
 		private static void Main()
 		{
 			AppDomain.CurrentDomain.UnhandledException += SavingAndLoadingActions.LogUncaughtException;
-			ConsoleActions.CreateWrittenLines();
 			new Application().Run(new AdvobotWindow());
 		}
 	}

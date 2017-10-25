@@ -1,9 +1,6 @@
 ﻿using Advobot.UILauncher.Actions;
 using Advobot.UILauncher.Interfaces;
 using ICSharpCode.AvalonEdit;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 
 namespace Advobot.UILauncher.Classes
 {
