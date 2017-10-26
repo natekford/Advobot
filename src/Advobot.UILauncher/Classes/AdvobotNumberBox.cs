@@ -28,8 +28,9 @@ namespace Advobot.UILauncher.Classes
 
 			var textBeingPasted = e.SourceDataObject.GetData(DataFormats.UnicodeText).ToString();
 			var onlyNums = _NumberRegex.Replace(textBeingPasted, "");
-			this.Text = onlyNums.Substring(0, Math.Min(this.MaxLength, onlyNums.Length));
-			e.CancelCommand();
+			e.DataObject = new DataObject(onlyNums.Substring(0, Math.Min(this.MaxLength - this.Text.Length, onlyNums.Length)));
+			e.Handled = true;
+			//TODO: fix this that got messed up by me
 		}
 	}
 }

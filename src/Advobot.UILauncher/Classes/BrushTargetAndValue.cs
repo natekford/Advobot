@@ -15,7 +15,7 @@ namespace Advobot.UILauncher.Classes
 		public BrushTargetAndValue(ColorTarget target, string colorString)
 		{
 			Target = target;
-			Brush = UIModification.MakeBrush(colorString);
+			Brush = UIModification.MakeSolidColorBrush(colorString);
 		}
 	}
 }

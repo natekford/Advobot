@@ -25,6 +25,7 @@ using System.Windows.Input;
 using Discord.WebSocket;
 using Advobot.UILauncher.Interfaces;
 using Advobot.Core;
+using Advobot.UILauncher.Classes.Converters;
 
 namespace Advobot.UILauncher.Actions
 {
@@ -52,6 +53,10 @@ namespace Advobot.UILauncher.Actions
 		public static void SetColAndSpan(UIElement item, int start = 0, int length = 1)
 		{
 			Grid.SetColumn(item, Math.Max(0, start));
+			Grid.SetColumnSpan(item, Math.Max(1, length));
+		}
+		public static void SetColSpan(UIElement item, int length)
+		{
 			Grid.SetColumnSpan(item, Math.Max(1, length));
 		}
 		public static void AddElement(Grid parent, Grid child, int rowStart, int rowLength, int columnStart, int columnLength, int setRows = 0, int setColumns = 0)
@@ -91,7 +96,7 @@ namespace Advobot.UILauncher.Actions
 				}
 				try
 				{
-					brush = (SolidColorBrush)new BrushConverter().ConvertFrom(input);
+					brush = MakeSolidColorBrush(input);
 				}
 				catch
 				{
@@ -101,29 +106,13 @@ namespace Advobot.UILauncher.Actions
 			}
 			return true;
 		}
-		public static Brush MakeBrush(string input)
+		public static SolidColorBrush MakeSolidColorBrush(string input)
 		{
 			return (SolidColorBrush)new BrushConverter().ConvertFrom(input);
 		}
-		public static bool CheckIfTwoBrushesAreTheSame(Brush b1, Brush b2)
+		public static bool CheckIfTwoBrushesAreTheSame(SolidColorBrush b1, SolidColorBrush b2)
 		{
-			var nullableColor1 = ((SolidColorBrush)b1)?.Color;
-			var nullableColor2 = ((SolidColorBrush)b2)?.Color;
-			var color1IsNull = !nullableColor1.HasValue;
-			var color2IsNull = !nullableColor2.HasValue;
-			if (color1IsNull || color2IsNull)
-			{
-				return color1IsNull && color2IsNull;
-			}
-
-			var color1 = nullableColor1.Value;
-			var color2 = nullableColor2.Value;
-
-			var a = color1.A == color2.A;
-			var r = color1.R == color2.R;
-			var g = color1.G == color2.G;
-			var b = color1.B == color2.B;
-			return a && r && g && b;
+			return b1.Color == b2.Color && b1.Opacity == b2.Opacity;
 		}
 
 		public static void ToggleToolTip(ToolTip ttip)
@@ -207,7 +196,7 @@ namespace Advobot.UILauncher.Actions
 			{
 				Path = new PropertyPath("ActualHeight"),
 				RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(Grid), ancestorLevel),
-				Converter = new Classes.FontSizeConverter(size),
+				Converter = new FontResizeConverter(size),
 			});
 		}
 		/// <summary>
@@ -293,6 +282,49 @@ namespace Advobot.UILauncher.Actions
 			.OrderByDescending(x => x.Tag is GuildFileInformation gfi ? gfi.MemberCount : 0);
 
 			return tv;
+		}
+
+		public static IEnumerable<TextBox> MakeGuildTreeViewItemsSource(IEnumerable<IGuild> guilds)
+		{
+			return null;
+			/*
+			var directoryInfo = GetActions.GetBaseBotDirectory();
+			if (directoryInfo == null || !directoryInfo.Exists)
+			{
+				return tv;
+			}
+
+			tv.ItemsSource = directoryInfo.GetDirectories().Select(dir =>
+			{
+				//Make sure the id leads to a valid non null guild
+				if (!ulong.TryParse(dir.Name, out ulong Id) || !(guilds.FirstOrDefault(x => x.Id == Id) is SocketGuild guild))
+				{
+					return null;
+				}
+
+				var items = dir.GetFiles().Select(file =>
+				{
+					var fileType = UIBotWindowLogic.GetFileType(Path.GetFileNameWithoutExtension(file.Name));
+					return fileType == default ? null : new TreeViewItem
+					{
+						Header = file.Name,
+						Tag = new FileInformation(fileType, file),
+						Background = (Brush)Application.Current.Resources[ColorTarget.BaseBackground],
+						Foreground = (Brush)Application.Current.Resources[ColorTarget.BaseForeground],
+					};
+				}).Where(x => x != null);
+
+				return !items.Any() ? null : new TreeViewItem
+				{
+					Header = guild.FormatGuild(),
+					Tag = new GuildFileInformation(guild.Id, guild.Name, guild.MemberCount),
+					Background = (Brush)Application.Current.Resources[ColorTarget.BaseBackground],
+					Foreground = (Brush)Application.Current.Resources[ColorTarget.BaseForeground],
+					ItemsSource = items,
+				};
+			})
+			.Where(x => x != null)
+			.OrderByDescending(x => x.Tag is GuildFileInformation gfi ? gfi.MemberCount : 0);*/
 		}
 
 		public static bool AppendTextToTextEditorIfPathExists(TextEditor display, TreeViewItem treeItem)

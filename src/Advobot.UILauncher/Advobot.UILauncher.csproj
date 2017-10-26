@@ -26,6 +26,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <LangVersion>latest</LangVersion>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -101,8 +102,8 @@
     <Compile Include="Actions\EntityModification.cs" />
     <Compile Include="Actions\Logic.cs" />
     <Compile Include="Actions\SettingModification.cs" />
-    <Compile Include="AdvobotWindow.xaml.cs">
-      <DependentUpon>AdvobotWindow.xaml</DependentUpon>
+    <Compile Include="AdvobotApplication.xaml.cs">
+      <DependentUpon>AdvobotApplication.xaml</DependentUpon>
     </Compile>
     <Compile Include="Classes\AdvobotButton.cs" />
     <Compile Include="Classes\AdvobotComboBox.cs" />
@@ -112,13 +113,12 @@
     <Compile Include="Classes\AdvobotRun.cs" />
     <Compile Include="Classes\AdvobotTextBox.cs" />
     <Compile Include="Classes\AdvobotTextEditor.cs" />
-    <Compile Include="Classes\AdvobotTitleBox.cs" />
     <Compile Include="Classes\AdvobotWindow\Events.cs" />
     <Compile Include="Classes\AdvobotWindow\Fields.cs" />
     <Compile Include="Classes\AdvobotWindow\Initialization.cs" />
     <Compile Include="Classes\BrushTargetAndValue.cs" />
+    <Compile Include="Classes\Converters\FontResizeConverter.cs" />
     <Compile Include="Classes\FileInformation.cs" />
-    <Compile Include="Classes\Converters\FontSizeConverter.cs" />
     <Compile Include="Classes\GuildInformation.cs" />
     <Compile Include="Classes\Converters\NavigateUriConverter.cs" />
     <Compile Include="Classes\TextBoxStreamWriter.cs" />
@@ -129,6 +129,7 @@
     <Compile Include="Enums\MenuType.cs" />
     <Compile Include="Enums\OtherTarget.cs" />
     <Compile Include="Classes\Extensions\NameOfExtension.cs" />
+    <Compile Include="Enums\TBType.cs" />
     <Compile Include="Interfaces\IFontResizeValue.cs" />
     <Compile Include="Interfaces\ISummary.cs" />
     <Compile Include="Interfaces\IUnescapedText.cs" />
@@ -171,7 +172,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="AdvobotWindow.xaml">
+    <Page Include="AdvobotApplication.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

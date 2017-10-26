@@ -30,9 +30,9 @@ using System.Threading;
 namespace Advobot.UILauncher
 {
 	/// <summary>
-	/// Interaction logic for AdvobotWindow.xaml
+	/// Interaction logic for AdvobotApplication.xaml
 	/// </summary>
-	public partial class AdvobotWindow : Window
+	public partial class AdvobotApplication : Application
 	{
 		private IDiscordClient _Client;
 		private IBotSettings _BotSettings;
@@ -44,12 +44,16 @@ namespace Advobot.UILauncher
 		private CancellationTokenSource _ToolTipCancellationTokenSource;
 		private MenuType _LastButtonClicked;
 
-		public AdvobotWindow()
+		public AdvobotApplication()
 		{
 			InitializeComponent();
 
 			Console.SetOut(new TextBoxStreamWriter(this.Output));
 			ColorSettings.SwitchElementColorOfChildren(this.Layout);
+		}
+		public void RunWithMainWindow()
+		{
+			Run(this.MainWindow);
 		}
 
 		private async void AttemptToLogIn(object sender, RoutedEventArgs e)
@@ -113,7 +117,7 @@ namespace Advobot.UILauncher
 						this.MaxMessageGatherSize.Text = _BotSettings.MaxMessageGatherSize.ToString();
 						this.LogLevel.SelectedItem = llSelected;
 						this.TrustedUsers.ItemsSource = tuSource;
-						
+
 						this.SettingsMenu.Visibility = Visibility.Visible;
 						return;
 					}
@@ -182,14 +186,15 @@ namespace Advobot.UILauncher
 		{
 			if (_BotSettings.Pause)
 			{
+				(e.Source as Button).Content = "Pause";
 				ConsoleActions.WriteLine("The bot is now unpaused.");
-				_BotSettings.TogglePause();
 			}
 			else
 			{
+				(e.Source as Button).Content = "Unpause";
 				ConsoleActions.WriteLine("The bot is now paused.");
-				_BotSettings.TogglePause();
 			}
+			_BotSettings.TogglePause();
 		}
 		private async void AcceptInput(object sender, KeyEventArgs e)
 		{
@@ -281,18 +286,24 @@ namespace Advobot.UILauncher
 						continue;
 					}
 
-					tb.Text = (_ColorSettings[target] = brush).ToString();
-					ConsoleActions.WriteLine($"Successfully updated the color for {target.EnumName()}.");
+					if (!UIModification.CheckIfTwoBrushesAreTheSame(_ColorSettings[target], brush))
+					{
+						tb.Text = (_ColorSettings[target] = brush).ToString();
+						ConsoleActions.WriteLine($"Successfully updated the color for {target.EnumName()}.");
+					}
 				}
 				else if (child is ComboBox cb && cb.SelectedItem is AdvobotTextBox tb2 && tb2.Tag is ColorTheme theme)
 				{
-					_ColorSettings.Theme = theme;
-					ConsoleActions.WriteLine("Successfully updated the theme type.");
+					if (_ColorSettings.Theme != theme)
+					{
+						_ColorSettings.Theme = theme;
+						ConsoleActions.WriteLine("Successfully updated the theme type.");
+					}
 				}
 			}
 
 			_ColorSettings.SaveSettings();
-			ColorSettings.SwitchElementColorOfChildren(this.Layout);
+			//ColorSettings.SwitchElementColorOfChildren(this.Layout);
 		}
 		private async void SaveSettings(object sender, RoutedEventArgs e)
 		{

@@ -5,6 +5,6 @@ namespace Advobot.UILauncher.Enums
 	[Flags]
 	internal enum OtherTarget : uint
 	{
-		Button_Style = (1U << 0),
+		ButtonStyle = (1U << 0),
 	}
 }

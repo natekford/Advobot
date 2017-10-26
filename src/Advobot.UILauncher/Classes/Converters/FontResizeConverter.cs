@@ -2,13 +2,13 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace Advobot.UILauncher.Classes
+namespace Advobot.UILauncher.Classes.Converters
 {
-	internal class FontSizeConverter : IValueConverter
+	internal class FontResizeConverter : IValueConverter
 	{
 		private double _ConvertFactor;
 
-		public FontSizeConverter(double convertFactor)
+		public FontResizeConverter(double convertFactor)
 		{
 			_ConvertFactor = convertFactor;
 		}

@@ -1,4 +1,5 @@
 ﻿using Advobot.Core.Actions;
+using Advobot.Core.Enums;
 using Advobot.Core.Interfaces;
 using Discord;
 using System;
@@ -15,25 +16,30 @@ namespace Advobot.UILauncher.Actions
 		{
 			foreach (var child in parent.GetChildren())
 			{
-				if (child is FrameworkElement ele && ele.Tag is string name && !SaveSetting(ele, name, botSettings))
+				if (child is FrameworkElement ele && !SaveSetting(ele, botSettings))
 				{
-					ConsoleActions.WriteLine($"Failed to save: {name}");
+					ConsoleActions.WriteLine($"Failed to save: {ele.Name}");
 				}
 			}
 			await ClientActions.UpdateGameAsync(client, botSettings);
 		}
-		private static bool SaveSetting(object obj, string settingName, IBotSettings botSettings)
+		private static bool SaveSetting(object obj, IBotSettings botSettings)
 		{
+			//Go through children and not the actual object
 			if (obj is Grid g)
 			{
-				var success = true;
-				foreach (var child in g.Children)
-				{
-					success = success && SaveSetting(child, settingName, botSettings);
-				}
-				return success;
+				return !g.Children.OfType<FrameworkElement>().Select(x => SaveSetting(x, botSettings)).Any(x => !x);
 			}
-			else if (obj is TextBox tb)
+			else if (obj is Viewbox vb)
+			{
+				return SaveSetting(vb.Child, botSettings);
+			}
+			//If object isn't a frameworkele or has no tag then it's not a setting
+			else if (!(obj is FrameworkElement f) || f.Tag == null)
+			{
+				return true;
+			}
+			else if (obj is TextBox tb && tb.Tag is BotSetting tbs)
 			{
 				if (tb.IsReadOnly)
 				{
@@ -41,9 +47,9 @@ namespace Advobot.UILauncher.Actions
 				}
 
 				var text = tb.Text;
-				switch (settingName)
+				switch (tbs)
 				{
-					case nameof(IBotSettings.Prefix):
+					case BotSetting.Prefix:
 					{
 						if (String.IsNullOrWhiteSpace(text))
 						{
@@ -55,7 +61,7 @@ namespace Advobot.UILauncher.Actions
 						}
 						return true;
 					}
-					case nameof(IBotSettings.Game):
+					case BotSetting.Game:
 					{
 						if (botSettings.Game != text)
 						{
@@ -63,7 +69,7 @@ namespace Advobot.UILauncher.Actions
 						}
 						return true;
 					}
-					case nameof(IBotSettings.Stream):
+					case BotSetting.Stream:
 					{
 						if (!RegexActions.CheckIfInputIsAValidTwitchName(text))
 						{
@@ -75,7 +81,7 @@ namespace Advobot.UILauncher.Actions
 						}
 						return true;
 					}
-					case nameof(IBotSettings.ShardCount):
+					case BotSetting.ShardCount:
 					{
 						if (!uint.TryParse(text, out uint num))
 						{
@@ -87,7 +93,7 @@ namespace Advobot.UILauncher.Actions
 						}
 						return true;
 					}
-					case nameof(IBotSettings.MessageCacheCount):
+					case BotSetting.MessageCacheCount:
 					{
 						if (!uint.TryParse(text, out uint num))
 						{
@@ -99,7 +105,7 @@ namespace Advobot.UILauncher.Actions
 						}
 						return true;
 					}
-					case nameof(IBotSettings.MaxUserGatherCount):
+					case BotSetting.MaxUserGatherCount:
 					{
 						if (!uint.TryParse(text, out uint num))
 						{
@@ -111,7 +117,7 @@ namespace Advobot.UILauncher.Actions
 						}
 						return true;
 					}
-					case nameof(IBotSettings.MaxMessageGatherSize):
+					case BotSetting.MaxMessageGatherSize:
 					{
 						if (!uint.TryParse(text, out uint num))
 						{
@@ -123,22 +129,18 @@ namespace Advobot.UILauncher.Actions
 						}
 						return true;
 					}
-					case nameof(IBotSettings.TrustedUsers):
+					case BotSetting.TrustedUsers:
 					{
 						return true;
 					}
 				}
 			}
-			else if (obj is Viewbox vb)
-			{
-				return SaveSetting(vb.Child, settingName, botSettings);
-			}
-			else if (obj is CheckBox cb)
+			else if (obj is CheckBox cb && cb.Tag is BotSetting cbs)
 			{
 				var isChecked = cb.IsChecked.Value;
-				switch (settingName)
+				switch (cbs)
 				{
-					case nameof(IBotSettings.AlwaysDownloadUsers):
+					case BotSetting.AlwaysDownloadUsers:
 					{
 						if (botSettings.AlwaysDownloadUsers != isChecked)
 						{
@@ -148,11 +150,11 @@ namespace Advobot.UILauncher.Actions
 					}
 				}
 			}
-			else if (obj is ComboBox cmb)
+			else if (obj is ComboBox cmb && cmb.Tag is BotSetting cmbs)
 			{
-				switch (settingName)
+				switch (cmbs)
 				{
-					case nameof(IBotSettings.LogLevel):
+					case BotSetting.LogLevel:
 					{
 						if (cmb.SelectedItem is TextBox cmbtb && cmbtb.Tag is LogSeverity ls && botSettings.LogLevel != ls)
 						{
@@ -160,7 +162,7 @@ namespace Advobot.UILauncher.Actions
 						}
 						return true;
 					}
-					case nameof(IBotSettings.TrustedUsers):
+					case BotSetting.TrustedUsers:
 					{
 						var updated = cmb.Items.OfType<TextBox>().Select(x => x?.Tag as ulong? ?? 0).Where(x => x != 0);
 						if (botSettings.TrustedUsers.Except(updated).Any() || updated.Except(botSettings.TrustedUsers).Any())
